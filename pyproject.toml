@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "uk-growth-with-ai"
+version = "0.1.0"
+description = "OG-UK AI-growth scenarios for the UK: Anthropic 'substantial' and the OBR technological-displacement case"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Vahid Ahmadi", email = "vahid@policyengine.org" }]
+dependencies = [
+    "numpy",
+    "pandas",
+    "dask[distributed]",
+]
+
+# ogcore and oguk are deliberately NOT dependencies: they are installed from
+# checkouts (the ramp arms need docs/firm_gamma_tv.patch applied to ogcore's
+# firm.py), and `report`/`obr` must work without them. solve.py imports them
+# lazily at run time.
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+uk-growth-with-ai = "uk_growth_with_ai.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["uk_growth_with_ai"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["uk_growth_with_ai", "tests", "docs", "README.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

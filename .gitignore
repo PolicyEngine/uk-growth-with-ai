@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+.pytest_cache/
+
+# Node / Next
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Agent scratch, regenerated on every dev start
+dashboard/AGENTS.md
+dashboard/CLAUDE.md
+
+# Local run output (the reviewed results live in uk_growth_with_ai/data/)
+results/
+
+.DS_Store
