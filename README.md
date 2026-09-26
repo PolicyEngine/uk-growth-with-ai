@@ -9,9 +9,12 @@ re-running the model.
 | `anthropic` | labour share −3.9pp | +3.1% measured TFP by 2030 (Korinek, Jones, Sacher, Cotter & McCrory 2026, Anthropic Institute WP 2026‑02, Table 3, "substantial") |
 | `obr` | labour share −3.9pp | the GDP **level** unchanged (OBR March 2026 EFO Box 2.2, technological-displacement case) |
 
-Each scenario is run twice, with `gamma` **stepped** and `gamma` **ramped** over
-2026–2030, so the effect of the time-varying-gamma patch (`patches/ogcore-0.17.0-firm-gamma-tv.diff`)
-can be read straight off the results. All runs are **1-sector** (`multi_sector=False`)
+The committed results are the **ramped** runs: `gamma` and `Z` rise linearly over
+2026–2030, which needs the time-varying-gamma patch
+(`patches/ogcore-0.17.0-firm-gamma-tv.diff`); `run --shapes both` also produces
+stepped arms for comparison. Every arm shares the baseline's `alpha_G`, the switch to
+debt targeting is moved to `tG1 = 10` (2036), and `g_y_annual = 0.010` (issues #2, #3,
+#5). All runs are **1-sector** (`multi_sector=False`)
 with `epsilon = 1.0`, so the labour share is exactly `1 − gamma` and the labour-share
 target is hit by construction rather than by calibration.
 
@@ -55,7 +58,8 @@ patch -d "$SITE" -p1 < patches/ogcore-0.17.0-firm-gamma-tv.diff
 
 ```bash
 python -m uk_growth_with_ai run [--only anthropic|obr] [--shapes step|ramp|both] [--out PATH]
-python -m uk_growth_with_ai report [--arm anthropic_ramp|anthropic_step|obr_ramp|obr_step]
+python -m uk_growth_with_ai report [--arm anthropic_ramp|obr_ramp]
+python -m uk_growth_with_ai check [--results PATH]
 python -m uk_growth_with_ai obr
 python -m uk_growth_with_ai dashboard [--check]
 ```
@@ -67,6 +71,8 @@ python -m uk_growth_with_ai dashboard [--check]
   `anthropic` arms) the comparison against Table 3.
 * `obr` — the OG-UK baseline against the OBR's published March 2026 EFO baseline, with
   the component decomposition and the `g_y_annual` mis-sourcing note.
+* `check` — the validation checks from issue #9 on a results file (fiscal rule, common
+  `alpha_G`, potential output vs OBR, Z targets, labour share, solution quality).
 * `dashboard` — writes `dashboard/src/data/aiScenarios.json` and `ukAiPaths.json` from
   the results. `--check` writes nothing and exits 1 if the committed files are stale;
   the test suite runs the same check, so hand edits to those files fail CI.
@@ -87,7 +93,7 @@ uk_growth_with_ai/
   data_access.py  data loading, incl. the vendored trend parameters
   dashboard_data.py  builds the dashboard's data files from the results
   cli.py          run | report | obr | dashboard
-  data/           scenarios.json, trajectories.json, og_uk_params.json,
+  data/           scenarios.json, og_uk_params.json,
                   obr_history.json (OBR chart lines), anthropic_us_2030.json
 patches/          ogcore-0.17.0-firm-gamma-tv.diff
 tests/            pytest over the pure functions and the committed numbers

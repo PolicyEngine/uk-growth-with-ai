@@ -26,6 +26,11 @@ START = 2026
 RAMP_YEARS = 4       # 2026 -> 2030, Anthropic's horizon
 NPER = 5             # periods kept in the results file
 
+# Run settings for the re-run in issue #9 (defaults of `run`; the committed
+# results predate them: own alpha_G per arm, tG1 = 4, g_y_annual = 0.011).
+TG1 = 10             # issue #3: OG-UK's tG1 = 4 switches G to debt targeting in 2030
+G_Y_ANNUAL = 0.010   # issue #5: OBR productivity growth, not potential output (1.1%)
+
 
 @dataclass(frozen=True)
 class Scenario:
@@ -68,5 +73,5 @@ ANTHROPIC_SUBSTANTIAL = {
     "gdp_above_no_ai_pct": 8.3,
     "gdp_growth_pct": 5.4,
     "capital_stock_pct": 13.8,
-    "unemployment_pct": 4.6,
+    "unemployment_pct": 4.6,         # all workers; cognitive workers 4.5
 }

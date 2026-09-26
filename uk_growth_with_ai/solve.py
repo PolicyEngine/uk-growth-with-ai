@@ -34,7 +34,7 @@ from pathlib import Path
 import numpy as np
 
 from .calibrate import solve_scenario
-from .scenarios import EPS, G_BASE, NPER, RAMP_YEARS, SCENARIOS, START
+from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, RAMP_YEARS, SCENARIOS, START, TG1
 
 
 # Written next to the caller by default: `run` must not clobber the committed,
@@ -93,6 +93,9 @@ def diagnostics(tpi: dict, p) -> dict:
     rc = np.abs(np.asarray(tpi["resource_constraint_error"])).reshape(p.T, -1).max(1)
     out = {
         "rc_first5": rc[:NPER].tolist(),
+        # t = 0 (2026) is a reported year, so the max covers it too; the interior
+        # figure is kept for comparison with earlier runs.
+        "rc_max": float(np.nanmax(rc[: p.T - 1])),
         "rc_max_interior": float(np.nanmax(rc[1:p.T - 1])),
         "rc_argmax_interior": int(np.nanargmax(rc[1:p.T - 1]) + 1),
         "rc_nonfinite_periods": int((~np.isfinite(rc)).sum()),
@@ -106,7 +109,18 @@ def diagnostics(tpi: dict, p) -> dict:
 
 
 def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
-            baseline=False) -> dict:
+            baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
+            baseline_spending=False) -> dict:
+    """Solve SS and TPI for one arm.
+
+    ``alpha_G``: G/Y along the transition. None (the baseline) sets it to the
+    arm's own steady-state G/Y; shocked arms pass the baseline's so fiscal
+    policy is common across arms (issue #2).
+
+    ``baseline_spending`` (shocked arms only): hold government spending and
+    transfers at the baseline's LEVELS instead of its G/Y share, the OBR
+    convention of fixed spending plans; debt absorbs the difference.
+    """
     TPI, SS, api, _, _ = handles
     t0 = time.time()
     out_dir = base_dir if baseline else tempfile.mkdtemp()
@@ -117,8 +131,11 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     # inherit the baseline's initial assets and debt.
     p = api._build_specs(START, None, out_dir, base_dir, baseline=baseline,
                          age_specific="pooled", multi_sector=False,
-                         param_overrides={"epsilon": [EPS], "gamma": [gamma_val]})
+                         param_overrides={"epsilon": [EPS], "gamma": [gamma_val],
+                                          "tG1": tG1, "g_y_annual": g_y_annual})
     p.TPI_outer_method = "anderson"
+    if baseline_spending and not baseline:
+        p.baseline_spending = True   # reads G, TR, I_g from base_dir's TPI output
     T = p.T + p.S
     up = np.minimum(np.arange(T) / RAMP_YEARS, 1.0)[:, None]
     if ramp:
@@ -133,7 +150,11 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     ss = SS.run_SS(p, client=client)
     with open(os.path.join(out_dir, "SS", "SS_vars.pkl"), "wb") as f:
         pickle.dump(ss, f)
-    p.alpha_G = np.full(p.T + p.S, float(ss["G"] / ss["Y"]))
+    if alpha_G is None:
+        alpha_G = float(ss["G"] / ss["Y"])
+    p.alpha_G = np.full(p.T + p.S, alpha_G)
+    print(f"  alpha_G = {alpha_G:.4f} ({'own SS' if baseline else 'baseline'}), "
+          f"tG1 = {p.tG1}, g_y_annual = {g_y_annual}", flush=True)
     TPI.run_TPI(p, client=client)
     with open(os.path.join(out_dir, "TPI", "TPI_vars.pkl"), "rb") as f:
         tpi = pickle.load(f)
@@ -144,6 +165,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         "g_n_used": np.asarray(p.g_n)[:NPER].tolist(),
         "g_y_annual_used": float(p.g_y_annual) if np.ndim(p.g_y_annual) == 0
         else float(np.asarray(p.g_y_annual).ravel()[0]),
+        "alpha_G_used": alpha_G, "tG1_used": int(p.tG1),
+        "baseline_spending": bool(p.baseline_spending),
         "diagnostics": diagnostics(tpi, p),
         **{v: np.asarray(tpi[v])[:NPER].tolist()
            for v in ("Y", "K", "L", "w", "r", "C", "I", "G", "D", "total_tax_revenue")
@@ -155,7 +178,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     return rec
 
 
-def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT) -> dict:
+def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False,
+                  tG1=TG1, g_y_annual=G_Y_ANNUAL, baseline_spending=False) -> dict:
     """Run the baseline plus the requested shocked arms, writing ``out`` as it goes."""
     handles = _load_oguk()
     TPI, SS, api, Client, LocalCluster = handles
@@ -170,8 +194,11 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT) -> dict:
         os.makedirs(os.path.join(base_dir, sub), exist_ok=True)
 
     res = {"provenance": provenance(TPI, api)}
+    settings = {"tG1": tG1, "g_y_annual": g_y_annual}
     res["baseline"] = run_arm("baseline", G_BASE, False, None, base_dir, client,
-                              handles, baseline=True)
+                              handles, baseline=True, **settings)
+    out.write_text(json.dumps(res, indent=1))
+    alpha_G = res["baseline"]["alpha_G_used"]
     K0, L0 = res["baseline"]["K"][0], res["baseline"]["L"][0]
 
     # Z is SOLVED jointly with gamma, never assumed: see calibrate.
@@ -185,6 +212,13 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT) -> dict:
           f"\n  Z solved, anthropic (+3.1% joint) : {cal['anthropic']['Z']:.6f}"
           f"\n  Z solved, obr (GDP level unchanged): {cal['obr']['Z']:.6f}", flush=True)
 
+    if baseline_only:
+        res["assumptions"] = {"Z_anthropic": cal["anthropic"]["Z"], "Z_obr": cal["obr"]["Z"],
+                              "gamma_only_output_gain": gonly, **settings}
+        out.write_text(json.dumps(res, indent=1))
+        print("\nBASELINE ONLY: stopping before the shocked arms", flush=True)
+        return res
+
     ramps = [False, True] if shapes == "both" else [shapes == "ramp"]
     plan = [n for n in ("anthropic", "obr") if only in (None, n)]
     for scen in plan:
@@ -192,7 +226,8 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT) -> dict:
             key = f"{scen}_{'ramp' if ramp else 'step'}"
             try:
                 res[key] = run_arm(key, cal[scen]["gamma"], ramp, cal[scen]["Z"],
-                                   base_dir, client, handles)
+                                   base_dir, client, handles, alpha_G=alpha_G,
+                                   baseline_spending=baseline_spending, **settings)
             except Exception as e:
                 res[key] = {"error": f"{type(e).__name__}: {e}"}
                 print(f"FAILED {type(e).__name__}: {e}", flush=True)
@@ -205,6 +240,9 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT) -> dict:
         "anthropic_target": SCENARIOS["anthropic"].target,
         "obr_target": SCENARIOS["obr"].target,
         "counterfactual": "shocked arms inherit baseline initial assets and debt",
+        "fiscal": ("shocked arms hold G and TR at the baseline's levels (baseline_spending)"
+                   if baseline_spending else "every arm uses the baseline's alpha_G"),
+        **settings,
     }
     out.write_text(json.dumps(res, indent=1))
     print("\nDONE", flush=True)

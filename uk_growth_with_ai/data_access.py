@@ -1,15 +1,12 @@
 """Locating and loading the packaged data files.
 
-``data/scenarios.json``   the committed, reviewed model results (all five arms)
-``data/trajectories.json`` derived chart data, owned by ``dashboard/``
-``data/og_uk_params.json`` the trend parameters (g_n, g_y_annual) vendored from
-                          the OG-UK checkout used for the committed run
+``data/scenarios.json``   the committed, reviewed model results (baseline + ramp arms)
+``data/og_uk_params.json`` OG-UK's default trend parameters (g_n, g_y_annual),
+                          vendored from the OG-UK checkout
 
-The trend parameters are vendored because both original scripts re-trended the
-detrended model output with the OG-UK DEFAULT g_n, not with the ``g_n_used``
-recorded in the results file.  Reading them from the package keeps every
-published number reproducible without an OG-UK checkout on the machine;
-``oguk_dir`` re-reads the live file instead.
+Re-trending uses the ``g_n_used`` and ``g_y_annual_used`` each results file
+records (issue #4). The vendored defaults remain for results files that
+predate those fields.
 """
 
 from __future__ import annotations
@@ -29,22 +26,22 @@ def load_results(path=None) -> dict:
     return json.loads(Path(path or DEFAULT_RESULTS).read_text())
 
 
-def load_trajectories(path=None) -> dict:
-    """Derived chart data (written for the dashboard)."""
-    return json.loads(Path(path or DATA / "trajectories.json").read_text())
-
-
 def _flat(params: dict, name: str) -> np.ndarray:
     v = params[name]
     return np.asarray(v["value"] if isinstance(v, dict) and "value" in v else v).ravel()
 
 
-def load_trend_params(oguk_dir=None) -> tuple[np.ndarray, float]:
-    """Return ``(g_n, g_y_annual)``.
+def load_trend_params(oguk_dir=None, results=None) -> tuple[np.ndarray, float]:
+    """Return ``(g_n, g_y_annual)`` for re-trending model output.
 
-    With ``oguk_dir`` the live ``oguk_default_parameters.json`` is read; without
-    it the vendored copy is used, which carries identical values.
+    With ``results`` (a results dict), the values the run actually used are
+    returned: the baseline's ``g_n_used`` and ``g_y_annual_used`` (issue #4).
+    Otherwise ``oguk_dir``'s live ``oguk_default_parameters.json`` or the
+    vendored copy is read; those are OG-UK defaults, not what a run used.
     """
+    if results is not None and "g_n_used" in results.get("baseline", {}):
+        b = results["baseline"]
+        return np.asarray(b["g_n_used"], dtype=float), float(b["g_y_annual_used"])
     if oguk_dir:
         params = json.loads(
             (Path(oguk_dir) / "oguk" / "oguk_default_parameters.json").read_text()
