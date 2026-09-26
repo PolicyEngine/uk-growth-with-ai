@@ -91,12 +91,12 @@ export const STEPS = [
               <p>OG-UK is a structural macro model and inherits the simplifications of that class. The caveats for reading its outputs:</p>
               <ul class="intro-list">
                 <li><strong>Smoothed tax functions, not statutory bands.</strong> A single Gouveia&ndash;Strauss function, fitted to PolicyEngine-UK output, folds in income tax and National Insurance. Reforms that change <em>average</em> liability across the income distribution flow through cleanly; reforms whose mechanism is the kink itself (a new threshold, an allowance taper change) come through only to the extent the smoothed function shifts.</li>
-                <li><strong>Permanent ability types, no earnings risk.</strong> OG-UK uses J&nbsp;=&nbsp;7 deterministic ability types. There is no idiosyncratic earnings shock within a type, so precautionary savings and earnings-risk-driven inequality are not a channel here. This is a deliberate trade-off &mdash; see the OBR-comparison tab for the alternative.</li>
+                <li><strong>Permanent ability types, no earnings risk.</strong> OG-UK uses J&nbsp;=&nbsp;7 deterministic ability types. There is no idiosyncratic earnings shock within a type, so precautionary savings and earnings-risk-driven inequality are not a channel here. This is a deliberate trade-off &mdash; the OBR&rsquo;s own UK OLG model (<a href="/papers/obr-working-paper-22.pdf" target="_blank" rel="noreferrer">Working Paper No.&nbsp;22</a>) takes the alternative.</li>
                 <li><strong>UK as a single entity.</strong> The model calibrates to UK-wide aggregates; there is no England / Scotland / Wales / Northern&nbsp;Ireland breakdown. Devolved tax differentials and reforms with explicit regional incidence sit below the model&rsquo;s granularity.</li>
                 <li><strong>Reforms are step changes.</strong> A PolicyEngine reform sets parameter values from a start date and they hold thereafter. Phased introductions, sunset clauses or year-on-year indexation changes need explicit scripting; they are not the default.</li>
                 <li><strong>Truncated horizon.</strong> The default 60-period transition assumes the steady state arrives by year 60. Effects that play out over longer horizons collapse into the steady-state anchor.</li>
               </ul>
-              <p>None of these are model bugs &mdash; they are choices that make the macro accounting tractable. Worth knowing when reading the Showcase tab&rsquo;s charts.</p>
+              <p>None of these are model bugs &mdash; they are choices that make the macro accounting tractable. Worth knowing when reading the charts on the UK growth with AI tab.</p>
 `,
   },
   ]

@@ -9,7 +9,7 @@ export default function ObrNumbers() {
   );
 }
 
-const BODY = `<p class="obrv-lede">The no-AI baseline that every scenario on the results tab is measured against, checked against the OBR&rsquo;s March 2026 EFO.</p>
+const BODY = `<p class="obrv-lede">The no-AI baseline that every scenario on the UK growth with AI tab is measured against, checked against the OBR&rsquo;s March 2026 EFO.</p>
               <table class="obrv-table">
                 <thead>
                   <tr>
