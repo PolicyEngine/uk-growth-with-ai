@@ -1087,3 +1087,5 @@
 /* OBR baseline comparison, promoted from the methodology narrative to its own sub-tab */
 .obrv-wrap { max-width: 900px; }
 .obrv-wrap > h3 { margin-top: 0; }
+
+.panel-grid.cols-1 { grid-template-columns: 1fr; }

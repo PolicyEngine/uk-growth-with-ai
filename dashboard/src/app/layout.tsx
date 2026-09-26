@@ -60,7 +60,8 @@ export default function RootLayout({
           src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
           crossOrigin="anonymous"
         />
-      </head>
+              <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charSet="utf-8" defer />
+</head>
       <body>{children}</body>
     </html>
   );

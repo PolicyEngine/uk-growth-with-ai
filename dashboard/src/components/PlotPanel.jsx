@@ -85,6 +85,9 @@ export default function PlotPanel({ panel, firstNames = [], visible = true }) {
 
     const layout = baseLayout(panel.title);
     layout.shapes = buildShapes(panel.shapes);
+    // Panels can ask for a zero-based y axis. Left off by default so the
+    // template's own charts keep their tight auto-range.
+    if (panel.yRangeMode) layout.yaxis.rangemode = panel.yRangeMode;
     layout.showlegend = false;
 
     window.Plotly.newPlot(el, traces, layout, { displayModeBar: false, responsive: true });

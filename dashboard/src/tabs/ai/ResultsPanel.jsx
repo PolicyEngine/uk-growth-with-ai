@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Select from '@/components/Select.jsx';
+import HistoricalPaths from '@/tabs/ai/HistoricalPaths.jsx';
 import SvgFigure from '@/components/SvgFigure.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import FIGURE_SVGS from '@/data/aiFigureSvgs.js';
@@ -50,6 +51,8 @@ export default function ResultsPanel() {
 
   return (
     <>
+      <HistoricalPaths />
+
       <div className="section-card">
         <div className="results-note lead">
           <b>Every result on this page is 1-sector.</b> <code>multi_sector=False</code> in{' '}
