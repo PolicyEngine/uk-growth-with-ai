@@ -9,6 +9,9 @@ Inputs, all in ``data/``:
 ``og_uk_params.json``       trend parameters used to re-trend detrended output
 ``obr_history.json``        OBR outturn/forecast lines and chart panel layout
 ``anthropic_us_2030.json``  Anthropic's published US 2030 endpoints
+``scenarios_fixed_spending.json``  optional: the same arms with government
+                            spending and transfers held at baseline levels
+                            (``run --baseline-spending``), the OBR convention
 
 ``python -m uk_growth_with_ai dashboard`` writes both files; ``--check`` fails if
 the committed files differ from what the results produce.
@@ -72,6 +75,31 @@ def ai_scenarios(results=None, oguk_dir=None) -> dict:
         "anth": _read("anthropic_us_2030.json")["scenarios"],
         "assum": res["assumptions"],
         "derivation": DERIVATION,
+        **({"fixed_spending": fs} if (fs := fixed_spending(res)) else {}),
+    }
+
+
+def fixed_spending(results=None) -> dict | None:
+    """% gaps vs baseline, 2026-2030, under fixed spending plans, with the
+    common-G/Y run alongside for comparison. None if the run is absent."""
+    path = DATA / "scenarios_fixed_spending.json"
+    if not path.exists():
+        return None
+    fs = json.loads(path.read_text())
+    res = results if results is not None else load_results()
+
+    def block(r, arm):
+        gap = lambda v: [(r[arm][v][i] / r["baseline"][v][i] - 1) * 100 for i in range(5)]
+        dy = [(r[arm]["D"][i] / r[arm]["Y"][i] - r["baseline"]["D"][i] / r["baseline"]["Y"][i]) * 100
+              for i in range(5)]
+        return {"Y_gap": gap("Y"), "C_gap": gap("C"), "I_gap": gap("I"), "G_gap": gap("G"),
+                "tax_gap": gap("total_tax_revenue"), "D_gap": gap("D"), "debt_gdp_pp": dy}
+
+    shocked = [a for a in ARMS if a != "baseline"]
+    return {
+        "note": fs["assumptions"].get("fiscal", ""),
+        "arms": {a: block(fs, a) for a in shocked},
+        "common_gy": {a: block(res, a) for a in shocked},
     }
 
 

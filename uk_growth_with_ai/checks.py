@@ -10,9 +10,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from .calibrate import gamma_only_gain
 from .obr import OBR_BASELINE
-from .scenarios import G_BASE, SCENARIOS
+from .scenarios import G_BASE
 
 SHOCKED = ["obr_ramp", "anthropic_ramp"]
 YEARS = [2026, 2027, 2028, 2029, 2030]
@@ -61,13 +60,14 @@ def baseline_checks(res, r):
     print("\nZ re-solved against this baseline")
     a = res.get("assumptions", {})
     K0, L0 = b["K"][0], b["L"][0]
-    g1 = 1.0 - ((1.0 - G_BASE) - SCENARIOS["anthropic"].labour_share_fall_pp / 100)
-    gonly = gamma_only_gain(K0, L0, G_BASE, g1)
+    # Independent of calibrate.py: at fixed K0, L0 the joint move is
+    # Z * (K0/L0)^(gamma1 - gamma0) - 1.
+    g1 = a.get("gamma_shocked", 0.389)
+    fixed_input_gain = lambda Z: (Z * (K0 / L0) ** (g1 - G_BASE) - 1) * 100
     if "Z_anthropic" in a:
-        tfp_a = (a["Z_anthropic"] * (1 + gonly) - 1) * 100
-        tfp_o = (a["Z_obr"] * (1 + gonly) - 1) * 100
-        r.check(abs(tfp_a - 3.1) < 1e-6, f"Anthropic: TFP at fixed inputs {tfp_a:+.4f}% (target +3.1%), Z = {a['Z_anthropic']:.6f}")
-        r.check(abs(tfp_o) < 1e-6, f"OBR: GDP at fixed inputs {tfp_o:+.4f}% (target 0%), Z = {a['Z_obr']:.6f}")
+        tfp_a, tfp_o = fixed_input_gain(a["Z_anthropic"]), fixed_input_gain(a["Z_obr"])
+        r.check(abs(tfp_a - 3.1) < 1e-6, f"Anthropic: output at fixed inputs {tfp_a:+.4f}% (target +3.1%), Z = {a['Z_anthropic']:.6f}")
+        r.check(abs(tfp_o) < 1e-6, f"OBR-style: output at fixed inputs {tfp_o:+.4f}% (target 0%), Z = {a['Z_obr']:.6f}")
     else:
         r.line("FAIL", "no Z values in 'assumptions'")
 
@@ -103,9 +103,13 @@ def shocked_checks(res, r):
         d = res[a]["diagnostics"]
         r.check(d["rc_nonfinite_periods"] == 0 and d["rc_max_interior"] < 1e-3
                 and d["euler_savings_max"] < 1e-8 and d["euler_labour_max"] < 1e-8,
-                f"{a}: resource constraint max {d['rc_max_interior']:.1e}, "
+                f"{a}: resource constraint max 2027+ {d['rc_max_interior']:.1e}, "
                 f"Euler {max(d['euler_savings_max'], d['euler_labour_max']):.1e}, "
                 f"{res[a]['elapsed_min']:.0f} min")
+        rc0 = d["rc_first5"][0]
+        r.line("INFO", f"{a}: 2026 resource-constraint error {rc0:.1e} "
+                       f"= {rc0 / res[a]['Y'][0] * 100:.2f}% of 2026 GDP "
+                       f"(levels and ratios in 2026 carry it; gaps vs baseline do not)")
 
     print("\nGDP gap vs baseline (%), for the before/after table")
     for a in arms:

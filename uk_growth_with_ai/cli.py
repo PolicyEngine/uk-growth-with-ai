@@ -25,6 +25,8 @@ def main(argv=None) -> int:
                        help=f"period G switches to debt targeting (default {TG1}; OG-UK's is 4)")
     p_run.add_argument("--g-y-annual", type=float, default=G_Y_ANNUAL,
                        help=f"labour-augmenting productivity growth (default {G_Y_ANNUAL}; OG-UK's is 0.011)")
+    p_run.add_argument("--baseline-spending", action="store_true",
+                       help="shocked arms keep the baseline's G and TR levels (OBR convention)")
     p_run.add_argument("--out", default=str(DEFAULT_OUT),
                        help="pass uk_growth_with_ai/data/scenarios.json to replace "
                             "the committed results")
@@ -55,7 +57,8 @@ def main(argv=None) -> int:
         from .solve import run_scenarios   # lazy: keeps ogcore off the import path
         run_scenarios(only=args.only, shapes=args.shapes, out=args.out,
                       baseline_only=args.baseline_only, tG1=args.tG1,
-                      g_y_annual=args.g_y_annual)
+                      g_y_annual=args.g_y_annual,
+                      baseline_spending=args.baseline_spending)
     elif args.cmd == "report":
         report_mod.print_report(args.arm, load_results(args.results), args.oguk_dir)
     elif args.cmd == "check":

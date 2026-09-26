@@ -53,8 +53,8 @@ def growth_path(series, g_y: float, g_n: np.ndarray) -> np.ndarray:
 
 
 def labour_share(arm: dict) -> np.ndarray:
-    """w*L/Y. Flat over time because epsilon=1: at Cobb-Douglas the labour
-    share is exactly 1-gamma, so this is purely the automation channel."""
+    """w*L/Y. At epsilon=1 (Cobb-Douglas) it is exactly 1-gamma in every
+    period: flat in the baseline and step arms, falling with the ramp."""
     return (np.array(arm["w"]) * np.array(arm["L"]) / np.array(arm["Y"]))[:5]
 
 
@@ -129,8 +129,8 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
     sl = labour_share_table(arm_name, res)
     for name in sl.index:
         print(f"{name:<16}" + "".join(f"{x:>9.4f}" for x in sl.loc[name]))
-    print("  flat over time because epsilon=1: at Cobb-Douglas the labour share is")
-    print("  exactly 1-gamma, so this is purely the automation channel.")
+    print("  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the")
+    print("  automation channel, imposed rather than produced by the model.")
 
     # Only the anthropic arms are calibrated to Table 3; the OBR arms target an
     # unchanged GDP level instead, so this comparison would be meaningless there.
@@ -143,12 +143,14 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
         print(f"{'measured TFP (%)':<26}{A['measured_tfp_pct']:>10.1f}"
               f"{A['measured_tfp_pct']:>10.1f}   input, matched")
         print(f"{'GDP vs no-AI (%)':<26}{A['gdp_above_no_ai_pct']:>10.1f}"
-              f"{s['gdp_gap_2030_pct']:>10.1f}   we overshoot")
+              f"{s['gdp_gap_2030_pct']:>10.1f}   "
+              f"{'we overshoot' if s['gdp_gap_2030_pct'] > A['gdp_above_no_ai_pct'] else 'we undershoot'}")
         print(f"{'GDP growth (%)':<26}{A['gdp_growth_pct']:>10.1f}"
-              f"{s['growth_2030_pct']:>10.2f}   we undershoot")
+              f"{s['growth_2030_pct']:>10.2f}   "
+              f"{'we overshoot' if s['growth_2030_pct'] > A['gdp_growth_pct'] else 'we undershoot'}")
         print(f"{'capital stock (%)':<26}{A['capital_stock_pct']:>10.1f}"
               f"{s['capital_gap_2030_pct']:>10.1f}")
-        print(f"{'unemployment (%)':<26}{A['unemployment_pct']:>10.1f}{'—':>10}"
+        print(f"{'unemployment, all workers (%)':<26}{A['unemployment_pct']:>10.1f}{'—':>10}"
               "   not modelled")
         # True of the step arms only: that diagnosis is what motivated the ramp.
         if arm["gamma_shape"] == "step":

@@ -2,7 +2,7 @@
 
 OBR figures, March 2026 Economic and fiscal outlook:
   para 1.2   productivity growth 1.0% medium term; labour supply 0.5% by 2030
-  para 1.10  GDP growth averages 1.6% a year from 2027 to 2030
+  para 1.9   GDP growth averages 1.6% a year from 2027 to 2030
   para 2.10  potential output growth 1.2% in 2026 rising to 1.5% in 2030
 https://assets.publishing.service.gov.uk/media/69a6d7b62e1f4fbda4252208/economic-and-fiscal-outlook-march-2026-web-accessible.pdf
 """
@@ -45,9 +45,17 @@ def compare(results=None, oguk_dir=None) -> dict:
     potential = lambda t: (np.exp(g_y) * (1 + g_n[t]) - 1) * 100
     components = [
         ("productivity growth, medium term", OBR_BASELINE["productivity_medium_term"], prod),
-        ("labour supply growth, 2030", OBR_BASELINE["labour_supply_2030"], g_n[3] * 100),
-        ("potential output growth, 2030", OBR_BASELINE["potential_output_2030"], potential(3)),
-        ("potential output growth, 2026 (model: 2026->27)",
+        # g_n is growth of the model population aged 21-100, not labour supply;
+        # g_y + g_n is the balanced-growth rate, not potential output. OBR
+        # labour supply is lower than population growth because ageing weighs
+        # on participation and hours (EFO para 1.10); in the model that shows
+        # up as falling labour input per person, which is why realised growth
+        # sits below the balanced-growth rate.
+        ("population growth 21-100, 2030 (OBR: labour supply)",
+         OBR_BASELINE["labour_supply_2030"], g_n[3] * 100),
+        ("balanced-growth rate, 2030 (OBR: potential output)",
+         OBR_BASELINE["potential_output_2030"], potential(3)),
+        ("balanced-growth rate, 2026->27 (OBR: potential 2026)",
          OBR_BASELINE["potential_output_2026"], potential(0)),
     ]
     return {
@@ -71,13 +79,13 @@ def print_comparison(results=None, oguk_dir=None) -> dict:
     for y, x in zip(c["years"], growth):
         print(f"{y:>6}{x:>8.2f}%")
     print(f"\n  OG-UK 2027-30 mean : {c['mean']:.2f}%")
-    print(f"  OBR  2027-30 mean  : {c['obr_mean']:.2f}%   (EFO para 1.10)")
+    print(f"  OBR  2027-30 mean  : {c['obr_mean']:.2f}%   (EFO para 1.9)")
     print(f"  difference         : {c['difference']:+.2f}pp")
 
     print("\nCOMPONENTS — where the agreement breaks down\n")
-    print(f"{'':<50}{'OBR':>8}{'OG-UK':>9}{'gap':>9}")
+    print(f"{'':<54}{'OBR':>8}{'OG-UK':>9}{'gap':>9}")
     for label, obr, oguk in c["components"]:
-        print(f"{label:<50}{obr:>7.1f}%{oguk:>8.2f}%{oguk - obr:>+8.2f}pp")
+        print(f"{label:<54}{obr:>7.1f}%{oguk:>8.2f}%{oguk - obr:>+8.2f}pp")
 
     if abs(g_y - 0.011) < 1e-12:
         print(

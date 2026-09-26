@@ -73,5 +73,5 @@ ANTHROPIC_SUBSTANTIAL = {
     "gdp_above_no_ai_pct": 8.3,
     "gdp_growth_pct": 5.4,
     "capital_stock_pct": 13.8,
-    "unemployment_pct": 4.6,
+    "unemployment_pct": 4.6,         # all workers; cognitive workers 4.5
 }
