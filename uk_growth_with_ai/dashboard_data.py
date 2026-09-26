@@ -1,13 +1,14 @@
 """Build the dashboard's data files from the committed model results.
 
     dashboard/src/data/aiScenarios.json   indices, labour share, growth, US endpoints
-    dashboard/src/data/ukAiPaths.json     the 2000-2029 chart: OBR history + scenario paths
+    dashboard/src/data/ukAiPaths.json     the 2000-2030 chart: OBR/ONS history + scenario paths
 
 Inputs, all in ``data/``:
 
 ``scenarios.json``          model results (``python -m uk_growth_with_ai run``)
 ``og_uk_params.json``       trend parameters used to re-trend detrended output
-``obr_history.json``        OBR outturn/forecast lines and chart panel layout
+``obr_history.json``        OBR/ONS outturn and March 2026 EFO forecast lines, with
+                            per-panel provenance, and chart panel layout
 ``anthropic_us_2030.json``  Anthropic's published US 2030 endpoints
 ``scenarios_fixed_spending.json``  optional: the same arms with government
                             spending and transfers held at baseline levels
@@ -35,11 +36,11 @@ VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
         ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]
 
-# The 2000-2029 chart shows the scenario paths to 2029 only (issue #3).
-PATH_YEARS = YEARS[:4]
+# The 2000-2030 chart shows the scenario paths over every model year.
+PATH_YEARS = YEARS
 ARM_TRACE = {
     "baseline": ("UK, no AI", "#5a6470"),
-    "obr_ramp": ("UK, OBR displacement", "#2f6fb5"),
+    "obr_ramp": ("UK, OBR-style automation", "#2f6fb5"),
     "anthropic_ramp": ("UK, Anthropic substantial", "#1d7a4c"),
 }
 
@@ -75,7 +76,27 @@ def ai_scenarios(results=None, oguk_dir=None) -> dict:
         "anth": _read("anthropic_us_2030.json")["scenarios"],
         "assum": res["assumptions"],
         "derivation": DERIVATION,
+        "model_ratios": model_ratios(res),
         **({"fixed_spending": fs} if (fs := fixed_spending(res)) else {}),
+    }
+
+
+MODEL_RATIO_NOTE = (
+    "OG-UK's own 2026 baseline ratios to GDP (%, model units). They differ from "
+    "the OBR/ONS data; the UK paths chart applies the model's proportional "
+    "changes in each ratio to the OBR's 2026 level rather than these levels."
+)
+
+
+def model_ratios(results=None) -> dict:
+    """The model's 2026 baseline C/Y, I/Y, G/Y, tax/Y and D/Y, in %."""
+    res = results if results is not None else load_results()
+    b = res["baseline"]
+    return {
+        "year": YEARS[0],
+        "ratios": {v: b[v][0] / b["Y"][0] * 100
+                   for v in ["C", "I", "G", "total_tax_revenue", "D"]},
+        "note": MODEL_RATIO_NOTE,
     }
 
 
@@ -104,25 +125,27 @@ def fixed_spending(results=None) -> dict | None:
 
 
 def uk_paths(results=None, ai=None) -> dict:
-    """Scenario paths rebased to the OBR line at 2026.
+    """Scenario paths rebased to the OBR/ONS line at 2026.
 
     GDP: OBR 2026 level times the scenario's GDP index / 100. Ratios: OBR 2026
     value times the scenario's model ratio over the baseline's 2026 model ratio,
-    so the paths start at the OBR's level and move at the model's rate.
+    so the paths start at the OBR's level and move at the model's rate. The
+    fiscal panels are fiscal years labelled by start year, so 2026 is 2026-27.
     """
     res = results if results is not None else load_results()
     ai = ai if ai is not None else ai_scenarios(res)
     panels = []
+    n = len(PATH_YEARS)
     for p in _read("obr_history.json")["panels"]:
         v, obr = p["var"], p["obr"]
         o26 = dict(zip(obr["x"], obr["y"]))[2026]
         traces = [obr]
         for arm in ARMS:
             if v == "Y":
-                y = [o26 * x / 100 for x in ai["idx"][arm]["Y"][:4]]
+                y = [o26 * x / 100 for x in ai["idx"][arm]["Y"][:n]]
             else:
                 b0 = res["baseline"][v][0] / res["baseline"]["Y"][0]
-                y = [o26 * (res[arm][v][i] / res[arm]["Y"][i]) / b0 for i in range(4)]
+                y = [o26 * (res[arm][v][i] / res[arm]["Y"][i]) / b0 for i in range(n)]
             name, color = ARM_TRACE[arm]
             traces.append({
                 "name": name, "x": PATH_YEARS, "y": [round(x, 3) for x in y],
@@ -131,7 +154,7 @@ def uk_paths(results=None, ai=None) -> dict:
                 "legendgroup": name, "showlegend": True,
             })
         panels.append({"title": p["title"], "traces": traces, "shapes": p["shapes"],
-                       "yRangeMode": p["yRangeMode"]})
+                       "yRangeMode": p["yRangeMode"], "provenance": p["provenance"]})
     return {"panels": panels}
 
 

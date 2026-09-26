@@ -1,10 +1,10 @@
 {
  "panels": [
   {
-   "title": "Consumption (% GDP)",
+   "title": "Consumption, households and NPISH (% GDP)",
    "traces": [
     {
-     "name": "OBR outturn / forecast",
+     "name": "OBR/ONS outturn and March 2026 EFO forecast",
      "x": [
       2000,
       2001,
@@ -35,44 +35,46 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      64.86201231897655,
-      64.04466805224651,
-      63.52546048374277,
-      63.03309482905095,
-      62.51278244646363,
-      62.088716569744285,
-      61.749195004880754,
-      61.487674533450345,
-      63.087856586498056,
-      63.33239740407257,
-      63.80564704095594,
-      63.40677848128752,
-      64.17192381708347,
-      63.951838155366694,
-      63.756002021064404,
-      63.70096875406735,
-      64.09311150115583,
-      63.76090800367158,
-      63.956254318239836,
-      62.61734229288618,
-      57.19769137003104,
-      60.292334854469956,
-      62.66152077791139,
-      61.572049739994824,
-      60.62423423663513,
-      60.96063213042443,
-      60.74250261673182,
-      60.75421822900904,
-      60.960271527296804,
-      61.20466254519208
+      65.7474,
+      65.7865,
+      65.6212,
+      65.106,
+      64.9242,
+      64.2357,
+      63.318,
+      63.2498,
+      63.2299,
+      63.5437,
+      63.5591,
+      63.4935,
+      63.8446,
+      64.1837,
+      63.6854,
+      63.5606,
+      64.0994,
+      63.6418,
+      64.0051,
+      63.2742,
+      58.6623,
+      59.1639,
+      62.1707,
+      62.0931,
+      60.7623,
+      60.5918,
+      60.4774,
+      60.4334,
+      60.6278,
+      60.9381,
+      61.1343
      ],
      "color": "#e67e22",
      "width": 2.5,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.1f}%<extra>Baseline</extra>",
+     "hovertemplate": "%{x}: %{y:.1f}%<extra>OBR/ONS</extra>",
      "legendgroup": "base",
      "showlegend": true
     },
@@ -82,13 +84,15 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      60.743,
-      60.473,
-      60.346,
-      60.196
+      60.477,
+      60.21,
+      60.083,
+      59.933,
+      59.823
      ],
      "color": "#5a6470",
      "width": 2.4,
@@ -98,24 +102,26 @@
      "showlegend": true
     },
     {
-     "name": "UK, OBR displacement",
+     "name": "UK, OBR-style automation",
      "x": [
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      59.582,
-      59.142,
-      58.877,
-      58.633
+      59.322,
+      58.884,
+      58.62,
+      58.377,
+      58.227
      ],
      "color": "#2f6fb5",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR displacement</extra>",
-     "legendgroup": "UK, OBR displacement",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR-style automation</extra>",
+     "legendgroup": "UK, OBR-style automation",
      "showlegend": true
     },
     {
@@ -124,13 +130,15 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      60.306,
-      59.454,
-      58.77,
-      58.084
+      60.043,
+      59.195,
+      58.513,
+      57.831,
+      57.202
      ],
      "color": "#1d7a4c",
      "width": 2.4,
@@ -142,8 +150,8 @@
    ],
    "shapes": [
     {
-     "x0": 2023,
-     "x1": 2023,
+     "x0": 2025,
+     "x1": 2025,
      "color": "#95a5a6",
      "width": 1,
      "dash": "dot"
@@ -156,13 +164,43 @@
      "dash": "dash"
     }
    ],
-   "yRangeMode": "tozero"
+   "yRangeMode": "tozero",
+   "provenance": {
+    "definition": "Private consumption (household final consumption expenditure plus NPISH final consumption), current prices, as % of nominal GDP at market prices.",
+    "source": "OBR, March 2026 Economic and fiscal outlook, detailed forecast tables: economy (file efo-march-2026-detailed-forecast-tables-economy.xlsx, served from https://obr.uk/docs/d055fbf02d5b3g6jq8l2/efo-march-2026-detailed-forecast-tables-economy.xlsx)",
+    "url": "https://obr.uk/download/march-2026-economic-and-fiscal-outlook-detailed-forecast-tables-economy/",
+    "efo_page": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+    "table": "Table 1.2 'GDP expenditure components (\u00a3 billion current prices, seasonally adjusted)', annual calendar-year rows, 2008-2030",
+    "column": "'Private consumption' / 'GDP at market prices'",
+    "pre_2008": {
+     "years": "2000-2007",
+     "formula": "(ABJQ + HAYE) / YBHA x 100",
+     "series": [
+      {
+       "series_id": "ABJQ",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/nationalaccounts/satelliteaccounts/timeseries/abjq/qna"
+      },
+      {
+       "series_id": "HAYE",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/haye/qna"
+      },
+      {
+       "series_id": "YBHA",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ybha/qna"
+      }
+     ]
+    },
+    "year_basis": "calendar year",
+    "vintage": "OBR March 2026 EFO (published 3 March 2026); outturn to 2025 consistent with the ONS GDP first quarterly estimate of 12 February 2026. ONS 2000-2007 data: QNA/UKEA release of 30 June 2026. Over the 2008-2024 overlap the ONS release matches the EFO table to within 0.013pp for the C, I and G ratios, 0.05pp for real GDP growth and \u00a31.3bn for the real GDP level; from 2025 the ONS release is a later vintage than the EFO (e.g. 2025 real growth 1.31% vs the EFO 1.39%), so it is used only for 2000-2007.",
+    "last_outturn": "2025; 2026 onwards is the March 2026 EFO forecast",
+    "real": false
+   }
   },
   {
-   "title": "Investment (% GDP)",
+   "title": "Investment, total GFCF (% GDP)",
    "traces": [
     {
-     "name": "OBR outturn / forecast",
+     "name": "OBR/ONS outturn and March 2026 EFO forecast",
      "x": [
       2000,
       2001,
@@ -193,44 +231,46 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      18.135890623816906,
-      18.121229786586916,
-      17.92791548712283,
-      17.81482250624579,
-      18.050656596031345,
-      18.300745406115542,
-      18.707713197550344,
-      18.511979466467874,
-      18.15226198747605,
-      16.78967755109855,
-      16.40613230483194,
-      16.3239907266007,
-      16.193138553410652,
-      16.795342508384348,
-      17.45175344285356,
-      17.98381242871702,
-      18.661617133289727,
-      19.090927576956013,
-      18.75137852600123,
-      18.588097237863934,
-      18.247807104847592,
-      18.627036016527256,
-      19.180203284622767,
-      18.654685238310883,
-      18.613764162992023,
-      18.455289448275817,
-      18.38546572565718,
-      18.595199616268125,
-      18.670090193615536,
-      18.60140144821732
+      18.2269,
+      18.1068,
+      18.1259,
+      17.8655,
+      17.7988,
+      18.1301,
+      18.3548,
+      18.8198,
+      18.4126,
+      16.9889,
+      16.5928,
+      16.1811,
+      16.2722,
+      16.5946,
+      17.1781,
+      17.95,
+      18.569,
+      18.9677,
+      18.6901,
+      18.8313,
+      18.2216,
+      18.5366,
+      19.0027,
+      18.8975,
+      18.6703,
+      18.6906,
+      18.7503,
+      18.8844,
+      18.9161,
+      18.8138,
+      18.6951
      ],
      "color": "#27ae60",
      "width": 2.5,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.1f}%<extra>Baseline</extra>",
+     "hovertemplate": "%{x}: %{y:.1f}%<extra>OBR/ONS</extra>",
      "legendgroup": "base",
      "showlegend": false
     },
@@ -240,13 +280,15 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      18.385,
-      17.728,
-      17.913,
-      17.926
+      18.75,
+      18.079,
+      18.269,
+      18.281,
+      18.344
      ],
      "color": "#5a6470",
      "width": 2.4,
@@ -256,24 +298,26 @@
      "showlegend": true
     },
     {
-     "name": "UK, OBR displacement",
+     "name": "UK, OBR-style automation",
      "x": [
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      21.283,
-      20.823,
-      21.178,
-      21.314
+      21.706,
+      21.236,
+      21.598,
+      21.737,
+      19.33
      ],
      "color": "#2f6fb5",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR displacement</extra>",
-     "legendgroup": "UK, OBR displacement",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR-style automation</extra>",
+     "legendgroup": "UK, OBR-style automation",
      "showlegend": true
     },
     {
@@ -282,13 +326,15 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      21.309,
-      21.151,
-      21.822,
-      22.298
+      21.732,
+      21.57,
+      22.255,
+      22.741,
+      19.775
      ],
      "color": "#1d7a4c",
      "width": 2.4,
@@ -300,8 +346,8 @@
    ],
    "shapes": [
     {
-     "x0": 2023,
-     "x1": 2023,
+     "x0": 2025,
+     "x1": 2025,
      "color": "#95a5a6",
      "width": 1,
      "dash": "dot"
@@ -314,439 +360,39 @@
      "dash": "dash"
     }
    ],
-   "yRangeMode": "tozero"
+   "yRangeMode": "tozero",
+   "provenance": {
+    "definition": "Whole-economy gross fixed capital formation (total GFCF: business, dwellings, general government, public corporations), current prices, as % of nominal GDP. Excludes inventories and valuables.",
+    "source": "OBR, March 2026 Economic and fiscal outlook, detailed forecast tables: economy (file efo-march-2026-detailed-forecast-tables-economy.xlsx, served from https://obr.uk/docs/d055fbf02d5b3g6jq8l2/efo-march-2026-detailed-forecast-tables-economy.xlsx)",
+    "url": "https://obr.uk/download/march-2026-economic-and-fiscal-outlook-detailed-forecast-tables-economy/",
+    "efo_page": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+    "table": "Table 1.2, annual calendar-year rows, 2008-2030",
+    "column": "'Fixed investment' / 'GDP at market prices'",
+    "pre_2008": {
+     "years": "2000-2007",
+     "formula": "NPQX / YBHA x 100 (NPQX is the NSA series; annual totals)",
+     "series": [
+      {
+       "series_id": "NPQX",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/npqx/ukea"
+      },
+      {
+       "series_id": "YBHA",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ybha/qna"
+      }
+     ]
+    },
+    "year_basis": "calendar year",
+    "vintage": "OBR March 2026 EFO (published 3 March 2026); outturn to 2025 consistent with the ONS GDP first quarterly estimate of 12 February 2026. ONS 2000-2007 data: QNA/UKEA release of 30 June 2026. Over the 2008-2024 overlap the ONS release matches the EFO table to within 0.013pp for the C, I and G ratios, 0.05pp for real GDP growth and \u00a31.3bn for the real GDP level; from 2025 the ONS release is a later vintage than the EFO (e.g. 2025 real growth 1.31% vs the EFO 1.39%), so it is used only for 2000-2007.",
+    "last_outturn": "2025; 2026 onwards is the March 2026 EFO forecast",
+    "real": false
+   }
   },
   {
-   "title": "Gov. Consumption (% GDP)",
+   "title": "Government consumption (% GDP)",
    "traces": [
     {
-     "name": "OBR outturn / forecast",
-     "x": [
-      2008,
-      2009,
-      2010,
-      2011,
-      2012,
-      2013,
-      2014,
-      2015,
-      2016,
-      2017,
-      2018,
-      2019,
-      2020,
-      2021,
-      2022,
-      2023,
-      2024,
-      2025,
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      43.02323464930862,
-      46.008474414033834,
-      45.50255186089265,
-      44.350799583803564,
-      43.26130998804739,
-      42.18989508394278,
-      41.6360982440679,
-      40.82945226374433,
-      40.02741823613623,
-      39.6633527489848,
-      39.090636343585075,
-      39.095600031280966,
-      52.268392925863374,
-      43.36251738253406,
-      44.05766766274309,
-      44.13067415613504,
-      44.00864693329068,
-      45.015763792485906,
-      44.73542537292963,
-      44.813096082542316,
-      44.494141660839134,
-      44.26837243663773
-     ],
-     "color": "#8e44ad",
-     "width": 2.5,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.1f}%<extra>Baseline</extra>",
-     "legendgroup": "base",
-     "showlegend": false
-    },
-    {
-     "name": "UK, no AI",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      44.735,
-      44.735,
-      44.735,
-      44.735
-     ],
-     "color": "#5a6470",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, no AI</extra>",
-     "legendgroup": "UK, no AI",
-     "showlegend": true
-    },
-    {
-     "name": "UK, OBR displacement",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      44.735,
-      44.735,
-      44.735,
-      44.735
-     ],
-     "color": "#2f6fb5",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR displacement</extra>",
-     "legendgroup": "UK, OBR displacement",
-     "showlegend": true
-    },
-    {
-     "name": "UK, Anthropic substantial",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      44.735,
-      44.735,
-      44.735,
-      44.735
-     ],
-     "color": "#1d7a4c",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, Anthropic substantial</extra>",
-     "legendgroup": "UK, Anthropic substantial",
-     "showlegend": true
-    }
-   ],
-   "shapes": [
-    {
-     "x0": 2023,
-     "x1": 2023,
-     "color": "#95a5a6",
-     "width": 1,
-     "dash": "dot"
-    },
-    {
-     "x0": 2026,
-     "x1": 2026,
-     "color": "#b8860b",
-     "width": 1.2,
-     "dash": "dash"
-    }
-   ],
-   "yRangeMode": "tozero"
-  },
-  {
-   "title": "Tax revenue (% GDP)",
-   "traces": [
-    {
-     "name": "OBR outturn / forecast",
-     "x": [
-      2008,
-      2009,
-      2010,
-      2011,
-      2012,
-      2013,
-      2014,
-      2015,
-      2016,
-      2017,
-      2018,
-      2019,
-      2020,
-      2021,
-      2022,
-      2023,
-      2024,
-      2025,
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      32.386285537828876,
-      29.928465224910184,
-      30.374922072402548,
-      31.530033546765885,
-      31.842871580929348,
-      31.341285632779453,
-      31.77774223378461,
-      32.25579099482106,
-      32.36121429536909,
-      32.72460213835413,
-      33.29011858862684,
-      32.78316235573973,
-      31.706221244021314,
-      29.911706308703806,
-      29.83674064356255,
-      29.652385833832618,
-      30.510950800493912,
-      31.25300406561654,
-      31.627721059266722,
-      31.640080661226204,
-      31.932493985249888,
-      32.07765139584891
-     ],
-     "color": "#c0392b",
-     "width": 2.5,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.1f}%<extra>Baseline</extra>",
-     "legendgroup": "base",
-     "showlegend": false
-    },
-    {
-     "name": "UK, no AI",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      31.628,
-      31.602,
-      31.56,
-      31.518
-     ],
-     "color": "#5a6470",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, no AI</extra>",
-     "legendgroup": "UK, no AI",
-     "showlegend": true
-    },
-    {
-     "name": "UK, OBR displacement",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      31.538,
-      31.43,
-      31.307,
-      31.185
-     ],
-     "color": "#2f6fb5",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR displacement</extra>",
-     "legendgroup": "UK, OBR displacement",
-     "showlegend": true
-    },
-    {
-     "name": "UK, Anthropic substantial",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      31.591,
-      31.511,
-      31.415,
-      31.316
-     ],
-     "color": "#1d7a4c",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, Anthropic substantial</extra>",
-     "legendgroup": "UK, Anthropic substantial",
-     "showlegend": true
-    }
-   ],
-   "shapes": [
-    {
-     "x0": 2023,
-     "x1": 2023,
-     "color": "#95a5a6",
-     "width": 1,
-     "dash": "dot"
-    },
-    {
-     "x0": 2026,
-     "x1": 2026,
-     "color": "#b8860b",
-     "width": 1.2,
-     "dash": "dash"
-    }
-   ],
-   "yRangeMode": "tozero"
-  },
-  {
-   "title": "Debt (% GDP)",
-   "traces": [
-    {
-     "name": "OBR outturn / forecast",
-     "x": [
-      2008,
-      2009,
-      2010,
-      2011,
-      2012,
-      2013,
-      2014,
-      2015,
-      2016,
-      2017,
-      2018,
-      2019,
-      2020,
-      2021,
-      2022,
-      2023,
-      2024,
-      2025,
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      57.35,
-      67.725,
-      72.87500000000001,
-      76.42500000000001,
-      78.72500000000001,
-      80.925,
-      81.65,
-      82.3,
-      81.9,
-      81.39999999999999,
-      83.47500000000001,
-      94.24999999999999,
-      96.55000000000001,
-      93.87499999999999,
-      94.975,
-      94.84999999999998,
-      94.90000000000002,
-      96.1,
-      96.5,
-      96.3,
-      95.79999999999998,
-      95.1
-     ],
-     "color": "#95a5a6",
-     "width": 2.5,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.1f}%<extra>Baseline</extra>",
-     "legendgroup": "base",
-     "showlegend": false
-    },
-    {
-     "name": "UK, no AI",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      96.5,
-      95.185,
-      94.085,
-      92.997
-     ],
-     "color": "#5a6470",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, no AI</extra>",
-     "legendgroup": "UK, no AI",
-     "showlegend": true
-    },
-    {
-     "name": "UK, OBR displacement",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      95.946,
-      94.562,
-      93.645,
-      92.992
-     ],
-     "color": "#2f6fb5",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR displacement</extra>",
-     "legendgroup": "UK, OBR displacement",
-     "showlegend": true
-    },
-    {
-     "name": "UK, Anthropic substantial",
-     "x": [
-      2026,
-      2027,
-      2028,
-      2029
-     ],
-     "y": [
-      96.315,
-      93.975,
-      92.07,
-      90.376
-     ],
-     "color": "#1d7a4c",
-     "width": 2.4,
-     "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, Anthropic substantial</extra>",
-     "legendgroup": "UK, Anthropic substantial",
-     "showlegend": true
-    }
-   ],
-   "shapes": [
-    {
-     "x0": 2023,
-     "x1": 2023,
-     "color": "#95a5a6",
-     "width": 1,
-     "dash": "dot"
-    },
-    {
-     "x0": 2026,
-     "x1": 2026,
-     "color": "#b8860b",
-     "width": 1.2,
-     "dash": "dash"
-    }
-   ],
-   "yRangeMode": "tozero"
-  },
-  {
-   "title": "GDP (\u00a3bn)",
-   "traces": [
-    {
-     "name": "OBR outturn / forecast",
+     "name": "OBR/ONS outturn and March 2026 EFO forecast",
      "x": [
       2000,
       2001,
@@ -777,44 +423,46 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      1139.09625,
-      1183.62,
-      1245.538,
-      1310.9827500000001,
-      1384.2225,
-      1459.37225,
-      1533.31675,
-      1589.595,
-      1593.267,
-      1567.07,
-      1632.926,
-      1680.937,
-      1733.512,
-      1812.306,
-      1888.114,
-      1943.837,
-      2027.118,
-      2114.617,
-      2189.839,
-      2263.357,
-      2109.996,
-      2400.398,
-      2634.3360000000002,
-      2788.983,
-      2926.818,
-      3042.9074849999997,
-      3164.945075,
-      3277.488484,
-      3388.3980389999997,
-      3503.997179
+      16.531,
+      17.1529,
+      18.0528,
+      18.7024,
+      19.2947,
+      19.4813,
+      19.6514,
+      19.5087,
+      20.1591,
+      21.7087,
+      21.3813,
+      20.809,
+      20.6106,
+      19.9508,
+      19.6392,
+      19.3308,
+      19.0214,
+      18.4688,
+      18.3195,
+      18.8951,
+      22.3196,
+      21.897,
+      20.5575,
+      20.6154,
+      20.8993,
+      21.2133,
+      21.4757,
+      21.4481,
+      21.2693,
+      21.0024,
+      20.9518
      ],
-     "color": "#1a3a6e",
+     "color": "#8e44ad",
      "width": 2.5,
      "dash": "solid",
-     "hovertemplate": "%{x}: \u00a3%{y:,.0f}bn<extra>Baseline</extra>",
+     "hovertemplate": "%{x}: %{y:.1f}%<extra>OBR/ONS</extra>",
      "legendgroup": "base",
      "showlegend": false
     },
@@ -824,13 +472,15 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      3164.945,
-      3222.106,
-      3273.851,
-      3328.384
+      21.476,
+      21.476,
+      21.476,
+      21.476,
+      21.476
      ],
      "color": "#5a6470",
      "width": 2.4,
@@ -840,24 +490,26 @@
      "showlegend": true
     },
     {
-     "name": "UK, OBR displacement",
+     "name": "UK, OBR-style automation",
      "x": [
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      3183.209,
-      3248.434,
-      3307.986,
-      3369.845
+      21.476,
+      21.476,
+      21.476,
+      21.476,
+      21.476
      ],
      "color": "#2f6fb5",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR displacement</extra>",
-     "legendgroup": "UK, OBR displacement",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR-style automation</extra>",
+     "legendgroup": "UK, OBR-style automation",
      "showlegend": true
     },
     {
@@ -866,13 +518,15 @@
       2026,
       2027,
       2028,
-      2029
+      2029,
+      2030
      ],
      "y": [
-      3171.017,
-      3262.33,
-      3351.908,
-      3448.391
+      21.476,
+      21.476,
+      21.476,
+      21.476,
+      21.476
      ],
      "color": "#1d7a4c",
      "width": 2.4,
@@ -884,8 +538,8 @@
    ],
    "shapes": [
     {
-     "x0": 2023,
-     "x1": 2023,
+     "x0": 2025,
+     "x1": 2025,
      "color": "#95a5a6",
      "width": 1,
      "dash": "dot"
@@ -898,7 +552,578 @@
      "dash": "dash"
     }
    ],
-   "yRangeMode": "tozero"
+   "yRangeMode": "tozero",
+   "provenance": {
+    "definition": "General government final consumption expenditure (excludes transfers, benefits, pensions, debt interest and investment), current prices, as % of nominal GDP.",
+    "source": "OBR, March 2026 Economic and fiscal outlook, detailed forecast tables: economy (file efo-march-2026-detailed-forecast-tables-economy.xlsx, served from https://obr.uk/docs/d055fbf02d5b3g6jq8l2/efo-march-2026-detailed-forecast-tables-economy.xlsx)",
+    "url": "https://obr.uk/download/march-2026-economic-and-fiscal-outlook-detailed-forecast-tables-economy/",
+    "efo_page": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+    "table": "Table 1.2, annual calendar-year rows, 2008-2030",
+    "column": "'Government consumption' / 'GDP at market prices'",
+    "pre_2008": {
+     "years": "2000-2007",
+     "formula": "NMRP / YBHA x 100",
+     "series": [
+      {
+       "series_id": "NMRP",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/nmrp/qna"
+      },
+      {
+       "series_id": "YBHA",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ybha/qna"
+      }
+     ]
+    },
+    "year_basis": "calendar year",
+    "vintage": "OBR March 2026 EFO (published 3 March 2026); outturn to 2025 consistent with the ONS GDP first quarterly estimate of 12 February 2026. ONS 2000-2007 data: QNA/UKEA release of 30 June 2026. Over the 2008-2024 overlap the ONS release matches the EFO table to within 0.013pp for the C, I and G ratios, 0.05pp for real GDP growth and \u00a31.3bn for the real GDP level; from 2025 the ONS release is a later vintage than the EFO (e.g. 2025 real growth 1.31% vs the EFO 1.39%), so it is used only for 2000-2007.",
+    "last_outturn": "2025; 2026 onwards is the March 2026 EFO forecast",
+    "real": false
+   }
+  },
+  {
+   "title": "Tax receipts, national accounts (% GDP, fiscal year)",
+   "traces": [
+    {
+     "name": "OBR/ONS outturn and March 2026 EFO forecast",
+     "x": [
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      32.97,
+      32.2985,
+      31.4147,
+      32.2248,
+      32.8401,
+      33.2386,
+      33.6355,
+      33.643,
+      32.0221,
+      32.1529,
+      33.1225,
+      33.3146,
+      32.6663,
+      32.5524,
+      32.4137,
+      32.6193,
+      33.3872,
+      33.1417,
+      33.5687,
+      32.852,
+      33.7168,
+      34.6683,
+      35.1938,
+      34.9172,
+      34.5428,
+      36.2738,
+      36.9958,
+      37.7222,
+      37.8458,
+      38.2894,
+      38.4624
+     ],
+     "color": "#c0392b",
+     "width": 2.5,
+     "dash": "solid",
+     "hovertemplate": "FY starting %{x}: %{y:.1f}%<extra>OBR/ONS</extra>",
+     "legendgroup": "base",
+     "showlegend": false
+    },
+    {
+     "name": "UK, no AI",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      36.996,
+      36.965,
+      36.917,
+      36.868,
+      36.832
+     ],
+     "color": "#5a6470",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, no AI</extra>",
+     "legendgroup": "UK, no AI",
+     "showlegend": true
+    },
+    {
+     "name": "UK, OBR-style automation",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      36.891,
+      36.765,
+      36.621,
+      36.478,
+      36.351
+     ],
+     "color": "#2f6fb5",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR-style automation</extra>",
+     "legendgroup": "UK, OBR-style automation",
+     "showlegend": true
+    },
+    {
+     "name": "UK, Anthropic substantial",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      36.953,
+      36.86,
+      36.747,
+      36.632,
+      36.526
+     ],
+     "color": "#1d7a4c",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, Anthropic substantial</extra>",
+     "legendgroup": "UK, Anthropic substantial",
+     "showlegend": true
+    }
+   ],
+   "shapes": [
+    {
+     "x0": 2024,
+     "x1": 2024,
+     "color": "#95a5a6",
+     "width": 1,
+     "dash": "dot"
+    },
+    {
+     "x0": 2026,
+     "x1": 2026,
+     "color": "#b8860b",
+     "width": 1.2,
+     "dash": "dash"
+    }
+   ],
+   "yRangeMode": "tozero",
+   "provenance": {
+    "definition": "National Accounts taxes as % of GDP: the OBR's 'tax take' measure (EFO Chapter 3, Table 3.1). Narrower than public sector current receipts (PSCR, 41.2% in 2026-27), which also include interest, dividends and gross operating surplus.",
+    "source": "OBR Public finances databank, March 2026 EFO version (file PSF_aggregates_databank_Mar_EFO.xlsx, served from https://obr.uk/docs/dlm_uploads/PSF_aggregates_databank_Mar_EFO.xlsx)",
+    "url": "https://obr.uk/download/public-finances-databank-march-2026-efo/",
+    "efo_page": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+    "table": "Sheet 'Aggregates (per cent of GDP)', column 'National account taxes', fiscal-year rows 2000-01 to 2030-31",
+    "column": "National account taxes",
+    "year_basis": "fiscal year (April-March), labelled by the calendar year in which it starts: x=2026 is 2026-27",
+    "vintage": "OBR Public finances databank, March 2026 EFO version: outturn consistent with the ONS/HM Treasury Public Sector Finances bulletin of 20 March 2026; forecast years from 2025-26 are the March 2026 EFO.",
+    "last_outturn": "2024-25 (x=2024); 2025-26 onwards is the March 2026 EFO forecast",
+    "real": false
+   }
+  },
+  {
+   "title": "Public sector net debt (% GDP, fiscal year)",
+   "traces": [
+    {
+     "name": "OBR/ONS outturn and March 2026 EFO forecast",
+     "x": [
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      28.2081,
+      27.9783,
+      29.7311,
+      30.8337,
+      33.3526,
+      34.1767,
+      34.9308,
+      35.467,
+      50.2435,
+      64.3855,
+      70.6229,
+      73.8804,
+      77.1675,
+      78.7651,
+      81.0511,
+      80.5864,
+      82.7087,
+      81.6068,
+      79.644,
+      84.4998,
+      95.381,
+      94.3139,
+      93.2142,
+      94.2,
+      93.2,
+      94.3099,
+      94.815,
+      95.7387,
+      96.2811,
+      96.0651,
+      95.051
+     ],
+     "color": "#95a5a6",
+     "width": 2.5,
+     "dash": "solid",
+     "hovertemplate": "FY starting %{x}: %{y:.1f}%<extra>OBR/ONS</extra>",
+     "legendgroup": "base",
+     "showlegend": false
+    },
+    {
+     "name": "UK, no AI",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      94.815,
+      93.523,
+      92.442,
+      91.373,
+      90.382
+     ],
+     "color": "#5a6470",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, no AI</extra>",
+     "legendgroup": "UK, no AI",
+     "showlegend": true
+    },
+    {
+     "name": "UK, OBR-style automation",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      94.271,
+      92.911,
+      92.01,
+      91.368,
+      91.058
+     ],
+     "color": "#2f6fb5",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR-style automation</extra>",
+     "legendgroup": "UK, OBR-style automation",
+     "showlegend": true
+    },
+    {
+     "name": "UK, Anthropic substantial",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      94.633,
+      92.334,
+      90.462,
+      88.798,
+      87.391
+     ],
+     "color": "#1d7a4c",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, Anthropic substantial</extra>",
+     "legendgroup": "UK, Anthropic substantial",
+     "showlegend": true
+    }
+   ],
+   "shapes": [
+    {
+     "x0": 2024,
+     "x1": 2024,
+     "color": "#95a5a6",
+     "width": 1,
+     "dash": "dot"
+    },
+    {
+     "x0": 2026,
+     "x1": 2026,
+     "color": "#b8860b",
+     "width": 1.2,
+     "dash": "dash"
+    }
+   ],
+   "yRangeMode": "tozero",
+   "provenance": {
+    "definition": "Public sector net debt INCLUDING the Bank of England (headline PSND, ONS series HF6W), debt at end-March as % of GDP centred on end-March. PSND excluding the Bank of England is 92.3% in 2026-27.",
+    "source": "OBR Public finances databank, March 2026 EFO version (file PSF_aggregates_databank_Mar_EFO.xlsx, served from https://obr.uk/docs/dlm_uploads/PSF_aggregates_databank_Mar_EFO.xlsx)",
+    "url": "https://obr.uk/download/public-finances-databank-march-2026-efo/",
+    "efo_page": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+    "table": "Sheet 'Aggregates (per cent of GDP)', column 'Public sector net debt' (footnote 2: debt at end March; GDP centred on end-March), fiscal-year rows 2000-01 to 2030-31",
+    "column": "Public sector net debt",
+    "series_id": "HF6W",
+    "year_basis": "fiscal year (April-March), labelled by the calendar year in which it starts: x=2026 is 2026-27",
+    "vintage": "OBR Public finances databank, March 2026 EFO version: outturn consistent with the ONS/HM Treasury Public Sector Finances bulletin of 20 March 2026; forecast years from 2025-26 are the March 2026 EFO.",
+    "last_outturn": "2024-25 (x=2024); 2025-26 onwards is the March 2026 EFO forecast",
+    "real": false
+   }
+  },
+  {
+   "title": "Real GDP (\u00a3bn, 2023 prices)",
+   "traces": [
+    {
+     "name": "OBR/ONS outturn and March 2026 EFO forecast",
+     "x": [
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      1940.007,
+      1986.393,
+      2020.341,
+      2085.366,
+      2133.872,
+      2193.421,
+      2241.453,
+      2307.148,
+      2306.008,
+      2200.222,
+      2249.959,
+      2269.116,
+      2303.794,
+      2343.384,
+      2417.439,
+      2469.182,
+      2523.665,
+      2599.961,
+      2640.295,
+      2673.465,
+      2404.838,
+      2610.286,
+      2744.708,
+      2752.164,
+      2782.111,
+      2820.8841,
+      2851.8611,
+      2897.1682,
+      2943.0029,
+      2988.2797,
+      3033.5821
+     ],
+     "color": "#1a3a6e",
+     "width": 2.5,
+     "dash": "solid",
+     "hovertemplate": "%{x}: \u00a3%{y:,.0f}bn (2023 prices)<extra>OBR/ONS</extra>",
+     "legendgroup": "base",
+     "showlegend": false
+    },
+    {
+     "name": "UK, no AI",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      2851.861,
+      2903.367,
+      2949.994,
+      2999.133,
+      3048.443
+     ],
+     "color": "#5a6470",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, no AI</extra>",
+     "legendgroup": "UK, no AI",
+     "showlegend": true
+    },
+    {
+     "name": "UK, OBR-style automation",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      2868.319,
+      2927.091,
+      2980.752,
+      3036.492,
+      3091.629
+     ],
+     "color": "#2f6fb5",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, OBR-style automation</extra>",
+     "legendgroup": "UK, OBR-style automation",
+     "showlegend": true
+    },
+    {
+     "name": "UK, Anthropic substantial",
+     "x": [
+      2026,
+      2027,
+      2028,
+      2029,
+      2030
+     ],
+     "y": [
+      2857.332,
+      2939.613,
+      3020.329,
+      3107.268,
+      3198.314
+     ],
+     "color": "#1d7a4c",
+     "width": 2.4,
+     "dash": "solid",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>UK, Anthropic substantial</extra>",
+     "legendgroup": "UK, Anthropic substantial",
+     "showlegend": true
+    }
+   ],
+   "shapes": [
+    {
+     "x0": 2025,
+     "x1": 2025,
+     "color": "#95a5a6",
+     "width": 1,
+     "dash": "dot"
+    },
+    {
+     "x0": 2026,
+     "x1": 2026,
+     "color": "#b8860b",
+     "width": 1.2,
+     "dash": "dash"
+    }
+   ],
+   "yRangeMode": "tozero",
+   "provenance": {
+    "definition": "Real GDP at market prices, chained volume measure, \u00a3 billion at 2023 prices (reference year 2023: chained-volume and current-price GDP are equal in 2023, 2,752.2).",
+    "source": "OBR, March 2026 Economic and fiscal outlook, detailed forecast tables: economy (file efo-march-2026-detailed-forecast-tables-economy.xlsx, served from https://obr.uk/docs/d055fbf02d5b3g6jq8l2/efo-march-2026-detailed-forecast-tables-economy.xlsx)",
+    "url": "https://obr.uk/download/march-2026-economic-and-fiscal-outlook-detailed-forecast-tables-economy/",
+    "efo_page": "https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/",
+    "table": "Table 1.1 'GDP expenditure components (\u00a3 billion chain-linked volumes, seasonally adjusted)', annual calendar-year rows, 2008-2030",
+    "column": "'Real GDP'",
+    "pre_2008": {
+     "years": "2000-2007",
+     "formula": "EFO 2008 level x ABMI(t) / ABMI(2008) (ONS growth rates spliced onto the EFO level; the splice factor is 1.0000 because ABMI 2008 equals the EFO 2008 value)",
+     "series": [
+      {
+       "series_id": "ABMI",
+       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/abmi/qna"
+      }
+     ]
+    },
+    "year_basis": "calendar year",
+    "vintage": "OBR March 2026 EFO (published 3 March 2026); outturn to 2025 consistent with the ONS GDP first quarterly estimate of 12 February 2026. ONS 2000-2007 data: QNA/UKEA release of 30 June 2026. Over the 2008-2024 overlap the ONS release matches the EFO table to within 0.013pp for the C, I and G ratios, 0.05pp for real GDP growth and \u00a31.3bn for the real GDP level; from 2025 the ONS release is a later vintage than the EFO (e.g. 2025 real growth 1.31% vs the EFO 1.39%), so it is used only for 2000-2007.",
+    "last_outturn": "2025; 2026 onwards is the March 2026 EFO forecast",
+    "real": true
+   }
   }
  ]
 }
