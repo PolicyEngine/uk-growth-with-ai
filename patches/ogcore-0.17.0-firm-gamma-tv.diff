@@ -1,0 +1,198 @@
+--- a/ogcore/firm.py
++++ b/ogcore/firm.py
+@@ -19,6 +19,26 @@
+ """
+ 
+ 
++
++def _tv(x, p, method, m=None):
++    """Index a production parameter that may be time-invariant or time-varying.
++
++    Legacy shape ``(M,)`` is time-invariant and is returned exactly as before,
++    so existing calibrations are bit-identical. Shape ``(T, M)`` is treated as
++    a time path and indexed with the same convention already used for ``Z``:
++    ``[-1]`` in the steady state, ``[: p.T]`` along the transition.
++
++    This is what lets ``gamma`` (and ``epsilon``) follow a path, so automation
++    can ramp rather than step.
++    """
++    x = np.asarray(x)
++    if x.ndim <= 1:                       # (M,) or scalar -- time-invariant
++        return x[m] if m is not None else x
++    if method == "SS":                    # (T, M) -- time-varying
++        return x[-1, m] if m is not None else x[-1]
++    return x[: p.T, m] if m is not None else x[: p.T]
++
++
+ def get_Y(K, K_g, L, p, method, m=-1):
+     r"""
+     Generates aggregate output (GDP) from aggregate capital stock,
+@@ -58,8 +78,8 @@
+                 gamma_g = 0
+                 K_g = 1
+             else:
+-                gamma_g = p.gamma_g[m]
+-            gamma = p.gamma[m]
++                gamma_g = _tv(p.gamma_g, p, method, m)
++            gamma = _tv(p.gamma, p, method, m)
+             epsilon = p.epsilon[m]
+             Z = p.Z[-1, m]
+             if epsilon == 1:
+@@ -96,7 +116,7 @@
+                 K_g = 1.0
+             else:
+                 gamma_g = p.gamma_g
+-            gamma = p.gamma
++            gamma = _tv(p.gamma, p, method)
+             epsilon = p.epsilon
+             Z = p.Z[-1, :]
+             K_f = np.maximum(K, _FLOOR)
+@@ -123,8 +143,8 @@
+                 gamma_g = 0
+                 K_g[K_g == 0] = 1.0
+             else:
+-                gamma_g = p.gamma_g[m]
+-            gamma = p.gamma[m]
++                gamma_g = _tv(p.gamma_g, p, method, m)
++            gamma = _tv(p.gamma, p, method, m)
+             epsilon = p.epsilon[m]
+             Z = p.Z[: p.T, m]
+             if epsilon == 1:
+@@ -160,7 +180,7 @@
+                 K_g[K_g == 0] = 1.0
+             else:
+                 gamma_g = p.gamma_g
+-            gamma = p.gamma
++            gamma = _tv(p.gamma, p, method)
+             epsilon = p.epsilon
+             Z = p.Z[: p.T, :]
+             K_f = np.maximum(K, _FLOOR)
+@@ -217,7 +237,7 @@
+         tau_b = p.tau_b[: p.T, m].reshape(p.T, 1)
+         tau_inv = p.inv_tax_credit[: p.T, m].reshape(p.T, 1)
+         p_mm = p_m[:, m].reshape(p.T, 1)
+-    MPK = get_MPx(Y, K, p.gamma[m], p, method, m)
++    MPK = get_MPx(Y, K, _tv(p.gamma, p, method, m), p, method, m)
+     r = (
+         (1 - tau_b) * p_mm * MPK
+         - p.delta
+@@ -254,7 +274,10 @@
+         p_mm = p_m[m]
+     else:
+         p_mm = p_m[:, m].reshape(p.T, 1)
+-    w = p_mm * get_MPx(Y, L, 1 - p.gamma[m] - p.gamma_g[m], p, method, m)
++    w = p_mm * get_MPx(
++        Y, L, 1 - _tv(p.gamma, p, method, m) - _tv(p.gamma_g, p, method, m),
++        p, method, m
++    )
+ 
+     return w
+ 
+@@ -288,7 +311,7 @@
+     else:
+         length = r.shape[0]
+         Z = p.Z[:length, m]
+-    gamma = p.gamma[m]
++    gamma = _tv(p.gamma, p, method, m)
+     epsilon = p.epsilon[m]
+     if epsilon == 1:
+         # Cobb-Douglas case
+@@ -337,7 +360,8 @@
+ 
+     """
+     cost_of_capital = get_cost_of_capital(r, p, method, m)
+-    KLratio = (p.gamma[m] / (1 - p.gamma[m] - p.gamma_g[m])) * (
++    _g = _tv(p.gamma, p, method, m)
++    KLratio = (_g / (1 - _g - _tv(p.gamma_g, p, method, m))) * (
+         w / cost_of_capital
+     ) ** p.epsilon[m]
+     return KLratio
+@@ -354,7 +378,8 @@
+     Args:
+         Y (array_like): output
+         x (array_like): input to production function
+-        share (scalar): share of output paid to factor x
++        share (scalar or array_like): share of output paid to factor x.
++            A (T,) array is accepted when the share varies over time.
+         p (OG-Core Specifications object): model parameters
+         method (str): adjusts calculation dimensions based on 'SS' or
+             'TPI'
+@@ -369,6 +394,13 @@
+         Z = p.Z[: p.T, m].reshape(p.T, 1)
+         Y = Y[: p.T].reshape(p.T, 1)
+         x = x[: p.T].reshape(p.T, 1)
++        # ``share`` is a scalar when gamma is time-invariant, but a (T,)
++        # path when it varies over time. Give it the same column shape as
++        # Y and x so it broadcasts down the time axis instead of forming a
++        # (T, T) outer product.
++        share = np.asarray(share)
++        if share.ndim == 1 and share.size >= p.T:
++            share = share[: p.T].reshape(p.T, 1)
+     if np.any(x == 0):
+         MPx = np.zeros_like(Y)
+     else:
+@@ -414,7 +446,7 @@
+         Z = p.Z[: p.T, m]
+     else:
+         Z = p.Z[-1, m]
+-    gamma = p.gamma[m]
++    gamma = _tv(p.gamma, p, method, m)
+     epsilon = p.epsilon[m]
+     if epsilon == 1:
+         # Cobb-Douglas case
+@@ -486,7 +518,11 @@
+         Z = p.Z[-1]
+     else:
+         Z = p.Z[: p.T]
+-    L = ((1 - p.gamma - p.gamma_g) * Z ** (p.epsilon - 1) * Y) / (w**p.epsilon)
++    L = (
++        (1 - _tv(p.gamma, p, method) - _tv(p.gamma_g, p, method))
++        * Z ** (p.epsilon - 1)
++        * Y
++    ) / (w**p.epsilon)
+ 
+     return L
+ 
+@@ -592,7 +628,12 @@
+     p_m = np.zeros((T, p.M))
+     for m in range(p.M):  # TODO: try to get rid of this loop
+         MPL = get_MPx(
+-            Y[:, m], L[:, m], 1 - p.gamma[m] - p.gamma_g[m], p, method, m
++            Y[:, m],
++            L[:, m],
++            1 - _tv(p.gamma, p, method, m) - _tv(p.gamma_g, p, method, m),
++            p,
++            method,
++            m,
+         ).reshape(T)
+         p_m[:, m] = w / MPL
+     if method == "SS":
+@@ -621,7 +662,7 @@
+     cost_of_capital = get_cost_of_capital(r, p, method, m)
+     if method == "SS":
+         KY_ratio = (
+-            p.gamma[m]
++            _tv(p.gamma, p, method, m)
+             * (
+                 (p_m[m] * p.Z[-1, m] ** ((p.epsilon[m] - 1) / p.epsilon[m]))
+                 / cost_of_capital
+@@ -630,7 +671,7 @@
+         )
+     else:
+         KY_ratio = (
+-            p.gamma[m]
++            _tv(p.gamma, p, method, m)
+             * (
+                 (
+                     p_m[:, m]
+@@ -671,8 +712,8 @@
+         L (array_like): labor demand each industry
+ 
+     """
+-    gamma = p.gamma[m]
+-    gamma_g = p.gamma_g[m]
++    gamma = _tv(p.gamma, p, method, m)
++    gamma_g = _tv(p.gamma_g, p, method, m)
+     epsilon = p.epsilon[m]
+     if method == "SS":
+         Z = p.Z[-1, m]

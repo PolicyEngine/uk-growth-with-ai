@@ -16,8 +16,8 @@ dependencies = [
 ]
 
 # ogcore and oguk are deliberately NOT dependencies: they are installed from
-# checkouts (the ramp arms need docs/firm_gamma_tv.patch applied to ogcore's
-# firm.py), and `report`/`obr` must work without them. solve.py imports them
+# checkouts (the ramp arms need patches/ogcore-0.17.0-firm-gamma-tv.diff applied
+# to ogcore's firm.py), and `report`/`obr` must work without them. solve.py imports them
 # lazily at run time.
 [project.optional-dependencies]
 test = ["pytest"]
@@ -29,7 +29,7 @@ uk-growth-with-ai = "uk_growth_with_ai.cli:main"
 packages = ["uk_growth_with_ai"]
 
 [tool.hatch.build.targets.sdist]
-only-include = ["uk_growth_with_ai", "tests", "docs", "README.md", "pyproject.toml"]
+only-include = ["uk_growth_with_ai", "tests", "docs", "patches", "README.md", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

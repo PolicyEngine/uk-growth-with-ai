@@ -1,5 +1,8 @@
 Backward-compatible time-varying gamma for OG-Core's firm block.
 
+The applicable diff is `patches/ogcore-0.17.0-firm-gamma-tv.diff` (against ogcore 0.17.0);
+this note explains it. See the README for how to apply it.
+
 Problem
 -------
 `p.gamma` is indexed `[m]` at ~14 sites in `ogcore/firm.py` and has no time

@@ -1,0 +1,25 @@
+{
+ "_source": "Korinek et al. (2026), Anthropic 'Economic Scenarios for Transformative AI', Table 3: US 2030 endpoints. growth = GDP growth in 2030 (%), lshare = labour share (cents per dollar), idx2030 = GDP in 2030 with 2026 = 100. The idx2030 values are carried over from the earlier uk-ai-study pipeline; their derivation from Table 3 is not yet recorded here (issue #6).",
+ "scenarios": {
+  "No AI": {
+   "idx2030": 108.32372164552095,
+   "growth": 2.0,
+   "lshare": 60.0
+  },
+  "Modest": {
+   "idx2030": 110.05382545174933,
+   "growth": 2.4,
+   "lshare": 59.4
+  },
+  "Substantial": {
+   "idx2030": 117.35870818915801,
+   "growth": 5.4,
+   "lshare": 56.1
+  },
+  "Extreme": {
+   "idx2030": 143.50249903883125,
+   "growth": 15.4,
+   "lshare": 45.2
+  }
+ }
+}
