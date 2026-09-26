@@ -1,11 +1,11 @@
 // Series colours for every chart, table swatch and legend on the growth tab.
 // All resolve to the --chart-* tokens in globals.css (built on the
-// PolicyEngine ramp): UK no-AI grey, UK OBR the secondary (gold) accent,
-// UK Anthropic the primary teal, US series lighter/muted and dashed.
+// PolicyEngine ramp): No AI grey, Automation only the secondary (gold) accent,
+// Automation + productivity the primary teal, US series lighter/muted and dashed.
 export const ARM_META = {
-  baseline: { label: 'UK, no AI', color: 'var(--chart-uk-baseline)' },
-  obr_ramp: { label: 'UK, OBR displacement', color: 'var(--chart-uk-obr)' },
-  anthropic_ramp: { label: 'UK, Anthropic substantial', color: 'var(--chart-uk-ai)' },
+  baseline: { label: 'No AI', color: 'var(--chart-uk-baseline)' },
+  obr_ramp: { label: 'Automation only', color: 'var(--chart-uk-obr)' },
+  anthropic_ramp: { label: 'Automation + productivity', color: 'var(--chart-uk-ai)' },
 };
 
 export const US_COLORS = {

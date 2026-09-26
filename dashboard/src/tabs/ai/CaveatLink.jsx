@@ -1,13 +1,12 @@
 'use client';
 
-// Link to a numbered caveat (or any step) on UK growth with AI › How the
-// scenarios are built. That sub-tab is not mounted while Results is showing,
-// so the link switches sub-tab through the hash router, waits for the target
-// to render, then scrolls to it.
+// Link to a numbered caveat (or any step) on the Scenario design tab. The
+// link switches tab through the hash router, waits for the target to be
+// visible, then scrolls to it.
 export default function CaveatLink({ id, children }) {
   function go(e) {
     e.preventDefault();
-    if (window.location.hash !== '#growth/method') window.location.hash = '#growth/method';
+    if (window.location.hash !== '#scenarios') window.location.hash = '#scenarios';
     let tries = 0;
     function attempt() {
       const el = document.getElementById(id);
@@ -20,7 +19,7 @@ export default function CaveatLink({ id, children }) {
     requestAnimationFrame(attempt);
   }
   return (
-    <a href="#growth/method" onClick={go}>
+    <a href="#scenarios" onClick={go}>
       {children}
     </a>
   );

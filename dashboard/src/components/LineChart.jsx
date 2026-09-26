@@ -11,14 +11,15 @@ import { useEffect, useRef, useState } from 'react';
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
 //           hollow dots in a narrow column right of the last year. A point
-//           marked offScale sits on the axis edge with an arrow.
+//           marked offScale sits on the axis edge with an arrow (offScale:
+//           'high' puts it on the top edge, pointing up).
 
 const FONT = 'Inter, Roboto, sans-serif';
 const PAD_L = 46;
 const PAD_T = 22;
 const PAD_B = 34;
 const STRIP_W = 30;
-const ROW = 17; // min vertical gap between stacked end labels
+const ROW = 18; // min vertical gap between stacked end labels
 const SUB_ROW = 13; // extra height taken by a sublabel line
 
 // Nice-number tick step: 1, 2, 2.5 or 5 times a power of ten.
@@ -117,7 +118,7 @@ export default function LineChart({
       strong: false,
       offScale: p.offScale,
       ax: stripX,
-      y: p.offScale ? BOT : sy(p.value),
+      y: p.offScale ? (p.offScale === 'high' ? TOP + 12 : BOT) : sy(p.value),
     })),
   ].sort((a, b) => a.y - b.y);
   let prev = -Infinity;
@@ -176,12 +177,20 @@ export default function LineChart({
           </g>
         ))}
         {(strip?.points || []).map((p) => {
-          const cy = p.offScale ? BOT : sy(p.value);
+          const up = p.offScale === 'high';
+          const cy = p.offScale ? (up ? TOP + 12 : BOT) : sy(p.value);
           return (
             <g key={p.label}>
               <circle cx={stripX} cy={cy} r="4" fill="var(--pe-color-bg-primary)" stroke={p.color} strokeWidth="2" />
               {p.offScale ? (
-                <path d={`M ${stripX - 4},${cy + 7} L ${stripX + 4},${cy + 7} L ${stripX},${cy + 13} Z`} fill={p.color} />
+                <path
+                  d={
+                    up
+                      ? `M ${stripX - 4},${cy - 7} L ${stripX + 4},${cy - 7} L ${stripX},${cy - 13} Z`
+                      : `M ${stripX - 4},${cy + 7} L ${stripX + 4},${cy + 7} L ${stripX},${cy + 13} Z`
+                  }
+                  fill={p.color}
+                />
               ) : null}
             </g>
           );
@@ -190,7 +199,11 @@ export default function LineChart({
           <g key={e.key}>
             {Math.abs(e.ly - e.y) > 1.5 || labelX - e.ax > 20 ? (
               <path
-                d={`M ${e.ax + 6},${e.y} L ${labelX - 4},${e.ly}`}
+                d={
+                  e.ax < stripX - 1 && strip
+                    ? `M ${e.ax + 6},${e.y} L ${stripX - 8},${e.y} L ${labelX - 4},${e.ly}`
+                    : `M ${e.ax + 6},${e.y} L ${labelX - 4},${e.ly}`
+                }
                 stroke={e.color}
                 strokeWidth="1"
                 fill="none"

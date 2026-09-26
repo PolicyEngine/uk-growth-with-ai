@@ -209,19 +209,32 @@
       display: flex; gap: 36px; position: relative; margin: 24px 0;
     }
     .scrolly-narrative { flex: 1; min-width: 0; }
+    /* The panel takes ~44% of the row (capped at 600px), leaving the
+       narrative ~710px at a 1400px viewport. */
     .scrolly-sticky {
-      flex: 0 0 460px;
+      flex: 0 0 min(600px, 44%); min-width: 0;
       position: sticky; top: 90px;
       height: fit-content; align-self: flex-start;
     }
+    /* Steps sit at their natural height, split by a hairline rule. The
+       active step is picked in JS (ScrollyStory.jsx, CodeTab.jsx) from a
+       reading line a third of the way down the viewport (at most 260px);
+       the last step gets just enough height for its top to reach that line
+       before the page ends. Several steps can be on screen at once, so inactive ones are
+       only softly dimmed. */
     .narrative-step {
-      min-height: 90vh; padding: 36px 0;
-      opacity: 0.28; transition: opacity 0.5s ease;
+      padding: 28px 0;
+      opacity: 0.5; transition: opacity 0.4s ease;
       scroll-margin-top: 90px;
     }
+    .narrative-step + .narrative-step { border-top: 1px solid var(--border); }
     .narrative-step.active { opacity: 1; }
     .narrative-step:first-child { padding-top: 0; }
-    .narrative-step:last-child { min-height: auto; padding-bottom: 100px; }
+    /* Reading line = min(33vh, 260px); ~140px of footer sits below. */
+    .narrative-step:last-child {
+      min-height: max(calc(67vh - 140px), calc(100vh - 400px));
+      padding-bottom: 0;
+    }
     .step-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
     .step-number {
       display: inline-flex; align-items: center; justify-content: center;
@@ -259,6 +272,14 @@
       color: var(--pe-color-gray-600);
     }
     .step-content strong { color: var(--pe-color-gray-800); font-weight: 600; }
+    .step-content > :last-child { margin-bottom: 0; }
+    .step-content ul.intro-list {
+      list-style: disc; padding-left: 22px; margin: 0 0 14px;
+    }
+    .step-content ul.intro-list li {
+      font-size: 0.95rem; line-height: 1.7; margin-bottom: 4px;
+      color: var(--pe-color-gray-600);
+    }
     .sub-heading {
       font-size: 0.95rem; font-weight: 700; color: var(--pe-color-gray-900);
       letter-spacing: -0.01em;
@@ -267,47 +288,53 @@
     .sub-heading:first-child { margin-top: 0; }
 
     /* Sticky panel (the "freeze-box") */
+    /* The panel fits its content, capped at the viewport height under the
+       sticky offset (90px top + 20px air); a taller body scrolls inside. */
     .example-panel {
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 110px);
       background: var(--bg-card); border-radius: 14px; overflow: hidden;
       box-shadow: 0 1px 3px rgba(40,94,97,0.08), 0 8px 24px rgba(40,94,97,0.12);
       border: 2px solid var(--accent);
     }
     .example-header {
-      background: var(--bg-diagram); padding: 14px 18px;
-      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-diagram); padding: 16px 22px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      flex-shrink: 0;
       border-bottom: 1px solid var(--border);
     }
     .example-title {
-      font-size: 0.85rem; font-weight: 600; color: var(--text-dark);
+      font-size: 1rem; font-weight: 600; color: var(--text-dark);
+      letter-spacing: -0.01em;
     }
     .example-badge {
       background: var(--accent); color: #fff;
-      padding: 4px 11px; border-radius: 6px;
-      font-size: 0.68rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 6px;
+      font-size: 0.76rem; font-weight: 600; white-space: nowrap;
     }
     .example-body {
-      padding: 18px 22px 22px;
-      min-height: 420px; max-height: 75vh; overflow-y: auto;
+      padding: 20px 24px 24px;
+      min-height: 0; overflow-y: auto;
       background: var(--bg-diagram);
     }
-    .example-section { margin-bottom: 14px; }
+    .example-section { margin-bottom: 18px; }
     .example-section:last-child { margin-bottom: 0; }
     .example-section-title {
-      font-size: 0.7rem; font-weight: 600; color: var(--accent);
+      font-size: 0.76rem; font-weight: 600; color: var(--accent);
       text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
     }
     .example-section-title::after {
       content: ''; flex: 1; height: 1px; background: var(--border);
     }
     .example-output {
-      background: var(--bg-card); border-radius: 8px; padding: 12px 14px;
-      font-size: 0.78rem;
+      background: var(--bg-card); border-radius: 8px; padding: 14px 16px;
+      font-size: 0.9rem; line-height: 1.5;
       border: 1px solid var(--border);
     }
     .example-output-line {
       display: flex; align-items: flex-start; gap: 10px;
-      color: var(--text-mid); margin: 0 -6px; padding: 3px 6px; border-radius: 4px;
+      color: var(--text-mid); margin: 0 -6px; padding: 4px 6px; border-radius: 4px;
       transition: background 0.15s;
     }
     .example-output-line:hover { background: var(--accent-light); }
@@ -318,14 +345,14 @@
 
     .math-block-dark {
       background: #fff; border: 1px solid var(--border); border-radius: 8px;
-      padding: 14px 18px; margin: 8px 0;
+      padding: 16px 20px; margin: 10px 0;
       overflow-x: auto; text-align: center;
     }
-    .math-block-dark .katex { color: var(--text-dark); font-size: 1rem; }
+    .math-block-dark .katex { color: var(--text-dark); font-size: 1.15em; }
     .math-label {
-      font-size: 0.65rem; font-weight: 600; color: var(--accent);
+      font-size: 0.72rem; font-weight: 600; color: var(--accent);
       text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 6px; text-align: left;
+      margin-bottom: 8px; text-align: left;
     }
 
     /* Modal */
@@ -496,7 +523,7 @@
       margin: 20px 0 8px;
     }
 
-    /* ===== Results tab ===== */
+    /* ===== Economic effects tab ===== */
     .results-note {
       margin-top: 14px; padding: 12px 16px;
       background: var(--pe-color-gray-50);
@@ -708,19 +735,6 @@
     }
 
 
-    /* Code-tab steps are short prose; the Methodology 90vh min-height
-       leaves big empty gaps. Let each step size to its content with a
-       bit of breathing room. The last step needs more bottom padding so
-       its top can scroll past the 1/3-viewport active trigger before the
-       page ends — otherwise step 7 never reaches the "active" state and
-       its right-panel content is unreachable. */
-    .code-narrative .narrative-step {
-      min-height: auto;
-      padding: 40px 0;
-    }
-    .code-narrative .narrative-step:first-child { padding-top: 0; }
-    .code-narrative .narrative-step:last-child  { padding-bottom: 60vh; }
-
     .code-block {
       position: relative;
       background: #0F172A;
@@ -730,6 +744,8 @@
       overflow-x: auto;
       box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(15,23,42,0.18);
     }
+    /* The filename tag sits above the first line, not over it. */
+    .code-block:has(.filename) { padding-top: 40px; }
     .code-block .filename {
       position: absolute; top: 10px; right: 14px;
       font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
@@ -788,10 +804,10 @@
     }
 
     /* Responsive */
-    @media (max-width: 1200px) {
+    @media (max-width: 1100px) {
       .scrollytelling-container { flex-direction: column; }
       .scrolly-sticky { position: relative; top: 0; flex: none; width: 100%; order: -1; margin-bottom: 20px; }
-      .narrative-step { min-height: auto; padding: 24px 0; opacity: 1; }
+      .narrative-step, .narrative-step:last-child { min-height: auto; padding: 24px 0; opacity: 1; }
     }
     @media (max-width: 960px) {
       .obr-layout { flex-direction: column; gap: 16px; }
@@ -852,27 +868,6 @@
       --status-neg:            #b03a3a;
     }
 
-    /* Sub-tab bar: a quieter sibling of .tab-bar. */
-    .subtab-bar {
-      display: flex; flex-wrap: wrap; gap: 2px;
-      background: var(--pe-color-gray-100);
-      border: 1px solid var(--pe-color-border-light);
-      border-radius: 12px; padding: 4px;
-      margin: 0 0 22px; width: fit-content; max-width: 100%;
-    }
-    .subtab-button {
-      border: none; background: transparent; border-radius: 9px;
-      padding: 8px 15px; font-size: 0.9rem; font-weight: 500;
-      color: var(--pe-color-gray-600); cursor: pointer;
-      font-family: inherit; white-space: nowrap;
-      transition: background 150ms ease, color 150ms ease;
-    }
-    .subtab-button:hover { color: var(--pe-color-gray-900); }
-    .subtab-button.active {
-      background: var(--pe-color-bg-primary);
-      color: var(--pe-color-primary-700); font-weight: 600;
-      box-shadow: 0 1px 3px rgba(16,24,40,0.10);
-    }
 
     /* Call-outs reuse the template's own two tiers: .key-diff for the
        headline finding, .results-note for caveats. Only the outer spacing
@@ -999,7 +994,6 @@
     .mark-partial { color: #b8860b; font-weight: 700; }
 
     @media (max-width: 720px) {
-      .subtab-button { padding: 7px 11px; font-size: 0.82rem; }
       .comparison-table, .impact-table { font-size: 0.8rem; }
     }
 
@@ -1066,7 +1060,7 @@
 .ch-out { background: var(--pe-color-gray-100); color: var(--pe-color-gray-500); }
 
 /* ================================================================== */
-/* UK growth with AI tab: dashboard layout                             */
+/* Economic effects tab: dashboard layout                               */
 /* Scoped to .growth-page so nothing here reaches the Methodology tab.  */
 /* Type scale follows Methodology: 1.35rem card heading (.obr-head h3), */
 /* 0.95rem lede, 0.7rem uppercase eyebrow (.workflow-phases h3).        */
@@ -1347,7 +1341,7 @@
 .growth-page ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
 .growth-details .plot-fig-svg { max-width: 980px; }
 
-/* UK growth with AI › How the scenarios are built: the two-pane story. */
+/* Scenario design: the two-pane story.                                  */
 .ai-story .step-content > p,
 .ai-story .step-content li { font-size: 0.95rem; line-height: 1.7; color: var(--pe-color-gray-600); }
 .ai-story .step-content .scenario-card p { font-size: 0.92rem; }
@@ -1356,3 +1350,160 @@
 .ai-story ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
 .ai-story [id^="caveat-"] { scroll-margin-top: 110px; }
 .ai-story .example-output-line .icon { min-width: 1.3em; text-align: center; }
+
+/* Economic effects: "Results by variable" and "Context since 2000" side by
+   side. Each card is head / toolbar / chart / footer; subgrid lines those
+   four rows up across both cards, so headings, selectors, charts and
+   footnotes stay level whatever the takeaway's line count. */
+.results-pair {
+  grid-template-rows: auto auto auto 1fr;
+  gap: 0 24px; margin-bottom: 24px; align-items: start;
+}
+.results-pair > .section-card {
+  display: grid; grid-template-rows: subgrid; grid-row: span 4;
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 0; min-width: 0;
+}
+.results-pair .chart-head { margin-bottom: 14px; }
+.results-pair .results-toolbar { margin: 0 0 14px; }
+.results-pair .panel-grid { margin-top: 0; }
+.results-pair .panel-cell .plot { height: 380px; }
+.results-pair .chart-note { margin-top: 10px; }
+.results-pair .chart-slot { position: relative; min-height: 380px; }
+.results-pair .chart-empty {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  margin: 0; color: var(--pe-color-gray-500); font-size: 0.9rem;
+}
+.results-pair .plot-legend {
+  margin: 14px 0 0; justify-content: flex-start; gap: 6px 20px;
+}
+.results-pair .legend-group + .legend-group::before { display: none; }
+@media (max-width: 1100px) {
+  .results-pair { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 24px; }
+  .results-pair > .section-card { display: block; grid-row: auto; }
+}
+@media (max-width: 700px) {
+  .results-pair .panel-cell .plot { height: 340px; }
+}
+/* Long legend entries wrap on phones instead of running off the card. */
+@media (max-width: 560px) {
+  .legend-item { white-space: normal; align-items: baseline; }
+  .legend-item .legend-line { flex-shrink: 0; position: relative; top: -3px; }
+}
+
+/* ================================================================== */
+/* Text components: one small vocabulary for prose in the narrative     */
+/* steps and the cards. Content can opt in with these classes; the      */
+/* existing markup that already has the structure is mapped onto them   */
+/* below (caveat lists, intro/headline lists, .results-note, .sub-      */
+/* heading, scenario-card parts).                                       */
+/*                                                                      */
+/*   .txt-numbered  <ol>: numerals in accent circles (honours start=)   */
+/*   .txt-bullets   <ul>: small accent dots, even item spacing          */
+/*   .txt-divider   <hr> or any block: thin rule between sub-parts      */
+/*   .key-point     the one-sentence takeaway: accent rule + light tint */
+/*   .note-box      a caveat-style aside: muted grey box                */
+/*   .prose         paragraph rhythm: ~70ch lines, 1.65 leading, 14px   */
+/*                  between paragraphs, clear space above headings      */
+/* ================================================================== */
+
+/* Paragraph rhythm. The left-column step content gets it by default. */
+.prose p, .step-content p,
+.prose li, .step-content li { line-height: 1.65; }
+.prose p, .step-content p { margin: 0 0 14px; }
+.prose > :last-child, .narrative-step .step-content > :last-child { margin-bottom: 0; }
+.prose .sub-heading, .step-content .sub-heading,
+.prose h3, .prose h4 { margin-top: 26px; margin-bottom: 8px; }
+.prose .sub-heading:first-child, .step-content .sub-heading:first-child { margin-top: 0; }
+
+/* Numbered list. */
+.txt-numbered,
+.ai-story ol.caveat-list,
+.growth-page ol.caveat-list {
+  list-style: none; padding-left: 0; margin: 0 0 14px; max-width: none;
+}
+.txt-numbered > li,
+.ai-story ol.caveat-list > li,
+.growth-page ol.caveat-list > li {
+  position: relative; padding-left: 40px; margin-bottom: 16px;
+  font-size: 0.95rem; line-height: 1.65; color: var(--pe-color-gray-600);
+}
+.txt-numbered > li:last-child,
+.ai-story ol.caveat-list > li:last-child,
+.growth-page ol.caveat-list > li:last-child { margin-bottom: 0; }
+.txt-numbered > li::before,
+.ai-story ol.caveat-list > li::before,
+.growth-page ol.caveat-list > li::before {
+  content: counter(list-item);
+  position: absolute; left: 0; top: 1px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--accent); color: var(--accent);
+  font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--pe-color-bg-primary);
+}
+.txt-numbered > li + li,
+.ai-story ol.caveat-list > li + li { padding-top: 16px; border-top: 1px solid var(--border); }
+.ai-story ol.caveat-list > li + li::before { top: 17px; }
+
+/* Bulleted list. */
+.txt-bullets,
+.step-content ul.intro-list,
+.headline-list,
+.key-diff .intro-list {
+  list-style: none; padding-left: 0; margin: 0 0 14px; max-width: none;
+}
+.txt-bullets > li,
+.step-content ul.intro-list > li,
+.headline-list > li,
+.key-diff .intro-list > li {
+  position: relative; padding-left: 20px; margin-bottom: 8px; line-height: 1.65;
+}
+.txt-bullets > li:last-child,
+.step-content ul.intro-list > li:last-child,
+.headline-list > li:last-child,
+.key-diff .intro-list > li:last-child { margin-bottom: 0; }
+.txt-bullets > li::before,
+.step-content ul.intro-list > li::before,
+.headline-list > li::before,
+.key-diff .intro-list > li::before {
+  content: ''; position: absolute; left: 4px; top: 0.72em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); opacity: 0.7;
+}
+
+/* Divider between sub-parts: explicit, and above each sub-heading in a step. */
+.txt-divider { border: 0; border-top: 1px solid var(--border); margin: 22px 0; }
+.step-content .sub-heading:not(:first-child) {
+  padding-top: 20px; border-top: 1px solid var(--border);
+}
+
+/* Key point: the takeaway of a step or card. */
+.key-point {
+  margin: 0 0 16px; padding: 12px 16px; max-width: none;
+  background: var(--pe-color-primary-50);
+  border-left: 3px solid var(--pe-color-primary-500);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.95rem; line-height: 1.65; color: var(--pe-color-gray-800);
+}
+.key-point b, .key-point strong { color: var(--pe-color-primary-800); }
+
+/* Note: a caveat-style aside. .results-note is the same component. */
+.note-box {
+  margin: 16px 0 0; padding: 12px 16px; max-width: none;
+  background: var(--pe-color-gray-50);
+  border: 1px solid var(--border); border-left: 3px solid var(--pe-color-gray-400);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.88rem; line-height: 1.6; color: var(--pe-color-gray-600);
+}
+.note-box b, .note-box strong { color: var(--pe-color-gray-900); }
+
+/* Existing call-outs, lede and quotes on the same rhythm. */
+.growth-lede { line-height: 1.65; }
+.scenario-part p { line-height: 1.65; }
+.scenario-part blockquote {
+  border-left-color: var(--pe-color-primary-300);
+  background: var(--pe-color-gray-50); border-radius: 0 6px 6px 0;
+}
+.narrative-step .step-content .table-wrap:last-child .comparison-table { margin-bottom: 0; }
+

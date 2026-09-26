@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import StickyPanel from './StickyPanel.jsx';
 
 // Two-pane scrollytelling: narrative steps on the left, a sticky panel on the
-// right that follows the step in view. Shared by Methodology › How OG-UK works
-// and UK growth with AI › How the scenarios are built. `idPrefix` keeps the
+// right that follows the step in view. Shared by the Model, Scenario design and
+// Model comparison tabs. `idPrefix` keeps the
 // element ids of two mounted stories apart; Methodology uses '' so its ids
 // (#narrative, #step-N, #sticky-panel) are unchanged.
 //
@@ -17,13 +17,19 @@ export default function ScrollyStory({ steps, panels, idPrefix = '', diagrams = 
     function update() {
       const narrative = document.getElementById(`${idPrefix}narrative`);
       if (!narrative || narrative.offsetHeight === 0) return;
-      const offset = window.innerHeight * 0.33;
+      // Reading line: a third of the way down, capped so a short step
+      // parked just under the header still counts as the one being read.
+      const offset = Math.min(window.innerHeight * 0.33, 260);
       let active = 0;
       for (let i = 0; i < steps.length; i++) {
         const el = document.getElementById(`${idPrefix}step-${i + 1}`);
         if (!el) continue;
         if (el.getBoundingClientRect().top < offset) active = i;
       }
+      // At the foot of the page the last step may not reach the reading
+      // line; being scrolled to the bottom always means the last step.
+      const doc = document.documentElement;
+      if (window.scrollY + window.innerHeight >= doc.scrollHeight - 2) active = steps.length - 1;
       setActiveStep(active);
     }
     window.addEventListener('scroll', update, { passive: true });
