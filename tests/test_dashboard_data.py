@@ -19,7 +19,7 @@ def test_paths_start_at_the_obr_2026_value():
     for p in dd.uk_paths(RESULTS)["panels"]:
         obr = p["traces"][0]
         o26 = dict(zip(obr["x"], obr["y"]))[2026]
-        base = next(t for t in p["traces"] if t["name"] == "UK, no AI")
+        base = next(t for t in p["traces"] if t["name"] == "No AI")
         assert base["x"][0] == 2026
         assert abs(base["y"][0] - o26) < 1e-3
 
