@@ -18,7 +18,7 @@ def main(argv=None) -> int:
 
     p_run = sub.add_parser("run", help="run the OG-UK scenarios (needs ogcore + oguk)")
     p_run.add_argument("--only", choices=["anthropic", "obr"], default=None)
-    p_run.add_argument("--shapes", choices=["step", "ramp", "both"], default="both")
+    p_run.add_argument("--shapes", choices=["step", "ramp", "both"], default="ramp")
     p_run.add_argument("--baseline-only", action="store_true",
                        help="stop after the baseline and the Z solve (~10 min)")
     p_run.add_argument("--tG1", type=int, default=TG1,
