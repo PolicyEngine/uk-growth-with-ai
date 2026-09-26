@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './panels.css';
 
 const SITE_URL = 'https://og-model-dashboard.vercel.app';
-const TITLE = 'What might AI do to the UK economy? · OG-UK';
+const TITLE = 'The Macroeconomic Effects of AI on the UK';
 const DESCRIPTION =
   'Two AI scenarios — Anthropic’s substantial case and the OBR’s technological-displacement case — run through OG-UK, the UK overlapping-generations model, 2026–2030. One sector.';
 

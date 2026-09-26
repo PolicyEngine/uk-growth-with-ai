@@ -1,7 +1,9 @@
 // Methodology-tab diagrams. Auto-extracted from the previous HTML build.
 // Stored as strings so the modal can clone the same markup on zoom.
 
+// Index 0 is the Why OG-UK step, which has no diagram.
 export const DIAGRAMS = [
+  null,
   // Step 1
   `<svg viewBox="0 0 580 260" width="580" style="max-width:100%;height:auto;">
                 <defs><marker id="arr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="var(--accent)"/></marker></defs>
@@ -81,7 +83,7 @@ export const DIAGRAMS = [
                 <text x="400" y="116" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">+ transfers TR + UBI</text>
                 <rect x="80" y="145" width="420" height="50" rx="8" fill="var(--accent-light)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 3"/>
                 <text x="290" y="166" text-anchor="middle" font-family="Roboto, sans-serif" font-size="12" fill="var(--accent)" font-weight="700">Fiscal closure rule</text>
-                <text x="290" y="184" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">After period T(G1): adjust G, TR, or both to stabilise debt/GDP</text>
+                <text x="290" y="184" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">From period tG1: G adjusts to stabilise debt/GDP; TR stays a share of GDP</text>
               </svg>`,
   // Step 5
   `<svg viewBox="0 0 560 190" width="560" style="max-width:100%;height:auto;">
@@ -173,6 +175,7 @@ export const DIAGRAMS = [
 ];
 
 export const DIAGRAM_TITLES = [
+  null,
   'Overlapping generations',
   'Lifetime utility components',
   'CES production',
