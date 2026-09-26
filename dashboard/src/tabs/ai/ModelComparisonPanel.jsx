@@ -230,9 +230,12 @@ export default function ModelComparisonPanel() {
             </tr>
             <tr>
               <td>
-                <b>Elasticity &epsilon;</b>
+                <b>Elasticity of substitution</b>
               </td>
-              <td>0.5 assumed, task-based CES</td>
+              <td>
+                &sigma; = 0.5 across tasks (task-based CES); their &epsilon; = 3 is the capital-supply
+                elasticity, a different parameter
+              </td>
               <td>
                 <b>argues 0.2</b>
               </td>
@@ -267,10 +270,16 @@ export default function ModelComparisonPanel() {
         </div>
         <div className="results-note">
           <b>Does the OBR have a model for this?</b> Not for the AI scenario. They <i>do</i> have an OLG
-          model — <b>Working Paper No. 22, <i>A new UK overlapping generations model</i></b> (April
-          2025), the same class as OG-UK — but the March 2026 EFO AI scenarios are{' '}
-          <b>assumptions layered on their central forecast</b>, not output from it: they state the
-          labour-share and unemployment outcomes rather than deriving them. That is why their case is
+          model —{' '}
+          <a href="/papers/obr-working-paper-22.pdf" target="_blank" rel="noreferrer">
+            <b>Working Paper No. 22, <i>A new UK overlapping generations model</i></b>
+          </a>{' '}
+          (April
+          2025), the same class as OG-UK — but the March 2026 EFO&rsquo;s Box 2.2, the
+          technological-displacement case used here, is an unemployment scenario about new technology
+          and an <b>assumption layered on their central forecast</b>, not output from it: it states the
+          labour-share and unemployment outcomes rather than deriving them. (The OBR&rsquo;s
+          AI-productivity scenarios are separate, in Briefing Paper 9, Annex B.) That is why their case is
           easy to impose here and impossible to falsify against their own machinery.
         </div>
         <div className="results-note">

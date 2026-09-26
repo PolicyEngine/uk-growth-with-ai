@@ -4,9 +4,9 @@ import { useEffect, useRef } from 'react';
 import { renderTex, renderMathIn } from '../lib/katex.js';
 import { PANEL_DATA } from '../data/methodologyPanels.js';
 
-export default function StickyPanel({ stepIndex }) {
+export default function StickyPanel({ stepIndex, panels = PANEL_DATA, id = 'sticky-panel' }) {
   const bodyRef = useRef(null);
-  const data = PANEL_DATA[stepIndex] || PANEL_DATA[0];
+  const data = panels[stepIndex] || panels[0];
 
   useEffect(() => {
     if (!bodyRef.current) return;
@@ -14,10 +14,10 @@ export default function StickyPanel({ stepIndex }) {
       renderTex(el, el.dataset.tex, true);
     });
     renderMathIn(bodyRef.current);
-  }, [stepIndex]);
+  }, [stepIndex, panels]);
 
   return (
-    <div className="example-panel" id="sticky-panel">
+    <div className="example-panel" id={id}>
       <div className="example-header">
         <span className="example-title">{data.title}</span>
         <span className="example-badge">{data.badge}</span>

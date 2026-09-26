@@ -314,6 +314,7 @@
     .example-output-line .icon { flex-shrink: 0; font-weight: 600; }
     .example-output-line.accent { color: var(--accent); }
     .example-output-line.success { color: #059669; }
+    .example-output-line.warn { color: #b45309; }
 
     .math-block-dark {
       background: #fff; border: 1px solid var(--border); border-radius: 8px;
@@ -496,29 +497,6 @@
     }
 
     /* ===== Results tab ===== */
-    .results-headline {
-      padding: 4px 4px 18px;
-      margin-bottom: 4px;
-    }
-    .results-headline .intro-list {
-      margin: 6px 0 14px; padding-left: 22px;
-      font-size: 0.97rem; color: var(--pe-color-gray-600);
-      line-height: 1.75;
-    }
-    .results-headline .intro-list li { margin-bottom: 4px; }
-    .results-headline .intro-list strong { color: var(--pe-color-gray-800); }
-    .results-reform-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 12px; border-radius: 999px;
-      background: var(--accent-light); color: var(--accent);
-      font-size: 0.78rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      margin-bottom: 14px;
-    }
-    .results-reform-badge .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--pe-color-primary-500);
-    }
     .results-note {
       margin-top: 14px; padding: 12px 16px;
       background: var(--pe-color-gray-50);
@@ -560,35 +538,6 @@
     }
     .impact-table .delta-pos { color: #0d7a63; }
     .impact-table .delta-neg { color: #b03a3a; }
-    .impact-rate-row {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 16px; padding: 12px 14px;
-      background: var(--accent-light); border-radius: 10px;
-      font-size: 0.92rem;
-    }
-    .impact-rate-row .label { color: var(--pe-color-gray-700); font-weight: 500; }
-    .impact-rate-row .val {
-      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-      font-weight: 600; color: var(--accent);
-    }
-
-    /* Transition path chart */
-    .tpi-chart-wrap {
-      margin-top: 6px;
-      background: var(--pe-color-gray-50);
-      border-radius: 14px; padding: 18px 14px 10px;
-    }
-    .tpi-chart { width: 100%; height: auto; display: block; }
-    .tpi-legend {
-      display: flex; flex-wrap: wrap; gap: 14px 22px;
-      justify-content: center; padding: 10px 6px 2px;
-      font-size: 0.82rem; color: var(--pe-color-gray-600);
-    }
-    .tpi-legend .item { display: inline-flex; align-items: center; gap: 6px; }
-    .tpi-legend .swatch {
-      width: 14px; height: 3px; border-radius: 2px;
-    }
-
     /* Results toolbar (single-select dropdowns) */
     .results-toolbar {
       display: flex; flex-wrap: wrap; gap: 10px;
@@ -699,31 +648,6 @@
     .panel-note {
       font-size: 0.82rem; color: var(--pe-color-gray-500);
       margin-top: 8px; font-style: italic;
-    }
-
-    /* Two sector cards (Impact across sectors + One sector at a time) sit
-       next to each other on wide screens and stack on narrow ones. */
-    .sector-side-by-side {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: start;
-    }
-    .sector-side-by-side > .section-card { margin-bottom: 0; }
-    /* Half-width plots — shorter than the default panel height. */
-    .sector-side-by-side .panel-cell .plot { height: 340px; }
-    /* Macro card chart — keep it modest in both dimensions; full-width
-       reads as oversized for a single plot. */
-    .macro-section .panel-grid {
-      max-width: 720px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .macro-section .panel-cell .plot { height: 320px; }
-
-    @media (max-width: 1100px) {
-      .sector-side-by-side { grid-template-columns: 1fr; }
-      .sector-side-by-side > .section-card + .section-card { margin-top: 0; }
     }
 
     @media (max-width: 700px) {
@@ -901,17 +825,31 @@
     /* ---------------------------------------------------------------- */
 
     /* Chart series palette — the single source of truth for every line,
-       bar and swatch on the growth tab. Built from the PolicyEngine ramp,
-       plus the gold the shared .legend-line vocabulary already uses as the
-       secondary accent. Solid = UK (OG-UK output), dashed = US (Anthropic). */
+       bar and swatch on the growth tab (src/tabs/ai/series.js points here,
+       and PlotPanel resolves these for Plotly). Built from the PolicyEngine
+       ramp, plus the gold the shared .legend-line vocabulary already uses as
+       the secondary accent. UK no-AI grey, UK OBR gold, UK Anthropic the
+       primary teal; US series lighter and dashed. */
     :root {
       --chart-uk-baseline:     var(--pe-color-gray-500);
       --chart-uk-obr:          #b8860b;
-      --chart-uk-ai:           var(--pe-color-primary-700);
-      --chart-us-noai:         var(--pe-color-gray-400);
-      --chart-us-modest:       var(--pe-color-primary-300);
-      --chart-us-substantial:  var(--pe-color-primary-500);
-      --chart-us-extreme:      var(--pe-color-primary-600);
+      --chart-uk-ai:           var(--pe-color-primary-600);
+      /* US (Anthropic, reference only): one sky-blue ramp from the
+         PolicyEngine ui-kit chart palette (--chart-2/-4, --diverging-gray-blue-*),
+         distinct in hue from the UK teal and from the UK no-AI grey. */
+      --chart-us-noai:         #7dd3fc;
+      --chart-us-modest:       #38bdf8;
+      --chart-us-substantial:  #0ea5e9;
+      --chart-us-extreme:      #026aa2;
+      /* UK paths chart: the OBR history line and its two reference marks. */
+      --chart-history:         var(--pe-color-gray-900);
+      --chart-mark-outturn:    var(--pe-color-gray-400);
+      --chart-mark-scenario:   var(--pe-color-gray-600);
+      --chart-forecast:        var(--pe-color-gray-400);
+      /* Status tints (channel badges, negative deltas) on the growth tab. */
+      --status-partial-bg:     color-mix(in srgb, var(--chart-uk-obr) 14%, var(--pe-color-bg-primary));
+      --status-partial-fg:     color-mix(in srgb, var(--chart-uk-obr) 70%, var(--pe-color-gray-900));
+      --status-neg:            #b03a3a;
     }
 
     /* Sub-tab bar: a quieter sibling of .tab-bar. */
@@ -982,7 +920,36 @@
     .results-gap {
       font-size: 0.82rem; font-weight: 700; color: var(--accent);
     }
-    .results-gap.neg { color: #b03a3a; }
+    .results-gap.neg { color: var(--status-neg); }
+
+    /* Headline box and the single caveats list. */
+    .key-diff .intro-list {
+      margin: 0 0 8px; padding-left: 20px; line-height: 1.7; list-style: disc;
+    }
+    .key-diff .intro-list li { margin-bottom: 4px; }
+    .caveat-list {
+      margin: 0; padding-left: 20px; list-style: disc;
+      font-size: 0.9rem; color: var(--text-mid); line-height: 1.65;
+    }
+    .caveat-list li { margin-bottom: 10px; }
+    .caveat-list li:last-child { margin-bottom: 0; }
+    .caveat-list b { color: var(--text-dark); }
+    .caveat-list code,
+    .section-description code {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+      font-size: 0.85em; background: var(--pe-color-gray-100);
+      padding: 1px 5px; border-radius: 4px;
+    }
+    .plot-fig + .plot-fig { border-top: 1px solid var(--border); padding-top: 26px; }
+
+    /* Summary table: the 2030 columns exist only for the Anthropic comparison. */
+    .impact-table .col-compare {
+      background: var(--pe-color-gray-50);
+    }
+    .impact-table thead th.col-compare { color: var(--pe-color-gray-400); }
+    /* Wide tables scroll inside their card on phones instead of widening the page. */
+    .assumptions-table { min-width: 640px; }
+    .impact-table.numeric { min-width: 760px; }
 
     /* Line swatches in legends and table row labels. */
     .comparison-table .legend-line,
@@ -1089,3 +1056,303 @@
 .obrv-wrap > h3 { margin-top: 0; }
 
 .panel-grid.cols-1 { grid-template-columns: 1fr; }
+
+/* How AI enters the model */
+.channels-table td { vertical-align: top; }
+.channels-table td:nth-child(3) { max-width: 460px; }
+.ch-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.ch-in { background: var(--pe-color-primary-50); color: var(--pe-color-primary-700); }
+.ch-partial { background: var(--status-partial-bg); color: var(--status-partial-fg); }
+.ch-out { background: var(--pe-color-gray-100); color: var(--pe-color-gray-500); }
+
+/* ================================================================== */
+/* UK growth with AI tab: dashboard layout                             */
+/* Scoped to .growth-page so nothing here reaches the Methodology tab.  */
+/* Type scale follows Methodology: 1.35rem card heading (.obr-head h3), */
+/* 0.95rem lede, 0.7rem uppercase eyebrow (.workflow-phases h3).        */
+/* ================================================================== */
+.growth-page [id^="caveat-"], #growth-caveats { scroll-margin-top: 90px; }
+
+.growth-eyebrow {
+  font-size: 0.7rem; font-weight: 600; color: var(--pe-color-gray-500);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.chart-head { margin-bottom: 14px; }
+.chart-takeaway {
+  font-size: 1.35rem; font-weight: 700; line-height: 1.3;
+  color: var(--pe-color-gray-900); letter-spacing: -0.02em;
+  margin: 0;
+}
+.chart-takeaway .pos { color: var(--accent); }
+.chart-takeaway .neg { color: var(--status-neg); }
+.chart-subtitle {
+  font-size: 0.9rem; color: var(--pe-color-gray-500);
+  line-height: 1.55; margin: 6px 0 0;
+}
+.chart-note {
+  font-size: 0.82rem; color: var(--pe-color-gray-500);
+  line-height: 1.6; margin: 14px 0 0;
+}
+.growth-lede {
+  font-size: 0.95rem; color: var(--pe-color-gray-600);
+  line-height: 1.7; margin: 0 0 16px;
+}
+.growth-subhead {
+  font-size: 1.05rem; font-weight: 700; color: var(--pe-color-gray-900);
+  letter-spacing: -0.01em; margin: 26px 0 8px;
+}
+.growth-block .growth-subhead { margin-top: 8px; }
+
+/* Figures inside a card: the takeaway steps down one size. */
+.plot-fig-takeaway {
+  display: block; font-size: 1.05rem; font-weight: 700; line-height: 1.35;
+  color: var(--pe-color-gray-900); letter-spacing: -0.01em;
+}
+.plot-fig-takeaway + .plot-fig-title {
+  font-size: 0.86rem; font-weight: 500; color: var(--pe-color-gray-500);
+  letter-spacing: 0; margin-top: 4px;
+}
+.growth-page .plot-fig { min-width: 0; }
+.growth-page .plot-fig figcaption { margin-bottom: 14px; }
+.growth-page .plot-fig-caption { font-size: 0.82rem; margin-top: 12px; }
+.growth-page .plot-fig + .plot-fig { border-top: none; padding-top: 0; margin-top: 0; }
+
+/* Two- and three-column grids; children may shrink below their content. */
+.grid-2, .grid-3 { display: grid; gap: 28px; }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.grid-2 > *, .grid-3 > * { min-width: 0; }
+.figure-pair { gap: 36px; }
+.figure-pair > .plot-fig + .plot-fig {
+  border-left: 1px solid var(--border); padding-left: 36px;
+}
+@media (max-width: 1199px) {
+  .figure-pair { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .figure-pair > .plot-fig + .plot-fig {
+    border-left: none; padding-left: 0;
+    border-top: 1px solid var(--border); padding-top: 26px;
+  }
+}
+@media (max-width: 1099px) { .grid-3 { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 960px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Headline: KPI strip ---- */
+.growth-hero .chart-takeaway { font-size: 1.5rem; }
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0; margin: 18px 0 20px;
+  border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+}
+.kpi {
+  padding: 16px 20px 18px;
+  background: var(--pe-color-bg-primary);
+}
+.kpi + .kpi { border-left: 1px solid var(--border); }
+.kpi-value {
+  font-size: 1.85rem; font-weight: 700; line-height: 1.1;
+  color: var(--pe-color-gray-900); letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kpi-vs { font-size: 0.95rem; font-weight: 500; color: var(--pe-color-gray-500); }
+.kpi-label {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 8px;
+  font-size: 0.82rem; font-weight: 600; color: var(--pe-color-gray-800);
+}
+.kpi-sub { margin-top: 3px; font-size: 0.78rem; color: var(--pe-color-gray-500); line-height: 1.45; }
+@media (max-width: 1099px) {
+  .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi:nth-child(3) { border-left: none; }
+  .kpi:nth-child(n + 3) { border-top: 1px solid var(--border); }
+}
+@media (max-width: 639px) {
+  .kpi-strip { grid-template-columns: minmax(0, 1fr); }
+  .kpi + .kpi { border-left: none; border-top: 1px solid var(--border); }
+}
+.headline-list {
+  margin: 0; padding-left: 20px; list-style: disc;
+  font-size: 0.95rem; line-height: 1.7; color: var(--pe-color-gray-700);
+}
+.headline-list li { margin-bottom: 4px; }
+.headline-list b { color: var(--pe-color-gray-900); }
+.headline-foot {
+  margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--border);
+  font-size: 0.86rem; color: var(--pe-color-gray-500);
+}
+
+/* ---- Line chart (pixel-width SVG, fixed type) ---- */
+.linechart { width: 100%; }
+.linechart svg { display: block; overflow: visible; }
+.linechart .g { stroke: var(--pe-color-gray-100); stroke-width: 1; }
+.linechart .axis-line { stroke: var(--pe-color-gray-300); stroke-width: 1; }
+.linechart .strip-rule { stroke: var(--pe-color-gray-200); stroke-width: 1; stroke-dasharray: 2 3; }
+.linechart .ax { font: 11px Inter, Roboto, sans-serif; fill: var(--pe-color-gray-500); }
+.linechart .strip-title { font-weight: 600; }
+
+/* ---- Dot plot (HTML) ---- */
+.dotplot {
+  --dp-label: 190px; --dp-gap: 12px; --dp-pad: 46px;
+  position: relative; font-size: 0.82rem; padding-bottom: 2px;
+}
+.dp-grid {
+  position: absolute; top: 0; bottom: 26px;
+  left: calc(var(--dp-label) + var(--dp-gap)); right: var(--dp-pad);
+  pointer-events: none;
+}
+.dp-gridline { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid var(--pe-color-gray-100); }
+.dp-gridline.ref { border-left: 1.5px solid var(--pe-color-gray-400); }
+.dp-group { position: relative; margin: 0 -10px; padding: 4px 10px; border-radius: 8px; }
+.dp-group + .dp-group { margin-top: 6px; }
+.dp-group.shade { background: var(--accent-light); }
+.dp-note {
+  font-size: 0.66rem; font-weight: 600; color: var(--pe-color-gray-500);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  padding: 2px 0 2px calc(var(--dp-label) + var(--dp-gap) + 8px);
+}
+.dp-group.shade .dp-note { color: var(--accent); }
+.dp-row { display: flex; align-items: center; gap: var(--dp-gap); height: 28px; }
+.dp-label {
+  flex: 0 0 var(--dp-label); text-align: right;
+  color: var(--pe-color-gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dp-label.strong { color: var(--pe-color-gray-900); font-weight: 600; }
+.dp-track { position: relative; flex: 1; height: 100%; margin-right: var(--dp-pad); }
+.dp-stem { position: absolute; top: 50%; height: 2px; margin-top: -1px; opacity: 0.55; }
+.dp-dot {
+  position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%; border: 2px solid; box-sizing: border-box;
+}
+.dp-dot.hollow { background: var(--pe-color-bg-primary); }
+.dp-value {
+  position: absolute; top: 50%; transform: translate(10px, -50%);
+  font-weight: 700; color: var(--pe-color-gray-800); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dp-axis { height: 24px; margin-top: 4px; }
+.dp-axis .dp-track { border-top: 1px solid var(--pe-color-gray-300); }
+.dp-tick {
+  position: absolute; top: 4px; transform: translateX(-50%);
+  font-size: 0.72rem; color: var(--pe-color-gray-500); font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) { .dotplot { --dp-label: 130px; font-size: 0.76rem; } }
+
+/* ---- Collapsible detail ---- */
+.growth-details {
+  margin-top: 22px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--pe-color-gray-50);
+}
+.growth-details > summary {
+  cursor: pointer; padding: 12px 16px;
+  font-size: 0.88rem; font-weight: 600; color: var(--accent);
+  list-style: none;
+}
+.growth-details > summary::-webkit-details-marker { display: none; }
+.growth-details > summary::before {
+  content: "\25B8"; display: inline-block; margin-right: 8px;
+  transition: transform 150ms ease;
+}
+.growth-details[open] > summary::before { transform: rotate(90deg); }
+.growth-details[open] > summary { border-bottom: 1px solid var(--border); }
+.growth-details > .plot-fig { padding: 18px 20px 20px; background: var(--pe-color-bg-primary); border-radius: 0 0 12px 12px; }
+
+/* ---- Channel table: grouped rows, status pill under the name ---- */
+.growth-page .channels-table th:first-child { width: 22%; }
+.growth-page .channels-table th:nth-child(2) { width: 28%; }
+.growth-page .channels-table .ch-badge { display: table; margin-top: 6px; }
+.growth-page .channels-table tr.group-row th {
+  padding: 16px 20px 6px; border-bottom: 1px solid var(--pe-color-gray-200);
+  font-size: 0.66rem; color: var(--pe-color-gray-500); background: transparent;
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  width: auto;
+}
+.growth-page .channels-table tbody tr.group-row:hover th { background: transparent; }
+.growth-page .channels-table tbody tr:last-child td { border-bottom: 1px solid var(--pe-color-gray-200); }
+.growth-page .table-wrap { overflow-x: auto; }
+.growth-page .channels-table { min-width: 620px; }
+
+/* ---- Scenario cards ---- */
+.scenario-grid { margin-top: 4px; }
+.scenario-card {
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px 18px 18px; background: var(--pe-color-bg-primary);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.scenario-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.scenario-name {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 0.98rem; font-weight: 700; color: var(--pe-color-gray-900);
+}
+.scenario-head .cell-tag { margin-top: 0; }
+.scenario-part + .scenario-part { border-top: 1px solid var(--pe-color-gray-100); padding-top: 12px; }
+.scenario-label {
+  font-size: 0.66rem; font-weight: 600; color: var(--pe-color-gray-500);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+}
+.scenario-part p {
+  font-size: 0.88rem; line-height: 1.65; color: var(--pe-color-gray-700); margin: 0;
+}
+.scenario-part p + p, .scenario-part blockquote + p { margin-top: 8px; }
+.scenario-part b { color: var(--pe-color-gray-900); }
+.scenario-part blockquote {
+  margin: 8px 0 0; padding: 8px 12px;
+  border-left: 3px solid var(--pe-color-gray-300);
+  font-size: 0.85rem; line-height: 1.6; font-style: italic; color: var(--pe-color-gray-600);
+}
+.reference-strip {
+  margin-top: 16px; padding: 12px 16px;
+  border: 1px dashed var(--pe-color-gray-300); border-radius: 12px;
+  background: var(--pe-color-gray-50);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+}
+.reference-strip .scenario-name { font-size: 0.9rem; color: var(--pe-color-gray-600); }
+.reference-strip .cell-tag { margin-top: 0; }
+.reference-strip p { flex-basis: 100%; margin: 0; font-size: 0.85rem; line-height: 1.6; color: var(--pe-color-gray-500); }
+.growth-page .results-note { margin-top: 16px; }
+
+/* ---- Summary table ---- */
+.summary-table thead tr.group-head th {
+  font-size: 0.66rem; letter-spacing: 0.08em; text-align: center;
+  color: var(--pe-color-gray-700); border-bottom: 1px solid var(--pe-color-gray-200);
+  padding-bottom: 8px;
+}
+.summary-table thead tr.group-head th:first-child {
+  text-align: left; vertical-align: bottom; border-bottom: 2px solid var(--pe-color-gray-200);
+}
+.summary-table thead tr.group-head th.col-compare { color: var(--pe-color-gray-500); }
+.summary-table tbody td { font-variant-numeric: tabular-nums; }
+.summary-table tbody td.cell-na { font-style: normal; color: var(--pe-color-gray-300); text-align: right !important; }
+.summary-table thead tr:not(.group-head) th:first-child { text-align: right; color: var(--pe-color-gray-500); font-weight: 600; }
+.summary-table tr.group-head th:first-child, .summary-table tbody td:first-child { white-space: nowrap; }
+@media (max-width: 960px) {
+  .summary-table tr.group-head th:first-child, .summary-table tbody td:first-child {
+    position: sticky; left: 0; z-index: 1; background: var(--pe-color-bg-primary);
+    box-shadow: 1px 0 0 var(--pe-color-gray-200);
+  }
+}
+
+/* ---- Caveats ---- */
+.caveat-groups { align-items: start; }
+.caveat-group { padding: 16px 20px 18px; border-radius: 12px; border: 1px solid var(--border); }
+.caveat-group.primary {
+  background: var(--pe-color-gray-50);
+  border-left: 3px solid var(--pe-color-primary-400);
+}
+.caveat-group-title {
+  font-size: 0.7rem; font-weight: 600; color: var(--pe-color-gray-500);
+  text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px;
+}
+.caveat-group.primary .caveat-group-title { color: var(--accent); }
+.growth-page ol.caveat-list { list-style: decimal; padding-left: 22px; }
+.growth-page ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
+.growth-details .plot-fig-svg { max-width: 980px; }
+
+/* UK growth with AI › How the scenarios are built: the two-pane story. */
+.ai-story .step-content > p,
+.ai-story .step-content li { font-size: 0.95rem; line-height: 1.7; color: var(--pe-color-gray-600); }
+.ai-story .step-content .scenario-card p { font-size: 0.92rem; }
+.ai-story ol.caveat-list { list-style: decimal; padding-left: 22px; }
+.ai-story ol.caveat-list li { margin-bottom: 14px; }
+.ai-story ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
+.ai-story [id^="caveat-"] { scroll-margin-top: 110px; }
+.ai-story .example-output-line .icon { min-width: 1.3em; text-align: center; }

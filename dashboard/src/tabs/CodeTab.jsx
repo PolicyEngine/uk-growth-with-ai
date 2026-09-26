@@ -193,7 +193,7 @@ const STEPS = [
         <p>
           The steady state tells you where the economy ends up. The <strong>transition path</strong> tells
           you how it gets there — year by year, 60&nbsp;periods by default (configurable). This is what
-          powers the dashed lines in the <strong>Showcase</strong> tab.
+          powers the year-by-year scenario paths on the <strong>UK growth with AI</strong> tab.
         </p>
         <p>
           The transition costs more compute — the model solves every cohort&rsquo;s lifetime under rational
@@ -229,8 +229,8 @@ const STEPS = [
         <p>
           Pass <code>multi_sector=True</code> and the same call returns the breakdown across the eight UK
           industry sectors (energy, manufacturing, construction, trade &amp; transport, info &amp; finance,
-          real estate, business services, public &amp; other) — the basis for the <em>industry by
-          industry</em> view in the Showcase tab.
+          real estate, business services, public &amp; other) — the 8-sector build. The <strong>UK growth with AI</strong> tab does not use it: every result
+          there is 1-sector.
         </p>
         <p>The same call returns sector-level output, capital and labour alongside the macro aggregates.</p>
       </>
@@ -254,8 +254,8 @@ const STEPS = [
             <code>scripts/04_transition.py</code> — heavier, produces the full year-by-year path.
           </li>
           <li>
-            <code>scripts/06_multi_sector.py</code> — the 8-sector calibration behind the Showcase-tab
-            industry views.
+            <code>scripts/06_multi_sector.py</code> — the 8-sector calibration (not used for any number on
+            this dashboard).
           </li>
         </ul>
         <p>

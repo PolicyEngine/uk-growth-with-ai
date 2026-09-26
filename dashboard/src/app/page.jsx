@@ -67,16 +67,17 @@ export default function HomePage() {
           <a href="https://github.com/PSLmodels/OG-Core" target="_blank" rel="noreferrer">OG-Core</a>{' '}
           overlapping-generations model, over <strong>2026&ndash;2030</strong>: Anthropic&rsquo;s{' '}
           <strong>substantial</strong> scenario (Korinek et al. 2026, Table 3) and the OBR&rsquo;s{' '}
-          <strong>technological-displacement</strong> scenario (March 2026 EFO, Box 2.2), each against a
+          <strong>technological-displacement</strong> unemployment scenario (March 2026 EFO, Box 2.2), each against a
           no-AI baseline and against Anthropic&rsquo;s four published US paths.
         </p>
         <p className="intro-text">
           <strong>Every result here is 1-sector</strong> (<code>multi_sector=False</code>), so the
           demand-composition channel is absent, and neither scenario can speak to displacement — the
           model has no unemployment, no search frictions and no occupational split. The two tabs:{' '}
-          <strong>UK growth with AI</strong> for what each model can represent and what the runs produce,
-          and <strong>Methodology</strong> for how OG-UK works against the OBR&rsquo;s own UK OLG model
-          (Working Paper No.&nbsp;22) and whether its baseline stands up.
+          <strong>UK growth with AI</strong> for what the runs produce, reported over 2026&ndash;2029
+          (2030 only where Anthropic&rsquo;s published 2030 endpoints need it), and{' '}
+          <strong>Methodology</strong> for how OG-UK works, its code, what each model can represent, and
+          whether its baseline stands up against the OBR&rsquo;s March 2026 forecast.
         </p>
 
         <nav className="tab-bar" role="tablist">
