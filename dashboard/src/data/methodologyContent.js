@@ -7,7 +7,7 @@ export const STEPS = [
     title: 'Why OG-UK for this analysis',
     body: `<p class="key-point">The effects of automation run through saving, investment, incomes and the public finances together, and OG-UK determines all of them in one general equilibrium.</p>
               <ol class="txt-numbered">
-                <li><strong>Capital deepening is solved, not assumed.</strong> The effects of automation run through saving, investment and the capital stock, which OG-UK determines in general equilibrium.</li>
+                <li><strong>Capital deepening is solved, not assumed.</strong> Saving, investment and the capital stock respond to the higher return to capital within the model.</li>
                 <li><strong>Labour and capital income are separated by household.</strong> Households differ by age and ability, so a lower labour share feeds through to consumption, saving and bequests cohort by cohort.</li>
                 <li><strong>The tax system and a government budget are included.</strong> Tax functions fitted to <a href="https://github.com/PolicyEngine/policyengine-uk" target="_blank" rel="noreferrer">PolicyEngine UK</a> and a government budget constraint mean tax revenue and public debt respond &mdash; the channel behind the OBR&rsquo;s concern about the tax-richness of activity.</li>
                 <li><strong>UK calibration, open source.</strong> <a href="https://github.com/PSLmodels/OG-UK" target="_blank" rel="noreferrer">OG-UK</a> calibrates <a href="https://github.com/PSLmodels/OG-Core" target="_blank" rel="noreferrer">OG-Core</a> to UK demographics and fiscal aggregates, and every result can be reproduced (<a href="#code">Code</a>).</li>

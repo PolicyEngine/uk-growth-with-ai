@@ -1,6 +1,6 @@
 'use client';
 
-// Link to a numbered caveat (or any step) on the Future scenarios tab. The
+// Link to a numbered caveat (or any step) on the Scenario design tab. The
 // link switches tab through the hash router, waits for the target to be
 // visible, then scrolls to it.
 export default function CaveatLink({ id, children }) {

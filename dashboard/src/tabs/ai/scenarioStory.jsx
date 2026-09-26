@@ -10,19 +10,26 @@ import CaveatLink from '@/tabs/ai/CaveatLink.jsx';
 import { ARM_META, US_COLORS } from '@/tabs/ai/series.js';
 import { URLS, issue, pr, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import {
-  D, FIRST_YEAR, LAST, LAST_YEAR, G0, G1, DG, LS0, LS1, LS_FALL, GAMMA_ONLY_GAIN, KL0, Z_OBR, Z_ANTH,
+  D, FIRST_YEAR, LAST, LAST_YEAR, G0, G1, LS0, LS1, LS_FALL, GAMMA_ONLY_GAIN, KL0, Z_OBR, Z_ANTH,
   TG1, OBR, KORINEK, RC_ERROR, CIT_RATE, FIXED, MODEL_RATIOS, signed, gapAt, taxGdpChangePp, taxGdpBase,
 } from '@/tabs/ai/metrics.js';
 import paths from '@/data/ukAiPaths.json';
 
+// Rise in the interest rate by 2030 in both AI scenarios. r is not in
+// aiScenarios.json; model output gives r of about 5.3% -> 6.3% in 2030
+// (+0.8 to +1.1pp across the two scenarios; coordinator, from the run).
+const R_RISE_PP = 1;
+
 // Caveat numbers, in display order. Every <CaveatLink> on the dashboard
 // takes its number from here.
 export const CAVEATS = [
-  'sector', 'displacement', 'fiscal', 'investment', 'accounting', // affect every number
-  'anticipation', 'us', 'levels', 'z', // how to read the charts
+  // affect every number
+  'imposed', 'sector', 'displacement', 'fiscal', 'investment', 'ramp-end', 'accounting',
+  // how to read the charts
+  'anticipation', 'us', 'levels', 'z',
 ];
 export const caveatNo = (id) => CAVEATS.indexOf(id) + 1;
-const N_EVERY = 5;
+const N_EVERY = 7;
 
 export function Cv({ id, children }) {
   return <CaveatLink id={`caveat-${id}`}>{children ?? `caveat ${caveatNo(id)}`}</CaveatLink>;
@@ -107,9 +114,6 @@ function FiscalTable() {
           <tr>
             <th>{LAST_YEAR}, against the no-AI baseline</th>
             <th>GDP</th>
-            <th>Consumption</th>
-            <th>Tax revenue</th>
-            <th>Debt</th>
             <th>Tax/GDP</th>
             <th>Debt/GDP</th>
           </tr>
@@ -124,9 +128,6 @@ function FiscalTable() {
                 <small>{conv}</small>
               </td>
               <td>{signed(b.Y_gap[LAST])}%</td>
-              <td>{signed(b.C_gap[LAST])}%</td>
-              <td>{signed(b.tax_gap[LAST])}%</td>
-              <td>{signed(b.D_gap[LAST])}%</td>
               <td>{signed(taxPp(b), 2)}pp</td>
               <td>{signed(b.debt_gdp_pp[LAST], 2)}pp</td>
             </tr>
@@ -185,7 +186,7 @@ export const STORY_STEPS = [
         <p>
           A channel marked &ldquo;not modelled&rdquo; has no counterpart in the runs, so no result here speaks
           to it. The channel-by-channel comparison with Korinek et al., Moll and Imas and the OBR is under{' '}
-          <a href="#coverage">Model coverage</a>.
+          <a href="#coverage">Model comparison</a>.
         </p>
         <AiChannels />
       </>
@@ -355,56 +356,55 @@ export const STORY_STEPS = [
     content: (
       <>
         <p className="key-point">
-          Five limits apply to every result on <a href="#growth">UK growth paths</a>.
+          {['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'][N_EVERY] || N_EVERY} limits apply to every result on <a href="#growth">Economic effects</a>.
         </p>
         <ol className="caveat-list" start={1}>
+          <li id="caveat-imposed">
+            <b>The shock is imposed, not estimated.</b> The labour-share fall and the TFP gain are calibrated to a
+            US model (Korinek et al.), and at &epsilon;&nbsp;=&nbsp;1 the labour share falls by construction.
+          </li>
           <li id="caveat-sector">
-            <b>Every result is 1-sector</b> (<code>multi_sector=False</code>). Cobb-Douglas at one sector makes
-            the labour share exactly 1&minus;&gamma;, so the labour-share target is met by construction. The
-            cost: with one good, spending cannot shift from what gets automated to what stays scarce, so the
-            demand-composition channel is absent. OG-UK&rsquo;s 8-sector build carries that channel, but its
+            <b>One sector.</b> With one good, spending cannot shift from what is automated to what stays scarce,
+            so the demand-composition channel is absent; OG-UK&rsquo;s 8-sector build carries it, but its
             transition path diverges after about seven periods, so it is not used.
           </li>
           <li id="caveat-displacement">
-            <b>No unemployment or displacement.</b> OG-UK has no unemployment, search frictions or occupations.
-            Neither scenario speaks to displacement, and the runs contain none of the welfare-spending cost the
-            OBR attaches to Box 2.2. The part of the tax-richness channel the model does carry is in step 4.
+            <b>Automation only is not the OBR&rsquo;s scenario.</b> The OBR holds GDP unchanged through higher
+            unemployment ({OBR.unemployment}%); OG-UK has no unemployment or job search, so capital deepening
+            raises GDP and none of the OBR&rsquo;s welfare-spending cost appears.
           </li>
           <li id="caveat-fiscal">
-            <b>Fiscal convention: spending rises with GDP.</b> In every arm government consumption G and
-            transfers TR are fixed shares of GDP (the baseline&rsquo;s shares), so when AI raises GDP, spending
-            rises with it, and debt is the residual. The switch to debt targeting is set to period {TG1} (
-            {FIRST_YEAR + TG1}), beyond the window. The OBR convention instead holds spending plans fixed in cash.
+            <b>Fiscal results depend on the spending rule.</b> Government consumption and transfers are fixed
+            shares of GDP in every scenario, so spending rises with AI-driven GDP and debt is the residual (debt
+            targeting starts only in {FIRST_YEAR + TG1}); the OBR convention holds spending plans fixed.
             {FIXED ? (
               <>
                 {' '}
-                A second run holds G and TR at the baseline&rsquo;s levels. Under it, debt/GDP in {LAST_YEAR}{' '}
-                <b>falls in both arms</b>: {signed(debtPp('arms', 'anthropic_ramp'), 2)}pp (Automation + productivity) and{' '}
-                {signed(debtPp('arms', 'obr_ramp'), 2)}pp (Automation only), against{' '}
-                {signed(debtPp('common_gy', 'anthropic_ramp'), 2)}pp and{' '}
-                {signed(debtPp('common_gy', 'obr_ramp'), 2)}pp in the main runs. The Automation-only scenario&rsquo;s
-                rise in debt is therefore mostly the spending rule, not the technology. GDP and consumption
-                barely change between the two conventions.
+                With spending held at baseline levels instead, debt/GDP in {LAST_YEAR} in Automation only{' '}
+                {debtPp('arms', 'obr_ramp') < 0 ? 'falls' : 'rises'} ({signed(debtPp('arms', 'obr_ramp'), 2)}pp)
+                rather than {debtPp('common_gy', 'obr_ramp') > 0 ? 'rising' : 'falling'} (
+                {signed(debtPp('common_gy', 'obr_ramp'), 2)}pp).
                 <FiscalTable />
                 <span className="note-box" style={{ display: 'block' }}>
-                  Debt is set a year ahead, so its {FIRST_YEAR} gap is zero while debt/GDP already moves with GDP.
                   Tax/GDP uses the model baseline&rsquo;s {taxGdpBase().toFixed(1)}% in {LAST_YEAR}.
                 </span>
               </>
             ) : null}
           </li>
           <li id="caveat-investment">
-            <b>The shape of the investment path comes from the ramp.</b> Investment rises from {FIRST_YEAR}{' '}
-            because households and firms foresee the higher return to capital (perfect foresight, no adjustment
-            costs in OG-Core), and falls back in {LAST_YEAR} because the assumed ramp stops there, so the capital
-            stock stops needing to grow as fast. Treat the shape as a property of the assumed ramp, not a
-            forecast of an investment boom and bust; the capital stock is the robust quantity.
+            <b>Investment rises before the technology changes.</b> Agents foresee the ramp (perfect foresight) and
+            OG-Core has no capital adjustment costs, so investment jumps from {FIRST_YEAR}; the interest rate rises
+            by about {R_RISE_PP} percentage point by {LAST_YEAR} and consumption falls to finance it. This is
+            coherent within the model, not a forecast of an investment boom.
+          </li>
+          <li id="caveat-ramp-end">
+            <b>The {LAST_YEAR} fall in investment is the end of the ramp.</b> The linear ramp stops in {LAST_YEAR},
+            so the capital stock stops needing to grow as fast; it is not an economic event.
           </li>
           <li id="caveat-accounting">
-            <b>{FIRST_YEAR} ratios carry an accounting error.</b> In {FIRST_YEAR} the model&rsquo;s resource
-            constraint misses by {RC_ERROR.units} model units, about {RC_ERROR.pctGdp}% of GDP, in every arm.
-            The error is the same in every arm, so gaps between arms are unaffected; {FIRST_YEAR} levels and
-            composition ratios are not exact.
+            <b>{FIRST_YEAR} levels carry an accounting error.</b> The model&rsquo;s resource constraint misses by
+            about {RC_ERROR.pctGdp}% of {FIRST_YEAR} GDP, equally in every scenario, so gaps are unaffected but{' '}
+            {FIRST_YEAR} levels and ratios are not exact.
           </li>
         </ol>
       </>
@@ -418,7 +418,7 @@ export const STORY_STEPS = [
         <ol className="caveat-list" start={N_EVERY + 1}>
           <li id="caveat-anticipation">
             <b>{FIRST_YEAR} gaps are anticipation.</b> &gamma; and Z are still at baseline values in{' '}
-            {FIRST_YEAR}; the AI arms already differ because households and firms see the ramp coming.
+            {FIRST_YEAR}; the AI scenarios already differ because households and firms see the ramp coming.
           </li>
           <li id="caveat-us">
             <b>The US comparison is cross-country, cross-model and a year apart.</b> Korinek et al.&rsquo;s Table 3
@@ -431,7 +431,7 @@ export const STORY_STEPS = [
           <li id="caveat-levels">
             <b>The context chart applies the model&rsquo;s changes to the OBR&rsquo;s level.</b> OG-UK&rsquo;s own
             baseline ratios differ from the data, so each scenario path starts from the OBR&rsquo;s {FIRST_YEAR}{' '}
-            value and moves by the model&rsquo;s proportional change in the ratio. The AI arms start away from
+            value and moves by the model&rsquo;s proportional change in the ratio. The AI scenarios start away from
             the OBR value because of anticipation.
             {MODEL_RATIOS ? (
               <span className="note-box" style={{ display: 'block' }}>
@@ -454,10 +454,10 @@ export const STORY_STEPS = [
           </li>
         </ol>
         <p className="note-box">
-          Three problems in earlier versions are fixed in these results ({ext(pr(11), 'PR #11')}): the AI arms
+          Three problems in earlier versions are fixed in these results ({ext(pr(11), 'PR #11')}): the AI scenarios
           set their own spending share ({ext(issue(2), '#2')}), the window stopped at 2029 because of an early
           switch to debt targeting ({ext(issue(3), '#3')}), and productivity growth was mis-sourced (
-          {ext(issue(5), '#5')}; see <a href="#coverage">Model coverage</a>).
+          {ext(issue(5), '#5')}; see <a href="#coverage">Model comparison</a>).
         </p>
       </>
     ),
@@ -470,22 +470,21 @@ const fsLine = (conv, label) =>
     ? [i(`${label}: Automation + productivity ${signed(debtPp(conv, 'anthropic_ramp'), 2)}pp, Automation only ${signed(debtPp(conv, 'obr_ramp'), 2)}pp`, 'info', '=')]
     : [];
 
+const V = (text) => i(text, 'info', '=');
+
 export const STORY_PANELS = [
   { title: 'Production with AI', badge: 'Step 1', sections: [
-    // Z solve shown per scenario in steps 4-5.
-    { label: 'Technology (1 sector, ε = 1)', type: 'math', equations: [
+    { label: 'Technology (one sector, ε = 1)', type: 'math', equations: [
       { label: 'Output', tex: 'Y_t = Z_t\\,K_t^{\\gamma_t}\\,\\bigl(e^{g_y t}L_t\\bigr)^{1-\\gamma_t}' },
-      { label: 'Labour share', tex: '\\frac{w_t L_t}{Y_t} = 1-\\gamma_t' },
+      { label: 'Labour share', tex: 's_{L,t} = \\frac{w_t L_t}{Y_t} = 1-\\gamma_t' },
+      { label: 'Automation', tex: '\\gamma_t = \\gamma_0 + \\min(t/T,\\,1)\\,(\\gamma_1-\\gamma_0)' },
+      { label: 'Productivity', tex: 'Z_t = 1 + \\min(t/T,\\,1)\\,(Z^{*}-1)' },
+      { label: 'Z solve, target τ at baseline inputs', tex: 'Z^{*} = (1+\\tau)\\,(K_0/L_0)^{-(\\gamma_1-\\gamma_0)}' },
     ]},
-    { label: `The two AI parameters, ${FIRST_YEAR}–${LAST_YEAR}`, type: 'math', equations: [
-      { label: 'Ramp', tex: `u_t = \\min(t/${LAST},\\,1), \\quad t = 0 \\text{ in } ${FIRST_YEAR}` },
-      { label: 'Automation', tex: `\\gamma_t = ${G0} + ${DG}\\,u_t` },
-      { label: 'Labour share', tex: `${LS0.toFixed(0)}\\% \\to ${LS1.toFixed(1)}\\% \\quad (-${LS_FALL.toFixed(1)}\\text{pp})` },
-      { label: 'Productivity', tex: 'Z_t = 1 + (Z^{*}-1)\\,u_t' },
-    ]},
-    { label: 'The Z solve, at baseline inputs', type: 'math', equations: [
-      { label: 'Target: output gain at fixed K₀, L₀', tex: `Z^{*}\\,(K_0/L_0)^{${DG}} = 1 + \\text{target}` },
-      { label: 'Targets', tex: `\\text{Automation only: } 0\\%, \\quad \\text{Automation + productivity: } +${KORINEK.tfp}\\%` },
+    { label: 'Values', type: 'output', lines: [
+      V(`\\(\\gamma_0 = ${G0}\\), \\(\\gamma_1 = ${G1}\\): labour share ${LS0.toFixed(0)}% → ${LS1.toFixed(1)}%`),
+      V(`\\(T = ${LAST}\\): full values from ${LAST_YEAR}; \\(t = 0\\) is ${FIRST_YEAR}`),
+      V(`\\(\\tau = ${(KORINEK.tfp / 100).toFixed(3)}\\) Automation + productivity; \\(\\tau = 0\\) Automation only`),
     ]},
   ]},
   { title: 'Channel coverage', badge: 'Step 2', sections: [
@@ -503,37 +502,40 @@ export const STORY_PANELS = [
       i('Which goods get cheaper (needs several sectors)', 'warn', '✗'),
     ]},
   ]},
-  { title: 'UK, no AI', badge: 'Baseline', sections: [
+  { title: ARM_META.baseline.label, badge: 'Scenario 1', sections: [
     { label: 'Parameters, every year', type: 'math', equations: [
-      { label: '', tex: `\\varepsilon = 1,\\quad \\gamma = ${G0},\\quad Z = 1` },
-      { label: 'Labour share', tex: `1-\\gamma = ${LS0.toFixed(0)}\\%` },
-      { label: 'Productivity growth', tex: `g_y = ${D.assum.g_y_annual.toFixed(3)}` },
+      { label: '', tex: '\\gamma_t = \\gamma_0, \\quad Z_t = 1, \\quad s_L = 1-\\gamma_0' },
     ]},
-    { label: 'Role', type: 'output', lines: [
-      i('Every other UK path is measured against this one'),
+    { label: 'Values', type: 'output', lines: [
+      V(`\\(\\varepsilon = 1\\), \\(\\gamma_0 = ${G0}\\): labour share ${LS0.toFixed(0)}% (OG-Core default)`),
+      V(`\\(g_y = ${D.assum.g_y_annual.toFixed(3)}\\): productivity growth ${(D.assum.g_y_annual * 100).toFixed(1)}% a year`),
       i('Population: UN World Population Prospects, UK'),
     ]},
   ]},
   { title: ARM_META.obr_ramp.label, badge: 'Scenario 2', sections: [
-    { label: 'Target: no output gain at fixed inputs', type: 'math', equations: [
-      { label: 'At baseline K₀, L₀', tex: `Z^{\\text{AO}} K_0^{${G1}} L_0^{${(1 - G1).toFixed(3)}} = K_0^{${G0}} L_0^{${(1 - G0).toFixed(2)}}` },
-      { label: 'Solved', tex: `Z^{\\text{AO}} = (K_0/L_0)^{-${DG}} = ${Z_OBR.toFixed(4)}` },
+    { label: 'Target: no output gain at fixed inputs (τ = 0)', type: 'math', equations: [
+      { label: 'At baseline K₀, L₀', tex: 'Z^{*} K_0^{\\gamma_1} L_0^{1-\\gamma_1} = K_0^{\\gamma_0} L_0^{1-\\gamma_0}' },
+      { label: 'Solved', tex: 'Z^{*} = (K_0/L_0)^{-(\\gamma_1-\\gamma_0)}' },
     ]},
-    { label: `Against the OBR's Box 2.2, ${LAST_YEAR}`, type: 'output', lines: [
-      i(`Labour share \\(-${LS_FALL.toFixed(1)}\\)pp: imposed`, 'accent', '✓'),
-      i(`GDP unchanged: only at fixed inputs; in equilibrium ${signed(OBR_Y)}%`, 'info', '~'),
-      i(`Tax/GDP: OG-UK ${signed(TAX_OBR, 2)}pp; OBR ≈${OBR.receiptsPctGdp}pp (¶6.18)`, 'info', '='),
-      i(`Unemployment ${OBR.unemployment}%: no counterpart`, 'warn', '✗'),
+    { label: 'Values', type: 'output', lines: [V(`\\(Z^{*} = ${Z_OBR.toFixed(4)}\\)`)] },
+    { label: `Against the OBR's Box 2.2, ${LAST_YEAR}`, type: 'grid', cols: ['OG-UK', 'OBR'], rows: [
+      { label: 'Labour share', cells: [`−${LS_FALL.toFixed(1)}pp (imposed)`, 'lower'] },
+      { label: 'GDP', cells: [`${signed(OBR_Y)}%`, 'unchanged'] },
+      { label: 'Tax/GDP (¶6.18)', cells: [`${signed(TAX_OBR, 2)}pp`, `≈${OBR.receiptsPctGdp}pp`] },
+      { label: 'Unemployment', cells: ['n/a', `${OBR.unemployment}%`] },
     ]},
   ]},
   { title: ARM_META.anthropic_ramp.label, badge: 'Scenario 3', sections: [
-    { label: `Target: +${KORINEK.tfp}% measured TFP`, type: 'math', equations: [
-      { label: 'At baseline K₀, L₀', tex: `\\frac{Z^{\\text{AP}} K_0^{${G1}} L_0^{${(1 - G1).toFixed(3)}}}{K_0^{${G0}} L_0^{${(1 - G0).toFixed(2)}}} = ${(1 + KORINEK.tfp / 100).toFixed(3)}` },
-      { label: 'Solved', tex: `Z^{\\text{AP}} = ${(1 + KORINEK.tfp / 100).toFixed(3)}\\,(K_0/L_0)^{-${DG}} = ${Z_ANTH.toFixed(4)}` },
+    { label: 'Target: measured TFP gain τ at fixed inputs', type: 'math', equations: [
+      { label: 'At baseline K₀, L₀', tex: '\\frac{Z^{*} K_0^{\\gamma_1} L_0^{1-\\gamma_1}}{K_0^{\\gamma_0} L_0^{1-\\gamma_0}} = 1+\\tau' },
+      { label: 'Solved', tex: 'Z^{*} = (1+\\tau)\\,(K_0/L_0)^{-(\\gamma_1-\\gamma_0)}' },
+    ]},
+    { label: 'Values', type: 'output', lines: [
+      V(`\\(\\tau = ${(KORINEK.tfp / 100).toFixed(3)}\\), \\(Z^{*} = ${Z_ANTH.toFixed(4)}\\)`),
     ]},
     { label: 'Calibration to Korinek et al. (2026), Table 3', type: 'output', lines: [
-      i(`Labour share \\(-${LS_FALL.toFixed(1)}\\)pp: matched (UK ${LS0.toFixed(0)}% → ${LS1.toFixed(1)}%)`, 'accent', '✓'),
-      i(`Measured TFP +${KORINEK.tfp}%: matched, jointly with \\(\\gamma\\)`, 'accent', '✓'),
+      i(`Labour share −${LS_FALL.toFixed(1)}pp: matched`, 'accent', '✓'),
+      i(`Measured TFP +${KORINEK.tfp}%: matched`, 'accent', '✓'),
       i('Their GDP and growth: comparison points, not targets', 'info', '→'),
       i('Their unemployment and wage split: no counterpart', 'warn', '✗'),
     ]},
@@ -546,22 +548,27 @@ export const STORY_PANELS = [
     ]},
   ]},
   { title: 'Why Z sits below 1', badge: 'Step 7', sections: [
-    { label: 'Output gain from γ alone, at baseline K₀/L₀', type: 'math', equations: [
-      { label: '', tex: `(K_0/L_0)^{${DG}} - 1 = ${GAMMA_ONLY_GAIN.toFixed(2)}\\%,\\quad K_0/L_0 = ${KL0.toFixed(4)}` },
+    { label: 'Output gain from γ alone, at baseline inputs', type: 'math', equations: [
+      { label: '', tex: 'g_{\\gamma} = (K_0/L_0)^{\\gamma_1-\\gamma_0} - 1' },
+      { label: 'Hence', tex: 'Z^{*} = \\frac{1+\\tau}{1+g_{\\gamma}} < 1 \\iff \\tau < g_{\\gamma}' },
     ]},
-    { label: 'What differs between the AI scenarios', type: 'output', lines: [
-      i('Same \\(\\gamma\\) path, fiscal rule and starting state', 'accent', '='),
-      i(`\\(Z^{*}\\): ${Z_ANTH.toFixed(4)} (Automation + productivity) against ${Z_OBR.toFixed(4)} (Automation only)`, 'accent', '≠'),
+    { label: 'Values', type: 'output', lines: [
+      V(`\\(g_{\\gamma} = ${GAMMA_ONLY_GAIN.toFixed(2)}\\%\\), \\(K_0/L_0 = ${KL0.toFixed(4)}\\) (model units)`),
+      V(`\\(Z^{*}\\): ${Z_OBR.toFixed(4)} Automation only, ${Z_ANTH.toFixed(4)} Automation + productivity`),
     ]},
   ]},
   { title: 'Affects every number', badge: `Caveats 1–${N_EVERY}`, sections: [
     { label: 'Checklist', type: 'output', lines: [
-      i('One sector: no demand-composition channel', 'warn', '1'),
-      i('No unemployment or displacement', 'warn', '2'),
-      i(`Spending a fixed share of GDP; debt the residual to ${FIRST_YEAR + TG1}`, 'warn', '3'),
-      i(`Investment path shaped by the ${LAST_YEAR} end of the ramp`, 'warn', '4'),
-      i(`${FIRST_YEAR} accounting error ≈${RC_ERROR.pctGdp}% of GDP, same in every arm`, 'warn', '5'),
-    ]},
+      [
+        'Shock imposed, calibrated to a US model',
+        'One sector: no demand-composition channel',
+        'No unemployment: not the OBR scenario',
+        `Spending a share of GDP; debt the residual to ${FIRST_YEAR + TG1}`,
+        'Investment rises early: perfect foresight',
+        `${LAST_YEAR} investment fall: end of the ramp`,
+        `${FIRST_YEAR} accounting error ≈${RC_ERROR.pctGdp}% of GDP`,
+      ].map((t, k) => i(t, 'warn', String(k + 1))),
+    ].flat() },
     ...(FIXED ? [{ label: `Debt/GDP in ${LAST_YEAR}, against the no-AI baseline`, type: 'output', lines: [
       ...fsLine('common_gy', 'Spending a share of GDP'),
       ...fsLine('arms', 'Spending at baseline levels'),
@@ -569,10 +576,10 @@ export const STORY_PANELS = [
   ]},
   { title: 'How to read the charts', badge: `Caveats ${N_EVERY + 1}–${CAVEATS.length}`, sections: [
     { label: 'Checklist', type: 'output', lines: [
-      i(`${FIRST_YEAR} gaps are anticipation`, 'info', '6'),
-      i('US: 2030 endpoints, a year earlier than OG-UK’s 2030', 'info', '7'),
-      i('Context chart: model changes applied to the OBR level', 'info', '8'),
-      i('The level of Z has no meaning, only its target', 'info', '9'),
-    ]},
+      `${FIRST_YEAR} gaps are anticipation`,
+      'US: 2030 endpoints, a year earlier than OG-UK’s 2030',
+      'Context chart: model changes applied to the OBR level',
+      'The level of Z has no meaning, only its target',
+    ].map((t, k) => i(t, 'info', String(N_EVERY + k + 1))) },
   ]},
 ];

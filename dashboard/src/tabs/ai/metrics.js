@@ -44,11 +44,9 @@ export const TG1 = D.assum.tG1;
 // against their own No-AI path. A ratio of their indices, so it does not
 // depend on how the index is based.
 export const US_NAMES = Object.keys(D.anth);
-// Published 'GDP, pct. above the no-AI path' row of Table 3 (Korinek et al.
-// 2026, p. 31). The ratio of the JSON's rebased indices reproduces it to
-// within rounding (Extreme 32.5 against 32.4), so the published row is used.
-const KORINEK_GDP_GAP = { 'No AI': 0, Modest: 1.6, Substantial: 8.3, Extreme: 32.4 };
-export const usGap = (name) => KORINEK_GDP_GAP[name] ?? (D.anth[name].idx2030 / D.anth['No AI'].idx2030 - 1) * 100;
+// Computed from the JSON's 2030 indices (Table 3 prints these to one decimal;
+// the ratio gives Extreme 32.5 where the table's own row rounds to 32.4).
+export const usGap = (name) => (D.anth[name].idx2030 / D.anth['No AI'].idx2030 - 1) * 100;
 export const usGrowthIncrement = (name) => D.anth[name].growth - D.anth['No AI'].growth;
 
 // Optional block: OG-UK's own baseline ratios to GDP, in per cent:

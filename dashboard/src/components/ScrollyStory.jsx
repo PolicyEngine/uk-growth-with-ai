@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import StickyPanel from './StickyPanel.jsx';
 
 // Two-pane scrollytelling: narrative steps on the left, a sticky panel on the
-// right that follows the step in view. Shared by the Model methodology and
-// Future scenarios tabs. `idPrefix` keeps the
+// right that follows the step in view. Shared by the Model, Scenario design and
+// Model comparison tabs. `idPrefix` keeps the
 // element ids of two mounted stories apart; Methodology uses '' so its ids
 // (#narrative, #step-N, #sticky-panel) are unchanged.
 //

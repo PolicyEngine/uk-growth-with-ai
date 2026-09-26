@@ -1,6 +1,6 @@
-/* Sticky-panel extras for the two-pane stories: the ✓/✗ grid (Model coverage)
+/* Sticky-panel extras for the two-pane stories: the ✓/✗ grid (Model comparison)
    and the small numeric table. Kept apart from globals.css. */
-/* Scoped to the table: the Plotly chart wrapper on UK growth paths is a
+/* Scoped to the table: the Plotly chart wrapper on Economic effects is a
    div.panel-grid too (globals.css). */
 table.panel-grid {
   display: table; margin: 0;
@@ -71,3 +71,19 @@ table.panel-grid td.pg-text { font-weight: 500; color: var(--text-mid); }
   .headline-bullets > li { margin-bottom: 0; }
 }
 .growth-hero .headline-foot { font-size: 0.85rem; color: var(--pe-color-gray-500); }
+
+/* Code tab: the two parts. */
+.code-part {
+  margin: 8px 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--accent);
+  font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+}
+.code-narrative > div + div > .code-part { margin-top: 48px; }
+
+/* Plotly wrappers never exceed their card. */
+.panel-grid, .panel-cell, .panel-cell .plot, .chart-slot { min-width: 0; max-width: 100%; }
+.panel-cell, .results-pair .chart-slot { overflow: hidden; }
+.results-pair > .section-card > * { min-width: 0; }
+
+/* Economic effects: "Reading the results" under the effect table. */
+.reading-head { margin: 26px 0 10px; font-size: 1rem; }
+.reading-list { max-width: none; }

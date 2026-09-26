@@ -523,7 +523,7 @@
       margin: 20px 0 8px;
     }
 
-    /* ===== Results tab ===== */
+    /* ===== Economic effects tab ===== */
     .results-note {
       margin-top: 14px; padding: 12px 16px;
       background: var(--pe-color-gray-50);
@@ -1060,7 +1060,7 @@
 .ch-out { background: var(--pe-color-gray-100); color: var(--pe-color-gray-500); }
 
 /* ================================================================== */
-/* UK growth with AI tab: dashboard layout                             */
+/* Economic effects tab: dashboard layout                               */
 /* Scoped to .growth-page so nothing here reaches the Methodology tab.  */
 /* Type scale follows Methodology: 1.35rem card heading (.obr-head h3), */
 /* 0.95rem lede, 0.7rem uppercase eyebrow (.workflow-phases h3).        */
@@ -1341,7 +1341,7 @@
 .growth-page ol.caveat-list li::marker { font-weight: 700; color: var(--pe-color-gray-500); }
 .growth-details .plot-fig-svg { max-width: 980px; }
 
-/* UK growth with AI › How the scenarios are built: the two-pane story. */
+/* Scenario design: the two-pane story.                                  */
 .ai-story .step-content > p,
 .ai-story .step-content li { font-size: 0.95rem; line-height: 1.7; color: var(--pe-color-gray-600); }
 .ai-story .step-content .scenario-card p { font-size: 0.92rem; }
@@ -1351,7 +1351,7 @@
 .ai-story [id^="caveat-"] { scroll-margin-top: 110px; }
 .ai-story .example-output-line .icon { min-width: 1.3em; text-align: center; }
 
-/* UK growth paths: "Results by variable" and "Context since 2000" side by
+/* Economic effects: "Results by variable" and "Context since 2000" side by
    side. Each card is head / toolbar / chart / footer; subgrid lines those
    four rows up across both cards, so headings, selectors, charts and
    footnotes stay level whatever the takeaway's line count. */

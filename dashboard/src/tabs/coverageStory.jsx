@@ -24,10 +24,10 @@ const GROW_YEARS = `${YEARS[1]}–${String(YEARS[YEARS.length - 1]).slice(2)}`;
 const pp = (x) => `${signed(x, 2)}pp`;
 const COMPONENTS = [
   // [label, OBR label, OBR value, OG-UK label, OG-UK value, dp]
-  ['Productivity growth', 'productivity, medium term (¶1.2)', OBR.productivity, 'e^{g_y} − 1', PRODUCTIVITY],
+  ['Productivity growth', 'productivity, medium term (¶1.2)', OBR.productivity, '\\(e^{g_y}-1\\)', PRODUCTIVITY],
   ['Population vs labour supply, 2030', 'labour supply (¶1.2, ¶1.10)', OBR.labourSupply2030, 'population aged 21–100, 2029→30', OGUK_COMPONENTS.population2030],
-  ['Balanced growth vs potential, 2030', 'potential output (¶2.10)', OBR.potential2030, 'g_y + g_n', OGUK_COMPONENTS.balanced2030],
-  ['Balanced growth vs potential, first year', 'potential output 2026 (¶2.10)', OBR.potential2026, 'g_y + g_n, 2026→27', OGUK_COMPONENTS.balanced2026],
+  ['Balanced growth vs potential, 2030', 'potential output (¶2.10)', OBR.potential2030, '\\(g_y+g_n\\)', OGUK_COMPONENTS.balanced2030],
+  ['Balanced growth vs potential, first year', 'potential output 2026 (¶2.10)', OBR.potential2026, '\\(g_y+g_n\\), 2026→27', OGUK_COMPONENTS.balanced2026],
 ];
 
 export const COVERAGE_STEPS = [
@@ -209,7 +209,7 @@ export const COVERAGE_STEPS = [
         </p>
         <ol className="txt-numbered">
           <li>
-            <b>Productivity.</b> OG-UK&rsquo;s labour-augmenting growth of {(G_Y * 100).toFixed(1)}% (
+            <b>Productivity.</b> OG-UK&rsquo;s labour-augmenting growth rate g<sub>y</sub> = {G_Y.toFixed(3)} (
             {PRODUCTIVITY.toFixed(1)}% a year) equals the OBR&rsquo;s medium-term productivity growth (
             {ext(efo(EFO_PAGE.p1_2), 'paragraph 1.2')}).
           </li>
@@ -295,8 +295,8 @@ export const COVERAGE_PANELS = [
   ]},
   { title: 'Mapping to OG-UK', badge: 'Step 5', sections: [
     { label: 'Channels → two parameters', type: 'math', equations: [
-      { label: 'Automation, adoption', tex: '\\to\; \\gamma_t' },
-      { label: 'Productivity, adoption', tex: '\\to\; Z_t' },
+      { label: 'Automation, adoption', tex: '\\to\\; \\gamma_t' },
+      { label: 'Productivity, adoption', tex: '\\to\\; Z_t' },
     ]},
     { label: 'Elasticity of substitution (object differs by model)', type: 'grid', cols: COLS, rows: [
       { label: 'Value', cells: ['0.5', '0.2', 'n/a', 'ε = 1'] },

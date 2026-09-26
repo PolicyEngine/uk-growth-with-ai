@@ -54,7 +54,7 @@ const LAYOUT = [
   'uk_growth_with_ai/',
   '├── scenarios.py       scenario definitions',
   '├── calibrate.py       the γ and Z solves',
-  '├── solve.py           OG-UK runner: SS and TPI per arm',
+  '├── solve.py           OG-UK runner: steady state and transition per scenario',
   '├── checks.py          validation checks',
   '├── obr.py             baseline against the OBR',
   '├── report.py          result tables',
@@ -64,7 +64,7 @@ const LAYOUT = [
   'patches/ogcore-0.17.0-firm-gamma-tv.diff',
 ];
 
-const STEPS = [
+const REPORT_STEPS = [
   {
     title: 'Get the code',
     prose: (
@@ -176,6 +176,154 @@ const STEPS = [
   },
 ];
 
+
+// Part 2: the general OG-UK workflow (from the earlier Code tab), for readers
+// who want to run their own reforms. It uses PSLmodels/OG-UK; this report used
+// the fork commit named in the footer.
+const OGUK_INSTALL_BASH = `git clone https://github.com/PSLmodels/OG-UK.git
+cd OG-UK
+uv sync
+export HUGGING_FACE_TOKEN=hf_your_token_here   # read access to PolicyEngine UK data`;
+
+const REFORM_PY = `from datetime import datetime
+from policyengine.core import ParameterValue, Policy
+from policyengine.tax_benefit_models.uk import uk_latest
+
+# Reform: raise the basic rate of income tax from 20% to 21%
+basic_rate = uk_latest.get_parameter("gov.hmrc.income_tax.rates.uk[0].rate")
+
+REFORM = Policy(
+    name="Basic rate 21%",
+    parameter_values=[
+        ParameterValue(
+            parameter=basic_rate,
+            value=0.21,
+            start_date=datetime(2026, 1, 1),
+        )
+    ],
+)`;
+
+const SS_PY = `from oguk import solve_steady_state, map_to_real_world
+
+baseline = solve_steady_state(start_year=2026)
+reform   = solve_steady_state(start_year=2026, policy=REFORM)
+
+impact = map_to_real_world(baseline, reform)
+print(f"GDP: {impact.gdp_pct:+.3f}%   Tax revenue: {impact.tax_revenue_pct:+.3f}%")`;
+
+const TPI_PY = `from dask.distributed import Client
+from oguk import run_transition_path, map_transition_to_real_world
+
+client = Client(n_workers=2, threads_per_worker=1, memory_limit="2GB")
+base_tp, reform_tp = run_transition_path(start_year=2026, policy=REFORM, client=client)
+client.close()
+
+impact = map_transition_to_real_world(base_tp, reform_tp)`;
+
+const FIELDS_PY = `impact.years              # fiscal-year strings: ["2026-27", ...]
+impact.gdp                # reform GDP path (£bn, per year)
+impact.gdp_change         # £bn change against the baseline, per year
+impact.tax_revenue_change
+impact.consumption_change
+impact.investment_change
+impact.government_change
+impact.debt_change
+
+base_tp.r, reform_tp.r    # interest-rate paths`;
+
+const MULTI_PY = `base_tp, reform_tp = run_transition_path(
+    start_year=2026,
+    policy=REFORM,
+    client=client,
+    multi_sector=True,    # eight-sector CES production
+)`;
+
+const GENERAL_STEPS = [
+  {
+    part: 'Using OG-UK',
+    title: 'Install OG-UK',
+    prose: (
+      <>
+        <p className="key-point">
+          For your own analysis, install {ext(URLS.ogUk, 'OG-UK')} from PSLmodels with{' '}
+          {ext('https://docs.astral.sh/uv/', 'uv')}; Python 3.11 or later is required.
+        </p>
+        <p>
+          This report used the fork commit named in the footer. OG-UK reads PolicyEngine UK microdata from Hugging
+          Face, so set a token with read access once.
+        </p>
+      </>
+    ),
+    panel: [{ type: 'code', filename: 'terminal', lang: 'bash', content: OGUK_INSTALL_BASH }],
+  },
+  {
+    title: 'Define a reform',
+    prose: (
+      <>
+        <p className="key-point">
+          Reforms are PolicyEngine policies: a parameter from the UK tax-benefit rules, a new value and a start
+          date.
+        </p>
+        <p>
+          Anything PolicyEngine UK can represent &mdash; rates, thresholds, allowance tapers, new benefits &mdash;
+          passes through; to change the reform, change the parameter path and value.
+        </p>
+      </>
+    ),
+    panel: [{ type: 'code', filename: 'reform.py', lang: 'py', content: REFORM_PY }],
+  },
+  {
+    title: 'Solve the long-run steady state',
+    prose: (
+      <>
+        <p className="key-point">
+          <code>solve_steady_state</code> finds the long-run equilibrium under a policy; run it for the baseline
+          and the reform and compare.
+        </p>
+        <p>A steady-state pair takes a few minutes on a laptop.</p>
+      </>
+    ),
+    panel: [{ type: 'code', filename: 'steady_state.py', lang: 'py', content: SS_PY }],
+  },
+  {
+    title: 'Run the transition path',
+    prose: (
+      <>
+        <p className="key-point">
+          The transition path gives the year-by-year adjustment from today to the steady state.
+        </p>
+        <p>
+          It solves every cohort&rsquo;s lifetime under perfect foresight, so it is heavier; OG-UK uses{' '}
+          {ext('https://www.dask.org/', 'Dask')} to spread the work across CPU cores.
+        </p>
+      </>
+    ),
+    panel: [{ type: 'code', filename: 'transition.py', lang: 'py', content: TPI_PY }],
+  },
+  {
+    title: 'Read the outputs',
+    prose: (
+      <>
+        <p className="key-point">
+          Results come back as NumPy arrays by year, in pounds (the mapping is described under{' '}
+          <a href="#methodology">Model</a>).
+        </p>
+        <p>
+          Pass <code>multi_sector=True</code> for the eight-sector build (not used in this report). The full API
+          and theory are in the {ext(URLS.ogCoreDocs, 'OG-Core documentation')} and the{' '}
+          {ext('https://pslmodels.github.io/OG-UK', 'OG-UK documentation')}.
+        </p>
+      </>
+    ),
+    panel: [
+      { type: 'code', filename: 'outputs.py', lang: 'py', content: FIELDS_PY },
+      { type: 'code', filename: 'multi_sector.py', lang: 'py', content: MULTI_PY },
+    ],
+  },
+];
+
+const STEPS = [...REPORT_STEPS.map((st, i) => (i === 0 ? { ...st, part: 'Reproduce this report' } : st)), ...GENERAL_STEPS];
+
 function PanelBody({ items }) {
   return (
     <>
@@ -228,23 +376,22 @@ export default function CodeTab() {
       <div className="meth-intro">
         <h2>Code</h2>
         <p className="subtitle">
-          How to reproduce every result: apply the patch, run the model, check the output, and build the dashboard.
+          How to reproduce every result, and how to use OG-UK for your own analysis.
         </p>
       </div>
 
       <div className="scrollytelling-container">
         <div className="scrolly-narrative code-narrative">
           {STEPS.map((step, i) => (
-            <div
-              key={i}
-              className={`narrative-step${i === active ? ' active' : ''}`}
-              id={`code-step-${i + 1}`}
-            >
+            <div key={i}>
+              {step.part ? <h3 className="code-part">{step.part}</h3> : null}
+              <div className={`narrative-step${i === active ? ' active' : ''}`} id={`code-step-${i + 1}`}>
               <div className="step-header">
                 <div className="step-number">{i + 1}</div>
                 <div className="step-title">{step.title}</div>
               </div>
-              <div className="step-content">{step.prose}</div>
+                <div className="step-content">{step.prose}</div>
+              </div>
             </div>
           ))}
         </div>

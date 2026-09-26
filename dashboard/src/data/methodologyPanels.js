@@ -19,7 +19,7 @@ export const PANEL_DATA  = [
     { label: 'Population structure', type: 'math', equations: [
       { label: 'Age cohorts', tex: 's = E+1, \\ldots, E+S \\quad \\text{(economically active)}' },
       { label: 'Ability types', tex: 'j = 1, \\ldots, J \\quad \\text{with probability } \\lambda_j' },
-      { label: 'Population', tex: '\\omega_{s,t} \;\\text{evolves with fertility, mortality, immigration}' },
+      { label: 'Population', tex: '\\omega_{s,t} \\;\\text{evolves with fertility, mortality, immigration}' },
       { label: 'Oldest cohort', tex: '\\rho_{E+S} = 1' },
     ]},
     { label: 'Values in OG-UK', type: 'output', lines: [
@@ -69,7 +69,7 @@ export const PANEL_DATA  = [
     { label: 'Equilibrium conditions', type: 'math', equations: [
       { label: 'Labour', tex: '\\sum_{s,j} \\omega_{s,t} \\lambda_j e_{j,s} n_{j,s,t} = \\sum_m L_{m,t}' },
       { label: 'Capital', tex: 'K_t = K^d_t + K^f_t \\quad (\\text{open economy: } \\zeta_K)' },
-      { label: 'Goods', tex: 'Y_{m,t} = C_{m,t} \;\; (m < M)' },
+      { label: 'Goods', tex: 'Y_{m,t} = C_{m,t} \\;\\; (m < M)' },
       { label: 'Debt', tex: 'D_t = D^d_t + D^f_t \\quad (\\text{foreign share: } \\zeta_D)' },
     ]},
   ]},

@@ -1,7 +1,7 @@
 'use client';
 
 // How AI enters OG-UK: the channels the runs change, the ones they cannot,
-// and how each is represented. Rendered on the Adding AI to OG-UK tab, step 2.
+// and how each is represented. Rendered on the Scenario design tab, step 2.
 
 const CHANNELS = [
   {

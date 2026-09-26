@@ -11,11 +11,8 @@ import { URLS } from '@/tabs/ai/links.js';
 // Each panel carries the OBR/ONS outturn and March 2026 EFO forecast line,
 // then the three model paths branching at 2026 (how they are placed on the
 // OBR level: caveat-levels). Colours and arm names come from the shared
-// series palette, not the JSON; old trace names map to the current ones.
-const ARM_BY_NAME = {
-  ...Object.fromEntries(Object.entries(ARM_META).map(([k, m]) => [m.label, k])),
-  'UK, OBR displacement': 'obr_ramp',
-};
+// series palette, not the JSON.
+const ARM_BY_NAME = Object.fromEntries(Object.entries(ARM_META).map(([k, m]) => [m.label, k]));
 const FIRST_X = Math.min(...data.panels.flatMap((p) => p.traces[0].x));
 
 function splitHistory(t) {

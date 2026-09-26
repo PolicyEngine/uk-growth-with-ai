@@ -7,12 +7,13 @@ import { Cv } from '@/tabs/ai/scenarioStory.jsx';
 import SvgFigure from '@/components/SvgFigure.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import { ARM_META, US_COLORS } from '@/tabs/ai/series.js';
+import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import {
-  D, YEARS, FIRST_YEAR, LAST, LAST_YEAR, signed, gapAt, growthIncrement, belowIdx,
+  D, YEARS, FIRST_YEAR, LAST, LAST_YEAR, signed, gapAt, growthIncrement, belowIdx, G1, LS0, LS_FALL, KORINEK,
   US_NAMES, usGap, usGrowthIncrement,
 } from '@/tabs/ai/metrics.js';
 
-// Results tab. Every model number is computed from aiScenarios.json through
+// Economic effects tab. Every model number is computed from aiScenarios.json through
 // metrics.js; the US figures are Anthropic's published Table 3.
 
 // GDP first, then the other five in the context chart, then wages, capital, labour.
@@ -57,7 +58,16 @@ function CardHead({ eyebrow, takeaway, title }) {
 }
 
 const pctS = (x, dp = 1) => `${signed(x, dp)}%`;
-const range = (xs) => [Math.min(...xs), Math.max(...xs)];
+
+// Growth accounting for the 2030 GDP gap, in log points: TFP (ln(1+tau), the
+// fixed-input gain the scenario is calibrated to), capital (gamma_1 x the
+// log capital gap) and labour ((1 - gamma_1) x the log labour gap).
+const TAU = { obr_ramp: 0, anthropic_ramp: KORINEK.tfp / 100 };
+const lgap = (a, v) => Math.log(D.idx[a][v][LAST] / D.idx.baseline[v][LAST]) * 100;
+function decomp(a) {
+  return { tfp: Math.log(1 + TAU[a]) * 100, capital: G1 * lgap(a, 'K'), labour: (1 - G1) * lgap(a, 'L') };
+}
+const outputPerLabour = (a) => ((1 + gapAt(a, 'Y') / 100) / (1 + gapAt(a, 'L') / 100) - 1) * 100;
 
 // Effect table: % difference from the no-AI baseline by variable, with a
 // 2026-2030 sparkline per scenario.
@@ -178,8 +188,7 @@ export default function ResultsPanel() {
   // Investment-led gain (referee M10).
   const cBelow = belowIdx('anthropic_ramp', 'C');
   const cBelowThrough = cBelow.length && cBelow.every((v, k) => v === k) ? YEARS[cBelow[cBelow.length - 1]] : null;
-  // Automation-only consumption shortfall, as positive % below the baseline, low to high.
-  const [cObrLo, cObrHi] = range(YEARS.map((_, i) => -gapAt('obr_ramp', 'C', i)));
+  const cObrAlwaysBelow = belowIdx('obr_ramp', 'C').length === YEARS.length;
   const wagesAlwaysBelow = SHOCKED.every((a) => belowIdx(a, 'w').length === YEARS.length);
 
   // GDP against the no-AI path: UK lines, US 2030 endpoints in the strip.
@@ -240,10 +249,6 @@ export default function ResultsPanel() {
 
       {/* ---- 1. Headline ---- */}
       <section className="section-card growth-hero">
-        <CardHead
-          eyebrow="Headline"
-          takeaway={<>Effects on UK GDP by {LAST_YEAR}</>}
-        />
         <div className="kpi-strip">
           <Kpi
             value={pctS(gapAt('anthropic_ramp', 'Y'))}
@@ -264,11 +269,7 @@ export default function ResultsPanel() {
             color={ARM_META.anthropic_ramp.color}
           />
           <Kpi
-            value={
-              <>
-                {pctS(gapAt('anthropic_ramp', 'K'))}
-              </>
-            }
+            value={pctS(gapAt('anthropic_ramp', 'K'))}
             label={`Capital stock, ${LAST_YEAR}`}
             sub={`${ARM_META.anthropic_ramp.label} against the no-AI baseline`}
             color={ARM_META.anthropic_ramp.color}
@@ -277,23 +278,19 @@ export default function ResultsPanel() {
         <p className="key-point">The GDP gain is investment-led, not consumption-led.</p>
         <ul className="txt-bullets headline-bullets">
           <li>
-            <b>Investment:</b> {pctS(gapAt('anthropic_ramp', 'I', 0))} above the baseline already in {FIRST_YEAR} (
-            {ARM_META.anthropic_ramp.label}).
+            <b>Investment jumps first:</b> already {pctS(gapAt('anthropic_ramp', 'I', 0))} above the baseline in{' '}
+            {FIRST_YEAR} with productivity gains.
           </li>
           <li>
-            <b>Consumption:</b>{' '}
+            <b>Consumption</b>{' '}
             {cBelowThrough ? (
-              <>
-                below the baseline until {cBelowThrough + 1 <= LAST_YEAR ? cBelowThrough + 1 : cBelowThrough} (
-                {pctS(gapAt('anthropic_ramp', 'C'))}) with productivity gains;{' '}
-              </>
+              <>stays below the baseline until {Math.min(cBelowThrough + 1, LAST_YEAR)} with productivity gains, and </>
             ) : null}
-            {cObrLo.toFixed(1)}&ndash;{cObrHi.toFixed(1)}% below throughout with automation only.
+            {cObrAlwaysBelow ? 'below it throughout with automation only.' : 'moves above the baseline with automation only.'}
           </li>
           {wagesAlwaysBelow ? (
             <li>
-              <b>Wages:</b> below the baseline in every year in both scenarios;{' '}
-              {pctS(gapAt('anthropic_ramp', 'w'))} and {pctS(gapAt('obr_ramp', 'w'))} in {LAST_YEAR}.
+              <b>Wages</b> are below the baseline in every year in both scenarios.
             </li>
           ) : null}
         </ul>
@@ -303,94 +300,7 @@ export default function ResultsPanel() {
         </p>
       </section>
 
-      {/* ---- 2-3. Results by variable | context since 2000, one selector ---- */}
-      <div className="grid-2 results-pair">
-        <section className="section-card">
-          <CardHead
-            eyebrow="By variable"
-            takeaway={
-              <>
-                {LABELS[variable]} by scenario, {FIRST_YEAR}&ndash;{LAST_YEAR}
-              </>
-            }
-            title={<>Index, {FIRST_YEAR} no-AI baseline = 100</>}
-          />
-          {selector}
-          <div className="chart-slot">
-            <LineChart x={YEARS} series={series} height={380} ariaLabel={`${LABELS[variable]} index by scenario`} />
-          </div>
-          <div className="chart-foot">
-            <ArmLegend />
-            <p className="chart-note">
-              The AI scenarios start away from 100 because of anticipation (<Cv id="anticipation" />).
-              {variable === 'I' ? (
-                <>
-                  {' '}
-                  The {LAST_YEAR} fall is the end of the ramp, not a forecast (<Cv id="investment" />).
-                </>
-              ) : null}
-              {variable === 'G' ? (
-                <>
-                  {' '}
-                  Government consumption moves with GDP by construction (<Cv id="fiscal" />).
-                </>
-              ) : null}
-            </p>
-          </div>
-        </section>
-
-        <HistoricalPaths variable={variable} label={LABELS[variable]} selector={selector} />
-      </div>
-
-      {/* ---- 4. Against Anthropic's US figures ---- */}
-      <section className="section-card">
-        <CardHead
-          eyebrow="US comparison"
-          takeaway="Comparison with Korinek et al. (2026)"
-          title={
-            <>
-              Each country against its own no-AI path; timing and model differences: <Cv id="us" />
-            </>
-          }
-        />
-        <p className="chart-note section-lede">
-          {gdpPositionText}; GDP growth in {LAST_YEAR} rises by {signed(usGrowthIncrement('Substantial'))}pp in the
-          comparable US case (Substantial).
-        </p>
-        <div className="grid-2 figure-pair">
-          <SvgFigure
-            takeaway="GDP gain vs US cases"
-            title={`% above the no-AI path, ${FIRST_YEAR}–${LAST_YEAR}`}
-          >
-            <LineChart
-              x={YEARS}
-              series={gapSeries}
-              strip={gapStrip}
-              height={340}
-              ariaLabel={`GDP against the no-AI path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
-            />
-          </SvgFigure>
-          <SvgFigure
-            takeaway="Labour share vs US cases"
-            title={`% of income, ${FIRST_YEAR}–${LAST_YEAR}`}
-          >
-            <LineChart
-              x={YEARS}
-              series={lsSeries}
-              strip={lsStrip}
-              height={340}
-              ariaLabel={`Labour share by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
-            />
-          </SvgFigure>
-        </div>
-        <p className="chart-note">
-          Hollow dots: Korinek et al. (2026), Table 3, US, {LAST_YEAR}; US Extreme is off scale. The two UK AI
-          scenarios share one labour-share path. The labour-share axis does not start at zero.
-        </p>
-      </section>
-
-
-      {/* ---- 5. Effect of AI by variable ---- */}
+      {/* ---- 2. Effect of AI by variable: the home of every number ---- */}
       <section className="section-card">
         <CardHead takeaway="Effect of AI by variable" />
         <div className="impact-table-wrap">
@@ -453,7 +363,119 @@ export default function ResultsPanel() {
             Download CSV
           </a>
         </div>
+        <h3 className="reading-head">Reading the results</h3>
+        <ul className="txt-bullets reading-list">
+          <li>
+            <b>Sources of the GDP gain</b> (log points, {LAST_YEAR}): with productivity gains,{' '}
+            {decomp('anthropic_ramp').tfp.toFixed(1)} from TFP and {decomp('anthropic_ramp').capital.toFixed(1)} from
+            capital deepening, less {Math.abs(decomp('anthropic_ramp').labour).toFixed(1)} from lower labour input;
+            with automation only, {decomp('obr_ramp').capital.toFixed(1)} from capital deepening, less{' '}
+            {Math.abs(decomp('obr_ramp').labour).toFixed(1)} from labour input.
+          </li>
+          <li>
+            <b>Wages</b> follow the labour share and output per unit of labour: the labour share falls by{' '}
+            {((LS_FALL / LS0) * 100).toFixed(1)}% in proportion, while output per unit of labour rises{' '}
+            {outputPerLabour('obr_ramp').toFixed(1)}% with automation only and {outputPerLabour('anthropic_ramp').toFixed(1)}%
+            with productivity gains, so wages fall with automation only and change little with productivity gains.
+          </li>
+          <li>
+            <b>Tax revenue</b> barely moves with automation only although GDP rises, because income shifts from
+            labour to capital: the direction of the OBR&rsquo;s &ldquo;less tax-rich&rdquo; finding in{' '}
+            <a href={efo(EFO_PAGE.box22)} target="_blank" rel="noreferrer">
+              Box 2.2
+            </a>
+            .
+          </li>
+        </ul>
       </section>
+
+      {/* ---- 2-3. Results by variable | context since 2000, one selector ---- */}
+      <div className="grid-2 results-pair">
+        <section className="section-card">
+          <CardHead
+            eyebrow="By variable"
+            takeaway={
+              <>
+                {LABELS[variable]} by scenario, {FIRST_YEAR}&ndash;{LAST_YEAR}
+              </>
+            }
+            title={<>Index, {FIRST_YEAR} no-AI baseline = 100</>}
+          />
+          {selector}
+          <div className="chart-slot">
+            <LineChart x={YEARS} series={series} height={380} ariaLabel={`${LABELS[variable]} index by scenario`} />
+          </div>
+          <div className="chart-foot">
+            <ArmLegend />
+            <p className="chart-note">
+              The AI scenarios start away from 100 because of anticipation (<Cv id="anticipation" />).
+              {variable === 'I' ? (
+                <>
+                  {' '}
+                  The early rise is anticipation (<Cv id="investment" />); the {LAST_YEAR} fall is the end of the
+                  ramp (<Cv id="ramp-end" />).
+                </>
+              ) : null}
+              {variable === 'G' ? (
+                <>
+                  {' '}
+                  Government consumption moves with GDP by construction (<Cv id="fiscal" />).
+                </>
+              ) : null}
+            </p>
+          </div>
+        </section>
+
+        <HistoricalPaths variable={variable} label={LABELS[variable]} selector={selector} />
+      </div>
+
+      {/* ---- 4. Against Anthropic's US figures ---- */}
+      <section className="section-card">
+        <CardHead
+          eyebrow="US comparison"
+          takeaway="Comparison with Korinek et al. (2026)"
+          title={
+            <>
+              Each country against its own no-AI path; timing and model differences: <Cv id="us" />
+            </>
+          }
+        />
+        <p className="chart-note section-lede">
+          {gdpPositionText}; GDP growth in {LAST_YEAR} rises by {signed(usGrowthIncrement('Substantial'))}pp in the
+          comparable US case (Substantial).
+        </p>
+        <div className="grid-2 figure-pair">
+          <SvgFigure
+            takeaway="GDP gain vs US cases"
+            title={`% above the no-AI path, ${FIRST_YEAR}–${LAST_YEAR}`}
+          >
+            <LineChart
+              x={YEARS}
+              series={gapSeries}
+              strip={gapStrip}
+              height={340}
+              ariaLabel={`GDP against the no-AI path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
+            />
+          </SvgFigure>
+          <SvgFigure
+            takeaway="Labour share vs US cases"
+            title={`% of income, ${FIRST_YEAR}–${LAST_YEAR}`}
+          >
+            <LineChart
+              x={YEARS}
+              series={lsSeries}
+              strip={lsStrip}
+              height={340}
+              ariaLabel={`Labour share by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
+            />
+          </SvgFigure>
+        </div>
+        <p className="chart-note">
+          Hollow dots: Korinek et al. (2026), Table 3, US, {LAST_YEAR}; US Extreme is off scale. The two UK AI
+          scenarios share one labour-share path. The labour-share axis does not start at zero.
+        </p>
+      </section>
+
     </div>
   );
 }

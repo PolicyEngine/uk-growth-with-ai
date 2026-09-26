@@ -179,6 +179,10 @@ export default function PlotPanel({ panel, firstNames = NO_NAMES, visible = true
     // template's own charts keep their tight auto-range.
     if (panel.yRangeMode) layout.yaxis.rangemode = panel.yRangeMode;
     layout.showlegend = false;
+    // Fill the wrapper, never a default fixed width: a panel drawn while
+    // hidden would otherwise keep Plotly's 700px and overflow its card.
+    layout.autosize = true;
+    delete layout.width;
 
     window.Plotly.newPlot(el, traces, layout, { displayModeBar: false, responsive: true });
 
@@ -198,33 +202,54 @@ export default function PlotPanel({ panel, firstNames = NO_NAMES, visible = true
     const el = ref.current;
     if (!plotlyReady || !el || typeof ResizeObserver === 'undefined') return undefined;
     let last = 0;
+    let timer;
     const ro = new ResizeObserver(([e]) => {
       const w = Math.round(e.contentRect.width);
       if (w <= 0 || w === last || !el.data) return;
       last = w;
-      const p = panelRef.current;
-      const { annotations, marginT } = buildAnnotations(p.shapes, xExtent(p.traces), w);
-      const shifts = (list) => list.map((a) => `${a.xanchor}${a.yshift || 0}`).join();
-      const relabel = shifts(annotations) !== shifts(el.layout.annotations || []);
-      Promise.resolve(window.Plotly.Plots.resize(el))
-        .then(() => relabel && window.Plotly.relayout(el, { annotations, 'margin.t': marginT }))
-        .catch(() => {});
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const p = panelRef.current;
+        const { annotations, marginT } = buildAnnotations(p.shapes, xExtent(p.traces), w);
+        const shifts = (list) => list.map((a) => `${a.xanchor}${a.yshift || 0}`).join();
+        const relabel = shifts(annotations) !== shifts(el.layout.annotations || []);
+        Promise.resolve(window.Plotly.Plots.resize(el))
+          .then(() => relabel && window.Plotly.relayout(el, { annotations, 'margin.t': marginT }))
+          .catch(() => {});
+      }, 60);
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+    };
   }, [plotlyReady]);
 
   // Resize when becoming visible (e.g. tab switch or filter changes).
   useEffect(() => {
     if (!visible || !plotlyReady || !ref.current) return;
-    const id = requestAnimationFrame(() => {
+    let t2;
+    const fit = () => {
+      const el = ref.current;
+      if (!el || !el.data) return;
       try {
-        window.Plotly.Plots.resize(ref.current);
+        const p = panelRef.current;
+        const { annotations, marginT } = buildAnnotations(p.shapes, xExtent(p.traces), el.clientWidth);
+        Promise.resolve(window.Plotly.Plots.resize(el))
+          .then(() => window.Plotly.relayout(el, { annotations, 'margin.t': marginT }))
+          .catch(() => {});
       } catch {
         /* ignore */
       }
+    };
+    const id = requestAnimationFrame(() => {
+      fit();
+      t2 = setTimeout(fit, 250); // after the legend/selector re-render settles
     });
-    return () => cancelAnimationFrame(id);
+    return () => {
+      cancelAnimationFrame(id);
+      clearTimeout(t2);
+    };
   }, [visible, plotlyReady]);
 
   return (
