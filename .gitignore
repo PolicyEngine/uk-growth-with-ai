@@ -21,3 +21,6 @@ dashboard/CLAUDE.md
 results/
 
 .DS_Store
+
+# OG-Core writes the UN API token it prompts for here
+un_api_token.txt

@@ -14,7 +14,7 @@ from .calibrate import (
     z_for_gdp_level,
     z_for_tfp_gain,
 )
-from .data_access import load_results, load_trajectories, load_trend_params
+from .data_access import load_results, load_trend_params
 from .obr import OBR_BASELINE, compare as compare_obr_baseline
 from .report import gap_table, growth_table, labour_share_table, summary
 from .scenarios import ANTHROPIC, ANTHROPIC_SUBSTANTIAL, OBR, SCENARIOS, Scenario
@@ -23,7 +23,7 @@ __all__ = [
     "ANTHROPIC", "ANTHROPIC_SUBSTANTIAL", "OBR", "OBR_BASELINE", "SCENARIOS",
     "Scenario", "compare_obr_baseline", "gamma_for_labour_share_fall",
     "gamma_only_gain", "gap_table", "growth_table", "labour_share_table",
-    "load_results", "load_trajectories", "load_trend_params", "solve_scenario",
+    "load_results", "load_trend_params", "solve_scenario",
     "summary", "z_for_gdp_level", "z_for_tfp_gain",
 ]
 

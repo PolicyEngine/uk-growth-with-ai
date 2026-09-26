@@ -12,6 +12,7 @@ from __future__ import annotations
 import numpy as np
 
 from .data_access import load_results, load_trend_params
+from .report import growth_path
 
 OBR_BASELINE = {
     "gdp_growth_2027_30": 1.60,
@@ -25,30 +26,29 @@ YEARS = [2027, 2028, 2029, 2030]
 
 
 def baseline_growth(results=None, oguk_dir=None) -> np.ndarray:
-    """Real GDP growth 2027-2030 on the OG-UK baseline path, in percent.
-
-    Model Y is detrended by productivity AND population: real growth is
-    dlog(Y_hat) + g_y + g_n.  Omitting g_n understates growth.
-    """
+    """Real GDP growth 2027-2030 on the OG-UK baseline path, in percent."""
     res = results if results is not None else load_results()
-    g_n, g_y = load_trend_params(oguk_dir)
-    Y = np.array(res["baseline"]["Y"])[:5]
-    return (np.diff(np.log(Y)) + g_y + g_n[1:5]) * 100
+    g_n, g_y = load_trend_params(oguk_dir, res)
+    return growth_path(res["baseline"]["Y"], g_y, g_n)
 
 
 def compare(results=None, oguk_dir=None) -> dict:
-    """Growth path, the OBR gap, and the component decomposition."""
-    g_n, g_y = load_trend_params(oguk_dir)
-    growth = baseline_growth(results, oguk_dir)
+    """Growth path, the OBR gap, and the component decomposition.
+
+    ``g_n[t]`` is population growth from t to t+1 (t = 0 is 2026), so growth
+    "in 2030" is ``g_n[3]`` and the model's first year of growth is 2026->27.
+    """
+    res = results if results is not None else load_results()
+    g_n, g_y = load_trend_params(oguk_dir, res)
+    growth = baseline_growth(res, oguk_dir)
+    prod = (np.exp(g_y) - 1) * 100
+    potential = lambda t: (np.exp(g_y) * (1 + g_n[t]) - 1) * 100
     components = [
-        ("productivity growth, medium term",
-         OBR_BASELINE["productivity_medium_term"], g_y * 100),
-        ("labour supply growth by 2030",
-         OBR_BASELINE["labour_supply_2030"], g_n[4] * 100),
-        ("potential output growth 2030",
-         OBR_BASELINE["potential_output_2030"], g_y * 100 + g_n[4] * 100),
-        ("potential output growth 2026",
-         OBR_BASELINE["potential_output_2026"], g_y * 100 + g_n[0] * 100),
+        ("productivity growth, medium term", OBR_BASELINE["productivity_medium_term"], prod),
+        ("labour supply growth, 2030", OBR_BASELINE["labour_supply_2030"], g_n[3] * 100),
+        ("potential output growth, 2030", OBR_BASELINE["potential_output_2030"], potential(3)),
+        ("potential output growth, 2026 (model: 2026->27)",
+         OBR_BASELINE["potential_output_2026"], potential(0)),
     ]
     return {
         "years": YEARS,
@@ -75,16 +75,16 @@ def print_comparison(results=None, oguk_dir=None) -> dict:
     print(f"  difference         : {c['difference']:+.2f}pp")
 
     print("\nCOMPONENTS — where the agreement breaks down\n")
-    print(f"{'':<34}{'OBR':>8}{'OG-UK':>9}{'gap':>9}")
+    print(f"{'':<50}{'OBR':>8}{'OG-UK':>9}{'gap':>9}")
     for label, obr, oguk in c["components"]:
-        print(f"{label:<34}{obr:>7.1f}%{oguk:>8.2f}%{oguk - obr:>+8.2f}pp")
+        print(f"{label:<50}{obr:>7.1f}%{oguk:>8.2f}%{oguk - obr:>+8.2f}pp")
 
-    print(
-        "\nNOTE: g_y_annual is mis-sourced. oguk/api.py cites OBR POTENTIAL OUTPUT\n"
-        "growth, but OG-Core defines g_y_annual as labour-augmenting technological\n"
-        "change (PRODUCTIVITY growth). OBR separates them: 1.0% + 0.5% = 1.5%.\n"
-        "OG-UK already carries labour in g_n, so this double-counts labour supply.\n"
-        f"Setting g_y_annual = 0.010 gives potential output growth "
-        f"{1.0 + g_n[4] * 100:.2f}% in 2030 against OBR's 1.5%."
-    )
+    if abs(g_y - 0.011) < 1e-12:
+        print(
+            "\nNOTE: g_y_annual = 0.011 is mis-sourced (issue #5): it is OBR potential\n"
+            "output growth, but OG-Core defines g_y_annual as labour-augmenting\n"
+            "productivity growth, and labour supply is already in g_n."
+        )
+    else:
+        print(f"\ng_y_annual = {g_y}: OBR medium-term productivity growth (issue #5).")
     return c
