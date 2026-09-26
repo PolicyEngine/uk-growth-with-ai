@@ -16,7 +16,7 @@ Z carries productivity. They differ in what Z is solved against —
 
 Each scenario is run twice, with gamma STEPPED and gamma RAMPED, so the effect
 of the time-varying-gamma patch on the analysis can be read directly. The ramp
-arms require the firm.py patch (see firm_gamma_tv.patch); the step arms do not.
+arms require the firm.py patch (patches/ogcore-0.17.0-firm-gamma-tv.diff); the step arms do not.
 
 Counterfactual wiring follows oguk.api.run_transition_path: the baseline writes
 its steady state, and every shocked arm inherits it via

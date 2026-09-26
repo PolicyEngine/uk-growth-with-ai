@@ -17,7 +17,7 @@ its own initial state and the "gap vs baseline" would mix in a starting-point
 difference.
 
 The ramp arms set ``p.gamma`` to a path, which requires the firm.py patch in
-docs/firm_gamma_tv.patch; the step arms do not.
+patches/ogcore-0.17.0-firm-gamma-tv.diff; the step arms do not.
 """
 
 from __future__ import annotations
@@ -49,6 +49,13 @@ def _load_oguk():
 
     TPI.ENFORCE_SOLUTION_CHECKS = False   # SS keeps its own flag, left at True
     from ogcore import SS
+    import ogcore.firm as firm
+
+    # The ramp arms need a time-varying gamma, which stock OG-Core lacks.
+    if not hasattr(firm, "_tv"):
+        raise RuntimeError(
+            "ogcore.firm is unpatched: apply patches/ogcore-0.17.0-firm-gamma-tv.diff "
+            "(see README, 'Time-varying gamma patch') before running the scenarios.")
     import oguk.api as api
 
     return TPI, SS, api, Client, LocalCluster
@@ -115,7 +122,7 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     T = p.T + p.S
     up = np.minimum(np.arange(T) / RAMP_YEARS, 1.0)[:, None]
     if ramp:
-        # time-varying gamma: needs the firm.py patch
+        # time-varying gamma: needs patches/ogcore-0.17.0-firm-gamma-tv.diff
         p.gamma = G_BASE + up * (gamma_val - G_BASE)
         print(f"  gamma ramps {G_BASE} -> {gamma_val}", flush=True)
     if z_terminal is not None:

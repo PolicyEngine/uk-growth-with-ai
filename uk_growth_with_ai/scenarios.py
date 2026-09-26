@@ -12,7 +12,7 @@ Two AI scenarios for the UK, run on a corrected counterfactual:
 Both shocks enter the same way: gamma raises the capital weight (automation) and
 Z carries productivity.  They differ only in what Z is solved against -- see
 ``calibrate``.  Each is run twice, with gamma STEPPED and gamma RAMPED, so the
-effect of the time-varying-gamma patch (docs/firm_gamma_tv.patch) can be read
+effect of the time-varying-gamma patch (patches/ogcore-0.17.0-firm-gamma-tv.diff) can be read
 directly off the results; the step arms do not need the patch.
 """
 

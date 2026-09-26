@@ -1,4 +1,4 @@
-"""`python -m uk_growth_with_ai run|report|obr`."""
+"""`python -m uk_growth_with_ai run|report|obr|dashboard`."""
 
 from __future__ import annotations
 
@@ -33,6 +33,12 @@ def main(argv=None) -> int:
     p_obr.add_argument("--results", default=None)
     p_obr.add_argument("--oguk-dir", default=None)
 
+    p_dash = sub.add_parser("dashboard", help="write the dashboard data files from the results")
+    p_dash.add_argument("--results", default=None)
+    p_dash.add_argument("--oguk-dir", default=None)
+    p_dash.add_argument("--check", action="store_true",
+                        help="write nothing; exit 1 if the committed files are stale")
+
     args = ap.parse_args(argv)
 
     if args.cmd == "run":
@@ -40,8 +46,18 @@ def main(argv=None) -> int:
         run_scenarios(only=args.only, shapes=args.shapes, out=args.out)
     elif args.cmd == "report":
         report_mod.print_report(args.arm, load_results(args.results), args.oguk_dir)
-    else:
+    elif args.cmd == "obr":
         obr_mod.print_comparison(load_results(args.results), args.oguk_dir)
+    else:
+        from . import dashboard_data
+        res = load_results(args.results)
+        if args.check:
+            stale = dashboard_data.stale(results=res, oguk_dir=args.oguk_dir)
+            for name in stale:
+                print(f"stale: dashboard/src/data/{name}")
+            return 1 if stale else 0
+        for path in dashboard_data.write(results=res, oguk_dir=args.oguk_dir):
+            print(f"wrote {path}")
     return 0
 
 
