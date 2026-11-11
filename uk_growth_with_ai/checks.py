@@ -27,6 +27,7 @@ from __future__ import annotations
 import numpy as np
 
 from .arms import SHOCKED_ARMS, Z_TARGETS
+from .data_access import LEGACY_KEYS
 from .obr import OBR_BASELINE, balanced_growth
 from .scenarios import G_BASE, NPER
 
@@ -112,7 +113,8 @@ def inventory(res, r, baseline_only=False) -> list[str] | None:
 
     present = [k for k in res if k not in META_KEYS and k != "baseline"]
     if "arms_requested" in res:
-        required = list(res["arms_requested"])
+        # The values are arm names, which normalise_arms (keys only) leaves alone.
+        required = [LEGACY_KEYS.get(a, a) for a in res["arms_requested"]]
         source = "recorded arms_requested"
         if required and set(required) != set(SHOCKED_ARMS):
             r.line("INFO", f"the run requested {required}, not every expected arm "

@@ -106,4 +106,8 @@ def print_comparison(results=None, oguk_dir=None) -> dict:
         )
     else:
         print(f"\ng_y_annual = {g_y}: OBR medium-term productivity growth (issue #5).")
+        print("NOTE: the baseline is 'OBR central', not a no-AI counterfactual: the\n"
+              "  OBR's productivity path already ramps in its own AI assumption\n"
+              "  (Briefing paper No.9 paras B.12, B.14), so scenario gaps are AI effects in\n"
+              "  addition to the OBR's.")
     return c

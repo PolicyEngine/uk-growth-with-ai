@@ -13,9 +13,9 @@ linearly from 2026 to 2030 and held thereafter:
 
 | Scenario | Internal id | Automation (γ) | Productivity (Z) solved for | Calibration source |
 |---|---|---|---|---|
-| No AI | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
-| Automation only | `obr` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L | OBR, March 2026 EFO, Box 2.2 |
-| Automation + productivity | `anthropic` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
+| OBR central | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
+| Automation only | `share_shift` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L (zero technology wedge) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
+| Automation + productivity | `share_shift_tfp` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
 
 At `epsilon = 1` (Cobb-Douglas) the labour share is exactly `1 − γ`. All runs are
 1-sector (`multi_sector=False`). Z is solved jointly with γ, because raising γ alone
@@ -25,11 +25,30 @@ below 1 reflects the units of K/L and has no economic meaning.
 
 Every scenario shares the baseline's initial assets and debt and its government
 spending share `alpha_G`; the switch to debt targeting is moved to `tG1 = 10` (2036),
-past the reported window; and `g_y_annual = 0.010`, the OBR's productivity growth. A
+past the reported window; and `g_y_annual = 0.010`, the OBR's 1.0% medium-term
+productivity growth. That path already contains the OBR's own AI assumption, which
+builds non-linearly with adoption (Briefing paper No.9 paras B.12, B.14), and a scalar `g_y` cannot
+strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
+each scenario's gap is an AI effect *in addition to* the OBR's own. A
 second run holds government spending and transfers at baseline levels instead
-(`--baseline-spending`), the OBR's convention.
+(`--baseline-spending`), the OBR's convention. By default (`--g-n vendored`) a run stops
+if OG-UK's live demographic fetch gives a different `g_n` for the reported window from
+the one the committed run recorded. That run had no UN API token, so OG-Core read a
+GitHub mirror of the UN data (`EAPD-DRB/Population-Data`) instead of the UN API; a run
+with a valid token takes the API route, which has not been compared with the recorded
+values.
 
-**Results, 2030, against the no-AI baseline:** GDP +4.9% (Automation + productivity)
+Both arms are named for what they impose (issue #14): `share_shift` is the capital-share
+shift with a zero technology wedge at the baseline's fixed 2026 inputs, and
+`share_shift_tfp` adds +3.1% output at those inputs. Nothing in the model identifies AI
+as the cause; the sizes are Korinek et al.'s. `share_shift` is compared with, not a
+reproduction of, the OBR's Box 2.2: Box 2.2's defining result is the **level of GDP
+unchanged**, whereas K and L are endogenous here and this arm delivers GDP +1.4% by
+2030; Box 2.2 also publishes no labour-share number. The arms were called `obr` (later
+`zero_tfp`) and `anthropic` before the rename; readers accept every legacy key at any
+depth (`data_access.normalise_arms`), writers emit only the new ones.
+
+**Results, 2030, against the OBR-central baseline (committed run, `g_y_annual = 0.010`):** GDP +4.9% (Automation + productivity)
 and +1.4% (Automation only), driven by investment; the labour share falls 3.9pp in
 both; wages are lower in both. Full results, caveats and the comparison with Korinek et
 al. and the OBR are in the dashboard.
@@ -84,11 +103,11 @@ Each scenario takes about 7 minutes on a laptop; keep the machine awake
 ## Commands
 
 ```bash
-python -m uk_growth_with_ai run [--only anthropic|obr] [--shapes ramp|step|both]
+python -m uk_growth_with_ai run [--only share_shift|share_shift_tfp] [--shapes ramp|step|both] [--g-n vendored|live]
                                 [--baseline-only] [--baseline-spending]
                                 [--tG1 N] [--g-y-annual X] [--out PATH]
 python -m uk_growth_with_ai check [--results PATH] [--baseline-only]
-python -m uk_growth_with_ai report [--arm anthropic_ramp|obr_ramp]
+python -m uk_growth_with_ai report [--arm share_shift_tfp_ramp|share_shift_ramp]
 python -m uk_growth_with_ai obr
 python -m uk_growth_with_ai dashboard [--check]
 ```
@@ -97,7 +116,13 @@ python -m uk_growth_with_ai dashboard [--check]
   scenarios and writes `./results/scenarios.json` (never the committed file unless
   `--out` points there). `--baseline-only` stops after the baseline and the Z solve.
   `--baseline-spending` holds government spending and transfers at baseline levels.
-  `--tG1` and `--g-y-annual` default to 10 and 0.010.
+  `--tG1` and `--g-y-annual` default to 10 and 0.010. `--g-n` defaults to `vendored`:
+  the first five periods of OG-UK's run-time UN fetch must match the committed run's
+  recorded `g_n` (to 1e-9), or the run raises `GNDriftError` rather than silently
+  moving with the fetch date. Nothing is overwritten: the solve always uses the live
+  fetch, because the tail, `g_n_ss`, `omega` and `imm_rates` come from it and were
+  never recorded. `--g-n live` skips the check. See
+  `uk_growth_with_ai/data/g_n_committed_run.json` for what is and is not checked.
 * `check` runs the validation checks in issue #9 on a results file: no fiscal-rule break
   in 2030, the fiscal invariant of the recorded closure (a common G/Y, or baseline G
   levels under `--baseline-spending`), balanced growth against the OBR's potential
@@ -111,8 +136,8 @@ python -m uk_growth_with_ai dashboard [--check]
   are not saved), and positivity and share bands. Tolerances are documented in
   `checks.py`. WARN and KNOWN lines are counted in the summary but do not fail the run.
 * `report` prints the year-by-year gaps, GDP growth, the labour share and, for
-  `anthropic_ramp`, the comparison with Korinek et al. Table 3.
-* `obr` compares the no-AI baseline with the OBR's March 2026 EFO: GDP growth
+  `share_shift_tfp_ramp`, the comparison with Korinek et al. Table 3.
+* `obr` compares the OBR-central baseline with the OBR's March 2026 EFO: GDP growth
   2027–30 and its components (productivity, population growth, balanced-growth rate).
 * `dashboard` writes `dashboard/src/data/aiScenarios.json` and `ukAiPaths.json` from
   the results; `--check` writes nothing and exits 1 if the committed files are stale.
@@ -151,7 +176,7 @@ uk_growth_with_ai/
 patches/             ogcore-0.17.0-firm-gamma-tv.diff
 tests/               pytest over the functions and the committed numbers
 analysis/            the original scripts these modules were refactored from
-docs/                modelling notes, the OBR comparison write-up, the patch design
+docs/                the OBR comparison write-up, the patch design
 dashboard/           the Next.js front end
 ```
 

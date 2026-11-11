@@ -10,7 +10,7 @@ import CaveatLink from '@/tabs/ai/CaveatLink.jsx';
 import { ARM_META, US_COLORS } from '@/tabs/ai/series.js';
 import { URLS, issue, pr, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import {
-  D, FIRST_YEAR, LAST, LAST_YEAR, G0, G1, LS0, LS1, LS_FALL, GAMMA_ONLY_GAIN, KL0, Z_OBR, Z_ANTH,
+  D, FIRST_YEAR, LAST, LAST_YEAR, G0, G1, LS0, LS1, LS_FALL, GAMMA_ONLY_GAIN, KL0, Z_SHARE_SHIFT, Z_SHARE_SHIFT_TFP,
   TG1, OBR, KORINEK, RC_ERROR, CIT_RATE, FIXED, MODEL_RATIOS, signed, gapAt, taxGdpChangePp, taxGdpBase,
 } from '@/tabs/ai/metrics.js';
 import paths from '@/data/ukAiPaths.json';
@@ -35,8 +35,8 @@ export function Cv({ id, children }) {
   return <CaveatLink id={`caveat-${id}`}>{children ?? `caveat ${caveatNo(id)}`}</CaveatLink>;
 }
 
-const TAX_OBR = taxGdpChangePp('obr_ramp');
-const OBR_Y = gapAt('obr_ramp', 'Y');
+const TAX_SHARE_SHIFT = taxGdpChangePp('share_shift_ramp');
+const SHARE_SHIFT_Y = gapAt('share_shift_ramp', 'Y');
 const ext = (href, text) => (
   <a href={href} target="_blank" rel="noreferrer">
     {text}
@@ -103,7 +103,7 @@ const taxPp = (b) => ((1 + b.tax_gap[LAST] / 100) / (1 + b.Y_gap[LAST] / 100) - 
 function FiscalTable() {
   if (!FIXED) return null;
   const rows = [];
-  for (const arm of ['anthropic_ramp', 'obr_ramp']) {
+  for (const arm of ['share_shift_tfp_ramp', 'share_shift_ramp']) {
     rows.push([arm, 'Spending a fixed share of GDP (main runs)', FIXED.common_gy[arm]]);
     rows.push([arm, 'Spending held at baseline levels', FIXED.arms[arm]]);
   }
@@ -112,7 +112,7 @@ function FiscalTable() {
       <table className="impact-table numeric">
         <thead>
           <tr>
-            <th>{LAST_YEAR}, against the no-AI baseline</th>
+            <th>{LAST_YEAR}, against the OBR-central baseline</th>
             <th>GDP</th>
             <th>Tax/GDP</th>
             <th>Debt/GDP</th>
@@ -147,7 +147,7 @@ export const STORY_STEPS = [
       <>
         <p className="key-point">
           OG-UK has no AI parameter; AI enters through <b>two changes to the production technology</b>, and
-          everything else is as in the no-AI baseline.
+          everything else is as in the OBR-central baseline.
         </p>
         <ol className="txt-numbered">
           <li>
@@ -168,7 +168,7 @@ export const STORY_STEPS = [
             foresight).
           </li>
           <li>
-            <b>Everything else is unchanged</b>: every scenario starts from the no-AI baseline&rsquo;s assets and
+            <b>Everything else is unchanged</b>: every scenario starts from the OBR-central baseline&rsquo;s assets and
             debt, uses the same fiscal rule (<Cv id="fiscal" />, with a fixed-spending run as a check), and has the
             same demographics and tax system. The runs are driven by {ext(URLS.solve, 'solve.py')}.
           </li>
@@ -193,12 +193,12 @@ export const STORY_STEPS = [
     ),
   },
   {
-    title: 'Scenario 1: No AI',
+    title: 'Scenario 1: OBR central',
     content: (
       <Scenario
         color={ARM_META.baseline.color}
         name={ARM_META.baseline.label}
-        tag="no-AI baseline"
+        tag="OBR-central baseline"
         saysLabel="Role"
         says={<p>Every other path is measured against this one. It is checked against the OBR&rsquo;s forecast under <a href="#coverage">Model comparison</a>.</p>}
         enters={
@@ -208,9 +208,10 @@ export const STORY_STEPS = [
               {LS0.toFixed(0)}%) is OG-Core&rsquo;s default, not a UK estimate.
             </p>
             <p>
-              No AI shock: OG-UK&rsquo;s existing calibration and the current tax system. Labour-augmenting
+              No AI shock beyond the OBR&rsquo;s own: OG-UK&rsquo;s existing calibration and the current tax system. Labour-augmenting
               productivity grows at {(D.assum.g_y_annual * 100).toFixed(1)}% a year, the OBR&rsquo;s medium-term
-              rate; the population follows the UN World Population Prospects projection for the UK.
+              rate, which already includes the OBR&rsquo;s own AI assumption, so every gap on this page is an AI
+              effect in addition to it; the population follows the UN World Population Prospects projection for the UK.
             </p>
           </>
         }
@@ -225,8 +226,8 @@ export const STORY_STEPS = [
           A shift of income from labour to capital with <b>no output gain at fixed inputs</b>.
         </p>
         <Scenario
-          color={ARM_META.obr_ramp.color}
-          name={ARM_META.obr_ramp.label}
+          color={ARM_META.share_shift_ramp.color}
+          name={ARM_META.share_shift_ramp.label}
           tag="automation"
           enters={
             <>
@@ -256,7 +257,7 @@ export const STORY_STEPS = [
         <p className="note-box">
           <b>Comparison with the OBR&rsquo;s fiscal estimate.</b> OG-UK carries part of the tax-richness channel:
           labour and capital income pass through one fitted income-tax function, plus a {CIT_RATE}% corporation
-          tax. In {LAST_YEAR} this scenario lowers tax/GDP by {Math.abs(TAX_OBR).toFixed(2)}pp. The OBR (
+          tax. In {LAST_YEAR} this scenario lowers tax/GDP by {Math.abs(TAX_SHARE_SHIFT).toFixed(2)}pp. The OBR (
           {ext(efo(EFO_PAGE.p6_18), 'EFO paragraph 6.18')}) puts the effect of its scenario on receipts at {signed(OBR.receiptsBn, 0).replace('\u2212', '\u2212£')}bn a
           year (about {Math.abs(OBR.receiptsPctGdp)}% of GDP), with borrowing +£{OBR.borrowingBn}bn a year and debt +
           {OBR.debtPctGdp}% of GDP by 2030-31. The model&rsquo;s debt result depends on the fiscal convention (
@@ -275,8 +276,8 @@ export const STORY_STEPS = [
           This is the main scenario.
         </p>
         <Scenario
-          color={ARM_META.anthropic_ramp.color}
-          name={ARM_META.anthropic_ramp.label}
+          color={ARM_META.share_shift_tfp_ramp.color}
+          name={ARM_META.share_shift_tfp_ramp.label}
           tag="main scenario"
           enters={
             <>
@@ -323,7 +324,7 @@ export const STORY_STEPS = [
             <p>
               Table 3 publishes <b>2030 endpoints only</b>, so the US appears on the charts as single hollow
               dots. Each US scenario is compared with the paper&rsquo;s own US no-AI path, as each UK scenario is
-              with the UK no-AI baseline; the two no-AI paths grow at different rates, so levels are not
+              with the UK OBR-central baseline; the two baselines grow at different rates, so levels are not
               compared (<Cv id="us" />
               ).
             </p>
@@ -381,9 +382,9 @@ export const STORY_STEPS = [
               <>
                 {' '}
                 With spending held at baseline levels instead, debt/GDP in {LAST_YEAR} in Automation only{' '}
-                {debtPp('arms', 'obr_ramp') < 0 ? 'falls' : 'rises'} ({signed(debtPp('arms', 'obr_ramp'), 2)}pp)
-                rather than {debtPp('common_gy', 'obr_ramp') > 0 ? 'rising' : 'falling'} (
-                {signed(debtPp('common_gy', 'obr_ramp'), 2)}pp).
+                {debtPp('arms', 'share_shift_ramp') < 0 ? 'falls' : 'rises'} ({signed(debtPp('arms', 'share_shift_ramp'), 2)}pp)
+                rather than {debtPp('common_gy', 'share_shift_ramp') > 0 ? 'rising' : 'falling'} (
+                {signed(debtPp('common_gy', 'share_shift_ramp'), 2)}pp).
                 <FiscalTable />
                 <span className="note-box" style={{ display: 'block' }}>
                   Tax/GDP uses the model baseline&rsquo;s {taxGdpBase().toFixed(1)}% in {LAST_YEAR}.
@@ -425,7 +426,7 @@ export const STORY_STEPS = [
             figures are for the start of 2030 (growth over the 12 months to then); OG-UK&rsquo;s period 2030 is
             a year later, and the UK ramp runs four years against their three and a half from mid-2026. On a
             like-for-like date the UK gap lies between its 2029 and 2030 values. Levels are not compared: each
-            country&rsquo;s gap is measured from its own no-AI path. OG-UK is an OLG model with UK demographics
+            country&rsquo;s gap is measured from its own baseline. OG-UK is an OLG model with UK demographics
             and taxes; theirs is a US scenario model with neither.
           </li>
           <li id="caveat-levels">
@@ -467,7 +468,7 @@ export const STORY_STEPS = [
 const i = (text, cls = 'info', icon = '\\(\\to\\)') => ({ icon, text, cls });
 const fsLine = (conv, label) =>
   FIXED
-    ? [i(`${label}: Automation + productivity ${signed(debtPp(conv, 'anthropic_ramp'), 2)}pp, Automation only ${signed(debtPp(conv, 'obr_ramp'), 2)}pp`, 'info', '=')]
+    ? [i(`${label}: Automation + productivity ${signed(debtPp(conv, 'share_shift_tfp_ramp'), 2)}pp, Automation only ${signed(debtPp(conv, 'share_shift_ramp'), 2)}pp`, 'info', '=')]
     : [];
 
 const V = (text) => i(text, 'info', '=');
@@ -512,26 +513,26 @@ export const STORY_PANELS = [
       i('Population: UN World Population Prospects, UK'),
     ]},
   ]},
-  { title: ARM_META.obr_ramp.label, badge: 'Scenario 2', sections: [
+  { title: ARM_META.share_shift_ramp.label, badge: 'Scenario 2', sections: [
     { label: 'Target: no output gain at fixed inputs (τ = 0)', type: 'math', equations: [
       { label: 'At baseline K₀, L₀', tex: 'Z^{*} K_0^{\\gamma_1} L_0^{1-\\gamma_1} = K_0^{\\gamma_0} L_0^{1-\\gamma_0}' },
       { label: 'Solved', tex: 'Z^{*} = (K_0/L_0)^{-(\\gamma_1-\\gamma_0)}' },
     ]},
-    { label: 'Values', type: 'output', lines: [V(`\\(Z^{*} = ${Z_OBR.toFixed(4)}\\)`)] },
+    { label: 'Values', type: 'output', lines: [V(`\\(Z^{*} = ${Z_SHARE_SHIFT.toFixed(4)}\\)`)] },
     { label: `Against the OBR's Box 2.2, ${LAST_YEAR}`, type: 'grid', cols: ['OG-UK', 'OBR'], rows: [
       { label: 'Labour share', cells: [`−${LS_FALL.toFixed(1)}pp (imposed)`, 'lower'] },
-      { label: 'GDP', cells: [`${signed(OBR_Y)}%`, 'unchanged'] },
-      { label: 'Tax/GDP (¶6.18)', cells: [`${signed(TAX_OBR, 2)}pp`, `≈${OBR.receiptsPctGdp}pp`] },
+      { label: 'GDP', cells: [`${signed(SHARE_SHIFT_Y)}%`, 'unchanged'] },
+      { label: 'Tax/GDP (¶6.18)', cells: [`${signed(TAX_SHARE_SHIFT, 2)}pp`, `≈${OBR.receiptsPctGdp}pp`] },
       { label: 'Unemployment', cells: ['n/a', `${OBR.unemployment}%`] },
     ]},
   ]},
-  { title: ARM_META.anthropic_ramp.label, badge: 'Scenario 3', sections: [
+  { title: ARM_META.share_shift_tfp_ramp.label, badge: 'Scenario 3', sections: [
     { label: 'Target: measured TFP gain τ at fixed inputs', type: 'math', equations: [
       { label: 'At baseline K₀, L₀', tex: '\\frac{Z^{*} K_0^{\\gamma_1} L_0^{1-\\gamma_1}}{K_0^{\\gamma_0} L_0^{1-\\gamma_0}} = 1+\\tau' },
       { label: 'Solved', tex: 'Z^{*} = (1+\\tau)\\,(K_0/L_0)^{-(\\gamma_1-\\gamma_0)}' },
     ]},
     { label: 'Values', type: 'output', lines: [
-      V(`\\(\\tau = ${(KORINEK.tfp / 100).toFixed(3)}\\), \\(Z^{*} = ${Z_ANTH.toFixed(4)}\\)`),
+      V(`\\(\\tau = ${(KORINEK.tfp / 100).toFixed(3)}\\), \\(Z^{*} = ${Z_SHARE_SHIFT_TFP.toFixed(4)}\\)`),
     ]},
     { label: 'Calibration to Korinek et al. (2026), Table 3', type: 'output', lines: [
       i(`Labour share −${LS_FALL.toFixed(1)}pp: matched`, 'accent', '✓'),
@@ -554,7 +555,7 @@ export const STORY_PANELS = [
     ]},
     { label: 'Values', type: 'output', lines: [
       V(`\\(g_{\\gamma} = ${GAMMA_ONLY_GAIN.toFixed(2)}\\%\\), \\(K_0/L_0 = ${KL0.toFixed(4)}\\) (model units)`),
-      V(`\\(Z^{*}\\): ${Z_OBR.toFixed(4)} Automation only, ${Z_ANTH.toFixed(4)} Automation + productivity`),
+      V(`\\(Z^{*}\\): ${Z_SHARE_SHIFT.toFixed(4)} Automation only, ${Z_SHARE_SHIFT_TFP.toFixed(4)} Automation + productivity`),
     ]},
   ]},
   { title: 'Affects every number', badge: `Caveats 1–${N_EVERY}`, sections: [
@@ -569,7 +570,7 @@ export const STORY_PANELS = [
         `${FIRST_YEAR} accounting error ≈${RC_ERROR.pctGdp}% of GDP`,
       ].map((t, k) => i(t, 'warn', String(k + 1))),
     ].flat() },
-    ...(FIXED ? [{ label: `Debt/GDP in ${LAST_YEAR}, against the no-AI baseline`, type: 'output', lines: [
+    ...(FIXED ? [{ label: `Debt/GDP in ${LAST_YEAR}, against the OBR-central baseline`, type: 'output', lines: [
       ...fsLine('common_gy', 'Spending a share of GDP'),
       ...fsLine('arms', 'Spending at baseline levels'),
     ]}] : []),
