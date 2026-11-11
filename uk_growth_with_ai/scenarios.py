@@ -54,7 +54,8 @@ TG1 = 10             # issue #3: OG-UK's tG1 = 4 switches G to debt targeting in
 #
 # The baseline is "OBR central", NOT a no-AI counterfactual.  The OBR's 1.0%
 # path already contains its own AI assumption, which ramps in with adoption
-# (about 0.1pp by year five, 0.2pp at its forecast horizon; Briefing paper No.9
+# along a non-linear path (Briefing paper No.9: a central ~0.2pp at its
+# forecast horizon, para B.14; a J-curve reaching 0.1pp a year by year five,
 # para B.12).  g_y is a scalar, so it cannot carry that profile, and netting a
 # flat 0.2pp off (0.008, tried and dropped in #22) would remove more AI than
 # the OBR assumes over 2026-30.  The scenario gaps are therefore AI effects IN

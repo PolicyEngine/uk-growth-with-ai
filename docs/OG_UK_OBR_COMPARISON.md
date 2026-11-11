@@ -72,8 +72,8 @@ Every re-trended figure produced so far inherits this, including the AI scenario
 
 1. **The value stays 0.010; the baseline is labelled "OBR central".** The 1.0%
    productivity path already contains the OBR's own AI assumption, which ramps in with
-   adoption (about 0.1pp by year five, 0.2pp at the forecast horizon; Briefing paper
-   No.9 para B.12). `g_y` is a scalar and cannot carry that profile, so netting a flat
+   adoption along a non-linear path (Briefing paper No.9: a central ~0.2pp at the
+   forecast horizon, para B.14; its J-curve reaches 0.1pp a year by year five, para B.12). `g_y` is a scalar and cannot carry that profile, so netting a flat
    0.2pp off (0.008, briefly tried in #22) would remove more AI than the OBR assumes over
    2026–30. The baseline is therefore described as "OBR central", and each scenario's gap
    is an AI effect *in addition to* the OBR's own assumption (decision in issue #27). The

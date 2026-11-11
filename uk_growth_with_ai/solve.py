@@ -240,7 +240,7 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         tpi = pickle.load(f)
     rec = {
         "g_n_source": g_n_source,
-        "g_n_tail": "live",   # only g_n[:NPER] is ever vendored
+        "g_n_tail": "live",   # only g_n[:NPER] is checked against the vendored path
         "gamma_terminal": gamma_val, "gamma_shape": "ramp" if ramp else "step",
         "Z_terminal": z_terminal, "elapsed_min": (time.time() - t0) / 60,
         "ss_labour_share": float(ss["w"] * ss["L"] / ss["Y"]),

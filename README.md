@@ -27,7 +27,7 @@ Every scenario shares the baseline's initial assets and debt and its government
 spending share `alpha_G`; the switch to debt targeting is moved to `tG1 = 10` (2036),
 past the reported window; and `g_y_annual = 0.010`, the OBR's 1.0% medium-term
 productivity growth. That path already contains the OBR's own AI assumption, which
-ramps in with adoption (Briefing paper No.9 para B.12), and a scalar `g_y` cannot
+builds non-linearly with adoption (Briefing paper No.9 paras B.12, B.14), and a scalar `g_y` cannot
 strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
 each scenario's gap is an AI effect *in addition to* the OBR's own. A
 second run holds government spending and transfers at baseline levels instead

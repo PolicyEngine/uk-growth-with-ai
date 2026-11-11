@@ -5,7 +5,7 @@ import './panels.css';
 const SITE_URL = 'https://og-model-dashboard.vercel.app';
 const TITLE = 'The Macroeconomic Effects of AI on the UK';
 const DESCRIPTION =
-  'A 3.9pp rise in the capital share, with and without a 3.1% output gain at fixed inputs (sizes from Korinek et al. 2026), run through OG-UK, the UK overlapping-generations model, 2026–2030, against the OBR central forecast. One sector.';
+  'A 3.9pp rise in the capital share, with and without a 3.1% output gain at fixed inputs (sizes from Korinek et al. 2026), run through OG-UK, the UK overlapping-generations model, 2026–2030, against an OBR-central baseline. One sector.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
