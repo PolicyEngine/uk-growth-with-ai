@@ -106,7 +106,7 @@ Each scenario takes about 7 minutes on a laptop; keep the machine awake
 python -m uk_growth_with_ai run [--only share_shift|share_shift_tfp] [--shapes ramp|step|both] [--g-n vendored|live]
                                 [--baseline-only] [--baseline-spending]
                                 [--tG1 N] [--g-y-annual X] [--out PATH]
-python -m uk_growth_with_ai check [--results PATH]
+python -m uk_growth_with_ai check [--results PATH] [--baseline-only]
 python -m uk_growth_with_ai report [--arm share_shift_tfp_ramp|share_shift_ramp]
 python -m uk_growth_with_ai obr
 python -m uk_growth_with_ai dashboard [--check]
@@ -124,8 +124,17 @@ python -m uk_growth_with_ai dashboard [--check]
   never recorded. `--g-n live` skips the check. See
   `uk_growth_with_ai/data/g_n_committed_run.json` for what is and is not checked.
 * `check` runs the validation checks in issue #9 on a results file: no fiscal-rule break
-  in 2030, a common spending share, potential output against the OBR, the Z targets,
-  the labour share and solution quality (including the 2026 resource-constraint error).
+  in 2030, the fiscal invariant of the recorded closure (a common G/Y, or baseline G
+  levels under `--baseline-spending`), balanced growth against the OBR's potential
+  output, the Z targets, the labour share and solution quality for the baseline and
+  every arm. It exits 1 if an expected arm (`arms.py`, or the run's recorded
+  `arms_requested`) is missing, any arm failed, or the file is malformed (issue #17).
+  A baseline-only file must say so: new runs record it, older files need `--baseline-only`.
+  It also checks the national accounts and signs: the model's resource-constraint error
+  in every reported year (0.1% of GDP; the 2026 residual, #15, is reported as KNOWN up
+  to 1.0%), Y − C − I − G (not net exports: public investment and net external flows
+  are not saved), and positivity and share bands. Tolerances are documented in
+  `checks.py`. WARN and KNOWN lines are counted in the summary but do not fail the run.
 * `report` prints the year-by-year gaps, GDP growth, the labour share and, for
   `share_shift_tfp_ramp`, the comparison with Korinek et al. Table 3.
 * `obr` compares the OBR-central baseline with the OBR's March 2026 EFO: GDP growth
@@ -152,6 +161,7 @@ comparison and Code. Its data files are generated, not edited by hand.
 ```
 uk_growth_with_ai/
   scenarios.py       scenario definitions and run settings (tG1, g_y_annual)
+  arms.py            the shocked arms a complete results file must contain
   calibrate.py       γ for a labour-share fall, the γ-only gain, the Z solvers
   solve.py           the OG-UK runner (lazy ogcore/oguk import, SS, TPI, diagnostics)
   checks.py          validation checks on a results file
