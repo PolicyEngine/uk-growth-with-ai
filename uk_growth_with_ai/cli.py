@@ -27,9 +27,10 @@ def main(argv=None) -> int:
                        help=f"labour-augmenting productivity growth (default {G_Y_ANNUAL}; OG-UK's is 0.011)")
     p_run.add_argument("--g-n", dest="g_n_source", choices=list(G_N_SOURCES),
                        default=G_N_DEFAULT,
-                       help="demographics: 'vendored' pins g_n to the committed "
-                            "run's recorded path (default); 'live' uses OG-UK's "
-                            "run-time UN fetch, which is not reproducible")
+                       help="demographics: 'vendored' (default) stops the run if "
+                            "the live UN fetch's g_n for the reported window differs "
+                            "from the committed run's recorded path; 'live' skips "
+                            "that check. Both solve on the live fetch")
     p_run.add_argument("--baseline-spending", action="store_true",
                        help="shocked arms keep the baseline's G and TR levels (OBR convention)")
     p_run.add_argument("--out", default=str(DEFAULT_OUT),

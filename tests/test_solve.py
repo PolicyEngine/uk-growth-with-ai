@@ -79,3 +79,38 @@ def test_baseline_leaves_z_and_gamma_alone(tmp_path):
     p = _run(tmp_path, ramp=False, z_terminal=None, baseline=True)["p"]
     assert p.Z == [1.0]
     assert p.gamma == [GAMMA]
+
+
+# --- g_n: the vendored path guards the live fetch, it never overwrites it ----
+
+def test_vendored_g_n_matching_the_fetch_passes_and_is_not_overwritten(tmp_path):
+    c = _run(tmp_path, ramp=True, z_terminal=Z_TERMINAL)
+    p = c["p"]
+    assert np.array_equal(p.g_n[:NPER], load_committed_g_n(NPER))
+    assert np.all(p.g_n[NPER:] == 0.002)               # tail left as fetched
+
+
+def test_vendored_g_n_drift_raises_before_the_solve(tmp_path):
+    drifted = load_committed_g_n(NPER) + np.array([0, 0, 1e-6, 0, 0])
+    captured = {}
+    with pytest.raises(solve.GNDriftError, match="differs from the vendored"):
+        solve.run_arm("arm", GAMMA, True, Z_TERMINAL, str(tmp_path), None,
+                      _handles(captured, drifted))
+    # Raised from the guard, with the live values untouched.
+    assert np.array_equal(captured["p"].g_n[:NPER], drifted)
+
+
+def test_live_g_n_skips_the_check(tmp_path):
+    drifted = load_committed_g_n(NPER) * 0.9
+    c = _run(tmp_path, ramp=True, z_terminal=Z_TERMINAL, g_n_source="live",
+             g_n_head=drifted)
+    assert np.array_equal(c["p"].g_n[:NPER], drifted)
+
+
+def test_drift_tolerance_ignores_float_noise_only():
+    v = load_committed_g_n(NPER)
+    assert np.array_equal(solve.check_g_n_against_vendored(v + 1e-12), v)
+    with pytest.raises(solve.GNDriftError):
+        solve.check_g_n_against_vendored(v + 1e-8)
+    with pytest.raises(solve.GNDriftError):
+        solve.check_g_n_against_vendored(v[:3])        # too short to check

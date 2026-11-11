@@ -40,10 +40,42 @@ from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, RAMP_YEARS, SCENARIOS, STA
 # Demographics are the one input OG-UK fetches over the network at run time
 # (oguk.api._build_specs -> demographics.get_pop_objs, a UN WPP call), so the
 # published headline was not reproducible: the demographic input was a function
-# of the date the run happened, not of anything committed.  "vendored" pins g_n
-# to data/g_n_committed_run.json, the path the committed run recorded.
+# of the date the run happened, not of anything committed.  "vendored" GUARDS
+# the reported window: the live fetch's g_n[:NPER] must match
+# data/g_n_committed_run.json, the path the committed run recorded, or the run
+# stops.  It never overwrites the live values, because the population weights
+# (omega, imm_rates, g_n_ss) come from the same fetch and were never recorded:
+# splicing recorded g_n onto a drifted fetch would make the two inconsistent.
 G_N_SOURCES = ("vendored", "live")
 G_N_DEFAULT = "vendored"
+# Absolute tolerance on g_n (a growth rate, so 1e-9 = 1e-7 pp): the live and
+# recorded values should agree to floating-point noise if the UN data are the
+# same; anything larger is a data vintage change.
+G_N_DRIFT_TOL = 1e-9
+
+
+class GNDriftError(RuntimeError):
+    """The live UN fetch's g_n no longer matches the committed run's."""
+
+
+def check_g_n_against_vendored(live_g_n, tol=G_N_DRIFT_TOL) -> np.ndarray:
+    """Raise ``GNDriftError`` unless live g_n[:NPER] equals the vendored path.
+
+    Returns the vendored values on success.  Never modifies ``live_g_n``.
+    """
+    vendored = load_committed_g_n(NPER)
+    live = np.asarray(live_g_n, dtype=float).ravel()[:NPER]
+    if live.shape != vendored.shape or not np.allclose(live, vendored, rtol=0, atol=tol):
+        diff = (np.max(np.abs(live - vendored)) if live.shape == vendored.shape
+                else float("nan"))
+        raise GNDriftError(
+            f"live g_n[:{NPER}] {np.round(live, 6).tolist()} differs from the "
+            f"vendored committed-run path {np.round(vendored, 6).tolist()} "
+            f"(max |diff| {diff:.3e} > {tol:g}).  The UN demographic data have "
+            "changed since the committed run, so its numbers cannot be reproduced "
+            "with this fetch.  Re-run with --g-n live to accept the new data "
+            "knowingly.")
+    return vendored
 
 
 # Written next to the caller by default: `run` must not clobber the committed,
@@ -126,13 +158,13 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     arm's own steady-state G/Y; shocked arms pass the baseline's so fiscal
     policy is common across arms (issue #2).
 
-    ``g_n_source``: "vendored" (default) passes the committed run's g_n path as
-    an explicit override, so the reported window does not depend on a live UN
-    fetch; "live" keeps OG-UK's run-time fetch.  Two caveats, both recorded in
-    ``data/g_n_committed_run.json``: only 5 periods were recorded, so only the
-    reported window is pinned and the tail is left as fetched; and omega,
-    imm_rates and g_n_ss come from the same fetch and were never recorded, so
-    the solve is not network-free either way.
+    ``g_n_source``: "vendored" (default) checks the live fetch's reported
+    window against the committed run's recorded g_n and raises
+    ``GNDriftError`` if they differ (``check_g_n_against_vendored``); it does
+    not overwrite anything.  "live" skips the check.  Either way the solve uses
+    the live fetch and is not network-free: only 5 periods of g_n were ever
+    recorded, and omega, imm_rates and g_n_ss come from the same fetch and were
+    never recorded (``data/g_n_committed_run.json`` -> ``_limitations``).
 
     ``baseline_spending`` (shocked arms only): hold government spending and
     transfers at the baseline's LEVELS instead of its G/Y share, the OBR
@@ -153,20 +185,16 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
                          param_overrides={"epsilon": [EPS], "gamma": [gamma_val],
                                           "tG1": tG1, "g_y_annual": g_y_annual})
     if g_n_source == "vendored":
-        # Pin ONLY the reported window, after _build_specs, the same way gamma, Z
-        # and alpha_G are set.  The tail is deliberately left as fetched: OG-Core
-        # lands the population path on its steady state (TPI uses p.g_n[:T-1] then
-        # p.g_n_ss, SS uses p.g_n_ss -- ogcore/aggregates.py:90, 157), and g_n_ss
-        # was never recorded, so holding a flat vendored tail against a live
-        # g_n_ss would put a population-growth mismatch at the terminal boundary.
-        g_n = np.asarray(p.g_n, dtype=float).copy()
-        g_n[:NPER] = load_committed_g_n(NPER)
-        p.g_n = g_n
-        print(f"  g_n: first {NPER} periods VENDORED from "
-              "data/g_n_committed_run.json; the tail and g_n_ss are still the "
-              "live UN fetch (never recorded), as are omega/imm_rates, so the "
-              "solve is not network-free and only the reported window is pinned.",
-              flush=True)
+        # Guard, don't overwrite: the live reported window must match what the
+        # committed run recorded.  The tail is not checked (never recorded):
+        # OG-Core lands the population path on its steady state (TPI uses
+        # p.g_n[:T-1] then p.g_n_ss, SS uses p.g_n_ss -- ogcore/aggregates.py:90,
+        # 157), and g_n_ss was never recorded either.
+        check_g_n_against_vendored(p.g_n)
+        print(f"  g_n: first {NPER} periods of the live UN fetch MATCH the "
+              "vendored data/g_n_committed_run.json; the tail, g_n_ss, omega and "
+              "imm_rates are unchecked (never recorded), so the solve is not "
+              "network-free.", flush=True)
     else:
         print("  g_n: LIVE UN fetch throughout -- not reproducible", flush=True)
     p.TPI_outer_method = "anderson"

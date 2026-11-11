@@ -31,9 +31,9 @@ ramps in with adoption (Briefing paper No.9 para B.12), and a scalar `g_y` canno
 strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
 each scenario's gap is an AI effect *in addition to* the OBR's own. A
 second run holds government spending and transfers at baseline levels instead
-(`--baseline-spending`), the OBR's convention. The reported window's demographics default to the
-vendored `g_n` of the committed run (`--g-n vendored`) rather than to OG-UK's live
-UN fetch.
+(`--baseline-spending`), the OBR's convention. By default (`--g-n vendored`) a run stops
+if OG-UK's live UN fetch gives a different `g_n` for the reported window from the one
+the committed run recorded.
 
 Both arms are named for what they impose (issue #14): `share_shift` is the capital-share
 shift with a zero technology wedge at the baseline's fixed 2026 inputs, and
@@ -114,11 +114,12 @@ python -m uk_growth_with_ai dashboard [--check]
   `--out` points there). `--baseline-only` stops after the baseline and the Z solve.
   `--baseline-spending` holds government spending and transfers at baseline levels.
   `--tG1` and `--g-y-annual` default to 10 and 0.010. `--g-n` defaults to `vendored`:
-  the committed run's recorded `g_n` replaces the first five periods of OG-UK's
-  run-time UN fetch, so the reported window no longer moves with the fetch date.
-  Only those five periods were ever recorded, so the tail and `g_n_ss` (and
-  `omega`, `imm_rates`) are still fetched: see
-  `uk_growth_with_ai/data/g_n_committed_run.json` for what is and is not pinned.
+  the first five periods of OG-UK's run-time UN fetch must match the committed run's
+  recorded `g_n` (to 1e-9), or the run raises `GNDriftError` rather than silently
+  moving with the fetch date. Nothing is overwritten: the solve always uses the live
+  fetch, because the tail, `g_n_ss`, `omega` and `imm_rates` come from it and were
+  never recorded. `--g-n live` skips the check. See
+  `uk_growth_with_ai/data/g_n_committed_run.json` for what is and is not checked.
 * `check` runs the validation checks in issue #9 on a results file: no fiscal-rule break
   in 2030, a common spending share, potential output against the OBR, the Z targets,
   the labour share and solution quality (including the 2026 resource-constraint error).

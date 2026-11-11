@@ -4,7 +4,7 @@
 ``data/og_uk_params.json`` OG-UK's default trend parameters (g_n, g_y_annual),
                           vendored from the OG-UK checkout
 ``data/g_n_committed_run.json`` the g_n path the committed run used, vendored so a
-                          re-run need not depend on a live UN demographic fetch
+                          re-run can check the live UN demographic fetch against it
 
 Re-trending uses the ``g_n_used`` and ``g_y_annual_used`` each results file
 records (issue #4). The vendored defaults remain for results files that
@@ -70,11 +70,15 @@ def load_results(path=None) -> dict:
 
 
 def load_committed_g_n(n: int) -> np.ndarray:
-    """The vendored g_n path of the committed run, extended to ``n`` periods.
+    """The first ``n`` values of the committed run's recorded g_n.
 
-    Only 5 periods were ever recorded (``baseline.g_n_used``), so the tail is
-    held FLAT at the last recorded value -- our convention, not the original
-    run's path.  See ``data/g_n_committed_run.json`` -> ``_limitations``.
+    ``data/g_n_committed_run.json`` holds the 5 values the run recorded
+    (``baseline.g_n_used``, 2026-30).  For ``n <= 5`` this returns the first
+    ``n`` of them.  For ``n > 5`` it pads FLAT with the last recorded value:
+    that padding is this function's convention, not the committed run's path,
+    whose tail was never recorded.  ``solve`` only ever asks for ``NPER`` (5)
+    values, which it uses to CHECK the live fetch, not to overwrite it (see
+    ``solve.check_g_n_against_vendored`` and the file's ``_limitations``).
     """
     d = json.loads((DATA / "g_n_committed_run.json").read_text())
     head = np.asarray(d["g_n"], dtype=float)
