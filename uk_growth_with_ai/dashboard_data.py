@@ -25,13 +25,14 @@ from pathlib import Path
 
 import numpy as np
 
+from .arms import SHOCKED_ARMS
 from .data_access import DATA, load_results, load_trend_params
 from .report import growth_path, labour_share, trend
 
 DASHBOARD_DATA = Path(__file__).resolve().parent.parent / "dashboard" / "src" / "data"
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
-ARMS = ["baseline", "obr_ramp", "anthropic_ramp"]
+ARMS = ["baseline", *SHOCKED_ARMS]
 VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
         ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]

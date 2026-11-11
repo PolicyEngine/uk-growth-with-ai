@@ -17,6 +17,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from .arms import SHOCKED_ARMS
 from .data_access import load_results, load_trend_params
 from .scenarios import ANTHROPIC_SUBSTANTIAL
 
@@ -25,7 +26,7 @@ VARS = [("C", "Consumption"), ("I", "Investment"), ("G", "Government"),
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
 
-ARMS = ["anthropic_ramp", "obr_ramp"]
+ARMS = SHOCKED_ARMS
 
 # Which trend each variable carries; anything not listed carries both.
 TREND = {"w": "productivity", "L": "population", "r": None}

@@ -25,6 +25,17 @@ OBR_BASELINE = {
 YEARS = [2027, 2028, 2029, 2030]
 
 
+def balanced_growth(g_y: float, g_n, t: int) -> float:
+    """Balanced-growth rate from period t to t+1, in percent: e^g_y (1 + g_n[t]) - 1.
+
+    ``g_n[t]`` is population growth from t to t+1 (t = 0 is 2026), so growth
+    "in 2030" is ``t = 3``. This is the model's balanced-growth rate, not
+    potential output; the OBR's potential output is only the nearest published
+    comparator. ``compare`` and ``check`` share this one formula (issue #17).
+    """
+    return float((np.exp(g_y) * (1 + np.asarray(g_n)[t]) - 1) * 100)
+
+
 def baseline_growth(results=None, oguk_dir=None) -> np.ndarray:
     """Real GDP growth 2027-2030 on the OG-UK baseline path, in percent."""
     res = results if results is not None else load_results()
@@ -42,7 +53,7 @@ def compare(results=None, oguk_dir=None) -> dict:
     g_n, g_y = load_trend_params(oguk_dir, res)
     growth = baseline_growth(res, oguk_dir)
     prod = (np.exp(g_y) - 1) * 100
-    potential = lambda t: (np.exp(g_y) * (1 + g_n[t]) - 1) * 100
+    potential = lambda t: balanced_growth(g_y, g_n, t)
     components = [
         ("productivity growth, medium term", OBR_BASELINE["productivity_medium_term"], prod),
         # g_n is growth of the model population aged 21-100, not labour supply;
