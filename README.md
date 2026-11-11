@@ -141,7 +141,7 @@ uk_growth_with_ai/
 patches/             ogcore-0.17.0-firm-gamma-tv.diff
 tests/               pytest over the functions and the committed numbers
 analysis/            the original scripts these modules were refactored from
-docs/                modelling notes, the OBR comparison write-up, the patch design
+docs/                the OBR comparison write-up, the patch design
 dashboard/           the Next.js front end
 ```
 
