@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .arms import SHOCKED_ARMS
+from .arms import SHOCKED_ARMS, Z_TARGETS
 from .obr import OBR_BASELINE, balanced_growth
 from .scenarios import G_BASE, NPER
 
@@ -179,18 +179,25 @@ def baseline_checks(res, r):
         r.line("FAIL", "baseline does not record g_y_annual_used and g_n_used")
 
     print("\nZ re-solved against this baseline")
-    a = res.get("assumptions", {})
+    a = res.get("assumptions")
+    if not isinstance(a, dict):
+        r.line("FAIL", "no 'assumptions' in the results file")
+        return
     K0, L0 = b["K"][0], b["L"][0]
     # Independent of calibrate.py: at fixed K0, L0 the joint move is
     # Z * (K0/L0)^(gamma1 - gamma0) - 1.
     g1 = a.get("gamma_shocked", 0.389)
     fixed_input_gain = lambda Z: (Z * (K0 / L0) ** (g1 - G_BASE) - 1) * 100
-    if "Z_anthropic" in a:
-        tfp_a, tfp_o = fixed_input_gain(a["Z_anthropic"]), fixed_input_gain(a["Z_obr"])
-        r.check(abs(tfp_a - 3.1) < 1e-6, f"Anthropic: output at fixed inputs {tfp_a:+.4f}% (target +3.1%), Z = {a['Z_anthropic']:.6f}")
-        r.check(abs(tfp_o) < 1e-6, f"OBR-style: output at fixed inputs {tfp_o:+.4f}% (target 0%), Z = {a['Z_obr']:.6f}")
-    else:
-        r.line("FAIL", "no Z values in 'assumptions'")
+    for scen, target in Z_TARGETS.items():
+        key = f"Z_{scen}"
+        z = a.get(key)
+        if not isinstance(z, (int, float)) or not np.isfinite(z):
+            r.line("FAIL", f"{key}: missing or not a number in 'assumptions'")
+            continue
+        gain = fixed_input_gain(z)
+        r.check(abs(gain - target) < 1e-6,
+                f"{scen}: output at fixed inputs {gain:+.4f}% (target {target:+.1f}%), "
+                f"{key} = {z:.6f}")
 
 
 def solution_quality(res, arms, r):
@@ -265,14 +272,16 @@ def shocked_checks(res, arms, r):
 # What can be checked:
 #
 # 1. The model's own resource-constraint error, as recorded per year in
-#    ``diagnostics.rc_first5`` (OG-Core: Y - C - I_d - I_g - G - net capital
-#    outflows + remittances + foreign aid), as a share of that year's Y.
-#    Tolerance RC_TOL = 0.1% of GDP in every reported year. The 2026 error is
-#    ~0.95% of GDP in every arm (#15, unresolved; its sign is not saved, so it
-#    is not shown to cancel in the gaps). It is reported as KNOWN, counted in
-#    the summary, while it stays at or below RC_2026_KNOWN_MAX = 1.0% of GDP;
-#    above that it fails. Any other year over RC_TOL fails. (2028 sits at
-#    ~0.09% in every arm, just inside the tolerance.)
+#    ``diagnostics.rc_first5`` (OG-Core 0.17.0 aggregates.resource_constraint:
+#    Y - C - I_d - I_g - G - net capital flows + remittances + foreign aid),
+#    as a share of that year's Y. solve.py saves absolute values, so the sign
+#    is lost. Tolerance RC_TOL = 0.1% of GDP in every reported year; any year
+#    from 2027 over it fails, and any over RC_WARN = 0.01% is a WARN (2028
+#    sits at ~0.09% in every arm, hundreds of times its neighbours). The
+#    2026 error is ~0.95% of GDP in every arm (#15, unresolved; not shown to
+#    cancel in the gaps). It is reported as KNOWN, counted in the summary,
+#    while it stays at or below RC_2026_KNOWN_MAX = 1.0% of GDP; above that
+#    it fails.
 # 2. The derived residual X = Y - C - I - G (I is total private investment).
 #    X is public investment + the external balance (incl. foreign-owned
 #    investment) + the RC error above; it is NOT net exports. It must stay
@@ -285,6 +294,7 @@ def shocked_checks(res, arms, r):
 #    inside SHARE_BANDS (wide: they catch sign flips and unit errors, not
 #    calibration choices).
 RC_TOL = 0.1                 # % of GDP, every reported year
+RC_WARN = 0.01               # % of GDP, 2027+: inside tolerance but worth a look
 RC_2026_KNOWN_MAX = 1.0      # % of GDP: the #15 residual is ~0.95%
 X_SHARE_MAX = 6.0            # % of GDP
 X_STEP_WARN = 2.0            # pp of GDP, year on year
@@ -308,6 +318,10 @@ def accounts_checks(res, arms, r):
         r.check(bool(np.all(share[1:] <= RC_TOL)),
                 f"{a}: " + ", ".join(f"{y} {s:.3f}" for y, s in zip(YEARS, share))
                 + f" (2027+ within {RC_TOL})")
+        for y, s in zip(YEARS[1:], share[1:]):
+            if RC_WARN < s <= RC_TOL:
+                r.line("WARN", f"{a}: {y} resource-constraint error {s:.3f}% of GDP, "
+                               f"inside the {RC_TOL}% tolerance but over {RC_WARN}%")
         if share[0] <= RC_TOL:
             r.line("PASS", f"{a}: 2026 residual {share[0]:.3f}% is within tolerance; "
                            "if #15 is fixed, drop the KNOWN allowance")

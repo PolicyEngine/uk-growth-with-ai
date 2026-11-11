@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from uk_growth_with_ai import cli
-from uk_growth_with_ai.arms import SHOCKED_ARMS
+from uk_growth_with_ai.arms import SHOCKED_ARMS, Z_TARGETS
 from uk_growth_with_ai.data_access import DATA, load_results
 
 COMMITTED = DATA / "scenarios.json"
@@ -180,11 +180,43 @@ def _scale(res, arm, var, factor, year=None):
     res[arm][var] = a.tolist()
 
 
-def test_2026_residual_is_flagged_not_hidden(capsys):
-    assert cli.main(["check", "--results", str(COMMITTED)]) == 0
-    out = capsys.readouterr().out
-    assert out.count("[KNOWN]") == 1 + len(SHOCKED_ARMS)
-    assert "#15" in out and "KNOWN" in out.splitlines()[-1]
+def _zero_residuals(res):
+    """Synthetic: no resource-constraint error anywhere, so a test sees only
+    what it injects (the committed data's own defects may be fixed by reruns)."""
+    for a in ["baseline", *SHOCKED_ARMS]:
+        res[a]["diagnostics"]["rc_first5"] = [0.0] * 5
+
+
+def _run_out(tmp_path, res, capsys):
+    capsys.readouterr()
+    code = run_check(tmp_path, res)
+    return code, capsys.readouterr().out
+
+
+def test_2026_residual_is_flagged_not_hidden(tmp_path, res, capsys):
+    _zero_residuals(res)
+    res[ARM]["diagnostics"]["rc_first5"][0] = 0.005 * res[ARM]["Y"][0]    # 0.5%
+    code, out = _run_out(tmp_path, res, capsys)
+    assert code == 0
+    assert out.count("[KNOWN]") == 1 and "#15" in out
+    assert "1 KNOWN" in out.splitlines()[-1]
+
+
+def test_2026_residual_within_tolerance_is_not_flagged(tmp_path, res, capsys):
+    _zero_residuals(res)
+    res[ARM]["diagnostics"]["rc_first5"][0] = 0.0005 * res[ARM]["Y"][0]   # 0.05%
+    code, out = _run_out(tmp_path, res, capsys)
+    assert code == 0 and "[KNOWN]" not in out
+
+
+@pytest.mark.parametrize("share,warned", [(0.0005, True), (0.00005, False)])
+def test_later_residual_inside_tolerance_is_a_warning(tmp_path, res, capsys,
+                                                      share, warned):
+    _zero_residuals(res)
+    res[ARM]["diagnostics"]["rc_first5"][2] = share * res[ARM]["Y"][2]   # 2028
+    code, out = _run_out(tmp_path, res, capsys)
+    assert code == 0
+    assert ("2028 resource-constraint error" in out) == warned
 
 
 def test_2026_residual_above_the_known_bound_fails(tmp_path, res):
@@ -217,7 +249,23 @@ def test_implausible_interest_rate_fails(tmp_path, res):
     assert run_check(tmp_path, res) == 1
 
 
-def test_fast_swing_in_y_minus_c_i_g_is_a_warning(capsys):
-    assert cli.main(["check", "--results", str(COMMITTED)]) == 0
-    out = capsys.readouterr().out
-    assert "[WARN]" in out and "2029->2030" in out
+def test_fast_swing_in_y_minus_c_i_g_is_a_warning(tmp_path, res, capsys):
+    _, before = _run_out(tmp_path, res, capsys)
+    # Investment down 3% of GDP in 2027 only: X/Y jumps about +3pp, then back.
+    i = np.array(res[ARM]["I"], dtype=float)
+    i[1] -= 0.03 * res[ARM]["Y"][1]
+    res[ARM]["I"] = i.tolist()
+    code, after = _run_out(tmp_path, res, capsys)
+    assert code == 0
+    new = [l for l in after.splitlines() if "[WARN]" in l and l not in before.splitlines()]
+    assert any(f"{ARM}: X/Y moves" in l and "2026->2027" in l for l in new), after
+
+
+@pytest.mark.parametrize("mutate", [lambda r: r.pop("assumptions"),
+                                    lambda r: r["assumptions"].pop(f"Z_{next(iter(Z_TARGETS))}"),
+                                    lambda r: r["assumptions"].__setitem__(
+                                        f"Z_{next(iter(Z_TARGETS))}", None)],
+                         ids=["no-assumptions", "missing-Z", "null-Z"])
+def test_missing_z_fails_without_a_traceback(tmp_path, res, mutate):
+    mutate(res)
+    assert run_check(tmp_path, res) == 1
