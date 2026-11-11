@@ -13,7 +13,7 @@ linearly from 2026 to 2030 and held thereafter:
 
 | Scenario | Internal id | Automation (γ) | Productivity (Z) solved for | Calibration source |
 |---|---|---|---|---|
-| No AI | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
+| OBR central | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
 | Automation only | `zero_tfp` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L (zero technology wedge) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
 | Automation + productivity | `anthropic` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
 
@@ -25,9 +25,11 @@ below 1 reflects the units of K/L and has no economic meaning.
 
 Every scenario shares the baseline's initial assets and debt and its government
 spending share `alpha_G`; the switch to debt targeting is moved to `tG1 = 10` (2036),
-past the reported window; and `g_y_annual = 0.008` — the OBR's 1.0% medium-term
-productivity growth less the 0.2pp AI uplift its own forecast embeds (Briefing paper
-No.9 Annex B; October 2026 EFO para 2.45), so the baseline is genuinely no-AI. A
+past the reported window; and `g_y_annual = 0.010`, the OBR's 1.0% medium-term
+productivity growth. That path already contains the OBR's own AI assumption, which
+ramps in with adoption (Briefing paper No.9 para B.12), and a scalar `g_y` cannot
+strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
+each scenario's gap is an AI effect *in addition to* the OBR's own. A
 second run holds government spending and transfers at baseline levels instead
 (`--baseline-spending`), the OBR's convention. The reported window's demographics default to the
 vendored `g_n` of the committed run (`--g-n vendored`) rather than to OG-UK's live
@@ -40,7 +42,7 @@ delivers GDP +1.4% by 2030, and Box 2.2 publishes no labour-share number. It was
 called `obr` until the rename; readers accept both keys, writers emit only the new
 one.
 
-**Results, 2030, against the baseline (committed run, `g_y_annual = 0.010`):** GDP +4.9% (Automation + productivity)
+**Results, 2030, against the OBR-central baseline (committed run, `g_y_annual = 0.010`):** GDP +4.9% (Automation + productivity)
 and +1.4% (Automation only), driven by investment; the labour share falls 3.9pp in
 both; wages are lower in both. Full results, caveats and the comparison with Korinek et
 al. and the OBR are in the dashboard.
@@ -108,7 +110,7 @@ python -m uk_growth_with_ai dashboard [--check]
   scenarios and writes `./results/scenarios.json` (never the committed file unless
   `--out` points there). `--baseline-only` stops after the baseline and the Z solve.
   `--baseline-spending` holds government spending and transfers at baseline levels.
-  `--tG1` and `--g-y-annual` default to 10 and 0.008. `--g-n` defaults to `vendored`:
+  `--tG1` and `--g-y-annual` default to 10 and 0.010. `--g-n` defaults to `vendored`:
   the committed run's recorded `g_n` replaces the first five periods of OG-UK's
   run-time UN fetch, so the reported window no longer moves with the fetch date.
   Only those five periods were ever recorded, so the tail and `g_n_ss` (and
@@ -119,7 +121,7 @@ python -m uk_growth_with_ai dashboard [--check]
   the labour share and solution quality (including the 2026 resource-constraint error).
 * `report` prints the year-by-year gaps, GDP growth, the labour share and, for
   `anthropic_ramp`, the comparison with Korinek et al. Table 3.
-* `obr` compares the no-AI baseline with the OBR's March 2026 EFO: GDP growth
+* `obr` compares the OBR-central baseline with the OBR's March 2026 EFO: GDP growth
   2027–30 and its components (productivity, population growth, balanced-growth rate).
 * `dashboard` writes `dashboard/src/data/aiScenarios.json` and `ukAiPaths.json` from
   the results; `--check` writes nothing and exits 1 if the committed files are stale.

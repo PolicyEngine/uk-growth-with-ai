@@ -69,7 +69,7 @@ function decomp(a) {
 }
 const outputPerLabour = (a) => ((1 + gapAt(a, 'Y') / 100) / (1 + gapAt(a, 'L') / 100) - 1) * 100;
 
-// Effect table: % difference from the no-AI baseline by variable, with a
+// Effect table: % difference from the OBR-central baseline by variable, with a
 // 2026-2030 sparkline per scenario.
 const SHOCKED_ORDER = ['obr_ramp', 'anthropic_ramp'];
 const EFFECT_GROUPS = [
@@ -191,7 +191,7 @@ export default function ResultsPanel() {
   const cObrAlwaysBelow = belowIdx('obr_ramp', 'C').length === YEARS.length;
   const wagesAlwaysBelow = SHOCKED.every((a) => belowIdx(a, 'w').length === YEARS.length);
 
-  // GDP against the no-AI path: UK lines, US 2030 endpoints in the strip.
+  // GDP against the baseline path: UK lines, US 2030 endpoints in the strip.
   const gapSeries = D.arms.map((arm) => ({
     label: ARM_META[arm].label,
     color: ARM_META[arm].color,
@@ -253,25 +253,25 @@ export default function ResultsPanel() {
           <Kpi
             value={pctS(gapAt('anthropic_ramp', 'Y'))}
             label={ARM_META.anthropic_ramp.label}
-            sub={`UK GDP against the no-AI baseline, ${LAST_YEAR}`}
+            sub={`UK GDP against the OBR-central baseline, ${LAST_YEAR}`}
             color={ARM_META.anthropic_ramp.color}
           />
           <Kpi
             value={pctS(gapAt('obr_ramp', 'Y'))}
             label={ARM_META.obr_ramp.label}
-            sub={`UK GDP against the no-AI baseline, ${LAST_YEAR}`}
+            sub={`UK GDP against the OBR-central baseline, ${LAST_YEAR}`}
             color={ARM_META.obr_ramp.color}
           />
           <Kpi
             value={`${signed(growthIncrement('anthropic_ramp'))}pp`}
             label={`GDP growth in ${LAST_YEAR}`}
-            sub={`${ARM_META.anthropic_ramp.label} against the no-AI baseline`}
+            sub={`${ARM_META.anthropic_ramp.label} against the OBR-central baseline`}
             color={ARM_META.anthropic_ramp.color}
           />
           <Kpi
             value={pctS(gapAt('anthropic_ramp', 'K'))}
             label={`Capital stock, ${LAST_YEAR}`}
-            sub={`${ARM_META.anthropic_ramp.label} against the no-AI baseline`}
+            sub={`${ARM_META.anthropic_ramp.label} against the OBR-central baseline`}
             color={ARM_META.anthropic_ramp.color}
           />
         </div>
@@ -352,7 +352,7 @@ export default function ResultsPanel() {
         <div className="effect-foot">
           <div className="chart-note">
             <div>
-              Difference from the no-AI baseline: % for levels, pp for the labour share and growth. {FIRST_YEAR}{' '}
+              Difference from the OBR-central baseline: % for levels, pp for the labour share and growth. {FIRST_YEAR}{' '}
               values: <Cv id="accounting" />.
             </div>
             <div>
@@ -399,7 +399,7 @@ export default function ResultsPanel() {
                 {LABELS[variable]} by scenario, {FIRST_YEAR}&ndash;{LAST_YEAR}
               </>
             }
-            title={<>Index, {FIRST_YEAR} no-AI baseline = 100</>}
+            title={<>Index, {FIRST_YEAR} OBR-central baseline = 100</>}
           />
           {selector}
           <div className="chart-slot">
@@ -436,7 +436,7 @@ export default function ResultsPanel() {
           takeaway="Comparison with Korinek et al. (2026)"
           title={
             <>
-              Each country against its own no-AI path; timing and model differences: <Cv id="us" />
+              Each country against its own baseline; timing and model differences: <Cv id="us" />
             </>
           }
         />
@@ -447,14 +447,14 @@ export default function ResultsPanel() {
         <div className="grid-2 figure-pair">
           <SvgFigure
             takeaway="GDP gain vs US cases"
-            title={`% above the no-AI path, ${FIRST_YEAR}–${LAST_YEAR}`}
+            title={`% above the baseline path, ${FIRST_YEAR}–${LAST_YEAR}`}
           >
             <LineChart
               x={YEARS}
               series={gapSeries}
               strip={gapStrip}
               height={340}
-              ariaLabel={`GDP against the no-AI path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
+              ariaLabel={`GDP against the baseline path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>
           <SvgFigure

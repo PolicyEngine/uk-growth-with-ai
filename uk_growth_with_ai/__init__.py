@@ -1,7 +1,7 @@
 """OG-UK AI-growth scenarios for the UK.
 
 Two scenarios (Anthropic "substantial", and automation with a zero technology
-wedge), each run with gamma stepped and gamma ramped, against a common no-AI
+wedge), each run with gamma stepped and gamma ramped, against a common "OBR central"
 baseline.  The zero-wedge arm was called "obr" until it was renamed: it is
 motivated by the OBR's technological-displacement case but does not reproduce
 it (see ``scenarios``).

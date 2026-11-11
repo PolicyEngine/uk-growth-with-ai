@@ -844,7 +844,7 @@
        bar and swatch on the growth tab (src/tabs/ai/series.js points here,
        and PlotPanel resolves these for Plotly). Built from the PolicyEngine
        ramp, plus the gold the shared .legend-line vocabulary already uses as
-       the secondary accent. UK no-AI grey, UK OBR gold, UK Anthropic the
+       the secondary accent. UK OBR-central grey, UK OBR gold, UK Anthropic the
        primary teal; US series lighter and dashed. */
     :root {
       --chart-uk-baseline:     var(--pe-color-gray-500);
@@ -852,7 +852,7 @@
       --chart-uk-ai:           var(--pe-color-primary-600);
       /* US (Anthropic, reference only): one sky-blue ramp from the
          PolicyEngine ui-kit chart palette (--chart-2/-4, --diverging-gray-blue-*),
-         distinct in hue from the UK teal and from the UK no-AI grey. */
+         distinct in hue from the UK teal and from the UK OBR-central grey. */
       --chart-us-noai:         #7dd3fc;
       --chart-us-modest:       #38bdf8;
       --chart-us-substantial:  #0ea5e9;

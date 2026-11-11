@@ -112,7 +112,7 @@ function FiscalTable() {
       <table className="impact-table numeric">
         <thead>
           <tr>
-            <th>{LAST_YEAR}, against the no-AI baseline</th>
+            <th>{LAST_YEAR}, against the OBR-central baseline</th>
             <th>GDP</th>
             <th>Tax/GDP</th>
             <th>Debt/GDP</th>
@@ -147,7 +147,7 @@ export const STORY_STEPS = [
       <>
         <p className="key-point">
           OG-UK has no AI parameter; AI enters through <b>two changes to the production technology</b>, and
-          everything else is as in the no-AI baseline.
+          everything else is as in the OBR-central baseline.
         </p>
         <ol className="txt-numbered">
           <li>
@@ -168,7 +168,7 @@ export const STORY_STEPS = [
             foresight).
           </li>
           <li>
-            <b>Everything else is unchanged</b>: every scenario starts from the no-AI baseline&rsquo;s assets and
+            <b>Everything else is unchanged</b>: every scenario starts from the OBR-central baseline&rsquo;s assets and
             debt, uses the same fiscal rule (<Cv id="fiscal" />, with a fixed-spending run as a check), and has the
             same demographics and tax system. The runs are driven by {ext(URLS.solve, 'solve.py')}.
           </li>
@@ -193,12 +193,12 @@ export const STORY_STEPS = [
     ),
   },
   {
-    title: 'Scenario 1: No AI',
+    title: 'Scenario 1: OBR central',
     content: (
       <Scenario
         color={ARM_META.baseline.color}
         name={ARM_META.baseline.label}
-        tag="no-AI baseline"
+        tag="OBR-central baseline"
         saysLabel="Role"
         says={<p>Every other path is measured against this one. It is checked against the OBR&rsquo;s forecast under <a href="#coverage">Model comparison</a>.</p>}
         enters={
@@ -208,9 +208,10 @@ export const STORY_STEPS = [
               {LS0.toFixed(0)}%) is OG-Core&rsquo;s default, not a UK estimate.
             </p>
             <p>
-              No AI shock: OG-UK&rsquo;s existing calibration and the current tax system. Labour-augmenting
+              No AI shock beyond the OBR&rsquo;s own: OG-UK&rsquo;s existing calibration and the current tax system. Labour-augmenting
               productivity grows at {(D.assum.g_y_annual * 100).toFixed(1)}% a year, the OBR&rsquo;s medium-term
-              rate; the population follows the UN World Population Prospects projection for the UK.
+              rate, which already includes the OBR&rsquo;s own AI assumption, so every gap on this page is an AI
+              effect in addition to it; the population follows the UN World Population Prospects projection for the UK.
             </p>
           </>
         }
@@ -323,7 +324,7 @@ export const STORY_STEPS = [
             <p>
               Table 3 publishes <b>2030 endpoints only</b>, so the US appears on the charts as single hollow
               dots. Each US scenario is compared with the paper&rsquo;s own US no-AI path, as each UK scenario is
-              with the UK no-AI baseline; the two no-AI paths grow at different rates, so levels are not
+              with the UK OBR-central baseline; the two baselines grow at different rates, so levels are not
               compared (<Cv id="us" />
               ).
             </p>
@@ -425,7 +426,7 @@ export const STORY_STEPS = [
             figures are for the start of 2030 (growth over the 12 months to then); OG-UK&rsquo;s period 2030 is
             a year later, and the UK ramp runs four years against their three and a half from mid-2026. On a
             like-for-like date the UK gap lies between its 2029 and 2030 values. Levels are not compared: each
-            country&rsquo;s gap is measured from its own no-AI path. OG-UK is an OLG model with UK demographics
+            country&rsquo;s gap is measured from its own baseline. OG-UK is an OLG model with UK demographics
             and taxes; theirs is a US scenario model with neither.
           </li>
           <li id="caveat-levels">
@@ -569,7 +570,7 @@ export const STORY_PANELS = [
         `${FIRST_YEAR} accounting error ≈${RC_ERROR.pctGdp}% of GDP`,
       ].map((t, k) => i(t, 'warn', String(k + 1))),
     ].flat() },
-    ...(FIXED ? [{ label: `Debt/GDP in ${LAST_YEAR}, against the no-AI baseline`, type: 'output', lines: [
+    ...(FIXED ? [{ label: `Debt/GDP in ${LAST_YEAR}, against the OBR-central baseline`, type: 'output', lines: [
       ...fsLine('common_gy', 'Spending a share of GDP'),
       ...fsLine('arms', 'Spending at baseline levels'),
     ]}] : []),

@@ -15,7 +15,7 @@ export const GROW_LAST = D.grow.baseline.length - 1;
 export const signed = (x, dp = 1) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(dp)}`;
 export const pct = (x, dp = 1) => `${x.toFixed(dp)}%`;
 
-// % gap of an arm against the no-AI baseline, variable v, year index i.
+// % gap of an arm against the OBR-central baseline, variable v, year index i.
 export const gapAt = (arm, v, i = LAST) => (D.idx[arm][v][i] / D.idx.baseline[v][i] - 1) * 100;
 export const growth = (arm, i = GROW_LAST) => D.grow[arm][i];
 export const growthIncrement = (arm, i = GROW_LAST) => D.grow[arm][i] - D.grow.baseline[i];

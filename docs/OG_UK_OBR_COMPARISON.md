@@ -68,15 +68,16 @@ supply**.
 Every re-trended figure produced so far inherits this, including the AI scenario results in
 #12 and the OG-UK dashboards.
 
-### Superseded twice (Nov 2026)
+### Updated (Nov 2026)
 
-1. **The value is now 0.008, not 0.010.** The 1.0% productivity path is the right
-   *object* but the wrong *counterfactual*: it is AI-inclusive. OBR Briefing paper No.9
-   Annex B (Nov 2025) puts the AI contribution at "an estimated 0.2 percentage points by
-   our forecast horizon" and the October 2026 EFO (para 2.45) repeats it, so running an AI
-   shock on a 1.0% baseline adds AI to a path that already contains the OBR's own AI
-   judgement. `scenarios.G_Y_ANNUAL` is now 0.008 (`.audit/03-uk-benchmarks.md` F1). The
-   committed results predate the change and still record `g_y_annual_used = 0.010`.
+1. **The value stays 0.010; the baseline is labelled "OBR central".** The 1.0%
+   productivity path already contains the OBR's own AI assumption, which ramps in with
+   adoption (about 0.1pp by year five, 0.2pp at the forecast horizon; Briefing paper
+   No.9 para B.12). `g_y` is a scalar and cannot carry that profile, so netting a flat
+   0.2pp off (0.008, briefly tried in #22) would remove more AI than the OBR assumes over
+   2026–30. The baseline is therefore described as "OBR central", and each scenario's gap
+   is an AI effect *in addition to* the OBR's own assumption (decision in issue #27). The
+   committed results record `g_y_annual_used = 0.010`.
 2. **The "1.73% to 1.63%" arithmetic above is stale.** It was computed on the vendored
    OG-UK default `g_n` (0.748% falling to 0.625%). The committed run's own demographics
    are *flat* at about 0.77%, so the run's implied potential output growth is 1.77%, not

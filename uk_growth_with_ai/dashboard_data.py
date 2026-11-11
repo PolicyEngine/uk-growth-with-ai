@@ -39,7 +39,7 @@ VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
 # The 2000-2030 chart shows the scenario paths over every model year.
 PATH_YEARS = YEARS
 ARM_TRACE = {
-    "baseline": ("No AI", "#5a6470"),
+    "baseline": ("OBR central", "#5a6470"),
     "zero_tfp_ramp": ("Automation only", "#2f6fb5"),
     "anthropic_ramp": ("Automation + productivity", "#1d7a4c"),
 }

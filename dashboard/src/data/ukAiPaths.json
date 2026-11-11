@@ -79,7 +79,7 @@
      "showlegend": true
     },
     {
-     "name": "No AI",
+     "name": "OBR central",
      "x": [
       2026,
       2027,
@@ -97,8 +97,8 @@
      "color": "#5a6470",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>No AI</extra>",
-     "legendgroup": "No AI",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>OBR central</extra>",
+     "legendgroup": "OBR central",
      "showlegend": true
     },
     {
@@ -275,7 +275,7 @@
      "showlegend": false
     },
     {
-     "name": "No AI",
+     "name": "OBR central",
      "x": [
       2026,
       2027,
@@ -293,8 +293,8 @@
      "color": "#5a6470",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>No AI</extra>",
-     "legendgroup": "No AI",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>OBR central</extra>",
+     "legendgroup": "OBR central",
      "showlegend": true
     },
     {
@@ -467,7 +467,7 @@
      "showlegend": false
     },
     {
-     "name": "No AI",
+     "name": "OBR central",
      "x": [
       2026,
       2027,
@@ -485,8 +485,8 @@
      "color": "#5a6470",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>No AI</extra>",
-     "legendgroup": "No AI",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>OBR central</extra>",
+     "legendgroup": "OBR central",
      "showlegend": true
     },
     {
@@ -659,7 +659,7 @@
      "showlegend": false
     },
     {
-     "name": "No AI",
+     "name": "OBR central",
      "x": [
       2026,
       2027,
@@ -677,8 +677,8 @@
      "color": "#5a6470",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>No AI</extra>",
-     "legendgroup": "No AI",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>OBR central</extra>",
+     "legendgroup": "OBR central",
      "showlegend": true
     },
     {
@@ -837,7 +837,7 @@
      "showlegend": false
     },
     {
-     "name": "No AI",
+     "name": "OBR central",
      "x": [
       2026,
       2027,
@@ -855,8 +855,8 @@
      "color": "#5a6470",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>No AI</extra>",
-     "legendgroup": "No AI",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>OBR central</extra>",
+     "legendgroup": "OBR central",
      "showlegend": true
     },
     {
@@ -1016,7 +1016,7 @@
      "showlegend": false
     },
     {
-     "name": "No AI",
+     "name": "OBR central",
      "x": [
       2026,
       2027,
@@ -1034,8 +1034,8 @@
      "color": "#5a6470",
      "width": 2.4,
      "dash": "solid",
-     "hovertemplate": "%{x}: %{y:.2f}<extra>No AI</extra>",
-     "legendgroup": "No AI",
+     "hovertemplate": "%{x}: %{y:.2f}<extra>OBR central</extra>",
+     "legendgroup": "OBR central",
      "showlegend": true
     },
     {

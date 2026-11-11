@@ -142,7 +142,7 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
               f"{s['labour_share_fall_pp']:>10.1f}   matched by construction")
         print(f"{'measured TFP (%)':<26}{A['measured_tfp_pct']:>10.1f}"
               f"{A['measured_tfp_pct']:>10.1f}   input, matched")
-        print(f"{'GDP vs no-AI (%)':<26}{A['gdp_above_no_ai_pct']:>10.1f}"
+        print(f"{'GDP vs baseline (%)':<26}{A['gdp_above_no_ai_pct']:>10.1f}"
               f"{s['gdp_gap_2030_pct']:>10.1f}   "
               f"{'we overshoot' if s['gdp_gap_2030_pct'] > A['gdp_above_no_ai_pct'] else 'we undershoot'}")
         print(f"{'GDP growth (%)':<26}{A['gdp_growth_pct']:>10.1f}"

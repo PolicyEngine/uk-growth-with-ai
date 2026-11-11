@@ -1,6 +1,7 @@
 """Scenario definitions and the shared run constants.
 
-Two AI scenarios for the UK, run on a corrected counterfactual:
+Two AI scenarios for the UK, each measured against the "OBR central" baseline
+(see ``G_Y_ANNUAL``: the baseline already embeds the OBR's own AI assumption):
 
   anthropic  Korinek, Jones, Sacher, Cotter & McCrory (2026), Anthropic Institute
              WP 2026-02, Table 3, "substantial" column: the labour share falls
@@ -38,34 +39,22 @@ NPER = 5             # periods kept in the results file
 # results predate them: own alpha_G per arm, tG1 = 4, g_y_annual = 0.011).
 TG1 = 10             # issue #3: OG-UK's tG1 = 4 switches G to debt targeting in 2030
 
-# Labour-augmenting productivity growth in the NO-AI counterfactual.
+# Labour-augmenting productivity growth in the baseline ("OBR central").
 #
-# 0.008, not the OBR's headline 1.0%.  Two separate corrections sit behind this
-# number and both are needed:
+# 0.010: the OBR's medium-term PRODUCTIVITY growth (March 2026 EFO para 1.2).
+# OG-Core's g_y is labour-augmenting technological change and OG-UK carries
+# population growth separately in g_n, so OG-UK's shipped 0.011 (potential
+# output growth) double-counted labour supply; 1.0% is the right object (issue
+# #5).  The committed results were run at this value.
 #
-#   1. Object.  OG-Core's g_y is labour-augmenting technological change, and
-#      OG-UK carries population growth separately in g_n, so OG-UK's shipped
-#      0.011 (potential output growth, Nov 2025 EFO Table 1.1) double-counted
-#      labour supply.  The right object is the OBR's medium-term PRODUCTIVITY
-#      growth of 1.0% (March 2026 EFO para 1.2) -- that was the issue #5 fix,
-#      and it is still right (.audit/07-calibration-sensitivity.md §3).
-#   2. Counterfactual.  That 1.0% is AI-INCLUSIVE.  OBR Briefing paper No.9
-#      Annex B (Nov 2025) states that AI "will build over time as adoption grows
-#      to reach an estimated 0.2 percentage points by our forecast horizon", and
-#      the October 2026 EFO (para 2.45) repeats the 0.2pp central judgement.
-#      Running an AI shock on top of 1.0% therefore adds AI to a baseline that
-#      already embeds the OBR's own AI uplift, and the baseline cannot be
-#      described as "no AI" at all (.audit/03-uk-benchmarks.md F1).
-#
-# Netting the 0.2pp AI uplift off the 1.0% productivity path gives a no-AI
-# counterfactual of 0.8%/yr.  .audit/10-reproducibility.md derives no figure of
-# its own; 0.008 comes from 03 F1 and is listed as a sensitivity point in
-# .audit/07 §5 row 11.  OPEN QUESTION for Vahid: the 0.2pp is the OBR's central
-# judgement over the medium term, not a 2026-30 profile, so 0.008 is flat where
-# the OBR's uplift ramps.  An alternative is to keep 0.010 and relabel the
-# baseline "OBR central", reporting the gaps as AI effects IN ADDITION to the
-# OBR's AI assumption.
-G_Y_ANNUAL = 0.008
+# The baseline is "OBR central", NOT a no-AI counterfactual.  The OBR's 1.0%
+# path already contains its own AI assumption, which ramps in with adoption
+# (about 0.1pp by year five, 0.2pp at its forecast horizon; Briefing paper No.9
+# para B.12).  g_y is a scalar, so it cannot carry that profile, and netting a
+# flat 0.2pp off (0.008, tried and dropped in #22) would remove more AI than
+# the OBR assumes over 2026-30.  The scenario gaps are therefore AI effects IN
+# ADDITION to the OBR's own AI assumption (decision recorded in issue #27).
+G_Y_ANNUAL = 0.010
 
 
 @dataclass(frozen=True)
