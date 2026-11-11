@@ -32,8 +32,11 @@ strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactu
 each scenario's gap is an AI effect *in addition to* the OBR's own. A
 second run holds government spending and transfers at baseline levels instead
 (`--baseline-spending`), the OBR's convention. By default (`--g-n vendored`) a run stops
-if OG-UK's live UN fetch gives a different `g_n` for the reported window from the one
-the committed run recorded.
+if OG-UK's live demographic fetch gives a different `g_n` for the reported window from
+the one the committed run recorded. That run had no UN API token, so OG-Core read a
+GitHub mirror of the UN data (`EAPD-DRB/Population-Data`) instead of the UN API; a run
+with a valid token takes the API route, which has not been compared with the recorded
+values.
 
 Both arms are named for what they impose (issue #14): `share_shift` is the capital-share
 shift with a zero technology wedge at the baseline's fixed 2026 inputs, and

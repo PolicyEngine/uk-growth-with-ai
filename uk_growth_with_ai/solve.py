@@ -46,6 +46,14 @@ from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, RAMP_YEARS, SCENARIOS, STA
 # stops.  It never overwrites the live values, because the population weights
 # (omega, imm_rates, g_n_ss) come from the same fetch and were never recorded:
 # splicing recorded g_n onto a drifted fetch would make the two inconsistent.
+#
+# "Live fetch" covers two sources.  ogcore.demographics.get_un_data calls the UN
+# Data Portal API with the token in ./un_api_token.txt and, on any non-200
+# reply, silently reads github.com/EAPD-DRB/Population-Data instead.  The
+# committed run had an empty token file and its log shows the fallback message
+# for every arm, so the recorded g_n came from the GitHub mirror.  A run with a
+# valid token takes the API path, which has not been compared with the recorded
+# values: if the two sources differ, the guard raises.
 G_N_SOURCES = ("vendored", "live")
 G_N_DEFAULT = "vendored"
 # Absolute tolerance on g_n (a growth rate, so 1e-9 = 1e-7 pp): the live and
@@ -71,10 +79,13 @@ def check_g_n_against_vendored(live_g_n, tol=G_N_DRIFT_TOL) -> np.ndarray:
         raise GNDriftError(
             f"live g_n[:{NPER}] {np.round(live, 6).tolist()} differs from the "
             f"vendored committed-run path {np.round(vendored, 6).tolist()} "
-            f"(max |diff| {diff:.3e} > {tol:g}).  The UN demographic data have "
+            f"(max |diff| {diff:.3e} > {tol:g}).  The demographic input has "
             "changed since the committed run, so its numbers cannot be reproduced "
-            "with this fetch.  Re-run with --g-n live to accept the new data "
-            "knowingly.")
+            "with this fetch.  Either the data were revised or the source "
+            "differs: OG-Core reads the UN Data Portal API when ./un_api_token.txt "
+            "holds a valid token and github.com/EAPD-DRB/Population-Data "
+            "otherwise, and the committed run used the latter.  Re-run with "
+            "--g-n live to accept the new input knowingly.")
     return vendored
 
 

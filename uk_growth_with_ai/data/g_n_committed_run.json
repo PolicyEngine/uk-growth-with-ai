@@ -12,7 +12,8 @@
    2029,
    2030
   ],
-  "note": "OG-Core's g_n[t] is growth from t to t+1."
+  "note": "OG-Core's g_n[t] is growth from t to t+1.",
+  "demographic_source": "github.com/EAPD-DRB/Population-Data (Data/UK/UN_*_data.csv), OG-Core's fallback when the UN Data Portal API call fails. The committed run had an empty un_api_token.txt and its log prints the fallback message for every arm. Re-fetched by the same route on 2026-11-11: g_n[:5] identical (max |diff| 0.0). The UN API route, with a valid token, has not been compared."
  },
  "_limitations": [
   "Only the first 5 periods were ever recorded. OG-Core needs g_n over T+S periods, so the tail of the path the committed run used is NOT recoverable from anything in this repository. uk_growth_with_ai.solve therefore uses these values as a GUARD, not an override: with --g-n vendored (the default) it raises GNDriftError if the live fetch's g_n[:5] differs from them by more than 1e-9, and otherwise solves on the live fetch unchanged. Overwriting would splice recorded g_n onto population weights (omega, imm_rates, g_n_ss) from a possibly different data vintage. OG-Core lands the population path on its steady state (TPI uses p.g_n[:T-1] then p.g_n_ss; SS uses p.g_n_ss), and g_n_ss was never recorded either.",
