@@ -2,9 +2,21 @@
 
 **1. The headline mostly measures the capital closure, not AI.** The arms are the same at every `zeta_K` (same γ path, same fixed-input technology target). Only the share of excess capital demand that foreigners supply changes. The 2030 GDP gap moves from +3.14% to +9.93% (`share_shift_tfp`) and from +0.09% to +5.12% (`share_shift`) between `zeta_K = 0` and `0.5`. At OG-UK's default of 0.1 the committed run reproduces bit for bit (table below), so the published +4.92% / +1.42% sit at one point on this range. Nothing in the repository chose that point: `zeta_K` is never set.
 
+The gaps are each measured against **that closure's own no-AI baseline**, and the baselines differ:
+- **GDP (detrended, 2030):** 0.699 / 0.714 / 0.786
+- **r:** 5.6% / 5.3% / 3.7%
+- **Foreign share of capital (K_f / K):** 0% / 8% / 37%
+
+So the three columns describe three different stylised UKs, not one UK under three assumptions.
+
 **2. GDP overstates what residents gain whenever foreign capital comes in.** At the default closure, foreigners own 78.5% (`share_shift_tfp`) and 73.5% (`share_shift`) of the extra 2030 capital. GNI rises +3.87% against GDP +4.92%, and +0.59% against +1.42%. These figures confirm #16's inference from the exported paths. For `share_shift`, extra payments abroad are 0.82pp of GDP in 2030, inside #16's back-of-envelope range of 0.7–0.9%. The gap between GDP and GNI widens with openness: −0.14pp / −1.05pp / −2.23pp (`share_shift_tfp`) at `zeta_K` = 0 / 0.1 / 0.5. Using the firm rate `r` instead of `r_p` on K_f moves the default-closure GNI gaps by 0.05pp or less (`gni_gap_r_variant`).
 
-**3. `share_shift` is GDP-neutral only when the economy is closed.** The scenario is built so that output at fixed inputs is unchanged. At `zeta_K = 0` its 2030 GDP gap is +0.09% and its GNI gap −0.04%. The +1.42% headline is almost entirely capital inflow drawn in by the higher capital share.
+**3. `share_shift` stays close to GDP-neutral only when the economy is closed.** The scenario is built so that output at fixed inputs is unchanged.
+- **At `zeta_K = 0`:** the GDP gap is +0.65% in 2026 and falls to +0.09% in 2030 (GNI −0.04%). It then drifts back up to +0.30% by 2035.
+- **At 0.1:** it is +1.42% in 2030 and +1.33% in 2035.
+- **At 0.5:** it is +5.12% in 2030 and +4.83% in 2035.
+
+So the +1.42% headline is mostly capital inflow drawn in by the higher capital share.
 
 **4. Every result passes the sign-and-size checks.**
 - **Capital and the interest rate.** A more closed economy shows a smaller K response and a larger r rise in both arms. For `share_shift_tfp`, K is +1.99% / +6.06% / +18.43% and Δr is +139 / +108 / +30bp. For `share_shift`, K is +1.90% / +5.02% / +14.28% and Δr is +103 / +80 / +21bp.
@@ -30,7 +42,7 @@
 **8. Passing UK-consistent pre-TP demographics removes the 2026 residual (#15).**
 - **The test.** A baseline at `zeta_K = 0.1` with `g_n_preTP`, `rho_preTP` and `imm_rates_preTP` taken from the same UK fetch, with everything else identical (the demographic hashes match).
 - **The 2026 residual.** It goes from −0.9495% to +0.0001% of GDP. The 2028 residual is unchanged (−0.089%), which is consistent with point 7: it has a separate cause.
-- **Levels.** From 2027 on the levels move by less than 0.3% (Y −0.07% to −0.08%, K −0.23% to −0.29%, r about +2bp). The 2026 investment level moves −3.8%, because period-0 investment uses the pre-TP growth and immigration rates.
+- **Levels.** From 2027 on the levels move by less than 0.3% (Y −0.07% to −0.08%, K −0.23% to −0.29%, r about +2bp). The 2026 investment level moves −3.8%. That follows from the capital law of motion, because K in 2027 is −0.29% with K in 2026 unchanged, and baseline I/K ≈ 0.076. The pre-TP inputs enter only through `get_B`, `get_BQ` and `fiscal.py`, not `get_I` directly.
 - **Not tested here: whether the published gaps survive.** The ramp arms were not re-solved under this baseline. That rerun is R2 on #27. The 2026 investment gap is the number most likely to move.
 - **Convergence.** This path converged with a final distance of 9.85e-5, just inside the 1e-4 tolerance.
 
@@ -42,4 +54,7 @@
 
 - Report results at more than one closure, or at least state `zeta_K`, `zeta_D` and the world rate next to every headline.
 - Report GNI alongside GDP.
-- The source of the sensitivity is the gap between the baseline return (r ≈ 5.2% at `zeta_K = 0.1`) and `world_int_rate_annual = 0.02`. Any `zeta_K > 0` draws in foreign capital in proportion to that 3pp wedge, so the headline is roughly `zeta_K × (K_open − K_d)`, a number set by two uncalibrated parameters.
+- **What `zeta_K` controls.** K_open is the capital demanded at the 2% world rate, backed out as K_d + K_f / zeta_K. Its 2030 gap is nearly the same at 0.1 and 0.5: +28.3% vs +27.1% (`share_shift_tfp`) and +22.1% vs +20.9% (`share_shift`). The AI shock raises capital demand at the world rate by about the same amount in both, and `zeta_K` sets how much of the excess (K_open − K_d) actually arrives. With r ≈ 5.2% against a 2% world rate, that excess is large in the baseline (1.5–1.8 in model units, about K_d's size).
+- **Not tested here.** No run varied `world_int_rate_annual` or `zeta_D`, so their effect is unknown.
+- **Recommendation for R3: use `zeta_K = 0` as the central closure.** It is the only setting whose results do not depend on the uncalibrated 2% world rate for private capital: K_f = 0 in both the steady state and the transition. GDP and GNI then nearly coincide (within 0.14pp), so "GDP" means what residents get. Keep `zeta_K = 0.1` as the anchor that reproduces the published numbers, and report the gap between the two. An open closure would need a defended `world_int_rate_annual` and `zeta_K`; none exists in the repository.
+- **Sequencing for the combined rerun.** Choose the closure before R1, because the steady-state primary balance moves with it (1.55% / 1.31% / 0.27% of GDP). Re-solve Z against each closure's own baseline. Apply the pre-TP fix to the baseline and to the arms. Decide R4 (a GDP-neutral Z for `share_shift`) at the chosen closure: at `zeta_K = 0` the arm is already +0.09% in 2030, but +0.65% in 2026 and +0.30% by 2035.

@@ -47,7 +47,6 @@ def _h(a):
 
 def main():
     os.chdir(WORK)   # empty un_api_token.txt lives here
-    sys.path.insert(0, "/Users/vahid/ogmodels/OG-UK")
     from ogcore import demographics
     from ogcore.parameters import Specifications
     import oguk.api  # noqa: F401  (same import path as the solves)
