@@ -305,7 +305,7 @@ def render(runs, summ):
         pv = any_run["provenance"]
         w("| item | value |")
         w("|---|---|")
-        w(f"| Python | {pv['python']} (`{pv['python_executable']}`) |")
+        w(f"| Python | {pv['python']} (`{pv['python_executable'].replace(str(Path.home()), "~")}`) |")
         for pkg, v in pv["packages"].items():
             w(f"| {pkg} | {v} |")
         w(f"| oguk | {pv.get('oguk_version')} at git {pv['oguk_git_sha']} (editable checkout) |")

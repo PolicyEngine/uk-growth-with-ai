@@ -211,7 +211,7 @@ OG-UK's `_build_specs` passes `omega_S_preTP` from the UK fetch but never `g_n_p
 
 | item | value |
 |---|---|
-| Python | 3.13.15 (`/Users/vahid/ogmodels/OG-UK/.venv/bin/python`) |
+| Python | 3.13.15 (`~/ogmodels/OG-UK/.venv/bin/python`) |
 | ogcore | 0.17.0 |
 | policyengine | 5.0.4 |
 | policyengine-uk | 2.90.2 |
