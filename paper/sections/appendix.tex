@@ -1,0 +1,146 @@
+\appendix
+\section*{Appendix}
+\addcontentsline{toc}{section}{Appendix}
+\renewcommand{\thesubsection}{A.\arabic{subsection}}
+\setcounter{subsection}{0}
+
+\subsection{The baseline against the OBR's March 2026 forecast}
+\label{app:obr}
+
+The no-AI baseline is not calibrated to any published OBR result; it takes calibration inputs from the \emph{Economic and fiscal outlook} and is then compared with it. Table~\ref{tab:obr} reports both the headline agreement and the component disagreement, which should be read together.
+
+\begin{table}[htbp]
+\centering
+\caption{The no-AI baseline against the OBR, March 2026 EFO}
+\label{tab:obr}
+\small
+\begin{tabular}{lrrr}
+\toprule
+ & OBR & This model & Gap, pp \\
+\midrule
+Real GDP growth, \genBaseGrowthStartYear--\genEndYear{} mean, per cent & \genObrGrowthMean{} & \genBaseGrowthMean{} & \genBaseObrGrowthDiffPp{} \\
+\addlinespace
+Productivity growth, medium term, per cent & \genObrProductivityPct{} & \genModelProductivityPct{} & \\
+Labour-supply growth by \genEndYear{}, per cent\textsuperscript{a} & \genObrLabourSupplyPct{} & \genModelPopGrowthThirtyPct{} & \\
+Potential output growth, \genEndYear{}, per cent\textsuperscript{b} & \genObrPotentialThirtyPct{} & \genModelBgrThirtyPct{} & \\
+Potential output growth, \genStartYear{}, per cent\textsuperscript{b} & \genObrPotentialTwentySixPct{} & \genModelBgrTwentySixPct{} & \\
+\addlinespace
+Baseline growth, \genBaseGrowthStartYear{} & & \genBaseGrowthTwentySeven{} & \\
+Baseline growth, 2028 & & \genBaseGrowthTwentyEight{} & \\
+Baseline growth, 2029 & & \genBaseGrowthTwentyNine{} & \\
+Baseline growth, \genEndYear{} & & \genBaseGrowthThirty{} & \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} OBR figures from the March 2026 EFO, paragraphs 1.2, 1.9 and 2.10. \textsuperscript{a}~The model series is the growth rate of the population aged 21--100, which is not the same object as the OBR's labour-supply growth: ageing lowers participation and hours within a given population, which in the model appears as falling labour input per person. \textsuperscript{b}~The model series is the balanced-growth rate $e^{g_y}(1+g_n)-1$, which is not the same object as potential output growth. The model runs above the OBR on both components, and realised GDP growth agrees only because transition dynamics pull it back; the headline agreement is therefore not by itself a validation. Generated from \texttt{results/scenarios.json} and \texttt{uk\_growth\_with\_ai/obr.py}.
+\end{minipage}
+\end{table}
+
+\subsection{Scenario calibration in full}
+\label{app:calibration}
+
+\begin{table}[htbp]
+\centering
+\caption{Calibration of the baseline and the two AI scenarios}
+\label{tab:calibration}
+\small
+\begin{tabular}{lrrr}
+\toprule
+ & No AI & Automation only & Automation and productivity \\
+\midrule
+Elasticity of substitution $\varepsilon$ & \genEpsilon{} & \genEpsilon{} & \genEpsilon{} \\
+Capital exponent $\gamma$, \genStartYear{} & \genGammaBase{} & \genGammaBase{} & \genGammaBase{} \\
+Capital exponent $\gamma$, \genEndYear{} & \genGammaBase{} & \genGammaShocked{} & \genGammaShocked{} \\
+Shape of the $\gamma$ path & flat & \genZeroTfpGammaShape{} & \genAnthGammaShape{} \\
+Labour share, \genStartYear{}, per cent & \genLabourShareBase{} & \genLabourShareBase{} & \genLabourShareBase{} \\
+Labour share, \genEndYear{}, per cent & \genLabourShareBase{} & \genLabourShareShocked{} & \genLabourShareShocked{} \\
+Solved terminal $Z$ & 1 & \genZZeroTfp{} & \genZAnthropic{} \\
+Target: output at fixed inputs, per cent & --- & \genGdpLevelTargetPct{} & \genTfpGainPct{} \\
+$\gamma$-only output change, per cent & --- & \genGammaOnlyGainPct{} & \genGammaOnlyGainPct{} \\
+$g_y$ annual, per cent & \genGyAnnualPct{} & \genGyAnnualPct{} & \genGyAnnualPct{} \\
+Government spending share $\alpha_G$ & \genAlphaG{} & \genAlphaG{} & \genAlphaG{} \\
+Fiscal-rule switch $t_{G1}$ & \genTGone{} & \genTGone{} & \genTGone{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} the $\gamma$ and $Z$ paths phase in linearly over \genRampYears{} years from \genStartYear{} to \genEndYear{} and are held thereafter. $Z$ is solved jointly with $\gamma$ against the target in the penultimate row; see equation~\eqref{eq:zsolve}. The solved $Z$ levels lie below~1 because they offset the $\gamma$-only output change, and carry no economic meaning on their own. Generated from \texttt{results/scenarios.json} and \texttt{uk\_growth\_with\_ai/scenarios.py}.
+\end{minipage}
+\end{table}
+
+\subsection{Solution diagnostics}
+\label{app:diagnostics}
+
+OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} was set to \genEnforceChecks{}, so solution quality is recorded per arm rather than enforced at solve time.
+
+\begin{table}[htbp]
+\centering
+\caption{Solution diagnostics by arm, shared-spending-share run}
+\label{tab:diagnostics}
+\small
+\begin{tabular}{lrrr}
+\toprule
+ & No AI & Automation only & Automation and productivity \\
+\midrule
+Max resource-constraint error, after \genStartYear{} & \genBaseRcMaxInterior{} & \genZeroTfpRcMaxInterior{} & \genAnthRcMaxInterior{} \\
+\genStartYear{} resource-constraint error, per cent of GDP & \genBaseRcTwentySixPctGdp{} & \genZeroTfpRcTwentySixPctGdp{} & \genAnthRcTwentySixPctGdp{} \\
+Max Euler error & \genBaseEulerMax{} & \genZeroTfpEulerMax{} & \genAnthEulerMax{} \\
+Solve time, minutes & \genBaseElapsedMin{} & \genZeroTfpElapsedMin{} & \genAnthElapsedMin{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} the \genStartYear{} resource-constraint error is an order of magnitude larger than the interior errors and is carried by \genStartYear{} levels and ratios; gaps against the baseline largely net it out, since every arm carries an error of the same order. Investment is the residual in the resource constraint and absorbs this error. Generated from \texttt{results/scenarios.json}.
+\end{minipage}
+\end{table}
+
+\subsection{Mapping the AI channels across models}
+\label{app:channels}
+
+\begin{table}[htbp]
+\centering
+\caption{How the AI channels of the comparison models map onto this one}
+\label{tab:channels}
+\small
+\begin{tabular}{p{3.2cm}p{3.6cm}p{2.8cm}p{3.4cm}}
+\toprule
+Channel & \citet{korinek2026} & \citet{mollimas2026} & This model \\
+\midrule
+Automation & Automation share held constant; affected task mass ramps & Capital exponent $1/3 \to 1$ & $\gamma$, now able to ramp (Section~\ref{sec:patch}) \\
+Augmentation & The non-automated share & None & Absorbed into $Z$ \\
+Adoption and diffusion & Explicit adoption parameter & --- & None \\
+Task reinstatement & Explicit reinstatement parameter & --- & None \\
+Unemployment and search & Matching block & --- & None \\
+Capital accumulation & Capital-supply elasticity & Solow saving rate & Endogenous cohort saving \\
+Factor shares & Endogenous & $\to 0$ in the limit & Exactly $1-\gamma_t$ at $\varepsilon = \genEpsilon{}$ \\
+Worker heterogeneity & Two groups & Representative agent & Seven earnings types, eighty ages \\
+Fiscal system & None & None & Tax functions from PolicyEngine UK \\
+Cohorts & None & None & Eighty annual cohorts \\
+Ideas and R\&D & Ideas stock & Ideas accumulation & None \\
+Elasticity of substitution & 0.5 assumed & Argues $\approx 0.2$ & \genEpsilon{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} six AI channels in \citet{korinek2026} collapse into two here. $Z$ absorbs capability, adoption and productivity together, because the model has no tasks to count separately, and $\gamma$ carries automation. Reinstatement and search have no counterpart.
+\end{minipage}
+\end{table}
+
+\subsection{Reproduction}
+\label{app:reproduction}
+
+Runs used OG-Core \genOgcoreVersion{} with \texttt{patches/ogcore-0.17.0-firm-gamma-tv.diff} applied to the installed package, OG-UK at commit \genOgukSha{}, PolicyEngine \genPolicyengineVersion{}, PolicyEngine UK \genPolicyengineUkVersion{} and Python \genPythonVersion{}; the committed results were produced on \genRunDate{}. OG-UK's calibration reads PolicyEngine's UK data from Hugging Face, so a re-run requires a token. From the repository root:
+
+\begin{verbatim}
+python -m uk_growth_with_ai run --baseline-only --out results/baseline.json
+python -m uk_growth_with_ai check --results results/baseline.json
+python -m uk_growth_with_ai run --out results/scenarios.json
+python -m uk_growth_with_ai run --baseline-spending \
+       --out results/scenarios_fixed_spending.json
+python -m uk_growth_with_ai check --results results/scenarios.json
+python paper/make_values.py          # regenerates paper/values_generated.tex
+pdflatex main && pdflatex main       # in paper/
+\end{verbatim}
+
+Every number in this paper is a macro in \texttt{paper/values\_generated.tex}, generated by \texttt{paper/make\_values.py} from the committed results files and from the published OBR and Table~3 figures recorded in \texttt{uk\_growth\_with\_ai/obr.py} and \texttt{uk\_growth\_with\_ai/scenarios.py}. \texttt{python paper/make\_values.py --check} exits non-zero if the generated file is stale, and \texttt{\textbackslash GENMISSING} marks any macro whose source was absent at generation time, which makes the LaTeX build fail rather than silently omitting a number.
