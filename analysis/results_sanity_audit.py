@@ -251,6 +251,55 @@ def audit(path):
         gni_r = pct(A["Y"] - A["r"] * kf_a, B["Y"] - B["r"] * kf_b)
         print(f"    {'variant: K_f earns r, no D_f':<28}", fmt(gni_r))
 
+        print("[9c] EXTERNAL IDENTITY: Y-C-I-G = (1+r_p) F_t - grow_t F_{t+1} + rc_t, "
+              "F = K_f + D_f (2026-29)")
+        # 2030 needs K_f and D_f in 2031, which the results file does not hold.
+        for lab, X, kf, df, rp, n in [("baseline", B, kf_b, df_b, rp_b, "baseline"),
+                                      ("arm", A, kf_a, df_a, rp_a, name)]:
+            F = kf + df
+            ext = (X["Y"] - X["C"] - X["I"] - X["G"])[:4]
+            flows = (1 + rp[:4]) * F[:4] - grow[:4] * F[1:]
+            signed = (ext - flows) / X["Y"][:4] * 100
+            stored = rc[n][:4] / X["Y"][:4] * 100
+            print(f"    {lab:<9} implied signed rc, % GDP: {fmt(signed, 4)} | stored |rc|: "
+                  f"{fmt(stored, 4, False)}")
+
+        print("[E] COMPARATORS computed from inputs only (gamma, Z, delta, tau_b, baseline path)")
+        # (i) inputs fixed at baseline; (ii) Solow: investment a fixed share of
+        # GDP (the baseline's), labour at baseline; (iii) return pinned at the
+        # baseline r: K/Y scales with gamma (closed-economy steady state, or a
+        # perfectly open economy at once).
+        s_b = B["I"] / B["Y"]
+        K_s = B["K"].copy()
+        for t in range(4):
+            y_t = z[t] * K_s[t] ** g[t] * B["L"][t] ** (1 - g[t])
+            K_s[t + 1] = ((1 - DELTA) * K_s[t] + s_b[t] * y_t + imm_b[t]) / grow[t]
+        Y_s = z * K_s ** g * B["L"] ** (1 - g)
+        r_s = (1 - TAU_B) * g * Y_s / K_s - DELTA + TAU_B * DELTA_TAU
+        w_s = (1 - g) * Y_s / B["L"]
+        cc = G_BASE * B["Y"][4] / B["K"][4]
+        k_p = (g[4] * z[4] / cc) ** (1 / (1 - g[4])) * B["L"][4]
+        Y_p = z[4] * k_p ** g[4] * B["L"][4] ** (1 - g[4])
+        w_p = (1 - g[4]) * Y_p / B["L"][4]
+        r_fix = (1 - TAU_B) * g[4] * np.exp(t_term[4]) * B["Y"][4] / B["K"][4] \
+            - DELTA + TAU_B * DELTA_TAU
+        w_fix = (np.exp(share[4] / 100 + t_term[4]) - 1) * 100
+        print(f"    {'2030':<22}{'inputs fixed':>14}{'Solow':>10}{'r pinned':>10}{'model':>10}")
+        rows = [
+            ("GDP %", (np.exp(t_term[4]) - 1) * 100, pct(Y_s, B["Y"])[4],
+             pct(Y_p, B["Y"][4]), gap[4]),
+            ("capital %", 0.0, pct(K_s, B["K"])[4], pct(k_p, B["K"][4]), kg[4]),
+            ("wage %", w_fix, pct(w_s, B["w"])[4], pct(w_p, B["w"][4]),
+             pct(A["w"], B["w"])[4]),
+            ("r, bp", (r_fix - B["r"][4]) * 1e4, (r_s - B["r"])[4] * 1e4, 0.0,
+             (A["r"] - B["r"])[4] * 1e4),
+            ("investment %, 2029", 0.0, pct(s_b * Y_s, B["I"])[3],
+             float("nan"), pct(A["I"], B["I"])[3]),
+        ]
+        for lab, *vals in rows:
+            print(f"    {lab:<22}" + "".join(f"{v:>+{14 if i == 0 else 10}.2f}"
+                                             for i, v in enumerate(vals)))
+
         print("[9b] SAME PRODUCTION FUNCTION AT THE SOURCE'S CAPITAL "
               "(Korinek et al. Table 3: K +13.8%)")
         y_src = t_term[4] + g[4] * np.log(1.138) + l_term[4]
