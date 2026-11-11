@@ -1,5 +1,6 @@
 {
  "runs": [
+  "pretp_zk0.1_baseline",
   "zk0.1_anthropic_ramp",
   "zk0.1_baseline",
   "zk0.1_obr_ramp",
@@ -928,6 +929,21 @@
   }
  },
  "convergence": {
+  "pretp_zk0.1_baseline": {
+   "tpi_iterations": 8,
+   "tpi_final_distance": 9.845209281834727e-05,
+   "converged": true,
+   "rc_rel_Y_2026": 1.003444036535858e-06,
+   "rc_rel_Y_max_abs_interior": 0.0008917949845807947,
+   "rc_rel_Y_last": -0.2280930466477634,
+   "euler_savings_max": 5.611067166455541e-12,
+   "euler_labour_max": 1.5865087021893487e-12,
+   "identities_maxabs": {
+    "K_eq_Kd_plus_Kf": 1.1102230246251565e-16,
+    "Kd_eq_B_minus_Dd": 0.0,
+    "D_eq_Dd_plus_Df": 4.163336342344337e-17
+   }
+  },
   "zk0.1_anthropic_ramp": {
    "tpi_iterations": 8,
    "tpi_final_distance": 5.052363637766435e-05,
