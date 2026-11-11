@@ -50,6 +50,9 @@ def main(argv=None) -> int:
 
     p_chk = sub.add_parser("check", help="validation checks on a results file (issue #9)")
     p_chk.add_argument("--results", default=str(DEFAULT_OUT))
+    p_chk.add_argument("--baseline-only", action="store_true",
+                       help="the file is from `run --baseline-only` and predates the "
+                            "recorded arms_requested; no shocked arm is required")
 
     p_dash = sub.add_parser("dashboard", help="write the dashboard data files from the results")
     p_dash.add_argument("--results", default=None)
@@ -69,7 +72,12 @@ def main(argv=None) -> int:
         report_mod.print_report(args.arm, load_results(args.results), args.oguk_dir)
     elif args.cmd == "check":
         from . import checks
-        return checks.main(load_results(args.results))
+        try:
+            res = load_results(args.results)
+        except (OSError, ValueError) as e:   # missing file, invalid JSON
+            print(f"  [FAIL] cannot read {args.results}: {type(e).__name__}: {e}")
+            return 1
+        return checks.main(res, baseline_only=args.baseline_only)
     elif args.cmd == "obr":
         obr_mod.print_comparison(load_results(args.results), args.oguk_dir)
     else:

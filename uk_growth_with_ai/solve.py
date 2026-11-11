@@ -288,7 +288,14 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
     for sub in ("SS", "TPI"):
         os.makedirs(os.path.join(base_dir, sub), exist_ok=True)
 
-    res = {"provenance": provenance(TPI, api)}
+    ramps = [False, True] if shapes == "both" else [shapes == "ramp"]
+    plan = [n for n in ("share_shift_tfp", "share_shift") if only in (None, n)]
+    requested = [] if baseline_only else [
+        f"{scen}_{'ramp' if ramp else 'step'}" for scen in plan for ramp in ramps]
+    # `check` requires every requested arm and fails any arm whose status is
+    # not "ok" (issue #17); an arm still "pending" means the run stopped early.
+    res = {"provenance": provenance(TPI, api), "arms_requested": requested,
+           "arm_status": {a: "pending" for a in requested}}
     settings = {"tG1": tG1, "g_y_annual": g_y_annual, "g_n_source": g_n_source}
     res["baseline"] = run_arm("baseline", G_BASE, False, None, base_dir, client,
                               handles, baseline=True, **settings)
@@ -315,8 +322,6 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
         print("\nBASELINE ONLY: stopping before the shocked arms", flush=True)
         return res
 
-    ramps = [False, True] if shapes == "both" else [shapes == "ramp"]
-    plan = [n for n in ("share_shift_tfp", "share_shift") if only in (None, n)]
     for scen in plan:
         for ramp in ramps:
             key = f"{scen}_{'ramp' if ramp else 'step'}"
@@ -324,8 +329,10 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
                 res[key] = run_arm(key, cal[scen]["gamma"], ramp, cal[scen]["Z"],
                                    base_dir, client, handles, alpha_G=alpha_G,
                                    baseline_spending=baseline_spending, **settings)
+                res["arm_status"][key] = "ok"
             except Exception as e:
                 res[key] = {"error": f"{type(e).__name__}: {e}"}
+                res["arm_status"][key] = "failed"
                 print(f"FAILED {type(e).__name__}: {e}", flush=True)
             out.write_text(json.dumps(res, indent=1))
 
