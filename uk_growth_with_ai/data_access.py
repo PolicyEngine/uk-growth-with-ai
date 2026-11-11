@@ -3,6 +3,8 @@
 ``data/scenarios.json``   the committed, reviewed model results (baseline + ramp arms)
 ``data/og_uk_params.json`` OG-UK's default trend parameters (g_n, g_y_annual),
                           vendored from the OG-UK checkout
+``data/g_n_committed_run.json`` the g_n path the committed run used, vendored so a
+                          re-run can check the live UN demographic fetch against it
 
 Re-trending uses the ``g_n_used`` and ``g_y_annual_used`` each results file
 records (issue #4). The vendored defaults remain for results files that
@@ -21,9 +23,68 @@ DATA = Path(str(files("uk_growth_with_ai") / "data"))
 DEFAULT_RESULTS = DATA / "scenarios.json"
 
 
+# Legacy arm names (issue #14).  The arms are named for what they impose:
+#   share_shift      (was `obr`, then `zero_tfp`)  capital share +3.9pp, zero
+#                    technology wedge at fixed baseline inputs
+#   share_shift_tfp  (was `anthropic`)             the same plus +3.1% output at
+#                                                  fixed baseline inputs
+# Results files written before the rename carry the old keys, so every reader
+# normalises on load: only the new keys are written, every spelling is read.
+_LEGACY_STEMS = {"obr": "share_shift", "zero_tfp": "share_shift",
+                 "anthropic": "share_shift_tfp"}
+LEGACY_KEYS = {
+    f"{pre}{old}{suf}": f"{pre}{new}{suf}"
+    for old, new in _LEGACY_STEMS.items()
+    for pre, suf in (("", ""), ("", "_ramp"), ("", "_step"),
+                     ("Z_", ""), ("", "_target"))
+}
+
+
+def normalise_arms(obj):
+    """Rename legacy arm / assumption KEYS at every depth; returns a copy.
+
+    Only dict keys listed in ``LEGACY_KEYS`` are renamed, recursively through
+    nested dicts and lists; string values are never touched.  Idempotent on a
+    file that already uses the new names.  Raises ``ValueError`` if one dict
+    would end up with two values for the same key (e.g. both ``obr_ramp`` and
+    ``share_shift_ramp``), rather than silently keeping one.  Meant for model
+    results files; ``data/obr_history.json`` is not one.
+    """
+    if isinstance(obj, list):
+        return [normalise_arms(v) for v in obj]
+    if not isinstance(obj, dict):
+        return obj
+    out = {}
+    for k, v in obj.items():
+        new = LEGACY_KEYS.get(k, k)
+        if new in out:
+            raise ValueError(f"results carry both a legacy and a current spelling "
+                             f"of {new!r} (offending key {k!r})")
+        out[new] = normalise_arms(v)
+    return out
+
+
 def load_results(path=None) -> dict:
-    """The committed scenario results."""
-    return json.loads(Path(path or DEFAULT_RESULTS).read_text())
+    """The committed scenario results, with pre-rename arm keys normalised."""
+    return normalise_arms(json.loads(Path(path or DEFAULT_RESULTS).read_text()))
+
+
+def load_committed_g_n(n: int) -> np.ndarray:
+    """The first ``n`` values of the committed run's recorded g_n.
+
+    ``data/g_n_committed_run.json`` holds the 5 values the run recorded
+    (``baseline.g_n_used``, 2026-30).  For ``n <= 5`` this returns the first
+    ``n`` of them.  For ``n > 5`` it pads FLAT with the last recorded value:
+    that padding is this function's convention, not the committed run's path,
+    whose tail was never recorded.  ``solve`` only ever asks for ``NPER`` (5)
+    values, which it uses to CHECK the live fetch, not to overwrite it (see
+    ``solve.check_g_n_against_vendored`` and the file's ``_limitations``).
+    """
+    d = json.loads((DATA / "g_n_committed_run.json").read_text())
+    head = np.asarray(d["g_n"], dtype=float)
+    if n <= head.size:
+        return head[:n]
+    return np.concatenate([head, np.full(n - head.size, head[-1])])
 
 
 def _flat(params: dict, name: str) -> np.ndarray:

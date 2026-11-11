@@ -17,8 +17,8 @@ G_N, G_Y = load_trend_params(results=RESULTS)
 
 
 @pytest.mark.parametrize("arm,gap,growth", [
-    ("anthropic_ramp", 4.92, 2.93),
-    ("obr_ramp", 1.42, 1.82),
+    ("share_shift_tfp_ramp", 4.92, 2.93),
+    ("share_shift_ramp", 1.42, 1.82),
 ])
 def test_headline_numbers(arm, gap, growth):
     s = summary(arm)
@@ -27,13 +27,13 @@ def test_headline_numbers(arm, gap, growth):
 
 
 def test_labour_share_fall_is_39pp_in_every_shocked_arm():
-    for arm in ("anthropic_ramp", "obr_ramp"):
+    for arm in ("share_shift_tfp_ramp", "share_shift_ramp"):
         assert round(summary(arm)["labour_share_fall_pp"], 1) == 3.9
 
 
 def test_gap_table_matches_summary():
-    g = gap_table("anthropic_ramp")
-    assert g.loc["GDP", 2030] == pytest.approx(summary("anthropic_ramp")["gdp_gap_2030_pct"])
+    g = gap_table("share_shift_tfp_ramp")
+    assert g.loc["GDP", 2030] == pytest.approx(summary("share_shift_tfp_ramp")["gdp_gap_2030_pct"])
 
 
 def test_trend_parameters_are_the_ones_the_run_used():
@@ -42,7 +42,7 @@ def test_trend_parameters_are_the_ones_the_run_used():
     assert G_Y == RESULTS["baseline"]["g_y_annual_used"]
 
 
-@pytest.mark.parametrize("arm", ["baseline", "obr_ramp", "anthropic_ramp"])
+@pytest.mark.parametrize("arm", ["baseline", "share_shift_ramp", "share_shift_tfp_ramp"])
 def test_retrending_leaves_the_labour_share_unchanged(arm):
     """Issue #4: w carries productivity, L population, Y both, so w*L/Y is invariant."""
     a = RESULTS[arm]

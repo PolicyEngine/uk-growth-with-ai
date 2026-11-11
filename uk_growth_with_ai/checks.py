@@ -13,7 +13,7 @@ import numpy as np
 from .obr import OBR_BASELINE
 from .scenarios import G_BASE
 
-SHOCKED = ["obr_ramp", "anthropic_ramp"]
+SHOCKED = ["share_shift_ramp", "share_shift_tfp_ramp"]
 YEARS = [2026, 2027, 2028, 2029, 2030]
 
 
@@ -64,10 +64,13 @@ def baseline_checks(res, r):
     # Z * (K0/L0)^(gamma1 - gamma0) - 1.
     g1 = a.get("gamma_shocked", 0.389)
     fixed_input_gain = lambda Z: (Z * (K0 / L0) ** (g1 - G_BASE) - 1) * 100
-    if "Z_anthropic" in a:
-        tfp_a, tfp_o = fixed_input_gain(a["Z_anthropic"]), fixed_input_gain(a["Z_obr"])
-        r.check(abs(tfp_a - 3.1) < 1e-6, f"Anthropic: output at fixed inputs {tfp_a:+.4f}% (target +3.1%), Z = {a['Z_anthropic']:.6f}")
-        r.check(abs(tfp_o) < 1e-6, f"OBR-style: output at fixed inputs {tfp_o:+.4f}% (target 0%), Z = {a['Z_obr']:.6f}")
+    if "Z_share_shift_tfp" in a:
+        z_zero = a["Z_share_shift"]   # legacy keys normalised on load
+        tfp_a, tfp_o = fixed_input_gain(a["Z_share_shift_tfp"]), fixed_input_gain(z_zero)
+        r.check(abs(tfp_a - 3.1) < 1e-6, f"share_shift_tfp: output at fixed inputs {tfp_a:+.4f}% (target +3.1%), Z = {a['Z_share_shift_tfp']:.6f}")
+        r.check(abs(tfp_o) < 1e-6,
+                f"share_shift, zero technology wedge: output at fixed inputs {tfp_o:+.4f}% "
+                f"(target 0%), Z = {z_zero:.6f}")
     else:
         r.line("FAIL", "no Z values in 'assumptions'")
 

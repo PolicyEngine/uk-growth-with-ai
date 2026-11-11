@@ -6,7 +6,7 @@ import argparse
 
 from .data_access import load_results
 from .scenarios import G_Y_ANNUAL, TG1
-from .solve import DEFAULT_OUT
+from .solve import DEFAULT_OUT, G_N_DEFAULT, G_N_SOURCES
 from . import obr as obr_mod
 from . import report as report_mod
 
@@ -17,7 +17,7 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p_run = sub.add_parser("run", help="run the OG-UK scenarios (needs ogcore + oguk)")
-    p_run.add_argument("--only", choices=["anthropic", "obr"], default=None)
+    p_run.add_argument("--only", choices=["share_shift_tfp", "share_shift"], default=None)
     p_run.add_argument("--shapes", choices=["step", "ramp", "both"], default="ramp")
     p_run.add_argument("--baseline-only", action="store_true",
                        help="stop after the baseline and the Z solve (~10 min)")
@@ -25,6 +25,12 @@ def main(argv=None) -> int:
                        help=f"period G switches to debt targeting (default {TG1}; OG-UK's is 4)")
     p_run.add_argument("--g-y-annual", type=float, default=G_Y_ANNUAL,
                        help=f"labour-augmenting productivity growth (default {G_Y_ANNUAL}; OG-UK's is 0.011)")
+    p_run.add_argument("--g-n", dest="g_n_source", choices=list(G_N_SOURCES),
+                       default=G_N_DEFAULT,
+                       help="demographics: 'vendored' (default) stops the run if "
+                            "the live UN fetch's g_n for the reported window differs "
+                            "from the committed run's recorded path; 'live' skips "
+                            "that check. Both solve on the live fetch")
     p_run.add_argument("--baseline-spending", action="store_true",
                        help="shocked arms keep the baseline's G and TR levels (OBR convention)")
     p_run.add_argument("--out", default=str(DEFAULT_OUT),
@@ -32,7 +38,7 @@ def main(argv=None) -> int:
                             "the committed results")
 
     p_rep = sub.add_parser("report", help="result tables for one arm")
-    p_rep.add_argument("--arm", default="anthropic_ramp", choices=report_mod.ARMS)
+    p_rep.add_argument("--arm", default="share_shift_tfp_ramp", choices=report_mod.ARMS)
     p_rep.add_argument("--results", default=None)
     p_rep.add_argument("--oguk-dir", default=None,
                        help="read g_n/g_y from a live OG-UK checkout instead of "
@@ -57,7 +63,7 @@ def main(argv=None) -> int:
         from .solve import run_scenarios   # lazy: keeps ogcore off the import path
         run_scenarios(only=args.only, shapes=args.shapes, out=args.out,
                       baseline_only=args.baseline_only, tG1=args.tG1,
-                      g_y_annual=args.g_y_annual,
+                      g_y_annual=args.g_y_annual, g_n_source=args.g_n_source,
                       baseline_spending=args.baseline_spending)
     elif args.cmd == "report":
         report_mod.print_report(args.arm, load_results(args.results), args.oguk_dir)

@@ -68,6 +68,23 @@ supply**.
 Every re-trended figure produced so far inherits this, including the AI scenario results in
 #12 and the OG-UK dashboards.
 
+### Updated (Nov 2026)
+
+1. **The value stays 0.010; the baseline is labelled "OBR central".** The 1.0%
+   productivity path already contains the OBR's own AI assumption, which ramps in with
+   adoption along a non-linear path (Briefing paper No.9: a central ~0.2pp at the
+   forecast horizon, para B.14; its J-curve reaches 0.1pp a year by year five, para B.12). `g_y` is a scalar and cannot carry that profile, so netting a flat
+   0.2pp off (0.008, briefly tried in #22) would remove more AI than the OBR assumes over
+   2026–30. The baseline is therefore described as "OBR central", and each scenario's gap
+   is an AI effect *in addition to* the OBR's own assumption (decision in issue #27). The
+   committed results record `g_y_annual_used = 0.010`.
+2. **The "1.73% to 1.63%" arithmetic above is stale.** It was computed on the vendored
+   OG-UK default `g_n` (0.748% falling to 0.625%). The committed run's own demographics
+   are *flat* at about 0.77%, so the run's implied potential output growth is 1.77%, not
+   1.63% — 0.27pp above the OBR's 1.5%, and `checks.py`'s tolerance of 0.3pp is what
+   passes it (`.audit/07-calibration-sensitivity.md` §3). The declining path this document
+   describes is not the path the published numbers used.
+
 ## Finding 2: the OBR has published its own AI scenarios
 
 The March 2026 EFO contains four scenarios, two of which are structural. The one directly
