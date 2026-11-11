@@ -478,7 +478,7 @@ Y − C − I − G is smooth should compare against the identity above, not aga
 | 5 | Store the signed residual; rebase the context chart away from 2026 or fix period-0 inputs | Code | `solve.py:93`, `dashboard_data.py: uk_paths`; #15 |
 | 6 | Wage: "about unchanged, sign depends on capital" for `share_shift_tfp`; add labour income | Copy | `ResultsPanel.jsx` headline bullet, paper `results.tex` |
 | 7 | Attribute the undershoot against Korinek et al. to capital supply | Copy | Paper `results.tex` |
-| 8 | Stop showing the baseline debt level as a projection; disclose the 2.6% primary surplus | Copy, then parameter | Context chart debt panel, fiscal caveat, paper fiscal section |
+| 8 | Stop showing the baseline debt level as a projection; disclose the 2.6% primary surplus | Copy, then parameter | Context chart debt panel, fiscal caveat, paper fiscal section; #32 |
 | 9 | Drop the like-for-like reading of the OBR ¶6.18 debt comparison; fix the +1.7% in #8 | Copy | `scenarioStory.jsx` note box; #8 |
 
 ## Reruns the corrections would need
