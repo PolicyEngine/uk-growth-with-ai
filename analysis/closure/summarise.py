@@ -34,9 +34,9 @@ NOTES = HERE / "notes.md"
 COMMITTED = REPO / "uk_growth_with_ai" / "data" / "scenarios.json"
 
 ZKS = ("0", "0.1", "0.5")
-ARMS = ("anthropic_ramp", "obr_ramp")
-ARM_NAME = {"anthropic_ramp": "share_shift_tfp (`anthropic_ramp`)",
-            "obr_ramp": "share_shift (`obr_ramp`)"}
+ARMS = ("share_shift_tfp_ramp", "share_shift_ramp")
+ARM_NAME = {"share_shift_tfp_ramp": "`share_shift_tfp_ramp`",
+            "share_shift_ramp": "`share_shift_ramp`"}
 Y2030 = 4
 
 
@@ -155,10 +155,12 @@ def render(runs, summ):
         w(NOTES.read_text().strip() + "\n")
 
     w("## Design\n")
-    w("* Arms: the no-AI `baseline` and the two ramp arms, `anthropic_ramp` "
-      "(share_shift_tfp: labour share −3.9pp, +3.1% TFP at fixed inputs) and `obr_ramp` "
-      "(share_shift: labour share −3.9pp, GDP level unchanged at fixed inputs). Internal "
-      "ids are `main`'s; the rename in #22 is not merged.")
+    w("* Arms: the no-AI `baseline` and the two ramp arms, `share_shift_tfp_ramp` "
+      "(share_shift_tfp: labour share −3.9pp, +3.1% TFP at fixed inputs) and `share_shift_ramp` "
+      "(share_shift: labour share −3.9pp, GDP level unchanged at fixed inputs), against the "
+      "OBR-central baseline. Ids follow #22; the solves ran before that merge as "
+      "`anthropic_ramp` / `obr_ramp` and were renamed afterwards (numbers unchanged; each "
+      "file records `renamed_from`).")
     w("* `zeta_K` ∈ {0, 0.1, 0.5}. 0.1 is OG-UK's default and the committed run; it is "
       "re-solved here because the committed results do not export `B`, `K_d`, `K_f`, "
       "`D_d` or `D_f`, so there was no GNI for the headline. That makes 9 closure solves, "

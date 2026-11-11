@@ -1,6 +1,6 @@
 {
- "label": "zk0.5_obr_ramp",
- "arm": "obr_ramp",
+ "label": "zk0.5_share_shift_ramp",
+ "arm": "share_shift_ramp",
  "zeta_K": 0.5,
  "pretp": false,
  "zeta_D": 0.4,
@@ -533,5 +533,6 @@
   "oguk_version": "0.3.2",
   "dask": "2026.8.0",
   "python_executable": "/Users/vahid/ogmodels/OG-UK/.venv/bin/python"
- }
+ },
+ "renamed_from": "zk0.5_obr_ramp (arm ids renamed after #22; numbers unchanged)"
 }

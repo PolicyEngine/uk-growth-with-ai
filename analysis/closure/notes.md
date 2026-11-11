@@ -34,6 +34,10 @@
 - **Not tested here: whether the published gaps survive.** The ramp arms were not re-solved under this baseline. That rerun is R2 on #27. The 2026 investment gap is the number most likely to move.
 - **Convergence.** This path converged with a final distance of 9.85e-5, just inside the 1e-4 tolerance.
 
+**9. Exports the results-sanity audit requested on #27.** These are in `output/extra_exports.json` and needed no extra solve.
+- **Population law of motion.** The per-period residual is in `law_of_motion`. It is ~1e-16 in every transition except pre → 2026 (stock pre-TP inputs only) and 2027 → 2028 (0.25%).
+- **Fiscal aggregates.** Steady-state G, TR, tax revenue, outlays and primary balance for each baseline are in `fiscal_baselines`, along with `g_n_ss = 0.000511`. The steady-state primary surplus is 1.31% of GDP at `zeta_K = 0.1`. The pre-TP patch leaves it unchanged. It is 1.55% at `zeta_K = 0` and 0.27% at 0.5, so the closure also moves the fiscal steady state.
+
 ### What this means for the corrective rerun (R3 on #27)
 
 - Report results at more than one closure, or at least state `zeta_K`, `zeta_D` and the world rate next to every headline.

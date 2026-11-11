@@ -154,7 +154,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", required=True)
     ap.add_argument("--arm", required=True,
-                    choices=("baseline", "anthropic_ramp", "obr_ramp"))
+                    choices=("baseline", "share_shift_tfp_ramp", "share_shift_ramp"))
     ap.add_argument("--zeta-K", type=float, default=0.1)
     ap.add_argument("--pretp", action="store_true")
     ap.add_argument("--base-dir", required=True,

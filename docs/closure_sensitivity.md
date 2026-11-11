@@ -38,6 +38,10 @@ Diagnostic reruns for issues #16 (closure / GNI), #15 (2026 resource-constraint 
 - **Not tested here: whether the published gaps survive.** The ramp arms were not re-solved under this baseline. That rerun is R2 on #27. The 2026 investment gap is the number most likely to move.
 - **Convergence.** This path converged with a final distance of 9.85e-5, just inside the 1e-4 tolerance.
 
+**9. Exports the results-sanity audit requested on #27.** These are in `output/extra_exports.json` and needed no extra solve.
+- **Population law of motion.** The per-period residual is in `law_of_motion`. It is ~1e-16 in every transition except pre → 2026 (stock pre-TP inputs only) and 2027 → 2028 (0.25%).
+- **Fiscal aggregates.** Steady-state G, TR, tax revenue, outlays and primary balance for each baseline are in `fiscal_baselines`, along with `g_n_ss = 0.000511`. The steady-state primary surplus is 1.31% of GDP at `zeta_K = 0.1`. The pre-TP patch leaves it unchanged. It is 1.55% at `zeta_K = 0` and 0.27% at 0.5, so the closure also moves the fiscal steady state.
+
 ### What this means for the corrective rerun (R3 on #27)
 
 - Report results at more than one closure, or at least state `zeta_K`, `zeta_D` and the world rate next to every headline.
@@ -46,7 +50,7 @@ Diagnostic reruns for issues #16 (closure / GNI), #15 (2026 resource-constraint 
 
 ## Design
 
-* Arms: the no-AI `baseline` and the two ramp arms, `anthropic_ramp` (share_shift_tfp: labour share −3.9pp, +3.1% TFP at fixed inputs) and `obr_ramp` (share_shift: labour share −3.9pp, GDP level unchanged at fixed inputs). Internal ids are `main`'s; the rename in #22 is not merged.
+* Arms: the no-AI `baseline` and the two ramp arms, `share_shift_tfp_ramp` (share_shift_tfp: labour share −3.9pp, +3.1% TFP at fixed inputs) and `share_shift_ramp` (share_shift: labour share −3.9pp, GDP level unchanged at fixed inputs), against the OBR-central baseline. Ids follow #22; the solves ran before that merge as `anthropic_ramp` / `obr_ramp` and were renamed afterwards (numbers unchanged; each file records `renamed_from`).
 * `zeta_K` ∈ {0, 0.1, 0.5}. 0.1 is OG-UK's default and the committed run; it is re-solved here because the committed results do not export `B`, `K_d`, `K_f`, `D_d` or `D_f`, so there was no GNI for the headline. That makes 9 closure solves, not 6, plus one pre-TP demographics baseline.
 * Everything else is held at the committed settings: `zeta_D = 0.4`, `world_int_rate_annual = 0.02`, `epsilon = 1`, `tG1 = 10`, `g_y_annual = 0.010`, common `alpha_G` from each closure's baseline, ramp 2026→2030. **`zeta_K = 0` closes the economy to foreign *private* capital only**: foreigners still absorb 40% of new government debt (`zeta_D`), so `D_f > 0` and GNI < GDP even there.
 * Each closure has its own baseline; its ramp arms inherit that baseline's initial assets and debt. Z is re-solved per closure against that baseline's 2026 K and L, exactly as `solve.run_scenarios` does, so every closure carries the same technology target. (Holding Z at the 0.1 values would add a spurious fixed-input TFP difference, because the γ-only gain (K/L)^Δγ − 1 depends on baseline K/L.)
@@ -56,12 +60,12 @@ Diagnostic reruns for issues #16 (closure / GNI), #15 (2026 resource-constraint 
 
 | zeta_K | arm | Z | GDP gap | GNI gap | GNI − GDP gap | K gap | I gap | C gap | Δr (bp) | foreign share of extra K |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 0 | share_shift_tfp (`anthropic_ramp`) | 0.974052 | +3.14% | +3.01% | -0.14pp | +1.99% | +12.4% | -0.07% | +139 | +0.0% |
-| 0 | share_shift (`obr_ramp`) | 0.944765 | +0.09% | -0.04% | -0.13pp | +1.90% | +5.8% | -1.58% | +103 | +0.0% |
-| 0.1 | share_shift_tfp (`anthropic_ramp`) | 0.972062 | +4.92% | +3.87% | -1.05pp | +6.06% | +13.1% | +0.32% | +108 | +78.5% |
-| 0.1 | share_shift (`obr_ramp`) | 0.942834 | +1.42% | +0.59% | -0.82pp | +5.02% | +6.9% | -1.29% | +80 | +73.5% |
-| 0.5 | share_shift_tfp (`anthropic_ramp`) | 0.963204 | +9.93% | +7.70% | -2.23pp | +18.43% | +19.8% | +1.86% | +30 | +101.5% |
-| 0.5 | share_shift (`obr_ramp`) | 0.934243 | +5.12% | +3.37% | -1.75pp | +14.28% | +14.1% | -0.14% | +21 | +100.1% |
+| 0 | `share_shift_tfp_ramp` | 0.974052 | +3.14% | +3.01% | -0.14pp | +1.99% | +12.4% | -0.07% | +139 | +0.0% |
+| 0 | `share_shift_ramp` | 0.944765 | +0.09% | -0.04% | -0.13pp | +1.90% | +5.8% | -1.58% | +103 | +0.0% |
+| 0.1 | `share_shift_tfp_ramp` | 0.972062 | +4.92% | +3.87% | -1.05pp | +6.06% | +13.1% | +0.32% | +108 | +78.5% |
+| 0.1 | `share_shift_ramp` | 0.942834 | +1.42% | +0.59% | -0.82pp | +5.02% | +6.9% | -1.29% | +80 | +73.5% |
+| 0.5 | `share_shift_tfp_ramp` | 0.963204 | +9.93% | +7.70% | -2.23pp | +18.43% | +19.8% | +1.86% | +30 | +101.5% |
+| 0.5 | `share_shift_ramp` | 0.934243 | +5.12% | +3.37% | -1.75pp | +14.28% | +14.1% | -0.14% | +21 | +100.1% |
 
 Baselines (no AI), 2030:
 
@@ -73,7 +77,7 @@ Baselines (no AI), 2030:
 
 ## Year by year
 
-**zeta_K = 0, share_shift_tfp (`anthropic_ramp`)**
+**zeta_K = 0, `share_shift_tfp_ramp`**
 
 | year | GDP gap | GNI gap | K gap | L gap | I gap | Δr (bp) | foreign share of extra K | payments abroad / GDP (arm) |
 |---|---|---|---|---|---|---|---|---|
@@ -85,7 +89,7 @@ Baselines (no AI), 2030:
 
 2026 K gap / L gap = 0.000
 
-**zeta_K = 0, share_shift (`obr_ramp`)**
+**zeta_K = 0, `share_shift_ramp`**
 
 | year | GDP gap | GNI gap | K gap | L gap | I gap | Δr (bp) | foreign share of extra K | payments abroad / GDP (arm) |
 |---|---|---|---|---|---|---|---|---|
@@ -97,7 +101,7 @@ Baselines (no AI), 2030:
 
 2026 K gap / L gap = 0.000
 
-**zeta_K = 0.1, share_shift_tfp (`anthropic_ramp`)**
+**zeta_K = 0.1, `share_shift_tfp_ramp`**
 
 | year | GDP gap | GNI gap | K gap | L gap | I gap | Δr (bp) | foreign share of extra K | payments abroad / GDP (arm) |
 |---|---|---|---|---|---|---|---|---|
@@ -109,7 +113,7 @@ Baselines (no AI), 2030:
 
 2026 K gap / L gap = 0.171
 
-**zeta_K = 0.1, share_shift (`obr_ramp`)**
+**zeta_K = 0.1, `share_shift_ramp`**
 
 | year | GDP gap | GNI gap | K gap | L gap | I gap | Δr (bp) | foreign share of extra K | payments abroad / GDP (arm) |
 |---|---|---|---|---|---|---|---|---|
@@ -121,7 +125,7 @@ Baselines (no AI), 2030:
 
 2026 K gap / L gap = 0.171
 
-**zeta_K = 0.5, share_shift_tfp (`anthropic_ramp`)**
+**zeta_K = 0.5, `share_shift_tfp_ramp`**
 
 | year | GDP gap | GNI gap | K gap | L gap | I gap | Δr (bp) | foreign share of extra K | payments abroad / GDP (arm) |
 |---|---|---|---|---|---|---|---|---|
@@ -133,7 +137,7 @@ Baselines (no AI), 2030:
 
 2026 K gap / L gap = 0.678
 
-**zeta_K = 0.5, share_shift (`obr_ramp`)**
+**zeta_K = 0.5, `share_shift_ramp`**
 
 | year | GDP gap | GNI gap | K gap | L gap | I gap | Δr (bp) | foreign share of extra K | payments abroad / GDP (arm) |
 |---|---|---|---|---|---|---|---|---|
@@ -152,15 +156,15 @@ Baselines (no AI), 2030:
 | run | Y | B | K | K_d | K_f | D_d | D_f | r | r_p | C | I |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `pretp_zk0.1_baseline` | 0.7138 | 2.3219 | 1.8906 | 1.7365 | 0.1541 | 0.5853 | 0.0625 | 5.28% | 4.77% | 0.3596 | 0.1420 |
-| `zk0.1_anthropic_ramp` | 0.7494 | 2.3564 | 2.0098 | 1.7662 | 0.2436 | 0.5903 | 0.0659 | 6.34% | 5.85% | 0.3611 | 0.1606 |
 | `zk0.1_baseline` | 0.7143 | 2.3262 | 1.8950 | 1.7415 | 0.1535 | 0.5847 | 0.0622 | 5.26% | 4.75% | 0.3600 | 0.1420 |
-| `zk0.1_obr_ramp` | 0.7244 | 2.3599 | 1.9901 | 1.7668 | 0.2234 | 0.5931 | 0.0678 | 6.06% | 5.56% | 0.3553 | 0.1517 |
-| `zk0.5_anthropic_ramp` | 0.8644 | 2.1796 | 2.8761 | 1.5270 | 1.3491 | 0.6526 | 0.0753 | 4.02% | 3.62% | 0.3774 | 0.2223 |
+| `zk0.1_share_shift_ramp` | 0.7244 | 2.3599 | 1.9901 | 1.7668 | 0.2234 | 0.5931 | 0.0678 | 6.06% | 5.56% | 0.3553 | 0.1517 |
+| `zk0.1_share_shift_tfp_ramp` | 0.7494 | 2.3564 | 2.0098 | 1.7662 | 0.2436 | 0.5903 | 0.0659 | 6.34% | 5.85% | 0.3611 | 0.1606 |
 | `zk0.5_baseline` | 0.7863 | 2.1795 | 2.4286 | 1.5339 | 0.8947 | 0.6457 | 0.0706 | 3.72% | 3.27% | 0.3705 | 0.1857 |
-| `zk0.5_obr_ramp` | 0.8266 | 2.1888 | 2.7753 | 1.5334 | 1.2419 | 0.6554 | 0.0772 | 3.93% | 3.52% | 0.3699 | 0.2118 |
-| `zk0_anthropic_ramp` | 0.7210 | 2.4065 | 1.8314 | 1.8314 | 0.0000 | 0.5751 | 0.0630 | 7.01% | 6.49% | 0.3583 | 0.1516 |
+| `zk0.5_share_shift_ramp` | 0.8266 | 2.1888 | 2.7753 | 1.5334 | 1.2419 | 0.6554 | 0.0772 | 3.93% | 3.52% | 0.3699 | 0.2118 |
+| `zk0.5_share_shift_tfp_ramp` | 0.8644 | 2.1796 | 2.8761 | 1.5270 | 1.3491 | 0.6526 | 0.0753 | 4.02% | 3.62% | 0.3774 | 0.2223 |
 | `zk0_baseline` | 0.6990 | 2.3659 | 1.7956 | 1.7956 | 0.0000 | 0.5704 | 0.0598 | 5.62% | 5.10% | 0.3585 | 0.1348 |
-| `zk0_obr_ramp` | 0.6997 | 2.4078 | 1.8297 | 1.8297 | 0.0000 | 0.5781 | 0.0650 | 6.65% | 6.13% | 0.3529 | 0.1426 |
+| `zk0_share_shift_ramp` | 0.6997 | 2.4078 | 1.8297 | 1.8297 | 0.0000 | 0.5781 | 0.0650 | 6.65% | 6.13% | 0.3529 | 0.1426 |
+| `zk0_share_shift_tfp_ramp` | 0.7210 | 2.4065 | 1.8314 | 1.8314 | 0.0000 | 0.5751 | 0.0630 | 7.01% | 6.49% | 0.3583 | 0.1516 |
 
 ## Convergence (every run)
 
@@ -169,23 +173,23 @@ TPI distance is parsed from OG-Core's `ogcore.TPI` log (the committed runner set
 | run | TPI iterations | final distance (tol 1e-4) | converged | RC/GDP 2026 (signed) | max abs RC/GDP, 2027…T−2 | Euler savings max | Euler labour max | identity max abs |
 |---|---|---|---|---|---|---|---|---|
 | `pretp_zk0.1_baseline` | 8 | 9.85e-05 | yes | +0.0001% | 8.92e-02% | 5.6e-12 | 1.6e-12 | 1.1e-16 |
-| `zk0.1_anthropic_ramp` | 8 | 5.05e-05 | yes | -0.9479% | 8.79e-02% | 2.6e-12 | 1.5e-12 | 2.2e-16 |
 | `zk0.1_baseline` | 9 | 3.57e-05 | yes | -0.9495% | 8.94e-02% | 5.8e-12 | 1.6e-12 | 1.1e-16 |
-| `zk0.1_obr_ramp` | 8 | 5.83e-05 | yes | -0.9445% | 8.88e-02% | 2.9e-12 | 1.4e-12 | 1.1e-16 |
-| `zk0.5_anthropic_ramp` | 8 | 5.18e-05 | yes | -0.8163% | 7.27e-02% | 5.1e-12 | 1.8e-12 | 2.2e-16 |
+| `zk0.1_share_shift_ramp` | 8 | 5.83e-05 | yes | -0.9445% | 8.88e-02% | 2.9e-12 | 1.4e-12 | 1.1e-16 |
+| `zk0.1_share_shift_tfp_ramp` | 8 | 5.05e-05 | yes | -0.9479% | 8.79e-02% | 2.6e-12 | 1.5e-12 | 2.2e-16 |
 | `zk0.5_baseline` | 8 | 3.36e-05 | yes | -0.8124% | 7.58e-02% | 6.3e-12 | 1.9e-12 | 2.2e-16 |
-| `zk0.5_obr_ramp` | 8 | 4.87e-05 | yes | -0.8112% | 7.38e-02% | 5.6e-12 | 1.9e-12 | 2.2e-16 |
-| `zk0_anthropic_ramp` | 10 | 4.02e-05 | yes | -0.9835% | 9.20e-02% | 2.0e-12 | 1.2e-12 | 4.9e-17 |
+| `zk0.5_share_shift_ramp` | 8 | 4.87e-05 | yes | -0.8112% | 7.38e-02% | 5.6e-12 | 1.9e-12 | 2.2e-16 |
+| `zk0.5_share_shift_tfp_ramp` | 8 | 5.18e-05 | yes | -0.8163% | 7.27e-02% | 5.1e-12 | 1.8e-12 | 2.2e-16 |
 | `zk0_baseline` | 9 | 7.15e-05 | yes | -0.9865% | 9.30e-02% | 4.9e-12 | 2.0e-12 | 5.6e-17 |
-| `zk0_obr_ramp` | 10 | 3.64e-05 | yes | -0.9808% | 9.28e-02% | 1.9e-12 | 1.2e-12 | 5.6e-17 |
+| `zk0_share_shift_ramp` | 10 | 3.64e-05 | yes | -0.9808% | 9.28e-02% | 1.9e-12 | 1.2e-12 | 5.6e-17 |
+| `zk0_share_shift_tfp_ramp` | 10 | 4.02e-05 | yes | -0.9835% | 9.20e-02% | 2.0e-12 | 1.2e-12 | 4.9e-17 |
 
 Reproduction of the committed run (`uk_growth_with_ai/data/scenarios.json`) by the zeta_K = 0.1 solves, max relative difference over 2026–2030:
 
 | arm | Y | K | L | r | C | I | w |
 |---|---|---|---|---|---|---|---|
 | `baseline` | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
-| `anthropic_ramp` | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
-| `obr_ramp` | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
+| `share_shift_tfp_ramp` | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
+| `share_shift_ramp` | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
 
 ## Period-0 demographics test (#15)
 

@@ -22,14 +22,14 @@ mkdir -p "$WORK" "$OUT"
 # label | arm | zeta_K | pretp | baseline label
 PLAN=(
   "zk0.1_baseline|baseline|0.1|0|"
-  "zk0.1_anthropic_ramp|anthropic_ramp|0.1|0|zk0.1_baseline"
-  "zk0.1_obr_ramp|obr_ramp|0.1|0|zk0.1_baseline"
+  "zk0.1_share_shift_tfp_ramp|share_shift_tfp_ramp|0.1|0|zk0.1_baseline"
+  "zk0.1_share_shift_ramp|share_shift_ramp|0.1|0|zk0.1_baseline"
   "zk0_baseline|baseline|0|0|"
-  "zk0_anthropic_ramp|anthropic_ramp|0|0|zk0_baseline"
-  "zk0_obr_ramp|obr_ramp|0|0|zk0_baseline"
+  "zk0_share_shift_tfp_ramp|share_shift_tfp_ramp|0|0|zk0_baseline"
+  "zk0_share_shift_ramp|share_shift_ramp|0|0|zk0_baseline"
   "zk0.5_baseline|baseline|0.5|0|"
-  "zk0.5_anthropic_ramp|anthropic_ramp|0.5|0|zk0.5_baseline"
-  "zk0.5_obr_ramp|obr_ramp|0.5|0|zk0.5_baseline"
+  "zk0.5_share_shift_tfp_ramp|share_shift_tfp_ramp|0.5|0|zk0.5_baseline"
+  "zk0.5_share_shift_ramp|share_shift_ramp|0.5|0|zk0.5_baseline"
   "pretp_zk0.1_baseline|baseline|0.1|1|"
 )
 
