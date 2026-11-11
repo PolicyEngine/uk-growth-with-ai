@@ -264,6 +264,30 @@ def audit(path):
             print(f"    {lab:<9} implied signed rc, % GDP: {fmt(signed, 4)} | stored |rc|: "
                   f"{fmt(stored, 4, False)}")
 
+        print("[9d] WHY Y-C-I-G SWINGS IN 2030: net foreign inflow (growth*F_{t+1} - F_t) "
+              "and income paid abroad, % of baseline GDP")
+        # From the identity above, with the stored residual: inflow_t =
+        # r_p F_t - (Y-C-I-G)_t + rc_t. This also gives 2030 without 2031 stocks.
+        out = {}
+        for lab, X, kf, df, rp, n in [("baseline", B, kf_b, df_b, rp_b, "baseline"),
+                                      ("arm", A, kf_a, df_a, rp_a, name)]:
+            ext = X["Y"] - X["C"] - X["I"] - X["G"]
+            income = rp * (kf + df)
+            out[lab] = (ext, income, income - ext - rc[n])
+        for i, lab in enumerate(["Y-C-I-G", "income paid abroad", "net foreign inflow"]):
+            print(f"    {lab + ', baseline':<30}", fmt(out['baseline'][i] / B['Y'] * 100))
+            print(f"    {lab + ', arm':<30}", fmt(out['arm'][i] / B['Y'] * 100))
+            print(f"    {lab + ', gap':<30}",
+                  fmt((out['arm'][i] - out['baseline'][i]) / B['Y'] * 100))
+        d_ext = (out["arm"][0] - out["baseline"][0]) / B["Y"] * 100
+        d_inc = (out["arm"][1] - out["baseline"][1]) / B["Y"] * 100
+        d_inf = (out["arm"][2] - out["baseline"][2]) / B["Y"] * 100
+        print(f"    2029 -> 2030 swing in the Y-C-I-G gap: {d_ext[4] - d_ext[3]:+.2f}pp = "
+              f"inflow gap falls {d_inf[3] - d_inf[4]:.2f}pp + income paid abroad rises "
+              f"{d_inc[4] - d_inc[3]:.2f}pp")
+        print(f"    investment gap, % of baseline GDP: 2029 {dI[3] / B['Y'][3] * 100:+.2f}, "
+              f"2030 {dI[4] / B['Y'][4] * 100:+.2f}")
+
         print("[E] COMPARATORS computed from inputs only (gamma, Z, delta, tau_b, baseline path)")
         # (i) inputs fixed at baseline; (ii) Solow: investment a fixed share of
         # GDP (the baseline's), labour at baseline; (iii) return pinned at the

@@ -385,6 +385,76 @@ revenue, transfers and population growth, which are not exported.
   affected than the level but are not independent of it, since the interest bill scales with the
   stock.
 
+## Anomaly G: the 2028 resource residual (flagged by the checks on #28)
+
+**Finding.** A second common level error, one tenth the size of the 2026 one. It does not
+contaminate the 2028 gaps.
+
+**Evidence.**
+
+- Signed, from the external identity: −0.0894% of GDP in the baseline, −0.0879% in
+  `share_shift_tfp`, −0.0888% in `share_shift` (−0.0875% and −0.0885% under fixed spending). The
+  neighbouring years are 0.0000–0.0002%.
+- It is in the baseline, which has no ramp, so it is not the ramp kink.
+- Five separate solves give the same value to two significant figures, and the Euler errors are
+  below 6e-12, so it is not a convergence spike.
+- Across arms it differs by at most 0.0006% of GDP, against 2028 GDP gaps of 2.38% and 1.04%.
+
+**Root cause (hypothesis).** The run log reads "Demographics data: Initial Data year = 2026,
+Final Data year = 2028". OG-Core takes the population from data up to the final data year
+(`final_data_year = START_YEAR + 2` by default) and projects it from fixed rates afterwards, so
+2028 is where data are spliced to projection. A population path that does not satisfy its own law
+of motion in that year would leave a residual in exactly that period, in every arm, independent of
+the shock. The test is the per-period population law-of-motion residual from the demographic
+fetch, which #30 already computes for period 0.
+
+**Correction.** None to the gaps. Record the signed residual per period, and name 2028 beside 2026
+in the accounting caveat. If the splice is confirmed, the fix belongs with the period-0
+demographics fix.
+
+## Anomaly H: Y − C − I − G swings by 2.7–3.9 points of GDP in 2030 (flagged by the checks on #28)
+
+**Finding.** It is the foreign-capital closure meeting the end of the ramp. It is not an
+end-of-window artefact and not numerical error.
+
+**Evidence.** The external identity splits Y − C − I − G into income paid abroad minus the net
+foreign inflow (new foreign-owned capital and gilts). As gaps against the baseline, in % of
+baseline GDP (`[9d]`):
+
+| `share_shift_tfp` | 2026 | 2027 | 2028 | 2029 | 2030 |
+|---|---|---|---|---|---|
+| Y − C − I − G | −2.87 | −2.95 | −3.05 | −3.14 | +0.73 |
+| Net foreign inflow | +2.88 | +3.19 | +3.55 | +3.92 | +0.37 |
+| Income paid abroad | +0.01 | +0.24 | +0.49 | +0.78 | +1.10 |
+
+| `share_shift` | 2026 | 2027 | 2028 | 2029 | 2030 |
+|---|---|---|---|---|---|
+| Y − C − I − G | −2.24 | −2.32 | −2.39 | −2.45 | +0.29 |
+| Net foreign inflow | +2.27 | +2.52 | +2.78 | +3.05 | +0.54 |
+| Income paid abroad | +0.03 | +0.20 | +0.39 | +0.60 | +0.83 |
+
+- The 2029 → 2030 swing is +3.87pp in `share_shift_tfp`: the inflow gap falls 3.55pp and income
+  paid abroad rises 0.32pp. In `share_shift` it is +2.75pp: 2.52pp and 0.23pp. Under fixed
+  spending the swings are +4.08pp and +2.77pp.
+- The investment gap falls by nearly the same amount: from 5.72% to 2.60% of baseline GDP, and
+  from 4.04% to 1.36%. Investment in 2030 builds the 2031 capital stock, γ stops rising after
+  2030, so `K_open` stops rising and the inflow stops.
+- The baseline's inflow is steady at 0.60–0.63% of GDP and its Y − C − I − G at 0.70–0.83% after
+  2026, which is why the baseline does not swing.
+- The identity closes to 0.0002% of GDP in the years where it can be checked against next-year
+  stocks (2027, 2029), so no export is needed to close Y = C + I + G + external.
+
+**What it means.** For four years the UK runs an external deficit 2.2–3.1 points of GDP larger
+than baseline, financed by foreign purchases of UK capital. In the first year after the ramp the
+inflow stops and the economy moves to a surplus 0.3–0.7 points larger than baseline, because it
+now owes foreigners an extra 0.8–1.1% of GDP a year. The one-year size of the swing comes from the
+linear ramp having a kink and the model having no adjustment costs; with a smooth ramp it would be
+spread over several years.
+
+**Correction.** Same as anomaly C: report the external balance and income paid abroad, state the
+closure, and do not present the 2029–30 profile as a timing result. A check that
+Y − C − I − G is smooth should compare against the identity above, not against a tolerance.
+
 ## Other findings
 
 - **Revenue composition.** Tax/GDP falls 0.35pp and 0.55pp, the right sign and 47–74% of the
