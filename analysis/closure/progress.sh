@@ -43,11 +43,13 @@ post() {
   else
     gh api "repos/$GH_REPO/issues/27/comments" -f body="$b" --jq .id > "$IDF"
   fi
+  echo "posted progress $(date -u +%H:%M:%SZ)"
 }
 
 last=""
 while true; do
-  cur="$(ls "$OUT"/*.json 2>/dev/null | grep -v summary.json | sort | tr '\n' ' ')"
+  cur="$(ls "$OUT"/*.json 2>/dev/null | grep -v summary.json | sort | tr '\n' ' ' || true)"
+  echo "tick $(date -u +%H:%M:%SZ) cur=[$cur]"
   if [[ "$cur" != "$last" ]]; then post && last="$cur"; fi
   n=$(ls "$OUT"/*.json 2>/dev/null | grep -vc summary.json)
   if [[ "$n" -ge ${#ALL[@]} ]] || grep -q "driver done" "$WORK/driver.out" 2>/dev/null; then
