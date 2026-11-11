@@ -29,10 +29,13 @@ const EDGE = 4; // left edge of the svg to the unit label
 
 // Text width in px. Measured with a canvas in the browser, so geometry follows
 // the real tick and label strings (a five-character tick like "112.5" needs a
-// wider margin than "4"); a per-character estimate stands in during SSR.
+// wider margin than "4"); a per-character estimate stands in during SSR and
+// hydration (so the first client render matches the server HTML), and the
+// chart re-renders with real measurements once mounted.
 let measureCtx = null;
+let canMeasure = false;
 function textWidth(text, font) {
-  if (typeof document !== 'undefined') {
+  if (canMeasure && typeof document !== 'undefined') {
     if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d');
     if (measureCtx) {
       measureCtx.font = font;
@@ -76,13 +79,14 @@ function wrapSegments(segments, max) {
 const lineWidth = (line) =>
   line.reduce((acc, w, i) => acc + textWidth((i ? ' ' : '') + w.text, labelFont(w.weight)), 0);
 
-// Re-render once web fonts have loaded, so canvas measurements use them.
-function useFontsReady() {
+// Re-render after mount, once web fonts have loaded, with canvas measurement
+// switched on.
+function useMeasured() {
   const [ready, setReady] = useState(0);
   useEffect(() => {
-    if (typeof document === 'undefined' || !document.fonts) return undefined;
+    canMeasure = true;
     let live = true;
-    document.fonts.ready.then(() => live && setReady((n) => n + 1));
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => live && setReady((n) => n + 1));
     return () => {
       live = false;
     };
@@ -138,7 +142,7 @@ export default function LineChart({
   ariaLabel,
 }) {
   const [ref, W] = useWidth(880);
-  useFontsReady();
+  useMeasured();
 
   const onScale = (strip?.points || []).filter((p) => !p.offScale).map((p) => p.value);
   const all = series.flatMap((s) => s.values).concat(onScale).filter((v) => Number.isFinite(v));
