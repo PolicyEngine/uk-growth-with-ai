@@ -43,9 +43,9 @@ Y2030 = 4
 def load():
     runs = {}
     for f in sorted(OUT.glob("*.json")):
-        if f.name == "summary.json":
-            continue
-        runs[f.stem] = json.loads(f.read_text())
+        d = json.loads(f.read_text())
+        if "series" in d and "label" in d:   # skip summary.json / extra_exports.json
+            runs[f.stem] = d
     return runs
 
 
@@ -83,7 +83,7 @@ def arm_metrics(arm, base):
         "K_gap": gK.tolist(), "L_gap": gL.tolist(), "C_gap": gC.tolist(), "I_gap": gI.tolist(),
         "r_change_bp": (1e4 * (arr(arm, "r") - arr(base, "r"))).tolist(),
         "r_p_change_bp": (1e4 * (arr(arm, "r_p") - arr(base, "r_p"))).tolist(),
-        "foreign_share_of_extra_K": np.where(np.abs(dK) > 0, dKf / dK, np.nan).tolist(),
+        "foreign_share_of_extra_K": (dKf / np.where(dK != 0, dK, np.nan)).tolist(),
         "payments_abroad_share_Y_arm": pay_arm.tolist(),
         "K_gap_over_L_gap_2026": float(gK[0] / gL[0]) if gL[0] != 0 else None,
     })
