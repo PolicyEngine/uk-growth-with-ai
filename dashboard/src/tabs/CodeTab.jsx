@@ -8,7 +8,7 @@ import { REPO, URLS, pr } from './ai/links.js';
 
 // The real pipeline behind every number on the dashboard: install, patch
 // OG-Core, run, check, build the dashboard data. Commands follow the
-// repository README (branch fix/rerun-2-3-5, PR #11) and cli.py.
+// repository README and cli.py, on main.
 const ext = (href, text) => (
   <a href={href} target="_blank" rel="noreferrer">
     {text}
@@ -17,7 +17,6 @@ const ext = (href, text) => (
 
 const CLONE_BASH = `git clone ${REPO}.git
 cd uk-growth-with-ai
-git checkout fix/rerun-2-3-5   # until PR #11 is merged
 pip install -e ".[test]"`;
 
 const MODEL_BASH = `pip install "ogcore==0.17.0"
@@ -74,8 +73,8 @@ const REPORT_STEPS = [
           results committed so the charts can be rebuilt without re-running the model.
         </p>
         <p>
-          The re-run results live on the branch fix/rerun-2-3-5 ({ext(pr(11), 'PR #11')}) until it is merged. The
-          package itself needs only NumPy, pandas and Dask; <code>report</code>, <code>obr</code> and{' '}
+          The results are on the <code>main</code> branch; the re-run with the corrected settings was merged in{' '}
+          {ext(pr(11), 'PR #11')}. The package itself needs only NumPy, pandas and Dask; <code>report</code>, <code>obr</code> and{' '}
           <code>dashboard</code> work without the model installed.
         </p>
       </>
