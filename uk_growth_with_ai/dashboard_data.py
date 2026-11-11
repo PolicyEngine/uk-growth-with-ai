@@ -31,7 +31,7 @@ from .report import growth_path, labour_share, trend
 DASHBOARD_DATA = Path(__file__).resolve().parent.parent / "dashboard" / "src" / "data"
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
-ARMS = ["baseline", "zero_tfp_ramp", "anthropic_ramp"]
+ARMS = ["baseline", "share_shift_ramp", "share_shift_tfp_ramp"]
 VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
         ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]
@@ -40,8 +40,8 @@ VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
 PATH_YEARS = YEARS
 ARM_TRACE = {
     "baseline": ("OBR central", "#5a6470"),
-    "zero_tfp_ramp": ("Automation only", "#2f6fb5"),
-    "anthropic_ramp": ("Automation + productivity", "#1d7a4c"),
+    "share_shift_ramp": ("Automation only", "#2f6fb5"),
+    "share_shift_tfp_ramp": ("Automation + productivity", "#1d7a4c"),
 }
 
 DERIVATION = (

@@ -23,21 +23,44 @@ DATA = Path(str(files("uk_growth_with_ai") / "data"))
 DEFAULT_RESULTS = DATA / "scenarios.json"
 
 
-# The `obr` arm was renamed `zero_tfp` because it does not reproduce the OBR's
-# Box 2.2 case (GDP level unchanged); it imposes a zero technology wedge at the
-# baseline's fixed 2026 inputs and delivers GDP +1.4% by 2030.  Results files
-# written before the rename carry the old keys, so every reader normalises on
-# load: the new keys are the only ones written, both are accepted.
-ARM_RENAMES = {"obr_ramp": "zero_tfp_ramp", "obr_step": "zero_tfp_step"}
-ASSUMPTION_RENAMES = {"Z_obr": "Z_zero_tfp", "obr_target": "zero_tfp_target"}
+# Legacy arm names (issue #14).  The arms are named for what they impose:
+#   share_shift      (was `obr`, then `zero_tfp`)  capital share +3.9pp, zero
+#                    technology wedge at fixed baseline inputs
+#   share_shift_tfp  (was `anthropic`)             the same plus +3.1% output at
+#                                                  fixed baseline inputs
+# Results files written before the rename carry the old keys, so every reader
+# normalises on load: only the new keys are written, every spelling is read.
+_LEGACY_STEMS = {"obr": "share_shift", "zero_tfp": "share_shift",
+                 "anthropic": "share_shift_tfp"}
+LEGACY_KEYS = {
+    f"{pre}{old}{suf}": f"{pre}{new}{suf}"
+    for old, new in _LEGACY_STEMS.items()
+    for pre, suf in (("", ""), ("", "_ramp"), ("", "_step"),
+                     ("Z_", ""), ("", "_target"))
+}
 
 
-def normalise_arms(res: dict) -> dict:
-    """Rename pre-rename arm and assumption keys in place-ish (returns a copy)."""
-    out = {ARM_RENAMES.get(k, k): v for k, v in res.items()}
-    if isinstance(out.get("assumptions"), dict):
-        out["assumptions"] = {ASSUMPTION_RENAMES.get(k, k): v
-                              for k, v in out["assumptions"].items()}
+def normalise_arms(obj):
+    """Rename legacy arm / assumption KEYS at every depth; returns a copy.
+
+    Only dict keys listed in ``LEGACY_KEYS`` are renamed, recursively through
+    nested dicts and lists; string values are never touched.  Idempotent on a
+    file that already uses the new names.  Raises ``ValueError`` if one dict
+    would end up with two values for the same key (e.g. both ``obr_ramp`` and
+    ``share_shift_ramp``), rather than silently keeping one.  Meant for model
+    results files; ``data/obr_history.json`` is not one.
+    """
+    if isinstance(obj, list):
+        return [normalise_arms(v) for v in obj]
+    if not isinstance(obj, dict):
+        return obj
+    out = {}
+    for k, v in obj.items():
+        new = LEGACY_KEYS.get(k, k)
+        if new in out:
+            raise ValueError(f"results carry both a legacy and a current spelling "
+                             f"of {new!r} (offending key {k!r})")
+        out[new] = normalise_arms(v)
     return out
 
 

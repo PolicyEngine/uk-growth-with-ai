@@ -101,8 +101,8 @@ export default function HomePage() {
         <p className="intro-text">
           We model AI as a gradual rise in the capital share of output over {FIRST_YEAR}&ndash;{LAST_YEAR}, lowering
           the labour share by {LS_FALL.toFixed(1)} percentage points, with or without a {KORINEK.tfp}% rise in total
-          factor productivity. Relative to the OBR-central baseline, GDP is {gapAt('anthropic_ramp', 'Y').toFixed(1)}%
-          higher in {LAST_YEAR} with productivity gains and {gapAt('obr_ramp', 'Y').toFixed(1)}% higher with
+          factor productivity. Relative to the OBR-central baseline, GDP is {gapAt('share_shift_tfp_ramp', 'Y').toFixed(1)}%
+          higher in {LAST_YEAR} with productivity gains and {gapAt('share_shift_ramp', 'Y').toFixed(1)}% higher with
           automation alone, driven by investment rather than consumption. The technology paths are imposed, so the
           results show the general-equilibrium consequences of given scenarios, not their likelihood.
         </p>

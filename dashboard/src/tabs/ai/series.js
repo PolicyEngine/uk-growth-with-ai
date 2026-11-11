@@ -4,8 +4,8 @@
 // Automation + productivity the primary teal, US series lighter/muted and dashed.
 export const ARM_META = {
   baseline: { label: 'OBR central', color: 'var(--chart-uk-baseline)' },
-  obr_ramp: { label: 'Automation only', color: 'var(--chart-uk-obr)' },
-  anthropic_ramp: { label: 'Automation + productivity', color: 'var(--chart-uk-ai)' },
+  share_shift_ramp: { label: 'Automation only', color: 'var(--chart-uk-obr)' },
+  share_shift_tfp_ramp: { label: 'Automation + productivity', color: 'var(--chart-uk-ai)' },
 };
 
 export const US_COLORS = {

@@ -115,7 +115,7 @@
    0.3000792198256941
   ]
  },
- "anthropic_ramp": {
+ "share_shift_tfp_ramp": {
   "gamma_terminal": 0.389,
   "gamma_shape": "ramp",
   "Z_terminal": 0.9720622947761199,
@@ -217,7 +217,7 @@
    0.3126213370811369
   ]
  },
- "zero_tfp_ramp": {
+ "share_shift_ramp": {
   "gamma_terminal": 0.389,
   "gamma_shape": "ramp",
   "Z_terminal": 0.9428344275229098,
@@ -324,10 +324,10 @@
   "gamma_base": 0.35,
   "gamma_shocked": 0.389,
   "gamma_only_output_gain": 0.06063161336532885,
-  "Z_anthropic": 0.9720622947761199,
-  "Z_obr": 0.9428344275229098,
-  "anthropic_target": "labour share -3.9pp and +3.1% measured TFP (Table 3)",
-  "obr_target": "labour share -3.9pp with the GDP LEVEL unchanged (March 2026 EFO Box 2.2)",
+  "Z_share_shift_tfp": 0.9720622947761199,
+  "Z_share_shift": 0.9428344275229098,
+  "share_shift_tfp_target": "labour share -3.9pp and +3.1% output at fixed baseline inputs (sizes from Korinek et al. 2026, Table 3)",
+  "share_shift_target": "labour share -3.9pp (size from Korinek et al. 2026, Table 3) with a ZERO technology wedge: Z solved so that output is unchanged at the baseline's 2026 K and L.  A constructed share-shift scenario; compared with, not a reproduction of, March 2026 EFO Box 2.2",
   "counterfactual": "shocked arms inherit baseline initial assets and debt",
   "fiscal": "shocked arms hold G and TR at the baseline's levels (baseline_spending)",
   "tG1": 10,

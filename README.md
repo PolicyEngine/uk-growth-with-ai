@@ -14,8 +14,8 @@ linearly from 2026 to 2030 and held thereafter:
 | Scenario | Internal id | Automation (γ) | Productivity (Z) solved for | Calibration source |
 |---|---|---|---|---|
 | OBR central | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
-| Automation only | `zero_tfp` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L (zero technology wedge) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
-| Automation + productivity | `anthropic` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
+| Automation only | `share_shift` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L (zero technology wedge) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
+| Automation + productivity | `share_shift_tfp` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
 
 At `epsilon = 1` (Cobb-Douglas) the labour share is exactly `1 − γ`. All runs are
 1-sector (`multi_sector=False`). Z is solved jointly with γ, because raising γ alone
@@ -35,12 +35,15 @@ second run holds government spending and transfers at baseline levels instead
 vendored `g_n` of the committed run (`--g-n vendored`) rather than to OG-UK's live
 UN fetch.
 
-The `zero_tfp` arm is named for what it imposes — automation with a zero technology
-wedge at the baseline's fixed 2026 inputs — and not for the OBR. Box 2.2's defining
-result is the **level of GDP unchanged**; because K and L are endogenous, this arm
-delivers GDP +1.4% by 2030, and Box 2.2 publishes no labour-share number. It was
-called `obr` until the rename; readers accept both keys, writers emit only the new
-one.
+Both arms are named for what they impose (issue #14): `share_shift` is the capital-share
+shift with a zero technology wedge at the baseline's fixed 2026 inputs, and
+`share_shift_tfp` adds +3.1% output at those inputs. Nothing in the model identifies AI
+as the cause; the sizes are Korinek et al.'s. `share_shift` is compared with, not a
+reproduction of, the OBR's Box 2.2: Box 2.2's defining result is the **level of GDP
+unchanged**, whereas K and L are endogenous here and this arm delivers GDP +1.4% by
+2030; Box 2.2 also publishes no labour-share number. The arms were called `obr` (later
+`zero_tfp`) and `anthropic` before the rename; readers accept every legacy key at any
+depth (`data_access.normalise_arms`), writers emit only the new ones.
 
 **Results, 2030, against the OBR-central baseline (committed run, `g_y_annual = 0.010`):** GDP +4.9% (Automation + productivity)
 and +1.4% (Automation only), driven by investment; the labour share falls 3.9pp in
@@ -97,11 +100,11 @@ Each scenario takes about 7 minutes on a laptop; keep the machine awake
 ## Commands
 
 ```bash
-python -m uk_growth_with_ai run [--only anthropic|zero_tfp] [--shapes ramp|step|both] [--g-n vendored|live]
+python -m uk_growth_with_ai run [--only share_shift|share_shift_tfp] [--shapes ramp|step|both] [--g-n vendored|live]
                                 [--baseline-only] [--baseline-spending]
                                 [--tG1 N] [--g-y-annual X] [--out PATH]
 python -m uk_growth_with_ai check [--results PATH]
-python -m uk_growth_with_ai report [--arm anthropic_ramp|zero_tfp_ramp]
+python -m uk_growth_with_ai report [--arm share_shift_tfp_ramp|share_shift_ramp]
 python -m uk_growth_with_ai obr
 python -m uk_growth_with_ai dashboard [--check]
 ```
@@ -120,7 +123,7 @@ python -m uk_growth_with_ai dashboard [--check]
   in 2030, a common spending share, potential output against the OBR, the Z targets,
   the labour share and solution quality (including the 2026 resource-constraint error).
 * `report` prints the year-by-year gaps, GDP growth, the labour share and, for
-  `anthropic_ramp`, the comparison with Korinek et al. Table 3.
+  `share_shift_tfp_ramp`, the comparison with Korinek et al. Table 3.
 * `obr` compares the OBR-central baseline with the OBR's March 2026 EFO: GDP growth
   2027–30 and its components (productivity, population growth, balanced-growth rate).
 * `dashboard` writes `dashboard/src/data/aiScenarios.json` and `ukAiPaths.json` from

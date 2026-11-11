@@ -25,7 +25,7 @@ const LABELS = {
   D: 'Debt',
 };
 const OPTIONS = VAR_ORDER.map((v) => ({ value: v, label: LABELS[v] }));
-const SHOCKED = ['anthropic_ramp', 'obr_ramp'];
+const SHOCKED = ['share_shift_tfp_ramp', 'share_shift_ramp'];
 
 // Line swatch, same vocabulary as the shared .plot-legend.
 function Sw({ c, dashed }) {
@@ -62,7 +62,7 @@ const pctS = (x, dp = 1) => `${signed(x, dp)}%`;
 // Growth accounting for the 2030 GDP gap, in log points: TFP (ln(1+tau), the
 // fixed-input gain the scenario is calibrated to), capital (gamma_1 x the
 // log capital gap) and labour ((1 - gamma_1) x the log labour gap).
-const TAU = { obr_ramp: 0, anthropic_ramp: KORINEK.tfp / 100 };
+const TAU = { share_shift_ramp: 0, share_shift_tfp_ramp: KORINEK.tfp / 100 };
 const lgap = (a, v) => Math.log(D.idx[a][v][LAST] / D.idx.baseline[v][LAST]) * 100;
 function decomp(a) {
   return { tfp: Math.log(1 + TAU[a]) * 100, capital: G1 * lgap(a, 'K'), labour: (1 - G1) * lgap(a, 'L') };
@@ -71,7 +71,7 @@ const outputPerLabour = (a) => ((1 + gapAt(a, 'Y') / 100) / (1 + gapAt(a, 'L') /
 
 // Effect table: % difference from the OBR-central baseline by variable, with a
 // 2026-2030 sparkline per scenario.
-const SHOCKED_ORDER = ['obr_ramp', 'anthropic_ramp'];
+const SHOCKED_ORDER = ['share_shift_ramp', 'share_shift_tfp_ramp'];
 const EFFECT_GROUPS = [
   { title: 'Output and demand', rows: [['Y', 'GDP'], ['C', 'Consumption'], ['I', 'Investment']] },
   { title: 'Factors', rows: [['K', 'Capital stock'], ['L', 'Labour'], ['w', 'Average wage']] },
@@ -186,9 +186,9 @@ export default function ResultsPanel() {
   );
 
   // Investment-led gain (referee M10).
-  const cBelow = belowIdx('anthropic_ramp', 'C');
+  const cBelow = belowIdx('share_shift_tfp_ramp', 'C');
   const cBelowThrough = cBelow.length && cBelow.every((v, k) => v === k) ? YEARS[cBelow[cBelow.length - 1]] : null;
-  const cObrAlwaysBelow = belowIdx('obr_ramp', 'C').length === YEARS.length;
+  const cObrAlwaysBelow = belowIdx('share_shift_ramp', 'C').length === YEARS.length;
   const wagesAlwaysBelow = SHOCKED.every((a) => belowIdx(a, 'w').length === YEARS.length);
 
   // GDP against the baseline path: UK lines, US 2030 endpoints in the strip.
@@ -216,15 +216,15 @@ export default function ResultsPanel() {
     }
     return `above US ${usSorted[usSorted.length - 1][0]}`;
   };
-  const gdpPositionText = `${ARM_META.anthropic_ramp.label} lies ${position(gapAt('anthropic_ramp', 'Y'))}, and ${ARM_META.obr_ramp.label} ${position(gapAt('obr_ramp', 'Y'))}`;
+  const gdpPositionText = `${ARM_META.share_shift_tfp_ramp.label} lies ${position(gapAt('share_shift_tfp_ramp', 'Y'))}, and ${ARM_META.share_shift_ramp.label} ${position(gapAt('share_shift_ramp', 'Y'))}`;
 
   // Labour share: the two UK AI scenarios share one gamma path, so one line.
   const lsSeries = [
     { label: ARM_META.baseline.label, color: ARM_META.baseline.color, values: D.sl.baseline.map((v) => v * 100) },
     {
       label: 'Both AI scenarios',
-      color: ARM_META.anthropic_ramp.color,
-      values: D.sl.anthropic_ramp.map((v) => v * 100),
+      color: ARM_META.share_shift_tfp_ramp.color,
+      values: D.sl.share_shift_tfp_ramp.map((v) => v * 100),
     },
   ];
   const lsStrip = {
@@ -251,34 +251,34 @@ export default function ResultsPanel() {
       <section className="section-card growth-hero">
         <div className="kpi-strip">
           <Kpi
-            value={pctS(gapAt('anthropic_ramp', 'Y'))}
-            label={ARM_META.anthropic_ramp.label}
+            value={pctS(gapAt('share_shift_tfp_ramp', 'Y'))}
+            label={ARM_META.share_shift_tfp_ramp.label}
             sub={`UK GDP against the OBR-central baseline, ${LAST_YEAR}`}
-            color={ARM_META.anthropic_ramp.color}
+            color={ARM_META.share_shift_tfp_ramp.color}
           />
           <Kpi
-            value={pctS(gapAt('obr_ramp', 'Y'))}
-            label={ARM_META.obr_ramp.label}
+            value={pctS(gapAt('share_shift_ramp', 'Y'))}
+            label={ARM_META.share_shift_ramp.label}
             sub={`UK GDP against the OBR-central baseline, ${LAST_YEAR}`}
-            color={ARM_META.obr_ramp.color}
+            color={ARM_META.share_shift_ramp.color}
           />
           <Kpi
-            value={`${signed(growthIncrement('anthropic_ramp'))}pp`}
+            value={`${signed(growthIncrement('share_shift_tfp_ramp'))}pp`}
             label={`GDP growth in ${LAST_YEAR}`}
-            sub={`${ARM_META.anthropic_ramp.label} against the OBR-central baseline`}
-            color={ARM_META.anthropic_ramp.color}
+            sub={`${ARM_META.share_shift_tfp_ramp.label} against the OBR-central baseline`}
+            color={ARM_META.share_shift_tfp_ramp.color}
           />
           <Kpi
-            value={pctS(gapAt('anthropic_ramp', 'K'))}
+            value={pctS(gapAt('share_shift_tfp_ramp', 'K'))}
             label={`Capital stock, ${LAST_YEAR}`}
-            sub={`${ARM_META.anthropic_ramp.label} against the OBR-central baseline`}
-            color={ARM_META.anthropic_ramp.color}
+            sub={`${ARM_META.share_shift_tfp_ramp.label} against the OBR-central baseline`}
+            color={ARM_META.share_shift_tfp_ramp.color}
           />
         </div>
         <p className="key-point">The GDP gain is investment-led, not consumption-led.</p>
         <ul className="txt-bullets headline-bullets">
           <li>
-            <b>Investment jumps first:</b> already {pctS(gapAt('anthropic_ramp', 'I', 0))} above the baseline in{' '}
+            <b>Investment jumps first:</b> already {pctS(gapAt('share_shift_tfp_ramp', 'I', 0))} above the baseline in{' '}
             {FIRST_YEAR} with productivity gains.
           </li>
           <li>
@@ -367,15 +367,15 @@ export default function ResultsPanel() {
         <ul className="txt-bullets reading-list">
           <li>
             <b>Sources of the GDP gain</b> (log points, {LAST_YEAR}): with productivity gains,{' '}
-            {decomp('anthropic_ramp').tfp.toFixed(1)} from TFP and {decomp('anthropic_ramp').capital.toFixed(1)} from
-            capital deepening, less {Math.abs(decomp('anthropic_ramp').labour).toFixed(1)} from lower labour input;
-            with automation only, {decomp('obr_ramp').capital.toFixed(1)} from capital deepening, less{' '}
-            {Math.abs(decomp('obr_ramp').labour).toFixed(1)} from labour input.
+            {decomp('share_shift_tfp_ramp').tfp.toFixed(1)} from TFP and {decomp('share_shift_tfp_ramp').capital.toFixed(1)} from
+            capital deepening, less {Math.abs(decomp('share_shift_tfp_ramp').labour).toFixed(1)} from lower labour input;
+            with automation only, {decomp('share_shift_ramp').capital.toFixed(1)} from capital deepening, less{' '}
+            {Math.abs(decomp('share_shift_ramp').labour).toFixed(1)} from labour input.
           </li>
           <li>
             <b>Wages</b> follow the labour share and output per unit of labour: the labour share falls by{' '}
             {((LS_FALL / LS0) * 100).toFixed(1)}% in proportion, while output per unit of labour rises{' '}
-            {outputPerLabour('obr_ramp').toFixed(1)}% with automation only and {outputPerLabour('anthropic_ramp').toFixed(1)}%
+            {outputPerLabour('share_shift_ramp').toFixed(1)}% with automation only and {outputPerLabour('share_shift_tfp_ramp').toFixed(1)}%
             with productivity gains, so wages fall with automation only and change little with productivity gains.
           </li>
           <li>

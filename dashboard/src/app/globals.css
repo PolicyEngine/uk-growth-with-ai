@@ -844,7 +844,7 @@
        bar and swatch on the growth tab (src/tabs/ai/series.js points here,
        and PlotPanel resolves these for Plotly). Built from the PolicyEngine
        ramp, plus the gold the shared .legend-line vocabulary already uses as
-       the secondary accent. UK OBR-central grey, UK OBR gold, UK Anthropic the
+       the secondary accent. UK OBR-central grey, UK share shift gold, UK share shift + TFP the
        primary teal; US series lighter and dashed. */
     :root {
       --chart-uk-baseline:     var(--pe-color-gray-500);

@@ -17,7 +17,7 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p_run = sub.add_parser("run", help="run the OG-UK scenarios (needs ogcore + oguk)")
-    p_run.add_argument("--only", choices=["anthropic", "zero_tfp"], default=None)
+    p_run.add_argument("--only", choices=["share_shift_tfp", "share_shift"], default=None)
     p_run.add_argument("--shapes", choices=["step", "ramp", "both"], default="ramp")
     p_run.add_argument("--baseline-only", action="store_true",
                        help="stop after the baseline and the Z solve (~10 min)")
@@ -37,7 +37,7 @@ def main(argv=None) -> int:
                             "the committed results")
 
     p_rep = sub.add_parser("report", help="result tables for one arm")
-    p_rep.add_argument("--arm", default="anthropic_ramp", choices=report_mod.ARMS)
+    p_rep.add_argument("--arm", default="share_shift_tfp_ramp", choices=report_mod.ARMS)
     p_rep.add_argument("--results", default=None)
     p_rep.add_argument("--oguk-dir", default=None,
                        help="read g_n/g_y from a live OG-UK checkout instead of "

@@ -258,25 +258,25 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
 
     # Z is SOLVED jointly with gamma, never assumed: see calibrate.
     cal = {n: solve_scenario(s, K0, L0, G_BASE) for n, s in SCENARIOS.items()}
-    g_ai = cal["anthropic"]["gamma"]
-    gonly = cal["anthropic"]["gamma_only_output_gain"]
+    g_ai = cal["share_shift_tfp"]["gamma"]
+    gonly = cal["share_shift_tfp"]["gamma_only_output_gain"]
 
-    print(f"\ngamma for a {SCENARIOS['anthropic'].labour_share_fall_pp}pp "
+    print(f"\ngamma for a {SCENARIOS['share_shift_tfp'].labour_share_fall_pp}pp "
           f"labour-share fall: {g_ai:.4f}"
           f"\ngamma-only output gain at baseline inputs: {gonly*100:+.4f}%"
-          f"\n  Z solved, anthropic (+3.1% joint)   : {cal['anthropic']['Z']:.6f}"
-          f"\n  Z solved, zero_tfp (zero tech wedge): {cal['zero_tfp']['Z']:.6f}", flush=True)
+          f"\n  Z solved, share_shift_tfp (+3.1% joint)  : {cal['share_shift_tfp']['Z']:.6f}"
+          f"\n  Z solved, share_shift (zero tech wedge)  : {cal['share_shift']['Z']:.6f}", flush=True)
 
     if baseline_only:
-        res["assumptions"] = {"Z_anthropic": cal["anthropic"]["Z"],
-                              "Z_zero_tfp": cal["zero_tfp"]["Z"],
+        res["assumptions"] = {"Z_share_shift_tfp": cal["share_shift_tfp"]["Z"],
+                              "Z_share_shift": cal["share_shift"]["Z"],
                               "gamma_only_output_gain": gonly, **settings}
         out.write_text(json.dumps(res, indent=1))
         print("\nBASELINE ONLY: stopping before the shocked arms", flush=True)
         return res
 
     ramps = [False, True] if shapes == "both" else [shapes == "ramp"]
-    plan = [n for n in ("anthropic", "zero_tfp") if only in (None, n)]
+    plan = [n for n in ("share_shift_tfp", "share_shift") if only in (None, n)]
     for scen in plan:
         for ramp in ramps:
             key = f"{scen}_{'ramp' if ramp else 'step'}"
@@ -292,9 +292,9 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
     res["assumptions"] = {
         "epsilon": EPS, "gamma_base": G_BASE, "gamma_shocked": g_ai,
         "gamma_only_output_gain": gonly,
-        "Z_anthropic": cal["anthropic"]["Z"], "Z_zero_tfp": cal["zero_tfp"]["Z"],
-        "anthropic_target": SCENARIOS["anthropic"].target,
-        "zero_tfp_target": SCENARIOS["zero_tfp"].target,
+        "Z_share_shift_tfp": cal["share_shift_tfp"]["Z"], "Z_share_shift": cal["share_shift"]["Z"],
+        "share_shift_tfp_target": SCENARIOS["share_shift_tfp"].target,
+        "share_shift_target": SCENARIOS["share_shift"].target,
         "counterfactual": "shocked arms inherit baseline initial assets and debt",
         "fiscal": ("shocked arms hold G and TR at the baseline's levels (baseline_spending)"
                    if baseline_spending else "every arm uses the baseline's alpha_G"),
