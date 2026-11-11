@@ -52,7 +52,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.14"
+      # The repo's only lockfile is bun.lock (no package-lock.json, so npm ci
+      # cannot run); Bun installs from it, frozen. The build is plain
+      # `npm run build` here in Actions: no Vercel build or deploy.
       - name: Install (frozen lockfile)
         run: bun install --frozen-lockfile
       - name: Build
-        run: bun run build
+        run: npm run build
