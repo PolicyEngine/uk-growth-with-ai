@@ -1,5 +1,5 @@
 {
- "_what": "The population growth rates g_n that the committed OG-UK run actually used, vendored so a re-run does not depend on a live UN World Population Prospects fetch.",
+ "_what": "The population growth rates g_n that the committed OG-UK run actually used, vendored so a re-run can check that the live UN World Population Prospects fetch still gives the same values.",
  "_provenance": {
   "source": "results/scenarios.json -> baseline.g_n_used, i.e. p.g_n[:5] as recorded by uk_growth_with_ai.solve.run_arm for the committed baseline",
   "run_utc": "2026-09-26T16:26:55Z",
@@ -12,14 +12,15 @@
    2029,
    2030
   ],
-  "note": "OG-Core's g_n[t] is growth from t to t+1."
+  "note": "OG-Core's g_n[t] is growth from t to t+1.",
+  "demographic_source": "github.com/EAPD-DRB/Population-Data (Data/UK/UN_*_data.csv), OG-Core's fallback when the UN Data Portal API call fails. The committed run had an empty un_api_token.txt and its log prints the fallback message for every arm. Re-fetched by the same route on 2026-11-11: g_n[:5] identical (max |diff| 0.0). The UN API route, with a valid token, has not been compared."
  },
  "_limitations": [
-  "Only the first 5 periods were ever recorded. OG-Core needs g_n over T+S periods, so the tail of the path the committed run used is NOT recoverable from anything in this repository. The override therefore replaces ONLY g_n[:5] on the Specifications object built by oguk.api._build_specs and leaves the tail as fetched: OG-Core lands the population path on its steady state (TPI uses p.g_n[:T-1] then p.g_n_ss; SS uses p.g_n_ss), and g_n_ss was never recorded, so holding a flat vendored tail against a live g_n_ss would put a population-growth mismatch at the terminal boundary.",
-  "g_n is only one of several objects oguk.api._build_specs takes from the same live demographic fetch. omega, omega_SS, omega_S_preTP, rho, imm_rates and g_n_ss were not recorded and are still fetched live, so the solve is NOT network-free: only the reported window's g_n is pinned, and it is not guaranteed mutually consistent with the population weights the aggregates use.",
+  "Only the first 5 periods were ever recorded. OG-Core needs g_n over T+S periods, so the tail of the path the committed run used is NOT recoverable from anything in this repository. uk_growth_with_ai.solve therefore uses these values as a GUARD, not an override: with --g-n vendored (the default) it raises GNDriftError if the live fetch's g_n[:5] differs from them by more than 1e-9, and otherwise solves on the live fetch unchanged. Overwriting would splice recorded g_n onto population weights (omega, imm_rates, g_n_ss) from a possibly different data vintage. OG-Core lands the population path on its steady state (TPI uses p.g_n[:T-1] then p.g_n_ss; SS uses p.g_n_ss), and g_n_ss was never recorded either.",
+  "g_n is only one of several objects oguk.api._build_specs takes from the same live demographic fetch. omega, omega_SS, omega_S_preTP, rho, imm_rates and g_n_ss were not recorded and are still fetched live, so the solve is NOT network-free: only the reported window's g_n is checked.",
   "The recorded path is FLAT at about 0.77%/yr (0.771% in 2026, 0.760% in 2030). OG-UK's own vendored default in og_uk_params.json DECLINES (0.748% -> 0.625%), and the OBR's labour-supply growth declines faster still, to 0.5% by 2030 (March 2026 EFO para 1.9). docs/OG_UK_OBR_COMPARISON.md describes a declining path and is stale: it was written against the vendored default, not against what the run used. The array below is what the run used (flat). Substituting a declining path is a modelling decision, not a fix, and is left open (see .audit/07-calibration-sensitivity.md section 3)."
  ],
- "g_n_tail": "live (not vendored; only g_n[:5] is pinned)",
+ "g_n_tail": "live (not recorded; only g_n[:5] is checked)",
  "g_n": [
   0.007705776427232723,
   0.007794693786592977,

@@ -1,10 +1,11 @@
-"""OG-UK AI-growth scenarios for the UK.
+"""OG-UK capital-share scenarios for the UK.
 
-Two scenarios (Anthropic "substantial", and automation with a zero technology
-wedge), each run with gamma stepped and gamma ramped, against a common no-AI
-baseline.  The zero-wedge arm was called "obr" until it was renamed: it is
-motivated by the OBR's technological-displacement case but does not reproduce
-it (see ``scenarios``).
+Two scenarios, each run with gamma stepped and gamma ramped, against a common
+"OBR central" baseline: ``share_shift`` raises capital's share of output by
+3.9pp with no output gain at fixed inputs, and ``share_shift_tfp`` adds +3.1%
+output at fixed inputs.  The magnitudes are Korinek et al. (2026)'s; the arms
+were called ``obr``/``zero_tfp`` and ``anthropic`` before issue #14 (see
+``scenarios``).
 
 ``solve`` imports ogcore/oguk lazily, so ``report`` and ``obr`` work on machines
 without the OG-UK stack installed.
@@ -21,17 +22,16 @@ from .data_access import load_results, load_trend_params, normalise_arms
 from .obr import OBR_BASELINE, compare as compare_obr_baseline
 from .report import gap_table, growth_table, labour_share_table, summary
 from .scenarios import (
-    ANTHROPIC,
     ANTHROPIC_SUBSTANTIAL,
-    OBR,
     SCENARIOS,
-    ZERO_TFP,
+    SHARE_SHIFT,
+    SHARE_SHIFT_TFP,
     Scenario,
 )
 
 __all__ = [
-    "ANTHROPIC", "ANTHROPIC_SUBSTANTIAL", "OBR", "OBR_BASELINE", "SCENARIOS",
-    "ZERO_TFP", "normalise_arms",
+    "ANTHROPIC_SUBSTANTIAL", "OBR_BASELINE", "SCENARIOS", "SHARE_SHIFT",
+    "SHARE_SHIFT_TFP", "normalise_arms",
     "Scenario", "compare_obr_baseline", "gamma_for_labour_share_fall",
     "gamma_only_gain", "gap_table", "growth_table", "labour_share_table",
     "load_results", "load_trend_params", "solve_scenario",

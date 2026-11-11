@@ -40,7 +40,7 @@ python -m uk_growth_with_ai run --shapes ramp --baseline-spending \\
     --out uk_growth_with_ai/data/scenarios_fixed_spending.json`;
 
 const CHECK_BASH = `python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios.json
-python -m uk_growth_with_ai report --arm anthropic_ramp
+python -m uk_growth_with_ai report --arm share_shift_tfp_ramp
 python -m uk_growth_with_ai obr`;
 
 const DASH_BASH = `python -m uk_growth_with_ai dashboard          # writes dashboard/src/data/*.json
@@ -134,7 +134,7 @@ const REPORT_STEPS = [
             baseline&rsquo;s levels, the robustness run for the fiscal convention.
           </li>
         </ol>
-        <p>A full run takes several hours; add <code>--only anthropic</code> or <code>--only obr</code> to run one scenario.</p>
+        <p>A full run takes several hours; add <code>--only share_shift</code> or <code>--only share_shift_tfp</code> to run one scenario.</p>
       </>
     ),
     panel: [{ type: 'code', filename: 'terminal', lang: 'bash', content: RUN_BASH }],

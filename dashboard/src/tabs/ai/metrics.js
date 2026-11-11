@@ -15,7 +15,7 @@ export const GROW_LAST = D.grow.baseline.length - 1;
 export const signed = (x, dp = 1) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(dp)}`;
 export const pct = (x, dp = 1) => `${x.toFixed(dp)}%`;
 
-// % gap of an arm against the no-AI baseline, variable v, year index i.
+// % gap of an arm against the OBR-central baseline, variable v, year index i.
 export const gapAt = (arm, v, i = LAST) => (D.idx[arm][v][i] / D.idx.baseline[v][i] - 1) * 100;
 export const growth = (arm, i = GROW_LAST) => D.grow[arm][i];
 export const growthIncrement = (arm, i = GROW_LAST) => D.grow[arm][i] - D.grow.baseline[i];
@@ -34,8 +34,8 @@ export const LS1 = (1 - G1) * 100;
 export const LS_FALL = LS0 - LS1; // percentage points
 export const GAMMA_ONLY_GAIN = D.assum.gamma_only_output_gain * 100;
 export const KL0 = Math.exp(Math.log(1 + D.assum.gamma_only_output_gain) / DG);
-export const Z_OBR = D.assum.Z_zero_tfp; // data key renamed with the arm (Z_obr before)
-export const Z_ANTH = D.assum.Z_anthropic;
+export const Z_SHARE_SHIFT = D.assum.Z_share_shift;
+export const Z_SHARE_SHIFT_TFP = D.assum.Z_share_shift_tfp;
 export const G_Y = D.assum.g_y_annual;
 export const PRODUCTIVITY = (Math.exp(G_Y) - 1) * 100;
 export const TG1 = D.assum.tG1;

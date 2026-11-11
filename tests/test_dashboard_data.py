@@ -19,7 +19,7 @@ def test_paths_start_at_the_obr_2026_value():
     for p in dd.uk_paths(RESULTS)["panels"]:
         obr = p["traces"][0]
         o26 = dict(zip(obr["x"], obr["y"]))[2026]
-        base = next(t for t in p["traces"] if t["name"] == "No AI")
+        base = next(t for t in p["traces"] if t["name"] == dd.ARM_TRACE["baseline"][0])
         assert base["x"][0] == 2026
         assert abs(base["y"][0] - o26) < 1e-3
 
@@ -81,3 +81,15 @@ def test_model_ratios_are_the_baseline_2026_ratios():
     b = RESULTS["baseline"]
     for v, r in ai["model_ratios"]["ratios"].items():
         assert abs(r - b[v][0] / b["Y"][0] * 100) < 1e-9
+
+
+def test_trace_names_match_the_dashboard_labels():
+    # HistoricalPaths.jsx joins the JSON trace name to ARM_META's label; if the
+    # two drift apart the chart silently falls back to the JSON's colours.
+    import re
+
+    js = (dd.DASHBOARD_DATA.parent / "tabs" / "ai" / "series.js").read_text()
+    labels = dict(re.findall(r"^\s*(\w+): \{ label: '([^']+)'", js, flags=re.M))
+    for arm, (name, _) in dd.ARM_TRACE.items():
+        assert labels[arm] == name, arm
+    assert dd.ARM_TRACE["baseline"][0].startswith("OG-UK")
