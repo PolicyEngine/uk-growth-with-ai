@@ -49,11 +49,12 @@ from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, RAMP_YEARS, SCENARIOS, STA
 #
 # "Live fetch" covers two sources.  ogcore.demographics.get_un_data calls the UN
 # Data Portal API with the token in ./un_api_token.txt and, on any non-200
-# reply, silently reads github.com/EAPD-DRB/Population-Data instead.  The
-# committed run had an empty token file and its log shows the fallback message
-# for every arm, so the recorded g_n came from the GitHub mirror.  A run with a
-# valid token takes the API path, which has not been compared with the recorded
-# values: if the two sources differ, the guard raises.
+# reply, reads github.com/EAPD-DRB/Population-Data instead: it prints a line
+# and does not raise.  The committed run had an empty token file and its log
+# shows the fallback message for every arm, so the recorded g_n came from the
+# GitHub mirror.  A run with a valid token takes the API path, which has not
+# been compared with the recorded values: if the two sources differ, the guard
+# raises.
 G_N_SOURCES = ("vendored", "live")
 G_N_DEFAULT = "vendored"
 # Absolute tolerance on g_n (a growth rate, so 1e-9 = 1e-7 pp): the live and
