@@ -53,16 +53,6 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
           crossOrigin="anonymous"
         />
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
-          crossOrigin="anonymous"
-        />
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-          crossOrigin="anonymous"
-        />
               <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charSet="utf-8" defer />
 </head>
       <body>{children}</body>
