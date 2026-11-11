@@ -219,25 +219,52 @@ def audit(path):
         print(f"    {'K_f gap %':<28}", fmt(pct(kf_a, kf_b)))
         fshare = (kf_a - kf_b) / (A["K"] - B["K"]) * 100
         print(f"    {'foreign share of dK %':<28}", fmt(fshare, 1, False))
-        # income on foreign-owned capital, at the firm's r (assumption: K_f earns r)
-        pay_b, pay_a = B["r"] * kf_b, A["r"] * kf_a
-        print(f"    {'r*K_f / Y %, baseline':<28}", fmt(pay_b / B['Y'] * 100, 2, False))
-        print(f"    {'r*K_f / Y %, arm':<28}", fmt(pay_a / A['Y'] * 100, 2, False))
-        d_pay = (pay_a - pay_b) / B["Y"] * 100
-        print(f"    {'d(r*K_f), % of base GDP':<28}", fmt(d_pay))
-        split_q = B["r"] * (kf_a - kf_b) / B["Y"] * 100
-        print(f"    {'  more K_f at baseline r':<28}", fmt(split_q))
-        gni_b, gni_a = B["Y"] - pay_b, A["Y"] - pay_a
+        # Income paid abroad. OG-Core pays foreigners the portfolio return r_p on
+        # both K_f and D_f (aggregates.get_capital_outflows, fiscal.get_debt_service_f),
+        # with r_p = (r_gov D + r K) / (D + K). D_f follows fiscal.get_D_f: every
+        # arm starts from the same D_f and foreigners take zeta_D of each new issue.
+        def abroad(X, kf, df):
+            rp = ((X["r"] - R_GOV_SHIFT) * X["D"] + X["r"] * X["K"]) / (X["D"] + X["K"])
+            return rp, rp * (kf + df)
+
+        df_b = np.empty(5)
+        df_b[0] = FOREIGN_DEBT_SHARE * B["D"][0]
+        df_a = df_b.copy()
+        for t in range(4):
+            df_b[t + 1] = df_b[t] / grow[t] + ZETA_D * (B["D"][t + 1] - B["D"][t] / grow[t])
+            df_a[t + 1] = df_a[t] / grow[t] + ZETA_D * (A["D"][t + 1] - A["D"][t] / grow[t])
+        rp_b, pay_b = abroad(B, kf_b, df_b)
+        rp_a, pay_a = abroad(A, kf_a, df_a)
+        print(f"    {'r_p %, baseline':<28}", fmt(rp_b * 100, 2, False))
+        print(f"    {'r_p %, arm':<28}", fmt(rp_a * 100, 2, False))
+        print(f"    {'(K_f+D_f)/Y %, baseline':<28}", fmt((kf_b + df_b) / B['Y'] * 100, 1, False))
+        print(f"    {'(K_f+D_f)/Y %, arm':<28}", fmt((kf_a + df_a) / A['Y'] * 100, 1, False))
+        print(f"    {'paid abroad / Y %, baseline':<28}", fmt(pay_b / B['Y'] * 100, 2, False))
+        print(f"    {'paid abroad / Y %, arm':<28}", fmt(pay_a / A['Y'] * 100, 2, False))
+        print(f"    {'d(paid abroad), % base GDP':<28}", fmt((pay_a - pay_b) / B['Y'] * 100))
+        print(f"    {'  of which more K_f, base r_p':<28}",
+              fmt(rp_b * (kf_a - kf_b) / B['Y'] * 100))
         print(f"    {'GDP gap %':<28}", fmt(pct(A['Y'], B['Y'])))
-        print(f"    {'GDP - r*K_f gap %':<28}", fmt(pct(gni_a, gni_b)))
-        # foreign-held government debt: approximation only (D_f path not exported)
-        rg_b, rg_a = B["r"] - R_GOV_SHIFT, A["r"] - R_GOV_SHIFT
-        df_b = FOREIGN_DEBT_SHARE * B["D"]
-        df_a = df_b + ZETA_D * (A["D"] - B["D"])
-        d_debt = (rg_a * df_a - rg_b * df_b) / B["Y"] * 100
-        print(f"    {'d(r_gov*D_f), approx':<28}", fmt(d_debt))
-        print(f"    {'GNI-like gap %, approx':<28}",
-              fmt(pct(gni_a - rg_a * df_a, gni_b - rg_b * df_b)))
+        gni = pct(A["Y"] - pay_a, B["Y"] - pay_b)
+        print(f"    {'GNI gap % (GDP-paid abroad)':<28}", fmt(gni))
+        print(f"    {'GNI gap / GDP gap':<28}", fmt(gni / pct(A['Y'], B['Y']), 2, False))
+        gni_r = pct(A["Y"] - A["r"] * kf_a, B["Y"] - B["r"] * kf_b)
+        print(f"    {'variant: K_f earns r, no D_f':<28}", fmt(gni_r))
+
+        print("[9b] SAME PRODUCTION FUNCTION AT THE SOURCE'S CAPITAL "
+              "(Korinek et al. Table 3: K +13.8%)")
+        y_src = t_term[4] + g[4] * np.log(1.138) + l_term[4]
+        w_src = share[4] + y_src * 100 - np.log(A["L"][4] / B["L"][4]) * 100
+        print(f"    2030 GDP gap {(np.exp(y_src) - 1) * 100:+.2f}% (source +8.3%, model "
+              f"{gap[4]:+.2f}%); wage {(np.exp(w_src / 100) - 1) * 100:+.2f}% "
+              f"(model {pct(A['w'], B['w'])[4]:+.2f}%)")
+        print(f"    source labour income, Table 3: (56.1/60.0)*1.083 - 1 = "
+              f"{(56.1 / 60 * 1.083 - 1) * 100:+.2f}%; "
+              f"model {pct(A['w'] * A['L'], B['w'] * B['L'])[4]:+.2f}%")
+        tax_pp = (A["total_tax_revenue"][4] / A["Y"][4]
+                  - B["total_tax_revenue"][4] / B["Y"][4]) * 100
+        print(f"    tax/GDP rule of thumb (OBR effective rates: 46% wages, 27% profits): "
+              f"{(0.46 - 0.27) * -(g[4] - G_BASE) * 100:+.2f}pp; model {tax_pp:+.2f}pp")
 
         print("[10] DEBT DYNAMICS (r_gov = r - 0.02)")
         for lab, X in [("baseline", B), ("arm", A)]:
