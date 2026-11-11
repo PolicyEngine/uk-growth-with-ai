@@ -3,6 +3,7 @@
   "zk0.1_anthropic_ramp",
   "zk0.1_baseline",
   "zk0.1_obr_ramp",
+  "zk0.5_baseline",
   "zk0_anthropic_ramp",
   "zk0_baseline",
   "zk0_obr_ramp"
@@ -617,6 +618,15 @@
     "K_gap_over_L_gap_2026": 0.1714590483771998,
     "Z_terminal": 0.9428344275229098
    }
+  },
+  "0.5": {
+   "baseline": {
+    "r_2026": 0.036685488121615366,
+    "r_2030": 0.037242980216630125,
+    "Kf_over_K_2030": 0.36840327572059056,
+    "Df_over_D_2030": 0.09861451511440271,
+    "gni_over_gdp_2030": 0.9598717561756549
+   }
   }
  },
  "convergence": {
@@ -663,6 +673,21 @@
     "K_eq_Kd_plus_Kf": 1.1102230246251565e-16,
     "Kd_eq_B_minus_Dd": 0.0,
     "D_eq_Dd_plus_Df": 4.163336342344337e-17
+   }
+  },
+  "zk0.5_baseline": {
+   "tpi_iterations": 8,
+   "tpi_final_distance": 3.35548129992701e-05,
+   "converged": true,
+   "rc_rel_Y_2026": -0.00812440329014759,
+   "rc_rel_Y_max_abs_interior": 0.0007584789158277882,
+   "rc_rel_Y_last": -0.27000215728806704,
+   "euler_savings_max": 6.347811165596795e-12,
+   "euler_labour_max": 1.8953727476400672e-12,
+   "identities_maxabs": {
+    "K_eq_Kd_plus_Kf": 2.220446049250313e-16,
+    "Kd_eq_B_minus_Dd": 0.0,
+    "D_eq_Dd_plus_Df": 5.551115123125783e-17
    }
   },
   "zk0_anthropic_ramp": {
