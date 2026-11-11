@@ -167,3 +167,57 @@ def test_mixed_closures_fail(tmp_path, fixed):
 def test_closure_must_agree_with_assumptions(tmp_path, fixed):
     fixed["assumptions"]["fiscal"] = "every arm uses the baseline's alpha_G"
     assert run_check(tmp_path, fixed) == 1
+
+
+# --- national accounts and plausibility --------------------------------------
+
+def _scale(res, arm, var, factor, year=None):
+    a = np.array(res[arm][var], dtype=float)
+    if year is None:
+        a = a * factor
+    else:
+        a[year] = a[year] * factor
+    res[arm][var] = a.tolist()
+
+
+def test_2026_residual_is_flagged_not_hidden(capsys):
+    assert cli.main(["check", "--results", str(COMMITTED)]) == 0
+    out = capsys.readouterr().out
+    assert out.count("[KNOWN]") == 1 + len(SHOCKED_ARMS)
+    assert "#15" in out and "KNOWN" in out.splitlines()[-1]
+
+
+def test_2026_residual_above_the_known_bound_fails(tmp_path, res):
+    rc = res[ARM]["diagnostics"]["rc_first5"]
+    rc[0] = 0.02 * res[ARM]["Y"][0]          # 2% of GDP
+    assert run_check(tmp_path, res) == 1
+
+
+def test_residual_in_a_later_year_fails(tmp_path, res):
+    rc = res["baseline"]["diagnostics"]["rc_first5"]
+    rc[3] = 0.005 * res["baseline"]["Y"][3]  # 0.5% of GDP in 2029
+    assert run_check(tmp_path, res) == 1
+
+
+def test_implausible_y_minus_c_i_g_fails(tmp_path, res):
+    # Consumption up 20% in 2027 leaves X = Y - C - I - G near -10% of GDP.
+    _scale(res, ARM, "C", 1.2, year=1)
+    assert run_check(tmp_path, res) == 1
+
+
+@pytest.mark.parametrize("var,factor", [("C", -1.0), ("I", -1.0), ("K", -1.0),
+                                        ("w", 0.0)])
+def test_wrong_signs_fail(tmp_path, res, var, factor):
+    _scale(res, ARM, var, factor)
+    assert run_check(tmp_path, res) == 1
+
+
+def test_implausible_interest_rate_fails(tmp_path, res):
+    res[ARM]["r"] = [0.5] * 5
+    assert run_check(tmp_path, res) == 1
+
+
+def test_fast_swing_in_y_minus_c_i_g_is_a_warning(capsys):
+    assert cli.main(["check", "--results", str(COMMITTED)]) == 0
+    out = capsys.readouterr().out
+    assert "[WARN]" in out and "2029->2030" in out

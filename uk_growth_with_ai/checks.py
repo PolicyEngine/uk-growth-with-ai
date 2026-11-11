@@ -41,12 +41,19 @@ DIAGNOSTICS = ("rc_first5", "rc_max_interior", "rc_nonfinite_periods",
 
 
 class _Report:
+    """PASS / FAIL / INFO, plus two counted statuses that do not fail the run:
+    WARN (implausible but not impossible; needs a look) and KNOWN (an open,
+    tracked defect inside its documented bound, e.g. the 2026 residual, #15)."""
+
     def __init__(self):
         self.failed = 0
+        self.flagged = {"WARN": 0, "KNOWN": 0}
 
     def line(self, status, text):
         if status == "FAIL":
             self.failed += 1
+        if status in self.flagged:
+            self.flagged[status] += 1
         print(f"  [{status}] {text}")
 
     def check(self, ok, text):
@@ -197,10 +204,6 @@ def solution_quality(res, arms, r):
         r.check(bool(ok), f"{a}: resource constraint max 2027+ {d['rc_max_interior']:.1e}, "
                           f"Euler {euler:.1e}, non-finite periods {d['rc_nonfinite_periods']}, "
                           f"{res[a].get('elapsed_min', float('nan')):.0f} min")
-        rc0 = d["rc_first5"][0]
-        r.line("INFO", f"{a}: 2026 resource-constraint error {rc0:.1e} "
-                       f"= {rc0 / res[a]['Y'][0] * 100:.2f}% of 2026 GDP "
-                       f"(unresolved, #15: not shown to cancel in the gaps)")
 
 
 def fiscal_closure(res, arms, r) -> bool | None:
@@ -225,6 +228,7 @@ def shocked_checks(res, arms, r):
         return
     b = res["baseline"]
 
+    print("\nFiscal closure recorded by the arms")
     fixed = fiscal_closure(res, arms, r)
     if fixed:
         print("\n#2  Common fiscal policy: G LEVELS identical across arms "
@@ -254,6 +258,98 @@ def shocked_checks(res, arms, r):
         r.line("INFO", f"{a}: " + ", ".join(f"{y} {g:+.2f}" for y, g in zip(YEARS, gap)))
 
 
+# --- national accounts and plausibility (cheap; reads the saved series only) ---
+#
+# The results file saves Y, C, I, G but not net exports, public investment I_g
+# or net capital flows, so Y = C + I + G + NX cannot be closed independently.
+# What can be checked:
+#
+# 1. The model's own resource-constraint error, as recorded per year in
+#    ``diagnostics.rc_first5`` (OG-Core: Y - C - I_d - I_g - G - net capital
+#    outflows + remittances + foreign aid), as a share of that year's Y.
+#    Tolerance RC_TOL = 0.1% of GDP in every reported year. The 2026 error is
+#    ~0.95% of GDP in every arm (#15, unresolved; its sign is not saved, so it
+#    is not shown to cancel in the gaps). It is reported as KNOWN, counted in
+#    the summary, while it stays at or below RC_2026_KNOWN_MAX = 1.0% of GDP;
+#    above that it fails. Any other year over RC_TOL fails. (2028 sits at
+#    ~0.09% in every arm, just inside the tolerance.)
+# 2. The derived residual X = Y - C - I - G (I is total private investment).
+#    X is public investment + the external balance (incl. foreign-owned
+#    investment) + the RC error above; it is NOT net exports. It must stay
+#    within |X/Y| <= X_SHARE_MAX = 6% (UK public investment ~2.5-3% of GDP and
+#    a trade balance of a few % of GDP either way). A year-on-year move in X/Y
+#    over X_STEP_WARN = 2pp is a WARN: nothing in a five-year path should
+#    swing the external balance that fast, but it is a question for the
+#    results audit, not an automatic failure.
+# 3. Signs and shares: Y, C, I, G, K, L, w > 0; 0 < r < 15%; C/Y, I/Y, G/Y
+#    inside SHARE_BANDS (wide: they catch sign flips and unit errors, not
+#    calibration choices).
+RC_TOL = 0.1                 # % of GDP, every reported year
+RC_2026_KNOWN_MAX = 1.0      # % of GDP: the #15 residual is ~0.95%
+X_SHARE_MAX = 6.0            # % of GDP
+X_STEP_WARN = 2.0            # pp of GDP, year on year
+R_BAND = (0.0, 0.15)
+SHARE_BANDS = {"C": (35.0, 75.0), "I": (5.0, 35.0), "G": (10.0, 40.0)}   # % of Y
+
+
+def accounts_checks(res, arms, r):
+    print("\nNational accounts: model resource-constraint error, % of GDP "
+          f"(tolerance {RC_TOL}; 2026 known, #15, bound {RC_2026_KNOWN_MAX})")
+    for a in ["baseline", *arms]:
+        x = res[a]
+        try:
+            rc = np.abs(np.asarray(x["diagnostics"]["rc_first5"], dtype=float))
+        except (TypeError, ValueError):
+            rc = np.array([])
+        if rc.shape != (NPER,) or not np.all(np.isfinite(rc)):
+            r.line("FAIL", f"{a}: diagnostics.rc_first5 is not {NPER} finite values")
+            continue
+        share = rc / np.asarray(x["Y"], dtype=float) * 100
+        r.check(bool(np.all(share[1:] <= RC_TOL)),
+                f"{a}: " + ", ".join(f"{y} {s:.3f}" for y, s in zip(YEARS, share))
+                + f" (2027+ within {RC_TOL})")
+        if share[0] <= RC_TOL:
+            r.line("PASS", f"{a}: 2026 residual {share[0]:.3f}% is within tolerance; "
+                           "if #15 is fixed, drop the KNOWN allowance")
+        elif share[0] <= RC_2026_KNOWN_MAX:
+            r.line("KNOWN", f"{a}: 2026 resource-constraint error {share[0]:.3f}% of GDP "
+                            f"exceeds the {RC_TOL}% tolerance (#15, unresolved; 2026 levels "
+                            "and ratios carry it, and it is not shown to cancel in the gaps)")
+        else:
+            r.line("FAIL", f"{a}: 2026 resource-constraint error {share[0]:.3f}% of GDP "
+                           f"is above the known #15 bound {RC_2026_KNOWN_MAX}%")
+
+    print("\nNational accounts: X = Y - C - I - G, % of GDP "
+          f"(public investment + external balance + RC error; not NX; |X| <= {X_SHARE_MAX})")
+    for a in ["baseline", *arms]:
+        x = {v: np.asarray(res[a][v], dtype=float) for v in ("Y", "C", "I", "G")}
+        cy, iy = x["C"] / x["Y"] * 100, x["I"] / x["Y"] * 100
+        xs = (x["Y"] - x["C"] - x["I"] - x["G"]) / x["Y"] * 100
+        r.check(bool(np.all(np.abs(xs) <= X_SHARE_MAX)),
+                f"{a}: " + ", ".join(f"{y} {v:+.2f}" for y, v in zip(YEARS, xs)))
+        for i in range(NPER - 1):
+            step = xs[i + 1] - xs[i]
+            if abs(step) > X_STEP_WARN:
+                r.line("WARN", f"{a}: X/Y moves {step:+.2f}pp {YEARS[i]}->{YEARS[i + 1]} "
+                               f"(over {X_STEP_WARN}pp); C/Y {cy[i]:.1f} -> {cy[i + 1]:.1f}, "
+                               f"I/Y {iy[i]:.1f} -> {iy[i + 1]:.1f}")
+
+    print("\nSigns and shares (Y, C, I, G, K, L, w > 0; "
+          f"{R_BAND[0]:g} < r < {R_BAND[1]:g}; "
+          + ", ".join(f"{v}/Y {lo:g}-{hi:g}%" for v, (lo, hi) in SHARE_BANDS.items()) + ")")
+    for a in ["baseline", *arms]:
+        x = {v: np.asarray(res[a][v], dtype=float) for v in SERIES}
+        bad = [f"{v} <= 0" for v in ("Y", "C", "I", "G", "K", "L", "w") if np.any(x[v] <= 0)]
+        if np.any(x["r"] <= R_BAND[0]) or np.any(x["r"] >= R_BAND[1]):
+            bad.append(f"r {x['r'].min():.4f} to {x['r'].max():.4f}")
+        for v, (lo, hi) in SHARE_BANDS.items():
+            sh = x[v] / x["Y"] * 100
+            if np.any(sh < lo) or np.any(sh > hi):
+                bad.append(f"{v}/Y {sh.min():.1f} to {sh.max():.1f}%")
+        r.check(not bad, f"{a}: " + ("signs and shares plausible" if not bad
+                                     else "implausible: " + "; ".join(bad)))
+
+
 def main(res, baseline_only=False) -> int:
     r = _Report()
     arms = inventory(res, r, baseline_only=baseline_only)
@@ -261,5 +357,8 @@ def main(res, baseline_only=False) -> int:
         baseline_checks(res, r)
         solution_quality(res, arms, r)
         shocked_checks(res, arms, r)
-    print(f"\n{'ALL CHECKS PASSED' if not r.failed else f'{r.failed} CHECK(S) FAILED'}")
+        accounts_checks(res, arms, r)
+    flagged = ", ".join(f"{n} {k}" for k, n in r.flagged.items() if n)
+    print(f"\n{'ALL CHECKS PASSED' if not r.failed else f'{r.failed} CHECK(S) FAILED'}"
+          + (f" ({flagged}: see above)" if flagged else ""))
     return 1 if r.failed else 0

@@ -105,6 +105,11 @@ python -m uk_growth_with_ai dashboard [--check]
   every arm. It exits 1 if an expected arm (`arms.py`, or the run's recorded
   `arms_requested`) is missing, any arm failed, or the file is malformed (issue #17).
   A baseline-only file must say so: new runs record it, older files need `--baseline-only`.
+  It also checks the national accounts and signs: the model's resource-constraint error
+  in every reported year (0.1% of GDP; the 2026 residual, #15, is reported as KNOWN up
+  to 1.0%), Y − C − I − G (not net exports: public investment and net external flows
+  are not saved), and positivity and share bands. Tolerances are documented in
+  `checks.py`. WARN and KNOWN lines are counted in the summary but do not fail the run.
 * `report` prints the year-by-year gaps, GDP growth, the labour share and, for
   `anthropic_ramp`, the comparison with Korinek et al. Table 3.
 * `obr` compares the no-AI baseline with the OBR's March 2026 EFO: GDP growth
