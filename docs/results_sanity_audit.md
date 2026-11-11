@@ -85,7 +85,7 @@ data (I did not re-read the primary PDFs):
 | Identity | Max error, all arms, 2026–30 | Script section |
 |---|---|---|
 | Y = Z K^γ L^(1−γ) | 2.9e-06 (relative) | `[1]` |
-| wL/Y = 1 − γ | 2.7e-06 | `[1]` |
+| wL/Y = 1 − γ | 2.8e-06 | `[1]` |
 | r = (1 − τ_b) γ Y/K − δ + τ_b δ_τ, with τ_b = 0.175 | 1.6e-06 | `[1]` |
 | K = K_d + ζ_K (K_open − K_d): 2026 capital gap / labour gap | 0.1715 in the model, 0.1715 from the rule, both arms | `[9]` |
 | 2026 gap in domestically owned capital (assets are inherited) | 0.000000% | `[9]` |
@@ -226,7 +226,7 @@ exact.
   external identity (`[9c]`): the residual is **−0.9495%** of GDP in the baseline, −0.9479% in
   `share_shift_tfp` and −0.9445% in `share_shift`. Same sign in every arm. The re-solve on #30
   reports −0.009495 for the baseline, the same number.
-- Across arms it differs by 0.0002–0.0005% of GDP, 400 to 1,000 times smaller than the 2026 GDP
+- Across arms it differs by 0.0002–0.0005% of GDP, about 1,000 times smaller than the 2026 GDP
   gaps.
 - It appears only in 2026 (−0.95%) and 2028 (−0.09%), in the baseline as much as in the shocked
   arms. It is zero to 0.0002% of GDP in 2027, 2029 and 2030.
