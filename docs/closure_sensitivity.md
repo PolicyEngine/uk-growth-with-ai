@@ -29,7 +29,14 @@ Diagnostic reruns for issues #16 (closure / GNI), #15 (2026 resource-constraint 
 - **Interior residuals.** The largest interior residual (2027…T−2) is in 2028 in every run: −0.07% to −0.09% of GDP. Every other interior period is below 0.0006% of GDP.
 - **Final period.** The last period carries OG-UK's known boundary error of −21% to −27% of GDP, which OG-UK's own `RC_TPI = 0.2` override waives (`api.py`).
 
-**7. The period-0 demographics are inconsistent, and the 2028 residual has a candidate cause.** See the section below. OG-Core's shipped pre-period mortality and immigration rates break the pre-period → 2026 population law of motion by up to 5.9% at some ages. The UK-consistent values from the same fetch satisfy it to 2.5e-16. Separately, the 2027 → 2028 transition breaks it by 0.25% under either set of pre-TP inputs. That is where OG-UK's demographic data window ends (`final_data_year = 2028`) and the projection begins, and it lines up with the 2028 resource-constraint residual. The splice is not fixed by the pre-TP patch. PRETP_RESULT
+**7. The period-0 demographics are inconsistent, and the 2028 residual has a candidate cause.** See the section below. OG-Core's shipped pre-period mortality and immigration rates break the pre-period → 2026 population law of motion by up to 5.9% at some ages. The UK-consistent values from the same fetch satisfy it to 2.5e-16. Separately, the 2027 → 2028 transition breaks it by 0.25% under either set of pre-TP inputs. That is where OG-UK's demographic data window ends (`final_data_year = 2028`) and the projection begins, and it lines up with the 2028 resource-constraint residual. The splice is not fixed by the pre-TP patch.
+
+**8. Passing UK-consistent pre-TP demographics removes the 2026 residual (#15).**
+- **The test.** A baseline at `zeta_K = 0.1` with `g_n_preTP`, `rho_preTP` and `imm_rates_preTP` taken from the same UK fetch, with everything else identical (the demographic hashes match).
+- **The 2026 residual.** It goes from −0.9495% to +0.0001% of GDP. The 2028 residual is unchanged (−0.089%), which is consistent with point 7: it has a separate cause.
+- **Levels.** From 2027 on the levels move by less than 0.3% (Y −0.07% to −0.08%, K −0.23% to −0.29%, r about +2bp). The 2026 investment level moves −3.8%, because period-0 investment uses the pre-TP growth and immigration rates.
+- **Not tested here: whether the published gaps survive.** The ramp arms were not re-solved under this baseline. That rerun is R2 on #27. The 2026 investment gap is the number most likely to move.
+- **Convergence.** This path converged with a final distance of 9.85e-5, just inside the 1e-4 tolerance.
 
 ### What this means for the corrective rerun (R3 on #27)
 
