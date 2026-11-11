@@ -296,8 +296,8 @@ export default function ResultsPanel() {
         </ul>
         <p className="headline-foot">
           OG-UK output. Government spending is a fixed share of GDP (<Cv id="fiscal" />: spending held at baseline
-          levels). Most of the added capital is foreign-owned, so GDP is not national income (
-          <Cv id="financing" />). Definitions and caveats: <a href="#scenarios">Scenario design</a>.
+          levels). How the added capital is financed: <Cv id="financing" />. Definitions and caveats:{' '}
+          <a href="#scenarios">Scenario design</a>.
         </p>
       </section>
 
