@@ -269,3 +269,75 @@ def test_fast_swing_in_y_minus_c_i_g_is_a_warning(tmp_path, res, capsys):
 def test_missing_z_fails_without_a_traceback(tmp_path, res, mutate):
     mutate(res)
     assert run_check(tmp_path, res) == 1
+
+
+# --- review of #28: no tracebacks on malformed values, and arm identity -------
+
+def _doctor_requested_null(d): d["arms_requested"] = None
+def _doctor_status_list(d): d["arm_status"] = ["ok"]
+def _doctor_diag_null(d): d[ARM]["diagnostics"]["euler_savings_max"] = None
+def _doctor_diag_string(d): d["baseline"]["diagnostics"]["rc_max_interior"] = "x"
+def _doctor_assumptions_list(d): d["assumptions"] = []
+def _doctor_g_n_string(d): d["baseline"]["g_n_used"] = "abcd"
+def _doctor_gamma_null(d): d["assumptions"]["gamma_shocked"] = None
+def _doctor_y_zero(d): d[ARM]["Y"] = [0.0] * 5
+def _doctor_elapsed_string(d): d[ARM]["elapsed_min"] = "x"
+def _doctor_rc_first5_string(d): d[ARM]["diagnostics"]["rc_first5"] = "x"
+
+
+@pytest.mark.parametrize("doctor", [
+    _doctor_requested_null, _doctor_status_list, _doctor_diag_null,
+    _doctor_diag_string, _doctor_assumptions_list, _doctor_g_n_string,
+    _doctor_gamma_null, _doctor_y_zero, _doctor_elapsed_string,
+    _doctor_rc_first5_string,
+], ids=lambda f: f.__name__.removeprefix("_doctor_"))
+def test_malformed_value_fails_without_a_traceback(tmp_path, res, doctor):
+    """Each of these raised (TypeError, IndexError, ZeroDivisionError, ...)
+    instead of printing a FAIL line."""
+    doctor(res)
+    path = tmp_path / "results.json"
+    path.write_text(json.dumps(res))
+    p = subprocess.run([sys.executable, "-m", "uk_growth_with_ai", "check",
+                        "--results", str(path)], capture_output=True, text=True)
+    assert p.returncode == 1
+    assert "Traceback" not in p.stderr
+    assert "[FAIL]" in p.stdout
+
+
+def test_swapped_arms_fail(tmp_path, res):
+    """Both arms end at the same labour share, so only the recorded Z tells
+    them apart."""
+    res[ARM], res[OTHER] = res[OTHER], res[ARM]
+    assert run_check(tmp_path, res) == 1
+
+
+def test_one_arm_saved_under_both_names_fails(tmp_path, res):
+    res[ARM] = copy.deepcopy(res[OTHER])
+    assert run_check(tmp_path, res) == 1
+
+
+def test_swapped_legacy_arms_fail(tmp_path):
+    """The legacy aliases must not accept an arm under the other's old name."""
+    raw = json.loads(COMMITTED.read_text())
+    raw["obr_ramp"] = raw.pop("share_shift_tfp_ramp")
+    raw["anthropic_ramp"] = raw.pop("share_shift_ramp")
+    assert run_check(tmp_path, raw) == 1
+
+
+def test_legacy_names_in_the_right_place_pass(tmp_path):
+    raw = json.loads(COMMITTED.read_text())
+    raw["obr_ramp"] = raw.pop("share_shift_ramp")
+    raw["anthropic_ramp"] = raw.pop("share_shift_tfp_ramp")
+    a = raw["assumptions"]
+    a["Z_obr"], a["Z_anthropic"] = a.pop("Z_share_shift"), a.pop("Z_share_shift_tfp")
+    assert run_check(tmp_path, raw) == 0
+
+
+def test_wrong_gamma_shape_fails(tmp_path, res):
+    res[ARM]["gamma_shape"] = "step"
+    assert run_check(tmp_path, res) == 1
+
+
+def test_unknown_arm_name_fails(tmp_path, res):
+    res["mystery_ramp"] = copy.deepcopy(res[ARM])
+    assert run_check(tmp_path, res) == 1

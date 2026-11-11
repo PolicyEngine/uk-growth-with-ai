@@ -12,7 +12,14 @@ What makes a file fail (issue #17):
 * any arm carries an ``error`` or a recorded status other than ``ok``, whether
   or not it is an expected arm (so failed step arms are caught too);
 * the file is malformed: no baseline, an arm that is not a dict, a missing
-  series or diagnostic, a series of the wrong length or with non-finite values;
+  series or diagnostic, a series of the wrong length or with non-finite values,
+  a diagnostic that is not a number, or ``arms_requested`` / ``arm_status`` /
+  ``assumptions`` of the wrong type. Anything else that makes a check raise
+  is reported as one FAIL line, not a traceback;
+* a shocked arm is not the arm its name says: its recorded ``Z_terminal``,
+  ``gamma_terminal`` and ``gamma_shape`` must match ``assumptions["Z_<scenario>"]``,
+  ``assumptions["gamma_shocked"]`` and the name's suffix (so two arms saved
+  under each other's names, or one arm saved twice, cannot pass);
 * the baseline's solution diagnostics are bad. The baseline is checked in
   every file, whatever arms it holds;
 * the fiscal invariant of the recorded closure does not hold. Under the default
@@ -39,6 +46,12 @@ META_KEYS = {"provenance", "assumptions", "arms_requested", "arm_status"}
 SERIES = ("Y", "K", "L", "w", "r", "C", "I", "G", "D")
 DIAGNOSTICS = ("rc_first5", "rc_max_interior", "rc_nonfinite_periods",
                "euler_savings_max", "euler_labour_max")
+SHAPES = ("ramp", "step")
+
+
+def _is_number(v) -> bool:
+    return (isinstance(v, (int, float)) and not isinstance(v, bool)
+            and bool(np.isfinite(v)))
 
 
 class _Report:
@@ -83,11 +96,18 @@ def _arm_problems(x) -> list[str]:
             out.append(f"series {v!r} has shape {a.shape}, expected ({NPER},)")
         elif not np.all(np.isfinite(a)):
             out.append(f"series {v!r} has non-finite values")
+        elif v == "Y" and np.any(a <= 0):
+            out.append("series 'Y' has values <= 0 (every ratio divides by it)")
     d = x.get("diagnostics")
     if not isinstance(d, dict):
         out.append("missing 'diagnostics'")
     else:
         out += [f"missing diagnostic {k!r}" for k in DIAGNOSTICS if k not in d]
+        # rc_first5 is a list; accounts_checks validates it.
+        out += [f"diagnostic {k!r} is not a finite number" for k in DIAGNOSTICS
+                if k in d and k != "rc_first5" and not _is_number(d[k])]
+    if "elapsed_min" in x and not _is_number(x["elapsed_min"]):
+        out.append("'elapsed_min' is not a finite number")
     return out
 
 
@@ -111,6 +131,14 @@ def inventory(res, r, baseline_only=False) -> list[str] | None:
         r.line("FAIL", "baseline is malformed: " + "; ".join(bad))
         return None
 
+    requested, status = res.get("arms_requested", []), res.get("arm_status", {})
+    if not (isinstance(requested, list) and all(isinstance(a, str) for a in requested)):
+        r.line("FAIL", "'arms_requested' is not a list of arm names")
+        return None
+    if not (isinstance(status, dict) and all(isinstance(v, str) for v in status.values())):
+        r.line("FAIL", "'arm_status' is not an object of arm name -> status")
+        return None
+
     present = [k for k in res if k not in META_KEYS and k != "baseline"]
     if "arms_requested" in res:
         # The values are arm names, which normalise_arms (keys only) leaves alone.
@@ -129,7 +157,6 @@ def inventory(res, r, baseline_only=False) -> list[str] | None:
         r.check(a in present, f"{a}: required ({source}) and "
                               f"{'present' if a in present else 'MISSING'}")
 
-    status = res.get("arm_status", {})
     ok = []
     for a in present:
         x = res[a]
@@ -170,7 +197,9 @@ def baseline_checks(res, r):
     r.line("INFO", "debt/GDP (model units) " + ", ".join(f"{y} {d:.1f}" for y, d in zip(YEARS, dy)))
 
     print("\n#5  Balanced growth (g_y, g_n) vs OBR potential output")
-    if "g_y_annual_used" in b and "g_n_used" in b and len(b["g_n_used"]) > 3:
+    g_n = b.get("g_n_used")
+    if (_is_number(b.get("g_y_annual_used")) and isinstance(g_n, list)
+            and len(g_n) > 3 and all(_is_number(v) for v in g_n)):
         # Same formula and period as `obr`: growth into 2030 is g_n[3].
         bal = balanced_growth(b["g_y_annual_used"], b["g_n_used"], 3)
         obr = OBR_BASELINE["potential_output_2030"]
@@ -178,7 +207,8 @@ def baseline_checks(res, r):
                 f"balanced growth 2029->30 = {bal:.2f}% vs OBR potential output "
                 f"{obr:.2f}% (within 0.3pp; not the same concept, nearest comparator)")
     else:
-        r.line("FAIL", "baseline does not record g_y_annual_used and g_n_used")
+        r.line("FAIL", "baseline does not record a numeric g_y_annual_used and "
+                       "g_n_used (4+ values)")
 
     print("\nZ re-solved against this baseline")
     a = res.get("assumptions")
@@ -189,6 +219,9 @@ def baseline_checks(res, r):
     # Independent of calibrate.py: at fixed K0, L0 the joint move is
     # Z * (K0/L0)^(gamma1 - gamma0) - 1.
     g1 = a.get("gamma_shocked", 0.389)
+    if not _is_number(g1):
+        r.line("FAIL", "assumptions.gamma_shocked is not a number")
+        return
     fixed_input_gain = lambda Z: (Z * (K0 / L0) ** (g1 - G_BASE) - 1) * 100
     for scen, target in Z_TARGETS.items():
         key = f"Z_{scen}"
@@ -212,7 +245,7 @@ def solution_quality(res, arms, r):
               and euler < 1e-8)
         r.check(bool(ok), f"{a}: resource constraint max 2027+ {d['rc_max_interior']:.1e}, "
                           f"Euler {euler:.1e}, non-finite periods {d['rc_nonfinite_periods']}, "
-                          f"{res[a].get('elapsed_min', float('nan')):.0f} min")
+                          f"{float(res[a].get('elapsed_min', 'nan')):.0f} min")
 
 
 def fiscal_closure(res, arms, r) -> bool | None:
@@ -223,13 +256,48 @@ def fiscal_closure(res, arms, r) -> bool | None:
         r.line("FAIL", f"arms mix fiscal closures: baseline_spending = {flags}")
         return None
     fixed = kinds.pop() if kinds else False
-    fiscal = res.get("assumptions", {}).get("fiscal")
+    a = res.get("assumptions")
+    fiscal = a.get("fiscal") if isinstance(a, dict) else None
     if fiscal is not None:
         says_fixed = "baseline_spending" in fiscal
         r.check(says_fixed == fixed,
                 f"assumptions.fiscal ({fiscal!r}) agrees with the arms' "
                 f"baseline_spending = {fixed}")
     return fixed
+
+
+def arm_identity(res, arms, r):
+    """Each shocked arm must be the arm its name says.
+
+    The series alone cannot tell the two scenarios apart (both end at the same
+    labour share), so without this two arms saved under each other's names, a
+    legacy key mapped onto the wrong name, or one arm saved twice would pass.
+    ``solve.run_arm`` records ``Z_terminal``, ``gamma_terminal`` and
+    ``gamma_shape`` on every arm; they are compared with the Z recorded for
+    the name's scenario, with ``gamma_shocked`` and with the name's suffix.
+    """
+    if not arms:
+        return
+    print("\nEach arm is the arm its name says (recorded Z, gamma and shape)")
+    a = res.get("assumptions")
+    a = a if isinstance(a, dict) else {}
+    for arm in arms:
+        scen, _, shape = arm.rpartition("_")
+        if scen not in Z_TARGETS or shape not in SHAPES:
+            r.line("FAIL", f"{arm}: not a known arm name (<scenario>_<shape>, scenario in "
+                           f"{list(Z_TARGETS)}, shape in {list(SHAPES)})")
+            continue
+        x, bad = res[arm], []
+        z, z_arm = a.get(f"Z_{scen}"), x.get("Z_terminal")
+        if not (_is_number(z) and _is_number(z_arm) and abs(z_arm - z) < 1e-9):
+            bad.append(f"Z_terminal {z_arm!r} is not assumptions.Z_{scen} {z!r}")
+        g, g_arm = a.get("gamma_shocked"), x.get("gamma_terminal")
+        if not (_is_number(g) and _is_number(g_arm) and abs(g_arm - g) < 1e-9):
+            bad.append(f"gamma_terminal {g_arm!r} is not assumptions.gamma_shocked {g!r}")
+        if x.get("gamma_shape") != shape:
+            bad.append(f"gamma_shape {x.get('gamma_shape')!r} is not {shape!r}")
+        r.check(not bad, f"{arm}: " + ("Z_terminal, gamma_terminal and gamma_shape match"
+                                       if not bad else "; ".join(bad)))
 
 
 def shocked_checks(res, arms, r):
@@ -370,10 +438,16 @@ def main(res, baseline_only=False) -> int:
     r = _Report()
     arms = inventory(res, r, baseline_only=baseline_only)
     if arms is not None:
-        baseline_checks(res, r)
-        solution_quality(res, arms, r)
-        shocked_checks(res, arms, r)
-        accounts_checks(res, arms, r)
+        for step in (lambda: baseline_checks(res, r),
+                     lambda: solution_quality(res, arms, r),
+                     lambda: arm_identity(res, arms, r),
+                     lambda: shocked_checks(res, arms, r),
+                     lambda: accounts_checks(res, arms, r)):
+            try:
+                step()
+            except Exception as e:   # a malformed value no validator above names
+                r.line("FAIL", "malformed results file, this group of checks could "
+                               f"not finish: {type(e).__name__}: {e}")
     flagged = ", ".join(f"{n} {k}" for k, n in r.flagged.items() if n)
     print(f"\n{'ALL CHECKS PASSED' if not r.failed else f'{r.failed} CHECK(S) FAILED'}"
           + (f" ({flagged}: see above)" if flagged else ""))
