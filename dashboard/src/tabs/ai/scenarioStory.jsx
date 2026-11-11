@@ -35,8 +35,8 @@ export function Cv({ id, children }) {
   return <CaveatLink id={`caveat-${id}`}>{children ?? `caveat ${caveatNo(id)}`}</CaveatLink>;
 }
 
-const TAX_OBR = taxGdpChangePp('obr_ramp');
-const OBR_Y = gapAt('obr_ramp', 'Y');
+const TAX_OBR = taxGdpChangePp('zero_tfp_ramp');
+const OBR_Y = gapAt('zero_tfp_ramp', 'Y');
 const ext = (href, text) => (
   <a href={href} target="_blank" rel="noreferrer">
     {text}
@@ -103,7 +103,7 @@ const taxPp = (b) => ((1 + b.tax_gap[LAST] / 100) / (1 + b.Y_gap[LAST] / 100) - 
 function FiscalTable() {
   if (!FIXED) return null;
   const rows = [];
-  for (const arm of ['anthropic_ramp', 'obr_ramp']) {
+  for (const arm of ['anthropic_ramp', 'zero_tfp_ramp']) {
     rows.push([arm, 'Spending a fixed share of GDP (main runs)', FIXED.common_gy[arm]]);
     rows.push([arm, 'Spending held at baseline levels', FIXED.arms[arm]]);
   }
@@ -225,8 +225,8 @@ export const STORY_STEPS = [
           A shift of income from labour to capital with <b>no output gain at fixed inputs</b>.
         </p>
         <Scenario
-          color={ARM_META.obr_ramp.color}
-          name={ARM_META.obr_ramp.label}
+          color={ARM_META.zero_tfp_ramp.color}
+          name={ARM_META.zero_tfp_ramp.label}
           tag="automation"
           enters={
             <>
@@ -381,9 +381,9 @@ export const STORY_STEPS = [
               <>
                 {' '}
                 With spending held at baseline levels instead, debt/GDP in {LAST_YEAR} in Automation only{' '}
-                {debtPp('arms', 'obr_ramp') < 0 ? 'falls' : 'rises'} ({signed(debtPp('arms', 'obr_ramp'), 2)}pp)
-                rather than {debtPp('common_gy', 'obr_ramp') > 0 ? 'rising' : 'falling'} (
-                {signed(debtPp('common_gy', 'obr_ramp'), 2)}pp).
+                {debtPp('arms', 'zero_tfp_ramp') < 0 ? 'falls' : 'rises'} ({signed(debtPp('arms', 'zero_tfp_ramp'), 2)}pp)
+                rather than {debtPp('common_gy', 'zero_tfp_ramp') > 0 ? 'rising' : 'falling'} (
+                {signed(debtPp('common_gy', 'zero_tfp_ramp'), 2)}pp).
                 <FiscalTable />
                 <span className="note-box" style={{ display: 'block' }}>
                   Tax/GDP uses the model baseline&rsquo;s {taxGdpBase().toFixed(1)}% in {LAST_YEAR}.
@@ -467,7 +467,7 @@ export const STORY_STEPS = [
 const i = (text, cls = 'info', icon = '\\(\\to\\)') => ({ icon, text, cls });
 const fsLine = (conv, label) =>
   FIXED
-    ? [i(`${label}: Automation + productivity ${signed(debtPp(conv, 'anthropic_ramp'), 2)}pp, Automation only ${signed(debtPp(conv, 'obr_ramp'), 2)}pp`, 'info', '=')]
+    ? [i(`${label}: Automation + productivity ${signed(debtPp(conv, 'anthropic_ramp'), 2)}pp, Automation only ${signed(debtPp(conv, 'zero_tfp_ramp'), 2)}pp`, 'info', '=')]
     : [];
 
 const V = (text) => i(text, 'info', '=');
@@ -512,7 +512,7 @@ export const STORY_PANELS = [
       i('Population: UN World Population Prospects, UK'),
     ]},
   ]},
-  { title: ARM_META.obr_ramp.label, badge: 'Scenario 2', sections: [
+  { title: ARM_META.zero_tfp_ramp.label, badge: 'Scenario 2', sections: [
     { label: 'Target: no output gain at fixed inputs (τ = 0)', type: 'math', equations: [
       { label: 'At baseline K₀, L₀', tex: 'Z^{*} K_0^{\\gamma_1} L_0^{1-\\gamma_1} = K_0^{\\gamma_0} L_0^{1-\\gamma_0}' },
       { label: 'Solved', tex: 'Z^{*} = (K_0/L_0)^{-(\\gamma_1-\\gamma_0)}' },

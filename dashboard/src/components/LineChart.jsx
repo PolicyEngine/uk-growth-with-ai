@@ -58,6 +58,7 @@ export default function LineChart({
   strip = null,
   height = 360,
   valueFormat = (v) => v.toFixed(1),
+  yUnit = null,
   ariaLabel,
 }) {
   const [ref, W] = useWidth(880);
@@ -87,7 +88,7 @@ export default function LineChart({
   );
   const labelW = Math.min(Math.max(labelChars * 6.6 + 18, 130), W * 0.42);
   const stripW = strip ? STRIP_W : 0;
-  const L = PAD_L;
+  const L = yUnit ? PAD_L + 16 : PAD_L;
   const R = Math.max(L + 80, W - labelW - stripW - 8);
   const TOP = PAD_T;
   const BOT = height - PAD_B;
@@ -97,6 +98,17 @@ export default function LineChart({
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   const stripX = R + stripW / 2 + 4;
   const labelX = R + stripW + 14;
+
+  // Where a strip point's marker sits. Two points pushed to the same axis
+  // edge would be drawn on top of each other, so each off-scale point after
+  // the first is offset one row along that edge. The label stack reads the
+  // same function, so the leader line always points at its own marker.
+  const points = strip?.points || [];
+  function stripY(p, pi) {
+    if (!p.offScale) return sy(p.value);
+    const rank = points.filter((q, qi) => q.offScale === p.offScale && qi < pi).length;
+    return p.offScale === 'high' ? TOP + 12 + rank * ROW : BOT - rank * ROW;
+  }
 
   // Every end label (series ends and strip points), stacked so none overlap.
   const labels = [
@@ -110,7 +122,7 @@ export default function LineChart({
       ax: R,
       y: sy(s.values[s.values.length - 1]),
     })),
-    ...(strip?.points || []).map((p) => ({
+    ...points.map((p, pi) => ({
       key: `p-${p.label}`,
       text: p.label,
       value: p.value,
@@ -118,7 +130,7 @@ export default function LineChart({
       strong: false,
       offScale: p.offScale,
       ax: stripX,
-      y: p.offScale ? (p.offScale === 'high' ? TOP + 12 : BOT) : sy(p.value),
+      y: stripY(p, pi),
     })),
   ].sort((a, b) => a.y - b.y);
   let prev = -Infinity;
@@ -149,6 +161,15 @@ export default function LineChart({
           </g>
         ))}
         <line x1={L} y1={BOT} x2={R} y2={BOT} className="axis-line" />
+        {yUnit ? (
+          <text
+            className="ax axis-unit"
+            transform={`translate(${L - 36}, ${(TOP + BOT) / 2}) rotate(-90)`}
+            textAnchor="middle"
+          >
+            {yUnit}
+          </text>
+        ) : null}
         {x.map((yr, i) => (
           <text key={yr} x={sx(i)} y={BOT + 20} className="ax" textAnchor="middle">
             {yr}
@@ -176,9 +197,9 @@ export default function LineChart({
             ))}
           </g>
         ))}
-        {(strip?.points || []).map((p) => {
+        {points.map((p, pi) => {
           const up = p.offScale === 'high';
-          const cy = p.offScale ? (up ? TOP + 12 : BOT) : sy(p.value);
+          const cy = stripY(p, pi);
           return (
             <g key={p.label}>
               <circle cx={stripX} cy={cy} r="4" fill="var(--pe-color-bg-primary)" stroke={p.color} strokeWidth="2" />

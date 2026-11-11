@@ -25,7 +25,7 @@ const LABELS = {
   D: 'Debt',
 };
 const OPTIONS = VAR_ORDER.map((v) => ({ value: v, label: LABELS[v] }));
-const SHOCKED = ['anthropic_ramp', 'obr_ramp'];
+const SHOCKED = ['anthropic_ramp', 'zero_tfp_ramp'];
 
 // Line swatch, same vocabulary as the shared .plot-legend.
 function Sw({ c, dashed }) {
@@ -62,7 +62,7 @@ const pctS = (x, dp = 1) => `${signed(x, dp)}%`;
 // Growth accounting for the 2030 GDP gap, in log points: TFP (ln(1+tau), the
 // fixed-input gain the scenario is calibrated to), capital (gamma_1 x the
 // log capital gap) and labour ((1 - gamma_1) x the log labour gap).
-const TAU = { obr_ramp: 0, anthropic_ramp: KORINEK.tfp / 100 };
+const TAU = { zero_tfp_ramp: 0, anthropic_ramp: KORINEK.tfp / 100 };
 const lgap = (a, v) => Math.log(D.idx[a][v][LAST] / D.idx.baseline[v][LAST]) * 100;
 function decomp(a) {
   return { tfp: Math.log(1 + TAU[a]) * 100, capital: G1 * lgap(a, 'K'), labour: (1 - G1) * lgap(a, 'L') };
@@ -71,7 +71,7 @@ const outputPerLabour = (a) => ((1 + gapAt(a, 'Y') / 100) / (1 + gapAt(a, 'L') /
 
 // Effect table: % difference from the no-AI baseline by variable, with a
 // 2026-2030 sparkline per scenario.
-const SHOCKED_ORDER = ['obr_ramp', 'anthropic_ramp'];
+const SHOCKED_ORDER = ['zero_tfp_ramp', 'anthropic_ramp'];
 const EFFECT_GROUPS = [
   { title: 'Output and demand', rows: [['Y', 'GDP'], ['C', 'Consumption'], ['I', 'Investment']] },
   { title: 'Factors', rows: [['K', 'Capital stock'], ['L', 'Labour'], ['w', 'Average wage']] },
@@ -188,7 +188,7 @@ export default function ResultsPanel() {
   // Investment-led gain (referee M10).
   const cBelow = belowIdx('anthropic_ramp', 'C');
   const cBelowThrough = cBelow.length && cBelow.every((v, k) => v === k) ? YEARS[cBelow[cBelow.length - 1]] : null;
-  const cObrAlwaysBelow = belowIdx('obr_ramp', 'C').length === YEARS.length;
+  const cObrAlwaysBelow = belowIdx('zero_tfp_ramp', 'C').length === YEARS.length;
   const wagesAlwaysBelow = SHOCKED.every((a) => belowIdx(a, 'w').length === YEARS.length);
 
   // GDP against the no-AI path: UK lines, US 2030 endpoints in the strip.
@@ -216,7 +216,7 @@ export default function ResultsPanel() {
     }
     return `above US ${usSorted[usSorted.length - 1][0]}`;
   };
-  const gdpPositionText = `${ARM_META.anthropic_ramp.label} lies ${position(gapAt('anthropic_ramp', 'Y'))}, and ${ARM_META.obr_ramp.label} ${position(gapAt('obr_ramp', 'Y'))}`;
+  const gdpPositionText = `${ARM_META.anthropic_ramp.label} lies ${position(gapAt('anthropic_ramp', 'Y'))}, and ${ARM_META.zero_tfp_ramp.label} ${position(gapAt('zero_tfp_ramp', 'Y'))}`;
 
   // Labour share: the two UK AI scenarios share one gamma path, so one line.
   const lsSeries = [
@@ -257,10 +257,10 @@ export default function ResultsPanel() {
             color={ARM_META.anthropic_ramp.color}
           />
           <Kpi
-            value={pctS(gapAt('obr_ramp', 'Y'))}
-            label={ARM_META.obr_ramp.label}
+            value={pctS(gapAt('zero_tfp_ramp', 'Y'))}
+            label={ARM_META.zero_tfp_ramp.label}
             sub={`UK GDP against the no-AI baseline, ${LAST_YEAR}`}
-            color={ARM_META.obr_ramp.color}
+            color={ARM_META.zero_tfp_ramp.color}
           />
           <Kpi
             value={`${signed(growthIncrement('anthropic_ramp'))}pp`}
@@ -328,7 +328,9 @@ export default function ResultsPanel() {
                 </tr>,
                 ...g.rows.map((r) => (
                   <tr key={r.key}>
-                    <td>{r.label}</td>
+                    <th scope="row" className="effect-row-head">
+                      {r.label}
+                    </th>
                     {SHOCKED_ORDER.map((a) => {
                       const vals = effectPath(r, a);
                       return (
@@ -355,9 +357,6 @@ export default function ResultsPanel() {
               Difference from the no-AI baseline: % for levels, pp for the labour share and growth. {FIRST_YEAR}{' '}
               values: <Cv id="accounting" />.
             </div>
-            <div>
-              Government consumption moves one-for-one with GDP by construction (<Cv id="fiscal" />).
-            </div>
           </div>
           <a href="#growth" className="csv-link" onClick={downloadCsv}>
             Download CSV
@@ -369,13 +368,13 @@ export default function ResultsPanel() {
             <b>Sources of the GDP gain</b> (log points, {LAST_YEAR}): with productivity gains,{' '}
             {decomp('anthropic_ramp').tfp.toFixed(1)} from TFP and {decomp('anthropic_ramp').capital.toFixed(1)} from
             capital deepening, less {Math.abs(decomp('anthropic_ramp').labour).toFixed(1)} from lower labour input;
-            with automation only, {decomp('obr_ramp').capital.toFixed(1)} from capital deepening, less{' '}
-            {Math.abs(decomp('obr_ramp').labour).toFixed(1)} from labour input.
+            with automation only, {decomp('zero_tfp_ramp').capital.toFixed(1)} from capital deepening, less{' '}
+            {Math.abs(decomp('zero_tfp_ramp').labour).toFixed(1)} from labour input.
           </li>
           <li>
             <b>Wages</b> follow the labour share and output per unit of labour: the labour share falls by{' '}
             {((LS_FALL / LS0) * 100).toFixed(1)}% in proportion, while output per unit of labour rises{' '}
-            {outputPerLabour('obr_ramp').toFixed(1)}% with automation only and {outputPerLabour('anthropic_ramp').toFixed(1)}%
+            {outputPerLabour('zero_tfp_ramp').toFixed(1)}% with automation only and {outputPerLabour('anthropic_ramp').toFixed(1)}%
             with productivity gains, so wages fall with automation only and change little with productivity gains.
           </li>
           <li>
@@ -403,12 +402,19 @@ export default function ResultsPanel() {
           />
           {selector}
           <div className="chart-slot">
-            <LineChart x={YEARS} series={series} height={380} ariaLabel={`${LABELS[variable]} index by scenario`} />
+            <LineChart
+              x={YEARS}
+              series={series}
+              height={380}
+              yUnit={`Index (${FIRST_YEAR} no-AI = 100)`}
+              ariaLabel={`${LABELS[variable]} index by scenario`}
+            />
           </div>
           <div className="chart-foot">
             <ArmLegend />
             <p className="chart-note">
-              The AI scenarios start away from 100 because of anticipation (<Cv id="anticipation" />).
+              The vertical axis does not start at zero. The AI scenarios start away from 100 because of
+              anticipation (<Cv id="anticipation" />).
               {variable === 'I' ? (
                 <>
                   {' '}
@@ -454,6 +460,7 @@ export default function ResultsPanel() {
               series={gapSeries}
               strip={gapStrip}
               height={340}
+              yUnit="% vs the no-AI path"
               ariaLabel={`GDP against the no-AI path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>
@@ -466,6 +473,7 @@ export default function ResultsPanel() {
               series={lsSeries}
               strip={lsStrip}
               height={340}
+              yUnit="Labour share (% of income)"
               ariaLabel={`Labour share by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>

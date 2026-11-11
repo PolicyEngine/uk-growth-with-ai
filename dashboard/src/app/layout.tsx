@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './panels.css';
 
-const SITE_URL = 'https://og-model-dashboard.vercel.app';
+const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = 'The Macroeconomic Effects of AI on the UK';
 const DESCRIPTION =
   'Two AI scenarios — Anthropic’s substantial case and the OBR’s technological-displacement case — run through OG-UK, the UK overlapping-generations model, 2026–2030. One sector.';
@@ -29,7 +29,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2C6496',
+  // A literal is required: viewport metadata cannot read a CSS variable.
+  // Keep in step with --pe-color-primary-700 in globals.css.
+  themeColor: '#285E61',
   width: 'device-width',
   initialScale: 1,
 };
