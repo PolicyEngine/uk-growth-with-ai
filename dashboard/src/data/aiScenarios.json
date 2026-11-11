@@ -8,7 +8,7 @@
  ],
  "arms": [
   "baseline",
-  "obr_ramp",
+  "zero_tfp_ramp",
   "anthropic_ramp"
  ],
  "vars": [
@@ -115,7 +115,7 @@
     103.00096676204559
    ]
   },
-  "obr_ramp": {
+  "zero_tfp_ramp": {
    "C": [
     98.65571278395667,
     99.93416027426659,
@@ -254,7 +254,7 @@
    0.6499996230328305,
    0.6499994184679632
   ],
-  "obr_ramp": [
+  "zero_tfp_ramp": [
    0.6500020121067305,
    0.640250487650595,
    0.630498861401481,
@@ -276,7 +276,7 @@
    1.6657315867634637,
    1.6441392247072084
   ],
-  "obr_ramp": [
+  "zero_tfp_ramp": [
    2.0490176330295595,
    1.8332688688118548,
    1.8699907868305443,
@@ -317,9 +317,9 @@
   "gamma_shocked": 0.389,
   "gamma_only_output_gain": 0.06063161336532885,
   "Z_anthropic": 0.9720622947761199,
-  "Z_obr": 0.9428344275229098,
+  "Z_zero_tfp": 0.9428344275229098,
   "anthropic_target": "labour share -3.9pp and +3.1% measured TFP (Table 3)",
-  "obr_target": "labour share -3.9pp with the GDP LEVEL unchanged (March 2026 EFO Box 2.2)",
+  "zero_tfp_target": "labour share -3.9pp with the GDP LEVEL unchanged (March 2026 EFO Box 2.2)",
   "counterfactual": "shocked arms inherit baseline initial assets and debt",
   "fiscal": "every arm uses the baseline's alpha_G",
   "tG1": 10,
@@ -340,7 +340,7 @@
  "fixed_spending": {
   "note": "shocked arms hold G and TR at the baseline's levels (baseline_spending)",
   "arms": {
-   "obr_ramp": {
+   "zero_tfp_ramp": {
     "Y_gap": [
      0.5873772608141259,
      0.8440078947920648,
@@ -444,7 +444,7 @@
    }
   },
   "common_gy": {
-   "obr_ramp": {
+   "zero_tfp_ramp": {
     "Y_gap": [
      0.577078578304735,
      0.8171134928571133,

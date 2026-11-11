@@ -217,7 +217,7 @@
    0.3126213370811369
   ]
  },
- "obr_ramp": {
+ "zero_tfp_ramp": {
   "gamma_terminal": 0.389,
   "gamma_shape": "ramp",
   "Z_terminal": 0.9428344275229098,

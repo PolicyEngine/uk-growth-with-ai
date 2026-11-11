@@ -1,0 +1,30 @@
+{
+ "_what": "The population growth rates g_n that the committed OG-UK run actually used, vendored so a re-run does not depend on a live UN World Population Prospects fetch.",
+ "_provenance": {
+  "source": "results/scenarios.json -> baseline.g_n_used, i.e. p.g_n[:5] as recorded by uk_growth_with_ai.solve.run_arm for the committed baseline",
+  "run_utc": "2026-09-26T16:26:55Z",
+  "oguk_git_sha": "d0e6ae535da4ffbface55f0e64fb2074583a46a6",
+  "ogcore_version": "0.17.0",
+  "years": [
+   2026,
+   2027,
+   2028,
+   2029,
+   2030
+  ],
+  "note": "OG-Core's g_n[t] is growth from t to t+1."
+ },
+ "_limitations": [
+  "Only the first 5 periods were ever recorded. OG-Core needs g_n over T+S periods, so the tail of the path the committed run used is NOT recoverable from anything in this repository. The override therefore replaces ONLY g_n[:5] on the Specifications object built by oguk.api._build_specs and leaves the tail as fetched: OG-Core lands the population path on its steady state (TPI uses p.g_n[:T-1] then p.g_n_ss; SS uses p.g_n_ss), and g_n_ss was never recorded, so holding a flat vendored tail against a live g_n_ss would put a population-growth mismatch at the terminal boundary.",
+  "g_n is only one of several objects oguk.api._build_specs takes from the same live demographic fetch. omega, omega_SS, omega_S_preTP, rho, imm_rates and g_n_ss were not recorded and are still fetched live, so the solve is NOT network-free: only the reported window's g_n is pinned, and it is not guaranteed mutually consistent with the population weights the aggregates use.",
+  "The recorded path is FLAT at about 0.77%/yr (0.771% in 2026, 0.760% in 2030). OG-UK's own vendored default in og_uk_params.json DECLINES (0.748% -> 0.625%), and the OBR's labour-supply growth declines faster still, to 0.5% by 2030 (March 2026 EFO para 1.9). docs/OG_UK_OBR_COMPARISON.md describes a declining path and is stale: it was written against the vendored default, not against what the run used. The array below is what the run used (flat). Substituting a declining path is a modelling decision, not a fix, and is left open (see .audit/07-calibration-sensitivity.md section 3)."
+ ],
+ "g_n_tail": "live (not vendored; only g_n[:5] is pinned)",
+ "g_n": [
+  0.007705776427232723,
+  0.007794693786592977,
+  0.007750322731617343,
+  0.007582663037360852,
+  0.007600471175836231
+ ]
+}

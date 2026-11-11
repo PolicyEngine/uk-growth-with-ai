@@ -25,7 +25,7 @@ VARS = [("C", "Consumption"), ("I", "Investment"), ("G", "Government"),
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
 
-ARMS = ["anthropic_ramp", "obr_ramp"]
+ARMS = ["anthropic_ramp", "zero_tfp_ramp"]
 
 # Which trend each variable carries; anything not listed carries both.
 TREND = {"w": "productivity", "L": "population", "r": None}

@@ -25,13 +25,13 @@ from pathlib import Path
 
 import numpy as np
 
-from .data_access import DATA, load_results, load_trend_params
+from .data_access import DATA, load_results, load_trend_params, normalise_arms
 from .report import growth_path, labour_share, trend
 
 DASHBOARD_DATA = Path(__file__).resolve().parent.parent / "dashboard" / "src" / "data"
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
-ARMS = ["baseline", "obr_ramp", "anthropic_ramp"]
+ARMS = ["baseline", "zero_tfp_ramp", "anthropic_ramp"]
 VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
         ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]
@@ -40,7 +40,7 @@ VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
 PATH_YEARS = YEARS
 ARM_TRACE = {
     "baseline": ("No AI", "#5a6470"),
-    "obr_ramp": ("Automation only", "#2f6fb5"),
+    "zero_tfp_ramp": ("Automation only", "#2f6fb5"),
     "anthropic_ramp": ("Automation + productivity", "#1d7a4c"),
 }
 
@@ -106,7 +106,7 @@ def fixed_spending(results=None) -> dict | None:
     path = DATA / "scenarios_fixed_spending.json"
     if not path.exists():
         return None
-    fs = json.loads(path.read_text())
+    fs = normalise_arms(json.loads(path.read_text()))
     res = results if results is not None else load_results()
 
     def block(r, arm):

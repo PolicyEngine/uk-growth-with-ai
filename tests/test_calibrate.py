@@ -4,7 +4,7 @@ import pytest
 
 from uk_growth_with_ai import (
     ANTHROPIC,
-    OBR,
+    ZERO_TFP,
     gamma_for_labour_share_fall,
     gamma_only_gain,
     load_results,
@@ -42,14 +42,14 @@ def test_z_solvers_match_committed_values():
     gonly = ASSUM["gamma_only_output_gain"]
     assert z_for_tfp_gain(gonly, ANTHROPIC.tfp_gain) == \
         pytest.approx(ASSUM["Z_anthropic"], abs=1e-12)
-    assert z_for_gdp_level(gonly, OBR.gdp_level_change) == \
-        pytest.approx(ASSUM["Z_obr"], abs=1e-12)
+    assert z_for_gdp_level(gonly, ZERO_TFP.gdp_level_change) == \
+        pytest.approx(ASSUM["Z_zero_tfp"], abs=1e-12)
     # Both below 1: the gamma move alone overshoots the technology target.
-    assert ASSUM["Z_anthropic"] < 1.0 and ASSUM["Z_obr"] < 1.0
+    assert ASSUM["Z_anthropic"] < 1.0 and ASSUM["Z_zero_tfp"] < 1.0
 
 
 def test_solve_scenario_end_to_end():
-    for scen, key in ((ANTHROPIC, "Z_anthropic"), (OBR, "Z_obr")):
+    for scen, key in ((ANTHROPIC, "Z_anthropic"), (ZERO_TFP, "Z_zero_tfp")):
         out = solve_scenario(scen, K0, L0, G_BASE)
         assert out["gamma"] == pytest.approx(ASSUM["gamma_shocked"], abs=1e-12)
         assert out["Z"] == pytest.approx(ASSUM[key], abs=1e-12)

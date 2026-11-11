@@ -34,7 +34,16 @@ from pathlib import Path
 import numpy as np
 
 from .calibrate import solve_scenario
+from .data_access import load_committed_g_n
 from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, RAMP_YEARS, SCENARIOS, START, TG1
+
+# Demographics are the one input OG-UK fetches over the network at run time
+# (oguk.api._build_specs -> demographics.get_pop_objs, a UN WPP call), so the
+# published headline was not reproducible: the demographic input was a function
+# of the date the run happened, not of anything committed.  "vendored" pins g_n
+# to data/g_n_committed_run.json, the path the committed run recorded.
+G_N_SOURCES = ("vendored", "live")
+G_N_DEFAULT = "vendored"
 
 
 # Written next to the caller by default: `run` must not clobber the committed,
@@ -110,12 +119,20 @@ def diagnostics(tpi: dict, p) -> dict:
 
 def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
-            baseline_spending=False) -> dict:
+            baseline_spending=False, g_n_source=G_N_DEFAULT) -> dict:
     """Solve SS and TPI for one arm.
 
     ``alpha_G``: G/Y along the transition. None (the baseline) sets it to the
     arm's own steady-state G/Y; shocked arms pass the baseline's so fiscal
     policy is common across arms (issue #2).
+
+    ``g_n_source``: "vendored" (default) passes the committed run's g_n path as
+    an explicit override, so the reported window does not depend on a live UN
+    fetch; "live" keeps OG-UK's run-time fetch.  Two caveats, both recorded in
+    ``data/g_n_committed_run.json``: only 5 periods were recorded, so only the
+    reported window is pinned and the tail is left as fetched; and omega,
+    imm_rates and g_n_ss come from the same fetch and were never recorded, so
+    the solve is not network-free either way.
 
     ``baseline_spending`` (shocked arms only): hold government spending and
     transfers at the baseline's LEVELS instead of its G/Y share, the OBR
@@ -129,22 +146,57 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     print(f"\n=== {name} ===", flush=True)
     # baseline_dir=base_dir with baseline=False is what makes the shocked arms
     # inherit the baseline's initial assets and debt.
+    if g_n_source not in G_N_SOURCES:
+        raise ValueError(f"g_n_source must be one of {G_N_SOURCES}")
     p = api._build_specs(START, None, out_dir, base_dir, baseline=baseline,
                          age_specific="pooled", multi_sector=False,
                          param_overrides={"epsilon": [EPS], "gamma": [gamma_val],
                                           "tG1": tG1, "g_y_annual": g_y_annual})
+    if g_n_source == "vendored":
+        # Pin ONLY the reported window, after _build_specs, the same way gamma, Z
+        # and alpha_G are set.  The tail is deliberately left as fetched: OG-Core
+        # lands the population path on its steady state (TPI uses p.g_n[:T-1] then
+        # p.g_n_ss, SS uses p.g_n_ss -- ogcore/aggregates.py:90, 157), and g_n_ss
+        # was never recorded, so holding a flat vendored tail against a live
+        # g_n_ss would put a population-growth mismatch at the terminal boundary.
+        g_n = np.asarray(p.g_n, dtype=float).copy()
+        g_n[:NPER] = load_committed_g_n(NPER)
+        p.g_n = g_n
+        print(f"  g_n: first {NPER} periods VENDORED from "
+              "data/g_n_committed_run.json; the tail and g_n_ss are still the "
+              "live UN fetch (never recorded), as are omega/imm_rates, so the "
+              "solve is not network-free and only the reported window is pinned.",
+              flush=True)
+    else:
+        print("  g_n: LIVE UN fetch throughout -- not reproducible", flush=True)
     p.TPI_outer_method = "anderson"
     if baseline_spending and not baseline:
         p.baseline_spending = True   # reads G, TR, I_g from base_dir's TPI output
     T = p.T + p.S
     up = np.minimum(np.arange(T) / RAMP_YEARS, 1.0)[:, None]
-    if ramp:
-        # time-varying gamma: needs patches/ogcore-0.17.0-firm-gamma-tv.diff
+    if z_terminal is not None:
+        # Z must be paired with the SHAPE of the gamma path.  Before this fix the
+        # Z block sat outside `if ramp`, so a step arm (gamma already stepped to
+        # its terminal value by param_overrides) ran with Z = 1.0 at t = 0: the
+        # pure-gamma output gain was left un-offset and the arm reported the
+        # +6.06% units wedge instead of its calibrated target.  Committed results
+        # are ramp-only so no published number moves, but `run_scenarios`'
+        # default is shapes="both" (the CLI's is "ramp"), so any step run was
+        # wrong and nothing caught it (.audit/02-code-correctness.md section 1).
+        if ramp:
+            # time-varying gamma: needs patches/ogcore-0.17.0-firm-gamma-tv.diff
+            p.gamma = G_BASE + up * (gamma_val - G_BASE)
+            p.Z = 1.0 + up * (z_terminal - 1.0)
+            print(f"  gamma ramps {G_BASE} -> {gamma_val}", flush=True)
+            print(f"  Z ramps 1.0 -> {z_terminal:.6f}", flush=True)
+        else:
+            # stepped gamma: Z steps with it, from t = 0.
+            p.Z = np.full_like(up, z_terminal)
+            print(f"  gamma steps to {gamma_val} (param_overrides), "
+                  f"Z steps to {z_terminal:.6f}", flush=True)
+    elif ramp:
         p.gamma = G_BASE + up * (gamma_val - G_BASE)
         print(f"  gamma ramps {G_BASE} -> {gamma_val}", flush=True)
-    if z_terminal is not None:
-        p.Z = 1.0 + up * (z_terminal - 1.0)
-        print(f"  Z ramps 1.0 -> {z_terminal:.6f}", flush=True)
     print(f"  baseline={baseline}, initial state "
           f"{'own' if baseline else 'INHERITED from baseline'}", flush=True)
     ss = SS.run_SS(p, client=client)
@@ -159,6 +211,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     with open(os.path.join(out_dir, "TPI", "TPI_vars.pkl"), "rb") as f:
         tpi = pickle.load(f)
     rec = {
+        "g_n_source": g_n_source,
+        "g_n_tail": "live",   # only g_n[:NPER] is ever vendored
         "gamma_terminal": gamma_val, "gamma_shape": "ramp" if ramp else "step",
         "Z_terminal": z_terminal, "elapsed_min": (time.time() - t0) / 60,
         "ss_labour_share": float(ss["w"] * ss["L"] / ss["Y"]),
@@ -179,7 +233,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
 
 
 def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False,
-                  tG1=TG1, g_y_annual=G_Y_ANNUAL, baseline_spending=False) -> dict:
+                  tG1=TG1, g_y_annual=G_Y_ANNUAL, baseline_spending=False,
+                  g_n_source=G_N_DEFAULT) -> dict:
     """Run the baseline plus the requested shocked arms, writing ``out`` as it goes."""
     handles = _load_oguk()
     TPI, SS, api, Client, LocalCluster = handles
@@ -194,7 +249,7 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
         os.makedirs(os.path.join(base_dir, sub), exist_ok=True)
 
     res = {"provenance": provenance(TPI, api)}
-    settings = {"tG1": tG1, "g_y_annual": g_y_annual}
+    settings = {"tG1": tG1, "g_y_annual": g_y_annual, "g_n_source": g_n_source}
     res["baseline"] = run_arm("baseline", G_BASE, False, None, base_dir, client,
                               handles, baseline=True, **settings)
     out.write_text(json.dumps(res, indent=1))
@@ -209,18 +264,19 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
     print(f"\ngamma for a {SCENARIOS['anthropic'].labour_share_fall_pp}pp "
           f"labour-share fall: {g_ai:.4f}"
           f"\ngamma-only output gain at baseline inputs: {gonly*100:+.4f}%"
-          f"\n  Z solved, anthropic (+3.1% joint) : {cal['anthropic']['Z']:.6f}"
-          f"\n  Z solved, obr (GDP level unchanged): {cal['obr']['Z']:.6f}", flush=True)
+          f"\n  Z solved, anthropic (+3.1% joint)   : {cal['anthropic']['Z']:.6f}"
+          f"\n  Z solved, zero_tfp (zero tech wedge): {cal['zero_tfp']['Z']:.6f}", flush=True)
 
     if baseline_only:
-        res["assumptions"] = {"Z_anthropic": cal["anthropic"]["Z"], "Z_obr": cal["obr"]["Z"],
+        res["assumptions"] = {"Z_anthropic": cal["anthropic"]["Z"],
+                              "Z_zero_tfp": cal["zero_tfp"]["Z"],
                               "gamma_only_output_gain": gonly, **settings}
         out.write_text(json.dumps(res, indent=1))
         print("\nBASELINE ONLY: stopping before the shocked arms", flush=True)
         return res
 
     ramps = [False, True] if shapes == "both" else [shapes == "ramp"]
-    plan = [n for n in ("anthropic", "obr") if only in (None, n)]
+    plan = [n for n in ("anthropic", "zero_tfp") if only in (None, n)]
     for scen in plan:
         for ramp in ramps:
             key = f"{scen}_{'ramp' if ramp else 'step'}"
@@ -236,9 +292,9 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
     res["assumptions"] = {
         "epsilon": EPS, "gamma_base": G_BASE, "gamma_shocked": g_ai,
         "gamma_only_output_gain": gonly,
-        "Z_anthropic": cal["anthropic"]["Z"], "Z_obr": cal["obr"]["Z"],
+        "Z_anthropic": cal["anthropic"]["Z"], "Z_zero_tfp": cal["zero_tfp"]["Z"],
         "anthropic_target": SCENARIOS["anthropic"].target,
-        "obr_target": SCENARIOS["obr"].target,
+        "zero_tfp_target": SCENARIOS["zero_tfp"].target,
         "counterfactual": "shocked arms inherit baseline initial assets and debt",
         "fiscal": ("shocked arms hold G and TR at the baseline's levels (baseline_spending)"
                    if baseline_spending else "every arm uses the baseline's alpha_G"),

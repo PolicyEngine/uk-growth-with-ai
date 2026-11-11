@@ -14,7 +14,7 @@ linearly from 2026 to 2030 and held thereafter:
 | Scenario | Internal id | Automation (γ) | Productivity (Z) solved for | Calibration source |
 |---|---|---|---|---|
 | No AI | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
-| Automation only | `obr` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L | OBR, March 2026 EFO, Box 2.2 |
+| Automation only | `zero_tfp` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L (zero technology wedge) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
 | Automation + productivity | `anthropic` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
 
 At `epsilon = 1` (Cobb-Douglas) the labour share is exactly `1 − γ`. All runs are
@@ -25,11 +25,22 @@ below 1 reflects the units of K/L and has no economic meaning.
 
 Every scenario shares the baseline's initial assets and debt and its government
 spending share `alpha_G`; the switch to debt targeting is moved to `tG1 = 10` (2036),
-past the reported window; and `g_y_annual = 0.010`, the OBR's productivity growth. A
+past the reported window; and `g_y_annual = 0.008` — the OBR's 1.0% medium-term
+productivity growth less the 0.2pp AI uplift its own forecast embeds (Briefing paper
+No.9 Annex B; October 2026 EFO para 2.45), so the baseline is genuinely no-AI. A
 second run holds government spending and transfers at baseline levels instead
-(`--baseline-spending`), the OBR's convention.
+(`--baseline-spending`), the OBR's convention. The reported window's demographics default to the
+vendored `g_n` of the committed run (`--g-n vendored`) rather than to OG-UK's live
+UN fetch.
 
-**Results, 2030, against the no-AI baseline:** GDP +4.9% (Automation + productivity)
+The `zero_tfp` arm is named for what it imposes — automation with a zero technology
+wedge at the baseline's fixed 2026 inputs — and not for the OBR. Box 2.2's defining
+result is the **level of GDP unchanged**; because K and L are endogenous, this arm
+delivers GDP +1.4% by 2030, and Box 2.2 publishes no labour-share number. It was
+called `obr` until the rename; readers accept both keys, writers emit only the new
+one.
+
+**Results, 2030, against the baseline (committed run, `g_y_annual = 0.010`):** GDP +4.9% (Automation + productivity)
 and +1.4% (Automation only), driven by investment; the labour share falls 3.9pp in
 both; wages are lower in both. Full results, caveats and the comparison with Korinek et
 al. and the OBR are in the dashboard.
@@ -84,11 +95,11 @@ Each scenario takes about 7 minutes on a laptop; keep the machine awake
 ## Commands
 
 ```bash
-python -m uk_growth_with_ai run [--only anthropic|obr] [--shapes ramp|step|both]
+python -m uk_growth_with_ai run [--only anthropic|zero_tfp] [--shapes ramp|step|both] [--g-n vendored|live]
                                 [--baseline-only] [--baseline-spending]
                                 [--tG1 N] [--g-y-annual X] [--out PATH]
 python -m uk_growth_with_ai check [--results PATH]
-python -m uk_growth_with_ai report [--arm anthropic_ramp|obr_ramp]
+python -m uk_growth_with_ai report [--arm anthropic_ramp|zero_tfp_ramp]
 python -m uk_growth_with_ai obr
 python -m uk_growth_with_ai dashboard [--check]
 ```
@@ -97,7 +108,12 @@ python -m uk_growth_with_ai dashboard [--check]
   scenarios and writes `./results/scenarios.json` (never the committed file unless
   `--out` points there). `--baseline-only` stops after the baseline and the Z solve.
   `--baseline-spending` holds government spending and transfers at baseline levels.
-  `--tG1` and `--g-y-annual` default to 10 and 0.010.
+  `--tG1` and `--g-y-annual` default to 10 and 0.008. `--g-n` defaults to `vendored`:
+  the committed run's recorded `g_n` replaces the first five periods of OG-UK's
+  run-time UN fetch, so the reported window no longer moves with the fetch date.
+  Only those five periods were ever recorded, so the tail and `g_n_ss` (and
+  `omega`, `imm_rates`) are still fetched: see
+  `uk_growth_with_ai/data/g_n_committed_run.json` for what is and is not pinned.
 * `check` runs the validation checks in issue #9 on a results file: no fiscal-rule break
   in 2030, a common spending share, potential output against the OBR, the Z targets,
   the labour share and solution quality (including the 2026 resource-constraint error).

@@ -95,4 +95,9 @@ def print_comparison(results=None, oguk_dir=None) -> dict:
         )
     else:
         print(f"\ng_y_annual = {g_y}: OBR medium-term productivity growth (issue #5).")
+        if g_y > 0.0085:
+            print("NOTE: that 1.0% path is AI-INCLUSIVE -- the OBR assumes AI adds\n"
+                  "  0.2pp to productivity growth by its horizon (Briefing paper No.9\n"
+                  "  Annex B; Oct 2026 EFO para 2.45), so this baseline is not a no-AI\n"
+                  "  counterfactual. scenarios.G_Y_ANNUAL is now 0.008; re-run pending.")
     return c
