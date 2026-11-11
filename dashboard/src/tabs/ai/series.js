@@ -1,9 +1,14 @@
 // Series colours for every chart, table swatch and legend on the growth tab.
 // All resolve to the --chart-* tokens in globals.css (built on the
-// PolicyEngine ramp): OBR central grey, Automation only the secondary (gold) accent,
+// PolicyEngine ramp): the OG-UK baseline grey, Automation only the secondary (gold) accent,
 // Automation + productivity the primary teal, US series lighter/muted and dashed.
 export const ARM_META = {
-  baseline: { label: 'OBR central', color: 'var(--chart-uk-baseline)' },
+  // The line is OG-UK's, run on the OBR's central productivity assumption. It
+  // is not the OBR's central forecast, which the UK paths chart draws beside it,
+  // so the series name says whose line it is; the prose calls it the
+  // OBR-central baseline. Kept short so chart end-labels fit at 390px. Must match ARM_TRACE in
+  // uk_growth_with_ai/dashboard_data.py (HistoricalPaths joins on the name).
+  baseline: { label: 'OG-UK baseline', color: 'var(--chart-uk-baseline)' },
   share_shift_ramp: { label: 'Automation only', color: 'var(--chart-uk-obr)' },
   share_shift_tfp_ramp: { label: 'Automation + productivity', color: 'var(--chart-uk-ai)' },
 };

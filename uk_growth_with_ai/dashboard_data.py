@@ -38,8 +38,11 @@ VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
 
 # The 2000-2030 chart shows the scenario paths over every model year.
 PATH_YEARS = YEARS
+# Display names must match ARM_META in dashboard/src/tabs/ai/series.js.  The
+# baseline is OG-UK's own path on the OBR's central productivity assumption; the
+# chart also carries the OBR's forecast line, so the name says whose line it is.
 ARM_TRACE = {
-    "baseline": ("OBR central", "#5a6470"),
+    "baseline": ("OG-UK baseline", "#5a6470"),
     "share_shift_ramp": ("Automation only", "#2f6fb5"),
     "share_shift_tfp_ramp": ("Automation + productivity", "#1d7a4c"),
 }
