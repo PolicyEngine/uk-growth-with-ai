@@ -2,6 +2,8 @@
 
     python analysis/results_sanity_audit.py            # both committed files
     python analysis/results_sanity_audit.py PATH.json  # one results file
+    python analysis/results_sanity_audit.py --export zk0.1_baseline.json
+        # also cross-check against the exported re-solve on analysis/closure-sensitivity
 
 Reads only the committed results JSON; ogcore/oguk are not needed. Every number
 quoted in docs/results_sanity_audit.md is printed by this script.
@@ -353,7 +355,55 @@ def audit(path):
     return res
 
 
+def context(export=None):
+    """Data the report quotes that is not in the results files."""
+    root = HERE.parents[1]
+    print("=" * 100, "\n[X] CONTEXT: OBR data, the dashboard's rebased paths, the #30 export\n",
+          "=" * 100, sep="")
+    hist = json.loads((HERE / "obr_history.json").read_text())["panels"]
+    for pnl in hist:
+        x, y = pnl["obr"]["x"], pnl["obr"]["y"]
+        w = [f"{b:.2f}" for a, b in zip(x, y) if 2026 <= a <= 2030]
+        hi = max((b, a) for a, b in zip(x, y) if a <= 2025)
+        print(f"    OBR {pnl['var']:<18} 2026-30: {' '.join(w)} | highest 2000-25: "
+              f"{hi[0]:.2f} ({hi[1]})")
+    paths = json.loads((root / "dashboard/src/data/ukAiPaths.json").read_text())["panels"]
+    for pnl in paths:
+        for tr in pnl["traces"][1:]:
+            print(f"    chart | {pnl['title'][:28]:<28} | {tr['name']:<26} "
+                  + " ".join(f"{v:.2f}" for v in tr["y"]))
+    if export:
+        x = json.loads(Path(export).read_text())
+        srs = x["series"]
+        b = json.loads((HERE / "scenarios.json").read_text())["baseline"]
+        _, _, kf = split_capital(b)
+        grow = np.exp(b["g_y_annual_used"]) * (1 + np.array(b["g_n_used"]))
+        D, r, K = arr(b, "D"), arr(b, "r"), arr(b, "K")
+        df = np.empty(5)
+        df[0] = FOREIGN_DEBT_SHARE * D[0]
+        for t in range(4):
+            df[t + 1] = df[t] / grow[t] + ZETA_D * (D[t + 1] - D[t] / grow[t])
+        rp = ((r - R_GOV_SHIFT) * D + r * K) / (D + K)
+        print(f"    #30 export {export}")
+        for lab, mine, key in [("Y (committed vs re-solve)", arr(b, "Y"), "Y"),
+                               ("K_f", kf, "K_f"), ("D_f", df, "D_f"), ("r_p", rp, "r_p")]:
+            print(f"      max abs diff, {lab}: {np.max(np.abs(mine - np.array(srs[key][:5]))):.1e}")
+        cv, ss = x["convergence"], x["ss"]
+        print(f"      signed residual / GDP: {[round(v, 6) for v in cv['rc_rel_Y_signed'][:5]]}")
+        print(f"      steady state: D/Y {ss['D'] / ss['Y']:.4f}, r {ss['r']:.4f}")
+        lom = x["demographics"]["check"]["law_of_motion_rel_residual"]
+        print(f"      period-0 population law of motion, max abs relative residual: stock "
+              f"inputs {lom['stock_ogcore_defaults']['maxabs']:.4f}, UK-consistent "
+              f"{lom['uk_consistent']['maxabs']:.1e}")
+
+
 if __name__ == "__main__":
-    paths = sys.argv[1:] or [HERE / "scenarios.json", HERE / "scenarios_fixed_spending.json"]
-    for p in paths:
+    args = sys.argv[1:]
+    export = None
+    if "--export" in args:
+        k = args.index("--export")
+        export = args[k + 1]
+        del args[k:k + 2]
+    for p in args or [HERE / "scenarios.json", HERE / "scenarios_fixed_spending.json"]:
         audit(p)
+    context(export)

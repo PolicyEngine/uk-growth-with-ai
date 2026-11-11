@@ -1,18 +1,21 @@
 # Results sanity audit: magnitude and direction of every reported number
 
 Audited at `0d451a5` (main): `uk_growth_with_ai/data/scenarios.json` (shared spending share) and
-`scenarios_fixed_spending.json` (spending held at baseline levels). The series are identical on
-`fix/baseline-contamination` (#22) and `paper/first-draft` (#24); only the arm keys differ.
+`scenarios_fixed_spending.json` (spending held at baseline levels). All ten series of every arm
+in both files are identical, value for value, on `fix/baseline-contamination` (#22, at `d366c0a`)
+and `paper/first-draft` (#24, at `f8413ba`); only the arm keys differ.
 
 | This report | Key on main | Key on #22 |
 |---|---|---|
 | `share_shift_tfp` (automation + productivity) | `anthropic_ramp` | `share_shift_tfp_ramp` |
 | `share_shift` (automation only) | `obr_ramp` | `share_shift_ramp` |
 
-Every number below is printed by `python analysis/results_sanity_audit.py`, which reads only the
-committed JSON. No OG-UK solve was run for this audit. One file from another branch was read as an
-independent check: `analysis/closure/output/zk0.1_baseline.json` on `analysis/closure-sensitivity`
-(#30), a re-solve of the baseline that exports the foreign positions.
+Every model number below is printed by `python analysis/results_sanity_audit.py`, which reads only
+committed files: the two results files, `obr_history.json` and the dashboard's `ukAiPaths.json`
+(section `[X]`). No OG-UK solve was run for this audit. With
+`--export analysis/closure/output/zk0.1_baseline.json` (from `analysis/closure-sensitivity`, #30,
+at `fddd9bc`) the script also cross-checks against a re-solve of the baseline that exports the
+foreign positions.
 
 ## Summary
 
@@ -30,8 +33,10 @@ numbers. The problems are in what the numbers mean and how the copy describes th
 3. **2026 gaps are announcement effects.** Technology and domestic wealth are at baseline in 2026;
    91.5% of the 2026 GDP gap is extra labour supply by households that foresee the ramp. In
    `share_shift` that is 40.7% of the 2030 gap.
-4. **The 2026 resource residual is a common level error, not a gap error.** It is −0.95% of GDP
-   with the same sign in every arm and differs across arms by at most 0.0005% of GDP.
+4. **The 2026 resource residual is common to every arm.** It is −0.95% of GDP with the same sign
+   in every arm and differs across arms by at most 0.0005% of GDP, so the gaps carry no
+   differential accounting error. Whether the gaps are unchanged once its cause is fixed is
+   untested (rerun R2).
 5. **The wage sign in `share_shift_tfp` is not robust.** −0.55% is the share term (−6.19 log
    points) plus output per unit of labour (+5.63). A capital gap of 7.6% instead of 6.1% would
    make it zero.
@@ -67,14 +72,15 @@ For 2030 (`[E]` in the script output):
 | `share_shift` wage, % | −6.03 | −6.03 | +0.49 | −3.94 |
 | `share_shift` r, bp | +121 | +121 | 0 | +80 |
 
-External benchmarks, as recorded in the programme's benchmark note and the repository's vendored
-data (I did not re-read the primary PDFs):
+External benchmarks. Those marked "local note" come from a benchmark note that is not in the
+repository and that I did not check against the primary PDFs; treat them as unverified. The rest
+are in tracked files.
 
-- OBR Briefing paper No.9, Annex B: AI raises the level of UK productivity by about 2.3% over ten
+- OBR Briefing paper No.9, Annex B (local note): AI raises the level of UK productivity by about 2.3% over ten
   years, +0.2pp a year by the forecast horizon, with most of the effect in the second half.
 - OBR March 2026 EFO Box 2.2 and paragraph 6.18: GDP level unchanged, lower labour share,
   receipts about −0.2% of GDP, debt +1.3% of GDP by 2030-31 (`dashboard/src/tabs/ai/metrics.js`).
-- OBR effective tax rates of 46% on wages and 27% on profits, giving a rule of thumb of
+- OBR effective tax rates of 46% on wages and 27% on profits (local note), giving a rule of thumb of
   (0.46 − 0.27) × −3.9pp = −0.74pp of GDP in receipts for this labour-share fall.
 - Korinek et al. (2026) Table 3, "substantial": GDP +8.3%, capital +13.8%, labour share 60.0 → 56.1
   (`uk_growth_with_ai/scenarios.py`).
@@ -92,7 +98,7 @@ data (I did not re-read the primary PDFs):
 | Y − C − I − G = (1 + r_p) F_t − growth × F_{t+1} + residual, F = K_f + D_f | ≤0.0002% of GDP in 2027 and 2029; reproduces the stored residual in 2026 and 2028 | `[9c]` |
 | I_t = growth × K_{t+1} − (1 − δ) K_t − immigrants' wealth | Immigrant term stable at 0.0108–0.0113 in every arm | `[8]` |
 | Debt law of motion with r_gov = r − 0.02 | Implied transfers constant at 10.66–10.68% of GDP in the baseline | `[10]` |
-| Inferred K_f, D_f, r_p against the exported re-solve (#30), baseline | 6e-16, 2e-16, 2e-08 | Cross-check, not in the script |
+| Inferred K_f, D_f, r_p against the exported re-solve (#30), baseline | 6e-16, 2e-16, 2e-08 | `[X]` with `--export` |
 
 The external identity is the important one. It shows that the foreign capital, foreign debt and
 portfolio return recovered from the committed JSON are the model's own, so the national-income
@@ -152,15 +158,27 @@ the stated benchmark.
 
 ### Fixed-spending file
 
+2030 gap; `share_shift_tfp` first, `share_shift` second. Verdicts and mechanisms are those of the
+shared-share rows unless stated.
+
 | Result | Expected | Model, 2030 | Verdict | Evidence |
 |---|---|---|---|---|
-| GDP: `share_shift_tfp`, `share_shift` | Slightly above the shared-share run: less public absorption | +5.20%, +1.54% | C | Capital +6.60%, +5.27% |
-| GNI | Below GDP | +4.24%, +0.75% | W (not reported) | Foreign share of extra capital 71.6%, 69.7% |
-| Wage | As above | −0.40%, −3.87% | S, sign fragile for `share_shift_tfp` | Capital gap needed for a zero wage gap: 7.7% against 6.6% |
-| Investment, 2029 → 2030 | Same profile | +32.5% → +18.2%; +21.7% → +8.5% | S; profile is an artefact | Anomaly C |
-| Debt/GDP, pp: `share_shift_tfp` | Down: revenue up, spending fixed | −5.72 | C | Implied primary surplus rises from 2.75% to 3.70% of GDP |
+| GDP, % | Slightly above the shared-share run: less public absorption | +5.20, +1.54 | S | Log gap 5.07 = 3.02 + 2.49 − 0.43; 1.53 = −0.03 + 2.00 − 0.44 |
+| GNI, % | Below GDP | +4.24, +0.75 | W (not reported) | Foreign share of extra capital 71.6%, 69.7% |
+| Capital, % | Above the shared-share run | +6.60, +5.27 | S | Domestically owned capital +2.04%, +1.74% |
+| Labour input, % | As shared-share | −0.71, −0.71 | S | 2026: +0.31, +0.83 (announcement) |
+| Wage, % | As shared-share | −0.40, −3.87 | S, sign fragile for `share_shift_tfp` | Capital gap needed for a zero wage gap: 7.7% against 6.6% |
+| Labour income wL, % | Identity | −1.11, −4.55 | C | |
+| r, basis points | As shared-share | +105, +78 | S | |
+| Investment, % (2029 → 2030) | Same profile | +32.5 → +18.2; +21.7 → +8.5 | S; profile is an artefact | Anomaly C |
+| Consumption, % | As shared-share | +0.20, −1.32 | S, C | 2026: −0.61, −1.37 |
+| Government consumption, % | Zero by construction | 0.00, 0.00 | C | Held at baseline levels |
+| Tax revenue, % | Below the GDP gap | +4.18, +0.15 | C | Revenue gap / GDP gap 0.80, 0.10 |
+| Tax/GDP, pp | −0.74 (rule of thumb) | −0.41, −0.58 | C | |
+| Debt, % | Down when revenue rises and spending is fixed | −1.44, +0.72 | C | |
+| Debt/GDP, pp: `share_shift_tfp` | Down | −5.72 | C | Implied primary surplus rises from 2.75% to 3.70% of GDP |
 | Debt/GDP, pp: `share_shift` | Up (OBR: +1.3% of GDP under this convention) | −0.73 | S | Opposite sign to the OBR. Follows from anomaly E: GDP is +1.54% here and unchanged in the OBR's scenario, and the model has no unemployment-related spending |
-| 2026 residual | Same as the main file | −0.948%, −0.944% of GDP | W | Anomaly B |
+| 2026 residual, % of GDP | Same as the main file | −0.948, −0.944 | W | Anomaly B |
 
 ### Headline statements in the dashboard and paper
 
@@ -171,12 +189,12 @@ the stated benchmark.
 | "Capital accumulation: households save and the capital stock builds" | `AiChannels.jsx:28` | W | Domestically owned capital rises 1.4%; foreign-owned capital rises 59% and 46% |
 | "Consumption falls to finance it" | `scenarioStory.jsx`, investment caveat | W | Domestic resources cover 33% (`share_shift_tfp`) and 37% (`share_shift`) of the extra 2026–29 investment |
 | "Cohorts respond by saving more" | Paper `results.tex`, `discussion.tex` | W | Same |
-| "Investment is the residual in the resource constraint and absorbs numerical error" | Paper `results.tex`, `limitations.tex` | W | Investment satisfies the capital law of motion in every arm (`[8]`), and the residual is common to all arms |
+| "Investment is the residual in the resource constraint and absorbs numerical error" | Paper `results.tex`, `limitations.tex` | W | Investment comes from the capital law of motion in every arm (`[8]`). Its 2026 level carries the common residual, but the residual does not differ across arms, so the investment gaps are not absorbing error |
 | "Both paths build steadily rather than jumping" | Paper `results.tex` | W for `share_shift` | 40.7% of the 2030 gap is present in 2026 |
 | "Wages are below the baseline in every year in both scenarios" | `ResultsPanel.jsx` | S; overstated for `share_shift_tfp` | True of the run; the 2030 sign turns on 1.5pp of capital |
 | "The gap between consumption and GDP is the resource cost of capital accumulation" | Paper `results.tex` | W | In 2030 the gap is 1.42pp government, 2.60pp investment, 0.73pp external balance; income paid abroad is up 1.10% of GDP |
-| "The undershoot against Korinek et al. has structural sources" (elasticity, absent channels) | Paper `results.tex` | W | At the source's capital gap (+13.8%) the same production function gives GDP +7.8% against their +8.3%. Capital supply accounts for almost all of the undershoot |
-| "2026 levels carry an accounting error … equally in every scenario, so gaps are unaffected" | `scenarioStory.jsx`, `checks.py` | C | Now established: same sign, differences ≤0.0005% of GDP |
+| "The undershoot against Korinek et al. has structural sources": the elasticity, absent channels and "a capital-supply elasticity" | Paper `results.tex` | S; incomplete | The sentence lists capital supply last and unquantified. At the source's capital gap (+13.8%) the same production function gives GDP +7.8% against their +8.3%, so capital supply carries almost all of the undershoot and should lead |
+| "2026 levels carry an accounting error … equally in every scenario, so gaps are unaffected" | `scenarioStory.jsx`, `checks.py` | S | "Equally in every scenario" is now established: same sign, differences ≤0.0005% of GDP. "Unaffected" holds in that sense only; invariance of the gaps to fixing the cause is untested |
 | "2026 gaps are anticipation" | `scenarioStory.jsx` | C | Anomaly A |
 | "Automation only is not the OBR's scenario" | `scenarioStory.jsx` | C | Anomaly E |
 | Context chart, "No AI" debt line 94.8 → 90.4 beside the OBR's 94.8 → 95.1 | `ukAiPaths.json` | W | Anomaly F |
@@ -217,8 +235,9 @@ larger expected fall in labour income has the larger announcement effect.
 
 ## Anomaly B: the 2026 resource residual is larger than the 2026 effects
 
-**Finding.** The 2026 gaps are interpretable as model output. The 2026 levels and ratios are not
-exact.
+**Finding.** The 2026 gaps carry no differential accounting error, so they can be read as model
+output. The 2026 levels and ratios are not exact. Whether the gaps move when the cause is fixed
+has not been tested.
 
 **Evidence.**
 
@@ -236,7 +255,10 @@ exact.
 **Root cause.** Not established here. A common period-0 level error that does not respond to the
 shock is what the period-0 demographics defect would produce (OG-UK passes `omega_S_preTP` but not
 `g_n_preTP`, `rho_preTP` or `imm_rates_preTP`, so the opening wealth aggregate is built on
-OG-Core's shipped values). The decisive test is the pre-TP baseline on #30.
+OG-Core's shipped values). The #30 export supports the premise: with the stock inputs the
+period-0 population law of motion misses by up to 5.9% in relative terms, and with UK-consistent
+inputs it closes to 2.5e-16. Whether that removes the residual is what the pre-TP baseline on #30
+tests; it is a baseline-only run, so it will not show whether the gaps move.
 
 **Correction.**
 
@@ -244,7 +266,7 @@ OG-Core's shipped values). The decisive test is the pre-TP baseline on #30.
 - Dashboard: the context chart rebases each ratio on its 2026 model value, so the "No AI"
   investment line drops from 18.75% to 18.08% of GDP in 2027 for no economic reason. Rebase on
   2027, or fix the period-0 inputs and regenerate.
-- Copy: keep "gaps are unaffected"; it is now supported. Add that 2026 investment and the 2026
+- Copy: say the residual is common to every scenario rather than that gaps are unaffected. Add that 2026 investment and the 2026
   external balance in levels are off by up to 0.95% of GDP.
 
 ## Anomaly C: investment +28.9% in 2029 and +13.1% in 2030, r up 108bp, and national income
@@ -387,8 +409,8 @@ revenue, transfers and population growth, which are not exported.
 
 ## Anomaly G: the 2028 resource residual (flagged by the checks on #28)
 
-**Finding.** A second common level error, one tenth the size of the 2026 one. It does not
-contaminate the 2028 gaps.
+**Finding.** A second common level error, one tenth the size of the 2026 one. It adds no
+differential error to the 2028 gaps.
 
 **Evidence.**
 
@@ -505,8 +527,9 @@ only. It leaves the dashboard, paper and model files alone because `fix/baseline
 ## What this audit did not do
 
 - No OG-UK solve. The closure, pre-TP and convergence runs are on #30.
-- It did not re-read the OBR or Korinek et al. PDFs. External benchmarks are taken from the
-  repository's vendored data and constants and the programme's benchmark note.
+- It did not re-read the OBR or Korinek et al. PDFs. Benchmarks come from tracked data and
+  constants, except the two marked "local note" above.
+- It did not test whether the gaps are invariant to fixing the residuals (rerun R2).
 - It did not test the cause of the 2026 residual or of the baseline primary surplus; both are
   stated as hypotheses with the run that would settle them.
 - Steady-state values are not in the committed results, so nothing here speaks to the long run.
@@ -515,5 +538,5 @@ only. It leaves the dashboard, paper and model files alone because `fix/baseline
 
 ```bash
 python analysis/results_sanity_audit.py                                   # both committed files
-python analysis/results_sanity_audit.py uk_growth_with_ai/data/scenarios.json
+python analysis/results_sanity_audit.py --export PATH/zk0.1_baseline.json    # plus the #30 cross-check
 ```
