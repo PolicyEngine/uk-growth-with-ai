@@ -396,7 +396,7 @@ contaminate the 2028 gaps.
   `share_shift_tfp`, −0.0888% in `share_shift` (−0.0875% and −0.0885% under fixed spending). The
   neighbouring years are 0.0000–0.0002%.
 - It is in the baseline, which has no ramp, so it is not the ramp kink.
-- Five separate solves give the same value to two significant figures, and the Euler errors are
+- Every solve in both files gives the same value to two significant figures, and the Euler errors are
   below 6e-12, so it is not a convergence spike.
 - Across arms it differs by at most 0.0006% of GDP, against 2028 GDP gaps of 2.38% and 1.04%.
 
@@ -480,6 +480,27 @@ Y − C − I − G is smooth should compare against the identity above, not aga
 | 7 | Attribute the undershoot against Korinek et al. to capital supply | Copy | Paper `results.tex` |
 | 8 | Stop showing the baseline debt level as a projection; disclose the 2.6% primary surplus | Copy, then parameter | Context chart debt panel, fiscal caveat, paper fiscal section |
 | 9 | Drop the like-for-like reading of the OBR ¶6.18 debt comparison; fix the +1.7% in #8 | Copy | `scenarioStory.jsx` note box; #8 |
+
+## Reruns the corrections would need
+
+None of these has been run or requested. Each waits for the maintainer's decision. Times assume
+about 7 minutes a solve on a laptop, one at a time.
+
+| # | Defect | Proposed fix | Solves | Rough time |
+|---|---|---|---|---|
+| R1 | Baseline debt/GDP falls 4.4pp where the OBR's is flat (anomaly F) | Set `alpha_G` or `alpha_T` so the 2026 primary balance matches the OBR's; re-solve every arm under both spending rules | 1–2 baseline passes to hit the target, then 5 | 45–60 min |
+| R2 | 2026 and 2028 residuals (anomalies B, G) | Pass UK-consistent `g_n_preTP`, `rho_preTP`, `imm_rates_preTP`, and repair the 2028 data-to-projection splice if the test on #30 confirms it; regenerate both files | 6 | 45 min |
+| R3 | Headline depends on an inherited capital closure (anomaly C) | Choose and state `zeta_K` and the world rate; if the world rate is recalibrated to the baseline return, that is a new closure not covered by #30 | 3 per closure, 6 with fixed spending | 20–45 min |
+| R4 | `share_shift` is not GDP-neutral in equilibrium (anomaly E) | Solve Z against the 2030 equilibrium gap, starting from Z ≈ 0.9296 | 2–3 | 15–25 min |
+| R5 | One-year investment and external swing in 2030 (anomalies C, H) | Optional: a smooth ramp in place of the linear one | 4 | 30 min |
+
+R1–R3 change the baseline or the closure, so they should be decided together and run once; R4 and
+R5 only make sense after that.
+
+Needing no rerun: GNI and the foreign split (corrections 1–3), the signed residual, the wage and
+announcement-year wording, and the OBR comparison wording. This PR adds the report and the script
+only. It leaves the dashboard, paper and model files alone because `fix/baseline-contamination`
+(#22), `dashboard/ui-fixes` (#25) and `paper/first-draft` (#24) are rewriting the same lines.
 
 ## What this audit did not do
 
