@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './panels.css';
 
-const SITE_URL = 'https://og-model-dashboard.vercel.app';
+const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = 'The Macroeconomic Effects of AI on the UK';
 const DESCRIPTION =
   'A 3.9pp rise in the capital share, with and without a 3.1% output gain at fixed inputs (sizes from Korinek et al. 2026), run through OG-UK, the UK overlapping-generations model, 2026–2030, against an OBR-central baseline. One sector.';
@@ -29,7 +29,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2C6496',
+  // A literal is required: viewport metadata cannot read a CSS variable.
+  // Keep in step with --pe-color-primary-700 in globals.css.
+  themeColor: '#285E61',
   width: 'device-width',
   initialScale: 1,
 };
@@ -49,16 +51,6 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-          crossOrigin="anonymous"
-        />
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
-          crossOrigin="anonymous"
-        />
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
           crossOrigin="anonymous"
         />
               <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charSet="utf-8" defer />

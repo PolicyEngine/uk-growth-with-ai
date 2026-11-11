@@ -24,12 +24,12 @@ const R_RISE_PP = 1;
 // takes its number from here.
 export const CAVEATS = [
   // affect every number
-  'imposed', 'sector', 'displacement', 'fiscal', 'investment', 'ramp-end', 'accounting',
+  'imposed', 'sector', 'displacement', 'fiscal', 'investment', 'financing', 'ramp-end', 'accounting',
   // how to read the charts
   'anticipation', 'us', 'levels', 'z',
 ];
 export const caveatNo = (id) => CAVEATS.indexOf(id) + 1;
-const N_EVERY = 7;
+const N_EVERY = 8;
 
 export function Cv({ id, children }) {
   return <CaveatLink id={`caveat-${id}`}>{children ?? `caveat ${caveatNo(id)}`}</CaveatLink>;
@@ -395,12 +395,22 @@ export const STORY_STEPS = [
           <li id="caveat-investment">
             <b>Investment rises before the technology changes.</b> Agents foresee the ramp (perfect foresight) and
             OG-Core has no capital adjustment costs, so investment jumps from {FIRST_YEAR}; the interest rate rises
-            by about {R_RISE_PP} percentage point by {LAST_YEAR} and consumption falls to finance it. This is
-            coherent within the model, not a forecast of an investment boom.
+            by about {R_RISE_PP} percentage point by {LAST_YEAR}. This is coherent within the model, not a forecast
+            of an investment boom.
+          </li>
+          <li id="caveat-financing">
+            <b>Most of the new capital is foreign-owned.</b> The capital account is partly open: foreign investors
+            supply a fraction &zeta;<sub>K</sub>&nbsp;=&nbsp;0.1 of the gap between the capital firms would demand
+            at the world interest rate and the capital domestic savers hold. This is an OG-UK default that the runs
+            inherit unchanged. Over {FIRST_YEAR}&ndash;{LAST_YEAR - 1}, about two-thirds of the extra investment in
+            both AI scenarios has no domestic counterpart; domestic saving supplies roughly a third. Income on
+            foreign-owned capital accrues abroad, so GDP overstates national income; quantifying the difference
+            needs a rerun that reports the domestic and foreign split.
           </li>
           <li id="caveat-ramp-end">
             <b>The {LAST_YEAR} fall in investment is the end of the ramp.</b> The linear ramp stops in {LAST_YEAR},
-            so the capital stock stops needing to grow as fast; it is not an economic event.
+            so the capital stock stops needing to grow as fast and the inflow of foreign-owned capital (
+            <Cv id="financing" />) falls back.
           </li>
           <li id="caveat-accounting">
             <b>{FIRST_YEAR} levels carry an accounting error.</b> The model&rsquo;s resource constraint misses by
@@ -566,6 +576,7 @@ export const STORY_PANELS = [
         'No unemployment: not the OBR scenario',
         `Spending a share of GDP; debt the residual to ${FIRST_YEAR + TG1}`,
         'Investment rises early: perfect foresight',
+        'Most new capital is foreign-owned: GDP is not national income',
         `${LAST_YEAR} investment fall: end of the ramp`,
         `${FIRST_YEAR} accounting error ≈${RC_ERROR.pctGdp}% of GDP`,
       ].map((t, k) => i(t, 'warn', String(k + 1))),
