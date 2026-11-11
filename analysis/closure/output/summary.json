@@ -2,9 +2,19 @@
  "runs": [
   "zk0.1_anthropic_ramp",
   "zk0.1_baseline",
-  "zk0.1_obr_ramp"
+  "zk0.1_obr_ramp",
+  "zk0_baseline"
  ],
  "closures": {
+  "0": {
+   "baseline": {
+    "r_2026": 0.055757297419789895,
+    "r_2030": 0.056160854164390046,
+    "Kf_over_K_2030": 0.0,
+    "Df_over_D_2030": 0.09495999591945326,
+    "gni_over_gdp_2030": 0.9956366323577158
+   }
+  },
   "0.1": {
    "baseline": {
     "r_2026": 0.05200360899404887,
@@ -355,6 +365,21 @@
     "K_eq_Kd_plus_Kf": 1.1102230246251565e-16,
     "Kd_eq_B_minus_Dd": 0.0,
     "D_eq_Dd_plus_Df": 4.163336342344337e-17
+   }
+  },
+  "zk0_baseline": {
+   "tpi_iterations": 9,
+   "tpi_final_distance": 7.152191057062852e-05,
+   "converged": true,
+   "rc_rel_Y_2026": -0.009864713692331684,
+   "rc_rel_Y_max_abs_interior": 0.0009299620373737373,
+   "rc_rel_Y_last": -0.2131161671215742,
+   "euler_savings_max": 4.879652237832488e-12,
+   "euler_labour_max": 2.0194956817931597e-12,
+   "identities_maxabs": {
+    "K_eq_Kd_plus_Kf": 0.0,
+    "Kd_eq_B_minus_Dd": 0.0,
+    "D_eq_Dd_plus_Df": 5.551115123125783e-17
    }
   }
  },
