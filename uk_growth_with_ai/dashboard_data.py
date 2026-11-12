@@ -112,6 +112,11 @@ def fixed_spending(results=None) -> dict | None:
         return None
     fs = normalise_arms(json.loads(path.read_text()))
     res = results if results is not None else load_results()
+    # The two files must share one baseline, or the comparison mixes runs (the
+    # pre-R1-R4 fixed-spending file against the R1-R4 main run, #27).
+    if not np.allclose(fs["baseline"]["Y"], res["baseline"]["Y"], rtol=1e-12, atol=0):
+        raise ValueError("data/scenarios_fixed_spending.json has a different baseline "
+                         "from the main results; re-run or remove it")
 
     def block(r, arm):
         gap = lambda v: [(r[arm][v][i] / r["baseline"][v][i] - 1) * 100 for i in range(5)]

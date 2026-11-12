@@ -93,3 +93,18 @@ def test_trace_names_match_the_dashboard_labels():
     for arm, (name, _) in dd.ARM_TRACE.items():
         assert labels[arm] == name, arm
     assert dd.ARM_TRACE["baseline"][0].startswith("OG-UK")
+
+
+def test_fixed_spending_must_share_the_main_baseline(tmp_path, monkeypatch):
+    import copy
+    import json as _json
+    import pytest as _pytest
+    from uk_growth_with_ai import dashboard_data as dd
+    from uk_growth_with_ai.data_access import load_results
+    res = load_results()
+    fs = copy.deepcopy(res)
+    fs["baseline"]["Y"] = [y * 1.01 for y in fs["baseline"]["Y"]]
+    (tmp_path / "scenarios_fixed_spending.json").write_text(_json.dumps(fs))
+    monkeypatch.setattr(dd, "DATA", tmp_path)
+    with _pytest.raises(ValueError, match="different baseline"):
+        dd.fixed_spending(res)
