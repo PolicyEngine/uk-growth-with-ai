@@ -291,6 +291,9 @@ def test_plan_runs_the_continuation_first_and_gates_the_arms_on_it(tmp_path):
         nxt("arms")
     _write(out / "zk0.1", "continuation", _arm(be, 0.0, None))
     assert nxt("continuation") is None
+    with pytest.raises(RuntimeError, match="gate is not approved"):
+        nxt("arms")
+    sp.write_gate(out, "zk0.1", "baseline", "test")
     s = nxt("arms")
     assert s["label"] == "share_shift_tfp_ramp" and s["surprise_year"] == 2028
     from uk_growth_with_ai.calibrate import solve_scenario
@@ -305,6 +308,7 @@ def test_r4_reads_the_2031_gap_and_ignores_old_points(tmp_path):
     rd, out, be = _dirs(tmp_path)
     d = out / "zk0.1"
     _write(d, "continuation", _arm(be, 0.0, None))
+    sp.write_gate(out, "zk0.1", "baseline", "test")
     _write(d, "share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
     _write(d, "share_shift_ramp_zfixed", _arm(be, 1.0, 0.943))
     pts = sp.r4_points(sp.load(out, "zk0.1"), be)
@@ -372,3 +376,34 @@ def test_run_arm_without_surprise_is_unchanged(tmp_path):
     old = np.minimum(np.arange(T + S) / RAMP_YEARS, 1.0)[:, None]
     assert np.array_equal(p.gamma, G_BASE + old * (0.389 - G_BASE))     # bit for bit
     assert np.array_equal(p.Z, 1.0 + old * (0.94 - 1.0))
+
+
+def test_continuation_gate_uses_I_as_a_share_of_Y_and_the_restart_RC():
+    be = _base_ext()
+    be["series"]["I"] = [0.2 * y for y in be["series"]["Y"]]   # I/Y = 0.2
+    rec = _arm(be, 0.0, None)
+    rec["series"]["I"][3] *= 1.002          # 0.2% of I = 0.04% of Y: within 0.1%
+    rep = sp.continuation_report(rec, be)
+    assert rep["ok"] and "I" not in rep
+    rec["diagnostics"] = {"rc_rel_Y_signed": [5e-5, 0.0]}
+    assert not sp.continuation_report(rec, be)["ok"]
+
+
+def test_gate_fixes_the_reference_for_r4_and_assemble(tmp_path):
+    """With reference = continuation, R4 is measured against the restart, so the
+    reported R4 gap is the one the secant drove to zero."""
+    rd, out, be = _dirs(tmp_path)
+    d = out / "zk0.1"
+    cont = _arm(be, 0.05, None)             # restart 0.05% above the baseline in 2031
+    _write(d, "continuation", cont)
+    with pytest.raises(ValueError):
+        sp.write_gate(out, "zk0.1", "nonsense", "")
+    sp.write_gate(out, "zk0.1", "continuation", "test")
+    _write(d, "share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
+    _write(d, "share_shift_ramp_zfixed", _arm(be, 0.05, 0.943))  # 0 against the restart
+    assert sp.next_step(out, "zk0.1", "arms", rd) is None        # already accepted
+    res = sp.assemble(out, "zk0.1", rerun_dir=rd)
+    assert res["assumptions"]["gap_reference"] == "continuation"
+    assert res["baseline"]["Y"] == cont["series"]["Y"][1:6]
+    assert res["baseline"]["series"]["Y"][:2] == be["series"]["Y"][:2]   # 2026-27 exact
+    assert abs(res["assumptions"]["r4_iterations"][0]["gdp_gap_pct"]) < 1e-9

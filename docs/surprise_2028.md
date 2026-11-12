@@ -9,11 +9,13 @@ Vahid asked for this on 12 Nov 2026. It replaces the perfect-foresight timing of
 Status: code, tests and a dry run only. No solve has been run and no specification has been built. The solve plan is at the end.
 
 ```
-python -m uk_growth_with_ai surprise prepare  --closure zk0.1 --work ~/ugai-rerun-work   # dry run, pickles only
-python -m uk_growth_with_ai surprise step     --closure zk0.1 --stage continuation --work ~/ugai-rerun-work
-python -m uk_growth_with_ai surprise step     --closure zk0.1 --stage arms         --work ~/ugai-rerun-work
-python -m uk_growth_with_ai surprise step     --closure zk0.1 --stage arms_fs      --work ~/ugai-rerun-work
-python -m uk_growth_with_ai surprise assemble --closure zk0.1 [--fixed-spending] [--reference continuation]
+python -m uk_growth_with_ai surprise prepare     --closure zk0.1 --work ~/ugai-rerun-work   # dry run, pickles only
+python -m uk_growth_with_ai surprise check-specs --closure zk0.1 --work ~/ugai-rerun-work   # HEAVY: one spec build, no solve
+python -m uk_growth_with_ai surprise step        --closure zk0.1 --stage continuation --work ~/ugai-rerun-work
+python -m uk_growth_with_ai surprise gate        --closure zk0.1 [--approve --reference baseline|continuation --note TEXT]
+python -m uk_growth_with_ai surprise step        --closure zk0.1 --stage arms    --work ~/ugai-rerun-work
+python -m uk_growth_with_ai surprise step        --closure zk0.1 --stage arms_fs --work ~/ugai-rerun-work
+python -m uk_growth_with_ai surprise assemble    --closure zk0.1 [--fixed-spending]
 ```
 
 `--start 2028` is the default. Every date below is derived from it in `surprise.window`. Solves are written to `analysis/surprise/output/<closure>/`, apart from the R1–R4 solves.
@@ -55,7 +57,7 @@ A reform run therefore always starts from the baseline's 2026 state. Nothing in 
    - `D[0]` and `K_g[0]` are the baseline's 2028 values;
    - the baseline paths that a reform run reads (Y for remittances, and G, TR and I_g under fixed spending) are shifted by k.
    
-   Inside the solve, B0 must equal the baseline's B[2028] to 1e-8, and the inherited bequests must equal the baseline's BQ[2028] to 1e-3, or the run stops. The bequest tolerance is looser because the pickle's BQ is the last outer iteration's.
+   B0 must equal the baseline's B[2028] to 1e-8, and the inherited bequests must equal the baseline's BQ[2028] to 1e-3, or the run stops (`state_check`). The check runs right after the shift, before SS, and again inside TPI. The bequest tolerance is looser because the pickle's BQ is the last outer iteration's.
 7. The γ and Z ramp keeps the old shape, one year later (`ramp_weights`). Offset 0 reproduces the old ramp bit for bit (tested).
 
    | year | 2026 | 2027 | 2028 | 2029 | 2030 | 2031+ |
@@ -67,7 +69,12 @@ A reform run therefore always starts from the baseline's 2026 state. Nothing in 
 
 The splice refuses to run unless the check in step 8 passed. That makes "2026 and 2027 are identical to the baseline" a test of the restart, not just of the copying.
 
-**The continuation gate.** Before any arm, one no-shock restart per closure (`--stage continuation`, with γ and Z at baseline) must reproduce the baseline in 2028–2031 to within 0.1% on Y, K, L, C, I, r, w, D and B. Until it does, the arms will not start. This is the only end-to-end test that the shift list and the initial state are complete.
+**The continuation gate.** Before any arm, one no-shock restart per closure (`--stage continuation`, with γ and Z at baseline) must pass three checks:
+- it reproduces the baseline in 2028–2031 to within 0.1% on Y, K, L, C, r, w, D and B;
+- its investment is within 0.1% of GDP of the baseline's. I is a difference of capital stocks, so solver noise in K is amplified in I measured against itself;
+- its 2028 resource-constraint error is at most 1e-5 of GDP. The baselines have about 1e-6, and a wrong pre-period row shows up here, as it did in #15.
+
+`surprise gate --approve --reference baseline|continuation` then records the gap reference in `GATE_continuation.json`. The arms will not start without it. The R4 secant and `assemble` both read the reference from that file, so the R4 target and the reported gaps use the same path. This is the only end-to-end test that the shift list and the initial state are complete.
 
 Two things make it inexact. OG-UK's TPI tolerance is `mindist_TPI = 1e-4`. And T = 60 from 2028 lands on the steady state in 2088 rather than 2086.
 
@@ -80,13 +87,15 @@ Two things make it inexact. OG-UK's TPI tolerance is `mindist_TPI = 1e-4`. And T
 ## What changes economically
 
 - **No anticipation in 2026–27.** Every 2026 and 2027 gap is exactly zero. The old +0.19%/+0.74% GDP and +17% investment in 2026 disappear.
-- **The 2028 gap is the announcement-year response plus the first quarter of the ramp.** At the start of 2028, households learn the whole path and re-plan from the wealth they hold. Labour supply and saving jump that year, and so does investment, because next year's capital target moves at once. γ and Z also take their first 25% step in 2028. So 2028 is not a pure news effect, unlike the old 2026 gap, where the weight was zero. Report it as the announcement-year response, including the first ramp step.
+The points below are what the model's structure implies. No surprise solve has been run, so none of them is a result yet.
+
+- **The 2028 gap is the announcement-year response plus the first quarter of the ramp.** At the start of 2028, households learn the whole path and re-plan from the wealth they hold. Labour supply and saving are expected to jump that year, and so is investment, because next year's capital target moves at once. γ and Z also take their first 25% step in 2028. So 2028 is not a pure news effect, unlike the old 2026 gap, where the weight was zero. Report it as the announcement-year response, including the first ramp step.
 - **Capital moves on impact at `zeta_K = 0.1`.** Only B, D, D_f, D_d and K_d are predetermined. The foreign-owned capital K_f is reset each period to `zeta_K ×` excess demand. Part of 2028's K gap is therefore an instantaneous inflow of foreign capital, with no investment recorded in 2027. OG-Core treats period 0 this way in every run, including the old 2026-start arms (2026 K +0.05% at zk0.1). At `zeta_K = 0` K_f is zero and 2028's K gap is zero.
 - **Investment still jumps, because OG-Core 0.17 has no adjustment costs.** `firm.adj_cost` (ogcore/firm.py, line 749) defines a quadratic cost Ψ = (ψ/2)(I/K − μ)²/(I/K), but nothing in OG-Core 0.17 calls it. The firm's first-order conditions and the resource constraint never include it.
   - Investment is whatever moves K to next period's target: I_t = e^{g_y}(1 + g_n,t+1)K_{t+1} − (1 − δ)K_t.
-  - The announcement therefore produces a one-year spike in I in 2028, of the same nature as the old +17% in 2026. It is a feature of the model's frictionless capital, not a forecast of an investment boom.
+  - The announcement is therefore expected to produce a one-year spike in I in 2028, of the same nature as the old +17% in 2026. It is a feature of the model's frictionless capital, not a forecast of an investment boom.
   - Removing the spike needs adjustment costs in the firm problem, which means editing OG-Core. That is outside this change.
-- **Smaller numbers by 2030.** The ramp ends a year later, and the 2028–30 years get no head start from anticipation. So 2030 gaps will be smaller than the old 2030 headline. 2031 is the like-for-like year: the first year at full weight, as 2030 was before.
+- **Smaller numbers by 2030, expected.** The ramp ends a year later, and the 2028–30 years get no head start from anticipation. So 2030 gaps should be smaller than the old 2030 headline. 2031 is the like-for-like year: the first year at full weight, as 2030 was before.
 
 ## Dry run (12 Nov 2026, pickles and JSON only)
 
@@ -102,7 +111,7 @@ Two things make it inexact. OG-UK's TPI tolerance is `mindist_TPI = 1e-4`. And T
 | B(2028) | 2.34900 | 2.38648 |
 | baseline debt/GDP 2031 / 2035 / 2036 | 95.17 / 96.48 / 96.94% | 95.12 / 96.25 / 96.66% |
 
-The checks that need `omega` and the tax functions (B0 and BQ0 against the baseline, the law of motion after the shift, the shift list's completeness) run inside the first solve, before SS. A specification build costs about 15 GB, so they wait for the go. In CI they are tested on synthetic populations against copies of OG-Core's `get_B` and `get_BQ`.
+The checks that need `omega` and the tax functions wait for the go, because a specification build costs about 15 GB. They are B0 and BQ0 against the baseline, the law of motion after the shift, and the shift list's completeness. `surprise check-specs` runs them on one build, which covers both closures: B0 and BQ0 depend only on the demographics and the handed-over wealth, and the closures differ only in `zeta_K`. It stops before SS. Every solve repeats them before its own SS. In CI they are tested on synthetic populations against copies of OG-Core's `get_B` and `get_BQ`.
 
 Z at fixed inputs by anchor year:
 
@@ -123,14 +132,16 @@ The anchor moves Z by about 0.02%, which is small against the scenario sizes.
    - 2028 inputs already contain the announcement's K_f inflow at zk0.1 if taken from the scenario. If taken from the baseline, they are a year the scenario does not share.
    - The numbers barely move (table above).
 2. **R4 at 2031 (implemented, as asked).** It is the first full-weight year, the role 2030 had. Holding 2031 GDP leaves 2028–30 and 2032+ free. Under the old design, the 2031–35 GDP gap of the R4 arm drifted from −0.05% to −0.34% at zk0.1, and something similar is expected after 2031.
-3. **Gap reference: the committed baseline (default) or the continuation.** The default makes 2026–27 gaps exactly zero and leaves the restart's solver error, which is at most the continuation tolerance, in the 2028+ gaps. `assemble --reference continuation` removes that error and keeps 2026–27 exact. Choose after the continuation solve reports its error.
+3. **Gap reference: the committed baseline or the continuation.** It is fixed once, at the continuation gate, and used by both R4 and `assemble`. "baseline" leaves the restart's solver error, at most the gate tolerance, in the 2028+ gaps. "continuation" removes that error. 2026–27 are the baseline's exactly under either choice. Choose after the continuation solve reports its error.
 4. **Debt horizon.** The debt rule starts in 2036 (`tG1 = 10` from 2026). The surprise exports run to 2036, and the baseline's 2036 comes from its pickle (above), so the debt gap can be quoted for 2031 together with 2036. The old JSON series stopped at 2035.
 5. **Fixed-spending variants.** The fixed-spending staging (`arms_fs`, `_fs` labels) for the 2026-start runs is in PR #36, which is not merged, so it is not on `origin/main`. This branch implements its own `arms_fs` stage with the same label convention, in `analysis/surprise/output`. It does not depend on #36.
-6. **Downstream readers.** `check`, `report`, `dashboard_data` and the dashboard still assume the 2026–2030 window, with the headline at index 4. The surprise results files (`uk_growth_with_ai/data/scenarios_surprise2028*.json`) carry `years: [2027..2031]` and `window`. Pointing the readers at them is a follow-up after the solves, once the numbers exist.
+6. **Downstream readers.** `check`, `report`, `dashboard_data` and the dashboard still assume the 2026–2030 window, with the headline at index 4. In each surprise solve record, `g_n_used`, `diagnostics.rc_first5`, `diagnostics.rc_rel_Y_signed` and `series_run` are indexed from the run's period 0 (2028, in `run_period0_year`), not from a calendar year. The surprise results files (`uk_growth_with_ai/data/scenarios_surprise2028*.json`) carry `years: [2027..2031]` and `window`. Pointing the readers at them is a follow-up after the solves, once the numbers exist.
 
 ## Solve plan (step 2: needs the go and the heavy-job lock)
 
 Each solve builds the OG-UK specification and then runs SS and TPI. The committed solves took 6.7–7.8 minutes each (`elapsed_min`), so allow about 8 minutes of wall time per solve. Run one at a time.
+
+First, `surprise check-specs`: one specification build, about 7 minutes and about 15 GB, with no SS or TPI. It covers both closures. If it fails, stop and fix the shift.
 
 | per closure | solves |
 |---|---|
@@ -139,4 +150,4 @@ Each solve builds the OG-UK specification and then runs SS and TPI. The committe
 | fixed spending: the same four with `_fs` | 3–4 |
 | **total** | **7–9** |
 
-That is 14–18 solves for both closures, about 1 h 50 min to 2 h 25 min. The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common and the fixed-spending arms. No baseline is re-solved. If a continuation fails its gate, stop there, after one solve per closure.
+That is 14–18 solves for both closures plus the spec check, about 2 h to 2 h 30 min. The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common and the fixed-spending arms. No baseline is re-solved. If a continuation fails its gate, stop there, after one solve per closure.

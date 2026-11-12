@@ -60,7 +60,11 @@ OUTDIR = "analysis/surprise/output"
 # within this relative error before any arm runs: it is the test that the
 # shift list and the initial state are complete.  OG-UK's mindist_TPI is 1e-4.
 CONT_TOL = 1e-3
-CONT_VARS = ("Y", "K", "L", "C", "I", "r", "w", "D", "B")
+CONT_VARS = ("Y", "K", "L", "C", "r", "w", "D", "B")   # relative error
+CONT_SHARE_VARS = ("I",)    # |diff| / Y: I is a difference of stocks, so solver
+                            # noise in K is amplified ~10x in I relative to itself
+RC0_TOL = 1e-5              # |resource-constraint error / Y| in the restart's
+                            # first period; the baselines have ~1e-6 (#15)
 # Initial-state checks inside the solve (relative).
 B0_TOL = 1e-8
 BQ0_TOL = 1e-3              # pickle BQ is the last outer iteration's, not BQnew
@@ -237,12 +241,12 @@ def load_baseline_state(base_dir, k: int) -> dict:
         return baseline_state(pickle.load(f), k)
 
 
-def replace_initial_values(out, p, state, get_B, get_BQ=None):
-    """Turn ``TPI.get_initial_SS_values(p)``'s output into the period-k start."""
-    initial_values, ss_vars, theta, baseline_values = out
-    _, _, _, factor, _, _ = initial_values
+def state_check(p, state, get_B, get_BQ=None) -> dict:
+    """Aggregate wealth and inherited bequests of the restart, on the SHIFTED
+    spec, against the baseline's period-k values.  Raises on a mismatch: that
+    means the pre-period demographics are not the baseline's period k-1 rows.
+    Called right after the shift (before SS) and again inside TPI."""
     ib = np.asarray(state["initial_b"], float)
-    n0 = np.asarray(state["initial_n"], float)
     B0 = float(get_B(ib, p, "SS", True))
     rel = abs(B0 / state["B"] - 1)
     check = {"B0": B0, "B_baseline_k": state["B"], "B0_rel_err": rel}
@@ -256,6 +260,17 @@ def replace_initial_values(out, p, state, get_B, get_BQ=None):
         check["BQ0_rel_err"] = bq_rel
         if bq_rel > BQ0_TOL:
             raise ShiftError(f"inherited bequests differ from the baseline's by {bq_rel:.2e}")
+    return check
+
+
+def replace_initial_values(out, p, state, get_B, get_BQ=None):
+    """Turn ``TPI.get_initial_SS_values(p)``'s output into the period-k start."""
+    initial_values, ss_vars, theta, baseline_values = out
+    _, _, _, factor, _, _ = initial_values
+    ib = np.asarray(state["initial_b"], float)
+    n0 = np.asarray(state["initial_n"], float)
+    check = state_check(p, state, get_B, get_BQ)
+    B0 = check["B0"]
     p.n_preTP = n0
     b_sinit = np.vstack([np.zeros((1, ib.shape[1])), ib[:-1]])
     initial_values = (B0, b_sinit, ib, factor, ib, n0)
@@ -342,6 +357,11 @@ def calendar_record(rec: dict, base_ext: dict, k: int, year: int = SURPRISE_YEAR
     rec["years"] = w["report_years"]
     for v, x in rec["series"].items():
         rec[v] = x[i0: i0 + NPER_SURPRISE]
+    # run_arm's per-period fields are indexed from the RUN's period 0, not 2026
+    # or 2027: label them so no reader puts them under calendar years.
+    rec["run_period0_year"] = START + k
+    rec["run_period_fields"] = ["g_n_used", "diagnostics.rc_first5",
+                                "diagnostics.rc_rel_Y_signed", "series_run"]
     return rec
 
 
@@ -382,14 +402,65 @@ def calibration(base_ext, year=SURPRISE_YEAR) -> dict:
 
 def continuation_report(rec, base_ext, year=SURPRISE_YEAR) -> dict:
     w = window(year)
+    yrs = range(year, w["ramp_full_year"] + 1)
     out = {}
     for v in CONT_VARS:
-        errs = [abs(gap_pct(rec, base_ext, y, v)) / 100
-                for y in range(year, w["ramp_full_year"] + 1)]
-        out[v] = max(errs)
+        out[v] = max(abs(gap_pct(rec, base_ext, y, v)) / 100 for y in yrs)
+    for v in CONT_SHARE_VARS:
+        out[f"{v}_share_of_Y"] = max(
+            abs(rec["series"][v][y - START] - base_ext["series"][v][y - START])
+            / base_ext["series"]["Y"][y - START] for y in yrs)
     out["max"] = max(out.values())
-    out["ok"] = bool(out["max"] <= CONT_TOL)
+    rc = rec.get("diagnostics", {}).get("rc_rel_Y_signed")
+    out["rc0_rel_Y"] = abs(rc[0]) if rc else None
+    out["ok"] = bool(out["max"] <= CONT_TOL
+                     and (out["rc0_rel_Y"] is None or out["rc0_rel_Y"] <= RC0_TOL))
     return out
+
+
+GATE = "GATE_continuation"
+
+
+def write_gate(outdir, closure, reference, note, year=SURPRISE_YEAR) -> Path:
+    """Approve the continuation and FIX the gap reference for the arms.
+
+    The planner (R4) and ``assemble`` both read the reference from this file,
+    so the R4 target and the reported gaps are measured against the same path."""
+    if reference not in ("baseline", "continuation"):
+        raise ValueError(reference)
+    done = load(outdir, closure)
+    if "continuation" not in done:
+        raise RuntimeError(f"{closure}: no continuation solve to approve")
+    rep = continuation_report(done["continuation"], load_base_ext(outdir, closure), year)
+    if not rep["ok"]:
+        raise RuntimeError(f"{closure}: continuation fails its gate: {rep}")
+    f = Path(outdir) / closure / f"{GATE}.json"
+    f.write_text(json.dumps({"approved": True, "reference": reference, "note": note,
+                             "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                             "report": rep}, indent=1))
+    return f
+
+
+def read_gate(outdir, closure) -> dict | None:
+    f = Path(outdir) / closure / f"{GATE}.json"
+    if not f.exists():
+        return None
+    g = json.loads(f.read_text())
+    return g if g.get("approved") is True else None
+
+
+def reference_ext(outdir, closure, base_ext=None) -> dict:
+    """The path gaps are measured against: the baseline or the continuation,
+    as fixed by the gate.  Same shape as baseline_ext."""
+    base_ext = base_ext or load_base_ext(outdir, closure)
+    g = read_gate(outdir, closure)
+    if g is None:
+        raise RuntimeError(f"{closure}: the continuation gate is not approved "
+                           f"({Path(outdir) / closure / (GATE + '.json')})")
+    if g["reference"] == "baseline":
+        return {**base_ext, "reference": "baseline"}
+    cont = load(outdir, closure)["continuation"]
+    return {**base_ext, "series": cont["series"], "reference": "continuation"}
 
 
 def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR):
@@ -451,11 +522,13 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
         raise RuntimeError(f"{closure}: run the continuation stage first")
     rep = continuation_report(done["continuation"], base_ext, year)
     if not rep["ok"]:
-        raise RuntimeError(f"{closure}: the continuation misses the baseline by "
-                           f"{rep['max']:.2e} > {CONT_TOL:g}: {rep}")
+        raise RuntimeError(f"{closure}: the continuation misses the baseline: "
+                           f"max {rep['max']:.2e} (tol {CONT_TOL:g}), RC/Y "
+                           f"{rep['rc0_rel_Y']} (tol {RC0_TOL:g}): {rep}")
+    ref = reference_ext(outdir, closure, base_ext)
     fs = stage == "arms_fs"
     common["baseline_spending"] = fs
-    cal = calibration(base_ext, year)
+    cal = calibration(base_ext, year)      # Z anchor: always the baseline's 2027
     k = _keys(fs)
     ay = window(year)["z_anchor_year"]
     if k["tfp"] not in done:
@@ -467,14 +540,14 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
         return {"label": k["zfixed"], "arm": "share_shift", "Z": ss["Z"],
                 "gamma": ss["gamma"], "why": f"fixed-input Z (zero wedge at {ay} K, L); "
                 "R4 secant point 0", **common}
-    if accepted_r4(done, base_ext, fs, year) is not None:
+    if accepted_r4(done, ref, fs, year) is not None:
         return None
-    pts = r4_points(done, base_ext, fs, year)
+    pts = r4_points(done, ref, fs, year)
     n = len(pts) - 1
     if n >= MAX_R4_ITER:
         raise RuntimeError(f"{closure}: R4 did not converge in {MAX_R4_ITER}: {pts}")
     if len(pts) == 1:
-        slope, src = _first_slope(done, base_ext, fs, rerun_dir, closure, year)
+        slope, src = _first_slope(done, ref, fs, rerun_dir, closure, year)
         lz = pts[0][0] - pts[0][1] / slope
         why = f"Newton step, {src} ({slope:.1f} pp per unit ln Z)"
     else:
@@ -542,6 +615,44 @@ def prepare(rerun_dir, outdir, closure, work, year=SURPRISE_YEAR, write=True) ->
     return out
 
 
+# --- spec dry run (HEAVY: builds one OG-UK specification, ~15 GB; no solve) --------
+
+def check_specs(work, rerun_dir="analysis/rerun/output", closure="zk0.1",
+                year=SURPRISE_YEAR, closures=("zk0.1", "zk0")) -> dict:
+    """Build one specification exactly as a surprise solve would (guard, R2
+    fixes, shift, ramp), stop before SS, and check every closure's 2028 state
+    on it.  One build covers both closures: B0 and BQ0 depend only on the
+    demographics and the handed-over wealth, and the closures differ only in
+    zeta_K.  Raises on the first failed check (ShiftError, law of motion)."""
+    from . import rerun
+    from .solve import _load_oguk, run_arm
+    rerun._env()
+    from ogcore import aggregates as aggr
+    handles = _load_oguk()
+    k = k_of(year)
+    states = {}
+    for c in closures:
+        base = rerun.accepted_baseline(rerun.load(rerun_dir, c))
+        states[c] = (base, load_baseline_state(str(Path(work) / c / base["label"]), k))
+    base, st = states[closure]
+    gamma = solve_scenario(SCENARIOS["share_shift_tfp"], 2.0, 0.4, G_BASE)["gamma"]
+    out = run_arm(f"{closure} surprise{year} check-specs", gamma, True, 0.97,
+                  str(Path(work) / closure / base["label"]), None, handles,
+                  alpha_G=base["alpha_G_used"], out_dir=str(Path(work) / "surprise_check"),
+                  zeta_K=rerun.CLOSURES[closure], pretp=True, splice=True,
+                  surprise=st, stop_before_ss=True)
+    p = out["p"]
+    rep = {"built_for": closure, "shift": out["surprise"]["shift"],
+           "law_of_motion_after_shift_max": max(
+               x["max_abs_rel"] for x in out["surprise"]["law_of_motion_after_shift"]),
+           "tG1": int(p.tG1), "start_year": int(p.start_year),
+           "ramp_weight_first5": ((np.asarray(p.gamma).ravel()[:5] - G_BASE)
+                                  / (gamma - G_BASE)).tolist(),
+           "states": {c: state_check(p, s_, aggr.get_B, aggr.get_BQ)
+                      for c, (_, s_) in states.items()}}
+    return rep
+
+
 # --- one solve ---------------------------------------------------------------------
 
 def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
@@ -593,12 +704,13 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
 # --- results file ----------------------------------------------------------------------
 
 def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
-             year=SURPRISE_YEAR, reference="baseline") -> dict:
+             year=SURPRISE_YEAR) -> dict:
     """The results file for one closure on the 2027-2031 window.
 
-    ``reference``: "baseline" (the committed baseline, gaps exactly zero in
-    2026-27) or "continuation" (the no-shock restart from 2028; removes the
-    restart's own solver error from every gap)."""
+    The gap reference is the one fixed in the continuation gate: "baseline"
+    (the committed baseline) or "continuation" (the no-shock restart from 2028,
+    which removes the restart's own solver error from every gap).  Either way
+    2026-27 are the baseline's, exactly."""
     from . import rerun
     w = window(year)
     base = rerun.accepted_baseline(rerun.load(rerun_dir, closure))
@@ -606,12 +718,14 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
     done = load(outdir, closure)
     cont = done.get("continuation")
     k = _keys(fs)
-    tfp, ss = done.get(k["tfp"]), accepted_r4(done, base_ext, fs, year)
+    ref = reference_ext(outdir, closure, base_ext)
+    reference = ref["reference"]
+    tfp, ss = done.get(k["tfp"]), accepted_r4(done, ref, fs, year)
     if cont is None or tfp is None or ss is None:
         raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                            f"{bool(tfp)}, share_shift R4 {bool(ss)})")
     i0 = w["report_years"][0] - START
-    ref_series = cont["series"] if reference == "continuation" else base_ext["series"]
+    ref_series = ref["series"]
     baseline = {**{key: v for key, v in base.items() if key != "provenance"},
                 "series": ref_series, "years_series": base_ext["years_series"],
                 "years": w["report_years"]}
@@ -642,7 +756,7 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
             "Z_share_shift_rule": "equilibrium_gdp_gap", "Z_share_shift_year": w["r4_year"],
             "Z_share_shift_tol_pp": R4_TOL_PP,
             "r4_iterations": [{"label": lab, "Z": math.exp(lz), "gdp_gap_pct": g}
-                              for lz, g, lab in r4_points(done, base_ext, fs, year)],
+                              for lz, g, lab in r4_points(done, ref, fs, year)],
             "fiscal": ("shocked arms hold G and TR at the baseline's levels" if fs
                        else "every arm uses the baseline's alpha_G"),
             "closure": rerun.closure_record(base, closure),

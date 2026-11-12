@@ -65,7 +65,8 @@ def main(argv=None) -> int:
     p_sp = sub.add_parser("surprise", help="unanticipated AI shock announced at the start "
                                            "of --start (2028); see uk_growth_with_ai/surprise.py "
                                            "and docs/surprise_2028.md")
-    p_sp.add_argument("action", choices=["prepare", "next", "step", "assemble", "status"])
+    p_sp.add_argument("action", choices=["prepare", "check-specs", "next", "step", "gate",
+                                         "assemble", "status"])
     p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0"])
     p_sp.add_argument("--start", type=int, default=2028,
                       help="the announcement year; every arm equals the baseline before it")
@@ -74,8 +75,10 @@ def main(argv=None) -> int:
                       help="continuation: the no-shock restart that must reproduce the "
                            "baseline; arms_fs: G and TR at baseline levels")
     p_sp.add_argument("--fixed-spending", action="store_true", help="assemble: arms_fs")
-    p_sp.add_argument("--reference", choices=["baseline", "continuation"], default="baseline",
-                      help="assemble: what the gaps are measured against")
+    p_sp.add_argument("--reference", choices=["baseline", "continuation"], default=None,
+                      help="gate --approve: what R4 and every gap are measured against")
+    p_sp.add_argument("--approve", action="store_true")
+    p_sp.add_argument("--note", default="")
     p_sp.add_argument("--outdir", default="analysis/surprise/output")
     p_sp.add_argument("--rerun-dir", default="analysis/rerun/output",
                       help="the committed R1-R4 solves; the baselines are reused from here")
@@ -159,6 +162,26 @@ def _surprise(args) -> int:
                                          if k != "BQ"},
                           "debt_gdp_pct": out["debt_gdp_pct"]}, indent=1))
         return 0
+    if args.action == "check-specs":
+        if not args.work:
+            raise SystemExit("--work is required for check-specs")
+        print(json.dumps(sp.check_specs(args.work, args.rerun_dir, args.closure, **kw),
+                         indent=1, default=float))
+        return 0
+    if args.action == "gate":
+        done = sp.load(args.outdir, args.closure)
+        if "continuation" not in done:
+            print("no continuation solve")
+            return 1
+        rep = sp.continuation_report(done["continuation"],
+                                     sp.load_base_ext(args.outdir, args.closure), **kw)
+        print(json.dumps(rep, indent=1))
+        if args.approve:
+            if args.reference is None:
+                raise SystemExit("--approve needs --reference baseline|continuation")
+            print("wrote", sp.write_gate(args.outdir, args.closure, args.reference,
+                                         args.note, **kw))
+        return 0 if rep["ok"] else 1
     if args.action == "next":
         spec = sp.next_step(args.outdir, args.closure, args.stage, args.rerun_dir, **kw)
         if spec:
@@ -175,7 +198,7 @@ def _surprise(args) -> int:
                   f"{r['diagnostics'].get('tpi_converged')}")
         return 0
     res = sp.assemble(args.outdir, args.closure, fs=args.fixed_spending,
-                      rerun_dir=args.rerun_dir, reference=args.reference, **kw)
+                      rerun_dir=args.rerun_dir, **kw)
     stem = f"scenarios_surprise{args.start}" + ("_fixed_spending" if args.fixed_spending else "")
     out = Path(args.out or f"uk_growth_with_ai/data/{stem}"
                f"{'' if args.closure == 'zk0.1' else '_' + args.closure}.json")

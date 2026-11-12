@@ -252,7 +252,7 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
             baseline_spending=False, g_n_source=G_N_DEFAULT, zeta_K=None,
             pretp=False, splice=False, alpha_G_shift=0.0, out_dir=None,
-            surprise=None, nexp=None) -> dict:
+            surprise=None, nexp=None, stop_before_ss=False) -> dict:
     """Solve SS and TPI for one arm.
 
     ``alpha_G``: G/Y along the transition before tG1. None (the baseline) sets
@@ -290,6 +290,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     state (``surprise.apply_to_specs`` / ``surprise.initial_state``).  The
     gamma/Z ramp is offset so its zero-weight year is START + k - 1.
     ``nexp``: years of each series to export (default NEXP).
+    ``stop_before_ss``: build, guard, fix, shift and set the ramp, then return
+    ``{"p", "surprise", "demographics"}`` without solving (the spec dry run).
     """
     from . import demography
 
@@ -352,6 +354,10 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             if splice and worst > demography.LOM_TOL:
                 raise RuntimeError(f"shifted demographics break the law of motion "
                                    f"({worst:.2e}): {lom}")
+            # B0 and BQ0 against the baseline's period k, before SS (again in TPI)
+            from ogcore import aggregates as aggr
+            sp_rec["state_check_pre_ss"] = sp.state_check(p, surprise, aggr.get_B,
+                                                           aggr.get_BQ)
         print(f"  SURPRISE: period 0 is now {START + surprise['k']}; shifted "
               f"{len(sp_rec['shift']['shifted_varying'])} time-varying inputs; tG1 "
               f"{sp_rec['shift']['tG1']}; foreign debt share "
@@ -385,6 +391,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     elif ramp:
         p.gamma = G_BASE + up * (gamma_val - G_BASE)
         print(f"  gamma ramps {G_BASE} -> {gamma_val}", flush=True)
+    if stop_before_ss:
+        return {"p": p, "surprise": sp_rec, "demographics": demo}
     print(f"  baseline={baseline}, initial state "
           f"{'own' if baseline else 'INHERITED from baseline'}", flush=True)
     ss = SS.run_SS(p, client=client)
