@@ -19,7 +19,7 @@ Status: design spec only. Nothing in `dashboard/` changes on this branch.
 | D6 | Arms take AB's neutral series colours (teal `#319795`, blue `#026AA2`), not teal and amber. The closure is shown by dash only. | In the AB palette amber means a loss and teal a gain. "Automation only" is a scenario arm, not a loss. |
 | D7 | Method and caveats follow AB's Methodology view: a contents rail, short sections, folded topics, a visible Limitations section; each chart card ends in a closed "About this chart". The three scrollytelling tabs go. | AB has no scrollytelling. Its method content is scannable and each caveat has one home. |
 | D8 | Three deliberate departures from AB: no sub-tabs (D2); **icons plain, never in a tinted circle or chip**; **selected items shown by fill and border only, never a tick**. | Standing rules. AB already follows the third (`PillSelect.jsx`, `SeriesToggle.jsx` say "never a tick"); it breaks the second (`.section-icon`, `.title-icon`, `.forecast-tile-icon`). |
-| D9 | Each fact has one home. Section 4.3 lists the seven duplicates on the current page and where each goes. | Standing rule. |
+| D9 | Each fact has one home. Section 3.9 lists the seven duplicates on the current page and where each goes. | Standing rule. |
 | D10 | `@policyengine/ui-kit` goes from 0.9.1 to 0.12.0 as the first step. | `PolicyEngineShell` and `legacy/tokens.css` do not exist in 0.9.1. |
 
 Open questions for Vahid are in section 8.
@@ -156,6 +156,21 @@ Seen at 390 and 768, and in the media queries:
 - **Methodology:** the rail becomes a "Jump to" select; fact grids stack.
 - **Never** a sideways page scroll: `.app { overflow-x: clip }`, and every grid child has `min-width: 0`.
 
+### 2.11 Where AB departs from the PolicyEngine skills
+
+The `policyengine-design` and `policyengine-tools` skills (plugin 4.0.2) describe ui-kit 0.4.0. AB is newer, and where they differ this spec follows AB:
+
+| Skill says | AB does | We follow |
+|---|---|---|
+| ui-kit `^0.4.0`; no `PolicyEngineShell`, use `DashboardShell`/`Header`/`Footer` | ui-kit `^0.12.0`; `PolicyEngineShell` for the header, its own slim footer | AB |
+| No `/legacy` export | Imports `@policyengine/ui-kit/legacy/tokens.css` after `globals.css` | AB |
+| Load Inter from Google Fonts | Inter self-hosted through `next/font/local` | AB |
+| Prefer ui-kit components (`Tabs`, `Card`, `MetricCard`, `PELineChart`) | Uses none of them; local components and CSS | AB |
+| Chart colours `var(--chart-1…5)` | Its own `--c-*` and `--series-*` tokens with a JS mirror | AB |
+| Next App Router, Tailwind 4 CSS-first, `globals.css` starting with the two imports, bun, sentence case | The same | Both agree |
+
+The multizone rules in `policyengine-tools` (`basePath`, favicon by file convention, canonical URL) are not part of this redesign; they apply when the page is mounted under policyengine.org.
+
 ## 3. Proposed information architecture
 
 ### 3.1 Shell for our page
@@ -200,8 +215,8 @@ Section "2031 against the no-AI path" (icon `trend`; subtitle: one sentence on w
    - Data: `gap(sid, arm, CENTRAL, v)` and `gap(sid, arm, BOUND, v)` for `v` in `GNI, Y, NNI, w`, formatted by `fmt()`. A pending figure shows "pending" in grey at 1.5rem (AB `.forecast-tile-value.is-text`); a pending bound shows "closed capital pending".
    - Grid: 4 columns over 900px, 2 columns at 900 and below (our tiles are short, so two columns hold at 390).
    - Under the rows, one `Note`: "Large figures: central closure. Small figures: closed-capital bound." The symbols and definitions (zeta, NNI, wage rate per efficiency unit) go to Scenarios and method, linked.
-   - The takeaway sentence (signs only, as now) is the section subtitle. The solve count ("3 of 16 solved, data built …") is an AB notice chip above the tiles, shown only while any solve is pending.
-2. **Card "National income and GDP, 2027–2031"** (`charts-grid`, two cards: GNI, GDP). Each is an AB chart card: icon `trend`, title, summary sentence, unit line "% against the no-AI path", plot, chip legend, logo, "About this chart".
+   - The takeaway sentence (signs only, as now) is the section subtitle. The solve count ("3 of 16 solved") is an AB notice chip above the tiles, shown only while any solve is pending. The build time and commit are not in the chip: their one home is Code → Versions.
+2. **Card "National income and GDP, 2027–2031"** (`charts-grid`, two cards: GNI, GDP). Each is an AB chart card: icon `trend`, title, summary sentence (direction and shape only, in words: the 2031 figures are the tiles', so they are not repeated here in bold as AB would), unit line "% against the no-AI path", plot, chip legend, logo, "About this chart".
    - Lines: arm colour, central solid 2.5px, bound dashed `6 4` with hollow dots. End labels name the line only ("Automation + productivity", "Closed capital"); **the value leaves the end label** and is read from the tooltip, because the tiles above already state it.
    - One shared `SeriesToggle` above the two cards (`placement="section"`): four chips, arm × closure.
    - Light band behind 2031, the headline year.
@@ -219,7 +234,7 @@ Section "Debt and tax" (icon `landmark`).
 
 Section "Spending rule" (icon `sliders`).
 
-4. **Card "How the result changes with the spending rule".** A `ViewSwitch` with three options: "Spending follows GDP" (the default everywhere else), "Fixed spending", "Debt-neutral". It redraws a small table: debt/GDP 2031 and 2036, tax/GDP 2031, GNI 2031, per arm.
+4. **Card "How the result changes with the spending rule".** A `ViewSwitch` with three options: "Spending follows GDP" (the default everywhere else), "Fixed spending", "Debt-neutral". The card shows only the two alternative rules, each as its **difference from the default rule** (debt/GDP 2031 and 2036, tax/GDP 2031, GNI 2031, per arm), so no figure from the cards above or from the Results tiles is repeated. The default option shows one sentence saying it is the rule every other card uses.
    - **Data gap:** `surprise2028.json` at `0cda747` holds only the default rule. The fixed-spending and debt-neutral solves are staged in `docs/surprise_2028.md` (variants `_fixed_spending`, `_debt_neutral`) but are not in the dashboard data. Until `build_dashboard_data.py` writes them, the two options are listed, and choosing one shows an AB "unpublished" box ("No solve for this rule yet"). No number is invented. Proposed shape, to settle with the data builder: `results[sid][arm][closure].variants.{fixed_spending,debt_neutral}.gaps`.
 
 ### 3.5 Tab 3: Cohorts (to come)
@@ -337,8 +352,10 @@ Small steps, one PR each, in this order. Every step ends with the same four chec
    `bun <scratchpad>/pw/design_shots.mjs <outDir> ours 390,768,1440 "results=http://localhost:<port>/?tab=results" …`
    (the script used for this spec; it is not in the repo, so step 1 copies it to `dashboard/scripts/shots.mjs`).
 2. **No horizontal scroll**: the same script prints `hscroll` per tab and width from `scrollWidth > clientWidth`; all must be `false`.
-3. **Every number unchanged.** Before the step and after it, for each scenario (`?s=uk_low`, `uk_central`, `uk_high`, `korinek`) dump each tab's `innerText` and take the sorted list of numeric tokens (`[+−-]?\d+(\.\d+)?(%|pp)?`). The two lists must be equal, except for removals the step names in advance (the duplicates in 3.9). Step 1 adds this as `dashboard/scripts/numbers.mjs`.
-4. **Still tied to the data file**: `python -m uk_growth_with_ai dashboard --check` passes (CI already runs it); `dashboard/src/data/surprise2028.json` is byte-identical before and after (`git diff --stat` shows no data file); and a grep finds no result literal in JSX: every figure on Results, Public finances and Cohorts is produced by `fmt()`/`signed()` from `gap()`/`path()`. Step 1 adds a Vitest test that renders each results tab against a fixture JSON with altered values and asserts the altered values appear.
+3. **Every number unchanged.** The check is built from the data file, not from a before/after text diff (numbers move between tabs in step 6, and plotted values are not in the page text). `dashboard/scripts/numbers.mjs`, added in step 1, extends the session's `check_numbers.py`: for each scenario (`?s=uk_low`, `uk_central`, `uk_high`, `korinek`) it reads `surprise2028.json`, formats every finished cell the page is meant to print with the same `fmt()`/`signed()`, dumps the `innerText` of all tabs, and asserts that each expected string appears **exactly the expected number of times across the whole site** (once, after the duplicates in 3.9 are gone; the step's table names any count that changes). A pending cell must print "pending" and never a number.
+4. **Still tied to the data file**: `python -m uk_growth_with_ai dashboard --check` passes (CI already runs it); `dashboard/src/data/surprise2028.json` is byte-identical before and after (`git diff --stat` shows no data file); a grep finds no result literal in JSX on Results, Public finances or Cohorts. Step 1 adds two Vitest tests: one renders each results tab against a fixture JSON with altered values and asserts the altered values appear; one asserts that the series handed to `LineChart` and `Sparkline` equal `path()` output element by element, which covers the plotted values the text check cannot see.
+
+Out of scope for checks 3 and 4: numbers inside the prose of Scenarios and method, Literature and Code. Steps 7–9 rewrite that prose, and the earlier-design figures in it are meant to go; those steps carry their own checks.
 
 Plus `bun run lint`, `bun run typecheck`, `bun run test`, `bun run build` green.
 
@@ -350,7 +367,7 @@ Plus `bun run lint`, `bun run typecheck`, `bun run test`, `bun run build` green.
 | 2 | **Tokens and type.** AB `:root` tokens and type scale; local Inter; KaTeX CSS bundled; Plotly script removed. Old class names kept. | Computed `font-family` starts with Inter; no request to fonts.googleapis.com, cdn.plot.ly or jsdelivr in the network log; numbers identical. |
 | 3 | **Shell.** `PolicyEngineShell`, title band, `ViewTabs`, footer; `?tab=` with the legacy hashes; intro paragraphs out of the header. Tab contents untouched. | At 390 the tab row is one line and scrolls inside itself; the chosen tab is visible on load for each tab; `#growth`, `#scenarios`, `#methodology/code` each open the right tab; arrow keys move between tabs; band and tabs stay stuck on scroll at all three widths. |
 | 4 | **Scenario pill in the band.** `PillSelect` band variant replaces `Select`; `?s=` kept; faded on tabs it does not apply to. | Choosing each of the four scenarios changes the tiles and the URL; reload restores it; the chosen option shows by weight and colour, no tick; at 390 the menu is inside the window. |
-| 5 | **Results tab.** Headline tiles, the two chart cards, the effect card (six rows), section headings with bare icons, `About this chart`. Arm colours to series 1 and 2. | The 16 headline figures (8 central, 8 bound) match the before list; **allowed removals:** the four end-label values per scenario. At 390 the tiles are two per row and no tile text is cut; pending scenarios show "pending", never 0. |
+| 5 | **Results tab.** Headline tiles, the two chart cards, the effect card (six rows), section headings with bare icons, `About this chart`. Arm colours to series 1 and 2. | The 16 headline figures (8 central, 8 bound) match the before list; **allowed removals:** the four end-label values per scenario. At 390 the tiles are two per row and no tile text is cut or wraps past two lines, including "closed capital pending" (a tile is about 165px wide there; if it does not hold, fall back to one column at 480 and below, as AB does at 900); pending scenarios show "pending", never 0. |
 | 6 | **Public finances tab.** Debt/GDP to 2036, Tax/GDP, the tax-gap card, the spending-rule card with its pending state. | Tax/GDP and Debt/GDP 2031 and Debt/GDP 2036 values equal those the effect table showed; they now appear once on the site (grep the dump); the two unsolved rules show the unpublished box. |
 | 7 | **Scenarios and method tab.** Rail, sections, folded topics; content moved from Scenario design, Model, and "How the scenarios are run"; rewritten for the 2028 surprise. | Every topic opens and closes by keyboard; a link to a term inside a closed topic opens it and scrolls below the sticky bars; the rail highlights the section in view; at 390 "Jump to" replaces the rail; the "Earlier design" banner is gone from this tab; each scenario's inputs equal `S.scenarios[]`. |
 | 8 | **Literature tab.** After PR #37 merges and its results table is regenerated for the 2028 surprise: generated `literature.json`, table and stacked rows, coverage grid. | Every figure in the tab is in `literature.json`; every study link returns 200; at 390 no table scrolls the page. |
@@ -361,7 +378,7 @@ Steps 1–6 give the AB look on everything a reader sees first, without touching
 
 ## 6. Screenshot pairs
 
-AB on the left, ours (port 4320, 12 Nov 2026) on the right. Not committed; they are in the session scratchpad.
+AB on the left, ours (port 4320, 12 Nov 2026) on the right. Not committed; they are in the session scratchpad. All of ours show the same data state (UK central, 3 of 16 solves). In full-page captures at 390 our sticky band is drawn part-way down the page (pair 11); that is how Chromium stitches a sticky element, not a page defect.
 
 | Pair | File |
 |---|---|
