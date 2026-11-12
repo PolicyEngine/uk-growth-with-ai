@@ -1,8 +1,9 @@
 # Which capital closure should be central?
 
 Decision memo for R3 on #27 and for #16. Written in the review of #30, 12 November 2026.
-Status: **recommendation, pending Vahid**. The R1–R4 reruns produce both `zeta_K = 0` and
-`zeta_K = 0.1`, so this decides only which set is published as central.
+Status: **adopted by Vahid on 12 November 2026** (#16, #27). The R1–R4 reruns produce both
+`zeta_K = 0` and `zeta_K = 0.1`, each with its own R4 solve, so this decides which set is
+published as central.
 
 ## Recommendation
 
@@ -169,8 +170,8 @@ headline was picked for being low.
   if the new baseline still pays between 1% and 2% of GDP abroad. If it does not, bring the
   numbers back before publishing.
 - **R4 (GDP-neutral Z for `share_shift`) is closure-specific.** A Z that makes equilibrium GDP
-  unchanged at one closure will not do so at the other. It should be solved at the central
-  closure, so a 0.1-central decision needs R4 at 0.1.
+  unchanged at one closure will not do so at the other. The rerun solves it at each closure,
+  which is what a 0.1-central decision needs.
 - **Later, not in this rerun:** one sensitivity with the world rate set to the baseline domestic
   return. That removes the standing gap and tests the first weakness above. It is a new closure
   and needs about three solves.
