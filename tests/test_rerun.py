@@ -124,3 +124,20 @@ def test_arms_need_the_gate_then_run_in_order(tmp_path, monkeypatch):
     assert math.log(s["Z"]) == pytest.approx(math.log(z0) - 0.02)
     _write(tmp_path, "zk0", [_rec("share_shift_ramp_r4_1", Y=[1, 1, 1, 1, 1.00005], Z=s["Z"])])
     assert rerun.next_step(tmp_path, "zk0", "arms") is None
+
+
+def test_closure_record_rebuilds_an_overwritten_label():
+    cl = rerun.closure_record({"label": "baseline_p1", "closure": "zk0.1"})
+    assert cl["zeta_K"] == 0.1 and cl["zeta_D"] == 0.4
+    assert cl["world_int_rate_annual"] == 0.02
+    assert rerun.closure_record({"closure": "zk0"})["zeta_K"] == 0.0
+    d = {"zeta_K": 0.1, "zeta_D": 0.4, "world_int_rate_annual": 0.02}
+    assert rerun.closure_record({"closure": d, "closure_label": "zk0.1"}) is d
+    with pytest.raises(ValueError):
+        rerun.closure_record({"closure": "nonsense"})
+
+
+def test_run_step_keeps_the_closure_dict(monkeypatch):
+    import inspect
+    src = inspect.getsource(rerun.run_step)
+    assert '"closure_label": closure' in src and '"closure": closure' not in src

@@ -42,6 +42,30 @@ from .calibrate import solve_scenario
 from .scenarios import G_BASE, G_Y_ANNUAL, SCENARIOS, START, TG1
 
 CLOSURES = {"zk0.1": 0.1, "zk0": 0.0}
+# OG-UK's own values (oguk_default_parameters.json at d0e6ae5), never overridden
+# here; run_arm reads them back from the specs into rec["closure"].
+ZETA_D = 0.4
+WORLD_INT_RATE_ANNUAL = 0.02
+
+
+def closure_record(rec, closure_label=None) -> dict:
+    """The capital-account closure of one solve record, as a dict.
+
+    Records written before 12 Nov 2026 (baseline_p0/p1 and the first arms) had
+    rec["closure"] overwritten by the label string in run_step, losing the dict
+    run_arm wrote.  For those it is rebuilt from CLOSURES and the OG-UK values
+    above; zeta_K is also checked against the label."""
+    cl = rec.get("closure")
+    label = rec.get("closure_label") or (cl if isinstance(cl, str) else closure_label)
+    if isinstance(cl, dict):
+        return cl
+    if label not in CLOSURES:
+        raise ValueError(f"cannot tell the closure of {rec.get('label')!r}: {cl!r}")
+    return {"zeta_K": CLOSURES[label], "zeta_D": ZETA_D,
+            "world_int_rate_annual": WORLD_INT_RATE_ANNUAL,
+            "rebuilt": "closure dict overwritten by its label in run_step before the "
+                       "12 Nov fix; zeta_K from CLOSURES, zeta_D and the world rate are "
+                       "OG-UK's defaults, never overridden"}
 YEARS = list(range(START, START + 5))
 
 # R1 ------------------------------------------------------------------------
@@ -248,7 +272,7 @@ def run_step(outdir, closure, stage, work, prior_dir=None) -> dict | None:
                           out_dir=str(adir), **settings)
     finally:
         client.close()
-    rec.update({"label": spec["label"], "closure": closure, "stage": stage,
+    rec.update({"label": spec["label"], "closure_label": closure, "stage": stage,
                 "spec": spec, "provenance": provenance(TPI, api)})
     out = Path(outdir) / closure / f"{spec['label']}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -275,6 +299,11 @@ def assemble(outdir, closure) -> dict:
                            f"{'ok' if tfp else 'missing'}, share_shift R4 "
                            f"{'ok' if ss else 'not converged'})")
     zf = done["share_shift_ramp_zfixed"]
+    for r in (base, tfp, ss, zf):
+        r["closure"] = closure_record(r, closure)
+        r["closure_label"] = closure
+    if not np.isclose(base["closure"]["zeta_K"], CLOSURES[closure]):
+        raise RuntimeError(f"{closure}: baseline zeta_K {base['closure']['zeta_K']}")
     cal = {n: solve_scenario(s, base["K"][0], base["L"][0], G_BASE)
            for n, s in SCENARIOS.items()}
     strip = lambda r: {k: v for k, v in r.items() if k not in ("provenance",)}
