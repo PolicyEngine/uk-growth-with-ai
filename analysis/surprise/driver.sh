@@ -7,6 +7,8 @@
 # Items run in order; each is resumable (a finished solve, check or gate is
 # never repeated):
 #   check            surprise check-specs (one spec build, no solve; both closures)
+#   nics             analysis/nics/measure_nics.py: PolicyEngine-UK NICs rates,
+#                    2027-28, evidence only (non-fatal: logged and pushed)
 #   <closure>:continuation | <closure>:gate
 #   <closure>:<arms|arms_dn|arms_fs>:<scenario>   scenario = uk_low | uk_central |
 #                                                  uk_high | korinek
@@ -35,7 +37,7 @@ BRANCH="rerun/surprise-2028"
 OUT="$REPO/analysis/surprise/output"
 RERUN="$REPO/analysis/rerun/output"
 PLAN=("$@")
-[[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check
+[[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check nics
   zk0.1:continuation zk0.1:gate zk0:continuation zk0:gate
   zk0.1:arms:uk_central zk0:arms:uk_central
   zk0.1:arms:uk_low zk0.1:arms:uk_high
@@ -112,6 +114,21 @@ for item in "${PLAN[@]}"; do
     fi
     mv "$f.tmp" "$f"
     push "surprise 2028: check-specs passed (one spec build, both closures)" "$f" "$OUT/check_specs.log"
+    continue
+  fi
+  if [[ "$item" == nics ]]; then
+    N="$REPO/analysis/nics"
+    [[ -f "$N/nics_2028.json" ]] && { echo "=== nics already measured"; continue; }
+    time_ok nics || exit 3
+    echo "=== start nics $(date +%H:%M)"
+    ( cd "$REPO" && caffeinate -i "$PY" -u analysis/nics/measure_nics.py </dev/null \
+        >"$N/measure_nics.log" 2>&1 )
+    rc=$?
+    tail -3 "$N/measure_nics.log"
+    files=("$N/measure_nics.log"); for y in 2027 2028; do
+      [[ -f "$N/nics_$y.json" ]] && files+=("$N/nics_$y.json"); done
+    push "NICs measurement on PolicyEngine-UK (evidence only, rc $rc)" "${files[@]}"
+    [[ $rc -ne 0 ]] && echo "nics measurement failed (rc $rc); continuing: evidence only"
     continue
   fi
   IFS=: read -r C STAGE SCEN <<<"$item"

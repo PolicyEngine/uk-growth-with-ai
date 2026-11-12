@@ -107,7 +107,7 @@ At zk0, the second and third parts outweigh the payroll fall (−0.59pp), and ta
 - **Re-sizing `tau_payroll` to the measured average employer rate** (PolicyEngine-UK `ni_employer` ÷ employment income) would probably *lower* it. That cuts payroll revenue and narrows the wedge further, which moves red flag 3 the wrong way. Tax/GDP would also fall, so R1 would have to re-solve G/Y.
 - **The UK labour rate is high because of employee and employer NICs on top of income tax.** OG-UK's labour rate is 34%, against the OBR's 40–46%, and the shortfall is in the income-tax function (19.5% on total household income). The function is a single schedule for labour and capital income, and is progressive in total income.
 - **An honest fix for the wedge** is OG-Core's separate labour and capital tax functions (`mtrx` and `mtry`), estimated by OG-UK with different parameters. OG-UK currently reuses the ETR parameters for both (`_estimate_tax_functions`: "reuses them for MTRx and MTRy"). That needs a tax-function re-estimation in OG-UK, which is not allowed in this repo without asking.
-- **Decision for Vahid:**
+- **Decided by Vahid (12 Nov 2026): (a).** OG-UK's tax system is kept and `tau_payroll` is not changed. The 14pp wedge, against the OBR's 19–23pp, is reported as a limitation. `analysis/nics/measure_nics.py` measures PolicyEngine-UK's actual employer and employee NIC rates for 2027–28 as evidence only. It runs under the heavy-job lock, after check-specs. The options were:
   - (a) leave the tax side as is and report the wedge;
   - (b) re-size `tau_payroll` from PolicyEngine-UK, with R1 re-solved, accepting a smaller wedge;
   - (c) re-estimate separate labour and capital tax functions in OG-UK, which is outside this repo.
