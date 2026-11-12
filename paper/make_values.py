@@ -218,7 +218,8 @@ class Values(dict):
         def typeset(t):   # typeset sign, not a hyphen
             return f"${t[0]}${t[1:]}" if t[0] in "+-" else t
         self.put(name, typeset(fmt_signed.format(x)))
-        self.put(name + "Short", typeset("{:+.1f}".format(x)))
+        # 1dp, but 2dp near zero so a small gap never prints as "-0.0"
+        self.put(name + "Short", typeset(("{:+.2f}" if abs(x) < 0.1 else "{:+.1f}").format(x)))
         self.put(name + "Abs", abs(x), fmt_abs)
         self.put(name + "Dir", up if x >= 0 else down)
         self.put(name + "Verb", "rises" if x >= 0 else "falls")
@@ -323,6 +324,7 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
     v.put("EnforceChecks", str(p["enforce_solution_checks"]))
     v.put("CentralSource", central["_source"].replace("_", r"\_"))
     v.put("BoundSource", bound["_source"].replace("_", r"\_"))
+    v.put("CentralGniSource", central.get("_gni_source", central["_source"]).replace("_", r"\_"))
 
     # ---- baseline against the OBR (growth only; debt is reported as a gap) --
     cmp_ = obr_mod.compare(central)

@@ -33,7 +33,7 @@ Extra national saving / extra investment, 2026--29 & \genShareShiftTfpSavingShar
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.95\textwidth}
-\footnotesize \emph{Notes:} gaps against the baseline solved at the same closure. $\zeta_D = \genZetaD{}$ and the world interest rate is \genWorldRatePct{} per cent in every column. GNI is $Y - r^p(K^f + D^f)$. National saving is GNI less private and government consumption. \genIfRerun{}{\ShareShift{} has a zero technology wedge at the baseline's \genStartYear{} inputs, not unchanged equilibrium GDP; see Section~\ref{sec:calibration}.} Sources: \texttt{\genCentralSource{}} (central) and \texttt{\genBoundSource{}} (bound).
+\footnotesize \emph{Notes:} gaps against the baseline solved at the same closure. $\zeta_D = \genZetaD{}$ and the world interest rate is \genWorldRatePct{} per cent in every column. GNI is $Y - r^p(K^f + D^f)$. National saving is GNI less private and government consumption. \genIfRerun{}{\ShareShift{} has a zero technology wedge at the baseline's \genStartYear{} inputs, not unchanged equilibrium GDP; see Section~\ref{sec:calibration}.} Sources: \texttt{\genCentralSource{}} (central; GNI and foreign positions from \texttt{\genCentralGniSource{}}) and \texttt{\genBoundSource{}} (bound).
 \end{minipage}
 \end{table}
 
@@ -44,7 +44,7 @@ Both scenarios raise the marginal product of capital, and capital rises in respo
 
 \genIfRerun{}{The \ShareShift{} arm shows the closure's role most clearly. It has a zero technology wedge at the baseline's \genStartYear{} inputs, yet its GDP gap is \genShareShiftGdpGapThirtyCentralShort{} per cent at the central closure against \genShareShiftGdpGapThirtyBoundShort{} per cent at the bound. Nearly all of the difference is capital drawn in from abroad by the higher capital share.}
 
-The year-by-year paths at the central closure (Table~\ref{tab:paths}) should be read for their \genEndYear{} levels, not their profile. Investment is high while $\gamma$ is rising and the inflow continues, and its gap falls in \genEndYear{} (from \genShareShiftTfpInvestmentGapTwentyNine{} to \genShareShiftTfpInvestmentGapThirty{} per cent in \ShareShiftTfp{}), when $\gamma$ stops rising and the inflow stops. That fall comes from the closure rule. At $\zetaK = \genZetaKBound{}$ the \ShareShiftTfp{} investment gap is \genShareShiftTfpInvestmentGapTwentyNineBound{} per cent in 2029 and \genShareShiftTfpInvestmentGapThirtyBound{} per cent in \genEndYear{}. It is not a forecast of the timing of AI investment.
+The year-by-year paths at the central closure (Table~\ref{tab:paths}) should be read for their \genEndYear{} levels, not their profile. Investment is high while $\gamma$ is rising and the inflow continues, and its gap falls in \genEndYear{} (from \genShareShiftTfpInvestmentGapTwentyNine{} to \genShareShiftTfpInvestmentGapThirty{} per cent in \ShareShiftTfp{}), when $\gamma$ stops rising and the inflow stops. That fall comes from the closure rule. At $\zetaK = \genZetaKBound{}$ the \ShareShiftTfp{} investment gap is \genShareShiftTfpInvestmentGapTwentyNineBound{} per cent in 2029 and \genShareShiftTfpInvestmentGapThirtyBound{} per cent in \genEndYear{}. The profile is not a forecast of the timing of AI investment.
 
 \begin{table}[htbp]
 \centering
