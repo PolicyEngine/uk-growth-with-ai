@@ -36,6 +36,7 @@ Tables are printed by `python3 analysis/rerun/summarise.py`. Per-arm sanity outp
   - A transfer route (`alpha_T`) adds lump-sum income effects to labour supply.
   - Bringing in the debt rule earlier (`tG1`) would make G differ across arms inside the reporting window, which is the defect #3 removed.
   - The cost is that G/Y moves further from the data: 29.9% (zk0.1) and 30.2% (zk0) against the OBR's 21.5%. Tax/GDP stays at 42.2% against 37.0%. The model's level ratios were already off and remain so; the dashboard's levels caveat covers this.
+  - The G comparison is not like for like (added in the review of #33). The 21.5% is general government final consumption only, which leaves out public investment (`obr_history.json`, panel definition). Model G is all spending other than transfers (6.0% of GDP), pensions (4.7%) and interest, and the model has no separate public investment (I_g = 0). The repository holds no OBR series for total spending to set model G against. On tax, the same file gives two UK measures for 2026-27: National Accounts taxes at 37.0% and public sector current receipts at 41.2%. Model revenue of 42.2% is 5.2pp above the first and 1.0pp above the second; which one OG-UK's tax functions correspond to is not established here.
 - **What is matched.** The model is real, so flat debt needs a surplus of (r_gov − g)·D/Y. The calibrated surplus is 1.65% → 1.51% of GDP (zk0.1) and 2.01% → 1.89% (zk0). The OBR's nominal primary balance is not in the repository and was not fetched. The debt path is matched; the primary balance is matched only in that sense.
 - **After 2030.** The window share runs to 2035, and the debt rule starts in 2036. Baseline debt/GDP rises to 96.5% (zk0.1) and 96.3% (zk0) by 2035. This is outside the reporting window and is disclosed here.
 
@@ -175,6 +176,12 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 - **Outside the targeted year.** The GDP gap is +0.74% in 2026, the announcement year (labour +1.04%). It falls to 0 by 2030 and to −0.34% by 2035.
 - **At 0.** The 2030 GDP gap is zero by construction, and GNI is −0.15%. GDP is +0.66% in 2026 (the announcement year), and between +0.06% and +0.14% in 2031–35.
 
+**The 2030 debt gaps are a point on a moving path** (added in the review of #33; recomputed from the per-solve records).
+- **Where they come from.** The gilt rate is the private return less about 2pp, so it rises one for one with r, and the whole debt stock reprices each year. By 2030 r_gov is up 107bp (`share_shift_tfp`) and 67bp (`share_shift`, R4) at 0.1, and 139bp and 102bp at 0.
+- **`share_shift_tfp`: the fall is the denominator.** At 0.1 the −3.08pp is −4.43pp from higher GDP and +1.36pp from a debt stock 1.5% above baseline. At 0 it is −2.85pp and +1.21pp. Once the GDP gap flattens the ratio gap reverses: −2.22, −1.39, −0.57, +0.23, +1.02pp in 2031–35 at 0.1, and −1.10, −0.57, −0.07, +0.42, +0.89pp at 0.
+- **`share_shift` (R4): about half is interest at 0.1.** Of the +2.29pp, about 1.2pp is the lower primary balance in 2026–29 (tax/GDP −0.63pp by 2030) and about 1.1pp is the higher gilt rate. At 0 it is about 0.3pp and 1.6pp of +1.91pp. The gap keeps widening: +3.49, +4.71, +5.95, +7.21, +8.52pp in 2031–35 at 0.1, and +2.80, +3.69, +4.59, +5.51, +6.44pp at 0.
+- **Reading.** The debt rule is off until 2036, so nothing closes these gaps inside the exported years. Quote a 2030 debt gap with its sign in 2035, and with the repricing assumption.
+
 **The baseline.** The level path is now on the OBR's debt path, and the residuals are gone.
 - **Investment.** I/Y now runs smoothly at 19.1% → 19.3%, against the old 20.3% → 19.6% jump between 2026 and 2027.
 - **GDP growth.** Growth in 2027–30 averages 1.57% (1.68% before), against the OBR's 1.6%.
@@ -191,7 +198,7 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 
 **Done after every arm** (`analysis/rerun/sanity.py`), all passing:
 - **Identities.** K = K_d + K_f, K_d = B − D_d and D = D_d + D_f hold to 1e-16. At zk0, K_f is exactly 0.
-- **Residuals.** RC/GDP is ≤ 0.0001% in 2026–30, and the interior max is ≤ 0.0008%.
+- **Residuals.** RC/GDP is ≤ 0.0003% in 2026–30 (the largest is 0.00024%, `share_shift_tfp` at 0.1), and the interior max is ≤ 0.0008%. "Interior" leaves out the last model period (t = 59): its residual is −21% to −23% of GDP in every solve, as it was in #30's.
 - **Convergence.** TPI converged in 8–9 iterations with final distances of 5.7e-5 to 7.6e-5.
 - **GNI.** GNI ≤ GDP in every period of every arm, since foreigners hold gilts even at zk0. Payments abroad in 2030 are 2.56% (`share_shift_tfp`) and 2.30% (`share_shift`) of GDP at 0.1, against 1.55% in the baseline.
 - **Signs.** Every 2030 sign (GDP, K, L, wage, C, I, r) matches the #30 solve of the same arm and closure. The one exception is `share_shift` GDP under R4, which is zero by construction.

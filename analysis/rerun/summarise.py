@@ -4,7 +4,7 @@
 
 "Old" is the #30 solve of the same arm at the same closure (stock pre-TP
 demographics, no debt calibration, fixed-input Z for share_shift); at
-zeta_K = 0.1 those equal the committed data/scenarios.json bit for bit.
+zeta_K = 0.1 those equal data/legacy/scenarios_2026-11-11.json bit for bit.
 "New" is the assembled results file: data/scenarios.json (zeta_K = 0.1, central)
 and data/scenarios_zk0.json (zeta_K = 0).
 Prose lives in the doc itself; this prints the numbers.
