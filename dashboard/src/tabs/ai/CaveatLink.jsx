@@ -1,12 +1,12 @@
 'use client';
 
-// Link to a numbered caveat (or any step) on the Scenario design tab. The
-// link switches tab through the hash router, waits for the target to be
-// visible, then scrolls to it.
-export default function CaveatLink({ id, children }) {
+// Link to a numbered caveat (or any step) on the Scenario design tab, or to
+// an element on another tab (`tab`). The link switches tab through the hash
+// router, waits for the target to be visible, then scrolls to it.
+export default function CaveatLink({ id, tab = 'scenarios', children }) {
   function go(e) {
     e.preventDefault();
-    if (window.location.hash !== '#scenarios') window.location.hash = '#scenarios';
+    if (window.location.hash !== `#${tab}`) window.location.hash = `#${tab}`;
     let tries = 0;
     function attempt() {
       const el = document.getElementById(id);
@@ -19,7 +19,7 @@ export default function CaveatLink({ id, children }) {
     requestAnimationFrame(attempt);
   }
   return (
-    <a href="#scenarios" onClick={go}>
+    <a href={`#${tab}`} onClick={go}>
       {children}
     </a>
   );

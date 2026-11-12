@@ -241,8 +241,9 @@ export const COVERAGE_STEPS = [
         <p>
           The OBR also publishes borrowing ({OBR.borrowing2425}% of GDP in 2024-25 and {OBR.borrowing2526}% in
           2025-26, falling to {OBR.borrowing3031}% in 2030-31; {ext(efo(EFO_PAGE.p1_3), 'paragraph 1.3')}), debt and receipts. OG-UK produces all three, and
-          its own ratios to GDP differ from the data (<Cv id="levels" />); a year-by-year comparison has not been
-          run.
+          its own ratios to GDP differ from the data (<Cv id="levels" />). The baseline&rsquo;s debt/GDP is
+          calibrated to the OBR&rsquo;s in 2030 only (<Cv id="fiscal" />); borrowing and receipts have not been
+          compared year by year.
         </p>
         <p>
           OG-UK is weakest where Korinek et al. are strongest (adoption, reinstatement, unemployment) and strongest

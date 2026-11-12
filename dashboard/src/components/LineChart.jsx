@@ -6,7 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 // real pixels, so type stays at a fixed size in a half-width column instead
 // of scaling down with a viewBox.
 //
-// `series`: [{ label, sublabel?, color, values: number[] }]
+// `series`: [{ label, sublabel?, color, dashed?, key?, values: number[] }]
+//           `dashed` draws the line dashed with hollow markers; `key` (default
+//           the label) must be unique when two series share a label.
 // `x`:      number[] (same length as every series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
@@ -236,7 +238,7 @@ export default function LineChart({
       const extra = (lines.length - 1) * LINE + subLines.length * SUB_ROW;
       const base = { lines, subLines, extra, strong: Boolean(s) };
       return s
-        ? { ...base, key: `s-${s.label}`, color: s.color, ax: R, y: sy(s.values[s.values.length - 1]) }
+        ? { ...base, key: `s-${s.key ?? s.label}`, color: s.color, ax: R, y: sy(s.values[s.values.length - 1]) }
         : { ...base, key: `p-${p.label}`, color: p.color, ax: stripX, y: stripY(p, points.indexOf(p)) };
     })
     .sort((a, b) => a.y - b.y);
@@ -292,17 +294,22 @@ export default function LineChart({
           </g>
         ) : null}
         {series.map((s) => (
-          <g key={s.label}>
+          <g key={s.key ?? s.label}>
             <polyline
               points={s.values.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')}
               fill="none"
               stroke={s.color}
-              strokeWidth="2.6"
+              strokeWidth={s.dashed ? '2' : '2.6'}
+              strokeDasharray={s.dashed ? '6 4' : undefined}
               strokeLinejoin="round"
             />
-            {s.values.map((v, i) => (
-              <circle key={i} cx={sx(i)} cy={sy(v)} r="3.2" fill={s.color} />
-            ))}
+            {s.values.map((v, i) =>
+              s.dashed ? (
+                <circle key={i} cx={sx(i)} cy={sy(v)} r="3" fill="var(--pe-color-bg-primary)" stroke={s.color} strokeWidth="1.6" />
+              ) : (
+                <circle key={i} cx={sx(i)} cy={sy(v)} r="3.2" fill={s.color} />
+              ),
+            )}
           </g>
         ))}
         {points.map((p, pi) => {

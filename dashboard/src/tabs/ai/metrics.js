@@ -12,7 +12,9 @@ export const LAST_YEAR = YEARS[LAST];
 // D.grow[arm][i] is growth into YEARS[i + 1].
 export const GROW_LAST = D.grow.baseline.length - 1;
 
-export const signed = (x, dp = 1) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(dp)}`;
+// A value that rounds to zero prints unsigned (0.0, not −0.0).
+export const signed = (x, dp = 1) =>
+  Math.abs(x) < 0.5 * 10 ** -dp ? (0).toFixed(dp) : `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(dp)}`;
 export const pct = (x, dp = 1) => `${x.toFixed(dp)}%`;
 
 // % gap of an arm against the OBR-central baseline, variable v, year index i.
@@ -36,6 +38,13 @@ export const GAMMA_ONLY_GAIN = D.assum.gamma_only_output_gain * 100;
 export const KL0 = Math.exp(Math.log(1 + D.assum.gamma_only_output_gain) / DG);
 export const Z_SHARE_SHIFT = D.assum.Z_share_shift;
 export const Z_SHARE_SHIFT_TFP = D.assum.Z_share_shift_tfp;
+// Automation only: Z is solved so that equilibrium GDP in Z_SHARE_SHIFT_YEAR
+// equals the baseline's (R4, #8). The fixed-input Z (zero technology wedge at
+// baseline 2026 K and L) is kept for comparison; the ratio of the two is the
+// technology change at fixed inputs that the GDP target implies.
+export const Z_SHARE_SHIFT_FIXED = D.assum.Z_share_shift_fixed_input;
+export const Z_SHARE_SHIFT_YEAR = D.assum.Z_share_shift_year;
+export const SHARE_SHIFT_TECH = (Z_SHARE_SHIFT / Z_SHARE_SHIFT_FIXED - 1) * 100;
 export const G_Y = D.assum.g_y_annual;
 export const PRODUCTIVITY = (Math.exp(G_Y) - 1) * 100;
 export const TG1 = D.assum.tG1;
@@ -73,11 +82,29 @@ export const taxGdpChangePp = (arm, i = LAST) => {
   return (rel - 1) * taxGdpBase();
 };
 
-// Optional block: the robustness run with spending held at baseline levels.
-// fixed_spending.arms[arm] (spending fixed) and fixed_spending.common_gy[arm]
-// (the committed runs), each {Y_gap, C_gap, I_gap, G_gap, tax_gap, D_gap,
-// debt_gdp_pp} as lists over D.years.
-export const FIXED = D.fixed_spending || null;
+// Capital closures (#16, #27). central: zeta_K = 0.1 (the results everywhere
+// else on the page); bound: zeta_K = 0, the closed-capital bound. Each block
+// holds gaps against its own baseline over every exported year (2026-2035):
+// Y, GNI, w (%), debt_gdp_pp (pp), r_bp (bp), foreign_share_K (% of the extra
+// capital). high_inflow: the #30 zeta_K = 0.5 wage gap (before the reruns).
+export const CL = D.closures;
+export const CL_YEARS = CL.central.years;
+export const LATE_YEAR = CL_YEARS[CL_YEARS.length - 1];
+export const ZK = { central: CL.central.zeta_K, bound: CL.bound.zeta_K };
+export const CLOSURE = D.assum.closure; // zeta_K, zeta_D, world_int_rate_annual
+export const cgap = (closure, arm, v, year = LAST_YEAR) => CL[closure].arms[arm][v][CL_YEARS.indexOf(year)];
+// The first five years of a closure series, aligned with YEARS.
+export const cpath = (closure, arm, v) => CL[closure].arms[arm][v].slice(0, YEARS.length);
+export const HIGH_INFLOW = CL.high_inflow;
+export const abroadPct = (closure, year) => CL[closure].baseline.abroad_pct_gdp[CL_YEARS.indexOf(year)];
+
+// Baseline debt/GDP against the OBR's March 2026 path (R1, #32): calibrated
+// so that LAST_YEAR matches; the years before are not targeted.
+export const DEBT_CAL = D.assum.debt_calibration;
+export const OBR_DEBT = CL.obr_debt_gdp;
+const debtShort = YEARS.map((y, i) => OBR_DEBT[i] - DEBT_CAL.debt_gdp_pct[i]);
+export const DEBT_MAX_SHORT_IDX = debtShort.indexOf(Math.max(...debtShort));
+export const DEBT_MAX_SHORT = debtShort[DEBT_MAX_SHORT_IDX];
 
 // ---- Published figures, not in the JSON ----
 
@@ -116,11 +143,6 @@ export const KORINEK = {
   unempCognitive: 4.5, // Table 3, cognitive workers
   unempAll: 4.6, // Table 3, all workers
 };
-
-// Accounting error in 2026: the resource constraint misses by 0.0068 model
-// units, about 0.95% of 2026 GDP, in every arm (arm-minus-baseline ~3e-6).
-// Referee report M2, verified by the coordinator.
-export const RC_ERROR = { units: 0.0068, pctGdp: 0.95 };
 
 // OG-Core CIT rate in OG-UK (referee report C3(b)).
 export const CIT_RATE = 27;
