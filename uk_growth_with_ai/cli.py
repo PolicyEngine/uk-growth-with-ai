@@ -74,6 +74,9 @@ def main(argv=None) -> int:
                       default="continuation",
                       help="continuation: the no-shock restart that must reproduce the "
                            "baseline; arms_fs: G and TR at baseline levels")
+    p_sp.add_argument("--scenario", default="korinek",
+                      help="grid id: korinek (upper, Korinek US substantial), uk_low, "
+                           "uk_central, uk_high (from analysis/surprise/uk_targets.json)")
     p_sp.add_argument("--fixed-spending", action="store_true", help="assemble: arms_fs")
     p_sp.add_argument("--debt-neutral", action="store_true", help="assemble: arms_dn")
     p_sp.add_argument("--reference", choices=["baseline", "continuation"],
@@ -184,14 +187,16 @@ def _surprise(args) -> int:
                                          args.note, **kw))
         return 0 if rep["ok"] else 1
     if args.action == "next":
-        spec = sp.next_step(args.outdir, args.closure, args.stage, args.rerun_dir, **kw)
+        spec = sp.next_step(args.outdir, args.closure, args.stage, args.rerun_dir,
+                            scenario=args.scenario, **kw)
         if spec:
             print(spec["label"])
         return 0
     if args.action == "step":
         if not args.work:
             raise SystemExit("--work is required for step")
-        sp.run_step(args.outdir, args.closure, args.stage, args.work, args.rerun_dir, **kw)
+        sp.run_step(args.outdir, args.closure, args.stage, args.work, args.rerun_dir,
+                    scenario=args.scenario, **kw)
         return 0
     if args.action == "status":
         for k, r in sp.load(args.outdir, args.closure).items():
@@ -201,8 +206,9 @@ def _surprise(args) -> int:
     if args.fixed_spending and args.debt_neutral:
         raise SystemExit("--fixed-spending and --debt-neutral are separate variants")
     variant = "fs" if args.fixed_spending else "dn" if args.debt_neutral else ""
-    res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir, **kw)
-    stem = f"scenarios_surprise{args.start}" + {"": "", "fs": "_fixed_spending",
+    res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir,
+                      scenario=args.scenario, **kw)
+    stem = f"scenarios_surprise{args.start}_{args.scenario}" + {"": "", "fs": "_fixed_spending",
                                                  "dn": "_debt_neutral"}[variant]
     out = Path(args.out or f"uk_growth_with_ai/data/{stem}"
                f"{'' if args.closure == 'zk0.1' else '_' + args.closure}.json")

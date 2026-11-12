@@ -49,7 +49,8 @@ from pathlib import Path
 import numpy as np
 
 from .calibrate import solve_scenario
-from .scenarios import G_BASE, G_Y_ANNUAL, RAMP_YEARS, SCENARIOS, START, TG1
+from .scenarios import (G_BASE, G_Y_ANNUAL, RAMP_YEARS, SCENARIOS, START, TG1,
+                        Scenario)
 
 SURPRISE_YEAR = 2028
 NEXP_SURPRISE = 11          # 2026-2036: 2036 is the debt rule's first year (tG1)
@@ -502,13 +503,96 @@ def gap_pct(rec, base_ext, year, var="Y") -> float:
     return (rec["series"][var][i] / base_ext["series"][var][i] - 1) * 100
 
 
+# --- the scenario grid ---------------------------------------------------------------
+#
+# Each scenario is a (labour-share fall by the full-weight year, TFP level gain)
+# pair and has two arms: <id>_share_shift_tfp (both) and <id>_share_shift (the
+# share shift alone, Z solved by R4 on 2031 GDP).  "korinek" is the labelled
+# upper scenario (Korinek et al. 2026, Table 3, US "substantial"); the UK
+# scenarios are read from analysis/surprise/uk_targets.json, written by the
+# literature review (IMF UK 2026 SIP/2026/072, OBR FRS 2026 Box 4.1, BP9).
+#
+# uk_targets.json schema (either form):
+#   {"scenarios": {"uk_central": {"labour_share_fall_pp": 1.2, "tfp_gain": 0.005,
+#                                 "source": "...", "note": "..."}, ...}}
+#   {"uk_central": {...}, "uk_low": {...}, "uk_high": {...}}
+# tfp_gain is a fraction (0.005 = +0.5% at fixed inputs); "tfp_gain_pct" is
+# accepted as percent.  Both are reached at full ramp weight (2031).
+UK_TARGETS = Path(__file__).resolve().parents[1] / "analysis" / "surprise" / "uk_targets.json"
+UK_IDS = ("uk_low", "uk_central", "uk_high")
+KORINEK = {"labour_share_fall_pp": 3.9, "tfp_gain": 0.031,
+           "label": "upper (Korinek US substantial)",
+           "source": "Korinek, Jones, Sacher, Cotter and McCrory (2026), Anthropic "
+                     "Institute WP 2026-02, Table 3, 'substantial' column"}
+
+
+def scenario_grid(path=None) -> dict:
+    """{id: {labour_share_fall_pp, tfp_gain, label, source}}; korinek always,
+    the UK ids when uk_targets.json exists."""
+    grid = {"korinek": dict(KORINEK)}
+    f = Path(path) if path else UK_TARGETS
+    if f.exists():
+        raw = json.loads(f.read_text())
+        raw = raw.get("scenarios", raw)
+        for sid in UK_IDS:
+            if sid not in raw:
+                continue
+            x = raw[sid]
+            g = x["tfp_gain"] if "tfp_gain" in x else x["tfp_gain_pct"] / 100
+            fall = float(x["labour_share_fall_pp"])
+            if not (0 < fall < 20 and -0.05 < g < 0.2):
+                raise ValueError(f"{sid}: implausible targets {fall}pp, {g}")
+            gt = x.get("gamma_terminal")
+            if gt is not None and abs(gt - (G_BASE + fall / 100)) > 1e-9:
+                raise ValueError(f"{sid}: gamma_terminal {gt} != {G_BASE} + {fall}/100")
+            grid[sid] = {"labour_share_fall_pp": fall, "tfp_gain": float(g),
+                         "label": x.get("label", sid.replace("_", " ")),
+                         "source": x.get("source", str(f))}
+    return grid
+
+
+def scenario_pair(sid, grid=None) -> dict:
+    """The two Scenario objects of one grid entry: 'tfp' and 'ss'."""
+    grid = grid or scenario_grid()
+    if sid not in grid:
+        raise KeyError(f"scenario {sid!r} not in the grid {sorted(grid)} "
+                       f"(UK targets file: {UK_TARGETS})")
+    x = grid[sid]
+    fall, g = x["labour_share_fall_pp"], x["tfp_gain"]
+    return {"tfp": Scenario(name=f"{sid}_share_shift_tfp", labour_share_fall_pp=fall,
+                            tfp_gain=g, target=f"labour share -{fall}pp and {g:+.2%} "
+                            f"output at fixed baseline inputs ({x['label']})"),
+            "ss": Scenario(name=f"{sid}_share_shift", labour_share_fall_pp=fall,
+                           gdp_level_change=0.0,
+                           target=f"labour share -{fall}pp with Z solved so 2031 GDP "
+                                  f"equals the reference ({x['label']})")}
+
+
 # --- planner -----------------------------------------------------------------------
 
-def _keys(fs=False):
+def _keys(fs=False, scenario="korinek"):
     v = _variant(fs)
     x = f"_{v}" if v else ""
-    return {"tfp": f"share_shift_tfp_ramp{x}", "zfixed": f"share_shift_ramp_zfixed{x}",
-            "r4": f"share_shift_ramp{x}_r4_"}
+    p = f"{scenario}_"
+    return {"tfp": f"{p}share_shift_tfp_ramp{x}", "zfixed": f"{p}share_shift_ramp_zfixed{x}",
+            "r4": f"{p}share_shift_ramp{x}_r4_"}
+
+
+def parse_label(label: str) -> dict:
+    """{scenario, kind (tfp|zfixed|r4_iter|continuation), variant} of a label."""
+    if label == "continuation":
+        return {"scenario": None, "kind": "continuation", "variant": ""}
+    sid = next((g for g in ("korinek",) + UK_IDS if label.startswith(g + "_")), None)
+    if sid is None:
+        raise ValueError(f"no scenario prefix in {label!r}")
+    rest = label[len(sid) + 1:]
+    v = next((x for x in ("dn", "fs") if f"_{x}" in rest), "")
+    kind = ("tfp" if rest.startswith("share_shift_tfp_ramp") else
+            "zfixed" if rest.startswith("share_shift_ramp_zfixed") else
+            "r4_iter" if "_r4_" in rest else None)
+    if kind is None:
+        raise ValueError(label)
+    return {"scenario": sid, "kind": kind, "variant": v}
 
 
 def load(outdir, closure) -> dict:
@@ -526,11 +610,12 @@ def load_base_ext(outdir, closure) -> dict:
     return json.loads(f.read_text())
 
 
-def calibration(base_ext, year=SURPRISE_YEAR) -> dict:
-    """gamma and Z at the anchor year's baseline K and L (2027 for 2028)."""
+def calibration(base_ext, year=SURPRISE_YEAR, scenario="korinek") -> dict:
+    """gamma and Z at the anchor year's baseline K and L (2027 for 2028), for
+    the scenario's two arms: {"tfp": ..., "ss": ...}."""
     i = window(year)["z_anchor_year"] - START
     K, L = base_ext["series"]["K"][i], base_ext["series"]["L"][i]
-    return {n: solve_scenario(s, K, L, G_BASE) for n, s in SCENARIOS.items()}
+    return {k: solve_scenario(s, K, L, G_BASE) for k, s in scenario_pair(scenario).items()}
 
 
 def continuation_report(rec, base_ext, year=SURPRISE_YEAR) -> dict:
@@ -607,8 +692,8 @@ def reference_ext(outdir, closure, base_ext=None) -> dict:
     return {**base_ext, "series": cont["series"], "reference": "continuation"}
 
 
-def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR):
-    k = _keys(fs)
+def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR, scenario="korinek"):
+    k = _keys(fs, scenario)
     if _variant(fs) == "dn":   # an arm that missed its debt path is not a point
         done = {x: r for x, r in done.items()
                 if not x.endswith(("_dn",)) and "_dn_" not in x
@@ -620,21 +705,28 @@ def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR):
             for x in keys if x in done]
 
 
-def accepted_r4(done, base_ext, fs=False, year=SURPRISE_YEAR):
-    pts = [p for p in r4_points(done, base_ext, fs, year) if abs(p[1]) <= R4_TOL_PP]
+def accepted_r4(done, base_ext, fs=False, year=SURPRISE_YEAR, scenario="korinek"):
+    pts = [p for p in r4_points(done, base_ext, fs, year, scenario)
+           if abs(p[1]) <= R4_TOL_PP]
     return done[min(pts, key=lambda p: abs(p[1]))[2]] if pts else None
 
 
-def _first_slope(done, base_ext, fs, rerun_dir, closure, year):
-    """pp of R4-year GDP gap per unit ln Z for the first step: the surprise
-    common-G/Y secant (fixed-spending and debt-neutral variants), else the
-    committed 2026 R4 secant at the same closure (2030 gap, full ramp), else
-    R4_SLOPE0."""
+def _first_slope(done, base_ext, fs, rerun_dir, closure, year, scenario="korinek"):
+    """pp of R4-year GDP gap per unit ln Z for the first step: the same
+    scenario's surprise common-G/Y secant (fs/dn variants), else the surprise
+    korinek common secant (UK scenarios), else the committed 2026 R4 secant at
+    the same closure (2030 gap, full ramp), else R4_SLOPE0.  Only the first
+    step uses it; the secant takes over from the second."""
+    cands = []
     if _variant(fs):
-        pts = r4_points(done, base_ext, False, year)
+        cands.append((scenario, f"surprise {scenario} common-G/Y R4 secant"))
+    if scenario != "korinek":
+        cands.append(("korinek", "surprise korinek common-G/Y R4 secant"))
+    for sid, src in cands:
+        pts = r4_points(done, base_ext, False, year, sid)
         if len(pts) >= 2:
             (z0, g0, _), (z1, g1, _) = pts[-2], pts[-1]
-            return (g1 - g0) / (z1 - z0), "surprise common-G/Y R4 secant"
+            return (g1 - g0) / (z1 - z0), src
     if rerun_dir is not None:
         from . import rerun
         old = rerun.load(rerun_dir, closure)
@@ -648,7 +740,7 @@ def _first_slope(done, base_ext, fs, rerun_dir, closure, year):
 
 
 def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
-              year=SURPRISE_YEAR):
+              year=SURPRISE_YEAR, scenario="korinek"):
     from . import rerun
     base = rerun.accepted_baseline(rerun.load(rerun_dir, closure))
     if base is None:
@@ -681,26 +773,28 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
     fs = STAGE_VARIANT[stage]
     common["baseline_spending"] = fs == "fs"
     common["variant"] = fs
-    cal = calibration(base_ext, year)      # Z anchor: always the baseline's 2027
-    k = _keys(fs)
+    common["scenario"] = scenario
+    cal = calibration(base_ext, year, scenario)   # Z anchor: always the baseline's 2027
+    gain = scenario_grid()[scenario]["tfp_gain"]
+    k = _keys(fs, scenario)
     ay = window(year)["z_anchor_year"]
     if k["tfp"] not in done:
-        return {"label": k["tfp"], "arm": "share_shift_tfp",
-                "Z": cal["share_shift_tfp"]["Z"], "gamma": cal["share_shift_tfp"]["gamma"],
-                "why": f"fixed-input Z (+3.1% at baseline {ay} K, L)", **common}
-    ss = cal["share_shift"]
+        return {"label": k["tfp"], "arm": f"{scenario}_share_shift_tfp",
+                "Z": cal["tfp"]["Z"], "gamma": cal["tfp"]["gamma"],
+                "why": f"fixed-input Z ({gain:+.2%} at baseline {ay} K, L)", **common}
+    ss = cal["ss"]
     if k["zfixed"] not in done:
-        return {"label": k["zfixed"], "arm": "share_shift", "Z": ss["Z"],
+        return {"label": k["zfixed"], "arm": f"{scenario}_share_shift", "Z": ss["Z"],
                 "gamma": ss["gamma"], "why": f"fixed-input Z (zero wedge at {ay} K, L); "
                 "R4 secant point 0", **common}
-    if accepted_r4(done, ref, fs, year) is not None:
+    if accepted_r4(done, ref, fs, year, scenario) is not None:
         return None
-    pts = r4_points(done, ref, fs, year)
+    pts = r4_points(done, ref, fs, year, scenario)
     n = len(pts) - 1
     if n >= MAX_R4_ITER:
         raise RuntimeError(f"{closure}: R4 did not converge in {MAX_R4_ITER}: {pts}")
     if len(pts) == 1:
-        slope, src = _first_slope(done, ref, fs, rerun_dir, closure, year)
+        slope, src = _first_slope(done, ref, fs, rerun_dir, closure, year, scenario)
         lz = pts[0][0] - pts[0][1] / slope
         why = f"Newton step, {src} ({slope:.1f} pp per unit ln Z)"
     else:
@@ -708,7 +802,7 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
         slope = (g1 - g0) / (z1 - z0)
         lz = z1 - g1 / slope
         why = f"secant, d gap(pp)/d lnZ = {slope:.1f}"
-    return {"label": f"{k['r4']}{n + 1}", "arm": "share_shift",
+    return {"label": f"{k['r4']}{n + 1}", "arm": f"{scenario}_share_shift",
             "Z": float(math.exp(lz)), "gamma": ss["gamma"], "why": why, **common}
 
 
@@ -809,9 +903,9 @@ def check_specs(work, rerun_dir="analysis/rerun/output", closure="zk0.1",
 # --- one solve ---------------------------------------------------------------------
 
 def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
-             year=SURPRISE_YEAR) -> dict | None:
+             year=SURPRISE_YEAR, scenario="korinek") -> dict | None:
     from . import rerun
-    spec = next_step(outdir, closure, stage, rerun_dir, year)
+    spec = next_step(outdir, closure, stage, rerun_dir, year, scenario)
     if spec is None:
         print(f"{closure} {stage}: nothing to do", flush=True)
         return None
@@ -866,7 +960,7 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
 # --- results file ----------------------------------------------------------------------
 
 def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
-             year=SURPRISE_YEAR) -> dict:
+             year=SURPRISE_YEAR, scenario="korinek") -> dict:
     """The results file for one closure on the 2027-2031 window.
 
     The gap reference is the one fixed in the continuation gate: "baseline"
@@ -880,10 +974,10 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
     done = load(outdir, closure)
     cont = done.get("continuation")
     fs = _variant(fs)
-    k = _keys(fs)
+    k = _keys(fs, scenario)
     ref = reference_ext(outdir, closure, base_ext)
     reference = ref["reference"]
-    tfp, ss = done.get(k["tfp"]), accepted_r4(done, ref, fs, year)
+    tfp, ss = done.get(k["tfp"]), accepted_r4(done, ref, fs, year, scenario)
     if fs == "dn":
         bad = [r.get("label", "?") for r in (tfp, ss) if r and not r.get("dn_check", {}).get("ok")]
         if bad:
@@ -900,7 +994,20 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
         baseline[v] = x[i0: i0 + NPER_SURPRISE]
     strip = lambda r: {key: v for key, v in r.items() if key != "provenance"}
     arms = {"share_shift_tfp_ramp": strip(tfp), "share_shift_ramp": strip(ss)}
-    cal = calibration(base_ext, year)
+    cal = calibration(base_ext, year, scenario)
+    grid = scenario_grid()
+    # Red flag 4 (#37): debt depends on the spending rule.  Record the other
+    # convention's debt/GDP path for each arm wherever it has been solved.
+    conventions = {}
+    for v in ("", "fs", "dn"):
+        kv = _keys(v, scenario)
+        t_, s_ = done.get(kv["tfp"]), accepted_r4(done, ref, v, year, scenario)
+        conventions[v or "common"] = {
+            arm: ({"label": r.get("label"),
+                   "debt_gdp_pct": [r["series"]["D"][i] / r["series"]["Y"][i] * 100
+                                    for i in range(len(r["series"]["Y"]))]}
+                  if r is not None else None)
+            for arm, r in (("share_shift_tfp_ramp", t_), ("share_shift_ramp", s_))}
     return {
         "provenance": {**base["provenance"],
                        "assembled_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -916,7 +1023,8 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
             "gap_reference": reference,
             "continuation_report": cont.get("continuation_report"),
             "ramp_weights": calendar_weights(year),
-            "gamma_base": G_BASE, "gamma_shocked": cal["share_shift_tfp"]["gamma"],
+            "scenario": scenario, "scenario_targets": grid[scenario],
+            "gamma_base": G_BASE, "gamma_shocked": cal["tfp"]["gamma"],
             "Z_anchor_year": w["z_anchor_year"],
             "Z_share_shift_tfp": tfp["Z_terminal"], "Z_share_shift": ss["Z_terminal"],
             "Z_share_shift_fixed_input": done[k["zfixed"]]["Z_terminal"],
@@ -926,7 +1034,8 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
                 y: gap_pct(ss, ref, y) for y in range(w["r4_year"] + 1,
                                                        START + len(ref["series"]["Y"]))},
             "r4_iterations": [{"label": lab, "Z": math.exp(lz), "gdp_gap_pct": g}
-                              for lz, g, lab in r4_points(done, ref, fs, year)],
+                              for lz, g, lab in r4_points(done, ref, fs, year, scenario)],
+            "debt_by_fiscal_convention": conventions,
             "fiscal": VARIANTS[fs], "fiscal_variant": fs or "common",
             "delta": DELTA_ANNUAL,
             "NNI": "GNI - delta * K, delta the model's per-period (annual) depreciation",

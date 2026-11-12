@@ -92,6 +92,25 @@ Two things make the restart inexact. OG-UK's TPI tolerance is `mindist_TPI = 1e-
 - The first R4 step takes its slope from the committed 2026-start secant at the same closure. The fixed-spending variant takes its slope from the surprise common-G/Y secant.
 - Old R4 points cannot leak into the new secant, because the solves live in a separate output directory (tested).
 
+## The scenario grid
+
+Decided by Vahid on 12 Nov 2026. The UK targets are in `analysis/surprise/uk_targets.json`, derived in `docs/uk_calibration.md` (from docs/literature-comparison at 43b2605). All are levels reached in 2031, the first full-weight year:
+
+| id | labour-share fall | γ terminal | TFP gain at fixed inputs | role |
+|---|---|---|---|---|
+| `uk_low` | 0.7pp | 0.357 | +0.2% | UK low (BP9 J-curve; IMF task mapping) |
+| `uk_central` | 1.6pp | 0.366 | +0.4% | UK central (IMF SIP/2026/072, year 4) |
+| `uk_high` | 2.9pp | 0.379 | +1.6% | UK high (OBR FRS 2026 Box 4.1 upper end) |
+| `korinek` | 3.9pp | 0.389 | +3.1% | upper scenario, labelled "Korinek US substantial" |
+
+Each scenario has two arms:
+- `<id>_share_shift_tfp`: the share shift plus the TFP gain, with Z at fixed inputs anchored at the baseline's 2027 K and L;
+- `<id>_share_shift`: the share shift alone, with Z solved by R4 so that 2031 GDP equals the reference.
+
+Labels are self-describing, for example `uk_central_share_shift_tfp_ramp_dn`. The grid checks each file's `gamma_terminal` against 0.35 + fall/100.
+
+Results files are written per scenario: `scenarios_surprise2028_<id>[_debt_neutral|_fixed_spending][_zk0].json`. The schema is the same, with `assumptions.scenario` and `scenario_targets`.
+
 ## The debt-neutral variant (`_dn`)
 
 Approved by Vahid on 12 Nov 2026 (#27, and the referee report on #24). The welfare headline uses these arms.
@@ -133,13 +152,19 @@ The baseline's NNI for 2026–36 is in `baseline_ext.json`: 81.3% of GDP in 2031
 | identities, 2026–36 | K = K_d + K_f, K_d = B − D_d, D = D_d + D_f (1e-8 relative); GNI ≤ GDP where K_f > 0; NNI < GNI |
 | resource constraint | \|RC/GDP\| ≤ 1e-5 in 2027 (baseline) and 2028–36 (run) |
 | single point | every exported series equals the reference exactly in 2026 and 2027 |
-| labour share on the ramp | with ε = 1 and one sector it is 1 − γ, so its gap must be −3.9pp × the ramp weight (−0.975, −1.95, −2.925, −3.9pp in 2028–31), within 0.02pp |
+| labour share on the ramp | with ε = 1 and one sector it is 1 − γ, so its gap must be −(the scenario's fall) × the ramp weight in 2028–31, within 0.02pp (for example −0.975, −1.95, −2.925, −3.9pp for Korinek) |
 | size band | each 2031 gap within 30% of the 2026-start arm's 2030 gap, or within an absolute floor (0.25pp; I 1pp; r 10bp; debt/GDP 0.5pp); a flipped sign above the floor fails |
 | 2028 jump | I and L gaps reported; flagged, not failed, if the I gap exceeds the old 2026 +17% |
 
-Size bands compare 2031 with 2030, the first full-weight year in each design. The surprise arms have had three years of response (2028–30), where the 2026-start arms had four plus anticipation. So somewhat smaller K and Y gaps are expected, and 30% is the stated tolerance for that, not a fitted number. The continuation, the R4 iterations other than the accepted one, and the debt-neutral arms have no band, because they have no 2026-start counterpart.
+Size bands apply **only to the Korinek arms**, the only scenario with a 2026-start counterpart. Signs, identities and the labour-share check apply to every scenario. Size bands compare 2031 with 2030, the first full-weight year in each design. The surprise arms have had three years of response (2028–30), where the 2026-start arms had four plus anticipation. So somewhat smaller K and Y gaps are expected, and 30% is the stated tolerance for that, not a fitted number. The continuation, the R4 iterations other than the accepted one, and the debt-neutral arms have no band, because they have no 2026-start counterpart.
 
-**Expected direction at 2031, written before the solves:**
+**Red-flag diagnostics, reported for every solve and never failed** (`docs/red_flags_1_3.md`):
+- the capital-supply elasticity (Korinek's rental-rate definition) and GDP per unit of TFP at 2031, 2036 and the steady state;
+- the tax/GDP change by base and per point of share fall, against the OBR's 0.19–0.23;
+- the receipts change as a share of GDP, against ¶6.18's −0.17%;
+- effective labour and capital rates, against OBR FRS 46/27% and EFO 40/17%.
+
+**Expected direction at 2031, for every scenario, written before the solves:**
 
 | arm | expected |
 |---|---|
@@ -232,21 +257,22 @@ PY=~/ogmodels/OG-UK/.venv/bin/python WORK=~/ugai-rerun-work analysis/surprise/ru
 
 `driver.sh` runs the plan one step at a time. It commits each output by path and pushes after each one. A rerun skips everything already done, so a plan cut at the deadline stops at a solve boundary and resumes on the next call.
 
-Default order (each solve is about 8 minutes of wall time; the committed solves took 6.7–7.8 minutes):
+Default order: Vahid's priority of 12 Nov 2026. Each solve is about 8 minutes of wall time; the committed solves took 6.7–7.8 minutes. Allow about 1 more minute per solve for the sanity check and the push.
 
 | # | step | solves |
 |---|---|---|
-| 1 | `check-specs`: one specification build, about 15 GB, no SS or TPI; covers both closures | 0 |
-| 2 | zk0.1 continuation, then its gate (stop if it fails) | 1 |
-| 3 | zk0.1 `share_shift_tfp_ramp`, `share_shift_ramp_zfixed`, R4 1–2 | 3–4 |
-| 4 | zk0 continuation, then its gate | 1 |
-| 5 | zk0 `share_shift_tfp_ramp`, `share_shift_ramp_zfixed`, R4 1–2 | 3–4 |
-| 6 | debt-neutral, zk0.1 then zk0 (`_dn`: tfp, zfixed, R4 1–2) | 6–8 |
-| 7 | fixed spending, zk0.1 then zk0 (`_fs`, the same) | 6–8 |
+| 1 | `check-specs`: one specification build, about 15 GB, no SS or TPI; both closures | 0 |
+| 1 | restart (continuation) and gate, zk0.1 then zk0 | 2 |
+| 2 | UK central at zk0.1, then zk0 | 6–8 |
+| 3 | UK low and UK high at zk0.1 | 6–8 |
+| 4 | Korinek (upper) at zk0.1, then zk0 | 6–8 |
+| 5 | debt-neutral: UK central at both closures, then Korinek at both | 12–16 |
+| 6 | UK low and UK high at zk0 | 6–8 |
+| 7 | fixed spending: UK central at both closures, then Korinek at both | 12–16 |
+| | **total** | **50–66** |
 
-That is 20–26 solves plus the spec check: about 2 h 50 min to 3 h 40 min, plus about 1 minute of sanity check and push per solve. The debt-neutral closure adds no outer loop, so it adds no solves beyond its arms. From a 16:30 start:
-- steps 1–5 end around 17:45;
-- the debt-neutral set ends around 18:45;
-- fixed spending will probably not finish by the 19:25 deadline. It stops at a solve boundary and resumes on the next call.
+Each arm set is three or four solves: `_share_shift_tfp_ramp`, `_share_shift_ramp_zfixed`, and one or two R4 iterations.
+
+The total is about 7 h 30 min to 9 h 50 min. The 16:20–19:25 window fits about 19–20 solves after check-specs, which reaches steps 1–3 and possibly the start of step 4. The rest resumes on later calls, in the same order.
 
 The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common and the fixed-spending arms. The debt-neutral R4 starts from the surprise common-G/Y secant's slope. No baseline is re-solved.

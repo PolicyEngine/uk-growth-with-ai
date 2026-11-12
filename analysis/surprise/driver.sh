@@ -7,10 +7,12 @@
 # Items run in order; each is resumable (a finished solve, check or gate is
 # never repeated):
 #   check            surprise check-specs (one spec build, no solve; both closures)
-#   <closure>:continuation | <closure>:gate | <closure>:arms | <closure>:arms_dn
-#   | <closure>:arms_fs
-# Default plan (Vahid, 12 Nov 2026): zk0.1 central set first, then zk0 central,
-# then the debt-neutral arms (the welfare headline), then fixed spending.
+#   <closure>:continuation | <closure>:gate
+#   <closure>:<arms|arms_dn|arms_fs>:<scenario>   scenario = uk_low | uk_central |
+#                                                  uk_high | korinek
+# Default plan (Vahid, 12 Nov 2026): check-specs and both restart gates; UK
+# central at both closures; UK low and high at zk0.1; Korinek (upper) at both;
+# debt-neutral for UK central then Korinek; UK low/high at zk0; fixed spending.
 #
 # After EVERY solve, analysis/surprise/sanity.py is a hard gate: on any failure
 # the driver pushes the record, its log and the sanity report, and exits 1.
@@ -33,10 +35,14 @@ BRANCH="rerun/surprise-2028"
 OUT="$REPO/analysis/surprise/output"
 RERUN="$REPO/analysis/rerun/output"
 PLAN=("$@")
-[[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check zk0.1:continuation zk0.1:gate zk0.1:arms
-                                 zk0:continuation zk0:gate zk0:arms
-                                 zk0.1:arms_dn zk0:arms_dn
-                                 zk0.1:arms_fs zk0:arms_fs)
+[[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check
+  zk0.1:continuation zk0.1:gate zk0:continuation zk0:gate
+  zk0.1:arms:uk_central zk0:arms:uk_central
+  zk0.1:arms:uk_low zk0.1:arms:uk_high
+  zk0.1:arms:korinek zk0:arms:korinek
+  zk0.1:arms_dn:uk_central zk0:arms_dn:uk_central zk0.1:arms_dn:korinek zk0:arms_dn:korinek
+  zk0:arms:uk_low zk0:arms:uk_high
+  zk0.1:arms_fs:uk_central zk0:arms_fs:uk_central zk0.1:arms_fs:korinek zk0:arms_fs:korinek)
 : > "$WORK/un_api_token.txt"   # empty: OG-Core reads the GitHub mirror, as every run so far
 export PYTHONPATH="$REPO"
 
@@ -108,7 +114,8 @@ for item in "${PLAN[@]}"; do
     push "surprise 2028: check-specs passed (one spec build, both closures)" "$f" "$OUT/check_specs.log"
     continue
   fi
-  C="${item%%:*}"; STAGE="${item#*:}"
+  IFS=: read -r C STAGE SCEN <<<"$item"
+  SCEN="${SCEN:-korinek}"
   if [[ "$STAGE" == gate ]]; then
     g="$OUT/$C/GATE_continuation.json"
     [[ -f "$g" ]] && { echo "=== $C gate already approved"; continue; }
@@ -124,14 +131,14 @@ for item in "${PLAN[@]}"; do
     continue
   fi
   while true; do
-    label="$(cli next --closure "$C" --stage "$STAGE" 2>"$WORK/surprise_next.err")" || {
+    label="$(cli next --closure "$C" --stage "$STAGE" --scenario "$SCEN" 2>"$WORK/surprise_next.err")" || {
       echo "STOP $C $STAGE: $(tail -1 "$WORK/surprise_next.err")"; exit 1; }
-    [[ -z "$label" ]] && { echo "=== $C $STAGE done"; break; }
+    [[ -z "$label" ]] && { echo "=== $C $STAGE $SCEN done"; break; }
     time_ok "$C $label" || exit 3
     log="$OUT/$C/$label.log"; mkdir -p "$OUT/$C"
     echo "=== start $C $label $(date +%H:%M)"
     ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai surprise step --closure "$C" \
-        --stage "$STAGE" --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
+        --stage "$STAGE" --scenario "$SCEN" --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
         </dev/null >"$log" 2>&1 )
     rc=$?
     if [[ $rc -ne 0 || ! -f "$OUT/$C/$label.json" ]]; then

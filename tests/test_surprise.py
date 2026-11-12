@@ -262,7 +262,7 @@ def _dirs(tmp_path):
             "provenance": {"utc": "x"},
             "Y": Y, "D": [tgt / 100] * 5, "K": [2.0] * 5, "L": [0.4] * 5})
     # an old 2026-start R4 point in the RERUN dir must not leak into the plan
-    _write(rerun_dir / "zk0.1", "share_shift_ramp_r4_1",
+    _write(rerun_dir / "zk0.1", "korinek_share_shift_ramp_r4_1",
            {"label": "share_shift_ramp_r4_1", "Z_terminal": 0.93, "Y": Y})
     be = _base_ext()
     be["series"]["K"][1], be["series"]["L"][1] = 2.1, 0.41      # 2027 inputs
@@ -295,12 +295,12 @@ def test_plan_runs_the_continuation_first_and_gates_the_arms_on_it(tmp_path):
         nxt("arms")
     sp.write_gate(out, "zk0.1", "baseline", "test")
     s = nxt("arms")
-    assert s["label"] == "share_shift_tfp_ramp" and s["surprise_year"] == 2028
+    assert s["label"] == "korinek_share_shift_tfp_ramp" and s["surprise_year"] == 2028
     from uk_growth_with_ai.calibrate import solve_scenario
     from uk_growth_with_ai.scenarios import SCENARIOS
     z27 = solve_scenario(SCENARIOS["share_shift_tfp"], 2.1, 0.41, G_BASE)["Z"]
     assert s["Z"] == pytest.approx(z27)            # anchored at the 2027 inputs
-    assert nxt("arms_fs")["label"] == "share_shift_tfp_ramp_fs"
+    assert nxt("arms_fs")["label"] == "korinek_share_shift_tfp_ramp_fs"
     assert nxt("arms_fs")["baseline_spending"] is True
 
 
@@ -309,14 +309,14 @@ def test_r4_reads_the_2031_gap_and_ignores_old_points(tmp_path):
     d = out / "zk0.1"
     _write(d, "continuation", _arm(be, 0.0, None))
     sp.write_gate(out, "zk0.1", "baseline", "test")
-    _write(d, "share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
-    _write(d, "share_shift_ramp_zfixed", _arm(be, 1.0, 0.943))
+    _write(d, "korinek_share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
+    _write(d, "korinek_share_shift_ramp_zfixed", _arm(be, 1.0, 0.943))
     pts = sp.r4_points(sp.load(out, "zk0.1"), be)
-    assert [p[2] for p in pts] == ["share_shift_ramp_zfixed"]
+    assert [p[2] for p in pts] == ["korinek_share_shift_ramp_zfixed"]
     assert pts[0][1] == pytest.approx(1.0)
     s = sp.next_step(out, "zk0.1", "arms", rd)
-    assert s["label"] == "share_shift_ramp_r4_1" and s["Z"] < 0.943
-    _write(d, "share_shift_ramp_r4_1", _arm(be, 0.004, s["Z"]))
+    assert s["label"] == "korinek_share_shift_ramp_r4_1" and s["Z"] < 0.943
+    _write(d, "korinek_share_shift_ramp_r4_1", _arm(be, 0.004, s["Z"]))
     assert sp.next_step(out, "zk0.1", "arms", rd) is None
     res = sp.assemble(out, "zk0.1", rerun_dir=rd)
     assert res["years"] == [2027, 2028, 2029, 2030, 2031]
@@ -399,8 +399,8 @@ def test_gate_fixes_the_reference_for_r4_and_assemble(tmp_path):
     with pytest.raises(ValueError):
         sp.write_gate(out, "zk0.1", "nonsense", "")
     sp.write_gate(out, "zk0.1", "continuation", "test")
-    _write(d, "share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
-    _write(d, "share_shift_ramp_zfixed", _arm(be, 0.005, 0.943))  # 0 against the restart
+    _write(d, "korinek_share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
+    _write(d, "korinek_share_shift_ramp_zfixed", _arm(be, 0.005, 0.943))  # 0 against the restart
     assert sp.next_step(out, "zk0.1", "arms", rd) is None        # already accepted
     res = sp.assemble(out, "zk0.1", rerun_dir=rd)
     assert res["assumptions"]["gap_reference"] == "continuation"
@@ -506,15 +506,15 @@ def test_dn_plan_labels_check_and_assemble(tmp_path):
     _write(d, "continuation", _arm(be, 0.0, None))
     sp.write_gate(out, "zk0.1", "continuation", "test")
     s = sp.next_step(out, "zk0.1", "arms_dn", rd)
-    assert s["label"] == "share_shift_tfp_ramp_dn" and s["variant"] == "dn"
+    assert s["label"] == "korinek_share_shift_tfp_ramp_dn" and s["variant"] == "dn"
     assert s["baseline_spending"] is False
     good = lambda g, Z: {**_arm(be, g, Z), "dn_check": {"ok": True}}
-    _write(d, "share_shift_tfp_ramp_dn", good(4.0, 0.97))
-    _write(d, "share_shift_ramp_zfixed_dn", good(0.004, 0.943))
+    _write(d, "korinek_share_shift_tfp_ramp_dn", good(4.0, 0.97))
+    _write(d, "korinek_share_shift_ramp_zfixed_dn", good(0.004, 0.943))
     assert sp.next_step(out, "zk0.1", "arms_dn", rd) is None
     res = sp.assemble(out, "zk0.1", fs="dn", rerun_dir=rd)
     assert res["assumptions"]["fiscal_variant"] == "dn"
-    _write(d, "share_shift_tfp_ramp_dn", {**_arm(be, 4.0, 0.97), "dn_check": {"ok": False}})
+    _write(d, "korinek_share_shift_tfp_ramp_dn", {**_arm(be, 4.0, 0.97), "dn_check": {"ok": False}})
     with pytest.raises(RuntimeError, match="off their debt path"):
         sp.assemble(out, "zk0.1", fs="dn", rerun_dir=rd)
 
@@ -532,3 +532,51 @@ def test_dn_check_and_nni():
     s = sp.series_from_tpi(tpi, T_, T_, ("Y", "K", "K_f", "D_f", "r_p"))
     assert s["GNI"][0] == pytest.approx(2.0 - .05 * .4)
     assert s["NNI"][0] == pytest.approx(s["GNI"][0] - sp.DELTA_ANNUAL * 3.0)
+
+
+
+# --- the scenario grid ------------------------------------------------------------------
+
+def test_grid_reads_the_uk_targets_and_keeps_korinek_as_the_upper_case():
+    g = sp.scenario_grid()
+    assert set(g) == {"korinek", "uk_low", "uk_central", "uk_high"}
+    assert (g["uk_low"]["labour_share_fall_pp"], g["uk_low"]["tfp_gain"]) == (0.7, 0.002)
+    assert (g["uk_central"]["labour_share_fall_pp"], g["uk_central"]["tfp_gain"]) == (1.6, 0.004)
+    assert (g["uk_high"]["labour_share_fall_pp"], g["uk_high"]["tfp_gain"]) == (2.9, 0.016)
+    assert (g["korinek"]["labour_share_fall_pp"], g["korinek"]["tfp_gain"]) == (3.9, 0.031)
+    assert "Korinek" in g["korinek"]["label"]
+    pair = sp.scenario_pair("uk_central")
+    from uk_growth_with_ai.calibrate import gamma_for_labour_share_fall
+    assert gamma_for_labour_share_fall(G_BASE, pair["tfp"].labour_share_fall_pp) == \
+        pytest.approx(0.366)
+    assert pair["ss"].gdp_level_change == 0.0
+
+
+def test_grid_rejects_inconsistent_gamma(tmp_path):
+    f = tmp_path / "t.json"
+    f.write_text(json.dumps({"scenarios": {"uk_low": {
+        "labour_share_fall_pp": 0.7, "gamma_terminal": 0.36, "tfp_gain_pct": 0.2}}}))
+    with pytest.raises(ValueError, match="gamma_terminal"):
+        sp.scenario_grid(f)
+
+
+def test_labels_are_self_describing():
+    assert sp._keys("", "uk_central")["tfp"] == "uk_central_share_shift_tfp_ramp"
+    assert sp._keys("dn", "korinek")["r4"] == "korinek_share_shift_ramp_dn_r4_"
+    assert sp.parse_label("uk_high_share_shift_ramp_fs_r4_2") == {
+        "scenario": "uk_high", "kind": "r4_iter", "variant": "fs"}
+    with pytest.raises(ValueError):
+        sp.parse_label("share_shift_tfp_ramp")
+
+
+def test_uk_plan_is_anchored_and_named(tmp_path):
+    rd, out, be = _dirs(tmp_path)
+    d = out / "zk0.1"
+    _write(d, "continuation", _arm(be, 0.0, None))
+    sp.write_gate(out, "zk0.1", "continuation", "test")
+    s = sp.next_step(out, "zk0.1", "arms", rd, scenario="uk_low")
+    assert s["label"] == "uk_low_share_shift_tfp_ramp" and s["scenario"] == "uk_low"
+    from uk_growth_with_ai.calibrate import solve_scenario
+    z = solve_scenario(sp.scenario_pair("uk_low")["tfp"], 2.1, 0.41, G_BASE)["Z"]
+    assert s["Z"] == pytest.approx(z)
+    assert s["gamma"] == pytest.approx(0.357)

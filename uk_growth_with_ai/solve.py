@@ -149,7 +149,11 @@ NEXP = 10
 EXPORT = ("Y", "B", "K", "K_d", "K_f", "D", "D_d", "D_f", "r", "r_p", "r_gov",
           "w", "L", "C", "I", "I_total", "I_d", "G", "TR", "I_g",
           "agg_pension_outlays", "new_borrowing_f", "debt_service_f",
-          "total_tax_revenue", "BQ")
+          "total_tax_revenue", "BQ",
+          # revenue by base (red flag 3, #37): tax/GDP decomposition per solve
+          "iit_revenue", "payroll_tax_revenue", "iit_payroll_tax_revenue",
+          "business_tax_revenue", "cons_tax_revenue", "bequest_tax_revenue",
+          "wealth_tax_revenue")
 TOP_LEVEL = ("Y", "K", "L", "w", "r", "C", "I", "G", "D", "total_tax_revenue",
              "B", "K_d", "K_f", "D_d", "D_f", "r_p", "r_gov")
 # The OG-UK data window: demographic data to 2028, projected after

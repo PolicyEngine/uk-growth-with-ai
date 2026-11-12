@@ -39,7 +39,7 @@
    "labour_share_pp": "<0"
   }
  },
- "labour_share": "gap = -3.9pp x ramp weight, within 0.02pp",
+ "labour_share": "gap = -(scenario's labour_share_fall_pp) x ramp weight, within 0.02pp (3.9 korinek, 2.9 uk_high, 1.6 uk_central, 0.7 uk_low)",
  "i_jump_flag_pct": 17.0,
  "old_2030_gaps": {
   "zk0.1|common|tfp": {
@@ -199,6 +199,34 @@
    "labour_share_pp": -3.899962029304824
   }
  },
+ "bands_apply_to": "korinek arms only (the only scenario with a 2026-start counterpart)",
+ "scenario_grid": {
+  "korinek": {
+   "labour_share_fall_pp": 3.9,
+   "tfp_gain": 0.031,
+   "label": "upper (Korinek US substantial)",
+   "source": "Korinek, Jones, Sacher, Cotter and McCrory (2026), Anthropic Institute WP 2026-02, Table 3, 'substantial' column"
+  },
+  "uk_low": {
+   "labour_share_fall_pp": 0.7,
+   "tfp_gain": 0.002,
+   "label": "uk low",
+   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+  },
+  "uk_central": {
+   "labour_share_fall_pp": 1.6,
+   "tfp_gain": 0.004,
+   "label": "uk central",
+   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+  },
+  "uk_high": {
+   "labour_share_fall_pp": 2.9,
+   "tfp_gain": 0.016,
+   "label": "uk high",
+   "source": "/Users/vahid/ugai-surprise/analysis/surprise/uk_targets.json"
+  }
+ },
+ "signs_apply_to": "every scenario (uk_low, uk_central, uk_high, korinek)",
  "no_band": [
   "continuation",
   "r4 iterations other than the accepted one",

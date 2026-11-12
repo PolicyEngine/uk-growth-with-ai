@@ -76,16 +76,8 @@ SIGNS = {
 
 def kind(label: str) -> tuple[str, str]:
     """(arm kind, variant) of a solve label."""
-    if label == "continuation":
-        return "continuation", ""
-    v = next((x for x in ("dn", "fs") if f"_{x}" in label), "")
-    if label.startswith("share_shift_tfp_ramp"):
-        return "tfp", v
-    if label.startswith("share_shift_ramp_zfixed"):
-        return "zfixed", v
-    if "_r4_" in label:
-        return "r4_iter", v
-    raise ValueError(label)
+    x = sp.parse_label(label)
+    return x["kind"], x["variant"]
 
 
 def gaps(s, b, i) -> dict:
@@ -146,9 +138,13 @@ def write_expectations():
                    "(first full-weight year in both designs)",
         "band_rel": BAND_REL, "band_floor": BAND_FLOOR,
         "signs_2031": SIGNS,
-        "labour_share": f"gap = -{LS_FALL_PP}pp x ramp weight, within {LS_TOL_PP}pp",
+        "labour_share": f"gap = -(scenario's labour_share_fall_pp) x ramp weight, within "
+                        f"{LS_TOL_PP}pp (3.9 korinek, 2.9 uk_high, 1.6 uk_central, 0.7 uk_low)",
         "i_jump_flag_pct": I_JUMP_FLAG_PCT,
         "old_2030_gaps": bands,
+        "bands_apply_to": "korinek arms only (the only scenario with a 2026-start counterpart)",
+        "scenario_grid": sp.scenario_grid(),
+        "signs_apply_to": "every scenario (uk_low, uk_central, uk_high, korinek)",
         "no_band": ["continuation", "r4 iterations other than the accepted one",
                     "debt-neutral arms (no 2026-start counterpart)"],
     }, indent=1))
@@ -165,7 +161,8 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     done = sp.load(outdir, closure)
     rec = done[label]
     base_ext = sp.load_base_ext(outdir, closure)
-    k_, var = kind(label)
+    lab = sp.parse_label(label)
+    k_, var, scen = lab["kind"], lab["variant"], lab["scenario"]
     if k_ == "continuation":
         ref = {**base_ext, "reference": "baseline"}
     else:
@@ -212,15 +209,17 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     for v, rule in SIGNS["r4" if r4_ok else k_].items():
         add(f"sign 2031 {v} {rule}", _sign_ok(g31[v], rule), g31[v])
     w = sp.calendar_weights(year)
+    target = sp.scenario_grid()[scen]
+    fall = target["labour_share_fall_pp"]
     ls = {y: gaps(s, b, y - START)["labour_share_pp"] for y in range(year, HEADLINE + 1)}
-    off = {y: ls[y] + LS_FALL_PP * w[y] for y in ls}
-    add("labour share = -3.9pp x ramp weight", max(abs(x) for x in off.values()) <= LS_TOL_PP,
-        {"gap_pp": ls, "minus_expected_pp": off})
+    off = {y: ls[y] + fall * w[y] for y in ls}
+    add("labour share = -target x ramp weight", max(abs(x) for x in off.values()) <= LS_TOL_PP,
+        {"target_fall_pp": fall, "gap_pp": ls, "minus_expected_pp": off})
 
     # 4. size bands against the 2026-start 2030 gaps
     exp = json.loads(EXPECT.read_text())
     key = f"{closure}|{ {'': 'common', 'fs': 'fs', 'dn': 'dn'}[var] }|{'r4' if r4_ok else k_}"
-    old = exp["old_2030_gaps"].get(key)
+    old = exp["old_2030_gaps"].get(key) if scen == "korinek" else None
     if old is None or (k_ == "r4_iter" and not r4_ok):
         add("size band vs 2026-start 2030", True, f"no band ({key})", level="info")
     else:
@@ -254,7 +253,81 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     # 6. the 2028 jump
     add("2028 investment jump <= old 2026 +17%", g28["I"] <= I_JUMP_FLAG_PCT,
         {"I_2028_pct": g28["I"], "L_2028_pct": g28["L"]}, level="flag")
-    return _finish(closure, label, res, g31, g28)
+
+    # 7. red-flag diagnostics (#37 section 6), reported, never failed
+    diag = diagnostics(rec, ref, base_rec, target, k_)
+    add("diagnostics (red flags 1-3)", True, diag, level="info")
+    out = _finish(closure, label, res, g31, g28)
+    out["scenario"] = scen
+    out["diagnostics"] = diag
+    return out
+
+
+# --- red-flag diagnostics (docs/red_flags_1_3.md) -------------------------------------
+
+OBR_RATES = {"FRS 2026 Box 4.1": {"labour": 46.0, "capital": 27.0},
+             "EFO Nov 2025 2.64": {"labour": 40.0, "capital": 17.0}}
+OBR_RECEIPTS_PCT_GDP = -0.17      # March 2026 EFO 6.18: -GBP 6bn of GBP 3,632bn (2030-31)
+REV = ("iit_revenue", "payroll_tax_revenue", "business_tax_revenue", "cons_tax_revenue",
+       "bequest_tax_revenue", "wealth_tax_revenue")
+
+
+def capital_elasticity(Ya, Ka, Yb, Kb, g1, g0=0.35):
+    """Korinek et al.'s schedule (6): dlnK / dln(rental rate), rental = gamma Y / K."""
+    import math
+    dk = math.log(Ka / Kb)
+    drent = math.log(g1 / g0) + math.log(Ya / Yb) - dk
+    return {"dlnK": dk, "dln_rental": drent, "elasticity": dk / drent if drent else None}
+
+
+def effective_rates(x, i, delta=sp.DELTA_ANNUAL):
+    """Labour and capital effective rates.  OG-UK taxes household labour and
+    capital income with ONE income-tax function, so household income tax is
+    split pro rata to the two bases; capital also pays the business tax."""
+    Y, LI = x["Y"][i], x["w"][i] * x["L"][i]
+    KI, HK = Y - LI, x["r_p"][i] * x["B"][i]
+    iit = x["iit_revenue"][i]
+    il, ik = iit * LI / (LI + HK), iit * HK / (LI + HK)
+    bus = x["business_tax_revenue"][i]
+    return {"labour": (il + x["payroll_tax_revenue"][i]) / LI * 100,
+            "capital_gross": (ik + bus) / KI * 100,
+            "capital_net_of_depreciation": (ik + bus) / (KI - delta * x["K"][i]) * 100,
+            "household_capital_income_pct_gdp": HK / Y * 100}
+
+
+def diagnostics(rec, ref, base_rec, target, kind_) -> dict:
+    s, b = rec["series"], ref["series"]
+    g1 = sp.G_BASE + target["labour_share_fall_pp"] / 100
+    out = {"capital_supply_elasticity": {}, "gdp_per_tfp": {}}
+    for y in (HEADLINE, sp.window()["debt_rule_year"]):
+        i = y - START
+        out["capital_supply_elasticity"][y] = capital_elasticity(
+            s["Y"][i], s["K"][i], b["Y"][i], b["K"][i], g1)
+        if kind_ == "tfp" and target["tfp_gain"]:
+            out["gdp_per_tfp"][y] = (s["Y"][i] / b["Y"][i] - 1) / target["tfp_gain"]
+    ss_a, ss_b = rec.get("ss") or {}, base_rec.get("ss") or {}
+    if all(k in ss_a and k in ss_b for k in ("Y", "K")):
+        out["capital_supply_elasticity"]["SS"] = capital_elasticity(
+            ss_a["Y"], ss_a["K"], ss_b["Y"], ss_b["K"], g1)
+        if kind_ == "tfp" and target["tfp_gain"]:
+            out["gdp_per_tfp"]["SS"] = (ss_a["Y"] / ss_b["Y"] - 1) / target["tfp_gain"]
+    i = HEADLINE - START
+    if all(v in s and v in b for v in REV):
+        dec = {v: (s[v][i] / s["Y"][i] - b[v][i] / b["Y"][i]) * 100 for v in REV}
+        dtax = (s["total_tax_revenue"][i] / s["Y"][i]
+                - b["total_tax_revenue"][i] / b["Y"][i]) * 100
+        lsf = -gaps(s, b, i)["labour_share_pp"]
+        out["tax_gdp_2031"] = {
+            "change_pp": dtax, "by_base_pp": dec,
+            "per_pp_of_labour_share_fall": dtax / lsf if lsf else None,
+            "obr_per_pp": [-0.19, -0.23],
+            "receipts_level_change_pct_gdp": (s["total_tax_revenue"][i]
+                                              - b["total_tax_revenue"][i]) / b["Y"][i] * 100,
+            "obr_receipts_6_18_pct_gdp": OBR_RECEIPTS_PCT_GDP,
+            "labour_share_fall_pp": lsf}
+        out["effective_rates_2031"] = {"arm": effective_rates(s, i),
+                                       "reference": effective_rates(b, i), "obr": OBR_RATES}
+    return out
 
 
 def _finish(closure, label, res, g31, g28):
