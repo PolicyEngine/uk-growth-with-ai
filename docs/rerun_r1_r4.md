@@ -213,7 +213,7 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 - **Contents.** Consumption, labour, assets (b_s and b_sp1), bequests and transfers by period (all 60), age (80) and lifetime-earnings type (7), plus the steady-state profiles.
 - **Coverage and format.** One file each for the accepted baseline, both arms and the fixed-input `share_shift` arm, per closure. They are float32 and about 0.5MB each.
 - **No re-solve.** They are read from the SS/TPI pickles every rerun solve left in its work directory.
-- **Parameters.** `params.npz` holds the household parameters a consumption-equivalent welfare calculation needs. It needs one specifications build per closure and is queued behind the machine's heavy-job lock.
+- **Parameters: not yet run.** `params.npz` will hold the household parameters a consumption-equivalent welfare calculation needs. It takes one OG-UK specifications build per closure: no solve, but about 15 GB for a few minutes. Take `/tmp/pe-heavy.lock` first, then run `WORK=~/ugai-rerun-work PYTHONPATH=. <og-uk venv python> analysis/rerun/export_cohorts.py --params`.
 
 ## Not done
 
