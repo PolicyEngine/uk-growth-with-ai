@@ -1,8 +1,7 @@
 // Every external URL on the dashboard, verified (HTTP 200) on 26 Sept 2026.
-// Code-file links point at the branch fix/rerun-2-3-5 (PR #11) until it is
-// merged; switch REPO_BLOB to .../blob/main then.
+// Code-file links point at main (the re-run, PR #11, is merged).
 export const REPO = 'https://github.com/PolicyEngine/uk-growth-with-ai';
-export const REPO_BLOB = `${REPO}/blob/fix/rerun-2-3-5`;
+export const REPO_BLOB = `${REPO}/blob/main`;
 export const issue = (n) => `${REPO}/issues/${n}`;
 export const pr = (n) => `${REPO}/pull/${n}`;
 

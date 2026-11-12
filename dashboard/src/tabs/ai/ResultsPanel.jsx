@@ -6,6 +6,7 @@ import HistoricalPaths, { ArmLegend } from '@/tabs/ai/HistoricalPaths.jsx';
 import { Cv } from '@/tabs/ai/scenarioStory.jsx';
 import SvgFigure from '@/components/SvgFigure.jsx';
 import LineChart from '@/components/LineChart.jsx';
+import Sparkline from '@/components/Sparkline.jsx';
 import { ARM_META, US_COLORS } from '@/tabs/ai/series.js';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import {
@@ -83,71 +84,9 @@ function effectPath(r, a) {
   if (r.key === 'grow') return [NaN, ...D.grow[a].map((g, i) => g - D.grow.baseline[i])];
   return YEARS.map((_, i) => gapAt(a, r.key, i));
 }
-function Spark({ values, color, unit }) {
-  const [hover, setHover] = useState(null);
-  const W = 200;
-  const PH = 34; // plot height
-  const H = PH + 18; // plus ticks and end-year labels
-  const pts = values.map((v, i) => [i, v]).filter(([, v]) => Number.isFinite(v));
-  const vs = pts.map(([, v]) => v);
-  let lo = Math.min(...vs);
-  let hi = Math.max(...vs);
-  if (hi - lo < 1e-6) {
-    lo -= 0.5;
-    hi += 0.5;
-  }
-  const pad = (hi - lo) * 0.12;
-  lo -= pad;
-  hi += pad;
-  const sy = (v) => PH - 4 - ((v - lo) / (hi - lo)) * (PH - 8);
-  const sx = (i) => 6 + (i * (W - 12)) / (YEARS.length - 1);
-  const zeroIn = lo < 0 && hi > 0;
-  return (
-    <div className="spark">
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={pts.map(([i, v]) => `${YEARS[i]}: ${signed(v)}${unit}`).join(', ')}>
-        {zeroIn ? <line x1={0} x2={W} y1={sy(0)} y2={sy(0)} className="spark-zero" /> : null}
-        {YEARS.map((y, i) => (
-          <line key={y} x1={sx(i)} x2={sx(i)} y1={PH + 1} y2={PH + 4} className="spark-tick" />
-        ))}
-        <text x={sx(0)} y={H - 2} className="spark-year" textAnchor="start">
-          {YEARS[0]}
-        </text>
-        <text x={sx(YEARS.length - 1)} y={H - 2} className="spark-year" textAnchor="end">
-          {YEARS[YEARS.length - 1]}
-        </text>
-        <polyline points={pts.map(([i, v]) => `${sx(i)},${sy(v)}`).join(' ')} fill="none" stroke={color} strokeWidth="1.8" />
-        {pts.map(([i, v]) => (
-          <circle
-            key={i}
-            cx={sx(i)}
-            cy={sy(v)}
-            r={hover === i ? 4 : 2.6}
-            fill={color}
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-          />
-        ))}
-        {pts.map(([i]) => (
-          <rect
-            key={`h${i}`}
-            x={sx(i) - 10}
-            y={0}
-            width={20}
-            height={PH}
-            fill="transparent"
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-          />
-        ))}
-      </svg>
-      {hover != null ? (
-        <span className="spark-tip" style={{ left: sx(hover), top: sy(values[hover]) }}>
-          {YEARS[hover]}: <b>{signed(values[hover])}{unit}</b>
-        </span>
-      ) : null}
-    </div>
-  );
-}
+const Spark = ({ values, color, unit }) => (
+  <Sparkline values={values} years={YEARS} color={color} unit={unit} format={signed} />
+);
 
 // CSV of every variable x scenario x year: index level and % gap.
 function downloadCsv(e) {
@@ -296,7 +235,8 @@ export default function ResultsPanel() {
         </ul>
         <p className="headline-foot">
           OG-UK output. Government spending is a fixed share of GDP (<Cv id="fiscal" />: spending held at baseline
-          levels). Definitions and caveats: <a href="#scenarios">Scenario design</a>.
+          levels). How the added capital is financed: <Cv id="financing" />. Definitions and caveats:{' '}
+          <a href="#scenarios">Scenario design</a>.
         </p>
       </section>
 
@@ -328,7 +268,9 @@ export default function ResultsPanel() {
                 </tr>,
                 ...g.rows.map((r) => (
                   <tr key={r.key}>
-                    <td>{r.label}</td>
+                    <th scope="row" className="effect-row-head">
+                      {r.label}
+                    </th>
                     {SHOCKED_ORDER.map((a) => {
                       const vals = effectPath(r, a);
                       return (
@@ -354,9 +296,6 @@ export default function ResultsPanel() {
             <div>
               Difference from the OBR-central baseline: % for levels, pp for the labour share and growth. {FIRST_YEAR}{' '}
               values: <Cv id="accounting" />.
-            </div>
-            <div>
-              Government consumption moves one-for-one with GDP by construction (<Cv id="fiscal" />).
             </div>
           </div>
           <a href="#growth" className="csv-link" onClick={downloadCsv}>
@@ -403,12 +342,19 @@ export default function ResultsPanel() {
           />
           {selector}
           <div className="chart-slot">
-            <LineChart x={YEARS} series={series} height={380} ariaLabel={`${LABELS[variable]} index by scenario`} />
+            <LineChart
+              x={YEARS}
+              series={series}
+              height={380}
+              yUnit={`Index (${FIRST_YEAR} baseline = 100)`}
+              ariaLabel={`${LABELS[variable]} index by scenario`}
+            />
           </div>
           <div className="chart-foot">
             <ArmLegend />
             <p className="chart-note">
-              The AI scenarios start away from 100 because of anticipation (<Cv id="anticipation" />).
+              The vertical axis does not start at zero. The AI scenarios start away from 100 because of
+              anticipation (<Cv id="anticipation" />).
               {variable === 'I' ? (
                 <>
                   {' '}
@@ -454,6 +400,7 @@ export default function ResultsPanel() {
               series={gapSeries}
               strip={gapStrip}
               height={340}
+              yUnit="% vs the baseline path"
               ariaLabel={`GDP against the baseline path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>
@@ -466,6 +413,7 @@ export default function ResultsPanel() {
               series={lsSeries}
               strip={lsStrip}
               height={340}
+              yUnit="Labour share (% of income)"
               ariaLabel={`Labour share by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>

@@ -79,7 +79,7 @@ export const COVERAGE_STEPS = [
           </li>
           <li>
             <b>Capital accumulation.</b> Modelled by Korinek et al. (with a capital-supply elasticity of 3), Moll
-            and Imas (Solow saving) and OG-UK (life-cycle saving); the OBR forecasts investment but does not model
+            and Imas (Solow saving) and OG-UK (life-cycle saving plus foreign-owned capital, <Cv id="financing" />); the OBR forecasts investment but does not model
             the AI response.
           </li>
           <li>

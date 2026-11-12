@@ -57,6 +57,21 @@ export default function HomePage() {
     window.history.replaceState(null, '', `#${tabId}`);
   }
 
+  // ARIA tab pattern: the arrow keys move between tabs and activate the one
+  // they land on, and focus follows, so the roving tabIndex stays correct.
+  function onTabKeyDown(e, i) {
+    const last = TABS.length - 1;
+    let next = null;
+    if (e.key === 'ArrowRight') next = i === last ? 0 : i + 1;
+    else if (e.key === 'ArrowLeft') next = i === 0 ? last : i - 1;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = last;
+    if (next == null) return;
+    e.preventDefault();
+    selectTab(TABS[next].id);
+    document.getElementById(`tabbtn-${TABS[next].id}`)?.focus();
+  }
+
   return (
     <div className="app-shell">
       <header className="title-row">
@@ -107,14 +122,18 @@ export default function HomePage() {
           results show the general-equilibrium consequences of given scenarios, not their likelihood.
         </p>
 
-        <nav className="tab-bar" role="tablist">
-          {TABS.map((t) => (
+        <nav className="tab-bar" role="tablist" aria-label="Report sections">
+          {TABS.map((t, i) => (
             <button
               key={t.id}
+              id={`tabbtn-${t.id}`}
               type="button"
               className={`tab-button${t.id === activeTab ? ' active' : ''}`}
               role="tab"
               aria-selected={t.id === activeTab}
+              aria-controls={`tab-${t.id}`}
+              tabIndex={t.id === activeTab ? 0 : -1}
+              onKeyDown={(e) => onTabKeyDown(e, i)}
               onClick={() => selectTab(t.id)}
             >
               {t.label}
@@ -128,6 +147,8 @@ export default function HomePage() {
             id={`tab-${id}`}
             className={`tab-panel${id === activeTab ? ' active' : ''}`}
             role="tabpanel"
+            aria-labelledby={`tabbtn-${id}`}
+            tabIndex={id === activeTab ? 0 : -1}
             hidden={id !== activeTab}
           >
             <Component openModal={setModal} />

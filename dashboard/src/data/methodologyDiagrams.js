@@ -71,13 +71,13 @@ export const DIAGRAMS = [
   `<svg viewBox="0 0 580 210" width="580" style="max-width:100%;height:auto;">
                 <text x="290" y="20" text-anchor="middle" font-family="Roboto, sans-serif" font-size="13" fill="var(--text-light)" font-weight="600">Government budget constraint</text>
                 <rect x="15" y="42" width="180" height="85" rx="10" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.25)" stroke-width="1.5"/>
-                <text x="105" y="64" text-anchor="middle" font-family="Roboto, sans-serif" font-size="12" fill="#059669" font-weight="700">revenue</text>
+                <text x="105" y="64" text-anchor="middle" font-family="Roboto, sans-serif" font-size="12" fill="var(--pe-color-primary-600)" font-weight="700">revenue</text>
                 <text x="105" y="84" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">Income + consumption +</text>
                 <text x="105" y="100" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">wealth + corporate + bequest</text>
-                <text x="105" y="118" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="#059669">+ new debt D(t+1)</text>
+                <text x="105" y="118" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--pe-color-primary-600)">+ new debt D(t+1)</text>
                 <text x="215" y="85" text-anchor="middle" font-family="Roboto, sans-serif" font-size="20" fill="var(--accent)" font-weight="700">=</text>
                 <rect x="235" y="42" width="330" height="85" rx="10" fill="rgba(239,146,68,0.06)" stroke="rgba(239,146,68,0.2)" stroke-width="1.5"/>
-                <text x="400" y="64" text-anchor="middle" font-family="Roboto, sans-serif" font-size="12" fill="#c2410c" font-weight="700">spending</text>
+                <text x="400" y="64" text-anchor="middle" font-family="Roboto, sans-serif" font-size="12" fill="var(--chart-uk-obr)" font-weight="700">spending</text>
                 <text x="400" y="84" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">Debt service + public goods G</text>
                 <text x="400" y="100" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">+ infrastructure I + pensions</text>
                 <text x="400" y="116" text-anchor="middle" font-family="Roboto, sans-serif" font-size="11" fill="var(--text-mid)">+ transfers TR + UBI</text>

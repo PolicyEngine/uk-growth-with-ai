@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 
 export default function DiagramModal({ title, svgHtml, onClose }) {
+  const titleId = useId();
+
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose();
@@ -13,7 +15,13 @@ export default function DiagramModal({ title, svgHtml, onClose }) {
 
   return (
     <div className="diagram-modal-overlay" onClick={onClose}>
-      <div className="diagram-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="diagram-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
           className="diagram-modal-close"
@@ -22,7 +30,9 @@ export default function DiagramModal({ title, svgHtml, onClose }) {
         >
           ×
         </button>
-        <div className="diagram-modal-title">{title}</div>
+        <div className="diagram-modal-title" id={titleId}>
+          {title}
+        </div>
         <div className="diagram-modal-diagram" dangerouslySetInnerHTML={{ __html: svgHtml }} />
       </div>
     </div>

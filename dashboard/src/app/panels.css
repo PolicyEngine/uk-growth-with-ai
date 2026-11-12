@@ -32,15 +32,16 @@ table.panel-grid td.pg-text { font-weight: 500; color: var(--text-mid); }
 .effect-sub { display: block; font-size: 0.75rem; font-weight: 400; color: var(--pe-color-gray-500); margin-top: 2px; }
 .effect-table .group-row th {
   padding: 20px 12px 4px; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;
-  font-weight: 600; color: var(--pe-color-gray-400); border-bottom: none; text-align: left;
+  font-weight: 600; color: var(--pe-color-gray-500); border-bottom: none; text-align: left;
 }
-.effect-inner { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.effect-inner { display: flex; align-items: center; justify-content: center; gap: 14px; min-width: 0; }
 .effect-value { flex: 0 0 70px; text-align: right; font-weight: 600; }
-.spark { position: relative; flex: 0 0 auto; line-height: 0; }
+/* Fills its cell up to 200px (Sparkline measures it); the value keeps its 70px. */
+.spark { position: relative; flex: 1 1 auto; min-width: 0; width: 100%; line-height: 0; }
 .spark svg { display: block; overflow: visible; }
 .spark-zero { stroke: var(--pe-color-gray-300); stroke-width: 1; stroke-dasharray: 3 3; }
 .spark-tick { stroke: var(--pe-color-gray-300); stroke-width: 1; }
-.spark-year { font-size: 0.65rem; fill: var(--pe-color-gray-400); }
+.spark-year { font-size: 0.65rem; fill: var(--pe-color-gray-500); }
 .spark circle { cursor: default; }
 .spark-tip {
   position: absolute; transform: translate(-50%, calc(-100% - 8px)); pointer-events: none; z-index: 5;
@@ -60,7 +61,8 @@ table.panel-grid td.pg-text { font-weight: 500; color: var(--text-mid); }
   .effect-table thead th:first-child { width: 30%; }
   .effect-inner { flex-direction: column; align-items: flex-start; gap: 4px; }
   .effect-value { flex: none; text-align: left; }
-  .spark svg { width: 140px; height: auto; }
+  .effect-table th, .effect-table td { padding-left: 6px; padding-right: 6px; }
+  .effect-head { align-items: flex-start; }
   .effect-foot { flex-direction: column; }
 }
 
