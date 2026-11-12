@@ -145,6 +145,8 @@ export default function LineChart({
   yUnit = null,
   ariaLabel,
   noValue = false,
+  noEndLabels = false,
+  zeroLabel = null,
   bands = [],
 }) {
   const [ref, W] = useWidth(880);
@@ -168,7 +170,7 @@ export default function LineChart({
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
   const dp = decimalsFor(step);
   // No "-0.00": a tick that rounds to zero prints unsigned.
-  const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (0).toFixed(dp) : v.toFixed(dp));
+  const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (zeroLabel ? `${zeroLabel} 0` : (0).toFixed(dp)) : v.toFixed(dp));
   const tickText = ticks.map(tickFmt);
 
   // Left margin from the widest formatted tick, plus room for the rotated
@@ -186,7 +188,7 @@ export default function LineChart({
     ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
   ];
   const rawLabels = [
-    ...series.filter((s) => !s.noEndLabel).map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false) })),
+    ...series.filter((s) => !s.noEndLabel && !noEndLabels).map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false) })),
     ...points.map((p) => ({ p, segs: segsFor(p.label, p.value, false, p.offScale) })),
   ];
 
@@ -194,9 +196,9 @@ export default function LineChart({
   // never more than 42% of the chart. Labels that do not fit wrap onto
   // extra lines rather than running off the svg edge.
   const stripW = strip ? STRIP_W : 0;
-  const oneLine = Math.max(...rawLabels.map((l) => lineWidth(wrapSegments(l.segs, Infinity)[0])));
+  const oneLine = Math.max(0, ...rawLabels.map((l) => lineWidth(wrapSegments(l.segs, Infinity)[0])));
   const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, 11)) : 0)));
-  const labelW = Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120));
+  const labelW = rawLabels.length ? Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120)) : 6;
   const R = Math.max(L + 80, W - labelW - stripW - 8);
   const TOP = PAD_T;
   const BOT = height - PAD_B;
@@ -292,7 +294,11 @@ export default function LineChart({
           </g>
         ))}
         <line x1={L} y1={BOT} x2={R} y2={BOT} className="axis-line" />
-        {lo < 0 && hi > 0 ? <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" /> : null}
+        {lo < 0 && hi > 0 ? (
+          <g>
+            <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" />
+          </g>
+        ) : null}
         {yUnit ? (
           <text
             className="ax axis-unit"

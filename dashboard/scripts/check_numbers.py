@@ -3,7 +3,7 @@ the data file, and appears exactly as often as expected (each fact once).
 
     python3 scripts/check_numbers.py dump.json [path/to/surprise2028.json]
 
-dump.json is scripts/dumptabs.mjs's output. Signed figures with a unit
+dump.json is scripts/dumptabs.mjs's output. Expected counts: the headline\ndumbbells print each central value once and each closed-capital bound once\n(screen-reader text); the takeaway repeats three of them and the scenario\nstrip shows each scenario's GNI and wage (both asked for by Vahid). Signed figures with a unit
 (+0.57%, -1.6pp) are pulled from the page text as a multiset and compared
 with the multiset built from the data file with the page's own formatting.
 """
@@ -29,6 +29,16 @@ NUM = re.compile(r"[+−]?\d+\.\d+(?:%|pp)")
 bad = 0
 for sid in dump:
     exp = Counter()
+    # takeaway: GDP and wage (automation + productivity), GNI (automation only)
+    for arm, v in [('tfp', 'Y'), ('tfp', 'w'), ('ss', 'GNI')]:
+        x = g(sid, arm, C, v)
+        if x is not None and g(sid, 'tfp', C, 'Y') is not None and g(sid, 'tfp', C, 'w') is not None:
+            exp[signed(x, 2) + '%'] += 1
+    # scenario strip: every scenario's GNI and wage, automation + productivity
+    for s2 in D['results']:
+        for v in ['GNI', 'w']:
+            x = g(s2, 'tfp', C, v)
+            if x is not None: exp[signed(x, 2) + '%'] += 1
     for arm in ARMS:
         for v in ['GNI', 'Y', 'NNI', 'w']:
             for cl in (C, B):

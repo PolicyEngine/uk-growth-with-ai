@@ -140,7 +140,7 @@ export default function HomePage() {
   const scenarioApplies = TABS.find((t) => t.id === tab)?.scenario;
 
   const panels = {
-    results: <ResultsTab sid={sid} onTab={chooseTab} />,
+    results: <ResultsTab sid={sid} onTab={chooseTab} onScenario={chooseScenario} />,
     finances: <PublicFinancesTab sid={sid} />,
     cohorts: <CohortsTab />,
     method: <MethodTab openModal={setModal} />,

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import LineChart from '@/components/LineChart.jsx';
-import ChartCard from '@/components/ab/ChartCard.jsx';
+import Icon from '@/components/ab/Icon.jsx';
+import VarCard from '@/components/ab/VarCard.jsx';
+import Disclosure from '@/components/ab/Disclosure.jsx';
 import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
+import { ArmTag, ARM_ICON } from '@/tabs/ai/Headline.jsx';
 import {
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, result, gap, signed,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, CENTRAL, ARMS, ARM_COLOR, result, gap, signed,
 } from '@/tabs/ai/surprise.js';
 
 // Public finances: debt/GDP to the debt rule's start, tax/GDP, what the tax
@@ -16,126 +18,109 @@ import {
 const LONG_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= LATE_YEAR);
 const SHORT_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= HEADLINE_YEAR);
 
-function seriesFor(sid, v, years) {
-  return ARMS.flatMap((a) =>
-    [CENTRAL, BOUND].flatMap((cl) => {
-      const r = result(sid, a.id, cl);
-      if (r.status !== 'done') return [];
-      const vals = years.map((y) => r.gaps[v][YEARS.indexOf(y)]);
-      return [{
-        key: `${a.id}-${cl}`,
-        label: cl === CENTRAL ? a.label : 'Closed capital',
+function card(sid, v, years, figYears, title, icon) {
+  const lines = ARMS.flatMap((a) => {
+    const r = result(sid, a.id, CENTRAL);
+    if (r.status !== 'done') return [];
+    return [{ key: a.id, label: a.label, color: ARM_COLOR[a.id], values: years.map((y) => r.gaps[v][YEARS.indexOf(y)]) }];
+  });
+  const figures = figYears.flatMap((y) =>
+    ARMS.map((a) => {
+      const x = gap(sid, a.id, CENTRAL, v, y);
+      return {
+        key: `${a.id}-${y}`,
+        armIcon: ARM_ICON[a.id],
         color: ARM_COLOR[a.id],
-        dashed: cl === BOUND,
-        values: vals,
-      }];
+        label: a.label,
+        year: figYears.length > 1 ? y : null,
+        raw: x,
+        value: x == null ? 'pending' : `${signed(x, 2)}pp`,
+      };
     }),
   );
+  return <VarCard icon={icon} title={title} years={years} lines={lines} unit="pp" fmt={(x) => signed(x, 2)} figures={figures} />;
 }
 
-const pp = (x) => (x == null ? 'pending' : `${signed(x, 2)}pp`);
-
-function Legend({ series }) {
+// Two bars on one scale: OG-UK's value against the UK's (a value or a range).
+function BarPair({ max, unit, ours, theirs }) {
+  const pct = (x) => `${((x / max) * 100).toFixed(2)}%`;
   return (
-    <div className="legend-chips">
-      {series.map((s) => (
-        <span key={s.key} className="legend-chip">
-          <span className={`swatch${s.dashed ? ' dashed' : ''}`} style={{ borderTopColor: s.color }} aria-hidden="true" />
-          {s.dashed ? `${ARMS.find((a) => s.key.startsWith(a.id)).label}, closed capital` : `${s.label}, central`}
+    <div className="bar-pair">
+      <div className="bar-pair-row">
+        <span className="bar-pair-name">OG-UK</span>
+        <span className="bar-pair-track">
+          <span className="bar-pair-bar is-ours" style={{ width: pct(ours.value) }} />
         </span>
-      ))}
+        <span className="bar-pair-value">{ours.text}</span>
+      </div>
+      <div className="bar-pair-row">
+        <span className="bar-pair-name">{theirs.name}</span>
+        <span className="bar-pair-track">
+          {theirs.lo != null ? (
+            <>
+              <span className="bar-pair-bar is-theirs" style={{ width: pct(theirs.lo) }} />
+              <span className="bar-pair-range" style={{ left: pct(theirs.lo), width: pct(theirs.hi - theirs.lo) }} />
+            </>
+          ) : (
+            <span className="bar-pair-bar is-theirs" style={{ width: pct(theirs.value) }} />
+          )}
+        </span>
+        <span className="bar-pair-value">{theirs.text}</span>
+      </div>
+      <span className="visually-hidden">{unit}</span>
     </div>
   );
 }
 
-function sentence(sid, v, years) {
-  const parts = ARMS.map((a) => {
-    const vals = years.map((y) => gap(sid, a.id, CENTRAL, v, y));
-    if (vals.some((x) => x == null)) return `${a.label}: pending`;
-    return `${a.label}: ${years.map((y, i) => `${pp(vals[i])} in ${y}`).join(', ')}`;
-  });
-  return parts;
-}
-
-function DebtCard({ sid }) {
-  const series = seriesFor(sid, 'debt_gdp_pp', LONG_YEARS);
-  const parts = sentence(sid, 'debt_gdp_pp', [HEADLINE_YEAR, LATE_YEAR]);
+function TaxGapCard() {
   return (
-    <ChartCard
-      icon="landmark"
-      title={`Debt/GDP, ${FIRST_YEAR}–${LATE_YEAR}`}
-      summary={
-        <>
-          Central closure. {parts.map((p, i) => (
-            <span key={i}>
-              <b>{p}</b>
-              {i < parts.length - 1 ? '. ' : '.'}
+    <div className="chart-card taxgap-card" id="tax-gap">
+      <div className="chart-header">
+        <h3>
+          <Icon name="alert" size={16} />
+          <span>Why the tax and debt figures are too small</span>
+        </h3>
+      </div>
+      <p className="chart-description">
+        When income shifts from wages to profits, revenue in the model falls less than it would in the UK, so the debt
+        rise is understated.
+      </p>
+      <div className="taxgap-rows">
+        <div className="taxgap-row">
+          <div className="taxgap-label">
+            <Icon name="scale" size={16} />
+            <span>Tax-rate gap between labour and capital income</span>
+          </div>
+          <BarPair max={25} unit="percentage points" ours={{ value: 14, text: 'about 14pp' }} theirs={{ name: 'OBR', lo: 19, hi: 23, text: '19–23pp' }} />
+          <p className="taxgap-dir">
+            <Icon name="arrowDown" size={14} className="dir-icon" />
+            <span>A smaller gap means revenue falls too little as the labour share falls, so debt is understated.</span>
+          </p>
+        </div>
+        <div className="taxgap-row">
+          <div className="taxgap-label">
+            <Icon name="receipt" size={16} />
+            <span>Employer National Insurance</span>
+          </div>
+          <BarPair max={16} unit="per cent of labour cost" ours={{ value: 15, text: '15% flat' }} theirs={{ name: 'PolicyEngine-UK', value: 11, text: 'about 11% average' }} />
+          <p className="taxgap-dir">
+            <Icon name="arrowUp" size={14} className="dir-icon" />
+            <span>
+              The flat 15% taxes labour more than the UK average does, which works the other way: it widens OG-UK&rsquo;s
+              gap and so partly offsets the bias above. At the measured rate the gap would be narrower still.
             </span>
-          ))}
-        </>
-      }
-      unit="Percentage points against the no-AI path"
-      legend={series.length ? <Legend series={series} /> : null}
-      about={{
-        shows: `Debt as a share of GDP, against the path without AI. ${HEADLINE_YEAR} is the headline year; the debt rule starts in ${LATE_YEAR}.`,
-        how: `Government consumption is a fixed share of GDP until the debt rule starts in ${LATE_YEAR}, so debt/GDP keeps moving after ${HEADLINE_YEAR}.`,
-      }}
-    >
-      {series.length ? (
-        <LineChart
-          x={LONG_YEARS}
-          series={series}
-          height={300}
-          noValue
-          bands={[{ year: HEADLINE_YEAR, label: 'Headline' }, { year: LATE_YEAR, label: 'Debt rule' }]}
-          valueFormat={(x) => `${signed(x, 2)}pp`}
-          ariaLabel={`Debt to GDP against the no-AI path, ${FIRST_YEAR} to ${LATE_YEAR}`}
-        />
-      ) : (
-        <Unpublished>No solve for this scenario yet.</Unpublished>
-      )}
-    </ChartCard>
-  );
-}
-
-function TaxCard({ sid }) {
-  const series = seriesFor(sid, 'tax_gdp_pp', SHORT_YEARS);
-  const parts = sentence(sid, 'tax_gdp_pp', [HEADLINE_YEAR]);
-  return (
-    <ChartCard
-      icon="landmark"
-      title={`Tax/GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
-      summary={
-        <>
-          Central closure. {parts.map((p, i) => (
-            <span key={i}>
-              <b>{p}</b>
-              {i < parts.length - 1 ? '. ' : '.'}
-            </span>
-          ))}
-        </>
-      }
-      unit="Percentage points against the no-AI path"
-      legend={series.length ? <Legend series={series} /> : null}
-      about={{
-        shows: 'Tax revenue as a share of GDP, against the path without AI.',
-        caveats: 'OG-UK’s tax system understates how much revenue falls when income shifts from labour to capital; see “What the tax system misses” below.',
-      }}
-    >
-      {series.length ? (
-        <LineChart
-          x={SHORT_YEARS}
-          series={series}
-          height={300}
-          noValue
-          bands={[{ year: HEADLINE_YEAR }]}
-          valueFormat={(x) => `${signed(x, 2)}pp`}
-          ariaLabel={`Tax to GDP against the no-AI path, ${FIRST_YEAR} to ${HEADLINE_YEAR}`}
-        />
-      ) : (
-        <Unpublished>No solve for this scenario yet.</Unpublished>
-      )}
-    </ChartCard>
+          </p>
+        </div>
+      </div>
+      <Disclosure inCard title="Sources" preview="docs/red_flags_1_3.md · analysis/nics">
+        <p className="disclosure-text">
+          OG-UK taxes labour and capital income through one income-tax schedule (employee NICs inside it) and employer
+          NICs as a flat 15% payroll tax. The OBR&rsquo;s labour–capital gap of 19–23pp and the OG-UK gap of about
+          14pp are from <code>docs/red_flags_1_3.md</code>; the PolicyEngine-UK employer NICs rate (about 11% of
+          labour cost on average, 13.9% at the margin, 2028) is from <code>analysis/nics/nics_2028.json</code>.
+        </p>
+      </Disclosure>
+    </div>
   );
 }
 
@@ -150,7 +135,10 @@ function SpendingRuleCard() {
   return (
     <div className="chart-card">
       <div className="chart-header">
-        <h3>How the result changes with the spending rule</h3>
+        <h3>
+          <Icon name="sliders" size={16} />
+          <span>How the result changes with the spending rule</span>
+        </h3>
       </div>
       <p className="chart-description">
         The alternative rules are shown as their difference from the default rule, so no figure above is repeated.
@@ -164,8 +152,8 @@ function SpendingRuleCard() {
       </div>
       {rule === 'default' ? (
         <p className="chart-description rule-default">
-          Government consumption follows GDP until the debt rule starts in {LATE_YEAR}. Every other card on this
-          dashboard uses this rule.
+          This is the rule every other card on this dashboard uses: government consumption follows GDP, as noted
+          under the debt and tax cards.
         </p>
       ) : (
         <Unpublished>No solve for this rule yet. The {RULES.find((r) => r.id === rule).label.toLowerCase()} results will appear here once they are published.</Unpublished>
@@ -178,33 +166,26 @@ export default function PublicFinancesTab({ sid }) {
   return (
     <>
       <SectionHeading id="debt-tax" icon="landmark" title="Debt and tax">
-        Debt and tax as shares of GDP, against the path without AI.
+        Central closure, percentage points of GDP against the no-AI path. Hover or focus a chart for each year.
       </SectionHeading>
-      <div className="charts-grid">
-        <DebtCard sid={sid} />
-        <TaxCard sid={sid} />
+      <div className="headline-key grid-key">
+        {ARMS.map((a) => (
+          <ArmTag key={a.id} arm={a.id} label={a.label} />
+        ))}
       </div>
+      <div className="var-grid var-grid-2">
+        {card(sid, 'debt_gdp_pp', LONG_YEARS, [HEADLINE_YEAR, LATE_YEAR], `Debt/GDP, ${FIRST_YEAR}–${LATE_YEAR}`, 'landmark')}
+        {card(sid, 'tax_gdp_pp', SHORT_YEARS, [HEADLINE_YEAR], `Tax/GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`, 'receipt')}
+      </div>
+      <p className="note">
+        <Icon name="calendar" size={14} />
+        <span>
+          Government consumption follows GDP until the debt rule starts in {LATE_YEAR}, so debt/GDP keeps moving after{' '}
+          {HEADLINE_YEAR}.
+        </span>
+      </p>
       <div className="charts-stack stack-gap">
-        <div className="chart-card">
-          <div className="chart-header">
-            <h3>What the tax system misses</h3>
-          </div>
-          <p className="chart-description">
-            Revenue in OG-UK falls too little when income shifts from labour to capital, so the tax and debt figures
-            above understate the fiscal cost of a fall in the labour share.
-          </p>
-          <dl className="fact-list">
-            <div className="fact-head"><span>In OG-UK</span><span>In the UK</span></div>
-            <div>
-              <dt>Labour and capital income are taxed through one income-tax schedule; the gap between their effective rates is about 14pp.</dt>
-              <dd>The OBR puts the gap between the effective rates on labour and capital income at 19–23pp.</dd>
-            </div>
-            <div>
-              <dt>Employer NICs are a flat 15% of labour cost.</dt>
-              <dd>PolicyEngine-UK puts the average employer NICs rate at about 11%.</dd>
-            </div>
-          </dl>
-        </div>
+        <TaxGapCard />
       </div>
 
       <SectionHeading id="spending-rule" icon="sliders" title="Spending rule">

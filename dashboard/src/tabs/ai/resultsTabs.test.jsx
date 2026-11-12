@@ -43,13 +43,13 @@ describe('results tabs follow the data file', () => {
 
   it('Public finances shows the altered debt value', () => {
     const { container } = render(<PublicFinancesTab sid="uk_central" />);
-    expect(container.textContent).toContain('+7.78pp in 2036');
+    expect(container.textContent).toContain('+7.78pp');
   });
 
   it('the plotted series equal path()', () => {
     plotted.length = 0;
     render(<ResultsTab sid="uk_central" onTab={() => {}} />);
-    const gni = plotted.find((p) => p.ariaLabel.startsWith('National income'));
+    const gni = plotted.find((p) => p.ariaLabel.includes('(GNI)'));
     const line = gni.series.find((s) => s.key === 'tfp-c');
     expect(line.values).toEqual(path('uk_central', 'tfp', CENTRAL, 'GNI'));
     expect(gni.series.some((s) => s.key === 'tfp-b')).toBe(false);

@@ -1,13 +1,14 @@
 'use client';
 
 import LineChart from '@/components/LineChart.jsx';
-import Sparkline from '@/components/Sparkline.jsx';
 import ChartCard from '@/components/ab/ChartCard.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import { SectionHeading, Note, Notice, Unpublished } from '@/components/ab/Section.jsx';
+import { SectionHeading, Notice, Unpublished } from '@/components/ab/Section.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, result, gap, path, signed, fmt, DONE, TOTAL,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, result, path, signed, DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
+import { ArmTag, ARM_ICON, Takeaway, Dumbbells, ScenarioStrip } from '@/tabs/ai/Headline.jsx';
+import VarCard from '@/components/ab/VarCard.jsx';
 
 // Results: the 2031 headline tiles, the GNI and GDP paths and the effect of
 // AI by variable. Every number comes from surprise2028.json through
@@ -15,48 +16,20 @@ import {
 // Each fact is stated once: the 2031 GNI/GDP values are the tiles', so the
 // chart end labels name the line only.
 
-const TILES = [
-  { v: 'GNI', label: 'National income (GNI)', icon: 'banknote' },
-  { v: 'Y', label: 'GDP', icon: 'bars' },
-  { v: 'NNI', label: 'Net national income (NNI)', icon: 'layers' },
-  { v: 'w', label: 'Wage rate', icon: 'briefcase' },
-];
-
 const EFFECT_GROUPS = [
-  { group: 'Demand', rows: [
-    { v: 'C', label: 'Consumption', unit: '%' },
-    { v: 'I', label: 'Investment', unit: '%' },
+  { group: 'Demand', icon: 'cart', rows: [
+    { v: 'C', label: 'Consumption', unit: '%', icon: 'cart' },
+    { v: 'I', label: 'Investment', unit: '%', icon: 'construction' },
   ] },
-  { group: 'Factors', rows: [
-    { v: 'K', label: 'Capital stock', unit: '%' },
-    { v: 'L', label: 'Labour', unit: '%' },
+  { group: 'Factors', icon: 'factory', rows: [
+    { v: 'K', label: 'Capital stock', unit: '%', icon: 'building' },
+    { v: 'L', label: 'Labour', unit: '%', icon: 'users' },
   ] },
-  { group: 'Prices and shares', rows: [
-    { v: 'r_bp', label: 'Interest rate', unit: 'pp', scale: 0.01 },
-    { v: 'labour_share_pp', label: 'Labour share', unit: 'pp' },
+  { group: 'Prices and shares', icon: 'percent', rows: [
+    { v: 'r_bp', label: 'Interest rate', unit: 'pp', scale: 0.01, icon: 'percent' },
+    { v: 'labour_share_pp', label: 'Labour share', unit: 'pp', icon: 'pie' },
   ] },
 ];
-
-function Swatch({ color, dashed }) {
-  return <span className={`swatch${dashed ? ' dashed' : ''}`} style={{ borderTopColor: color }} aria-hidden="true" />;
-}
-
-function Tile({ sid, arm, t }) {
-  const c = gap(sid, arm, CENTRAL, t.v);
-  const b = gap(sid, arm, BOUND, t.v);
-  const heldAtZero = arm === 'ss' && t.v === 'Y' && c != null;
-  return (
-    <div className="headline-tile">
-      <div className="headline-tile-name">
-        <Icon name={t.icon} size={15} />
-        <span>{t.label}</span>
-      </div>
-      <div className={`headline-tile-value${c == null ? ' is-text' : ''}`}>{fmt(c)}</div>
-      <div className="headline-tile-sub">closed capital {fmt(b)}</div>
-      {heldAtZero ? <div className="headline-tile-meaning">Held at zero by construction</div> : null}
-    </div>
-  );
-}
 
 function chartSeries(sid, v) {
   return ARMS.flatMap((a) => {
@@ -69,53 +42,72 @@ function chartSeries(sid, v) {
   });
 }
 
+// One line in words, no figures (the 2031 values are the headline's).
 function shape(sid, v) {
-  // Direction and shape in words, no figures: the 2031 values are the tiles'.
-  const words = ARMS.map((a) => {
-    const p = path(sid, a.id, CENTRAL, v);
-    if (!p) return null;
-    const end = p[p.length - 1];
-    const hi = Math.max(...p);
-    const top = WINDOW_YEARS[p.indexOf(hi)];
-    if (Math.abs(end) < 0.005) return `${a.label}: back at the no-AI path by ${HEADLINE_YEAR}${hi > 0.02 ? `, after a rise to ${top}` : ''}`;
-    if (end > 0) return `${a.label}: above the no-AI path in ${HEADLINE_YEAR}${hi > end + 0.02 ? `, after peaking in ${top}` : ', rising through the window'}`;
-    return `${a.label}: below the no-AI path in ${HEADLINE_YEAR}${hi > 0.02 ? `, after an early rise to ${top}` : ', falling through the window'}`;
-  }).filter(Boolean);
-  return words.length ? `${words.join('. ')}.` : 'No solve for this scenario yet.';
+  const p = path(sid, 'tfp', CENTRAL, v);
+  const q = path(sid, 'ss', CENTRAL, v);
+  if (!p) return { text: 'No solve for this scenario yet.', dir: null };
+  const end = p[p.length - 1];
+  const side = (x) => (Math.abs(x) < 0.005 ? 'at' : x > 0 ? 'above' : 'below');
+  const text = `Automation + productivity ends ${side(end)} the no-AI path in ${HEADLINE_YEAR}${
+    q ? `; automation only ends ${side(q[q.length - 1])} it` : ''
+  }.`;
+  return { text, dir: Math.abs(end) < 0.005 ? 'minus' : end > 0 ? 'arrowUp' : 'arrowDown' };
 }
 
-function GapCard({ sid, v, title }) {
+function ChartLegend({ sid }) {
+  const arms = ARMS.filter((a) => result(sid, a.id, CENTRAL).status === 'done');
+  const hasBound = ARMS.some((a) => result(sid, a.id, BOUND).status === 'done');
+  return (
+    <div className="chart-key">
+      {arms.map((a) => (
+        <ArmTag key={a.id} arm={a.id} label={a.label} />
+      ))}
+      <span className="arm-tag">
+        <span className="swatch is-ink" aria-hidden="true" />
+        <Icon name="globe" size={14} />
+        <span>Central</span>
+      </span>
+      {hasBound ? (
+        <span className="arm-tag">
+          <span className="swatch dashed is-ink" aria-hidden="true" />
+          <Icon name="lock" size={14} />
+          <span>Closed capital</span>
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function GapCard({ sid, v, title, icon }) {
   const series = chartSeries(sid, v);
+  const sum = shape(sid, v);
   return (
     <ChartCard
-      icon="trend"
+      icon={icon}
       title={title}
-      summary={shape(sid, v)}
-      unit={`% against the no-AI path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
-      legend={
-        series.length ? (
-          <div className="legend-chips">
-            {series.map((s) => (
-              <span key={s.key} className="legend-chip">
-                <Swatch color={s.color} dashed={s.dashed} />
-                {s.dashed ? `${ARMS.find((a) => s.key.startsWith(a.id)).label}, closed capital` : `${s.label}, central`}
-              </span>
-            ))}
-          </div>
-        ) : null
+      summary={
+        <span className="summary-line">
+          {sum.dir ? <Icon name={sum.dir} size={14} className="dir-icon" /> : null}
+          {sum.text}
+        </span>
       }
+      unit={`% difference from the no-AI path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+      legend={series.length ? <ChartLegend sid={sid} /> : null}
       about={{
-        shows: `The gap between each AI scenario and the path without AI, ${FIRST_YEAR}–${HEADLINE_YEAR}. Solid lines use the central capital closure; dashed lines the closed-capital bound. Hover a point for its value.`,
-        how: 'Each gap is the percentage difference from a no-shock restart of OG-UK at the same closure. The closures are defined in Scenarios and method.',
-        caveats: 'The technology paths are imposed, so the lines show the general-equilibrium consequences of given scenarios, not their likelihood.',
+        shows: `Each AI scenario against the path without AI, ${FIRST_YEAR}–${HEADLINE_YEAR}. Solid lines: central closure; dashed: closed capital. Hover a point for its value.`,
+        how: 'Each gap is the percentage difference from a no-shock restart of OG-UK at the same closure.',
+        caveats: 'The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.',
       }}
     >
       {series.length ? (
         <LineChart
           x={WINDOW_YEARS}
           series={series}
-          height={300}
+          height={280}
           noValue
+          noEndLabels
+          zeroLabel="no-AI path"
           bands={[{ year: HEADLINE_YEAR }]}
           valueFormat={(x) => signed(x, 2)}
           ariaLabel={`${title} against the no-AI path, ${FIRST_YEAR} to ${HEADLINE_YEAR}`}
@@ -127,132 +119,136 @@ function GapCard({ sid, v, title }) {
   );
 }
 
-function EffectRows({ sid }) {
+function bothNote(vals) {
+  const done = vals.filter((x) => x != null);
+  if (done.length < 2) return null;
+  const sgn = (x) => (Math.abs(x) < 0.005 ? 0 : Math.sign(x));
+  const [a, b] = done.map(sgn);
+  if (a === b && a > 0) return { icon: 'arrowUp', text: 'Above the no-AI path in both arms' };
+  if (a === b && a < 0) return { icon: 'arrowDown', text: 'Below the no-AI path in both arms' };
+  return { icon: 'arrowLeftRight', text: 'The two arms move in different directions' };
+}
+
+function EffectGrid({ sid }) {
   return (
-    <div className="effect-rows" role="table" aria-label={`Effect of AI by variable, ${HEADLINE_YEAR}, central closure`}>
-      <div className="effect-row effect-row-head" role="row">
-        <span role="columnheader">Variable</span>
-        {ARMS.map((a) => (
-          <span key={a.id} role="columnheader" className="effect-arm-head">
-            <Swatch color={ARM_COLOR[a.id]} />
-            {a.label}
-          </span>
-        ))}
-      </div>
+    <div className="var-groups">
       {EFFECT_GROUPS.map((g) => (
-        <div key={g.group} role="rowgroup" className="effect-group">
-          <div className="effect-group-label" role="row">
-            <span role="rowheader">{g.group}</span>
-          </div>
-          {g.rows.map((r, i) => (
-            <div key={r.v} className={`effect-row${i % 2 ? '' : ' is-banded'}`} role="row">
-              <span className="effect-name" role="rowheader">{r.label}</span>
-              {ARMS.map((a) => {
-                const k = r.scale || 1;
+        <section key={g.group} className="var-group" aria-label={g.group}>
+          <h3 className="var-group-title">
+            <Icon name={g.icon} size={16} />
+            <span>{g.group}</span>
+          </h3>
+          <div className="var-stack">
+            {g.rows.map((r) => {
+              const k = r.scale || 1;
+              const lines = ARMS.flatMap((a) => {
                 const p = path(sid, a.id, CENTRAL, r.v);
-                return (
-                  <span key={a.id} className="effect-cell" role="cell">
-                    <span className="effect-arm-mobile">
-                      <Swatch color={ARM_COLOR[a.id]} />
-                    </span>
-                    {p ? (
-                      <>
-                        <span className="effect-value">
-                          {signed(p[p.length - 1] * k)}
-                          {r.unit}
-                        </span>
-                        <Sparkline values={p.map((x) => x * k)} years={WINDOW_YEARS} color={ARM_COLOR[a.id]} unit={r.unit} format={signed} />
-                      </>
-                    ) : (
-                      <span className="effect-value is-pending">pending</span>
-                    )}
-                  </span>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+                return p ? [{ key: a.id, label: a.label, color: ARM_COLOR[a.id], values: p.map((x) => x * k) }] : [];
+              });
+              const ends = ARMS.map((a) => {
+                const p = path(sid, a.id, CENTRAL, r.v);
+                return p ? p[p.length - 1] * k : null;
+              });
+              return (
+                <VarCard
+                  key={r.v}
+                  icon={r.icon}
+                  title={r.label}
+                  years={WINDOW_YEARS}
+                  lines={lines}
+                  unit={r.unit}
+                  fmt={(x) => signed(x, 2)}
+                  figures={ARMS.map((a, i) => ({
+                    key: a.id,
+                    armIcon: ARM_ICON[a.id],
+                    color: ARM_COLOR[a.id],
+                    label: a.label,
+                    raw: ends[i],
+                    value: ends[i] == null ? 'pending' : `${signed(ends[i])}${r.unit}`,
+                  }))}
+                  note={bothNote(ends)}
+                />
+              );
+            })}
+          </div>
+        </section>
       ))}
     </div>
   );
 }
 
-export default function ResultsTab({ sid, onTab }) {
-  const gT = gap(sid, 'tfp', CENTRAL, 'GNI');
-  const yT = gap(sid, 'tfp', CENTRAL, 'Y');
-  const wT = gap(sid, 'tfp', CENTRAL, 'w');
-  const takeaway =
-    gT == null
-      ? 'The solves for this scenario are still running; each figure shows “pending” until they land.'
-      : [
-          `With automation and productivity, national income (GNI) ${gT > 0 ? 'rises' : 'falls'} by ${HEADLINE_YEAR}`,
-          gT > 0 && yT != null && yT > gT ? ', by less than GDP' : '',
-          wT != null ? `, and the wage rate ${wT < 0 ? 'falls' : 'rises'}.` : '.',
-        ].join('');
-  const anyPending = DONE < TOTAL;
+export default function ResultsTab({ sid, onTab, onScenario }) {
   const sidPending = ARMS.some((a) => result(sid, a.id, CENTRAL).status !== 'done' || result(sid, a.id, BOUND).status !== 'done');
+  const link = (tab, text) => (
+    <a href={`?tab=${tab}`} onClick={(e) => { e.preventDefault(); onTab(tab); }}>
+      {text}
+    </a>
+  );
 
   return (
     <>
       <p className="tab-lede">
-        The macroeconomic effects of AI on the UK: an unanticipated {SURPRISE_YEAR} AI shock run through OG-UK, the UK
-        overlapping-generations model, against the path without AI.
+        <Icon name="cpu" size={16} />
+        <span>An unanticipated {SURPRISE_YEAR} AI shock in OG-UK, against the path without AI.</span>
       </p>
 
-      <SectionHeading id="headline" icon="trend" title={`${HEADLINE_YEAR} against the no-AI path`}>
-        {takeaway}
-      </SectionHeading>
-      {anyPending && sidPending ? (
+      <SectionHeading id="headline" icon="target" title={`${HEADLINE_YEAR} against the no-AI path`} />
+      <Takeaway sid={sid} />
+      {DONE < TOTAL && sidPending ? (
         <Notice>
           {DONE} of {TOTAL} solves done; the rest show “pending”.
         </Notice>
       ) : null}
-      <div className="headline-rows">
-        {ARMS.map((a) => (
-          <div key={a.id} className="headline-row">
-            <div className="headline-row-label">
-              <Swatch color={ARM_COLOR[a.id]} />
-              {a.label}
-            </div>
-            <div className="headline-tiles">
-              {TILES.map((t) => (
-                <Tile key={t.v} sid={sid} arm={a.id} t={t} />
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="chart-card headline-card">
+        <div className="chart-header">
+          <h3>
+            <Icon name="gauge" size={16} />
+            <span>Four measures, two kinds of AI</span>
+          </h3>
+        </div>
+        <div className="headline-key">
+          {ARMS.map((a) => (
+            <ArmTag key={a.id} arm={a.id} label={a.label} />
+          ))}
+        </div>
+        <Dumbbells sid={sid} />
+        <p className="note dot-key">
+          <span className="key-dot" aria-hidden="true" />
+          <Icon name="globe" size={14} />
+          <span>Filled dot: central closure (some new capital foreign-owned).</span>
+          <span className="key-dot is-hollow" aria-hidden="true" />
+          <Icon name="lock" size={14} />
+          <span>Hollow dot: closed capital (none foreign-owned).</span>
+          {link('method', 'Closures and terms →')}
+        </p>
+        <ScenarioStrip sid={sid} onChoose={onScenario} />
       </div>
-      <Note>
-        % against the no-AI path. Large figures: central closure. Small figures: closed-capital bound.{' '}
-        <a href="?tab=method" onClick={(e) => { e.preventDefault(); onTab('method'); }}>
-          Closures and terms
-        </a>
-      </Note>
 
       <SectionHeading id="paths" icon="trend" title={`National income and GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        How the gaps build up from the {SURPRISE_YEAR} surprise to the headline year.
+        How the gaps build up from the {SURPRISE_YEAR} surprise.
       </SectionHeading>
       <div className="charts-grid">
-        <GapCard sid={sid} v="GNI" title="National income (GNI)" />
-        <GapCard sid={sid} v="Y" title="GDP" />
+        <GapCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" icon="home" />
+        <GapCard sid={sid} v="Y" title="Total output (GDP)" icon="factory" />
       </div>
 
-      <div className="charts-stack stack-gap">
-        <ChartCard
-          icon="bars"
-          title={`Effect by variable, ${HEADLINE_YEAR}`}
-          summary={`Demand, factors and prices under the central closure: the ${HEADLINE_YEAR} gap and the ${FIRST_YEAR}–${HEADLINE_YEAR} path for each arm. Hover a path for its values.`}
-          about={{
-            how: 'Difference from the no-AI path: % for levels, percentage points for the interest rate and the labour share. Central closure.',
-          }}
-        >
-          <EffectRows sid={sid} />
-        </ChartCard>
+      <SectionHeading id="effects" icon="bars" title={`Effect by variable, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
+        Central closure. Large figures are {HEADLINE_YEAR}; hover or focus a chart for each year.
+      </SectionHeading>
+      <div className="headline-key grid-key">
+        {ARMS.map((a) => (
+          <ArmTag key={a.id} arm={a.id} label={a.label} />
+        ))}
+        <span className="arm-tag">
+          <span className="swatch is-ink" aria-hidden="true" />
+          <Icon name="globe" size={14} />
+          <span>Central closure</span>
+        </span>
       </div>
+      <EffectGrid sid={sid} />
       <p className="section-link">
-        <a href="?tab=finances" onClick={(e) => { e.preventDefault(); onTab('finances'); }}>
-          Tax, debt and the spending rule are on Public finances →
-        </a>
+        <Icon name="landmark" size={14} />
+        {link('finances', 'Tax, debt and the spending rule are on Public finances →')}
       </p>
     </>
   );
