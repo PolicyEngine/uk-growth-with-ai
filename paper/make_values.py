@@ -71,6 +71,7 @@ DEFAULT_FIXED = DATA / "scenarios_fixed_spending.json"
 DIAG_OPEN = ROOT / "analysis" / "closure" / "output" / "zk0.5"
 
 CENTRAL_ZETA_K, BOUND_ZETA_K, OPEN_ZETA_K = 0.1, 0.0, 0.5
+CLOSURE_LABELS = {"zk0.1": 0.1, "zk0": 0.0, "zk0.5": 0.5}
 
 # Published benchmarks (audited in docs/results_sanity_audit.md):
 # OBR effective tax rates, November 2025 EFO para 2.64 and Box 4.1.
@@ -133,15 +134,18 @@ def load_closure(spec: Path, label: str) -> dict:
 def stated_zeta_k(res: dict):
     """The zeta_K a results set says it was solved at, or None if it does not say."""
     found = set()
-    for a in NEEDED:
-        r = res[a]
-        for z in (r.get("zeta_K"), (r.get("closure") or {}).get("zeta_K")):
+    a = res.get("assumptions") or {}
+    for d in [res[x] for x in NEEDED] + [a]:
+        cl = d.get("closure")
+        if isinstance(cl, str):
+            # rerun records label the closure ("zk0.1", "zk0"), as uk_growth_with_ai.rerun does
+            if cl not in CLOSURE_LABELS:
+                raise ResultsError(f"{res['_source']}: unknown closure label {cl!r}")
+            found.add(CLOSURE_LABELS[cl])
+            cl = {}
+        for z in (d.get("zeta_K"), (cl or {}).get("zeta_K")):
             if z is not None:
                 found.add(float(z))
-    a = res.get("assumptions") or {}
-    for z in (a.get("zeta_K"), (a.get("closure") or {}).get("zeta_K")):
-        if z is not None:
-            found.add(float(z))
     if len(found) > 1:
         raise ResultsError(f"{res['_source']}: arms disagree on zeta_K {sorted(found)}")
     return found.pop() if found else None
@@ -259,6 +263,8 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
         di = (arr(r, "I") - arr(base, "I"))[:4].sum()
         v.put(f"{aw}SavingShare{cw}", ds / di, "{:.2f}")
         v.signed(f"{aw}WageGapThirty{cw}", gap(res, arm, "w")[4])
+        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
+        v.signed(f"{aw}TaxGdpChangePp{cw}", ty(r) - ty(base))
         v.signed(f"{aw}InvestmentGapTwentyNine{cw}", gap(res, arm, "I")[3])
         v.signed(f"{aw}InvestmentGapThirty{cw}", gap(res, arm, "I")[4])
         v.signed(f"{aw}CapitalGapThirty{cw}", gap(res, arm, "K")[4])
@@ -302,14 +308,17 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
         vals = set()
         for src in (central, bound):
             for a in NEEDED:
-                for d in (src[a], src[a].get("closure") or {}):
+                cl = src[a].get("closure")
+                for d in (src[a], cl if isinstance(cl, dict) else {}):
                     if key in d:
                         vals.add(float(d[key]))
-            cl = (src.get("assumptions") or {}).get("closure") or {}
+            cl = (src.get("assumptions") or {}).get("closure")
+            cl = cl if isinstance(cl, dict) else {}
             if key in cl:
                 vals.add(float(cl[key]))
         if len(vals) != 1:
-            raise ResultsError(f"{key}: expected one value across the closures, got {sorted(vals)}")
+            raise ResultsError(f"{key}: expected one value stated across the central and bound "
+                               f"results, got {sorted(vals)}")
         val = vals.pop()
         v.put(name, val * 100 if name == "WorldRatePct" else val, fmt)
 
@@ -349,6 +358,7 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
     emit_closure(v, bound, "Bound", all_years=False)
     # zeta_K = 0.5: pre-rerun diagnostic, one wage figure only
     v.signed("ShareShiftTfpWageGapThirtyOpen", gap(open_, "share_shift_tfp_ramp", "w")[4])
+    v.signed("ShareShiftWageGapThirtyOpen", gap(open_, "share_shift_ramp", "w")[4])
 
     # ---- central-closure detail, every variable and year -------------------
     res = central
@@ -478,9 +488,18 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
         for res, cl in ((central, "0.1"), (bound, "0")):
             if not gni_gap(res, arm)[4] < gap(res, arm, "Y")[4]:
                 fail.append(f"'GNI gap < GDP gap' fails for {arm} at zeta_K {cl}")
-        if not (abs(gni_gap(central, arm)[4] - gni_gap(bound, arm)[4])
-                < abs(gap(central, arm, "Y")[4] - gap(bound, arm, "Y")[4])):
-            fail.append(f"'GNI moves less with the closure than GDP' fails for {arm}")
+    # stated for share_shift_tfp only: after R4, share_shift's 2030 GDP gap is zero
+    # at both closures by construction
+    arm = "share_shift_tfp_ramp"
+    if not (abs(gni_gap(central, arm)[4] - gni_gap(bound, arm)[4])
+            < abs(gap(central, arm, "Y")[4] - gap(bound, arm, "Y")[4])):
+        fail.append(f"'GNI moves less with the closure than GDP' fails for {arm}")
+    w = gap(central, arm, "w")[4]
+    share = abs(math.log((1 - central["assumptions"]["gamma_shocked"])
+                         / (1 - central["assumptions"]["gamma_base"]))) * 100
+    if not abs(w) < 0.25 * share:
+        fail.append(f"'in share_shift_tfp the two wage terms nearly cancel' fails: wage {w:.2f}%")
+    for arm in ARMS:
         rule = (OBR_EFF_RATE_LABOUR - OBR_EFF_RATE_PROFITS) / 100 * (
             central["assumptions"]["gamma_shocked"] - central["assumptions"]["gamma_base"]) * 100
         ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
@@ -492,7 +511,7 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
         if not 65 <= share <= 85:
             fail.append(f"'about three-quarters of extra capital is foreign-owned' "
                         f"fails for {arm}: {share:.1f}%")
-    for res, cl in ((central, "0.1"), (bound, "0")):
+    for res, cl in ((central, "0.1"), (bound, "0"), (open_, "0.5")):
         if not gap(res, "share_shift_ramp", "w")[4] < 0:
             fail.append(f"'share_shift wage is below baseline' fails at zeta_K {cl}")
         for arm in ARMS:
@@ -502,6 +521,10 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
         ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4]
         if not ty(central[arm]) < ty(central["baseline"]):
             fail.append(f"'revenue falls as a share of GDP' fails for {arm}")
+    ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4]
+    a = "share_shift_tfp_ramp"
+    if np.sign(ty(central[a]) - ty(central["baseline"])) == np.sign(ty(bound[a]) - ty(bound["baseline"])):
+        fail.append("'the sign of the revenue/GDP change in share_shift_tfp depends on the closure' fails")
     A = scen.ANTHROPIC_SUBSTANTIAL
     for res, cl in ((central, "0.1"), (bound, "0")):
         if not (gap(res, "share_shift_tfp_ramp", "Y")[4] < A["gdp_above_no_ai_pct"]
@@ -533,6 +556,12 @@ def build(args) -> tuple[Values, list[str]]:
     require_zeta_k(open_, OPEN_ZETA_K, "zeta_K = 0.5 diagnostic")
     fixed = load_closure(args.fixed, "fixed spending")
     fixed["_shared"] = load_closure(DEFAULT_CENTRAL, "pre-rerun shared-share results")
+    for var in ("Y", "K", "L"):
+        dev = float(np.max(np.abs(arr(fixed["baseline"], var) / arr(fixed["_shared"]["baseline"], var) - 1)))
+        if dev > 1e-9:
+            raise ResultsError(f"fixed-spending file {fixed['_source']} and {fixed['_shared']['_source']} "
+                               f"have different baselines ({var} differs by {dev:.2e}); the "
+                               "appendix table would compare two runs")
     check_claims(central, bound, open_)
     v = Values()
     emit(v, central, bound, fixed, open_)
