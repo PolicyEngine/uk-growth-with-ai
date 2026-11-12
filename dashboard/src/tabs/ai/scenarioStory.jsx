@@ -449,7 +449,7 @@ export const STORY_STEPS = [
           targeting ({ext(issue(3), '#3')}), and productivity growth was mis-sourced ({ext(issue(5), '#5')}; see{' '}
           <a href="#coverage">Model comparison</a>). The corrective reruns in {ext(pr(33), 'PR #33')} then removed
           an accounting residual in {FIRST_YEAR} and 2028 that came from the demographic inputs (
-          {ext(issue(15), '#15')}), calibrated the baseline debt path ({ext(issue(32), '#32')}), stated the capital
+          {ext(issue(15), '#15')}), calibrated the baseline&rsquo;s {LAST_YEAR} debt/GDP to the OBR&rsquo;s ({ext(issue(32), '#32')}), stated the capital
           closure with its bound ({ext(issue(16), '#16')}), and redefined Automation only by unchanged{' '}
           {Z_SHARE_SHIFT_YEAR} GDP ({ext(issue(8), '#8')}).
         </p>

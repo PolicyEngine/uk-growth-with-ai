@@ -50,12 +50,11 @@ export const PRODUCTIVITY = (Math.exp(G_Y) - 1) * 100;
 export const TG1 = D.assum.tG1;
 
 // Anthropic (Korinek et al. 2026) Table 3, US: each scenario's 2030 GDP
-// against their own No-AI path. A ratio of their indices, so it does not
-// depend on how the index is based.
+// against their own No-AI path, as published in the row "GDP, pct. above the
+// no-AI path" (#21). The ratio of the table's rounded indices would give
+// Extreme 32.5 where the published row is 32.4.
 export const US_NAMES = Object.keys(D.anth);
-// Computed from the JSON's 2030 indices (Table 3 prints these to one decimal;
-// the ratio gives Extreme 32.5 where the table's own row rounds to 32.4).
-export const usGap = (name) => (D.anth[name].idx2030 / D.anth['No AI'].idx2030 - 1) * 100;
+export const usGap = (name) => D.anth[name].gdp_gap;
 export const usGrowthIncrement = (name) => D.anth[name].growth - D.anth['No AI'].growth;
 
 // Optional block: OG-UK's own baseline ratios to GDP, in per cent:

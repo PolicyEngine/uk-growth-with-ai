@@ -59,7 +59,7 @@ depth (`data_access.normalise_arms`), writers emit only the new ones.
 from OG-Core, not calibrated to the UK), with `zeta_D = 0.4` and a 2% world rate;
 `zeta_K = 0` is published beside it as the closed-capital bound
 (`docs/closure_choice.md`, #16, #27). National income (GNI) leads, because about three
-quarters of the extra capital is foreign-owned at 0.1, so GNI is below GDP.
+quarters of the extra capital is foreign-owned at 0.1, so the GNI gap is below the GDP gap.
 
 **Results, 2030, against the OBR-central baseline** (`data/scenarios.json`, bound in
 `data/scenarios_zk0.json`): with Automation + productivity, GNI +3.8% (bound +2.9%) and

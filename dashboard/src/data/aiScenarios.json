@@ -292,21 +292,25 @@
  "anth": {
   "No AI": {
    "idx2030": 108.32372164552095,
+   "gdp_gap": 0.0,
    "growth": 2.0,
    "lshare": 60.0
   },
   "Modest": {
    "idx2030": 110.05382545174933,
+   "gdp_gap": 1.6,
    "growth": 2.4,
    "lshare": 59.4
   },
   "Substantial": {
    "idx2030": 117.35870818915801,
+   "gdp_gap": 8.3,
    "growth": 5.4,
    "lshare": 56.1
   },
   "Extreme": {
    "idx2030": 143.50249903883125,
+   "gdp_gap": 32.4,
    "growth": 15.4,
    "lshare": 45.2
   }

@@ -13,7 +13,7 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import {
   D, YEARS, FIRST_YEAR, LAST, LAST_YEAR, signed, gapAt, belowIdx, G1, LS0, LS_FALL, KORINEK,
   US_NAMES, usGap, usGrowthIncrement, ZK, CLOSURE, CL, CL_YEARS, LATE_YEAR, cgap, cpath, HIGH_INFLOW,
-  Z_SHARE_SHIFT_YEAR, SHARE_SHIFT_TECH, TG1,
+  Z_SHARE_SHIFT_YEAR, SHARE_SHIFT_TECH,
 } from '@/tabs/ai/metrics.js';
 
 // Economic effects tab. Every model number is computed from aiScenarios.json through
@@ -206,6 +206,20 @@ export default function ResultsPanel() {
   const wTfpB = cgap('bound', 'share_shift_tfp_ramp', 'w');
   const wSsBelowBoth = ['central', 'bound'].every((c) => cgap(c, 'share_shift_ramp', 'w') < 0);
 
+  // Headline callout, from the data at both closures: the GNI gap against the
+  // GDP gap with productivity gains, and the sign of GNI with automation only
+  // (its 2030 GDP is the target; the bullet below says so).
+  const both = (f) => ['central', 'bound'].every(f);
+  const tfpGni = (c) => cgap(c, 'share_shift_tfp_ramp', 'GNI');
+  const tfpGniLess = both((c) => tfpGni(c) > 0 && tfpGni(c) < cgap(c, 'share_shift_tfp_ramp', 'Y'));
+  const ssGniFalls = both((c) => cgap(c, 'share_shift_ramp', 'GNI') < 0);
+  const gniCallout = [
+    tfpGniLess
+      ? 'With productivity gains, national income (GNI) rises by less than GDP.'
+      : 'With productivity gains, the national income (GNI) and GDP gaps differ by closure.',
+    ssGniFalls ? 'With automation only, GNI falls.' : 'With automation only, the sign of GNI differs by closure.',
+  ].join(' ');
+
   // US 2030 endpoints, drawn on the GDP chart.
   const ukMaxGap = Math.max(...SHOCKED.map((a) => gapAt(a, 'Y')));
   const gapStrip = {
@@ -260,9 +274,7 @@ export default function ResultsPanel() {
 
       {/* ---- 1. Headline: GNI first, GDP beside it, the closed-capital bound under each ---- */}
       <section className="section-card growth-hero">
-        <p className="key-point">
-          In both scenarios national income (GNI) rises by less than GDP.
-        </p>
+        <p className="key-point">{gniCallout}</p>
         <div className="headline-table-wrap">
           <table className="headline-table">
             <thead>
@@ -313,7 +325,7 @@ export default function ResultsPanel() {
             <b>Ownership.</b> At &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, {foreign('share_shift_tfp_ramp').toFixed(0)}% (
             {ARM_META.share_shift_tfp_ramp.label}) and {foreign('share_shift_ramp').toFixed(0)}% (
             {ARM_META.share_shift_ramp.label}) of the extra capital in {LAST_YEAR} is foreign-owned, about three
-            quarters, and its return is paid abroad, so GNI is below GDP. In the bound the gap between them is only the interest paid on
+            quarters, and its return is paid abroad, so the GNI gap is below the GDP gap. In the bound the two differ only by the interest paid on
             foreign-held gilts.
           </li>
           <li>
@@ -353,10 +365,10 @@ export default function ResultsPanel() {
         <CardHead
           eyebrow="By closure"
           takeaway={`National income and GDP, ${FIRST_YEAR}–${LAST_YEAR}`}
-          title="% above the OBR-central baseline; solid: central closure, dashed: closed-capital bound"
+          title="% against the OBR-central baseline; solid: central closure, dashed: closed-capital bound"
         />
         <div className="grid-2 figure-pair">
-          <SvgFigure takeaway="National income (GNI)" title={`% above the baseline path, ${FIRST_YEAR}–${LAST_YEAR}`}>
+          <SvgFigure takeaway="National income (GNI)" title={`% against the baseline path, ${FIRST_YEAR}–${LAST_YEAR}`}>
             <LineChart
               x={YEARS}
               series={closureSeries('GNI')}
@@ -366,7 +378,7 @@ export default function ResultsPanel() {
               ariaLabel={`GNI against the baseline path by scenario and closure, ${FIRST_YEAR} to ${LAST_YEAR}`}
             />
           </SvgFigure>
-          <SvgFigure takeaway="GDP, with US cases" title={`% above the baseline path, ${FIRST_YEAR}–${LAST_YEAR}`}>
+          <SvgFigure takeaway="GDP, with US cases" title={`% against the baseline path, ${FIRST_YEAR}–${LAST_YEAR}`}>
             <LineChart
               x={YEARS}
               series={closureSeries('Y')}
@@ -448,8 +460,8 @@ export default function ResultsPanel() {
             <div>
               Difference from the OBR-central baseline at &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}: % for levels,
               pp for debt/GDP, the interest rate, the labour share and growth. GDP, national income and the wage rate
-              are in the headline table. Debt/GDP gaps keep moving after {LAST_YEAR}, because debt targeting starts only in{' '}
-              {FIRST_YEAR + TG1} (<Cv id="fiscal" />), so each is shown with its {LATE_YEAR} value.
+              are in the headline table. Debt/GDP gaps keep moving after {LAST_YEAR} (<Cv id="fiscal" />), so each is
+              shown with its {LATE_YEAR} value.
             </div>
           </div>
           <a href="#growth" className="csv-link" onClick={downloadCsv}>
@@ -512,8 +524,15 @@ export default function ResultsPanel() {
           <div className="chart-foot">
             <ArmLegend />
             <p className="chart-note">
-              The vertical axis does not start at zero. The AI scenarios start away from 100 because of
-              anticipation (<Cv id="anticipation" />).
+              The vertical axis does not start at zero.
+              {SHOCKED.some((a) => Math.abs(gapAt(a, variable, 0)) >= 0.005) ? (
+                <>
+                  {' '}
+                  The AI scenarios start away from 100 because of anticipation (<Cv id="anticipation" />).
+                </>
+              ) : (
+                <> Every scenario starts from the baseline&rsquo;s {FIRST_YEAR} level.</>
+              )}
               {variable === 'I' ? (
                 <>
                   {' '}

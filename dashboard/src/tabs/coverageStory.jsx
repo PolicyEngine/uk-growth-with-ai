@@ -22,6 +22,11 @@ const ext = (href, text) => (
 const MEAN = meanGrowth('baseline');
 const GROW_YEARS = `${YEARS[1]}–${String(YEARS[YEARS.length - 1]).slice(2)}`;
 const pp = (x) => `${signed(x, 2)}pp`;
+// The OBR publishes its 2027-30 average to one decimal place (EFO para 1.9),
+// so the comparison with it is made at that precision.
+const OBR_GROWTH = OBR.growth2027to30.toFixed(1);
+const GROWTH_SAME = MEAN.toFixed(1) === OBR_GROWTH;
+const GROWTH_GAP = `${signed(MEAN - OBR.growth2027to30, 1)}pp`;
 const COMPONENTS = [
   // [label, OBR label, OBR value, OG-UK label, OG-UK value, dp]
   ['Productivity growth', 'productivity, medium term (¶1.2)', OBR.productivity, '\\(e^{g_y}-1\\)', PRODUCTIVITY],
@@ -189,7 +194,7 @@ export const COVERAGE_STEPS = [
       <>
         <p className="key-point">
           OG-UK&rsquo;s OBR-central baseline grows {MEAN.toFixed(2)}% a year on average over {GROW_YEARS}, against the
-          OBR&rsquo;s {OBR.growth2027to30.toFixed(2)}%: a gap of {pp(MEAN - OBR.growth2027to30)}.
+          OBR&rsquo;s {OBR_GROWTH}%: {GROWTH_SAME ? 'the same to one decimal place, the precision the OBR publishes' : `a gap of ${GROWTH_GAP}`}.
         </p>
         <p>
           Every scenario is measured against the OBR-central baseline, so the baseline is checked against the
@@ -314,7 +319,7 @@ export const COVERAGE_PANELS = [
   ]},
   { title: 'Headline test', badge: 'Step 7', sections: [
     { label: `Real GDP growth, ${GROW_YEARS} average`, type: 'grid', cols: ['OBR', 'OG-UK', 'Gap'], rows: [
-      { label: 'Real GDP growth', cells: [`${OBR.growth2027to30.toFixed(2)}%`, `${MEAN.toFixed(2)}%`, pp(MEAN - OBR.growth2027to30)] },
+      { label: 'Real GDP growth', cells: [`${OBR_GROWTH}%`, `${MEAN.toFixed(2)}%`, GROWTH_GAP] },
     ]},
     { label: 'Source', type: 'output', lines: [
       i('OBR, EFO March 2026, ¶1.9; OG-UK OBR-central baseline', 'info', ''),
