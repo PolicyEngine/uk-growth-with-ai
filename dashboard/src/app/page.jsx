@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import ResultsTab, { SUBS } from '@/tabs/ai/ResultsTab.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
 import LiteratureTab from '@/tabs/literature/LiteratureTab.jsx';
-import CodeTab from '@/tabs/CodeTab.jsx';
-import DiagramModal from '@/components/DiagramModal.jsx';
+import CodeTab from '@/tabs/code/CodeTab.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import BandPill from '@/components/ab/BandPill.jsx';
 import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
@@ -90,7 +89,6 @@ export default function HomePage() {
   const [sid, setSid] = useState(S.default_scenario);
   const [sub, setSub] = useState('overview');
   const [visited, setVisited] = useState({ results: true });
-  const [modal, setModal] = useState(null);
 
   useEffect(() => {
     const apply = () => {
@@ -133,7 +131,7 @@ export default function HomePage() {
     cohorts: <CohortsTab />,
     method: <MethodTab onTab={chooseTab} active={tab === 'method'} />,
     literature: <LiteratureTab active={tab === 'literature'} />,
-    code: <CodeTab openModal={setModal} />,
+    code: <CodeTab active={tab === 'code'} />,
   };
 
   return (
@@ -171,7 +169,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {modal && <DiagramModal title={modal.title} svgHtml={modal.svgHtml} onClose={() => setModal(null)} />}
     </div>
   );
 }
