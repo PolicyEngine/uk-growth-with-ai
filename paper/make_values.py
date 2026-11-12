@@ -248,7 +248,9 @@ class Values(dict):
                up="above", down="below") -> None:
         """Signed value (2dp; Short = 1dp), its magnitude, and a direction word, so prose that reads
         "\\genXAbs{} per cent \\genXDir{} baseline" stays true if the sign flips."""
-        def typeset(t):   # typeset sign, not a hyphen
+        def typeset(t):   # typeset sign, not a hyphen; no sign on a printed zero
+            if t.lstrip("+-").strip("0.") == "":
+                return t.lstrip("+-")
             return f"${t[0]}${t[1:]}" if t[0] in "+-" else t
         self.put(name, typeset(fmt_signed.format(x)))
         # 1dp, but 2dp near zero so a small gap never prints as "-0.0"
@@ -383,6 +385,8 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
     v.put("ModelBgrThirtyPct", (np.exp(cmp_["g_y"]) * (1 + cmp_["g_n"][3]) - 1) * 100)
     v.put("ModelBgrTwentySixPct", (np.exp(cmp_["g_y"]) * (1 + cmp_["g_n"][0]) - 1) * 100)
     v.put("BaseGrowthStartYear", cmp_["years"][0], "{:.0f}")
+    b0 = central["baseline"]
+    v.put("BaseDebtGdpThirtyFivePct", ser(b0, "D", 2035) / ser(b0, "Y", 2035) * 100, "{:.1f}")
     v.put("ObrDebtThirtyPct", central["assumptions"]["debt_calibration"]["target_2030_pct"], "{:.1f}")
     v.put("BaseInterestThirtyPct", arr(central["baseline"], "r")[4] * 100, "{:.2f}")
 
@@ -634,6 +638,17 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
     signs = {np.sign(gap(x, "share_shift_tfp_ramp", "w")[4]) for x in (central, bound, open_)}
     if len(signs) < 2:
         fail.append("'the share_shift_tfp wage sign depends on the closure' fails")
+    for res, cl in ((central, "0.1"), (bound, "0")):
+        if not gni_gap(res, "share_shift_ramp")[4] < 0:
+            fail.append(f"'GNI falls in share_shift' fails at zeta_K {cl}")
+        a = "share_shift_tfp_ramp"
+        if not (debt_gdp_gap_pp(res, a, 2030) < 0 < debt_gdp_gap_pp(res, a, 2035)):
+            fail.append(f"'the share_shift_tfp debt/GDP gap changes sign by 2035' fails at zeta_K {cl}")
+        s_ = "share_shift_ramp"
+        if not debt_gdp_gap_pp(res, s_, 2035) > debt_gdp_gap_pp(res, s_, 2030) > 0:
+            fail.append(f"'the share_shift debt/GDP gap widens' fails at zeta_K {cl}")
+    if not gni_gap(bound, "share_shift_tfp_ramp")[4] < gni_gap(central, "share_shift_tfp_ramp")[4]:
+        fail.append("'share_shift_tfp's GNI gain is smaller at the bound' fails")
     if fail:
         raise ResultsError("claims in the text no longer hold:\n  " + "\n  ".join(fail))
 

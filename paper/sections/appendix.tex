@@ -194,10 +194,8 @@ Runs used OG-Core \genOgcoreVersion{} with the patch above, OG-UK at commit \gen
 
 \begin{verbatim}
 python paper/make_values.py --check     # values_generated.tex is current
-python paper/make_values.py \
-    --central uk_growth_with_ai/data/scenarios_zk0.1.json \
-    --bound   uk_growth_with_ai/data/scenarios_zk0.json   # after the reruns
+python paper/figures/make_cohort_figure.py   # Figure 1 (not run by --check)
 cd paper && tectonic main.tex           # or: pdflatex main && pdflatex main
 \end{verbatim}
 
-Every number is a macro in \texttt{paper/values\_generated.tex}. \texttt{make\_values.py} stops with an error if a results file or arm is missing, if a file is solved at the wrong $\zetaK$, or if a sentence that the paper states in words (for example, that GNI rises by less than GDP) no longer holds in the results. This draft reads \texttt{\genCentralSource{}} and \texttt{\genBoundSource{}}.
+Every number is a macro in \texttt{paper/values\_generated.tex}. \texttt{make\_values.py} stops with an error if a results file or arm is missing, if a file is solved at the wrong $\zetaK$, or if a sentence that the paper states in words (for example, that the GNI gap is below the GDP gap) no longer holds in the results. This draft reads \texttt{\genCentralSource{}} and \texttt{\genBoundSource{}}, and the household paths in \texttt{analysis/rerun/cohorts/}.
