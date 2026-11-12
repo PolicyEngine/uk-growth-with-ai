@@ -112,6 +112,11 @@ def _load_oguk():
             "(see README, 'Time-varying gamma patch') before running the scenarios.")
     import oguk.api as api
 
+    # Cache, timeout and retries around the UN population fetch: a network
+    # drop hung a solve for two hours while it held the heavy-job lock.
+    from . import un_cache
+    un_cache.install()
+
     return TPI, SS, api, Client, LocalCluster
 
 
