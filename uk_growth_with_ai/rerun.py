@@ -421,7 +421,8 @@ def arm_report(rec, base, prior=None, prior_base=None) -> dict:
     ``prior`` / ``prior_base``: the #30 solve of the same arm and closure, for
     the sign comparison."""
     s, b = rec["series"], base["series"]
-    gap = lambda v, x=s, y=b: [(x[v][i] / y[v][i] - 1) * 100 for i in range(5)]
+    gap = lambda v, x=s, y=b: [(x[v][i] / y[v][i] - 1) * 100 if y[v][i] else float("nan")
+                               for i in range(5)]
     out = {
         "label": rec["label"], "Z": rec["Z_terminal"],
         "identities_maxabs": rec["identities_maxabs"],
@@ -431,6 +432,7 @@ def arm_report(rec, base, prior=None, prior_base=None) -> dict:
         "tpi_final_distance": rec["diagnostics"].get("tpi_final_distance"),
         "gni_le_gdp": all(g <= y + 1e-12 for g, y in zip(s["GNI"][:5], s["Y"][:5])),
         "K_f_positive": all(k > 0 for k in s["K_f"][:5]),
+        "K_f_max_abs": max(abs(k) for k in s["K_f"][:5]),
         "gap_pct": {v: gap(v) for v in ("Y", "GNI", "K", "K_d", "K_f", "L", "w", "C", "I")},
         "dr_bp": [(s["r"][i] - b["r"][i]) * 1e4 for i in range(5)],
         "debt_gdp_pp": [_dy(rec, i) - _dy(base, i) for i in range(5)],
