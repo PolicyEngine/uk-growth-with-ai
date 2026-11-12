@@ -73,7 +73,9 @@ def main():
     targets = json.loads((ROOT / "analysis" / "surprise" / "uk_targets.json").read_text())["scenarios"]
     closures, results, n_done = {}, {sid: {a: {} for a, _ in ARMS} for sid, *_ in SCENARIOS}, 0
     for cl, zk, role in CLOSURES:
-        done = sp.load(OUT_DIR, cl)
+        loaded = sp.load(OUT_DIR, cl)
+        done = {k: v for k, v in loaded.items() if not k.endswith(".sanity")}
+        sanities = {k[:-len(".sanity")]: v for k, v in loaded.items() if k.endswith(".sanity")}
         try:
             ref = sp.reference_ext(OUT_DIR, cl)
         except Exception as e:  # gate not passed: everything at this closure is pending
@@ -89,7 +91,7 @@ def main():
         for sid, *_ in SCENARIOS:
             k = sp._keys(False, sid)
             recs = {"tfp": done.get(k["tfp"]), "ss": sp.accepted_r4(done, ref, False, 2028, sid)}
-            r4_iters = [x for x in done if x.startswith(k["r4"]) and not x.endswith(".sanity")]
+            r4_iters = [x for x in done if x.startswith(k["r4"])]
             for a, _ in ARMS:
                 rec = recs[a]
                 if rec is None:
@@ -100,14 +102,16 @@ def main():
                     results[sid][a][cl] = {"status": "pending", **({"note": note} if note else {})}
                     continue
                 assert rec["years_series"] == YEARS, rec["label"]
-                sanity = done.get(rec["label"] + ".sanity", {})
+                sanity = sanities.get(rec["label"], {})
                 results[sid][a][cl] = {
                     "status": "done", "label": rec["label"], "Z_terminal": rec["Z_terminal"],
                     "gamma_terminal": rec["gamma_terminal"],
-                    "sanity": sanity.get("status") or sanity.get("result") or (
-                        "pass" if sanity.get("ok") else None),
+                    "sanity": None if not sanity else ("pass" if sanity.get("ok") else "fail"),
                     "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
                 }
+                g = results[sid][a][cl]["gaps"]
+                for v, path in g.items():  # 2026-27 are history: every gap must be zero
+                    assert all(abs(x) < 1e-9 for x in path[:2]), (rec["label"], v, path[:2])
                 n_done += 1
     scen = []
     for sid, label, tkey in SCENARIOS:

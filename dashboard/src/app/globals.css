@@ -1581,3 +1581,13 @@
 }
 
 .growth-page [id^="effect-"] { scroll-margin-top: 110px; }
+
+/* 2028 surprise: pending figures and the notice on tabs not yet updated. */
+.is-pending { color: var(--pe-color-text-secondary, #6b7280); font-style: italic; font-weight: 400; }
+.headline-value.is-pending { font-size: 1rem; }
+.scenario-line { margin: 10px 0 14px; }
+.pending-note { padding: 48px 12px; text-align: center; }
+.stale-notice {
+  margin: 0 0 16px; padding: 10px 14px; border-left: 3px solid var(--chart-uk-obr);
+  background: var(--status-partial-bg); font-size: 0.875rem; line-height: 1.5;
+}

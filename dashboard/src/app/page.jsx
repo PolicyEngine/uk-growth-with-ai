@@ -1,18 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ResultsPanel from '@/tabs/ai/ResultsPanel.jsx';
+import SurpriseResults from '@/tabs/ai/SurpriseResults.jsx';
 import FutureScenariosTab from '@/tabs/FutureScenariosTab.jsx';
 import MethodologyTab from '@/tabs/MethodologyTab.jsx';
 import CoverageTab from '@/tabs/CoverageTab.jsx';
 import CodeTab from '@/tabs/CodeTab.jsx';
 import DiagramModal from '@/components/DiagramModal.jsx';
-import { D, FIRST_YEAR, LAST_YEAR, LS_FALL, OBR, KORINEK } from '@/tabs/ai/metrics.js';
-import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { URLS } from '@/tabs/ai/links.js';
+import { FIRST_YEAR, HEADLINE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 
 // Tab ids are the URL hashes; labels can change without breaking links.
 const TABS = [
-  { id: 'growth', label: 'Economic effects', Component: ResultsPanel },
+  { id: 'growth', label: 'Economic effects', Component: SurpriseResults },
   { id: 'methodology', label: 'Model', Component: MethodologyTab },
   { id: 'scenarios', label: 'Scenario design', Component: FutureScenariosTab },
   { id: 'coverage', label: 'Model comparison', Component: CoverageTab },
@@ -83,8 +83,7 @@ export default function HomePage() {
 
       <main className="main-content">
         <p className="intro-text">
-          This report estimates the macroeconomic effects of AI-driven automation on the UK over {FIRST_YEAR}&ndash;
-          {LAST_YEAR} using{' '}
+          This report estimates the macroeconomic effects of AI-driven automation on the UK using{' '}
           <a href={URLS.ogUk} target="_blank" rel="noreferrer">
             OG-UK
           </a>
@@ -92,34 +91,15 @@ export default function HomePage() {
           <a href={URLS.ogCore} target="_blank" rel="noreferrer">
             OG-Core
           </a>{' '}
-          overlapping-generations model. Existing projections differ widely.{' '}
-          <a href={URLS.korinekT3} target="_blank" rel="noreferrer">
-            Korinek et al. (2026)
-          </a>{' '}
-          find US growth of {D.anth.Substantial.growth.toFixed(1)}% a year by 2030 in their &ldquo;substantial&rdquo;
-          scenario, while{' '}
-          <a href={URLS.mollImas} target="_blank" rel="noreferrer">
-            Moll and Imas (2026)
-          </a>{' '}
-          argue that diffusion lags, physical and relational work, and shifts in spending make double-digit growth
-          unlikely within 10&ndash;15 years. The OBR&rsquo;s March 2026{' '}
-          <a href={efo(EFO_PAGE.p1_9)} target="_blank" rel="noreferrer">
-            <i>Economic and fiscal outlook</i>
-          </a>{' '}
-          projects GDP growth of {OBR.growth2027to30.toFixed(1)}% a year over 2027&ndash;30. One of its unemployment
-          scenarios in{' '}
-          <a href={efo(EFO_PAGE.box22)} target="_blank" rel="noreferrer">
-            Box 2.2
-          </a>
-          , &ldquo;technological displacement&rdquo;, raises equilibrium unemployment to {OBR.unemployment}% and lowers
-          the labour share, with higher productivity leaving the level of GDP unchanged.
+          overlapping-generations model. AI arrives as an unanticipated shock in {SURPRISE_YEAR}: it raises the
+          capital share of output, with or without a rise in productivity, and reaches full strength in{' '}
+          {HEADLINE_YEAR}. Three scenarios (UK low, central and high) are calibrated to IMF and OBR estimates, and a
+          fourth carries Korinek et al.&rsquo;s (2026) US &ldquo;substantial&rdquo; inputs as an upper case.
         </p>
         <p className="intro-text">
-          We model AI as a gradual rise in the capital share of output over {FIRST_YEAR}&ndash;{LAST_YEAR}, lowering
-          the labour share by {LS_FALL.toFixed(1)} percentage points, either with a {KORINEK.tfp}% rise in total
-          factor productivity or with GDP held at the OBR-central baseline&rsquo;s level in {LAST_YEAR}. We report
-          national income (GNI) first and GDP beside it, with a closed-capital bound beside the central case. The technology paths are imposed, so the results show
-          the general-equilibrium consequences of given scenarios, not their likelihood.
+          Results cover {FIRST_YEAR}&ndash;{HEADLINE_YEAR} against the path without AI. National income (GNI) comes
+          first, with GDP beside it and a closed-capital bound under each figure. The technology paths are imposed,
+          so the results show the general-equilibrium consequences of given scenarios, not their likelihood.
         </p>
 
         <nav className="tab-bar" role="tablist" aria-label="Report sections">
@@ -151,6 +131,13 @@ export default function HomePage() {
             tabIndex={id === activeTab ? 0 : -1}
             hidden={id !== activeTab}
           >
+            {id !== 'growth' ? (
+              <p className="stale-notice">
+                <b>Earlier design.</b> This tab still describes the earlier runs (AI foreseen from 2026, Korinek
+                inputs only, 2026&ndash;2030) and has not yet been updated for the {SURPRISE_YEAR} surprise. Current
+                results are in <a href="#growth">Economic effects</a>.
+              </p>
+            ) : null}
             <Component openModal={setModal} />
           </section>
         ))}
