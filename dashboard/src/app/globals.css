@@ -1065,7 +1065,7 @@
 /* Type scale follows Methodology: 1.35rem card heading (.obr-head h3), */
 /* 0.95rem lede, 0.7rem uppercase eyebrow (.workflow-phases h3).        */
 /* ================================================================== */
-.growth-page [id^="caveat-"], #growth-caveats { scroll-margin-top: 90px; }
+.growth-page [id^="caveat-"], #growth-caveats, .growth-page [id^="effect-"] { scroll-margin-top: 110px; }
 
 .growth-eyebrow {
   font-size: 0.7rem; font-weight: 600; color: var(--pe-color-gray-500);
@@ -1579,3 +1579,5 @@
   .headline-value { font-size: 1.15rem; }
   .headline-bound { font-size: 0.68rem; }
 }
+
+.growth-page [id^="effect-"] { scroll-margin-top: 110px; }

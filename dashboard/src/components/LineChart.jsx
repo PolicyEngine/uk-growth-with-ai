@@ -8,7 +8,9 @@ import { useEffect, useRef, useState } from 'react';
 //
 // `series`: [{ label, sublabel?, color, dashed?, key?, values: number[] }]
 //           `dashed` draws the line dashed with hollow markers; `key` (default
-//           the label) must be unique when two series share a label.
+//           the label) must be unique when two series share a label;
+//           `noEndLabel` draws the line without an end label (use when another
+//           series' label already covers the same end point).
 // `x`:      number[] (same length as every series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
@@ -180,7 +182,7 @@ export default function LineChart({
     ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
   ];
   const rawLabels = [
-    ...series.map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false) })),
+    ...series.filter((s) => !s.noEndLabel).map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false) })),
     ...points.map((p) => ({ p, segs: segsFor(p.label, p.value, false, p.offScale) })),
   ];
 

@@ -343,8 +343,9 @@ export const STORY_STEPS = [
             transition path diverges after about seven periods, so it is not used.
           </li>
           <li id="caveat-displacement">
-            <b>Automation only is not the OBR&rsquo;s scenario.</b> The OBR holds GDP unchanged through higher
-            unemployment ({OBR.unemployment}%). OG-UK has no unemployment or job search: here GDP is held at the
+            <b>Automation only is not the OBR&rsquo;s scenario.</b> In the OBR&rsquo;s displacement scenario,
+            higher productivity offsets lower employment (equilibrium unemployment {OBR.unemployment}%) to leave the
+            level of GDP unchanged. OG-UK has no unemployment or job search: here GDP is held at the
             baseline&rsquo;s in {Z_SHARE_SHIFT_YEAR} by the choice of Z, not by lost jobs, so none of the
             OBR&rsquo;s welfare-spending cost appears.
           </li>

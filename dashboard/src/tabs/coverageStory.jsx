@@ -85,8 +85,8 @@ export const COVERAGE_STEPS = [
           <li>
             <b>Augmentation</b>, productivity without displacement: Korinek et al.&rsquo;s share 1&minus;&psi; and
             the OBR&rsquo;s &ldquo;raising productivity for workers who remain&rdquo;. In OG-UK only the Automation
-            + productivity scenario has it; in Automation only, &gamma; and Z together leave output at fixed
-            inputs unchanged. Moll and Imas model pure automation.
+            + productivity scenario has it; in Automation only, Z is set so that &gamma; and Z together leave
+            {' '}2030 GDP unchanged, which lowers output at fixed inputs. Moll and Imas model pure automation.
           </li>
         </ol>
       </>

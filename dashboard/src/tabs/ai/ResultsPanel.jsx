@@ -136,12 +136,19 @@ const HEAD_COLS = [
 // Automation only: 2030 GDP is the target its Z is solved for (both closures).
 const isTarget = (a, v) => a === 'share_shift_ramp' && v === 'Y';
 
-// The four lines of a closure chart: central solid, bound dashed.
+// The four lines of a closure chart: central solid, bound dashed. Where both
+// closures end at the same printed value (Automation only GDP, the target),
+// one end label covers both.
 function closureSeries(v) {
-  return SHOCKED.flatMap((a) => [
-    { key: `${a}-c`, label: ARM_META[a].label, color: ARM_META[a].color, values: cpath('central', a, v) },
-    { key: `${a}-b`, label: `ζK = ${ZK.bound}:`, color: ARM_META[a].color, dashed: true, values: cpath('bound', a, v) },
-  ]);
+  return SHOCKED.flatMap((a) => {
+    const c = cpath('central', a, v);
+    const b = cpath('bound', a, v);
+    const same = signed(c[LAST]) === signed(b[LAST]);
+    return [
+      { key: `${a}-c`, label: ARM_META[a].label, sublabel: same ? 'both closures' : undefined, color: ARM_META[a].color, values: c },
+      { key: `${a}-b`, label: 'Closed capital', color: ARM_META[a].color, dashed: true, noEndLabel: same, values: b },
+    ];
+  });
 }
 
 function ClosureLegend() {
@@ -159,13 +166,13 @@ function ClosureLegend() {
         <span className="legend-item">
           <Sw c="var(--pe-color-gray-700)" />
           <span>
-            &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, central
+            Central (&zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central})
           </span>
         </span>
         <span className="legend-item">
           <Sw c="var(--pe-color-gray-700)" dashed />
           <span>
-            &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}, closed-capital bound
+            Closed capital (&zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}), the bound
           </span>
         </span>
       </div>
@@ -254,8 +261,7 @@ export default function ResultsPanel() {
       {/* ---- 1. Headline: GNI first, GDP beside it, the closed-capital bound under each ---- */}
       <section className="section-card growth-hero">
         <p className="key-point">
-          National income rises by less than GDP, because most of the extra capital is foreign-owned and its return
-          is paid abroad.
+          In both scenarios national income (GNI) rises by less than GDP.
         </p>
         <div className="headline-table-wrap">
           <table className="headline-table">
@@ -278,13 +284,13 @@ export default function ResultsPanel() {
                   </th>
                   {HEAD_COLS.map(([v]) => (
                     <td key={v}>
-                      <span className="headline-value">{pctS(cgap('central', a, v))}</span>
+                      <span className="headline-value">{pctS(cgap('central', a, v), 2)}</span>
                       <span className="headline-bound">
                         {isTarget(a, v) ? (
                           <>by construction</>
                         ) : (
                           <>
-                            {pctS(cgap('bound', a, v))} at &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}
+                            {pctS(cgap('bound', a, v), 2)} closed capital
                           </>
                         )}
                       </span>
@@ -299,7 +305,7 @@ export default function ResultsPanel() {
           The wage rate is per efficiency unit of labour, not average earnings. Large figures: the central closure, &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, OG-UK&rsquo;s default and
           not a UK calibration, with &zeta;<sub>D</sub>&nbsp;=&nbsp;{CLOSURE.zeta_D} and a{' '}
           {(CLOSURE.world_int_rate_annual * 100).toFixed(0)}% world interest rate (<Cv id="financing" />). Small
-          figures: the closed-capital bound, &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}, in which no capital is
+          figures: the closed-capital bound (&zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}), in which no capital is
           foreign-owned.
         </p>
         <ul className="txt-bullets headline-bullets">
@@ -307,7 +313,7 @@ export default function ResultsPanel() {
             <b>Ownership.</b> At &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, {foreign('share_shift_tfp_ramp').toFixed(0)}% (
             {ARM_META.share_shift_tfp_ramp.label}) and {foreign('share_shift_ramp').toFixed(0)}% (
             {ARM_META.share_shift_ramp.label}) of the extra capital in {LAST_YEAR} is foreign-owned, about three
-            quarters, so GNI is below GDP. In the bound the gap between them is only the interest paid on
+            quarters, and its return is paid abroad, so GNI is below GDP. In the bound the gap between them is only the interest paid on
             foreign-held gilts.
           </li>
           <li>
@@ -325,9 +331,8 @@ export default function ResultsPanel() {
             {wSsBelowBoth ? ' With automation only it is lower at both closures.' : null}
           </li>
           <li>
-            <b>{FIRST_YEAR} gaps are anticipation</b> under perfect foresight: &gamma; and Z are still at baseline
-            values, yet investment is already {pctS(gapAt('share_shift_tfp_ramp', 'I', 0))} above the baseline with
-            productivity gains (<Cv id="anticipation" />).
+            <b>Investment</b> is already {pctS(gapAt('share_shift_tfp_ramp', 'I', 0))} above the baseline in{' '}
+            {FIRST_YEAR} with productivity gains, before the technology changes (<Cv id="anticipation" />).
           </li>
           <li>
             <b>Consumption</b>{' '}
@@ -377,7 +382,7 @@ export default function ResultsPanel() {
           <ClosureLegend />
           <p className="chart-note">
             Hollow dots on the GDP chart: Korinek et al. (2026), Table 3, US, {LAST_YEAR}; US Extreme is off scale
-            (<Cv id="us" />). The {FIRST_YEAR} gaps are anticipation (<Cv id="anticipation" />).
+            (<Cv id="us" />).
           </p>
         </div>
       </section>
@@ -455,12 +460,12 @@ export default function ResultsPanel() {
         <ul className="txt-bullets reading-list">
           <li>
             <b>Sources of the GDP gap</b> (log points, {LAST_YEAR}): with productivity gains,{' '}
-            {signed(decomp('share_shift_tfp_ramp').tfp)} from technology at fixed inputs and{' '}
-            {signed(decomp('share_shift_tfp_ramp').capital)} from capital, {signed(decomp('share_shift_tfp_ramp').labour)}{' '}
-            from labour input; with automation only, {signed(decomp('share_shift_ramp').tfp)} from technology at fixed
-            inputs (the Z that holds {Z_SHARE_SHIFT_YEAR} GDP at the baseline&rsquo;s), {signed(decomp('share_shift_ramp').capital)}{' '}
-            from capital and {signed(decomp('share_shift_ramp').labour)} from labour input. Both also carry{' '}
-            {signed(KL_DRIFT)} because the baseline&rsquo;s capital per worker has moved since {FIRST_YEAR}, the year
+            {signed(decomp('share_shift_tfp_ramp').tfp, 2)} from technology at fixed inputs and{' '}
+            {signed(decomp('share_shift_tfp_ramp').capital, 2)} from capital, {signed(decomp('share_shift_tfp_ramp').labour, 2)}{' '}
+            from labour input; with automation only, {signed(decomp('share_shift_ramp').tfp, 2)} from technology at fixed
+            inputs (the Z that holds {Z_SHARE_SHIFT_YEAR} GDP at the baseline&rsquo;s), {signed(decomp('share_shift_ramp').capital, 2)}{' '}
+            from capital and {signed(decomp('share_shift_ramp').labour, 2)} from labour input. Both also carry{' '}
+            {signed(KL_DRIFT, 2)} because the baseline&rsquo;s capital per worker has moved since {FIRST_YEAR}, the year
             the technology targets are set at.
           </li>
           <li>
@@ -472,11 +477,11 @@ export default function ResultsPanel() {
           </li>
           <li>
             <b>Tax revenue</b> falls with automation only while GDP is unchanged in {LAST_YEAR}, because income
-            shifts from labour to capital: the direction of the OBR&rsquo;s &ldquo;less tax-rich&rdquo; finding in{' '}
+            shifts from labour to capital. This is the direction of the OBR&rsquo;s displacement scenario in{' '}
             <a href={efo(EFO_PAGE.box22)} target="_blank" rel="noreferrer">
               Box 2.2
             </a>
-            .
+            , which &ldquo;reduces the tax-richness of economic activity&rdquo;.
           </li>
         </ul>
       </section>

@@ -44,7 +44,8 @@ with a valid token takes the API route, which has not been compared with the rec
 values.
 
 Both arms are named for what they impose (issue #14): `share_shift` is the capital-share
-shift with a zero technology wedge at the baseline's fixed 2026 inputs, and
+shift with Z set so that 2030 GDP is unchanged (it had a zero technology wedge at the
+baseline's fixed 2026 inputs before R4), and
 `share_shift_tfp` adds +3.1% output at those inputs. Nothing in the model identifies AI
 as the cause; the sizes are Korinek et al.'s. `share_shift` is compared with, not a
 reproduction of, the OBR's Box 2.2. Since R4 it shares Box 2.2's defining result, the
