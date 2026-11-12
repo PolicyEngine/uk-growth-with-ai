@@ -339,7 +339,12 @@ export default function LineChart({
           return (
             <g key={`m-${m.year}`}>
               <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-              <text x={sx(i) - 4} y={TOP + 10} className="ax marker-label" textAnchor="end">
+              <text
+                x={i === x.length - 1 ? sx(i) - 4 : sx(i) + 4}
+                y={TOP + 10}
+                className="ax marker-label"
+                textAnchor={i === x.length - 1 ? 'end' : 'start'}
+              >
                 {m.label}
               </text>
             </g>

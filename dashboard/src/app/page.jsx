@@ -56,12 +56,15 @@ function readUrl() {
   if (!SUBS.some((x) => x.id === sub)) sub = null;
   if (sub && !tab) tab = 'results';
   const s = q.get('s');
-  return { tab, sub, s: s && scenarioById(s) ? s : null };
+  const c = q.get('closure');
+  return { tab, sub, s: s && scenarioById(s) ? s : null, closure: ['central', 'closed', 'both'].includes(c) ? c : null };
 }
 
-function writeUrl(tab, s, sub) {
+function writeUrl(tab, s, sub, closure) {
   const u = new URL(window.location.href);
   u.hash = '';
+  if (closure && closure !== 'central') u.searchParams.set('closure', closure);
+  else if (closure) u.searchParams.delete('closure');
   u.searchParams.set('tab', tab);
   if (tab === 'results' && sub) u.searchParams.set('sub', sub);
   else u.searchParams.delete('sub');
@@ -88,6 +91,7 @@ export default function HomePage() {
   const [tab, setTab] = useState('results');
   const [sid, setSid] = useState(S.default_scenario);
   const [sub, setSub] = useState('overview');
+  const [closure, setClosure] = useState('central');
   const [visited, setVisited] = useState({ results: true });
 
   useEffect(() => {
@@ -98,6 +102,7 @@ export default function HomePage() {
         setVisited((v) => ({ ...v, [u.tab]: true }));
       }
       if (u.s) setSid(u.s);
+      if (u.closure) setClosure(u.closure);
       if (u.sub) {
         setSub(u.sub);
         // an old #public-finances or ?tab=finances link: rewrite to the new form
@@ -119,6 +124,10 @@ export default function HomePage() {
     setSid(s);
     writeUrl(tab, s, sub);
   };
+  const chooseClosure = (c) => {
+    setClosure(c);
+    writeUrl(tab, sid, sub, c);
+  };
   const chooseSub = (id) => {
     setSub(id);
     writeUrl('results', sid, id);
@@ -127,7 +136,17 @@ export default function HomePage() {
   const scenarioApplies = TABS.find((t) => t.id === tab)?.scenario;
 
   const panels = {
-    results: <ResultsTab sid={sid} sub={sub} onSub={chooseSub} onTab={chooseTab} onScenario={chooseScenario} />,
+    results: (
+      <ResultsTab
+        sid={sid}
+        sub={sub}
+        onSub={chooseSub}
+        onTab={chooseTab}
+        onScenario={chooseScenario}
+        closure={closure}
+        onClosure={chooseClosure}
+      />
+    ),
     cohorts: <CohortsTab />,
     method: <MethodTab onTab={chooseTab} active={tab === 'method'} />,
     literature: <LiteratureTab active={tab === 'literature'} />,

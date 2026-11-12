@@ -22,6 +22,7 @@ import {
 } from '@/tabs/ai/surprise.js';
 import { ArmToggles, Takeaway, Dumbbells, ScenarioStrip, StressNote } from '@/tabs/ai/Headline.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
+import ClosureSelector from '@/components/ab/ClosureSelector.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 
 // Results: the headline (takeaway, dumbbells, scenario comparison), the GNI
@@ -45,37 +46,73 @@ const EFFECT_GROUPS = [
   ] },
 ];
 
-function gapSeries(sid, v, hidden) {
-  return ARMS.filter((a) => !hidden[a.id]).flatMap((a) => {
-    const out = [];
-    const c = path(sid, a.id, CENTRAL, v);
-    const b = path(sid, a.id, BOUND, v);
-    const base = { color: ARM_COLOR[a.id], light: ARM_LIGHT[a.id] };
-    if (c) out.push({ ...base, key: `${a.id}-c`, label: a.short || a.label, closure: 'central closure', values: c });
-    if (b) out.push({ ...base, key: `${a.id}-b`, label: a.short || a.label, closure: 'closed capital', dashed: true, noEndLabel: true, values: b });
-    return out;
-  });
+// The closures the charts draw for the reader's choice
+export const closuresFor = (closure) => (closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL]);
+
+// Arms shown whose closed-capital solve is still pending, for the note
+export function boundPending(sid, hidden, closure) {
+  if (closure === 'central') return [];
+  return ARMS.filter((a) => !hidden[a.id] && result(sid, a.id, BOUND).status !== 'done').map((a) => a.short || a.label);
+}
+
+export function PendingNote({ names }) {
+  if (!names.length) return null;
+  return (
+    <p className="pending-note">
+      <Icon name="lock" size={13} />
+      <span>Closed-capital results pending: {names.join(', ')}.</span>
+    </p>
+  );
+}
+
+// Empty-chart message: hidden series, pending closed capital, or no solve
+export function emptyText(hidden, closure) {
+  if (ARMS.every((a) => hidden[a.id])) return 'Every series is hidden: choose one in the legend above.';
+  if (closure === 'closed') return 'Closed-capital results pending for this scenario.';
+  return 'No solve for this scenario yet.';
+}
+
+function gapSeries(sid, v, hidden, closure = 'central') {
+  const cls = closuresFor(closure);
+  return ARMS.filter((a) => !hidden[a.id]).flatMap((a) =>
+    cls.flatMap((cl) => {
+      const p = path(sid, a.id, cl, v);
+      if (!p) return [];
+      const bound = cl === BOUND;
+      return [{
+        color: ARM_COLOR[a.id],
+        light: ARM_LIGHT[a.id],
+        key: `${a.id}-${bound ? 'b' : 'c'}`,
+        label: a.short || a.label,
+        closure: bound ? 'closed capital' : 'central closure',
+        dashed: bound && closure === 'both',
+        noEndLabel: bound && closure === 'both',
+        values: p,
+      }];
+    }),
+  );
 }
 
 // One line in words, no figures (the 2031 values are the headline's).
-function shape(sid, v) {
-  const p = path(sid, 'tfp', CENTRAL, v);
+function shape(sid, v, closure) {
+  const cl = closure === 'closed' ? BOUND : CENTRAL;
+  const p = path(sid, 'tfp', cl, v);
   if (!p) return { text: 'No solve for this scenario yet.', dir: null };
   const side = (x) => (Math.abs(x) < 0.005 ? 'at' : x > 0 ? 'above' : 'below');
   const parts = ARMS.map((a) => {
-    const q = path(sid, a.id, CENTRAL, v);
+    const q = path(sid, a.id, cl, v);
     return q ? `${a.short || a.label} ${side(q[q.length - 1])}` : null;
   }).filter(Boolean);
   const end = p[p.length - 1];
   return {
-    text: `In ${HEADLINE_YEAR}, central closure: ${parts.join(', ')} the no-AI path.`,
+    text: `In ${HEADLINE_YEAR}, ${cl === BOUND ? 'closed capital' : 'central closure'}: ${parts.join(', ')} the no-AI path.`,
     dir: Math.abs(end) < 0.005 ? 'minus' : end > 0 ? 'arrowUp' : 'arrowDown',
   };
 }
 
-function GapCard({ sid, v, title, icon, domain, hidden }) {
-  const series = gapSeries(sid, v, hidden);
-  const sum = shape(sid, v);
+function GapCard({ sid, v, title, icon, domain, hidden, closure }) {
+  const series = gapSeries(sid, v, hidden, closure);
+  const sum = shape(sid, v, closure);
   return (
     <ChartCard
       icon={icon}
@@ -88,10 +125,12 @@ function GapCard({ sid, v, title, icon, domain, hidden }) {
       }
       unit={`% difference from the no-AI path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
       legend={
-        <p className="line-key">
-          <span className="swatch is-ink" aria-hidden="true" /> <Icon name="globe" size={13} /> solid: central closure
-          <span className="swatch dashed is-ink" aria-hidden="true" /> <Icon name="lock" size={13} /> dashed: closed capital
-        </p>
+        closure === 'both' ? (
+          <p className="line-key">
+            <span className="swatch is-ink" aria-hidden="true" /> <Icon name="globe" size={13} /> solid: central closure
+            <span className="swatch dashed is-ink" aria-hidden="true" /> <Icon name="lock" size={13} /> dashed: closed capital
+          </p>
+        ) : null
       }
       about={{
         shows: `Each arm against the path without AI, ${FIRST_YEAR}–${HEADLINE_YEAR}. Both charts share one y-range so their sizes compare.`,
@@ -99,12 +138,14 @@ function GapCard({ sid, v, title, icon, domain, hidden }) {
         caveats: 'The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.',
       }}
     >
+      <PendingNote names={series.length ? boundPending(sid, hidden, closure) : []} />
       {series.length ? (
         <LineChart
           x={WINDOW_YEARS}
           series={series}
           height={280}
           noValue
+          markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }]}
           yDomain={domain}
           unit="%"
           tipTitle={title}
@@ -114,18 +155,18 @@ function GapCard({ sid, v, title, icon, domain, hidden }) {
           ariaLabel={`${title} against the no-AI path, ${FIRST_YEAR} to ${HEADLINE_YEAR}`}
         />
       ) : (
-        <Unpublished>No solve for this scenario yet.</Unpublished>
+        <Unpublished>{emptyText(hidden, closure)}</Unpublished>
       )}
     </ChartCard>
   );
 }
 
-function EffectGrid({ sid, hidden }) {
-  const shown = ARMS.filter((a) => !hidden[a.id]);
+function EffectGrid({ sid, hidden, closure }) {
   const vals = (unit) =>
     EFFECT_GROUPS.filter((g) => g.unit === unit).flatMap((g) =>
-      g.rows.flatMap((r) => shown.flatMap((a) => (path(sid, a.id, CENTRAL, r.v) || []).map((x) => x * (r.scale || 1)))),
+      g.rows.flatMap((r) => gapSeries(sid, r.v, hidden, closure).flatMap((l) => l.values.map((x) => x * (r.scale || 1)))),
     );
+  const pend = boundPending(sid, hidden, closure);
   const domains = { '%': niceDomain(vals('%')), pp: niceDomain(vals('pp')) };
   return (
     <>
@@ -141,10 +182,12 @@ function EffectGrid({ sid, hidden }) {
             <div className="var-stack">
               {g.rows.map((r) => {
                 const k = r.scale || 1;
-                const lines = shown.flatMap((a) => {
-                  const p = path(sid, a.id, CENTRAL, r.v);
-                  return p ? [{ key: a.id, label: a.label, color: ARM_COLOR[a.id], light: ARM_LIGHT[a.id], values: p.map((x) => x * k) }] : [];
-                });
+                const lines = gapSeries(sid, r.v, hidden, closure).map((l) => ({
+                  ...l,
+                  label: ARMS.find((a) => l.key.startsWith(a.id)).label,
+                  closure: closure === 'both' ? l.closure : null,
+                  values: l.values.map((x) => x * k),
+                }));
                 return (
                   <MiniChart
                     key={r.v}
@@ -156,6 +199,11 @@ function EffectGrid({ sid, hidden }) {
                     unit={g.unit}
                     fmt={(x) => signed(x, 2)}
                     endFmt={(x) => `${signed(x)}${g.unit}`}
+                    closure={closure === 'both' ? null : closure === 'closed' ? 'closed capital' : 'central closure'}
+                    subtitle={`${HEADLINE_YEAR} value at the line end`}
+                    marker={{ year: SURPRISE_YEAR, label: 'AI shock' }}
+                    emptyText={emptyText(hidden, closure)}
+                    note={lines.length && pend.length ? `Closed-capital results pending: ${pend.join(', ')}.` : null}
                   />
                 );
               })}
@@ -166,66 +214,97 @@ function EffectGrid({ sid, hidden }) {
       <p className="note grid-axis">
         <Icon name="calendar" size={14} />
         <span>
-          Each chart runs from {FIRST_YEAR} (left) to {HEADLINE_YEAR} (right), with its {HEADLINE_YEAR} value at the line&rsquo;s end. The
-          dashed line in each chart is the no-AI path (0). Demand and Factors share one % scale; Prices and shares share one pp scale.
+          The dashed horizontal line in each chart is the no-AI path (0); the dotted vertical line is the {SURPRISE_YEAR} AI
+          shock. Demand and Factors share one % scale; Prices and shares share one pp scale.
         </span>
       </p>
     </>
   );
 }
 
-export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScenario }) {
+export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScenario, closure = 'central', onClosure }) {
   const [hidden, setHidden] = useState({});
   const [seen, setSeen] = useState({ [sub]: true });
   if (!seen[sub]) setSeen((v) => ({ ...v, [sub]: true }));
   const toggle = (id) => setHidden((h) => ({ ...h, [id]: !h[id] }));
   const sidPending = ARMS.some((a) => result(sid, a.id, CENTRAL).status !== 'done' || result(sid, a.id, BOUND).status !== 'done');
+  const toMethod = () => onTab('method');
   const link = (tab, text) => (
     <a href={`?tab=${tab}`} onClick={(e) => { e.preventDefault(); onTab(tab); }}>
       {text}
     </a>
   );
+  // The legend bar at the top of a chart sub-tab: arm toggles and the closure
+  const legendBar = (
+    <div className="legend-bar">
+      <ArmToggles hidden={hidden} onToggle={toggle} />
+      <ClosureSelector value={closure} onChange={onClosure} onMore={toMethod} />
+    </div>
+  );
   // One y-range for the GNI and GDP charts
-  const both = ['GNI', 'Y'].flatMap((v) => gapSeries(sid, v, hidden).flatMap((s) => s.values));
+  const both = ['GNI', 'Y'].flatMap((v) => gapSeries(sid, v, hidden, closure).flatMap((s) => s.values));
   const lo = Math.min(0, ...both);
   const hi = Math.max(0, ...both);
 
   const panels = {
     overview: (
       <>
-        <SectionHeading id="headline" icon="target" title={`By ${HEADLINE_YEAR}, after an unexpected AI shock in ${SURPRISE_YEAR}`} />
+        <SectionHeading id="headline" icon="target" title={`By ${HEADLINE_YEAR}, after an unexpected AI shock in ${SURPRISE_YEAR}`}>
+          Differences from the path without AI.
+        </SectionHeading>
         <Takeaway sid={sid} />
         {DONE < TOTAL && sidPending ? (
           <Notice>
             {DONE} of {TOTAL} solves done; the rest show “pending”.
           </Notice>
         ) : null}
-        <div className="chart-card headline-card">
-          <div className="chart-header">
-            <h3>
-              <Icon name="gauge" size={16} />
-              <span>Four measures, three kinds of AI</span>
-            </h3>
+        <div className="charts-stack">
+          <div className="chart-card headline-card">
+            <div className="chart-header">
+              <h3>
+                <Icon name="gauge" size={16} />
+                <span>Four measures, three kinds of AI</span>
+              </h3>
+            </div>
+            <ArmToggles hidden={hidden} onToggle={toggle} />
+            <Dumbbells sid={sid} hidden={hidden} />
+            <p className="note dot-key">
+              <span className="key-item">
+                <span className="key-dot" aria-hidden="true" />
+                <Icon name="globe" size={14} />
+                <span>Circle: central closure (some new capital foreign-owned).</span>
+              </span>
+              <span className="key-item">
+                <span className="key-diamond" aria-hidden="true" />
+                <Icon name="lock" size={14} />
+                <span>Diamond: closed capital (none foreign-owned).</span>
+              </span>
+              {link('method', 'Closures and terms →')}
+            </p>
           </div>
-          <ArmToggles hidden={hidden} onToggle={toggle} />
-          <Dumbbells sid={sid} hidden={hidden} />
-          <p className="note dot-key">
-            <span className="key-item">
-              <span className="key-dot" aria-hidden="true" />
-              <Icon name="globe" size={14} />
-              <span>Circle: central closure (some new capital foreign-owned).</span>
-            </span>
-            <span className="key-item">
-              <span className="key-diamond" aria-hidden="true" />
-              <Icon name="lock" size={14} />
-              <span>Diamond: closed capital (none foreign-owned).</span>
-            </span>
-            {link('method', 'Closures and terms →')}
-          </p>
-          <Disclosure inCard title="Why the stress test holds GDP at 0" preview="As in the OBR’s Box 2.2 displacement scenario">
-            <StressNote sid={sid} />
-          </Disclosure>
-          <ScenarioStrip sid={sid} onChoose={onScenario} />
+          <div className="chart-card fold-card">
+            <Disclosure
+              title={
+                <span className="fold-title">
+                  <Icon name="alert" size={16} />
+                  Why the stress test holds GDP at 0
+                </span>
+              }
+              preview="As in the OBR’s Box 2.2 displacement scenario"
+            >
+              <StressNote sid={sid} />
+            </Disclosure>
+          </div>
+          <div className="chart-card">
+            <div className="chart-header">
+              <h3>
+                <Icon name="layers" size={16} />
+                <span>Compare scenarios</span>
+              </h3>
+            </div>
+            <p className="chart-description">Automation + productivity, central closure, {HEADLINE_YEAR}.</p>
+            <ScenarioStrip sid={sid} onChoose={onScenario} />
+          </div>
         </div>
       </>
     ),
@@ -234,23 +313,23 @@ export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScen
         <SectionHeading id="paths" icon="trend" title={`National income and GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
           How the gaps build up from the {SURPRISE_YEAR} surprise.
         </SectionHeading>
-        <ArmToggles hidden={hidden} onToggle={toggle} />
+        {legendBar}
         <div className="charts-grid">
-          <GapCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" icon="home" domain={[lo, hi]} hidden={hidden} />
-          <GapCard sid={sid} v="Y" title="Total output (GDP)" icon="factory" domain={[lo, hi]} hidden={hidden} />
+          <GapCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" icon="home" domain={[lo, hi]} hidden={hidden} closure={closure} />
+          <GapCard sid={sid} v="Y" title="Total output (GDP)" icon="factory" domain={[lo, hi]} hidden={hidden} closure={closure} />
         </div>
       </>
     ),
     variables: (
       <>
         <SectionHeading id="effects" icon="bars" title={`Effect by variable, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-          Central closure. Hover, tap or focus a chart for each year.
+          Hover, tap or focus a chart for each year.
         </SectionHeading>
-        <ArmToggles hidden={hidden} onToggle={toggle} />
-        <EffectGrid sid={sid} hidden={hidden} />
+        {legendBar}
+        <EffectGrid sid={sid} hidden={hidden} closure={closure} />
       </>
     ),
-    finances: <FinancesSection sid={sid} hidden={hidden} onToggle={toggle} />,
+    finances: <FinancesSection sid={sid} hidden={hidden} legendBar={legendBar} closure={closure} />,
   };
 
   return (

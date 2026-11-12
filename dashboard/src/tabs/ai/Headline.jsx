@@ -97,28 +97,31 @@ export function Takeaway({ sid }) {
   const y = gap(sid, 'tfp', CENTRAL, 'Y');
   const w = gap(sid, 'tfp', CENTRAL, 'w');
   if (y == null || w == null) {
-    return <p className="takeaway">The solves for this scenario are still running; each figure shows “pending” until they land.</p>;
+    return <p className="takeaway">The solves for this scenario are still running; figures show “pending” until they land.</p>;
   }
   const ty = gap(sid, 'tz', CENTRAL, 'Y');
   const tw = gap(sid, 'tz', CENTRAL, 'w');
   const sg = gap(sid, 'ss', CENTRAL, 'GNI');
-  const verb = (x, up, down) => (Math.abs(x) < 0.005 ? 'leaves it unchanged' : x > 0 ? up : down);
   return (
-    <p className="takeaway">
-      Against the path without AI, automation with a productivity gain {verb(y, 'raises', 'lowers')} GDP <Num x={y} /> and{' '}
-      {w < 0 ? 'lowers' : 'raises'} the wage rate <Num x={w} />.
-      {ty != null && tw != null ? (
-        <>
-          {' '}With technology unchanged, GDP {Math.abs(ty) < 0.005 ? 'is unchanged' : ty > 0 ? 'still rises' : 'falls'} <Num x={ty} /> and the
-          wage rate {tw < w ? 'falls further' : tw < 0 ? 'falls' : 'rises'} <Num x={tw} />.
-        </>
+    <div className="takeaway">
+      <p>
+        <b>AI with a productivity gain:</b> GDP <Num x={y} />, wages <Num x={w} />.
+      </p>
+      {(ty != null && tw != null) || sg != null ? (
+        <p>
+          {ty != null && tw != null ? (
+            <>
+              <b>Without a productivity gain:</b> GDP <Num x={ty} />, wages <Num x={tw} />.{' '}
+            </>
+          ) : null}
+          {sg != null ? (
+            <>
+              <b>Stress test:</b> national income <Num x={sg} />.
+            </>
+          ) : null}
+        </p>
       ) : null}
-      {sg != null ? (
-        <>
-          {' '}The stress test, with output held flat{stressFalls(sid, CENTRAL) ? ', is the pessimistic bound' : ''}: national income <Num x={sg} />.
-        </>
-      ) : null}
-    </p>
+    </div>
   );
 }
 
@@ -261,12 +264,23 @@ function DotRow({ v, label, icon, sid, onChoose }) {
   const pad = (hi - lo || 1) * 0.12;
   const frac = (x) => ((x - lo + pad) / (hi - lo + 2 * pad)) * 100;
   const pct = (x) => `${frac(x).toFixed(2)}%`;
-  // Names of dots closer than 12% of the track alternate above and below
-  const below = {};
+  // Coincident dots (within 1.5% of the track) stack upwards and share one
+  // name ("High · Central"); names of dots closer than 12% alternate above
+  // and below.
   const order = pts.filter((p) => p.x != null).sort((a, b) => a.x - b.x);
-  for (let i = 1; i < order.length; i += 1) {
-    if (frac(order[i].x) - frac(order[i - 1].x) < 12 && !below[order[i - 1].id]) below[order[i].id] = true;
+  const clusters = [];
+  for (const p of order) {
+    const last = clusters[clusters.length - 1];
+    if (last && frac(p.x) - frac(last[last.length - 1].x) < 1.5) last.push(p);
+    else clusters.push([p]);
   }
+  const place = {};
+  clusters.forEach((c, ci) => {
+    const below = ci > 0 && frac(c[0].x) - frac(clusters[ci - 1][0].x) < 12 && !place[clusters[ci - 1][0].id]?.below;
+    c.forEach((p, k) => {
+      place[p.id] = { dy: -k * 12, below, name: k === c.length - 1 ? c.map((q) => STRIP_SHORT[q.id]).join(' · ') : null };
+    });
+  });
   return (
     <div className="dotrow">
       <span className="dotrow-label">
@@ -280,7 +294,7 @@ function DotRow({ v, label, icon, sid, onChoose }) {
             <TipTarget
               key={p.id}
               className={`dotrow-dot${p.id === sid ? ' is-on' : ''}`}
-              style={{ left: pct(p.x) }}
+              style={{ left: pct(p.x), marginTop: place[p.id].dy }}
               label={`${STRIP_LABEL[p.id]}, ${label}: ${fmt(p.x)}. Select this scenario`}
               onActivate={() => onChoose(p.id)}
               tip={
@@ -291,9 +305,11 @@ function DotRow({ v, label, icon, sid, onChoose }) {
                 </>
               }
             >
-              <span className={`dotrow-name${below[p.id] ? ' is-below' : ''}`} aria-hidden="true">
-                {STRIP_SHORT[p.id]}
-              </span>
+              {place[p.id].name ? (
+                <span className={`dotrow-name${place[p.id].below ? ' is-below' : ''}`} aria-hidden="true">
+                  {place[p.id].name}
+                </span>
+              ) : null}
             </TipTarget>
           ),
         )}
@@ -304,10 +320,7 @@ function DotRow({ v, label, icon, sid, onChoose }) {
 
 export function ScenarioStrip({ sid, onChoose }) {
   return (
-    <div className="scen-strip-wrap">
-      <p className="scen-strip-title">
-        Compare scenarios: automation and productivity, central closure, {HEADLINE_YEAR}
-      </p>
+    <div className="scen-strip-wrap is-plain">
       <div className="dotplot">
         <DotRow v="GNI" label="GNI" icon="home" sid={sid} onChoose={onChoose} />
         <DotRow v="w" label="Wage rate" icon="wallet" sid={sid} onChoose={onChoose} />
