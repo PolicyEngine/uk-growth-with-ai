@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
 
 // Data-driven inline-SVG line chart. It measures its container and draws in
 // real pixels, so type stays at a fixed size in a half-width column instead
@@ -147,10 +148,16 @@ export default function LineChart({
   noValue = false,
   noEndLabels = false,
   zeroLabel = null,
+  unit = '',
+  tipTitle = null,
   bands = [],
 }) {
   const [ref, W] = useWidth(880);
   useMeasured();
+  // Crosshair: the year under the pointer, keyboard focus or tap.
+  const [hov, setHov] = useState(null);
+  const boxRef = useRef(null);
+  useOutside(boxRef, hov != null, () => setHov(null));
 
   const onScale = (strip?.points || []).filter((p) => !p.offScale).map((p) => p.value);
   const all = series.flatMap((s) => s.values).concat(onScale).filter((v) => Number.isFinite(v));
@@ -265,9 +272,61 @@ export default function LineChart({
     floor = e.ly - ROW;
   }
 
+  const nearest = (clientX) => {
+    const svg = boxRef.current?.querySelector('svg');
+    if (!svg) return null;
+    const px = clientX - svg.getBoundingClientRect().left;
+    const i = Math.round(((px - L) / Math.max(1, R - L)) * (x.length - 1));
+    return Math.max(0, Math.min(x.length - 1, i));
+  };
+  const onKey = (e) => {
+    if (e.key === 'ArrowRight') setHov((h) => (h == null ? 0 : Math.min(x.length - 1, h + 1)));
+    else if (e.key === 'ArrowLeft') setHov((h) => (h == null ? x.length - 1 : Math.max(0, h - 1)));
+    else if (e.key === 'Escape') setHov(null);
+    else return;
+    e.preventDefault();
+  };
+  const tipLeft = hov == null ? 0 : sx(hov);
+
   return (
-    <div ref={ref} className="linechart">
+    <div
+      ref={(n) => {
+        ref.current = n;
+        boxRef.current = n;
+      }}
+      className="linechart is-interactive"
+      tabIndex={0}
+      aria-label={`${ariaLabel}. Use the arrow keys to read each year.`}
+      onKeyDown={onKey}
+      onFocus={() => setHov((h) => (h == null ? x.length - 1 : h))}
+      onBlur={() => setHov(null)}
+      onMouseMove={(e) => setHov(nearest(e.clientX))}
+      onMouseLeave={() => setHov(null)}
+      onClick={(e) => setHov(nearest(e.clientX))}
+    >
+      {hov != null ? (
+        <TipBox className="chart-tip" style={{ left: tipLeft, top: 0 }}>
+          <b>
+            {tipTitle ? `${tipTitle}, ` : ''}
+            {x[hov]}
+          </b>
+          {series.map((s) => (
+            <span key={s.key ?? s.label} className="tip-row">
+              <span className={`swatch${s.dashed ? ' dashed' : ''}`} style={{ borderTopColor: s.color }} />
+              <span className="tip-name">
+                {s.label}
+                {s.closure ? `, ${s.closure}` : ''}
+              </span>
+              <span className="tip-value">
+                {valueFormat(s.values[hov])}
+                {unit}
+              </span>
+            </span>
+          ))}
+        </TipBox>
+      ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
+        {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
         {bands.map((b) => {
           const i = x.indexOf(b.year);
           if (i < 0) return null;
@@ -329,17 +388,18 @@ export default function LineChart({
               points={s.values.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')}
               fill="none"
               stroke={s.color}
-              strokeWidth={s.dashed ? '2' : '2.5'}
+              strokeWidth={s.light ? '1.75' : s.dashed ? '2' : '2.5'}
+              opacity={s.light ? 0.75 : 1}
               strokeDasharray={s.dashed ? '6 4' : undefined}
               strokeLinejoin="round"
             />
             {s.values.map((v, i) =>
               s.dashed ? (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r="3" fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
+                <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3} fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>
               ) : (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r="3.2" fill={s.color}>
+                <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3.2} fill={s.color}>
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>
               ),

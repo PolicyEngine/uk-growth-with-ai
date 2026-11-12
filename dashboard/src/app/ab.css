@@ -1896,3 +1896,246 @@ body {
     display: none;
   }
 }
+
+/* ---------- Info cards (method, literature, code) ---------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.card-grid.cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.info-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  scroll-margin-top: calc(var(--sticky-offset) + 16px);
+}
+
+.info-card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: var(--fs-body-lg);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+
+.info-card-title .plain-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 1px;
+  color: var(--pe-teal-700);
+}
+
+.info-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--pe-gray-700);
+}
+
+.info-card-body p,
+.info-card-more p {
+  margin: 0;
+}
+
+.info-card-body a,
+.info-card-more a,
+.method-text a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.info-card-body code,
+.info-card-more code {
+  font-size: 0.85em;
+  padding: 1px 4px;
+  background: var(--pe-gray-100);
+  border-radius: 4px;
+}
+
+.info-card-more {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--pe-gray-600);
+}
+
+.info-card-more ul,
+.info-card-body ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.info-card-more li + li,
+.info-card-body li + li {
+  margin-top: 4px;
+}
+
+.step-no {
+  display: inline-block;
+  min-width: 1.4em;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-500);
+}
+
+.copy-block {
+  position: relative;
+  margin-top: auto;
+  background: #111827;
+  border-radius: var(--pe-radius-md);
+}
+
+.copy-block pre {
+  margin: 0;
+  padding: 14px 14px 12px;
+  overflow-x: auto;
+  font-family: var(--pe-font-mono, ui-monospace, Menlo, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+.copy-block code {
+  font-family: inherit;
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+
+.copy-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  padding: 2px 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.fail-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+
+.fail-line .plain-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-notice-text);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: var(--fs-small);
+}
+
+.facts dt {
+  font-weight: 500;
+  color: var(--pe-gray-600);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--pe-gray-800);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.link-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: inherit;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.link-card:hover {
+  border-color: var(--pe-teal-500);
+  background: var(--c-hover);
+}
+
+.link-card .plain-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-teal-700);
+}
+
+.link-card-title {
+  display: block;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+
+.link-card-sub {
+  display: block;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+  overflow-wrap: anywhere;
+}
+
+.section-gap {
+  margin-top: 16px;
+}
+
+@media (max-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .card-grid,
+  .card-grid.cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .facts dd {
+    margin-bottom: 6px;
+  }
+}
