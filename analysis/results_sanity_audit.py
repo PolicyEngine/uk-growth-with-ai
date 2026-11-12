@@ -1,6 +1,6 @@
 """Recompute the accounting identities behind every reported series.
 
-    python analysis/results_sanity_audit.py            # both committed files
+    python analysis/results_sanity_audit.py            # both audited (legacy) files
     python analysis/results_sanity_audit.py PATH.json  # one results file
     python analysis/results_sanity_audit.py --export zk0.1_baseline.json
         # also cross-check against the exported re-solve on analysis/closure-sensitivity
@@ -23,6 +23,11 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parents[1] / "uk_growth_with_ai" / "data"
+# The files this audit was written against. The R1-R4 rerun (#33) replaced
+# data/scenarios.json and kept the audited run under data/legacy/, so the
+# numbers in docs/results_sanity_audit.md still print from here.
+AUDITED = HERE / "legacy" / "scenarios_2026-11-11.json"
+AUDITED_FIXED = HERE / "legacy" / "scenarios_fixed_spending_2026-11-11.json"
 YEARS = [2026, 2027, 2028, 2029, 2030]
 SERIES = ["Y", "C", "I", "G", "K", "L", "w", "r", "total_tax_revenue", "D"]
 
@@ -378,7 +383,7 @@ def context(export=None):
     if export:
         x = json.loads(Path(export).read_text())
         srs = x["series"]
-        b = json.loads((HERE / "scenarios.json").read_text())["baseline"]
+        b = json.loads(AUDITED.read_text())["baseline"]
         _, _, kf = split_capital(b)
         grow = np.exp(b["g_y_annual_used"]) * (1 + np.array(b["g_n_used"]))
         D, r, K = arr(b, "D"), arr(b, "r"), arr(b, "K")
@@ -407,6 +412,6 @@ if __name__ == "__main__":
         k = args.index("--export")
         export = args[k + 1]
         del args[k:k + 2]
-    for p in args or [HERE / "scenarios.json", HERE / "scenarios_fixed_spending.json"]:
+    for p in args or [AUDITED, AUDITED_FIXED]:
         audit(p)
     context(export)
