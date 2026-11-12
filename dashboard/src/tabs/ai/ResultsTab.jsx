@@ -20,7 +20,8 @@ import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, result, path, signed,
   DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
-import { ArmToggles, Takeaway, Dumbbells, ScenarioStrip, StressNote } from '@/tabs/ai/Headline.jsx';
+import { ArmToggles, Dumbbells, StressNote } from '@/tabs/ai/Headline.jsx';
+import Landing from '@/tabs/ai/Landing.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import ClosureSelector from '@/components/ab/ClosureSelector.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
@@ -249,16 +250,16 @@ export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScen
   const panels = {
     overview: (
       <>
-        <SectionHeading id="headline" icon="target" title={`By ${HEADLINE_YEAR}, after an unexpected AI shock in ${SURPRISE_YEAR}`}>
-          Differences from the path without AI.
-        </SectionHeading>
-        <Takeaway sid={sid} />
+        <Landing sid={sid} onScenario={onScenario} detailsId="details" />
         {DONE < TOTAL && sidPending ? (
           <Notice>
             {DONE} of {TOTAL} solves done; the rest show “pending”.
           </Notice>
         ) : null}
-        <div className="charts-stack">
+        <SectionHeading id="details" icon="layers" title="Explore the details">
+          Three kinds of AI and both capital closures, {HEADLINE_YEAR}, differences from the path without AI.
+        </SectionHeading>
+        <div className="charts-stack details-stack">
           <div className="chart-card headline-card">
             <div className="chart-header">
               <h3>
@@ -294,16 +295,6 @@ export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScen
             >
               <StressNote sid={sid} />
             </Disclosure>
-          </div>
-          <div className="chart-card">
-            <div className="chart-header">
-              <h3>
-                <Icon name="layers" size={16} />
-                <span>Compare scenarios</span>
-              </h3>
-            </div>
-            <p className="chart-description">Automation + productivity, central closure, {HEADLINE_YEAR}.</p>
-            <ScenarioStrip sid={sid} onChoose={onScenario} />
           </div>
         </div>
       </>
