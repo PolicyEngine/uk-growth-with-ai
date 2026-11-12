@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
-import FutureScenariosTab from '@/tabs/FutureScenariosTab.jsx';
-import MethodologyTab from '@/tabs/MethodologyTab.jsx';
+import MethodTab from '@/tabs/method/MethodTab.jsx';
 import CoverageTab from '@/tabs/CoverageTab.jsx';
 import CodeTab from '@/tabs/CodeTab.jsx';
 import DiagramModal from '@/components/DiagramModal.jsx';
@@ -90,16 +89,6 @@ function CohortsTab() {
   );
 }
 
-function MethodTab({ openModal }) {
-  return (
-    <>
-      <StaleNotice />
-      <FutureScenariosTab openModal={openModal} />
-      <MethodologyTab openModal={openModal} />
-    </>
-  );
-}
-
 function LiteratureTab({ openModal }) {
   return (
     <>
@@ -149,7 +138,7 @@ export default function HomePage() {
   const panels = {
     results: <ResultsTab sid={sid} onTab={chooseTab} onScenario={chooseScenario} />,
     cohorts: <CohortsTab />,
-    method: <MethodTab openModal={setModal} />,
+    method: <MethodTab onTab={chooseTab} active={tab === 'method'} />,
     literature: <LiteratureTab openModal={setModal} />,
     code: <CodeTab openModal={setModal} />,
   };
