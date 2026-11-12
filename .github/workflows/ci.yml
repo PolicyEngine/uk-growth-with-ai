@@ -36,6 +36,10 @@ jobs:
         run: python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios.json
       - name: check, committed results (closed-capital bound, zeta_K = 0)
         run: python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_zk0.json
+      - name: check, fixed-spending results (both closures)
+        run: |
+          python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_fixed_spending.json
+          python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_fixed_spending_zk0.json
       - name: check, legacy results (pre-R1-R4, kept for comparison)
         run: |
           python -m uk_growth_with_ai check --results uk_growth_with_ai/data/legacy/scenarios_2026-11-11.json

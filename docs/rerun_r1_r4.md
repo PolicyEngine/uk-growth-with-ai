@@ -220,11 +220,39 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 - **Contents.** Consumption, labour, assets (b_s and b_sp1), bequests and transfers by period (all 60), age (80) and lifetime-earnings type (7), plus the steady-state profiles.
 - **Coverage and format.** One file each for the accepted baseline, both arms and the fixed-input `share_shift` arm, per closure. They are float32 and about 0.5MB each.
 - **No re-solve.** They are read from the SS/TPI pickles every rerun solve left in its work directory.
-- **Parameters: not yet run.** `params.npz` will hold the household parameters a consumption-equivalent welfare calculation needs. It takes one OG-UK specifications build per closure: no solve, but about 15 GB for a few minutes. Take `/tmp/pe-heavy.lock` first, then run `WORK=~/ugai-rerun-work PYTHONPATH=. <og-uk venv python> analysis/rerun/export_cohorts.py --params`.
+- **Parameters.** `params.npz` (one per closure) holds the household parameters a consumption-equivalent welfare calculation needs: beta, sigma, chi_n, b_ellipse, upsilon, ltilde, e, lambdas, rho, omega and the growth rates. It was built on 12 Nov under the heavy-job lock. The R2-corrected demographics are applied, and the export refuses to write unless its demographic hashes equal the accepted baseline's (24cca54). The fixed-spending arms' paths are exported too.
+
+## Fixed-spending variant
+
+Run on 12 Nov 2026 (branch `rerun/fixed-spending`, approved by Vahid).
+- **What it is.** The arms hold G and TR at the baseline's levels rather than its G/Y share; this is the OBR convention (`run --baseline-spending`, `rerun --stage arms_fs`). The baselines are the same accepted R1 baselines.
+- **Plan.** Each closure solves `share_shift_tfp` and the fixed-input `share_shift`. R4 is then solved again under this rule, because it is needed: following #8, the 2030 gap at the fixed-input Z is +1.52% at 0.1 and +0.13% at 0. The first R4 step takes its slope from the common-G/Y secant at the same closure.
+- **Files.** `data/scenarios_fixed_spending.json` (zeta_K 0.1) and `data/scenarios_fixed_spending_zk0.json`. The dashboard's fixed-spending block is restored from the first. `dashboard_data` now refuses a fixed-spending file whose baseline differs from the main one.
+
+2030 gaps against the baseline. "Legacy" is `legacy/scenarios_fixed_spending_2026-11-11.json` (zeta_K 0.1, before R1–R4).
+
+| run | GDP | GNI | K | wage | C | debt/GDP (pp) |
+|---|---|---|---|---|---|---|
+| `share_shift_tfp`, 0.1, legacy | +5.20% | +4.24% | +6.60% | −0.40% | +0.20% | −5.72 |
+| `share_shift_tfp`, 0.1, new | +5.19% | +4.19% | +6.66% | −0.42% | +0.19% | −5.89 |
+| `share_shift`, fixed-input Z, 0.1, legacy | +1.54% | +0.75% | +5.27% | −3.87% | −1.32% | −0.73 |
+| `share_shift`, fixed-input Z, 0.1, new | +1.52% | +0.71% | +5.32% | −3.88% | −1.33% | −0.74 |
+| `share_shift`, R4 Z 0.930671, 0.1, new | −0.00% | −0.74% | +4.76% | −5.32% | −1.97% | +1.51 |
+| `share_shift_tfp`, 0, new | +3.33% | +3.22% | +2.44% | −1.82% | −0.15% | −3.76 |
+| `share_shift`, fixed-input Z, 0, new | +0.13% | −0.01% | +2.07% | −4.94% | −1.59% | +1.02 |
+| `share_shift`, R4 Z 0.943619, 0, new | −0.01% | −0.14% | +2.06% | −5.07% | −1.65% | +1.22 |
+
+**Sanity checks** (`analysis/rerun/sanity_fs.py`), all passing:
+- **Spending held.** G and TR equal the baseline's to machine precision in every year from 2026 to 2035.
+- **Identities, residuals, convergence.** Identities hold to 1e-16. RC/GDP is ≤ 0.0001% in 2026–30, with an interior max of ≤ 0.001%. TPI converged in every solve, with final distances of 3.9e-5 to 7.4e-5.
+- **GNI.** GNI ≤ GDP throughout.
+- **Signs.** Every 2030 sign (GDP, K, L, wage, C, I, r) matches the legacy fixed-spending run and the new common-G/Y run. The exception is R4's targeted GDP.
+- **Against the common-G/Y run.** With less public absorption, GDP, K and investment come out a little higher. Debt/GDP falls further in `share_shift_tfp` and rises less in `share_shift`, which is the expected direction.
+- **`check`.** ALL CHECKS PASSED on both files. The two WARNs at 0.1 are the same 2030 inflow stop, now +3.95pp and +2.28pp.
+- **R4 under fixed spending at 0.1.** Debt/GDP is +1.51pp in 2030. This has the same sign as the OBR's ¶6.18 figure (+1.3% of GDP under its fixed-spending convention) and a similar size. It is still not like for like: the model has no unemployment-related spending, and GNI falls 0.74%.
 
 ## Not done
 
-- **The fixed-spending runs** (`--baseline-spending`) were not re-run. The legacy file stays, as `legacy/scenarios_fixed_spending_2026-11-11.json`, but it no longer shares a baseline with the primary file. The dashboard therefore no longer carries the fixed-spending comparison block (it renders without it). Re-running would take 2 solves per closure plus an R4 secant under that rule, and would need a decision.
 - **R5** (smooth ramp) was not run, by decision.
 - **Dashboard copy is unchanged.** The data files are regenerated from `scenarios.json`. Copy that describes the old numbers or the 2026 residual needs the separate copy pass.
 - **The world rate and `zeta_D`** were not varied (#30 did not vary them either).
