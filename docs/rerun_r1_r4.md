@@ -36,6 +36,7 @@ Tables are printed by `python3 analysis/rerun/summarise.py`. Per-arm sanity outp
   - A transfer route (`alpha_T`) adds lump-sum income effects to labour supply.
   - Bringing in the debt rule earlier (`tG1`) would make G differ across arms inside the reporting window, which is the defect #3 removed.
   - The cost is that G/Y moves further from the data: 29.9% (zk0.1) and 30.2% (zk0) against the OBR's 21.5%. Tax/GDP stays at 42.2% against 37.0%. The model's level ratios were already off and remain so; the dashboard's levels caveat covers this.
+  - Those two comparisons are not like for like (added in the review of #33). The 21.5% is general government final consumption only, and the 37.0% is National Accounts taxes (`obr_history.json`, panel definitions). Model G is all spending other than transfers (6.0% of GDP), pensions (4.7%) and interest. Model revenue is all receipts: 42.2% against public sector current receipts of 41.2% in 2026-27 (same file). The repository holds no OBR series for total spending to set model G against.
 - **What is matched.** The model is real, so flat debt needs a surplus of (r_gov − g)·D/Y. The calibrated surplus is 1.65% → 1.51% of GDP (zk0.1) and 2.01% → 1.89% (zk0). The OBR's nominal primary balance is not in the repository and was not fetched. The debt path is matched; the primary balance is matched only in that sense.
 - **After 2030.** The window share runs to 2035, and the debt rule starts in 2036. Baseline debt/GDP rises to 96.5% (zk0.1) and 96.3% (zk0) by 2035. This is outside the reporting window and is disclosed here.
 
@@ -174,6 +175,12 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 - **The same sign as the OBR's fiscal effect.** Debt/GDP is now higher, like the OBR's ¶6.18 figure (+1.3% of GDP), and larger. It is still not a like-for-like comparison: the model has no unemployment, and the OBR holds spending plans fixed rather than G/Y.
 - **Outside the targeted year.** The GDP gap is +0.74% in 2026, the announcement year (labour +1.04%). It falls to 0 by 2030 and to −0.34% by 2035.
 - **At 0.** The 2030 GDP gap is zero by construction, and GNI is −0.15%. GDP is +0.66% in 2026 (the announcement year), and between +0.06% and +0.14% in 2031–35.
+
+**The 2030 debt gaps are a point on a moving path** (added in the review of #33; recomputed from the per-solve records).
+- **Where they come from.** The gilt rate is the private return less about 2pp, so it rises one for one with r, and the whole debt stock reprices each year. By 2030 r_gov is up 107bp (`share_shift_tfp`) and 67bp (`share_shift`, R4) at 0.1, and 139bp and 102bp at 0.
+- **`share_shift_tfp`: the fall is the denominator.** At 0.1 the −3.08pp is −4.43pp from higher GDP and +1.36pp from a debt stock 1.5% above baseline. At 0 it is −2.85pp and +1.21pp. Once the GDP gap flattens the ratio gap reverses: −2.22, −1.39, −0.57, +0.23, +1.02pp in 2031–35 at 0.1, and −1.10, −0.57, −0.07, +0.42, +0.89pp at 0.
+- **`share_shift` (R4): about half is interest at 0.1.** Of the +2.29pp, about 1.2pp is the lower primary balance in 2026–29 (tax/GDP −0.63pp by 2030) and about 1.1pp is the higher gilt rate. At 0 it is about 0.3pp and 1.6pp of +1.91pp. The gap keeps widening: +3.49, +4.71, +5.95, +7.21, +8.52pp in 2031–35 at 0.1, and +2.80, +3.69, +4.59, +5.51, +6.44pp at 0.
+- **Reading.** The debt rule is off until 2036, so nothing closes these gaps inside the exported years. Quote a 2030 debt gap with its sign in 2035, and with the repricing assumption.
 
 **The baseline.** The level path is now on the OBR's debt path, and the residuals are gone.
 - **Investment.** I/Y now runs smoothly at 19.1% → 19.3%, against the old 20.3% → 19.6% jump between 2026 and 2027.
