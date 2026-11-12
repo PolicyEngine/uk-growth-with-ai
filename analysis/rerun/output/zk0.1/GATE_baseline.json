@@ -2,7 +2,7 @@
  "approved": true,
  "baseline": "baseline_p1",
  "utc": "2026-11-12T10:42:12Z",
- "note": "Reviewed 12 Nov: debt/GDP 95.00, 94.88, 94.86, 94.89, 95.00 (OBR 94.8, 95.7, 96.3, 96.1, 95.1); primary surplus 1.65 to 1.51% of GDP = (r_gov - g) D/Y at r_gov 3.2-3.3%, g ~1.6%; RC/GDP 2026 +0.00007%, 2028 +0.00006% (was -0.95%, -0.089%); growth 2027-30 1.61, 1.54, 1.58, 1.57 (OBR mean 1.6); payments abroad 1.40-1.55% of GDP (band 1-2%); law of motion 4e-16; TPI 3.5e-5 in 9 its; higher window G crowds out K by 1.2% and raises r 8bp by 2030 vs the #30 pre-TP baseline, as expected.",
+ "note": "Reviewed 12 Nov: debt/GDP 95.00, 94.88, 94.86, 94.89, 95.00 (OBR 94.8, 95.7, 96.3, 96.1, 95.1); primary surplus 1.65 to 1.51% of GDP = (r_gov - g) D/Y at r_gov 3.2-3.3%, g ~1.6%; RC/GDP 2026 +0.00007%, 2028 +0.00006% (was -0.95%, -0.089%); growth 2027-30 1.61, 1.54, 1.58, 1.57 (OBR mean 1.6); payments abroad 1.40-1.55% of GDP (band 1-2%); law of motion 4e-16; TPI 3.5e-5 in 9 its; higher window G crowds out K by 0.75% and raises r 5bp by 2030 vs the #30 pre-TP baseline, as expected.",
  "report": {
   "label": "baseline_p1",
   "alpha_G_ss": 0.28894738571364365,
