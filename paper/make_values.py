@@ -383,6 +383,7 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
     v.put("ModelBgrThirtyPct", (np.exp(cmp_["g_y"]) * (1 + cmp_["g_n"][3]) - 1) * 100)
     v.put("ModelBgrTwentySixPct", (np.exp(cmp_["g_y"]) * (1 + cmp_["g_n"][0]) - 1) * 100)
     v.put("BaseGrowthStartYear", cmp_["years"][0], "{:.0f}")
+    v.put("ObrDebtThirtyPct", central["assumptions"]["debt_calibration"]["target_2030_pct"], "{:.1f}")
     v.put("BaseInterestThirtyPct", arr(central["baseline"], "r")[4] * 100, "{:.2f}")
 
     # ---- the two closures side by side ------------------------------------
@@ -549,11 +550,12 @@ def emit_cohorts(v: Values, co: dict) -> None:
             v.put(f"{aw}CevFirstNegBirth{cwd}", f"{int(neg.min())}" if len(neg) else "none")
             worst = max(worst, float(np.abs(h - S[arm])[shown].max()))
             # the export is the results file's solve: aggregate consumption matches
-            want = gap(RESULTS_FOR_COHORTS[cl], arm, "C")[4]
-            got = cw_mod.aggregate_consumption_gap(cl, arm, 2030)
-            if abs(got - want) > 0.01:
-                raise ResultsError(f"cohort export {cl} {arm}: 2030 consumption gap {got:.3f} "
-                                   f"does not match the results file's {want:.3f}")
+            for i, year in enumerate(YEAR_WORD):
+                want = gap(RESULTS_FOR_COHORTS[cl], arm, "C")[i]
+                got = cw_mod.aggregate_consumption_gap(cl, arm, year)
+                if abs(got - want) > 0.001:
+                    raise ResultsError(f"cohort export {cl} {arm}: {year} consumption gap "
+                                       f"{got:.4f} does not match the results file's {want:.4f}")
     v.put("CevContinuationMaxDiff", worst, "{:.2f}")
     v.put("CevLastBirthShown", LAST_BIRTH_SHOWN, "{:.0f}")
     v.put("CevTUseLastYear", cw_mod.START_YEAR + cw_mod.T_USE - 1, "{:.0f}")
@@ -646,7 +648,7 @@ def check_cohort_claims(co: dict) -> None:
         lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
         shown = (b <= LAST_BIRTH_SHOWN) & (b >= 1936)
         t = H["share_shift_tfp_ramp"]
-        if not (t[b <= LAST_BIRTH_SHOWN] > -0.05).all():
+        if not (t[b <= LAST_BIRTH_SHOWN] > -0.01).all():
             fail.append(f"'no cohort or type loses in share_shift_tfp' fails at {cl}")
         if not (t[shown, 0] > t[shown, -1]).all():
             fail.append(f"'the bottom group gains more than the top 1% in share_shift_tfp' fails at {cl}")
@@ -702,7 +704,7 @@ def build(args) -> tuple[Values, list[str]]:
         src = path if Path(path).is_file() else pinned   # TODO(#36): drop the fallback
         fx = load_closure(src, f"fixed spending ({key})")
         if src == pinned:
-            fx["_source"] += f" (pinned from rerun/fixed-spending {PINNED_SHA}, TODO #36)"
+            fx["_source"] += f" (pinned from rerun/fixed-spending {PINNED_SHA}, TODO \\#36)"
         require_zeta_k(fx, z, f"fixed spending ({key})")
         if not all(fx[a].get("baseline_spending") for a in ARMS):
             raise ResultsError(f"{fx['_source']}: arms are not fixed-spending solves")

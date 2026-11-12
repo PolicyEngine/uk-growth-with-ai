@@ -7,7 +7,7 @@
 \subsection{The baseline against the OBR's March 2026 forecast}
 \label{app:obr}
 
-The baseline takes its productivity growth rate from the \emph{Economic and fiscal outlook} and is then compared with it. Table~\ref{tab:obr} reports the headline agreement and the component disagreement together. Debt is not compared as a level (Section~\ref{sec:baseline}).
+The baseline takes its productivity growth rate from the \emph{Economic and fiscal outlook} and is then compared with it. Table~\ref{tab:obr} reports the headline agreement and the component disagreement together. The baseline's debt/GDP is calibrated so that 2030 is matched (Section~\ref{sec:baseline}); it is not compared in the table.
 
 \begin{table}[htbp]
 \centering
@@ -97,11 +97,11 @@ Solve time, minutes & \genBaseElapsedMin{} & \genShareShiftElapsedMin{} & \genSh
 \subsection{Government spending held at baseline levels}
 \label{app:fixed}
 
-Table~\ref{tab:fixed} reports the scenarios with government spending and transfers held at their baseline levels, the convention the OBR uses when scoring a scenario against a central forecast. These runs use the pre-rerun baseline at $\zetaK = \genZetaKCentral{}$ and are compared with the shared-share runs on the same baseline. They have not been repeated on the corrected baseline.
+Table~\ref{tab:fixed} reports the scenarios with government spending and transfers held at their baseline levels, the convention the OBR uses when scoring a scenario against a central forecast, beside the shared-share runs of the main text. Both use the same baseline at each closure, and \ShareShift{}'s $Z$ is re-solved under fixed spending so that its \genEndYear{} GDP is again unchanged.
 
 \begin{table}[htbp]
 \centering
-\caption{\genEndYear{} gaps with spending and transfers held at baseline levels, pre-rerun baseline, per cent}
+\caption{\genEndYear{} gaps with spending and transfers held at baseline levels, per cent unless stated}
 \label{tab:fixed}
 \small
 \begin{tabular}{lrrrr}
@@ -110,17 +110,31 @@ Table~\ref{tab:fixed} reports the scenarios with government spending and transfe
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
  & Shared share & Fixed spending & Shared share & Fixed spending \\
 \midrule
-GDP          & \genPreRerunShareShiftTfpGdpGapThirty{} & \genFixShareShiftTfpGdpGapThirty{} & \genPreRerunShareShiftGdpGapThirty{} & \genFixShareShiftGdpGapThirty{} \\
-Capital      & \genPreRerunShareShiftTfpCapitalGapThirty{} & \genFixShareShiftTfpCapitalGapThirty{} & \genPreRerunShareShiftCapitalGapThirty{} & \genFixShareShiftCapitalGapThirty{} \\
-Real wage    & \genPreRerunShareShiftTfpWageGapThirty{} & \genFixShareShiftTfpWageGapThirty{} & \genPreRerunShareShiftWageGapThirty{} & \genFixShareShiftWageGapThirty{} \\
-Consumption  & \genPreRerunShareShiftTfpConsumptionGapThirty{} & \genFixShareShiftTfpConsumptionGapThirty{} & \genPreRerunShareShiftConsumptionGapThirty{} & \genFixShareShiftConsumptionGapThirty{} \\
-Tax revenue  & \genPreRerunShareShiftTfpRevenueGapThirty{} & \genFixShareShiftTfpRevenueGapThirty{} & \genPreRerunShareShiftRevenueGapThirty{} & \genFixShareShiftRevenueGapThirty{} \\
-Debt         & \genPreRerunShareShiftTfpDebtGapThirty{} & \genFixShareShiftTfpDebtGapThirty{} & \genPreRerunShareShiftDebtGapThirty{} & \genFixShareShiftDebtGapThirty{} \\
+\multicolumn{5}{l}{\emph{Central closure, $\zetaK = \genZetaKCentral{}$}} \\
+GNI                   & \genSharedShareShiftTfpGniGapThirtyCentral{} & \genFixShareShiftTfpGniGapThirtyCentral{} & \genSharedShareShiftGniGapThirtyCentral{} & \genFixShareShiftGniGapThirtyCentral{} \\
+GDP                   & \genSharedShareShiftTfpGdpGapThirtyCentral{} & \genFixShareShiftTfpGdpGapThirtyCentral{} & \genSharedShareShiftGdpGapThirtyCentral{} & \genFixShareShiftGdpGapThirtyCentral{} \\
+Capital               & \genSharedShareShiftTfpCapitalGapThirtyCentral{} & \genFixShareShiftTfpCapitalGapThirtyCentral{} & \genSharedShareShiftCapitalGapThirtyCentral{} & \genFixShareShiftCapitalGapThirtyCentral{} \\
+Real wage             & \genSharedShareShiftTfpWageGapThirtyCentral{} & \genFixShareShiftTfpWageGapThirtyCentral{} & \genSharedShareShiftWageGapThirtyCentral{} & \genFixShareShiftWageGapThirtyCentral{} \\
+Consumption           & \genSharedShareShiftTfpConsumptionGapThirtyCentral{} & \genFixShareShiftTfpConsumptionGapThirtyCentral{} & \genSharedShareShiftConsumptionGapThirtyCentral{} & \genFixShareShiftConsumptionGapThirtyCentral{} \\
+Tax revenue           & \genSharedShareShiftTfpRevenueGapThirtyCentral{} & \genFixShareShiftTfpRevenueGapThirtyCentral{} & \genSharedShareShiftRevenueGapThirtyCentral{} & \genFixShareShiftRevenueGapThirtyCentral{} \\
+Debt/GDP, \genEndYear{} (pp)& \genSharedShareShiftTfpDebtGdpGapPpThirtyCentral{} & \genFixShareShiftTfpDebtGdpGapPpThirtyCentral{} & \genSharedShareShiftDebtGdpGapPpThirtyCentral{} & \genFixShareShiftDebtGdpGapPpThirtyCentral{} \\
+Debt/GDP, 2035 (pp)   & \genSharedShareShiftTfpDebtGdpGapPpThirtyFiveCentral{} & \genFixShareShiftTfpDebtGdpGapPpThirtyFiveCentral{} & \genSharedShareShiftDebtGdpGapPpThirtyFiveCentral{} & \genFixShareShiftDebtGdpGapPpThirtyFiveCentral{} \\
+\addlinespace
+\multicolumn{5}{l}{\emph{Closed-capital bound, $\zetaK = \genZetaKBound{}$}} \\
+GNI                   & \genSharedShareShiftTfpGniGapThirtyBound{} & \genFixShareShiftTfpGniGapThirtyBound{} & \genSharedShareShiftGniGapThirtyBound{} & \genFixShareShiftGniGapThirtyBound{} \\
+GDP                   & \genSharedShareShiftTfpGdpGapThirtyBound{} & \genFixShareShiftTfpGdpGapThirtyBound{} & \genSharedShareShiftGdpGapThirtyBound{} & \genFixShareShiftGdpGapThirtyBound{} \\
+Capital               & \genSharedShareShiftTfpCapitalGapThirtyBound{} & \genFixShareShiftTfpCapitalGapThirtyBound{} & \genSharedShareShiftCapitalGapThirtyBound{} & \genFixShareShiftCapitalGapThirtyBound{} \\
+Real wage             & \genSharedShareShiftTfpWageGapThirtyBound{} & \genFixShareShiftTfpWageGapThirtyBound{} & \genSharedShareShiftWageGapThirtyBound{} & \genFixShareShiftWageGapThirtyBound{} \\
+Consumption           & \genSharedShareShiftTfpConsumptionGapThirtyBound{} & \genFixShareShiftTfpConsumptionGapThirtyBound{} & \genSharedShareShiftConsumptionGapThirtyBound{} & \genFixShareShiftConsumptionGapThirtyBound{} \\
+Tax revenue           & \genSharedShareShiftTfpRevenueGapThirtyBound{} & \genFixShareShiftTfpRevenueGapThirtyBound{} & \genSharedShareShiftRevenueGapThirtyBound{} & \genFixShareShiftRevenueGapThirtyBound{} \\
+Debt/GDP, \genEndYear{} (pp)& \genSharedShareShiftTfpDebtGdpGapPpThirtyBound{} & \genFixShareShiftTfpDebtGdpGapPpThirtyBound{} & \genSharedShareShiftDebtGdpGapPpThirtyBound{} & \genFixShareShiftDebtGdpGapPpThirtyBound{} \\
+Debt/GDP, 2035 (pp)   & \genSharedShareShiftTfpDebtGdpGapPpThirtyFiveBound{} & \genFixShareShiftTfpDebtGdpGapPpThirtyFiveBound{} & \genSharedShareShiftDebtGdpGapPpThirtyFiveBound{} & \genFixShareShiftDebtGdpGapPpThirtyFiveBound{} \\
 \bottomrule
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} GDP gaps, not GNI: the fixed-spending file does not export foreign positions. Source: \texttt{uk\_growth\_with\_ai/data/scenarios.json} and \texttt{scenarios\_fixed\_spending.json}.
+\footnotesize \emph{Notes:} gaps against the baseline at the same closure; debt/GDP gaps in percentage points, with their 2035 values. Sources: \texttt{\genFixedSource{}} and \texttt{\genFixedBoundSource{}}.
+% TODO(#36): the fixed-spending files are read from paper/pinned/ (rerun/fixed-spending at 5227666) until #36 merges; make_values.py then reads uk_growth_with_ai/data/ and the source line updates itself.
 \end{minipage}
 \end{table}
 
