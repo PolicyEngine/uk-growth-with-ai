@@ -1566,6 +1566,37 @@
   color: var(--pe-color-gray-500); font-variant-numeric: tabular-nums;
 }
 .headline-table-note { margin-bottom: 14px; }
+
+/* ---- Fixed-spending table (caveat on the fiscal convention): rows are
+   measures, columns the two scenarios; central closure above, bound below ---- */
+.fs-table-wrap { margin: 12px 0 8px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.fs-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 0.88rem; }
+.fs-table th, .fs-table td { padding: 9px 12px; text-align: right; vertical-align: top; }
+.fs-table thead th {
+  font-size: 0.72rem; font-weight: 600; line-height: 1.35; color: var(--pe-color-gray-600);
+  background: var(--pe-color-gray-50); border-bottom: 1px solid var(--border);
+}
+.fs-table thead th:first-child { text-align: left; width: 38%; }
+.fs-table thead th .legend-line { margin-right: 6px; vertical-align: middle; }
+.fs-table tbody th { text-align: left; font-weight: 400; color: inherit; }
+.fs-table tbody tr + tr > * { border-top: 1px solid var(--border); }
+.fs-value {
+  display: block; font-weight: 700; color: var(--pe-color-gray-900);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.fs-bound {
+  display: block; margin-top: 2px; font-size: 0.74rem; line-height: 1.35;
+  color: var(--pe-color-gray-500); font-variant-numeric: tabular-nums;
+}
+.fs-table-note { display: block; }
+@media (max-width: 639px) {
+  .fs-table { font-size: 0.8rem; }
+  .fs-table th, .fs-table td { padding: 8px 6px; }
+  .fs-table thead th { font-size: 0.64rem; }
+  .fs-table thead th:first-child { width: 30%; }
+  .fs-table thead th .legend-line { display: block; margin: 0 0 4px auto; width: 18px; }
+  .fs-bound { font-size: 0.66rem; }
+}
 .effect-late {
   display: block; font-size: 0.72rem; font-weight: 500; color: var(--pe-color-gray-500);
   white-space: nowrap;

@@ -17,6 +17,8 @@ Inputs, all in ``data/``:
 ``scenarios_fixed_spending.json``  optional: the same arms with government
                             spending and transfers held at baseline levels
                             (``run --baseline-spending``), the OBR convention
+``scenarios_fixed_spending_zk0.json``  optional: the same at the closed-capital
+                            bound
 
 ``python -m uk_growth_with_ai dashboard`` writes both files; ``--check`` fails if
 the committed files differ from what the results produce.
@@ -181,28 +183,50 @@ def model_ratios(results=None) -> dict:
     }
 
 
+FIXED_SPENDING = {"central": ("scenarios_fixed_spending.json", None),
+                  "bound": ("scenarios_fixed_spending_zk0.json", BOUND_RESULTS)}
+
+
 def fixed_spending(results=None) -> dict | None:
-    """% gaps vs baseline, 2026-2030, under fixed spending plans, with the
-    common-G/Y run alongside for comparison. None if the run is absent."""
-    path = DATA / "scenarios_fixed_spending.json"
-    if not path.exists():
+    """Gaps against the baseline with G and TR held at the baseline's levels.
+
+    One block per closure, in the shape of ``closures()``: GDP, GNI and wage
+    gaps in %, the debt/GDP gap in pp, over every exported year (2026-2035).
+    The common-G/Y figures are not repeated here; they are in ``closures``.
+    None if the central run is absent; the bound is included when its file is.
+    """
+    if not (DATA / FIXED_SPENDING["central"][0]).exists():
         return None
-    fs = normalise_arms(json.loads(path.read_text()))
-    res = results if results is not None else load_results()
-
-    def block(r, arm):
-        gap = lambda v: [(r[arm][v][i] / r["baseline"][v][i] - 1) * 100 for i in range(5)]
-        dy = [(r[arm]["D"][i] / r[arm]["Y"][i] - r["baseline"]["D"][i] / r["baseline"]["Y"][i]) * 100
-              for i in range(5)]
-        return {"Y_gap": gap("Y"), "C_gap": gap("C"), "I_gap": gap("I"), "G_gap": gap("G"),
-                "tax_gap": gap("total_tax_revenue"), "D_gap": gap("D"), "debt_gdp_pp": dy}
-
-    shocked = [a for a in ARMS if a != "baseline"]
-    return {
-        "note": fs["assumptions"].get("fiscal", ""),
-        "arms": {a: block(fs, a) for a in shocked},
-        "common_gy": {a: block(res, a) for a in shocked},
-    }
+    out = {}
+    for name, (fname, main_path) in FIXED_SPENDING.items():
+        path = DATA / fname
+        if not path.exists():
+            continue
+        fs = normalise_arms(json.loads(path.read_text()))
+        main = (results if results is not None else load_results()) if main_path is None \
+            else load_results(main_path)
+        # The two files must share one baseline, or the comparison mixes runs
+        # (the pre-R1-R4 fixed-spending file against the R1-R4 main run, #27).
+        if not np.allclose(fs["baseline"]["Y"], main["baseline"]["Y"], rtol=1e-12, atol=0):
+            raise ValueError(f"data/{fname} has a different baseline "
+                             "from the main results; re-run or remove it")
+        g = closure_gaps(fs)
+        base_g = fs["baseline"]["series"]["G"]
+        base_tr = fs["baseline"]["series"]["TR"]
+        for a in SHOCKED:
+            s = fs[a]["series"]
+            if s["G"] != base_g or s["TR"] != base_tr:
+                raise ValueError(f"data/{fname}: {a} does not hold G and TR at the "
+                                 "baseline's levels")
+        out[name] = {
+            "zeta_K": g["zeta_K"],
+            "years": g["years"],
+            "note": fs["assumptions"].get("fiscal", ""),
+            "Z_share_shift": fs["assumptions"]["Z_share_shift"],
+            "arms": {a: {v: g["arms"][a][v] for v in ("Y", "GNI", "w", "debt_gdp_pp")}
+                     for a in SHOCKED},
+        }
+    return out
 
 
 def uk_paths(results=None, ai=None) -> dict:
@@ -259,8 +283,37 @@ def write(out_dir=DASHBOARD_DATA, results=None, oguk_dir=None) -> list[Path]:
     return paths
 
 
+# numpy's exp and log differ in the last digit between CPUs (its SIMD paths),
+# so the committed text is compared as numbers: same structure, same strings,
+# floats equal to STALE_TOL (relative and absolute; nothing is shown beyond 4 dp).
+STALE_TOL = 1e-9
+
+
+def _same(a, b) -> bool:
+    if isinstance(a, dict) and isinstance(b, dict):
+        return list(a) == list(b) and all(_same(a[k], b[k]) for k in a)
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
+    num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+    if num(a) and num(b):
+        return abs(a - b) <= STALE_TOL * max(1.0, abs(a), abs(b))
+    return type(a) is type(b) and a == b
+
+
 def stale(out_dir=DASHBOARD_DATA, results=None, oguk_dir=None) -> list[str]:
     """Names of dashboard files that differ from what the results produce."""
     out = Path(out_dir)
-    return [name for name, text in build(results, oguk_dir).items()
-            if not (out / name).exists() or (out / name).read_text() != text]
+    bad = []
+    for name, text in build(results, oguk_dir).items():
+        path = out / name
+        if not path.exists():
+            bad.append(name)
+            continue
+        committed = path.read_text()
+        try:
+            same = committed == text or _same(json.loads(committed), json.loads(text))
+        except json.JSONDecodeError:
+            same = False
+        if not same:
+            bad.append(name)
+    return bad

@@ -47,6 +47,11 @@ def accepted(c):
         out.append("share_shift_ramp_zfixed")
     if base and (r4 := rerun.accepted_r4(done, base)):
         out.append(r4["label"])
+    for k in ("share_shift_tfp_ramp_fs", "share_shift_ramp_zfixed_fs"):   # fixed spending
+        if k in done:
+            out.append(k)
+    if base and (r4 := rerun.accepted_r4(done, base, fs=True)):
+        out.append(r4["label"])
     return out
 
 
@@ -97,11 +102,20 @@ def roles(c):
     done = rerun.load(REPO / "analysis/rerun/output", c)
     base = rerun.accepted_baseline(done)
     r4 = rerun.accepted_r4(done, base) if base else None
-    return {"baseline": base["label"] if base else None,
-            "share_shift_tfp": "share_shift_tfp_ramp",
-            "share_shift (R4 Z, the results-file arm)": r4["label"] if r4 else None,
-            "share_shift at the fixed-input Z (not in the results file)":
-                "share_shift_ramp_zfixed"}
+    out = {"baseline": base["label"] if base else None,
+           "share_shift_tfp": "share_shift_tfp_ramp",
+           "share_shift (R4 Z, the results-file arm)": r4["label"] if r4 else None,
+           "share_shift at the fixed-input Z (not in the results file)":
+               "share_shift_ramp_zfixed"}
+    r4_fs = rerun.accepted_r4(done, base, fs=True) if base else None
+    if "share_shift_tfp_ramp_fs" in done:      # G and TR held at baseline levels
+        out.update({
+            "fixed spending: share_shift_tfp": "share_shift_tfp_ramp_fs",
+            "fixed spending: share_shift (R4 Z, the results-file arm)":
+                r4_fs["label"] if r4_fs else None,
+            "fixed spending: share_shift at the fixed-input Z (not in the results file)":
+                "share_shift_ramp_zfixed_fs"})
+    return out
 
 
 def write_readme():
@@ -118,7 +132,8 @@ def write_readme():
             "ss_c, ss_n, ss_b_s": "the same arm's steady-state profiles, (S, J)"},
         "weights": "not in these files: aggregating over ages and types needs omega "
                    "(T, S) and lambdas (J) from <closure>/params.npz, which "
-                   "`export_cohorts.py --params` writes (not yet run, see "
+                   "`export_cohorts.py --params` writes (the R2-corrected "
+                   "demographics, hash-checked against the accepted baseline; see "
                    "docs/rerun_r1_r4.md)"}, indent=1) + "\n")
 
 

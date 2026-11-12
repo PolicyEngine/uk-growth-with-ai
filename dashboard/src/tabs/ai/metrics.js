@@ -97,6 +97,14 @@ export const cpath = (closure, arm, v) => CL[closure].arms[arm][v].slice(0, YEAR
 export const HIGH_INFLOW = CL.high_inflow;
 export const abroadPct = (closure, year) => CL[closure].baseline.abroad_pct_gdp[CL_YEARS.indexOf(year)];
 
+// Optional block: the same scenarios with government consumption and
+// transfers held at the baseline's levels (the OBR convention), per closure,
+// in the shape of CL: Y, GNI, w (%) and debt_gdp_pp (pp) over CL_YEARS.
+// Automation only's Z is re-solved under this rule (Z_share_shift).
+export const FIXED = D.fixed_spending?.central && D.fixed_spending?.bound ? D.fixed_spending : null;
+export const fgap = (closure, arm, v, year = LAST_YEAR) =>
+  FIXED[closure].arms[arm][v][FIXED[closure].years.indexOf(year)];
+
 // Baseline debt/GDP against the OBR's March 2026 path (R1, #32): calibrated
 // so that LAST_YEAR matches; the years before are not targeted.
 export const DEBT_CAL = D.assum.debt_calibration;
