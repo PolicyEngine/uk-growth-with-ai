@@ -51,6 +51,9 @@ for C in "$@"; do
     label="$(cli next --closure "$C" --stage "$STAGE" 2>"$WORK/next.err")" || {
       echo "STOP $C $STAGE: $(tail -1 "$WORK/next.err")"; break; }
     [[ -z "$label" ]] && { echo "=== $C $STAGE done"; break; }
+    # DEADLINE (epoch seconds): start no solve that could run past it (8 min each).
+    if [[ -n "${DEADLINE:-}" && $(( $(date +%s) + 480 )) -gt $DEADLINE ]]; then
+      echo "DEADLINE: not starting $C $label"; exit 3; fi
     log="$OUT/$C/$label.log"; mkdir -p "$OUT/$C"
     echo "=== start $C $label $(date -u +%H:%M:%SZ)"
     ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai rerun step --closure "$C" \

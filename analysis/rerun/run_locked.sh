@@ -18,7 +18,9 @@ fi
 release() { grep -q "^$$ $LABEL\$" "$LOCK" 2>/dev/null && rm -f "$LOCK" && echo "released $LOCK $(date -u +%H:%M:%SZ)"; }
 trap release EXIT
 "$REPO/analysis/rerun/driver.sh" "$@"; rc=$?
-if [[ $rc -eq 0 && "${PARAMS:-0}" == 1 ]]; then
+if [[ $rc -eq 0 && "${PARAMS:-0}" == 1 && -n "${DEADLINE:-}" && $(( $(date +%s) + 900 )) -gt $DEADLINE ]]; then
+  echo "DEADLINE: skipping the params export"
+elif [[ $rc -eq 0 && "${PARAMS:-0}" == 1 ]]; then
   ( cd "$WORK" && PYTHONPATH="$REPO" WORK="$WORK" caffeinate -i "$PY" -u \
       "$REPO/analysis/rerun/export_cohorts.py" --params </dev/null 2>&1 | grep -v "^Failed\|diff:" )
 fi
