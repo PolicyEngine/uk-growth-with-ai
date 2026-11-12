@@ -193,6 +193,13 @@ def baseline_checks(res, r):
         r.check(abs(after - before) < 1.0,
                 f"{v}: 2028->29 {before:+.2f}%, 2029->30 {after:+.2f}% "
                 f"(detrended; a jump over 1pp means the rule still bites)")
+    cl = b.get("closure")
+    if isinstance(cl, dict):
+        r.line("INFO", "capital-account closure: " + ", ".join(f"{k} = {v}" for k, v in cl.items()))
+    dm = b.get("demographics")
+    if isinstance(dm, dict):
+        r.line("INFO", f"demographics: pre-TP UK-consistent = {bool(dm.get('pretp'))}, "
+                       f"2027->28 splice repaired = {bool(dm.get('splice'))}")
     dy = np.array(b["D"]) / np.array(b["Y"]) * 100
     r.line("INFO", "debt/GDP (model units) " + ", ".join(f"{y} {d:.1f}" for y, d in zip(YEARS, dy)))
 
@@ -228,6 +235,24 @@ def baseline_checks(res, r):
         z = a.get(key)
         if not isinstance(z, (int, float)) or not np.isfinite(z):
             r.line("FAIL", f"{key}: missing or not a number in 'assumptions'")
+            continue
+        if a.get(f"{key}_rule") == "equilibrium_gdp_gap":
+            # R4 (#8): Z solved against the equilibrium GDP gap in one year; the
+            # fixed-input Z is recorded beside it and must still hit the old target.
+            zf = a.get(f"{key}_fixed_input")
+            ok = _is_number(zf) and abs(fixed_input_gain(zf) - target) < 1e-6
+            r.check(ok, f"{scen}: fixed-input Z {zf} gives {fixed_input_gain(zf) if _is_number(zf) else float('nan'):+.4f}% "
+                        f"at fixed inputs (target {target:+.1f}%)")
+            arm, year, tol = f"{scen}_ramp", a.get(f"{key}_year"), a.get(f"{key}_tol_pp", 0.01)
+            if arm in res and year in YEARS:
+                i = YEARS.index(year)
+                gap = (res[arm]["Y"][i] / b["Y"][i] - 1) * 100
+                r.check(abs(gap) <= tol + 1e-12,
+                        f"{scen}: equilibrium GDP gap {year} {gap:+.4f}% (R4 target 0 "
+                        f"within {tol}pp), {key} = {z:.6f}; output at fixed inputs "
+                        f"{fixed_input_gain(z):+.4f}%")
+            else:   # a missing arm already fails in `inventory`
+                r.line("INFO", f"{scen}: R4 rule recorded; {arm} absent, gap not checked")
             continue
         gain = fixed_input_gain(z)
         r.check(abs(gain - target) < 1e-6,
@@ -434,6 +459,24 @@ def accounts_checks(res, arms, r):
                                      else "implausible: " + "; ".join(bad)))
 
 
+def external_checks(res, arms, r):
+    """Capital-account identities and GNI, for files that export them (R3, #16)."""
+    have = [a for a in ["baseline", *arms]
+            if all(k in res[a] for k in ("K_d", "K_f", "D_d", "D_f", "B", "GNI"))]
+    if not have:
+        return
+    print("\nCapital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP")
+    for a in have:
+        x = {k: np.asarray(res[a][k], dtype=float) for k in
+             ("Y", "K", "K_d", "K_f", "B", "D", "D_d", "D_f", "GNI")}
+        err = max(np.abs(x["K"] - x["K_d"] - x["K_f"]).max() / x["K"].max(),
+                  np.abs(x["K_d"] - x["B"] + x["D_d"]).max() / x["K"].max(),
+                  np.abs(x["D"] - x["D_d"] - x["D_f"]).max() / x["D"].max())
+        r.check(err < 1e-9 and bool(np.all(x["GNI"] <= x["Y"] * (1 + 1e-12))),
+                f"{a}: identities max rel error {err:.1e}; GNI/GDP "
+                + ", ".join(f"{v:.4f}" for v in x["GNI"] / x["Y"]))
+
+
 def main(res, baseline_only=False) -> int:
     r = _Report()
     arms = inventory(res, r, baseline_only=baseline_only)
@@ -442,7 +485,8 @@ def main(res, baseline_only=False) -> int:
                      lambda: solution_quality(res, arms, r),
                      lambda: arm_identity(res, arms, r),
                      lambda: shocked_checks(res, arms, r),
-                     lambda: accounts_checks(res, arms, r)):
+                     lambda: accounts_checks(res, arms, r),
+                     lambda: external_checks(res, arms, r)):
             try:
                 step()
             except Exception as e:   # a malformed value no validator above names

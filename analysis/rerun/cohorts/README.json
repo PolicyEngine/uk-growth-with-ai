@@ -1,0 +1,30 @@
+{
+ "what": "household paths by period, age and lifetime-earnings type; see analysis/rerun/export_cohorts.py",
+ "units": "detrended model units",
+ "periods": "t = 0 is 2026; T periods",
+ "dims": "(T, S, J)",
+ "files": {
+  "zk0.1": {
+   "baseline": "baseline_p1",
+   "share_shift_tfp": "share_shift_tfp_ramp",
+   "share_shift (R4 Z, the results-file arm)": "share_shift_ramp_r4_2",
+   "share_shift at the fixed-input Z (not in the results file)": "share_shift_ramp_zfixed"
+  },
+  "zk0": {
+   "baseline": "baseline_p1",
+   "share_shift_tfp": "share_shift_tfp_ramp",
+   "share_shift (R4 Z, the results-file arm)": "share_shift_ramp_r4_1",
+   "share_shift at the fixed-input Z (not in the results file)": "share_shift_ramp_zfixed"
+  }
+ },
+ "variables": {
+  "c": "consumption",
+  "n": "labour supply",
+  "b_s": "assets held at the start of the period (0 at the first model age)",
+  "b_sp1": "assets carried into the next period",
+  "bq": "bequests received",
+  "tr": "government transfers received",
+  "ss_c, ss_n, ss_b_s": "the same arm's steady-state profiles, (S, J)"
+ },
+ "weights": "not in these files: aggregating over ages and types needs omega (T, S) and lambdas (J) from <closure>/params.npz, which `export_cohorts.py --params` writes (not yet run, see docs/rerun_r1_r4.md)"
+}

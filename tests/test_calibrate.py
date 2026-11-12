@@ -42,8 +42,10 @@ def test_z_solvers_match_committed_values():
     gonly = ASSUM["gamma_only_output_gain"]
     assert z_for_tfp_gain(gonly, SHARE_SHIFT_TFP.tfp_gain) == \
         pytest.approx(ASSUM["Z_share_shift_tfp"], abs=1e-12)
+    # Since R4 (#8) the committed share_shift Z is solved against the 2030
+    # equilibrium GDP gap; the fixed-input one is recorded beside it.
     assert z_for_gdp_level(gonly, SHARE_SHIFT.gdp_level_change) == \
-        pytest.approx(ASSUM["Z_share_shift"], abs=1e-12)
+        pytest.approx(ASSUM.get("Z_share_shift_fixed_input", ASSUM["Z_share_shift"]), abs=1e-12)
     # Both below 1: the gamma move alone overshoots the technology target.
     assert ASSUM["Z_share_shift_tfp"] < 1.0 and ASSUM["Z_share_shift"] < 1.0
 
@@ -52,6 +54,7 @@ def test_solve_scenario_end_to_end():
     for scen, key in ((SHARE_SHIFT_TFP, "Z_share_shift_tfp"), (SHARE_SHIFT, "Z_share_shift")):
         out = solve_scenario(scen, K0, L0, G_BASE)
         assert out["gamma"] == pytest.approx(ASSUM["gamma_shocked"], abs=1e-12)
+        key = f"{key}_fixed_input" if f"{key}_fixed_input" in ASSUM else key
         assert out["Z"] == pytest.approx(ASSUM[key], abs=1e-12)
 
 

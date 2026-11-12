@@ -32,10 +32,14 @@ jobs:
         run: python -m pytest -q
       - name: Dashboard data files match the generator
         run: python -m uk_growth_with_ai dashboard --check
-      - name: check, committed results (common G/Y closure)
+      - name: check, committed results (central closure, zeta_K = 0.1)
         run: python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios.json
-      - name: check, committed results (fixed-spending closure)
-        run: python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_fixed_spending.json
+      - name: check, committed results (closed-capital bound, zeta_K = 0)
+        run: python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_zk0.json
+      - name: check, legacy results (pre-R1-R4, kept for comparison)
+        run: |
+          python -m uk_growth_with_ai check --results uk_growth_with_ai/data/legacy/scenarios_2026-11-11.json
+          python -m uk_growth_with_ai check --results uk_growth_with_ai/data/legacy/scenarios_fixed_spending_2026-11-11.json
 
   dashboard:
     name: Dashboard build

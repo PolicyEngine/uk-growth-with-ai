@@ -141,9 +141,36 @@ def provenance(TPI=None, api=None) -> dict:
     }
 
 
-def diagnostics(tpi: dict, p) -> dict:
-    """Full-path solver diagnostics, not just the first few periods."""
-    rc = np.abs(np.asarray(tpi["resource_constraint_error"])).reshape(p.T, -1).max(1)
+# Series exported per arm (R1-R4, #27).  The first NPER years sit at the top
+# level of each arm record (what `check`, `report` and the dashboard read); the
+# first NEXP years of every series are under "series" for the audit.
+NEXP = 10
+EXPORT = ("Y", "B", "K", "K_d", "K_f", "D", "D_d", "D_f", "r", "r_p", "r_gov",
+          "w", "L", "C", "I", "I_total", "I_d", "G", "TR", "I_g",
+          "agg_pension_outlays", "new_borrowing_f", "debt_service_f",
+          "total_tax_revenue", "BQ")
+TOP_LEVEL = ("Y", "K", "L", "w", "r", "C", "I", "G", "D", "total_tax_revenue",
+             "B", "K_d", "K_f", "D_d", "D_f", "r_p", "r_gov")
+# The OG-UK data window: demographic data to 2028, projected after
+# (``ogcore.demographics.get_pop_objs``'s final_data_year = START + 2), so the
+# first projected transition is period FINAL_DATA_YEAR - START - 1 (2027->28).
+FINAL_DATA_YEAR = START + 2
+
+
+def _agg(tpi, v, T):
+    return np.asarray(tpi[v], dtype=float).reshape(T, -1).sum(1)
+
+
+def diagnostics(tpi: dict, p, dist_history=None) -> dict:
+    """Full-path solver diagnostics, not just the first few periods.
+
+    ``rc_first5`` keeps the absolute values earlier files carry (``check`` reads
+    them); ``rc_rel_Y_signed`` is the SIGNED error / GDP for every period (#15).
+    """
+    rc_signed = np.asarray(tpi["resource_constraint_error"], dtype=float
+                           ).reshape(p.T, -1).sum(1)
+    rc = np.abs(rc_signed)
+    Y = _agg(tpi, "Y", p.T)
     out = {
         "rc_first5": rc[:NPER].tolist(),
         # t = 0 (2026) is a reported year, so the max covers it too; the interior
@@ -152,23 +179,96 @@ def diagnostics(tpi: dict, p) -> dict:
         "rc_max_interior": float(np.nanmax(rc[1:p.T - 1])),
         "rc_argmax_interior": int(np.nanargmax(rc[1:p.T - 1]) + 1),
         "rc_nonfinite_periods": int((~np.isfinite(rc)).sum()),
+        "rc_rel_Y_signed": (rc_signed / Y).tolist(),
+        "rc_rel_Y_max_abs_interior": float(np.nanmax(np.abs(rc_signed / Y)[1:p.T - 1])),
     }
     for key, label in (("euler_savings", "euler_savings"),
                        ("euler_labor_leisure", "euler_labour")):
         if key in tpi:
             a = np.abs(np.asarray(tpi[key]))
             out[f"{label}_max"] = float(np.nanmax(a))
+    if dist_history is not None:
+        d = np.asarray(dist_history, dtype=float)
+        out["tpi_distance_history"] = d.tolist()
+        out["tpi_iterations"] = int(d.size)
+        out["tpi_final_distance"] = float(d[-1]) if d.size else None
+        out["mindist_TPI"] = float(p.mindist_TPI)
+        out["tpi_converged"] = bool(d.size and d[-1] < p.mindist_TPI and d.size < p.maxiter)
     return out
+
+
+class _TPILog:
+    """Collect the 'Distance: x' lines ogcore.TPI logs each outer iteration.
+
+    ``ENFORCE_SOLUTION_CHECKS = False`` also switches off OG-Core's own
+    non-convergence error, so the distance history is the convergence record.
+    """
+
+    def __init__(self):
+        import logging
+        import re
+
+        self.dist = []
+        outer = self
+
+        class H(logging.Handler):
+            def emit(self, record):
+                m = re.match(r"Distance: (\S+)", record.getMessage())
+                if m:
+                    outer.dist.append(float(m.group(1)))
+
+        self.handler = H(logging.INFO)
+        self.logger = logging.getLogger("ogcore.TPI")
+
+    def __enter__(self):
+        import logging
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(self.handler)
+        return self
+
+    def __exit__(self, *exc):
+        self.logger.removeHandler(self.handler)
+
+
+def _capture_pop_objs():
+    """Wrap ogcore.demographics.get_pop_objs so the UK fetch can be read back."""
+    from ogcore import demographics
+    captured = {}
+    orig = getattr(demographics.get_pop_objs, "__wrapped__", demographics.get_pop_objs)
+
+    def wrapper(*a, **k):
+        d = orig(*a, **k)
+        captured.clear()
+        captured.update(d)
+        return d
+
+    wrapper.__wrapped__ = orig
+    demographics.get_pop_objs = wrapper
+    return captured
 
 
 def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
-            baseline_spending=False, g_n_source=G_N_DEFAULT) -> dict:
+            baseline_spending=False, g_n_source=G_N_DEFAULT, zeta_K=None,
+            pretp=False, splice=False, alpha_G_shift=0.0, out_dir=None) -> dict:
     """Solve SS and TPI for one arm.
 
-    ``alpha_G``: G/Y along the transition. None (the baseline) sets it to the
-    arm's own steady-state G/Y; shocked arms pass the baseline's so fiscal
-    policy is common across arms (issue #2).
+    ``alpha_G``: G/Y along the transition before tG1. None (the baseline) sets
+    it to the arm's own steady-state G/Y plus ``alpha_G_shift``; shocked arms
+    pass the baseline's so fiscal policy is common across arms (issue #2).
+    ``alpha_G_shift`` is the R1 calibration (#32): the steady-state share
+    stabilises debt for the steady-state economy, not for 2026-30, so the
+    baseline window share is moved by this many units of G/Y.  It applies to
+    t < tG1 only; from tG1 the debt rule sets G, and the steady state is
+    untouched (``budget_balance`` is off, so the SS never reads alpha_G).
+
+    ``zeta_K``: OG-Core's share of excess capital demand met from abroad
+    (R3, #16).  None leaves OG-UK's default (0.1).  zeta_D and the world rate
+    are never overridden; they are recorded.
+
+    ``pretp`` / ``splice``: the two demographic corrections in ``demography``
+    (R2, #15).  They are applied after the g_n guard and change neither omega
+    nor g_n.
 
     ``g_n_source``: "vendored" (default) checks the live fetch's reported
     window against the committed run's recorded g_n and raises
@@ -182,20 +282,29 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     transfers at the baseline's LEVELS instead of its G/Y share, the OBR
     convention of fixed spending plans; debt absorbs the difference.
     """
+    from . import demography
+
     TPI, SS, api, _, _ = handles
     t0 = time.time()
-    out_dir = base_dir if baseline else tempfile.mkdtemp()
+    if out_dir is None:
+        out_dir = base_dir if baseline else tempfile.mkdtemp()
     for sub in ("SS", "TPI"):
         os.makedirs(os.path.join(out_dir, sub), exist_ok=True)
     print(f"\n=== {name} ===", flush=True)
-    # baseline_dir=base_dir with baseline=False is what makes the shocked arms
-    # inherit the baseline's initial assets and debt.
     if g_n_source not in G_N_SOURCES:
         raise ValueError(f"g_n_source must be one of {G_N_SOURCES}")
+    captured = _capture_pop_objs() if pretp else {}
+    overrides = {"epsilon": [EPS], "gamma": [gamma_val], "tG1": tG1,
+                 "g_y_annual": g_y_annual}
+    if zeta_K is not None:
+        overrides["zeta_K"] = [zeta_K]
+    # baseline_dir=base_dir with baseline=False is what makes the shocked arms
+    # inherit the baseline's initial assets and debt.
     p = api._build_specs(START, None, out_dir, base_dir, baseline=baseline,
                          age_specific="pooled", multi_sector=False,
-                         param_overrides={"epsilon": [EPS], "gamma": [gamma_val],
-                                          "tG1": tG1, "g_y_annual": g_y_annual})
+                         param_overrides=overrides)
+    if zeta_K is not None and not np.allclose(np.asarray(p.zeta_K, dtype=float), zeta_K):
+        raise RuntimeError(f"zeta_K override did not take: {p.zeta_K}")
     if g_n_source == "vendored":
         # Guard, don't overwrite: the live reported window must match what the
         # committed run recorded.  The tail is not checked (never recorded):
@@ -209,6 +318,20 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
               "network-free.", flush=True)
     else:
         print("  g_n: LIVE UN fetch throughout -- not reproducible", flush=True)
+    has_demo = hasattr(p, "omega")   # False only for the test stubs
+    demo = {"law_of_motion_as_built": demography.law_of_motion(p)} if has_demo else {}
+    if pretp:
+        demo["pretp"] = demography.apply_pretp(p, captured)
+        print("  R2: pre-TP g_n/rho/imm_rates set from the UK fetch", flush=True)
+    if splice:
+        demo["splice"] = demography.apply_splice(p, FINAL_DATA_YEAR - START - 1)
+        print(f"  R2: data splice {demo['splice']['transition']} repaired "
+              f"({demo['splice']['residual_before']:.2e} -> "
+              f"{demo['splice']['residual_after']:.2e})", flush=True)
+    if has_demo:
+        demo["law_of_motion_solved"] = demography.law_of_motion(p)
+        demo["hash"] = demography.hashes(p)
+        demo["g_n_ss"] = float(p.g_n_ss)
     p.TPI_outer_method = "anderson"
     if baseline_spending and not baseline:
         p.baseline_spending = True   # reads G, TR, I_g from base_dir's TPI output
@@ -242,14 +365,32 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     ss = SS.run_SS(p, client=client)
     with open(os.path.join(out_dir, "SS", "SS_vars.pkl"), "wb") as f:
         pickle.dump(ss, f)
+    alpha_G_ss = float(ss["G"] / ss["Y"])
     if alpha_G is None:
-        alpha_G = float(ss["G"] / ss["Y"])
+        alpha_G = alpha_G_ss + alpha_G_shift
     p.alpha_G = np.full(p.T + p.S, alpha_G)
-    print(f"  alpha_G = {alpha_G:.4f} ({'own SS' if baseline else 'baseline'}), "
-          f"tG1 = {p.tG1}, g_y_annual = {g_y_annual}", flush=True)
-    TPI.run_TPI(p, client=client)
+    print(f"  alpha_G = {alpha_G:.6f} ({'own SS' if baseline else 'baseline'}"
+          f"{f' {alpha_G_shift:+.6f}' if baseline and alpha_G_shift else ''}), "
+          f"tG1 = {p.tG1}, g_y_annual = {g_y_annual}, zeta_K = "
+          f"{float(np.asarray(p.zeta_K).ravel()[0])}", flush=True)
+    with _TPILog() as tlog:
+        TPI.run_TPI(p, client=client)
     with open(os.path.join(out_dir, "TPI", "TPI_vars.pkl"), "rb") as f:
         tpi = pickle.load(f)
+    series = {v: _agg(tpi, v, p.T)[:NEXP].tolist() for v in EXPORT if v in tpi}
+    s = {k: np.asarray(v) for k, v in series.items()}
+    # GNI: GDP less the return paid to foreign owners of UK capital and gilts, at
+    # the rate OG-Core itself charges them in the resource constraint (r_p).
+    if all(k in s for k in ("Y", "r_p", "K_f", "D_f")):
+        series["GNI"] = (s["Y"] - s["r_p"] * s["K_f"] - s["r_p"] * s["D_f"]).tolist()
+    ident = {}
+    if all(k in s for k in ("K", "K_d", "K_f", "B", "D", "D_d", "D_f")):
+        ident = {
+            "K_eq_Kd_plus_Kf": float(np.abs(s["K"] - s["K_d"] - s["K_f"]).max()),
+            "Kd_eq_B_minus_Dd": float(np.abs(s["K_d"] - (s["B"] - s["D_d"])).max()),
+            "D_eq_Dd_plus_Df": float(np.abs(s["D"] - s["D_d"] - s["D_f"]).max()),
+        }
+    first = lambda v: float(np.asarray(v).ravel()[0])
     rec = {
         "g_n_source": g_n_source,
         "g_n_tail": "live",   # only g_n[:NPER] is checked against the vendored path
@@ -259,22 +400,38 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         "g_n_used": np.asarray(p.g_n)[:NPER].tolist(),
         "g_y_annual_used": float(p.g_y_annual) if np.ndim(p.g_y_annual) == 0
         else float(np.asarray(p.g_y_annual).ravel()[0]),
-        "alpha_G_used": alpha_G, "tG1_used": int(p.tG1),
+        "alpha_G_used": alpha_G, "alpha_G_ss": alpha_G_ss,
+        "alpha_G_shift": alpha_G - alpha_G_ss if baseline else None,
+        "tG1_used": int(p.tG1),
         "baseline_spending": bool(p.baseline_spending),
-        "diagnostics": diagnostics(tpi, p),
-        **{v: np.asarray(tpi[v])[:NPER].tolist()
-           for v in ("Y", "K", "L", "w", "r", "C", "I", "G", "D", "total_tax_revenue")
-           if v in tpi},
+        "closure": {"zeta_K": first(p.zeta_K), "zeta_D": first(p.zeta_D),
+                    "world_int_rate_annual": first(p.world_int_rate_annual),
+                    "initial_foreign_debt_ratio": float(p.initial_foreign_debt_ratio),
+                    "initial_debt_ratio": float(p.initial_debt_ratio)},
+        "demographics": {"pretp": bool(pretp), "splice": bool(splice), **demo},
+        "diagnostics": diagnostics(tpi, p, tlog.dist),
+        "identities_maxabs": ident,
+        "ss": {k: float(np.asarray(ss[k]).sum()) for k in
+               ("Y", "K", "K_d", "K_f", "B", "D", "D_d", "D_f", "r", "r_p", "w", "L",
+                "C", "G", "TR", "total_tax_revenue", "agg_pension_outlays")
+               if k in ss},
+        "years": list(range(START, START + NEXP)),
+        "series": series,
+        **{v: series[v][:NPER] for v in TOP_LEVEL if v in series},
+        **({"GNI": series["GNI"][:NPER]} if "GNI" in series else {}),
     }
+    d = rec["diagnostics"]
     print(f"OK {rec['elapsed_min']:.1f} min | SS labour share "
-          f"{rec['ss_labour_share']:.4f} | RC interior max "
-          f"{rec['diagnostics']['rc_max_interior']:.2e}", flush=True)
+          f"{rec['ss_labour_share']:.4f} | RC/Y 2026 {d['rc_rel_Y_signed'][0]:+.4%} | "
+          f"RC interior max {d['rc_max_interior']:.2e} | TPI dist "
+          f"{d.get('tpi_final_distance')} in {d.get('tpi_iterations')} its", flush=True)
     return rec
 
 
 def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False,
                   tG1=TG1, g_y_annual=G_Y_ANNUAL, baseline_spending=False,
-                  g_n_source=G_N_DEFAULT) -> dict:
+                  g_n_source=G_N_DEFAULT, zeta_K=None, pretp=False, splice=False,
+                  alpha_G_shift=0.0, z_share_shift=None) -> dict:
     """Run the baseline plus the requested shocked arms, writing ``out`` as it goes."""
     handles = _load_oguk()
     TPI, SS, api, Client, LocalCluster = handles
@@ -296,15 +453,22 @@ def run_scenarios(only=None, shapes="both", out=DEFAULT_OUT, baseline_only=False
     # not "ok" (issue #17); an arm still "pending" means the run stopped early.
     res = {"provenance": provenance(TPI, api), "arms_requested": requested,
            "arm_status": {a: "pending" for a in requested}}
-    settings = {"tG1": tG1, "g_y_annual": g_y_annual, "g_n_source": g_n_source}
+    settings = {"tG1": tG1, "g_y_annual": g_y_annual, "g_n_source": g_n_source,
+                "zeta_K": zeta_K, "pretp": pretp, "splice": splice}
     res["baseline"] = run_arm("baseline", G_BASE, False, None, base_dir, client,
-                              handles, baseline=True, **settings)
+                              handles, baseline=True, alpha_G_shift=alpha_G_shift,
+                              **settings)
     out.write_text(json.dumps(res, indent=1))
     alpha_G = res["baseline"]["alpha_G_used"]
     K0, L0 = res["baseline"]["K"][0], res["baseline"]["L"][0]
 
     # Z is SOLVED jointly with gamma, never assumed: see calibrate.
     cal = {n: solve_scenario(s, K0, L0, G_BASE) for n, s in SCENARIOS.items()}
+    if z_share_shift is not None:
+        # R4 (#8): a Z solved elsewhere (``rerun``) against the equilibrium GDP
+        # gap replaces the fixed-input one.
+        cal["share_shift"]["Z_fixed_input"] = cal["share_shift"]["Z"]
+        cal["share_shift"]["Z"] = float(z_share_shift)
     g_ai = cal["share_shift_tfp"]["gamma"]
     gonly = cal["share_shift_tfp"]["gamma_only_output_gain"]
 

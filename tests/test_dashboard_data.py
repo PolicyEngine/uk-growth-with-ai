@@ -93,3 +93,21 @@ def test_trace_names_match_the_dashboard_labels():
     for arm, (name, _) in dd.ARM_TRACE.items():
         assert labels[arm] == name, arm
     assert dd.ARM_TRACE["baseline"][0].startswith("OG-UK")
+
+
+def test_closure_blocks_are_gaps_against_each_closures_own_baseline():
+    c = dd.closures(RESULTS)
+    assert c["central"]["zeta_K"] == 0.1 and c["bound"]["zeta_K"] == 0.0
+    assert c["central"]["years"][0] == 2026 and c["central"]["years"][-1] == 2035
+    for block in (c["central"], c["bound"]):
+        for arm in dd.SHOCKED:
+            a = block["arms"][arm]
+            assert all(len(v) == 10 for v in a.values())
+    # the closed-capital bound has no foreign-owned capital
+    assert all(x in (None, 0.0) for arm in dd.SHOCKED
+               for x in c["bound"]["arms"][arm]["foreign_share_K"])
+    # share_shift is GDP-neutral in 2030 by construction (R4, within 0.01pp)
+    i = c["central"]["years"].index(2030)
+    for block in (c["central"], c["bound"]):
+        assert abs(block["arms"]["share_shift_ramp"]["Y"][i]) < 0.01
+    assert len(c["obr_debt_gdp"]) == len(dd.YEARS)

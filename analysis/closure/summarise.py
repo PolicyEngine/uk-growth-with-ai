@@ -31,7 +31,7 @@ REPO = HERE.parents[1]
 OUT = HERE / "output"
 DOC = REPO / "docs" / "closure_sensitivity.md"
 NOTES = HERE / "notes.md"
-COMMITTED = REPO / "uk_growth_with_ai" / "data" / "scenarios.json"
+COMMITTED = REPO / "uk_growth_with_ai" / "data" / "legacy" / "scenarios_2026-11-11.json"  # the run #30 reproduced
 
 ZKS = ("0", "0.1", "0.5")
 ARMS = ("share_shift_tfp_ramp", "share_shift_ramp")
@@ -262,7 +262,8 @@ def render(runs, summ):
     w("")
     cc = summ["committed_check"]
     if cc:
-        w("Reproduction of the committed run (`uk_growth_with_ai/data/scenarios.json`) by the "
+        w("Reproduction of the run committed at the time (now "
+          "`uk_growth_with_ai/data/legacy/scenarios_2026-11-11.json`) by the "
           "zeta_K = 0.1 solves, max relative difference over 2026–2030:\n")
         w("| arm | " + " | ".join(next(iter(cc.values())).keys()) + " |")
         w("|---|" + "---|" * len(next(iter(cc.values()))))

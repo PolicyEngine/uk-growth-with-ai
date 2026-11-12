@@ -17,8 +17,10 @@ G_N, G_Y = load_trend_params(results=RESULTS)
 
 
 @pytest.mark.parametrize("arm,gap,growth", [
-    ("share_shift_tfp_ramp", 4.92, 2.93),
-    ("share_shift_ramp", 1.42, 1.82),
+    # R1-R4 reruns (#27), zeta_K = 0.1; share_shift's 2030 gap is 0 by
+    # construction (R4).  Before: 4.92 / 2.93 and 1.42 / 1.82.
+    ("share_shift_tfp_ramp", 4.90, 2.84),
+    ("share_shift_ramp", 0.00, 1.27),
 ])
 def test_headline_numbers(arm, gap, growth):
     s = summary(arm)
@@ -66,5 +68,5 @@ def test_population_growth_index_is_t_to_t_plus_1():
 def test_obr_baseline_comparison():
     c = compare_obr_baseline()
     assert c["years"] == [2027, 2028, 2029, 2030]
-    assert round(c["mean"], 2) == 1.68
+    assert round(c["mean"], 2) == 1.57   # 1.68 before the R1-R4 reruns
     assert c["difference"] == pytest.approx(c["mean"] - 1.60, abs=1e-12)
