@@ -92,6 +92,77 @@ Two things make the restart inexact. OG-UK's TPI tolerance is `mindist_TPI = 1e-
 - The first R4 step takes its slope from the committed 2026-start secant at the same closure. The fixed-spending variant takes its slope from the surprise common-G/Y secant.
 - Old R4 points cannot leak into the new secant, because the solves live in a separate output directory (tested).
 
+## The debt-neutral variant (`_dn`)
+
+Approved by Vahid on 12 Nov 2026 (#27, and the referee report on #24). The welfare headline uses these arms.
+
+**Closure.** From 2028, transfers (TR) adjust every year so that debt/GDP follows the no-shock restart's path. G keeps its usual rule: `alpha_G · Y` before `tG1`, and the debt rule from `tG1`. Households therefore receive, or pay for, the shock's fiscal effect through transfers, instead of it showing up in debt.
+
+The target covers 2029–2036. 2028 debt is predetermined. 2036 is `tG1`, the debt rule's first year: from then on G closes the budget towards the long-run debt ratio in every run, and TR returns to `alpha_T · Y`. Targeting debt with TR beyond `tG1` would give two instruments for one target. G's rule fixes next year's debt whatever TR is, so the TR fixed point would have no solution.
+
+**How OG-Core 0.17 is made to do it.** OG-Core 0.17 has no closure for this:
+- `budget_balance` sets TR to revenue minus spending, with no debt at all.
+- `baseline_spending` fixes G and TR at the baseline's levels.
+- The debt rule (`tG1`, `tG2`, `rho_G`, `debt_ratio_ss`) moves G, not TR.
+
+TR is, however, one of the TPI outer-loop fixed-point variables. Each outer iteration computes `TR_new = fiscal.get_TR(...)`, and TR is damped or Anderson-accelerated towards it. `surprise.debt_neutral` replaces `get_TR` for that one TPI run; SS calls pass through unchanged.
+- `TR_new_t` is the transfer that puts `D_{t+1}/Y_{t+1}` on the target. It uses `D_G_path`'s own law of motion, `growth_{t+1} D_{t+1} = (1 + r_gov,t) D_t + G_t + I_g,t + TR_t + UBI_t + pensions_t − revenue_t − aid_t`.
+- The inputs are the iterate's Y, G, revenue and pensions, and r_gov at the target ratio.
+- r is read from the `D_G_path` call made earlier in the same outer iteration.
+
+At the fixed point, `D_G_path`'s debt is the target path. **No outer loop is added**, so each arm is one solve, as before. Convergence of the TPI with this TR map is not yet proven on the real model. If it fails to converge, it shows up as a failed solve, not as more solves.
+
+**Checks.**
+- Tests: the transfers put D/Y on the target exactly (1e-12) through a copy of OG-Core's debt recursion, with r_gov depending on D/Y. TR reverts to `alpha_T · Y` from `tG1`. G and SS are untouched, and the patch is restored afterwards.
+- After each solve, `dn_check` requires D/Y within 1e-4 (relative) of the target in 2029–2036, or the arm is not used (R4, `assemble`, sanity).
+
+**Arms.** `share_shift_tfp_ramp_dn`, and `share_shift_ramp_dn`, whose Z is solved by R4 under this closure (2031 GDP gap zero; points `share_shift_ramp_zfixed_dn`, `share_shift_ramp_dn_r4_n`). Both are run at both closures. `surprise assemble --debt-neutral` writes `scenarios_surprise2028_debt_neutral*.json`.
+
+## Net national income
+
+Every run now exports NNI = GNI − δ·K. δ = 0.065 is the model's per-period depreciation: OG-UK's `delta_annual` (ONS CAPSTK), and with S = 80 a model period is one year. Each record stores `p.delta`, and the splice refuses if it differs.
+
+The baseline's NNI for 2026–36 is in `baseline_ext.json`: 81.3% of GDP in 2031 at zk0.1 and 82.9% at zk0, against GNI at 98.4% and 99.4%.
+
+## The sanity gate after every solve
+
+`analysis/surprise/sanity.py` runs automatically after each solve (`driver.sh`). On any failure it stops the run, pushes the record, log and report, and exits non-zero. Each failure needs an explanation before the run continues. The expectations were written and committed **before any surprise solve**, in `analysis/surprise/expectations.json`, from the 2026-start results.
+
+| check | rule |
+|---|---|
+| identities, 2026–36 | K = K_d + K_f, K_d = B − D_d, D = D_d + D_f (1e-8 relative); GNI ≤ GDP where K_f > 0; NNI < GNI |
+| resource constraint | \|RC/GDP\| ≤ 1e-5 in 2027 (baseline) and 2028–36 (run) |
+| single point | every exported series equals the reference exactly in 2026 and 2027 |
+| labour share on the ramp | with ε = 1 and one sector it is 1 − γ, so its gap must be −3.9pp × the ramp weight (−0.975, −1.95, −2.925, −3.9pp in 2028–31), within 0.02pp |
+| size band | each 2031 gap within 30% of the 2026-start arm's 2030 gap, or within an absolute floor (0.25pp; I 1pp; r 10bp; debt/GDP 0.5pp); a flipped sign above the floor fails |
+| 2028 jump | I and L gaps reported; flagged, not failed, if the I gap exceeds the old 2026 +17% |
+
+Size bands compare 2031 with 2030, the first full-weight year in each design. The surprise arms have had three years of response (2028–30), where the 2026-start arms had four plus anticipation. So somewhat smaller K and Y gaps are expected, and 30% is the stated tolerance for that, not a fitted number. The continuation, the R4 iterations other than the accepted one, and the debt-neutral arms have no band, because they have no 2026-start counterpart.
+
+**Expected direction at 2031, written before the solves:**
+
+| arm | expected |
+|---|---|
+| `share_shift_tfp` | GDP > 0, K > 0, r up, labour share down |
+| `share_shift` (R4) | GDP ≈ 0 (within 0.01pp, by construction), wage < 0, labour share down, GNI ≤ 0 |
+| `share_shift` fixed-input Z and R4 iterations | wage < 0, labour share down |
+| zk0, any arm | K_f = 0; Δr larger than the same arm at zk0.1 |
+| fixed spending | G equals the baseline's level, 2028–35 |
+| debt-neutral | debt/GDP tracks the reference path within 1e-4, 2029–36 |
+
+**Reference numbers (2026-start, 2030 gaps; the bands are built from these):**
+
+| closure, arm | GDP | GNI | K | L | wage | C | I | Δr bp | debt/GDP pp |
+|---|---|---|---|---|---|---|---|---|---|
+| zk0.1 `share_shift_tfp` | +4.90 | +3.82 | +6.10 | −0.83 | −0.57 | +0.31 | +13.3 | +108 | −3.08 |
+| zk0.1 `share_shift` R4 | 0.00 | −0.76 | +4.65 | −0.73 | −5.31 | −1.94 | +4.4 | +68 | +2.29 |
+| zk0 `share_shift_tfp` | +3.10 | +2.94 | +2.00 | −1.16 | −1.95 | −0.08 | +12.7 | +140 | −1.64 |
+| zk0 `share_shift` R4 | 0.00 | −0.15 | +1.92 | −1.01 | −5.04 | −1.61 | +5.8 | +103 | +1.91 |
+
+The fixed-input and fixed-spending rows are in `expectations.json`. The fixed-spending ones come from PR #36 at 37bd0e2.
+
+After each solve, the driver writes a summary table to the progress comment on #27. The table gives, per solve: minutes, sanity result, the 2028 I and L jump, and the 2031 GDP, K, wage, labour share, Δr, GNI and NNI gaps.
+
 ## What changes economically
 
 - **No anticipation in 2026–27.** Every 2026 and 2027 gap is exactly zero. The old +0.19%/+0.74% GDP and +17% investment in 2026 disappear.
@@ -145,7 +216,7 @@ The anchor moves Z by about 0.02%, which is small against the scenario sizes.
 6. **Investment is expected to jump in 2028, because OG-Core 0.17 has no adjustment costs.** `adj_cost` is defined in `ogcore/firm.py` (line 749) and never called. Investment is whatever moves capital to next year's target, so the announcement gives a one-year spike, like the old +17% in 2026. It reflects the model's frictionless capital, not a forecast.
 7. **Debt horizon.** The debt rule starts in 2036 (`tG1 = 10` from 2026). The exports run to 2036, and the baseline's 2036 comes from its pickle, so the debt gap is quoted for 2031 together with 2036.
 8. **Fixed-spending variants.** The 2026-start fixed-spending staging is in PR #36, which is not merged. This branch has its own `arms_fs` stage with the same `_fs` labels, in `analysis/surprise/output`, and does not depend on #36.
-9. **Downstream readers are a follow-up, done right after the results exist, on this branch if it is clean.** `check`, `report`, `dashboard_data` and the dashboard still assume the 2026–2030 window with the headline at index 4. The surprise results files (`uk_growth_with_ai/data/scenarios_surprise2028*.json`) carry `years: [2027..2031]` and `window`. In each solve record, `g_n_used`, `diagnostics.rc_first5`, `diagnostics.rc_rel_Y_signed` and `series_run` are indexed from the run's period 0 (2028, in `run_period0_year`), not from a calendar year.
+9. **Downstream readers are a follow-up, done right after the results exist, on this branch if it is clean.** This includes NNI in the results files, `check`, the dashboard and the paper macros. `check`, `report`, `dashboard_data` and the dashboard still assume the 2026–2030 window with the headline at index 4. The surprise results files (`uk_growth_with_ai/data/scenarios_surprise2028*.json`) carry `years: [2027..2031]` and `window`. In each solve record, `g_n_used`, `diagnostics.rc_first5`, `diagnostics.rc_rel_Y_signed` and `series_run` are indexed from the run's period 0 (2028, in `run_period0_year`), not from a calendar year.
 
 ## Solve plan (step 2: needs the GO and the heavy-job lock)
 
@@ -170,6 +241,12 @@ Default order (each solve is about 8 minutes of wall time; the committed solves 
 | 3 | zk0.1 `share_shift_tfp_ramp`, `share_shift_ramp_zfixed`, R4 1–2 | 3–4 |
 | 4 | zk0 continuation, then its gate | 1 |
 | 5 | zk0 `share_shift_tfp_ramp`, `share_shift_ramp_zfixed`, R4 1–2 | 3–4 |
-| 6 | fixed spending, zk0.1 then zk0 (the same three or four with `_fs`) | 6–8 |
+| 6 | debt-neutral, zk0.1 then zk0 (`_dn`: tfp, zfixed, R4 1–2) | 6–8 |
+| 7 | fixed spending, zk0.1 then zk0 (`_fs`, the same) | 6–8 |
 
-That is 14–18 solves plus the spec check, about 2 h to 2 h 30 min. From a 16:30 start, steps 1–5 (about 1 h 15 min) end well before the deadline. The fixed-spending set should finish around 18:30–19:00. The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common and the fixed-spending arms. No baseline is re-solved.
+That is 20–26 solves plus the spec check: about 2 h 50 min to 3 h 40 min, plus about 1 minute of sanity check and push per solve. The debt-neutral closure adds no outer loop, so it adds no solves beyond its arms. From a 16:30 start:
+- steps 1–5 end around 17:45;
+- the debt-neutral set ends around 18:45;
+- fixed spending will probably not finish by the 19:25 deadline. It stops at a solve boundary and resumes on the next call.
+
+The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common and the fixed-spending arms. The debt-neutral R4 starts from the surprise common-G/Y secant's slope. No baseline is re-solved.

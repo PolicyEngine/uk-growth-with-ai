@@ -77,6 +77,30 @@ R4_TOL_PP = 0.01
 R4_SLOPE0 = 1.0
 MAX_R4_ITER = 5
 FS = "_fs"
+VARIANTS = {"": "every arm uses the baseline's alpha_G (G/Y) and alpha_T (TR/Y)",
+            "fs": "fixed spending: shocked arms hold G and TR at the baseline's levels",
+            "dn": "debt-neutral: TR adjusts every year from the shock year so that "
+                  "debt/GDP follows the no-shock restart's path up to the debt rule's "
+                  "first year (2036); G follows its usual rule (alpha_G * Y before "
+                  "tG1, the debt rule from tG1); from tG1 TR is alpha_T * Y again"}
+STAGE_VARIANT = {"arms": "", "arms_fs": "fs", "arms_dn": "dn"}
+DN_TOL = 1e-4               # debt-neutral arms: max relative |D/Y - target|, 2029-2036
+
+# Per-period depreciation.  OG-UK sets delta_annual = 0.065
+# (oguk_default_parameters.json; ONS CAPSTK) and OG-Core converts it to the
+# model period, 1 - (1 - 0.065)^(80 / S); with S = 80 a period is a year, so
+# delta = 0.065.  run_arm records p.delta and the splice checks it matches.
+DELTA_ANNUAL = 0.065
+
+
+def _variant(v) -> str:
+    if v is True:
+        return "fs"
+    if v in (False, None, ""):
+        return ""
+    if v not in VARIANTS:
+        raise ValueError(f"unknown variant {v!r}")
+    return v
 
 
 def k_of(year: int = SURPRISE_YEAR) -> int:
@@ -328,13 +352,113 @@ def predetermined_check(run_series: dict, state: dict) -> dict:
 
 # --- series ----------------------------------------------------------------------
 
-def series_from_tpi(tpi: dict, T: int, n: int, export) -> dict:
+def series_from_tpi(tpi: dict, T: int, n: int, export, delta=DELTA_ANNUAL) -> dict:
+    """Aggregates, GNI = Y - r_p (K_f + D_f) and NNI = GNI - delta K."""
     agg = lambda v: np.asarray(tpi[v], float).reshape(T, -1).sum(1)
     s = {v: agg(v)[:n].tolist() for v in export if v in tpi}
     a = {v: np.asarray(x) for v, x in s.items()}
     if all(v in a for v in ("Y", "r_p", "K_f", "D_f")):
-        s["GNI"] = (a["Y"] - a["r_p"] * a["K_f"] - a["r_p"] * a["D_f"]).tolist()
+        gni = a["Y"] - a["r_p"] * a["K_f"] - a["r_p"] * a["D_f"]
+        s["GNI"] = gni.tolist()
+        s["NNI"] = (gni - delta * a["K"]).tolist()
     return s
+
+
+# --- the debt-neutral closure ("_dn") -------------------------------------------------
+#
+# OG-Core 0.17 has no closure that holds debt/GDP on a given path with
+# transfers: budget_balance sets TR = revenue - spending (D = 0), baseline_spending
+# fixes TR and G at baseline LEVELS, and the debt rule (tG1/tG2, rho_G,
+# debt_ratio_ss) moves G, not TR.  TR is, however, one of the TPI outer-loop
+# fixed-point variables: every outer iteration computes TR_new =
+# fiscal.get_TR(...) and damps/accelerates TR towards it.  So the closure is a
+# replacement get_TR for the TPI only: TR_new_t is the transfer that makes
+# D_{t+1}/Y_{t+1} equal the target, given the iterate's Y, G, revenue, pensions
+# and r_gov, using D_G_path's own law of motion.  At the fixed point TR = TR_new
+# and D_G_path's D is the target path.  No outer loop is added: one solve per
+# arm, as before.  r is captured from the D_G_path call made earlier in the
+# same outer iteration.
+
+def debt_neutral_tr(target_dy, Y, G, I_g, UBI, pensions, revenue, foreign_aid,
+                    r_gov_of, D0, growth, n):
+    """Transfers TR_0..TR_{n-1} so that D_t / Y_t = target_dy[t] for t = 1..n.
+
+    D_G_path (ogcore/fiscal.py 0.17): growth[t] D[t] = (1 + r_gov[t-1]) D[t-1]
+    + G[t-1] + I_g[t-1] + TR[t-1] + UBI[t-1] + pensions[t-1] - revenue[t-1]
+    - foreign_aid[t-1], with r_gov[t] = r_gov_of(t, D[t] / Y[t]) and D[0] = D0.
+    """
+    D = np.empty(n + 1)
+    D[0] = D0
+    D[1:] = np.asarray(target_dy, float)[1:n + 1] * np.asarray(Y, float)[1:n + 1]
+    tr = np.empty(n)
+    for t in range(n):
+        rg = r_gov_of(t, D[t] / Y[t])
+        tr[t] = (growth[t + 1] * D[t + 1] - (1 + rg) * D[t] - G[t] - I_g[t] - UBI[t]
+                 - pensions[t] + revenue[t] + foreign_aid[t])
+    return tr
+
+
+def dn_horizon(p, target_dy) -> int:
+    """Years of TR set by the closure: until the debt rule (tG1) takes over,
+    and no further than the target path reaches."""
+    return int(min(int(p.tG1), len(target_dy) - 1, int(p.T) - 1))
+
+
+@contextlib.contextmanager
+def debt_neutral(fiscal, target_dy, D0, record: dict):
+    """Patch ``fiscal.get_TR`` (TPI calls only) and wrap ``fiscal.D_G_path`` to
+    read r, for one run; always restored.  ``target_dy[t]``: debt/GDP by run
+    period (t = 0 is the shock year; only t >= 1 is targeted, D_0 is given)."""
+    orig_tr, orig_dg = fiscal.get_TR, fiscal.D_G_path
+    seen = {}
+
+    def dg(r, dg_fixed_values, p):
+        seen["r"] = np.array(r, dtype=float)
+        return orig_dg(r, dg_fixed_values, p)
+
+    def get_tr(Y, TR, G, total_tax_revenue, agg_pension_outlays, UBI_outlays, I_g, p,
+               method):
+        new = orig_tr(Y, TR, G, total_tax_revenue, agg_pension_outlays, UBI_outlays,
+                      I_g, p, method)
+        if method != "TPI" or "r" not in seen or p.baseline_spending or p.budget_balance:
+            return new
+        T = int(p.T)
+        n = dn_horizon(p, target_dy)
+        growth = (1 + np.append(p.g_n_preTP, p.g_n[:T])) * np.exp(p.g_y)
+        r = seen["r"]
+        rg = lambda t, dy: float(fiscal.get_r_gov(r[t], dy, p, "scalar", t))
+        fa = np.asarray(p.alpha_FA[:T], float) * np.asarray(Y[:T], float)
+        tr = debt_neutral_tr(target_dy, np.asarray(Y, float), np.asarray(G, float),
+                             np.asarray(I_g, float), np.asarray(UBI_outlays, float),
+                             np.asarray(agg_pension_outlays, float),
+                             np.asarray(total_tax_revenue, float), fa, rg, D0, growth, n)
+        new = np.array(new, dtype=float)
+        new[:n] = tr
+        record["calls"] = record.get("calls", 0) + 1
+        record["horizon"] = n
+        return new
+
+    fiscal.get_TR, fiscal.D_G_path = get_tr, dg
+    try:
+        yield
+    finally:
+        fiscal.get_TR, fiscal.D_G_path = orig_tr, orig_dg
+
+
+def dn_target(ref_ext, k) -> list:
+    """Target debt/GDP by run period from the reference (continuation) series."""
+    s = ref_ext["series"]
+    return [s["D"][i] / s["Y"][i] for i in range(k, len(s["Y"]))]
+
+
+def dn_check(rec, ref_ext, year=SURPRISE_YEAR) -> dict:
+    """Debt/GDP of a debt-neutral arm against its target, shock year+1 .. 2036."""
+    w = window(year)
+    yrs = range(year + 1, w["debt_rule_year"] + 1)
+    dy = lambda s_, y: s_["D"][y - START] / s_["Y"][y - START]
+    err = {y: dy(rec["series"], y) / dy(ref_ext["series"], y) - 1 for y in yrs}
+    m = max(abs(v) for v in err.values())
+    return {"rel_err_by_year": err, "max_abs_rel": m, "tol": DN_TOL, "ok": bool(m <= DN_TOL)}
 
 
 def splice(base_series: dict, run_series: dict, k: int, check: dict | None) -> dict:
@@ -352,6 +476,10 @@ def splice(base_series: dict, run_series: dict, k: int, check: dict | None) -> d
 def calendar_record(rec: dict, base_ext: dict, k: int, year: int = SURPRISE_YEAR) -> dict:
     """Rewrite a surprise solve record onto the calendar window."""
     w = window(year)
+    d = rec.get("delta")
+    if d is not None and abs(d - DELTA_ANNUAL) > 1e-12:
+        raise ShiftError(f"model delta {d} != DELTA_ANNUAL {DELTA_ANNUAL}: NNI of the "
+                         "baseline years would use a different depreciation rate")
     rec["series_run"] = rec["series"]
     rec["series_run_years"] = list(range(START + k, START + k + len(rec["series"]["Y"])))
     rec["series"] = splice(base_ext["series"], rec["series"], k,
@@ -377,7 +505,8 @@ def gap_pct(rec, base_ext, year, var="Y") -> float:
 # --- planner -----------------------------------------------------------------------
 
 def _keys(fs=False):
-    x = FS if fs else ""
+    v = _variant(fs)
+    x = f"_{v}" if v else ""
     return {"tfp": f"share_shift_tfp_ramp{x}", "zfixed": f"share_shift_ramp_zfixed{x}",
             "r4": f"share_shift_ramp{x}_r4_"}
 
@@ -480,6 +609,10 @@ def reference_ext(outdir, closure, base_ext=None) -> dict:
 
 def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR):
     k = _keys(fs)
+    if _variant(fs) == "dn":   # an arm that missed its debt path is not a point
+        done = {x: r for x, r in done.items()
+                if not x.endswith(("_dn",)) and "_dn_" not in x
+                or r.get("dn_check", {}).get("ok")}
     keys = [k["zfixed"]] + sorted((x for x in done if x.startswith(k["r4"])),
                                   key=lambda s: int(s.rsplit("_", 1)[1]))
     r4y = window(year)["r4_year"]
@@ -494,9 +627,10 @@ def accepted_r4(done, base_ext, fs=False, year=SURPRISE_YEAR):
 
 def _first_slope(done, base_ext, fs, rerun_dir, closure, year):
     """pp of R4-year GDP gap per unit ln Z for the first step: the surprise
-    common-G/Y secant (fixed spending only), else the committed 2026 R4 secant
-    at the same closure (2030 gap, full ramp), else R4_SLOPE0."""
-    if fs:
+    common-G/Y secant (fixed-spending and debt-neutral variants), else the
+    committed 2026 R4 secant at the same closure (2030 gap, full ramp), else
+    R4_SLOPE0."""
+    if _variant(fs):
         pts = r4_points(done, base_ext, False, year)
         if len(pts) >= 2:
             (z0, g0, _), (z1, g1, _) = pts[-2], pts[-1]
@@ -542,8 +676,11 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
                            f"{rep['max']:.2e} (tol {CONT_TOL:g}), RC/Y "
                            f"{rep['rc0_rel_Y']} (tol {RC0_TOL:g}): {rep}")
     ref = reference_ext(outdir, closure, base_ext)
-    fs = stage == "arms_fs"
-    common["baseline_spending"] = fs
+    if stage not in STAGE_VARIANT:
+        raise ValueError(f"unknown stage {stage!r}")
+    fs = STAGE_VARIANT[stage]
+    common["baseline_spending"] = fs == "fs"
+    common["variant"] = fs
     cal = calibration(base_ext, year)      # Z anchor: always the baseline's 2027
     k = _keys(fs)
     ay = window(year)["z_anchor_year"]
@@ -695,10 +832,15 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
     print(f"{closure} surprise {year} {stage}: {spec['label']} ({spec['why']})", flush=True)
     try:
         shock = spec["Z"] is not None
+        dn = None
+        if spec.get("variant") == "dn":
+            ref = reference_ext(outdir, closure)
+            dn = {"target_dy": dn_target(ref, k), "D0": state["D0"]}
         rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
                       spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
                       out_dir=str(adir), baseline_spending=spec["baseline_spending"],
-                      surprise=state, nexp=NEXP_SURPRISE - k, **settings)
+                      surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
+                      **settings)
     finally:
         client.close()
     base_ext = load_base_ext(outdir, closure)
@@ -708,6 +850,10 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
                 "spec": spec, "provenance": provenance(TPI, api)})
     if stage == "continuation":
         rec["continuation_report"] = continuation_report(rec, base_ext, year)
+    if spec.get("variant") == "dn":
+        rec["dn_check"] = dn_check(rec, reference_ext(outdir, closure), year)
+        print(f"  debt-neutral: max |D/Y error| {rec['dn_check']['max_abs_rel']:.2e} "
+              f"(tol {DN_TOL:g})", flush=True)
     out = Path(outdir) / closure / f"{spec['label']}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix(".tmp")
@@ -733,10 +879,15 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
     base_ext = load_base_ext(outdir, closure)
     done = load(outdir, closure)
     cont = done.get("continuation")
+    fs = _variant(fs)
     k = _keys(fs)
     ref = reference_ext(outdir, closure, base_ext)
     reference = ref["reference"]
     tfp, ss = done.get(k["tfp"]), accepted_r4(done, ref, fs, year)
+    if fs == "dn":
+        bad = [r.get("label", "?") for r in (tfp, ss) if r and not r.get("dn_check", {}).get("ok")]
+        if bad:
+            raise RuntimeError(f"{closure}: debt-neutral arms off their debt path: {bad}")
     if cont is None or tfp is None or ss is None:
         raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
                            f"{bool(tfp)}, share_shift R4 {bool(ss)})")
@@ -776,8 +927,9 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
                                                        START + len(ref["series"]["Y"]))},
             "r4_iterations": [{"label": lab, "Z": math.exp(lz), "gdp_gap_pct": g}
                               for lz, g, lab in r4_points(done, ref, fs, year)],
-            "fiscal": ("shocked arms hold G and TR at the baseline's levels" if fs
-                       else "every arm uses the baseline's alpha_G"),
+            "fiscal": VARIANTS[fs], "fiscal_variant": fs or "common",
+            "delta": DELTA_ANNUAL,
+            "NNI": "GNI - delta * K, delta the model's per-period (annual) depreciation",
             "closure": rerun.closure_record(base, closure),
             "tG1": TG1, "debt_rule_year": w["debt_rule_year"],
         },

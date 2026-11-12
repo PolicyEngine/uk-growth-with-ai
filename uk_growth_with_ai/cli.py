@@ -70,11 +70,12 @@ def main(argv=None) -> int:
     p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0"])
     p_sp.add_argument("--start", type=int, default=2028,
                       help="the announcement year; every arm equals the baseline before it")
-    p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_fs"],
+    p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_dn", "arms_fs"],
                       default="continuation",
                       help="continuation: the no-shock restart that must reproduce the "
                            "baseline; arms_fs: G and TR at baseline levels")
     p_sp.add_argument("--fixed-spending", action="store_true", help="assemble: arms_fs")
+    p_sp.add_argument("--debt-neutral", action="store_true", help="assemble: arms_dn")
     p_sp.add_argument("--reference", choices=["baseline", "continuation"],
                       default="continuation",
                       help="gate --approve: what R4 and every gap are measured against "
@@ -197,9 +198,12 @@ def _surprise(args) -> int:
             print(f"{k}: {r['elapsed_min']:.1f} min, converged "
                   f"{r['diagnostics'].get('tpi_converged')}")
         return 0
-    res = sp.assemble(args.outdir, args.closure, fs=args.fixed_spending,
-                      rerun_dir=args.rerun_dir, **kw)
-    stem = f"scenarios_surprise{args.start}" + ("_fixed_spending" if args.fixed_spending else "")
+    if args.fixed_spending and args.debt_neutral:
+        raise SystemExit("--fixed-spending and --debt-neutral are separate variants")
+    variant = "fs" if args.fixed_spending else "dn" if args.debt_neutral else ""
+    res = sp.assemble(args.outdir, args.closure, fs=variant, rerun_dir=args.rerun_dir, **kw)
+    stem = f"scenarios_surprise{args.start}" + {"": "", "fs": "_fixed_spending",
+                                                 "dn": "_debt_neutral"}[variant]
     out = Path(args.out or f"uk_growth_with_ai/data/{stem}"
                f"{'' if args.closure == 'zk0.1' else '_' + args.closure}.json")
     out.write_text(json.dumps(res, indent=1))

@@ -422,3 +422,113 @@ def test_continuation_gate_is_tight_on_gdp_capital_and_debt_to_2036():
     rec = _arm(be, 0.0, None)
     rec["series"]["L"][6] *= 1 + 5e-4                # looser variables: 1e-3
     assert sp.continuation_report(rec, be)["ok"]
+
+
+# --- the debt-neutral closure -------------------------------------------------------
+
+def _dg_path(D0, Y, G, I_g, TR, UBI, pens, rev, fa, r_gov_of, growth, n):
+    """OG-Core 0.17 fiscal.D_G_path's debt recursion (before tG1), copied."""
+    D = np.empty(n + 1)
+    D[0] = D0
+    for t in range(1, n + 1):
+        rg = r_gov_of(t - 1, D[t - 1] / Y[t - 1])
+        D[t] = ((1 + rg) * D[t - 1] + G[t - 1] + I_g[t - 1] + TR[t - 1] + UBI[t - 1]
+                + pens[t - 1] - rev[t - 1] - fa[t - 1]) / growth[t]
+    return D
+
+
+def test_debt_neutral_transfers_put_debt_gdp_on_the_target_path():
+    rng = np.random.default_rng(3)
+    n = 8
+    Y = 1 + 0.02 * np.arange(n + 1) + rng.uniform(0, .01, n + 1)
+    G, rev = 0.3 * Y, 0.42 * Y
+    I_g, UBI, fa = np.zeros(n + 1), np.zeros(n + 1), np.zeros(n + 1)
+    pens = 0.05 * Y
+    growth = np.full(n + 2, 1.012)
+    r_gov_of = lambda t, dy: 0.03 + 0.01 * dy          # r_gov depends on D/Y
+    target = 0.95 + 0.002 * np.arange(n + 1)
+    D0 = 0.95 * Y[0] * 1.001
+    tr = sp.debt_neutral_tr(target, Y, G, I_g, UBI, pens, rev, fa, r_gov_of, D0, growth, n)
+    D = _dg_path(D0, Y, G, I_g, tr, UBI, pens, rev, fa, r_gov_of, growth, n)
+    assert np.allclose(D[1:] / Y[1:n + 1], target[1:], rtol=1e-12, atol=0)
+    assert D[0] == D0
+
+
+class _Fiscal:
+    """A stand-in for ogcore.fiscal: TR = alpha_T * Y, D_G_path returns G untouched."""
+
+    def __init__(self):
+        self.seen_G = None
+
+    def get_TR(self, Y, TR, G, rev, pens, UBI, I_g, p, method):
+        return 0.06 * np.asarray(Y, float)
+
+    def D_G_path(self, r, dg_fixed_values, p):
+        self.seen_G = dg_fixed_values[0] * 0.3          # "G = alpha_G * Y"
+        return ("D", self.seen_G)
+
+    @staticmethod
+    def get_r_gov(r, dy, p, method, t=None):
+        return 0.8 * r + 0.01 * dy
+
+
+def test_debt_neutral_patch_sets_tr_until_tG1_and_leaves_g_and_ss_alone():
+    fis = _Fiscal()
+    orig_tr, orig_dg = fis.get_TR, fis.D_G_path
+    T_ = 12
+    p = SimpleNamespace(T=T_, tG1=8, g_n_preTP=0.004, g_n=np.full(T_ + 6, 0.004), g_y=0.01,
+                        alpha_FA=np.zeros(T_ + 6), baseline_spending=False,
+                        budget_balance=False)
+    Y = np.linspace(1, 1.2, T_)
+    target = [0.95] * 9                                   # 2028..2036
+    rec = {}
+    with sp.debt_neutral(fis, target, 0.94, rec):
+        out = fis.D_G_path(np.full(T_, 0.05), (Y,), p)
+        assert np.array_equal(out[1], 0.3 * Y)            # G: its usual rule, unchanged
+        tr = fis.get_TR(Y, None, 0.3 * Y, 0.42 * Y, 0.05 * Y, np.zeros(T_), np.zeros(T_),
+                        p, "TPI")
+        ss_tr = fis.get_TR(Y, None, 0.3 * Y, 0.42 * Y, 0.05 * Y, 0, 0, p, "SS")
+    assert fis.get_TR == orig_tr and fis.D_G_path == orig_dg          # restored
+    assert rec["horizon"] == 8 and rec["calls"] == 1
+    assert np.array_equal(tr[8:], 0.06 * Y[8:])           # alpha_T * Y from tG1
+    assert not np.allclose(tr[:8], 0.06 * Y[:8])
+    assert np.array_equal(ss_tr, 0.06 * Y)                # SS untouched
+    growth = (1 + np.append(p.g_n_preTP, p.g_n[:T_])) * np.exp(p.g_y)
+    rg = lambda t, dy: 0.8 * 0.05 + 0.01 * dy
+    D = _dg_path(0.94, Y, 0.3 * Y, np.zeros(T_), tr, np.zeros(T_), 0.05 * Y, 0.42 * Y,
+                 np.zeros(T_), rg, growth, 8)
+    assert np.allclose(D[1:] / Y[1:9], 0.95, rtol=1e-12)
+
+
+def test_dn_plan_labels_check_and_assemble(tmp_path):
+    rd, out, be = _dirs(tmp_path)
+    d = out / "zk0.1"
+    _write(d, "continuation", _arm(be, 0.0, None))
+    sp.write_gate(out, "zk0.1", "continuation", "test")
+    s = sp.next_step(out, "zk0.1", "arms_dn", rd)
+    assert s["label"] == "share_shift_tfp_ramp_dn" and s["variant"] == "dn"
+    assert s["baseline_spending"] is False
+    good = lambda g, Z: {**_arm(be, g, Z), "dn_check": {"ok": True}}
+    _write(d, "share_shift_tfp_ramp_dn", good(4.0, 0.97))
+    _write(d, "share_shift_ramp_zfixed_dn", good(0.004, 0.943))
+    assert sp.next_step(out, "zk0.1", "arms_dn", rd) is None
+    res = sp.assemble(out, "zk0.1", fs="dn", rerun_dir=rd)
+    assert res["assumptions"]["fiscal_variant"] == "dn"
+    _write(d, "share_shift_tfp_ramp_dn", {**_arm(be, 4.0, 0.97), "dn_check": {"ok": False}})
+    with pytest.raises(RuntimeError, match="off their debt path"):
+        sp.assemble(out, "zk0.1", fs="dn", rerun_dir=rd)
+
+
+def test_dn_check_and_nni():
+    be = _base_ext()
+    rec = _arm(be, 0.0, None)
+    assert sp.dn_check(rec, be)["ok"]
+    rec["series"]["D"][7] *= 1.001                         # 2033
+    c = sp.dn_check(rec, be)
+    assert not c["ok"] and c["max_abs_rel"] == pytest.approx(1e-3)
+    T_ = 4
+    tpi = {"Y": np.full(T_, 2.0), "K": np.full(T_, 3.0), "K_f": np.full(T_, .3),
+           "D_f": np.full(T_, .1), "r_p": np.full(T_, .05)}
+    s = sp.series_from_tpi(tpi, T_, T_, ("Y", "K", "K_f", "D_f", "r_p"))
+    assert s["GNI"][0] == pytest.approx(2.0 - .05 * .4)
+    assert s["NNI"][0] == pytest.approx(s["GNI"][0] - sp.DELTA_ANNUAL * 3.0)

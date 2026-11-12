@@ -7,9 +7,14 @@
 # Items run in order; each is resumable (a finished solve, check or gate is
 # never repeated):
 #   check            surprise check-specs (one spec build, no solve; both closures)
-#   <closure>:continuation | <closure>:gate | <closure>:arms | <closure>:arms_fs
+#   <closure>:continuation | <closure>:gate | <closure>:arms | <closure>:arms_dn
+#   | <closure>:arms_fs
 # Default plan (Vahid, 12 Nov 2026): zk0.1 central set first, then zk0 central,
-# then the fixed-spending variants.
+# then the debt-neutral arms (the welfare headline), then fixed spending.
+#
+# After EVERY solve, analysis/surprise/sanity.py is a hard gate: on any failure
+# the driver pushes the record, its log and the sanity report, and exits 1.
+# The per-solve summary table is written to the progress comment on #27.
 #
 # gate: approves the continuation with reference = continuation ONLY if it
 # passes (Y, K, debt/GDP within 1e-4 over 2028-36, the rest within 1e-3,
@@ -30,6 +35,7 @@ RERUN="$REPO/analysis/rerun/output"
 PLAN=("$@")
 [[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check zk0.1:continuation zk0.1:gate zk0.1:arms
                                  zk0:continuation zk0:gate zk0:arms
+                                 zk0.1:arms_dn zk0:arms_dn
                                  zk0.1:arms_fs zk0:arms_fs)
 : > "$WORK/un_api_token.txt"   # empty: OG-Core reads the GitHub mirror, as every run so far
 export PYTHONPATH="$REPO"
@@ -46,6 +52,32 @@ push() {   # push <message> <path>...
     && git commit -q -m "$msg" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- "$@" \
     && for i in 1 2 3; do git push -q origin "$BRANCH" && exit 0; sleep 20; done
     echo "PUSH FAILED: $msg" )
+}
+
+progress() {
+  local body id
+  body="$("$PY" "$REPO/analysis/surprise/sanity.py" --progress --outdir "$OUT")" || return 0
+  id="$(cat "$WORK/surprise_progress_comment_id" 2>/dev/null)"
+  if [[ -n "$id" ]]; then
+    gh api -X PATCH "repos/PolicyEngine/uk-growth-with-ai/issues/comments/$id" \
+      -f body="$body" >/dev/null || echo "progress comment update failed"
+  else
+    gh api "repos/PolicyEngine/uk-growth-with-ai/issues/27/comments" -f body="$body" \
+      --jq .id > "$WORK/surprise_progress_comment_id" || echo "progress comment failed"
+  fi
+}
+
+sanity() {   # sanity <closure> <label>: the hard gate; pushes and exits on failure
+  local C="$1" label="$2" slog="$OUT/$1/$2.sanity.log"
+  "$PY" "$REPO/analysis/surprise/sanity.py" "$C" "$label" --outdir "$OUT" >"$slog" 2>&1
+  local rc=$?
+  tail -1 "$slog"
+  if [[ $rc -ne 0 ]]; then
+    push "surprise 2028 $C: $label FAILED the sanity gate" \
+      "$OUT/$C/$label.json" "$OUT/$C/$label.log" "$slog" "$OUT/$C/$label.sanity.json"
+    progress
+    echo "STOP: $C $label failed the sanity gate; investigate before continuing"; exit 1
+  fi
 }
 
 time_ok() {
@@ -106,7 +138,10 @@ for item in "${PLAN[@]}"; do
       push "surprise 2028 $C: $label FAILED (log)" "$log"
       echo "FAILED $C $label (rc $rc); see $log"; tail -5 "$log"; exit 1
     fi
-    push "surprise 2028 $C: solve $label" "$OUT/$C/$label.json" "$log"
+    sanity "$C" "$label"
+    push "surprise 2028 $C: solve $label (sanity pass)" "$OUT/$C/$label.json" "$log" \
+      "$OUT/$C/$label.sanity.log" "$OUT/$C/$label.sanity.json"
+    progress
   done
 done
 echo "=== plan complete"

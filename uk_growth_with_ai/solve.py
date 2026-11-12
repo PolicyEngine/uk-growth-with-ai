@@ -252,7 +252,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
             baseline_spending=False, g_n_source=G_N_DEFAULT, zeta_K=None,
             pretp=False, splice=False, alpha_G_shift=0.0, out_dir=None,
-            surprise=None, nexp=None, stop_before_ss=False) -> dict:
+            surprise=None, nexp=None, stop_before_ss=False,
+            debt_neutral=None) -> dict:
     """Solve SS and TPI for one arm.
 
     ``alpha_G``: G/Y along the transition before tG1. None (the baseline) sets
@@ -290,6 +291,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     state (``surprise.apply_to_specs`` / ``surprise.initial_state``).  The
     gamma/Z ramp is offset so its zero-weight year is START + k - 1.
     ``nexp``: years of each series to export (default NEXP).
+    ``debt_neutral``: ``{"target_dy", "D0"}``; TR adjusts so debt/GDP follows
+    target_dy until tG1 (``surprise.debt_neutral``), G keeps its rule.
     ``stop_before_ss``: build, guard, fix, shift and set the ramp, then return
     ``{"p", "surprise", "demographics"}`` without solving (the spec dry run).
     """
@@ -410,7 +413,17 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         init_ctx = sp.initial_state(TPI, surprise, sp_rec["initial_state"])
     else:
         init_ctx = contextlib.nullcontext()
-    with _TPILog() as tlog, init_ctx:
+    dn_rec = None
+    if debt_neutral is not None:
+        from . import surprise as sp
+        dn_rec = {}
+        dn_ctx = sp.debt_neutral(TPI.fiscal, debt_neutral["target_dy"],
+                                 debt_neutral["D0"], dn_rec)
+        print(f"  DEBT-NEUTRAL: TR follows the restart's debt/GDP to tG1 = {p.tG1}",
+              flush=True)
+    else:
+        dn_ctx = contextlib.nullcontext()
+    with _TPILog() as tlog, init_ctx, dn_ctx:
         TPI.run_TPI(p, client=client)
     with open(os.path.join(out_dir, "TPI", "TPI_vars.pkl"), "rb") as f:
         tpi = pickle.load(f)
@@ -421,6 +434,9 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     # the rate OG-Core itself charges them in the resource constraint (r_p).
     if all(k in s for k in ("Y", "r_p", "K_f", "D_f")):
         series["GNI"] = (s["Y"] - s["r_p"] * s["K_f"] - s["r_p"] * s["D_f"]).tolist()
+        # NNI = GNI - delta K, delta the model's per-period (= annual) depreciation
+        if getattr(p, "delta", None) is not None and "K" in s:
+            series["NNI"] = (np.asarray(series["GNI"]) - float(p.delta) * s["K"]).tolist()
     ident = {}
     if all(k in s for k in ("K", "K_d", "K_f", "B", "D", "D_d", "D_f")):
         ident = {
@@ -455,9 +471,12 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
                if k in ss},
         "years": list(range(START, START + NEXP)),
         "surprise": sp_rec,
+        "debt_neutral": dn_rec,
+        "delta": float(p.delta) if getattr(p, "delta", None) is not None else None,
         "series": series,
         **{v: series[v][:NPER] for v in TOP_LEVEL if v in series},
         **({"GNI": series["GNI"][:NPER]} if "GNI" in series else {}),
+        **({"NNI": series["NNI"][:NPER]} if "NNI" in series else {}),
     }
     d = rec["diagnostics"]
     print(f"OK {rec['elapsed_min']:.1f} min | SS labour share "
