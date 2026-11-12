@@ -94,6 +94,12 @@ CLOSURE_LABELS = {"zk0.1": 0.1, "zk0": 0.0, "zk0.5": 0.5}
 OBR_EFF_RATE_LABOUR, OBR_EFF_RATE_PROFITS = 40.0, 17.0
 # Korinek et al. (2026) Table 3: labour share 60.0 cents in the no-AI scenario.
 KORINEK_LABOUR_SHARE_BASE = 60.0
+# Korinek et al. (2026), read from the PDF on 12 Nov 2026 (referee pass on #24).
+# Table 3, "substantial", 2030, per cent above the no-AI path: average wage and
+# labour income.  Table 5, "substantial": the average wage at capital-supply
+# elasticities 1, 3 (their baseline), 6 and infinity.
+KORINEK_T3_WAGE_PCT, KORINEK_T3_LABOUR_INCOME_PCT = 2.1, 1.4
+KORINEK_T5_WAGE_PCT = {"One": -1.6, "Three": 2.1, "Six": 3.7, "Inf": 5.6}
 
 ARMS = ("share_shift_tfp_ramp", "share_shift_ramp")
 NEEDED = ("baseline",) + ARMS
@@ -204,6 +210,16 @@ def debt_gdp_gap_pp(res: dict, arm: str, year: int) -> float:
     return dy(res[arm]) - dy(res["baseline"])
 
 
+def borrowing_gap(res: dict, arm: str, year: int, par: dict) -> tuple:
+    """Extra public borrowing in `year` against the baseline, as a per cent of
+    baseline GDP and of baseline private consumption."""
+    t = year - scen.START
+    grow = float(np.exp(float(par["g_y"])) * (1 + par["g_n"][t + 1]))
+    flow = lambda x: ser(x, "D", year + 1) * grow - ser(x, "D", year)
+    d = flow(res[arm]) - flow(res["baseline"])
+    return (d / ser(res["baseline"], "Y", year) * 100, d / ser(res["baseline"], "C", year) * 100)
+
+
 def gap(res: dict, arm: str, var: str) -> np.ndarray:
     return (arr(res[arm], var) / arr(res["baseline"], var) - 1) * 100
 
@@ -280,7 +296,7 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
             i = year - 2026
             v.signed(f"{aw}GdpGap{yw}{cw}", g_y[i])
             v.signed(f"{aw}GniGap{yw}{cw}", g_n[i])
-        v.put(f"{aw}GniLessGdpThirty{cw}", g_n[4] - g_y[4], "{:+.2f}")
+        v.signed(f"{aw}GniLessGdpThirty{cw}", g_n[4] - g_y[4])
         dk = arr(r, "K")[4] - arr(base, "K")[4]
         dkf = arr(r, "K_f")[4] - arr(base, "K_f")[4] if "K_f" in r else None
         if dkf is not None:
@@ -375,7 +391,7 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
         v.put(f"BaseGrowth{YEAR_WORD[year]}", g)
     v.put("BaseGrowthMean", cmp_["mean"])
     v.put("ObrGrowthMean", cmp_["obr_mean"], "{:.1f}")
-    v.put("BaseObrGrowthDiffPp", cmp_["difference"], "{:+.2f}")
+    v.signed("BaseObrGrowthDiffPp", cmp_["difference"])
     v.put("ObrProductivityPct", obr_mod.OBR_BASELINE["productivity_medium_term"], "{:.1f}")
     v.put("ObrLabourSupplyPct", obr_mod.OBR_BASELINE["labour_supply_2030"], "{:.1f}")
     v.put("ObrPotentialThirtyPct", obr_mod.OBR_BASELINE["potential_output_2030"], "{:.1f}")
@@ -396,6 +412,28 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
     # zeta_K = 0.5: pre-rerun diagnostic, one wage figure only
     v.signed("ShareShiftTfpWageGapThirtyOpen", gap(open_, "share_shift_tfp_ramp", "w")[4])
     v.signed("ShareShiftWageGapThirtyOpen", gap(open_, "share_shift_ramp", "w")[4])
+
+    # share_shift_tfp wage beyond 2030, from the rerun series themselves
+    wage_path = {}
+    for res_, cw in ((central, "Central"), (bound, "Bound")):
+        yrs = list(res_["baseline"]["years"])
+        g = np.array([(ser(res_["share_shift_tfp_ramp"], "w", y) / ser(res_["baseline"], "w", y) - 1) * 100
+                      for y in yrs])
+        wage_path[cw] = dict(zip(yrs, g))
+        v.signed(f"ShareShiftTfpWageGapThirtyFive{cw}", g[yrs.index(2035)])
+    pos = [y for y, x in wage_path["Central"].items() if x > 0]
+    v.put("ShareShiftTfpWageFirstPosYearCentral", min(pos), "{:.0f}")
+
+    # public borrowing against the baseline (flow), per cent of baseline GDP and
+    # of baseline consumption.  Borrowing in t is D_{t+1} e^{g_y}(1+g_n) - D_t in
+    # the model's detrended units; g_n and g_y from the cohort export.
+    for res_, cw, cl in ((central, "Central", "zk0.1"), (bound, "Bound", "zk0")):
+        par = cohorts[cl]["hold"]["par"]
+        for arm, aw in ARM_WORD.items():
+            for year, yw in ((2030, "Thirty"), (2034, "ThirtyFour")):
+                b_gdp, b_cons = borrowing_gap(res_, arm, year, par)
+                v.put(f"{aw}BorrowGapGdp{yw}{cw}", b_gdp, "{:.1f}")
+                v.put(f"{aw}BorrowGapCons{yw}{cw}", b_cons, "{:.1f}")
 
     # ---- central-closure detail, every variable and year -------------------
     res = central
@@ -448,6 +486,16 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
                 v.signed(f"{pre}{aw}GniGapThirty{cw}", gni_gap(src, arm)[4])
                 for year, yw in ((2030, "Thirty"), (2035, "ThirtyFive")):
                     v.signed(f"{pre}{aw}DebtGdpGapPp{yw}{cw}", debt_gdp_gap_pp(src, arm, year))
+    # stated in words: the 2035 sign of the share_shift_tfp debt gap depends on
+    # the spending convention; the share_shift gap is positive under both
+    for cw, fx, shared in (("central", fixed["central"], central), ("bound", fixed["bound"], bound)):
+        if not (debt_gdp_gap_pp(fx, "share_shift_tfp_ramp", 2035) < 0
+                < debt_gdp_gap_pp(shared, "share_shift_tfp_ramp", 2035)):
+            raise ResultsError(f"'the 2035 share_shift_tfp debt gap changes sign with the "
+                               f"spending convention' fails at the {cw} closure")
+        if not min(debt_gdp_gap_pp(x, "share_shift_ramp", y) for x in (fx, shared) for y in (2030, 2035)) > 0:
+            raise ResultsError(f"'the share_shift debt gap is positive under both spending "
+                               f"conventions' fails at the {cw} closure")
     v.put("FixedSource", fixed["central"]["_source"].replace("_", r"\_"))
     v.put("FixedBoundSource", fixed["bound"]["_source"].replace("_", r"\_"))
 
@@ -462,10 +510,18 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
     v.put("KorinekTableCapitalPct", A["capital_stock_pct"], "{:.1f}")
     v.put("KorinekTableUnemploymentPct", A["unemployment_pct"], "{:.1f}")
 
-    # labour income in the source scenario: share 60.0c -> 56.1c with GDP +8.3%
+    # labour income and the average wage in the source scenario, as printed in
+    # their Table 3; the share-times-GDP arithmetic (60.0c -> 56.1c, GDP +8.3%)
+    # must agree with the printed labour income to rounding
     ls0 = KORINEK_LABOUR_SHARE_BASE
-    v.signed("KorinekTableLabourIncomeGap",
-             ((ls0 - A["labour_share_fall_pp"]) / ls0 * (1 + A["gdp_above_no_ai_pct"] / 100) - 1) * 100)
+    implied = ((ls0 - A["labour_share_fall_pp"]) / ls0 * (1 + A["gdp_above_no_ai_pct"] / 100) - 1) * 100
+    if abs(implied - KORINEK_T3_LABOUR_INCOME_PCT) > 0.2:
+        raise ResultsError(f"Korinek et al. labour income {KORINEK_T3_LABOUR_INCOME_PCT} is not "
+                           f"their labour share times GDP ({implied:.2f})")
+    v.signed("KorinekTableLabourIncomeGap", KORINEK_T3_LABOUR_INCOME_PCT, fmt_signed="{:+.1f}")
+    v.signed("KorinekTableWage", KORINEK_T3_WAGE_PCT, fmt_signed="{:+.1f}")
+    for word, x in KORINEK_T5_WAGE_PCT.items():
+        v.signed(f"KorinekTableFiveWage{word}", x, fmt_signed="{:+.1f}")
     # this model's production function at the source scenario's capital gap and
     # the model's own 2030 labour input (results_sanity_audit.md, #16)
     b, r = central["baseline"], central["share_shift_tfp_ramp"]
@@ -526,8 +582,12 @@ def cohort_results() -> dict:
     out = {}
     for cl in cw_mod.CLOSURES:
         out[cl] = {"hold": cw_mod.cev(cl, "hold"), "ss": cw_mod.cev(cl, "ss"),
-                   "consumption": cw_mod.cev(cl, "hold", "consumption")}
+                   "consumption": cw_mod.cev(cl, "hold", "consumption"),
+                   "parts": cw_mod.components(cl, "hold")}
     return out
+
+
+PART_WORD = {"consumption": "Cons", "leisure": "Leisure", "bequests": "Beq"}
 
 
 def emit_cohorts(v: Values, co: dict) -> None:
@@ -548,6 +608,13 @@ def emit_cohorts(v: Values, co: dict) -> None:
                 v.signed(f"{aw}Cev{rw}Bottom{cwd}", float(h[i, 0]))
                 v.signed(f"{aw}Cev{rw}TopOne{cwd}", float(h[i, -1]))
                 v.signed(f"{aw}CevConsOnly{rw}{cwd}", float(Cn[arm][i] @ lam))
+            # the same measure with one part of utility at a time on its scenario path
+            for part, pword in PART_WORD.items():
+                x = co[cl]["parts"][arm][part]
+                v.signed(f"{aw}CevPart{pword}AliveMean{cwd}", float(pw @ (x @ lam)))
+                for yr, rw in COHORT_ROWS.items():
+                    i = int(np.where(b == yr)[0][0])
+                    v.signed(f"{aw}CevPart{pword}{rw}{cwd}", float(x[i] @ lam))
             v.signed(f"{aw}CevMax{cwd}", float(h[shown].max()))
             v.signed(f"{aw}CevMin{cwd}", float(h[shown].min()))
             neg = b[shown & (avg < 0)]
@@ -563,6 +630,18 @@ def emit_cohorts(v: Values, co: dict) -> None:
     v.put("CevContinuationMaxDiff", worst, "{:.2f}")
     v.put("CevLastBirthShown", LAST_BIRTH_SHOWN, "{:.0f}")
     v.put("CevTUseLastYear", cw_mod.START_YEAR + cw_mod.T_USE - 1, "{:.0f}")
+    # the baseline's cross-section by lifetime-earnings group (central closure, 2030)
+    acc = group_accounts()
+    for key, word in (("wealth_share", "WealthShare"), ("earnings_share", "EarnShare"),
+                      ("labour", "LabourInc"), ("capital", "CapitalInc"),
+                      ("transfers", "TransferInc"), ("bequests", "BequestInc")):
+        v.put(f"Grp{word}Bottom", float(acc[key][0]), "{:.0f}")
+        v.put(f"Grp{word}TopOne", float(acc[key][-1]), "{:.0f}")
+    for key, word in (("wealth_share", "WealthShare"), ("earnings_share", "EarnShare")):
+        v.put(f"Grp{word}BottomHalf", float(acc[key][:2].sum()), "{:.0f}")
+        v.put(f"Grp{word}TopTen", float(acc[key][-2:].sum()), "{:.0f}")
+    v.put("GrpCapBeqIncBottom", float(acc["capital"][0] + acc["bequests"][0]), "{:.0f}")
+    v.put("GrpCapBeqIncTopOne", float(acc["capital"][-1] + acc["bequests"][-1]), "{:.0f}")
     par = co["zk0.1"]["hold"]["par"]
     v.put("ChiB", float(par["chi_b"][0]), "{:.0f}")
     v.put("Sigma", float(par["sigma"]), "{:.1f}")
@@ -570,6 +649,18 @@ def emit_cohorts(v: Values, co: dict) -> None:
 
 
 RESULTS_FOR_COHORTS: dict = {}
+
+
+def group_accounts() -> dict:
+    """Baseline wealth, earnings and income by source for each lifetime-earnings
+    group in 2030 at the central closure; tied to the results file's wage bill."""
+    b = RESULTS_FOR_COHORTS["zk0.1"]["baseline"]
+    acc = cw_mod.group_accounts("zk0.1", arr(b, "w")[4], arr(b, "r_p")[4], 2030)
+    want = arr(b, "w")[4] * arr(b, "L")[4]
+    if abs(acc["labour_total"] / want - 1) > 1e-6:
+        raise ResultsError(f"cohort export: 2030 labour earnings {acc['labour_total']:.6f} "
+                           f"do not match the results file's wL {want:.6f}")
+    return acc
 
 
 def render(v: Values, sources: list[str]) -> str:
@@ -647,6 +738,12 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
         s_ = "share_shift_ramp"
         if not debt_gdp_gap_pp(res, s_, 2035) > debt_gdp_gap_pp(res, s_, 2030) > 0:
             fail.append(f"'the share_shift debt/GDP gap widens' fails at zeta_K {cl}")
+    a = "share_shift_tfp_ramp"
+    wg = lambda res, y: ser(res[a], "w", y) / ser(res["baseline"], "w", y) - 1
+    if not (wg(central, 2030) < 0 < wg(central, 2035)):
+        fail.append("'the share_shift_tfp wage gap turns positive by 2035 at the central closure' fails")
+    if not (wg(bound, 2030) < 0 and wg(bound, 2035) < 0):
+        fail.append("'the share_shift_tfp wage gap stays negative to 2035 at the bound' fails")
     if not gni_gap(bound, "share_shift_tfp_ramp")[4] < gni_gap(central, "share_shift_tfp_ramp")[4]:
         fail.append("'share_shift_tfp's GNI gain is smaller at the bound' fails")
     if fail:
@@ -691,6 +788,55 @@ def check_cohort_claims(co: dict) -> None:
     for arm in ARMS:
         if not alive[("zk0", arm)] > alive[("zk0.1", arm)]:
             fail.append(f"'living cohorts gain more at the bound' fails for {arm}")
+    # how the change is taken: consumption, leisure, bequests
+    for cl in cw_mod.CLOSURES:
+        H = co[cl]["hold"]
+        b, par = H["birth_year"], H["par"]
+        lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
+        part = lambda arm, k: float(pw @ (co[cl]["parts"][arm][k] @ lam))
+        for arm in ARMS:
+            if not (part(arm, "leisure") > 0 and part(arm, "bequests") > 0):
+                fail.append(f"'leisure and bequests add to the average for those alive' fails for {arm} at {cl}")
+        if not 0 < part("share_shift_tfp_ramp", "consumption") < 0.5 * alive[(cl, "share_shift_tfp_ramp")]:
+            fail.append(f"'consumption is less than half of the share_shift_tfp gain' fails at {cl}")
+        if not part("share_shift_tfp_ramp", "consumption") > 0:
+            fail.append(f"'consumption adds to the average in share_shift_tfp' fails at {cl}")
+        s_c = part("share_shift_ramp", "consumption")
+        if cl == "zk0.1" and not s_c < -0.25:
+            fail.append("'the consumption part is negative in share_shift at the central closure' fails")
+        if cl == "zk0" and not abs(s_c) < 0.25:
+            fail.append("'the consumption part is about zero in share_shift at the bound' fails")
+        if not part("share_shift_ramp", "bequests") > max(part("share_shift_ramp", "leisure"), s_c):
+            fail.append(f"'bequests are the largest part in share_shift' fails at {cl}")
+        res = RESULTS_FOR_COHORTS[cl]
+        for arm in ARMS:
+            if not borrowing_gap(res, arm, 2030, par)[1] > 1.0:
+                fail.append(f"'public borrowing is more than 1% of consumption higher by 2030' fails for {arm} at {cl}")
+            if not 1.5 <= borrowing_gap(res, arm, 2030, par)[1] <= 2.7:
+                fail.append(f"'extra borrowing is about 2% of consumption a year by 2030' fails for {arm} at {cl}")
+        # who receives the extra borrowing in 2030 (levels, the arm less the baseline)
+        d30 = lambda arm, f: f(res[arm]) - f(res["baseline"])
+        to_hh = lambda arm: (-d30(arm, lambda x: ser(x, "total_tax_revenue", 2030))
+                             + d30(arm, lambda x: ser(x, "TR", 2030))
+                             + d30(arm, lambda x: ser(x, "agg_pension_outlays", 2030))
+                             + d30(arm, lambda x: ser(x, "r_gov", 2030) * ser(x, "D_d", 2030)))
+        borrow = lambda arm: borrowing_gap(res, arm, 2030, par)[0] / 100 * ser(res["baseline"], "Y", 2030)
+        if not to_hh("share_shift_ramp") > 0.8 * borrow("share_shift_ramp"):
+            fail.append(f"'more than four-fifths of share_shift's extra borrowing reaches households' fails at {cl}")
+        if not to_hh("share_shift_tfp_ramp") < 0:
+            fail.append(f"'households pay more tax, net, in share_shift_tfp' fails at {cl}")
+        if not d30("share_shift_tfp_ramp", lambda x: ser(x, "G", 2030)) > borrow("share_shift_tfp_ramp"):
+            fail.append(f"'government consumption rises by more than borrowing in share_shift_tfp' fails at {cl}")
+        if not abs(d30("share_shift_ramp", lambda x: ser(x, "G", 2030))) < 0.05 * borrow("share_shift_ramp"):
+            fail.append(f"'spending is unchanged in share_shift in 2030' fails at {cl}")
+        if not borrowing_gap(res, "share_shift_ramp", 2030, par)[1] > alive[(cl, "share_shift_ramp")]:
+            fail.append(f"'extra borrowing exceeds the average welfare change in share_shift' fails at {cl}")
+    acc = group_accounts()
+    if not (acc["wealth_share"][0] > acc["earnings_share"][0] and acc["wealth_share"][-1] < acc["earnings_share"][-1]):
+        fail.append("'wealth is spread more evenly across groups than earnings' fails")
+    if not (acc["labour"][0] < acc["labour"][-1] and acc["transfers"][0] > acc["transfers"][-1]
+            and acc["capital"][0] + acc["bequests"][0] > acc["capital"][-1] + acc["bequests"][-1]):
+        fail.append("'the bottom group has less labour and more transfer, capital and bequest income' fails")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 

@@ -175,10 +175,10 @@ Adoption and diffusion & Explicit adoption parameter & --- & None \\
 Task reinstatement & Explicit reinstatement parameter & --- & None \\
 Unemployment and search & Matching block & --- & None \\
 Capital accumulation & Capital-supply elasticity & Solow saving rate & Cohort saving plus foreign capital ($\zetaK$) \\
-Factor shares & Endogenous & $\to 0$ in the limit & Exactly $1-\gamma_t$ at $\varepsilon = \genEpsilon{}$ \\
+Labour share & Endogenous & $\to 0$ in the limit & Exactly $1-\gamma_t$ at $\varepsilon = \genEpsilon{}$ \\
 Worker heterogeneity & Two groups & Representative agent & Seven earnings types, eighty ages \\
 Fiscal system & None & None & Tax functions from PolicyEngine UK \\
-Ideas and R\&D & Ideas stock & Ideas accumulation & None \\
+Ideas and R\&D & Ideas stock & Discussed, not in the baseline & None \\
 \bottomrule
 \end{tabular}
 \par\medskip
@@ -198,4 +198,9 @@ python paper/figures/make_cohort_figure.py   # Figure 1 (not run by --check)
 cd paper && tectonic main.tex           # or: pdflatex main && pdflatex main
 \end{verbatim}
 
-Every number is a macro in \texttt{paper/values\_generated.tex}. \texttt{make\_values.py} stops with an error if a results file or arm is missing, if a file is solved at the wrong $\zetaK$, or if a sentence that the paper states in words (for example, that the GNI gap is below the GDP gap) no longer holds in the results. This draft reads \texttt{\genCentralSource{}} and \texttt{\genBoundSource{}}, and the household paths in \texttt{analysis/rerun/cohorts/}.
+Every number is a macro in \texttt{paper/values\_generated.tex}. \texttt{make\_values.py} stops with an error if a results file or arm is missing, if a file is solved at the wrong $\zetaK$, or if a sentence that the paper states in words (for example, that the GNI gap is below the GDP gap) no longer holds in the results. This draft reads these files:
+\begin{itemize}
+\item \texttt{\genCentralSource{}} (central closure);
+\item \texttt{\genBoundSource{}} (closed-capital bound);
+\item \texttt{analysis/rerun/cohorts/} (household paths and parameters).
+\end{itemize}

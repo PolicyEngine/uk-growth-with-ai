@@ -175,6 +175,59 @@ def cev(closure: str, continuation: str = "hold", measure: str = "joint",
     return out
 
 
+def components(closure: str, continuation: str = "hold") -> dict:
+    """The joint CEV when one part of utility at a time takes its scenario path.
+
+    {arm: {"consumption" | "leisure" | "bequests": (cohorts, J)}}, on the same
+    cohorts as ``cev``.  Each entry is the consumption-and-bequest equivalent of
+    switching that part alone (consumption, labour supply, or assets carried
+    forward) from the baseline's path to the scenario's.  The three do not sum
+    exactly to the joint figure (the measure is not linear), and they describe
+    the form in which households take the change, not its cause: labour supply
+    and saving are choices."""
+    par, arms = load(closure)
+    S = int(par["S"])
+    horizon = par["chi_n"].shape[0]
+    comps = {arm: flows(par, extend(d, continuation, horizon), horizon) for arm, d in arms.items()}
+    sig = float(par["sigma"])
+    starts = [(0, s0) for s0 in range(S - 1, -1, -1)] + [(t0, 0) for t0 in range(1, horizon - S + 1)]
+    base = np.array([lifetime(par, comps["baseline"], t0, s0) for t0, s0 in starts])
+    CB, NB, QB = base[:, 0], base[:, 1], base[:, 2]
+    out = {}
+    for arm in ("share_shift_tfp_ramp", "share_shift_ramp"):
+        A = np.array([lifetime(par, comps[arm], t0, s0) for t0, s0 in starts])
+        lam = lambda U: (((U - NB) / (CB + QB)) ** (1 / (1 - sig)) - 1) * 100
+        out[arm] = {"consumption": lam(A[:, 0] + NB + QB),
+                    "leisure": lam(CB + A[:, 1] + QB),
+                    "bequests": lam(CB + NB + A[:, 2])}
+    return out
+
+
+def group_accounts(closure: str, w: float, r: float, year: int) -> dict:
+    """Baseline cross-section in `year` by lifetime-earnings group, all ages.
+
+    Shares of household wealth and of gross labour earnings held by each group,
+    and each group's gross income by source (labour w*e*n, capital r*b, lump-sum
+    transfers, bequests received), before tax.  `w` and `r` are the results
+    file's wage and household return for that year (same detrended units)."""
+    par, arms = load(closure)
+    b = arms["baseline"]
+    t = year - START_YEAR
+    lam = type_weights(par)
+    om = par["omega"][t][:, None]
+    per_head = lambda x: (om * x).sum(axis=0)
+    wealth = per_head(b["b_s"][t])
+    lab = per_head(w * par["e"][t] * b["n"][t])
+    cap = per_head(r * b["b_s"][t])
+    tr, bq = per_head(b["tr"][t]), per_head(b["bq"][t])
+    tot = lab + cap + tr + bq
+    return {"wealth_share": wealth * lam / (wealth @ lam) * 100,
+            "earnings_share": lab * lam / (lab @ lam) * 100,
+            "labour": lab / tot * 100, "capital": cap / tot * 100,
+            "transfers": tr / tot * 100, "bequests": bq / tot * 100,
+            "labour_total": float(lab @ lam), "wealth_total": float(wealth @ lam)}
+
+
 def type_weights(par: dict) -> np.ndarray:
     return par["lambdas"].ravel()
 
