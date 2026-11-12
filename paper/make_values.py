@@ -72,6 +72,12 @@ DIAG_OPEN = ROOT / "analysis" / "closure" / "output" / "zk0.5"
 
 CENTRAL_ZETA_K, BOUND_ZETA_K, OPEN_ZETA_K = 0.1, 0.0, 0.5
 
+# Published benchmarks (audited in docs/results_sanity_audit.md):
+# OBR effective tax rates, November 2025 EFO para 2.64 and Box 4.1.
+OBR_EFF_RATE_LABOUR, OBR_EFF_RATE_PROFITS = 40.0, 17.0
+# Korinek et al. (2026) Table 3: labour share 60.0 cents in the no-AI scenario.
+KORINEK_LABOUR_SHARE_BASE = 60.0
+
 ARMS = ("share_shift_tfp_ramp", "share_shift_ramp")
 NEEDED = ("baseline",) + ARMS
 YEAR_WORD = {2026: "TwentySix", 2027: "TwentySeven", 2028: "TwentyEight",
@@ -207,12 +213,12 @@ class Values(dict):
 
     def signed(self, name: str, x: float, fmt_signed="{:+.2f}", fmt_abs="{:.1f}",
                up="above", down="below") -> None:
-        """Signed value, its magnitude, and a direction word, so prose that reads
+        """Signed value (2dp; Short = 1dp), its magnitude, and a direction word, so prose that reads
         "\\genXAbs{} per cent \\genXDir{} baseline" stays true if the sign flips."""
-        txt = fmt_signed.format(x)
-        if txt[0] in "+-":
-            txt = f"${txt[0]}${txt[1:]}"   # typeset sign, not a hyphen
-        self.put(name, txt)
+        def typeset(t):   # typeset sign, not a hyphen
+            return f"${t[0]}${t[1:]}" if t[0] in "+-" else t
+        self.put(name, typeset(fmt_signed.format(x)))
+        self.put(name + "Short", typeset("{:+.1f}".format(x)))
         self.put(name + "Abs", abs(x), fmt_abs)
         self.put(name + "Dir", up if x >= 0 else down)
         self.put(name + "Verb", "rises" if x >= 0 else "falls")
@@ -226,6 +232,10 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
     pa = (1 - gni(base) / arr(base, "Y")) * 100
     v.put(f"PaidAbroadBase{cw}", pa[4], "{:.2f}")
     v.put(f"GniGdpRatioBase{cw}", 100 - pa[4], "{:.1f}")
+    cad = (arr(base, "C") + arr(base, "I") + arr(base, "G") - gni(base)) / arr(base, "Y") * 100
+    v.put(f"CurrentAccountDeficitBase{cw}", cad[4], "{:.1f}")
+    if "K_f" in base:
+        v.put(f"ForeignOwnedCapitalBase{cw}", arr(base, "K_f")[4] / arr(base, "K")[4] * 100, "{:.0f}")
     for arm, aw in ARM_WORD.items():
         r = res[arm]
         g_y, g_n = gap(res, arm, "Y"), gni_gap(res, arm)
@@ -359,9 +369,8 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
         v.put(f"{aw}RcMaxInterior", f"{d['rc_max_interior']:.1e}")
         v.put(f"{aw}RcTwentySixPctGdp", d["rc_first5"][0] / res[arm]["Y"][0] * 100)
         v.put(f"{aw}EulerMax", f"{max(d['euler_savings_max'], d['euler_labour_max']):.1e}")
-        # announcement year: 2026 gap as a share of the 2030 gap
-        g_y = gap(res, arm, "Y")
-        v.put(f"{aw}AnnouncementSharePct", g_y[0] / g_y[4] * 100 if g_y[4] else 0.0, "{:.0f}")
+        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
+        v.signed(f"{aw}TaxGdpChangePp", ty(res[arm]) - ty(res["baseline"]))
     b = res["baseline"]
     v.put("BaseRcMaxInterior", f"{b['diagnostics']['rc_max_interior']:.1e}")
     v.put("BaseRcTwentySixPctGdp", b["diagnostics"]["rc_first5"][0] / b["Y"][0] * 100)
@@ -390,6 +399,45 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
     v.put("KorinekTableCapitalPct", A["capital_stock_pct"], "{:.1f}")
     v.put("KorinekTableUnemploymentPct", A["unemployment_pct"], "{:.1f}")
 
+    # labour income in the source scenario: share 60.0c -> 56.1c with GDP +8.3%
+    ls0 = KORINEK_LABOUR_SHARE_BASE
+    v.signed("KorinekTableLabourIncomeGap",
+             ((ls0 - A["labour_share_fall_pp"]) / ls0 * (1 + A["gdp_above_no_ai_pct"] / 100) - 1) * 100)
+    # this model's production function at the source scenario's capital gap and
+    # the model's own 2030 labour input (results_sanity_audit.md, #16)
+    b, r = central["baseline"], central["share_shift_tfp_ramp"]
+    g0, g1 = assume["gamma_base"], assume["gamma_shocked"]
+    kb, lb = arr(b, "K")[4], arr(b, "L")[4]
+    k = kb * (1 + A["capital_stock_pct"] / 100)
+    y_cf = r["Z_terminal"] * k ** g1 * arr(r, "L")[4] ** (1 - g1)
+    y_b = kb ** g0 * lb ** (1 - g0)
+    if abs(arr(b, "Y")[4] / y_b - 1) > 1e-5:
+        raise ResultsError("baseline 2030 output is not K^gamma L^(1-gamma); "
+                           "the capital-gap counterfactual does not apply")
+    v.put("KorinekCapitalCounterfactualGdpPct", (y_cf / y_b - 1) * 100, "{:.1f}")
+
+    # ---- OBR effective-rate rule of thumb (Nov 2025 EFO para 2.64) ---------
+    v.put("ObrEffRateLabourPct", OBR_EFF_RATE_LABOUR, "{:.0f}")
+    v.put("ObrEffRateProfitsPct", OBR_EFF_RATE_PROFITS, "{:.0f}")
+    v.signed("RuleOfThumbTaxPp",
+             -(OBR_EFF_RATE_LABOUR - OBR_EFF_RATE_PROFITS) / 100
+             * (assume["gamma_shocked"] - assume["gamma_base"]) * 100)
+
+    # ---- which results these are: pre-rerun or R1-R4 -----------------------
+    rerun = "debt_calibration" in assume and bool(assume.get("pretp"))
+    r4 = assume.get("Z_share_shift_rule") == "equilibrium_gdp_gap"
+    if rerun != r4:
+        raise ResultsError("central file has only part of R1-R4 (debt calibration "
+                           f"{'yes' if rerun else 'no'}, R4 Z rule {'yes' if r4 else 'no'})")
+    # \genIfRerun{text for the R1-R4 results}{text for the pre-rerun results}
+    v.put("IfRerun", "#1" if rerun else "#2")
+    for src, label in ((bound, "bound"),):
+        a = src.get("assumptions") or {}
+        if ("debt_calibration" in a) != rerun:
+            raise ResultsError(f"{label} and central are from different runs (rerun "
+                               f"{'yes' if 'debt_calibration' in a else 'no'} vs "
+                               f"{'yes' if rerun else 'no'})")
+
     # ---- the gamma patch's verification run (docs/firm_gamma_tv.md) ------
     v.put("PatchSites", 14, "{:.0f}")
     v.put("PatchEpsilonSites", 20, "{:.0f}")
@@ -404,8 +452,35 @@ def render(v: Values, sources: list[str]) -> str:
         "",
     ]
     for name, value in v.items():
-        lines.append(r"\newcommand{\gen%s}{%s}" % (name, value))
+        nargs = "[2]" if name == "IfRerun" else ""
+        lines.append(r"\newcommand{\gen%s}%s{%s}" % (name, nargs, value))
     return "\n".join(lines) + "\n"
+
+
+def check_claims(central: dict, bound: dict, open_: dict) -> None:
+    """Sentences the paper states in words, not macros.  If a rerun breaks one,
+    stop and make someone rewrite the sentence rather than publish it false."""
+    fail = []
+    for arm in ARMS:
+        if not gni_gap(central, arm)[4] < gap(central, arm, "Y")[4]:
+            fail.append(f"'GNI gap < GDP gap at zeta_K 0.1' fails for {arm}")
+        b, r = central["baseline"], central[arm]
+        dk = arr(r, "K")[4] - arr(b, "K")[4]
+        share = (arr(r, "K_f")[4] - arr(b, "K_f")[4]) / dk * 100
+        if not 65 <= share <= 85:
+            fail.append(f"'about three-quarters of extra capital is foreign-owned' "
+                        f"fails for {arm}: {share:.1f}%")
+    for res, cl in ((central, "0.1"), (bound, "0")):
+        if not gap(res, "share_shift_ramp", "w")[4] < 0:
+            fail.append(f"'share_shift wage is below baseline' fails at zeta_K {cl}")
+        for arm in ARMS:
+            if not (gap(res, arm, "K")[4] > 0 and arr(res[arm], "r")[4] > arr(res["baseline"], "r")[4]):
+                fail.append(f"'the return to capital and capital both rise' fails for {arm} at zeta_K {cl}")
+    signs = {np.sign(gap(x, "share_shift_tfp_ramp", "w")[4]) for x in (central, bound, open_)}
+    if len(signs) < 2:
+        fail.append("'the share_shift_tfp wage sign depends on the closure' fails")
+    if fail:
+        raise ResultsError("claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
 
 def build(args) -> tuple[Values, list[str]]:
@@ -427,6 +502,7 @@ def build(args) -> tuple[Values, list[str]]:
     require_zeta_k(open_, OPEN_ZETA_K, "zeta_K = 0.5 diagnostic")
     fixed = load_closure(args.fixed, "fixed spending")
     fixed["_shared"] = load_closure(DEFAULT_CENTRAL, "pre-rerun shared-share results")
+    check_claims(central, bound, open_)
     v = Values()
     emit(v, central, bound, fixed, open_)
     sources = [f"central  {central['_source']}"

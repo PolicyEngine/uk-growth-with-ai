@@ -1,27 +1,34 @@
-% Build: pdflatex main && pdflatex main
-% (two passes for cross-references; NO bibtex run is needed, because the
-%  references are a thebibliography environment in sections/references.tex,
-%  matching the sister paper at ../../uk-ai-study/paper.)
-% values_generated.tex must exist first:  python paper/make_values.py
+% Build (from paper/):  tectonic main.tex      or   pdflatex main && pdflatex main
+% No bibtex run is needed: the references are a thebibliography environment in
+% sections/references.tex.  values_generated.tex must exist first; from the repo
+% root:  python paper/make_values.py   (see its docstring for --central / --bound)
 \documentclass[11pt]{article}
 \usepackage[margin=1.1in]{geometry}
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{xcolor}
-% Paper chrome uses the firm-microsim template blue (YGTemplate MyBlue);
-% figures use the PolicyEngine palette separately.
-\definecolor{paperblue}{rgb}{0,0,0.7}   % MyBlue, matching the sister paper
-\definecolor{peteal}{HTML}{39C6C0}      % PolicyEngine teal accent
+\definecolor{paperblue}{rgb}{0,0,0.7}
 \usepackage{sectsty}
 \allsectionsfont{\color{paperblue}}
 \usepackage[colorlinks=true, citecolor=paperblue, linkcolor=paperblue, urlcolor=paperblue]{hyperref}
 \usepackage[hang,flushmargin]{footmisc}
 \usepackage{natbib}
 \bibliographystyle{apalike}
-\input{values_generated} % machine-generated numeric macros from results/
+\input{values_generated} % machine-generated numeric macros; see paper/make_values.py
 
-\title{\bfseries Growth without wage gains?\\[0.15cm] AI automation in a UK overlapping-generations model\thanks{\textbf{Acknowledgements:} I thank Max Ghenis and Seyed Mahdi Hosseini for valuable comments and helpful discussions. The time-varying capital-exponent patch described in Section~\ref{sec:patch} is offered back to the OG-Core maintainers; any errors are mine.} % TODO confirm the acknowledgees for THIS paper: the names follow the sister paper's pattern and are not yet confirmed\\[0.7cm]}
+% Arm names, as in the code and the dashboard (#14, #22).
+\newcommand{\ShareShift}{\texttt{share\_shift}}
+\newcommand{\ShareShiftTfp}{\texttt{share\_shift\_tfp}}
+\newcommand{\zetaK}{\zeta_K}
+
+% \pending{...} marks text that waits on an export no results file holds yet.
+% Draft builds show it in red; \submissiontrue turns every one into a build error.
+\newif\ifsubmission
+\submissionfalse
+\newcommand{\pending}[1]{\ifsubmission\errmessage{pending: #1}\else\textcolor{red}{[pending: #1]}\fi}
+
+\title{\bfseries Automation, factor shares and national income:\\[0.15cm] the 2026 AI scenarios in a UK overlapping-generations model\thanks{\textbf{Acknowledgements:} to be confirmed before submission.}}
 \author{Vahid Ahmadi\thanks{Research Associate at PolicyEngine. Email: \href{mailto:vahid@policyengine.org}{vahid@policyengine.org}.}}
 \date{\small \ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \the\year}
 
@@ -29,17 +36,20 @@
 \maketitle
 
 \begin{abstract}
-\noindent I run two artificial-intelligence scenarios through OG-UK, the UK calibration of the OG-Core overlapping-generations model, with UN demographics, eighty annual cohorts and a PolicyEngine-calibrated tax system. Both scenarios raise the capital exponent of a Cobb-Douglas production function from \genGammaBase{} to \genGammaShocked{} between \genStartYear{} and \genEndYear{}, a \genLabourShareFallPp{} percentage-point fall in the labour share, and differ only in the productivity term solved alongside it: ``automation only'' holds output at fixed inputs unchanged --- a zero technology wedge, motivated by but not equivalent to the Office for Budget Responsibility's March~2026 technological-displacement scenario, which targets an unchanged \emph{level} of GDP --- while ``automation and productivity'' delivers the \genTfpGainPct{} per cent measured total-factor-productivity gain of \citet{korinek2026}. By \genEndYear{}, GDP is \genShareShiftTfpGdpGapThirtyAbs{} per cent and \genShareShiftGdpGapThirtyAbs{} per cent above the no-AI path. The gains accrue through capital: the capital stock rises \genShareShiftTfpCapitalGapThirtyAbs{} and \genShareShiftCapitalGapThirtyAbs{} per cent, while the real wage falls \genShareShiftTfpWageGapThirtyAbs{} and \genShareShiftWageGapThirtyAbs{} per cent consumption ends only \genShareShiftTfpConsumptionGapThirtyAbs{} per cent above baseline in the first scenario and \genShareShiftConsumptionGapThirtyAbs{} per cent below it in the second. At a unit elasticity of substitution the wage is $(1-\gamma)Y/L$ exactly, so wages fall whenever the labour share falls faster than output per worker rises, which both scenarios deliver by construction. I also document a backward-compatible patch that gives OG-Core's capital exponent a time dimension, without which neither the phased automation path of \citet{korinek2026} nor the automation experiment of \citet{mollimas2026} is representable in the model.
+\noindent I take two published artificial-intelligence scenarios to OG-UK, the UK calibration of the OG-Core overlapping-generations model, and ask how capital, labour and national income respond in general equilibrium. Both scenarios lower the labour share by \genLabourShareFallPp{} percentage points between \genStartYear{} and \genEndYear{}, the size in the ``substantial'' scenario of \citet{korinek2026}; \ShareShiftTfp{} adds that scenario's \genTfpGainPct{} per cent productivity gain and \ShareShift{} does not. With OG-UK's default capital closure ($\zetaK = \genZetaKCentral{}$), UK gross national income in \genEndYear{} is \genShareShiftTfpGniGapThirtyCentralAbs{} per cent \genShareShiftTfpGniGapThirtyCentralDir{} the baseline in \ShareShiftTfp{} and \genShareShiftGniGapThirtyCentralAbs{} per cent \genShareShiftGniGapThirtyCentralDir{} it in \ShareShift{}, against GDP gaps of \genShareShiftTfpGdpGapThirtyCentralShort{} and \genShareShiftGdpGapThirtyCentralShort{} per cent. GNI rises by less than GDP because about three-quarters of the extra capital is foreign-owned under that closure. With the capital account closed to private capital ($\zetaK = \genZetaKBound{}$) the GNI gaps are \genShareShiftTfpGniGapThirtyBoundShort{} and \genShareShiftGniGapThirtyBoundShort{} per cent. The real wage in \ShareShift{} is below the baseline under both closures. In \ShareShiftTfp{} the sign of the wage effect depends on the closure. Section~\ref{sec:incidence} sets out how the model's eighty annual cohorts give the incidence of each scenario by birth cohort and lifetime-earnings type.
 \end{abstract}
 
 \medskip
-\noindent\textbf{Keywords:} artificial intelligence, automation, overlapping generations, labour share, public finances
+\noindent\textbf{Keywords:} artificial intelligence, automation, overlapping generations, capital closure, national income, labour share
+
+\noindent\textbf{JEL:} E13, E25, F21, O33
 
 \newpage
 \input{sections/intro}
 \input{sections/literature}
 \input{sections/methodology}
 \input{sections/results}
+\input{sections/incidence}
 \input{sections/discussion}
 \input{sections/limitations}
 
