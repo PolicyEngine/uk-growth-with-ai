@@ -20,8 +20,15 @@ export const BOUND = 'zk0';
 export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.zeta_K };
 export const SCENARIOS = S.scenarios;
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
-export const ARMS = S.arms; // [{id: 'tfp'|'ss', label}]
-export const ARM_COLOR = { tfp: 'var(--chart-uk-ai)', ss: 'var(--chart-uk-obr)' };
+// [{id, label, short}], in display order: 'tfp' automation + productivity
+// (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
+// 'ss' the OBR-style stress test that holds 2031 GDP at the no-AI path.
+export const ARMS = S.arms;
+export const ARM_COLOR = { tfp: 'var(--series-1)', tz: 'var(--series-2)', ss: 'var(--series-5)' };
+// The stress test is drawn lighter: a bound, not a forecast.
+export const ARM_LIGHT = { ss: true };
+export const armById = (id) => ARMS.find((a) => a.id === id);
+export const CLOSURE_LABEL = { 'zk0.1': 'central closure', zk0: 'closed capital' };
 
 export const result = (sid, arm, closure) => S.results[sid]?.[arm]?.[closure] ?? { status: 'pending' };
 export const isDone = (sid, arm, closure) => result(sid, arm, closure).status === 'done';

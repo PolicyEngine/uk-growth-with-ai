@@ -37,7 +37,14 @@ SCENARIOS = [
     ("uk_high", "UK high", "uk_high"),
     ("korinek", "Korinek upper", "korinek_us_substantial_upper"),
 ]
-ARMS = [("tfp", "Automation + productivity"), ("ss", "Automation only")]
+# Order everywhere: the main arm, then technology unchanged, then the stress
+# test. "tz" is the fixed-input Z solve (`_zfixed`): the labour share shifts
+# with Z at the value that leaves output at the baseline's 2027 inputs
+# unchanged. "ss" is the R4 arm that holds 2031 GDP at the no-AI path, which
+# in OG-UK needs output at fixed inputs to fall: a pessimistic bound.
+ARMS = [("tfp", "Automation + productivity", "Automation + productivity"),
+        ("tz", "Automation, technology unchanged", "Technology unchanged"),
+        ("ss", "OBR-style stress test: no output gain", "Stress test")]
 PCT_VARS = {"Y": "GDP", "GNI": "GNI", "NNI": "NNI", "w": "Wage rate", "C": "Consumption",
             "I": "Investment", "K": "Capital", "L": "Labour"}
 
@@ -61,6 +68,15 @@ def levels(s):
             "labour_share": [s["w"][i] * s["L"][i] / s["Y"][i] * 100 for i in range(n)]}
 
 
+def foreign_share(s, b, year=HEADLINE):
+    """Foreign-owned share (%) of the capital stock added against the reference, in `year`."""
+    i = YEARS.index(year)
+    dk = s["K"][i] - b["K"][i]
+    if abs(dk) < 1e-12 or "K_f" not in s or "K_f" not in b:
+        return None
+    return (s["K_f"][i] - b["K_f"][i]) / dk * 100
+
+
 def git_sha():
     try:
         return subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"],
@@ -71,7 +87,7 @@ def git_sha():
 
 def main():
     targets = json.loads((ROOT / "analysis" / "surprise" / "uk_targets.json").read_text())["scenarios"]
-    closures, results, n_done = {}, {sid: {a: {} for a, _ in ARMS} for sid, *_ in SCENARIOS}, 0
+    closures, results, n_done = {}, {sid: {a: {} for a, *_ in ARMS} for sid, *_ in SCENARIOS}, 0
     for cl, zk, role in CLOSURES:
         loaded = sp.load(OUT_DIR, cl)
         done = {k: v for k, v in loaded.items() if not k.endswith(".sanity")}
@@ -82,7 +98,7 @@ def main():
         except Exception as e:  # gate not passed: everything at this closure is pending
             closures[cl] = {"zeta_K": zk, "role": role, "reference": None, "note": str(e)}
             for sid, *_ in SCENARIOS:
-                for a, _ in ARMS:
+                for a, *_ in ARMS:
                     results[sid][a][cl] = {"status": "pending"}
             continue
         b = ref["series"]
@@ -91,9 +107,10 @@ def main():
                         "reference_levels": levels(b)}
         for sid, *_ in SCENARIOS:
             k = sp._keys(False, sid)
-            recs = {"tfp": done.get(k["tfp"]), "ss": sp.accepted_r4(done, ref, False, 2028, sid)}
+            recs = {"tfp": done.get(k["tfp"]), "tz": done.get(k["zfixed"]),
+                    "ss": sp.accepted_r4(done, ref, False, 2028, sid)}
             r4_iters = [x for x in done if x.startswith(k["r4"])]
-            for a, _ in ARMS:
+            for a, *_ in ARMS:
                 rec = recs[a]
                 if rec is None:
                     note = None
@@ -114,6 +131,8 @@ def main():
                     "gamma_terminal": rec["gamma_terminal"],
                     "sanity": "pass",
                     "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
+                    # share of the extra 2031 capital stock that is foreign-owned, %
+                    "foreign_share_dK_2031": foreign_share(rec["series"], b),
                 }
                 g = results[sid][a][cl]["gaps"]
                 for v, path in g.items():  # 2026-27 are history: every gap must be zero
@@ -129,14 +148,14 @@ def main():
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
         "source_commit": git_sha(), "years": YEARS, "window": WINDOW, "headline_year": HEADLINE,
         "late_year": LATE, "surprise_year": 2028, "default_scenario": "uk_central",
-        "scenarios": scen, "arms": [{"id": a, "label": l} for a, l in ARMS],
+        "scenarios": scen, "arms": [{"id": a, "label": l, "short": sh} for a, l, sh in ARMS],
         "closures": closures, "results": results, "solves_done": n_done,
         "solves_total": len(SCENARIOS) * len(ARMS) * len(CLOSURES),
     }
     DEST.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")
     print(f"wrote {DEST.relative_to(ROOT)}: {n_done}/{data['solves_total']} combinations done")
     for sid, *_ in SCENARIOS:
-        for a, _ in ARMS:
+        for a, *_ in ARMS:
             for cl, *_ in CLOSURES:
                 r = results[sid][a][cl]
                 if r["status"] == "done":
