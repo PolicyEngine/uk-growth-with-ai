@@ -44,8 +44,21 @@ def load():
             n = os.path.basename(f)[:-5]
             if n.endswith(".sanity") or n.startswith("GATE") or n == "baseline_ext":
                 continue
+            if not in_design(n):
+                OUTSIDE.append(f"{c}/{n}")       # e.g. debt-neutral (_dn) or fixed-spending (_fs) variants
+                continue
             runs[c][n] = json.load(open(f))
     return runs
+
+
+OUTSIDE = []
+
+
+def in_design(n):
+    """The continuation and the three arms per scenario under the common G/Y rule; nothing else is audited here."""
+    import re
+    return n == "continuation" or any(
+        re.fullmatch(f"{s}_share_shift_(tfp_ramp|ramp_zfixed|ramp_r4_\\d+)", n) for s in SCEN)
 
 
 def pick(runs, c, s, a):
@@ -102,6 +115,8 @@ def measures(d, n):
     m["ls_pp"] = 100 * (ls(n) - ls(ref))
     m["debt_pp"] = 100 * (S(d, n, "D") / S(d, n, "Y") - S(d, ref, "D") / S(d, ref, "Y"))
     m["tax_pp"] = 100 * (tax_ratio(d, n) - tax_ratio(d, ref))
+    for v in ("GNI", "NNI"):                     # level changes, pp of continuation GDP
+        m[v + "_lvl"] = 100 * (S(d, n, v) - S(d, ref, v)) / S(d, ref, "Y")
     return m
 
 
@@ -560,7 +575,7 @@ EXPECT = {
     "Y": {"tfp": ("> 0", lambda x, c: x > 0), "zfixed": ("small, sign open (>= 0 if capital flows in)", lambda x, c: abs(x) < 2),
           "r4": ("0 within 0.01pp", lambda x, c: abs(x) <= 0.01)},
     "GNI": {"tfp": ("> 0, below GDP", lambda x, c: x > 0), "zfixed": ("below GDP", lambda x, c: True), "r4": ("<= 0", lambda x, c: x <= 0)},
-    "NNI": {"tfp": ("below GNI", lambda x, c: True), "zfixed": ("below GNI", lambda x, c: True), "r4": ("< 0", lambda x, c: x < 0)},
+    "NNI": {"tfp": ("rises less than GNI in levels", lambda x, c: True), "zfixed": ("rises less than GNI in levels", lambda x, c: True), "r4": ("< 0", lambda x, c: x < 0)},
     "K": {a: ("> 0", lambda x, c: x > 0) for a in ARMS},
     "L": {a: ("<= 0 by 2031 (wage falls)", lambda x, c: x <= 0) for a in ARMS},
     "w": {"tfp": ("sign open: share effect against productivity", lambda x, c: True), "zfixed": ("< 0", lambda x, c: x < 0), "r4": ("< 0", lambda x, c: x < 0)},
@@ -597,9 +612,11 @@ def verdict(c, s, a, v, x, m):
         if a == "zfixed" and x < 0:
             return "surprising-but-explained", "A1"
     if v == "NNI":
-        if x > m["GNI"][i]:
+        # in levels NNI must rise by less than GNI whenever capital rises (NNI = GNI - delta K)
+        if m["NNI_lvl"][i] > m["GNI_lvl"][i] and m["K"][i] > 0:
             return "WRONG", ""
-        if a in ("tfp", "zfixed") and x < 0 < m["GNI"][i]:
+        # in per cent it can rise by more, when capital grows by less than GNI
+        if x > m["GNI"][i] or (a in ("tfp", "zfixed") and x < 0 < m["GNI"][i]):
             return "surprising-but-explained", "A5"
     if v == "Y" and a == "zfixed" and x < 0:
         return "surprising-but-explained", "A1"
@@ -661,6 +678,7 @@ if __name__ == "__main__":
     if "--verdict" in sys.argv:
         sec_verdict(runs); sys.exit(0)
     print("finished solves:", {c: sorted(runs[c]) for c in CLOSURES})
+    print("finished, outside the three-arm design, not audited:", OUTSIDE or "none")
     sec_identities(runs)
     sec_rules_open(runs)
     sec_z(runs)

@@ -30,7 +30,7 @@ Independent review of every finished solve on `rerun/surprise-2028` at `cf5d8ba`
 - Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4).
 - Consumption falls while national income rises in the main arm until 2031–36 (A3).
 - 2036 is the debt rule's first year: G falls 2–23% and investment jumps in every arm. No 2036 flow should be quoted (A9).
-- The UK central main arm gives GDP +0.92% against the IMF's +2.5% at year 4 for the same TFP. The capital closure explains the whole difference (section 7).
+- The UK central main arm gives GDP +0.92% against the IMF's +2.5% at year 4 for the same TFP. The capital closure is sufficient to account for the difference (section 7).
 
 ## 1. Identities
 
@@ -88,14 +88,15 @@ Log points × 100. The residual is under 1.1e-4 in every row.
 | ζK 0 | UK central | automation + productivity | +0.379 | +0.243 | −0.256 | +0.366 |
 | | | technology unchanged | −0.020 | +0.230 | −0.243 | −0.033 |
 | | | stress test | +0.014 | +0.231 | −0.244 | +0.001 |
+| ζK 0 | Korinek | automation + productivity | +3.004 | +0.692 | −0.694 | +3.002 |
 
 - **Capital is the larger half of the main arm's gap at ζK = 0.1.** For UK central: +0.73 from capital and +0.38 from technology, less 0.19 from labour.
-- **At ζK = 0 capital and labour cancel.** Capital adds 0.24 and labour takes 0.26, so GDP moves by the technology term alone (+0.37).
+- **At ζK = 0 capital and labour cancel.** For UK central capital adds 0.24 and labour takes 0.26, so GDP moves by the technology term alone (+0.37). The Korinek main arm is the same: +0.69 and −0.69, leaving the technology term (+3.00).
 - **The technology term is 2–6% short of its label.** The target (+0.4% for UK central) is set at the 2027 inputs. At the continuation's 2031 inputs it is +0.377%, and +0.366% at 2036, because the baseline's K/L falls after 2027. For the same reason "technology unchanged" is −0.02%, not zero. This is small against the scenario sizes (A11).
 
 ## 3. Wage logic
 
-With w = (1 − γ)Y/L, Δln w = Δln(1 − γ) + Δln(Y/L). It holds in all 16 arm solves with a residual under 6e-5 log points × 100. That check only tests the identity, so the table also splits Δln(Y/L) into technology and capital deepening, γ₁ Δln(K/L).
+With w = (1 − γ)Y/L, Δln w = Δln(1 − γ) + Δln(Y/L). It holds in every arm solve with a residual under 6e-5 log points × 100. That check only tests the identity, so the table also splits Δln(Y/L) into technology and capital deepening, γ₁ Δln(K/L).
 
 2031, log points × 100.
 
@@ -116,6 +117,7 @@ With w = (1 − γ)Y/L, Δln w = Δln(1 − γ) + Δln(Y/L). It holds in all 16 
 | ζK 0 | UK central | automation + productivity | −2.492 | +0.379 | +0.391 | −1.723 | −1.71 |
 | | | technology unchanged | −2.492 | −0.020 | +0.370 | −2.143 | −2.12 |
 | | | stress test | −2.492 | +0.014 | +0.372 | −2.107 | −2.09 |
+| ζK 0 | Korinek | automation + productivity | −6.188 | +3.004 | +1.134 | −2.050 | −2.03 |
 
 **UK high and UK central both show −1.27%: a genuine offset, not a bug.**
 - The two numbers are not equal: −1.2668% and −1.2692%.
@@ -127,7 +129,7 @@ With w = (1 − γ)Y/L, Δln w = Δln(1 − γ) + Δln(Y/L). It holds in all 16 
 - The wage is unchanged when the TFP gain in % is about 0.95 times the share fall in pp.
 - The scenarios' ratios are 0.29 (low), 0.25 (central), 0.55 (high) and 0.79 (Korinek). All are below 0.95, so the wage falls in every main arm.
 - UK central has the lowest ratio, which is why its wage falls as far as UK high's.
-- At ζK = 0 the coefficients are −1.33 and 1.03, and the break-even ratio is 1.29.
+- At ζK = 0 the UK central coefficients are −1.33 and 1.03, and the break-even ratio is 1.29. Applied to the Korinek inputs they give −1.98%; the solve gives −2.03%.
 
 ## 4. Cross-scenario consistency
 
@@ -163,7 +165,7 @@ The technology-unchanged and stress-test arms are monotonic in every column.
 
 **Technology unchanged sits between the other two arms at ζK = 0.1**, for every variable and every scenario. **At ζK = 0 it does not:** its GDP (−0.033%) is below the stress test's (+0.001%). See A1.
 
-**Closures, UK central, 2031:**
+**Closures, 2031 (UK central, and the Korinek main arm):**
 
 | arm | closure | GDP % | GNI % | NNI % | K % | L % | wage % | C % | Δr bp | debt/GDP pp | tax/GDP pp |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -173,13 +175,16 @@ The technology-unchanged and stress-test arms are monotonic in every column.
 | | ζK 0 | −0.03 | −0.10 | −0.24 | +0.63 | −0.38 | −2.12 | −0.73 | +44.0 | +0.78 | −0.05 |
 | stress test | ζK 0.1 | +0.005 | −0.30 | −0.72 | +1.73 | −0.27 | −2.19 | −0.84 | +30.7 | +0.87 | −0.24 |
 | | ζK 0 | +0.001 | −0.06 | −0.20 | +0.63 | −0.38 | −2.09 | −0.71 | +44.4 | +0.74 | −0.04 |
+| Korinek, automation + productivity | ζK 0.1 | +4.89 | +3.80 | +3.33 | +6.03 | −0.82 | −0.59 | +0.28 | +109.2 | −3.02 | −0.35 |
+| | ζK 0 | +3.05 | +2.88 | +3.09 | +1.80 | −1.13 | −2.03 | −0.16 | +141.9 | −1.56 | **+0.21** |
 
-- **Smaller K response at ζK = 0:** +0.63 to +0.67% against +1.73 to +2.01%. As expected.
-- **Larger Δr:** +44 to +48bp against +31 to +38bp. As expected.
-- **GNI ≈ GDP:** the wedge is 0.07pp at ζK = 0 (foreign-held gilts only) against 0.30–0.35pp at ζK = 0.1. As expected.
-- **NNI barely depends on the closure in the main arm** (+0.27 and +0.23%). The extra capital at ζK = 0.1 is 77% foreign-owned, so most of its return and all of its depreciation leave national income.
-- **Who finances the extra capital.** At ζK = 0.1 in 2031, foreign capital is 76–80% of ΔK in every arm, household wealth 25–36%, less 6–12% for extra gilts held at home. At ζK = 0, household wealth is 124–128% of ΔK, less 24–28% for gilts.
-- **Capital-supply elasticity** (Δln K over Δln of the rental rate γY/K), main arm, 2031: 0.57, 0.59, 0.60 and 0.62 at ζK = 0.1; 0.16 at ζK = 0. By 2036 it is 0.75–0.94 and 0.37.
+- **Smaller K response at ζK = 0:** UK central +0.63 to +0.67% against +1.73 to +2.01%; Korinek +1.80% against +6.03%. As expected.
+- **Larger Δr:** UK central +44 to +48bp against +31 to +38bp; Korinek +142bp against +109bp. As expected.
+- **GNI ≈ GDP:** the wedge at ζK = 0 is 0.07pp for UK central and 0.17pp for Korinek (foreign-held gilts only), against 0.30–0.35pp and 1.09pp at ζK = 0.1. As expected.
+- **NNI barely depends on the closure in the main arm** (UK central +0.27 and +0.23%; Korinek +3.33 and +3.09%). The extra capital at ζK = 0.1 is 77–80% foreign-owned, so most of its return and all of its depreciation leave national income.
+- **Tax/GDP is the one variable whose sign depends on the closure:** the Korinek main arm at ζK = 0 is +0.21pp (section 8, A6).
+- **Who finances the extra capital.** At ζK = 0.1 in 2031, foreign capital is 76–80% of ΔK in every arm, household wealth 25–36%, less 6–12% for extra gilts held at home. At ζK = 0, household wealth is 117–128% of ΔK, less 17–28% for gilts.
+- **Capital-supply elasticity** (Δln K over Δln of the rental rate γY/K), main arm, 2031: 0.57, 0.59, 0.60 and 0.62 at ζK = 0.1; 0.16 (UK central) and 0.15 (Korinek) at ζK = 0. By 2036 it is 0.75–0.94 at ζK = 0.1, and 0.37 and 0.50 at ζK = 0.
 
 ## 5. Dynamics
 
@@ -196,6 +201,7 @@ The technology-unchanged and stress-test arms are monotonic in every column.
 | | technology unchanged | +19.00 | +0.54 | −1.61 | +0.74 | +1.02 |
 | | stress test | +18.14 | +0.73 | −2.02 | +0.56 | +0.97 |
 | UK central, ζK 0 | automation + productivity | +3.16 | +0.22 | −0.72 | +0.24 | 0.00 |
+| Korinek, ζK 0 | automation + productivity | +6.70 | +0.22 | −1.06 | +0.91 | 0.00 |
 
 - **Direction is the same in every solve:** investment up, labour up, consumption down. Households learn that wages will be lower and returns higher, so they work more and save more now.
 - **Investment is monotonic in shock size.** It is the flow needed to move capital to next year's target with no adjustment cost: the capital gap rises by about 0.5pp a year for UK central, and investment is 7.8% of capital, so 0.5/0.078 ≈ +7%.
@@ -240,6 +246,7 @@ pp gap. The last four columns rerun the debt recursion on the continuation's pat
 | | stress test | +2.14 | +7.14 | +8.45 | +4.84 | +3.20 | +0.30 |
 | **ζK 0**, UK central | automation + productivity | +0.33 | +1.65 | +1.98 | +3.12 | −0.58 | −0.55 |
 | | stress test | +0.74 | +2.23 | +2.61 | +2.90 | −0.22 | −0.08 |
+| **ζK 0**, Korinek | automation + productivity | −1.56 | +0.54 | +1.03 | +9.13 | −3.59 | −4.07 |
 
 - **Debt/GDP is higher in every arm by 2036.** In the main arm it is lower in 2031 at ζK = 0.1 and turns positive in 2032 (UK low and central), 2033 (UK high) and 2035 (Korinek).
 - **The interest rate is the cause.** The return on gilts moves one for one with r (+37.8bp for UK central), and the model's debt is one-period, so the whole stock (95% of GDP) reprices at once. That alone adds 2.4pp by 2036 for UK central.
@@ -275,13 +282,28 @@ Korinek-sized arms at ζK = 0.1. "Old" is the committed 2026-start run (`analysi
 | Δr bp | +108.3 | +109.2 | 1.01 | +79.6 | +81.9 | 1.03 | +68.0 | +71.4 |
 | debt/GDP pp | −3.08 | −3.02 | 0.98 | +0.71 | +0.67 | 0.96 | +2.29 | +2.14 |
 
-- **Korinek 2031 ≈ old 2030: confirmed.** In the main arm every variable is within 4% of the old value except consumption (−0.03pp on a small base). GDP differs by 0.006pp.
+- **Korinek 2031 ≈ old 2030: confirmed at ζK = 0.1.** In the main arm every variable is within 4% of the old value except consumption (−0.03pp on a small base). GDP differs by 0.006pp.
 - **The new path is the old path moved one year, without the anticipation year.** Investment gaps: old 2027–30 are +21.34, +25.45, +29.64, +13.26; new 2028–31 are +21.33, +25.44, +29.64, +13.22. Capital gaps: old +1.26, +2.68, +4.30, +6.10; new +1.14, +2.58, +4.21, +6.03.
 - **Later years match too:** GDP +5.27% in the old 2035 and +5.26% in the new 2036.
 - **The other two arms lose a little more** (K −0.25 and −0.29pp, GNI −0.08 and −0.03pp). In the old runs, households saved more in the anticipation year: household wealth was +1.45% and +1.51% in 2030, against +1.19% and +1.18% in 2031 now.
 - All differences are far inside the gate's 30% band. See A10 for why the design's "somewhat smaller" expectation turned out to be "almost the same".
 
-Korinek at ζK = 0 is not solved, so the closed-capital comparison cannot be made yet.
+**At ζK = 0 the surprise run is somewhat smaller, as the design expected.** Korinek main arm (the only Korinek arm solved at ζK = 0):
+
+| | old 2030 | new 2031 | new/old |
+|---|---|---|---|
+| GDP % | +3.099 | +3.047 | 0.98 |
+| GNI % | +2.937 | +2.875 | 0.98 |
+| K % | +2.001 | +1.795 | 0.90 |
+| L % | −1.156 | −1.130 | 0.98 |
+| wage % | −1.954 | −2.029 | 1.04 |
+| C % | −0.079 | −0.160 | 2.0 (−0.08pp) |
+| I % | +12.66 | +12.67 | 1.00 |
+| Δr bp | +139.8 | +141.9 | 1.02 |
+| debt/GDP pp | −1.64 | −1.56 | 0.95 |
+
+- With no foreign inflow, all extra capital comes from household saving, so the lost year matters: capital gaps were +0.28, +0.73, +1.31, +2.00% in the old 2027–30 and are 0.00, +0.48, +1.09, +1.80% in the new 2028–31.
+- Capital is 10% smaller and GDP 2% smaller. Everything is inside the 30% band except consumption, which is inside the 0.25pp floor.
 
 ## 7. Against the literature
 
@@ -300,7 +322,7 @@ Sources and locations are as in `docs/literature_comparison.md` (origin/docs/lit
 - In the IMF model capital deepens enough to add about 2.1pp at year 4. Ours adds 0.73pp from capital (K +2.0%) and loses 0.19pp from labour.
 - **A bound shows this is the closure and not the shock** (arithmetic on the UK central inputs, not a solve). If capital were supplied at an unchanged return, γY/K would stay at its baseline value. With labour unchanged that needs K +7.9% and gives **GDP +3.2%**; with the arm's own labour gap it gives +2.9%. That brackets the IMF's +2.5% (year 4) and +3.3% (year 5).
 - In the solve, the return rises 38bp instead, and capital rises 2.0%: a capital-supply elasticity of 0.59. ζK = 0.1 lets in 10% of the excess demand for capital at the world rate, and household saving has had four years.
-- **So the difference is explained by the closure, with the horizon second.** The elasticity rises to 0.75 by 2036 and 1.39 in the steady state (the gate's diagnostic), and GDP per unit of TFP to 3.7 in the steady state.
+- **So the closure is sufficient to account for the difference, with the horizon second.** The bound is arithmetic that brackets the IMF figure; it does not show that the IMF model works the same way. The elasticity rises to 0.75 by 2036 and 1.39 in the steady state (the gate's diagnostic), and GDP per unit of TFP to 3.7 in the steady state.
 - **The other three features do not explain it.** No unemployment: labour falls 0.3% through hours, a 0.19pp effect. The tax gap affects revenue, not GDP. The surprise timing costs nothing (section 6).
 - **Our 2.3 flatters the TFP response.** 0.47pp of the 0.92% comes from the share shift with technology unchanged. The marginal effect of TFP is (0.92 − 0.47)/0.4 = 1.1.
 
@@ -317,7 +339,7 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 | Central AI productivity: +0.2pp a year by year five, about +0.4% on the level at year 4 (ours) | UK central TFP target | +0.4% | equal by construction | the baseline already contains this assumption (A11) |
 
 - **UK central's stress test is 2.3 times the OBR's displacement case** on the share fall (1.6pp against about 0.7pp), and gives receipts −0.24% of GDP and debt +0.87pp in 2031. UK low is the like-for-like size.
-- **Korinek et al.'s own numbers** are unchanged as a comparison from the 2026-start runs (GDP +4.9% against their +8.3%; elasticity 0.62 against their lowest case of 1), since the Korinek arm reproduces the old results.
+- **Korinek et al.'s own numbers** are unchanged as a comparison from the 2026-start runs (GDP +4.9% at ζK = 0.1 and +3.0% at ζK = 0 against their +8.3%; elasticity 0.62 and 0.15 against their lowest case of 1), since the Korinek arm reproduces the old results.
 
 ## 8. Tax diagnostics
 
@@ -340,29 +362,34 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 | ζK 0 | UK central | automation + productivity | −0.006 | −0.004 | same, by 0.006pp | −0.240 | +0.032 | +0.273 | −0.087 | +0.015 |
 | | | technology unchanged | −0.046 | −0.029 | same | −0.240 | −0.030 | +0.265 | −0.068 | +0.027 |
 | | | stress test | −0.042 | −0.027 | same | −0.240 | −0.025 | +0.266 | −0.070 | +0.026 |
+| ζK 0 | Korinek | automation + productivity | **+0.207** | **+0.053** | **opposite** | −0.585 | +0.413 | +0.710 | −0.304 | −0.027 |
 
-- **The sign is right in 2031 in all 15 reported arms.** The bases sum to the total to 1e-14.
+- **The sign is right in 2031 in every solved arm except one.** The Korinek main arm at ζK = 0 has tax/GDP +0.207pp with the labour share 3.9pp lower. It is negative in 2028 (−0.02pp) and positive from 2029. This is the table's one **wrong** cell (A6).
 - **Size at ζK = 0.1:** 0.15–0.16 per pp in the stress test, 0.13–0.14 with technology unchanged, 0.09–0.12 in the main arm. Against the OBR's 0.19–0.23 that is about three quarters, two thirds and a half.
-- **Size at ζK = 0:** 0.03 per pp in the two no-TFP arms and 0.004 in the main arm, which is zero for practical purposes.
-- **At ζK = 0 the main arm's sign is wrong from 2032:** 0.000, +0.007, +0.014, +0.021, +0.029pp in 2032–36. No other solved arm turns positive in any year.
-- **The old wrong-sign case is not solved yet.** In the 2026-start runs the Korinek main arm at ζK = 0 had tax/GDP +0.20pp. UK central's is already at zero with a quarter of the TFP, so expect the wrong sign in UK high and Korinek at ζK = 0 when they are solved.
+- **Size at ζK = 0, UK central:** 0.03 per pp in the two no-TFP arms and 0.004 in the main arm, which is zero for practical purposes.
+- **At ζK = 0 the UK central main arm's sign is also wrong from 2032:** 0.000, +0.007, +0.014, +0.021, +0.029pp in 2032–36. At ζK = 0.1 no arm turns positive in any year.
+- **The pattern is one mechanism.** UK central's two arms at ζK = 0 give about −0.03 per pp of share fall and +0.10 per 1% of TFP. That rule predicts +0.20pp for the Korinek main arm; the solve gives +0.21pp. Tax/GDP turns positive once the TFP gain in % exceeds about 0.3 times the share fall in pp. UK central (0.25) is just below that in 2031 and Korinek (0.79) is above it. UK high (0.55) is not solved at ζK = 0; the rule predicts +0.08pp, a second wrong sign.
+- **This reproduces the 2026-start result** (+0.20pp for the same arm), which is red flag 3 in the literature note.
 - **Receipts in levels** rise in the main arm (+0.20% of GDP for UK central) because GDP rises. Only the stress test (GDP unchanged) is comparable with the OBR's ¶6.18.
+- The bases sum to the total to 1e-14 in every row.
 
 ## Verdict table
 
-One block per scenario and closure. Rows are 2031 gaps against the continuation unless a year is given. "Expected" was written from the model's structure before reading the value. Codes A1–A8 refer to the anomalies below.
+One block per scenario and closure. Rows are 2031 gaps against the continuation unless a year is given. Codes A1–A8 refer to the anomalies below.
+
+**How the expectations were set.** The expected signs come from the model's structure and from `analysis/surprise/expectations.json`, which was committed before any surprise solve. The rules below for "surprising-but-explained" and "wrong" were written during this audit, after the first gaps had been read, so they are not a blind test. One rule changed during the audit: NNI was first required to rise by less than GNI in per cent; it is now required to rise by less in levels, because NNI = GNI − δK guarantees only that (A5). The rule that a rising tax/GDP in 2031 is wrong was fixed before the solve that breaks it landed.
 
 Rules used for "surprising-but-explained":
 - technology-unchanged GDP or GNI below zero (A1);
 - the main arm's wage falling while GDP rises (A2);
 - the main arm's consumption falling while GNI rises (A3);
 - the main arm's debt/GDP, whose sign changes between 2031 and 2036 or is positive with higher GDP (A4);
-- NNI below zero while GNI is above zero (A5);
+- NNI below zero while GNI is above zero, or NNI rising by more than GNI in per cent (A5);
 - tax/GDP falling by less than half the OBR's lower figure per pp (A6);
 - the 2028 investment jump (A7);
 - the stress test's GDP more than 0.01pp from zero in 2036 (A8).
 
-"Wrong" would be a broken identity, GNI above GDP, NNI above GNI, a labour share off target, tax/GDP rising in 2031, or a sign against a firm expectation.
+"Wrong" is a broken identity, a GNI gap above the GDP gap, NNI rising by more than GNI in levels, a labour share off target, tax/GDP rising in 2031, or a sign against a firm expectation. The table covers 2031 and three other dated rows only; a sign that changes in another year is in the anomalies, not in a cell.
 
 **UK low, ζK 0.1** (labour share −0.7pp, TFP +0.2%). Runs: automation + productivity: `uk_low_share_shift_tfp_ramp`; technology unchanged: `uk_low_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_low_share_shift_ramp_r4_1`
 
@@ -524,17 +551,25 @@ Rules used for "surprising-but-explained":
 
 - **What:** UK central: GNI +0.15%, NNI −0.21%. Same sign pattern in all four scenarios at ζK = 0.1.
 - **Root cause:** NNI = GNI − δK. Capital is 1.88% higher, which adds 0.32pp of GDP of depreciation (0.065 × 1.88% × K/Y of 2.65), against a GNI gain of 0.15pp. 77% of that extra capital is foreign-owned, but depreciation on capital located in the UK is charged to the UK's net income in the national accounts, and in the model the foreign owners are paid the gross return (r_p + δ).
-- **Verdict:** surprising-but-explained. It is the reason NNI is the more demanding measure, as intended.
+- **The opposite case, Korinek main arm at ζK = 0:** NNI rises by more than GNI in per cent (+3.09 against +2.88%). In levels it rises by less, as it must: +2.56 against +2.86pp of GDP. Capital rises 1.8%, less than GNI, so depreciation falls as a share of income and the smaller base (NNI is 83% of GDP) gives the larger percentage.
+- **Verdict:** surprising-but-explained. It is the reason NNI is the more demanding measure at ζK = 0.1, as intended.
 
-### A6. Tax/GDP: right sign in 2031, too small, and wrong sign from 2032 at ζK = 0
+### A6. Tax/GDP: too small everywhere, and the wrong sign in the main arm at ζK = 0
 
-- **What:** section 8. Per pp of share fall: 0.09–0.16 at ζK = 0.1 and 0.004–0.03 at ζK = 0, against the OBR's 0.19–0.23. At ζK = 0 the main arm is positive from 2032.
+- **What:** section 8.
+  - Per pp of share fall, tax/GDP falls 0.09–0.16 at ζK = 0.1 and 0.004–0.03 at ζK = 0 (UK central), against the OBR's 0.19–0.23.
+  - **Korinek main arm at ζK = 0: tax/GDP rises 0.21pp in 2031**, and in every year from 2029. Every OBR source has it falling when the labour share falls.
+  - UK central main arm at ζK = 0: −0.006pp in 2031, positive from 2032.
 - **Root cause**, as diagnosed in `docs/red_flags_1_3.md` and confirmed here on the new solves:
   1. The payroll tax gives −0.15 per pp. That is the whole mechanical labour-to-capital effect in OG-UK, against a 19–23pp wedge at the OBR.
-  2. Business tax rises 0.15–0.17 per pp with the capital share, and offsets it.
-  3. The income-tax function covers labour and household capital income in one schedule. Its take falls 0.11–0.12 per pp when GDP is held (the stress test) and rises when r rises on all household wealth: +0.03pp at ζK = 0 in the main arm, where r is 48bp higher.
+  2. Business tax rises 0.15–0.18 per pp with the capital share, and offsets it.
+  3. The income-tax function covers labour and household capital income in one progressive schedule. Its take falls 0.11–0.12 per pp when GDP is held (the stress test). It rises when the return rises on all household wealth, gilts included: +0.03pp for UK central at ζK = 0 (r +48bp) and **+0.41pp for Korinek at ζK = 0** (r +142bp; household capital income +5.2pp of GDP, labour income −2.0pp).
   4. Consumption tax falls with C/Y, by 0.04–0.11 per pp.
-- **Verdict:** surprising-but-explained, and a limitation Vahid has already decided to report (decision (a), 12 Nov). The new fact is the sign change after 2031 at the bound (fix 3).
+  - For Korinek at ζK = 0: −0.585 (payroll) + 0.413 (income tax) + 0.710 (business) − 0.304 (consumption) − 0.027 (bequest and wealth) = +0.207.
+- **Verdict:**
+  - Korinek main arm, ζK = 0, 2031: **wrong sign**. The cause is known (red flag 3) and the limitation is accepted under Vahid's decision (a) of 12 Nov: keep OG-UK's tax system and report the gap.
+  - Everything else: surprising-but-explained.
+- **Fix:** a copy caveat here (fix 3). The model fix is separate labour and capital tax functions in OG-UK (option (c) in `docs/red_flags_1_3.md`), which is outside this repo.
 
 ### A7. The investment profile: a three-year plateau, a drop in 2031, and capital that arrives without investment
 
@@ -561,11 +596,13 @@ Rules used for "surprising-but-explained":
 - The continuation has the same cliff (G/Y 29.9% in 2035, 28.3% in 2036).
 - **Verdict:** surprising-but-explained. Stocks in 2036 (K, debt, GDP) are usable; **2036 flows (G, I, tax/GDP) are not**, and charts of them should stop at 2035 (fix 4).
 
-### A10. Korinek 2031 is almost exactly the old 2030, not "somewhat smaller"
+### A10. Korinek 2031 is almost exactly the old 2030 at ζK = 0.1, and somewhat smaller at ζK = 0
 
-- **What:** section 6. GDP +4.890 against +4.896%.
-- **Root cause:** the design note expected smaller gaps because the surprise arms have no anticipation. Anticipation turned out to add almost nothing to the stocks: in the old runs, 2026 capital was only +0.05% and 79% of the 2030 capital gap was foreign inflow, which depends on the current year's technology, not on accumulated saving. So the surprise path is the old path moved one year.
-- **Verdict:** consistent in size; the expectation in `docs/surprise_2028.md` was cautious, and the 30% band was not needed.
+- **What:** section 6. Main arm GDP +4.890 against +4.896% at ζK = 0.1; +3.047 against +3.099% at ζK = 0, with capital 10% smaller.
+- **Root cause:** the design note expected smaller gaps because the surprise arms have no anticipation year.
+  - At ζK = 0.1 anticipation added almost nothing to the stocks. In the old runs, 2026 capital was only +0.05%, and 79% of the 2030 capital gap was foreign inflow, which depends on the current year's technology and not on accumulated saving. So the surprise path is the old path moved one year.
+  - At ζK = 0 capital is household saving only, and the surprise arms have had three years of it (2028–30) where the old arms had four (2026–29). So capital is smaller, as expected.
+- **Verdict:** consistent in size at both closures.
 
 ### A11. Two calibration statements need one more sentence each
 
