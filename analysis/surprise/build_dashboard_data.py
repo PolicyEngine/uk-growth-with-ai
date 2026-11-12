@@ -68,6 +68,15 @@ def levels(s):
             "labour_share": [s["w"][i] * s["L"][i] / s["Y"][i] * 100 for i in range(n)]}
 
 
+def foreign_share(s, b, year=HEADLINE):
+    """Foreign-owned share (%) of the capital stock added against the reference, in `year`."""
+    i = YEARS.index(year)
+    dk = s["K"][i] - b["K"][i]
+    if abs(dk) < 1e-12 or "K_f" not in s or "K_f" not in b:
+        return None
+    return (s["K_f"][i] - b["K_f"][i]) / dk * 100
+
+
 def git_sha():
     try:
         return subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"],
@@ -122,6 +131,8 @@ def main():
                     "gamma_terminal": rec["gamma_terminal"],
                     "sanity": "pass",
                     "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
+                    # share of the extra 2031 capital stock that is foreign-owned, %
+                    "foreign_share_dK_2031": foreign_share(rec["series"], b),
                 }
                 g = results[sid][a][cl]["gaps"]
                 for v, path in g.items():  # 2026-27 are history: every gap must be zero

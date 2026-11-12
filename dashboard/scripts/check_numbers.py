@@ -32,17 +32,12 @@ for sid in dump:
     def add(x, dp, unit):
         if x is not None:
             exp[signed(x, dp) + unit] += 1
-    # takeaway: main arm GDP and wage; technology unchanged GDP and wage;
-    # stress-test GNI (each part only when its solves are done)
-    if g(sid, 'tfp', C, 'Y') is not None and g(sid, 'tfp', C, 'w') is not None:
-        add(g(sid, 'tfp', C, 'Y'), 2, '%'); add(g(sid, 'tfp', C, 'w'), 2, '%')
-        if g(sid, 'tz', C, 'Y') is not None and g(sid, 'tz', C, 'w') is not None:
-            add(g(sid, 'tz', C, 'Y'), 2, '%'); add(g(sid, 'tz', C, 'w'), 2, '%')
-        add(g(sid, 'ss', C, 'GNI'), 2, '%')
-    # scenario strip: each solved scenario's GNI and wage, main arm
-    for s2 in D['results']:
-        if g(s2, 'tfp', C, 'GNI') is not None:
-            add(g(s2, 'tfp', C, 'GNI'), 2, '%'); add(g(s2, 'tfp', C, 'w'), 2, '%')
+    # Overview landing: the three KPI tiles (main arm, central closure) and
+    # the labour-share move in the "Why" bullets
+    for v in ['Y', 'w', 'GNI']:
+        add(g(sid, 'tfp', C, v), 2, '%')
+    if g(sid, 'tfp', C, 'Y') is not None:
+        add(g(sid, 'tfp', C, 'labour_share_pp'), 1, 'pp')
     for arm in ARMS:
         # dumbbells: central label and closed-capital bound (screen-reader text)
         for v in ['GNI', 'Y', 'NNI', 'w']:
