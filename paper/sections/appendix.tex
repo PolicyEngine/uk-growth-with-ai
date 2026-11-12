@@ -52,10 +52,10 @@ Baseline growth, \genEndYear{} & & \genBaseGrowthThirty{} & \\
 Elasticity of substitution $\varepsilon$ & \genEpsilon{} & \genEpsilon{} & \genEpsilon{} \\
 Capital exponent $\gamma$, \genStartYear{} & \genGammaBase{} & \genGammaBase{} & \genGammaBase{} \\
 Capital exponent $\gamma$, \genEndYear{} & \genGammaBase{} & \genGammaShocked{} & \genGammaShocked{} \\
-Shape of the $\gamma$ path & flat & \genZeroTfpGammaShape{} & \genAnthGammaShape{} \\
+Shape of the $\gamma$ path & flat & \genShareShiftGammaShape{} & \genShareShiftTfpGammaShape{} \\
 Labour share, \genStartYear{}, per cent & \genLabourShareBase{} & \genLabourShareBase{} & \genLabourShareBase{} \\
 Labour share, \genEndYear{}, per cent & \genLabourShareBase{} & \genLabourShareShocked{} & \genLabourShareShocked{} \\
-Solved terminal $Z$ & 1 & \genZZeroTfp{} & \genZAnthropic{} \\
+Solved terminal $Z$ & 1 & \genZShareShift{} & \genZShareShiftTfp{} \\
 Target: output at fixed inputs, per cent & --- & \genGdpLevelTargetPct{} & \genTfpGainPct{} \\
 $\gamma$-only output change, per cent & --- & \genGammaOnlyGainPct{} & \genGammaOnlyGainPct{} \\
 $g_y$ annual, per cent & \genGyAnnualPct{} & \genGyAnnualPct{} & \genGyAnnualPct{} \\
@@ -83,10 +83,10 @@ OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} was set to \genEnforceChecks{}, so 
 \toprule
  & No AI & Automation only & Automation and productivity \\
 \midrule
-Max resource-constraint error, after \genStartYear{} & \genBaseRcMaxInterior{} & \genZeroTfpRcMaxInterior{} & \genAnthRcMaxInterior{} \\
-\genStartYear{} resource-constraint error, per cent of GDP & \genBaseRcTwentySixPctGdp{} & \genZeroTfpRcTwentySixPctGdp{} & \genAnthRcTwentySixPctGdp{} \\
-Max Euler error & \genBaseEulerMax{} & \genZeroTfpEulerMax{} & \genAnthEulerMax{} \\
-Solve time, minutes & \genBaseElapsedMin{} & \genZeroTfpElapsedMin{} & \genAnthElapsedMin{} \\
+Max resource-constraint error, after \genStartYear{} & \genBaseRcMaxInterior{} & \genShareShiftRcMaxInterior{} & \genShareShiftTfpRcMaxInterior{} \\
+\genStartYear{} resource-constraint error, per cent of GDP & \genBaseRcTwentySixPctGdp{} & \genShareShiftRcTwentySixPctGdp{} & \genShareShiftTfpRcTwentySixPctGdp{} \\
+Max Euler error & \genBaseEulerMax{} & \genShareShiftEulerMax{} & \genShareShiftTfpEulerMax{} \\
+Solve time, minutes & \genBaseElapsedMin{} & \genShareShiftElapsedMin{} & \genShareShiftTfpElapsedMin{} \\
 \bottomrule
 \end{tabular}
 \par\medskip

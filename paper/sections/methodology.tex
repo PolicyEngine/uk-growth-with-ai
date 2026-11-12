@@ -38,7 +38,7 @@ Z = \frac{1 + \tau}{1 + \eta},
 \qquad
 \eta \equiv \frac{K_0^{\gamma_1} L_0^{1-\gamma_1}}{K_0^{\gamma_0} L_0^{1-\gamma_0}} - 1 = \genGammaOnlyGainPct{}~\text{per cent},
 \end{equation}
-where $\tau$ is the scenario's target change in output at fixed inputs: $\tau = \genTfpGainPct{}$ per cent for ``automation and productivity'' and $\tau = \genGdpLevelTargetPct{}$ for ``automation only''. The solved values are $Z = \genZAnthropic{}$ and $Z = \genZZeroTfp{}$ respectively. Both lie below~1 purely because they offset $\eta$, which in turn reflects the units of $K$ and $L$ in the model; their level carries no economic meaning, and only the joint move does.
+where $\tau$ is the scenario's target change in output at fixed inputs: $\tau = \genTfpGainPct{}$ per cent for ``automation and productivity'' and $\tau = \genGdpLevelTargetPct{}$ for ``automation only''. The solved values are $Z = \genZShareShiftTfp{}$ and $Z = \genZShareShift{}$ respectively. Both lie below~1 purely because they offset $\eta$, which in turn reflects the units of $K$ and $L$ in the model; their level carries no economic meaning, and only the joint move does.
 
 \paragraph{The shock path.} Both $\gamma$ and $Z$ phase in linearly over \genRampYears{} years from \genStartYear{} to \genEndYear{} and are held at their terminal values thereafter. This mirrors the design of \citet{korinek2026}, whose capability, adoption and task parameters build from a mid-2026 anchor to 2030 values. Ramping $\gamma$ is what the patch of Section~\ref{sec:patch} makes possible.
 
