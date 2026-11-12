@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
-import PublicFinancesTab from '@/tabs/ai/PublicFinancesTab.jsx';
 import FutureScenariosTab from '@/tabs/FutureScenariosTab.jsx';
 import MethodologyTab from '@/tabs/MethodologyTab.jsx';
 import CoverageTab from '@/tabs/CoverageTab.jsx';
@@ -16,7 +15,6 @@ import { S, SCENARIOS, SURPRISE_YEAR, scenarioById } from '@/tabs/ai/surprise.js
 // Six flat tabs, no sub-tabs. The open tab is ?tab=, the scenario ?s=.
 const TABS = [
   { id: 'results', label: 'Results', icon: 'trend', scenario: true },
-  { id: 'finances', label: 'Public finances', icon: 'landmark', scenario: true },
   { id: 'cohorts', label: 'Cohorts', icon: 'usersRound', scenario: true },
   { id: 'method', label: 'Scenarios and method', icon: 'book' },
   { id: 'literature', label: 'Literature', icon: 'scale' },
@@ -25,6 +23,8 @@ const TABS = [
 
 // Old #hash links keep working.
 const LEGACY = {
+  finances: 'results',
+  'public-finances': 'results',
   growth: 'results',
   'growth/results': 'results',
   'growth/method': 'method',
@@ -51,9 +51,11 @@ function readUrl() {
   const q = new URLSearchParams(window.location.search);
   const h = window.location.hash.replace(/^#/, '');
   let tab = q.get('tab');
-  if (!TABS.some((t) => t.id === tab)) tab = LEGACY[h] || LEGACY[h.split('/')[0]] || null;
+  // Public finances is now the last section of Results
+  const section = tab === 'finances' || h === 'finances' || h === 'public-finances' ? 'public-finances' : null;
+  if (!TABS.some((t) => t.id === tab)) tab = LEGACY[tab] || LEGACY[h] || LEGACY[h.split('/')[0]] || null;
   const s = q.get('s');
-  return { tab, s: s && scenarioById(s) ? s : null };
+  return { tab, s: s && scenarioById(s) ? s : null, section };
 }
 
 function writeUrl(tab, s) {
@@ -121,6 +123,11 @@ export default function HomePage() {
         setVisited((v) => ({ ...v, [u.tab]: true }));
       }
       if (u.s) setSid(u.s);
+      if (u.section) {
+        writeUrl('results', u.s || S.default_scenario);
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${u.section}`);
+        requestAnimationFrame(() => document.getElementById(u.section)?.scrollIntoView());
+      }
     };
     apply();
     window.addEventListener('hashchange', apply);
@@ -141,7 +148,6 @@ export default function HomePage() {
 
   const panels = {
     results: <ResultsTab sid={sid} onTab={chooseTab} onScenario={chooseScenario} />,
-    finances: <PublicFinancesTab sid={sid} />,
     cohorts: <CohortsTab />,
     method: <MethodTab openModal={setModal} />,
     literature: <LiteratureTab openModal={setModal} />,
@@ -161,7 +167,7 @@ export default function HomePage() {
               options={OPTIONS}
               onChange={chooseScenario}
               inactive={!scenarioApplies}
-              inactiveNote="The scenario applies to Results, Public finances and Cohorts"
+              inactiveNote="The scenario applies to Results and Cohorts"
             />
           </div>
         </header>

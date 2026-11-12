@@ -1,16 +1,17 @@
-// The results tabs print what the data file holds: rendered against a
-// fixture with altered values, the altered values appear, a pending cell
-// prints "pending", and the series handed to LineChart equal path().
-import { describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+// The Results tab prints what the data file holds, and every chart type's
+// tooltip names the year or measure, the arm, the closure and the value with
+// its unit. Rendered against a fixture with altered values.
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+
+afterEach(cleanup);
 import real from '@/data/surprise2028.json';
 
 const fixture = JSON.parse(JSON.stringify(real));
 const H = fixture.years.indexOf(fixture.headline_year);
 const L = fixture.years.indexOf(fixture.late_year);
-const done = (r) => ({ status: 'done', label: 'fixture', gaps: Object.fromEntries(Object.keys(r.gaps).map((k) => [k, fixture.years.map(() => 0)])) });
-const base = Object.values(Object.values(real.results)[0])[0]['zk0.1'];
-const tfpC = done(base);
+const base = fixture.results.uk_central.tfp['zk0.1'];
+const tfpC = { status: 'done', label: 'fixture', gaps: Object.fromEntries(Object.keys(base.gaps).map((k) => [k, fixture.years.map(() => 0)])) };
 tfpC.gaps.GNI[H] = 1.2345;
 tfpC.gaps.Y[H] = 2.3456;
 tfpC.gaps.debt_gdp_pp[L] = 7.7777;
@@ -18,40 +19,80 @@ tfpC.gaps.C[H] = 4.44;
 fixture.results.uk_central.tfp['zk0.1'] = tfpC;
 fixture.results.uk_central.tfp.zk0 = { status: 'pending' };
 
-const plotted = [];
 vi.doMock('@/data/surprise2028.json', () => ({ default: fixture }));
-vi.doMock('@/components/LineChart.jsx', () => ({
-  default: (props) => {
-    plotted.push(props);
-    return null;
-  },
-}));
 
 const { default: ResultsTab } = await import('@/tabs/ai/ResultsTab.jsx');
-const { default: PublicFinancesTab } = await import('@/tabs/ai/PublicFinancesTab.jsx');
+const { default: LineChart } = await import('@/components/LineChart.jsx');
+const { default: MiniChart } = await import('@/components/ab/MiniChart.jsx');
 const { path, CENTRAL } = await import('@/tabs/ai/surprise.js');
 
-describe('results tabs follow the data file', () => {
-  it('Results shows the altered headline values and pending bounds', () => {
-    const { container } = render(<ResultsTab sid="uk_central" onTab={() => {}} />);
+describe('Results follows the data file', () => {
+  it('shows the altered values and pending bounds', () => {
+    const { container } = render(<ResultsTab sid="uk_central" onTab={() => {}} onScenario={() => {}} />);
     const t = container.textContent;
     expect(t).toContain('+1.23%');
     expect(t).toContain('+2.35%');
     expect(t).toContain('+4.4%');
+    expect(t).toContain('+7.78pp');
     expect(t).toContain('closed capital pending');
   });
+});
 
-  it('Public finances shows the altered debt value', () => {
-    const { container } = render(<PublicFinancesTab sid="uk_central" />);
-    expect(container.textContent).toContain('+7.78pp');
+describe('tooltips', () => {
+  it('line chart: crosshair lists every series for the year, with unit and closure', () => {
+    const values = path('uk_central', 'tfp', CENTRAL, 'GNI');
+    const { container } = render(
+      <LineChart
+        x={[2027, 2028, 2029, 2030, 2031]}
+        series={[{ key: 'a', label: 'Automation + productivity', closure: 'central closure', color: 'red', values }]}
+        unit="%"
+        tipTitle="GNI"
+        valueFormat={(x) => x.toFixed(2)}
+        ariaLabel="GNI"
+      />,
+    );
+    const chart = container.querySelector('.linechart');
+    fireEvent.focus(chart);
+    const tip = screen.getByRole('tooltip');
+    expect(tip.textContent).toContain('GNI, 2031');
+    expect(tip.textContent).toContain('Automation + productivity, central closure');
+    expect(tip.textContent).toContain('1.23%');
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' });
+    expect(screen.getByRole('tooltip').textContent).toContain('2030');
   });
 
-  it('the plotted series equal path()', () => {
-    plotted.length = 0;
-    render(<ResultsTab sid="uk_central" onTab={() => {}} />);
-    const gni = plotted.find((p) => p.ariaLabel.includes('(GNI)'));
-    const line = gni.series.find((s) => s.key === 'tfp-c');
-    expect(line.values).toEqual(path('uk_central', 'tfp', CENTRAL, 'GNI'));
-    expect(gni.series.some((s) => s.key === 'tfp-b')).toBe(false);
+  it('small multiple: tooltip gives the year, closure and each arm with its unit', () => {
+    const { container } = render(
+      <MiniChart
+        title="Interest rate"
+        icon="percent"
+        years={[2027, 2028]}
+        lines={[{ key: 'tfp', label: 'Automation + productivity', color: 'red', values: [0, 0.38] }]}
+        domain={[-1, 1]}
+        unit="pp"
+        fmt={(x) => x.toFixed(2)}
+        endFmt={(x) => `${x.toFixed(1)}pp`}
+      />,
+    );
+    fireEvent.focus(container.querySelector('.mini-chart'));
+    const tip = screen.getByRole('tooltip').textContent;
+    expect(tip).toContain('Interest rate, 2028');
+    expect(tip).toContain('central closure');
+    expect(tip).toContain('0.38pp');
+  });
+
+  it('dumbbell dot and tax-gap bar: focus shows arm, closure and value', () => {
+    render(<ResultsTab sid="uk_central" onTab={() => {}} onScenario={() => {}} />);
+    const dot = screen.getByLabelText(/Automation \+ productivity, central closure, Income UK residents keep/);
+    fireEvent.focus(dot);
+    let tip = screen.getByRole('tooltip').textContent;
+    expect(tip).toContain('Central closure');
+    expect(tip).toContain('+1.23% against the no-AI path');
+    fireEvent.blur(dot);
+    const bar = screen.getByLabelText(/Labour minus capital effective tax rate, OBR/);
+    fireEvent.focus(bar);
+    tip = screen.getByRole('tooltip').textContent;
+    expect(tip).toContain('OBR');
+    expect(tip).toContain('19–23pp');
   });
 });

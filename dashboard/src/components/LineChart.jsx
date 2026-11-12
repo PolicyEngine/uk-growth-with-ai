@@ -150,6 +150,9 @@ export default function LineChart({
   zeroLabel = null,
   unit = '',
   tipTitle = null,
+  yDomain = null,
+  endLabel = 'name',
+  markers = [],
   bands = [],
 }) {
   const [ref, W] = useWidth(880);
@@ -163,8 +166,8 @@ export default function LineChart({
   const all = series.flatMap((s) => s.values).concat(onScale).filter((v) => Number.isFinite(v));
   if (!all.length || !x.length) return <div ref={ref} />;
 
-  let lo = Math.min(...all);
-  let hi = Math.max(...all);
+  let lo = yDomain ? yDomain[0] : Math.min(...all);
+  let hi = yDomain ? yDomain[1] : Math.max(...all);
   if (hi - lo < 1e-9) {
     lo -= 1;
     hi += 1;
@@ -190,8 +193,8 @@ export default function LineChart({
   // End labels: name, value and any "(off scale)" note, as segments.
   const points = strip?.points || [];
   const segsFor = (text, value, strong, offScale) => [
-    { kind: 'text', text, weight: strong ? 700 : 500 },
-    ...(noValue ? [] : [{ kind: 'value', text: valueFormat(value), weight: 700 }]),
+    ...(endLabel === 'value' ? [] : [{ kind: 'text', text, weight: strong ? 700 : 500 }]),
+    ...(noValue && endLabel !== 'value' ? [] : [{ kind: 'value', text: `${valueFormat(value)}${endLabel === 'value' ? unit : ''}`, weight: 700 }]),
     ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
   ];
   const rawLabels = [
@@ -326,6 +329,18 @@ export default function LineChart({
         </TipBox>
       ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
+        {markers.map((m) => {
+          const i = x.indexOf(m.year);
+          if (i < 0) return null;
+          return (
+            <g key={`m-${m.year}`}>
+              <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
+              <text x={sx(i) - 4} y={TOP + 10} className="ax marker-label" textAnchor="end">
+                {m.label}
+              </text>
+            </g>
+          );
+        })}
         {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
         {bands.map((b) => {
           const i = x.indexOf(b.year);
@@ -347,7 +362,7 @@ export default function LineChart({
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
-            <text x={L - 8} y={sy(v) + 4} className="ax" textAnchor="end">
+            <text x={L - 8} y={sy(v) + 4} className="ax" textAnchor="end" data-axis="">
               {tickFmt(v)}
             </text>
           </g>

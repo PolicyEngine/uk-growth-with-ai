@@ -115,7 +115,8 @@ export function Dumbbells({ sid, hidden = {} }) {
   const step = [0.1, 0.25, 0.5, 1, 2, 5].find((st) => top / st <= 2.5) ?? top;
   const ticks = [];
   for (let t = -Math.floor(top / step) * step; t <= top + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
-  const tickText = (t) => (t === 0 ? '0' : `${t > 0 ? '+' : '−'}${Math.abs(t)}`);
+  const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%`);
+  const ssHeld = !hidden.ss && gap(sid, 'ss', CENTRAL, 'Y') != null;
 
   return (
     <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-AI path, by measure and arm`}>
@@ -137,13 +138,17 @@ export function Dumbbells({ sid, hidden = {} }) {
             <span>
               <span className="db-label-main">{m.label}</span>
               <span className="db-label-sub">{m.sub}</span>
+              {m.v === 'Y' && ssHeld ? (
+                <span className="db-label-held">
+                  <Icon name="alert" size={12} /> Stress test: held at 0 by design
+                </span>
+              ) : null}
             </span>
           </div>
           <div className="db-arms">
             {shown.map((a) => {
               const c = gap(sid, a.id, CENTRAL, m.v);
               const b = gap(sid, a.id, BOUND, m.v);
-              const held = a.id === 'ss' && m.v === 'Y' && c != null;
               const color = ARM_COLOR[a.id];
               // The value sits beyond the outer dot, away from 0, so it never
               // crosses the zero line.
@@ -171,7 +176,7 @@ export function Dumbbells({ sid, hidden = {} }) {
                         ) : null}
                         {b != null ? (
                           <TipTarget
-                            className="db-dot is-hollow"
+                            className="db-dot is-diamond"
                             style={{ left: pct(b), borderColor: color }}
                             label={`${a.label}, closed capital, ${name}: ${fmt(b)}`}
                             tip={<DotTip arm={a.label} closure="Closed capital (none foreign-owned)" measure={name} value={b} />}
@@ -189,7 +194,6 @@ export function Dumbbells({ sid, hidden = {} }) {
                         >
                           {fmt(c)}
                         </span>
-                        {held ? <span className="db-held">held at 0 by design</span> : null}
                       </>
                     )}
                     <span className="visually-hidden">closed capital {fmt(b)}</span>
@@ -204,7 +208,7 @@ export function Dumbbells({ sid, hidden = {} }) {
         <span />
         <div className="db-track db-track-axis">
           {ticks.map((t) => (
-            <span key={t} className="db-tick" style={{ left: pct(t) }}>
+            <span key={t} className="db-tick" style={{ left: pct(t) }} data-axis="">
               {tickText(t)}
             </span>
           ))}
@@ -215,6 +219,56 @@ export function Dumbbells({ sid, hidden = {} }) {
 }
 
 const STRIP_LABEL = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek (upper)' };
+const STRIP_SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
+
+function DotRow({ v, label, icon, sid, onChoose }) {
+  const pts = SCENARIOS.map((s) => ({ id: s.id, x: gap(s.id, 'tfp', CENTRAL, v) }));
+  const xs = pts.filter((p) => p.x != null).map((p) => p.x);
+  const lo = Math.min(0, ...xs);
+  const hi = Math.max(0, ...xs);
+  const pad = (hi - lo || 1) * 0.12;
+  const frac = (x) => ((x - lo + pad) / (hi - lo + 2 * pad)) * 100;
+  const pct = (x) => `${frac(x).toFixed(2)}%`;
+  // Names of dots closer than 12% of the track alternate above and below
+  const below = {};
+  const order = pts.filter((p) => p.x != null).sort((a, b) => a.x - b.x);
+  for (let i = 1; i < order.length; i += 1) {
+    if (frac(order[i].x) - frac(order[i - 1].x) < 12 && !below[order[i - 1].id]) below[order[i].id] = true;
+  }
+  return (
+    <div className="dotrow">
+      <span className="dotrow-label">
+        <Icon name={icon} size={14} />
+        {label}
+      </span>
+      <div className="dotrow-track">
+        <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />
+        {pts.map((p) =>
+          p.x == null ? null : (
+            <TipTarget
+              key={p.id}
+              className={`dotrow-dot${p.id === sid ? ' is-on' : ''}`}
+              style={{ left: pct(p.x) }}
+              label={`${STRIP_LABEL[p.id]}, ${label}: ${fmt(p.x)}. Select this scenario`}
+              onActivate={() => onChoose(p.id)}
+              tip={
+                <>
+                  <b>{STRIP_LABEL[p.id]}</b>
+                  <span>{label}, automation + productivity, central closure, {HEADLINE_YEAR}</span>
+                  <span className="tip-value">{fmt(p.x)}</span>
+                </>
+              }
+            >
+              <span className={`dotrow-name${below[p.id] ? ' is-below' : ''}`} aria-hidden="true">
+                {STRIP_SHORT[p.id]}
+              </span>
+            </TipTarget>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function ScenarioStrip({ sid, onChoose }) {
   return (
@@ -222,22 +276,34 @@ export function ScenarioStrip({ sid, onChoose }) {
       <p className="scen-strip-title">
         Compare scenarios: automation and productivity, central closure, {HEADLINE_YEAR}
       </p>
-      <div className="scen-strip" role="group" aria-label="Compare scenarios">
+      <div className="dotplot">
+        <DotRow v="GNI" label="GNI" icon="home" sid={sid} onChoose={onChoose} />
+        <DotRow v="w" label="Wage rate" icon="wallet" sid={sid} onChoose={onChoose} />
+      </div>
+      <div className="scen-strip" role="group" aria-label="Choose a scenario">
         {SCENARIOS.map((s) => {
           const on = s.id === sid;
+          const g = gap(s.id, 'tfp', CENTRAL, 'GNI');
+          const w = gap(s.id, 'tfp', CENTRAL, 'w');
           return (
             <button key={s.id} type="button" className={`scen-col${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => onChoose(s.id)}>
               <span className="scen-col-name">{STRIP_LABEL[s.id] || s.label}</span>
-              <span className="scen-col-line">
-                <Icon name="home" size={13} />
-                <span className="scen-col-k">GNI</span>
-                <span className="scen-col-v">{fmt(gap(s.id, 'tfp', CENTRAL, 'GNI'))}</span>
-              </span>
-              <span className="scen-col-line">
-                <Icon name="wallet" size={13} />
-                <span className="scen-col-k">Wage rate</span>
-                <span className="scen-col-v">{fmt(gap(s.id, 'tfp', CENTRAL, 'w'))}</span>
-              </span>
+              {g == null ? (
+                <span className="scen-col-empty" aria-label="not solved yet" />
+              ) : (
+                <>
+                  <span className="scen-col-line">
+                    <Icon name="home" size={13} />
+                    <span className="scen-col-k">GNI</span>
+                    <span className="scen-col-v">{fmt(g)}</span>
+                  </span>
+                  <span className="scen-col-line">
+                    <Icon name="wallet" size={13} />
+                    <span className="scen-col-k">Wage rate</span>
+                    <span className="scen-col-v">{fmt(w)}</span>
+                  </span>
+                </>
+              )}
             </button>
           );
         })}

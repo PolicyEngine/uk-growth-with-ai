@@ -8,14 +8,18 @@ const [base, out] = process.argv.slice(2);
 const exe = process.env.CHROMIUM || `${process.env.HOME}/Library/Caches/ms-playwright/chromium-1169/chrome-mac/Chromium.app/Contents/MacOS/Chromium`;
 const browser = await chromium.launch({ executablePath: exe });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-const tabs = ['results', 'finances', 'cohorts', 'method', 'literature', 'code'];
+const tabs = ['results', 'cohorts', 'method', 'literature', 'code'];
 const res = {};
 for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
   res[s] = {};
   for (const t of tabs) {
     await page.goto(`${base}/?tab=${t}&s=${s}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(300);
-    res[s][t] = await page.evaluate((id) => document.getElementById(`tab-${id}`)?.innerText ?? '', t);
+    // Axis ticks are scale, not data: hidden before reading the text.
+    res[s][t] = await page.evaluate((id) => {
+      document.querySelectorAll('[data-axis]').forEach((e) => { e.style.display = 'none'; });
+      return document.getElementById(`tab-${id}`)?.innerText ?? '';
+    }, t);
   }
 }
 fs.writeFileSync(out, JSON.stringify(res));

@@ -2139,3 +2139,400 @@ body {
     margin-bottom: 6px;
   }
 }
+
+/* ---------- Interactive charts: tooltips, toggles, shapes ---------- */
+.tip-target {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+
+.tip-target:focus-visible {
+  box-shadow: 0 0 0 2px var(--pe-surface), 0 0 0 4px var(--pe-teal-500);
+}
+
+.tip-box {
+  position: absolute;
+  z-index: 50;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: var(--tip-padding, 8px 12px);
+  font-size: 12.5px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-200);
+  border-radius: var(--pe-radius-md);
+  box-shadow: 0 4px 16px var(--shadow-soft);
+  pointer-events: none;
+}
+
+.tip-box b {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+
+.tip-box .tip-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tip-box .tip-sub {
+  font-size: 11.5px;
+  color: var(--pe-gray-500);
+}
+
+.tip-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-tip {
+  bottom: auto;
+  top: 0;
+  transform: translate(-50%, -4px);
+  min-width: 190px;
+}
+
+.linechart.is-interactive {
+  position: relative;
+  outline: none;
+  border-radius: 6px;
+}
+
+.linechart.is-interactive:focus-visible {
+  box-shadow: 0 0 0 2px var(--pe-teal-500);
+}
+
+.linechart .crosshair {
+  stroke: var(--pe-gray-400);
+  stroke-width: 1;
+}
+
+.linechart .marker-line {
+  stroke: var(--pe-gray-600);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.linechart .marker-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--pe-gray-700);
+}
+
+.line-key {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 0;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-600);
+}
+
+.line-key .swatch:not(:first-child) {
+  margin-left: 12px;
+}
+
+.line-key .plain-icon {
+  display: inline-flex;
+}
+
+.legend-toggle {
+  padding: 3px 8px;
+  font-family: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.legend-toggle:hover {
+  background: var(--c-hover);
+}
+
+.legend-toggle[aria-pressed='false'] {
+  border-color: var(--pe-gray-200);
+}
+
+.arm-tag.is-off {
+  color: var(--pe-gray-400);
+  text-decoration: line-through;
+}
+
+.arm-tag.is-off .swatch {
+  opacity: 0.35;
+}
+
+.arm-tag.is-light {
+  font-weight: 500;
+}
+
+.db-arm.is-light .db-dot {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+}
+
+.db-arm.is-light .db-value {
+  font-weight: 500;
+  color: var(--pe-gray-600);
+}
+
+.db-arm.is-light .db-bar {
+  opacity: 0.3;
+}
+
+.db-dot.is-diamond {
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 1px;
+  background: var(--pe-surface);
+  transform: rotate(45deg);
+}
+
+.db-dot.is-diamond .tip-box {
+  transform: rotate(-45deg) translateX(-50%);
+  transform-origin: left bottom;
+}
+
+.db-label-held {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: var(--fs-micro);
+  font-style: italic;
+  color: var(--pe-gray-500);
+}
+
+.key-diamond {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 10px;
+  border: 2px solid var(--pe-gray-700);
+  border-radius: 1px;
+  background: var(--pe-surface);
+  transform: rotate(45deg);
+}
+
+/* Scenario dot plot */
+.dotplot {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 4px 0 16px;
+}
+
+.dotrow {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.dotrow-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+
+.dotrow-track {
+  position: relative;
+  height: 30px;
+  margin: 0 16px;
+  border-bottom: 1px solid var(--pe-gray-200);
+}
+
+.dotrow-dot {
+  position: absolute;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  background: var(--pe-surface);
+  border: 2px solid var(--series-1);
+  border-radius: 50%;
+}
+
+.dotrow-dot.is-on {
+  width: 16px;
+  height: 16px;
+  top: 16px;
+  margin-left: -8px;
+  background: var(--series-1);
+  border-color: var(--band-teal);
+}
+
+.dotrow-name {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  color: var(--pe-gray-500);
+  white-space: nowrap;
+}
+
+.dotrow-dot.is-on .dotrow-name {
+  font-weight: 700;
+  color: var(--band-teal);
+}
+
+.scen-col-empty {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 34px;
+  border: 1px dashed var(--pe-gray-300);
+  border-radius: 6px;
+}
+
+/* Small multiples */
+.mini-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 16px 12px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+
+.mini-chart {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  column-gap: 6px;
+}
+
+.mini-plot {
+  position: relative;
+}
+
+.mini-plot svg {
+  display: block;
+  overflow: visible;
+}
+
+.mini-zero-label {
+  position: absolute;
+  left: 0;
+  transform: translateY(-110%);
+  font-size: 10px;
+  font-style: italic;
+  color: var(--pe-gray-500);
+  pointer-events: none;
+}
+
+.mini-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border: 2px solid var(--pe-surface);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.mini-ends {
+  position: relative;
+}
+
+.mini-end {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mini-tip {
+  min-width: 200px;
+}
+
+.var-group-unit {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.grid-axis {
+  margin-top: 14px;
+}
+
+.bar-pair-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 120px;
+  margin-right: 140px;
+  font-size: 10.5px;
+  color: var(--c-tick);
+}
+
+.bar-pair-track {
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .dotrow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .bar-pair-scale {
+    margin-left: 106px;
+    margin-right: 102px;
+  }
+}
+
+/* Tooltip targets that are placed on a track keep their absolute place */
+.db-dot.tip-target,
+.dotrow-dot.tip-target {
+  position: absolute;
+}
+
+.dot-key .key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 10px;
+}
+
+.dot-key .key-item .key-diamond,
+.dot-key .key-item .key-dot {
+  margin-left: 0;
+  flex: none;
+}
+
+.dotrow-name.is-below {
+  bottom: auto;
+  top: calc(100% + 2px);
+}
+
+.dotrow + .dotrow {
+  margin-top: 6px;
+}
+
+.scen-col-k {
+  white-space: nowrap;
+}

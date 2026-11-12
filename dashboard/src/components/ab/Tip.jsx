@@ -31,8 +31,11 @@ export function TipBox({ children, className = '', style }) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const vw = document.documentElement.clientWidth;
+    if (!vw) return;
     const r = el.getBoundingClientRect();
-    const next = dx + clampShift(r.left, r.right, document.documentElement.clientWidth);
+    // the shift from the box's unshifted place, so repeated renders agree
+    const next = clampShift(r.left - dx, r.right - dx, vw);
     if (Math.abs(next - dx) > 0.5) setDx(next);
   });
   return (
@@ -43,7 +46,7 @@ export function TipBox({ children, className = '', style }) {
 }
 
 // A focusable target that shows a tooltip on hover, keyboard focus or tap.
-export function TipTarget({ tip, label, className = '', style, children }) {
+export function TipTarget({ tip, label, className = '', style, children, onActivate }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useOutside(ref, open, () => setOpen(false));
@@ -59,9 +62,16 @@ export function TipTarget({ tip, label, className = '', style, children }) {
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
-      onClick={() => setOpen(true)}
+      onClick={() => {
+        setOpen(true);
+        onActivate?.();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Escape') setOpen(false);
+        if (onActivate && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onActivate();
+        }
       }}
     >
       {children}
