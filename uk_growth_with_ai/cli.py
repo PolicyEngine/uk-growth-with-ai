@@ -53,7 +53,10 @@ def main(argv=None) -> int:
                                         "per call; see uk_growth_with_ai/rerun.py")
     p_re.add_argument("action", choices=["next", "step", "gate", "assemble", "status"])
     p_re.add_argument("--closure", required=True, choices=["zk0.1", "zk0"])
-    p_re.add_argument("--stage", choices=["baseline", "arms"], default="baseline")
+    p_re.add_argument("--stage", choices=["baseline", "arms", "arms_fs"], default="baseline",
+                      help="arms_fs: the fixed-spending arms (G and TR at baseline levels)")
+    p_re.add_argument("--fixed-spending", action="store_true",
+                      help="assemble: the fixed-spending variant")
     p_re.add_argument("--outdir", default="analysis/rerun/output")
     p_re.add_argument("--work", default=None, help="scratch dir for SS/TPI pickles")
     p_re.add_argument("--prior-dir", default="analysis/closure/output",
@@ -155,8 +158,11 @@ def _rerun(args) -> int:
             print(f"{k}: {r['elapsed_min']:.1f} min, converged "
                   f"{r['diagnostics'].get('tpi_converged')}")
         return 0
-    res = rerun.assemble(args.outdir, args.closure)
-    out = Path(args.out or f"uk_growth_with_ai/data/scenarios_{args.closure}.json")
+    res = rerun.assemble(args.outdir, args.closure, fs=args.fixed_spending)
+    stem = "scenarios_fixed_spending" if args.fixed_spending else "scenarios"
+    default = (f"uk_growth_with_ai/data/{stem}.json" if args.closure == "zk0.1"
+               else f"uk_growth_with_ai/data/{stem}_{args.closure}.json")
+    out = Path(args.out or default)
     out.write_text(json.dumps(res, indent=1))
     print("wrote", out)
     return 0

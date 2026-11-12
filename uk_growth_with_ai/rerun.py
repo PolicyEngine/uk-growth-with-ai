@@ -158,51 +158,80 @@ def next_baseline(done, closure, prior_dir=None):
 
 # --- arms (R3 closure, R4) -----------------------------------------------------
 
-def r4_points(done: dict, base: dict) -> list[tuple[float, float, str]]:
-    keys = ["share_shift_ramp_zfixed"] + sorted(
-        (k for k in done if k.startswith("share_shift_ramp_r4_")),
+# Fixed-spending variant (``run --baseline-spending``, the OBR convention):
+# the arms hold G and TR at the baseline's LEVELS.  Same baselines, same
+# plan, labels suffixed FS ("share_shift_tfp_ramp_fs", "share_shift_ramp_zfixed_fs",
+# "share_shift_ramp_fs_r4_<n>").
+FS = "_fs"
+
+
+def _keys(fs=False):
+    x = FS if fs else ""
+    return {"tfp": f"share_shift_tfp_ramp{x}", "zfixed": f"share_shift_ramp_zfixed{x}",
+            "r4": f"share_shift_ramp{x}_r4_"}
+
+
+def r4_points(done: dict, base: dict, fs=False) -> list[tuple[float, float, str]]:
+    k = _keys(fs)
+    keys = [k["zfixed"]] + sorted(
+        (x for x in done if x.startswith(k["r4"])),
         key=lambda k: int(k.rsplit("_", 1)[1]))
     return [(math.log(done[k]["Z_terminal"]), _gap(done[k], base), k)
             for k in keys if k in done]
 
 
-def accepted_r4(done, base):
-    pts = [p for p in r4_points(done, base) if abs(p[1]) <= R4_TOL_PP]
+def accepted_r4(done, base, fs=False):
+    pts = [p for p in r4_points(done, base, fs) if abs(p[1]) <= R4_TOL_PP]
     return done[min(pts, key=lambda p: abs(p[1]))[2]] if pts else None
 
 
-def next_arm(done, closure):
+def _first_slope(done, base, fs):
+    """pp of 2030 GDP gap per unit of ln Z for the first R4 step.  The
+    fixed-spending variant starts from the common-G/Y secant at the same
+    closure when there is one (same arm, same baseline, nearby Z)."""
+    if fs:
+        pts = r4_points(done, base, fs=False)
+        if len(pts) >= 2:
+            (z0, g0, _), (z1, g1, _) = pts[-2], pts[-1]
+            return (g1 - g0) / (z1 - z0), "slope from the common-G/Y R4 secant"
+    return 100 * R4_SLOPE0, f"d lnY/d lnZ = {R4_SLOPE0}"
+
+
+def next_arm(done, closure, fs=False):
     base = accepted_baseline(done)
     if base is None:
         raise RuntimeError(f"{closure}: no accepted baseline; run the baseline stage")
     cal = {n: solve_scenario(s, base["K"][0], base["L"][0], G_BASE)
            for n, s in SCENARIOS.items()}
-    common = {"base_label": base["label"], "alpha_G": base["alpha_G_used"]}
-    if "share_shift_tfp_ramp" not in done:
-        return {"label": "share_shift_tfp_ramp", "arm": "share_shift_tfp",
+    common = {"base_label": base["label"], "alpha_G": base["alpha_G_used"],
+              "baseline_spending": bool(fs)}
+    k = _keys(fs)
+    if k["tfp"] not in done:
+        return {"label": k["tfp"], "arm": "share_shift_tfp",
                 "Z": cal["share_shift_tfp"]["Z"], "gamma": cal["share_shift_tfp"]["gamma"],
                 "why": "fixed-input Z (+3.1% at baseline 2026 K, L)", **common}
     ss = cal["share_shift"]
-    if "share_shift_ramp_zfixed" not in done:
-        return {"label": "share_shift_ramp_zfixed", "arm": "share_shift", "Z": ss["Z"],
+    if k["zfixed"] not in done:
+        return {"label": k["zfixed"], "arm": "share_shift", "Z": ss["Z"],
                 "gamma": ss["gamma"], "why": "fixed-input Z (zero technology wedge); "
                 "R4 secant point 0", **common}
-    if accepted_r4(done, base) is not None:
+    if accepted_r4(done, base, fs) is not None:
         return None
-    pts = r4_points(done, base)
+    pts = r4_points(done, base, fs)
     n = len(pts) - 1
     if n >= MAX_R4_ITER:
         raise RuntimeError(f"{closure}: R4 did not reach |gap| <= {R4_TOL_PP}pp in "
                            f"{MAX_R4_ITER} iterations: {pts}")
     if len(pts) == 1:
-        lz = pts[0][0] - pts[0][1] / 100 / R4_SLOPE0
-        why = f"Newton step, d lnY/d lnZ = {R4_SLOPE0}"
+        slope, src = _first_slope(done, base, fs)
+        lz = pts[0][0] - pts[0][1] / slope
+        why = f"Newton step, {src} ({slope:.1f} pp per unit ln Z)"
     else:
         (z0, g0, _), (z1, g1, _) = pts[-2], pts[-1]
         slope = (g1 - g0) / (z1 - z0)
         lz = z1 - g1 / slope
         why = f"secant, d gap(pp)/d lnZ = {slope:.1f}"
-    return {"label": f"share_shift_ramp_r4_{n + 1}", "arm": "share_shift",
+    return {"label": f"{k['r4']}{n + 1}", "arm": "share_shift",
             "Z": float(math.exp(lz)), "gamma": ss["gamma"], "why": why, **common}
 
 
@@ -218,7 +247,7 @@ def next_step(outdir, closure, stage, prior_dir=None):
     if not gate_ok(outdir, closure):
         raise RuntimeError(f"{closure}: the baseline sanity gate is not approved "
                            f"({Path(outdir) / closure / 'GATE_baseline.json'})")
-    return next_arm(done, closure)
+    return next_arm(done, closure, fs=(stage == "arms_fs"))
 
 
 # --- one solve ------------------------------------------------------------------
@@ -269,7 +298,9 @@ def run_step(outdir, closure, stage, work, prior_dir=None) -> dict | None:
             adir = work / spec["label"]
             rec = run_arm(f"{closure} {spec['label']}", spec["gamma"], True, spec["Z"],
                           str(bdir), client, handles, alpha_G=spec["alpha_G"],
-                          out_dir=str(adir), **settings)
+                          out_dir=str(adir),
+                          baseline_spending=spec.get("baseline_spending", False),
+                          **settings)
     finally:
         client.close()
     rec.update({"label": spec["label"], "closure_label": closure, "stage": stage,
@@ -285,20 +316,22 @@ def run_step(outdir, closure, stage, work, prior_dir=None) -> dict | None:
 
 # --- the results file -------------------------------------------------------------
 
-def assemble(outdir, closure) -> dict:
-    """The results file for one closure, in the schema `check` and `dashboard` read."""
-    from .solve import provenance
+def assemble(outdir, closure, fs=False) -> dict:
+    """The results file for one closure, in the schema `check` and `dashboard` read.
+
+    ``fs``: the fixed-spending variant (arms hold G and TR at baseline levels)."""
     done = load(outdir, closure)
     base = accepted_baseline(done)
     if base is None:
         raise RuntimeError(f"{closure}: no accepted baseline")
-    tfp = done.get("share_shift_tfp_ramp")
-    ss = accepted_r4(done, base)
+    k = _keys(fs)
+    tfp = done.get(k["tfp"])
+    ss = accepted_r4(done, base, fs)
     if tfp is None or ss is None:
         raise RuntimeError(f"{closure}: arms incomplete (share_shift_tfp_ramp "
                            f"{'ok' if tfp else 'missing'}, share_shift R4 "
                            f"{'ok' if ss else 'not converged'})")
-    zf = done["share_shift_ramp_zfixed"]
+    zf = done[k["zfixed"]]
     for r in (base, tfp, ss, zf):
         r["closure"] = closure_record(r, closure)
         r["closure_label"] = closure
@@ -339,7 +372,8 @@ def assemble(outdir, closure) -> dict:
                 f"is zero (R4, #8); the fixed-input Z, a zero technology wedge at the "
                 f"baseline's 2026 K and L, is Z_share_shift_fixed_input"),
             "counterfactual": "shocked arms inherit baseline initial assets and debt",
-            "fiscal": "every arm uses the baseline's alpha_G",
+            "fiscal": ("shocked arms hold G and TR at the baseline's levels (baseline_spending)"
+                       if fs else "every arm uses the baseline's alpha_G"),
             "closure": cl,
             "debt_calibration": {
                 "rule": "baseline pre-tG1 G/Y = steady-state G/Y + alpha_G_shift, "
@@ -351,8 +385,8 @@ def assemble(outdir, closure) -> dict:
                 "passes": [{"label": r["label"], "alpha_G_shift": r["alpha_G_shift"],
                             "debt_gdp_2030": _dy(r)} for r in baseline_passes(done)],
             },
-            "r4_iterations": [{"label": k, "Z": math.exp(lz), "gdp_gap_pct": g}
-                              for lz, g, k in r4_points(done, base)],
+            "r4_iterations": [{"label": lab, "Z": math.exp(lz), "gdp_gap_pct": g}
+                              for lz, g, lab in r4_points(done, base, fs)],
             "demographics": "UK-consistent pre-TP inputs and the 2027->28 data-splice "
                             "repair (uk_growth_with_ai.demography)",
             "tG1": TG1, "g_y_annual": G_Y_ANNUAL, "g_n_source": "vendored",

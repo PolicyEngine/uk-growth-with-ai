@@ -141,3 +141,24 @@ def test_run_step_keeps_the_closure_dict(monkeypatch):
     import inspect
     src = inspect.getsource(rerun.run_step)
     assert '"closure_label": closure' in src and '"closure": closure' not in src
+
+
+def test_fixed_spending_plan_uses_its_own_labels_and_the_main_slope(tmp_path, monkeypatch):
+    monkeypatch.setattr(rerun, "debt_target_2030", lambda: 95.0)
+    _write(tmp_path, "zk0", [_rec("baseline_p0", 95.0)])
+    (tmp_path / "zk0" / "GATE_baseline.json").write_text(json.dumps({"approved": True}))
+    # main variant: done, secant slope 200pp per unit ln Z
+    _write(tmp_path, "zk0", [_rec("share_shift_tfp_ramp", Z=0.97),
+                             _rec("share_shift_ramp_zfixed", Y=[1, 1, 1, 1, 1.02], Z=0.95),
+                             _rec("share_shift_ramp_r4_1", Y=[1, 1, 1, 1, 1.0],
+                                  Z=0.95 * math.exp(-0.01))])
+    assert rerun.next_step(tmp_path, "zk0", "arms") is None
+    s = rerun.next_step(tmp_path, "zk0", "arms_fs")
+    assert s["label"] == "share_shift_tfp_ramp_fs" and s["baseline_spending"] is True
+    _write(tmp_path, "zk0", [_rec("share_shift_tfp_ramp_fs", Z=0.97)])
+    s = rerun.next_step(tmp_path, "zk0", "arms_fs")
+    assert s["label"] == "share_shift_ramp_zfixed_fs"
+    _write(tmp_path, "zk0", [_rec("share_shift_ramp_zfixed_fs", Y=[1, 1, 1, 1, 1.01], Z=s["Z"])])
+    s2 = rerun.next_step(tmp_path, "zk0", "arms_fs")
+    assert s2["label"] == "share_shift_ramp_fs_r4_1"
+    assert math.log(s2["Z"]) == pytest.approx(math.log(s["Z"]) - 1.0 / 200.0)

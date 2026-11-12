@@ -46,6 +46,11 @@ def accepted(c):
         out.append("share_shift_ramp_zfixed")
     if base and (r4 := rerun.accepted_r4(done, base)):
         out.append(r4["label"])
+    for k in ("share_shift_tfp_ramp_fs", "share_shift_ramp_zfixed_fs"):   # fixed spending
+        if k in done:
+            out.append(k)
+    if base and (r4 := rerun.accepted_r4(done, base, fs=True)):
+        out.append(r4["label"])
     return out
 
 
