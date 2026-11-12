@@ -1,5 +1,6 @@
 """Markdown progress table for the R1-R4 rerun comment on #27 (driver.sh)."""
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -23,11 +24,13 @@ for c in ("zk0.1", "zk0"):
     g = d / "GATE_baseline.json"
     if g.exists():
         rows.append(f"| `{c}` | baseline gate | approved | | | {json.loads(g.read_text())['baseline']} |")
-body = ["**R1–R4 rerun progress** (branch `rerun/r1-r4`; auto-updated after each solve; "
+branch = os.environ.get("BRANCH", "rerun/r1-r4")
+body = [f"**R1–R4 rerun progress** (branch `{branch}`; auto-updated after each solve; "
         "one OG solve at a time; restart with `analysis/rerun/driver.sh`, which skips finished solves).",
         "", "| closure | solve | status | TPI converged | RC/GDP 2026 / 2028 | note |",
         "|---|---|---|---|---|---|", *rows, "",
         "Pending: baseline passes until 2030 debt/GDP is within 0.1pp of the OBR's 95.05%, "
         "the sanity gate, then per closure `share_shift_tfp_ramp`, `share_shift_ramp_zfixed` "
-        "and the R4 secant on `share_shift`. Closures: `zeta_K` = 0.1 then 0."]
+        "and the R4 secant on `share_shift`; then the same three under fixed spending "
+        "(`*_fs`, G and TR at baseline levels). Closures: `zeta_K` = 0.1 then 0."]
 print("\n".join(body))

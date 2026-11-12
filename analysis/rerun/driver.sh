@@ -15,7 +15,7 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${PY:?set PY to the OG-UK venv python}"
 WORK="${WORK:?set WORK to a scratch directory}"
 STAGE="$1"; shift
-BRANCH="rerun/r1-r4"
+BRANCH="${BRANCH:-$(git -C "$REPO" branch --show-current)}"   # push to the checked-out branch
 OUT="$REPO/analysis/rerun/output"
 mkdir -p "$WORK" "$OUT"
 : > "$WORK/un_api_token.txt"   # empty: OG-Core reads the GitHub mirror, as every run so far
@@ -35,7 +35,7 @@ push() {
 
 progress() {
   local body id
-  body="$("$PY" "$REPO/analysis/rerun/progress.py" "$OUT")" || return 0
+  body="$(BRANCH="$BRANCH" "$PY" "$REPO/analysis/rerun/progress.py" "$OUT")" || return 0
   id="$(cat "$WORK/progress_comment_id" 2>/dev/null)"
   if [[ -n "$id" ]]; then
     gh api -X PATCH "repos/PolicyEngine/uk-growth-with-ai/issues/comments/$id" \
