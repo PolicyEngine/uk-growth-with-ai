@@ -19,8 +19,8 @@ const CHANNELS = [
     channel: 'Productivity',
     what: 'AI makes production more efficient',
     oguk: <>
-      Z, total factor productivity, rises from 1 to a value solved for each scenario&rsquo;s target
-      (steps 4&ndash;5).
+      Z, total factor productivity, moves from 1 to a value solved for each scenario&rsquo;s target, below 1 in
+      both (steps 4&ndash;5 and 7).
     </>,
     status: 'in',
   },

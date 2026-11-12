@@ -22,6 +22,11 @@ const ext = (href, text) => (
 const MEAN = meanGrowth('baseline');
 const GROW_YEARS = `${YEARS[1]}–${String(YEARS[YEARS.length - 1]).slice(2)}`;
 const pp = (x) => `${signed(x, 2)}pp`;
+// The OBR publishes its 2027-30 average to one decimal place (EFO para 1.9),
+// so the comparison with it is made at that precision.
+const OBR_GROWTH = OBR.growth2027to30.toFixed(1);
+const GROWTH_SAME = MEAN.toFixed(1) === OBR_GROWTH;
+const GROWTH_GAP = `${signed(MEAN - OBR.growth2027to30, 1)}pp`;
 const COMPONENTS = [
   // [label, OBR label, OBR value, OG-UK label, OG-UK value, dp]
   ['Productivity growth', 'productivity, medium term (¶1.2)', OBR.productivity, '\\(e^{g_y}-1\\)', PRODUCTIVITY],
@@ -85,8 +90,8 @@ export const COVERAGE_STEPS = [
           <li>
             <b>Augmentation</b>, productivity without displacement: Korinek et al.&rsquo;s share 1&minus;&psi; and
             the OBR&rsquo;s &ldquo;raising productivity for workers who remain&rdquo;. In OG-UK only the Automation
-            + productivity scenario has it; in Automation only, &gamma; and Z together leave output at fixed
-            inputs unchanged. Moll and Imas model pure automation.
+            + productivity scenario has it; in Automation only, Z is set so that &gamma; and Z together leave
+            {' '}2030 GDP unchanged, which lowers output at fixed inputs. Moll and Imas model pure automation.
           </li>
         </ol>
       </>
@@ -189,7 +194,7 @@ export const COVERAGE_STEPS = [
       <>
         <p className="key-point">
           OG-UK&rsquo;s OBR-central baseline grows {MEAN.toFixed(2)}% a year on average over {GROW_YEARS}, against the
-          OBR&rsquo;s {OBR.growth2027to30.toFixed(2)}%: a gap of {pp(MEAN - OBR.growth2027to30)}.
+          OBR&rsquo;s {OBR_GROWTH}%: {GROWTH_SAME ? 'the same to one decimal place, the precision the OBR publishes' : `a gap of ${GROWTH_GAP}`}.
         </p>
         <p>
           Every scenario is measured against the OBR-central baseline, so the baseline is checked against the
@@ -241,8 +246,9 @@ export const COVERAGE_STEPS = [
         <p>
           The OBR also publishes borrowing ({OBR.borrowing2425}% of GDP in 2024-25 and {OBR.borrowing2526}% in
           2025-26, falling to {OBR.borrowing3031}% in 2030-31; {ext(efo(EFO_PAGE.p1_3), 'paragraph 1.3')}), debt and receipts. OG-UK produces all three, and
-          its own ratios to GDP differ from the data (<Cv id="levels" />); a year-by-year comparison has not been
-          run.
+          its own ratios to GDP differ from the data (<Cv id="levels" />). The baseline&rsquo;s debt/GDP is
+          calibrated to the OBR&rsquo;s in 2030 only (<Cv id="fiscal" />); borrowing and receipts have not been
+          compared year by year.
         </p>
         <p>
           OG-UK is weakest where Korinek et al. are strongest (adoption, reinstatement, unemployment) and strongest
@@ -313,7 +319,7 @@ export const COVERAGE_PANELS = [
   ]},
   { title: 'Headline test', badge: 'Step 7', sections: [
     { label: `Real GDP growth, ${GROW_YEARS} average`, type: 'grid', cols: ['OBR', 'OG-UK', 'Gap'], rows: [
-      { label: 'Real GDP growth', cells: [`${OBR.growth2027to30.toFixed(2)}%`, `${MEAN.toFixed(2)}%`, pp(MEAN - OBR.growth2027to30)] },
+      { label: 'Real GDP growth', cells: [`${OBR_GROWTH}%`, `${MEAN.toFixed(2)}%`, GROWTH_GAP] },
     ]},
     { label: 'Source', type: 'output', lines: [
       i('OBR, EFO March 2026, ¶1.9; OG-UK OBR-central baseline', 'info', ''),

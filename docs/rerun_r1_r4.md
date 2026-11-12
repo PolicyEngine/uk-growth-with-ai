@@ -37,7 +37,7 @@ Tables are printed by `python3 analysis/rerun/summarise.py`. Per-arm sanity outp
   - Bringing in the debt rule earlier (`tG1`) would make G differ across arms inside the reporting window, which is the defect #3 removed.
   - The cost is that G/Y moves further from the data: 29.9% (zk0.1) and 30.2% (zk0) against the OBR's 21.5%. Tax/GDP stays at 42.2% against 37.0%. The model's level ratios were already off and remain so; the dashboard's levels caveat covers this.
   - The G comparison is not like for like (added in the review of #33). The 21.5% is general government final consumption only, which leaves out public investment (`obr_history.json`, panel definition). Model G is all spending other than transfers (6.0% of GDP), pensions (4.7%) and interest, and the model has no separate public investment (I_g = 0). The repository holds no OBR series for total spending to set model G against. On tax, the same file gives two UK measures for 2026-27: National Accounts taxes at 37.0% and public sector current receipts at 41.2%. Model revenue of 42.2% is 5.2pp above the first and 1.0pp above the second; which one OG-UK's tax functions correspond to is not established here.
-- **What is matched.** The model is real, so flat debt needs a surplus of (r_gov − g)·D/Y. The calibrated surplus is 1.65% → 1.51% of GDP (zk0.1) and 2.01% → 1.89% (zk0). The OBR's nominal primary balance is not in the repository and was not fetched. The debt path is matched; the primary balance is matched only in that sense.
+- **What is matched.** The model is real, so flat debt needs a surplus of (r_gov − g)·D/Y. The calibrated surplus is 1.65% → 1.51% of GDP (zk0.1) and 2.01% → 1.89% (zk0). The OBR's nominal primary balance is not in the repository and was not fetched. The 2030 debt/GDP is matched, not the path (the model is 1.4pp below the OBR in 2028); the primary balance is matched only in that sense.
 - **After 2030.** The window share runs to 2035, and the debt rule starts in 2036. Baseline debt/GDP rises to 96.5% (zk0.1) and 96.3% (zk0) by 2035. This is outside the reporting window and is disclosed here.
 
 **R4: `share_shift` GDP (#8).**
@@ -182,7 +182,7 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 - **`share_shift` (R4): about half is interest at 0.1.** Of the +2.29pp, about 1.2pp is the lower primary balance in 2026–29 (tax/GDP −0.63pp by 2030) and about 1.1pp is the higher gilt rate. At 0 it is about 0.3pp and 1.6pp of +1.91pp. The gap keeps widening: +3.49, +4.71, +5.95, +7.21, +8.52pp in 2031–35 at 0.1, and +2.80, +3.69, +4.59, +5.51, +6.44pp at 0.
 - **Reading.** The debt rule is off until 2036, so nothing closes these gaps inside the exported years. Quote a 2030 debt gap with its sign in 2035, and with the repricing assumption.
 
-**The baseline.** The level path is now on the OBR's debt path, and the residuals are gone.
+**The baseline.** Debt/GDP now matches the OBR's in 2030 (the path in between is flatter than the OBR's), and the residuals are gone.
 - **Investment.** I/Y now runs smoothly at 19.1% → 19.3%, against the old 20.3% → 19.6% jump between 2026 and 2027.
 - **GDP growth.** Growth in 2027–30 averages 1.57% (1.68% before), against the OBR's 1.6%.
 - **Crowding out.** By 2030 the new baseline has K 0.75% lower and r 5bp higher than the #30 pre-TP baseline (zk0.1). The two runs differ only in the debt path and the 2027→28 splice repair. At zk0, against the #30 stock-demographics baseline, it is K −1.18% and r +9bp. That figure combines the debt path and the demographics fix, with no foreign capital to offset either.
@@ -254,5 +254,5 @@ Run on 12 Nov 2026 (branch `rerun/fixed-spending`, approved by Vahid).
 ## Not done
 
 - **R5** (smooth ramp) was not run, by decision.
-- **Dashboard copy is unchanged.** The data files are regenerated from `scenarios.json`. Copy that describes the old numbers or the 2026 residual needs the separate copy pass.
+- **Dashboard copy** was updated in the separate copy pass (`dashboard/rerun-copy`, #21): GNI first, the `zeta_K = 0` bound beside it, debt gaps with their 2035 values.
 - **The world rate and `zeta_D`** were not varied (#30 did not vary them either).

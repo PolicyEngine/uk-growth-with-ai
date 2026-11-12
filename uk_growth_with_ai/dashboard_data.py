@@ -10,6 +10,10 @@ Inputs, all in ``data/``:
 ``obr_history.json``        OBR/ONS outturn and March 2026 EFO forecast lines, with
                             per-panel provenance, and chart panel layout
 ``anthropic_us_2030.json``  Anthropic's published US 2030 endpoints
+``scenarios_zk0.json``      the closed-capital bound (``zeta_K = 0``), shown beside
+                            the central closure (``zeta_K = 0.1``, #16, #27)
+``analysis/closure/output/zk0.5_*.json``  the #30 high-inflow solve (before R1-R4),
+                            read for its 2030 wage gap only
 ``scenarios_fixed_spending.json``  optional: the same arms with government
                             spending and transfers held at baseline levels
                             (``run --baseline-spending``), the OBR convention
@@ -35,7 +39,7 @@ YEARS = [2026, 2027, 2028, 2029, 2030]
 ARMS = ["baseline", *SHOCKED_ARMS]
 VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
-        ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]
+        ["w", "Wage rate (per efficiency unit)"], ["K", "Capital stock"], ["L", "Labour"]]
 
 # The 2000-2030 chart shows the scenario paths over every model year.
 PATH_YEARS = YEARS
@@ -61,6 +65,78 @@ def _read(name: str) -> dict:
     return json.loads((DATA / name).read_text())
 
 
+# The closed-capital bound and the #30 high-inflow solve (zeta_K = 0.5).
+BOUND_RESULTS = DATA / "scenarios_zk0.json"
+HIGH_INFLOW_DIR = Path(__file__).resolve().parent.parent / "analysis" / "closure" / "output"
+SHOCKED = [a for a in ARMS if a != "baseline"]
+
+
+def closure_gaps(res: dict) -> dict:
+    """Gaps against the closure's own baseline over every exported year (2026-2035).
+
+    GDP, GNI and wage gaps in %; debt/GDP gap in pp; the rise in r in basis
+    points; the foreign-owned share of the extra capital (None where the
+    capital gap is zero).  Also the baseline's income paid abroad and its
+    debt/GDP, both in % of GDP.
+    """
+    b = res["baseline"]["series"]
+    years = res["baseline"]["years"]
+    n = len(years)
+
+    def arm_block(arm):
+        s = res[arm]["series"]
+        gap = lambda v: [(s[v][i] / b[v][i] - 1) * 100 for i in range(n)]
+        dk = [s["K"][i] - b["K"][i] for i in range(n)]
+        return {
+            "Y": gap("Y"), "GNI": gap("GNI"), "w": gap("w"),
+            "debt_gdp_pp": [(s["D"][i] / s["Y"][i] - b["D"][i] / b["Y"][i]) * 100
+                            for i in range(n)],
+            "r_bp": [(s["r"][i] - b["r"][i]) * 1e4 for i in range(n)],
+            "foreign_share_K": [None if abs(dk[i]) < 1e-12 else
+                                (s["K_f"][i] - b["K_f"][i]) / dk[i] * 100 for i in range(n)],
+        }
+
+    return {
+        "zeta_K": res["assumptions"]["closure"]["zeta_K"],
+        "years": years,
+        "baseline": {
+            "abroad_pct_gdp": [(1 - b["GNI"][i] / b["Y"][i]) * 100 for i in range(n)],
+            "debt_gdp": [b["D"][i] / b["Y"][i] * 100 for i in range(n)],
+            # log change in the detrended K/L since 2026, x100: the baseline's
+            # drift away from the inputs the Z targets are set at (#21)
+            "kl_log_change": [float(np.log(b["K"][i] / b["L"][i] / (b["K"][0] / b["L"][0])) * 100)
+                              for i in range(n)],
+        },
+        "arms": {a: arm_block(a) for a in SHOCKED},
+    }
+
+
+def high_inflow_wage() -> dict:
+    """2030 wage gap of share_shift_tfp at zeta_K = 0.5, from the #30 solves."""
+    arm = json.loads((HIGH_INFLOW_DIR / "zk0.5_share_shift_tfp_ramp.json").read_text())
+    base = json.loads((HIGH_INFLOW_DIR / "zk0.5_baseline.json").read_text())
+    i = arm["years"].index(2030)
+    return {
+        "zeta_K": arm["zeta_K"],
+        "w_gap_2030": (arm["series"]["w"][i] / base["series"]["w"][i] - 1) * 100,
+        "source": "#30 closure-sensitivity solve, before the R1-R4 reruns "
+                  "(stock demographics, no debt calibration)",
+    }
+
+
+def closures(results=None) -> dict:
+    """The central closure, the closed-capital bound, and the OBR's debt path."""
+    res = results if results is not None else load_results()
+    obr = next(p["obr"] for p in _read("obr_history.json")["panels"] if p["var"] == "D")
+    obr_d = dict(zip(obr["x"], obr["y"]))
+    return {
+        "central": closure_gaps(res),
+        "bound": closure_gaps(load_results(BOUND_RESULTS)),
+        "high_inflow": high_inflow_wage(),
+        "obr_debt_gdp": [obr_d[y] for y in YEARS],
+    }
+
+
 def ai_scenarios(results=None, oguk_dir=None) -> dict:
     res = results if results is not None else load_results()
     g_n, g_y = load_trend_params(oguk_dir, res)
@@ -81,6 +157,7 @@ def ai_scenarios(results=None, oguk_dir=None) -> dict:
         "assum": res["assumptions"],
         "derivation": DERIVATION,
         "model_ratios": model_ratios(res),
+        "closures": closures(res),
         **({"fixed_spending": fs} if (fs := fixed_spending(res)) else {}),
     }
 
