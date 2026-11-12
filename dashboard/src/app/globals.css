@@ -1591,3 +1591,11 @@
   margin: 0 0 16px; padding: 10px 14px; border-left: 3px solid var(--chart-uk-obr);
   background: var(--status-partial-bg); font-size: 0.875rem; line-height: 1.5;
 }
+@media (max-width: 639px) {
+  /* Four figure columns: tighter type so 2dp values fit at 390px. */
+  .headline-table th, .headline-table td { padding: 10px 4px; }
+  .headline-table thead th:first-child { width: 24%; }
+  .headline-table .headline-value { font-size: 0.95rem; letter-spacing: -0.03em; }
+  .headline-table .headline-value.is-pending { font-size: 0.78rem; }
+  .headline-table .headline-bound { font-size: 0.62rem; }
+}

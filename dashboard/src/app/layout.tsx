@@ -5,7 +5,7 @@ import './panels.css';
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = 'The Macroeconomic Effects of AI on the UK';
 const DESCRIPTION =
-  'A 3.9pp rise in the capital share, with a 3.1% output gain at fixed inputs or with GDP unchanged in 2030 (sizes from Korinek et al. 2026), run through OG-UK, the UK overlapping-generations model, 2026–2030, against an OBR-central baseline. National income and GDP, with a closed-capital bound. One sector.';
+  'AI as an unanticipated 2028 shock to the capital share, with or without a productivity gain, in UK low, central and high scenarios calibrated to the IMF and OBR and a Korinek US upper case, run through OG-UK, the UK overlapping-generations model, 2027–2031, against the path without AI. National income and GDP, with a closed-capital bound. One sector.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
