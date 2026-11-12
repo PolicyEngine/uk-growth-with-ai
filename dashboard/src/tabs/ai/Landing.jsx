@@ -130,7 +130,21 @@ export default function Landing({ sid, onScenario, detailsId }) {
       </h2>
       <p className="landing-a">{heroAnswer(sid)}</p>
       <p className="landing-meta">
-        {NAME[sid]} scenario, {HEADLINE_YEAR}, compared with no AI. Change the scenario at the top of the page.
+        {NAME[sid]} scenario, {HEADLINE_YEAR}, vs the{' '}
+        <TipTarget
+          className="path-tip"
+          label="What is the OBR-central path?"
+          tip={
+            <span>
+              The comparison path grows with the OBR&rsquo;s central productivity growth, 1.0% a year. That already includes
+              the OBR&rsquo;s own central AI assumption, so each figure is AI beyond that path, not against a world with no
+              AI.
+            </span>
+          }
+        >
+          OBR-central path <Icon name="info" size={12} />
+        </TipTarget>
+        . Change the scenario at the top of the page.
       </p>
 
       <div className="kpi-grid">

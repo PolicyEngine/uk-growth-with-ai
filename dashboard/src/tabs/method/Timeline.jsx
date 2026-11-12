@@ -27,8 +27,8 @@ function phase(y) {
 function detail(y) {
   const w = weight(y);
   const ramp = `Ramp weight ${w.toFixed(2)}.`;
-  if (y < FIRST_YEAR) return `History: every scenario equals the no-AI path.`;
-  if (y === FIRST_YEAR) return `The single starting point: every scenario equals the no-AI path, and every chart starts here. ${ramp}`;
+  if (y < FIRST_YEAR) return `History: every scenario equals the OBR-central path.`;
+  if (y === FIRST_YEAR) return `The single starting point: every scenario equals the OBR-central path, and every chart starts here. ${ramp}`;
   if (y === SURPRISE_YEAR)
     return `AI is announced at the start of the year, unexpected. Households re-plan; the first quarter of the ramp arrives. ${ramp}`;
   if (y < HEADLINE_YEAR) return `Adoption year ${y - FIRST_YEAR}: γ and Z move a further quarter of the way. ${ramp}`;
@@ -43,10 +43,10 @@ export default function Timeline() {
     <figure className="mx-tl" ref={ref}>
       <figcaption className="mx-fig-cap">
         <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
-        <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (no AI) to 1 (full scenario)</span>
+        <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (the OBR-central path) to 1 (full scenario)</span>
       </figcaption>
       <div className="mx-tl-phases" aria-hidden="true">
-        <span className="ph-history">Same as the no-AI path</span>
+        <span className="ph-history">Same as the OBR-central path</span>
         <span className="ph-ramp">Ramp: adoption years 1–4</span>
         <span className="ph-full">Full weight</span>
       </div>

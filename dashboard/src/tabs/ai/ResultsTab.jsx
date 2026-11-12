@@ -106,9 +106,24 @@ function shape(sid, v, closure) {
   }).filter(Boolean);
   const end = p[p.length - 1];
   return {
-    text: `In ${HEADLINE_YEAR}, ${cl === BOUND ? 'closed capital' : 'central closure'}: ${parts.join(', ')} the no-AI path.`,
+    text: `In ${HEADLINE_YEAR}, ${cl === BOUND ? 'closed capital' : 'central closure'}: ${parts.join(', ')} the OBR-central path.`,
     dir: Math.abs(end) < 0.005 ? 'minus' : end > 0 ? 'arrowUp' : 'arrowDown',
   };
+}
+
+// Consumption below the OBR-central path while national income is above it,
+// main arm, every year from the shock to 2031 (results sanity audit A3)
+function consumptionNote(sid, closure) {
+  const cl = closure === 'closed' ? BOUND : CENTRAL;
+  const c = path(sid, 'tfp', cl, 'C');
+  const g = path(sid, 'tfp', cl, 'GNI');
+  if (!c || !g) return null;
+  const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
+  const below = c.slice(from).every((x) => x < 0);
+  const above = g[g.length - 1] > 0;
+  return below && above
+    ? `Automation + productivity: consumption stays below the OBR-central path through ${HEADLINE_YEAR}, while national income is above it.`
+    : null;
 }
 
 function GapCard({ sid, v, title, icon, domain, hidden, closure }) {
@@ -124,7 +139,7 @@ function GapCard({ sid, v, title, icon, domain, hidden, closure }) {
           {sum.text}
         </span>
       }
-      unit={`% difference from the no-AI path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+      unit={`% difference from the OBR-central path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
       legend={
         closure === 'both' ? (
           <p className="line-key">
@@ -134,9 +149,20 @@ function GapCard({ sid, v, title, icon, domain, hidden, closure }) {
         ) : null
       }
       about={{
-        shows: `Each arm against the path without AI, ${FIRST_YEAR}–${HEADLINE_YEAR}. Both charts share one y-range so their sizes compare.`,
+        shows: `Each arm against the OBR-central path, ${FIRST_YEAR}–${HEADLINE_YEAR}. Both charts share one y-range so their sizes compare.`,
         how: 'Each gap is the percentage difference from a no-shock restart of OG-UK at the same closure.',
-        caveats: 'The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.',
+        caveats: (
+          <>
+            The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.
+            {v === 'Y' ? (
+              <>
+                {' '}Why GDP is below the IMF&rsquo;s UK estimate:{' '}
+                <a href="?tab=literature&sub=numbers">Literature, where our numbers sit</a>
+                .
+              </>
+            ) : null}
+          </>
+        ),
       }}
     >
       <PendingNote names={series.length ? boundPending(sid, hidden, closure) : []} />
@@ -150,10 +176,10 @@ function GapCard({ sid, v, title, icon, domain, hidden, closure }) {
           yDomain={domain}
           unit="%"
           tipTitle={title}
-          zeroLabel="no-AI path"
+          zeroLabel="OBR central"
           bands={[{ year: HEADLINE_YEAR }]}
           valueFormat={(x) => signed(x, 2)}
-          ariaLabel={`${title} against the no-AI path, ${FIRST_YEAR} to ${HEADLINE_YEAR}`}
+          ariaLabel={`${title} against the OBR-central path, ${FIRST_YEAR} to ${HEADLINE_YEAR}`}
         />
       ) : (
         <Unpublished>{emptyText(hidden, closure)}</Unpublished>
@@ -204,7 +230,14 @@ function EffectGrid({ sid, hidden, closure }) {
                     subtitle={`${HEADLINE_YEAR} value at the line end`}
                     marker={{ year: SURPRISE_YEAR, label: 'AI shock' }}
                     emptyText={emptyText(hidden, closure)}
-                    note={lines.length && pend.length ? `Closed-capital results pending: ${pend.join(', ')}.` : null}
+                    note={
+                      [
+                        lines.length && pend.length ? `Closed-capital results pending: ${pend.join(', ')}.` : null,
+                        r.v === 'C' ? consumptionNote(sid, closure) : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' ') || null
+                    }
                   />
                 );
               })}
@@ -215,7 +248,7 @@ function EffectGrid({ sid, hidden, closure }) {
       <p className="note grid-axis">
         <Icon name="calendar" size={14} />
         <span>
-          The dashed horizontal line in each chart is the no-AI path (0); the dotted vertical line is the {SURPRISE_YEAR} AI
+          The dashed horizontal line in each chart is the OBR-central path (0); the dotted vertical line is the {SURPRISE_YEAR} AI
           shock. Demand and Factors share one % scale; Prices and shares share one pp scale.
         </span>
       </p>
@@ -257,7 +290,7 @@ export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScen
           </Notice>
         ) : null}
         <SectionHeading id="details" icon="layers" title="Explore the details">
-          Three kinds of AI and both capital closures, {HEADLINE_YEAR}, differences from the path without AI.
+          Three kinds of AI and both capital closures, {HEADLINE_YEAR}, differences from the OBR-central path.
         </SectionHeading>
         <div className="charts-stack details-stack">
           <div className="chart-card headline-card">

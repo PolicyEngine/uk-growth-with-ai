@@ -307,7 +307,7 @@ export default function CodeTab({ active = true }) {
             <PipelineSteps />
             <div className="card-grid cols-2">
               <InfoCard icon="ruler" title="Model units, not pounds" className="mx-card" id="units">
-                <p>Solver outputs are in model units. This study reports gaps against the no-AI path instead.</p>
+                <p>Solver outputs are in model units. This study reports gaps against the OBR-central path instead.</p>
                 <p className="mx-sub">OG-UK&rsquo;s map functions scale units to £bn by one ONS GDP anchor.</p>
               </InfoCard>
               <InfoCard icon="flask" title="Check the numbers" className="mx-card">

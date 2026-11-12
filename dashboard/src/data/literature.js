@@ -294,7 +294,7 @@ export const CHANNELS = [
 ];
 
 // Published ranges for "Where our numbers sit". Each row is a level gap
-// against a no-AI path; `horizon` is stated because the rows mix horizons,
+// against a OBR-central path; `horizon` is stated because the rows mix horizons,
 // and none is converted. lo == hi is a point; `mark` is a highlighted value.
 export const RANGES = {
   gdp: [

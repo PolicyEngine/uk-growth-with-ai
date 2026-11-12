@@ -11,8 +11,8 @@ import { useHover } from '../shared/ui.jsx';
 // (automation + productivity arm), both read from surprise2028.json through
 // gap(). Our values appear in the tooltips only: their home is Results.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: 'factory', unit: '% against the no-AI path', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: 'banknote', unit: '% against the no-AI path', step: 1 },
+  gdp: { title: 'GDP', v: 'Y', icon: 'factory', unit: '% against the OBR-central path', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: 'banknote', unit: '% against the OBR-central path', step: 1 },
 };
 const OURS = ['uk_central', 'korinek'];
 const n1 = (x) => `${x < 0 ? '−' : x > 0 ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}%`;

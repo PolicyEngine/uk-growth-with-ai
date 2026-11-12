@@ -9,6 +9,34 @@ import { ext, useHover } from '../shared/ui.jsx';
 import SubTabs, { SubTabPanel, useSubTabParam } from '../shared/subtabs.jsx';
 import RangeBars from './RangeBars.jsx';
 import GrowthCheck from './GrowthCheck.jsx';
+import { CENTRAL, HEADLINE_YEAR, gap, fmt } from '@/tabs/ai/surprise.js';
+
+// Why UK central's GDP gap is below the IMF's for the same productivity gain
+// (results sanity audit, docs/results_sanity_2028.md section 7). The IMF
+// year-4 output figure is digitised from SIP/2026/072 Figure 9
+// (docs/uk_calibration.md); the bound is arithmetic, not a solve.
+const IMF_Y4 = 2.52;
+function ImfGap() {
+  const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
+  const k = gap('uk_central', 'tfp', CENTRAL, 'K');
+  if (y == null || k == null) return null;
+  return (
+    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="mx-card imf-gap">
+      <p>
+        For about the same productivity gain, UK central GDP is {fmt(y)} in {HEADLINE_YEAR}, against the IMF&rsquo;s
+        about +{IMF_Y4.toFixed(1)}% at year 4: roughly {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of it.
+      </p>
+      <p>
+        The capital closure is enough to account for the difference. Here the return on capital rises and capital grows{' '}
+        {fmt(k, 1)}; if capital came in at an unchanged return, GDP would be about +2.9% to +3.2% (arithmetic, not a solve).
+      </p>
+      <p className="mx-src">
+        {ext(`${REPO}/blob/audit/sanity-2028/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
+        figure read from SIP/2026/072, Figure 9.
+      </p>
+    </InfoCard>
+  );
+}
 
 // Literature: the comparison matrix first, then where our numbers sit, then
 // the sources. Published figures come from data/literature.js (each with its
@@ -192,6 +220,7 @@ export default function LiteratureTab({ active = true }) {
               <p>Our headline-year results against published ranges. Horizons differ, so each row states its own.</p>
             </header>
             <RangeBars metric="gdp" />
+            <ImfGap />
             <RangeBars metric="wage" />
             <GrowthCheck />
           </>

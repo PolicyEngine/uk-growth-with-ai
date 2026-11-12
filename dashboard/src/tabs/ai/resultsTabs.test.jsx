@@ -93,7 +93,7 @@ describe('tooltips', () => {
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('Central closure');
-    expect(tip).toContain('+1.23% against the no-AI path');
+    expect(tip).toContain('+1.23% against the OBR-central path');
     fireEvent.blur(dot);
     unmount();
     render(<ResultsTab sid="uk_central" sub="finances" onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);

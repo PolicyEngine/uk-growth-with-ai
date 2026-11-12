@@ -5,7 +5,7 @@ import Icon from './Icon.jsx';
 import { TipBox, useOutside } from './Tip.jsx';
 
 // A small-multiple line chart: every line on one shared y-domain (passed in,
-// so cards in a group compare), a dashed 0 line for the no-AI path, each line
+// so cards in a group compare), a dashed 0 line for the OBR-central path, each line
 // end-labelled with its last value in the series colour (HTML, so the label
 // is page text). Hover, tap or keyboard (arrow keys) moves a crosshair that
 // lists every line's value in that year.

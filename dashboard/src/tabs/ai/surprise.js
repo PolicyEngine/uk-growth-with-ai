@@ -22,7 +22,7 @@ export const SCENARIOS = S.scenarios;
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
 // [{id, label, short}], in display order: 'tfp' automation + productivity
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
-// 'ss' the OBR-style stress test that holds 2031 GDP at the no-AI path.
+// 'ss' the OBR-style stress test that holds 2031 GDP at the OBR-central path.
 export const ARMS = S.arms;
 export const ARM_COLOR = { tfp: 'var(--series-1)', tz: 'var(--series-2)', ss: 'var(--series-5)' };
 // The stress test is drawn lighter: a bound, not a forecast.
@@ -54,3 +54,13 @@ export const fmt = (x, dp = 2, unit = '%') => (x == null ? 'pending' : `${signed
 
 export const DONE = S.solves_done;
 export const TOTAL = S.solves_total;
+
+// Output at fixed inputs of an arm relative to "technology unchanged" (the
+// fixed-input Z), %, at a closure: Z_arm / Z_tz - 1. Negative means the arm
+// needs a technology cut. null when either solve is pending.
+export function fixedInputVsTz(sid, arm, closure) {
+  const a = result(sid, arm, closure);
+  const t = result(sid, 'tz', closure);
+  if (a.status !== 'done' || t.status !== 'done') return null;
+  return (a.Z_terminal / t.Z_terminal - 1) * 100;
+}

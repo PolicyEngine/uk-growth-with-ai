@@ -50,7 +50,7 @@ function FiscalCard({ sid, hidden, closure, v, years, title, icon, summary, abou
       ? 'Closed-capital results pending for this scenario.'
       : 'No solve for this scenario yet.';
   return (
-    <ChartCard icon={icon} title={title} summary={summary} unit="Percentage points of GDP, difference from the no-AI path" about={about}>
+    <ChartCard icon={icon} title={title} summary={summary} unit="Percentage points of GDP, difference from the OBR-central path" about={about}>
       {series.length && pend.length ? (
         <p className="pending-note">
           <Icon name="lock" size={13} />
@@ -64,12 +64,12 @@ function FiscalCard({ sid, hidden, closure, v, years, title, icon, summary, abou
           height={280}
           endLabel="value"
           unit="pp"
-          zeroLabel="no-AI path"
+          zeroLabel="OBR central"
           markers={markers}
           bands={bands}
           tipTitle={title.split(',')[0]}
           valueFormat={(x) => signed(x, 2)}
-          ariaLabel={`${title} against the no-AI path`}
+          ariaLabel={`${title} against the OBR-central path`}
         />
       ) : (
         <Unpublished>{empty}</Unpublished>
@@ -123,7 +123,34 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
+// Tax/GDP with closed capital in the main arm, in words (results sanity
+// audit A6): it can rise, so the model's sign there is not reliable.
+function closedTaxWords(sid) {
+  const r = result(sid, 'tfp', BOUND);
+  if (r.status !== 'done') return null;
+  const at = (y) => r.gaps.tax_gdp_pp[YEARS.indexOf(y)];
+  if (at(HEADLINE_YEAR) > 0) return `rises by ${HEADLINE_YEAR}`;
+  // flows from the debt rule's first year are not quoted
+  const first = YEARS.find((y) => y > HEADLINE_YEAR && y < LATE_YEAR && at(y) > 0);
+  if (first) return `is close to zero in ${HEADLINE_YEAR} and turns positive from ${first}`;
+  return 'falls by much less than under the central closure';
+}
+
+// Debt/GDP by 2036: higher than the OBR-central path in every solved arm?
+function debtWords(sid) {
+  const all = ARMS.flatMap((a) => [CENTRAL, BOUND].map((cl) => gap(sid, a.id, cl, 'debt_gdp_pp', LATE_YEAR))).filter((x) => x != null);
+  if (!all.length) return '';
+  const main31 = gap(sid, 'tfp', CENTRAL, 'debt_gdp_pp', HEADLINE_YEAR);
+  const main36 = gap(sid, 'tfp', CENTRAL, 'debt_gdp_pp', LATE_YEAR);
+  const every = all.every((x) => x > 0);
+  const lead = every
+    ? `By ${LATE_YEAR} debt/GDP is above the OBR-central path in every arm${main31 != null && main31 < 0 && main36 > 0 ? ', including automation + productivity, which is below it in ' + HEADLINE_YEAR : ''}.`
+    : `By ${LATE_YEAR} debt/GDP is above the OBR-central path in some arms.`;
+  return `${lead} The higher interest rate reprices the whole debt stock.`;
+}
+
 function TaxGapCard({ sid }) {
+  const closedTax = closedTaxWords(sid);
   const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp');
   const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp');
   const fall = ls == null ? null : -ls;
@@ -137,7 +164,9 @@ function TaxGapCard({ sid }) {
         </h3>
       </div>
       <p className="chart-description">
-        OG-UK taxes wages and profits too similarly, so revenue falls too little when income shifts to profits.
+        OG-UK taxes wages and profits too similarly, so under the central closure revenue falls too little when income
+        shifts to profits.
+        {closedTax ? ` With closed capital the model’s tax/GDP ${closedTax}, so its sign there is not reliable.` : ''}
       </p>
       <div className="bias-pair">
         <div className="bias-fig">
@@ -150,7 +179,9 @@ function TaxGapCard({ sid }) {
           <span className="bias-value">{uk == null ? 'pending' : `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
         </div>
       </div>
-      <p className="bias-caveat">Rough scaling, not a model run. Automation + productivity, central closure.</p>
+      <p className="bias-caveat">
+        Rough scaling, not a model run. Automation + productivity, central closure only; it does not show that the model&rsquo;s sign is right with closed capital.
+      </p>
       <Disclosure inCard title="How the scaling works" preview="Labour-share fall × the OBR’s revenue loss per point">
         <p className="disclosure-text">
           {fall == null ? (
@@ -261,10 +292,10 @@ export default function FinancesSection({ sid, hidden, legendBar, closure }) {
           years={LONG_YEARS}
           title={`Debt/GDP, ${FIRST_YEAR}–${LATE_YEAR}`}
           icon="landmark"
-          summary={`End labels give ${LATE_YEAR}; hover or focus for every other year. Government consumption follows GDP until the debt rule starts.`}
+          summary={`${debtWords(sid)} ${LATE_YEAR} is the debt rule’s first year, so only stocks are quoted for it. End labels give ${LATE_YEAR}; hover for other years.`}
           markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
           bands={[{ year: HEADLINE_YEAR }]}
-          about={{ shows: `Public debt as a share of GDP against the path without AI. The shaded year is ${HEADLINE_YEAR}, the headline year.` }}
+          about={{ shows: `Public debt as a share of GDP against the OBR-central path. The shaded year is ${HEADLINE_YEAR}, the headline year.` }}
         />
         <FiscalCard
           sid={sid}
@@ -274,12 +305,16 @@ export default function FinancesSection({ sid, hidden, legendBar, closure }) {
           years={SHORT_YEARS}
           title={`Tax/GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
           icon="receipt"
-          summary={`End labels give ${HEADLINE_YEAR}; hover or focus for each year.`}
+          summary={
+            closure === 'central'
+              ? `End labels give ${HEADLINE_YEAR}; hover or focus for each year.`
+              : `End labels give ${HEADLINE_YEAR}. With closed capital the model’s sign is not reliable: see the card below.`
+          }
           markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }]}
           bands={[{ year: HEADLINE_YEAR }]}
           about={{
-            shows: 'Tax revenue as a share of GDP against the path without AI.',
-            caveats: 'The fall is too small: see the next card.',
+            shows: 'Tax revenue as a share of GDP against the OBR-central path.',
+            caveats: 'Under the central closure the fall is too small; with closed capital the sign itself is not reliable. See the next card.',
           }}
         />
       </div>

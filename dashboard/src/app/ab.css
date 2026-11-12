@@ -4831,7 +4831,7 @@ html[data-theme='dark']:has(#tab-method:not([hidden]), #tab-literature:not([hidd
   height: 14px;
 }
 
-/* KPI: the no-AI path against the OBR */
+/* KPI: the OBR-central path against the OBR */
 .mx-kpi-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -5401,4 +5401,20 @@ html[data-theme='dark']:has(#tab-method:not([hidden]), #tab-literature:not([hidd
 /* Copy button clear of the first line on these tabs (tabs3) */
 .mx-tab .copy-block pre {
   padding-top: 34px;
+}
+
+.path-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.path-tip .plain-icon {
+  display: inline-flex;
+}
+
+.imf-gap {
+  margin: 16px 0;
 }

@@ -7,7 +7,7 @@ import { OBR_GROWTH, SOURCES } from '@/data/literature.js';
 import { CENTRAL } from '@/tabs/ai/surprise.js';
 import { ext, useHover } from '../shared/ui.jsx';
 
-// One KPI: the no-AI path's average GDP growth over 2027-2030 against the
+// One KPI: the OBR-central path's average GDP growth over 2027-2030 against the
 // OBR's, with the four years as hoverable bars. Ours is generated from the
 // committed baseline solve (methodFacts.json); the OBR's is EFO March 2026.
 export default function GrowthCheck() {
@@ -20,12 +20,12 @@ export default function GrowthCheck() {
     <div className="info-card mx-card mx-kpi" ref={ref}>
       <h3 className="info-card-title">
         <Icon name="gauge" size={18} />
-        <span>The no-AI path against the OBR</span>
+        <span>The OBR-central path against the OBR</span>
       </h3>
       <div className="mx-kpi-body">
         <div className="mx-kpi-figs">
           <div>
-            <span className="mx-kpi-k">OG-UK no-AI path</span>
+            <span className="mx-kpi-k">OG-UK OBR-central path</span>
             <span className="mx-kpi-v">{g.mean_pct.toFixed(2)}%</span>
           </div>
           <div>

@@ -3,7 +3,7 @@
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { S, SCENARIOS, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, ARMS } from '@/tabs/ai/surprise.js';
+import { S, SCENARIOS, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
 import { REPO, issue } from '@/tabs/ai/links.js';
 import F from '@/data/methodFacts.json';
 import { ext, GoTo, StepRail, StepSection } from '../shared/ui.jsx';
@@ -40,6 +40,33 @@ const STEPS = [
   { id: 'm-limits', label: 'Limitations', sub: 'limits' },
 ];
 
+// The stress test's technology change, from the solves (UK central), per
+// closure: a cut under the central closure, a slight rise with closed
+// capital (results sanity audit, #39). Words follow the signs.
+const REF_SID = 'uk_central';
+const fx = (cl) => fixedInputVsTz(REF_SID, 'ss', cl);
+const move = (x) => (x == null ? null : x < 0 ? `fall (UK central: ${signed(x, 2)}%)` : `rise slightly (UK central: ${signed(x, 2)}%)`);
+function stressLine() {
+  const c = move(fx(CENTRAL));
+  const b = move(fx(BOUND));
+  const parts = [];
+  if (c) parts.push(`Under the central closure that needs output at fixed inputs to ${c}, against technology unchanged.`);
+  if (b) parts.push(`With closed capital it needs them to ${b}, so it almost coincides with technology unchanged.`);
+  return parts.join(' ');
+}
+function stressFixedText() {
+  const c = fx(CENTRAL);
+  const b = fx(BOUND);
+  const w = (x) => (x == null ? 'pending' : x < 0 ? 'falls' : 'rises slightly');
+  return `Central closure: ${w(c)}; closed capital: ${w(b)}`;
+}
+function tzGdpLine() {
+  const c = gap(REF_SID, 'tz', CENTRAL, 'Y');
+  const b = gap(REF_SID, 'tz', BOUND, 'Y');
+  const w = (x) => (x == null ? 'is pending' : Math.abs(x) < 0.005 ? 'is unchanged' : x > 0 ? 'rises a little as capital deepens' : 'ends slightly below the OBR-central path');
+  return `In UK central, GDP ${w(c)} under the central closure and ${w(b)} with closed capital. So the stress test’s zero is imposed, not a model outcome.`;
+}
+
 const ARM_TEXT = {
   tfp: {
     icon: 'trend',
@@ -68,15 +95,15 @@ const ARM_TEXT = {
     more: (
       <>
         <p>Income moves from labour to capital, with no productivity gain.</p>
-        <p>GDP still rises a little as capital deepens. So the stress test&rsquo;s zero is imposed, not a model outcome.</p>
+        <p>{tzGdpLine()}</p>
       </>
     ),
   },
   ss: {
     icon: 'alert',
-    role: 'Pessimistic bound, not a forecast',
-    line: `${HEADLINE_YEAR} GDP is held at the no-AI path. That needs output at fixed inputs to fall.`,
-    fixedText: 'Falls, by construction',
+    role: 'A bound, not a forecast',
+    line: `${HEADLINE_YEAR} GDP is held at the OBR-central path. ${stressLine()}`,
+    fixedText: stressFixedText(),
     glyph: <path d="M4 6 L12 14 L20 6" />,
     preview: 'The R4 secant, the OBR comparison',
     more: (
@@ -182,7 +209,7 @@ function ClosureCards() {
 }
 
 const MEASURES = [
-  { k: 'GDP', t: 'Output produced in the UK', d: `The stress test holds it at the no-AI path in ${HEADLINE_YEAR}.` },
+  { k: 'GDP', t: 'Output produced in the UK', d: `The stress test holds it at the OBR-central path in ${HEADLINE_YEAR}.` },
   { k: 'GNI', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital. The headline.' },
   { k: 'NNI', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK, ONS capital stocks).' },
 ];
@@ -200,14 +227,14 @@ const RULES = [
     icon: 'landmark',
     title: 'Fixed spending',
     tag: 'Sensitivity',
-    line: 'Consumption and transfers stay at their no-AI levels. This is the OBR’s convention.',
+    line: 'Consumption and transfers stay at their OBR-central levels. This is the OBR’s convention.',
   },
   {
     id: 'rule-dn',
     icon: 'scale',
     title: 'Debt-neutral',
     tag: 'For cohort welfare',
-    line: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the no-AI path. Households bear the fiscal effect.`,
+    line: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR-central path. Households bear the fiscal effect.`,
   },
 ];
 
@@ -246,8 +273,8 @@ function Limitations({ onTab }) {
     },
     {
       icon: 'receipt',
-      title: 'Revenue falls too little',
-      line: 'One income-tax schedule covers labour and capital income alike.',
+      title: 'Revenue responds too little',
+      line: 'One income-tax schedule covers labour and capital income alike. With closed capital, tax/GDP can even rise.',
       more: (
         <p>
           The gap against the OBR&rsquo;s tax rates is on{' '}
@@ -255,6 +282,16 @@ function Limitations({ onTab }) {
             Results, in the tax-gap card
           </GoTo>
           .
+        </p>
+      ),
+    },
+    {
+      icon: 'layers',
+      title: 'Part of the effect may be counted twice',
+      line: 'UK central’s TFP target partly uses the OBR central AI path, which the baseline already contains.',
+      more: (
+        <p>
+          So part of the effect may be counted twice. Recorded on {ext(issue(27), 'issue #27')}; a decision is pending.
         </p>
       ),
     },
@@ -342,15 +379,19 @@ export default function MethodTab({ onTab, active = true }) {
                   className="mx-card"
                   more={
                     <>
-                      <p>The no-AI path has trend productivity growth of 1% a year.</p>
+                      <p>
+                        The baseline is the OBR-central path: trend productivity growth of 1% a year, the OBR&rsquo;s central
+                        figure. That figure already includes the OBR&rsquo;s own central AI assumption, so every result is AI
+                        beyond that path, not against a world with no AI.
+                      </p>
                       <p>Its spending is set so 2030 debt/GDP matches the OBR&rsquo;s (rerun R1).</p>
                       <p>Every gap is measured against a no-shock restart of that path.</p>
                     </>
                   }
-                  moreTitle="The no-AI path"
+                  moreTitle="The OBR-central path"
                   morePreview="OBR-central baseline, the restart"
                 >
-                  <p>Demographics, tax functions and policy stay as on the no-AI path.</p>
+                  <p>Demographics, tax functions and policy stay as on the OBR-central path.</p>
                 </InfoCard>
               </div>
             </StepSection>
