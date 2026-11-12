@@ -200,7 +200,7 @@ TPI distance is parsed from OG-Core's `ogcore.TPI` log (the committed runner set
 | `zk0_share_shift_ramp` | 10 | 3.64e-05 | yes | -0.9808% | 9.28e-02% | 1.9e-12 | 1.2e-12 | 5.6e-17 |
 | `zk0_share_shift_tfp_ramp` | 10 | 4.02e-05 | yes | -0.9835% | 9.20e-02% | 2.0e-12 | 1.2e-12 | 4.9e-17 |
 
-Reproduction of the committed run (`uk_growth_with_ai/data/scenarios.json`) by the zeta_K = 0.1 solves, max relative difference over 2026–2030:
+Reproduction of the run committed at the time (now `uk_growth_with_ai/data/legacy/scenarios_2026-11-11.json`) by the zeta_K = 0.1 solves, max relative difference over 2026–2030:
 
 | arm | Y | K | L | r | C | I | w |
 |---|---|---|---|---|---|---|---|
