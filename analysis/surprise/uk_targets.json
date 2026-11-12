@@ -1,0 +1,52 @@
+{
+  "description": "UK-calibrated AI scenario targets for the 2028-surprise rerun. Shock unanticipated from 2028; gamma and Z ramp weights 0, 0.25, 0.5, 0.75, 1 over 2027-2031, so 2031 is year 4 of adoption. Targets are levels reached in 2031. See docs/uk_calibration.md for the derivation of every number.",
+  "model_mapping": {
+    "baseline_gamma": 0.35,
+    "baseline_labour_share": 0.65,
+    "gamma_terminal_rule": "gamma_terminal = 0.35 + labour_share_fall_pp / 100 (epsilon = 1, labour share = 1 - gamma)",
+    "tfp_gain_rule": "Z solved jointly with gamma so that output at the baseline's inputs is tfp_gain_pct per cent higher (same rule as share_shift_tfp)"
+  },
+  "scenarios": {
+    "uk_low": {
+      "labour_share_fall_pp": 0.7,
+      "gamma_terminal": 0.357,
+      "tfp_gain_pct": 0.2,
+      "sources": {
+        "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12, as read in the #31 review; BP9 not re-fetchable). Linear ramp gives a level of 2 x 0.1 = 0.2% at year 4 (our arithmetic). OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
+        "labour_share": "IMF SIP/2026/072 task mapping (cost saving 27% per automated task, para 44 p.24): share of output moved from labour to AI capital = TFP gain / 0.27 = 0.2 / 0.27 = 0.74pp (our inference from the IMF calibration, not an IMF figure)."
+      }
+    },
+    "uk_central": {
+      "labour_share_fall_pp": 1.6,
+      "gamma_terminal": 0.366,
+      "tfp_gain_pct": 0.4,
+      "sources": {
+        "tfp": "IMF SIP/2026/072 baseline: TFP +0.53% at year 5 (Table 1, p.29); year-4 value 0.41-0.44% from the Figure 9 vector data (p.25), i.e. 0.53 x 0.78 = 0.41. Cross-check: OBR central 0.2pp a year at year five (BP9 para B.14; OBR EFO Oct 2026 para 1.27 p.21) ramped linearly gives 2 x 0.2 = 0.4% at year 4 (our arithmetic).",
+        "labour_share": "IMF SIP/2026/072: long-run capital share +10pp reached in 17 years (para 44 p.24; Annex III para 4 p.37). Year-4 share shift inferred from the year-4 TFP gain and the 27% cost saving: 0.42 / 0.27 = 1.56pp (our inference). A straight line in time gives 10/17 x 4 = 2.35pp but overstates the early years because the IMF adoption path is convex (Figure 9). Cross-check: OBR FRS 2026 Box 4.1 upper-end path, 4 years at 0.44pp a year of wages and salaries = 1.78pp of GDP."
+      }
+    },
+    "uk_high": {
+      "labour_share_fall_pp": 2.9,
+      "gamma_terminal": 0.379,
+      "tfp_gain_pct": 1.6,
+      "sources": {
+        "tfp": "OBR FRS July 2026 Box 4.1 p.86: high alternative 'up to 0.8 percentage points' a year (BP9 scenario); linear ramp to 0.8pp by year five gives 2 x 0.8 = 1.6% at year 4 (our arithmetic). Cross-check: IMF 2026 Article IV RAM p.47, TFP +1 to 5pp over 10 years; 5pp linear gives 2.0% at year 4.",
+        "labour_share": "OBR FRS July 2026 Box 4.1 p.87: wages and salaries 40% -> 20% of GDP between 2030-31 and 2075-76, described as 'at the upper end' of the literature; Chart E (p.88) is linear from 2030-31, so 0.44pp of GDP a year, 1.78pp after 4 years. Mapped proportionally to the model's 65% labour share: 1.78 x 65/40 = 2.89pp (our mapping)."
+      }
+    },
+    "korinek_us_substantial_upper": {
+      "labour_share_fall_pp": 3.9,
+      "gamma_terminal": 0.389,
+      "tfp_gain_pct": 3.1,
+      "sources": {
+        "both": "Korinek, Jones, Sacher, Cotter and McCrory (2026), Anthropic Institute WP 2026-02, Table 3 'substantial' column p.31: labour share 60.0 -> 56.1 per cent of income, measured TFP +3.1% in 2030. US scenario, kept as a labelled upper scenario, not a UK calibration."
+      }
+    }
+  },
+  "recommended_central": "uk_central",
+  "notes": [
+    "All four pairs move gamma and Z together, as the IMF UK model does: a labour-share shift from automation comes with a cost-saving TFP gain. No UK source supports a share shift with zero TFP.",
+    "BP9 could not be re-read: obr.uk redirects automated downloads to a no-access page (12 Nov 2026). Its figures are from the #31 review and the FRS 2026 Box 4.1 restatement.",
+    "OBR productivity figures are for labour productivity growth; the model target is output at fixed inputs (TFP). Using them as TFP overstates the TFP part by the capital-deepening share; the IMF TFP figure (0.41-0.44%) agrees with the 0.4% used."
+  ]
+}
