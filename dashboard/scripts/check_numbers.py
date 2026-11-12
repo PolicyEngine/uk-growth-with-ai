@@ -52,4 +52,22 @@ for sid in dump:
     n_pending = sum(1 for arm in ARMS for v in ['GNI', 'Y', 'NNI', 'w'] for cl in (C, B) if g(sid, arm, cl, v) is None)
     if dump[sid]['results'].count('pending') < n_pending:
         bad += 1; print(sid, 'too few "pending" on Results')
+# Every finished gap in the data file equals the raw solve over its
+# continuation (as the session's check_numbers.py did).
+import os
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'analysis', 'surprise', 'output')
+raw_bad = 0
+for sid, arms in D['results'].items():
+    for a, cls in arms.items():
+        for cl, r in cls.items():
+            if r['status'] != 'done':
+                continue
+            s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
+            b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
+            for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
+                for k in range(len(Y)):
+                    if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
+                        raw_bad += 1
+print('raw-solve recompute mismatches:', raw_bad)
+bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)

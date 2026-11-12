@@ -7,7 +7,8 @@ import Icon from './Icon.jsx';
 // chevron; opens a white list. The chosen option is shown by weight and a
 // tinted fill, never a tick. `inactive` keeps it in place, faded, closed.
 export default function BandPill({ icon, label, value, options, onChange, inactive = false, inactiveNote }) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpen] = useState(false);
+  const open = openState && !inactive;
   const root = useRef(null);
   const listId = useId();
   const current = options.find((o) => o.value === value);
@@ -27,10 +28,6 @@ export default function BandPill({ icon, label, value, options, onChange, inacti
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
-
-  useEffect(() => {
-    if (inactive) setOpen(false);
-  }, [inactive]);
 
   return (
     <div className="band-pill" ref={root}>

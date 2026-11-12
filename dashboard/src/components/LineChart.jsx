@@ -167,7 +167,9 @@ export default function LineChart({
   const ticks = [];
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
   const dp = decimalsFor(step);
-  const tickText = ticks.map((v) => v.toFixed(dp));
+  // No "-0.00": a tick that rounds to zero prints unsigned.
+  const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (0).toFixed(dp) : v.toFixed(dp));
+  const tickText = ticks.map(tickFmt);
 
   // Left margin from the widest formatted tick, plus room for the rotated
   // unit label to its left. Keyed to the tick strings, not the viewport:
@@ -285,7 +287,7 @@ export default function LineChart({
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
             <text x={L - 8} y={sy(v) + 4} className="ax" textAnchor="end">
-              {v.toFixed(dp)}
+              {tickFmt(v)}
             </text>
           </g>
         ))}
