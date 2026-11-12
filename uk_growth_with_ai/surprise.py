@@ -1,0 +1,651 @@
+"""Unanticipated AI shock announced at the start of 2028 (``--surprise 2028``).
+
+Design (Vahid, 12 Nov 2026; docs/surprise_2028.md):
+
+* The baselines are the committed R1-R4 baselines (``analysis/rerun/output``),
+  unchanged, at both closures.  They start in 2026.
+* Every scenario equals its baseline exactly in 2026 and 2027.  At the start
+  of 2028 the whole AI path is announced, unanticipated.  The scenario's TPI
+  starts from the baseline's state at the start of 2028: the wealth
+  distribution b_{s,j} carried into 2028 (baseline ``b_sp1`` of 2027), the
+  bequests that wealth implies, government debt and its foreign-held part,
+  and public capital.
+* gamma and Z keep the old ramp's shape, one year later: weight 0 in 2027
+  (the old ramp had weight 0 in 2026), 0.25, 0.5, 0.75 in 2028-30, full from
+  2031 (the old ramp reached full weight in 2030).
+* Reporting window 2027-2031; headline year 2031; R4 holds share_shift's 2031
+  GDP at the baseline's; the Z anchor is the baseline's 2027 K and L (the
+  ramp's zero-weight year, as 2026 was before).
+
+How a run "starts in 2028" without rebuilding anything
+------------------------------------------------------
+OG-UK's specifications are built for 2026 exactly as for the baseline (same
+tax functions, demographics, R2 fixes, g_n guard).  Then every time-indexed
+input is shifted forward by ``k = SURPRISE_YEAR - START`` periods
+(``shift_time_params``), the pre-period objects (``omega_S_preTP``,
+``g_n_preTP``, ``rho_preTP``, ``imm_rates_preTP``) are set to the baseline's
+2027 rows, and ``tG1``/``tG2`` move back by k so the debt rule still starts in
+2036.  Model period 0 is then calendar 2028.  OG-Core 0.17 takes the TPI
+initial condition from the BASELINE STEADY STATE (``TPI.get_initial_SS_values``:
+``initial_b = ss b_sp1 * B_ss / B0``) and the initial debt and public capital
+from the baseline TPI's period 0; ``initial_state`` wraps that function so a
+surprise run starts from the baseline's period-k state instead.  Nothing in
+OG-Core or OG-UK is edited.
+
+Only B, D, D_f, D_d, K_d (and K_g) are predetermined in OG-Core.  K_f is not:
+``aggr.get_K_splits`` sets it every period from zeta_K x excess capital demand,
+so at zeta_K = 0.1 the capital stock moves on impact in 2028.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import json
+import math
+import os
+import time
+from pathlib import Path
+
+import numpy as np
+
+from .calibrate import solve_scenario
+from .scenarios import G_BASE, G_Y_ANNUAL, RAMP_YEARS, SCENARIOS, START, TG1
+
+SURPRISE_YEAR = 2028
+NEXP_SURPRISE = 11          # 2026-2036: 2036 is the debt rule's first year (tG1)
+NPER_SURPRISE = 5           # the reporting window, 2027-2031
+OUTDIR = "analysis/surprise/output"
+
+# The continuation (no-shock restart) must reproduce the baseline from 2028 to
+# within this relative error before any arm runs: it is the test that the
+# shift list and the initial state are complete.  OG-UK's mindist_TPI is 1e-4.
+CONT_TOL = 1e-3
+CONT_VARS = ("Y", "K", "L", "C", "I", "r", "w", "D", "B")
+# Initial-state checks inside the solve (relative).
+B0_TOL = 1e-8
+BQ0_TOL = 1e-3              # pickle BQ is the last outer iteration's, not BQnew
+
+R4_TOL_PP = 0.01
+R4_SLOPE0 = 1.0
+MAX_R4_ITER = 5
+FS = "_fs"
+
+
+def k_of(year: int = SURPRISE_YEAR) -> int:
+    k = int(year) - START
+    if k < 1:
+        raise ValueError(f"surprise year {year} must be after {START}")
+    return k
+
+
+def window(year: int = SURPRISE_YEAR) -> dict:
+    """Every date of the design, derived from the shock year."""
+    zero = year - 1
+    return {"surprise_year": year, "k": k_of(year), "ramp_zero_year": zero,
+            "ramp_full_year": zero + RAMP_YEARS, "z_anchor_year": zero,
+            "r4_year": zero + RAMP_YEARS, "headline_year": zero + RAMP_YEARS,
+            "report_years": list(range(zero, zero + NPER_SURPRISE)),
+            "debt_rule_year": START + TG1}
+
+
+# --- ramp ------------------------------------------------------------------------
+
+def ramp_weights(n: int, offset: int = 0) -> np.ndarray:
+    """Weight on the terminal gamma/Z by model period, shape (n, 1).
+
+    ``offset = 0`` is the old path (run_arm before this change): 0 at t = 0
+    (2026), full at t = RAMP_YEARS (2030).  A surprise run whose period 0 is
+    calendar ``START + k`` uses ``offset = k - 1``: weight 0 in START + k - 1,
+    full RAMP_YEARS later (2031 for k = 2)."""
+    return np.clip((np.arange(n) + offset) / RAMP_YEARS, 0.0, 1.0)[:, None]
+
+
+def calendar_weights(year: int = SURPRISE_YEAR, years=range(2026, 2037)) -> dict:
+    w = window(year)
+    return {y: (0.0 if y < year else
+                float(min(max((y - w["ramp_zero_year"]) / RAMP_YEARS, 0.0), 1.0)))
+            for y in years}
+
+
+# --- shifting a 2026 specification forward by k periods ----------------------------
+
+# Every time-indexed input of an OG-Core 0.17 Specifications object
+# (parameters.py compute_default_params: tp_param_list .. tp_param_list4, the
+# tax and eta lists, e, chi_n; and what is derived from them), plus OG-UK's
+# demographic arrays.  Shifted with edge padding: the tail rows are steady-state
+# values, so repeating the last row is exact.
+SHIFT_T_PLUS_S = (
+    "alpha_G", "alpha_T", "alpha_I", "alpha_FA", "alpha_bs_G", "alpha_bs_T",
+    "alpha_bs_I", "world_int_rate_annual", "adjustment_factor_for_cit_receipts",
+    "tau_bq", "tau_payroll", "h_wealth", "m_wealth", "p_wealth", "retirement_age",
+    "zeta_D", "zeta_K", "r_gov_scale", "r_gov_shift", "g_RM",
+    "Z", "delta_tau_annual", "cit_rate", "inv_tax_credit", "tau_c",
+    "labor_income_tax_noncompliance_rate", "capital_income_tax_noncompliance_rate",
+    "replacement_rate_adjust", "income_tax_filer", "wealth_tax_filer",
+    "rho", "eta", "eta_RM", "chi_n",
+    "world_int_rate", "retire", "tau_b", "delta_tau", "ubi_nom_array",
+    "frac_tax_payroll", "omega", "g_n", "imm_rates", "gamma", "gamma_g", "epsilon",
+)
+SHIFT_T = ("e", "etr_params", "mtrx_params", "mtry_params")
+PRETP = {"omega_S_preTP": "omega", "g_n_preTP": "g_n", "rho_preTP": "rho",
+         "imm_rates_preTP": "imm_rates"}
+# Steady-state objects: a shift must leave them alone.
+SS_KEYS = ("omega_SS", "g_n_ss")
+
+
+class ShiftError(RuntimeError):
+    """The specification has a time-varying input the shift does not cover."""
+
+
+def _shift(a, k):
+    if isinstance(a, list):
+        return a[k:] + [a[-1]] * k
+    a = np.asarray(a)
+    return np.concatenate([a[k:], np.repeat(a[-1:], k, axis=0)], axis=0)
+
+
+def _leading(a):
+    if isinstance(a, list):
+        return len(a)
+    if isinstance(a, np.ndarray) and a.ndim >= 1:
+        return a.shape[0]
+    return None
+
+
+def _varies(a) -> bool:
+    try:
+        x = np.asarray(a, dtype=float)
+    except (TypeError, ValueError):
+        return True
+    return bool(x.shape[0] > 1 and np.any(x != x[:1]))
+
+
+def shift_time_params(p, k: int) -> dict:
+    """Move model period 0 from START to START + k, in place.
+
+    Returns what was shifted.  Raises ``ShiftError`` if an attribute with a
+    leading T or T+S dimension that is not in the lists varies over time."""
+    T, S = int(p.T), int(p.S)
+    lens = {T, T + S}
+    ss_before = {key: np.array(getattr(p, key), dtype=float) for key in SS_KEYS
+                 if hasattr(p, key)}
+    # pre-period = the old period k-1 rows (taken before shifting)
+    pretp = {}
+    for key, src in PRETP.items():
+        if hasattr(p, src):
+            row = np.asarray(getattr(p, src), dtype=float)[k - 1]
+            old = getattr(p, key, None)
+            pretp[key] = float(row) if np.ndim(row) == 0 else \
+                row.reshape(np.shape(old)) if old is not None and np.size(old) == np.size(row) \
+                else row
+    shifted, constant = [], []
+    for name in SHIFT_T_PLUS_S + SHIFT_T:
+        if not hasattr(p, name):
+            continue
+        a = getattr(p, name)
+        n = _leading(a)
+        if n not in lens:
+            continue              # e.g. a scalar or a per-industry vector
+        (shifted if _varies(a) else constant).append(name)
+        setattr(p, name, _shift(a, k))
+    listed = set(SHIFT_T_PLUS_S) | set(SHIFT_T) | set(PRETP) | set(SS_KEYS)
+    unlisted = sorted(n for n, a in vars(p).items()
+                      if n not in listed and not n.startswith("_")
+                      and _leading(a) in lens and _varies(a))
+    if unlisted:
+        raise ShiftError(f"time-varying inputs not covered by the shift: {unlisted}")
+    for key, v in pretp.items():
+        setattr(p, key, v)
+    for key in ("tG1", "tG2"):
+        if hasattr(p, key):
+            setattr(p, key, int(getattr(p, key)) - k)
+    if hasattr(p, "start_year"):
+        p.start_year = int(p.start_year) + k
+    for key, v in ss_before.items():
+        if not np.array_equal(np.asarray(getattr(p, key), dtype=float), v):
+            raise ShiftError(f"the shift changed the steady-state object {key}")
+    return {"k": k, "shifted_varying": shifted, "shifted_constant": constant,
+            "pretp_from_period": k - 1, "tG1": getattr(p, "tG1", None),
+            "tG2": getattr(p, "tG2", None)}
+
+
+# --- the baseline's state at the start of START + k ----------------------------------
+
+def baseline_state(tpi: dict, k: int) -> dict:
+    """What a run starting in period k inherits from the baseline TPI output."""
+    D, D_f = np.asarray(tpi["D"], float), np.asarray(tpi["D_f"], float)
+    return {
+        "k": k,
+        "initial_b": np.asarray(tpi["b_sp1"], float)[k - 1],   # savings carried into k
+        "initial_n": np.asarray(tpi["n"], float)[k - 1],       # labour in k-1 (n_preTP)
+        "D0": float(D[k]), "Kg0": float(np.asarray(tpi["K_g"], float)[k]),
+        "initial_foreign_debt_ratio": float(D_f[k] / D[k]),
+        "B": float(np.asarray(tpi["B"], float)[k]),
+        "D_f": float(D_f[k]), "D_d": float(np.asarray(tpi["D_d"], float)[k]),
+        "K_d": float(np.asarray(tpi["K_d"], float)[k]),
+        "BQ": np.asarray(tpi["BQ"], float)[k], "r_p": float(np.asarray(tpi["r_p"], float)[k]),
+        "Y_path": _shift(np.asarray(tpi["Y"], float), k),
+        "TR_path": _shift(np.asarray(tpi["TR"], float), k),
+        "G_path": _shift(np.asarray(tpi["G"], float), k),
+        "I_g_path": _shift(np.asarray(tpi["I_g"], float), k),
+    }
+
+
+def load_baseline_state(base_dir, k: int) -> dict:
+    import pickle
+    with open(os.path.join(base_dir, "TPI", "TPI_vars.pkl"), "rb") as f:
+        return baseline_state(pickle.load(f), k)
+
+
+def replace_initial_values(out, p, state, get_B, get_BQ=None):
+    """Turn ``TPI.get_initial_SS_values(p)``'s output into the period-k start."""
+    initial_values, ss_vars, theta, baseline_values = out
+    _, _, _, factor, _, _ = initial_values
+    ib = np.asarray(state["initial_b"], float)
+    n0 = np.asarray(state["initial_n"], float)
+    B0 = float(get_B(ib, p, "SS", True))
+    rel = abs(B0 / state["B"] - 1)
+    check = {"B0": B0, "B_baseline_k": state["B"], "B0_rel_err": rel}
+    if rel > B0_TOL:
+        raise ShiftError(f"aggregate wealth at the restart {B0:.10g} != baseline "
+                         f"B[k] {state['B']:.10g} (rel {rel:.2e}): the pre-period "
+                         "demographics are not the baseline's period k-1 rows")
+    if get_BQ is not None:
+        bq = np.asarray(get_BQ(state["r_p"], ib, None, p, "SS", True), float)
+        bq_rel = float(np.max(np.abs(bq / np.asarray(state["BQ"]) - 1)))
+        check["BQ0_rel_err"] = bq_rel
+        if bq_rel > BQ0_TOL:
+            raise ShiftError(f"inherited bequests differ from the baseline's by {bq_rel:.2e}")
+    p.n_preTP = n0
+    b_sinit = np.vstack([np.zeros((1, ib.shape[1])), ib[:-1]])
+    initial_values = (B0, b_sinit, ib, factor, ib, n0)
+    Yb, TRb, Gb, Igb, _, _ = baseline_values
+    T = int(p.T)
+    pad = lambda a: np.asarray(a, float)[:T]
+    baseline_values = (
+        pad(state["Y_path"]) if Yb is not None else None,
+        pad(state["TR_path"]) if TRb is not None else None,
+        pad(state["G_path"]) if Gb is not None else None,
+        pad(state["I_g_path"]) if Igb is not None else None,
+        state["D0"], state["Kg0"])
+    return (initial_values, ss_vars, theta, baseline_values), check
+
+
+@contextlib.contextmanager
+def initial_state(TPI, state, record: dict):
+    """Patch ``TPI.get_initial_SS_values`` for one run; always restored."""
+    from ogcore import aggregates as aggr
+    orig = TPI.get_initial_SS_values
+
+    def patched(p):
+        out, check = replace_initial_values(orig(p), p, state, aggr.get_B, aggr.get_BQ)
+        record.update(check)
+        return out
+
+    TPI.get_initial_SS_values = patched
+    try:
+        yield
+    finally:
+        TPI.get_initial_SS_values = orig
+
+
+def apply_to_specs(p, state) -> dict:
+    """Shift a 2026 specification to start at START + k from ``state``."""
+    log = shift_time_params(p, state["k"])
+    p.initial_foreign_debt_ratio = state["initial_foreign_debt_ratio"]
+    log["initial_foreign_debt_ratio"] = state["initial_foreign_debt_ratio"]
+    return log
+
+
+def predetermined_check(run_series: dict, state: dict) -> dict:
+    """The run's period-0 stocks must be the baseline's period-k stocks."""
+    out = {}
+    for v in ("B", "D", "D_f", "D_d", "K_d"):
+        ref = state["D0"] if v == "D" else state[v]
+        out[v] = abs(run_series[v][0] / ref - 1) if ref else abs(run_series[v][0])
+    out["ok"] = bool(max(out.values()) < 1e-6)
+    return out
+
+
+# --- series ----------------------------------------------------------------------
+
+def series_from_tpi(tpi: dict, T: int, n: int, export) -> dict:
+    agg = lambda v: np.asarray(tpi[v], float).reshape(T, -1).sum(1)
+    s = {v: agg(v)[:n].tolist() for v in export if v in tpi}
+    a = {v: np.asarray(x) for v, x in s.items()}
+    if all(v in a for v in ("Y", "r_p", "K_f", "D_f")):
+        s["GNI"] = (a["Y"] - a["r_p"] * a["K_f"] - a["r_p"] * a["D_f"]).tolist()
+    return s
+
+
+def splice(base_series: dict, run_series: dict, k: int, check: dict | None) -> dict:
+    """Calendar series: the baseline for the first k years, the run after.
+
+    Refuses unless the run's predetermined stocks matched the baseline's period-k
+    values (``predetermined_check``), so the 2026-27 identity is not vacuous."""
+    if not (check and check.get("ok")):
+        raise ShiftError(f"refusing to splice: predetermined stocks differ {check}")
+    n = len(base_series["Y"])
+    return {v: list(base_series[v][:k]) + list(run_series[v][: n - k])
+            for v in run_series if v in base_series}
+
+
+def calendar_record(rec: dict, base_ext: dict, k: int, year: int = SURPRISE_YEAR) -> dict:
+    """Rewrite a surprise solve record onto the calendar window."""
+    w = window(year)
+    rec["series_run"] = rec["series"]
+    rec["series_run_years"] = list(range(START + k, START + k + len(rec["series"]["Y"])))
+    rec["series"] = splice(base_ext["series"], rec["series"], k,
+                           rec["surprise"]["predetermined"])
+    rec["years_series"] = list(range(START, START + len(rec["series"]["Y"])))
+    i0 = w["report_years"][0] - START
+    rec["years"] = w["report_years"]
+    for v, x in rec["series"].items():
+        rec[v] = x[i0: i0 + NPER_SURPRISE]
+    return rec
+
+
+def gap_pct(rec, base_ext, year, var="Y") -> float:
+    i = year - START
+    return (rec["series"][var][i] / base_ext["series"][var][i] - 1) * 100
+
+
+# --- planner -----------------------------------------------------------------------
+
+def _keys(fs=False):
+    x = FS if fs else ""
+    return {"tfp": f"share_shift_tfp_ramp{x}", "zfixed": f"share_shift_ramp_zfixed{x}",
+            "r4": f"share_shift_ramp{x}_r4_"}
+
+
+def load(outdir, closure) -> dict:
+    d = Path(outdir) / closure
+    if not d.exists():
+        return {}
+    return {f.stem: json.loads(f.read_text()) for f in sorted(d.glob("*.json"))
+            if not f.stem.startswith(("GATE", "baseline_ext"))}
+
+
+def load_base_ext(outdir, closure) -> dict:
+    f = Path(outdir) / closure / "baseline_ext.json"
+    if not f.exists():
+        raise RuntimeError(f"{f} missing: run `surprise prepare --closure {closure}` first")
+    return json.loads(f.read_text())
+
+
+def calibration(base_ext, year=SURPRISE_YEAR) -> dict:
+    """gamma and Z at the anchor year's baseline K and L (2027 for 2028)."""
+    i = window(year)["z_anchor_year"] - START
+    K, L = base_ext["series"]["K"][i], base_ext["series"]["L"][i]
+    return {n: solve_scenario(s, K, L, G_BASE) for n, s in SCENARIOS.items()}
+
+
+def continuation_report(rec, base_ext, year=SURPRISE_YEAR) -> dict:
+    w = window(year)
+    out = {}
+    for v in CONT_VARS:
+        errs = [abs(gap_pct(rec, base_ext, y, v)) / 100
+                for y in range(year, w["ramp_full_year"] + 1)]
+        out[v] = max(errs)
+    out["max"] = max(out.values())
+    out["ok"] = bool(out["max"] <= CONT_TOL)
+    return out
+
+
+def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR):
+    k = _keys(fs)
+    keys = [k["zfixed"]] + sorted((x for x in done if x.startswith(k["r4"])),
+                                  key=lambda s: int(s.rsplit("_", 1)[1]))
+    r4y = window(year)["r4_year"]
+    return [(math.log(done[x]["Z_terminal"]), gap_pct(done[x], base_ext, r4y), x)
+            for x in keys if x in done]
+
+
+def accepted_r4(done, base_ext, fs=False, year=SURPRISE_YEAR):
+    pts = [p for p in r4_points(done, base_ext, fs, year) if abs(p[1]) <= R4_TOL_PP]
+    return done[min(pts, key=lambda p: abs(p[1]))[2]] if pts else None
+
+
+def _first_slope(done, base_ext, fs, rerun_dir, closure, year):
+    """pp of R4-year GDP gap per unit ln Z for the first step: the surprise
+    common-G/Y secant (fixed spending only), else the committed 2026 R4 secant
+    at the same closure (2030 gap, full ramp), else R4_SLOPE0."""
+    if fs:
+        pts = r4_points(done, base_ext, False, year)
+        if len(pts) >= 2:
+            (z0, g0, _), (z1, g1, _) = pts[-2], pts[-1]
+            return (g1 - g0) / (z1 - z0), "surprise common-G/Y R4 secant"
+    if rerun_dir is not None:
+        from . import rerun
+        old = rerun.load(rerun_dir, closure)
+        base = rerun.accepted_baseline(old)
+        if base is not None:
+            pts = rerun.r4_points(old, base)
+            if len(pts) >= 2:
+                (z0, g0, _), (z1, g1, _) = pts[0], pts[1]
+                return (g1 - g0) / (z1 - z0), "committed 2026-start R4 secant"
+    return 100 * R4_SLOPE0, f"d lnY/d lnZ = {R4_SLOPE0}"
+
+
+def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
+              year=SURPRISE_YEAR):
+    from . import rerun
+    base = rerun.accepted_baseline(rerun.load(rerun_dir, closure))
+    if base is None:
+        raise RuntimeError(f"{closure}: no accepted baseline in {rerun_dir}")
+    base_ext = load_base_ext(outdir, closure)
+    if base_ext["base_label"] != base["label"]:
+        raise RuntimeError(f"{closure}: baseline_ext is from {base_ext['base_label']}, "
+                           f"the accepted baseline is {base['label']}")
+    done = load(outdir, closure)
+    common = {"base_label": base["label"], "alpha_G": base["alpha_G_used"],
+              "surprise_year": year}
+    if stage == "continuation":
+        if "continuation" in done:
+            return None
+        return {"label": "continuation", "arm": "continuation", "gamma": G_BASE,
+                "Z": None, "baseline_spending": False,
+                "why": "no-shock restart: must reproduce the baseline from "
+                       f"{year} (tolerance {CONT_TOL:g})", **common}
+    if "continuation" not in done:
+        raise RuntimeError(f"{closure}: run the continuation stage first")
+    rep = continuation_report(done["continuation"], base_ext, year)
+    if not rep["ok"]:
+        raise RuntimeError(f"{closure}: the continuation misses the baseline by "
+                           f"{rep['max']:.2e} > {CONT_TOL:g}: {rep}")
+    fs = stage == "arms_fs"
+    common["baseline_spending"] = fs
+    cal = calibration(base_ext, year)
+    k = _keys(fs)
+    ay = window(year)["z_anchor_year"]
+    if k["tfp"] not in done:
+        return {"label": k["tfp"], "arm": "share_shift_tfp",
+                "Z": cal["share_shift_tfp"]["Z"], "gamma": cal["share_shift_tfp"]["gamma"],
+                "why": f"fixed-input Z (+3.1% at baseline {ay} K, L)", **common}
+    ss = cal["share_shift"]
+    if k["zfixed"] not in done:
+        return {"label": k["zfixed"], "arm": "share_shift", "Z": ss["Z"],
+                "gamma": ss["gamma"], "why": f"fixed-input Z (zero wedge at {ay} K, L); "
+                "R4 secant point 0", **common}
+    if accepted_r4(done, base_ext, fs, year) is not None:
+        return None
+    pts = r4_points(done, base_ext, fs, year)
+    n = len(pts) - 1
+    if n >= MAX_R4_ITER:
+        raise RuntimeError(f"{closure}: R4 did not converge in {MAX_R4_ITER}: {pts}")
+    if len(pts) == 1:
+        slope, src = _first_slope(done, base_ext, fs, rerun_dir, closure, year)
+        lz = pts[0][0] - pts[0][1] / slope
+        why = f"Newton step, {src} ({slope:.1f} pp per unit ln Z)"
+    else:
+        (z0, g0, _), (z1, g1, _) = pts[-2], pts[-1]
+        slope = (g1 - g0) / (z1 - z0)
+        lz = z1 - g1 / slope
+        why = f"secant, d gap(pp)/d lnZ = {slope:.1f}"
+    return {"label": f"{k['r4']}{n + 1}", "arm": "share_shift",
+            "Z": float(math.exp(lz)), "gamma": ss["gamma"], "why": why, **common}
+
+
+# --- prepare (dry run: pickles and JSON only, no specs, no solve) -------------------
+
+def prepare(rerun_dir, outdir, closure, work, year=SURPRISE_YEAR, write=True) -> dict:
+    """Export the baseline to 2036 from its TPI pickle and check the restart state.
+
+    Reads only ``<work>/<closure>/<base_label>/TPI/TPI_vars.pkl`` and the
+    committed baseline JSON: no specifications are built, nothing is solved."""
+    import pickle
+
+    from . import rerun
+    from .solve import EXPORT
+    base = rerun.accepted_baseline(rerun.load(rerun_dir, closure))
+    if base is None:
+        raise RuntimeError(f"{closure}: no accepted baseline in {rerun_dir}")
+    k = k_of(year)
+    pk = Path(work) / closure / base["label"] / "TPI" / "TPI_vars.pkl"
+    with open(pk, "rb") as f:
+        tpi = pickle.load(f)
+    T = len(np.asarray(tpi["Y"]))
+    ext = series_from_tpi(tpi, T, NEXP_SURPRISE, EXPORT)
+    checks = {}
+    # 1. the pickle is the committed baseline: its first 10 years equal the JSON
+    checks["pickle_equals_json_max_abs_rel"] = max(
+        float(np.max(np.abs(np.asarray(ext[v][:10]) / np.asarray(base["series"][v][:10]) - 1)))
+        for v in ("Y", "K", "L", "C", "D", "B", "r", "w") if v in base["series"])
+    # 2. the wealth handed over is the wealth the baseline cohorts carry into k
+    b_s, b_sp1 = np.asarray(tpi["b_s"], float), np.asarray(tpi["b_sp1"], float)
+    checks["b_s_k_equals_b_sp1_km1_max_abs"] = float(
+        np.max(np.abs(b_s[k][1:] - b_sp1[k - 1][:-1])))
+    # 3. K_d = B - D_d at k (the predetermined domestic capital)
+    st = baseline_state(tpi, k)
+    checks["K_d_eq_B_minus_D_d_rel"] = abs((st["B"] - st["D_d"]) / st["K_d"] - 1)
+    # 4. Z at three anchors
+    zs = {}
+    for ay in (START, START + 1, START + 2):
+        i = ay - START
+        cal = {n: solve_scenario(s, ext["K"][i], ext["L"][i], G_BASE)
+               for n, s in SCENARIOS.items()}
+        zs[ay] = {n: c["Z"] for n, c in cal.items()}
+    st_out = {k_: v for k_, v in st.items() if not k_.endswith("_path")}
+    st_out["initial_b_sum"] = float(np.asarray(st["initial_b"]).sum())
+    st_out.pop("initial_b"); st_out.pop("initial_n")
+    st_out["BQ"] = np.asarray(st["BQ"]).tolist()
+    out = {"base_label": base["label"], "closure": closure, "surprise": window(year),
+           "years_series": list(range(START, START + NEXP_SURPRISE)),
+           "series": ext, "state_at_k": st_out, "checks": checks,
+           "Z_by_anchor_year": zs,
+           "debt_gdp_pct": [ext["D"][i] / ext["Y"][i] * 100 for i in range(NEXP_SURPRISE)],
+           "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    if write:
+        f = Path(outdir) / closure / "baseline_ext.json"
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(json.dumps(out, indent=1))
+    return out
+
+
+# --- one solve ---------------------------------------------------------------------
+
+def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
+             year=SURPRISE_YEAR) -> dict | None:
+    from . import rerun
+    spec = next_step(outdir, closure, stage, rerun_dir, year)
+    if spec is None:
+        print(f"{closure} {stage}: nothing to do", flush=True)
+        return None
+    rerun._env()
+    from .solve import _load_oguk, provenance, run_arm
+    handles = _load_oguk()
+    TPI, SS, api, Client, LocalCluster = handles
+    k = k_of(year)
+    bdir = Path(work) / closure / spec["base_label"]
+    if not (bdir / "TPI" / "TPI_vars.pkl").exists():
+        raise RuntimeError(f"baseline pickles missing at {bdir}")
+    state = load_baseline_state(str(bdir), k)
+    adir = Path(work) / f"surprise{year}" / closure / spec["label"]
+    settings = {"tG1": TG1, "g_y_annual": G_Y_ANNUAL, "g_n_source": "vendored",
+                "zeta_K": rerun.CLOSURES[closure], "pretp": True, "splice": True}
+    client = Client(LocalCluster(processes=False, n_workers=1, threads_per_worker=4,
+                                 dashboard_address=None))
+    print(f"{closure} surprise {year} {stage}: {spec['label']} ({spec['why']})", flush=True)
+    try:
+        shock = spec["Z"] is not None
+        rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
+                      spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
+                      out_dir=str(adir), baseline_spending=spec["baseline_spending"],
+                      surprise=state, nexp=NEXP_SURPRISE - k, **settings)
+    finally:
+        client.close()
+    base_ext = load_base_ext(outdir, closure)
+    rec["surprise"]["predetermined"] = predetermined_check(rec["series"], state)
+    rec = calendar_record(rec, base_ext, k, year)
+    rec.update({"label": spec["label"], "closure_label": closure, "stage": stage,
+                "spec": spec, "provenance": provenance(TPI, api)})
+    if stage == "continuation":
+        rec["continuation_report"] = continuation_report(rec, base_ext, year)
+    out = Path(outdir) / closure / f"{spec['label']}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".tmp")
+    tmp.write_text(json.dumps(rec, indent=1))
+    tmp.replace(out)
+    print(f"wrote {out}", flush=True)
+    return rec
+
+
+# --- results file ----------------------------------------------------------------------
+
+def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
+             year=SURPRISE_YEAR, reference="baseline") -> dict:
+    """The results file for one closure on the 2027-2031 window.
+
+    ``reference``: "baseline" (the committed baseline, gaps exactly zero in
+    2026-27) or "continuation" (the no-shock restart from 2028; removes the
+    restart's own solver error from every gap)."""
+    from . import rerun
+    w = window(year)
+    base = rerun.accepted_baseline(rerun.load(rerun_dir, closure))
+    base_ext = load_base_ext(outdir, closure)
+    done = load(outdir, closure)
+    cont = done.get("continuation")
+    k = _keys(fs)
+    tfp, ss = done.get(k["tfp"]), accepted_r4(done, base_ext, fs, year)
+    if cont is None or tfp is None or ss is None:
+        raise RuntimeError(f"{closure}: incomplete (continuation {bool(cont)}, tfp "
+                           f"{bool(tfp)}, share_shift R4 {bool(ss)})")
+    i0 = w["report_years"][0] - START
+    ref_series = cont["series"] if reference == "continuation" else base_ext["series"]
+    baseline = {**{key: v for key, v in base.items() if key != "provenance"},
+                "series": ref_series, "years_series": base_ext["years_series"],
+                "years": w["report_years"]}
+    for v, x in ref_series.items():
+        baseline[v] = x[i0: i0 + NPER_SURPRISE]
+    strip = lambda r: {key: v for key, v in r.items() if key != "provenance"}
+    arms = {"share_shift_tfp_ramp": strip(tfp), "share_shift_ramp": strip(ss)}
+    cal = calibration(base_ext, year)
+    return {
+        "provenance": {**base["provenance"],
+                       "assembled_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                       "note": f"Unanticipated shock announced at the start of {year} "
+                               "(docs/surprise_2028.md); every solve's record is in "
+                               f"{outdir}/{closure}"},
+        "window": w, "years": w["report_years"],
+        "arms_requested": list(arms), "arm_status": {a: "ok" for a in arms},
+        "baseline": baseline, **arms,
+        "assumptions": {
+            "timing": f"unanticipated, announced at the start of {year}; every arm equals "
+                      f"the baseline in {START}-{year - 1}",
+            "gap_reference": reference,
+            "continuation_report": cont.get("continuation_report"),
+            "ramp_weights": calendar_weights(year),
+            "gamma_base": G_BASE, "gamma_shocked": cal["share_shift_tfp"]["gamma"],
+            "Z_anchor_year": w["z_anchor_year"],
+            "Z_share_shift_tfp": tfp["Z_terminal"], "Z_share_shift": ss["Z_terminal"],
+            "Z_share_shift_fixed_input": done[k["zfixed"]]["Z_terminal"],
+            "Z_share_shift_rule": "equilibrium_gdp_gap", "Z_share_shift_year": w["r4_year"],
+            "Z_share_shift_tol_pp": R4_TOL_PP,
+            "r4_iterations": [{"label": lab, "Z": math.exp(lz), "gdp_gap_pct": g}
+                              for lz, g, lab in r4_points(done, base_ext, fs, year)],
+            "fiscal": ("shocked arms hold G and TR at the baseline's levels" if fs
+                       else "every arm uses the baseline's alpha_G"),
+            "closure": rerun.closure_record(base, closure),
+            "tG1": TG1, "debt_rule_year": w["debt_rule_year"],
+        },
+    }

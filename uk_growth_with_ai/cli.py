@@ -62,6 +62,27 @@ def main(argv=None) -> int:
     p_re.add_argument("--note", default="")
     p_re.add_argument("--out", default=None)
 
+    p_sp = sub.add_parser("surprise", help="unanticipated AI shock announced at the start "
+                                           "of --start (2028); see uk_growth_with_ai/surprise.py "
+                                           "and docs/surprise_2028.md")
+    p_sp.add_argument("action", choices=["prepare", "next", "step", "assemble", "status"])
+    p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0"])
+    p_sp.add_argument("--start", type=int, default=2028,
+                      help="the announcement year; every arm equals the baseline before it")
+    p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_fs"],
+                      default="continuation",
+                      help="continuation: the no-shock restart that must reproduce the "
+                           "baseline; arms_fs: G and TR at baseline levels")
+    p_sp.add_argument("--fixed-spending", action="store_true", help="assemble: arms_fs")
+    p_sp.add_argument("--reference", choices=["baseline", "continuation"], default="baseline",
+                      help="assemble: what the gaps are measured against")
+    p_sp.add_argument("--outdir", default="analysis/surprise/output")
+    p_sp.add_argument("--rerun-dir", default="analysis/rerun/output",
+                      help="the committed R1-R4 solves; the baselines are reused from here")
+    p_sp.add_argument("--work", default=None,
+                      help="scratch dir holding <closure>/<baseline>/TPI/TPI_vars.pkl")
+    p_sp.add_argument("--out", default=None)
+
     p_rep = sub.add_parser("report", help="result tables for one arm")
     p_rep.add_argument("--arm", default="share_shift_tfp_ramp", choices=report_mod.ARMS)
     p_rep.add_argument("--results", default=None)
@@ -97,6 +118,8 @@ def main(argv=None) -> int:
                       alpha_G_shift=args.alpha_G_shift, z_share_shift=args.z_share_shift)
     elif args.cmd == "rerun":
         return _rerun(args)
+    elif args.cmd == "surprise":
+        return _surprise(args)
     elif args.cmd == "report":
         report_mod.print_report(args.arm, load_results(args.results), args.oguk_dir)
     elif args.cmd == "check":
@@ -119,6 +142,45 @@ def main(argv=None) -> int:
             return 1 if stale else 0
         for path in dashboard_data.write(results=res, oguk_dir=args.oguk_dir):
             print(f"wrote {path}")
+    return 0
+
+
+def _surprise(args) -> int:
+    import json
+    from pathlib import Path
+    from . import surprise as sp
+    kw = {"year": args.start}
+    if args.action == "prepare":
+        if not args.work:
+            raise SystemExit("--work is required for prepare (it reads the baseline pickle)")
+        out = sp.prepare(args.rerun_dir, args.outdir, args.closure, args.work, **kw)
+        print(json.dumps({"checks": out["checks"], "Z_by_anchor_year": out["Z_by_anchor_year"],
+                          "state_at_k": {k: v for k, v in out["state_at_k"].items()
+                                         if k != "BQ"},
+                          "debt_gdp_pct": out["debt_gdp_pct"]}, indent=1))
+        return 0
+    if args.action == "next":
+        spec = sp.next_step(args.outdir, args.closure, args.stage, args.rerun_dir, **kw)
+        if spec:
+            print(spec["label"])
+        return 0
+    if args.action == "step":
+        if not args.work:
+            raise SystemExit("--work is required for step")
+        sp.run_step(args.outdir, args.closure, args.stage, args.work, args.rerun_dir, **kw)
+        return 0
+    if args.action == "status":
+        for k, r in sp.load(args.outdir, args.closure).items():
+            print(f"{k}: {r['elapsed_min']:.1f} min, converged "
+                  f"{r['diagnostics'].get('tpi_converged')}")
+        return 0
+    res = sp.assemble(args.outdir, args.closure, fs=args.fixed_spending,
+                      rerun_dir=args.rerun_dir, reference=args.reference, **kw)
+    stem = f"scenarios_surprise{args.start}" + ("_fixed_spending" if args.fixed_spending else "")
+    out = Path(args.out or f"uk_growth_with_ai/data/{stem}"
+               f"{'' if args.closure == 'zk0.1' else '_' + args.closure}.json")
+    out.write_text(json.dumps(res, indent=1))
+    print("wrote", out)
     return 0
 
 

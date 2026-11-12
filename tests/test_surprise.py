@@ -1,0 +1,374 @@
+"""The 2028 surprise restart, with OG-Core absent.
+
+The OG-Core formulas the restart relies on (``aggregates.get_B`` and
+``get_BQ``, 0.17.0) are copied below in numpy so the identity "aggregate
+wealth and bequests at the restart equal the baseline's 2028 values" is
+tested without ogcore installed (CI has none).
+"""
+
+import json
+from types import SimpleNamespace
+
+import numpy as np
+import pytest
+
+from uk_growth_with_ai import demography, solve, surprise as sp
+from uk_growth_with_ai.data_access import load_committed_g_n
+from uk_growth_with_ai.scenarios import G_BASE, NPER, RAMP_YEARS, START, TG1
+
+S, T, J = 6, 12, 3
+K = 2                                           # 2028 - 2026
+
+
+# --- the OG-Core 0.17 formulas, copied --------------------------------------------
+
+def get_B_ss_pretp(b, p):
+    part1 = b * np.transpose(p.omega_S_preTP * p.lambdas)
+    om = np.append(p.omega_S_preTP[1:], [0.0])
+    im = np.append(p.imm_rates_preTP[1:], [0.0])
+    return (part1 + b * np.transpose(om * im * p.lambdas)).sum() / (1.0 + p.g_n_preTP)
+
+
+def get_B_tpi(b, p):
+    lam = np.squeeze(p.lambdas)
+    part1 = (b * lam) * p.omega[:p.T, :, None]
+    om = np.append(p.omega[:p.T, 1:], np.zeros((p.T, 1)), axis=1)
+    im = np.append(p.imm_rates[:p.T, 1:], np.zeros((p.T, 1)), axis=1)
+    part2 = (b * lam) * (im * om)[:, :, None]
+    return (part1 + part2).sum(1).sum(1) / (1.0 + np.hstack((p.g_n[:p.T - 1], p.g_n_ss)))
+
+
+def get_BQ_ss_pretp(r, b, p):
+    pre = np.transpose(p.omega_S_preTP * (p.rho_preTP * p.lambdas)) * b
+    return pre.sum(0) * (1.0 + r) / (1.0 + p.g_n_preTP)
+
+
+def get_BQ_tpi(r, b, p):
+    pop = np.append(p.omega_S_preTP.reshape(1, p.S), p.omega[:p.T - 1], axis=0)
+    rho = np.append(p.rho_preTP.reshape(1, p.S), p.rho[:p.T - 1], axis=0)
+    BQ = ((b * np.squeeze(p.lambdas)) * (pop * rho)[:, :, None]).sum(1)
+    return BQ * ((1.0 + r) / (1.0 + np.append(p.g_n_preTP, p.g_n[:p.T - 1])))[:, None]
+
+
+def _spec(seed=0):
+    """A 2026 specification stub: consistent demographics and a few time paths."""
+    rng = np.random.default_rng(seed)
+    n = T + S
+    rho = np.tile(rng.uniform(0.01, 0.05, S), (n, 1)) * np.linspace(1, 1.2, n)[:, None]
+    rho[:, -1] = 1.0
+    imm = rng.uniform(-0.01, 0.02, (n, S))
+    lev = np.zeros((n + 2, S))             # pre-period, then n periods, then one more
+    lev[0] = rng.uniform(0.5, 1.0, S)
+    rho_pre, imm_pre = rho[0].copy(), imm[0].copy()
+    for t in range(n + 1):
+        r_k, i_k = (rho_pre, imm_pre) if t == 0 else (rho[t - 1], imm[t - 1])
+        lev[t + 1, 0] = lev[t, 0] * 1.01
+        lev[t + 1, 1:] = (1 - r_k[:-1]) * lev[t, :-1] + i_k[1:] * lev[t, 1:]
+    om = lev / lev.sum(1)[:, None]
+    g = lev.sum(1)[1:] / lev.sum(1)[:-1] - 1
+    return SimpleNamespace(
+        T=T, S=S, J=J, start_year=START, tG1=TG1, tG2=T - 1,
+        lambdas=np.array([[0.5], [0.3], [0.2]]),
+        omega=om[1:n + 1], g_n=g[1:], rho=rho, imm_rates=imm,
+        omega_S_preTP=om[0], g_n_preTP=float(g[0]), rho_preTP=rho_pre,
+        imm_rates_preTP=imm_pre, omega_SS=om[-1], g_n_ss=float(g[-1]),
+        alpha_T=np.linspace(0.06, 0.05, n), zeta_K=np.full(n, 0.1),
+        Z=np.ones((n, 1)), gamma=[G_BASE],
+        e=rng.uniform(0.5, 1.5, (T, S, J)),
+        etr_params=[[[float(t), float(s)] for s in range(S)] for t in range(T)],
+        lambdas_note="not time", chi_b=np.ones(J),
+        initial_foreign_debt_ratio=0.09,
+    )
+
+
+# --- dates and the ramp -------------------------------------------------------------
+
+def test_window_dates_follow_the_shock_year():
+    w = sp.window(2028)
+    assert w["k"] == 2
+    assert (w["ramp_zero_year"], w["ramp_full_year"]) == (2027, 2031)
+    assert w["z_anchor_year"] == 2027 and w["r4_year"] == 2031 == w["headline_year"]
+    assert w["report_years"] == [2027, 2028, 2029, 2030, 2031]
+    assert w["debt_rule_year"] == 2036
+    with pytest.raises(ValueError):
+        sp.k_of(START)
+
+
+def test_offset_zero_reproduces_the_old_ramp_bit_for_bit():
+    n = 140
+    old = np.minimum(np.arange(n) / RAMP_YEARS, 1.0)[:, None]
+    assert np.array_equal(sp.ramp_weights(n, 0), old)
+
+
+def test_surprise_ramp_is_the_old_shape_one_year_later():
+    w = sp.ramp_weights(10, K - 1).ravel()          # model t = 0 is 2028
+    assert w[:5].tolist() == [0.25, 0.5, 0.75, 1.0, 1.0]
+    cal = sp.calendar_weights(2028)
+    assert [cal[y] for y in range(2026, 2033)] == [0, 0, 0.25, 0.5, 0.75, 1.0, 1.0]
+    old = sp.ramp_weights(5, 0).ravel().tolist()     # 2026..2030
+    assert [cal[y] for y in range(2027, 2032)] == old
+
+
+# --- shifting the specification -------------------------------------------------------
+
+def test_shift_moves_every_time_path_and_sets_the_pre_period():
+    p0, p = _spec(), _spec()
+    log = sp.shift_time_params(p, K)
+    assert p.start_year == 2028 and p.tG1 == TG1 - K and p.tG2 == T - 1 - K
+    for name in ("omega", "g_n", "rho", "imm_rates", "alpha_T", "e"):
+        a0, a1 = np.asarray(getattr(p0, name)), np.asarray(getattr(p, name))
+        assert a1.shape == a0.shape
+        assert np.array_equal(a1[:-K], a0[K:])
+        assert np.array_equal(a1[-K:], np.repeat(a0[-1:], K, axis=0))   # edge pad
+    assert p.etr_params[0] == p0.etr_params[K] and len(p.etr_params) == T
+    assert np.array_equal(p.omega_S_preTP, p0.omega[K - 1])
+    assert p.g_n_preTP == p0.g_n[K - 1]
+    assert np.array_equal(p.rho_preTP, p0.rho[K - 1])
+    assert np.array_equal(p.imm_rates_preTP, p0.imm_rates[K - 1])
+    assert np.array_equal(p.omega_SS, p0.omega_SS) and p.g_n_ss == p0.g_n_ss
+    assert "omega" in log["shifted_varying"] and "zeta_K" in log["shifted_constant"]
+
+
+def test_shifted_demographics_keep_the_law_of_motion():
+    p = _spec()
+    assert max(x["max_abs_rel"] for x in demography.law_of_motion(p, n=8)) < 1e-12
+    sp.shift_time_params(p, K)
+    assert max(x["max_abs_rel"] for x in demography.law_of_motion(p, n=8)) < 1e-12
+
+
+def test_unlisted_time_varying_input_is_refused():
+    p = _spec()
+    p.mystery_path = np.linspace(0, 1, T + S)
+    with pytest.raises(sp.ShiftError, match="mystery_path"):
+        sp.shift_time_params(p, K)
+    p = _spec()
+    p.flat_path = np.full(T + S, 3.0)                # constant: harmless
+    sp.shift_time_params(p, K)
+
+
+def test_restart_wealth_and_bequests_equal_the_baseline_2028_values():
+    """B0 and BQ0 of the restart (OG-Core's 'SS, preTP' formulas on the shifted
+    spec) equal the baseline's TPI B and BQ in period k: the wealth carried into
+    2028 is handed over, with the 2027 population that holds it."""
+    p = _spec()
+    rng = np.random.default_rng(1)
+    b_sp1 = rng.uniform(0.1, 2.0, (T, S, J))         # baseline savings path
+    r_p = rng.uniform(0.03, 0.05, T)
+    B_tpi = np.r_[np.nan, get_B_tpi(b_sp1, p)[:T - 1]]   # B[t] for t >= 1
+    b_shift = np.append(np.zeros((1, S, J)), b_sp1[:T - 1], axis=0)
+    BQ_tpi = get_BQ_tpi(r_p, b_shift, p)
+    sp.shift_time_params(p, K)
+    assert get_B_ss_pretp(b_sp1[K - 1], p) == pytest.approx(B_tpi[K], rel=1e-13)
+    assert np.allclose(get_BQ_ss_pretp(r_p[K], b_sp1[K - 1], p), BQ_tpi[K], rtol=1e-13)
+
+
+# --- the initial state handed to TPI ---------------------------------------------------
+
+def _tpi(seed=2):
+    rng = np.random.default_rng(seed)
+    return {"b_sp1": rng.uniform(0.1, 2, (T, S, J)), "n": rng.uniform(0.2, 0.6, (T, S, J)),
+            "D": np.linspace(1.0, 1.2, T), "D_f": np.linspace(0.09, 0.12, T),
+            "D_d": np.linspace(0.91, 1.08, T), "K_g": np.zeros(T), "B": np.linspace(3, 4, T),
+            "K_d": np.linspace(2.09, 2.92, T), "BQ": np.ones((T, J)), "r_p": np.full(T, .04),
+            "Y": np.linspace(2, 3, T), "TR": np.linspace(.1, .2, T),
+            "G": np.linspace(.5, .6, T), "I_g": np.zeros(T)}
+
+
+def test_baseline_state_is_period_k():
+    tpi = _tpi()
+    st = sp.baseline_state(tpi, K)
+    assert np.array_equal(st["initial_b"], tpi["b_sp1"][K - 1])
+    assert st["D0"] == tpi["D"][K] and st["B"] == tpi["B"][K]
+    assert st["initial_foreign_debt_ratio"] == tpi["D_f"][K] / tpi["D"][K]
+    assert np.array_equal(st["Y_path"][:T - K], tpi["Y"][K:])
+
+
+def test_replace_initial_values_hands_over_the_state_and_checks_B():
+    tpi = _tpi()
+    st = sp.baseline_state(tpi, K)
+    p = SimpleNamespace(T=T)
+    ss_out = ((9.9, None, None, "factor", None, None), {"ss": 1}, "theta",
+              (np.zeros(T), None, None, None, 0.5, 0.0))
+    exact = lambda b, p, m, pre: st["B"]
+    (iv, ss, theta, bv), chk = sp.replace_initial_values(ss_out, p, st, exact)
+    B0, b_sinit, b_sp1init, factor, ib, n0 = iv
+    assert B0 == st["B"] and factor == "factor" and theta == "theta"
+    assert np.array_equal(ib, tpi["b_sp1"][K - 1]) and np.array_equal(b_sp1init, ib)
+    assert np.array_equal(b_sinit[1:], ib[:-1]) and not b_sinit[0].any()
+    assert np.array_equal(p.n_preTP, tpi["n"][K - 1])
+    assert bv[4] == tpi["D"][K] and np.array_equal(bv[0], st["Y_path"][:T])
+    assert bv[1] is None                                  # not fixed spending
+    with pytest.raises(sp.ShiftError, match="aggregate wealth"):
+        sp.replace_initial_values(ss_out, p, st, lambda *a: st["B"] * 1.001)
+
+
+# --- 2026 and 2027 are the baseline, exactly ---------------------------------------------
+
+def _base_ext(n=11):
+    yrs = np.arange(n)
+    s = {v: (1.0 + 0.01 * yrs + i).tolist() for i, v in
+         enumerate(("Y", "K", "L", "C", "I", "r", "w", "D", "B", "D_f", "D_d", "K_d", "GNI"))}
+    return {"base_label": "baseline_p1", "series": s,
+            "years_series": list(range(START, START + n))}
+
+
+def _run_record(base_ext, bump=0.02, ok=True):
+    run = {v: [x * (1 + bump * (t > 0)) for t, x in enumerate(vals[K:])]
+           for v, vals in base_ext["series"].items()}
+    return {"series": run, "Z_terminal": 0.95,
+            "surprise": {"predetermined": {"ok": ok}}}
+
+
+def test_2026_and_2027_are_identical_to_the_baseline():
+    be = _base_ext()
+    rec = sp.calendar_record(_run_record(be), be, K)
+    for v, x in rec["series"].items():
+        assert x[:K] == be["series"][v][:K]               # exact, not approx
+    assert rec["years"] == [2027, 2028, 2029, 2030, 2031]
+    assert rec["Y"][0] == be["series"]["Y"][1]            # 2027 top-level point
+    assert sp.gap_pct(rec, be, 2026) == 0.0 and sp.gap_pct(rec, be, 2027) == 0.0
+    assert sp.gap_pct(rec, be, 2028) == 0.0               # predetermined in the stub
+    assert sp.gap_pct(rec, be, 2031) == pytest.approx(2.0)
+    assert len(rec["series"]["Y"]) == 11 and rec["years_series"][-1] == 2036
+
+
+def test_splice_refuses_when_the_restart_did_not_inherit_the_state():
+    be = _base_ext()
+    with pytest.raises(sp.ShiftError, match="predetermined"):
+        sp.calendar_record(_run_record(be, ok=False), be, K)
+
+
+def test_predetermined_check():
+    st = {"B": 3.0, "D0": 1.0, "D_f": 0.1, "D_d": 0.9, "K_d": 2.1}
+    good = {"B": [3.0], "D": [1.0], "D_f": [0.1], "D_d": [0.9], "K_d": [2.1]}
+    assert sp.predetermined_check(good, st)["ok"]
+    assert not sp.predetermined_check({**good, "K_d": [2.2]}, st)["ok"]
+
+
+# --- the plan ------------------------------------------------------------------------------
+
+def _write(d, name, rec):
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"{name}.json").write_text(json.dumps(rec))
+
+
+def _dirs(tmp_path):
+    rerun_dir, out = tmp_path / "rerun", tmp_path / "surprise"
+    from uk_growth_with_ai import rerun
+    tgt = rerun.debt_target_2030()
+    Y = [1.0] * 5
+    _write(rerun_dir / "zk0.1", "baseline_p1",
+           {"label": "baseline_p1", "alpha_G_used": 0.3, "alpha_G_shift": 0.01,
+            "provenance": {"utc": "x"},
+            "Y": Y, "D": [tgt / 100] * 5, "K": [2.0] * 5, "L": [0.4] * 5})
+    # an old 2026-start R4 point in the RERUN dir must not leak into the plan
+    _write(rerun_dir / "zk0.1", "share_shift_ramp_r4_1",
+           {"label": "share_shift_ramp_r4_1", "Z_terminal": 0.93, "Y": Y})
+    be = _base_ext()
+    be["series"]["K"][1], be["series"]["L"][1] = 2.1, 0.41      # 2027 inputs
+    _write(out / "zk0.1", "baseline_ext", be)
+    return rerun_dir, out, be
+
+
+def _arm(be, gap_2031_pp, Z):
+    rec = sp.calendar_record(_run_record(be, bump=0.0), be, K)
+    rec["series"]["Y"][5] *= 1 + gap_2031_pp / 100
+    rec["Z_terminal"] = Z
+    rec["elapsed_min"] = 7.0
+    rec["diagnostics"] = {"tpi_converged": True}
+    return rec
+
+
+def test_plan_runs_the_continuation_first_and_gates_the_arms_on_it(tmp_path):
+    rd, out, be = _dirs(tmp_path)
+    nxt = lambda stage: sp.next_step(out, "zk0.1", stage, rd)
+    assert nxt("continuation")["label"] == "continuation"
+    with pytest.raises(RuntimeError, match="continuation stage first"):
+        nxt("arms")
+    bad = _arm(be, 0.5, None)                      # misses the baseline by 0.5%
+    _write(out / "zk0.1", "continuation", bad)
+    with pytest.raises(RuntimeError, match="misses the baseline"):
+        nxt("arms")
+    _write(out / "zk0.1", "continuation", _arm(be, 0.0, None))
+    assert nxt("continuation") is None
+    s = nxt("arms")
+    assert s["label"] == "share_shift_tfp_ramp" and s["surprise_year"] == 2028
+    from uk_growth_with_ai.calibrate import solve_scenario
+    from uk_growth_with_ai.scenarios import SCENARIOS
+    z27 = solve_scenario(SCENARIOS["share_shift_tfp"], 2.1, 0.41, G_BASE)["Z"]
+    assert s["Z"] == pytest.approx(z27)            # anchored at the 2027 inputs
+    assert nxt("arms_fs")["label"] == "share_shift_tfp_ramp_fs"
+    assert nxt("arms_fs")["baseline_spending"] is True
+
+
+def test_r4_reads_the_2031_gap_and_ignores_old_points(tmp_path):
+    rd, out, be = _dirs(tmp_path)
+    d = out / "zk0.1"
+    _write(d, "continuation", _arm(be, 0.0, None))
+    _write(d, "share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
+    _write(d, "share_shift_ramp_zfixed", _arm(be, 1.0, 0.943))
+    pts = sp.r4_points(sp.load(out, "zk0.1"), be)
+    assert [p[2] for p in pts] == ["share_shift_ramp_zfixed"]
+    assert pts[0][1] == pytest.approx(1.0)
+    s = sp.next_step(out, "zk0.1", "arms", rd)
+    assert s["label"] == "share_shift_ramp_r4_1" and s["Z"] < 0.943
+    _write(d, "share_shift_ramp_r4_1", _arm(be, 0.004, s["Z"]))
+    assert sp.next_step(out, "zk0.1", "arms", rd) is None
+    res = sp.assemble(out, "zk0.1", rerun_dir=rd)
+    assert res["years"] == [2027, 2028, 2029, 2030, 2031]
+    assert res["assumptions"]["Z_share_shift_year"] == 2031
+    assert res["share_shift_ramp"]["Z_terminal"] == s["Z"]
+    assert res["assumptions"]["Z_anchor_year"] == 2027
+    assert res["baseline"]["Y"] == be["series"]["Y"][1:6]
+
+
+# --- run_arm wiring (stubbed OG-Core) ----------------------------------------------------
+
+class _Stop(Exception):
+    pass
+
+
+def _handles(captured):
+    def build_specs(start, _, out_dir, base_dir, baseline, **kw):
+        n = T + S
+        p = SimpleNamespace(T=T, S=S, gamma=list(kw["param_overrides"]["gamma"]),
+                            Z=np.ones((n, 1)), tG1=kw["param_overrides"]["tG1"], tG2=T - 1,
+                            g_n=np.concatenate([load_committed_g_n(NPER),
+                                                np.full(n - NPER, 0.002)]),
+                            TPI_outer_method=None, baseline_spending=False,
+                            start_year=start, initial_foreign_debt_ratio=0.0904)
+        captured["p"] = p
+        return p
+
+    def run_ss(p, client=None):
+        raise _Stop
+
+    return (None, SimpleNamespace(run_SS=run_ss), SimpleNamespace(_build_specs=build_specs),
+            None, None)
+
+
+def test_run_arm_surprise_shifts_the_spec_and_offsets_the_ramp(tmp_path):
+    st = sp.baseline_state(_tpi(), K)
+    c = {}
+    with pytest.raises(_Stop):
+        solve.run_arm("arm", 0.389, True, 0.94, str(tmp_path), None, _handles(c),
+                      surprise=st)
+    p = c["p"]
+    assert p.tG1 == TG1 - K and p.start_year == 2028
+    assert p.initial_foreign_debt_ratio == st["initial_foreign_debt_ratio"]
+    w = (np.asarray(p.gamma).ravel() - G_BASE) / (0.389 - G_BASE)
+    assert np.allclose(w[:5], [0.25, 0.5, 0.75, 1.0, 1.0])
+    z = np.asarray(p.Z).ravel()
+    assert np.allclose((z[:5] - 1) / (0.94 - 1), [0.25, 0.5, 0.75, 1.0, 1.0])
+    assert p.g_n[0] == load_committed_g_n(NPER)[K]   # guard ran before the shift
+
+
+def test_run_arm_without_surprise_is_unchanged(tmp_path):
+    c = {}
+    with pytest.raises(_Stop):
+        solve.run_arm("arm", 0.389, True, 0.94, str(tmp_path), None, _handles(c))
+    p = c["p"]
+    assert p.tG1 == TG1 and p.start_year == START
+    old = np.minimum(np.arange(T + S) / RAMP_YEARS, 1.0)[:, None]
+    assert np.array_equal(p.gamma, G_BASE + old * (0.389 - G_BASE))     # bit for bit
+    assert np.array_equal(p.Z, 1.0 + old * (0.94 - 1.0))
