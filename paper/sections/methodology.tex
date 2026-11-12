@@ -1,71 +1,72 @@
-\section{Model, calibration and scenarios}
+\section{Model, closure and scenarios}
 \label{sec:methodology}
-
-The analysis proceeds in four stages. I first solve a no-AI baseline for the UK in OG-UK and validate it against the OBR's published March~2026 forecast. I then translate each of the two AI scenarios into a joint $(\gamma, Z)$ move, solving $Z$ against the scenario's technology target rather than setting it directly. I run each scenario as a paired transition path from the baseline's own initial conditions, under two government-spending conventions. Finally, I patch OG-Core so that the automation parameter can ramp rather than step, which the scenarios require.
 
 \subsection{The model}
 \label{sec:model}
 
-OG-UK is the UK calibration of OG-Core \citep{debacker2024ogcore}, an open-source overlapping-generations model in the Auerbach--Kotlikoff tradition \citep{auerbach1987}. Households live for eighty annual periods from age~21, are divided into seven lifetime-earnings types with an age-- and type-specific productivity profile $e_{t,s,j}$, and choose consumption, saving and hours with perfect foresight. Firms are competitive and produce with the constant-elasticity-of-substitution technology of equation~\eqref{eq:production}, which at the elasticity $\varepsilon = \genEpsilon{}$ used here is Cobb-Douglas. Government levies taxes through effective tax functions estimated from PolicyEngine UK microdata, spends a fixed share of output, and issues debt. Demographics --- fertility, mortality and immigration --- come from UN projections, and population growth enters as $g_n$, which OG-Core defines as the growth rate of the model population from $t$ to $t+1$. Technology grows at the labour-augmenting rate $g_y$. The model is solved for a steady state and then for a transition path to it, and all reported runs are single-sector ($\texttt{multi\_sector=False}$).
+OG-UK is the UK calibration of OG-Core \citep{debacker2024ogcore}, an open-source overlapping-generations model in the Auerbach--Kotlikoff tradition \citep{auerbach1987}. Households live for eighty annual periods from age~21. They are divided into seven lifetime-earnings types with an age- and type-specific productivity profile, and they choose consumption, saving and hours with perfect foresight. Firms are competitive and produce with equation~\eqref{eq:production}, which at the elasticity of substitution used here, $\varepsilon = \genEpsilon{}$, is Cobb-Douglas. Government levies taxes through effective tax functions estimated from PolicyEngine UK microdata, spends a share of output, pays transfers and issues debt. Fertility, mortality and immigration come from UN projections. Technology grows at the labour-augmenting rate $g_y$. All runs are single-sector.
 
-Two consequences of this structure matter for the results. First, at $\varepsilon = \genEpsilon{}$ the labour share is exactly $1 - \gamma_t$ in every period, and the real wage satisfies
+Two features of this structure matter for reading the results.
+\begin{itemize}
+\item At $\varepsilon = \genEpsilon{}$ the labour share is exactly $1-\gamma_t$, and the real wage satisfies
 \begin{equation}
 \label{eq:wageidentity}
 w_t = (1-\gamma_t)\,\frac{Y_t}{L_t},
-\qquad\text{so}\qquad
+\qquad
 \Delta \ln w_t = \Delta \ln (1-\gamma_t) + \Delta \ln \frac{Y_t}{L_t}.
 \end{equation}
-Capital deepening cannot move factor shares; only $\gamma$ can. This is why the labour-share path reported below is an input restated rather than a model output, and it is also the exact decomposition of the wage results in Section~\ref{sec:results-wages}. Second, households have perfect foresight, so an anticipated future improvement in technology changes behaviour from the first period of the transition. Consumption and investment therefore respond in \genStartYear{} even though the shock is still phasing in.
+The labour-share path is therefore an input, not a result. Factor quantities, prices, national income and their distribution across cohorts are results.
+\item Households have perfect foresight. A scenario that phases in from \genStartYear{} is known in full in \genStartYear{}, and saving and labour supply respond at once. Effects in \genStartYear{}, when $\gamma$ and $Z$ are still at their baseline values, are anticipation effects of this assumption. I report them as such and do not treat them as results.
+\end{itemize}
 
-\subsection{The no-AI baseline and its validation}
+\subsection{The baseline}
 \label{sec:baseline}
 
-The baseline sets $\gamma = \genGammaBase{}$ (a labour share of \genLabourShareBase{} per cent), $Z = 1$, $\varepsilon = \genEpsilon{}$ and $g_y^{\text{annual}} = \genGyAnnualPct{}$ per cent, starting in \genStartYear{}. Two departures from OG-UK's defaults are deliberate. First, $g_y^{\text{annual}}$ is set to the OBR's medium-term \emph{productivity} growth rate of \genObrProductivityPct{} per cent rather than its potential-output growth rate: OG-Core defines $g_y$ as the growth rate of labour-augmenting technological change, and because OG-UK already carries labour-force growth separately in $g_n$, using potential output growth double-counts labour supply. That correction fixes the object but not the counterfactual: the OBR's 1.0 per cent productivity path is itself AI-inclusive, since the OBR assumes AI raises productivity growth by 0.2 percentage points a year by the medium term, so a no-AI baseline is nearer 0.8 per cent. The runs reported here use \genGyAnnualPct{} per cent; the repository's default is now 0.8 per cent, and the baseline is re-solved at that value in work in progress. Because every arm is detrended identically, the gaps in Section~\ref{sec:results} are first-order invariant to $g_y$; the baseline growth and potential-output comparisons are not. Second, the switch of government spending to debt targeting is moved from OG-UK's default to $t_{G1} = \genTGone{}$ (\genTGoneYear{}), past the reported window, so that no fiscal rule binds inside \genStartYear--\genEndYear{} and the AI effects are not confounded with a rule-driven spending adjustment.
+The baseline sets $\gamma = \genGammaBase{}$ (a labour share of \genLabourShareBase{} per cent), $Z = 1$ and $g_y = \genGyAnnualPct{}$ per cent a year, the OBR's medium-term productivity growth rate. That rate already contains the OBR's own AI assumption. Briefing paper No.~9 puts the boost to productivity growth at about 0.2 percentage points at the forecast horizon (para~B.14), between a J-curve path that reaches 0.1 points a year by year five and an S-curve path (para~B.12). It puts the effect on the level of productivity at 2.3 per cent over the next decade (para~B.9) and gives no level for 2030 \citep{obr2025bp9}. A scalar $g_y$ cannot carry that path, so the baseline keeps the OBR's rate and is labelled ``OBR central''. Every gap reported here is in addition to the OBR's assumption.
 
-Table~\ref{tab:obr} in the appendix reports the baseline against the OBR's March~2026 forecast. Real GDP growth, re-trended at $g_y + g_n$, averages \genBaseGrowthMean{} per cent over \genBaseGrowthStartYear--\genEndYear{} against the OBR's \genObrGrowthMean{} per cent, a difference of \genBaseObrGrowthDiffPp{} percentage points. The components agree less well: the model's balanced-growth rate in \genEndYear{} is \genModelBgrThirtyPct{} per cent against the OBR's potential output growth of \genObrPotentialThirtyPct{} per cent, and its population growth of \genModelPopGrowthThirtyPct{} per cent is not the same object as the OBR's labour-supply growth of \genObrLabourSupplyPct{} per cent, since participation and hours per person also move. The headline agreement should therefore be read alongside the component table rather than on its own.
+The switch of government spending to debt targeting is set at $t_{G1} = \genTGone{}$ (\genTGoneYear{}), after the reported window, so no fiscal rule binds inside it. \genIfRerun{The baseline's spending share before the switch is set so that its 2030 debt-to-GDP ratio matches the OBR's March~2026 forecast.}{The baseline's spending share is its steady-state value. In \genStartYear--\genEndYear{} that share leaves an implied primary surplus of about 2.6 per cent of GDP, and baseline debt falls as a share of GDP while the OBR's is flat. I therefore report debt only as a gap against the baseline, never as a level.} Appendix Table~\ref{tab:obr} compares the baseline's growth with the OBR's forecast.
 
-\subsection{Calibrating the two scenarios}
+\subsection{The capital closure}
+\label{sec:closure}
+
+OG-Core's open-economy block sets the foreign-owned capital stock as a fixed share $\zetaK$ of the gap between the capital firms would demand at the world interest rate, $K^{\text{open}}_t$, and the domestically owned stock $K^d_t$:
+\begin{equation}
+\label{eq:closure}
+K_t = K^d_t + \zetaK \bigl(K^{\text{open}}_t - K^d_t\bigr).
+\end{equation}
+Foreigners also buy a share $\zeta_D$ of new government debt. Gross national income is GDP less the return paid on foreign-owned capital and foreign-held debt, $\text{GNI}_t = Y_t - r^p_t (K^f_t + D^f_t)$, where $r^p_t$ is the rate OG-Core pays on both in its resource constraint.
+
+The central closure is OG-UK's default: $\zetaK = \genZetaKCentral{}$, $\zeta_D = \genZetaD{}$ and a world interest rate of \genWorldRatePct{} per cent. \textbf{This is an inherited default, not a UK calibration.} OG-Core's parameter documentation sets $\zetaK = 0.1$ for a large open version of the US economy and notes that it is hard to find data to pin it down. OG-UK inherits it. The case for keeping it is after the fact. It rests on two comparisons with UK data:
+\begin{itemize}
+\item \emph{Income paid abroad.} The baseline pays \genPaidAbroadBaseCentral{} per cent of GDP abroad in \genEndYear{} (GNI is \genGniGdpRatioBaseCentral{} per cent of GDP). The UK's net primary income deficit was 1.2 per cent of GDP in 2025 and 1.6 per cent in 2024 \citep{ons2026pinkbook}. This is the quantity that separates GNI from GDP.
+\item \emph{Who finances extra investment.} Extra national saving covers \genShareShiftTfpSavingShareCentral{} (\ShareShiftTfp{}) and \genShareShiftSavingShareCentral{} (\ShareShift{}) of the extra investment over 2026--29. That is a model analogue of the saving--investment coefficient of \citet{feldsteinhorioka1980}, and it lies between the estimates of \citet[Table~3]{blanchardgiavazzi2002} for the European Union (0.36) and the euro area (0.14) in 1991--2001.
+\end{itemize}
+The closure gets other features wrong, and the results should be read with them in mind:
+\begin{itemize}
+\item The baseline current-account deficit is \genCurrentAccountDeficitBaseCentral{} per cent of GDP, against the UK's 3.0 per cent in 2025 \citep{ons2026pinkbook}. Foreigners own \genForeignOwnedCapitalBaseCentral{} per cent of the baseline capital stock, against about 40 per cent gross in the OBR's estimate \citep{obr2025wp22}.
+\item The size of the inflow depends on the \genWorldRatePct{} per cent world rate, which no run has varied. The baseline domestic return is \genBaseInterestThirtyPct{} per cent, so firms' demand for capital at the world rate far exceeds the actual stock, and equation~\eqref{eq:closure} acts on that standing gap.
+\item Price and quantity disagree. In \ShareShiftTfp{} foreign-owned capital rises \genShareShiftTfpForeignCapitalGapThirtyCentralAbs{} per cent by \genEndYear{} while the domestic return rises \genShareShiftTfpInterestChangeBpCentral{} basis points. An integrated capital market would not show both.
+\end{itemize}
+
+The closed-capital bound sets $\zetaK = \genZetaKBound{}$, with $\zeta_D$ and the world rate unchanged. It is not a closed economy, since foreigners still buy \genZetaD{} of new gilts. It matches the UK on neither comparison above: the baseline pays \genPaidAbroadBaseBound{} per cent of GDP abroad, and extra national saving covers \genShareShiftTfpSavingShareBound{} and \genShareShiftSavingShareBound{} of extra investment, close to the 0.89 that \citet{feldsteinhorioka1980} found for 1960--74. I report it beside the central case, in the same tables, because it bounds the role of foreign capital. Each closure has its own no-AI baseline, and gaps are measured against it.
+
+\subsection{The two scenarios}
 \label{sec:calibration}
 
-Both scenarios impose the same automation intensity and differ only in productivity.
+\paragraph{Automation.} At $\varepsilon = \genEpsilon{}$ a labour-share fall of $f$ points maps to the capital exponent as $\gamma_1 = \gamma_0 + f/100$. With $\gamma_0 = \genGammaBase{}$ and $f = \genLabourShareFallPp{}$, the size of the fall from 60.0 to 56.1 cents in the ``substantial'' column of Table~3 of \citet{korinek2026}, $\gamma_1 = \genGammaShocked{}$. The OBR publishes no labour-share figure for its scenario, so both arms use this size.
 
-\paragraph{Automation.} At $\varepsilon = \genEpsilon{}$, a labour-share fall of $f$ percentage points maps to a capital exponent by algebra: $\gamma_1 = 1 - \bigl[(1-\gamma_0) - f/100\bigr]$. With $\gamma_0 = \genGammaBase{}$ and $f = \genLabourShareFallPp{}$, the target is $\gamma_1 = \genGammaShocked{}$, a labour share of \genLabourShareShocked{} per cent. The \genLabourShareFallPp{}-point fall is the figure reported by \citet{korinek2026} in the ``substantial'' column of Table~3 (their labour share falls from 60.0 to 56.1~cents), applied to the UK's \genLabourShareBase{} per cent starting point. The OBR publishes no labour-share number for its technological-displacement scenario, so the automation-only arm borrows the same intensity; its distinguishing feature is the output-neutrality condition, not the labour-share target. Section~\ref{sec:limitations} records this borrowing.
+\paragraph{Technology.} Raising $\gamma$ alone changes output at given inputs by \genGammaOnlyGainPct{} per cent at the baseline's \genStartYear{} capital and labour. That change reflects the units of $K$ and $L$, not technology, so $Z$ is solved jointly with $\gamma$:
+\begin{itemize}
+\item \ShareShiftTfp{}: $Z$ is set so that output at the baseline's \genStartYear{} capital and labour is \genTfpGainPct{} per cent higher, the measured TFP gain in \citet{korinek2026}. Terminal $Z = \genZShareShiftTfp{}$.
+\item \ShareShift{}: \genIfRerun{$Z$ is solved so that GDP in \genEndYear{} is unchanged against the baseline in general equilibrium, separately at each closure. Terminal $Z = \genZShareShift{}$ at $\zetaK = \genZetaKCentral{}$.}{$Z$ is set so that output at the baseline's \genStartYear{} capital and labour is unchanged, a zero technology wedge. Terminal $Z = \genZShareShift{}$. Because capital then responds, equilibrium GDP does move (Section~\ref{sec:results}).} The arm is compared with the OBR's technological-displacement scenario, in which the level of GDP is unchanged, but it is not a reproduction of it.
+\end{itemize}
+Both solved values of $Z$ lie below one only because they offset the $\gamma$-only change in output. Their level has no economic meaning.
 
-\paragraph{Productivity.} $Z$ cannot be set to one plus the technology target, because moving $\gamma$ alone already changes output at fixed inputs: $K^{\gamma_1}L^{1-\gamma_1} \neq K^{\gamma_0}L^{1-\gamma_0}$. At the baseline's period-zero factor levels, raising $\gamma$ from \genGammaBase{} to \genGammaShocked{} raises output by \genGammaOnlyGainPct{} per cent with $Z$ held at~1. $Z$ is therefore solved \emph{jointly} with $\gamma$ against each scenario's target:
-\begin{equation}
-\label{eq:zsolve}
-Z = \frac{1 + \tau}{1 + \eta},
-\qquad
-\eta \equiv \frac{K_0^{\gamma_1} L_0^{1-\gamma_1}}{K_0^{\gamma_0} L_0^{1-\gamma_0}} - 1 = \genGammaOnlyGainPct{}~\text{per cent},
-\end{equation}
-where $\tau$ is the scenario's target change in output at fixed inputs: $\tau = \genTfpGainPct{}$ per cent for ``automation and productivity'' and $\tau = \genGdpLevelTargetPct{}$ for ``automation only''. The solved values are $Z = \genZShareShiftTfp{}$ and $Z = \genZShareShift{}$ respectively. Both lie below~1 purely because they offset $\eta$, which in turn reflects the units of $K$ and $L$ in the model; their level carries no economic meaning, and only the joint move does.
+\paragraph{Path and counterfactual.} $\gamma$ and $Z$ move linearly over \genRampYears{} years from \genStartYear{} to \genEndYear{} and are held constant after that. This follows \citet{korinek2026}, whose parameters build to 2030. Stock OG-Core cannot vary $\gamma$ over time. Appendix~\ref{app:patch} documents the patch that allows it. Every arm starts from its baseline's initial assets and debt, and all arms use the baseline's government spending share $\alpha_G = \genAlphaG{}$, so government consumption is the same share of output in every arm.
 
-\paragraph{The shock path.} Both $\gamma$ and $Z$ phase in linearly over \genRampYears{} years from \genStartYear{} to \genEndYear{} and are held at their terminal values thereafter. This mirrors the design of \citet{korinek2026}, whose capability, adoption and task parameters build from a mid-2026 anchor to 2030 values. Ramping $\gamma$ is what the patch of Section~\ref{sec:patch} makes possible.
-
-\paragraph{The counterfactual.} Every scenario inherits the baseline's initial assets and debt, so the arms share a common origin and the \genStartYear{} gaps are small rather than mechanical. All arms use the baseline's government-spending share $\alpha_G = \genAlphaG{}$, which makes government spending a fixed fraction of output in every arm; $G/Y$ is numerically identical across arms by construction. A second complete run instead holds the level of government spending and transfers at their baseline paths, the convention the OBR uses when scoring a scenario against a central forecast. Both runs are reported: the shared-share run is the headline, because it keeps fiscal policy identical in rule rather than in level, and the fixed-spending run is reported alongside it in Section~\ref{sec:results-fiscal}.
-
-\subsection{A time-varying capital exponent for OG-Core}
-\label{sec:patch}
-
-Stock OG-Core indexes the capital exponent by industry only, as \texttt{p.gamma[m]}, at roughly \genPatchSites{} sites in \texttt{ogcore/firm.py}. Automation can therefore step --- one level from the first period --- but cannot ramp. Two costs follow. Economically, a step delivers the entire level effect in \genStartYear{} and leaves no growth behind it, so a step run simultaneously overstates the level gain and understates growth relative to any phased scenario. Practically, the experiments the literature specifies are unrepresentable: the automation path of \citet{korinek2026} builds to 2030, and \citet{mollimas2026} raise the exponent from $1/3$ towards~1 over two decades.
-
-The patch (\texttt{patches/ogcore-0.17.0-firm-gamma-tv.diff}, against OG-Core \genOgcoreVersion{}) adds a time dimension in a backward-compatible way. A helper indexes a production parameter that may carry either shape, following the convention $Z$ already uses --- the last row in the steady state, the first $T$ rows along the transition:
-\begin{verbatim}
-def _tv(x, p, method, m=None):
-    x = np.asarray(x)
-    if x.ndim <= 1:                 # (M,) -- time-invariant, legacy
-        return x[m] if m is not None else x
-    if method == "SS":              # (T, M) -- time-varying
-        return x[-1, m] if m is not None else x[-1]
-    return x[: p.T, m] if m is not None else x[: p.T]
-\end{verbatim}
-Every \texttt{p.gamma[m]}, \texttt{p.gamma\_g[m]} and bare \texttt{p.gamma} is replaced by \texttt{\_tv(p.gamma, p, method, m)}. A legacy one-dimensional parameter is returned exactly as before, so existing calibrations are bit-identical. One further fix is needed: \texttt{get\_MPx} reshapes output and the factor to column vectors along the transition and documents the share as a scalar, so a time-varying share arriving with shape $(T,)$ forms a $(T,T)$ outer product and the price routine then fails. Giving the share the same column shape resolves it.
-
-Verification has two parts. As a regression, the single-sector scenario with a legacy one-dimensional exponent reproduces the unpatched run exactly, with steady-state labour shares of \genLabourShareBase{} and \genLabourShareShocked{} per cent and identical resource-constraint errors to three significant figures. As new capability, an exponent ramping from \genGammaBase{} to \genGammaShocked{} over \genStartYear--\genEndYear{} solves cleanly and produces a labour-share \emph{path} rather than a step. The same limitation applies to $\varepsilon$ at roughly \genPatchEpsilonSites{} sites in the same file and would take the same treatment. The patch is applied to the installed package in the environment that runs the model; OG-Core itself is unmodified, and the change is not yet upstream. The runner refuses to start against an unpatched \texttt{ogcore.firm}.
-
-\subsection{Solution, provenance and reporting conventions}
+\subsection{Solution and reporting}
 \label{sec:solution}
 
-Runs used OG-Core \genOgcoreVersion{} and OG-UK at commit \genOgukSha{}, with PolicyEngine \genPolicyengineVersion{} and PolicyEngine UK \genPolicyengineUkVersion{} under Python \genPythonVersion{}; the results files record this provenance, and every number in this paper is generated from them by \texttt{paper/make\_values.py}. Each arm takes roughly \genBaseElapsedMin{} minutes to solve. OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} was disabled (\texttt{\genEnforceChecks{}}) and the full resource-constraint and Euler diagnostics are instead recorded per arm and reported in Appendix~\ref{app:diagnostics}. The largest resource-constraint error inside the reported window after \genStartYear{} is \genBaseRcMaxInterior{} in the baseline and of the same order in both shocked arms, and the maximum Euler error is \genBaseEulerMax{}. The \genStartYear{} resource-constraint error is larger, at \genBaseRcTwentySixPctGdp{} per cent of \genStartYear{} GDP; levels and ratios in \genStartYear{} carry it, while gaps against the baseline, which is the form in which all results are reported, largely net it out.
+Runs used OG-Core \genOgcoreVersion{} and OG-UK at commit \genOgukSha{}, with PolicyEngine UK \genPolicyengineUkVersion{}. Appendix~\ref{app:diagnostics} reports the resource-constraint and Euler errors for every arm. \genIfRerun{The baseline uses UK-consistent demographic inputs for the period before \genStartYear{}, and the join between OG-UK's demographic data and its projection in 2028 is repaired.}{OG-Core's default demographic inputs for the period before \genStartYear{} are inconsistent with the UK population, and they leave a resource-constraint error of \genBaseRcTwentySixPctGdp{} per cent of GDP in \genStartYear{}. The error is the same in every arm to within 0.006 per cent of GDP, so it cancels from the gaps, but \genStartYear{} levels carry it.} Every number in the paper is a macro generated by \texttt{paper/make\_values.py} from the committed results files.
 
-Model output is detrended, and re-trending is variable by variable: output, spending, capital, debt and revenue carry both $e^{g_y t}$ and population, the wage carries productivity only, aggregate labour carries population only, and the interest rate carries neither. The labour share $wL/Y$ and every ratio of an arm to the baseline are therefore invariant to re-trending, so only the growth rates in Section~\ref{sec:results-growth} and Table~\ref{tab:obr} depend on the trend parameters, which each results file records as used.
+All results are gaps between an arm and its baseline in the same year. Detrending cancels from these ratios, so only growth rates depend on the trend parameters.

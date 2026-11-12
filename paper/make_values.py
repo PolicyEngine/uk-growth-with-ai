@@ -249,6 +249,9 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
         dkf = arr(r, "K_f")[4] - arr(base, "K_f")[4] if "K_f" in r else None
         if dkf is not None:
             v.put(f"{aw}ForeignShareExtraK{cw}", dkf / dk * 100, "{:.1f}")
+            if arr(base, "K_f")[4] > 0:
+                v.signed(f"{aw}ForeignCapitalGapThirty{cw}",
+                         (arr(r, "K_f")[4] / arr(base, "K_f")[4] - 1) * 100, fmt_abs="{:.0f}")
         # extra national saving (GNI - C - G) over extra investment, 2026-29
         s = lambda x: gni(x) - arr(x, "C") - arr(x, "G")
         ds = (s(r) - s(base))[:4].sum()
@@ -257,7 +260,7 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
         v.signed(f"{aw}WageGapThirty{cw}", gap(res, arm, "w")[4])
         v.signed(f"{aw}CapitalGapThirty{cw}", gap(res, arm, "K")[4])
         v.put(f"{aw}InterestChangeBp{cw}",
-              (arr(r, "r")[4] - arr(base, "r")[4]) * 1e4, "{:+.0f}")
+              (arr(r, "r")[4] - arr(base, "r")[4]) * 1e4, "{:.0f}")  # sign checked in check_claims
 
 
 def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> None:
