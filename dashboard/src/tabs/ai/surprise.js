@@ -21,7 +21,7 @@ export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.z
 export const SCENARIOS = S.scenarios;
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
 export const ARMS = S.arms; // [{id: 'tfp'|'ss', label}]
-export const ARM_COLOR = { tfp: 'var(--chart-uk-ai)', ss: 'var(--chart-uk-obr)' };
+export const ARM_COLOR = { tfp: 'var(--series-1)', ss: 'var(--series-2)' };
 
 export const result = (sid, arm, closure) => S.results[sid]?.[arm]?.[closure] ?? { status: 'pending' };
 export const isDone = (sid, arm, closure) => result(sid, arm, closure).status === 'done';

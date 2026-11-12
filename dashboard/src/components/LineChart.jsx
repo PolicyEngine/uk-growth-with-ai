@@ -144,6 +144,8 @@ export default function LineChart({
   valueFormat = (v) => v.toFixed(1),
   yUnit = null,
   ariaLabel,
+  noValue = false,
+  bands = [],
 }) {
   const [ref, W] = useWidth(880);
   useMeasured();
@@ -178,7 +180,7 @@ export default function LineChart({
   const points = strip?.points || [];
   const segsFor = (text, value, strong, offScale) => [
     { kind: 'text', text, weight: strong ? 700 : 500 },
-    { kind: 'value', text: valueFormat(value), weight: 700 },
+    ...(noValue ? [] : [{ kind: 'value', text: valueFormat(value), weight: 700 }]),
     ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
   ];
   const rawLabels = [
@@ -262,6 +264,23 @@ export default function LineChart({
   return (
     <div ref={ref} className="linechart">
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
+        {bands.map((b) => {
+          const i = x.indexOf(b.year);
+          if (i < 0) return null;
+          const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
+          const x0 = Math.max(L, sx(i) - half);
+          const x1 = Math.min(R + 6, sx(i) + half);
+          return (
+            <g key={`band-${b.year}`}>
+              <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
+              {b.label ? (
+                <text x={(x0 + x1) / 2} y={TOP - 6} className="ax band-label" textAnchor="middle">
+                  {b.label}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
@@ -271,6 +290,7 @@ export default function LineChart({
           </g>
         ))}
         <line x1={L} y1={BOT} x2={R} y2={BOT} className="axis-line" />
+        {lo < 0 && hi > 0 ? <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" /> : null}
         {yUnit ? (
           <text
             className="ax axis-unit"
@@ -301,15 +321,19 @@ export default function LineChart({
               points={s.values.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')}
               fill="none"
               stroke={s.color}
-              strokeWidth={s.dashed ? '2' : '2.6'}
+              strokeWidth={s.dashed ? '2' : '2.5'}
               strokeDasharray={s.dashed ? '6 4' : undefined}
               strokeLinejoin="round"
             />
             {s.values.map((v, i) =>
               s.dashed ? (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r="3" fill="var(--pe-color-bg-primary)" stroke={s.color} strokeWidth="1.6" />
+                <circle key={i} cx={sx(i)} cy={sy(v)} r="3" fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
+                  <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
+                </circle>
               ) : (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r="3.2" fill={s.color} />
+                <circle key={i} cx={sx(i)} cy={sy(v)} r="3.2" fill={s.color}>
+                  <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
+                </circle>
               ),
             )}
           </g>

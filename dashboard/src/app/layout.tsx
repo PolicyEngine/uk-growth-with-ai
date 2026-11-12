@@ -1,6 +1,28 @@
+import { PolicyEngineShell } from '@policyengine/ui-kit/layout';
+import '@policyengine/ui-kit/styles.css';
 import type { Metadata, Viewport } from 'next';
+import localFont from 'next/font/local';
 import './globals.css';
 import './panels.css';
+// The PolicyEngine tokens, bundled (as the Autumn Budget 2026 dashboard)
+import '@policyengine/ui-kit/legacy/tokens.css';
+import './fonts.css';
+import './siteHeader.css';
+import './ab.css';
+import 'katex/dist/katex.min.css';
+import SiteFooter from '@/components/ab/SiteFooter.jsx';
+import { SITE_HEADER_STYLES, SITE_NAV_ITEMS } from '@/lib/siteNav.js';
+
+// Inter, self-hosted (fonts/, SIL Open Font License in fonts/OFL.txt): no
+// third-party font request.
+const inter = localFont({
+  src: './fonts/inter-latin-variable.woff2',
+  weight: '100 900',
+  style: 'normal',
+  display: 'swap',
+  variable: '--font-inter',
+  adjustFontFallback: 'Arial',
+});
 
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
 const TITLE = 'The Macroeconomic Effects of AI on the UK';
@@ -40,22 +62,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-          crossOrigin="anonymous"
-        />
-              <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charSet="utf-8" defer />
-</head>
-      <body>{children}</body>
+    <html lang="en-GB" className={inter.variable}>
+      <body>
+        <PolicyEngineShell country="uk" showFooter={false} headerProps={{ navItems: SITE_NAV_ITEMS, styles: SITE_HEADER_STYLES }}>
+          {children}
+          <SiteFooter />
+        </PolicyEngineShell>
+      </body>
     </html>
   );
 }
