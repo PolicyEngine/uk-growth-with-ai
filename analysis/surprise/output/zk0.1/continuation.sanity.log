@@ -1,0 +1,9 @@
+ok   K = K_d + K_f
+ok   K_d = B - D_d
+ok   D = D_d + D_f
+ok   GNI <= GDP where K_f > 0
+ok   NNI < GNI
+ok   |RC/GDP| <= 1e-5, 2027-2036
+ok   every gap exactly 0 in 2026 and 2027
+ok   restart reproduces the baseline 2028-2036
+SANITY PASS zk0.1 continuation
