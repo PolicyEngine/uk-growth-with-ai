@@ -26,7 +26,7 @@ function seriesFor(sid, v, years, hidden) {
     if (r.status !== 'done') return [];
     return [{
       key: a.id,
-      label: a.label,
+      label: a.short || a.label,
       closure: 'central closure',
       color: ARM_COLOR[a.id],
       light: ARM_LIGHT[a.id],

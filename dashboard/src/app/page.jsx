@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
+import ResultsTab, { SUBS } from '@/tabs/ai/ResultsTab.jsx';
 import FutureScenariosTab from '@/tabs/FutureScenariosTab.jsx';
 import MethodologyTab from '@/tabs/MethodologyTab.jsx';
 import CoverageTab from '@/tabs/CoverageTab.jsx';
@@ -51,17 +51,22 @@ function readUrl() {
   const q = new URLSearchParams(window.location.search);
   const h = window.location.hash.replace(/^#/, '');
   let tab = q.get('tab');
-  // Public finances is now the last section of Results
-  const section = tab === 'finances' || h === 'finances' || h === 'public-finances' ? 'public-finances' : null;
+  let sub = q.get('sub');
+  // Public finances is now a sub-tab of Results
+  if (tab === 'finances' || h === 'finances' || h === 'public-finances') sub = 'finances';
   if (!TABS.some((t) => t.id === tab)) tab = LEGACY[tab] || LEGACY[h] || LEGACY[h.split('/')[0]] || null;
+  if (!SUBS.some((x) => x.id === sub)) sub = null;
+  if (sub && !tab) tab = 'results';
   const s = q.get('s');
-  return { tab, s: s && scenarioById(s) ? s : null, section };
+  return { tab, sub, s: s && scenarioById(s) ? s : null };
 }
 
-function writeUrl(tab, s) {
+function writeUrl(tab, s, sub) {
   const u = new URL(window.location.href);
   u.hash = '';
   u.searchParams.set('tab', tab);
+  if (tab === 'results' && sub) u.searchParams.set('sub', sub);
+  else u.searchParams.delete('sub');
   u.searchParams.set('s', s);
   window.history.replaceState(null, '', u.toString());
 }
@@ -112,6 +117,7 @@ function LiteratureTab({ openModal }) {
 export default function HomePage() {
   const [tab, setTab] = useState('results');
   const [sid, setSid] = useState(S.default_scenario);
+  const [sub, setSub] = useState('overview');
   const [visited, setVisited] = useState({ results: true });
   const [modal, setModal] = useState(null);
 
@@ -123,10 +129,10 @@ export default function HomePage() {
         setVisited((v) => ({ ...v, [u.tab]: true }));
       }
       if (u.s) setSid(u.s);
-      if (u.section) {
-        writeUrl('results', u.s || S.default_scenario);
-        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${u.section}`);
-        requestAnimationFrame(() => document.getElementById(u.section)?.scrollIntoView());
+      if (u.sub) {
+        setSub(u.sub);
+        // an old #public-finances or ?tab=finances link: rewrite to the new form
+        writeUrl(u.tab, u.s || S.default_scenario, u.sub);
       }
     };
     apply();
@@ -137,17 +143,22 @@ export default function HomePage() {
   const chooseTab = (id) => {
     setTab(id);
     setVisited((v) => ({ ...v, [id]: true }));
-    writeUrl(id, sid);
+    writeUrl(id, sid, sub);
     window.scrollTo({ top: 0 });
   };
   const chooseScenario = (s) => {
     setSid(s);
-    writeUrl(tab, s);
+    writeUrl(tab, s, sub);
+  };
+  const chooseSub = (id) => {
+    setSub(id);
+    writeUrl('results', sid, id);
+    window.scrollTo({ top: 0 });
   };
   const scenarioApplies = TABS.find((t) => t.id === tab)?.scenario;
 
   const panels = {
-    results: <ResultsTab sid={sid} onTab={chooseTab} onScenario={chooseScenario} />,
+    results: <ResultsTab sid={sid} sub={sub} onSub={chooseSub} onTab={chooseTab} onScenario={chooseScenario} />,
     cohorts: <CohortsTab />,
     method: <MethodTab openModal={setModal} />,
     literature: <LiteratureTab openModal={setModal} />,

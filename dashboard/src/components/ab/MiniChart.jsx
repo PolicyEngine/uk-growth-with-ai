@@ -37,7 +37,13 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
   const ends = lines
     .map((l) => ({ ...l, end: l.values[l.values.length - 1], y: yPct(l.values[l.values.length - 1]) }))
     .sort((a, b) => a.y - b.y);
-  for (let i = 1; i < ends.length; i += 1) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + LABEL_GAP * 1.6);
+  const gapPct = LABEL_GAP * 1.6;
+  for (let i = 1; i < ends.length; i += 1) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + gapPct);
+  // ...and pulled back up if the stack runs past the bottom of the plot
+  for (let i = ends.length - 1; i >= 0; i -= 1) {
+    const floor = i === ends.length - 1 ? 96 : ends[i + 1].y - gapPct;
+    if (ends[i].y > floor) ends[i].y = floor;
+  }
   const desc = lines.map((l) => `${l.label}: ${years.map((y, i) => `${y} ${fmt(l.values[i])}${unit}`).join(', ')}`).join('. ');
 
   return (
@@ -82,7 +88,6 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
                 />
               ))}
             </svg>
-            <span className="mini-zero-label" style={{ top: `${yPct(0)}%` }}>no-AI</span>
             {hi != null
               ? lines.map((l) => (
                   <span key={l.key} className="mini-dot" style={{ left: `${(100 * hi) / (years.length - 1)}%`, top: `${yPct(l.values[hi])}%`, background: l.color }} />

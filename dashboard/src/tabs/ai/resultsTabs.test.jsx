@@ -28,13 +28,18 @@ const { path, CENTRAL } = await import('@/tabs/ai/surprise.js');
 
 describe('Results follows the data file', () => {
   it('shows the altered values and pending bounds', () => {
-    const { container } = render(<ResultsTab sid="uk_central" onTab={() => {}} onScenario={() => {}} />);
-    const t = container.textContent;
-    expect(t).toContain('+1.23%');
-    expect(t).toContain('+2.35%');
-    expect(t).toContain('+4.4%');
-    expect(t).toContain('+7.78pp');
-    expect(t).toContain('closed capital pending');
+    const at = (sub) => {
+      const { container, unmount } = render(<ResultsTab sid="uk_central" sub={sub} onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
+      const t = container.textContent;
+      unmount();
+      return t;
+    };
+    const overview = at('overview');
+    expect(overview).toContain('+1.23%');
+    expect(overview).toContain('+2.35%');
+    expect(overview).toContain('closed capital pending');
+    expect(at('variables')).toContain('+4.4%');
+    expect(at('finances')).toContain('+7.78pp');
   });
 });
 
@@ -55,7 +60,8 @@ describe('tooltips', () => {
     fireEvent.focus(chart);
     const tip = screen.getByRole('tooltip');
     expect(tip.textContent).toContain('GNI, 2031');
-    expect(tip.textContent).toContain('Automation + productivity, central closure');
+    expect(tip.textContent).toContain('central closure');
+    expect(tip.textContent).toContain('Automation + productivity');
     expect(tip.textContent).toContain('1.23%');
     fireEvent.keyDown(chart, { key: 'ArrowLeft' });
     expect(screen.getByRole('tooltip').textContent).toContain('2030');
@@ -82,13 +88,15 @@ describe('tooltips', () => {
   });
 
   it('dumbbell dot and tax-gap bar: focus shows arm, closure and value', () => {
-    render(<ResultsTab sid="uk_central" onTab={() => {}} onScenario={() => {}} />);
+    const { unmount } = render(<ResultsTab sid="uk_central" sub="overview" onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
     const dot = screen.getByLabelText(/Automation \+ productivity, central closure, Income UK residents keep/);
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('Central closure');
     expect(tip).toContain('+1.23% against the no-AI path');
     fireEvent.blur(dot);
+    unmount();
+    render(<ResultsTab sid="uk_central" sub="finances" onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
     const bar = screen.getByLabelText(/Labour minus capital effective tax rate, OBR/);
     fireEvent.focus(bar);
     tip = screen.getByRole('tooltip').textContent;

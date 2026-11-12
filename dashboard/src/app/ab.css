@@ -2536,3 +2536,42 @@ body {
 .scen-col-k {
   white-space: nowrap;
 }
+
+/* Results' sub-tab row (AB2026 SubTabs): smaller, sticky under the tabs */
+.view-tabs-bar.is-sub {
+  top: calc(var(--title-row-height) + var(--tab-row-height));
+  z-index: 1080;
+  margin-top: -32px;
+  margin-bottom: 28px;
+  background: var(--pe-surface);
+  border-top: 0;
+}
+
+.view-tabs-bar.is-sub .view-tabs {
+  height: 42px;
+}
+
+.view-tabs-bar.is-sub .view-tab {
+  font-size: var(--fs-small);
+  color: var(--c-subtab-muted, var(--pe-gray-600));
+}
+
+.view-tabs-bar.is-sub .view-tab[aria-selected='true'] {
+  color: var(--band-teal);
+}
+
+.sub-panel[hidden] {
+  display: none !important;
+}
+
+.chart-tip {
+  min-width: 220px;
+}
+
+.chart-tip .tip-row {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+}
+
+.chart-tip .tip-name {
+  min-width: 0;
+}

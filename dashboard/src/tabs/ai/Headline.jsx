@@ -2,7 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, gap, fmt } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, gap, fmt, result } from '@/tabs/ai/surprise.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -61,6 +61,38 @@ function Num({ x }) {
   );
 }
 
+// Does holding 2031 GDP flat need output at fixed inputs to fall, i.e. is the
+// stress test's Z below the technology-unchanged (fixed-input) Z, at this
+// closure? null when either solve is pending.
+export function stressFalls(sid, closure) {
+  const s = result(sid, 'ss', closure);
+  const t = result(sid, 'tz', closure);
+  if (s.status !== 'done' || t.status !== 'done') return null;
+  return s.Z_terminal < t.Z_terminal;
+}
+
+export function StressNote({ sid }) {
+  const c = stressFalls(sid, CENTRAL);
+  const b = stressFalls(sid, BOUND);
+  const phrase = (x) => (x ? 'output at fixed inputs has to fall' : 'output at fixed inputs has to rise slightly');
+  return (
+    <p className="disclosure-text">
+      The stress test holds {HEADLINE_YEAR} GDP at the no-AI path, as in the OBR&rsquo;s Box 2.2 displacement scenario.
+      {c != null ? (
+        <>
+          {' '}Under the central closure {phrase(c)} for that{c ? ', so it is a pessimistic bound, not a forecast' : ''}.
+        </>
+      ) : null}
+      {b != null ? (
+        <>
+          {' '}Under closed capital {phrase(b)}{b === c ? ' too' : ', so there it is not below “technology unchanged”'}.
+        </>
+      ) : null}{' '}
+      &ldquo;Technology unchanged&rdquo; shifts the labour share and leaves output at fixed inputs where it was.
+    </p>
+  );
+}
+
 export function Takeaway({ sid }) {
   const y = gap(sid, 'tfp', CENTRAL, 'Y');
   const w = gap(sid, 'tfp', CENTRAL, 'w');
@@ -83,7 +115,7 @@ export function Takeaway({ sid }) {
       ) : null}
       {sg != null ? (
         <>
-          {' '}The stress test, with output held flat, is the pessimistic bound: national income <Num x={sg} />.
+          {' '}The stress test, with output held flat{stressFalls(sid, CENTRAL) ? ', is the pessimistic bound' : ''}: national income <Num x={sg} />.
         </>
       ) : null}
     </p>

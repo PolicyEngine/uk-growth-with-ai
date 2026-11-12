@@ -290,6 +290,9 @@ export default function LineChart({
     e.preventDefault();
   };
   const tipLeft = hov == null ? 0 : sx(hov);
+  // One closure for every line: said once in the tooltip's header
+  const closures = [...new Set(series.map((s) => s.closure).filter(Boolean))];
+  const oneClosure = closures.length === 1 && series.every((s) => s.closure) ? closures[0] : null;
 
   return (
     <div
@@ -313,12 +316,13 @@ export default function LineChart({
             {tipTitle ? `${tipTitle}, ` : ''}
             {x[hov]}
           </b>
+          {oneClosure ? <span className="tip-sub">{oneClosure}</span> : null}
           {series.map((s) => (
             <span key={s.key ?? s.label} className="tip-row">
               <span className={`swatch${s.dashed ? ' dashed' : ''}`} style={{ borderTopColor: s.color }} />
               <span className="tip-name">
                 {s.label}
-                {s.closure ? `, ${s.closure}` : ''}
+                {s.closure && !oneClosure ? `, ${s.closure}` : ''}
               </span>
               <span className="tip-value">
                 {valueFormat(s.values[hov])}
