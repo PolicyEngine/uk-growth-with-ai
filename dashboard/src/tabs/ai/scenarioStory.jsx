@@ -128,8 +128,9 @@ export const STORY_STEPS = [
             unchanged from the baseline in {Z_SHARE_SHIFT_YEAR} for Automation only.
           </li>
           <li>
-            <b>Timing.</b> Both rise linearly from their baseline values in {FIRST_YEAR} to their full values in{' '}
-            {LAST_YEAR} and stay there afterwards. Households and firms know the whole path in advance (perfect
+            <b>Timing.</b> Both move linearly from their baseline values in {FIRST_YEAR} to their full values in{' '}
+            {LAST_YEAR} and stay there afterwards. They are interpolated separately, so each Z target holds at the
+            full values, not in the years between. Households and firms know the whole path in advance (perfect
             foresight).
           </li>
           <li>

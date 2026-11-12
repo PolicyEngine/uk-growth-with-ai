@@ -14,24 +14,29 @@ linearly from 2026 to 2030 and held thereafter:
 | Scenario | Internal id | Automation (γ) | Productivity (Z) solved for | Calibration source |
 |---|---|---|---|---|
 | OBR central | `baseline` | γ = 0.35 (labour share 65%) | Z = 1 | OG-UK default |
-| Automation only | `share_shift` | γ: 0.35 → 0.389 (labour share −3.9pp) | no output gain at fixed K and L (zero technology wedge) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
+| Automation only | `share_shift` | γ: 0.35 → 0.389 (labour share −3.9pp) | equilibrium GDP in 2030 equal to the baseline's (R4, #8) | Automation intensity from Korinek et al.; motivated by OBR March 2026 EFO Box 2.2 but **not** a reproduction of it — see below |
 | Automation + productivity | `share_shift_tfp` | γ: 0.35 → 0.389 | +3.1% output at fixed K and L | Korinek et al. (2026), Table 3, "substantial" |
 
 At `epsilon = 1` (Cobb-Douglas) the labour share is exactly `1 − γ`. All runs are
 1-sector (`multi_sector=False`). Z is solved jointly with γ, because raising γ alone
-changes output at fixed inputs (+6.06% at the baseline's K/L); the solved values are
-`Z = 0.972062` (Automation + productivity) and `0.942834` (Automation only). Their level
-below 1 reflects the units of K/L and has no economic meaning.
+changes output at fixed inputs (+6.06% at the baseline's K/L). In the central results
+(`zeta_K = 0.1`) Z is 0.972112 for Automation + productivity. For Automation only, Z is
+solved by secant over full solves so that 2030 GDP equals the baseline's: 0.931148,
+against 0.942883 for a zero technology wedge at fixed inputs (recorded as
+`Z_share_shift_fixed_input`). Each closure has its own Z values (`docs/rerun_r1_r4.md`).
+Their level below 1 reflects the units of K/L and has no economic meaning.
 
 Every scenario shares the baseline's initial assets and debt and its government
-spending share `alpha_G`; the switch to debt targeting is moved to `tG1 = 10` (2036),
+spending share; the baseline's share is set so that its debt/GDP in 2030 equals the
+OBR's (R1, #32; 2030 is matched, not the path). The switch to debt targeting is moved to `tG1 = 10` (2036),
 past the reported window; and `g_y_annual = 0.010`, the OBR's 1.0% medium-term
 productivity growth. That path already contains the OBR's own AI assumption, which
 builds non-linearly with adoption (Briefing paper No.9 paras B.12, B.14), and a scalar `g_y` cannot
 strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
-each scenario's gap is an AI effect *in addition to* the OBR's own. A
-second run holds government spending and transfers at baseline levels instead
-(`--baseline-spending`), the OBR's convention. By default (`--g-n vendored`) a run stops
+each scenario's gap is an AI effect *in addition to* the OBR's own. A run
+holding government spending and transfers at baseline levels instead
+(`--baseline-spending`, the OBR's convention) has not been redone on the corrected
+baseline; the earlier one is kept in `data/legacy/` and is not used. By default (`--g-n vendored`) a run stops
 if OG-UK's live demographic fetch gives a different `g_n` for the reported window from
 the one the committed run recorded. That run had no UN API token, so OG-Core read a
 GitHub mirror of the UN data (`EAPD-DRB/Population-Data`) instead of the UN API; a run
@@ -42,16 +47,26 @@ Both arms are named for what they impose (issue #14): `share_shift` is the capit
 shift with a zero technology wedge at the baseline's fixed 2026 inputs, and
 `share_shift_tfp` adds +3.1% output at those inputs. Nothing in the model identifies AI
 as the cause; the sizes are Korinek et al.'s. `share_shift` is compared with, not a
-reproduction of, the OBR's Box 2.2: Box 2.2's defining result is the **level of GDP
-unchanged**, whereas K and L are endogenous here and this arm delivers GDP +1.4% by
-2030; Box 2.2 also publishes no labour-share number. The arms were called `obr` (later
+reproduction of, the OBR's Box 2.2. Since R4 it shares Box 2.2's defining result, the
+**level of GDP unchanged**, but in 2030 only and through the choice of Z rather than
+through unemployment, which OG-UK does not have; Box 2.2 also publishes no
+labour-share number. The arms were called `obr` (later
 `zero_tfp`) and `anthropic` before the rename; readers accept every legacy key at any
 depth (`data_access.normalise_arms`), writers emit only the new ones.
 
-**Results, 2030, against the OBR-central baseline (committed run, `g_y_annual = 0.010`):** GDP +4.9% (Automation + productivity)
-and +1.4% (Automation only), driven by investment; the labour share falls 3.9pp in
-both; wages are lower in both. Full results, caveats and the comparison with Korinek et
-al. and the OBR are in the dashboard.
+**Capital closure.** The central results use `zeta_K = 0.1`, OG-UK's default (inherited
+from OG-Core, not calibrated to the UK), with `zeta_D = 0.4` and a 2% world rate;
+`zeta_K = 0` is published beside it as the closed-capital bound
+(`docs/closure_choice.md`, #16, #27). National income (GNI) leads, because about three
+quarters of the extra capital is foreign-owned at 0.1, so GNI is below GDP.
+
+**Results, 2030, against the OBR-central baseline** (`data/scenarios.json`, bound in
+`data/scenarios_zk0.json`): with Automation + productivity, GNI +3.8% (bound +2.9%) and
+GDP +4.9% (bound +3.1%); with Automation only, GDP is unchanged by construction, GNI
+−0.8% (bound −0.2%) and the wage rate −5.3% (bound −5.0%). The labour share falls 3.9pp
+in both. The sign of the wage change with productivity gains depends on the closure.
+Debt/GDP gaps keep moving after 2030; quote them with their 2035 values. Tables are in
+`docs/rerun_r1_r4.md`; full results and caveats are in the dashboard.
 
 ## Install
 
@@ -84,21 +99,33 @@ patch -d "$SITE" -p1 < patches/ogcore-0.17.0-firm-gamma-tv.diff
 
 ## Reproduce
 
+The committed results come from the corrective reruns (`docs/rerun_r1_r4.md`): one solve
+per process, about 7 minutes each, one at a time, resumable. `analysis/rerun/driver.sh`
+loops over `rerun next` / `rerun step`. It also commits each solve's record and pushes it
+to the `rerun/r1-r4` branch, and updates the progress comment on #27, so edit `BRANCH`
+and `progress` before running it from a fork.
+
 ```bash
 export HUGGING_FACE_TOKEN=...
-python -m uk_growth_with_ai run --baseline-only --out results/baseline.json   # ~7 min
-python -m uk_growth_with_ai check --results results/baseline.json
-python -m uk_growth_with_ai run --out results/scenarios.json                   # ~20 min
-python -m uk_growth_with_ai check --results results/scenarios.json
-python -m uk_growth_with_ai run --baseline-spending --out results/scenarios_fixed_spending.json
-cp results/scenarios.json uk_growth_with_ai/data/scenarios.json
-cp results/scenarios_fixed_spending.json uk_growth_with_ai/data/scenarios_fixed_spending.json
+export PY=/path/to/og-uk/venv/bin/python WORK=~/ugai-rerun-work
+analysis/rerun/driver.sh baseline zk0.1 zk0       # R1 baseline passes, per closure
+python -m uk_growth_with_ai rerun gate --closure zk0.1          # read the gate report
+python -m uk_growth_with_ai rerun gate --closure zk0.1 --approve --note "..."
+python -m uk_growth_with_ai rerun gate --closure zk0 --approve --note "..."
+analysis/rerun/driver.sh arms zk0.1 zk0           # both arms, R4 secant for share_shift
+python -m uk_growth_with_ai rerun assemble --closure zk0.1 --out uk_growth_with_ai/data/scenarios.json
+python -m uk_growth_with_ai rerun assemble --closure zk0 --out uk_growth_with_ai/data/scenarios_zk0.json
+python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios.json
+python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_zk0.json
 python -m uk_growth_with_ai dashboard
 python -m pytest
 ```
 
-Each scenario takes about 7 minutes on a laptop; keep the machine awake
-(`caffeinate -i` on macOS), since run times are wall-clock.
+`assemble` without `--out` writes `uk_growth_with_ai/data/scenarios_<closure>.json`.
+Keep the machine awake (`caffeinate -i` on macOS); run times are wall-clock. The plain
+`run` command below solves with OG-UK's stock settings (no closure, demographics or
+debt calibration) and writes to `./results/`; do not copy its output over the committed
+files.
 
 ## Commands
 
@@ -169,8 +196,10 @@ uk_growth_with_ai/
   obr.py             the OBR baseline comparison and the published OBR figures
   dashboard_data.py  builds the dashboard's data files from the results
   data_access.py     data loading
-  cli.py             run | check | report | obr | dashboard
-  data/              scenarios.json, scenarios_fixed_spending.json, og_uk_params.json,
+  cli.py             run | rerun | check | report | obr | dashboard
+  rerun.py           the corrective reruns R1-R4, one solve per process
+  data/              scenarios.json (zeta_K = 0.1), scenarios_zk0.json (zeta_K = 0),
+                     legacy/ (earlier runs, unused), og_uk_params.json,
                      obr_history.json (OBR/ONS chart series, with provenance),
                      anthropic_us_2030.json
 patches/             ogcore-0.17.0-firm-gamma-tv.diff

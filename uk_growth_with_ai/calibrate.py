@@ -1,9 +1,9 @@
 """Calibration algebra: gamma from a labour-share target, and the Z solvers.
 
 The joint normalisation is the subtle part.  Moving gamma alone ALREADY changes
-output at fixed inputs (K^g1 L^(1-g1) != K^g0 L^(1-g0)), by +5.9938% at the UK
-baseline factor levels.  So Z must be solved JOINTLY with gamma against the
-scenario's technology target -- it must NOT be set to 1 + target, which would
+output at fixed inputs (K^g1 L^(1-g1) != K^g0 L^(1-g0)), by +6.06% at the UK
+baseline factor levels of the committed run (`gamma_only_output_gain`).  So Z
+must be solved JOINTLY with gamma against the scenario's technology target -- it must NOT be set to 1 + target, which would
 silently add the gamma-only gain on top and overstate every arm.  Both solved
 values come out BELOW 1 for exactly that reason.
 """

@@ -24,7 +24,7 @@ const VAR_ORDER = ['Y', 'C', 'I', 'G', 'total_tax_revenue', 'D', 'w', 'K', 'L'];
 const LABELS = {
   ...Object.fromEntries(D.vars),
   G: 'Government consumption',
-  w: 'Wages',
+  w: 'Wage rate',
   D: 'Debt',
 };
 const OPTIONS = VAR_ORDER.map((v) => ({ value: v, label: LABELS[v] }));
@@ -49,13 +49,16 @@ function CardHead({ eyebrow, takeaway, title }) {
 
 const pctS = (x, dp = 1) => `${signed(x, dp)}%`;
 
-// Growth accounting for the 2030 GDP gap, in log points: technology (ln(1+tau),
-// the change in output at fixed baseline inputs that the solved Z gives:
-// +3.1% with productivity gains, and Z over the fixed-input Z for automation
-// only, whose Z is solved for unchanged 2030 GDP), capital (gamma_1 x the log
-// capital gap) and labour ((1 - gamma_1) x the log labour gap).
+// Growth accounting for the 2030 GDP gap, in log points. Exact at epsilon = 1:
+// technology (ln(1+tau), the change in output at the fixed baseline 2026
+// inputs that the solved Z gives: +3.1% with productivity gains, and Z over
+// the fixed-input Z for automation only, whose Z is solved for unchanged 2030
+// GDP), the drift of the baseline's K/L since 2026 ((gamma_1 - gamma_0) x its
+// log change, common to both arms, #21), capital (gamma_1 x the log capital
+// gap) and labour ((1 - gamma_1) x the log labour gap).
 const TAU = { share_shift_ramp: SHARE_SHIFT_TECH / 100, share_shift_tfp_ramp: KORINEK.tfp / 100 };
 const lgap = (a, v) => Math.log(D.idx[a][v][LAST] / D.idx.baseline[v][LAST]) * 100;
+const KL_DRIFT = (G1 - D.assum.gamma_base) * CL.central.baseline.kl_log_change[LAST];
 function decomp(a) {
   return { tfp: Math.log(1 + TAU[a]) * 100, capital: G1 * lgap(a, 'K'), labour: (1 - G1) * lgap(a, 'L') };
 }
@@ -128,7 +131,7 @@ function downloadCsv(e) {
 const HEAD_COLS = [
   ['GNI', 'National income (GNI)'],
   ['Y', 'GDP'],
-  ['w', 'Wages'],
+  ['w', 'Wage rate'],
 ];
 // Automation only: 2030 GDP is the target its Z is solved for (both closures).
 const isTarget = (a, v) => a === 'share_shift_ramp' && v === 'Y';
@@ -239,7 +242,7 @@ export default function ResultsPanel() {
       <div className="meth-intro">
         <h2>Economic effects</h2>
         <p className="subtitle">
-          National income, GDP, wages, investment and the public finances under each AI scenario, from OG-UK,{' '}
+          National income, GDP, the wage rate, investment and the public finances under each AI scenario, from OG-UK,{' '}
           {FIRST_YEAR}&ndash;{LAST_YEAR}.
         </p>
       </div>
@@ -289,7 +292,7 @@ export default function ResultsPanel() {
           </table>
         </div>
         <p className="chart-note headline-table-note">
-          Large figures: the central closure, &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, OG-UK&rsquo;s default and
+          The wage rate is per efficiency unit of labour, not average earnings. Large figures: the central closure, &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, OG-UK&rsquo;s default and
           not a UK calibration, with &zeta;<sub>D</sub>&nbsp;=&nbsp;{CLOSURE.zeta_D} and a{' '}
           {(CLOSURE.world_int_rate_annual * 100).toFixed(0)}% world interest rate (<Cv id="financing" />). Small
           figures: the closed-capital bound, &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}, in which no capital is
@@ -452,7 +455,9 @@ export default function ResultsPanel() {
             {signed(decomp('share_shift_tfp_ramp').capital)} from capital, {signed(decomp('share_shift_tfp_ramp').labour)}{' '}
             from labour input; with automation only, {signed(decomp('share_shift_ramp').tfp)} from technology at fixed
             inputs (the Z that holds {Z_SHARE_SHIFT_YEAR} GDP at the baseline&rsquo;s), {signed(decomp('share_shift_ramp').capital)}{' '}
-            from capital and {signed(decomp('share_shift_ramp').labour)} from labour input.
+            from capital and {signed(decomp('share_shift_ramp').labour)} from labour input. Both also carry{' '}
+            {signed(KL_DRIFT)} because the baseline&rsquo;s capital per worker has moved since {FIRST_YEAR}, the year
+            the technology targets are set at.
           </li>
           <li>
             <b>Wages</b> follow the labour share and output per unit of labour: the labour share falls by{' '}

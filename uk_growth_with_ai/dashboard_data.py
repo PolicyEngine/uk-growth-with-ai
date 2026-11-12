@@ -39,7 +39,7 @@ YEARS = [2026, 2027, 2028, 2029, 2030]
 ARMS = ["baseline", *SHOCKED_ARMS]
 VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
-        ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]
+        ["w", "Wage rate (per efficiency unit)"], ["K", "Capital stock"], ["L", "Labour"]]
 
 # The 2000-2030 chart shows the scenario paths over every model year.
 PATH_YEARS = YEARS
@@ -102,6 +102,10 @@ def closure_gaps(res: dict) -> dict:
         "baseline": {
             "abroad_pct_gdp": [(1 - b["GNI"][i] / b["Y"][i]) * 100 for i in range(n)],
             "debt_gdp": [b["D"][i] / b["Y"][i] * 100 for i in range(n)],
+            # log change in the detrended K/L since 2026, x100: the baseline's
+            # drift away from the inputs the Z targets are set at (#21)
+            "kl_log_change": [float(np.log(b["K"][i] / b["L"][i] / (b["K"][0] / b["L"][0])) * 100)
+                              for i in range(n)],
         },
         "arms": {a: arm_block(a) for a in SHOCKED},
     }
