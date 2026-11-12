@@ -3,7 +3,7 @@
 Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04). The rule applied: every result must make sense in size and direction, and if it does not, the cause is found and stated.
 
 - **Audited:** 21 solve records in `analysis/surprise/output/{zk0.1,zk0}/`. That is 2 continuations and 19 arm solves: 18 reported arms and one rejected R4 iteration (`korinek_share_shift_ramp_r4_1` at ζK = 0.1).
-- **Not solved at this commit:** UK low and UK high at ζK = 0. They are in the verdict table as "not solved". The debt-neutral and fixed-spending variants are outside this audit.
+- **Not solved at this commit:** UK low and UK high at ζK = 0, in the verdict table as "not solved"; and every debt-neutral and fixed-spending variant.
 - **Method:** `analysis/surprise/audit_2028.py`, written for this audit. It reads the committed JSON only, recomputes every identity from the exported series, and does not import `sanity.py` or the package. No OG solve was run.
 - Every number below is printed by that script. Gaps are against the continuation (the no-shock restart) of the same closure.
 
@@ -678,7 +678,7 @@ Rules used for "surprising-but-explained":
 
 - No solve was run, and nothing under `analysis/surprise/output` was changed.
 - UK low and UK high at ζK = 0 are not solved at `a657e6d`. The linear rule in section 8 predicts a wrong-signed tax/GDP for the UK high main arm there. When those solves land, `python analysis/surprise/audit_2028.py --verdict` regenerates the table.
-- The debt-neutral and fixed-spending variants are outside this audit. The script skips any label that is not one of the three arms and lists it as not audited. So the fiscal results under the OBR's spending convention are not checked here.
+- No debt-neutral (`_dn`) or fixed-spending (`_fs`) solve exists at `a657e6d`, so the fiscal results under the OBR's spending convention are not checked here. The script is ready for them: it tests that debt/GDP tracks the reference to 1e-4 in 2029–36 (`_dn`) and that G and transfers equal the reference levels in 2028–35 (`_fs`), and adds a verdict block per variant once a solve lands.
 - Published figures (IMF, OBR, Korinek) are taken from `docs/literature_comparison.md` and `docs/uk_calibration.md` as verified there. They were not re-read from the PDFs.
 - The steady-state elasticity and GDP/TFP quoted in section 7 are the sanity gate's diagnostics; the steady state is not in the exported series, so they were not recomputed.
 

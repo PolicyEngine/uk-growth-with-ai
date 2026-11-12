@@ -58,19 +58,31 @@ def in_design(n):
     """The continuation and the three arms per scenario under the common G/Y rule; nothing else is audited here."""
     import re
     return n == "continuation" or any(
-        re.fullmatch(f"{s}_share_shift_(tfp_ramp|ramp_zfixed|ramp_r4_\\d+)", n) for s in SCEN)
+        re.fullmatch(f"{s}_share_shift_((tfp_ramp|ramp_zfixed)(_dn|_fs)?|ramp(_dn|_fs)?_r4_\\d+)", n) for s in SCEN)
 
 
-def pick(runs, c, s, a):
-    """Label of the finished solve for (closure, scenario, arm), or None."""
+VARIANTS = ["", "dn", "fs"]
+VAR_NAME = {"": "common G/Y rule", "dn": "debt-neutral transfers", "fs": "fixed spending"}
+
+
+def variant(n):
+    """'' (common G/Y rule), 'dn' (debt-neutral transfers) or 'fs' (fixed spending), from the label."""
+    import re
+    m = re.search(r"_(dn|fs)(_r4_\d+)?$", n)
+    return m.group(1) if m else ""
+
+
+def pick(runs, c, s, a, var=""):
+    """Label of the finished solve for (closure, scenario, arm, variant), or None."""
     d = runs[c]
+    sfx = f"_{var}" if var else ""
     if a == "tfp":
-        n = f"{s}_share_shift_tfp_ramp"
+        n = f"{s}_share_shift_tfp_ramp{sfx}"
         return n if n in d else None
     if a == "zfixed":
-        n = f"{s}_share_shift_ramp_zfixed"
+        n = f"{s}_share_shift_ramp_zfixed{sfx}"
         return n if n in d else None
-    its = sorted(k for k in d if k.startswith(f"{s}_share_shift_ramp_r4_"))
+    its = sorted((k for k in d if k.startswith(f"{s}_share_shift_ramp{sfx}_r4_")), key=lambda k: int(k.rsplit("_", 1)[1]))
     # the accepted iteration is the last one whose 2031 GDP gap is inside 0.01pp
     ok = [k for k in its if abs(gap(d, k, "Y")[IX[2031]]) <= 0.01]
     return ok[-1] if ok else None
@@ -178,6 +190,34 @@ def sec_identities(runs):
         base = json.load(open(os.path.join(OUT, c, "baseline_ext.json")))["series"]
         w = {v: relmax(S(d, "continuation", v)[2:], np.array(base[v])[2:]) for v in ("Y", "K", "L", "C", "w", "r", "D", "B", "GNI")}
         print(f"continuation vs committed baseline 2028-36, {c}: max rel", {k: f"{v:.1e}" for k, v in w.items()})
+
+
+def sec_variants(runs):
+    """The two fiscal variants: does the closure do what it says?"""
+    print("\n## Fiscal variants: closure checks")
+    print("closure|run|variant|dn: max |D/Y / reference - 1|, 2029-36|fs: max rel dev of G from reference, 2028-35|fs: same for TR|G/Y gap 2031 pp|TR/Y gap 2031 pp|TR gap 2031 %|verdict")
+    print("|".join(["---"] * 10))
+    bad = []
+    for c in CLOSURES:
+        d = runs[c]
+        for n in d:
+            v = variant(n)
+            if not v:
+                continue
+            f = lambda k, x: S(d, k, x)
+            dy = f(n, "D") / f(n, "Y") / (f("continuation", "D") / f("continuation", "Y")) - 1
+            e_dn = float(np.max(np.abs(dy[IX[2029]:])))
+            e_g = float(np.max(np.abs(f(n, "G") / f("continuation", "G") - 1)[IX[2028]:IX[2036]]))
+            e_tr = float(np.max(np.abs(f(n, "TR") / f("continuation", "TR") - 1)[IX[2028]:IX[2036]]))
+            i = IX[2031]
+            gy = 100 * ((f(n, "G") / f(n, "Y"))[i] - (f("continuation", "G") / f("continuation", "Y"))[i])
+            ty = 100 * ((f(n, "TR") / f(n, "Y"))[i] - (f("continuation", "TR") / f("continuation", "Y"))[i])
+            ok = (e_dn <= 1e-4) if v == "dn" else (e_g <= 1e-6 and e_tr <= 1e-6)
+            if not ok:
+                bad.append(f"{c}/{n}")
+            print(f"{c}|{n}|{v}|{e_dn:.1e}|{e_g:.1e}|{e_tr:.1e}|{gy:+.3f}|{ty:+.3f}|{gap(d, n, 'TR')[i]:+.2f}|{'closure holds' if ok else 'WRONG: closure not met'}")
+    print("variant closure failures:", bad or "none")
+    return bad
 
 
 def sec_rules_open(runs):
@@ -601,9 +641,15 @@ LABEL = {"I28": "2028 investment %", "L28": "2028 labour %", "C28": "2028 consum
 NOTE = {}
 
 
-def verdict(c, s, a, v, x, m):
+def verdict(c, s, a, v, x, m, var=""):
     """(verdict, anomaly) for one cell; m holds the run's gaps by year."""
     i = IX[2031]
+    if var == "dn" and v in ("debt_pp", "debt36"):
+        # debt/GDP is held on the reference path (1e-4 relative of about 95% is 0.01pp)
+        return ("consistent", "") if abs(x) <= 0.02 else ("WRONG", "")
+    if var == "fs" and v in ("debt_pp", "debt36") and a == "tfp":
+        # with G and TR at the reference levels, extra GDP and revenue should lower debt/GDP
+        return ("consistent", "") if x < 0 else ("surprising-but-explained", "A4")
     if v == "ls_pp":
         return ("consistent", "") if abs(x + FALL[s]) < 1e-3 else ("WRONG", "")
     if v == "GNI":
@@ -642,34 +688,53 @@ def verdict(c, s, a, v, x, m):
     return "WRONG", ""
 
 
+def expect_text(v, a, var):
+    if var == "dn" and v in ("debt_pp", "debt36"):
+        return "0 (held on the reference path)"
+    if var == "fs" and v in ("debt_pp", "debt36") and a == "tfp":
+        return "< 0 (spending fixed, GDP higher)"
+    return EXPECT[v][a][0]
+
+
 def sec_verdict(runs):
     counts = {}
-    for c in CLOSURES:
-        d = runs[c]
-        for s in SCEN:
-            ns = {a: pick(runs, c, s, a) for a in ARMS}
-            print(f"\n**{s}, {c}** (labour share −{FALL[s]}pp, TFP +{TFP[s]}%). Runs: "
-                  + "; ".join(f"{ARM_NAME[a]}: " + (f"`{ns[a]}`" if ns[a] else "not solved") for a in ARMS) + "\n")
-            if not any(ns.values()):
-                counts["not solved"] = counts.get("not solved", 0) + len(ROWS) * 3
-                continue
-            print("| gap (2031 unless stated) | " + " | ".join(f"{ARM_NAME[a]}: expected | model | verdict" for a in ARMS) + " |")
-            print("|---|" + "---|---|---|" * 3)
-            ms = {a: measures(d, ns[a]) if ns[a] else None for a in ARMS}
-            for v, src, yr in ROWS:
-                row = [LABEL[v]]
-                for a in ARMS:
-                    if ns[a] is None:
-                        row += [EXPECT[v][a][0], "–", "not solved"]
-                        counts["not solved"] = counts.get("not solved", 0) + 1
-                        continue
-                    x = ms[a][src][IX[yr]]
-                    vd, an = verdict(c, s, a, v, x, ms[a])
-                    counts[vd] = counts.get(vd, 0) + 1
-                    fmt = f"{x:+.1f}" if src == "r_bp" else (f"{x:+.3f}" if a == "r4" and v in ("Y", "Y36") else f"{x:+.2f}")
-                    row += [EXPECT[v][a][0], fmt, vd + (f" ({an})" if an else "")]
-                print("| " + " | ".join(row) + " |")
-    print("\nverdict counts:", counts, "| cells:", sum(counts.values()))
+    for var in VARIANTS:
+        # the two fiscal variants enter the table only once a solve of that variant exists
+        if var and not any(variant(n) == var for c in CLOSURES for n in runs[c]):
+            continue
+        cv = {}
+        if var:
+            print(f"\n### Variant: {VAR_NAME[var]} (`_{var}`)")
+        for c in CLOSURES:
+            d = runs[c]
+            for s in SCEN:
+                ns = {a: pick(runs, c, s, a, var) for a in ARMS}
+                print(f"\n**{s}, {c}" + (f", {VAR_NAME[var]}" if var else "") + f"** (labour share −{FALL[s]}pp, TFP +{TFP[s]}%). Runs: "
+                      + "; ".join(f"{ARM_NAME[a]}: " + (f"`{ns[a]}`" if ns[a] else "not solved") for a in ARMS) + "\n")
+                if not any(ns.values()):
+                    cv["not solved"] = cv.get("not solved", 0) + len(ROWS) * 3
+                    continue
+                print("| gap (2031 unless stated) | " + " | ".join(f"{ARM_NAME[a]}: expected | model | verdict" for a in ARMS) + " |")
+                print("|---|" + "---|---|---|" * 3)
+                ms = {a: measures(d, ns[a]) if ns[a] else None for a in ARMS}
+                for v, src, yr in ROWS:
+                    row = [LABEL[v]]
+                    for a in ARMS:
+                        if ns[a] is None:
+                            row += [expect_text(v, a, var), "–", "not solved"]
+                            cv["not solved"] = cv.get("not solved", 0) + 1
+                            continue
+                        x = ms[a][src][IX[yr]]
+                        vd, an = verdict(c, s, a, v, x, ms[a], var)
+                        cv[vd] = cv.get(vd, 0) + 1
+                        fmt = f"{x:+.1f}" if src == "r_bp" else (f"{x:+.3f}" if (a == "r4" and v in ("Y", "Y36")) or (var == "dn" and v in ("debt_pp", "debt36")) else f"{x:+.2f}")
+                        row += [expect_text(v, a, var), fmt, vd + (f" ({an})" if an else "")]
+                    print("| " + " | ".join(row) + " |")
+        if var:
+            print(f"\nverdict counts, {VAR_NAME[var]}:", cv, "| cells:", sum(cv.values()))
+        else:
+            counts = cv
+            print("\nverdict counts:", cv, "| cells:", sum(cv.values()))
     return counts
 
 
@@ -680,6 +745,7 @@ if __name__ == "__main__":
     print("finished solves:", {c: sorted(runs[c]) for c in CLOSURES})
     print("finished, outside the three-arm design, not audited:", OUTSIDE or "none")
     sec_identities(runs)
+    sec_variants(runs)
     sec_rules_open(runs)
     sec_z(runs)
     sec_decomp(runs)
