@@ -1,23 +1,34 @@
 #!/usr/bin/env bash
 # Pull new 2028-surprise solves, rebuild the dashboard data and the site, and
-# restart the local server on 4320. Only the server whose PID is in $PIDFILE
-# is stopped; nothing else is touched. No solve is run.
-#   analysis/surprise/refresh_dashboard.sh [pidfile]
+# restart the local server on 4320. Only the server whose PID is in the
+# pidfile is stopped; if 4320 is held by any other process the script stops
+# before touching anything. No solve is run.
+#   analysis/surprise/refresh_dashboard.sh            # pidfile: <repo>/.dashboard-4320.pid
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PIDFILE="${1:-${DASH_PIDFILE:-$ROOT/.dashboard-4320.pid}}"
+PIDFILE="${DASH_PIDFILE:-$ROOT/.dashboard-4320.pid}"
 LOG="${PIDFILE%.pid}.log"
+OURS=""
+[[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && OURS="$(cat "$PIDFILE")"
+for p in $(lsof -t -iTCP:4320 -sTCP:LISTEN 2>/dev/null || true); do
+  if [[ "$p" != "$OURS" ]]; then
+    echo "port 4320 is held by pid $p, which this script did not start; stopping" >&2; exit 1
+  fi
+done
 cd "$ROOT"
 git fetch -q origin
 git merge -q --no-edit origin/rerun/surprise-2028
 python3 analysis/surprise/build_dashboard_data.py
-cd dashboard
 # stop our server first: never rebuild .next under a running server
-if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-  kill "$(cat "$PIDFILE")"; sleep 1
-fi
+if [[ -n "$OURS" ]]; then kill "$OURS"; while kill -0 "$OURS" 2>/dev/null; do sleep 0.5; done; fi
+cd dashboard
 bun --bun run build
 nohup bun --bun ./node_modules/.bin/next start -p 4320 >"$LOG" 2>&1 &
-echo $! >"$PIDFILE"
-sleep 3
-curl -sf -o /dev/null http://localhost:4320 && echo "serving http://localhost:4320 (pid $(cat "$PIDFILE"))"
+NEW=$!
+echo "$NEW" >"$PIDFILE"
+for _ in $(seq 1 20); do curl -sf -o /dev/null http://localhost:4320 && break; sleep 0.5; done
+if kill -0 "$NEW" 2>/dev/null && curl -sf -o /dev/null http://localhost:4320; then
+  echo "serving http://localhost:4320 (pid $NEW, log $LOG)"
+else
+  echo "server failed to start; see $LOG" >&2; exit 1
+fi

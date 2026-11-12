@@ -21,7 +21,7 @@ const SOURCE = {
   uk_high: 'upper end of OBR Fiscal risks and sustainability, July 2026, Box 4.1',
   korinek: 'Korinek et al. (2026), US “substantial” scenario, Table 3; a US scenario, not a UK calibration',
 };
-const SCEN_LABEL = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek US substantial (upper)' };
+const SCEN_LABEL = { uk_low: 'UK low', uk_central: 'UK central (headline)', uk_high: 'UK high', korinek: 'Korinek US substantial (upper)' };
 const OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: SCEN_LABEL[s.id] || s.label }));
 
 const HEAD_COLS = [
@@ -332,15 +332,8 @@ export default function SurpriseResults() {
             that {HEADLINE_YEAR} GDP equals the no-AI path.
           </li>
           <li>
-            <b>Calibration.</b> The UK low, central and high scenarios take their targets from the IMF&rsquo;s UK
-            Selected Issues 2026 and the OBR&rsquo;s Fiscal risks and sustainability report (July 2026) and Briefing
-            paper 9. UK central is the headline. The Korinek scenario carries the US &ldquo;substantial&rdquo; inputs
-            as an upper case.
-          </li>
-          <li>
             <b>Capital closure.</b> The central closure, <Zeta c={CENTRAL} />, is OG-UK&rsquo;s default for the share
-            of extra capital demand met from abroad, not a UK calibration; <Zeta c={BOUND} /> bounds it with no
-            foreign capital.
+            of extra capital demand met from abroad, not a UK calibration.
           </li>
           <li>
             <b>Reference path.</b> Each gap is against a no-shock restart from {SURPRISE_YEAR} at the same closure,

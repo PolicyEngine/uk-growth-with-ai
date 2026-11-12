@@ -75,7 +75,8 @@ def main():
     for cl, zk, role in CLOSURES:
         loaded = sp.load(OUT_DIR, cl)
         done = {k: v for k, v in loaded.items() if not k.endswith(".sanity")}
-        sanities = {k[:-len(".sanity")]: v for k, v in loaded.items() if k.endswith(".sanity")}
+        sanities = {f.name[:-len(".sanity.json")]: json.loads(f.read_text())
+                    for f in (OUT_DIR / cl).glob("*.sanity.json")}
         try:
             ref = sp.reference_ext(OUT_DIR, cl)
         except Exception as e:  # gate not passed: everything at this closure is pending
@@ -102,11 +103,16 @@ def main():
                     results[sid][a][cl] = {"status": "pending", **({"note": note} if note else {})}
                     continue
                 assert rec["years_series"] == YEARS, rec["label"]
-                sanity = sanities.get(rec["label"], {})
+                sanity = sanities.get(rec["label"])
+                if sanity is None or not sanity.get("ok"):  # unchecked or failed: not shown
+                    results[sid][a][cl] = {"status": "pending", "label": rec["label"],
+                                           "note": "sanity check not run" if sanity is None
+                                           else "sanity check failed"}
+                    continue
                 results[sid][a][cl] = {
                     "status": "done", "label": rec["label"], "Z_terminal": rec["Z_terminal"],
                     "gamma_terminal": rec["gamma_terminal"],
-                    "sanity": None if not sanity else ("pass" if sanity.get("ok") else "fail"),
+                    "sanity": "pass",
                     "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
                 }
                 g = results[sid][a][cl]["gaps"]

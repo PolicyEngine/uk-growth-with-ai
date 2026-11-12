@@ -92,8 +92,7 @@ export default function HomePage() {
             OG-Core
           </a>{' '}
           overlapping-generations model. AI arrives as an unanticipated shock in {SURPRISE_YEAR}: it raises the
-          capital share of output, with or without a rise in productivity, and reaches full strength in{' '}
-          {HEADLINE_YEAR}. Three scenarios (UK low, central and high) are calibrated to IMF and OBR estimates, and a
+          capital share of output, with or without a rise in productivity. Three scenarios (UK low, central and high) are calibrated to IMF and OBR estimates, and a
           fourth carries Korinek et al.&rsquo;s (2026) US &ldquo;substantial&rdquo; inputs as an upper case.
         </p>
         <p className="intro-text">
