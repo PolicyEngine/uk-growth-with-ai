@@ -4,7 +4,7 @@
 export const PANEL_DATA  = [
   { title: 'Why OG-UK', badge: 'Step 1', sections: [
     { label: 'Question → OG-UK feature', type: 'grid', cols: ['OG-UK feature'], rows: [
-      { label: 'Does capital deepen?', cells: ['Saving and investment in general equilibrium'] },
+      { label: 'Does capital deepen?', cells: ['Domestic saving, foreign capital and investment in general equilibrium'] },
       { label: 'Who loses labour income?', cells: ['Households by age and ability'] },
       { label: 'Do revenue and debt change?', cells: ['Fitted tax functions, government budget'] },
       { label: 'Is it UK-specific?', cells: ['UK demographics and calibration'] },

@@ -1,7 +1,7 @@
 'use client';
 
 // Model comparison tab: what each of the four sources can represent, then
-// OG-UK's no-AI baseline against the OBR. Two-pane story; the ✓/✗ grids live
+// OG-UK's OBR-central baseline against the OBR. Two-pane story; the ✓/✗ grids live
 // in the right-hand panel. Model numbers are computed from aiScenarios.json;
 // published figures come from metrics.js with their sources.
 
@@ -79,7 +79,7 @@ export const COVERAGE_STEPS = [
           </li>
           <li>
             <b>Capital accumulation.</b> Modelled by Korinek et al. (with a capital-supply elasticity of 3), Moll
-            and Imas (Solow saving) and OG-UK (life-cycle saving); the OBR forecasts investment but does not model
+            and Imas (Solow saving) and OG-UK (life-cycle saving plus foreign-owned capital, <Cv id="financing" />); the OBR forecasts investment but does not model
             the AI response.
           </li>
           <li>
@@ -188,11 +188,11 @@ export const COVERAGE_STEPS = [
     content: (
       <>
         <p className="key-point">
-          OG-UK&rsquo;s no-AI baseline grows {MEAN.toFixed(2)}% a year on average over {GROW_YEARS}, against the
+          OG-UK&rsquo;s OBR-central baseline grows {MEAN.toFixed(2)}% a year on average over {GROW_YEARS}, against the
           OBR&rsquo;s {OBR.growth2027to30.toFixed(2)}%: a gap of {pp(MEAN - OBR.growth2027to30)}.
         </p>
         <p>
-          Every scenario is measured against the no-AI baseline, so the baseline is checked against the
+          Every scenario is measured against the OBR-central baseline, so the baseline is checked against the
           OBR&rsquo;s March 2026 <i>Economic and fiscal outlook</i> ({ext(efo(EFO_PAGE.p1_9), 'paragraph 1.9')}).
           The model&rsquo;s growth rates are computed from the committed results; the component values below come
           from the repository&rsquo;s {ext(URLS.obrPy, 'obr.py')} comparison.
@@ -316,11 +316,11 @@ export const COVERAGE_PANELS = [
       { label: 'Real GDP growth', cells: [`${OBR.growth2027to30.toFixed(2)}%`, `${MEAN.toFixed(2)}%`, pp(MEAN - OBR.growth2027to30)] },
     ]},
     { label: 'Source', type: 'output', lines: [
-      i('OBR, EFO March 2026, ¶1.9; OG-UK no-AI baseline', 'info', ''),
+      i('OBR, EFO March 2026, ¶1.9; OG-UK OBR-central baseline', 'info', ''),
     ]},
   ]},
   { title: 'Components', badge: 'Step 8', sections: [
-    { label: 'OBR against the OG-UK no-AI baseline', type: 'grid', cols: ['OBR', 'OG-UK', 'Gap'], rows:
+    { label: 'OBR against the OG-UK OBR-central baseline', type: 'grid', cols: ['OBR', 'OG-UK', 'Gap'], rows:
       COMPONENTS.map(([label, , obr, , oguk]) => ({
         label,
         cells: [`${obr.toFixed(1)}%`, `${oguk.toFixed(2)}%`, pp(oguk - obr)],

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "uk-growth-with-ai"
 version = "0.1.0"
-description = "OG-UK AI-growth scenarios for the UK: Anthropic 'substantial' and the OBR technological-displacement case"
+description = "OG-UK scenarios for the UK: a 3.9pp capital-share shift, with and without a 3.1% output gain at fixed inputs (sizes from Korinek et al. 2026)"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Vahid Ahmadi", email = "vahid@policyengine.org" }]

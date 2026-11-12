@@ -3,6 +3,8 @@
 // How AI enters OG-UK: the channels the runs change, the ones they cannot,
 // and how each is represented. Rendered on the Scenario design tab, step 2.
 
+import CaveatLink from '@/tabs/ai/CaveatLink.jsx';
+
 const CHANNELS = [
   {
     channel: 'Automation',
@@ -25,7 +27,10 @@ const CHANNELS = [
   {
     channel: 'Capital accumulation',
     what: 'Investment responds to the higher return',
-    oguk: <>Endogenous: households save and the capital stock builds; not imposed.</>,
+    oguk: <>
+      Endogenous, not imposed: the capital stock builds, mostly through foreign-owned capital and partly through
+      domestic saving (<CaveatLink id="caveat-financing">caveat on foreign-owned capital</CaveatLink>).
+    </>,
     status: 'in',
   },
   {
