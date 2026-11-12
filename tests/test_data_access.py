@@ -64,8 +64,10 @@ def test_committed_files_use_only_the_new_names():
             for v in o:
                 yield from keys(v)
 
-    for name in ("scenarios.json", "scenarios_fixed_spending.json"):
-        raw = json.loads((DATA / name).read_text())
+    names = sorted(DATA.glob("scenarios*.json")) + sorted((DATA / "legacy").glob("*.json"))
+    assert len(names) >= 3
+    for name in names:
+        raw = json.loads(name.read_text())
         assert not set(keys(raw)) & set(LEGACY_KEYS), name
         assert normalise_arms(raw) == raw
 

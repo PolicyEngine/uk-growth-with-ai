@@ -17,7 +17,9 @@ from uk_growth_with_ai.arms import SHOCKED_ARMS, Z_TARGETS
 from uk_growth_with_ai.data_access import DATA, load_results
 
 COMMITTED = DATA / "scenarios.json"
-FIXED_SPENDING = DATA / "scenarios_fixed_spending.json"
+# The fixed-spending run predates the R1-R4 reruns (#27) and is kept as a
+# legacy fixture: it is still the only file under the baseline_spending closure.
+FIXED_SPENDING = DATA / "legacy" / "scenarios_fixed_spending_2026-11-11.json"
 ARM, OTHER = SHOCKED_ARMS[0], SHOCKED_ARMS[1]
 
 
@@ -64,6 +66,8 @@ def test_all_arms_missing_is_not_a_baseline_only_pass(tmp_path, res):
 def test_baseline_only_must_be_declared(tmp_path, res):
     for a in SHOCKED_ARMS:
         del res[a]
+    res.pop("arms_requested", None)
+    res.pop("arm_status", None)
     assert run_check(tmp_path, res, "--baseline-only") == 0
     res["arms_requested"] = []
     assert run_check(tmp_path, res) == 0

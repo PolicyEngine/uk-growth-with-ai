@@ -31,7 +31,7 @@ REPO = HERE.parents[1]
 OUT = HERE / "output"
 DOC = REPO / "docs" / "closure_sensitivity.md"
 NOTES = HERE / "notes.md"
-COMMITTED = REPO / "uk_growth_with_ai" / "data" / "scenarios.json"
+COMMITTED = REPO / "uk_growth_with_ai" / "data" / "legacy" / "scenarios_2026-11-11.json"  # the run #30 reproduced
 
 ZKS = ("0", "0.1", "0.5")
 ARMS = ("share_shift_tfp_ramp", "share_shift_ramp")
