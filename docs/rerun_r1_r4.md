@@ -198,7 +198,7 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 
 **Done after every arm** (`analysis/rerun/sanity.py`), all passing:
 - **Identities.** K = K_d + K_f, K_d = B − D_d and D = D_d + D_f hold to 1e-16. At zk0, K_f is exactly 0.
-- **Residuals.** RC/GDP is ≤ 0.0001% in 2026–30, and the interior max is ≤ 0.0008%.
+- **Residuals.** RC/GDP is ≤ 0.0003% in 2026–30 (the largest is 0.00024%, `share_shift_tfp` at 0.1), and the interior max is ≤ 0.0008%. "Interior" leaves out the last model period (t = 59): its residual is −21% to −23% of GDP in every solve, as it was in #30's.
 - **Convergence.** TPI converged in 8–9 iterations with final distances of 5.7e-5 to 7.6e-5.
 - **GNI.** GNI ≤ GDP in every period of every arm, since foreigners hold gilts even at zk0. Payments abroad in 2030 are 2.56% (`share_shift_tfp`) and 2.30% (`share_shift`) of GDP at 0.1, against 1.55% in the baseline.
 - **Signs.** Every 2030 sign (GDP, K, L, wage, C, I, r) matches the #30 solve of the same arm and closure. The one exception is `share_shift` GDP under R4, which is zero by construction.
