@@ -178,7 +178,7 @@ Z: share_shift_tfp 0.974118; share_shift fixed-input 0.944829, R4 0.944324
 **The baseline.** The level path is now on the OBR's debt path, and the residuals are gone.
 - **Investment.** I/Y now runs smoothly at 19.1% → 19.3%, against the old 20.3% → 19.6% jump between 2026 and 2027.
 - **GDP growth.** Growth in 2027–30 averages 1.57% (1.68% before), against the OBR's 1.6%.
-- **Crowding out.** By 2030 the new baseline has K 0.75% lower and r 5bp higher than the #30 pre-TP baseline (zk0.1). That difference is the higher debt path alone, since the demographics are the same. At zk0, against the #30 stock-demographics baseline, it is K −1.18% and r +9bp. That figure combines the debt path and the demographics fix, with no foreign capital to offset either.
+- **Crowding out.** By 2030 the new baseline has K 0.75% lower and r 5bp higher than the #30 pre-TP baseline (zk0.1). The two runs differ only in the debt path and the 2027→28 splice repair. At zk0, against the #30 stock-demographics baseline, it is K −1.18% and r +9bp. That figure combines the debt path and the demographics fix, with no foreign capital to offset either.
 
 ## Sanity checks
 
