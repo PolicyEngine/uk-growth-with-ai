@@ -20,14 +20,22 @@ Each accepts either form of results:
     ``P_baseline.json``, ``P_share_shift_tfp_ramp.json`` and
     ``P_share_shift_ramp.json`` (``analysis/closure/output/zk0`` and friends).
 
-Defaults are the committed, pre-rerun results: the central file is
-``uk_growth_with_ai/data/scenarios.json`` and the bound is the committed
-``analysis/closure/output/zk0`` records.  When the rerun lands, point both flags
-at the assembled files and every macro below moves with them:
+Defaults are the committed R1-R4 results (docs/rerun_r1_r4.md):
 
-    python paper/make_values.py \\
-        --central uk_growth_with_ai/data/scenarios_zk0.1.json \\
-        --bound   uk_growth_with_ai/data/scenarios_zk0.json
+    --central uk_growth_with_ai/data/scenarios.json       (zeta_K = 0.1)
+    --bound   uk_growth_with_ai/data/scenarios_zk0.json   (zeta_K = 0)
+
+Both must be R1-R4 results (debt calibration, pre-TP demographics and the R4
+rule for share_shift); pre-rerun files are refused.
+
+The fixed-spending appendix table reads ``data/scenarios_fixed_spending.json``
+and ``data/scenarios_fixed_spending_zk0.json``.  TODO(#36): until the
+rerun/fixed-spending PR merges, those files are not on main, and the copies
+pinned from that branch at 5227666 in ``paper/pinned/`` are read instead.
+Each must share its closure's baseline exactly.
+
+The cohort incidence (Section 5) is computed here too, from
+``analysis/rerun/cohorts/`` by ``paper/cohort_welfare.py`` (numpy only).
 
 Missing files, missing arms, a closure that does not state the expected
 ``zeta_K``, or a GNI source that does not reproduce the central file's GDP path
@@ -57,15 +65,23 @@ from uk_growth_with_ai import report as rep  # noqa: E402
 from uk_growth_with_ai import scenarios as scen  # noqa: E402
 from uk_growth_with_ai.data_access import DATA, normalise_arms  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "paper"))
+import cohort_welfare as cw_mod  # noqa: E402
+
 OUT = ROOT / "paper" / "values_generated.tex"
 DEFAULT_CENTRAL = DATA / "scenarios.json"
-DEFAULT_BOUND = ROOT / "analysis" / "closure" / "output" / "zk0"
+DEFAULT_BOUND = DATA / "scenarios_zk0.json"
 # GNI for a central file that carries no foreign positions (the pre-rerun
 # data/scenarios.json): the committed zeta_K = 0.1 re-solve, which reproduces it
 # bit for bit (docs/closure_sensitivity.md).  Ignored once the central file
 # carries GNI itself, as the rerun's assembled file does.
 DEFAULT_CENTRAL_RECORDS = ROOT / "analysis" / "closure" / "output" / "zk0.1"
 DEFAULT_FIXED = DATA / "scenarios_fixed_spending.json"
+DEFAULT_FIXED_BOUND = DATA / "scenarios_fixed_spending_zk0.json"
+# TODO(#36): pinned from rerun/fixed-spending at 5227666 (byte-identical); read
+# only while the files above are not on main.  Delete paper/pinned/ after #36.
+PINNED = ROOT / "paper" / "pinned"
+PINNED_SHA = "5227666"
 # Diagnostic closure that the R1-R4 rerun does not reproduce.  Used for one
 # sentence only (the wage sign across closures), labelled pre-rerun in the text.
 DIAG_OPEN = ROOT / "analysis" / "closure" / "output" / "zk0.5"
@@ -86,9 +102,11 @@ YEAR_WORD = {2026: "TwentySix", 2027: "TwentySeven", 2028: "TwentyEight",
 # Macro words for the #22 arm ids.  "ShareShift" is a prefix of "ShareShiftTfp";
 # every macro is matched whole by LaTeX, so that is harmless.
 ARM_WORD = {"share_shift_tfp_ramp": "ShareShiftTfp", "share_shift_ramp": "ShareShift"}
+# Debt is never a level gap: it is reported as a debt/GDP gap in percentage
+# points, and always with its 2035 value (#32, #34).
 VAR_WORD = {"Y": "Gdp", "K": "Capital", "L": "Labour", "w": "Wage",
             "C": "Consumption", "I": "Investment", "G": "Spending",
-            "D": "Debt", "total_tax_revenue": "Revenue"}
+            "total_tax_revenue": "Revenue"}
 NPER = 5
 
 
@@ -173,6 +191,17 @@ def gni(r: dict) -> np.ndarray:
 
 def arr(r: dict, k: str) -> np.ndarray:
     return np.array(r[k][:NPER], dtype=float)
+
+
+def ser(r: dict, k: str, year: int) -> float:
+    """One year of the 2026-2035 series (the top-level arrays stop at 2030)."""
+    yrs = list(r["years"])
+    return float(r["series"][k][yrs.index(year)])
+
+
+def debt_gdp_gap_pp(res: dict, arm: str, year: int) -> float:
+    dy = lambda x: ser(x, "D", year) / ser(x, "Y", year) * 100
+    return dy(res[arm]) - dy(res["baseline"])
 
 
 def gap(res: dict, arm: str, var: str) -> np.ndarray:
@@ -268,11 +297,14 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
         v.signed(f"{aw}InvestmentGapTwentyNine{cw}", gap(res, arm, "I")[3])
         v.signed(f"{aw}InvestmentGapThirty{cw}", gap(res, arm, "I")[4])
         v.signed(f"{aw}CapitalGapThirty{cw}", gap(res, arm, "K")[4])
+        for year, yw in ((2030, "Thirty"), (2035, "ThirtyFive")):
+            v.signed(f"{aw}DebtGdpGapPp{yw}{cw}", debt_gdp_gap_pp(res, arm, year))
         v.put(f"{aw}InterestChangeBp{cw}",
               (arr(r, "r")[4] - arr(base, "r")[4]) * 1e4, "{:.0f}")  # sign checked in check_claims
 
 
-def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> None:
+def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
+         cohorts: dict) -> None:
     assume = central["assumptions"]
 
     # ---- assumptions and calibration -------------------------------------
@@ -373,6 +405,8 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
             g = gap(res, arm, var)
             for i, yw in enumerate(YEAR_WORD.values()):
                 v.signed(f"{aw}{vw}Gap{yw}", g[i])
+        for year, yw in YEAR_WORD.items():
+            v.signed(f"{aw}DebtGdpGapPp{yw}", debt_gdp_gap_pp(res, arm, year))
         # the wage identity: dln w = dln(1-gamma) + dln(Y/L)
         yl = (arr(res[arm], "Y") / arr(res[arm], "L")) / (
             arr(res["baseline"], "Y") / arr(res["baseline"], "L"))
@@ -399,13 +433,20 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
             v.put(f"{aw}LabourShare{yw}", ls[i], "{:.2f}")
     v.put("BaseLabourSharePct", rep.labour_share(b)[0] * 100, "{:.2f}")
 
-    # ---- fixed-spending convention (pre-rerun baseline; appendix only) ------
-    for arm, aw in ARM_WORD.items():
-        for var, vw in (("Y", "Gdp"), ("K", "Capital"), ("w", "Wage"),
-                        ("C", "Consumption"), ("total_tax_revenue", "Revenue"),
-                        ("D", "Debt")):
-            v.signed(f"Fix{aw}{vw}GapThirty", gap(fixed, arm, var)[4])
-            v.signed(f"PreRerun{aw}{vw}GapThirty", gap(fixed["_shared"], arm, var)[4])
+    # ---- fixed-spending convention (appendix only), each closure ------------
+    for cw, fx, shared in (("Central", fixed["central"], central), ("Bound", fixed["bound"], bound)):
+        for arm, aw in ARM_WORD.items():
+            for src, pre in ((fx, "Fix"), (shared, "Shared")):
+                for var, vw in (("Y", "Gdp"), ("K", "Capital"), ("w", "Wage"),
+                                ("C", "Consumption"), ("total_tax_revenue", "Revenue")):
+                    v.signed(f"{pre}{aw}{vw}GapThirty{cw}", gap(src, arm, var)[4])
+                v.signed(f"{pre}{aw}GniGapThirty{cw}", gni_gap(src, arm)[4])
+                for year, yw in ((2030, "Thirty"), (2035, "ThirtyFive")):
+                    v.signed(f"{pre}{aw}DebtGdpGapPp{yw}{cw}", debt_gdp_gap_pp(src, arm, year))
+    v.put("FixedSource", fixed["central"]["_source"].replace("_", r"\_"))
+    v.put("FixedBoundSource", fixed["bound"]["_source"].replace("_", r"\_"))
+
+    emit_cohorts(v, cohorts)
 
     # ---- Korinek et al. Table 3, "substantial" ---------------------------
     A = scen.ANTHROPIC_SUBSTANTIAL
@@ -446,24 +487,83 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
              -(OBR_EFF_RATE_LABOUR - OBR_EFF_RATE_PROFITS) / 100
              * (assume["gamma_shocked"] - assume["gamma_base"]) * 100)
 
-    # ---- which results these are: pre-rerun or R1-R4 -----------------------
-    rerun = "debt_calibration" in assume and bool(assume.get("pretp"))
-    r4 = assume.get("Z_share_shift_rule") == "equilibrium_gdp_gap"
-    if rerun != r4:
-        raise ResultsError("central file has only part of R1-R4 (debt calibration "
-                           f"{'yes' if rerun else 'no'}, R4 Z rule {'yes' if r4 else 'no'})")
-    # \genIfRerun{text for the R1-R4 results}{text for the pre-rerun results}
-    v.put("IfRerun", "#1" if rerun else "#2")
-    for src, label in ((bound, "bound"),):
-        a = src.get("assumptions") or {}
-        if ("debt_calibration" in a) != rerun:
-            raise ResultsError(f"{label} and central are from different runs (rerun "
-                               f"{'yes' if 'debt_calibration' in a else 'no'} vs "
-                               f"{'yes' if rerun else 'no'})")
+    # ---- R1-R4 only --------------------------------------------------------
+    for src, label in ((central, "central"), (bound, "bound"),
+                       (fixed["central"], "fixed spending"), (fixed["bound"], "fixed spending, bound")):
+        require_rerun(src, label)
 
     # ---- the gamma patch's verification run (docs/firm_gamma_tv.md) ------
     v.put("PatchSites", 14, "{:.0f}")
     v.put("PatchEpsilonSites", 20, "{:.0f}")
+
+
+def require_rerun(res: dict, label: str) -> None:
+    """The paper reports the R1-R4 results only (docs/rerun_r1_r4.md)."""
+    a = res.get("assumptions") or {}
+    missing = [k for k, ok in (("debt calibration", "debt_calibration" in a),
+                               ("pre-TP demographics", bool(a.get("pretp"))),
+                               ("R4 share_shift rule",
+                                a.get("Z_share_shift_rule") == "equilibrium_gdp_gap")) if not ok]
+    if missing:
+        raise ResultsError(f"{label}: {res['_source']} is not an R1-R4 results file "
+                           f"(lacks {', '.join(missing)})")
+
+
+COHORT_ROWS = {1946: "AgeEighty", 1966: "AgeSixty", 1986: "AgeForty", 2006: "AgeTwenty",
+               2026: "BornTwentySix", 2046: "BornFortySix"}
+LAST_BIRTH_SHOWN = 2046
+CLOSURE_WORD = {"zk0.1": "Central", "zk0": "Bound"}
+
+
+def cohort_results() -> dict:
+    """CEV by cohort for both arms and closures, with the checks that tie the
+    cohort export to the results files."""
+    out = {}
+    for cl in cw_mod.CLOSURES:
+        out[cl] = {"hold": cw_mod.cev(cl, "hold"), "ss": cw_mod.cev(cl, "ss"),
+                   "consumption": cw_mod.cev(cl, "hold", "consumption")}
+    return out
+
+
+def emit_cohorts(v: Values, co: dict) -> None:
+    worst = 0.0
+    for cl, cwd in CLOSURE_WORD.items():
+        H, S, Cn = co[cl]["hold"], co[cl]["ss"], co[cl]["consumption"]
+        b, par = H["birth_year"], H["par"]
+        lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
+        shown = b <= LAST_BIRTH_SHOWN
+        for arm, aw in ARM_WORD.items():
+            h = H[arm]
+            avg = h @ lam
+            v.signed(f"{aw}CevAliveMean{cwd}", float(pw @ avg))
+            v.signed(f"{aw}CevConsOnlyAliveMean{cwd}", float(pw @ (Cn[arm] @ lam)))
+            for yr, rw in COHORT_ROWS.items():
+                i = int(np.where(b == yr)[0][0])
+                v.signed(f"{aw}Cev{rw}{cwd}", float(avg[i]))
+                v.signed(f"{aw}Cev{rw}Bottom{cwd}", float(h[i, 0]))
+                v.signed(f"{aw}Cev{rw}TopOne{cwd}", float(h[i, -1]))
+                v.signed(f"{aw}CevConsOnly{rw}{cwd}", float(Cn[arm][i] @ lam))
+            v.signed(f"{aw}CevMax{cwd}", float(h[shown].max()))
+            v.signed(f"{aw}CevMin{cwd}", float(h[shown].min()))
+            neg = b[shown & (avg < 0)]
+            v.put(f"{aw}CevFirstNegBirth{cwd}", f"{int(neg.min())}" if len(neg) else "none")
+            worst = max(worst, float(np.abs(h - S[arm])[shown].max()))
+            # the export is the results file's solve: aggregate consumption matches
+            want = gap(RESULTS_FOR_COHORTS[cl], arm, "C")[4]
+            got = cw_mod.aggregate_consumption_gap(cl, arm, 2030)
+            if abs(got - want) > 0.01:
+                raise ResultsError(f"cohort export {cl} {arm}: 2030 consumption gap {got:.3f} "
+                                   f"does not match the results file's {want:.3f}")
+    v.put("CevContinuationMaxDiff", worst, "{:.2f}")
+    v.put("CevLastBirthShown", LAST_BIRTH_SHOWN, "{:.0f}")
+    v.put("CevTUseLastYear", cw_mod.START_YEAR + cw_mod.T_USE - 1, "{:.0f}")
+    par = co["zk0.1"]["hold"]["par"]
+    v.put("ChiB", float(par["chi_b"][0]), "{:.0f}")
+    v.put("Sigma", float(par["sigma"]), "{:.1f}")
+    v.put("BetaAnnual", float(par["beta"][0]), "{:.3f}")
+
+
+RESULTS_FOR_COHORTS: dict = {}
 
 
 def render(v: Values, sources: list[str]) -> str:
@@ -475,8 +575,7 @@ def render(v: Values, sources: list[str]) -> str:
         "",
     ]
     for name, value in v.items():
-        nargs = "[2]" if name == "IfRerun" else ""
-        lines.append(r"\newcommand{\gen%s}%s{%s}" % (name, nargs, value))
+        lines.append(r"\newcommand{\gen%s}{%s}" % (name, value))
     return "\n".join(lines) + "\n"
 
 
@@ -537,6 +636,48 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
         raise ResultsError("claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
 
+def check_cohort_claims(co: dict) -> None:
+    """Sentences of the incidence section stated in words."""
+    fail = []
+    alive = {}
+    for cl in cw_mod.CLOSURES:
+        H = co[cl]["hold"]
+        b, par = H["birth_year"], H["par"]
+        lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
+        shown = (b <= LAST_BIRTH_SHOWN) & (b >= 1936)
+        t = H["share_shift_tfp_ramp"]
+        if not (t[b <= LAST_BIRTH_SHOWN] > -0.05).all():
+            fail.append(f"'no cohort or type loses in share_shift_tfp' fails at {cl}")
+        if not (t[shown, 0] > t[shown, -1]).all():
+            fail.append(f"'the bottom group gains more than the top 1% in share_shift_tfp' fails at {cl}")
+        s_ = H["share_shift_ramp"]
+        if not (s_[shown, 0] > s_[shown, -1]).all():
+            fail.append(f"'the bottom group fares better than the top 1% in share_shift' fails at {cl}")
+        avg = s_ @ lam
+        i = lambda y: int(np.where(b == y)[0][0])
+        if not (avg[i(1946)] > 0 and avg[i(1966)] > 0):
+            fail.append(f"'older cohorts gain in share_shift' fails at {cl}")
+        for arm in ARMS:
+            alive[(cl, arm)] = float(pw @ (H[arm] @ lam))
+        cons = co[cl]["consumption"]
+        for arm in ARMS:
+            if not (cons[arm][i(1946)] @ lam) > 2 * (H[arm][i(1946)] @ lam):
+                fail.append(f"'consumption-only CEV is much larger for the old' fails for {arm} at {cl}")
+    H = co["zk0.1"]["hold"]
+    b = H["birth_year"]
+    avg = H["share_shift_ramp"] @ cw_mod.type_weights(H["par"])
+    if not (avg[(b >= 1990) & (b <= LAST_BIRTH_SHOWN)] < 0).all():
+        fail.append("'in share_shift at the central closure, cohorts born from 1990 lose' fails")
+    Hb = co["zk0"]["hold"]
+    if not ((Hb["share_shift_ramp"] @ cw_mod.type_weights(Hb["par"]))[Hb["birth_year"] <= LAST_BIRTH_SHOWN] > 0).all():
+        fail.append("'in share_shift at the bound every cohort gains on average' fails")
+    for arm in ARMS:
+        if not alive[("zk0", arm)] > alive[("zk0.1", arm)]:
+            fail.append(f"'living cohorts gain more at the bound' fails for {arm}")
+    if fail:
+        raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
+
+
 def build(args) -> tuple[Values, list[str]]:
     central = load_closure(args.central, "central (zeta_K = 0.1)")
     central = attach_gni(central, args.central_records)
@@ -554,21 +695,35 @@ def build(args) -> tuple[Values, list[str]]:
             raise ResultsError(f"bound: {bound['_source']} {a} carries no GNI or foreign positions")
     open_ = load_closure(args.open_diag, "zeta_K = 0.5 diagnostic")
     require_zeta_k(open_, OPEN_ZETA_K, "zeta_K = 0.5 diagnostic")
-    fixed = load_closure(args.fixed, "fixed spending")
-    fixed["_shared"] = load_closure(DEFAULT_CENTRAL, "pre-rerun shared-share results")
-    for var in ("Y", "K", "L"):
-        dev = float(np.max(np.abs(arr(fixed["baseline"], var) / arr(fixed["_shared"]["baseline"], var) - 1)))
-        if dev > 1e-9:
-            raise ResultsError(f"fixed-spending file {fixed['_source']} and {fixed['_shared']['_source']} "
-                               f"have different baselines ({var} differs by {dev:.2e}); the "
-                               "appendix table would compare two runs")
+    fixed = {}
+    for key, path, pinned, base, z in (
+            ("central", args.fixed, PINNED / DEFAULT_FIXED.name, central, CENTRAL_ZETA_K),
+            ("bound", args.fixed_bound, PINNED / DEFAULT_FIXED_BOUND.name, bound, BOUND_ZETA_K)):
+        src = path if Path(path).is_file() else pinned   # TODO(#36): drop the fallback
+        fx = load_closure(src, f"fixed spending ({key})")
+        if src == pinned:
+            fx["_source"] += f" (pinned from rerun/fixed-spending {PINNED_SHA}, TODO #36)"
+        require_zeta_k(fx, z, f"fixed spending ({key})")
+        if not all(fx[a].get("baseline_spending") for a in ARMS):
+            raise ResultsError(f"{fx['_source']}: arms are not fixed-spending solves")
+        for var in ("Y", "K", "L", "D"):
+            dev = float(np.max(np.abs(arr(fx["baseline"], var) / arr(base["baseline"], var) - 1)))
+            if dev > 1e-12:
+                raise ResultsError(f"fixed-spending file {fx['_source']} and {base['_source']} "
+                                   f"have different baselines ({var} differs by {dev:.2e})")
+        fixed[key] = fx
     check_claims(central, bound, open_)
+    RESULTS_FOR_COHORTS.update({"zk0.1": central, "zk0": bound})
+    cohorts = cohort_results()
+    check_cohort_claims(cohorts)
     v = Values()
-    emit(v, central, bound, fixed, open_)
+    emit(v, central, bound, fixed, open_, cohorts)
     sources = [f"central  {central['_source']}"
                + (f" (GNI from {central['_gni_source']})" if "_gni_source" in central else ""),
                f"bound    {bound['_source']}",
-               f"fixed    {fixed['_source']}",
+               f"fixed    {fixed['central']['_source']}",
+               f"fixed    {fixed['bound']['_source']}",
+               "cohorts  analysis/rerun/cohorts/{zk0.1,zk0}/ (paper/cohort_welfare.py)",
                f"zeta_K=0.5 diagnostic  {open_['_source']}"]
     return v, sources
 
@@ -583,7 +738,9 @@ def main() -> int:
                     help="zeta_K = 0.1 closure records, used for GNI only when the "
                          "central file carries no foreign positions")
     ap.add_argument("--fixed", type=Path, default=DEFAULT_FIXED,
-                    help="fixed-spending results (pre-rerun baseline; appendix only)")
+                    help="fixed-spending results at zeta_K = 0.1 (appendix only)")
+    ap.add_argument("--fixed-bound", type=Path, default=DEFAULT_FIXED_BOUND,
+                    help="fixed-spending results at zeta_K = 0 (appendix only)")
     ap.add_argument("--open-diag", type=Path, default=DIAG_OPEN,
                     help="zeta_K = 0.5 closure records (pre-rerun diagnostic)")
     ap.add_argument("--check", action="store_true",
