@@ -11,7 +11,18 @@ function resolveColor(c) {
   return v || c;
 }
 
-const FALLBACK_PALETTE = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6'];
+// Only reached if a trace carries no colour. Token-based, so it stays on
+// palette; resolved to literals for Plotly like every other colour here.
+const FALLBACK_PALETTE = [
+  'var(--chart-uk-ai)',
+  'var(--chart-uk-obr)',
+  'var(--chart-uk-baseline)',
+  'var(--chart-us-substantial)',
+  'var(--chart-us-modest)',
+  'var(--chart-us-extreme)',
+  'var(--chart-history)',
+  'var(--chart-us-noai)',
+];
 
 // Chart chrome (paper, grid, axes, type) comes from the PolicyEngine tokens
 // in globals.css, resolved to literals at draw time like the series colours.
@@ -156,7 +167,7 @@ export default function PlotPanel({ panel, firstNames = NO_NAMES, visible = true
         type: 'scatter',
         name,
         line: {
-          color: resolveColor(t.color) || FALLBACK_PALETTE[i % FALLBACK_PALETTE.length],
+          color: resolveColor(t.color) || resolveColor(FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]),
           width: t.width || 2,
           dash: t.dash || 'solid',
         },

@@ -60,7 +60,16 @@ export default function ScrollyStory({ steps, panels, idPrefix = '', diagrams = 
               {diagrams[i] && (
                 <div
                   className="step-diagram"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Expand diagram: ${diagramTitles[i] || step.title}`}
                   onClick={() => openModal && openModal({ title: diagramTitles[i], svgHtml: diagrams[i] })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (openModal) openModal({ title: diagramTitles[i], svgHtml: diagrams[i] });
+                    }
+                  }}
                   dangerouslySetInnerHTML={{ __html: diagrams[i] + '<div class="expand-hint">Click to expand</div>' }}
                 />
               )}

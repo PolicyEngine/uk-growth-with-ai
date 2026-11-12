@@ -25,23 +25,27 @@ from pathlib import Path
 
 import numpy as np
 
+from .arms import SHOCKED_ARMS
 from .data_access import DATA, load_results, load_trend_params, normalise_arms
 from .report import growth_path, labour_share, trend
 
 DASHBOARD_DATA = Path(__file__).resolve().parent.parent / "dashboard" / "src" / "data"
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
-ARMS = ["baseline", "zero_tfp_ramp", "anthropic_ramp"]
+ARMS = ["baseline", *SHOCKED_ARMS]
 VARS = [["C", "Consumption"], ["I", "Investment"], ["G", "Government"],
         ["total_tax_revenue", "Tax revenue"], ["D", "Debt"], ["Y", "GDP"],
         ["w", "Average wage"], ["K", "Capital stock"], ["L", "Labour"]]
 
 # The 2000-2030 chart shows the scenario paths over every model year.
 PATH_YEARS = YEARS
+# Display names must match ARM_META in dashboard/src/tabs/ai/series.js.  The
+# baseline is OG-UK's own path on the OBR's central productivity assumption; the
+# chart also carries the OBR's forecast line, so the name says whose line it is.
 ARM_TRACE = {
-    "baseline": ("No AI", "#5a6470"),
-    "zero_tfp_ramp": ("Automation only", "#2f6fb5"),
-    "anthropic_ramp": ("Automation + productivity", "#1d7a4c"),
+    "baseline": ("OG-UK baseline", "#5a6470"),
+    "share_shift_ramp": ("Automation only", "#2f6fb5"),
+    "share_shift_tfp_ramp": ("Automation + productivity", "#1d7a4c"),
 }
 
 DERIVATION = (

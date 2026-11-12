@@ -17,6 +17,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from .arms import SHOCKED_ARMS
 from .data_access import load_results, load_trend_params
 from .scenarios import ANTHROPIC_SUBSTANTIAL
 
@@ -25,7 +26,7 @@ VARS = [("C", "Consumption"), ("I", "Investment"), ("G", "Government"),
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
 
-ARMS = ["anthropic_ramp", "zero_tfp_ramp"]
+ARMS = SHOCKED_ARMS
 
 # Which trend each variable carries; anything not listed carries both.
 TREND = {"w": "productivity", "L": "population", "r": None}
@@ -132,17 +133,18 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
     print("  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the")
     print("  automation channel, imposed rather than produced by the model.")
 
-    # Only the anthropic arms are calibrated to Table 3; the OBR arms target an
-    # unchanged GDP level instead, so this comparison would be meaningless there.
-    if arm_name.startswith("anthropic"):
+    # Only the share_shift_tfp arms take both sizes from Table 3; the share_shift
+    # arms have no output gain at fixed inputs, so this comparison would be
+    # meaningless there.
+    if arm_name.startswith("share_shift_tfp"):
         A = ANTHROPIC_SUBSTANTIAL
-        print("\nAGAINST ANTHROPIC SUBSTANTIAL (Table 3, 2030)\n")
+        print("\nAGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030)\n")
         print(f"{'outcome':<26}{'Anthropic':>11}{'OG-UK':>10}")
         print(f"{'labour-share fall (pp)':<26}{A['labour_share_fall_pp']:>10.1f}"
               f"{s['labour_share_fall_pp']:>10.1f}   matched by construction")
         print(f"{'measured TFP (%)':<26}{A['measured_tfp_pct']:>10.1f}"
               f"{A['measured_tfp_pct']:>10.1f}   input, matched")
-        print(f"{'GDP vs no-AI (%)':<26}{A['gdp_above_no_ai_pct']:>10.1f}"
+        print(f"{'GDP vs baseline (%)':<26}{A['gdp_above_no_ai_pct']:>10.1f}"
               f"{s['gdp_gap_2030_pct']:>10.1f}   "
               f"{'we overshoot' if s['gdp_gap_2030_pct'] > A['gdp_above_no_ai_pct'] else 'we undershoot'}")
         print(f"{'GDP growth (%)':<26}{A['gdp_growth_pct']:>10.1f}"

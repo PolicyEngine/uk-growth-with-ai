@@ -3,7 +3,7 @@
 import ScrollyStory from '@/components/ScrollyStory.jsx';
 import { COVERAGE_STEPS, COVERAGE_PANELS } from '@/tabs/coverageStory.jsx';
 
-// Model comparison: what each source can represent, then OG-UK's no-AI
+// Model comparison: what each source can represent, then OG-UK's OBR-central
 // baseline against the OBR, as a two-pane story.
 export default function CoverageTab() {
   return (

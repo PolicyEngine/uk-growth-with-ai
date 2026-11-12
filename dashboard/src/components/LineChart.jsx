@@ -15,12 +15,84 @@ import { useEffect, useRef, useState } from 'react';
 //           'high' puts it on the top edge, pointing up).
 
 const FONT = 'Inter, Roboto, sans-serif';
-const PAD_L = 46;
 const PAD_T = 22;
 const PAD_B = 34;
 const STRIP_W = 30;
 const ROW = 18; // min vertical gap between stacked end labels
+const LINE = 14; // extra height taken by each wrapped end-label line
 const SUB_ROW = 13; // extra height taken by a sublabel line
+const TICK_GAP = 8; // y tick label to plot edge
+const UNIT_ASCENT = 9; // rotated 11px unit label: glyphs reach this far left of its baseline...
+const UNIT_DESCENT = 3; // ...and this far right
+const UNIT_GAP = 6; // unit label to the widest tick label
+const EDGE = 4; // left edge of the svg to the unit label
+
+// Text width in px. Measured with a canvas in the browser, so geometry follows
+// the real tick and label strings (a five-character tick like "112.5" needs a
+// wider margin than "4"); a per-character estimate stands in during SSR and
+// hydration (so the first client render matches the server HTML), and the
+// chart re-renders with real measurements once mounted.
+let measureCtx = null;
+let canMeasure = false;
+function textWidth(text, font) {
+  if (canMeasure && typeof document !== 'undefined') {
+    if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d');
+    if (measureCtx) {
+      measureCtx.font = font;
+      return measureCtx.measureText(text).width;
+    }
+  }
+  const px = Number((font.match(/(\d+(?:\.\d+)?)px/) || [])[1] || 12);
+  return text.length * px * 0.6;
+}
+const AX_FONT = `11px ${FONT}`;
+const labelFont = (weight, px = 12) => `${weight} ${px}px ${FONT}`;
+
+// Greedy word wrap of an end label into lines no wider than `max`. A label
+// is a list of segments ({ text, weight, kind }); the value is one segment
+// and is never split, so a label that does not fit on one line wraps and
+// still ends with its number instead of losing it past the svg edge.
+function wrapSegments(segments, max) {
+  const words = segments.flatMap((seg) =>
+    seg.kind === 'text'
+      ? seg.text.split(/\s+/).filter(Boolean).map((w) => ({ ...seg, text: w }))
+      : [seg],
+  );
+  const lines = [];
+  let line = [];
+  let width = 0;
+  for (const w of words) {
+    const ww = textWidth(w.text, labelFont(w.weight));
+    const space = line.length ? textWidth(' ', labelFont(w.weight)) : 0;
+    if (line.length && width + space + ww > max) {
+      lines.push(line);
+      line = [w];
+      width = ww;
+    } else {
+      line.push(w);
+      width += space + ww;
+    }
+  }
+  if (line.length) lines.push(line);
+  return lines;
+}
+const lineWidth = (line) =>
+  line.reduce((acc, w, i) => acc + textWidth((i ? ' ' : '') + w.text, labelFont(w.weight)), 0);
+
+// Re-render after mount, once web fonts have loaded, with canvas measurement
+// switched on.
+function useMeasured() {
+  const [ready, setReady] = useState(0);
+  useEffect(() => {
+    canMeasure = true;
+    let live = true;
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => live && setReady((n) => n + 1));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return ready;
+}
 
 // Nice-number tick step: 1, 2, 2.5 or 5 times a power of ten.
 function niceStep(range, target = 5) {
@@ -52,15 +124,25 @@ function useWidth(initial) {
   return [ref, w];
 }
 
+// Colour of an end-label segment: series labels and values in the series
+// colour; strip labels grey with a darker value; the off-scale note lighter.
+function segFill(kind, e) {
+  if (kind === 'off') return 'var(--pe-color-gray-500)';
+  if (e.strong) return e.color;
+  return kind === 'value' ? 'var(--pe-color-gray-800)' : 'var(--pe-color-gray-600)';
+}
+
 export default function LineChart({
   x,
   series,
   strip = null,
   height = 360,
   valueFormat = (v) => v.toFixed(1),
+  yUnit = null,
   ariaLabel,
 }) {
   const [ref, W] = useWidth(880);
+  useMeasured();
 
   const onScale = (strip?.points || []).filter((p) => !p.offScale).map((p) => p.value);
   const all = series.flatMap((s) => s.values).concat(onScale).filter((v) => Number.isFinite(v));
@@ -79,61 +161,97 @@ export default function LineChart({
   const ticks = [];
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
   const dp = decimalsFor(step);
+  const tickText = ticks.map((v) => v.toFixed(dp));
 
-  // End-label gutter sized to the longest label, within reason.
-  const labelChars = Math.max(
-    ...series.map((s) => Math.max(s.label.length + 6, (s.sublabel || '').length * 0.92)),
-    ...(strip?.points || []).map((p) => p.label.length + (p.offScale ? 9 : 6)),
-  );
-  const labelW = Math.min(Math.max(labelChars * 6.6 + 18, 130), W * 0.42);
+  // Left margin from the widest formatted tick, plus room for the rotated
+  // unit label to its left. Keyed to the tick strings, not the viewport:
+  // "112.5" needs more room than "4" at every width.
+  const tickW = Math.max(...tickText.map((t) => textWidth(t, AX_FONT)));
+  const unitX = EDGE + UNIT_ASCENT;
+  const L = Math.ceil((yUnit ? unitX + UNIT_DESCENT + UNIT_GAP : EDGE) + tickW + TICK_GAP);
+
+  // End labels: name, value and any "(off scale)" note, as segments.
+  const points = strip?.points || [];
+  const segsFor = (text, value, strong, offScale) => [
+    { kind: 'text', text, weight: strong ? 700 : 500 },
+    { kind: 'value', text: valueFormat(value), weight: 700 },
+    ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
+  ];
+  const rawLabels = [
+    ...series.map((s) => ({ s, segs: segsFor(s.label, s.values[s.values.length - 1], true, false) })),
+    ...points.map((p) => ({ p, segs: segsFor(p.label, p.value, false, p.offScale) })),
+  ];
+
+  // End-label gutter: wide enough for the longest label on one line, but
+  // never more than 42% of the chart. Labels that do not fit wrap onto
+  // extra lines rather than running off the svg edge.
   const stripW = strip ? STRIP_W : 0;
-  const L = PAD_L;
+  const oneLine = Math.max(...rawLabels.map((l) => lineWidth(wrapSegments(l.segs, Infinity)[0])));
+  const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, 11)) : 0)));
+  const labelW = Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120));
   const R = Math.max(L + 80, W - labelW - stripW - 8);
   const TOP = PAD_T;
   const BOT = height - PAD_B;
   const H = height;
 
-  const sx = (i) => (x.length === 1 ? L : L + ((R - L) * i) / (x.length - 1));
-  const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   const stripX = R + stripW / 2 + 4;
   const labelX = R + stripW + 14;
+  const labelMax = Math.max(60, W - labelX - 2);
+
+  // X axis: show every k-th year so labels never touch; the last year is
+  // always shown, and the label before it is dropped if it would crowd it.
+  const yearW = Math.max(...x.map((yr) => textWidth(String(yr), AX_FONT)));
+  const pitch = x.length > 1 ? (R - L) / (x.length - 1) : Infinity;
+  const every = Math.max(1, Math.ceil((yearW + 6) / pitch));
+  const showYear = x.map((_, i) => i % every === 0 || i === x.length - 1);
+  for (let i = x.length - 2; i > 0; i -= 1) {
+    if (showYear[i]) {
+      if ((x.length - 1 - i) * pitch < yearW + 6) showYear[i] = false;
+      break;
+    }
+  }
+
+  const sx = (i) => (x.length === 1 ? L : L + ((R - L) * i) / (x.length - 1));
+  const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
+  // Where a strip point's marker sits. Two points pushed to the same axis
+  // edge would be drawn on top of each other, so each off-scale point after
+  // the first is offset one row along that edge. The label stack reads the
+  // same function, so the leader line always points at its own marker.
+  function stripY(p, pi) {
+    if (!p.offScale) return sy(p.value);
+    const rank = points.filter((q, qi) => q.offScale === p.offScale && qi < pi).length;
+    return p.offScale === 'high' ? TOP + 12 + rank * ROW : BOT - rank * ROW;
+  }
 
   // Every end label (series ends and strip points), stacked so none overlap.
-  const labels = [
-    ...series.map((s) => ({
-      key: `s-${s.label}`,
-      text: s.label,
-      sub: s.sublabel,
-      value: s.values[s.values.length - 1],
-      color: s.color,
-      strong: true,
-      ax: R,
-      y: sy(s.values[s.values.length - 1]),
-    })),
-    ...(strip?.points || []).map((p) => ({
-      key: `p-${p.label}`,
-      text: p.label,
-      value: p.value,
-      color: p.color,
-      strong: false,
-      offScale: p.offScale,
-      ax: stripX,
-      y: p.offScale ? (p.offScale === 'high' ? TOP + 12 : BOT) : sy(p.value),
-    })),
-  ].sort((a, b) => a.y - b.y);
+  const labels = rawLabels
+    .map(({ s, p, segs }) => {
+      const lines = wrapSegments(segs, labelMax);
+      const subLines = s?.sublabel
+        ? wrapSegments([{ kind: 'text', text: s.sublabel, weight: 400 }], labelMax).map((l) =>
+            l.map((w) => w.text).join(' '),
+          )
+        : [];
+      // Height below the first line: wrapped lines, then sublabel lines.
+      const extra = (lines.length - 1) * LINE + subLines.length * SUB_ROW;
+      const base = { lines, subLines, extra, strong: Boolean(s) };
+      return s
+        ? { ...base, key: `s-${s.label}`, color: s.color, ax: R, y: sy(s.values[s.values.length - 1]) }
+        : { ...base, key: `p-${p.label}`, color: p.color, ax: stripX, y: stripY(p, points.indexOf(p)) };
+    })
+    .sort((a, b) => a.y - b.y);
   let prev = -Infinity;
   let prevH = 0;
   for (const e of labels) {
     e.ly = Math.max(e.y, prev + prevH);
     prev = e.ly;
-    prevH = ROW + (e.sub ? SUB_ROW : 0);
+    prevH = ROW + e.extra;
   }
   // If the stack runs past the bottom, push it back up.
   let floor = H - 10 - 4;
   for (let i = labels.length - 1; i >= 0; i -= 1) {
     const e = labels[i];
-    const h = e.sub ? SUB_ROW : 0;
-    if (e.ly + h > floor) e.ly = floor - h;
+    if (e.ly + e.extra > floor) e.ly = floor - e.extra;
     floor = e.ly - ROW;
   }
 
@@ -149,11 +267,22 @@ export default function LineChart({
           </g>
         ))}
         <line x1={L} y1={BOT} x2={R} y2={BOT} className="axis-line" />
-        {x.map((yr, i) => (
-          <text key={yr} x={sx(i)} y={BOT + 20} className="ax" textAnchor="middle">
-            {yr}
+        {yUnit ? (
+          <text
+            className="ax axis-unit"
+            transform={`translate(${unitX}, ${(TOP + BOT) / 2}) rotate(-90)`}
+            textAnchor="middle"
+          >
+            {yUnit}
           </text>
-        ))}
+        ) : null}
+        {x.map((yr, i) =>
+          showYear[i] ? (
+            <text key={yr} x={sx(i)} y={BOT + 20} className="ax" textAnchor="middle">
+              {yr}
+            </text>
+          ) : null,
+        )}
         {strip ? (
           <g>
             <line x1={stripX} y1={TOP} x2={stripX} y2={BOT} className="strip-rule" />
@@ -176,9 +305,9 @@ export default function LineChart({
             ))}
           </g>
         ))}
-        {(strip?.points || []).map((p) => {
+        {points.map((p, pi) => {
           const up = p.offScale === 'high';
-          const cy = p.offScale ? (up ? TOP + 12 : BOT) : sy(p.value);
+          const cy = stripY(p, pi);
           return (
             <g key={p.label}>
               <circle cx={stripX} cy={cy} r="4" fill="var(--pe-color-bg-primary)" stroke={p.color} strokeWidth="2" />
@@ -210,23 +339,29 @@ export default function LineChart({
                 opacity=".5"
               />
             ) : null}
-            <text
-              x={labelX}
-              y={e.ly + 4}
-              style={{ font: `12px ${FONT}`, fontWeight: e.strong ? 700 : 500 }}
-              fill={e.strong ? e.color : 'var(--pe-color-gray-600)'}
-            >
-              {e.text}{' '}
-              <tspan style={{ fontWeight: 700 }} fill={e.strong ? e.color : 'var(--pe-color-gray-800)'}>
-                {valueFormat(e.value)}
-              </tspan>
-              {e.offScale ? <tspan fill="var(--pe-color-gray-500)"> (off scale)</tspan> : null}
+            <text x={labelX} y={e.ly + 4} style={{ font: `12px ${FONT}` }}>
+              {e.lines.map((line, li) => (
+                <tspan key={li} x={labelX} dy={li ? LINE : 0}>
+                  {line.map((w, wi) => (
+                    <tspan key={wi} style={{ fontWeight: w.weight }} fill={segFill(w.kind, e)}>
+                      {wi ? ' ' : ''}
+                      {w.text}
+                    </tspan>
+                  ))}
+                </tspan>
+              ))}
             </text>
-            {e.sub ? (
-              <text x={labelX} y={e.ly + 4 + SUB_ROW} style={{ font: `11px ${FONT}` }} fill="var(--pe-color-gray-500)">
-                {e.sub}
+            {e.subLines.map((t, si) => (
+              <text
+                key={si}
+                x={labelX}
+                y={e.ly + 4 + (e.lines.length - 1) * LINE + (si + 1) * SUB_ROW}
+                style={{ font: `11px ${FONT}` }}
+                fill="var(--pe-color-gray-500)"
+              >
+                {t}
               </text>
-            ) : null}
+            ))}
           </g>
         ))}
       </svg>

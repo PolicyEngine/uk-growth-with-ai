@@ -6,6 +6,7 @@ import HistoricalPaths, { ArmLegend } from '@/tabs/ai/HistoricalPaths.jsx';
 import { Cv } from '@/tabs/ai/scenarioStory.jsx';
 import SvgFigure from '@/components/SvgFigure.jsx';
 import LineChart from '@/components/LineChart.jsx';
+import Sparkline from '@/components/Sparkline.jsx';
 import { ARM_META, US_COLORS } from '@/tabs/ai/series.js';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import {
@@ -25,7 +26,7 @@ const LABELS = {
   D: 'Debt',
 };
 const OPTIONS = VAR_ORDER.map((v) => ({ value: v, label: LABELS[v] }));
-const SHOCKED = ['anthropic_ramp', 'obr_ramp'];
+const SHOCKED = ['share_shift_tfp_ramp', 'share_shift_ramp'];
 
 // Line swatch, same vocabulary as the shared .plot-legend.
 function Sw({ c, dashed }) {
@@ -62,16 +63,16 @@ const pctS = (x, dp = 1) => `${signed(x, dp)}%`;
 // Growth accounting for the 2030 GDP gap, in log points: TFP (ln(1+tau), the
 // fixed-input gain the scenario is calibrated to), capital (gamma_1 x the
 // log capital gap) and labour ((1 - gamma_1) x the log labour gap).
-const TAU = { obr_ramp: 0, anthropic_ramp: KORINEK.tfp / 100 };
+const TAU = { share_shift_ramp: 0, share_shift_tfp_ramp: KORINEK.tfp / 100 };
 const lgap = (a, v) => Math.log(D.idx[a][v][LAST] / D.idx.baseline[v][LAST]) * 100;
 function decomp(a) {
   return { tfp: Math.log(1 + TAU[a]) * 100, capital: G1 * lgap(a, 'K'), labour: (1 - G1) * lgap(a, 'L') };
 }
 const outputPerLabour = (a) => ((1 + gapAt(a, 'Y') / 100) / (1 + gapAt(a, 'L') / 100) - 1) * 100;
 
-// Effect table: % difference from the no-AI baseline by variable, with a
+// Effect table: % difference from the OBR-central baseline by variable, with a
 // 2026-2030 sparkline per scenario.
-const SHOCKED_ORDER = ['obr_ramp', 'anthropic_ramp'];
+const SHOCKED_ORDER = ['share_shift_ramp', 'share_shift_tfp_ramp'];
 const EFFECT_GROUPS = [
   { title: 'Output and demand', rows: [['Y', 'GDP'], ['C', 'Consumption'], ['I', 'Investment']] },
   { title: 'Factors', rows: [['K', 'Capital stock'], ['L', 'Labour'], ['w', 'Average wage']] },
@@ -83,71 +84,9 @@ function effectPath(r, a) {
   if (r.key === 'grow') return [NaN, ...D.grow[a].map((g, i) => g - D.grow.baseline[i])];
   return YEARS.map((_, i) => gapAt(a, r.key, i));
 }
-function Spark({ values, color, unit }) {
-  const [hover, setHover] = useState(null);
-  const W = 200;
-  const PH = 34; // plot height
-  const H = PH + 18; // plus ticks and end-year labels
-  const pts = values.map((v, i) => [i, v]).filter(([, v]) => Number.isFinite(v));
-  const vs = pts.map(([, v]) => v);
-  let lo = Math.min(...vs);
-  let hi = Math.max(...vs);
-  if (hi - lo < 1e-6) {
-    lo -= 0.5;
-    hi += 0.5;
-  }
-  const pad = (hi - lo) * 0.12;
-  lo -= pad;
-  hi += pad;
-  const sy = (v) => PH - 4 - ((v - lo) / (hi - lo)) * (PH - 8);
-  const sx = (i) => 6 + (i * (W - 12)) / (YEARS.length - 1);
-  const zeroIn = lo < 0 && hi > 0;
-  return (
-    <div className="spark">
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={pts.map(([i, v]) => `${YEARS[i]}: ${signed(v)}${unit}`).join(', ')}>
-        {zeroIn ? <line x1={0} x2={W} y1={sy(0)} y2={sy(0)} className="spark-zero" /> : null}
-        {YEARS.map((y, i) => (
-          <line key={y} x1={sx(i)} x2={sx(i)} y1={PH + 1} y2={PH + 4} className="spark-tick" />
-        ))}
-        <text x={sx(0)} y={H - 2} className="spark-year" textAnchor="start">
-          {YEARS[0]}
-        </text>
-        <text x={sx(YEARS.length - 1)} y={H - 2} className="spark-year" textAnchor="end">
-          {YEARS[YEARS.length - 1]}
-        </text>
-        <polyline points={pts.map(([i, v]) => `${sx(i)},${sy(v)}`).join(' ')} fill="none" stroke={color} strokeWidth="1.8" />
-        {pts.map(([i, v]) => (
-          <circle
-            key={i}
-            cx={sx(i)}
-            cy={sy(v)}
-            r={hover === i ? 4 : 2.6}
-            fill={color}
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-          />
-        ))}
-        {pts.map(([i]) => (
-          <rect
-            key={`h${i}`}
-            x={sx(i) - 10}
-            y={0}
-            width={20}
-            height={PH}
-            fill="transparent"
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-          />
-        ))}
-      </svg>
-      {hover != null ? (
-        <span className="spark-tip" style={{ left: sx(hover), top: sy(values[hover]) }}>
-          {YEARS[hover]}: <b>{signed(values[hover])}{unit}</b>
-        </span>
-      ) : null}
-    </div>
-  );
-}
+const Spark = ({ values, color, unit }) => (
+  <Sparkline values={values} years={YEARS} color={color} unit={unit} format={signed} />
+);
 
 // CSV of every variable x scenario x year: index level and % gap.
 function downloadCsv(e) {
@@ -186,12 +125,12 @@ export default function ResultsPanel() {
   );
 
   // Investment-led gain (referee M10).
-  const cBelow = belowIdx('anthropic_ramp', 'C');
+  const cBelow = belowIdx('share_shift_tfp_ramp', 'C');
   const cBelowThrough = cBelow.length && cBelow.every((v, k) => v === k) ? YEARS[cBelow[cBelow.length - 1]] : null;
-  const cObrAlwaysBelow = belowIdx('obr_ramp', 'C').length === YEARS.length;
+  const cObrAlwaysBelow = belowIdx('share_shift_ramp', 'C').length === YEARS.length;
   const wagesAlwaysBelow = SHOCKED.every((a) => belowIdx(a, 'w').length === YEARS.length);
 
-  // GDP against the no-AI path: UK lines, US 2030 endpoints in the strip.
+  // GDP against the baseline path: UK lines, US 2030 endpoints in the strip.
   const gapSeries = D.arms.map((arm) => ({
     label: ARM_META[arm].label,
     color: ARM_META[arm].color,
@@ -216,15 +155,15 @@ export default function ResultsPanel() {
     }
     return `above US ${usSorted[usSorted.length - 1][0]}`;
   };
-  const gdpPositionText = `${ARM_META.anthropic_ramp.label} lies ${position(gapAt('anthropic_ramp', 'Y'))}, and ${ARM_META.obr_ramp.label} ${position(gapAt('obr_ramp', 'Y'))}`;
+  const gdpPositionText = `${ARM_META.share_shift_tfp_ramp.label} lies ${position(gapAt('share_shift_tfp_ramp', 'Y'))}, and ${ARM_META.share_shift_ramp.label} ${position(gapAt('share_shift_ramp', 'Y'))}`;
 
   // Labour share: the two UK AI scenarios share one gamma path, so one line.
   const lsSeries = [
     { label: ARM_META.baseline.label, color: ARM_META.baseline.color, values: D.sl.baseline.map((v) => v * 100) },
     {
       label: 'Both AI scenarios',
-      color: ARM_META.anthropic_ramp.color,
-      values: D.sl.anthropic_ramp.map((v) => v * 100),
+      color: ARM_META.share_shift_tfp_ramp.color,
+      values: D.sl.share_shift_tfp_ramp.map((v) => v * 100),
     },
   ];
   const lsStrip = {
@@ -251,34 +190,34 @@ export default function ResultsPanel() {
       <section className="section-card growth-hero">
         <div className="kpi-strip">
           <Kpi
-            value={pctS(gapAt('anthropic_ramp', 'Y'))}
-            label={ARM_META.anthropic_ramp.label}
-            sub={`UK GDP against the no-AI baseline, ${LAST_YEAR}`}
-            color={ARM_META.anthropic_ramp.color}
+            value={pctS(gapAt('share_shift_tfp_ramp', 'Y'))}
+            label={ARM_META.share_shift_tfp_ramp.label}
+            sub={`UK GDP against the OBR-central baseline, ${LAST_YEAR}`}
+            color={ARM_META.share_shift_tfp_ramp.color}
           />
           <Kpi
-            value={pctS(gapAt('obr_ramp', 'Y'))}
-            label={ARM_META.obr_ramp.label}
-            sub={`UK GDP against the no-AI baseline, ${LAST_YEAR}`}
-            color={ARM_META.obr_ramp.color}
+            value={pctS(gapAt('share_shift_ramp', 'Y'))}
+            label={ARM_META.share_shift_ramp.label}
+            sub={`UK GDP against the OBR-central baseline, ${LAST_YEAR}`}
+            color={ARM_META.share_shift_ramp.color}
           />
           <Kpi
-            value={`${signed(growthIncrement('anthropic_ramp'))}pp`}
+            value={`${signed(growthIncrement('share_shift_tfp_ramp'))}pp`}
             label={`GDP growth in ${LAST_YEAR}`}
-            sub={`${ARM_META.anthropic_ramp.label} against the no-AI baseline`}
-            color={ARM_META.anthropic_ramp.color}
+            sub={`${ARM_META.share_shift_tfp_ramp.label} against the OBR-central baseline`}
+            color={ARM_META.share_shift_tfp_ramp.color}
           />
           <Kpi
-            value={pctS(gapAt('anthropic_ramp', 'K'))}
+            value={pctS(gapAt('share_shift_tfp_ramp', 'K'))}
             label={`Capital stock, ${LAST_YEAR}`}
-            sub={`${ARM_META.anthropic_ramp.label} against the no-AI baseline`}
-            color={ARM_META.anthropic_ramp.color}
+            sub={`${ARM_META.share_shift_tfp_ramp.label} against the OBR-central baseline`}
+            color={ARM_META.share_shift_tfp_ramp.color}
           />
         </div>
         <p className="key-point">The GDP gain is investment-led, not consumption-led.</p>
         <ul className="txt-bullets headline-bullets">
           <li>
-            <b>Investment jumps first:</b> already {pctS(gapAt('anthropic_ramp', 'I', 0))} above the baseline in{' '}
+            <b>Investment jumps first:</b> already {pctS(gapAt('share_shift_tfp_ramp', 'I', 0))} above the baseline in{' '}
             {FIRST_YEAR} with productivity gains.
           </li>
           <li>
@@ -296,7 +235,8 @@ export default function ResultsPanel() {
         </ul>
         <p className="headline-foot">
           OG-UK output. Government spending is a fixed share of GDP (<Cv id="fiscal" />: spending held at baseline
-          levels). Definitions and caveats: <a href="#scenarios">Scenario design</a>.
+          levels). How the added capital is financed: <Cv id="financing" />. Definitions and caveats:{' '}
+          <a href="#scenarios">Scenario design</a>.
         </p>
       </section>
 
@@ -328,7 +268,9 @@ export default function ResultsPanel() {
                 </tr>,
                 ...g.rows.map((r) => (
                   <tr key={r.key}>
-                    <td>{r.label}</td>
+                    <th scope="row" className="effect-row-head">
+                      {r.label}
+                    </th>
                     {SHOCKED_ORDER.map((a) => {
                       const vals = effectPath(r, a);
                       return (
@@ -352,11 +294,8 @@ export default function ResultsPanel() {
         <div className="effect-foot">
           <div className="chart-note">
             <div>
-              Difference from the no-AI baseline: % for levels, pp for the labour share and growth. {FIRST_YEAR}{' '}
+              Difference from the OBR-central baseline: % for levels, pp for the labour share and growth. {FIRST_YEAR}{' '}
               values: <Cv id="accounting" />.
-            </div>
-            <div>
-              Government consumption moves one-for-one with GDP by construction (<Cv id="fiscal" />).
             </div>
           </div>
           <a href="#growth" className="csv-link" onClick={downloadCsv}>
@@ -367,15 +306,15 @@ export default function ResultsPanel() {
         <ul className="txt-bullets reading-list">
           <li>
             <b>Sources of the GDP gain</b> (log points, {LAST_YEAR}): with productivity gains,{' '}
-            {decomp('anthropic_ramp').tfp.toFixed(1)} from TFP and {decomp('anthropic_ramp').capital.toFixed(1)} from
-            capital deepening, less {Math.abs(decomp('anthropic_ramp').labour).toFixed(1)} from lower labour input;
-            with automation only, {decomp('obr_ramp').capital.toFixed(1)} from capital deepening, less{' '}
-            {Math.abs(decomp('obr_ramp').labour).toFixed(1)} from labour input.
+            {decomp('share_shift_tfp_ramp').tfp.toFixed(1)} from TFP and {decomp('share_shift_tfp_ramp').capital.toFixed(1)} from
+            capital deepening, less {Math.abs(decomp('share_shift_tfp_ramp').labour).toFixed(1)} from lower labour input;
+            with automation only, {decomp('share_shift_ramp').capital.toFixed(1)} from capital deepening, less{' '}
+            {Math.abs(decomp('share_shift_ramp').labour).toFixed(1)} from labour input.
           </li>
           <li>
             <b>Wages</b> follow the labour share and output per unit of labour: the labour share falls by{' '}
             {((LS_FALL / LS0) * 100).toFixed(1)}% in proportion, while output per unit of labour rises{' '}
-            {outputPerLabour('obr_ramp').toFixed(1)}% with automation only and {outputPerLabour('anthropic_ramp').toFixed(1)}%
+            {outputPerLabour('share_shift_ramp').toFixed(1)}% with automation only and {outputPerLabour('share_shift_tfp_ramp').toFixed(1)}%
             with productivity gains, so wages fall with automation only and change little with productivity gains.
           </li>
           <li>
@@ -399,16 +338,23 @@ export default function ResultsPanel() {
                 {LABELS[variable]} by scenario, {FIRST_YEAR}&ndash;{LAST_YEAR}
               </>
             }
-            title={<>Index, {FIRST_YEAR} no-AI baseline = 100</>}
+            title={<>Index, {FIRST_YEAR} OBR-central baseline = 100</>}
           />
           {selector}
           <div className="chart-slot">
-            <LineChart x={YEARS} series={series} height={380} ariaLabel={`${LABELS[variable]} index by scenario`} />
+            <LineChart
+              x={YEARS}
+              series={series}
+              height={380}
+              yUnit={`Index (${FIRST_YEAR} baseline = 100)`}
+              ariaLabel={`${LABELS[variable]} index by scenario`}
+            />
           </div>
           <div className="chart-foot">
             <ArmLegend />
             <p className="chart-note">
-              The AI scenarios start away from 100 because of anticipation (<Cv id="anticipation" />).
+              The vertical axis does not start at zero. The AI scenarios start away from 100 because of
+              anticipation (<Cv id="anticipation" />).
               {variable === 'I' ? (
                 <>
                   {' '}
@@ -436,7 +382,7 @@ export default function ResultsPanel() {
           takeaway="Comparison with Korinek et al. (2026)"
           title={
             <>
-              Each country against its own no-AI path; timing and model differences: <Cv id="us" />
+              Each country against its own baseline; timing and model differences: <Cv id="us" />
             </>
           }
         />
@@ -447,14 +393,15 @@ export default function ResultsPanel() {
         <div className="grid-2 figure-pair">
           <SvgFigure
             takeaway="GDP gain vs US cases"
-            title={`% above the no-AI path, ${FIRST_YEAR}–${LAST_YEAR}`}
+            title={`% above the baseline path, ${FIRST_YEAR}–${LAST_YEAR}`}
           >
             <LineChart
               x={YEARS}
               series={gapSeries}
               strip={gapStrip}
               height={340}
-              ariaLabel={`GDP against the no-AI path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
+              yUnit="% vs the baseline path"
+              ariaLabel={`GDP against the baseline path by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>
           <SvgFigure
@@ -466,6 +413,7 @@ export default function ResultsPanel() {
               series={lsSeries}
               strip={lsStrip}
               height={340}
+              yUnit="Labour share (% of income)"
               ariaLabel={`Labour share by scenario, ${FIRST_YEAR} to ${LAST_YEAR}, with US 2030 endpoints`}
             />
           </SvgFigure>

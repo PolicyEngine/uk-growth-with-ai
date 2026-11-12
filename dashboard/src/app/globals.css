@@ -408,7 +408,7 @@
       font-size: 0.68rem; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.09em;
     }
-    .comparison-table th:first-child { width: 24%; color: var(--pe-color-gray-400); }
+    .comparison-table th:first-child { width: 24%; color: var(--pe-color-gray-500); }
     .comparison-table th:nth-child(2) { color: var(--pe-color-primary-700); }
     .comparison-table th:nth-child(3) { color: var(--pe-color-gray-700); }
     .comparison-table td {
@@ -800,7 +800,7 @@
       margin-top: 48px; padding-top: 28px;
       border-top: 1px solid var(--pe-color-gray-200);
       text-align: center; font-size: 0.85rem;
-      color: var(--pe-color-gray-400);
+      color: var(--pe-color-gray-500);
     }
 
     /* Responsive */
@@ -844,7 +844,7 @@
        bar and swatch on the growth tab (src/tabs/ai/series.js points here,
        and PlotPanel resolves these for Plotly). Built from the PolicyEngine
        ramp, plus the gold the shared .legend-line vocabulary already uses as
-       the secondary accent. UK no-AI grey, UK OBR gold, UK Anthropic the
+       the secondary accent. UK OBR-central grey, UK share shift gold, UK share shift + TFP the
        primary teal; US series lighter and dashed. */
     :root {
       --chart-uk-baseline:     var(--pe-color-gray-500);
@@ -852,7 +852,7 @@
       --chart-uk-ai:           var(--pe-color-primary-600);
       /* US (Anthropic, reference only): one sky-blue ramp from the
          PolicyEngine ui-kit chart palette (--chart-2/-4, --diverging-gray-blue-*),
-         distinct in hue from the UK teal and from the UK no-AI grey. */
+         distinct in hue from the UK teal and from the UK OBR-central grey. */
       --chart-us-noai:         #7dd3fc;
       --chart-us-modest:       #38bdf8;
       --chart-us-substantial:  #0ea5e9;
@@ -941,7 +941,7 @@
     .impact-table .col-compare {
       background: var(--pe-color-gray-50);
     }
-    .impact-table thead th.col-compare { color: var(--pe-color-gray-400); }
+    .impact-table thead th.col-compare { color: var(--pe-color-gray-500); }
     /* Wide tables scroll inside their card on phones instead of widening the page. */
     .assumptions-table { min-width: 640px; }
     .impact-table.numeric { min-width: 760px; }
@@ -959,7 +959,7 @@
     .comparison-table.cols-5 th:nth-child(5) { color: var(--pe-color-primary-700); }
     .comparison-table.cols-5 td { font-size: 0.86rem; }
     .comparison-table th .th-sub {
-      display: block; font-weight: 400; color: var(--pe-color-gray-400);
+      display: block; font-weight: 400; color: var(--pe-color-gray-500);
       font-size: 0.66rem; margin-top: 3px;
       text-transform: none; letter-spacing: 0;
     }
@@ -976,7 +976,7 @@
     }
     .cell-na {
       text-align: center !important;
-      font-size: 0.8rem; font-style: italic; color: var(--pe-color-gray-400);
+      font-size: 0.8rem; font-style: italic; color: var(--pe-color-gray-500);
     }
     /* US reference rows read as secondary to the UK model output. */
     .comparison-table tbody tr.row-secondary td,
@@ -1507,3 +1507,36 @@
 }
 .narrative-step .step-content .table-wrap:last-child .comparison-table { margin-bottom: 0; }
 
+
+
+/* ------------------------------------------------------------------ */
+/* Accessibility: focus, scroll targets, table row heads              */
+/* ------------------------------------------------------------------ */
+
+/* A single visible focus ring for every interactive element. Keyboard
+   only, so it never shows on a mouse click. */
+:focus-visible {
+  outline: 2px solid var(--pe-color-primary-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.select-menu:focus-visible { outline-offset: -2px; }
+/* The option under the keyboard cursor, inside the focused listbox. */
+.select-option.cursor { background: var(--accent-light); }
+
+/* The sticky header overlaps anything scrolled to, so caveat and step
+   targets reserve room for it. */
+.caveat-list li[id],
+.narrative-step[id],
+.tab-panel[id] { scroll-margin-top: 96px; }
+
+/* Row headers in the effect table read as labels, not as data. */
+.effect-table th.effect-row-head {
+  text-align: left;
+  font-weight: 400;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Rotated y-axis unit on the inline-SVG line charts. */
+.linechart .axis-unit { font-size: 11px; fill: var(--pe-color-gray-600); }
