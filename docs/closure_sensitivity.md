@@ -13,7 +13,7 @@ The gaps are each measured against **that closure's own no-AI baseline**, and th
 
 So the three columns describe three different stylised UKs, not one UK under three assumptions.
 
-**2. GDP overstates what residents gain whenever foreign capital comes in.** At the default closure, foreigners own 78.5% (`share_shift_tfp`) and 73.5% (`share_shift`) of the extra 2030 capital. GNI rises +3.87% against GDP +4.92%, and +0.59% against +1.42%. These figures confirm #16's inference from the exported paths. For `share_shift`, extra payments abroad are 0.82pp of GDP in 2030, inside #16's back-of-envelope range of 0.7–0.9%. The gap between GDP and GNI widens with openness: −0.14pp / −1.05pp / −2.23pp (`share_shift_tfp`) at `zeta_K` = 0 / 0.1 / 0.5. Using the firm rate `r` instead of `r_p` on K_f moves the default-closure GNI gaps by 0.05pp or less (`gni_gap_r_variant`).
+**2. GDP overstates what residents gain whenever foreign capital comes in.** At the default closure, foreigners own 78.5% (`share_shift_tfp`) and 73.5% (`share_shift`) of the extra 2030 capital. GNI rises +3.87% against GDP +4.92%, and +0.59% against +1.42%. These figures confirm #16's inference from the exported paths. For `share_shift`, extra payments abroad are 0.83% of baseline GDP in 2030, inside #16's back-of-envelope range of 0.7–0.9%. The gap between GDP and GNI widens with openness: −0.14pp / −1.05pp / −2.23pp (`share_shift_tfp`) at `zeta_K` = 0 / 0.1 / 0.5. Using the firm rate `r` instead of `r_p` on K_f lowers the 2030 GNI gaps by 0.06pp / 0.05pp at the default closure and by 0.14pp / 0.13pp at `zeta_K = 0.5` (`gni_gap_r_variant`).
 
 **3. `share_shift` stays close to GDP-neutral only when the economy is closed.** The scenario is built so that output at fixed inputs is unchanged.
 - **At `zeta_K = 0`:** the GDP gap is +0.65% in 2026 and falls to +0.09% in 2030 (GNI −0.04%). It then drifts back up to +0.30% by 2035.
@@ -29,16 +29,18 @@ So the +1.42% headline is mostly capital inflow drawn in by the higher capital s
 - **Accounting identities.** K = K_d + K_f, K_d = B − D_d and D = D_d + D_f hold to 1e-16 in every run.
 - **Results that looked odd and were checked.**
   - At `zeta_K = 0.5`, `share_shift_tfp`'s 2026 GDP gap is negative (−0.50%) and foreigners fund more than 100% of the extra capital.
-  - Both have the same cause. With a large inflow, r barely rises and wages rise (+3.56% by 2030, against −1.92% at `zeta_K = 0`). The wealth effect therefore dominates: consumption rises at once (+0.84% in 2026), labour falls (−0.56%) and domestic capital falls (K_d −0.35% in 2027).
+  - **The 2026 GDP gap is a labour response.** With a large inflow, r barely rises and wages rise (+3.56% by 2030, against −1.92% at `zeta_K = 0`). Households expect higher lifetime labour income, so consumption rises at once (+0.84% in 2026) and labour falls (−0.56%). Domestically owned capital is inherited in 2026 (gap exactly 0). The −0.38% capital gap is foreign capital following labour down through the rule: 0.5 × K_open/K (1.37) = 0.68 of the labour gap.
+  - **The same reading holds in all six cells.** The 2026 labour gap has the opposite sign to the 2030 wage gap in every arm and closure (wage −4.95% to +3.56%, labour +1.00% to −0.56%).
+  - **The foreign share above 100% has two causes.** K_d = B − D_d. In 2027–28 household wealth falls (B −0.28% in 2027, K_d −0.35%): that is the wealth effect. By 2030 household wealth is back at baseline (B +0.01%) and K_d is still −0.45%, because domestically held government debt is up (D_d +1.1%). The 100.1% in `share_shift` is also debt: B is +0.43% and D_d +1.5%.
   - At `zeta_K = 0` the sign flips: r rises 139bp, households work and save more early (C −0.96%, L +0.52% in 2026), and domestic capital carries all of the increase.
   - So **the sign of the wage response also depends on the closure**.
 
 **5. The 2030 investment drop is the inflow stopping.** At `zeta_K = 0`, `share_shift_tfp`'s investment gap keeps rising through 2030 (+10.7% → +12.4%). At 0.1 and 0.5 it collapses when γ stops rising (+28.9% → +13.1% and +84.8% → +19.8%). "Investment is a residual" is wrong (#16).
 
 **6. Convergence.**
-- Every one of the 10 transition paths reached OG-Core's `mindist_TPI = 1e-4`, in 8–10 outer iterations with final distances of 3.4e-5 to 7.2e-5. Euler errors are ≤ 6.3e-12.
-- **2026 residual.** The signed 2026 resource-constraint residual is negative in every run and is shared by the arms of a closure to within 0.006% of GDP. Its size depends on the closure: −0.99% (0), −0.95% (0.1), −0.81% (0.5) of GDP.
-- **Interior residuals.** The largest interior residual (2027…T−2) is in 2028 in every run: −0.07% to −0.09% of GDP. Every other interior period is below 0.0006% of GDP.
+- Every one of the 10 transition paths reached OG-Core's `mindist_TPI = 1e-4`, in 8–10 outer iterations with final distances of 3.4e-5 to 7.2e-5 in the nine closure runs and 9.85e-5 in the pre-TP run. Euler errors are ≤ 6.3e-12.
+- **2026 residual.** The signed 2026 resource-constraint residual is negative in all nine closure runs (the pre-TP run is point 8) and is shared by the arms of a closure to within 0.006% of GDP. Its size depends on the closure: −0.99% (0), −0.95% (0.1), −0.81% (0.5) of GDP.
+- **Interior residuals.** The largest interior residual (2027…T−2) is in 2028 in every run: −0.07% to −0.09% of GDP. Every other interior period is below 0.0006% of GDP in the closure runs and below 0.0008% in the pre-TP run.
 - **Final period.** The last period carries OG-UK's known boundary error of −21% to −27% of GDP, which OG-UK's own `RC_TPI = 0.2` override waives (`api.py`).
 
 **7. The period-0 demographics are inconsistent, and the 2028 residual has a candidate cause.** See the section below. OG-Core's shipped pre-period mortality and immigration rates break the pre-period → 2026 population law of motion by up to 5.9% at some ages. The UK-consistent values from the same fetch satisfy it to 2.5e-16. Separately, the 2027 → 2028 transition breaks it by 0.25% under either set of pre-TP inputs. That is where OG-UK's demographic data window ends (`final_data_year = 2028`) and the projection begins, and it lines up with the 2028 resource-constraint residual. The splice is not fixed by the pre-TP patch.
