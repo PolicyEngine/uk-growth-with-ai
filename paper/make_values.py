@@ -258,6 +258,8 @@ def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
         di = (arr(r, "I") - arr(base, "I"))[:4].sum()
         v.put(f"{aw}SavingShare{cw}", ds / di, "{:.2f}")
         v.signed(f"{aw}WageGapThirty{cw}", gap(res, arm, "w")[4])
+        v.signed(f"{aw}InvestmentGapTwentyNine{cw}", gap(res, arm, "I")[3])
+        v.signed(f"{aw}InvestmentGapThirty{cw}", gap(res, arm, "I")[4])
         v.signed(f"{aw}CapitalGapThirty{cw}", gap(res, arm, "K")[4])
         v.put(f"{aw}InterestChangeBp{cw}",
               (arr(r, "r")[4] - arr(base, "r")[4]) * 1e4, "{:.0f}")  # sign checked in check_claims
@@ -417,7 +419,13 @@ def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict) -> Non
     if abs(arr(b, "Y")[4] / y_b - 1) > 1e-5:
         raise ResultsError("baseline 2030 output is not K^gamma L^(1-gamma); "
                            "the capital-gap counterfactual does not apply")
-    v.put("KorinekCapitalCounterfactualGdpPct", (y_cf / y_b - 1) * 100, "{:.1f}")
+    cf = (y_cf / y_b - 1) * 100
+    v.put("KorinekCapitalCounterfactualGdpPct", cf, "{:.1f}")
+    model = gap(central, "share_shift_tfp_ramp", "Y")[4]
+    if not (A["gdp_above_no_ai_pct"] - cf) < 0.25 * (A["gdp_above_no_ai_pct"] - model):
+        raise ResultsError("'capital supply accounts for almost all of the GDP difference "
+                           f"with Korinek et al.' no longer holds (counterfactual {cf:.2f}, "
+                           f"model {model:.2f}, theirs {A['gdp_above_no_ai_pct']})")
 
     # ---- OBR effective-rate rule of thumb (Nov 2025 EFO para 2.64) ---------
     v.put("ObrEffRateLabourPct", OBR_EFF_RATE_LABOUR, "{:.0f}")
@@ -479,6 +487,15 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
         for arm in ARMS:
             if not (gap(res, arm, "K")[4] > 0 and arr(res[arm], "r")[4] > arr(res["baseline"], "r")[4]):
                 fail.append(f"'the return to capital and capital both rise' fails for {arm} at zeta_K {cl}")
+    for arm in ARMS:
+        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4]
+        if not ty(central[arm]) < ty(central["baseline"]):
+            fail.append(f"'revenue falls as a share of GDP' fails for {arm}")
+    A = scen.ANTHROPIC_SUBSTANTIAL
+    for res, cl in ((central, "0.1"), (bound, "0")):
+        if not (gap(res, "share_shift_tfp_ramp", "Y")[4] < A["gdp_above_no_ai_pct"]
+                and gap(res, "share_shift_tfp_ramp", "K")[4] < A["capital_stock_pct"]):
+            fail.append(f"'GDP and capital rise by less than in Korinek et al.' fails at zeta_K {cl}")
     signs = {np.sign(gap(x, "share_shift_tfp_ramp", "w")[4]) for x in (central, bound, open_)}
     if len(signs) < 2:
         fail.append("'the share_shift_tfp wage sign depends on the closure' fails")
