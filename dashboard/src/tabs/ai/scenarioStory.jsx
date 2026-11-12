@@ -13,7 +13,7 @@ import {
   D, YEARS, FIRST_YEAR, LAST, LAST_YEAR, G0, G1, LS0, LS1, LS_FALL, GAMMA_ONLY_GAIN, KL0, Z_SHARE_SHIFT,
   Z_SHARE_SHIFT_TFP, Z_SHARE_SHIFT_FIXED, Z_SHARE_SHIFT_YEAR, SHARE_SHIFT_TECH, TG1, OBR, KORINEK, CIT_RATE,
   MODEL_RATIOS, ZK, CLOSURE, CL, CL_YEARS, LATE_YEAR, cgap, abroadPct, DEBT_CAL, OBR_DEBT, DEBT_MAX_SHORT,
-  DEBT_MAX_SHORT_IDX, signed, gapAt, taxGdpChangePp,
+  DEBT_MAX_SHORT_IDX, FIXED, fgap, signed, gapAt, taxGdpChangePp,
 } from '@/tabs/ai/metrics.js';
 import paths from '@/data/ukAiPaths.json';
 
@@ -76,6 +76,75 @@ const RATIO_ROWS = [
 
 function Sw({ c, dashed }) {
   return <span className={`legend-line${dashed ? ' dashed' : ''}`} style={{ borderTopColor: c }} />;
+}
+
+// Fiscal convention: the scenarios re-run with government consumption and
+// transfers held at the baseline's levels. Rendered only when the JSON carries
+// fixed_spending for both closures. The common-G/Y figures are not repeated
+// here: they live in the headline and effect tables.
+const FS_ARMS = ['share_shift_tfp_ramp', 'share_shift_ramp'];
+const FS_ROWS = [
+  ['GNI', 'National income (GNI)', '%', LAST_YEAR],
+  ['Y', 'GDP', '%', LAST_YEAR],
+  ['w', 'Wage rate', '%', LAST_YEAR],
+  ['debt_gdp_pp', 'Debt/GDP', 'pp', LAST_YEAR],
+  ['debt_gdp_pp', 'Debt/GDP', 'pp', LATE_YEAR],
+];
+// Debt/GDP gap under fixed spending below the main runs' in both scenarios,
+// both closures, in LAST_YEAR and in LATE_YEAR.
+const FS_DEBT_LOWER =
+  FIXED &&
+  ['central', 'bound'].every((c) =>
+    FS_ARMS.every((a) =>
+      [LAST_YEAR, LATE_YEAR].every((y) => fgap(c, a, 'debt_gdp_pp', y) < cgap(c, a, 'debt_gdp_pp', y)),
+    ),
+  );
+function FixedSpendingTable() {
+  if (!FIXED) return null;
+  return (
+    <div className="fs-table-wrap">
+      <table className="fs-table">
+        <thead>
+          <tr>
+            <th scope="col">Spending held at the baseline&rsquo;s levels; against the OBR-central baseline</th>
+            {FS_ARMS.map((a) => (
+              <th key={a} scope="col">
+                <Sw c={ARM_META[a].color} />
+                {ARM_META[a].label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {FS_ROWS.map(([v, label, unit, year]) => (
+            <tr key={v + year}>
+              <th scope="row">
+                {label}, {year}
+              </th>
+              {FS_ARMS.map((a) => (
+                <td key={a}>
+                  <span className="fs-value">
+                    {signed(fgap('central', a, v, year), 2)}
+                    {unit}
+                  </span>
+                  <span className="fs-bound">
+                    {a === 'share_shift_ramp' && v === 'Y' ? (
+                      <>by construction</>
+                    ) : (
+                      <>
+                        {signed(fgap('bound', a, v, year), 2)}
+                        {unit} closed capital
+                      </>
+                    )}
+                  </span>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 // One scenario: how it is built in OG-UK, and the source it is calibrated to.
@@ -356,6 +425,26 @@ export const STORY_STEPS = [
             years, and they keep moving after {LAST_YEAR} (<CaveatLink tab="growth" id="effect-debt">effect table</CaveatLink>). The gilt rate
             moves one for one with the return on capital, and the whole debt stock reprices each year. The OBR
             convention holds spending plans fixed instead.
+            {FIXED ? (
+              <>
+                {' '}
+                The table re-runs both scenarios with government consumption and transfers held at the
+                baseline&rsquo;s levels; Automation only&rsquo;s Z is solved again under this rule, so that its GDP
+                equals the baseline&rsquo;s in {Z_SHARE_SHIFT_YEAR}.
+                <FixedSpendingTable />
+                <span className="chart-note fs-table-note">
+                  Large figures: &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}. Small figures: the closed-capital bound
+                  (&zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}).
+                  {FS_DEBT_LOWER ? (
+                    <>
+                      {' '}
+                      Spending here does not rise with GDP, so each debt/GDP gap is below its value in the main runs,
+                      in {LAST_YEAR} and in {LATE_YEAR}.
+                    </>
+                  ) : null}
+                </span>
+              </>
+            ) : null}
             <span className="note-box" style={{ display: 'block' }}>
               The baseline&rsquo;s spending share is set so that its debt/GDP in {LAST_YEAR} equals the
               OBR&rsquo;s ({DEBT_CAL.target_2030_pct.toFixed(1)}%). {LAST_YEAR} is matched, not the path: the baseline

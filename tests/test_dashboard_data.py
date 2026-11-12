@@ -126,3 +126,37 @@ def test_closure_blocks_are_gaps_against_each_closures_own_baseline():
     for block in (c["central"], c["bound"]):
         assert abs(block["arms"]["share_shift_ramp"]["Y"][i]) < 0.01
     assert len(c["obr_debt_gdp"]) == len(dd.YEARS)
+
+
+def test_fixed_spending_block_holds_spending_and_carries_both_closures():
+    f = dd.fixed_spending(RESULTS)
+    assert f["central"]["zeta_K"] == 0.1 and f["bound"]["zeta_K"] == 0.0
+    for block in f.values():
+        assert block["years"][0] == 2026 and block["years"][-1] == 2035
+        i = block["years"].index(2030)
+        for arm in dd.SHOCKED:
+            a = block["arms"][arm]
+            assert set(a) == {"Y", "GNI", "w", "debt_gdp_pp"}
+            assert all(len(v) == 10 for v in a.values())
+            # the GNI gap is below the GDP gap, as in the main runs
+            assert a["GNI"][i] < a["Y"][i]
+        # share_shift is re-solved under this rule: GDP-neutral in 2030 (R4)
+        assert abs(block["arms"]["share_shift_ramp"]["Y"][i]) <= 0.01
+    # less public absorption: debt/GDP is lower than under a common G/Y, in 2030
+    # and in 2035, in both arms and both closures
+    c = dd.closures(RESULTS)
+    for name in ("central", "bound"):
+        for arm in dd.SHOCKED:
+            for y in (4, 9):
+                assert (f[name]["arms"][arm]["debt_gdp_pp"][y]
+                        < c[name]["arms"][arm]["debt_gdp_pp"][y])
+
+
+def test_fixed_spending_refuses_arms_that_do_not_hold_spending(tmp_path, monkeypatch):
+    import json as _json
+    import pytest as _pytest
+    # the common-G/Y results as a "fixed-spending" file: same baseline, G moves
+    (tmp_path / "scenarios_fixed_spending.json").write_text(_json.dumps(RESULTS))
+    monkeypatch.setattr(dd, "DATA", tmp_path)
+    with _pytest.raises(ValueError, match="does not hold G and TR"):
+        dd.fixed_spending(RESULTS)
