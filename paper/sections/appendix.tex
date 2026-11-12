@@ -7,16 +7,16 @@
 \subsection{The baseline against the OBR's March 2026 forecast}
 \label{app:obr}
 
-The no-AI baseline is not calibrated to any published OBR result; it takes calibration inputs from the \emph{Economic and fiscal outlook} and is then compared with it. Table~\ref{tab:obr} reports both the headline agreement and the component disagreement, which should be read together.
+The baseline takes its productivity growth rate from the \emph{Economic and fiscal outlook} and is then compared with it. Table~\ref{tab:obr} reports the headline agreement and the component disagreement together. Debt is not compared as a level (Section~\ref{sec:baseline}).
 
 \begin{table}[htbp]
 \centering
-\caption{The no-AI baseline against the OBR, March 2026 EFO}
+\caption{The baseline ($\zetaK = \genZetaKCentral{}$) against the OBR, March 2026 EFO}
 \label{tab:obr}
 \small
 \begin{tabular}{lrrr}
 \toprule
- & OBR & This model & Gap, pp \\
+ & OBR & This model & Gap, points \\
 \midrule
 Real GDP growth, \genBaseGrowthStartYear--\genEndYear{} mean, per cent & \genObrGrowthMean{} & \genBaseGrowthMean{} & \genBaseObrGrowthDiffPp{} \\
 \addlinespace
@@ -33,39 +33,38 @@ Baseline growth, \genEndYear{} & & \genBaseGrowthThirty{} & \\
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} OBR figures from the March 2026 EFO, paragraphs 1.2, 1.9 and 2.10. \textsuperscript{a}~The model series is the growth rate of the population aged 21--100, which is not the same object as the OBR's labour-supply growth: ageing lowers participation and hours within a given population, which in the model appears as falling labour input per person. \textsuperscript{b}~The model series is the balanced-growth rate $e^{g_y}(1+g_n)-1$, which is not the same object as potential output growth. The model runs above the OBR on both components, and realised GDP growth agrees only because transition dynamics pull it back; the headline agreement is therefore not by itself a validation. Generated from \texttt{results/scenarios.json} and \texttt{uk\_growth\_with\_ai/obr.py}.
+\footnotesize \emph{Notes:} OBR figures from the March 2026 EFO, paragraphs 1.2, 1.9 and 2.10. \textsuperscript{a}~The model series is the growth rate of the population aged 21--100, not the OBR's labour-supply growth, which also reflects participation and hours. \textsuperscript{b}~The model series is the balanced-growth rate $e^{g_y}(1+g_n)-1$, not potential output growth. The model runs above the OBR on both components, and realised growth agrees only because transition dynamics pull it back, so the headline agreement is not by itself a validation. Source: \texttt{\genCentralSource{}} and \texttt{uk\_growth\_with\_ai/obr.py}.
 \end{minipage}
 \end{table}
 
-\subsection{Scenario calibration in full}
+\subsection{Scenario calibration}
 \label{app:calibration}
 
 \begin{table}[htbp]
 \centering
-\caption{Calibration of the baseline and the two AI scenarios}
+\caption{Calibration of the baseline and the two scenarios, central closure}
 \label{tab:calibration}
 \small
 \begin{tabular}{lrrr}
 \toprule
- & No AI & Automation only & Automation and productivity \\
+ & Baseline & \ShareShift{} & \ShareShiftTfp{} \\
 \midrule
 Elasticity of substitution $\varepsilon$ & \genEpsilon{} & \genEpsilon{} & \genEpsilon{} \\
 Capital exponent $\gamma$, \genStartYear{} & \genGammaBase{} & \genGammaBase{} & \genGammaBase{} \\
 Capital exponent $\gamma$, \genEndYear{} & \genGammaBase{} & \genGammaShocked{} & \genGammaShocked{} \\
 Shape of the $\gamma$ path & flat & \genShareShiftGammaShape{} & \genShareShiftTfpGammaShape{} \\
-Labour share, \genStartYear{}, per cent & \genLabourShareBase{} & \genLabourShareBase{} & \genLabourShareBase{} \\
 Labour share, \genEndYear{}, per cent & \genLabourShareBase{} & \genLabourShareShocked{} & \genLabourShareShocked{} \\
 Solved terminal $Z$ & 1 & \genZShareShift{} & \genZShareShiftTfp{} \\
-Target: output at fixed inputs, per cent & --- & \genGdpLevelTargetPct{} & \genTfpGainPct{} \\
-$\gamma$-only output change, per cent & --- & \genGammaOnlyGainPct{} & \genGammaOnlyGainPct{} \\
+$\gamma$-only output change at \genStartYear{} inputs, per cent & --- & \genGammaOnlyGainPct{} & \genGammaOnlyGainPct{} \\
 $g_y$ annual, per cent & \genGyAnnualPct{} & \genGyAnnualPct{} & \genGyAnnualPct{} \\
 Government spending share $\alpha_G$ & \genAlphaG{} & \genAlphaG{} & \genAlphaG{} \\
 Fiscal-rule switch $t_{G1}$ & \genTGone{} & \genTGone{} & \genTGone{} \\
+$\zetaK$, $\zeta_D$, world rate & \multicolumn{3}{c}{\genZetaKCentral{}, \genZetaD{}, \genWorldRatePct{} per cent} \\
 \bottomrule
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} the $\gamma$ and $Z$ paths phase in linearly over \genRampYears{} years from \genStartYear{} to \genEndYear{} and are held thereafter. $Z$ is solved jointly with $\gamma$ against the target in the penultimate row; see equation~\eqref{eq:zsolve}. The solved $Z$ levels lie below~1 because they offset the $\gamma$-only output change, and carry no economic meaning on their own. Generated from \texttt{results/scenarios.json} and \texttt{uk\_growth\_with\_ai/scenarios.py}.
+\footnotesize \emph{Notes:} $\gamma$ and $Z$ move linearly from \genStartYear{} to \genEndYear{} and are held after that. Section~\ref{sec:calibration} gives the target $Z$ is solved against in each arm. Source: \texttt{\genCentralSource{}} and \texttt{uk\_growth\_with\_ai/scenarios.py}.
 \end{minipage}
 \end{table}
 
@@ -76,12 +75,12 @@ OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} was set to \genEnforceChecks{}, so 
 
 \begin{table}[htbp]
 \centering
-\caption{Solution diagnostics by arm, shared-spending-share run}
+\caption{Solution diagnostics by arm, central closure}
 \label{tab:diagnostics}
 \small
 \begin{tabular}{lrrr}
 \toprule
- & No AI & Automation only & Automation and productivity \\
+ & Baseline & \ShareShift{} & \ShareShiftTfp{} \\
 \midrule
 Max resource-constraint error, after \genStartYear{} & \genBaseRcMaxInterior{} & \genShareShiftRcMaxInterior{} & \genShareShiftTfpRcMaxInterior{} \\
 \genStartYear{} resource-constraint error, per cent of GDP & \genBaseRcTwentySixPctGdp{} & \genShareShiftRcTwentySixPctGdp{} & \genShareShiftTfpRcTwentySixPctGdp{} \\
@@ -91,9 +90,58 @@ Solve time, minutes & \genBaseElapsedMin{} & \genShareShiftElapsedMin{} & \genSh
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} the \genStartYear{} resource-constraint error is an order of magnitude larger than the interior errors and is carried by \genStartYear{} levels and ratios; gaps against the baseline largely net it out, since every arm carries an error of the same order. Investment is the residual in the resource constraint and absorbs this error. Generated from \texttt{results/scenarios.json}.
+\footnotesize \emph{Notes:} \genIfRerun{}{the \genStartYear{} error comes from OG-Core's default pre-\genStartYear{} demographic inputs (Section~\ref{sec:solution}). It is the same in every arm to within 0.006 per cent of GDP, so it cancels from the gaps.} Investment follows from the capital law of motion in every arm; it is not a residual. Source: \texttt{\genCentralSource{}}.
 \end{minipage}
 \end{table}
+
+\subsection{Government spending held at baseline levels}
+\label{app:fixed}
+
+Table~\ref{tab:fixed} reports the scenarios with government spending and transfers held at their baseline levels, the convention the OBR uses when scoring a scenario against a central forecast. These runs use the pre-rerun baseline at $\zetaK = \genZetaKCentral{}$ and are compared with the shared-share runs on the same baseline.\genIfRerun{ They have not been repeated on the corrected baseline.}{}
+
+\begin{table}[htbp]
+\centering
+\caption{\genEndYear{} gaps with spending and transfers held at baseline levels, pre-rerun baseline, per cent}
+\label{tab:fixed}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{\ShareShiftTfp{}} & \multicolumn{2}{c}{\ShareShift{}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & Shared share & Fixed spending & Shared share & Fixed spending \\
+\midrule
+GDP          & \genPreRerunShareShiftTfpGdpGapThirty{} & \genFixShareShiftTfpGdpGapThirty{} & \genPreRerunShareShiftGdpGapThirty{} & \genFixShareShiftGdpGapThirty{} \\
+Capital      & \genPreRerunShareShiftTfpCapitalGapThirty{} & \genFixShareShiftTfpCapitalGapThirty{} & \genPreRerunShareShiftCapitalGapThirty{} & \genFixShareShiftCapitalGapThirty{} \\
+Real wage    & \genPreRerunShareShiftTfpWageGapThirty{} & \genFixShareShiftTfpWageGapThirty{} & \genPreRerunShareShiftWageGapThirty{} & \genFixShareShiftWageGapThirty{} \\
+Consumption  & \genPreRerunShareShiftTfpConsumptionGapThirty{} & \genFixShareShiftTfpConsumptionGapThirty{} & \genPreRerunShareShiftConsumptionGapThirty{} & \genFixShareShiftConsumptionGapThirty{} \\
+Tax revenue  & \genPreRerunShareShiftTfpRevenueGapThirty{} & \genFixShareShiftTfpRevenueGapThirty{} & \genPreRerunShareShiftRevenueGapThirty{} & \genFixShareShiftRevenueGapThirty{} \\
+Debt         & \genPreRerunShareShiftTfpDebtGapThirty{} & \genFixShareShiftTfpDebtGapThirty{} & \genPreRerunShareShiftDebtGapThirty{} & \genFixShareShiftDebtGapThirty{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} GDP gaps, not GNI: the fixed-spending file does not export foreign positions. Source: \texttt{uk\_growth\_with\_ai/data/scenarios.json} and \texttt{scenarios\_fixed\_spending.json}.
+\end{minipage}
+\end{table}
+
+\subsection{A time-varying capital exponent for OG-Core}
+\label{app:patch}
+
+Stock OG-Core indexes the capital exponent by industry only, as \texttt{p.gamma[m]}, at about \genPatchSites{} sites in \texttt{ogcore/firm.py}. Automation can therefore step to a new level in the first period but cannot phase in. The scenarios used here phase in over \genStartYear--\genEndYear{}, following \citet{korinek2026}, and \citet{mollimas2026} raise the exponent over two decades. Neither can be run without a time dimension.
+
+The patch (\texttt{patches/ogcore-0.17.0-firm-gamma-tv.diff}, against OG-Core \genOgcoreVersion{}) adds one in a backward-compatible way. A helper indexes a production parameter that may carry either shape, following the convention $Z$ already uses: the last row in the steady state, the first $T$ rows along the transition.
+\begin{verbatim}
+def _tv(x, p, method, m=None):
+    x = np.asarray(x)
+    if x.ndim <= 1:                 # (M,) -- time-invariant, legacy
+        return x[m] if m is not None else x
+    if method == "SS":              # (T, M) -- time-varying
+        return x[-1, m] if m is not None else x[-1]
+    return x[: p.T, m] if m is not None else x[: p.T]
+\end{verbatim}
+Every \texttt{p.gamma[m]}, \texttt{p.gamma\_g[m]} and bare \texttt{p.gamma} is replaced by \texttt{\_tv(p.gamma, p, method, m)}. A one-dimensional parameter is returned exactly as before, so existing calibrations are bit-identical. \texttt{get\_MPx} also needs the share in column shape along the transition, or a $(T,)$ share forms a $(T,T)$ outer product.
+
+As a regression check, the single-sector scenario with a one-dimensional exponent reproduces the unpatched run exactly. As a capability check, an exponent ramping from \genGammaBase{} to \genGammaShocked{} solves and produces a labour-share path rather than a step. The runner refuses to start against an unpatched \texttt{ogcore.firm}. The patch is not upstream.
 
 \subsection{Mapping the AI channels across models}
 \label{app:channels}
@@ -107,40 +155,35 @@ Solve time, minutes & \genBaseElapsedMin{} & \genShareShiftElapsedMin{} & \genSh
 \toprule
 Channel & \citet{korinek2026} & \citet{mollimas2026} & This model \\
 \midrule
-Automation & Automation share held constant; affected task mass ramps & Capital exponent $1/3 \to 1$ & $\gamma$, now able to ramp (Section~\ref{sec:patch}) \\
+Automation & Automation share; affected task mass ramps & Capital exponent $1/3 \to 1$ & $\gamma$, phased in (Appendix~\ref{app:patch}) \\
 Augmentation & The non-automated share & None & Absorbed into $Z$ \\
 Adoption and diffusion & Explicit adoption parameter & --- & None \\
 Task reinstatement & Explicit reinstatement parameter & --- & None \\
 Unemployment and search & Matching block & --- & None \\
-Capital accumulation & Capital-supply elasticity & Solow saving rate & Endogenous cohort saving \\
+Capital accumulation & Capital-supply elasticity & Solow saving rate & Cohort saving plus foreign capital ($\zetaK$) \\
 Factor shares & Endogenous & $\to 0$ in the limit & Exactly $1-\gamma_t$ at $\varepsilon = \genEpsilon{}$ \\
 Worker heterogeneity & Two groups & Representative agent & Seven earnings types, eighty ages \\
 Fiscal system & None & None & Tax functions from PolicyEngine UK \\
-Cohorts & None & None & Eighty annual cohorts \\
 Ideas and R\&D & Ideas stock & Ideas accumulation & None \\
-Elasticity of substitution & 0.5 assumed & Argues $\approx 0.2$ & \genEpsilon{} \\
 \bottomrule
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} six AI channels in \citet{korinek2026} collapse into two here. $Z$ absorbs capability, adoption and productivity together, because the model has no tasks to count separately, and $\gamma$ carries automation. Reinstatement and search have no counterpart.
+\footnotesize \emph{Notes:} $Z$ absorbs capability, adoption and productivity together, because the model has no tasks to count separately, and $\gamma$ carries automation. Reinstatement and search have no counterpart.
 \end{minipage}
 \end{table}
 
 \subsection{Reproduction}
 \label{app:reproduction}
 
-Runs used OG-Core \genOgcoreVersion{} with \texttt{patches/ogcore-0.17.0-firm-gamma-tv.diff} applied to the installed package, OG-UK at commit \genOgukSha{}, PolicyEngine \genPolicyengineVersion{}, PolicyEngine UK \genPolicyengineUkVersion{} and Python \genPythonVersion{}; the committed results were produced on \genRunDate{}. OG-UK's calibration reads PolicyEngine's UK data from Hugging Face, so a re-run requires a token. From the repository root:
+Runs used OG-Core \genOgcoreVersion{} with the patch above, OG-UK at commit \genOgukSha{}, PolicyEngine \genPolicyengineVersion{}, PolicyEngine UK \genPolicyengineUkVersion{} and Python \genPythonVersion{}. The central results were produced on \genRunDate{}. OG-UK reads PolicyEngine's UK data from Hugging Face, so a re-run needs a token. The paper reads only committed files. From the repository root:
 
 \begin{verbatim}
-python -m uk_growth_with_ai run --baseline-only --out results/baseline.json
-python -m uk_growth_with_ai check --results results/baseline.json
-python -m uk_growth_with_ai run --out results/scenarios.json
-python -m uk_growth_with_ai run --baseline-spending \
-       --out results/scenarios_fixed_spending.json
-python -m uk_growth_with_ai check --results results/scenarios.json
-python paper/make_values.py          # regenerates paper/values_generated.tex
-pdflatex main && pdflatex main       # in paper/
+python paper/make_values.py --check     # values_generated.tex is current
+python paper/make_values.py \
+    --central uk_growth_with_ai/data/scenarios_zk0.1.json \
+    --bound   uk_growth_with_ai/data/scenarios_zk0.json   # after the reruns
+cd paper && tectonic main.tex           # or: pdflatex main && pdflatex main
 \end{verbatim}
 
-Every number in this paper is a macro in \texttt{paper/values\_generated.tex}, generated by \texttt{paper/make\_values.py} from the committed results files and from the published OBR and Table~3 figures recorded in \texttt{uk\_growth\_with\_ai/obr.py} and \texttt{uk\_growth\_with\_ai/scenarios.py}. \texttt{python paper/make\_values.py --check} exits non-zero if the generated file is stale, and \texttt{\textbackslash GENMISSING} marks any macro whose source was absent at generation time, which makes the LaTeX build fail rather than silently omitting a number.
+Every number is a macro in \texttt{paper/values\_generated.tex}. \texttt{make\_values.py} stops with an error if a results file or arm is missing, if a file is solved at the wrong $\zetaK$, or if a sentence that the paper states in words (for example, that GNI rises by less than GDP) no longer holds in the results. This draft reads \texttt{\genCentralSource{}} and \texttt{\genBoundSource{}}.

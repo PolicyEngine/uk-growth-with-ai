@@ -473,8 +473,17 @@ def check_claims(central: dict, bound: dict, open_: dict) -> None:
     stop and make someone rewrite the sentence rather than publish it false."""
     fail = []
     for arm in ARMS:
-        if not gni_gap(central, arm)[4] < gap(central, arm, "Y")[4]:
-            fail.append(f"'GNI gap < GDP gap at zeta_K 0.1' fails for {arm}")
+        for res, cl in ((central, "0.1"), (bound, "0")):
+            if not gni_gap(res, arm)[4] < gap(res, arm, "Y")[4]:
+                fail.append(f"'GNI gap < GDP gap' fails for {arm} at zeta_K {cl}")
+        if not (abs(gni_gap(central, arm)[4] - gni_gap(bound, arm)[4])
+                < abs(gap(central, arm, "Y")[4] - gap(bound, arm, "Y")[4])):
+            fail.append(f"'GNI moves less with the closure than GDP' fails for {arm}")
+        rule = (OBR_EFF_RATE_LABOUR - OBR_EFF_RATE_PROFITS) / 100 * (
+            central["assumptions"]["gamma_shocked"] - central["assumptions"]["gamma_base"]) * 100
+        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
+        if not abs(ty(central[arm]) - ty(central["baseline"])) < rule:
+            fail.append(f"'tax functions give smaller falls than the rule of thumb' fails for {arm}")
         b, r = central["baseline"], central[arm]
         dk = arr(r, "K")[4] - arr(b, "K")[4]
         share = (arr(r, "K_f")[4] - arr(b, "K_f")[4]) / dk * 100

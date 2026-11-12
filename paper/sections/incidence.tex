@@ -1,0 +1,16 @@
+\section{Incidence across cohorts}
+\label{sec:incidence}
+
+The aggregate results hide who gains and who loses. The model has eighty annual cohorts and seven lifetime-earnings types, so the same runs give incidence by birth cohort and by type. Representative-agent and two-group AI models cannot report this.
+
+\paragraph{Measure.} For each birth cohort $b$ and lifetime-earnings type $j$, the welfare change is the consumption-equivalent variation $\lambda_{b,j}$: the constant percentage change in consumption in every remaining period of life under the baseline that gives the household the same remaining lifetime utility as the scenario. Cohorts alive in \genStartYear{} are measured over their remaining lifetimes and later cohorts over their whole lives. Each closure is measured against its own baseline.
+
+\paragraph{Channels.} Three channels determine the sign and size of $\lambda_{b,j}$.
+\begin{itemize}
+\item \emph{Wages.} A change in the wage matters most for cohorts with most of their working lives ahead, and for types whose earnings are large relative to their wealth.
+\item \emph{Returns.} A higher return on capital raises the income of cohorts that hold assets, which are mostly older cohorts. Under the central closure part of the extra capital income goes abroad instead (Section~\ref{sec:results-capital}).
+\item \emph{Fiscal.} Revenue and transfers change with the tax base (Section~\ref{sec:results-fiscal}).
+\end{itemize}
+Because the wage effect in \ShareShiftTfp{} changes sign across closures, the age pattern of incidence in that scenario may also change with the closure. Both closures are reported.
+
+\paragraph{Results.} \pending{cohort-by-type consumption-equivalent variation for both arms at $\zetaK = \genZetaKCentral{}$ and $\zetaK = \genZetaKBound{}$. No committed results file holds by-cohort paths; the R1--R4 rerun exports aggregates only, so this needs a cohort export from those solves.} Results are to be reported by birth cohort and lifetime-earnings type, from the lowest to the highest type. The \genStartYear{} response of cohorts alive at the announcement is anticipation under perfect foresight and will be labelled as such.
