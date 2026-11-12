@@ -7,9 +7,8 @@ import ChartCard from '@/components/ab/ChartCard.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
-import { ArmToggles } from '@/tabs/ai/Headline.jsx';
 import {
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, CENTRAL, ARMS, ARM_COLOR, ARM_LIGHT, result, signed,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, result, gap, signed,
 } from '@/tabs/ai/surprise.js';
 
 // Public finances, the last section of Results: debt/GDP to the debt rule's
@@ -20,25 +19,44 @@ import {
 const LONG_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= LATE_YEAR);
 const SHORT_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= HEADLINE_YEAR);
 
-function seriesFor(sid, v, years, hidden) {
-  return ARMS.filter((a) => !hidden[a.id]).flatMap((a) => {
-    const r = result(sid, a.id, CENTRAL);
-    if (r.status !== 'done') return [];
-    return [{
-      key: a.id,
-      label: a.short || a.label,
-      closure: 'central closure',
-      color: ARM_COLOR[a.id],
-      light: ARM_LIGHT[a.id],
-      values: years.map((y) => r.gaps[v][YEARS.indexOf(y)]),
-    }];
-  });
+const closuresFor = (closure) => (closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL]);
+
+function seriesFor(sid, v, years, hidden, closure) {
+  return ARMS.filter((a) => !hidden[a.id]).flatMap((a) =>
+    closuresFor(closure).flatMap((cl) => {
+      const r = result(sid, a.id, cl);
+      if (r.status !== 'done') return [];
+      const bound = cl === BOUND;
+      return [{
+        key: `${a.id}-${bound ? 'b' : 'c'}`,
+        label: a.short || a.label,
+        closure: bound ? 'closed capital' : 'central closure',
+        color: ARM_COLOR[a.id],
+        light: ARM_LIGHT[a.id],
+        dashed: bound && closure === 'both',
+        noEndLabel: bound && closure === 'both',
+        values: years.map((y) => r.gaps[v][YEARS.indexOf(y)]),
+      }];
+    }),
+  );
 }
 
-function FiscalCard({ sid, hidden, v, years, title, icon, summary, about, markers, bands }) {
-  const series = seriesFor(sid, v, years, hidden);
+function FiscalCard({ sid, hidden, closure, v, years, title, icon, summary, about, markers, bands }) {
+  const series = seriesFor(sid, v, years, hidden, closure);
+  const pend = closure === 'central' ? [] : ARMS.filter((a) => !hidden[a.id] && result(sid, a.id, BOUND).status !== 'done').map((a) => a.short || a.label);
+  const empty = ARMS.every((a) => hidden[a.id])
+    ? 'Every series is hidden: choose one in the legend above.'
+    : closure === 'closed'
+      ? 'Closed-capital results pending for this scenario.'
+      : 'No solve for this scenario yet.';
   return (
     <ChartCard icon={icon} title={title} summary={summary} unit="Percentage points of GDP, difference from the no-AI path" about={about}>
+      {series.length && pend.length ? (
+        <p className="pending-note">
+          <Icon name="lock" size={13} />
+          <span>Closed-capital results pending: {pend.join(', ')}.</span>
+        </p>
+      ) : null}
       {series.length ? (
         <LineChart
           x={years}
@@ -51,120 +69,138 @@ function FiscalCard({ sid, hidden, v, years, title, icon, summary, about, marker
           bands={bands}
           tipTitle={title.split(',')[0]}
           valueFormat={(x) => signed(x, 2)}
-          ariaLabel={`${title}, central closure, against the no-AI path`}
+          ariaLabel={`${title} against the no-AI path`}
         />
       ) : (
-        <Unpublished>No solve for this scenario yet.</Unpublished>
+        <Unpublished>{empty}</Unpublished>
       )}
     </ChartCard>
   );
 }
 
-// Two bars on one scale: OG-UK's value against the UK's (a value or a range).
-function BarPair({ max, unit, ours, theirs, what }) {
-  const pct = (x) => `${((x / max) * 100).toFixed(2)}%`;
-  const tip = (who, text, note) => (
-    <>
-      <b>{what}</b>
-      <span>{who}</span>
-      <span className="tip-value">{text}</span>
-      {note ? <span className="tip-sub">{note}</span> : null}
-    </>
-  );
+// The OBR's labour-minus-capital effective-rate gap, pp: FRS July 2026 Box
+// 4.1 (46% - 27% = 19pp) and EFO Nov 2025 para 2.64 (40% - 17% = 23pp). Each
+// pp of income moved from labour to capital lowers revenue by about this many
+// hundredths of a pp of GDP (docs/red_flags_1_3.md).
+const OBR_PER_PP = [0.19, 0.23];
+
+function Cause({ icon, title, axis, ours, theirs, effect, up }) {
+  const pct = (x) => `${((x / axis.max) * 100).toFixed(2)}%`;
+  // A label near either end of the axis is anchored inwards
+  const edge = (x) => (x / axis.max > 0.8 ? ' at-end' : x / axis.max < 0.2 ? ' at-start' : '');
   return (
-    <div className="bar-pair">
-      <div className="bar-pair-scale" aria-hidden="true" data-axis="">
-        <span>0</span>
-        <span>
-          {max}
-          {unit === 'percentage points' ? 'pp' : '%'}
-        </span>
-      </div>
-      <div className="bar-pair-row">
-        <span className="bar-pair-name">OG-UK</span>
-        <TipTarget className="bar-pair-track" label={`${what}, OG-UK: ${ours.text}`} tip={tip('OG-UK', ours.text, ours.note)}>
-          <span className="bar-pair-bar is-ours" style={{ width: pct(ours.value) }} />
-        </TipTarget>
-        <span className="bar-pair-value">{ours.text}</span>
-      </div>
-      <div className="bar-pair-row">
-        <span className="bar-pair-name">{theirs.name}</span>
-        <TipTarget className="bar-pair-track" label={`${what}, ${theirs.name}: ${theirs.text}`} tip={tip(theirs.name, theirs.text, theirs.note)}>
+    <div className="cause-row">
+      <div className="cause-main">
+        <div className="taxgap-label">
+          <Icon name={icon} size={16} />
+          <span>{title}</span>
+        </div>
+        <div className="cause-axis">
+          <span className="cause-track" aria-hidden="true" />
           {theirs.lo != null ? (
-            <>
-              <span className="bar-pair-bar is-theirs" style={{ width: pct(theirs.lo) }} />
-              <span className="bar-pair-range" style={{ left: pct(theirs.lo), width: pct(theirs.hi - theirs.lo) }} />
-            </>
+            <TipTarget className="cause-range" style={{ left: pct(theirs.lo), width: pct(theirs.hi - theirs.lo) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
+              <span className={`cause-mark-label is-below${edge((theirs.lo + theirs.hi) / 2)}`}>{theirs.name} {theirs.text}</span>
+            </TipTarget>
           ) : (
-            <span className="bar-pair-bar is-theirs" style={{ width: pct(theirs.value) }} />
+            <TipTarget className="cause-mark is-theirs" style={{ left: pct(theirs.value) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
+              <span className={`cause-mark-label is-below${edge(theirs.value)}`}>{theirs.name} {theirs.text}</span>
+            </TipTarget>
           )}
-        </TipTarget>
-        <span className="bar-pair-value">{theirs.text}</span>
+          <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`OG-UK: ${ours.text}`} tip={<><b>OG-UK</b><span className="tip-value">{ours.text}</span></>}>
+            <span className={`cause-mark-label${edge(ours.value)}`}>OG-UK {ours.text}</span>
+          </TipTarget>
+          <span className="cause-ticks" aria-hidden="true" data-axis="">
+            <span>0</span>
+            <span>{axis.label}</span>
+          </span>
+        </div>
       </div>
-      <span className="visually-hidden">{unit}</span>
+      <p className={`effect-chip${up ? ' is-main' : ''}`}>
+        <Icon name={up ? 'arrowUp' : 'arrowDown'} size={14} />
+        <span>{effect}</span>
+      </p>
     </div>
   );
 }
 
-function TaxGapCard() {
+function TaxGapCard({ sid }) {
+  const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp');
+  const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp');
+  const fall = ls == null ? null : -ls;
+  const uk = fall == null ? null : OBR_PER_PP.map((k) => -fall * k);
   return (
     <div className="chart-card taxgap-card" id="tax-gap">
       <div className="chart-header">
         <h3>
           <Icon name="alert" size={16} />
-          <span>Why the tax and debt figures are too small</span>
+          <span>Our tax and debt effects are likely understated</span>
         </h3>
       </div>
       <p className="chart-description">
-        When income shifts from wages to profits, revenue in the model falls less than it would in the UK, so the debt
-        rise is understated.
+        OG-UK taxes wages and profits too similarly, so revenue falls too little when income shifts to profits.
       </p>
-      <div className="taxgap-rows">
-        <div className="taxgap-row">
-          <div className="taxgap-label">
-            <Icon name="scale" size={16} />
-            <span>Tax-rate gap between labour and capital income</span>
-          </div>
-          <BarPair
-            what="Labour minus capital effective tax rate"
-            max={25}
-            unit="percentage points"
-            ours={{ value: 14, text: 'about 14pp', note: 'one income-tax schedule for both' }}
-            theirs={{ name: 'OBR', lo: 19, hi: 23, text: '19–23pp', note: 'range across two OBR estimates' }}
-          />
-          <p className="taxgap-dir">
-            <Icon name="arrowDown" size={14} className="dir-icon" />
-            <span>A smaller gap means revenue falls too little as the labour share falls, so debt is understated.</span>
-          </p>
+      <div className="bias-pair">
+        <div className="bias-fig">
+          <span className="bias-label">Tax/GDP in {HEADLINE_YEAR}: model</span>
+          <span className="bias-value">{model == null ? 'pending' : `${signed(model, 2)}pp`}</span>
         </div>
-        <div className="taxgap-row">
-          <div className="taxgap-label">
-            <Icon name="receipt" size={16} />
-            <span>Employer National Insurance</span>
-          </div>
-          <BarPair
-            what="Employer National Insurance, % of labour cost"
-            max={16}
-            unit="per cent"
-            ours={{ value: 15, text: '15% flat', note: 'tau_payroll on all labour income' }}
-            theirs={{ name: 'PolicyEngine-UK', value: 11, text: 'about 11% average', note: '13.9% at the margin, 2028' }}
-          />
-          <p className="taxgap-dir">
-            <Icon name="arrowUp" size={14} className="dir-icon" />
-            <span>
-              The flat 15% taxes labour more than the UK average does, which works the other way: it widens OG-UK&rsquo;s
-              gap and so partly offsets the bias above. At the measured rate the gap would be narrower still.
-            </span>
-          </p>
+        <Icon name="arrowRight" size={18} className="bias-arrow" />
+        <div className="bias-fig">
+          <span className="bias-label">With UK tax rates, about</span>
+          <span className="bias-value">{uk == null ? 'pending' : `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
         </div>
       </div>
-      <Disclosure inCard title="Sources" preview="docs/red_flags_1_3.md · analysis/nics">
+      <p className="bias-caveat">Rough scaling, not a model run. Automation + productivity, central closure.</p>
+      <Disclosure inCard title="How the scaling works" preview="Labour-share fall × the OBR’s revenue loss per point">
         <p className="disclosure-text">
-          OG-UK taxes labour and capital income through one income-tax schedule (employee NICs inside it) and employer
-          NICs as a flat 15% payroll tax. The OBR&rsquo;s labour–capital gap of 19–23pp and the OG-UK gap of about
-          14pp are from <code>docs/red_flags_1_3.md</code>; the PolicyEngine-UK employer NICs rate (about 11% of
-          labour cost on average, 13.9% at the margin, 2028) is from <code>analysis/nics/nics_2028.json</code>.
+          {fall == null ? (
+            'The labour-share fall for this scenario is pending.'
+          ) : (
+            <>
+              In this scenario the labour share falls by {fall.toFixed(1)} points by {HEADLINE_YEAR}. The OBR&rsquo;s tax rates lose
+              0.19 to 0.23 points of revenue per point moved from labour to capital. Multiplying gives the range above.
+              {model != null ? ` The model loses about ${Math.abs(model / fall).toFixed(2)} per point, including every other effect of AI.` : ''}
+            </>
+          )}
         </p>
+      </Disclosure>
+      <div className="cause-rows">
+        <Cause
+          icon="scale"
+          title="Labour vs capital tax-rate gap"
+          axis={{ max: 25, label: '25pp' }}
+          ours={{ value: 14, text: 'about 14pp' }}
+          theirs={{ name: 'OBR', lo: 19, hi: 23, text: '19–23pp' }}
+          up
+          effect="Understates the revenue fall (main effect)"
+        />
+        <Cause
+          icon="receipt"
+          title="Employer National Insurance"
+          axis={{ max: 16, label: '16% of labour cost' }}
+          ours={{ value: 15, text: '15% flat' }}
+          theirs={{ name: 'PolicyEngine-UK', value: 11, text: 'about 11%' }}
+          effect="Partly offsets the first row (smaller)"
+        />
+      </div>
+      <p className="net-line">
+        <Icon name="scale" size={16} />
+        <span>
+          <b>Net:</b> revenue losses and the rise in debt are probably larger than shown.
+        </span>
+      </p>
+      <Disclosure inCard title="Sources" preview="OBR FRS 2026 Box 4.1 · EFO Nov 2025 ¶2.64 · analysis/nics · red_flags_1_3.md">
+        <ul className="disclosure-text">
+          <li>OBR Fiscal risks and sustainability, July 2026, Box 4.1: labour 46%, capital 27%.</li>
+          <li>OBR Economic and fiscal outlook, November 2025, ¶2.64: labour 40%, capital 17%.</li>
+          <li>
+            OG-UK&rsquo;s gap of about 14pp and the direction of each bias: <code>docs/red_flags_1_3.md</code>.
+          </li>
+          <li>
+            PolicyEngine-UK employer NICs, 2028 (about 11% of labour cost on average, 13.9% at the margin):{' '}
+            <code>analysis/nics/nics_2028.json</code>.
+          </li>
+        </ul>
       </Disclosure>
     </div>
   );
@@ -208,43 +244,47 @@ function SpendingRuleCard() {
   );
 }
 
-export default function FinancesSection({ sid, hidden, onToggle }) {
+export default function FinancesSection({ sid, hidden, legendBar, closure }) {
+  const cl = closure === 'closed' ? 'closed capital' : closure === 'both' ? 'both closures' : 'central closure';
   return (
     <>
       <SectionHeading id="public-finances" icon="landmark" title="Public finances">
-        Debt and tax as shares of GDP under the central closure, then why both are too small, then the spending rule.
+        Debt and tax as shares of GDP, {cl}.
       </SectionHeading>
-      <ArmToggles hidden={hidden} onToggle={onToggle} />
+      {legendBar}
       <div className="charts-grid">
         <FiscalCard
           sid={sid}
           hidden={hidden}
+          closure={closure}
           v="debt_gdp_pp"
           years={LONG_YEARS}
           title={`Debt/GDP, ${FIRST_YEAR}–${LATE_YEAR}`}
           icon="landmark"
-          summary={`End labels give ${LATE_YEAR}; hover or focus for ${HEADLINE_YEAR} and every other year. Government consumption follows GDP until the debt rule starts in ${LATE_YEAR}, so debt/GDP keeps moving after ${HEADLINE_YEAR}.`}
-          markers={[{ year: LATE_YEAR, label: 'debt rule starts' }]}
+          summary={`End labels give ${LATE_YEAR}; hover or focus for every other year. Government consumption follows GDP until the debt rule starts.`}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
           bands={[{ year: HEADLINE_YEAR }]}
-          about={{ shows: `Public debt as a share of GDP against the path without AI, central closure. The shaded year is ${HEADLINE_YEAR}, the headline year.` }}
+          about={{ shows: `Public debt as a share of GDP against the path without AI. The shaded year is ${HEADLINE_YEAR}, the headline year.` }}
         />
         <FiscalCard
           sid={sid}
           hidden={hidden}
+          closure={closure}
           v="tax_gdp_pp"
           years={SHORT_YEARS}
           title={`Tax/GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
           icon="receipt"
           summary={`End labels give ${HEADLINE_YEAR}; hover or focus for each year.`}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }]}
           bands={[{ year: HEADLINE_YEAR }]}
           about={{
-            shows: 'Tax revenue as a share of GDP against the path without AI, central closure.',
-            caveats: 'Too small a fall: see “Why the tax and debt figures are too small”, below.',
+            shows: 'Tax revenue as a share of GDP against the path without AI.',
+            caveats: 'The fall is too small: see the next card.',
           }}
         />
       </div>
       <div className="charts-stack stack-gap">
-        <TaxGapCard />
+        <TaxGapCard sid={sid} />
       </div>
       <div className="charts-stack stack-gap">
         <SpendingRuleCard />

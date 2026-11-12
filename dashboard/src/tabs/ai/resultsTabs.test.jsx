@@ -97,7 +97,7 @@ describe('tooltips', () => {
     fireEvent.blur(dot);
     unmount();
     render(<ResultsTab sid="uk_central" sub="finances" onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
-    const bar = screen.getByLabelText(/Labour minus capital effective tax rate, OBR/);
+    const bar = screen.getByLabelText(/^OBR: 19–23pp/);
     fireEvent.focus(bar);
     tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('OBR');

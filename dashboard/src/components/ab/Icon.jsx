@@ -90,6 +90,7 @@ const ICONS = {
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </>
   ),
+  arrowRight: <path d="M5 12h14M12 5l7 7-7 7" />,
   arrowUp: <path d="M12 19V5M5 12l7-7 7 7" />,
   arrowDown: <path d="M12 5v14M19 12l-7 7-7-7" />,
   minus: <path d="M5 12h14" />,

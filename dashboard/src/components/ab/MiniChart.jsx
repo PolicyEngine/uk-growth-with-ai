@@ -21,7 +21,7 @@ export function niceDomain(values) {
   return [lo - span * 0.08, hi + span * 0.08];
 }
 
-export default function MiniChart({ title, icon, years, lines, domain, unit, fmt, closure = 'central closure', endFmt }) {
+export default function MiniChart({ title, icon, years, lines, domain, unit, fmt, closure = 'central closure', endFmt, marker = null, note = null, subtitle = null, emptyText = 'No solve for this scenario yet.' }) {
   const [hi, setHi] = useState(null);
   const box = useRef(null);
   useOutside(box, hi != null, () => setHi(null));
@@ -35,6 +35,7 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
   };
   // End labels: stacked so none overlap
   const ends = lines
+    .filter((l) => !l.noEndLabel)
     .map((l) => ({ ...l, end: l.values[l.values.length - 1], y: yPct(l.values[l.values.length - 1]) }))
     .sort((a, b) => a.y - b.y);
   const gapPct = LABEL_GAP * 1.6;
@@ -52,6 +53,7 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
         <Icon name={icon} size={16} />
         <span>{title}</span>
       </h4>
+      {subtitle ? <p className="mini-sub">{subtitle}</p> : null}
       {lines.length ? (
         <div
           ref={box}
@@ -74,6 +76,9 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
           <div className="mini-plot">
             <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" aria-hidden="true">
               <line x1={0} x2={W} y1={sy(0)} y2={sy(0)} className="mini-zero" vectorEffect="non-scaling-stroke" />
+              {marker && years.includes(marker.year) ? (
+                <line x1={sx(years.indexOf(marker.year))} x2={sx(years.indexOf(marker.year))} y1={0} y2={H} className="mini-marker" vectorEffect="non-scaling-stroke" />
+              ) : null}
               {hi != null ? <line x1={sx(hi)} x2={sx(hi)} y1={0} y2={H} className="mini-guide" vectorEffect="non-scaling-stroke" /> : null}
               {lines.map((l) => (
                 <polyline
@@ -81,13 +86,19 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
                   points={l.values.map((v, i) => `${sx(i)},${sy(v)}`).join(' ')}
                   fill="none"
                   stroke={l.color}
-                  strokeWidth={l.light ? 1.75 : 2.5}
+                  strokeWidth={l.light ? 1.75 : l.dashed ? 2 : 2.5}
+                  strokeDasharray={l.dashed ? '5 4' : undefined}
                   opacity={l.light ? 0.8 : 1}
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
                 />
               ))}
             </svg>
+            {marker && years.includes(marker.year) ? (
+              <span className="mini-marker-label" style={{ left: `${(100 * years.indexOf(marker.year)) / (years.length - 1)}%` }} data-axis="">
+                {marker.label}
+              </span>
+            ) : null}
             {hi != null
               ? lines.map((l) => (
                   <span key={l.key} className="mini-dot" style={{ left: `${(100 * hi) / (years.length - 1)}%`, top: `${yPct(l.values[hi])}%`, background: l.color }} />
@@ -98,11 +109,14 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
                 <b>
                   {title}, {years[hi]}
                 </b>
-                <span className="tip-sub">{closure}</span>
+                {closure ? <span className="tip-sub">{closure}</span> : null}
                 {lines.map((l) => (
                   <span key={l.key} className="tip-row">
-                    <span className="swatch" style={{ borderTopColor: l.color }} />
-                    <span className="tip-name">{l.label}</span>
+                    <span className={`swatch${l.dashed ? ' dashed' : ''}`} style={{ borderTopColor: l.color }} />
+                    <span className="tip-name">
+                      {l.label}
+                      {l.closure ? `, ${l.closure}` : ''}
+                    </span>
                     <span className="tip-value">
                       {fmt(l.values[hi])}
                       {unit}
@@ -111,8 +125,15 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
                 ))}
               </TipBox>
             ) : null}
+            <div className="mini-x" data-axis="">
+              {years.map((y, i) => (
+                <span key={y} className={`mini-x-tick${i % 2 ? ' is-odd' : ''}`} style={{ left: `${(100 * i) / (years.length - 1)}%` }}>
+                  {y}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="mini-ends" aria-hidden="false">
+          <div className="mini-ends">
             {ends.map((l) => (
               <span key={l.key} className="mini-end" style={{ top: `${l.y}%`, color: l.textColor || l.color }}>
                 {endFmt(l.end)}
@@ -121,8 +142,9 @@ export default function MiniChart({ title, icon, years, lines, domain, unit, fmt
           </div>
         </div>
       ) : (
-        <div className="mini-pending">No solve for this scenario yet.</div>
+        <div className="mini-pending">{emptyText}</div>
       )}
+      {note ? <p className="mini-note">{note}</p> : null}
     </div>
   );
 }

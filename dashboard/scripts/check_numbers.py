@@ -55,7 +55,14 @@ for sid in dump:
         # public finances: debt/GDP 2036 and tax/GDP 2031 end labels
         add(g(sid, arm, C, 'debt_gdp_pp', LATE), 2, 'pp')
         add(g(sid, arm, C, 'tax_gdp_pp', H), 2, 'pp')
-    text = '\n'.join(v for k, v in dump[sid].items() if k.startswith('results') or k == 'cohorts')
+    # the tax-bias card: model tax/GDP 2031 (main arm) and the top of the
+    # rough UK-rates range, labour-share fall x 0.23 (the bottom prints
+    # without a unit)
+    add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
+    ls = g(sid, 'tfp', C, 'labour_share_pp')
+    if ls is not None:
+        add(ls * 0.23, 2, 'pp')
+    text = '\n'.join(v for k, v in dump[sid].items() if (k.startswith('results') and k.count(':') < 2) or k == 'cohorts')
     got = Counter(NUM.findall(text))
     if got != exp:
         bad += 1
@@ -83,5 +90,33 @@ for sid, arms in D['results'].items():
                     if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                         raw_bad += 1
 print('raw-solve recompute mismatches:', raw_bad)
+
+# The closure selector: By variable and Public finances with closed capital
+# (end labels are the closed-capital values; the tax-bias card stays
+# central) and with both (end labels on the central lines only).
+for sid in dump:
+    for mode in ('closed', 'both'):
+        if f'results:variables:{mode}' not in dump[sid]:
+            continue
+        cl = B if mode == 'closed' else C
+        exp = Counter()
+        for arm in ARMS:
+            for v, unit, k in [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]:
+                x = g(sid, arm, cl, v)
+                if x is not None: exp[signed(x * k, 1) + unit] += 1
+            for v, yr in [('debt_gdp_pp', LATE), ('tax_gdp_pp', H)]:
+                x = g(sid, arm, cl, v, yr)
+                if x is not None: exp[signed(x, 2) + 'pp'] += 1
+        x = g(sid, 'tfp', C, 'tax_gdp_pp', H)
+        if x is not None: exp[signed(x, 2) + 'pp'] += 1
+        ls = g(sid, 'tfp', C, 'labour_share_pp')
+        if ls is not None: exp[signed(ls * 0.23, 2) + 'pp'] += 1
+        text = dump[sid][f'results:variables:{mode}'] + '\n' + dump[sid][f'results:finances:{mode}']
+        got = Counter(NUM.findall(text))
+        if got != exp:
+            bad += 1
+            print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, mode, 'ok:', sum(exp.values()), 'figures')
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)
