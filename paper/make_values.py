@@ -1,4 +1,4 @@
-"""Emit paper/values_generated.tex from committed model results.
+"""Emit paper/values_generated.tex from the committed 2028-surprise solves.
 
 Every number in the paper's text is a LaTeX macro defined here, so no result is
 typed into a .tex file by hand.  Run from the repo root:
@@ -6,44 +6,35 @@ typed into a .tex file by hand.  Run from the repo root:
     python paper/make_values.py                 # writes paper/values_generated.tex
     python paper/make_values.py --check         # exits 1 if the file is stale
 
-Two capital closures are reported side by side (#16, #27, docs/closure_choice.md):
+Design (docs/surprise_2028.md, docs/uk_calibration.md, #27):
 
-    --central   zeta_K = 0.1, OG-UK's default and the paper's central case
-    --bound     zeta_K = 0,   the closed-capital bound
+* AI is an unanticipated shock announced at the start of 2028.  2026-27 equal
+  the no-AI (OBR-central) path; gamma and Z ramp with weights 0/.25/.5/.75/1
+  over 2027-2031; the headline year is 2031.
+* Four scenarios: UK low / UK central (headline) / UK high, calibrated to
+  IMF UK 2026, OBR FRS 2026 and BP9, and Korinek et al.'s US "substantial"
+  case as the labelled upper scenario.
+* Three arms per scenario: "automation + productivity" (``_share_shift_tfp_ramp``,
+  the main arm), "automation, technology unchanged" (``_share_shift_ramp_zfixed``)
+  and the "OBR-style stress test: no output gain" (the accepted R4 iteration,
+  ``surprise.accepted_r4``; 2031 GDP held at the no-shock path).
+* Two closures: zeta_K = 0.1 (central) and 0 (closed-capital bound).
+* Gaps are measured against the gated no-shock restart (``surprise.reference_ext``),
+  by calendar year from each record's 2026-2036 ``series``.
+* Debt/GDP is quoted with its 2036 value; 2036 is the debt rule's first year,
+  so no other series is quoted for 2036 (checked: only Debt macros may carry
+  a ThirtySix suffix).
 
-Each accepts either form of results:
+The per-solve records are read from ``analysis/surprise/output/<closure>/``.
+A record that is missing is a hard error, EXCEPT for the explicit allowlist
+``PENDING_OK``: the debt-neutral (``_dn``) and fixed-spending (``_fs``)
+variants, and UK low / UK high at zeta_K = 0, which run overnight.  Their
+macros are emitted as ``\\pend{}`` (red "pending" in drafts, a build error with
+``\\submissiontrue``).  A variant record that is present but fails its sanity
+report or its debt-neutral check also stays pending, with the reason printed.
 
-  * an assembled results FILE (``baseline``, ``share_shift_tfp_ramp`` and
-    ``share_shift_ramp`` at top level), as ``python -m uk_growth_with_ai rerun
-    assemble`` writes after the R1-R4 reruns and as ``data/scenarios.json`` is; or
-  * a closure-record PREFIX ``P`` naming the three per-solve records
-    ``P_baseline.json``, ``P_share_shift_tfp_ramp.json`` and
-    ``P_share_shift_ramp.json`` (``analysis/closure/output/zk0`` and friends).
-
-Defaults are the committed R1-R4 results (docs/rerun_r1_r4.md):
-
-    --central uk_growth_with_ai/data/scenarios.json       (zeta_K = 0.1)
-    --bound   uk_growth_with_ai/data/scenarios_zk0.json   (zeta_K = 0)
-
-Both must be R1-R4 results (debt calibration, pre-TP demographics and the R4
-rule for share_shift); pre-rerun files are refused.
-
-The fixed-spending appendix table reads ``data/scenarios_fixed_spending.json``
-and ``data/scenarios_fixed_spending_zk0.json``.  TODO(#36): until the
-rerun/fixed-spending PR merges, those files are not on main, and the copies
-pinned from that branch at 5227666 in ``paper/pinned/`` are read instead.
-Each must share its closure's baseline exactly.
-
-The cohort incidence (Section 5) is computed here too, from
-``analysis/rerun/cohorts/`` by ``paper/cohort_welfare.py`` (numpy only).
-
-Missing files, missing arms, a closure that does not state the expected
-``zeta_K``, or a GNI source that does not reproduce the central file's GDP path
-all exit non-zero, in write mode and in ``--check`` mode.  Nothing falls back to
-a placeholder.
-
-Legacy arm names (``anthropic_ramp``, ``obr_ramp``, ``zero_tfp_ramp``) are
-normalised on load (``uk_growth_with_ai.data_access.normalise_arms``, #22).
+Every sentence the paper states in words is checked in ``check_claims``.  If a
+new solve breaks one, the build stops: rewrite the sentence, do not publish it.
 """
 
 from __future__ import annotations
@@ -61,59 +52,47 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from uk_growth_with_ai import obr as obr_mod  # noqa: E402
-from uk_growth_with_ai import report as rep  # noqa: E402
 from uk_growth_with_ai import scenarios as scen  # noqa: E402
+from uk_growth_with_ai import surprise as sp  # noqa: E402
 from uk_growth_with_ai.data_access import DATA, normalise_arms  # noqa: E402
 
-sys.path.insert(0, str(ROOT / "paper"))
-import cohort_welfare as cw_mod  # noqa: E402
-
 OUT = ROOT / "paper" / "values_generated.tex"
-DEFAULT_CENTRAL = DATA / "scenarios.json"
-DEFAULT_BOUND = DATA / "scenarios_zk0.json"
-# GNI for a central file that carries no foreign positions (the pre-rerun
-# data/scenarios.json): the committed zeta_K = 0.1 re-solve, which reproduces it
-# bit for bit (docs/closure_sensitivity.md).  Ignored once the central file
-# carries GNI itself, as the rerun's assembled file does.
-DEFAULT_CENTRAL_RECORDS = ROOT / "analysis" / "closure" / "output" / "zk0.1"
-DEFAULT_FIXED = DATA / "scenarios_fixed_spending.json"
-DEFAULT_FIXED_BOUND = DATA / "scenarios_fixed_spending_zk0.json"
-# TODO(#36): pinned from rerun/fixed-spending at 5227666 (byte-identical); read
-# only while the files above are not on main.  Delete paper/pinned/ after #36.
-PINNED = ROOT / "paper" / "pinned"
-PINNED_SHA = "5227666"
-# Diagnostic closure that the R1-R4 rerun does not reproduce.  Used for one
-# sentence only (the wage sign across closures), labelled pre-rerun in the text.
-DIAG_OPEN = ROOT / "analysis" / "closure" / "output" / "zk0.5"
+OUTDIR = ROOT / sp.OUTDIR
+NICS = ROOT / "analysis" / "nics"
+# The committed R1-R4 baseline the surprise runs restart from (zeta_K = 0.1).
+# Read for its calibration and for the OBR growth comparison only; the gaps
+# are against the continuation.
+BASELINE_FILE = DATA / "scenarios.json"
 
-CENTRAL_ZETA_K, BOUND_ZETA_K, OPEN_ZETA_K = 0.1, 0.0, 0.5
-CLOSURE_LABELS = {"zk0.1": 0.1, "zk0": 0.0, "zk0.5": 0.5}
+CLOSURES = {"zk0.1": ("Central", 0.1), "zk0": ("Bound", 0.0)}
+SCEN = {"uk_low": "UkLow", "uk_central": "UkCentral", "uk_high": "UkHigh",
+        "korinek": "Korinek"}
+UK = ("uk_low", "uk_central", "uk_high")
+ARMS = {"tfp": "Main", "zfixed": "Flat", "stress": "Stress"}
+VARIANTS = {"": "", "dn": "Dn", "fs": "Fs"}
+# Solves allowed to be missing tonight (#27 lock queue, 12 Nov 23:55).
+PENDING_OK = {("zk0", "uk_low", ""), ("zk0", "uk_high", "")} | {
+    (cl, sc, v) for cl in CLOSURES for sc in SCEN for v in ("dn", "fs")}
 
-# Published benchmarks (audited in docs/results_sanity_audit.md):
-# OBR effective tax rates, November 2025 EFO para 2.64 and Box 4.1.
-OBR_EFF_RATE_LABOUR, OBR_EFF_RATE_PROFITS = 40.0, 17.0
-# Korinek et al. (2026) Table 3: labour share 60.0 cents in the no-AI scenario.
-KORINEK_LABOUR_SHARE_BASE = 60.0
-# Korinek et al. (2026), read from the PDF on 12 Nov 2026 (referee pass on #24).
-# Table 3, "substantial", 2030, per cent above the no-AI path: average wage and
-# labour income.  Table 5, "substantial": the average wage at capital-supply
-# elasticities 1, 3 (their baseline), 6 and infinity.
-KORINEK_T3_WAGE_PCT, KORINEK_T3_LABOUR_INCOME_PCT = 2.1, 1.4
+W = sp.window()
+HEAD = W["headline_year"]            # 2031
+SHOCK = W["surprise_year"]           # 2028
+DEBT_RULE = W["debt_rule_year"]      # 2036
+LAST_FLOW = DEBT_RULE - 1            # 2035: no flow is quoted for 2036
+START = scen.START                   # 2026
+YW = {2026: "TwentySix", 2027: "TwentySeven", 2028: "TwentyEight", 2029: "TwentyNine",
+      2030: "Thirty", 2031: "ThirtyOne", 2032: "ThirtyTwo", 2033: "ThirtyThree",
+      2034: "ThirtyFour", 2035: "ThirtyFive", 2036: "ThirtySix"}
+G0 = scen.G_BASE
+
+# Published benchmarks.
+OBR_EFF_RATE_LABOUR, OBR_EFF_RATE_PROFITS = 40.0, 17.0     # Nov 2025 EFO para 2.64
+OBR_TAX_PER_PP = (0.19, 0.23)                              # FRS 2026 Box 4.1 / EFO rates
+OBR_WEDGE_PP = (19.0, 23.0)                                # FRS 46-27, EFO 40-17
+IMF_OUTPUT_Y4_PCT, IMF_OUTPUT_Y5_PCT = 2.52, 3.26          # SIP/2026/072, uk_calibration.md
+IMF_TFP_Y4_PCT = 0.42
 KORINEK_T5_WAGE_PCT = {"One": -1.6, "Three": 2.1, "Six": 3.7, "Inf": 5.6}
-
-ARMS = ("share_shift_tfp_ramp", "share_shift_ramp")
-NEEDED = ("baseline",) + ARMS
-YEAR_WORD = {2026: "TwentySix", 2027: "TwentySeven", 2028: "TwentyEight",
-             2029: "TwentyNine", 2030: "Thirty"}
-# Macro words for the #22 arm ids.  "ShareShift" is a prefix of "ShareShiftTfp";
-# every macro is matched whole by LaTeX, so that is harmless.
-ARM_WORD = {"share_shift_tfp_ramp": "ShareShiftTfp", "share_shift_ramp": "ShareShift"}
-# Debt is never a level gap: it is reported as a debt/GDP gap in percentage
-# points, and always with its 2035 value (#32, #34).
-VAR_WORD = {"Y": "Gdp", "K": "Capital", "L": "Labour", "w": "Wage",
-            "C": "Consumption", "I": "Investment", "G": "Spending",
-            "total_tax_revenue": "Revenue"}
-NPER = 5
+PE = r"\pend{}"
 
 
 class ResultsError(SystemExit):
@@ -125,129 +104,137 @@ class ResultsError(SystemExit):
 
 # --- loading ------------------------------------------------------------------
 
-def _flatten(rec: dict) -> dict:
-    """A per-solve record with its paths at top level (records keep them in `series`)."""
-    out = dict(rec)
-    for k, v in (rec.get("series") or {}).items():
-        out.setdefault(k, v)
+def ix(year: int) -> int:
+    return year - START
+
+
+def s_(rec: dict, k: str, year: int) -> float:
+    if rec["years_series"][0] != START:
+        raise ResultsError(f"{rec.get('label')}: series does not start in {START}")
+    return float(rec["series"][k][ix(year)])
+
+
+def labour_share(rec, year):
+    return s_(rec, "w", year) * s_(rec, "L", year) / s_(rec, "Y", year)
+
+
+def validate(rec: dict, ref: dict, base_ext: dict, cl: str, sc: str | None) -> None:
+    """The record is the solve it claims to be (raises on any failure)."""
+    lab = rec.get("label", "?")
+    z = (rec.get("closure") or {}).get("zeta_K")
+    if z is None or not math.isclose(float(z), CLOSURES[cl][1], abs_tol=1e-12):
+        raise ResultsError(f"{cl}/{lab}: zeta_K {z}, expected {CLOSURES[cl][1]}")
+    if rec.get("closure_label") != cl:
+        raise ResultsError(f"{cl}/{lab}: closure_label {rec.get('closure_label')}")
+    if not (rec.get("surprise") or {}).get("predetermined", {}).get("ok"):
+        raise ResultsError(f"{cl}/{lab}: predetermined 2028 stocks do not match the baseline")
+    if not rec["diagnostics"].get("tpi_converged"):
+        raise ResultsError(f"{cl}/{lab}: TPI did not converge")
+    if rec.get("run_period0_year") != SHOCK:
+        raise ResultsError(f"{cl}/{lab}: run starts in {rec.get('run_period0_year')}, not {SHOCK}")
+    for v in ("Y", "K", "L", "C", "D", "w", "r", "GNI", "NNI"):
+        for y in (2026, 2027):
+            if s_(rec, v, y) != float(base_ext["series"][v][ix(y)]):
+                raise ResultsError(f"{cl}/{lab}: {v} in {y} differs from the baseline")
+    if sc is None:
+        return
+    fall = sp.scenario_grid()[sc]["labour_share_fall_pp"]
+    if abs(rec["gamma_terminal"] - (G0 + fall / 100)) > 1e-9:
+        raise ResultsError(f"{cl}/{lab}: gamma_terminal {rec['gamma_terminal']} for a {fall}pp fall")
+    d = (labour_share(rec, HEAD) - labour_share(ref, HEAD)) * 100
+    if abs(d + fall) > 0.02:
+        raise ResultsError(f"{cl}/{lab}: {HEAD} labour-share gap {d:.3f}pp, target -{fall}")
+
+
+def sanity_ok(cl: str, label: str) -> tuple[bool, str]:
+    f = OUTDIR / cl / f"{label}.sanity.json"
+    if not f.is_file():
+        return False, "no sanity report"
+    rep = json.loads(f.read_text())
+    return (bool(rep.get("ok")), "; ".join(map(str, rep.get("fails") or [])) or "sanity failed")
+
+
+def load_all() -> dict:
+    """{cl: {"ref", "base_ext", "cont", "arms": {(sc, v): {arm: rec | None}}, "why": {...}}}"""
+    out = {}
+    for cl in CLOSURES:
+        base_ext = sp.load_base_ext(OUTDIR, cl)
+        gate = sp.read_gate(OUTDIR, cl)
+        if gate is None or gate.get("reference") != "continuation":
+            raise ResultsError(f"{cl}: the continuation gate is not approved with reference "
+                               f"'continuation' ({gate})")
+        ref = sp.reference_ext(OUTDIR, cl, base_ext)
+        done = sp.load(OUTDIR, cl)
+        cont = done["continuation"]
+        validate(cont, ref, base_ext, cl, None)
+        arms, why = {}, {}
+        for sc in SCEN:
+            for v in VARIANTS:
+                k = sp._keys(v, sc)
+                recs = {"tfp": done.get(k["tfp"]), "zfixed": done.get(k["zfixed"]),
+                        "stress": sp.accepted_r4(done, ref, v, scenario=sc)}
+                for a, r in list(recs.items()):
+                    if r is None:
+                        continue
+                    ok, reason = sanity_ok(cl, r["label"])
+                    if v == "dn" and not (r.get("dn_check") or {}).get("ok"):
+                        ok, reason = False, "debt-neutral check failed"
+                    if not ok:
+                        if v == "":
+                            raise ResultsError(f"{cl}/{r['label']}: {reason}")
+                        print(f"pending {cl}/{r['label']}: {reason}", file=sys.stderr)
+                        recs[a] = None
+                        continue
+                    validate(r, ref, base_ext, cl, sc)
+                missing = [a for a, r in recs.items() if r is None]
+                if missing and (cl, sc, v) not in PENDING_OK:
+                    raise ResultsError(f"{cl}: {sc}{'_' + v if v else ''} lacks arm(s) {missing} "
+                                       f"and is not on the pending allowlist")
+                if missing and v == "" and len(missing) < 3:
+                    # a partial set at the bound: report none of it until all three exist
+                    recs = {a: None for a in recs}
+                arms[(sc, v)] = recs
+        out[cl] = {"ref": ref, "base_ext": base_ext, "cont": cont, "arms": arms}
     return out
 
 
-def load_closure(spec: Path, label: str) -> dict:
-    """Assembled results file, or a prefix naming the three closure records."""
-    spec = Path(spec)
-    if spec.suffix == ".json":
-        if not spec.is_file():
-            raise ResultsError(f"{label}: results file {spec} does not exist")
-        res = normalise_arms(json.loads(spec.read_text()))
-        missing = [a for a in NEEDED if a not in res]
-        if missing:
-            raise ResultsError(f"{label}: {spec} lacks arm(s) {missing}")
-        res = {**res, **{a: _flatten(res[a]) for a in NEEDED}}
-        res["_source"] = str(spec.relative_to(ROOT) if spec.is_relative_to(ROOT) else spec)
-        return res
-    files = {a: spec.parent / f"{spec.name}_{a}.json" for a in NEEDED}
-    missing = [str(f) for f in files.values() if not f.is_file()]
-    if missing:
-        raise ResultsError(f"{label}: closure record(s) missing: {missing}")
-    res = {a: _flatten(normalise_arms(json.loads(f.read_text()))) for a, f in files.items()}
-    res["_source"] = str(spec.relative_to(ROOT) if spec.is_relative_to(ROOT) else spec) + "_*.json"
-    return res
+# --- measures -----------------------------------------------------------------
+
+def pct(rec, ref, v, y):
+    return (s_(rec, v, y) / s_(ref, v, y) - 1) * 100
 
 
-def stated_zeta_k(res: dict):
-    """The zeta_K a results set says it was solved at, or None if it does not say."""
-    found = set()
-    a = res.get("assumptions") or {}
-    for d in [res[x] for x in NEEDED] + [a]:
-        cl = d.get("closure")
-        if isinstance(cl, str):
-            # rerun records label the closure ("zk0.1", "zk0"), as uk_growth_with_ai.rerun does
-            if cl not in CLOSURE_LABELS:
-                raise ResultsError(f"{res['_source']}: unknown closure label {cl!r}")
-            found.add(CLOSURE_LABELS[cl])
-            cl = {}
-        for z in (d.get("zeta_K"), (cl or {}).get("zeta_K")):
-            if z is not None:
-                found.add(float(z))
-    if len(found) > 1:
-        raise ResultsError(f"{res['_source']}: arms disagree on zeta_K {sorted(found)}")
-    return found.pop() if found else None
+def debt_pp(rec, ref, y):
+    return (s_(rec, "D", y) / s_(rec, "Y", y) - s_(ref, "D", y) / s_(ref, "Y", y)) * 100
 
 
-def require_zeta_k(res: dict, want: float, label: str) -> None:
-    z = stated_zeta_k(res)
-    if z is None:
-        raise ResultsError(f"{label}: {res['_source']} does not state zeta_K")
-    if not math.isclose(z, want, abs_tol=1e-12):
-        raise ResultsError(f"{label}: {res['_source']} is zeta_K = {z}, expected {want}")
+def tax_pp(rec, ref, y, base="total_tax_revenue"):
+    return (s_(rec, base, y) / s_(rec, "Y", y) - s_(ref, base, y) / s_(ref, "Y", y)) * 100
 
 
-def has_foreign_positions(r: dict) -> bool:
-    return "GNI" in r or all(k in r for k in ("r_p", "K_f", "D_f"))
+def payroll_pp(rec, ref, y, tau):
+    """Employer NICs (tau_payroll on wL), booked inside iit_revenue (frac_tax_payroll = 0)."""
+    return tau * (labour_share(rec, y) - labour_share(ref, y)) * 100
 
 
-def gni(r: dict) -> np.ndarray:
-    """GNI = Y - r_p (K_f + D_f): GDP less income paid abroad (closure_sensitivity.md)."""
-    if "GNI" in r:
-        return np.array(r["GNI"][:NPER], dtype=float)
-    f = lambda k: np.array(r[k][:NPER], dtype=float)
-    return f("Y") - f("r_p") * (f("K_f") + f("D_f"))
+def measures(rec, ref, y) -> dict:
+    m = {v: pct(rec, ref, k, y) for v, k in (
+        ("Gdp", "Y"), ("Gni", "GNI"), ("Nni", "NNI"), ("Capital", "K"), ("Labour", "L"),
+        ("Wage", "w"), ("Consumption", "C"), ("Investment", "I"))}
+    m["InterestBp"] = (s_(rec, "r", y) - s_(ref, "r", y)) * 1e4
+    m["DebtPp"] = debt_pp(rec, ref, y)
+    m["TaxGdpPp"] = tax_pp(rec, ref, y)
+    m["LabourSharePp"] = (labour_share(rec, y) - labour_share(ref, y)) * 100
+    return m
 
 
-def arr(r: dict, k: str) -> np.ndarray:
-    return np.array(r[k][:NPER], dtype=float)
+FLOW_VARS = ("Gdp", "Gni", "Nni", "Capital", "Labour", "Wage", "Consumption",
+             "Investment", "InterestBp", "TaxGdpPp")
 
 
-def ser(r: dict, k: str, year: int) -> float:
-    """One year of the 2026-2035 series (the top-level arrays stop at 2030)."""
-    yrs = list(r["years"])
-    return float(r["series"][k][yrs.index(year)])
-
-
-def debt_gdp_gap_pp(res: dict, arm: str, year: int) -> float:
-    dy = lambda x: ser(x, "D", year) / ser(x, "Y", year) * 100
-    return dy(res[arm]) - dy(res["baseline"])
-
-
-def borrowing_gap(res: dict, arm: str, year: int, par: dict) -> tuple:
-    """Extra public borrowing in `year` against the baseline, as a per cent of
-    baseline GDP and of baseline private consumption."""
-    t = year - scen.START
-    grow = float(np.exp(float(par["g_y"])) * (1 + par["g_n"][t + 1]))
-    flow = lambda x: ser(x, "D", year + 1) * grow - ser(x, "D", year)
-    d = flow(res[arm]) - flow(res["baseline"])
-    return (d / ser(res["baseline"], "Y", year) * 100, d / ser(res["baseline"], "C", year) * 100)
-
-
-def gap(res: dict, arm: str, var: str) -> np.ndarray:
-    return (arr(res[arm], var) / arr(res["baseline"], var) - 1) * 100
-
-
-def gni_gap(res: dict, arm: str) -> np.ndarray:
-    return (gni(res[arm]) / gni(res["baseline"]) - 1) * 100
-
-
-def attach_gni(central: dict, records_spec: Path) -> dict:
-    """Give a central file without foreign positions the GNI of its closure records.
-
-    The records must reproduce the central file's GDP path in every arm; a mismatch
-    means they are a different solve, and the run stops."""
-    if all(has_foreign_positions(central[a]) for a in NEEDED):
-        return central
-    recs = load_closure(records_spec, "central GNI records")
-    require_zeta_k(recs, CENTRAL_ZETA_K, "central GNI records")
-    out = dict(central)
-    for a in NEEDED:
-        y_c, y_r = arr(central[a], "Y"), arr(recs[a], "Y")
-        dev = float(np.max(np.abs(y_c / y_r - 1)))
-        if dev > 1e-9:
-            raise ResultsError(
-                f"central GNI records {recs['_source']} do not reproduce "
-                f"{central['_source']} ({a}: max relative GDP difference {dev:.2e})")
-        out[a] = {**central[a], **{k: recs[a][k] for k in ("r_p", "K_f", "D_f")}}
-    out["_gni_source"] = recs["_source"]
-    return out
+def sci(x: float) -> str:
+    m, e = f"{x:.1e}".split("e")
+    return rf"${m}\times 10^{{{int(e)}}}$"
 
 
 # --- macro store --------------------------------------------------------------
@@ -260,16 +247,21 @@ class Values(dict):
             raise ResultsError(f"no value for macro \\gen{name}")
         self[name] = value if isinstance(value, str) else fmt.format(value)
 
-    def signed(self, name: str, x: float, fmt_signed="{:+.2f}", fmt_abs="{:.1f}",
+    def signed(self, name: str, x, fmt_signed="{:+.2f}", fmt_abs="{:.2f}",
                up="above", down="below") -> None:
-        """Signed value (2dp; Short = 1dp), its magnitude, and a direction word, so prose that reads
-        "\\genXAbs{} per cent \\genXDir{} baseline" stays true if the sign flips."""
+        """Signed value (2dp; Short = 1dp), its magnitude and a direction word, so prose
+        that reads "\\genXAbs{} per cent \\genXDir{} ..." stays true if the sign flips.
+        ``x is None`` emits the pending marker for every form."""
+        if x is None:
+            for suf in ("", "Short", "Abs", "Dir", "Verb"):
+                self.put(name + suf, PE)
+            return
+
         def typeset(t):   # typeset sign, not a hyphen; no sign on a printed zero
             if t.lstrip("+-").strip("0.") == "":
                 return t.lstrip("+-")
             return f"${t[0]}${t[1:]}" if t[0] in "+-" else t
         self.put(name, typeset(fmt_signed.format(x)))
-        # 1dp, but 2dp near zero so a small gap never prints as "-0.0"
         self.put(name + "Short", typeset(("{:+.2f}" if abs(x) < 0.1 else "{:+.1f}").format(x)))
         self.put(name + "Abs", abs(x), fmt_abs)
         self.put(name + "Dir", up if x >= 0 else down)
@@ -278,650 +270,436 @@ class Values(dict):
 
 # --- emitters -----------------------------------------------------------------
 
-def emit_closure(v: Values, res: dict, cw: str, *, all_years: bool) -> None:
-    """GDP and GNI gaps, foreign share and saving share for one closure."""
-    base = res["baseline"]
-    pa = (1 - gni(base) / arr(base, "Y")) * 100
-    v.put(f"PaidAbroadBase{cw}", pa[4], "{:.2f}")
-    v.put(f"GniGdpRatioBase{cw}", 100 - pa[4], "{:.1f}")
-    cad = (arr(base, "C") + arr(base, "I") + arr(base, "G") - gni(base)) / arr(base, "Y") * 100
-    v.put(f"CurrentAccountDeficitBase{cw}", cad[4], "{:.1f}")
-    if "K_f" in base:
-        v.put(f"ForeignOwnedCapitalBase{cw}", arr(base, "K_f")[4] / arr(base, "K")[4] * 100, "{:.0f}")
-    for arm, aw in ARM_WORD.items():
-        r = res[arm]
-        g_y, g_n = gap(res, arm, "Y"), gni_gap(res, arm)
-        years = YEAR_WORD.items() if all_years else [(2030, "Thirty")]
-        for year, yw in years:
-            i = year - 2026
-            v.signed(f"{aw}GdpGap{yw}{cw}", g_y[i])
-            v.signed(f"{aw}GniGap{yw}{cw}", g_n[i])
-        v.signed(f"{aw}GniLessGdpThirty{cw}", g_n[4] - g_y[4])
-        dk = arr(r, "K")[4] - arr(base, "K")[4]
-        dkf = arr(r, "K_f")[4] - arr(base, "K_f")[4] if "K_f" in r else None
-        if dkf is not None:
-            v.put(f"{aw}ForeignShareExtraK{cw}", dkf / dk * 100, "{:.1f}")
-            if arr(base, "K_f")[4] > 0:
-                v.signed(f"{aw}ForeignCapitalGapThirty{cw}",
-                         (arr(r, "K_f")[4] / arr(base, "K_f")[4] - 1) * 100, fmt_abs="{:.0f}")
-        # extra national saving (GNI - C - G) over extra investment, 2026-29
-        s = lambda x: gni(x) - arr(x, "C") - arr(x, "G")
-        ds = (s(r) - s(base))[:4].sum()
-        di = (arr(r, "I") - arr(base, "I"))[:4].sum()
-        v.put(f"{aw}SavingShare{cw}", ds / di, "{:.2f}")
-        v.signed(f"{aw}WageGapThirty{cw}", gap(res, arm, "w")[4])
-        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
-        v.signed(f"{aw}TaxGdpChangePp{cw}", ty(r) - ty(base))
-        v.signed(f"{aw}InvestmentGapTwentyNine{cw}", gap(res, arm, "I")[3])
-        v.signed(f"{aw}InvestmentGapThirty{cw}", gap(res, arm, "I")[4])
-        v.signed(f"{aw}CapitalGapThirty{cw}", gap(res, arm, "K")[4])
-        for year, yw in ((2030, "Thirty"), (2035, "ThirtyFive")):
-            v.signed(f"{aw}DebtGdpGapPp{yw}{cw}", debt_gdp_gap_pp(res, arm, year))
-        v.put(f"{aw}InterestChangeBp{cw}",
-              (arr(r, "r")[4] - arr(base, "r")[4]) * 1e4, "{:.0f}")  # sign checked in check_claims
+def emit_grid(v: Values, R: dict) -> None:
+    """Scenario x arm x closure x variant: 2031 gaps, 2028 response, debt 2036."""
+    for cl, (cw, _) in CLOSURES.items():
+        ref = R[cl]["ref"]
+        for (sc, var), recs in R[cl]["arms"].items():
+            for a, aw in ARMS.items():
+                rec = recs[a]
+                pre = f"{SCEN[sc]}{aw}{VARIANTS[var]}"
+                m = measures(rec, ref, HEAD) if rec else {}
+                for k in FLOW_VARS + ("DebtPp", "LabourSharePp"):
+                    v.signed(f"{pre}{k}{cw}", m.get(k) if rec else None,
+                             fmt_signed="{:+.0f}" if k == "InterestBp" else "{:+.2f}",
+                             fmt_abs="{:.0f}" if k == "InterestBp" else "{:.2f}")
+                v.signed(f"{pre}DebtPpThirtySix{cw}", debt_pp(rec, ref, DEBT_RULE) if rec else None)
+                if var:
+                    continue
+                m28 = measures(rec, ref, SHOCK) if rec else {}
+                for k in ("Gdp", "Capital", "Labour", "Consumption", "Investment"):
+                    v.signed(f"{pre}{k}TwentyEight{cw}", m28.get(k) if rec else None)
+                v.signed(f"{pre}GdpThirtyFive{cw}", pct(rec, ref, "Y", LAST_FLOW) if rec else None)
+                v.put(f"{pre}Z{cw}", f"{rec['Z_terminal']:.4f}" if rec else PE)
+                v.signed(f"{pre}TaxPerPp{cw}",
+                         m["TaxGdpPp"] / sp.scenario_grid()[sc]["labour_share_fall_pp"]
+                         if rec else None, fmt_signed="{:+.3f}", fmt_abs="{:.2f}")
 
 
-def emit(v: Values, central: dict, bound: dict, fixed: dict, open_: dict,
-         cohorts: dict) -> None:
-    assume = central["assumptions"]
+def emit(v: Values, R: dict) -> None:
+    grid = sp.scenario_grid()
+    base = normalise_arms(json.loads(BASELINE_FILE.read_text()))
+    assume = base["assumptions"]
+    # the surprise runs restart from this baseline: its committed series must match
+    be = R["zk0.1"]["base_ext"]["series"]
+    dev = max(abs(be["Y"][i] / base["baseline"]["Y"][i] - 1) for i in range(5))
+    if dev > 1e-9:
+        raise ResultsError(f"baseline_ext.json is not {BASELINE_FILE.name}'s baseline ({dev:.1e})")
 
-    # ---- assumptions and calibration -------------------------------------
-    v.put("Epsilon", assume["epsilon"], "{:.0f}")
-    v.put("GammaBase", assume["gamma_base"], "{:.2f}")
-    v.put("GammaShocked", assume["gamma_shocked"], "{:.3f}")
-    v.put("LabourShareBase", (1 - assume["gamma_base"]) * 100, "{:.1f}")
-    v.put("LabourShareShocked", (1 - assume["gamma_shocked"]) * 100, "{:.1f}")
-    v.put("LabourShareFallPp",
-          (assume["gamma_shocked"] - assume["gamma_base"]) * 100, "{:.1f}")
-    v.put("GammaOnlyGainPct", assume["gamma_only_output_gain"] * 100, "{:.2f}")
-    v.put("LabourShareLogChangePctAbs",
-          abs(math.log((1 - assume["gamma_shocked"]) / (1 - assume["gamma_base"]))) * 100,
-          "{:.1f}")
-    v.put("ZShareShiftTfp", assume["Z_share_shift_tfp"], "{:.6f}")
-    v.put("ZShareShift", assume["Z_share_shift"], "{:.6f}")
-    v.put("TfpGainPct", scen.SHARE_SHIFT_TFP.tfp_gain * 100, "{:.1f}")
-    v.put("GdpLevelTargetPct", scen.SHARE_SHIFT.gdp_level_change * 100, "{:.0f}")
-    v.put("TGone", assume["tG1"], "{:.0f}")
-    v.put("TGoneYear", scen.START + int(assume["tG1"]), "{:.0f}")
-    v.put("GyAnnualPct", assume["g_y_annual"] * 100, "{:.1f}")
-    v.put("AlphaG", central["baseline"]["alpha_G_used"], "{:.4f}")
+    # ---- design and calibration -----------------------------------------
+    v.put("StartYear", START, "{:.0f}")
+    v.put("ShockYear", SHOCK, "{:.0f}")
+    v.put("RampZeroYear", W["ramp_zero_year"], "{:.0f}")
+    v.put("HeadYear", HEAD, "{:.0f}")
+    v.put("DebtRuleYear", DEBT_RULE, "{:.0f}")
+    v.put("LastFlowYear", LAST_FLOW, "{:.0f}")
     v.put("RampYears", scen.RAMP_YEARS, "{:.0f}")
-    v.put("StartYear", scen.START, "{:.0f}")
-    v.put("EndYear", scen.START + scen.RAMP_YEARS, "{:.0f}")
+    v.put("Epsilon", assume["epsilon"], "{:.0f}")
+    v.put("GammaBase", G0, "{:.2f}")
+    v.put("LabourShareBase", (1 - G0) * 100, "{:.0f}")
+    v.put("GyAnnualPct", assume["g_y_annual"] * 100, "{:.1f}")
+    v.put("AlphaG", base["baseline"]["alpha_G_used"], "{:.3f}")
+    v.put("ObrDebtThirtyPct", assume["debt_calibration"]["target_2030_pct"], "{:.1f}")
+    v.put("TGone", assume["tG1"], "{:.0f}")
+    v.put("Delta", R["zk0.1"]["cont"]["delta"], "{:.3f}")
+    v.put("TauPayrollPct", R["zk0.1"]["cont"]["tau_payroll"] * 100, "{:.0f}")
+    for sc, sw in SCEN.items():
+        g = grid[sc]
+        v.put(f"{sw}FallPp", g["labour_share_fall_pp"], "{:.1f}")
+        v.put(f"{sw}GammaTerminal", G0 + g["labour_share_fall_pp"] / 100, "{:.3f}")
+        v.put(f"{sw}TfpPct", g["tfp_gain"] * 100, "{:.1f}")
+        v.put(f"{sw}LabourShareTerminal", (1 - G0) * 100 - g["labour_share_fall_pp"], "{:.1f}")
+    # the share effect on the wage, dln(1-gamma)
+    v.put("UkCentralShareLogPct",
+          abs(math.log((1 - G0 - grid["uk_central"]["labour_share_fall_pp"] / 100) / (1 - G0))) * 100,
+          "{:.1f}")
 
-    # ---- closure parameters (stated beside every headline) ---------------
-    v.put("ZetaKCentral", CENTRAL_ZETA_K, "{:.1f}")
-    v.put("ZetaKBound", BOUND_ZETA_K, "{:.0f}")
-    v.put("ZetaKOpen", OPEN_ZETA_K, "{:.1f}")
-    for name, key, fmt in (("ZetaD", "zeta_D", "{:.1f}"),
-                           ("WorldRatePct", "world_int_rate_annual", "{:.0f}")):
-        vals = set()
-        for src in (central, bound):
-            for a in NEEDED:
-                cl = src[a].get("closure")
-                for d in (src[a], cl if isinstance(cl, dict) else {}):
-                    if key in d:
-                        vals.add(float(d[key]))
-            cl = (src.get("assumptions") or {}).get("closure")
-            cl = cl if isinstance(cl, dict) else {}
-            if key in cl:
-                vals.add(float(cl[key]))
-        if len(vals) != 1:
-            raise ResultsError(f"{key}: expected one value stated across the central and bound "
-                               f"results, got {sorted(vals)}")
-        val = vals.pop()
-        v.put(name, val * 100 if name == "WorldRatePct" else val, fmt)
+    # ---- closure parameters ------------------------------------------------
+    c0 = R["zk0.1"]["cont"]["closure"]
+    v.put("ZetaKCentral", 0.1, "{:.1f}")
+    v.put("ZetaKBound", 0.0, "{:.0f}")
+    v.put("ZetaD", c0["zeta_D"], "{:.1f}")
+    v.put("WorldRatePct", c0["world_int_rate_annual"] * 100, "{:.0f}")
+    for cl, (cw, _) in CLOSURES.items():
+        c = R[cl]["cont"]["closure"]
+        if (c["zeta_D"], c["world_int_rate_annual"]) != (c0["zeta_D"], c0["world_int_rate_annual"]):
+            raise ResultsError(f"{cl}: zeta_D or the world rate differ across closures")
+        ref = R[cl]["ref"]
+        y = HEAD
+        Y = s_(ref, "Y", y)
+        v.put(f"PaidAbroadBase{cw}", (1 - s_(ref, "GNI", y) / Y) * 100, "{:.2f}")
+        v.put(f"NniGdpBase{cw}", s_(ref, "NNI", y) / Y * 100, "{:.1f}")
+        cad = (s_(ref, "C", y) + s_(ref, "I", y) + s_(ref, "G", y) - s_(ref, "GNI", y)) / Y * 100
+        v.put(f"CurrentAccountDeficitBase{cw}", cad, "{:.1f}")
+        v.put(f"ForeignOwnedCapitalBase{cw}", s_(ref, "K_f", y) / s_(ref, "K", y) * 100, "{:.0f}")
+        v.put(f"BaseDebtGdpThirtyOne{cw}", s_(ref, "D", y) / Y * 100, "{:.1f}")
+        v.put(f"BaseDebtGdpThirtySix{cw}", s_(ref, "D", DEBT_RULE) / s_(ref, "Y", DEBT_RULE) * 100, "{:.1f}")
+        v.put(f"BaseInterestPct{cw}", s_(ref, "r", y) * 100, "{:.1f}")
+        # who supplies the extra capital: UK central main arm, 2031
+        rec = R[cl]["arms"][("uk_central", "")]["tfp"]
+        dk = s_(rec, "K", y) - s_(ref, "K", y)
+        v.put(f"UkCentralForeignShareExtraK{cw}",
+              (s_(rec, "K_f", y) - s_(ref, "K_f", y)) / dk * 100, "{:.0f}")
+        # extra national saving (GNI - C - G) over extra investment, 2028-2031
+        nsave = lambda x, t: s_(x, "GNI", t) - s_(x, "C", t) - s_(x, "G", t)
+        yrs = range(SHOCK, HEAD + 1)
+        ds = sum(nsave(rec, t) - nsave(ref, t) for t in yrs)
+        di = sum(s_(rec, "I", t) - s_(ref, "I", t) for t in yrs)
+        v.put(f"UkCentralSavingShare{cw}", ds / di, "{:.2f}")
+        # continuation gate
+        g = sp.read_gate(OUTDIR, cl)["report"]
+        v.put(f"GateMax{cw}", sci(g["max"]))
+        v.put(f"GateY{cw}", sci(g["tight"]["Y"]))
 
-    # ---- provenance -------------------------------------------------------
-    p = central["provenance"]
-    v.put("OgcoreVersion", p["packages"]["ogcore"])
-    v.put("PolicyengineVersion", p["packages"]["policyengine"])
-    v.put("PolicyengineUkVersion", p["packages"]["policyengine-uk"])
-    v.put("PythonVersion", p["python"])
-    v.put("OgukSha", p["oguk_git_sha"][:7])
-    v.put("RunDate", p["utc"])
-    v.put("EnforceChecks", str(p["enforce_solution_checks"]))
-    v.put("CentralSource", central["_source"].replace("_", r"\_"))
-    v.put("BoundSource", bound["_source"].replace("_", r"\_"))
-    v.put("CentralGniSource", central.get("_gni_source", central["_source"]).replace("_", r"\_"))
+    # ---- the 2031 grid ------------------------------------------------------
+    emit_grid(v, R)
 
-    # ---- baseline against the OBR (growth only; debt is reported as a gap) --
-    cmp_ = obr_mod.compare(central)
+    # stress test against technology unchanged: output at fixed inputs, per cent
+    for cl, (cw, _) in CLOSURES.items():
+        for sc, sw in SCEN.items():
+            r = R[cl]["arms"][(sc, "")]
+            x = (r["stress"]["Z_terminal"] / r["zfixed"]["Z_terminal"] - 1) * 100 if r["stress"] else None
+            v.signed(f"{sw}StressZVsFlat{cw}", x, fmt_signed="{:+.2f}", fmt_abs="{:.2f}")
+
+    # ---- UK central main arm, central closure, by year ----------------------
+    ref, rec = R["zk0.1"]["ref"], R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
+    for y in range(W["ramp_zero_year"], LAST_FLOW + 1):
+        m = measures(rec, ref, y)
+        for k in ("Gdp", "Gni", "Nni", "Capital", "Labour", "Wage", "Consumption", "Investment"):
+            v.signed(f"PathUkCentral{k}{YW[y]}", m[k])
+        v.signed(f"PathUkCentralInterestBp{YW[y]}", m["InterestBp"], fmt_signed="{:+.0f}")
+    for y in range(W["ramp_zero_year"], DEBT_RULE + 1):
+        v.signed(f"PathUkCentralDebtPp{YW[y]}", debt_pp(rec, ref, y))
+    # first year the UK central main-arm wage and consumption are back above the path
+    for cl, (cw, _) in CLOSURES.items():
+        ref_, rec_ = R[cl]["ref"], R[cl]["arms"][("uk_central", "")]["tfp"]
+        for k, var in (("Consumption", "C"), ("Wage", "w")):
+            pos = [y for y in range(SHOCK, LAST_FLOW + 1) if pct(rec_, ref_, var, y) > 0]
+            v.put(f"UkCentralMain{k}FirstPos{cw}", f"{min(pos)}" if pos else f"after {LAST_FLOW}")
+        pos = [y for y in range(SHOCK, LAST_FLOW + 1) if tax_pp(rec_, ref_, y) > 0]
+        v.put(f"UkCentralMainTaxFirstPos{cw}", f"{min(pos)}" if pos else "never")
+        r_k = R[cl]["arms"][("korinek", "")]["tfp"]
+        pos = [y for y in range(SHOCK, LAST_FLOW + 1) if tax_pp(r_k, ref_, y) > 0]
+        v.put(f"KorinekMainTaxFirstPos{cw}", f"{min(pos)}" if pos else "never")
+        pos = [y for y in range(SHOCK, DEBT_RULE + 1) if debt_pp(rec_, ref_, y) > 0]
+        v.put(f"UkCentralMainDebtFirstPos{cw}", f"{min(pos)}")
+    # the 2028 capital that arrives with no 2027 investment (zeta_K = 0.1)
+
+    # ---- tax: Korinek main arm at the bound, by base -------------------------
+    ref0, rk = R["zk0"]["ref"], R["zk0"]["arms"][("korinek", "")]["tfp"]
+    tau = rk["tau_payroll"]
+    pay = payroll_pp(rk, ref0, HEAD, tau)
+    v.signed("KorinekMainBoundTaxPayroll", pay)
+    v.signed("KorinekMainBoundTaxIncome", tax_pp(rk, ref0, HEAD, "iit_revenue") - pay)
+    v.signed("KorinekMainBoundTaxBusiness", tax_pp(rk, ref0, HEAD, "business_tax_revenue"))
+    v.signed("KorinekMainBoundTaxConsumption", tax_pp(rk, ref0, HEAD, "cons_tax_revenue"))
+    hk = lambda x: s_(x, "r_p", HEAD) * s_(x, "B", HEAD) / s_(x, "Y", HEAD)
+    v.signed("KorinekMainBoundHhCapIncPp", (hk(rk) - hk(ref0)) * 100)
+
+    # effective rates on the continuation, 2031 (the sanity gate's own calculation)
+    for cl, (cw, _) in CLOSURES.items():
+        eff = json.loads((OUTDIR / cl / "uk_central_share_shift_tfp_ramp.sanity.json")
+                         .read_text())["diagnostics"]["effective_rates_2031"]["reference"]
+        v.put(f"EffLabourPct{cw}", eff["labour"], "{:.1f}")
+        v.put(f"EffCapitalPct{cw}", eff["capital_gross"], "{:.1f}")
+        v.put(f"EffWedgePp{cw}", eff["labour"] - eff["capital_gross"], "{:.1f}")
+        v.put(f"EffIncomeFnPct{cw}", eff["labour_excl_payroll"], "{:.1f}")
+        v.put(f"PayrollPctGdp{cw}", eff["payroll_pct_gdp"], "{:.1f}")
+    v.put("ObrWedgeLo", OBR_WEDGE_PP[0], "{:.0f}")
+    v.put("ObrWedgeHi", OBR_WEDGE_PP[1], "{:.0f}")
+    v.put("ObrTaxPerPpLo", OBR_TAX_PER_PP[0], "{:.2f}")
+    v.put("ObrTaxPerPpHi", OBR_TAX_PER_PP[1], "{:.2f}")
+    v.put("ObrEffRateLabourPct", OBR_EFF_RATE_LABOUR, "{:.0f}")
+    v.put("ObrEffRateProfitsPct", OBR_EFF_RATE_PROFITS, "{:.0f}")
+    # PolicyEngine-UK employer and employee NICs, 2027-28 (analysis/nics, evidence only)
+    n = {y: json.loads((NICS / f"nics_{y}.json").read_text()) for y in (2027, 2028)}
+    v.put("NicsEmployerOnLabourCostPct",
+          n[2028]["avg_employer_rate_on_total_labour_cost"] * 100, "{:.0f}")
+    v.put("NicsEmployerOnEarningsPct",
+          n[2028]["avg_employer_rate_on_employment_income"] * 100, "{:.1f}")
+    v.put("NicsEmployeePct", n[2028]["avg_employee_rate_on_employment_income"] * 100, "{:.1f}")
+
+    # ---- against Korinek et al. and the IMF ---------------------------------
+    A = scen.ANTHROPIC_SUBSTANTIAL
+    v.put("KorinekTableGdpPct", A["gdp_above_no_ai_pct"], "{:.1f}")
+    v.put("KorinekTableCapitalPct", A["capital_stock_pct"], "{:.1f}")
+    v.put("KorinekTableUnemploymentPct", A["unemployment_pct"], "{:.1f}")
+    v.put("KorinekTableTfpPct", A["measured_tfp_pct"], "{:.1f}")
+    v.put("KorinekTableFallPp", A["labour_share_fall_pp"], "{:.1f}")
+    for word, x in KORINEK_T5_WAGE_PCT.items():
+        v.signed(f"KorinekTableFiveWage{word}", x, fmt_signed="{:+.1f}", fmt_abs="{:.1f}")
+    v.put("ImfOutputYFourPct", IMF_OUTPUT_Y4_PCT, "{:.1f}")
+    v.put("ImfOutputYFivePct", IMF_OUTPUT_Y5_PCT, "{:.1f}")
+    v.put("ImfTfpYFourPct", IMF_TFP_Y4_PCT, "{:.2f}")
+    # capital supplied at an unchanged return (gamma Y / K at the path's value),
+    # UK central inputs, labour unchanged and at the arm's own labour
+    ref, rec = R["zk0.1"]["ref"], R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
+    g1, Z = rec["gamma_terminal"], rec["Z_terminal"]
+    K0, L0, Y0 = (s_(ref, k, HEAD) for k in ("K", "L", "Y"))
+    if abs(K0 ** G0 * L0 ** (1 - G0) / Y0 - 1) > 1e-4:
+        raise ResultsError("the path's 2031 output is not K^gamma L^(1-gamma)")
+    c = G0 * Y0 / K0
+
+    def elastic(L):
+        K = (g1 * Z * L ** (1 - g1) / c) ** (1 / (1 - g1))
+        return (Z * K ** g1 * L ** (1 - g1) / Y0 - 1) * 100, (K / K0 - 1) * 100
+    gdp_e, k_e = elastic(L0)
+    gdp_el, _ = elastic(s_(rec, "L", HEAD))
+    v.put("ElasticBoundGdpPct", gdp_e, "{:.1f}")
+    v.put("ElasticBoundKPct", k_e, "{:.1f}")
+    v.put("ElasticBoundGdpOwnLPct", gdp_el, "{:.1f}")
+    # capital-supply elasticity, 2031 / 2036 / steady state (sanity diagnostics)
+    for cl, (cw, _) in CLOSURES.items():
+        d = json.loads((OUTDIR / cl / "uk_central_share_shift_tfp_ramp.sanity.json").read_text())
+        e = d["diagnostics"]["capital_supply_elasticity"]
+        v.put(f"UkCentralElasticity{cw}", e[str(HEAD)]["elasticity"], "{:.2f}")
+        v.put(f"UkCentralElasticitySs{cw}", e["SS"]["elasticity"], "{:.2f}")
+
+    # ---- OBR baseline comparison (appendix) ----------------------------------
+    cmp_ = obr_mod.compare(base)
     for year, g in zip(cmp_["years"], cmp_["growth"]):
-        v.put(f"BaseGrowth{YEAR_WORD[year]}", g)
+        v.put(f"BaseGrowth{YW[year]}", g)
     v.put("BaseGrowthMean", cmp_["mean"])
     v.put("ObrGrowthMean", cmp_["obr_mean"], "{:.1f}")
     v.signed("BaseObrGrowthDiffPp", cmp_["difference"])
-    v.put("ObrProductivityPct", obr_mod.OBR_BASELINE["productivity_medium_term"], "{:.1f}")
-    v.put("ObrLabourSupplyPct", obr_mod.OBR_BASELINE["labour_supply_2030"], "{:.1f}")
-    v.put("ObrPotentialThirtyPct", obr_mod.OBR_BASELINE["potential_output_2030"], "{:.1f}")
-    v.put("ObrPotentialTwentySixPct", obr_mod.OBR_BASELINE["potential_output_2026"], "{:.1f}")
-    v.put("ModelProductivityPct", (np.exp(cmp_["g_y"]) - 1) * 100)
-    v.put("ModelPopGrowthThirtyPct", cmp_["g_n"][3] * 100)
-    v.put("ModelBgrThirtyPct", (np.exp(cmp_["g_y"]) * (1 + cmp_["g_n"][3]) - 1) * 100)
-    v.put("ModelBgrTwentySixPct", (np.exp(cmp_["g_y"]) * (1 + cmp_["g_n"][0]) - 1) * 100)
     v.put("BaseGrowthStartYear", cmp_["years"][0], "{:.0f}")
-    b0 = central["baseline"]
-    v.put("BaseDebtGdpThirtyFivePct", ser(b0, "D", 2035) / ser(b0, "Y", 2035) * 100, "{:.1f}")
-    v.put("ObrDebtThirtyPct", central["assumptions"]["debt_calibration"]["target_2030_pct"], "{:.1f}")
-    v.put("BaseInterestThirtyPct", arr(central["baseline"], "r")[4] * 100, "{:.2f}")
+    v.put("BaseGrowthEndYear", cmp_["years"][-1], "{:.0f}")
+    v.put("ObrProductivityPct", obr_mod.OBR_BASELINE["productivity_medium_term"], "{:.1f}")
+    v.put("ModelProductivityPct", (np.exp(cmp_["g_y"]) - 1) * 100)
 
-    # ---- the two closures side by side ------------------------------------
-    emit_closure(v, central, "Central", all_years=True)
-    emit_closure(v, bound, "Bound", all_years=False)
-    # zeta_K = 0.5: pre-rerun diagnostic, one wage figure only
-    v.signed("ShareShiftTfpWageGapThirtyOpen", gap(open_, "share_shift_tfp_ramp", "w")[4])
-    v.signed("ShareShiftWageGapThirtyOpen", gap(open_, "share_shift_ramp", "w")[4])
-
-    # share_shift_tfp wage beyond 2030, from the rerun series themselves
-    wage_path = {}
-    for res_, cw in ((central, "Central"), (bound, "Bound")):
-        yrs = list(res_["baseline"]["years"])
-        g = np.array([(ser(res_["share_shift_tfp_ramp"], "w", y) / ser(res_["baseline"], "w", y) - 1) * 100
-                      for y in yrs])
-        wage_path[cw] = dict(zip(yrs, g))
-        v.signed(f"ShareShiftTfpWageGapThirtyFive{cw}", g[yrs.index(2035)])
-    pos = [y for y, x in wage_path["Central"].items() if x > 0]
-    v.put("ShareShiftTfpWageFirstPosYearCentral", min(pos), "{:.0f}")
-
-    # public borrowing against the baseline (flow), per cent of baseline GDP and
-    # of baseline consumption.  Borrowing in t is D_{t+1} e^{g_y}(1+g_n) - D_t in
-    # the model's detrended units; g_n and g_y from the cohort export.
-    for res_, cw, cl in ((central, "Central", "zk0.1"), (bound, "Bound", "zk0")):
-        par = cohorts[cl]["hold"]["par"]
-        for arm, aw in ARM_WORD.items():
-            for year, yw in ((2030, "Thirty"), (2034, "ThirtyFour")):
-                b_gdp, b_cons = borrowing_gap(res_, arm, year, par)
-                v.put(f"{aw}BorrowGapGdp{yw}{cw}", b_gdp, "{:.1f}")
-                v.put(f"{aw}BorrowGapCons{yw}{cw}", b_cons, "{:.1f}")
-
-    # ---- central-closure detail, every variable and year -------------------
-    res = central
-    for arm, aw in ARM_WORD.items():
-        s = rep.summary(arm, res)
-        v.put(f"{aw}LabourShareFallPp", s["labour_share_fall_pp"], "{:.1f}")
-        v.put(f"{aw}GrowthThirty", s["growth_2030_pct"])
-        v.put(f"{aw}ZTerminal", res[arm]["Z_terminal"], "{:.6f}")
-        v.put(f"{aw}GammaShape", res[arm]["gamma_shape"])
-        v.put(f"{aw}ElapsedMin", res[arm]["elapsed_min"], "{:.0f}")
-        for var, vw in VAR_WORD.items():
-            g = gap(res, arm, var)
-            for i, yw in enumerate(YEAR_WORD.values()):
-                v.signed(f"{aw}{vw}Gap{yw}", g[i])
-        for year, yw in YEAR_WORD.items():
-            v.signed(f"{aw}DebtGdpGapPp{yw}", debt_gdp_gap_pp(res, arm, year))
-        # the wage identity: dln w = dln(1-gamma) + dln(Y/L)
-        yl = (arr(res[arm], "Y") / arr(res[arm], "L")) / (
-            arr(res["baseline"], "Y") / arr(res["baseline"], "L"))
-        v.signed(f"{aw}OutputPerWorkerGapThirty", (yl[4] - 1) * 100)
-        # labour income wL, the like-for-like comparator for Korinek et al.
-        wl = gap(res, arm, "w") / 100 + 1
-        wl = (wl * (gap(res, arm, "L") / 100 + 1) - 1) * 100
-        v.signed(f"{aw}LabourIncomeGapThirty", wl[4])
-        v.put(f"{aw}InterestThirtyPct", arr(res[arm], "r")[4] * 100, "{:.2f}")
-        d = res[arm]["diagnostics"]
-        v.put(f"{aw}RcMaxInterior", f"{d['rc_max_interior']:.1e}")
-        v.put(f"{aw}RcTwentySixPctGdp", d["rc_first5"][0] / res[arm]["Y"][0] * 100)
-        v.put(f"{aw}EulerMax", f"{max(d['euler_savings_max'], d['euler_labour_max']):.1e}")
-        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
-        v.signed(f"{aw}TaxGdpChangePp", ty(res[arm]) - ty(res["baseline"]))
-    b = res["baseline"]
-    v.put("BaseRcMaxInterior", f"{b['diagnostics']['rc_max_interior']:.1e}")
-    v.put("BaseRcTwentySixPctGdp", b["diagnostics"]["rc_first5"][0] / b["Y"][0] * 100)
-    v.put("BaseEulerMax", f"{max(b['diagnostics']['euler_savings_max'], b['diagnostics']['euler_labour_max']):.1e}")
-    v.put("BaseElapsedMin", b["elapsed_min"], "{:.0f}")
-    for arm, aw in ARM_WORD.items():
-        ls = rep.labour_share(res[arm]) * 100
-        for i, yw in enumerate(YEAR_WORD.values()):
-            v.put(f"{aw}LabourShare{yw}", ls[i], "{:.2f}")
-    v.put("BaseLabourSharePct", rep.labour_share(b)[0] * 100, "{:.2f}")
-
-    # ---- fixed-spending convention (appendix only), each closure ------------
-    for cw, fx, shared in (("Central", fixed["central"], central), ("Bound", fixed["bound"], bound)):
-        for arm, aw in ARM_WORD.items():
-            for src, pre in ((fx, "Fix"), (shared, "Shared")):
-                for var, vw in (("Y", "Gdp"), ("K", "Capital"), ("w", "Wage"),
-                                ("C", "Consumption"), ("total_tax_revenue", "Revenue")):
-                    v.signed(f"{pre}{aw}{vw}GapThirty{cw}", gap(src, arm, var)[4])
-                v.signed(f"{pre}{aw}GniGapThirty{cw}", gni_gap(src, arm)[4])
-                for year, yw in ((2030, "Thirty"), (2035, "ThirtyFive")):
-                    v.signed(f"{pre}{aw}DebtGdpGapPp{yw}{cw}", debt_gdp_gap_pp(src, arm, year))
-    # stated in words: the 2035 sign of the share_shift_tfp debt gap depends on
-    # the spending convention; the share_shift gap is positive under both
-    for cw, fx, shared in (("central", fixed["central"], central), ("bound", fixed["bound"], bound)):
-        if not (debt_gdp_gap_pp(fx, "share_shift_tfp_ramp", 2035) < 0
-                < debt_gdp_gap_pp(shared, "share_shift_tfp_ramp", 2035)):
-            raise ResultsError(f"'the 2035 share_shift_tfp debt gap changes sign with the "
-                               f"spending convention' fails at the {cw} closure")
-        if not min(debt_gdp_gap_pp(x, "share_shift_ramp", y) for x in (fx, shared) for y in (2030, 2035)) > 0:
-            raise ResultsError(f"'the share_shift debt gap is positive under both spending "
-                               f"conventions' fails at the {cw} closure")
-    v.put("FixedSource", fixed["central"]["_source"].replace("_", r"\_"))
-    v.put("FixedBoundSource", fixed["bound"]["_source"].replace("_", r"\_"))
-
-    emit_cohorts(v, cohorts)
-
-    # ---- Korinek et al. Table 3, "substantial" ---------------------------
-    A = scen.ANTHROPIC_SUBSTANTIAL
-    v.put("KorinekTableLabourShareFallPp", A["labour_share_fall_pp"], "{:.1f}")
-    v.put("KorinekTableTfpPct", A["measured_tfp_pct"], "{:.1f}")
-    v.put("KorinekTableGdpPct", A["gdp_above_no_ai_pct"], "{:.1f}")
-    v.put("KorinekTableGrowthPct", A["gdp_growth_pct"], "{:.1f}")
-    v.put("KorinekTableCapitalPct", A["capital_stock_pct"], "{:.1f}")
-    v.put("KorinekTableUnemploymentPct", A["unemployment_pct"], "{:.1f}")
-
-    # labour income and the average wage in the source scenario, as printed in
-    # their Table 3; the share-times-GDP arithmetic (60.0c -> 56.1c, GDP +8.3%)
-    # must agree with the printed labour income to rounding
-    ls0 = KORINEK_LABOUR_SHARE_BASE
-    implied = ((ls0 - A["labour_share_fall_pp"]) / ls0 * (1 + A["gdp_above_no_ai_pct"] / 100) - 1) * 100
-    if abs(implied - KORINEK_T3_LABOUR_INCOME_PCT) > 0.2:
-        raise ResultsError(f"Korinek et al. labour income {KORINEK_T3_LABOUR_INCOME_PCT} is not "
-                           f"their labour share times GDP ({implied:.2f})")
-    v.signed("KorinekTableLabourIncomeGap", KORINEK_T3_LABOUR_INCOME_PCT, fmt_signed="{:+.1f}")
-    v.signed("KorinekTableWage", KORINEK_T3_WAGE_PCT, fmt_signed="{:+.1f}")
-    for word, x in KORINEK_T5_WAGE_PCT.items():
-        v.signed(f"KorinekTableFiveWage{word}", x, fmt_signed="{:+.1f}")
-    # this model's production function at the source scenario's capital gap and
-    # the model's own 2030 labour input (results_sanity_audit.md, #16)
-    b, r = central["baseline"], central["share_shift_tfp_ramp"]
-    g0, g1 = assume["gamma_base"], assume["gamma_shocked"]
-    kb, lb = arr(b, "K")[4], arr(b, "L")[4]
-    k = kb * (1 + A["capital_stock_pct"] / 100)
-    y_cf = r["Z_terminal"] * k ** g1 * arr(r, "L")[4] ** (1 - g1)
-    y_b = kb ** g0 * lb ** (1 - g0)
-    if abs(arr(b, "Y")[4] / y_b - 1) > 1e-5:
-        raise ResultsError("baseline 2030 output is not K^gamma L^(1-gamma); "
-                           "the capital-gap counterfactual does not apply")
-    cf = (y_cf / y_b - 1) * 100
-    v.put("KorinekCapitalCounterfactualGdpPct", cf, "{:.1f}")
-    model = gap(central, "share_shift_tfp_ramp", "Y")[4]
-    if not (A["gdp_above_no_ai_pct"] - cf) < 0.25 * (A["gdp_above_no_ai_pct"] - model):
-        raise ResultsError("'capital supply accounts for almost all of the GDP difference "
-                           f"with Korinek et al.' no longer holds (counterfactual {cf:.2f}, "
-                           f"model {model:.2f}, theirs {A['gdp_above_no_ai_pct']})")
-
-    # ---- OBR effective-rate rule of thumb (Nov 2025 EFO para 2.64) ---------
-    v.put("ObrEffRateLabourPct", OBR_EFF_RATE_LABOUR, "{:.0f}")
-    v.put("ObrEffRateProfitsPct", OBR_EFF_RATE_PROFITS, "{:.0f}")
-    v.signed("RuleOfThumbTaxPp",
-             -(OBR_EFF_RATE_LABOUR - OBR_EFF_RATE_PROFITS) / 100
-             * (assume["gamma_shocked"] - assume["gamma_base"]) * 100)
-
-    # ---- R1-R4 only --------------------------------------------------------
-    for src, label in ((central, "central"), (bound, "bound"),
-                       (fixed["central"], "fixed spending"), (fixed["bound"], "fixed spending, bound")):
-        require_rerun(src, label)
-
-    # ---- the gamma patch's verification run (docs/firm_gamma_tv.md) ------
-    v.put("PatchSites", 14, "{:.0f}")
-    v.put("PatchEpsilonSites", 20, "{:.0f}")
-
-
-def require_rerun(res: dict, label: str) -> None:
-    """The paper reports the R1-R4 results only (docs/rerun_r1_r4.md)."""
-    a = res.get("assumptions") or {}
-    missing = [k for k, ok in (("debt calibration", "debt_calibration" in a),
-                               ("pre-TP demographics", bool(a.get("pretp"))),
-                               ("R4 share_shift rule",
-                                a.get("Z_share_shift_rule") == "equilibrium_gdp_gap")) if not ok]
-    if missing:
-        raise ResultsError(f"{label}: {res['_source']} is not an R1-R4 results file "
-                           f"(lacks {', '.join(missing)})")
-
-
-COHORT_ROWS = {1946: "AgeEighty", 1966: "AgeSixty", 1986: "AgeForty", 2006: "AgeTwenty",
-               2026: "BornTwentySix", 2046: "BornFortySix"}
-LAST_BIRTH_SHOWN = 2046
-CLOSURE_WORD = {"zk0.1": "Central", "zk0": "Bound"}
-
-
-def cohort_results() -> dict:
-    """CEV by cohort for both arms and closures, with the checks that tie the
-    cohort export to the results files."""
-    out = {}
-    for cl in cw_mod.CLOSURES:
-        out[cl] = {"hold": cw_mod.cev(cl, "hold"), "ss": cw_mod.cev(cl, "ss"),
-                   "consumption": cw_mod.cev(cl, "hold", "consumption"),
-                   "parts": cw_mod.components(cl, "hold")}
-    return out
-
-
-PART_WORD = {"consumption": "Cons", "leisure": "Leisure", "bequests": "Beq"}
-
-
-def emit_cohorts(v: Values, co: dict) -> None:
-    worst = 0.0
-    for cl, cwd in CLOSURE_WORD.items():
-        H, S, Cn = co[cl]["hold"], co[cl]["ss"], co[cl]["consumption"]
-        b, par = H["birth_year"], H["par"]
-        lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
-        shown = b <= LAST_BIRTH_SHOWN
-        for arm, aw in ARM_WORD.items():
-            h = H[arm]
-            avg = h @ lam
-            v.signed(f"{aw}CevAliveMean{cwd}", float(pw @ avg))
-            v.signed(f"{aw}CevConsOnlyAliveMean{cwd}", float(pw @ (Cn[arm] @ lam)))
-            for yr, rw in COHORT_ROWS.items():
-                i = int(np.where(b == yr)[0][0])
-                v.signed(f"{aw}Cev{rw}{cwd}", float(avg[i]))
-                v.signed(f"{aw}Cev{rw}Bottom{cwd}", float(h[i, 0]))
-                v.signed(f"{aw}Cev{rw}TopOne{cwd}", float(h[i, -1]))
-                v.signed(f"{aw}CevConsOnly{rw}{cwd}", float(Cn[arm][i] @ lam))
-            # the same measure with one part of utility at a time on its scenario path
-            for part, pword in PART_WORD.items():
-                x = co[cl]["parts"][arm][part]
-                v.signed(f"{aw}CevPart{pword}AliveMean{cwd}", float(pw @ (x @ lam)))
-                for yr, rw in COHORT_ROWS.items():
-                    i = int(np.where(b == yr)[0][0])
-                    v.signed(f"{aw}CevPart{pword}{rw}{cwd}", float(x[i] @ lam))
-            v.signed(f"{aw}CevMax{cwd}", float(h[shown].max()))
-            v.signed(f"{aw}CevMin{cwd}", float(h[shown].min()))
-            neg = b[shown & (avg < 0)]
-            v.put(f"{aw}CevFirstNegBirth{cwd}", f"{int(neg.min())}" if len(neg) else "none")
-            worst = max(worst, float(np.abs(h - S[arm])[shown].max()))
-            # the export is the results file's solve: aggregate consumption matches
-            for i, year in enumerate(YEAR_WORD):
-                want = gap(RESULTS_FOR_COHORTS[cl], arm, "C")[i]
-                got = cw_mod.aggregate_consumption_gap(cl, arm, year)
-                if abs(got - want) > 0.001:
-                    raise ResultsError(f"cohort export {cl} {arm}: {year} consumption gap "
-                                       f"{got:.4f} does not match the results file's {want:.4f}")
-    v.put("CevContinuationMaxDiff", worst, "{:.2f}")
-    v.put("CevLastBirthShown", LAST_BIRTH_SHOWN, "{:.0f}")
-    v.put("CevTUseLastYear", cw_mod.START_YEAR + cw_mod.T_USE - 1, "{:.0f}")
-    # the baseline's cross-section by lifetime-earnings group (central closure, 2030)
-    acc = group_accounts()
-    for key, word in (("wealth_share", "WealthShare"), ("earnings_share", "EarnShare"),
-                      ("labour", "LabourInc"), ("capital", "CapitalInc"),
-                      ("transfers", "TransferInc"), ("bequests", "BequestInc")):
-        v.put(f"Grp{word}Bottom", float(acc[key][0]), "{:.0f}")
-        v.put(f"Grp{word}TopOne", float(acc[key][-1]), "{:.0f}")
-    for key, word in (("wealth_share", "WealthShare"), ("earnings_share", "EarnShare")):
-        v.put(f"Grp{word}BottomHalf", float(acc[key][:2].sum()), "{:.0f}")
-        v.put(f"Grp{word}TopTen", float(acc[key][-2:].sum()), "{:.0f}")
-    v.put("GrpCapBeqIncBottom", float(acc["capital"][0] + acc["bequests"][0]), "{:.0f}")
-    v.put("GrpCapBeqIncTopOne", float(acc["capital"][-1] + acc["bequests"][-1]), "{:.0f}")
-    par = co["zk0.1"]["hold"]["par"]
-    v.put("ChiB", float(par["chi_b"][0]), "{:.0f}")
-    v.put("Sigma", float(par["sigma"]), "{:.1f}")
-    v.put("BetaAnnual", float(par["beta"][0]), "{:.3f}")
-
-
-RESULTS_FOR_COHORTS: dict = {}
-
-
-def group_accounts() -> dict:
-    """Baseline wealth, earnings and income by source for each lifetime-earnings
-    group in 2030 at the central closure; tied to the results file's wage bill."""
-    b = RESULTS_FOR_COHORTS["zk0.1"]["baseline"]
-    acc = cw_mod.group_accounts("zk0.1", arr(b, "w")[4], arr(b, "r_p")[4], 2030)
-    want = arr(b, "w")[4] * arr(b, "L")[4]
-    if abs(acc["labour_total"] / want - 1) > 1e-6:
-        raise ResultsError(f"cohort export: 2030 labour earnings {acc['labour_total']:.6f} "
-                           f"do not match the results file's wL {want:.6f}")
-    return acc
+    # ---- provenance and diagnostics ------------------------------------------
+    p = R["zk0.1"]["cont"]["provenance"]
+    v.put("OgcoreVersion", p["packages"]["ogcore"])
+    v.put("PolicyengineUkVersion", p["packages"]["policyengine-uk"])
+    v.put("OgukSha", p["oguk_git_sha"][:7])
+    for cl, (cw, _) in CLOSURES.items():
+        recs = [R[cl]["cont"]] + [r for x in R[cl]["arms"].values() for r in x.values() if r]
+        v.put(f"NSolves{cw}", len(recs), "{:.0f}")
+        rc = max(r["diagnostics"]["rc_rel_Y_max_abs_interior"] for r in recs)
+        eu = max(max(r["diagnostics"]["euler_savings_max"], r["diagnostics"]["euler_labour_max"])
+                 for r in recs)
+        v.put(f"RcMax{cw}", sci(rc))
+        v.put(f"EulerMax{cw}", sci(eu))
+        v.put(f"SolveMinMax{cw}", max(r["elapsed_min"] for r in recs), "{:.1f}")
+    v.put("RFourTolPp", sp.R4_TOL_PP, "{:.2f}")
 
 
 def render(v: Values, sources: list[str]) -> str:
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    lines = [
-        "% values_generated.tex — machine-generated by paper/make_values.py. DO NOT EDIT BY HAND.",
-        f"% generated {stamp}",
-        *[f"% source: {s}" for s in sources],
-        "",
-    ]
+    lines = ["% values_generated.tex — machine-generated by paper/make_values.py. DO NOT EDIT BY HAND.",
+             f"% generated {stamp}", *[f"% source: {s}" for s in sources], ""]
     for name, value in v.items():
         lines.append(r"\newcommand{\gen%s}{%s}" % (name, value))
     return "\n".join(lines) + "\n"
 
 
-def check_claims(central: dict, bound: dict, open_: dict) -> None:
-    """Sentences the paper states in words, not macros.  If a rerun breaks one,
+# --- claims stated in words ---------------------------------------------------
+
+def check_claims(R: dict, v: Values) -> None:
+    """Sentences the paper states in words, not macros.  If a solve breaks one,
     stop and make someone rewrite the sentence rather than publish it false."""
     fail = []
-    for arm in ARMS:
-        for res, cl in ((central, "0.1"), (bound, "0")):
-            if not gni_gap(res, arm)[4] < gap(res, arm, "Y")[4]:
-                fail.append(f"'GNI gap < GDP gap' fails for {arm} at zeta_K {cl}")
-    # stated for share_shift_tfp only: after R4, share_shift's 2030 GDP gap is zero
-    # at both closures by construction
-    arm = "share_shift_tfp_ramp"
-    if not (abs(gni_gap(central, arm)[4] - gni_gap(bound, arm)[4])
-            < abs(gap(central, arm, "Y")[4] - gap(bound, arm, "Y")[4])):
-        fail.append(f"'GNI moves less with the closure than GDP' fails for {arm}")
-    w = gap(central, arm, "w")[4]
-    share = abs(math.log((1 - central["assumptions"]["gamma_shocked"])
-                         / (1 - central["assumptions"]["gamma_base"]))) * 100
-    if not abs(w) < 0.25 * share:
-        fail.append(f"'in share_shift_tfp the two wage terms nearly cancel' fails: wage {w:.2f}%")
-    for arm in ARMS:
-        rule = (OBR_EFF_RATE_LABOUR - OBR_EFF_RATE_PROFITS) / 100 * (
-            central["assumptions"]["gamma_shocked"] - central["assumptions"]["gamma_base"]) * 100
-        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4] * 100
-        if not abs(ty(central[arm]) - ty(central["baseline"])) < rule:
-            fail.append(f"'tax functions give smaller falls than the rule of thumb' fails for {arm}")
-        b, r = central["baseline"], central[arm]
-        dk = arr(r, "K")[4] - arr(b, "K")[4]
-        share = (arr(r, "K_f")[4] - arr(b, "K_f")[4]) / dk * 100
-        if not 65 <= share <= 85:
-            fail.append(f"'about three-quarters of extra capital is foreign-owned' "
-                        f"fails for {arm}: {share:.1f}%")
-    for res, cl in ((central, "0.1"), (bound, "0"), (open_, "0.5")):
-        if not gap(res, "share_shift_ramp", "w")[4] < 0:
-            fail.append(f"'share_shift wage is below baseline' fails at zeta_K {cl}")
-        for arm in ARMS:
-            if not (gap(res, arm, "K")[4] > 0 and arr(res[arm], "r")[4] > arr(res["baseline"], "r")[4]):
-                fail.append(f"'the return to capital and capital both rise' fails for {arm} at zeta_K {cl}")
-    for arm in ARMS:
-        ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4]
-        if not ty(central[arm]) < ty(central["baseline"]):
-            fail.append(f"'revenue falls as a share of GDP' fails for {arm}")
-    ty = lambda x: arr(x, "total_tax_revenue")[4] / arr(x, "Y")[4]
-    a = "share_shift_tfp_ramp"
-    if np.sign(ty(central[a]) - ty(central["baseline"])) == np.sign(ty(bound[a]) - ty(bound["baseline"])):
-        fail.append("'the sign of the revenue/GDP change in share_shift_tfp depends on the closure' fails")
+    grid = sp.scenario_grid()
+    solved = lambda cl: [sc for sc in SCEN if R[cl]["arms"][(sc, "")]["tfp"]]
+
+    def M(cl, sc, a, y=HEAD, var=""):
+        return measures(R[cl]["arms"][(sc, var)][a], R[cl]["ref"], y)
+
+    for cl in CLOSURES:
+        ref = R[cl]["ref"]
+        for sc in solved(cl):
+            arms = R[cl]["arms"][(sc, "")]
+            m = {a: M(cl, sc, a) for a in ARMS}
+            # the stress test holds 2031 GDP
+            if not abs(m["stress"]["Gdp"]) <= sp.R4_TOL_PP:
+                fail.append(f"stress-test GDP not held in {HEAD}: {sc} {cl}")
+            # the main arm: GNI below GDP; wage falls; capital and the return rise
+            if not m["tfp"]["Gni"] < m["tfp"]["Gdp"]:
+                fail.append(f"'GNI gap below GDP gap' fails: {sc} {cl}")
+            for a in ARMS:
+                if not m[a]["Wage"] < 0:
+                    fail.append(f"'the wage falls in every arm in {HEAD}' fails: {sc} {a} {cl}")
+                if not (m[a]["Capital"] > 0 and m[a]["InterestBp"] > 0):
+                    fail.append(f"'capital and the return rise' fails: {sc} {a} {cl}")
+                if not m[a]["Labour"] < 0:
+                    fail.append(f"'labour input is lower by {HEAD}' fails: {sc} {a} {cl}")
+                m28 = M(cl, sc, a, SHOCK)
+                if not (m28["Investment"] > 0 and m28["Labour"] > 0 and m28["Consumption"] < 0):
+                    fail.append(f"'in {SHOCK} investment and hours rise, consumption falls' "
+                                f"fails: {sc} {a} {cl}")
+                # debt/GDP is higher by 2036 in every arm
+                if not debt_pp(arms[a], ref, DEBT_RULE) > 0:
+                    fail.append(f"'debt/GDP is higher by {DEBT_RULE} in every arm' fails: {sc} {a} {cl}")
+                # the stress test sits below technology unchanged on the wage at 0.1
+            if not m["tfp"]["Gdp"] > m["zfixed"]["Gdp"]:
+                fail.append(f"'the main arm's GDP exceeds technology-unchanged' fails: {sc} {cl}")
+            # stress test needs output at fixed inputs to fall at 0.1, rise a little at 0
+            z = arms["stress"]["Z_terminal"] / arms["zfixed"]["Z_terminal"] - 1
+            if cl == "zk0.1" and not z < 0:
+                fail.append(f"'stress test needs output at fixed inputs to fall at 0.1' fails: {sc}")
+            if cl == "zk0" and not 0 < z < 0.001:
+                fail.append(f"'stress test needs a small rise at the bound' fails: {sc} ({z:.5f})")
+            if cl == "zk0" and not m["zfixed"]["Gdp"] < 0:
+                fail.append(f"'technology-unchanged GDP is slightly below the path at 0' fails: {sc}")
+            if cl == "zk0.1" and not m["zfixed"]["Gdp"] > 0:
+                fail.append(f"'technology-unchanged GDP is above the path at 0.1' fails: {sc}")
+            if cl == "zk0" and not max(abs(m["zfixed"][k] - m["stress"][k])
+                                        for k in ("Gdp", "Gni", "Wage", "Consumption")) < 0.1:
+                fail.append(f"'the two no-gain arms nearly coincide at the bound' fails: {sc}")
+            # tax/GDP: falls in every arm and every year at 0.1
+            if cl == "zk0.1":
+                for a in ARMS:
+                    if not all(tax_pp(arms[a], ref, y) < 0 for y in range(SHOCK, LAST_FLOW + 1)):
+                        fail.append(f"'tax/GDP falls in every arm and year at 0.1' fails: {sc} {a}")
+                tpp = m["stress"]["TaxGdpPp"] / grid[sc]["labour_share_fall_pp"]
+                if not -OBR_TAX_PER_PP[0] < tpp < -0.6 * OBR_TAX_PER_PP[0]:
+                    fail.append(f"'stress-test tax/GDP per pp is below the OBR's but over 60% "
+                                f"of 0.19' fails: {sc} ({tpp:.3f})")
+                if not m["tfp"]["DebtPp"] < 0:
+                    fail.append(f"'main-arm debt/GDP is lower in {HEAD} at 0.1' fails: {sc}")
+            # NNI below GNI in levels (main arm)
+            dn = s_(arms["tfp"], "NNI", HEAD) - s_(ref, "NNI", HEAD)
+            dg = s_(arms["tfp"], "GNI", HEAD) - s_(ref, "GNI", HEAD)
+            if not dn < dg:
+                fail.append(f"'NNI rises by less than GNI in levels' fails: {sc} {cl}")
+            # consumption below the path while GNI is above it (main arm)
+            if sc != "korinek" and not (m["tfp"]["Consumption"] < 0 < m["tfp"]["Gni"]):
+                fail.append(f"'consumption falls while GNI rises in {HEAD}' fails: {sc} {cl}")
+    # Korinek at 0.1: consumption is above the path by 2031 (the exception)
+    if not M("zk0.1", "korinek", "tfp")["Consumption"] > 0:
+        fail.append("'Korinek's main-arm consumption is above the path at 0.1 in 2031' fails")
+    if not M("zk0", "korinek", "tfp")["Consumption"] < 0:
+        fail.append("'Korinek's main-arm consumption is below the path at 0 in 2031' fails")
+    # UK central main arm: consumption below the path in every year to 2035 at 0.1
+    ref, rec = R["zk0.1"]["ref"], R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
+    if not all(pct(rec, ref, "C", y) < 0 < pct(rec, ref, "GNI", y) for y in range(SHOCK, LAST_FLOW + 1)):
+        fail.append(f"'UK central consumption below, GNI above, {SHOCK}-{LAST_FLOW}' fails")
+    if not all(pct(rec, ref, "w", y) < 0 for y in range(SHOCK, LAST_FLOW + 1)):
+        fail.append(f"'UK central wage below the path to {LAST_FLOW}' fails")
+    # tax/GDP at the bound: rises for Korinek main; UK central main ~0 in 2031, positive later
+    k0 = M("zk0", "korinek", "tfp")["TaxGdpPp"]
+    if not k0 > 0:
+        fail.append("'tax/GDP rises for Korinek at the bound' fails")
+    u0 = M("zk0", "uk_central", "tfp")["TaxGdpPp"]
+    if not -0.02 < u0 < 0:
+        fail.append(f"'UK central main tax/GDP is about zero, slightly negative, at the bound' fails ({u0:.3f})")
+    if not v["UkCentralMainTaxFirstPosBound"].isdigit():
+        fail.append("'UK central main tax/GDP turns positive at the bound' fails")
+    if v["UkCentralMainTaxFirstPosCentral"] != "never" or v["KorinekMainTaxFirstPosCentral"] != "never":
+        fail.append("'no main arm's tax/GDP turns positive at 0.1' fails")
+    # monotonic in shock size at 0.1, main arm
+    order = ("uk_low", "uk_central", "uk_high", "korinek")
+    for k in ("Gdp", "Gni", "Capital", "InterestBp"):
+        xs = [M("zk0.1", sc, "tfp")[k] for sc in order]
+        if not all(a < b for a, b in zip(xs, xs[1:])):
+            fail.append(f"'main-arm {k} rises with the shock size' fails: {xs}")
+    if not abs(M("zk0.1", "uk_central", "tfp")["Wage"] - M("zk0.1", "uk_high", "tfp")["Wage"]) < 0.05:
+        fail.append("'UK central's wage falls as far as UK high's' fails")
+    if not M("zk0.1", "korinek", "tfp")["Wage"] > M("zk0.1", "uk_central", "tfp")["Wage"]:
+        fail.append("'Korinek's main-arm wage falls less than UK central's' fails")
+    # GNI moves less with the closure than GDP; capital smaller and r larger at 0
+    for sc in ("uk_central", "korinek"):
+        a, b = M("zk0.1", sc, "tfp"), M("zk0", sc, "tfp")
+        if not abs(a["Gni"] - b["Gni"]) < abs(a["Gdp"] - b["Gdp"]):
+            fail.append(f"'GNI moves less with the closure than GDP' fails: {sc}")
+        if not (b["Capital"] < a["Capital"] and b["InterestBp"] > a["InterestBp"]):
+            fail.append(f"'less capital and a larger rise in r at the bound' fails: {sc}")
+        if not (b["Gdp"] < a["Gdp"]):
+            fail.append(f"'GDP gap smaller at the bound' fails: {sc}")
+    # closure re-check (docs/closure_choice.md): baseline pays 1-2% of GDP abroad
+    pa = float(v["PaidAbroadBaseCentral"])
+    if not 1.0 <= pa <= 2.0:
+        fail.append(f"'the central baseline pays 1-2% of GDP abroad' fails ({pa})")
+    fs = float(v["UkCentralForeignShareExtraKCentral"])
+    if not 65 <= fs <= 85:
+        fail.append(f"'about three-quarters of the extra capital is foreign-owned' fails ({fs})")
+    if not float(v["UkCentralForeignShareExtraKBound"]) == 0:
+        fail.append("'no extra capital is foreign-owned at the bound' fails")
+    # IMF: capital supplied at an unchanged return brackets the IMF's year-4/5 output
+    e = float(v["ElasticBoundGdpPct"])
+    if not IMF_OUTPUT_Y4_PCT <= e <= IMF_OUTPUT_Y5_PCT + 0.1:
+        fail.append(f"'an elastic capital supply brackets the IMF's output' fails ({e})")
+    g = M("zk0.1", "uk_central", "tfp")["Gdp"]
+    if not 0.25 < g / IMF_OUTPUT_Y4_PCT < 0.45:
+        fail.append(f"'about a third of the IMF's output effect' fails ({g / IMF_OUTPUT_Y4_PCT:.2f})")
+    # Korinek: GDP and capital below their figures at both closures
     A = scen.ANTHROPIC_SUBSTANTIAL
-    for res, cl in ((central, "0.1"), (bound, "0")):
-        if not (gap(res, "share_shift_tfp_ramp", "Y")[4] < A["gdp_above_no_ai_pct"]
-                and gap(res, "share_shift_tfp_ramp", "K")[4] < A["capital_stock_pct"]):
-            fail.append(f"'GDP and capital rise by less than in Korinek et al.' fails at zeta_K {cl}")
-    signs = {np.sign(gap(x, "share_shift_tfp_ramp", "w")[4]) for x in (central, bound, open_)}
-    if len(signs) < 2:
-        fail.append("'the share_shift_tfp wage sign depends on the closure' fails")
-    for res, cl in ((central, "0.1"), (bound, "0")):
-        if not gni_gap(res, "share_shift_ramp")[4] < 0:
-            fail.append(f"'GNI falls in share_shift' fails at zeta_K {cl}")
-        a = "share_shift_tfp_ramp"
-        if not (debt_gdp_gap_pp(res, a, 2030) < 0 < debt_gdp_gap_pp(res, a, 2035)):
-            fail.append(f"'the share_shift_tfp debt/GDP gap changes sign by 2035' fails at zeta_K {cl}")
-        s_ = "share_shift_ramp"
-        if not debt_gdp_gap_pp(res, s_, 2035) > debt_gdp_gap_pp(res, s_, 2030) > 0:
-            fail.append(f"'the share_shift debt/GDP gap widens' fails at zeta_K {cl}")
-    a = "share_shift_tfp_ramp"
-    wg = lambda res, y: ser(res[a], "w", y) / ser(res["baseline"], "w", y) - 1
-    if not (wg(central, 2030) < 0 < wg(central, 2035)):
-        fail.append("'the share_shift_tfp wage gap turns positive by 2035 at the central closure' fails")
-    if not (wg(bound, 2030) < 0 and wg(bound, 2035) < 0):
-        fail.append("'the share_shift_tfp wage gap stays negative to 2035 at the bound' fails")
-    if not gni_gap(bound, "share_shift_tfp_ramp")[4] < gni_gap(central, "share_shift_tfp_ramp")[4]:
-        fail.append("'share_shift_tfp's GNI gain is smaller at the bound' fails")
+    for cl in CLOSURES:
+        m = M(cl, "korinek", "tfp")
+        if not (m["Gdp"] < A["gdp_above_no_ai_pct"] and m["Capital"] < A["capital_stock_pct"]):
+            fail.append(f"'GDP and capital rise by less than in Korinek et al.' fails at {cl}")
+    # tax wedge and NICs as stated
+    for cw in ("Central", "Bound"):
+        w_ = float(v[f"EffWedgePp{cw}"])
+        if not 12 <= w_ <= 16:
+            fail.append(f"'the labour-capital wedge is about 14pp' fails at {cw} ({w_})")
+        if not w_ < OBR_WEDGE_PP[0]:
+            fail.append("'the wedge is below the OBR's' fails")
+    nic = float(v["NicsEmployerOnLabourCostPct"])
+    if not 10 <= nic <= 12:
+        fail.append(f"'PolicyEngine-UK employer NICs are about 11%' fails ({nic})")
+    # the 2036 guard: only debt/GDP may be quoted in the debt rule's first year
+    bad = [k for k in v if "ThirtySix" in k and "Debt" not in k]
+    if bad:
+        fail.append(f"non-debt macros quote {DEBT_RULE}: {bad[:5]}")
     if fail:
         raise ResultsError("claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
 
-def check_cohort_claims(co: dict) -> None:
-    """Sentences of the incidence section stated in words."""
-    fail = []
-    alive = {}
-    for cl in cw_mod.CLOSURES:
-        H = co[cl]["hold"]
-        b, par = H["birth_year"], H["par"]
-        lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
-        shown = (b <= LAST_BIRTH_SHOWN) & (b >= 1936)
-        t = H["share_shift_tfp_ramp"]
-        if not (t[b <= LAST_BIRTH_SHOWN] > -0.01).all():
-            fail.append(f"'no cohort or type loses in share_shift_tfp' fails at {cl}")
-        if not (t[shown, 0] > t[shown, -1]).all():
-            fail.append(f"'the bottom group gains more than the top 1% in share_shift_tfp' fails at {cl}")
-        s_ = H["share_shift_ramp"]
-        if not (s_[shown, 0] > s_[shown, -1]).all():
-            fail.append(f"'the bottom group fares better than the top 1% in share_shift' fails at {cl}")
-        avg = s_ @ lam
-        i = lambda y: int(np.where(b == y)[0][0])
-        if not (avg[i(1946)] > 0 and avg[i(1966)] > 0):
-            fail.append(f"'older cohorts gain in share_shift' fails at {cl}")
-        for arm in ARMS:
-            alive[(cl, arm)] = float(pw @ (H[arm] @ lam))
-        cons = co[cl]["consumption"]
-        for arm in ARMS:
-            if not (cons[arm][i(1946)] @ lam) > 2 * (H[arm][i(1946)] @ lam):
-                fail.append(f"'consumption-only CEV is much larger for the old' fails for {arm} at {cl}")
-    H = co["zk0.1"]["hold"]
-    b = H["birth_year"]
-    avg = H["share_shift_ramp"] @ cw_mod.type_weights(H["par"])
-    if not (avg[(b >= 1990) & (b <= LAST_BIRTH_SHOWN)] < 0).all():
-        fail.append("'in share_shift at the central closure, cohorts born from 1990 lose' fails")
-    Hb = co["zk0"]["hold"]
-    if not ((Hb["share_shift_ramp"] @ cw_mod.type_weights(Hb["par"]))[Hb["birth_year"] <= LAST_BIRTH_SHOWN] > 0).all():
-        fail.append("'in share_shift at the bound every cohort gains on average' fails")
-    for arm in ARMS:
-        if not alive[("zk0", arm)] > alive[("zk0.1", arm)]:
-            fail.append(f"'living cohorts gain more at the bound' fails for {arm}")
-    # how the change is taken: consumption, leisure, bequests
-    for cl in cw_mod.CLOSURES:
-        H = co[cl]["hold"]
-        b, par = H["birth_year"], H["par"]
-        lam, pw = cw_mod.type_weights(par), cw_mod.population_weights(par, b)
-        part = lambda arm, k: float(pw @ (co[cl]["parts"][arm][k] @ lam))
-        for arm in ARMS:
-            if not (part(arm, "leisure") > 0 and part(arm, "bequests") > 0):
-                fail.append(f"'leisure and bequests add to the average for those alive' fails for {arm} at {cl}")
-        if not 0 < part("share_shift_tfp_ramp", "consumption") < 0.5 * alive[(cl, "share_shift_tfp_ramp")]:
-            fail.append(f"'consumption is less than half of the share_shift_tfp gain' fails at {cl}")
-        if not part("share_shift_tfp_ramp", "consumption") > 0:
-            fail.append(f"'consumption adds to the average in share_shift_tfp' fails at {cl}")
-        s_c = part("share_shift_ramp", "consumption")
-        if cl == "zk0.1" and not s_c < -0.25:
-            fail.append("'the consumption part is negative in share_shift at the central closure' fails")
-        if cl == "zk0" and not abs(s_c) < 0.25:
-            fail.append("'the consumption part is about zero in share_shift at the bound' fails")
-        if not part("share_shift_ramp", "bequests") > max(part("share_shift_ramp", "leisure"), s_c):
-            fail.append(f"'bequests are the largest part in share_shift' fails at {cl}")
-        res = RESULTS_FOR_COHORTS[cl]
-        for arm in ARMS:
-            if not borrowing_gap(res, arm, 2030, par)[1] > 1.0:
-                fail.append(f"'public borrowing is more than 1% of consumption higher by 2030' fails for {arm} at {cl}")
-            if not 1.5 <= borrowing_gap(res, arm, 2030, par)[1] <= 2.7:
-                fail.append(f"'extra borrowing is about 2% of consumption a year by 2030' fails for {arm} at {cl}")
-        # who receives the extra borrowing in 2030 (levels, the arm less the baseline)
-        d30 = lambda arm, f: f(res[arm]) - f(res["baseline"])
-        to_hh = lambda arm: (-d30(arm, lambda x: ser(x, "total_tax_revenue", 2030))
-                             + d30(arm, lambda x: ser(x, "TR", 2030))
-                             + d30(arm, lambda x: ser(x, "agg_pension_outlays", 2030))
-                             + d30(arm, lambda x: ser(x, "r_gov", 2030) * ser(x, "D_d", 2030)))
-        borrow = lambda arm: borrowing_gap(res, arm, 2030, par)[0] / 100 * ser(res["baseline"], "Y", 2030)
-        if not to_hh("share_shift_ramp") > 0.8 * borrow("share_shift_ramp"):
-            fail.append(f"'more than four-fifths of share_shift's extra borrowing reaches households' fails at {cl}")
-        if not to_hh("share_shift_tfp_ramp") < 0:
-            fail.append(f"'households pay more tax, net, in share_shift_tfp' fails at {cl}")
-        if not d30("share_shift_tfp_ramp", lambda x: ser(x, "G", 2030)) > borrow("share_shift_tfp_ramp"):
-            fail.append(f"'government consumption rises by more than borrowing in share_shift_tfp' fails at {cl}")
-        if not abs(d30("share_shift_ramp", lambda x: ser(x, "G", 2030))) < 0.05 * borrow("share_shift_ramp"):
-            fail.append(f"'spending is unchanged in share_shift in 2030' fails at {cl}")
-        if not borrowing_gap(res, "share_shift_ramp", 2030, par)[1] > alive[(cl, "share_shift_ramp")]:
-            fail.append(f"'extra borrowing exceeds the average welfare change in share_shift' fails at {cl}")
-    acc = group_accounts()
-    if not (acc["wealth_share"][0] > acc["earnings_share"][0] and acc["wealth_share"][-1] < acc["earnings_share"][-1]):
-        fail.append("'wealth is spread more evenly across groups than earnings' fails")
-    if not (acc["labour"][0] < acc["labour"][-1] and acc["transfers"][0] > acc["transfers"][-1]
-            and acc["capital"][0] + acc["bequests"][0] > acc["capital"][-1] + acc["bequests"][-1]):
-        fail.append("'the bottom group has less labour and more transfer, capital and bequest income' fails")
-    if fail:
-        raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
-
-
-def build(args) -> tuple[Values, list[str]]:
-    central = load_closure(args.central, "central (zeta_K = 0.1)")
-    central = attach_gni(central, args.central_records)
-    if stated_zeta_k(central) is None:
-        # the pre-rerun data/scenarios.json states no closure; attach_gni has
-        # just proved it is the zeta_K = 0.1 solve by its GDP path
-        if "_gni_source" not in central:
-            raise ResultsError(f"central: {central['_source']} does not state zeta_K")
-    else:
-        require_zeta_k(central, CENTRAL_ZETA_K, "central")
-    bound = load_closure(args.bound, "closed-capital bound (zeta_K = 0)")
-    require_zeta_k(bound, BOUND_ZETA_K, "bound")
-    for a in NEEDED:
-        if not has_foreign_positions(bound[a]):
-            raise ResultsError(f"bound: {bound['_source']} {a} carries no GNI or foreign positions")
-    open_ = load_closure(args.open_diag, "zeta_K = 0.5 diagnostic")
-    require_zeta_k(open_, OPEN_ZETA_K, "zeta_K = 0.5 diagnostic")
-    fixed = {}
-    for key, path, pinned, base, z in (
-            ("central", args.fixed, PINNED / DEFAULT_FIXED.name, central, CENTRAL_ZETA_K),
-            ("bound", args.fixed_bound, PINNED / DEFAULT_FIXED_BOUND.name, bound, BOUND_ZETA_K)):
-        src = path if Path(path).is_file() else pinned   # TODO(#36): drop the fallback
-        fx = load_closure(src, f"fixed spending ({key})")
-        if src == pinned:
-            fx["_source"] += f" (pinned from rerun/fixed-spending {PINNED_SHA}, TODO \\#36)"
-        require_zeta_k(fx, z, f"fixed spending ({key})")
-        if not all(fx[a].get("baseline_spending") for a in ARMS):
-            raise ResultsError(f"{fx['_source']}: arms are not fixed-spending solves")
-        for var in ("Y", "K", "L", "D"):
-            dev = float(np.max(np.abs(arr(fx["baseline"], var) / arr(base["baseline"], var) - 1)))
-            if dev > 1e-12:
-                raise ResultsError(f"fixed-spending file {fx['_source']} and {base['_source']} "
-                                   f"have different baselines ({var} differs by {dev:.2e})")
-        fixed[key] = fx
-    check_claims(central, bound, open_)
-    RESULTS_FOR_COHORTS.update({"zk0.1": central, "zk0": bound})
-    cohorts = cohort_results()
-    check_cohort_claims(cohorts)
+def build() -> tuple[Values, list[str]]:
+    R = load_all()
     v = Values()
-    emit(v, central, bound, fixed, open_, cohorts)
-    sources = [f"central  {central['_source']}"
-               + (f" (GNI from {central['_gni_source']})" if "_gni_source" in central else ""),
-               f"bound    {bound['_source']}",
-               f"fixed    {fixed['central']['_source']}",
-               f"fixed    {fixed['bound']['_source']}",
-               "cohorts  analysis/rerun/cohorts/{zk0.1,zk0}/ (paper/cohort_welfare.py)",
-               f"zeta_K=0.5 diagnostic  {open_['_source']}"]
+    emit(v, R)
+    check_claims(R, v)
+    sources = [f"baseline  {BASELINE_FILE.relative_to(ROOT)} (calibration, OBR comparison)"]
+    for cl in CLOSURES:
+        labs = sorted(r["label"] for x in R[cl]["arms"].values() for r in x.values() if r)
+        sources.append(f"{cl}  {sp.OUTDIR}/{cl}/: continuation + " + ", ".join(labs))
+        pend = sorted(f"{sc}{'_' + var if var else ''}" for (sc, var), x in R[cl]["arms"].items()
+                      if any(r is None for r in x.values()))
+        sources.append(f"{cl}  pending: " + ", ".join(pend))
+    sources.append("nics  analysis/nics/nics_2027.json, nics_2028.json")
     return v, sources
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--central", type=Path, default=DEFAULT_CENTRAL,
-                    help="zeta_K = 0.1 results: assembled .json or closure-record prefix")
-    ap.add_argument("--bound", type=Path, default=DEFAULT_BOUND,
-                    help="zeta_K = 0 results: assembled .json or closure-record prefix")
-    ap.add_argument("--central-records", type=Path, default=DEFAULT_CENTRAL_RECORDS,
-                    help="zeta_K = 0.1 closure records, used for GNI only when the "
-                         "central file carries no foreign positions")
-    ap.add_argument("--fixed", type=Path, default=DEFAULT_FIXED,
-                    help="fixed-spending results at zeta_K = 0.1 (appendix only)")
-    ap.add_argument("--fixed-bound", type=Path, default=DEFAULT_FIXED_BOUND,
-                    help="fixed-spending results at zeta_K = 0 (appendix only)")
-    ap.add_argument("--open-diag", type=Path, default=DIAG_OPEN,
-                    help="zeta_K = 0.5 closure records (pre-rerun diagnostic)")
     ap.add_argument("--check", action="store_true",
                     help="write nothing; exit 1 if values_generated.tex is stale")
     args = ap.parse_args()
-
-    v, sources = build(args)
+    v, sources = build()
     text = render(v, sources)
+    npend = sum(1 for x in v.values() if x == PE)
     if args.check:
         current = OUT.read_text() if OUT.exists() else ""
         strip = lambda s: "\n".join(l for l in s.splitlines() if not l.startswith("% generated"))
         if strip(current) != strip(text):
             print("values_generated.tex is stale; run python paper/make_values.py")
             return 1
-        print(f"values_generated.tex is up to date ({len(v)} macros)")
+        print(f"values_generated.tex is up to date ({len(v)} macros, {npend} pending)")
         return 0
     OUT.write_text(text)
-    print(f"wrote {OUT.relative_to(ROOT)} ({len(v)} macros)")
+    print(f"wrote {OUT.relative_to(ROOT)} ({len(v)} macros, {npend} pending)")
     return 0
 
 
