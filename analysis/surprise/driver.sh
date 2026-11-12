@@ -2,45 +2,111 @@
 # Sequential, resumable driver for the 2028 surprise solves (docs/surprise_2028.md).
 #
 #   PY=~/ogmodels/OG-UK/.venv/bin/python WORK=~/ugai-rerun-work \
-#     analysis/surprise/driver.sh <stage> <closure> [<closure> ...]
+#     analysis/surprise/driver.sh [ITEM ...]
 #
-# stage = continuation | arms | arms_fs.  ONE solve per python process, one at
-# a time; `surprise next` reads what exists, so a finished solve is never
-# repeated.  After each solve its JSON and log are committed (by path) and
-# pushed.  This script does NOT take /tmp/pe-heavy.lock: run it only when the
-# lock is ours.  Needs `surprise prepare` to have written baseline_ext.json.
+# Items run in order; each is resumable (a finished solve, check or gate is
+# never repeated):
+#   check            surprise check-specs (one spec build, no solve; both closures)
+#   <closure>:continuation | <closure>:gate | <closure>:arms | <closure>:arms_fs
+# Default plan (Vahid, 12 Nov 2026): zk0.1 central set first, then zk0 central,
+# then the fixed-spending variants.
+#
+# gate: approves the continuation with reference = continuation ONLY if it
+# passes (Y, K, debt/GDP within 1e-4 over 2028-36, the rest within 1e-3,
+# 2028 RC/Y <= 1e-5); on failure the driver stops and nothing else runs.
+#
+# DEADLINE (epoch seconds, optional): no heavy step starts unless it can end
+# SOLVE_BUDGET seconds (default 600) before it; the run stops at a step
+# boundary and resumes later.  Every output is committed by path and pushed.
+# This script does NOT take /tmp/pe-heavy.lock: use run_locked.sh.
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${PY:?set PY to the OG-UK venv python}"
 WORK="${WORK:?set WORK to the directory holding <closure>/baseline_p1}"
-STAGE="$1"; shift
+SOLVE_BUDGET="${SOLVE_BUDGET:-600}"
 BRANCH="rerun/surprise-2028"
 OUT="$REPO/analysis/surprise/output"
 RERUN="$REPO/analysis/rerun/output"
+PLAN=("$@")
+[[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check zk0.1:continuation zk0.1:gate zk0.1:arms
+                                 zk0:continuation zk0:gate zk0:arms
+                                 zk0.1:arms_fs zk0:arms_fs)
 : > "$WORK/un_api_token.txt"   # empty: OG-Core reads the GitHub mirror, as every run so far
 export PYTHONPATH="$REPO"
+
+[[ "$(git -C "$REPO" rev-parse --abbrev-ref HEAD)" == "$BRANCH" ]] || {
+  echo "not on $BRANCH"; exit 1; }
 
 cli() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" \
             --rerun-dir "$RERUN" </dev/null ); }
 
-for C in "$@"; do
+push() {   # push <message> <path>...
+  local msg="$1"; shift
+  ( cd "$REPO" && git add -- "$@" \
+    && git commit -q -m "$msg" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- "$@" \
+    && for i in 1 2 3; do git push -q origin "$BRANCH" && exit 0; sleep 20; done
+    echo "PUSH FAILED: $msg" )
+}
+
+time_ok() {
+  [[ -z "${DEADLINE:-}" ]] && return 0
+  if (( $(date +%s) + SOLVE_BUDGET > DEADLINE )); then
+    echo "DEADLINE: not starting $1 ($(date +%H:%M); deadline $(date -r "$DEADLINE" +%H:%M)); resume later"
+    return 1
+  fi
+}
+
+for item in "${PLAN[@]}"; do
+  if [[ "$item" == check ]]; then
+    f="$OUT/check_specs.json"
+    [[ -f "$f" ]] && { echo "=== check-specs already done"; continue; }
+    time_ok check-specs || exit 3
+    echo "=== start check-specs $(date +%H:%M)"
+    ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai surprise check-specs \
+        --closure zk0.1 --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
+        </dev/null >"$OUT/check_specs.log" 2>&1 )
+    rc=$?
+    # the JSON report is the last thing printed: everything from the first "{" line
+    sed -n '/^{/,$p' "$OUT/check_specs.log" > "$f.tmp"
+    if [[ $rc -ne 0 ]] || ! "$PY" -c "import json,sys; json.load(open(sys.argv[1]))" "$f.tmp" 2>/dev/null; then
+      rm -f "$f.tmp"; push "surprise 2028: check-specs FAILED (log)" "$OUT/check_specs.log"
+      echo "STOP: check-specs failed (rc $rc); see $OUT/check_specs.log"; tail -5 "$OUT/check_specs.log"; exit 1
+    fi
+    mv "$f.tmp" "$f"
+    push "surprise 2028: check-specs passed (one spec build, both closures)" "$f" "$OUT/check_specs.log"
+    continue
+  fi
+  C="${item%%:*}"; STAGE="${item#*:}"
+  if [[ "$STAGE" == gate ]]; then
+    g="$OUT/$C/GATE_continuation.json"
+    [[ -f "$g" ]] && { echo "=== $C gate already approved"; continue; }
+    cli gate --closure "$C" --approve --reference continuation \
+        --note "driver: continuation passed the tight gate; gaps measured against it" \
+        > "$OUT/$C/gate.log" 2>&1
+    rc=$?
+    if [[ $rc -ne 0 || ! -f "$g" ]]; then
+      push "surprise 2028 $C: continuation gate FAILED" "$OUT/$C/gate.log"
+      echo "STOP: $C continuation gate failed; nothing else runs"; cat "$OUT/$C/gate.log"; exit 1
+    fi
+    push "surprise 2028 $C: continuation gate passed (reference = continuation)" "$g" "$OUT/$C/gate.log"
+    continue
+  fi
   while true; do
     label="$(cli next --closure "$C" --stage "$STAGE" 2>"$WORK/surprise_next.err")" || {
-      echo "STOP $C $STAGE: $(tail -1 "$WORK/surprise_next.err")"; break; }
+      echo "STOP $C $STAGE: $(tail -1 "$WORK/surprise_next.err")"; exit 1; }
     [[ -z "$label" ]] && { echo "=== $C $STAGE done"; break; }
+    time_ok "$C $label" || exit 3
     log="$OUT/$C/$label.log"; mkdir -p "$OUT/$C"
-    echo "=== start $C $label $(date -u +%H:%M:%SZ)"
+    echo "=== start $C $label $(date +%H:%M)"
     ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai surprise step --closure "$C" \
         --stage "$STAGE" --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
         </dev/null >"$log" 2>&1 )
     rc=$?
     if [[ $rc -ne 0 || ! -f "$OUT/$C/$label.json" ]]; then
+      push "surprise 2028 $C: $label FAILED (log)" "$log"
       echo "FAILED $C $label (rc $rc); see $log"; tail -5 "$log"; exit 1
     fi
-    ( cd "$REPO" && git add "analysis/surprise/output/$C/$label.json" \
-        "analysis/surprise/output/$C/$label.log" \
-      && git commit -q -m "surprise 2028 $C: solve $label" \
-           -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" \
-      && for i in 1 2 3; do git push -q origin "$BRANCH" && break; sleep 20; done )
+    push "surprise 2028 $C: solve $label" "$OUT/$C/$label.json" "$log"
   done
 done
+echo "=== plan complete"

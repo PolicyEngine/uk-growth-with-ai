@@ -394,16 +394,31 @@ def test_gate_fixes_the_reference_for_r4_and_assemble(tmp_path):
     reported R4 gap is the one the secant drove to zero."""
     rd, out, be = _dirs(tmp_path)
     d = out / "zk0.1"
-    cont = _arm(be, 0.05, None)             # restart 0.05% above the baseline in 2031
+    cont = _arm(be, 0.005, None)            # restart 0.005% above the baseline in 2031
     _write(d, "continuation", cont)
     with pytest.raises(ValueError):
         sp.write_gate(out, "zk0.1", "nonsense", "")
     sp.write_gate(out, "zk0.1", "continuation", "test")
     _write(d, "share_shift_tfp_ramp", _arm(be, 4.0, 0.97))
-    _write(d, "share_shift_ramp_zfixed", _arm(be, 0.05, 0.943))  # 0 against the restart
+    _write(d, "share_shift_ramp_zfixed", _arm(be, 0.005, 0.943))  # 0 against the restart
     assert sp.next_step(out, "zk0.1", "arms", rd) is None        # already accepted
     res = sp.assemble(out, "zk0.1", rerun_dir=rd)
     assert res["assumptions"]["gap_reference"] == "continuation"
     assert res["baseline"]["Y"] == cont["series"]["Y"][1:6]
     assert res["baseline"]["series"]["Y"][:2] == be["series"]["Y"][:2]   # 2026-27 exact
     assert abs(res["assumptions"]["r4_iterations"][0]["gdp_gap_pct"]) < 1e-9
+    assert set(res["assumptions"]["r4_post_target_gdp_gap_pct"]) == set(range(2032, 2037))
+
+
+def test_continuation_gate_is_tight_on_gdp_capital_and_debt_to_2036():
+    be = _base_ext()
+    ok = _arm(be, 0.0, None)
+    assert sp.continuation_report(ok, be)["years"] == [2028, 2036]
+    for v, i in (("Y", 10), ("K", 9), ("D", 8)):     # 2036, 2035, 2034
+        rec = _arm(be, 0.0, None)
+        rec["series"][v][i] *= 1 + 2e-4              # 0.02%: beyond 1e-4
+        rep = sp.continuation_report(rec, be)
+        assert not rep["tight_ok"] and not rep["ok"], v
+    rec = _arm(be, 0.0, None)
+    rec["series"]["L"][6] *= 1 + 5e-4                # looser variables: 1e-3
+    assert sp.continuation_report(rec, be)["ok"]

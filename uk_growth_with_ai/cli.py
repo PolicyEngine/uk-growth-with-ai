@@ -75,8 +75,10 @@ def main(argv=None) -> int:
                       help="continuation: the no-shock restart that must reproduce the "
                            "baseline; arms_fs: G and TR at baseline levels")
     p_sp.add_argument("--fixed-spending", action="store_true", help="assemble: arms_fs")
-    p_sp.add_argument("--reference", choices=["baseline", "continuation"], default=None,
-                      help="gate --approve: what R4 and every gap are measured against")
+    p_sp.add_argument("--reference", choices=["baseline", "continuation"],
+                      default="continuation",
+                      help="gate --approve: what R4 and every gap are measured against "
+                           "(decided 12 Nov 2026: the continuation)")
     p_sp.add_argument("--approve", action="store_true")
     p_sp.add_argument("--note", default="")
     p_sp.add_argument("--outdir", default="analysis/surprise/output")
@@ -177,8 +179,6 @@ def _surprise(args) -> int:
                                      sp.load_base_ext(args.outdir, args.closure), **kw)
         print(json.dumps(rep, indent=1))
         if args.approve:
-            if args.reference is None:
-                raise SystemExit("--approve needs --reference baseline|continuation")
             print("wrote", sp.write_gate(args.outdir, args.closure, args.reference,
                                          args.note, **kw))
         return 0 if rep["ok"] else 1

@@ -59,8 +59,12 @@ OUTDIR = "analysis/surprise/output"
 # The continuation (no-shock restart) must reproduce the baseline from 2028 to
 # within this relative error before any arm runs: it is the test that the
 # shift list and the initial state are complete.  OG-UK's mindist_TPI is 1e-4.
-CONT_TOL = 1e-3
-CONT_VARS = ("Y", "K", "L", "C", "r", "w", "D", "B")   # relative error
+# Decided 12 Nov 2026: gaps are measured against the continuation, and the
+# continuation must reproduce the committed baseline over 2028-2036 to these
+# relative tolerances, or nothing else runs.
+CONT_TIGHT = {"Y": 1e-4, "K": 1e-4, "D/Y": 1e-4}       # GDP, capital, debt/GDP
+CONT_TOL = 1e-3                                        # everything else
+CONT_VARS = ("L", "C", "r", "w", "D", "B")             # relative error
 CONT_SHARE_VARS = ("I",)    # |diff| / Y: I is a difference of stocks, so solver
                             # noise in K is amplified ~10x in I relative to itself
 RC0_TOL = 1e-5              # |resource-constraint error / Y| in the restart's
@@ -401,19 +405,29 @@ def calibration(base_ext, year=SURPRISE_YEAR) -> dict:
 
 
 def continuation_report(rec, base_ext, year=SURPRISE_YEAR) -> dict:
+    """Restart vs committed baseline over START+k .. the debt-rule year (2028-36)."""
     w = window(year)
-    yrs = range(year, w["ramp_full_year"] + 1)
-    out = {}
+    yrs = range(year, w["debt_rule_year"] + 1)
+    out, tight = {}, {}
+    for v in ("Y", "K"):
+        tight[v] = max(abs(gap_pct(rec, base_ext, y, v)) / 100 for y in yrs)
+    dy = lambda s_, i: s_["D"][i] / s_["Y"][i]
+    tight["D/Y"] = max(abs(dy(rec["series"], y - START) / dy(base_ext["series"], y - START) - 1)
+                       for y in yrs)
+    out["tight"] = tight
+    out["tight_ok"] = all(tight[v] <= CONT_TIGHT[v] for v in CONT_TIGHT)
+    out["years"] = [year, w["debt_rule_year"]]
     for v in CONT_VARS:
         out[v] = max(abs(gap_pct(rec, base_ext, y, v)) / 100 for y in yrs)
     for v in CONT_SHARE_VARS:
         out[f"{v}_share_of_Y"] = max(
             abs(rec["series"][v][y - START] - base_ext["series"][v][y - START])
             / base_ext["series"]["Y"][y - START] for y in yrs)
-    out["max"] = max(out.values())
+    out["max"] = max(v for k_, v in out.items()
+                     if k_ in CONT_VARS or k_.endswith("_share_of_Y"))
     rc = rec.get("diagnostics", {}).get("rc_rel_Y_signed")
     out["rc0_rel_Y"] = abs(rc[0]) if rc else None
-    out["ok"] = bool(out["max"] <= CONT_TOL
+    out["ok"] = bool(out["tight_ok"] and out["max"] <= CONT_TOL
                      and (out["rc0_rel_Y"] is None or out["rc0_rel_Y"] <= RC0_TOL))
     return out
 
@@ -421,7 +435,8 @@ def continuation_report(rec, base_ext, year=SURPRISE_YEAR) -> dict:
 GATE = "GATE_continuation"
 
 
-def write_gate(outdir, closure, reference, note, year=SURPRISE_YEAR) -> Path:
+def write_gate(outdir, closure, reference="continuation", note="",
+               year=SURPRISE_YEAR) -> Path:
     """Approve the continuation and FIX the gap reference for the arms.
 
     The planner (R4) and ``assemble`` both read the reference from this file,
@@ -517,13 +532,14 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
         return {"label": "continuation", "arm": "continuation", "gamma": G_BASE,
                 "Z": None, "baseline_spending": False,
                 "why": "no-shock restart: must reproduce the baseline from "
-                       f"{year} (tolerance {CONT_TOL:g})", **common}
+                       f"{year} to 2036 (Y, K, D/Y within {CONT_TIGHT['Y']:g})", **common}
     if "continuation" not in done:
         raise RuntimeError(f"{closure}: run the continuation stage first")
     rep = continuation_report(done["continuation"], base_ext, year)
     if not rep["ok"]:
         raise RuntimeError(f"{closure}: the continuation misses the baseline: "
-                           f"max {rep['max']:.2e} (tol {CONT_TOL:g}), RC/Y "
+                           f"tight {rep['tight']} (tol {CONT_TIGHT}), other max "
+                           f"{rep['max']:.2e} (tol {CONT_TOL:g}), RC/Y "
                            f"{rep['rc0_rel_Y']} (tol {RC0_TOL:g}): {rep}")
     ref = reference_ext(outdir, closure, base_ext)
     fs = stage == "arms_fs"
@@ -755,6 +771,9 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
             "Z_share_shift_fixed_input": done[k["zfixed"]]["Z_terminal"],
             "Z_share_shift_rule": "equilibrium_gdp_gap", "Z_share_shift_year": w["r4_year"],
             "Z_share_shift_tol_pp": R4_TOL_PP,
+            "r4_post_target_gdp_gap_pct": {
+                y: gap_pct(ss, ref, y) for y in range(w["r4_year"] + 1,
+                                                       START + len(ref["series"]["Y"]))},
             "r4_iterations": [{"label": lab, "Z": math.exp(lz), "gdp_gap_pct": g}
                               for lz, g, lab in r4_points(done, ref, fs, year)],
             "fiscal": ("shocked arms hold G and TR at the baseline's levels" if fs
