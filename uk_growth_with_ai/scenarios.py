@@ -40,8 +40,8 @@ START = 2026
 RAMP_YEARS = 4       # 2026 -> 2030, Korinek et al.'s horizon
 NPER = 5             # periods kept in the results file
 
-# Run settings for the re-run in issue #9 (defaults of `run`; the committed
-# results predate them: own alpha_G per arm, tG1 = 4, g_y_annual = 0.011).
+# Run settings from the re-run in issue #9 (defaults of `run`, used by the
+# committed results; before it: own alpha_G per arm, tG1 = 4, g_y_annual = 0.011).
 TG1 = 10             # issue #3: OG-UK's tG1 = 4 switches G to debt targeting in 2030
 
 # Labour-augmenting productivity growth in the baseline ("OBR central").

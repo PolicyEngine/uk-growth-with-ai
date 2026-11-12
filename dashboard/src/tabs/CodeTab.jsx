@@ -30,15 +30,23 @@ python -c "import ogcore; assert ogcore.__version__ == '0.17.0', ogcore.__versio
 patch -d "$SITE" -p1 --dry-run < patches/ogcore-0.17.0-firm-gamma-tv.diff
 patch -d "$SITE" -p1 < patches/ogcore-0.17.0-firm-gamma-tv.diff`;
 
-const RUN_BASH = `# Main runs: baseline, Automation only, Automation + productivity (ramped)
-python -m uk_growth_with_ai run --shapes ramp \\
-    --out uk_growth_with_ai/data/scenarios.json
+const RUN_BASH = `# One solve per process, resumable; about 7 minutes a solve, one at a time.
+# Closures: zk0.1 (central) and zk0 (closed-capital bound).
+export PY=/path/to/og-uk/venv/bin/python WORK=~/ugai-rerun-work
+analysis/rerun/driver.sh baseline zk0.1 zk0   # R1: baseline debt calibration passes
+# Review each baseline's gate report, then approve it
+python -m uk_growth_with_ai rerun gate --closure zk0.1 --approve --note "..."
+python -m uk_growth_with_ai rerun gate --closure zk0 --approve --note "..."
+analysis/rerun/driver.sh arms zk0.1 zk0       # both arms; R4 secant for Automation only
 
-# Robustness run: government spending held at baseline levels
-python -m uk_growth_with_ai run --shapes ramp --baseline-spending \\
-    --out uk_growth_with_ai/data/scenarios_fixed_spending.json`;
+# Build the results files from the per-solve records
+python -m uk_growth_with_ai rerun assemble --closure zk0.1 \\
+    --out uk_growth_with_ai/data/scenarios.json
+python -m uk_growth_with_ai rerun assemble --closure zk0 \\
+    --out uk_growth_with_ai/data/scenarios_zk0.json`;
 
 const CHECK_BASH = `python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios.json
+python -m uk_growth_with_ai check --results uk_growth_with_ai/data/scenarios_zk0.json
 python -m uk_growth_with_ai report --arm share_shift_tfp_ramp
 python -m uk_growth_with_ai obr`;
 
@@ -59,7 +67,8 @@ const LAYOUT = [
   '├── report.py          result tables',
   '├── dashboard_data.py  builds the dashboard JSON',
   '├── cli.py             run | report | obr | check | dashboard',
-  '└── data/              scenarios.json, scenarios_fixed_spending.json, ...',
+  '├── rerun.py           the corrective reruns, one solve per process',
+  '└── data/              scenarios.json (ζK = 0.1), scenarios_zk0.json (ζK = 0), ...',
   'patches/ogcore-0.17.0-firm-gamma-tv.diff',
 ];
 
@@ -117,23 +126,33 @@ const REPORT_STEPS = [
     prose: (
       <>
         <p className="key-point">
-          <code>run</code> solves the steady state and the transition path for the baseline and each AI scenario.
+          The published results come from <code>rerun</code>, which solves one steady state and transition path per
+          process, for each capital closure.
         </p>
         <ol className="txt-numbered">
           <li>
-            The baseline is solved first; each AI scenario inherits its steady state, so all start from the same
-            assets and debt ({ext(URLS.solve, 'solve.py')}).
+            The baseline is solved first, in two or more passes that set its spending share so that debt/GDP in
+            2030 matches the OBR&rsquo;s. Each AI scenario inherits its steady state, so all start from the same
+            assets and debt ({ext(URLS.solve, 'solve.py')}, {ext(URLS.rerun, 'rerun.py')}).
           </li>
           <li>
-            Z is solved against each scenario&rsquo;s target before the transition runs (
-            {ext(URLS.calibrate, 'calibrate.py')}).
+            A sanity gate on each baseline (debt path, accounting residuals, growth, demographics) must be
+            approved before the AI scenarios run.
           </li>
           <li>
-            <code>--baseline-spending</code> repeats the AI scenarios with government spending held at the
-            baseline&rsquo;s levels, the robustness run for the fiscal convention.
+            Z for Automation + productivity is solved at fixed inputs before the transition runs (
+            {ext(URLS.calibrate, 'calibrate.py')}); Z for Automation only is solved by secant over full solves, so
+            that its 2030 GDP equals the baseline&rsquo;s.
+          </li>
+          <li>
+            <code>rerun assemble</code> builds each closure&rsquo;s results file from the per-solve records in{' '}
+            <code>analysis/rerun/output/</code>.
           </li>
         </ol>
-        <p>A full run takes several hours; add <code>--only share_shift</code> or <code>--only share_shift_tfp</code> to run one scenario.</p>
+        <p>
+          Each solve takes about 7 minutes; the driver skips any solve whose output exists, so an interrupted run
+          resumes where it stopped.
+        </p>
       </>
     ),
     panel: [{ type: 'code', filename: 'terminal', lang: 'bash', content: RUN_BASH }],
@@ -162,8 +181,8 @@ const REPORT_STEPS = [
           <code>dashboard</code> writes the two JSON files this site reads; they are generated, never edited by hand.
         </p>
         <p>
-          {ext(URLS.dashboardData, 'dashboard_data.py')} builds <code>aiScenarios.json</code> (the model paths,
-          including the fixed-spending run when present) and <code>ukAiPaths.json</code> (the OBR and ONS series).
+          {ext(URLS.dashboardData, 'dashboard_data.py')} builds <code>aiScenarios.json</code> (the model paths at
+          both closures) and <code>ukAiPaths.json</code> (the OBR and ONS series).
           The test suite runs <code>dashboard --check</code>, so stale or hand-edited files fail.
         </p>
       </>

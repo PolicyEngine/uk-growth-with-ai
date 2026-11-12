@@ -7,7 +7,7 @@ import MethodologyTab from '@/tabs/MethodologyTab.jsx';
 import CoverageTab from '@/tabs/CoverageTab.jsx';
 import CodeTab from '@/tabs/CodeTab.jsx';
 import DiagramModal from '@/components/DiagramModal.jsx';
-import { D, gapAt, FIRST_YEAR, LAST_YEAR, LS_FALL, OBR, KORINEK } from '@/tabs/ai/metrics.js';
+import { D, FIRST_YEAR, LAST_YEAR, LS_FALL, OBR, KORINEK } from '@/tabs/ai/metrics.js';
 import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
 // Tab ids are the URL hashes; labels can change without breaking links.
@@ -77,7 +77,7 @@ export default function HomePage() {
       <header className="title-row">
         <div className="title-row-inner">
           <h1>The Macroeconomic Effects of AI on the UK</h1>
-          <p className="title-row-sub">Vahid Ahmadi · PolicyEngine · September 2026</p>
+          <p className="title-row-sub">Vahid Ahmadi · PolicyEngine · Updated November 2026</p>
         </div>
       </header>
 
@@ -106,20 +106,20 @@ export default function HomePage() {
           <a href={efo(EFO_PAGE.p1_9)} target="_blank" rel="noreferrer">
             <i>Economic and fiscal outlook</i>
           </a>{' '}
-          projects GDP growth of {OBR.growth2027to30.toFixed(1)}% a year over 2027&ndash;30 and, in{' '}
+          projects GDP growth of {OBR.growth2027to30.toFixed(1)}% a year over 2027&ndash;30. One of its unemployment
+          scenarios in{' '}
           <a href={efo(EFO_PAGE.box22)} target="_blank" rel="noreferrer">
             Box 2.2
           </a>
-          , sets out a displacement scenario with a lower labour share, {OBR.unemployment}% unemployment and
-          unchanged GDP.
+          , &ldquo;technological displacement&rdquo;, raises equilibrium unemployment to {OBR.unemployment}% and lowers
+          the labour share, with higher productivity leaving the level of GDP unchanged.
         </p>
         <p className="intro-text">
           We model AI as a gradual rise in the capital share of output over {FIRST_YEAR}&ndash;{LAST_YEAR}, lowering
-          the labour share by {LS_FALL.toFixed(1)} percentage points, with or without a {KORINEK.tfp}% rise in total
-          factor productivity. Relative to the OBR-central baseline, GDP is {gapAt('share_shift_tfp_ramp', 'Y').toFixed(1)}%
-          higher in {LAST_YEAR} with productivity gains and {gapAt('share_shift_ramp', 'Y').toFixed(1)}% higher with
-          automation alone, driven by investment rather than consumption. The technology paths are imposed, so the
-          results show the general-equilibrium consequences of given scenarios, not their likelihood.
+          the labour share by {LS_FALL.toFixed(1)} percentage points, either with a {KORINEK.tfp}% rise in total
+          factor productivity or with GDP held at the OBR-central baseline&rsquo;s level in {LAST_YEAR}. We report
+          national income (GNI) first and GDP beside it, with a closed-capital bound beside the central case. The technology paths are imposed, so the results show
+          the general-equilibrium consequences of given scenarios, not their likelihood.
         </p>
 
         <nav className="tab-bar" role="tablist" aria-label="Report sections">

@@ -41,6 +41,7 @@ export const URLS = {
   dashboardData: `${REPO_BLOB}/uk_growth_with_ai/dashboard_data.py`,
   obrPy: `${REPO_BLOB}/uk_growth_with_ai/obr.py`,
   calibrate: `${REPO_BLOB}/uk_growth_with_ai/calibrate.py`,
+  rerun: `${REPO_BLOB}/uk_growth_with_ai/rerun.py`,
   scenariosJson: `${REPO_BLOB}/uk_growth_with_ai/data/scenarios.json`,
   obrComparison: `${REPO_BLOB}/docs/OG_UK_OBR_COMPARISON.md`,
 };
