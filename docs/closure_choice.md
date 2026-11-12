@@ -14,8 +14,9 @@ Status: **recommendation, pending Vahid**. The R1–R4 reruns produce both `zeta
    with the closure.
 
 This differs from `docs/closure_sensitivity.md` as first written, which proposed `zeta_K = 0` as
-central. The reason is below: on UK data, a closed capital account fails more tests than the
-default does.
+central. The reason is below. The default matches the UK on the two things that drive the
+headline: the income paid abroad, which is what separates GNI from GDP, and the split of extra
+investment between domestic and foreign finance. A closed capital account matches neither.
 
 On the committed (pre-rerun) numbers the headline would read:
 
@@ -36,7 +37,8 @@ The GNI range across the two closures is 0.9pp and 0.6pp. The GDP range is 1.8pp
   (Working paper No.22, para 5.2).
 
 None of them is evidence that the UK is closed. `zeta_K = 0` is a parameter value too, and it
-makes three claims about the UK that the data reject (next section). It is also not a closed
+makes claims about the UK that the data reject (next section): no foreign-owned capital, a
+current account near balance, and nearly all extra investment financed at home. It is also not a closed
 economy: foreigners still buy 40% of new gilts (`zeta_D = 0.4`), so the capital account is open
 for public debt and shut for private capital. That hybrid is hard to defend as a description of
 anything.
@@ -51,19 +53,20 @@ net liability.
 
 | | UK data | `zeta_K = 0` | 0.1 | 0.5 |
 |---|---|---|---|---|
-| Net income paid abroad, % of GDP | 1.2 (2025), 1.6 (2024) | 0.44 | **1.43** | 4.01 |
-| GNI / GDP, % | about 98.4–98.8 | 99.56 | **98.57** | 95.99 |
+| Net income paid abroad, % of GDP (100 minus GNI / GDP) | 1.2 (2025), 1.6 (2024) | 0.44 | **1.43** | 4.01 |
 | Net foreign inflow (current account deficit), % of GDP | 3.0 (2025), 2.9 (2024) | 0.15 | 0.61 | **2.9–3.1** |
 | Net foreign liabilities, % of GDP | 2.0 (end 2025), 1.4 (end 2024) | **8.6** | 30 | 123 |
 | Foreign claims on the capital stock, % (gross) | about 40 (OBR); 58.8 of quoted shares | 0 | 8 | **37** |
 
 Bold marks the closest closure in each row. Sources are at the end.
 
-- **No closure matches every row.** The model has one net position where the UK has large gross
-  positions on both sides.
-- **`zeta_K = 0.1` matches the income flow.** Income paid abroad is what separates GNI from GDP,
-  so it is the row that matters most for the headline. The baseline pays 1.43% of GDP abroad,
-  inside the UK's 1.2–1.6%.
+- **No closure matches every row, and each matches at least one.** The model has one net
+  position where the UK has large gross positions on both sides. Counting rows does not settle
+  it; which row matters for the headline does.
+- **`zeta_K = 0.1` matches the income flow and misses the current account.** Income paid abroad
+  is what separates GNI from GDP, so it is the row that matters most for the headline. The
+  baseline pays 1.43% of GDP abroad, inside the UK's 1.2–1.6%. Its net inflow is 0.6% of GDP
+  against the UK's 3.0%.
 - **`zeta_K = 0` is closest on the net stock and furthest on the flows.** Its current account is
   near balance, where the OBR forecasts a deficit of about 3% of GDP "funded by a matching inflow
   of foreign saving" (March 2026 EFO, para 2.36).
@@ -77,26 +80,34 @@ Bold marks the closest closure in each row. Sources are at the end.
 The headline is about the margin: when firms want more capital, who supplies it? The baseline
 shares above do not answer that. The saving–investment literature does.
 
-| | Share of extra 2026–29 investment met from domestic resources |
+| | Share of extra 2026–29 investment matched by extra national saving |
 |---|---|
-| `zeta_K = 0` | 0.95 / 0.90 |
-| `zeta_K = 0.1` | 0.33 / 0.37 |
-| `zeta_K = 0.5` | 0.10 / 0.12 |
+| `zeta_K = 0` | 0.92 / 0.86 |
+| `zeta_K = 0.1` | 0.25 / 0.28 |
+| `zeta_K = 0.5` | 0.05 / 0.07 |
 
-(`share_shift_tfp` / `share_shift`; domestic resources are ΔY − ΔC − ΔG.)
+(`share_shift_tfp` / `share_shift`. National saving is GNI − C − G. On a GDP basis, before the
+extra income paid abroad, the shares are 0.95 / 0.90, 0.33 / 0.37 and 0.10 / 0.12.)
 
-- Feldstein and Horioka (1980) found that about 0.9 of a rise in national saving stayed in
-  domestic investment across OECD countries in 1960–74. That is the `zeta_K = 0` world.
-- Later estimates are much lower. Blanchard and Giavazzi (2002) report about 0.6 for the OECD
-  over 1975–2001, about 0.4 for 1991–2001, and about 0.1 for the euro area in the 1990s.
-- For the UK, Sarno and Taylor (1998) find the country highly integrated with world capital
-  markets after exchange controls ended in October 1979.
-- So a retention near 0.9 describes the UK before 1979. A value near 0.35 sits at the open end
-  of the modern range, which is where the UK belongs. A value near 0.1 is a small open economy
-  with no frictions.
+This is an analogue of the Feldstein–Horioka coefficient, not the coefficient itself. They
+regress investment on saving across countries; the table divides the model's extra saving by
+its extra investment after one shock. Both ask how far domestic saving and domestic investment
+move together.
 
-The coefficients in the second and third bullets are quoted from memory of the papers. Check
-them against the published tables before they go into the paper.
+- Feldstein and Horioka (1980) found 0.89 for sixteen OECD countries over 1960–74. That is the
+  `zeta_K = 0` world.
+- Obstfeld and Rogoff found 0.62 for the OECD over 1982–91.
+- Blanchard and Giavazzi (2002, Table 3) find 0.57 for the OECD, 0.36 for the European Union
+  (which then included the UK) and 0.14 for the euro area over 1991–2001.
+- For the UK alone, Sarno and Taylor (1998) find the country highly integrated with world
+  capital markets after exchange controls ended in October 1979. I have their conclusion from
+  the abstract and no coefficient.
+- So a value near 0.9 describes the UK before 1979. A value of 0.25–0.28 lies between the EU
+  and euro-area estimates for the 1990s, which is a defensible place for the UK. A value near
+  0.05 is a frictionless small open economy.
+
+The first three sets of coefficients were checked against Blanchard and Giavazzi's text and
+Table 3, which quote the two earlier papers.
 
 ### 3. What the OBR assumes
 
@@ -118,8 +129,8 @@ them against the published tables before they go into the paper.
 - OG-UK inherits 0.1 and sets the world rate to 2% (OG-Core's default is 4%).
 
 So 0.1 was not chosen for the UK. The argument for it here is after the fact: the baseline it
-produces matches the UK's net income flow, and its marginal financing split is in the range the
-literature supports. That is a weaker basis than a calibration, and the paper should say so in
+produces matches the UK's net income flow, and its marginal financing split is inside the range
+of published estimates for open European economies. That is a weaker basis than a calibration, and the paper should say so in
 those words.
 
 ## What a NIER referee will ask
@@ -127,7 +138,7 @@ those words.
 | Question | Answer under 0.1 central | Answer under 0 central |
 |---|---|---|
 | Why this closure? | The baseline reproduces UK net income paid abroad; marginal financing is within published saving–investment estimates | It has no free parameter |
-| Is that the UK? | Partly: income flow yes, gross ownership no | No: current account in balance, no foreign-owned capital, all extra investment from domestic saving |
+| Is that the UK? | Partly: income flow yes; current account (0.6% against 3.0%) and gross ownership no | No: current account in balance, no foreign-owned capital, about 90% of extra investment from national saving |
 | How sensitive is the headline? | Closed-capital bound shown beside it | Open case shown beside it |
 | Does GDP overstate the gain? | Yes, and GNI leads | Not an issue |
 
@@ -137,6 +148,8 @@ headline was picked for being low.
 
 ## Weaknesses of 0.1 that the paper has to state
 
+- **The baseline current account deficit is 0.6% of GDP, against the UK's 3.0%.** The match is
+  on income paid abroad only.
 - **The size of the inflow depends on the 2% world rate, and no run has varied it.** Domestic r
   is 5.3% in the baseline, so capital demanded at the world rate is 1.72 times the actual stock.
   The rule works on that standing gap.
@@ -155,7 +168,9 @@ headline was picked for being low.
 - **Re-check the choice on the new baselines.** R1 and R2 change the baseline. Keep 0.1 central
   if the new baseline still pays between 1% and 2% of GDP abroad. If it does not, bring the
   numbers back before publishing.
-- **R4 (GDP-neutral Z for `share_shift`)** should be solved at the central closure.
+- **R4 (GDP-neutral Z for `share_shift`) is closure-specific.** A Z that makes equilibrium GDP
+  unchanged at one closure will not do so at the other. It should be solved at the central
+  closure, so a 0.1-central decision needs R4 at 0.1.
 - **Later, not in this rerun:** one sensitivity with the world rate set to the baseline domestic
   return. That removes the standing gap and tests the first weakness above. It is a new closure
   and needs about three solves.
@@ -174,7 +189,8 @@ headline was picked for being low.
   `theory/open_economy.md`; OG-USA documentation, `calibration/macro.md`, and
   `ogusa_default_parameters.json` on `master`, read 12 November 2026.
 - Feldstein, M. and Horioka, C. (1980), "Domestic saving and international capital flows",
-  *Economic Journal* 90.
+  *Economic Journal* 90; Obstfeld, M. and Rogoff, K. (1996), *Foundations of International
+  Macroeconomics*. Both as quoted by Blanchard and Giavazzi.
 - Blanchard, O. and Giavazzi, F. (2002), "Current account deficits in the euro area: the end of
   the Feldstein–Horioka puzzle?", *Brookings Papers on Economic Activity* 2002(2).
 - Sarno, L. and Taylor, M. (1998), "Exchange controls, international capital flows and
