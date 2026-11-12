@@ -580,3 +580,14 @@ def test_uk_plan_is_anchored_and_named(tmp_path):
     z = solve_scenario(sp.scenario_pair("uk_low")["tfp"], 2.1, 0.41, G_BASE)["Z"]
     assert s["Z"] == pytest.approx(z)
     assert s["gamma"] == pytest.approx(0.357)
+
+
+def test_load_ignores_sanity_reports_next_to_the_records(tmp_path):
+    """Regression (12 Nov run): <label>.sanity.json was loaded as a solve and
+    R4's sort read '1.sanity' as an iteration number."""
+    d = tmp_path / "zk0.1"
+    d.mkdir()
+    (d / "korinek_share_shift_ramp_r4_1.json").write_text(json.dumps({"Z_terminal": 0.9}))
+    (d / "korinek_share_shift_ramp_r4_1.sanity.json").write_text(json.dumps({"ok": True}))
+    (d / "GATE_continuation.json").write_text("{}")
+    assert list(sp.load(tmp_path, "zk0.1")) == ["korinek_share_shift_ramp_r4_1"]

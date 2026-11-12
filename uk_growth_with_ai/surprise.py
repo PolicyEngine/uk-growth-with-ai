@@ -599,8 +599,10 @@ def load(outdir, closure) -> dict:
     d = Path(outdir) / closure
     if not d.exists():
         return {}
+    # solve records only: not the gate, the baseline export, or the sanity
+    # reports (<label>.sanity.json, whose stem "<label>.sanity" broke R4's sort)
     return {f.stem: json.loads(f.read_text()) for f in sorted(d.glob("*.json"))
-            if not f.stem.startswith(("GATE", "baseline_ext"))}
+            if not f.stem.startswith(("GATE", "baseline_ext")) and "." not in f.stem}
 
 
 def load_base_ext(outdir, closure) -> dict:
