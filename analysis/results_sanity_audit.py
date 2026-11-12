@@ -338,8 +338,11 @@ def audit(path):
               f"model {pct(A['w'] * A['L'], B['w'] * B['L'])[4]:+.2f}%")
         tax_pp = (A["total_tax_revenue"][4] / A["Y"][4]
                   - B["total_tax_revenue"][4] / B["Y"][4]) * 100
-        print(f"    tax/GDP rule of thumb (OBR effective rates: 46% wages, 27% profits): "
-              f"{(0.46 - 0.27) * -(g[4] - G_BASE) * 100:+.2f}pp; model {tax_pp:+.2f}pp")
+        # OBR November 2025 EFO, para 2.64 and Box 4.1: about 40% on labour
+        # income and about 17% on corporate profits.
+        print(f"    tax/GDP rule of thumb (OBR effective rates: 40% labour income, 17% "
+              f"corporate profits): {(0.40 - 0.17) * -(g[4] - G_BASE) * 100:+.2f}pp; "
+              f"model {tax_pp:+.2f}pp")
 
         print("[10] DEBT DYNAMICS (r_gov = r - 0.02)")
         for lab, X in [("baseline", B), ("arm", A)]:

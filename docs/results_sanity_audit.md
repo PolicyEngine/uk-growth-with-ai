@@ -1,14 +1,17 @@
 # Results sanity audit: magnitude and direction of every reported number
 
-Audited at `0d451a5` (main): `uk_growth_with_ai/data/scenarios.json` (shared spending share) and
-`scenarios_fixed_spending.json` (spending held at baseline levels). All ten series of every arm
-in both files are identical, value for value, on `fix/baseline-contamination` (#22, at `d366c0a`)
-and `paper/first-draft` (#24, at `f8413ba`); only the arm keys differ.
+Audited at `0d451a5`: `uk_growth_with_ai/data/scenarios.json` (shared spending share) and
+`scenarios_fixed_spending.json` (spending held at baseline levels). `main` has since renamed the
+arms (#22) without changing a number: after merging `main` at `e13f8e0`, the script prints the
+same values, and only the arm keys and one chart label differ.
 
-| This report | Key on main | Key on #22 |
+| This report | Key at `0d451a5` | Key on `main` since #22 |
 |---|---|---|
 | `share_shift_tfp` (automation + productivity) | `anthropic_ramp` | `share_shift_tfp_ramp` |
 | `share_shift` (automation only) | `obr_ramp` | `share_shift_ramp` |
+
+File and line references are to `0d451a5`. The context chart's "No AI" series is "OG-UK baseline"
+on `main`.
 
 Every model number below is printed by `python analysis/results_sanity_audit.py`, which reads only
 committed files: the two results files, `obr_history.json` and the dashboard's `ukAiPaths.json`
@@ -53,6 +56,15 @@ The comparators in the "expected" column are computed by the script from inputs 
 the corporate tax wedge and the baseline path. I had seen the model values before formalising
 them, so they are not blind predictions; they are reproducible bounds.
 
+What that does and does not affect:
+
+- **W verdicts do not depend on it.** Each rests on an identity or on outside data (the foreign
+  split, GNI, the residuals, the OBR debt path), and would stand whatever was expected.
+- **S verdicts inside a wide bracket carry little information.** GDP between +3.1% and +12.4%
+  rules out very little. Read S as "inside the bounds", not "as predicted".
+- **Some expectations cannot fail** ("small; sign depends on wealth and wage effects"). Those
+  rows record the model value and its mechanism; they are not tests.
+
 | Comparator | What it assumes | Role |
 |---|---|---|
 | Inputs fixed | K and L at baseline; only γ and Z move | Lower bound on GDP; the calibration target |
@@ -72,16 +84,26 @@ For 2030 (`[E]` in the script output):
 | `share_shift` wage, % | −6.03 | −6.03 | +0.49 | −3.94 |
 | `share_shift` r, bp | +121 | +121 | 0 | +80 |
 
-External benchmarks. Those marked "local note" come from a benchmark note that is not in the
-repository and that I did not check against the primary PDFs; treat them as unverified. The rest
-are in tracked files.
+External benchmarks. The first three were checked against the OBR PDFs in the review of this
+report (12 Nov 2026); the rest are in tracked files.
 
-- OBR Briefing paper No.9, Annex B (local note): AI raises the level of UK productivity by about 2.3% over ten
-  years, +0.2pp a year by the forecast horizon, with most of the effect in the second half.
+- OBR Briefing paper No.9, Annex B: AI raises the level of UK productivity by 2.3% over the next
+  decade in the central scenario (para B.9). The central boost to productivity growth is about
+  0.2pp at the forecast horizon, between a J-curve that reaches 0.1pp a year by year five and an
+  S-curve that reaches 0.25pp (paras B.12, B.14). The paper gives no level effect for 2030. A
+  growth effect rising in a straight line to 0.1pp, 0.2pp or 0.25pp in year five adds up to
+  about 0.3%, 0.6% or 0.75% on the level; that range is this report's arithmetic, not an OBR
+  figure.
 - OBR March 2026 EFO Box 2.2 and paragraph 6.18: GDP level unchanged, lower labour share,
-  receipts about −0.2% of GDP, debt +1.3% of GDP by 2030-31 (`dashboard/src/tabs/ai/metrics.js`).
-- OBR effective tax rates of 46% on wages and 27% on profits (local note), giving a rule of thumb of
-  (0.46 − 0.27) × −3.9pp = −0.74pp of GDP in receipts for this labour-share fall.
+  receipts £6bn a year lower (about 0.2% of GDP), debt +1.3% of GDP by 2030-31
+  (`dashboard/src/tabs/ai/metrics.js`). Box 2.2 says labour income "faces a higher effective tax
+  rate" and gives no rates.
+- OBR effective tax rates: about 40% on labour income and about 17% on corporate profits
+  (November 2025 EFO, para 2.64 and Box 4.1; 42% on labour income by 2030-31 after that
+  Budget's measures). Other income, 37% of GDP, is taxed at close to zero. A labour-share fall
+  of 3.9pp that goes to corporate profits gives a rule of thumb of (0.40 − 0.17) × −3.9pp =
+  −0.90pp of GDP in receipts. An earlier draft used 46% and 27% from an unchecked note
+  (−0.74pp); neither figure is in the OBR documents.
 - Korinek et al. (2026) Table 3, "substantial": GDP +8.3%, capital +13.8%, labour share 60.0 → 56.1
   (`uk_growth_with_ai/scenarios.py`).
 - OBR March 2026 EFO paths (`uk_growth_with_ai/data/obr_history.json`).
@@ -135,7 +157,7 @@ the stated benchmark.
 | Consumption, % | Below GDP; follows resident income net of saving | −0.53, −0.46, −0.29, −0.03, +0.32 | S | Of the 4.92% of GDP gained in 2030, consumption takes 0.16, government 1.42, investment 2.60, and the external balance 0.73 (`[7]`) |
 | Government consumption, % | Equal to the GDP gap by construction | +0.19 … +4.92 | C | G/Y = 28.89% in every arm |
 | Tax revenue, % | Below the GDP gap: income shifts to the lower-taxed base | +0.08, +0.96, +1.91, +2.94, +4.05 | C | Revenue gap / GDP gap = 0.82 |
-| Tax/GDP, pp | −0.74 (OBR effective-rate rule of thumb) | −0.35 | C | Right sign, about half the size |
+| Tax/GDP, pp | −0.90 (OBR effective-rate rule of thumb) | −0.35 | S | Right sign, 39% of the size |
 | Debt, % and debt/GDP, pp | Ambiguous under the shared-share rule | +1.44%; −3.00pp | C | Spending rises with GDP and r_gov rises 83bp; the ratio falls through the denominator |
 | GDP growth in 2030 | Above baseline during the ramp | 2.93% against 1.64% | C | `[3]` |
 
@@ -153,7 +175,7 @@ the stated benchmark.
 | Investment, % | About 0 (Solow) | +16.4, +18.4, +19.5, +20.4, +6.9 | S; profile is an artefact | Anomaly C |
 | Consumption, % | Falls: resident income falls | −1.34, −1.40, −1.42, −1.38, −1.29 | C | Labour income −4.67%, GNI +0.59%, government takes 0.41% of GDP more |
 | Tax revenue, % | Near zero or negative | +0.29, +0.27, +0.23, +0.18, +0.09 | C | Revenue gap / GDP gap = 0.07 |
-| Tax/GDP, pp | −0.74 (rule of thumb); about −0.2 (OBR ¶6.18) | −0.55 | C | Between the two benchmarks |
+| Tax/GDP, pp | −0.90 (rule of thumb); about −0.2 (OBR ¶6.18) | −0.55 | C | Between the two benchmarks |
 | Debt/GDP, pp | Up (OBR: +1.3% of GDP by 2030-31) | +0.68 | C | Half the OBR figure; the OBR's includes welfare costs of higher unemployment that the model lacks |
 
 ### Fixed-spending file
@@ -174,7 +196,7 @@ shared-share rows unless stated.
 | Consumption, % | As shared-share | +0.20, −1.32 | S, C | 2026: −0.61, −1.37 |
 | Government consumption, % | Zero by construction | 0.00, 0.00 | C | Held at baseline levels |
 | Tax revenue, % | Below the GDP gap | +4.18, +0.15 | C | Revenue gap / GDP gap 0.80, 0.10 |
-| Tax/GDP, pp | −0.74 (rule of thumb) | −0.41, −0.58 | C | |
+| Tax/GDP, pp | −0.90 (rule of thumb) | −0.41, −0.58 | S, C | 46% and 64% of the rule of thumb |
 | Debt, % | Down when revenue rises and spending is fixed | −1.44, +0.72 | C | |
 | Debt/GDP, pp: `share_shift_tfp` | Down | −5.72 | C | Implied primary surplus rises from 2.75% to 3.70% of GDP |
 | Debt/GDP, pp: `share_shift` | Up (OBR: +1.3% of GDP under this convention) | −0.73 | S | Opposite sign to the OBR. Follows from anomaly E: GDP is +1.54% here and unchanged in the OBR's scenario, and the model has no unemployment-related spending |
@@ -390,11 +412,20 @@ beside an OBR line that does the opposite.
   92.62, 91.55, 90.56: 4.5pp lower by 2030.
 - Tax/GDP is 42.2% in the model against 37.0% in the OBR data.
 
-**Root cause (hypothesis).** `solve.py` sets `alpha_G` to the baseline steady state's G/Y and
-holds it through the window, with the debt rule off until 2036. The steady state has debt at 95%
-of GDP (#30 export), so that spending share is the one that stabilises debt for the steady-state
-economy. In 2026–30 the same share leaves a larger surplus. Confirming this needs the steady-state
-revenue, transfers and population growth, which are not exported.
+**Root cause (checked in review against the #30 export).** `solve.py` sets `alpha_G` to the
+baseline steady state's G/Y and holds it through the window, with the debt rule off until 2036.
+The steady-state values in `analysis/closure/output/extra_exports.json` (#30) bear this out:
+
+| % of GDP | Steady state | 2026 |
+|---|---|---|
+| Tax revenue | 41.22 | 42.20 |
+| Government consumption | 28.89 | 28.89 |
+| Transfers and pensions | 11.01 | 10.66 |
+| Primary surplus | 1.31 | 2.64 |
+
+The steady-state surplus of 1.31% is the debt-stabilising one (about 1.3pp above). The window's
+surplus is 1.33pp larger: 0.98pp from a higher tax share and 0.35pp from lower transfers and
+pensions. Why the tax share is higher in the window is not decomposed here.
 
 **Correction.**
 
@@ -479,15 +510,16 @@ Y − C − I − G is smooth should compare against the identity above, not aga
 
 ## Other findings
 
-- **Revenue composition.** Tax/GDP falls 0.35pp and 0.55pp, the right sign and 47–74% of the
+- **Revenue composition.** Tax/GDP falls 0.35pp and 0.55pp, the right sign and 39–61% of the
   effective-rate rule of thumb. The paper is right that the split by base is not identified.
 - **Government absorption.** Under the shared-share rule government consumption takes 1.42% of
   baseline GDP of the 4.92% gain. This is an assumption, and the fixed-spending file is the
   alternative; the headline should say which is shown.
-- **GDP against the OBR's AI judgement.** +4.9% by 2030 is five to ten times the 2030 effect
-  implied by Briefing paper No.9 (about +0.5% to +1.0%), because the +3.1% technology gain and the
-  −3.9pp labour share are imposed from a US scenario. That is a calibration choice already flagged
-  in the dashboard's first caveat, not a model defect.
+- **GDP against the OBR's AI judgement.** +4.9% by 2030 is several times any 2030 level effect
+  consistent with Briefing paper No.9 (about +0.3% to +0.75% on this report's arithmetic; the
+  paper states none), because the +3.1% technology gain and the −3.9pp labour share are imposed
+  from a US scenario. That is a calibration choice already flagged in the dashboard's first
+  caveat, not a model defect.
 
 ## Corrections, in order
 
@@ -527,8 +559,8 @@ only. It leaves the dashboard, paper and model files alone because `fix/baseline
 ## What this audit did not do
 
 - No OG-UK solve. The closure, pre-TP and convergence runs are on #30.
-- It did not re-read the OBR or Korinek et al. PDFs. Benchmarks come from tracked data and
-  constants, except the two marked "local note" above.
+- It did not re-read the Korinek et al. PDF. The OBR benchmarks were checked against the PDFs in
+  review; the Korinek figures come from tracked constants.
 - It did not test whether the gaps are invariant to fixing the residuals (rerun R2).
 - It did not test the cause of the 2026 residual or of the baseline primary surplus; both are
   stated as hypotheses with the run that would settle them.
