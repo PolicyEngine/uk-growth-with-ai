@@ -476,6 +476,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         "years": list(range(START, START + NEXP)),
         "surprise": sp_rec,
         "debt_neutral": dn_rec,
+        "tau_payroll": (float(np.asarray(p.tau_payroll).ravel()[0])
+                        if getattr(p, "tau_payroll", None) is not None else None),
         "delta": float(p.delta) if getattr(p, "delta", None) is not None else None,
         "series": series,
         **{v: series[v][:NPER] for v in TOP_LEVEL if v in series},

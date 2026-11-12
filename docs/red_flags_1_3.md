@@ -42,48 +42,75 @@ The R4 `share_shift` arm shows the same pattern: 0.75 at 2030 and 1.15 in the st
 
 ## Red flag 3: tax/GDP rises in `share_shift_tfp` at zk0
 
-**Decomposition of the 2030 change in tax/GDP** (pp of GDP, `share_shift_tfp` against its closure's baseline, 2026-start):
+*Corrected 12 Nov 2026.* The first version of this section read OG-Core's `payroll_tax_revenue` (zero) as "no payroll tax". That was wrong, and so were its effective rates.
+
+### What OG-UK already contains (checked in the code)
+
+**Employee NICs are inside the income-tax functions.**
+- OG-UK estimates its Gouveia–Strauss ETR and MTR functions on PolicyEngine-UK person-level `income_tax + national_insurance` (`oguk/api.py`, `_get_micro_data`: `_person_tax`, and `tax` for the ETR).
+- In PolicyEngine-UK 2.90.2, `national_insurance` adds `ni_class_1_employee`, `ni_class_2`, `ni_class_3` and `ni_class_4`. That is employee and self-employed NICs only.
+- `ni_employer` is a separate variable and is **not** in the fitted functions.
+- The labour base is `employment_income + self_employment_income`, which excludes employer NICs.
+
+**Employer NICs are a flat payroll tax.** `oguk/macro_params.py` `get_uk_tax_rates` sets `tau_payroll = 0.15`, commented "Employer NICs: 15% from April 2025".
+- OG-Core levies it on all labour income: `tax.income_tax_liab` returns T_I + T_P, with T_P = `tau_payroll` · w·e·n.
+- It is in the labour first-order condition: `household.FOC_labor` uses 1 − `tau_payroll` − MTR.
+- It applies from the first pound, with no secondary threshold or Employment Allowance, on the model's whole labour income (65% of GDP). So it raises **9.75% of GDP**.
+
+**Why the revenue line reads zero.** OG-UK sets `frac_tax_payroll = 0` (its microdata `payroll_tax_liab` is zeros). So OG-Core's `iit_revenue` contains the payroll tax, and `payroll_tax_revenue` reads 0. It is a labelling split, not an absence.
+
+**Consequence: adding UK NICs would double count both sides.** Employee NICs are already in T_I, and employer NICs are already T_P. The open question is the size of T_P, not whether it exists. A flat 15% on all labour income is above the average employer rate, because of the secondary threshold and the Employment Allowance. 9.75% of GDP also looks large next to total UK NICs (employee plus employer) of roughly 6% of GDP. That is a rough figure, which step 2 of the NICs plan measures on PolicyEngine-UK.
+
+### Decomposition of the 2030 change in tax/GDP
+
+pp of GDP, `share_shift_tfp` against its closure's baseline, 2026-start:
 
 | base | zk0.1 | zk0 |
 |---|---|---|
-| household income tax (labour and capital income, one function) | −0.49 | −0.18 |
+| payroll tax (employer NICs, 15% of w·L) | −0.59 | −0.59 |
+| income tax and employee NICs (one function of total household income) | +0.10 | +0.41 |
 | business (corporate) tax | +0.66 | +0.71 |
 | consumption tax | −0.42 | −0.30 |
 | bequest tax | −0.03 | −0.01 |
 | wealth tax | −0.07 | −0.02 |
-| payroll tax | 0.00 | 0.00 |
 | **total** | **−0.35** | **+0.20** |
 
-**Effective rates in OG-UK** (baseline 2030; household income tax split pro rata between labour income w·L and household capital income r_p·B; capital also pays the business tax):
+### Effective rates in OG-UK
+
+Baseline 2030. The payroll tax goes to labour. The income-tax function is split pro rata between labour income w·L and household capital income r_p·B. Capital also pays the business tax.
 
 | rate | zk0.1 | zk0 | OBR FRS 2026 Box 4.1 | OBR EFO Nov 2025 ¶2.64 |
 |---|---|---|---|---|
-| labour | 31.5% | 31.3% | 46% | 40% |
-| capital, on gross capital income γY | 25.0% | 26.8% | 27% | 17% |
-| capital, net of depreciation (γY − δK) | 49.0% | 50.8% | | |
-| labour minus capital (gross basis) | 6.5pp | 4.5pp | 19pp | 23pp |
+| labour (income tax, employee NICs, payroll) | 34.5% | 34.4% | 46% | 40% |
+| of which the income-tax function (ETR on total household income) | 19.5% | 19.4% | | |
+| capital, on gross capital income γY | 19.6% | 20.9% | 27% | 17% |
+| capital, net of depreciation (γY − δK) | 38.4% | 39.6% | | |
+| labour minus capital (gross basis) | 14.8pp | 13.6pp | 19pp | 23pp |
 
-**Cause, in three parts.**
+### Cause
 
-1. **The wedge between labour and capital taxation is about a quarter of the OBR's.**
-   - OG-UK taxes household labour and capital income with one income-tax function (one effective rate on total income, about 31%), and its payroll tax revenue is zero.
-   - The labour rate is therefore 15pp below the FRS 46%, which includes employee and employer NICs, and 9pp below the EFO 40%.
-   - On a gross basis the capital rate matches the FRS 27%. It is 8–10pp above the EFO 17%. On a net-of-depreciation basis it is about 50%.
-   - So moving a point of income from labour to capital lowers revenue by about 0.05pp in OG-UK, against 0.19–0.23pp for the OBR.
-2. **Household capital income rises by more than labour income falls.**
-   - At zk0, household capital income r_p·B goes from 17.5% to 22.0% of GDP, +4.5pp, while the labour share falls 3.9pp.
-   - The reason is that r_p rises by 140bp, from 5.16% to 6.56%, on all household wealth, including gilts.
+1. **The labour–capital wedge is about 14pp, against the OBR's 19–23pp.**
+   - So each point of income moved from labour to capital lowers revenue by about 0.14pp in OG-UK, against 0.19–0.23pp for the OBR.
+   - That alone gives the right sign but too small a size (−0.53pp for 3.9 points).
+2. **The income-tax function's take rises: +0.41pp at zk0, +0.10pp at zk0.1.**
+   - At zk0, household capital income r_p·B rises from 17.5% to 22.0% of GDP, because r_p rises by 140bp on all household wealth, gilts included.
+   - The progressive ETR on total household income then rises from 19.4% to 19.8%.
    - The OBR's composition exercise holds GDP and returns fixed, so it has no such channel.
-   - At zk0.1 the rise is +2.9pp, because r rises less and part of the return goes to foreign owners. That is why household income tax falls more there (−0.49 against −0.18).
-3. **Business tax rises with the capital share**, by +0.66 to +0.71pp, roughly in proportion to γY. Consumption tax falls with C/Y.
+   - At zk0.1, r rises less and part of the return goes abroad.
+3. **Business tax rises with the capital share**, by +0.66 to +0.71pp. Consumption tax falls with C/Y.
 
-At zk0 the second and third parts outweigh the first, and tax/GDP rises.
+At zk0, the second and third parts outweigh the payroll fall (−0.59pp), and tax/GDP rises.
 
-**What would change it.** These are not changed without asking:
-- a payroll tax or a separate labour-income tax function, to restore the labour–capital wedge;
-- a lower tax rate on household capital income.
+### What it means for the NICs plan
 
-The capital rate is not out of line with the FRS on a gross basis. It is out of line with the EFO by about 8–10pp, and it is about 23–25pp above the FRS on a net basis. Which comparison is right depends on the OBR's profit definition, which `docs/literature_comparison.md` should state. The robust finding is the wedge. OG-UK's labour rate is too low relative to its capital rate, by about 13–18pp against the OBR's 19–23pp gap.
+- **Adding NICs on top would double count.**
+- **Re-sizing `tau_payroll` to the measured average employer rate** (PolicyEngine-UK `ni_employer` ÷ employment income) would probably *lower* it. That cuts payroll revenue and narrows the wedge further, which moves red flag 3 the wrong way. Tax/GDP would also fall, so R1 would have to re-solve G/Y.
+- **The UK labour rate is high because of employee and employer NICs on top of income tax.** OG-UK's labour rate is 34%, against the OBR's 40–46%, and the shortfall is in the income-tax function (19.5% on total household income). The function is a single schedule for labour and capital income, and is progressive in total income.
+- **An honest fix for the wedge** is OG-Core's separate labour and capital tax functions (`mtrx` and `mtry`), estimated by OG-UK with different parameters. OG-UK currently reuses the ETR parameters for both (`_estimate_tax_functions`: "reuses them for MTRx and MTRy"). That needs a tax-function re-estimation in OG-UK, which is not allowed in this repo without asking.
+- **Decision for Vahid:**
+  - (a) leave the tax side as is and report the wedge;
+  - (b) re-size `tau_payroll` from PolicyEngine-UK, with R1 re-solved, accepting a smaller wedge;
+  - (c) re-estimate separate labour and capital tax functions in OG-UK, which is outside this repo.
 
 ## Red flags 2 and 4 in the rerun
 

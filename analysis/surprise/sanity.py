@@ -280,18 +280,33 @@ def capital_elasticity(Ya, Ka, Yb, Kb, g1, g0=0.35):
     return {"dlnK": dk, "dln_rental": drent, "elasticity": dk / drent if drent else None}
 
 
-def effective_rates(x, i, delta=sp.DELTA_ANNUAL):
-    """Labour and capital effective rates.  OG-UK taxes household labour and
-    capital income with ONE income-tax function, so household income tax is
-    split pro rata to the two bases; capital also pays the business tax."""
+TAU_PAYROLL = 0.15   # OG-UK macro_params.get_uk_tax_rates: employer NICs, 15% flat
+
+
+def effective_rates(x, i, delta=sp.DELTA_ANNUAL, tau_payroll=TAU_PAYROLL):
+    """Labour and capital effective rates.
+
+    OG-Core's ``iit_revenue`` is income tax PLUS the payroll tax: OG-UK sets
+    frac_tax_payroll = 0, so ``payroll_tax_revenue`` reads 0 although
+    tau_payroll = 0.15 (employer NICs) is levied on w e n
+    (ogcore/tax.py income_tax_liab: T_I + T_P).  So the payroll part is
+    tau_payroll * w L, all on labour; the rest, T_I (income tax and employee
+    NICs, fitted on PolicyEngine-UK's income_tax + national_insurance), is one
+    function of total household income and is split pro rata between labour
+    income w L and household capital income r_p B.  Capital also pays the
+    business tax."""
     Y, LI = x["Y"][i], x["w"][i] * x["L"][i]
     KI, HK = Y - LI, x["r_p"][i] * x["B"][i]
-    iit = x["iit_revenue"][i]
-    il, ik = iit * LI / (LI + HK), iit * HK / (LI + HK)
+    tp = tau_payroll * LI
+    ti = x["iit_revenue"][i] - tp
+    il, ik = ti * LI / (LI + HK), ti * HK / (LI + HK)
     bus = x["business_tax_revenue"][i]
-    return {"labour": (il + x["payroll_tax_revenue"][i]) / LI * 100,
+    return {"labour": (il + tp) / LI * 100,
+            "labour_excl_payroll": il / LI * 100,
             "capital_gross": (ik + bus) / KI * 100,
             "capital_net_of_depreciation": (ik + bus) / (KI - delta * x["K"][i]) * 100,
+            "payroll_pct_gdp": tp / Y * 100,
+            "income_tax_and_employee_nics_pct_gdp": ti / Y * 100,
             "household_capital_income_pct_gdp": HK / Y * 100}
 
 
@@ -325,8 +340,15 @@ def diagnostics(rec, ref, base_rec, target, kind_) -> dict:
                                               - b["total_tax_revenue"][i]) / b["Y"][i] * 100,
             "obr_receipts_6_18_pct_gdp": OBR_RECEIPTS_PCT_GDP,
             "labour_share_fall_pp": lsf}
-        out["effective_rates_2031"] = {"arm": effective_rates(s, i),
-                                       "reference": effective_rates(b, i), "obr": OBR_RATES}
+        tp = rec.get("tau_payroll", TAU_PAYROLL)
+        out["effective_rates_2031"] = {"arm": effective_rates(s, i, tau_payroll=tp),
+                                       "reference": effective_rates(b, i, tau_payroll=tp),
+                                       "obr": OBR_RATES}
+        ra, rb = out["effective_rates_2031"]["arm"], out["effective_rates_2031"]["reference"]
+        out["tax_gdp_2031"]["by_base_pp_payroll_split"] = {
+            "payroll (employer NICs, tau_payroll)": ra["payroll_pct_gdp"] - rb["payroll_pct_gdp"],
+            "income tax and employee NICs": (ra["income_tax_and_employee_nics_pct_gdp"]
+                                             - rb["income_tax_and_employee_nics_pct_gdp"])}
     return out
 
 

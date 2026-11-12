@@ -130,3 +130,15 @@ def test_uk_arm_uses_its_own_labour_share_target_and_has_no_band(tmp_path):
     out2 = _out(tmp_path / "b", {"uk_central_share_shift_tfp_ramp": _rec(big)})
     assert "labour share = -target x ramp weight" in sanity.check(
         "zk0.1", "uk_central_share_shift_tfp_ramp", out2)["fails"]
+
+
+def test_effective_rates_separate_the_payroll_tax_inside_iit_revenue():
+    """OG-Core's iit_revenue includes tau_payroll * w L (frac_tax_payroll = 0)."""
+    x = {"Y": [100.0], "w": [1.0], "L": [65.0], "r_p": [0.05], "B": [300.0],
+         "K": [260.0], "business_tax_revenue": [4.0],
+         "iit_revenue": [0.15 * 65.0 + 0.2 * (65.0 + 15.0)]}   # payroll + 20% ETR
+    r = sanity.effective_rates(x, 0, tau_payroll=0.15)
+    assert r["payroll_pct_gdp"] == pytest.approx(9.75)
+    assert r["labour_excl_payroll"] == pytest.approx(20.0)
+    assert r["labour"] == pytest.approx(35.0)
+    assert r["capital_gross"] == pytest.approx((0.2 * 15.0 + 4.0) / 35.0 * 100)
