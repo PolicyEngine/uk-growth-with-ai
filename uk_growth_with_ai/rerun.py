@@ -51,6 +51,7 @@ DEBT_TOL_PP = 0.10           # accept a baseline within 0.1pp of the target
 DEBT_SLOPE0 = 400.0          # first-step guess: pp of 2030 D/Y per unit of G/Y
                              # (four years of extra spending, roughly 1:1)
 MAX_BASELINE_PASSES = 5
+PAYMENTS_ABROAD_BAND = (1.0, 2.0)   # % of GDP, zk0.1 baseline (docs/closure_choice.md)
 
 # R4 ------------------------------------------------------------------------
 R4_YEAR = 2030               # #8 option (b): "the TPI path of Y matches
@@ -373,6 +374,10 @@ def baseline_report(rec) -> dict:
         "obr_growth_2027_30_mean": 1.6,
         "r": rec["r"], "r_gov": rec["r_gov"],
         "lom_max_abs_rel": max(x["max_abs_rel"] for x in lom),
+        # docs/closure_choice.md: zeta_K = 0.1 stays central only while the
+        # calibrated baseline pays 1-2% of GDP abroad (GDP - GNI) in 2026-30.
+        "payments_abroad_pct_gdp": [(rec["Y"][i] - rec["GNI"][i]) / rec["Y"][i] * 100
+                                    for i in range(5)],
         "tpi_converged": d.get("tpi_converged"),
         "tpi_final_distance": d.get("tpi_final_distance"),
         "tpi_iterations": d.get("tpi_iterations"),
@@ -420,6 +425,14 @@ def write_gate(outdir, closure, note: str) -> Path:
     base = accepted_baseline(done)
     if base is None:
         raise RuntimeError(f"{closure}: no accepted baseline to approve")
+    rep = baseline_report(base)
+    if closure == "zk0.1":
+        pa = rep["payments_abroad_pct_gdp"]
+        if not all(PAYMENTS_ABROAD_BAND[0] <= x <= PAYMENTS_ABROAD_BAND[1] for x in pa):
+            raise RuntimeError(
+                f"zk0.1 baseline pays {min(pa):.2f}-{max(pa):.2f}% of GDP abroad, outside "
+                f"{PAYMENTS_ABROAD_BAND}: the closure choice (docs/closure_choice.md) no "
+                "longer holds; flag on #27 and do not run the arms")
     f = Path(outdir) / closure / "GATE_baseline.json"
     f.write_text(json.dumps({"approved": True, "baseline": base["label"],
                              "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
