@@ -4385,3 +4385,20 @@ html[data-theme='dark']:has(#tab-method:not([hidden]), #tab-literature:not([hidd
     display: none;
   }
 }
+
+@media (max-width: 760px) {
+  .mx-mrow.mx-mhead {
+    display: none;
+  }
+}
+
+.mx-rb-note {
+  position: absolute;
+  top: 50%;
+  margin-left: 14px;
+  font-size: var(--fs-micro);
+  font-style: italic;
+  white-space: nowrap;
+  color: var(--pe-gray-500);
+  transform: translateY(-50%);
+}
