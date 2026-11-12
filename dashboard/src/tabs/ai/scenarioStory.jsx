@@ -204,8 +204,8 @@ export const STORY_STEPS = [
                 {Z_SHARE_SHIFT.toFixed(4)} against {Z_SHARE_SHIFT_FIXED.toFixed(4)}).
               </p>
               <p>
-                Only {Z_SHARE_SHIFT_YEAR} is targeted. GDP is {signed(SS_Y_2026)}% in {FIRST_YEAR} (
-                <Cv id="anticipation" />) and {signed(SS_Y_LATE, 2)}% by {LATE_YEAR}.
+                Only {Z_SHARE_SHIFT_YEAR} is targeted. GDP differs from the baseline in the other years: most in{' '}
+                {SS_Y_MAX_YEAR} (<Cv id="anticipation" />), and by {signed(SS_Y_LATE)}% in {LATE_YEAR}.
               </p>
             </>
           }
@@ -315,9 +315,8 @@ export const STORY_STEPS = [
         <p>
           At the baseline&rsquo;s capital-labour ratio, the rise in &gamma; alone raises output by{' '}
           {GAMMA_ONLY_GAIN.toFixed(2)}%. Z removes all but +{KORINEK.tfp}% of that gain in Automation +
-          productivity. In Automation only it removes all of it and a further{' '}
-          {Math.abs(SHARE_SHIFT_TECH).toFixed(1)}%, the amount that holds {Z_SHARE_SHIFT_YEAR} GDP at the
-          baseline&rsquo;s. Both solved values are below 1, and the two AI scenarios differ only in Z.
+          productivity. In Automation only it removes all of it and more, by the amount that holds{' '}
+          {Z_SHARE_SHIFT_YEAR} GDP at the baseline&rsquo;s (step 4). Both solved values are below 1, and the two AI scenarios differ only in Z.
         </p>
         <p className="note-box">
           The level of Z has no economic meaning (<Cv id="z" />
@@ -366,8 +365,8 @@ export const STORY_STEPS = [
           </li>
           <li id="caveat-investment">
             <b>Investment rises before the technology changes.</b> Agents foresee the ramp (perfect foresight) and
-            OG-Core has no capital adjustment costs, so investment jumps from {FIRST_YEAR}. The higher interest
-            rate (<CaveatLink tab="growth" id="effect-rate">effect table</CaveatLink>) is what rations it. This is coherent within the model,
+            OG-Core has no capital adjustment costs, so investment jumps from {FIRST_YEAR}, and the interest rate
+            rises with it (<CaveatLink tab="growth" id="effect-rate">effect table</CaveatLink>). This is coherent within the model,
             not a forecast of an investment boom.
           </li>
           <li id="caveat-financing">
@@ -377,7 +376,7 @@ export const STORY_STEPS = [
             buy a share &zeta;<sub>D</sub>&nbsp;=&nbsp;{CLOSURE.zeta_D} of new government debt. The central value,
             &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, is inherited from OG-Core, whose documentation notes it is
             hard to pin down from data; it was not estimated for the UK. Its baseline pays{' '}
-            {abroadPct('central', FIRST_YEAR).toFixed(1)}&ndash;{abroadPct('central', LAST_YEAR).toFixed(1)}% of GDP
+            {abroadPct('central', FIRST_YEAR).toFixed(2)}&ndash;{abroadPct('central', LAST_YEAR).toFixed(2)}% of GDP
             abroad over {FIRST_YEAR}&ndash;{LAST_YEAR}, within the UK&rsquo;s {UK_ABROAD.lo}&ndash;{UK_ABROAD.hi}% (
             {UK_ABROAD.source}), but its current account deficit is smaller than the UK&rsquo;s. The closed-capital
             bound, &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}, is shown beside it in the headline table and the GNI

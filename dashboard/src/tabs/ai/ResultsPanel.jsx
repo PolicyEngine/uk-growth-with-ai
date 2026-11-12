@@ -140,7 +140,7 @@ const isTarget = (a, v) => a === 'share_shift_ramp' && v === 'Y';
 function closureSeries(v) {
   return SHOCKED.flatMap((a) => [
     { key: `${a}-c`, label: ARM_META[a].label, color: ARM_META[a].color, values: cpath('central', a, v) },
-    { key: `${a}-b`, label: `ζK = ${ZK.bound}`, color: ARM_META[a].color, dashed: true, values: cpath('bound', a, v) },
+    { key: `${a}-b`, label: `ζK = ${ZK.bound}:`, color: ARM_META[a].color, dashed: true, values: cpath('bound', a, v) },
   ]);
 }
 
@@ -158,11 +158,15 @@ function ClosureLegend() {
       <div className="legend-group">
         <span className="legend-item">
           <Sw c="var(--pe-color-gray-700)" />
-          &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, central
+          <span>
+            &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}, central
+          </span>
         </span>
         <span className="legend-item">
           <Sw c="var(--pe-color-gray-700)" dashed />
-          &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}, closed-capital bound
+          <span>
+            &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.bound}, closed-capital bound
+          </span>
         </span>
       </div>
     </div>
@@ -312,13 +316,13 @@ export default function ResultsPanel() {
             other years (<Cv id="anticipation" />).
           </li>
           <li>
-            <b>Wages.</b> With productivity gains the sign depends on the closure: wages are{' '}
+            <b>Wage rate.</b> With productivity gains its sign depends on the closure: it is{' '}
             {wageSign(wTfpC) === wageSign(wTfpB)
               ? `${wageSign(wTfpC)} at both closures in the table`
               : `${wageSign(wTfpC)} at ζK = ${ZK.central} and ${wageSign(wTfpB)} at ${ZK.bound}`}
             , but {pctS(HIGH_INFLOW.w_gap_2030)} with a high-inflow closure (&zeta;<sub>K</sub>&nbsp;=&nbsp;
             {HIGH_INFLOW.zeta_K}; a solve from before the corrective reruns, so not like for like).
-            {wSsBelowBoth ? ' With automation only they are lower at both closures.' : null}
+            {wSsBelowBoth ? ' With automation only it is lower at both closures.' : null}
           </li>
           <li>
             <b>{FIRST_YEAR} gaps are anticipation</b> under perfect foresight: &gamma; and Z are still at baseline
@@ -438,8 +442,8 @@ export default function ResultsPanel() {
           <div className="chart-note">
             <div>
               Difference from the OBR-central baseline at &zeta;<sub>K</sub>&nbsp;=&nbsp;{ZK.central}: % for levels,
-              pp for debt/GDP, the interest rate, the labour share and growth. GDP, national income and wages are in
-              the headline table. Debt/GDP gaps keep moving after {LAST_YEAR}, because debt targeting starts only in{' '}
+              pp for debt/GDP, the interest rate, the labour share and growth. GDP, national income and the wage rate
+              are in the headline table. Debt/GDP gaps keep moving after {LAST_YEAR}, because debt targeting starts only in{' '}
               {FIRST_YEAR + TG1} (<Cv id="fiscal" />), so each is shown with its {LATE_YEAR} value.
             </div>
           </div>
@@ -460,7 +464,7 @@ export default function ResultsPanel() {
             the technology targets are set at.
           </li>
           <li>
-            <b>Wages</b> follow the labour share and output per unit of labour: the labour share falls by{' '}
+            <b>The wage rate</b> follows the labour share and output per unit of labour: the labour share falls by{' '}
             {((LS_FALL / LS0) * 100).toFixed(1)}% in proportion, while output per unit of labour changes by{' '}
             {signed(outputPerLabour('share_shift_ramp'))}% with automation only and{' '}
             {signed(outputPerLabour('share_shift_tfp_ramp'))}% with productivity gains. With productivity gains the
@@ -495,6 +499,7 @@ export default function ResultsPanel() {
               x={YEARS}
               series={series}
               height={380}
+              valueFormat={(v) => v.toFixed(2)}
               yUnit={`Index (${FIRST_YEAR} baseline = 100)`}
               ariaLabel={`${LABELS[variable]} index by scenario`}
             />
