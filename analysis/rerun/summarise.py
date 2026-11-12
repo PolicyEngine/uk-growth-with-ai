@@ -5,7 +5,8 @@
 "Old" is the #30 solve of the same arm at the same closure (stock pre-TP
 demographics, no debt calibration, fixed-input Z for share_shift); at
 zeta_K = 0.1 those equal the committed data/scenarios.json bit for bit.
-"New" is the assembled results file uk_growth_with_ai/data/scenarios_<closure>.json.
+"New" is the assembled results file: data/scenarios.json (zeta_K = 0.1, central)
+and data/scenarios_zk0.json (zeta_K = 0).
 Prose lives in the doc itself; this prints the numbers.
 """
 
@@ -56,7 +57,7 @@ HEAD = ("| run | GDP | GNI | K | L | wage | C | I | Δr (bp) | foreign share of 
 def main():
     w = print
     for c in rerun.CLOSURES:
-        f = DATA / f"scenarios_{c}.json"
+        f = DATA / ("scenarios.json" if c == "zk0.1" else f"scenarios_{c}.json")
         if not f.exists():
             w(f"\n(no assembled results for {c})")
             continue

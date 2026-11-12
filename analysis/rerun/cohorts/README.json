@@ -1,0 +1,6 @@
+{
+ "what": "household paths by period, age and lifetime-earnings type; see analysis/rerun/export_cohorts.py",
+ "units": "detrended model units",
+ "periods": "t = 0 is 2026; T periods",
+ "dims": "(T, S, J)"
+}
