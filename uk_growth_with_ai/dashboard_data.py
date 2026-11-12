@@ -283,8 +283,37 @@ def write(out_dir=DASHBOARD_DATA, results=None, oguk_dir=None) -> list[Path]:
     return paths
 
 
+# numpy's exp and log differ in the last digit between CPUs (its SIMD paths),
+# so the committed text is compared as numbers: same structure, same strings,
+# floats equal to STALE_TOL (relative and absolute; nothing is shown beyond 4 dp).
+STALE_TOL = 1e-9
+
+
+def _same(a, b) -> bool:
+    if isinstance(a, dict) and isinstance(b, dict):
+        return list(a) == list(b) and all(_same(a[k], b[k]) for k in a)
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
+    num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+    if num(a) and num(b):
+        return abs(a - b) <= STALE_TOL * max(1.0, abs(a), abs(b))
+    return type(a) is type(b) and a == b
+
+
 def stale(out_dir=DASHBOARD_DATA, results=None, oguk_dir=None) -> list[str]:
     """Names of dashboard files that differ from what the results produce."""
     out = Path(out_dir)
-    return [name for name, text in build(results, oguk_dir).items()
-            if not (out / name).exists() or (out / name).read_text() != text]
+    bad = []
+    for name, text in build(results, oguk_dir).items():
+        path = out / name
+        if not path.exists():
+            bad.append(name)
+            continue
+        committed = path.read_text()
+        try:
+            same = committed == text or _same(json.loads(committed), json.loads(text))
+        except json.JSONDecodeError:
+            same = False
+        if not same:
+            bad.append(name)
+    return bad

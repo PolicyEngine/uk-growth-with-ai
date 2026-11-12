@@ -160,3 +160,21 @@ def test_fixed_spending_refuses_arms_that_do_not_hold_spending(tmp_path, monkeyp
     monkeypatch.setattr(dd, "DATA", tmp_path)
     with _pytest.raises(ValueError, match="does not hold G and TR"):
         dd.fixed_spending(RESULTS)
+
+
+def test_stale_ignores_last_digit_noise_but_not_a_changed_number(tmp_path):
+    for f in dd.write(tmp_path, results=RESULTS):
+        pass
+    assert dd.stale(tmp_path, results=RESULTS) == []
+    path = tmp_path / "aiScenarios.json"
+    d = json.loads(path.read_text())
+    y = d["idx"]["baseline"]["Y"]
+    y[2] = float(np.nextafter(y[2], np.inf))          # one ulp: another CPU's exp()
+    path.write_text(json.dumps(d, indent=1))
+    assert dd.stale(tmp_path, results=RESULTS) == []
+    y[2] *= 1 + 1e-6
+    path.write_text(json.dumps(d, indent=1))
+    assert dd.stale(tmp_path, results=RESULTS) == ["aiScenarios.json"]
+    d["idx"]["baseline"]["Y"] = y[:-1]                # a dropped value
+    path.write_text(json.dumps(d, indent=1))
+    assert dd.stale(tmp_path, results=RESULTS) == ["aiScenarios.json"]
