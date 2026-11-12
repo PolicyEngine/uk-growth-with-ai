@@ -55,7 +55,7 @@ for sid in dump:
         # public finances: debt/GDP 2036 and tax/GDP 2031 end labels
         add(g(sid, arm, C, 'debt_gdp_pp', LATE), 2, 'pp')
         add(g(sid, arm, C, 'tax_gdp_pp', H), 2, 'pp')
-    text = '\n'.join(dump[sid].get(t, '') for t in ['results', 'cohorts'])
+    text = '\n'.join(v for k, v in dump[sid].items() if k.startswith('results') or k == 'cohorts')
     got = Counter(NUM.findall(text))
     if got != exp:
         bad += 1
@@ -64,7 +64,7 @@ for sid in dump:
         print(sid, 'ok:', sum(exp.values()), 'figures, each as often as expected')
     # a pending tile prints "pending", never a number
     n_pending = sum(1 for arm in ARMS for v in ['GNI', 'Y', 'NNI', 'w'] for cl in (C, B) if g(sid, arm, cl, v) is None)
-    if dump[sid]['results'].count('pending') < n_pending:
+    if dump[sid].get('results:overview', dump[sid].get('results', '')).count('pending') < n_pending:
         bad += 1; print(sid, 'too few "pending" on Results')
 # Every finished gap in the data file equals the raw solve over its
 # continuation (as the session's check_numbers.py did).

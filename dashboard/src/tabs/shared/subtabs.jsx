@@ -1,11 +1,11 @@
 'use client';
 
-// Sub-tabs for the Scenarios and method, Literature and Code tabs.
-// TEMPORARY stand-in with the API of AB2026's SubTabs.jsx (useSubTabParam,
-// SubTabs { tabs, value, onChange, ariaLabel, idPrefix }), until the shared
-// component lands on dashboard/ab2026-redesign; then this file re-exports it.
-import { useEffect, useRef, useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
+// Sub-tabs for the Scenarios and method, Literature and Code tabs: the shared
+// row (ViewTabs, variant "sub", as Results uses it), plus the ?sub= state.
+// Results keeps its sub-tab in page.jsx; these tabs keep theirs here, so
+// page.jsx only passes `active`.
+import { useEffect, useState } from 'react';
+import ViewTabs from '@/components/ab/ViewTabs.jsx';
 
 export const SUB_TAB_PARAM = 'sub';
 
@@ -27,56 +27,30 @@ export function useSubTabParam(values, active = true) {
       window.history.replaceState({}, '', url);
     }
   }, [value, fallback, active]);
-  return [value, setValue];
+  const choose = (v) => {
+    setValue(v);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
+  };
+  return [value, choose];
 }
 
+// tabs: [{ value, label, icon }]
 export default function SubTabs({ tabs, value, onChange, ariaLabel, idPrefix }) {
-  const refs = useRef({});
-  const keyMove = (e, i) => {
-    let j = null;
-    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
-    if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
-    if (e.key === 'Home') j = 0;
-    if (e.key === 'End') j = tabs.length - 1;
-    if (j == null) return;
-    e.preventDefault();
-    onChange(tabs[j].value);
-    refs.current[tabs[j].value]?.focus();
-  };
   return (
-    <div className="sub-tabs-band mx-subtabs">
-      <div className="mx-subtabs-row" role="tablist" aria-label={ariaLabel}>
-        {tabs.map((t, i) => {
-          const on = t.value === value;
-          return (
-            <button
-              key={t.value}
-              ref={(n) => {
-                refs.current[t.value] = n;
-              }}
-              type="button"
-              role="tab"
-              id={`${idPrefix}-subtab-${t.value}`}
-              aria-controls={`${idPrefix}-subpanel-${t.value}`}
-              aria-selected={on}
-              tabIndex={on ? 0 : -1}
-              className={`mx-subtab${on ? ' is-on' : ''}`}
-              onClick={() => onChange(t.value)}
-              onKeyDown={(e) => keyMove(e, i)}
-            >
-              {t.icon ? <Icon name={t.icon} size={16} /> : null}
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <ViewTabs
+      tabs={tabs.map((t) => ({ id: t.value, label: t.label, icon: t.icon }))}
+      value={value}
+      onChange={onChange}
+      idPrefix={idPrefix}
+      label={ariaLabel}
+      variant="sub"
+    />
   );
 }
 
 export function SubTabPanel({ idPrefix, value, children }) {
   return (
-    <div className="sub-panel" role="tabpanel" id={`${idPrefix}-subpanel-${value}`} aria-labelledby={`${idPrefix}-subtab-${value}`}>
+    <div className="sub-panel" role="tabpanel" id={`${idPrefix}-${value}`} aria-labelledby={`${idPrefix}btn-${value}`}>
       {children}
     </div>
   );

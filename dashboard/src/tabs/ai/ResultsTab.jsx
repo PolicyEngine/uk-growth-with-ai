@@ -1,6 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+
+// Results' sub-tabs (Vahid, 12 Nov 2026: the page was too long), as AB2026's
+// second tab row. URL: ?tab=results&sub=<id>.
+export const SUBS = [
+  { id: 'overview', label: 'Overview', icon: 'gauge' },
+  { id: 'income', label: 'Income and output', icon: 'trend' },
+  { id: 'variables', label: 'By variable', icon: 'bars' },
+  { id: 'finances', label: 'Public finances', icon: 'landmark' },
+];
 import LineChart from '@/components/LineChart.jsx';
 import ChartCard from '@/components/ab/ChartCard.jsx';
 import MiniChart, { niceDomain } from '@/components/ab/MiniChart.jsx';
@@ -11,7 +20,8 @@ import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, result, path, signed,
   DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
-import { ArmToggles, Takeaway, Dumbbells, ScenarioStrip } from '@/tabs/ai/Headline.jsx';
+import { ArmToggles, Takeaway, Dumbbells, ScenarioStrip, StressNote } from '@/tabs/ai/Headline.jsx';
+import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 
 // Results: the headline (takeaway, dumbbells, scenario comparison), the GNI
@@ -157,15 +167,17 @@ function EffectGrid({ sid, hidden }) {
         <Icon name="calendar" size={14} />
         <span>
           Each chart runs from {FIRST_YEAR} (left) to {HEADLINE_YEAR} (right), with its {HEADLINE_YEAR} value at the line&rsquo;s end. The
-          dashed line is the no-AI path. Demand and Factors share one % scale; Prices and shares share one pp scale.
+          dashed line in each chart is the no-AI path (0). Demand and Factors share one % scale; Prices and shares share one pp scale.
         </span>
       </p>
     </>
   );
 }
 
-export default function ResultsTab({ sid, onTab, onScenario }) {
+export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScenario }) {
   const [hidden, setHidden] = useState({});
+  const [seen, setSeen] = useState({ [sub]: true });
+  if (!seen[sub]) setSeen((v) => ({ ...v, [sub]: true }));
   const toggle = (id) => setHidden((h) => ({ ...h, [id]: !h[id] }));
   const sidPending = ARMS.some((a) => result(sid, a.id, CENTRAL).status !== 'done' || result(sid, a.id, BOUND).status !== 'done');
   const link = (tab, text) => (
@@ -178,63 +190,79 @@ export default function ResultsTab({ sid, onTab, onScenario }) {
   const lo = Math.min(0, ...both);
   const hi = Math.max(0, ...both);
 
+  const panels = {
+    overview: (
+      <>
+        <SectionHeading id="headline" icon="target" title={`By ${HEADLINE_YEAR}, after an unexpected AI shock in ${SURPRISE_YEAR}`} />
+        <Takeaway sid={sid} />
+        {DONE < TOTAL && sidPending ? (
+          <Notice>
+            {DONE} of {TOTAL} solves done; the rest show “pending”.
+          </Notice>
+        ) : null}
+        <div className="chart-card headline-card">
+          <div className="chart-header">
+            <h3>
+              <Icon name="gauge" size={16} />
+              <span>Four measures, three kinds of AI</span>
+            </h3>
+          </div>
+          <ArmToggles hidden={hidden} onToggle={toggle} />
+          <Dumbbells sid={sid} hidden={hidden} />
+          <p className="note dot-key">
+            <span className="key-item">
+              <span className="key-dot" aria-hidden="true" />
+              <Icon name="globe" size={14} />
+              <span>Circle: central closure (some new capital foreign-owned).</span>
+            </span>
+            <span className="key-item">
+              <span className="key-diamond" aria-hidden="true" />
+              <Icon name="lock" size={14} />
+              <span>Diamond: closed capital (none foreign-owned).</span>
+            </span>
+            {link('method', 'Closures and terms →')}
+          </p>
+          <Disclosure inCard title="Why the stress test holds GDP at 0" preview="As in the OBR’s Box 2.2 displacement scenario">
+            <StressNote sid={sid} />
+          </Disclosure>
+          <ScenarioStrip sid={sid} onChoose={onScenario} />
+        </div>
+      </>
+    ),
+    income: (
+      <>
+        <SectionHeading id="paths" icon="trend" title={`National income and GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
+          How the gaps build up from the {SURPRISE_YEAR} surprise.
+        </SectionHeading>
+        <ArmToggles hidden={hidden} onToggle={toggle} />
+        <div className="charts-grid">
+          <GapCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" icon="home" domain={[lo, hi]} hidden={hidden} />
+          <GapCard sid={sid} v="Y" title="Total output (GDP)" icon="factory" domain={[lo, hi]} hidden={hidden} />
+        </div>
+      </>
+    ),
+    variables: (
+      <>
+        <SectionHeading id="effects" icon="bars" title={`Effect by variable, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
+          Central closure. Hover, tap or focus a chart for each year.
+        </SectionHeading>
+        <ArmToggles hidden={hidden} onToggle={toggle} />
+        <EffectGrid sid={sid} hidden={hidden} />
+      </>
+    ),
+    finances: <FinancesSection sid={sid} hidden={hidden} onToggle={toggle} />,
+  };
+
   return (
     <>
-      <SectionHeading id="headline" icon="target" title={`By ${HEADLINE_YEAR}, after an unexpected AI shock in ${SURPRISE_YEAR}`} />
-      <Takeaway sid={sid} />
-      {DONE < TOTAL && sidPending ? (
-        <Notice>
-          {DONE} of {TOTAL} solves done; the rest show “pending”.
-        </Notice>
-      ) : null}
-      <div className="chart-card headline-card">
-        <div className="chart-header">
-          <h3>
-            <Icon name="gauge" size={16} />
-            <span>Four measures, three kinds of AI</span>
-          </h3>
-        </div>
-        <ArmToggles hidden={hidden} onToggle={toggle} />
-        <Dumbbells sid={sid} hidden={hidden} />
-        <p className="note dot-key">
-          <span className="key-item">
-            <span className="key-dot" aria-hidden="true" />
-            <Icon name="globe" size={14} />
-            <span>Circle: central closure (some new capital foreign-owned).</span>
-          </span>
-          <span className="key-item">
-            <span className="key-diamond" aria-hidden="true" />
-            <Icon name="lock" size={14} />
-            <span>Diamond: closed capital (none foreign-owned).</span>
-          </span>
-          {link('method', 'Closures and terms →')}
-        </p>
-        <Disclosure inCard title="Why the stress test holds GDP at 0" preview="As in the OBR’s Box 2.2 displacement scenario">
-          <p className="disclosure-text">
-            The stress test holds {HEADLINE_YEAR} GDP at the no-AI path, as in the OBR&rsquo;s Box 2.2 displacement scenario. In
-            OG-UK this needs output at fixed inputs to fall, so it is a pessimistic bound, not a forecast. &ldquo;Technology
-            unchanged&rdquo; shifts the labour share with output at fixed inputs left where it was.
-          </p>
-        </Disclosure>
-        <ScenarioStrip sid={sid} onChoose={onScenario} />
-      </div>
-
-      <SectionHeading id="paths" icon="trend" title={`National income and GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        How the gaps build up from the {SURPRISE_YEAR} surprise.
-      </SectionHeading>
-      <ArmToggles hidden={hidden} onToggle={toggle} />
-      <div className="charts-grid">
-        <GapCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" icon="home" domain={[lo, hi]} hidden={hidden} />
-        <GapCard sid={sid} v="Y" title="Total output (GDP)" icon="factory" domain={[lo, hi]} hidden={hidden} />
-      </div>
-
-      <SectionHeading id="effects" icon="bars" title={`Effect by variable, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        Central closure. Hover, tap or focus a chart for each year.
-      </SectionHeading>
-      <ArmToggles hidden={hidden} onToggle={toggle} />
-      <EffectGrid sid={sid} hidden={hidden} />
-
-      <FinancesSection sid={sid} hidden={hidden} onToggle={toggle} />
+      <ViewTabs tabs={SUBS} value={sub} onChange={onSub} idPrefix="sub" label="Results sections" variant="sub" />
+      {SUBS.map(({ id }) =>
+        seen[id] ? (
+          <div key={id} id={`sub-${id}`} role="tabpanel" aria-labelledby={`subbtn-${id}`} hidden={id !== sub} className="sub-panel">
+            {panels[id]}
+          </div>
+        ) : null,
+      )}
     </>
   );
 }

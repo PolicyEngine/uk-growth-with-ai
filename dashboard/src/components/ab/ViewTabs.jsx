@@ -13,7 +13,7 @@ export function scrollToShow({ left, width, scrollLeft, clientWidth }) {
 
 // The page's flat tab row: a WAI-ARIA tablist, one sliding tint and
 // underline for the chosen tab, a row that scrolls inside itself on a phone.
-export default function ViewTabs({ tabs, value, onChange }) {
+export default function ViewTabs({ tabs, value, onChange, idPrefix = 'tab', label = 'Report sections', variant = '' }) {
   const rowRef = useRef(null);
   const refs = useRef({});
   const [ind, setInd] = useState({ x: 0, width: 0, ready: false });
@@ -63,12 +63,12 @@ export default function ViewTabs({ tabs, value, onChange }) {
   };
 
   return (
-    <div className="view-tabs-bar">
+    <div className={`view-tabs-bar${variant ? ` is-${variant}` : ''}`}>
       <div
         ref={rowRef}
         className={`view-tabs${fade.start ? ' fade-start' : ''}${fade.end ? ' fade-end' : ''}`}
         role="tablist"
-        aria-label="Report sections"
+        aria-label={label}
         onKeyDown={onKeyDown}
         onScroll={measure}
       >
@@ -87,14 +87,14 @@ export default function ViewTabs({ tabs, value, onChange }) {
               }}
               type="button"
               role="tab"
-              id={`tabbtn-${t.id}`}
+              id={`${idPrefix}btn-${t.id}`}
               aria-selected={selected}
-              aria-controls={`tab-${t.id}`}
+              aria-controls={`${idPrefix}-${t.id}`}
               tabIndex={selected ? 0 : -1}
               className="view-tab"
               onClick={() => onChange(t.id)}
             >
-              <Icon name={t.icon} size={18} className="view-tab-icon" />
+              <Icon name={t.icon} size={variant === 'sub' ? 16 : 18} className="view-tab-icon" />
               <span className="view-tab-label">{t.label}</span>
             </button>
           );

@@ -16,15 +16,9 @@ const NODES = [
     line: 'Choose consumption, hours and saving over their lives.',
     detail: (
       <>
-        <p>
-          Eighty age cohorts (21 to 100) and seven permanent ability types. Each household maximises lifetime utility
-          from consumption, leisure and a warm-glow bequest, facing age-specific mortality, and pays income,
-          consumption and wealth taxes.
-        </p>
-        <p>
-          The labour first-order condition sets the after-tax wage equal to the marginal disutility of work; the
-          saving Euler equation trades consumption today against the after-tax return tomorrow.
-        </p>
+        <p>Eighty age cohorts, 21 to 100, and seven permanent ability types.</p>
+        <p>Each values consumption, leisure and a bequest, and faces age-specific mortality.</p>
+        <p>Work pays until the after-tax wage equals the cost of effort. Saving trades today against tomorrow&rsquo;s return.</p>
       </>
     ),
   },
@@ -32,13 +26,12 @@ const NODES = [
     id: 'firms',
     icon: 'factory',
     title: 'Firms',
-    line: 'Combine capital and labour; AI moves the capital share and productivity.',
+    line: 'Combine capital and labour. AI moves the capital share and productivity.',
     detail: (
-      <p>
-        One competitive industry with constant-elasticity production. At &epsilon; = 1 (Cobb-Douglas) the labour share
-        is 1 &minus; &gamma;. The wage equals the marginal product of labour, and the rental rate the after-tax
-        marginal product of capital net of depreciation.
-      </p>
+      <>
+        <p>One competitive industry. At &epsilon; = 1 the labour share is 1 &minus; &gamma;.</p>
+        <p>The wage equals the marginal product of labour. The rental rate equals capital&rsquo;s, after tax and depreciation.</p>
+      </>
     ),
   },
   {
@@ -47,25 +40,24 @@ const NODES = [
     title: 'Government',
     line: 'Taxes, spends, pays pensions and transfers, and borrows.',
     detail: (
-      <p>
-        Revenue comes from income, payroll, consumption, corporate, wealth and bequest taxes; the income tax is a
-        smooth Gouveia–Strauss function fitted to PolicyEngine-UK. Spending is government consumption, transfers and
-        pensions. From the debt rule&rsquo;s start, government consumption adjusts so debt/GDP moves towards its
-        long-run target.
-      </p>
+      <>
+        <p>Six taxes: income, payroll, consumption, corporate, wealth and bequest.</p>
+        <p>The income tax is a smooth function fitted to PolicyEngine-UK.</p>
+        <p>Once the debt rule starts, spending moves debt/GDP towards its long-run target.</p>
+      </>
     ),
   },
   {
     id: 'markets',
     icon: 'arrowLeftRight',
     title: 'Markets',
-    line: 'Prices adjust until labour, capital, goods and debt markets clear.',
+    line: 'Prices adjust until every market clears.',
     detail: (
-      <p>
-        Labour supply equals demand; household wealth plus foreign capital equals the capital stock plus the debt held
-        at home; goods output equals consumption, investment and government purchases; government debt is split
-        between domestic and foreign holders. An equilibrium is a set of prices at which all of these hold at once.
-      </p>
+      <>
+        <p>Labour supply equals demand. Wealth plus foreign capital funds the capital stock and gilts held at home.</p>
+        <p>Output equals consumption, investment and government purchases.</p>
+        <p>An equilibrium is a set of prices where all of this holds at once.</p>
+      </>
     ),
   },
 ];
@@ -80,8 +72,7 @@ export default function ModelFlow() {
         <span>The model in one row</span>
       </h3>
       <p className="mx-flow-sub">
-        OG-UK calibrates {ext(URLS.ogCore, 'OG-Core')} to UK demographics, fiscal aggregates and PolicyEngine-UK tax
-        data. Choose a block for its detail.
+        OG-UK calibrates {ext(URLS.ogCore, 'OG-Core')} to UK data. Choose a block for its detail.
       </p>
       <ol className="mx-flow-row">
         {NODES.map((n, i) => (
