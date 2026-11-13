@@ -1,0 +1,65 @@
+% Build (from paper/):  tectonic main.tex      or   pdflatex main && pdflatex main
+% No bibtex run is needed: the references are a thebibliography environment in
+% sections/references.tex.  values_generated.tex must exist first; from the repo
+% root:  python paper/make_values.py   (see its docstring for --central / --bound)
+\documentclass[11pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\definecolor{paperblue}{rgb}{0,0,0.7}
+\usepackage{sectsty}
+\allsectionsfont{\color{paperblue}}
+\usepackage[colorlinks=true, citecolor=paperblue, linkcolor=paperblue, urlcolor=paperblue]{hyperref}
+\usepackage[hang,flushmargin]{footmisc}
+\usepackage{natbib}
+\bibliographystyle{apalike}
+\input{values_generated} % machine-generated numeric macros; see paper/make_values.py
+
+% Arm and scenario names, as in the code and the dashboard (#27, 12 Nov 2026).
+\newcommand{\Main}{``automation + productivity''}
+\newcommand{\Flat}{``automation, technology unchanged''}
+\newcommand{\Stress}{``OBR-style stress test: no output gain''}
+\newcommand{\zetaK}{\zeta_K}
+
+% \pending{...} marks text that waits on a solve that has not run yet; \pend{}
+% is the short form make_values.py writes into a macro whose solve is pending.
+% Draft builds show both in red; \submissiontrue turns every one into a build error.
+\newif\ifsubmission
+\submissionfalse
+\newcommand{\pending}[1]{\ifsubmission\errmessage{pending: #1}\else\textcolor{red}{[pending: #1]}\fi}
+\newcommand{\pend}{\ifsubmission\errmessage{pending solve}\else\textcolor{red}{pending}\fi}
+
+\title{\bfseries Automation, factor shares and national income:\\[0.15cm] an unanticipated AI shock in a UK overlapping-generations model\thanks{\textbf{Acknowledgements:} to be confirmed before submission.}}
+\author{Vahid Ahmadi\thanks{Research Associate at PolicyEngine. Email: \href{mailto:vahid@policyengine.org}{vahid@policyengine.org}.}}
+\date{\small \ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \the\year}
+
+\emergencystretch=1.5em
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent I introduce artificial intelligence into OG-UK, the UK calibration of the OG-Core overlapping-generations model, as an unanticipated shock announced in \genShockYear{}. AI lowers the labour share and raises output at given inputs over \genShockYear--\genHeadYear{}. Three scenarios are calibrated to UK sources (the IMF's 2026 UK Selected Issues paper and the OBR's productivity and fiscal-risks work), with the ``substantial'' US scenario of \citet{korinek2026} as an upper case. Gaps are measured against an OBR-central path that already includes the OBR's own AI productivity assumption. In the UK central scenario, with OG-UK's default capital closure ($\zetaK = \genZetaKCentral{}$), gross national income in \genHeadYear{} is \genUkCentralMainGniCentralAbs{} per cent \genUkCentralMainGniCentralDir{} that path and GDP \genUkCentralMainGdpCentralAbs{} per cent \genUkCentralMainGdpCentralDir{} it. The GNI gap is smaller because about three-quarters of the extra capital is foreign-owned and its return is paid abroad. Across the UK scenarios GNI is \genUkLowMainGniCentralShort{} to \genUkHighMainGniCentralShort{} per cent, and \genKorinekMainGniCentralShort{} per cent in the upper case. With private capital unable to flow in ($\zetaK = \genZetaKBound{}$), the UK central GNI gap is \genUkCentralMainGniBoundShort{} per cent. The real wage is below the path in every scenario in \genHeadYear{}, by \genUkCentralMainWageCentralAbs{} per cent in UK central, because the fall in the labour share outweighs the gain in output per hour. Aggregate consumption is also below the path in the UK scenarios while national income is above it, as households save out of a higher return. Two further arms bound the result from below: the same automation with technology unchanged, and an OBR-style stress test in which output at given inputs is set so that \genHeadYear{} GDP is unchanged. In the stress test UK central GNI is \genUkCentralStressGniCentralShort{} per cent. Debt/GDP is higher by \genDebtRuleYear{} in every arm, because the higher return reprices the whole stock of debt. The model's single income-tax schedule taxes labour about \genEffWedgePpCentral{} percentage points more heavily than capital, against the OBR's \genObrWedgeLo--\genObrWedgeHi{} points, so it understates the fall in revenue.
+\end{abstract}
+
+\medskip
+\noindent\textbf{Keywords:} artificial intelligence, automation, overlapping generations, capital closure, national income, labour share
+
+\noindent\textbf{JEL:} E13, E25, F21, O33
+
+\newpage
+\input{sections/intro}
+\input{sections/literature}
+\input{sections/methodology}
+\input{sections/results}
+\input{sections/incidence}
+\input{sections/discussion}
+\input{sections/limitations}
+
+\clearpage
+\input{sections/references}
+\clearpage
+\input{sections/appendix}
+
+\end{document}

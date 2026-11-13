@@ -1,0 +1,158 @@
+\appendix
+\section*{Appendix}
+\addcontentsline{toc}{section}{Appendix}
+\renewcommand{\thesubsection}{A.\arabic{subsection}}
+\setcounter{subsection}{0}
+
+\subsection{The baseline against the OBR's March 2026 forecast}
+\label{app:obr}
+
+The baseline takes its productivity growth rate from the \emph{Economic and fiscal outlook} and is then compared with it. Its debt/GDP is calibrated so that 2030 is matched (Section~\ref{sec:baseline}); it is not compared in the table.
+
+\begin{table}[htbp]
+\centering
+\caption{The baseline ($\zetaK = \genZetaKCentral{}$) against the OBR, March 2026 EFO}
+\label{tab:obr}
+\small
+\begin{tabular}{lrrr}
+\toprule
+ & OBR & This model & Gap, points \\
+\midrule
+Real GDP growth, \genBaseGrowthStartYear--\genBaseGrowthEndYear{} mean, per cent & \genObrGrowthMean{} & \genBaseGrowthMean{} & \genBaseObrGrowthDiffPp{} \\
+Productivity growth, medium term, per cent & \genObrProductivityPct{} & \genModelProductivityPct{} & \\
+\addlinespace
+Baseline growth, 2027 & & \genBaseGrowthTwentySeven{} & \\
+Baseline growth, 2028 & & \genBaseGrowthTwentyEight{} & \\
+Baseline growth, 2029 & & \genBaseGrowthTwentyNine{} & \\
+Baseline growth, 2030 & & \genBaseGrowthThirty{} & \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} OBR figures from the March 2026 EFO, paragraphs 1.2, 1.9 and 2.10. The productivity rate includes the OBR's own AI assumption. Source: \texttt{uk\_growth\_with\_ai/data/scenarios.json} and \texttt{uk\_growth\_with\_ai/obr.py}.
+\end{minipage}
+\end{table}
+
+\subsection{Solution diagnostics}
+\label{app:diagnostics}
+
+Every solve is checked after it runs (\texttt{analysis/surprise/sanity.py}): the accounting identities $K = K^d + K^f$, $K^d = B - D^d$ and $D = D^d + D^f$; the resource constraint; equality with the baseline in \genStartYear{} and \genRampZeroYear{}; the \genShockYear{} stocks against the baseline's; and the labour-share gap against its target in each year of the ramp. Table~\ref{tab:diagnostics} gives the largest errors across all the solves used in the paper. The no-shock restart's agreement with the committed baseline is in Section~\ref{sec:timing}.
+
+\begin{table}[htbp]
+\centering
+\caption{Solution diagnostics, all solves used}
+\label{tab:diagnostics}
+\small
+\begin{tabular}{lrr}
+\toprule
+ & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ \\
+\midrule
+Solves (restart and arms) & \genNSolvesCentral{} & \genNSolvesBound{} \\
+Max resource-constraint error, share of GDP, after \genShockYear{} & \genRcMaxCentral{} & \genRcMaxBound{} \\
+Max Euler error & \genEulerMaxCentral{} & \genEulerMaxBound{} \\
+Longest solve, minutes & \genSolveMinMaxCentral{} & \genSolveMinMaxBound{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} is off, so solution quality is recorded per solve rather than enforced at solve time. Investment follows from the capital law of motion; it is not a residual. Source: \texttt{analysis/surprise/output/}.
+\end{minipage}
+\end{table}
+
+\subsection{Fixed spending and debt-neutral transfers}
+\label{app:fixed}
+
+Table~\ref{tab:fixed} will report UK central and the upper case under two alternative fiscal conventions: government consumption and transfers held at the path's levels, the convention the OBR uses when scoring a scenario against a forecast; and transfers that adjust every year from \genShockYear{} so that debt/GDP follows the path to \genDebtRuleYear{}. In each, the stress test's output at given inputs is re-solved so that \genHeadYear{} GDP again equals the path.
+
+\begin{table}[htbp]
+\centering
+\caption{UK central and the upper case under alternative fiscal conventions, \Main{}, \genHeadYear{}}
+\label{tab:fixed}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{UK central} & \multicolumn{3}{c}{Korinek et al.\ (upper)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & Shared & Fixed & Debt- & Shared & Fixed & Debt- \\
+ & share & spending & neutral & share & spending & neutral \\
+\midrule
+\multicolumn{7}{l}{\emph{Central closure, $\zetaK = \genZetaKCentral{}$}} \\
+GNI, \%     & \genUkCentralMainGniCentral{} & \genUkCentralMainFsGniCentral{} & \genUkCentralMainDnGniCentral{} & \genKorinekMainGniCentral{} & \genKorinekMainFsGniCentral{} & \genKorinekMainDnGniCentral{} \\
+GDP, \%     & \genUkCentralMainGdpCentral{} & \genUkCentralMainFsGdpCentral{} & \genUkCentralMainDnGdpCentral{} & \genKorinekMainGdpCentral{} & \genKorinekMainFsGdpCentral{} & \genKorinekMainDnGdpCentral{} \\
+Consumption, \% & \genUkCentralMainConsumptionCentral{} & \genUkCentralMainFsConsumptionCentral{} & \genUkCentralMainDnConsumptionCentral{} & \genKorinekMainConsumptionCentral{} & \genKorinekMainFsConsumptionCentral{} & \genKorinekMainDnConsumptionCentral{} \\
+Debt/GDP, pp, \genDebtRuleYear{} & \genUkCentralMainDebtPpThirtySixCentral{} & \genUkCentralMainFsDebtPpThirtySixCentral{} & \genUkCentralMainDnDebtPpThirtySixCentral{} & \genKorinekMainDebtPpThirtySixCentral{} & \genKorinekMainFsDebtPpThirtySixCentral{} & \genKorinekMainDnDebtPpThirtySixCentral{} \\
+\addlinespace
+\multicolumn{7}{l}{\emph{Closed-capital bound, $\zetaK = \genZetaKBound{}$}} \\
+GNI, \%     & \genUkCentralMainGniBound{} & \genUkCentralMainFsGniBound{} & \genUkCentralMainDnGniBound{} & \genKorinekMainGniBound{} & \genKorinekMainFsGniBound{} & \genKorinekMainDnGniBound{} \\
+GDP, \%     & \genUkCentralMainGdpBound{} & \genUkCentralMainFsGdpBound{} & \genUkCentralMainDnGdpBound{} & \genKorinekMainGdpBound{} & \genKorinekMainFsGdpBound{} & \genKorinekMainDnGdpBound{} \\
+Consumption, \% & \genUkCentralMainConsumptionBound{} & \genUkCentralMainFsConsumptionBound{} & \genUkCentralMainDnConsumptionBound{} & \genKorinekMainConsumptionBound{} & \genKorinekMainFsConsumptionBound{} & \genKorinekMainDnConsumptionBound{} \\
+Debt/GDP, pp, \genDebtRuleYear{} & \genUkCentralMainDebtPpThirtySixBound{} & \genUkCentralMainFsDebtPpThirtySixBound{} & \genUkCentralMainDnDebtPpThirtySixBound{} & \genKorinekMainDebtPpThirtySixBound{} & \genKorinekMainFsDebtPpThirtySixBound{} & \genKorinekMainDnDebtPpThirtySixBound{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\raggedright\footnotesize \emph{Notes:} gaps against the path at the same closure. ``Shared share'' is the convention of the main text. ``Pending'' marks solves queued overnight. In the debt-neutral runs debt/GDP follows the path by construction to \genDebtRuleYear{}. Source: \texttt{analysis/surprise/output/}.
+\end{minipage}
+\end{table}
+
+\subsection{A time-varying capital exponent for OG-Core}
+\label{app:patch}
+
+Stock OG-Core indexes the capital exponent by industry only, as \texttt{p.gamma[m]}, at about \genPatchSites{} sites in \texttt{ogcore/firm.py}. Automation can therefore step to a new level in the first period but cannot phase in. The scenarios used here phase in over \genShockYear--\genHeadYear{}, and \citet{mollimas2026} raise the exponent over two decades. Neither can be run without a time dimension.
+
+The patch (\texttt{patches/ogcore-0.17.0-firm-gamma-tv.diff}, against OG-Core \genOgcoreVersion{}) adds one in a backward-compatible way. A helper indexes a production parameter that may carry either shape, following the convention $Z$ already uses: the last row in the steady state, the first $T$ rows along the transition.
+\begin{verbatim}
+def _tv(x, p, method, m=None):
+    x = np.asarray(x)
+    if x.ndim <= 1:                 # (M,) -- time-invariant, legacy
+        return x[m] if m is not None else x
+    if method == "SS":              # (T, M) -- time-varying
+        return x[-1, m] if m is not None else x[-1]
+    return x[: p.T, m] if m is not None else x[: p.T]
+\end{verbatim}
+Every \texttt{p.gamma[m]}, \texttt{p.gamma\_g[m]} and bare \texttt{p.gamma} is replaced by \texttt{\_tv(p.gamma, p, method, m)}. A one-dimensional parameter is returned exactly as before, so existing calibrations are bit-identical. \texttt{get\_MPx} also needs the share in column shape along the transition, or a $(T,)$ share forms a $(T,T)$ outer product.
+
+As a regression check, the single-sector scenario with a one-dimensional exponent reproduces the unpatched run exactly. As a capability check, an exponent ramping from \genGammaBase{} to \genKorinekGammaTerminal{} solves and produces a labour-share path rather than a step. The runner refuses to start against an unpatched \texttt{ogcore.firm}. The patch is not upstream.
+
+\subsection{Mapping the AI channels across models}
+\label{app:channels}
+
+\begin{table}[htbp]
+\centering
+\caption{How the AI channels of the comparison models map onto this one}
+\label{tab:channels}
+\small
+\begin{tabular}{p{3.2cm}p{3.6cm}p{2.8cm}p{3.4cm}}
+\toprule
+Channel & \citet{korinek2026} & \citet{mollimas2026} & This model \\
+\midrule
+Automation & Automation share; affected task mass ramps & Capital exponent $1/3 \to 1$ & $\gamma$, phased in (Appendix~\ref{app:patch}) \\
+Augmentation & The non-automated share & None & Absorbed into $Z$ \\
+Adoption and diffusion & Explicit adoption parameter & --- & None \\
+Task reinstatement & Explicit reinstatement parameter & --- & None \\
+Unemployment and search & Matching block & --- & None \\
+Capital accumulation & Capital-supply elasticity & Solow saving rate & Cohort saving plus foreign capital ($\zetaK$) \\
+Labour share & Endogenous & $\to 0$ in the limit & Exactly $1-\gamma_t$ at $\varepsilon = \genEpsilon{}$ \\
+Worker heterogeneity & Two groups & Representative agent & Seven earnings types, eighty ages \\
+Fiscal system & None & None & Tax functions from PolicyEngine UK \\
+Ideas and R\&D & Ideas stock & Discussed, not in the baseline & None \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.92\textwidth}
+\footnotesize \emph{Notes:} $Z$ absorbs capability, adoption and productivity together, because the model has no tasks to count separately, and $\gamma$ carries automation. Reinstatement and search have no counterpart.
+\end{minipage}
+\end{table}
+
+\subsection{Reproduction}
+\label{app:reproduction}
+
+Runs used OG-Core \genOgcoreVersion{} with the patch above, OG-UK at commit \genOgukSha{} and PolicyEngine UK \genPolicyengineUkVersion{}. OG-UK reads PolicyEngine's UK data from Hugging Face, so a re-run needs a token. The design and the solve plan are in \texttt{docs/surprise\_2028.md}; the calibration in \texttt{docs/uk\_calibration.md}. The paper reads only committed files. From the repository root:
+
+\begin{verbatim}
+python paper/make_values.py --check     # values_generated.tex is current
+cd paper && tectonic main.tex           # or: pdflatex main && pdflatex main
+\end{verbatim}
+
+Every number is a macro in \texttt{paper/values\_generated.tex}, generated from the per-solve records in \texttt{analysis/surprise/output/<closure>/}. \texttt{make\_values.py} stops with an error if a record is missing (other than the solves still queued, which print as pending), if a record fails its checks, or if a sentence that the paper states in words (for example, that debt/GDP is higher by \genDebtRuleYear{} in every arm) no longer holds.
