@@ -20,7 +20,9 @@ SCEN = {"uk_low": "uk_low", "uk_central": "uk_central", "uk_high": "uk_high",
 ARMS = {"tfp": "share_shift_tfp_ramp", "zfixed": "share_shift_ramp_zfixed", "r4": "share_shift_ramp_r4"}
 ARM_NAME = {"tfp": "automation + productivity", "zfixed": "technology unchanged",
             "r4": "stress test (GDP flat)"}
-CLOSURES = ("zk0.1", "zk0")
+# zk0.5 is the more open sensitivity closure added to the solve plan on 13 Nov 2026 (68ef937);
+# it joins every table once its continuation is on disk.
+CLOSURES = tuple(c for c in ("zk0.1", "zk0", "zk0.5") if (OUT / c / "continuation.json").exists())
 START, HEAD, RULE = 2026, 2031, 2036
 G0 = 0.35
 
@@ -248,7 +250,7 @@ def main(argv=None):
     print("### 2031 gaps against the continuation\n\n" + table(g, COLS))
     print("\n### Shock-scaled metrics, 2031 (per pp = per point of labour-share fall)\n\n" + table(g, SCALED))
     vt, tot, n = verdict_table(g)
-    print(f"\n### Verdicts ({sum(n.values())} cells = 4 scenarios x 3 arms x 2 closures x {len(ROWS)} rows)\n")
+    print(f"\n### Verdicts ({sum(n.values())} cells = 4 scenarios x 3 arms x {len(CLOSURES)} closures x {len(ROWS)} rows)\n")
     print(tot + "\n\n" + vt)
     print("\n### What if capital were supplied at Korinek et al.'s elasticities (arithmetic on the "
           "main arm, 2031; not a solve)\n")

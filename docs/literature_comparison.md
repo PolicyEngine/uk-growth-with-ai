@@ -36,7 +36,7 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 
 1. **The central closure is less elastic than every published model, and that single number sets the size of GDP, the sign of the wage and the size of the interest-rate rise.**
    - If capital were supplied at Korinek et al.'s elasticities of 1 to 6, UK central GDP in 2031 would be +1.2% to +2.3% in place of +0.92%, and the wage −1.0% to +0.1% in place of −1.27% (arithmetic on the solve, not a rerun; it matches Korinek et al.'s own table at their default of 3 and less well at 1 and ∞).
-   - Fix: solve a more open case at ζK = 0.5 as a sensitivity beside the two existing closures. An earlier 2026-start run at ζK = 0.5, made before the R1–R4 fixes, implies an elasticity of about 5.
+   - Fix: solve a more open case at ζK = 0.5 as a sensitivity beside the two existing closures. **This entered the solve plan overnight** (`68ef937` on `rerun/surprise-2028`, 13 November: "zk0.5 closure (published sensitivity)"). No ζK = 0.5 solve is on disk yet. An earlier 2026-start run at ζK = 0.5, made before the R1–R4 fixes, implies an elasticity of about 5.
 2. **Debt/GDP ends higher in every arm by 2036, including "automation + productivity". The OBR and Penn Wharton have higher productivity lowering debt.**
    - For UK central the whole +2.0pp is the higher interest rate applied to the entire debt stock at once (+2.3pp). Without that, debt/GDP would be about 0.3pp lower than baseline.
    - Fix: no rerun. Report the split beside every debt number.
@@ -51,7 +51,7 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 
 - **Every number in Sections 2 and 3 was read from the primary text**, by downloading the PDF or HTML page, extracting its text (PyMuPDF) and searching for the figure. "p." is the printed page unless it says PDF page; "¶" is a numbered paragraph.
   - **Carried from the 12 November note and not re-read tonight:** rows A1–A4, A6–A8, A10–A14, A16, B2, B4, B5, B8–B16. They were read from the primary text then.
-  - **Re-read or first read on 13 November:** A5, A9, A17–A21, B1, B3, B6, B7 and B18–B29, and every OBR, IMF and Korinek figure that feeds a verdict.
+  - **Re-read or first read on 13 November:** A5, A9, A17–A21, B1, B3, B6, B7 and B18–B29. Every figure that sets a bound in Section 4.2 was also searched for again in the downloaded text (OBR March 2026 ¶6.18 and Box 2.2, FRS Box 4.1, November 2025 ¶2.64; IMF Table 1; the IMF SDN; Korinek et al. Tables 3 and 5; Penn Wharton; the BoE survey figure).
 - **"(ours)" marks arithmetic done here:** unit conversions, ratios, horizon scaling and the what-if table.
 - **UNVERIFIED** marks anything not read in a primary source. Nothing marked UNVERIFIED feeds a verdict.
 - **New on 13 November.** Read in full for the first time:
@@ -541,6 +541,7 @@ The test was: a result outside every published range with no cause in the model.
 - **What it moves.** Against the same shock, UK central's GDP is 37% of the IMF's at year 4 (+0.92% against +2.52%) and the Korinek arm's is 59% of Korinek et al.'s (+4.89% against +8.3%). The wage is below their range in every UK main arm, and the return is at or above the top of the range in every cell.
 - **Why it is a flag and not an error.** The production side and the shock reproduce Korinek et al.'s headline once their default elasticity is imposed (Section 4.4). The low elasticity has support in the saving evidence that both Korinek et al. and Moll, Rachel and Restrepo cite. But we publish a central case and a lower bound, and no case inside the published range.
 - **Fix.** Solve the main arm, the technology-unchanged arm and the stress test at **ζK = 0.5** for the four scenarios, as a sensitivity case. That is 12–16 arm solves plus a ζK = 0.5 baseline on the R1–R4 fixes and its no-shock restart: two to three hours.
+  - **Status: already planned.** `68ef937` on `rerun/surprise-2028` (13 November) added ζK = 0.5 to the rerun as a published sensitivity, to run after the UK central debt-neutral set. No ζK = 0.5 solve is on disk yet. `lit_grid.py` adds the closure to every table once its continuation is committed.
   - This does not reopen the closure decision. `docs/closure_choice.md` adopted 0.1 and found that 0.5 matches the UK's gross external figures but misses the net ones by a wide margin. The case for solving it is narrower: it is the closure whose capital response falls inside the published range.
   - A 2026-start run at ζK = 0.5, made before the R1–R4 fixes, implies an elasticity of 5.4: close to Moll, Rachel and Restrepo's long-run value and to the IMF's implied 4.8, and inside Korinek et al.'s range.
 - **Estimated effect** (the what-if table; arithmetic, not a solve):
@@ -650,7 +651,9 @@ Two statements to correct in our own documents:
 
 In order of value:
 
-1. **A sensitivity case at ζK = 0.5** for the four scenarios (red flag 1). It is the only action here that needs solves. It would put one published closure inside the range of the literature and show how much of the wage and debt results is the closure. It is Vahid's call: the closure memo adopted 0.1 for balance-of-payments reasons that still hold.
+1. **The sensitivity case at ζK = 0.5** (red flag 1), which entered the solve plan overnight (`68ef937`). It is the only action here that needs solves. It would put one published closure inside the range of the literature and show how much of the wage and debt results is the closure.
+   - Run all four scenarios, not UK central only, so that the Korinek arm can be set against Korinek et al.'s Table 5.
+   - Then rerun `lit_grid.py` and compare the implied elasticity with the 5.4 of the old run.
 2. **UK low and UK high at ζK = 0**, already in the solve plan. They fill the 48 "not solved" cells. The audit predicts a second wrong tax sign for UK high.
 3. **No solve needed:**
    - quote GDP per 1% of TFP with its two parts (1.1 per 1% of TFP and about 0.3 per point of share fall at ζK = 0.1, as in the audit), not the single ratio of 2.3;
