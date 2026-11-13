@@ -808,6 +808,233 @@ The debt-neutral stress test at the closed-capital bound, accepted on its first 
 | 2036 GDP % | > 0 | +0.60 | consistent | small, sign open | +0.15 | consistent | near 0, not held after 2031 | +0.074 | surprising-but-explained (A8) |
 | 2036 debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent |
 
+## Final pass 13 Nov 2026 (zk0.5 and debt-neutral)
+
+Audited at `524849d` on `rerun/surprise-2028` (13 Nov 2026, 02:15), with the same script, extended. No solve was run and nothing under `analysis/surprise/output` was changed.
+
+- **New in this pass:** the ζK = 0.5 closure. That is 10 solve records: the restart, and for UK central and Korinek the main arm, technology unchanged, and every stress-test iteration (2 for UK central, 3 for Korinek). The accepted stress tests are `uk_central_share_shift_ramp_r4_2` (2031 GDP gap −0.008%) and `korinek_share_shift_ramp_r4_3` (+0.001%).
+- **Rechecked:** the seven debt-neutral UK central solves at ζK = 0.1 and ζK = 0. The addendum above audited them one by one as they landed. This pass adds the orderings across closures and arms.
+- **Not solved, so not audited:** UK low and UK high at ζK = 0.5 and ζK = 0; every `_dnfull` and `_fs` variant; debt-neutral Korinek. The script skips them and reports them as "not solved".
+- **Script changes:** `"zk0.5"` in `CLOSURES`; four verdict rules keyed to a checked mechanism (A13–A16 below); a new section 9 for orderings and inequalities (`--mono` prints it alone); section 6 skips a closure with no 2026-start arm records. The verdict blocks for ζK = 0.1 and ζK = 0 come out identical, line for line, to the ones the previous version of the script prints.
+
+### Result
+
+**No new result is wrong.** The one wrong cell is still the Korinek main arm at ζK = 0, where tax/GDP rises 0.21pp (A6).
+
+| cells | consistent | surprising-but-explained | wrong | not solved |
+|---|---|---|---|---|
+| ζK = 0.1 and ζK = 0, common rule (unchanged) | 243 | 62 | 1 | 102 |
+| ζK = 0.5, common rule, rules as they stood | 82 | 12 | 8 | 102 |
+| ζK = 0.5, common rule, after this pass | 74 | 28 | 0 | 102 |
+| Debt-neutral, UK central, ζK = 0.1 and ζK = 0 (unchanged) | 85 | 17 | 0 | – |
+| **All audited cells** | **402** | **107** | **1** | |
+
+**ζK = 0.5 is a sensitivity closure, not a central case.** Its no-shock path pays 4.2% of GDP abroad in 2031, against 1.2–1.6% in UK data, and foreign owners hold 38% of the capital stock (8% at ζK = 0.1). Every size below should be read with that in mind.
+
+### The eight cells the old rules marked wrong
+
+The old rules carried expectations that hold when little capital can flow in. Each of the eight cells fails one of those expectations for a reason that is checked in the series. The rules now test the reason, not the closure name, and return "wrong" if the reason does not hold.
+
+| # | cell (ζK = 0.5) | expected | model | reason | check in the series |
+|---|---|---|---|---|---|
+| 1 | Korinek, technology unchanged, GDP 2031 | small | +5.15% | A13 | capital term 5.23 log points against a GDP gap of 5.02; bound with the return pinned +6.88% |
+| 2 | Korinek, technology unchanged, GDP 2036 | small | +4.85% | A13 | capital term 5.07 against 4.74; bound +6.83% |
+| 3 | UK central, technology unchanged, debt/GDP 2031 | > 0 | −0.91pp | A14 | debt +0.92%, GDP +1.90% |
+| 4 | Korinek, technology unchanged, debt/GDP 2031 | > 0 | −2.63pp | A14 | debt +2.25%, GDP +5.15% |
+| 5 | UK central, main arm, 2028 labour | > 0 | −0.03% | A15 | wage +0.002% in 2028, +0.06% in 2031 |
+| 6 | UK central, main arm, 2028 consumption | < 0 | +0.02% | A15 | same |
+| 7 | Korinek, main arm, 2028 labour | > 0 | −0.56% | A15 | wage +0.81% in 2028, +3.62% in 2031 |
+| 8 | Korinek, main arm, 2028 consumption | < 0 | +1.16% | A15 | same |
+
+Eight further cells that the old rules passed now carry a reason as well: the six tax/GDP cells (A16), and UK central's technology-unchanged GDP in 2031 and 2036 (+1.90% and +1.78%, A13). The "small" test is now per point of share fall (under 0.5% of GDP per pp), so that UK central (1.19 per pp) and Korinek (1.32 per pp) are judged alike. At ζK = 0.1 the same ratio is 0.28–0.35.
+
+### A13. At ζK = 0.5, "technology unchanged" raises GDP by 1.2–1.3% per point of share fall
+
+- The shock raises capital's share of output, so the return on capital rises and capital flows in. At ζK = 0.5 half of the gap to the open-economy capital stock is closed by foreign capital.
+- The capital term alone accounts for the GDP gap: 5.23 log points against 5.02 for Korinek, and 1.97 against 1.88 for UK central. Technology at the reference inputs is −0.05 and −0.02, and labour −0.16 and −0.07.
+- GDP is under the bound with the return pinned at its no-shock level (+6.88% Korinek, +2.58% UK central), at about three quarters of it.
+- Foreign capital finances all of the extra capital in 2031 (100–101% of ΔK). The capital-supply elasticity is 5.3–8.0, against about 6 in Korinek et al.
+
+### A14. Debt/GDP is lower in 2031 in "technology unchanged", then higher by 2036
+
+- Debt itself is higher in 2031 (+0.92% UK central, +2.25% Korinek). GDP is higher by more (+1.90%, +5.15%), so the ratio falls.
+- The primary deficit is 0.48pp and 1.19pp of GDP wider in 2031, because tax/GDP falls. That compounds, and the ratio turns positive in 2033 and reaches +1.95pp and +4.35pp in 2036.
+- The split of the 2036 gap for Korinek: +7.5pp from the primary balance, +1.3pp from the interest rate, −4.5pp from higher GDP.
+- The main arm has the same shape, larger: −7.06pp in 2031 and −0.82pp in 2036 for Korinek (A4).
+
+### A15. In the main arm at ζK = 0.5, households work less and consume more on the news
+
+- At ζK = 0 and ζK = 0.1 the wage falls in every arm, so on the 2028 news households work more and save more. At ζK = 0.5 the main arm's wage rises (+0.06% UK central, +3.62% Korinek in 2031), so the signs reverse: lifetime labour income is higher.
+- The 2028 response lines up with the 2031 wage gap across all six accepted arms at ζK = 0.5, with a rank correlation of −1.00 for labour and +1.00 for consumption:
+
+| closure | run | wage gap 2031 % | wage gap 2028 % | labour 2028 % | consumption 2028 % |
+| --- | --- | --- | --- | --- | --- |
+| zk0.5 | korinek_share_shift_tfp_ramp | +3.62 | +0.808 | -0.556 | +1.158 |
+| zk0.5 | uk_central_share_shift_tfp_ramp | +0.06 | +0.002 | -0.026 | +0.021 |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | -0.50 | -0.141 | +0.052 | -0.159 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | -0.90 | -0.283 | +0.067 | -0.267 |
+| zk0.5 | uk_central_share_shift_ramp_r4_2 | -2.37 | -0.619 | +0.314 | -0.759 |
+| zk0.5 | korinek_share_shift_ramp_r4_3 | -5.74 | -1.471 | +0.777 | -1.832 |
+
+- The same holds at the other closures: −1.00 and +0.83 at ζK = 0 (6 arms), −0.99 and +0.98 at ζK = 0.1 (12 arms).
+- The sign crosses zero where the wage gap does. UK central's main arm, with a wage gap of +0.06%, has a 2028 labour gap of −0.03% and a consumption gap of +0.02%.
+- The positive wage at ζK = 0.5 is in line with Korinek et al. Table 5 at a capital-supply elasticity of about 6. The model's elasticity in that arm is 5.7.
+
+### A16. Tax/GDP falls by 0.36–0.38pp per point of share fall at ζK = 0.5, 1.7–1.8 times the OBR's midpoint
+
+- The sign is the OBR's in every arm and every year 2028–36. The size is now above the OBR's 0.19–0.23pp, where at ζK = 0 and ζK = 0.1 it was below it (A6).
+- **Cause: the capital income that replaces labour income goes to foreign owners, and the model taxes it only through business tax.** Korinek stress test, 2031, in pp of no-shock GDP, with GDP held flat:
+  - labour income −3.90, and income tax plus payroll tax −1.68;
+  - gross capital income +3.90, of which household capital income +0.42 and income paid abroad +1.25;
+  - business tax +0.42, consumption tax −0.22;
+  - total receipts −1.47.
+- The denominator is not the cause: the stress test holds GDP flat and has the largest fall (−1.47pp against −1.40pp in the main arm).
+- At ζK = 0 the same arm loses only 0.10pp, because residents own all the extra capital and the single income-tax schedule taxes their higher capital income (the return rises 107bp there, 11bp here).
+- This is the known tax limitation seen from the other side. The gap between the effective rates on labour and capital is about 14pp when residents own the capital, and wider when foreign owners do. No fix is proposed for a sensitivity closure. A fiscal number from ζK = 0.5 should not be quoted without this caveat.
+
+### Identities at ζK = 0.5
+
+Recomputed from the exported series for all 10 records.
+
+- K = K_d + K_f, K_d = B − D_d and D = D_d + D_f hold exactly. GNI and NNI rebuild to 4e-16.
+- GDP exceeds GNI in every year of every record (the smallest gap is 3.8% of GDP). GNI exceeds NNI in every year (the smallest gap is 19.9% of GDP).
+- The resource constraint closes to 4.1e-6 of GDP over 2028–36, and to 1.6e-6 in 2027.
+- The production function, the wage condition and the return condition hold to 3.5e-6, 5.8e-6 and 1.1e-6.
+- The closure rule K_f = ζK (K_open − K_d) rebuilds to a ratio of 0.9999 in every year of every record.
+- All gaps are exactly zero in 2026 and 2027, and the 2028 stocks of wealth and debt equal the restart's.
+- The labour-share gap is the target times the ramp weight to 3.6e-4pp.
+- The restart reproduces the committed baseline over 2028–36 to 6.9e-6.
+- Z in the main and technology-unchanged arms re-derives from the restart's 2027 capital and labour to 1e-16.
+- My gaps agree with the committed `.sanity.json` reports to 1.4e-14. The reports record no fails, and seven flags at ζK = 0.5, all the 2028 investment jump.
+
+### The 2028 investment jump
+
+- Investment in 2028 is +21.4% (UK central) and +64.4% (Korinek) in the main arm. It stays there for three years (+74.9% and +86.3% in 2029–30 for Korinek) and drops to +19.9% in 2031.
+- This is A7 at a larger size. Capital has no adjustment cost in OG-Core 0.17, so the stock moves as fast as the closure allows, and all of it is foreign-financed. It is a model artefact and no 2028–30 investment number at ζK = 0.5 should be quoted.
+- The accounting holds: the growth factor implied by investment and capital equals the restart's in every year 2028–35.
+
+### Orderings
+
+**Across closures (ζK = 0, 0.1, 0.5).** All tests hold. In the main and technology-unchanged arms GDP, GNI, capital and the wage rise with ζK, the rise in the return shrinks, and the gap between GDP and GNI widens.
+
+| scenario | arm | variant | GDP % | GNI % | GDP - GNI, pp | K % | wage % | return bp | C % | tax/GDP pp | 2028 I % | ordering tests |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| uk_central | tfp | common (zk0, zk0.1, zk0.5) | +0.37 / +0.92 / +2.47 | +0.30 / +0.57 / +1.75 | +0.07 / +0.35 / +0.80 | +0.67 / +2.01 / +5.99 | -1.71 / -1.27 / +0.06 | +48.3 / +37.8 / +10.3 | -0.52 / -0.39 / +0.14 | -0.006 / -0.187 / -0.572 | +3.2 / +7.8 / +21.4 | all hold |
+| uk_central | zfixed | common (zk0, zk0.1, zk0.5) | -0.03 / +0.47 / +1.90 | -0.10 / +0.15 / +1.22 | +0.06 / +0.33 / +0.73 | +0.63 / +1.88 / +5.52 | -2.12 / -1.71 / -0.50 | +44.0 / +34.4 / +9.2 | -0.73 / -0.61 / -0.13 | -0.046 / -0.215 / -0.579 | +3.3 / +7.6 / +19.7 | all hold |
+| uk_central | r4 | common (zk0, zk0.1, zk0.5) | +0.001 / +0.005 / -0.008 | -0.06 / -0.30 / -0.54 | +0.06 / +0.30 / +0.51 | +0.63 / +1.73 / +3.97 | -2.09 / -2.19 / -2.37 | +44.4 / +30.7 / +5.4 | -0.71 / -0.84 / -1.01 | -0.042 / -0.245 / -0.599 | +3.3 / +7.3 / +14.2 | all hold |
+| korinek | tfp | common (zk0, zk0.1, zk0.5) | +3.05 / +4.89 / +9.96 | +2.88 / +3.80 / +7.73 | +0.19 / +1.15 / +2.55 | +1.80 / +6.03 / +18.62 | -2.03 / -0.59 / +3.62 | +141.9 / +109.2 / +28.5 | -0.16 / +0.28 / +1.97 | +0.207 / -0.347 / -1.403 | +6.7 / +21.3 / +64.4 | all hold |
+| korinek | zfixed | common (zk0, zk0.1, zk0.5) | -0.05 / +1.34 / +5.15 | -0.21 / +0.47 / +3.38 | +0.16 / +0.88 / +1.91 | +1.53 / +4.81 / +14.38 | -5.13 / -4.05 / -0.90 | +106.8 / +81.9 / +20.4 | -1.75 / -1.42 / -0.15 | -0.102 / -0.550 / -1.442 | +8.1 / +19.0 / +50.5 | all hold |
+| korinek | r4 | common (zk0, zk0.1, zk0.5) | +0.001 / -0.000 / +0.001 | -0.16 / -0.79 / -1.30 | +0.16 / +0.78 / +1.25 | +1.53 / +4.36 / +9.85 | -5.08 / -5.36 / -5.74 | +107.4 / +71.4 / +11.1 | -1.72 / -2.07 / -2.45 | -0.097 / -0.628 / -1.473 | +8.0 / +18.1 / +35.4 | all hold |
+| uk_central | tfp | dn (zk0, zk0.1) | +0.45 / +1.02 | +0.39 / +0.68 | +0.06 / +0.36 | +0.74 / +2.14 | -1.71 / -1.26 | +48.4 / +37.6 | -0.69 / -0.56 | -0.030 / -0.208 | +4.0 / +9.0 | all hold |
+| uk_central | zfixed | dn (zk0, zk0.1) | +0.07 / +0.60 | +0.02 / +0.28 | +0.05 / +0.32 | +0.70 / +2.00 | -2.14 / -1.71 | +44.4 / +34.4 | -0.96 / -0.84 | -0.080 / -0.247 | +4.1 / +8.6 | all hold |
+| uk_central | r4 | dn (zk0, zk0.1) | +0.003 / +0.000 | -0.05 / -0.28 | +0.05 / +0.28 | +0.69 / +1.80 | -2.21 / -2.36 | +43.7 / +29.9 | -1.01 / -1.24 | -0.089 / -0.302 | +4.2 / +8.2 | all hold |
+
+- In the stress test the wage falls by *more* as ζK rises (−5.08, −5.36, −5.74% for Korinek). This is not a break. With GDP held, the wage gap is the share term minus the labour gap, exactly:
+
+| closure | run | share term dln(1-g) | - dln L | dln Y (held near 0) | sum | dln w | residual |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | uk_central_share_shift_ramp_r4_1 | -2.492 | +0.385 | +0.001 | -2.107 | -2.107 | 2.6e-05 |
+| zk0 | korinek_share_shift_ramp_r4_1 | -6.188 | +0.973 | +0.001 | -5.213 | -5.213 | 6.0e-05 |
+| zk0 | uk_central_share_shift_ramp_dn_r4_1 | -2.492 | +0.252 | +0.003 | -2.237 | -2.237 | -3.9e-04 |
+| zk0.1 | uk_low_share_shift_ramp_r4_1 | -1.083 | +0.120 | +0.004 | -0.959 | -0.959 | 1.9e-05 |
+| zk0.1 | uk_central_share_shift_ramp_r4_1 | -2.492 | +0.275 | +0.005 | -2.212 | -2.212 | 3.2e-05 |
+| zk0.1 | uk_high_share_shift_ramp_r4_1 | -4.564 | +0.503 | -0.003 | -4.064 | -4.064 | 1.8e-05 |
+| zk0.1 | korinek_share_shift_ramp_r4_2 | -6.188 | +0.680 | -0.000 | -5.507 | -5.507 | -2.6e-05 |
+| zk0.1 | uk_central_share_shift_ramp_dn_r4_2 | -2.492 | +0.099 | +0.000 | -2.393 | -2.393 | -4.6e-04 |
+| zk0.5 | uk_central_share_shift_ramp_r4_2 | -2.492 | +0.107 | -0.008 | -2.393 | -2.393 | -1.3e-05 |
+| zk0.5 | korinek_share_shift_ramp_r4_3 | -6.188 | +0.272 | +0.001 | -5.914 | -5.914 | 7.1e-05 |
+
+- Labour falls by less at higher ζK because residents are worse off: GDP is held, more of it is paid abroad on a larger foreign-owned capital stock, GNI falls by more (−0.16, −0.79, −1.30%), and so does consumption (−1.72, −2.07, −2.45%). Households work more, and the wage per unit of labour is lower.
+
+**Across scenarios (low, central, high, Korinek).** All tests hold at every closure, for the scenarios that are solved: GDP and GNI in the main arm, capital and the return in every arm, and the wage and GNI falls in the stress test. The main arm's wage is not ordered by shock size, as before (A2).
+
+| closure | arm | scenarios | GDP % | GNI % | K % | return bp | tax/GDP pp | wage % (not expected to be ordered, A2) | ordering tests |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | tfp | uk_central, korinek | +0.37 / +3.05 | +0.30 / +2.88 | +0.67 / +1.80 | +48.3 / +141.9 | -0.006 / +0.207 | -1.71 / -2.03 | all hold |
+| zk0 | zfixed | uk_central, korinek | -0.03 / -0.05 | -0.10 / -0.21 | +0.63 / +1.53 | +44.0 / +106.8 | -0.046 / -0.102 | -2.12 / -5.13 | all hold |
+| zk0 | r4 | uk_central, korinek | +0.001 / +0.001 | -0.06 / -0.16 | +0.63 / +1.53 | +44.4 / +107.4 | -0.042 / -0.097 | -2.09 / -5.08 | all hold |
+| zk0.1 | tfp | uk_low, uk_central, uk_high, korinek | +0.41 / +0.92 / +2.74 / +4.89 | +0.27 / +0.57 / +2.02 / +3.80 | +0.87 / +2.01 / +4.09 / +6.03 | +16.9 / +37.8 / +75.5 / +109.2 | -0.078 / -0.187 / -0.292 / -0.347 | -0.53 / -1.27 / -1.27 / -0.59 | all hold |
+| zk0.1 | zfixed | uk_low, uk_central, uk_high, korinek | +0.20 / +0.47 / +0.94 / +1.34 | +0.06 / +0.15 / +0.32 / +0.47 | +0.81 / +1.88 / +3.50 / +4.81 | +15.2 / +34.4 / +61.5 / +81.9 | -0.092 / -0.215 / -0.400 / -0.550 | -0.76 / -1.71 / -3.05 / -4.05 | all hold |
+| zk0.1 | r4 | uk_low, uk_central, uk_high, korinek | +0.004 / +0.005 / -0.003 / -0.000 | -0.13 / -0.30 / -0.57 / -0.79 | +0.75 / +1.73 / +3.19 / +4.36 | +13.7 / +30.7 / +54.2 / +71.4 | -0.105 / -0.245 / -0.457 / -0.628 | -0.95 / -2.19 / -3.98 / -5.36 | all hold |
+| zk0.5 | tfp | uk_central, korinek | +2.47 / +9.96 | +1.75 / +7.73 | +5.99 / +18.62 | +10.3 / +28.5 | -0.572 / -1.403 | +0.06 / +3.62 | all hold |
+| zk0.5 | zfixed | uk_central, korinek | +1.90 / +5.15 | +1.22 / +3.38 | +5.52 / +14.38 | +9.2 / +20.4 | -0.579 / -1.442 | -0.50 / -0.90 | all hold |
+| zk0.5 | r4 | uk_central, korinek | -0.008 / +0.001 | -0.54 / -1.30 | +3.97 / +9.85 | +5.4 / +11.1 | -0.599 / -1.473 | -2.37 / -5.74 | all hold |
+
+**Across arms (main, technology unchanged, stress test).** GDP, GNI, NNI, the wage, consumption, capital and Z are in that order in 8 of 10 sets, including both at ζK = 0.5 and both debt-neutral sets.
+
+| closure | scenario | variant | GDP % | GNI % | NNI % | wage % | C % | K % | Z terminal | ordering tests (GDP, GNI, NNI, wage, C, K, Z: tfp > zfixed > stress) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | uk_central | common | +0.366 / -0.033 / +0.001 | +0.30 / -0.10 / -0.06 | +0.23 / -0.24 / -0.20 | -1.71 / -2.12 / -2.09 | -0.52 / -0.73 / -0.71 | +0.67 / +0.63 / +0.63 | 0.980978 / 0.977069 / 0.977399 | known A1 (Y, GNI, NNI, w, C, K, Z) |
+| zk0 | korinek | common | +3.047 / -0.053 / +0.001 | +2.88 / -0.21 / -0.16 | +3.09 / -0.56 / -0.50 | -2.03 / -5.13 / -5.08 | -0.16 / -1.75 / -1.72 | +1.80 / +1.53 / +1.53 | 0.974320 / 0.945025 / 0.945534 | known A1 (Y, GNI, NNI, w, C, K, Z) |
+| zk0 | uk_central | dn | +0.453 / +0.070 / +0.003 | +0.39 / +0.02 / -0.05 | +0.32 / -0.12 / -0.19 | -1.71 / -2.14 / -2.21 | -0.69 / -0.96 / -1.01 | +0.74 / +0.70 / +0.69 | 0.980978 / 0.977069 / 0.976386 | all hold |
+| zk0.1 | uk_low | common | +0.415 / +0.196 / +0.004 | +0.27 / +0.06 / -0.13 | +0.14 / -0.10 / -0.31 | -0.53 / -0.76 / -0.95 | -0.16 / -0.27 / -0.37 | +0.87 / +0.81 / +0.75 | 0.991517 / 0.989538 / 0.987803 | all hold |
+| zk0.1 | uk_central | common | +0.917 / +0.475 / +0.005 | +0.57 / +0.15 / -0.30 | +0.27 / -0.21 / -0.72 | -1.27 / -1.71 / -2.19 | -0.39 / -0.61 / -0.84 | +2.01 / +1.88 / +1.73 | 0.980153 / 0.976248 / 0.972100 | all hold |
+| zk0.1 | uk_high | common | +2.739 / +0.937 / -0.003 | +2.02 / +0.32 / -0.57 | +1.58 / -0.35 / -1.36 | -1.27 / -3.05 / -3.98 | -0.20 / -1.08 / -1.53 | +4.09 / +3.50 / +3.19 | 0.972683 / 0.957365 / 0.949354 | all hold |
+| zk0.1 | korinek | common | +4.890 / +1.344 / -0.000 | +3.80 / +0.47 / -0.79 | +3.33 / -0.44 / -1.87 | -0.59 / -4.05 / -5.36 | +0.28 / -1.42 / -2.07 | +6.03 / +4.81 / +4.36 | 0.972324 / 0.943089 / 0.931947 | all hold |
+| zk0.1 | uk_central | dn | +1.024 / +0.600 / +0.000 | +0.68 / +0.28 / -0.28 | +0.37 / -0.08 / -0.72 | -1.26 / -1.71 / -2.36 | -0.56 / -0.84 / -1.24 | +2.14 / +2.00 / +1.80 | 0.980153 / 0.976248 / 0.970724 | all hold |
+| zk0.5 | uk_central | common | +2.471 / +1.898 / -0.008 | +1.75 / +1.22 / -0.54 | +0.63 / +0.09 / -1.72 | +0.06 / -0.50 / -2.37 | +0.14 / -0.13 / -1.01 | +5.99 / +5.52 / +3.97 | 0.976442 / 0.972552 / 0.959551 | all hold |
+| zk0.5 | korinek | common | +9.957 / +5.151 / +0.001 | +7.73 / +3.38 / -1.30 | +4.86 / +0.48 / -4.24 | +3.62 / -0.90 / -5.74 | +1.97 / -0.15 / -2.45 | +18.62 / +14.38 / +9.85 | 0.963377 / 0.934410 / 0.902807 | all hold |
+
+- The two exceptions are the common-rule sets at ζK = 0, where "technology unchanged" sits just below the stress test (GDP −0.03 against +0.00% for UK central). This is A1, already documented: the technology-unchanged arm's GDP is slightly below zero there, so holding GDP flat needs slightly more technology. The main arm is above both in every measure.
+
+### Debt-neutral solves
+
+- The closure holds in all seven: debt/GDP is within 1.1e-5 (relative) of the restart's in every year 2029–36, against a tolerance of 1e-4.
+- The verdict cells are as the addendum reports: 85 consistent, 17 surprising-but-explained, 0 wrong.
+- The orderings across the two closures and across the three arms all hold (tables above). In particular the debt-neutral set at ζK = 0 has the three arms in order, where the common rule does not (A1).
+- The transfer cut in 2031 is 6.5, 7.4 and 8.7% across the arms at ζK = 0.1, and 5.4, 6.4 and 6.5% at ζK = 0. It rises as the output gain falls, as expected.
+
+### Against the literature at ζK = 0.5
+
+- **IMF.** The UK central main arm gives GDP +2.47% in 2031 for TFP +0.4%, a ratio of 6.2. The IMF's is about 6.0 at year 4 (+2.52% for +0.42%). At ζK = 0.1 the ratio is 2.3. This supports section 7's reading that the capital closure accounts for the distance from the IMF.
+- **Korinek et al.** The main-arm wage turns positive at a capital-supply elasticity of 5.3–5.7, the region where their Table 5 has it turning.
+
+### Verdict tables, ζK = 0.5
+
+**uk_central, ζK 0.5** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp`; technology unchanged: `uk_central_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_central_share_shift_ramp_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +2.47 | consistent | small, sign open (>= 0 if capital flows in) | +1.90 | surprising-but-explained (A13) | 0 within 0.01pp | -0.008 | consistent |
+| GNI % | > 0, below GDP | +1.75 | consistent | below GDP | +1.22 | consistent | <= 0 | -0.54 | consistent |
+| NNI % | rises less than GNI in levels | +0.63 | consistent | rises less than GNI in levels | +0.09 | consistent | < 0 | -1.72 | consistent |
+| capital % | > 0 | +5.99 | consistent | > 0 | +5.52 | consistent | > 0 | +3.97 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.11 | consistent | <= 0 by 2031 (wage falls) | -0.11 | consistent | <= 0 by 2031 (wage falls) | -0.11 | consistent |
+| wage % | sign open: share effect against productivity | +0.06 | consistent | < 0 | -0.50 | consistent | < 0 | -2.37 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.14 | consistent | < 0 | -0.13 | consistent | < 0 | -1.01 | consistent |
+| investment % | > 0 | +6.11 | consistent | > 0 | +5.44 | consistent | > 0 | +3.21 | consistent |
+| return, bp | > 0 | +10.3 | consistent | > 0 | +9.2 | consistent | > 0 | +5.4 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -1.50 | surprising-but-explained (A4) | > 0 | -0.91 | surprising-but-explained (A14) | > 0 | +1.07 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.57 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.58 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.60 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +21.39 | surprising-but-explained (A7) | > 0, a one-year jump | +19.73 | surprising-but-explained (A7) | > 0, a one-year jump | +14.18 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.03 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.05 | consistent | > 0 (more work on the news) | +0.31 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +0.02 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.16 | consistent | < 0 (more saving on the news) | -0.76 | consistent |
+| 2036 GDP % | > 0 | +2.35 | consistent | small, sign open | +1.78 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.127 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.27 | surprising-but-explained (A4) | > 0 | +1.95 | consistent | > 0 | +4.25 | consistent |
+
+**korinek, ζK 0.5** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp`; technology unchanged: `korinek_share_shift_ramp_zfixed`; stress test (2031 GDP held): `korinek_share_shift_ramp_r4_3`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +9.96 | consistent | small, sign open (>= 0 if capital flows in) | +5.15 | surprising-but-explained (A13) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +7.73 | consistent | below GDP | +3.38 | consistent | <= 0 | -1.30 | consistent |
+| NNI % | rises less than GNI in levels | +4.86 | consistent | rises less than GNI in levels | +0.48 | consistent | < 0 | -4.24 | consistent |
+| capital % | > 0 | +18.62 | consistent | > 0 | +14.38 | consistent | > 0 | +9.85 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.25 | consistent | <= 0 by 2031 (wage falls) | -0.26 | consistent | <= 0 by 2031 (wage falls) | -0.27 | consistent |
+| wage % | sign open: share effect against productivity | +3.62 | consistent | < 0 | -0.90 | consistent | < 0 | -5.74 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +1.97 | consistent | < 0 | -0.15 | consistent | < 0 | -2.45 | consistent |
+| investment % | > 0 | +19.91 | consistent | > 0 | +14.19 | consistent | > 0 | +7.98 | consistent |
+| return, bp | > 0 | +28.5 | consistent | > 0 | +20.4 | consistent | > 0 | +11.1 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -7.06 | surprising-but-explained (A4) | > 0 | -2.63 | surprising-but-explained (A14) | > 0 | +2.60 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -1.40 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.44 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.47 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +64.45 | surprising-but-explained (A7) | > 0, a one-year jump | +50.50 | surprising-but-explained (A7) | > 0, a one-year jump | +35.38 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.56 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.07 | consistent | > 0 (more work on the news) | +0.78 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +1.16 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.27 | consistent | < 0 (more saving on the news) | -1.83 | consistent |
+| 2036 GDP % | > 0 | +9.64 | consistent | small, sign open | +4.85 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.289 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | -0.82 | surprising-but-explained (A4) | > 0 | +4.35 | consistent | > 0 | +10.36 | consistent |
+
 ## What this audit did not do
 
 - No solve was run, and nothing under `analysis/surprise/output` was changed.
@@ -821,6 +1048,7 @@ The debt-neutral stress test at the closed-capital bound, accepted on its first 
 ```
 python analysis/surprise/audit_2028.py            # every table in this document
 python analysis/surprise/audit_2028.py --verdict  # the verdict table only
+python analysis/surprise/audit_2028.py --mono     # section 9: orderings and inequalities (final pass)
 ```
 
 The script needs numpy and the committed JSON, nothing else.
