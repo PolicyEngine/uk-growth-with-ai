@@ -12,7 +12,7 @@ OG-UK's government debt is one-period debt. The whole stock pays the current int
 
 - **Held from the solves:** GDP, the primary balance, the market interest rate and the no-shock path. There is no feedback from lower debt interest to anything else (first order).
 - **Changed:** the rate paid on debt. Each year's change in the rate gap (arm less restart) reaches the debt stock in steps: 26% in its first year, 46% in its fifth, 50% in its sixth.
-- **Check:** with 100% pass-through in every year, the recursion returns each solve's debt path to 1e-12, and the model gaps equal the dashboard's `debt_gdp_pp` for all 18 solved cells.
+- **Check:** with 100% pass-through in every year, the recursion returns each solve's debt path to 1e-12, and the model gaps equal `debt_gdp_pp` in `dashboard/src/data/surprise2028.json` (branch `dashboard/ab2026-tabs`, `2ebcc4d`) for all 18 solved cells.
 
 ### Pass-through schedule
 
