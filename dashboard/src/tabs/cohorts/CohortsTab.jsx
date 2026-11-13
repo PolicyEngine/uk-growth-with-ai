@@ -155,10 +155,10 @@ function Why({ cl, rule, arm }) {
         {rule === 'dn' ? (
           <p>
             With debt-neutral transfers, households pay for the shock&rsquo;s effect on the public finances through lower
-            transfers until the debt rule starts in 2036. From 2036 the adjustment falls on government consumption, which
-            households do not value in the model. For a 45-year-old over 2028–35 that costs {plain(Math.abs(tr[0]), 1)}{' '}
+            transfers until the debt rule starts in 2036. For a 45-year-old over 2028–35 that costs {plain(Math.abs(tr[0]), 1)}{' '}
             of consumption in the bottom group and {plain(Math.abs(tr[6]), 1)} in the top 1%. That narrows the gap between them
-            but does not reverse it.
+            but does not reverse it. From 2036 the adjustment falls on government consumption, which households do not
+            value in the model.
           </p>
         ) : (
           <p>
