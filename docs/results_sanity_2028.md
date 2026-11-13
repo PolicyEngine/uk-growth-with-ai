@@ -712,7 +712,15 @@ Debt-neutral, technology unchanged. **17 cells: 15 consistent, 2 surprising-but-
 - **Transfers are 7.4% lower in 2031** (−0.48pp of GDP), more than in the main arm (6.5%), because there is no TFP gain to raise revenue.
 - **Against the same arm under the common G/Y rule, 2031:** GDP +0.60 against +0.47%, GNI +0.28 against +0.15%, K +2.00 against +1.88%, L −0.16 against −0.29%, wage −1.71% in both, C −0.84 against −0.61%. The directions match the main arm's: more work, less consumption, more capital.
 - The two surprising cells are NNI below zero with GNI above zero (−0.08 against +0.28%, A5) and the 2028 investment jump (+8.6%, A7).
-- The debt-neutral stress test for UK central is not solved yet, so its block in the table below is still incomplete.
+- The debt-neutral stress test for UK central has no accepted iteration yet, so its column in the table below is still "not solved".
+
+### `uk_central_share_shift_ramp_dn_r4_1`, ζK = 0.1 (at `6843671`, 13 Nov 00:18)
+
+First R4 iteration of the debt-neutral stress test. **Not an accepted iteration:** its 2031 GDP gap is +0.026%, outside the 0.01pp tolerance, so a second iteration is due and this one gets no verdict cells.
+
+- Nothing is wrong with the solve itself. Debt/GDP is within 6.5e-6 (relative) of the continuation in 2029–36, identities hold to 1e-16, the resource constraint to 9e-7 of GDP, and the labour-share gap is −1.600pp.
+- Its numbers already have the expected shape: transfers −8.7% in 2031 (the largest of the three arms), GNI −0.26%, wage −2.34%, consumption −1.22% (against −0.84% under the common rule).
+- The step used the surprise common-rule secant slope (110.4pp per unit ln Z), and Z is 0.970958 against 0.972100 under the common rule: holding GDP flat needs a larger technology cut when transfers fall, because households work more.
 
 **UK central, ζK 0.1, debt-neutral transfers** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp_dn`; technology unchanged: `uk_central_share_shift_ramp_zfixed_dn`; stress test (2031 GDP held): not solved
 
