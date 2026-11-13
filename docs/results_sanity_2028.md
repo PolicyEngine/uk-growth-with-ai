@@ -756,6 +756,38 @@ The accepted debt-neutral stress test: 2031 GDP gap 0.000%. **17 cells: 15 consi
 | 2036 GDP % | > 0 | +1.02 | consistent | small, sign open | +0.55 | consistent | near 0, not held after 2031 | -0.118 | surprising-but-explained (A8) |
 | 2036 debt/GDP, pp | 0 (held on the reference path) | +0.001 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.001 | consistent |
 
+### `uk_central_share_shift_tfp_ramp_dn`, ζK = 0 (at `68941b6`, 13 Nov 00:33)
+
+The debt-neutral main arm at the closed-capital bound. **17 cells: 13 consistent, 4 surprising-but-explained, 0 wrong.**
+
+- **The closure holds:** debt/GDP is within 3.8e-6 (relative) of the continuation in 2029–36. Identities hold to 1e-16, the resource constraint to 2.4e-6 of GDP, K_f is zero, and the labour-share gap is −1.600pp.
+- **Transfers are 5.4% lower in 2031** (−0.35pp of GDP), less than at ζK = 0.1 (6.5%), because tax/GDP barely falls at the bound.
+- **Against the same arm under the common G/Y rule, 2031:** GDP +0.45 against +0.37%, GNI +0.39 against +0.30%, K +0.74 against +0.67%, L −0.31 against −0.40%, wage −1.71% in both, C −0.69 against −0.52%, Δr +48bp in both. The directions are the same as at ζK = 0.1.
+- **Tax/GDP keeps the OBR's sign in every year here** (−0.03pp in 2031, −0.01pp in 2036), where the common rule turns positive from 2032. With no extra gilts issued, households have less interest income for the single income-tax schedule to tax. It is still under a tenth of the OBR's rate per pp (A6).
+- The four surprising cells: the wage falls while GDP rises (A2), consumption falls while GNI rises (A3), tax/GDP falls by under half the OBR's lower rate (A6), and the 2028 investment jump (+4.0%, A7).
+
+**UK central, ζK 0, debt-neutral transfers** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp_dn`; technology unchanged: not solved; stress test (2031 GDP held): not solved
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.45 | consistent | small, sign open (>= 0 if capital flows in) | – | not solved | 0 within 0.01pp | – | not solved |
+| GNI % | > 0, below GDP | +0.39 | consistent | below GDP | – | not solved | <= 0 | – | not solved |
+| NNI % | rises less than GNI in levels | +0.32 | consistent | rises less than GNI in levels | – | not solved | < 0 | – | not solved |
+| capital % | > 0 | +0.74 | consistent | > 0 | – | not solved | > 0 | – | not solved |
+| labour % | <= 0 by 2031 (wage falls) | -0.31 | consistent | <= 0 by 2031 (wage falls) | – | not solved | <= 0 by 2031 (wage falls) | – | not solved |
+| wage % | sign open: share effect against productivity | -1.71 | surprising-but-explained (A2) | < 0 | – | not solved | < 0 | – | not solved |
+| consumption % | sign open; > 0 expected if income rises | -0.69 | surprising-but-explained (A3) | < 0 | – | not solved | < 0 | – | not solved |
+| investment % | > 0 | +3.40 | consistent | > 0 | – | not solved | > 0 | – | not solved |
+| return, bp | > 0 | +48.4 | consistent | > 0 | – | not solved | > 0 | – | not solved |
+| labour share, pp | = -target | -1.60 | consistent | = -target | – | not solved | = -target | – | not solved |
+| debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | – | not solved | 0 (held on the reference path) | – | not solved |
+| tax/GDP, pp | < 0 (OBR sign) | -0.03 | surprising-but-explained (A6) | < 0 (OBR sign) | – | not solved | < 0 (OBR sign) | – | not solved |
+| 2028 investment % | > 0, a one-year jump | +4.03 | surprising-but-explained (A7) | > 0, a one-year jump | – | not solved | > 0, a one-year jump | – | not solved |
+| 2028 labour % | > 0 (more work on the news) | +0.27 | consistent | > 0 (more work on the news) | – | not solved | > 0 (more work on the news) | – | not solved |
+| 2028 consumption % | < 0 (more saving on the news) | -0.83 | consistent | < 0 (more saving on the news) | – | not solved | < 0 (more saving on the news) | – | not solved |
+| 2036 GDP % | > 0 | +0.60 | consistent | small, sign open | – | not solved | near 0, not held after 2031 | – | not solved |
+| 2036 debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | – | not solved | 0 (held on the reference path) | – | not solved |
+
 ## What this audit did not do
 
 - No solve was run, and nothing under `analysis/surprise/output` was changed.
