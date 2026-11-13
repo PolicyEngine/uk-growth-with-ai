@@ -11,7 +11,7 @@
 
 \paragraph{Government debt reprices at once.} The model's debt is one-period, and its rate moves with the return on capital, so the whole stock pays the higher rate from the first year. UK gilts have long maturities, so the model overstates how fast higher rates raise debt service, and with it the \genDebtRuleYear{} debt gaps.
 
-\paragraph{The spending convention.} In the reported runs government consumption and transfers are fixed shares of GDP until the debt rule starts in \genDebtRuleYear{}, so higher output raises spending. The fixed-spending variant, the OBR's convention, and the debt-neutral variant are being solved. From \genDebtRuleYear{} the debt rule cuts government consumption in every run, so flows in that year are not reported.
+\paragraph{The spending convention.} In the reported runs government consumption and transfers are fixed shares of GDP until the debt rule starts in \genDebtRuleYear{}, so higher output raises spending. The fixed-spending variant, the OBR's convention, is being solved; the debt-neutral variant is solved for UK central and carries the cohort results (Section~\ref{sec:incidence}). From \genDebtRuleYear{} the debt rule cuts government consumption in every run, so flows in that year are not reported.
 
 \paragraph{The labour share is an input.} At $\varepsilon = \genEpsilon{}$ the labour share is exactly $1-\gamma_t$. The scenario's fall is an assumption carried through the model, not evidence for it. With an elasticity below one, capital deepening would move factor shares, and the mapping from automation to output and wages would change. No run varies $\varepsilon$; OG-Core indexes it by industry only, at about \genPatchEpsilonSites{} sites that would need the treatment Appendix~\ref{app:patch} gives $\gamma$.
 
