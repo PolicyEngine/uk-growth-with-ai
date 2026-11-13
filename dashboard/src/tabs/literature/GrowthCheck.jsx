@@ -20,12 +20,12 @@ export default function GrowthCheck() {
     <div className="info-card mx-card mx-kpi" ref={ref}>
       <h3 className="info-card-title">
         <Icon name="gauge" size={18} />
-        <span>The OBR-central path against the OBR</span>
+        <span>The OG-UK baseline against the OBR</span>
       </h3>
       <div className="mx-kpi-body">
         <div className="mx-kpi-figs">
           <div>
-            <span className="mx-kpi-k">OG-UK OBR-central path</span>
+            <span className="mx-kpi-k">OG-UK baseline</span>
             <span className="mx-kpi-v">{g.mean_pct.toFixed(2)}%</span>
           </div>
           <div>

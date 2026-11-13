@@ -144,7 +144,7 @@ function debtWords(sid) {
   const main36 = gap(sid, 'tfp', CENTRAL, 'debt_gdp_pp', LATE_YEAR);
   const every = all.every((x) => x > 0);
   const lead = every
-    ? `By ${LATE_YEAR} debt/GDP is above the OBR-central path in every arm${main31 != null && main31 < 0 && main36 > 0 ? ', including automation + productivity, which is below it in ' + HEADLINE_YEAR : ''}.`
+    ? `By ${LATE_YEAR} debt/GDP is above the OBR-central path in every arm${main31 != null && main31 < 0 && main36 > 0 ? ', including automation + productivity, which is below it in ' + HEADLINE_YEAR + ' under the central closure' : ''}.`
     : `By ${LATE_YEAR} debt/GDP is above the OBR-central path in some arms.`;
   return `${lead} The higher interest rate reprices the whole debt stock.`;
 }
@@ -265,8 +265,8 @@ function SpendingRuleCard() {
       </div>
       {rule === 'default' ? (
         <p className="chart-description rule-default">
-          This is the rule every other card on this dashboard uses: government consumption follows GDP, as the
-          debt card notes.
+          This is the rule every other card on this dashboard uses: government consumption follows GDP until the
+          debt rule starts in {LATE_YEAR}.
         </p>
       ) : (
         <Unpublished>No solve for this rule yet. The {RULES.find((r) => r.id === rule).label.toLowerCase()} results will appear here once they are published.</Unpublished>
