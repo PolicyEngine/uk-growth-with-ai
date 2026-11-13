@@ -963,9 +963,13 @@ body {
 }
 
 @media (max-width: 480px) {
+  .rule-table {
+    font-size: 12px;
+  }
+
   .rule-table th,
   .rule-table td {
-    padding: 8px 5px;
+    padding: 8px 3px;
   }
 }
 
