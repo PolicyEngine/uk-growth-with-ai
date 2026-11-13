@@ -607,7 +607,7 @@ export default function MethodTab({ onTab, active = true }) {
                   more={
                     <>
                       <p>Time path iteration guesses whole price paths. It solves every cohort, then updates the guess.</p>
-                      <p>Each run takes about eight minutes. OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>.</p>
+                      <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on Code.</p>
                     </>
                   }
                   moreTitle="Time path iteration"

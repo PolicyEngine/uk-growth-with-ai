@@ -79,7 +79,8 @@ function BeforeYouStart() {
           <ul className="mx-needs">
             <li>A Hugging Face token with read access, set as both HF_TOKEN and HUGGING_FACE_TOKEN.</li>
             <li>The R1–R4 baselines in WORK: each closure&rsquo;s baseline_p1 pickles.</li>
-            <li>About 15 GB of memory for a specification build; about eight minutes a solve.</li>
+            {/* elapsed_min over the 38 solve records in analysis/surprise/output (zk0.1, zk0, zk0.5) at 524849d: 6.5 to 8.7, median 6.8 */}
+            <li>About 15 GB of memory for a specification build; about seven minutes a solve (6.5 to 8.7 across the committed solves).</li>
           </ul>
         </div>
       </div>
