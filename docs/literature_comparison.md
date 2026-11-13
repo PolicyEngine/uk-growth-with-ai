@@ -532,7 +532,8 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 
 **Debt/GDP in 2031.**
 - **Main arm: lower than baseline in seven of eight solved cells** (−0.07pp to −3.02pp at ζK = 0.1 and 0; −1.50pp and −7.06pp at ζK = 0.5), the same sign as the OBR's productivity scenarios and Penn Wharton. UK central at ζK = 0 is +0.33pp: above.
-- **Stress test: below the OBR's displacement scenario.** Ours is +0.54pp per point of share fall at ζK = 0.1, +0.46pp at ζK = 0 and +0.67pp at ζK = 0.5, against the OBR's +1.86pp. UK low, the like-for-like size, has debt +0.38pp in 2031 against the OBR's +1.3% of GDP by 2030-31.
+  - At ζK = 0.5 the ratio is lower because GDP rises by more than debt. Debt itself is higher and the primary deficit is wider, because tax/GDP falls (audit A14). The caveats in Section 4.10 apply.
+- **Stress test: below the OBR's displacement scenario.** Ours is +0.54pp per point of share fall at ζK = 0.1, +0.46pp at ζK = 0 and +0.67pp at ζK = 0.5 (with the caveats in Section 4.10), against the OBR's +1.86pp. UK low, the like-for-like size, has debt +0.38pp in 2031 against the OBR's +1.3% of GDP by 2030-31.
   - Why: no unemployment and so no welfare spending (the OBR has +£3bn a year), a smaller revenue fall, and spending held at a fixed share of GDP.
 
 **Debt/GDP by 2036: higher in every arm at ζK = 0.1 and 0, which no published productivity scenario shows.**
@@ -568,7 +569,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
   | ζK 0.5 | Korinek | stress test (GDP flat) | +10.36 | +0.84 | +11 |
 
   - For UK central's main arm, repricing is +2.31pp of a +1.99pp gap. Without it, debt/GDP would be about 0.3pp below baseline, the OBR's sign.
-  - At ζK = 0.5 repricing is about a quarter as large (18–28% of the ζK = 0.1 figure), because the return rises less. The Korinek main arm ends 0.82pp below baseline, and UK central's main arm 1.27pp above, of which repricing is 0.65pp. This note does not split the other 0.62pp. Tax/GDP falls three times as far as at ζK = 0.1 (−0.57pp against −0.19pp), so these debt figures carry the tax caveat in Section 4.10.
+  - At ζK = 0.5 repricing is about a quarter as large (18–28% of the ζK = 0.1 figure), because the return rises less. The Korinek main arm ends 0.82pp below baseline, and UK central's main arm 1.27pp above, of which repricing is 0.65pp. The rest comes from a wider primary deficit, less the effect of higher GDP (audit A14). Tax/GDP falls three times as far as at ζK = 0.1 (−0.57pp against −0.19pp for UK central), so these debt figures carry the tax caveat in Section 4.10.
   - UK gilts have a long average maturity, so only a fraction of the stock reprices in eight years. The model has one-period debt.
 - The 2031 borrowing flow, the change in debt over the year as a share of GDP, is also higher in the main arm (+0.44pp for UK central at ζK = 0.1), where the OBR's productivity upside has borrowing £50bn lower (A4). The cause is the same.
 - Verdict: **the 2031 sign is inside the range; the 2036 sign is not, and the cause is a modelling simplification.** Red flag 2.
@@ -613,7 +614,7 @@ Added on 13 November from the ten ζK = 0.5 solves on `rerun/surprise-2028` at `
 - **UK central reaches the IMF's output and its implied wage.** The ratio of 6.18 per 1% of TFP is "inside" by 0.02: the ceiling of 6.2 is the IMF's own year-5 figure, so here "inside" means level with the IMF and not inside a wide range.
 - **The Korinek arm passes Korinek et al.'s default case and lands beside their two most elastic cases, ε = 6 and ε = ∞.** Capital is +18.6% against their +15.7% and +18.2%. The wage is +3.62% against their +3.7% and +5.6%. GDP is +9.96% against their +10.0% at ε = ∞.
   - Two differences remain. Their labour share is endogenous and falls 3.5pp at ε = 6, where ours falls 3.9pp. Their horizon is 3.5 years to 2030, where ours is adoption year 4.
-- **The published headline lies between the two closures for the Korinek arm, and at the upper one for UK central.** That is the use of this closure: ζK = 0.1 gives the lower end of the capital response and ζK = 0.5 the upper end.
+- **The published headline lies between the two closures for the Korinek arm, and at the upper one for UK central.** That is the use of this closure: the central closure sits below both studies, and the sensitivity sits level with one and above the other.
 - **The what-if arithmetic of Section 4.4 predicted these solves.** From the ζK = 0.1 solve at ε = 6 it gave GDP +2.34% for UK central and +9.45% for the Korinek arm. The solves give +2.47% and +9.96% at elasticities of 5.3 and 5.7.
 - **The fixes since the 2026-start run change little.** That run, made before the R1–R4 fixes (`docs/closure_sensitivity.md`), had GDP +9.9%, capital +18.4%, GNI +7.7% and an elasticity of 5.4 for the Korinek shock in 2030. The 2028-surprise solve has +9.96%, +18.62%, +7.73% and 5.72 in 2031.
 
@@ -640,7 +641,7 @@ The test was: a result outside every published range with no cause in the model.
 ### 1. The capital closure is outside the published range, and it decides the headline
 
 - **What.** The implied capital-supply elasticity is 0.57–0.68 at ζK = 0.1 and 0.15–0.17 at ζK = 0. Korinek et al.'s lowest case is 1 and their default is 3. The IMF's UK output figure implies 4.8, or 1.6 on a faster share path (ours).
-- **What it moves.** Against the same shock, UK central's GDP is 36% of the IMF's at year 4 (+0.92% against +2.52%) and the Korinek arm's is 59% of Korinek et al.'s (+4.89% against +8.3%). The wage is below their range in every UK main arm, and the return is at or above the top of the range in every cell.
+- **What it moves.** Against the same shock, UK central's GDP is 36% of the IMF's at year 4 (+0.92% against +2.52%) and the Korinek arm's is 59% of Korinek et al.'s (+4.89% against +8.3%). At ζK = 0.1 and 0 the wage is below their range in every UK main arm, and the return is at or above the top of the range in every cell.
 - **Why it is a flag and not an error.** The production side and the shock reproduce Korinek et al.'s headline once their default elasticity is imposed (Section 4.4). The low elasticity has support in the saving evidence that both Korinek et al. and Moll, Rachel and Restrepo cite. The central case and the lower bound are both outside the published range. The ζK = 0.5 sensitivity is the only closure inside it.
 - **Fix.** Solve the main arm, the technology-unchanged arm and the stress test at **ζK = 0.5** for the four scenarios, as a sensitivity case. That is 12–16 arm solves plus a ζK = 0.5 baseline on the R1–R4 fixes and its no-shock restart: two to three hours.
   - **Status: solved for UK central and the Korinek arm** (Section 4.10). UK low and UK high at ζK = 0.5 are queued.
@@ -659,13 +660,14 @@ The test was: a result outside every published range with no cause in the model.
   - The ε = 1 column is rough: at ε = 1 the same arithmetic gives the wrong wage sign against Korinek et al.'s own table (Section 4.4). The ε = 3 column matches their table.
   - Two predictions made here before the solves held: GNI rises by less than GDP, and the return rises less (+10bp against +38bp for UK central).
   - A third did not. The tax response does not move towards the OBR's: it passes it (Section 4.10, caveat 2).
-- **If there is no rerun:** say next to every headline that the central closure delivers about a third of the IMF's output effect for the same TFP, and that the published elasticities start at 1.
+- **Next to every headline at ζK = 0.1:** say that the central closure delivers about a third of the IMF's output effect for the same TFP, that the published elasticities start at 1, and that the ζK = 0.5 sensitivity delivers about as much as the IMF.
 
-### 2. Debt/GDP rises by 2036 in the main arm, opposite to the OBR and Penn Wharton
+### 2. Debt/GDP rises by 2036 in the main arm at ζK = 0.1 and 0, opposite to the OBR and Penn Wharton
 
 - **What.** "Automation + productivity" has debt/GDP +0.84pp to +2.07pp by 2036 at ζK = 0.1 and +1.0pp to +2.0pp at ζK = 0. Published productivity scenarios have debt flat or lower.
 - **Why.** The interest rate on the whole debt stock rises with the return on capital from the first year. That alone adds +1.0pp to +8.4pp by 2036 across the six solved main arms, more than the whole gap in each. The OBR's comparable variant holds interest rates at baseline.
 - **Fix: no rerun.** Publish the split from `lit_grid.py` beside every debt number, and say that the model's debt is one-period while UK gilts are long-dated. With the interest effect removed, UK central's main arm has debt/GDP about 0.3pp lower than baseline in 2036, the OBR's sign.
+- **At ζK = 0.5** the sign differs by scenario and the interest rate is no longer the main cause (Section 4.8).
 - **A model change, not proposed for now:** phase the higher rate in over the maturity of the stock. It needs a change to OG-Core's `r_gov` rule.
 
 ### 3. Tax/GDP: the wrong sign in one cell at ζK = 0, and 42–77% of the OBR's size at ζK = 0.1
