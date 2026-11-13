@@ -18,6 +18,8 @@ LABEL="ugai-surprise-2028"
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 DEADLINE_AT="${DEADLINE_AT:-19:25}"
 DEADLINE="$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) $DEADLINE_AT:00" +%s)" || exit 1
+# a deadline earlier in the day than now means tomorrow (an overnight run)
+(( DEADLINE < $(date +%s) - 60 )) && DEADLINE=$(( DEADLINE + 86400 ))
 export DEADLINE
 if (( $(date +%s) + ${SOLVE_BUDGET:-600} > DEADLINE )); then
   echo "past the deadline ($DEADLINE_AT): not taking the lock"; exit 3

@@ -33,6 +33,8 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${PY:?set PY to the OG-UK venv python}"
 WORK="${WORK:?set WORK to the directory holding <closure>/baseline_p1}"
 SOLVE_BUDGET="${SOLVE_BUDGET:-600}"
+SOLVE_TIMEOUT="${SOLVE_TIMEOUT:-1800}"   # a solve takes ~7 min; kill it (by PID) after 30
+NET_TIMEOUT="${NET_TIMEOUT:-60}"         # git push / gh calls
 BRANCH="rerun/surprise-2028"
 OUT="$REPO/analysis/surprise/output"
 RERUN="$REPO/analysis/rerun/output"
@@ -51,6 +53,19 @@ export PYTHONPATH="$REPO"
 [[ "$(git -C "$REPO" rev-parse --abbrev-ref HEAD)" == "$BRANCH" ]] || {
   echo "not on $BRANCH"; exit 1; }
 
+run_to() {   # run_to <seconds> <cmd...>: kill the command (its own PID only) on timeout
+  local secs="$1"; shift
+  "$@" & local pid=$! t=0
+  while kill -0 "$pid" 2>/dev/null; do
+    if (( t >= secs )); then
+      kill "$pid" 2>/dev/null; sleep 5; kill -9 "$pid" 2>/dev/null
+      echo "TIMEOUT after ${secs}s: $*"; wait "$pid" 2>/dev/null; return 124
+    fi
+    sleep 5; t=$((t + 5))
+  done
+  wait "$pid"
+}
+
 cli() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" \
             --rerun-dir "$RERUN" </dev/null ); }
 
@@ -58,7 +73,7 @@ push() {   # push <message> <path>...
   local msg="$1"; shift
   ( cd "$REPO" && git add -- "$@" \
     && git commit -q -m "$msg" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- "$@" \
-    && for i in 1 2 3; do git push -q origin "$BRANCH" && exit 0; sleep 20; done
+    && for i in 1 2 3; do run_to "$NET_TIMEOUT" git push -q origin "$BRANCH" && exit 0; sleep 20; done
     echo "PUSH FAILED: $msg" )
 }
 
@@ -67,10 +82,10 @@ progress() {
   body="$("$PY" "$REPO/analysis/surprise/sanity.py" --progress --outdir "$OUT")" || return 0
   id="$(cat "$WORK/surprise_progress_comment_id" 2>/dev/null)"
   if [[ -n "$id" ]]; then
-    gh api -X PATCH "repos/PolicyEngine/uk-growth-with-ai/issues/comments/$id" \
+    run_to "$NET_TIMEOUT" gh api -X PATCH "repos/PolicyEngine/uk-growth-with-ai/issues/comments/$id" \
       -f body="$body" >/dev/null || echo "progress comment update failed"
   else
-    gh api "repos/PolicyEngine/uk-growth-with-ai/issues/27/comments" -f body="$body" \
+    run_to "$NET_TIMEOUT" gh api "repos/PolicyEngine/uk-growth-with-ai/issues/27/comments" -f body="$body" \
       --jq .id > "$WORK/surprise_progress_comment_id" || echo "progress comment failed"
   fi
 }
@@ -154,9 +169,9 @@ for item in "${PLAN[@]}"; do
     time_ok "$C $label" || exit 3
     log="$OUT/$C/$label.log"; mkdir -p "$OUT/$C"
     echo "=== start $C $label $(date +%H:%M)"
-    ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai surprise step --closure "$C" \
-        --stage "$STAGE" --scenario "$SCEN" --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
-        </dev/null >"$log" 2>&1 )
+    ( cd "$WORK" && run_to "$SOLVE_TIMEOUT" caffeinate -i "$PY" -u -m uk_growth_with_ai surprise \
+        step --closure "$C" --stage "$STAGE" --scenario "$SCEN" --outdir "$OUT" \
+        --rerun-dir "$RERUN" --work "$WORK" </dev/null >"$log" 2>&1 )
     rc=$?
     if [[ $rc -ne 0 || ! -f "$OUT/$C/$label.json" ]]; then
       push "surprise 2028 $C: $label FAILED (log)" "$log"

@@ -1,0 +1,118 @@
+zk0.1 surprise 2028 arms_dn: uk_central_share_shift_tfp_ramp_dn (fixed-input Z (+0.40% at baseline 2027 K, L))
+
+=== zk0.1 surprise2028 uk_central_share_shift_tfp_ramp_dn ===
+Demographics data: Initial Data year =  2026 , Final Data year =  2028
+Traceback (most recent call last):
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connection.py", line 204, in _new_conn
+    sock = connection.create_connection(
+        (self._dns_host, self.port),
+    ...<2 lines>...
+        socket_options=self.socket_options,
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/util/connection.py", line 60, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vahid/.local/share/uv/python/cpython-3.13.15-macos-aarch64-none/lib/python3.13/socket.py", line 983, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+        conn,
+    ...<10 lines>...
+        **response_kw,
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 488, in _make_request
+    raise new_e
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 464, in _make_request
+    self._validate_conn(conn)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 1106, in _validate_conn
+    conn.connect()
+    ~~~~~~~~~~~~^^
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connection.py", line 759, in connect
+    self.sock = sock = self._new_conn()
+                       ~~~~~~~~~~~~~~^^
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connection.py", line 211, in _new_conn
+    raise NameResolutionError(self.host, self, e) from e
+urllib3.exceptions.NameResolutionError: HTTPSConnection(host='population.un.org', port=443): Failed to resolve 'population.un.org' ([Errno 8] nodename nor servname provided, or not known)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/requests/adapters.py", line 696, in send
+    resp = conn.urlopen(
+        method=request.method,
+    ...<9 lines>...
+        chunked=chunked,
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/connectionpool.py", line 842, in urlopen
+    retries = retries.increment(
+        method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/urllib3/util/retry.py", line 543, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='population.un.org', port=443): Max retries exceeded with url: /dataportalapi/api/v1/data/indicators/68/locations/826/start/2025/end/2028?format=csv (Caused by NameResolutionError("HTTPSConnection(host='population.un.org', port=443): Failed to resolve 'population.un.org' ([Errno 8] nodename nor servname provided, or not known)"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 131, in main
+    return _surprise(args)
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 198, in _surprise
+    sp.run_step(args.outdir, args.closure, args.stage, args.work, args.rerun_dir,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                scenario=args.scenario, **kw)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 935, in run_step
+    rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
+                  spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
+                  out_dir=str(adir), baseline_spending=spec["baseline_spending"],
+                  surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
+                  **settings)
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/solve.py", line 321, in run_arm
+    p = api._build_specs(START, None, out_dir, base_dir, baseline=baseline,
+                         age_specific="pooled", multi_sector=False,
+                         param_overrides=overrides)
+  File "/Users/vahid/ogmodels/OG-UK/oguk/api.py", line 895, in _build_specs
+    cal = calibrate(start_year=start_year, policy=policy, age_specific=age_specific)
+  File "/Users/vahid/ogmodels/OG-UK/oguk/api.py", line 806, in calibrate
+    demo = demographics.get_pop_objs(
+        E=20,
+    ...<5 lines>...
+        GraphDiag=False,
+    )
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/solve.py", line 245, in wrapper
+    d = orig(*a, **k)
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/demographics.py", line 776, in get_pop_objs
+    fert_rates = get_fert(
+        E + S,
+    ...<5 lines>...
+        download_path=download_path,
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/demographics.py", line 196, in get_fert
+    df = get_un_data(
+        "68", country_id=country_id, start_year=start_year, end_year=end_year
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/demographics.py", line 91, in get_un_data
+    response = get_legacy_session().get(target, headers=headers, data=payload)
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/requests/sessions.py", line 671, in get
+    return self.request("GET", url, params=params, **kwargs)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/requests/sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/requests/sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/requests/adapters.py", line 729, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='population.un.org', port=443): Max retries exceeded with url: /dataportalapi/api/v1/data/indicators/68/locations/826/start/2025/end/2028?format=csv (Caused by NameResolutionError("HTTPSConnection(host='population.un.org', port=443): Failed to resolve 'population.un.org' ([Errno 8] nodename nor servname provided, or not known)"))

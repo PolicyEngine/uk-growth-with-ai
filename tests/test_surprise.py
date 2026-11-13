@@ -591,3 +591,37 @@ def test_load_ignores_sanity_reports_next_to_the_records(tmp_path):
     (d / "korinek_share_shift_ramp_r4_1.sanity.json").write_text(json.dumps({"ok": True}))
     (d / "GATE_continuation.json").write_text("{}")
     assert list(sp.load(tmp_path, "zk0.1")) == ["korinek_share_shift_ramp_r4_1"]
+
+
+# --- UN data cache (a network drop hung a solve, 12 Nov) ------------------------------
+
+def test_un_cache_retries_then_caches_and_reads_offline(tmp_path, monkeypatch):
+    import pandas as pd
+    from uk_growth_with_ai import un_cache
+    monkeypatch.setenv("UGAI_UN_CACHE", str(tmp_path))
+    calls = []
+
+    def flaky(variable_code, country_id="826", start_year=2025, end_year=2028):
+        calls.append(1)
+        if len(calls) < 3:
+            raise ConnectionError("network down")
+        return pd.DataFrame({"year": [2026], "age": [20], "value": [0.5]})
+    w = un_cache.cached(flaky, timeout=5, backoff=(0, 0, 0), sleep=lambda s: None,
+                        log=lambda m: None)
+    df = w("68", "826", 2025, 2028)
+    assert len(calls) == 3 and df["value"].tolist() == [0.5]
+
+    def offline(*a, **k):
+        raise AssertionError("network touched on a cache hit")
+    w2 = un_cache.cached(offline, log=lambda m: None)
+    assert w2("68", "826", 2025, 2028)["value"].tolist() == [0.5]
+
+
+def test_un_cache_times_out_and_fails_cleanly(tmp_path, monkeypatch):
+    import time as _t
+    from uk_growth_with_ai import un_cache
+    monkeypatch.setenv("UGAI_UN_CACHE", str(tmp_path))
+    w = un_cache.cached(lambda *a, **k: _t.sleep(5), timeout=0.2, backoff=(0,),
+                        sleep=lambda s: None, log=lambda m: None)
+    with pytest.raises(un_cache.UNFetchError, match="TimeoutError"):
+        w("80", "826", 2025, 2028)
