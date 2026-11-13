@@ -1,7 +1,7 @@
 {
- "what": "Consumption-equivalent welfare change by birth year and lifetime-earnings group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption and bequests, labour held at the no-shock path.",
+ "what": "Consumption-equivalent welfare change by birth year and lifetime-earnings group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption and bequests, labour held at the no-shock path. no_bequest_*: warm glow dropped, per cent of consumption. sources_alive: change in remaining-lifetime after-tax income by source at unchanged behaviour, per cent of remaining-lifetime consumption (first order). charged: the government-consumption shortfall from 2036 charged to households per head (first order, debt-neutral only; [low, high] over two extensions past 2036).",
  "generated_by": "paper/cohort_welfare.py --json",
- "source": "uk-growth-with-ai@ee80669",
+ "source": "uk-growth-with-ai@3b4175e",
  "reference": "no-shock continuation of the same closure",
  "shock_year": 2028,
  "groups": [
@@ -1573,6 +1573,38 @@
        "bequests": 0.52
       },
       "consumption_only_alive_avg": 1.429,
+      "no_bequest_alive_avg": 0.485,
+      "no_bequest_losing_pct": 14.954,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -0.666,
+       "capital": 1.681,
+       "transfers": -0.062,
+       "bequests": 0.292,
+       "total": 1.245
+      },
+      "charged": {
+       "joint_avg": [
+        0.504,
+        0.528
+       ],
+       "joint_losing_pct": [
+        14.824,
+        17.574
+       ],
+       "no_bequest_avg": [
+        0.091,
+        0.122
+       ],
+       "no_bequest_losing_pct": [
+        47.664,
+        49.52
+       ],
+       "oldest_losing_on_average": [
+        28.0,
+        30.0
+       ]
+      },
       "first_year_c_above": 2039,
       "c_gap": {
        "2028": -0.613,
@@ -2976,6 +3008,38 @@
        "bequests": 0.425
       },
       "consumption_only_alive_avg": 0.886,
+      "no_bequest_alive_avg": 0.121,
+      "no_bequest_losing_pct": 47.005,
+      "all_lose_up_to_age": 20,
+      "sources_alive": {
+       "labour": -0.956,
+       "capital": 1.579,
+       "transfers": -0.187,
+       "bequests": 0.245,
+       "total": 0.681
+      },
+      "charged": {
+       "joint_avg": [
+        0.127,
+        0.148
+       ],
+       "joint_losing_pct": [
+        42.708,
+        44.03
+       ],
+       "no_bequest_avg": [
+        -0.301,
+        -0.274
+       ],
+       "no_bequest_losing_pct": [
+        64.834,
+        66.298
+       ],
+       "oldest_losing_on_average": [
+        45.0,
+        45.0
+       ]
+      },
       "first_year_c_above": 2051,
       "c_gap": {
        "2028": -0.828,
@@ -4379,6 +4443,38 @@
        "bequests": 0.29
       },
       "consumption_only_alive_avg": 0.119,
+      "no_bequest_alive_avg": -0.394,
+      "no_bequest_losing_pct": 67.761,
+      "all_lose_up_to_age": 44,
+      "sources_alive": {
+       "labour": -1.365,
+       "capital": 1.434,
+       "transfers": -0.363,
+       "bequests": 0.178,
+       "total": -0.116
+      },
+      "charged": {
+       "joint_avg": [
+        -0.406,
+        -0.39
+       ],
+       "joint_losing_pct": [
+        64.578,
+        65.161
+       ],
+       "no_bequest_avg": [
+        -0.854,
+        -0.834
+       ],
+       "no_bequest_losing_pct": [
+        82.662,
+        83.352
+       ],
+       "oldest_losing_on_average": [
+        58.0,
+        58.0
+       ]
+      },
       "first_year_c_above": null,
       "c_gap": {
        "2028": -1.132,
@@ -5784,6 +5880,17 @@
        "bequests": 0.538
       },
       "consumption_only_alive_avg": 1.608,
+      "no_bequest_alive_avg": 0.624,
+      "no_bequest_losing_pct": 4.796,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -0.667,
+       "capital": 1.655,
+       "transfers": 0.109,
+       "bequests": 0.302,
+       "total": 1.4
+      },
+      "charged": null,
       "first_year_c_above": 2037,
       "c_gap": {
        "2028": -0.545,
@@ -7187,6 +7294,17 @@
        "bequests": 0.455
       },
       "consumption_only_alive_avg": 1.147,
+      "no_bequest_alive_avg": 0.314,
+      "no_bequest_losing_pct": 33.502,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -0.957,
+       "capital": 1.543,
+       "transfers": 0.064,
+       "bequests": 0.261,
+       "total": 0.911
+      },
+      "charged": null,
       "first_year_c_above": 2048,
       "c_gap": {
        "2028": -0.685,
@@ -8590,6 +8708,17 @@
        "bequests": 0.367
       },
       "consumption_only_alive_avg": 0.658,
+      "no_bequest_alive_avg": -0.015,
+      "no_bequest_losing_pct": 55.367,
+      "all_lose_up_to_age": 25,
+      "sources_alive": {
+       "labour": -1.264,
+       "capital": 1.424,
+       "transfers": 0.016,
+       "bequests": 0.217,
+       "total": 0.393
+      },
+      "charged": null,
       "first_year_c_above": null,
       "c_gap": {
        "2028": -0.833,
@@ -10203,6 +10332,38 @@
        "bequests": 0.608
       },
       "consumption_only_alive_avg": 1.681,
+      "no_bequest_alive_avg": 0.568,
+      "no_bequest_losing_pct": 19.43,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -0.85,
+       "capital": 2.099,
+       "transfers": -0.114,
+       "bequests": 0.358,
+       "total": 1.493
+      },
+      "charged": {
+       "joint_avg": [
+        0.7,
+        0.72
+       ],
+       "joint_losing_pct": [
+        9.662,
+        12.171
+       ],
+       "no_bequest_avg": [
+        0.267,
+        0.294
+       ],
+       "no_bequest_losing_pct": [
+        40.61,
+        42.04
+       ],
+       "oldest_losing_on_average": [
+        24.0,
+        25.0
+       ]
+      },
       "first_year_c_above": 2039,
       "c_gap": {
        "2028": -0.827,
@@ -11606,6 +11767,38 @@
        "bequests": 0.512
       },
       "consumption_only_alive_avg": 1.136,
+      "no_bequest_alive_avg": 0.207,
+      "no_bequest_losing_pct": 44.268,
+      "all_lose_up_to_age": 20,
+      "sources_alive": {
+       "labour": -1.121,
+       "capital": 1.972,
+       "transfers": -0.232,
+       "bequests": 0.307,
+       "total": 0.926
+      },
+      "charged": {
+       "joint_avg": [
+        0.321,
+        0.338
+       ],
+       "joint_losing_pct": [
+        35.069,
+        36.263
+       ],
+       "no_bequest_avg": [
+        -0.125,
+        -0.102
+       ],
+       "no_bequest_losing_pct": [
+        56.859,
+        58.112
+       ],
+       "oldest_losing_on_average": [
+        40.0,
+        41.0
+       ]
+      },
       "first_year_c_above": 2048,
       "c_gap": {
        "2028": -1.025,
@@ -13009,6 +13202,38 @@
        "bequests": 0.495
       },
       "consumption_only_alive_avg": 1.041,
+      "no_bequest_alive_avg": 0.144,
+      "no_bequest_losing_pct": 47.021,
+      "all_lose_up_to_age": 22,
+      "sources_alive": {
+       "labour": -1.169,
+       "capital": 1.95,
+       "transfers": -0.253,
+       "bequests": 0.299,
+       "total": 0.827
+      },
+      "charged": {
+       "joint_avg": [
+        0.254,
+        0.271
+       ],
+       "joint_losing_pct": [
+        38.881,
+        39.312
+       ],
+       "no_bequest_avg": [
+        -0.193,
+        -0.171
+       ],
+       "no_bequest_losing_pct": [
+        59.326,
+        59.703
+       ],
+       "oldest_losing_on_average": [
+        42.0,
+        43.0
+       ]
+      },
       "first_year_c_above": 2051,
       "c_gap": {
        "2028": -1.06,
@@ -14414,6 +14639,17 @@
        "bequests": 0.63
       },
       "consumption_only_alive_avg": 1.869,
+      "no_bequest_alive_avg": 0.708,
+      "no_bequest_losing_pct": 8.761,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -0.851,
+       "capital": 2.071,
+       "transfers": 0.07,
+       "bequests": 0.369,
+       "total": 1.659
+      },
+      "charged": null,
       "first_year_c_above": 2037,
       "c_gap": {
        "2028": -0.717,
@@ -15817,6 +16053,17 @@
        "bequests": 0.544
       },
       "consumption_only_alive_avg": 1.402,
+      "no_bequest_alive_avg": 0.399,
+      "no_bequest_losing_pct": 32.63,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -1.122,
+       "capital": 1.934,
+       "transfers": 0.028,
+       "bequests": 0.324,
+       "total": 1.163
+      },
+      "charged": null,
       "first_year_c_above": 2045,
       "c_gap": {
        "2028": -0.845,
@@ -17220,6 +17467,17 @@
        "bequests": 0.551
       },
       "consumption_only_alive_avg": 1.441,
+      "no_bequest_alive_avg": 0.425,
+      "no_bequest_losing_pct": 31.12,
+      "all_lose_up_to_age": null,
+      "sources_alive": {
+       "labour": -1.1,
+       "capital": 1.945,
+       "transfers": 0.031,
+       "bequests": 0.328,
+       "total": 1.205
+      },
+      "charged": null,
       "first_year_c_above": 2044,
       "c_gap": {
        "2028": -0.834,

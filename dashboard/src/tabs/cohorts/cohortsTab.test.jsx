@@ -14,8 +14,30 @@ describe('Cohorts tab', () => {
     expect(t).toContain(pct(c.alive_avg));
     expect(t).toContain(pct(c.alive_by_group[0]));
     expect(t).toContain(pct(c.alive_by_group[6]));
-    expect(t).toContain(pct(c.parts_alive.bequests));
+    expect(t).toContain(pct(c.no_bequest_alive_avg));
+    expect(t).toContain(pct(c.sources_alive.capital));
+    expect(t).toContain(pct(c.sources_alive.labour));
+    expect(t).toContain(pct(c.charged.no_bequest_avg[0]));
+    expect(t).toContain(`${Math.round(c.charged.joint_losing_pct[0])}–${Math.round(c.charged.joint_losing_pct[1])}%`);
+    expect(t).toContain(pct(c.parts_alive.bequests)); // in the by-form fold
     expect(t).not.toMatch(/\b(poor|rich)\b/i);
+  });
+
+  it('stress test reads about zero, with the share losing and the young who all lose', () => {
+    const { container } = render(<CohortsTab sid="uk_central" />);
+    fireEvent.click(screen.getByRole('radio', { name: /stress test/ }));
+    const c = cell('zk0.1', 'dn', 'stress');
+    const t = container.textContent;
+    expect(Math.abs(c.alive_avg)).toBeLessThan(0.1);
+    expect(t).toContain('about zero');
+    expect(t).toContain(`${Math.round(c.alive_losing_pct)}%`);
+    expect(t).toContain(`everyone aged ${c.all_lose_up_to_age} or younger`);
+  });
+
+  it('charges the post-2035 cost only under debt-neutral transfers', () => {
+    const { container } = render(<CohortsTab sid="uk_central" />);
+    fireEvent.click(screen.getByRole('radio', { name: /Common fiscal rule/ }));
+    expect(container.textContent).not.toContain('first-order estimate');
   });
 
   it('switches rule, closure and arm', () => {

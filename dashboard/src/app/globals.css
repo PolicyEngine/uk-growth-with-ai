@@ -1599,3 +1599,5 @@
   .headline-table .headline-value.is-pending { font-size: 0.78rem; }
   .headline-table .headline-bound { font-size: 0.62rem; }
 }
+.takeaway .growth-details { margin-top: 12px; }
+.growth-details > .fold-body { margin: 0; padding: 12px 16px; font-size: 0.9rem; line-height: 1.55; }

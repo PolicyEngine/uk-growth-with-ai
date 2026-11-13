@@ -33,7 +33,9 @@ const ALL_COLOR = 'var(--pe-gray-800)';
 const LAST_ALIVE = D.shock_year - 20; // youngest adult in 2028 (born 2008)
 
 const minus = (s) => s.replace('-', '−');
-export const pct = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${x.toFixed(dp)}%`));
+// Half away from zero on the decimal value (0.485 -> 0.49), as the paper's macros round.
+const round = (x, dp) => Math.sign(x) * Math.round(Math.abs(x) * 10 ** dp + 1e-9) / 10 ** dp;
+export const pct = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${round(x, dp).toFixed(dp)}%`));
 const plain = (x, dp = 0) => `${x.toFixed(dp)}%`;
 
 export function cell(closure, rule, arm) {
@@ -75,22 +77,62 @@ function Num({ x }) {
   );
 }
 
-// The headline: who gains, who loses, for the chosen arm, closure and rule.
-export function Headline({ c }) {
+const range = ([lo, hi], f) => (f(lo) === f(hi) ? f(lo) : `${f(lo)} to ${f(hi)}`);
+const pctRange = ([lo, hi]) => {
+  const [a, b] = [Math.round(lo), Math.round(hi)];
+  return a === b ? `${a}%` : `${a}–${b}%`;
+};
+const share = (x) => (x < 1 ? 'fewer than 1%' : plain(x));
+const ABOUT_ZERO = 0.1; // |average| below this reads "about zero"
+
+// The headline: who loses and at what age first (robust to the measure), then the
+// average as a range with its supports named, then where the change comes from.
+export function Headline({ c, rule }) {
   const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
   const p = c.parts_alive;
-  const lose = c.alive_losing_pct;
+  const s = c.sources_alive;
+  const ch = rule === 'dn' ? c.charged : null;
+  const young = c.all_lose_up_to_age;
+  const nearZero = Math.abs(c.alive_avg) < ABOUT_ZERO;
   return (
     <div className="takeaway">
       <p>
-        <b>Adults alive in {D.shock_year}:</b> welfare <Num x={c.alive_avg} /> on average, as a share of their remaining
-        consumption and bequests.{' '}
-        {lose === 0 ? 'None of them lose.' : lose < 0.5 ? 'Fewer than 1 in 200 of them lose.' : `${plain(lose)} of them lose.`}
+        <b>Who loses:</b> {share(c.alive_losing_pct)} of adults alive in {D.shock_year}
+        {young ? `, including everyone aged ${young} or younger` : ''}.
+        {ch ? (
+          <>
+            {' '}With the fiscal cost after 2035 also charged to households,{' '}
+            {pctRange(ch.joint_losing_pct)}.
+          </>
+        ) : null}
       </p>
       <p>
-        <b>By earnings:</b> the bottom 25% <Num x={bot} />, the top 1% <Num x={top} />.{' '}
-        <b>By form:</b> consumption <Num x={p.consumption} />, leisure <Num x={p.leisure} />, bequests <Num x={p.bequests} />.
+        <b>On average:</b> {nearZero ? <>about zero (<Num x={c.alive_avg} />)</> : <Num x={c.alive_avg} />} of remaining
+        consumption and bequests, or <Num x={c.no_bequest_alive_avg} /> of consumption if bequests are not valued
+        {ch ? (
+          <>
+            , and {range(ch.no_bequest_avg, (x) => pct(x))} if the cost after 2035 is charged as well (a first-order
+            estimate, not a model run)
+          </>
+        ) : null}
+        .
       </p>
+      <p>
+        <b>Where it comes from:</b> at unchanged behaviour, capital income <Num x={s.capital} /> and labour income{' '}
+        <Num x={s.labour} /> of remaining-lifetime consumption.
+      </p>
+      <p>
+        <b>By earnings</b>, a result of the model&rsquo;s evenly spread wealth and equal transfers rather than of UK data
+        (see Why): the bottom 25% <Num x={bot} />, the top 1% <Num x={top} />.
+      </p>
+      <details className="growth-details">
+        <summary>The same average by form</summary>
+        <p className="fold-body">
+          With one part at a time on the scenario path: consumption <Num x={p.consumption} />, leisure{' '}
+          <Num x={p.leisure} />, bequests <Num x={p.bequests} />. The parts need not add up to the total, and they show
+          how households take the change, not where it comes from.
+        </p>
+      </details>
     </div>
   );
 }
@@ -111,22 +153,11 @@ function Legend({ hidden, onToggle }) {
   );
 }
 
-// Youngest-born and oldest-born cohorts alive in 2028 whose all-groups CEV is negative.
-// Returns [first, last, every] where `every` says all cohorts in between lose.
-export function losersBorn(c, x) {
-  const idx = x.map((b, i) => i).filter((i) => x[i] <= LAST_ALIVE && c.cev_all[i] < 0);
-  if (!idx.length) return null;
-  const [i0, i1] = [Math.min(...idx), Math.max(...idx)];
-  return [x[i0], x[i1], idx.length === i1 - i0 + 1];
-}
-
 function Why({ cl, rule, arm }) {
   const C = D.closures[cl];
   const c = cell(cl, rule, arm);
   const prof = C.profile_2028;
   const tr = c.income_2028_35_age45.transfers;
-  const stress = cell(cl, rule, 'stress');
-  const sl = losersBorn(stress, C.birth_year);
   return (
     <div className="card-grid cols-2">
       <InfoCard icon="cart" title="Consumption dips first, then recovers">
@@ -169,10 +200,8 @@ function Why({ cl, rule, arm }) {
       </InfoCard>
       <InfoCard icon="users" title="Young adults bear the stress test">
         <p>
-          With no output gain, the wage falls more and there is less extra income to share.{' '}
-          {sl
-            ? `Here, ${sl[2] ? 'every' : 'most'} cohort${sl[2] ? '' : 's'} born ${sl[0]}–${sl[1]} lose${sl[2] ? 's' : ''} on average across groups: they have most of their working lives ahead and little wealth to gain from a higher return.`
-            : 'Here, no cohort loses on average across groups.'}
+          With no output gain, the wage falls more and there is less extra income to share. Young adults have most of
+          their working lives ahead and little wealth to gain from a higher return; older adults collect the higher return.
         </p>
       </InfoCard>
     </div>
@@ -208,7 +237,7 @@ export default function CohortsTab({ sid = 'uk_central' }) {
         <Seg label="Closure" aria="Capital closure" options={CLOSURES} value={cl} onChange={setCl} />
         <Seg label="Fiscal rule" aria="Who bears the fiscal cost" options={RULES} value={rule} onChange={setRule} />
       </div>
-      <Headline c={c} />
+      <Headline c={c} rule={rule} />
       <div className="charts-stack">
         <ChartCard
           icon="usersRound"
@@ -240,7 +269,7 @@ export default function CohortsTab({ sid = 'uk_central' }) {
             ),
             caveats: (
               <p>
-                Transfers are equal per head and wealth is spread more evenly than in the UK. Cohorts born after 2011 depend
+                Cohorts born after 2011 depend
                 slightly (up to {c.fill_max_pp.toFixed(2)} percentage points) on how the solved path is extended past 2085.
               </p>
             ),
