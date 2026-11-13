@@ -385,51 +385,155 @@ def group_profile(closure: str, year: int = SHOCK_YEAR) -> dict:
 }
 
 
-# --- summary --------------------------------------------------------------------
+def part_averages(closure: str, continuation: str = "hold") -> dict:
+    """Population-weighted joint-CEV parts for those alive in 2028:
+    {key: {part: {"all": x, "by_group": [..]}}}."""
+    par, _ = load(closure)
+    aw, gw = alive_weights(par), group_weights(par)
+    out = {}
+    for key, parts in components(closure, continuation).items():
+        out[key] = {p: {"all": float(aw @ x @ gw), "by_group": (aw @ x).tolist()}
+                    for p, x in parts.items()}
+    return out
+
+
+def first_c_above(closure: str, key) -> int | None:
+    """First year the household-aggregate consumption gap is positive (None: never by 2085)."""
+    par, runs = load(closure)
+    gw = group_weights(par)
+    agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["c"][t]).sum())
+    for t in range(T0, T_USE):
+        if agg(runs[key], t) > agg(runs[None], t):
+            return START_YEAR + t
+    return None
+
+
+def wealth_concentration(closure: str, year: int = SHOCK_YEAR) -> dict:
+    """Shares of household wealth held by the top tenth and bottom half of the adult
+    population ranked by wealth (age x group cells of the continuation), the ONS ranking;
+    and by lifetime-earnings group (the model's ranking)."""
+    par, runs = load(closure)
+    t = year - START_YEAR
+    gw = group_weights(par)
+    w = (par["omega"][t][:, None] * gw[None, :]).ravel()
+    x = runs[None]["b_s"][t].ravel()
+    o = np.argsort(x)
+    cw_, cx = np.cumsum(w[o]) / w.sum(), np.cumsum((w * x)[o])
+    share = lambda p: float(np.interp(p, cw_, cx) / cx[-1])
+    return {"top_tenth_pct": (1 - share(0.9)) * 100, "bottom_half_pct": share(0.5) * 100}
+
+
+def fill_sensitivity(closure: str) -> dict:
+    """max |hold - ss| over groups, by birth year, per key; and the first birth year above 0.01pp."""
+    par, _ = load(closure)
+    b = birth_years(par)
+    H, S_ = cev(closure, "hold"), cev(closure, "ss")
+    out = {}
+    for key in labels(closure):
+        d = np.abs(H[key] - S_[key]).max(axis=1)
+        out[key] = {"max_by_birth": d.tolist(), "first_birth_over_0p01": int(b[d > 0.01].min()),
+                    "max": float(d.max())}
+    return out
+
+
+def reconcile_tr(closure: str) -> dict:
+    """Relative difference between the household-aggregate transfer ratio and the record's
+    TR ratio (scenario / reference), max over 2028-2036, per label."""
+    par, runs = load(closure)
+    done, ref = records(closure)
+    gw = group_weights(par)
+    agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["tr"][t]).sum())
+    out = {}
+    for key, label in labels(closure).items():
+        rec = done[label]
+        out[label] = max(abs((agg(runs[key], t) / agg(runs[None], t))
+                             / (rec["series"]["TR"][t] / ref["series"]["TR"][t]) - 1)
+                         for t in (y - START_YEAR for y in RECON_YEARS))
+    return out
+
+
+# --- summary and dashboard JSON --------------------------------------------------
+
+FIG_LAST_BIRTH = 2060      # charts stop here; fill sensitivity <= ~0.07pp up to it
+
 
 def key_str(key) -> str:
     v, a = key
     return f"{a}_{v}" if v else a
 
 
-def summary(closure: str) -> dict:
-    par, _ = load(closure)
-    b = birth_years(par)
-    R = cev(closure, "hold")
-    Rss = cev(closure, "ss")
-    Rc = cev(closure, "hold", "consumption")
-    comp = components(closure, "hold")
-    out = {"closure": closure, "birth_year": b.tolist(), "groups": list(GROUPS),
-           "group_weights": group_weights(par).tolist(),
-           "alive_weight": alive_weights(par).tolist(),
-           "labels": {key_str(k): v for k, v in labels(closure).items()},
-           "reconcile_max_pp": reconcile(closure), "identity": identity_checks(closure),
-           "profile_2028": group_profile(closure), "arms": {}}
-    for key in labels(closure):
-        lam = R[key]
-        ia = income_accounts(closure, key)
-        out["arms"][key_str(key)] = {
-            "cev": lam.tolist(), "avg": averages(par, lam),
-            "cev_ss": Rss[key].tolist(), "avg_ss": averages(par, Rss[key]),
-            "cev_consumption_only": np.where(np.isnan(Rc[key]), None, Rc[key]).tolist(),
-            "consumption_only_undefined": int(np.isnan(Rc[key]).sum()),
-            "parts": {p: x.tolist() for p, x in comp[key].items()},
-            "income_2028_35": {k: (v.tolist() if hasattr(v, "tolist") else v) for k, v in ia.items()},
-            "c_gap": {str(y): c_gap(closure, key, y) for y in RECON_YEARS},
-        }
+def dashboard(source: str = "") -> dict:
+    """The Cohorts tab's data (dashboard/src/data/cohorts2028.json): one CEV table per
+    closure x fiscal rule x arm, plus the facts the tab states.  Rounded to 3 dp."""
+    r3 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 3)
+    out = {"what": "Consumption-equivalent welfare change by birth year and lifetime-earnings "
+                   "group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption "
+                   "and bequests, labour held at the no-shock path.",
+           "generated_by": "paper/cohort_welfare.py --json", "source": source,
+           "reference": "no-shock continuation of the same closure",
+           "shock_year": SHOCK_YEAR, "groups": list(GROUPS), "closures": {}}
+    for cl in CLOSURES:
+        par, _ = load(cl)
+        b = birth_years(par)
+        m = b <= FIG_LAST_BIRTH
+        gw = group_weights(par)
+        R, Rc = cev(cl), cev(cl, "hold", "consumption")
+        pa, fs = part_averages(cl), fill_sensitivity(cl)
+        C = {"birth_year": b[m].tolist(), "group_weights": gw.tolist(),
+             "wealth_concentration": {k: r3(v) for k, v in wealth_concentration(cl).items()},
+             "profile_2028": {k: [r3(x) for x in v] for k, v in group_profile(cl).items()},
+             "reconcile_c_max_pp": float(max(reconcile(cl).values())),
+             "rules": {}}
+        for v in VARIANTS:
+            rule = {}
+            for a in ARMS:
+                key = (v, a)
+                lam = R[key]
+                av = averages(par, lam)
+                aw = alive_weights(par)
+                ia = income_accounts(cl, key)
+                rule[a] = {
+                    "label": labels(cl)[key],
+                    "cev": [[r3(x) for x in row] for row in lam[m]],
+                    "cev_all": [r3(x) for x in (lam @ gw)[m]],
+                    "alive_avg": r3(av["alive_all"]),
+                    "alive_by_group": [r3(x) for x in av["alive_by_group"]],
+                    "future_by_group": [r3(x) for x in av["future_by_group"]],
+                    "alive_losing_pct": r3(float(aw @ (lam < 0) @ gw) * 100),
+                    "parts_alive": {p: r3(x["all"]) for p, x in pa[key].items()},
+                    "consumption_only_alive_avg": r3(float(aw @ np.nan_to_num(Rc[key]) @ gw)),
+                    "first_year_c_above": first_c_above(cl, key),
+                    "c_gap": {str(y): r3(c_gap(cl, key, y)) for y in RECON_YEARS},
+                    "income_2028_35_age45": {k: [r3(x) for x in ia[k][45 - FIRST_AGE]]
+                                             for k in ("labour", "capital", "transfers", "bequests")},
+                    "fill_max_pp": r3(float(np.max(np.array(fs[key]["max_by_birth"])[m]))),
+                }
+            C["rules"][v or "common"] = rule
+        out["closures"][cl] = C
     return out
 
 
 if __name__ == "__main__":
+    import argparse
+    import subprocess
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--json", help="write the dashboard JSON here")
+    args = ap.parse_args()
+    if args.json:
+        head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT,
+                              capture_output=True, text=True).stdout.strip()
+        Path(args.json).write_text(json.dumps(dashboard(f"uk-growth-with-ai@{head}"), indent=1) + "\n")
+        print("wrote", args.json)
+        raise SystemExit(0)
     np.set_printoptions(precision=2, suppress=True, linewidth=160)
     for cl in CLOSURES:
-        print(cl, "reconcile (max pp):", reconcile(cl))
+        print(cl, "reconcile C (max pp):", reconcile(cl))
+        print(cl, "reconcile TR (max rel):", reconcile_tr(cl))
         print(cl, "identity:", identity_checks(cl))
+        print(cl, "wealth:", wealth_concentration(cl))
         par, _ = load(cl)
         R = cev(cl)
-        b = R["birth_year"]
+        pa = part_averages(cl)
         for key in labels(cl):
-            print(cl, key, labels(cl)[key], averages(par, R[key])["alive_all"])
-            for yr in (1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2008, 2020, 2040, 2060):
-                i = int(np.where(b == yr)[0][0])
-                print(f"  born {yr} (age {SHOCK_YEAR - yr} in 2028):", R[key][i])
+            print(cl, key, labels(cl)[key], round(averages(par, R[key])["alive_all"], 3),
+                  {p: round(x["all"], 3) for p, x in pa[key].items()}, "C>0 from", first_c_above(cl, key))
