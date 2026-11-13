@@ -388,7 +388,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 - 1.1 compares with pure-TFP studies: 1.0 (Penn Wharton), 1.5 (OECD), 1.6–1.7 (Cerutti et al.) and 1.75 (Acemoglu). The last three are ten-year or long-run figures with capital fully adjusted. In our steady state the same figure is 1.3.
 - The share effect is why UK central's ratio (2.3) is higher than the Korinek arm's (1.6): UK central has three times as much share shift per unit of TFP.
 
-**Against a study with the same shock: below, and capital supply accounts for all of it.**
+**Against a study with the same shock: below, and capital supply accounts for most of it.**
 
 | Same-shock comparison | Published | Ours, ζK = 0.1 | Ours, ζK = 0 |
 |---|---|---|---|
@@ -439,7 +439,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 - **Why ours is less elastic.**
   - ζK = 0.1 lets in 10% of the excess demand for capital at the 2% world rate. The rest has to come from household saving, and four years of life-cycle saving is small against the stock.
   - The elasticity rises with time: in our steady state it is 1.1–1.7 at ζK = 0.1 and 1.0–1.3 at ζK = 0.
-  - The surprise design is not the cause: the Korinek arm's 2031 numbers match the old perfect-foresight 2030 numbers (audit A10).
+  - The surprise design is not the cause: at ζK = 0.1 the Korinek arm's 2031 numbers match the old perfect-foresight 2030 numbers, and at ζK = 0 they are somewhat smaller (audit A10).
 - **Is a low elasticity defensible?** Partly.
   - Korinek et al. say their ε = 3 "is higher than five years of saving at historical rates would imply", and justify it by AI capital being "financed in a world market" (B1). Moll, Rachel and Restrepo say "much of the evidence suggests a more inelastic supply of capital" than their own choice (B21).
   - `docs/closure_choice.md` adopted ζK = 0.1 because its baseline matches the UK's net income paid abroad, and because its split of extra investment between home and foreign saving (0.25–0.28 from national saving) sits between published estimates for the EU and the euro area. That memo's evidence is about the UK's balance of payments, not about AI capital.
