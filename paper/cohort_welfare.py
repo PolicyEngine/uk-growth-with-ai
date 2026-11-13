@@ -503,7 +503,7 @@ def dashboard(source: str = "") -> dict:
                     "parts_alive": {p: r3(x["all"]) for p, x in pa[key].items()},
                     "consumption_only_alive_avg": r3(float(aw @ np.nan_to_num(Rc[key]) @ gw)),
                     "first_year_c_above": first_c_above(cl, key),
-                    "c_gap": {str(y): r3(c_gap(cl, key, y)) for y in RECON_YEARS},
+                    "c_gap": {str(y): r3(c_gap(cl, key, y)) for y in range(SHOCK_YEAR, DEBT_RULE)},  # no flow for 2036
                     "income_2028_35_age45": {k: [r3(x) for x in ia[k][45 - FIRST_AGE]]
                                              for k in ("labour", "capital", "transfers", "bequests")},
                     "fill_max_pp": r3(float(np.max(np.array(fs[key]["max_by_birth"])[m]))),
