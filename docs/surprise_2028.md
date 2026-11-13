@@ -296,7 +296,7 @@ The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age 
 
 ## Status and TODO (13 Nov 2026, 02:15)
 
-**Solved, with sanity passing (58 solves):**
+**Solved, with sanity passing (40 solves: 38 surprise solves plus 2 zk0.5 baseline passes):**
 
 | closure | done |
 |---|---|
