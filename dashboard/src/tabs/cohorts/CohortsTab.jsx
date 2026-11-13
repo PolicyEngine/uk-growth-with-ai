@@ -132,7 +132,7 @@ function Why({ cl, rule, arm }) {
       <InfoCard icon="cart" title="Consumption dips first, then recovers">
         <p>
           The return on capital rises and the wage falls. Households save more at first, so aggregate consumption starts
-          below the no-AI path.{' '}
+          below the OBR-central path.{' '}
           {c.first_year_c_above
             ? `It moves above the path from ${c.first_year_c_above}, which longer-lived and later cohorts see more of.`
             : 'In this arm it stays below the path through 2085.'}{' '}
@@ -155,7 +155,8 @@ function Why({ cl, rule, arm }) {
         {rule === 'dn' ? (
           <p>
             With debt-neutral transfers, households pay for the shock&rsquo;s effect on the public finances through lower
-            transfers until the debt rule starts in 2036. For a 45-year-old over 2028–35 that costs {plain(Math.abs(tr[0]), 1)}{' '}
+            transfers until the debt rule starts in 2036. From 2036 the adjustment falls on government consumption, which
+            households do not value in the model. For a 45-year-old over 2028–35 that costs {plain(Math.abs(tr[0]), 1)}{' '}
             of consumption in the bottom group and {plain(Math.abs(tr[6]), 1)} in the top 1%. That narrows the gap between them
             but does not reverse it.
           </p>
@@ -219,15 +220,15 @@ export default function CohortsTab({ sid = 'uk_central' }) {
             shows: (
               <p>
                 For each birth year and lifetime-earnings group, the constant percentage change in consumption and bequests on
-                the no-AI path, in every remaining year, that leaves the household as well off as under AI. Labour is held at the
-                no-AI path. Cohorts born up to {LAST_ALIVE} are adults in {D.shock_year} and count only their remaining lives; later
+                the OBR-central path, in every remaining year, that leaves the household as well off as in the scenario. Labour
+                is held at the OBR-central path. Cohorts born up to {LAST_ALIVE} are adults in {D.shock_year} and count only their remaining lives; later
                 cohorts count their whole lives.
               </p>
             ),
             how: (
               <p>
                 From the household paths of the OG-UK solves, using the model&rsquo;s own utility, discount factor, survival
-                rates and growth adjustment. The reference is the no-AI restart of the same closure. Household consumption
+                rates and growth adjustment. The reference is the OBR-central path, restarted in 2028 without the shock at the same closure. Household consumption
                 reproduces the aggregate consumption gap of every solve in every year 2028–2036.
               </p>
             ),
