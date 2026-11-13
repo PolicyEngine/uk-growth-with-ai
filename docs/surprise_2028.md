@@ -276,3 +276,57 @@ Each arm set is three or four solves: `_share_shift_tfp_ramp`, `_share_shift_ram
 The total is about 7 h 30 min to 9 h 50 min. The 16:20–19:25 window fits about 19–20 solves after check-specs, which reaches steps 1–3 and possibly the start of step 4. The rest resumes on later calls, in the same order.
 
 The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common and the fixed-spending arms. The debt-neutral R4 starts from the surprise common-G/Y secant's slope. No baseline is re-solved.
+
+## Cohort paths for the welfare results
+
+`analysis/surprise/export_cohorts.py` writes `analysis/surprise/cohorts/<closure>/<label>.npz`. The default set, per closure:
+- the continuation;
+- the UK central arms under the common rule;
+- the UK central arms under debt-neutral transfers.
+
+In each case the arms are tfp, fixed-input Z and the accepted R4.
+
+The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age and type, with shape (60, 80, 7) and dtype float32. The first two periods, 2026–27, come from the baseline and the rest from the run. `ss_c`, `ss_n` and `ss_b_s` are the run's steady state.
+
+**The handover is checked.** The run's 2028 starting wealth must equal the baseline's end-of-2027 wealth. It does exactly in every file exported so far.
+
+**`params.npz` is not rebuilt.** It comes from PR #36's R1–R4 export at 37bd0e2, verified against the accepted baselines. Its omega, g_n, rho, imm_rates and pre-period demographic hashes all equal the baseline's recorded ones. It contains the household parameters plus the R2-corrected demographics on the calendar from 2026, the same object the solves ran on. So no specification build, and no lock, is needed for the export.
+
+**When it runs.** It reads only the SS/TPI pickles under `$WORK/surprise2028/`, which are never deleted. The final export runs after the last debt-neutral UK central solve.
+
+## Status and TODO (13 Nov 2026, 02:15)
+
+**Solved, with sanity passing (40 solves: 38 surprise solves plus 2 zk0.5 baseline passes):**
+
+| closure | done |
+|---|---|
+| zk0.1 | restart; UK central, UK low, UK high and Korinek (common rule); UK central debt-neutral |
+| zk0 | restart; UK central and Korinek (common rule); UK central debt-neutral |
+| zk0.5 | R1 baseline (2 passes, automatic gate passed); restart; UK central and Korinek (common rule) |
+
+- Cohort paths are exported for the continuation and the UK central common-rule and debt-neutral arms, at zk0.1 and zk0 (`analysis/surprise/cohorts`).
+- The NICs evidence is in `analysis/nics/`.
+
+**Not yet solved.** Run in this order, after the Monte Carlo, with `analysis/surprise/run_locked.sh <items>`. Each set is three or four solves of about 7–9 minutes.
+
+1. `zk0.1:arms_dnfull:uk_central`: debt-neutral to the horizon, for the Fable cohort referee. It is a single solve. It was started at 02:13 and stopped at once by its own PID, because the lock had to be released; no record was written. The log is kept as `uk_central_share_shift_tfp_ramp_dnfull.KILLED-20261113.log`. Its first launch at 02:12 failed on a CLI stage-list bug, now fixed.
+2. `zk0.5:arms:uk_low`, `zk0.5:arms:uk_high`.
+3. `zk0.1:arms_fs:uk_central`, `zk0:arms_fs:uk_central`.
+4. `zk0:arms:uk_low`, `zk0:arms:uk_high`.
+5. `zk0.1:arms_dn:korinek`, `zk0:arms_dn:korinek`.
+6. `zk0.1:arms_fs:korinek`, `zk0:arms_fs:korinek`.
+7. `cohorts` (pickles only; it picks up `_dnfull` when it exists).
+
+Command, with the deadline set to the slot:
+
+```
+DEADLINE_AT=HH:MM PY=~/ogmodels/OG-UK/.venv/bin/python WORK=~/ugai-rerun-work \
+  UGAI_UN_CACHE=~/ugai-rerun-work/un_cache analysis/surprise/run_locked.sh \
+  zk0.1:arms_dnfull:uk_central zk0.5:arms:uk_low zk0.5:arms:uk_high \
+  zk0.1:arms_fs:uk_central zk0:arms_fs:uk_central zk0:arms:uk_low zk0:arms:uk_high \
+  zk0.1:arms_dn:korinek zk0:arms_dn:korinek zk0.1:arms_fs:korinek zk0:arms_fs:korinek cohorts
+```
+
+**After the solves:**
+- `surprise assemble` for each scenario, closure and variant;
+- the downstream readers: `check`, `report`, `dashboard_data`, the dashboard and the paper macros, all on the 2027–2031 window with NNI.

@@ -426,6 +426,11 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     if debt_neutral is not None:
         from . import surprise as sp
         dn_rec = {}
+        if debt_neutral.get("full"):
+            # TR closes debt to the horizon: switch the G debt rule off for the
+            # transition (D_G_path applies it for tG1 <= t < T-1 only)
+            p.tG1 = p.tG2 = int(p.T) - 1
+            dn_rec["tG1_tG2_set_to"] = int(p.tG1)
         dn_ctx = sp.debt_neutral(TPI.fiscal, debt_neutral["target_dy"],
                                  debt_neutral["D0"], dn_rec)
         print(f"  DEBT-NEUTRAL: TR follows the restart's debt/GDP to tG1 = {p.tG1}",

@@ -1,0 +1,151 @@
+{
+ "what": "Cohort (household) paths for the 2028-surprise solves: the welfare inputs.",
+ "t0_year": 2026,
+ "splice": "2026-2027 baseline, 2028+ run",
+ "units": "detrended model units",
+ "dims": "(T, S, J)",
+ "closures": {
+  "zk0.1": {
+   "params": {
+    "source": "analysis/rerun/cohorts/zk0.1/params.npz at 37bd0e282b92d07e16c66b9649872308961c6076",
+    "demographics_hash_matches_baseline": true
+   },
+   "files": [
+    {
+     "label": "continuation",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_tfp_ramp",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_zfixed",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_r4_1",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_tfp_ramp_dn",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_zfixed_dn",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_dn_r4_2",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    }
+   ]
+  },
+  "zk0": {
+   "params": {
+    "source": "analysis/rerun/cohorts/zk0/params.npz at 37bd0e282b92d07e16c66b9649872308961c6076",
+    "demographics_hash_matches_baseline": true
+   },
+   "files": [
+    {
+     "label": "continuation",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_tfp_ramp",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_zfixed",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_r4_1",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_tfp_ramp_dn",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_zfixed_dn",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_ramp_dn_r4_1",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
+    }
+   ]
+  }
+ }
+}
