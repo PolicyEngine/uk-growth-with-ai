@@ -741,9 +741,23 @@ def _first_slope(done, base_ext, fs, rerun_dir, closure, year, scenario="korinek
     return 100 * R4_SLOPE0, f"d lnY/d lnZ = {R4_SLOPE0}"
 
 
+def _hold(outdir, closure, stage, scenario):
+    """Stop a running driver at a solve boundary without touching its script:
+    with <outdir>/HOLD.json present, only the listed (closure, stage, scenario)
+    items may be planned, unless UGAI_IGNORE_HOLD=1 (the successor driver)."""
+    f = Path(outdir) / "HOLD.json"
+    if not f.exists() or os.environ.get("UGAI_IGNORE_HOLD") == "1":
+        return
+    allow = [tuple(x) for x in json.loads(f.read_text()).get("allow", [])]
+    if (closure, stage, scenario) not in allow:
+        raise RuntimeError(f"HOLD: {closure} {stage} {scenario} is not in {f.name}'s "
+                           "allow list; the successor driver takes over")
+
+
 def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
               year=SURPRISE_YEAR, scenario="korinek"):
     from . import rerun
+    _hold(outdir, closure, stage, scenario)
     base = rerun.accepted_baseline(rerun.load(rerun_dir, closure))
     if base is None:
         raise RuntimeError(f"{closure}: no accepted baseline in {rerun_dir}")

@@ -367,7 +367,7 @@ def progress(outdir=OUTDIR) -> str:
             "", "| closure | solve | min | sanity | 2028 I | 2028 L | 2031 GDP | 2031 K | "
             "2031 wage | 2031 LS pp | 2031 Δr bp | 2031 GNI | 2031 NNI |",
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
-    for c in ("zk0.1", "zk0"):
+    for c in ("zk0.1", "zk0", "zk0.5"):
         for label, rec in sp.load(outdir, c).items():
             f = Path(outdir) / c / f"{label}.sanity.json"
             san = json.loads(f.read_text()) if f.exists() else None
