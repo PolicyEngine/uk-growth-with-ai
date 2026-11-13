@@ -625,3 +625,48 @@ def test_un_cache_times_out_and_fails_cleanly(tmp_path, monkeypatch):
                         sleep=lambda s: None, log=lambda m: None)
     with pytest.raises(un_cache.UNFetchError, match="TimeoutError"):
         w("80", "826", 2025, 2028)
+
+
+# --- debt-neutral to the horizon (_dnfull, Fable cohort referee) ------------------------
+
+def test_dnfull_labels_and_plan(tmp_path):
+    assert sp.parse_label("uk_central_share_shift_tfp_ramp_dnfull") == {
+        "scenario": "uk_central", "kind": "tfp", "variant": "dnfull"}
+    rd, out, be = _dirs(tmp_path)
+    d = out / "zk0.1"
+    _write(d, "continuation", _arm(be, 0.0, None))
+    sp.write_gate(out, "zk0.1", "continuation", "test")
+    s = sp.next_step(out, "zk0.1", "arms_dnfull", rd, scenario="uk_central")
+    assert s["label"] == "uk_central_share_shift_tfp_ramp_dnfull" and s["variant"] == "dnfull"
+    _write(d, "uk_central_share_shift_tfp_ramp_dnfull", _arm(be, 1.0, 0.98))
+    assert sp.next_step(out, "zk0.1", "arms_dnfull", rd, scenario="uk_central") is None
+
+
+def test_dnfull_horizon_runs_to_the_last_transition_period():
+    p = SimpleNamespace(T=60, tG1=59)
+    assert sp.dn_horizon(p, [0.95] * 60) == 59
+    assert sp.dn_horizon(SimpleNamespace(T=60, tG1=8), [0.95] * 9) == 8
+
+
+def test_hold_generations(tmp_path, monkeypatch):
+    (tmp_path / "HOLD.json").write_text(json.dumps({"allow": []}))
+    monkeypatch.delenv("UGAI_IGNORE_HOLD", raising=False)
+    with pytest.raises(RuntimeError, match="HOLD"):
+        sp._hold(tmp_path, "zk0.1", "arms", "korinek")
+    monkeypatch.setenv("UGAI_IGNORE_HOLD", "1")
+    sp._hold(tmp_path, "zk0.1", "arms", "korinek")            # gen-1 file ignored
+    (tmp_path / "HOLD2.json").write_text(json.dumps({"allow": [["zk0.5", "arms", "korinek"]]}))
+    sp._hold(tmp_path, "zk0.5", "arms", "korinek")
+    with pytest.raises(RuntimeError, match="HOLD"):
+        sp._hold(tmp_path, "zk0.5", "arms", "uk_low")
+    monkeypatch.setenv("UGAI_IGNORE_HOLD2", "1")
+    sp._hold(tmp_path, "zk0.5", "arms", "uk_low")
+
+
+def test_cli_accepts_every_planner_stage():
+    """Regression (13 Nov 02:12): the planner knew arms_dnfull, the CLI did not."""
+    import inspect
+    from uk_growth_with_ai import cli
+    src = inspect.getsource(cli)
+    for stage in sp.STAGE_VARIANT:
+        assert f'"{stage}"' in src, stage
