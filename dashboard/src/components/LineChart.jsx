@@ -13,6 +13,7 @@ import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
 //           `noEndLabel` draws the line without an end label (use when another
 //           series' label already covers the same end point).
 // `x`:      number[] (same length as every series)
+// `dots`:   false draws markers only at the crosshair (for long series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
 //           hollow dots in a narrow column right of the last year. A point
@@ -154,6 +155,7 @@ export default function LineChart({
   endLabel = 'name',
   markers = [],
   bands = [],
+  dots = true,
 }) {
   const [ref, W] = useWidth(880);
   useMeasured();
@@ -418,7 +420,7 @@ export default function LineChart({
               strokeLinejoin="round"
             />
             {s.values.map((v, i) =>
-              s.dashed ? (
+              !dots && i !== hov ? null : s.dashed ? (
                 <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3} fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>

@@ -57,7 +57,7 @@ for sid in dump:
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
         add(ls * 0.23, 2, 'pp')
-    text = '\n'.join(v for k, v in dump[sid].items() if (k.startswith('results') and k.count(':') < 2) or k == 'cohorts')
+    text = '\n'.join(v for k, v in dump[sid].items() if k.startswith('results') and k.count(':') < 2)
     got = Counter(NUM.findall(text))
     if got != exp:
         bad += 1
@@ -113,5 +113,20 @@ for sid in dump:
             print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, mode, 'ok:', sum(exp.values()), 'figures')
+# The Cohorts tab (default view: central closure, debt-neutral, main arm)
+# prints its headline averages and the 45-year-old's transfer cost once each.
+CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
+c = CO['closures'][C]['rules']['dn']['tfp']
+exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['alive_by_group'][0], c['alive_by_group'][6],
+                                           *c['parts_alive'].values()])
+for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
+    exp[f"{abs(x):.1f}%"] += 1
+for sid in dump:
+    got = Counter(NUM.findall(dump[sid].get('cohorts', '')))
+    if got != exp:
+        bad += 1
+        print(sid, 'cohorts missing:', dict(exp - got), 'extra:', dict(got - exp))
+    else:
+        print(sid, 'cohorts ok:', sum(exp.values()), 'figures')
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)

@@ -5,9 +5,9 @@ import ResultsTab, { SUBS } from '@/tabs/ai/ResultsTab.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
 import LiteratureTab from '@/tabs/literature/LiteratureTab.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
+import CohortsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import BandPill from '@/components/ab/BandPill.jsx';
-import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
 import { S, SCENARIOS, scenarioById } from '@/tabs/ai/surprise.js';
 
 // Six flat tabs, no sub-tabs. The open tab is ?tab=, the scenario ?s=.
@@ -72,21 +72,6 @@ function writeUrl(tab, s, sub, closure) {
   window.history.replaceState(null, '', u.toString());
 }
 
-function CohortsTab() {
-  return (
-    <>
-      <SectionHeading id="cohorts" icon="usersRound" title="Welfare by birth year and earnings group">
-        How the gains and losses fall across generations and across lower- and higher-earning groups.
-      </SectionHeading>
-      <div className="charts-stack">
-        <div className="chart-card">
-          <Unpublished>Cohort results are not published yet.</Unpublished>
-        </div>
-      </div>
-    </>
-  );
-}
-
 export default function HomePage() {
   const [tab, setTab] = useState('results');
   const [sid, setSid] = useState(S.default_scenario);
@@ -147,7 +132,7 @@ export default function HomePage() {
         onClosure={chooseClosure}
       />
     ),
-    cohorts: <CohortsTab />,
+    cohorts: <CohortsTab sid={sid} />,
     method: <MethodTab onTab={chooseTab} active={tab === 'method'} />,
     literature: <LiteratureTab active={tab === 'literature'} />,
     code: <CodeTab active={tab === 'code'} />,
