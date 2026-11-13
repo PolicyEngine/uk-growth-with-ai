@@ -9,7 +9,7 @@ typed into a .tex file by hand.  Run from the repo root:
 Design (docs/surprise_2028.md, docs/uk_calibration.md, #27):
 
 * AI is an unanticipated shock announced at the start of 2028.  2026-27 equal
-  the no-AI (OBR-central) path; gamma and Z ramp with weights 0/.25/.5/.75/1
+  the OBR-central path (which already includes the OBR's own AI assumption); gamma and Z ramp with weights 0/.25/.5/.75/1
   over 2027-2031; the headline year is 2031.
 * Four scenarios: UK low / UK central (headline) / UK high, calibrated to
   IMF UK 2026, OBR FRS 2026 and BP9, and Korinek et al.'s US "substantial"
