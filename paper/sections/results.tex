@@ -1,146 +1,155 @@
 \section{Results}
 \label{sec:results}
 
-All results are percentage gaps between a scenario and the baseline solved at the same closure, in \genEndYear{} unless stated. The central closure is $\zetaK = \genZetaKCentral{}$ with $\zeta_D = \genZetaD{}$ and a \genWorldRatePct{} per cent world rate; the bound is $\zetaK = \genZetaKBound{}$.
+All results are gaps against the path (the no-shock restart) at the same closure, in \genHeadYear{} unless stated. The central closure is $\zetaK = \genZetaKCentral{}$ with $\zeta_D = \genZetaD{}$ and a \genWorldRatePct{} per cent world rate; the bound is $\zetaK = \genZetaKBound{}$. The path is OBR central and already includes the OBR's own AI assumption.
 
-\subsection{National income and output across closures}
+\subsection{The headline: UK central}
 \label{sec:results-headline}
 
-Table~\ref{tab:headline} is the paper's main result. In \ShareShiftTfp{}, GNI in \genEndYear{} is \genShareShiftTfpGniGapThirtyCentralShort{} per cent against the baseline at the central closure and \genShareShiftTfpGniGapThirtyBoundShort{} per cent at the bound. GDP is \genShareShiftTfpGdpGapThirtyCentralShort{} and \genShareShiftTfpGdpGapThirtyBoundShort{} per cent. In \ShareShift{}, GNI is \genShareShiftGniGapThirtyCentralShort{} and \genShareShiftGniGapThirtyBoundShort{} per cent, with 2030 GDP unchanged at both closures by construction.
+Table~\ref{tab:headline} is the paper's main result. In \Main{}, GNI in \genHeadYear{} is \genUkCentralMainGniCentralShort{} per cent against the path at the central closure and \genUkCentralMainGniBoundShort{} per cent at the bound. GDP is \genUkCentralMainGdpCentralShort{} and \genUkCentralMainGdpBoundShort{} per cent. NNI is \genUkCentralMainNniCentralShort{} and \genUkCentralMainNniBoundShort{} per cent.
 
-In \ShareShiftTfp{}, GNI moves less with the closure than GDP does, because the extra output produced by foreign-owned capital is largely paid back to its owners. At the central closure, the gap between the two in \genEndYear{} is \genShareShiftTfpGniLessGdpThirtyCentral{} points in \ShareShiftTfp{} and \genShareShiftGniLessGdpThirtyCentral{} points in \ShareShift{}. At the bound it is \genShareShiftTfpGniLessGdpThirtyBound{} and \genShareShiftGniLessGdpThirtyBound{} points. A GDP gap for these scenarios overstates what UK residents receive whenever foreign capital responds, so I lead with GNI.
+GNI moves less with the closure than GDP does, because at the central closure \genUkCentralForeignShareExtraKCentral{} per cent of the extra capital is foreign-owned and most of the extra output it produces is paid to its owners. NNI moves less still: it also deducts depreciation on the extra capital, which is located in the UK whoever owns it. A GDP gap overstates what UK residents receive whenever foreign capital responds, so I lead with GNI.
 
 \begin{table}[htbp]
 \centering
-\caption{The two scenarios in \genEndYear{}, at the central closure and the closed-capital bound}
+\caption{UK central in \genHeadYear{}: three arms at the central closure and the closed-capital bound}
 \label{tab:headline}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{2}{c}{\Main{}} & \multicolumn{2}{c}{Technology unchanged} & \multicolumn{2}{c}{Stress test} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+ & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ \\
+\midrule
+GNI, \%                  & \genUkCentralMainGniCentral{} & \genUkCentralMainGniBound{} & \genUkCentralFlatGniCentral{} & \genUkCentralFlatGniBound{} & \genUkCentralStressGniCentral{} & \genUkCentralStressGniBound{} \\
+NNI, \%                  & \genUkCentralMainNniCentral{} & \genUkCentralMainNniBound{} & \genUkCentralFlatNniCentral{} & \genUkCentralFlatNniBound{} & \genUkCentralStressNniCentral{} & \genUkCentralStressNniBound{} \\
+GDP, \%                  & \genUkCentralMainGdpCentral{} & \genUkCentralMainGdpBound{} & \genUkCentralFlatGdpCentral{} & \genUkCentralFlatGdpBound{} & \genUkCentralStressGdpCentral{} & \genUkCentralStressGdpBound{} \\
+Capital stock, \%        & \genUkCentralMainCapitalCentral{} & \genUkCentralMainCapitalBound{} & \genUkCentralFlatCapitalCentral{} & \genUkCentralFlatCapitalBound{} & \genUkCentralStressCapitalCentral{} & \genUkCentralStressCapitalBound{} \\
+Labour input, \%         & \genUkCentralMainLabourCentral{} & \genUkCentralMainLabourBound{} & \genUkCentralFlatLabourCentral{} & \genUkCentralFlatLabourBound{} & \genUkCentralStressLabourCentral{} & \genUkCentralStressLabourBound{} \\
+Real wage, \%            & \genUkCentralMainWageCentral{} & \genUkCentralMainWageBound{} & \genUkCentralFlatWageCentral{} & \genUkCentralFlatWageBound{} & \genUkCentralStressWageCentral{} & \genUkCentralStressWageBound{} \\
+Consumption, \%          & \genUkCentralMainConsumptionCentral{} & \genUkCentralMainConsumptionBound{} & \genUkCentralFlatConsumptionCentral{} & \genUkCentralFlatConsumptionBound{} & \genUkCentralStressConsumptionCentral{} & \genUkCentralStressConsumptionBound{} \\
+Investment, \%           & \genUkCentralMainInvestmentCentral{} & \genUkCentralMainInvestmentBound{} & \genUkCentralFlatInvestmentCentral{} & \genUkCentralFlatInvestmentBound{} & \genUkCentralStressInvestmentCentral{} & \genUkCentralStressInvestmentBound{} \\
+Return on capital, bp    & \genUkCentralMainInterestBpCentral{} & \genUkCentralMainInterestBpBound{} & \genUkCentralFlatInterestBpCentral{} & \genUkCentralFlatInterestBpBound{} & \genUkCentralStressInterestBpCentral{} & \genUkCentralStressInterestBpBound{} \\
+Labour share, pp         & \genUkCentralMainLabourSharePpCentral{} & \genUkCentralMainLabourSharePpBound{} & \genUkCentralFlatLabourSharePpCentral{} & \genUkCentralFlatLabourSharePpBound{} & \genUkCentralStressLabourSharePpCentral{} & \genUkCentralStressLabourSharePpBound{} \\
+\addlinespace
+Tax/GDP, pp              & \genUkCentralMainTaxGdpPpCentral{} & \genUkCentralMainTaxGdpPpBound{} & \genUkCentralFlatTaxGdpPpCentral{} & \genUkCentralFlatTaxGdpPpBound{} & \genUkCentralStressTaxGdpPpCentral{} & \genUkCentralStressTaxGdpPpBound{} \\
+Debt/GDP, pp, \genHeadYear{} & \genUkCentralMainDebtPpCentral{} & \genUkCentralMainDebtPpBound{} & \genUkCentralFlatDebtPpCentral{} & \genUkCentralFlatDebtPpBound{} & \genUkCentralStressDebtPpCentral{} & \genUkCentralStressDebtPpBound{} \\
+Debt/GDP, pp, \genDebtRuleYear{} & \genUkCentralMainDebtPpThirtySixCentral{} & \genUkCentralMainDebtPpThirtySixBound{} & \genUkCentralFlatDebtPpThirtySixCentral{} & \genUkCentralFlatDebtPpThirtySixBound{} & \genUkCentralStressDebtPpThirtySixCentral{} & \genUkCentralStressDebtPpThirtySixBound{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.95\textwidth}
+\footnotesize \emph{Notes:} gaps against the no-shock restart at the same closure (``the path''), which is OBR central and includes the OBR's own AI assumption. UK central: labour share $-$\genUkCentralFallPp{} points and output at given inputs $+$\genUkCentralTfpPct{} per cent by \genHeadYear{}. Technology unchanged: the same share fall with output at given inputs unchanged. Stress test: output at given inputs set so that \genHeadYear{} GDP equals the path. GNI is $Y - r^p(K^f + D^f)$; NNI is GNI $- \delta K$. Debt/GDP is quoted with its \genDebtRuleYear{} value, the debt rule's first year. Source: \texttt{analysis/surprise/output/}.
+\end{minipage}
+\end{table}
+
+\paragraph{Where the extra capital comes from.} The shock raises the marginal product of capital, and capital rises in response in every arm at both closures. The closure decides who supplies it. At the central closure about three-quarters of the extra capital in \genHeadYear{} is foreign-owned, the capital response is larger and the rise in the return smaller. At the bound, household saving supplies all of it: capital rises \genUkCentralMainCapitalBoundAbs{} per cent against \genUkCentralMainCapitalCentralAbs{} per cent, and the return rises \genUkCentralMainInterestBpBound{} basis points against \genUkCentralMainInterestBpCentral{}. The capital-supply elasticity (the change in log capital over the change in the log rental rate) is \genUkCentralElasticityCentral{} at the central closure in \genHeadYear{} and \genUkCentralElasticityBound{} at the bound, rising to \genUkCentralElasticitySsCentral{} and \genUkCentralElasticitySsBound{} in the steady state. Capital is a stock built from saving, and by \genHeadYear{} it has had four years to respond while the return moved at once.
+
+\paragraph{The announcement year and the profile.} In \genShockYear{} investment, hours and saving all rise in every arm at both closures, and consumption falls: in UK central's main arm at the central closure investment is \genUkCentralMainInvestmentTwentyEightCentral{} per cent, labour input \genUkCentralMainLabourTwentyEightCentral{} per cent and consumption \genUkCentralMainConsumptionTwentyEightCentral{} per cent against the path. Households learn that wages will be lower and returns higher, so they work and save more at once. Labour input then turns down as the wage falls and wealth builds. Table~\ref{tab:paths} gives the year-by-year path. Investment stays high while $\gamma$ and $Z$ are still rising and drops in \genHeadYear{}, when they stop; with no adjustment cost, that profile is a property of the model, not a forecast.
+
+\begin{table}[htbp]
+\centering
+\caption{UK central, \Main{}, central closure: gaps against the path by year}
+\label{tab:paths}
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+ & \genRampZeroYear{} & \genShockYear{} & 2029 & 2030 & \genHeadYear{} & \genLastFlowYear{} & \genDebtRuleYear{} \\
+\midrule
+GNI, \%          & \genPathUkCentralGniTwentySeven{} & \genPathUkCentralGniTwentyEight{} & \genPathUkCentralGniTwentyNine{} & \genPathUkCentralGniThirty{} & \genPathUkCentralGniThirtyOne{} & \genPathUkCentralGniThirtyFive{} & \\
+GDP, \%          & \genPathUkCentralGdpTwentySeven{} & \genPathUkCentralGdpTwentyEight{} & \genPathUkCentralGdpTwentyNine{} & \genPathUkCentralGdpThirty{} & \genPathUkCentralGdpThirtyOne{} & \genPathUkCentralGdpThirtyFive{} & \\
+Capital, \%      & \genPathUkCentralCapitalTwentySeven{} & \genPathUkCentralCapitalTwentyEight{} & \genPathUkCentralCapitalTwentyNine{} & \genPathUkCentralCapitalThirty{} & \genPathUkCentralCapitalThirtyOne{} & \genPathUkCentralCapitalThirtyFive{} & \\
+Labour input, \% & \genPathUkCentralLabourTwentySeven{} & \genPathUkCentralLabourTwentyEight{} & \genPathUkCentralLabourTwentyNine{} & \genPathUkCentralLabourThirty{} & \genPathUkCentralLabourThirtyOne{} & \genPathUkCentralLabourThirtyFive{} & \\
+Real wage, \%    & \genPathUkCentralWageTwentySeven{} & \genPathUkCentralWageTwentyEight{} & \genPathUkCentralWageTwentyNine{} & \genPathUkCentralWageThirty{} & \genPathUkCentralWageThirtyOne{} & \genPathUkCentralWageThirtyFive{} & \\
+Consumption, \%  & \genPathUkCentralConsumptionTwentySeven{} & \genPathUkCentralConsumptionTwentyEight{} & \genPathUkCentralConsumptionTwentyNine{} & \genPathUkCentralConsumptionThirty{} & \genPathUkCentralConsumptionThirtyOne{} & \genPathUkCentralConsumptionThirtyFive{} & \\
+Investment, \%   & \genPathUkCentralInvestmentTwentySeven{} & \genPathUkCentralInvestmentTwentyEight{} & \genPathUkCentralInvestmentTwentyNine{} & \genPathUkCentralInvestmentThirty{} & \genPathUkCentralInvestmentThirtyOne{} & \genPathUkCentralInvestmentThirtyFive{} & \\
+Return, bp       & \genPathUkCentralInterestBpTwentySeven{} & \genPathUkCentralInterestBpTwentyEight{} & \genPathUkCentralInterestBpTwentyNine{} & \genPathUkCentralInterestBpThirty{} & \genPathUkCentralInterestBpThirtyOne{} & \genPathUkCentralInterestBpThirtyFive{} & \\
+Debt/GDP, pp     & \genPathUkCentralDebtPpTwentySeven{} & \genPathUkCentralDebtPpTwentyEight{} & \genPathUkCentralDebtPpTwentyNine{} & \genPathUkCentralDebtPpThirty{} & \genPathUkCentralDebtPpThirtyOne{} & \genPathUkCentralDebtPpThirtyFive{} & \genPathUkCentralDebtPpThirtySix{} \\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{minipage}{0.95\textwidth}
+\footnotesize \emph{Notes:} \genRampZeroYear{} is before the announcement, so every gap is zero by construction. \genShockYear{} is the announcement-year response plus the first quarter of the change in $\gamma$ and $Z$. Only debt/GDP is shown for \genDebtRuleYear{}, the debt rule's first year, when government consumption is cut in every run. Source: \texttt{analysis/surprise/output/zk0.1/}.
+\end{minipage}
+\end{table}
+
+\subsection{Wages, consumption and national income}
+\label{sec:results-wages}
+
+The labour share follows the imposed path, falling \genUkCentralFallPp{} points in UK central by \genHeadYear{}. At $\varepsilon = \genEpsilon{}$ that is the input restated. The wage follows equation~\eqref{eq:wageidentity}. In UK central the share fall alone takes \genUkCentralShareLogPct{} log points off the wage. Output per hour gives part of it back, through the technology gain and through capital deepening, but not all: the real wage is \genUkCentralMainWageCentral{} per cent at the central closure and \genUkCentralMainWageBound{} per cent at the bound in \genHeadYear{}, and it is still below the path in \genLastFlowYear{}. The wage is below the path in every scenario and arm in \genHeadYear{}.
+
+Across scenarios the wage does not follow the size of the shock. At the central closure it is \genUkLowMainWageCentral{}, \genUkCentralMainWageCentral{} and \genUkHighMainWageCentral{} per cent in UK low, central and high, and \genKorinekMainWageCentral{} per cent in the upper case. It depends on the ratio of the productivity gain to the share fall, which is lowest in UK central. Per unit of GDP gained, UK central is the least favourable of the four for wages.
+
+Consumption falls while national income rises. In UK central's main arm at the central closure, GNI is above the path and aggregate consumption below it in every year from \genShockYear{} to \genLastFlowYear{} (\genUkCentralMainConsumptionCentral{} per cent in \genHeadYear{}). The same holds in \genHeadYear{} for UK low and UK high, and at the bound. Two uses take the extra income and more. Government consumption is a fixed share of GDP, so it rises with GDP and takes part of the GNI gain. And households save more: labour income falls, household capital income rises with the higher return, and households build the wealth that the larger capital stock and the extra public debt require. Only in the upper case at the central closure, where the productivity gain is large, is consumption above the path by \genHeadYear{} (\genKorinekMainConsumptionCentral{} per cent).
+
+\subsection{The range across scenarios}
+\label{sec:results-range}
+
+Table~\ref{tab:range} reports the main arm across the four scenarios. At the central closure GDP, GNI, capital and the return all rise with the size of the shock: GNI is \genUkLowMainGniCentral{}, \genUkCentralMainGniCentral{} and \genUkHighMainGniCentral{} per cent in the three UK scenarios and \genKorinekMainGniCentral{} per cent in the upper case. GDP is close to additive in the two parts of the shock. The share shift with technology unchanged raises GDP at the central closure, through the capital inflow, and the productivity gain adds to that.
+
+\begin{table}[htbp]
+\centering
+\caption{\Main{} across scenarios, \genHeadYear{}}
+\label{tab:range}
 \small
 \begin{tabular}{lrrrr}
 \toprule
- & \multicolumn{2}{c}{\ShareShiftTfp{}} & \multicolumn{2}{c}{\ShareShift{}} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
- & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ \\
+ & UK low & UK central & UK high & Korinek et al.\ (upper) \\
 \midrule
-GNI, per cent                         & \genShareShiftTfpGniGapThirtyCentral{} & \genShareShiftTfpGniGapThirtyBound{} & \genShareShiftGniGapThirtyCentral{} & \genShareShiftGniGapThirtyBound{} \\
-GDP, per cent                         & \genShareShiftTfpGdpGapThirtyCentral{} & \genShareShiftTfpGdpGapThirtyBound{} & \genShareShiftGdpGapThirtyCentral{} & \genShareShiftGdpGapThirtyBound{} \\
-Capital stock, per cent               & \genShareShiftTfpCapitalGapThirtyCentral{} & \genShareShiftTfpCapitalGapThirtyBound{} & \genShareShiftCapitalGapThirtyCentral{} & \genShareShiftCapitalGapThirtyBound{} \\
-Real wage, per cent                   & \genShareShiftTfpWageGapThirtyCentral{} & \genShareShiftTfpWageGapThirtyBound{} & \genShareShiftWageGapThirtyCentral{} & \genShareShiftWageGapThirtyBound{} \\
-Return on capital, basis points       & \genShareShiftTfpInterestChangeBpCentral{} & \genShareShiftTfpInterestChangeBpBound{} & \genShareShiftInterestChangeBpCentral{} & \genShareShiftInterestChangeBpBound{} \\
+Labour-share fall, pp (input)          & \genUkLowFallPp{} & \genUkCentralFallPp{} & \genUkHighFallPp{} & \genKorinekFallPp{} \\
+Output at given inputs, \% (input)     & \genUkLowTfpPct{} & \genUkCentralTfpPct{} & \genUkHighTfpPct{} & \genKorinekTfpPct{} \\
 \addlinespace
-Foreign-owned share of extra capital, per cent & \genShareShiftTfpForeignShareExtraKCentral{} & \genShareShiftTfpForeignShareExtraKBound{} & \genShareShiftForeignShareExtraKCentral{} & \genShareShiftForeignShareExtraKBound{} \\
-Extra national saving / extra investment, 2026--29 & \genShareShiftTfpSavingShareCentral{} & \genShareShiftTfpSavingShareBound{} & \genShareShiftSavingShareCentral{} & \genShareShiftSavingShareBound{} \\
+\multicolumn{5}{l}{\emph{Central closure, $\zetaK = \genZetaKCentral{}$}} \\
+GNI, \%           & \genUkLowMainGniCentral{} & \genUkCentralMainGniCentral{} & \genUkHighMainGniCentral{} & \genKorinekMainGniCentral{} \\
+NNI, \%           & \genUkLowMainNniCentral{} & \genUkCentralMainNniCentral{} & \genUkHighMainNniCentral{} & \genKorinekMainNniCentral{} \\
+GDP, \%           & \genUkLowMainGdpCentral{} & \genUkCentralMainGdpCentral{} & \genUkHighMainGdpCentral{} & \genKorinekMainGdpCentral{} \\
+Capital, \%       & \genUkLowMainCapitalCentral{} & \genUkCentralMainCapitalCentral{} & \genUkHighMainCapitalCentral{} & \genKorinekMainCapitalCentral{} \\
+Real wage, \%     & \genUkLowMainWageCentral{} & \genUkCentralMainWageCentral{} & \genUkHighMainWageCentral{} & \genKorinekMainWageCentral{} \\
+Consumption, \%   & \genUkLowMainConsumptionCentral{} & \genUkCentralMainConsumptionCentral{} & \genUkHighMainConsumptionCentral{} & \genKorinekMainConsumptionCentral{} \\
+Return, bp        & \genUkLowMainInterestBpCentral{} & \genUkCentralMainInterestBpCentral{} & \genUkHighMainInterestBpCentral{} & \genKorinekMainInterestBpCentral{} \\
+Tax/GDP, pp       & \genUkLowMainTaxGdpPpCentral{} & \genUkCentralMainTaxGdpPpCentral{} & \genUkHighMainTaxGdpPpCentral{} & \genKorinekMainTaxGdpPpCentral{} \\
+Debt/GDP, pp      & \genUkLowMainDebtPpCentral{} & \genUkCentralMainDebtPpCentral{} & \genUkHighMainDebtPpCentral{} & \genKorinekMainDebtPpCentral{} \\
+Debt/GDP, pp, \genDebtRuleYear{} & \genUkLowMainDebtPpThirtySixCentral{} & \genUkCentralMainDebtPpThirtySixCentral{} & \genUkHighMainDebtPpThirtySixCentral{} & \genKorinekMainDebtPpThirtySixCentral{} \\
+\addlinespace
+\multicolumn{5}{l}{\emph{Closed-capital bound, $\zetaK = \genZetaKBound{}$}} \\
+GNI, \%           & \genUkLowMainGniBound{} & \genUkCentralMainGniBound{} & \genUkHighMainGniBound{} & \genKorinekMainGniBound{} \\
+GDP, \%           & \genUkLowMainGdpBound{} & \genUkCentralMainGdpBound{} & \genUkHighMainGdpBound{} & \genKorinekMainGdpBound{} \\
+Real wage, \%     & \genUkLowMainWageBound{} & \genUkCentralMainWageBound{} & \genUkHighMainWageBound{} & \genKorinekMainWageBound{} \\
+Tax/GDP, pp       & \genUkLowMainTaxGdpPpBound{} & \genUkCentralMainTaxGdpPpBound{} & \genUkHighMainTaxGdpPpBound{} & \genKorinekMainTaxGdpPpBound{} \\
+Debt/GDP, pp, \genDebtRuleYear{} & \genUkLowMainDebtPpThirtySixBound{} & \genUkCentralMainDebtPpThirtySixBound{} & \genUkHighMainDebtPpThirtySixBound{} & \genKorinekMainDebtPpThirtySixBound{} \\
+\addlinespace
+\multicolumn{5}{l}{\emph{\Stress{}, central closure}} \\
+GNI, \%           & \genUkLowStressGniCentral{} & \genUkCentralStressGniCentral{} & \genUkHighStressGniCentral{} & \genKorinekStressGniCentral{} \\
+Real wage, \%     & \genUkLowStressWageCentral{} & \genUkCentralStressWageCentral{} & \genUkHighStressWageCentral{} & \genKorinekStressWageCentral{} \\
+GDP, \%, \genLastFlowYear{} & \genUkLowStressGdpThirtyFiveCentral{} & \genUkCentralStressGdpThirtyFiveCentral{} & \genUkHighStressGdpThirtyFiveCentral{} & \genKorinekStressGdpThirtyFiveCentral{} \\
 \bottomrule
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.95\textwidth}
-\footnotesize \emph{Notes:} gaps against the baseline solved at the same closure. $\zeta_D = \genZetaD{}$ and the world interest rate is \genWorldRatePct{} per cent in every column. GNI is $Y - r^p(K^f + D^f)$. National saving is GNI less private and government consumption. \ShareShift{}'s $Z$ is solved at each closure so that 2030 GDP is unchanged; its GDP row is zero by construction. Sources: \texttt{\genCentralSource{}} (central) and \texttt{\genBoundSource{}} (bound).
+\footnotesize \emph{Notes:} gaps against the path at the same closure. ``Pending'' marks solves queued overnight (UK low and UK high at $\zetaK = \genZetaKBound{}$). The upper case is a US scenario, not a UK calibration. The stress test holds GDP in \genHeadYear{} only; its \genLastFlowYear{} row shows the drift afterwards. Source: \texttt{analysis/surprise/output/}.
 \end{minipage}
 \end{table}
 
-\subsection{Where the extra capital comes from}
-\label{sec:results-capital}
-
-Both scenarios raise the marginal product of capital, and capital rises in response under both closures (Table~\ref{tab:headline}). The closure decides who supplies it. At $\zetaK = \genZetaKBound{}$, domestic saving carries all of the increase: households save more, and the domestic return rises by \genShareShiftTfpInterestChangeBpBound{} basis points in \ShareShiftTfp{}. At $\zetaK = \genZetaKCentral{}$, \genShareShiftTfpForeignShareExtraKCentral{} per cent of the extra capital in \ShareShiftTfp{} and \genShareShiftForeignShareExtraKCentral{} per cent in \ShareShift{} is foreign-owned. The capital response is larger, the rise in the domestic return smaller, and the return on the foreign-owned capital is paid abroad. That is why the GNI gap is below the GDP gap in both scenarios, and why GNI falls in \ShareShift{} while GDP is unchanged.
-
-
-
-The year-by-year paths at the central closure (Table~\ref{tab:paths}) should be read for their \genEndYear{} levels, not their profile. Investment is high while $\gamma$ is rising and the inflow continues, and its gap falls in \genEndYear{} (from \genShareShiftTfpInvestmentGapTwentyNine{} to \genShareShiftTfpInvestmentGapThirty{} per cent in \ShareShiftTfp{}), when $\gamma$ stops rising and the inflow stops. That fall comes from the closure rule. At $\zetaK = \genZetaKBound{}$ the \ShareShiftTfp{} investment gap is \genShareShiftTfpInvestmentGapTwentyNineBound{} per cent in 2029 and \genShareShiftTfpInvestmentGapThirtyBound{} per cent in \genEndYear{}. The profile is not a forecast of the timing of AI investment.
-
-\begin{table}[htbp]
-\centering
-\caption{Gaps against the baseline by year, central closure ($\zetaK = \genZetaKCentral{}$), per cent}
-\label{tab:paths}
-\small
-\begin{tabular}{lrrrrr}
-\toprule
- & \genStartYear{}\textsuperscript{a} & 2027 & 2028 & 2029 & \genEndYear{} \\
-\midrule
-\multicolumn{6}{l}{\emph{\ShareShiftTfp{}}} \\
-GNI            & \genShareShiftTfpGniGapTwentySixCentral{} & \genShareShiftTfpGniGapTwentySevenCentral{} & \genShareShiftTfpGniGapTwentyEightCentral{} & \genShareShiftTfpGniGapTwentyNineCentral{} & \genShareShiftTfpGniGapThirtyCentral{} \\
-GDP            & \genShareShiftTfpGdpGapTwentySix{} & \genShareShiftTfpGdpGapTwentySeven{} & \genShareShiftTfpGdpGapTwentyEight{} & \genShareShiftTfpGdpGapTwentyNine{} & \genShareShiftTfpGdpGapThirty{} \\
-Capital        & \genShareShiftTfpCapitalGapTwentySix{} & \genShareShiftTfpCapitalGapTwentySeven{} & \genShareShiftTfpCapitalGapTwentyEight{} & \genShareShiftTfpCapitalGapTwentyNine{} & \genShareShiftTfpCapitalGapThirty{} \\
-Labour input   & \genShareShiftTfpLabourGapTwentySix{} & \genShareShiftTfpLabourGapTwentySeven{} & \genShareShiftTfpLabourGapTwentyEight{} & \genShareShiftTfpLabourGapTwentyNine{} & \genShareShiftTfpLabourGapThirty{} \\
-Real wage      & \genShareShiftTfpWageGapTwentySix{} & \genShareShiftTfpWageGapTwentySeven{} & \genShareShiftTfpWageGapTwentyEight{} & \genShareShiftTfpWageGapTwentyNine{} & \genShareShiftTfpWageGapThirty{} \\
-Consumption    & \genShareShiftTfpConsumptionGapTwentySix{} & \genShareShiftTfpConsumptionGapTwentySeven{} & \genShareShiftTfpConsumptionGapTwentyEight{} & \genShareShiftTfpConsumptionGapTwentyNine{} & \genShareShiftTfpConsumptionGapThirty{} \\
-Investment     & \genShareShiftTfpInvestmentGapTwentySix{} & \genShareShiftTfpInvestmentGapTwentySeven{} & \genShareShiftTfpInvestmentGapTwentyEight{} & \genShareShiftTfpInvestmentGapTwentyNine{} & \genShareShiftTfpInvestmentGapThirty{} \\
-Tax revenue    & \genShareShiftTfpRevenueGapTwentySix{} & \genShareShiftTfpRevenueGapTwentySeven{} & \genShareShiftTfpRevenueGapTwentyEight{} & \genShareShiftTfpRevenueGapTwentyNine{} & \genShareShiftTfpRevenueGapThirty{} \\
-Debt/GDP (pp)\textsuperscript{b} & \genShareShiftTfpDebtGdpGapPpTwentySix{} & \genShareShiftTfpDebtGdpGapPpTwentySeven{} & \genShareShiftTfpDebtGdpGapPpTwentyEight{} & \genShareShiftTfpDebtGdpGapPpTwentyNine{} & \genShareShiftTfpDebtGdpGapPpThirty{} \\
-\addlinespace
-\multicolumn{6}{l}{\emph{\ShareShift{}}} \\
-GNI            & \genShareShiftGniGapTwentySixCentral{} & \genShareShiftGniGapTwentySevenCentral{} & \genShareShiftGniGapTwentyEightCentral{} & \genShareShiftGniGapTwentyNineCentral{} & \genShareShiftGniGapThirtyCentral{} \\
-GDP            & \genShareShiftGdpGapTwentySix{} & \genShareShiftGdpGapTwentySeven{} & \genShareShiftGdpGapTwentyEight{} & \genShareShiftGdpGapTwentyNine{} & \genShareShiftGdpGapThirty{} \\
-Capital        & \genShareShiftCapitalGapTwentySix{} & \genShareShiftCapitalGapTwentySeven{} & \genShareShiftCapitalGapTwentyEight{} & \genShareShiftCapitalGapTwentyNine{} & \genShareShiftCapitalGapThirty{} \\
-Labour input   & \genShareShiftLabourGapTwentySix{} & \genShareShiftLabourGapTwentySeven{} & \genShareShiftLabourGapTwentyEight{} & \genShareShiftLabourGapTwentyNine{} & \genShareShiftLabourGapThirty{} \\
-Real wage      & \genShareShiftWageGapTwentySix{} & \genShareShiftWageGapTwentySeven{} & \genShareShiftWageGapTwentyEight{} & \genShareShiftWageGapTwentyNine{} & \genShareShiftWageGapThirty{} \\
-Consumption    & \genShareShiftConsumptionGapTwentySix{} & \genShareShiftConsumptionGapTwentySeven{} & \genShareShiftConsumptionGapTwentyEight{} & \genShareShiftConsumptionGapTwentyNine{} & \genShareShiftConsumptionGapThirty{} \\
-Investment     & \genShareShiftInvestmentGapTwentySix{} & \genShareShiftInvestmentGapTwentySeven{} & \genShareShiftInvestmentGapTwentyEight{} & \genShareShiftInvestmentGapTwentyNine{} & \genShareShiftInvestmentGapThirty{} \\
-Tax revenue    & \genShareShiftRevenueGapTwentySix{} & \genShareShiftRevenueGapTwentySeven{} & \genShareShiftRevenueGapTwentyEight{} & \genShareShiftRevenueGapTwentyNine{} & \genShareShiftRevenueGapThirty{} \\
-Debt/GDP (pp)\textsuperscript{b} & \genShareShiftDebtGdpGapPpTwentySix{} & \genShareShiftDebtGdpGapPpTwentySeven{} & \genShareShiftDebtGdpGapPpTwentyEight{} & \genShareShiftDebtGdpGapPpTwentyNine{} & \genShareShiftDebtGdpGapPpThirty{} \\
-\bottomrule
-\end{tabular}
-\par\medskip
-\begin{minipage}{0.95\textwidth}
-\footnotesize \emph{Notes:} \textsuperscript{a}~In \genStartYear{} $\gamma$ and $Z$ are still at baseline values. Gaps in that year are anticipation effects under perfect foresight, not effects of the technology (Section~\ref{sec:results-anticipation}). \textsuperscript{b}~Debt/GDP gaps are in percentage points. By 2035 they are \genShareShiftTfpDebtGdpGapPpThirtyFiveCentral{} (\ShareShiftTfp{}) and \genShareShiftDebtGdpGapPpThirtyFiveCentral{} (\ShareShift{}); debt targeting starts in \genTGoneYear{}. Government consumption is a fixed share of output in every arm, so its gap equals the GDP gap and is omitted. Source: \texttt{\genCentralSource{}}.
-\end{minipage}
-\end{table}
-
-\subsection{Wages, the labour share and labour income}
-\label{sec:results-wages}
-
-The labour share follows the imposed path, from \genBaseLabourSharePct{} per cent to \genShareShiftTfpLabourShareThirty{} per cent in \genEndYear{} in both arms. At $\varepsilon = \genEpsilon{}$ this is the input restated.
-
-The wage follows equation~\eqref{eq:wageidentity}. The fall in the labour share contributes $-$\genLabourShareLogChangePctAbs{} log points in both arms. Output per worker contributes the rest, and it depends on how much capital arrives.
-\begin{itemize}
-\item In \ShareShift{} output per worker does not rise enough to offset the share effect at either closure. The real wage in \genEndYear{} is \genShareShiftWageGapThirtyCentral{} per cent at $\zetaK = \genZetaKCentral{}$ and \genShareShiftWageGapThirtyBound{} per cent at $\zetaK = \genZetaKBound{}$.
-\item In \ShareShiftTfp{} output per worker rises \genShareShiftTfpOutputPerWorkerGapThirtyAbs{} per cent at the central closure, close to the share effect, and the wage gap is \genShareShiftTfpWageGapThirtyCentral{} per cent. At $\zetaK = \genZetaKBound{}$ it is \genShareShiftTfpWageGapThirtyBound{} per cent. Its sign is not robust. At the central closure the gap narrows after \genEndYear{} as capital keeps accumulating, turns positive in \genShareShiftTfpWageFirstPosYearCentral{} and is \genShareShiftTfpWageGapThirtyFiveCentral{} per cent in 2035; at the bound it is still \genShareShiftTfpWageGapThirtyFiveBound{} per cent in 2035. The source scenario has the same property: \citet[Table~5]{korinek2026} report an average wage \genKorinekTableFiveWageOne{}, \genKorinekTableFiveWageThree{}, \genKorinekTableFiveWageSix{} and \genKorinekTableFiveWageInf{} per cent against their no-AI path at capital-supply elasticities of 1, 3, 6 and infinity.\footnote{A diagnostic run at $\zetaK = \genZetaKOpen{}$ on the baseline used before the corrective reruns gave \genShareShiftTfpWageGapThirtyOpen{} per cent in \genEndYear{}. That run was not repeated on the present baseline, so the figure is not used in the text.} The model therefore cannot say whether real wages rise or fall in this scenario, only that the change is small relative to the change in GDP.
-\end{itemize}
-
-Labour income, $wL$, is \genShareShiftTfpLabourIncomeGapThirtyAbs{} per cent \genShareShiftTfpLabourIncomeGapThirtyDir{} the baseline in \ShareShiftTfp{} and \genShareShiftLabourIncomeGapThirtyAbs{} per cent \genShareShiftLabourIncomeGapThirtyDir{} it in \ShareShift{} at the central closure. In the source scenario of \citet[Table~3]{korinek2026}, the labour share falls from 60.0 to 56.1 per cent of income while GDP rises \genKorinekTableGdpPct{} per cent; labour income is \genKorinekTableLabourIncomeGapAbs{} per cent \genKorinekTableLabourIncomeGapDir{} their no-AI path and the average wage \genKorinekTableWageAbs{} per cent \genKorinekTableWageDir{} it. The difference comes from the smaller output response here (Section~\ref{sec:results-benchmarks}).
-
-\subsection{Anticipation in \genStartYear{}}
-\label{sec:results-anticipation}
-
-In \genStartYear{} $\gamma$ and $Z$ are at their baseline values and domestically owned capital is inherited, yet both arms already show non-zero gaps in GDP, labour input and consumption (Table~\ref{tab:paths}). These come from perfect foresight. Households learn the whole future path of wages and returns in \genStartYear{} and adjust labour supply and saving at once. A model in which the scenario is learned gradually would show smaller early effects. I do not report \genStartYear{} gaps as effects of AI, and the paper's results are the \genEndYear{} levels.
+\paragraph{The stress test.} With GDP held at the path in \genHeadYear{}, GNI is below the path in every scenario at the central closure (\genUkCentralStressGniCentral{} per cent in UK central) and the wage falls further than in the main arm (\genUkCentralStressWageCentral{} per cent). GNI falls because part of the unchanged output is now paid abroad as the return on foreign-owned capital. At the bound GNI is \genUkCentralStressGniBound{} per cent in UK central. GDP is held in \genHeadYear{} only. Afterwards it drifts below the path at the central closure (\genUkCentralStressGdpThirtyFiveCentral{} per cent in UK central by \genLastFlowYear{}), as debt rises and crowds out domestically owned capital, and above it at the bound (\genUkCentralStressGdpThirtyFiveBound{} per cent), where capital keeps building from household saving. The stress test is a bound on the downside, not a central estimate.
 
 \subsection{The public finances}
 \label{sec:results-fiscal}
 
-Tax revenue in \genEndYear{} is \genShareShiftTfpRevenueGapThirty{} per cent against the baseline in \ShareShiftTfp{} and \genShareShiftRevenueGapThirty{} per cent in \ShareShift{} at the central closure. As a share of GDP, revenue changes by \genShareShiftTfpTaxGdpChangePp{} and \genShareShiftTaxGdpChangePp{} percentage points at the central closure, and by \genShareShiftTfpTaxGdpChangePpBound{} and \genShareShiftTaxGdpChangePpBound{} points at the bound. A simple benchmark uses the OBR's effective tax rates of about \genObrEffRateLabourPct{} per cent on labour income and \genObrEffRateProfitsPct{} per cent on corporate profits \citep[para~2.64]{obr2025efonov}. If the \genLabourShareFallPp{}-point fall in the labour share all went to profits, receipts would change by about \genRuleOfThumbTaxPp{} per cent of GDP. The OBR's own scenario has receipts about \pounds6 billion a year lower, roughly 0.2 per cent of GDP \citep[para~6.18]{obr2026efo}. The model's effective tax functions are estimated, and it reports total revenue only, so the split by tax base is not identified.
+\paragraph{Revenue.} At the central closure tax revenue falls as a share of GDP in every scenario, arm and year from \genShockYear{} to \genLastFlowYear{}: by \genUkCentralMainTaxGdpPpCentralAbs{} points in UK central's main arm and \genUkCentralStressTaxGdpPpCentralAbs{} points in its stress test in \genHeadYear{}. That is the direction the OBR describes, but the size is smaller. Per point of labour-share fall, the stress test lowers tax/GDP by \genUkCentralStressTaxPerPpCentralAbs{} points in UK central (\genUkLowStressTaxPerPpCentralAbs{}--\genKorinekStressTaxPerPpCentralAbs{} across scenarios), against \genObrTaxPerPpLo{}--\genObrTaxPerPpHi{} in the OBR's illustration, which also holds GDP unchanged \citep[Box~4.1]{obr2026frs}.
 
-Debt/GDP in \genEndYear{} is \genShareShiftTfpDebtGdpGapPpThirtyCentral{} percentage points against the baseline in \ShareShiftTfp{} and \genShareShiftDebtGdpGapPpThirtyCentral{} points in \ShareShift{} at the central closure. By 2035 they are \genShareShiftTfpDebtGdpGapPpThirtyFiveCentral{} and \genShareShiftDebtGdpGapPpThirtyFiveCentral{} points (\genShareShiftTfpDebtGdpGapPpThirtyBound{} and \genShareShiftDebtGdpGapPpThirtyBound{} points in \genEndYear{}, \genShareShiftTfpDebtGdpGapPpThirtyFiveBound{} and \genShareShiftDebtGdpGapPpThirtyFiveBound{} in 2035, at the bound). In \ShareShift{} the gap widens: revenue falls as a share of GDP while spending stays a fixed share, and the higher interest rate raises debt service on the whole stock. In \ShareShiftTfp{} the gap changes sign, because the GDP gap, which lowered the ratio while it widened, stops widening once the ramp ends in \genEndYear{}, while the higher interest rate keeps raising debt service. Government consumption is a fixed share of output in every arm, so higher output raises spending as well as revenue.
+The reason is the tax system in OG-UK. Employee NICs are inside the estimated income-tax function, which is fitted on PolicyEngine UK income tax plus employee NICs and applies one schedule to total household income, labour and capital alike. Employer NICs are a flat \genTauPayrollPct{} per cent payroll tax on all labour income. On the path in \genHeadYear{} the effective rate on labour is \genEffLabourPctCentral{} per cent and on gross capital income \genEffCapitalPctCentral{} per cent, a gap of \genEffWedgePpCentral{} points (\genEffWedgePpBound{} at the bound). The OBR's rates imply a gap of \genObrWedgeLo{}--\genObrWedgeHi{} points (46 against 27 per cent in the fiscal-risks report, \genObrEffRateLabourPct{} against \genObrEffRateProfitsPct{} in the November 2025 outlook; \citealp{obr2026frs,obr2025efonov}). So each point of income moved from labour to capital lowers revenue by less in the model than in the OBR's arithmetic. Two further differences point the same way: the business tax rises with the capital share, and the progressive income-tax schedule takes more as the return on household wealth rises.
 
-The sign of the debt result in \ShareShiftTfp{} therefore depends on the year and on the spending convention. With spending and transfers held at baseline levels instead (Appendix Table~\ref{tab:fixed}), its gap is \genFixShareShiftTfpDebtGdpGapPpThirtyCentral{} points in \genEndYear{} and \genFixShareShiftTfpDebtGdpGapPpThirtyFiveCentral{} points in 2035 at the central closure, and does not change sign. In \ShareShift{} the gap is positive and widening under both conventions (\genFixShareShiftDebtGdpGapPpThirtyCentral{} points in \genEndYear{} and \genFixShareShiftDebtGdpGapPpThirtyFiveCentral{} in 2035 with spending held at baseline levels). In flow terms, public borrowing in \genEndYear{} is \genShareShiftBorrowGapGdpThirtyCentral{} per cent of baseline GDP higher than in the baseline in \ShareShift{} and \genShareShiftTfpBorrowGapGdpThirtyCentral{} per cent higher in \ShareShiftTfp{} at the central closure (\genShareShiftBorrowGapGdpThirtyBound{} and \genShareShiftTfpBorrowGapGdpThirtyBound{} at the bound). No tax or transfer responds to it in any run, and the debt rule that starts in \genTGoneYear{} acts on government consumption. Section~\ref{sec:incidence} sets out what that means for the welfare results.
+At the closed-capital bound the second channel dominates. With no foreign inflow the return rises more, on all household wealth including gilts. In the upper case's main arm tax/GDP \emph{rises}, by \genKorinekMainTaxGdpPpBound{} points in \genHeadYear{} and in every year from \genKorinekMainTaxFirstPosBound{}: the payroll tax falls by \genKorinekMainBoundTaxPayrollAbs{} points and consumption taxes by \genKorinekMainBoundTaxConsumptionAbs{}, but the income-tax function takes \genKorinekMainBoundTaxIncomeAbs{} points more, as household capital income rises by \genKorinekMainBoundHhCapIncPpAbs{} points of GDP, and the business tax \genKorinekMainBoundTaxBusinessAbs{} more. In UK central's main arm at the bound tax/GDP is \genUkCentralMainTaxGdpPpBound{} points in \genHeadYear{} and above zero from \genUkCentralMainTaxFirstPosBound{}. Every OBR source has revenue falling when the labour share falls, so these bound results are the wrong sign. They are a known limitation of the single income-tax schedule (Section~\ref{sec:limitations}). Fiscal results at the bound should be read with that in mind.
 
-\subsection{Against the published scenarios}
+\paragraph{Debt.} Debt/GDP is higher by \genDebtRuleYear{} in every arm, scenario and closure: by \genUkCentralMainDebtPpThirtySixCentral{}, \genUkCentralFlatDebtPpThirtySixCentral{} and \genUkCentralStressDebtPpThirtySixCentral{} points in UK central's three arms at the central closure. In the main arm at the central closure the \genHeadYear{} gap is negative (\genUkCentralMainDebtPpCentral{} points in UK central), because higher GDP lowers the ratio while the gap is opening, but it turns positive in \genUkCentralMainDebtFirstPosCentral{} and rises after that. A \genHeadYear{} figure alone would therefore give the wrong sign of the path, and I quote debt with its \genDebtRuleYear{} value throughout. The cause is the interest rate. The model's government debt reprices in full each year at a rate that moves with the return on capital, so the whole stock, about 95 per cent of GDP, pays more from the first year. Under the shared-share convention used here, government consumption and transfers rise with GDP, so higher output does not pay the extra interest back; tax/GDP falls as well. UK gilts have long maturities, so the actual stock would reprice over many years, and the model overstates the speed of this effect.
+
+The fixed-spending and debt-neutral variants are solved overnight. Appendix Table~\ref{tab:fixed} reports them when they are complete: \pending{fixed-spending and debt-neutral solves, both closures}.
+
+\subsection{Against published scenarios}
 \label{sec:results-benchmarks}
 
-Table~\ref{tab:korinek} compares \ShareShiftTfp{} with the ``substantial'' column of \citet{korinek2026}. The labour-share fall and the productivity gain match by construction. GDP and the capital stock rise by less here. Capital supply accounts for almost all of the GDP difference. At their capital gap of \genKorinekTableCapitalPct{} per cent and this model's own \genEndYear{} labour input, the production function used here gives GDP \genKorinekCapitalCounterfactualGdpPct{} per cent above baseline, against their \genKorinekTableGdpPct{} per cent. The remaining differences (the elasticity of substitution, adoption, reinstatement and unemployment) matter less for output in \genEndYear{}.
+\paragraph{The IMF.} For the same productivity input, UK central's main arm gives GDP \genUkCentralMainGdpCentral{} per cent at year four at the central closure, against the IMF's \genImfOutputYFourPct{} per cent at year four and \genImfOutputYFivePct{} per cent at year five \citep{imf2026sip}; about a third. The difference is the capital response. If capital were supplied at an unchanged return, the rental rate $\gamma Y/K$ would stay at its path value, and with UK central's inputs that needs capital \genElasticBoundKPct{} per cent higher and gives GDP \genElasticBoundGdpPct{} per cent above the path with labour unchanged (\genElasticBoundGdpOwnLPct{} per cent with the arm's own labour). That brackets the IMF's figures. In the solve the return rises \genUkCentralMainInterestBpCentral{} basis points instead, and capital rises \genUkCentralMainCapitalCentral{} per cent. The calculation shows that the closure and the horizon are sufficient to account for the difference; it does not show that the IMF model works the same way.
 
-\begin{table}[htbp]
-\centering
-\caption[ShareShiftTfp against Korinek et al. Table 3]{\ShareShiftTfp{} against \protect\citet{korinek2026}, Table~3, ``substantial'', \genEndYear{}}
-\label{tab:korinek}
-\small
-\begin{tabular}{lrrr}
-\toprule
- & \citet{korinek2026} (US) & \multicolumn{2}{c}{This model (UK)} \\
-\cmidrule(lr){3-4}
- & & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ \\
-\midrule
-Labour-share fall, points   & \genKorinekTableLabourShareFallPp{} & \genShareShiftTfpLabourShareFallPp{} & \genShareShiftTfpLabourShareFallPp{} \\
-Measured TFP, per cent      & \genKorinekTableTfpPct{} & \genTfpGainPct{} & \genTfpGainPct{} \\
-GDP, per cent               & \genKorinekTableGdpPct{} & \genShareShiftTfpGdpGapThirtyCentral{} & \genShareShiftTfpGdpGapThirtyBound{} \\
-GNI, per cent               & ---                      & \genShareShiftTfpGniGapThirtyCentral{} & \genShareShiftTfpGniGapThirtyBound{} \\
-Capital stock, per cent     & \genKorinekTableCapitalPct{} & \genShareShiftTfpCapitalGapThirtyCentral{} & \genShareShiftTfpCapitalGapThirtyBound{} \\
-Labour income, per cent     & \genKorinekTableLabourIncomeGap{} & \genShareShiftTfpLabourIncomeGapThirty{} & --- \\
-Average real wage, per cent & \genKorinekTableWage{} & \genShareShiftTfpWageGapThirtyCentral{} & \genShareShiftTfpWageGapThirtyBound{} \\
-Unemployment, per cent      & \genKorinekTableUnemploymentPct{} & \multicolumn{2}{c}{not modelled} \\
-\bottomrule
-\end{tabular}
-\par\medskip
-\begin{minipage}{0.95\textwidth}
-\footnotesize \emph{Notes:} labour-share fall and TFP are inputs. Labour income and the average wage in \citet{korinek2026} are as printed in their Table~3, at their baseline capital-supply elasticity of 3; their Table~5 gives an average wage of \genKorinekTableFiveWageOne{} per cent at an elasticity of 1. The comparison is between a US scenario and a UK model, at different elasticities of substitution, with four of their six AI channels absent here.
-\end{minipage}
-\end{table}
+\paragraph{Korinek et al.} The upper case reproduces the labour-share fall and productivity gain of their ``substantial'' scenario. GDP rises \genKorinekMainGdpCentral{} per cent at the central closure and \genKorinekMainGdpBound{} per cent at the bound, against their \genKorinekTableGdpPct{} per cent, and capital \genKorinekMainCapitalCentral{} and \genKorinekMainCapitalBound{} per cent against their \genKorinekTableCapitalPct{} per cent. Their own Table~5 shows the same dependence on capital supply: their average wage is \genKorinekTableFiveWageOne{}, \genKorinekTableFiveWageThree{}, \genKorinekTableFiveWageSix{} and \genKorinekTableFiveWageInf{} per cent against their no-AI path at capital-supply elasticities of 1, 3, 6 and infinity. In this model the elasticity in \genHeadYear{} is below 1 at both closures, and the upper case's wage is \genKorinekMainWageCentral{} and \genKorinekMainWageBound{} per cent.
 
-Against the OBR's technological-displacement scenario, the model reproduces three qualitative features at the central closure: the labour share falls, the profit share rises and revenue falls as a share of GDP. At the bound, revenue as a share of GDP changes by \genShareShiftTfpTaxGdpChangePpBound{} points in \ShareShiftTfp{} and \genShareShiftTaxGdpChangePpBound{} points in \ShareShift{}. It cannot reproduce the rise in equilibrium unemployment. \ShareShift{} reproduces the OBR's unchanged level of GDP in \genEndYear{} by construction, and its GNI gap shows what that implies for national income at each closure.
+\paragraph{The OBR.} The model reproduces three qualitative features of the OBR's displacement scenario at the central closure: the labour share falls, the profit share rises and revenue falls as a share of GDP. It cannot reproduce the rise in equilibrium unemployment. The stress test reproduces the OBR's unchanged level of GDP by construction, and its GNI row shows what that implies for national income at each closure. UK low is the closest in size to the OBR's displacement case.

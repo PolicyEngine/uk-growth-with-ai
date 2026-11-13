@@ -658,6 +658,83 @@ def check_claims(R: dict, v: Values) -> None:
     nic = float(v["NicsEmployerOnLabourCostPct"])
     if not 10 <= nic <= 12:
         fail.append(f"'PolicyEngine-UK employer NICs are about 11%' fails ({nic})")
+    # --- results section, stated in words ---------------------------------------
+    for cl in CLOSURES:
+        ref = R[cl]["ref"]
+        for sc in solved(cl):
+            arms = R[cl]["arms"][(sc, "")]
+            mm, ms = M(cl, sc, "tfp"), M(cl, sc, "stress")
+            if cl == "zk0.1" and not ms["Gni"] < 0:
+                fail.append(f"'stress-test GNI is below the path at 0.1' fails: {sc}")
+            if not ms["Wage"] < mm["Wage"]:
+                fail.append(f"'the stress-test wage falls further than the main arm's' fails: {sc} {cl}")
+            # G rises with GDP and takes part, not all, of the GNI gain (main arm)
+            dG = s_(arms["tfp"], "G", HEAD) - s_(ref, "G", HEAD)
+            dGNI = s_(arms["tfp"], "GNI", HEAD) - s_(ref, "GNI", HEAD)
+            if not 0 < dG < dGNI:
+                fail.append(f"'government consumption takes part of the GNI gain' fails: {sc} {cl}")
+            # stress-test GDP drift after 2031: below at 0.1, above at 0
+            d35 = pct(arms["stress"], ref, "Y", LAST_FLOW)
+            if (cl == "zk0.1" and not d35 < 0) or (cl == "zk0" and not d35 > 0):
+                fail.append(f"'stress-test GDP drifts below (0.1) / above (0) after {HEAD}' fails: {sc} {cl}")
+    # NNI moves less with the closure than GNI (UK central main arm)
+    a, b = M("zk0.1", "uk_central", "tfp"), M("zk0", "uk_central", "tfp")
+    if not abs(a["Nni"] - b["Nni"]) < abs(a["Gni"] - b["Gni"]):
+        fail.append("'NNI moves less with the closure than GNI' fails")
+    # wage: UK central has the lowest TFP-to-share ratio and the worst wage per unit of GDP
+    ratio = {sc: grid[sc]["tfp_gain"] * 100 / grid[sc]["labour_share_fall_pp"] for sc in SCEN}
+    if min(ratio, key=ratio.get) != "uk_central":
+        fail.append("'UK central has the lowest productivity-to-share ratio' fails")
+    wpg = {sc: M("zk0.1", sc, "tfp")["Wage"] / M("zk0.1", sc, "tfp")["Gdp"] for sc in SCEN}
+    if min(wpg, key=wpg.get) != "uk_central":
+        fail.append("'per unit of GDP, UK central is the least favourable for wages' fails")
+    # stress-test tax per pp: UK low smallest, Korinek largest; within the stated range
+    tpp = {sc: -M("zk0.1", sc, "stress")["TaxGdpPp"] / grid[sc]["labour_share_fall_pp"] for sc in SCEN}
+    if not (min(tpp, key=tpp.get) == "uk_low" and max(tpp, key=tpp.get) == "korinek"):
+        fail.append(f"'stress-test tax per pp ranges from UK low to Korinek' fails: {tpp}")
+    # Korinek main arm at the bound: signs of the tax bases, and positive every year from first
+    ref0, rk = R["zk0"]["ref"], R["zk0"]["arms"][("korinek", "")]["tfp"]
+    for k, sgn in (("KorinekMainBoundTaxPayroll", -1), ("KorinekMainBoundTaxConsumption", -1),
+                   ("KorinekMainBoundTaxIncome", 1), ("KorinekMainBoundTaxBusiness", 1),
+                   ("KorinekMainBoundHhCapIncPp", 1)):
+        if not v[k + "Dir"] == ("above" if sgn > 0 else "below"):
+            fail.append(f"'{k} has the stated sign' fails")
+    for sc, key in (("korinek", "KorinekMainTaxFirstPosBound"), ("uk_central", "UkCentralMainTaxFirstPosBound")):
+        r_ = R["zk0"]["arms"][(sc, "")]["tfp"]
+        y0 = int(v[key])
+        if not all(tax_pp(r_, ref0, y) > 0 for y in range(y0, LAST_FLOW + 1)):
+            fail.append(f"'tax/GDP positive in every year from {y0} at the bound' fails: {sc}")
+    # debt: UK central main arm at 0.1 turns positive and rises every year to 2036
+    ref, rec = R["zk0.1"]["ref"], R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
+    y0 = int(v["UkCentralMainDebtFirstPosCentral"])
+    dd = [debt_pp(rec, ref, y) for y in range(y0, DEBT_RULE + 1)]
+    if not all(x2 > x1 for x1, x2 in zip(dd, dd[1:])):
+        fail.append("'UK central main-arm debt gap rises every year after it turns positive' fails")
+    # investment: high while the ramp runs, drops in 2031 (UK central main, 0.1)
+    inv = {y: pct(rec, ref, "I", y) for y in range(SHOCK, HEAD + 1)}
+    if not all(inv[y] > inv[HEAD] for y in range(SHOCK, HEAD)):
+        fail.append("'investment drops in 2031 when the ramp ends' fails")
+    # capital-supply elasticity below 1 in 2031, Korinek main arm, both closures
+    for cl in CLOSURES:
+        d = json.loads((OUTDIR / cl / "korinek_share_shift_tfp_ramp.sanity.json").read_text())
+        if not d["diagnostics"]["capital_supply_elasticity"][str(HEAD)]["elasticity"] < 1:
+            fail.append(f"'the upper case's capital-supply elasticity is below 1 in {HEAD}' fails at {cl}")
+    # methodology: saving shares near the published coefficients
+    if not 0.25 <= float(v["UkCentralSavingShareCentral"]) <= 0.45:
+        fail.append("'the central saving share is close to the EU's 0.36' fails")
+    if not 0.75 <= float(v["UkCentralSavingShareBound"]) <= 0.95:
+        fail.append("'the bound saving share is close to 0.89' fails")
+    # the realised technology gain at 2031 inputs is 2-6% short of each target (A11)
+    for sc in SCEN:
+        r_ = R["zk0.1"]["arms"][(sc, "")]["tfp"]
+        ref = R["zk0.1"]["ref"]
+        K0, L0 = s_(ref, "K", HEAD), s_(ref, "L", HEAD)
+        g1 = r_["gamma_terminal"]
+        tech = r_["Z_terminal"] * K0 ** g1 * L0 ** (1 - g1) / (K0 ** G0 * L0 ** (1 - G0)) - 1
+        short = 1 - tech / grid[sc]["tfp_gain"]
+        if not 0.01 <= short <= 0.07:
+            fail.append(f"'the gain at {HEAD} inputs is 2-6% short of the target' fails: {sc} ({short:.3f})")
+
     # the 2036 guard: only debt/GDP may be quoted in the debt rule's first year
     bad = [k for k in v if "ThirtySix" in k and "Debt" not in k]
     if bad:
