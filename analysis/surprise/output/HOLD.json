@@ -1,0 +1,2 @@
+{"why": "13 Nov 00:2x: plan change (zk0.5 closure after the UK central debt-neutral set); the previous driver stops here and the successor (UGAI_IGNORE_HOLD=1) takes over without releasing the lock",
+ "allow": [["zk0.1", "arms_dn", "uk_central"], ["zk0", "arms_dn", "uk_central"]]}

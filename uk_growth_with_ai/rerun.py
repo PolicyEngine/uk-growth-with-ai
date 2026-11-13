@@ -41,7 +41,9 @@ import numpy as np
 from .calibrate import solve_scenario
 from .scenarios import G_BASE, G_Y_ANNUAL, SCENARIOS, START, TG1
 
-CLOSURES = {"zk0.1": 0.1, "zk0": 0.0}
+CLOSURES = {"zk0.1": 0.1, "zk0": 0.0, "zk0.5": 0.5}   # zk0.5: published sensitivity
+# (literature comparison, red flag 1: the implied capital-supply elasticity at
+# 0.1 and 0 is below every published model; 0.5 gave ~5.4 in the #30 run)
 # OG-UK's own values (oguk_default_parameters.json at d0e6ae5), never overridden
 # here; run_arm reads them back from the specs into rec["closure"].
 ZETA_D = 0.4
@@ -131,7 +133,7 @@ def _prior_debt_2030(closure, prior_dir):
     return None
 
 
-def next_baseline(done, closure, prior_dir=None):
+def next_baseline(done, closure, prior_dir=None, outdir_sibling=None):
     if accepted_baseline(done) is not None:
         return None
     ps = baseline_passes(done)
@@ -144,6 +146,14 @@ def next_baseline(done, closure, prior_dir=None):
         shift = 0.0 if prior is None else (tgt - prior) / DEBT_SLOPE0
         why = (f"first guess from the #30 baseline (2030 D/Y {prior:.2f}%)"
                if prior is not None else "no prior: shift 0")
+        if prior is None and outdir_sibling is not None:
+            # no #30 baseline at this closure: start from the nearest
+            # calibrated closure's accepted shift (zk0.1 before zk0)
+            for c2 in ("zk0.1", "zk0"):
+                sib = accepted_baseline(load(outdir_sibling, c2)) if c2 != closure else None
+                if sib is not None:
+                    shift, why = sib["alpha_G_shift"], f"first guess: {c2}'s accepted shift"
+                    break
     elif len(ps) == 1:
         shift = ps[0]["alpha_G_shift"] + (tgt - _dy(ps[0])) / DEBT_SLOPE0
         why = f"Newton step, slope {DEBT_SLOPE0}"
@@ -214,7 +224,7 @@ def gate_ok(outdir, closure) -> bool:
 def next_step(outdir, closure, stage, prior_dir=None):
     done = load(outdir, closure)
     if stage == "baseline":
-        return next_baseline(done, closure, prior_dir)
+        return next_baseline(done, closure, prior_dir, outdir_sibling=outdir)
     if not gate_ok(outdir, closure):
         raise RuntimeError(f"{closure}: the baseline sanity gate is not approved "
                            f"({Path(outdir) / closure / 'GATE_baseline.json'})")
@@ -449,6 +459,24 @@ def arm_report(rec, base, prior=None, prior_base=None) -> dict:
                                            or abs(mine[v][4]) < 0.05)
                                        for v in mine}
     return out
+
+
+GATE_RC_PCT = 1e-3          # |RC/Y| in %, 2026 and the interior max (1e-5 of GDP)
+GATE_LOM = 1e-10
+
+
+def auto_gate_report(rec) -> dict:
+    """The baseline checks the driver can approve without a person (overnight
+    zk0.5, 13 Nov): debt on target (accepted_baseline), TPI converged, resource
+    constraint and law of motion tight.  Payments abroad are reported only."""
+    rep = baseline_report(rec)
+    checks = {
+        "tpi_converged": bool(rep["tpi_converged"]),
+        "rc_2026_ok": abs(rep["rc_rel_Y_pct"][YEARS[0]]) <= GATE_RC_PCT,
+        "rc_interior_ok": rep["rc_rel_Y_max_abs_interior_pct"] <= GATE_RC_PCT,
+        "law_of_motion_ok": rep["lom_max_abs_rel"] <= GATE_LOM,
+    }
+    return {"ok": all(checks.values()), "checks": checks, "report": rep}
 
 
 def write_gate(outdir, closure, note: str) -> Path:
