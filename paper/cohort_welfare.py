@@ -691,6 +691,8 @@ def dashboard(source: str = "") -> dict:
     """The Cohorts tab's data (dashboard/src/data/cohorts2028.json): one CEV table per
     closure x fiscal rule x arm, plus the facts the tab states.  Rounded to 3 dp."""
     r3 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 3)
+    # 4 dp where the tab rounds to 2 dp again, so it prints what the paper prints
+    r4 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 4)
     out = {"what": "Consumption-equivalent welfare change by birth year and lifetime-earnings "
                    "group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption "
                    "and bequests, labour held at the no-shock path. no_bequest_*: warm glow dropped, "
@@ -736,12 +738,12 @@ def dashboard(source: str = "") -> dict:
                     "alive_losing_pct": r3(float(aw @ (lam < 0) @ gw) * 100),
                     "parts_alive": {p: r3(x["all"]) for p, x in pa[key].items()},
                     "consumption_only_alive_avg": r3(float(aw[aw > 0] @ co[aw > 0] @ gw)),
-                    "no_bequest_alive_avg": r3(rb["no_bequest_avg"]),
+                    "no_bequest_alive_avg": r4(rb["no_bequest_avg"]),
                     "no_bequest_losing_pct": r3(rb["no_bequest_losing_pct"]),
                     "all_lose_up_to_age": rb["all_lose_up_to_age"],
-                    "sources_alive": {k: r3(x) for k, x in rb["sources"].items()},
+                    "sources_alive": {k: r4(x) for k, x in rb["sources"].items()},
                     "charged": None if "charged" not in rb else {
-                        k: [r3(x) for x in rb["charged"][k]]
+                        k: [r4(x) for x in rb["charged"][k]]
                         for k in ("joint_avg", "joint_losing_pct", "no_bequest_avg",
                                   "no_bequest_losing_pct", "oldest_losing_on_average")},
                     "first_year_c_above": first_c_above(cl, key),
