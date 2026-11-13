@@ -337,7 +337,7 @@ export default function LineChart({
         </TipBox>
       ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
-        {markers.map((m) => {
+        {markers.map((m, mi) => {
           const i = x.indexOf(m.year);
           if (i < 0) return null;
           return (
@@ -345,7 +345,7 @@ export default function LineChart({
               <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
               <text
                 x={i === x.length - 1 ? sx(i) - 4 : sx(i) + 4}
-                y={TOP + 10}
+                y={TOP + 10 + mi * 14}
                 className="ax marker-label"
                 textAnchor={i === x.length - 1 ? 'end' : 'start'}
               >

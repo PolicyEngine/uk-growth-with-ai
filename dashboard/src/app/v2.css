@@ -670,10 +670,6 @@
   text-wrap: balance;
 }
 .hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
   margin: 0;
   font-size: var(--fs-small);
   color: var(--pe-gray-600);
@@ -681,6 +677,8 @@
 .info-tip.tip-target {
   position: relative;
   display: inline-flex;
+  margin-left: 4px;
+  vertical-align: middle;
   align-items: center;
   justify-content: center;
   width: 24px;
@@ -1216,8 +1214,16 @@
     --card-padding: 16px;
   }
   .stat-row,
+  .stat-row.cols-4,
   .entry-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .data-table {
+    font-size: var(--fs-caption);
+  }
+  .data-table th,
+  .data-table td {
+    padding: 6px 5px;
   }
   .app .main-content {
     padding: 0 16px 56px;
@@ -1261,7 +1267,9 @@
     width: 100%;
     height: 38px;
     justify-content: flex-start;
+    gap: 5px;
     padding: 0 8px 0 10px;
+    font-size: var(--fs-caption);
   }
   .picker-icon {
     display: none;
