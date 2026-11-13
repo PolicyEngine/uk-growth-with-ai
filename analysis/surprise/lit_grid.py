@@ -97,6 +97,32 @@ def grid():
     return g
 
 
+def what_if(rec, ref, scen, eps):
+    """Arithmetic, not a solve: the main arm's 2031 GDP, capital, wage and rental rate if
+    capital were supplied along Korinek et al.'s schedule (6), dlnK = eps x dln(rental),
+    holding the arm's own technology and labour terms.  eps=None pegs the rental rate."""
+    s, b = rec["series"], ref["series"]
+    i = HEAD - START
+    g1 = G0 + TARGETS[SCEN[scen]]["labour_share_fall_pp"] / 100
+    dY, dK, dL = (math.log(s[k][i] / b[k][i]) for k in ("Y", "K", "L"))
+    tech_lab = dY - g1 * dK                       # technology + labour terms of the exact split
+    shift = math.log(g1 / G0) + tech_lab          # rental change at unchanged capital
+    x = 0.0 if eps is None else shift / (1 + (1 - g1) * eps)
+    k = shift / (1 - g1) if eps is None else eps * x
+    y = tech_lab + g1 * k
+    w = math.log((1 - g1) / (1 - G0)) + y - dL
+    e = lambda v: (math.exp(v) - 1) * 100
+    return {"Y": e(y), "K": e(k), "w": e(w), "dln_rental": x * 100}
+
+
+def repricing(rec, ref):
+    """Debt/GDP gap in 2036 explained by the higher interest rate on the whole stock:
+    sum over 2028-2035 of (r_gov gap) x baseline D/Y, in pp of GDP (no compounding)."""
+    s, b = rec["series"], ref["series"]
+    return sum((s["r_gov"][n] - b["r_gov"][n]) * b["D"][n] / b["Y"][n]
+               for n in range(2028 - START, RULE - START)) * 100
+
+
 def two_factor(g, c):
     """Least squares of the main arm's GDP gap on (TFP %, share fall pp), no constant."""
     rows = [(TARGETS[SCEN[s]]["tfp_gain_pct"], TARGETS[SCEN[s]]["labour_share_fall_pp"],
@@ -109,6 +135,70 @@ def two_factor(g, c):
     a, b_ = (sxy * szz - szy * sxz) / det, (szy * sxx - sxy * sxz) / det
     return {"per_1pct_tfp": a, "per_pp_share_fall": b_, "n": len(rows),
             "max_abs_resid": max(abs(y - a * x - b_ * z) for x, z, y in rows)}
+
+
+# --- Verdicts against the published ranges (docs/literature_comparison.md, Section 4) ----------
+# Each range is on a shock-scaled metric; the source of every bound is in the doc's Section 3.
+GDP_PER_TFP = (1.0, 6.2)     # PWBM (GDP = TFP) ... IMF SIP/2026/072 (3.26 / 0.53, year 5)
+LP_LEVEL = (0.2, 3.6)        # OBR BP9 J-curve at year 4 ... BoE DMP 0.9pp a year for 4 years
+LP_OBR_DISPLACEMENT = 1.5    # OBR Mar 2026 Box 2.2: GDP flat, employment about -1.5% (ours)
+WAGE_PER_PP = (-0.33, 1.87)  # Korinek et al. Table 5 substantial: -1.6/4.9 (eps=1) ... 5.6/3.0 (eps=inf)
+ELASTICITY_MIN = 1.0         # Korinek et al. Table 5, lowest case
+R_BP_PER_PP = (7.0, 22.5)    # IMF SDN/2024/001 (40bp / 5.5pp) ... Korinek eps=1 (110bp / 4.9pp)
+TAX_PER_PP = (-0.23, -0.19)  # OBR Nov 2025 EFO rates ... OBR FRS 2026 Box 4.1
+DEBT_OBR_PER_PP = 1.86       # OBR Mar 2026 para 6.18: +1.3% of GDP for about 0.7pp (ours)
+ROWS = ["GDP per 1% of TFP", "labour productivity, level", "wage per pp of share fall",
+        "labour share", "capital-supply elasticity", "r, bp per pp of share fall",
+        "tax/GDP per pp of share fall", "debt/GDP in 2031"]
+CATS = ["inside", "above", "below", "wrong sign", "by construction", "no comparator", "not solved"]
+
+
+def _pos(x, lo, hi):
+    return "below" if x < lo else "above" if x > hi else "inside"
+
+
+def verdicts(m, arm):
+    """One verdict per row of ROWS for a solved cell (m) of the given arm."""
+    if m is None:
+        return ["not solved"] * len(ROWS)
+    v = []
+    v.append(_pos(m["gdp_per_tfp"], *GDP_PER_TFP) if arm == "tfp" else
+             "by construction" if arm == "r4" else "no comparator")
+    v.append(_pos(m["Y_per_L"], *LP_LEVEL) if arm == "tfp" else
+             ("below" if m["Y_per_L"] < LP_OBR_DISPLACEMENT else "inside") if arm == "r4"
+             else "no comparator")
+    v.append(_pos(m["w_per_pp"], *WAGE_PER_PP) if arm == "tfp" else
+             "by construction" if arm == "r4" else "no comparator")
+    v.append("by construction")
+    v.append("below" if m["cap_elasticity"] < ELASTICITY_MIN else "inside")
+    v.append(_pos(m["r_bp_per_pp"], *R_BP_PER_PP))
+    t = m["tax_per_pp"]                      # OBR: negative; "below" = smaller fall than the OBR's
+    v.append("wrong sign" if t > 0 else "below" if t > TAX_PER_PP[1] else
+             "above" if t < TAX_PER_PP[0] else "inside")
+    d = m["debt_gdp_pp_2031"]
+    v.append(("inside" if d <= 0 else "above") if arm == "tfp" else
+             ("below" if d / (-m["labour_share_pp"]) < DEBT_OBR_PER_PP else "inside") if arm == "r4"
+             else "no comparator")
+    return v
+
+
+def verdict_table(g):
+    from collections import Counter
+    n, per_row = Counter(), {r: Counter() for r in ROWS}
+    out = ["| closure | scenario | arm | " + " | ".join(ROWS) + " |", "|---|---|---|" + "---|" * len(ROWS)]
+    for c in CLOSURES:
+        for s in SCEN:
+            for a in ARMS:
+                v = verdicts(g[(c, s, a)], a)
+                n.update(v)
+                for r, x in zip(ROWS, v):
+                    per_row[r][x] += 1
+                out.append(f"| ζK {c[2:]} | {s} | {ARM_NAME[a]} | " + " | ".join(v) + " |")
+    tot = ["| row | " + " | ".join(CATS) + " |", "|---|" + "---|" * len(CATS)]
+    for r in ROWS:
+        tot.append(f"| {r} | " + " | ".join(str(per_row[r][k]) for k in CATS) + " |")
+    tot.append("| **all rows** | " + " | ".join(f"**{n[k]}**" for k in CATS) + " |")
+    return "\n".join(out), "\n".join(tot), dict(n)
 
 
 COLS = [("Y", "GDP %"), ("GNI", "GNI %"), ("K", "K %"), ("I", "I %"), ("L", "hours %"),
@@ -144,6 +234,37 @@ def main(argv=None):
         return 0
     print("### 2031 gaps against the continuation\n\n" + table(g, COLS))
     print("\n### Shock-scaled metrics, 2031 (per pp = per point of labour-share fall)\n\n" + table(g, SCALED))
+    vt, tot, n = verdict_table(g)
+    print(f"\n### Verdicts ({sum(n.values())} cells = 4 scenarios x 3 arms x 2 closures x {len(ROWS)} rows)\n")
+    print(tot + "\n\n" + vt)
+    print("\n### What if capital were supplied at Korinek et al.'s elasticities (arithmetic on the "
+          "main arm, 2031; not a solve)\n")
+    print("| closure | scenario | ε | GDP % | K % | wage % |\n|---|---|---|---|---|---|")
+    for c in CLOSURES:
+        ref = json.loads((OUT / c / "continuation.json").read_text())
+        for s_ in SCEN:
+            rec = load(c, s_, "tfp")
+            if not rec:
+                continue
+            m = g[(c, s_, "tfp")]
+            print(f"| ζK {c[2:]} | {s_} | solved ({m['cap_elasticity']:.2f}) | {m['Y']:+.2f} | "
+                  f"{m['K']:+.2f} | {m['w']:+.2f} |")
+            for eps in (1, 3, 6, None):
+                q = what_if(rec, ref, s_, eps)
+                print(f"| | | {'∞' if eps is None else eps} | {q['Y']:+.2f} | {q['K']:+.2f} | {q['w']:+.2f} |")
+    print("\n### Debt/GDP gap in 2036 and the part from repricing the debt stock (pp of GDP)\n")
+    print("| closure | scenario | arm | debt/GDP 2036 | of which higher interest rate, 2028-35 | r_gov gap 2031, bp |")
+    print("|---|---|---|---|---|---|")
+    for c in CLOSURES:
+        ref = json.loads((OUT / c / "continuation.json").read_text())
+        for s_ in SCEN:
+            for a in ARMS:
+                rec = load(c, s_, a)
+                if rec:
+                    i = HEAD - START
+                    print(f"| ζK {c[2:]} | {s_} | {ARM_NAME[a]} | {g[(c, s_, a)]['debt_gdp_pp_2036']:+.2f} | "
+                          f"{repricing(rec, ref):+.2f} | "
+                          f"{(rec['series']['r_gov'][i] - ref['series']['r_gov'][i]) * 1e4:+.0f} |")
     print("\n### Main-arm GDP gap = a x TFP% + b x share fall pp (least squares, no constant)\n")
     for c, f in fits.items():
         print(f"- ζK {c[2:]}: " + ("too few solves" if not f else
