@@ -219,7 +219,7 @@ const RULES = [
     id: 'rule-default',
     icon: 'sliders',
     title: 'Spending follows GDP',
-    tag: 'Default, on every chart',
+    tag: 'Default, on every Results chart',
     line: `Government consumption and transfers are fixed shares of GDP. From ${LATE_YEAR} a debt rule steers spending.`,
   },
   {

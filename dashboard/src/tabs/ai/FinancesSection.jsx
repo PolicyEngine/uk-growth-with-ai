@@ -265,7 +265,7 @@ function SpendingRuleCard() {
       </div>
       {rule === 'default' ? (
         <p className="chart-description rule-default">
-          This is the rule every other card on this dashboard uses: government consumption follows GDP until the
+          This is the rule every other card on Results uses: government consumption follows GDP until the
           debt rule starts in {LATE_YEAR}.
         </p>
       ) : (

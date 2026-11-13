@@ -175,7 +175,7 @@ function Why({ cl, rule, arm }) {
         </p>
         <p>
           Wealth is spread more evenly than earnings: the bottom 25% hold {plain(prof.wealth_share[0])} of household wealth
-          and earn {plain(prof.earnings_share[0])} of labour income. In the model the wealthiest tenth hold{' '}
+          and earn {plain(prof.earnings_share[0])} of labour income. In the model the top tenth by wealth hold{' '}
           {plain(C.wealth_concentration.top_tenth_pct)} of wealth, against 43% in ONS data for 2018–20.
         </p>
       </InfoCard>

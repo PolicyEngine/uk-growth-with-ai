@@ -131,7 +131,8 @@ function PipelineMap() {
       <p className="mx-pipe-out">
         <Icon name="arrowDown" size={14} />
         <span>
-          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file the results tabs read.
+          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file the Results tab reads. Cohorts reads{' '}
+          <code>cohorts2028.json</code>, written by <code>paper/cohort_welfare.py --json</code>.
         </span>
       </p>
     </nav>

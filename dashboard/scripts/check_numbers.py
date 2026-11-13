@@ -114,11 +114,20 @@ for sid in dump:
         else:
             print(sid, mode, 'ok:', sum(exp.values()), 'figures')
 # The Cohorts tab (default view: central closure, debt-neutral, main arm)
-# prints its headline averages and the 45-year-old's transfer cost once each.
+# prints, once each: the average, the no-bequest average, the average with
+# the post-2035 cost charged (a range), the capital and labour sources, the
+# bottom and top earnings groups, and the 45-year-old's transfer cost. Two
+# different facts can round to the same figure (the no-bequest average and
+# the top 1%), so this is a multiset. The by-form parts sit in a closed fold
+# and are not in the page text.
 CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
 c = CO['closures'][C]['rules']['dn']['tfp']
-exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['alive_by_group'][0], c['alive_by_group'][6],
-                                           *c['parts_alive'].values()])
+exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['alive_by_group'][0], c['alive_by_group'][6],
+                                           c['sources_alive']['capital'], c['sources_alive']['labour']])
+if c.get('charged'):
+    lo, hi = (signed(x, 2) + '%' for x in c['charged']['no_bequest_avg'])
+    for t in {lo, hi}:  # an equal low and high print once
+        exp[t] += 1
 for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
     exp[f"{abs(x):.1f}%"] += 1
 for sid in dump:
