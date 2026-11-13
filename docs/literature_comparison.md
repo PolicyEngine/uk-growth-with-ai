@@ -11,7 +11,7 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 
 **Two facts about the headline, which have to be read together.**
 - **Scaled by the shock and pooled across all published models, it is inside the range.** UK central at ζK = 0.1 gives GDP +0.92% for a TFP gain of 0.4%, or 2.3 per 1% of TFP. Published models span 1.0 to 6.2. That range pools studies with different mixes of TFP and share shift, so it is a weak test.
-- **Against the two studies with the same shock, it is below.** UK central is 37% of the IMF's UK output figure at year 4 (+0.92% against +2.52%). The Korinek arm is 59% of Korinek et al.'s (+4.89% against +8.3%), and below their least elastic case (+6.4%).
+- **Against the two studies with the same shock, it is below.** UK central is 36% of the IMF's UK output figure at year 4 (+0.92% against +2.52%). The Korinek arm is 59% of Korinek et al.'s (+4.89% against +8.3%), and below their least elastic case (+6.4%).
 
 **One mechanism explains the gap and most other verdicts: capital supply.** The solves imply a capital-supply elasticity of 0.57–0.68 at ζK = 0.1 and 0.15–0.17 at ζK = 0. The lowest published case is 1 (Korinek et al.) and their default is 3. The IMF's year-4 output implies about 5, or about 1.6 on a faster share path (ours, Section 4.4). That is why, against a study with the same shock, our GDP is lower, our wage is lower and our interest rate is higher.
 
@@ -545,7 +545,7 @@ The test was: a result outside every published range with no cause in the model.
 ### 1. The capital closure is outside the published range, and it decides the headline
 
 - **What.** The implied capital-supply elasticity is 0.57–0.68 at ζK = 0.1 and 0.15–0.17 at ζK = 0. Korinek et al.'s lowest case is 1 and their default is 3. The IMF's UK output figure implies 4.8, or 1.6 on a faster share path (ours).
-- **What it moves.** Against the same shock, UK central's GDP is 37% of the IMF's at year 4 (+0.92% against +2.52%) and the Korinek arm's is 59% of Korinek et al.'s (+4.89% against +8.3%). The wage is below their range in every UK main arm, and the return is at or above the top of the range in every cell.
+- **What it moves.** Against the same shock, UK central's GDP is 36% of the IMF's at year 4 (+0.92% against +2.52%) and the Korinek arm's is 59% of Korinek et al.'s (+4.89% against +8.3%). The wage is below their range in every UK main arm, and the return is at or above the top of the range in every cell.
 - **Why it is a flag and not an error.** The production side and the shock reproduce Korinek et al.'s headline once their default elasticity is imposed (Section 4.4). The low elasticity has support in the saving evidence that both Korinek et al. and Moll, Rachel and Restrepo cite. But we publish a central case and a lower bound, and no case inside the published range.
 - **Fix.** Solve the main arm, the technology-unchanged arm and the stress test at **ζK = 0.5** for the four scenarios, as a sensitivity case. That is 12–16 arm solves plus a ζK = 0.5 baseline on the R1–R4 fixes and its no-shock restart: two to three hours.
   - **Status: already planned.** `68ef937` on `rerun/surprise-2028` (13 November) added ζK = 0.5 to the rerun as a published sensitivity, to run after the UK central debt-neutral set. No ζK = 0.5 solve is on disk yet. `lit_grid.py` adds the closure to every table once its continuation is committed.
