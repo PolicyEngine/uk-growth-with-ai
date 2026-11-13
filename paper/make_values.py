@@ -502,6 +502,9 @@ def emit(v: Values, R: dict) -> None:
         v.put(f"EulerMax{cw}", sci(eu))
         v.put(f"SolveMinMax{cw}", max(r["elapsed_min"] for r in recs), "{:.1f}")
     v.put("RFourTolPp", sp.R4_TOL_PP, "{:.2f}")
+    # the gamma patch's verification run (docs/firm_gamma_tv.md)
+    v.put("PatchSites", 14, "{:.0f}")
+    v.put("PatchEpsilonSites", 20, "{:.0f}")
 
 
 def render(v: Values, sources: list[str]) -> str:
@@ -551,6 +554,8 @@ def check_claims(R: dict, v: Values) -> None:
                 if not debt_pp(arms[a], ref, DEBT_RULE) > 0:
                     fail.append(f"'debt/GDP is higher by {DEBT_RULE} in every arm' fails: {sc} {a} {cl}")
                 # the stress test sits below technology unchanged on the wage at 0.1
+            if not m["tfp"]["Gni"] > max(m["zfixed"]["Gni"], m["stress"]["Gni"]):
+                fail.append(f"'the two other arms bound the main arm's GNI from below' fails: {sc} {cl}")
             if not m["tfp"]["Gdp"] > m["zfixed"]["Gdp"]:
                 fail.append(f"'the main arm's GDP exceeds technology-unchanged' fails: {sc} {cl}")
             # stress test needs output at fixed inputs to fall at 0.1, rise a little at 0
