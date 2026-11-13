@@ -831,6 +831,42 @@ Audited at `524849d` on `rerun/surprise-2028` (13 Nov 2026, 02:15), with the sam
 
 **ζK = 0.5 is a sensitivity closure, not a central case.** Its no-shock path pays 4.2% of GDP abroad in 2031, against 1.2–1.6% in UK data, and foreign owners hold 38% of the capital stock (8% at ζK = 0.1). Every size below should be read with that in mind.
 
+In the tables printed by the script, `tfp` is the main arm (automation + productivity), `zfixed` is technology unchanged, `r4` is the stress test, `common` is the common G/Y rule and `dn` is debt-neutral transfers.
+
+### The ζK = 0.5 baseline and restart
+
+The 2026-start baseline at ζK = 0.5 took two passes and passed the automatic gate. Verdict: **consistent as a sensitivity closure**, with one known departure from data (payments abroad).
+
+| no-shock path | ζK = 0 | ζK = 0.1 | ζK = 0.5 |
+|---|---|---|---|
+| return % | 5.72 | 5.35 | 3.77 |
+| K/Y | 2.55 | 2.63 | 3.07 |
+| C/Y % | 51.3 | 50.4 | 47.0 |
+| tax/GDP % | 42.8 | 42.0 | 39.3 |
+| GNI/GDP % | 99.44 | 98.42 | 95.81 |
+| paid abroad, % of GDP | 0.56 | 1.58 | 4.19 |
+| of which on foreign-owned capital | 0.00 | 1.06 | 3.83 |
+| K_f/K % | 0.0 | 8.3 | 37.8 |
+| D/Y % | 95.1 | 95.2 | 95.3 |
+| gate approved | True | True | True |
+| passes | 2 | 2 | 2 |
+| pass 1 vs pass 0, max rel (Y, K, r, D) | 1.8e-02 | 1.5e-02 | 5.3e-03 |
+| baseline_ext vs pass 1, 2026-35 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
+| gate: tax/GDP 2026-30 % | 42.90, 42.90, 42.86, 42.83, 42.82 | 42.17, 42.17, 42.11, 42.09, 42.06 | 39.55, 39.50, 39.41, 39.35, 39.30 |
+| OBR | 37.00, 37.72, 37.85, 38.29, 38.46 | 37.00, 37.72, 37.85, 38.29, 38.46 | 37.00, 37.72, 37.85, 38.29, 38.46 |
+| gate: primary balance % | 2.01, 2.01, 1.95, 1.92, 1.89 | 1.65, 1.64, 1.58, 1.54, 1.51 | 0.11, 0.05, -0.04, -0.10, -0.16 |
+| gate: growth 2027-30 % | 1.59, 1.54, 1.58, 1.57 | 1.61, 1.54, 1.58, 1.57 | 1.75, 1.66, 1.69, 1.65 |
+| gate: payments abroad % | 0.43, 0.46, 0.48, 0.51, 0.53 | 1.40, 1.44, 1.47, 1.51, 1.55 | 3.82, 3.91, 3.99, 4.07, 4.13 |
+| TPI distance | 5.7e-05 | 3.5e-05 | 2.9e-05 |
+| gate RC/GDP max | 2.2e-06 | 1.9e-06 | 2.8e-06 |
+
+- The export the restarts read (`baseline_ext`) equals the accepted pass exactly over 2026–35, and the restart reproduces it over 2028–36 to 6.9e-6.
+- The levels move in the expected direction as ζK rises: more foreign capital, a lower return (3.8% against 5.3% and 5.7%), more capital per unit of output, and a wider gap between GDP and GNI.
+- Tax/GDP is 39.3–39.6%, closer to the OBR's 37.0–38.5% than at ζK = 0.1 (42.1–42.2%).
+- The primary balance is near zero (+0.1 to −0.2% of GDP) where ζK = 0.1 has a surplus of 1.5–1.7%. The gilt rate is lower by about as much as the return, so holding debt/GDP at 95% needs a smaller surplus.
+- Growth in 2027–30 is 1.65–1.75% a year, slightly above the OBR's 1.6% mean (1.54–1.61% at ζK = 0.1).
+- **Payments abroad are 3.8–4.1% of GDP, outside the 1–2% band the ζK = 0.1 baseline was reviewed against.** This is why ζK = 0.5 is a sensitivity only.
+
 ### The eight cells the old rules marked wrong
 
 The old rules carried expectations that hold when little capital can flow in. Each of the eight cells fails one of those expectations for a reason that is checked in the series. The rules now test the reason, not the closure name, and return "wrong" if the reason does not hold.
@@ -846,14 +882,23 @@ The old rules carried expectations that hold when little capital can flow in. Ea
 | 7 | Korinek, main arm, 2028 labour | > 0 | −0.56% | A15 | wage +0.81% in 2028, +3.62% in 2031 |
 | 8 | Korinek, main arm, 2028 consumption | < 0 | +1.16% | A15 | same |
 
-Eight further cells that the old rules passed now carry a reason as well: the six tax/GDP cells (A16), and UK central's technology-unchanged GDP in 2031 and 2036 (+1.90% and +1.78%, A13). The "small" test is now per point of share fall (under 0.5% of GDP per pp), so that UK central (1.19 per pp) and Korinek (1.32 per pp) are judged alike. At ζK = 0.1 the same ratio is 0.28–0.35.
+Eight further cells that the old rules passed now carry a reason as well: the six tax/GDP cells (A16), and UK central's technology-unchanged GDP in 2031 and 2036 (+1.90% and +1.78%, A13). The "small" test is now per point of share fall (under 0.5% of GDP per pp), so that UK central (1.19 per pp) and Korinek (1.32 per pp) are judged alike. At ζK = 0.1 the same ratio is 0.28–0.34.
 
 ### A13. At ζK = 0.5, "technology unchanged" raises GDP by 1.2–1.3% per point of share fall
 
 - The shock raises capital's share of output, so the return on capital rises and capital flows in. At ζK = 0.5 half of the gap to the open-economy capital stock is closed by foreign capital.
 - The capital term alone accounts for the GDP gap: 5.23 log points against 5.02 for Korinek, and 1.97 against 1.88 for UK central. Technology at the reference inputs is −0.05 and −0.02, and labour −0.16 and −0.07.
 - GDP is under the bound with the return pinned at its no-shock level (+6.88% Korinek, +2.58% UK central), at about three quarters of it.
-- Foreign capital finances all of the extra capital in 2031 (100–101% of ΔK). The capital-supply elasticity is 5.3–8.0, against about 6 in Korinek et al.
+- Per point of share fall the GDP gap is −0.02 and −0.01 at ζK = 0, 0.28–0.34 at ζK = 0.1, and 1.19 and 1.32 at ζK = 0.5.
+
+| closure | run | year | GDP gap % | per pp of share fall | GDP gap, log points | capital term | bound with the return pinned, log points | bound % | debt gap % | debt/GDP gap pp |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | 2031 | +1.90 | 1.19 | +1.88 | +1.97 | +2.55 | +2.58 | +0.92 | -0.91 |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | 2036 | +1.78 | 1.11 | +1.77 | +1.90 | +2.53 | +2.56 | +3.80 | +1.95 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | 2031 | +5.15 | 1.32 | +5.02 | +5.23 | +6.65 | +6.88 | +2.25 | -2.63 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | 2036 | +4.85 | 1.24 | +4.74 | +5.07 | +6.60 | +6.83 | +9.52 | +4.35 |
+
+- Foreign capital finances all of the extra capital in 2031 (100–101% of ΔK). The capital-supply elasticity across the six accepted arms is 5.3–8.0.
 
 ### A14. Debt/GDP is lower in 2031 in "technology unchanged", then higher by 2036
 
@@ -878,7 +923,8 @@ Eight further cells that the old rules passed now carry a reason as well: the si
 
 - The same holds at the other closures: −1.00 and +0.83 at ζK = 0 (6 arms), −0.99 and +0.98 at ζK = 0.1 (12 arms).
 - The sign crosses zero where the wage gap does. UK central's main arm, with a wage gap of +0.06%, has a 2028 labour gap of −0.03% and a consumption gap of +0.02%.
-- The positive wage at ζK = 0.5 is in line with Korinek et al. Table 5 at a capital-supply elasticity of about 6. The model's elasticity in that arm is 5.7.
+- The positive wage in the Korinek main arm is consistent with Korinek et al. Table 5 at a capital-supply elasticity of about 6. The model's elasticity in that arm is 5.7. The paper was not re-read for this pass.
+- The main arm's 2031 labour cell (−0.11% UK central, −0.25% Korinek) is marked consistent against an expectation worded "<= 0 by 2031 (wage falls)". The sign is as expected, but here the wage rises: labour is lower because households are better off, not because work pays less.
 
 ### A16. Tax/GDP falls by 0.36–0.38pp per point of share fall at ζK = 0.5, 1.7–1.8 times the OBR's midpoint
 
@@ -888,6 +934,20 @@ Eight further cells that the old rules passed now carry a reason as well: the si
   - gross capital income +3.90, of which household capital income +0.42 and income paid abroad +1.25;
   - business tax +0.42, consumption tax −0.22;
   - total receipts −1.47.
+- The same arm across the three closures loses the same labour income (−3.90). Household capital income rises by 3.95 at ζK = 0, 2.56 at ζK = 0.1 and 0.42 at ζK = 0.5, and income tax plus payroll tax falls by 0.64, 1.06 and 1.68:
+
+| closure | run | labour income | gross capital income (Y - wL) | household capital income r_p B | income paid abroad | income tax + payroll | business tax | consumption tax | total receipts | tax/GDP pp per pp of share fall |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | korinek_share_shift_tfp_ramp | -2.04 | +5.09 | +5.17 | +0.19 | +0.61 | +0.85 | -0.02 | +1.52 | +0.053 |
+| zk0 | korinek_share_shift_ramp_zfixed | -3.93 | +3.88 | +3.92 | +0.16 | -0.66 | +0.64 | -0.17 | -0.12 | -0.026 |
+| zk0 | korinek_share_shift_ramp_r4_1 | -3.90 | +3.90 | +3.95 | +0.16 | -0.64 | +0.65 | -0.17 | -0.10 | -0.025 |
+| zk0.1 | korinek_share_shift_tfp_ramp | -0.91 | +5.80 | +3.85 | +1.15 | +0.73 | +0.88 | +0.03 | +1.69 | -0.089 |
+| zk0.1 | korinek_share_shift_ramp_zfixed | -3.08 | +4.42 | +2.92 | +0.88 | -0.57 | +0.66 | -0.14 | +0.01 | -0.141 |
+| zk0.1 | korinek_share_shift_ramp_r4_2 | -3.90 | +3.90 | +2.56 | +0.78 | -1.06 | +0.58 | -0.20 | -0.63 | -0.161 |
+| zk0.5 | korinek_share_shift_tfp_ramp | +2.18 | +7.77 | +0.95 | +2.55 | +1.32 | +0.86 | +0.18 | +2.37 | -0.360 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | -0.75 | +5.90 | +0.71 | +1.91 | -0.14 | +0.65 | -0.01 | +0.51 | -0.370 |
+| zk0.5 | korinek_share_shift_ramp_r4_3 | -3.90 | +3.90 | +0.42 | +1.25 | -1.68 | +0.42 | -0.22 | -1.47 | -0.378 |
+
 - The denominator is not the cause: the stress test holds GDP flat and has the largest fall (−1.47pp against −1.40pp in the main arm).
 - At ζK = 0 the same arm loses only 0.10pp, because residents own all the extra capital and the single income-tax schedule taxes their higher capital income (the return rises 107bp there, 11bp here).
 - This is the known tax limitation seen from the other side. The gap between the effective rates on labour and capital is about 14pp when residents own the capital, and wider when foreign owners do. No fix is proposed for a sensitivity closure. A fiscal number from ζK = 0.5 should not be quoted without this caveat.
@@ -987,7 +1047,7 @@ Recomputed from the exported series for all 10 records.
 ### Against the literature at ζK = 0.5
 
 - **IMF.** The UK central main arm gives GDP +2.47% in 2031 for TFP +0.4%, a ratio of 6.2. The IMF's is about 6.0 at year 4 (+2.52% for +0.42%). At ζK = 0.1 the ratio is 2.3. This supports section 7's reading that the capital closure accounts for the distance from the IMF.
-- **Korinek et al.** The main-arm wage turns positive at a capital-supply elasticity of 5.3–5.7, the region where their Table 5 has it turning.
+- **Korinek et al.** The Korinek main arm's wage is positive (+3.62%) at a capital-supply elasticity of 5.7, consistent with their Table 5 at about 6.
 
 ### Verdict tables, ζK = 0.5
 

@@ -717,6 +717,64 @@ def sec_mono(runs):
         rk = lambda xs: np.argsort(np.argsort(xs))
         w = np.array([r[0] for r in rows])
         print(f"{c}: rank correlation of the 2031 wage gap with 2028 labour {np.corrcoef(rk(w), rk([r[2] for r in rows]))[0, 1]:+.3f}, with 2028 consumption {np.corrcoef(rk(w), rk([r[3] for r in rows]))[0, 1]:+.3f} ({len(rows)} arms)")
+    # evidence behind the mechanism-keyed verdict rules (A13-A15), for every cell they catch
+    print("\nEvidence for A13 (technology unchanged, GDP not small) and A14 (its debt/GDP falls in 2031)")
+    print("closure|run|year|GDP gap %|per pp of share fall|GDP gap, log points|capital term|bound with the return pinned, log points|bound %|debt gap %|debt/GDP gap pp")
+    print("|".join(["---"] * 11))
+    for c in ZK_ORDER:
+        for s in SCEN:
+            n = pick(runs, c, s, "zfixed")
+            if not n:
+                continue
+            m = measures(runs[c], n)
+            for y in (2031, 2036):
+                j = IX[y]
+                if abs(m["Y"][j]) / FALL[s] < 0.5 and m["debt_pp"][j] > 0:
+                    continue
+                print(f"{c}|{n}|{y}|{m['Y'][j]:+.2f}|{m['Y'][j] / FALL[s]:.2f}|{m['Y_lp'][j]:+.2f}|{m['cap_lp'][j]:+.2f}|{m['bound_lp'][j]:+.2f}|"
+                      f"{100 * (np.exp(m['bound_lp'][j] / 100) - 1):+.2f}|{m['D'][j]:+.2f}|{m['debt_pp'][j]:+.2f}")
+    print("technology unchanged, GDP gap per pp of share fall, 2031, all solved: " + "; ".join(
+        f"{c} {s} {measures(runs[c], pick(runs, c, s, 'zfixed'))['Y'][i] / FALL[s]:+.2f}" for c in ZK_ORDER for s in SCEN if pick(runs, c, s, "zfixed")))
+    # the no-shock path by closure, and the baseline gate
+    print("\nNo-shock path by closure (the restart, 2031) and the 2026-start baseline gate")
+    print("closure|return %|K/Y|C/Y %|tax/GDP %|GNI/GDP %|paid abroad, % of GDP|of which on foreign-owned capital|K_f/K %|D/Y %|gate approved|passes|pass 1 vs pass 0, max rel (Y, K, r, D)|baseline_ext vs pass 1, 2026-35|"
+          "gate: tax/GDP 2026-30 %|OBR|gate: primary balance %|gate: growth 2027-30 %|gate: payments abroad %|TPI distance|gate RC/GDP max")
+    print("|".join(["---"] * 21))
+    for c in ZK_ORDER:
+        r = {v: S(runs[c], "continuation", v)[i] for v in ("Y", "K", "C", "r", "r_p", "K_f", "D_f", "D", "GNI", "total_tax_revenue")}
+        try:
+            g = json.load(open(os.path.join(OLD, c, "GATE_baseline.json")))
+            ps = sorted(f for f in os.listdir(os.path.join(OLD, c)) if f.startswith("baseline_p") and f.endswith(".json"))
+            p0, p1 = (json.load(open(os.path.join(OLD, c, f)))["series"] for f in (ps[0], g["baseline"] + ".json"))
+            ext = json.load(open(os.path.join(OUT, c, "baseline_ext.json")))["series"]
+            k = len(p1["Y"])
+            d01 = max(relmax(np.array(p1[v]), np.array(p0[v])) for v in ("Y", "K", "r", "D"))
+            dex = max(relmax(np.array(ext[v])[:k], np.array(p1[v])) for v in ("Y", "K", "r", "D", "C", "L", "w", "B"))
+            rp = g["report"]
+            fl = lambda xs: ", ".join(f"{x:.2f}" for x in xs)
+            gate = (f"{g['approved']}|{len(ps)}|{d01:.1e}|{dex:.1e}|{fl(rp['tax_gdp_pct'])}|{fl(rp['obr_tax_gdp_pct'])}|{fl(rp['primary_balance_pct'])}|"
+                    f"{fl(rp['growth_pct_2027_30'])}|{fl(rp['payments_abroad_pct_gdp'])}|{rp['tpi_final_distance']:.1e}|{rp['rc_rel_Y_max_abs_interior_pct'] / 100:.1e}")
+        except (FileNotFoundError, KeyError) as e:
+            gate = f"no gate record ({type(e).__name__})" + "|" * 10
+        print(f"{c}|{100 * r['r']:.2f}|{r['K'] / r['Y']:.2f}|{100 * r['C'] / r['Y']:.1f}|{100 * r['total_tax_revenue'] / r['Y']:.1f}|{100 * r['GNI'] / r['Y']:.2f}|"
+              f"{100 * r['r_p'] * (r['K_f'] + r['D_f']) / r['Y']:.2f}|{100 * r['r_p'] * r['K_f'] / r['Y']:.2f}|{100 * r['K_f'] / r['K']:.1f}|{100 * r['D'] / r['Y']:.1f}|{gate}")
+    # the tax bases behind A16: who receives the capital income that replaces labour income
+    print("\nA16: income and receipts, 2031, pp of no-shock GDP")
+    print("closure|run|labour income|gross capital income (Y - wL)|household capital income r_p B|income paid abroad|income tax + payroll|business tax|consumption tax|total receipts|tax/GDP pp per pp of share fall")
+    print("|".join(["---"] * 11))
+    for c in ZK_ORDER:
+        d = runs[c]
+        for s in SCEN:
+            for a in ARMS:
+                n = pick(runs, c, s, a)
+                if not n or s not in ("uk_central", "korinek"):
+                    continue
+                Y0 = S(d, "continuation", "Y")[i]
+                f = lambda fn: 100 * (fn(n) - fn("continuation")) / Y0
+                x = lambda k, v: S(d, k, v)[i]
+                print(f"{c}|{n}|{f(lambda k: x(k, 'w') * x(k, 'L')):+.2f}|{f(lambda k: x(k, 'Y') - x(k, 'w') * x(k, 'L')):+.2f}|{f(lambda k: x(k, 'r_p') * x(k, 'B')):+.2f}|"
+                      f"{f(lambda k: x(k, 'r_p') * (x(k, 'K_f') + x(k, 'D_f'))):+.2f}|{f(lambda k: x(k, 'iit_revenue')):+.2f}|{f(lambda k: x(k, 'business_tax_revenue')):+.2f}|"
+                      f"{f(lambda k: x(k, 'cons_tax_revenue')):+.2f}|{f(lambda k: x(k, 'total_tax_revenue')):+.2f}|{measures(d, n)['tax_pp'][i] / FALL[s]:+.3f}")
     print("\nknown, already documented:", known or "none")
     print("ordering and inequality breaks:", breaks or "none")
     return breaks
