@@ -328,7 +328,7 @@ export default function MethodTab() {
           </SectionHeading>
           <ModelFlow />
           <div className="card-grid cols-2">
-            <div className="info-card mx-card mx-figure">
+            <div className="info-card mx-card mx-figure" id="m-generations">
               <h3 className="info-card-title">
                 <Icon name="usersRound" size={18} />
                 <span>Many generations at once</span>

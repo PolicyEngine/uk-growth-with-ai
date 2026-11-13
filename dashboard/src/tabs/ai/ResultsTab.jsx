@@ -9,7 +9,7 @@ import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
-import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side } from '@/tabs/ai/series.js';
+import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side } from '@/tabs/ai/lines.js';
 import { Dumbbells, StressNote, dumbbellTable } from '@/tabs/ai/Headline.jsx';
 import Summary from '@/tabs/ai/Landing.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';

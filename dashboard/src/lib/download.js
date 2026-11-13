@@ -54,16 +54,32 @@ function framedSvg(svgEl, { title, context, legend = [] }) {
   inlineStyles(clone, svgEl);
   clone.querySelectorAll('title').forEach((t) => t.remove());
   const pad = 24;
-  const top = pad + 24 + (context ? 22 : 0) + (legend.length ? 26 : 0) + 8;
-  const W = Math.round(w + pad * 2);
-  const H = Math.round(top + h + 34 + pad);
+  const W = Math.round(Math.max(w + pad * 2, 720));
+  // context: one part per line when it would run past the frame
+  const ctx = context ? (context.length * 6.8 > W - pad * 2 ? context.split(' · ') : [context]) : [];
+  // legend entries wrap onto rows
+  const rows = [[]];
   let lx = pad;
-  const keys = legend
-    .map((k) => {
-      const part = `<line x1="${lx}" x2="${lx + 18}" y1="${top - 14}" y2="${top - 14}" stroke="${k.color}" stroke-width="2.5"${k.dashed ? ' stroke-dasharray="6 4"' : ''}/><text x="${lx + 24}" y="${top - 10}" font-size="12" fill="${CHART_COLOURS.ink}">${esc(k.label)}</text>`;
-      lx += 24 + k.label.length * 6.6 + 18;
-      return part;
-    })
+  for (const k of legend) {
+    const kw = 24 + k.label.length * 6.6 + 18;
+    if (lx + kw > W - pad && rows[rows.length - 1].length) {
+      rows.push([]);
+      lx = pad;
+    }
+    rows[rows.length - 1].push({ ...k, x: lx });
+    lx += kw;
+  }
+  const nRows = legend.length ? rows.length : 0;
+  const legendTop = pad + 24 + ctx.length * 20 + 14;
+  const top = legendTop + nRows * 22 + 8;
+  const H = Math.round(top + h + 34 + pad);
+  const keys = rows
+    .flatMap((row, ri) =>
+      row.map((k) => {
+        const y = legendTop + ri * 22;
+        return `<line x1="${k.x}" x2="${k.x + 18}" y1="${y}" y2="${y}" stroke="${k.color}" stroke-width="2.5"${k.dashed ? ' stroke-dasharray="6 4"' : ''}/><text x="${k.x + 24}" y="${y + 4}" font-size="12" fill="${CHART_COLOURS.ink}">${esc(k.label)}</text>`;
+      }),
+    )
     .join('');
   const inner = new XMLSerializer().serializeToString(clone).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
   return {
@@ -73,7 +89,7 @@ function framedSvg(svgEl, { title, context, legend = [] }) {
       `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${CHART_FONT}">` +
       `<rect width="${W}" height="${H}" fill="${CHART_COLOURS.surface}"/>` +
       `<text x="${pad}" y="${pad + 14}" font-size="18" font-weight="600" fill="${CHART_COLOURS.ink}">${esc(title)}</text>` +
-      (context ? `<text x="${pad}" y="${pad + 38}" font-size="13" fill="${CHART_COLOURS.axisTitle}">${esc(context)}</text>` : '') +
+      ctx.map((line, i) => `<text x="${pad}" y="${pad + 38 + i * 20}" font-size="13" fill="${CHART_COLOURS.axisTitle}">${esc(line)}</text>`).join('') +
       keys +
       `<g transform="translate(${pad}, ${top})">${inner}</g>` +
       `<text x="${pad}" y="${H - pad}" font-size="12" fill="${CHART_COLOURS.muted}">${esc(SOURCE)}. Downloaded ${today()}.</text>` +

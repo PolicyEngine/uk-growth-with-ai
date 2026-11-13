@@ -841,7 +841,7 @@
     /* ---------------------------------------------------------------- */
 
     /* Chart series palette — the single source of truth for every line,
-       bar and swatch on the growth tab (src/tabs/ai/series.js points here,
+       bar and swatch on the growth tab (src/tabs/ai/lines.js points here,
        and PlotPanel resolves these for Plotly). Built from the PolicyEngine
        ramp, plus the gold the shared .legend-line vocabulary already uses as
        the secondary accent. UK OBR-central grey, UK share shift gold, UK share shift + TFP the

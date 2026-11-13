@@ -17,8 +17,8 @@ import { REF, SP_HELPER, STEPS } from './pipeline.js';
 // Commands are checked against the scripts and CLI; see pipeline.js.
 
 const SECTIONS = [
-  { id: 'before', title: 'Before you start', icon: 'key' },
-  { id: 'pipeline', title: 'The pipeline', icon: 'gitBranch' },
+  { id: 'before', title: 'Reproduce the results', icon: 'key' },
+  { id: 'pipeline', title: 'Run it step by step', icon: 'gitBranch' },
   { id: 'outputs', title: 'Outputs and checks', icon: 'flask' },
   { id: 'use-oguk', title: 'Use OG-UK yourself', icon: 'code' },
 ];
@@ -286,14 +286,14 @@ export default function CodeTab() {
       <OnThisPage tab="code" sections={SECTIONS} label="Code contents" />
       <div className="page-body">
         <section>
-          <SectionHeading id="before" icon="key" title="Before you start">
+          <SectionHeading id="before" icon="repeat" title="Reproduce the results">
             Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.
           </SectionHeading>
           <BeforeYouStart />
         </section>
         <section>
-          <SectionHeading id="pipeline" icon="gitBranch" title="The 2028-surprise pipeline">
-            Nine steps, in order. Each has its file, one sentence and its commands.
+          <SectionHeading id="pipeline" icon="gitBranch" title="Run it step by step">
+            Each step has its file, one sentence and its commands.
           </SectionHeading>
           <PipelineMap />
           <PipelineSteps />

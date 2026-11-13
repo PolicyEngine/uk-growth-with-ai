@@ -1202,6 +1202,14 @@
   }
 }
 @media (min-width: 900px) {
+  /* room for the arm's name beside its swatch, the track and axis in step */
+  .db-arm {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  .db-axis-head .db-track,
+  .db-axis .db-track {
+    margin-left: 200px;
+  }
   .db-arm-name {
     display: inline;
     font-size: var(--fs-micro);
@@ -1253,6 +1261,9 @@
   }
   .band.no-pickers {
     position: static;
+  }
+  .band.no-pickers .band-pickers {
+    display: none;
   }
   .band-pickers {
     align-items: center;

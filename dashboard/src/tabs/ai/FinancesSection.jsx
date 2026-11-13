@@ -10,7 +10,7 @@ import { ruleLabel } from '@/lib/labels.js';
 import {
   YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, CLOSURE_LABEL, result, ruleResult, ruleScenarios, scenarioById, gap, signed, fmt, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
-import { closuresFor, closureWords, contextLine, side } from '@/tabs/ai/series.js';
+import { closuresFor, closureWords, contextLine, side } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
@@ -332,6 +332,7 @@ export default function FinancesSection({ sid }) {
           name="tax/GDP"
           icon="receipt"
           unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+          finding={st.closure === 'central' ? undefined : 'With closed capital the model’s sign for tax/GDP is not reliable: see the card below.'}
           about={{
             shows: `Tax revenue as a share of GDP against the OBR-central path. ${reading}`,
             caveats: (

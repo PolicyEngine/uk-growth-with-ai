@@ -9,7 +9,7 @@ import { METHOD } from '@/lib/labels.js';
 import {
   HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, CENTRAL, BOUND, ARMS, SCENARIOS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
-import { primaryClosure } from '@/tabs/ai/series.js';
+import { primaryClosure } from '@/tabs/ai/lines.js';
 
 // Results > Summary, answer first: the question, a one-line answer built
 // from the data, three headline figures for the chosen scenario's main arm

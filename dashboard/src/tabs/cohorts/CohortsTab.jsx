@@ -152,7 +152,7 @@ function Why({ cl, rule, arm }) {
           <p>
             With debt-neutral transfers, households pay for the shock&rsquo;s effect on the public finances through lower transfers until
             the debt rule starts in 2036. For a 45-year-old over 2028–35 that costs {plain(Math.abs(tr[0]), 1)} of consumption in the
-            bottom group and {plain(Math.abs(tr[6]), 1)} in the top 1%. From 2036 the adjustment falls on government consumption, which
+            bottom group and {plain(Math.abs(tr[6]), 1)} in the top 1%. That narrows the gap between them but does not reverse it. From 2036 the adjustment falls on government consumption, which
             households do not value in the model.
           </p>
         ) : (
@@ -204,7 +204,7 @@ export default function WhoGainsTab() {
         <ControlGroup label="Arm">
           <Segmented options={ARMS} value={arm} onChange={(a) => set({ arm: a })} label="Arm" />
         </ControlGroup>
-        <RuleGroup value={rule} onChange={(r) => set({ wrule: r })} only={['dn', 'common']} />
+        <RuleGroup value={rule} onChange={(r) => set({ wrule: r })} />
       </ControlBar>
       <Headline c={c} rule={rule} />
       <div className="card fold-only">
