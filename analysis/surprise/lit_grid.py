@@ -115,6 +115,19 @@ def what_if(rec, ref, scen, eps):
     return {"Y": e(y), "K": e(k), "w": e(w), "dln_rental": x * 100}
 
 
+def imf_implied_elasticity(share_fall_pp, output_pct=2.52, tfp_pct=0.42):
+    """Arithmetic on the IMF UK paper's year-4 figures (SIP/2026/072; output digitised in
+    docs/uk_calibration.md): the capital-supply elasticity an aggregate Cobb-Douglas economy
+    with gamma0 = 0.35 and unchanged labour would need to turn tfp_pct into output_pct when
+    the capital share rises by share_fall_pp."""
+    g1 = G0 + share_fall_pp / 100
+    dy = math.log(1 + output_pct / 100)
+    dk = (dy - math.log(1 + tfp_pct / 100)) / g1
+    drent = math.log(g1 / G0) + dy - dk
+    return {"dlnK_pct": dk * 100, "dln_rental_pct": drent * 100, "elasticity": dk / drent,
+            "wage_pct": (math.exp(math.log((1 - g1) / (1 - G0)) + dy) - 1) * 100}
+
+
 def repricing(rec, ref):
     """Debt/GDP gap in 2036 explained by the higher interest rate on the whole stock:
     sum over 2028-2035 of (r_gov gap) x baseline D/Y, in pp of GDP (no compounding)."""
@@ -265,7 +278,14 @@ def main(argv=None):
                     print(f"| ζK {c[2:]} | {s_} | {ARM_NAME[a]} | {g[(c, s_, a)]['debt_gdp_pp_2036']:+.2f} | "
                           f"{repricing(rec, ref):+.2f} | "
                           f"{(rec['series']['r_gov'][i] - ref['series']['r_gov'][i]) * 1e4:+.0f} |")
-    print("\n### Main-arm GDP gap = a x TFP% + b x share fall pp (least squares, no constant)\n")
+    print("\n### Elasticity implied by the IMF UK paper's year-4 output (+2.52% for TFP +0.42%)\n")
+    for f in (1.56, 2.35):
+        q = imf_implied_elasticity(f)
+        print(f"- share fall {f}pp: capital {q['dlnK_pct']:+.2f} log points, rental {q['dln_rental_pct']:+.2f}, "
+              f"elasticity {q['elasticity']:.2f}, wage {q['wage_pct']:+.2f}%")
+    print("\n### Cross-scenario fit of the main-arm GDP gap = a x TFP% + b x share fall pp (least "
+          "squares, no constant).\n### The figure quoted in the doc is the paired one above "
+          "(marginal GDP per 1% TFP), not this fit.\n")
     for c, f in fits.items():
         print(f"- ζK {c[2:]}: " + ("too few solves" if not f else
               f"a = {f['per_1pct_tfp']:.3f}, b = {f['per_pp_share_fall']:.3f}, "
