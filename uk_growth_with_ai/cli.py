@@ -52,13 +52,15 @@ def main(argv=None) -> int:
     p_re = sub.add_parser("rerun", help="the corrective reruns R1-R4 (#27), one solve "
                                         "per call; see uk_growth_with_ai/rerun.py")
     p_re.add_argument("action", choices=["next", "step", "gate", "assemble", "status"])
-    p_re.add_argument("--closure", required=True, choices=["zk0.1", "zk0"])
+    p_re.add_argument("--closure", required=True, choices=["zk0.1", "zk0", "zk0.5"])
     p_re.add_argument("--stage", choices=["baseline", "arms"], default="baseline")
     p_re.add_argument("--outdir", default="analysis/rerun/output")
     p_re.add_argument("--work", default=None, help="scratch dir for SS/TPI pickles")
     p_re.add_argument("--prior-dir", default="analysis/closure/output",
                       help="the #30 solves, for first guesses and sign comparisons")
     p_re.add_argument("--approve", action="store_true")
+    p_re.add_argument("--auto", action="store_true",
+                      help="gate: approve only if auto_gate_report passes; exit 1 otherwise")
     p_re.add_argument("--note", default="")
     p_re.add_argument("--out", default=None)
 
@@ -67,7 +69,7 @@ def main(argv=None) -> int:
                                            "and docs/surprise_2028.md")
     p_sp.add_argument("action", choices=["prepare", "check-specs", "next", "step", "gate",
                                          "assemble", "status"])
-    p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0"])
+    p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0", "zk0.5"])
     p_sp.add_argument("--start", type=int, default=2028,
                       help="the announcement year; every arm equals the baseline before it")
     p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_dn", "arms_fs"],
@@ -240,6 +242,16 @@ def _rerun(args) -> int:
         if base is None:
             print("no accepted baseline")
             return 1
+        if args.auto:
+            rep = rerun.auto_gate_report(base)
+            print(json.dumps(rep, indent=1, default=float))
+            if not rep["ok"]:
+                print("AUTO GATE FAILED")
+                return 1
+            print("wrote", rerun.write_gate(args.outdir, args.closure, args.note or
+                                            "auto gate: debt on target, TPI converged, "
+                                            "RC and law of motion tight"))
+            return 0
         print(json.dumps(rerun.baseline_report(base), indent=1))
         if args.approve:
             print("wrote", rerun.write_gate(args.outdir, args.closure, args.note))
