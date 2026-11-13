@@ -56,6 +56,9 @@ from uk_growth_with_ai import scenarios as scen  # noqa: E402
 from uk_growth_with_ai import surprise as sp  # noqa: E402
 from uk_growth_with_ai.data_access import DATA, normalise_arms  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "paper"))
+import cohort_welfare as cwf  # noqa: E402
+
 OUT = ROOT / "paper" / "values_generated.tex"
 OUTDIR = ROOT / sp.OUTDIR
 NICS = ROOT / "analysis" / "nics"
@@ -507,6 +510,117 @@ def emit(v: Values, R: dict) -> None:
     v.put("PatchEpsilonSites", 20, "{:.0f}")
 
 
+
+# --- cohort incidence (paper/cohort_welfare.py) ---------------------------------
+
+COH_RULE = {"dn": "Dn", "": "Common"}
+ONS_WEALTH_TOP_TENTH, ONS_WEALTH_BOTTOM_HALF = 43.0, 9.0   # ONS (2022), 2018-20
+
+
+def cohort_results() -> dict:
+    """Everything the cohort section quotes, per closure (computed once)."""
+    out = {}
+    for cl in CLOSURES:
+        par, _ = cwf.load(cl)
+        b = cwf.birth_years(par)
+        R, Rc = cwf.cev(cl), cwf.cev(cl, "hold", "consumption")
+        out[cl] = {"par": par, "b": b, "R": R, "Rc": Rc, "parts": cwf.part_averages(cl),
+                   "fill": cwf.fill_sensitivity(cl), "recon": cwf.reconcile(cl),
+                   "recon_tr": cwf.reconcile_tr(cl), "ident": cwf.identity_checks(cl),
+                   "wealth": cwf.wealth_concentration(cl), "profile": cwf.group_profile(cl),
+                   "labels": cwf.labels(cl)}
+    return out
+
+
+def emit_cohorts(v: Values, CR: dict) -> None:
+    for cl, (cw, _) in CLOSURES.items():
+        X = CR[cl]
+        par, b = X["par"], X["b"]
+        aw, gw = cwf.alive_weights(par), cwf.group_weights(par)
+        alive = aw > 0
+        for var, rw in COH_RULE.items():
+            for a, aword in ARMS.items():
+                key = (var, a)
+                lam = X["R"][key]
+                av = cwf.averages(par, lam)
+                pre = f"Coh{aword}{rw}{cw}"
+                v.signed(f"{pre}Avg", av["alive_all"])
+                v.signed(f"{pre}Bottom", av["alive_by_group"][0])
+                v.signed(f"{pre}TopOne", av["alive_by_group"][6])
+                v.signed(f"{pre}FutBottom", av["future_by_group"][0])
+                v.signed(f"{pre}FutTopOne", av["future_by_group"][6])
+                v.signed(f"{pre}FutAll", av["future_all"])
+                v.put(f"{pre}LosingPct", float(aw @ (lam < 0) @ gw) * 100, "{:.0f}")
+                for p, pw in (("consumption", "PartCons"), ("leisure", "PartLeis"),
+                              ("bequests", "PartBeq")):
+                    v.signed(f"{pre}{pw}", X["parts"][key][p]["all"])
+                v.signed(f"{pre}ConsOnly", float(aw @ X["Rc"][key] @ gw))
+                fc = cwf.first_c_above(cl, key)
+                v.put(f"{pre}FirstCAbove", str(fc) if fc else "never")
+                i_min = np.unravel_index(np.argmin(np.where(alive[:, None], lam, np.inf)), lam.shape)
+                i_max = np.unravel_index(np.argmax(np.where(alive[:, None], lam, -np.inf)), lam.shape)
+                v.signed(f"{pre}Min", float(lam[i_min]))
+                v.put(f"{pre}MinAge", SHOCK - int(b[i_min[0]]), "{:.0f}")
+                v.signed(f"{pre}Max", float(lam[i_max]))
+                v.put(f"{pre}MaxAge", SHOCK - int(b[i_max[0]]), "{:.0f}")
+                chart = b <= cwf.FIG_LAST_BIRTH
+                i_all = np.unravel_index(np.argmin(np.where(chart[:, None], lam, np.inf)), lam.shape)
+                v.signed(f"{pre}MinAll", float(lam[i_all]))
+                v.put(f"{pre}MinAllBirth", int(b[i_all[0]]), "{:.0f}")
+                allg = lam @ gw
+                j = int(np.argmax(np.where(alive, allg, -np.inf)))
+                v.put(f"{pre}PeakAge", SHOCK - int(b[j]), "{:.0f}")
+                flips = b[lam[:, 0] <= lam[:, 6]]
+                v.put(f"{pre}RankFlips", len(flips), "{:.0f}")
+                v.put(f"{pre}NCohorts", len(b), "{:.0f}")
+                if len(flips):
+                    v.put(f"{pre}RankFlipFirst", int(flips.min()), "{:.0f}")
+                    v.put(f"{pre}RankFlipLast", int(flips.max()), "{:.0f}")
+                # oldest age at which every group loses (alive cohorts)
+                lose_all = [SHOCK - int(x) for x, row, ok in zip(b, lam, alive) if ok and (row < 0).all()]
+                v.put(f"{pre}AllLoseUpToAge", max(lose_all) if lose_all else "none",
+                      "{:.0f}")
+        for a, aword in ARMS.items():
+            d = (cwf.averages(par, X["R"][("dn", a)])["alive_all"]
+                 - cwf.averages(par, X["R"][("", a)])["alive_all"])
+            v.signed(f"Coh{aword}DnLessCommon{cw}", d)
+        # income by source over 2028-35, age 45 in 2028, main arm: per cent of consumption
+        for var, rw in COH_RULE.items():
+            ia = cwf.income_accounts(cl, (var, "tfp"))
+            s45 = 45 - cwf.FIRST_AGE
+            for k, kw in (("labour", "Lab"), ("capital", "Cap"), ("transfers", "Tr")):
+                v.signed(f"CohMain{rw}{cw}Inc{kw}Bottom", float(ia[k][s45, 0]))
+                v.signed(f"CohMain{rw}{cw}Inc{kw}TopOne", float(ia[k][s45, 6]))
+        # checks and model features
+        v.put(f"CohReconMaxPp{cw}", sci(max(X["recon"].values())))
+        v.put(f"CohTrReconMaxRelDn{cw}", sci(max(x for k, x in X["recon_tr"].items() if "_dn" in k)))
+        v.put(f"CohTrReconMaxRelCommon{cw}", sci(max(x for k, x in X["recon_tr"].items() if "_dn" not in k)))
+        v.put(f"CohIdentityMax{cw}", sci(max(X["ident"].values())))
+        fm = max(max(np.array(f["max_by_birth"])[b <= cwf.FIG_LAST_BIRTH]) for f in X["fill"].values())
+        v.put(f"CohFillMaxPp{cw}", fm, "{:.2f}")
+        v.put(f"CohFillFirstBirth{cw}", min(f["first_birth_over_0p01"] for f in X["fill"].values()), "{:.0f}")
+        v.put(f"CohWealthTopTenth{cw}", X["wealth"]["top_tenth_pct"], "{:.0f}")
+        v.put(f"CohWealthBottomHalf{cw}", X["wealth"]["bottom_half_pct"], "{:.0f}")
+        P = X["profile"]
+        v.put(f"CohLabourIncShareBottom{cw}", P["labour"][0], "{:.0f}")
+        v.put(f"CohLabourIncShareTopOne{cw}", P["labour"][6], "{:.0f}")
+        v.put(f"CohTransferIncShareBottom{cw}", P["transfers"][0], "{:.0f}")
+        v.put(f"CohTransferIncShareTopOne{cw}", P["transfers"][6], "{:.1f}")
+        v.put(f"CohCapIncShareBottom{cw}", P["capital"][0], "{:.0f}")
+        v.put(f"CohCapIncShareTopOne{cw}", P["capital"][6], "{:.0f}")
+        # per head, relative to the population mean: wealth vs earnings
+        rel = lambda sh, j: sh[j] / (gw[j] * 100)
+        v.put(f"CohWealthRelTopOne{cw}", rel(P["wealth_share"], 6), "{:.1f}")
+        v.put(f"CohEarnRelTopOne{cw}", rel(P["earnings_share"], 6), "{:.1f}")
+        v.put(f"CohWealthRelBottom{cw}", rel(P["wealth_share"], 0), "{:.2f}")
+        v.put(f"CohEarnRelBottom{cw}", rel(P["earnings_share"], 0), "{:.2f}")
+    v.put("CohOnsWealthTopTenth", ONS_WEALTH_TOP_TENTH, "{:.0f}")
+    v.put("CohOnsWealthBottomHalf", ONS_WEALTH_BOTTOM_HALF, "{:.0f}")
+    v.put("CohFigLastBirth", cwf.FIG_LAST_BIRTH, "{:.0f}")
+    v.put("CohLastAliveBirth", SHOCK - cwf.FIRST_AGE, "{:.0f}")
+    v.put("CohFirstAliveBirth", SHOCK - cwf.FIRST_AGE - 79, "{:.0f}")
+    v.put("CohReconTolPp", sci(cwf.RECON_TOL_PP))
+
 def render(v: Values, sources: list[str]) -> str:
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = ["% values_generated.tex — machine-generated by paper/make_values.py. DO NOT EDIT BY HAND.",
@@ -748,11 +862,121 @@ def check_claims(R: dict, v: Values) -> None:
         raise ResultsError("claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
 
+
+def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
+    """Sentences of the incidence section stated in words."""
+    fail = []
+    for cl, (cw, _) in CLOSURES.items():
+        X = CR[cl]
+        par, b = X["par"], X["b"]
+        aw, gw = cwf.alive_weights(par), cwf.group_weights(par)
+        ref = R[cl]["ref"]
+        avg = {k: cwf.averages(par, X["R"][k]) for k in X["labels"]}
+        for a in ARMS:
+            # debt-neutral transfers: above the path in 2028, below it every year 2029-2035
+            rec_ = R[cl]["arms"][("uk_central", "dn")][a]
+            if rec_ is not None and not (pct(rec_, ref, "TR", SHOCK) > 0 and all(
+                    pct(rec_, ref, "TR", y) < 0 for y in range(SHOCK + 1, LAST_FLOW + 1))):
+                fail.append(f"'debt-neutral transfers higher in {SHOCK}, lower 2029-{LAST_FLOW}' fails: {a} {cl}")
+            # debt-neutral: aggregate consumption below the path every year 2028-2035
+            rec = R[cl]["arms"][("uk_central", "dn")][a]
+            if rec is None or not all(pct(rec, ref, "C", y) < 0 for y in range(SHOCK, LAST_FLOW + 1)):
+                fail.append(f"'debt-neutral C below the path every year {SHOCK}-{LAST_FLOW}' fails: {a} {cl}")
+            for var in ("dn", ""):
+                k = (var, a)
+                # bottom group gains more than the top 1% on average, alive in 2028
+                if not avg[k]["alive_by_group"][0] > avg[k]["alive_by_group"][6]:
+                    fail.append(f"'bottom 25% above top 1%' fails: {k} {cl}")
+                # bequests are the largest part, then leisure (alive average)
+                pp = X["parts"][k]
+                if not pp["bequests"]["all"] > pp["leisure"]["all"] > 0:
+                    fail.append(f"'bequest part largest, leisure positive' fails: {k} {cl}")
+                if not pp["consumption"]["all"] < pp["bequests"]["all"]:
+                    fail.append(f"'consumption part below bequest part' fails: {k} {cl}")
+            # debt-neutral lowers the alive average in every arm
+            if not avg[("dn", a)]["alive_all"] < avg[("", a)]["alive_all"]:
+                fail.append(f"'debt-neutral below the common rule' fails: {a} {cl}")
+        # main arm, debt-neutral: positive average, consumption part small and positive
+        m = ("dn", "tfp")
+        if not avg[m]["alive_all"] > 0:
+            fail.append(f"'main-arm debt-neutral average gain' fails: {cl}")
+        if not 0 < X["parts"][m]["consumption"]["all"] < 0.2:
+            fail.append(f"'main-arm consumption part small and positive' fails: {cl}")
+        if not float(aw @ (X["R"][m] < 0) @ gw) < 0.01:
+            fail.append(f"'almost nobody alive in 2028 loses in the main arm' fails: {cl}")
+        # consumption-only measure exceeds the joint one, main arm
+        if not float(aw @ X["Rc"][m] @ gw) > avg[m]["alive_all"]:
+            fail.append(f"'consumption-only exceeds joint' fails: {cl}")
+        # main arm: gain rises with age up to the 60s, falls for the oldest
+        allg = X["R"][m] @ gw
+        alive = aw > 0
+        peak = SHOCK - int(b[np.argmax(np.where(alive, allg, -np.inf))])
+        if not 55 <= peak <= 75:
+            fail.append(f"'the gain peaks for those in their 60s in 2028' fails: {cl} ({peak})")
+        # the C gap turns positive in the main arm in the late 2030s
+        fc = cwf.first_c_above(cl, m)
+        if fc is None or not 2036 <= fc <= 2040:
+            fail.append(f"'main-arm consumption above the path from the late 2030s' fails: {cl} ({fc})")
+        # labour is a smaller share of income for the bottom group
+        P = X["profile"]
+        if not P["labour"][0] < P["labour"][6]:
+            fail.append(f"'labour share of income lower for the bottom group' fails: {cl}")
+        if not P["transfers"][0] > P["transfers"][6]:
+            fail.append(f"'transfers a larger share for the bottom group' fails: {cl}")
+        # wealth per head is spread more evenly than earnings
+        rw = P["wealth_share"][6] / P["earnings_share"][6]
+        if not rw < 1:
+            fail.append(f"'top 1% hold a smaller share of wealth than of earnings' fails: {cl}")
+        if not X["wealth"]["top_tenth_pct"] < ONS_WEALTH_TOP_TENTH:
+            fail.append(f"'model wealth less concentrated at the top than ONS' fails: {cl}")
+        # debt-neutral transfer change costs the bottom group more (age 45, main arm)
+        ia = cwf.income_accounts(cl, m)
+        s45 = 45 - cwf.FIRST_AGE
+        if not ia["transfers"][s45, 0] < ia["transfers"][s45, 6] < 0:
+            fail.append(f"'lower transfers cost the bottom group more' fails: {cl}")
+        if not ia["labour"][s45, 0] > ia["labour"][s45, 6]:
+            fail.append(f"'the wage fall costs the top 1% more' fails: {cl}")
+        # fill sensitivity small over the charted cohorts
+        if not float(v[f"CohFillMaxPp{cw}"]) < 0.1:
+            fail.append(f"'the fill moves no charted cohort by 0.1pp' fails: {cl}")
+    # stress test, debt-neutral, central closure: average loss, young lose in every group
+    X = CR["zk0.1"]
+    s = ("dn", "stress")
+    if not cwf.averages(X["par"], X["R"][s])["alive_all"] < 0:
+        fail.append("'stress test debt-neutral average loss at 0.1' fails")
+    if not v["CohStressDnCentralAllLoseUpToAge"].isdigit() or int(v["CohStressDnCentralAllLoseUpToAge"]) < 35:
+        fail.append("'in the stress test every group aged 35 or under loses' fails")
+    ages = SHOCK - X["b"]
+    old = (ages >= 65) & (ages <= 99)
+    if not (X["R"][s][old] > 0).all():
+        fail.append("'in the stress test everyone 65 and over gains' fails")
+    # the stress-test rank flips are tiny
+    lam = X["R"][s]
+    flip = lam[:, 0] <= lam[:, 6]
+    if flip.any() and not np.abs(lam[flip, 0] - lam[flip, 6]).max() < 0.03:
+        fail.append("'where the ranking flips the two differ by less than 0.03' fails")
+    # technology unchanged: losers are the younger and higher-earning
+    f = X["R"][("dn", "zfixed")]
+    aw = cwf.alive_weights(X["par"])
+    lose_g = aw @ (f < 0)
+    if not (lose_g[0] < lose_g[6] and all(a <= b_ for a, b_ in zip(lose_g, lose_g[1:]))):
+        fail.append(f"'technology unchanged: losers concentrated in higher groups' fails: {lose_g}")
+    if not ages[(f < 0).any(axis=1) & (aw > 0)].max() < 50:
+        fail.append("'technology unchanged: only younger adults lose' fails")
+    # at the bound the stress test still gives an average gain
+    if not cwf.averages(CR["zk0"]["par"], CR["zk0"]["R"][s])["alive_all"] > 0:
+        fail.append("'the stress test averages a gain at the bound' fails")
+    if fail:
+        raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
+
 def build() -> tuple[Values, list[str]]:
     R = load_all()
     v = Values()
     emit(v, R)
     check_claims(R, v)
+    CR = cohort_results()
+    emit_cohorts(v, CR)
+    check_cohort_claims(R, CR, v)
     sources = [f"baseline  {BASELINE_FILE.relative_to(ROOT)} (calibration, OBR comparison)"]
     for cl in CLOSURES:
         labs = sorted(r["label"] for x in R[cl]["arms"].values() for r in x.values() if r)
@@ -761,6 +985,7 @@ def build() -> tuple[Values, list[str]]:
                       if any(r is None for r in x.values()))
         sources.append(f"{cl}  pending: " + ", ".join(pend))
     sources.append("nics  analysis/nics/nics_2027.json, nics_2028.json")
+    sources.append("cohorts  analysis/surprise/cohorts/<closure>/*.npz via paper/cohort_welfare.py")
     return v, sources
 
 
