@@ -29,7 +29,10 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 
 - Of the 54 "below" cells, 18 are the capital-supply elasticity itself and 17 are the size of the tax/GDP response. The other 19 follow from the elasticity or from the missing unemployment channel.
 - All 13 "above" cells follow from the elasticity (10 interest-rate cells, 1 debt cell) or from the US scenario's size (2 labour-productivity cells).
-- Two bounds are soft. The GDP row uses the pooled range above. The labour-productivity ceiling of 3.6% extends a three-year survey figure to four years; at three years (2.7%) UK high moves from "inside" to "above".
+- Three bounds are soft.
+  - The GDP row uses the pooled range above.
+  - The labour-productivity ceiling of 3.6% extends a three-year survey figure to four years. At three years (2.7%) UK high moves from "inside" to "above".
+  - The interest-rate ceiling of 22bp per point comes from returns published to one decimal place. Korinek et al.'s modest case is 10bp give or take 5bp on 0.6pp, so up to 25bp per point. The UK low and UK central main arms (24bp) are "above" by less than that rounding.
 - No cell is outside every published range without a cause in the model. Three results are problems all the same (Section 5).
 
 **Three red flags.**
@@ -40,7 +43,7 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 2. **Debt/GDP ends higher in every arm by 2036, including "automation + productivity". The OBR and Penn Wharton have higher productivity lowering debt.**
    - For UK central the whole +2.0pp is the higher interest rate applied to the entire debt stock at once (+2.3pp). Without that, debt/GDP would be about 0.3pp lower than baseline.
    - Fix: no rerun. Report the split beside every debt number.
-3. **Tax/GDP rises in the Korinek main arm at ζK = 0** while the labour share falls 3.9pp, and the fall is 50–77% of the OBR's size at ζK = 0.1. This is known (A6 in the audit) and Vahid decided on 12 November to keep and report it.
+3. **Tax/GDP rises in the Korinek main arm at ζK = 0** while the labour share falls 3.9pp. At ζK = 0.1 the fall per point of share is 42–77% of the OBR's midpoint, and at ζK = 0 it is 2–13% in the other five solved cells. This is known (A6 in the audit) and Vahid decided on 12 November to keep and report it.
 
 **Two calibration points that the comparison turned up.**
 
@@ -168,7 +171,7 @@ Each row gives the study, the size of its shock, its horizon and its value, and 
 | Brollo et al. (B26), smaller scenario | long run | output +17% | 5pp | — | — |
 | BCG (A20), UK | 10 years | labour productivity +0.3 to +0.8pp a year | — | — | — |
 | Karabarbounis and Neiman (B22), global | 35 years | — | 5pp | — | 0.14pp |
-| ONS (A18), UK | 1996–2023 | — | a rise of about 5.5pp, most of it by 2001 | — | — |
+| ONS (A18), UK | 1996–2023 | — | a rise of about 5.5pp, "particularly in the years up to 2001" (no figure for those years) | — | — |
 | **Ours** | year 4 | +0.2%, +0.4%, +1.6%, +3.1% | 0.7pp, 1.6pp, 2.9pp, 3.9pp | 3.5, 4.0, 1.8, 1.3 | 0.18pp, 0.40pp, 0.73pp, 0.98pp |
 
 ### 3.2 GDP per 1% of TFP
@@ -226,7 +229,7 @@ No UK source publishes an investment response to AI. The BoE reports that AI-rel
 | IMF SDN, UK-calibrated (B6) | capital share +5.5pp | steady state | "almost 0.4 percentage point" | 7bp |
 | Rachel (B19) | TFP +0.75pp a year for a decade, share −1.1pp, markups +2pp | builds over several years | r* "about 1 percentage point" | not scaled: mostly a growth effect |
 | Bank of England (A8, A19) | — | — | no estimate | — |
-| **Published range used** | | | | **7bp to 22bp** (ε = ∞ excluded: it is the pegged-rate case) |
+| **Published range used** | | | | **7bp to 22bp** (ε = ∞ excluded: it is the pegged-rate case). The returns are published to 0.1pp, so the modest case is 8–25bp |
 
 ### 3.6 Tax revenue and debt
 
@@ -312,7 +315,7 @@ One verdict per cell and row, by these rules. They are coded in `lit_grid.py` (`
 | Wage per pp of share fall | 2031 wage gap / share fall | −0.33 to +1.87 | main arm. Stress test: by construction (with GDP flat, labour income falls by the share fall) |
 | Labour share | 2031 gap | — | by construction in every arm: it is the input, and the solves reproduce it to 0.001pp |
 | Capital-supply elasticity | Δln K / Δln rental rate | 1 or more | every arm |
-| r, bp per pp of share fall | 2031 gap in the return / share fall | 7 to 22 | every arm |
+| r, bp per pp of share fall | 2031 gap in the return / share fall | 7 to 22. The top is soft: rounding in the source allows up to 25 | every arm |
 | Tax/GDP per pp of share fall | 2031 gap in tax/GDP / share fall | −0.23 to −0.19 | every arm. "Below" means a smaller fall than the OBR's |
 | Debt/GDP in 2031 | 2031 gap | main arm: zero or lower (OBR productivity scenarios and Penn Wharton). Stress test: +1.86pp per pp of share fall (OBR displacement) | main arm and stress test |
 
@@ -370,7 +373,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 - **The pace of the share shift is fast against history in every scenario but UK low.**
   - The global labour share fell 0.14pp a year over 35 years (B22). The UK capital share rose 0.16pp a year over 1980–2014 on the IMF working paper's figure (B18).
   - UK low is 0.18pp a year, UK central 0.40pp, UK high 0.73pp and Korinek 0.98pp.
-  - The UK labour share has moved quickly before: it rose about 5.5pp after 1996, "particularly in the years up to 2001" (A18). So UK central's 1.6pp in four years is not outside UK experience.
+  - The UK labour share has moved quickly before: it rose about 5.5pp after 1996, "particularly in the years up to 2001" (A18). The ONS gives no figure for those years alone, so this suggests, without showing, that a move of UK central's size (1.6pp in four years) has happened before.
 - **The mix is share-heavy.** UK low and UK central pair 3.5pp and 4.0pp of share fall with each 1% of TFP. That matches the IMF's UK model (3.7 at year 4; 3.9 and 6.0 in B18) and is three times Korinek et al.'s 0.9–1.3. It matters for the wage (Section 4.6).
 - **"Technology unchanged" and the stress test have no published counterpart as shocks.** No source has a labour-share shift with zero or negative TFP. The OBR's displacement scenario is the nearest, and it has productivity rising. These two arms are decompositions of the main arm, not scenarios.
 
@@ -530,6 +533,10 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
   - The fall comes from the share shift: labour income is 1.6% lower for UK central, part of the extra capital income goes abroad, and investment and public spending take a larger share of output (audit A3).
 - **GNI and NNI have no published comparator.** Only the IMF UK paper notes, in a footnote, that output "may overstate the domestic value added" when the investment is bought abroad (A6). Our GDP − GNI wedge is 0.35pp for UK central at ζK = 0.1.
 - **Unemployment.** Korinek et al. have unemployment 0.1pp higher (modest) and 0.8pp higher (substantial); the OBR's scenario has 1.4pp. OG-UK has none. Hours fall 0.1% to 1.1%.
+- **Perfect foresight after 2028 does not explain the gaps.**
+  - Once the shock arrives, households and firms know the whole path. That brings saving and investment forward: UK central's investment is 7.8% above baseline in 2028, the announcement year. Foresight therefore raises the four-year capital response; it does not lower it.
+  - The audit finds that the surprise timing itself costs nothing: at ζK = 0.1 the Korinek arm's 2031 results match the old fully anticipated 2030 results (A10).
+  - Korinek et al. and the IMF's model have no forward-looking saving at this horizon, so the comparison cannot be sharpened further. The BIS study (B20) finds that anticipation changes inflation, not the direction of output or investment.
 
 ## 5. Red flags
 
@@ -566,9 +573,9 @@ The test was: a result outside every published range with no cause in the model.
 - **Fix: no rerun.** Publish the split from `lit_grid.py` beside every debt number, and say that the model's debt is one-period while UK gilts are long-dated. With the interest effect removed, UK central's main arm has debt/GDP about 0.3pp lower than baseline in 2036, the OBR's sign.
 - **A model change, not proposed for now:** phase the higher rate in over the maturity of the stock. It needs a change to OG-Core's `r_gov` rule.
 
-### 3. Tax/GDP: the wrong sign in one cell, and half to three-quarters of the OBR's size elsewhere
+### 3. Tax/GDP: the wrong sign in one cell at ζK = 0, and 42–77% of the OBR's size at ζK = 0.1
 
-- **What.** The Korinek main arm at ζK = 0 has tax/GDP +0.21pp with the labour share 3.9pp lower. UK central's main arm at ζK = 0 is −0.006pp, zero in practice. At ζK = 0.1 the response is 0.09–0.16pp per point against the OBR's 0.19–0.23pp.
+- **What.** The Korinek main arm at ζK = 0 has tax/GDP +0.21pp with the labour share 3.9pp lower. UK central's main arm at ζK = 0 is −0.006pp, zero in practice. At ζK = 0.1 the response is 0.09–0.16pp per point against the OBR's 0.19–0.23pp, which is 42–77% of the OBR's midpoint. In the other four cells at ζK = 0 it is 0.03pp, 12–13%.
 - **Why.** A labour–capital tax gap of about 14pp against the OBR's 19–23pp, and a single income-tax schedule that taxes the extra capital income when the return rises (audit A6).
 - **Status.** Known. Vahid decided on 12 November to keep and report it. The audit predicts a second wrong sign for UK high at ζK = 0 (+0.08pp), which is not solved.
 - **Fix without a rerun:** a caveat wherever fiscal results at ζK = 0 appear. A ζK = 0.5 run would lower the rise in the return and so the size of this effect.
