@@ -329,7 +329,7 @@ function SpendingRuleCard({ sid, closure, link }) {
         <>
           <RuleTable rule={rule} sid={sid} closure={closure} />
           <p className="chart-description rule-note">
-            Shown for the {cl}. Debt/GDP stays on the OBR-central path to {LATE_YEAR} by construction, so it has no gap
+            Closure shown: {cl}. Debt/GDP stays on the OBR-central path to {LATE_YEAR} by construction, so it has no gap
             to show. Solved for {names} only. What the rule changes: {link('method', 'Scenarios and method')}.
           </p>
         </>

@@ -16,7 +16,7 @@ const NODES = [
     line: 'Choose consumption, hours and saving over their lives.',
     detail: (
       <>
-        <p>Eighty age cohorts, 21 to 100, and seven permanent ability types.</p>
+        <p>Eighty age cohorts, ages 20 to 99, and seven permanent ability types.</p>
         <p>Each values consumption, leisure and a bequest, and faces age-specific mortality.</p>
         <p>Work pays until the after-tax wage equals the cost of effort. Saving trades today against tomorrow&rsquo;s return.</p>
       </>
