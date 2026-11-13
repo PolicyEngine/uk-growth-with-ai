@@ -528,7 +528,7 @@ def cohort_results() -> dict:
                    "fill": cwf.fill_sensitivity(cl), "recon": cwf.reconcile(cl),
                    "recon_tr": cwf.reconcile_tr(cl), "ident": cwf.identity_checks(cl),
                    "wealth": cwf.wealth_concentration(cl), "profile": cwf.group_profile(cl),
-                   "labels": cwf.labels(cl)}
+                   "labels": cwf.labels(cl), "rob": cwf.robustness(cl)}
     return out
 
 
@@ -576,6 +576,34 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 if len(flips):
                     v.put(f"{pre}RankFlipFirst", int(flips.min()), "{:.0f}")
                     v.put(f"{pre}RankFlipLast", int(flips.max()), "{:.0f}")
+                # what the average rests on (PR #24 referee): no-bequest measure, lifetime
+                # income by source at unchanged behaviour, the post-2035 cost charged back
+                rb = X["rob"][key]
+                v.signed(f"{pre}NoBeqAvg", rb["no_bequest_avg"])
+                v.put(f"{pre}NoBeqLosingPct", rb["no_bequest_losing_pct"], "{:.0f}")
+                for k, kw in (("capital", "Cap"), ("labour", "Lab"), ("transfers", "Tr"),
+                              ("bequests", "Beq"), ("total", "Tot")):
+                    v.signed(f"{pre}Src{kw}", rb["sources"][k])
+                    v.signed(f"{pre}Src{kw}Bottom", rb["sources_by_group"][k][0])
+                    v.signed(f"{pre}Src{kw}TopOne", rb["sources_by_group"][k][6])
+                if "charged" in rb:
+                    ch = rb["charged"]
+                    for k, kw, fmt in (("joint_avg", "ChargedAvg", None),
+                                       ("no_bequest_avg", "ChargedNoBeqAvg", None),
+                                       ("joint_losing_pct", "ChargedLosingPct", "{:.0f}"),
+                                       ("no_bequest_losing_pct", "ChargedNoBeqLosingPct", "{:.0f}"),
+                                       ("oldest_losing_on_average", "ChargedOldestLosingAge", "{:.0f}")):
+                        for i, lh in ((0, "Lo"), (1, "Hi")):
+                            if fmt is None:
+                                v.signed(f"{pre}{kw}{lh}", ch[k][i])
+                            else:
+                                v.put(f"{pre}{kw}{lh}", ch[k][i], fmt)
+                        lo, hi = v[f"{pre}{kw}Lo"], v[f"{pre}{kw}Hi"]
+                        v.put(f"{pre}{kw}Range", lo if lo == hi else
+                              (f"{lo} to {hi}" if fmt is None else f"{lo}--{hi}"))
+                    g = ch["g_shortfall"]
+                    v.put(f"{pre}GShortSsPctGdp", abs(g["ss_pct_gdp"]), "{:.2f}")
+                    v.put(f"{pre}GShortSsPctC", abs(g["ss_pct_c"]), "{:.1f}")
                 # oldest age at which every group loses (alive cohorts)
                 lose_all = [SHOCK - int(x) for x, row, ok in zip(b, lam, alive) if ok and (row < 0).all()]
                 v.put(f"{pre}AllLoseUpToAge", max(lose_all) if lose_all else "none",
@@ -599,6 +627,9 @@ def emit_cohorts(v: Values, CR: dict) -> None:
         fm = max(max(np.array(f["max_by_birth"])[b <= cwf.FIG_LAST_BIRTH]) for f in X["fill"].values())
         v.put(f"CohFillMaxPp{cw}", fm, "{:.2f}")
         v.put(f"CohFillFirstBirth{cw}", min(f["first_birth_over_0p01"] for f in X["fill"].values()), "{:.0f}")
+        tx = cwf.tax_rates(cl)
+        v.put(f"CohTaxIncPct{cw}", tx["income"] * 100, "{:.1f}")
+        v.put(f"CohTaxConsPct{cw}", tx["consumption"] * 100, "{:.0f}")
         v.put(f"CohWealthTopTenth{cw}", X["wealth"]["top_tenth_pct"], "{:.0f}")
         v.put(f"CohWealthBottomHalf{cw}", X["wealth"]["bottom_half_pct"], "{:.0f}")
         P = X["profile"]
@@ -939,11 +970,58 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
         # fill sensitivity small over the charted cohorts
         if not float(v[f"CohFillMaxPp{cw}"]) < 0.1:
             fail.append(f"'the fill moves no charted cohort by 0.1pp' fails: {cl}")
-    # stress test, debt-neutral, central closure: average loss, young lose in every group
+    # what the average rests on (PR #24 referee): sources, the no-bequest measure, the charge-back
+    for cl, (cw, _) in CLOSURES.items():
+        X = CR[cl]
+        for k in X["labels"]:
+            # joint and consumption-only measures agree in sign in every cell
+            J, Co = X["R"][k], X["Rc"][k]
+            if np.isnan(Co).any() or not (np.sign(J) == np.sign(Co)).all():
+                fail.append(f"'the two measures have the same sign in every cohort and group' fails: {k} {cl}")
+            src = X["rob"][k]["sources"]
+            if not (src["capital"] > 0 > src["labour"]):
+                fail.append(f"'capital income up, labour income down in every arm' fails: {k} {cl}")
+        dn = {a: X["rob"][("dn", a)] for a in ARMS}
+        rng = lambda f: max(f(x) for x in dn.values()) - min(f(x) for x in dn.values())
+        if not rng(lambda x: x["sources"]["labour"]) > rng(lambda x: x["sources"]["capital"]):
+            fail.append(f"'the arms differ mainly in how far the wage falls' fails: {cl}")
+        m = dn["tfp"]
+        sg = m["sources_by_group"]
+        if not (sg["labour"][6] < sg["labour"][0] < 0 and sg["capital"][0] > 0 and sg["capital"][6] > 0):
+            fail.append(f"'labour income falls more for the top 1%, capital rises for both' fails: {cl}")
+        if not m["no_bequest_avg"] > 0 or not min(m["charged"]["joint_avg"]) > 0:
+            fail.append(f"'main arm positive without bequests and with the cost charged' fails: {cl}")
+        if not (0 < m["no_bequest_avg"] < m["joint_avg"]):
+            fail.append(f"'the no-bequest average is below the joint one' fails: {cl}")
+        gm, gst = dn["tfp"]["charged"]["g_shortfall"], dn["stress"]["charged"]["g_shortfall"]
+        if not (gm["ss_pct_gdp"] < 0 and gst["ss_pct_gdp"] < 0 and abs(gm["ss_pct_c"]) <= abs(gst["ss_pct_c"])):
+            fail.append(f"'G below its GDP share in the steady state, main arm least' fails: {cl}")
+        # 'adults aged up to about N lose on average once the cost is charged': every age 20..N
+        par = X["par"]
+        for f in cwf.FILL_PATHS:
+            lam = cwf.chargeback(cl, ("dn", "tfp"), f)["joint"]
+            old_ = cwf.oldest_losing_on_average(par, lam)
+            aw_, gw_ = cwf.alive_weights(par), cwf.group_weights(par)
+            ages_ = SHOCK - X["b"]
+            mm = (aw_ > 0) & (ages_ <= (old_ or 0))
+            if old_ is None or not ((lam[mm] @ gw_) < 0).all():
+                fail.append(f"'once the cost is charged, every age up to {old_} loses on average' fails: {cl} {f}")
     X = CR["zk0.1"]
+    m = X["rob"][("dn", "tfp")]
+    # 'without both, close to zero, with about half of adults losing' (central closure)
+    if not all(-0.2 < x < 0.2 for x in m["charged"]["no_bequest_avg"]):
+        fail.append("'without both features the main-arm average is close to zero' fails")
+    if not all(40 <= x <= 60 for x in m["charged"]["no_bequest_losing_pct"]):
+        fail.append("'without both features about half of adults lose' fails")
+    if not abs(m["sources"]["total"] - float(cwf.alive_weights(X["par"]) @ X["Rc"][("dn", "tfp")]
+                                              @ cwf.group_weights(X["par"]))) < 0.3:
+        fail.append("'the lifetime income total is close to the consumption-only measure' fails")
+    # stress test, debt-neutral, central closure: about zero on average, young lose in every group
     s = ("dn", "stress")
-    if not cwf.averages(X["par"], X["R"][s])["alive_all"] < 0:
-        fail.append("'stress test debt-neutral average loss at 0.1' fails")
+    if not abs(cwf.averages(X["par"], X["R"][s])["alive_all"]) < 0.1:
+        fail.append("'stress test debt-neutral average about zero at 0.1' fails")
+    if X["rob"][s]["all_lose_up_to_age"] != int(v["CohStressDnCentralAllLoseUpToAge"]):
+        fail.append("'every group aged N or younger loses in the stress test' is not contiguous from 20")
     if not v["CohStressDnCentralAllLoseUpToAge"].isdigit() or int(v["CohStressDnCentralAllLoseUpToAge"]) < 35:
         fail.append("'in the stress test every group aged 35 or under loses' fails")
     ages = SHOCK - X["b"]
