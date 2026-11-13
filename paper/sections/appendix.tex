@@ -145,6 +145,30 @@ Ideas and R\&D & Ideas stock & Discussed, not in the baseline & None \\
 \end{minipage}
 \end{table}
 
+\subsection{The cohort welfare measure by form}
+\label{app:cohort-parts}
+
+Table~\ref{tab:cohort-parts} splits the measure of Section~\ref{sec:incidence} by the form in which households take the change: the joint measure with only consumption, only leisure or only bequests on the scenario path and the other two on the path. The three need not sum to the total, because the measure is not linear. The split describes how the change is used, not where it comes from; Table~\ref{tab:cohorts} gives the sources.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Welfare change for adults alive in \genShockYear{} by form, UK central, $\zetaK = \genZetaKCentral{}$, per cent of remaining-lifetime consumption and bequests (population-weighted means).}
+\label{tab:cohort-parts}
+\begin{tabular}{llrrrr}
+\toprule
+Arm & Fiscal rule & All & Consumption & Leisure & Bequests \\
+\midrule
+Automation + productivity & debt-neutral & \genCohMainDnCentralAvg{} & \genCohMainDnCentralPartCons{} & \genCohMainDnCentralPartLeis{} & \genCohMainDnCentralPartBeq{} \\
+ & common rule & \genCohMainCommonCentralAvg{} & \genCohMainCommonCentralPartCons{} & \genCohMainCommonCentralPartLeis{} & \genCohMainCommonCentralPartBeq{} \\
+Technology unchanged & debt-neutral & \genCohFlatDnCentralAvg{} & \genCohFlatDnCentralPartCons{} & \genCohFlatDnCentralPartLeis{} & \genCohFlatDnCentralPartBeq{} \\
+ & common rule & \genCohFlatCommonCentralAvg{} & \genCohFlatCommonCentralPartCons{} & \genCohFlatCommonCentralPartLeis{} & \genCohFlatCommonCentralPartBeq{} \\
+Stress test & debt-neutral & \genCohStressDnCentralAvg{} & \genCohStressDnCentralPartCons{} & \genCohStressDnCentralPartLeis{} & \genCohStressDnCentralPartBeq{} \\
+ & common rule & \genCohStressCommonCentralAvg{} & \genCohStressCommonCentralPartCons{} & \genCohStressCommonCentralPartLeis{} & \genCohStressCommonCentralPartBeq{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Reproduction}
 \label{app:reproduction}
 
