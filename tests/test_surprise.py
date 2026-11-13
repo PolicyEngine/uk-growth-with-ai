@@ -661,3 +661,12 @@ def test_hold_generations(tmp_path, monkeypatch):
         sp._hold(tmp_path, "zk0.5", "arms", "uk_low")
     monkeypatch.setenv("UGAI_IGNORE_HOLD2", "1")
     sp._hold(tmp_path, "zk0.5", "arms", "uk_low")
+
+
+def test_cli_accepts_every_planner_stage():
+    """Regression (13 Nov 02:12): the planner knew arms_dnfull, the CLI did not."""
+    import inspect
+    from uk_growth_with_ai import cli
+    src = inspect.getsource(cli)
+    for stage in sp.STAGE_VARIANT:
+        assert f'"{stage}"' in src, stage

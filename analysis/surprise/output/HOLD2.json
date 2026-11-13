@@ -1,2 +1,0 @@
-{"why": "13 Nov 01:2x: the Fable referee's extra solve (_dnfull) goes after the zk0.5 UK central and Korinek sets; the second driver stops there and a third (UGAI_IGNORE_HOLD2=1) takes over without releasing the lock",
- "allow": [["zk0.5", "arms", "uk_central"], ["zk0.5", "arms", "korinek"]]}
