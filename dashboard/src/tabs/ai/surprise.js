@@ -20,9 +20,15 @@ export const BOUND = 'zk0';
 export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.zeta_K };
 export const SCENARIOS = S.scenarios;
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
+// The one name of each scenario, as the paper's tables print it (UK low, UK
+// central, UK high, Korinek et al. (upper)); set in build_dashboard_data.py.
+export const SCEN_NAME = Object.fromEntries(SCENARIOS.map((s) => [s.id, s.label]));
+// The upper case where it is defined (paper, methodology: "Upper case:
+// Korinek et al., US 'substantial'").
+export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
 // [{id, label, short}], in display order: 'tfp' automation + productivity
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
-// 'ss' the OBR-style stress test that holds 2031 GDP at the no-AI path.
+// 'ss' the OBR-style stress test that holds 2031 GDP at the OBR-central path.
 export const ARMS = S.arms;
 export const ARM_COLOR = { tfp: 'var(--series-1)', tz: 'var(--series-2)', ss: 'var(--series-5)' };
 // The stress test is drawn lighter: a bound, not a forecast.
@@ -32,6 +38,13 @@ export const CLOSURE_LABEL = { 'zk0.1': 'central closure', zk0: 'closed capital'
 
 export const result = (sid, arm, closure) => S.results[sid]?.[arm]?.[closure] ?? { status: 'pending' };
 export const isDone = (sid, arm, closure) => result(sid, arm, closure).status === 'done';
+
+// A spending-rule variant (S.rules, e.g. 'debt_neutral'): the same record
+// shape as result(), kept apart from the default-rule results. Only the
+// scenarios listed in S.rules[rule].scenarios have solves.
+export const ruleResult = (rule, sid, arm, closure) =>
+  S.rules?.[rule]?.results?.[sid]?.[arm]?.[closure] ?? { status: 'pending' };
+export const ruleScenarios = (rule) => S.rules?.[rule]?.scenarios ?? [];
 
 // Gap of variable v in a calendar year, or null when pending.
 export function gap(sid, arm, closure, v, year = HEADLINE_YEAR) {
@@ -54,3 +67,13 @@ export const fmt = (x, dp = 2, unit = '%') => (x == null ? 'pending' : `${signed
 
 export const DONE = S.solves_done;
 export const TOTAL = S.solves_total;
+
+// Output at fixed inputs of an arm relative to "technology unchanged" (the
+// fixed-input Z), %, at a closure: Z_arm / Z_tz - 1. Negative means the arm
+// needs a technology cut. null when either solve is pending.
+export function fixedInputVsTz(sid, arm, closure) {
+  const a = result(sid, arm, closure);
+  const t = result(sid, 'tz', closure);
+  if (a.status !== 'done' || t.status !== 'done') return null;
+  return (a.Z_terminal / t.Z_terminal - 1) * 100;
+}

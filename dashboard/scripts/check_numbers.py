@@ -32,12 +32,10 @@ for sid in dump:
     def add(x, dp, unit):
         if x is not None:
             exp[signed(x, dp) + unit] += 1
-    # Overview landing: the three KPI tiles (main arm, central closure) and
-    # the labour-share move in the "Why" bullets
+    # Overview landing: the three KPI tiles (main arm, central closure). The
+    # "Why" bullets print no figure: the labour-share move's home is By variable.
     for v in ['Y', 'w', 'GNI']:
         add(g(sid, 'tfp', C, v), 2, '%')
-    if g(sid, 'tfp', C, 'Y') is not None:
-        add(g(sid, 'tfp', C, 'labour_share_pp'), 1, 'pp')
     for arm in ARMS:
         # dumbbells: central label and closed-capital bound (screen-reader text)
         for v in ['GNI', 'Y', 'NNI', 'w']:
@@ -57,7 +55,7 @@ for sid in dump:
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
         add(ls * 0.23, 2, 'pp')
-    text = '\n'.join(v for k, v in dump[sid].items() if (k.startswith('results') and k.count(':') < 2) or k == 'cohorts')
+    text = '\n'.join(v for k, v in dump[sid].items() if k.startswith('results') and k.count(':') < 2)
     got = Counter(NUM.findall(text))
     if got != exp:
         bad += 1
@@ -113,5 +111,69 @@ for sid in dump:
             print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, mode, 'ok:', sum(exp.values()), 'figures')
+# The spending-rule card with a rule chosen (Public finances): a solved
+# variant prints the headline-year GDP, GNI, wage and consumption gaps of
+# each arm for the closure(s) in view, once each, and only for the scenarios
+# the variant is solved for; an unsolved rule or scenario prints no figure.
+RULE_BTN = {'debt_neutral': 'Debt-neutral'}
+for rid, rule in D.get('rules', {}).items():
+    for sid in dump:
+        for mode, cls in (('central', [C]), ('closed', [B]), ('both', [C, B])):
+            key = f'results:finances:{mode}:{RULE_BTN[rid]}'
+            if key not in dump[sid]:
+                continue
+            exp = Counter()
+            for cl in cls:
+                for arm in ARMS:
+                    r = rule['results'].get(sid, {}).get(arm, {}).get(cl, {'status': 'pending'})
+                    if r['status'] == 'done':
+                        for v in ['Y', 'GNI', 'w', 'C']:
+                            exp[signed(r['gaps'][v][Y.index(H)], 2) + '%'] += 1
+            got = Counter(NUM.findall(dump[sid][key]))
+            if got != exp:
+                bad += 1
+                print(sid, rid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+            else:
+                print(sid, rid, mode, 'ok:', sum(exp.values()), 'figures')
+    # each shown variant gap equals the raw solve over its continuation
+    for sid, arms in rule['results'].items():
+        for a, by_cl in arms.items():
+            for cl, r in by_cl.items():
+                if r['status'] != 'done':
+                    continue
+                s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
+                b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
+                for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
+                    for k in range(len(Y)):
+                        if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
+                            bad += 1; print('raw-solve mismatch', rid, sid, a, cl, v)
+for sid in dump:
+    t = dump[sid].get('results:finances:central:Fixed spending')
+    if t is not None and (NUM.findall(t) or 'No solve for this rule yet' not in t):
+        bad += 1; print(sid, 'fixed spending should print no figure and say it is not solved')
+# The Cohorts tab (default view: central closure, debt-neutral, main arm)
+# prints, once each: the average, the no-bequest average, the average with
+# the post-2035 cost charged (a range), the capital and labour sources, the
+# bottom and top earnings groups, and the 45-year-old's transfer cost. Two
+# different facts can round to the same figure (the no-bequest average and
+# the top 1%), so this is a multiset. The by-form parts sit in a closed fold
+# and are not in the page text.
+CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
+c = CO['closures'][C]['rules']['dn']['tfp']
+exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['alive_by_group'][0], c['alive_by_group'][6],
+                                           c['sources_alive']['capital'], c['sources_alive']['labour']])
+if c.get('charged'):
+    lo, hi = (signed(x, 2) + '%' for x in c['charged']['no_bequest_avg'])
+    for t in {lo, hi}:  # an equal low and high print once
+        exp[t] += 1
+for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
+    exp[f"{abs(x):.1f}%"] += 1
+for sid in dump:
+    got = Counter(NUM.findall(dump[sid].get('cohorts', '')))
+    if got != exp:
+        bad += 1
+        print(sid, 'cohorts missing:', dict(exp - got), 'extra:', dict(got - exp))
+    else:
+        print(sid, 'cohorts ok:', sum(exp.values()), 'figures')
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)

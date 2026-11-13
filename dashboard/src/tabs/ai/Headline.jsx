@@ -2,12 +2,12 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, gap, fmt, result } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, SCEN_NAME as STRIP_LABEL, gap, fmt, result } from '@/tabs/ai/surprise.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
 // filled dot, the closed-capital bound as a hollow dot, on one axis centred on
-// the no-AI path), and a strip comparing the four scenarios. Every value comes
+// the OBR-central path), and a strip comparing the four scenarios. Every value comes
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const ARM_ICON = { tfp: 'trend', tz: 'arrowLeftRight', ss: 'alert' };
@@ -75,9 +75,11 @@ export function StressNote({ sid }) {
   const c = stressFalls(sid, CENTRAL);
   const b = stressFalls(sid, BOUND);
   const phrase = (x) => (x ? 'output at fixed inputs has to fall' : 'output at fixed inputs has to rise slightly');
+  // (signs from the Z values: a cut at the central closure, a slight rise
+  // with closed capital for UK central and Korinek; results sanity audit)
   return (
     <p className="disclosure-text">
-      The stress test holds {HEADLINE_YEAR} GDP at the no-AI path, as in the OBR&rsquo;s Box 2.2 displacement scenario.
+      The stress test holds {HEADLINE_YEAR} GDP at the OBR-central path, as in the OBR&rsquo;s Box 2.2 displacement scenario.
       {c != null ? (
         <>
           {' '}Under the central closure {phrase(c)} for that{c ? ', so it is a pessimistic bound, not a forecast' : ''}.
@@ -85,7 +87,7 @@ export function StressNote({ sid }) {
       ) : null}
       {b != null ? (
         <>
-          {' '}Under closed capital {phrase(b)}{b === c ? ' too' : ', so there it is not below “technology unchanged”'}.
+          {' '}Under closed capital {phrase(b)}{b === c ? ' too' : ', so there it almost coincides with “technology unchanged” and is not a pessimistic bound'}.
         </>
       ) : null}{' '}
       &ldquo;Technology unchanged&rdquo; shifts the labour share and leaves output at fixed inputs where it was.
@@ -136,7 +138,7 @@ function DotTip({ arm, closure, measure, value }) {
       <b>{measure}, {HEADLINE_YEAR}</b>
       <span>{arm}</span>
       <span>{closure}</span>
-      <span className="tip-value">{fmt(value)} against the no-AI path</span>
+      <span className="tip-value">{fmt(value)} against the OBR-central path</span>
     </>
   );
 }
@@ -154,15 +156,15 @@ export function Dumbbells({ sid, hidden = {} }) {
   const ssHeld = !hidden.ss && gap(sid, 'ss', CENTRAL, 'Y') != null;
 
   return (
-    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-AI path, by measure and arm`}>
+    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">
           <span className="db-side db-side-left">
-            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than without AI</span>
+            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the OBR-central path</span>
           </span>
           <span className="db-side db-side-right">
-            Higher<span className="db-side-long"> than without AI</span> <Icon name="arrowUp" size={12} />
+            Higher<span className="db-side-long"> than the OBR-central path</span> <Icon name="arrowUp" size={12} />
           </span>
         </div>
       </div>
@@ -253,7 +255,7 @@ export function Dumbbells({ sid, hidden = {} }) {
   );
 }
 
-const STRIP_LABEL = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek (upper)' };
+// Axis shorthand under the strip's dots; the full names are SCEN_NAME.
 const STRIP_SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
 
 function DotRow({ v, label, icon, sid, onChoose }) {
@@ -332,7 +334,7 @@ export function ScenarioStrip({ sid, onChoose }) {
           const w = gap(s.id, 'tfp', CENTRAL, 'w');
           return (
             <button key={s.id} type="button" className={`scen-col${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => onChoose(s.id)}>
-              <span className="scen-col-name">{STRIP_LABEL[s.id] || s.label}</span>
+              <span className="scen-col-name">{STRIP_LABEL[s.id]}</span>
               {g == null ? (
                 <span className="scen-col-empty" aria-label="not solved yet" />
               ) : (

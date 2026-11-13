@@ -218,7 +218,7 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
 
     # 4. size bands against the 2026-start 2030 gaps
     exp = json.loads(EXPECT.read_text())
-    key = f"{closure}|{ {'': 'common', 'fs': 'fs', 'dn': 'dn'}[var] }|{'r4' if r4_ok else k_}"
+    key = f"{closure}|{ {'': 'common'}.get(var, var) }|{'r4' if r4_ok else k_}"
     old = exp["old_2030_gaps"].get(key) if scen == "korinek" else None
     if old is None or (k_ == "r4_iter" and not r4_ok):
         add("size band vs 2026-start 2030", True, f"no band ({key})", level="info")
@@ -246,7 +246,7 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
         G, Gb = s["G"], base_ext["series"]["G"]
         e = max(rel(G[i], Gb[i]) for i in range(i28, START + sp.TG1 - START))
         add("fixed spending: G at the baseline level 2028-35", e <= ID_TOL, e)
-    if var == "dn":
+    if var in ("dn", "dnfull"):
         c = rec.get("dn_check") or sp.dn_check(rec, ref, year)
         add("debt-neutral: D/Y tracks the reference 2029-36", c["ok"], c)
 
@@ -367,7 +367,7 @@ def progress(outdir=OUTDIR) -> str:
             "", "| closure | solve | min | sanity | 2028 I | 2028 L | 2031 GDP | 2031 K | "
             "2031 wage | 2031 LS pp | 2031 Δr bp | 2031 GNI | 2031 NNI |",
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
-    for c in ("zk0.1", "zk0"):
+    for c in ("zk0.1", "zk0", "zk0.5"):
         for label, rec in sp.load(outdir, c).items():
             f = Path(outdir) / c / f"{label}.sanity.json"
             san = json.loads(f.read_text()) if f.exists() else None

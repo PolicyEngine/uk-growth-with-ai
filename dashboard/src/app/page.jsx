@@ -2,15 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import ResultsTab, { SUBS } from '@/tabs/ai/ResultsTab.jsx';
-import FutureScenariosTab from '@/tabs/FutureScenariosTab.jsx';
-import MethodologyTab from '@/tabs/MethodologyTab.jsx';
-import CoverageTab from '@/tabs/CoverageTab.jsx';
-import CodeTab from '@/tabs/CodeTab.jsx';
-import DiagramModal from '@/components/DiagramModal.jsx';
+import MethodTab from '@/tabs/method/MethodTab.jsx';
+import LiteratureTab from '@/tabs/literature/LiteratureTab.jsx';
+import CodeTab from '@/tabs/code/CodeTab.jsx';
+import CohortsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import BandPill from '@/components/ab/BandPill.jsx';
-import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
-import { S, SCENARIOS, SURPRISE_YEAR, scenarioById } from '@/tabs/ai/surprise.js';
+import { S, SCENARIOS, scenarioById } from '@/tabs/ai/surprise.js';
 
 // Six flat tabs, no sub-tabs. The open tab is ?tab=, the scenario ?s=.
 const TABS = [
@@ -38,12 +36,11 @@ const LEGACY = {
   code: 'code',
 };
 
-const SCEN_SHORT = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek US' };
-const SCEN_NOTE = { uk_central: 'Headline', korinek: 'US inputs, upper case' };
+const SCEN_NOTE = { uk_central: 'Headline', korinek: 'US “substantial” inputs' };
 const OPTIONS = SCENARIOS.map((s) => ({
   value: s.id,
-  label: SCEN_SHORT[s.id] || s.label,
-  short: SCEN_SHORT[s.id] || s.label,
+  label: s.label,
+  short: s.label,
   note: SCEN_NOTE[s.id],
 }));
 
@@ -74,56 +71,12 @@ function writeUrl(tab, s, sub, closure) {
   window.history.replaceState(null, '', u.toString());
 }
 
-function StaleNotice() {
-  return (
-    <p className="notice-chip stale">
-      Earlier design: this tab still describes the earlier runs (AI foreseen from 2026, Korinek inputs only) and has not
-      yet been updated for the {SURPRISE_YEAR} surprise.
-    </p>
-  );
-}
-
-function CohortsTab() {
-  return (
-    <>
-      <SectionHeading id="cohorts" icon="usersRound" title="Welfare by birth year and earnings group">
-        How the gains and losses fall across generations and across lower- and higher-earning groups.
-      </SectionHeading>
-      <div className="charts-stack">
-        <div className="chart-card">
-          <Unpublished>Cohort results are not published yet.</Unpublished>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function MethodTab({ openModal }) {
-  return (
-    <>
-      <StaleNotice />
-      <FutureScenariosTab openModal={openModal} />
-      <MethodologyTab openModal={openModal} />
-    </>
-  );
-}
-
-function LiteratureTab({ openModal }) {
-  return (
-    <>
-      <StaleNotice />
-      <CoverageTab openModal={openModal} />
-    </>
-  );
-}
-
 export default function HomePage() {
   const [tab, setTab] = useState('results');
   const [sid, setSid] = useState(S.default_scenario);
   const [sub, setSub] = useState('overview');
   const [closure, setClosure] = useState('central');
   const [visited, setVisited] = useState({ results: true });
-  const [modal, setModal] = useState(null);
 
   useEffect(() => {
     const apply = () => {
@@ -178,10 +131,10 @@ export default function HomePage() {
         onClosure={chooseClosure}
       />
     ),
-    cohorts: <CohortsTab />,
-    method: <MethodTab openModal={setModal} />,
-    literature: <LiteratureTab openModal={setModal} />,
-    code: <CodeTab openModal={setModal} />,
+    cohorts: <CohortsTab sid={sid} />,
+    method: <MethodTab onTab={chooseTab} active={tab === 'method'} />,
+    literature: <LiteratureTab active={tab === 'literature'} />,
+    code: <CodeTab active={tab === 'code'} />,
   };
 
   return (
@@ -219,7 +172,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {modal && <DiagramModal title={modal.title} svgHtml={modal.svgHtml} onClose={() => setModal(null)} />}
     </div>
   );
 }

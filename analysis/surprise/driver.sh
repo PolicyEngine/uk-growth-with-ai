@@ -9,6 +9,11 @@
 #   check            surprise check-specs (one spec build, no solve; both closures)
 #   nics             analysis/nics/measure_nics.py: PolicyEngine-UK NICs rates,
 #                    2027-28, evidence only (non-fatal: logged and pushed)
+#   <closure>:baseline   R1 baseline passes (rerun pipeline) for a new closure
+#   <closure>:rgate      automatic baseline gate (rerun gate --auto); on failure
+#                        every later item of that closure is SKIPPED, the rest runs
+#   <closure>:prepare    surprise prepare (baseline export to 2036, pickles only)
+#   cohorts              analysis/surprise/export_cohorts.py (pickles only)
 #   <closure>:continuation | <closure>:gate
 #   <closure>:<arms|arms_dn|arms_fs>:<scenario>   scenario = uk_low | uk_central |
 #                                                  uk_high | korinek
@@ -33,6 +38,8 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${PY:?set PY to the OG-UK venv python}"
 WORK="${WORK:?set WORK to the directory holding <closure>/baseline_p1}"
 SOLVE_BUDGET="${SOLVE_BUDGET:-600}"
+SOLVE_TIMEOUT="${SOLVE_TIMEOUT:-1800}"   # a solve takes ~7 min; kill it (by PID) after 30
+NET_TIMEOUT="${NET_TIMEOUT:-60}"         # git push / gh calls
 BRANCH="rerun/surprise-2028"
 OUT="$REPO/analysis/surprise/output"
 RERUN="$REPO/analysis/rerun/output"
@@ -47,9 +54,24 @@ PLAN=("$@")
   zk0.1:arms_fs:uk_central zk0:arms_fs:uk_central zk0.1:arms_fs:korinek zk0:arms_fs:korinek)
 : > "$WORK/un_api_token.txt"   # empty: OG-Core reads the GitHub mirror, as every run so far
 export PYTHONPATH="$REPO"
+export UGAI_IGNORE_HOLD=1     # HOLD.json stops the PREVIOUS driver, not this one
+SKIPPED=" "                   # closures whose baseline gate failed
 
 [[ "$(git -C "$REPO" rev-parse --abbrev-ref HEAD)" == "$BRANCH" ]] || {
   echo "not on $BRANCH"; exit 1; }
+
+run_to() {   # run_to <seconds> <cmd...>: kill the command (its own PID only) on timeout
+  local secs="$1"; shift
+  "$@" & local pid=$! t=0
+  while kill -0 "$pid" 2>/dev/null; do
+    if (( t >= secs )); then
+      kill "$pid" 2>/dev/null; sleep 5; kill -9 "$pid" 2>/dev/null
+      echo "TIMEOUT after ${secs}s: $*"; wait "$pid" 2>/dev/null; return 124
+    fi
+    sleep 5; t=$((t + 5))
+  done
+  wait "$pid"
+}
 
 cli() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" \
             --rerun-dir "$RERUN" </dev/null ); }
@@ -58,7 +80,7 @@ push() {   # push <message> <path>...
   local msg="$1"; shift
   ( cd "$REPO" && git add -- "$@" \
     && git commit -q -m "$msg" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- "$@" \
-    && for i in 1 2 3; do git push -q origin "$BRANCH" && exit 0; sleep 20; done
+    && for i in 1 2 3; do run_to "$NET_TIMEOUT" git push -q origin "$BRANCH" && exit 0; sleep 20; done
     echo "PUSH FAILED: $msg" )
 }
 
@@ -67,10 +89,10 @@ progress() {
   body="$("$PY" "$REPO/analysis/surprise/sanity.py" --progress --outdir "$OUT")" || return 0
   id="$(cat "$WORK/surprise_progress_comment_id" 2>/dev/null)"
   if [[ -n "$id" ]]; then
-    gh api -X PATCH "repos/PolicyEngine/uk-growth-with-ai/issues/comments/$id" \
+    run_to "$NET_TIMEOUT" gh api -X PATCH "repos/PolicyEngine/uk-growth-with-ai/issues/comments/$id" \
       -f body="$body" >/dev/null || echo "progress comment update failed"
   else
-    gh api "repos/PolicyEngine/uk-growth-with-ai/issues/27/comments" -f body="$body" \
+    run_to "$NET_TIMEOUT" gh api "repos/PolicyEngine/uk-growth-with-ai/issues/27/comments" -f body="$body" \
       --jq .id > "$WORK/surprise_progress_comment_id" || echo "progress comment failed"
   fi
 }
@@ -131,8 +153,61 @@ for item in "${PLAN[@]}"; do
     [[ $rc -ne 0 ]] && echo "nics measurement failed (rc $rc); continuing: evidence only"
     continue
   fi
+  if [[ "$item" == cohorts ]]; then
+    echo "=== start cohorts $(date +%H:%M)"
+    ( cd "$REPO" && WORK="$WORK" "$PY" analysis/surprise/export_cohorts.py \
+        >"$OUT/export_cohorts.log" 2>&1 ) || echo "cohort export failed; see $OUT/export_cohorts.log"
+    push "surprise 2028: cohort paths for the welfare results" \
+      "$REPO/analysis/surprise/cohorts" "$OUT/export_cohorts.log"
+    continue
+  fi
   IFS=: read -r C STAGE SCEN <<<"$item"
   SCEN="${SCEN:-korinek}"
+  if [[ "$SKIPPED" == *" $C "* ]]; then echo "=== SKIP $item ($C baseline gate failed)"; continue; fi
+  if [[ "$STAGE" == baseline ]]; then
+    while true; do
+      label="$(cd "$WORK" && "$PY" -m uk_growth_with_ai rerun next --closure "$C" \
+        --stage baseline --outdir "$RERUN" --prior-dir "$REPO/analysis/closure/output" \
+        </dev/null 2>"$WORK/rerun_next.err")" || {
+        echo "STOP $C baseline: $(tail -1 "$WORK/rerun_next.err")"; SKIPPED="$SKIPPED$C "; break; }
+      [[ -z "$label" ]] && { echo "=== $C baseline done"; break; }
+      time_ok "$C $label" || exit 3
+      mkdir -p "$RERUN/$C"; log="$RERUN/$C/$label.log"
+      echo "=== start $C $label $(date +%H:%M)"
+      ( cd "$WORK" && run_to "$SOLVE_TIMEOUT" caffeinate -i "$PY" -u -m uk_growth_with_ai rerun \
+          step --closure "$C" --stage baseline --outdir "$RERUN" --work "$WORK" \
+          --prior-dir "$REPO/analysis/closure/output" </dev/null >"$log" 2>&1 )
+      rc=$?
+      if [[ $rc -ne 0 || ! -f "$RERUN/$C/$label.json" ]]; then
+        push "rerun $C: $label FAILED (log)" "$log"
+        echo "FAILED $C $label (rc $rc); skipping $C"; SKIPPED="$SKIPPED$C "; break
+      fi
+      push "rerun $C: solve $label" "$RERUN/$C/$label.json" "$log"
+    done
+    continue
+  fi
+  if [[ "$STAGE" == rgate ]]; then
+    g="$RERUN/$C/GATE_baseline.json"
+    [[ -f "$g" ]] && { echo "=== $C baseline gate already approved"; continue; }
+    ( cd "$WORK" && "$PY" -m uk_growth_with_ai rerun gate --closure "$C" --auto \
+        --outdir "$RERUN" </dev/null >"$RERUN/$C/gate_baseline.log" 2>&1 )
+    if [[ ! -f "$g" ]]; then
+      push "rerun $C: baseline auto gate FAILED" "$RERUN/$C/gate_baseline.log"
+      echo "STOP $C: baseline auto gate failed; skipping $C, continuing the plan"
+      SKIPPED="$SKIPPED$C "; continue
+    fi
+    echo "=== $C baseline gate passed"
+    push "rerun $C: baseline auto gate passed" "$g" "$RERUN/$C/gate_baseline.log"
+    continue
+  fi
+  if [[ "$STAGE" == prepare ]]; then
+    f="$OUT/$C/baseline_ext.json"
+    [[ -f "$f" ]] && { echo "=== $C prepare already done"; continue; }
+    cli prepare --closure "$C" --work "$WORK" >"$WORK/prepare_$C.log" 2>&1 || {
+      echo "STOP $C prepare failed"; SKIPPED="$SKIPPED$C "; continue; }
+    push "surprise 2028 $C: baseline export to 2036" "$f"
+    echo "=== $C prepare done"; continue
+  fi
   if [[ "$STAGE" == gate ]]; then
     g="$OUT/$C/GATE_continuation.json"
     [[ -f "$g" ]] && { echo "=== $C gate already approved"; continue; }
@@ -154,9 +229,9 @@ for item in "${PLAN[@]}"; do
     time_ok "$C $label" || exit 3
     log="$OUT/$C/$label.log"; mkdir -p "$OUT/$C"
     echo "=== start $C $label $(date +%H:%M)"
-    ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai surprise step --closure "$C" \
-        --stage "$STAGE" --scenario "$SCEN" --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
-        </dev/null >"$log" 2>&1 )
+    ( cd "$WORK" && run_to "$SOLVE_TIMEOUT" caffeinate -i "$PY" -u -m uk_growth_with_ai surprise \
+        step --closure "$C" --stage "$STAGE" --scenario "$SCEN" --outdir "$OUT" \
+        --rerun-dir "$RERUN" --work "$WORK" </dev/null >"$log" 2>&1 )
     rc=$?
     if [[ $rc -ne 0 || ! -f "$OUT/$C/$label.json" ]]; then
       push "surprise 2028 $C: $label FAILED (log)" "$log"

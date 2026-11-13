@@ -18,6 +18,8 @@ LABEL="ugai-surprise-2028"
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 DEADLINE_AT="${DEADLINE_AT:-19:25}"
 DEADLINE="$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) $DEADLINE_AT:00" +%s)" || exit 1
+# a deadline earlier in the day than now means tomorrow (an overnight run)
+(( DEADLINE < $(date +%s) - 60 )) && DEADLINE=$(( DEADLINE + 86400 ))
 export DEADLINE
 if (( $(date +%s) + ${SOLVE_BUDGET:-600} > DEADLINE )); then
   echo "past the deadline ($DEADLINE_AT): not taking the lock"; exit 3
@@ -36,5 +38,10 @@ release() {
 }
 trap release EXIT
 trap 'exit 130' INT TERM
+if [[ -n "${WAIT_PID:-}" ]]; then   # hand-over: the lock is ours; let the old driver finish
+  echo "waiting for PID $WAIT_PID (previous run) to exit"
+  while kill -0 "$WAIT_PID" 2>/dev/null; do sleep 10; done
+  echo "PID $WAIT_PID exited $(date +%H:%M)"
+fi
 echo "deadline $DEADLINE_AT ($(date -r "$DEADLINE"))"
 "$REPO/analysis/surprise/driver.sh" "$@"
