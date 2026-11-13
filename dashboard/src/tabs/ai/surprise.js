@@ -33,6 +33,13 @@ export const CLOSURE_LABEL = { 'zk0.1': 'central closure', zk0: 'closed capital'
 export const result = (sid, arm, closure) => S.results[sid]?.[arm]?.[closure] ?? { status: 'pending' };
 export const isDone = (sid, arm, closure) => result(sid, arm, closure).status === 'done';
 
+// A spending-rule variant (S.rules, e.g. 'debt_neutral'): the same record
+// shape as result(), kept apart from the default-rule results. Only the
+// scenarios listed in S.rules[rule].scenarios have solves.
+export const ruleResult = (rule, sid, arm, closure) =>
+  S.rules?.[rule]?.results?.[sid]?.[arm]?.[closure] ?? { status: 'pending' };
+export const ruleScenarios = (rule) => S.rules?.[rule]?.scenarios ?? [];
+
 // Gap of variable v in a calendar year, or null when pending.
 export function gap(sid, arm, closure, v, year = HEADLINE_YEAR) {
   const r = result(sid, arm, closure);

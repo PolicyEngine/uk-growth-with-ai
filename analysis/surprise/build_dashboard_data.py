@@ -35,8 +35,14 @@ SCENARIOS = [
     ("uk_low", "UK low", "uk_low"),
     ("uk_central", "UK central", "uk_central"),
     ("uk_high", "UK high", "uk_high"),
-    ("korinek", "Korinek upper", "korinek_us_substantial_upper"),
+    ("korinek", "Korinek et al. (upper)", "korinek_us_substantial_upper"),
 ]
+# Spending-rule variants, kept apart from `results` (the default rule) so no
+# default-rule loop or count picks them up. Only the listed scenarios have
+# solves; a variant arm is shown only with its sanity pass and, for the
+# debt-neutral rule, its debt/GDP check (dn_check.ok), as paper/make_values.py
+# requires. Fixed spending (`_fs`) has no surprise solve and is not listed.
+RULE_VARIANTS = [("debt_neutral", "dn", "Debt-neutral", ["uk_central"])]
 # Order everywhere: the main arm, then technology unchanged, then the stress
 # test. "tz" is the fixed-input Z solve (`_zfixed`): the labour share shifts
 # with Z at the value that leaves output at the baseline's 2027 inputs
@@ -85,9 +91,53 @@ def git_sha():
         return None
 
 
+def fill(dest, cl, done, sanities, ref, variant, sid):
+    """Write one scenario's three arms at closure `cl` into dest[arm][cl];
+    returns the number shown. `variant` is False (default rule) or "dn"."""
+    b, n = ref["series"], 0
+    k = sp._keys(variant, sid)
+    recs = {"tfp": done.get(k["tfp"]), "tz": done.get(k["zfixed"]),
+            "ss": sp.accepted_r4(done, ref, variant, 2028, sid)}
+    r4_iters = [x for x in done if x.startswith(k["r4"])]
+    for a, *_ in ARMS:
+        rec = recs[a]
+        if rec is None:
+            note = None
+            if a == "ss":
+                note = (f"R4 not yet accepted ({len(r4_iters)} iteration(s) so far)"
+                        if (k["zfixed"] in done or r4_iters) else None)
+            dest[a][cl] = {"status": "pending", **({"note": note} if note else {})}
+            continue
+        assert rec["years_series"] == YEARS, rec["label"]
+        sanity = sanities.get(rec["label"])
+        if sanity is None or not sanity.get("ok"):  # unchecked or failed: not shown
+            dest[a][cl] = {"status": "pending", "label": rec["label"],
+                           "note": "sanity check not run" if sanity is None
+                           else "sanity check failed"}
+            continue
+        if variant == "dn" and not (rec.get("dn_check") or {}).get("ok"):
+            dest[a][cl] = {"status": "pending", "label": rec["label"],
+                           "note": "debt-neutral check failed"}
+            continue
+        dest[a][cl] = {
+            "status": "done", "label": rec["label"], "Z_terminal": rec["Z_terminal"],
+            "gamma_terminal": rec["gamma_terminal"],
+            "sanity": "pass",
+            "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
+            # share of the extra 2031 capital stock that is foreign-owned, %
+            "foreign_share_dK_2031": foreign_share(rec["series"], b),
+        }
+        for v, path in dest[a][cl]["gaps"].items():  # 2026-27 are history: every gap must be zero
+            assert all(abs(x) < 1e-9 for x in path[:2]), (rec["label"], v, path[:2])
+        n += 1
+    return n
+
+
 def main():
     targets = json.loads((ROOT / "analysis" / "surprise" / "uk_targets.json").read_text())["scenarios"]
     closures, results, n_done = {}, {sid: {a: {} for a, *_ in ARMS} for sid, *_ in SCENARIOS}, 0
+    rules = {rid: {"label": label, "variant": var, "scenarios": sids, "results": {}}
+             for rid, var, label, sids in RULE_VARIANTS}
     for cl, zk, role in CLOSURES:
         loaded = sp.load(OUT_DIR, cl)
         done = {k: v for k, v in loaded.items() if not k.endswith(".sanity")}
@@ -100,44 +150,21 @@ def main():
             for sid, *_ in SCENARIOS:
                 for a, *_ in ARMS:
                     results[sid][a][cl] = {"status": "pending"}
+            for rid, _, _, sids in RULE_VARIANTS:
+                for sid in sids:
+                    for a, *_ in ARMS:
+                        rules[rid]["results"].setdefault(sid, {x: {} for x, *_ in ARMS})[a][cl] = {"status": "pending"}
             continue
         b = ref["series"]
         assert done["continuation"]["years_series"] == YEARS
         closures[cl] = {"zeta_K": zk, "role": role, "reference": ref["reference"],
                         "reference_levels": levels(b)}
         for sid, *_ in SCENARIOS:
-            k = sp._keys(False, sid)
-            recs = {"tfp": done.get(k["tfp"]), "tz": done.get(k["zfixed"]),
-                    "ss": sp.accepted_r4(done, ref, False, 2028, sid)}
-            r4_iters = [x for x in done if x.startswith(k["r4"])]
-            for a, *_ in ARMS:
-                rec = recs[a]
-                if rec is None:
-                    note = None
-                    if a == "ss":
-                        note = (f"R4 not yet accepted ({len(r4_iters)} iteration(s) so far)"
-                                if (k["zfixed"] in done or r4_iters) else None)
-                    results[sid][a][cl] = {"status": "pending", **({"note": note} if note else {})}
-                    continue
-                assert rec["years_series"] == YEARS, rec["label"]
-                sanity = sanities.get(rec["label"])
-                if sanity is None or not sanity.get("ok"):  # unchecked or failed: not shown
-                    results[sid][a][cl] = {"status": "pending", "label": rec["label"],
-                                           "note": "sanity check not run" if sanity is None
-                                           else "sanity check failed"}
-                    continue
-                results[sid][a][cl] = {
-                    "status": "done", "label": rec["label"], "Z_terminal": rec["Z_terminal"],
-                    "gamma_terminal": rec["gamma_terminal"],
-                    "sanity": "pass",
-                    "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
-                    # share of the extra 2031 capital stock that is foreign-owned, %
-                    "foreign_share_dK_2031": foreign_share(rec["series"], b),
-                }
-                g = results[sid][a][cl]["gaps"]
-                for v, path in g.items():  # 2026-27 are history: every gap must be zero
-                    assert all(abs(x) < 1e-9 for x in path[:2]), (rec["label"], v, path[:2])
-                n_done += 1
+            n_done += fill(results[sid], cl, done, sanities, ref, False, sid)
+        for rid, var, _, sids in RULE_VARIANTS:
+            for sid in sids:
+                fill(rules[rid]["results"].setdefault(sid, {a: {} for a, *_ in ARMS}),
+                     cl, done, sanities, ref, var, sid)
     scen = []
     for sid, label, tkey in SCENARIOS:
         t = targets[tkey]
@@ -149,7 +176,7 @@ def main():
         "source_commit": git_sha(), "years": YEARS, "window": WINDOW, "headline_year": HEADLINE,
         "late_year": LATE, "surprise_year": 2028, "default_scenario": "uk_central",
         "scenarios": scen, "arms": [{"id": a, "label": l, "short": sh} for a, l, sh in ARMS],
-        "closures": closures, "results": results, "solves_done": n_done,
+        "closures": closures, "results": results, "rules": rules, "solves_done": n_done,
         "solves_total": len(SCENARIOS) * len(ARMS) * len(CLOSURES),
     }
     DEST.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")
@@ -165,6 +192,17 @@ def main():
                           f"NNI {g['NNI'][i]:+.2f}% w {g['w'][i]:+.2f}%  ({r['label']})")
                 else:
                     print(f"  {sid:10s} {a:3s} {cl:5s} pending {r.get('note', '')}")
+    for rid, rule in rules.items():
+        for sid, arms in rule["results"].items():
+            for a, cls in arms.items():
+                for cl, r in cls.items():
+                    if r["status"] == "done":
+                        i = YEARS.index(HEADLINE)
+                        g = r["gaps"]
+                        print(f"  {rid} {sid:10s} {a:3s} {cl:5s} 2031 GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
+                              f"w {g['w'][i]:+.2f}% C {g['C'][i]:+.2f}%  ({r['label']})")
+                    else:
+                        print(f"  {rid} {sid:10s} {a:3s} {cl:5s} pending {r.get('note', '')}")
 
 
 if __name__ == "__main__":

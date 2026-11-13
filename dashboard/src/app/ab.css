@@ -905,6 +905,70 @@ body {
   margin: 0;
 }
 
+/* Spending-rule card: a rule variant's headline-year gaps, arms by measure */
+.rule-table-wrap {
+  overflow-x: auto;
+}
+
+.rule-table {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.rule-table caption {
+  padding: 0 0 8px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+  text-align: left;
+}
+
+.rule-table th,
+.rule-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--pe-gray-200);
+}
+
+.rule-table thead th {
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  text-align: right;
+}
+
+.rule-table thead th:first-child,
+.rule-table tbody th {
+  font-weight: 500;
+  color: var(--pe-gray-900);
+  text-align: left;
+}
+
+.rule-table td {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rule-table .rule-table-group th {
+  padding-top: 14px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+
+.rule-note {
+  margin: 12px 0 0;
+}
+
+@media (max-width: 480px) {
+  .rule-table th,
+  .rule-table td {
+    padding: 8px 5px;
+  }
+}
+
 /* Fact list: two columns, stacked on a phone */
 .fact-list {
   margin: 0;

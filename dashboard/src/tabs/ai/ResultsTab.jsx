@@ -353,7 +353,7 @@ export default function ResultsTab({ sid, sub = 'overview', onSub, onTab, onScen
         <EffectGrid sid={sid} hidden={hidden} closure={closure} />
       </>
     ),
-    finances: <FinancesSection sid={sid} hidden={hidden} legendBar={legendBar} closure={closure} />,
+    finances: <FinancesSection sid={sid} hidden={hidden} legendBar={legendBar} closure={closure} link={link} />,
   };
 
   return (

@@ -8,7 +8,7 @@ import LineChart from '@/components/LineChart.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
 import {
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, result, gap, signed,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, CLOSURE_LABEL, result, ruleResult, ruleScenarios, scenarioById, gap, signed, fmt,
 } from '@/tabs/ai/surprise.js';
 
 // Public finances, the last section of Results: debt/GDP to the debt rule's
@@ -243,10 +243,63 @@ const RULES = [
   { id: 'debt_neutral', label: 'Debt-neutral' },
 ];
 
-function SpendingRuleCard() {
-  const [rule, setRule] = useState('default');
+// The headline-year gaps a rule variant prints: this card is their one home.
+const RULE_VARS = [
+  { v: 'Y', label: 'GDP' },
+  { v: 'GNI', label: 'GNI' },
+  { v: 'w', label: 'Wage rate' },
+  { v: 'C', label: 'Consumption' },
+];
+
+function RuleTable({ rule, sid, closure }) {
+  const cls = closuresFor(closure);
+  const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
   return (
-    <div className="chart-card">
+    <div className="rule-table-wrap">
+      <table className="rule-table">
+        <caption>
+          {scenarioById(sid).label}, {HEADLINE_YEAR}, % difference from the OBR-central path
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Arm</th>
+            {RULE_VARS.map((c) => (
+              <th key={c.v} scope="col">{c.label}</th>
+            ))}
+          </tr>
+        </thead>
+        {cls.map((cl) => (
+          <tbody key={cl}>
+            {cls.length > 1 ? (
+              <tr className="rule-table-group">
+                <th colSpan={RULE_VARS.length + 1} scope="colgroup">{CLOSURE_LABEL[cl]}</th>
+              </tr>
+            ) : null}
+            {ARMS.map((a) => {
+              const r = ruleResult(rule, sid, a.id, cl);
+              return (
+                <tr key={a.id}>
+                  <th scope="row">{a.short || a.label}</th>
+                  {RULE_VARS.map((c) => (
+                    <td key={c.v}>{fmt(at(r, c.v), 2)}</td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        ))}
+      </table>
+    </div>
+  );
+}
+
+function SpendingRuleCard({ sid, closure, link }) {
+  const [rule, setRule] = useState('default');
+  const solved = ruleScenarios(rule);
+  const names = solved.map((s) => scenarioById(s).label).join(', ');
+  const cl = closure === 'both' ? 'both closures' : CLOSURE_LABEL[closuresFor(closure)[0]];
+  return (
+    <div className="chart-card" id="spending-rule">
       <div className="chart-header">
         <h3>
           <Icon name="sliders" size={16} />
@@ -254,7 +307,7 @@ function SpendingRuleCard() {
         </h3>
       </div>
       <p className="chart-description">
-        The alternative rules are shown as their difference from the default rule, so no figure above is repeated.
+        Each alternative rule shows its own {HEADLINE_YEAR} gaps, in place of the default-rule figures on the other cards.
       </p>
       <div className="view-switch" role="group" aria-label="Spending rule">
         {RULES.map((r) => (
@@ -268,14 +321,24 @@ function SpendingRuleCard() {
           This is the rule every other card on Results uses: government consumption follows GDP until the
           debt rule starts in {LATE_YEAR}.
         </p>
-      ) : (
+      ) : !solved.length ? (
         <Unpublished>No solve for this rule yet. The {RULES.find((r) => r.id === rule).label.toLowerCase()} results will appear here once they are published.</Unpublished>
+      ) : !solved.includes(sid) ? (
+        <Unpublished>This rule is solved for {names} only. Choose {names} at the top of the page.</Unpublished>
+      ) : (
+        <>
+          <RuleTable rule={rule} sid={sid} closure={closure} />
+          <p className="chart-description rule-note">
+            Shown for the {cl}. Debt/GDP stays on the OBR-central path to {LATE_YEAR} by construction, so it has no gap
+            to show. Solved for {names} only. What the rule changes: {link('method', 'Scenarios and method')}.
+          </p>
+        </>
       )}
     </div>
   );
 }
 
-export default function FinancesSection({ sid, hidden, legendBar, closure }) {
+export default function FinancesSection({ sid, hidden, legendBar, closure, link }) {
   const cl = closure === 'closed' ? 'closed capital' : closure === 'both' ? 'both closures' : 'central closure';
   return (
     <>
@@ -322,7 +385,7 @@ export default function FinancesSection({ sid, hidden, legendBar, closure }) {
         <TaxGapCard sid={sid} />
       </div>
       <div className="charts-stack stack-gap">
-        <SpendingRuleCard />
+        <SpendingRuleCard sid={sid} closure={closure} link={link} />
       </div>
     </>
   );
