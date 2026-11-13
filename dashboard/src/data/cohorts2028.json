@@ -1,7 +1,7 @@
 {
  "what": "Consumption-equivalent welfare change by birth year and lifetime-earnings group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption and bequests, labour held at the no-shock path. no_bequest_*: warm glow dropped, per cent of consumption. sources_alive: change in remaining-lifetime after-tax income by source at unchanged behaviour, per cent of remaining-lifetime consumption (first order). charged: the government-consumption shortfall from 2036 charged to households per head (first order, debt-neutral only; [low, high] over two extensions past 2036).",
  "generated_by": "paper/cohort_welfare.py --json",
- "source": "uk-growth-with-ai@3b4175e",
+ "source": "uk-growth-with-ai@f4bf750",
  "reference": "no-shock continuation of the same closure",
  "shock_year": 2028,
  "groups": [
@@ -1573,32 +1573,32 @@
        "bequests": 0.52
       },
       "consumption_only_alive_avg": 1.429,
-      "no_bequest_alive_avg": 0.485,
+      "no_bequest_alive_avg": 0.4852,
       "no_bequest_losing_pct": 14.954,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -0.666,
-       "capital": 1.681,
-       "transfers": -0.062,
-       "bequests": 0.292,
-       "total": 1.245
+       "labour": -0.6662,
+       "capital": 1.6809,
+       "transfers": -0.0619,
+       "bequests": 0.2921,
+       "total": 1.2448
       },
       "charged": {
        "joint_avg": [
-        0.504,
-        0.528
+        0.5042,
+        0.5284
        ],
        "joint_losing_pct": [
-        14.824,
-        17.574
+        14.8238,
+        17.5743
        ],
        "no_bequest_avg": [
         0.091,
-        0.122
+        0.1224
        ],
        "no_bequest_losing_pct": [
-        47.664,
-        49.52
+        47.6641,
+        49.5199
        ],
        "oldest_losing_on_average": [
         28.0,
@@ -3008,31 +3008,31 @@
        "bequests": 0.425
       },
       "consumption_only_alive_avg": 0.886,
-      "no_bequest_alive_avg": 0.121,
+      "no_bequest_alive_avg": 0.1208,
       "no_bequest_losing_pct": 47.005,
       "all_lose_up_to_age": 20,
       "sources_alive": {
-       "labour": -0.956,
-       "capital": 1.579,
-       "transfers": -0.187,
-       "bequests": 0.245,
-       "total": 0.681
+       "labour": -0.9557,
+       "capital": 1.5789,
+       "transfers": -0.1869,
+       "bequests": 0.2448,
+       "total": 0.6812
       },
       "charged": {
        "joint_avg": [
-        0.127,
-        0.148
+        0.1271,
+        0.1476
        ],
        "joint_losing_pct": [
-        42.708,
-        44.03
+        42.7077,
+        44.0302
        ],
        "no_bequest_avg": [
-        -0.301,
-        -0.274
+        -0.3006,
+        -0.2741
        ],
        "no_bequest_losing_pct": [
-        64.834,
+        64.8339,
         66.298
        ],
        "oldest_losing_on_average": [
@@ -4443,31 +4443,31 @@
        "bequests": 0.29
       },
       "consumption_only_alive_avg": 0.119,
-      "no_bequest_alive_avg": -0.394,
+      "no_bequest_alive_avg": -0.3943,
       "no_bequest_losing_pct": 67.761,
       "all_lose_up_to_age": 44,
       "sources_alive": {
-       "labour": -1.365,
-       "capital": 1.434,
-       "transfers": -0.363,
+       "labour": -1.3645,
+       "capital": 1.4341,
+       "transfers": -0.3632,
        "bequests": 0.178,
-       "total": -0.116
+       "total": -0.1157
       },
       "charged": {
        "joint_avg": [
-        -0.406,
-        -0.39
+        -0.4057,
+        -0.3903
        ],
        "joint_losing_pct": [
-        64.578,
-        65.161
+        64.5784,
+        65.1613
        ],
        "no_bequest_avg": [
-        -0.854,
-        -0.834
+        -0.8537,
+        -0.8339
        ],
        "no_bequest_losing_pct": [
-        82.662,
+        82.6616,
         83.352
        ],
        "oldest_losing_on_average": [
@@ -5880,15 +5880,15 @@
        "bequests": 0.538
       },
       "consumption_only_alive_avg": 1.608,
-      "no_bequest_alive_avg": 0.624,
+      "no_bequest_alive_avg": 0.6239,
       "no_bequest_losing_pct": 4.796,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -0.667,
-       "capital": 1.655,
-       "transfers": 0.109,
-       "bequests": 0.302,
-       "total": 1.4
+       "labour": -0.6668,
+       "capital": 1.6554,
+       "transfers": 0.1093,
+       "bequests": 0.3018,
+       "total": 1.3997
       },
       "charged": null,
       "first_year_c_above": 2037,
@@ -7294,15 +7294,15 @@
        "bequests": 0.455
       },
       "consumption_only_alive_avg": 1.147,
-      "no_bequest_alive_avg": 0.314,
+      "no_bequest_alive_avg": 0.3143,
       "no_bequest_losing_pct": 33.502,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -0.957,
-       "capital": 1.543,
-       "transfers": 0.064,
-       "bequests": 0.261,
-       "total": 0.911
+       "labour": -0.9568,
+       "capital": 1.5433,
+       "transfers": 0.0641,
+       "bequests": 0.2609,
+       "total": 0.9114
       },
       "charged": null,
       "first_year_c_above": 2048,
@@ -8708,15 +8708,15 @@
        "bequests": 0.367
       },
       "consumption_only_alive_avg": 0.658,
-      "no_bequest_alive_avg": -0.015,
+      "no_bequest_alive_avg": -0.0145,
       "no_bequest_losing_pct": 55.367,
       "all_lose_up_to_age": 25,
       "sources_alive": {
-       "labour": -1.264,
-       "capital": 1.424,
-       "transfers": 0.016,
-       "bequests": 0.217,
-       "total": 0.393
+       "labour": -1.2644,
+       "capital": 1.4238,
+       "transfers": 0.0162,
+       "bequests": 0.2173,
+       "total": 0.3928
       },
       "charged": null,
       "first_year_c_above": null,
@@ -10332,28 +10332,28 @@
        "bequests": 0.608
       },
       "consumption_only_alive_avg": 1.681,
-      "no_bequest_alive_avg": 0.568,
+      "no_bequest_alive_avg": 0.5685,
       "no_bequest_losing_pct": 19.43,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -0.85,
-       "capital": 2.099,
-       "transfers": -0.114,
-       "bequests": 0.358,
-       "total": 1.493
+       "labour": -0.8499,
+       "capital": 2.0986,
+       "transfers": -0.1135,
+       "bequests": 0.3576,
+       "total": 1.4928
       },
       "charged": {
        "joint_avg": [
-        0.7,
-        0.72
+        0.6995,
+        0.7204
        ],
        "joint_losing_pct": [
-        9.662,
-        12.171
+        9.6623,
+        12.1713
        ],
        "no_bequest_avg": [
-        0.267,
-        0.294
+        0.2673,
+        0.2943
        ],
        "no_bequest_losing_pct": [
         40.61,
@@ -11767,32 +11767,32 @@
        "bequests": 0.512
       },
       "consumption_only_alive_avg": 1.136,
-      "no_bequest_alive_avg": 0.207,
+      "no_bequest_alive_avg": 0.2068,
       "no_bequest_losing_pct": 44.268,
       "all_lose_up_to_age": 20,
       "sources_alive": {
-       "labour": -1.121,
-       "capital": 1.972,
-       "transfers": -0.232,
-       "bequests": 0.307,
-       "total": 0.926
+       "labour": -1.1212,
+       "capital": 1.9718,
+       "transfers": -0.2318,
+       "bequests": 0.3073,
+       "total": 0.9261
       },
       "charged": {
        "joint_avg": [
-        0.321,
+        0.3206,
         0.338
        ],
        "joint_losing_pct": [
-        35.069,
-        36.263
+        35.0689,
+        36.2631
        ],
        "no_bequest_avg": [
-        -0.125,
-        -0.102
+        -0.1245,
+        -0.1021
        ],
        "no_bequest_losing_pct": [
-        56.859,
-        58.112
+        56.8587,
+        58.1123
        ],
        "oldest_losing_on_average": [
         40.0,
@@ -13202,32 +13202,32 @@
        "bequests": 0.495
       },
       "consumption_only_alive_avg": 1.041,
-      "no_bequest_alive_avg": 0.144,
+      "no_bequest_alive_avg": 0.1436,
       "no_bequest_losing_pct": 47.021,
       "all_lose_up_to_age": 22,
       "sources_alive": {
-       "labour": -1.169,
-       "capital": 1.95,
-       "transfers": -0.253,
-       "bequests": 0.299,
+       "labour": -1.1687,
+       "capital": 1.9496,
+       "transfers": -0.2525,
+       "bequests": 0.2985,
        "total": 0.827
       },
       "charged": {
        "joint_avg": [
-        0.254,
-        0.271
+        0.2543,
+        0.2712
        ],
        "joint_losing_pct": [
-        38.881,
-        39.312
+        38.8811,
+        39.3121
        ],
        "no_bequest_avg": [
         -0.193,
-        -0.171
+        -0.1713
        ],
        "no_bequest_losing_pct": [
-        59.326,
-        59.703
+        59.3259,
+        59.7028
        ],
        "oldest_losing_on_average": [
         42.0,
@@ -14643,11 +14643,11 @@
       "no_bequest_losing_pct": 8.761,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -0.851,
-       "capital": 2.071,
-       "transfers": 0.07,
-       "bequests": 0.369,
-       "total": 1.659
+       "labour": -0.8506,
+       "capital": 2.0709,
+       "transfers": 0.0696,
+       "bequests": 0.3688,
+       "total": 1.6587
       },
       "charged": null,
       "first_year_c_above": 2037,
@@ -16053,15 +16053,15 @@
        "bequests": 0.544
       },
       "consumption_only_alive_avg": 1.402,
-      "no_bequest_alive_avg": 0.399,
+      "no_bequest_alive_avg": 0.3989,
       "no_bequest_losing_pct": 32.63,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -1.122,
-       "capital": 1.934,
-       "transfers": 0.028,
-       "bequests": 0.324,
-       "total": 1.163
+       "labour": -1.1225,
+       "capital": 1.9337,
+       "transfers": 0.0277,
+       "bequests": 0.3242,
+       "total": 1.1631
       },
       "charged": null,
       "first_year_c_above": 2045,
@@ -17471,11 +17471,11 @@
       "no_bequest_losing_pct": 31.12,
       "all_lose_up_to_age": null,
       "sources_alive": {
-       "labour": -1.1,
-       "capital": 1.945,
-       "transfers": 0.031,
-       "bequests": 0.328,
-       "total": 1.205
+       "labour": -1.0996,
+       "capital": 1.9453,
+       "transfers": 0.0313,
+       "bequests": 0.3279,
+       "total": 1.2049
       },
       "charged": null,
       "first_year_c_above": 2044,

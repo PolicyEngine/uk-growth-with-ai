@@ -33,9 +33,7 @@ const ALL_COLOR = 'var(--pe-gray-800)';
 const LAST_ALIVE = D.shock_year - 20; // youngest adult in 2028 (born 2008)
 
 const minus = (s) => s.replace('-', '−');
-// Half away from zero on the decimal value (0.485 -> 0.49), as the paper's macros round.
-const round = (x, dp) => Math.sign(x) * Math.round(Math.abs(x) * 10 ** dp + 1e-9) / 10 ** dp;
-export const pct = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${round(x, dp).toFixed(dp)}%`));
+export const pct = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${x.toFixed(dp)}%`));
 const plain = (x, dp = 0) => `${x.toFixed(dp)}%`;
 
 export function cell(closure, rule, arm) {
@@ -98,7 +96,7 @@ export function Headline({ c, rule }) {
     <div className="takeaway">
       <p>
         <b>Who loses:</b> {share(c.alive_losing_pct)} of adults alive in {D.shock_year}
-        {young ? `, including everyone aged ${young} or younger` : ''}.
+        {young ? `, including everyone aged ${young === 20 ? '20' : `${young} or younger`}` : ''}.
         {ch ? (
           <>
             {' '}With the fiscal cost after 2035 also charged to households,{' '}
@@ -178,8 +176,7 @@ function Why({ cl, rule, arm }) {
         <p>
           Wealth is spread more evenly than earnings: the bottom 25% hold {plain(prof.wealth_share[0])} of household wealth
           and earn {plain(prof.earnings_share[0])} of labour income. In the model the wealthiest tenth hold{' '}
-          {plain(C.wealth_concentration.top_tenth_pct)} of wealth, against 43% in ONS data for 2018–20, so a higher return
-          reaches lower earners more than it would in the UK.
+          {plain(C.wealth_concentration.top_tenth_pct)} of wealth, against 43% in ONS data for 2018–20.
         </p>
       </InfoCard>
       <InfoCard icon="landmark" title="Who pays the fiscal cost">
