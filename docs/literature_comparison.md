@@ -43,7 +43,7 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 2. **Debt/GDP ends higher in every arm by 2036, including "automation + productivity". The OBR and Penn Wharton have higher productivity lowering debt.**
    - For UK central the whole +2.0pp is the higher interest rate applied to the entire debt stock at once (+2.3pp). Without that, debt/GDP would be about 0.3pp lower than baseline.
    - Fix: no rerun. Report the split beside every debt number.
-3. **Tax/GDP rises in the Korinek main arm at ζK = 0** while the labour share falls 3.9pp. At ζK = 0.1 the fall per point of share is 42–77% of the OBR's midpoint, and at ζK = 0 it is 2–13% in the other five solved cells. This is known (A6 in the audit) and Vahid decided on 12 November to keep and report it.
+3. **Tax/GDP rises in the Korinek main arm at ζK = 0** while the labour share falls 3.9pp. At ζK = 0.1 the fall per point of share is 42–77% of the OBR's midpoint, and at ζK = 0 it is 2–14% in the other five solved cells. This is known (A6 in the audit) and Vahid decided on 12 November to keep and report it.
 
 **Two calibration points that the comparison turned up.**
 
@@ -536,7 +536,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 - **Perfect foresight after 2028 does not explain the gaps.**
   - Once the shock arrives, households and firms know the whole path. That brings saving and investment forward: UK central's investment is 7.8% above baseline in 2028, the announcement year. Foresight therefore raises the four-year capital response; it does not lower it.
   - The audit finds that the surprise timing itself costs nothing: at ζK = 0.1 the Korinek arm's 2031 results match the old fully anticipated 2030 results (A10).
-  - Korinek et al. and the IMF's model have no forward-looking saving at this horizon, so the comparison cannot be sharpened further. The BIS study (B20) finds that anticipation changes inflation, not the direction of output or investment.
+  - Korinek et al. and the IMF's model have no forward-looking saving at this horizon, so the comparison cannot be sharpened further. The BIS study (B20) reports that anticipation changes the path of inflation; output, consumption and investment rise either way (abstract).
 
 ## 5. Red flags
 
@@ -575,7 +575,7 @@ The test was: a result outside every published range with no cause in the model.
 
 ### 3. Tax/GDP: the wrong sign in one cell at ζK = 0, and 42–77% of the OBR's size at ζK = 0.1
 
-- **What.** The Korinek main arm at ζK = 0 has tax/GDP +0.21pp with the labour share 3.9pp lower. UK central's main arm at ζK = 0 is −0.006pp, zero in practice. At ζK = 0.1 the response is 0.09–0.16pp per point against the OBR's 0.19–0.23pp, which is 42–77% of the OBR's midpoint. In the other four cells at ζK = 0 it is 0.03pp, 12–13%.
+- **What.** The Korinek main arm at ζK = 0 has tax/GDP +0.21pp with the labour share 3.9pp lower. UK central's main arm at ζK = 0 is −0.006pp, zero in practice. At ζK = 0.1 the response is 0.09–0.16pp per point against the OBR's 0.19–0.23pp, which is 42–77% of the OBR's midpoint. In the other four cells at ζK = 0 it is 0.03pp, 12–14%.
 - **Why.** A labour–capital tax gap of about 14pp against the OBR's 19–23pp, and a single income-tax schedule that taxes the extra capital income when the return rises (audit A6).
 - **Status.** Known. Vahid decided on 12 November to keep and report it. The audit predicts a second wrong sign for UK high at ζK = 0 (+0.08pp), which is not solved.
 - **Fix without a rerun:** a caveat wherever fiscal results at ζK = 0 appear. A ζK = 0.5 run would lower the rise in the return and so the size of this effect.
