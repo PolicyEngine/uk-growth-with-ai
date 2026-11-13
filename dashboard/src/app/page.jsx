@@ -36,12 +36,11 @@ const LEGACY = {
   code: 'code',
 };
 
-const SCEN_SHORT = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek US' };
-const SCEN_NOTE = { uk_central: 'Headline', korinek: 'US inputs, upper case' };
+const SCEN_NOTE = { uk_central: 'Headline', korinek: 'US “substantial” inputs' };
 const OPTIONS = SCENARIOS.map((s) => ({
   value: s.id,
-  label: SCEN_SHORT[s.id] || s.label,
-  short: SCEN_SHORT[s.id] || s.label,
+  label: s.label,
+  short: s.label,
   note: SCEN_NOTE[s.id],
 }));
 

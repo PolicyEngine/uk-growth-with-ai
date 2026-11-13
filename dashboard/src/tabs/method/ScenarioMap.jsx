@@ -1,7 +1,7 @@
 'use client';
 
 import { TipBox } from '@/components/ab/Tip.jsx';
-import { SCENARIOS, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { SCENARIOS, KORINEK_FULL, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
 
 // The four scenarios on one map: productivity gain (x) against labour-share
@@ -73,7 +73,7 @@ export default function ScenarioMap() {
                 <circle cx={x} cy={y} r="14" className="mx-hit" />
                 <circle cx={x} cy={y} r={s.id === 'uk_central' ? 7 : 6} />
                 <text x={up ? x - 12 : x + 12} y={y + 4} textAnchor={up ? 'end' : 'start'} className="mx-pt-label">
-                  {up ? 'Korinek US (upper)' : s.label}
+                  {s.label}
                 </text>
               </g>
             );
@@ -85,7 +85,7 @@ export default function ScenarioMap() {
             style={{ left: `${(sx(h.tfp_gain_pct) / W) * 100}%`, top: `${(sy(h.labour_share_fall_pp) / H) * 100}%` }}
           >
             <TipBox className="mx-tip">
-              <b>{h.id === 'korinek' ? 'Korinek US substantial' : h.label}</b>
+              <b>{h.id === 'korinek' ? KORINEK_FULL : h.label}</b>
               <span>{ROLE[h.id]}</span>
             </TipBox>
           </span>
@@ -102,7 +102,7 @@ export default function ScenarioMap() {
         </li>
         <li>
           <span className="mx-key is-upper" aria-hidden="true" />
-          <span>Korinek et al.&rsquo;s US case lies beyond the UK range on both inputs and is kept as a labelled upper case.</span>
+          <span>Korinek et al.&rsquo;s US &ldquo;substantial&rdquo; case lies beyond the UK range on both inputs and is kept as a labelled upper case.</span>
         </li>
       </ul>
       </div>

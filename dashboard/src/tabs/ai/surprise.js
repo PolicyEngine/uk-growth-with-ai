@@ -20,6 +20,12 @@ export const BOUND = 'zk0';
 export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.zeta_K };
 export const SCENARIOS = S.scenarios;
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
+// The one name of each scenario, as the paper's tables print it (UK low, UK
+// central, UK high, Korinek et al. (upper)); set in build_dashboard_data.py.
+export const SCEN_NAME = Object.fromEntries(SCENARIOS.map((s) => [s.id, s.label]));
+// The upper case where it is defined (paper, methodology: "Upper case:
+// Korinek et al., US 'substantial'").
+export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
 // [{id, label, short}], in display order: 'tfp' automation + productivity
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
 // 'ss' the OBR-style stress test that holds 2031 GDP at the OBR-central path.

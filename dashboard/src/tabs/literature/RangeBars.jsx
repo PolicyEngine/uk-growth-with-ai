@@ -7,7 +7,7 @@ import { gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } 
 import { useHover } from '../shared/ui.jsx';
 
 // Range bars: published level gaps (bars, or dots for a single figure)
-// against our headline-year gaps for UK central and the Korinek upper case
+// against our headline-year gaps for UK central and Korinek et al. (upper)
 // (automation + productivity arm), both read from surprise2028.json through
 // gap(). Our values appear in the tooltips only: their home is Results.
 const META = {
@@ -29,7 +29,7 @@ export default function RangeBars({ metric }) {
   const pub = RANGES[metric];
   const ours = OURS.map((sid) => ({
     sid,
-    label: sid === 'korinek' ? 'Korinek US inputs' : scenarioById(sid).label,
+    label: scenarioById(sid).label,
     c: gap(sid, 'tfp', CENTRAL, m.v),
     b: gap(sid, 'tfp', BOUND, m.v),
   }));

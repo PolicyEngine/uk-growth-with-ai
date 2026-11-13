@@ -2,7 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, SCENARIOS, gap, fmt, signed, result } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, SCENARIOS, SCEN_NAME as NAME, gap, fmt, result } from '@/tabs/ai/surprise.js';
 
 // The answer-first top of Results > Overview: a question, a one-line answer
 // built from the data, three KPI tiles for the selected scenario's main arm
@@ -10,7 +10,7 @@ import { HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, SCENARIOS, gap, fmt, signed, res
 // scenarios on a small range bar, three "why" bullets and a "how sure" line.
 // No jargon here: the precise terms live in tips and in the details below.
 
-const NAME = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek (upper)' };
+// Axis shorthand under the range dots; the full names are SCEN_NAME.
 const SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
 
 const KPIS = [
@@ -136,9 +136,7 @@ export default function Landing({ sid, onScenario, detailsId }) {
           label="What is the OBR-central path?"
           tip={
             <span>
-              The comparison path grows with the OBR&rsquo;s central productivity growth, 1.0% a year. That already includes
-              the OBR&rsquo;s own central AI assumption, so each figure is AI beyond that path, not against a world with no
-              AI.
+              The path every figure here is compared with. Its definition is under The shock on Scenarios and method.
             </span>
           }
         >
@@ -182,7 +180,7 @@ export default function Landing({ sid, onScenario, detailsId }) {
               <li>
                 <Icon name="pie" size={18} />
                 <span>
-                  Capital takes a bigger share of income (the labour share moves {signed(ls, 1)}pp), so pay rates{' '}
+                  Capital takes a bigger share of income, so pay rates{' '}
                   {gap(sid, 'tfp', CENTRAL, 'w') < 0 ? 'fall' : 'rise less'}.
                 </span>
               </li>

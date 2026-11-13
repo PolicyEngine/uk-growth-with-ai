@@ -81,7 +81,7 @@ sp gate --closure zk0.1 --approve --reference continuation --note "..."`,
     short: 'Scenario grid',
     title: 'The scenario grid',
     file: 'analysis/surprise/uk_targets.json',
-    line: 'UK low, central and high, plus Korinek. Each has three arms.',
+    line: 'UK low, central and high, plus Korinek et al. (upper). Each has three arms.',
     more: [
       '--scenario defaults to korinek, so always pass it.',
       'next prints the next solve for a scenario, or nothing when the set is done.',

@@ -3,7 +3,7 @@
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { S, SCENARIOS, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
+import { S, SCENARIOS, KORINEK_FULL, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
 import { REPO, issue } from '@/tabs/ai/links.js';
 import F from '@/data/methodFacts.json';
 import { ext, GoTo, StepRail, StepSection } from '../shared/ui.jsx';
@@ -473,7 +473,7 @@ export default function MethodTab({ onTab, active = true }) {
                     key={s.id}
                     id={`scen-${s.id}`}
                     icon={s.id === 'korinek' ? 'globe' : 'landmark'}
-                    title={s.id === 'korinek' ? 'Korinek US (upper)' : s.label}
+                    title={s.id === 'korinek' ? KORINEK_FULL : s.label}
                     className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
                     more={
                       <dl className="mx-facts">

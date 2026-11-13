@@ -260,7 +260,7 @@ export const CHANNELS = [
     label: 'Households and cohorts',
     icon: 'usersRound',
     cells: {
-      oguk: ['yes', 'Modelled', '80 ages and 7 ability types.'],
+      oguk: ['yes', 'Modelled', 'Households by age cohort and ability type; the counts are on Scenarios and method.'],
       korinek: ['part', 'Two occupations', 'Cognitive and other workers, one wage each.'],
       moll: ['no', 'No', 'Representative agent.'],
       obr: ['no', 'Not for AI', 'The OBR’s OLG model (Working paper 22) is not used for AI.'],
@@ -275,7 +275,7 @@ export const CHANNELS = [
       oguk: ['yes', 'Modelled', 'Tax functions fitted to PolicyEngine-UK; one schedule for labour and capital income.'],
       korinek: ['no', 'No', 'Research funded by lump-sum taxes.'],
       moll: ['no', 'No', 'No government.'],
-      obr: ['yes', 'Modelled', 'Fiscal forecast with effective rates of 46% on wages and 27% on profits (FRS 2026).'],
+      obr: ['yes', 'Modelled', 'Fiscal forecast with separate effective rates on wages and profits (FRS 2026); the rates are on Results, Public finances.'],
       imf: ['na', 'Not stated', 'No fiscal results.'],
     },
   },

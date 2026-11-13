@@ -149,7 +149,7 @@ function debtWords(sid) {
   return `${lead} The higher interest rate reprices the whole debt stock.`;
 }
 
-function TaxGapCard({ sid }) {
+function TaxGapCard({ sid, link }) {
   const closedTax = closedTaxWords(sid);
   const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp');
   const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp');
@@ -188,8 +188,8 @@ function TaxGapCard({ sid }) {
             'The labour-share fall for this scenario is pending.'
           ) : (
             <>
-              In this scenario the labour share falls by {fall.toFixed(1)} points by {HEADLINE_YEAR}. The OBR&rsquo;s tax rates lose
-              0.19 to 0.23 points of revenue per point moved from labour to capital. Multiplying gives the range above.
+              The OBR&rsquo;s tax rates lose 0.19 to 0.23 points of revenue per point moved from labour to capital.
+              Multiplying by this scenario&rsquo;s {HEADLINE_YEAR} labour-share fall (By variable) gives the range above.
               {model != null ? ` The model loses about ${Math.abs(model / fall).toFixed(2)} per point, including every other effect of AI.` : ''}
             </>
           )}
@@ -209,8 +209,8 @@ function TaxGapCard({ sid }) {
           icon="receipt"
           title="Employer National Insurance"
           axis={{ max: 16, label: '16% of labour cost' }}
-          ours={{ value: 15, text: '15% flat' }}
-          theirs={{ name: 'PolicyEngine-UK', value: 11, text: 'about 11%' }}
+          ours={{ value: 15, text: 'flat rate' }}
+          theirs={{ name: 'PolicyEngine-UK', value: 11, text: 'average' }}
           effect="Partly offsets the first row (smaller)"
         />
       </div>
@@ -228,8 +228,8 @@ function TaxGapCard({ sid }) {
             OG-UK&rsquo;s gap of about 14pp and the direction of each bias: <code>docs/red_flags_1_3.md</code>.
           </li>
           <li>
-            PolicyEngine-UK employer NICs, 2028 (about 11% of labour cost on average, 13.9% at the margin):{' '}
-            <code>analysis/nics/nics_2028.json</code>.
+            Employer NICs, OG-UK&rsquo;s flat rate against PolicyEngine-UK&rsquo;s average: the rates are under How labour
+            is taxed on {link('method', 'Scenarios and method')}; data in <code>analysis/nics/nics_2028.json</code>.
           </li>
         </ul>
       </Disclosure>
@@ -272,7 +272,7 @@ function RuleTable({ rule, sid, closure }) {
           <tbody key={cl}>
             {cls.length > 1 ? (
               <tr className="rule-table-group">
-                <th colSpan={RULE_VARS.length + 1} scope="colgroup">{CLOSURE_LABEL[cl]}</th>
+                <th colSpan={RULE_VARS.length + 1} scope="colgroup">{CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase())}</th>
               </tr>
             ) : null}
             {ARMS.map((a) => {
@@ -330,7 +330,7 @@ function SpendingRuleCard({ sid, closure, link }) {
           <RuleTable rule={rule} sid={sid} closure={closure} />
           <p className="chart-description rule-note">
             Closure shown: {cl}. Debt/GDP stays on the OBR-central path to {LATE_YEAR} by construction, so it has no gap
-            to show. Solved for {names} only. What the rule changes: {link('method', 'Scenarios and method')}.
+            to show. What the rule changes: {link('method', 'Scenarios and method')}.
           </p>
         </>
       )}
@@ -382,7 +382,7 @@ export default function FinancesSection({ sid, hidden, legendBar, closure, link 
         />
       </div>
       <div className="charts-stack stack-gap">
-        <TaxGapCard sid={sid} />
+        <TaxGapCard sid={sid} link={link} />
       </div>
       <div className="charts-stack stack-gap">
         <SpendingRuleCard sid={sid} closure={closure} link={link} />

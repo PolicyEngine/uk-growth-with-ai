@@ -2,7 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, gap, fmt, result } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, SCENARIOS, SCEN_NAME as STRIP_LABEL, gap, fmt, result } from '@/tabs/ai/surprise.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -255,7 +255,7 @@ export function Dumbbells({ sid, hidden = {} }) {
   );
 }
 
-const STRIP_LABEL = { uk_low: 'UK low', uk_central: 'UK central', uk_high: 'UK high', korinek: 'Korinek (upper)' };
+// Axis shorthand under the strip's dots; the full names are SCEN_NAME.
 const STRIP_SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
 
 function DotRow({ v, label, icon, sid, onChoose }) {
@@ -334,7 +334,7 @@ export function ScenarioStrip({ sid, onChoose }) {
           const w = gap(s.id, 'tfp', CENTRAL, 'w');
           return (
             <button key={s.id} type="button" className={`scen-col${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => onChoose(s.id)}>
-              <span className="scen-col-name">{STRIP_LABEL[s.id] || s.label}</span>
+              <span className="scen-col-name">{STRIP_LABEL[s.id]}</span>
               {g == null ? (
                 <span className="scen-col-empty" aria-label="not solved yet" />
               ) : (

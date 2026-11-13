@@ -19,6 +19,9 @@ tfpC.gaps.C[H] = 4.44;
 fixture.results.uk_central.tfp['zk0.1'] = tfpC;
 fixture.results.uk_central.tfp.zk0 = { status: 'pending' };
 
+// the debt-neutral variant: an altered main-arm GDP gap at the central closure
+fixture.rules.debt_neutral.results.uk_central.tfp['zk0.1'].gaps.Y[H] = 3.2109;
+
 vi.doMock('@/data/surprise2028.json', () => ({ default: fixture }));
 
 const { default: ResultsTab } = await import('@/tabs/ai/ResultsTab.jsx');
@@ -102,5 +105,27 @@ describe('tooltips', () => {
     tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('OBR');
     expect(tip).toContain('19–23pp');
+  });
+
+  it('spending-rule card: debt-neutral prints its own gaps for UK central only; fixed spending is not solved', () => {
+    const open = (sid, rule, closure = 'central') => {
+      const { container, unmount } = render(<ResultsTab sid={sid} sub="finances" closure={closure} onSub={() => {}} onTab={() => {}} onScenario={() => {}} />);
+      fireEvent.click(screen.getByRole('button', { name: rule }));
+      const t = container.querySelector('#spending-rule').textContent;
+      unmount();
+      return t;
+    };
+    const dn = open('uk_central', 'Debt-neutral');
+    expect(dn).toContain('+3.21%');
+    expect(dn).not.toContain('No solve');
+    // 3 arms x 4 measures at one closure, twice that with both
+    expect(dn.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(12);
+    expect(open('uk_central', 'Debt-neutral', 'both').match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
+    const other = open('uk_high', 'Debt-neutral');
+    expect(other).toContain('solved for UK central only');
+    expect(other).not.toMatch(/\d\.\d\d%/);
+    const fs = open('uk_central', 'Fixed spending');
+    expect(fs).toContain('No solve for this rule yet');
+    expect(fs).not.toMatch(/\d\.\d\d%/);
   });
 });
