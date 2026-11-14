@@ -28,7 +28,8 @@ SCEN = ["uk_low", "uk_central", "uk_high", "korinek"]
 ARMS = ["tfp", "zfixed", "r4"]
 ARM_NAME = {"tfp": "automation + productivity", "zfixed": "technology unchanged",
             "r4": "stress test (2031 GDP held)"}
-CLOSURES = ["zk0.1", "zk0"]
+CLOSURES = ["zk0.1", "zk0", "zk0.5"]   # zk0.5 is a sensitivity closure (final pass, 13 Nov 2026)
+ZK_ORDER = ["zk0", "zk0.1", "zk0.5"]      # increasing openness of the capital account
 TARGETS = json.load(open(os.path.join(HERE, "uk_targets.json")))["scenarios"]
 TARGETS["korinek"] = TARGETS["korinek_us_substantial_upper"]
 FALL = {s: TARGETS[s]["labour_share_fall_pp"] for s in SCEN}
@@ -129,6 +130,13 @@ def measures(d, n):
     m["tax_pp"] = 100 * (tax_ratio(d, n) - tax_ratio(d, ref))
     for v in ("GNI", "NNI"):                     # level changes, pp of continuation GDP
         m[v + "_lvl"] = 100 * (S(d, n, v) - S(d, ref, v)) / S(d, ref, "Y")
+    # final pass: the capital term of the GDP gap and the bound with the return pinned (L fixed), log points x100
+    g, z = gam(d[n]), zpath(d[n])
+    K0, L0 = S(d, ref, "K"), S(d, ref, "L")
+    m["Y_lp"] = 100 * np.log(S(d, n, "Y") / S(d, ref, "Y"))
+    m["cap_lp"] = 100 * g * np.log(S(d, n, "K") / K0)
+    tech = 100 * (np.log(z) + (g - G0) * np.log(K0 / L0))
+    m["bound_lp"] = (tech + g * 100 * np.log(g / G0)) / (1 - g)
     return m
 
 
@@ -468,7 +476,10 @@ def sec_old(runs):
             ob = json.load(open(os.path.join(OLD, c, "baseline_p1.json")))
         except FileNotFoundError:
             continue
-        old_r4 = sorted(f for f in os.listdir(os.path.join(OLD, c)) if f.startswith("share_shift_ramp_r4_") and f.endswith(".json"))[-1][:-5]
+        olds = sorted(f for f in os.listdir(os.path.join(OLD, c)) if f.startswith("share_shift_ramp_r4_") and f.endswith(".json"))
+        if not olds or not os.path.exists(os.path.join(OLD, c, "share_shift_tfp_ramp.json")):
+            print(f"{c}: no 2026-start arm records to compare with (baseline only); skipped"); continue
+        old_r4 = olds[-1][:-5]
         for a, on in (("tfp", "share_shift_tfp_ramp"), ("zfixed", "share_shift_ramp_zfixed"), ("r4", old_r4)):
             n = pick(runs, c, "korinek", a)
             if n is None:
@@ -575,6 +586,200 @@ def sec_lit(runs):
     print("IMF SIP/2026/072: output +2.52% at year 4 (digitised), +3.26% at year 5, TFP +0.42% / +0.53%: GDP/TFP about 6.0 / 6.2")
 
 
+def sec_mono(runs):
+    """Final pass: orderings across closures, scenarios and arms, and the income inequalities year by year."""
+    print("\n## 9. Orderings and inequalities (final pass)")
+    i = IX[2031]
+    breaks, known = [], []
+    inc = lambda xs: all(b > a for a, b in zip(xs, xs[1:]))
+    dec = lambda xs: all(b < a for a, b in zip(xs, xs[1:]))
+    # income inequalities in every year, every audited run including fiscal variants
+    print("\nclosure|run|min (GDP - GNI)/GDP % over 2026-36 where K_f > 0|min (GNI - NNI)/GDP %|paid abroad r_p (K_f + D_f) / GDP %, 2031|K_f / K % 2031")
+    print("---|---|---|---|---|---")
+    for c in ZK_ORDER:
+        d = runs[c]
+        for n in d:
+            s = {v: S(d, n, v) for v in ("Y", "GNI", "NNI", "K_f", "D_f", "r_p", "K")}
+            g1 = 100 * (s["Y"] - s["GNI"]) / s["Y"]
+            m1 = g1[s["K_f"] > 0].min() if (s["K_f"] > 0).any() else float("nan")
+            m2 = (100 * (s["GNI"] - s["NNI"]) / s["Y"]).min()
+            if (m1 == m1 and m1 < 0) or m2 <= 0:
+                breaks.append(f"{c}/{n}: income inequality fails")
+            print(f"{c}|{n}|{m1:+.3f}|{m2:+.3f}|{(100 * s['r_p'] * (s['K_f'] + s['D_f']) / s['Y'])[i]:.2f}|{100 * s['K_f'][i] / s['K'][i]:.1f}")
+    # across closures
+    print("\nAcross closures (2031 gaps; zk0, zk0.1, zk0.5). GDP - GNI is in pp of continuation GDP")
+    print("scenario|arm|variant|GDP %|GNI %|GDP - GNI, pp|K %|wage %|return bp|C %|tax/GDP pp|2028 I %|ordering tests")
+    print("|".join(["---"] * 13))
+    for var in VARIANTS:
+        for s in SCEN:
+            for a in ARMS:
+                ns = [pick(runs, c, s, a, var) for c in ZK_ORDER]
+                have = [(c, n) for c, n in zip(ZK_ORDER, ns) if n]
+                if len(have) < 2:
+                    continue
+                ms = [measures(runs[c], n) for c, n in have]
+                col = lambda v, y=2031: [m[v][IX[y]] for m in ms]
+                wedge = [m["Y"][i] - m["GNI_lvl"][i] for m in ms]
+                tests = {"GNI-GDP gap widens": inc(wedge), "K rises with zeta_K": inc(col("K")), "return rise shrinks": dec(col("r_bp"))}
+                if a != "r4":
+                    tests["GDP rises with zeta_K"] = inc(col("Y")); tests["GNI rises with zeta_K"] = inc(col("GNI"))
+                    tests["wage rises with zeta_K"] = inc(col("w"))
+                else:
+                    # GDP is held, so more of it is paid abroad as zeta_K rises: GNI and consumption fall by more
+                    tests["GNI falls more with zeta_K"] = dec(col("GNI")); tests["C falls more with zeta_K"] = dec(col("C"))
+                bad = [k for k, ok in tests.items() if not ok]
+                for k in bad:
+                    breaks.append(f"across closures, {s} {a} {var or 'common'}: {k} fails")
+                f = lambda xs, p=2: " / ".join(f"{x:+.{p}f}" for x in xs)
+                print(f"{s}|{a}|{var or 'common'} ({', '.join(c for c, _ in have)})|{f(col('Y'), 3 if a == 'r4' else 2)}|{f(col('GNI'))}|{f(wedge)}|{f(col('K'))}|{f(col('w'))}|{f(col('r_bp'), 1)}|"
+                      f"{f(col('C'))}|{f(col('tax_pp'), 3)}|{f(col('I', 2028), 1)}|{'all hold' if not bad else 'BREAK: ' + '; '.join(bad)}")
+    # across scenarios
+    print("\nAcross scenarios (2031 gaps; solved scenarios in the order low, central, high, Korinek)")
+    print("closure|arm|scenarios|GDP %|GNI %|K %|return bp|tax/GDP pp|wage % (not expected to be ordered, A2)|ordering tests")
+    print("|".join(["---"] * 10))
+    for c in ZK_ORDER:
+        for a in ARMS:
+            have = [(s, pick(runs, c, s, a)) for s in SCEN]
+            have = [(s, n) for s, n in have if n]
+            if len(have) < 2:
+                continue
+            ms = [measures(runs[c], n) for _, n in have]
+            col = lambda v: [m[v][i] for m in ms]
+            tests = {"K": inc(col("K")), "return": inc(col("r_bp"))}
+            if a == "tfp":
+                tests["GDP"] = inc(col("Y")); tests["GNI"] = inc(col("GNI"))
+            if a == "r4":
+                tests["GNI falls more"] = dec(col("GNI")); tests["wage falls more"] = dec(col("w"))
+            if a == "zfixed":
+                tests["wage falls more"] = dec(col("w"))
+            bad = [k for k, ok in tests.items() if not ok]
+            for k in bad:
+                breaks.append(f"across scenarios, {c} {a}: {k} fails")
+            f = lambda xs, p=2: " / ".join(f"{x:+.{p}f}" for x in xs)
+            print(f"{c}|{a}|{', '.join(s for s, _ in have)}|{f(col('Y'), 3 if a == 'r4' else 2)}|{f(col('GNI'))}|{f(col('K'))}|{f(col('r_bp'), 1)}|{f(col('tax_pp'), 3)}|{f(col('w'))}|"
+                  f"{'all hold' if not bad else 'BREAK: ' + '; '.join(bad)}")
+    # across arms
+    print("\nAcross arms (2031 gaps; automation + productivity / technology unchanged / stress test)")
+    print("closure|scenario|variant|GDP %|GNI %|NNI %|wage %|C %|K %|Z terminal|ordering tests (GDP, GNI, NNI, wage, C, K, Z: tfp > zfixed > stress)")
+    print("|".join(["---"] * 11))
+    for c in ZK_ORDER:
+        for var in VARIANTS:
+            for s in SCEN:
+                ns = [pick(runs, c, s, a, var) for a in ARMS]
+                if not all(ns):
+                    continue
+                ms = [measures(runs[c], n) for n in ns]
+                col = lambda v: [m[v][i] for m in ms]
+                z = [runs[c][n]["Z_terminal"] for n in ns]
+                f = lambda xs, p=2: " / ".join(f"{x:+.{p}f}" for x in xs)
+                tests = {v: dec(col(v)) for v in ("Y", "GNI", "NNI", "w", "C", "K")}
+                tests["Z"] = dec(z)
+                bad = [k for k, ok in tests.items() if not ok]
+                if bad and col("Y")[1] < 0 and all(x[0] > max(x[1:]) for x in [col(v) for v in ("Y", "GNI", "NNI", "w", "C", "K")] + [z]):
+                    # known A1: technology unchanged has GDP below zero, so the stress test sits just above it; the main arm is still on top
+                    known.append(f"across arms, {c} {s} {var or 'common'}: technology unchanged is below the stress test on {', '.join(bad)} (A1)")
+                    bad = [f"known A1 ({', '.join(bad)})"]
+                    print(f"{c}|{s}|{var or 'common'}|{f(col('Y'), 3)}|{f(col('GNI'))}|{f(col('NNI'))}|{f(col('w'))}|{f(col('C'))}|{f(col('K'))}|{' / '.join(f'{x:.6f}' for x in z)}|{bad[0]}")
+                    continue
+                for k in bad:
+                    breaks.append(f"across arms, {c} {s} {var or 'common'}: {k} fails")
+                print(f"{c}|{s}|{var or 'common'}|{f(col('Y'), 3)}|{f(col('GNI'))}|{f(col('NNI'))}|{f(col('w'))}|{f(col('C'))}|{f(col('K'))}|{' / '.join(f'{x:.6f}' for x in z)}|"
+                      f"{'all hold' if not bad else 'BREAK: ' + '; '.join(bad)}")
+    # the stress-test wage: with GDP held, dln w = dln(1 - gamma) - dln L exactly
+    print("\nStress test: wage gap against the share term minus the labour gap, 2031, log points x100")
+    print("closure|run|share term dln(1-g)|- dln L|dln Y (held near 0)|sum|dln w|residual")
+    print("|".join(["---"] * 8))
+    for c in ZK_ORDER:
+        for var in VARIANTS:
+            for s in SCEN:
+                n = pick(runs, c, s, "r4", var)
+                if not n:
+                    continue
+                d = runs[c]
+                lg = lambda v: 100 * np.log(S(d, n, v)[i] / S(d, "continuation", v)[i])
+                sh = 100 * np.log((1 - gam(d[n])[i]) / (1 - G0))
+                print(f"{c}|{n}|{sh:+.3f}|{-lg('L'):+.3f}|{lg('Y'):+.3f}|{sh - lg('L') + lg('Y'):+.3f}|{lg('w'):+.3f}|{sh - lg('L') + lg('Y') - lg('w'):.1e}")
+    # the news year against the 2031 wage: a higher expected wage means less work and more consumption on the news
+    print("\nNews year (2028) against the 2031 wage gap, every accepted common-rule arm, ordered by the wage gap within the closure")
+    print("closure|run|wage gap 2031 %|wage gap 2028 %|labour 2028 %|consumption 2028 %")
+    print("---|---|---|---|---|---")
+    for c in ZK_ORDER:
+        rows = []
+        for s in SCEN:
+            for a in ARMS:
+                n = pick(runs, c, s, a)
+                if n:
+                    m = measures(runs[c], n)
+                    rows.append((m["w"][i], m["w"][IX[2028]], m["L"][IX[2028]], m["C"][IX[2028]], n))
+        rows.sort(reverse=True)
+        for r in rows:
+            print(f"{c}|{r[4]}|{r[0]:+.2f}|{r[1]:+.3f}|{r[2]:+.3f}|{r[3]:+.3f}")
+        rk = lambda xs: np.argsort(np.argsort(xs))
+        w = np.array([r[0] for r in rows])
+        print(f"{c}: rank correlation of the 2031 wage gap with 2028 labour {np.corrcoef(rk(w), rk([r[2] for r in rows]))[0, 1]:+.3f}, with 2028 consumption {np.corrcoef(rk(w), rk([r[3] for r in rows]))[0, 1]:+.3f} ({len(rows)} arms)")
+    # evidence behind the mechanism-keyed verdict rules (A13-A15), for every cell they catch
+    print("\nEvidence for A13 (technology unchanged, GDP not small) and A14 (its debt/GDP falls in 2031)")
+    print("closure|run|year|GDP gap %|per pp of share fall|GDP gap, log points|capital term|bound with the return pinned, log points|bound %|debt gap %|debt/GDP gap pp")
+    print("|".join(["---"] * 11))
+    for c in ZK_ORDER:
+        for s in SCEN:
+            n = pick(runs, c, s, "zfixed")
+            if not n:
+                continue
+            m = measures(runs[c], n)
+            for y in (2031, 2036):
+                j = IX[y]
+                if abs(m["Y"][j]) / FALL[s] < 0.5 and m["debt_pp"][j] > 0:
+                    continue
+                print(f"{c}|{n}|{y}|{m['Y'][j]:+.2f}|{m['Y'][j] / FALL[s]:.2f}|{m['Y_lp'][j]:+.2f}|{m['cap_lp'][j]:+.2f}|{m['bound_lp'][j]:+.2f}|"
+                      f"{100 * (np.exp(m['bound_lp'][j] / 100) - 1):+.2f}|{m['D'][j]:+.2f}|{m['debt_pp'][j]:+.2f}")
+    print("technology unchanged, GDP gap per pp of share fall, 2031, all solved: " + "; ".join(
+        f"{c} {s} {measures(runs[c], pick(runs, c, s, 'zfixed'))['Y'][i] / FALL[s]:+.2f}" for c in ZK_ORDER for s in SCEN if pick(runs, c, s, "zfixed")))
+    # the no-shock path by closure, and the baseline gate
+    print("\nNo-shock path by closure (the restart, 2031) and the 2026-start baseline gate")
+    print("closure|return %|K/Y|C/Y %|tax/GDP %|GNI/GDP %|paid abroad, % of GDP|of which on foreign-owned capital|K_f/K %|D/Y %|gate approved|passes|pass 1 vs pass 0, max rel (Y, K, r, D)|baseline_ext vs pass 1, 2026-35|"
+          "gate: tax/GDP 2026-30 %|OBR|gate: primary balance %|gate: growth 2027-30 %|gate: payments abroad %|TPI distance|gate RC/GDP max")
+    print("|".join(["---"] * 21))
+    for c in ZK_ORDER:
+        r = {v: S(runs[c], "continuation", v)[i] for v in ("Y", "K", "C", "r", "r_p", "K_f", "D_f", "D", "GNI", "total_tax_revenue")}
+        try:
+            g = json.load(open(os.path.join(OLD, c, "GATE_baseline.json")))
+            ps = sorted(f for f in os.listdir(os.path.join(OLD, c)) if f.startswith("baseline_p") and f.endswith(".json"))
+            p0, p1 = (json.load(open(os.path.join(OLD, c, f)))["series"] for f in (ps[0], g["baseline"] + ".json"))
+            ext = json.load(open(os.path.join(OUT, c, "baseline_ext.json")))["series"]
+            k = len(p1["Y"])
+            d01 = max(relmax(np.array(p1[v]), np.array(p0[v])) for v in ("Y", "K", "r", "D"))
+            dex = max(relmax(np.array(ext[v])[:k], np.array(p1[v])) for v in ("Y", "K", "r", "D", "C", "L", "w", "B"))
+            rp = g["report"]
+            fl = lambda xs: ", ".join(f"{x:.2f}" for x in xs)
+            gate = (f"{g['approved']}|{len(ps)}|{d01:.1e}|{dex:.1e}|{fl(rp['tax_gdp_pct'])}|{fl(rp['obr_tax_gdp_pct'])}|{fl(rp['primary_balance_pct'])}|"
+                    f"{fl(rp['growth_pct_2027_30'])}|{fl(rp['payments_abroad_pct_gdp'])}|{rp['tpi_final_distance']:.1e}|{rp['rc_rel_Y_max_abs_interior_pct'] / 100:.1e}")
+        except (FileNotFoundError, KeyError) as e:
+            gate = f"no gate record ({type(e).__name__})" + "|" * 10
+        print(f"{c}|{100 * r['r']:.2f}|{r['K'] / r['Y']:.2f}|{100 * r['C'] / r['Y']:.1f}|{100 * r['total_tax_revenue'] / r['Y']:.1f}|{100 * r['GNI'] / r['Y']:.2f}|"
+              f"{100 * r['r_p'] * (r['K_f'] + r['D_f']) / r['Y']:.2f}|{100 * r['r_p'] * r['K_f'] / r['Y']:.2f}|{100 * r['K_f'] / r['K']:.1f}|{100 * r['D'] / r['Y']:.1f}|{gate}")
+    # the tax bases behind A16: who receives the capital income that replaces labour income
+    print("\nA16: income and receipts, 2031, pp of no-shock GDP")
+    print("closure|run|labour income|gross capital income (Y - wL)|household capital income r_p B|income paid abroad|income tax + payroll|business tax|consumption tax|total receipts|tax/GDP pp per pp of share fall")
+    print("|".join(["---"] * 11))
+    for c in ZK_ORDER:
+        d = runs[c]
+        for s in SCEN:
+            for a in ARMS:
+                n = pick(runs, c, s, a)
+                if not n or s not in ("uk_central", "korinek"):
+                    continue
+                Y0 = S(d, "continuation", "Y")[i]
+                f = lambda fn: 100 * (fn(n) - fn("continuation")) / Y0
+                x = lambda k, v: S(d, k, v)[i]
+                print(f"{c}|{n}|{f(lambda k: x(k, 'w') * x(k, 'L')):+.2f}|{f(lambda k: x(k, 'Y') - x(k, 'w') * x(k, 'L')):+.2f}|{f(lambda k: x(k, 'r_p') * x(k, 'B')):+.2f}|"
+                      f"{f(lambda k: x(k, 'r_p') * (x(k, 'K_f') + x(k, 'D_f'))):+.2f}|{f(lambda k: x(k, 'iit_revenue')):+.2f}|{f(lambda k: x(k, 'business_tax_revenue')):+.2f}|"
+                      f"{f(lambda k: x(k, 'cons_tax_revenue')):+.2f}|{f(lambda k: x(k, 'total_tax_revenue')):+.2f}|{measures(d, n)['tax_pp'][i] / FALL[s]:+.3f}")
+    print("\nknown, already documented:", known or "none")
+    print("ordering and inequality breaks:", breaks or "none")
+    return breaks
+
+
 def sec_vs_sanity(runs):
     print("\n## Cross-check against the committed <label>.sanity.json (read only as a comparison; nothing is taken from it)")
     key = {"Y": "Y", "GNI": "GNI", "NNI": "NNI", "K": "K", "L": "L", "w": "w", "C": "C", "I": "I", "r_bp": "r_bp", "debt_gdp_pp": "debt_pp", "labour_share_pp": "ls_pp"}
@@ -666,6 +871,19 @@ def verdict(c, s, a, v, x, m, var=""):
             return "surprising-but-explained", "A5"
     if v == "Y" and a == "zfixed" and x < 0:
         return "surprising-but-explained", "A1"
+    if v in ("Y", "Y36") and a == "zfixed" and abs(x) / FALL[s] >= 0.5:
+        # not small. Explained only if the capital term accounts for the whole gap and GDP is under the pinned-return bound
+        j = IX[2036] if v == "Y36" else i
+        ok = m["cap_lp"][j] >= m["Y_lp"][j] > 0 and m["Y_lp"][j] < m["bound_lp"][j]
+        return ("surprising-but-explained", "A13") if ok else ("WRONG", "")
+    if v in ("Y", "Y36") and a == "zfixed":
+        return "consistent", ""
+    if v == "debt_pp" and a == "zfixed" and var == "" and x <= 0:
+        # the ratio falls. Explained only if debt itself is higher and GDP has risen by more
+        return ("surprising-but-explained", "A14") if 0 < m["D"][i] < m["Y"][i] else ("WRONG", "")
+    if v in ("L28", "C28") and a == "tfp" and ((x <= 0) if v == "L28" else (x >= 0)):
+        # the news-year signs flip. Explained only if the wage is above the no-shock path in 2028 and 2031
+        return ("surprising-but-explained", "A15") if m["w"][i] > 0 and m["w"][IX[2028]] > 0 else ("WRONG", "")
     if v == "w" and a == "tfp":
         return ("surprising-but-explained", "A2") if x < 0 < m["Y"][i] else ("consistent", "")
     if v == "C" and a == "tfp":
@@ -677,6 +895,8 @@ def verdict(c, s, a, v, x, m, var=""):
             return "WRONG", "A6"
         if abs(x) / FALL[s] < 0.19 / 2:      # under half the OBR's lower figure per point of share fall
             return "surprising-but-explained", "A6"
+        if abs(x) / FALL[s] > 1.5 * 0.23:    # over one and a half times the OBR's upper figure
+            return "surprising-but-explained", "A16"
         return "consistent", ""
     if v == "I28":
         return ("surprising-but-explained", "A7") if x > 0 else ("WRONG", "A7")
@@ -740,6 +960,8 @@ def sec_verdict(runs):
 
 if __name__ == "__main__":
     runs = load()
+    if "--mono" in sys.argv:
+        sec_mono(runs); sys.exit(0)
     if "--verdict" in sys.argv:
         sec_verdict(runs); sys.exit(0)
     print("finished solves:", {c: sorted(runs[c]) for c in CLOSURES})
@@ -759,5 +981,6 @@ if __name__ == "__main__":
     sec_rules(runs)
     sec_drift(runs)
     sec_lit(runs)
+    sec_mono(runs)
     sec_vs_sanity(runs)
     sec_verdict(runs)

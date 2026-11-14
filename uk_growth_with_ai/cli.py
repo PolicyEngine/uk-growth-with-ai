@@ -72,7 +72,7 @@ def main(argv=None) -> int:
     p_sp.add_argument("--closure", required=True, choices=["zk0.1", "zk0", "zk0.5"])
     p_sp.add_argument("--start", type=int, default=2028,
                       help="the announcement year; every arm equals the baseline before it")
-    p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_dn", "arms_fs"],
+    p_sp.add_argument("--stage", choices=["continuation", "arms", "arms_dn", "arms_fs", "arms_dnfull"],
                       default="continuation",
                       help="continuation: the no-shock restart that must reproduce the "
                            "baseline; arms_fs: G and TR at baseline levels")
