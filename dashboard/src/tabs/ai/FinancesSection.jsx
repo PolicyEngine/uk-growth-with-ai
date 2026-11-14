@@ -23,6 +23,12 @@ const SHORT_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= HEADLINE_YEAR);
 // The fiscal-rule ids of the control bar against the data file's keys
 const RULE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
 
+// Scenarios whose main arm ends below the path by the debt rule's first year
+// once debt is repriced at the speed the OBR assumes for UK debt (PR #43,
+// docs/debt_repricing.md: both solved closures; UK high is solved at the
+// central closure only). The model's own figure is above the path in both.
+const BELOW_AT_OBR_SPEED = new Set(['uk_high', 'korinek']);
+
 // The main arm's debt/GDP in words, by sign, for the closure in view. No
 // claim about every arm: the lines and their end values show each one.
 function debtFinding(sid, closure) {
@@ -32,7 +38,8 @@ function debtFinding(sid, closure) {
   if (a == null || b == null) return null;
   const at = (x) => (side(x) === 'on' ? 'on' : side(x));
   const same = at(a) === at(b);
-  return `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}, debt/GDP is ${at(a)} the OBR-central path in ${HEADLINE_YEAR} and ${same ? 'still ' : ''}${at(b)} it by ${LATE_YEAR}, as the model reprices debt at the higher interest rate.`;
+  const obr = BELOW_AT_OBR_SPEED.has(sid) && at(b) === 'above';
+  return `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}, debt/GDP is ${at(a)} the OBR-central path in ${HEADLINE_YEAR} and ${same ? 'still ' : ''}${at(b)} it by ${LATE_YEAR}, as the model reprices debt at the higher interest rate${obr ? ', but below it at the speed the OBR assumes for UK debt' : ''}.`;
 }
 
 // Tax/GDP with closed capital in the main arm, in words (results sanity
@@ -325,8 +332,7 @@ export default function FinancesSection({ sid }) {
               <>
                 <p>
                   The model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in
-                  debt/GDP by {LATE_YEAR} is a tenth to two-thirds as large, and in the main arm of the UK high and Korinek et al. scenarios
-                  debt/GDP ends lower than the no-shock path.
+                  debt/GDP by {LATE_YEAR} is a tenth to two-thirds as large where debt/GDP still ends above the path.
                 </p>
                 <p>
                   {LATE_YEAR} is the debt rule&rsquo;s first year, so only stocks are quoted for it. The stress test leaves out the cost of
