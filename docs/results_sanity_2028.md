@@ -265,7 +265,7 @@ pp gap. The last four columns rerun the debt recursion on the continuation's pat
 | | technology unchanged | +1.85 | +5.49 | +6.43 | +7.12 | −0.56 | −0.14 |
 | | stress test | +1.79 | +5.40 | +6.33 | +7.16 | −0.61 | −0.21 |
 
-- **Debt/GDP is higher in every arm by 2036.** In the main arm it is lower in 2031 at ζK = 0.1 and turns positive in 2032 (UK low and central), 2033 (UK high) and 2035 (Korinek).
+- **In the model, debt/GDP is higher in every arm by 2036** (not at the OBR's repricing speed for the main arm of UK high and Korinek: see A4). In the main arm it is lower in 2031 at ζK = 0.1 and turns positive in 2032 (UK low and central), 2033 (UK high) and 2035 (Korinek).
 - **The interest rate is the cause.** The return on gilts moves one for one with r (+37.8bp for UK central), and the model's debt is one-period, so the whole stock (95% of GDP) reprices at once. That alone adds 2.4pp by 2036 for UK central.
 - **Higher GDP does not pay it back under this spending rule.** G and transfers are fixed shares of GDP, so they rise with GDP. The only gain from growth is the denominator (−1.0pp). Tax/GDP falls, which adds 0.6pp.
 - **The 2031 figure alone misleads.** −0.13pp in 2031 is the denominator effect of the first years; the path is rising by 0.42pp a year from 2032.
