@@ -1226,12 +1226,17 @@
   .entry-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* Five columns fit a 390px screen without scrolling: smaller type,
+     tighter cells, and two-word headers on two lines. */
   .data-table {
-    font-size: var(--fs-caption);
+    font-size: var(--fs-micro);
   }
   .data-table th,
   .data-table td {
-    padding: 6px 5px;
+    padding: 6px 3px;
+  }
+  .data-table thead .num {
+    white-space: normal;
   }
   .app .main-content {
     padding: 0 16px 56px;
@@ -1374,4 +1379,25 @@
     animation: none;
     transition: none;
   }
+}
+
+/* Tap targets: tooltip marks keep their drawn size; the hit area is 24px. */
+.db-dot.tip-target::after,
+.cause-mark.tip-target::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+}
+.cause-range.tip-target::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 24px;
+  transform: translateY(-50%);
 }

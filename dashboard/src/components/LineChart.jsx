@@ -337,6 +337,24 @@ export default function LineChart({
         </TipBox>
       ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
+        {/* bands first, so a marker label that reaches into one stays readable */}
+        {bands.map((b) => {
+          const i = x.indexOf(b.year);
+          if (i < 0) return null;
+          const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
+          const x0 = Math.max(L, sx(i) - half);
+          const x1 = Math.min(R + 6, sx(i) + half);
+          return (
+            <g key={`band-${b.year}`}>
+              <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
+              {b.label ? (
+                <text x={(x0 + x1) / 2} y={TOP - 6} className="ax band-label" textAnchor="middle">
+                  {b.label}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
         {markers.map((m, mi) => {
           const i = x.indexOf(m.year);
           if (i < 0) return null;
@@ -355,23 +373,6 @@ export default function LineChart({
           );
         })}
         {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
-        {bands.map((b) => {
-          const i = x.indexOf(b.year);
-          if (i < 0) return null;
-          const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
-          const x0 = Math.max(L, sx(i) - half);
-          const x1 = Math.min(R + 6, sx(i) + half);
-          return (
-            <g key={`band-${b.year}`}>
-              <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
-              {b.label ? (
-                <text x={(x0 + x1) / 2} y={TOP - 6} className="ax band-label" textAnchor="middle">
-                  {b.label}
-                </text>
-              ) : null}
-            </g>
-          );
-        })}
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
