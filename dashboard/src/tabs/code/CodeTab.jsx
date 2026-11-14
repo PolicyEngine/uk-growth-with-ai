@@ -6,17 +6,21 @@ import CopyBlock from '@/components/ab/CopyBlock.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { S } from '@/tabs/ai/surprise.js';
 import { REPO, URLS } from '@/tabs/ai/links.js';
-import { ext, scrollToId } from '../shared/ui.jsx';
-import SubTabs, { SubTabPanel, useSubTabParam } from '../shared/subtabs.jsx';
+import { ext } from '../shared/ui.jsx';
+import { SectionHeading } from '@/components/ui/Card.jsx';
+import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import { REF, SP_HELPER, STEPS } from './pipeline.js';
 
 // Code: Reproduce (before you start, the 2028-surprise pipeline as connected
 // nodes, what the outputs are) and Use OG-UK (the general workflow).
 // Commands are checked against the scripts and CLI; see pipeline.js.
 
-export const CODE_SUBS = [
-  { id: 'reproduce', label: 'Reproduce', icon: 'repeat' },
-  { id: 'oguk', label: 'Use OG-UK', icon: 'code' },
+const SECTIONS = [
+  { id: 'before', title: 'Reproduce the results', icon: 'key' },
+  { id: 'pipeline', title: 'Run it step by step', icon: 'gitBranch' },
+  { id: 'outputs', title: 'Outputs and checks', icon: 'flask' },
+  { id: 'use-oguk', title: 'Use OG-UK yourself', icon: 'code' },
 ];
 
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
@@ -51,7 +55,7 @@ const VERSIONS = [
 
 function BeforeYouStart() {
   return (
-    <div className="info-card mx-card mx-before" id="before">
+    <div className="info-card mx-card mx-before">
       <h3 className="info-card-title">
         <Icon name="key" size={18} />
         <span>Before you start</span>
@@ -106,7 +110,7 @@ function BeforeYouStart() {
 
 function PipelineMap() {
   return (
-    <nav className="info-card mx-card mx-pipemap" aria-label="Pipeline">
+    <nav className="info-card mx-card mx-pipemap" aria-label="Pipeline steps">
       <div className="mx-fig-cap">
         <span className="mx-fig-title">The 2028-surprise pipeline</span>
         <span className="mx-fig-sub">Nine steps, in order. Choose one for its file and commands.</span>
@@ -114,25 +118,18 @@ function PipelineMap() {
       <ol className="mx-pipe-row">
         {STEPS.map((s, i) => (
           <li key={s.id}>
-            <a
-              href={`#${s.id}`}
-              className="mx-pipe-node"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToId(s.id);
-              }}
-            >
+            <NavLink tab="code" anchor={s.id} className="mx-pipe-node">
               <span className="mx-pipe-n">{i + 1}</span>
               <Icon name={s.icon} size={18} />
               <span className="mx-pipe-label">{s.short}</span>
-            </a>
+            </NavLink>
           </li>
         ))}
       </ol>
       <p className="mx-pipe-out">
         <Icon name="arrowDown" size={14} />
         <span>
-          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file the Results tab reads. Cohorts reads{' '}
+          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file the Results tab reads. Who gains reads{' '}
           <code>cohorts2028.json</code>, written by <code>paper/cohort_welfare.py --json</code>.
         </span>
       </p>
@@ -160,7 +157,7 @@ function PipelineSteps() {
               </a>
               <p>{s.line}</p>
             </div>
-            <Disclosure inCard title="Commands and detail" preview={firstCommand(s.code)}>
+            <Disclosure inCard title="Details" preview={`Commands · ${firstCommand(s.code)}`}>
               {s.more.map((m) => (
                 <p key={m} className="mx-fold-p">
                   {m}
@@ -283,55 +280,49 @@ function UseOguk() {
   );
 }
 
-export default function CodeTab({ active = true }) {
-  const [sub, setSub] = useSubTabParam(CODE_SUBS.map((t) => t.id), active);
+export default function CodeTab() {
   return (
-    <div className="mx-tab mx-code">
-      <SubTabs
-        tabs={CODE_SUBS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
-        value={sub}
-        onChange={setSub}
-        ariaLabel="Code sections"
-        idPrefix="csub"
-      />
-      <SubTabPanel idPrefix="csub" value={sub}>
-        {sub === 'reproduce' ? (
-          <>
-            <header className="mx-intro">
-              <h2>Reproduce the results</h2>
+    <div className="page-with-contents mx-tab mx-code">
+      <OnThisPage tab="code" sections={SECTIONS} label="Code contents" />
+      <div className="page-body">
+        <section>
+          <SectionHeading id="before" icon="repeat" title="Reproduce the results">
+            Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.
+          </SectionHeading>
+          <BeforeYouStart />
+        </section>
+        <section>
+          <SectionHeading id="pipeline" icon="gitBranch" title="Run it step by step">
+            Each step has its file, one sentence and its commands.
+          </SectionHeading>
+          <PipelineMap />
+          <PipelineSteps />
+        </section>
+        <section>
+          <SectionHeading id="outputs" icon="flask" title="Outputs and checks">
+            What the numbers are in, and how they are checked.
+          </SectionHeading>
+          <div className="card-grid cols-2">
+            <InfoCard icon="ruler" title="Model units, not pounds" className="mx-card" id="units">
+              <p>Solver outputs are in model units. This study reports gaps against the OBR-central path instead.</p>
+              <p className="mx-sub">OG-UK&rsquo;s map functions scale units to £bn by one ONS GDP anchor.</p>
+            </InfoCard>
+            <InfoCard icon="flask" title="Check the numbers" className="mx-card">
               <p>
-                Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages
-                rebuild without the model.
+                Every finished gap is compared with its raw solve by{' '}
+                {ext(blob('dashboard/scripts/check_numbers.py'), 'check_numbers.py')}.
               </p>
-            </header>
-            <BeforeYouStart />
-            <PipelineMap />
-            <PipelineSteps />
-            <div className="card-grid cols-2">
-              <InfoCard icon="ruler" title="Model units, not pounds" className="mx-card" id="units">
-                <p>Solver outputs are in model units. This study reports gaps against the OBR-central path instead.</p>
-                <p className="mx-sub">OG-UK&rsquo;s map functions scale units to £bn by one ONS GDP anchor.</p>
-              </InfoCard>
-              <InfoCard icon="flask" title="Check the numbers" className="mx-card">
-                <p>
-                  Every finished gap is compared with its raw solve by{' '}
-                  {ext(blob('dashboard/scripts/check_numbers.py'), 'check_numbers.py')}.
-                </p>
-                <p className="mx-sub">The build also runs asserts on the data file.</p>
-              </InfoCard>
-            </div>
-          </>
-        ) : null}
-        {sub === 'oguk' ? (
-          <>
-            <header className="mx-intro">
-              <h2>Use OG-UK yourself</h2>
-              <p>The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.</p>
-            </header>
-            <UseOguk />
-          </>
-        ) : null}
-      </SubTabPanel>
+              <p className="mx-sub">The build also runs asserts on the data file.</p>
+            </InfoCard>
+          </div>
+        </section>
+        <section>
+          <SectionHeading id="use-oguk" icon="code" title="Use OG-UK yourself">
+            The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.
+          </SectionHeading>
+          <UseOguk />
+        </section>
+      </div>
     </div>
   );
 }

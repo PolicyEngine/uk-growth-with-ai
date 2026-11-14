@@ -1,7 +1,7 @@
 {
  "what": "Consumption-equivalent welfare change by birth year and lifetime-earnings group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption and bequests, labour held at the no-shock path. no_bequest_*: warm glow dropped, per cent of consumption. sources_alive: change in remaining-lifetime after-tax income by source at unchanged behaviour, per cent of remaining-lifetime consumption (first order). charged: the government-consumption shortfall from 2036 charged to households per head (first order, debt-neutral only; [low, high] over two extensions past 2036).",
  "generated_by": "paper/cohort_welfare.py --json",
- "source": "uk-growth-with-ai@f4bf750",
+ "source": "uk-growth-with-ai@ff0d7e0",
  "reference": "no-shock continuation of the same closure",
  "shock_year": 2028,
  "groups": [

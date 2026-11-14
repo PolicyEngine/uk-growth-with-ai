@@ -2,159 +2,35 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
-import Disclosure from '@/components/ab/Disclosure.jsx';
-import { S, SCENARIOS, KORINEK_FULL, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
-import { REPO, issue } from '@/tabs/ai/links.js';
+import { SectionHeading } from '@/components/ui/Card.jsx';
+import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { NavLink } from '@/lib/nav.jsx';
+import { METHOD, RULES as RULE_NAMES } from '@/lib/labels.js';
+import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR } from '@/tabs/ai/surprise.js';
+import { REPO, issue, pr } from '@/tabs/ai/links.js';
 import F from '@/data/methodFacts.json';
-import { ext, GoTo, StepRail, StepSection } from '../shared/ui.jsx';
-import SubTabs, { SubTabPanel, useSubTabParam } from '../shared/subtabs.jsx';
-import Timeline from './Timeline.jsx';
-import ScenarioMap from './ScenarioMap.jsx';
+import { ext } from '../shared/ui.jsx';
 import ModelFlow from './ModelFlow.jsx';
 import Cohorts from './Cohorts.jsx';
 
-// Scenarios and method, a guided sequence: the shock, its timing, the
-// scenarios, the arms (sub-tab Scenarios); closures, rules and the model
-// (How it's built); Limitations; History. Each fact has one home here.
-// Results live on Results, sources on Literature, commands on Code.
+// Method, one page: the shock, closures and income measures, fiscal rules
+// and public finances, the model, limitations, revision history. Each fact
+// has its one home here; chart cards link to these sections by anchor. The
+// scenarios themselves are on Scenarios, sources on Other studies, commands
+// on Code.
 
 const DOC = (p) => `${REPO}/blob/rerun/surprise-2028/docs/${p}`;
 const DOC_MAIN = (p) => `${REPO}/blob/main/docs/${p}`;
 const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 
-export const METHOD_SUBS = [
-  { id: 'scenarios', label: 'Scenarios', icon: 'target' },
-  { id: 'built', label: 'How it’s built', icon: 'sigma' },
-  { id: 'limits', label: 'Limitations', icon: 'alert' },
-  { id: 'history', label: 'History', icon: 'history' },
+const SECTIONS = [
+  { id: METHOD.shock.id, title: METHOD.shock.label, icon: 'zap' },
+  { id: METHOD.closures.id, title: METHOD.closures.label, icon: 'globe' },
+  { id: METHOD.rules.id, title: METHOD.rules.label, icon: 'landmark' },
+  { id: METHOD.model.id, title: METHOD.model.label, icon: 'sigma' },
+  { id: METHOD.limits.id, title: METHOD.limits.label, icon: 'alert' },
+  { id: METHOD.history.id, title: METHOD.history.label, icon: 'history' },
 ];
-
-// The step indicator runs across the first three sub-tabs.
-const STEPS = [
-  { id: 'm-shock', label: 'The shock', sub: 'scenarios' },
-  { id: 'm-timing', label: 'Timing', sub: 'scenarios' },
-  { id: 'm-scenarios', label: 'Scenarios', sub: 'scenarios' },
-  { id: 'm-arms', label: 'Arms', sub: 'scenarios' },
-  { id: 'm-closures', label: 'Closures and rules', sub: 'built' },
-  { id: 'm-model', label: 'The model', sub: 'built' },
-  { id: 'm-limits', label: 'Limitations', sub: 'limits' },
-];
-
-// The stress test's technology change, from the solves (UK central), per
-// closure: a cut under the central closure, a slight rise with closed
-// capital (results sanity audit, #39). Words follow the signs.
-const REF_SID = 'uk_central';
-const fx = (cl) => fixedInputVsTz(REF_SID, 'ss', cl);
-const move = (x) => (x == null ? null : x < 0 ? `fall (UK central: ${signed(x, 2)}%)` : `rise slightly (UK central: ${signed(x, 2)}%)`);
-function stressLine() {
-  const c = move(fx(CENTRAL));
-  const b = move(fx(BOUND));
-  const parts = [];
-  if (c) parts.push(`Under the central closure that needs output at fixed inputs to ${c}, against technology unchanged.`);
-  if (b) parts.push(`With closed capital it needs them to ${b}, so it almost coincides with technology unchanged.`);
-  return parts.join(' ');
-}
-function stressFixedText() {
-  const c = fx(CENTRAL);
-  const b = fx(BOUND);
-  const w = (x) => (x == null ? 'pending' : x < 0 ? 'falls' : 'rises slightly');
-  return `Central closure: ${w(c)}; closed capital: ${w(b)}`;
-}
-function tzGdpLine() {
-  const c = gap(REF_SID, 'tz', CENTRAL, 'Y');
-  const b = gap(REF_SID, 'tz', BOUND, 'Y');
-  const w = (x) => (x == null ? 'is pending' : Math.abs(x) < 0.005 ? 'is unchanged' : x > 0 ? 'rises a little as capital deepens' : 'ends slightly below the OBR-central path');
-  return `In UK central, GDP ${w(c)} under the central closure and ${w(b)} with closed capital. So the stress test’s zero is imposed, not a model outcome.`;
-}
-
-const ARM_TEXT = {
-  tfp: {
-    icon: 'trend',
-    role: 'Main result',
-    line: 'The capital share rises, and output at fixed inputs rises by the scenario’s gain.',
-    fixedText: 'Rises by the scenario’s gain',
-    glyph: <path d="M4 14 L12 6 L20 14" />,
-    preview: 'Anchored at the starting year',
-    more: (
-      <>
-        <p>Z is solved jointly with &gamma;.</p>
-        <p>
-          The gain is measured at the baseline&rsquo;s {FIRST_YEAR} capital and labour. No scenario has touched those
-          inputs yet.
-        </p>
-      </>
-    ),
-  },
-  tz: {
-    icon: 'scale',
-    role: 'Shown beside the stress test',
-    line: 'The same rise in the capital share, with output at fixed inputs unchanged.',
-    fixedText: 'Unchanged',
-    glyph: <path d="M4 10 H20" />,
-    preview: 'Why it is shown',
-    more: (
-      <>
-        <p>Income moves from labour to capital, with no productivity gain.</p>
-        <p>{tzGdpLine()}</p>
-      </>
-    ),
-  },
-  ss: {
-    icon: 'alert',
-    role: 'A bound, not a forecast',
-    line: `${HEADLINE_YEAR} GDP is held at the OBR-central path. ${stressLine()}`,
-    fixedText: stressFixedText(),
-    glyph: <path d="M4 6 L12 14 L20 6" />,
-    preview: 'The R4 secant, the OBR comparison',
-    more: (
-      <>
-        <p>
-          Z is solved by secant over full solves (&ldquo;R4&rdquo;). It stops when the {HEADLINE_YEAR} GDP gap is
-          within 0.01pp of zero.
-        </p>
-        <p>It is named after the OBR&rsquo;s March 2026 displacement scenario, where GDP is unchanged.</p>
-        <p>It matches the OBR only on GDP. The OBR adjusts through jobs; OG-UK, with no unemployment, through the wage.</p>
-      </>
-    ),
-  },
-};
-
-function ArmCards() {
-  return (
-    <div className="card-grid mx-arms">
-      {ARMS.map((a) => {
-        const t = ARM_TEXT[a.id];
-        if (!t) return null;
-        return (
-          <InfoCard
-            key={a.id}
-            id={`arm-${a.id}`}
-            icon={t.icon}
-            title={a.label}
-            className={`mx-card mx-arm mx-arm-${a.id}`}
-            more={t.more}
-            moreTitle="How Z is set"
-            morePreview={t.preview}
-          >
-            <p className="mx-kicker">{t.role}</p>
-            <p>{t.line}</p>
-            <div className="mx-fixed" aria-label={`Output at fixed inputs: ${t.fixedText}`}>
-              <svg viewBox="0 0 24 20" width="24" height="20" aria-hidden="true">
-                <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  {t.glyph}
-                </g>
-              </svg>
-              <span>
-                <span className="mx-fixed-label">Output at fixed inputs</span>
-                <b>{t.fixedText}</b>
-              </span>
-            </div>
-          </InfoCard>
-        );
-      })}
-    </div>
-  );
-}
 
 function ClosureCards() {
   return (
@@ -193,7 +69,7 @@ function ClosureCards() {
         more={
           <>
             <p>UK households&rsquo; saving finances all the extra capital. GNI and GDP nearly coincide.</p>
-            <p>It is shown beside the central closure everywhere, as the {S.closures[BOUND].role}.</p>
+            <p>It is the {S.closures[BOUND].role}: choose Closed capital or Both under Closure at the top of Results to see it.</p>
           </>
         }
         moreTitle="What it bounds"
@@ -214,31 +90,29 @@ const MEASURES = [
   { k: 'NNI', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK, ONS capital stocks).' },
 ];
 
-const RULES = [
-  {
+const RULE_TEXT = {
+  common: {
     id: 'rule-default',
     icon: 'sliders',
-    title: 'Spending follows GDP',
     tag: 'Default, on every Results chart',
-    line: `Government consumption and transfers are fixed shares of GDP. From ${LATE_YEAR} a debt rule steers spending.`,
+    line: `Government consumption and transfers are fixed shares of GDP, so spending follows GDP. From ${LATE_YEAR} a debt rule steers spending.`,
   },
-  {
+  fixed: {
     id: 'rule-fixed',
     icon: 'landmark',
-    title: 'Fixed spending',
-    tag: 'Sensitivity',
+    tag: 'Sensitivity, not yet solved',
     line: 'Consumption and transfers stay at their OBR-central levels. This is the OBR’s convention.',
   },
-  {
+  dn: {
     id: 'rule-dn',
     icon: 'scale',
-    title: 'Debt-neutral',
-    tag: 'For cohort welfare',
+    tag: 'Headline rule on Who gains',
     line: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR-central path. Households bear the fiscal effect.`,
   },
-];
+};
+const RULES = RULE_NAMES.map((r) => ({ ...RULE_TEXT[r.id], title: r.label }));
 
-function Limitations({ onTab }) {
+function Limitations() {
   const items = [
     {
       icon: 'factory',
@@ -278,9 +152,9 @@ function Limitations({ onTab }) {
       more: (
         <p>
           The gap against the OBR&rsquo;s tax rates is on{' '}
-          <GoTo tab="results" id="tax-gap" onTab={onTab}>
-            Results, in the tax-gap card
-          </GoTo>
+          <NavLink tab="results" sub="finances" anchor="tax-gap">
+            Results, Public finances
+          </NavLink>
           .
         </p>
       ),
@@ -303,12 +177,19 @@ function Limitations({ onTab }) {
     },
   ];
   return (
-    <div className="card-grid mx-limits">
-      {items.map((it) => (
-        <InfoCard key={it.title} icon={it.icon} title={it.title} className="mx-card" more={it.more} moreTitle="Detail">
-          <p>{it.line}</p>
-        </InfoCard>
-      ))}
+    <div className="info-card mx-card">
+      <ul className="limit-list">
+        {items.map((it) => (
+          <li key={it.title}>
+            <Icon name={it.icon} size={18} />
+            <div>
+              <h3>{it.title}</h3>
+              <p>{it.line}</p>
+              <div className="limit-more">{it.more}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -321,351 +202,237 @@ const HISTORY = [
   ['12 Nov 2026', 'OG-UK already includes NICs, so nothing is added. The tax gap becomes a limitation.', 27],
   ['12 Nov 2026', 'Debt-neutral variant for cohort welfare; NNI reported beside GNI.', 27],
   ['12 Nov 2026', '“Automation only” renamed the OBR-style stress test; technology-unchanged arm added.', 27],
+  ['13 Nov 2026', 'Debt/GDP checked with debt repriced at the speed the OBR assumes; caveat added on Public finances.', 43],
 ];
 
-export default function MethodTab({ onTab, active = true }) {
+export default function MethodTab() {
   const nic = F.nics;
-  const [sub, setSub] = useSubTabParam(METHOD_SUBS.map((t) => t.id), active);
-  const show = (id) => sub === id;
   return (
-    <div className="mx-tab mx-method">
-      <SubTabs
-        tabs={METHOD_SUBS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
-        value={sub}
-        onChange={setSub}
-        ariaLabel="Scenarios and method sections"
-        idPrefix="msub"
-      />
-      <SubTabPanel idPrefix="msub" value={sub}>
-        {sub !== 'history' ? <StepRail key={sub} steps={STEPS} sub={sub} onSub={setSub} label="Steps on this tab" /> : null}
-
-        {show('scenarios') ? (
-          <>
-            <StepSection id="m-shock" n={1} icon="zap" title="What the shock is" lede="OG-UK has no AI parameter. AI changes two numbers in production.">
-              <div className="card-grid">
-                <InfoCard
-                  icon="cpu"
-                  title="Automation"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Production is Cobb-Douglas, so the labour share is exactly 1 &minus; &gamma;.</p>
-                      <p>A fall of f points sets &gamma; to 0.35 + f/100. The ramp needs a small OG-Core patch (see Code).</p>
-                    </>
-                  }
-                  moreTitle="How it maps"
-                  morePreview="Labour share = 1 − γ"
-                >
-                  <p>The capital share &gamma; rises. The labour share falls by the same number of points.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="gauge"
-                  title="Productivity"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Z also absorbs the model&rsquo;s arbitrary units of capital and labour.</p>
-                      <p>So its level is not comparable across arms. Each arm fixes output at given inputs instead.</p>
-                    </>
-                  }
-                  moreTitle="Why Z is not a percentage"
-                  morePreview="Z is also a units constant"
-                >
-                  <p>Productivity Z moves so that output at fixed inputs changes by the scenario&rsquo;s gain.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="layers"
-                  title="Everything else unchanged"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>
-                        The baseline is the OBR-central path: trend productivity growth of 1% a year, the OBR&rsquo;s central
-                        figure. That figure already includes the OBR&rsquo;s own central AI assumption, so every result is AI
-                        beyond that path, not against a world with no AI.
-                      </p>
-                      <p>Its spending is set so 2030 debt/GDP matches the OBR&rsquo;s (rerun R1).</p>
-                      <p>Every gap is measured against a no-shock restart of that path.</p>
-                    </>
-                  }
-                  moreTitle="The OBR-central path"
-                  morePreview="OBR-central baseline, the restart"
-                >
-                  <p>Demographics, tax functions and policy stay as on the OBR-central path.</p>
-                </InfoCard>
-              </div>
-            </StepSection>
-
-            <StepSection
-              id="m-timing"
-              n={2}
-              icon="calendar"
-              title="When it happens"
-              lede={`One start in ${FIRST_YEAR}, a surprise in ${SURPRISE_YEAR}, full weight by ${HEADLINE_YEAR}.`}
+    <div className="page-with-contents mx-tab mx-method">
+      <OnThisPage tab="method" sections={SECTIONS} label="Method contents" />
+      <div className="page-body">
+        <section>
+          <SectionHeading id="m-shock" icon="zap" title="The shock">
+            OG-UK has no AI parameter. AI changes two numbers in production.
+          </SectionHeading>
+          <div className="card-grid">
+            <InfoCard
+              icon="cpu"
+              title="Automation"
+              className="mx-card"
+              more={
+                <>
+                  <p>Production is Cobb-Douglas, so the labour share is exactly 1 &minus; &gamma;.</p>
+                  <p>A fall of f points sets &gamma; to 0.35 + f/100. The ramp needs a small OG-Core patch (see{' '}
+                    <NavLink tab="code" anchor="before">Code</NavLink>).</p>
+                </>
+              }
+              moreTitle="How it maps"
+              morePreview="Labour share = 1 − γ"
             >
-              <div className="info-card mx-card mx-figure">
-                <Timeline />
-              </div>
-              <div className="card-grid">
-                <InfoCard
-                  icon="flag"
-                  title={`One starting point, ${FIRST_YEAR}`}
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>OG-Core always starts a run in the baseline&rsquo;s first year.</p>
-                      <p>So inputs are shifted two years, and the run inherits the {FIRST_YEAR} wealth, debt and population.</p>
-                      <p>Details: {ext(DOC('surprise_2028.md'), 'design note')}.</p>
-                    </>
-                  }
-                  moreTitle="How the restart works"
-                  morePreview="Shifted inputs, inherited wealth"
-                >
-                  <p>2026 and {FIRST_YEAR} are identical in every scenario. There is no anticipation.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="zap"
-                  title={`A surprise in ${SURPRISE_YEAR}`}
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Households re-plan from the wealth they hold.</p>
-                      <p>The {SURPRISE_YEAR} gap is the news plus the ramp&rsquo;s first quarter, not news alone.</p>
-                    </>
-                  }
-                  moreTitle="What the first year contains"
-                  morePreview="News plus the first ramp step"
-                >
-                  <p>Nobody expects AI before {SURPRISE_YEAR}. From then on, everyone knows the whole path.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="construction"
-                  title={`The ${SURPRISE_YEAR} jump`}
-                  className="mx-card"
-                  id="m-jump"
-                  more={
-                    <>
-                      <p>OG-Core 0.17 defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</p>
-                      <p>So investment jumps for one year. It reflects frictionless capital, not a forecast of a boom.</p>
-                    </>
-                  }
-                  moreTitle="Why there is a spike"
-                  morePreview="No adjustment costs in OG-Core 0.17"
-                >
-                  <p>With no adjustment costs, investment and hours jump in the announcement year.</p>
-                </InfoCard>
-              </div>
-            </StepSection>
-
-            <StepSection
-              id="m-scenarios"
-              n={3}
-              icon="target"
-              title="The scenarios"
-              lede={`Three UK scenarios and a US upper case. Each is a pair reached in ${HEADLINE_YEAR}.`}
+              <p>The capital share &gamma; rises. The labour share falls by the same number of points.</p>
+            </InfoCard>
+            <InfoCard
+              icon="gauge"
+              title="Productivity"
+              className="mx-card"
+              more={
+                <>
+                  <p>Z also absorbs the model&rsquo;s arbitrary units of capital and labour.</p>
+                  <p>So its level is not comparable across arms. Each arm fixes output at given inputs instead.</p>
+                </>
+              }
+              moreTitle="Why Z is not a percentage"
+              morePreview="Z is also a units constant"
             >
-              <div className="info-card mx-card mx-figure">
-                <ScenarioMap />
-              </div>
-              <div className="card-grid mx-scen-grid">
-                {SCENARIOS.map((s) => (
-                  <InfoCard
-                    key={s.id}
-                    id={`scen-${s.id}`}
-                    icon={s.id === 'korinek' ? 'globe' : 'landmark'}
-                    title={s.id === 'korinek' ? KORINEK_FULL : s.label}
-                    className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
-                    more={
-                      <dl className="mx-facts">
-                        {Object.entries(s.sources).map(([k, v]) => (
-                          <div key={k}>
-                            <dt>{k === 'tfp' ? 'Productivity' : k === 'labour_share' ? 'Labour share' : 'Both inputs'}</dt>
-                            <dd>{v}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    }
-                    moreTitle="Sources and arithmetic"
-                    morePreview={s.id === 'korinek' ? 'Korinek et al., Table 3' : 'IMF UK, OBR FRS, BP9'}
-                  >
-                    <p className="mx-kicker">
-                      {s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US inputs' : 'UK range'}
-                    </p>
-                    <dl className="mx-pair">
-                      <div>
-                        <dt>Labour share</dt>
-                        <dd>−{s.labour_share_fall_pp.toFixed(1)}pp</dd>
-                      </div>
-                      <div>
-                        <dt>Output at fixed inputs</dt>
-                        <dd>+{s.tfp_gain_pct.toFixed(1)}%</dd>
-                      </div>
-                    </dl>
-                    <p className="mx-sub">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</p>
-                  </InfoCard>
-                ))}
-              </div>
-              <p className="mx-foot">
-                Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}. Published figures are compared on
-                Literature.
-              </p>
-            </StepSection>
-
-            <StepSection id="m-arms" n={4} icon="shuffle" title="Three arms per scenario" lede="The same labour-share fall in each. They differ in output at fixed inputs.">
-              <ArmCards />
-            </StepSection>
-          </>
-        ) : null}
-
-        {show('built') ? (
-          <>
-            <StepSection id="m-closures" n={5} icon="globe" title="Closures and the spending rule" lede="Who finances new capital, which income leads, how the budget adjusts.">
-              <ClosureCards />
-              <div className="info-card mx-card mx-measures" id="m-measures">
-                <h3 className="info-card-title">
-                  <Icon name="ruler" size={18} />
-                  <span>Three income measures</span>
-                </h3>
-                <div className="mx-measure-row">
-                  {MEASURES.map((m, i) => (
-                    <div key={m.k} className="mx-measure">
-                      <span className="mx-measure-k">{m.k}</span>
-                      <span className="mx-measure-t">{m.t}</span>
-                      <span className="mx-measure-d">{m.d}</span>
-                      {i < MEASURES.length - 1 ? (
-                        <span className="mx-measure-arrow" aria-hidden="true">
-                          →
-                        </span>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="card-grid mx-rules">
-                {RULES.map((r) => (
-                  <InfoCard key={r.id} id={r.id} icon={r.icon} title={r.title} className="mx-card">
-                    <p className="mx-kicker">{r.tag}</p>
-                    <p>{r.line}</p>
-                  </InfoCard>
-                ))}
-              </div>
-              <p className="mx-foot">
-                The debt rule starts in {LATE_YEAR} in every run. So debt is quoted for {HEADLINE_YEAR} and {LATE_YEAR}.
-              </p>
-            </StepSection>
-
-            <StepSection id="m-model" n={6} icon="sigma" title="How it is solved" lede="OG-UK, the UK calibration of OG-Core: households, firms, a government, markets.">
-              <ModelFlow />
-              <div className="card-grid cols-2">
-                <div className="info-card mx-card mx-figure">
-                  <h3 className="info-card-title">
-                    <Icon name="usersRound" size={18} />
-                    <span>Many generations at once</span>
-                  </h3>
-                  <Cohorts />
-                </div>
-                <InfoCard
-                  icon="receipt"
-                  title="How labour is taxed"
-                  className="mx-card"
-                  id="m-tax"
-                  more={
-                    <>
-                      <p>The fitted functions already include employee NICs. Adding NICs would count them twice.</p>
-                      <p>Employer NICs are a payroll tax from the first pound, with no threshold or allowance.</p>
-                      <p>
-                        PolicyEngine-UK, {nic.year}: {pct(nic.employer_avg_of_employment_income)} of employment income;{' '}
-                        {pct(nic.employer_marginal)} at the margin (
-                        {ext(`${REPO}/blob/rerun/surprise-2028/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
-                      </p>
-                    </>
-                  }
-                  moreTitle="Employee and employer NICs"
-                  morePreview="Fitted function, flat payroll tax"
-                >
-                  <dl className="mx-pair">
-                    <div>
-                      <dt>Employee NICs</dt>
-                      <dd className="mx-dd-text">In the fitted income-tax function</dd>
-                    </div>
-                    <div>
-                      <dt>Employer NICs</dt>
-                      <dd>
-                        {pct(nic.oguk_tau_payroll, 0)} flat
-                        <span className="mx-vs">vs {pct(nic.employer_avg_of_labour_cost)} average</span>
-                      </dd>
-                    </div>
-                  </dl>
-                  <p className="mx-sub">The average is PolicyEngine-UK&rsquo;s, as a share of labour cost.</p>
-                </InfoCard>
-              </div>
-              <div className="card-grid cols-2">
-                <InfoCard
-                  icon="repeat"
-                  title="Steady state, then the path"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>Time path iteration guesses whole price paths. It solves every cohort, then updates the guess.</p>
-                      <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on Code.</p>
-                    </>
-                  }
-                  moreTitle="Time path iteration"
-                  morePreview="Nested fixed points"
-                >
-                  <p>Each run finds the long-run equilibrium, then the yearly path from {SURPRISE_YEAR}.</p>
-                </InfoCard>
-                <InfoCard
-                  icon="lock"
-                  title="Gated before and after"
-                  className="mx-card"
-                  more={
-                    <>
-                      <p>
-                        A no-shock restart must reproduce the baseline over {SURPRISE_YEAR}–{LATE_YEAR}, within 10
-                        <sup>−4</sup>.
-                      </p>
-                      <p>After each solve, a sanity check tests identities and the labour share. Any failure stops the run.</p>
-                    </>
-                  }
-                  moreTitle="The two gates"
-                  morePreview="Continuation gate, sanity check"
-                >
-                  <p>A restart test and a sanity check guard every number. The commands are on Code.</p>
-                </InfoCard>
-              </div>
-            </StepSection>
-          </>
-        ) : null}
-
-        {show('limits') ? (
-          <StepSection id="m-limits" n={7} icon="alert" title="Limitations" lede="What the model leaves out, each stated once.">
-            <Limitations onTab={onTab} />
-          </StepSection>
-        ) : null}
-
-        {show('history') ? (
-          <div className="info-card mx-card mx-history" id="m-history">
-            <h3 className="info-card-title">
-              <Icon name="history" size={18} />
-              <span>Revision history</span>
-            </h3>
-            <p className="mx-sub">How the design changed. Each decision is recorded on the tracker.</p>
-            <Disclosure inCard title="All changes" preview={`${HISTORY.length} changes, 11–12 Nov 2026`}>
-              <ol className="mx-history-list">
-                {HISTORY.map(([d, t, n], i) => (
-                  <li key={i}>
-                    <span className="mx-history-date">{d}</span>
-                    <span>
-                      {t} {ext(issue(n), `#${n}`)}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </Disclosure>
+              <p>Productivity Z moves so that output at fixed inputs changes by the scenario&rsquo;s gain.</p>
+            </InfoCard>
+            <InfoCard
+              icon="layers"
+              title="Everything else unchanged"
+              className="mx-card"
+              more={
+                <>
+                  <p>
+                    The baseline is the OBR-central path: trend productivity growth of 1% a year, the OBR&rsquo;s central
+                    figure. That figure already includes the OBR&rsquo;s own central AI assumption, so every result is AI
+                    beyond that path, not against a world with no AI.
+                  </p>
+                  <p>Its spending is set so 2030 debt/GDP matches the OBR&rsquo;s (rerun R1).</p>
+                  <p>Every gap is measured against a no-shock restart of that path.</p>
+                </>
+              }
+              moreTitle="The OBR-central path"
+              morePreview="OBR-central baseline, the restart"
+            >
+              <p>Demographics, tax functions and policy stay as on the OBR-central path.</p>
+            </InfoCard>
           </div>
-        ) : null}
-      </SubTabPanel>
+        </section>
+
+        <section>
+          <SectionHeading id="m-closures" icon="globe" title="Closures and income measures">
+            Who finances new capital, and which measure of income leads.
+          </SectionHeading>
+          <ClosureCards />
+          <div className="info-card mx-card mx-measures" id="m-measures">
+            <h3 className="info-card-title">
+              <Icon name="ruler" size={18} />
+              <span>Three income measures</span>
+            </h3>
+            <div className="mx-measure-row">
+              {MEASURES.map((m, i) => (
+                <div key={m.k} className="mx-measure">
+                  <span className="mx-measure-k">{m.k}</span>
+                  <span className="mx-measure-t">{m.t}</span>
+                  <span className="mx-measure-d">{m.d}</span>
+                  {i < MEASURES.length - 1 ? (
+                    <span className="mx-measure-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading id="m-rules" icon="landmark" title="Fiscal rules and public finances">
+            How the budget adjusts, and how debt responds to the interest rate.
+          </SectionHeading>
+          <div className="card-grid mx-rules">
+            {RULES.map((r) => (
+              <InfoCard key={r.id} id={r.id} icon={r.icon} title={r.title} className="mx-card">
+                <p className="mx-kicker">{r.tag}</p>
+                <p>{r.line}</p>
+              </InfoCard>
+            ))}
+          </div>
+          <p className="mx-foot">
+            The debt rule starts in {LATE_YEAR} in every run. So debt is quoted for {HEADLINE_YEAR} and {LATE_YEAR}.
+          </p>
+          <div className="card-grid cols-2">
+            <InfoCard icon="percent" title="How debt is repriced" className="mx-card" id="m-debt">
+              <p>
+                All government debt in the model is one-year debt, so a higher interest rate applies to the whole stock at once. UK gilts
+                reprice more slowly, so the model&rsquo;s rise in debt/GDP after {HEADLINE_YEAR} is overstated.
+              </p>
+              <p className="mx-sub">The check that reprices debt at the speed the OBR assumes: {ext(pr(43), 'PR #43')}.</p>
+            </InfoCard>
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading id="m-model" icon="sigma" title="The model">
+            OG-UK, the UK calibration of OG-Core: households, firms, a government, markets.
+          </SectionHeading>
+          <ModelFlow />
+          <div className="card-grid cols-2">
+            <div className="info-card mx-card mx-figure" id="m-generations">
+              <h3 className="info-card-title">
+                <Icon name="usersRound" size={18} />
+                <span>Many generations at once</span>
+              </h3>
+              <Cohorts />
+            </div>
+            <InfoCard
+              icon="receipt"
+              title="How labour is taxed"
+              className="mx-card"
+              id="m-tax"
+              more={
+                <>
+                  <p>The fitted functions already include employee NICs. Adding NICs would count them twice.</p>
+                  <p>Employer NICs are a payroll tax from the first pound, with no threshold or allowance.</p>
+                  <p>
+                    PolicyEngine-UK, {nic.year}: {pct(nic.employer_avg_of_employment_income)} of employment income;{' '}
+                    {pct(nic.employer_marginal)} at the margin (
+                    {ext(`${REPO}/blob/rerun/surprise-2028/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
+                  </p>
+                </>
+              }
+              moreTitle="Employee and employer NICs"
+              morePreview="Fitted function, flat payroll tax"
+            >
+              <dl className="mx-pair">
+                <div>
+                  <dt>Employee NICs</dt>
+                  <dd className="mx-dd-text">In the fitted income-tax function</dd>
+                </div>
+                <div>
+                  <dt>Employer NICs</dt>
+                  <dd>
+                    {pct(nic.oguk_tau_payroll, 0)} flat
+                    <span className="mx-vs">vs {pct(nic.employer_avg_of_labour_cost)} average</span>
+                  </dd>
+                </div>
+              </dl>
+              <p className="mx-sub">The average is PolicyEngine-UK&rsquo;s, as a share of labour cost.</p>
+            </InfoCard>
+          </div>
+          <div className="card-grid cols-2">
+            <InfoCard
+              icon="repeat"
+              title="Steady state, then the path"
+              className="mx-card"
+              more={
+                <>
+                  <p>Time path iteration guesses whole price paths. It solves every cohort, then updates the guess.</p>
+                  <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on <NavLink tab="code">Code</NavLink>.</p>
+                </>
+              }
+              moreTitle="Time path iteration"
+              morePreview="Nested fixed points"
+            >
+              <p>Each run finds the long-run equilibrium, then the yearly path from {SURPRISE_YEAR}.</p>
+            </InfoCard>
+            <InfoCard
+              icon="lock"
+              title="Gated before and after"
+              className="mx-card"
+              more={
+                <>
+                  <p>
+                    A no-shock restart must reproduce the baseline over {SURPRISE_YEAR}–{LATE_YEAR}, within 10
+                    <sup>−4</sup>.
+                  </p>
+                  <p>After each solve, a sanity check tests identities and the labour share. Any failure stops the run.</p>
+                </>
+              }
+              moreTitle="The two gates"
+              morePreview="Continuation gate, sanity check"
+            >
+              <p>A restart test and a sanity check guard every number. The commands are on <NavLink tab="code" anchor="pipeline">Code</NavLink>.</p>
+            </InfoCard>
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading id="m-limits" icon="alert" title="Limitations">
+            What the model leaves out, each stated once.
+          </SectionHeading>
+          <Limitations />
+        </section>
+
+        <section>
+          <SectionHeading id="m-history" icon="history" title="Revision history">
+            How the design changed. Each decision is recorded on the tracker.
+          </SectionHeading>
+          <div className="info-card mx-card mx-history">
+          <ol className="mx-history-list">
+            {HISTORY.map(([d, t, n], i) => (
+              <li key={i}>
+                <span className="mx-history-date">{d}</span>
+                <span>
+                  {t} {ext(issue(n), `#${n}`)}
+                </span>
+              </li>
+            ))}
+          </ol>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

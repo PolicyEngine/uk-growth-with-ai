@@ -1,81 +1,57 @@
 'use client';
 
-import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
-import Disclosure from '@/components/ab/Disclosure.jsx';
-import ChartCard from '@/components/ab/ChartCard.jsx';
-import LineChart from '@/components/LineChart.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { SectionHeading, Unpublished } from '@/components/ab/Section.jsx';
+import { Unpublished } from '@/components/ab/Section.jsx';
+import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
+import ControlBar, { RuleGroup } from '@/components/ui/ControlBar.jsx';
+import { useNav, NavLink } from '@/lib/nav.jsx';
+import { ruleLabel } from '@/lib/labels.js';
 import {
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_LIGHT, CLOSURE_LABEL, result, ruleResult, ruleScenarios, scenarioById, gap, signed, fmt,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, CLOSURE_LABEL, result, ruleResult, ruleScenarios, scenarioById, gap, signed, fmt, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
+import { closuresFor, closureWords, contextLine, side } from '@/tabs/ai/lines.js';
+import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 
-// Public finances, the last section of Results: debt/GDP to the debt rule's
-// start, tax/GDP, why both are too small, and the spending rule. Every number
-// from surprise2028.json through surprise.js; this is the one home of the
-// tax/GDP and debt/GDP figures.
+// Results > Public finances: debt/GDP to the debt rule's first year,
+// tax/GDP, why both are likely understated, and how the result changes with
+// the fiscal rule. Every number from surprise2028.json through surprise.js;
+// this is the one home of the tax/GDP and debt/GDP figures.
 
 const LONG_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= LATE_YEAR);
 const SHORT_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= HEADLINE_YEAR);
+// The fiscal-rule ids of the control bar against the data file's keys
+const RULE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
 
-const closuresFor = (closure) => (closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL]);
+// Scenarios whose main arm ends below the path by the debt rule's first year
+// once debt is repriced at the speed the OBR assumes for UK debt (PR #43,
+// docs/debt_repricing.md: both solved closures; UK high is solved at the
+// central closure only). The model's own figure is above the path in both.
+const BELOW_AT_OBR_SPEED = new Set(['uk_high', 'korinek']);
 
-function seriesFor(sid, v, years, hidden, closure) {
-  return ARMS.filter((a) => !hidden[a.id]).flatMap((a) =>
-    closuresFor(closure).flatMap((cl) => {
-      const r = result(sid, a.id, cl);
-      if (r.status !== 'done') return [];
-      const bound = cl === BOUND;
-      return [{
-        key: `${a.id}-${bound ? 'b' : 'c'}`,
-        label: a.short || a.label,
-        closure: bound ? 'closed capital' : 'central closure',
-        color: ARM_COLOR[a.id],
-        light: ARM_LIGHT[a.id],
-        dashed: bound && closure === 'both',
-        noEndLabel: bound && closure === 'both',
-        values: years.map((y) => r.gaps[v][YEARS.indexOf(y)]),
-      }];
-    }),
-  );
+// The main arm's debt/GDP in words, by sign, for the closure in view. No
+// claim about every arm: the lines and their end values show each one.
+function debtFinding(sid, closure) {
+  const cl = closure === 'closed' ? BOUND : CENTRAL;
+  const a = gap(sid, 'tfp', cl, 'debt_gdp_pp', HEADLINE_YEAR);
+  const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
+  if (a == null || b == null) return null;
+  const at = (x) => (side(x) === 'on' ? 'on' : side(x));
+  const same = at(a) === at(b);
+  const obr = BELOW_AT_OBR_SPEED.has(sid) && at(b) === 'above';
+  return `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}, debt/GDP is ${at(a)} the OBR-central path in ${HEADLINE_YEAR} and ${same ? 'still ' : ''}${at(b)} it by ${LATE_YEAR}, as the model reprices debt at the higher interest rate${obr ? ', but below it at the speed the OBR assumes for UK debt' : ''}.`;
 }
 
-function FiscalCard({ sid, hidden, closure, v, years, title, icon, summary, about, markers, bands }) {
-  const series = seriesFor(sid, v, years, hidden, closure);
-  const pend = closure === 'central' ? [] : ARMS.filter((a) => !hidden[a.id] && result(sid, a.id, BOUND).status !== 'done').map((a) => a.short || a.label);
-  const empty = ARMS.every((a) => hidden[a.id])
-    ? 'Every series is hidden: choose one in the legend above.'
-    : closure === 'closed'
-      ? 'Closed-capital results pending for this scenario.'
-      : 'No solve for this scenario yet.';
-  return (
-    <ChartCard icon={icon} title={title} summary={summary} unit="Percentage points of GDP, difference from the OBR-central path" about={about}>
-      {series.length && pend.length ? (
-        <p className="pending-note">
-          <Icon name="lock" size={13} />
-          <span>Closed-capital results pending: {pend.join(', ')}.</span>
-        </p>
-      ) : null}
-      {series.length ? (
-        <LineChart
-          x={years}
-          series={series}
-          height={280}
-          endLabel="value"
-          unit="pp"
-          zeroLabel="OBR central"
-          markers={markers}
-          bands={bands}
-          tipTitle={title.split(',')[0]}
-          valueFormat={(x) => signed(x, 2)}
-          ariaLabel={`${title} against the OBR-central path`}
-        />
-      ) : (
-        <Unpublished>{empty}</Unpublished>
-      )}
-    </ChartCard>
-  );
+// Tax/GDP with closed capital in the main arm, in words (results sanity
+// audit A6): it can rise, so the model's sign there is not reliable.
+function closedTaxWords(sid) {
+  const r = result(sid, 'tfp', BOUND);
+  if (r.status !== 'done') return null;
+  const at = (y) => r.gaps.tax_gdp_pp[YEARS.indexOf(y)];
+  if (at(HEADLINE_YEAR) > 0) return `rises by ${HEADLINE_YEAR}`;
+  const first = YEARS.find((y) => y > HEADLINE_YEAR && y < LATE_YEAR && at(y) > 0);
+  if (first) return `is close to zero in ${HEADLINE_YEAR} and turns positive from ${first}`;
+  return 'falls by much less than under the central closure';
 }
 
 // The OBR's labour-minus-capital effective-rate gap, pp: FRS July 2026 Box
@@ -86,7 +62,6 @@ const OBR_PER_PP = [0.19, 0.23];
 
 function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   const pct = (x) => `${((x / axis.max) * 100).toFixed(2)}%`;
-  // A label near either end of the axis is anchored inwards
   const edge = (x) => (x / axis.max > 0.8 ? ' at-end' : x / axis.max < 0.2 ? ' at-start' : '');
   return (
     <div className="cause-row">
@@ -115,86 +90,92 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
           </span>
         </div>
       </div>
-      <p className={`effect-chip${up ? ' is-main' : ''}`}>
-        <Icon name={up ? 'arrowUp' : 'arrowDown'} size={14} />
-        <span>{effect}</span>
-      </p>
+      {/* icon + text, no box */}
+      <IconLine icon={up ? 'arrowUp' : 'arrowDown'} className={`cause-effect${up ? ' is-main' : ''}`}>
+        {effect}
+      </IconLine>
     </div>
   );
 }
 
-// Tax/GDP with closed capital in the main arm, in words (results sanity
-// audit A6): it can rise, so the model's sign there is not reliable.
-function closedTaxWords(sid) {
-  const r = result(sid, 'tfp', BOUND);
-  if (r.status !== 'done') return null;
-  const at = (y) => r.gaps.tax_gdp_pp[YEARS.indexOf(y)];
-  if (at(HEADLINE_YEAR) > 0) return `rises by ${HEADLINE_YEAR}`;
-  // flows from the debt rule's first year are not quoted
-  const first = YEARS.find((y) => y > HEADLINE_YEAR && y < LATE_YEAR && at(y) > 0);
-  if (first) return `is close to zero in ${HEADLINE_YEAR} and turns positive from ${first}`;
-  return 'falls by much less than under the central closure';
-}
-
-// Debt/GDP by 2036: higher than the OBR-central path in every solved arm?
-function debtWords(sid) {
-  const all = ARMS.flatMap((a) => [CENTRAL, BOUND].map((cl) => gap(sid, a.id, cl, 'debt_gdp_pp', LATE_YEAR))).filter((x) => x != null);
-  if (!all.length) return '';
-  const main31 = gap(sid, 'tfp', CENTRAL, 'debt_gdp_pp', HEADLINE_YEAR);
-  const main36 = gap(sid, 'tfp', CENTRAL, 'debt_gdp_pp', LATE_YEAR);
-  const every = all.every((x) => x > 0);
-  const lead = every
-    ? `By ${LATE_YEAR} debt/GDP is above the OBR-central path in every arm${main31 != null && main31 < 0 && main36 > 0 ? ', including automation + productivity, which is below it in ' + HEADLINE_YEAR + ' under the central closure' : ''}.`
-    : `By ${LATE_YEAR} debt/GDP is above the OBR-central path in some arms.`;
-  return `${lead} The higher interest rate reprices the whole debt stock.`;
-}
-
-function TaxGapCard({ sid, link }) {
+function TaxGapCard({ sid, closure }) {
+  // The model's central-closure figure is the tax/GDP chart's end label
+  // unless that chart is showing closed capital: each fact once.
+  const onChart = closure !== 'closed';
   const closedTax = closedTaxWords(sid);
   const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp');
   const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp');
   const fall = ls == null ? null : -ls;
   const uk = fall == null ? null : OBR_PER_PP.map((k) => -fall * k);
   return (
-    <div className="chart-card taxgap-card" id="tax-gap">
-      <div className="chart-header">
-        <h3>
-          <Icon name="alert" size={16} />
-          <span>Our tax and debt effects are likely understated</span>
-        </h3>
-      </div>
-      <p className="chart-description">
-        OG-UK taxes wages and profits too similarly, so under the central closure revenue falls too little when income
-        shifts to profits.
-        {closedTax ? ` With closed capital the model’s tax/GDP ${closedTax}, so its sign there is not reliable.` : ''}
-      </p>
-      <div className="bias-pair">
-        <div className="bias-fig">
-          <span className="bias-label">Tax/GDP in {HEADLINE_YEAR}: model</span>
-          <span className="bias-value">{model == null ? 'pending' : `${signed(model, 2)}pp`}</span>
-        </div>
-        <Icon name="arrowRight" size={18} className="bias-arrow" />
-        <div className="bias-fig">
-          <span className="bias-label">With UK tax rates, about</span>
-          <span className="bias-value">{uk == null ? 'pending' : `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
-        </div>
-      </div>
-      <p className="bias-caveat">
-        Rough scaling, not a model run. Automation + productivity, central closure only; it does not show that the model&rsquo;s sign is right with closed capital.
-      </p>
-      <Disclosure inCard title="How the scaling works" preview="Labour-share fall × the OBR’s revenue loss per point">
-        <p className="disclosure-text">
-          {fall == null ? (
-            'The labour-share fall for this scenario is pending.'
+    <Card
+      id="tax-gap"
+      icon="alert"
+      title="Our tax effect is likely understated"
+      finding={
+        <>
+          OG-UK taxes wages and profits too similarly, so under the central closure revenue falls too little when income shifts to profits.
+          {closedTax ? ` With closed capital the model’s tax/GDP ${closedTax}, so its sign there is not reliable.` : ''}
+        </>
+      }
+      aboutTitle="About this estimate"
+      about={{
+        how:
+          fall == null ? (
+            'The labour-share fall for this scenario is not solved yet.'
           ) : (
             <>
-              The OBR&rsquo;s tax rates lose 0.19 to 0.23 points of revenue per point moved from labour to capital.
-              Multiplying by this scenario&rsquo;s {HEADLINE_YEAR} labour-share fall (By variable) gives the range above.
+              The OBR&rsquo;s tax rates lose 0.19 to 0.23 points of revenue per point moved from labour to capital. Multiplying by this
+              scenario&rsquo;s {HEADLINE_YEAR} labour-share fall (on{' '}
+              <NavLink tab="results" sub="economy" anchor="economy-prices">
+                Economy
+              </NavLink>
+              ) gives the range above.
               {model != null ? ` The model loses about ${Math.abs(model / fall).toFixed(2)} per point, including every other effect of AI.` : ''}
             </>
-          )}
-        </p>
-      </Disclosure>
+          ),
+        caveats: 'A rough scaling, not a model run. Automation + productivity, central closure only. It does not show that the model’s sign is right with closed capital.',
+        sources: (
+          <ul className="plain-list">
+            <li>OBR Fiscal risks and sustainability, July 2026, Box 4.1: labour 46%, capital 27%.</li>
+            <li>OBR Economic and fiscal outlook, November 2025, ¶2.64: labour 40%, capital 17%.</li>
+            <li>
+              OG-UK&rsquo;s gap of about 14pp and the direction of each bias: <code>docs/red_flags_1_3.md</code>.
+            </li>
+            <li>
+              Employer NICs, OG-UK&rsquo;s flat rate against PolicyEngine-UK&rsquo;s average: the rates are under{' '}
+              <NavLink tab="method" anchor="m-tax">
+                How labour is taxed on Method
+              </NavLink>
+              ; data in <code>analysis/nics/nics_2028.json</code>.
+            </li>
+          </ul>
+        ),
+      }}
+      method="limits"
+    >
+      <div className="bias-pair">
+        {onChart ? null : (
+          <>
+            <div className="bias-fig">
+              <span className="bias-label">Tax/GDP in {HEADLINE_YEAR}: model, central closure</span>
+              <span className="bias-value">{model == null ? 'pending' : `${signed(model, 2)}pp`}</span>
+            </div>
+            <Icon name="arrowRight" size={18} className="bias-arrow" />
+          </>
+        )}
+        <div className="bias-fig">
+          <span className="bias-label">
+            {onChart ? `Tax/GDP in ${HEADLINE_YEAR} with UK tax rates, about` : 'With UK tax rates, about'}
+          </span>
+          <span className="bias-value">{uk == null ? 'pending' : `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
+          {onChart ? (
+            <span className="bias-label">
+              The model&rsquo;s figure is the end of the automation + productivity line in the Tax/GDP chart above.
+            </span>
+          ) : null}
+        </div>
+      </div>
       <div className="cause-rows">
         <Cause
           icon="scale"
@@ -214,34 +195,12 @@ function TaxGapCard({ sid, link }) {
           effect="Partly offsets the first row (smaller)"
         />
       </div>
-      <p className="net-line">
-        <Icon name="scale" size={16} />
-        <span>
-          <b>Net:</b> revenue losses and the rise in debt are probably larger than shown.
-        </span>
-      </p>
-      <Disclosure inCard title="Sources" preview="OBR FRS 2026 Box 4.1 · EFO Nov 2025 ¶2.64 · analysis/nics · red_flags_1_3.md">
-        <ul className="disclosure-text">
-          <li>OBR Fiscal risks and sustainability, July 2026, Box 4.1: labour 46%, capital 27%.</li>
-          <li>OBR Economic and fiscal outlook, November 2025, ¶2.64: labour 40%, capital 17%.</li>
-          <li>
-            OG-UK&rsquo;s gap of about 14pp and the direction of each bias: <code>docs/red_flags_1_3.md</code>.
-          </li>
-          <li>
-            Employer NICs, OG-UK&rsquo;s flat rate against PolicyEngine-UK&rsquo;s average: the rates are under How labour
-            is taxed on {link('method', 'Scenarios and method')}; data in <code>analysis/nics/nics_2028.json</code>.
-          </li>
-        </ul>
-      </Disclosure>
-    </div>
+      <IconLine icon="scale" className="net-line">
+        <b>Net:</b> revenue losses are probably larger than shown.
+      </IconLine>
+    </Card>
   );
 }
-
-const RULES = [
-  { id: 'default', label: 'Spending follows GDP' },
-  { id: 'fixed_spending', label: 'Fixed spending' },
-  { id: 'debt_neutral', label: 'Debt-neutral' },
-];
 
 // The headline-year gaps a rule variant prints: this card is their one home.
 const RULE_VARS = [
@@ -255,23 +214,23 @@ function RuleTable({ rule, sid, closure }) {
   const cls = closuresFor(closure);
   const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
   return (
-    <div className="rule-table-wrap">
-      <table className="rule-table">
+    <div className="table-wrap">
+      <table className="data-table">
         <caption>
-          {scenarioById(sid).label}, {HEADLINE_YEAR}, % difference from the OBR-central path
+          {scenarioById(sid).label}, {ruleLabel('dn').toLowerCase()}, {HEADLINE_YEAR}, % difference from the OBR-central path
         </caption>
         <thead>
           <tr>
             <th scope="col">Arm</th>
             {RULE_VARS.map((c) => (
-              <th key={c.v} scope="col">{c.label}</th>
+              <th key={c.v} scope="col" className="num">{c.label}</th>
             ))}
           </tr>
         </thead>
         {cls.map((cl) => (
           <tbody key={cl}>
             {cls.length > 1 ? (
-              <tr className="rule-table-group">
+              <tr className="table-group">
                 <th colSpan={RULE_VARS.length + 1} scope="colgroup">{CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase())}</th>
               </tr>
             ) : null}
@@ -280,9 +239,12 @@ function RuleTable({ rule, sid, closure }) {
               return (
                 <tr key={a.id}>
                   <th scope="row">{a.short || a.label}</th>
-                  {RULE_VARS.map((c) => (
-                    <td key={c.v}>{fmt(at(r, c.v), 2)}</td>
-                  ))}
+                  {RULE_VARS.map((c) => {
+                    const x = at(r, c.v);
+                    return (
+                      <td key={c.v} className={`num${x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-loss' : ''}`}>{fmt(x, 2)}</td>
+                    );
+                  })}
                 </tr>
               );
             })}
@@ -293,99 +255,122 @@ function RuleTable({ rule, sid, closure }) {
   );
 }
 
-function SpendingRuleCard({ sid, closure, link }) {
-  const [rule, setRule] = useState('default');
-  const solved = ruleScenarios(rule);
+function ruleTable(rule, sid, closure) {
+  const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
+  return {
+    columns: ['Closure', 'Arm', ...RULE_VARS.map((c) => `${c.label} (%)`)],
+    rows: closuresFor(closure).flatMap((cl) => ARMS.map((a) => [CLOSURE_LABEL[cl], a.label, ...RULE_VARS.map((c) => at(ruleResult(rule, sid, a.id, cl), c.v))])),
+  };
+}
+
+function FiscalRuleCard({ sid }) {
+  const { st, set } = useNav();
+  const rule = st.rule;
+  const key = RULE_KEY[rule];
+  const solved = key ? ruleScenarios(key) : [];
   const names = solved.map((s) => scenarioById(s).label).join(', ');
-  const cl = closure === 'both' ? 'both closures' : CLOSURE_LABEL[closuresFor(closure)[0]];
+  const has = key && solved.includes(sid);
   return (
-    <div className="chart-card" id="spending-rule">
-      <div className="chart-header">
-        <h3>
-          <Icon name="sliders" size={16} />
-          <span>How the result changes with the spending rule</span>
-        </h3>
-      </div>
-      <p className="chart-description">
-        Each alternative rule shows its own {HEADLINE_YEAR} gaps, in place of the default-rule figures on the other cards.
-      </p>
-      <div className="view-switch" role="group" aria-label="Spending rule">
-        {RULES.map((r) => (
-          <button key={r.id} type="button" aria-pressed={rule === r.id} className={`view-switch-option${rule === r.id ? ' is-on' : ''}`} onClick={() => setRule(r.id)}>
-            {r.label}
-          </button>
-        ))}
-      </div>
-      {rule === 'default' ? (
-        <p className="chart-description rule-default">
-          This is the rule every other card on Results uses: government consumption follows GDP until the
-          debt rule starts in {LATE_YEAR}.
+    <Card
+      id="fiscal-rule"
+      icon="sliders"
+      title="How the result changes with the fiscal rule"
+      finding={`Every other chart on Results uses the common fiscal rule. Choose another rule to see its own ${HEADLINE_YEAR} gaps.`}
+      controls={
+        <ControlBar label="Fiscal rule: options">
+          <RuleGroup value={rule} onChange={(r) => set({ rule: r })} />
+        </ControlBar>
+      }
+      logo={false}
+      about={{
+        shows: `The ${HEADLINE_YEAR} gaps in GDP, national income, the wage rate and consumption under the rule chosen, for the closure chosen at the top of the page.`,
+        caveats: `Under debt-neutral transfers, debt/GDP stays on the OBR-central path to ${LATE_YEAR} by construction, so it has no gap to show. Fixed spending, the OBR’s convention, is not solved yet.`,
+      }}
+      aboutTitle="About this table"
+      method="rules"
+      download={has ? { title: `${HEADLINE_YEAR} gaps under ${ruleLabel(rule).toLowerCase()}`, context: () => contextLine(sid, st.closure), table: () => ruleTable(key, sid, st.closure) } : undefined}
+    >
+      {rule === 'common' ? (
+        <p className="card-text rule-default">
+          Under the common fiscal rule, government consumption and transfers follow GDP until the debt rule starts in {LATE_YEAR}. Its figures are the ones on Summary, Income and output and Economy.
         </p>
-      ) : !solved.length ? (
-        <Unpublished>No solve for this rule yet. The {RULES.find((r) => r.id === rule).label.toLowerCase()} results will appear here once they are published.</Unpublished>
-      ) : !solved.includes(sid) ? (
-        <Unpublished>This rule is solved for {names} only. Choose {names} at the top of the page.</Unpublished>
+      ) : !has ? (
+        <Unpublished>
+          {ruleLabel(rule)} is solved for {names} only. Choose {names} under Scenario at the top of the page.
+        </Unpublished>
       ) : (
-        <>
-          <RuleTable rule={rule} sid={sid} closure={closure} />
-          <p className="chart-description rule-note">
-            Closure shown: {cl}. Debt/GDP stays on the OBR-central path to {LATE_YEAR} by construction, so it has no gap
-            to show. What the rule changes: {link('method', 'Scenarios and method')}.
-          </p>
-        </>
+        <RuleTable rule={key} sid={sid} closure={st.closure} />
       )}
-    </div>
+    </Card>
   );
 }
 
-export default function FinancesSection({ sid, hidden, legendBar, closure, link }) {
-  const cl = closure === 'closed' ? 'closed capital' : closure === 'both' ? 'both closures' : 'central closure';
+export default function FinancesSection({ sid }) {
+  const { st } = useNav();
+  const cl = closureWords(st.closure);
+  const reading = `The zero line is the OBR-central path; the shaded year is ${HEADLINE_YEAR}, the headline year. Each line ends with its last value; hover, tap or use the arrow keys for other years.`;
   return (
     <>
       <SectionHeading id="public-finances" icon="landmark" title="Public finances">
-        Debt and tax as shares of GDP, {cl}.
+        Debt and tax as shares of GDP under the common fiscal rule, {cl}, {SCEN_NAME[sid]}.
       </SectionHeading>
-      {legendBar}
-      <div className="charts-grid">
-        <FiscalCard
+      <div className="cards-grid">
+        <PathCard
           sid={sid}
-          hidden={hidden}
-          closure={closure}
           v="debt_gdp_pp"
           years={LONG_YEARS}
-          title={`Debt/GDP, ${FIRST_YEAR}–${LATE_YEAR}`}
+          unit="pp"
+          title="Debt/GDP"
+          name="debt/GDP"
           icon="landmark"
-          summary={`${debtWords(sid)} ${LATE_YEAR} is the debt rule’s first year, so only stocks are quoted for it. End labels give ${LATE_YEAR}; hover for other years.`}
+          unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${LATE_YEAR}`}
+          finding={debtFinding(sid, st.closure) ?? undefined}
           markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
-          bands={[{ year: HEADLINE_YEAR }]}
-          about={{ shows: `Public debt as a share of GDP against the OBR-central path. The shaded year is ${HEADLINE_YEAR}, the headline year.` }}
+          about={{
+            shows: `Public debt as a share of GDP against the OBR-central path. ${reading}`,
+            caveats: (
+              <>
+                <p>
+                  The model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in
+                  debt/GDP by {LATE_YEAR} is a tenth to two-thirds as large where debt/GDP still ends above the path.
+                </p>
+                <p>
+                  {LATE_YEAR} is the debt rule&rsquo;s first year, so only stocks are quoted for it. The stress test leaves out the cost of
+                  unemployment.
+                </p>
+              </>
+            ),
+          }}
+          method="rules"
         />
-        <FiscalCard
+        <PathCard
           sid={sid}
-          hidden={hidden}
-          closure={closure}
           v="tax_gdp_pp"
           years={SHORT_YEARS}
-          title={`Tax/GDP, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+          unit="pp"
+          title="Tax/GDP"
+          name="tax/GDP"
           icon="receipt"
-          summary={
-            closure === 'central'
-              ? `End labels give ${HEADLINE_YEAR}; hover or focus for each year.`
-              : `End labels give ${HEADLINE_YEAR}. With closed capital the model’s sign is not reliable: see the card below.`
-          }
-          markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }]}
-          bands={[{ year: HEADLINE_YEAR }]}
+          unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+          finding={st.closure === 'central' ? undefined : 'With closed capital the model’s sign for tax/GDP is not reliable: see the card below.'}
           about={{
-            shows: 'Tax revenue as a share of GDP against the OBR-central path.',
-            caveats: 'Under the central closure the fall is too small; with closed capital the sign itself is not reliable. See the next card.',
+            shows: `Tax revenue as a share of GDP against the OBR-central path. ${reading}`,
+            caveats: (
+              <>
+                Under the central closure the fall is too small; with closed capital the sign itself is not reliable. See{' '}
+                <NavLink tab="results" sub="finances" anchor="tax-gap">
+                  Our tax effect is likely understated
+                </NavLink>
+                .
+              </>
+            ),
           }}
+          method="rules"
         />
       </div>
-      <div className="charts-stack stack-gap">
-        <TaxGapCard sid={sid} link={link} />
-      </div>
-      <div className="charts-stack stack-gap">
-        <SpendingRuleCard sid={sid} closure={closure} link={link} />
+      <div className="cards-stack stack-gap">
+        <TaxGapCard sid={sid} closure={st.closure} />
+        <FiscalRuleCard sid={sid} />
       </div>
     </>
   );

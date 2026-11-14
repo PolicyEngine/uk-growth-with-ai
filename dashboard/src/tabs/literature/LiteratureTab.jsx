@@ -6,7 +6,8 @@ import { TipBox } from '@/components/ab/Tip.jsx';
 import { SOURCES, MODELS, CHANNELS } from '@/data/literature.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext, useHover } from '../shared/ui.jsx';
-import SubTabs, { SubTabPanel, useSubTabParam } from '../shared/subtabs.jsx';
+import { SectionHeading } from '@/components/ui/Card.jsx';
+import { NavLink, useNav, subOf } from '@/lib/nav.jsx';
 import RangeBars from './RangeBars.jsx';
 import GrowthCheck from './GrowthCheck.jsx';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
@@ -20,15 +21,17 @@ function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
   return (
-    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="mx-card imf-gap">
+    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="mx-card imf-gap" id="imf-gap">
       <p>
-        For about the same productivity gain, UK central&rsquo;s {HEADLINE_YEAR} GDP gain (on Results) is roughly{' '}
+        For about the same productivity gain, UK central&rsquo;s {HEADLINE_YEAR} GDP gain (on{' '}
+        <NavLink tab="results" patch={{ s: 'uk_central' }}>Results</NavLink>) is roughly{' '}
         {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s about +
         {IMF_Y4.toFixed(1)}% at year 4.
       </p>
       <p>
         The capital closure is enough to account for the difference. Here the return on capital rises as capital grows
-        (both on Results, By variable); if capital came in at an unchanged return, GDP would be about +2.9% to +3.2%
+        (both on{' '}
+        <NavLink tab="results" sub="economy" patch={{ s: 'uk_central' }}>Results, Economy</NavLink>); if capital came in at an unchanged return, GDP would be about +2.9% to +3.2%
         (arithmetic, not a solve).
       </p>
       <p className="mx-src">
@@ -42,12 +45,6 @@ function ImfGap() {
 // Literature: the comparison matrix first, then where our numbers sit, then
 // the sources. Published figures come from data/literature.js (each with its
 // location); ours from surprise2028.json and methodFacts.json.
-
-export const LIT_SUBS = [
-  { id: 'matrix', label: 'Comparison matrix', icon: 'layoutGrid' },
-  { id: 'numbers', label: 'Where our numbers sit', icon: 'ruler' },
-  { id: 'sources', label: 'Sources', icon: 'book' },
-];
 
 const LEVELS = {
   yes: { label: 'Modelled', text: 'In the model' },
@@ -192,54 +189,40 @@ function SourceList({ group, title, icon }) {
   );
 }
 
-export default function LiteratureTab({ active = true }) {
-  const [sub, setSub] = useSubTabParam(LIT_SUBS.map((t) => t.id), active);
+export default function StudiesTab() {
+  const { st } = useNav();
+  const sub = st.tab === 'studies' ? subOf(st) : 'coverage';
   return (
-    <div className="mx-tab mx-lit">
-      <SubTabs
-        tabs={LIT_SUBS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
-        value={sub}
-        onChange={setSub}
-        ariaLabel="Literature sections"
-        idPrefix="lsub"
-      />
-      <SubTabPanel idPrefix="lsub" value={sub}>
-        {sub === 'matrix' ? (
-          <>
-            <header className="mx-intro">
-              <h2>What each source can represent</h2>
-              <p>Nine channels against five sources. OG-UK is the first column.</p>
-            </header>
-            <Matrix />
-            <Takeaways />
-          </>
-        ) : null}
-        {sub === 'numbers' ? (
-          <>
-            <header className="mx-intro">
-              <h2>Where our numbers sit</h2>
-              <p>Our headline-year results against published ranges. Horizons differ, so each row states its own.</p>
-            </header>
-            <RangeBars metric="gdp" />
-            <ImfGap />
-            <RangeBars metric="wage" />
-            <GrowthCheck />
-          </>
-        ) : null}
-        {sub === 'sources' ? (
-          <>
-            <header className="mx-intro">
-              <h2>Sources</h2>
-              <p>
-                Every figure was read from the primary text. The checks are in{' '}
-                {ext(`${REPO}/pull/37`, 'the literature comparison (PR #37)')}.
-              </p>
-            </header>
-            <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
-            <SourceList group="model" title="Model-based studies" icon="sigma" />
-          </>
-        ) : null}
-      </SubTabPanel>
+    <div className="mx-tab mx-lit" id={`studies-sub-${sub}`} role="tabpanel" aria-labelledby={`studies-subbtn-${sub}`}>
+      {sub === 'coverage' ? (
+        <>
+          <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
+            Nine channels against five sources. OG-UK is the first column.
+          </SectionHeading>
+          <Matrix />
+          <Takeaways />
+        </>
+      ) : null}
+      {sub === 'numbers' ? (
+        <>
+          <SectionHeading id="numbers" icon="ruler" title="Where our numbers sit">
+            Our headline-year results against published ranges. Horizons differ, so each row states its own.
+          </SectionHeading>
+          <RangeBars metric="gdp" />
+          <ImfGap />
+          <RangeBars metric="wage" />
+          <GrowthCheck />
+        </>
+      ) : null}
+      {sub === 'sources' ? (
+        <>
+          <SectionHeading id="sources" icon="fileText" title="Sources">
+            Every figure was read from the primary text. The checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
+          </SectionHeading>
+          <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
+          <SourceList group="model" title="Model-based studies" icon="sigma" />
+        </>
+      ) : null}
     </div>
   );
 }

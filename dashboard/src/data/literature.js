@@ -1,4 +1,4 @@
-// Published figures for the Literature tab. Every figure is typed from the
+// Published figures for the Other studies tab. Every figure is typed from the
 // primary source at the location given, as checked in
 // docs/literature_comparison.md (PR #37, 12 Nov 2026), which records how each
 // was read. `read` says when a figure could not be read from the publisher's
@@ -260,7 +260,7 @@ export const CHANNELS = [
     label: 'Households and cohorts',
     icon: 'usersRound',
     cells: {
-      oguk: ['yes', 'Modelled', 'Households by age cohort and ability type; the counts are on Scenarios and method.'],
+      oguk: ['yes', 'Modelled', 'Households by age cohort and ability type; the counts are on Method.'],
       korinek: ['part', 'Two occupations', 'Cognitive and other workers, one wage each.'],
       moll: ['no', 'No', 'Representative agent.'],
       obr: ['no', 'Not for AI', 'The OBR’s OLG model (Working paper 22) is not used for AI.'],

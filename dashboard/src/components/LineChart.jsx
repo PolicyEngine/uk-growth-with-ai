@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
+import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 
 // Data-driven inline-SVG line chart. It measures its container and draws in
 // real pixels, so type stays at a fixed size in a half-width column instead
@@ -20,7 +21,7 @@ import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
 //           marked offScale sits on the axis edge with an arrow (offScale:
 //           'high' puts it on the top edge, pointing up).
 
-const FONT = 'Inter, Roboto, sans-serif';
+const FONT = CHART_FONT;
 const PAD_T = 22;
 const PAD_B = 34;
 const STRIP_W = 30;
@@ -51,7 +52,7 @@ function textWidth(text, font) {
   const px = Number((font.match(/(\d+(?:\.\d+)?)px/) || [])[1] || 12);
   return text.length * px * 0.6;
 }
-const AX_FONT = `11px ${FONT}`;
+const AX_FONT = `12px ${FONT}`;
 const labelFont = (weight, px = 12) => `${weight} ${px}px ${FONT}`;
 
 // Greedy word wrap of an end label into lines no wider than `max`. A label
@@ -134,7 +135,7 @@ function useWidth(initial) {
 // colour; strip labels grey with a darker value; the off-scale note lighter.
 function segFill(kind, e) {
   if (kind === 'off') return 'var(--pe-color-gray-500)';
-  if (e.strong) return e.color;
+  if (e.strong) return e.textColor || e.color;
   return kind === 'value' ? 'var(--pe-color-gray-800)' : 'var(--pe-color-gray-600)';
 }
 
@@ -144,6 +145,7 @@ export default function LineChart({
   strip = null,
   height = 360,
   valueFormat = (v) => v.toFixed(1),
+  tipFormat = null,
   yUnit = null,
   ariaLabel,
   noValue = false,
@@ -182,7 +184,7 @@ export default function LineChart({
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
   const dp = decimalsFor(step);
   // No "-0.00": a tick that rounds to zero prints unsigned.
-  const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (zeroLabel ? `${zeroLabel} 0` : (0).toFixed(dp)) : v.toFixed(dp));
+  const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (zeroLabel ? `${zeroLabel} 0` : (0).toFixed(dp)) : minus(v.toFixed(dp)));
   const tickText = ticks.map(tickFmt);
 
   // Left margin from the widest formatted tick, plus room for the rotated
@@ -258,7 +260,7 @@ export default function LineChart({
       const extra = (lines.length - 1) * LINE + subLines.length * SUB_ROW;
       const base = { lines, subLines, extra, strong: Boolean(s) };
       return s
-        ? { ...base, key: `s-${s.key ?? s.label}`, color: s.color, ax: R, y: sy(s.values[s.values.length - 1]) }
+        ? { ...base, key: `s-${s.key ?? s.label}`, color: s.color, textColor: s.textColor, ax: R, y: sy(s.values[s.values.length - 1]) }
         : { ...base, key: `p-${p.label}`, color: p.color, ax: stripX, y: stripY(p, points.indexOf(p)) };
     })
     .sort((a, b) => a.y - b.y);
@@ -313,7 +315,7 @@ export default function LineChart({
       onClick={(e) => setHov(nearest(e.clientX))}
     >
       {hov != null ? (
-        <TipBox className="chart-tip" style={{ left: tipLeft, top: 0 }}>
+        <TipBox className={`chart-tip ${hov > (x.length - 1) / 2 ? 'side-left' : 'side-right'}`} style={{ left: tipLeft, top: 0 }}>
           <b>
             {tipTitle ? `${tipTitle}, ` : ''}
             {x[hov]}
@@ -327,7 +329,7 @@ export default function LineChart({
                 {s.closure && !oneClosure ? `, ${s.closure}` : ''}
               </span>
               <span className="tip-value">
-                {valueFormat(s.values[hov])}
+                {(tipFormat ?? valueFormat)(s.values[hov])}
                 {unit}
               </span>
             </span>
@@ -335,24 +337,7 @@ export default function LineChart({
         </TipBox>
       ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
-        {markers.map((m) => {
-          const i = x.indexOf(m.year);
-          if (i < 0) return null;
-          return (
-            <g key={`m-${m.year}`}>
-              <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-              <text
-                x={i === x.length - 1 ? sx(i) - 4 : sx(i) + 4}
-                y={TOP + 10}
-                className="ax marker-label"
-                textAnchor={i === x.length - 1 ? 'end' : 'start'}
-              >
-                {m.label}
-              </text>
-            </g>
-          );
-        })}
-        {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
+        {/* bands first, so a marker label that reaches into one stays readable */}
         {bands.map((b) => {
           const i = x.indexOf(b.year);
           if (i < 0) return null;
@@ -370,6 +355,24 @@ export default function LineChart({
             </g>
           );
         })}
+        {markers.map((m, mi) => {
+          const i = x.indexOf(m.year);
+          if (i < 0) return null;
+          return (
+            <g key={`m-${m.year}`}>
+              <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
+              <text
+                x={i === x.length - 1 ? sx(i) - 4 : sx(i) + 4}
+                y={TOP + 10 + mi * 14}
+                className="ax marker-label"
+                textAnchor={i === x.length - 1 ? 'end' : 'start'}
+              >
+                {m.label}
+              </text>
+            </g>
+          );
+        })}
+        {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />

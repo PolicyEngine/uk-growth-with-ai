@@ -12,7 +12,7 @@ export default function InfoCard({ icon, title, children, more, moreTitle = 'Mor
       </h3>
       <div className="info-card-body">{children}</div>
       {more ? (
-        <Disclosure inCard title={moreTitle} preview={morePreview}>
+        <Disclosure inCard title="Details" preview={[moreTitle === 'More' ? null : moreTitle, morePreview].filter(Boolean).join(' · ')}>
           <div className="info-card-more">{more}</div>
         </Disclosure>
       ) : null}

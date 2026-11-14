@@ -1,11 +1,19 @@
-"""Every number the Results, Public finances and Cohorts tabs print equals
-the data file, and appears exactly as often as expected (each fact once).
+"""Every number the Results and Who gains tabs print equals the data file,
+and appears exactly as often as expected (each fact once).
 
     python3 scripts/check_numbers.py dump.json [path/to/surprise2028.json]
 
-dump.json is scripts/dumptabs.mjs's output. Expected counts: the headline\ndumbbells print each central value once and each closed-capital bound once\n(screen-reader text); the takeaway repeats three of them and the scenario\nstrip shows each scenario's GNI and wage (both asked for by Vahid). Signed figures with a unit
-(+0.57%, -1.6pp) are pulled from the page text as a multiset and compared
-with the multiset built from the data file with the page's own formatting.
+dump.json is scripts/dumptabs.mjs's output. Where each figure is printed:
+Summary, the three headline tiles (main arm, at the closure picked in the
+header; with Both, the closed-capital value beside it); Income and output,
+the four-measure card (one value per arm and measure at the closure picked;
+with Both, the closed-capital value as screen-reader text) - the GNI and GDP
+path charts print no end value; Economy, each line's headline-year end
+label; Public finances, the debt/GDP and tax/GDP end labels and the tax
+card (its model figure only with closed capital, when the chart's end
+label is a different number). Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
+text as a multiset and compared with the multiset built from the data file
+with the page's own formatting.
 """
 import json, re, sys
 from collections import Counter
@@ -26,45 +34,61 @@ def g(sid, arm, cl, v, year=H):
     return r['gaps'][v][Y.index(year)] if r['status'] == 'done' else None
 
 NUM = re.compile(r"[+−]?\d+\.\d+(?:%|pp)")
+ECON = [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]
+SUBS = ['summary', 'income', 'economy', 'finances']
 bad = 0
-for sid in dump:
+
+def expected(sid, mode):
+    """The figures Results prints for a scenario with the closure picker at mode."""
     exp = Counter()
     def add(x, dp, unit):
         if x is not None:
             exp[signed(x, dp) + unit] += 1
-    # Overview landing: the three KPI tiles (main arm, central closure). The
-    # "Why" bullets print no figure: the labour-share move's home is By variable.
+    main = B if mode == 'closed' else C          # the closure single values read
+    shown = [C, B] if mode == 'both' else [main]  # dumbbell markers (B as screen-reader text with Both)
+    # Summary: the three headline tiles; with Both, closed capital beside each
     for v in ['Y', 'w', 'GNI']:
-        add(g(sid, 'tfp', C, v), 2, '%')
+        add(g(sid, 'tfp', main, v), 2, '%')
+        if mode == 'both':
+            add(g(sid, 'tfp', B, v), 2, '%')
     for arm in ARMS:
-        # dumbbells: central label and closed-capital bound (screen-reader text)
+        # Income and output: the four-measure card
         for v in ['GNI', 'Y', 'NNI', 'w']:
-            for cl in (C, B):
+            for cl in shown:
                 add(g(sid, arm, cl, v), 2, '%')
-        # small multiples: 2031 end labels, central closure
-        for v, unit, k in [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]:
-            x = g(sid, arm, C, v)
+        # Economy: headline-year end labels (the central line with Both)
+        for v, unit, k in ECON:
+            x = g(sid, arm, main, v)
             if x is not None: add(x * k, 1, unit)
-        # public finances: debt/GDP 2036 and tax/GDP 2031 end labels
-        add(g(sid, arm, C, 'debt_gdp_pp', LATE), 2, 'pp')
-        add(g(sid, arm, C, 'tax_gdp_pp', H), 2, 'pp')
-    # the tax-bias card: model tax/GDP 2031 (main arm) and the top of the
-    # rough UK-rates range, labour-share fall x 0.23 (the bottom prints
-    # without a unit)
-    add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
+        # Public finances: debt/GDP late-year and tax/GDP headline-year end labels
+        add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
+        add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
+    # the tax card stays central: the top of the rough UK-rates range,
+    # labour-share fall x 0.23 (the bottom prints without a unit). The model's
+    # central tax/GDP (main arm) is the chart's end label, so the card prints
+    # it only when the chart shows closed capital.
+    if mode == 'closed':
+        add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
         add(ls * 0.23, 2, 'pp')
-    text = '\n'.join(v for k, v in dump[sid].items() if k.startswith('results') and k.count(':') < 2)
-    got = Counter(NUM.findall(text))
-    if got != exp:
-        bad += 1
-        print(sid, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
-    else:
-        print(sid, 'ok:', sum(exp.values()), 'figures, each as often as expected')
-    # a pending tile prints "pending", never a number
+    return exp
+
+for sid in dump:
+    for mode in ('central', 'closed', 'both'):
+        keys = [f'results:{s_}' + ('' if mode == 'central' else f':{mode}') for s_ in SUBS]
+        if any(k not in dump[sid] for k in keys):
+            bad += 1; print(sid, mode, 'not in the dump'); continue
+        exp = expected(sid, mode)
+        got = Counter(NUM.findall('\n'.join(dump[sid][k] for k in keys)))
+        if got != exp:
+            bad += 1
+            print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, mode, 'ok:', sum(exp.values()), 'figures, each as often as expected')
+    # a pending value prints "pending", never a number
     n_pending = sum(1 for arm in ARMS for v in ['GNI', 'Y', 'NNI', 'w'] for cl in (C, B) if g(sid, arm, cl, v) is None)
-    if dump[sid].get('results:overview', dump[sid].get('results', '')).count('pending') < n_pending:
+    if dump[sid].get('results:income:both', '').count('pending') < n_pending:
         bad += 1; print(sid, 'too few "pending" on Results')
 # Every finished gap in the data file equals the raw solve over its
 # continuation (as the session's check_numbers.py did).
@@ -84,38 +108,11 @@ for sid, arms in D['results'].items():
                         raw_bad += 1
 print('raw-solve recompute mismatches:', raw_bad)
 
-# The closure selector: By variable and Public finances with closed capital
-# (end labels are the closed-capital values; the tax-bias card stays
-# central) and with both (end labels on the central lines only).
-for sid in dump:
-    for mode in ('closed', 'both'):
-        if f'results:variables:{mode}' not in dump[sid]:
-            continue
-        cl = B if mode == 'closed' else C
-        exp = Counter()
-        for arm in ARMS:
-            for v, unit, k in [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]:
-                x = g(sid, arm, cl, v)
-                if x is not None: exp[signed(x * k, 1) + unit] += 1
-            for v, yr in [('debt_gdp_pp', LATE), ('tax_gdp_pp', H)]:
-                x = g(sid, arm, cl, v, yr)
-                if x is not None: exp[signed(x, 2) + 'pp'] += 1
-        x = g(sid, 'tfp', C, 'tax_gdp_pp', H)
-        if x is not None: exp[signed(x, 2) + 'pp'] += 1
-        ls = g(sid, 'tfp', C, 'labour_share_pp')
-        if ls is not None: exp[signed(ls * 0.23, 2) + 'pp'] += 1
-        text = dump[sid][f'results:variables:{mode}'] + '\n' + dump[sid][f'results:finances:{mode}']
-        got = Counter(NUM.findall(text))
-        if got != exp:
-            bad += 1
-            print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
-        else:
-            print(sid, mode, 'ok:', sum(exp.values()), 'figures')
-# The spending-rule card with a rule chosen (Public finances): a solved
+# The fiscal-rule card with a rule chosen (Public finances): a solved
 # variant prints the headline-year GDP, GNI, wage and consumption gaps of
 # each arm for the closure(s) in view, once each, and only for the scenarios
 # the variant is solved for; an unsolved rule or scenario prints no figure.
-RULE_BTN = {'debt_neutral': 'Debt-neutral'}
+RULE_BTN = {'debt_neutral': 'dn'}
 for rid, rule in D.get('rules', {}).items():
     for sid in dump:
         for mode, cls in (('central', [C]), ('closed', [B]), ('both', [C, B])):
@@ -147,11 +144,12 @@ for rid, rule in D.get('rules', {}).items():
                     for k in range(len(Y)):
                         if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                             bad += 1; print('raw-solve mismatch', rid, sid, a, cl, v)
+# Fixed spending is not solved: its option is in view, disabled, and says so
 for sid in dump:
-    t = dump[sid].get('results:finances:central:Fixed spending')
-    if t is not None and (NUM.findall(t) or 'No solve for this rule yet' not in t):
-        bad += 1; print(sid, 'fixed spending should print no figure and say it is not solved')
-# The Cohorts tab (default view: central closure, debt-neutral, main arm)
+    t = dump[sid].get('results:finances:central:fixed')
+    if t is None or 'Not yet solved' not in t or 'disabled=true' not in t or 'checked=false' not in t:
+        bad += 1; print(sid, 'fixed spending should be shown disabled with "Not yet solved"')
+# The Who gains tab (default view: central closure, debt-neutral, main arm)
 # prints, once each: the average, the no-bequest average, the average with
 # the post-2035 cost charged (a range), the capital and labour sources, the
 # bottom and top earnings groups, and the 45-year-old's transfer cost. Two
@@ -169,11 +167,11 @@ if c.get('charged'):
 for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
     exp[f"{abs(x):.1f}%"] += 1
 for sid in dump:
-    got = Counter(NUM.findall(dump[sid].get('cohorts', '')))
+    got = Counter(NUM.findall(dump[sid].get('who', '')))
     if got != exp:
         bad += 1
-        print(sid, 'cohorts missing:', dict(exp - got), 'extra:', dict(got - exp))
+        print(sid, 'who gains missing:', dict(exp - got), 'extra:', dict(got - exp))
     else:
-        print(sid, 'cohorts ok:', sum(exp.values()), 'figures')
+        print(sid, 'who gains ok:', sum(exp.values()), 'figures')
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)
