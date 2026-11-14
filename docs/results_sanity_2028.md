@@ -31,7 +31,7 @@ Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d`
 3. **"The tax/GDP sign is right" is not true at ζK = 0 in the main arm.** Korinek is wrong from 2029 (above). UK central is −0.006pp in 2031 and positive from 2032 (A6).
 
 **Four things a reader will trip over, all explained:**
-- Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4).
+- Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4) At the speed the OBR assumes for UK debt the rise is a tenth to two-thirds as large, and the main arm of UK high and Korinek et al. ends lower (PR #43).
 - Consumption falls while national income rises in the main arm until 2031–36 (A3).
 - 2036 is the debt rule's first year: G falls by up to 23% and investment jumps in every arm. No 2036 flow should be quoted (A9).
 - The UK central main arm gives GDP +0.92% against the IMF's +2.5% at year 4 for the same TFP. The capital closure is sufficient to account for the difference (section 7).
@@ -588,6 +588,7 @@ Rules used for "surprising-but-explained":
 - **What:** main arm at ζK = 0.1: −0.07, −0.13, −1.35 and −3.02pp in 2031, then +0.84, +1.99, +2.07 and +1.12pp in 2036. At ζK = 0, UK central is positive from 2030 and Korinek from 2034 (+1.03pp in 2036).
 - **Root cause:** whole-stock repricing. Gilts are one-period and their rate moves one for one with r, so debt of 95% of GDP pays 17–109bp more from the first year. For UK central that alone adds 2.4pp by 2036; the fall in tax/GDP adds 0.6pp; higher GDP takes off 1.0pp. G and transfers are shares of GDP, so they absorb the rest of the growth dividend.
 - **Verdict:** surprising-but-explained, and a known limitation (the referee's point 6 in the literature note). UK gilts have long maturities, so the real stock reprices over many years, not at once.
+- **Checked at the OBR's repricing speed** ([PR #43](https://github.com/PolicyEngine/uk-growth-with-ai/pull/43), `docs/debt_repricing.md`): the model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in debt/GDP by 2036 is a tenth to two-thirds as large, and in the main arm of the UK high and Korinek et al. scenarios debt/GDP ends lower than the no-shock path. "Rises in every arm" is the model's result, not a robust one.
 - **For the copy:** the 2031 debt figure in the main arm has the opposite sign to the path. Quote it with 2035 or 2036 (decision 7 already says so), and lead with fixed spending once those are solved.
 
 ### A5. NNI falls while GNI rises in the technology-unchanged arm
