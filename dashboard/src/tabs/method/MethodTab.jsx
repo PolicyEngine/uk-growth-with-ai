@@ -202,7 +202,7 @@ const HISTORY = [
   ['12 Nov 2026', 'OG-UK already includes NICs, so nothing is added. The tax gap becomes a limitation.', 27],
   ['12 Nov 2026', 'Debt-neutral variant for cohort welfare; NNI reported beside GNI.', 27],
   ['12 Nov 2026', '“Automation only” renamed the OBR-style stress test; technology-unchanged arm added.', 27],
-  ['13 Nov 2026', `Debt/GDP after ${HEADLINE_YEAR} caveated: repriced at the speed the OBR assumes for gilts, the model’s rise is smaller.`, 43],
+  ['13 Nov 2026', 'Debt/GDP checked with debt repriced at the speed the OBR assumes; caveat added on Public finances.', 43],
 ];
 
 export default function MethodTab() {

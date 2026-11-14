@@ -217,7 +217,7 @@ export default function StudiesTab() {
       {sub === 'sources' ? (
         <>
           <SectionHeading id="sources" icon="fileText" title="Sources">
-            Every figure was read from the primary text. The checks are in {ext(`${REPO}/pull/37`, 'the literature comparison (PR #37)')}.
+            Every figure was read from the primary text. The checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
           </SectionHeading>
           <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
           <SourceList group="model" title="Model-based studies" icon="sigma" />
