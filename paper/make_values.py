@@ -1130,6 +1130,12 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
     # at the bound the stress test still gives an average gain
     if not cwf.averages(CR["zk0"]["par"], CR["zk0"]["R"][s])["alive_all"] > 0:
         fail.append("'the stress test averages a gain at the bound' fails")
+    # the charge-back stays first order (\pending in the incidence section): the solve with
+    # debt-neutral transfers to the horizon is not like-for-like against the continuation,
+    # whose G leaves its GDP share under the debt rule from 2036
+    if cwf.dnfull_available("zk0.1") and cwf.dnfull_comparable("zk0.1"):
+        fail.append("'the debt-neutral-to-the-horizon solve also moves the no-shock path's "
+                    "consolidation onto transfers' no longer holds: quote the solve")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 

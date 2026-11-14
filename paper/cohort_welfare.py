@@ -677,6 +677,104 @@ def robustness(closure: str) -> dict:
     return out
 
 
+# --- debt-neutral to the horizon (the solve behind the charge-back's \pending) -------
+#
+# ``<scenario>_share_shift_tfp_ramp_dnfull`` (zk0.1 only): transfers hold debt/GDP on the
+# no-shock restart's path every year to the horizon and G stays at alpha_G * Y, so
+# households bear the post-2035 fiscal cost through transfers.  It is compared here with
+# the same continuation as every other run.  That continuation runs OG-UK's debt rule
+# from 2036 (G/Y leaves alpha_G), so the gap also moves the no-shock path's own
+# consolidation from government consumption to transfers.  ``dnfull_comparable`` says
+# whether the reference keeps G at alpha_G after 2035; the paper quotes the solve only
+# when it does.
+
+DNFULL_LABEL = f"{SCENARIO}_share_shift_tfp_ramp_dnfull"
+DNFULL_G_SHARE_TOL = 1e-6
+
+
+def dnfull_available(closure: str) -> bool:
+    return ((COHORTS / closure / f"{DNFULL_LABEL}.npz").is_file()
+            and DNFULL_LABEL in records(closure)[0])
+
+
+@lru_cache(maxsize=None)
+def _dnfull_run(closure: str) -> dict:
+    par, runs = load(closure)
+    rec = records(closure)[0].get(DNFULL_LABEL)
+    if rec is None or not (rec.get("dn_check") or {}).get("ok"):
+        raise WelfareError(f"{closure}: {DNFULL_LABEL} missing or fails its debt-neutral check")
+    f = COHORTS / closure / f"{DNFULL_LABEL}.npz"
+    d = {k: np.asarray(v, dtype=float) for k, v in np.load(f).items()}
+    ref = runs[None]
+    for k in ("c", "n", "b_s", "b_sp1", "bq", "tr"):
+        if not np.array_equal(d[k][:T0], ref[k][:T0]):
+            raise WelfareError(f"{closure} dnfull: {k} differs from the continuation in 2026-27")
+    if not np.array_equal(d["b_s"][T0], ref["b_s"][T0]):
+        raise WelfareError(f"{closure} dnfull: 2028 starting wealth differs from the continuation")
+    return d
+
+
+def dnfull_fiscal(closure: str) -> dict:
+    """G/Y and TR/Y of the reference and of the dnfull run, 2028..last record year and the
+    steady state, plus the household-aggregate transfer gap as a share of the reference's
+    aggregate consumption in every exported year from 2036."""
+    par, runs = load(closure)
+    done, _ = records(closure)
+    ref, rec = _ref_record(closure), done[DNFULL_LABEL]
+    alpha = float(rec["spec"]["alpha_G"])
+    sh = lambda r, v: [r["series_run"][v][i] / r["series_run"]["Y"][i]
+                       for i in range(len(r["series_run_years"]))]
+    ref_g, run_g = sh(ref, "G"), sh(rec, "G")
+    gw = group_weights(par)
+    d, r0 = _dnfull_run(closure), runs[None]
+    agg = lambda x, t, k: float((par["omega"][t][:, None] * gw[None, :] * x[k][t]).sum())
+    tr_c = {START_YEAR + t: (agg(d, t, "tr") - agg(r0, t, "tr")) / agg(r0, t, "c") * 100
+            for t in range(DEBT_RULE - START_YEAR, T_USE)}
+    years = ref["series_run_years"]
+    return {"alpha_G": alpha, "years": years,
+            "ref_g_share": ref_g, "run_g_share": run_g,
+            "ref_tr_share": sh(ref, "TR"), "run_tr_share": sh(rec, "TR"),
+            "ref_ss_g_share": ref["ss"]["G"] / ref["ss"]["Y"],
+            "ref_g_share_max_dev_from_rule_year": max(abs(x - alpha) for y, x in zip(years, ref_g)
+                                                      if y >= DEBT_RULE),
+            "tr_gap_pct_c": tr_c}
+
+
+def dnfull_comparable(closure: str) -> bool:
+    """True only when the reference also keeps G at alpha_G * Y after 2035."""
+    return dnfull_fiscal(closure)["ref_g_share_max_dev_from_rule_year"] <= DNFULL_G_SHARE_TOL
+
+
+def dnfull_measures(closure: str) -> dict:
+    """The charge-back's measures computed directly from the dnfull solve, for both fills:
+    {fill: {joint_avg, joint_losing_pct, no_bequest_avg, no_bequest_losing_pct,
+    oldest_losing_on_average, all_lose_up_to_age, by_age: {age: (joint, no_bequest)}}},
+    adults alive in 2028, against the continuation."""
+    par, runs = load(closure)
+    d = _dnfull_run(closure)
+    horizon = par["chi_n"].shape[0]
+    sig = float(par["sigma"])
+    aw, gw = alive_weights(par), group_weights(par)
+    age = SHOCK_YEAR - birth_years(par)
+    out = {}
+    for fill in FILL_PATHS:
+        R = lifetime(par, flows(par, extend(runs[None], fill, horizon), horizon))
+        A = lifetime(par, flows(par, extend(d, fill, horizon), horizon))
+        CR, NR, QR = R[:, 0], R[:, 1], R[:, 2]
+        J = to_lambda(sig, (A.sum(axis=1) - NR) / (CR + QR))
+        NB = to_lambda(sig, (A[:, 0] + A[:, 1] - NR) / CR)
+        if np.isnan(J[aw > 0]).any() or np.isnan(NB[aw > 0]).any():
+            raise WelfareError(f"{closure} dnfull: no scaling reaches the scenario's utility")
+        out[fill] = {"joint_avg": float(aw @ J @ gw), "joint_losing_pct": losing_pct(par, J),
+                     "no_bequest_avg": float(aw @ NB @ gw),
+                     "no_bequest_losing_pct": losing_pct(par, NB),
+                     "oldest_losing_on_average": oldest_losing_on_average(par, J),
+                     "all_lose_up_to_age": all_lose_up_to_age(par, J),
+                     "by_age": {int(a): (float(J[i] @ gw), float(NB[i] @ gw))
+                                for i, a in enumerate(age) if aw[i] > 0 and a % 10 == 0}}
+    return out
+
+
 # --- summary and dashboard JSON --------------------------------------------------
 
 FIG_LAST_BIRTH = 2060      # charts stop here; fill sensitivity <= ~0.07pp up to it
@@ -781,3 +879,15 @@ if __name__ == "__main__":
         for key in labels(cl):
             print(cl, key, labels(cl)[key], round(averages(par, R[key])["alive_all"], 3),
                   {p: round(x["all"], 3) for p, x in pa[key].items()}, "C>0 from", first_c_above(cl, key))
+        if dnfull_available(cl):
+            fs_ = dnfull_fiscal(cl)
+            print(cl, "dnfull: comparable with the continuation:", dnfull_comparable(cl),
+                  f"(reference G/Y from {DEBT_RULE} leaves alpha_G by up to "
+                  f"{fs_['ref_g_share_max_dev_from_rule_year']:.4f})")
+            rb = robustness(cl)[("dn", "tfp")]["charged"]
+            for f, m in dnfull_measures(cl).items():
+                print(cl, "dnfull", f, {k: (round(x, 3) if isinstance(x, float) else x)
+                                         for k, x in m.items() if k != "by_age"})
+            print(cl, "first-order charge-back [low, high]:",
+                  {k: [round(x, 3) for x in rb[k]] for k in
+                   ("joint_avg", "joint_losing_pct", "no_bequest_avg", "no_bequest_losing_pct")})
