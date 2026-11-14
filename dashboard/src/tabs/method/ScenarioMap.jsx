@@ -73,6 +73,9 @@ export default function ScenarioMap() {
                 className={`mx-map-pt${up ? ' is-upper' : ''}${s.id === 'uk_central' ? ' is-head' : ''}${hi === s.id ? ' is-hi' : ''}`}
                 {...bind(s.id, `${s.label}: labour share −${s.labour_share_fall_pp}pp, output at fixed inputs +${s.tfp_gain_pct}%`)}
               >
+                {/* r = 23 keeps the tap target at least 24px where the map is drawn about 300px wide on a phone;
+                    the halo shown on hover stays at r = 14 */}
+                <circle cx={x} cy={y} r="23" className="mx-hit mx-hit-area" />
                 <circle cx={x} cy={y} r="14" className="mx-hit" />
                 <circle cx={x} cy={y} r={s.id === 'uk_central' ? 7 : 6} />
                 <text x={up ? x - 12 : x + 12} y={y + 4} textAnchor={up ? 'end' : 'start'} className="mx-pt-label">

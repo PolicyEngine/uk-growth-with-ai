@@ -4010,6 +4010,12 @@ ul.disclosure-text {
   fill: color-mix(in srgb, var(--pe-accent) 16%, transparent);
 }
 
+.mx-map-pt .mx-hit.mx-hit-area,
+.mx-map-pt.is-hi .mx-hit.mx-hit-area,
+.mx-map-pt:focus-visible .mx-hit.mx-hit-area {
+  fill: transparent;
+}
+
 .mx-pt-label {
   font-size: 13px;
   font-weight: 600;
