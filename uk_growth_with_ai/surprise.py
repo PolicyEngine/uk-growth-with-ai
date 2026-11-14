@@ -84,7 +84,15 @@ VARIANTS = {"": "every arm uses the baseline's alpha_G (G/Y) and alpha_T (TR/Y)"
                   "debt/GDP follows the no-shock restart's path up to the debt rule's "
                   "first year (2036); G follows its usual rule (alpha_G * Y before "
                   "tG1, the debt rule from tG1); from tG1 TR is alpha_T * Y again"}
-STAGE_VARIANT = {"arms": "", "arms_fs": "fs", "arms_dn": "dn"}
+VARIANTS["dnfull"] = (
+    "debt-neutral to the horizon (Fable cohort referee, 13 Nov): TR keeps debt/GDP on "
+    "the no-shock restart's path every year 2029 to T-1; the G debt rule is switched "
+    "off (tG1 = tG2 = T-1), so G = alpha_G * Y throughout the transition and households "
+    "bear the post-2035 fiscal cost too.  OG-Core's terminal period and steady state "
+    "still close the budget with G (fiscal.D_G_path's final-period G, SS.get_G_ss), as "
+    "in every arm")
+STAGE_VARIANT = {"arms": "", "arms_fs": "fs", "arms_dn": "dn", "arms_dnfull": "dnfull"}
+DNFULL_G_TOL = 1e-9          # |G/Y - alpha_G| on 2028..T-2
 DN_TOL = 1e-4               # debt-neutral arms: max relative |D/Y - target|, 2029-2036
 
 # Per-period depreciation.  OG-UK sets delta_annual = 0.065
@@ -586,7 +594,7 @@ def parse_label(label: str) -> dict:
     if sid is None:
         raise ValueError(f"no scenario prefix in {label!r}")
     rest = label[len(sid) + 1:]
-    v = next((x for x in ("dn", "fs") if f"_{x}" in rest), "")
+    v = next((x for x in ("dnfull", "dn", "fs") if f"_{x}" in rest), "")
     kind = ("tfp" if rest.startswith("share_shift_tfp_ramp") else
             "zfixed" if rest.startswith("share_shift_ramp_zfixed") else
             "r4_iter" if "_r4_" in rest else None)
@@ -746,7 +754,12 @@ def _hold(outdir, closure, stage, scenario):
     with <outdir>/HOLD.json present, only the listed (closure, stage, scenario)
     items may be planned, unless UGAI_IGNORE_HOLD=1 (the successor driver)."""
     f = Path(outdir) / "HOLD.json"
-    if not f.exists() or os.environ.get("UGAI_IGNORE_HOLD") == "1":
+    if os.environ.get("UGAI_IGNORE_HOLD") == "1":
+        # a successor driver obeys the NEXT generation's file only
+        f = Path(outdir) / "HOLD2.json"
+        if os.environ.get("UGAI_IGNORE_HOLD2") == "1":
+            return
+    if not f.exists():
         return
     allow = [tuple(x) for x in json.loads(f.read_text()).get("allow", [])]
     if (closure, stage, scenario) not in allow:
@@ -798,6 +811,8 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
         return {"label": k["tfp"], "arm": f"{scenario}_share_shift_tfp",
                 "Z": cal["tfp"]["Z"], "gamma": cal["tfp"]["gamma"],
                 "why": f"fixed-input Z ({gain:+.2%} at baseline {ay} K, L)", **common}
+    if fs == "dnfull":
+        return None          # the referee's extra solve is the tfp arm only
     ss = cal["ss"]
     if k["zfixed"] not in done:
         return {"label": k["zfixed"], "arm": f"{scenario}_share_shift", "Z": ss["Z"],
@@ -946,6 +961,13 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
         if spec.get("variant") == "dn":
             ref = reference_ext(outdir, closure)
             dn = {"target_dy": dn_target(ref, k), "D0": state["D0"]}
+        elif spec.get("variant") == "dnfull":
+            # the restart's debt/GDP for every run period, from its own TPI pickle
+            import pickle
+            cdir = Path(work) / f"surprise{year}" / closure / "continuation"
+            ct = pickle.load(open(cdir / "TPI" / "TPI_vars.pkl", "rb"))
+            dy = (np.asarray(ct["D"], float) / np.asarray(ct["Y"], float)).tolist()
+            dn = {"target_dy": dy, "D0": state["D0"], "full": True}
         rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
                       spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
                       out_dir=str(adir), baseline_spending=spec["baseline_spending"],
@@ -960,6 +982,23 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
                 "spec": spec, "provenance": provenance(TPI, api)})
     if stage == "continuation":
         rec["continuation_report"] = continuation_report(rec, base_ext, year)
+    if spec.get("variant") == "dnfull":
+        import pickle
+        rt = pickle.load(open(adir / "TPI" / "TPI_vars.pkl", "rb"))
+        Y, D, G = (np.asarray(rt[v], float) for v in ("Y", "D", "G"))
+        n = len(dn["target_dy"]) - 1
+        err = D[1:n] / Y[1:n] / np.asarray(dn["target_dy"][1:n]) - 1
+        gerr = np.abs(G[:n] / Y[:n] - spec["alpha_G"])
+        rec["dn_check_full"] = {
+            "periods": [year + 1, year + n - 1], "max_abs_rel": float(np.abs(err).max()),
+            "g_share_max_abs_dev": float(gerr.max()), "tol": DN_TOL,
+            "ok": bool(np.abs(err).max() <= DN_TOL and gerr.max() <= DNFULL_G_TOL)}
+        rec["dn_check"] = {**dn_check(rec, reference_ext(outdir, closure), year),
+                           "full_horizon": rec["dn_check_full"]}
+        rec["dn_check"]["ok"] = rec["dn_check"]["ok"] and rec["dn_check_full"]["ok"]
+        print(f"  debt-neutral to the horizon: max |D/Y error| "
+              f"{rec['dn_check_full']['max_abs_rel']:.2e}, max |G/Y - alpha_G| "
+              f"{rec['dn_check_full']['g_share_max_abs_dev']:.1e}", flush=True)
     if spec.get("variant") == "dn":
         rec["dn_check"] = dn_check(rec, reference_ext(outdir, closure), year)
         print(f"  debt-neutral: max |D/Y error| {rec['dn_check']['max_abs_rel']:.2e} "

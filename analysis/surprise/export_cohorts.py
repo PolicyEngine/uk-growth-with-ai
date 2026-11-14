@@ -62,6 +62,9 @@ def default_labels(c):
         r4 = sp.accepted_r4(done, ref, v, sp.SURPRISE_YEAR, "uk_central")
         if r4 is not None:
             out.append(r4["label"])
+    full = sp._keys("dnfull", "uk_central")["tfp"]
+    if full in done:
+        out.append(full)
     return out
 
 
