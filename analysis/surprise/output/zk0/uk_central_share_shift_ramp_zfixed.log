@@ -1,0 +1,104 @@
+zk0 surprise 2028 arms: uk_central_share_shift_ramp_zfixed (fixed-input Z (zero wedge at 2027 K, L); R4 secant point 0)
+
+=== zk0 surprise2028 uk_central_share_shift_ramp_zfixed ===
+Demographics data: Initial Data year =  2026 , Final Data year =  2028
+Failed to retrieve population data from UN. Reading  from https://github.com/EAPD-DRB/Population-Data instead of UN WPP API
+Failed to retrieve population data from UN. Reading  from https://github.com/EAPD-DRB/Population-Data instead of UN WPP API
+Failed to retrieve population data from UN. Reading  from https://github.com/EAPD-DRB/Population-Data instead of UN WPP API
+  g_n: first 5 periods of the live UN fetch MATCH the vendored data/g_n_committed_run.json; the tail, g_n_ss, omega and imm_rates are unchecked (never recorded), so the solve is not network-free.
+  R2: pre-TP g_n/rho/imm_rates set from the UK fetch
+  R2: data splice 2027->2028 repaired (2.50e-03 -> 3.00e-16)
+  SURPRISE: period 0 is now 2028; shifted 7 time-varying inputs; tG1 8; foreign debt share 0.0994
+  gamma ramps 0.35 -> 0.366
+  Z ramps 1.0 -> 0.977069
+  baseline=False, initial state INHERITED from baseline
+  alpha_G = 0.301911 (baseline), tG1 = 8, g_y_annual = 0.01, zeta_K = 0.0
+Government spending breakpoints are tG1: 8; and tG2: 18
+Maximum debt ratio:  0.970666552530504
+w diff: -0.0029649211255071695, -0.021490609905659097
+r diff: 0.003819818920634231, 0.000521103725993545
+r_p diff: 0.003638674606067975, 0.0005037921799630612
+p_m diff: 0.0, 0.0
+BQ diff: 0.00045132783404149, -0.001072416644877349
+TR diff: 0.0003011198934412887, -0.00015266358788329493
+Iteration: 1
+Distance: 0.1287968760085473
+Maximum debt ratio:  0.955175903075219
+accel step worsened; trust radius -> 0.5
+w diff: -0.020115643408639583, -0.027946672055419564
+r diff: 0.005259264599802152, 0.0035176298745728182
+r_p diff: 0.005036302173905292, 0.003395521494601407
+p_m diff: 0.0, 0.0
+BQ diff: 0.0004693208800230428, -0.0004916358945736658
+TR diff: -0.00048190422174652914, -0.0008641509455904056
+Iteration: 2
+Distance: 0.17532917187413144
+Maximum debt ratio:  0.971823269824041
+w diff: -0.004074582957866113, -0.011110942418533831
+r diff: 0.002046394410722144, 0.0007019117446972548
+r_p diff: 0.0019488357595578432, 0.0006659227437418938
+p_m diff: 0.0, 0.0
+BQ diff: 0.0003760375597544087, -0.00012090254719475738
+TR diff: -7.752654447800572e-05, -0.00036994086252783304
+Iteration: 3
+Distance: 0.09118474556708815
+Maximum debt ratio:  0.9853552004812799
+w diff: 0.0002925376204274688, -0.0016382096752496356
+r diff: 0.000302367822288388, -6.27802777183814e-05
+r_p diff: 0.00028563361658109215, -6.264708682964665e-05
+p_m diff: 0.0, 0.0
+BQ diff: 0.00010385544360210289, -8.347198178704912e-06
+TR diff: 7.86898203043035e-06, -6.790430684621568e-05
+Iteration: 4
+Distance: 0.03483865224752515
+Maximum debt ratio:  0.9927623498166432
+w diff: 0.00034584418996796984, 9.604313430733313e-05
+r diff: -1.8056034236990648e-05, -6.54084623956594e-05
+r_p diff: -2.5126980070372396e-05, -6.320787817806067e-05
+p_m diff: 0.0, 0.0
+BQ diff: 1.7174850062272318e-05, -7.207773030232234e-07
+TR diff: 6.0054010831839255e-06, -2.0278752729169236e-05
+Iteration: 5
+Distance: 0.009939156334919352
+Maximum debt ratio:  0.9936387489158084
+w diff: 7.845162496189495e-05, -6.029800543361219e-05
+r diff: 1.1938102856941246e-05, -1.4994487933371603e-05
+r_p diff: 1.0141863952539687e-05, -1.4701076672479774e-05
+p_m diff: 0.0, 0.0
+BQ diff: 2.833650577290653e-06, -3.2385631400372317e-06
+TR diff: 1.328338836488474e-06, -9.638473991734064e-06
+Iteration: 6
+Distance: 0.0015475287558995676
+Maximum debt ratio:  0.9933350627463512
+w diff: 4.3607570964443454e-05, -1.9619442349183558e-05
+r diff: 3.570631068011698e-06, -8.008098218464932e-06
+r_p diff: 3.4648391423267033e-06, -7.708593366413663e-06
+p_m diff: 0.0, 0.0
+BQ diff: 6.835689826539815e-07, -5.160500855423689e-07
+TR diff: 1.0442298310139875e-06, -3.2671051222593617e-06
+Iteration: 7
+Distance: 0.00031854975975901026
+Maximum debt ratio:  0.9932976082795469
+w diff: 3.397752133338372e-05, -1.795966995121745e-06
+r diff: 3.3727515659498497e-07, -6.548737077526068e-06
+r_p diff: 3.240156115150161e-07, -6.213563205056949e-06
+p_m diff: 0.0, 0.0
+BQ diff: 4.636442342657865e-07, -1.0989351048248941e-07
+TR diff: 6.297005155989077e-07, -5.158991879458674e-07
+Iteration: 8
+Distance: 0.0002085425116714475
+Maximum debt ratio:  0.9932655184512823
+w diff: 7.5068646250286974e-06, -2.6907022234734512e-06
+r diff: 5.105878227856797e-07, -1.4670398498992099e-06
+r_p diff: 4.973354121237672e-07, -1.368530019120462e-06
+p_m diff: 0.0, 0.0
+BQ diff: 2.2726442780451883e-07, -8.241424400562414e-09
+TR diff: 2.278790163443012e-07, -1.2435826018952767e-07
+Iteration: 9
+Distance: 8.172936606516726e-05
+Max absolute value resource constraint error: 0.14451167212920502
+Checking time path for violations of constraints.
+Max Euler error, savings: 3.035793838535028e-12
+Max Euler error labor supply: 1.4657164371101317e-12
+OK 6.9 min | SS labour share 0.6340 | RC/Y 2026 +0.0000% | RC interior max 1.34e-06 | TPI dist 8.172936606516726e-05 in 9 its
+wrote /Users/vahid/ugai-surprise/analysis/surprise/output/zk0/uk_central_share_shift_ramp_zfixed.json

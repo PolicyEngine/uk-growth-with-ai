@@ -1,0 +1,15 @@
+ok   K = K_d + K_f
+ok   K_d = B - D_d
+ok   D = D_d + D_f
+ok   GNI <= GDP where K_f > 0
+ok   NNI < GNI
+ok   |RC/GDP| <= 1e-5, 2027-2036
+ok   every gap exactly 0 in 2026 and 2027
+ok   sign 2031 w <0
+ok   sign 2031 labour_share_pp <0
+ok   labour share = -target x ramp weight
+ok   size band vs 2026-start 2030
+ok   debt-neutral: D/Y tracks the reference 2029-36
+ok   2028 investment jump <= old 2026 +17%
+ok   diagnostics (red flags 1-3)
+SANITY PASS zk0.1 uk_central_share_shift_ramp_zfixed_dn
