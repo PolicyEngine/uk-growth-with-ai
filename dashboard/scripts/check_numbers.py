@@ -10,7 +10,8 @@ the four-measure card (one value per arm and measure at the closure picked;
 with Both, the closed-capital value as screen-reader text) - the GNI and GDP
 path charts print no end value; Economy, each line's headline-year end
 label; Public finances, the debt/GDP and tax/GDP end labels and the tax
-card. Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
+card (its model figure only with closed capital, when the chart's end
+label is a different number). Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
 text as a multiset and compared with the multiset built from the data file
 with the page's own formatting.
 """
@@ -62,10 +63,12 @@ def expected(sid, mode):
         # Public finances: debt/GDP late-year and tax/GDP headline-year end labels
         add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
         add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
-    # the tax card stays central: model tax/GDP (main arm) and the top of the
-    # rough UK-rates range, labour-share fall x 0.23 (the bottom prints
-    # without a unit)
-    add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
+    # the tax card stays central: the top of the rough UK-rates range,
+    # labour-share fall x 0.23 (the bottom prints without a unit). The model's
+    # central tax/GDP (main arm) is the chart's end label, so the card prints
+    # it only when the chart shows closed capital.
+    if mode == 'closed':
+        add(g(sid, 'tfp', C, 'tax_gdp_pp', H), 2, 'pp')
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
         add(ls * 0.23, 2, 'pp')

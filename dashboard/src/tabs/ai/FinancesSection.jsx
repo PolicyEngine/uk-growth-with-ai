@@ -91,7 +91,10 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
-function TaxGapCard({ sid }) {
+function TaxGapCard({ sid, closure }) {
+  // The model's central-closure figure is the tax/GDP chart's end label
+  // unless that chart is showing closed capital: each fact once.
+  const onChart = closure !== 'closed';
   const closedTax = closedTaxWords(sid);
   const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp');
   const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp');
@@ -145,14 +148,25 @@ function TaxGapCard({ sid }) {
       method="limits"
     >
       <div className="bias-pair">
+        {onChart ? null : (
+          <>
+            <div className="bias-fig">
+              <span className="bias-label">Tax/GDP in {HEADLINE_YEAR}: model, central closure</span>
+              <span className="bias-value">{model == null ? 'pending' : `${signed(model, 2)}pp`}</span>
+            </div>
+            <Icon name="arrowRight" size={18} className="bias-arrow" />
+          </>
+        )}
         <div className="bias-fig">
-          <span className="bias-label">Tax/GDP in {HEADLINE_YEAR}: model</span>
-          <span className="bias-value">{model == null ? 'pending' : `${signed(model, 2)}pp`}</span>
-        </div>
-        <Icon name="arrowRight" size={18} className="bias-arrow" />
-        <div className="bias-fig">
-          <span className="bias-label">With UK tax rates, about</span>
+          <span className="bias-label">
+            {onChart ? `Tax/GDP in ${HEADLINE_YEAR} with UK tax rates, about` : 'With UK tax rates, about'}
+          </span>
           <span className="bias-value">{uk == null ? 'pending' : `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
+          {onChart ? (
+            <span className="bias-label">
+              The model&rsquo;s figure is the end of the automation + productivity line in the Tax/GDP chart above.
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="cause-rows">
@@ -349,7 +363,7 @@ export default function FinancesSection({ sid }) {
         />
       </div>
       <div className="cards-stack stack-gap">
-        <TaxGapCard sid={sid} />
+        <TaxGapCard sid={sid} closure={st.closure} />
         <FiscalRuleCard sid={sid} />
       </div>
     </>
