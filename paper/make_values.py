@@ -766,6 +766,13 @@ def check_claims(R: dict, v: Values) -> None:
                     fail.append(f"'the rise is a tenth to two-thirds as large at the OBR's speed' "
                                 f"fails: {sc} {a} {cl} ({rp36 / d36:.2f})")
                 # the stress test sits below technology unchanged on the wage at 0.1
+            # the main arm's wage gap is slower growth, not a cut: the level (the
+            # stationary wage re-trended at e^g_y a year) rises over 2027-31
+            g_y = float(R[cl]["cont"]["g_y_annual_used"])
+            lvl = (s_(arms["tfp"], "w", HEAD) / s_(arms["tfp"], "w", W["ramp_zero_year"])
+                   * math.exp(g_y * (HEAD - W["ramp_zero_year"])))
+            if not lvl > 1:
+                fail.append(f"'the wage level still rises in the main arm' fails: {sc} {cl} ({lvl:.4f})")
             if not m["tfp"]["Gni"] > max(m["zfixed"]["Gni"], m["stress"]["Gni"]):
                 fail.append(f"'the two other arms bound the main arm's GNI from below' fails: {sc} {cl}")
             if not m["tfp"]["Gdp"] > m["zfixed"]["Gdp"]:
