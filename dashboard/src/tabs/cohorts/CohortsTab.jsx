@@ -256,7 +256,8 @@ export default function WhoGainsTab() {
             caveats: (
               <p>
                 The model has no job loss and spreads wealth more evenly than UK data, and it places a value on leaving bequests; the share
-                of adults who lose is sensitive to all three. Cohorts born after 2011 depend slightly (up to {c.fill_max_pp.toFixed(2)}{' '}
+                of adults who lose is sensitive to all three. It has no asset prices either, so any change in the value of assets
+                households already hold when the interest rate rises is left out of the gain to older adults. Cohorts born after 2011 depend slightly (up to {c.fill_max_pp.toFixed(2)}{' '}
                 percentage points) on how the solved path is extended past 2085.
               </p>
             ),
