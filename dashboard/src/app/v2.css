@@ -1381,11 +1381,32 @@
   }
 }
 
-/* Tap targets: tooltip marks keep their drawn size; the hit area is 24px. */
+/* Tap targets: tooltip marks keep their drawn size; the hit area is 24px.
+   It sits under every mark (z-index -1 inside the track's own stacking
+   context), so where two marks are close each one's own body still answers
+   first. A hovered or focused track rises so its tooltip clears the rows
+   after it. */
+.db-track,
+.cause-axis {
+  z-index: 0;
+}
+/* decoration under the marks does not take the pointer from a hit area */
+.db-zero,
+.db-bar,
+.cause-track {
+  pointer-events: none;
+}
+.db-track:hover,
+.db-track:focus-within,
+.cause-axis:hover,
+.cause-axis:focus-within {
+  z-index: 5;
+}
 .db-dot.tip-target::after,
 .cause-mark.tip-target::after {
   content: '';
   position: absolute;
+  z-index: -1;
   left: 50%;
   top: 50%;
   width: 24px;
