@@ -211,6 +211,58 @@ def debt_pp(rec, ref, y):
     return (s_(rec, "D", y) / s_(rec, "Y", y) - s_(ref, "D", y) / s_(ref, "Y", y)) * 100
 
 
+# Debt repriced at the OBR's speed.  The model's debt is one-period, so a rise in
+# the interest rate reaches the whole stock at once.  This redoes the debt
+# recursion with the rate gap (arm less path) reaching the stock at the speed of
+# the OBR's debt interest ready reckoner, holding GDP, the primary balance and
+# the market rate at the solve's values (first order, no feedback).  Same method
+# and source as docs/debt_repricing.md (PR #43): OBR, October 2026 Economic and
+# fiscal outlook, detailed forecast tables, debt interest ready reckoner table
+# 5.1 (GBP bn for +1pp on gilt and on short rates, 2026-27 to 2031-32) and
+# aggregates tables 6.13 and 6.17 (2025-26 to 2031-32).
+OBR_RR_GILT = (1.1313, 3.7303, 6.4512, 8.6640, 10.5657, 12.6125)
+OBR_RR_SHORT = (6.5150, 7.1503, 6.6096, 6.1767, 5.5172, 5.2053)
+OBR_CG_GROSS_DEBT_BN = (2996.06, 3172.4991, 3336.7799, 3489.3976, 3619.2944, 3735.8203,
+                        3857.1338)
+OBR_CG_GROSS_DEBT_PCT = (98.4223, 101.0028, 101.9149, 102.4897, 101.8414, 101.6155, 101.3471)
+OBR_PSND_PCT = (93.1017, 95.5055, 96.6997, 97.2848, 96.6742, 95.8675, 95.6107)
+
+
+def obr_passthrough(n: int) -> list[float]:
+    """Share of a sustained rate rise that has reached the debt stock in its k-th
+    year, k = 1..n: the cost of +1pp on gilt and short rates over 1% of public
+    sector net debt (mean of opening and closing stock).  The OBR gives six years;
+    later years add the mean annual step of years three to six."""
+    psnd = [b * p / c for b, p, c in
+            zip(OBR_CG_GROSS_DEBT_BN, OBR_PSND_PCT, OBR_CG_GROSS_DEBT_PCT)]
+    phi = [(g + s) / (0.01 * 0.5 * (psnd[k] + psnd[k + 1]))
+           for k, (g, s) in enumerate(zip(OBR_RR_GILT, OBR_RR_SHORT))]
+    step = (phi[5] - phi[2]) / 3
+    while len(phi) < n:
+        phi.append(min(1.0, phi[-1] + step))
+    return phi[:n]
+
+
+def repriced_debt_pp(rec, ref, y, full: bool = False) -> float:
+    """Debt/GDP gap in year y with the rate gap phased in at the OBR's speed.
+    ``full=True`` passes the whole gap through at once and returns the solve's own
+    gap (the check that the recursion is the model's)."""
+    S, Rf = rec["series"], ref["series"]
+    k0, n = ix(SHOCK), ix(y)
+    phi = [1.0] * (n - k0) if full else obr_passthrough(n - k0)
+    pd = [Rf["G"][t] + Rf["I_g"][t] + Rf["TR"][t] + Rf["agg_pension_outlays"][t]
+          - Rf["total_tax_revenue"][t] for t in range(n)]
+    growth = [((1 + Rf["r_gov"][t]) * Rf["D"][t] + pd[t]) / Rf["D"][t + 1] for t in range(n)]
+    gap = [S["r_gov"][t] - Rf["r_gov"][t] for t in range(n)]
+    D = S["D"][k0]                                # debt in the shock year is predetermined
+    for t in range(k0, n):
+        eff = sum(phi[t - j] * (gap[j] - (gap[j - 1] if j > k0 else 0.0))
+                  for j in range(k0, t + 1))
+        D = S["D"][t + 1] + ((1 + Rf["r_gov"][t] + eff) * D
+                             - (1 + S["r_gov"][t]) * S["D"][t]) / growth[t]
+    return (D / S["Y"][n] - Rf["D"][n] / Rf["Y"][n]) * 100
+
+
 def tax_pp(rec, ref, y, base="total_tax_revenue"):
     return (s_(rec, base, y) / s_(rec, "Y", y) - s_(ref, base, y) / s_(ref, "Y", y)) * 100
 
@@ -289,6 +341,8 @@ def emit_grid(v: Values, R: dict) -> None:
                 v.signed(f"{pre}DebtPpThirtySix{cw}", debt_pp(rec, ref, DEBT_RULE) if rec else None)
                 if var:
                     continue
+                v.signed(f"{pre}DebtRepricedThirtySix{cw}",
+                         repriced_debt_pp(rec, ref, DEBT_RULE) if rec else None)
                 m28 = measures(rec, ref, SHOCK) if rec else {}
                 for k in ("Gdp", "Capital", "Labour", "Consumption", "Investment"):
                     v.signed(f"{pre}{k}TwentyEight{cw}", m28.get(k) if rec else None)
@@ -698,6 +752,19 @@ def check_claims(R: dict, v: Values) -> None:
                 # debt/GDP is higher by 2036 in every arm
                 if not debt_pp(arms[a], ref, DEBT_RULE) > 0:
                     fail.append(f"'debt/GDP is higher by {DEBT_RULE} in every arm' fails: {sc} {a} {cl}")
+                # ... and at the OBR's repricing speed: the recursion is the model's;
+                # the rise is a tenth to two-thirds as large; it ends below the path
+                # only in the main arm of UK high and the upper case
+                d36, rp36 = debt_pp(arms[a], ref, DEBT_RULE), repriced_debt_pp(arms[a], ref, DEBT_RULE)
+                if not abs(repriced_debt_pp(arms[a], ref, DEBT_RULE, full=True) - d36) < 1e-9:
+                    fail.append(f"the debt recursion does not reproduce the solve: {sc} {a} {cl}")
+                lower = a == "tfp" and sc in ("uk_high", "korinek")
+                if (rp36 < 0) != lower:
+                    fail.append(f"'at the OBR's speed debt/GDP ends below the path only in the main "
+                                f"arm of UK high and the upper case' fails: {sc} {a} {cl} ({rp36:+.2f})")
+                if not lower and not 0.05 <= rp36 / d36 <= 0.67:
+                    fail.append(f"'the rise is a tenth to two-thirds as large at the OBR's speed' "
+                                f"fails: {sc} {a} {cl} ({rp36 / d36:.2f})")
                 # the stress test sits below technology unchanged on the wage at 0.1
             if not m["tfp"]["Gni"] > max(m["zfixed"]["Gni"], m["stress"]["Gni"]):
                 fail.append(f"'the two other arms bound the main arm's GNI from below' fails: {sc} {cl}")
@@ -884,6 +951,18 @@ def check_claims(R: dict, v: Values) -> None:
         short = 1 - tech / grid[sc]["tfp_gain"]
         if not 0.01 <= short <= 0.07:
             fail.append(f"'the gain at {HEAD} inputs is 2-6% short of the target' fails: {sc} ({short:.3f})")
+
+    # the extremes of 'a tenth to two-thirds' are reached, not just bounded
+    ratios = [repriced_debt_pp(r, R[cl]["ref"], DEBT_RULE) / debt_pp(r, R[cl]["ref"], DEBT_RULE)
+              for cl in CLOSURES for sc in solved(cl)
+              for a, r in R[cl]["arms"][(sc, "")].items()
+              if not (a == "tfp" and sc in ("uk_high", "korinek"))]
+    if not (0.05 <= min(ratios) < 0.15 and 0.6 < max(ratios) <= 0.67):
+        fail.append(f"'a tenth to two-thirds' no longer spans the cells "
+                    f"({min(ratios):.2f} to {max(ratios):.2f})")
+    phi = obr_passthrough(DEBT_RULE - SHOCK)
+    v.put("ObrPassFirstPct", 100 * phi[0], "{:.0f}")
+    v.put("ObrPassSixthPct", 100 * phi[5], "{:.0f}")
 
     # the 2036 guard: only debt/GDP may be quoted in the debt rule's first year
     bad = [k for k in v if "ThirtySix" in k and "Debt" not in k]
