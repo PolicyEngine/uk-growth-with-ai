@@ -26,7 +26,8 @@ describe('address', () => {
     expect(parseUrl('?tab=code&sub=oguk')).toMatchObject({ tab: 'code', anchor: 'use-oguk' });
   });
 
-  it('ignores a value it does not know, and never selects the unsolved rule', () => {
-    expect(parseUrl('?tab=nope&s=nope&closure=nope&rule=fixed')).toMatchObject({ tab: 'results', s: DEFAULTS.s, closure: 'central', rule: 'common' });
+  it('ignores a value it does not know', () => {
+    expect(parseUrl('?tab=nope&s=nope&closure=nope&rule=nope&wrule=fixed')).toMatchObject({ tab: 'results', s: DEFAULTS.s, closure: 'central', rule: 'common', wrule: 'dn' });
+    expect(parseUrl('?rule=fixed').rule).toBe('fixed');
   });
 });

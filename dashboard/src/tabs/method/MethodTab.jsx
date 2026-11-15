@@ -100,7 +100,7 @@ const RULE_TEXT = {
   fixed: {
     id: 'rule-fixed',
     icon: 'landmark',
-    tag: 'Sensitivity, not yet solved',
+    tag: 'Sensitivity on Public finances',
     line: 'Consumption and transfers stay at their OBR-central levels. This is the OBR’s convention.',
   },
   dn: {

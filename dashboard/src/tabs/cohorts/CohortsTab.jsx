@@ -204,7 +204,7 @@ export default function WhoGainsTab() {
         <ControlGroup label="Arm">
           <Segmented options={ARMS} value={arm} onChange={(a) => set({ arm: a })} label="Arm" />
         </ControlGroup>
-        <RuleGroup value={rule} onChange={(r) => set({ wrule: r })} />
+        <RuleGroup value={rule} onChange={(r) => set({ wrule: r })} only={['common', 'dn']} />
       </ControlBar>
       <Headline c={c} rule={rule} />
       <div className="card fold-only">

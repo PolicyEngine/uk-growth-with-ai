@@ -41,7 +41,7 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 // default Results solve, so it is one rule under one name.
 export const RULES = [
   { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP' },
-  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Not yet solved', disabled: true },
+  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its OBR-central level' },
   { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households bear the fiscal effect' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;

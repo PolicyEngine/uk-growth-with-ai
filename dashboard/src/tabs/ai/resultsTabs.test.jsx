@@ -100,10 +100,10 @@ describe('tooltips', () => {
     expect(tip).toContain('19–23pp');
   });
 
-  it('fiscal-rule card: debt-neutral transfers print their own gaps for UK central only; fixed spending is shown disabled', () => {
-    const open = (sid, closure = 'central') => {
+  it('fiscal-rule card: each solved rule prints its own gaps, only for the scenarios it is solved for', () => {
+    const open = (sid, closure = 'central', name = /Debt-neutral/) => {
       const { container, unmount } = at(`sub=finances&s=${sid}&closure=${closure}`);
-      fireEvent.click(screen.getByRole('radio', { name: /Debt-neutral/ }));
+      fireEvent.click(screen.getByRole('radio', { name }));
       const t = container.querySelector('#fiscal-rule .chart-plot').textContent;
       unmount();
       return t;
@@ -113,13 +113,15 @@ describe('tooltips', () => {
     // 3 arms x 4 measures at one closure, twice that with both
     expect(dn.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(12);
     expect(open('uk_central', 'both').match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
+    expect(open('korinek').match(/[+−]?\d+\.\d\d%/g)).toHaveLength(12);
     const other = open('uk_high');
-    expect(other).toContain('solved for UK central only');
+    expect(other).toContain('solved for UK central and Korinek et al. (upper) only');
     expect(other).not.toMatch(/\d\.\d\d%/);
-    at('sub=finances');
-    const fixed = screen.getByRole('radio', { name: /Fixed spending/ });
-    expect(fixed.disabled).toBe(true);
-    expect(fixed.textContent).toContain('Not yet solved');
+    // fixed spending: UK central at both closures
+    const fs = open('uk_central', 'both', /Fixed spending/);
+    expect(fs).toContain('fixed spending');
+    expect(fs.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
+    expect(open('korinek', 'central', /Fixed spending/)).toContain('solved for UK central only');
   });
 
   it('the rule and the arms are in the address', () => {

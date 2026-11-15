@@ -112,7 +112,7 @@ print('raw-solve recompute mismatches:', raw_bad)
 # variant prints the headline-year GDP, GNI, wage and consumption gaps of
 # each arm for the closure(s) in view, once each, and only for the scenarios
 # the variant is solved for; an unsolved rule or scenario prints no figure.
-RULE_BTN = {'debt_neutral': 'dn'}
+RULE_BTN = {'debt_neutral': 'dn', 'fixed_spending': 'fixed'}
 for rid, rule in D.get('rules', {}).items():
     for sid in dump:
         for mode, cls in (('central', [C]), ('closed', [B]), ('both', [C, B])):
@@ -144,11 +144,6 @@ for rid, rule in D.get('rules', {}).items():
                     for k in range(len(Y)):
                         if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                             bad += 1; print('raw-solve mismatch', rid, sid, a, cl, v)
-# Fixed spending is not solved: its option is in view, disabled, and says so
-for sid in dump:
-    t = dump[sid].get('results:finances:central:fixed')
-    if t is None or 'Not yet solved' not in t or 'disabled=true' not in t or 'checked=false' not in t:
-        bad += 1; print(sid, 'fixed spending should be shown disabled with "Not yet solved"')
 # The Who gains tab (default view: central closure, debt-neutral, main arm)
 # prints, once each: the average, the no-bequest average, the average with
 # the post-2035 cost charged (a range), the capital and labour sources, the

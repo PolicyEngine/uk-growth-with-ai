@@ -210,14 +210,14 @@ const RULE_VARS = [
   { v: 'C', label: 'Consumption' },
 ];
 
-function RuleTable({ rule, sid, closure }) {
+function RuleTable({ rule, ruleId, sid, closure }) {
   const cls = closuresFor(closure);
   const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
   return (
     <div className="table-wrap">
       <table className="data-table">
         <caption>
-          {scenarioById(sid).label}, {ruleLabel('dn').toLowerCase()}, {HEADLINE_YEAR}, % difference from the OBR-central path
+          {scenarioById(sid).label}, {ruleLabel(ruleId).toLowerCase()}, {HEADLINE_YEAR}, % difference from the OBR-central path
         </caption>
         <thead>
           <tr>
@@ -268,7 +268,7 @@ function FiscalRuleCard({ sid }) {
   const rule = st.rule;
   const key = RULE_KEY[rule];
   const solved = key ? ruleScenarios(key) : [];
-  const names = solved.map((s) => scenarioById(s).label).join(', ');
+  const list = (sep) => solved.map((s) => scenarioById(s).label).join(sep);
   const has = key && solved.includes(sid);
   return (
     <Card
@@ -284,7 +284,7 @@ function FiscalRuleCard({ sid }) {
       logo={false}
       about={{
         shows: `The ${HEADLINE_YEAR} gaps in GDP, national income, the wage rate and consumption under the rule chosen, for the closure chosen at the top of the page.`,
-        caveats: `Under debt-neutral transfers, debt/GDP stays on the OBR-central path to ${LATE_YEAR} by construction, so it has no gap to show. Fixed spending, the OBR’s convention, is not solved yet.`,
+        caveats: `Under debt-neutral transfers, debt/GDP stays on the OBR-central path to ${LATE_YEAR} by construction, so it has no gap to show.`,
       }}
       aboutTitle="About this table"
       method="rules"
@@ -296,10 +296,10 @@ function FiscalRuleCard({ sid }) {
         </p>
       ) : !has ? (
         <Unpublished>
-          {ruleLabel(rule)} is solved for {names} only. Choose {names} under Scenario at the top of the page.
+          {ruleLabel(rule)}: solved for {list(' and ')} only. Choose {list(' or ')} under Scenario at the top of the page.
         </Unpublished>
       ) : (
-        <RuleTable rule={key} sid={sid} closure={st.closure} />
+        <RuleTable rule={key} ruleId={rule} sid={sid} closure={st.closure} />
       )}
     </Card>
   );
