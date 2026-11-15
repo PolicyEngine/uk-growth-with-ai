@@ -560,7 +560,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 
 - **Per point of share fall the return rises 18–22bp in the two arms without TFP at ζK = 0.1 (inside 7–22bp), 24–28bp in the main arm (above), and 27–36bp at ζK = 0 (above).**
 - In levels the Korinek main arm is +109bp at ζK = 0.1 and +142bp at ζK = 0. Korinek et al. have +50bp at ε = 3 and +110bp at ε = 1. So ζK = 0.1 sits at their least elastic case and ζK = 0 beyond it. That is the expected order.
-- At ζK = 0.5 the return rises 3–7bp per point: below the 7bp floor in nine cells and inside in the Korinek main arm (Section 4.10). The UK low and UK high main arms are just under the floor (6.8 and 7.0bp before rounding).
+- At ζK = 0.5 the return rises 3–7bp per point: below the 7bp floor in nine cells and inside in the Korinek main arm (Section 4.10). The UK low and UK high main arms are just under the floor (6.77 and 6.95bp).
 - UK central is +38bp at ζK = 0.1 and +48bp at ζK = 0. Scaled from the IMF SDN's steady-state "almost 0.4 percentage point" for 5.5pp (B6), 1.6pp would give about 12bp. Our own steady state gives +25bp and +29bp, about twice the IMF's rate per point.
 - **Split by cause, ours is about 21bp per point of share fall plus 9bp per 1% of TFP at ζK = 0.1** (the main arm less the technology-unchanged arm). Applied to Rachel's AI scenario (B19: TFP about +7.5%, share −1.1pp), that gives about 90bp against his "about 1 percentage point". His model has a third channel, markups, so this is a check of size only.
 - No UK source gives a number. A Bank economist's summary, in his own name, is "it depends" (A19).
@@ -681,7 +681,7 @@ Added on 13 November from the ten ζK = 0.5 solves on `rerun/surprise-2028` at `
 - **Below, 15.**
   - Nine are the return, at 3–7bp per point of share fall against a floor of 7bp. More capital arrives, so the return rises less. The floor is the IMF's steady-state figure (B6).
   - Six are the stress test's labour productivity (+0.05% to +0.27%) and 2031 debt/GDP (+0.66 to +0.67pp per point), for the reason in Sections 4.5 and 4.8: OG-UK has no unemployment.
-- **Above, 12.** Ten are tax/GDP (caveat 2 below). Two are main-arm labour productivity: Korinek (+10.24%), a US-size scenario, and UK high (+6.25%), above the 3.6% ceiling.
+- **Above, 12.** Ten are tax/GDP (caveat 2 below). Two are main-arm labour productivity: Korinek (+10.24%), a US-size scenario, and UK high (+6.25%), above the 3.6% ceiling. UK high's is the elasticity again: at ζK = 0.1 the same arm is +3.34%, inside. With capital at this closure's speed, its 1.6% TFP gain brings 12% more capital in four years, and the UK range is built from studies without that capital response.
 - **UK low and UK high fall where the shock sizes put them.** In the main arm GDP is +1.08% (UK low), +2.47%, +6.05% (UK high) and +9.96%. The what-if arithmetic at ε = 6 from the ζK = 0.1 solves gave +1.03% and +5.74% for UK low and UK high; the solves give +1.08% and +6.05% at elasticities of 5.1 and 5.5.
 
 **Three caveats that go with every ζK = 0.5 number.**
