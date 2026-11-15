@@ -10,7 +10,8 @@ import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS } f
 // (four scenarios, three arms, two closures) leaving the OBR-central path
 // together in 2028 and fanning out to 2036. The image is art, not a chart:
 // no values, the figures are in part 2. It is static: nothing plays by
-// itself on the story.
+// itself on the story. The drawing is hidden from screen readers; the
+// caption under it says what it shows.
 const W = 640;
 const H = 420;
 
@@ -39,14 +40,14 @@ export default function Hero() {
         <SummaryQuestion sid={st.s} titleId="story-q" />
         <p className="story-hero-lead">
           Below: where the UK economy and labour market stand as AI arrives, what a model of the whole economy projects, and what a model
-          of households finds for jobs, incomes and the public finances.
+          of households finds for incomes, poverty and the public finances if a share of employees lose their jobs.
         </p>
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands
         </a>
       </div>
-      <div className="story-hero-art" aria-hidden="true">
-        <svg className="story-svg" viewBox={`0 0 ${W} ${H}`}>
+      <div className="story-hero-art">
+        <svg className="story-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
           <line x1={X(0)} x2={X(YEARS.length - 1)} y1={Y(0)} y2={Y(0)} stroke="var(--pe-gray-300)" />
           <line x1={X(xs)} x2={X(xs)} y1={20} y2={H - 20} stroke="var(--pe-gray-300)" strokeDasharray="3 4" />
           {lines.map((l) => (
@@ -61,6 +62,10 @@ export default function Hero() {
             />
           ))}
         </svg>
+        <p className="story-source">
+          Every modelled GDP path against the OBR-central path: four scenarios, three arms, two closures, closed capital dashed. OG-UK,
+          PolicyEngine. Shape only; the figures are in part 2.
+        </p>
       </div>
     </section>
   );

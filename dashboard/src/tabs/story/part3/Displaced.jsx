@@ -9,21 +9,43 @@ import { D, FigureHead, HBar, Source, ladder } from './shared.jsx';
 // (one tile = 1% of benefit units with a displaced worker) highlights one
 // group per step. The groups overlap and the data give no cross-tabulation,
 // so each step fills the first N tiles and implies nothing about which
-// units are in two groups. The cards are the home of the shares; the grid
-// prints none. Then UC per worker, a block of its own.
+// units are in two groups. The graphic's key is the home of the five tile
+// shares (every line always printed, the current one emphasised), so the
+// grid reads on its own; the cards describe the groups in words. Then UC
+// per worker, a block of its own.
 
 const X = D.displaced;
+const KICKER = 'Who the displaced are';
+
+// The UC capital limit, from the label of the capital share.
+export const CAPITAL_LIMIT = Number(/£([\d,]+)/.exec(X.capital_over_limit.label ?? '')?.[1]?.replace(/,/g, '') ?? NaN);
+const CAPITAL_LIMIT_TEXT = fmtGbp(CAPITAL_LIMIT);
 
 const TILE_STEPS = [
-  { key: 'claim_uc', grid: 'Benefit units with a displaced worker', fill: 'var(--series-2)' },
-  { key: 'claim_uc_entitled', grid: 'Of those entitled to UC once displaced', fill: 'var(--series-2)' },
-  { key: 'capital_over_limit', grid: 'Benefit units with a displaced worker', fill: 'var(--series-3)' },
-  { key: 'other_earner', grid: 'Benefit units with a displaced worker', fill: 'var(--series-4)' },
-  { key: 'homeowner', grid: 'Benefit units with a displaced worker', fill: 'var(--series-5)' },
+  { key: 'claim_uc', grid: 'Benefit units with a displaced worker', fill: 'var(--series-2)', text: 'claim Universal Credit' },
+  { key: 'claim_uc_entitled', grid: 'Of those entitled to UC once displaced', fill: 'var(--series-2)', text: 'of those entitled once displaced claim it' },
+  {
+    key: 'capital_over_limit',
+    grid: 'Benefit units with a displaced worker',
+    fill: 'var(--series-3)',
+    text: CAPITAL_LIMIT_TEXT ? (
+      <>
+        hold capital above the Universal Credit limit of{' '}
+        <span data-input="" data-path="displaced.capital_over_limit.label">
+          {CAPITAL_LIMIT_TEXT}
+        </span>
+      </>
+    ) : (
+      'hold capital above the Universal Credit limit'
+    ),
+  },
+  { key: 'other_earner', grid: 'Benefit units with a displaced worker', fill: 'var(--pe-gray-700)', text: 'have another earner' },
+  { key: 'homeowner', grid: 'Benefit units with a displaced worker', fill: 'var(--series-5)', text: 'own their home' },
 ];
 
 function TileGraphic(active) {
-  const s = TILE_STEPS[active] ?? TILE_STEPS[0];
+  const cur = TILE_STEPS[active] ? active : 0;
+  const s = TILE_STEPS[cur];
   const n = Math.round(X[s.key].value);
   const tiles = Array.from({ length: 100 }, (_, k) => ({
     key: k,
@@ -38,6 +60,20 @@ function TileGraphic(active) {
       <div className="p3-tiles-wrap">
         <TileGrid tiles={tiles} width={10} height={10} size={14} gap={3} label="Tile grid of benefit units with a displaced worker; the coloured tiles are the group the active step describes" />
       </div>
+      <ul className="p3-tkey" aria-label="Filled tiles">
+        {TILE_STEPS.map((t, i) => {
+          const v = fmtShare(X[t.key].value);
+          if (!v) return null;
+          return (
+            <li key={t.key} className={`p3-tkey-item${i === cur ? ' is-current' : ''}`} data-key={t.key}>
+              <span className="p3-swatch" style={{ background: t.fill }} aria-hidden="true" />
+              <span>
+                <b>{v}</b> {t.text}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
       <p className="p3-tile-key" data-axis="">
         One tile = 1% of the benefit units counted
       </p>
@@ -82,7 +118,7 @@ export function DisplacedTiles() {
   const steps = [
     {
       id: 'p3-who-claim',
-      kicker: 'Who the displaced are',
+      kicker: KICKER,
       title: 'Claiming Universal Credit',
       body: (
         <>
@@ -90,42 +126,38 @@ export function DisplacedTiles() {
             These figures come from the OBR-sized run and count benefit units (a single adult or a couple and their children) that
             contain a displaced worker. The groups overlap.
           </p>
-          <p>Under the data’s take-up flags, {fmtShare(X.claim_uc.value)} of these units claim Universal Credit.</p>
+          <p>The filled tiles are the units that claim Universal Credit under the data’s take-up flags.</p>
         </>
       ),
     },
     {
       id: 'p3-who-entitled',
+      kicker: KICKER,
       title: 'Entitled but not claiming',
       body: (
         <p>
-          Counting only the units entitled to Universal Credit once the worker is displaced, {fmtShare(X.claim_uc_entitled.value)} claim
-          it. Among entitled units in which someone was already unemployed, {fmtShare(X.existing_unemployed_claim.value)} claim.
+          Here the tiles count only the units entitled to Universal Credit once the worker is displaced, and the filled ones claim it.
+          Among entitled units in which someone was already unemployed, {fmtShare(X.existing_unemployed_claim.value)} claim.
         </p>
       ),
     },
     {
       id: 'p3-who-capital',
+      kicker: KICKER,
       title: 'Savings above the limit',
-      body: (
-        <p>
-          {fmtShare(X.capital_over_limit.value)} of the units hold capital above the Universal Credit limit of{' '}
-          <span data-input="" data-path="displaced.capital_over_limit.label">
-            £16,000
-          </span>
-          , which rules out a claim.
-        </p>
-      ),
+      body: <p>The filled tiles are the units whose capital is above the Universal Credit limit, which rules out a claim.</p>,
     },
     {
       id: 'p3-who-earner',
+      kicker: KICKER,
       title: 'Another earner',
-      body: <p>{fmtShare(X.other_earner.value)} of the units have another earner, whose earnings reduce or remove Universal Credit.</p>,
+      body: <p>The filled tiles are the units with another earner, whose earnings reduce or remove Universal Credit.</p>,
     },
     {
       id: 'p3-who-home',
+      kicker: KICKER,
       title: 'Homeowners',
-      body: <p>{fmtShare(X.homeowner.value)} of the units own their home.</p>,
+      body: <p>The filled tiles are the units that own their home.</p>,
     },
   ];
   return <Scrolly id="p3-who" steps={steps} graphic={TileGraphic} label="Who the displaced workers' benefit units are" />;
@@ -146,6 +178,7 @@ export function DisplacedUc() {
     },
     {
       id: 'p3-uc-takeup',
+      kicker: 'Universal Credit per person',
       title: 'If every displaced worker’s benefit unit claims',
       body: <p>With every benefit unit with a displaced worker claiming, the added Universal Credit per displaced worker is higher, and still below the amount per person already unemployed.</p>,
     },

@@ -4,11 +4,11 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { HeadlineTiles, SummaryWhy, GoDeeper } from '@/tabs/ai/Landing.jsx';
-import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, CENTRAL, BOUND, gap, result } from '@/tabs/ai/surprise.js';
-import { primaryClosure } from '@/tabs/ai/lines.js';
+import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, CENTRAL, BOUND, gap, result } from '@/tabs/ai/surprise.js';
+import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
-import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell } from './part2/charts.jsx';
+import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, series, afterWords, afterWordsAll } from './part2/charts.jsx';
 import { More } from './part2/frame.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
@@ -92,7 +92,8 @@ function shockSteps() {
   ];
 }
 
-function scenarioSteps(sid) {
+function scenarioSteps(sid, cl) {
+  const after = afterWordsAll(SCENARIOS.map((s) => series(s.id, 'tfp', cl, 'Y')).filter(Boolean)) ?? 'changes more slowly';
   return [
     {
       id: 'p2-scen-0',
@@ -112,7 +113,7 @@ function scenarioSteps(sid) {
       body: (
         <p>
           The scenarios differ in how far the labour share falls and how much output at given inputs rises. In each, GDP rises above the
-          path from {SURPRISE_YEAR} and levels off once the shock is complete in {HEADLINE_YEAR}.
+          path from {SURPRISE_YEAR} and {after} once the shock is complete in {HEADLINE_YEAR}.
         </p>
       ),
     },
@@ -174,7 +175,7 @@ function armSteps(sid, closure) {
       body: (
         <p>
           Capital&rsquo;s share rises, but output at given inputs stays as it was.
-          {tz != null && tfp != null ? (tz < tfp ? ' GDP rises less than in the main arm.' : ' GDP rises at least as much as in the main arm.') : ''}
+          {tz != null && tfp != null ? (tz < tfp ? ' GDP is lower than in the main arm.' : ' GDP is at least as high as in the main arm.') : ''}
         </p>
       ),
     },
@@ -207,13 +208,13 @@ function whoSteps(sid) {
     {
       id: 'p2-who-0',
       kicker: 'Who gains',
-      title: 'Older adults gain more than the youngest',
+      title: 'Gains are largest around retirement age',
       body: (
         <>
           <p>
-            The line is the welfare change of each birth year, for adults alive in {SURPRISE_YEAR}. Older adults gain: they hold more wealth
-            and collect the higher return on it. The change shrinks towards the youngest adults, who have the most working years ahead and
-            the least wealth{someLose ? '; under some measures they lose' : ''}.
+            The line is the welfare change of each birth year, for adults alive in {SURPRISE_YEAR}. The gain is largest for adults around
+            retirement age, who hold more wealth and collect the higher return on it. It is smaller for the oldest adults and for the
+            youngest, who have the most working years ahead and the least wealth{someLose ? '; under some measures they lose' : ''}.
           </p>
           {scope}
         </>
@@ -275,10 +276,17 @@ export default function Part2({ part }) {
   const closure = st.closure;
   const cl = primaryClosure(closure);
   const tzLess = (gap(sid, 'tz', cl, 'Y') ?? 0) < (gap(sid, 'tfp', cl, 'Y') ?? 0);
+  // what the main arm does after HEADLINE_YEAR at each closure drawn
+  const afterMain = closuresFor(closure)
+    .map((c) => [c, afterWords(series(sid, 'tfp', c, 'Y'))])
+    .filter(([, w]) => w);
+  const afterText = afterMain.length
+    ? ` and ${afterMain.map(([c, w]) => (afterMain.length > 1 ? `${w} at ${c === BOUND ? 'closed capital' : 'the central closure'}` : w)).join(' and ')} after ${HEADLINE_YEAR}`
+    : '';
   const gdpLabel = (i) =>
     [
-      `Line chart, shape only: GDP against the OBR-central path, ${SCEN_NAME[sid]}. The main arm, automation + productivity, rises from ${SURPRISE_YEAR} and levels off.`,
-      i >= 1 ? `Technology unchanged rises ${tzLess ? 'less than the main arm' : 'at least as much as the main arm'}.` : '',
+      `Line chart, shape only: GDP against the OBR-central path, ${SCEN_NAME[sid]}. The main arm, automation + productivity, rises from ${SURPRISE_YEAR}${afterText}.`,
+      i >= 1 ? `Technology unchanged is ${tzLess ? 'lower than the main arm' : 'at least as high as the main arm'}.` : '',
       i >= 2 ? `The stress test is back on the path by ${HEADLINE_YEAR}.` : '',
     ]
       .filter(Boolean)
@@ -299,7 +307,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-scenarios"
         label="GDP in the four scenarios"
-        steps={scenarioSteps(sid)}
+        steps={scenarioSteps(sid, cl)}
         graphic={(i) => <ScenarioPaths state={i} sid={sid} cl={cl} />}
       />
 

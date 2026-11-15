@@ -123,4 +123,40 @@ describe('Part3', () => {
     for (const f of figs) seen[f] = (seen[f] ?? 0) + 1;
     expect(Object.entries(seen).filter(([, n]) => n > 1)).toEqual([]);
   });
+
+  it('puts the five tile shares in the graphic key, not the cards', () => {
+    const { container } = renderPart();
+    const key = container.querySelector('#p3-who .p3-tkey');
+    for (const k of ['claim_uc', 'claim_uc_entitled', 'capital_over_limit', 'other_earner', 'homeowner']) {
+      expect(key.querySelector(`[data-key="${k}"]`).textContent).toContain(fmtShare(D.displaced[k].value));
+    }
+    expect(key.querySelector('[data-key="capital_over_limit"] [data-input]').textContent).toBe('£16,000');
+    expect(key.querySelectorAll('.is-current').length).toBe(1);
+    const cards = container.querySelector('#p3-who .scrolly-steps').textContent;
+    expect(cards).not.toContain(fmtShare(D.displaced.claim_uc.value));
+    expect(cards).toContain(fmtShare(D.displaced.existing_unemployed_claim.value));
+  });
+
+  it('gives every step a kicker', () => {
+    const { container } = renderPart();
+    container.querySelectorAll('.scrolly-step').forEach((st) => expect(st.querySelector('.scrolly-kicker'), st.id).not.toBeNull());
+  });
+
+  it('counts the caveat rankings as results and reads the quoted inputs from the data', () => {
+    const { container } = renderPart();
+    const cav = container.querySelector('[data-caveat="bottom-decile"]');
+    expect(cav.querySelector('[data-input]')).toBeNull();
+    const inputs = [...container.querySelectorAll('[data-input]')].map((n) => n.textContent);
+    expect(inputs).toEqual(expect.arrayContaining(['7%', '1.67%', '60%', '£16,000']));
+  });
+
+  it('closes with what the study leaves out and links onward', () => {
+    const { container } = renderPart();
+    const close = container.querySelector('.p3-close');
+    expect(close.closest('.scrolly')).toBeNull();
+    expect(close.textContent).toContain('corporation tax');
+    const hrefs = [...close.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/pull/18');
+    expect(hrefs.some((h) => h.includes('tab=studies'))).toBe(true);
+  });
 });

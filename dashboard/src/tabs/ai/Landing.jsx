@@ -55,7 +55,7 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
   if (y == null || w == null) return 'This scenario is not solved yet at the closure chosen above.';
-  const out = Math.abs(y) < 0.005 ? 'Output is unchanged' : y > 0 ? (y < 1 ? 'Output rises a little' : 'Output rises') : 'Output falls';
+  const out = Math.abs(y) < 0.005 ? 'Output is unchanged' : y > 0 ? 'Output rises' : 'Output falls';
   const keep = g != null && y > 0 && g < y ? ', and the UK keeps less of the gain than GDP suggests' : '';
   return `${out}, ${payWords(w)}${keep}.`;
 }
@@ -208,7 +208,7 @@ export function SummaryWhy({ sid }) {
           <ul className="why-list">
             <li>
               <Icon name="cpu" size={18} />
-              <span>AI makes the economy more productive, so output {y > 0 ? 'rises' : 'falls'}.</span>
+              <span>In this scenario AI raises productivity, so output {y > 0 ? 'rises' : 'falls'}.</span>
             </li>
             {ls != null && w != null ? (
               <li>
@@ -228,7 +228,8 @@ export function SummaryWhy({ sid }) {
       <p className="icon-line how-sure">
         <Icon name="gauge" size={16} />
         <span>
-          <b>How sure is this?</b> It depends on how much foreign capital flows in.{' '}
+          <b>How sure is this?</b> These are scenario results, not forecasts. They depend on the assumed size of the shock and on how much
+          foreign capital flows in.{' '}
           {both ? (
             'Both closures are shown: the tiles give closed capital beside the central figure.'
           ) : (

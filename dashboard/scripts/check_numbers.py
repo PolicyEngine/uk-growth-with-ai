@@ -231,11 +231,16 @@ for r in AI['per_pound']: exp3[pence(r['government_p'])] += 1; exp3[pence(r['hou
 for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'): exp3[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_existing_unemployed', 'uc_per_displaced_takeup'): exp3[gbp(AI['displaced'][k]['value'])] += 1
 for x in AI['deciles']['values']: exp3[dpct(x)] += 1
+# decile 1 under the other two rankings, printed in its caveat
+for x in re.findall(r"[−-]\d+\.\d+(?=%)", AI['deciles']['bottom_decile_caveat'])[-2:]:
+    exp3[dpct(-float(x.lstrip('−-')))] += 1
 FIG3 = re.compile(r"−?£[\d,]+(?:\.\d)?(?:bn)?|[+−]?\d+\.\d\dpp|\d+\.\d\dpp|\b\d+p\b|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
 for sid in dump:
     t = dump[sid].get('story:part3')
-    if t is None:
-        continue
+    if not t:
+        bad += 1; print(sid, 'story part 3 not in the dump'); break
+    if 'NaN' in t or 'undefined' in t:
+        bad += 1; print(sid, 'story part 3 prints NaN/undefined')
     got = Counter(FIG3.findall(t))
     if got != exp3:
         bad += 1
@@ -262,8 +267,10 @@ exp1['70%'] += 1  # DSIT's own words, "around 70%", quoted beside the 67% sum
 FIG1 = re.compile(r"[−-]?\d+(?:\.\d+)?%|\b\d+\.\d\b(?!%)")
 for sid in dump:
     t = dump[sid].get('story:part1')
-    if t is None:
-        continue
+    if not t:
+        bad += 1; print(sid, 'story part 1 not in the dump'); break
+    if 'NaN' in t or 'undefined' in t:
+        bad += 1; print(sid, 'story part 1 prints NaN/undefined')
     got = Counter(FIG1.findall(t))
     if got != exp1:
         bad += 1

@@ -9,6 +9,7 @@ import Rules from './part3/Rules.jsx';
 import PerPound from './part3/PerPound.jsx';
 import { DisplacedTiles, DisplacedUc } from './part3/Displaced.jsx';
 import Deciles from './part3/Deciles.jsx';
+import Closing from './part3/Closing.jsx';
 
 // Part 3: jobs, incomes and the public finances. Provisional results of a
 // separate study, a PolicyEngine-UK microsimulation of AI job displacement
@@ -28,7 +29,8 @@ export default function Part3({ part }) {
           <Icon name="layers" size={18} /> A different model
         </h3>
         <p>
-          This part reports a PolicyEngine-UK microsimulation on Microcosm UK 2024-25, which is static and covers one year. It assumes that
+          This part reports a PolicyEngine-UK microsimulation on Microcosm UK 2024-25, which is static and covers one year. Its figures are
+          provisional: the study is a draft under review and they may change. It assumes that
           people lose their jobs, whereas in OG-UK (part 2) the labour market clears and displacement shows in the wage. Its figures
           therefore cannot be added to or compared with part 2’s gaps.
         </p>
@@ -40,6 +42,7 @@ export default function Part3({ part }) {
       <DisplacedTiles />
       <DisplacedUc />
       <Deciles />
+      <Closing />
     </>
   );
 }

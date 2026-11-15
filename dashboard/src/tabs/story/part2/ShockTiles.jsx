@@ -15,8 +15,8 @@ const LABOUR0 = 65; // illustrative starting split
 const MOVED = 5;
 const NEW_L = 3;
 const NEW_C = 2;
-// neutral colours: the arm colours and teal/amber mean other things
-export const LABOUR_COLOR = 'var(--series-3)';
+// neutral greys: the arm colours (ARM_COLOR) and teal/amber mean other things
+export const LABOUR_COLOR = 'var(--pe-gray-400)';
 export const CAPITAL_COLOR = 'var(--pe-gray-600)';
 
 // position of the i-th tile of a group, filled from the bottom row up

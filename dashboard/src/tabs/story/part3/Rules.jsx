@@ -17,6 +17,8 @@ const ROWS = [
 ];
 const MAX = Math.max(...D.rules.map((r) => r.cost_bn));
 
+const KICKER = 'Who loses the job';
+
 function Graphic(active) {
   return (
     <figure className="p3-figure">
@@ -47,7 +49,7 @@ export default function Rules() {
   const steps = [
     {
       id: 'p3-rules-uniform',
-      kicker: 'Who loses the job',
+      kicker: KICKER,
       title: 'The same number displaced, different people',
       body: (
         <p>
@@ -58,11 +60,13 @@ export default function Rules() {
     },
     {
       id: 'p3-rules-tilts',
+      kicker: KICKER,
       title: 'Two tilts',
       body: <p>The junior-tilted and expertise-compression rules shift the chance of displacement between groups of workers. One costs slightly less than the central case, the other more.</p>,
     },
     {
       id: 'p3-rules-top',
+      kicker: KICKER,
       title: 'A stress test',
       body: (
         <p>

@@ -14,6 +14,8 @@ const CASES = [
   { id: 'wage_cuts', label: 'Wage cuts', step: 2 },
 ];
 
+const KICKER = 'Cost per pound';
+
 function Graphic(active) {
   return (
     <figure className="p3-figure">
@@ -66,7 +68,7 @@ export default function PerPound() {
   const steps = [
     {
       id: 'p3-pound-job',
-      kicker: 'Cost per pound',
+      kicker: KICKER,
       title: 'Two ways to count',
       body: (
         <>
@@ -81,11 +83,13 @@ export default function PerPound() {
     },
     {
       id: 'p3-pound-takeup',
+      kicker: KICKER,
       title: 'With full take-up and JSA',
       body: <p>When every benefit unit with a displaced worker claims Universal Credit, and when new-style JSA is added, each pound lost costs the public finances more.</p>,
     },
     {
       id: 'p3-pound-wage',
+      kicker: KICKER,
       title: 'Wage cuts',
       body: (
         <p>

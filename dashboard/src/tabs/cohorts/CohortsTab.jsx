@@ -92,7 +92,7 @@ export function Headline({ c, rule }) {
               : 'Losses, where there are any, fall on the youngest adults: they have the most working years ahead and the least wealth'
         }
       >
-        <p className="stat-line">Older adults gain: they hold more wealth and collect the higher return on it.</p>
+        <p className="stat-line">The gain is largest for adults around retirement age, who hold more wealth and collect the higher return on it.</p>
       </StatTile>
       <StatTile icon="scale" name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub="Of remaining-lifetime consumption and bequests, adults alive">
         <dl className="stat-rows">

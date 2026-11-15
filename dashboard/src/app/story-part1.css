@@ -2,7 +2,9 @@
 
 /* Charts: a 400-wide viewBox with 14-unit text keeps tick text at least
    11px at 390px width (with up to a 20px gutter and the graphic's 12px
-   padding); on desktop the width is capped so text does not grow large. */
+   padding). On desktop the SVG is capped at 540px wide, where 9.6 units
+   render at about 13px, the same as part 2's ticks (story-part2.css); at
+   the narrowest two-column width (901px) they are still about 11px. */
 .p1-figure {
   margin: 0;
 }
@@ -18,6 +20,12 @@
 }
 .p1-note-label {
   fill: var(--pe-gray-600);
+}
+@media (min-width: 901px) {
+  .p1-tick,
+  .p1-note-label {
+    font-size: 9.6px;
+  }
 }
 .p1-grid {
   stroke: var(--card-border);

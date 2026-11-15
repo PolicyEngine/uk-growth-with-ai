@@ -12,7 +12,8 @@
 .p2-tick,
 .p2-marker-label {
   /* user units: about 12px on screen at phone width (the SVG is about
-     330px wide), about 14px on desktop (capped at 540px wide) */
+     330px wide). On desktop (capped at 540px wide) 9.6 units render at
+     about 13px, the same as part 1's ticks (story-part1.css). */
   font-size: 14.5px;
   fill: var(--pe-gray-500);
   font-variant-numeric: tabular-nums;
@@ -23,7 +24,7 @@
 @media (min-width: 901px) {
   .p2-tick,
   .p2-marker-label {
-    font-size: 10.5px;
+    font-size: 9.6px;
   }
 }
 .p2-grid {

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { fmtDecilePct } from './format.js';
 import { D, DivBar, FigureHead, Source } from './shared.jsx';
@@ -19,21 +20,41 @@ const grab = (name) => Number(new RegExp(`${name} (-?[\\d.]+)%`).exec(DEC.bottom
 export const RANK_PRE_PENSION = grab('pre_pension');
 export const RANK_EXCL_PPC = grab('hbai_excl_large_ppc');
 
+// The other two rankings are results (counted by the number check), not
+// inputs. A ranking whose value cannot be read is left out of the sentence.
 export function BottomDecileCaveat() {
+  const others = [
+    [RANK_PRE_PENSION, 'ranking on income before pension contributions'],
+    [RANK_EXCL_PPC, 'leaving out households with large personal pension contributions'],
+  ].filter(([v]) => fmtDecilePct(v));
   return (
     <p className="p3-caveat" data-caveat="bottom-decile">
       Decile 1 is drawn in grey. The study does not report the bottom income decile as a finding, because its sign depends on how
-      households are ranked: {fmtDecilePct(VALUES[0])} on the ranking used here,{' '}
-      <span data-input="" data-path="deciles.bottom_decile_caveat">
-        {fmtDecilePct(RANK_PRE_PENSION)}
-      </span>{' '}
-      ranking on income before pension contributions, and{' '}
-      <span data-input="" data-path="deciles.bottom_decile_caveat">
-        {fmtDecilePct(RANK_EXCL_PPC)}
-      </span>{' '}
-      leaving out households with large personal pension contributions.
+      households are ranked: {fmtDecilePct(VALUES[0])} on the ranking used here
+      {others.map(([v, how], i) => (
+        <span key={how}>
+          {i === others.length - 1 ? ', and ' : ', '}
+          {fmtDecilePct(v)} {how}
+        </span>
+      ))}
+      .
     </p>
   );
+}
+
+// True at phone width (<= 900px). Without matchMedia (tests, server render)
+// it is false, so the caveat sits in the graphic.
+function usePhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(max-width: 900px)');
+    const on = () => setPhone(mq.matches);
+    on();
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
+  return phone;
 }
 
 // Which deciles each step brings forward (1-based).
@@ -43,7 +64,7 @@ const FOCUS = [
   [1],
 ];
 
-function Graphic(active) {
+function Graphic(active, phone) {
   const focus = FOCUS[active] ?? FOCUS[0];
   return (
     <figure className="p3-figure">
@@ -63,7 +84,7 @@ function Graphic(active) {
               </span>
               {' '}
               <span className="p3-row-value">{first ? <span className="p3-muted">see note</span> : fmtDecilePct(v)}</span>
-              {first ? <BottomDecileCaveat /> : null}
+              {first && !phone ? <BottomDecileCaveat /> : null}
             </li>
           );
         })}
@@ -73,12 +94,17 @@ function Graphic(active) {
   );
 }
 
+const KICKER = 'By income decile';
+
 export default function Deciles() {
+  // On phones the caveat moves from the graphic into the last step card, so
+  // the sticky graphic stays short; it is rendered in one place only.
+  const phone = usePhone();
   const steps = [
     {
       id: 'p3-dec-middle',
-      kicker: 'By income decile',
-      title: 'Deciles 2 to 9 lose',
+      kicker: KICKER,
+      title: 'Average income falls in deciles 2 to 9',
       body: (
         <p>
           In the central case, household disposable income before housing costs falls in deciles 2 to 9 of the baseline income
@@ -88,19 +114,24 @@ export default function Deciles() {
     },
     {
       id: 'p3-dec-top',
+      kicker: KICKER,
       title: 'The top income decile',
       body: <p>In the top income decile the change is small, and its confidence interval across draws includes zero.</p>,
     },
     {
       id: 'p3-dec-bottom',
+      kicker: KICKER,
       title: 'The bottom income decile',
       body: (
-        <p>
-          The bottom income decile shows a rise on this ranking, but the study does not treat it as a finding: some households with
-          large pension contributions sit in decile 1 and receive capital income, and the sign changes under other rankings.
-        </p>
+        <>
+          <p>
+            The bottom income decile shows a rise on this ranking, but the study does not treat it as a finding: some households with
+            large pension contributions sit in decile 1 and receive capital income, and the sign changes under other rankings.
+          </p>
+          {phone ? <BottomDecileCaveat /> : null}
+        </>
       ),
     },
   ];
-  return <Scrolly id="p3-deciles" steps={steps} graphic={Graphic} label="Change in household disposable income by income decile" />;
+  return <Scrolly id="p3-deciles" steps={steps} graphic={(active) => Graphic(active, phone)} label="Change in household disposable income by income decile" />;
 }

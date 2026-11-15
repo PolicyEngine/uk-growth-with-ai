@@ -178,7 +178,7 @@ function exposureSteps() {
           <p>
             Estimates from the IMF ({when}), reported by the Department for Science, Innovation and Technology and the AI Security
             Institute, put <strong>{share0(hh.value)}</strong> of UK workers in occupations with high exposure to AI and high
-            complementarity: roles where, the department says, AI may be more likely to raise efficiency and productivity. A further{' '}
+            complementarity. A further{' '}
             <strong>{share0(hl.value)}</strong> are in highly exposed occupations with low complementarity, and{' '}
             <strong>{share0(lo.value)}</strong> in occupations with low exposure.
           </p>

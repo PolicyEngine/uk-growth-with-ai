@@ -9,6 +9,8 @@ import { FigureHead, HBar, Source, ladder } from './shared.jsx';
 // is the home of every rung's cost and poverty change.
 
 export const OBR_RATE = Number(/([\d.]+)% displacement/.exec(ladder('obr').note)?.[1] ?? NaN);
+const OBR_RATE_TEXT = fmtInputPct(OBR_RATE);
+const KICKER = 'What changes the cost';
 
 const MAIN = [
   { id: 'central_20', label: 'Central case, the same 20 draws' },
@@ -23,10 +25,12 @@ const OBR = [
 ];
 const MAX = Math.max(...[...MAIN, ...OBR].map((r) => ladder(r.id).cost_bn));
 
-function Row({ r, on }) {
+// On phones (CSS, <= 900px) pending rows and, at the last step, the paired
+// rows other than the first are hidden, so the sticky graphic stays short.
+function Row({ r, on, phoneHide = false }) {
   const d = ladder(r.id);
   return (
-    <li className={`p3-row${on ? ' is-reached' : ' is-pending'}`} data-row={r.id}>
+    <li className={`p3-row${on ? ' is-reached' : ' is-pending'}${phoneHide ? ' p3-phone-hide' : ''}`} data-row={r.id}>
       <span className="p3-row-label">{r.label}</span>
       {' '}
       <span className="p3-row-bar">
@@ -42,7 +46,7 @@ function Row({ r, on }) {
 
 function Graphic(active) {
   return (
-    <figure className="p3-figure">
+    <figure className="p3-figure" data-group={active >= 4 ? 'obr' : 'main'}>
       <FigureHead title="What changes the cost" unit={`Mean of ${ladder('takeup').draws} draws per row`} />
       <div className="p3-cols" aria-hidden="true">
         <span />
@@ -51,7 +55,7 @@ function Graphic(active) {
       </div>
       <ol className="p3-rows p3-rows-2col">
         {MAIN.map((r, i) => (
-          <Row key={r.id} r={r} on={i <= active} />
+          <Row key={r.id} r={r} on={i <= active} phoneHide={active >= 4 && i > 0} />
         ))}
       </ol>
       <p className={`p3-group-head${active >= 4 ? ' is-reached' : ' is-pending'}`}>A different, smaller shock</p>
@@ -70,7 +74,7 @@ export default function Ladder() {
   const steps = [
     {
       id: 'p3-ladder-base',
-      kicker: 'What changes the cost',
+      kicker: KICKER,
       title: 'A paired base',
       body: (
         <p>
@@ -81,6 +85,7 @@ export default function Ladder() {
     },
     {
       id: 'p3-ladder-takeup',
+      kicker: KICKER,
       title: 'Every displaced worker’s benefit unit claims Universal Credit',
       body: (
         <p>
@@ -91,6 +96,7 @@ export default function Ladder() {
     },
     {
       id: 'p3-ladder-jsa',
+      kicker: KICKER,
       title: 'Adding new-style Jobseeker’s Allowance',
       body: (
         <p>
@@ -101,6 +107,7 @@ export default function Ladder() {
     },
     {
       id: 'p3-ladder-wage',
+      kicker: KICKER,
       title: 'Wage cuts instead of job losses',
       body: (
         <p>
@@ -111,14 +118,21 @@ export default function Ladder() {
     },
     {
       id: 'p3-ladder-obr',
+      kicker: KICKER,
       title: 'An OBR-sized shock',
       body: (
         <p>
           The lower group is a different shock, not a step on the ladder:{' '}
-          <span data-input="" data-path="ladder[obr].note">
-            {fmtInputPct(OBR_RATE)}
-          </span>{' '}
-          of employees displaced, with no rise in other wages or in capital income, sized to the OBR’s March 2026 scenario. Without those
+          {OBR_RATE_TEXT ? (
+            <>
+              <span data-input="" data-path="ladder[obr].note">
+                {OBR_RATE_TEXT}
+              </span>{' '}
+              of employees displaced,
+            </>
+          ) : (
+            'a smaller share of employees displaced,'
+          )} with no rise in other wages or in capital income, sized to the OBR’s March 2026 scenario. Without those
           two channels it costs more than the central case in the first bar, though fewer people lose their jobs.
         </p>
       ),

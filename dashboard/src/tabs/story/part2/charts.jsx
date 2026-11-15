@@ -20,10 +20,30 @@ import { W, H, scales, linePath, Axes, Figure } from './frame.jsx';
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 const ZERO = { key: 'zero', label: 'OBR-central path (the zero line)', color: 'var(--pe-gray-700)', thin: true };
 const yearTicks = [SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR];
-const series = (sid, arm, cl, v) => {
+export const series = (sid, arm, cl, v) => {
   const r = result(sid, arm, cl);
   return r.status === 'done' ? r.gaps[v] : null;
 };
+
+// What a GDP gap does after the shock is complete in HEADLINE_YEAR, in
+// words, so a sentence is true for the scenario and closure in view: it
+// "levels off" when it moves by less than a tenth of its HEADLINE_YEAR size
+// by LATE_YEAR (the central closure), and otherwise rises, more
+// slowly than before HEADLINE_YEAR (closed capital). null when pending.
+export function afterWords(ys) {
+  if (!ys) return null;
+  const y0 = ys[YEARS.indexOf(SURPRISE_YEAR) - 1] ?? 0;
+  const h = ys[YEARS.indexOf(HEADLINE_YEAR)];
+  const l = ys[YEARS.indexOf(LATE_YEAR)];
+  if (![h, l].every(Number.isFinite)) return null;
+  if (Math.abs(l - h) < 0.1 * Math.abs(h)) return 'levels off';
+  if (l < h) return 'falls back';
+  const before = (h - y0) / (HEADLINE_YEAR - SURPRISE_YEAR + 1);
+  const after = (l - h) / (LATE_YEAR - HEADLINE_YEAR);
+  return after < before ? 'rises more slowly' : 'keeps rising';
+}
+// The same over several paths: one phrase when they agree.
+export const afterWordsAll = (yss) => [...new Set(yss.map(afterWords).filter(Boolean))].join(' or ') || null;
 
 function Line({ d, on, color, dashed, width = 2.25, faint }) {
   const style = { stroke: color, strokeWidth: width, opacity: faint ? 0.55 : 1 };
@@ -49,7 +69,7 @@ export function ScenarioPaths({ state, sid, cl }) {
   const sc = scales(YEARS, lines.flatMap((l) => l.ys));
   const shown = lines.filter((l) => state >= SCEN_STATE[l.id]);
   const label = `Line chart, shape only: GDP against the OBR-central path in the four scenarios, automation + productivity, ${CL_WORDS[cl]}. ${
-    shown.length ? `Drawn: ${shown.map((l) => SCEN_NAME[l.id]).join(', ')}. Each rises from ${SURPRISE_YEAR} and levels off after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.` : 'Only the OBR-central path is drawn.'
+    shown.length ? `Drawn: ${shown.map((l) => SCEN_NAME[l.id]).join(', ')}. Each rises from ${SURPRISE_YEAR} and ${afterWordsAll(shown.map((l) => l.ys))} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.` : 'Only the OBR-central path is drawn.'
   }`;
   // the chosen scenario last, so it sits on top
   const order = [...lines].sort((a, b) => (a.id === sid) - (b.id === sid));
@@ -152,8 +172,8 @@ export function WelfareShape({ state }) {
         role="img"
         aria-label={`Line chart, shape only: welfare change by birth year for adults alive in ${D.shock_year}${state >= 1 ? ' and the cohorts that enter later' : ''}. ${
           ys.every((v) => v > 0) ? 'Every cohort is above zero as modelled. ' : ''
-        }Among adults the change is largest ${peakAge() >= 55 ? 'around retirement age' : 'in middle age'}, smaller for the very oldest and smallest for the youngest${
-          state >= 1 ? '; it is higher again for the cohorts that enter later' : ''
+        }Among adults the change is largest ${peakAge() >= 55 ? 'around retirement age' : 'in middle age'}, and small for both the very oldest and the youngest${
+          state >= 1 ? `; it is lowest for cohorts entering just after ${D.shock_year}, then higher` : ''
         }.`}
       >
         <Axes

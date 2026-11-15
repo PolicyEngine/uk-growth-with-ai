@@ -52,7 +52,6 @@
 }
 .p3-muted {
   color: var(--pe-gray-500);
-  font-style: italic;
 }
 .p3-key,
 .p3-tile-key {
@@ -150,7 +149,7 @@
 .p3-row.is-pending,
 .p3-case.is-pending,
 .p3-group-head.is-pending {
-  opacity: 0.35;
+  opacity: 0.55;
 }
 .p3-cols {
   display: grid;
@@ -248,6 +247,74 @@
   max-width: 260px;
 }
 
+/* Block 5: the tile key, one line per step (the home of the shares) */
+.p3-tkey {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+}
+.p3-tkey-item {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  opacity: 0.55;
+}
+.p3-tkey-item.is-current {
+  opacity: 1;
+  color: var(--pe-gray-900);
+}
+.p3-tkey-item b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.p3-tkey .p3-swatch {
+  flex: none;
+  margin-left: 0;
+}
+
+/* The close of part 3: plain, not sticky */
+.p3-close {
+  max-width: 70ch;
+  margin: 24px 0 8px;
+  padding: 18px 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.p3-close h3 {
+  margin: 0 0 8px;
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p3-close p {
+  margin: 0 0 12px;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.p3-close-links {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p3-close-links a {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--fs-body);
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Block 6: deciles, one line each */
 .p3-deciles {
   gap: 6px;
@@ -294,5 +361,21 @@
   }
   .p3-row-sub {
     grid-template-columns: 7.5em minmax(0, 1fr) 3em;
+  }
+  /* Keep the sticky graphics short (under about 55vh at 390x844): rows
+     not yet reached are hidden, and the ladder shows one group at a time
+     (its first row stays as the reference for the OBR-sized group). */
+  .p3-row.is-pending,
+  .p3-case.is-pending,
+  .p3-group-head.is-pending,
+  .p3-phone-hide,
+  .p3-tkey-item:not(.is-current) {
+    display: none;
+  }
+  .p3-figure[data-group='obr'] .p3-group-head {
+    margin-top: 8px;
+  }
+  .p3-close {
+    margin-top: 16px;
   }
 }

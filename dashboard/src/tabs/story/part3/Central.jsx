@@ -12,6 +12,11 @@ import { D, FigureHead, Source } from './shared.jsx';
 const H = D.headline;
 // The prescribed displacement rate, from the note on the displaced count.
 export const CENTRAL_RATE = Number(/([\d.]+)% prescribed/.exec(H.central_displaced.note)?.[1] ?? NaN);
+const CENTRAL_RATE_TEXT = fmtInputPct(CENTRAL_RATE);
+// The relative poverty line, from the note on the relative poverty change.
+export const RELATIVE_LINE = Number(/([\d.]+)% of the/.exec(H.central_poverty_relative.note ?? '')?.[1] ?? NaN);
+const RELATIVE_LINE_TEXT = fmtInputPct(RELATIVE_LINE);
+const KICKER = 'The central case';
 
 const STATS = [
   { id: 'displaced', icon: 'users', value: fmtMillions(H.central_displaced.value), label: 'employees displaced (assumed)' },
@@ -57,17 +62,24 @@ export default function Central() {
   const steps = [
     {
       id: 'p3-central-assume',
-      kicker: 'The central case',
+      kicker: KICKER,
       title: 'Displacement is an input',
       body: (
         <>
           <p>
-            The study assumes that{' '}
-            <span data-input="" data-path="headline.central_displaced.note">
-              {fmtInputPct(CENTRAL_RATE)}
-            </span>{' '}
-            of employees lose their job for the whole year, each with a chance in proportion to the AI exposure of their occupation. The
-            wages of those who keep their jobs rise, and so does interest and dividend income.
+            {CENTRAL_RATE_TEXT ? (
+              <>
+                The study assumes that{' '}
+                <span data-input="" data-path="headline.central_displaced.note">
+                  {CENTRAL_RATE_TEXT}
+                </span>{' '}
+                of employees lose their job for the whole year,
+              </>
+            ) : (
+              <>The study assumes that a share of employees lose their job for the whole year,</>
+            )}{' '}
+            each with a chance in proportion to the AI exposure of their occupation. The study also assumes that the wages of those who
+            keep their jobs rise, and that interest and dividend income rises.
           </p>
           <p>Each figure here is the mean of {H.central_cost.draws} random draws of who is displaced.</p>
         </>
@@ -75,6 +87,7 @@ export default function Central() {
     },
     {
       id: 'p3-central-cost',
+      kicker: KICKER,
       title: 'The cost to the public finances',
       body: (
         <>
@@ -88,16 +101,27 @@ export default function Central() {
     },
     {
       id: 'p3-central-poverty',
+      kicker: KICKER,
       title: 'Absolute poverty before housing costs',
       body: (
         <>
           <p>
-            The poverty line is held at its baseline value, and the change is in the share of people below it. Its standard deviation
-            across draws is {fmtPpSpread(H.central_poverty.sd)}.
+            The poverty line is held at its baseline value, and the change is in the share of people below it. The study reads this as
+            an upper bound, because every displaced worker is out of work for the whole year. Its standard deviation across draws is {fmtPpSpread(H.central_poverty.sd)}.
           </p>
           <p>
-            After housing costs the change is {fmtPp(H.central_poverty_ahc.value)}; against a relative line, at{' '}
-            <span data-input="" data-path="headline.central_poverty_relative.note">60%</span> of the new median,
+            After housing costs the change is {fmtPp(H.central_poverty_ahc.value)}; against a relative line
+            {RELATIVE_LINE_TEXT ? (
+              <>
+                , at{' '}
+                <span data-input="" data-path="headline.central_poverty_relative.note">
+                  {RELATIVE_LINE_TEXT}
+                </span>{' '}
+                of the new median,
+              </>
+            ) : (
+              ','
+            )}{' '}
             it is {fmtPp(H.central_poverty_relative.value)}.
           </p>
         </>
@@ -105,6 +129,7 @@ export default function Central() {
     },
     {
       id: 'p3-central-gini',
+      kicker: KICKER,
       title: 'Inequality',
       body: (
         <p>

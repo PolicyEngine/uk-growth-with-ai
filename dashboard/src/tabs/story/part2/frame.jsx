@@ -13,7 +13,7 @@ export const W = 400;
 export const H = 250;
 const M = { l: 36, r: 14, t: 16, b: 28 };
 
-export const SOURCE = 'OG-UK, PolicyEngine. 2028-surprise solves.';
+export const SOURCE = 'Source: OG-UK, PolicyEngine. 2028-surprise solves.';
 
 // About four round ticks over [lo, hi].
 export function niceTicks(lo, hi, n = 4) {
