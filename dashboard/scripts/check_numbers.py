@@ -181,9 +181,11 @@ for sid in dump:
             print(sid, key, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, key, 'ok:', sum(exp.values()), 'figures')
-# The zk0.5 sensitivity table on Method prints each scenario and arm's
-# headline-year GDP, GNI, NNI and wage gaps once, and every shown gap equals
-# its raw solve over that closure's continuation.
+# The zk0.5 sensitivity table (Explore > All scenarios, results:all) prints
+# each scenario and arm's headline-year GDP, GNI, NNI and wage gaps once, and
+# every shown gap equals its raw solve over that closure's continuation. The
+# rest of All scenarios prints no figure (values are in tooltips, the closed
+# table fold and downloads), and Method no longer prints the table.
 for cl, sens in D.get('sensitivity', {}).items():
     exp = Counter()
     for sid, arms in sens['results'].items():
@@ -199,13 +201,18 @@ for cl, sens in D.get('sensitivity', {}).items():
                     if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                         bad += 1; print('raw-solve mismatch', cl, sid, a, v)
     for sid in dump:
-        # the table prints two decimals; other Method figures (rates, shares) do not
-        got = Counter(re.findall(r"[+−]?\d+\.\d\d%", dump[sid].get('method', '')))
+        if 'results:all' not in dump[sid]:
+            bad += 1; print(sid, 'results:all not in the dump'); continue
+        got = Counter(NUM.findall(dump[sid]['results:all']))
         if got != exp:
             bad += 1
-            print(sid, 'method', cl, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+            print(sid, 'all scenarios', cl, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
-            print(sid, 'method', cl, 'ok:', sum(exp.values()), 'figures')
+            print(sid, 'all scenarios', cl, 'ok:', sum(exp.values()), 'figures')
+        # Method's other figures (rates, shares) are not two-decimal gaps
+        left = re.findall(r"[+−]\d+\.\d\d%", dump[sid].get('method', ''))
+        if left:
+            bad += 1; print(sid, 'method still prints gaps:', left)
 
 # The story's parts 1 and 3, and any later part, are checked by their own
 # modules in scripts/checks/ (one writer each): check(dump) -> failures.

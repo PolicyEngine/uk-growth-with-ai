@@ -22,6 +22,7 @@ const tabs = [
   'results:finances:central:dn', 'results:finances:closed:dn', 'results:finances:both:dn',
   'results:finances:central:fixed', 'results:finances:closed:fixed', 'results:finances:both:fixed',
   'who', 'who:both', 'scenarios', 'method', 'studies', 'code',
+  'results:all',
   'story:part1', 'story:part3',
 ];
 const res = {};

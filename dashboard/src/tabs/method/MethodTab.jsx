@@ -12,7 +12,6 @@ import F from '@/data/methodFacts.json';
 import { ext } from '../shared/ui.jsx';
 import ModelFlow from './ModelFlow.jsx';
 import Cohorts from './Cohorts.jsx';
-import SensitivityTable from './SensitivityTable.jsx';
 
 // Method, one page: the shock, closures and income measures, fiscal rules
 // and public finances, the model, limitations, revision history. Each fact
@@ -277,7 +276,6 @@ export default function MethodTab() {
             Who finances new capital, and which measure of income leads.
           </SectionHeading>
           <ClosureCards />
-          <SensitivityTable />
           <div className="info-card mx-card mx-measures" id="m-measures">
             <h3 className="info-card-title">
               <Icon name="ruler" size={18} />

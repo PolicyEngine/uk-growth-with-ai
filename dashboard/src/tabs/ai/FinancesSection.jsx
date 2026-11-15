@@ -35,7 +35,7 @@ function debtFinding(sid, closure, rule) {
   const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR, rule);
   if (a == null || b == null) return null;
   const lead = `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}`;
-  if (rule === 'dn') return `${lead}, debt/GDP stays on the OBR-central path: debt-neutral transfers adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`;
+  if (rule === 'dn') return `${lead}, debt/GDP dips in ${SURPRISE_YEAR} and then stays on the OBR-central path: debt-neutral transfers adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`;
   const at = (x) => (side(x) === 'on' ? 'on' : side(x));
   const same = at(a) === at(b);
   const obr = rule === 'common' && BELOW_AT_OBR_SPEED.has(`${sid}|${cl}`) && at(b) === 'above';
@@ -276,7 +276,7 @@ function FiscalRuleCard({ sid }) {
       finding={
         rule === 'common'
           ? 'Every chart in Explore follows the fiscal rule chosen at the top of the page. Choose another rule to see how far it moves each gap.'
-          : `How far ${ruleLabel(rule).toLowerCase()} moves each ${HEADLINE_YEAR} gap against the common fiscal rule. The gaps themselves are on the charts, which now follow this rule.`
+          : `How far switching to ${ruleLabel(rule).toLowerCase()} moves each ${HEADLINE_YEAR} gap, against the common fiscal rule. The gaps themselves are on the charts, which now follow this rule.`
       }
       logo={false}
       about={{
@@ -303,6 +303,13 @@ function FiscalRuleCard({ sid }) {
 
 export default function FinancesSection({ sid }) {
   const { st } = useNav();
+  // Not solved under this rule: the rule card alone says so (and keeps its id)
+  if (!ruleSolved(st.rule, sid))
+    return (
+      <div className="cards-stack">
+        <FiscalRuleCard sid={sid} />
+      </div>
+    );
   const cl = closureWords(st.closure);
   const reading = `The zero line is the OBR-central path; the shaded year is ${HEADLINE_YEAR}, the headline year. Each line ends with its last value; hover, tap or use the arrow keys for other years.`;
   return (

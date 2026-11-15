@@ -7,7 +7,7 @@ import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ArmsGroup } from '@/components/ui/ControlBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME, ruleSolved,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME, ruleSolved, solvedUnder,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { ruleLabel } from '@/lib/labels.js';
@@ -270,12 +270,43 @@ function EconomyPanel({ sid }) {
   );
 }
 
+// A scenario not solved under the fiscal rule chosen: one card in place of
+// the page's charts, with the two ways back to a solved view.
+export function RulePending({ sid }) {
+  const { st, set } = useNav();
+  const solved = solvedUnder(st.rule);
+  return (
+    <Card id="rule-pending" icon="hourglass" title={`${SCEN_NAME[sid]} is not solved under ${ruleLabel(st.rule).toLowerCase()}`} logo={false}>
+      <div className="rule-pending">
+        <p>{ruleGapText(st.rule, sid)}</p>
+        <div className="rule-pending-actions">
+          {solved.map((s) => (
+            <button key={s.id} type="button" className="segment" onClick={() => set({ s: s.id })}>
+              Show {s.label}
+            </button>
+          ))}
+          <button type="button" className="segment" onClick={() => set({ rule: 'common' })}>
+            Use the common fiscal rule
+          </button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function ResultsTab({ sub: named }) {
   const { st } = useNav();
   const sub = named ?? (st.tab === 'explore' && st.sub !== 'who' ? subOf(st, 'explore') : 'income');
   const sid = st.s;
   const panels = { income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
   const Panel = panels[sub];
+  // Income and Economy share one page: one pending card for both
+  if (sub !== 'finances' && !ruleSolved(st.rule, sid))
+    return sub === 'income' ? (
+      <div id="explore-part-income" className="explore-part">
+        <RulePending sid={sid} />
+      </div>
+    ) : null;
   return (
     <div id={`explore-part-${sub}`} className="explore-part">
       <Panel sid={sid} />
