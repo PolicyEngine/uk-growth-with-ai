@@ -5,10 +5,14 @@ import { TipBox } from '@/components/ab/Tip.jsx';
 import { SOURCES, MODELS, CHANNELS } from '@/data/literature.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext, useHover } from '../shared/ui.jsx';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { esc } from '@/lib/download.js';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import RangeBars from './RangeBars.jsx';
 import GrowthCheck from './GrowthCheck.jsx';
+import EvidenceMap from './EvidenceMap.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -105,6 +109,34 @@ function Cell({ ch, m, hi, bind }) {
   );
 }
 
+// The matrix as SVG, for the PNG and SVG downloads: the same marks.
+function matrixSvg() {
+  const C = CHART_COLOURS;
+  const lw = 230;
+  const cw = 110;
+  const rh = 30;
+  const W = lw + MODELS.length * cw;
+  const mark = (lv, cx, cy) => {
+    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.gainText : C.surface}" stroke="${C.gainText}" stroke-width="1.5"/>`;
+    if (lv === 'na') return `<line x1="${cx - 6}" x2="${cx + 6}" y1="${cy}" y2="${cy}" stroke="${C.muted}" stroke-width="1.5"/>`;
+    if (lv === 'part') return `${ring}<path d="M${cx} ${cy - 6} A6 6 0 0 1 ${cx} ${cy + 6} Z" fill="${C.gainText}"/>`;
+    return ring;
+  };
+  let out = '';
+  MODELS.forEach((m, j) => {
+    out += `<text x="${lw + j * cw + cw / 2}" y="16" font-size="12" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(m.short)}</text>`;
+  });
+  CHANNELS.forEach((ch, i) => {
+    const y = 30 + i * rh;
+    out += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="${C.grid}"/>`;
+    out += `<text x="0" y="${y + 19}" font-size="12" fill="${C.ink}">${esc(ch.label)}</text>`;
+    MODELS.forEach((m, j) => {
+      out += mark(ch.cells[m.id][0], lw + j * cw + cw / 2, y + rh / 2);
+    });
+  });
+  return { w: W, h: 30 + CHANNELS.length * rh + 4, markup: out };
+}
+
 function Matrix() {
   const { hi, ref, bind } = useHover();
   return (
@@ -122,6 +154,11 @@ function Matrix() {
           columns: ['Channel', ...MODELS.map((m) => m.short)],
           rows: CHANNELS.map((ch) => [ch.label, ...MODELS.map((m) => ch.cells[m.id][1])]),
         }),
+        svg: matrixSvg,
+        legend: () => [
+          { label: 'Modelled', color: CHART_COLOURS.gainText, shape: 'dot' },
+          { label: 'Not in the model', color: CHART_COLOURS.gainText, shape: 'ring' },
+        ],
       }}
     >
       <div ref={ref}>
@@ -203,6 +240,11 @@ export default function StudiesTab() {
   // sub-tab until the tabs were consolidated; old links land on its anchor).
   return (
     <div className="mx-tab mx-lit">
+      <PageIntro
+        icon="library"
+        question="How do our results compare with other work on AI and the UK economy?"
+        answer="Of the sources compared here, only OG-UK models households by age and ability, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, and the sources."
+      />
       <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
         Nine channels against five sources. OG-UK is the first column.
       </SectionHeading>
@@ -220,6 +262,10 @@ export default function StudiesTab() {
       </SectionHeading>
       <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
       <SourceList group="model" title="Model-based studies" icon="sigma" />
+      <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
+        UK studies from the OBR, the Bank of England, think tanks, government departments, international bodies and private forecasters.
+      </SectionHeading>
+      <EvidenceMap />
     </div>
   );
 }

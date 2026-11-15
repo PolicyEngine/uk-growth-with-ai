@@ -16,7 +16,7 @@ export default function MethodSourcesTab() {
   const sub = subOf(st, 'method');
   const Panel = PANELS[sub];
   return (
-    <div id={`method-sub-${sub}`} role="tabpanel" aria-labelledby={`method-subbtn-${sub}`} className="sub-panel">
+    <div key={sub} id={`method-sub-${sub}`} role="tabpanel" aria-labelledby={`method-subbtn-${sub}`} className="sub-panel">
       <Panel />
     </div>
   );

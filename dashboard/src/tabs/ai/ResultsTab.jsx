@@ -7,9 +7,10 @@ import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ArmsGroup } from '@/components/ui/ControlBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME, ruleSolved, solvedUnder,
 } from '@/tabs/ai/surprise.js';
-import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side } from '@/tabs/ai/lines.js';
+import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
+import { ruleLabel } from '@/lib/labels.js';
 import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 
@@ -45,11 +46,11 @@ export function PendingLine({ names }) {
 
 // "Automation + productivity above, Technology unchanged above, Stress test
 // on the OBR-central path": words only. The 2031 figures are at the line ends.
-function findingFor(sid, v, arms, closure, name) {
+function findingFor(sid, v, arms, closure, name, rule = 'common') {
   const cl = primaryClosure(closure);
   const parts = ARMS.filter((a) => arms.includes(a.id))
     .map((a) => {
-      const p = path(sid, a.id, cl, v);
+      const p = path(sid, a.id, cl, v, rule);
       return p ? { arm: a.short || a.label, side: side(p[p.length - 1]) } : null;
     })
     .filter(Boolean);
@@ -67,7 +68,8 @@ export function PathCard({
   sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true,
 }) {
   const { st, set } = useNav();
-  const series = seriesFor(sid, v, years, st.arms, st.closure, scale);
+  const rule = st.rule;
+  const series = seriesFor(sid, v, years, st.arms, st.closure, scale, rule);
   const last = years[years.length - 1];
   const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);
   return (
@@ -75,7 +77,7 @@ export function PathCard({
       id={id}
       icon={icon}
       title={title}
-      finding={finding ?? findingFor(sid, v, st.arms, st.closure, name)}
+      finding={finding ?? findingFor(sid, v, st.arms, st.closure, name, rule)}
       unit={unitLine}
       controls={
         <ControlBar label={`${title}: options`}>
@@ -87,12 +89,12 @@ export function PathCard({
       method={method}
       download={{
         title: `${title}, ${years[0]}–${last}`,
-        context: () => contextLine(sid, st.closure, unitLine),
+        context: () => contextLine(sid, st.closure, unitLine, rule),
         table: series.length ? () => seriesTable(years, series, unit) : null,
         legend: () => legendOf(series),
       }}
     >
-      <PendingLine names={series.length ? boundPending(sid, st.arms, st.closure) : []} />
+      <PendingLine names={series.length ? boundPending(sid, st.arms, st.closure, rule) : []} />
       {series.length ? (
         <LineChart
           x={years}
@@ -107,10 +109,10 @@ export function PathCard({
           bands={[{ year: HEADLINE_YEAR }]}
           valueFormat={(x) => signed(x, endDp)}
           tipFormat={(x) => signed(x, dp)}
-          ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}`}
+          ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />
       ) : (
-        <Unpublished>{emptyText(st.arms, st.closure)}</Unpublished>
+        <Unpublished>{emptyText(st.arms, st.closure, rule, sid)}</Unpublished>
       )}
     </Card>
   );
@@ -122,10 +124,10 @@ const READING = `The zero line is the OBR-central path. The dotted vertical line
 const HOW = 'Each gap is the difference from a no-shock restart of OG-UK at the same closure.';
 const IMPOSED = 'The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.';
 
-function consumptionFinding(sid, closure) {
+function consumptionFinding(sid, closure, rule = 'common') {
   const cl = primaryClosure(closure);
-  const c = path(sid, 'tfp', cl, 'C');
-  const g = path(sid, 'tfp', cl, 'GNI');
+  const c = path(sid, 'tfp', cl, 'C', rule);
+  const g = path(sid, 'tfp', cl, 'GNI', rule);
   if (!c || !g) return null;
   const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
@@ -165,7 +167,7 @@ function IncomePanel({ sid }) {
           id="measures"
           icon="gauge"
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
-          finding={`Each arm’s gap against the OBR-central path in ${HEADLINE_YEAR}, ${cl}. The wage rate is lower in every arm; whether national income is higher depends on the productivity gain.`}
+          finding={`Each arm’s gap against the OBR-central path in ${HEADLINE_YEAR}, ${cl}, ${ruleLabel(st.rule).toLowerCase()}. The wage rate is lower in every arm; whether national income is higher depends on the productivity gain.`}
           unit="% difference from the OBR-central path"
           controls={
             <ControlBar label="Four measures: options">
@@ -198,13 +200,13 @@ function IncomePanel({ sid }) {
           method="closures"
           download={{
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
-            context: () => contextLine(sid, st.closure, '% difference from the OBR-central path'),
-            table: () => dumbbellTable(sid, st.arms, st.closure),
-            svg: () => dumbbellSvg(sid, st.arms, st.closure),
+            context: () => contextLine(sid, st.closure, '% difference from the OBR-central path', st.rule),
+            table: () => dumbbellTable(sid, st.arms, st.closure, st.rule),
+            svg: () => dumbbellSvg(sid, st.arms, st.closure, st.rule),
             legend: () => dumbbellLegend(st.arms, st.closure),
           }}
         >
-          <Dumbbells sid={sid} arms={st.arms} closure={st.closure} />
+          {ruleSolved(st.rule, sid) ? <Dumbbells sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : <Unpublished>{ruleGapText(st.rule, sid)}</Unpublished>}
         </Card>
         <div className="cards-grid">
           <PathCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" name="national income" icon="home" ends={false} about={{ shows: READING_PATH, how: HOW, caveats: IMPOSED }} />
@@ -222,7 +224,7 @@ function IncomePanel({ sid }) {
                 <>
                   {IMPOSED} Why GDP is below the IMF&rsquo;s UK estimate:{' '}
                   <NavLink tab="method" sub="studies" anchor="imf-gap">
-                    Other studies, our numbers
+                    Evidence, where our numbers sit
                   </NavLink>
                   .
                 </>
@@ -256,7 +258,7 @@ function EconomyPanel({ sid }) {
                 unit={r.unit ?? '%'}
                 scale={r.scale ?? 1}
                 endDp={1}
-                finding={r.v === 'C' ? (consumptionFinding(sid, st.closure) ?? undefined) : undefined}
+                finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
                 about={r.about}
                 method={r.method ?? 'model'}
               />
@@ -268,12 +270,43 @@ function EconomyPanel({ sid }) {
   );
 }
 
+// A scenario not solved under the fiscal rule chosen: one card in place of
+// the page's charts, with the two ways back to a solved view.
+export function RulePending({ sid }) {
+  const { st, set } = useNav();
+  const solved = solvedUnder(st.rule);
+  return (
+    <Card id="rule-pending" icon="hourglass" title={`${SCEN_NAME[sid]} is not solved under ${ruleLabel(st.rule).toLowerCase()}`} logo={false}>
+      <div className="rule-pending">
+        <p>{ruleGapText(st.rule, sid)}</p>
+        <div className="rule-pending-actions">
+          {solved.map((s) => (
+            <button key={s.id} type="button" className="segment" onClick={() => set({ s: s.id })}>
+              Show {s.label}
+            </button>
+          ))}
+          <button type="button" className="segment" onClick={() => set({ rule: 'common' })}>
+            Use the common fiscal rule
+          </button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function ResultsTab({ sub: named }) {
   const { st } = useNav();
   const sub = named ?? (st.tab === 'explore' && st.sub !== 'who' ? subOf(st, 'explore') : 'income');
   const sid = st.s;
   const panels = { income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
   const Panel = panels[sub];
+  // Income and Economy share one page: one pending card for both
+  if (sub !== 'finances' && !ruleSolved(st.rule, sid))
+    return sub === 'income' ? (
+      <div id="explore-part-income" className="explore-part">
+        <RulePending sid={sid} />
+      </div>
+    ) : null;
   return (
     <div id={`explore-part-${sub}`} className="explore-part">
       <Panel sid={sid} />

@@ -21,13 +21,13 @@ export const MEASURES = [
 ];
 
 // The dumbbell card's values as a CSV table
-export function dumbbellTable(sid, arms, closure) {
+export function dumbbellTable(sid, arms, closure, rule = 'common') {
   const cls = closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL];
   return {
     columns: ['Measure', 'Arm', 'Closure', `Gap in ${HEADLINE_YEAR} (%)`],
     rows: MEASURES.flatMap((m) =>
       ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
-        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'Closed capital' : 'Central', gap(sid, a.id, cl, m.v)]),
+        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'Closed capital' : 'Central', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
       ),
     ),
   };
@@ -87,15 +87,17 @@ function DotTip({ arm, closure, measure, value }) {
 // one home. Here those three markers keep their tooltip and the download
 // keeps the value; the printed label links to the story instead.
 export const ON_SUMMARY = { arm: 'tfp', measures: ['Y', 'w', 'GNI'] };
-const onSummary = (arm, v) => arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
+// Only under the common fiscal rule: the story shows no other rule.
+const onSummary = (arm, v, rule = 'common') => rule === 'common' && arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
 
 // The axis both drawings share: half-width D (room for the labels beyond
 // the outer dots) and the ticks.
-function dumbbellScale(sid, arms, closure) {
+function dumbbellScale(sid, arms, closure, rule = 'common') {
   const shown = ARMS.filter((a) => arms.includes(a.id));
   const showC = closure !== 'closed';
   const showB = closure !== 'central';
-  const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? gap(sid, a.id, CENTRAL, m.v) : null, showB ? gap(sid, a.id, BOUND, m.v) : null])).filter((x) => x != null);
+  const g = (a, cl, v) => gap(sid, a, cl, v, HEADLINE_YEAR, rule);
+  const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? g(a.id, CENTRAL, m.v) : null, showB ? g(a.id, BOUND, m.v) : null])).filter((x) => x != null);
   const top = niceMax(Math.max(0.25, ...vals.map(Math.abs)));
   const D = top * 1.6;
   const step = [0.1, 0.25, 0.5, 1, 2, 5].find((st) => top / st <= 2.5) ?? top;
@@ -108,8 +110,8 @@ const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%
 // The same chart drawn as SVG from the data, for the PNG and SVG downloads
 // (the page draws it in HTML). Every value is printed here, the main arm's
 // too: the file stands alone.
-export function dumbbellSvg(sid, arms, closure) {
-  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure);
+export function dumbbellSvg(sid, arms, closure, rule = 'common') {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
   const W = 1000;
   const x0 = 400;
   const x1 = W - 10;
@@ -130,8 +132,8 @@ export function dumbbellSvg(sid, arms, closure) {
       const txt = cssColour(ARM_TEXT_COLOR[a.id]);
       out += `<line x1="200" x2="214" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="2.5"/>`;
       out += `<text x="220" y="${cy + 4}" font-size="11" fill="${C.axisTitle}">${esc(a.short || a.label)}</text>`;
-      const c = showC ? gap(sid, a.id, CENTRAL, m.v) : null;
-      const b = showB ? gap(sid, a.id, BOUND, m.v) : null;
+      const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
+      const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
       const main = showC ? c : b;
       if (main == null) {
         out += `<text x="${X(0) + 8}" y="${cy + 4}" font-size="11" fill="${C.muted}">pending</text>`;
@@ -160,10 +162,10 @@ export function dumbbellLegend(arms, closure) {
   return keys;
 }
 
-export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central' }) {
-  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure);
+export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central', rule = 'common' }) {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
   const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
-  const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y') != null;
+  const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
     <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
@@ -194,8 +196,8 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
           </div>
           <div className="db-arms">
             {shown.map((a) => {
-              const c = showC ? gap(sid, a.id, CENTRAL, m.v) : null;
-              const b = showB ? gap(sid, a.id, BOUND, m.v) : null;
+              const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
+              const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
               // the value printed beside the markers: central, or closed capital alone
               const main = showC ? c : b;
               const color = ARM_COLOR[a.id];
@@ -239,7 +241,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
-                        {onSummary(a.id, m.v) ? (
+                        {onSummary(a.id, m.v, rule) ? (
                           <NavLink
                             tab="story"
                             anchor="story-headline"
@@ -259,7 +261,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                         )}
                       </>
                     )}
-                    {showC && showB && !onSummary(a.id, m.v) ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
+                    {showC && showB && !onSummary(a.id, m.v, rule) ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
                   </div>
                 </div>
               );

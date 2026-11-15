@@ -19,7 +19,12 @@ const W = 560;
 const H = 272;
 const M = { l: 52, r: 24, t: 18, b: 56 };
 
-export default function ScenarioMap() {
+export const scenarioTable = () => ({
+  columns: ['Scenario', `Labour-share fall by ${HEADLINE_YEAR} (pp)`, `Gain in output at fixed inputs by ${HEADLINE_YEAR} (%)`, 'Capital share γ reached'],
+  rows: SCENARIOS.map((s) => [s.label, s.labour_share_fall_pp, s.tfp_gain_pct, s.gamma_terminal]),
+});
+
+export default function ScenarioMap({ caption = true }) {
   const { hi, ref, bind } = useHover();
   const xMax = Math.ceil(Math.max(...SCENARIOS.map((s) => s.tfp_gain_pct)) + 0.4);
   const yMax = Math.ceil(Math.max(...SCENARIOS.map((s) => s.labour_share_fall_pp)) + 0.6);
@@ -31,10 +36,12 @@ export default function ScenarioMap() {
   const h = SCENARIOS.find((s) => s.id === hi);
   return (
     <figure className="mx-map" ref={ref}>
-      <figcaption className="mx-fig-cap">
-        <span className="mx-fig-title">Scenario inputs, {HEADLINE_YEAR}</span>
-        <span className="mx-fig-sub">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</span>
-      </figcaption>
+      {caption ? (
+        <figcaption className="mx-fig-cap">
+          <span className="mx-fig-title">Scenario inputs, {HEADLINE_YEAR}</span>
+          <span className="mx-fig-sub">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</span>
+        </figcaption>
+      ) : null}
       <div className="mx-map-body">
       <div className="mx-map-plot">
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Map of the four scenarios' inputs">

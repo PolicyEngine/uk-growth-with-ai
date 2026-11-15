@@ -6,7 +6,10 @@ import Disclosure from '@/components/ab/Disclosure.jsx';
 import { S } from '@/tabs/ai/surprise.js';
 import { REPO, URLS } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
-import { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
+import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
+import CHANGELOG from '@/data/site-changelog.json';
+import { VERSIONS, VINTAGES, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, SP_HELPER, STEPS } from './pipeline.js';
@@ -19,8 +22,14 @@ const SECTIONS = [
   { id: 'before', title: 'Reproduce the results', icon: 'key' },
   { id: 'pipeline', title: 'Run it step by step', icon: 'gitBranch' },
   { id: 'outputs', title: 'Outputs and checks', icon: 'flask' },
+  { id: 'vintages', title: 'Data vintages and versions', icon: 'database' },
+  { id: 'ledger', title: 'Source ledger', icon: 'list' },
+  { id: 'cite', title: 'Cite this work', icon: 'fileText' },
+  { id: 'changelog', title: 'Changelog', icon: 'history' },
   { id: 'use-oguk', title: 'Use OG-UK yourself', icon: 'code' },
 ];
+const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
+const longDate = (d) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 const blob = (p) => `${REPO}/blob/${REF}/${p}`;
@@ -42,15 +51,6 @@ const ENV = `export HF_TOKEN=hf_your_token HUGGING_FACE_TOKEN=hf_your_token   # 
 export HF_HUB_DISABLE_SHARED_BLOBS=1
 export DASK_DISTRIBUTED__SCHEDULER__WORKER_TTL=None
 : > "$WORK/un_api_token.txt"   # empty: demographics from the GitHub mirror, as every run so far`;
-
-const VERSIONS = [
-  ['Python', '3.13.15'],
-  ['OG-Core', '0.17.0, plus the γ patch'],
-  ['OG-UK', 'vahid-ahmadi/OG-UK at d0e6ae5'],
-  ['policyengine', '5.0.4'],
-  ['policyengine-uk', '2.90.2'],
-  ['NumPy, pandas', '2.3.5, 3.0.5'],
-];
 
 function BeforeYouStart() {
   return (
@@ -83,10 +83,10 @@ function BeforeYouStart() {
         <div>
           <p className="mx-kicker">Versions used</p>
           <dl className="mx-versions">
-            {VERSIONS.map(([k, v]) => (
-              <div key={k}>
-                <dt>{k}</dt>
-                <dd>{k === 'OG-UK' ? ext(URLS.ogUkFork, v) : v}</dd>
+            {VERSIONS.filter((e) => e.id !== 'solves').map((e) => (
+              <div key={e.id}>
+                <dt>{e.label}</dt>
+                <dd>{e.url ? ext(e.url, e.value) : e.value}</dd>
               </div>
             ))}
             <div>
@@ -280,11 +280,207 @@ function UseOguk() {
   );
 }
 
+function Vintages() {
+  return (
+    <div className="cards-stack">
+      <InfoCard icon="database" title="Data files" id="data-files">
+        <div className="table-wrap">
+          <table className="data-table ledger-table">
+            <caption className="visually-hidden">Each data file, what it feeds and its vintage</caption>
+            <thead>
+              <tr>
+                <th scope="col">File</th>
+                <th scope="col">Feeds</th>
+                <th scope="col">Vintage</th>
+                <th scope="col">Built or read</th>
+              </tr>
+            </thead>
+            <tbody>
+              {VINTAGES.map((v) => (
+                <tr key={v.file}>
+                  <th scope="row">
+                    <code>{v.file}</code>
+                  </th>
+                  <td>{v.what}</td>
+                  <td>{v.vintage}</td>
+                  <td>{v.date ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </InfoCard>
+      <div className="cards-grid">
+      <InfoCard icon="package" title="Model versions" id="model-versions">
+        <dl className="mx-versions">
+          {VERSIONS.map((e) => (
+            <div key={e.id}>
+              <dt>{e.label}</dt>
+              <dd>
+                {e.url ? ext(e.url, e.value) : e.value}
+                <span className="ledger-where">{e.where}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </InfoCard>
+      <InfoCard icon="calendar" title="Official releases (ONS, OBR, DSIT)" id="releases">
+        <ul className="ledger-releases">
+          {RELEASES.map((r) => (
+            <li key={r.id}>
+              <span className="ledger-date">{r.released}</span>
+              <span>
+                {ext(r.url, `${r.publisher}: ${r.title}`)}
+                {r.series ? <span className="ledger-where">{r.series}</span> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </InfoCard>
+      </div>
+    </div>
+  );
+}
+
+function Ledger() {
+  const rows = ledger();
+  const groups = [...new Set(rows.map((r) => r.group))];
+  return (
+    <Card
+      id="source-ledger"
+      icon="list"
+      title="Source ledger"
+      finding="Every figure on the site, or group of figures, with its source, its vintage and the date it was last checked, read from the data files' own source fields."
+      logo={false}
+      aboutTitle="About this table"
+      about={{
+        how: HAS_CHECKS
+          ? 'Each official figure the story prints is listed with its release and the second, independent read of its primary file recorded in ukContextChecks.json; the rest come from each data file.'
+          : 'Built from each data file’s own source fields. Official figures will also carry the checks in ukContextChecks.json once that file is part of the build.',
+        caveats: 'Published studies were checked against the primary text in the literature note (PR #37, then #41); the location in each source is given as its vintage.',
+      }}
+      download={{ title: 'Source ledger', context: `Data last updated ${LAST_UPDATED}`, table: ledgerTable }}
+    >
+      <div className="table-wrap ledger-wrap">
+        <table className="data-table ledger-table">
+          <caption className="visually-hidden">Source ledger</caption>
+          <thead>
+            <tr>
+              <th scope="col">Figure</th>
+              <th scope="col">Source</th>
+              <th scope="col">Vintage</th>
+              <th scope="col">Date checked</th>
+            </tr>
+          </thead>
+          {groups.map((g) => (
+            <tbody key={g}>
+              <tr className="table-group">
+                <th colSpan={4} scope="colgroup">
+                  {g}
+                </th>
+              </tr>
+              {rows
+                .filter((r) => r.group === g)
+                .map((r, i) => (
+                  <tr key={`${g}-${i}`}>
+                    <th scope="row">{r.figure}</th>
+                    <td>{r.url ? ext(r.url, r.source) : r.source}</td>
+                    <td>{r.vintage}</td>
+                    <td>
+                      {r.checked ?? '—'}
+                      {r.how ? <span className="ledger-where">Second read: {r.how}</span> : null}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+const year = LAST_UPDATED.slice(0, 4);
+const CITE_TEXT = `PolicyEngine (${year}). The macroeconomic effects of AI on the UK. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
+const CITE_BIB = `@misc{policyengine_ai_uk_${year},
+  author       = {{PolicyEngine}},
+  title        = {The macroeconomic effects of {AI} on the {UK}},
+  year         = {${year}},
+  howpublished = {Interactive dashboard},
+  url          = {${SITE_URL}},
+  note         = {Data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}; code at ${REPO}}
+}`;
+
+function Cite() {
+  return (
+    <div className="cards-grid">
+      <InfoCard icon="fileText" title="Citation" id="citation">
+        <p className="cite-text">{CITE_TEXT}</p>
+        <CopyBlock code={CITE_BIB} lang="text" />
+      </InfoCard>
+      <InfoCard icon="alert" title="Known limitations" id="known-limits">
+        <p>
+          OG-UK has one sector, no unemployment, imposed technology paths and perfect foresight; its tax effect is likely too small. Each is
+          stated once, on{' '}
+          <NavLink tab="method" sub="how" anchor="m-limits">
+            Method, limitations
+          </NavLink>
+          . The household study is one year and provisional:{' '}
+          <NavLink tab="method" sub="households">
+            Household method
+          </NavLink>
+          .
+        </p>
+      </InfoCard>
+    </div>
+  );
+}
+
+const Entry = ({ e }) => (
+  <li>
+    <span className="mx-history-date">{longDate(e.date)}</span>
+    <span>
+      {e.text} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
+    </span>
+  </li>
+);
+const RECENT = 8;
+
+function Changelog() {
+  const [recent, older] = [CHANGELOG.entries.slice(0, RECENT), CHANGELOG.entries.slice(RECENT)];
+  return (
+    <div className="info-card mx-card mx-history">
+      <ol className="mx-history-list">
+        {recent.map((e) => (
+          <Entry key={e.commit} e={e} />
+        ))}
+      </ol>
+      {older.length ? (
+        <Disclosure inCard title="Earlier changes" preview={`${older.length} more, back to ${longDate(older[older.length - 1].date)}`}>
+          <ol className="mx-history-list">
+            {older.map((e) => (
+              <Entry key={e.commit} e={e} />
+            ))}
+          </ol>
+        </Disclosure>
+      ) : null}
+    </div>
+  );
+}
+
 export default function CodeTab() {
   return (
     <div className="page-with-contents mx-tab mx-code">
       <OnThisPage tab="method" sub="code" sections={SECTIONS} label="Code contents" />
       <div className="page-body">
+        <PageIntro icon="code" question="Can I check and reproduce these results?" answer="Yes. The solves, the data files and the scripts that build every page are committed; below are the steps, the versions used, where every figure comes from and how to cite it.">
+          <p className="updated-stamp">
+            <Icon name="calendar" size={14} />
+            <span>
+              Data last updated <time dateTime={LAST_UPDATED}>{longDate(LAST_UPDATED)}</time>
+            </span>
+          </p>
+        </PageIntro>
         <section>
           <SectionHeading id="before" icon="repeat" title="Reproduce the results">
             Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.
@@ -315,6 +511,34 @@ export default function CodeTab() {
               <p className="mx-sub">The build also runs asserts on the data file.</p>
             </InfoCard>
           </div>
+        </section>
+        <section>
+          <SectionHeading id="vintages" icon="database" title="Data vintages and versions">
+            Which data, model and release each page is built from, read from the data files.
+          </SectionHeading>
+          <Vintages />
+        </section>
+        <section>
+          <SectionHeading id="ledger" icon="list" title="Source ledger">
+            Where each figure comes from and when it was checked.
+          </SectionHeading>
+          <Ledger />
+        </section>
+        <section>
+          <SectionHeading id="cite" icon="fileText" title="Cite this work">
+            A citation, and the limitations to cite with it.
+          </SectionHeading>
+          <Cite />
+        </section>
+        <section>
+          <SectionHeading id="changelog" icon="history" title="Changelog">
+            What changed on the site, newest first. Model decisions are on{' '}
+            <NavLink tab="method" sub="how" anchor="m-history">
+              Method, revision history
+            </NavLink>
+            .
+          </SectionHeading>
+          <Changelog />
         </section>
         <section>
           <SectionHeading id="use-oguk" icon="code" title="Use OG-UK yourself">
