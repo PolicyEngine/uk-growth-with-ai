@@ -185,8 +185,8 @@ describe('where output goes', () => {
       const gross = b.domestic + b.foreign + b.depreciation;
       expect(subs).toEqual([(b.labour + gross).toFixed(0), b.labour.toFixed(1), gross.toFixed(1), ...['domestic', 'foreign', 'depreciation'].map((k) => b[k].toFixed(1))]);
       const ch = S2.change[sid][cl];
-      const vals = [...out.querySelectorAll('.p2-wf-value')].map((n) => n.textContent);
-      expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), 'headline tile']);
+      const vals = [...out.querySelectorAll('.p2-wf-value')].map((n) => n.textContent.trim());
+      expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), 'Headline figures']);
       expect(out.textContent.includes('both figures show the central closure')).toBe(q.endsWith('both'));
       expect(out.textContent).toContain(cl === 'zk0' ? 'Closed capital' : 'Central closure');
       unmount();

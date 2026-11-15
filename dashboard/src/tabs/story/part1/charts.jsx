@@ -104,7 +104,7 @@ export function GdpChart({ state }) {
             />
           );
         })}
-        <text x={sc.X(minAt) + bw / 2 + 4} y={sc.Y(Math.min(...g.y)) + 2} dy="0.35em" textAnchor="start" className="p1-note-label">
+        <text x={sc.X(minAt) + bw / 2 + 4} y={sc.Y(Math.min(...g.y) * 0.6)} dy="0.35em" textAnchor="start" className="p1-note-label">
           Pandemic
         </text>
         <FadeG on={seen && fc}>
@@ -253,7 +253,7 @@ export function LabourPanels({ state }) {
         }, three-month averages, ${span}.`}
       >
         <Panel s={e} step={2} title="Employment rate: % of people aged 16 to 64" on={seen} color="var(--series-2)" />
-        <Panel s={u} step={3} withZero title="Unemployment rate: % of economically active people aged 16 and over" on={seen && state >= 1} color="var(--series-4)" />
+        <Panel s={u} step={3} withZero title="Unemployment rate: % of economically active people aged 16 and over" on={seen && state >= 1} color="var(--pe-gray-700)" />
       </div>
       <figcaption>
         <SourceLine
@@ -279,7 +279,7 @@ export function PayChart() {
       s={s}
       step={2}
       withZero
-      color="var(--series-1)"
+      color="var(--series-2)"
       title={`Regular pay growth, ${span}`}
       unit="Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation"
       label={`Line chart: growth of average weekly regular pay on a year earlier, three-month averages, ${span}.`}

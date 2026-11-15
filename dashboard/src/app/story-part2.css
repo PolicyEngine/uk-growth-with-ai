@@ -295,7 +295,7 @@
 }
 .p2-output-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -465,4 +465,18 @@
   .p2-end-label {
     font-size: 9.6px;
   }
+}
+
+/* A waterfall value whose home is the headline figures: a labelled link */
+.p2-wf-link {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  font-weight: 500;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-size: var(--fs-small);
+  line-height: 1.25;
+  text-align: right;
 }

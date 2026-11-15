@@ -258,7 +258,7 @@ export function MorphChart({ state, sid, cl }) {
         {/* off-scale years (states 0-1): named, not valued */}
         <g className={`p2-mo-fade${s < 2 ? ' is-on' : ''}`}>
           {g.off.map((o) => (
-            <text key={o.year} data-axis="" x={o.x + (o.up ? 7 : -7)} y={o.up ? PY0 + 8 : PY1 - 6} textAnchor={o.up ? 'start' : 'end'} className="p2-mo-off">
+            <text key={o.year} data-axis="" x={o.x + (o.up ? 7 : -7)} y={o.up ? PY0 + 8 : PY1 - 20} textAnchor={o.up ? 'start' : 'end'} className="p2-mo-off">
               {o.year} {o.up ? '↑' : '↓'}
             </text>
           ))}

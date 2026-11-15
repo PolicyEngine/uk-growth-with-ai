@@ -79,10 +79,20 @@ function RangeBar({ v, sid, title, cl }) {
     if (last && frac(p.x) - frac(last[last.length - 1].x) < 2) last.push(p);
     else clusters.push([p]);
   }
+  // Names below the track, or above it where they would touch the last
+  // name below; widths are estimated in % of a narrow (240px) track, and a
+  // name near an end is aligned to that end so it stays inside.
   const names = [];
-  clusters.forEach((c, i) => {
-    const up = i > 0 && frac(c[0].x) - frac(clusters[i - 1][0].x) < 18 && !names[i - 1]?.up;
-    names.push({ x: c[0].x, up, text: c.map((p) => SHORT[p.id]).join(' · '), on: c.some((p) => p.id === sid) });
+  const rowEnd = { down: -Infinity, up: -Infinity };
+  clusters.forEach((c) => {
+    const text = c.map((p) => SHORT[p.id]).join(' · ');
+    const w = (text.length * 6.4 * 100) / 240;
+    const f = frac(c[0].x);
+    const align = f - w / 2 < 0 ? 'start' : f + w / 2 > 100 ? 'end' : 'mid';
+    const left = align === 'start' ? f : align === 'end' ? f - w : f - w / 2;
+    const row = left >= rowEnd.down + 2 ? 'down' : 'up';
+    rowEnd[row] = left + w;
+    names.push({ x: c[0].x, up: row === 'up', align, text, on: c.some((p) => p.id === sid) });
   });
   const pending = pts.filter((p) => p.x == null);
   return (
@@ -107,7 +117,7 @@ function RangeBar({ v, sid, title, cl }) {
           />
         ))}
         {names.map((n) => (
-          <span key={n.text} className={`kpi-range-name${n.up ? ' is-up' : ''}${n.on ? ' is-on' : ''}`} style={{ left: pct(n.x) }} aria-hidden="true">
+          <span key={n.text} className={`kpi-range-name${n.up ? ' is-up' : ''}${n.on ? ' is-on' : ''} is-${n.align}`} style={{ left: pct(n.x) }} aria-hidden="true">
             {n.text}
           </span>
         ))}

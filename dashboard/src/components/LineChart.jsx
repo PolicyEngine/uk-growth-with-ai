@@ -236,6 +236,20 @@ export default function LineChart({
   }
 
   const sx = (i) => (x.length === 1 ? L : L + ((R - L) * i) / (x.length - 1));
+  // Marker labels: each takes the first row where it does not overlap a
+  // label already placed (widths estimated from the text), so labels never
+  // overprint one another whatever the width.
+  const markerRows = [];
+  for (const m of markers) {
+    const i = x.indexOf(m.year);
+    if (i < 0) continue;
+    const end = i === x.length - 1 || sx(i) + 4 + m.label.length * 6.4 > R;
+    const w = m.label.length * 6.4 + 6;
+    const a0 = end ? sx(i) - 4 - w : sx(i) + 4;
+    let row = 0;
+    while (markerRows.some((p) => p.row === row && a0 < p.b && a0 + w > p.a)) row += 1;
+    markerRows.push({ m, i, row, end, a: a0, b: a0 + w });
+  }
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
   // edge would be drawn on top of each other, so each off-scale point after
@@ -355,23 +369,14 @@ export default function LineChart({
             </g>
           );
         })}
-        {markers.map((m, mi) => {
-          const i = x.indexOf(m.year);
-          if (i < 0) return null;
-          return (
-            <g key={`m-${m.year}`}>
-              <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-              <text
-                x={i === x.length - 1 ? sx(i) - 4 : sx(i) + 4}
-                y={TOP + 10 + mi * 14}
-                className="ax marker-label"
-                textAnchor={i === x.length - 1 ? 'end' : 'start'}
-              >
-                {m.label}
-              </text>
-            </g>
-          );
-        })}
+        {markerRows.map(({ m, i, row, end }) => (
+          <g key={`m-${m.year}`}>
+            <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
+            <text x={end ? sx(i) - 4 : sx(i) + 4} y={TOP + 10 + row * 14} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
+              {m.label}
+            </text>
+          </g>
+        ))}
         {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
         {ticks.map((v) => (
           <g key={v}>

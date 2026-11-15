@@ -602,3 +602,28 @@
   margin-top: 2px;
   color: var(--pe-gray-500);
 }
+
+/* Hero fan: scenario names at the line ends, the zero line and 2028 named */
+.hero-name {
+  font-size: 21px;
+  font-weight: 600;
+  fill: var(--pe-gray-700);
+}
+.hero-name.is-zero {
+  font-weight: 400;
+  fill: var(--pe-gray-500);
+}
+@media (min-width: 901px) {
+  .hero-name {
+    font-size: 15px;
+  }
+}
+
+/* Source links under the story's figures: a hit area at least 24px tall
+   without changing the line layout */
+.story-source a,
+.p1-figure figcaption a,
+.p3-figure .story-source a {
+  /* vertical padding on an inline box grows its hit area, not the line */
+  padding: 3px 0;
+}

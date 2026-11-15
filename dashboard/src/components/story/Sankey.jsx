@@ -18,7 +18,8 @@ import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
 // The flow runs left to right at every width. Labels are direct (no legend): `label`
 // on the first line, `sub` (value and share, formatted by the caller) on the
 // second. First-column labels sit to the left of their node, last-column
-// labels to the right, and middle-column labels above their node.
+// labels to the right, and middle-column labels below their node, ending at
+// its left edge (under the incoming ribbon).
 // prefers-reduced-motion removes the transitions (story.css), so each state
 // is drawn at once.
 
@@ -96,10 +97,12 @@ export default function Sankey({ graphs, active = 0, label, width = 640, height 
   const H = narrow ? Math.round(height * 0.85) : height;
   const L = narrow ? narrowLeftRoom : leftRoom;
   const R = narrow ? narrowRightRoom : rightRoom;
-  // room above for middle-column labels
-  const top = 34;
+  const top = 8;
   const long = W - L - R;
-  const short = H - top - 6;
+  // room below for middle-column labels, when the graph has a middle column
+  const g0 = graphs[0];
+  const hasMiddle = g0.nodes.some((n) => g0.links.some((l) => l.source === n.id) && g0.links.some((l) => l.target === n.id));
+  const short = H - top - (hasMiddle ? 30 : 6);
   const max = Math.max(...graphs.map(total));
   const g = graphs[Math.min(active, graphs.length - 1)];
   const laid = useMemo(() => layout(g, L, long, top, short, total(g) / max, nodeWidth, pad), [g, L, long, short, max, nodeWidth, pad]);
@@ -120,10 +123,12 @@ export default function Sankey({ graphs, active = 0, label, width = 640, height 
           const first = n.x0 <= L + 1;
           const last = n.x1 >= L + long - 1;
           const middle = !first && !last;
-          const tx = first ? n.x0 - 6 : last ? n.x1 + 6 : (n.x0 + n.x1) / 2;
-          const anchor = first ? 'end' : last ? 'start' : 'middle';
-          // beside the node, centred on it; above it for a middle column
-          const ty = middle ? n.y0 - (n.sub ? 20 : 7) : (n.y0 + n.y1) / 2 - (n.sub ? 7 : 0);
+          // beside the node, centred on it. A middle-column label goes
+          // below its node, ending at the node's left edge: there it sits
+          // under the incoming ribbon, never on a ribbon. Kept inside the box.
+          const tx = first ? n.x0 - 6 : last ? n.x1 + 6 : n.x0 - 4;
+          const anchor = first || middle ? 'end' : 'start';
+          const ty = middle ? Math.min(n.y1 + 12, H - (n.sub ? 22 : 8)) : (n.y0 + n.y1) / 2 - (n.sub ? 7 : 0);
           return (
             <g key={n.id} className="sankey-node" data-node={n.id}>
               <rect className="sankey-rect" x={n.x0} y={n.y0} width={Math.max(n.x1 - n.x0, 1)} height={Math.max(n.y1 - n.y0, 1)} style={{ fill: n.color }} />

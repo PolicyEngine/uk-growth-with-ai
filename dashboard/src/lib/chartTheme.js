@@ -29,9 +29,10 @@ export const SERIES = {
   ss: { line: '#64748B', text: '#475569' },
 };
 
-// Earnings groups, bottom to top: the AB income ramp (amber to teal through
-// grey), so order reads without a legend; "All groups" is ink, dashed.
-export const GROUP_RAMP = ['#8A3A0C', '#B8641C', '#C2792E', '#6B7280', '#3E958D', '#2A8C84', '#0F5F59'];
+// Earnings groups, bottom to top: a neutral sequential slate-blue ramp, light
+// to dark, so order reads without a legend and no group borrows the gain
+// (teal) or loss (amber) colour; "All groups" is ink, dashed.
+export const GROUP_RAMP = ['#8fa9c4', '#7392b2', '#5a7b9f', '#45668b', '#335476', '#234261', '#16314b'];
 export const ALL_GROUPS_COLOUR = '#111827';
 
 export const TICK = { size: 12, fill: CHART_COLOURS.tick };

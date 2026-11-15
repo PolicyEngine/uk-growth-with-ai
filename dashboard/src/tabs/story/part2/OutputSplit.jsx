@@ -2,6 +2,7 @@
 
 import Sankey from '@/components/story/Sankey.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
+import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { SOURCE } from './frame.jsx';
@@ -45,8 +46,8 @@ function Waterfall({ rows }) {
             </span>
             <span className="p2-wf-value">
               {r.value == null ? (
-                <NavLink tab="story" anchor="story-headline">
-                  headline tile
+                <NavLink tab="story" anchor="story-headline" className="p2-wf-link" aria-label="GDP: see the headline figures">
+                  Headline figures <Icon name="arrowRight" size={12} strokeWidth={2} />
                 </NavLink>
               ) : (
                 change(r.value)
@@ -93,27 +94,11 @@ export default function OutputSplit({ sid, closure }) {
       </h3>
       <p className="p2-headline-lead">
         Every pound of GDP is paid to someone: to workers as labour income, or as capital income to owners at home or abroad,
-        part of it to replace worn-out capital. On the left, the split on the OBR-central path; on the right, how{' '}
-        {SCEN_NAME[sid]} changes each part.{' '}
+        part of it to replace worn-out capital. First, how {SCEN_NAME[sid]} changes each part; beside it, for scale, the split on the
+        OBR-central path.{' '}
         {both ? 'With both closures chosen above, both figures show the central closure.' : null}
       </p>
       <div className="p2-output-grid">
-        <figure className="p2-figure p2-output-fig">
-          <p className="story-figure-title">The OBR-central path, {SPLIT_YEAR}</p>
-          <p className="story-figure-unit">{CL_WORDS[cl][0].toUpperCase() + CL_WORDS[cl].slice(1)}. Of every 100 of GDP</p>
-          {graph ? (
-            <div className="p2-sankey">
-              <Sankey graphs={[graph]} label={sankeyLabel} width={520} height={300} pad={22} />
-            </div>
-          ) : (
-            <p className="p2-pending">The reference path at this closure is pending.</p>
-          )}
-          <p className="p2-output-note">
-            Paid abroad: profits on foreign-owned UK capital and interest on gilts held abroad. Taxes are not split out: in OG-UK
-            income tax is one combined series.
-          </p>
-          <figcaption className="story-source">{SOURCE}</figcaption>
-        </figure>
         <figure className="p2-figure p2-output-fig">
           <p className="story-figure-title">What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}</p>
           <p className="story-figure-unit">
@@ -129,6 +114,22 @@ export default function OutputSplit({ sid, closure }) {
           ) : (
             <p className="p2-pending">This solve is pending at the closure chosen above.</p>
           )}
+          <figcaption className="story-source">{SOURCE}</figcaption>
+        </figure>
+        <figure className="p2-figure p2-output-fig p2-output-base">
+          <p className="story-figure-title">The OBR-central path, {SPLIT_YEAR}</p>
+          <p className="story-figure-unit">{CL_WORDS[cl][0].toUpperCase() + CL_WORDS[cl].slice(1)}. Of every 100 of GDP</p>
+          {graph ? (
+            <div className="p2-sankey">
+              <Sankey graphs={[graph]} label={sankeyLabel} width={420} height={250} pad={18} rightRoom={118} />
+            </div>
+          ) : (
+            <p className="p2-pending">The reference path at this closure is pending.</p>
+          )}
+          <p className="p2-output-note">
+            Paid abroad: profits on foreign-owned UK capital and interest on gilts held abroad. Taxes are not split out: in OG-UK
+            income tax is one combined series.
+          </p>
           <figcaption className="story-source">{SOURCE}</figcaption>
         </figure>
       </div>

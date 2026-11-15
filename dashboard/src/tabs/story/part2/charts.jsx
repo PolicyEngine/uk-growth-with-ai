@@ -228,7 +228,7 @@ export function WelfareShape({ state }) {
   return (
     <Figure
       title="Welfare change by birth year"
-      unit="UK central, automation + productivity, central closure, debt-neutral transfers, all earnings groups. Consumption-equivalent change, %"
+      unit="UK central, automation + productivity, central closure, debt-neutral transfers, all earnings groups. Consumption-equivalent change, % (vertical axis), by birth year (horizontal axis)"
     >
       <svg
         ref={ref}

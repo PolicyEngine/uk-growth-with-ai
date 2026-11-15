@@ -3,7 +3,8 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { Unpublished } from '@/components/ab/Section.jsx';
-import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
+import Card, { SectionHeading, IconLine, InfoCard } from '@/components/ui/Card.jsx';
+import { pr } from '@/tabs/ai/links.js';
 import { useNav, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
@@ -202,7 +203,7 @@ function TaxGapCard({ sid, closure, rule }) {
         }),
         svg: causesSvg,
         legend: () => [
-          { label: 'OG-UK', color: CHART_COLOURS.gain, shape: 'dot' },
+          { label: 'OG-UK', color: 'var(--series-2)', shape: 'dot' },
           { label: 'Comparison', color: CHART_COLOURS.muted, shape: 'ring' },
         ],
       }}
@@ -376,7 +377,7 @@ export default function FinancesSection({ sid }) {
           icon="landmark"
           unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${LATE_YEAR}`}
           finding={debtFinding(sid, st.closure, st.rule) ?? undefined}
-          markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI arrives' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
           about={{
             shows: `Public debt as a share of GDP against the OBR-central path. ${reading}`,
             caveats: (
@@ -422,6 +423,17 @@ export default function FinancesSection({ sid }) {
       <div className="cards-stack stack-gap">
         <TaxGapCard sid={sid} closure={st.closure} rule={st.rule} />
         <FiscalRuleCard sid={sid} />
+        <InfoCard icon="percent" title="Debt repriced at the OBR's speed (open pull request)" id="debt-repricing">
+          <p>
+            The model reprices all government debt at the new interest rate at once. An open pull request,{' '}
+            <a href={pr(43)} target="_blank" rel="noreferrer">
+              PR #43
+            </a>
+            , redoes the debt path with the rate reaching the debt stock at the speed of the OBR&rsquo;s debt interest ready reckoner. Its
+            finding is stated in words in the debt card above (Details); its figures will appear here once the pull request commits them as
+            a data file.
+          </p>
+        </InfoCard>
       </div>
     </>
   );

@@ -3,7 +3,7 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { useNav } from '@/lib/nav.jsx';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
-import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS } from '@/tabs/ai/surprise.js';
+import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SCEN_NAME } from '@/tabs/ai/surprise.js';
 
 // The first screen: the question and the one-line answer for the scenario
 // and closure in the header, beside an image of every modelled GDP path
@@ -27,13 +27,29 @@ export default function Hero() {
   const all = lines.flatMap((l) => l.y);
   const lo = Math.min(-1, ...all);
   const hi = Math.max(1, ...all);
-  const X = (i) => 20 + (i / (YEARS.length - 1)) * (W - 40);
+  // a right gutter for the four scenario names
+  const X = (i) => 20 + (i / (YEARS.length - 1)) * (W - 150);
   const Y = (v) => Y0(lo, hi, v);
   const d = (ys) => ys.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
   const xs = YEARS.indexOf(SURPRISE_YEAR);
   function Y0(a, b, v = 0) {
     return H - 30 - ((v - a) / (b - a)) * (H - 60);
   }
+  // Scenario names at the end of each main-arm, central-closure line,
+  // pushed apart so they never overlap; the zero line is named too.
+  const LH = 24;
+  const names = SCENARIOS.map((sc) => {
+    const r = S.results[sc.id]?.tfp?.[CENTRAL];
+    return r?.status === 'done' ? { id: sc.id, y: Y(r.gaps.Y[r.gaps.Y.length - 1]) } : null;
+  })
+    .filter(Boolean)
+    .sort((p, q) => p.y - q.y);
+  names.forEach((n, i) => {
+    if (i && n.y < names[i - 1].y + LH) n.y = names[i - 1].y + LH;
+  });
+  const zeroY = Y(0);
+  const last = names[names.length - 1];
+  const zeroLabelY = last && Math.abs(last.y - (zeroY + 22)) < LH ? last.y + LH : zeroY + 22;
   return (
     <section className="story-hero" aria-labelledby="story-q">
       <div className="story-hero-text">
@@ -61,10 +77,21 @@ export default function Hero() {
               opacity={l.cl === CENTRAL ? 0.85 : 0.45}
             />
           ))}
+          {names.map((n) => (
+            <text key={n.id} x={X(YEARS.length - 1) + 8} y={n.y} dy="0.35em" className="hero-name">
+              {SCEN_NAME[n.id]}
+            </text>
+          ))}
+          <text x={X(YEARS.length - 1) + 8} y={zeroLabelY} className="hero-name is-zero">
+            OBR-central path
+          </text>
+          <text x={X(xs) + 6} y={H - 26} className="hero-name is-zero">
+            AI arrives, {SURPRISE_YEAR}
+          </text>
         </svg>
         <p className="story-source">
-          Every modelled GDP path against the OBR-central path: four scenarios, three arms, two closures, closed capital dashed. OG-UK,
-          PolicyEngine. Shape only; the figures are in part 2.
+          Every modelled GDP path against the OBR-central path (the flat line): four scenarios, three arms, two closures, closed capital
+          dashed; each scenario named at the end of its main arm. OG-UK, PolicyEngine. Shape only; the figures are in part 2.
         </p>
       </div>
     </section>

@@ -105,8 +105,8 @@ export function PathCard({
           unit={unit}
           tipTitle={title}
           zeroLabel="OBR central"
-          markers={markers ?? [{ year: SURPRISE_YEAR, label: 'AI shock' }]}
-          bands={[{ year: HEADLINE_YEAR }]}
+          markers={markers ?? [{ year: SURPRISE_YEAR, label: 'AI arrives' }]}
+          bands={[{ year: HEADLINE_YEAR, label: 'Headline year' }]}
           valueFormat={(x) => signed(x, endDp)}
           tipFormat={(x) => signed(x, dp)}
           ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
@@ -119,8 +119,8 @@ export function PathCard({
 }
 
 // The GNI and GDP paths carry no end values: their 2031 figures have one home, the four-measure card above them
-const READING_PATH = `The zero line is the OBR-central path. The dotted vertical line marks the ${SURPRISE_YEAR} AI shock and the shaded year is ${HEADLINE_YEAR}, the headline year, whose values are in the card above. Hover, tap or use the arrow keys for each year.`;
-const READING = `The zero line is the OBR-central path. The dotted vertical line marks the ${SURPRISE_YEAR} AI shock and the shaded year is ${HEADLINE_YEAR}, the headline year. Each line ends with its ${HEADLINE_YEAR} value; hover, tap or use the arrow keys for other years.`;
+const READING_PATH = `The zero line is the OBR-central path. The dotted vertical line marks ${SURPRISE_YEAR}, when AI arrives, and the shaded year is ${HEADLINE_YEAR}, the headline year. The main arm's ${HEADLINE_YEAR} values are the story's headline figures, linked from the four-measure card above. Hover, tap or use the arrow keys for each year.`;
+const READING = `The zero line is the OBR-central path. The dotted vertical line marks ${SURPRISE_YEAR}, when AI arrives, and the shaded year is ${HEADLINE_YEAR}, the headline year. Each line ends with its ${HEADLINE_YEAR} value; hover, tap or use the arrow keys for other years.`;
 const HOW = 'Each gap is the difference from a no-shock restart of OG-UK at the same closure.';
 const IMPOSED = 'The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.';
 
@@ -133,6 +133,16 @@ function consumptionFinding(sid, closure, rule = 'common') {
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
     ? `With automation + productivity, consumption stays below the OBR-central path through ${HEADLINE_YEAR} while national income is above it: households save more once the shock arrives in ${SURPRISE_YEAR}.`
     : null;
+}
+
+// The labour-share fall is an imposed input, the same in every arm: when
+// the arms' paths are equal, their lines coincide and the card says so.
+function coincideFinding(sid, closure, rule = 'common') {
+  const cl = primaryClosure(closure);
+  const ps = ARMS.map((a) => path(sid, a.id, cl, 'labour_share_pp', rule)).filter(Boolean);
+  if (ps.length < 2) return null;
+  const same = ps.every((p) => p.every((x, i) => Math.abs(x - ps[0][i]) < 1e-6));
+  return same ? 'The three arms’ lines coincide: the fall in the labour share is the same imposed input in each arm.' : null;
 }
 
 const ECONOMY = [
@@ -257,8 +267,8 @@ function EconomyPanel({ sid }) {
                 icon={r.icon}
                 unit={r.unit ?? '%'}
                 scale={r.scale ?? 1}
-                endDp={1}
-                finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
+                endDp={2}
+                finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
                 about={r.about}
                 method={r.method ?? 'model'}
               />

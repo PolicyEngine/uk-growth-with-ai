@@ -4,14 +4,13 @@ import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import Card, { SectionHeading, InfoCard } from '@/components/ui/Card.jsx';
+import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { RULES } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, LATE_YEAR, SCENARIOS, ARMS, ARM_COLOR, CLOSURE_LABEL, SCEN_NAME, fmt } from '@/tabs/ai/surprise.js';
-import { pr } from '@/tabs/ai/links.js';
 import { MEASURES, ROWS, rowOf, axisOf, cellsTable, cellValue, driverWords } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
 
@@ -272,27 +271,6 @@ export default function AllScenarios() {
       </SectionHeading>
       <SensitivityTable />
 
-      <SectionHeading id="all-checks" icon="flask" title="Checks in progress">
-        Checks on these results that are not yet part of the page.
-      </SectionHeading>
-      <div className="cards-grid">
-        <InfoCard icon="percent" title="Debt repriced at the OBR's speed (open pull request)" id="debt-repricing">
-          <p>
-            The model reprices all government debt at the new interest rate at once. An open pull request, {''}
-            <a href={pr(43)} target="_blank" rel="noreferrer">
-              PR #43
-            </a>
-            , redoes the debt path with the rate reaching the debt stock at the speed of the OBR&rsquo;s debt interest ready reckoner.
-          </p>
-          <p className="mx-sub">
-            Its figures will appear here once the pull request commits them as a data file; for now its finding is stated in words on{' '}
-            <NavLink tab="explore" sub="finances" anchor="public-finances">
-              Public finances
-            </NavLink>
-            .
-          </p>
-        </InfoCard>
-      </div>
     </div>
   );
 }

@@ -63,7 +63,7 @@ def expected(sid, mode):
         # Economy: headline-year end labels (the central line with Both)
         for v, unit, k in ECON:
             x = g(sid, arm, main, v)
-            if x is not None: add(x * k, 1, unit)
+            if x is not None: add(x * k, 2, unit)  # Economy end labels, 2dp (ResultsTab endDp)
         # Public finances: debt/GDP late-year and tax/GDP headline-year end labels
         add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
         add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')

@@ -247,9 +247,9 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             anchor="story-headline"
                             className={`db-value db-value-link${right ? ' is-right' : ' is-left'}`}
                             style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
-                            aria-label={`${a.label}, ${name}: the value is in the story`}
+                            aria-label={`${a.label}, ${name}: see the headline figures in the story`}
                           >
-                            in the story
+                            Headline figures <Icon name="arrowRight" size={12} strokeWidth={2} />
                           </NavLink>
                         ) : (
                           <span
