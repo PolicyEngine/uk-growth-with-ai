@@ -7,7 +7,8 @@ dump.json is scripts/dumptabs.mjs's output. Where each figure is printed:
 Summary, the three headline tiles (main arm, at the closure picked in the
 header; with Both, the closed-capital value beside it); Income and output,
 the four-measure card (one value per arm and measure at the closure picked;
-with Both, the closed-capital value as screen-reader text) - the GNI and GDP
+with Both, the closed-capital value as screen-reader text; the main arm's
+GDP, wage and GNI link to Summary instead) - the GNI and GDP
 path charts print no end value; Economy, each line's headline-year end
 label; Public finances, the debt/GDP and tax/GDP end labels and the tax
 card (its model figure only with closed capital, when the chart's end
@@ -52,8 +53,11 @@ def expected(sid, mode):
         if mode == 'both':
             add(g(sid, 'tfp', B, v), 2, '%')
     for arm in ARMS:
-        # Income and output: the four-measure card
+        # Income and output: the four-measure card. The main arm's GDP, wage
+        # and GNI are the Summary tiles' (their one home): there they link.
         for v in ['GNI', 'Y', 'NNI', 'w']:
+            if arm == 'tfp' and v in ('Y', 'w', 'GNI'):
+                continue
             for cl in shown:
                 add(g(sid, arm, cl, v), 2, '%')
         # Economy: headline-year end labels (the central line with Both)

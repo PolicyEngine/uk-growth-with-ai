@@ -1390,6 +1390,17 @@ body {
   color: var(--pe-gray-500);
 }
 
+.db-value-link {
+  font-weight: 500;
+  color: var(--pe-gray-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.db-value-link:hover {
+  color: var(--band-teal);
+}
+
 .db-pending {
   position: absolute;
   left: 50%;

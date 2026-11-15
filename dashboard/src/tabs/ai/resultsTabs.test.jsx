@@ -50,9 +50,11 @@ describe('Results follows the data file', () => {
     // Summary: the headline tiles; with Both, the pending closed-capital value says so
     expect(text('tab=results')).toContain('+2.35%');
     expect(text('closure=both')).toContain('With closed capital: pending');
-    // Income and output: the four-measure card
+    // Income and output: the four-measure card; the main arm's GNI, GDP and
+    // wage rate are on Summary, so here they link there
     const income = text('sub=income&closure=both');
-    expect(income).toContain('+1.23%');
+    expect(income).not.toContain('+1.23%');
+    expect(income.match(/on Summary/g)).toHaveLength(3);
     expect(income).toContain('closed capital pending');
     expect(text('sub=economy')).toContain('+4.4%');
     expect(text('sub=finances')).toContain('+7.78pp');

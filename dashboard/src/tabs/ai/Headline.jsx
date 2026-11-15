@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
@@ -79,6 +80,12 @@ function DotTip({ arm, closure, measure, value }) {
     </>
   );
 }
+
+// The main arm's GDP, wage-rate and GNI values are the Summary tiles: their
+// one home. Here those three markers keep their tooltip and the download
+// keeps the value; the printed label links to Summary instead.
+export const ON_SUMMARY = { arm: 'tfp', measures: ['Y', 'w', 'GNI'] };
+const onSummary = (arm, v) => arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
 
 export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central' }) {
   const shown = ARMS.filter((a) => arms.includes(a.id));
@@ -168,15 +175,26 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
-                        <span
-                          className={`db-value${right ? ' is-right' : ' is-left'}`}
-                          style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), color: ARM_TEXT_COLOR[a.id] }}
-                        >
-                          {fmt(main)}
-                        </span>
+                        {onSummary(a.id, m.v) ? (
+                          <NavLink
+                            sub="summary"
+                            className={`db-value db-value-link${right ? ' is-right' : ' is-left'}`}
+                            style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
+                            aria-label={`${a.label}, ${name}: the value is on Summary`}
+                          >
+                            on Summary
+                          </NavLink>
+                        ) : (
+                          <span
+                            className={`db-value${right ? ' is-right' : ' is-left'}`}
+                            style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), color: ARM_TEXT_COLOR[a.id] }}
+                          >
+                            {fmt(main)}
+                          </span>
+                        )}
                       </>
                     )}
-                    {showC && showB ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
+                    {showC && showB && !onSummary(a.id, m.v) ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
                   </div>
                 </div>
               );
