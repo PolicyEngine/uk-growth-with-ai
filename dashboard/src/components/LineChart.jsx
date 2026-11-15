@@ -118,7 +118,7 @@ export default function LineChart({
       strong: false,
       offScale: p.offScale,
       ax: stripX,
-      y: p.offScale ? (p.offScale === 'high' ? TOP + 12 : BOT) : sy(p.value),
+      y: p.offScale ? (p.offScale === 'high' ? TOP + 16 : BOT) : sy(p.value),
     })),
   ].sort((a, b) => a.y - b.y);
   let prev = -Infinity;
@@ -178,7 +178,7 @@ export default function LineChart({
         ))}
         {(strip?.points || []).map((p) => {
           const up = p.offScale === 'high';
-          const cy = p.offScale ? (up ? TOP + 12 : BOT) : sy(p.value);
+          const cy = p.offScale ? (up ? TOP + 16 : BOT) : sy(p.value);
           return (
             <g key={p.label}>
               <circle cx={stripX} cy={cy} r="4" fill="var(--pe-color-bg-primary)" stroke={p.color} strokeWidth="2" />

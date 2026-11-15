@@ -95,7 +95,6 @@ export const OBR = {
   borrowingBn: 9, // borrowing, £bn a year
   debtPctGdp: 1.3, // debt, % of GDP by 2030-31
   // Borrowing path, para 1.3
-  borrowing2425: 5.2,
   borrowing2526: 4.3,
   borrowing3031: 1.6,
 };

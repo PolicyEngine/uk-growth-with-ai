@@ -27,7 +27,9 @@ export default function StickyPanel({ stepIndex, panels = PANEL_DATA, id = 'stic
         <span className="example-title">{data.title}</span>
         <span className="example-badge">{data.badge}</span>
       </div>
-      <div className="example-body" ref={bodyRef}>
+      {/* Keyed by step: KaTeX auto-render rewrites text nodes React owns, so the
+          body is replaced whole on every step instead of being diffed. */}
+      <div className="example-body" ref={bodyRef} key={stepIndex}>
         {data.sections.map((sec, i) => (
           <div key={i} className="example-section">
             <div className="example-section-title">{linkObr(sec.label)}</div>

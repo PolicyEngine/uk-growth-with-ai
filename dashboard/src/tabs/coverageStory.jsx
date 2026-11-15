@@ -35,7 +35,7 @@ export const COVERAGE_STEPS = [
     title: 'Four sources, four kinds of model',
     content: (
       <>
-        <p className="key-point">
+        <p>
           The four sources differ in what they are: two structural models, one argued model and one forecast
           scenario.
         </p>
@@ -65,7 +65,7 @@ export const COVERAGE_STEPS = [
     title: 'Where they overlap: automation, factor shares, capital',
     content: (
       <>
-        <p className="key-point">All four represent automation and a falling labour share; three model capital.</p>
+        <p>All four represent automation and a falling labour share; three model capital.</p>
         <ol className="txt-numbered">
           <li>
             <b>Automation.</b> In their {ext(URLS.korinekT1, 'Table 1')}, Korinek et al. raise the affected mass m<sub>t</sub> from 0.14 in mid-2026 to
@@ -96,7 +96,7 @@ export const COVERAGE_STEPS = [
     title: 'Channels only Korinek et al. model: adoption, new tasks, unemployment',
     content: (
       <>
-        <p className="key-point">
+        <p>
           Diffusion, new human tasks and unemployment are in Korinek et al. only; OG-UK has none of them.
         </p>
         <p>
@@ -117,7 +117,7 @@ export const COVERAGE_STEPS = [
     title: 'What only OG-UK has: households, cohorts, a tax system',
     content: (
       <>
-        <p className="key-point">
+        <p>
           OG-UK is the only source with heterogeneous households; the OBR alone shares its cohorts and tax system.
         </p>
         <ul className="txt-bullets">
@@ -148,7 +148,7 @@ export const COVERAGE_STEPS = [
     title: 'Six AI channels mapped onto two parameters',
     content: (
       <>
-        <p className="key-point">
+        <p>
           In OG-UK, capability and adoption are folded into the ramps of &gamma; and Z; reinstatement and search
           have no counterpart.
         </p>
@@ -170,7 +170,7 @@ export const COVERAGE_STEPS = [
     title: 'The OBR has an OLG model, but not for this scenario',
     content: (
       <>
-        <p className="key-point">
+        <p>
           Box 2.2 states its outcomes; it does not derive them from a model.
         </p>
         <p>
@@ -237,10 +237,10 @@ export const COVERAGE_STEPS = [
     title: 'What has not been checked, and what each model contributes',
     content: (
       <>
-        <p className="key-point">Only growth has been compared with the OBR year by year.</p>
+        <p>Only growth has been compared with the OBR year by year.</p>
         <p>
-          The OBR also publishes borrowing ({OBR.borrowing2425}% of GDP in 2024-25 and {OBR.borrowing2526}% in
-          2025-26, falling to {OBR.borrowing3031}% in 2030-31; {ext(efo(EFO_PAGE.p1_3), 'paragraph 1.3')}), debt and receipts. OG-UK produces all three, and
+          The OBR also publishes borrowing ({OBR.borrowing2526}% of GDP in 2025-26, falling to{' '}
+          {OBR.borrowing3031}% in 2030-31; {ext(efo(EFO_PAGE.p1_3), 'paragraph 1.3')}), debt and receipts. OG-UK produces all three, and
           its own ratios to GDP differ from the data (<Cv id="levels" />); a year-by-year comparison has not been
           run.
         </p>

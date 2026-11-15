@@ -180,7 +180,7 @@ export const STORY_STEPS = [
     title: 'Which channels are in, and which are not',
     content: (
       <>
-        <p className="key-point">
+        <p>
           Of the seven AI channels in the table, the runs carry three fully, one partly and three not at all.
         </p>
         <p>
@@ -336,7 +336,7 @@ export const STORY_STEPS = [
     title: 'Why Z sits below 1',
     content: (
       <>
-        <p className="key-point">
+        <p>
           Raising &gamma; alone increases output at baseline inputs, so Z must offset part or all of that gain.
         </p>
         <p>
@@ -355,7 +355,7 @@ export const STORY_STEPS = [
     title: 'Caveats that affect every number',
     content: (
       <>
-        <p className="key-point">
+        <p>
           {['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'][N_EVERY] || N_EVERY} limits apply to every result on <a href="#growth">Economic effects</a>.
         </p>
         <ol className="caveat-list" start={1}>
@@ -414,7 +414,7 @@ export const STORY_STEPS = [
     title: 'Caveats on reading the charts',
     content: (
       <>
-        <p className="key-point">Four points on how the charts are built.</p>
+        <p>Four points on how the charts are built.</p>
         <ol className="caveat-list" start={N_EVERY + 1}>
           <li id="caveat-anticipation">
             <b>{FIRST_YEAR} gaps are anticipation.</b> &gamma; and Z are still at baseline values in{' '}
@@ -432,7 +432,7 @@ export const STORY_STEPS = [
             <b>The context chart applies the model&rsquo;s changes to the OBR&rsquo;s level.</b> OG-UK&rsquo;s own
             baseline ratios differ from the data, so each scenario path starts from the OBR&rsquo;s {FIRST_YEAR}{' '}
             value and moves by the model&rsquo;s proportional change in the ratio. The AI scenarios start away from
-            the OBR value because of anticipation.
+            the OBR value because of anticipation, and {FIRST_YEAR} ratios carry the error in <Cv id="accounting" />.
             {MODEL_RATIOS ? (
               <span className="note-box" style={{ display: 'block' }}>
                 {MODEL_RATIOS.year}, % of GDP, OG-UK baseline against OBR/ONS:{' '}

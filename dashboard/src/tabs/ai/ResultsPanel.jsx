@@ -275,7 +275,9 @@ export default function ResultsPanel() {
             color={ARM_META.anthropic_ramp.color}
           />
         </div>
-        <p className="key-point">The GDP gain is investment-led, not consumption-led.</p>
+        <p className="headline-lead">
+          <b>The GDP gain is investment-led, not consumption-led.</b>
+        </p>
         <ul className="txt-bullets headline-bullets">
           <li>
             <b>Investment jumps first:</b> already {pctS(gapAt('anthropic_ramp', 'I', 0))} above the baseline in{' '}
@@ -366,7 +368,7 @@ export default function ResultsPanel() {
         <h3 className="reading-head">Reading the results</h3>
         <ul className="txt-bullets reading-list">
           <li>
-            <b>Sources of the GDP gain</b> (log points, {LAST_YEAR}): with productivity gains,{' '}
+            <b>Sources of the GDP gain</b> (approximate, log points, {LAST_YEAR}): with productivity gains,{' '}
             {decomp('anthropic_ramp').tfp.toFixed(1)} from TFP and {decomp('anthropic_ramp').capital.toFixed(1)} from
             capital deepening, less {Math.abs(decomp('anthropic_ramp').labour).toFixed(1)} from lower labour input;
             with automation only, {decomp('obr_ramp').capital.toFixed(1)} from capital deepening, less{' '}

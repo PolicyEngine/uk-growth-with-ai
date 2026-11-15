@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import CodeBlock from '../components/CodeBlock.jsx';
 import TerminalBlock from '../components/TerminalBlock.jsx';
 
@@ -69,7 +69,7 @@ const REPORT_STEPS = [
     title: 'Get the code',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           Everything on this dashboard is produced by the {ext(REPO, 'uk-growth-with-ai')} repository, with the
           results committed so the charts can be rebuilt without re-running the model.
         </p>
@@ -86,7 +86,7 @@ const REPORT_STEPS = [
     title: 'Install the model versions used',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           The results use OG-Core 0.17.0 and OG-UK at commit {ext(URLS.ogUkFork, 'd0e6ae5')}.
         </p>
         <p>
@@ -101,7 +101,7 @@ const REPORT_STEPS = [
     title: 'Patch OG-Core for a time-varying γ',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           Stock OG-Core holds &gamma; fixed over time; the {ext(URLS.patch, 'patch')} lets it vary by year.
         </p>
         <p>
@@ -117,7 +117,7 @@ const REPORT_STEPS = [
     title: 'Run the scenarios',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           <code>run</code> solves the steady state and the transition path for the baseline and each AI scenario.
         </p>
         <ol className="txt-numbered">
@@ -143,7 +143,7 @@ const REPORT_STEPS = [
     title: 'Check the results',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           <code>check</code> runs the validation checks on a results file before anything is published.
         </p>
         <p>
@@ -159,7 +159,7 @@ const REPORT_STEPS = [
     title: 'Build the dashboard data',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           <code>dashboard</code> writes the two JSON files this site reads; they are generated, never edited by hand.
         </p>
         <p>
@@ -244,7 +244,7 @@ const GENERAL_STEPS = [
     title: 'Install OG-UK',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           For your own analysis, install {ext(URLS.ogUk, 'OG-UK')} from PSLmodels with{' '}
           {ext('https://docs.astral.sh/uv/', 'uv')}; Python 3.11 or later is required.
         </p>
@@ -260,7 +260,7 @@ const GENERAL_STEPS = [
     title: 'Define a reform',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           Reforms are PolicyEngine policies: a parameter from the UK tax-benefit rules, a new value and a start
           date.
         </p>
@@ -276,7 +276,7 @@ const GENERAL_STEPS = [
     title: 'Solve the long-run steady state',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           <code>solve_steady_state</code> finds the long-run equilibrium under a policy; run it for the baseline
           and the reform and compare.
         </p>
@@ -289,7 +289,7 @@ const GENERAL_STEPS = [
     title: 'Run the transition path',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           The transition path gives the year-by-year adjustment from today to the steady state.
         </p>
         <p>
@@ -304,7 +304,7 @@ const GENERAL_STEPS = [
     title: 'Read the outputs',
     prose: (
       <>
-        <p className="key-point">
+        <p>
           Results come back as NumPy arrays by year, in pounds (the mapping is described under{' '}
           <a href="#methodology">Model</a>).
         </p>
@@ -383,7 +383,7 @@ export default function CodeTab() {
       <div className="scrollytelling-container">
         <div className="scrolly-narrative code-narrative">
           {STEPS.map((step, i) => (
-            <div key={i}>
+            <Fragment key={i}>
               {step.part ? <h3 className="code-part">{step.part}</h3> : null}
               <div className={`narrative-step${i === active ? ' active' : ''}`} id={`code-step-${i + 1}`}>
               <div className="step-header">
@@ -392,7 +392,7 @@ export default function CodeTab() {
               </div>
                 <div className="step-content">{step.prose}</div>
               </div>
-            </div>
+            </Fragment>
           ))}
         </div>
 

@@ -74,10 +74,11 @@ table.panel-grid td.pg-text { font-weight: 500; color: var(--text-mid); }
 
 /* Code tab: the two parts. */
 .code-part {
-  margin: 8px 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--accent);
+  margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--accent);
   font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
 }
-.code-narrative > div + div > .code-part { margin-top: 48px; }
+.code-narrative > .narrative-step + .code-part { margin-top: 40px; }
+.code-narrative > .code-part + .narrative-step { padding-top: 0; border-top: none; }
 
 /* Plotly wrappers never exceed their card. */
 .panel-grid, .panel-cell, .panel-cell .plot, .chart-slot { min-width: 0; max-width: 100%; }
@@ -87,3 +88,4 @@ table.panel-grid td.pg-text { font-weight: 500; color: var(--text-mid); }
 /* Economic effects: "Reading the results" under the effect table. */
 .reading-head { margin: 26px 0 10px; font-size: 1rem; }
 .reading-list { max-width: none; }
+.growth-hero .headline-lead { margin: 18px 0 8px; }
