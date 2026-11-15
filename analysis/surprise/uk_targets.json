@@ -12,7 +12,7 @@
       "gamma_terminal": 0.357,
       "tfp_gain_pct": 0.2,
       "sources": {
-        "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12, as read in the #31 review; BP9 not re-fetchable). Linear ramp gives a level of 2 x 0.1 = 0.2% at year 4 (our arithmetic). OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
+        "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12, as read in the #31 review). Linear ramp gives a level of 2 x 0.1 = 0.2% at year 4 (our arithmetic). OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
         "labour_share": "IMF SIP/2026/072 task mapping (cost saving 27% per automated task, para 44 p.24): share of output moved from labour to AI capital = TFP gain / 0.27 = 0.2 / 0.27 = 0.74pp (our inference from the IMF calibration, not an IMF figure)."
       }
     },

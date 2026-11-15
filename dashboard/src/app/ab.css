@@ -4402,17 +4402,18 @@ ul.disclosure-text {
   stroke-width: 1.6;
 }
 
+/* full, half and empty circles in one neutral ink: teal is kept for gains */
 .mx-mark-yes circle {
-  fill: var(--c-highlight);
-  stroke: var(--c-highlight);
+  fill: var(--pe-gray-700);
+  stroke: var(--pe-gray-700);
 }
 
 .mx-mark-part circle {
-  stroke: var(--pe-teal-500);
+  stroke: var(--pe-gray-700);
 }
 
 .mx-mark-part path {
-  fill: var(--pe-teal-500);
+  fill: var(--pe-gray-700);
 }
 
 .mx-mark-no circle {

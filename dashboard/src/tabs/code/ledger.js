@@ -7,6 +7,7 @@ import CO from '@/data/cohorts2028.json';
 import AI from '@/data/aiStudy2425.json';
 import UK from '@/data/ukContext.json';
 import REL from '@/data/relatedWork.json';
+import EV from '@/data/site-evidence-map.json';
 import V from '@/data/site-versions.json';
 import { SOURCES } from '@/data/literature.js';
 import CHECKS from './checksHook.js';
@@ -58,6 +59,9 @@ export function ledger(checks = CHECKS) {
   rows.push({ figure: 'Household study results (provisional)', source: `${AI.source.repo} #${AI.source.pr}`, vintage: `${shortSha(AI.source.commit)}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Our results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });
   for (const it of REL.items) rows.push({ figure: it.title, source: `PolicyEngine, ${it.model}`, url: it.url, vintage: it.country, checked: REL.read, group: 'Related PolicyEngine work' });
+  // the UK evidence map: one row per published figure (its value is printed
+  // on Evidence, its home, so the ledger names it without the value)
+  for (const r of EV.rows) rows.push({ figure: `${r.institution}: ${r.measure}`, source: r.study, url: r.url, vintage: [r.horizon, r.loc].filter(Boolean).join('; '), checked: r.checked ?? null, how: r.how ?? null, group: 'UK evidence map' });
   return rows;
 }
 
