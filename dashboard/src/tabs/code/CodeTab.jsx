@@ -1,13 +1,12 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
-import InfoCard from '@/components/ab/InfoCard.jsx';
 import CopyBlock from '@/components/ab/CopyBlock.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { S } from '@/tabs/ai/surprise.js';
 import { REPO, URLS } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
-import { SectionHeading } from '@/components/ui/Card.jsx';
+import { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, SP_HELPER, STEPS } from './pipeline.js';
@@ -55,11 +54,31 @@ const VERSIONS = [
 
 function BeforeYouStart() {
   return (
-    <div className="info-card mx-card mx-before">
-      <h3 className="info-card-title">
-        <Icon name="key" size={18} />
-        <span>Before you start</span>
-      </h3>
+    <InfoCard
+      icon="key"
+      title="Before you start"
+      className="mx-before"
+      foot={
+        <>
+          <Disclosure inCard title="Install the model" preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
+            <CopyBlock code={INSTALL} />
+          </Disclosure>
+          <Disclosure inCard title="Patch OG-Core for a time-varying γ" preview="Runs refuse to start without it">
+            <p className="mx-fold-p">
+              Stock OG-Core holds &gamma; fixed over time. The {ext(URLS.patch, 'patch')} adds a time dimension (
+              {ext(URLS.patchDoc, 'design')}).
+            </p>
+            <CopyBlock code={PATCH} />
+          </Disclosure>
+          <Disclosure inCard title="Environment" preview="Tokens, Hugging Face cache, Dask">
+            <CopyBlock code={ENV} />
+          </Disclosure>
+          <Disclosure inCard title="The sp helper used below" preview="Runs the CLI as the driver does">
+            <CopyBlock code={SP_HELPER} />
+          </Disclosure>
+        </>
+      }
+    >
       <div className="mx-before-grid">
         <div>
           <p className="mx-kicker">Versions used</p>
@@ -88,33 +107,15 @@ function BeforeYouStart() {
           </ul>
         </div>
       </div>
-      <Disclosure inCard title="Install the model" preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
-        <CopyBlock code={INSTALL} />
-      </Disclosure>
-      <Disclosure inCard title="Patch OG-Core for a time-varying γ" preview="Runs refuse to start without it">
-        <p className="mx-fold-p">
-          Stock OG-Core holds &gamma; fixed over time. The {ext(URLS.patch, 'patch')} adds a time dimension (
-          {ext(URLS.patchDoc, 'design')}).
-        </p>
-        <CopyBlock code={PATCH} />
-      </Disclosure>
-      <Disclosure inCard title="Environment" preview="Tokens, Hugging Face cache, Dask">
-        <CopyBlock code={ENV} />
-      </Disclosure>
-      <Disclosure inCard title="The sp helper used below" preview="Runs the CLI as the driver does">
-        <CopyBlock code={SP_HELPER} />
-      </Disclosure>
-    </div>
+    </InfoCard>
   );
 }
 
 function PipelineMap() {
   return (
-    <nav className="info-card mx-card mx-pipemap" aria-label="Pipeline steps">
-      <div className="mx-fig-cap">
-        <span className="mx-fig-title">The 2028-surprise pipeline</span>
-        <span className="mx-fig-sub">Nine steps, in order. Choose one for its file and commands.</span>
-      </div>
+    <InfoCard icon="gitBranch" title="The 2028-surprise pipeline" className="mx-pipemap">
+      <p>Nine steps, in order. Choose one for its file and commands.</p>
+      <nav aria-label="Pipeline steps">
       <ol className="mx-pipe-row">
         {STEPS.map((s, i) => (
           <li key={s.id}>
@@ -126,6 +127,7 @@ function PipelineMap() {
           </li>
         ))}
       </ol>
+      </nav>
       <p className="mx-pipe-out">
         <Icon name="arrowDown" size={14} />
         <span>
@@ -133,7 +135,7 @@ function PipelineMap() {
           <code>cohorts2028.json</code>, written by <code>paper/cohort_welfare.py --json</code>.
         </span>
       </p>
-    </nav>
+    </InfoCard>
   );
 }
 
@@ -145,27 +147,27 @@ function PipelineSteps() {
           <span className="mx-pipe-dot" aria-hidden="true">
             {i + 1}
           </span>
-          <div className="info-card mx-card">
-            <h3 className="info-card-title">
-              <Icon name={s.icon} size={18} />
-              <span>{s.title}</span>
-            </h3>
-            <div className="info-card-body">
-              <a className="mx-file" href={s.file.endsWith('zk0.1') ? tree(s.file) : blob(s.file)} target="_blank" rel="noreferrer">
-                <Icon name="github" size={14} />
-                <code>{s.file}</code>
-              </a>
-              <p>{s.line}</p>
-            </div>
-            <Disclosure inCard title="Details" preview={`Commands · ${firstCommand(s.code)}`}>
-              {s.more.map((m) => (
-                <p key={m} className="mx-fold-p">
-                  {m}
-                </p>
-              ))}
-              <CopyBlock code={s.code} />
-            </Disclosure>
-          </div>
+          <InfoCard
+            icon={s.icon}
+            title={s.title}
+            morePreview={`Commands · ${firstCommand(s.code)}`}
+            more={
+              <>
+                {s.more.map((m) => (
+                  <p key={m} className="mx-fold-p">
+                    {m}
+                  </p>
+                ))}
+                <CopyBlock code={s.code} />
+              </>
+            }
+          >
+            <a className="mx-file" href={s.file.endsWith('zk0.1') ? tree(s.file) : blob(s.file)} target="_blank" rel="noreferrer">
+              <Icon name="github" size={14} />
+              <code>{s.file}</code>
+            </a>
+            <p>{s.line}</p>
+          </InfoCard>
         </li>
       ))}
     </ol>
@@ -255,21 +257,19 @@ function UseOguk() {
   ];
   return (
     <>
-      <div className="card-grid cols-2 mx-oguk">
+      <div className="cards-grid mx-oguk">
         {cards.map((c) => (
           <InfoCard
             key={c.title}
             icon={c.icon}
             title={c.title}
-            className="mx-card"
             more={<CopyBlock code={c.code} lang={c.lang || 'bash'} />}
-            moreTitle="Code"
-            morePreview={c.preview}
+            morePreview={`Code · ${c.preview}`}
           >
             <p>{c.line}</p>
           </InfoCard>
         ))}
-        <InfoCard icon="book" title="Documentation" className="mx-card">
+        <InfoCard icon="book" title="Documentation">
           <p>
             Theory and API: {ext(URLS.ogCoreDocs, 'OG-Core')} and {ext('https://pslmodels.github.io/OG-UK', 'OG-UK')}{' '}
             documentation.
@@ -302,12 +302,12 @@ export default function CodeTab() {
           <SectionHeading id="outputs" icon="flask" title="Outputs and checks">
             What the numbers are in, and how they are checked.
           </SectionHeading>
-          <div className="card-grid cols-2">
-            <InfoCard icon="ruler" title="Model units, not pounds" className="mx-card" id="units">
+          <div className="cards-grid">
+            <InfoCard icon="ruler" title="Model units, not pounds" id="units">
               <p>Solver outputs are in model units. This study reports gaps against the OBR-central path instead.</p>
               <p className="mx-sub">OG-UK&rsquo;s map functions scale units to £bn by one ONS GDP anchor.</p>
             </InfoCard>
-            <InfoCard icon="flask" title="Check the numbers" className="mx-card">
+            <InfoCard icon="flask" title="Check the numbers">
               <p>
                 Every finished gap is compared with its raw solve by{' '}
                 {ext(blob('dashboard/scripts/check_numbers.py'), 'check_numbers.py')}.

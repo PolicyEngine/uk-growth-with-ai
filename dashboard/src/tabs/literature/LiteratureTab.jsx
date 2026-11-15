@@ -1,12 +1,11 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
-import InfoCard from '@/components/ab/InfoCard.jsx';
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { SOURCES, MODELS, CHANNELS } from '@/data/literature.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext, useHover } from '../shared/ui.jsx';
-import { SectionHeading } from '@/components/ui/Card.jsx';
+import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink, useNav, subOf } from '@/lib/nav.jsx';
 import RangeBars from './RangeBars.jsx';
 import GrowthCheck from './GrowthCheck.jsx';
@@ -21,7 +20,7 @@ function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
   return (
-    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="mx-card imf-gap" id="imf-gap">
+    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="imf-gap" id="imf-gap">
       <p>
         For about the same productivity gain, UK central&rsquo;s {HEADLINE_YEAR} GDP gain (on{' '}
         <NavLink tab="results" patch={{ s: 'uk_central' }}>Results</NavLink>) is roughly{' '}
@@ -109,11 +108,23 @@ function Cell({ ch, m, hi, bind }) {
 function Matrix() {
   const { hi, ref, bind } = useHover();
   return (
-    <div className="info-card mx-card mx-figure mx-matrix-card" ref={ref}>
-      <div className="mx-fig-cap">
-        <span className="mx-fig-title">Coverage by channel</span>
-        <span className="mx-fig-sub">Hover, tap or tab to a cell for the detail.</span>
-      </div>
+    <Card
+      id="coverage-matrix"
+      icon="layoutGrid"
+      title="Coverage by channel"
+      className="mx-matrix-card"
+      finding="Whether each source models each channel. Hover, tap or tab to a cell for the detail."
+      logo={false}
+      about={{ sources: 'OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072. Every cell is read from the primary text; each source is listed under Sources.' }}
+      download={{
+        title: 'Coverage by channel',
+        table: () => ({
+          columns: ['Channel', ...MODELS.map((m) => m.short)],
+          rows: CHANNELS.map((ch) => [ch.label, ...MODELS.map((m) => ch.cells[m.id][1])]),
+        }),
+      }}
+    >
+      <div ref={ref}>
       <Legend />
       <div className="mx-matrix" role="table" aria-label="Channels by source">
         <div className="mx-mrow mx-mhead" role="row">
@@ -140,23 +151,21 @@ function Matrix() {
           </div>
         ))}
       </div>
-      <p className="mx-fig-note">
-        OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072.
-      </p>
-    </div>
+      </div>
+    </Card>
   );
 }
 
 function Takeaways() {
   return (
-    <div className="card-grid">
-      <InfoCard icon="usersRound" title="Only OG-UK: households" className="mx-card">
+    <div className="cards-grid cols-3">
+      <InfoCard icon="usersRound" title="Only OG-UK: households">
         <p>Households by age and ability. Only OG-UK and the OBR have a tax system.</p>
       </InfoCard>
-      <InfoCard icon="briefcase" title="Only Korinek et al.: jobs and tasks" className="mx-card">
+      <InfoCard icon="briefcase" title="Only Korinek et al.: jobs and tasks">
         <p>They model new tasks and unemployment. OG-UK has neither.</p>
       </InfoCard>
-      <InfoCard icon="cart" title="What nobody models" className="mx-card">
+      <InfoCard icon="cart" title="What nobody models">
         <p>Demand shifting to goods that stay scarce. Moll and Imas argue it but do not model it.</p>
       </InfoCard>
     </div>

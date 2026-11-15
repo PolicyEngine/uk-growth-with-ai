@@ -78,7 +78,7 @@ export default function Card({
 }
 
 // A text card: icon + title, a line or two, an optional "Details" fold.
-export function InfoCard({ id, icon, title, tag, children, more, morePreview, className = '' }) {
+export function InfoCard({ id, icon, title, tag, children, more, morePreview, foot, className = '' }) {
   return (
     <article className={`card info ${className}`} id={id}>
       <header className="card-head">
@@ -89,6 +89,7 @@ export function InfoCard({ id, icon, title, tag, children, more, morePreview, cl
       </header>
       {tag ? <p className="card-tag">{tag}</p> : null}
       <div className="card-body">{children}</div>
+      {foot}
       {more ? (
         <Disclosure inCard title="Details" preview={morePreview}>
           <div className="card-more">{more}</div>

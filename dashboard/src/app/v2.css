@@ -1158,6 +1158,41 @@
 }
 
 /* ---------- Narrower screens ---------- */
+.cards-grid.cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* Text cards (Other studies, Code): links, code and lists in the body */
+.card.info .card-body a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.card.info .card-body code {
+  font-size: 0.85em;
+  padding: 1px 4px;
+  background: var(--pe-gray-100);
+  border-radius: 4px;
+}
+.card.info .card-body ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.card.info .card-body li + li {
+  margin-top: 4px;
+}
+.card.info .card-body .mx-file {
+  margin-bottom: 8px;
+  text-decoration: none;
+}
+.mx-pipe-step:target .card,
+.mx-pipe-step:focus .card {
+  border-color: var(--pe-teal-500);
+}
+@media (max-width: 1024px) {
+  .cards-grid.cols-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 /* Who gains with Closure = Both: a tile row per closure, two chart panels */
 .wg-closure + .wg-closure {
   margin-top: 16px;

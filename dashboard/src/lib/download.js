@@ -93,7 +93,11 @@ function framedSvg(plots, { title, context, legend = [] }) {
     .flatMap((row, ri) =>
       row.map((k) => {
         const y = legendTop + ri * 22;
-        const mark = k.shape === 'dot'
+        const mark = k.shape === 'ring'
+          ? `<circle cx="${k.x + 9}" cy="${y}" r="5" fill="${CHART_COLOURS.surface}" stroke="${k.color}" stroke-width="2.5"/>`
+          : k.shape === 'tick'
+            ? `<rect x="${k.x + 7.5}" y="${y - 8}" width="3" height="16" rx="1" fill="${k.color}"/>`
+            : k.shape === 'dot'
           ? `<circle cx="${k.x + 9}" cy="${y}" r="5" fill="${k.color}"/>`
           : k.shape === 'box'
             ? `<rect x="${k.x + 2}" y="${y - 6}" width="14" height="12" rx="2" fill="${k.color}"/>`
