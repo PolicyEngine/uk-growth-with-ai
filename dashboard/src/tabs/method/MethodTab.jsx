@@ -12,6 +12,7 @@ import F from '@/data/methodFacts.json';
 import { ext } from '../shared/ui.jsx';
 import ModelFlow from './ModelFlow.jsx';
 import Cohorts from './Cohorts.jsx';
+import SensitivityTable from './SensitivityTable.jsx';
 
 // Method, one page: the shock, closures and income measures, fiscal rules
 // and public finances, the model, limitations, revision history. Each fact
@@ -203,6 +204,7 @@ const HISTORY = [
   ['12 Nov 2026', 'Debt-neutral variant for cohort welfare; NNI reported beside GNI.', 27],
   ['12 Nov 2026', '“Automation only” renamed the OBR-style stress test; technology-unchanged arm added.', 27],
   ['13 Nov 2026', 'Debt/GDP checked with debt repriced at the speed the OBR assumes; caveat added on Public finances.', 43],
+  ['15 Nov 2026', 'Fixed spending solved for UK central and Korinek et al.; ζK = 0.5 shown as a sensitivity on Method only.', 44],
 ];
 
 export default function MethodTab() {
@@ -275,6 +277,7 @@ export default function MethodTab() {
             Who finances new capital, and which measure of income leads.
           </SectionHeading>
           <ClosureCards />
+          <SensitivityTable />
           <div className="info-card mx-card mx-measures" id="m-measures">
             <h3 className="info-card-title">
               <Icon name="ruler" size={18} />

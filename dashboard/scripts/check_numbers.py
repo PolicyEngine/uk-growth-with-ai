@@ -180,5 +180,30 @@ for sid in dump:
             print(sid, key, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, key, 'ok:', sum(exp.values()), 'figures')
+# The zk0.5 sensitivity table on Method prints each scenario and arm's
+# headline-year GDP, GNI, NNI and wage gaps once, and every shown gap equals
+# its raw solve over that closure's continuation.
+for cl, sens in D.get('sensitivity', {}).items():
+    exp = Counter()
+    for sid, arms in sens['results'].items():
+        for a, r in arms.items():
+            if r['status'] != 'done':
+                continue
+            for v in ['Y', 'GNI', 'NNI', 'w']:
+                exp[signed(r['gaps'][v][Y.index(H)], 2) + '%'] += 1
+            s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
+            b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
+            for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
+                for k in range(len(Y)):
+                    if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
+                        bad += 1; print('raw-solve mismatch', cl, sid, a, v)
+    for sid in dump:
+        # the table prints two decimals; other Method figures (rates, shares) do not
+        got = Counter(re.findall(r"[+−]?\d+\.\d\d%", dump[sid].get('method', '')))
+        if got != exp:
+            bad += 1
+            print(sid, 'method', cl, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, 'method', cl, 'ok:', sum(exp.values()), 'figures')
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)

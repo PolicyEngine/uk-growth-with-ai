@@ -31,6 +31,9 @@ HEADLINE = 2031
 LATE = 2036
 
 CLOSURES = [("zk0.1", 0.1, "central"), ("zk0", 0.0, "closed-capital bound")]
+# A sensitivity closure, kept apart from `results` (no header option, no
+# solve count): shown only as one table on Method, common rule.
+SENS_CLOSURES = [("zk0.5", 0.5, "half of new capital foreign-financed")]
 SCENARIOS = [
     ("uk_low", "UK low", "uk_low"),
     ("uk_central", "UK central", "uk_central"),
@@ -166,6 +169,19 @@ def main():
             for sid in sids:
                 fill(rules[rid]["results"].setdefault(sid, {a: {} for a, *_ in ARMS}),
                      cl, done, sanities, ref, var, sid)
+    sensitivity = {}
+    for cl, zk, role in SENS_CLOSURES:
+        loaded = sp.load(OUT_DIR, cl)
+        done = {k: v for k, v in loaded.items() if not k.endswith(".sanity")}
+        sanities = {f.name[:-len(".sanity.json")]: json.loads(f.read_text())
+                    for f in (OUT_DIR / cl).glob("*.sanity.json")}
+        ref = sp.reference_ext(OUT_DIR, cl)
+        assert done["continuation"]["years_series"] == YEARS
+        res = {sid: {a: {} for a, *_ in ARMS} for sid, *_ in SCENARIOS}
+        for sid, *_ in SCENARIOS:
+            fill(res[sid], cl, done, sanities, ref, False, sid)
+        sensitivity[cl] = {"zeta_K": zk, "role": role, "reference": ref["reference"],
+                           "results": {sid: {a: r[cl] for a, r in arms.items()} for sid, arms in res.items()}}
     scen = []
     for sid, label, tkey in SCENARIOS:
         t = targets[tkey]
@@ -177,7 +193,8 @@ def main():
         "source_commit": git_sha(), "years": YEARS, "window": WINDOW, "headline_year": HEADLINE,
         "late_year": LATE, "surprise_year": 2028, "default_scenario": "uk_central",
         "scenarios": scen, "arms": [{"id": a, "label": l, "short": sh} for a, l, sh in ARMS],
-        "closures": closures, "results": results, "rules": rules, "solves_done": n_done,
+        "closures": closures, "results": results, "rules": rules, "sensitivity": sensitivity,
+        "solves_done": n_done,
         "solves_total": len(SCENARIOS) * len(ARMS) * len(CLOSURES),
     }
     DEST.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")
@@ -193,6 +210,15 @@ def main():
                           f"NNI {g['NNI'][i]:+.2f}% w {g['w'][i]:+.2f}%  ({r['label']})")
                 else:
                     print(f"  {sid:10s} {a:3s} {cl:5s} pending {r.get('note', '')}")
+    for cl, sens in sensitivity.items():
+        for sid, arms in sens["results"].items():
+            for a, r in arms.items():
+                if r["status"] == "done":
+                    g, i = r["gaps"], YEARS.index(HEADLINE)
+                    print(f"  sensitivity {cl} {sid:10s} {a:3s} 2031 GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
+                          f"w {g['w'][i]:+.2f}%  ({r['label']})")
+                else:
+                    print(f"  sensitivity {cl} {sid:10s} {a:3s} pending {r.get('note', '')}")
     for rid, rule in rules.items():
         for sid, arms in rule["results"].items():
             for a, cls in arms.items():
