@@ -224,7 +224,7 @@ function IncomePanel({ sid }) {
                 <>
                   {IMPOSED} Why GDP is below the IMF&rsquo;s UK estimate:{' '}
                   <NavLink tab="method" sub="studies" anchor="imf-gap">
-                    Other studies, our numbers
+                    Evidence, where our numbers sit
                   </NavLink>
                   .
                 </>

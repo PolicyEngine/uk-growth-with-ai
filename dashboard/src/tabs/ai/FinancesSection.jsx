@@ -6,6 +6,8 @@ import { Unpublished } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { esc } from '@/lib/download.js';
 import {
   YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
@@ -35,7 +37,11 @@ function debtFinding(sid, closure, rule) {
   const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR, rule);
   if (a == null || b == null) return null;
   const lead = `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}`;
-  if (rule === 'dn') return `${lead}, debt/GDP dips in ${SURPRISE_YEAR} and then stays on the OBR-central path: debt-neutral transfers adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`;
+  if (rule === 'dn') {
+    const first = gap(sid, 'tfp', cl, 'debt_gdp_pp', SURPRISE_YEAR, rule);
+    const opening = first == null || side(first) === 'on' ? '' : ` is ${side(first)} the OBR-central path in ${SURPRISE_YEAR} and then`;
+    return `${lead}, debt/GDP${opening} stays on the OBR-central path: debt-neutral transfers adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`;
+  }
   const at = (x) => (side(x) === 'on' ? 'on' : side(x));
   const same = at(a) === at(b);
   const obr = rule === 'common' && BELOW_AT_OBR_SPEED.has(`${sid}|${cl}`) && at(b) === 'above';
@@ -98,6 +104,36 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
+// The two rows of the tax card, as drawn and as downloaded
+const CAUSES = [
+  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: 14, oursText: 'about 14pp', theirs: 'OBR', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the revenue fall (main effect)' },
+  { title: 'Employer National Insurance', max: 16, unit: '% of labour cost', ours: 15, oursText: 'flat rate', theirs: 'PolicyEngine-UK', value: 11, theirsText: 'average', effect: 'Partly offsets the first row (smaller)' },
+];
+function causesSvg() {
+  const C = CHART_COLOURS;
+  const W = 720;
+  const x0 = 10;
+  const x1 = W - 10;
+  let out = '';
+  let y = 0;
+  for (const c of CAUSES) {
+    const X = (v) => x0 + (v / c.max) * (x1 - x0);
+    out += `<text x="0" y="${y + 14}" font-size="13" font-weight="600" fill="${C.ink}">${esc(c.title)}</text>`;
+    const ty = y + 44;
+    out += `<line x1="${x0}" x2="${x1}" y1="${ty}" y2="${ty}" stroke="${C.axis}"/>`;
+    if (c.lo != null) out += `<rect x="${X(c.lo)}" y="${ty - 5}" width="${X(c.hi) - X(c.lo)}" height="10" fill="${C.muted}" opacity="0.5"/>`;
+    else out += `<circle cx="${X(c.value)}" cy="${ty}" r="6" fill="${C.surface}" stroke="${C.muted}" stroke-width="2"/>`;
+    const tx = c.lo != null ? (X(c.lo) + X(c.hi)) / 2 : X(c.value);
+    out += `<text x="${tx}" y="${ty + 22}" font-size="11" text-anchor="middle" fill="${C.axisTitle}">${esc(`${c.theirs} ${c.theirsText}`)}</text>`;
+    out += `<circle cx="${X(c.ours)}" cy="${ty}" r="6" fill="${C.gain}"/>`;
+    out += `<text x="${X(c.ours)}" y="${ty - 12}" font-size="11" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(`OG-UK ${c.oursText}`)}</text>`;
+    out += `<text x="${x0}" y="${ty + 40}" font-size="11" fill="${C.tick}">0</text><text x="${x1}" y="${ty + 40}" font-size="11" text-anchor="end" fill="${C.tick}">${esc(`${c.max}${c.unit === 'pp' ? 'pp' : ` ${c.unit}`}`)}</text>`;
+    out += `<text x="0" y="${ty + 62}" font-size="12" fill="${C.ink}">${esc(c.effect)}</text>`;
+    y = ty + 84;
+  }
+  return { w: W, h: y, markup: out };
+}
+
 function TaxGapCard({ sid, closure, rule }) {
   // The model's central-closure figure is the tax/GDP chart's end label
   // unless that chart is showing closed capital: each fact once.
@@ -153,6 +189,23 @@ function TaxGapCard({ sid, closure, rule }) {
         ),
       }}
       method="limits"
+      download={{
+        title: 'Our tax effect is likely understated',
+        context: () => contextLine(sid, closure, `tax/GDP in ${HEADLINE_YEAR} with UK tax rates: rough scaling, central closure, automation + productivity`, rule),
+        table: () => ({
+          columns: ['Item', 'OG-UK', 'Comparison', 'Comparison source', 'Effect on revenue'],
+          rows: [
+            ...CAUSES.map((c) => [c.title, c.oursText, c.lo != null ? `${c.lo}–${c.hi}${c.unit}` : `${c.value}${c.unit === 'pp' ? 'pp' : '%'}`, c.theirs, c.effect]),
+            [`Tax/GDP in ${HEADLINE_YEAR} with UK tax rates (pp of GDP), low`, null, uk ? uk[0] : null, 'OBR effective rates x labour-share fall', ''],
+            [`Tax/GDP in ${HEADLINE_YEAR} with UK tax rates (pp of GDP), high`, null, uk ? uk[1] : null, 'OBR effective rates x labour-share fall', ''],
+          ],
+        }),
+        svg: causesSvg,
+        legend: () => [
+          { label: 'OG-UK', color: CHART_COLOURS.gain, shape: 'dot' },
+          { label: 'Comparison', color: CHART_COLOURS.muted, shape: 'ring' },
+        ],
+      }}
     >
       <div className="bias-pair">
         {onChart ? null : (
@@ -177,23 +230,18 @@ function TaxGapCard({ sid, closure, rule }) {
         </div>
       </div>
       <div className="cause-rows">
-        <Cause
-          icon="scale"
-          title="Labour vs capital tax-rate gap"
-          axis={{ max: 25, label: '25pp' }}
-          ours={{ value: 14, text: 'about 14pp' }}
-          theirs={{ name: 'OBR', lo: 19, hi: 23, text: '19–23pp' }}
-          up
-          effect="Understates the revenue fall (main effect)"
-        />
-        <Cause
-          icon="receipt"
-          title="Employer National Insurance"
-          axis={{ max: 16, label: '16% of labour cost' }}
-          ours={{ value: 15, text: 'flat rate' }}
-          theirs={{ name: 'PolicyEngine-UK', value: 11, text: 'average' }}
-          effect="Partly offsets the first row (smaller)"
-        />
+        {CAUSES.map((c, i) => (
+          <Cause
+            key={c.title}
+            icon={i ? 'receipt' : 'scale'}
+            title={c.title}
+            axis={{ max: c.max, label: c.unit === 'pp' ? `${c.max}pp` : `${c.max}% of labour cost` }}
+            ours={{ value: c.ours, text: c.oursText }}
+            theirs={c.lo != null ? { name: c.theirs, lo: c.lo, hi: c.hi, text: c.theirsText } : { name: c.theirs, value: c.value, text: c.theirsText }}
+            up={!i}
+            effect={c.effect}
+          />
+        ))}
       </div>
       <IconLine icon="scale" className="net-line">
         <b>Net:</b> revenue losses are probably larger than shown.

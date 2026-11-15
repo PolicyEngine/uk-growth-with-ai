@@ -355,7 +355,7 @@ function Ledger() {
       aboutTitle="About this table"
       about={{
         how: HAS_CHECKS
-          ? 'Official figures carry the release date and check recorded in ukContextChecks.json; the rest come from each data file.'
+          ? 'Each official figure the story prints is listed with its release and the second, independent read of its primary file recorded in ukContextChecks.json; the rest come from each data file.'
           : 'Built from each data file’s own source fields. Official figures will also carry the checks in ukContextChecks.json once that file is part of the build.',
         caveats: 'Published studies were checked against the primary text in the literature note (PR #37, then #41); the location in each source is given as its vintage.',
       }}
@@ -386,7 +386,10 @@ function Ledger() {
                     <th scope="row">{r.figure}</th>
                     <td>{r.url ? ext(r.url, r.source) : r.source}</td>
                     <td>{r.vintage}</td>
-                    <td>{r.checked ?? '—'}</td>
+                    <td>
+                      {r.checked ?? '—'}
+                      {r.how ? <span className="ledger-where">Second read: {r.how}</span> : null}
+                    </td>
                   </tr>
                 ))}
             </tbody>

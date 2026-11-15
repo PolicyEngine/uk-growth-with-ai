@@ -30,21 +30,29 @@ export const VINTAGES = [
 export const RELEASES = Object.entries(UK.sources).map(([id, s]) => ({ id, publisher: s.publisher, title: s.title, series: s.series ?? null, released: s.released, fetched: s.fetched, url: s.url }));
 
 // The ledger: one row per figure or group of figures
-export function ledger(checks = CHECKS) {
-  const rows = [];
-  const checked = new Map((checks?.figures ?? []).map((f) => [f.id, f]));
-  for (const [id, f] of Object.entries(UK.facts)) {
-    const src = UK.sources[f.source];
-    const c = checked.get(id);
-    rows.push({
-      figure: f.label,
-      source: `${src.publisher}, ${src.series ?? src.title}`,
-      url: src.url,
-      vintage: `${f.period}; released ${c?.release_date ?? src.released}`,
-      checked: c ? `${c.read_by ?? 'checked'} against the primary file` : src.fetched,
+// Official rows: with ukContextChecks.json, one per figure the story prints
+// (each read from its primary file a second way); without it, one per fact
+// in ukContext.json, from that file's own source fields.
+const FETCHED = Object.values(UK.sources).map((s) => s.fetched).sort().at(-1);
+function officialRows(checks) {
+  if (checks?.figures?.length)
+    return checks.figures.map((c) => ({
+      figure: UK.facts[c.id]?.label ? `${UK.facts[c.id].label}, ${c.period}` : `${c.series_id}, ${c.period}`,
+      source: `${c.publisher}, ${c.dataset}`,
+      url: c.url,
+      vintage: `${c.period}; released ${c.release_date}`,
+      checked: FETCHED,
+      how: c.read_by,
       group: 'Official UK data',
-    });
-  }
+    }));
+  return Object.values(UK.facts).map((f) => {
+    const src = UK.sources[f.source];
+    return { figure: f.label, source: `${src.publisher}, ${src.series ?? src.title}`, url: src.url, vintage: `${f.period}; released ${src.released}`, checked: src.fetched, group: 'Official UK data' };
+  });
+}
+
+export function ledger(checks = CHECKS) {
+  const rows = officialRows(checks);
   rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR-central path)', source: 'OG-UK solves, 2028 surprise', vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'Our results' });
   rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: CO.source, checked: null, group: 'Our results' });
   rows.push({ figure: 'Household study results (provisional)', source: `${AI.source.repo} #${AI.source.pr}`, vintage: `${shortSha(AI.source.commit)}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Our results' });
@@ -54,8 +62,8 @@ export function ledger(checks = CHECKS) {
 }
 
 export const ledgerTable = () => ({
-  columns: ['Group', 'Figure', 'Source', 'Vintage', 'Date checked', 'Link'],
-  rows: ledger().map((r) => [r.group, r.figure, r.source, r.vintage, r.checked ?? '', r.url ?? '']),
+  columns: ['Group', 'Figure', 'Source', 'Vintage', 'Date checked', 'How checked', 'Link'],
+  rows: ledger().map((r) => [r.group, r.figure, r.source, r.vintage, r.checked ?? '', r.how ?? '', r.url ?? '']),
 });
 
 // The date of the latest data build or read across the files

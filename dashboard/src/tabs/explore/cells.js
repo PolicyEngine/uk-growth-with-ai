@@ -79,11 +79,20 @@ const CHOICE = { scenario: 'the scenario', closure: 'the capital closure', rule:
 export const topChoice = (arm, v) => Object.entries(spreads(arm, v)).sort((a, b) => b[1] - a[1])[0][0];
 // "The scenario moves GDP and GNI most; the capital closure, the wage rate;
 // the fiscal rule, debt/GDP." Words only.
+// A measure that barely moves with any choice (the stress test holds GDP
+// on the path by construction) is named as such, not given a driver.
+const NEGLIGIBLE = 0.05;
 export function driverWords(arm) {
   const by = {};
-  for (const m of MEASURES) (by[topChoice(arm, m.v)] ??= []).push({ w: 'the wage rate', debt_gdp_pp: 'debt/GDP' }[m.v] ?? m.label);
+  const still = [];
+  for (const m of MEASURES) {
+    const name = { w: 'the wage rate', debt_gdp_pp: 'debt/GDP' }[m.v] ?? m.label;
+    if (Math.max(...Object.values(spreads(arm, m.v))) < NEGLIGIBLE) still.push(name);
+    else (by[topChoice(arm, m.v)] ??= []).push(name);
+  }
   const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
   const parts = Object.entries(by).map(([k, ms]) => `${CHOICE[k]} moves ${and(ms)} most`);
+  if (still.length) parts.push(`${and(still)} barely ${still.length > 1 ? 'move' : 'moves'} with any of them`);
   const text = parts.join('; ');
   return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
 }

@@ -17,7 +17,7 @@ import Cohorts from './Cohorts.jsx';
 // Method, one page: the shock, closures and income measures, fiscal rules
 // and public finances, the model, limitations, revision history. Each fact
 // has its one home here; chart cards link to these sections by anchor. The
-// scenarios themselves are on Scenarios, sources on Other studies, commands
+// scenarios themselves are on Scenarios, sources on Evidence, commands
 // on Code.
 
 const DOC = (p) => `${REPO}/blob/rerun/surprise-2028/docs/${p}`;
@@ -292,7 +292,7 @@ export default function MethodTab() {
                 <>
                   <p>Production is Cobb-Douglas, so the labour share is exactly 1 &minus; &gamma;.</p>
                   <p>A fall of f points sets &gamma; to 0.35 + f/100. The ramp needs a small OG-Core patch (see{' '}
-                    <NavLink tab="method" sub="code" anchor="before">Code</NavLink>).</p>
+                    <NavLink tab="method" sub="code" anchor="before">Data and code</NavLink>).</p>
                 </>
               }
               moreTitle="How it maps"
@@ -407,7 +407,7 @@ export default function MethodTab() {
               more={
                 <>
                   <p>Time path iteration guesses whole price paths. It solves every cohort, then updates the guess.</p>
-                  <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on <NavLink tab="method" sub="code">Code</NavLink>.</p>
+                  <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on <NavLink tab="method" sub="code">Data and code</NavLink>.</p>
                 </>
               }
               moreTitle="Time path iteration"
@@ -431,7 +431,7 @@ export default function MethodTab() {
               moreTitle="The two gates"
               morePreview="Continuation gate, sanity check"
             >
-              <p>A restart test and a sanity check guard every number. The commands are on <NavLink tab="method" sub="code" anchor="pipeline">Code</NavLink>.</p>
+              <p>A restart test and a sanity check guard every number. The commands are on <NavLink tab="method" sub="code" anchor="pipeline">Data and code</NavLink>.</p>
             </InfoCard>
           </div>
 

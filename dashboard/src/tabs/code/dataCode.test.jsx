@@ -17,11 +17,13 @@ describe('Data and code', () => {
     const rows = ledger(null);
     expect(rows.filter((r) => r.group === 'Official UK data')).toHaveLength(Object.keys(UK.facts).length);
     expect(rows.find((r) => r.group === 'Our results').vintage).toContain(S.source_commit);
-    // with checks, the release date and check come from the checks file
+    // with the checks file, one row per printed figure, from that file
     const id = Object.keys(UK.facts)[0];
-    const withChecks = ledger({ figures: [{ id, release_date: '2099-01-01', read_by: 'probe' }] });
+    const withChecks = ledger({ figures: [{ id, publisher: 'ONS', dataset: 'PN2', series_id: 'X', period: '2025', release_date: '2099-01-01', read_by: 'probe', url: 'u' }] });
+    expect(withChecks.filter((r) => r.group === 'Official UK data')).toHaveLength(1);
     expect(withChecks[0].vintage).toContain('2099-01-01');
-    expect(withChecks[0].checked).toContain('probe');
+    expect(withChecks[0].how).toBe('probe');
+    expect(withChecks[0].figure).toContain(UK.facts[id].label);
   });
   it('the last-updated stamp is the latest build date', () => {
     expect(LAST_UPDATED >= S.generated_utc.slice(0, 10)).toBe(true);

@@ -5,6 +5,8 @@ import { TipBox } from '@/components/ab/Tip.jsx';
 import { SOURCES, MODELS, CHANNELS } from '@/data/literature.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext, useHover } from '../shared/ui.jsx';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { esc } from '@/lib/download.js';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import RangeBars from './RangeBars.jsx';
@@ -107,6 +109,34 @@ function Cell({ ch, m, hi, bind }) {
   );
 }
 
+// The matrix as SVG, for the PNG and SVG downloads: the same marks.
+function matrixSvg() {
+  const C = CHART_COLOURS;
+  const lw = 230;
+  const cw = 110;
+  const rh = 30;
+  const W = lw + MODELS.length * cw;
+  const mark = (lv, cx, cy) => {
+    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.gainText : C.surface}" stroke="${C.gainText}" stroke-width="1.5"/>`;
+    if (lv === 'na') return `<line x1="${cx - 6}" x2="${cx + 6}" y1="${cy}" y2="${cy}" stroke="${C.muted}" stroke-width="1.5"/>`;
+    if (lv === 'part') return `${ring}<path d="M${cx} ${cy - 6} A6 6 0 0 1 ${cx} ${cy + 6} Z" fill="${C.gainText}"/>`;
+    return ring;
+  };
+  let out = '';
+  MODELS.forEach((m, j) => {
+    out += `<text x="${lw + j * cw + cw / 2}" y="16" font-size="12" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(m.short)}</text>`;
+  });
+  CHANNELS.forEach((ch, i) => {
+    const y = 30 + i * rh;
+    out += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="${C.grid}"/>`;
+    out += `<text x="0" y="${y + 19}" font-size="12" fill="${C.ink}">${esc(ch.label)}</text>`;
+    MODELS.forEach((m, j) => {
+      out += mark(ch.cells[m.id][0], lw + j * cw + cw / 2, y + rh / 2);
+    });
+  });
+  return { w: W, h: 30 + CHANNELS.length * rh + 4, markup: out };
+}
+
 function Matrix() {
   const { hi, ref, bind } = useHover();
   return (
@@ -124,6 +154,11 @@ function Matrix() {
           columns: ['Channel', ...MODELS.map((m) => m.short)],
           rows: CHANNELS.map((ch) => [ch.label, ...MODELS.map((m) => ch.cells[m.id][1])]),
         }),
+        svg: matrixSvg,
+        legend: () => [
+          { label: 'Modelled', color: CHART_COLOURS.gainText, shape: 'dot' },
+          { label: 'Not in the model', color: CHART_COLOURS.gainText, shape: 'ring' },
+        ],
       }}
     >
       <div ref={ref}>

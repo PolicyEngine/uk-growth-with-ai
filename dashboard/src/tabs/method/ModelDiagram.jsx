@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
-import { ZETA, CENTRAL } from '@/tabs/ai/surprise.js';
+import { ZETA, CENTRAL, LATE_YEAR } from '@/tabs/ai/surprise.js';
 
 // OG-UK as four blocks and the flows between them: households by age and
 // lifetime earnings, firms, the government and the rest of the world, in a
@@ -53,7 +53,7 @@ export const NODES = [
     icon: 'landmark',
     title: 'Government',
     tag: 'Taxes, spending, debt',
-    line: 'Six taxes, pensions, transfers and its own consumption. It borrows; from 2036 a debt rule steers spending.',
+    line: `Six taxes, pensions, transfers and its own consumption. It borrows; from ${LATE_YEAR} a debt rule steers spending.`,
     detail: [
       'Taxes on income, payroll, consumption, corporate profits, wealth and bequests. The income tax is a smooth function fitted to PolicyEngine-UK.',
       'How spending responds to the shock is the fiscal rule: see “Fiscal rules and public finances”.',
@@ -115,8 +115,9 @@ export function diagramSvg() {
       out += `<text x="${tx}" y="${(y1 + y2) / 2 + 14}" font-size="12" text-anchor="${anchor}" fill="${C.ink}">${esc(`↑ ${second}`)}</text>`;
     }
   }
-  out += `<text x="${W / 2}" y="${H / 2 - 6}" font-size="13" font-weight="600" text-anchor="middle" fill="${C.ink}">Markets clear</text>`;
-  out += `<text x="${W / 2}" y="${H / 2 + 14}" font-size="12" text-anchor="middle" fill="${C.muted}">wage, interest rate; firms pay corporate tax</text>`;
+  // below the side labels (which sit at H/2 - 8 and H/2 + 14)
+  out += `<text x="${W / 2}" y="${H / 2 + 52}" font-size="13" font-weight="600" text-anchor="middle" fill="${C.ink}">Markets clear</text>`;
+  out += `<text x="${W / 2}" y="${H / 2 + 72}" font-size="12" text-anchor="middle" fill="${C.muted}">wage, interest rate; firms pay corporate tax</text>`;
   return { w: W, h: H, markup: out };
 }
 
