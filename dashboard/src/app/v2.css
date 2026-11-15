@@ -211,17 +211,17 @@
    until the client has read the address (lib/nav.jsx removes the mark in the
    same commit that shows the named tab), the content stays hidden and the
    sub-tab row's height is held, so neither the Story hero flashes nor the
-   page shifts. If scripts fail, the content shows after 3s anyway. */
+   page shifts. If scripts fail, the content shows after 5s anyway (3s was too close to hydration on a throttled phone: 3.3s measured). */
 html[data-nav-pending] .app .main-content {
   visibility: hidden;
-  animation: nav-pending-reveal 0s linear 3s forwards;
+  animation: nav-pending-reveal 0s linear 5s forwards;
 }
 html[data-nav-pending] .app .tabs-bar {
   margin-bottom: calc(var(--subtabs-height) + 1px);
 }
 html[data-nav-pending] .app .tabs-bar .view-tab {
   visibility: hidden;
-  animation: nav-pending-reveal 0s linear 3s forwards;
+  animation: nav-pending-reveal 0s linear 5s forwards;
 }
 @keyframes nav-pending-reveal {
   to {

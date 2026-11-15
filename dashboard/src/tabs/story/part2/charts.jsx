@@ -209,9 +209,8 @@ export const welfareCell = () => D.closures[CENTRAL].rules[WELFARE_RULE].tfp;
 
 // True when, under debt-neutral transfers, the cohorts entering in the
 // first five years after the shock sit below the youngest adult cohort
-// while under the common fiscal rule they do not: the dip after the entry
-// line is then the transfer cut that debt-neutral transfers charge until
-// the debt rule starts (Who gains, "Who pays the fiscal cost").
+// while under the common fiscal rule they do not; the story then says the
+// dip appears under one rule and not the other (Who gains has both).
 export function entryDip() {
   const xs = D.closures[CENTRAL].birth_year;
   const i0 = xs.indexOf(LAST_ALIVE);

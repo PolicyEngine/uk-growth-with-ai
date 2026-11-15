@@ -208,7 +208,7 @@ function whoSteps(sid) {
           <p>
             People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.{allGain ? ' As modelled, under debt-neutral transfers, they gain too: a higher return on saving and, later, higher consumption outweigh lower pay rates.' : ''}{' '}
             {entryDip()
-              ? 'The dip just after the entry line is the transfer cut: those who enter in the first years after the shock start work while debt-neutral transfers are lowered, before the debt rule starts, and with little wealth to earn the higher return; under the common fiscal rule there is no dip. '
+              ? 'The dip just after the entry line appears under debt-neutral transfers, which lower transfers until the debt rule starts, and not under the common fiscal rule. '
               : ''}
             The measures, the earnings groups and the other arms are on Who gains.
           </p>
