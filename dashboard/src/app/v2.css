@@ -15,6 +15,7 @@
   --sticky-offset: calc(var(--band-height) + var(--tabs-height));
   --series-1-text: #0f766e;
   --series-5-text: #475569;
+  --series-3-text: #0369a1;
   --c-loss-text: #b45309;
   --c-loss-soft: #fef4e8;
   --pe-teal-600: #0d9488;

@@ -30,10 +30,11 @@ export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
 // 'ss' the OBR-style stress test that holds 2031 GDP at the OBR-central path.
 export const ARMS = S.arms;
-export const ARM_COLOR = { tfp: 'var(--series-1)', tz: 'var(--series-2)', ss: 'var(--series-5)' };
+// Teal (--series-1) is the gain colour, so no arm uses it.
+export const ARM_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3)', ss: 'var(--series-5)' };
 // The stress test is drawn lighter: a bound, not a forecast.
 // End labels and figures in text: the darker variant that meets 4.5:1 on white
-export const ARM_TEXT_COLOR = { tfp: 'var(--series-1-text)', tz: 'var(--series-2)', ss: 'var(--series-5-text)' };
+export const ARM_TEXT_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3-text)', ss: 'var(--series-5-text)' };
 export const ARM_LIGHT = { ss: true };
 export const armById = (id) => ARMS.find((a) => a.id === id);
 export const CLOSURE_LABEL = { 'zk0.1': 'central closure', zk0: 'closed capital' };
