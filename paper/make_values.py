@@ -797,7 +797,7 @@ def check_claims(R: dict, v: Values) -> None:
                 if not debt_pp(arms[a], ref, DEBT_RULE) > 0:
                     fail.append(f"'debt/GDP is higher by {DEBT_RULE} in every arm' fails: {sc} {a} {cl}")
                 # ... and at the OBR's repricing speed: the recursion is the model's;
-                # the rise is a tenth to two-thirds as large; it ends below the path
+                # the rise is smaller (RepriceRatio{Min,Max}Pct); it ends below the path
                 # only in the main arm of UK high and the upper case
                 d36, rp36 = debt_pp(arms[a], ref, DEBT_RULE), repriced_debt_pp(arms[a], ref, DEBT_RULE)
                 if not abs(repriced_debt_pp(arms[a], ref, DEBT_RULE, full=True) - d36) < 1e-9:
@@ -806,8 +806,8 @@ def check_claims(R: dict, v: Values) -> None:
                 if (rp36 < 0) != lower:
                     fail.append(f"'at the OBR's speed debt/GDP ends below the path only in the main "
                                 f"arm of UK high and the upper case' fails: {sc} {a} {cl} ({rp36:+.2f})")
-                if not lower and not 0.05 <= rp36 / d36 <= 0.67:
-                    fail.append(f"'the rise is a tenth to two-thirds as large at the OBR's speed' "
+                if not lower and not 0 < rp36 / d36 < 1:
+                    fail.append(f"'the rise is smaller but still a rise at the OBR's speed' "
                                 f"fails: {sc} {a} {cl} ({rp36 / d36:.2f})")
                 # the stress test sits below technology unchanged on the wage at 0.1
             # the main arm's wage gap is slower growth, not a cut: the level (the
@@ -1003,14 +1003,13 @@ def check_claims(R: dict, v: Values) -> None:
         if not 0.01 <= short <= 0.07:
             fail.append(f"'the gain at {HEAD} inputs is 2-6% short of the target' fails: {sc} ({short:.3f})")
 
-    # the extremes of 'a tenth to two-thirds' are reached, not just bounded
+    # the rise at the OBR's speed as a share of the solve's, over the cells where it stays a rise
     ratios = [repriced_debt_pp(r, R[cl]["ref"], DEBT_RULE) / debt_pp(r, R[cl]["ref"], DEBT_RULE)
               for cl in CLOSURES for sc in solved(cl)
               for a, r in R[cl]["arms"][(sc, "")].items()
               if not (a == "tfp" and sc in ("uk_high", "korinek"))]
-    if not (0.05 <= min(ratios) < 0.15 and 0.6 < max(ratios) <= 0.67):
-        fail.append(f"'a tenth to two-thirds' no longer spans the cells "
-                    f"({min(ratios):.2f} to {max(ratios):.2f})")
+    v.put("RepriceRatioMinPct", 100 * min(ratios), "{:.0f}")
+    v.put("RepriceRatioMaxPct", 100 * max(ratios), "{:.0f}")
     phi = obr_passthrough(DEBT_RULE - SHOCK)
     v.put("ObrPassFirstPct", 100 * phi[0], "{:.0f}")
     v.put("ObrPassSixthPct", 100 * phi[5], "{:.0f}")

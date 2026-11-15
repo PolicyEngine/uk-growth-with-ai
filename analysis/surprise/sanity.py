@@ -196,6 +196,16 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     diff = [v for v in s if v in b and (s[v][0] != b[v][0] or s[v][1] != b[v][1])]
     add("every gap exactly 0 in 2026 and 2027", not diff, diff)
 
+    if k_ == "continuation" and var == "dnfull":
+        # not the continuation gate: households anticipate the post-2036 TR rule,
+        # so it is not expected to reproduce the baseline (reported, not failed)
+        c = rec.get("dn_check") or {}
+        add("dnfull: D/Y on the continuation's path 2029-36", bool(c.get("ok")), c)
+        f = rec.get("dn_check_full") or {}
+        add("dnfull: D/Y to T-1 and G/Y = alpha_G", bool(f.get("ok")), f)
+        add("vs baseline 2028-2036 (info)", True,
+            sp.continuation_report(rec, base_ext, year), level="info")
+        return _finish(closure, label, res, {}, {})
     if k_ == "continuation":
         rep = sp.continuation_report(rec, base_ext, year)
         add("restart reproduces the baseline 2028-2036", rep["ok"], rep)

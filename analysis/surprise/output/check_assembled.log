@@ -1,0 +1,1472 @@
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.972324
+  [PASS] share_shift: fixed-input Z 0.9430886049936458 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0001% (R4 target 0 within 0.01pp), Z_share_shift = 0.931947; output at fixed inputs -1.1814%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 3.1e-06, Euler 2.6e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.8e-06, Euler 3.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +1.22, 2029 +2.36, 2030 +3.58, 2031 +4.89
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.56, 2029 +0.44, 2030 +0.26, 2031 -0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -2.57, 2029 -2.59, 2030 -2.61, 2031 +1.16
+  [WARN] share_shift_tfp_ramp: X/Y moves -2.93pp 2027->2028 (over 2.0pp); C/Y 50.7 -> 49.7, I/Y 19.1 -> 23.0
+  [WARN] share_shift_tfp_ramp: X/Y moves +3.78pp 2030->2031 (over 2.0pp); C/Y 48.7 -> 48.2, I/Y 24.1 -> 20.8
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -1.69, 2029 -1.71, 2030 -1.73, 2031 +0.64
+  [WARN] share_shift_ramp: X/Y moves -2.05pp 2027->2028 (over 2.0pp); C/Y 50.7 -> 49.3, I/Y 19.1 -> 22.5
+  [WARN] share_shift_ramp: X/Y moves +2.37pp 2030->2031 (over 2.0pp); C/Y 49.3 -> 49.4, I/Y 22.6 -> 20.1
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.1e-17; GNI/GDP 0.9856, 0.9829, 0.9802, 0.9772, 0.9739
+  [PASS] share_shift_ramp: identities max rel error 6.0e-17; GNI/GDP 0.9856, 0.9832, 0.9812, 0.9789, 0.9764
+
+ALL CHECKS PASSED (4 WARN: see above)
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek_debt_neutral.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.972324
+  [PASS] share_shift: fixed-input Z 0.9430886049936458 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0005% (R4 target 0 within 0.01pp), Z_share_shift = 0.928861; output at fixed inputs -1.5086%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 9.9e-07, Euler 2.5e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 1.1e-06, Euler 3.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('dn') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +1.14, 2029 +2.40, 2030 +3.68, 2031 +5.06
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.74, 2029 +0.61, 2030 +0.36, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -3.35, 2029 -2.86, 2030 -2.83, 2031 +1.51
+  [WARN] share_shift_tfp_ramp: X/Y moves -3.72pp 2027->2028 (over 2.0pp); C/Y 50.7 -> 49.9, I/Y 19.1 -> 23.6
+  [WARN] share_shift_tfp_ramp: X/Y moves +4.33pp 2030->2031 (over 2.0pp); C/Y 48.7 -> 48.1, I/Y 24.3 -> 20.5
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -1.62, 2029 -1.25, 2030 -1.15, 2031 +1.08
+  [WARN] share_shift_ramp: X/Y moves +2.23pp 2030->2031 (over 2.0pp); C/Y 48.8 -> 48.9, I/Y 22.5 -> 20.2
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 5.9e-17; GNI/GDP 0.9856, 0.9830, 0.9799, 0.9768, 0.9734
+  [PASS] share_shift_ramp: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9832, 0.9812, 0.9791, 0.9770
+
+ALL CHECKS PASSED (3 WARN: see above)
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek_debt_neutral_zk0.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.974320
+  [PASS] share_shift: fixed-input Z 0.9450245787909448 gives -0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0074% (R4 target 0 within 0.01pp), Z_share_shift = 0.943227; output at fixed inputs -0.1902%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.2e-06, Euler 1.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 4.2e-07, Euler 2.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('dn') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.88, 2029 +1.65, 2030 +2.40, 2031 +3.17
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.57, 2029 +0.49, 2030 +0.30, 2031 +0.01
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.72, 2029 -0.30, 2030 -0.26, 2031 +0.02
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.28, 2029 +0.02, 2030 +0.09, 2031 -0.03
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9948, 0.9939, 0.9931, 0.9923
+  [PASS] share_shift_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9948, 0.9942, 0.9937, 0.9932
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek_fixed_spending.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.972324
+  [PASS] share_shift: fixed-input Z 0.9430886049936458 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0007% (R4 target 0 within 0.01pp), Z_share_shift = 0.931652; output at fixed inputs -1.2127%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.8e-06, Euler 2.7e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 3.5e-06, Euler 3.2e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
+
+#2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (2.3e-05)
+  [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.32e-06
+  [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.32e-06
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +1.27, 2029 +2.45, 2030 +3.75, 2031 +5.19
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.56, 2029 +0.44, 2030 +0.26, 2031 -0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -2.37, 2029 -2.22, 2030 -2.07, 2031 +1.90
+  [WARN] share_shift_tfp_ramp: X/Y moves -2.74pp 2027->2028 (over 2.0pp); C/Y 50.7 -> 49.6, I/Y 19.1 -> 23.3
+  [WARN] share_shift_tfp_ramp: X/Y moves +3.96pp 2030->2031 (over 2.0pp); C/Y 48.5 -> 48.0, I/Y 24.8 -> 21.7
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -1.59, 2029 -1.64, 2030 -1.69, 2031 +0.64
+  [WARN] share_shift_ramp: X/Y moves +2.32pp 2030->2031 (over 2.0pp); C/Y 49.2 -> 49.4, I/Y 22.7 -> 20.1
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.2e-17; GNI/GDP 0.9856, 0.9829, 0.9803, 0.9775, 0.9747
+  [PASS] share_shift_ramp: identities max rel error 6.0e-17; GNI/GDP 0.9856, 0.9832, 0.9812, 0.9790, 0.9766
+
+ALL CHECKS PASSED (3 WARN: see above)
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek_fixed_spending_zk0.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.974320
+  [PASS] share_shift: fixed-input Z 0.9450245787909448 gives -0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0007% (R4 target 0 within 0.01pp), Z_share_shift = 0.945145; output at fixed inputs +0.0128%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.6e-06, Euler 1.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.4e-06, Euler 1.9e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
+
+#2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (8.2e-06)
+  [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.24e-06
+  [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.24e-06
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.94, 2029 +1.66, 2030 +2.44, 2031 +3.27
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.45, 2029 +0.36, 2030 +0.22, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.05, 2029 +0.01, 2030 +0.09, 2031 +0.19
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.19, 2029 -0.25, 2030 -0.30, 2031 -0.36
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9948, 0.9943, 0.9937, 0.9932
+  [PASS] share_shift_ramp: identities max rel error 8.3e-17; GNI/GDP 0.9954, 0.9949, 0.9943, 0.9936, 0.9929
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek_zk0.5.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.8, 2028 94.8, 2029 94.9, 2030 95.0, 2031 95.3
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.963377
+  [PASS] share_shift: fixed-input Z 0.9344102822053957 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0009% (R4 target 0 within 0.01pp), Z_share_shift = 0.902807; output at fixed inputs -3.3822%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 2.2e-06, Euler 6.4e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.5e-06, Euler 3.6e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 1.7e-06, Euler 6.4e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +1.77, 2029 +4.27, 2030 +6.99, 2031 +9.96
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.81, 2029 +0.63, 2030 +0.37, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.19, 2028 +0.28, 2029 +0.53, 2030 +0.71, 2031 +0.86
+  [FAIL] share_shift_tfp_ramp: 2027 +0.19, 2028 -13.82, 2029 -13.94, 2030 -14.18, 2031 +2.18
+  [WARN] share_shift_tfp_ramp: X/Y moves -14.01pp 2027->2028 (over 2.0pp); C/Y 47.6 -> 47.1, I/Y 23.3 -> 37.8
+  [WARN] share_shift_tfp_ramp: X/Y moves +16.36pp 2030->2031 (over 2.0pp); C/Y 44.7 -> 43.6, I/Y 40.5 -> 25.3
+  [FAIL] share_shift_ramp: 2027 +0.19, 2028 -6.49, 2029 -6.50, 2030 -6.50, 2031 +0.17
+  [WARN] share_shift_ramp: X/Y moves -6.68pp 2027->2028 (over 2.0pp); C/Y 47.6 -> 46.2, I/Y 23.3 -> 31.4
+  [WARN] share_shift_ramp: X/Y moves +6.67pp 2030->2031 (over 2.0pp); C/Y 45.9 -> 45.8, I/Y 31.7 -> 25.0
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [FAIL] share_shift_tfp_ramp: implausible: I/Y 23.3 to 40.5%
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 9.1e-17; GNI/GDP 0.9609, 0.9601, 0.9593, 0.9587, 0.9581
+  [PASS] share_shift_tfp_ramp: identities max rel error 7.8e-17; GNI/GDP 0.9609, 0.9559, 0.9502, 0.9444, 0.9387
+  [PASS] share_shift_ramp: identities max rel error 8.4e-17; GNI/GDP 0.9609, 0.9566, 0.9531, 0.9494, 0.9456
+
+3 CHECK(S) FAILED (4 WARN: see above)
+rc=1
+### uk_growth_with_ai/data/scenarios_surprise2028_korinek_zk0.json
+Surprise file [korinek, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +3.1000% (target +3.1%), Z_share_shift_tfp = 0.974320
+  [PASS] share_shift: fixed-input Z 0.9450245787909448 gives -0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0010% (R4 target 0 within 0.01pp), Z_share_shift = 0.945534; output at fixed inputs +0.0539%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.5e-06, Euler 1.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 1.5e-06, Euler 1.9e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+
+Labour share 2031 (65% -> 61.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 61.10% (target 61.1%)
+  [PASS] share_shift_ramp: 61.10% (target 61.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.91, 2029 +1.59, 2030 +2.31, 2031 +3.05
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.45, 2029 +0.36, 2030 +0.22, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.18, 2029 -0.21, 2030 -0.24, 2031 -0.25
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.26, 2029 -0.30, 2030 -0.33, 2031 -0.35
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 4.1e-17; GNI/GDP 0.9954, 0.9948, 0.9942, 0.9935, 0.9927
+  [PASS] share_shift_ramp: identities max rel error 8.2e-17; GNI/GDP 0.9954, 0.9949, 0.9942, 0.9936, 0.9928
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.980153
+  [PASS] share_shift: fixed-input Z 0.976247644366825 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0046% (R4 target 0 within 0.01pp), Z_share_shift = 0.972100; output at fixed inputs -0.4249%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.5e-06, Euler 5.2e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.5e-06, Euler 5.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.36, 2029 +0.56, 2030 +0.74, 2031 +0.92
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.23, 2029 +0.18, 2030 +0.11, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -0.60, 2029 -0.55, 2030 -0.51, 2031 +0.62
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -0.44, 2029 -0.41, 2030 -0.38, 2031 +0.53
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.1e-17; GNI/GDP 0.9856, 0.9844, 0.9832, 0.9821, 0.9808
+  [PASS] share_shift_ramp: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9844, 0.9834, 0.9823, 0.9812
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central_debt_neutral.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.980153
+  [PASS] share_shift: fixed-input Z 0.976247644366825 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0001% (R4 target 0 within 0.01pp), Z_share_shift = 0.970724; output at fixed inputs -0.5659%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 4.9e-07, Euler 5.1e-12, non-finite periods 0, 9 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 6.8e-07, Euler 5.3e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('dn') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.39, 2029 +0.63, 2030 +0.83, 2031 +1.02
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.30, 2029 +0.25, 2030 +0.15, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -0.76, 2029 -0.53, 2030 -0.44, 2031 +0.79
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -0.42, 2029 -0.22, 2030 -0.15, 2031 +0.71
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9844, 0.9832, 0.9820, 0.9808
+  [PASS] share_shift_ramp: identities max rel error 8.2e-17; GNI/GDP 0.9856, 0.9844, 0.9834, 0.9824, 0.9814
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central_debt_neutral_zk0.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.980978
+  [PASS] share_shift: fixed-input Z 0.9770693186111412 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0029% (R4 target 0 within 0.01pp), Z_share_shift = 0.976386; output at fixed inputs -0.0700%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.6e-06, Euler 3.0e-12, non-finite periods 0, 8 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.1e-06, Euler 3.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('dn') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.28, 2029 +0.37, 2030 +0.42, 2031 +0.45
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.23, 2029 +0.20, 2030 +0.12, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.25, 2029 -0.11, 2030 -0.08, 2031 -0.07
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.19, 2029 -0.06, 2030 -0.03, 2031 -0.07
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.3e-17; GNI/GDP 0.9954, 0.9950, 0.9946, 0.9942, 0.9938
+  [PASS] share_shift_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9950, 0.9946, 0.9943, 0.9939
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central_fixed_spending.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.980153
+  [PASS] share_shift: fixed-input Z 0.976247644366825 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0001% (R4 target 0 within 0.01pp), Z_share_shift = 0.971935; output at fixed inputs -0.4418%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 3.3e-06, Euler 4.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 3.3e-06, Euler 5.3e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
+
+#2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (2.3e-05)
+  [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.32e-06
+  [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.32e-06
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.37, 2029 +0.58, 2030 +0.78, 2031 +0.98
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.23, 2029 +0.18, 2030 +0.11, 2031 -0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -0.54, 2029 -0.46, 2030 -0.39, 2031 +0.77
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -0.40, 2029 -0.38, 2030 -0.36, 2031 +0.53
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9844, 0.9833, 0.9821, 0.9810
+  [PASS] share_shift_ramp: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9845, 0.9834, 0.9824, 0.9813
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central_fixed_spending_zk0.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.980978
+  [PASS] share_shift: fixed-input Z 0.9770693186111412 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0010% (R4 target 0 within 0.01pp), Z_share_shift = 0.977251; output at fixed inputs +0.0186%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.0e-06, Euler 3.0e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.1e-06, Euler 3.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
+
+#2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (8.2e-06)
+  [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.24e-06
+  [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.24e-06
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.25, 2029 +0.31, 2030 +0.36, 2031 +0.40
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.18, 2029 +0.15, 2030 +0.09, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.14, 2029 -0.14, 2030 -0.14, 2031 -0.14
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.15, 2029 -0.17, 2030 -0.19, 2031 -0.21
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.3e-17; GNI/GDP 0.9954, 0.9950, 0.9947, 0.9942, 0.9938
+  [PASS] share_shift_ramp: identities max rel error 8.3e-17; GNI/GDP 0.9954, 0.9950, 0.9947, 0.9942, 0.9938
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central_zk0.5.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.8, 2028 94.8, 2029 94.9, 2030 95.0, 2031 95.3
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.976442
+  [PASS] share_shift: fixed-input Z 0.9725520757707762 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0078% (R4 target 0 within 0.01pp), Z_share_shift = 0.959551; output at fixed inputs -1.3368%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 2.2e-06, Euler 6.4e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.8e-06, Euler 4.7e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 3.1e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.60, 2029 +1.21, 2030 +1.83, 2031 +2.47
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.31, 2029 +0.23, 2030 +0.13, 2031 -0.01
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.19, 2028 +0.28, 2029 +0.53, 2030 +0.71, 2031 +0.86
+  [PASS] share_shift_tfp_ramp: 2027 +0.19, 2028 -4.28, 2029 -4.05, 2030 -3.89, 2031 +1.11
+  [WARN] share_shift_tfp_ramp: X/Y moves -4.46pp 2027->2028 (over 2.0pp); C/Y 47.6 -> 47.1, I/Y 23.3 -> 28.2
+  [WARN] share_shift_tfp_ramp: X/Y moves +5.00pp 2030->2031 (over 2.0pp); C/Y 46.3 -> 45.9, I/Y 28.7 -> 24.0
+  [PASS] share_shift_ramp: 2027 +0.19, 2028 -2.44, 2029 -2.32, 2030 -2.24, 2031 +0.59
+  [WARN] share_shift_ramp: X/Y moves -2.63pp 2027->2028 (over 2.0pp); C/Y 47.6 -> 46.9, I/Y 23.3 -> 26.6
+  [WARN] share_shift_ramp: X/Y moves +2.83pp 2030->2031 (over 2.0pp); C/Y 46.6 -> 46.5, I/Y 26.7 -> 23.9
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 9.1e-17; GNI/GDP 0.9609, 0.9601, 0.9593, 0.9587, 0.9581
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.7e-17; GNI/GDP 0.9609, 0.9585, 0.9560, 0.9537, 0.9513
+  [PASS] share_shift_ramp: identities max rel error 7.3e-17; GNI/GDP 0.9609, 0.9587, 0.9568, 0.9549, 0.9530
+
+ALL CHECKS PASSED (4 WARN: see above)
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_central_zk0.json
+Surprise file [uk_central, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.4000% (target +0.4%), Z_share_shift_tfp = 0.980978
+  [PASS] share_shift: fixed-input Z 0.9770693186111412 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0006% (R4 target 0 within 0.01pp), Z_share_shift = 0.977399; output at fixed inputs +0.0337%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.3e-06, Euler 2.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 1.3e-06, Euler 2.9e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+
+Labour share 2031 (65% -> 63.4%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 63.40% (target 63.4%)
+  [PASS] share_shift_ramp: 63.40% (target 63.4%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.24, 2029 +0.30, 2030 +0.34, 2031 +0.37
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.19, 2029 +0.15, 2030 +0.09, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.17, 2029 -0.18, 2030 -0.19, 2031 -0.20
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.18, 2029 -0.19, 2030 -0.20, 2031 -0.21
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.3e-17; GNI/GDP 0.9954, 0.9950, 0.9946, 0.9942, 0.9937
+  [PASS] share_shift_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9950, 0.9946, 0.9942, 0.9937
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_high.json
+Surprise file [uk_high, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +1.6000% (target +1.6%), Z_share_shift_tfp = 0.972683
+  [PASS] share_shift: fixed-input Z 0.9573648939824831 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0031% (R4 target 0 within 0.01pp), Z_share_shift = 0.949354; output at fixed inputs -0.8368%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.6e-06, Euler 3.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.7e-06, Euler 4.1e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+
+Labour share 2031 (65% -> 62.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 62.10% (target 62.1%)
+  [PASS] share_shift_ramp: 62.10% (target 62.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.80, 2029 +1.42, 2030 +2.07, 2031 +2.74
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.42, 2029 +0.33, 2030 +0.19, 2031 -0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -1.62, 2029 -1.59, 2030 -1.56, 2031 +0.87
+  [WARN] share_shift_tfp_ramp: X/Y moves +2.43pp 2030->2031 (over 2.0pp); C/Y 49.2 -> 49.0, I/Y 22.5 -> 20.3
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 -1.13, 2029 -1.12, 2030 -1.11, 2031 +0.59
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.1e-17; GNI/GDP 0.9856, 0.9836, 0.9816, 0.9795, 0.9773
+  [PASS] share_shift_ramp: identities max rel error 8.1e-17; GNI/GDP 0.9856, 0.9838, 0.9822, 0.9804, 0.9786
+
+ALL CHECKS PASSED (1 WARN: see above)
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_high_zk0.5.json
+Surprise file [uk_high, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.8, 2028 94.8, 2029 94.9, 2030 95.0, 2031 95.3
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +1.6000% (target +1.6%), Z_share_shift_tfp = 0.966019
+  [PASS] share_shift: fixed-input Z 0.9508063380139198 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0096% (R4 target 0 within 0.01pp), Z_share_shift = 0.927242; output at fixed inputs -2.4784%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 2.2e-06, Euler 6.4e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.6e-06, Euler 4.1e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.9e-06, Euler 4.5e-12, non-finite periods 0, 9 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+
+Labour share 2031 (65% -> 62.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 62.10% (target 62.1%)
+  [PASS] share_shift_ramp: 62.10% (target 62.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +1.22, 2029 +2.74, 2030 +4.34, 2031 +6.05
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.58, 2029 +0.44, 2030 +0.25, 2031 -0.01
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.19, 2028 +0.28, 2029 +0.53, 2030 +0.71, 2031 +0.86
+  [FAIL] share_shift_tfp_ramp: 2027 +0.19, 2028 -9.19, 2029 -9.08, 2030 -9.05, 2031 +1.60
+  [WARN] share_shift_tfp_ramp: X/Y moves -9.37pp 2027->2028 (over 2.0pp); C/Y 47.6 -> 47.1, I/Y 23.3 -> 33.2
+  [WARN] share_shift_tfp_ramp: X/Y moves +10.66pp 2030->2031 (over 2.0pp); C/Y 45.5 -> 44.7, I/Y 34.6 -> 24.7
+  [PASS] share_shift_ramp: 2027 +0.19, 2028 -4.71, 2029 -4.67, 2030 -4.65, 2031 +0.35
+  [WARN] share_shift_ramp: X/Y moves -4.89pp 2027->2028 (over 2.0pp); C/Y 47.6 -> 46.5, I/Y 23.3 -> 29.3
+  [WARN] share_shift_ramp: X/Y moves +5.00pp 2030->2031 (over 2.0pp); C/Y 46.2 -> 46.1, I/Y 29.5 -> 24.6
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 9.1e-17; GNI/GDP 0.9609, 0.9601, 0.9593, 0.9587, 0.9581
+  [PASS] share_shift_tfp_ramp: identities max rel error 8.2e-17; GNI/GDP 0.9609, 0.9570, 0.9529, 0.9488, 0.9446
+  [PASS] share_shift_ramp: identities max rel error 5.5e-17; GNI/GDP 0.9609, 0.9575, 0.9547, 0.9518, 0.9488
+
+1 CHECK(S) FAILED (4 WARN: see above)
+rc=1
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_high_zk0.json
+Surprise file [uk_high, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +1.6000% (target +1.6%), Z_share_shift_tfp = 0.974167
+  [PASS] share_shift: fixed-input Z 0.9588258719016208 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0000% (R4 target 0 within 0.01pp), Z_share_shift = 0.959290; output at fixed inputs +0.0484%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.4e-06, Euler 2.5e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 1.4e-06, Euler 2.6e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+
+Labour share 2031 (65% -> 62.1%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 62.10% (target 62.1%)
+  [PASS] share_shift_ramp: 62.10% (target 62.1%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.57, 2029 +0.90, 2030 +1.23, 2031 +1.55
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.34, 2029 +0.27, 2030 +0.16, 2031 -0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.18, 2029 -0.21, 2030 -0.23, 2031 -0.24
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.22, 2029 -0.25, 2030 -0.28, 2031 -0.29
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9949, 0.9944, 0.9938, 0.9932
+  [PASS] share_shift_ramp: identities max rel error 8.3e-17; GNI/GDP 0.9954, 0.9949, 0.9944, 0.9938, 0.9932
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_low.json
+Surprise file [uk_low, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.2
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.2000% (target +0.2%), Z_share_shift_tfp = 0.991517
+  [PASS] share_shift: fixed-input Z 0.9895380524260633 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0035% (R4 target 0 within 0.01pp), Z_share_shift = 0.987803; output at fixed inputs -0.1753%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.3e-06, Euler 5.8e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.4e-06, Euler 5.2e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.4e-06, Euler 5.4e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.29867313068597584 vs 0.29867313068597584
+
+Labour share 2031 (65% -> 64.3%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 64.30% (target 64.3%)
+  [PASS] share_shift_ramp: 64.30% (target 64.3%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.16, 2029 +0.25, 2030 +0.34, 2031 +0.41
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.10, 2029 +0.08, 2030 +0.05, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.37, 2028 +0.37, 2029 +0.41, 2030 +0.45, 2031 +0.48
+  [PASS] share_shift_tfp_ramp: 2027 +0.37, 2028 -0.05, 2029 +0.00, 2030 +0.05, 2031 +0.54
+  [PASS] share_shift_ramp: 2027 +0.37, 2028 +0.02, 2029 +0.06, 2030 +0.10, 2031 +0.50
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9853, 0.9849, 0.9845, 0.9842
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.1e-17; GNI/GDP 0.9856, 0.9849, 0.9842, 0.9835, 0.9828
+  [PASS] share_shift_ramp: identities max rel error 8.2e-17; GNI/GDP 0.9856, 0.9849, 0.9842, 0.9836, 0.9829
+
+ALL CHECKS PASSED
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_low_zk0.5.json
+Surprise file [uk_low, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.8, 2028 94.8, 2029 94.9, 2030 95.0, 2031 95.3
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.2000% (target +0.2%), Z_share_shift_tfp = 0.989873
+  [PASS] share_shift: fixed-input Z 0.9878974820250327 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 +0.0002% (R4 target 0 within 0.01pp), Z_share_shift = 0.982245; output at fixed inputs -0.5722%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 2.2e-06, Euler 6.4e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 2.8e-06, Euler 5.6e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 2.9e-06, Euler 5.7e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.28939537332074466 vs 0.28939537332074466
+
+Labour share 2031 (65% -> 64.3%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 64.30% (target 64.3%)
+  [PASS] share_shift_ramp: 64.30% (target 64.3%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.26, 2029 +0.53, 2030 +0.80, 2031 +1.08
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.13, 2029 +0.10, 2030 +0.05, 2031 +0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 +0.19, 2028 +0.28, 2029 +0.53, 2030 +0.71, 2031 +0.86
+  [PASS] share_shift_tfp_ramp: 2027 +0.19, 2028 -1.70, 2029 -1.44, 2030 -1.25, 2031 +0.97
+  [WARN] share_shift_tfp_ramp: X/Y moves +2.22pp 2030->2031 (over 2.0pp); C/Y 46.7 -> 46.5, I/Y 25.6 -> 23.6
+  [PASS] share_shift_ramp: 2027 +0.19, 2028 -0.90, 2029 -0.72, 2030 -0.58, 2031 +0.75
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 9.1e-17; GNI/GDP 0.9609, 0.9601, 0.9593, 0.9587, 0.9581
+  [PASS] share_shift_tfp_ramp: identities max rel error 9.0e-17; GNI/GDP 0.9609, 0.9594, 0.9579, 0.9565, 0.9551
+  [PASS] share_shift_ramp: identities max rel error 9.1e-17; GNI/GDP 0.9609, 0.9595, 0.9582, 0.9570, 0.9559
+
+ALL CHECKS PASSED (1 WARN: see above)
+rc=0
+### uk_growth_with_ai/data/scenarios_surprise2028_uk_low_zk0.json
+Surprise file [uk_low, surprise 2028, gaps vs continuation]: years 2027-2031, headline 2031
+
+Arms present, requested and completed
+  [PASS] share_shift_tfp_ramp: required (recorded arms_requested) and present
+  [PASS] share_shift_ramp: required (recorded arms_requested) and present
+  [INFO] checking share_shift_tfp_ramp, share_shift_ramp
+
+Baseline settings
+  [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
+
+#3  No fiscal-rule break in 2030 (baseline)
+  [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
+  [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
+  [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
+  [INFO] debt/GDP (model units) 2027 94.9, 2028 94.9, 2029 94.9, 2030 95.0, 2031 95.1
+
+#5  Balanced growth (g_y, g_n) vs OBR potential output
+  [PASS] balanced growth 2029->30 = 1.77% vs OBR potential output 1.50% (within 0.3pp; not the same concept, nearest comparator)
+
+Z re-solved against this baseline (anchor 2027 K and L)
+  [PASS] share_shift_tfp: output at fixed inputs +0.2000% (target +0.2%), Z_share_shift_tfp = 0.991882
+  [PASS] share_shift: fixed-input Z 0.9899023426018919 gives +0.0000% at fixed inputs (target +0.0%)
+  [PASS] share_shift: equilibrium GDP gap 2031 -0.0000% (R4 target 0 within 0.01pp), Z_share_shift = 0.990065; output at fixed inputs +0.0164%
+
+Solution quality
+  [PASS] baseline: resource constraint max 2027+ 1.5e-06, Euler 4.9e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_tfp_ramp: resource constraint max 2027+ 1.3e-06, Euler 4.5e-12, non-finite periods 0, 7 min
+  [PASS] share_shift_ramp: resource constraint max 2027+ 1.3e-06, Euler 4.5e-12, non-finite periods 0, 7 min
+
+Each arm is the arm its name says (recorded Z, gamma and shape)
+  [PASS] share_shift_tfp_ramp: Z_terminal, gamma_terminal and gamma_shape match
+  [PASS] share_shift_ramp: Z_terminal, gamma_terminal and gamma_shape match
+
+Fiscal closure recorded by the arms
+  [PASS] assumptions.fiscal_variant ('common') agrees with the arms' baseline_spending = False
+
+#2  Common fiscal policy: G/Y identical across arms
+  [PASS] share_shift_tfp_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+  [PASS] share_shift_ramp: max |G/Y - baseline G/Y| = 0.00e+00; alpha_G 0.30191104915303846 vs 0.30191104915303846
+
+Labour share 2031 (65% -> 64.3%)
+  [PASS] baseline: 65.00% (target 65.0%)
+  [PASS] share_shift_tfp_ramp: 64.30% (target 64.3%)
+  [PASS] share_shift_ramp: 64.30% (target 64.3%)
+
+GDP gap vs baseline (%), for the before/after table
+  [INFO] share_shift_tfp_ramp: 2027 +0.00, 2028 +0.11, 2029 +0.14, 2030 +0.17, 2031 +0.18
+  [INFO] share_shift_ramp: 2027 +0.00, 2028 +0.08, 2029 +0.06, 2030 +0.04, 2031 -0.00
+
+National accounts: model resource-constraint error, % of GDP (tolerance 0.1; calendar RC/Y, the committed baseline's before 2028)
+  [PASS] baseline: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_tfp_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+  [PASS] share_shift_ramp: 2027 0.000, 2028 0.000, 2029 0.000, 2030 0.000, 2031 0.000 (2027+ within 0.1)
+
+National accounts: X = Y - C - I - G, % of GDP (public investment + external balance + RC error; not NX; |X| <= 6.0)
+  [PASS] baseline: 2027 -0.12, 2028 -0.12, 2029 -0.12, 2030 -0.12, 2031 -0.11
+  [PASS] share_shift_tfp_ramp: 2027 -0.12, 2028 -0.14, 2029 -0.15, 2030 -0.15, 2031 -0.15
+  [PASS] share_shift_ramp: 2027 -0.12, 2028 -0.15, 2029 -0.15, 2030 -0.16, 2031 -0.15
+
+Signs and shares (Y, C, I, G, K, L, w > 0; 0 < r < 0.15; C/Y 35-75%, I/Y 5-35%, G/Y 10-40%)
+  [PASS] baseline: signs and shares plausible
+  [PASS] share_shift_tfp_ramp: signs and shares plausible
+  [PASS] share_shift_ramp: signs and shares plausible
+
+Capital account: K = K_d + K_f, K_d = B - D_d, D = D_d + D_f; GNI <= GDP
+  [PASS] baseline: identities max rel error 6.3e-17; GNI/GDP 0.9954, 0.9952, 0.9949, 0.9947, 0.9944
+  [PASS] share_shift_tfp_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9951, 0.9948, 0.9945, 0.9941
+  [PASS] share_shift_ramp: identities max rel error 6.2e-17; GNI/GDP 0.9954, 0.9951, 0.9948, 0.9945, 0.9941
+
+ALL CHECKS PASSED
+rc=0
