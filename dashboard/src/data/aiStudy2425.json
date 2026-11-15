@@ -434,19 +434,19 @@
   ],
   "baseline": {
     "absolute_bhc_pct": {
-      "value": 11.4,
+      "value": 11.4011,
       "file": "results/robustness/poverty_decomposition.json",
       "key": "poverty_rate_bhc_baseline * 100",
       "note": "Baseline (no shock), FY 2026-27; the baseline does not depend on the draw."
     },
     "relative_bhc_pct": {
-      "value": 13.44,
+      "value": 13.4428,
       "file": "results/robustness/central_monte_carlo.json",
       "key": "baseline_relative_poverty_bhc_rate * 100",
       "note": "60% of the baseline median."
     },
     "gini": {
-      "value": 0.302,
+      "value": 0.3023,
       "file": "results/low.json",
       "key": "gini_baseline",
       "note": null
@@ -459,26 +459,26 @@
     "rows": [
       {
         "id": "displacement",
-        "cost_bn": 40.75,
-        "poverty_pp": 2.82,
-        "gini_pp": 0.86
+        "cost_bn": 40.7462,
+        "poverty_pp": 2.8152,
+        "gini_pp": 0.8645
       },
       {
         "id": "wage",
-        "cost_bn": -16.82,
-        "poverty_pp": -0.2,
-        "gini_pp": 0.16
+        "cost_bn": -16.8184,
+        "poverty_pp": -0.2001,
+        "gini_pp": 0.1561
       },
       {
         "id": "capital",
-        "cost_bn": -16.85,
-        "poverty_pp": -0.27,
-        "gini_pp": 0.7
+        "cost_bn": -16.8467,
+        "poverty_pp": -0.2675,
+        "gini_pp": 0.7043
       }
     ],
-    "sum_bn": 7.08,
-    "interaction_bn": 0.15,
-    "central_bn": 7.23,
+    "sum_bn": 7.0811,
+    "interaction_bn": 0.1502,
+    "central_bn": 7.2313,
     "note": "Each channel run alone on the same 20 draws (seeds 0-19) as the central case."
   },
   "cost_components": {
@@ -489,76 +489,76 @@
       {
         "id": "other_income_tax",
         "label": "Income tax on earnings, net of tax on survivors' wage gains",
-        "cost_bn": 10.55,
-        "sd_bn": 1.09
+        "cost_bn": 10.5459,
+        "sd_bn": 1.0882
       },
       {
         "id": "employer_ni",
         "label": "Employer NI",
-        "cost_bn": 8.56,
-        "sd_bn": 0.53
+        "cost_bn": 8.5586,
+        "sd_bn": 0.5297
       },
       {
         "id": "employee_ni",
         "label": "Employee NI",
-        "cost_bn": 2.74,
-        "sd_bn": 0.18
+        "cost_bn": 2.7398,
+        "sd_bn": 0.1751
       },
       {
         "id": "universal_credit",
         "label": "Universal Credit",
-        "cost_bn": 2.26,
-        "sd_bn": 0.3
+        "cost_bn": 2.2642,
+        "sd_bn": 0.3028
       },
       {
         "id": "other",
         "label": "Other items",
-        "cost_bn": -0.04,
-        "sd_bn": 0.11
+        "cost_bn": -0.036,
+        "sd_bn": 0.1059
       },
       {
         "id": "childcare",
         "label": "Childcare support",
-        "cost_bn": -1.02,
-        "sd_bn": 0.12
+        "cost_bn": -1.0222,
+        "sd_bn": 0.1181
       },
       {
         "id": "savings_tax",
         "label": "Tax on savings income",
-        "cost_bn": -2.98,
-        "sd_bn": 0.04
+        "cost_bn": -2.9767,
+        "sd_bn": 0.0425
       },
       {
         "id": "dividend_tax",
         "label": "Tax on dividends",
-        "cost_bn": -12.69,
-        "sd_bn": 0.12
+        "cost_bn": -12.6909,
+        "sd_bn": 0.1189
       }
     ],
-    "total_bn": 7.38
+    "total_bn": 7.3826
   },
   "breakeven": {
     "wage": {
       "central_pct": 2.6,
-      "value_pct": 3.73,
+      "value_pct": 3.7271,
       "draws": 1,
       "file": "results/robustness/survivor_wage_grid.csv",
       "key": "zero crossing of exchequer_cost_bn over survivor_wage_effect_pct (seed 0)"
     },
     "capital": {
-      "central_pct": 39.8,
-      "value_pct": 56.36,
-      "value_pp": 0.57,
-      "cost_at_central_bn": 7.23,
-      "cost_at_60_bn": -1.59,
+      "central_pct": 39.801,
+      "value_pct": 56.358,
+      "value_pp": 0.5664,
+      "cost_at_central_bn": 7.2313,
+      "cost_at_60_bn": -1.5907,
       "draws": 20,
       "file": "results/next_runs/capital_variants_draws.csv",
       "key": "linear between mean central cost (results/robustness/dividend_coverage_draws.csv run=central) at the central uplift and mean cost of variant cap60 at +60%, seeds 0-19"
     },
     "duration": {
-      "value_months": 9.36,
-      "cost_full_bn": 7.23,
-      "cost_half_bn": -9.21,
+      "value_months": 9.3618,
+      "cost_full_bn": 7.2313,
+      "cost_half_bn": -9.2147,
       "draws": 20,
       "file": "results/robustness/duration_takeup_sensitivity.json",
       "key": "12 x (1 - r), r = 0.5 full / (full - half); full = mean results/robustness/incidence_draws_five.csv family=exposure seeds 0-19, half = half_earnings_retention.results.exchequer_cost_bn.mean"
@@ -570,19 +570,19 @@
     "draws": 20,
     "file": "results/wage_cut/wage_cut_draws.csv",
     "job_loss": {
-      "government_p": 41.7,
-      "min_p": 40.6,
-      "max_p": 43.0,
+      "government_p": 41.7117,
+      "min_p": 40.6349,
+      "max_p": 43.0118,
       "file": "results/robustness/dividend_coverage_draws.csv",
       "key": "mean(exchequer_cost_bn) of run=channel_displacement over mean(gross_cut_bn) of results/wage_cut/wage_cut_draws.csv variant=cut_only, seeds 0-19; min/max of the per-draw ratio"
     },
-    "wage_cuts_employer_ni_p": 14.8,
+    "wage_cuts_employer_ni_p": 14.8425,
     "note": "Displacement alone and wage cuts alone: no survivor-wage or capital channel in either."
   },
   "sankey": {
     "draws": 20,
     "file": "results/next_runs/obr_household_deciles.csv",
-    "displacement_rate_pct": 1.67,
+    "displacement_rate_pct": 1.6725,
     "key": "per decile: earnings lost = -market_change; lower income tax and employee NI = -tax_change; more benefits = benefit_change; lower disposable income = -net_income_change; other items = the remainder",
     "deciles": [
       {
@@ -666,7 +666,7 @@
     "employer_ni_bn": 3.1159,
     "employer_ni_file": "results/next_runs/obr_benchmark.json",
     "employer_ni_key": "-summary.employer_ni_change_bn.mean",
-    "tax_benefit_share_pct": 28.4,
+    "tax_benefit_share_pct": 28.4092,
     "note": "OBR-sized run: 1.67% of employees displaced under exposure-proportional incidence, survivors' earnings flat, no capital shock; by baseline decile of equivalised HBAI income. Other items are mainly pension contributions, plus council tax and other deductions inside the HBAI concept."
   },
   "rankings": [
@@ -674,48 +674,48 @@
       "id": "hbai",
       "label": "HBAI household income (the study's ranking)",
       "values": [
-        1.78,
-        -0.9,
-        -0.59,
-        -1.29,
-        -1.62,
-        -2.41,
-        -2.13,
-        -2.86,
-        -2.34,
-        0.09
+        1.7773,
+        -0.8954,
+        -0.5877,
+        -1.2936,
+        -1.6164,
+        -2.4099,
+        -2.1289,
+        -2.8627,
+        -2.3406,
+        0.0867
       ]
     },
     {
       "id": "pre_pension",
       "label": "Income before pension contributions",
       "values": [
-        -0.33,
-        -0.69,
+        -0.328,
+        -0.6937,
         -0.78,
-        -1.16,
-        -1.59,
-        -2.39,
-        -2.43,
-        -2.09,
-        -2.5,
-        0.17
+        -1.1554,
+        -1.5931,
+        -2.3853,
+        -2.4295,
+        -2.0898,
+        -2.4984,
+        0.1666
       ]
     },
     {
       "id": "hbai_excl_large_ppc",
       "label": "HBAI, leaving out households with large pension contributions",
       "values": [
-        -0.1,
-        -1.0,
-        -0.59,
-        -1.3,
-        -1.62,
-        -2.41,
-        -2.13,
-        -3.04,
-        -2.35,
-        0.06
+        -0.1035,
+        -1.0023,
+        -0.5893,
+        -1.2953,
+        -1.6164,
+        -2.4099,
+        -2.1289,
+        -3.0419,
+        -2.3497,
+        0.0551
       ]
     }
   ],
@@ -729,11 +729,11 @@
         "family": "exposure",
         "label": "Wage insurance: half of lost earnings, up to £15,000 a year",
         "draws": 50,
-        "cost_bn": 26.67,
-        "cost_sd_bn": 1.1,
-        "poverty_pp": -1.89,
-        "poverty_sd_pp": 0.17,
-        "gini_pp": -0.98
+        "cost_bn": 26.6696,
+        "cost_sd_bn": 1.1016,
+        "poverty_pp": -1.8857,
+        "poverty_sd_pp": 0.1728,
+        "gini_pp": -0.9844
       },
       {
         "id": "R2_uc_circuit_breaker:exposure",
@@ -741,11 +741,11 @@
         "family": "exposure",
         "label": "Universal Credit standard allowance 20% higher",
         "draws": 50,
-        "cost_bn": 6.91,
-        "cost_sd_bn": 0.06,
-        "poverty_pp": -0.64,
-        "poverty_sd_pp": 0.04,
-        "gini_pp": -0.32
+        "cost_bn": 6.9062,
+        "cost_sd_bn": 0.0616,
+        "poverty_pp": -0.6399,
+        "poverty_sd_pp": 0.0413,
+        "gini_pp": -0.3204
       },
       {
         "id": "R3_cap_suspension_taper_cut:exposure",
@@ -753,11 +753,11 @@
         "family": "exposure",
         "label": "Benefit cap suspended and UC taper cut from 55% to 45%",
         "draws": 50,
-        "cost_bn": 4.85,
-        "cost_sd_bn": 0.1,
-        "poverty_pp": -0.62,
-        "poverty_sd_pp": 0.04,
-        "gini_pp": -0.25
+        "cost_bn": 4.8503,
+        "cost_sd_bn": 0.095,
+        "poverty_pp": -0.6203,
+        "poverty_sd_pp": 0.0434,
+        "gini_pp": -0.2453
       },
       {
         "id": "R1_wage_insurance:junior",
@@ -765,11 +765,11 @@
         "family": "junior",
         "label": "Wage insurance, junior-tilted displacement",
         "draws": 50,
-        "cost_bn": 26.64,
-        "cost_sd_bn": 1.04,
-        "poverty_pp": -1.92,
-        "poverty_sd_pp": 0.17,
-        "gini_pp": -0.99
+        "cost_bn": 26.6407,
+        "cost_sd_bn": 1.0394,
+        "poverty_pp": -1.9189,
+        "poverty_sd_pp": 0.173,
+        "gini_pp": -0.9855
       },
       {
         "id": "R1_wage_insurance:uniform",
@@ -777,11 +777,11 @@
         "family": "uniform",
         "label": "Wage insurance, uniform displacement",
         "draws": 50,
-        "cost_bn": 25.99,
-        "cost_sd_bn": 0.96,
-        "poverty_pp": -1.96,
+        "cost_bn": 25.9901,
+        "cost_sd_bn": 0.9555,
+        "poverty_pp": -1.9645,
         "poverty_sd_pp": 0.18,
-        "gini_pp": -0.99
+        "gini_pp": -0.9915
       }
     ],
     "note": "Each reform is simulated on top of the central shock (shocked-plus-reform minus shocked, poverty lines at their shocked values). Wage insurance is a post-simulation transfer, untaxed and ignored by means tests, so its cost is gross; the two UC reforms are parameter changes, so their costs are net of withdrawal elsewhere. The designs differ in aim and administration."
@@ -809,9 +809,10 @@
     "jsa_eligible_pct": "96",
     "takeup_flag_pct": "48",
     "survivor_wage_pct": 2.6,
-    "capital_uplift_pct": 39.8,
+    "capital_uplift_pct": 39.801,
     "return_shock_pp": 0.4,
     "obr_unemployment_rise_pp": "1.4",
-    "macro_file": "paper/values_generated.tex"
+    "macro_file": "paper/values_generated.tex",
+    "data_build": "microcosm-uk-2024-25-national-20261107T020434Z-eeb6093e"
   }
 }

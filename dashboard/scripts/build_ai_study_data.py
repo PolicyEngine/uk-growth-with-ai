@@ -427,6 +427,9 @@ def extras(cmc: dict, low: dict) -> dict:
     Method and sources > Household method (November 2026)."""
     P = paper_macros()
 
+    def r(x, ndp):  # noqa: ARG001 - four decimals here, so one-decimal display never double-rounds
+        return round(float(x), 4)
+
     def pcheck(name: str, value: float, ndp: int) -> None:
         check(name, value, pnum(P, name), ndp)
 
@@ -639,6 +642,7 @@ def extras(cmc: dict, low: dict) -> dict:
         "survivor_wage_pct": r(wage_central, 2), "capital_uplift_pct": r(cap_x0, 2), "return_shock_pp": RETURN_SHOCK_PP,
         "obr_unemployment_rise_pp": P["genObrUnempRisePp"],
         "macro_file": F_TEX,
+        "data_build": cmc["certified_data_build_id"],
     }
     return {"baseline": baseline, "channels": channels, "cost_components": cost_components, "breakeven": breakeven,
             "per_pound_20": per_pound_20, "sankey": sankey, "rankings": rankings, "policy": policy_out, "method": method}

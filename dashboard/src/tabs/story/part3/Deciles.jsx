@@ -5,7 +5,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { fmtDecilePct } from './format.js';
 import { D, DivBar, FigureHead, Source } from './shared.jsx';
 
-// Block 6, change in household disposable income (before housing costs) by
+// Step 4, change in household disposable income (before housing costs) by
 // income decile. Decile 1 is drawn grey with the caveat beside it and no
 // value label: the caveat sentence is the home of its figure, because the
 // study does not report the bottom income decile as a finding.
@@ -15,8 +15,8 @@ const VALUES = DEC.values;
 const LO = Math.floor(Math.min(0, ...VALUES));
 const HI = Math.ceil(Math.max(0, ...VALUES));
 
-// The two other rankings, read from the caveat string (no numeric field).
-const grab = (name) => Number(new RegExp(`${name} (-?[\\d.]+)%`).exec(DEC.bottom_decile_caveat)?.[1] ?? NaN);
+// Decile 1 under the two other rankings (decile_ranking_sensitivity.csv).
+const grab = (name) => D.rankings.find((r) => r.id === name)?.values[0] ?? NaN;
 export const RANK_PRE_PENSION = grab('pre_pension');
 export const RANK_EXCL_PPC = grab('hbai_excl_large_ppc');
 
@@ -57,15 +57,7 @@ function usePhone() {
   return phone;
 }
 
-// Which deciles each step brings forward (1-based).
-const FOCUS = [
-  [2, 3, 4, 5, 6, 7, 8, 9],
-  [10],
-  [1],
-];
-
-function Graphic(active, phone) {
-  const focus = FOCUS[active] ?? FOCUS[0];
+function Graphic(phone) {
   return (
     <figure className="p3-figure">
       <FigureHead title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" />
@@ -76,13 +68,11 @@ function Graphic(active, phone) {
           const fill = first ? 'p3-fill-muted' : v < 0 ? 'p3-fill-loss' : 'p3-fill-gain';
           const name = n === 1 ? '1 (bottom)' : n === 10 ? '10 (top)' : String(n);
           return (
-            <li key={n} className={`p3-row p3-dec${focus.includes(n) ? ' is-current' : ' is-dim'}${first ? ' is-caveat' : ''}`} data-decile={n}>
-              <span className="p3-row-label p3-dec-label">{name}</span>
-              {' '}
+            <li key={n} className={`p3-row p3-dec${first ? ' is-caveat' : ''}`} data-decile={n}>
+              <span className="p3-row-label p3-dec-label">{name}</span>{' '}
               <span className="p3-row-bar">
                 <DivBar value={v} lo={LO} hi={HI} on fill={fill} />
-              </span>
-              {' '}
+              </span>{' '}
               <span className="p3-row-value">{first ? <span className="p3-muted">see note</span> : fmtDecilePct(v)}</span>
               {first && !phone ? <BottomDecileCaveat /> : null}
             </li>
@@ -94,44 +84,32 @@ function Graphic(active, phone) {
   );
 }
 
-const KICKER = 'By income decile';
+// The decile with the largest fall (1-based), read from the data.
+const WORST = VALUES.indexOf(Math.min(...VALUES)) + 1;
 
 export default function Deciles() {
-  // On phones the caveat moves from the graphic into the last step card, so
-  // the sticky graphic stays short; it is rendered in one place only.
+  // On phones the caveat moves from the graphic into the card, so the
+  // sticky graphic stays short; it is rendered in one place only.
   const phone = usePhone();
   const steps = [
     {
-      id: 'p3-dec-middle',
-      kicker: KICKER,
-      title: 'Average income falls in deciles 2 to 9',
-      body: (
-        <p>
-          In the central case, household disposable income before housing costs falls in deciles 2 to 9 of the baseline income
-          distribution. The largest fall is in decile 8.
-        </p>
-      ),
-    },
-    {
-      id: 'p3-dec-top',
-      kicker: KICKER,
-      title: 'The top income decile',
-      body: <p>In the top income decile the change is small, and its confidence interval across draws includes zero.</p>,
-    },
-    {
-      id: 'p3-dec-bottom',
-      kicker: KICKER,
-      title: 'The bottom income decile',
+      id: 'p3-deciles-step',
+      kicker: '4 · Where the loss falls',
+      title: 'The largest falls are in the upper-middle deciles',
       body: (
         <>
           <p>
-            The bottom income decile shows a rise on this ranking, but the study does not treat it as a finding: some households with
-            large pension contributions sit in decile 1 and receive capital income, and the sign changes under other rankings.
+            Ranked by baseline income, the change is hump-shaped. Job losses concentrate in the upper-middle deciles, where the largest fall is in
+            decile {WORST}. At the top, higher capital income offsets the earnings lost, and the change is close to zero.
+          </p>
+          <p>
+            The bottom decile is not a finding: some households there make large pension contributions and receive capital income, and its sign
+            changes with how households are ranked.
           </p>
           {phone ? <BottomDecileCaveat /> : null}
         </>
       ),
     },
   ];
-  return <Scrolly id="p3-deciles" steps={steps} graphic={(active) => Graphic(active, phone)} label="Change in household disposable income by income decile" />;
+  return <Scrolly id="p3-deciles" steps={steps} graphic={() => Graphic(phone)} label="Change in household disposable income by income decile" />;
 }
