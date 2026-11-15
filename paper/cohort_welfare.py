@@ -624,8 +624,13 @@ def chargeback(closure: str, key, fill: str = "hold") -> dict:
             "no_bequest": to_lambda(sig, (A[:, 0] + A[:, 1] + dU - NR) / CR)}
 
 
+# A cell loses when lambda < -LOSS_TOL (per cent): identical paths give lambda of order
+# 1e-13, the smallest real gap among alive cohorts is about 2e-4.
+LOSS_TOL = 1e-9
+
+
 def losing_pct(par: dict, lam: np.ndarray) -> float:
-    return float(alive_weights(par) @ (lam < 0) @ group_weights(par)) * 100
+    return float(alive_weights(par) @ (lam < -LOSS_TOL) @ group_weights(par)) * 100
 
 
 def all_lose_up_to_age(par: dict, lam: np.ndarray):
@@ -635,7 +640,7 @@ def all_lose_up_to_age(par: dict, lam: np.ndarray):
     aw = alive_weights(par)
     by_age = {SHOCK_YEAR - int(x): row for x, row, w in zip(b, lam, aw) if w > 0}
     a = FIRST_AGE - 1
-    while a + 1 in by_age and (by_age[a + 1] < 0).all():
+    while a + 1 in by_age and (by_age[a + 1] < -LOSS_TOL).all():
         a += 1
     return a if a >= FIRST_AGE else None
 
@@ -644,7 +649,7 @@ def oldest_losing_on_average(par: dict, lam: np.ndarray):
     """Oldest age in 2028 whose all-groups mean is negative (None if none)."""
     b = birth_years(par)
     aw = alive_weights(par)
-    m = (aw > 0) & ((lam @ group_weights(par)) < 0)
+    m = (aw > 0) & ((lam @ group_weights(par)) < -LOSS_TOL)
     return int((SHOCK_YEAR - b[m]).max()) if m.any() else None
 
 
@@ -681,20 +686,46 @@ def robustness(closure: str) -> dict:
 #
 # ``<scenario>_share_shift_tfp_ramp_dnfull`` (zk0.1 only): transfers hold debt/GDP on the
 # no-shock restart's path every year to the horizon and G stays at alpha_G * Y, so
-# households bear the post-2035 fiscal cost through transfers.  It is compared here with
-# the same continuation as every other run.  That continuation runs OG-UK's debt rule
-# from 2036 (G/Y leaves alpha_G), so the gap also moves the no-shock path's own
-# consolidation from government consumption to transfers.  ``dnfull_comparable`` says
-# whether the reference keeps G at alpha_G after 2035; the paper quotes the solve only
-# when it does.
+# households bear the post-2035 fiscal cost through transfers.  Measured against the
+# usual continuation, the gap also moves the no-shock path's own consolidation from
+# government consumption (the debt rule from 2036, G/Y leaves alpha_G) to transfers,
+# so it does not price the shock alone.
+#
+# The like-for-like reference is a matched no-shock run, ``DNFULL_REF_LABEL``: the
+# continuation re-solved under the dnfull rule (no shock, G = alpha_G * Y, TR holding the
+# continuation's own debt/GDP to T-1).  Contract with the runs side: a record under that
+# label in ``sp.load(OUTDIR, closure)`` and ``cohorts/<closure>/<label>.npz`` from
+# ``export_cohorts.py``.  ``dnfull_ready`` is True only when that run is in and passes
+# ``_matched_ref`` 's checks; the paper quotes the solve only then.
 
 DNFULL_LABEL = f"{SCENARIO}_share_shift_tfp_ramp_dnfull"
+DNFULL_REF_LABEL = "continuation_dnfull"
 DNFULL_G_SHARE_TOL = 1e-6
+DNFULL_DY_TOL = 1e-4             # sp.DN_TOL: relative |D/Y - continuation's D/Y|
+REFERENCES = ("continuation", "matched")
 
 
 def dnfull_available(closure: str) -> bool:
     return ((COHORTS / closure / f"{DNFULL_LABEL}.npz").is_file()
             and DNFULL_LABEL in records(closure)[0])
+
+
+def dnfull_ref_available(closure: str) -> bool:
+    return ((COHORTS / closure / f"{DNFULL_REF_LABEL}.npz").is_file()
+            and DNFULL_REF_LABEL in records(closure)[0])
+
+
+def _npz(closure: str, label: str) -> dict:
+    f = COHORTS / closure / f"{label}.npz"
+    return {k: np.asarray(v, dtype=float) for k, v in np.load(f).items()}
+
+
+def _same_start(closure: str, name: str, d: dict, ref: dict) -> None:
+    for k in ("c", "n", "b_s", "b_sp1", "bq", "tr"):
+        if not np.array_equal(d[k][:T0], ref[k][:T0]):
+            raise WelfareError(f"{closure} {name}: {k} differs from the continuation in 2026-27")
+    if not np.array_equal(d["b_s"][T0], ref["b_s"][T0]):
+        raise WelfareError(f"{closure} {name}: 2028 starting wealth differs from the continuation")
 
 
 @lru_cache(maxsize=None)
@@ -703,54 +734,109 @@ def _dnfull_run(closure: str) -> dict:
     rec = records(closure)[0].get(DNFULL_LABEL)
     if rec is None or not (rec.get("dn_check") or {}).get("ok"):
         raise WelfareError(f"{closure}: {DNFULL_LABEL} missing or fails its debt-neutral check")
-    f = COHORTS / closure / f"{DNFULL_LABEL}.npz"
-    d = {k: np.asarray(v, dtype=float) for k, v in np.load(f).items()}
-    ref = runs[None]
-    for k in ("c", "n", "b_s", "b_sp1", "bq", "tr"):
-        if not np.array_equal(d[k][:T0], ref[k][:T0]):
-            raise WelfareError(f"{closure} dnfull: {k} differs from the continuation in 2026-27")
-    if not np.array_equal(d["b_s"][T0], ref["b_s"][T0]):
-        raise WelfareError(f"{closure} dnfull: 2028 starting wealth differs from the continuation")
+    d = _npz(closure, DNFULL_LABEL)
+    _same_start(closure, "dnfull", d, runs[None])
     return d
 
 
-def dnfull_fiscal(closure: str) -> dict:
+def _g_share(rec: dict) -> list:
+    r = rec["series_run"]
+    return [g / y for g, y in zip(r["G"], r["Y"])]
+
+
+@lru_cache(maxsize=None)
+def _matched_ref(closure: str) -> dict:
+    """The matched no-shock reference's npz, after checking that it is the continuation
+    under the dnfull rule: no shock, the dnfull run's alpha_G, G/Y at alpha_G in every
+    record year, debt/GDP on the continuation's path, debt-neutral check passed, and
+    2026-27 and 2028 starting wealth identical to the continuation."""
+    par, runs = load(closure)
+    done, _ = records(closure)
+    rec, run, cont = done.get(DNFULL_REF_LABEL), done.get(DNFULL_LABEL), _ref_record(closure)
+    if rec is None or run is None:
+        raise WelfareError(f"{closure}: {DNFULL_REF_LABEL} or {DNFULL_LABEL} record missing")
+    sp_ = rec.get("spec") or {}
+    why = []
+    if sp_.get("Z") is not None:
+        why.append("it is a shocked run")
+    if sp_.get("variant") != "dnfull":
+        why.append(f"its variant is {sp_.get('variant')!r}, not 'dnfull'")
+    if sp_.get("alpha_G") != run["spec"]["alpha_G"]:
+        why.append("its alpha_G differs from the dnfull run's")
+    if not (rec.get("dn_check") or {}).get("ok"):
+        why.append("it fails its debt-neutral check")
+    alpha = float(run["spec"]["alpha_G"])
+    if max(abs(x - alpha) for x in _g_share(rec)) > DNFULL_G_SHARE_TOL:
+        why.append("its G/Y leaves alpha_G")
+    if rec["series_run_years"] != cont["series_run_years"]:
+        why.append("its record years differ from the continuation's")
+    else:
+        dy = lambda r: np.asarray(r["series_run"]["D"]) / np.asarray(r["series_run"]["Y"])
+        if np.abs(dy(rec)[1:] / dy(cont)[1:] - 1).max() > DNFULL_DY_TOL:
+            why.append("its debt/GDP leaves the continuation's path")
+    if why:
+        raise WelfareError(f"{closure} {DNFULL_REF_LABEL} is not the matched reference: "
+                           + "; ".join(why))
+    d = _npz(closure, DNFULL_REF_LABEL)
+    _same_start(closure, DNFULL_REF_LABEL, d, runs[None])
+    return d
+
+
+def _reference(closure: str, reference: str) -> tuple:
+    """(record, household paths) of the reference the dnfull run is measured against."""
+    if reference not in REFERENCES:
+        raise WelfareError(f"unknown dnfull reference {reference!r}")
+    if reference == "continuation":
+        return _ref_record(closure), load(closure)[1][None]
+    return records(closure)[0][DNFULL_REF_LABEL], _matched_ref(closure)
+
+
+def dnfull_fiscal(closure: str, reference: str = "continuation") -> dict:
     """G/Y and TR/Y of the reference and of the dnfull run, 2028..last record year and the
     steady state, plus the household-aggregate transfer gap as a share of the reference's
     aggregate consumption in every exported year from 2036."""
-    par, runs = load(closure)
+    par, _ = load(closure)
     done, _ = records(closure)
-    ref, rec = _ref_record(closure), done[DNFULL_LABEL]
+    ref, r0 = _reference(closure, reference)
+    rec = done[DNFULL_LABEL]
     alpha = float(rec["spec"]["alpha_G"])
     sh = lambda r, v: [r["series_run"][v][i] / r["series_run"]["Y"][i]
                        for i in range(len(r["series_run_years"]))]
     ref_g, run_g = sh(ref, "G"), sh(rec, "G")
     gw = group_weights(par)
-    d, r0 = _dnfull_run(closure), runs[None]
+    d = _dnfull_run(closure)
     agg = lambda x, t, k: float((par["omega"][t][:, None] * gw[None, :] * x[k][t]).sum())
     tr_c = {START_YEAR + t: (agg(d, t, "tr") - agg(r0, t, "tr")) / agg(r0, t, "c") * 100
             for t in range(DEBT_RULE - START_YEAR, T_USE)}
     years = ref["series_run_years"]
-    return {"alpha_G": alpha, "years": years,
+    return {"reference": reference, "alpha_G": alpha, "years": years,
             "ref_g_share": ref_g, "run_g_share": run_g,
             "ref_tr_share": sh(ref, "TR"), "run_tr_share": sh(rec, "TR"),
-            "ref_ss_g_share": ref["ss"]["G"] / ref["ss"]["Y"],
+            "ref_ss_g_share": ref["ss"]["G"] / ref["ss"]["Y"] if "ss" in ref else None,
             "ref_g_share_max_dev_from_rule_year": max(abs(x - alpha) for y, x in zip(years, ref_g)
                                                       if y >= DEBT_RULE),
             "tr_gap_pct_c": tr_c}
 
 
-def dnfull_comparable(closure: str) -> bool:
+def dnfull_comparable(closure: str, reference: str = "continuation") -> bool:
     """True only when the reference also keeps G at alpha_G * Y after 2035."""
-    return dnfull_fiscal(closure)["ref_g_share_max_dev_from_rule_year"] <= DNFULL_G_SHARE_TOL
+    return dnfull_fiscal(closure, reference)["ref_g_share_max_dev_from_rule_year"] <= DNFULL_G_SHARE_TOL
 
 
-def dnfull_measures(closure: str) -> dict:
+def dnfull_ready(closure: str) -> bool:
+    """The solve can replace the first-order charge-back: the dnfull run and the matched
+    reference are both in and the reference passes its checks (else WelfareError)."""
+    return (dnfull_available(closure) and dnfull_ref_available(closure)
+            and dnfull_comparable(closure, "matched"))
+
+
+def dnfull_measures(closure: str, reference: str = "continuation") -> dict:
     """The charge-back's measures computed directly from the dnfull solve, for both fills:
     {fill: {joint_avg, joint_losing_pct, no_bequest_avg, no_bequest_losing_pct,
     oldest_losing_on_average, all_lose_up_to_age, by_age: {age: (joint, no_bequest)}}},
-    adults alive in 2028, against the continuation."""
-    par, runs = load(closure)
+    adults alive in 2028, against ``reference`` ("continuation" or "matched")."""
+    par, _ = load(closure)
+    _, r0 = _reference(closure, reference)
     d = _dnfull_run(closure)
     horizon = par["chi_n"].shape[0]
     sig = float(par["sigma"])
@@ -758,7 +844,7 @@ def dnfull_measures(closure: str) -> dict:
     age = SHOCK_YEAR - birth_years(par)
     out = {}
     for fill in FILL_PATHS:
-        R = lifetime(par, flows(par, extend(runs[None], fill, horizon), horizon))
+        R = lifetime(par, flows(par, extend(r0, fill, horizon), horizon))
         A = lifetime(par, flows(par, extend(d, fill, horizon), horizon))
         CR, NR, QR = R[:, 0], R[:, 1], R[:, 2]
         J = to_lambda(sig, (A.sum(axis=1) - NR) / (CR + QR))
@@ -888,6 +974,15 @@ if __name__ == "__main__":
             for f, m in dnfull_measures(cl).items():
                 print(cl, "dnfull", f, {k: (round(x, 3) if isinstance(x, float) else x)
                                          for k, x in m.items() if k != "by_age"})
+            if dnfull_ref_available(cl):
+                print(cl, "dnfull: matched no-shock reference", DNFULL_REF_LABEL,
+                      "ready:", dnfull_ready(cl))
+                for f, m in dnfull_measures(cl, "matched").items():
+                    print(cl, "dnfull vs matched", f,
+                          {k: (round(x, 3) if isinstance(x, float) else x)
+                           for k, x in m.items() if k != "by_age"})
+            else:
+                print(cl, "dnfull: matched no-shock reference", DNFULL_REF_LABEL, "not in yet")
             print(cl, "first-order charge-back [low, high]:",
                   {k: [round(x, 3) for x in rb[k]] for k in
                    ("joint_avg", "joint_losing_pct", "no_bequest_avg", "no_bequest_losing_pct")})

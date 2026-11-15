@@ -586,6 +586,49 @@ def cohort_results() -> dict:
     return out
 
 
+# The \pending in the incidence section that the dnfull solve replaces; the claim check
+# fails once the matched no-shock reference is in and this text is still there.
+INCIDENCE_TEX = ROOT / "paper" / "sections" / "incidence.tex"
+DNFULL_PENDING = "a no-shock path with transfers, not government consumption"
+
+
+def emit_dnfull(v: Values) -> None:
+    """The debt-neutral-to-the-horizon solve against the matched no-shock reference
+    (UK central, main arm, zeta_K = 0.1), both fills as a range.  Pending until
+    cohort_welfare.dnfull_ready: against the usual continuation it is not like-for-like."""
+    pre = "CohMainDnfullCentral"
+    cols = (("joint_avg", "Avg", None), ("no_bequest_avg", "NoBeqAvg", None),
+            ("joint_losing_pct", "LosingPct", "{:.0f}"),
+            ("no_bequest_losing_pct", "NoBeqLosingPct", "{:.0f}"),
+            ("oldest_losing_on_average", "OldestLosingAge", "{:.0f}"))
+    if not cwf.dnfull_ready("zk0.1"):
+        for _, kw, fmt in cols:
+            for lh in ("Lo", "Hi"):
+                if fmt is None:
+                    v.signed(f"{pre}{kw}{lh}", None)
+                else:
+                    v.put(f"{pre}{kw}{lh}", PE)
+            v.put(f"{pre}{kw}Range", PE)
+        return
+    m = cwf.dnfull_measures("zk0.1", "matched")
+    for k, kw, fmt in cols:
+        xs = [m[f][k] for f in cwf.FILL_PATHS]
+        if k == "oldest_losing_on_average" and all(x is None for x in xs):
+            for lh in ("Lo", "Hi", "Range"):
+                v.put(f"{pre}{kw}{lh}", "none")      # no age loses on average
+            continue
+        if any(x is None for x in xs):
+            raise ResultsError(f"dnfull vs matched reference: no {k} in some fill")
+        lo, hi = min(xs), max(xs)
+        for x, lh in ((lo, "Lo"), (hi, "Hi")):
+            if fmt is None:
+                v.signed(f"{pre}{kw}{lh}", x)
+            else:
+                v.put(f"{pre}{kw}{lh}", x, fmt)
+        a, b = v[f"{pre}{kw}Lo"], v[f"{pre}{kw}Hi"]
+        v.put(f"{pre}{kw}Range", a if a == b else (f"{a} to {b}" if fmt is None else f"{a}--{b}"))
+
+
 def emit_cohorts(v: Values, CR: dict) -> None:
     for cl, (cw, _) in CLOSURES.items():
         X = CR[cl]
@@ -1136,6 +1179,11 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
     if cwf.dnfull_available("zk0.1") and cwf.dnfull_comparable("zk0.1"):
         fail.append("'the debt-neutral-to-the-horizon solve also moves the no-shock path's "
                     "consolidation onto transfers' no longer holds: quote the solve")
+    # ... and once the matched no-shock reference is in, the \pending has to go: the
+    # sentence commented out under it quotes the \genCohMainDnfullCentral* macros
+    if cwf.dnfull_ready("zk0.1") and DNFULL_PENDING in INCIDENCE_TEX.read_text():
+        fail.append("the matched no-shock reference for the dnfull solve is in: replace the "
+                    "\\pending in the incidence section with the sentence commented under it")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
@@ -1146,6 +1194,7 @@ def build() -> tuple[Values, list[str]]:
     check_claims(R, v)
     CR = cohort_results()
     emit_cohorts(v, CR)
+    emit_dnfull(v)
     check_cohort_claims(R, CR, v)
     sources = [f"baseline  {BASELINE_FILE.relative_to(ROOT)} (calibration, OBR comparison)"]
     for cl in CLOSURES:
