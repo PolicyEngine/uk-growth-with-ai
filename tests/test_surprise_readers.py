@@ -42,9 +42,43 @@ def test_context_of_a_legacy_file_is_unchanged():
 
 # --- check ------------------------------------------------------------------------
 
-@pytest.mark.parametrize("path", [SUR, SUR_FS, SUR_K])
-def test_committed_surprise_files_pass(path):
-    assert cli.main(["check", "--results", str(path)]) == 0
+ALL_SURPRISE = sorted(DATA.glob("scenarios_surprise2028_*.json"))
+# Known failures, on results not format (docs/surprise_2028.md): the 2028 investment
+# surge at zeta_K 0.5 is financed from abroad, so Y - C - I - G breaks the +-6%
+# bound (and I/Y the 35% band for korinek).  Pinned so a change either way shows.
+KNOWN_CHECK_FAILURES = {"scenarios_surprise2028_korinek_zk0.5.json",
+                        "scenarios_surprise2028_uk_high_zk0.5.json"}
+
+
+def test_all_twenty_surprise_files_are_tested():
+    assert len(ALL_SURPRISE) == 20
+    assert KNOWN_CHECK_FAILURES <= {p.name for p in ALL_SURPRISE}
+
+
+@pytest.mark.parametrize("path", ALL_SURPRISE, ids=lambda p: p.stem)
+def test_committed_surprise_files_check(path):
+    want = 1 if path.name in KNOWN_CHECK_FAILURES else 0
+    assert cli.main(["check", "--results", str(path)]) == want
+
+
+@pytest.mark.parametrize("path", ALL_SURPRISE, ids=lambda p: p.stem)
+def test_committed_surprise_files_report(path, capsys):
+    assert cli.main(["report", "--results", str(path)]) in (0, None)
+    assert "AI vs CONTINUATION" in capsys.readouterr().out
+
+
+def test_known_zk05_failures_are_the_external_balance(capsys):
+    cli.main(["check", "--results", str(DATA / "scenarios_surprise2028_uk_high_zk0.5.json")])
+    lines = capsys.readouterr().out.splitlines()
+    fails = [i for i, x in enumerate(lines) if "[FAIL]" in x]
+    assert len(fails) == 1 and "share_shift_tfp_ramp: 2027 +0.19, 2028 -9.19" in lines[fails[0]]
+    head = next(x for x in reversed(lines[:fails[0]]) if not x.startswith("  ["))
+    assert head.startswith("National accounts: X = Y - C - I - G")
+
+
+def test_legacy_check_header_year_is_unchanged(capsys):
+    cli.main(["check", "--results", str(LEGACY)])
+    assert "#3  No fiscal-rule break in 2030 (baseline)" in capsys.readouterr().out
 
 
 def test_window_and_years_are_not_arms(capsys):
@@ -149,3 +183,15 @@ def test_report_prints_korinek_for_the_korinek_scenario(capsys):
 def test_legacy_report_is_unchanged():
     s = report.summary("share_shift_tfp_ramp")
     assert s["headline_year"] == 2030 and s["gdp_gap_2030_pct"] == s["gdp_gap_headline_pct"]
+
+
+def test_legacy_report_korinek_title_is_unchanged(capsys):
+    cli.main(["report", "--results", str(LEGACY)])
+    assert "AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030)\n" in capsys.readouterr().out
+
+
+def test_trend_params_without_any_arm_is_a_clear_error():
+    res = _load(SUR)
+    res["arms_requested"] = []
+    with pytest.raises(ValueError, match="population growth"):
+        report.trend_params(res, arm_name=None)

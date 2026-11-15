@@ -9,7 +9,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -85,7 +85,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -160,7 +160,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -232,7 +232,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -259,7 +259,7 @@ Fiscal closure recorded by the arms
   [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
 
 #2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
-  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (2.3e-05)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (5.1e-06)
   [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.32e-06
   [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.32e-06
 
@@ -308,7 +308,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -335,7 +335,7 @@ Fiscal closure recorded by the arms
   [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
 
 #2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
-  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (8.2e-06)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (1.2e-06)
   [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.24e-06
   [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.24e-06
 
@@ -381,7 +381,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
   [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
@@ -458,7 +458,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -530,7 +530,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -602,7 +602,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -674,7 +674,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -746,7 +746,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -773,7 +773,7 @@ Fiscal closure recorded by the arms
   [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
 
 #2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
-  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (2.3e-05)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (5.1e-06)
   [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.32e-06
   [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.32e-06
 
@@ -819,7 +819,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -846,7 +846,7 @@ Fiscal closure recorded by the arms
   [PASS] assumptions.fiscal_variant ('fs') agrees with the arms' baseline_spending = True
 
 #2  Common fiscal policy: G LEVELS identical across arms (fixed-spending closure)
-  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (8.2e-06)
+  [INFO] reference = the continuation; arms hold the committed baseline's G, so after 2027 the tolerance is the continuation's recorded distance from the baseline (1.2e-06)
   [PASS] share_shift_tfp_ramp: max |G / baseline G - 1| = 1.24e-06
   [PASS] share_shift_ramp: max |G / baseline G - 1| = 1.24e-06
 
@@ -892,7 +892,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
   [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
@@ -969,7 +969,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -1041,7 +1041,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -1114,7 +1114,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
   [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
@@ -1191,7 +1191,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -1263,7 +1263,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.29867313068597584
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.11%, 2030->31 -0.22% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True
@@ -1335,7 +1335,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.28939537332074466
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.12%, 2030->31 -0.14% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.35%, 2030->31 -0.38% (detrended; a jump over 1pp means the rule still bites)
   [INFO] capital-account closure: zeta_K = 0.5, zeta_D = 0.4, world_int_rate_annual = 0.02, initial_foreign_debt_ratio = 0.0904, initial_debt_ratio = 0.95
@@ -1409,7 +1409,7 @@ Arms present, requested and completed
 Baseline settings
   [INFO] tG1 = 10, g_y_annual = 0.01, alpha_G = 0.30191104915303846
 
-#3  No fiscal-rule break in 2030 (baseline)
+#3  No fiscal-rule break in 2031 (baseline)
   [PASS] G: 2029->30 -0.20%, 2030->31 -0.21% (detrended; a jump over 1pp means the rule still bites)
   [PASS] I: 2029->30 -0.04%, 2030->31 -0.18% (detrended; a jump over 1pp means the rule still bites)
   [INFO] demographics: pre-TP UK-consistent = True, 2027->28 splice repaired = True

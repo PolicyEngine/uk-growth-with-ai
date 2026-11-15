@@ -166,7 +166,7 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
     if k_ == "continuation":
         ref = {**base_ext, "reference": "baseline"}
     else:
-        ref = sp.reference_ext(outdir, closure, base_ext)
+        ref = sp.reference_ext(outdir, closure, base_ext, label=label)
     s, b = rec["series"], ref["series"]
     n = len(s["Y"])
     res = []
@@ -257,7 +257,8 @@ def check(closure, label, outdir=OUTDIR, year=sp.SURPRISE_YEAR) -> dict:
         e = max(rel(G[i], Gb[i]) for i in range(i28, START + sp.TG1 - START))
         add("fixed spending: G at the baseline level 2028-35", e <= ID_TOL, e)
     if var in ("dn", "dnfull"):
-        c = rec.get("dn_check") or sp.dn_check(rec, ref, year)
+        # the D/Y target is the continuation's for both variants (not reference_for)
+        c = rec.get("dn_check") or sp.dn_check(rec, sp.reference_ext(outdir, closure, base_ext), year)
         add("debt-neutral: D/Y tracks the reference 2029-36", c["ok"], c)
 
     # 6. the 2028 jump

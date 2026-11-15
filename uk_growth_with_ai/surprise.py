@@ -40,6 +40,7 @@ so at zeta_K = 0.1 the capital stock moves on impact in 2028.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import math
 import os
@@ -693,9 +694,20 @@ def read_gate(outdir, closure) -> dict | None:
     return g if g.get("approved") is True else None
 
 
-def reference_ext(outdir, closure, base_ext=None) -> dict:
+def reference_for(label: str | None) -> str:
+    """The no-shock solve an arm's gaps are measured against: continuation_dnfull
+    for a _dnfull arm (the like-for-like path under the same fiscal rule), else
+    the continuation.  Gap measurement only: a debt-neutral arm's D/Y target is
+    always the continuation's."""
+    if label is not None and parse_label(label)["variant"] == "dnfull":
+        return CONT_DNFULL
+    return "continuation"
+
+
+def reference_ext(outdir, closure, base_ext=None, label=None) -> dict:
     """The path gaps are measured against: the baseline or the continuation,
-    as fixed by the gate.  Same shape as baseline_ext."""
+    as fixed by the gate (for a _dnfull ``label``, continuation_dnfull; see
+    reference_for).  Same shape as baseline_ext."""
     base_ext = base_ext or load_base_ext(outdir, closure)
     g = read_gate(outdir, closure)
     if g is None:
@@ -703,8 +715,12 @@ def reference_ext(outdir, closure, base_ext=None) -> dict:
                            f"({Path(outdir) / closure / (GATE + '.json')})")
     if g["reference"] == "baseline":
         return {**base_ext, "reference": "baseline"}
-    cont = load(outdir, closure)["continuation"]
-    return {**base_ext, "series": cont["series"], "reference": "continuation"}
+    ref = reference_for(label)
+    done = load(outdir, closure)
+    if ref not in done:
+        raise RuntimeError(f"{closure}: {label} is measured against {ref}, which is not "
+                           f"solved (run --stage {ref})")
+    return {**base_ext, "series": done[ref]["series"], "reference": ref}
 
 
 def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR, scenario="korinek"):
@@ -804,6 +820,10 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
     if stage == "continuation_dnfull":
         if CONT_DNFULL in done:
             return None
+        # its dn_check reads the gated reference after the solve: fail before it
+        if read_gate(outdir, closure) is None:
+            raise RuntimeError(f"{closure}: the continuation gate is not approved "
+                               f"({Path(outdir) / closure / (GATE + '.json')})")
         return {"label": CONT_DNFULL, "arm": "continuation", "gamma": G_BASE, "Z": None,
                 "baseline_spending": False, "variant": "dnfull", "scenario": None,
                 "why": "no-shock path under the dnfull rule: G at alpha_G Y, TR holding "
@@ -943,6 +963,70 @@ def check_specs(work, rerun_dir="analysis/rerun/output", closure="zk0.1",
     return rep
 
 
+
+# --- pieces of run_step that need no OG-Core (tested on their own) --------------------
+
+def resolve_ss_guess(env: str | None, label: str, work, closure,
+                     year=SURPRISE_YEAR) -> dict | None:
+    """The opt-in SS initial guess for one solve, from ``UGAI_SS_GUESS``.
+
+    The value is ``<target label>=<donor>[,<target label>=<donor>...]``; the donor
+    is a label in the same closure (its SS_vars.pkl under ``work``) or a .pkl path.
+    Only a solve whose label is a target gets a guess, so one exported value can't
+    leak into the other items of a run_locked.sh call.  Returns None for any other
+    label; the record keeps the donor relative to ``work`` and its sha256."""
+    if not env:
+        return None
+    pairs = {}
+    for item in env.split(","):
+        if "=" not in item:
+            raise ValueError(f"UGAI_SS_GUESS={env!r}: expected <target label>=<donor> "
+                             "(comma-separated for more than one target)")
+        tgt, donor = (x.strip() for x in item.split("=", 1))
+        pairs[tgt] = donor
+    if label not in pairs:
+        return None
+    d = pairs[label]
+    root = Path(work)
+    path = Path(d) if d.endswith(".pkl") else (root / f"surprise{year}" / closure / d
+                                               / "SS" / "SS_vars.pkl")
+    if not path.exists():
+        raise RuntimeError(f"UGAI_SS_GUESS: {path} missing")
+    try:
+        rel = str(path.resolve().relative_to(root.resolve()))
+    except ValueError:
+        rel = str(path)
+    return {"target": label, "donor": rel, "donor_root": "work dir", "path": str(path),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+def dnfull_target(ct: dict, cont_rec: dict, k: int, tol=1e-12) -> list:
+    """Debt/GDP by run period from the continuation's TPI pickle ``ct``, after
+    checking it against the committed continuation.json over the years both
+    cover (so a stale pickle can't set the target)."""
+    dy = np.asarray(ct["D"], float) / np.asarray(ct["Y"], float)
+    s = cont_rec["series"]
+    js = np.asarray(s["D"], float)[k:] / np.asarray(s["Y"], float)[k:]
+    m = min(len(js), len(dy))
+    err = float(np.abs(dy[:m] / js[:m] - 1).max())
+    if err > tol:
+        raise RuntimeError(f"continuation TPI pickle D/Y differs from continuation.json "
+                           f"by {err:.2e} (tol {tol:g}): stale pickle?")
+    return dy.tolist()
+
+
+def dnfull_check(D, Y, G, target_dy, alpha_G, year=SURPRISE_YEAR) -> dict:
+    """D/Y against the target for run periods 1..n (n = len(target) - 1 = T-1,
+    the end of the TR horizon) and |G/Y - alpha_G| for periods 0..n-1."""
+    D, Y, G = (np.asarray(x, float) for x in (D, Y, G))
+    n = len(target_dy) - 1
+    err = D[1:n + 1] / Y[1:n + 1] / np.asarray(target_dy[1:n + 1], float) - 1
+    gerr = np.abs(G[:n] / Y[:n] - alpha_G)
+    return {"periods": [year + 1, year + n], "max_abs_rel": float(np.abs(err).max()),
+            "g_share_max_abs_dev": float(gerr.max()), "tol": DN_TOL,
+            "ok": bool(np.abs(err).max() <= DN_TOL and gerr.max() <= DNFULL_G_TOL)}
+
+
 # --- one solve ---------------------------------------------------------------------
 
 def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
@@ -978,24 +1062,21 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
             import pickle
             cdir = Path(work) / f"surprise{year}" / closure / "continuation"
             ct = pickle.load(open(cdir / "TPI" / "TPI_vars.pkl", "rb"))
-            dy = (np.asarray(ct["D"], float) / np.asarray(ct["Y"], float)).tolist()
+            dy = dnfull_target(ct, load(outdir, closure)["continuation"], k)
             dn = {"target_dy": dy, "D0": state["D0"], "full": True}
-        # opt-in: UGAI_SS_GUESS=<label in this closure> or an SS_vars.pkl path starts
-        # the SS root finder from that solve's steady state (docs/surprise_2028.md)
-        g = os.environ.get("UGAI_SS_GUESS")
-        ss_guess = None
-        if g:
-            ss_guess = (g if g.endswith(".pkl") else
-                        str(Path(work) / f"surprise{year}" / closure / g / "SS" / "SS_vars.pkl"))
-            if not Path(ss_guess).exists():
-                raise RuntimeError(f"UGAI_SS_GUESS: {ss_guess} missing")
+        # opt-in: UGAI_SS_GUESS=<target label>=<donor> starts this solve's SS root
+        # finder from the donor's steady state (docs/surprise_2028.md)
+        guess = resolve_ss_guess(os.environ.get("UGAI_SS_GUESS"), spec["label"], work,
+                                 closure, year)
+        ss_guess = guess["path"] if guess else None
         rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
                       spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
                       out_dir=str(adir), baseline_spending=spec["baseline_spending"],
                       surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
                       ss_guess=ss_guess, **settings)
-        if ss_guess:
-            rec["ss_guess"] = {"donor": ss_guess, "keys": list(SS_GUESS_KEYS)}
+        if guess:
+            rec["ss_guess"] = {**{x: guess[x] for x in ("donor", "donor_root", "sha256")},
+                               "keys": list(SS_GUESS_KEYS)}
     finally:
         client.close()
     base_ext = load_base_ext(outdir, closure)
@@ -1010,14 +1091,8 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
     if spec.get("variant") == "dnfull":
         import pickle
         rt = pickle.load(open(adir / "TPI" / "TPI_vars.pkl", "rb"))
-        Y, D, G = (np.asarray(rt[v], float) for v in ("Y", "D", "G"))
-        n = len(dn["target_dy"]) - 1
-        err = D[1:n] / Y[1:n] / np.asarray(dn["target_dy"][1:n]) - 1
-        gerr = np.abs(G[:n] / Y[:n] - spec["alpha_G"])
-        rec["dn_check_full"] = {
-            "periods": [year + 1, year + n - 1], "max_abs_rel": float(np.abs(err).max()),
-            "g_share_max_abs_dev": float(gerr.max()), "tol": DN_TOL,
-            "ok": bool(np.abs(err).max() <= DN_TOL and gerr.max() <= DNFULL_G_TOL)}
+        rec["dn_check_full"] = dnfull_check(rt["D"], rt["Y"], rt["G"], dn["target_dy"],
+                                            spec["alpha_G"], year)
         rec["dn_check"] = {**dn_check(rec, reference_ext(outdir, closure), year),
                            "full_horizon": rec["dn_check_full"]}
         rec["dn_check"]["ok"] = rec["dn_check"]["ok"] and rec["dn_check_full"]["ok"]
@@ -1055,7 +1130,7 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
     cont = done.get("continuation")
     fs = _variant(fs)
     k = _keys(fs, scenario)
-    ref = reference_ext(outdir, closure, base_ext)
+    ref = reference_ext(outdir, closure, base_ext, label=k["tfp"])
     reference = ref["reference"]
     tfp, ss = done.get(k["tfp"]), accepted_r4(done, ref, fs, year, scenario)
     if fs == "dn":

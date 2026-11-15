@@ -25,8 +25,10 @@ this script refuses it unless its omega, g_n, rho, imm_rates and pre-period
 hashes equal the accepted baseline's recorded ones.  Its demographics are on
 the calendar from 2026, matching the spliced arrays.
 
-Default labels: per closure, the continuation and the UK central arms under
-the common rule and debt-neutral transfers (tfp, fixed-input Z, accepted R4).
+Default labels: per closure, the continuation, the UK central arms under
+the common rule and debt-neutral transfers, and the Korinek arms under
+debt-neutral transfers (tfp, fixed-input Z, accepted R4); plus the UK central
+_dnfull arm and continuation_dnfull where solved.
 """
 
 from __future__ import annotations
@@ -56,10 +58,10 @@ def default_labels(c):
     done = sp.load(OUTDIR, c)
     ref = sp.reference_ext(OUTDIR, c)
     out = ["continuation"] if "continuation" in done else []
-    for v in ("", "dn"):
-        k = sp._keys(v, "uk_central")
+    for scen, v in (("uk_central", ""), ("uk_central", "dn"), ("korinek", "dn")):
+        k = sp._keys(v, scen)
         out += [x for x in (k["tfp"], k["zfixed"]) if x in done]
-        r4 = sp.accepted_r4(done, ref, v, sp.SURPRISE_YEAR, "uk_central")
+        r4 = sp.accepted_r4(done, ref, v, sp.SURPRISE_YEAR, scen)
         if r4 is not None:
             out.append(r4["label"])
     full = sp._keys("dnfull", "uk_central")["tfp"]
