@@ -10,7 +10,7 @@ import { dateLong, tick } from './format.js';
 // the graphic is phone width; story-part1.css caps the width on desktop.
 
 export const W = 400;
-const M = { l: 38, r: 12, t: 14, b: 28 };
+const M = { l: 38, r: 20, t: 14, b: 28 };
 
 const SHORT = {
   'Office for National Statistics': 'ONS',

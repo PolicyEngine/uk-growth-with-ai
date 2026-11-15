@@ -3,8 +3,8 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import PartHead from './PartHead.jsx';
-import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE } from './part1/data.js';
-import { AiUseChart, ExposureTiles, GdpChart, LabourPanels, LabourShareChart, ProductivityChart } from './part1/charts.jsx';
+import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './part1/data.js';
+import { AiUseChart, ExposureTiles, GdpChart, GdpQuartersChart, LabourPanels, LabourShareChart, PayChart, ProductivityChart } from './part1/charts.jsx';
 import { SourceLine } from './part1/frame.jsx';
 import { idx1, pct1, share0 } from './part1/format.js';
 
@@ -12,7 +12,10 @@ import { idx1, pct1, share0 } from './part1/format.js';
 // official published data only (ukContext.json); no forecasts or modelling
 // of ours, and the one forecast shown is the OBR's. Part 1 is the home of
 // these statistics: each figure is printed once, in a step card, and the
-// graphics carry no value labels (axis ticks are marked data-axis).
+// graphics carry no value labels (axis ticks are marked data-axis). Every
+// printed figure has an entry in ukContextChecks.json, read there from the
+// primary file. Calendar-year series stop at the last full year; the
+// current year appears only as quarters or months, labelled as such.
 // Under reduced motion story.css shows every line at once, so the stateful
 // graphics are given their last state there, keeping legends and labels in
 // step with what is drawn.
@@ -22,6 +25,9 @@ const last = (a) => a[a.length - 1];
 
 function outputSteps() {
   const g = F.gdp_growth_latest;
+  const gs = SERIES.gdp_growth;
+  const low = gs.x[gs.y.indexOf(Math.min(...gs.y))];
+  const high = gs.x[gs.y.indexOf(Math.max(...gs.y))];
   return [
     {
       id: 'p1-output-0',
@@ -29,8 +35,9 @@ function outputSteps() {
       title: 'How fast the economy has grown',
       body: (
         <p>
-          Real GDP, the volume of everything the UK produces, grew by <strong>{pct1(g.value)}</strong> in {g.period}, the latest calendar
-          year the ONS has published. Each bar is one year&rsquo;s growth; the latest years are open to revision.
+          Real GDP, the volume of everything the UK produces, grew by <strong>{pct1(g.value)}</strong> in {g.period}, the latest full
+          calendar year the ONS has published. Each bar is one year&rsquo;s growth; the latest years are open to revision. The fall in {low}{' '}
+          and the rebound in {high} came with the pandemic.
         </p>
       ),
     },
@@ -55,6 +62,26 @@ function outputSteps() {
   ];
 }
 
+function quarterSteps() {
+  const q = F.gdp_quarterly_latest;
+  const y = F.gdp_quarterly_yoy;
+  const year = q.period.slice(0, 4);
+  return [
+    {
+      id: 'p1-quarters-0',
+      kicker: 'Output',
+      title: `${year} so far`,
+      body: (
+        <p>
+          {year} is not yet complete, so it has no calendar-year figure. In {q.period}, the latest quarter, real GDP grew by{' '}
+          <strong>{pct1(q.value)}</strong> on the previous quarter and was <strong>{pct1(y.value)}</strong> larger than a year earlier. These
+          are the ONS&rsquo;s first estimates.
+        </p>
+      ),
+    },
+  ];
+}
+
 function productivitySteps() {
   const p = F.productivity_oph_latest;
   return [
@@ -64,8 +91,8 @@ function productivitySteps() {
       title: 'Output per hour worked',
       body: (
         <p>
-          Output per hour worked, the main measure of labour productivity, stood at <strong>{idx1(p.value)}</strong> in {p.period}, on an
-          index where 2023 = 100. The chart shows annual values; the latest reading is for a later quarter.
+          Output per hour worked, the main measure of labour productivity, stood at <strong>{idx1(p.value)}</strong> in {p.period}, the latest
+          quarter published, on an index where 2023 = 100.
         </p>
       ),
     },
@@ -82,8 +109,8 @@ function workSteps() {
       title: 'Employment',
       body: (
         <p>
-          The employment rate for people aged 16 to 64 was <strong>{pct1(e.value)}</strong> in {e.period}. The panels show annual values;
-          the latest readings are three-month averages.
+          The employment rate for people aged 16 to 64 was <strong>{pct1(e.value)}</strong> in {e.period}. Each point on the panels is a
+          three-month average.
         </p>
       ),
     },
@@ -106,6 +133,23 @@ function workSteps() {
   ];
 }
 
+function paySteps() {
+  const p = F.pay_growth_latest;
+  return [
+    {
+      id: 'p1-pay-0',
+      kicker: 'Work',
+      title: 'Pay',
+      body: (
+        <p>
+          Regular pay, which leaves out bonuses, was <strong>{pct1(p.value)}</strong> higher in {p.period} than a year earlier, before
+          adjusting for inflation. The figure comes from the ONS&rsquo;s survey of employers&rsquo; payrolls, not the Labour Force Survey.
+        </p>
+      ),
+    },
+  ];
+}
+
 function shareSteps() {
   const s = F.labour_share_latest;
   return [
@@ -116,8 +160,8 @@ function shareSteps() {
       body: (
         <p>
           Compensation of employees (wages, salaries and employers&rsquo; contributions) was <strong>{pct1(s.value)}</strong> of GDP in{' '}
-          {s.period}. It leaves out the income of the self-employed, so it is lower than measures of labour&rsquo;s share that count that
-          income.
+          {s.period}, the latest full year. It leaves out the income of the self-employed, so it is lower than measures of labour&rsquo;s
+          share that count that income.
         </p>
       ),
     },
@@ -151,8 +195,8 @@ function aiSteps() {
       title: 'Larger businesses',
       body: (
         <p>
-          Among businesses with 10 or more employees the share was <strong>{pct1(b.value)}</strong> in {b.period}. The ONS often leads with
-          this group, because results for the smallest businesses carry large survey weights.
+          Among businesses with 10 or more employees the share was <strong>{pct1(b.value)}</strong> in the same wave. The ONS often leads
+          with this group, because results for the smallest businesses carry large survey weights.
         </p>
       ),
     },
@@ -207,8 +251,10 @@ export default function Part1({ part }) {
         PolicyEngine; the one forecast shown is the OBR&rsquo;s own.
       </PartHead>
       <Scrolly id="p1-output" label={`Real GDP growth, ONS outturn, and the ${OBR_LABEL}`} steps={outputSteps()} graphic={(i, reduce) => <GdpChart state={reduce ? 1 : i} />} />
+      <Scrolly id="p1-quarters" label="Real GDP growth by quarter" steps={quarterSteps()} graphic={() => <GdpQuartersChart />} />
       <Scrolly id="p1-productivity" label="Output per hour worked" steps={productivitySteps()} graphic={() => <ProductivityChart />} />
       <Scrolly id="p1-work" label="Employment and unemployment rates" steps={workSteps()} graphic={(i, reduce) => <LabourPanels state={reduce ? 1 : i} />} />
+      <Scrolly id="p1-pay" label="Regular pay growth" steps={paySteps()} graphic={() => <PayChart />} />
       <Scrolly id="p1-share" label="Compensation of employees as a share of GDP" steps={shareSteps()} graphic={() => <LabourShareChart />} />
       <Scrolly id="p1-ai" label="Businesses using AI" steps={aiSteps()} graphic={(i, reduce) => <AiUseChart state={reduce ? 1 : i} />} />
       <Scrolly

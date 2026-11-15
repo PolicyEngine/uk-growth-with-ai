@@ -1,9 +1,9 @@
 "Title","UK (S.1): Compensation of employees (D.1) Uses: Current price: £m: SA"
 "CDID","DTWM"
-"Source dataset ID","UKEA"
+"Source dataset ID","PN2"
 "PreUnit","£"
 "Unit","m"
-"Release date","30-09-2026"
+"Release date","12-11-2026"
 "Next release","22 December 2026"
 "Important notes",
 "1948","6791"
@@ -370,3 +370,4 @@
 "2025 Q4","386891"
 "2026 Q1","393234"
 "2026 Q2","393167"
+"2026 Q3","398396"

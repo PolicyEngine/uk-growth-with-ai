@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import real from '@/data/ukContext.json';
+import checks from '@/data/ukContextChecks.json';
 import Part1Real from '@/tabs/story/Part1.jsx';
 import { dateLong, idx1, monthYear, pct1, share0, tick } from '@/tabs/story/part1/format.js';
 import { AiUseChart, GdpChart, LabourPanels, exposureTiles } from '@/tabs/story/part1/charts.jsx';
@@ -43,12 +44,15 @@ function expected(D) {
   const hl = f.workers_high_exposure_low_complementarity.value;
   return [
     pct1(f.gdp_growth_latest.value),
+    pct1(f.gdp_quarterly_latest.value),
+    pct1(f.gdp_quarterly_yoy.value),
     pct1(obr[0]),
     pct1(obr[1]),
     pct1(obr[obr.length - 1]),
     idx1(f.productivity_oph_latest.value),
     pct1(f.employment_rate_latest.value),
     pct1(f.unemployment_rate_latest.value),
+    pct1(f.pay_growth_latest.value),
     pct1(f.labour_share_latest.value),
     pct1(f.business_ai_use.value),
     pct1(f.business_ai_use_10plus.value),
@@ -77,11 +81,35 @@ describe('story part 1, real data', () => {
   it('prints each latest figure once, and no other figure', () => {
     const text = textWithoutAxes(show(Part1Real));
     expect(figures(text)).toEqual(expected(real));
-    for (const f of ['75.3%', '4.7%', '49.9%', '29.7%', '38.1%', '100.1', '35%', '32%', '33%']) {
-      expect(text.split(f).length - 1).toBe(1);
+    // figures printed by a single fact appear exactly once
+    const counts = {};
+    for (const f of expected(real)) counts[f] = (counts[f] ?? 0) + 1;
+    for (const [f, n] of Object.entries(counts)) expect(text.split(f).length - 1).toBe(n);
+    // the OBR's 2025 outturn (in its note, not a value) is not printed
+    const outturn = real.series.obr_gdp_forecast.note.match(/gives ([\d.]+)% as the OBR's 2025 outturn/)[1];
+    if (`${outturn}%` !== pct1(real.facts.gdp_growth_latest.value)) expect(text).not.toContain(`${outturn}%`);
+  });
+
+  it('prints exactly the figures ukContextChecks.json records from the primary files', () => {
+    const text = textWithoutAxes(show(Part1Real));
+    expect(figures(text)).toEqual(checks.figures.map((f) => f.printed).sort());
+    for (const f of checks.figures) {
+      expect(f.primary_file).toMatch(/^analysis\/story\/raw\//);
+      expect(f.url).toMatch(/^https:\/\//);
+      expect(f.release_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
-    // the OBR's 2025 outturn is not a value in the data file and is not printed
-    expect(text).not.toContain('1.3%');
+  });
+
+  it('labels the current year by its quarters, apart from the full-year bars', () => {
+    const el = show(Part1Real);
+    const q = real.facts.gdp_quarterly_latest.period;
+    const lastFull = real.series.gdp_growth.x[real.series.gdp_growth.x.length - 1];
+    expect(Number(q.slice(0, 4))).toBeGreaterThan(lastFull);
+    const fig = el.querySelector('#p1-quarters .p1-figure');
+    expect(fig.textContent).toContain(`${q.slice(0, 4)} Q1`);
+    expect(fig.textContent).toContain('year not yet complete');
+    expect(el.querySelector('#p1-output .p1-figure').textContent).toContain(`${lastFull} is the latest complete year`);
+    expect(el.querySelector('#p1-share .p1-figure').textContent).toContain(`ends at ${real.series.labour_share.x.at(-1)}, the latest full year`);
   });
 
   it('labels the OBR forecast with its vintage, from the data file', () => {
@@ -112,7 +140,7 @@ describe('story part 1, real data', () => {
     const el = show(Part1Real);
     const urls = new Set(Object.values(real.sources).map((s) => s.url));
     const figs = el.querySelectorAll('.p1-figure');
-    expect(figs).toHaveLength(6);
+    expect(figs).toHaveLength(8);
     figs.forEach((fig) => {
       const links = fig.querySelectorAll('.story-source a');
       expect(links.length).toBeGreaterThan(0);
@@ -163,6 +191,9 @@ describe('story part 1, altered data', () => {
   it('prints the figures the data file holds', async () => {
     const fx = JSON.parse(JSON.stringify(real));
     fx.facts.gdp_growth_latest.value = 2.7;
+    fx.facts.gdp_quarterly_latest.value = -0.4;
+    fx.facts.gdp_quarterly_yoy.value = 2.2;
+    fx.facts.pay_growth_latest.value = 4.6;
     fx.series.obr_gdp_forecast.y = [0.9, 1.4, 1.5, 1.6, 1.7, 2.1];
     fx.facts.productivity_oph_latest.value = 103.4;
     fx.facts.employment_rate_latest.value = 71.9;

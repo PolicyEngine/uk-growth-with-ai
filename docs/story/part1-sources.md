@@ -2,151 +2,98 @@
 
 Data for part 1 of the story ("The macroeconomic effects of AI on the UK"). Official published data only, with no PolicyEngine modelling. The OBR series is the OBR's own forecast.
 
-- Raw files: `analysis/story/raw/` (as downloaded, one file per source)
-- Builder: `dashboard/scripts/build_uk_context.py` (reads only the raw files, no network)
-- Output: `dashboard/src/data/ukContext.json`
+- Builder: `dashboard/scripts/build_uk_context.py`
+  - `python3 dashboard/scripts/build_uk_context.py` downloads the latest release of every source, then builds.
+  - `python3 dashboard/scripts/build_uk_context.py --offline` builds from the cached files only and reproduces the output byte for byte.
+- Raw files: `analysis/story/raw/`. ONS files are named `ons_<cdid>_<dataset>_<release date>`. `manifest.json` records, for each source, the file used, its URL, release date, fetch date and sha256. Offline runs read only the manifest.
+- Outputs:
+  - `dashboard/src/data/ukContext.json` holds the series and facts.
+  - `dashboard/src/data/ukContextChecks.json` has one entry per figure part 1 prints (18 at present). Each entry records the publisher, dataset, series ID, release date, period, URL and primary file, and the value read from that file by a second route.
+- Check: `dashboard/scripts/checks/part1.py`, run by `check_numbers.py`. It fails if any of these disagree:
+  - the page's figures and the checks file;
+  - `ukContext.json` and the checks file;
+  - the checks file and the raw ONS JSON.
 
-All files were fetched on 15 November 2026. To refresh, re-download each URL below into the same file name and re-run the builder. The builder checks each ONS file's CDID header, so a saved error page fails loudly.
+Last refreshed 15 November 2026. On 17 November the ONS releases new labour market (LMS) and productivity (PRDY) figures; re-run the builder to pick them up.
 
-## ons_ihyp: real GDP growth
+## How "latest" is found
 
-- **Title:** Gross Domestic Product: Year on Year growth: CVM SA %
-- **Publisher:** Office for National Statistics, dataset PN2 (the dataset ID given in the CSV header)
-- **Released:** 12 November 2026 (next release 22 December 2026)
-- **URL:** https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ihyp/pn2
-- **Series:** IHYP. This is the annual growth rate of ABMI, real GDP at market prices.
-- **Raw file:** `ons_ihyp.csv` (sha256 `6363c836…`)
-- **Values used:** `series.gdp_growth` takes the annual rows for 2010 to 2025. `facts.gdp_growth_latest` is 2025, 1.2%.
+- **ONS time series.** The builder asks the dataset-less endpoint `https://www.ons.gov.uk/<topic>/timeseries/<cdid>/data` which dataset holds the newest release (`description.datasetId`). It then downloads that dataset's CSV from `https://www.ons.gov.uk/generator?format=csv&uri=/<topic>/timeseries/<cdid>/<dataset>`.
+  - Example: GDP comes from PN2 after a first quarterly estimate and from QNA after the quarterly national accounts. On 15 November 2026 a hard-coded `ihyq/qna` would have stopped at 2026 Q2; PN2 has 2026 Q3.
+  - It keeps both files. The builder reads the CSV, and the checks read the JSON.
+  - Release dates come from the CSV header. The JSON gives them as UTC instants, so 20 October appears there as "2026-10-19T23:00Z".
+- **BICS.** The builder starts from the newest cached bulletin and follows each bulletin's "Next release" date. It keeps the newest bulletin that has the "using at least one AI technology" figure.
+  - The AI-use question is asked quarterly. Wave 165 (8 October 2026) is still the latest with it. The 22 October and 5 November bulletins have no AI-use figure.
+- **Labour market bulletin.** The builder tries this month's and last month's bulletin. This is the source of the LFS caveat and the period labels.
+- **Fixed sources.**
+  - The OBR October 2026 EFO. Its xlsx files download from obr.uk with a plain request; the earlier note that obr.uk blocks scripted downloads was wrong.
+  - The DSIT report. It has no attachment, so the GOV.UK HTML page is the report itself.
+- **Download safety.** The builder pauses between requests and backs off on rate limits (Cloudflare error 1015). It validates every file before writing it (CDID header, JSON, xlsx/xls signature), so an error page never replaces a good file.
 
-## ons_lzvb: output per hour worked
+## Series and where they end (as of 15 November 2026)
 
-- **Title:** UK Whole Economy: Output per hour worked SA: Index 2023 = 100
-- **Publisher:** Office for National Statistics, dataset PRDY
-- **Released:** 18 August 2026 (next release 17 November 2026)
-- **URL:** https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy
-- **Series:** LZVB
-- **Raw file:** `ons_lzvb.csv` (sha256 `f1764957…`)
-- **Values used:** `series.productivity_oph` takes the annual rows for 2008 to 2025. `facts.productivity_oph_latest` is 2026 Q1, 100.1.
+| Series in `ukContext.json` | Source | Frequency | Ends |
+|---|---|---|---|
+| `gdp_growth` (IHYP) | ONS PN2, released 12 Nov 2026 | calendar year | 2025 (the latest full year) |
+| `gdp_quarterly` (IHYQ), fact `gdp_quarterly_yoy` (IHYR) | ONS PN2, 12 Nov 2026 | quarter | 2026 Q3, first estimate |
+| `productivity_oph` (LZVB) | ONS PRDY, 18 Aug 2026 | quarter | 2026 Q1 (2026 Q2 due 17 Nov) |
+| `employment_rate` (LF24), `unemployment_rate` (MGSX) | ONS LMS, 20 Oct 2026 | rolling three months | June to August 2026 |
+| `pay_growth` (KAI9) | ONS LMS, 20 Oct 2026 | rolling three months | June to August 2026 |
+| `labour_share` (DTWM / YBHA) | ONS PN2, 12 Nov 2026 | calendar year | 2025 (the latest full year) |
+| `obr_gdp_forecast` | OBR EFO, 28 Oct 2026 | calendar year | 2026 to 2031, all forecast |
+| `business_ai_use`, `business_ai_use_10plus` | ONS BICS Wave 165, 8 Oct 2026 | quarterly waves | 27 September 2026 (wave midpoint) |
 
-## ons_lf24: employment rate
+Calendar-year series stop at 2025. The current year appears only as quarters ("2026 Q1–Q3") or as three-month periods, and is labelled that way. It is never drawn as an annual bar.
 
-- **Title:** Employment rate (aged 16 to 64, seasonally adjusted): %
-- **Publisher:** Office for National Statistics, dataset LMS (released with the Labour market overview, UK: October 2026)
-- **Released:** 20 October 2026 (next release 17 November 2026)
-- **URL:** https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms
-- **Series:** LF24
-- **Raw file:** `ons_lf24.csv` (sha256 `77a8b0e6…`)
-- **Values used:**
-  - `series.employment_rate` takes the published annual rows for 2010 to 2025. No averaging is done by us.
-  - `facts.employment_rate_latest` is 75.3%, for the file's last monthly row, labelled "2026 JUL".
-  - ONS labels rolling three-month LFS estimates by their middle month, so "2026 JUL" means June to August 2026. The October 2026 bulletin confirms 75.3% for June to August 2026 (https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/october2026).
+## Notes by source
 
-## ons_mgsx: unemployment rate
+- **IHYP, IHYQ, IHYR (GDP):**
+  - Real GDP growth, chained volume measures, seasonally adjusted, as percentage changes: IHYP on the previous calendar year, IHYQ on the previous quarter, IHYR on the same quarter a year earlier.
+  - Part 1 prints 2025 growth of 1.2%, and for 2026 Q3, 0.7% on the previous quarter and 1.9% on a year earlier.
+  - The annual chart keeps the full scale, so 2020 (−10.0%) and 2021 (+8.5%) show at their true size. They are labelled "Pandemic", and the quarterly chart starts at 2022 Q1.
+- **LZVB:** output per hour worked, whole economy, index 2023 = 100, seasonally adjusted, drawn quarterly from 2008 Q1. It carries the LFS caveat through hours worked.
+- **LF24, MGSX:**
+  - LFS rates. ONS labels each rolling three-month estimate by its middle month, so "2026 JUL" is June to August 2026.
+  - The October 2026 bulletin confirms 75.3% (employment) and 4.7% (unemployment) for June to August 2026.
+  - **LFS caveat:** response has improved but "some volatility remains", and the ONS advises users to focus on long-term movements. LFS estimates are official statistics; the ONS will not seek reaccreditation for them and is prioritising the Transformed LFS.
+- **KAI9:**
+  - AWE whole-economy regular pay (excluding bonuses and arrears), three-month average on a year earlier, seasonally adjusted and nominal.
+  - AWE three-month averages are labelled by their last month, so "2026 AUG" is June to August 2026. The October 2026 bulletin says regular pay growth "was 3.7% in June to August 2026".
+  - It comes from the employer survey (MWSS), not the LFS.
+- **DTWM / YBHA:**
+  - The share is 100 × DTWM / YBHA from the annual rows, rounded to one decimal place. This is the only computed series.
+  - It excludes mixed income, so it is not the ONS's adjusted labour share.
+  - These series now come from PN2 rather than UKEA. The 2010–2025 shares are unchanged.
+  - PN2 also has quarters to 2026 Q3, but the series is kept annual and its source line says it ends at 2025.
+- **OBR, October 2026 EFO:**
+  - Forecast values: 2026 1.2%, 2027 1.0%, 2028 1.6%, 2029 1.8%, 2030 1.7%, 2031 1.6%.
+  - The builder reads Table A.1, row "GDP", from the GOV.UK HTML edition.
+  - The checks read three further sources:
+    - the OBR's own Annex A spreadsheet, sheet TA.1 (`obr_annex_a_oct2026.xlsx`), where 2026 is 1.2431…, 2027 is 1.0443… and 2031 is 1.5951…;
+    - growth of real GDP in Table 1.1 of the detailed economy tables (`obr_economy_tables_oct2026.xlsx`), which agrees to one decimal place;
+    - the PDF (page 184), which shows the same table.
+  - The 2025 outturn in Table A.1 is 1.3%, against the ONS's later 1.2%. This is a vintage difference, so the two series are not spliced.
+- **BICS Wave 165:**
+  - Source: the Figure 1 xls (`ons_bics_w165_fig1.xls`) and the bulletin page (`ons_bics_w165_bulletin.html`).
+  - Values: 29.7% for all businesses (the bulletin headline rounds it to 30%) and 38.1% for businesses with 10 or more employees.
+  - The question wording is asserted against `ons_bics_w165_questions.html`.
+  - Coverage: private-sector businesses; agriculture, finance and insurance, and public administration, among others, are excluded.
+- **DSIT/AISI, 28 January 2026:**
+  - Figure 2 table, UK row (IMF estimates): 35% high exposure and high complementarity, 32% high exposure and low complementarity, 33% low exposure.
+  - The text says "Around 70% of UK workers", while the two high-exposure shares sum to 67%. Both are printed, and both are in the checks file.
 
-- **Title:** Unemployment rate (aged 16 and over, seasonally adjusted): %
-- **Publisher:** Office for National Statistics, dataset LMS
-- **Released:** 20 October 2026 (next release 17 November 2026)
-- **URL:** https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms
-- **Series:** MGSX
-- **Raw file:** `ons_mgsx.csv` (sha256 `7b456303…`)
-- **Values used:** `series.unemployment_rate` takes the annual rows for 2010 to 2025. `facts.unemployment_rate_latest` is 4.7% for June to August 2026; the bulletin confirms it.
+## Mismatches against primary sources (15 November 2026)
 
-**LFS caveat** (applies to LF24, MGSX, and in part to LZVB through hours worked):
-
-- The October 2026 bulletin (URL above) says response has improved and is now close to its pre-pandemic level.
-- It also says "some volatility remains", particularly in estimates for mid-2023 and throughout 2024 and in small-sample breakdowns, and advises users to focus on long-term movements.
-- LFS estimates are official statistics. The ONS has told OSR it will not seek reaccreditation for them, and is prioritising the Transformed LFS as their replacement.
-- The full caveat is in `notes`; the series and fact notes carry a one-line pointer to it.
-
-## ons_dtwm and ons_ybha: compensation of employees as a share of GDP
-
-- **Titles:**
-  - UK (S.1): Compensation of employees (D.1) Uses: Current price: £m: SA (DTWM)
-  - Gross Domestic Product at market prices: Current price: Seasonally adjusted £m (YBHA)
-- **Publisher:** Office for National Statistics, dataset UKEA. These are two source entries in the JSON; the series points at `ons_dtwm` and its note names `ons_ybha`.
-- **Released:** 30 September 2026 (next release 22 December 2026)
-- **URLs:**
-  - https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/dtwm/ukea
-  - https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ybha/ukea
-- **Raw files:** `ons_dtwm.csv` (sha256 `8c10e860…`) and `ons_ybha.csv` (sha256 `080b6afa…`)
-- **Values used:** `series.labour_share` and `facts.labour_share_latest` (2025, 49.9%).
-- **Computed:** this is the only computed series. Each year is 100 × DTWM / YBHA from the annual rows, rounded to 1 decimal place.
-- **Coverage:** it excludes self-employment (mixed) income, so it is not the ONS's adjusted labour share. It is labelled "Compensation of employees as a share of GDP".
-
-## obr_efo_oct2026: OBR GDP growth forecast
-
-- **Title:** Economic and fiscal outlook – October 2026, Annex A, Table A.1: Economy forecast
-- **Publisher:** Office for Budget Responsibility (HTML edition on GOV.UK)
-- **Released:** presented to Parliament 28 October 2026, corrected 30 October 2026. The correction concerned carbon price support, not GDP.
-- **Page:** https://www.gov.uk/government/publications/october-2026-economic-and-fiscal-outlook/economic-and-fiscal-outlook-october-2026
-- **Raw file:** `obr_efo_oct2026_govuk_content.json` (sha256 `025cd3ad…`). This is the GOV.UK content API JSON of that page, fetched from https://www.gov.uk/api/content/government/publications/october-2026-economic-and-fiscal-outlook/economic-and-fiscal-outlook-october-2026
-- **Why this copy:** obr.uk blocks scripted downloads (Cloudflare), so the OBR's own xlsx tables were not downloaded. The builder parses Table A.1 from the HTML body.
-- **Series:** Table A.1, row "GDP", percentage change on a year earlier.
-- **Values used:** `series.obr_gdp_forecast` covers the forecast years only:
-
-  | Year | 2026 | 2027 | 2028 | 2029 | 2030 | 2031 |
-  |---|---|---|---|---|---|---|
-  | Real GDP growth (%) | 1.2 | 1.0 | 1.6 | 1.8 | 1.7 | 1.6 |
-
-- **Cross-checks:**
-  - The EFO text (paragraph 1.14) gives "around 1¼ per cent" for 2026 and "around 1 per cent" for 2027.
-  - Table 2.1 gives an average of 1.1 for 2026 and 2027.
-  - The same figures appear in the PDF at https://assets.publishing.service.gov.uk/media/6ae4a7a9ec36e258a1998484/economic-and-fiscal-outlook-october-2026-web-accessible.pdf (page 184).
-- **Not used:** Table A.1 gives the OBR's 2025 outturn as 1.3%. The newer ONS IHYP figure is 1.2%, so we do not splice the two series.
-- **Vintage:** the October 2026 EFO supersedes the March 2026 EFO, which forecast 1.1% for 2026.
-
-## ons_bics_w165: business AI use
-
-- **Title:** Business insights and impact on the UK economy: 8 October 2026, Figure 1 data. Business Insights and Conditions Survey (BICS) Wave 165, live 21 September to 4 October 2026.
-- **Publisher:** Office for National Statistics
-- **Released:** 8 October 2026
-- **Bulletin:** https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026
-- **Data file URL:** https://www.ons.gov.uk/generator?uri=/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026/a52309bf&format=xls
-- **Series:** current use of at least one AI technology, by size band, weighted by count, UK, 18 September 2023 to 4 October 2026.
-- **Raw file:** `ons_bics_w165_fig1.xls` (sha256 `ee43d79f…`)
-- **Values used:**
-  - `series.business_ai_use` uses the "All industries" column. Dates are wave midpoints, from 24 September 2023 to 27 September 2026.
-  - `series.business_ai_use_10plus` uses the "All size bands excluding 0 to 9" column.
-  - `facts.business_ai_use` is 29.7%; the bulletin rounds it to 30%.
-  - `facts.business_ai_use_10plus` is 38.1%; the bulletin rounds it to 38%.
-- **Question wording:** from the ONS article "Business insights and conditions survey questions: 21 September to 4 October 2026", released 5 October 2026 (https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/businessimpactofcovid19surveyquestions/21september2026to4october2026). The question is "Which of the following artificial intelligence technologies, if any, does your business currently use?" The answer options are:
-  - Autonomous vehicles
-  - Data processing using machine learning
-  - Image processing using machine learning
-  - Robotics
-  - Text generation using Large Language Models
-  - Visual content creation
-  - Other (Please describe)
-  - Not sure
-  - Business does not currently use artificial intelligence technologies
-
-  The page is saved as `analysis/story/raw/ons_bics_w165_questions.html`. The builder holds the wording and asserts that the question and its options appear verbatim, in order, in that file.
-- **Latest wave:** the 5 November 2026 bulletin (Wave 167) has no new AI-use figure; it reports only concern about AI, at 12%. Wave 165 is the latest AI-use reading.
-- **Coverage:** BICS covers private-sector businesses and excludes several industries, among them agriculture, finance and insurance, and public administration.
-
-## dsit_ai_capabilities_2026: workers by AI exposure (IMF estimates)
-
-- **Title:** Assessment of AI capabilities and the impact on the UK labour market, Figure 2 (data table)
-- **Publisher:** Department for Science, Innovation and Technology and AI Security Institute
-- **Released:** 28 January 2026
-- **Original source:** IMF, "Gen-AI: Artificial Intelligence and the Future of Work", January 2024
-- **Page:** https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market
-- **Raw file:** `dsit_ai_capabilities_2026_govuk_content.json` (sha256 `8db1a331…`). This is the GOV.UK content API JSON, fetched from https://www.gov.uk/api/content/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market
-- **Values used:** from the UK row of the Figure 2 table.
-
-  | Fact | Value |
-  |---|---|
-  | `facts.workers_high_exposure_high_complementarity` | 35% |
-  | `facts.workers_high_exposure_low_complementarity` | 32% |
-  | `facts.workers_low_exposure` | 33% |
-
-  The page text says "around 70%" of UK workers are in exposed occupations, while the two high-exposure shares sum to 67%. The note records both.
+- **Values:** no printed value differs from its primary file. All 18 figures agree at printed precision between `ukContext.json` and a second reading of the primary file.
+- **Fixed in this pass:**
+  - ONS JSON release dates are UTC instants, one day earlier than the CSV and bulletin dates (17 August against 18 August; 19 October against 20 October). Release dates now come from the CSV.
+  - This document said obr.uk blocks scripted downloads. It does not, and the OBR's own spreadsheets are now kept and checked.
+  - The GOV.UK HTML edition of the EFO has `first_published_at` 30 October 2026, the date of the correction. The OBR's release date stays 28 October 2026 (presented to Parliament), and the GOV.UK date is recorded in the manifest as `govuk_first_published`.
 
 ## Not sourced
 
 **Exposure by SOC major group** (`exposure: null`):
 
-- The DfE report "The impact of AI on UK jobs and training" (28 November 2023, https://www.gov.uk/government/publications/the-impact-of-ai-on-uk-jobs-and-training) and its Annex 1 xlsx publish AIOE scores only for 4-digit SOC 2010 unit groups.
-- They have no major-group table and no employment counts.
+- The DfE report "The impact of AI on UK jobs and training" (November 2023) publishes AIOE scores only for 4-digit SOC 2010 unit groups. It has no major-group table and no employment counts.
 - No later DfE or DSIT source with SOC 2020 major-group exposure was found.
-- An unweighted or employment-weighted mean by major group would be our own construction on the older SOC vintage, so it is left out.
+- An aggregate by major group would be our own construction, so it is left out.

@@ -34,3 +34,6 @@ export function monthYear(iso) {
   const [y, m] = iso.split('-').map(Number);
   return `${MONTHS[m - 1]} ${y}`;
 }
+
+// "June to August 2026" -> "June–August 2026" (a three-month period in a title)
+export const span3 = (p) => p.replace(/^(\w+) to (\w+ \d{4})$/, '$1–$2');

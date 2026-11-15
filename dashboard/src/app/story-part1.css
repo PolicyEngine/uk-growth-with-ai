@@ -48,6 +48,9 @@
 .p1-bar {
   fill: var(--series-2);
 }
+.p1-bar.is-past {
+  fill: var(--series-5);
+}
 .p1-bar.is-neg.grow-rect.is-v {
   transform-origin: 50% 0%;
 }

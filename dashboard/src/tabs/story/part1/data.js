@@ -15,6 +15,9 @@ export const OBR_SOURCE = SOURCES[OBR.source];
 export const OBR_VINTAGE = monthYear(OBR_SOURCE.released);
 export const OBR_LABEL = `OBR forecast, ${OBR_VINTAGE}`;
 
+// The BICS wave the AI-use figures come from, from its source title.
+export const BICS_WAVE = SOURCES[SERIES.business_ai_use.source].title.match(/Wave (\d+)/)[1];
+
 // The OBR forecast that part 2's modelling starts from (one constant).
 export const MODEL_BASE_VINTAGE = 'March 2026';
 

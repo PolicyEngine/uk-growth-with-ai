@@ -1,36 +1,78 @@
+"""Story part 1 (#story-part-1): every figure it prints is in ukContextChecks.json,
+read there from a primary file by a second route, and ukContext.json agrees.
+
+check(dump) returns the number of failures:
+- the figures in part 1's text (axis ticks set aside) must equal, as a
+  multiset, the 'printed' values in ukContextChecks.json;
+- every entry's 'printed' must be its primary 'value' in the page's format,
+  and the ukContext.json value at its 'json_path' must print the same;
+- every ONS entry is re-read here from its raw /data JSON file.
+
+Run alone (python3 scripts/checks/part1.py) for the data checks without a dump.
+"""
 import json, os, re
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
+ROOT = os.path.join(HERE, '..', '..', '..')
 
-
-def signed(x, dp):
-    # the same as check_numbers.signed
-    if abs(x) < 0.5 * 10 ** -dp:
-        return f"{0:.{dp}f}"
-    return ("+" if x >= 0 else "−") + f"{abs(x):.{dp}f}"
-
-# The story, part 1 (#story-part-1): official statistics from ukContext.json,
-# unsigned, as published (part1/format.js), each once except where two
-# different facts print the same figure.
 UK = json.load(open(os.path.join(DATA, 'ukContext.json')))
-F1, S1 = UK['facts'], UK['series']
-exp1 = Counter()
-for k in ('gdp_growth_latest', 'employment_rate_latest', 'unemployment_rate_latest', 'labour_share_latest', 'business_ai_use', 'business_ai_use_10plus'):
-    exp1[f"{F1[k]['value']:.1f}%"] += 1
-for x in (S1['obr_gdp_forecast']['y'][0], S1['obr_gdp_forecast']['y'][1], S1['obr_gdp_forecast']['y'][-1]):
-    exp1[f"{x:.1f}%"] += 1
-exp1[f"{F1['productivity_oph_latest']['value']:.1f}"] += 1
-ex = [F1[k]['value'] for k in ('workers_high_exposure_high_complementarity', 'workers_high_exposure_low_complementarity', 'workers_low_exposure')]
-for x in ex: exp1[f"{round(x)}%"] += 1
-exp1[f"{round(ex[0] + ex[1])}%"] += 1
-exp1['70%'] += 1  # DSIT's own words, "around 70%", quoted beside the 67% sum
+CHK = json.load(open(os.path.join(DATA, 'ukContextChecks.json')))
+
+# Percentages (whole or one decimal) and bare one-decimal numbers (the index).
 FIG1 = re.compile(r"[−-]?\d+(?:\.\d+)?%|\b\d+\.\d\b(?!%)")
+
+# The facts part 1 prints; each needs an entry in ukContextChecks.json.
+PRINTED_FACTS = ('gdp_growth_latest', 'gdp_quarterly_latest', 'gdp_quarterly_yoy', 'productivity_oph_latest',
+                 'employment_rate_latest', 'unemployment_rate_latest', 'pay_growth_latest', 'labour_share_latest',
+                 'business_ai_use', 'business_ai_use_10plus', 'workers_high_exposure_high_complementarity',
+                 'workers_high_exposure_low_complementarity', 'workers_low_exposure')
+
+
+def fmt(v, kind):
+    """part1/format.js: pct1 '75.3%', idx1 '100.1', share0 '35%', U+2212 for negatives."""
+    if kind == 'share0':
+        t = f"{int(abs(v) + 0.5)}%"
+    else:
+        t = f"{abs(v):.1f}" + ('%' if kind == 'pct1' else '')
+    return ('−' + t) if v < 0 and float(t.rstrip('%')) != 0 else t
+
+
+def get_path(d, path):
+    for p in path.split('.'):
+        d = d[int(p)] if isinstance(d, list) else d[p]
+    return d
+
+
+def data_checks():
+    """ukContext.json against ukContextChecks.json, and the checks file against the raw ONS files."""
+    bad = 0
+    for f in CHK['figures']:
+        if fmt(f['value'], f['format']) != f['printed']:
+            bad += 1; print('story part 1:', f['id'], 'printed', f['printed'], 'is not its primary value', f['value'])
+        if f['json_path'] is not None:
+            cv = get_path(UK, f['json_path'])
+            if fmt(cv, f['format']) != f['printed']:
+                bad += 1; print('story part 1:', f['id'], 'ukContext.json', cv, 'disagrees with the primary file:', f['primary_value_raw'], f['primary_file'])
+        if f['publisher'] == 'Office for National Statistics' and f['primary_file'].endswith('.json') and ' ; ' not in f['primary_file']:
+            j = json.load(open(os.path.join(ROOT, f['primary_file'])))
+            label = re.search(r"label '([^']+)'", f['period'])
+            period = label.group(1) if label else f['period']
+            rows = [r for k in ('years', 'quarters', 'months') for r in j[k] if r['date'] == period]
+            if len(rows) != 1 or rows[0]['value'] != f['primary_value_raw'] or j['description']['cdid'] != f['series_id']:
+                bad += 1; print('story part 1:', f['id'], 'not found as recorded in', f['primary_file'])
+    paths = {f['json_path'] for f in CHK['figures']}
+    for k in PRINTED_FACTS:
+        if f'facts.{k}.value' not in paths:
+            bad += 1; print('story part 1:', k, 'has no entry in ukContextChecks.json')
+    return bad
+
 
 def check(dump):
     """Return the number of failures for story part 1."""
-    bad = 0
+    bad = data_checks()
+    exp1 = Counter(f['printed'] for f in CHK['figures'])
     for sid in dump:
         t = dump[sid].get('story:part1')
         if not t:
@@ -42,6 +84,11 @@ def check(dump):
             bad += 1
             print(sid, 'story part 1 missing:', dict(exp1 - got), 'extra:', dict(got - exp1))
         else:
-            print(sid, 'story part 1 ok:', sum(exp1.values()), 'figures')
+            print(sid, 'story part 1 ok:', sum(exp1.values()), 'figures, each as in ukContextChecks.json')
         break
     return bad
+
+
+if __name__ == '__main__':
+    n = data_checks()
+    print('story part 1 data checks:', 'ok' if n == 0 else f'{n} failures')
