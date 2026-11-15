@@ -315,6 +315,7 @@
    a phone (vertical padding on an inline box leaves the line as it is) */
 .mx-lit td a,
 .mx-lit .section-heading a,
+.mx-lit .card-body p a,
 .mx-lit .mx-src a,
 .mx-lit .mx-sub a {
   padding-block: 4px;
