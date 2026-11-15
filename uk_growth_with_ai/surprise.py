@@ -92,6 +92,9 @@ VARIANTS["dnfull"] = (
     "still close the budget with G (fiscal.D_G_path's final-period G, SS.get_G_ss), as "
     "in every arm")
 STAGE_VARIANT = {"arms": "", "arms_fs": "fs", "arms_dn": "dn", "arms_dnfull": "dnfull"}
+# The no-shock path under the dnfull rule (G = alpha_G Y throughout, TR holding the
+# continuation's debt/GDP to T-1): the like-for-like reference for the _dnfull arms.
+CONT_DNFULL = "continuation_dnfull"
 DNFULL_G_TOL = 1e-9          # |G/Y - alpha_G| on 2028..T-2
 DN_TOL = 1e-4               # debt-neutral arms: max relative |D/Y - target|, 2029-2036
 
@@ -590,6 +593,8 @@ def parse_label(label: str) -> dict:
     """{scenario, kind (tfp|zfixed|r4_iter|continuation), variant} of a label."""
     if label == "continuation":
         return {"scenario": None, "kind": "continuation", "variant": ""}
+    if label == CONT_DNFULL:
+        return {"scenario": None, "kind": "continuation", "variant": "dnfull"}
     sid = next((g for g in ("korinek",) + UK_IDS if label.startswith(g + "_")), None)
     if sid is None:
         raise ValueError(f"no scenario prefix in {label!r}")
@@ -796,6 +801,13 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
                            f"tight {rep['tight']} (tol {CONT_TIGHT}), other max "
                            f"{rep['max']:.2e} (tol {CONT_TOL:g}), RC/Y "
                            f"{rep['rc0_rel_Y']} (tol {RC0_TOL:g}): {rep}")
+    if stage == "continuation_dnfull":
+        if CONT_DNFULL in done:
+            return None
+        return {"label": CONT_DNFULL, "arm": "continuation", "gamma": G_BASE, "Z": None,
+                "baseline_spending": False, "variant": "dnfull", "scenario": None,
+                "why": "no-shock path under the dnfull rule: G at alpha_G Y, TR holding "
+                       "the continuation's debt/GDP to T-1", **common}
     ref = reference_ext(outdir, closure, base_ext)
     if stage not in STAGE_VARIANT:
         raise ValueError(f"unknown stage {stage!r}")
@@ -941,7 +953,7 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
         print(f"{closure} {stage}: nothing to do", flush=True)
         return None
     rerun._env()
-    from .solve import _load_oguk, provenance, run_arm
+    from .solve import SS_GUESS_KEYS, _load_oguk, provenance, run_arm
     handles = _load_oguk()
     TPI, SS, api, Client, LocalCluster = handles
     k = k_of(year)
@@ -968,11 +980,22 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
             ct = pickle.load(open(cdir / "TPI" / "TPI_vars.pkl", "rb"))
             dy = (np.asarray(ct["D"], float) / np.asarray(ct["Y"], float)).tolist()
             dn = {"target_dy": dy, "D0": state["D0"], "full": True}
+        # opt-in: UGAI_SS_GUESS=<label in this closure> or an SS_vars.pkl path starts
+        # the SS root finder from that solve's steady state (docs/surprise_2028.md)
+        g = os.environ.get("UGAI_SS_GUESS")
+        ss_guess = None
+        if g:
+            ss_guess = (g if g.endswith(".pkl") else
+                        str(Path(work) / f"surprise{year}" / closure / g / "SS" / "SS_vars.pkl"))
+            if not Path(ss_guess).exists():
+                raise RuntimeError(f"UGAI_SS_GUESS: {ss_guess} missing")
         rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
                       spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
                       out_dir=str(adir), baseline_spending=spec["baseline_spending"],
                       surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
-                      **settings)
+                      ss_guess=ss_guess, **settings)
+        if ss_guess:
+            rec["ss_guess"] = {"donor": ss_guess, "keys": list(SS_GUESS_KEYS)}
     finally:
         client.close()
     base_ext = load_base_ext(outdir, closure)
@@ -980,7 +1003,9 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
     rec = calendar_record(rec, base_ext, k, year)
     rec.update({"label": spec["label"], "closure_label": closure, "stage": stage,
                 "spec": spec, "provenance": provenance(TPI, api)})
-    if stage == "continuation":
+    if stage in ("continuation", "continuation_dnfull"):
+        # for continuation_dnfull this is information only: it is not expected to
+        # reproduce the baseline (households anticipate the post-2036 TR rule)
         rec["continuation_report"] = continuation_report(rec, base_ext, year)
     if spec.get("variant") == "dnfull":
         import pickle
