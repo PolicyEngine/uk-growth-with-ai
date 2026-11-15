@@ -19,12 +19,30 @@ export function useReducedMotion() {
   return reduce;
 }
 
+// True on phone widths (<= 900px, the story's phone layout). False on the
+// server and before mount.
+export function useIsPhone(query = '(max-width: 900px)') {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const on = () => setPhone(mq.matches);
+    on();
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, [query]);
+  return phone;
+}
+
 // True once the element has entered the viewport (stays true: a reveal plays
 // once). Without IntersectionObserver (old browsers, tests) it is true.
+// Threshold 0 with a pixel margin: a section taller than the screen counts
+// as seen as soon as its top is 40px inside the viewport (a share threshold
+// left tall sections invisible while on screen).
 export function useInView(options = {}) {
   const ref = useRef(null);
   const [seen, setSeen] = useState(() => typeof window !== 'undefined' && typeof IntersectionObserver === 'undefined');
-  const { threshold = 0.25, rootMargin = '0px 0px -10% 0px' } = options;
+  const { threshold = 0, rootMargin = '0px 0px -40px 0px' } = options;
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;

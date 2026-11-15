@@ -208,19 +208,13 @@ function exposureSteps() {
   const when = F[hh.id].period.replace(/^IMF estimates?,\s*/, '');
   return [
     {
-      id: 'p1-exposure-0',
-      kicker: 'AI arrives',
-      title: 'UK workers, in a hundred tiles',
-      body: <p>Each tile in the grid is one per cent of UK workers.</p>,
-    },
-    {
       id: 'p1-exposure-1',
       kicker: 'AI arrives',
       title: 'Workers by exposure to AI',
       body: (
         <>
           <p>
-            Estimates from the IMF ({when}), reported by the Department for Science, Innovation and Technology and the AI Security
+            Each tile in the grid is one per cent of UK workers. Estimates from the IMF ({when}), reported by the Department for Science, Innovation and Technology and the AI Security
             Institute, put <strong>{share0(hh.value)}</strong> of UK workers in occupations with high exposure to AI and high
             complementarity. A further{' '}
             <strong>{share0(hl.value)}</strong> are in highly exposed occupations with low complementarity, and{' '}
@@ -250,18 +244,18 @@ export default function Part1({ part }) {
         The UK economy and labour market as AI arrives, from official statistics as published. Nothing in this part is modelled by
         PolicyEngine; the one forecast shown is the OBR&rsquo;s own.
       </PartHead>
-      <Scrolly id="p1-output" label={`Real GDP growth, ONS outturn, and the ${OBR_LABEL}`} steps={outputSteps()} graphic={(i, reduce) => <GdpChart state={reduce ? 1 : i} />} />
+      <Scrolly id="p1-output" label={`Real GDP growth, ONS outturn, and the ${OBR_LABEL}`} steps={outputSteps()} graphic={(i) => <GdpChart state={i} />} />
       <Scrolly id="p1-quarters" label="Real GDP growth by quarter" steps={quarterSteps()} graphic={() => <GdpQuartersChart />} />
       <Scrolly id="p1-productivity" label="Output per hour worked" steps={productivitySteps()} graphic={() => <ProductivityChart />} />
-      <Scrolly id="p1-work" label="Employment and unemployment rates" steps={workSteps()} graphic={(i, reduce) => <LabourPanels state={reduce ? 1 : i} />} />
+      <Scrolly id="p1-work" label="Employment and unemployment rates" steps={workSteps()} graphic={(i) => <LabourPanels state={i} />} />
       <Scrolly id="p1-pay" label="Regular pay growth" steps={paySteps()} graphic={() => <PayChart />} />
       <Scrolly id="p1-share" label="Compensation of employees as a share of GDP" steps={shareSteps()} graphic={() => <LabourShareChart />} />
-      <Scrolly id="p1-ai" label="Businesses using AI" steps={aiSteps()} graphic={(i, reduce) => <AiUseChart state={reduce ? 1 : i} />} />
+      <Scrolly id="p1-ai" label="Businesses using AI" steps={aiSteps()} graphic={(i) => <AiUseChart state={i} />} />
       <Scrolly
         id="p1-exposure"
         label="UK workers by exposure to AI"
         steps={exposureSteps()}
-        graphic={(i) => <ExposureTiles state={i} source={exposureSource()} />}
+        graphic={() => <ExposureTiles state={1} source={exposureSource()} />}
       />
       <Reveal as="p" className="p1-bridge">
         Part 2 turns from what has been measured to what a model of the whole economy projects if AI arrives as a shock.

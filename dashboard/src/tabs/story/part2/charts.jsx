@@ -3,11 +3,11 @@
 import { DrawPath, FadeG } from '@/components/story/primitives.jsx';
 import { useInView } from '@/components/story/motion.js';
 import {
-  YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARMS, ARM_COLOR, CENTRAL, BOUND, result,
+  YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARMS, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND, result,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor } from '@/tabs/ai/lines.js';
 import D from '@/data/cohorts2028.json';
-import { W, H, scales, linePath, Axes, Figure } from './frame.jsx';
+import { W, H, scales, linePath, Axes, Figure, EndLabels, GUTTER } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
 // takes the active `state` and draws everything that state needs, so a
@@ -97,7 +97,7 @@ export const SCEN_STATE = { uk_low: 1, uk_central: 2, uk_high: 3, korinek: 4 };
 export function ScenarioPaths({ state, sid, cl }) {
   const [ref, seen] = useInView();
   const lines = SCENARIOS.map((s) => ({ id: s.id, ys: series(s.id, 'tfp', cl, 'Y') })).filter((l) => l.ys);
-  const sc = scales(YEARS, lines.flatMap((l) => l.ys));
+  const sc = scales(YEARS, lines.flatMap((l) => l.ys), GUTTER);
   const shown = lines.filter((l) => state >= SCEN_STATE[l.id]);
   // the chosen scenario last, so it sits on top
   const order = [...lines].sort((a, b) => (a.id === sid) - (b.id === sid));
@@ -107,7 +107,6 @@ export function ScenarioPaths({ state, sid, cl }) {
   const hi = lines.find((l) => l.id === 'uk_high')?.ys;
   const band = lo && hi ? bandPath(sc.X, sc.Y, YEARS, lo, hi) : null;
   const last = YEARS.length - 1;
-  const kys = lines.find((l) => l.id === 'korinek')?.ys;
   const label = `Line chart, shape only: GDP against the OBR-central path in the four scenarios, automation + productivity, ${CL_WORDS[cl]}. ${
     shown.length ? `Drawn: ${shown.map((l) => SCEN_NAME[l.id]).join(', ')}. Each rises from ${SURPRISE_YEAR} and ${afterWordsAll(shown.map((l) => l.ys))} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.` : 'Only the OBR-central path is drawn.'
   }${band && state >= SCEN_STATE.uk_high ? ' The UK range, from UK low to UK high, is shaded.' : ''}${band && state >= SCEN_STATE.korinek ? ' Korinek et al., on US inputs, lies above it.' : ''}`;
@@ -115,11 +114,7 @@ export function ScenarioPaths({ state, sid, cl }) {
     <Figure
       title="GDP in the four scenarios"
       unit={`Automation + productivity, ${CL_WORDS[cl]}. Gap against the OBR-central path, %`}
-      legend={[
-        { key: 'on', label: `${SCEN_NAME[sid]} (chosen above)`, color: ARM_COLOR.tfp, on: true },
-        { key: 'off', label: 'Other scenarios', color: 'var(--pe-gray-400)' },
-        ...(zeroSide(lines.map((l) => l.ys)) ? [] : [ZERO_LEGEND]),
-      ]}
+      legend={zeroSide(lines.map((l) => l.ys)) ? [] : [ZERO_LEGEND]}
     >
       <svg ref={ref} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         <Axes sc={sc} xTicks={yearTicks} markers={MOMENTS} />
@@ -132,13 +127,16 @@ export function ScenarioPaths({ state, sid, cl }) {
             </text>
           </FadeG>
         ) : null}
-        {band && kys ? (
-          <FadeG on={seen && state >= SCEN_STATE.korinek}>
-            <text className="p2-beyond-label" x={sc.X(YEARS[last]) - 4} y={sc.Y(kys[last]) + 4} dy="1em" textAnchor="end">
-              Korinek et al.: US inputs
-            </text>
-          </FadeG>
-        ) : null}
+        <EndLabels
+          sc={sc}
+          items={lines.map((l) => ({
+            key: l.id,
+            v: l.ys[last],
+            lines: l.id === 'korinek' ? ['Korinek et al.', '(US inputs)'] : [SCEN_NAME[l.id]],
+            color: l.id === sid ? ARM_TEXT_COLOR.tfp : 'var(--pe-gray-600)',
+            on: seen && state >= SCEN_STATE[l.id],
+          }))}
+        />
         {order.map((l) => (
           <Line
             key={l.id}
@@ -163,10 +161,16 @@ export function ArmPaths({ state, sid, closure, v, title, unit, label, allFrom }
   const lines = ARMS.flatMap((a, i) =>
     cls.map((cl) => ({ key: `${a.id}-${cl}`, arm: a.id, i, cl, ys: series(sid, a.id, cl, v) })).filter((l) => l.ys),
   );
-  const sc = scales(YEARS, lines.flatMap((l) => l.ys));
+  const sc = scales(YEARS, lines.flatMap((l) => l.ys), GUTTER);
   const isOn = (i) => (allFrom != null ? (i === 0 ? true : state >= allFrom) : state >= i);
-  // one swatch per arm: the unit line says which closure is dashed
-  const legend = ARMS.filter((a, i) => isOn(i)).map((a) => ({ key: a.id, label: a.short, color: ARM_COLOR[a.id] }));
+  // one direct label per arm, at the end of its first closure's line; the
+  // unit line says which closure is dashed
+  const ARM_LINES = { tfp: ['Automation +', 'productivity'], tz: ['Technology', 'unchanged'], ss: ['Stress test'] };
+  const ends = ARMS.map((a, i) => {
+    const l = lines.find((x) => x.arm === a.id && x.cl === cls[0]);
+    return { key: a.id, v: l?.ys[l.ys.length - 1], lines: ARM_LINES[a.id] ?? [a.short], color: ARM_TEXT_COLOR[a.id], on: seen && isOn(i) };
+  });
+  const legend = [];
   const side = zeroSide(lines.map((l) => l.ys));
   return (
     <Figure
@@ -188,6 +192,7 @@ export function ArmPaths({ state, sid, closure, v, title, unit, label, allFrom }
             faint={l.arm === 'ss'}
           />
         ))}
+        <EndLabels sc={sc} items={ends} />
       </svg>
     </Figure>
   );

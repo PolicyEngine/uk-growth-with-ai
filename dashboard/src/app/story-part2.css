@@ -455,3 +455,14 @@
   border-radius: 2px;
   background: var(--sw);
 }
+
+/* Direct labels at line ends (frame.jsx EndLabels), in the right gutter */
+.p2-end-label {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+@media (min-width: 901px) {
+  .p2-end-label {
+    font-size: 9.6px;
+  }
+}

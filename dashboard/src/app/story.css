@@ -160,7 +160,7 @@
   background: var(--pe-surface);
   border: 1px solid var(--card-border);
   border-radius: var(--card-radius);
-  opacity: 0.45;
+  opacity: 0.7;
   transition: opacity 400ms var(--story-ease), border-color 400ms var(--story-ease), box-shadow 400ms var(--story-ease);
 }
 .scrolly-step.is-active .scrolly-card {
@@ -447,37 +447,62 @@
   .scrolly {
     display: block;
   }
+  /* Several steps: the graphic sticks below the rail on an opaque backing
+     (its box-shadow fills the strip up to the rail) and the cards scroll up
+     beneath it, so no card covers the chart. Scrolly.jsx gives the inner box
+     the height of its tallest state, so nothing below it moves. */
   .scrolly-graphic {
     max-height: none;
-    z-index: 1;
+    z-index: 3;
+    padding-bottom: 10px;
+    background: var(--pe-bg, #f8fafc);
+    box-shadow: 0 -12px 0 var(--pe-bg, #f8fafc);
   }
   .scrolly-graphic-inner {
     padding: 12px;
   }
+  .scrolly-sizers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
   .scrolly-steps {
     position: relative;
-    z-index: 2;
-    padding: 4vh 0 12vh;
+    z-index: 1;
+    padding: 2vh 0 6vh;
   }
-  /* The chart changes as the next card enters (trigger 0.88). The card
-     before is by then high on the screen; it fades out, so it never covers
-     the chart or reads as describing the new state. Between cards the chart
-     shows on its own: that is its reading time, not empty space. */
-  .scrolly-step {
-    min-height: 76vh;
-    padding-bottom: 0;
+  /* The chart changes as the next card enters (trigger 0.88). The gap
+     after each card is enough that the card before has by then passed
+     under the graphic, so a card never sits beside a state it does not
+     describe. */
+  .scrolly-step,
+  .scrolly-step:nth-last-child(2) {
+    min-height: 0;
+    padding-bottom: 24vh;
   }
   .scrolly-step:nth-last-child(2) {
-    min-height: 76vh;
-  }
-  .scrolly-step.is-past .scrolly-card,
-  .scrolly.is-done .scrolly-step.is-active .scrolly-card {
-    opacity: 0;
-    pointer-events: none;
+    padding-bottom: 8vh;
   }
   .scrolly-card {
     opacity: 1;
     box-shadow: 0 6px 20px var(--shadow-faint, rgba(16, 24, 40, 0.1));
+  }
+  /* One step: figure, then its text; nothing sticky. */
+  .scrolly.is-single .scrolly-graphic {
+    position: relative;
+    top: auto;
+    padding-bottom: 0;
+    box-shadow: none;
+  }
+  .scrolly.is-single .scrolly-steps {
+    padding: 12px 0 0;
+  }
+  .scrolly.is-single .scrolly-step,
+  .scrolly.is-single .scrolly-step:nth-last-child(2) {
+    padding-bottom: 8px;
   }
 }
 
@@ -490,15 +515,13 @@
   .scrolly-card {
     transition: none !important;
   }
-  .reveal,
-  .fade-g {
+  /* Reveals show at once. Chart parts keep the step logic: a part that is
+     .is-on shows at once, one that is not stays hidden; only the motion goes. */
+  .reveal {
     opacity: 1;
     transform: none;
   }
-  .draw-path {
-    stroke-dashoffset: 0;
-  }
-  .grow-rect {
+  .fade-g {
     transform: none;
   }
   .tab-panel:not([hidden]) {

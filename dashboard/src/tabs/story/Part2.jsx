@@ -56,22 +56,15 @@ export function othersEndHigher(sid, cl) {
 function shockSteps() {
   return [
     {
-      id: 'p2-shock-0',
-      kicker: 'The shock',
-      title: 'Output is paid to labour and to capital',
-      body: (
-        <p>
-          OG-UK is a model of the whole UK economy: households, firms and the government. Each tile in the grid is one per cent of output.
-          Tiles on the left are paid for work; tiles on the right go to the owners of capital as profits, interest and rents.
-        </p>
-      ),
-    },
-    {
       id: 'p2-shock-1',
       kicker: 'The shock',
       title: 'AI moves part of income from labour to capital',
       body: (
         <>
+          <p>
+            OG-UK is a model of the whole UK economy: households, firms and the government. Each tile in the grid is one per cent of output;
+            tiles on the left are paid for work, tiles on the right go to the owners of capital as profits, interest and rents.
+          </p>
           <p>
             In the model AI lets capital do tasks that workers did, so capital&rsquo;s share of income rises and labour&rsquo;s falls. The
             tiles that move are exaggerated so the shift is visible.
@@ -102,28 +95,17 @@ function scenarioSteps(sid, cl) {
   const after = afterWordsAll(SCENARIOS.map((s) => series(s.id, 'tfp', cl, 'Y')).filter(Boolean)) ?? 'changes more slowly';
   return [
     {
-      id: 'p2-scen-1',
+      id: 'p2-scen-2',
       kicker: 'Four scenarios',
-      title: 'UK low',
+      title: 'UK central, within the UK range',
       body: (
         <p>
           The scenarios differ in how far the labour share falls and how much output at given inputs rises. In the main arm of each
-          scenario, GDP rises above the OBR-central path from {SURPRISE_YEAR} and {after} once the shock is complete in{' '}
-          {HEADLINE_YEAR}.
+          scenario, GDP rises above the OBR-central path from {SURPRISE_YEAR} and {after} once the shock is complete in {HEADLINE_YEAR}.
+          UK central has a larger shift and a larger productivity gain than UK low, and UK high larger again: the same shape, higher. The
+          shaded band is the UK range, from UK low to UK high.
         </p>
       ),
-    },
-    {
-      id: 'p2-scen-2',
-      kicker: 'Four scenarios',
-      title: 'UK central',
-      body: <p>A larger shift and a larger productivity gain than UK low: the same shape, higher.</p>,
-    },
-    {
-      id: 'p2-scen-3',
-      kicker: 'Four scenarios',
-      title: 'UK high',
-      body: <p>Larger again on both counts, and higher again. The shaded band is the UK range, from UK low to UK high.</p>,
     },
     {
       id: 'p2-scen-4',
@@ -350,7 +332,7 @@ export default function Part2({ part }) {
 
       <TwoLenses />
 
-      <Scrolly id="p2-shock" label="The shock, illustrated" steps={shockSteps()} graphic={(i) => <ShockTiles state={i} />} />
+      <Scrolly id="p2-shock" label="The shock, illustrated" steps={shockSteps()} graphic={(i) => <ShockTiles state={i + 1} />} />
 
       <Scrolly
         id="p2-morph"
@@ -363,7 +345,7 @@ export default function Part2({ part }) {
         id="p2-scenarios"
         label="GDP in the four scenarios"
         steps={scenarioSteps(sid, cl)}
-        graphic={(i) => <ScenarioPaths state={i + 1} sid={sid} cl={cl} />}
+        graphic={(i) => <ScenarioPaths state={i + 3} sid={sid} cl={cl} />}
       />
 
       <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">
