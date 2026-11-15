@@ -134,7 +134,7 @@ export function ScenarioPaths({ state, sid, cl }) {
         ) : null}
         {band && kys ? (
           <FadeG on={seen && state >= SCEN_STATE.korinek}>
-            <text className="p2-beyond-label" x={sc.X(YEARS[last]) - 4} y={sc.Y(kys[last]) + 15} textAnchor="end">
+            <text className="p2-beyond-label" x={sc.X(YEARS[last]) - 4} y={sc.Y(kys[last]) + 4} dy="1em" textAnchor="end">
               Korinek et al.: US inputs
             </text>
           </FadeG>

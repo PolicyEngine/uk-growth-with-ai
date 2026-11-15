@@ -111,6 +111,9 @@ export function morphGeometry(s, gapYs) {
   return {
     X,
     zeroY,
+    // the outturn | forecast divider: half a year after the last outturn,
+    // so it never sits on a point even when both series hold that year
+    split: ACT.length ? X(ACT_LAST + 0.5) : null,
     act,
     obr,
     gap,
@@ -144,7 +147,7 @@ export function MorphChart({ state, sid, cl }) {
   const g = morphGeometry(s, ys);
   const text = STATE_TEXT(sid, cl)[s];
   const allTicks = [...new Set(X_TICKS.flat())].sort((a, b) => a - b);
-  const split = ACT.length && OBR.length ? (g.X(ACT_LAST) + g.X(OBR[0][0])) / 2 : null;
+  const split = OBR.length ? g.split : null;
   const dPath = (pts) => pathOf(pts);
   const dStyle = (pts) => ({ d: `path('${pathOf(pts)}')` });
   const lastGap = g.gap[g.gap.length - 1];
@@ -152,7 +155,7 @@ export function MorphChart({ state, sid, cl }) {
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s >= 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the OBR-central path: the forecast becomes the zero line, and GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the OBR-central path, OG-UK's no-shock path built on the OBR's central assumptions, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}.`
       : '',
   ]
     .filter(Boolean)

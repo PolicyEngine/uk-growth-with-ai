@@ -260,3 +260,36 @@ describe('from the record to the model', () => {
     for (const r of seen) expect(r.figures).toBeNull();
   });
 });
+
+// The outturn series is being extended (2026, perhaps a partial year): the
+// morph reads it by key, so a new point that overlaps the forecast's first
+// year must still draw and keep the divider off every point.
+describe('the morph with a longer outturn series', () => {
+  it('draws without NaN and keeps the outturn | forecast divider between points', async () => {
+    const uk = JSON.parse(JSON.stringify((await import('@/data/ukContext.json')).default));
+    const g = uk.series.gdp_growth;
+    g.x.push(g.x[g.x.length - 1] + 1, 'note');
+    g.y.push(0.9, null);
+    g.partial = { x: g.x[g.x.length - 2], label: 'Q1–Q3' };
+    vi.resetModules();
+    vi.doMock('@/data/ukContext.json', () => ({ default: uk }));
+    const M = await import('@/tabs/story/part2/Morph.jsx');
+    expect(M.ACT[M.ACT.length - 1][0]).toBe(g.x[g.x.length - 2]);
+    const ys = real.results.uk_central.tfp['zk0.1'].gaps.Y;
+    for (const s of [0, 1, 2]) {
+      const geo = M.morphGeometry(s, ys);
+      for (const k of ['act', 'obr', 'gap']) expect(geo[k].flat().every(Number.isFinite)).toBe(true);
+      if (s === 1) {
+        const xs = [...geo.act, ...geo.obr].map(([x]) => x);
+        expect(xs.every((x) => Math.abs(x - geo.split) > 2)).toBe(true);
+      }
+    }
+    const { container } = render(
+      <NavProvider>
+        <M.MorphChart state={1} sid="uk_central" cl="zk0.1" />
+      </NavProvider>,
+    );
+    expect(container.innerHTML).not.toMatch(/NaN|undefined/);
+    expect(container.querySelectorAll('.p2-mo-dot.is-open').length).toBe(M.OBR.length + 1);
+  });
+});

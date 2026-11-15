@@ -5,7 +5,7 @@ import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
-import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, CENTRAL, BOUND, gap, result } from '@/tabs/ai/surprise.js';
+import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, BOUND, gap, result } from '@/tabs/ai/surprise.js';
 import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
@@ -26,7 +26,6 @@ import OutputSplit from './part2/OutputSplit.jsx';
 // morph), four scenarios, the headline figures, where output goes, three
 // arms, who gains, public finances, then one line of links.
 
-const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 const EPS = 0.05;
 
 // Direction of debt/GDP against the path for one solve, in words.
@@ -154,7 +153,7 @@ function armSteps(sid, closure) {
       <p>Solid lines are the central closure, where some new capital is foreign-owned; dashed lines are closed capital, where none is.</p>
     ) : (
       <p>
-        The lines are at the {CL_WORDS[cl]}. <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink> to see how much depends on
+        {cl === BOUND ? 'The lines are for closed capital.' : 'The lines are at the central closure.'} <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink> to see how much depends on
         foreign capital.
       </p>
     );
@@ -284,7 +283,7 @@ function TwoLenses() {
       <p>
         <Icon name="usersRound" size={16} />
         <span>
-          <b>Part 3: a different model</b>, a one-year microsimulation of UK households when some employees lose their jobs. The two
+          <b>Part 3: a different model</b> (provisional), a one-year microsimulation of UK households when some employees lose their jobs. The two
           sets of numbers are not added together.
         </span>
       </p>

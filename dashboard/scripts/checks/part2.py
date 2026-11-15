@@ -54,10 +54,12 @@ def expected(sid, cl):
 def block(text):
     """The text of the 'Where output goes' block within part 2's dump."""
     a = text.find('Where output goes in')
-    b = text.find('The labour share year by year', a)
     if a < 0:
         return None
-    return text[a:b if b > 0 else a + 4000]
+    # it ends with its link to Explore, or (a pending solve) where the
+    # three-arms block starts
+    ends = [b for b in (text.find('The labour share year by year', a), text.find('Three arms', a)) if b > 0]
+    return text[a:min(ends)] if ends else text[a:]
 
 
 def raw():

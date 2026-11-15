@@ -393,7 +393,7 @@
 }
 @media (max-width: 600px) {
   .p2-wf-row {
-    grid-template-columns: minmax(0, 1fr) 4rem;
+    grid-template-columns: minmax(0, 1fr) 6.5rem;
     gap: 2px 8px;
   }
   .p2-wf-label {
