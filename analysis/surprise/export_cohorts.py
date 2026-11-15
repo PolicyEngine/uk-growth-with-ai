@@ -60,7 +60,12 @@ def default_labels(c):
     out = ["continuation"] if "continuation" in done else []
     for scen, v in (("uk_central", ""), ("uk_central", "dn"), ("korinek", "dn")):
         k = sp._keys(v, scen)
-        out += [x for x in (k["tfp"], k["zfixed"]) if x in done]
+        arms = [x for x in (k["tfp"], k["zfixed"]) if x in done]
+        # as assemble does: a debt-neutral arm off its debt path is not exported
+        bad = [x for x in arms if v == "dn" and not done[x].get("dn_check", {}).get("ok")]
+        if bad:
+            raise RuntimeError(f"{c}: debt-neutral arms off their debt path: {bad}")
+        out += arms
         r4 = sp.accepted_r4(done, ref, v, sp.SURPRISE_YEAR, scen)
         if r4 is not None:
             out.append(r4["label"])

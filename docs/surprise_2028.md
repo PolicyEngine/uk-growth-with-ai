@@ -282,9 +282,10 @@ The 2026-start R4 needed 2 iterations at zk0.1 and 1 at zk0, for both the common
 `analysis/surprise/export_cohorts.py` writes `analysis/surprise/cohorts/<closure>/<label>.npz`. The default set, per closure:
 - the continuation;
 - the UK central arms under the common rule;
-- the UK central arms under debt-neutral transfers.
+- the UK central arms under debt-neutral transfers;
+- the Korinek arms under debt-neutral transfers (added 15 Nov).
 
-In each case the arms are tfp, fixed-input Z and the accepted R4.
+In each case the arms are tfp, fixed-input Z and the accepted R4. A debt-neutral tfp or fixed-input Z arm that missed its debt path (`dn_check` not ok) stops the export. An off-path debt-neutral R4 iteration is never accepted, so it is not exported. The `_dnfull` pair and explicitly named labels are not checked here. Where solved (zk0.1), the set also includes the UK central `_dnfull` tfp arm and `continuation_dnfull`.
 
 The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age and type, with shape (60, 80, 7) and dtype float32. The first two periods, 2026–27, come from the baseline and the rest from the run. `ss_c`, `ss_n` and `ss_b_s` are the run's steady state.
 
@@ -292,7 +293,7 @@ The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age 
 
 **`params.npz` is not rebuilt.** It comes from PR #36's R1–R4 export at 37bd0e2, verified against the accepted baselines. Its omega, g_n, rho, imm_rates and pre-period demographic hashes all equal the baseline's recorded ones. It contains the household parameters plus the R2-corrected demographics on the calendar from 2026, the same object the solves ran on. So no specification build, and no lock, is needed for the export.
 
-**When it runs.** It reads only the SS/TPI pickles under `$WORK/surprise2028/`, which are never deleted. The final export runs after the last debt-neutral UK central solve.
+**When it runs.** It reads only the SS/TPI pickles under `$WORK/surprise2028/`, which are never deleted. It was last run on 15 Nov, after the Korinek debt-neutral arms were added, and the existing files were unchanged.
 
 ## Status (15 Nov 2026, updated after the Fable 5.2 review)
 
@@ -316,7 +317,7 @@ The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age 
 - It replaces only the SS guess fields (`b_sp1 n r_p r w p_m BQ TR Y`). `factor`, `theta` and the baseline TPI state stay the baseline's.
 - It is refused for baselines and baseline_spending arms, and when `reform_use_baseline_solution` is off.
 - If OG-Core never reads the patched pickle, the solve fails rather than recording a guess that wasn't used.
-- The record notes the donor under `ss_guess`: its path relative to the work dir, and its sha256. The two records made before this change (`zk0.5/uk_high_share_shift_ramp_zfixed`, `..._r4_1`) hold the absolute donor path with no hash. They are left as they were.
+- The record notes the donor under `ss_guess`: its path relative to the work dir, and its sha256. The two records made before this change (`zk0.5/uk_high_share_shift_ramp_zfixed`, `..._r4_1`) recorded the absolute donor path with no hash. On 15 Nov, after a Fable 5.2 decision, they were backfilled in place, as was the matching block in `scenarios_surprise2028_uk_high_zk0.5.json`. The backfill gives the work-dir-relative path, `donor_root` and the sha256 (d847fdaa…), marked under `backfilled`. The hash was computed afterwards. The donor's mtime, 14 Nov 00:46Z, predates both solves (finished 15 Nov 12:09Z and 12:19Z, about 9 min each), so it is the file they read. No result value changed, and a fresh assemble reproduces the packaged file. This clears the donor path in these three files only. Other home paths remain in the repo, including the `uk_targets.json` source path in 13 packaged data files, and the solve logs.
 - The `_dnfull` D/Y target is read from the continuation's TPI pickle. Before solving, it is checked against `continuation.json` over 2028–2036. The two agree exactly at every closure.
 
 Cohort paths are exported for the continuation, `continuation_dnfull`, the UK central common, `_dn` and `_dnfull` arms, and the Korinek `_dn` arms at ζK 0.1 and 0 (`analysis/surprise/cohorts`; Korinek added 15 Nov).

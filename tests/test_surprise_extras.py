@@ -191,3 +191,22 @@ def test_export_default_labels_add_continuation_dnfull(tmp_path, monkeypatch):
     assert ec.default_labels("zk0.1") == ["continuation"]
     _write(d, sp.CONT_DNFULL, _arm(be, 0.0, None))
     assert ec.default_labels("zk0.1") == ["continuation", sp.CONT_DNFULL]
+
+
+def test_export_refuses_a_dn_arm_off_its_debt_path(tmp_path, monkeypatch):
+    repo = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location(
+        "export_cohorts", repo / "analysis/surprise/export_cohorts.py")
+    ec = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ec)
+    rd, out, be = _dirs(tmp_path)
+    d = out / "zk0.1"
+    _write(d, "continuation", _arm(be, 0.0, None))
+    sp.write_gate(out, "zk0.1", "continuation", "test")
+    monkeypatch.setattr(ec, "OUTDIR", out)
+    arm = _arm(be, 1.0, 0.97)
+    _write(d, "korinek_share_shift_tfp_ramp_dn", {**arm, "dn_check": {"ok": True}})
+    assert "korinek_share_shift_tfp_ramp_dn" in ec.default_labels("zk0.1")
+    _write(d, "korinek_share_shift_tfp_ramp_dn", {**arm, "dn_check": {"ok": False}})
+    with pytest.raises(RuntimeError, match="off their debt path"):
+        ec.default_labels("zk0.1")
