@@ -1,0 +1,435 @@
+{
+  "provisional": true,
+  "source": {
+    "repo": "PolicyEngine/uk-ai-study",
+    "pr": 18,
+    "branch": "data/microcosm-2024-25",
+    "commit": "02956bdbf68638221a9af5e14d5989f58c56d95c",
+    "fetched": "2026-11-15",
+    "dataset": "Microcosm UK 2024-25"
+  },
+  "headline": {
+    "central_cost": {
+      "label": "Exchequer cost, central scenario",
+      "value": 7.38,
+      "unit": "£bn",
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "exchequer_cost_bn.mean",
+      "draws": 50,
+      "sd": 1.83,
+      "se": 0.26,
+      "range": [
+        2.94,
+        11.15
+      ],
+      "note": "Mean of 50 assignment draws; SD is across draws. Fall in the government balance (income tax, NI incl. employer NI, benefits); no corporation tax. Negative = net gain to the Exchequer."
+    },
+    "central_poverty": {
+      "label": "Change in absolute poverty before housing costs, central scenario",
+      "value": 2.34,
+      "unit": "pp",
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "poverty_change_bhc_pp.mean",
+      "draws": 50,
+      "sd": 0.21,
+      "note": "Absolute BHC line frozen at its baseline value; persons. The paper reads it as an upper bound for exposure-proportional incidence (every displaced worker loses a full year)."
+    },
+    "central_poverty_ahc": {
+      "label": "Change in absolute poverty after housing costs, central scenario",
+      "value": 2.58,
+      "unit": "pp",
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "poverty_change_ahc_pp.mean",
+      "draws": 50,
+      "note": null
+    },
+    "central_poverty_relative": {
+      "label": "Change in relative poverty before housing costs, central scenario",
+      "value": 0.64,
+      "unit": "pp",
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "relative_poverty_change_bhc_pp.mean",
+      "draws": 50,
+      "note": "Line at 60% of the shocked median."
+    },
+    "central_gini": {
+      "label": "Change in the Gini coefficient, central scenario",
+      "value": 1.76,
+      "unit": "pp",
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "gini_change_pp.mean",
+      "draws": 50,
+      "sd": 0.12,
+      "note": "Points of the Gini (x100); baseline Gini 0.302 (results/low.json gini_baseline)."
+    },
+    "central_displaced": {
+      "label": "Employees displaced, central scenario",
+      "value": 2.04,
+      "unit": "m",
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "displaced_weighted_m.mean",
+      "draws": 50,
+      "note": "Weighted count; 7% prescribed displacement rate."
+    },
+    "low_cost": {
+      "label": "Exchequer cost, low scenario",
+      "value": -10.4,
+      "unit": "£bn",
+      "file": "results/low.json",
+      "key": "exchequer_cost / 1e9",
+      "draws": 1,
+      "note": "Seed 0 only. 1% displacement, no survivor-wage gain, full capital uplift; negative = net gain to the Exchequer."
+    },
+    "low_poverty": {
+      "label": "Change in absolute poverty before housing costs, low scenario",
+      "value": -0.01,
+      "unit": "pp",
+      "file": "results/low.json",
+      "key": "poverty_rate_change_bhc * 100",
+      "draws": 1,
+      "note": "Seed 0 only."
+    },
+    "low_gini": {
+      "label": "Change in the Gini coefficient, low scenario",
+      "value": 0.73,
+      "unit": "pp",
+      "file": "results/low.json",
+      "key": "(gini_shocked - gini_baseline) * 100",
+      "draws": 1,
+      "note": "Seed 0 only."
+    },
+    "high_cost": {
+      "label": "Exchequer cost, high scenario",
+      "value": 43.4,
+      "unit": "£bn",
+      "file": "results/high.json",
+      "key": "exchequer_cost / 1e9",
+      "draws": 1,
+      "note": "Seed 0 only. 13% displacement, 2.6% survivor-wage gain, full capital uplift."
+    },
+    "high_poverty": {
+      "label": "Change in absolute poverty before housing costs, high scenario",
+      "value": 5.29,
+      "unit": "pp",
+      "file": "results/high.json",
+      "key": "poverty_rate_change_bhc * 100",
+      "draws": 1,
+      "note": "Seed 0 only."
+    },
+    "high_gini": {
+      "label": "Change in the Gini coefficient, high scenario",
+      "value": 2.81,
+      "unit": "pp",
+      "file": "results/high.json",
+      "key": "(gini_shocked - gini_baseline) * 100",
+      "draws": 1,
+      "note": "Seed 0 only."
+    }
+  },
+  "ladder": [
+    {
+      "id": "central_50",
+      "label": "Central scenario",
+      "cost_bn": 7.38,
+      "poverty_pp": 2.34,
+      "gini_pp": 1.76,
+      "draws": 50,
+      "file": "results/robustness/central_monte_carlo.json",
+      "key": "exchequer_cost_bn.mean, poverty_change_bhc_pp.mean, gini_change_pp.mean",
+      "note": "Headline 50-draw mean."
+    },
+    {
+      "id": "central_20",
+      "label": "Central scenario, seeds 0-19",
+      "cost_bn": 7.23,
+      "poverty_pp": 2.31,
+      "gini_pp": 1.73,
+      "draws": 20,
+      "file": "results/robustness/dividend_coverage_draws.csv",
+      "key": "rows run=central, seeds 0-19; mean over seeds of column means (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)",
+      "note": "The base the take-up, JSA and wage-cut rungs are paired with (same seeds, same displaced workers)."
+    },
+    {
+      "id": "takeup",
+      "label": "UC take-up = 1 for the displaced",
+      "cost_bn": 9.9,
+      "poverty_pp": 2.1,
+      "gini_pp": 1.56,
+      "draws": 20,
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "rows scenario=central, variant=takeup1; mean over seeds of column means (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)",
+      "note": "Every benefit unit with a displaced worker claims UC (paired baseline and shock)."
+    },
+    {
+      "id": "takeup_jsa",
+      "label": "Plus 26 weeks of new-style JSA",
+      "cost_bn": 12.61,
+      "poverty_pp": 1.92,
+      "gini_pp": 1.46,
+      "draws": 20,
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "rows scenario=central, variant=jsa; mean over seeds of column means (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)",
+      "note": "Take-up = 1 plus contributory JSA for displaced workers aged 18-65 who meet the contribution condition."
+    },
+    {
+      "id": "wage_cuts",
+      "label": "Wage cuts with the same gross earnings loss",
+      "cost_bn": 18.87,
+      "poverty_pp": 0.2,
+      "gini_pp": 0.28,
+      "draws": 20,
+      "file": "results/wage_cut/wage_cut_draws.csv",
+      "key": "rows variant=table3; mean over seeds of column means (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)",
+      "note": "Occupation-level (C-AIOE-graded) wage cuts removing the same seed's displaced wage bill; survivor-wage uplift and capital shock on, as in the central rows."
+    },
+    {
+      "id": "obr",
+      "label": "OBR-sized displacement (different shock)",
+      "cost_bn": 9.74,
+      "poverty_pp": 0.63,
+      "gini_pp": 0.2,
+      "draws": 20,
+      "file": "results/next_runs/obr_benchmark.json",
+      "key": "summary.exchequer_cost_bn.mean, summary.poverty_change_bhc_pp.mean, summary.gini_change_pp.mean",
+      "note": "Not a step on the central ladder: 1.67% displacement, no survivor-wage or capital change, sized to the OBR March 2026 scenario."
+    },
+    {
+      "id": "obr_takeup",
+      "label": "OBR-sized, UC take-up = 1",
+      "cost_bn": 10.4,
+      "poverty_pp": 0.57,
+      "gini_pp": 0.16,
+      "draws": 20,
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "rows scenario=obr, variant=takeup1; mean over seeds of column means (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)",
+      "note": null
+    },
+    {
+      "id": "obr_takeup_jsa",
+      "label": "OBR-sized, plus new-style JSA",
+      "cost_bn": 11.07,
+      "poverty_pp": 0.51,
+      "gini_pp": 0.13,
+      "draws": 20,
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "rows scenario=obr, variant=jsa; mean over seeds of column means (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)",
+      "note": null
+    }
+  ],
+  "rules": [
+    {
+      "id": "uniform",
+      "label": "Uniform",
+      "cost_bn": 2.21,
+      "cost_sd_bn": 1.89,
+      "poverty_pp": 2.45,
+      "gini_pp": 1.88,
+      "draws": 50,
+      "file": "results/robustness/incidence_monte_carlo.json",
+      "key": "uniform.exchequer_cost_bn.mean"
+    },
+    {
+      "id": "junior",
+      "label": "Junior-tilted",
+      "cost_bn": 7.1,
+      "cost_sd_bn": 1.56,
+      "poverty_pp": 2.37,
+      "gini_pp": 1.77,
+      "draws": 50,
+      "file": "results/robustness/incidence_monte_carlo.json",
+      "key": "junior.exchequer_cost_bn.mean"
+    },
+    {
+      "id": "exposure",
+      "label": "Exposure-proportional (central)",
+      "cost_bn": 7.38,
+      "cost_sd_bn": 1.83,
+      "poverty_pp": 2.34,
+      "gini_pp": 1.76,
+      "draws": 50,
+      "file": "results/robustness/incidence_monte_carlo.json",
+      "key": "exposure.exchequer_cost_bn.mean"
+    },
+    {
+      "id": "compression",
+      "label": "Expertise compression",
+      "cost_bn": 11.18,
+      "cost_sd_bn": 2.48,
+      "poverty_pp": 2.6,
+      "gini_pp": 1.78,
+      "draws": 50,
+      "file": "results/robustness/incidence_monte_carlo.json",
+      "key": "compression.exchequer_cost_bn.mean"
+    },
+    {
+      "id": "klein_top_loaded",
+      "label": "Top-loaded stress test",
+      "cost_bn": 26.91,
+      "cost_sd_bn": 2.65,
+      "poverty_pp": 2.93,
+      "gini_pp": 1.77,
+      "draws": 50,
+      "file": "results/robustness/incidence_monte_carlo.json",
+      "key": "klein_top_loaded.exchequer_cost_bn.mean"
+    }
+  ],
+  "per_pound": [
+    {
+      "id": "job_loss",
+      "label": "Job loss",
+      "government_p": 42.2,
+      "household_p": 28.8,
+      "draws": 1,
+      "file": "results/tax_composition/composition_grid.csv",
+      "key": "row unemployment_pct=7: -microsim_gov_balance_change_bn and -microsim_net_revenue_change_bn, over results/wage_margin_central.json gross_cut_realised/1e9"
+    },
+    {
+      "id": "job_loss_takeup",
+      "label": "Job loss, UC take-up = 1",
+      "government_p": 44.7,
+      "household_p": 31.3,
+      "draws": 1,
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "row scenario=disp_only, variant=takeup1: exchequer_cost_bn and -narrow_cash_change_bn, over wage_bill_lost_bn"
+    },
+    {
+      "id": "job_loss_takeup_jsa",
+      "label": "Job loss, UC take-up = 1 and new-style JSA",
+      "government_p": 47.3,
+      "household_p": 33.9,
+      "draws": 1,
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "row scenario=disp_only, variant=jsa: exchequer_cost_bn and -narrow_cash_change_bn, over wage_bill_lost_bn"
+    },
+    {
+      "id": "wage_cuts",
+      "label": "Wage cuts",
+      "government_p": 54.9,
+      "household_p": 40.0,
+      "draws": 20,
+      "file": "results/wage_cut/wage_cut_draws.csv",
+      "key": "rows variant=cut_only: mean(exchequer_cost_bn)/mean(gross_cut_bn), mean(household_basis_cost_bn)/mean(gross_cut_bn)"
+    }
+  ],
+  "displaced": {
+    "claim_uc": {
+      "label": "Benefit units of the displaced that claim UC (data take-up flags)",
+      "value": 47.9,
+      "unit": "%",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "diagnostics.obr.flag_true_share"
+    },
+    "claim_uc_entitled": {
+      "label": "Of those entitled to UC once displaced, share that claim",
+      "value": 53.0,
+      "unit": "%",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "diagnostics.obr.flag_true_share_entitled_after"
+    },
+    "existing_unemployed_claim": {
+      "label": "Entitled units with an unemployed member that claim UC (baseline)",
+      "value": 88.1,
+      "unit": "%",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "existing_unemployed.flag_true_share_entitled"
+    },
+    "capital_over_limit": {
+      "label": "Benefit units with capital above the UC limit (£16,000)",
+      "value": 42.2,
+      "unit": "%",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "diagnostics.obr.over_capital_limit_share"
+    },
+    "other_earner": {
+      "label": "Benefit units with another earner",
+      "value": 59.3,
+      "unit": "%",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "diagnostics.obr.other_earner_share"
+    },
+    "homeowner": {
+      "label": "Benefit units that own their home",
+      "value": 70.3,
+      "unit": "%",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "diagnostics.obr.owner_share"
+    },
+    "uc_per_displaced": {
+      "label": "Added UC per displaced worker",
+      "value": 1385,
+      "unit": "£",
+      "file": "results/next_runs/obr_benchmark_draws.csv",
+      "key": "mean(uc_change_bn) * 1e3 / mean(displaced_weighted_m) over 20 rows"
+    },
+    "uc_per_displaced_takeup": {
+      "label": "Added UC per displaced worker, UC take-up = 1",
+      "value": 2735,
+      "unit": "£",
+      "file": "results/takeup/takeup_draws.csv",
+      "key": "rows scenario=obr, variant=takeup1: mean(uc_change_bn) * 1e3 / mean(displaced_weighted_m)"
+    },
+    "uc_per_existing_unemployed": {
+      "label": "UC per person already unemployed (baseline)",
+      "value": 6038,
+      "unit": "£",
+      "file": "results/takeup/takeup_runs.json",
+      "key": "existing_unemployed.uc_per_person_gbp"
+    }
+  },
+  "deciles": {
+    "measure": "Change in household disposable income (HBAI, before housing costs) by baseline income decile, central scenario; each household weighted by its number of members; mean over 20 draws",
+    "unit": "%",
+    "file": "results/appendix/decomposition_ci.csv",
+    "key": "disposable_change_pct (deciles 1-10); ci_low/ci_high = 95% interval for the mean",
+    "draws": 20,
+    "values": [
+      1.78,
+      -0.9,
+      -0.59,
+      -1.29,
+      -1.62,
+      -2.41,
+      -2.13,
+      -2.86,
+      -2.34,
+      0.09
+    ],
+    "ci_low": [
+      1.24,
+      -1.16,
+      -0.87,
+      -1.64,
+      -2.0,
+      -2.68,
+      -2.52,
+      -3.22,
+      -2.73,
+      -0.14
+    ],
+    "ci_high": [
+      2.31,
+      -0.64,
+      -0.31,
+      -0.95,
+      -1.23,
+      -2.14,
+      -1.74,
+      -2.51,
+      -1.95,
+      0.32
+    ],
+    "bottom_decile_caveat": "The paper does not report the bottom income decile as a finding: its sign depends on how households are ranked (results/appendix/decile_ranking_sensitivity.csv, decile 1: hbai +1.78%, pre_pension -0.33%, hbai_excl_large_ppc -0.10%)."
+  },
+  "regions": null,
+  "notes": [
+    "Provisional: PR #18 is an open draft, not merged; numbers may change before publication.",
+    "Data: Microcosm UK 2024-25 (microcosm-uk-2024-25-national-20261107T020434Z-eeb6093e), simulated for 2026 with PolicyEngine-UK.",
+    "Central scenario: 7% of employees displaced in proportion to occupational AI exposure (C-AIOE), survivors' wages up 2.6% on average, interest and dividend income up 39.8% (+0.4pp return); displaced workers lose a full year of earnings.",
+    "Exchequer cost is the fall in the government balance: income tax, employee and employer NI, and benefits; it counts no corporation tax. A negative cost is a net gain.",
+    "Poverty is the absolute line (frozen at baseline) before housing costs unless stated; Gini changes are in points (x100).",
+    "Draw counts differ: headline 50 draws; take-up, JSA and wage-cut variants 20 draws paired with seeds 0-19 of the central run (central on those seeds costs £7.2bn); low and high scenarios one draw (seed 0); job-loss cost per pound seed 0.",
+    "SDs describe assignment-draw variation only, not survey sampling or model uncertainty.",
+    "The OBR-sized run is a different, smaller shock (1.7% displacement, no wage or capital channel), not a step on the central ladder.",
+    "Regional results are not on the study's data/microcosm-2024-25 branch; results/geo/ exists only on main and predates the move to Microcosm (FRS-era, superseded)."
+  ]
+}
