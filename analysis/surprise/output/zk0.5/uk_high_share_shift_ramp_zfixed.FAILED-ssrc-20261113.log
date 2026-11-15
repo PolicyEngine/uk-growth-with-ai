@@ -1,0 +1,44 @@
+zk0.5 surprise 2028 arms: uk_high_share_shift_ramp_zfixed (fixed-input Z (zero wedge at 2027 K, L); R4 secant point 0)
+
+=== zk0.5 surprise2028 uk_high_share_shift_ramp_zfixed ===
+Demographics data: Initial Data year =  2026 , Final Data year =  2028
+  UN data: cache hit un_68_826_2025_2028.csv
+  UN data: cache hit un_80_826_2025_2028.csv
+  UN data: cache hit un_47_826_2025_2030.csv
+  g_n: first 5 periods of the live UN fetch MATCH the vendored data/g_n_committed_run.json; the tail, g_n_ss, omega and imm_rates are unchecked (never recorded), so the solve is not network-free.
+  R2: pre-TP g_n/rho/imm_rates set from the UK fetch
+  R2: data splice 2027->2028 repaired (2.50e-03 -> 3.00e-16)
+  SURPRISE: period 0 is now 2028; shifted 7 time-varying inputs; tG1 8; foreign debt share 0.1001
+  gamma ramps 0.35 -> 0.379
+  Z ramps 1.0 -> 0.950806
+  baseline=False, initial state INHERITED from baseline
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/__main__.py", line 3, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 133, in main
+    return _surprise(args)
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/cli.py", line 200, in _surprise
+    sp.run_step(args.outdir, args.closure, args.stage, args.work, args.rerun_dir,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                scenario=args.scenario, **kw)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/surprise.py", line 971, in run_step
+    rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
+                  spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
+                  out_dir=str(adir), baseline_spending=spec["baseline_spending"],
+                  surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
+                  **settings)
+  File "/Users/vahid/ugai-surprise/uk_growth_with_ai/solve.py", line 410, in run_arm
+    ss = SS.run_SS(p, client=client)
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/SS.py", line 1599, in run_SS
+    output = SS_solver(
+        b_guess,
+    ...<12 lines>...
+        fsolve_flag,
+    )
+  File "/Users/vahid/ogmodels/OG-UK/.venv/lib/python3.13/site-packages/ogcore/SS.py", line 1147, in SS_solver
+    raise RuntimeError(err)
+RuntimeError: Steady state aggregate resource constraint not satisfied

@@ -65,6 +65,8 @@ def default_labels(c):
     full = sp._keys("dnfull", "uk_central")["tfp"]
     if full in done:
         out.append(full)
+    if sp.CONT_DNFULL in done:   # the dnfull arm's like-for-like reference
+        out.append(sp.CONT_DNFULL)
     return out
 
 
