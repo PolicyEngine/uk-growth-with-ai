@@ -18,8 +18,30 @@ import { W, H, scales, linePath, Axes, Figure } from './frame.jsx';
 // beside the central closure) fades in with FadeG instead.
 
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
-const ZERO = { key: 'zero', label: 'OBR-central path (the zero line)', color: 'var(--pe-gray-700)', thin: true };
 const yearTicks = [SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR];
+// The two moments every path chart marks.
+const MOMENTS = [
+  { x: SURPRISE_YEAR, label: 'AI arrives' },
+  { x: HEADLINE_YEAR, label: 'Shock complete' },
+];
+
+// A direct label for the zero line, on the side the lines leave free at the
+// right end; none (a legend entry instead) when lines sit on both sides.
+export function zeroSide(yss) {
+  const ends = yss.flatMap((ys) => ys.slice(-3)).filter(Number.isFinite);
+  if (ends.every((v) => v >= 0)) return 'below';
+  if (ends.every((v) => v <= 0)) return 'above';
+  return null;
+}
+const ZERO_LEGEND = { key: 'zero', label: 'OBR-central path (the zero line)', color: 'var(--pe-gray-700)', thin: true };
+function ZeroLabel({ sc, side }) {
+  if (!side) return null;
+  return (
+    <text x={sc.X(sc.x1) - 2} y={sc.Y(0) + (side === 'below' ? 13 : -6)} textAnchor="end" className="p2-zero-label">
+      OBR-central path
+    </text>
+  );
+}
 export const series = (sid, arm, cl, v) => {
   const r = result(sid, arm, cl);
   return r.status === 'done' ? r.gaps[v] : null;
@@ -96,11 +118,12 @@ export function ScenarioPaths({ state, sid, cl }) {
       legend={[
         { key: 'on', label: `${SCEN_NAME[sid]} (chosen above)`, color: ARM_COLOR.tfp, on: true },
         { key: 'off', label: 'Other scenarios', color: 'var(--pe-gray-400)' },
-        ZERO,
+        ...(zeroSide(lines.map((l) => l.ys)) ? [] : [ZERO_LEGEND]),
       ]}
     >
       <svg ref={ref} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
-        <Axes sc={sc} xTicks={yearTicks} markers={[{ x: SURPRISE_YEAR, label: 'AI arrives' }]} />
+        <Axes sc={sc} xTicks={yearTicks} markers={MOMENTS} />
+        <ZeroLabel sc={sc} side={zeroSide(lines.map((l) => l.ys))} />
         {band ? (
           <FadeG on={seen && state >= SCEN_STATE.uk_high}>
             <path d={band} className="p2-band" />
@@ -111,7 +134,7 @@ export function ScenarioPaths({ state, sid, cl }) {
         ) : null}
         {band && kys ? (
           <FadeG on={seen && state >= SCEN_STATE.korinek}>
-            <text className="p2-beyond-label" x={sc.X(YEARS[last]) - 4} y={sc.Y(kys[last]) - 9} textAnchor="end">
+            <text className="p2-beyond-label" x={sc.X(YEARS[last]) - 4} y={sc.Y(kys[last]) + 15} textAnchor="end">
               Korinek et al.: US inputs
             </text>
           </FadeG>
@@ -144,10 +167,16 @@ export function ArmPaths({ state, sid, closure, v, title, unit, label, allFrom }
   const isOn = (i) => (allFrom != null ? (i === 0 ? true : state >= allFrom) : state >= i);
   // one swatch per arm: the unit line says which closure is dashed
   const legend = ARMS.filter((a, i) => isOn(i)).map((a) => ({ key: a.id, label: a.short, color: ARM_COLOR[a.id] }));
+  const side = zeroSide(lines.map((l) => l.ys));
   return (
-    <Figure title={title} unit={`${SCEN_NAME[sid]}, ${both ? 'central closure solid, closed capital dashed' : CL_WORDS[cls[0]]}. ${unit}`} legend={[...legend, ZERO]}>
+    <Figure
+      title={title}
+      unit={`${SCEN_NAME[sid]}, ${both ? 'central closure solid, closed capital dashed' : CL_WORDS[cls[0]]}. ${unit}`}
+      legend={[...legend, ...(side ? [] : [ZERO_LEGEND])]}
+    >
       <svg ref={ref} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
-        <Axes sc={sc} xTicks={yearTicks} markers={[{ x: SURPRISE_YEAR, label: 'AI arrives' }]} />
+        <Axes sc={sc} xTicks={yearTicks} markers={MOMENTS} />
+        <ZeroLabel sc={sc} side={side} />
         {[...lines].reverse().map((l) => (
           <Line
             key={l.key}

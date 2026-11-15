@@ -3,21 +3,28 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
-import { HeadlineTiles, SummaryWhy, GoDeeper } from '@/tabs/ai/Landing.jsx';
+import Icon from '@/components/ab/Icon.jsx';
+import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, CENTRAL, BOUND, gap, result } from '@/tabs/ai/surprise.js';
 import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
 import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, series, afterWords, afterWordsAll } from './part2/charts.jsx';
 import { More } from './part2/frame.jsx';
+import { MorphChart, morphSteps } from './part2/Morph.jsx';
+import OutputSplit from './part2/OutputSplit.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
 // 2028, against the no-shock OBR-central path. It is the one home of the
 // three headline figures (HeadlineTiles and SummaryWhy, in #story-headline,
-// which Results links to). Every other figure has its home on another tab:
-// here the charts draw shapes only, the sentences give directions only, and
-// each step links to the figure's home. The header's scenario and closure
-// apply throughout, except Who gains, which is solved for UK central only.
+// which Results links to) and of where 2031 output goes (#story-output: the
+// Sankey's shares and the waterfall's changes). Every other figure has its
+// home on another tab: here the charts draw shapes only, the sentences give
+// directions only, and each step links to the figure's home. The header's
+// scenario and closure apply throughout, except Who gains, which is solved
+// for UK central only. Order: two lenses, the shock, record to model (the
+// morph), four scenarios, the headline figures, where output goes, three
+// arms, who gains, public finances, then one line of links.
 
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 const EPS = 0.05;
@@ -96,24 +103,14 @@ function scenarioSteps(sid, cl) {
   const after = afterWordsAll(SCENARIOS.map((s) => series(s.id, 'tfp', cl, 'Y')).filter(Boolean)) ?? 'changes more slowly';
   return [
     {
-      id: 'p2-scen-0',
-      kicker: 'Four scenarios',
-      title: 'The comparison: the same economy without the shock',
-      body: (
-        <p>
-          Every result is a gap against the OBR-central path: the economy restarted in {SURPRISE_YEAR} with no AI shock, growing at the
-          OBR&rsquo;s central rate. On the chart that path is the zero line.
-        </p>
-      ),
-    },
-    {
       id: 'p2-scen-1',
       kicker: 'Four scenarios',
       title: 'UK low',
       body: (
         <p>
-          The scenarios differ in how far the labour share falls and how much output at given inputs rises. In each, GDP rises above the
-          path from {SURPRISE_YEAR} and {after} once the shock is complete in {HEADLINE_YEAR}.
+          The scenarios differ in how far the labour share falls and how much output at given inputs rises. In each of OG-UK&rsquo;s
+          projections, GDP rises above the OBR-central path from {SURPRISE_YEAR} and {after} once the shock is complete in{' '}
+          {HEADLINE_YEAR}.
         </p>
       ),
     },
@@ -212,7 +209,7 @@ function whoSteps(sid) {
       body: (
         <>
           <p>
-            The line is the welfare change of each birth year, for adults alive in {SURPRISE_YEAR}. The gain is largest for adults around
+            The line is the welfare change of each birth year, for adults alive in {SURPRISE_YEAR}, in UK central as modelled. The gain is largest for adults around
             retirement age, who hold more wealth and collect the higher return on it. It is smaller for the oldest adults and for the
             youngest, who have the most working years ahead and the least wealth{someLose ? '; under some measures they lose' : ''}.
           </p>
@@ -247,7 +244,9 @@ function debtSteps(sid, closure) {
       title: 'Public debt against the path',
       body: (
         <p>
-          {main ? `In the main arm, public debt as a share of GDP ${main}.` : 'This solve is not done yet at the closure chosen above.'}
+          {main
+            ? `In ${SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP ${main}.`
+            : 'This solve is not done yet at the closure chosen above.'}
         </p>
       ),
     },
@@ -268,6 +267,51 @@ function debtSteps(sid, closure) {
       ),
     },
   ];
+}
+
+// Two lenses, before part 2: which model this part uses and how part 3's
+// differs. The full comparison closes the story.
+function TwoLenses() {
+  return (
+    <aside className="p2-lenses" aria-label="Two models, two lenses">
+      <p>
+        <Icon name="trend" size={16} />
+        <span>
+          <b>This part: OG-UK</b>, a model of the whole economy. It has no unemployment, and its results are gaps against the
+          OBR-central path, not forecasts of levels.
+        </span>
+      </p>
+      <p>
+        <Icon name="usersRound" size={16} />
+        <span>
+          <b>Part 3: a different model</b>, a one-year microsimulation of UK households when some employees lose their jobs. The two
+          sets of numbers are not added together.
+        </span>
+      </p>
+    </aside>
+  );
+}
+
+// One line of links to the figures' homes (the tab row's sub-tabs).
+const DEEPER = [
+  { tab: 'explore', sub: 'economy', label: 'Economy' },
+  { tab: 'explore', sub: 'finances', label: 'Public finances' },
+  { tab: 'explore', sub: 'who', label: 'Who gains' },
+  { tab: 'explore', sub: 'all', label: 'All scenarios' },
+  { tab: 'method', sub: 'scenarios', label: 'Scenarios' },
+  { tab: 'method', sub: 'how', label: 'OG-UK method' },
+];
+function DeeperLinks() {
+  return (
+    <nav className="p2-deeper" aria-label="Part 2 in detail">
+      <span className="p2-deeper-lead">In detail:</span>
+      {DEEPER.map((d) => (
+        <NavLink key={`${d.tab}-${d.sub}`} tab={d.tab} sub={d.sub}>
+          {d.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
 }
 
 export default function Part2({ part }) {
@@ -302,13 +346,22 @@ export default function Part2({ part }) {
         Our OG-UK results for AI arriving as a surprise in {SURPRISE_YEAR}, compared with the same economy without it.
       </PartHead>
 
+      <TwoLenses />
+
       <Scrolly id="p2-shock" label="The shock, illustrated" steps={shockSteps()} graphic={(i) => <ShockTiles state={i} />} />
+
+      <Scrolly
+        id="p2-morph"
+        label="From GDP growth to the gap against the OBR-central path"
+        steps={morphSteps(sid, cl)}
+        graphic={(i) => <MorphChart state={i} sid={sid} cl={cl} />}
+      />
 
       <Scrolly
         id="p2-scenarios"
         label="GDP in the four scenarios"
         steps={scenarioSteps(sid, cl)}
-        graphic={(i) => <ScenarioPaths state={i} sid={sid} cl={cl} />}
+        graphic={(i) => <ScenarioPaths state={i + 1} sid={sid} cl={cl} />}
       />
 
       <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">
@@ -321,6 +374,8 @@ export default function Part2({ part }) {
         <HeadlineTiles sid={sid} />
         <SummaryWhy sid={sid} />
       </Reveal>
+
+      <OutputSplit sid={sid} closure={closure} />
 
       <Scrolly
         id="p2-arms"
@@ -359,9 +414,7 @@ export default function Part2({ part }) {
         )}
       />
 
-      <div className="p2-deeper">
-        <GoDeeper />
-      </div>
+      <DeeperLinks />
     </>
   );
 }
