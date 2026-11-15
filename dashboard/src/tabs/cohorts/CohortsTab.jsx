@@ -1,6 +1,7 @@
 'use client';
 
 import Disclosure from '@/components/ab/Disclosure.jsx';
+import Icon from '@/components/ab/Icon.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Card, { InfoCard, SectionHeading, StatTile, ViewNote } from '@/components/ui/Card.jsx';
 import ControlBar, { ControlGroup, Segmented, SeriesChips, RuleGroup } from '@/components/ui/ControlBar.jsx';
@@ -11,7 +12,9 @@ import D from '@/data/cohorts2028.json';
 
 // Who gains: consumption-equivalent welfare change by birth year and
 // lifetime-earnings group, UK central only, from cohorts2028.json (written
-// by paper/cohort_welfare.py --json). The headline is the share of adults
+// by paper/cohort_welfare.py --json). With Closure = Both, the tiles and the
+// chart show each closure (two rows, two panels on one y-axis); the Why
+// cards stay at the central closure. The headline is the share of adults
 // who lose, as a range over the measure, and their ages; then the average
 // and where it comes from; then the chart; then why. The ranking by
 // earnings group is a detail under Why, with its caveat.
@@ -172,11 +175,16 @@ function Why({ cl, rule, arm }) {
   );
 }
 
+const CL_WORDS = { 'zk0.1': 'central closure', zk0: 'closed capital' };
+const CL_HEAD = { 'zk0.1': { icon: 'globe', text: 'Central closure' }, zk0: { icon: 'lock', text: 'Closed capital' } };
+
 export default function WhoGainsTab() {
   const { st, set } = useNav();
   const arm = st.arm;
   const rule = st.wrule;
+  const both = st.closure === 'both';
   const cl = st.closure === 'closed' ? 'zk0' : 'zk0.1';
+  const cls = both ? ['zk0.1', 'zk0'] : [cl];
   const C = D.closures[cl];
   const c = cell(cl, rule, arm);
   const x = C.birth_year;
@@ -184,11 +192,19 @@ export default function WhoGainsTab() {
     ...GROUP_LABELS.map((label, j) => ({ id: String(j), label, color: GROUP_RAMP[j] })),
     { id: 'all', label: 'All groups', color: ALL_GROUPS_COLOUR, dashed: true },
   ];
-  const series = items
-    .filter((it) => st.groups.includes(it.id))
-    .map((it) => ({ ...it, key: it.id, values: it.id === 'all' ? c.cev_all : c.cev.map((r) => r[Number(it.id)]) }));
+  const seriesAt = (k) => {
+    const ck = cell(k, rule, arm);
+    return items
+      .filter((it) => st.groups.includes(it.id))
+      .map((it) => ({ ...it, key: it.id, values: it.id === 'all' ? ck.cev_all : ck.cev.map((r) => r[Number(it.id)]) }));
+  };
+  const panels = cls.map((k) => ({ cl: k, series: seriesAt(k) }));
+  const series = panels[0].series;
+  // one y-axis for both panels, so their heights compare
+  const ys = panels.flatMap((pn) => pn.series.flatMap((s) => s.values)).filter(Number.isFinite);
+  const yDomain = both && ys.length ? [Math.min(...ys), Math.max(...ys)] : null;
   const armLabel = ARMS.find((a) => a.id === arm).label;
-  const clWords = cl === 'zk0' ? 'closed capital' : 'central closure';
+  const clWords = both ? 'central closure and closed capital' : CL_WORDS[cl];
   const p = c.parts_alive;
 
   return (
@@ -198,7 +214,7 @@ export default function WhoGainsTab() {
       </SectionHeading>
       <ViewNote icon="lock">
         This tab is solved for <b>UK central</b> only, so the Scenario picker is fixed here.
-        {st.closure === 'both' ? ' It draws one closure at a time: with Both chosen it shows the central closure.' : ''}
+        {both ? ' With Both chosen, the figures and the chart show each closure; the reasons below are for the central closure.' : ''}
       </ViewNote>
       <ControlBar label="Who gains: options">
         <ControlGroup label="Arm">
@@ -206,13 +222,24 @@ export default function WhoGainsTab() {
         </ControlGroup>
         <RuleGroup value={rule} onChange={(r) => set({ wrule: r })} only={['common', 'dn']} />
       </ControlBar>
-      <Headline c={c} rule={rule} />
+      {both ? (
+        cls.map((k) => (
+          <div key={k} className="wg-closure">
+            <h3 className="wg-closure-title">
+              <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
+            </h3>
+            <Headline c={cell(k, rule, arm)} rule={rule} />
+          </div>
+        ))
+      ) : (
+        <Headline c={c} rule={rule} />
+      )}
       <div className="card fold-only">
         <Disclosure inCard title="The same average by form" preview="Consumption · Leisure · Bequests">
           <p className="card-text">
             With one part at a time on the scenario path: consumption <Num x={p.consumption} />, leisure <Num x={p.leisure} />, bequests{' '}
             <Num x={p.bequests} />. The parts need not add up to the total, and they show how households take the change, not where it
-            comes from.
+            comes from.{both ? ' Central closure.' : ''}
           </p>
         </Disclosure>
       </div>
@@ -267,24 +294,39 @@ export default function WhoGainsTab() {
           download={{
             title: 'Welfare change by birth year',
             context: () => `UK central · ${armLabel} · ${ruleLabel(rule)} · ${clWords}`,
-            table: () => ({ columns: ['Birth year', ...series.map((s) => `${s.label} (%)`)], rows: x.map((yr, i) => [yr, ...series.map((s) => s.values[i])]) }),
-            legend: () => [],
+            table: () => ({
+              columns: ['Birth year', ...panels.flatMap((pn) => pn.series.map((s) => `${s.label}${both ? `, ${CL_WORDS[pn.cl]}` : ''} (%)`))],
+              rows: x.map((yr, i) => [yr, ...panels.flatMap((pn) => pn.series.map((s) => s.values[i]))]),
+            }),
+            legend: () => series.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
           }}
         >
           {series.length ? (
-            <LineChart
-              x={x}
-              series={series}
-              height={380}
-              noEndLabels
-              dots={false}
-              yUnit="% change"
-              unit="%"
-              valueFormat={(v) => minus(`${v > 0 ? '+' : ''}${v.toFixed(2)}`)}
-              tipTitle="Born"
-              ariaLabel={`Welfare change by birth year and earnings group, ${armLabel}`}
-              markers={[{ year: LAST_ALIVE + 1, label: `Enter after ${D.shock_year}` }]}
-            />
+            <div className={both ? 'wg-panels' : undefined}>
+              {panels.map((pn) => (
+                <figure key={pn.cl} className="wg-panel">
+                  {both ? (
+                    <figcaption className="wg-panel-title" data-panel-title="">
+                      <Icon name={CL_HEAD[pn.cl].icon} size={14} /> {CL_HEAD[pn.cl].text}
+                    </figcaption>
+                  ) : null}
+                  <LineChart
+                    x={x}
+                    series={pn.series.map((s) => ({ ...s, closure: CL_WORDS[pn.cl] }))}
+                    height={both ? 320 : 380}
+                    noEndLabels
+                    dots={false}
+                    yUnit="% change"
+                    unit="%"
+                    yDomain={yDomain}
+                    valueFormat={(v) => minus(`${v > 0 ? '+' : ''}${v.toFixed(2)}`)}
+                    tipTitle="Born"
+                    ariaLabel={`Welfare change by birth year and earnings group, ${armLabel}, ${CL_WORDS[pn.cl]}`}
+                    markers={[{ year: LAST_ALIVE + 1, label: `Enter after ${D.shock_year}` }]}
+                  />
+                </figure>
+              ))}
+            </div>
           ) : (
             <div className="unpublished-plot">
               <p>Every group is hidden. Choose one under Earnings groups above.</p>
@@ -295,7 +337,7 @@ export default function WhoGainsTab() {
       <SectionHeading id="who-why" icon="compass" title="Why">
         What drives the pattern. The last card applies to the stress-test arm.
       </SectionHeading>
-      <Why cl={cl} rule={rule} arm={arm} />
+      <Why cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} />
     </>
   );
 }

@@ -68,11 +68,13 @@ describe('Who gains tab', () => {
     expect(container.textContent).toContain(pct(cell('zk0', 'common', 'stress').alive_avg));
   });
 
-  it('says it is UK central only, and that Both shows the central closure', () => {
+  it('says it is UK central only; with Both it shows each closure, in tiles and two chart panels', () => {
     const { container } = at('tab=who&s=korinek&closure=both');
     expect(container.textContent).toContain('UK central only');
-    expect(container.textContent).toContain('with Both chosen it shows the central closure');
+    expect(container.textContent).toContain('the figures and the chart show each closure');
     expect(container.textContent).toContain(pct(cell('zk0.1', 'dn', 'tfp').alive_avg));
+    expect(container.textContent).toContain(pct(cell('zk0', 'dn', 'tfp').alive_avg));
+    expect(container.querySelectorAll('#welfare-chart .wg-panel')).toHaveLength(2);
   });
 
   it('data covers both closures, both rules and three arms', () => {

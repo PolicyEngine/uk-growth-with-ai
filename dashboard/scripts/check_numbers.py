@@ -156,21 +156,29 @@ for rid, rule in D.get('rules', {}).items():
 # the top 1%), so this is a multiset. The by-form parts sit in a closed fold
 # and are not in the page text.
 CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
+def tiles(c):
+    exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['sources_alive']['capital'], c['sources_alive']['labour']])
+    if c.get('charged'):
+        lo, hi = (signed(x, 2) + '%' for x in c['charged']['no_bequest_avg'])
+        for t in {lo, hi}:  # an equal low and high print once
+            exp[t] += 1
+    return exp
+def why(c):
+    exp = Counter(signed(x, 2) + '%' for x in [c['alive_by_group'][0], c['alive_by_group'][6]])
+    for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
+        exp[f"{abs(x):.1f}%"] += 1
+    return exp
 c = CO['closures'][C]['rules']['dn']['tfp']
-exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['alive_by_group'][0], c['alive_by_group'][6],
-                                           c['sources_alive']['capital'], c['sources_alive']['labour']])
-if c.get('charged'):
-    lo, hi = (signed(x, 2) + '%' for x in c['charged']['no_bequest_avg'])
-    for t in {lo, hi}:  # an equal low and high print once
-        exp[t] += 1
-for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
-    exp[f"{abs(x):.1f}%"] += 1
+# With Closure = Both (who:both) the tiles print once per closure; the Why
+# cards stay at the central closure.
+EXPECT = {'who': tiles(c) + why(c), 'who:both': tiles(c) + tiles(CO['closures'][B]['rules']['dn']['tfp']) + why(c)}
 for sid in dump:
-    got = Counter(NUM.findall(dump[sid].get('who', '')))
-    if got != exp:
-        bad += 1
-        print(sid, 'who gains missing:', dict(exp - got), 'extra:', dict(got - exp))
-    else:
-        print(sid, 'who gains ok:', sum(exp.values()), 'figures')
+    for key, exp in EXPECT.items():
+        got = Counter(NUM.findall(dump[sid].get(key, '')))
+        if got != exp:
+            bad += 1
+            print(sid, key, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, key, 'ok:', sum(exp.values()), 'figures')
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)
