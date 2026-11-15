@@ -229,7 +229,7 @@ function debtSteps(sid, closure) {
           {main
             ? `In ${SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP ${main}.${
                 main.includes('rises above') ? ' The model reprices all government debt at the higher interest rate at once, which overstates the later rise.' : ''
-              } After ${HEADLINE_YEAR} the OBR-central path is the model’s continuation of the OBR forecast.`
+              } The OBR-central path is OG-UK’s own path, built on the OBR’s central productivity growth; beyond the OBR’s forecast horizon it is the model’s, not the OBR’s.`
             : 'This solve is not done yet at the closure chosen above.'}
         </p>
       ),
