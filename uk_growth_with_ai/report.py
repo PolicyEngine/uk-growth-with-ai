@@ -62,7 +62,11 @@ def trend_params(res, oguk_dir=None, arm_name=None) -> tuple[np.ndarray, float]:
         return g_n, g_y
     from .scenarios import START
     k, y0 = int(res["window"]["k"]), years_of(res)[0]
-    arm = res.get(arm_name) or next(res[a] for a in res.get("arms_requested", []) if a in res)
+    arm = res.get(arm_name) or next((res[a] for a in res.get("arms_requested", [])
+                                     if a in res), None)
+    if arm is None:
+        raise ValueError(f"surprise file: no arm {arm_name!r} and none of arms_requested "
+                         "is present, so the run's population growth is unknown")
     cal = np.concatenate([np.asarray(res["baseline"]["g_n_used"], float)[:k],
                           np.asarray(arm["g_n_used"], float)])      # calendar from START
     return cal[y0 - START:], g_y
@@ -210,7 +214,8 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
                                                    res["assumptions"].get("scenario") == "korinek"):
         A = ANTHROPIC_SUBSTANTIAL
         hy = s["headline_year"]
-        print(f"\nAGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK {hy})\n")
+        print("\nAGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030"
+              + (f"; OG-UK {hy})\n" if sur else ")\n"))
         print(f"{'outcome':<26}{'Anthropic':>11}{'OG-UK':>10}")
         print(f"{'labour-share fall (pp)':<26}{A['labour_share_fall_pp']:>10.1f}"
               f"{s['labour_share_fall_pp']:>10.1f}   matched by construction")

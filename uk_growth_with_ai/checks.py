@@ -234,7 +234,7 @@ def baseline_checks(res, r, ctx=None):
                    f"g_y_annual = {b.get('g_y_annual_used', 'not recorded')}, "
                    f"alpha_G = {b.get('alpha_G_used', 'not recorded')}")
 
-    print(f"\n#3  No fiscal-rule break in {Y_[3]} (baseline)")
+    print(f"\n#3  No fiscal-rule break in {Y_[4]} (baseline)")
     for v in ("G", "I"):
         x = np.array(b[v])
         before, after = _dlog(x, 2), _dlog(x, 3)
@@ -385,10 +385,17 @@ def _fs_tolerance(res, ctx) -> np.ndarray:
     """Per-year tolerance on |G / reference G - 1| under fixed spending."""
     tol = np.full(NPER, 1e-8)
     if ctx["surprise"]:
+        # G = alpha_G Y on both the continuation and the baseline over the window,
+        # so the continuation's G distance from the baseline is its Y distance;
+        # fall back to the widest recorded distance when Y is not recorded
         rep = (res.get("assumptions") or {}).get("continuation_report") or {}
-        vals = [v for v in (rep.get("tight") or {}).values() if _is_number(v)]
-        vals += [rep["max"]] if _is_number(rep.get("max")) else []
-        dist = max(vals, default=0.0)
+        tight = rep.get("tight") or {}
+        if _is_number(tight.get("Y")):
+            dist = tight["Y"]
+        else:
+            vals = [v for v in tight.values() if _is_number(v)]
+            vals += [rep["max"]] if _is_number(rep.get("max")) else []
+            dist = max(vals, default=0.0)
         for i, y in enumerate(ctx["years"]):
             tol[i] = 1e-12 if y < ctx["start"] else 1e-8 + dist
     return tol
