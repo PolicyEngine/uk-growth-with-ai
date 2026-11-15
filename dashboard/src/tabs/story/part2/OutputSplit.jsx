@@ -1,27 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Sankey from '@/components/story/Sankey.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { SOURCE } from './frame.jsx';
-import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows } from './split.js';
-
-// The Sankey's own phone query: there it stacks top to bottom and the four
-// end nodes share one row, too narrow for their labels.
-function usePhone() {
-  const [phone, setPhone] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const mq = window.matchMedia('(max-width: 600px)');
-    const on = () => setPhone(mq.matches);
-    on();
-    mq.addEventListener?.('change', on);
-    return () => mq.removeEventListener?.('change', on);
-  }, []);
-  return phone;
-}
+import { SPLIT_YEAR, PART_COLOR, share, change, splitFor, sankeyGraph, waterfallRows } from './split.js';
 
 // Where output goes in the headline year, at the header's scenario and
 // closure (the central closure with Both, which the text says). Left: a
@@ -98,8 +82,7 @@ export default function OutputSplit({ sid, closure }) {
   const { cl, base, ch } = splitFor(sid, closure);
   const both = closure === 'both';
   const where = `${SCEN_NAME[sid]}, automation + productivity, ${CL_WORDS[cl]}, common fiscal rule`;
-  const phone = usePhone();
-  const graph = base ? sankeyGraph(base, true, phone) : null;
+  const graph = base ? sankeyGraph(base, true) : null;
   const sankeyLabel = base
     ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), payments to foreign owners of UK capital and gilts (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
@@ -120,17 +103,7 @@ export default function OutputSplit({ sid, closure }) {
           <p className="story-figure-unit">{CL_WORDS[cl][0].toUpperCase() + CL_WORDS[cl].slice(1)}. Of every 100 of GDP</p>
           {graph ? (
             <div className="p2-sankey">
-              <Sankey graphs={[graph]} label={sankeyLabel} width={560} height={330} phoneHeight={380} pad={22} />
-              {phone ? (
-                <ul className="p2-sankey-key">
-                  {['labour', ...CAPITAL_PARTS].map((k) => (
-                    <li key={k}>
-                      <span className="p2-key-sw" style={{ '--sw': PART_COLOR[k] }} aria-hidden="true" />
-                      {PART_TEXT[k].short} <b>{share(base[k])}</b>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              <Sankey graphs={[graph]} label={sankeyLabel} width={520} height={300} pad={22} />
             </div>
           ) : (
             <p className="p2-pending">The reference path at this closure is pending.</p>
@@ -170,4 +143,3 @@ export default function OutputSplit({ sid, closure }) {
     </Reveal>
   );
 }
-

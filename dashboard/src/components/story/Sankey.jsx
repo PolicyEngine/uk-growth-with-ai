@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
 
 // A Sankey diagram for the story: flows as ribbons whose width is the value.
@@ -15,25 +15,30 @@ import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
 // graphs share one scale: a pound is the same width in each, so a total that
 // grows takes more room.
 //
-// Wide screens lay the flow out left to right; phones (<= 600px) top to
-// bottom, with the labels beside each node row. Labels are direct (no
-// legend): `label` on its first line, `sub` (value and share, formatted by
-// the caller) on the second. prefers-reduced-motion removes the transitions
-// (story.css), so each state is drawn at once.
+// The flow runs left to right at every width. Labels are direct (no legend): `label`
+// on the first line, `sub` (value and share, formatted by the caller) on the
+// second. First-column labels sit to the left of their node, last-column
+// labels to the right, and middle-column labels above their node.
+// prefers-reduced-motion removes the transitions (story.css), so each state
+// is drawn at once.
 
-const PHONE = '(max-width: 600px)';
-
-function usePhone() {
-  const [phone, setPhone] = useState(false);
+// The box is the container's own width in pixels (measured), so text is
+// drawn at its CSS size whatever the card's width; narrow boxes (< 420px)
+// get narrower label rooms.
+function useWidth(fallback) {
+  const ref = useRef(null);
+  const [w, setW] = useState(fallback);
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const mq = window.matchMedia(PHONE);
-    const on = () => setPhone(mq.matches);
-    on();
-    mq.addEventListener?.('change', on);
-    return () => mq.removeEventListener?.('change', on);
+    const el = ref.current?.parentElement;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(([e]) => {
+      const x = Math.round(e.contentRect.width);
+      if (x > 0) setW((old) => (Math.abs(old - x) > 1 ? x : old));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
-  return phone;
+  return [ref, w];
 }
 
 // Inflow minus outflow at every node that has both, for tests and checks:
@@ -56,7 +61,7 @@ const total = (g) => {
 };
 
 // Lay out one graph in a long x short box (long = the flow direction).
-function layout(graph, long, short, frac, nodeWidth, pad) {
+function layout(graph, x0, long, top, short, frac, nodeWidth, pad) {
   const gen = d3sankey()
     .nodeId((d) => d.id)
     .nodeAlign(sankeyJustify)
@@ -65,14 +70,14 @@ function layout(graph, long, short, frac, nodeWidth, pad) {
     .nodeSort(null)
     .linkSort(null)
     .extent([
-      [0, 0],
-      [long, Math.max(pad * 2, short * frac)],
+      [x0, top],
+      [x0 + long, top + Math.max(pad * 2, short * frac)],
     ]);
   return gen({ nodes: graph.nodes.map((d) => ({ ...d })), links: graph.links.map((d) => ({ ...d })) });
 }
 
 // A ribbon as a filled band (not a stroke), so its width is exact.
-function ribbon(l, vertical) {
+function ribbon(l) {
   const w = l.width / 2;
   const x0 = l.source.x1;
   const x1 = l.target.x0;
@@ -81,56 +86,51 @@ function ribbon(l, vertical) {
   const b0 = l.y0 + w;
   const a1 = l.y1 - w;
   const b1 = l.y1 + w;
-  const P = vertical ? (x, y) => `${y.toFixed(1)},${x.toFixed(1)}` : (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
+  const P = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
   return `M${P(x0, a0)}C${P(xm, a0)} ${P(xm, a1)} ${P(x1, a1)}L${P(x1, b1)}C${P(xm, b1)} ${P(xm, b0)} ${P(x0, b0)}Z`;
 }
 
-export default function Sankey({ graphs, active = 0, label, width = 640, height = 360, phoneHeight = 520, nodeWidth = 14, pad = 18 }) {
-  const phone = usePhone();
-  const vertical = phone;
-  const W = vertical ? 340 : width;
-  const H = vertical ? phoneHeight : height;
-  // wide: room for the last column's labels on the right; phone: labels sit
-  // below each node bar, so the flow takes the full width
-  const labelRoom = vertical ? 8 : 170;
-  const long = vertical ? H - 40 : W - labelRoom;
-  const short = vertical ? W - labelRoom : H - 8;
+export default function Sankey({ graphs, active = 0, label, width = 640, height = 340, nodeWidth = 14, pad = 18, leftRoom = 56, rightRoom = 150, narrowLeftRoom = 40, narrowRightRoom = 112 }) {
+  const [ref, W] = useWidth(width);
+  const narrow = W < 420;
+  const H = narrow ? Math.round(height * 0.85) : height;
+  const L = narrow ? narrowLeftRoom : leftRoom;
+  const R = narrow ? narrowRightRoom : rightRoom;
+  // room above for middle-column labels
+  const top = 34;
+  const long = W - L - R;
+  const short = H - top - 6;
   const max = Math.max(...graphs.map(total));
   const g = graphs[Math.min(active, graphs.length - 1)];
-  const laid = useMemo(() => layout(g, long, short, total(g) / max, nodeWidth, pad), [g, long, short, max, nodeWidth, pad]);
-
-  const node = (n) => (vertical ? { x: n.y0, y: n.x0, w: n.y1 - n.y0, h: n.x1 - n.x0 } : { x: n.x0, y: n.y0, w: n.x1 - n.x0, h: n.y1 - n.y0 });
+  const laid = useMemo(() => layout(g, L, long, top, short, total(g) / max, nodeWidth, pad), [g, L, long, short, max, nodeWidth, pad]);
   return (
-    <svg className="sankey" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+    <svg ref={ref} className="sankey" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       <g className="sankey-links">
         {laid.links.map((l, i) => (
           <path
             key={`${l.source.id}-${l.target.id}-${i}`}
             className="sankey-link"
-            d={ribbon(l, vertical)}
+            d={ribbon(l)}
             style={{ fill: l.color ?? l.source.color, opacity: l.width > 0.5 ? 0.38 : 0 }}
           />
         ))}
       </g>
       <g className="sankey-nodes">
         {laid.nodes.map((n) => {
-          const r = node(n);
-          // wide: right of the node, except in the right half before the last
-          // column, where it sits to the left; phone: centred below the bar
-          const last = !vertical && n.x1 >= long - 1;
-          const left = !vertical && !last && n.x0 > long / 2;
-          const tx = vertical ? Math.min(Math.max(r.x + r.w / 2, 40), W - 40) : left ? n.x0 - 6 : n.x1 + 6;
-          const ty = vertical ? r.y + r.h + 13 : r.y + r.h / 2;
-          const anchor = vertical ? 'middle' : left ? 'end' : 'start';
+          const first = n.x0 <= L + 1;
+          const last = n.x1 >= L + long - 1;
+          const middle = !first && !last;
+          const tx = first ? n.x0 - 6 : last ? n.x1 + 6 : (n.x0 + n.x1) / 2;
+          const anchor = first ? 'end' : last ? 'start' : 'middle';
+          // beside the node, centred on it; above it for a middle column
+          const ty = middle ? n.y0 - (n.sub ? 20 : 7) : (n.y0 + n.y1) / 2 - (n.sub ? 7 : 0);
           return (
             <g key={n.id} className="sankey-node" data-node={n.id}>
-              <rect className="sankey-rect" x={r.x} y={r.y} width={Math.max(r.w, 1)} height={Math.max(r.h, 1)} style={{ fill: n.color }} />
-              <text className="sankey-label" x={tx} y={ty} textAnchor={anchor} dominantBaseline={vertical ? 'hanging' : 'middle'}>
-                <tspan x={tx} dy={!vertical && n.sub ? '-0.55em' : 0}>
-                  {n.label}
-                </tspan>
+              <rect className="sankey-rect" x={n.x0} y={n.y0} width={Math.max(n.x1 - n.x0, 1)} height={Math.max(n.y1 - n.y0, 1)} style={{ fill: n.color }} />
+              <text className="sankey-label" x={tx} y={ty} textAnchor={anchor} dominantBaseline="middle">
+                <tspan x={tx}>{n.label}</tspan>
                 {n.sub ? (
-                  <tspan className="sankey-sub" x={tx} dy="1.2em">
+                  <tspan className="sankey-sub" x={tx} dy="1.25em">
                     {n.sub}
                   </tspan>
                 ) : null}
