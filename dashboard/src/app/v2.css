@@ -1553,9 +1553,9 @@
   right: auto;
   left: 0;
 }
-.page-intro + .explore-part > .section-heading:first-child,
-.page-intro + .section-heading,
-.page-intro + * > .section-heading:first-child {
+.app .page-intro + .section-heading,
+.app .page-intro + * > .section-heading:first-child,
+.app .page-intro + * > section:first-child > .section-heading:first-child {
   margin-top: 0;
 }
 @media (max-width: 640px) {
@@ -1789,7 +1789,8 @@
 }
 @media (max-width: 640px) {
   .as-row {
-    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-columns: 100px minmax(0, 1fr);
+    column-gap: 8px;
   }
 }
 
@@ -2054,4 +2055,24 @@
 .cite-text {
   font-size: var(--fs-small);
   line-height: 1.55;
+}
+
+/* Tax-gap card: no text under 11px, phones included */
+.app .cause-ticks,
+.app .cause-mark-label {
+  font-size: 11px;
+}
+.app .copy-block pre,
+.app .card .copy-block code {
+  font-size: 12px;
+}
+.app .mx-tab > .page-intro + *,
+.app .page-body > .page-intro + * {
+  margin-top: 0;
+}
+#explore-sub-who-inner > .control-bar {
+  margin: 0 0 16px;
+}
+.as-tick:last-child {
+  transform: translateX(-100%);
 }

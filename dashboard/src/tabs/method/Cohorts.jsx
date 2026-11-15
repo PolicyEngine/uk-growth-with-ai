@@ -45,7 +45,7 @@ export default function Cohorts() {
       </div>
       <figcaption className="mx-fig-note">
         Schematic of earnings by age at one date; heights are illustrative. The model&rsquo;s cohorts and ability types
-        are under Households, above.
+        are in the Households block of the diagram above.
       </figcaption>
     </figure>
   );

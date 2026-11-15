@@ -282,7 +282,7 @@ function UseOguk() {
 
 function Vintages() {
   return (
-    <div className="cards-grid">
+    <div className="cards-stack">
       <InfoCard icon="database" title="Data files" id="data-files">
         <div className="table-wrap">
           <table className="data-table ledger-table">
@@ -310,6 +310,7 @@ function Vintages() {
           </table>
         </div>
       </InfoCard>
+      <div className="cards-grid">
       <InfoCard icon="package" title="Model versions" id="model-versions">
         <dl className="mx-versions">
           {VERSIONS.map((e) => (
@@ -336,6 +337,7 @@ function Vintages() {
           ))}
         </ul>
       </InfoCard>
+      </div>
     </div>
   );
 }
@@ -431,19 +433,34 @@ function Cite() {
   );
 }
 
+const Entry = ({ e }) => (
+  <li>
+    <span className="mx-history-date">{longDate(e.date)}</span>
+    <span>
+      {e.text} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
+    </span>
+  </li>
+);
+const RECENT = 8;
+
 function Changelog() {
+  const [recent, older] = [CHANGELOG.entries.slice(0, RECENT), CHANGELOG.entries.slice(RECENT)];
   return (
     <div className="info-card mx-card mx-history">
       <ol className="mx-history-list">
-        {CHANGELOG.entries.map((e) => (
-          <li key={e.commit}>
-            <span className="mx-history-date">{longDate(e.date)}</span>
-            <span>
-              {e.text} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
-            </span>
-          </li>
+        {recent.map((e) => (
+          <Entry key={e.commit} e={e} />
         ))}
       </ol>
+      {older.length ? (
+        <Disclosure inCard title="Earlier changes" preview={`${older.length} more, back to ${longDate(older[older.length - 1].date)}`}>
+          <ol className="mx-history-list">
+            {older.map((e) => (
+              <Entry key={e.commit} e={e} />
+            ))}
+          </ol>
+        </Disclosure>
+      ) : null}
     </div>
   );
 }

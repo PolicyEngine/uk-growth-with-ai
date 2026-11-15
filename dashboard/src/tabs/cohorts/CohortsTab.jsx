@@ -209,8 +209,8 @@ export default function WhoGainsTab() {
 
   return (
     <>
-      <SectionHeading id="who-gains" icon="usersRound" title="Who gains, who loses">
-        Welfare by birth year and lifetime-earnings group when AI arrives as a surprise in {D.shock_year}.
+      <SectionHeading id="who-gains" icon="usersRound" title="Welfare by birth year and earnings group">
+        Consumption-equivalent change for each birth year and lifetime-earnings group when AI arrives as a surprise in {D.shock_year}.
       </SectionHeading>
       <ViewNote icon="lock">
         Who gains is solved for <b>UK central</b> only, so the Scenario picker is fixed here.

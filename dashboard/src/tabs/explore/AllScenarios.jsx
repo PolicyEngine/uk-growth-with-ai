@@ -216,14 +216,11 @@ export default function AllScenarios() {
   const armLabel = ARMS.find((a) => a.id === arm).label;
   return (
     <div id="explore-part-all" className="explore-part">
-      <SectionHeading id="all-cells" icon="layoutGrid" title={`Every cell in ${HEADLINE_YEAR}`}>
-        Four scenarios, two closures and three fiscal rules for one arm at a time. Hover, tap or tab to a mark for its value.
-      </SectionHeading>
       <Card
         id="all-scenarios"
         icon="layoutGrid"
         title={`GDP, GNI, the wage rate and debt/GDP in ${HEADLINE_YEAR}, every cell`}
-        finding={`Rows are the fiscal rule and closure; each mark is a scenario. ${driverWords(arm)}`}
+        finding={`Rows are the fiscal rule and closure; each mark is a scenario. Hover, tap or tab to a mark for its value.${arm === 'tfp' ? '' : ` ${driverWords(arm)}`}`}
         controls={
           <ControlBar label="All scenarios: options">
             <ControlGroup label="Arm">

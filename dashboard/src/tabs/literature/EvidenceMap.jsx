@@ -16,7 +16,7 @@ export default function EvidenceMap({ map = MAP }) {
     <Card
       id="uk-evidence-map"
       icon="table"
-      title="UK evidence map"
+      title="UK studies of AI’s economic effects"
       finding={
         has
           ? `${rows.length} UK studies of AI’s economic effects, with what each estimates and over which horizon. Not our results.`
