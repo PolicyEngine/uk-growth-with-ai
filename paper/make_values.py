@@ -1185,9 +1185,11 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
     tex = INCIDENCE_TEX.read_text()
     if cwf.dnfull_ready("zk0.1") and (DNFULL_PENDING in tex or DNFULL_SENTENCE not in tex):
         fail.append("the matched no-shock reference for the dnfull solve is in: replace the "
-                    "\\pending in the incidence section with the sentence commented under it, and "
-                    "recheck the abstract (main.tex) and intro.tex, which quote the first-order "
-                    "charge-back ('about half of adults')")
+                    "\\pending in the incidence section with the sentence commented under it")
+    # abstract and intro: 'between fewer than 1 per cent and <solve> per cent ... lose'
+    Xc = CR["zk0.1"]
+    if not cwf.losing_pct(Xc["par"], Xc["R"][("dn", "tfp")]) < 1:
+        fail.append("'fewer than 1 per cent of adults lose in the main arm' fails")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
