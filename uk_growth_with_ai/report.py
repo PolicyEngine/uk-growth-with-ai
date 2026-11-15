@@ -10,6 +10,14 @@ re-trending is variable by variable (issue #4): output, spending, capital,
 debt and tax by e^{g_y t} N_t; the wage by e^{g_y t} only; aggregate labour by
 N_t only; the interest rate not at all. The labour share w*L/Y is therefore
 unchanged by re-trending. Ratios of an arm to the baseline need no trend.
+
+Surprise files (``surprise assemble``; recognised by a top-level ``window``)
+carry their own calendar ``years`` (2027-2031 for a 2028 shock), scenario
+targets and gap reference; ``years_of`` and ``trend_params`` read them. Their
+baseline's ``g_n_used`` starts in 2026 and an arm's in the shock year, so the
+population growth for the window is the two spliced (they agree where they
+overlap). The Korinek et al. comparison is printed for the korinek scenario
+only; other scenarios are compared with their own UK targets.
 """
 
 from __future__ import annotations
@@ -30,6 +38,34 @@ ARMS = SHOCKED_ARMS
 
 # Which trend each variable carries; anything not listed carries both.
 TREND = {"w": "productivity", "L": "population", "r": None}
+
+
+def is_surprise(res) -> bool:
+    return isinstance(res, dict) and isinstance(res.get("window"), dict)
+
+
+def years_of(res) -> list[int]:
+    """Calendar years of the five exported periods."""
+    return list(res["years"]) if is_surprise(res) else YEARS
+
+
+def headline_index(res) -> int:
+    if is_surprise(res):
+        return years_of(res).index(res["window"]["headline_year"])
+    return YEARS.index(2030)
+
+
+def trend_params(res, oguk_dir=None, arm_name=None) -> tuple[np.ndarray, float]:
+    """(g_n, g_y) aligned with ``years_of(res)``: g_n[i] is growth from year i to i+1."""
+    g_n, g_y = load_trend_params(oguk_dir, res)
+    if not is_surprise(res):
+        return g_n, g_y
+    from .scenarios import START
+    k, y0 = int(res["window"]["k"]), years_of(res)[0]
+    arm = res.get(arm_name) or next(res[a] for a in res.get("arms_requested", []) if a in res)
+    cal = np.concatenate([np.asarray(res["baseline"]["g_n_used"], float)[:k],
+                          np.asarray(arm["g_n_used"], float)])      # calendar from START
+    return cal[y0 - START:], g_y
 
 
 def trend(v: str, g_y: float, g_n: np.ndarray, n: int = 5) -> np.ndarray:
@@ -67,16 +103,16 @@ def gap_table(arm_name: str, results=None, oguk_dir=None) -> pd.DataFrame:
         a = np.array(res[arm_name][v])[:5]
         b = np.array(res["baseline"][v])[:5]
         rows[label] = (a / b - 1) * 100
-    return pd.DataFrame(rows, index=YEARS).T
+    return pd.DataFrame(rows, index=years_of(res)).T
 
 
 def growth_table(arm_name: str, results=None, oguk_dir=None) -> pd.DataFrame:
     res = results if results is not None else load_results()
-    g_n, g_y = load_trend_params(oguk_dir, res)
+    g_n, g_y = trend_params(res, oguk_dir, arm_name)
     return pd.DataFrame(
         {"Baseline": growth_path(res["baseline"]["Y"], g_y, g_n),
          "With AI": growth_path(res[arm_name]["Y"], g_y, g_n)},
-        index=YEARS[1:],
+        index=years_of(res)[1:],
     ).T
 
 
@@ -85,26 +121,36 @@ def labour_share_table(arm_name: str, results=None) -> pd.DataFrame:
     return pd.DataFrame(
         {"Baseline": labour_share(res["baseline"]),
          "With AI": labour_share(res[arm_name])},
-        index=YEARS,
+        index=years_of(res),
     ).T
 
 
 def summary(arm_name: str, results=None, oguk_dir=None) -> dict:
-    """The 2030 headline numbers for one arm."""
+    """The headline-year numbers for one arm (2030 in the legacy files, the
+    window's headline year in a surprise file).  The ``*_2030_*`` keys are
+    kept for the legacy files; ``headline_year`` and the ``*_headline_*`` keys
+    are always set."""
     res = results if results is not None else load_results()
-    g_n, g_y = load_trend_params(oguk_dir, res)
+    g_n, g_y = trend_params(res, oguk_dir, arm_name)
     arm, base = res[arm_name], res["baseline"]
-    gdp_gap = float(np.array(arm["Y"])[4] / np.array(base["Y"])[4] - 1) * 100
-    return {
+    h = headline_index(res)
+    gdp_gap = float(np.array(arm["Y"])[h] / np.array(base["Y"])[h] - 1) * 100
+    growth = float(growth_path(arm["Y"], g_y, g_n)[h - 1])
+    k_gap = float(np.array(arm["K"])[h] / np.array(base["K"])[h] - 1) * 100
+    out = {
         "arm": arm_name,
         "gamma_shape": arm["gamma_shape"],
-        "gdp_gap_2030_pct": gdp_gap,
-        "growth_2030_pct": float(growth_path(arm["Y"], g_y, g_n)[-1]),
+        "headline_year": years_of(res)[h],
+        "gdp_gap_headline_pct": gdp_gap,
+        "growth_headline_pct": growth,
+        "capital_gap_headline_pct": k_gap,
         "labour_share_fall_pp": (float(base["ss_labour_share"])
                                  - float(arm["ss_labour_share"])) * 100,
-        "capital_gap_2030_pct": float(np.array(arm["K"])[4]
-                                      / np.array(base["K"])[4] - 1) * 100,
     }
+    if not is_surprise(res):
+        out.update({"gdp_gap_2030_pct": gdp_gap, "growth_2030_pct": growth,
+                    "capital_gap_2030_pct": k_gap})
+    return out
 
 
 def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
@@ -112,10 +158,18 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
     arm = res[arm_name]
     s = summary(arm_name, res, oguk_dir)
 
+    years, sur = years_of(res), is_surprise(res)
     print(f"ARM: {arm_name}  (gamma {arm['gamma_shape']} -> "
-          f"{arm['gamma_terminal']}, Z -> {arm['Z_terminal']:.6f})\n")
-    print("AI vs BASELINE, % gap by year\n")
-    print(f"{'variable':<16}" + "".join(f"{y:>9}" for y in YEARS))
+          f"{arm['gamma_terminal']}, Z -> {arm['Z_terminal']:.6f})")
+    if sur:
+        a = res.get("assumptions", {})
+        print(f"SCENARIO: {a.get('scenario')}  (unanticipated, announced at the start of "
+              f"{res['window']['surprise_year']}; fiscal variant "
+              f"{a.get('fiscal_variant') or 'common'}; zeta_K "
+              f"{(a.get('closure') or {}).get('zeta_K', '?')})")
+    ref = (res.get("assumptions", {}).get("gap_reference") or "baseline").upper()
+    print(f"\nAI vs {ref}, % gap by year\n")
+    print(f"{'variable':<16}" + "".join(f"{y:>9}" for y in years))
     gaps = gap_table(arm_name, res, oguk_dir)
     for label in gaps.index:
         print(f"{label:<16}" + "".join(f"{x:>+8.2f}%" for x in gaps.loc[label]))
@@ -126,7 +180,7 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
         print(f"  {name:<10}" + "".join(f"{x:>8.2f}%" for x in g.loc[name]))
 
     print("\nLABOUR SHARE (w*L/Y)\n")
-    print(f"{'path':<16}" + "".join(f"{y:>9}" for y in YEARS))
+    print(f"{'path':<16}" + "".join(f"{y:>9}" for y in years))
     sl = labour_share_table(arm_name, res)
     for name in sl.index:
         print(f"{name:<16}" + "".join(f"{x:>9.4f}" for x in sl.loc[name]))
@@ -136,22 +190,40 @@ def print_report(arm_name: str, results=None, oguk_dir=None) -> dict:
     # Only the share_shift_tfp arms take both sizes from Table 3; the share_shift
     # arms have no output gain at fixed inputs, so this comparison would be
     # meaningless there.
-    if arm_name.startswith("share_shift_tfp"):
+    if sur and arm_name.startswith("share_shift_tfp"):
+        a = res.get("assumptions", {})
+        t = a.get("scenario_targets") or {}
+        hy = s["headline_year"]
+        print(f"\nAGAINST THE SCENARIO'S TARGETS ({t.get('label', a.get('scenario'))}, {hy})\n")
+        print(f"{'outcome':<34}{'target':>10}{'OG-UK':>10}")
+        ls_gap = (labour_share(arm)[headline_index(res)]
+                  - labour_share(res["baseline"])[headline_index(res)]) * 100
+        print(f"{'labour-share fall (pp)':<34}{t.get('labour_share_fall_pp', float('nan')):>10.1f}"
+              f"{-ls_gap:>10.1f}   matched by construction")
+        print(f"{'output at fixed inputs (%)':<34}{t.get('tfp_gain', float('nan')) * 100:>10.1f}"
+              f"{t.get('tfp_gain', float('nan')) * 100:>10.1f}   input, matched "
+              f"(at {a.get('Z_anchor_year')} K and L)")
+        print(f"{'GDP vs reference (%)':<34}{'—':>10}{s['gdp_gap_headline_pct']:>10.2f}")
+        print(f"{'capital stock vs reference (%)':<34}{'—':>10}"
+              f"{s['capital_gap_headline_pct']:>10.2f}")
+    if arm_name.startswith("share_shift_tfp") and (not sur or
+                                                   res["assumptions"].get("scenario") == "korinek"):
         A = ANTHROPIC_SUBSTANTIAL
-        print("\nAGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030)\n")
+        hy = s["headline_year"]
+        print(f"\nAGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK {hy})\n")
         print(f"{'outcome':<26}{'Anthropic':>11}{'OG-UK':>10}")
         print(f"{'labour-share fall (pp)':<26}{A['labour_share_fall_pp']:>10.1f}"
               f"{s['labour_share_fall_pp']:>10.1f}   matched by construction")
         print(f"{'measured TFP (%)':<26}{A['measured_tfp_pct']:>10.1f}"
               f"{A['measured_tfp_pct']:>10.1f}   input, matched")
         print(f"{'GDP vs baseline (%)':<26}{A['gdp_above_no_ai_pct']:>10.1f}"
-              f"{s['gdp_gap_2030_pct']:>10.1f}   "
-              f"{'we overshoot' if s['gdp_gap_2030_pct'] > A['gdp_above_no_ai_pct'] else 'we undershoot'}")
+              f"{s['gdp_gap_headline_pct']:>10.1f}   "
+              f"{'we overshoot' if s['gdp_gap_headline_pct'] > A['gdp_above_no_ai_pct'] else 'we undershoot'}")
         print(f"{'GDP growth (%)':<26}{A['gdp_growth_pct']:>10.1f}"
-              f"{s['growth_2030_pct']:>10.2f}   "
-              f"{'we overshoot' if s['growth_2030_pct'] > A['gdp_growth_pct'] else 'we undershoot'}")
+              f"{s['growth_headline_pct']:>10.2f}   "
+              f"{'we overshoot' if s['growth_headline_pct'] > A['gdp_growth_pct'] else 'we undershoot'}")
         print(f"{'capital stock (%)':<26}{A['capital_stock_pct']:>10.1f}"
-              f"{s['capital_gap_2030_pct']:>10.1f}")
+              f"{s['capital_gap_headline_pct']:>10.1f}")
         print(f"{'unemployment, all workers (%)':<26}{A['unemployment_pct']:>10.1f}{'—':>10}"
               "   not modelled")
         # True of the step arms only: that diagnosis is what motivated the ramp.
