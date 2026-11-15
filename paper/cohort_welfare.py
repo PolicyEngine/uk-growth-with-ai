@@ -82,6 +82,7 @@ ARM_LABEL = {"tfp": "Automation + productivity",
 VARIANT_LABEL = {"dn": "Debt-neutral transfers", "": "Common fiscal rule"}
 GROUPS = ("0-25", "25-50", "50-70", "70-80", "80-90", "90-99", "Top 1")
 RECON_YEARS = range(SHOCK_YEAR, DEBT_RULE + 1)  # 2028-2036
+FUT_COHORTS = 20                                 # cohorts entering 2029-2048
 RECON_TOL_PP = 5e-5                              # "about 4 decimals" of a per-cent gap
 
 
@@ -289,7 +290,7 @@ def averages(par: dict, lam: np.ndarray) -> dict:
     for the cohorts entering 2029-2048 (equal weight per cohort)."""
     aw, gw = alive_weights(par), group_weights(par)
     b = birth_years(par)
-    fut = (b >= SHOCK_YEAR + 1 - FIRST_AGE) & (b <= SHOCK_YEAR + 20 - FIRST_AGE)
+    fut = (b >= SHOCK_YEAR + 1 - FIRST_AGE) & (b <= SHOCK_YEAR + FUT_COHORTS - FIRST_AGE)
     return {"alive_all": float(aw @ lam @ gw),
             "alive_by_group": (aw @ lam).tolist(),
             "future_by_group": lam[fut].mean(axis=0).tolist(),

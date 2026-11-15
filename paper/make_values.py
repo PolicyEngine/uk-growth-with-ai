@@ -73,9 +73,8 @@ SCEN = {"uk_low": "UkLow", "uk_central": "UkCentral", "uk_high": "UkHigh",
 UK = ("uk_low", "uk_central", "uk_high")
 ARMS = {"tfp": "Main", "zfixed": "Flat", "stress": "Stress"}
 VARIANTS = {"": "", "dn": "Dn", "fs": "Fs"}
-# Solves allowed to be missing tonight (#27 lock queue, 12 Nov 23:55).
-PENDING_OK = {("zk0", "uk_low", ""), ("zk0", "uk_high", "")} | {
-    (cl, sc, v) for cl in CLOSURES for sc in SCEN for v in ("dn", "fs")}
+# Solves allowed to be missing: the fiscal variants are run for UK central and the upper case only.
+PENDING_OK = {(cl, sc, v) for cl in CLOSURES for sc in ("uk_low", "uk_high") for v in ("dn", "fs")}
 
 W = sp.window()
 HEAD = W["headline_year"]            # 2031
@@ -91,11 +90,15 @@ G0 = scen.G_BASE
 # Published benchmarks.
 OBR_EFF_RATE_LABOUR, OBR_EFF_RATE_PROFITS = 40.0, 17.0     # Nov 2025 EFO para 2.64
 OBR_TAX_PER_PP = (0.19, 0.23)                              # FRS 2026 Box 4.1 / EFO rates
+OBR_FRS_RATE_LABOUR, OBR_FRS_RATE_PROFITS = 46.0, 27.0     # FRS 2026 Box 4.1
 OBR_WEDGE_PP = (19.0, 23.0)                                # FRS 46-27, EFO 40-17
 IMF_OUTPUT_Y4_PCT, IMF_OUTPUT_Y5_PCT = 2.52, 3.26          # SIP/2026/072, uk_calibration.md
 IMF_TFP_Y4_PCT = 0.42
+IMF_TFP_Y5_PCT = 0.53                                      # SIP/2026/072, five years after adoption starts
+IMF_COST_SAVING_PCT = 27                                   # SIP/2026/072 para 44
 KORINEK_T5_WAGE_PCT = {"One": -1.6, "Three": 2.1, "Six": 3.7, "Inf": 5.6}
 PE = r"\pend{}"
+COH_INCOME_AGE = 45                  # income-by-source illustration, age in 2028
 
 
 class ResultsError(SystemExit):
@@ -410,6 +413,7 @@ def emit(v: Values, R: dict) -> None:
         v.put(f"CurrentAccountDeficitBase{cw}", cad, "{:.1f}")
         v.put(f"ForeignOwnedCapitalBase{cw}", s_(ref, "K_f", y) / s_(ref, "K", y) * 100, "{:.0f}")
         v.put(f"BaseDebtGdpThirtyOne{cw}", s_(ref, "D", y) / Y * 100, "{:.1f}")
+        v.put(f"BaseDebtGdpShockRound{cw}", s_(ref, "D", SHOCK) / s_(ref, "Y", SHOCK) * 100, "{:.0f}")
         v.put(f"BaseDebtGdpThirtySix{cw}", s_(ref, "D", DEBT_RULE) / s_(ref, "Y", DEBT_RULE) * 100, "{:.1f}")
         v.put(f"BaseInterestPct{cw}", s_(ref, "r", y) * 100, "{:.1f}")
         # who supplies the extra capital: UK central main arm, 2031
@@ -508,6 +512,13 @@ def emit(v: Values, R: dict) -> None:
     v.put("ImfOutputYFourPct", IMF_OUTPUT_Y4_PCT, "{:.1f}")
     v.put("ImfOutputYFivePct", IMF_OUTPUT_Y5_PCT, "{:.1f}")
     v.put("ImfTfpYFourPct", IMF_TFP_Y4_PCT, "{:.2f}")
+    v.put("ImfTfpYFivePct", IMF_TFP_Y5_PCT, "{:.2f}")
+    v.put("ImfOutputYFivePctTwoDp", IMF_OUTPUT_Y5_PCT, "{:.2f}")
+    v.put("ImfCostSavingPct", IMF_COST_SAVING_PCT, "{:.0f}")
+    v.put("ObrFrsRateLabourPct", OBR_FRS_RATE_LABOUR, "{:.0f}")
+    v.put("ObrFrsRateProfitsPct", OBR_FRS_RATE_PROFITS, "{:.0f}")
+    if OBR_FRS_RATE_LABOUR - OBR_FRS_RATE_PROFITS != OBR_WEDGE_PP[0]:
+        raise ResultsError("OBR FRS rates and the wedge disagree")
     # capital supplied at an unchanged return (gamma Y / K at the path's value),
     # UK central inputs, labour unchanged and at the arm's own labour
     ref, rec = R["zk0.1"]["ref"], R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
@@ -648,7 +659,7 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 v.signed(f"{pre}FutBottom", av["future_by_group"][0])
                 v.signed(f"{pre}FutTopOne", av["future_by_group"][6])
                 v.signed(f"{pre}FutAll", av["future_all"])
-                v.put(f"{pre}LosingPct", float(aw @ (lam < 0) @ gw) * 100, "{:.0f}")
+                v.put(f"{pre}LosingPct", cwf.losing_pct(par, lam), "{:.0f}")
                 for p, pw in (("consumption", "PartCons"), ("leisure", "PartLeis"),
                               ("bequests", "PartBeq")):
                     v.signed(f"{pre}{pw}", X["parts"][key][p]["all"])
@@ -706,6 +717,16 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 lose_all = [SHOCK - int(x) for x, row, ok in zip(b, lam, alive) if ok and (row < 0).all()]
                 v.put(f"{pre}AllLoseUpToAge", max(lose_all) if lose_all else "none",
                       "{:.0f}")
+                # youngest age from which every group at every older age gains (alive cohorts)
+                ages_ok = sorted(((SHOCK - int(x)), bool((row > 0).all()))
+                                 for x, row, ok in zip(b, lam, alive) if ok)
+                gain_from = None
+                for age_, ok_ in reversed(ages_ok):
+                    if not ok_:
+                        break
+                    gain_from = age_
+                v.put(f"{pre}AllGainFromAge", gain_from if gain_from is not None else "none",
+                      "{:.0f}")
         for a, aword in ARMS.items():
             d = (cwf.averages(par, X["R"][("dn", a)])["alive_all"]
                  - cwf.averages(par, X["R"][("", a)])["alive_all"])
@@ -713,7 +734,7 @@ def emit_cohorts(v: Values, CR: dict) -> None:
         # income by source over 2028-35, age 45 in 2028, main arm: per cent of consumption
         for var, rw in COH_RULE.items():
             ia = cwf.income_accounts(cl, (var, "tfp"))
-            s45 = 45 - cwf.FIRST_AGE
+            s45 = COH_INCOME_AGE - cwf.FIRST_AGE
             for k, kw in (("labour", "Lab"), ("capital", "Cap"), ("transfers", "Tr")):
                 v.signed(f"CohMain{rw}{cw}Inc{kw}Bottom", float(ia[k][s45, 0]))
                 v.signed(f"CohMain{rw}{cw}Inc{kw}TopOne", float(ia[k][s45, 6]))
@@ -746,6 +767,13 @@ def emit_cohorts(v: Values, CR: dict) -> None:
     v.put("CohOnsWealthTopTenth", ONS_WEALTH_TOP_TENTH, "{:.0f}")
     v.put("CohOnsWealthBottomHalf", ONS_WEALTH_BOTTOM_HALF, "{:.0f}")
     v.put("CohFigLastBirth", cwf.FIG_LAST_BIRTH, "{:.0f}")
+    v.put("CohFutFirstEntry", SHOCK + 1, "{:.0f}")
+    v.put("CohFutLastEntry", SHOCK + cwf.FUT_COHORTS, "{:.0f}")
+    v.put("CohLastExportYear", cwf.START_YEAR + cwf.T_USE - 1, "{:.0f}")
+    v.put("CohIncomeAge", COH_INCOME_AGE, "{:.0f}")
+    v.put("YearAfterShock", SHOCK + 1, "{:.0f}")
+    v.put("YearTwoAfterShock", SHOCK + 2, "{:.0f}")
+    v.put("YearsShockToHead", HEAD - SHOCK, "{:.0f}")
     v.put("CohLastAliveBirth", SHOCK - cwf.FIRST_AGE, "{:.0f}")
     v.put("CohFirstAliveBirth", SHOCK - cwf.FIRST_AGE - 79, "{:.0f}")
     v.put("CohReconTolPp", sci(cwf.RECON_TOL_PP))
@@ -903,10 +931,11 @@ def check_claims(R: dict, v: Values) -> None:
         fail.append(f"'about three-quarters of the extra capital is foreign-owned' fails ({fs})")
     if not float(v["UkCentralForeignShareExtraKBound"]) == 0:
         fail.append("'no extra capital is foreign-owned at the bound' fails")
-    # IMF: capital supplied at an unchanged return brackets the IMF's year-4/5 output
-    e = float(v["ElasticBoundGdpPct"])
-    if not IMF_OUTPUT_Y4_PCT <= e <= IMF_OUTPUT_Y5_PCT + 0.1:
-        fail.append(f"'an elastic capital supply brackets the IMF's output' fails ({e})")
+    # IMF: with capital supplied at an unchanged return, both GDP figures lie within the
+    # IMF's year-4 to year-5 output range
+    for e in (float(v["ElasticBoundGdpPct"]), float(v["ElasticBoundGdpOwnLPct"])):
+        if not IMF_OUTPUT_Y4_PCT <= e <= IMF_OUTPUT_Y5_PCT:
+            fail.append(f"'both lie within the IMF's year-4 to year-5 range' fails ({e})")
     g = M("zk0.1", "uk_central", "tfp")["Gdp"]
     if not 0.25 < g / IMF_OUTPUT_Y4_PCT < 0.45:
         fail.append(f"'about a third of the IMF's output effect' fails ({g / IMF_OUTPUT_Y4_PCT:.2f})")
@@ -1137,11 +1166,12 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
                 fail.append(f"'once the cost is charged, every age up to {old_} loses on average' fails: {cl} {f}")
     X = CR["zk0.1"]
     m = X["rob"][("dn", "tfp")]
-    # 'without both, close to zero, with about half of adults losing' (central closure)
-    if not all(-0.2 < x < 0.2 for x in m["charged"]["no_bequest_avg"]):
-        fail.append("'without both features the main-arm average is close to zero' fails")
-    if not all(40 <= x <= 60 for x in m["charged"]["no_bequest_losing_pct"]):
-        fail.append("'without both features about half of adults lose' fails")
+    # 'without both ... ': the text now quotes the solve to the horizon by macro; it only
+    # needs the average to stay a gain smaller than the as-solved no-bequest average
+    if cwf.dnfull_ready("zk0.1"):
+        dm = cwf.dnfull_measures("zk0.1", "matched")
+        if not all(0 < dm[f]["no_bequest_avg"] < m["no_bequest_avg"] for f in cwf.FILL_PATHS):
+            fail.append("'without both features the average is smaller' fails")
     if not abs(m["sources"]["total"] - float(cwf.alive_weights(X["par"]) @ X["Rc"][("dn", "tfp")]
                                               @ cwf.group_weights(X["par"]))) < 0.3:
         fail.append("'the lifetime income total is close to the consumption-only measure' fails")
@@ -1186,9 +1216,16 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
         fail.append("the matched no-shock reference for the dnfull solve is in: replace the "
                     "\\pending in the incidence section with the sentence commented under it")
     # abstract and intro: 'between fewer than 1 per cent and <solve> per cent ... lose'
-    Xc = CR["zk0.1"]
-    if not cwf.losing_pct(Xc["par"], Xc["R"][("dn", "tfp")]) < 1:
-        fail.append("'fewer than 1 per cent of adults lose in the main arm' fails")
+    # 'in the stress test it changes the sign of the average' (central closure)
+    Xs = CR["zk0.1"]
+    a_c = cwf.averages(Xs["par"], Xs["R"][("", "stress")])["alive_all"]
+    a_d = cwf.averages(Xs["par"], Xs["R"][("dn", "stress")])["alive_all"]
+    if not (a_c > 0 > a_d):
+        fail.append(f"'debt-neutral transfers change the sign of the stress-test average' fails ({a_c:+.2f}, {a_d:+.2f})")
+    for cl_ in CLOSURES:
+        Xc = CR[cl_]
+        if not cwf.losing_pct(Xc["par"], Xc["R"][("dn", "tfp")]) < 1:
+            fail.append(f"'fewer than 1 per cent of adults lose in the main arm' fails: {cl_}")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 

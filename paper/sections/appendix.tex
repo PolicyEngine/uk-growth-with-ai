@@ -62,7 +62,7 @@ Longest solve, minutes & \genSolveMinMaxCentral{} & \genSolveMinMaxBound{} \\
 \subsection{Fixed spending and debt-neutral transfers}
 \label{app:fixed}
 
-Table~\ref{tab:fixed} will report UK central and the upper case under two alternative fiscal conventions: government consumption and transfers held at the path's levels, the convention the OBR uses when scoring a scenario against a forecast; and transfers that adjust every year from \genShockYear{} so that debt/GDP follows the path to \genDebtRuleYear{}. In each, the stress test's output at given inputs is re-solved so that \genHeadYear{} GDP again equals the path.
+Table~\ref{tab:fixed} reports UK central and the upper case under two alternative fiscal conventions: government consumption and transfers held at the path's levels, the convention the OBR uses when scoring a scenario against a forecast; and transfers that adjust every year from \genShockYear{} so that debt/GDP follows the path to \genDebtRuleYear{}. In each, the stress test's output at given inputs is re-solved so that \genHeadYear{} GDP again equals the path.
 
 \begin{table}[htbp]
 \centering
@@ -92,7 +92,7 @@ Debt/GDP, pp, \genDebtRuleYear{} & \genUkCentralMainDebtPpThirtySixBound{} & \ge
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\raggedright\footnotesize \emph{Notes:} gaps against the path at the same closure. ``Shared share'' is the convention of the main text. ``Pending'' marks solves queued overnight. In the debt-neutral runs debt/GDP follows the path by construction to \genDebtRuleYear{}. Source: \texttt{analysis/surprise/output/}.
+\raggedright\footnotesize \emph{Notes:} gaps against the path at the same closure. ``Shared share'' is the convention of the main text. In the debt-neutral runs debt/GDP follows the path by construction to \genDebtRuleYear{}. Source: \texttt{analysis/surprise/output/}.
 \end{minipage}
 \end{table}
 
@@ -179,4 +179,4 @@ python paper/make_values.py --check     # values_generated.tex is current
 cd paper && tectonic main.tex           # or: pdflatex main && pdflatex main
 \end{verbatim}
 
-Every number is a macro in \texttt{paper/values\_generated.tex}, generated from the per-solve records in \texttt{analysis/surprise/output/<closure>/}. \texttt{make\_values.py} stops with an error if a record is missing (other than the solves still queued, which print as pending), if a record fails its checks, or if a sentence that the paper states in words (for example, that debt/GDP is higher by \genDebtRuleYear{} in every arm) no longer holds.
+Every model result is a macro in \texttt{paper/values\_generated.tex}, generated from the per-solve records in \texttt{analysis/surprise/output/<closure>/}. \texttt{make\_values.py} stops with an error if a record is missing (other than the solves still queued, which print as pending), if a record fails its checks, or if a sentence that the paper states in words (for example, that debt/GDP is higher by \genDebtRuleYear{} in every arm) no longer holds.
