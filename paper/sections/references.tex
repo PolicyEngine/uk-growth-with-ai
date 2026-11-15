@@ -1,9 +1,13 @@
 % References are a thebibliography environment, matching the sister paper, so no
 % bibtex pass is needed; two pdflatex passes resolve the \citep keys.
 % Checked against the sources on 12 Nov 2026 (referee pass on #24): Korinek et al.
-% (title, authors, Tables 3 and 5), Jones and Tonetti, Moll and Imas, Sachs et al.
-% (NBER abstract), Blanchard and Giavazzi (pages, Table 3) and the ONS wealth
-% bulletin.  Still to confirm: the citable form and year of the OG-Core entry.
+% (title, authors, Tables 3 and 5), Moll and Imas, Sachs et al. (NBER abstract),
+% Blanchard and Giavazzi (pages, Table 3) and the ONS wealth bulletin.  Re-checked
+% 15 Nov 2026 (Fable academic-papers review, 1a-1c): Jones and Tonetti v1.0 title
+% page; WP22 title page (authors); EFO Nov 2025 (Box 2.1 is the productivity/AI box,
+% Box 4.1 is about receipts); EFO Mar 2026 para 6.18 and Box 2.2; Imas and Moll note
+% title page; Yotzov et al. (Oct 2026 revision, p.23); IFS Green Budget 2026 ch.1
+% Scenario 2 (pp.35-38); OG-Core cited as its README asks, at the version run.
 \begin{thebibliography}{99}
 
 \bibitem[Acemoglu(2025)]{acemoglu2025}
@@ -32,16 +36,28 @@ Blanchard, O. and Giavazzi, F. (2002).
 \newblock Current account deficits in the euro area: the end of the Feldstein--Horioka puzzle?
 \newblock \emph{Brookings Papers on Economic Activity}, 2002(2), 147--209.
 
-\bibitem[DeBacker and Evans(2024)]{debacker2024ogcore}
-DeBacker, J. and Evans, R.~W. (2024).
-\newblock OG-Core: A general equilibrium overlapping generations model for fiscal policy analysis.
-\newblock Open-source model documentation, Policy Simulation Library.
-\newblock \url{https://github.com/PSLmodels/OG-Core}. % TODO verify the citable release/version and year to cite
+\bibitem[Brzezinski et~al.(2025)]{obr2025wp22}
+Brzezinski, A., Hantzsche, A. and Watson, J. (2025).
+\newblock A new UK overlapping generations model.
+\newblock Office for Budget Responsibility Working Paper No.~22, April 2025.
+\newblock \url{https://obr.uk/download/working-paper-no-22-a-new-uk-overlapping-generations-model/}
+
+\bibitem[DeBacker et~al.(2019)]{debacker2019pfr}
+DeBacker, J., Evans, R.~W. and Phillips, K.~L. (2019).
+\newblock Integrating microsimulation models of tax policy into a DGE macroeconomic model.
+\newblock \emph{Public Finance Review}, 47(2), 207--275.
+\newblock \url{https://doi.org/10.1177/1091142118816744}
 
 \bibitem[Feldstein and Horioka(1980)]{feldsteinhorioka1980}
 Feldstein, M. and Horioka, C. (1980).
 \newblock Domestic saving and international capital flows.
 \newblock \emph{The Economic Journal}, 90(358), 314--329.
+
+\bibitem[Imas and Moll(2026)]{imasmoll2026}
+Imas, A. and Moll, B. (2026).
+\newblock A standard task-based Solow model delivers AI-driven double-digit growth.
+\newblock Technical note to \citet{mollimas2026}, September 2026.
+\newblock \url{https://benjaminmoll.com/task_based_solow/}
 
 \bibitem[IMF(2026)]{imf2026sip}
 International Monetary Fund (2026).
@@ -51,8 +67,8 @@ International Monetary Fund (2026).
 
 \bibitem[Jones and Tonetti(2026)]{jonestonetti2026}
 Jones, C.~I. and Tonetti, C. (2026).
-\newblock Past automation and future A.I.: How weak links tame the growth explosion.
-\newblock Working paper, Stanford Graduate School of Business, version~0.5, May 2026.
+\newblock Past automation and future AI: How weak links tame the growth explosion.
+\newblock Working paper, version~1.0, November 2026.
 \newblock \url{https://web.stanford.edu/~chadj/JonesTonetti_Automation.pdf}
 
 \bibitem[Korinek et~al.(2026)]{korinek2026}
@@ -60,6 +76,13 @@ Korinek, A., Jones, C.~I., Sacher, S., Cotter, T. and McCrory, P. (2026).
 \newblock Economic scenarios for transformative AI.
 \newblock The Anthropic Institute Working Paper No.~2026-02, September 2026.
 \newblock (Table~3, ``substantial'' column, is the calibration target used here.)
+\newblock \url{https://www-cdn.anthropic.com/files/4zrzovbb/website/cf58f84d46a4a76bf5a5b039ac695fba6b80041c.pdf}
+
+\bibitem[Meaning and Hennigan(2026)]{ifs2026gb}
+Meaning, J. and Hennigan, C. (2026).
+\newblock Economic outlook: headwinds on the horizon.
+\newblock Chapter~1 of \emph{The IFS Green Budget: October 2026}, Institute for Fiscal Studies, Section~1.9, Scenario~2.
+\newblock \url{https://ifs.org.uk/system/files/2026-10/IFS_Green_Budget_2026_Econonic_Outlook_chapter.pdf}
 
 \bibitem[Moll and Imas(2026)]{mollimas2026}
 Moll, B. and Imas, A. (2026).
@@ -71,24 +94,24 @@ Moll, B. and Imas, A. (2026).
 Moll, B., Rachel, L. and Restrepo, P. (2022).
 \newblock Uneven growth: Automation's impact on income and wealth inequality.
 \newblock \emph{Econometrica}, 90(6), 2645--2683.
+\newblock \url{https://doi.org/10.3982/ECTA19417}
 
-\bibitem[OBR(2025a)]{obr2025wp22}
+\bibitem[OG-Core(2026)]{ogcore}
+OG-Core (2026).
+\newblock OG-Core (Version \genOgcoreVersion{}) [Source code], Policy Simulation Library.
+\newblock \url{https://github.com/PSLmodels/OG-Core}
+
+\bibitem[OBR(2025a)]{obr2025bp9}
 Office for Budget Responsibility (2025a).
-\newblock A new UK overlapping generations model.
-\newblock Working Paper No.~22, April 2025.
-\newblock \url{https://obr.uk/}
-
-\bibitem[OBR(2025b)]{obr2025bp9}
-Office for Budget Responsibility (2025b).
 \newblock Forecasting productivity.
 \newblock Briefing Paper No.~9, November 2025, Annex~B, paras~B.9, B.12 and B.14.
-\newblock \url{https://obr.uk/}
+\newblock \url{https://obr.uk/docs/dlm_uploads/Briefing_paper_No.9_Forecasting_productivity.pdf}
 
-\bibitem[OBR(2025c)]{obr2025efonov}
-Office for Budget Responsibility (2025c).
+\bibitem[OBR(2025b)]{obr2025efonov}
+Office for Budget Responsibility (2025b).
 \newblock \emph{Economic and fiscal outlook, November 2025}.
-\newblock Paragraph 2.64 and Box~4.1.
-\newblock \url{https://obr.uk/}
+\newblock Paragraph 2.64.
+\newblock \url{https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/}
 
 \bibitem[OBR(2026a)]{obr2026efo}
 Office for Budget Responsibility (2026a).
@@ -100,7 +123,7 @@ Office for Budget Responsibility (2026a).
 Office for Budget Responsibility (2026b).
 \newblock \emph{Fiscal risks and sustainability, July 2026}.
 \newblock Box~4.1, ``The potential impact of AI on the labour share and tax receipts'', pp.~86--88.
-\newblock \url{https://obr.uk/}
+\newblock \url{https://obr.uk/frs/fiscal-risks-and-sustainability-july-2026/}
 
 \bibitem[OBR(2026c)]{obr2026efooct}
 Office for Budget Responsibility (2026c).
@@ -112,18 +135,24 @@ Office for Budget Responsibility (2026c).
 Office for National Statistics (2022).
 \newblock \emph{Household total wealth in Great Britain: April 2018 to March 2020}.
 \newblock Released 7 January 2022.
-\newblock \url{https://www.ons.gov.uk/}
+\newblock \url{https://www.ons.gov.uk/peoplepopulationandcommunity/personalandhouseholdfinances/incomeandwealth/bulletins/totalwealthingreatbritain/april2018tomarch2020}
 
 \bibitem[ONS(2026)]{ons2026pinkbook}
 Office for National Statistics (2026).
 \newblock \emph{UK Balance of Payments, The Pink Book: 2026}.
 \newblock Released 30 October 2026.
-\newblock \url{https://www.ons.gov.uk/}
+\newblock \url{https://www.ons.gov.uk/economy/nationalaccounts/balanceofpayments/bulletins/unitedkingdombalanceofpaymentsthepinkbook/2026}
 
 \bibitem[Sachs et~al.(2015)]{sachs2015robots}
 Sachs, J.~D., Benzell, S.~G. and LaGarda, G. (2015).
 \newblock Robots: curse or blessing? A basic framework.
 \newblock NBER Working Paper No.~21091.
+
+\bibitem[Yotzov et~al.(2026)]{yotzov2026}
+Yotzov, I., Barrero, J.~M., Bloom, N., Bunn, P., Davis, S.~J., Thwaites, G. et~al. (2026).
+\newblock Firm data on AI.
+\newblock NBER Working Paper No.~34836, February 2026, revised October 2026.
+\newblock \url{https://www.nber.org/papers/w34836}
 
 \bibitem[Zeira(1998)]{zeira1998}
 Zeira, J. (1998).

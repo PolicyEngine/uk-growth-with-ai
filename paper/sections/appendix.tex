@@ -99,7 +99,7 @@ Debt/GDP, pp, \genDebtRuleYear{} & \genUkCentralMainDebtPpThirtySixBound{} & \ge
 \subsection{A time-varying capital exponent for OG-Core}
 \label{app:patch}
 
-Stock OG-Core indexes the capital exponent by industry only, as \texttt{p.gamma[m]}, at about \genPatchSites{} sites in \texttt{ogcore/firm.py}. Automation can therefore step to a new level in the first period but cannot phase in. The scenarios used here phase in over \genShockYear--\genHeadYear{}, and \citet{mollimas2026} raise the exponent over two decades. Neither can be run without a time dimension.
+Stock OG-Core indexes the capital exponent by industry only, as \texttt{p.gamma[m]}, at about \genPatchSites{} sites in \texttt{ogcore/firm.py}. Automation can therefore step to a new level in the first period but cannot phase in. The scenarios used here phase in over \genShockYear--\genHeadYear{}, and \citet{imasmoll2026} raise the exponent over two decades. Neither can be run without a time dimension.
 
 The patch (\texttt{patches/ogcore-0.17.0-firm-gamma-tv.diff}, against OG-Core \genOgcoreVersion{}) adds one in a backward-compatible way. A helper indexes a production parameter that may carry either shape, following the convention $Z$ already uses: the last row in the steady state, the first $T$ rows along the transition.
 \begin{verbatim}
