@@ -65,6 +65,34 @@ F_WM = "results/wage_margin_central.json"
 F_CG = "results/tax_composition/composition_grid.csv"
 F_DEC = "results/appendix/decomposition_ci.csv"
 F_DECR = "results/appendix/decile_ranking_sensitivity.csv"
+F_POVD = "results/robustness/poverty_decomposition.json"
+F_DIVC = "results/robustness/dividend_coverage.json"
+F_COST = "results/robustness/central_cost_decomposition.json"
+F_SWG = "results/robustness/survivor_wage_grid.csv"
+F_CV = "results/next_runs/capital_variants_draws.csv"
+F_D5 = "results/robustness/incidence_draws_five.csv"
+F_DUR = "results/robustness/duration_takeup_sensitivity.json"
+F_HDEC = "results/next_runs/obr_household_deciles.csv"
+F_POL = "results/robustness/policy_draws.csv"
+F_MAN = "results/BUILD_MANIFEST.json"
+F_TEX = "paper/values_generated.tex"
+
+
+def paper_macros() -> dict:
+    """The paper's printed values (paper/values_generated.tex), name -> text."""
+    import re
+    text = (SRC / F_TEX).read_text()
+    return {m.group(1): m.group(2) for m in re.finditer(r"\\newcommand\{\\(gen\w+)\}\{([^{}]*)\}", text)}
+
+
+def pnum(macros: dict, name: str) -> float:
+    return float(macros[name].replace(",", "").replace("+", "").replace("$", ""))
+
+
+def sd(xs) -> float:
+    xs = [float(x) for x in xs]
+    m = sum(xs) / len(xs)
+    return (sum((x - m) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5
 
 
 def main() -> None:
@@ -370,9 +398,250 @@ def main() -> None:
         "deciles": deciles,
         "regions": None,
         "notes": notes,
+        **extras(cmc, low),
     }
     DEST.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
     print(f"wrote {DEST.relative_to(ROOT)}")
+
+
+# The capital shock's constants, as the study sets them (methodology.tex,
+# "Shock scenarios"; analysis/revision_accounting.py BASE_RETURN_PCT,
+# RETURN_SHOCK_PP). The builder asserts the uplift they imply against the
+# paper's printed genCapitalScalePct.
+BASE_RETURN_PCT = 1.005
+RETURN_SHOCK_PP = 0.4
+
+
+def zero_crossing(x, y) -> float:
+    """revision_accounting.zero_crossing: linear x at which y crosses zero."""
+    for i in range(len(x) - 1):
+        if y[i] == 0:
+            return float(x[i])
+        if y[i] * y[i + 1] < 0:
+            return float(x[i] + (x[i + 1] - x[i]) * y[i] / (y[i] - y[i + 1]))
+    raise SystemExit("no zero crossing inside the grid")
+
+
+def extras(cmc: dict, low: dict) -> dict:
+    """The sections added for the eight-step part 3, Explore > Households and
+    Method and sources > Household method (November 2026)."""
+    P = paper_macros()
+
+    def pcheck(name: str, value: float, ndp: int) -> None:
+        check(name, value, pnum(P, name), ndp)
+
+    # --- baselines beside the central rises --------------------------------
+    povd = jload(F_POVD)
+    pcheck("genPovBaselineBhcPct", 100 * povd["poverty_rate_bhc_baseline"], 1)
+    pcheck("genBaselineGini", low["gini_baseline"], 3)
+    baseline = {
+        "absolute_bhc_pct": {"value": r(100 * povd["poverty_rate_bhc_baseline"], 2), "file": F_POVD,
+                             "key": "poverty_rate_bhc_baseline * 100",
+                             "note": "Baseline (no shock), FY 2026-27; the baseline does not depend on the draw."},
+        "relative_bhc_pct": {"value": r(100 * cmc["baseline_relative_poverty_bhc_rate"], 2), "file": F_CMC,
+                             "key": "baseline_relative_poverty_bhc_rate * 100", "note": "60% of the baseline median."},
+        "gini": {"value": r(low["gini_baseline"], 3), "file": F_LOW, "key": "gini_baseline", "note": None},
+    }
+
+    # --- the three channels (20 paired draws) -------------------------------
+    dv = jload(F_DIVC)
+    ch = dv["channels"]
+    for k, N in [("displacement", "Disp"), ("wage", "Wage"), ("capital", "Capital")]:
+        pcheck(f"genChannelMc{N}CostSignedBn", ch[k]["exchequer_cost_bn"]["mean"], 1)
+        pcheck(f"genChannelMc{N}PovBhcSignedPp", ch[k]["poverty_change_bhc_pp"]["mean"], 2)
+    pcheck("genChannelMcInteractionCostSignedBn", dv["channels_interaction"]["exchequer_cost_bn"], 2)
+    pcheck("genChannelMcSumCostSignedBn", dv["channels_sum"]["exchequer_cost_bn"], 2)
+    channels = {
+        "draws": int(dv["draws"]), "file": F_DIVC,
+        "key": "channels.<channel>.exchequer_cost_bn.mean (positive = cost); channels_sum; channels_interaction",
+        "rows": [{"id": k, "cost_bn": r(ch[k]["exchequer_cost_bn"]["mean"], 2),
+                  "poverty_pp": r(ch[k]["poverty_change_bhc_pp"]["mean"], 2),
+                  "gini_pp": r(ch[k]["gini_change_pp"]["mean"], 2)} for k in ("displacement", "wage", "capital")],
+        "sum_bn": r(dv["channels_sum"]["exchequer_cost_bn"], 2),
+        "interaction_bn": r(dv["channels_interaction"]["exchequer_cost_bn"], 2),
+        "central_bn": r(dv["central"]["exchequer_cost_bn"]["mean"], 2),
+        "note": "Each channel run alone on the same 20 draws (seeds 0-19) as the central case.",
+    }
+
+    # --- the 50-draw cost by tax and benefit --------------------------------
+    cd = jload(F_COST)
+    comp_rows = [("other_income_tax", "Income tax on earnings, net of tax on survivors' wage gains"),
+                 ("employer_ni", "Employer NI"), ("employee_ni", "Employee NI"), ("universal_credit", "Universal Credit"),
+                 ("other", "Other items"), ("childcare", "Childcare support"), ("savings_tax", "Tax on savings income"),
+                 ("dividend_tax", "Tax on dividends")]
+    for k, N in [("other_income_tax", "OtherIncomeTax"), ("employer_ni", "EmployerNi"), ("employee_ni", "EmployeeNi"),
+                 ("universal_credit", "Uc"), ("dividend_tax", "DividendTax"), ("savings_tax", "SavingsTax"),
+                 ("childcare", "Childcare"), ("total", "Total")]:
+        pcheck(f"genCost{N}SignedBn", cd[k]["mean"], 1)
+    parts = sum(cd[k]["mean"] for k, _ in comp_rows)
+    assert abs(parts - cd["total"]["mean"]) < 1e-6, (parts, cd["total"]["mean"])
+    cost_components = {
+        "draws": int(cd["_metadata"]["draws"]), "file": F_COST,
+        "key": "<component>.mean and .sd; positive = cost to the Exchequer (fall in gov_balance)",
+        "rows": [{"id": k, "label": lab, "cost_bn": r(cd[k]["mean"], 2), "sd_bn": r(cd[k]["sd"], 2)}
+                 for k, lab in comp_rows],
+        "total_bn": r(cd["total"]["mean"], 2),
+    }
+
+    # --- break-even values (results.tex, Table "Break-even values") ---------
+    swg = sorted(rows(F_SWG), key=lambda x: float(x["survivor_wage_effect_pct"]))
+    be_wage = zero_crossing([float(x["survivor_wage_effect_pct"]) for x in swg], [float(x["exchequer_cost_bn"]) for x in swg])
+    pcheck("genBeWagePct", be_wage, 1)
+    c20 = {int(x["seed"]): float(x["exchequer_cost_bn"]) for x in rows(F_DCD) if x["run"] == "central"}
+    # the grid's central survivor setting: its row reproduces the seed-0 central draw
+    srow = next(x for x in swg if abs(float(x["exchequer_cost_bn"]) - c20[0]) < 1e-6)
+    wage_central = float(srow["survivor_wage_effect_pct"])
+    cap_x0 = 100 * ((BASE_RETURN_PCT + RETURN_SHOCK_PP) / BASE_RETURN_PCT - 1)
+    pcheck("genCapitalScalePct", cap_x0, 1)
+    cap60 = {int(x["seed"]): float(x["exchequer_cost_bn"]) for x in rows(F_CV) if x["variant"] == "cap60"}
+    assert set(cap60) == set(c20) == set(range(20))
+    y0, y1 = mean(c20.values()), mean(cap60.values())
+    be_cap = cap_x0 + (60 - cap_x0) * y0 / (y0 - y1)
+    pcheck("genBeCapInterpUpliftPct", be_cap, 0)
+    pcheck("genBeCapInterpPp", BASE_RETURN_PCT * be_cap / 100, 2)
+    pcheck("genCapSixtyDrawCostMeanBn", y1, 1)
+    full = mean(float(x["exchequer_cost_bn"]) for x in rows(F_D5) if x["family"] == "exposure" and int(x["seed"]) < 20)
+    half = jload(F_DUR)["half_earnings_retention"]["results"]["exchequer_cost_bn"]["mean"]
+    ret = 0.5 * full / (full - half)
+    be_dur = 12 * (1 - ret)
+    pcheck("genBeDurMonths", be_dur, 1)
+    pcheck("genDurSixMoCostMeanBn", half, 1)
+    breakeven = {
+        "wage": {"central_pct": r(wage_central, 2), "value_pct": r(be_wage, 2), "draws": 1, "file": F_SWG,
+                 "key": "zero crossing of exchequer_cost_bn over survivor_wage_effect_pct (seed 0)"},
+        "capital": {"central_pct": r(cap_x0, 2), "value_pct": r(be_cap, 2), "value_pp": r(BASE_RETURN_PCT * be_cap / 100, 2),
+                    "cost_at_central_bn": r(y0, 2), "cost_at_60_bn": r(y1, 2), "draws": len(c20),
+                    "file": F_CV, "key": (f"linear between mean central cost ({F_DCD} run=central) at the central uplift and "
+                                          "mean cost of variant cap60 at +60%, seeds 0-19")},
+        "duration": {"value_months": r(be_dur, 2), "cost_full_bn": r(full, 2), "cost_half_bn": r(half, 2), "draws": 20,
+                     "file": F_DUR, "key": (f"12 x (1 - r), r = 0.5 full / (full - half); full = mean {F_D5} family=exposure "
+                                            "seeds 0-19, half = half_earnings_retention.results.exchequer_cost_bn.mean")},
+        "note": ("Each value sets the central cost to zero with the other two at their central settings (linear "
+                 "interpolation). Full take-up and new-style JSA move each further away."),
+        "paper_other_capital_pct": pnum(P, "genBeCapitalUpliftPct"),
+    }
+
+    # --- pence per pound, matching 20-draw bases ---------------------------
+    wc = rows(F_WC)
+    co = sorted([x for x in wc if x["variant"] == "cut_only"], key=lambda x: int(x["seed"]))
+    jd = sorted([x for x in rows(F_DCD) if x["run"] == "channel_displacement"], key=lambda x: int(x["seed"]))
+    assert [int(x["seed"]) for x in co] == [int(x["seed"]) for x in jd] == list(range(20))
+    gross = mean(x["gross_cut_bn"] for x in co)
+    job = mean(x["exchequer_cost_bn"] for x in jd) / gross
+    per = [float(a["exchequer_cost_bn"]) / float(b["gross_cut_bn"]) for a, b in zip(jd, co)]
+    cut_er = -mean(x["employer_ni_change_bn"] for x in co) / gross
+    pcheck("genAbsJobGovDrawsPct", 100 * job, 0)
+    pcheck("genAbsJobGovDrawsMinPct", 100 * min(per), 0)
+    pcheck("genAbsJobGovDrawsMaxPct", 100 * max(per), 0)
+    pcheck("genAbsCutErNiPct", 100 * cut_er, 0)
+    per_pound_20 = {
+        "draws": len(co), "file": F_WC,
+        "job_loss": {"government_p": r(100 * job, 1), "min_p": r(100 * min(per), 1), "max_p": r(100 * max(per), 1),
+                     "file": F_DCD, "key": ("mean(exchequer_cost_bn) of run=channel_displacement over mean(gross_cut_bn) of "
+                                           f"{F_WC} variant=cut_only, seeds 0-19; min/max of the per-draw ratio")},
+        "wage_cuts_employer_ni_p": r(100 * cut_er, 1),
+        "note": "Displacement alone and wage cuts alone: no survivor-wage or capital channel in either.",
+    }
+
+    # --- the Sankey: where the earnings lost go (OBR-sized run) ------------
+    hd = {x["decile"]: x for x in rows(F_HDEC)}
+    assert {int(x["draws"]) for x in hd.values()} == {20}
+    obr_sum = jload(F_OBR)["summary"]
+    er_ni = -obr_sum["employer_ni_change_bn"]["mean"]
+    pcheck("genObrLineNiEmployerBn", er_ni, 1)
+    pcheck("genObrLineWageBillBn", -float(hd["all"]["market_change"]), 1)
+    pcheck("genObrStabTbAllPct", 100 * float(hd["all"]["tax_benefit_share"]), 0)
+    pcheck("genObrStabNetAllPct", 100 * float(hd["all"]["stabilisation_net"]), 0)
+
+    def flows(x):
+        market = -float(x["market_change"])
+        tax = -float(x["tax_change"])
+        ben = float(x["benefit_change"])
+        net = -float(x["net_income_change"])
+        other = market - tax - ben - net
+        return {"earnings_lost_bn": market, "tax_ni_bn": tax, "benefits_bn": ben, "other_bn": other, "disposable_bn": net}
+    dec_flows = [flows(hd[str(i)]) for i in range(1, 11)]
+    allf = flows(hd["all"])
+    for k in allf:
+        assert abs(sum(f[k] for f in dec_flows) - allf[k]) < 1e-6, k
+    for f in dec_flows:
+        assert all(f[k] >= 0 for k in f), f
+    sankey = {
+        "draws": 20, "file": F_HDEC, "displacement_rate_pct": r(100 * jload(F_OBR)["displacement_rate"], 2),
+        "key": ("per decile: earnings lost = -market_change; lower income tax and employee NI = -tax_change; more benefits "
+                "= benefit_change; lower disposable income = -net_income_change; other items = the remainder"),
+        "deciles": [{k: r(v, 4) for k, v in f.items()} for f in dec_flows],
+        "total": {k: r(v, 4) for k, v in allf.items()},
+        "employer_ni_bn": r(er_ni, 4), "employer_ni_file": F_OBR, "employer_ni_key": "-summary.employer_ni_change_bn.mean",
+        "tax_benefit_share_pct": r(100 * float(hd["all"]["tax_benefit_share"]), 1),
+        "note": ("OBR-sized run: 1.67% of employees displaced under exposure-proportional incidence, survivors' earnings "
+                 "flat, no capital shock; by baseline decile of equivalised HBAI income. Other items are mainly "
+                 "pension contributions, plus council tax and other deductions inside the HBAI concept."),
+    }
+
+    # --- deciles under the three rankings (20 draws) ------------------------
+    decr = rows(F_DECR)
+    rk_labels = [("hbai", "HBAI household income (the study's ranking)"),
+                 ("pre_pension", "Income before pension contributions"),
+                 ("hbai_excl_large_ppc", "HBAI, leaving out households with large pension contributions")]
+    rankings = [{"id": k, "label": lab,
+                 "values": [r(float(x["disposable_change_pct"]), 2) for x in sorted(
+                     (y for y in decr if y["ranking"] == k), key=lambda y: int(y["decile"]))]}
+                for k, lab in rk_labels]
+    assert all(len(x["values"]) == 10 for x in rankings)
+
+    # --- policy responses (50 draws; paper Table "Policy reforms") ---------
+    pol = rows(F_POL)
+    pol_labels = [("R1_wage_insurance", "exposure", "Wage insurance: half of lost earnings, up to £15,000 a year"),
+                  ("R2_uc_circuit_breaker", "exposure", "Universal Credit standard allowance 20% higher"),
+                  ("R3_cap_suspension_taper_cut", "exposure", "Benefit cap suspended and UC taper cut from 55% to 45%"),
+                  ("R1_wage_insurance", "junior", "Wage insurance, junior-tilted displacement"),
+                  ("R1_wage_insurance", "uniform", "Wage insurance, uniform displacement")]
+    policy = []
+    for reform, fam, lab in pol_labels:
+        xs = [x for x in pol if x["reform"] == reform and x["family"] == fam]
+        policy.append({"id": f"{reform}:{fam}", "reform": reform, "family": fam, "label": lab, "draws": len(xs),
+                       "cost_bn": r(mean(x["exchequer_cost_bn"] for x in xs), 2),
+                       "cost_sd_bn": r(sd(x["exchequer_cost_bn"] for x in xs), 2),
+                       "poverty_pp": r(mean(x["poverty_change_bhc_pp"] for x in xs), 2),
+                       "poverty_sd_pp": r(sd(x["poverty_change_bhc_pp"] for x in xs), 2),
+                       "gini_pp": r(mean(x["gini_change_pp"] for x in xs), 2)})
+    def pol_mean(reform, fam, col):
+        return mean(x[col] for x in pol if x["reform"] == reform and x["family"] == fam)
+    for (reform, fam, _), N in zip(pol_labels[:3], ["Rone", "Rtwo", "Rthree"]):
+        pcheck(f"gen{N}McCostMeanBn", pol_mean(reform, fam, "exchequer_cost_bn"), 1)
+        pcheck(f"gen{N}McPovBhcMeanPp", pol_mean(reform, fam, "poverty_change_bhc_pp"), 2)
+    pcheck("genRoneJuniorMcCostMeanBn", pol_mean("R1_wage_insurance", "junior", "exchequer_cost_bn"), 1)
+    pcheck("genRoneUniformMcCostMeanBn", pol_mean("R1_wage_insurance", "uniform", "exchequer_cost_bn"), 1)
+    assert all(p_["draws"] == 50 for p_ in policy)
+    policy_out = {"file": F_POL, "key": "mean and SD over seeds of exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp per reform and family",
+                  "rows": policy,
+                  "note": ("Each reform is simulated on top of the central shock (shocked-plus-reform minus shocked, poverty "
+                           "lines at their shocked values). Wage insurance is a post-simulation transfer, untaxed and "
+                           "ignored by means tests, so its cost is gross; the two UC reforms are parameter changes, so "
+                           "their costs are net of withdrawal elsewhere. The designs differ in aim and administration.")}
+
+    # --- method facts -------------------------------------------------------
+    man = jload(F_MAN)
+    method = {
+        "policyengine_uk": man["package_versions"]["policyengine-uk"],
+        "policyengine": man["package_versions"]["policyengine"],
+        "manifest_commit": man["git_commit"], "manifest_finished": man["finished_utc"], "file": F_MAN,
+        "households": P["genDataHouseholds"], "persons": P["genDataPersons"],
+        "population_m": P["genDataPopulationM"], "employees_m": P["genDataEmployeesM"],
+        "employee_rows": P["genDataEmployeeRows"], "kish_n": P["genDataEmployeeKishN"],
+        "soc_pct": P["genDataEmployeesSocPct"],
+        "displaced_min_m": P["genCentralMcDisplacedMinM"], "displaced_max_m": P["genCentralMcDisplacedMaxM"],
+        "uc_single_month_gbp": P["genUcSingleOldMonthGbp"], "uc_couple_month_gbp": P["genUcCoupleOldMonthGbp"],
+        "uc_taper_pct": P["genUcTaperPct"], "uc_capital_limit_gbp": P["genUcCapitalLimitGbp"],
+        "jsa_week_gbp": P["genJsaContribWeekGbp"], "jsa_eligible_pct": P["genTkObrJsaEligiblePct"],
+        "takeup_flag_pct": P["genTkFlagTruePct"],
+        "survivor_wage_pct": r(wage_central, 2), "capital_uplift_pct": r(cap_x0, 2), "return_shock_pp": RETURN_SHOCK_PP,
+        "obr_unemployment_rise_pp": P["genObrUnempRisePp"],
+        "macro_file": F_TEX,
+    }
+    return {"baseline": baseline, "channels": channels, "cost_components": cost_components, "breakeven": breakeven,
+            "per_pound_20": per_pound_20, "sankey": sankey, "rankings": rankings, "policy": policy_out, "method": method}
 
 
 if __name__ == "__main__":
