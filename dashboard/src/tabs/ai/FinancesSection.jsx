@@ -4,13 +4,12 @@ import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { Unpublished } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
-import ControlBar, { RuleGroup } from '@/components/ui/ControlBar.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import {
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, CLOSURE_LABEL, result, ruleResult, ruleScenarios, scenarioById, gap, signed, fmt, SCEN_NAME,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
-import { closuresFor, closureWords, contextLine, side } from '@/tabs/ai/lines.js';
+import { closuresFor, closureWords, contextLine, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
@@ -20,32 +19,33 @@ import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 
 const LONG_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= LATE_YEAR);
 const SHORT_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= HEADLINE_YEAR);
-// The fiscal-rule ids of the control bar against the data file's keys
-const RULE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
-
-// Scenarios whose main arm ends below the path by the debt rule's first year
-// once debt is repriced at the speed the OBR assumes for UK debt (PR #43,
-// docs/debt_repricing.md: both solved closures; UK high is solved at the
-// central closure only). The model's own figure is above the path in both.
-const BELOW_AT_OBR_SPEED = new Set(['uk_high', 'korinek']);
+// The cells (scenario|closure) whose main arm ends below the path by the
+// debt rule's first year once debt is repriced at the speed the OBR assumes
+// for UK debt (PR #43, docs/debt_repricing.md at f097ae6, common fiscal
+// rule). That note computed UK low and UK high at the central closure only,
+// so no other cell is named. The model's own figure is above the path in
+// each.
+const BELOW_AT_OBR_SPEED = new Set(['uk_high|zk0.1', 'korinek|zk0.1', 'korinek|zk0']);
 
 // The main arm's debt/GDP in words, by sign, for the closure in view. No
 // claim about every arm: the lines and their end values show each one.
-function debtFinding(sid, closure) {
+function debtFinding(sid, closure, rule) {
   const cl = closure === 'closed' ? BOUND : CENTRAL;
-  const a = gap(sid, 'tfp', cl, 'debt_gdp_pp', HEADLINE_YEAR);
-  const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
+  const a = gap(sid, 'tfp', cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
+  const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR, rule);
   if (a == null || b == null) return null;
+  const lead = `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}`;
+  if (rule === 'dn') return `${lead}, debt/GDP stays on the OBR-central path: debt-neutral transfers adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`;
   const at = (x) => (side(x) === 'on' ? 'on' : side(x));
   const same = at(a) === at(b);
-  const obr = BELOW_AT_OBR_SPEED.has(sid) && at(b) === 'above';
-  return `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}, debt/GDP is ${at(a)} the OBR-central path in ${HEADLINE_YEAR} and ${same ? 'still ' : ''}${at(b)} it by ${LATE_YEAR}, as the model reprices debt at the higher interest rate${obr ? ', but below it at the speed the OBR assumes for UK debt' : ''}.`;
+  const obr = rule === 'common' && BELOW_AT_OBR_SPEED.has(`${sid}|${cl}`) && at(b) === 'above';
+  return `${lead}, debt/GDP is ${at(a)} the OBR-central path in ${HEADLINE_YEAR} and ${same ? 'still ' : ''}${at(b)} it by ${LATE_YEAR}, as the model reprices debt at the higher interest rate${obr ? ', but below it at the speed the OBR assumes for UK debt' : ''}.`;
 }
 
 // Tax/GDP with closed capital in the main arm, in words (results sanity
 // audit A6): it can rise, so the model's sign there is not reliable.
-function closedTaxWords(sid) {
-  const r = result(sid, 'tfp', BOUND);
+function closedTaxWords(sid, rule) {
+  const r = resultAt(sid, 'tfp', BOUND, rule);
   if (r.status !== 'done') return null;
   const at = (y) => r.gaps.tax_gdp_pp[YEARS.indexOf(y)];
   if (at(HEADLINE_YEAR) > 0) return `rises by ${HEADLINE_YEAR}`;
@@ -98,13 +98,13 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
-function TaxGapCard({ sid, closure }) {
+function TaxGapCard({ sid, closure, rule }) {
   // The model's central-closure figure is the tax/GDP chart's end label
   // unless that chart is showing closed capital: each fact once.
   const onChart = closure !== 'closed';
-  const closedTax = closedTaxWords(sid);
-  const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp');
-  const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp');
+  const closedTax = closedTaxWords(sid, rule);
+  const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp', HEADLINE_YEAR, rule);
+  const ls = gap(sid, 'tfp', CENTRAL, 'labour_share_pp', HEADLINE_YEAR, rule);
   const fall = ls == null ? null : -ls;
   const uk = fall == null ? null : OBR_PER_PP.map((k) => -fall * k);
   return (
@@ -202,22 +202,29 @@ function TaxGapCard({ sid, closure }) {
   );
 }
 
-// The headline-year gaps a rule variant prints: this card is their one home.
+// How far the rule in view moves each headline-year gap against the common
+// fiscal rule, in percentage points. This card is the one home of these
+// differences; the gaps themselves are on the charts, which follow the rule.
 const RULE_VARS = [
   { v: 'Y', label: 'GDP' },
   { v: 'GNI', label: 'GNI' },
   { v: 'w', label: 'Wage rate' },
   { v: 'C', label: 'Consumption' },
 ];
+const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
+export function ruleShift(rule, sid, arm, cl, v) {
+  const a = at(resultAt(sid, arm, cl, rule), v);
+  const b = at(resultAt(sid, arm, cl, 'common'), v);
+  return a == null || b == null ? null : a - b;
+}
 
-function RuleTable({ rule, ruleId, sid, closure }) {
+function RuleTable({ rule, sid, closure }) {
   const cls = closuresFor(closure);
-  const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
   return (
     <div className="table-wrap">
       <table className="data-table">
         <caption>
-          {scenarioById(sid).label}, {ruleLabel(ruleId).toLowerCase()}, {HEADLINE_YEAR}, % difference from the OBR-central path
+          {scenarioById(sid).label}, {ruleLabel(rule).toLowerCase()} against the common fiscal rule, {HEADLINE_YEAR}, percentage points
         </caption>
         <thead>
           <tr>
@@ -234,20 +241,15 @@ function RuleTable({ rule, ruleId, sid, closure }) {
                 <th colSpan={RULE_VARS.length + 1} scope="colgroup">{CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase())}</th>
               </tr>
             ) : null}
-            {ARMS.map((a) => {
-              const r = ruleResult(rule, sid, a.id, cl);
-              return (
-                <tr key={a.id}>
-                  <th scope="row">{a.short || a.label}</th>
-                  {RULE_VARS.map((c) => {
-                    const x = at(r, c.v);
-                    return (
-                      <td key={c.v} className={`num${x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-loss' : ''}`}>{fmt(x, 2)}</td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+            {ARMS.map((a) => (
+              <tr key={a.id}>
+                <th scope="row">{a.short || a.label}</th>
+                {RULE_VARS.map((c) => {
+                  const x = ruleShift(rule, sid, a.id, cl, c.v);
+                  return <td key={c.v} className="num">{fmt(x, 2, 'pp')}</td>;
+                })}
+              </tr>
+            ))}
           </tbody>
         ))}
       </table>
@@ -256,50 +258,44 @@ function RuleTable({ rule, ruleId, sid, closure }) {
 }
 
 function ruleTable(rule, sid, closure) {
-  const at = (r, v) => (r.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
   return {
-    columns: ['Closure', 'Arm', ...RULE_VARS.map((c) => `${c.label} (%)`)],
-    rows: closuresFor(closure).flatMap((cl) => ARMS.map((a) => [CLOSURE_LABEL[cl], a.label, ...RULE_VARS.map((c) => at(ruleResult(rule, sid, a.id, cl), c.v))])),
+    columns: ['Closure', 'Arm', ...RULE_VARS.map((c) => `${c.label}, change against the common rule (pp)`)],
+    rows: closuresFor(closure).flatMap((cl) => ARMS.map((a) => [CLOSURE_LABEL[cl], a.label, ...RULE_VARS.map((c) => ruleShift(rule, sid, a.id, cl, c.v))])),
   };
 }
 
 function FiscalRuleCard({ sid }) {
-  const { st, set } = useNav();
+  const { st } = useNav();
   const rule = st.rule;
-  const key = RULE_KEY[rule];
-  const solved = key ? ruleScenarios(key) : [];
-  const list = (sep) => solved.map((s) => scenarioById(s).label).join(sep);
-  const has = key && solved.includes(sid);
+  const has = rule !== 'common' && ruleSolved(rule, sid);
   return (
     <Card
       id="fiscal-rule"
       icon="sliders"
-      title="How the result changes with the fiscal rule"
-      finding={`Every other chart in Explore uses the common fiscal rule. Choose another rule to see its own ${HEADLINE_YEAR} gaps.`}
-      controls={
-        <ControlBar label="Fiscal rule: options">
-          <RuleGroup value={rule} onChange={(r) => set({ rule: r })} />
-        </ControlBar>
+      title="What the fiscal rule changes"
+      finding={
+        rule === 'common'
+          ? 'Every chart in Explore follows the fiscal rule chosen at the top of the page. Choose another rule to see how far it moves each gap.'
+          : `How far ${ruleLabel(rule).toLowerCase()} moves each ${HEADLINE_YEAR} gap against the common fiscal rule. The gaps themselves are on the charts, which now follow this rule.`
       }
       logo={false}
       about={{
-        shows: `The ${HEADLINE_YEAR} gaps in GDP, national income, the wage rate and consumption under the rule chosen, for the closure chosen at the top of the page.`,
-        caveats: `Under debt-neutral transfers, debt/GDP stays on the OBR-central path to ${LATE_YEAR} by construction, so it has no gap to show.`,
+        shows: `The ${HEADLINE_YEAR} gap under the rule chosen less the gap under the common fiscal rule, in percentage points, for the closure chosen at the top of the page. Positive: the rule raises the measure against the common rule.`,
+        caveats: `Under debt-neutral transfers, debt/GDP stays on the OBR-central path to ${LATE_YEAR} by construction.`,
       }}
       aboutTitle="About this table"
       method="rules"
-      download={has ? { title: `${HEADLINE_YEAR} gaps under ${ruleLabel(rule).toLowerCase()}`, context: () => contextLine(sid, st.closure), table: () => ruleTable(key, sid, st.closure) } : undefined}
+      download={has ? { title: `${HEADLINE_YEAR} gaps: ${ruleLabel(rule).toLowerCase()} against the common rule`, context: () => contextLine(sid, st.closure, 'percentage points', rule), table: () => ruleTable(rule, sid, st.closure) } : undefined}
     >
       {rule === 'common' ? (
         <p className="card-text rule-default">
-          Under the common fiscal rule, government consumption and transfers follow GDP until the debt rule starts in {LATE_YEAR}. Its figures are the ones on Summary, Income and output and Economy.
+          Under the common fiscal rule, government consumption and transfers follow GDP until the debt rule starts in {LATE_YEAR}. It is the
+          default of every solve.
         </p>
       ) : !has ? (
-        <Unpublished>
-          {ruleLabel(rule)}: solved for {list(' and ')} only. Choose {list(' or ')} under Scenario at the top of the page.
-        </Unpublished>
+        <Unpublished>{ruleGapText(rule, sid)}</Unpublished>
       ) : (
-        <RuleTable rule={key} ruleId={rule} sid={sid} closure={st.closure} />
+        <RuleTable rule={rule} sid={sid} closure={st.closure} />
       )}
     </Card>
   );
@@ -312,7 +308,7 @@ export default function FinancesSection({ sid }) {
   return (
     <>
       <SectionHeading id="public-finances" icon="landmark" title="Public finances">
-        Debt and tax as shares of GDP under the common fiscal rule, {cl}, {SCEN_NAME[sid]}.
+        Debt and tax as shares of GDP, {SCEN_NAME[sid]}, {cl}, {ruleLabel(st.rule).toLowerCase()}.
       </SectionHeading>
       <div className="cards-grid">
         <PathCard
@@ -324,7 +320,7 @@ export default function FinancesSection({ sid }) {
           name="debt/GDP"
           icon="landmark"
           unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${LATE_YEAR}`}
-          finding={debtFinding(sid, st.closure) ?? undefined}
+          finding={debtFinding(sid, st.closure, st.rule) ?? undefined}
           markers={[{ year: SURPRISE_YEAR, label: 'AI shock' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
           about={{
             shows: `Public debt as a share of GDP against the OBR-central path. ${reading}`,
@@ -369,7 +365,7 @@ export default function FinancesSection({ sid }) {
         />
       </div>
       <div className="cards-stack stack-gap">
-        <TaxGapCard sid={sid} closure={st.closure} />
+        <TaxGapCard sid={sid} closure={st.closure} rule={st.rule} />
         <FiscalRuleCard sid={sid} />
       </div>
     </>

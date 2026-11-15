@@ -112,10 +112,11 @@ for sid, arms in D['results'].items():
                         raw_bad += 1
 print('raw-solve recompute mismatches:', raw_bad)
 
-# The fiscal-rule card with a rule chosen (Public finances): a solved
-# variant prints the headline-year GDP, GNI, wage and consumption gaps of
-# each arm for the closure(s) in view, once each, and only for the scenarios
-# the variant is solved for; an unsolved rule or scenario prints no figure.
+# The fiscal-rule card with a rule chosen (Public finances): every chart
+# follows the rule, so the card prints how far the rule moves each arm's
+# headline-year GDP, GNI, wage and consumption gap against the common rule
+# (pp), for the closure(s) in view, once each, and only for the scenarios the
+# variant is solved for; an unsolved rule or scenario prints no figure.
 RULE_BTN = {'debt_neutral': 'dn', 'fixed_spending': 'fixed'}
 for rid, rule in D.get('rules', {}).items():
     for sid in dump:
@@ -129,7 +130,7 @@ for rid, rule in D.get('rules', {}).items():
                     r = rule['results'].get(sid, {}).get(arm, {}).get(cl, {'status': 'pending'})
                     if r['status'] == 'done':
                         for v in ['Y', 'GNI', 'w', 'C']:
-                            exp[signed(r['gaps'][v][Y.index(H)], 2) + '%'] += 1
+                            exp[signed(r['gaps'][v][Y.index(H)] - g(sid, arm, cl, v), 2) + 'pp'] += 1
             got = Counter(NUM.findall(dump[sid][key]))
             if got != exp:
                 bad += 1

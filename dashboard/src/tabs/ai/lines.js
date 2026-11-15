@@ -1,9 +1,9 @@
 // The lines a results chart draws for the reader's choices: the arms in
 // view (control bar) at the closure(s) chosen in the header.
 import {
-  YEARS, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, result, signed,
+  YEARS, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, resultAt, ruleSolved, solvedUnder, signed,
 } from '@/tabs/ai/surprise.js';
-import { closureLabel } from '@/lib/labels.js';
+import { closureLabel, ruleLabel } from '@/lib/labels.js';
 import { SCEN_NAME } from '@/tabs/ai/surprise.js';
 
 export const closuresFor = (closure) => (closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL]);
@@ -12,10 +12,10 @@ export const primaryClosure = (closure) => (closure === 'closed' ? BOUND : CENTR
 export const closureWords = (closure) => (closure === 'closed' ? 'closed capital' : closure === 'both' ? 'both closures' : 'central closure');
 const CL_NAME = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 
-export function seriesFor(sid, v, years, arms, closure, scale = 1) {
+export function seriesFor(sid, v, years, arms, closure, scale = 1, rule = 'common') {
   return ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
     closuresFor(closure).flatMap((cl) => {
-      const r = result(sid, a.id, cl);
+      const r = resultAt(sid, a.id, cl, rule);
       if (r.status !== 'done') return [];
       const bound = cl === BOUND;
       const both = closure === 'both';
@@ -36,20 +36,28 @@ export function seriesFor(sid, v, years, arms, closure, scale = 1) {
 }
 
 // Arms in view whose closed-capital solve is pending
-export function boundPending(sid, arms, closure) {
-  if (closure === 'central') return [];
-  return ARMS.filter((a) => arms.includes(a.id) && result(sid, a.id, BOUND).status !== 'done').map((a) => a.short || a.label);
+export function boundPending(sid, arms, closure, rule = 'common') {
+  if (closure === 'central' || !ruleSolved(rule, sid)) return [];
+  return ARMS.filter((a) => arms.includes(a.id) && resultAt(sid, a.id, BOUND, rule).status !== 'done').map((a) => a.short || a.label);
 }
 
-export function emptyText(arms, closure) {
+// Why a scenario has no lines under a fiscal rule, naming what is solved.
+export function ruleGapText(rule, sid) {
+  if (ruleSolved(rule, sid)) return null;
+  const names = solvedUnder(rule).map((s) => s.label);
+  return `${ruleLabel(rule)} is solved for ${names.join(' and ')} only. Choose ${names.join(' or ')} under Scenario, or the common fiscal rule.`;
+}
+
+export function emptyText(arms, closure, rule = 'common', sid = null) {
   if (!arms.length) return 'Every arm is hidden. Choose one under Arms above.';
+  if (sid && !ruleSolved(rule, sid)) return ruleGapText(rule, sid);
   if (closure === 'closed') return 'The closed-capital results for this scenario are not solved yet. Choose Central under Closure at the top of the page.';
   return 'This scenario is not solved yet.';
 }
 
 // What a download says was selected
-export const contextLine = (sid, closure, extra) =>
-  [SCEN_NAME[sid], closureLabel(closure) + (closure === 'both' ? ' closures' : closure === 'central' ? ' closure' : ''), extra].filter(Boolean).join(' · ');
+export const contextLine = (sid, closure, extra, rule = 'common') =>
+  [SCEN_NAME[sid], closureLabel(closure) + (closure === 'both' ? ' closures' : closure === 'central' ? ' closure' : ''), ruleLabel(rule), extra].filter(Boolean).join(' · ');
 
 // A chart's lines as a CSV table: one row per year, one column per line
 export function seriesTable(years, series, unit) {

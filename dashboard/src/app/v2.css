@@ -1494,3 +1494,101 @@
   height: 24px;
   transform: translateY(-50%);
 }
+
+/* ---------- Page intro: question, answer, page options (every Explore and
+   Method sub-tab opens with it). One spacing scale: 8 / 12 / 20 / 32 / 48. */
+.page-intro {
+  margin: 0 0 32px;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+.page-q {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--pe-gray-900);
+}
+.page-q .plain-icon {
+  display: inline-flex;
+  margin-top: 6px;
+  color: var(--c-gain-text);
+}
+.page-a {
+  max-width: 78ch;
+  margin: 8px 0 0 28px;
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--pe-gray-700);
+}
+.page-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 12px 0 0 28px;
+}
+/* A picker on the page: the header picker's behaviour on a light surface */
+.page-options .picker-button {
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border-color: var(--pe-gray-300);
+}
+.page-options .picker-button:hover,
+.page-options .picker-button[aria-expanded='true'] {
+  background: var(--pe-gray-50);
+  border-color: var(--pe-gray-500);
+}
+.page-options .picker-button:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+}
+.page-options .picker-label {
+  color: var(--pe-gray-500);
+}
+.page-options .picker-pop {
+  right: auto;
+  left: 0;
+}
+.page-intro + .explore-part > .section-heading:first-child,
+.page-intro + .section-heading,
+.page-intro + * > .section-heading:first-child {
+  margin-top: 0;
+}
+@media (max-width: 640px) {
+  .page-q {
+    font-size: var(--fs-section);
+  }
+  .page-a,
+  .page-options {
+    margin-left: 0;
+  }
+  .page-a {
+    font-size: var(--fs-body);
+  }
+  .page-options .picker {
+    flex: 0 1 auto;
+  }
+  .page-options .picker-button {
+    width: auto;
+  }
+}
+
+/* ---------- Sub-tab change: a short fade, no movement of the layout.
+   Charts reserve their height, so nothing shifts as they draw. */
+.sub-panel {
+  animation: sub-in 180ms var(--ease-out);
+}
+@keyframes sub-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sub-panel {
+    animation: none;
+  }
+}

@@ -101,34 +101,45 @@ describe('tooltips', () => {
     expect(tip).toContain('19–23pp');
   });
 
-  it('fiscal-rule card: each solved rule prints its own gaps, only for the scenarios it is solved for', () => {
-    const open = (sid, closure = 'central', name = /Debt-neutral/) => {
-      const { container, unmount } = at(`sub=finances&s=${sid}&closure=${closure}`);
-      fireEvent.click(screen.getByRole('radio', { name }));
-      const t = container.querySelector('#fiscal-rule .chart-plot').textContent;
+  it('every chart follows the fiscal rule; the rule card prints its shift against the common rule', () => {
+    const page = (query) => {
+      const { container, unmount } = at(query);
+      const card = container.querySelector('#fiscal-rule .chart-plot').textContent;
+      const all = container.textContent;
       unmount();
-      return t;
+      return { card, all };
     };
-    const dn = open('uk_central');
-    expect(dn).toContain('+3.21%');
+    // the four-measure card under debt-neutral transfers prints the main
+    // arm's own GDP gap (the story shows the common rule only)
+    const { container, unmount } = at('sub=income&rule=dn');
+    expect(container.textContent).toContain('+3.21%');
+    expect(container.textContent).not.toContain('in the story');
+    unmount();
+    const dn = page('sub=finances&s=uk_central&rule=dn').card;
+    // the main arm's GDP shift: 3.2109 less the fixture's common-rule 2.3456
+    expect(dn).toContain('+0.87pp');
     // 3 arms x 4 measures at one closure, twice that with both
-    expect(dn.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(12);
-    expect(open('uk_central', 'both').match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
-    expect(open('korinek').match(/[+−]?\d+\.\d\d%/g)).toHaveLength(12);
-    const other = open('uk_high');
-    expect(other).toContain('solved for UK central and Korinek et al. (upper) only');
-    expect(other).not.toMatch(/\d\.\d\d%/);
-    // fixed spending: UK central and Korinek at both closures
-    const fs = open('uk_central', 'both', /Fixed spending/);
-    expect(fs).toContain('fixed spending');
-    expect(fs.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
-    expect(open('korinek', 'both', /Fixed spending/).match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
-    expect(open('uk_low', 'central', /Fixed spending/)).toContain('solved for UK central and Korinek et al. (upper) only');
+    expect(dn.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(12);
+    expect(page('sub=finances&s=korinek&closure=both&rule=fixed').card.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(24);
+    const other = page('sub=finances&s=uk_high&rule=dn');
+    expect(other.card).toContain('solved for UK central and Korinek et al. (upper) only');
+    expect(other.card).not.toMatch(/\d\.\d\d/);
+    // every chart on the page says so too, and none prints a figure
+    expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
+    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending is solved for UK central and Korinek et al. (upper) only');
   });
 
-  it('the rule and the arms are in the address', () => {
-    at('sub=finances');
-    fireEvent.click(screen.getByRole('radio', { name: /Debt-neutral/ }));
+  it('the rule and the arms are in the address', async () => {
+    const { default: RuleBar } = await import('@/tabs/explore/RuleBar.jsx');
+    window.history.replaceState(null, '', '/?tab=explore&sub=finances');
+    render(
+      <NavProvider>
+        <RuleBar />
+        <ResultsTab />
+      </NavProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Fiscal rule: Common fiscal rule/ }));
+    fireEvent.click(screen.getByRole('option', { name: /Debt-neutral/ }));
     expect(window.location.search).toContain('rule=dn');
     fireEvent.click(screen.getAllByRole('button', { name: 'Stress test' })[0]);
     expect(window.location.search).toContain('arms=tfp,tz');
