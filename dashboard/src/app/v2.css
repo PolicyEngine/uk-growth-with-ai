@@ -1694,11 +1694,15 @@
   transform: translate(-50%, -50%);
 }
 .as-mark.is-dot {
+  z-index: 2;
   width: 12px;
   height: 12px;
   margin: -6px 0 0 -6px;
   background: var(--mark);
   border-radius: 50%;
+  /* a surface ring, so UK central stays visible on the hollow Korinek
+     diamond when the two coincide */
+  box-shadow: 0 0 0 2px var(--pe-surface);
 }
 .as-mark.is-end {
   width: 3px;
@@ -2029,6 +2033,8 @@
   vertical-align: top;
   font-size: var(--fs-caption);
   white-space: normal;
+  /* long file names and keys break instead of running past the card */
+  overflow-wrap: anywhere;
 }
 .ledger-where {
   display: block;
@@ -2075,4 +2081,11 @@
 }
 .as-tick:last-child {
   transform: translateX(-100%);
+}
+
+/* Card grids whose cards differ a lot in length: each card keeps its own
+   height instead of stretching to the tallest (no blank lower halves). */
+.card-grid.is-top,
+.cards-grid.is-top {
+  align-items: start;
 }

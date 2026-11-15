@@ -486,12 +486,9 @@
   max-width: 72ch;
   margin: 4px 0 20px;
 }
+/* the question line takes .page-q (v2.css), as on every other page */
 .hh-question {
-  margin: 0 0 6px;
-  font-size: var(--fs-section, 1.35rem);
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--pe-gray-900);
+  margin: 0 0 8px;
 }
 .hh-answer {
   margin: 0 0 10px;
@@ -578,9 +575,15 @@
   border-top: 0;
 }
 .hh-ref {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  min-height: 24px;
   font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--c-link, var(--series-2));
+  text-decoration: underline;
+  text-underline-offset: 2px;
   white-space: nowrap;
 }
 
@@ -764,6 +767,10 @@
   .hh-rows {
     --hh-col: 4.4em;
   }
+  /* two value columns leave room for headers like "Government" */
+  .hh-rows.cols-2 {
+    --hh-col: 6em;
+  }
   .hh-tiles-3 {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -771,4 +778,38 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;
   }
+}
+
+/* A bar beyond the card's scale (charts.jsx BarRows): drawn to the edge,
+   with a break mark and a note */
+.hh-bar.is-over {
+  position: relative;
+}
+.hh-bar.is-over::after {
+  content: '//';
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 3px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--pe-surface);
+}
+
+/* Three decile rankings (Explore > Households): the neutral slate-blue
+   ramp of the earnings groups (chartTheme GROUP_RAMP), so no ranking
+   borrows an arm or gain/loss colour; decile 1 stays muted grey */
+.p3-fill-rank-1 {
+  fill: #16314b;
+  background: #16314b;
+}
+.p3-fill-rank-2 {
+  fill: #45668b;
+  background: #45668b;
+}
+.p3-fill-rank-3 {
+  fill: #8fa9c4;
+  background: #8fa9c4;
 }

@@ -42,9 +42,6 @@ function Shell() {
 
   return (
     <div className="app">
-      <a className="skip-link" href={`#tab-${st.tab}`}>
-        Skip to content
-      </a>
       <header className={`band${pick.scenario || pick.closure ? '' : ' no-pickers'}`} data-sticky-bar="">
         <h1>{PAGE_TITLE}</h1>
         <div className="band-pickers">
@@ -80,7 +77,7 @@ function Shell() {
           />
         </div>
       ) : null}
-      <div className="main-content">
+      <div className="main-content" id="main-content" tabIndex={-1}>
         <p className="scope-strip">
           <Icon name="info" size={16} />
           <span>

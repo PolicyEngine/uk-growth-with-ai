@@ -70,6 +70,10 @@ export default function RootLayout({
   return (
     <html lang="en-GB" className={inter.variable}>
       <body>
+        {/* first tab stop, before the PolicyEngine site nav */}
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
         <PolicyEngineShell country="uk" showFooter={false} headerProps={{ navItems: SITE_NAV_ITEMS, styles: SITE_HEADER_STYLES }}>
           {children}
           <SiteFooter />

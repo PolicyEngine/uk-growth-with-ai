@@ -144,7 +144,7 @@ function Why({ cl, rule, arm }) {
   const tr = c.income_2028_35_age45.transfers;
   const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
   return (
-    <div className="cards-grid">
+    <div className="cards-grid is-top">
       <InfoCard icon="cart" title="Consumption dips first, then recovers">
         <p>
           The return on capital rises and the wage rate is lower than on the OBR-central path. Households save more at first, so aggregate

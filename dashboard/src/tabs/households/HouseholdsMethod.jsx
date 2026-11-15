@@ -61,7 +61,10 @@ export default function HouseholdsMethod() {
       <OnThisPage tab="method" sub="households" sections={SECTIONS} label="Household method contents" />
       <div className="page-body">
         <header className="hh-lead">
-          <p className="hh-question">How does the household study produce its results?</p>
+          <p className="hh-question page-q">
+          <Icon name="usersRound" size={18} />
+          <span>How does the household study produce its results?</span>
+        </p>
           <p className="hh-answer">
             It takes a calibrated sample of UK households, removes the earnings of employees chosen at random in proportion to their
             occupation’s AI exposure, and runs the tax and benefit system before and after, for one year.
@@ -115,7 +118,7 @@ export default function HouseholdsMethod() {
           <SectionHeading id="hm-shock" icon="zap" title="The shock">
             An assumed shock, applied in one year; not estimated from data.
           </SectionHeading>
-          <div className="card-grid">
+          <div className="card-grid is-top">
             <InfoCard icon="users" title="Job loss">
               <p>
                 In the central case <span data-input="">{fmtInputPct(Number(/([\d.]+)% prescribed/.exec(D.headline.central_displaced.note)?.[1]))}</span>{' '}

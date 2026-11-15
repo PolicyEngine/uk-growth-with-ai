@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
@@ -133,11 +134,14 @@ const RULES = [
   { id: 'junior', label: 'Tilted towards workers aged 16 to 24', storyCost: STEP.rules },
   { id: 'exposure', label: 'In proportion to AI exposure (central)', storyCost: STEP.central, central: true },
   { id: 'compression', label: 'Expertise compression', storyCost: STEP.rules },
-  { id: 'klein_top_loaded', label: 'Top-loaded stress test' },
+  { id: 'klein_top_loaded', label: 'Top-loaded stress test (bar off scale)' },
 ];
 
 function Rules() {
-  const hi = Math.max(...D.rules.map((r) => r.cost_bn)) * 1.05;
+  // The top-loaded stress test is several times the others: scaled to the
+  // others, it runs off the scale (marked), so the four rules stay readable.
+  const others = D.rules.filter((r) => r.id !== 'klein_top_loaded').map((r) => r.cost_bn);
+  const hi = Math.max(...others) * 1.2;
   return (
     <Card
       id="hh-rules"
@@ -237,7 +241,7 @@ function PerPound() {
           {
             id: 'pp-job',
             label: 'Job loss',
-            bar: { value: j20.government_p, fill: 'p3-fill-neutral' },
+            bar: { value: j20.government_p, fill: 'p3-fill-ref' },
             cells: [<StoryRef key="a" step={STEP.margin} />, <span key="b" className="p3-muted">not on 20 draws</span>],
           },
           {
@@ -330,7 +334,7 @@ function Displaced() {
 }
 
 // --- 6. Deciles under three rankings ------------------------------------------
-const RANK_FILL = ['p3-fill-cost', 'p3-fill-hh', 'p3-fill-ref'];
+const RANK_FILL = ['p3-fill-rank-1', 'p3-fill-rank-2', 'p3-fill-rank-3'];
 
 function DivRect({ v, lo, hi, fill }) {
   const zx = (-lo / (hi - lo)) * 100;
@@ -395,7 +399,7 @@ function Rankings() {
       </div>
       <p className="p3-caveat" data-caveat="bottom-decile">
         Decile 1 is drawn in grey: its sign depends on the ranking, and the study does not report it as a finding. Its three values, and the
-        HBAI values for the other deciles, are printed in story part 3, <StoryRef step={STEP.deciles} />.
+        HBAI values for the other deciles, are printed in story part 3: <StoryRef step={STEP.deciles} />
       </p>
     </Card>
   );
@@ -495,7 +499,10 @@ export default function HouseholdsExplore() {
   return (
     <div className="hh-page">
       <header className="hh-lead">
-        <p className="hh-question">What moves the cost of AI job displacement, and who it falls on?</p>
+        <p className="hh-question page-q">
+          <Icon name="usersRound" size={18} />
+          <span>What moves the cost of AI job displacement, and who it falls on?</span>
+        </p>
         <p className="hh-answer">
           In this provisional microsimulation, who loses the job, whether earnings fall through job loss or wage cuts, and benefit take-up each
           move the cost by billions of pounds a year. Job loss raises poverty more than wage cuts of the same size. The headline findings are in{' '}

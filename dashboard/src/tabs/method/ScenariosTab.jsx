@@ -3,6 +3,7 @@
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
+import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
 import { REPO } from '@/tabs/ai/links.js';
@@ -97,7 +98,7 @@ const ARM_TEXT = {
 
 function ArmCards() {
   return (
-    <div className="card-grid mx-arms">
+    <div className="card-grid mx-arms is-top">
       {ARMS.map((a) => {
         const t = ARM_TEXT[a.id];
         if (!t) return null;
@@ -133,9 +134,17 @@ function ArmCards() {
 }
 
 
+const SECTIONS = [
+  { id: 's-scenarios', title: 'The scenarios', icon: 'target' },
+  { id: 's-arms', title: 'Three arms per scenario', icon: 'shuffle' },
+  { id: 's-timing', title: 'When it happens', icon: 'calendar' },
+];
+
 export default function ScenariosTab() {
   return (
-    <div className="mx-tab mx-method">
+    <div className="page-with-contents mx-tab mx-method">
+      <OnThisPage tab="method" sub="scenarios" sections={SECTIONS} label="Scenarios contents" />
+      <div className="page-body">
       <PageIntro
         icon="target"
         question="What goes into each run?"
@@ -261,6 +270,7 @@ export default function ScenariosTab() {
         >
           <p>With no adjustment costs, investment and hours jump in the announcement year.</p>
         </InfoCard>
+      </div>
       </div>
     </div>
   );

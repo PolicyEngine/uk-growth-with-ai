@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
+import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { DivBar, HBar, StackBar } from '@/tabs/story/part3/shared.jsx';
 import { MINUS } from '@/tabs/story/part3/format.js';
@@ -12,8 +13,8 @@ import { MINUS } from '@/tabs/story/part3/format.js';
 // A cell that points to the story step printing this figure.
 export function StoryRef({ step }) {
   return (
-    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in story part 3, step ${step.n}`}>
-      step {step.n}
+    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in story part 3, step ${step.n}`} aria-label={`See story part 3, step ${step.n}`}>
+      Step {step.n} <Icon name="arrowRight" size={12} strokeWidth={2} />
     </NavLink>
   );
 }
@@ -27,11 +28,12 @@ export const STEP = {
 };
 
 // Rows: [{ id, label, bar: { kind, value | parts, fill }, cells: [node] }].
+// A plain bar longer than `hi` is drawn to the edge and marked off scale.
 // `cols` names the value columns; the bar spans the space left of them.
 export function BarRows({ id, cols, rows, lo = 0, hi, className = '' }) {
   const n = cols.length;
   return (
-    <div className={`hh-rows ${className}`} id={id} style={{ '--hh-cols': n }}>
+    <div className={`hh-rows cols-${n} ${className}`} id={id} style={{ '--hh-cols': n }}>
       <div className="hh-head" aria-hidden="true">
         <span />
         {cols.map((c) => (
@@ -47,13 +49,13 @@ export function BarRows({ id, cols, rows, lo = 0, hi, className = '' }) {
           ) : (
             <li key={r.id} className={`hh-row${r.muted ? ' is-muted' : ''}`} data-row={r.id}>
               <span className="hh-label">{r.label}</span>
-              <span className="hh-bar">
+              <span className={`hh-bar${r.bar && !r.bar.kind && r.bar.value > hi ? ' is-over' : ''}`}>
                 {r.bar?.kind === 'div' ? (
                   <DivBar value={r.bar.value} lo={lo} hi={hi} fill={r.bar.fill} />
                 ) : r.bar?.kind === 'stack' ? (
                   <StackBar parts={r.bar.parts} max={hi} />
                 ) : r.bar ? (
-                  <HBar value={r.bar.value} max={hi} fill={r.bar.fill} />
+                  <HBar value={Math.min(r.bar.value, hi)} max={hi} fill={r.bar.fill} />
                 ) : null}
               </span>
               {r.cells.map((c, i) => (

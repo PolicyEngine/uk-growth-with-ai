@@ -48,7 +48,7 @@ export function AboutFold({ about, method, title = 'About this chart' }) {
 }
 
 export default function Card({
-  id, icon, title, finding, unit, controls, legend, about, method, download, logo = true, className = '', children, foot, aboutTitle,
+  id, icon, title, finding, unit, controls, legend, about, method, download, logo = false, className = '', children, foot, aboutTitle,
 }) {
   const ref = useRef(null);
   return (
