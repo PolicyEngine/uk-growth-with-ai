@@ -232,6 +232,17 @@
 .p2-mo-dot.is-open {
   fill: var(--pe-surface);
 }
+/* break mark: a surface-coloured gap under two short strokes */
+.p2-mo-break-gap {
+  fill: none;
+  stroke: var(--pe-surface);
+  stroke-width: 5;
+}
+.p2-mo-break {
+  fill: none;
+  stroke: var(--pe-gray-700);
+  stroke-width: 1.5;
+}
 .p2-mo-move {
   opacity: 0;
   transition: transform 900ms var(--story-ease, ease), opacity 500ms ease;
@@ -479,4 +490,16 @@
   font-size: var(--fs-small);
   line-height: 1.25;
   text-align: right;
+}
+
+/* Text that changes between states keeps the height of its longest form
+   (Morph.jsx): all forms share one grid cell, the others hidden */
+.p2-text-stack {
+  display: grid;
+}
+.p2-text-stack > span {
+  grid-area: 1 / 1;
+}
+.p2-text-ghost {
+  visibility: hidden;
 }

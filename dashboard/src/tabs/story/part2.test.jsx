@@ -240,7 +240,7 @@ describe('from the record to the model', () => {
         act: on(container, '.p2-mo-act'),
         obr: on(container, '.p2-mo-obr') && !container.querySelector('.p2-mo-obr').classList.contains('is-zero'),
         gap: on(container, '.p2-mo-gap'),
-        title: container.querySelector('.story-figure-title').textContent,
+        title: container.querySelector('.story-figure-title > :not(.p2-text-ghost)').textContent,
         source: container.querySelector('.story-source').textContent,
         figures: textWithoutAxes(container).match(/\d\.\d|\d%/g),
       };

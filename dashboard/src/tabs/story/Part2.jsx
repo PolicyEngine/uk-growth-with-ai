@@ -9,7 +9,7 @@ import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, B
 import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
-import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, series, afterWords, afterWordsAll } from './part2/charts.jsx';
+import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, entryDip, series, afterWords, afterWordsAll } from './part2/charts.jsx';
 import { More } from './part2/frame.jsx';
 import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
@@ -207,6 +207,9 @@ function whoSteps(sid) {
         <>
           <p>
             People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.{allGain ? ' As modelled, under debt-neutral transfers, they gain too: a higher return on saving and, later, higher consumption outweigh lower pay rates.' : ''}{' '}
+            {entryDip()
+              ? 'The dip just after the entry line is the transfer cut: those who enter in the first years after the shock start work while debt-neutral transfers are lowered, before the debt rule starts, and with little wealth to earn the higher return; under the common fiscal rule there is no dip. '
+              : ''}
             The measures, the earnings groups and the other arms are on Who gains.
           </p>
           <More tab="explore" sub="who">Who gains, by age and earnings group</More>

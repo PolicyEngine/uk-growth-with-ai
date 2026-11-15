@@ -88,10 +88,22 @@ export function Legend({ items }) {
 }
 
 // The frame round a graphic: title, unit line, drawing, legend, source.
-export function Figure({ title, unit, legend, source, children, innerRef }) {
+// `titleReserve`: the longest title any state shows; it holds the title's
+// height (hidden, in the same grid cell), so a longer title in a later state
+// does not move the drawing below it.
+export function Figure({ title, titleReserve, unit, legend, source, children, innerRef }) {
   return (
     <figure className="p1-figure" ref={innerRef}>
-      <p className="story-figure-title">{title}</p>
+      {titleReserve ? (
+        <p className="story-figure-title p1-title-stack">
+          <span>{title}</span>
+          <span className="p1-title-ghost" aria-hidden="true">
+            {titleReserve}
+          </span>
+        </p>
+      ) : (
+        <p className="story-figure-title">{title}</p>
+      )}
       {unit ? <p className="story-figure-unit">{unit}</p> : null}
       {children}
       {legend?.length ? <Legend items={legend} /> : null}

@@ -122,7 +122,25 @@ export function morphGeometry(s, gapYs) {
     yTicksG: G_TICKS.ticks.map((v) => ({ v, y: Yg(v), t: tickText(v, G_TICKS.step) })),
     yTicksD: ga.ticks.map((v) => ({ v, y: Yd(v), t: tickText(v, ga.step) })),
     off: ACT.filter(([, y]) => Math.abs(y) > OFF).map(([x, y]) => ({ x: X(x), year: x, up: y > 0 })),
+    breaks: frameBreaks(act),
   };
+}
+
+// The outturn is clipped at the plot frame (CLIP_T, CLIP_B); a break mark
+// sits where a line leaves or re-enters it, so an off-scale year (2020,
+// 2021) reads as cut, not as a line running out of the frame.
+const CLIP_T = PY0 - 3;
+const CLIP_B = PY1 + 3;
+function frameBreaks(pts) {
+  const out = [];
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1];
+    const [x1, y1] = pts[i];
+    for (const edge of [CLIP_T, CLIP_B]) {
+      if ((y0 - edge) * (y1 - edge) < 0) out.push({ key: `${i}-${edge === CLIP_T ? 't' : 'b'}`, x: x0 + ((edge - y0) / (y1 - y0)) * (x1 - x0), y: edge });
+    }
+  }
+  return out;
 }
 
 const OFF_YEARS = ACT.filter(([, y]) => Math.abs(y) > OFF).map(([x]) => x);
@@ -147,7 +165,7 @@ export function MorphChart({ state, sid, cl }) {
   const s = Math.max(0, Math.min(2, state));
   const ys = series(sid, 'tfp', cl, 'Y');
   const g = morphGeometry(s, ys);
-  const text = STATE_TEXT(sid, cl)[s];
+  const all = STATE_TEXT(sid, cl);
   const allTicks = [...new Set(X_TICKS.flat())].sort((a, b) => a - b);
   const split = OBR.length ? g.split : null;
   const dPath = (pts) => pathOf(pts);
@@ -164,12 +182,26 @@ export function MorphChart({ state, sid, cl }) {
     .join(' ');
   return (
     <figure className="p2-figure p2-morph" data-state={s}>
-      <p className="story-figure-title">{text.title}</p>
-      <p className="story-figure-unit">{text.unit}</p>
+      {/* every state's title and unit stacked in one grid cell, only the
+          current one visible: the drawing below never moves between states */}
+      <p className="story-figure-title p2-text-stack">
+        {all.map((t, i) => (
+          <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
+            {t.title}
+          </span>
+        ))}
+      </p>
+      <p className="story-figure-unit p2-text-stack">
+        {all.map((t, i) => (
+          <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
+            {t.unit}
+          </span>
+        ))}
+      </p>
       <svg className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         <defs>
           <clipPath id="p2-morph-clip">
-            <rect x={PX0 - 4} y={PY0 - 8} width={PX1 - PX0 + 8} height={PY1 - PY0 + 12} />
+            <rect x={PX0 - 4} y={CLIP_T} width={PX1 - PX0 + 8} height={CLIP_B - CLIP_T} />
           </clipPath>
         </defs>
         {/* the two y axes: growth (states 0-1), gap (state 2) */}
@@ -255,6 +287,13 @@ export function MorphChart({ state, sid, cl }) {
             style={{ ...dStyle(g.gap), stroke: ARM_COLOR.tfp }}
           />
         </g>
+        {/* break marks where the outturn leaves the frame (states 0-1) */}
+        {g.breaks.map((b) => (
+          <g key={b.key} className={`p2-mo-move${s < 2 ? ' is-on' : ''}`} style={{ transform: `translate(${b.x.toFixed(1)}px, ${b.y.toFixed(1)}px)` }}>
+            <path d="M-6,2.5L0,-2.5M-1,2.5L5,-2.5" className="p2-mo-break-gap" />
+            <path d="M-6,2.5L0,-2.5M-1,2.5L5,-2.5" className="p2-mo-break" />
+          </g>
+        ))}
         {/* off-scale years (states 0-1): named, not valued */}
         <g className={`p2-mo-fade${s < 2 ? ' is-on' : ''}`}>
           {g.off.map((o) => (

@@ -129,6 +129,7 @@ export function ScenarioPaths({ state, sid, cl }) {
         ) : null}
         <EndLabels
           sc={sc}
+          delay={900}
           items={lines.map((l) => ({
             key: l.id,
             v: l.ys[last],
@@ -192,7 +193,7 @@ export function ArmPaths({ state, sid, closure, v, title, unit, label, allFrom }
             faint={l.arm === 'ss'}
           />
         ))}
-        <EndLabels sc={sc} items={ends} />
+        <EndLabels sc={sc} items={ends} delay={900} />
       </svg>
     </Figure>
   );
@@ -205,6 +206,20 @@ export function ArmPaths({ state, sid, closure, v, title, unit, label, allFrom }
 export const LAST_ALIVE = D.shock_year - 20; // youngest adult in the shock year
 export const WELFARE_RULE = 'dn';
 export const welfareCell = () => D.closures[CENTRAL].rules[WELFARE_RULE].tfp;
+
+// True when, under debt-neutral transfers, the cohorts entering in the
+// first five years after the shock sit below the youngest adult cohort
+// while under the common fiscal rule they do not: the dip after the entry
+// line is then the transfer cut that debt-neutral transfers charge until
+// the debt rule starts (Who gains, "Who pays the fiscal cost").
+export function entryDip() {
+  const xs = D.closures[CENTRAL].birth_year;
+  const i0 = xs.indexOf(LAST_ALIVE);
+  const rules = D.closures[CENTRAL].rules;
+  if (i0 < 0 || !rules.common) return false;
+  const dips = (ys) => Math.min(...ys.slice(i0 + 1, i0 + 6)) < ys[i0];
+  return dips(rules[WELFARE_RULE].tfp.cev_all) && !dips(rules.common.tfp.cev_all);
+}
 
 // Age in the shock year of the adult cohort with the largest change.
 export function peakAge() {

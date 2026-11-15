@@ -143,3 +143,15 @@
     margin-bottom: 6px;
   }
 }
+
+/* A figure title that changes between states keeps the height of its
+   longest form (frame.jsx, titleReserve) */
+.p1-title-stack {
+  display: grid;
+}
+.p1-title-stack > span {
+  grid-area: 1 / 1;
+}
+.p1-title-ghost {
+  visibility: hidden;
+}

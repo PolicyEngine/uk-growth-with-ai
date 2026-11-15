@@ -109,7 +109,9 @@ export function Axes({ sc, xTicks, markers = [] }) {
 // inside the plot's height. items: [{ key, v (end value), lines: [text],
 // color, on }].
 const LH = 16;
-export function EndLabels({ sc, items }) {
+// `delay` (ms) holds a label back until its line, drawn by DrawPath over
+// 1200ms, has nearly reached the line end, so no name shows before its line.
+export function EndLabels({ sc, items, delay = 0 }) {
   const top = M.t;
   const bot = H - M.b;
   const placed = items
@@ -133,7 +135,7 @@ export function EndLabels({ sc, items }) {
   return (
     <g className="p2-end-labels">
       {placed.map((p) => (
-        <FadeG key={p.key} on={p.on}>
+        <FadeG key={p.key} on={p.on} delay={p.on ? delay : 0}>
           <text className="p2-end-label" x={x} y={p.t + LH * 0.75} style={{ fill: p.color }}>
             {p.lines.map((l, i) => (
               <tspan key={l} x={x} dy={i ? LH : 0}>

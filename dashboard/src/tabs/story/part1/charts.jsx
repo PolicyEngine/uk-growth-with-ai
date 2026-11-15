@@ -64,6 +64,7 @@ export function GdpChart({ state }) {
     <Figure
       innerRef={ref}
       title={fc ? `Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}` : `Real GDP growth, ${x0} to ${gLast}`}
+      titleReserve={`Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`}
       unit={`Percentage change on the previous calendar year. Full years only: ${gLast} is the latest complete year.`}
       legend={[
         { key: 'ons', label: 'ONS outturn', color: 'var(--series-2)', block: true },
