@@ -64,10 +64,11 @@ UK sources give **one labour-share path each**, not a range:
 **Low and high.**
 - Low +0.2%: the OBR J-curve; the FRS describes the low end as "less than 0.1 percentage points" a year.
 - High +1.6%: the OBR's 0.8pp alternative, inside the IMF risk-matrix range.
+  - **A judgement against BP9 ¶B.15.** BP9 puts AI's boost at "anywhere between 0.0 and 0.8 percentage points" a year, and says its optimistic and transformative scenarios rest on exposure and feasibility assumptions "we consider … to be fairly unlikely". Even if achieved, "most of the impact would likely occur in the latter half of the 10-years". UK high ramps the 0.8pp case linearly to its full size by year five, so it brings that case forward relative to BP9's own timing. UK high is an upper-end judgement, not an OBR projection; on BP9's timing its year-4 level would be lower than 1.6% (ours). *(Added 15 Nov 2026.)*
 
 **Caveat.** The OBR figures are for labour-productivity growth, which includes capital deepening, while the model target is TFP. They therefore overstate the TFP part somewhat. The IMF figure is TFP proper and agrees with them at the central value.
 
-**Briefing paper No.9 was not re-read.** obr.uk redirects automated downloads of BP9 and its charts-and-tables file to a no-access page (tried again on 12 Nov 2026 with plain requests). The ¶B.12 and ¶B.14 figures are from the #31 review, which read the PDF. The FRS 2026 Box 4.1 restates the central 0.2pp and the range from "less than 0.1" to "up to 0.8".
+**Briefing paper No.9 was re-read on 15 Nov 2026** from the OBR's [direct PDF link](https://obr.uk/docs/dlm_uploads/Briefing_paper_No.9_Forecasting_productivity.pdf). On 12 Nov obr.uk had redirected automated downloads to a no-access page, so the ¶B.12 and ¶B.14 figures were first taken from the #31 review. The PDF confirms ¶B.9, ¶B.12 and ¶B.14 as quoted. The FRS 2026 Box 4.1 restates the central 0.2pp and the range from "less than 0.1" to "up to 0.8".
 
 ## 3. Upper scenario, kept separately
 
