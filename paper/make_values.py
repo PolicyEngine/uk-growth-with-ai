@@ -590,6 +590,7 @@ def cohort_results() -> dict:
 # fails once the matched no-shock reference is in and this text is still there.
 INCIDENCE_TEX = ROOT / "paper" / "sections" / "incidence.tex"
 DNFULL_PENDING = "a no-shock path with transfers, not government consumption"
+DNFULL_SENTENCE = r"\genCohMainDnfullCentralNoBeqAvgRange"
 
 
 def emit_dnfull(v: Values) -> None:
@@ -1181,7 +1182,8 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
                     "consolidation onto transfers' no longer holds: quote the solve")
     # ... and once the matched no-shock reference is in, the \pending has to go: the
     # sentence commented out under it quotes the \genCohMainDnfullCentral* macros
-    if cwf.dnfull_ready("zk0.1") and DNFULL_PENDING in INCIDENCE_TEX.read_text():
+    tex = INCIDENCE_TEX.read_text()
+    if cwf.dnfull_ready("zk0.1") and (DNFULL_PENDING in tex or DNFULL_SENTENCE not in tex):
         fail.append("the matched no-shock reference for the dnfull solve is in: replace the "
                     "\\pending in the incidence section with the sentence commented under it, and "
                     "recheck the abstract (main.tex) and intro.tex, which quote the first-order "
