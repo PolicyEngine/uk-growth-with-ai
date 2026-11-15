@@ -71,7 +71,9 @@ START_YEAR = 2026
 SHOCK_YEAR = sp.window()["surprise_year"]       # 2028
 T0 = SHOCK_YEAR - START_YEAR                    # 2
 DEBT_RULE = sp.window()["debt_rule_year"]       # 2036
-FIRST_AGE = 20
+FIRST_AGE = 20   # model age of s = 0: OG-UK STARTING_AGE = 20, S = 80, "ages 20-99" (oguk/api.py:33-34);
+                 # OG-Core takes the active population as pop[:, E:] over data ages 0-99 (demographics.py:1441)
+N_AGES = 80
 T_USE = 60
 SCENARIO = "uk_central"
 ARMS = ("tfp", "zfixed", "stress")
@@ -129,6 +131,8 @@ def load(closure: str):
     par = {k: np.asarray(v, dtype=float) for k, v in np.load(p).items()}
     if abs(float(np.ravel(par["zeta_K"])[0]) - ZETA[closure]) > 1e-12:
         raise WelfareError(f"{p} is not zeta_K = {ZETA[closure]}")
+    if int(np.ravel(par["S"])[0]) != N_AGES:
+        raise WelfareError(f"{p}: S is not {N_AGES}, so ages are not {FIRST_AGE}-{FIRST_AGE + N_AGES - 1}")
     runs = {}
     for key, label in [(None, "continuation")] + list(labels(closure).items()):
         f = COHORTS / closure / f"{label}.npz"

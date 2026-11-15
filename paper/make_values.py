@@ -774,8 +774,10 @@ def emit_cohorts(v: Values, CR: dict) -> None:
     v.put("YearAfterShock", SHOCK + 1, "{:.0f}")
     v.put("YearTwoAfterShock", SHOCK + 2, "{:.0f}")
     v.put("YearsShockToHead", HEAD - SHOCK, "{:.0f}")
+    v.put("ModelFirstAge", cwf.FIRST_AGE, "{:.0f}")
+    v.put("ModelLastAge", cwf.FIRST_AGE + cwf.N_AGES - 1, "{:.0f}")
     v.put("CohLastAliveBirth", SHOCK - cwf.FIRST_AGE, "{:.0f}")
-    v.put("CohFirstAliveBirth", SHOCK - cwf.FIRST_AGE - 79, "{:.0f}")
+    v.put("CohFirstAliveBirth", SHOCK - cwf.FIRST_AGE - (cwf.N_AGES - 1), "{:.0f}")
     v.put("CohReconTolPp", sci(cwf.RECON_TOL_PP))
 
 def render(v: Values, sources: list[str]) -> str:
@@ -1120,7 +1122,7 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
             fail.append(f"'model wealth less concentrated at the top than ONS' fails: {cl}")
         # debt-neutral transfer change costs the bottom group more (age 45, main arm)
         ia = cwf.income_accounts(cl, m)
-        s45 = 45 - cwf.FIRST_AGE
+        s45 = COH_INCOME_AGE - cwf.FIRST_AGE
         if not ia["transfers"][s45, 0] < ia["transfers"][s45, 6] < 0:
             fail.append(f"'lower transfers cost the bottom group more' fails: {cl}")
         if not ia["labour"][s45, 0] > ia["labour"][s45, 6]:
