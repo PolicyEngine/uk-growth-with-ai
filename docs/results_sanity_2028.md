@@ -2,6 +2,8 @@
 
 Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04).
 
+> **Final refresh 15 Nov 2026 at `ba2e7b0`: every planned solve is audited, and none is left unsolved.** Across every variant there are 799 consistent, 217 surprising-but-explained and 4 wrong cells. The four wrong cells are the same A6 cells as in the earlier refresh below. See "Final refresh" near the end.
+>
 > **Refreshed 15 Nov 2026 at `98e3381`** (see "Refresh 15 Nov 2026" near the end). The solves of 13–14 Nov add UK low and UK high at ζK = 0 and 0.5, fixed spending, and debt-neutral Korinek. There are now **two** wrong cells under the common rule, not one. The second is the UK high main arm at ζK = 0, where tax/GDP rises 0.08pp, as section 8 predicted. Both come from the same mechanism (A6). Across every variant: 746 consistent, 202 surprising-but-explained, 4 wrong, all four A6.
 
 The rule applied: every result must make sense in size and direction, and if it does not, the cause is found and stated.
@@ -1158,6 +1160,41 @@ All four are tax/GDP rising in 2031 in the main arm at ζK = 0.
 - **UK low and UK high at ζK = 0** follow UK central and Korinek. GDP gaps are +0.18% and +1.55% in the main arm. Technology unchanged is −0.02% and −0.05% (A1). The stress test holds GDP to within 0.001pp.
 - **UK low at ζK = 0.5** follows the other ζK = 0.5 results (A13–A16). The 2028 labour and consumption signs flip in the main arm (A15). Debt/GDP under technology unchanged falls in 2031 (−0.37pp, A14). Tax/GDP is −0.25pp, about 0.35 per point of share fall (A16).
 - **UK high main arm at ζK = 0.5:** GDP +6.05%, wage +1.51%, tax/GDP −1.04pp. It is in order between UK central and Korinek on every row in section 9.
+
+## Final refresh 15 Nov 2026 (all planned solves, `ba2e7b0`)
+
+Audited at `ba2e7b0` on `rerun/surprise-2028` (15 Nov 2026, 12:23), with the script unchanged since the refresh above. No solve was run and nothing under `analysis/surprise/output` was changed.
+
+- **New in this pass (4 solve records in the design):**
+  - UK high at ζK = 0.5: technology unchanged and the stress test (`r4_1`). The technology-unchanged solve is a re-solve of the run that failed at `b50073b`. It starts from the main arm's steady state (`UGAI_SS_GUESS`, `1ce9c7c`). The stress test was solved for the first time.
+  - Korinek, fixed spending, ζK = 0: technology unchanged and the stress test (`r4_1`).
+- **Outside the design, not audited:** `continuation_dnfull` (the no-shock reference for `_dnfull`) and `uk_central_share_shift_tfp_ramp_dnfull`, both at ζK = 0.1.
+- **No planned cell is left unsolved.** Debt-neutral and fixed spending were run only for UK central and Korinek, at ζK = 0.1 and 0. The 408 "not solved" cells in each variant table are the scenarios and closures that were never in that plan.
+
+### Result
+
+| cells | consistent | surprising-but-explained | wrong | not solved |
+|---|---|---|---|---|
+| Common rule, all three closures | 466 | 144 | 2 | 0 |
+| Debt-neutral (unchanged) | 168 | 35 | 1 | – |
+| Fixed spending | 165 | 38 | 1 | – |
+| **All audited cells** | **799** | **217** | **4** | |
+
+- **The four wrong cells are unchanged:** the A6 tax/GDP sign in the main arm at ζK = 0. They are Korinek under the common rule, debt-neutral and fixed spending, and UK high under the common rule. No new cell is wrong.
+- **Earlier verdicts are unchanged.** Every row that the previous refresh printed with all three arms solved comes out identical. The only rows that change are the ones that had "not solved" cells.
+- **Identities** hold in the four new records to the tolerances of section 1: the return equation to 1.4e-5 and the resource constraint to 3.4e-6. The fixed-spending closure holds exactly against the baseline in 2028–35. Section 9 (`--mono`) reports no ordering break.
+
+### The new cells
+
+- **UK high, ζK = 0.5** follows UK low, UK central and Korinek at that closure.
+  - Technology unchanged: GDP +3.65% (A13, capital inflow); debt/GDP −1.83pp in 2031 (A14); +3.36pp by 2036.
+  - Stress test: 2031 GDP −0.010%, at the edge of the 0.01pp tolerance, so `r4_1` is accepted.
+  - Tax/GDP falls 1.04–1.09pp, about 0.36–0.38 per point of share fall (A16).
+  - It sits between UK central and Korinek on every row of section 9.
+  - The steady-state guess changes only the starting point of the solve. The re-solved run passes the same gate and the same identities as every other record.
+- **Korinek, fixed spending, ζK = 0** follows its common-rule counterpart.
+  - Technology unchanged has GDP −0.01% (A1). It is below the stress test, the documented A1 ordering.
+  - Debt/GDP is +1.45pp in 2031 and +5.77pp by 2036. Without the GDP gain of ζK = 0.1, the fixed spending ratio does not fall, so A14 does not apply.
 
 ## What this audit did not do
 
