@@ -6,7 +6,8 @@
 .story {
   --story-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --story-dur: 700ms;
-  --story-graphic-top: calc(var(--sticky-offset) + 12px);
+  /* below the tab row and the story rail */
+  --story-graphic-top: calc(var(--sticky-offset) + 44px);
 }
 
 /* Hero */
@@ -62,7 +63,7 @@
 /* Part openers */
 .story-part {
   padding: 40px 0 8px;
-  scroll-margin-top: calc(var(--sticky-offset) + 8px);
+  scroll-margin-top: calc(var(--sticky-offset) + 40px);
 }
 .story-part + .story-part {
   border-top: 1px solid var(--card-border);
@@ -291,20 +292,127 @@
   to { opacity: 1; transform: none; }
 }
 
-/* Story part nav: a slim progress track under the tab row */
-.story-track {
+/* "You are here" (StoryRail.jsx): one segment per part under the tab row,
+   each filling as its part is read; the current part is named */
+.story-rail {
   position: sticky;
   top: var(--sticky-offset);
   z-index: 5;
-  height: 3px;
   margin: 0 calc(-1 * var(--page-gutter, 16px));
+  padding: 6px var(--page-gutter, 16px) 0;
+  background: color-mix(in srgb, var(--pe-bg, #f8fafc) 92%, transparent);
+  backdrop-filter: blur(6px);
+}
+.story-rail ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.story-rail-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 6px;
+  align-items: baseline;
+  padding-bottom: 6px;
+  color: var(--pe-gray-500);
+  text-decoration: none;
+  font-size: var(--fs-micro);
+}
+.story-rail-n {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.story-rail-t {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.story-rail-bar {
+  grid-column: 1 / -1;
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
   background: var(--card-border);
 }
-.story-track span {
+.story-rail-bar i {
   display: block;
   height: 100%;
-  background: var(--c-highlight);
+  background: var(--pe-gray-400);
   transform-origin: 0 50%;
+}
+.story-rail li.is-current .story-rail-link {
+  color: var(--pe-gray-900);
+  font-weight: 600;
+}
+.story-rail li.is-current .story-rail-bar i,
+.story-rail li.is-read .story-rail-bar i {
+  background: var(--c-highlight);
+}
+.story-rail-link:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+
+/* The close: the two models side by side */
+.lens-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.lens {
+  padding: 18px 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.lens h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.lens-what {
+  margin: 0 0 12px;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.lens dl {
+  margin: 0;
+}
+.lens dt {
+  margin-top: 10px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.lens dd {
+  margin: 2px 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.lens-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 0 0;
+}
+.lens-links a {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* Phone: graphic sticky at the top, cards scroll over its lower part */
@@ -316,6 +424,25 @@
   }
   .story-part {
     padding-top: 28px;
+  }
+  .lens-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* phones: numbers for every part, the name only for the current one,
+     which takes the room */
+  .story-rail ol {
+    display: flex;
+    gap: 6px;
+  }
+  .story-rail li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .story-rail li.is-current {
+    flex: 5 1 0;
+  }
+  .story-rail li:not(.is-current) .story-rail-t {
+    display: none;
   }
   .scrolly {
     display: block;
