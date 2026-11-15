@@ -73,11 +73,12 @@ export function PathCard({
 }) {
   const { st, set } = useNav();
   const rule = st.rule;
-  // A line that coincides with one before it (the labour share, an imposed
-  // input, is the same in every arm) carries no end value of its own: the
-  // value prints once and the card's finding says the lines coincide.
+  // A line that coincides with one before it and ends on the same printed
+  // value (the labour share, an imposed input, is the same in every arm)
+  // carries no end value of its own: the value prints once and the card's
+  // finding says the lines coincide.
   const series = seriesFor(sid, v, years, st.arms, st.closure, scale, rule).map((s, i, all) =>
-    all.slice(0, i).some((t) => t.values.length === s.values.length && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE)) ? { ...s, noEndLabel: true } : s,
+    all.slice(0, i).some((t) => !t.noEndLabel && t.values.length === s.values.length && signed(t.values[t.values.length - 1], endDp) === signed(s.values[s.values.length - 1], endDp) && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE)) ? { ...s, noEndLabel: true } : s,
   );
   const last = years[years.length - 1];
   const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);

@@ -39,6 +39,19 @@ ECON = [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp
 SUBS = ['summary', 'income', 'economy', 'finances']
 bad = 0
 
+WINDOW = [y for y in Y if D['window'][0] <= y <= D['window'][1]]
+
+def coincides(sid, arm, cl, v, k, years=None):
+    path = lambda a: [g(sid, a, cl, v, yr) for yr in (years or WINDOW)]
+    mine = path(arm)
+    for a in ARMS[:ARMS.index(arm)]:
+        other = path(a)
+        if None in other or None in mine:
+            continue
+        if signed(mine[-1] * k, 2) == signed(other[-1] * k, 2) and all(abs(p * k - q * k) < 0.005 for p, q in zip(mine, other)):
+            return True
+    return False
+
 def expected(sid, mode):
     """The figures Results prints for a scenario with the closure picker at mode."""
     exp = Counter()
@@ -63,10 +76,15 @@ def expected(sid, mode):
         # Economy: headline-year end labels (the central line with Both)
         for v, unit, k in ECON:
             x = g(sid, arm, main, v)
-            if x is not None: add(x * k, 2, unit)  # Economy end labels, 2dp (ResultsTab endDp)
+            # an arm whose path coincides with an earlier arm's (within half the
+            # last printed digit in every year, same printed end value) prints
+            # no end value (ResultsTab)
+            if x is not None and not coincides(sid, arm, main, v, k): add(x * k, 2, unit)  # Economy end labels, 2dp (ResultsTab endDp)
         # Public finances: debt/GDP late-year and tax/GDP headline-year end labels
-        add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
-        add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
+        if not coincides(sid, arm, main, 'debt_gdp_pp', 1, [y for y in Y if D['window'][0] <= y <= LATE]):
+            add(g(sid, arm, main, 'debt_gdp_pp', LATE), 2, 'pp')
+        if not coincides(sid, arm, main, 'tax_gdp_pp', 1):
+            add(g(sid, arm, main, 'tax_gdp_pp', H), 2, 'pp')
     # the tax card stays central: the top of the rough UK-rates range,
     # labour-share fall x 0.23 (the bottom prints without a unit). The model's
     # central tax/GDP (main arm) is the chart's end label, so the card prints
