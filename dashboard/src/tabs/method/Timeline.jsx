@@ -15,7 +15,7 @@ const weight = (y) => Math.max(0, Math.min(1, (y - FIRST_YEAR) / (HEADLINE_YEAR 
 
 const MARK = {
   [FIRST_YEAR]: 'Starting point',
-  [SURPRISE_YEAR]: 'Shock announced',
+  [SURPRISE_YEAR]: 'AI arrives',
   [HEADLINE_YEAR]: 'Headline year',
   [LATE_YEAR]: 'Debt rule starts',
 };

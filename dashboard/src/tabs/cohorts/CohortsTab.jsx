@@ -336,6 +336,7 @@ export default function WhoGainsTab() {
                     noEndLabels
                     dots={false}
                     yUnit="% change"
+                    xUnit="Birth year"
                     unit="%"
                     yDomain={yDomain}
                     valueFormat={(v) => minus(`${v > 0 ? '+' : ''}${v.toFixed(2)}`)}

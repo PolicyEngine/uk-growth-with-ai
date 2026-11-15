@@ -377,7 +377,7 @@ export default function FinancesSection({ sid }) {
           icon="landmark"
           unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${LATE_YEAR}`}
           finding={debtFinding(sid, st.closure, st.rule) ?? undefined}
-          markers={[{ year: SURPRISE_YEAR, label: 'AI arrives' }, { year: LATE_YEAR, label: 'debt rule starts' }]}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI arrives' }, { year: LATE_YEAR, label: 'Debt rule starts' }]}
           about={{
             shows: `Public debt as a share of GDP against the OBR-central path. ${reading}`,
             caveats: (

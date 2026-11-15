@@ -27,9 +27,15 @@ const ruleName = (id) => RULES.find((r) => r.id === id).short;
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
 const tickText = (t, unit) => (t === 0 ? `0${unit}` : `${t > 0 ? '+' : '−'}${Math.abs(t)}${unit}`);
 
-function Mark({ sid, x, m, row, arm, at, color }) {
+// UK central and Korinek et al. closer than this share of the axis would
+// overprint: the dot is lifted and the diamond lowered, both kept on their
+// values (the debt-neutral rows, where the two nearly coincide).
+const NEAR = 0.03;
+const nearPair = (vals, at) => vals.uk_central != null && vals.korinek != null && Math.abs(at(vals.uk_central) - at(vals.korinek)) < NEAR;
+
+function Mark({ sid, x, m, row, arm, at, color, near }) {
   const name = SCEN_NAME[sid];
-  const shape = sid === 'korinek' ? 'is-diamond' : sid === 'uk_central' ? 'is-dot' : 'is-end';
+  const shape = `${sid === 'korinek' ? 'is-diamond' : sid === 'uk_central' ? 'is-dot' : 'is-end'}${near && sid !== 'uk_low' && sid !== 'uk_high' ? ' is-near' : ''}`;
   const label = `${name}, ${ruleName(row.rule).toLowerCase()}, ${CLOSURE_LABEL[row.cl]}, ${m.label}: ${fmt(x, 2, m.unit)}`;
   return (
     <TipTarget
@@ -85,7 +91,7 @@ function Panel({ m, arm }) {
                   <span className="as-zero" style={{ left: pct(0) }} aria-hidden="true" />
                   {x.band ? <span className="as-band" style={{ left: pct(x.band[0]), width: `${((ax.at(x.band[1]) - ax.at(x.band[0])) * 100).toFixed(3)}%` }} aria-hidden="true" /> : null}
                   {SCENARIOS.filter((s) => x.vals[s.id] != null).map((s) => (
-                    <Mark key={s.id} sid={s.id} x={x.vals[s.id]} m={m} row={x} arm={arm} at={ax.at} color={color} />
+                    <Mark key={s.id} sid={s.id} x={x.vals[s.id]} m={m} row={x} arm={arm} at={ax.at} color={color} near={nearPair(x.vals, ax.at)} />
                   ))}
                 </div>
               </div>
@@ -129,11 +135,12 @@ export function panelsSvg(arm) {
         const cy = y + 11;
         out += `<text x="12" y="${cy + 4}" font-size="11" fill="${C.axisTitle}">${esc(clName(row.cl))}</text>`;
         if (x.band) out += `<rect x="${X(x.band[0])}" y="${cy - 6}" width="${Math.max(1, X(x.band[1]) - X(x.band[0]))}" height="12" fill="${C.grid}"/>`;
+        const dy = nearPair(x.vals, ax.at) ? 5 : 0;
         for (const s of SCENARIOS) {
           const v = x.vals[s.id];
           if (v == null) continue;
-          if (s.id === 'uk_central') out += `<circle cx="${X(v)}" cy="${cy}" r="5.5" fill="${col}"/>`;
-          else if (s.id === 'korinek') out += `<rect x="${X(v) - 4.5}" y="${cy - 4.5}" width="9" height="9" transform="rotate(45 ${X(v)} ${cy})" fill="${C.surface}" stroke="${col}" stroke-width="2"/>`;
+          if (s.id === 'uk_central') out += `<circle cx="${X(v)}" cy="${cy - dy}" r="5.5" fill="${col}"/>`;
+          else if (s.id === 'korinek') out += `<rect x="${X(v) - 4.5}" y="${cy + dy - 4.5}" width="9" height="9" transform="rotate(45 ${X(v)} ${cy + dy})" fill="${C.surface}" stroke="${col}" stroke-width="2"/>`;
           else out += `<rect x="${X(v) - 1.5}" y="${cy - 8}" width="3" height="16" rx="1" fill="${col}"/>`;
         }
         y += 24;

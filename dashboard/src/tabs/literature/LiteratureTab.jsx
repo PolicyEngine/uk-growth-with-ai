@@ -13,6 +13,7 @@ import RangeBars from './RangeBars.jsx';
 import GrowthCheck from './GrowthCheck.jsx';
 import EvidenceMap from './EvidenceMap.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
+import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -239,37 +240,48 @@ function SourceList({ group, title, icon }) {
   );
 }
 
+// The page's four sections, for "On this page" (ids match the headings).
+const SECTIONS = [
+  { id: 'coverage', title: 'What each source can represent', icon: 'layoutGrid' },
+  { id: 'numbers', title: 'Where our numbers sit', icon: 'ruler' },
+  { id: 'evidence-map', title: 'UK evidence map', icon: 'table' },
+  { id: 'sources', title: 'Sources', icon: 'fileText' },
+];
+
 export default function StudiesTab() {
   // Coverage, our numbers and sources, in order on one page (each was a
   // sub-tab until the tabs were consolidated; old links land on its anchor).
   return (
-    <div className="mx-tab mx-lit">
-      <PageIntro
-        icon="library"
-        question="How do our results compare with other work on AI and the UK economy?"
-        answer="Of the sources compared here, only OG-UK models households by age, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, a table of published estimates, and the sources."
-      />
-      <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
-        Nine channels against five sources. OG-UK is the first column.
-      </SectionHeading>
-      <Matrix />
-      <Takeaways />
-      <SectionHeading id="numbers" icon="ruler" title="Where our numbers sit">
-        Our headline-year results against published ranges. Horizons differ, so each row states its own.
-      </SectionHeading>
-      <RangeBars metric="gdp" />
-      <ImfGap />
-      <RangeBars metric="wage" />
-      <GrowthCheck />
-      <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
-        Published estimates from the OBR, the Bank of England, government departments, think tanks, international bodies, private forecasters and academic studies, each with its baseline, horizon and the date it was checked. The published figures are printed here.
-      </SectionHeading>
-      <EvidenceMap />
-      <SectionHeading id="sources" icon="fileText" title="Sources">
-        The sources behind the coverage matrix and the growth check; their figures are in the UK evidence map. Earlier checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
-      </SectionHeading>
-      <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
-      <SourceList group="model" title="Model-based studies" icon="sigma" />
+    <div className="page-with-contents mx-tab mx-lit">
+      <OnThisPage tab="method" sub="studies" sections={SECTIONS} label="Evidence contents" />
+      <div className="page-body">
+        <PageIntro
+          icon="library"
+          question="How do our results compare with other work on AI and the UK economy?"
+          answer="Of the sources compared here, only OG-UK models households by age, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, a table of published estimates, and the sources."
+        />
+        <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
+          Nine channels against five sources. OG-UK is the first column.
+        </SectionHeading>
+        <Matrix />
+        <Takeaways />
+        <SectionHeading id="numbers" icon="ruler" title="Where our numbers sit">
+          Our headline-year results against published ranges. Horizons differ, so each row states its own.
+        </SectionHeading>
+        <RangeBars metric="gdp" />
+        <ImfGap />
+        <RangeBars metric="wage" />
+        <GrowthCheck />
+        <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
+          Published estimates from the OBR, the Bank of England, government departments, think tanks, international bodies, private forecasters and academic studies, each with its baseline, horizon and the date it was checked. The published figures are printed here.
+        </SectionHeading>
+        <EvidenceMap />
+        <SectionHeading id="sources" icon="fileText" title="Sources">
+          The sources behind the coverage matrix and the growth check; their figures are in the UK evidence map. Earlier checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
+        </SectionHeading>
+        <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
+        <SourceList group="model" title="Model-based studies" icon="sigma" />
+      </div>
     </div>
   );
 }

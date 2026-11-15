@@ -62,6 +62,10 @@ function findingFor(sid, v, arms, closure, name, rule = 'common') {
   return `${lead} is ${sides.map((s) => `${where(s)} in ${parts.filter((p) => p.side === s).map((p) => p.arm.toLowerCase()).join(' and ')}`).join(', and ')}.`;
 }
 
+// Two paths closer than half the last printed digit (0.01) in every year
+// coincide on the page.
+const COINCIDE = 0.005;
+
 // One path chart in the one card: its own y-scale with a visible axis, the
 // 2031 value at each line end, and the arms control bar.
 export function PathCard({
@@ -69,7 +73,12 @@ export function PathCard({
 }) {
   const { st, set } = useNav();
   const rule = st.rule;
-  const series = seriesFor(sid, v, years, st.arms, st.closure, scale, rule);
+  // A line that coincides with one before it (the labour share, an imposed
+  // input, is the same in every arm) carries no end value of its own: the
+  // value prints once and the card's finding says the lines coincide.
+  const series = seriesFor(sid, v, years, st.arms, st.closure, scale, rule).map((s, i, all) =>
+    all.slice(0, i).some((t) => t.values.length === s.values.length && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE)) ? { ...s, noEndLabel: true } : s,
+  );
   const last = years[years.length - 1];
   const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);
   return (
@@ -141,7 +150,7 @@ function coincideFinding(sid, closure, rule = 'common') {
   const cl = primaryClosure(closure);
   const ps = ARMS.map((a) => path(sid, a.id, cl, 'labour_share_pp', rule)).filter(Boolean);
   if (ps.length < 2) return null;
-  const same = ps.every((p) => p.every((x, i) => Math.abs(x - ps[0][i]) < 1e-6));
+  const same = ps.every((p) => p.every((x, i) => Math.abs(x - ps[0][i]) < COINCIDE));
   return same ? 'The three arms’ lines coincide: the fall in the labour share is the same imposed input in each arm.' : null;
 }
 

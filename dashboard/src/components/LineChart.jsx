@@ -14,6 +14,7 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           `noEndLabel` draws the line without an end label (use when another
 //           series' label already covers the same end point).
 // `x`:      number[] (same length as every series)
+// `xUnit`:  optional x-axis title, drawn under the year labels
 // `dots`:   false draws markers only at the crosshair (for long series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
@@ -147,6 +148,7 @@ export default function LineChart({
   valueFormat = (v) => v.toFixed(1),
   tipFormat = null,
   yUnit = null,
+  xUnit = null,
   ariaLabel,
   noValue = false,
   noEndLabels = false,
@@ -214,7 +216,8 @@ export default function LineChart({
   const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, 11)) : 0)));
   const labelW = rawLabels.length ? Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120)) : 6;
   const R = Math.max(L + 80, W - labelW - stripW - 8);
-  const BOT = height - PAD_B;
+  // an x-axis title takes one more line under the year labels
+  const BOT = height - PAD_B - (xUnit ? 16 : 0);
   const H = height;
 
   const stripX = R + stripW / 2 + 4;
@@ -422,6 +425,11 @@ export default function LineChart({
             </text>
           ) : null,
         )}
+        {xUnit ? (
+          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle">
+            {xUnit}
+          </text>
+        ) : null}
         {strip ? (
           <g>
             <line x1={stripX} y1={TOP} x2={stripX} y2={BOT} className="strip-rule" />

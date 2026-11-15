@@ -1025,7 +1025,8 @@ body {
 }
 
 .linechart .hl-band {
-  fill: var(--c-highlight-band);
+  /* neutral grey: teal is kept for gains */
+  fill: var(--pe-gray-100);
 }
 
 .linechart .band-label {
@@ -3815,9 +3816,10 @@ ul.disclosure-text {
 }
 
 .mx-tl-phases .ph-ramp {
-  background: var(--pe-teal-50);
-  border-color: color-mix(in srgb, var(--pe-teal-500) 35%, var(--card-border));
-  color: var(--pe-teal-700);
+  /* neutral: teal is kept for gains */
+  background: var(--pe-gray-100);
+  border-color: var(--pe-gray-300);
+  color: var(--pe-gray-800);
 }
 
 .mx-tl-cols {
@@ -3856,7 +3858,7 @@ ul.disclosure-text {
   font-weight: 600;
   line-height: 1.2;
   text-align: center;
-  color: var(--c-highlight);
+  color: var(--pe-gray-700);
 }
 
 .mx-tl-track {
@@ -3914,7 +3916,7 @@ ul.disclosure-text {
   left: 50%;
   width: 0;
   height: 120px;
-  border-left: 1.5px dashed color-mix(in srgb, var(--c-highlight) 45%, transparent);
+  border-left: 1.5px dashed var(--pe-gray-400);
   pointer-events: none;
 }
 

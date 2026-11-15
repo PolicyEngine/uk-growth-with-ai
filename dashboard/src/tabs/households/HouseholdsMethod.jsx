@@ -129,7 +129,7 @@ export default function HouseholdsMethod() {
             </InfoCard>
             <InfoCard icon="trend" title="Wages of those still employed">
               <p>
-                Each surviving employee’s wage rises in proportion to their group’s complementarity, by{' '}
+                The wage of each employee who keeps their job rises in proportion to their group’s complementarity, by{' '}
                 <span data-input="">{fmtInputPct(M.survivor_wage_pct)}</span> on average. No one who keeps their job loses pay.
               </p>
             </InfoCard>
