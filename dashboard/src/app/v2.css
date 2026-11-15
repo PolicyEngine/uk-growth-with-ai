@@ -205,6 +205,30 @@
   color: var(--band-teal);
 }
 
+/* ---------- A shared link to another tab, before the client reads it ----------
+   The server always renders the Story tab. A head script (layout.tsx) marks
+   <html data-nav-pending> when the address names another tab or a sub-tab;
+   until the client has read the address (lib/nav.jsx removes the mark in the
+   same commit that shows the named tab), the content stays hidden and the
+   sub-tab row's height is held, so neither the Story hero flashes nor the
+   page shifts. If scripts fail, the content shows after 3s anyway. */
+html[data-nav-pending] .app .main-content {
+  visibility: hidden;
+  animation: nav-pending-reveal 0s linear 3s forwards;
+}
+html[data-nav-pending] .app .tabs-bar {
+  margin-bottom: calc(var(--subtabs-height) + 1px);
+}
+html[data-nav-pending] .app .tabs-bar .view-tab {
+  visibility: hidden;
+  animation: nav-pending-reveal 0s linear 3s forwards;
+}
+@keyframes nav-pending-reveal {
+  to {
+    visibility: visible;
+  }
+}
+
 /* ---------- Tab rows ---------- */
 .tabs-bar {
   position: sticky;
@@ -1719,6 +1743,14 @@
   border: 2px solid var(--mark);
   border-radius: 1px;
   transform: rotate(45deg);
+}
+/* UK central and Korinek et al. nearly coincide: the dot is lifted and the
+   diamond lowered, each still on its value (AllScenarios.jsx, nearPair) */
+.as-mark.is-dot.is-near {
+  margin-top: -12px;
+}
+.as-mark.is-diamond.is-near {
+  margin-top: 1px;
 }
 .as-mark.is-diamond .tip-box {
   transform: rotate(-45deg) translateX(-50%);

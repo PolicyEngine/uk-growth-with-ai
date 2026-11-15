@@ -64,11 +64,19 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const NAV_PENDING =
+  "try{var q=new URLSearchParams(location.search),t=q.get('tab');if((t&&t!=='story')||q.get('sub'))document.documentElement.setAttribute('data-nav-pending','')}catch(e){}";
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB" className={inter.variable}>
+    <html lang="en-GB" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* A shared link to another tab: hide the server-rendered Story until
+            the client shows the named tab (v2.css, lib/nav.jsx). */}
+        <script dangerouslySetInnerHTML={{ __html: NAV_PENDING }} />
+      </head>
       <body>
         {/* first tab stop, before the PolicyEngine site nav */}
         <a className="skip-link" href="#main-content">

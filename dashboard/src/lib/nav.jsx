@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { tabById, CLOSURES, RULES } from '@/lib/labels.js';
 import { SCENARIOS, ARMS, S } from '@/tabs/ai/surprise.js';
 import { revealAnchor } from '@/lib/scroll.js';
@@ -159,12 +159,15 @@ export function NavProvider({ children }) {
   const ref = useRef(DEFAULTS);
   // the sub-tab last open on each tab, restored on return
   const lastSub = useRef({});
+  // false until the address has been read once on the client
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const read = (first) => {
       const next = parseUrl(window.location.search, window.location.hash);
       ref.current = next;
       setSt(next);
+      if (first) setReady(true);
       const url = formatUrl(next, window.location.pathname);
       // an old address is rewritten to its new form
       if (first && url !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.replaceState(null, '', url);
@@ -175,6 +178,12 @@ export function NavProvider({ children }) {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
+
+  // The named tab is now in the DOM: lift the head script's mark (layout.tsx),
+  // which hid the content so a shared link never shows the Story first.
+  useLayoutEffect(() => {
+    if (ready) document.documentElement.removeAttribute('data-nav-pending');
+  }, [ready]);
 
   // Pickers and control bars: replace the entry, keep the place on the page.
   const set = useCallback((patch) => {
