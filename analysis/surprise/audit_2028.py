@@ -137,6 +137,8 @@ def measures(d, n):
     m["cap_lp"] = 100 * g * np.log(S(d, n, "K") / K0)
     tech = 100 * (np.log(z) + (g - G0) * np.log(K0 / L0))
     m["bound_lp"] = (tech + g * 100 * np.log(g / G0)) / (1 - g)
+    # the closure's restart error (largest relative gap of the continuation against the baseline), in per cent
+    m["noise_pct"] = 100 * d[ref]["continuation_report"]["max"]
     return m
 
 
@@ -721,6 +723,21 @@ def sec_mono(runs):
         rk = lambda xs: np.argsort(np.argsort(xs))
         w = np.array([r[0] for r in rows])
         print(f"{c}: rank correlation of the 2031 wage gap with 2028 labour {np.corrcoef(rk(w), rk([r[2] for r in rows]))[0, 1]:+.3f}, with 2028 consumption {np.corrcoef(rk(w), rk([r[3] for r in rows]))[0, 1]:+.3f} ({len(rows)} arms)")
+    # the A15 test for every main arm whose news-year signs flip: lifetime wages above ten times the restart error
+    print("\nA15 test: main arms whose 2028 labour or consumption sign flips, every variant")
+    print("closure|run|wage gap 2028 %|wage gap 2031 %|mean wage gap 2028-36 %|tolerance (10 x restart error) %|passes")
+    print("---|---|---|---|---|---|---")
+    for c in ZK_ORDER:
+        for var in VARIANTS:
+            for s in SCEN:
+                n = pick(runs, c, s, "tfp", var)
+                if not n:
+                    continue
+                m = measures(runs[c], n)
+                if not any(verdict(c, s, "tfp", v, m[v[0]][IX[2028]], m, var)[1] == "A15" for v in ("L28", "C28")):
+                    continue                     # no flip, or a flip that another rule explains (A17)
+                tol, mw = 10 * m["noise_pct"], float(np.mean(m["w"][IX[2028]:]))
+                print(f"{c}|{n}|{m['w'][IX[2028]]:+.4f}|{m['w'][i]:+.4f}|{mw:+.4f}|{tol:.4f}|{m['w'][i] > tol and mw > tol}")
     # evidence behind the mechanism-keyed verdict rules (A13-A15), for every cell they catch
     print("\nEvidence for A13 (technology unchanged, GDP not small) and A14 (its debt/GDP falls in 2031)")
     print("closure|run|year|GDP gap %|per pp of share fall|GDP gap, log points|capital term|bound with the return pinned, log points|bound %|debt gap %|debt/GDP gap pp")
@@ -739,6 +756,21 @@ def sec_mono(runs):
                       f"{100 * (np.exp(m['bound_lp'][j] / 100) - 1):+.2f}|{m['D'][j]:+.2f}|{m['debt_pp'][j]:+.2f}")
     print("technology unchanged, GDP gap per pp of share fall, 2031, all solved: " + "; ".join(
         f"{c} {s} {measures(runs[c], pick(runs, c, s, 'zfixed'))['Y'][i] / FALL[s]:+.2f}" for c in ZK_ORDER for s in SCEN if pick(runs, c, s, "zfixed")))
+    # the A14 test for every technology-unchanged cell whose 2031 debt/GDP falls (common rule and fixed spending)
+    print("\nA14 test: technology unchanged, debt/GDP lower in 2031")
+    print("closure|run|debt/GDP gap 2031 pp|debt gap 2031 %|GDP gap 2031 %|tax/GDP gap 2031 pp|debt/GDP gap 2036 pp|passes")
+    print("|".join(["---"] * 8))
+    for c in ZK_ORDER:
+        for var in ("", "fs"):
+            for s in SCEN:
+                n = pick(runs, c, s, "zfixed", var)
+                if not n:
+                    continue
+                m = measures(runs[c], n)
+                if m["debt_pp"][i] > 0:
+                    continue
+                ok = m["D"][i] > 0 and m["tax_pp"][i] < 0 and m["debt_pp"][IX[2036]] > 0
+                print(f"{c}|{n}|{m['debt_pp'][i]:+.2f}|{m['D'][i]:+.2f}|{m['Y'][i]:+.2f}|{m['tax_pp'][i]:+.3f}|{m['debt_pp'][IX[2036]]:+.2f}|{ok}")
     # the no-shock path by closure, and the baseline gate
     print("\nNo-shock path by closure (the restart, 2031) and the 2026-start baseline gate")
     print("closure|return %|K/Y|C/Y %|tax/GDP %|GNI/GDP %|paid abroad, % of GDP|of which on foreign-owned capital|K_f/K %|D/Y %|gate approved|passes|pass 1 vs pass 0, max rel (Y, K, r, D)|baseline_ext vs pass 1, 2026-35|"
@@ -764,21 +796,45 @@ def sec_mono(runs):
               f"{100 * r['r_p'] * (r['K_f'] + r['D_f']) / r['Y']:.2f}|{100 * r['r_p'] * r['K_f'] / r['Y']:.2f}|{100 * r['K_f'] / r['K']:.1f}|{100 * r['D'] / r['Y']:.1f}|{gate}")
     # the tax bases behind A16: who receives the capital income that replaces labour income
     print("\nA16: income and receipts, 2031, pp of no-shock GDP")
-    print("closure|run|labour income|gross capital income (Y - wL)|household capital income r_p B|income paid abroad|income tax + payroll|business tax|consumption tax|total receipts|tax/GDP pp per pp of share fall")
-    print("|".join(["---"] * 11))
+    print("closure|run|labour income|gross capital income (Y - wL)|household capital income r_p B|income paid abroad|income tax + payroll|business tax|consumption tax|total receipts|tax/GDP pp per pp of share fall|"
+          "depreciation delta K|return on foreign-owned capital r K_f|return on domestic capital r K_d|depreciation share of gross %|foreign share of gross %")
+    print("|".join(["---"] * 16))
     for c in ZK_ORDER:
         d = runs[c]
         for s in SCEN:
             for a in ARMS:
                 n = pick(runs, c, s, a)
-                if not n or s not in ("uk_central", "korinek"):
+                if not n or s not in ("uk_central", "uk_high", "korinek"):
                     continue
                 Y0 = S(d, "continuation", "Y")[i]
                 f = lambda fn: 100 * (fn(n) - fn("continuation")) / Y0
                 x = lambda k, v: S(d, k, v)[i]
+                gross = f(lambda k: x(k, 'Y') - x(k, 'w') * x(k, 'L'))
+                dep = f(lambda k: d[k]["delta"] * x(k, 'K'))
+                rkf, rkd = (f(lambda k, v=v: x(k, 'r') * x(k, v)) for v in ("K_f", "K_d"))
                 print(f"{c}|{n}|{f(lambda k: x(k, 'w') * x(k, 'L')):+.2f}|{f(lambda k: x(k, 'Y') - x(k, 'w') * x(k, 'L')):+.2f}|{f(lambda k: x(k, 'r_p') * x(k, 'B')):+.2f}|"
                       f"{f(lambda k: x(k, 'r_p') * (x(k, 'K_f') + x(k, 'D_f'))):+.2f}|{f(lambda k: x(k, 'iit_revenue')):+.2f}|{f(lambda k: x(k, 'business_tax_revenue')):+.2f}|"
-                      f"{f(lambda k: x(k, 'cons_tax_revenue')):+.2f}|{f(lambda k: x(k, 'total_tax_revenue')):+.2f}|{measures(d, n)['tax_pp'][i] / FALL[s]:+.3f}")
+                      f"{f(lambda k: x(k, 'cons_tax_revenue')):+.2f}|{f(lambda k: x(k, 'total_tax_revenue')):+.2f}|{measures(d, n)['tax_pp'][i] / FALL[s]:+.3f}|"
+                      # gross capital income = delta K + r K_f + r K_d + business tax (identity to rounding)
+                      f"{dep:+.2f}|{rkf:+.2f}|{rkd:+.2f}|{100 * dep / gross:.0f}|{100 * rkf / gross:.0f}")
+    # A17: debt-neutral against the common rule, same closure, scenario and arm (accepted solves only)
+    print("\nA17: debt-neutral minus common rule, accepted solves of the same closure, scenario and arm")
+    print("closure|scenario|arm|debt-neutral run|common-rule run|Z debt-neutral|Z common|transfers 2028 % (dn, common)|sum of transfer % gaps 2028-31, dn - common|2028 labour %, dn - common|opposite signs")
+    print("|".join(["---"] * 11))
+    npair = nopp = 0
+    for c in ZK_ORDER:
+        d = runs[c]
+        for s in SCEN:
+            for a in ARMS:
+                nd, nc = pick(runs, c, s, a, "dn"), pick(runs, c, s, a, "")
+                if not nd or not nc:
+                    continue
+                dtr = float(np.sum((gap(d, nd, "TR") - gap(d, nc, "TR"))[IX[2028]:IX[2031] + 1]))
+                dl = gap(d, nd, "L")[IX[2028]] - gap(d, nc, "L")[IX[2028]]
+                z = lambda k: f"{d[k]['Z_terminal']:.6f}" if d[k].get("Z_terminal") else "1"
+                npair += 1; nopp += int(dtr * dl < 0)
+                print(f"{c}|{s}|{ARM_NAME[a]}|{nd}|{nc}|{z(nd)}|{z(nc)}|{gap(d, nd, 'TR')[IX[2028]]:+.1f}, {gap(d, nc, 'TR')[IX[2028]]:+.1f}|{dtr:+.1f}|{dl:+.3f}|{dtr * dl < 0}")
+    print(f"A17: {nopp} of {npair} accepted pairs have opposite signs")
     print("\nknown, already documented:", known or "none")
     print("ordering and inequality breaks:", breaks or "none")
     return breaks
@@ -883,15 +939,20 @@ def verdict(c, s, a, v, x, m, var=""):
     if v in ("Y", "Y36") and a == "zfixed":
         return "consistent", ""
     if v == "debt_pp" and a == "zfixed" and var in ("", "fs") and x <= 0:
-        # the ratio falls. Explained only if debt itself is higher and GDP has risen by more
-        return ("surprising-but-explained", "A14") if 0 < m["D"][i] < m["Y"][i] else ("WRONG", "")
+        # the ratio falls. Debt below GDP in per cent is implied by the fall itself, so the test is the narrated
+        # mechanism: debt is higher, tax/GDP is lower in 2031 (a wider primary deficit), and the ratio is higher by 2036
+        ok = m["D"][i] > 0 and m["tax_pp"][i] < 0 and m["debt_pp"][IX[2036]] > 0
+        return ("surprising-but-explained", "A14") if ok else ("WRONG", "")
     if v == "L28" and var == "dn" and x <= 0:
         # A17: the debt-neutral rule front-loads transfers in 2028-31. Explained only if transfers over 2028-31
         # are above the common rule's same arm (sum of % gaps), the income effect that lowers labour on the news
         return ("surprising-but-explained", "A17") if m.get("tr_dn_minus_common", -1) > 0 else ("WRONG", "")
     if v in ("L28", "C28") and a == "tfp" and ((x <= 0) if v == "L28" else (x >= 0)):
-        # the news-year signs flip. Explained only if the wage is above the no-shock path in 2028 and 2031
-        return ("surprising-but-explained", "A15") if m["w"][i] > 0 and m["w"][IX[2028]] > 0 else ("WRONG", "")
+        # the news-year signs flip. Explained only if lifetime wages are higher: the wage gap is above ten times the
+        # closure's restart error in 2031 and on average over 2028-36 (the 2028 wage alone can sit inside the noise)
+        tol = 10 * m["noise_pct"]
+        ok = m["w"][i] > tol and np.mean(m["w"][IX[2028]:]) > tol
+        return ("surprising-but-explained", "A15") if ok else ("WRONG", "")
     if v == "w" and a == "tfp":
         return ("surprising-but-explained", "A2") if x < 0 < m["Y"][i] else ("consistent", "")
     if v == "C" and a == "tfp":
