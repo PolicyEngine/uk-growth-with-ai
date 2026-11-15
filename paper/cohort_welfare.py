@@ -765,6 +765,11 @@ def _matched_ref(closure: str) -> dict:
         why.append("its alpha_G differs from the dnfull run's")
     if not (rec.get("dn_check") or {}).get("ok"):
         why.append("it fails its debt-neutral check")
+    # series_run stops in 2036; the horizon is covered by the run's own full-horizon check
+    full, run_full = ((r.get("dn_check") or {}).get("full_horizon") or {} for r in (rec, run))
+    if not full.get("ok") or full.get("periods") != run_full.get("periods"):
+        why.append("its full-horizon debt and G/Y check is missing, fails, or stops short "
+                   "of the dnfull run's")
     alpha = float(run["spec"]["alpha_G"])
     if max(abs(x - alpha) for x in _g_share(rec)) > DNFULL_G_SHARE_TOL:
         why.append("its G/Y leaves alpha_G")

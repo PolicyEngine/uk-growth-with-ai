@@ -1183,7 +1183,9 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
     # sentence commented out under it quotes the \genCohMainDnfullCentral* macros
     if cwf.dnfull_ready("zk0.1") and DNFULL_PENDING in INCIDENCE_TEX.read_text():
         fail.append("the matched no-shock reference for the dnfull solve is in: replace the "
-                    "\\pending in the incidence section with the sentence commented under it")
+                    "\\pending in the incidence section with the sentence commented under it, and "
+                    "recheck the abstract (main.tex) and intro.tex, which quote the first-order "
+                    "charge-back ('about half of adults')")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
