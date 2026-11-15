@@ -107,8 +107,8 @@ function scenarioSteps(sid, cl) {
       title: 'UK low',
       body: (
         <p>
-          The scenarios differ in how far the labour share falls and how much output at given inputs rises. In each of OG-UK&rsquo;s
-          projections, GDP rises above the OBR-central path from {SURPRISE_YEAR} and {after} once the shock is complete in{' '}
+          The scenarios differ in how far the labour share falls and how much output at given inputs rises. In the main arm of each
+          scenario, GDP rises above the OBR-central path from {SURPRISE_YEAR} and {after} once the shock is complete in{' '}
           {HEADLINE_YEAR}.
         </p>
       ),
@@ -183,7 +183,8 @@ function armSteps(sid, closure) {
         <>
           <p>
             The same shift, with output at given inputs cut so that GDP in {HEADLINE_YEAR} is back on the OBR-central path: a bound in which
-            AI adds no output, not a forecast.
+            AI adds no output, not a forecast. It matches the OBR&rsquo;s scenario on GDP only: the OBR adjusts through jobs, OG-UK through the
+            wage.
           </p>
           {closureNote}
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
@@ -199,7 +200,7 @@ function whoSteps(sid) {
   const someLose = c.alive_losing_pct > 0 || c.no_bequest_losing_pct > 0 || (c.charged?.joint_losing_pct?.[1] ?? 0) > 0;
   const allGain = c.cev_all.every((v) => v > 0);
   const scope =
-    sid === 'uk_central' ? null : <p>Who gains is solved for UK central only, so this chart stays on UK central whatever scenario is chosen.</p>;
+    sid === 'uk_central' ? null : <p>Who gains is solved for UK central only. This chart is always UK central, central closure, debt-neutral transfers, whatever is chosen above.</p>;
   return [
     {
       id: 'p2-who-0',
@@ -223,7 +224,7 @@ function whoSteps(sid) {
       body: (
         <>
           <p>
-            People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.{allGain ? ' As modelled, they gain too.' : ''}{' '}
+            People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.{allGain ? ' As modelled, under debt-neutral transfers, they gain too: a higher return on saving and, later, higher consumption outweigh lower pay rates.' : ''}{' '}
             The measures, the earnings groups and the other arms are on Who gains.
           </p>
           <More tab="explore" sub="who">Who gains, by age and earnings group</More>
@@ -244,7 +245,9 @@ function debtSteps(sid, closure) {
       body: (
         <p>
           {main
-            ? `In ${SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP ${main}.`
+            ? `In ${SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP ${main}.${
+                main.includes('rises above') ? ' The model reprices all government debt at the higher interest rate at once, which overstates the later rise.' : ''
+              } After ${HEADLINE_YEAR} the OBR-central path is the model’s continuation of the OBR forecast.`
             : 'This solve is not done yet at the closure chosen above.'}
         </p>
       ),
@@ -283,7 +286,7 @@ function TwoLenses() {
       <p>
         <Icon name="usersRound" size={16} />
         <span>
-          <b>Part 3: a different model</b> (provisional), a one-year microsimulation of UK households when some employees lose their jobs. The two
+          <b>Part 3: a different model</b> (provisional), a one-year microsimulation of UK households if some employees are assumed to lose their jobs. The two
           sets of numbers are not added together.
         </span>
       </p>
@@ -342,7 +345,7 @@ export default function Part2({ part }) {
   return (
     <>
       <PartHead part={part}>
-        Our OG-UK results for AI arriving as a surprise in {SURPRISE_YEAR}, compared with the same economy without it.
+        OG-UK results for an AI shock arriving as a surprise in {SURPRISE_YEAR}, as gaps against the OBR-central path, which already includes the OBR&rsquo;s own central AI assumption.
       </PartHead>
 
       <TwoLenses />
@@ -353,7 +356,7 @@ export default function Part2({ part }) {
         id="p2-morph"
         label="From GDP growth to the gap against the OBR-central path"
         steps={morphSteps(sid, cl)}
-        graphic={(i) => <MorphChart state={i} sid={sid} cl={cl} />}
+        graphic={(i) => <MorphChart state={i + 1} sid={sid} cl={cl} />}
       />
 
       <Scrolly

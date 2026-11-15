@@ -109,7 +109,7 @@ const RULE_TEXT = {
     id: 'rule-dn',
     icon: 'scale',
     tag: 'Headline rule on Who gains',
-    line: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR-central path. Households bear the fiscal effect.`,
+    line: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR-central path. Households pay the fiscal effect.`,
   },
 };
 const RULES = RULE_NAMES.map((r) => ({ ...RULE_TEXT[r.id], title: r.label }));

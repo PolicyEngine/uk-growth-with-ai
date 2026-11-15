@@ -4,7 +4,7 @@ import Disclosure from '@/components/ab/Disclosure.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { D, MODEL_YEAR, OutsideRebuild, PAPER_URL, PR_URL, ladder, perPound, rule } from '@/tabs/story/part3/shared.jsx';
+import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuild, PAPER_URL, PR_URL, ladder, perPound, rule } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { BarRows, STEP, StoryRef, Ticks } from './charts.jsx';
 
@@ -105,8 +105,8 @@ function Ladder() {
               id: x.id,
               group: (
                 <>
-                  A different, smaller shock: <span data-input="">{fmtInputPct(OBR_RATE)}</span> of employees displaced, no rise in other wages
-                  or capital income
+                  OBR-sized: a different, smaller shock, sized to {OBR_SCENARIO}. <span data-input="">{fmtInputPct(OBR_RATE)}</span> of
+                  employees displaced, no rise in other wages or capital income
                 </>
               ),
             };
@@ -300,7 +300,7 @@ function Displaced() {
       icon="usersRound"
       title="Who the displaced are"
       finding="Many displaced workers’ benefit units have capital, a working partner or an owned home, so Universal Credit replaces little of their earnings."
-      unit="Benefit units containing a displaced worker, OBR-sized run"
+      unit={`Benefit units containing a displaced worker, in the run sized to ${OBR_SCENARIO}`}
       download={{
         context: CTX,
         table: { columns: ['measure', 'value', 'unit'], rows: [...tiles, ...uc].map(([k]) => [X[k].label, X[k].value, X[k].unit]) },
@@ -419,7 +419,7 @@ function Policy() {
       id="hh-policy"
       icon="handshake"
       title="Three policy responses on top of the central shock"
-      finding="Each response lowers poverty and the Gini; they differ in cost and in whom they reach."
+      finding="In these simulations, each response lowers poverty and the Gini; they differ in cost and in whom they reach."
       unit={`${UNIT3}, against the shocked world. Mean of ${P.rows[0].draws} draws`}
       download={{
         context: CTX,
@@ -495,7 +495,7 @@ export default function HouseholdsExplore() {
   return (
     <div className="hh-page">
       <header className="hh-lead">
-        <p className="hh-question">What moves the cost of AI job displacement, and who bears it?</p>
+        <p className="hh-question">What moves the cost of AI job displacement, and who it falls on?</p>
         <p className="hh-answer">
           In this provisional microsimulation, who loses the job, whether earnings fall through job loss or wage cuts, and benefit take-up each
           move the cost by billions of pounds a year. Job loss raises poverty more than wage cuts of the same size. The headline findings are in{' '}
@@ -515,7 +515,7 @@ export default function HouseholdsExplore() {
         <Rules />
         <PerPound />
       </div>
-      <SectionHeading id="hh-who" icon="usersRound" title="Who bears it">
+      <SectionHeading id="hh-who" icon="usersRound" title="Who it falls on">
         Who the displaced are, and how the income change by decile depends on how households are ranked.
       </SectionHeading>
       <Displaced />

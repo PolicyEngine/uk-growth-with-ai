@@ -22,7 +22,7 @@ const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note
 // What each page's results can and cannot say, in one line under the tabs.
 const SCOPE = {
   oguk: 'OG-UK, a model of the whole economy: no unemployment; results are gaps against the OBR-central path, not forecasts.',
-  study: 'uk-ai-study: one year (FY 2026–27) of households when a share of employees lose their jobs; provisional (uk-ai-study #18).',
+  study: 'uk-ai-study: one year (FY 2026–27) of households if a share of employees are assumed to lose their jobs; provisional (uk-ai-study #18).',
 };
 const scopeFor = (tab, sub) => {
   if (tab === 'explore') return sub === 'households' ? [SCOPE.study] : [SCOPE.oguk];

@@ -40,7 +40,7 @@ export default function Hero() {
         <SummaryQuestion sid={st.s} titleId="story-q" />
         <p className="story-hero-lead">
           Below: where the UK economy and labour market stand as AI arrives, what a model of the whole economy projects, and what a model
-          of households finds for incomes, poverty and the public finances if a share of employees lose their jobs.
+          of households finds for incomes, poverty and the public finances if a share of employees are assumed to lose their jobs.
         </p>
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands

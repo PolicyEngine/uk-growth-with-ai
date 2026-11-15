@@ -99,7 +99,7 @@ export default function Deciles() {
       body: (
         <>
           <p>
-            Ranked by baseline income, the change is hump-shaped. Job losses concentrate in the upper-middle deciles, where the largest fall is in
+            Ranked by baseline income, the change is hump-shaped. Under the exposure rule, the assumed job losses fall mostly in the upper-middle deciles, where the largest fall is in
             decile {WORST}. At the top, higher capital income offsets the earnings lost, and the change is close to zero.
           </p>
           <p>

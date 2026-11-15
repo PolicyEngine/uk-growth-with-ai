@@ -26,7 +26,7 @@ export default function Part3({ part }) {
   return (
     <>
       <PartHead part={part} extra={<Notice>Provisional</Notice>}>
-        What a model of households finds for the public finances, poverty and incomes if a share of employees lose their jobs to AI.
+        What a model of households finds for the public finances, poverty and incomes if a share of employees are assumed to lose their jobs to AI.
       </PartHead>
       <aside className="p3-break" aria-labelledby="p3-break-h">
         <h3 id="p3-break-h">

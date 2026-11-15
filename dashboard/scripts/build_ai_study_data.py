@@ -375,7 +375,7 @@ def main() -> None:
         "Provisional: PR #18 is an open draft, not merged; numbers may change before publication.",
         f"Data: Microcosm UK 2024-25 ({cmc['certified_data_build_id']}), simulated for 2026 with PolicyEngine-UK.",
         "Central scenario: 7% of employees displaced in proportion to occupational AI exposure (C-AIOE), "
-        "survivors' wages up 2.6% on average, interest and dividend income up 39.8% (+0.4pp return); displaced workers lose a full year of earnings.",
+        "wages of those who keep their jobs up 2.6% on average, interest and dividend income up 39.8% (+0.4pp return); displaced workers lose a full year of earnings.",
         "Exchequer cost is the fall in the government balance: income tax, employee and employer NI, and benefits; "
         "it counts no corporation tax. A negative cost is a net gain.",
         "Poverty is the absolute line (frozen at baseline) before housing costs unless stated; Gini changes are in points (x100).",
@@ -468,7 +468,7 @@ def extras(cmc: dict, low: dict) -> dict:
 
     # --- the 50-draw cost by tax and benefit --------------------------------
     cd = jload(F_COST)
-    comp_rows = [("other_income_tax", "Income tax on earnings, net of tax on survivors' wage gains"),
+    comp_rows = [("other_income_tax", "Income tax on earnings, net of tax on the wage gains of those who keep their jobs"),
                  ("employer_ni", "Employer NI"), ("employee_ni", "Employee NI"), ("universal_credit", "Universal Credit"),
                  ("other", "Other items"), ("childcare", "Childcare support"), ("savings_tax", "Tax on savings income"),
                  ("dividend_tax", "Tax on dividends")]
@@ -577,7 +577,7 @@ def extras(cmc: dict, low: dict) -> dict:
         "total": {k: r(v, 4) for k, v in allf.items()},
         "employer_ni_bn": r(er_ni, 4), "employer_ni_file": F_OBR, "employer_ni_key": "-summary.employer_ni_change_bn.mean",
         "tax_benefit_share_pct": r(100 * float(hd["all"]["tax_benefit_share"]), 1),
-        "note": ("OBR-sized run: 1.67% of employees displaced under exposure-proportional incidence, survivors' earnings "
+        "note": ("OBR-sized run: 1.67% of employees displaced under exposure-proportional incidence, earnings of those who keep their jobs "
                  "flat, no capital shock; by baseline decile of equivalised HBAI income. Other items are mainly "
                  "pension contributions, plus council tax and other deductions inside the HBAI concept."),
     }
@@ -629,7 +629,8 @@ def extras(cmc: dict, low: dict) -> dict:
     method = {
         "policyengine_uk": man["package_versions"]["policyengine-uk"],
         "policyengine": man["package_versions"]["policyengine"],
-        "manifest_commit": man["git_commit"], "manifest_finished": man["finished_utc"], "file": F_MAN,
+        "manifest_commit": man["git_commit"], "manifest_finished": man["finished_utc"],
+        "manifest_full_rerun": "without a full clean-room rerun" not in man.get("recovery_note", ""), "file": F_MAN,
         "households": P["genDataHouseholds"], "persons": P["genDataPersons"],
         "population_m": P["genDataPopulationM"], "employees_m": P["genDataEmployeesM"],
         "employee_rows": P["genDataEmployeeRows"], "kish_n": P["genDataEmployeeKishN"],

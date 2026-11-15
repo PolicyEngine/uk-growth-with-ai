@@ -35,6 +35,23 @@ const share = (x) => (x <= 0 ? 'none' : x < 1 ? 'under 1%' : `${Math.round(x)}%`
 const shareRange = ([lo, hi]) => (Math.round(lo) === Math.round(hi) ? share(lo) : `${Math.round(lo)}–${Math.round(hi)}%`);
 const tone = (x) => (Math.abs(x) < 0.005 ? null : x > 0 ? 'gain' : 'loss');
 
+// Age in the shock year of the adult cohort with the largest change, in words.
+export function peakWords(c) {
+  const xs = D.closures[Object.keys(D.closures)[0]].birth_year;
+  let best = -1;
+  c.cev_all.forEach((v, i) => {
+    if (xs[i] <= LAST_ALIVE && (best < 0 || v > c.cev_all[best])) best = i;
+  });
+  const age = D.shock_year - xs[best];
+  return age >= 60 && age <= 70 ? 'around retirement age' : `around age ${age}`;
+}
+
+// Change for the youngest adult cohort in the shock year.
+const youngest = (c) => {
+  const xs = D.closures[Object.keys(D.closures)[0]].birth_year;
+  return c.cev_all[xs.lastIndexOf(LAST_ALIVE)];
+};
+
 export function cell(closure, rule, arm) {
   return D.closures[closure].rules[rule][arm];
 }
@@ -88,11 +105,11 @@ export function Headline({ c, rule }) {
           young
             ? `Every adult this age or younger in ${D.shock_year} loses, as modelled`
             : ages
-              ? `Adults this age or younger in ${D.shock_year} lose on average once the later fiscal cost is charged`
+              ? `Adults this age or younger in ${D.shock_year} lose on average once the later fiscal cost is charged (first-order estimate, not a model run)`
               : 'Losses, where there are any, fall on the youngest adults: they have the most working years ahead and the least wealth'
         }
       >
-        <p className="stat-line">The gain is largest for adults around retirement age, who hold more wealth and collect the higher return on it.</p>
+        <p className="stat-line">The gain is largest for adults {peakWords(c)}, who hold more wealth and collect the higher return on it.</p>
       </StatTile>
       <StatTile icon="scale" name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub="Of remaining-lifetime consumption and bequests, adults alive">
         <dl className="stat-rows">
@@ -165,10 +182,12 @@ function Why({ cl, rule, arm }) {
           </p>
         )}
       </InfoCard>
-      <InfoCard icon="users" title="Young adults bear the stress test">
+      <InfoCard icon="users" title="The stress test by age">
         <p>
-          With no output gain the wage rate is lower still, and young adults, with most of their working lives ahead and little wealth, gain
-          least.
+          With no output gain the wage rate is lower still;{' '}
+          {youngest(cell(cl, rule, 'stress')) < 0
+            ? 'in this arm the youngest adults, with most of their working lives ahead and little wealth, lose.'
+            : 'in this arm the youngest adults, with most of their working lives ahead and little wealth, gain least.'}
         </p>
       </InfoCard>
     </div>

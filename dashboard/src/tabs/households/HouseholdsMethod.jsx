@@ -243,7 +243,9 @@ export default function HouseholdsMethod() {
             <div>
               <dt>Results build</dt>
               <dd>
-                Manifest at commit <code>{M.manifest_commit.slice(0, 7)}</code>, {M.manifest_finished.slice(0, 10)}. The wage-cut, take-up and
+                Built per the manifest at commit <code>{M.manifest_commit.slice(0, 7)}</code>, {M.manifest_finished.slice(0, 10)}
+                {M.manifest_full_rerun === false ? ', which attests the existing results without a full clean-room rerun' : ''}; the dashboard
+                reads the data at <code>{S.commit.slice(0, 7)}</code>. The wage-cut, take-up and
                 OBR-sized results sit outside that attested rebuild.
               </dd>
             </div>

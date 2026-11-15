@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
 import { fmtBn, fmtInputPct, fmtShare } from './format.js';
-import { D, FigureHead, OutsideRebuild, Source } from './shared.jsx';
+import { D, FigureHead, OBR_SCENARIO, OutsideRebuild, Source } from './shared.jsx';
 
 // Step 3, what the system absorbs (results.tex, "Household absorption of job
 // loss by baseline decile"): a Sankey of the OBR-sized run, job loss alone,
@@ -44,8 +44,8 @@ function Graphic() {
       <FigureHead
         title={
           <>
-            Job loss alone, OBR-sized run (<span data-input="">{fmtInputPct(S.displacement_rate_pct)}</span> of employees displaced), not the
-            central case
+            Job loss alone, a run sized to {OBR_SCENARIO} (<span data-input="">{fmtInputPct(S.displacement_rate_pct)}</span> of employees
+            displaced), not the central case
           </>
         }
         unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes, £bn a year, mean of ${S.draws} draws`}
@@ -65,7 +65,7 @@ function Graphic() {
         How to read it: each ribbon runs from an income decile to where its lost earnings land; its width is pounds a year. Other items are
         mainly pension contributions no longer paid. Decile 1 carries the ranking caveat of step 4.
       </p>
-      <Source>OBR-sized run, household flows by baseline decile</Source>
+      <Source>run sized to the OBR scenario, household flows by baseline decile</Source>
     </figure>
   );
 }

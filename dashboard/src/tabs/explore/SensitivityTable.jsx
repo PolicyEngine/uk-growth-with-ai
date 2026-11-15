@@ -25,7 +25,7 @@ export default function SensitivityTable() {
       id="closure-sensitivity"
       icon="sliders"
       title={`Sensitivity: half of new capital from abroad (ζK = ${sens.zeta_K})`}
-      finding={`More foreign capital lets the capital stock grow faster, so GDP and the wage rate rise by more than under the central closure in every scenario’s main arm; more of the extra income goes abroad, so GNI rises by less than GDP.`}
+      finding={`With half of new capital from abroad, the capital stock grows faster: in every scenario’s main arm GDP is further above the path than at the central closure, and the wage rate is on or above it instead of below. More of the extra income goes abroad, so GNI gains less than GDP.`}
       unit={`${HEADLINE_YEAR}, % difference from the OBR-central path at the same closure, common fiscal rule`}
       logo={false}
       aboutTitle="About this table"

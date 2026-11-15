@@ -219,7 +219,7 @@ function TaxGapCard({ sid, closure, rule }) {
         )}
         <div className="bias-fig">
           <span className="bias-label">
-            {onChart ? `Tax/GDP in ${HEADLINE_YEAR} with UK tax rates, about` : 'With UK tax rates, about'}
+            {onChart ? `Tax/GDP in ${HEADLINE_YEAR} with UK tax rates. Rough scaling, not a model run: about` : 'With UK tax rates. Rough scaling, not a model run: about'}
           </span>
           <span className="bias-value">{uk == null ? 'pending' : `${signed(uk[0], 2)} to ${signed(uk[1], 2)}pp`}</span>
           {onChart ? (
@@ -244,7 +244,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ))}
       </div>
       <IconLine icon="scale" className="net-line">
-        <b>Net:</b> revenue losses are probably larger than shown.
+        <b>Net:</b> the model probably understates the fall in revenue.
       </IconLine>
     </Card>
   );

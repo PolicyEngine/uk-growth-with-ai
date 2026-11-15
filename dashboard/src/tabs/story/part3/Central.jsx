@@ -17,7 +17,7 @@ const M = D.method;
 export const CENTRAL_RATE = Number(/([\d.]+)% prescribed/.exec(H.central_displaced.note)?.[1] ?? NaN);
 
 const STATS = [
-  { id: 'displaced', icon: 'users', value: fmtMillions(H.central_displaced.value), label: 'employees displaced for the year' },
+  { id: 'displaced', icon: 'users', value: fmtMillions(H.central_displaced.value), label: 'employees assumed displaced for the year' },
   { id: 'cost', icon: 'landmark', value: fmtBn(H.central_cost.value), label: 'cost to the public finances, a year' },
   {
     id: 'poverty',
@@ -87,7 +87,7 @@ export default function Central() {
               {fmtInputPct(CENTRAL_RATE)}
             </span>{' '}
             of employees lose their job for the whole of {MODEL_YEAR}, each with a chance in proportion to their occupation’s AI exposure.
-            The wages of those who keep their jobs rise by{' '}
+            It also assumes the wages of those who keep their jobs rise by{' '}
             <span data-input="" data-path="method.survivor_wage_pct">
               {fmtInputPct(M.survivor_wage_pct)}
             </span>{' '}
@@ -95,7 +95,8 @@ export default function Central() {
             <span data-input="" data-path="method.capital_uplift_pct">
               {fmtPct1(M.capital_uplift_pct)}
             </span>
-            .
+            . The displacement rate and the wage rise follow the Irish design of Doorley et al. (2026), drawn from one investment-bank scenario
+            exercise of displacement over about a decade; applying it all in one year makes the central case an impact-year stress test.
           </p>
           <p>
             The cost is the fall in the government balance: income tax, employee and employer National Insurance, and benefits, with no

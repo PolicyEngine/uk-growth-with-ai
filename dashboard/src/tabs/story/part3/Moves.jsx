@@ -105,7 +105,7 @@ export default function Moves() {
             The cost is the difference between flows several times its size, so three assumptions have break-even values close to their central
             settings: the wage rise for those who keep their jobs, the rise in interest and dividend income, and how long people are out of work.
             The time-out-of-work value comes from a run in which the displaced keep half their annual earnings, which also withdraws Universal
-            Credit that a real six-month spell would pay, so the true break-even is shorter.
+            Credit that a real six-month spell would pay, so the break-even is likely shorter than shown.
           </p>
           <p>
             Benefit take-up moves the cost one way only. In the data, not everyone entitled to Universal Credit claims it; when everyone with a

@@ -131,13 +131,13 @@ function consumptionFinding(sid, closure, rule = 'common') {
   if (!c || !g) return null;
   const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
-    ? `With automation + productivity, consumption stays below the OBR-central path through ${HEADLINE_YEAR} while national income is above it: households save more as soon as AI is announced.`
+    ? `With automation + productivity, consumption stays below the OBR-central path through ${HEADLINE_YEAR} while national income is above it: households save more once the shock arrives in ${SURPRISE_YEAR}.`
     : null;
 }
 
 const ECONOMY = [
   { group: 'Demand', icon: 'cart', lede: 'What households spend and what is invested.', rows: [
-    { v: 'C', title: 'Consumption', name: 'consumption', icon: 'cart', about: { shows: READING, how: HOW, caveats: 'The direction relies on households foreseeing the whole path from the announcement. The model has no share-price gains or demand effects.' } },
+    { v: 'C', title: 'Consumption', name: 'consumption', icon: 'cart', about: { shows: READING, how: HOW, caveats: 'The direction relies on households foreseeing the whole path once the shock arrives. The model has no share-price gains or demand effects.' } },
     { v: 'I', title: 'Investment', name: 'investment', icon: 'construction', method: 'limits', about: {
       shows: READING,
       how: HOW,
@@ -146,7 +146,7 @@ const ECONOMY = [
   ] },
   { group: 'Factors', icon: 'factory', lede: 'The capital and labour that production uses.', rows: [
     { v: 'K', title: 'Capital stock', name: 'the capital stock', icon: 'building', about: { shows: READING, how: HOW, caveats: 'Foreign capital resets each year, so part of the first-year gap is an inflow that arrives with no investment recorded.' } },
-    { v: 'L', title: 'Labour', name: 'labour supplied', icon: 'users', about: { shows: READING, how: HOW, definitions: 'Labour is hours worked, weighted by skill. The model has no unemployment, so it is not a count of jobs.' } },
+    { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', icon: 'users', about: { shows: READING, how: HOW, definitions: 'Labour is hours worked, weighted by skill. The model has no unemployment, so it is not a count of jobs.' } },
   ] },
   { group: 'Prices and shares', icon: 'percent', lede: 'What capital earns and how income is divided.', rows: [
     { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', icon: 'percent', unit: 'pp', scale: 0.01, method: 'closures', about: { shows: READING, how: HOW, definitions: 'The return on capital, in percentage points.' } },

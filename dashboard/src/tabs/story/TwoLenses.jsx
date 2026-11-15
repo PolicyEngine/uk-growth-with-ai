@@ -22,7 +22,7 @@ const LENSES = [
     icon: 'usersRound',
     name: 'uk-ai-study (provisional)',
     what: 'A microsimulation of UK households in one year, FY 2026–27, built on survey data and the full tax and benefit system.',
-    can: 'Who loses income when a share of employees lose their jobs, what that costs the public finances, and how poverty and inequality change, under stated assumptions about who is displaced.',
+    can: 'Who loses income if a share of employees are assumed to lose their jobs, what that costs the public finances, and how poverty and inequality change, under stated assumptions about who is displaced.',
     cannot: 'What happens over time: there is no recovery, re-employment, investment or price response, and job loss is an assumption, not a result.',
     explore: { tab: 'explore', sub: 'households', label: 'Explore the household results' },
     method: { tab: 'method', sub: 'households', label: 'How the study works' },

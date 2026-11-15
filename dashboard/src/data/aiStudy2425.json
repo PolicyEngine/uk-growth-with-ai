@@ -424,7 +424,7 @@
   "notes": [
     "Provisional: PR #18 is an open draft, not merged; numbers may change before publication.",
     "Data: Microcosm UK 2024-25 (microcosm-uk-2024-25-national-20261107T020434Z-eeb6093e), simulated for 2026 with PolicyEngine-UK.",
-    "Central scenario: 7% of employees displaced in proportion to occupational AI exposure (C-AIOE), survivors' wages up 2.6% on average, interest and dividend income up 39.8% (+0.4pp return); displaced workers lose a full year of earnings.",
+    "Central scenario: 7% of employees displaced in proportion to occupational AI exposure (C-AIOE), wages of those who keep their jobs up 2.6% on average, interest and dividend income up 39.8% (+0.4pp return); displaced workers lose a full year of earnings.",
     "Exchequer cost is the fall in the government balance: income tax, employee and employer NI, and benefits; it counts no corporation tax. A negative cost is a net gain.",
     "Poverty is the absolute line (frozen at baseline) before housing costs unless stated; Gini changes are in points (x100).",
     "Draw counts differ: headline 50 draws; take-up, JSA and wage-cut variants 20 draws paired with seeds 0-19 of the central run (central on those seeds costs £7.2bn); low and high scenarios one draw (seed 0); job-loss cost per pound seed 0.",
@@ -488,7 +488,7 @@
     "rows": [
       {
         "id": "other_income_tax",
-        "label": "Income tax on earnings, net of tax on survivors' wage gains",
+        "label": "Income tax on earnings, net of tax on the wage gains of those who keep their jobs",
         "cost_bn": 10.5459,
         "sd_bn": 1.0882
       },
@@ -667,7 +667,7 @@
     "employer_ni_file": "results/next_runs/obr_benchmark.json",
     "employer_ni_key": "-summary.employer_ni_change_bn.mean",
     "tax_benefit_share_pct": 28.4092,
-    "note": "OBR-sized run: 1.67% of employees displaced under exposure-proportional incidence, survivors' earnings flat, no capital shock; by baseline decile of equivalised HBAI income. Other items are mainly pension contributions, plus council tax and other deductions inside the HBAI concept."
+    "note": "OBR-sized run: 1.67% of employees displaced under exposure-proportional incidence, earnings of those who keep their jobs flat, no capital shock; by baseline decile of equivalised HBAI income. Other items are mainly pension contributions, plus council tax and other deductions inside the HBAI concept."
   },
   "rankings": [
     {
@@ -791,6 +791,7 @@
     "policyengine": "6.16.1",
     "manifest_commit": "88d2acc3975cfa4b926e2a0330ba8f74f1d7abf1",
     "manifest_finished": "2026-11-13T12:43:15Z",
+    "manifest_full_rerun": false,
     "file": "results/BUILD_MANIFEST.json",
     "households": "78,181",
     "persons": "182,418",

@@ -138,7 +138,7 @@ describe('Part3', () => {
     expect(fmtBn(S.employer_ni_bn)).toBe('£3.1bn');
     const { container } = renderPart();
     const fig = container.querySelector('#p3-absorb');
-    expect(fig.textContent).toContain('Job loss alone, OBR-sized run (1.67% of employees displaced), not the central case');
+    expect(fig.textContent).toContain('Job loss alone, a run sized to the OBR’s March 2026 displacement scenario (1.67% of employees displaced), not the central case');
     expect(fig.textContent).toContain('How to read it');
     expect(fig.querySelectorAll('.sankey-link')).toHaveLength(40);
   });

@@ -99,7 +99,7 @@ export default function Margin() {
             Employer NI is of similar size on both margins.
           </p>
           <p>
-            Poverty moves the other way: job loss concentrates the loss on fewer households and pushes them across the line, while the same
+            Poverty moves the other way: job loss concentrates the loss on fewer households and moves more of them below the poverty line, while the same
             loss spread across many earners moves few below it. The ordering is a result for this shock, not a property of the UK system.
           </p>
           <p>

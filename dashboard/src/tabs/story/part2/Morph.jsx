@@ -5,10 +5,12 @@ import { NavLink } from '@/lib/nav.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { W, H, niceTicks, SOURCE } from './frame.jsx';
 import { series } from './charts.jsx';
+import { MODEL_BASE_VINTAGE } from '../part1/data.js';
 
 // From the record to the model, in one chart whose axes and lines move
 // between three states as the reader scrolls:
-//   0  real GDP growth, ONS outturn (part 1's data, read by key);
+//   0  real GDP growth, ONS outturn (part 1's data, read by key; the story
+//      opens on state 1 since the review cut, state 0 stays for links/tests);
 //   1  + the OBR's forecast of growth, dashed, open dots;
 //   2  the axis changes from growth (% a year) to a gap (% against the
 //      OBR-central path): the forecast line flattens into the zero line and
@@ -297,24 +299,14 @@ export function MorphChart({ state, sid, cl }) {
 export function morphSteps(sid, cl) {
   return [
     {
-      id: 'p2-morph-0',
-      kicker: 'From the record to the model',
-      title: 'Where growth has been',
-      body: (
-        <p>
-          Part 1 ended with the official record: real GDP growth each year, as the ONS measures it. Outturns are drawn solid,
-          with filled dots.
-        </p>
-      ),
-    },
-    {
       id: 'p2-morph-1',
       kicker: 'From the record to the model',
       title: 'The OBR’s forecast',
       body: (
         <p>
-          The OBR&rsquo;s forecast{OBR_VINTAGE ? ` of ${OBR_VINTAGE}` : ''} carries growth on to {OBR_LAST}. It is a forecast, not
-          a measurement, so it is dashed, with open dots.
+          Part 1 ended with the official record: real GDP growth each year, as the ONS measures it, drawn solid with filled dots. The
+          OBR&rsquo;s forecast{OBR_VINTAGE ? ` of ${OBR_VINTAGE}` : ''} carries growth on to {OBR_LAST}. It is a forecast, not a
+          measurement, so it is dashed, with open dots.
         </p>
       ),
     },
@@ -325,7 +317,8 @@ export function morphSteps(sid, cl) {
       body: (
         <>
           <p>
-            OG-UK starts from a path without the AI shock, built on the OBR&rsquo;s central assumptions: the OBR-central path.
+            OG-UK starts from a path without the AI shock, built on the OBR&rsquo;s central assumptions (from the OBR&rsquo;s{' '}
+            {MODEL_BASE_VINTAGE} forecast): the OBR-central path.
             Its results are not growth rates but gaps against that path, so the scale changes. Zero is now the OBR-central path,
             and the blue line is how far GDP in {SCEN_NAME[sid]} sits above it, {cl === BOUND ? 'with closed capital' : 'at the central closure'}.
           </p>

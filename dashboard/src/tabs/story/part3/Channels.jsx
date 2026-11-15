@@ -21,7 +21,7 @@ const HI = Math.max(0, ...C.rows.map((r) => r.cost_bn)) * 1.05;
 function Graphic() {
   return (
     <figure className="p3-figure">
-      <FigureHead title="The central cost nets three flows" unit={`Cost to the public finances of each channel run alone, £bn a year, mean of ${C.draws} draws`} />
+      <FigureHead title="The central cost nets three flows" unit={`Cost to the public finances of each channel run alone, £bn a year. Job loss and wages: mean of ${C.draws} draws; capital income does not depend on who is displaced, so it is one run`} />
       <ol className="p3-rows">
         {ROWS.map((r) => (
           <li key={r.id} className="p3-row is-reached" data-row={r.id}>
@@ -55,11 +55,11 @@ export default function Channels() {
       body: (
         <>
           <p>
-            The central cost nets three flows. Run alone, job loss costs the Exchequer the income tax and National Insurance the displaced no
+            The central cost nets three flows. Run alone, job loss costs the public finances the income tax and National Insurance the displaced no
             longer pay, plus the benefits they now receive. Higher wages for those who keep their jobs, and higher interest and dividend
             income, each raise net receipts by a similar amount.
           </p>
-          <p>Together the three channels come within {fmtBn2(C.interaction_bn)} of the full shock on the same draws.</p>
+          <p>Together the three channels come within about {fmtBn2(C.interaction_bn)} of the full shock on the same draws.</p>
         </>
       ),
     },

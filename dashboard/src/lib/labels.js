@@ -50,7 +50,7 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 export const RULES = [
   { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP' },
   { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its OBR-central level' },
-  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households bear the fiscal effect' },
+  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;
 

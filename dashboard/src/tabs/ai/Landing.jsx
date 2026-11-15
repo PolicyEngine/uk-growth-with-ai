@@ -55,9 +55,10 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
   if (y == null || w == null) return 'This scenario is not solved yet at the closure chosen above.';
-  const out = Math.abs(y) < 0.005 ? 'Output is unchanged' : y > 0 ? 'Output rises' : 'Output falls';
-  const keep = g != null && y > 0 && g < y ? ', and the UK keeps less of the gain than GDP suggests' : '';
-  return `${out}, ${payWords(w)}${keep}.`;
+  const rel = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
+  const keep = g != null && y > 0 && g < y ? ', and national income gains less than GDP' : '';
+  const pay = `pay rates are ${rel(w)} it${rel(w) === rel(y) ? ' too' : ''}`;
+  return `In this scenario, GDP is ${rel(y)} the OBR-central path in ${HEADLINE_YEAR}, ${pay}${keep}.`;
 }
 
 // The four scenarios on one line: tooltips only. The scenario is chosen in
@@ -213,7 +214,11 @@ export function SummaryWhy({ sid }) {
             {ls != null && w != null ? (
               <li>
                 <Icon name="pie" size={18} />
-                <span>Capital takes a bigger share of income, so {payWords(w)}. Pay still rises; how much less depends on how much new capital arrives.</span>
+                <span>Capital takes a bigger share of income, so {payWords(w)}.{' '}
+                  {w < 0
+                    ? 'The gap is against a path on which pay rates rise, so in this scenario it is slower growth, not a cut; its size depends on how much new capital arrives.'
+                    : 'How far depends on how much new capital arrives.'}
+                </span>
               </li>
             ) : null}
             {cl === CENTRAL && fs != null && g != null && g < y ? (

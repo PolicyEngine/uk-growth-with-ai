@@ -12,6 +12,9 @@ export { D };
 export const PR_URL = 'https://github.com/PolicyEngine/uk-ai-study/pull/18';
 export const PAPER_URL = 'https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf';
 export const MODEL_YEAR = 'FY 2026–27';
+// The OBR scenario the smaller run is sized to, read from the ladder note
+// ("sized to the OBR March 2026 scenario").
+export const OBR_SCENARIO = `the OBR’s ${/OBR (\w+ \d{4}) scenario/.exec(D.ladder.find((r) => r.id === 'obr')?.note ?? '')?.[1] ?? ''} displacement scenario`.replace('  ', ' ');
 
 export const byId = (rows, id) => rows.find((r) => r.id === id);
 export const ladder = (id) => byId(D.ladder, id);
