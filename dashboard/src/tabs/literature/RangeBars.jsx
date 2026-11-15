@@ -4,17 +4,22 @@ import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { TipBox } from '@/components/ab/Tip.jsx';
-import { RANGES, SOURCES } from '@/data/literature.js';
+import { RANGES } from '@/data/literature.js';
 import { gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
+import { NavLink } from '@/lib/nav.jsx';
+import './evidence.css';
 
-// Range bars: published level gaps (bars, or dots for a single figure)
-// against our headline-year gaps for UK central and Korinek et al. (upper)
-// (automation + productivity arm), both read from surprise2028.json through
-// gap(). Our values appear in the tooltips only: their home is Explore.
+// Range bars: published level gaps (bars, or dots for a single figure), each
+// against its own study's baseline, from the UK evidence map
+// (site-evidence-map.json, through RANGES), beside our headline-year gaps for
+// UK central and Korinek et al. (upper) (automation + productivity arm)
+// against the OBR-central path, read from surprise2028.json through gap().
+// Published figures are printed in the evidence map; ours on Explore. Here
+// both appear in the tooltips only.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: 'factory', unit: '% against the OBR-central path', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: 'banknote', unit: '% against the OBR-central path', step: 1 },
+  gdp: { title: 'GDP', v: 'Y', icon: 'factory', unit: '% against each study’s own baseline; ours against the OBR-central path', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: 'banknote', unit: '% against each study’s own baseline; ours against the OBR-central path', step: 1 },
 };
 const OURS = ['uk_central', 'korinek'];
 const n1 = (x) => `${x < 0 ? '−' : x > 0 ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}%`;
@@ -49,7 +54,7 @@ function rangeSvg(metric) {
   const x1 = 760;
   const X = (v) => x0 + ((v - lo) / (top - lo)) * (x1 - x0);
   const C = CHART_COLOURS;
-  const hl = cssColour('var(--c-highlight)');
+  const hl = cssColour('var(--series-2)');
   const s5 = cssColour('var(--series-5)');
   const ROW = 34;
   let y = 0;
@@ -76,10 +81,10 @@ function rangeSvg(metric) {
   group('Published');
   for (const r of pub) {
     const cy = y + ROW / 2;
-    label(r.label, r.horizon);
+    label(r.label, r.unverified ? `${r.horizon} · unverified` : r.horizon);
     const fig = r.none ? 'No number published' : r.lo === r.hi ? n1(r.lo) : `${n1(r.lo)} to ${n1(r.hi)}`;
     if (!r.none && r.lo === r.hi) out += `<circle cx="${X(r.lo)}" cy="${cy}" r="6" fill="${s5}" stroke="${C.surface}" stroke-width="2"/>`;
-    else if (!r.none) out += `<rect x="${X(r.lo)}" y="${cy - 6}" width="${Math.max(2, X(r.hi) - X(r.lo))}" height="12" rx="3" fill="${s5}" fill-opacity="0.45" stroke="${s5}" stroke-opacity="0.7"/>`;
+    else if (!r.none) out += `<rect x="${X(r.lo)}" y="${cy - 6}" width="${Math.max(2, X(r.hi) - X(r.lo))}" height="12" rx="3" fill="${s5}" fill-opacity="${r.unverified ? 0.12 : 0.45}" stroke="${s5}" stroke-opacity="0.7"${r.unverified ? ' stroke-dasharray="3 2"' : ''}/>`;
     if (r.mark != null) out += `<rect x="${X(r.mark) - 1.5}" y="${cy - 9}" width="3" height="18" rx="1" fill="${C.ink}"/>`;
     out += `<text x="${x1 + 16}" y="${cy + 4}" font-size="12" fill="${r.none ? C.muted : C.ink}">${esc(fig)}</text>`;
     y += ROW;
@@ -92,8 +97,8 @@ function rangeSvg(metric) {
 }
 
 const legendKeys = () => [
-  { label: 'Central closure', color: cssColour('var(--c-highlight)'), shape: 'dot' },
-  { label: 'Closed capital', color: cssColour('var(--c-highlight)'), shape: 'ring' },
+  { label: 'Central closure', color: cssColour('var(--series-2)'), shape: 'dot' },
+  { label: 'Closed capital', color: cssColour('var(--series-2)'), shape: 'ring' },
   { label: 'Published range', color: cssColour('var(--series-5)'), shape: 'box' },
   { label: 'Single figure', color: cssColour('var(--series-5)'), shape: 'dot' },
   { label: 'Source’s own central case', color: CHART_COLOURS.ink, shape: 'tick' },
@@ -102,13 +107,13 @@ const legendKeys = () => [
 function table(metric) {
   const { pub, ours } = rows(metric);
   return {
-    columns: ['Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note'],
+    columns: ['Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [`${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'Ours, automation + productivity'],
-        [`${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'Ours, automation + productivity'],
+        [`${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
+        [`${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
       ]),
-      ...pub.map((r) => [r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note} (${SOURCES[r.src].short}, ${SOURCES[r.src].loc})`]),
+      ...pub.map((r) => [r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
   };
 }
@@ -136,8 +141,8 @@ export default function RangeBars({ metric }) {
       id={`ranges-${metric}`}
       icon={m.icon}
       title={`${m.title}: ours in ${HEADLINE_YEAR} against published estimates`}
-      className="mx-ranges"
-      finding="Our figures are in the tooltips here: their home is Explore. Hover, tap or tab to a row for its figures."
+      className="mx-ranges ev-rb"
+      finding="Each figure has one home: published figures are printed in the UK evidence map below, ours on Explore; each row links there, and its tooltip gives the figure. Hover, tap or tab to a row."
       unit={m.unit}
       legend={
         <ul className="mx-rb-key">
@@ -156,11 +161,16 @@ export default function RangeBars({ metric }) {
           <li>
             <span className="mx-rb-tick is-key" /> Source&rsquo;s own central case
           </li>
+          {pub.some((r) => r.unverified) ? (
+            <li>
+              <span className="mx-rb-bar is-key is-unverified" /> Not confirmed in the published text
+            </li>
+          ) : null}
         </ul>
       }
       about={{
-        how: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path, from the same solves as Explore. Published: each source’s own level gap, at its own horizon.`,
-        sources: 'Every published figure was read from the primary text; each row’s tooltip gives the page or table, and the sources are listed under Sources.',
+        how: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path, from the same solves as Explore. Published: each study’s own level gap against its own baseline (mostly no AI), at its own horizon; none is converted. A hatched bar is a figure not confirmed in the published text.`,
+        sources: 'Each published row is a row of the UK evidence map below, which prints the figure, its baseline, the page or table and the date it was checked.',
       }}
       download={{
         title: `${m.title}: ours in ${HEADLINE_YEAR} against published estimates`,
@@ -178,7 +188,12 @@ export default function RangeBars({ metric }) {
             <div key={key} className={`mx-rb-row is-ours${hi === key ? ' is-hi' : ''}`} {...bind(key, `${o.label}: ${CLOSURE_LABEL[CENTRAL]} ${fmt(o.c)}, ${CLOSURE_LABEL[BOUND]} ${fmt(o.b)}`)}>
               <span className="mx-rb-label">
                 <b>{o.label}</b>
-                <span>OG-UK, year 4 of adoption</span>
+                <span>
+                  OG-UK, year 4 of adoption ·{' '}
+                  <NavLink tab="explore" sub="economy" anchor="income" patch={{ s: o.sid }} className="nav-link ev-rb-home">
+                    figures on Explore
+                  </NavLink>
+                </span>
               </span>
               <span className="mx-rb-plot">
                 <span className="mx-rb-zero" style={{ left: `${px(0)}%` }} />
@@ -209,13 +224,18 @@ export default function RangeBars({ metric }) {
         <div className="mx-rb-group">Published</div>
         {pub.map((r, i) => {
           const key = `p-${i}`;
-          const s = SOURCES[r.src];
           const fig = r.none ? 'no number' : r.lo === r.hi ? n1(r.lo) : `${n1(r.lo)} to ${n1(r.hi)}`;
           return (
-            <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} {...bind(key, `${r.label}, ${r.horizon}: ${fig}. ${r.note}`)}>
+            <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} {...bind(key, `${r.label}, ${r.horizon}: ${fig}${r.unverified ? ', unverified' : ''}. ${r.note}`)}>
               <span className="mx-rb-label">
                 <b>{r.label}</b>
-                <span>{r.horizon}</span>
+                <span>
+                  {r.horizon}
+                  {r.unverified ? <em className="ev-unverified"> · unverified</em> : null} ·{' '}
+                  <a className="ev-rb-home" href={`#ev-row-${r.ids[0]}`}>
+                    {r.none ? 'in the table' : r.lo === r.hi ? 'figure in the table' : 'figures in the table'}
+                  </a>
+                </span>
               </span>
               <span className="mx-rb-plot">
                 <span className="mx-rb-zero" style={{ left: `${px(0)}%` }} />
@@ -224,19 +244,18 @@ export default function RangeBars({ metric }) {
                 ) : r.lo === r.hi ? (
                   <span className="mx-rb-pt" style={{ left: `${px(r.lo)}%` }} />
                 ) : (
-                  <span className="mx-rb-bar" style={{ left: `${px(r.lo)}%`, width: `${px(r.hi) - px(r.lo)}%` }} />
+                  <span className={`mx-rb-bar${r.unverified ? ' is-unverified' : ''}`} style={{ left: `${px(r.lo)}%`, width: `${px(r.hi) - px(r.lo)}%` }} />
                 )}
                 {r.mark != null ? <span className="mx-rb-tick" style={{ left: `${px(r.mark)}%` }} /> : null}
                 {rowTip(
                   key,
                   <>
-                    <b>{s.short}</b>
+                    <b>{r.short}</b>
                     <span>
                       {fig} · {r.horizon}
                     </span>
                     <span>{r.note}</span>
-                    <span className="mx-tip-tag">{s.loc}</span>
-                    {s.read ? <span>{s.read}</span> : null}
+                    <span className="mx-tip-tag">{r.loc}</span>
                   </>,
                 )}
               </span>

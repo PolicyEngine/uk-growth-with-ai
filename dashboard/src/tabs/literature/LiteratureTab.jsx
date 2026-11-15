@@ -75,17 +75,21 @@ export function Mark({ level, size = 14 }) {
   );
 }
 
+// The key lists only the levels some cell uses.
+const USED = new Set(CHANNELS.flatMap((ch) => Object.values(ch.cells).map((c) => c[0])));
 function Legend() {
   return (
     <ul className="mx-legend" aria-label="Key">
-      {Object.entries(LEVELS).map(([k, v]) => (
-        <li key={k}>
-          <Mark level={k} />
-          <span>
-            <b>{v.label}</b> {v.text.toLowerCase()}
-          </span>
-        </li>
-      ))}
+      {Object.entries(LEVELS)
+        .filter(([k]) => USED.has(k))
+        .map(([k, v]) => (
+          <li key={k}>
+            <Mark level={k} />
+            <span>
+              <b>{v.label}</b> {v.text.toLowerCase()}
+            </span>
+          </li>
+        ))}
     </ul>
   );
 }
@@ -147,7 +151,7 @@ function Matrix() {
       className="mx-matrix-card"
       finding="Whether each source models each channel. Hover, tap or tab to a cell for the detail."
       logo={false}
-      about={{ sources: 'OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072. Every cell is read from the primary text; each source is listed under Sources.' }}
+      about={{ sources: 'OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072 and the model it uses, Rockall et al. (IMF WP/25/68); each cell’s note names its document. Every cell is read from the primary text; each source is listed under Sources.' }}
       download={{
         title: 'Coverage by channel',
         table: () => ({
@@ -196,8 +200,8 @@ function Matrix() {
 function Takeaways() {
   return (
     <div className="cards-grid cols-3">
-      <InfoCard icon="usersRound" title="Only OG-UK: households">
-        <p>Households by age and ability. Only OG-UK and the OBR have a tax system.</p>
+      <InfoCard icon="usersRound" title="Only OG-UK: households by age">
+        <p>The IMF&rsquo;s households differ by income and wealth but not by age. Only OG-UK and the OBR have a tax system.</p>
       </InfoCard>
       <InfoCard icon="briefcase" title="Only Korinek et al.: jobs and tasks">
         <p>They model new tasks and unemployment. OG-UK has neither.</p>
@@ -243,7 +247,7 @@ export default function StudiesTab() {
       <PageIntro
         icon="library"
         question="How do our results compare with other work on AI and the UK economy?"
-        answer="Of the sources compared here, only OG-UK models households by age and ability, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, and the sources."
+        answer="Of the sources compared here, only OG-UK models households by age, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, a table of published estimates, and the sources."
       />
       <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
         Nine channels against five sources. OG-UK is the first column.
@@ -257,15 +261,15 @@ export default function StudiesTab() {
       <ImfGap />
       <RangeBars metric="wage" />
       <GrowthCheck />
+      <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
+        Published estimates from the OBR, the Bank of England, government departments, think tanks, international bodies, private forecasters and academic studies, each with its baseline, horizon and the date it was checked. The published figures are printed here.
+      </SectionHeading>
+      <EvidenceMap />
       <SectionHeading id="sources" icon="fileText" title="Sources">
-        Every figure was read from the primary text. The checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
+        The sources behind the coverage matrix and the growth check; their figures are in the UK evidence map. Earlier checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
       </SectionHeading>
       <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
       <SourceList group="model" title="Model-based studies" icon="sigma" />
-      <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
-        UK studies from the OBR, the Bank of England, think tanks, government departments, international bodies and private forecasters.
-      </SectionHeading>
-      <EvidenceMap />
     </div>
   );
 }
