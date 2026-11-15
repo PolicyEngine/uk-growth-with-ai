@@ -78,6 +78,7 @@ T_USE = 60
 SCENARIO = "uk_central"
 ARMS = ("tfp", "zfixed", "stress")
 VARIANTS = ("dn", "")
+SCENARIOS = {"uk_central": VARIANTS, "korinek": ("dn",)}   # Korinek: debt-neutral paths only exported
 ARM_LABEL = {"tfp": "Automation + productivity",
              "zfixed": "Automation, technology unchanged",
              "stress": "OBR-style stress test: no output gain"}
@@ -104,15 +105,15 @@ def records(closure: str) -> tuple:
     return sp.load(OUTDIR, closure), ref
 
 
-def labels(closure: str) -> dict:
-    """{(variant, arm): label} for UK central, the accepted R4 taken from the records."""
+def labels(closure: str, scenario: str = SCENARIO) -> dict:
+    """{(variant, arm): label} for a scenario, the accepted R4 taken from the records."""
     done, ref = records(closure)
     out = {}
-    for v in VARIANTS:
-        k = sp._keys(v, SCENARIO)
-        r4 = sp.accepted_r4(done, ref, v, scenario=SCENARIO)
+    for v in SCENARIOS[scenario]:
+        k = sp._keys(v, scenario)
+        r4 = sp.accepted_r4(done, ref, v, scenario=scenario)
         if r4 is None:
-            raise WelfareError(f"{closure}: no accepted R4 for {SCENARIO} {v or 'common'}")
+            raise WelfareError(f"{closure}: no accepted R4 for {scenario} {v or 'common'}")
         out[(v, "tfp")], out[(v, "zfixed")], out[(v, "stress")] = k["tfp"], k["zfixed"], r4["label"]
         for a in ARMS:
             rec = done.get(out[(v, a)])
@@ -124,7 +125,7 @@ def labels(closure: str) -> dict:
 
 
 @lru_cache(maxsize=None)
-def load(closure: str):
+def load(closure: str, scenario: str = SCENARIO):
     p = COHORTS / closure / "params.npz"
     if not p.is_file():
         raise WelfareError(f"{p} missing")
@@ -134,7 +135,7 @@ def load(closure: str):
     if int(np.ravel(par["S"])[0]) != N_AGES:
         raise WelfareError(f"{p}: S is not {N_AGES}, so ages are not {FIRST_AGE}-{FIRST_AGE + N_AGES - 1}")
     runs = {}
-    for key, label in [(None, "continuation")] + list(labels(closure).items()):
+    for key, label in [(None, "continuation")] + list(labels(closure, scenario).items()):
         f = COHORTS / closure / f"{label}.npz"
         if not f.is_file():
             raise WelfareError(f"{f} missing (run analysis/surprise/export_cohorts.py)")
@@ -217,21 +218,22 @@ def to_lambda(sig: float, ratio: np.ndarray) -> np.ndarray:
 
 
 @lru_cache(maxsize=None)
-def _parts(closure: str, continuation: str):
+def _parts(closure: str, continuation: str, scenario: str = SCENARIO):
     """{run key: discounted remaining-life (C, N, Q) sums, (cohorts, 3, J)}."""
-    par, runs = load(closure)
+    par, runs = load(closure, scenario)
     horizon = par["chi_n"].shape[0]
     return par, {key: lifetime(par, flows(par, extend(d, continuation, horizon), horizon))
                  for key, d in runs.items()}
 
 
-def cev(closure: str, continuation: str = "hold", measure: str = "joint") -> dict:
+def cev(closure: str, continuation: str = "hold", measure: str = "joint",
+        scenario: str = SCENARIO) -> dict:
     """{(variant, arm): lambda (cohorts, J) in per cent}, plus birth years."""
-    par, L = _parts(closure, continuation)
+    par, L = _parts(closure, continuation, scenario)
     sig = float(par["sigma"])
     CR, NR, QR = L[None][:, 0], L[None][:, 1], L[None][:, 2]
     out = {"birth_year": birth_years(par)}
-    for key in labels(closure):
+    for key in labels(closure, scenario):
         U = L[key].sum(axis=1)
         ratio = (U - NR) / (CR + QR) if measure == "joint" else (U - NR - QR) / CR
         lam = to_lambda(sig, ratio)
@@ -303,15 +305,15 @@ def averages(par: dict, lam: np.ndarray) -> dict:
 
 # --- reconciliation ---------------------------------------------------------------
 
-def reconcile(closure: str) -> dict:
+def reconcile(closure: str, scenario: str = SCENARIO) -> dict:
     """Aggregate C gap from the household paths vs the record's, every year 2028-2036, per arm.
     Returns {label: max abs difference in percentage points}; raises above RECON_TOL_PP."""
-    par, runs = load(closure)
+    par, runs = load(closure, scenario)
     done, ref = records(closure)
     gw = group_weights(par)
     agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["c"][t]).sum())
     out = {}
-    for key, label in labels(closure).items():
+    for key, label in labels(closure, scenario).items():
         rec = done[label]
         diffs = []
         for y in RECON_YEARS:
@@ -436,20 +438,20 @@ def fill_sensitivity(closure: str) -> dict:
     out = {}
     for key in labels(closure):
         d = np.abs(H[key] - S_[key]).max(axis=1)
-        out[key] = {"max_by_birth": d.tolist(), "first_birth_over_0p01": int(b[d > 0.01].min()),
+        out[key] = {"max_by_birth": d.tolist(), "first_birth_over_0p01": int(b[d > FILL_TINY_PP].min()),
                     "max": float(d.max())}
     return out
 
 
-def reconcile_tr(closure: str) -> dict:
+def reconcile_tr(closure: str, scenario: str = SCENARIO) -> dict:
     """Relative difference between the household-aggregate transfer ratio and the record's
     TR ratio (scenario / reference), max over 2028-2036, per label."""
-    par, runs = load(closure)
+    par, runs = load(closure, scenario)
     done, ref = records(closure)
     gw = group_weights(par)
     agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["tr"][t]).sum())
     out = {}
-    for key, label in labels(closure).items():
+    for key, label in labels(closure, scenario).items():
         rec = done[label]
         out[label] = max(abs((agg(runs[key], t) / agg(runs[None], t))
                              / (rec["series"]["TR"][t] / ref["series"]["TR"][t]) - 1)
@@ -474,6 +476,7 @@ def reconcile_tr(closure: str) -> dict:
 # by 2085 ("ss"); the two bound the estimate.
 
 FILL_PATHS = ("hold", "ss")
+FILL_TINY_PP = 0.01   # fill sensitivity: first birth year moved by more than this
 SS_BY_YEAR = 2085
 
 
@@ -562,15 +565,15 @@ def lifetime_sources(closure: str, key, fill: str = "hold") -> dict:
     return out
 
 
-def no_bequest_cev(closure: str, continuation: str = "hold") -> dict:
+def no_bequest_cev(closure: str, continuation: str = "hold", scenario: str = SCENARIO) -> dict:
     """CEV with the warm-glow bequest term dropped from both paths: the constant change in
     consumption that gives the scenario's consumption-plus-leisure utility, labour held at
     the reference.  {(variant, arm): (cohorts, J)}, per cent of consumption."""
-    par, L = _parts(closure, continuation)
+    par, L = _parts(closure, continuation, scenario)
     sig = float(par["sigma"])
     CR, NR = L[None][:, 0], L[None][:, 1]
     out = {}
-    for key in labels(closure):
+    for key in labels(closure, scenario):
         A = L[key]
         lam = to_lambda(sig, (A[:, 0] + A[:, 1] - NR) / CR)
         if np.isnan(lam).any():
@@ -579,12 +582,12 @@ def no_bequest_cev(closure: str, continuation: str = "hold") -> dict:
     return out
 
 
-def g_shortfall(closure: str, key) -> dict:
+def g_shortfall(closure: str, key, scenario: str = SCENARIO) -> dict:
     """Government consumption below its reference share of GDP (G gap minus G_R/Y_R x Y gap),
     per cent of reference GDP: max |.| over 2028-2035 and the steady state."""
     done, _ = records(closure)
     ref = _ref_record(closure)
-    rec = done[labels(closure)[key]]
+    rec = done[labels(closure, scenario)[key]]
     R, S = ref["series"], rec["series"]
     sh = lambda a, b: (a["G"] - b["G"]) - b["G"] / b["Y"] * (a["Y"] - b["Y"])
     pre = max(abs(sh({k: S[k][t] for k in "GY"}, {k: R[k][t] for k in "GY"})) / R["Y"][t] * 100

@@ -43,6 +43,7 @@ import argparse
 import datetime as dt
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -593,8 +594,20 @@ def cohort_results() -> dict:
                    "fill": cwf.fill_sensitivity(cl), "recon": cwf.reconcile(cl),
                    "recon_tr": cwf.reconcile_tr(cl), "ident": cwf.identity_checks(cl),
                    "wealth": cwf.wealth_concentration(cl), "profile": cwf.group_profile(cl),
-                   "labels": cwf.labels(cl), "rob": cwf.robustness(cl)}
+                   "labels": cwf.labels(cl), "rob": cwf.robustness(cl),
+                   "kor": korinek_results(cl)}
     return out
+
+
+def korinek_results(cl: str) -> dict:
+    """The upper case (Korinek): only its debt-neutral household paths are exported, so it
+    gets the as-solved and no-bequest measures and the same reconciliation checks, not the
+    common-rule comparison or the first-order charge-back."""
+    k = "korinek"
+    return {"labels": cwf.labels(cl, k), "R": cwf.cev(cl, scenario=k),
+            "Rss": cwf.cev(cl, "ss", scenario=k), "NB": cwf.no_bequest_cev(cl, scenario=k),
+            "recon": cwf.reconcile(cl, k), "recon_tr": cwf.reconcile_tr(cl, k),
+            "gshort": {key: cwf.g_shortfall(cl, key, k) for key in cwf.labels(cl, k)}}
 
 
 # The \pending in the incidence section that the dnfull solve replaces; the claim check
@@ -641,6 +654,31 @@ def emit_dnfull(v: Values) -> None:
         v.put(f"{pre}{kw}Range", a if a == b else (f"{a} to {b}" if fmt is None else f"{a}--{b}"))
 
 
+def emit_korinek(v: Values, CR: dict) -> None:
+    """CohKor{Arm}Dn{Central,Bound}*: the upper case under debt-neutral transfers."""
+    for cl, (cw, _) in CLOSURES.items():
+        X, K = CR[cl], CR[cl]["kor"]
+        par, b = X["par"], X["b"]
+        alive = cwf.alive_weights(par) > 0
+        for a, aword in ARMS.items():
+            key, pre = ("dn", a), f"CohKor{aword}Dn{cw}"
+            lam, nb = K["R"][key], K["NB"][key]
+            av = cwf.averages(par, lam)
+            v.signed(f"{pre}Avg", av["alive_all"])
+            v.put(f"{pre}LosingPct", cwf.losing_pct(par, lam), "{:.0f}")
+            v.signed(f"{pre}NoBeqAvg", cwf.averages(par, nb)["alive_all"])
+            v.put(f"{pre}NoBeqLosingPct", cwf.losing_pct(par, nb), "{:.0f}")
+            v.signed(f"{pre}Bottom", av["alive_by_group"][0])
+            v.signed(f"{pre}TopOne", av["alive_by_group"][6])
+            v.signed(f"{pre}Min", float(lam[alive].min()))
+            lose_all = [SHOCK - int(x) for x, row, ok in zip(b, lam, alive) if ok and (row < 0).all()]
+            v.put(f"{pre}AllLoseUpToAge", max(lose_all) if lose_all else "none", "{:.0f}")
+            v.put(f"{pre}GShortSsPctGdp", abs(K["gshort"][key]["ss_pct_gdp"]), "{:.2f}")
+        g = [abs(K["gshort"][("dn", a)]["ss_pct_gdp"]) for a in ARMS]
+        v.put(f"CohKorDn{cw}GShortSsPctGdpMin", min(g), "{:.1f}")
+        v.put(f"CohKorDn{cw}GShortSsPctGdpMax", max(g), "{:.1f}")
+
+
 def emit_cohorts(v: Values, CR: dict) -> None:
     for cl, (cw, _) in CLOSURES.items():
         X = CR[cl]
@@ -685,6 +723,8 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 if len(flips):
                     v.put(f"{pre}RankFlipFirst", int(flips.min()), "{:.0f}")
                     v.put(f"{pre}RankFlipLast", int(flips.max()), "{:.0f}")
+                    gap = float(np.abs(lam[:, 0] - lam[:, 6])[lam[:, 0] <= lam[:, 6]].max())
+                    v.put(f"{pre}RankFlipMaxGap", np.ceil(gap * 100) / 100, "{:.2f}")
                 # what the average rests on (PR #24 referee): no-bequest measure, lifetime
                 # income by source at unchanged behaviour, the post-2035 cost charged back
                 rb = X["rob"][key]
@@ -739,8 +779,10 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 v.signed(f"CohMain{rw}{cw}Inc{kw}Bottom", float(ia[k][s45, 0]))
                 v.signed(f"CohMain{rw}{cw}Inc{kw}TopOne", float(ia[k][s45, 6]))
         # checks and model features
-        v.put(f"CohReconMaxPp{cw}", sci(max(X["recon"].values())))
-        v.put(f"CohTrReconMaxRelDn{cw}", sci(max(x for k, x in X["recon_tr"].items() if "_dn" in k)))
+        recon = {**X["recon"], **X["kor"]["recon"]}
+        recon_tr = {**X["recon_tr"], **X["kor"]["recon_tr"]}
+        v.put(f"CohReconMaxPp{cw}", sci(max(recon.values())))
+        v.put(f"CohTrReconMaxRelDn{cw}", sci(max(x for k, x in recon_tr.items() if "_dn" in k)))
         v.put(f"CohTrReconMaxRelCommon{cw}", sci(max(x for k, x in X["recon_tr"].items() if "_dn" not in k)))
         v.put(f"CohIdentityMax{cw}", sci(max(X["ident"].values())))
         fm = max(max(np.array(f["max_by_birth"])[b <= cwf.FIG_LAST_BIRTH]) for f in X["fill"].values())
@@ -767,6 +809,7 @@ def emit_cohorts(v: Values, CR: dict) -> None:
     v.put("CohOnsWealthTopTenth", ONS_WEALTH_TOP_TENTH, "{:.0f}")
     v.put("CohOnsWealthBottomHalf", ONS_WEALTH_BOTTOM_HALF, "{:.0f}")
     v.put("CohFigLastBirth", cwf.FIG_LAST_BIRTH, "{:.0f}")
+    v.put("CohFillTinyPp", cwf.FILL_TINY_PP, "{:.2f}")
     v.put("CohFutFirstEntry", SHOCK + 1, "{:.0f}")
     v.put("CohFutLastEntry", SHOCK + cwf.FUT_COHORTS, "{:.0f}")
     v.put("CohLastExportYear", cwf.START_YEAR + cwf.T_USE - 1, "{:.0f}")
@@ -1228,6 +1271,29 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
         Xc = CR[cl_]
         if not cwf.losing_pct(Xc["par"], Xc["R"][("dn", "tfp")]) < 1:
             fail.append(f"'fewer than 1 per cent of adults lose in the main arm' fails: {cl_}")
+    # the upper case (Korinek), debt-neutral transfers
+    for cl_, (cw_, _) in CLOSURES.items():
+        Xc, K = CR[cl_], CR[cl_]["kor"]
+        par_ = Xc["par"]
+        alive_ = cwf.alive_weights(par_) > 0
+        if not K["R"][("dn", "tfp")][alive_].min() > 0:
+            fail.append(f"'Korinek main arm: every cohort and group alive in 2028 gains' fails: {cl_}")
+        for a in ARMS:
+            g = cwf.averages(par_, K["R"][("dn", a)])["alive_by_group"]
+            if not g[0] > g[6]:
+                fail.append(f"'Korinek: bottom 25% gain more than the top 1% on average' fails: {cl_} {a}")
+            if v[f"CohKor{ARMS[a]}Dn{cw_}LosingPct"] == "0" and a != "tfp":
+                fail.append(f"'Korinek {a}: some adults lose' fails: {cl_}")
+        if cl_ == "zk0.1":
+            if v["CohKorStressDnCentralAllLoseUpToAge"] == "none":
+                fail.append("'Korinek stress test: every group aged ... or younger loses' fails")
+            for a in ARMS:
+                uk = abs(Xc["rob"][("dn", a)]["charged"]["g_shortfall"]["ss_pct_gdp"]) if "charged" in Xc["rob"][("dn", a)] else None
+                ko = abs(K["gshort"][("dn", a)]["ss_pct_gdp"])
+                if uk is not None and not ko > uk:
+                    fail.append(f"'Korinek's uncharged cost is larger than UK central's' fails: {a}")
+    if any("Korinek" in x for x in re.findall(r"\\pending\{([^}]*)\}", INCIDENCE_TEX.read_text())):
+        fail.append("the Korinek cohort results are in but incidence.tex still has its \\pending note")
     if fail:
         raise ResultsError("cohort claims in the text no longer hold:\n  " + "\n  ".join(fail))
 
@@ -1239,6 +1305,7 @@ def build() -> tuple[Values, list[str]]:
     CR = cohort_results()
     emit_cohorts(v, CR)
     emit_dnfull(v)
+    emit_korinek(v, CR)
     check_cohort_claims(R, CR, v)
     sources = [f"baseline  {BASELINE_FILE.relative_to(ROOT)} (calibration, OBR comparison)"]
     for cl in CLOSURES:
