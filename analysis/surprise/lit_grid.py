@@ -154,12 +154,12 @@ def two_factor(g, c):
 
 # --- Verdicts against the published ranges (docs/literature_comparison.md, Section 4) ----------
 # Each range is on a shock-scaled metric; the source of every bound is in the doc's Section 3.
-GDP_PER_TFP = (1.0, 6.2)     # PWBM (GDP = TFP) ... IMF SIP/2026/072 (3.26 / 0.53, year 5)
+GDP_PER_TFP = (1.0, 6.2)     # PWBM (GDP = TFP) ... IMF SIP/2026/072 (3.26 / 0.53, year 5). Soft: 6.15 before rounding
 LP_LEVEL = (0.2, 3.6)        # OBR BP9 J-curve at year 4 ... BoE DMP 0.9pp a year for 4 years
 LP_OBR_DISPLACEMENT = 1.5    # OBR Mar 2026 Box 2.2: GDP flat, employment about -1.5% (ours)
 WAGE_PER_PP = (-0.33, 1.87)  # Korinek et al. Table 5 substantial: -1.6/4.9 (eps=1) ... 5.6/3.0 (eps=inf)
 ELASTICITY_MIN = 1.0         # Korinek et al. Table 5, lowest case
-R_BP_PER_PP = (7.0, 22.5)    # IMF SDN/2024/001 (40bp / 5.5pp) ... Korinek eps=1 (110bp / 4.9pp)
+R_BP_PER_PP = (7.0, 22.5)    # IMF SDN/2024/001 (40bp / 5.5pp) ... Korinek eps=1 (110bp / 4.9pp = 22.4; the doc says 22)
 TAX_PER_PP = (-0.23, -0.19)  # OBR Nov 2025 EFO rates ... OBR FRS 2026 Box 4.1
 DEBT_OBR_PER_PP = 1.86       # OBR Mar 2026 para 6.18: +1.3% of GDP for about 0.7pp (ours)
 ROWS = ["GDP per 1% of TFP", "labour productivity, level", "wage per pp of share fall",

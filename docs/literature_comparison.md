@@ -19,7 +19,7 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 
 **One mechanism explains the gap and most other verdicts: capital supply.** The solves imply a capital-supply elasticity of 0.57–0.68 at ζK = 0.1 and 0.15–0.17 at ζK = 0. The lowest published case is 1 (Korinek et al.) and their default is 3. The IMF's year-4 output implies about 5, or about 1.6 on a faster share path (ours, Section 4.4). That is why, against a study with the same shock, our GDP is lower, our wage is lower and our interest rate is higher.
 
-**The ζK = 0.5 sensitivity bounds the capital response from the other side (Section 4.10).** It is solved for all four scenarios' main arms and for every arm except UK high's other two. UK central's GDP is +2.47%, 98% of the IMF's figure. The Korinek arm's is +9.96%, 120% of Korinek et al.'s default case and level with their most elastic one. This closure is a sensitivity and not a central case: its no-shock path pays about 4% of GDP abroad against 1.2–1.6% in UK data, and its tax and 2028–30 investment results carry the caveats in Section 4.10.
+**The ζK = 0.5 sensitivity bounds the capital response from the other side (Section 4.10).** It is solved for every arm of all four scenarios. UK central's GDP is +2.47%, 98% of the IMF's figure. The Korinek arm's is +9.96%, 120% of Korinek et al.'s default case and level with their most elastic one. This closure is a sensitivity and not a central case: its no-shock path pays about 4% of GDP abroad against 1.2–1.6% in UK data, and its tax and 2028–30 investment results carry the caveats in Section 4.10.
 
 **Verdict counts.** The grid is 288 cells: 4 scenarios × 3 arms × 3 closures × 8 outcome rows (Section 4.2). It was 192 cells before ζK = 0.5 joined.
 
@@ -36,10 +36,11 @@ For #27 (tracker) and #24 (paper). Written 13 November 2026. **No OG solve was r
 - At ζK = 0.1 and 0: of the 73 "below" cells, 24 are the capital-supply elasticity itself and 22 are the size of the tax/GDP response. The other 27 follow from the elasticity or from the missing unemployment channel.
 - At ζK = 0.1 and 0: all 20 "above" cells follow from the elasticity (16 interest-rate cells, 2 debt cells) or from the US scenario's size (2 labour-productivity cells).
 - At ζK = 0.5 the elasticity is inside in all twelve cells, and the "above" and "below" cells have other causes (Section 4.10).
-- Three bounds are soft.
+- Four bounds are soft.
   - The GDP row uses the pooled range above.
   - The labour-productivity ceiling of 3.6% extends a three-year survey figure to four years. At three years (2.7%) UK high moves from "inside" to "above".
-  - The interest-rate ceiling of 22bp per point comes from returns published to one decimal place. Korinek et al.'s modest case is 10bp give or take 5bp on 0.6pp, so up to 25bp per point. The UK low and UK central main arms (24bp) are "above" by less than that rounding.
+  - The interest-rate ceiling of 22bp per point comes from returns published to one decimal place. Korinek et al.'s modest case is 10bp give or take 5bp on 0.6pp, so up to 25bp per point. The UK low and UK central main arms (24bp) are "above" by less than that rounding. `lit_grid.py` uses 22.5 (110bp / 4.9pp = 22.4). No cell lies between 22 and 22.5, so that choice decides no verdict.
+  - The GDP ceiling of 6.2 per 1% of TFP is the IMF's 3.26% / 0.53% at year 5, which is 6.15 before rounding. UK central at ζK = 0.5 (6.18) is "inside" only because of that rounding. Against 6.15 it would be "above".
 - No cell is outside every published range without a cause in the model. Three results are problems all the same (Section 5).
 
 **Three red flags.**
@@ -577,7 +578,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
   - OG-UK's gap between labour and capital tax rates is about 14pp, against the OBR's 19–23pp.
   - At ζK = 0 the return rises 19–142bp on all household wealth, and the single income-tax schedule taxes that extra capital income.
 - At ζK = 0.5 it is −0.35 to −0.38 in all twelve cells, 1.7–1.8 times the OBR's midpoint. Section 4.10 gives the cause (audit A16).
-- Verdict: **below in 22 cells, wrong sign in 2, above in 10.** Red flag 3.
+- Verdict: **below in 22 cells, wrong sign in 2, above in 12.** Red flag 3.
 
 **Debt/GDP in 2031.**
 - **Main arm: lower than baseline in ten of twelve solved cells** (−0.07pp to −3.02pp at ζK = 0.1 and 0; −0.66pp to −7.06pp at ζK = 0.5), the same sign as the OBR's productivity scenarios and Penn Wharton. UK low (+0.12pp) and UK central (+0.33pp) at ζK = 0 are above.
@@ -691,7 +692,7 @@ Added on 13 November from the ten ζK = 0.5 solves on `rerun/surprise-2028` at `
 **Three caveats that go with every ζK = 0.5 number.**
 1. **Income paid abroad.** The baseline's payments abroad are about three times the UK's, so GDP overstates the gain to residents. GNI rises +1.75% against GDP +2.47% for UK central and +7.73% against +9.96% for the Korinek arm.
 2. **Tax (audit A16).** Tax/GDP falls 0.35–0.38pp per point of labour-share fall, 1.7–1.8 times the OBR's midpoint, where ζK = 0.1 gives 42–77% of it.
-   - The capital income that replaces labour income goes to foreign owners, and the model taxes it only through business tax. In the Korinek stress test, household capital income rises by 0.42pp of GDP at ζK = 0.5 against 2.56pp at ζK = 0.1, for the same 3.90pp fall in labour income.
+   - Almost none of the capital income that replaces labour income reaches the income-tax base. In the Korinek stress test, half of the extra 3.90pp of GDP is depreciation on the extra capital, which is all foreign-financed (1.97pp), and a third is the net return to foreign owners (1.30pp). Neither is taxed as income. Household capital income rises by 0.42pp of GDP at ζK = 0.5 against 2.56pp at ζK = 0.1, for the same 3.90pp fall in labour income.
    - No tax, borrowing or debt figure from ζK = 0.5 should be quoted without this caveat.
 3. **Investment in 2028–30 (audit A7 at a larger size).** Main-arm investment jumps +21% for UK central and +64% for the Korinek arm in 2028, stays that high to 2030 (+75% and +86% for the Korinek arm) and drops to +6% and +20% in 2031.
    - OG-Core 0.17 has no capital adjustment cost, so the stock moves as fast as the closure lets foreign capital in. The path is an artefact of frictionless capital and not a forecast.
@@ -699,7 +700,7 @@ Added on 13 November from the ten ζK = 0.5 solves on `rerun/surprise-2028` at `
 
 ## 5. Red flags
 
-The test was: a result outside every published range with no cause in the model. **No cell meets it.** Every "above", "below" and "wrong sign" verdict has a cause in Section 4 or in the audit (A1–A16). Three of those causes are problems for the published numbers all the same.
+The test was: a result outside every published range with no cause in the model. **No cell meets it.** Every "above", "below" and "wrong sign" verdict has a cause in Section 4 or in the audit (A1–A17). Three of those causes are problems for the published numbers all the same.
 
 ### 1. The capital closure is outside the published range, and it decides the headline
 

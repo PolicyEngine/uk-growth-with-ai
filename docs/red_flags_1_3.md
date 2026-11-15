@@ -1,5 +1,7 @@
 # Red flags 1 and 3: diagnosis from the existing solves
 
+> **Note (15 Nov 2026):** this diagnosis is dated 12 Nov and uses PR #37's numbering of four red flags, so "red flags 2 and 4" below are not the flags of that number in `docs/literature_comparison.md`. That document now has three red flags (its Section 5), and it counts 2031 as year 4 of the 2028 surprise, where this note says "year 3 of response". The numbers here are unchanged.
+
 This responds to PR #37, `docs/literature_comparison.md` §5–6. Everything here comes from the committed 2026-start R1–R4 solves: the TPI and SS pickles in the work directory, `baseline_p1`, `share_shift_tfp_ramp` and the accepted R4 `share_shift_ramp`. Nothing was re-solved and nothing was tuned.
 
 Both diagnostics are reported again for every surprise-2028 solve by `analysis/surprise/sanity.py` (the `diagnostics` block in each `<label>.sanity.json`). For the surprise runs they are measured at 2031, 2036 and the steady state.
