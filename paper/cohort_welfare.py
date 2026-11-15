@@ -430,13 +430,13 @@ def wealth_concentration(closure: str, year: int = SHOCK_YEAR) -> dict:
     return {"top_tenth_pct": (1 - share(0.9)) * 100, "bottom_half_pct": share(0.5) * 100}
 
 
-def fill_sensitivity(closure: str) -> dict:
+def fill_sensitivity(closure: str, scenario: str = SCENARIO) -> dict:
     """max |hold - ss| over groups, by birth year, per key; and the first birth year above 0.01pp."""
-    par, _ = load(closure)
+    par, _ = load(closure, scenario)
     b = birth_years(par)
-    H, S_ = cev(closure, "hold"), cev(closure, "ss")
+    H, S_ = cev(closure, "hold", scenario=scenario), cev(closure, "ss", scenario=scenario)
     out = {}
-    for key in labels(closure):
+    for key in labels(closure, scenario):
         d = np.abs(H[key] - S_[key]).max(axis=1)
         out[key] = {"max_by_birth": d.tolist(), "first_birth_over_0p01": int(b[d > FILL_TINY_PP].min()),
                     "max": float(d.max())}

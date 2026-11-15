@@ -606,6 +606,7 @@ def korinek_results(cl: str) -> dict:
     k = "korinek"
     return {"labels": cwf.labels(cl, k), "R": cwf.cev(cl, scenario=k),
             "Rss": cwf.cev(cl, "ss", scenario=k), "NB": cwf.no_bequest_cev(cl, scenario=k),
+            "NBss": cwf.no_bequest_cev(cl, "ss", scenario=k), "fill": cwf.fill_sensitivity(cl, k),
             "recon": cwf.reconcile(cl, k), "recon_tr": cwf.reconcile_tr(cl, k),
             "gshort": {key: cwf.g_shortfall(cl, key, k) for key in cwf.labels(cl, k)}}
 
@@ -664,15 +665,21 @@ def emit_korinek(v: Values, CR: dict) -> None:
             key, pre = ("dn", a), f"CohKor{aword}Dn{cw}"
             lam, nb = K["R"][key], K["NB"][key]
             av = cwf.averages(par, lam)
-            v.signed(f"{pre}Avg", av["alive_all"])
-            v.put(f"{pre}LosingPct", cwf.losing_pct(par, lam), "{:.0f}")
-            v.signed(f"{pre}NoBeqAvg", cwf.averages(par, nb)["alive_all"])
-            v.put(f"{pre}NoBeqLosingPct", cwf.losing_pct(par, nb), "{:.0f}")
+            for nm, pair, avg_ in (("Avg", (lam, K["Rss"][key]), True),
+                                   ("LosingPct", (lam, K["Rss"][key]), False),
+                                   ("NoBeqAvg", (nb, K["NBss"][key]), True),
+                                   ("NoBeqLosingPct", (nb, K["NBss"][key]), False)):
+                xs = sorted(cwf.averages(par, l)["alive_all"] if avg_ else cwf.losing_pct(par, l)
+                            for l in pair)
+                for x, lh in zip(xs, ("Lo", "Hi")):
+                    v.signed(f"{pre}{nm}{lh}", x) if avg_ else v.put(f"{pre}{nm}{lh}", x, "{:.0f}")
+                lo, hi = v[f"{pre}{nm}Lo"], v[f"{pre}{nm}Hi"]
+                v.put(f"{pre}{nm}", lo if lo == hi else (f"{lo} to {hi}" if avg_ else f"{lo}--{hi}"))
             v.signed(f"{pre}Bottom", av["alive_by_group"][0])
             v.signed(f"{pre}TopOne", av["alive_by_group"][6])
             v.signed(f"{pre}Min", float(lam[alive].min()))
-            lose_all = [SHOCK - int(x) for x, row, ok in zip(b, lam, alive) if ok and (row < 0).all()]
-            v.put(f"{pre}AllLoseUpToAge", max(lose_all) if lose_all else "none", "{:.0f}")
+            la = cwf.all_lose_up_to_age(par, lam)
+            v.put(f"{pre}AllLoseUpToAge", la if la is not None else "none", "{:.0f}")
             v.put(f"{pre}GShortSsPctGdp", abs(K["gshort"][key]["ss_pct_gdp"]), "{:.2f}")
         g = [abs(K["gshort"][("dn", a)]["ss_pct_gdp"]) for a in ARMS]
         v.put(f"CohKorDn{cw}GShortSsPctGdpMin", min(g), "{:.1f}")
@@ -785,9 +792,10 @@ def emit_cohorts(v: Values, CR: dict) -> None:
         v.put(f"CohTrReconMaxRelDn{cw}", sci(max(x for k, x in recon_tr.items() if "_dn" in k)))
         v.put(f"CohTrReconMaxRelCommon{cw}", sci(max(x for k, x in X["recon_tr"].items() if "_dn" not in k)))
         v.put(f"CohIdentityMax{cw}", sci(max(X["ident"].values())))
-        fm = max(max(np.array(f["max_by_birth"])[b <= cwf.FIG_LAST_BIRTH]) for f in X["fill"].values())
-        v.put(f"CohFillMaxPp{cw}", fm, "{:.2f}")
-        v.put(f"CohFillFirstBirth{cw}", min(f["first_birth_over_0p01"] for f in X["fill"].values()), "{:.0f}")
+        for pre_, fills in (("Coh", X["fill"].values()), ("CohKor", X["kor"]["fill"].values())):
+            fm = max(max(np.array(f["max_by_birth"])[b <= cwf.FIG_LAST_BIRTH]) for f in fills)
+            v.put(f"{pre_}FillMaxPp{cw}", fm, "{:.2f}")
+            v.put(f"{pre_}FillFirstBirth{cw}", min(f["first_birth_over_0p01"] for f in fills), "{:.0f}")
         tx = cwf.tax_rates(cl)
         v.put(f"CohTaxIncPct{cw}", tx["income"] * 100, "{:.1f}")
         v.put(f"CohTaxConsPct{cw}", tx["consumption"] * 100, "{:.0f}")
@@ -1285,12 +1293,13 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
             if v[f"CohKor{ARMS[a]}Dn{cw_}LosingPct"] == "0" and a != "tfp":
                 fail.append(f"'Korinek {a}: some adults lose' fails: {cl_}")
         if cl_ == "zk0.1":
-            if v["CohKorStressDnCentralAllLoseUpToAge"] == "none":
+            la = cwf.all_lose_up_to_age(par_, K["R"][("dn", "stress")])
+            if la is None or str(la) != v["CohKorStressDnCentralAllLoseUpToAge"]:
                 fail.append("'Korinek stress test: every group aged ... or younger loses' fails")
             for a in ARMS:
-                uk = abs(Xc["rob"][("dn", a)]["charged"]["g_shortfall"]["ss_pct_gdp"]) if "charged" in Xc["rob"][("dn", a)] else None
+                uk = abs(cwf.g_shortfall(cl_, ("dn", a))["ss_pct_gdp"])
                 ko = abs(K["gshort"][("dn", a)]["ss_pct_gdp"])
-                if uk is not None and not ko > uk:
+                if not ko > uk:
                     fail.append(f"'Korinek's uncharged cost is larger than UK central's' fails: {a}")
     if any("Korinek" in x for x in re.findall(r"\\pending\{([^}]*)\}", INCIDENCE_TEX.read_text())):
         fail.append("the Korinek cohort results are in but incidence.tex still has its \\pending note")
