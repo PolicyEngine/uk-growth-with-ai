@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
-import { downloadCsv, downloadPng, downloadSvg } from '@/lib/download.js';
+import { downloadCsv, downloadPng, downloadSvg, fromSvgEl } from '@/lib/download.js';
 
 const FORMATS = [
   { id: 'csv', name: 'CSV', detail: 'Data' },
@@ -11,15 +11,21 @@ const FORMATS = [
 ];
 
 // One download menu per chart card (AB2026 ChartDownloadMenu): an icon
-// button that opens a short list. `table` gives the CSV; the image formats
-// export the card's own SVG plot, so they show only when it has one.
-export default function DownloadMenu({ title, context, table, legend, cardRef }) {
+// button that opens a short list. `table` gives the CSV. The image formats
+// export the card's own SVG plot(s) (each panel under its caption), or, for
+// a chart drawn in HTML, `svg()`: the same chart drawn from the data.
+export default function DownloadMenu({ title, context, table, legend, svg, cardRef }) {
   const [open, setOpen] = useState(false);
   const [hasSvg, setHasSvg] = useState(false);
   const root = useRef(null);
   const button = useRef(null);
   const menuId = useId();
-  const plot = () => cardRef.current?.querySelector('.chart-plot svg[role="img"]');
+  const plots = () => {
+    if (svg) return svg();
+    const els = [...(cardRef.current?.querySelectorAll('.chart-plot svg[role="img"]') ?? [])];
+    if (!els.length) return null;
+    return els.map((el) => fromSvgEl(el, els.length > 1 ? el.closest('figure')?.querySelector('[data-panel-title]')?.textContent.trim() : undefined));
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -45,8 +51,8 @@ export default function DownloadMenu({ title, context, table, legend, cardRef })
     const frame = { title, context: typeof context === 'function' ? context() : context, legend: typeof legend === 'function' ? legend() : legend };
     try {
       if (id === 'csv') downloadCsv({ ...frame, table: typeof table === 'function' ? table() : table });
-      else if (id === 'svg') downloadSvg(plot(), frame);
-      else await downloadPng(plot(), frame);
+      else if (id === 'svg') downloadSvg(plots(), frame);
+      else await downloadPng(plots(), frame);
     } finally {
       setOpen(false);
     }
@@ -64,7 +70,7 @@ export default function DownloadMenu({ title, context, table, legend, cardRef })
         aria-label={`Download: ${title}`}
         title="Download"
         onClick={() => {
-          setHasSvg(Boolean(plot()));
+          setHasSvg(Boolean(svg || cardRef.current?.querySelector('.chart-plot svg[role="img"]')));
           setOpen((o) => !o);
         }}
       >

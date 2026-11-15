@@ -3,6 +3,8 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
@@ -87,18 +89,80 @@ function DotTip({ arm, closure, measure, value }) {
 export const ON_SUMMARY = { arm: 'tfp', measures: ['Y', 'w', 'GNI'] };
 const onSummary = (arm, v) => arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
 
-export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central' }) {
+// The axis both drawings share: half-width D (room for the labels beyond
+// the outer dots) and the ticks.
+function dumbbellScale(sid, arms, closure) {
   const shown = ARMS.filter((a) => arms.includes(a.id));
   const showC = closure !== 'closed';
   const showB = closure !== 'central';
   const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? gap(sid, a.id, CENTRAL, m.v) : null, showB ? gap(sid, a.id, BOUND, m.v) : null])).filter((x) => x != null);
   const top = niceMax(Math.max(0.25, ...vals.map(Math.abs)));
-  const D = top * 1.6; // room for the labels beyond the outer dots
-  const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
+  const D = top * 1.6;
   const step = [0.1, 0.25, 0.5, 1, 2, 5].find((st) => top / st <= 2.5) ?? top;
   const ticks = [];
   for (let t = -Math.floor(top / step) * step; t <= top + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
-  const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%`);
+  return { shown, showC, showB, D, ticks };
+}
+const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%`);
+
+// The same chart drawn as SVG from the data, for the PNG and SVG downloads
+// (the page draws it in HTML). Every value is printed here, the main arm's
+// too: the file stands alone.
+export function dumbbellSvg(sid, arms, closure) {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure);
+  const W = 1000;
+  const x0 = 400;
+  const x1 = W - 10;
+  const X = (v) => x0 + ((v + D) / (2 * D)) * (x1 - x0);
+  const ROW = 26;
+  const GAP = 14;
+  const C = CHART_COLOURS;
+  let y = 8;
+  let out = '';
+  const groupsTop = y;
+  for (const m of MEASURES) {
+    const gTop = y;
+    out += `<text x="0" y="${gTop + 16}" font-size="13" font-weight="600" fill="${C.ink}">${esc(m.label)}</text>`;
+    out += `<text x="0" y="${gTop + 32}" font-size="11" fill="${C.muted}">${esc(m.sub)}</text>`;
+    for (const a of shown) {
+      const cy = y + ROW / 2;
+      const col = cssColour(ARM_COLOR[a.id]);
+      const txt = cssColour(ARM_TEXT_COLOR[a.id]);
+      out += `<line x1="200" x2="214" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="2.5"/>`;
+      out += `<text x="220" y="${cy + 4}" font-size="11" fill="${C.axisTitle}">${esc(a.short || a.label)}</text>`;
+      const c = showC ? gap(sid, a.id, CENTRAL, m.v) : null;
+      const b = showB ? gap(sid, a.id, BOUND, m.v) : null;
+      const main = showC ? c : b;
+      if (main == null) {
+        out += `<text x="${X(0) + 8}" y="${cy + 4}" font-size="11" fill="${C.muted}">pending</text>`;
+      } else {
+        if (b != null && c != null) out += `<line x1="${X(b)}" x2="${X(c)}" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="3" opacity="0.5"/>`;
+        if (b != null) out += `<rect x="${X(b) - 4.5}" y="${cy - 4.5}" width="9" height="9" transform="rotate(45 ${X(b)} ${cy})" fill="${C.surface}" stroke="${col}" stroke-width="2"/>`;
+        if (c != null) out += `<circle cx="${X(c)}" cy="${cy}" r="5.5" fill="${col}"/>`;
+        const right = main >= 0 || Math.abs(main) < 0.005;
+        const outer = b == null ? c : c == null ? b : right ? Math.max(b, c) : Math.min(b, c);
+        const label = showC && showB ? `${fmt(c)} · closed ${fmt(b)}` : fmt(main);
+        out += `<text x="${X(outer) + (right ? 10 : -10)}" y="${cy + 4}" font-size="12" font-weight="700" text-anchor="${right ? 'start' : 'end'}" fill="${txt}">${esc(label)}</text>`;
+      }
+      y += ROW;
+    }
+    y = Math.max(y, gTop + 40) + GAP;
+    out += `<line x1="0" x2="${W}" y1="${y - GAP / 2}" y2="${y - GAP / 2}" stroke="${C.grid}"/>`;
+  }
+  out = `<line x1="${X(0)}" x2="${X(0)}" y1="${groupsTop}" y2="${y - GAP / 2}" stroke="${C.zeroLine}"/>` + out;
+  for (const t of ticks) out += `<text x="${X(t)}" y="${y + 14}" font-size="11" text-anchor="middle" fill="${C.tick}">${tickText(t)}</text>`;
+  return { w: W, h: y + 24, markup: out };
+}
+
+export function dumbbellLegend(arms, closure) {
+  const keys = ARMS.filter((a) => arms.includes(a.id)).map((a) => ({ label: a.short || a.label, color: cssColour(ARM_COLOR[a.id]) }));
+  if (closure === 'both') keys.push({ label: 'Circle: central closure, diamond: closed capital', color: CHART_COLOURS.muted, shape: 'dot' });
+  return keys;
+}
+
+export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central' }) {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure);
+  const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
   const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y') != null;
 
   return (

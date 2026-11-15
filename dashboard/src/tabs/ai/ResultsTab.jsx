@@ -10,7 +10,7 @@ import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side } from '@/tabs/ai/lines.js';
-import { Dumbbells, StressNote, dumbbellTable } from '@/tabs/ai/Headline.jsx';
+import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import Summary from '@/tabs/ai/Landing.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 
@@ -201,6 +201,8 @@ function IncomePanel({ sid }) {
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
             context: () => contextLine(sid, st.closure, '% difference from the OBR-central path'),
             table: () => dumbbellTable(sid, st.arms, st.closure),
+            svg: () => dumbbellSvg(sid, st.arms, st.closure),
+            legend: () => dumbbellLegend(st.arms, st.closure),
           }}
         >
           <Dumbbells sid={sid} arms={st.arms} closure={st.closure} />
