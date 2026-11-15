@@ -1,6 +1,10 @@
 # Results sanity audit: the 2028-surprise solves
 
-Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04). The rule applied: every result must make sense in size and direction, and if it does not, the cause is found and stated.
+Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04).
+
+> **Refreshed 15 Nov 2026 at `98e3381`** (see "Refresh 15 Nov 2026" near the end). The solves of 13–14 Nov add UK low and UK high at ζK = 0 and 0.5, fixed spending, and debt-neutral Korinek. There are now **two** wrong cells under the common rule, not one. The second is the UK high main arm at ζK = 0, where tax/GDP rises 0.08pp, as section 8 predicted. Both come from the same mechanism (A6). Across every variant: 746 consistent, 202 surprising-but-explained, 4 wrong, all four A6.
+
+The rule applied: every result must make sense in size and direction, and if it does not, the cause is found and stated.
 
 - **Audited:** 21 solve records in `analysis/surprise/output/{zk0.1,zk0}/`. That is 2 continuations and 19 arm solves: 18 reported arms and one rejected R4 iteration (`korinek_share_shift_ramp_r4_1` at ζK = 0.1).
 - **Not solved at this commit:** UK low and UK high at ζK = 0, in the verdict table as "not solved"; and every debt-neutral and fixed-spending variant.
@@ -1095,6 +1099,65 @@ Recomputed from the exported series for all 10 records.
 | 2028 consumption % | < 0 (more saving on the news) | +1.16 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.27 | consistent | < 0 (more saving on the news) | -1.83 | consistent |
 | 2036 GDP % | > 0 | +9.64 | consistent | small, sign open | +4.85 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.289 | surprising-but-explained (A8) |
 | 2036 debt/GDP, pp | sign open under the G/Y rule | -0.82 | surprising-but-explained (A4) | > 0 | +4.35 | consistent | > 0 | +10.36 | consistent |
+
+## Refresh 15 Nov 2026 (solves of 13–14 Nov)
+
+Audited at `98e3381` on `rerun/surprise-2028` (14 Nov 2026, 03:53), with the same script and three rule changes (below). No solve was run and nothing under `analysis/surprise/output` was changed. **This is a snapshot.** Korinek fixed spending at ζK = 0 has 1 of 3 arms. The other two were being solved when this audit ran, so these counts will change when they land.
+
+- **New in this pass (31 solve records: 30 in the design, plus one `_dnfull`):**
+  - UK low and UK high at ζK = 0: three arms each.
+  - UK low at ζK = 0.5: the main arm, technology unchanged, and two stress-test iterations.
+  - UK high at ζK = 0.5: the main arm only.
+  - Fixed spending (`_fs`): UK central at ζK = 0.1 and ζK = 0; Korinek at ζK = 0.1 (all arms) and at ζK = 0 (main arm only).
+  - Debt-neutral (`_dn`): Korinek at ζK = 0.1 and ζK = 0.
+- **Failed, not just unsolved:** UK high "technology unchanged" at ζK = 0.5 (`b50073b`, log only). Its stress test was never started. The 34 "not solved" cells in the common-rule table are these two arms.
+- **Outside the design, not audited:** `uk_central_share_shift_tfp_ramp_dnfull` at ζK = 0.1 (debt-neutral to the horizon). The script's `in_design` pattern excludes `_dnfull`. Debt-neutral and fixed spending were not run for UK low or UK high.
+
+### Result
+
+| cells | consistent | surprising-but-explained | wrong | not solved |
+|---|---|---|---|---|
+| Common rule, all three closures, rules as they stood | 440 | 136 | 2 | 34 |
+| Common rule, after this pass (no change) | 440 | 136 | 2 | 34 |
+| Debt-neutral (UK central, Korinek; ζK 0.1 and 0), rules as they stood | 168 | 34 | 2 | – |
+| Debt-neutral, after this pass | 168 | 35 | 1 | – |
+| Fixed spending (UK central, Korinek; ζK 0.1 and 0), rules as they stood | 138 | 29 | 3 | – |
+| Fixed spending, after this pass | 138 | 31 | 1 | – |
+| **All audited cells, after this pass** | **746** | **202** | **4** | |
+
+Rows without a solve are left out of the variant counts.
+
+- **Earlier verdicts are unchanged.** All 163 verdict rows published in the passes above come out identical, line for line, from the new script. UK central debt-neutral is still 85 / 17 / 0, and ζK = 0.5 for UK central and Korinek is still 74 / 28 / 0.
+- **Orderings:** section 9 (`--mono`) reports no break. The only listed exceptions are the documented A1 cases: technology unchanged below the stress test at ζK = 0. They now cover UK low, UK high, and UK central under fixed spending as well.
+- **Identities** hold in every new record to the same tolerances as in section 1. The worst error is 1.9e-5 for the return equation and 4.6e-6 for the resource constraint.
+
+### The four wrong cells: one mechanism (A6)
+
+All four are tax/GDP rising in 2031 in the main arm at ζK = 0.
+
+| run | tax/GDP 2031, pp | payroll | income tax + NICs | business | consumption | positive from |
+|---|---|---|---|---|---|---|
+| Korinek, common rule (known) | +0.21 | −0.59 | +0.41 | +0.71 | −0.30 | 2029 |
+| **UK high, common rule (new)** | **+0.08** | −0.44 | +0.20 | +0.51 | −0.20 | 2030 |
+| Korinek, debt-neutral (new) | +0.21 | −0.59 | +0.42 | +0.71 | −0.32 | 2029 |
+| Korinek, fixed spending (new) | +0.16 | −0.59 | +0.40 | +0.71 | −0.33 | 2029 |
+
+- **UK high was predicted.** Section 8's linear rule gives +0.08pp for UK high's TFP/share ratio of 0.55, and the solve gives +0.080. That ratio is above the break-even of about 0.3. The cause is the same as for Korinek: the single income-tax schedule taxes the extra household capital income, and business tax rises, against a smaller fall in payroll tax.
+- UK low (ratio 0.29) is −0.001pp in 2031 and positive from 2032, like UK central. That is under half the OBR's figure, so it counts as explained (A6), not wrong.
+- The fiscal variant barely moves the tax ratio. That is expected, since both variants change spending and transfers, not tax rules.
+- Vahid's 12 Nov decision covers all four: keep and report, no rerun. The caveat (fix 3) now has to name UK high as well as Korinek wherever ζK = 0 fiscal results appear.
+
+### Rule changes in this pass (made after reading the results)
+
+1. **Fixed-spending closure check: reference changed.** OG-Core's `baseline_spending` holds G and TR at the committed baseline's levels (`baseline_ext.json`), not the continuation's. The old check compared with the continuation and failed all 12 `_fs` records at 4–5e-6 against a tolerance of 1e-6. That gap is the continuation's own solver error against the baseline: 5.2e-6 at ζK = 0.1 and 4.8e-6 at ζK = 0. Against `baseline_ext`, G and TR match **exactly (0)** in 2028–35 in every `_fs` record. The tolerance is unchanged. In 2036, G moves (it is up 1.8% for UK central and 35% for Korinek in the main arm), because 2036 is the debt rule's first year (A9).
+2. **A14 extended to fixed spending.** Under "technology unchanged" at ζK = 0.1, debt/GDP is *lower* in 2031: −0.08pp for UK central and −0.46pp for Korinek. The old rule expected "> 0", which was carried over from the common rule. With G and TR fixed in levels and GDP up 0.51% and 1.45%, the spending ratio falls. The test is A14's own: debt is higher and GDP has risen by more. Both cells pass it. Both turn positive by 2036 (+1.14pp and +2.12pp), as debt reprices (A4). At ζK = 0, where GDP is about 0 (−0.02%), debt/GDP is +0.62pp, as the old rule expected.
+3. **A17 (new): 2028 labour can fall under debt-neutral transfers.** In the Korinek main arm at ζK = 0.1, labour is −0.05% in 2028, against +0.07% under the common rule. The debt-neutral rule holds debt/GDP from 2029. Because GDP is higher, it lets transfers *rise* early: +36% in 2028 against +1.2% under the common rule. That is an income effect on the news. The rule: explained only if debt-neutral transfers are above the common rule's over 2028–31 (sum of the % gaps). Across all 13 debt-neutral solves that have a common-rule counterpart, the sign of (debt-neutral − common) 2028 labour is the opposite of the sign of that transfer difference. Only the two Korinek main arms have higher transfers (sum of % gaps +40.1 at ζK = 0.1 and +18.3 at ζK = 0), and only they have less labour than under the common rule. At ζK = 0 labour still rises (+0.17%), so only the ζK = 0.1 cell needed the rule.
+
+### Newly landed common-rule solves
+
+- **UK low and UK high at ζK = 0** follow UK central and Korinek. GDP gaps are +0.18% and +1.55% in the main arm. Technology unchanged is −0.02% and −0.05% (A1). The stress test holds GDP to within 0.001pp.
+- **UK low at ζK = 0.5** follows the other ζK = 0.5 results (A13–A16). The 2028 labour and consumption signs flip in the main arm (A15). Debt/GDP under technology unchanged falls in 2031 (−0.37pp, A14). Tax/GDP is −0.25pp, about 0.35 per point of share fall (A16).
+- **UK high main arm at ζK = 0.5:** GDP +6.05%, wage +1.51%, tax/GDP −1.04pp. It is in order between UK central and Korinek on every row in section 9.
 
 ## What this audit did not do
 

@@ -208,6 +208,8 @@ def sec_variants(runs):
     bad = []
     for c in CLOSURES:
         d = runs[c]
+        bse = json.load(open(os.path.join(OUT, c, "baseline_ext.json")))["series"]
+        bx = lambda x: np.array(bse[x], dtype=float)
         for n in d:
             v = variant(n)
             if not v:
@@ -215,8 +217,10 @@ def sec_variants(runs):
             f = lambda k, x: S(d, k, x)
             dy = f(n, "D") / f(n, "Y") / (f("continuation", "D") / f("continuation", "Y")) - 1
             e_dn = float(np.max(np.abs(dy[IX[2029]:])))
-            e_g = float(np.max(np.abs(f(n, "G") / f("continuation", "G") - 1)[IX[2028]:IX[2036]]))
-            e_tr = float(np.max(np.abs(f(n, "TR") / f("continuation", "TR") - 1)[IX[2028]:IX[2036]]))
+            # baseline_spending holds G and TR at the committed baseline's levels (baseline_ext.json), not the
+            # continuation's; the two differ by the continuation's solver error (~5e-6), so compare with the baseline
+            e_g = float(np.max(np.abs(f(n, "G") / bx("G") - 1)[IX[2028]:IX[2036]]))
+            e_tr = float(np.max(np.abs(f(n, "TR") / bx("TR") - 1)[IX[2028]:IX[2036]]))
             i = IX[2031]
             gy = 100 * ((f(n, "G") / f(n, "Y"))[i] - (f("continuation", "G") / f("continuation", "Y"))[i])
             ty = 100 * ((f(n, "TR") / f(n, "Y"))[i] - (f("continuation", "TR") / f("continuation", "Y"))[i])
@@ -878,9 +882,13 @@ def verdict(c, s, a, v, x, m, var=""):
         return ("surprising-but-explained", "A13") if ok else ("WRONG", "")
     if v in ("Y", "Y36") and a == "zfixed":
         return "consistent", ""
-    if v == "debt_pp" and a == "zfixed" and var == "" and x <= 0:
+    if v == "debt_pp" and a == "zfixed" and var in ("", "fs") and x <= 0:
         # the ratio falls. Explained only if debt itself is higher and GDP has risen by more
         return ("surprising-but-explained", "A14") if 0 < m["D"][i] < m["Y"][i] else ("WRONG", "")
+    if v == "L28" and var == "dn" and x <= 0:
+        # A17: the debt-neutral rule front-loads transfers in 2028-31. Explained only if transfers over 2028-31
+        # are above the common rule's same arm (sum of % gaps), the income effect that lowers labour on the news
+        return ("surprising-but-explained", "A17") if m.get("tr_dn_minus_common", -1) > 0 else ("WRONG", "")
     if v in ("L28", "C28") and a == "tfp" and ((x <= 0) if v == "L28" else (x >= 0)):
         # the news-year signs flip. Explained only if the wage is above the no-shock path in 2028 and 2031
         return ("surprising-but-explained", "A15") if m["w"][i] > 0 and m["w"][IX[2028]] > 0 else ("WRONG", "")
@@ -937,6 +945,11 @@ def sec_verdict(runs):
                 print("| gap (2031 unless stated) | " + " | ".join(f"{ARM_NAME[a]}: expected | model | verdict" for a in ARMS) + " |")
                 print("|---|" + "---|---|---|" * 3)
                 ms = {a: measures(d, ns[a]) if ns[a] else None for a in ARMS}
+                if var == "dn":
+                    for a in ARMS:
+                        nc = pick(runs, c, s, a, "")
+                        if ns[a] and nc:
+                            ms[a]["tr_dn_minus_common"] = float(np.sum((gap(d, ns[a], "TR") - gap(d, nc, "TR"))[IX[2028]:IX[2031] + 1]))
                 for v, src, yr in ROWS:
                     row = [LABEL[v]]
                     for a in ARMS:
