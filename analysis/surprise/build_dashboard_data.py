@@ -41,8 +41,9 @@ SCENARIOS = [
 # default-rule loop or count picks them up. Only the listed scenarios have
 # solves; a variant arm is shown only with its sanity pass and, for the
 # debt-neutral rule, its debt/GDP check (dn_check.ok), as paper/make_values.py
-# requires. Fixed spending (`_fs`) has no surprise solve and is not listed.
-RULE_VARIANTS = [("debt_neutral", "dn", "Debt-neutral", ["uk_central"])]
+# requires. Fixed spending (`_fs`) holds G and TR at the baseline's levels.
+RULE_VARIANTS = [("debt_neutral", "dn", "Debt-neutral", ["uk_central"]),
+                 ("fixed_spending", "fs", "Fixed spending", ["uk_central"])]
 # Order everywhere: the main arm, then technology unchanged, then the stress
 # test. "tz" is the fixed-input Z solve (`_zfixed`): the labour share shifts
 # with Z at the value that leaves output at the baseline's 2027 inputs
@@ -93,7 +94,7 @@ def git_sha():
 
 def fill(dest, cl, done, sanities, ref, variant, sid):
     """Write one scenario's three arms at closure `cl` into dest[arm][cl];
-    returns the number shown. `variant` is False (default rule) or "dn"."""
+    returns the number shown. `variant` is False (default rule), "dn" or "fs"."""
     b, n = ref["series"], 0
     k = sp._keys(variant, sid)
     recs = {"tfp": done.get(k["tfp"]), "tz": done.get(k["zfixed"]),
