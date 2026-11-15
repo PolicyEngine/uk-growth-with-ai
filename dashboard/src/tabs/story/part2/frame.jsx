@@ -39,7 +39,9 @@ export function scales(xs, values) {
   let lo = Math.min(0, ...finite);
   let hi = Math.max(0, ...finite);
   const pad = (hi - lo || 1) * 0.08;
-  lo -= lo < 0 ? pad : 0;
+  // below zero: the same pad, or room for the zero line's label when no
+  // value is negative
+  lo -= lo < 0 ? pad : (hi - lo || 1) * 0.1;
   hi += pad;
   const { ticks, step } = niceTicks(lo, hi);
   lo = Math.min(lo, ticks[0]);

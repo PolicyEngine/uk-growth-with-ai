@@ -1,6 +1,6 @@
 {
- "generated_utc": "2026-11-15T12:29Z",
- "source_commit": "b0a20a4",
+ "generated_utc": "2026-11-15T19:53Z",
+ "source_commit": "0723d03",
  "years": [
   2026,
   2027,
@@ -12704,5 +12704,131 @@
   }
  },
  "solves_done": 24,
+ "output_split": {
+  "year": 2031,
+  "arm": "tfp",
+  "parts": [
+   {
+    "id": "labour",
+    "label": "Labour income"
+   },
+   {
+    "id": "domestic",
+    "label": "Net capital income kept in the UK"
+   },
+   {
+    "id": "foreign",
+    "label": "Paid to foreign owners of UK capital and gilts"
+   },
+   {
+    "id": "depreciation",
+    "label": "Depreciation"
+   }
+  ],
+  "baseline": {
+   "zk0.1": {
+    "labour": 64.99974977065725,
+    "domestic": 16.31637890061143,
+    "foreign": 1.5810742102405824,
+    "depreciation": 17.10279711849074
+   },
+   "zk0": {
+    "labour": 64.99987916946351,
+    "domestic": 17.895742741032077,
+    "foreign": 0.5608169162160143,
+    "depreciation": 16.54356117328839
+   }
+  },
+  "change": {
+   "uk_low": {
+    "zk0.1": {
+     "status": "done",
+     "label": "uk_low_share_shift_tfp_ramp",
+     "gdp": 0.41474242226647556,
+     "labour": -0.43333399000186473,
+     "domestic": 0.5489809166412865,
+     "foreign": 0.15010360832967645,
+     "depreciation": 0.14899188729737742,
+     "gross_capital": 0.8480764122683404
+    },
+    "zk0": {
+     "status": "done",
+     "label": "uk_low_share_shift_tfp_ramp",
+     "gdp": 0.1832162490277033,
+     "labour": -0.5821982146644834,
+     "domestic": 0.6872052548216844,
+     "foreign": 0.02953998569684082,
+     "depreciation": 0.04866922317366151,
+     "gross_capital": 0.7654144636921867
+    }
+   },
+   "uk_central": {
+    "zk0.1": {
+     "status": "done",
+     "label": "uk_central_share_shift_tfp_ramp",
+     "gdp": 0.9174441523309712,
+     "labour": -1.0183607608481597,
+     "domestic": 1.2372795689348173,
+     "foreign": 0.3542188230903888,
+     "depreciation": 0.34430652115392485,
+     "gross_capital": 1.935804913179131
+    },
+    "zk0": {
+     "status": "done",
+     "label": "uk_central_share_shift_tfp_ramp",
+     "gdp": 0.36630657944828326,
+     "labour": -1.3677753149082796,
+     "domestic": 1.5562650485090301,
+     "foreign": 0.06774256175534103,
+     "depreciation": 0.11007428409219179,
+     "gross_capital": 1.734081894356563
+    }
+   },
+   "uk_high": {
+    "zk0.1": {
+     "status": "done",
+     "label": "uk_high_share_shift_tfp_ramp",
+     "gdp": 2.7389993364120047,
+     "labour": -1.1990719926806184,
+     "domestic": 2.4858752438116265,
+     "foreign": 0.7529192802626554,
+     "depreciation": 0.6992768050183412,
+     "gross_capital": 3.9380713290926233
+    },
+    "zk0": {
+     "status": "done",
+     "label": "uk_high_share_shift_tfp_ramp",
+     "gdp": 1.5505463971497642,
+     "labour": -1.9371313410062903,
+     "domestic": 3.1442436319703435,
+     "foreign": 0.13206708963003078,
+     "depreciation": 0.21136701655567985,
+     "gross_capital": 3.487677738156054
+    }
+   },
+   "korinek": {
+    "zk0.1": {
+     "status": "done",
+     "label": "korinek_share_shift_tfp_ramp",
+     "gdp": 4.89039260069409,
+     "labour": -0.9119328119598501,
+     "domestic": 3.616848834312096,
+     "foreign": 1.1545239696745675,
+     "depreciation": 1.0309526086672764,
+     "gross_capital": 5.80232541265394
+    },
+    "zk0": {
+     "status": "done",
+     "label": "korinek_share_shift_tfp_ramp",
+     "gdp": 3.0473214084082567,
+     "labour": -2.0381040793315854,
+     "domestic": 4.600433460642443,
+     "foreign": 0.18796596445441016,
+     "depreciation": 0.29702606264298875,
+     "gross_capital": 5.085425487739841
+    }
+   }
+  }
+ },
  "solves_total": 24
 }

@@ -137,6 +137,60 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
     return n
 
 
+# Where output goes in the headline year (story part 2's Sankey and
+# waterfall): GDP split into four parts from the solve's own series, so the
+# parts add up to GDP exactly. Labour income = w L; payments to foreign
+# owners of UK capital and gilts = Y - GNI (GNI = Y - r_p (K_f + D_f));
+# depreciation = GNI - NNI (= delta K); domestic net capital income, the
+# rest = NNI - w L. Shares are of the OBR-central path's GDP (the closure's
+# no-shock reference); changes are scenario minus reference, in % of the
+# reference's GDP. Main arm, default (common) rule only.
+SPLIT_PARTS = [("labour", "Labour income"),
+               ("domestic", "Net capital income kept in the UK"),
+               ("foreign", "Paid to foreign owners of UK capital and gilts"),
+               ("depreciation", "Depreciation")]
+
+
+def split_levels(x, i):
+    lab = x["w"][i] * x["L"][i]
+    return {"gdp": x["Y"][i], "labour": lab, "domestic": x["NNI"][i] - lab,
+            "foreign": x["Y"][i] - x["GNI"][i], "depreciation": x["GNI"][i] - x["NNI"][i]}
+
+
+def output_split(results, year=HEADLINE):
+    i = YEARS.index(year)
+    out = {"year": year, "arm": "tfp", "parts": [{"id": k, "label": l} for k, l in SPLIT_PARTS],
+           "baseline": {}, "change": {sid: {} for sid, *_ in SCENARIOS}}
+    for cl, *_ in CLOSURES:
+        try:
+            b = sp.reference_ext(OUT_DIR, cl)["series"]
+        except Exception:
+            out["baseline"][cl] = None
+            for sid, *_ in SCENARIOS:
+                out["change"][sid][cl] = {"status": "pending"}
+            continue
+        lb = split_levels(b, i)
+        sh = {k: lb[k] / lb["gdp"] * 100 for k, _ in SPLIT_PARTS}
+        assert all(v > 0 for v in sh.values()), (cl, sh)
+        assert abs(sum(sh.values()) - 100) < 1e-9, (cl, sh)
+        out["baseline"][cl] = sh
+        for sid, *_ in SCENARIOS:
+            r = results[sid]["tfp"][cl]
+            if r["status"] != "done":
+                out["change"][sid][cl] = {"status": "pending"}
+                continue
+            s = json.loads((OUT_DIR / cl / f"{r['label']}.json").read_text())["series"]
+            ls = split_levels(s, i)
+            ch = {k: (ls[k] - lb[k]) / lb["gdp"] * 100 for k in ls}
+            assert abs(sum(ch[k] for k, _ in SPLIT_PARTS) - ch["gdp"]) < 1e-9, (sid, cl)
+            # the GDP change is the GDP gap the results already hold
+            assert abs(ch["gdp"] - r["gaps"]["Y"][i]) < 1e-9, (sid, cl)
+            assert all(v > 0 for k, v in split_levels(s, i).items()), (sid, cl)
+            ch["gross_capital"] = ch["domestic"] + ch["foreign"] + ch["depreciation"]
+            out["change"][sid][cl] = {"status": "done", "label": r["label"], **ch}
+    return out
+
+
 def main():
     targets = json.loads((ROOT / "analysis" / "surprise" / "uk_targets.json").read_text())["scenarios"]
     closures, results, n_done = {}, {sid: {a: {} for a, *_ in ARMS} for sid, *_ in SCENARIOS}, 0
@@ -195,6 +249,7 @@ def main():
         "scenarios": scen, "arms": [{"id": a, "label": l, "short": sh} for a, l, sh in ARMS],
         "closures": closures, "results": results, "rules": rules, "sensitivity": sensitivity,
         "solves_done": n_done,
+        "output_split": output_split(results),
         "solves_total": len(SCENARIOS) * len(ARMS) * len(CLOSURES),
     }
     DEST.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")
