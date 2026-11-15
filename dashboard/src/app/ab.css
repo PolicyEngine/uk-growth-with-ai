@@ -3696,9 +3696,10 @@ ul.disclosure-text {
   color: var(--pe-gray-700);
 }
 
+/* a direction glyph, not a gain or a loss: neutral ink */
 .mx-fixed svg {
   flex: none;
-  color: var(--pe-teal-700);
+  color: var(--pe-gray-700);
 }
 
 .mx-fixed > span {

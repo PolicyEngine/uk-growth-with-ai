@@ -3,8 +3,7 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { Unpublished } from '@/components/ab/Section.jsx';
-import Card, { SectionHeading, IconLine, InfoCard } from '@/components/ui/Card.jsx';
-import { pr } from '@/tabs/ai/links.js';
+import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
@@ -332,7 +331,7 @@ function FiscalRuleCard({ sid }) {
         shows: `The ${HEADLINE_YEAR} gap under the rule chosen less the gap under the common fiscal rule, in percentage points, for the closure chosen at the top of the page. Positive: the rule raises the measure against the common rule.`,
         caveats: `Under debt-neutral transfers, debt/GDP stays on the OBR-central path to ${LATE_YEAR} by construction.`,
       }}
-      aboutTitle="About this table"
+      aboutTitle={rule === 'common' ? 'About this card' : 'About this table'}
       method="rules"
       download={has ? { title: `${HEADLINE_YEAR} gaps: ${ruleLabel(rule).toLowerCase()} against the common rule`, context: () => contextLine(sid, st.closure, 'percentage points', rule), table: () => ruleTable(rule, sid, st.closure) } : undefined}
     >
@@ -423,17 +422,6 @@ export default function FinancesSection({ sid }) {
       <div className="cards-stack stack-gap">
         <TaxGapCard sid={sid} closure={st.closure} rule={st.rule} />
         <FiscalRuleCard sid={sid} />
-        <InfoCard icon="percent" title="Debt repriced at the OBR's speed (open pull request)" id="debt-repricing">
-          <p>
-            The model reprices all government debt at the new interest rate at once. An open pull request,{' '}
-            <a href={pr(43)} target="_blank" rel="noreferrer">
-              PR #43
-            </a>
-            , redoes the debt path with the rate reaching the debt stock at the speed of the OBR&rsquo;s debt interest ready reckoner. Its
-            finding is stated in words in the debt card above (Details); its figures will appear here once the pull request commits them as
-            a data file.
-          </p>
-        </InfoCard>
       </div>
     </>
   );

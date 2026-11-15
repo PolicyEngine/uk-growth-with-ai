@@ -36,6 +36,8 @@ export const DEFAULTS = {
 
 // Addresses from before the redesign keep working. Each entry points at a
 // final address: [tab, sub, anchor].
+// The hash keys below and ALIAS's keys are also listed in layout.tsx's
+// NAV_PENDING script, which hides the Story while an old address resolves.
 const LEGACY_TAB = {
   cohorts: ['explore', 'who'],
   literature: ['method', 'studies'],
@@ -106,6 +108,10 @@ export function parseUrl(search, hash = '') {
     if (old) {
       [tab, sub = sub] = old;
       if (own(LEGACY_TAB, h) || own(LEGACY_TAB, h.split('/')[0])) anchor = null;
+    } else if (!q.get('tab') && own(ALIAS, h.split('/')[0])) {
+      // an old hash address naming a tab from before the consolidation
+      // (#scenarios, #code, #who, #results, #studies)
+      [tab, sub, anchor] = resolve(h.split('/')[0], null, null);
     } else tab = sub && tabById('explore').subs.some((x) => x.id === sub) ? 'explore' : DEFAULTS.tab;
   }
   const subs = tabById(tab).subs;

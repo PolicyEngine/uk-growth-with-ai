@@ -879,9 +879,13 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   margin-top: 20px;
   font-size: var(--fs-body);
 }
-.icon-line.cause-effect.is-main,
-.icon-line.cause-effect.is-main > .plain-icon {
-  color: var(--c-loss-text);
+/* model caveats (which way the missing channel would move the figure), not
+   a gain or a loss: neutral ink */
+.icon-line.cause-effect,
+.icon-line.cause-effect > .plain-icon {
+  color: var(--pe-gray-700);
+}
+.icon-line.cause-effect.is-main {
   font-weight: 600;
 }
 .icon-line.cause-effect {

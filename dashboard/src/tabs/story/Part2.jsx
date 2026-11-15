@@ -97,7 +97,7 @@ function scenarioSteps(sid, cl) {
     {
       id: 'p2-scen-2',
       kicker: 'Four scenarios',
-      title: 'UK central, within the UK range',
+      title: 'The UK scenarios and their range',
       body: (
         <p>
           The scenarios differ in how far the labour share falls and how much output at given inputs rises. In the main arm of each

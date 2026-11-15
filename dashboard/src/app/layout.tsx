@@ -64,8 +64,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const NAV_PENDING =
-  "try{var q=new URLSearchParams(location.search),t=q.get('tab');if((t&&t!=='story')||q.get('sub'))document.documentElement.setAttribute('data-nav-pending','')}catch(e){}";
+// The hash keys: lib/nav.jsx's LEGACY_TAB and ALIAS (old addresses).
+const OLD_HASHES = ['cohorts', 'literature', 'finances', 'public-finances', 'growth', 'methodology', 'coverage', 'results', 'who', 'scenarios', 'studies', 'code'];
+const NAV_PENDING = `try{var q=new URLSearchParams(location.search),t=q.get('tab'),h=location.hash.replace(/^#/,'').split('/')[0];if((t&&t!=='story')||q.get('sub')||(!t&&${JSON.stringify(OLD_HASHES)}.indexOf(h)>=0))document.documentElement.setAttribute('data-nav-pending','')}catch(e){}`;
 
 export default function RootLayout({
   children,

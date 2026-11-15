@@ -49,6 +49,18 @@ describe('address', () => {
     expect(parseUrl('?tab=code&sub=oguk')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'use-oguk' });
   });
 
+  it('resolves hash addresses the live site hands out', () => {
+    expect(parseUrl('', '#scenarios')).toMatchObject({ tab: 'method', sub: 'scenarios' });
+    expect(parseUrl('', '#code')).toMatchObject({ tab: 'method', sub: 'code' });
+    expect(parseUrl('', '#who')).toMatchObject({ tab: 'explore', sub: 'who' });
+    expect(parseUrl('', '#results')).toMatchObject({ tab: 'explore', sub: null });
+    expect(parseUrl('', '#studies')).toMatchObject({ tab: 'method', sub: 'studies' });
+    expect(parseUrl('', '#growth')).toMatchObject({ tab: 'explore' });
+    expect(parseUrl('', '#methodology')).toMatchObject({ tab: 'method' });
+    expect(parseUrl('', '#coverage')).toMatchObject({ tab: 'method', sub: 'studies' });
+    expect(parseUrl('', '#story-part-2')).toMatchObject({ tab: 'story', anchor: 'story-part-2' });
+  });
+
   it('ignores a value it does not know', () => {
     expect(parseUrl('?tab=nope&s=nope&closure=nope&rule=nope&wrule=fixed')).toMatchObject({ tab: 'story', s: DEFAULTS.s, closure: 'central', rule: 'common', wrule: 'dn' });
     expect(parseUrl('?rule=fixed').rule).toBe('fixed');
