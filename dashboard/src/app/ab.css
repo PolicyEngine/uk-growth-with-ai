@@ -1063,6 +1063,9 @@ body {
 }
 
 .site-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px; /* WCAG 2.2 target size */
   font-size: var(--fs-caption);
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
