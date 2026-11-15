@@ -1,76 +1,206 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
+import { useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
+import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import MAP from '@/data/site-evidence-map.json';
+import { S, SCENARIOS, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import './evidence.css';
 
-// The UK evidence map: a table of UK studies of AI's economic effects, from
-// data/site-evidence-map.json. While that file has no rows the card says the
-// table is being compiled and names who it will cover; once rows arrive they
-// render here with no code change (each row: the columns' keys, plus `url`
-// and `checked`).
+// The UK evidence map: one row per published figure on AI's economic
+// effects (data/site-evidence-map.json), each against its own baseline and at
+// its own horizon, with OG-UK's rows beside the GDP and wage figures. This
+// table is the one home of the published figures; "Where our numbers sit"
+// draws the GDP and wage rows. OG-UK's figures are printed on Explore, so its
+// rows link there and carry the values only in the download (from
+// surprise2028.json, never typed).
+
+const METRIC_LABEL = Object.fromEntries(MAP.metrics.map((m) => [m.id, m.label]));
+const METRIC_ORDER = Object.fromEntries(MAP.metrics.map((m, i) => [m.id, i]));
+const OUR_VARS = { gdp: ['Y', 'Real GDP'], wage: ['w', 'Average wage'] };
+
+const MEASURES = [{ id: 'all', label: 'All' }, ...MAP.metrics.map((m) => ({ id: m.id, label: m.label }))];
+const COUNTRIES = [
+  { id: 'all', label: 'All' },
+  { id: 'uk', label: 'UK' },
+  { id: 'other', label: 'US and other' },
+];
+const SORTS = [
+  { id: 'metric', label: 'Measure' },
+  { id: 'institution', label: 'Institution' },
+  { id: 'year', label: 'Newest' },
+];
+
+export const isUK = (r) => r.country === 'UK';
+export const day = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+// OG-UK's rows: the main arm's headline-year gap in each scenario, at both
+// closures, read through gap(). The page links to Explore; the values go to
+// the download only.
+export function ourRows() {
+  return Object.entries(OUR_VARS).map(([metric, [v, label]]) => ({
+    id: `oguk-${metric}`,
+    ours: true,
+    institution: 'PolicyEngine (this study)',
+    study: 'OG-UK, the 2028 surprise: automation + productivity arm',
+    url: null,
+    year: Number(S.generated_utc.slice(0, 4)),
+    metric,
+    measure: `${label} in each scenario, UK low to Korinek et al. (upper)`,
+    horizon: `${HEADLINE_YEAR}, year 4 of adoption`,
+    baseline: 'OBR-central path',
+    country: 'UK',
+    loc: 'surprise2028.json',
+    checked: S.generated_utc.slice(0, 10),
+    how: 'solve',
+    csv: SCENARIOS.map((s) => `${s.label}: ${fmt(gap(s.id, 'tfp', CENTRAL, v))} (central closure), ${fmt(gap(s.id, 'tfp', BOUND, v))} (closed capital)`).join('; '),
+  }));
+}
+
+const BY = {
+  metric: (a, b) => METRIC_ORDER[a.metric] - METRIC_ORDER[b.metric] || Number(Boolean(b.ours)) - Number(Boolean(a.ours)) || isUK(b) - isUK(a),
+  institution: (a, b) => a.institution.localeCompare(b.institution),
+  year: (a, b) => b.year - a.year,
+};
+
+// Rows in view: filtered, then sorted (a stable sort keeps the file's order,
+// which runs from official UK sources to academic studies, within ties).
+export function view(rows, { measure = 'all', country = 'all', sort = 'metric' } = {}) {
+  return rows
+    .filter((r) => measure === 'all' || r.metric === measure)
+    .filter((r) => country === 'all' || (country === 'uk' ? isUK(r) : !isUK(r)))
+    .map((r, i) => ({ r, i }))
+    .sort((x, y) => BY[sort](x.r, y.r) || x.i - y.i)
+    .map((x) => x.r);
+}
+
+const HOW = { read: 'Re-read in the primary text', review: 'Confirmed in the 15 Nov 2026 UK-studies review', solve: 'OG-UK solve output' };
+
+export function mapTable(rows) {
+  return {
+    columns: ['Institution', 'Study', 'Year', 'Measure', 'What is measured', 'Value', 'Horizon', 'Baseline', 'Country', 'Where in the source', 'Link', 'Checked', 'How checked'],
+    rows: rows.map((r) => [
+      r.institution,
+      r.study,
+      r.year,
+      METRIC_LABEL[r.metric],
+      r.measure,
+      r.ours ? r.csv : r.value,
+      r.horizon,
+      r.baseline,
+      r.country,
+      r.loc,
+      r.url ?? '',
+      r.checked,
+      HOW[r.how] ?? '',
+    ]),
+  };
+}
+
 export default function EvidenceMap({ map = MAP }) {
-  const { columns, rows, organisations } = map;
-  const has = rows.length > 0;
+  const [measure, setMeasure] = useState('all');
+  const [country, setCountry] = useState('all');
+  const [sort, setSort] = useState('metric');
+  const all = [...ourRows(), ...map.rows];
+  const shown = view(all, { measure, country, sort });
+  const published = map.rows.length;
+  const bodies = new Set(map.rows.map((r) => r.institution)).size;
   return (
     <Card
       id="uk-evidence-map"
       icon="table"
-      title="UK studies of AI’s economic effects"
-      finding={
-        has
-          ? `${rows.length} UK studies of AI’s economic effects, with what each estimates and over which horizon. Not our results.`
-          : 'A table of UK studies of AI’s economic effects is being compiled. It will sit here, with what each study estimates, over which horizon and how.'
+      title="Published estimates of AI’s economic effects"
+      className="ev-card"
+      finding={`${published} published figures from ${bodies} institutions and authors, each against its own baseline and at its own horizon, with OG-UK’s rows beside the GDP and wage figures. Filter by measure or country, or sort.`}
+      controls={
+        <ControlBar label="Evidence map: options">
+          <ControlGroup label="Measure">
+            <Segmented options={MEASURES} value={measure} onChange={setMeasure} label="Measure" />
+          </ControlGroup>
+          <ControlGroup label="Country">
+            <Segmented options={COUNTRIES} value={country} onChange={setCountry} label="Country" />
+          </ControlGroup>
+          <ControlGroup label="Sort">
+            <Segmented options={SORTS} value={sort} onChange={setSort} label="Sort" />
+          </ControlGroup>
+        </ControlBar>
       }
       logo={false}
-      about={{ sources: 'Each row links to the study and gives the date it was checked. The table is maintained in data/site-evidence-map.json.' }}
       aboutTitle="About this table"
-      download={has ? { title: 'UK evidence map', context: 'UK studies of the economic effects of AI; not PolicyEngine results', table: () => ({ columns: [...columns.map((c) => c.label), 'Link', 'Checked'], rows: rows.map((r) => [...columns.map((c) => r[c.key] ?? ''), r.url ?? '', r.checked ?? '']) }) } : undefined}
+      about={{
+        how: `Each figure is as published, against the study’s own baseline (mostly no AI) and at its own horizon; none is converted. Studies of the US or other economies are labelled. OG-UK’s rows are the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path; the figures are on Explore and in the download.`,
+        sources: `Every row was read in the primary text at the page or table given, on the date given, or (marked “review”) confirmed in the 15 November 2026 UK-studies review. A figure not yet confirmed in a primary text is left out. Bodies that publish no AI-specific estimate show their nearest output. The table is data/site-evidence-map.json.`,
+      }}
+      download={{
+        title: 'UK evidence map',
+        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the OBR-central path, from surprise2028.json (built from ${S.source_commit})`,
+        table: () => mapTable(view(all)),
+      }}
     >
-      {has ? (
-        <div className="table-wrap">
-          <table className="data-table evidence-table">
-            <caption className="visually-hidden">UK studies of the economic effects of AI</caption>
-            <thead>
-              <tr>
-                {columns.map((c) => (
-                  <th key={c.key} scope="col">
-                    {c.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={r.id ?? i}>
-                  {columns.map((c, j) =>
-                    j === 0 ? (
-                      <th key={c.key} scope="row">
-                        {r[c.key]}
-                      </th>
-                    ) : (
-                      <td key={c.key}>{c.key === 'title' && r.url ? <a href={r.url} target="_blank" rel="noreferrer">{r[c.key]}</a> : r[c.key]}</td>
-                    ),
+      <p className="ev-count" aria-live="polite">
+        Showing {shown.length} of {all.length} rows
+      </p>
+      <div className="ev-wrap">
+        <table className="data-table evidence-table ev-table">
+          <caption className="visually-hidden">Published estimates of AI’s economic effects, with OG-UK’s results</caption>
+          <thead>
+            <tr>
+              <th scope="col">Institution</th>
+              <th scope="col">Study</th>
+              <th scope="col">Measure</th>
+              <th scope="col">Value</th>
+              <th scope="col">Horizon and baseline</th>
+              <th scope="col">Country</th>
+              <th scope="col">Checked</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((r) => (
+              <tr key={r.id} id={`ev-row-${r.id}`} className={r.ours ? 'is-ours' : undefined} data-row={r.id}>
+                <th scope="row" data-label="Institution">
+                  {r.institution}
+                </th>
+                <td data-label="Study">
+                  {r.url ? (
+                    <a href={r.url} target="_blank" rel="noreferrer">
+                      {r.study}
+                    </a>
+                  ) : (
+                    r.study
                   )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="evidence-slot">
-          <p className="evidence-slot-status">
-            <Icon name="hourglass" size={16} />
-            <span>Being compiled</span>
-          </p>
-          <p className="evidence-slot-who">Organisations it will cover:</p>
-          <ul className="evidence-slot-list">
-            {organisations.map((o) => (
-              <li key={o}>{o}</li>
+                  <span className="ev-loc">
+                    {r.year}
+                    {r.ours ? '' : ` · ${r.loc}`}
+                  </span>
+                </td>
+                <td data-label="Measure">
+                  <span className="ev-metric">{METRIC_LABEL[r.metric]}</span>
+                  <span className="ev-measure">{r.measure}</span>
+                </td>
+                <td data-label="Value" className="ev-value">
+                  {r.ours ? (
+                    <NavLink tab="explore" sub="economy" anchor="income">
+                      On Explore
+                    </NavLink>
+                  ) : (
+                    <span className={r.unverified ? 'ev-unverified' : undefined}>{r.value}</span>
+                  )}
+                </td>
+                <td data-label="Horizon">
+                  {r.horizon}
+                  {r.baseline !== '—' ? <span className="ev-loc">Against: {r.baseline}</span> : null}
+                </td>
+                <td data-label="Country">{r.country}</td>
+                <td data-label="Checked" className="ev-checked">
+                  {day(r.checked)}
+                  {r.how === 'review' ? <span className="ev-how">review</span> : null}
+                </td>
+              </tr>
             ))}
-          </ul>
-        </div>
-      )}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }
