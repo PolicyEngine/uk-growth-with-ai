@@ -7,7 +7,8 @@ describe('address', () => {
     expect(formatUrl(DEFAULTS)).toBe('/');
     const st = { ...DEFAULTS, tab: 'results', sub: 'finances', s: 'korinek', closure: 'both', arms: ['tfp', 'ss'], rule: 'dn' };
     const url = formatUrl(st);
-    expect(url).toBe('/?sub=finances&s=korinek&closure=both&arms=tfp,ss&rule=dn');
+    expect(url).toBe('/?tab=results&sub=finances&s=korinek&closure=both&arms=tfp,ss&rule=dn');
+    expect(parseUrl('?sub=finances')).toMatchObject({ tab: 'results', sub: 'finances' });
     expect(parseUrl(url.slice(1))).toEqual(st);
     const who = { ...DEFAULTS, tab: 'who', arm: 'stress', wrule: 'common', groups: ['0', 'all'] };
     expect(parseUrl(formatUrl(who).slice(1))).toEqual(who);
@@ -20,14 +21,16 @@ describe('address', () => {
     expect(parseUrl('?tab=method&sub=scenarios').tab).toBe('scenarios');
     expect(parseUrl('?tab=method&sub=limits')).toMatchObject({ tab: 'method', anchor: 'm-limits' });
     expect(parseUrl('?tab=results&sub=variables&s=uk_high')).toMatchObject({ tab: 'results', sub: 'economy', s: 'uk_high' });
-    expect(parseUrl('?tab=results&sub=overview')).toMatchObject({ tab: 'results', sub: null });
+    expect(parseUrl('?tab=results&sub=overview')).toMatchObject({ tab: 'story', sub: null });
+    expect(parseUrl('?tab=results&sub=summary')).toMatchObject({ tab: 'story', sub: null });
+    expect(parseUrl('?tab=results')).toMatchObject({ tab: 'results', sub: null });
     expect(parseUrl('?tab=finances')).toMatchObject({ tab: 'results', sub: 'finances' });
     expect(parseUrl('', '#public-finances')).toMatchObject({ tab: 'results', sub: 'finances', anchor: null });
     expect(parseUrl('?tab=code&sub=oguk')).toMatchObject({ tab: 'code', anchor: 'use-oguk' });
   });
 
   it('ignores a value it does not know', () => {
-    expect(parseUrl('?tab=nope&s=nope&closure=nope&rule=nope&wrule=fixed')).toMatchObject({ tab: 'results', s: DEFAULTS.s, closure: 'central', rule: 'common', wrule: 'dn' });
+    expect(parseUrl('?tab=nope&s=nope&closure=nope&rule=nope&wrule=fixed')).toMatchObject({ tab: 'story', s: DEFAULTS.s, closure: 'central', rule: 'common', wrule: 'dn' });
     expect(parseUrl('?rule=fixed').rule).toBe('fixed');
   });
 });

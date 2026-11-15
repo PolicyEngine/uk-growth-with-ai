@@ -205,5 +205,71 @@ for cl, sens in D.get('sensitivity', {}).items():
             print(sid, 'method', cl, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, 'method', cl, 'ok:', sum(exp.values()), 'figures')
+
+# The story, part 3 (#story-part-3): the provisional uk-ai-study figures,
+# each printed once, against aiStudy2425.json with the part's own formats
+# (part3/format.js). Axis text and quoted inputs ([data-axis], [data-input])
+# are hidden by dumptabs.
+AI = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'aiStudy2425.json')))
+def m(x): return f"{x:.2f}m"
+def bn(x): return ('−' if x < 0 else '') + f"£{abs(x):.1f}bn"
+def pp(x): return signed(x, 2) + 'pp'
+def pence(x): return f"{round(x)}p"
+def share(x): return f"{round(x)}%"
+def gbp(x): return f"£{round(x):,}"
+def dpct(x): return signed(x, 2) + '%'
+H3 = AI['headline']; LAD = {r['id']: r for r in AI['ladder']}; RUL = {r['id']: r for r in AI['rules']}
+exp3 = Counter()
+exp3[m(H3['central_displaced']['value'] / (1e6 if H3['central_displaced']['value'] > 1000 else 1))] += 1
+for k in ('central_cost',): exp3[bn(H3[k]['value'])] += 1; exp3[bn(H3[k]['sd'])] += 1
+for k in ('central_poverty', 'central_gini', 'central_poverty_ahc', 'central_poverty_relative'): exp3[pp(H3[k]['value'])] += 1
+for k in ('central_poverty', 'central_gini'): exp3[f"{H3[k]['sd']:.2f}pp"] += 1
+for rid in ('central_20', 'takeup', 'takeup_jsa', 'wage_cuts', 'obr', 'obr_takeup', 'obr_takeup_jsa'):
+    exp3[bn(LAD[rid]['cost_bn'])] += 1; exp3[pp(LAD[rid]['poverty_pp'])] += 1
+for rid in ('uniform', 'junior', 'compression', 'klein_top_loaded'): exp3[bn(RUL[rid]['cost_bn'])] += 1
+for r in AI['per_pound']: exp3[pence(r['government_p'])] += 1; exp3[pence(r['household_p'])] += 1
+for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'): exp3[share(AI['displaced'][k]['value'])] += 1
+for k in ('uc_per_displaced', 'uc_per_existing_unemployed', 'uc_per_displaced_takeup'): exp3[gbp(AI['displaced'][k]['value'])] += 1
+for x in AI['deciles']['values']: exp3[dpct(x)] += 1
+FIG3 = re.compile(r"−?£[\d,]+(?:\.\d)?(?:bn)?|[+−]?\d+\.\d\dpp|\d+\.\d\dpp|\b\d+p\b|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
+for sid in dump:
+    t = dump[sid].get('story:part3')
+    if t is None:
+        continue
+    got = Counter(FIG3.findall(t))
+    if got != exp3:
+        bad += 1
+        print(sid, 'story part 3 missing:', dict(exp3 - got), 'extra:', dict(got - exp3))
+    else:
+        print(sid, 'story part 3 ok:', sum(exp3.values()), 'figures')
+    break  # part 3 does not change with the scenario
+
+# The story, part 1 (#story-part-1): official statistics from ukContext.json,
+# unsigned, as published (part1/format.js), each once except where two
+# different facts print the same figure.
+UK = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'ukContext.json')))
+F1, S1 = UK['facts'], UK['series']
+exp1 = Counter()
+for k in ('gdp_growth_latest', 'employment_rate_latest', 'unemployment_rate_latest', 'labour_share_latest', 'business_ai_use', 'business_ai_use_10plus'):
+    exp1[f"{F1[k]['value']:.1f}%"] += 1
+for x in (S1['obr_gdp_forecast']['y'][0], S1['obr_gdp_forecast']['y'][1], S1['obr_gdp_forecast']['y'][-1]):
+    exp1[f"{x:.1f}%"] += 1
+exp1[f"{F1['productivity_oph_latest']['value']:.1f}"] += 1
+ex = [F1[k]['value'] for k in ('workers_high_exposure_high_complementarity', 'workers_high_exposure_low_complementarity', 'workers_low_exposure')]
+for x in ex: exp1[f"{round(x)}%"] += 1
+exp1[f"{round(ex[0] + ex[1])}%"] += 1
+exp1['70%'] += 1  # DSIT's own words, "around 70%", quoted beside the 67% sum
+FIG1 = re.compile(r"[−-]?\d+(?:\.\d+)?%|\b\d+\.\d\b(?!%)")
+for sid in dump:
+    t = dump[sid].get('story:part1')
+    if t is None:
+        continue
+    got = Counter(FIG1.findall(t))
+    if got != exp1:
+        bad += 1
+        print(sid, 'story part 1 missing:', dict(exp1 - got), 'extra:', dict(got - exp1))
+    else:
+        print(sid, 'story part 1 ok:', sum(exp1.values()), 'figures')
+    break
 bad += raw_bad
 print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)

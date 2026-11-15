@@ -1,0 +1,138 @@
+/* Story part 2 (tabs/story/Part2.jsx): its own styles, one writer. */
+
+/* Charts: a narrow viewBox (400 wide) keeps tick text at least 11px at
+   phone width; on desktop the width is capped so text does not grow large. */
+.p2-figure {
+  margin: 0;
+}
+.p2-svg {
+  max-width: 540px;
+  margin: 0 auto;
+}
+.p2-tick,
+.p2-marker-label {
+  /* user units: about 12px on screen at phone width (the SVG is about
+     330px wide), about 14px on desktop (capped at 540px wide) */
+  font-size: 14.5px;
+  fill: var(--pe-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+.p2-marker-label {
+  fill: var(--pe-gray-600);
+}
+@media (min-width: 901px) {
+  .p2-tick,
+  .p2-marker-label {
+    font-size: 10.5px;
+  }
+}
+.p2-grid {
+  stroke: var(--card-border);
+  stroke-width: 1;
+}
+.p2-zero {
+  stroke: var(--pe-gray-700);
+  stroke-width: 1.25;
+}
+.p2-marker {
+  stroke: var(--pe-gray-300);
+  stroke-dasharray: 3 4;
+}
+
+.p2-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p2-legend li {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.p2-legend li.is-on {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p2-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 3px solid var(--sw);
+}
+.p2-swatch.is-dashed {
+  border-top-style: dashed;
+}
+.p2-swatch.is-thin {
+  border-top-width: 1.5px;
+}
+
+/* The illustrative tile grid */
+.p2-tiles {
+  max-width: 460px;
+  margin: 0 auto;
+}
+.p2-tile-heads {
+  display: grid;
+  grid-template-columns: 8fr 2fr 8fr;
+  margin-bottom: 8px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.p2-tile-heads span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.p2-tile-heads span::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--sw);
+}
+.p2-tile-heads span:last-child {
+  grid-column: 3;
+}
+
+/* Links to each figure's home, at the foot of a step card */
+.p2-more {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 0 !important;
+  font-size: var(--fs-small);
+}
+.p2-more .plain-icon,
+.p2-more svg {
+  flex: none;
+  color: var(--c-gain-text);
+}
+
+/* The headline figures: full width between two scrolly blocks */
+.story-headline {
+  margin: 24px 0 56px;
+  scroll-margin-top: calc(var(--sticky-offset) + 8px);
+}
+.p2-headline-title {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--pe-gray-900);
+}
+.p2-headline-lead {
+  max-width: 70ch;
+  margin: 0 0 16px;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-600);
+}
+.p2-deeper {
+  margin: 8px 0 24px;
+}

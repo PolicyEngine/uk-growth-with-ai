@@ -1,0 +1,134 @@
+/* Story part 1 (tabs/story/Part1.jsx): its own styles, one writer. */
+
+/* Charts: a 400-wide viewBox with 14-unit text keeps tick text at least
+   11px at 390px width (with up to a 20px gutter and the graphic's 12px
+   padding); on desktop the width is capped so text does not grow large. */
+.p1-figure {
+  margin: 0;
+}
+.p1-svg {
+  max-width: 540px;
+  margin: 0 auto;
+}
+.p1-tick,
+.p1-note-label {
+  font-size: 14px;
+  fill: var(--pe-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+.p1-note-label {
+  fill: var(--pe-gray-600);
+}
+.p1-grid {
+  stroke: var(--card-border);
+  stroke-width: 1;
+}
+.p1-zero {
+  stroke: var(--pe-gray-700);
+  stroke-width: 1.25;
+}
+.p1-split {
+  stroke: var(--pe-gray-300);
+  stroke-dasharray: 3 4;
+}
+.p1-line {
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+/* GDP bars: neutral series colour; a negative bar grows down from zero */
+.p1-bar {
+  fill: var(--series-2);
+}
+.p1-bar.is-neg.grow-rect.is-v {
+  transform-origin: 50% 0%;
+}
+.p1-forecast {
+  fill: none;
+  stroke: var(--pe-gray-800);
+  stroke-width: 2.25;
+  stroke-dasharray: 6 5;
+}
+.p1-forecast-dot {
+  fill: var(--pe-surface);
+  stroke: var(--pe-gray-800);
+  stroke-width: 1.5;
+}
+
+/* Labour market: two stacked panels, each full width (never side by side,
+   which would halve the text scale on a phone) */
+.p1-panel + .p1-panel {
+  margin-top: 6px;
+}
+.p1-panel-title {
+  max-width: 540px;
+  margin: 0 auto 2px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+
+/* Legends */
+.p1-legend,
+.p1-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p1-legend li,
+.p1-groups li {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.p1-swatch {
+  display: inline-block;
+  flex: none;
+  width: 18px;
+  height: 0;
+  border-top: 3px solid var(--sw);
+}
+.p1-swatch.is-dashed {
+  border-top-style: dashed;
+  border-top-width: 2px;
+}
+.p1-swatch.is-block {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--sw);
+}
+
+/* Exposure tiles */
+.p1-tiles {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.p1-figure .story-source {
+  margin: 10px 0 0;
+  line-height: 1.45;
+}
+.p1-lfs {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.p1-bridge {
+  max-width: 70ch;
+  margin: 0 0 16px;
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  color: var(--pe-gray-600);
+}
+
+@media (max-width: 900px) {
+  .p1-figure .story-figure-unit {
+    margin-bottom: 6px;
+  }
+}

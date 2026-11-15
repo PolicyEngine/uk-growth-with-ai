@@ -1,0 +1,361 @@
+/* ---------- The story (tabs/story): scroll-driven reveals ----------
+   Motion is CSS transitions only, keyed off classes the components set
+   from scroll position. prefers-reduced-motion removes every transition
+   and shows each final state at once. Nothing takes over the scroll. */
+
+.story {
+  --story-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --story-dur: 700ms;
+  --story-graphic-top: calc(var(--sticky-offset) + 12px);
+}
+
+/* Hero */
+.story-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 40px;
+  align-items: center;
+  min-height: calc(100vh - var(--sticky-offset) - 40px);
+  padding: 32px 0 48px;
+}
+.story-hero-text h2 {
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--pe-gray-900);
+}
+.story-hero-text p {
+  max-width: 52ch;
+  margin: 0 0 12px;
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  color: var(--pe-gray-600);
+}
+.story-hero-art {
+  min-width: 0;
+}
+.story-hero-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.story-scroll-cue {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-500);
+}
+.hero-path {
+  fill: none;
+}
+.story-hero-lead {
+  margin-top: 16px !important;
+}
+.story-hero .hero {
+  padding: 0;
+}
+
+/* Part openers */
+.story-part {
+  padding: 56px 0 24px;
+  scroll-margin-top: calc(var(--sticky-offset) + 8px);
+}
+.story-part + .story-part {
+  border-top: 1px solid var(--card-border);
+}
+.story-part-head {
+  max-width: 70ch;
+  margin-bottom: 24px;
+}
+.story-part-kicker {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-gain-text);
+}
+.story-part-head h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--pe-gray-900);
+}
+.story-part-head p {
+  margin: 0;
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  color: var(--pe-gray-600);
+}
+.story-provisional {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 70ch;
+  margin: 12px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+
+/* Scrolly block */
+.scrolly {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
+  gap: 40px;
+  margin: 8px 0 40px;
+}
+.scrolly-graphic {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: var(--story-graphic-top);
+  align-self: start;
+  height: calc(100vh - var(--story-graphic-top) - 24px);
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+}
+.scrolly-graphic-inner {
+  width: 100%;
+  padding: 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.scrolly-steps {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  padding: 25vh 0 35vh;
+  list-style: none;
+}
+.scrolly-step {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+}
+.scrolly-step:last-child {
+  min-height: 50vh;
+}
+.scrolly-card {
+  padding: 18px 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  opacity: 0.45;
+  transition: opacity 400ms var(--story-ease), border-color 400ms var(--story-ease), box-shadow 400ms var(--story-ease);
+}
+.scrolly-step.is-active .scrolly-card {
+  opacity: 1;
+  border-color: var(--pe-gray-300);
+  box-shadow: 0 4px 16px var(--shadow-faint, rgba(16, 24, 40, 0.06));
+}
+.scrolly-kicker {
+  margin: 0 0 6px;
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pe-gray-500);
+}
+.scrolly-title {
+  margin: 0 0 8px;
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.scrolly-body {
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.scrolly-body p {
+  margin: 0 0 8px;
+}
+.scrolly-body p:last-child {
+  margin-bottom: 0;
+}
+.scrolly-body a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.story-source {
+  display: block;
+  margin-top: 8px;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.story-source a {
+  color: inherit;
+}
+.story-figure-title {
+  margin: 0 0 4px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.story-figure-unit {
+  margin: 0 0 12px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.story-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Reveals */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--story-dur) var(--story-ease), transform var(--story-dur) var(--story-ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* SVG primitives */
+.draw-path {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1200ms var(--story-ease);
+}
+.draw-path.is-on {
+  stroke-dashoffset: 0;
+}
+.grow-rect {
+  transition: transform var(--story-dur) var(--story-ease);
+  transform-box: fill-box;
+}
+.grow-rect.is-v {
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+}
+.grow-rect.is-h {
+  transform-origin: 0% 50%;
+  transform: scaleX(0);
+}
+.grow-rect.is-on {
+  transform: none;
+}
+.fade-g {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 500ms var(--story-ease), transform 500ms var(--story-ease);
+}
+.fade-g.is-on {
+  opacity: 1;
+  transform: none;
+}
+.tile-grid {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tile {
+  transition: transform 900ms var(--story-ease), fill 600ms var(--story-ease), opacity 600ms var(--story-ease);
+}
+.tile.is-dim {
+  opacity: 0.25;
+}
+
+/* Tab change: the panel that appears eases in */
+.tab-panel:not([hidden]) {
+  animation: panel-in 380ms var(--story-ease, ease-out);
+}
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Story part nav: a slim progress track under the tab row */
+.story-track {
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: 5;
+  height: 3px;
+  margin: 0 calc(-1 * var(--page-gutter, 16px));
+  background: var(--card-border);
+}
+.story-track span {
+  display: block;
+  height: 100%;
+  background: var(--c-highlight);
+  transform-origin: 0 50%;
+}
+
+/* Phone: graphic sticky at the top, cards scroll over its lower part */
+@media (max-width: 900px) {
+  .story-hero {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    gap: 20px;
+    padding-top: 20px;
+  }
+  .scrolly {
+    display: block;
+  }
+  .scrolly-graphic {
+    height: auto;
+    min-height: 0;
+    z-index: 1;
+  }
+  .scrolly-graphic-inner {
+    padding: 12px;
+  }
+  .scrolly-steps {
+    position: relative;
+    z-index: 2;
+    padding: 10vh 0 20vh;
+  }
+  .scrolly-step {
+    min-height: 95vh;
+    align-items: flex-start;
+  }
+  .scrolly-card {
+    opacity: 1;
+    box-shadow: 0 6px 20px var(--shadow-faint, rgba(16, 24, 40, 0.1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .draw-path,
+  .grow-rect,
+  .fade-g,
+  .tile,
+  .scrolly-card {
+    transition: none !important;
+  }
+  .reveal,
+  .fade-g {
+    opacity: 1;
+    transform: none;
+  }
+  .draw-path {
+    stroke-dashoffset: 0;
+  }
+  .grow-rect {
+    transform: none;
+  }
+  .tab-panel:not([hidden]) {
+    animation: none;
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import StoryTab from '@/tabs/story/StoryTab.jsx';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import ScenariosTab from '@/tabs/method/ScenariosTab.jsx';
@@ -21,7 +22,7 @@ const SCEN_NOTE = { uk_low: 'UK range, lower end', uk_central: 'Headline scenari
 const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
 const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note: c.note, icon: c.icon }));
 
-const PANELS = { results: ResultsTab, who: WhoGainsTab, scenarios: ScenariosTab, method: MethodTab, studies: StudiesTab, code: CodeTab };
+const PANELS = { story: StoryTab, results: ResultsTab, who: WhoGainsTab, scenarios: ScenariosTab, method: MethodTab, studies: StudiesTab, code: CodeTab };
 
 function Shell() {
   const { st, set, go } = useNav();

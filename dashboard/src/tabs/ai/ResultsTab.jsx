@@ -11,10 +11,9 @@ import {
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side } from '@/tabs/ai/lines.js';
 import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
-import Summary from '@/tabs/ai/Landing.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 
-// Results. Summary: the answer, three headline figures, why, how sure.
+// Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
 // each with the same control bar (arms) and reading the header's scenario
 // and closure. Every number comes from surprise2028.json through
@@ -271,9 +270,9 @@ function EconomyPanel({ sid }) {
 
 export default function ResultsTab() {
   const { st } = useNav();
-  const sub = st.tab === 'results' ? subOf(st) : 'summary';
+  const sub = st.tab === 'results' ? subOf(st) : 'income';
   const sid = st.s;
-  const panels = { summary: Summary, income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
+  const panels = { income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
   const Panel = panels[sub];
   return (
     <div id={`results-sub-${sub}`} role="tabpanel" aria-labelledby={`results-subbtn-${sub}`} className="sub-panel">

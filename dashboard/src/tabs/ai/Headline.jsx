@@ -83,9 +83,9 @@ function DotTip({ arm, closure, measure, value }) {
   );
 }
 
-// The main arm's GDP, wage-rate and GNI values are the Summary tiles: their
+// The main arm's GDP, wage-rate and GNI values are the story's headline tiles: their
 // one home. Here those three markers keep their tooltip and the download
-// keeps the value; the printed label links to Summary instead.
+// keeps the value; the printed label links to the story instead.
 export const ON_SUMMARY = { arm: 'tfp', measures: ['Y', 'w', 'GNI'] };
 const onSummary = (arm, v) => arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
 
@@ -241,12 +241,13 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                         ) : null}
                         {onSummary(a.id, m.v) ? (
                           <NavLink
-                            sub="summary"
+                            tab="story"
+                            anchor="story-headline"
                             className={`db-value db-value-link${right ? ' is-right' : ' is-left'}`}
                             style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
-                            aria-label={`${a.label}, ${name}: the value is on Summary`}
+                            aria-label={`${a.label}, ${name}: the value is in the story`}
                           >
-                            on Summary
+                            in the story
                           </NavLink>
                         ) : (
                           <span

@@ -11,12 +11,12 @@ import {
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 
-// Results > Summary, answer first: the question, a one-line answer built
-// from the data, three headline figures for the chosen scenario's main arm
-// (automation + productivity, headline year) at the closure chosen in the
-// header, each with the four scenarios on a small range strip, then why,
-// how sure, and three ways into the detail. This is the one home of the
-// three headline figures.
+// The headline: the question, a one-line answer built from the data, three
+// headline figures for the chosen scenario's main arm (automation +
+// productivity, headline year) at the closure chosen in the header, each
+// with the four scenarios on a small range strip, then why and how sure.
+// The story (tabs/story) places these; it is the one home of the three
+// headline figures.
 
 const SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
 
@@ -124,32 +124,47 @@ const ENTRIES = [
   { sub: 'finances', icon: 'landmark', title: 'Public finances', text: 'Debt and tax as shares of GDP, and why the tax effect is likely understated.' },
 ];
 
-export default function Summary({ sid }) {
+// The pieces of the former Results > Summary, placed by the story: the
+// question and answer open the story (Hero), the tiles and the reasons sit
+// in part 2. Each reads the header scenario and closure.
+function useSummary(sid) {
   const { st } = useNav();
   const cl = primaryClosure(st.closure);
   const both = st.closure === 'both';
-  const y = gap(sid, 'tfp', cl, 'Y');
-  const g = gap(sid, 'tfp', cl, 'GNI');
-  const w = gap(sid, 'tfp', cl, 'w');
-  const ls = gap(sid, 'tfp', cl, 'labour_share_pp');
-  const fs = result(sid, 'tfp', CENTRAL).foreign_share_dK_2031;
-  const ready = y != null;
-  const sidPending = ARMS.some((a) => result(sid, a.id, CENTRAL).status !== 'done' || result(sid, a.id, BOUND).status !== 'done');
-  return (
-    <section className="summary" aria-labelledby="summary-q">
-      <div className="hero">
-        <h2 id="summary-q" className="hero-q">
-          What happens to the UK economy if AI arrives in {SURPRISE_YEAR}?
-        </h2>
-        <p className="hero-a">{heroAnswer(sid, cl)}</p>
-        <p className="hero-meta">
-          {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path
-          <InfoTip label="What is the OBR-central path?">
-            The path every figure here is compared with: the economy without the shock, growing at the OBR&rsquo;s central rate. It is defined under {METHOD.shock.label} on Method.
-          </InfoTip>
-        </p>
-      </div>
+  return {
+    cl,
+    both,
+    y: gap(sid, 'tfp', cl, 'Y'),
+    g: gap(sid, 'tfp', cl, 'GNI'),
+    w: gap(sid, 'tfp', cl, 'w'),
+    ls: gap(sid, 'tfp', cl, 'labour_share_pp'),
+    fs: result(sid, 'tfp', CENTRAL).foreign_share_dK_2031,
+    sidPending: ARMS.some((a) => result(sid, a.id, CENTRAL).status !== 'done' || result(sid, a.id, BOUND).status !== 'done'),
+  };
+}
 
+export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
+  const { cl } = useSummary(sid);
+  return (
+    <div className="hero">
+      <h2 id={titleId} className="hero-q">
+        What happens to the UK economy if AI arrives in {SURPRISE_YEAR}?
+      </h2>
+      <p className="hero-a">{heroAnswer(sid, cl)}</p>
+      <p className="hero-meta">
+        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path
+        <InfoTip label="What is the OBR-central path?">
+          The path every figure here is compared with: the economy without the shock, growing at the OBR&rsquo;s central rate. It is defined under {METHOD.shock.label} on Method.
+        </InfoTip>
+      </p>
+    </div>
+  );
+}
+
+export function HeadlineTiles({ sid }) {
+  const { cl, both, sidPending } = useSummary(sid);
+  return (
+    <>
       <div className="stat-row">
         {KPIS.map((k) => {
           const x = gap(sid, 'tfp', cl, k.v);
@@ -179,8 +194,15 @@ export default function Summary({ sid }) {
           {DONE} of {TOTAL} solves are done. For this scenario the closed-capital results are not solved yet and show “pending”.
         </Notice>
       ) : null}
+    </>
+  );
+}
 
-      {ready ? (
+export function SummaryWhy({ sid }) {
+  const { cl, both, y, g, w, ls, fs } = useSummary(sid);
+  return (
+    <>
+      {y != null ? (
         <div className="why">
           <h3 className="why-title">Why</h3>
           <ul className="why-list">
@@ -203,7 +225,6 @@ export default function Summary({ sid }) {
           </ul>
         </div>
       ) : null}
-
       <p className="icon-line how-sure">
         <Icon name="gauge" size={16} />
         <span>
@@ -216,7 +237,13 @@ export default function Summary({ sid }) {
           {both ? null : '.'}
         </span>
       </p>
+    </>
+  );
+}
 
+export function GoDeeper() {
+  return (
+    <>
       <h3 className="entries-title">Go deeper</h3>
       <div className="entry-grid">
         {ENTRIES.map((e) => (
@@ -230,6 +257,6 @@ export default function Summary({ sid }) {
           </NavLink>
         ))}
       </div>
-    </section>
+    </>
   );
 }

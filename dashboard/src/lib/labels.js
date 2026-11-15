@@ -6,9 +6,9 @@ export const PAGE_TITLE = 'The macroeconomic effects of AI on the UK';
 // Tabs, in order. `scenario` / `closure`: whether that header picker applies
 // ('locked' = shown, fixed, with the reason in view).
 export const TABS = [
+  { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
   { id: 'results', label: 'Results', icon: 'lineChart', scenario: true, closure: true,
     subs: [
-      { id: 'summary', label: 'Summary', icon: 'gauge' },
       { id: 'income', label: 'Income and output', icon: 'home' },
       { id: 'economy', label: 'Economy', icon: 'factory' },
       { id: 'finances', label: 'Public finances', icon: 'landmark' },

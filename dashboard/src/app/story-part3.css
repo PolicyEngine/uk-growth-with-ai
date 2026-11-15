@@ -1,0 +1,298 @@
+/* Story part 3 (tabs/story/Part3.jsx): its own styles, one writer.
+   No transitions here: motion comes only from the framework classes
+   (GrowRect, TileGrid, Reveal) in story.css. */
+
+/* The provisional chip: .story-part-head p would otherwise restyle it */
+#story-part-3 .story-part-head .notice-chip {
+  display: inline-block;
+  margin: 12px 0 0;
+  padding: 4px 10px;
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--c-notice-text);
+  background: var(--c-notice-bg);
+  border-radius: 6px;
+}
+
+/* The break card: plain, not sticky */
+.p3-break {
+  max-width: 70ch;
+  margin: 8px 0 24px;
+  padding: 18px 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.p3-break h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: var(--fs-card-title);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p3-break h3 .plain-icon {
+  color: var(--pe-gray-600);
+}
+.p3-break p {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+
+/* Figures */
+.p3-figure {
+  margin: 0;
+}
+.p3-figure .story-source {
+  margin-top: 12px;
+}
+.p3-muted {
+  color: var(--pe-gray-500);
+  font-style: italic;
+}
+.p3-key,
+.p3-tile-key {
+  margin: 8px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+
+/* Block 1: tiles beside the scoreboard */
+.p3-central {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.p3-central-tiles {
+  max-width: 220px;
+}
+.p3-stats {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p3-stat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  opacity: 0.45;
+}
+.p3-stat.is-reached {
+  opacity: 1;
+}
+.p3-stat.is-current {
+  border-color: var(--pe-gray-400, #9ca3af);
+}
+.p3-stat .plain-icon {
+  grid-row: span 2;
+  align-self: center;
+  color: var(--pe-gray-600);
+}
+.p3-stat-value {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.p3-stat-label {
+  grid-column: 2;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+
+/* Bar rows: a label line, then bar and value(s) */
+.p3-rows {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p3-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5em;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+}
+.p3-rows-2col .p3-row,
+.p3-cols {
+  grid-template-columns: minmax(0, 1fr) 4.5em 4.5em;
+}
+.p3-row-label {
+  grid-column: 1 / -1;
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  color: var(--pe-gray-700);
+}
+.p3-row-value {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--pe-gray-900);
+}
+.p3-row-value-2 {
+  font-weight: 500;
+  color: var(--pe-gray-700);
+}
+.p3-row.is-pending,
+.p3-case.is-pending,
+.p3-group-head.is-pending {
+  opacity: 0.35;
+}
+.p3-cols {
+  display: grid;
+  column-gap: 10px;
+  margin-bottom: 4px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+  text-align: right;
+}
+.p3-group-head {
+  margin: 16px 0 8px;
+  padding-top: 10px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  border-top: 1px dashed var(--card-border);
+}
+.p3-bar {
+  display: block;
+  width: 100%;
+  height: 12px;
+}
+.p3-bar-track {
+  fill: var(--pe-gray-100);
+}
+.p3-zero {
+  stroke: var(--pe-gray-400, #9ca3af);
+  stroke-width: 1;
+}
+.p3-fill-neutral,
+.p3-fill-cost {
+  fill: var(--series-2);
+}
+.p3-fill-ref {
+  fill: var(--series-5);
+}
+.p3-fill-gov {
+  fill: var(--series-2);
+  background: var(--series-2);
+}
+.p3-fill-hh {
+  fill: var(--series-3);
+  background: var(--series-3);
+}
+.p3-fill-gain {
+  fill: var(--c-gain);
+}
+.p3-fill-loss {
+  fill: var(--c-loss);
+}
+.p3-fill-muted {
+  fill: var(--pe-gray-300);
+}
+
+/* Block 4: two sub-rows per case */
+.p3-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 10px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p3-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 8px;
+  border-radius: 2px;
+}
+.p3-swatch:first-child {
+  margin-left: 0;
+}
+.p3-case {
+  display: grid;
+  gap: 4px;
+}
+.p3-case-label {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.p3-row-sub {
+  grid-template-columns: 9em minmax(0, 1fr) 3.5em;
+}
+.p3-row-sub .p3-sub-label {
+  grid-column: auto;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+
+/* Block 5: tiles */
+.p3-tiles-wrap {
+  max-width: 260px;
+}
+
+/* Block 6: deciles, one line each */
+.p3-deciles {
+  gap: 6px;
+}
+.p3-dec {
+  grid-template-columns: 5.5em minmax(0, 1fr) 4.5em;
+}
+.p3-dec .p3-dec-label {
+  grid-column: auto;
+  font-variant-numeric: tabular-nums;
+}
+.p3-dec.is-dim {
+  opacity: 0.5;
+}
+.p3-dec.is-caveat .p3-caveat {
+  grid-column: 1 / -1;
+}
+.p3-caveat {
+  margin: 4px 0 6px;
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--pe-gray-600);
+}
+
+@media (max-width: 900px) {
+  .p3-central {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .p3-central-tiles {
+    display: none;
+  }
+  .p3-stats {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .p3-stat-value {
+    font-size: var(--fs-section);
+  }
+  .p3-tiles-wrap {
+    max-width: 180px;
+  }
+  .p3-rows {
+    gap: 6px;
+  }
+  .p3-row-sub {
+    grid-template-columns: 7.5em minmax(0, 1fr) 3em;
+  }
+}

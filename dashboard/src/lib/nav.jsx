@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { TABS, tabById, CLOSURES, RULES } from '@/lib/labels.js';
+import { tabById, CLOSURES, RULES } from '@/lib/labels.js';
 import { SCENARIOS, ARMS, S } from '@/tabs/ai/surprise.js';
 import { revealAnchor } from '@/lib/scroll.js';
 
@@ -22,7 +22,7 @@ export const WG_GROUPS = ['0', '1', '2', '3', '4', '5', '6', 'all'];
 const WG_GROUPS_DEFAULT = ['0', '2', '6', 'all'];
 
 export const DEFAULTS = {
-  tab: 'results',
+  tab: 'story',
   sub: null, // null = the tab's first sub-tab
   s: S.default_scenario,
   closure: 'central',
@@ -51,7 +51,7 @@ const LEGACY_TAB = {
   coverage: ['studies'],
 };
 const LEGACY_SUB = {
-  results: { overview: ['results', 'summary'], variables: ['results', 'economy'] },
+  results: { overview: ['story'], summary: ['story'], variables: ['results', 'economy'] },
   method: {
     scenarios: ['scenarios'],
     built: ['method', null, 'm-closures'],
@@ -87,7 +87,7 @@ export function parseUrl(search, hash = '') {
     if (old) {
       [tab, sub = sub] = old;
       if (LEGACY_TAB[h] || LEGACY_TAB[h.split('/')[0]]) anchor = null;
-    } else tab = sub && TABS[0].subs.some((x) => x.id === sub) ? 'results' : DEFAULTS.tab;
+    } else tab = sub && tabById('results').subs.some((x) => x.id === sub) ? 'results' : DEFAULTS.tab;
   }
   const subs = tabById(tab).subs;
   if (!subs?.some((x) => x.id === sub)) sub = null;
