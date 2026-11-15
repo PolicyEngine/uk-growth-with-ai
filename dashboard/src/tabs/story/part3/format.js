@@ -36,3 +36,21 @@ export const fmtMillions = guard((v) => `${v.toFixed(2)}m`);
 
 // An input rate as the study states it: "7%", "1.67%".
 export const fmtInputPct = guard((v) => `${Number(v.toFixed(2))}%`);
+
+// £bn, two decimals: "£0.15bn" (a small difference that one decimal would hide).
+export const fmtBn2 = guard((v) => `${v < 0 ? MINUS : ''}£${abs(v).toFixed(2)}bn`);
+
+// A rate or share with one decimal: "11.4%".
+export const fmtPct1 = guard((v) => `${v.toFixed(1)}%`);
+
+// A signed rate with one decimal: "+3.7%".
+export const fmtPctSigned1 = guard((v) => sign(v, `${abs(v).toFixed(1)}%`));
+
+// A Gini coefficient, three decimals: "0.302".
+export const fmtGini = guard((v) => v.toFixed(3));
+
+// Months, one decimal: "9.4 months".
+export const fmtMonths = guard((v) => `${v.toFixed(1)} months`);
+
+// A pence range across draws: "41p–43p".
+export const fmtPenceRange = (lo, hi) => (ok(lo) && ok(hi) ? `${Math.round(lo)}p–${Math.round(hi)}p` : '');

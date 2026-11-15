@@ -24,6 +24,9 @@ const tabs = [
   'who', 'who:both', 'scenarios', 'method', 'studies', 'code',
   'results:all',
   'story:part1', 'story:part3',
+  // uk-ai-study detail and method: ?tab=explore&sub=households and
+  // ?tab=method&sub=households (#explore-sub-households, #method-sub-households)
+  'explore:households', 'method:households',
 ];
 const res = {};
 for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
@@ -31,12 +34,13 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
   for (const t of tabs) {
     const [tab, sub, closure, rule] = t.split(':');
     const story = tab === 'story' || sub === 'summary';
+    const hh = sub === 'households';
     // The keys keep the names of the tabs before they were consolidated;
     // each opens its current address: Results and Who gains are sub-tabs of
     // Explore, the rest of Method and sources.
-    const [newTab, newSub] = story ? ['story', null] : tab === 'results' ? ['explore', sub === 'income' ? 'economy' : sub] : tab === 'who' ? ['explore', 'who'] : ['method', tab === 'method' ? 'how' : tab];
+    const [newTab, newSub] = hh ? [tab, sub] : story ? ['story', null] : tab === 'results' ? ['explore', sub === 'income' ? 'economy' : sub] : tab === 'who' ? ['explore', 'who'] : ['method', tab === 'method' ? 'how' : tab];
     // Results' panels are parts of Explore's pages (income and economy share one)
-    const elId = tab === 'results' ? `explore-part-${sub}` : newSub ? `${newTab}-sub-${newSub}` : `tab-${newTab}`;
+    const elId = hh ? `${tab}-sub-households` : tab === 'results' ? `explore-part-${sub}` : newSub ? `${newTab}-sub-${newSub}` : `tab-${newTab}`;
     const q = new URLSearchParams({ tab: newTab, s });
     if (newSub) q.set('sub', newSub);
     if (closure) q.set('closure', closure);
@@ -53,6 +57,13 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
       document.querySelectorAll('[data-axis]').forEach((e) => { e.style.display = 'none'; });
       return document.getElementById(id)?.innerText ?? '';
     }, elId);
+    if (hh) {
+      // as the story: quoted inputs (data-input) are not results
+      res[s][t] = await page.evaluate((id) => {
+        document.querySelectorAll('[data-axis], [data-input]').forEach((e) => { e.style.display = 'none'; });
+        return document.getElementById(id)?.innerText ?? '';
+      }, elId);
+    }
     if (story) {
       const el = sub === 'summary' ? 'story-part-2' : `story-${sub.replace('part', 'part-')}`;
       // Story: axis ticks and inputs quoted from the data's text (data-input:

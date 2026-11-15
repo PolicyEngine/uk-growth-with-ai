@@ -1,12 +1,33 @@
 # Part 3 data notes: the uk-ai-study results (provisional)
 
+## Where each figure is printed (November 2026 rebuild)
+
+Story part 3 has eight steps in the order of `results.tex` and prints the headline findings once each; Explore > Households prints the rest; Method and sources > Household method prints no result. A figure the story prints is drawn on Explore as a bar whose cell links to the story step. `src/tabs/households/figures.js` lists every printed figure at its home; the tests count the rendered text against it, and `scripts/checks/part3.py` rebuilds the same lists independently and counts the dump (`story:part3`, `explore:households`, `method:households`), story and Explore together.
+
+| Step | Figures (story) | Source |
+|---|---|---|
+| 1 Central case | 2.04m, £7.4bn (SD £1.8bn), +2.34pp from 11.4%, +0.64pp relative from 13.4%, +1.76 Gini from 0.302, +2.58pp AHC | central_monte_carlo.json; baseline absolute rate `robustness/poverty_decomposition.json` poverty_rate_bhc_baseline; Gini baseline low.json |
+| 2 Channels | £40.7bn, −£16.8bn, −£16.8bn, sum £7.1bn, within £0.15bn (20 draws) | `robustness/dividend_coverage.json` channels.*, channels_sum, channels_interaction |
+| 3 Sankey | £23.3bn lost: £15.4bn disposable, £6.2bn income tax and employee NI, £1.3bn other, £0.4bn benefits; 28% absorbed; £3.1bn employer NI on top | `next_runs/obr_household_deciles.csv` (other = remainder per decile, all ≥ 0, deciles sum to the `all` row); employer NI `next_runs/obr_benchmark.json` −summary.employer_ni_change_bn.mean |
+| 4 Deciles | D2–D10 HBAI; D1 +1.78% / −0.33% / −0.10% in its caveat | decomposition_ci.csv, decile_ranking_sensitivity.csv |
+| 5 Rules | £2.2bn, £7.1bn, £11.2bn (exposure: step 1) | incidence_monte_carlo.json |
+| 6 Margins | job loss 42p (41p–43p), wage cuts 55p = 40p + 15p; £7.2bn/+2.31pp against £18.9bn/+0.20pp | job loss: dividend_coverage_draws.csv run=channel_displacement over wage_cut_draws.csv cut_only gross_cut_bn (20 draws); wage cuts cut_only; table3 and run=central |
+| 7 What moves it | +3.7% (central +2.6%, seed 0), +56% (central +39.8%, 20 draws), 9.4 months (20 draws); £9.9bn/+2.10pp, £12.6bn/+1.92pp | survivor_wage_grid.csv; capital_variants_draws.csv cap60 against run=central; incidence_draws_five.csv exposure seeds 0–19 and duration_takeup_sensitivity.json |
+
+Explore > Households: the cost by tax and benefit (`robustness/central_cost_decomposition.json`, 50 draws), every ladder row's Gini and the OBR-sized rows, the stress-test cost and every rule's poverty and Gini, seed-0 pence (42/29, 45/31, 47/34), who the displaced are and UC per person, deciles under three rankings (bars only, no labels), and the policy responses (`robustness/policy_draws.csv`, exposure family and R1 under junior and uniform, 50 draws, mean and SD; paper order, no ranking; #18's policy PNG is not used).
+
+Labelled "outside the study's attested rebuild" (Fable's review, H1): the wage-cut, take-up and OBR-sized (`next_runs`) results, so steps 3, 6 and 7 and two Explore cards.
+
+### Paper against result files
+No value differs. The builder asserts each new figure against `values_generated.tex`. Notes: the paper emits two capital break-evens, 56% (Table "Break-even values", interpolated against the cap60 run; used here) and 57% (`genBeCapitalUpliftPct`, linear in the channel); UC per displaced worker prints £1,385 and £2,735 from the files where the paper rounds to £1,380 and £2,740; R1 seed-0 cost in `results/policy/summary.csv` (£25.6bn) differs from the 50-draw mean used here (£26.7bn).
+
 Source: PolicyEngine/uk-ai-study PR #18, "Move the study to Microcosm UK 2024-25 and rerun every result (WIP)", branch `data/microcosm-2024-25`, commit `02956bdbf68638221a9af5e14d5989f58c56d95c` (read 15 Nov 2026). The PR is an open draft. The PR body describes head `63d475b`. The 7 commits after it change only paper text and figure PNGs under `results/`; no result data changed (`git diff --stat 63d475b..02956bd -- results/` lists 16 PNGs).
 
-Pipeline: `analysis/story/ai_study/` holds exact copies of the committed result files at their repo paths, plus `SOURCE.json`. `dashboard/scripts/build_ai_study_data.py` reads only that folder and writes `dashboard/src/data/aiStudy2425.json`. It uses the formulas of the study's emitter (`analysis/emit_tex_values.py` and its helpers `post_takeup_runs.py`, `post_wage_cut.py` and `revision_accounting.py`). It checks each rounded value against the value the paper prints (`paper/values_generated.tex` at the same commit) and exits if one differs. All checks pass.
+Pipeline: `analysis/story/ai_study/` holds exact copies of the committed result files at their repo paths (and `paper/values_generated.tex`), plus `SOURCE.json`. The repo's `.gitignore` ignores `results/`, so the copies are force-added (`git add -f`). `dashboard/scripts/build_ai_study_data.py` reads only that folder and writes `dashboard/src/data/aiStudy2425.json`. It uses the formulas of the study's emitter (`analysis/emit_tex_values.py` and its helpers `post_takeup_runs.py`, `post_wage_cut.py` and `revision_accounting.py`). It checks each rounded value against the value the paper prints (`paper/values_generated.tex` at the same commit) and exits if one differs. All checks pass.
 
 ## Common definitions
 
-- **Data and year.** Microcosm UK 2024-25 (build `microcosm-uk-2024-25-national-20261107T020434Z-eeb6093e`), simulated for 2026 with PolicyEngine-UK (`policyengine[uk]==6.16.1`).
+- **Data and year.** Microcosm UK 2024-25 (build `microcosm-uk-2024-25-national-20261107T020434Z-eeb6093e`), model year FY 2026–27 (the paper says "the simulation year is 2026"), PolicyEngine-UK 2.174.1 in the policyengine.py 6.16.1 release bundle (`results/BUILD_MANIFEST.json` package_versions).
 - **Central scenario.** 7% of employees are displaced, with each employee's probability proportional to their occupation's AI exposure (C-AIOE). Survivors' wages rise 2.6% on average. Interest and dividend income rise 39.8% (+0.4pp return). Each displaced worker loses a full year of earnings.
 - **Exchequer cost.** The fall in the government balance: income tax, employee and employer NI, and benefits. It counts no corporation tax. A negative cost is a net gain. The public-sector pay bill of displaced public employees is not netted.
 - **Poverty.** Absolute poverty before housing costs (BHC), with the line frozen at its baseline value. The rate is over persons, in percentage points. AHC and relative (60% of the shocked median) figures are labelled where given.
