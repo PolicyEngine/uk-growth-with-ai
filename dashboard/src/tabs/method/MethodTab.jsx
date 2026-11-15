@@ -70,7 +70,7 @@ function ClosureCards() {
         more={
           <>
             <p>UK households&rsquo; saving finances all the extra capital. GNI and GDP nearly coincide.</p>
-            <p>It is the {S.closures[BOUND].role}: choose Closed capital or Both under Closure at the top of Results to see it.</p>
+            <p>It is the {S.closures[BOUND].role}: choose Closed capital or Both under Closure at the top of Explore to see it.</p>
           </>
         }
         moreTitle="What it bounds"
@@ -95,7 +95,7 @@ const RULE_TEXT = {
   common: {
     id: 'rule-default',
     icon: 'sliders',
-    tag: 'Default, on every Results chart',
+    tag: 'Default, on every chart in Explore',
     line: `Government consumption and transfers are fixed shares of GDP, so spending follows GDP. From ${LATE_YEAR} a debt rule steers spending.`,
   },
   fixed: {
@@ -153,8 +153,8 @@ function Limitations() {
       more: (
         <p>
           The gap against the OBR&rsquo;s tax rates is on{' '}
-          <NavLink tab="results" sub="finances" anchor="tax-gap">
-            Results, Public finances
+          <NavLink tab="explore" sub="finances" anchor="tax-gap">
+            Explore, Public finances
           </NavLink>
           .
         </p>
@@ -211,7 +211,7 @@ export default function MethodTab() {
   const nic = F.nics;
   return (
     <div className="page-with-contents mx-tab mx-method">
-      <OnThisPage tab="method" sections={SECTIONS} label="Method contents" />
+      <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
       <div className="page-body">
         <section>
           <SectionHeading id="m-shock" icon="zap" title="The shock">
@@ -226,7 +226,7 @@ export default function MethodTab() {
                 <>
                   <p>Production is Cobb-Douglas, so the labour share is exactly 1 &minus; &gamma;.</p>
                   <p>A fall of f points sets &gamma; to 0.35 + f/100. The ramp needs a small OG-Core patch (see{' '}
-                    <NavLink tab="code" anchor="before">Code</NavLink>).</p>
+                    <NavLink tab="method" sub="code" anchor="before">Code</NavLink>).</p>
                 </>
               }
               moreTitle="How it maps"
@@ -382,7 +382,7 @@ export default function MethodTab() {
               more={
                 <>
                   <p>Time path iteration guesses whole price paths. It solves every cohort, then updates the guess.</p>
-                  <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on <NavLink tab="code">Code</NavLink>.</p>
+                  <p>OG-UK&rsquo;s path tolerance is 10<sup>−4</sup>. Run times are on <NavLink tab="method" sub="code">Code</NavLink>.</p>
                 </>
               }
               moreTitle="Time path iteration"
@@ -406,7 +406,7 @@ export default function MethodTab() {
               moreTitle="The two gates"
               morePreview="Continuation gate, sanity check"
             >
-              <p>A restart test and a sanity check guard every number. The commands are on <NavLink tab="code" anchor="pipeline">Code</NavLink>.</p>
+              <p>A restart test and a sanity check guard every number. The commands are on <NavLink tab="method" sub="code" anchor="pipeline">Code</NavLink>.</p>
             </InfoCard>
           </div>
         </section>

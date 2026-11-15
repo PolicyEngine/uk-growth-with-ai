@@ -137,3 +137,26 @@
 .p2-deeper {
   margin: 8px 0 24px;
 }
+
+/* The UK range on the scenario chart: a neutral shaded band from UK low to
+   UK high; the label above it marks what lies beyond as an upper case. */
+.p2-band {
+  fill: var(--pe-gray-200);
+  opacity: 0.7;
+}
+.p2-band-label,
+.p2-beyond-label {
+  font-size: 14.5px;
+  font-weight: 600;
+  fill: var(--pe-gray-600);
+}
+.p2-beyond-label {
+  font-weight: 400;
+  font-style: italic;
+}
+@media (min-width: 901px) {
+  .p2-band-label,
+  .p2-beyond-label {
+    font-size: 9.6px;
+  }
+}

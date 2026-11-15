@@ -7,7 +7,7 @@ import { revealAnchor } from '@/lib/scroll.js';
 
 // One reader and one writer for the address. Everything a reader can choose
 // is in it, so any view can be shared as a link:
-//   ?tab=  &sub=           the tab and its sub-tab (Results, Other studies)
+//   ?tab=  &sub=           the tab and its sub-tab (Explore, Method and sources)
 //   &s=    &closure=       the header pickers: scenario, capital closure
 //   &arms= &rule=          Results' control bars: arms shown, fiscal rule
 //   &arm=  &wrule= &groups= Who gains' control bar
@@ -34,33 +34,57 @@ export const DEFAULTS = {
   anchor: null,
 };
 
-// Addresses from before the redesign keep working.
+// Addresses from before the redesign keep working. Each entry points at a
+// final address: [tab, sub, anchor].
 const LEGACY_TAB = {
-  cohorts: ['who'],
-  literature: ['studies'],
-  finances: ['results', 'finances'],
-  'public-finances': ['results', 'finances'],
-  growth: ['results'],
-  'growth/results': ['results'],
+  cohorts: ['explore', 'who'],
+  literature: ['method', 'studies'],
+  finances: ['explore', 'finances'],
+  'public-finances': ['explore', 'finances'],
+  growth: ['explore'],
+  'growth/results': ['explore'],
   'growth/method': ['method'],
   methodology: ['method'],
   'methodology/how': ['method'],
-  'methodology/code': ['code'],
-  'methodology/coverage': ['studies'],
+  'methodology/code': ['method', 'code'],
+  'methodology/coverage': ['method', 'studies'],
   'methodology/obr': ['method'],
-  coverage: ['studies'],
+  coverage: ['method', 'studies'],
 };
+const STUDY_SUBS = { coverage: 'coverage', numbers: 'numbers', sources: 'sources', matrix: 'coverage' };
 const LEGACY_SUB = {
-  results: { overview: ['story'], summary: ['story'], variables: ['results', 'economy'] },
+  results: { overview: ['story'], summary: ['story'], variables: ['explore', 'economy'] },
   method: {
-    scenarios: ['scenarios'],
     built: ['method', null, 'm-closures'],
     limits: ['method', null, 'm-limits'],
     history: ['method', null, 'm-history'],
   },
-  literature: { matrix: ['studies', 'coverage'], numbers: ['studies', 'numbers'], sources: ['studies', 'sources'] },
-  code: { reproduce: ['code'], oguk: ['code', null, 'use-oguk'] },
+  code: { reproduce: ['method', 'code'], oguk: ['method', 'code', 'use-oguk'] },
 };
+// The tabs before they were consolidated (November 2026): Results and Who
+// gains are in Explore; Scenarios, Other studies and Code are in Method and
+// sources. Used for old addresses and for links that name an old tab.
+const ALIAS = {
+  results: (sub, anchor) => ['explore', sub, anchor],
+  who: (sub, anchor) => ['explore', 'who', anchor],
+  scenarios: (sub, anchor) => ['method', 'scenarios', anchor],
+  studies: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
+  literature: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
+  code: (sub, anchor) => ['method', 'code', anchor],
+};
+// One step from any named place to a current one. An anchor on Method and
+// sources with no sub-tab named is a Method section.
+export function resolve(tab, sub = null, anchor = null) {
+  const legacy = tab && LEGACY_SUB[tab]?.[sub];
+  if (legacy) {
+    anchor = legacy[2] ?? anchor;
+    sub = legacy[1] ?? null;
+    tab = legacy[0];
+  }
+  else if (ALIAS[tab]) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
+  if (tab === 'method' && anchor && !sub) sub = 'how';
+  return [tab, sub, anchor];
+}
 
 const list = (text, allowed) => {
   if (text == null) return null;
@@ -72,22 +96,13 @@ const same = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 export function parseUrl(search, hash = '') {
   const q = new URLSearchParams(search);
   const h = hash.replace(/^#/, '');
-  let tab = q.get('tab');
-  let sub = q.get('sub');
-  let anchor = h || null;
-  const rawTab = tab;
-  const legacy = rawTab && LEGACY_SUB[rawTab]?.[sub];
-  if (legacy) {
-    tab = legacy[0];
-    sub = legacy[1] ?? null;
-    anchor = legacy[2] ?? anchor;
-  }
+  let [tab, sub, anchor] = resolve(q.get('tab'), q.get('sub'), h || null);
   if (!tabById(tab)) {
     const old = LEGACY_TAB[tab] || LEGACY_TAB[h] || LEGACY_TAB[h.split('/')[0]];
     if (old) {
       [tab, sub = sub] = old;
       if (LEGACY_TAB[h] || LEGACY_TAB[h.split('/')[0]]) anchor = null;
-    } else tab = sub && tabById('results').subs.some((x) => x.id === sub) ? 'results' : DEFAULTS.tab;
+    } else tab = sub && tabById('explore').subs.some((x) => x.id === sub) ? 'explore' : DEFAULTS.tab;
   }
   const subs = tabById(tab).subs;
   if (!subs?.some((x) => x.id === sub)) sub = null;
@@ -166,8 +181,9 @@ export function NavProvider({ children }) {
   }, []);
 
   // A tab, a sub-tab or a section: a new history entry.
-  const target = useCallback((tab, { sub, anchor = null, patch } = {}) => {
+  const target = useCallback((name, { sub: named, anchor: at = null, patch } = {}) => {
     const cur = ref.current;
+    const [tab, sub, anchor] = resolve(name, named ?? null, at);
     const subs = tabById(tab).subs;
     let nextSub = null;
     if (subs) {
@@ -196,7 +212,11 @@ export function NavProvider({ children }) {
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }
 
-const FALLBACK = { st: DEFAULTS, set: () => {}, go: () => {}, href: (tab, opts = {}) => formatUrl({ ...DEFAULTS, tab, sub: opts.sub ?? null, anchor: opts.anchor ?? null }) };
+const fallbackHref = (name, opts = {}) => {
+  const [tab, sub, anchor] = resolve(name, opts.sub ?? null, opts.anchor ?? null);
+  return formatUrl({ ...DEFAULTS, tab, sub: sub && sub !== tabById(tab).subs?.[0].id ? sub : null, anchor });
+};
+const FALLBACK = { st: DEFAULTS, set: () => {}, go: () => {}, href: fallbackHref };
 export const useNav = () => useContext(NavContext) ?? FALLBACK;
 
 // An internal link: a real <a href> (so it opens in a new tab on request)

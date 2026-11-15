@@ -22,7 +22,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false }) {
       </div>
       <ol className="scrolly-steps">
         {steps.map((s, i) => (
-          <li key={s.id} id={s.id} ref={register(i)} className={`scrolly-step${i === active ? ' is-active' : ''}`} aria-current={i === active ? 'step' : undefined}>
+          <li key={s.id} id={s.id} ref={register(i)} className={`scrolly-step${i === active ? ' is-active' : i < active ? ' is-past' : ''}`} aria-current={i === active ? 'step' : undefined}>
             <div className="scrolly-card">
               {s.kicker ? <p className="scrolly-kicker">{s.kicker}</p> : null}
               {s.title ? <h3 className="scrolly-title">{s.title}</h3> : null}

@@ -181,7 +181,7 @@ export default function ScenariosTab() {
       </div>
       <p className="mx-foot">
         Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}. Published figures are compared on{' '}
-        <NavLink tab="studies" sub="numbers">Other studies</NavLink>.
+        <NavLink tab="method" sub="studies" anchor="numbers">Other studies</NavLink>.
       </p>
 
       <SectionHeading id="s-arms" icon="shuffle" title="Three arms per scenario">

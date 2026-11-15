@@ -127,7 +127,7 @@ function TaxGapCard({ sid, closure }) {
             <>
               The OBR&rsquo;s tax rates lose 0.19 to 0.23 points of revenue per point moved from labour to capital. Multiplying by this
               scenario&rsquo;s {HEADLINE_YEAR} labour-share fall (on{' '}
-              <NavLink tab="results" sub="economy" anchor="economy-prices">
+              <NavLink tab="explore" sub="economy" anchor="economy-prices">
                 Economy
               </NavLink>
               ) gives the range above.
@@ -144,7 +144,7 @@ function TaxGapCard({ sid, closure }) {
             </li>
             <li>
               Employer NICs, OG-UK&rsquo;s flat rate against PolicyEngine-UK&rsquo;s average: the rates are under{' '}
-              <NavLink tab="method" anchor="m-tax">
+              <NavLink tab="method" sub="how" anchor="m-tax">
                 How labour is taxed on Method
               </NavLink>
               ; data in <code>analysis/nics/nics_2028.json</code>.
@@ -275,7 +275,7 @@ function FiscalRuleCard({ sid }) {
       id="fiscal-rule"
       icon="sliders"
       title="How the result changes with the fiscal rule"
-      finding={`Every other chart on Results uses the common fiscal rule. Choose another rule to see its own ${HEADLINE_YEAR} gaps.`}
+      finding={`Every other chart in Explore uses the common fiscal rule. Choose another rule to see its own ${HEADLINE_YEAR} gaps.`}
       controls={
         <ControlBar label="Fiscal rule: options">
           <RuleGroup value={rule} onChange={(r) => set({ rule: r })} />
@@ -358,7 +358,7 @@ export default function FinancesSection({ sid }) {
             caveats: (
               <>
                 Under the central closure the fall is too small; with closed capital the sign itself is not reliable. See{' '}
-                <NavLink tab="results" sub="finances" anchor="tax-gap">
+                <NavLink tab="explore" sub="finances" anchor="tax-gap">
                   Our tax effect is likely understated
                 </NavLink>
                 .

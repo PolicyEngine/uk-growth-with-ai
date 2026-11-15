@@ -31,7 +31,7 @@ export default function SensitivityTable() {
       aboutTitle="About this table"
       about={{
         shows: `Each scenario and arm solved with ζK = ${sens.zeta_K}: foreign investors supply half of the excess demand for capital at the world rate. It is a sensitivity only; no other chart uses it.`,
-        how: 'The same solves, checks and reference path as the two closures on Results, with only ζK changed. The reference is the no-shock path restarted in 2028 at this closure.',
+        how: 'The same solves, checks and reference path as the two closures in Explore, with only ζK changed. The reference is the no-shock path restarted in 2028 at this closure.',
         caveats: 'The stress test holds GDP at the path in the headline year by construction.',
       }}
       method="closures"

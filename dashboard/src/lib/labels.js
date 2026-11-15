@@ -3,28 +3,34 @@
 
 export const PAGE_TITLE = 'The macroeconomic effects of AI on the UK';
 
-// Tabs, in order. `scenario` / `closure`: whether that header picker applies
-// ('locked' = shown, fixed, with the reason in view).
+// Tabs, in order, and their sub-tabs. `scenario` / `closure`: whether that
+// header picker applies ('locked' = shown, fixed, with the reason in view);
+// a sub-tab's own setting wins over its tab's. The site had seven tabs until
+// November 2026; lib/nav.jsx sends their addresses here.
 export const TABS = [
   { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
-  { id: 'results', label: 'Results', icon: 'lineChart', scenario: true, closure: true,
+  { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true,
     subs: [
       { id: 'income', label: 'Income and output', icon: 'home' },
       { id: 'economy', label: 'Economy', icon: 'factory' },
       { id: 'finances', label: 'Public finances', icon: 'landmark' },
+      { id: 'who', label: 'Who gains', icon: 'usersRound', scenario: 'locked' },
     ] },
-  { id: 'who', label: 'Who gains', icon: 'usersRound', scenario: 'locked', closure: true },
-  { id: 'scenarios', label: 'Scenarios', icon: 'target' },
-  { id: 'method', label: 'Method', icon: 'book' },
-  { id: 'studies', label: 'Other studies', icon: 'library',
+  { id: 'method', label: 'Method and sources', icon: 'book',
     subs: [
-      { id: 'coverage', label: 'Coverage', icon: 'layoutGrid' },
-      { id: 'numbers', label: 'Our numbers', icon: 'ruler' },
-      { id: 'sources', label: 'Sources', icon: 'fileText' },
+      { id: 'how', label: 'Method', icon: 'sigma' },
+      { id: 'scenarios', label: 'Scenarios', icon: 'target' },
+      { id: 'studies', label: 'Other studies', icon: 'library' },
+      { id: 'code', label: 'Code', icon: 'code' },
     ] },
-  { id: 'code', label: 'Code', icon: 'code' },
 ];
 export const tabById = (id) => TABS.find((t) => t.id === id);
+// The pickers that apply to a tab and sub-tab.
+export const pickersFor = (tabId, subId) => {
+  const t = tabById(tabId);
+  const s = t?.subs?.find((x) => x.id === subId) ?? t?.subs?.[0];
+  return { scenario: s?.scenario ?? t?.scenario ?? false, closure: s?.closure ?? t?.closure ?? false };
+};
 
 // Capital closure: who owns the new capital.
 export const CLOSURES = [

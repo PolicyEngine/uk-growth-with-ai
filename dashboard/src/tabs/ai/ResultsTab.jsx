@@ -221,7 +221,7 @@ function IncomePanel({ sid }) {
               caveats: (
                 <>
                   {IMPOSED} Why GDP is below the IMF&rsquo;s UK estimate:{' '}
-                  <NavLink tab="studies" sub="numbers" anchor="imf-gap">
+                  <NavLink tab="method" sub="studies" anchor="imf-gap">
                     Other studies, our numbers
                   </NavLink>
                   .
@@ -268,14 +268,14 @@ function EconomyPanel({ sid }) {
   );
 }
 
-export default function ResultsTab() {
+export default function ResultsTab({ sub: named }) {
   const { st } = useNav();
-  const sub = st.tab === 'results' ? subOf(st) : 'income';
+  const sub = named ?? (st.tab === 'explore' && st.sub !== 'who' ? subOf(st, 'explore') : 'income');
   const sid = st.s;
   const panels = { income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
   const Panel = panels[sub];
   return (
-    <div id={`results-sub-${sub}`} role="tabpanel" aria-labelledby={`results-subbtn-${sub}`} className="sub-panel">
+    <div id={`explore-sub-${sub}`} role="tabpanel" aria-labelledby={`explore-subbtn-${sub}`} className="sub-panel">
       <Panel sid={sid} />
     </div>
   );

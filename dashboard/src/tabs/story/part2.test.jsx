@@ -76,13 +76,13 @@ describe('story part 2', () => {
     }
     expect(container.querySelectorAll('.story-source')).toHaveLength(5);
     const hrefs = [...container.querySelectorAll('.p2-more a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('/?tab=who&s=uk_high&closure=both');
-    expect(hrefs).toContain('/?tab=results&sub=finances&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=method&s=uk_high&closure=both#m-closures');
-    expect(hrefs.some((h) => h.startsWith('/?tab=scenarios'))).toBe(true);
+    expect(hrefs.some((h) => h.startsWith('/?tab=method&sub=scenarios'))).toBe(true);
     // Income and output is Results' first sub-tab, so the address leaves it out
-    expect(hrefs).toContain('/?tab=results&s=uk_high&closure=both');
-    expect(hrefs.some((h) => h.startsWith('/?tab=results&sub=economy'))).toBe(true);
+    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both');
+    expect(hrefs.some((h) => h.startsWith('/?tab=explore&sub=economy'))).toBe(true);
   });
 
   it('closed capital is dashed only with Both', () => {
@@ -107,7 +107,8 @@ describe('each state of each graphic', () => {
       unmount();
       return n;
     };
-    expect([0, 1, 2, 3, 4].map((i) => drawn(<ScenarioPaths state={i} sid="uk_central" cl="zk0.1" />))).toEqual([0, 1, 2, 3, 4]);
+    // the shaded UK range fades in with UK high (state 3), as one more path
+    expect([0, 1, 2, 3, 4].map((i) => drawn(<ScenarioPaths state={i} sid="uk_central" cl="zk0.1" />))).toEqual([0, 1, 2, 4, 5]);
     const arms = (i, closure, allFrom) => drawn(<ArmPaths state={i} sid="uk_high" closure={closure} v="Y" title="t" unit="u" label="l" allFrom={allFrom} />);
     expect([0, 1, 2].map((i) => arms(i, 'central'))).toEqual([1, 2, 3]);
     expect([0, 1, 2].map((i) => arms(i, 'both'))).toEqual([2, 4, 6]);

@@ -45,6 +45,15 @@ export function afterWords(ys) {
 // The same over several paths: one phrase when they agree.
 export const afterWordsAll = (yss) => [...new Set(yss.map(afterWords).filter(Boolean))].join(' or ') || null;
 
+// The area between two paths, for the shaded UK range.
+function bandPath(X, Y, xs, lo, hi) {
+  const pts = xs.map((x, i) => [x, lo[i], hi[i]]).filter(([, a, b]) => Number.isFinite(a) && Number.isFinite(b));
+  if (!pts.length) return null;
+  const top = pts.map(([x, , b], i) => `${i ? 'L' : 'M'}${X(x).toFixed(1)},${Y(b).toFixed(1)}`).join('');
+  const bottom = [...pts].reverse().map(([x, a]) => `L${X(x).toFixed(1)},${Y(a).toFixed(1)}`).join('');
+  return `${top}${bottom}Z`;
+}
+
 function Line({ d, on, color, dashed, width = 2.25, faint }) {
   const style = { stroke: color, strokeWidth: width, opacity: faint ? 0.55 : 1 };
   if (dashed)
@@ -68,11 +77,18 @@ export function ScenarioPaths({ state, sid, cl }) {
   const lines = SCENARIOS.map((s) => ({ id: s.id, ys: series(s.id, 'tfp', cl, 'Y') })).filter((l) => l.ys);
   const sc = scales(YEARS, lines.flatMap((l) => l.ys));
   const shown = lines.filter((l) => state >= SCEN_STATE[l.id]);
-  const label = `Line chart, shape only: GDP against the OBR-central path in the four scenarios, automation + productivity, ${CL_WORDS[cl]}. ${
-    shown.length ? `Drawn: ${shown.map((l) => SCEN_NAME[l.id]).join(', ')}. Each rises from ${SURPRISE_YEAR} and ${afterWordsAll(shown.map((l) => l.ys))} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.` : 'Only the OBR-central path is drawn.'
-  }`;
   // the chosen scenario last, so it sits on top
   const order = [...lines].sort((a, b) => (a.id === sid) - (b.id === sid));
+  // The UK range, shaded from UK low to UK high once both are drawn, so
+  // the Korinek et al. line reads as a case beyond it, not a UK estimate.
+  const lo = lines.find((l) => l.id === 'uk_low')?.ys;
+  const hi = lines.find((l) => l.id === 'uk_high')?.ys;
+  const band = lo && hi ? bandPath(sc.X, sc.Y, YEARS, lo, hi) : null;
+  const last = YEARS.length - 1;
+  const hasK = lines.some((l) => l.id === 'korinek');
+  const label = `Line chart, shape only: GDP against the OBR-central path in the four scenarios, automation + productivity, ${CL_WORDS[cl]}. ${
+    shown.length ? `Drawn: ${shown.map((l) => SCEN_NAME[l.id]).join(', ')}. Each rises from ${SURPRISE_YEAR} and ${afterWordsAll(shown.map((l) => l.ys))} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.` : 'Only the OBR-central path is drawn.'
+  }${band && state >= SCEN_STATE.uk_high ? ' The UK range, from UK low to UK high, is shaded.' : ''}${band && state >= SCEN_STATE.korinek ? ' Korinek et al. lies above it, an upper case rather than a UK estimate.' : ''}`;
   return (
     <Figure
       title="GDP in the four scenarios"
@@ -85,6 +101,21 @@ export function ScenarioPaths({ state, sid, cl }) {
     >
       <svg ref={ref} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         <Axes sc={sc} xTicks={yearTicks} markers={[{ x: SURPRISE_YEAR, label: 'AI arrives' }]} />
+        {band ? (
+          <FadeG on={seen && state >= SCEN_STATE.uk_high}>
+            <path d={band} className="p2-band" />
+            <text className="p2-band-label" x={sc.X(YEARS[last]) - 4} y={sc.Y((lo[last] + hi[last]) / 2)} textAnchor="end" dominantBaseline="middle">
+              UK range
+            </text>
+          </FadeG>
+        ) : null}
+        {band && hasK ? (
+          <FadeG on={seen && state >= SCEN_STATE.korinek}>
+            <text className="p2-beyond-label" x={sc.X(YEARS[last]) - 4} y={sc.Y(hi[last]) - 10} textAnchor="end">
+              Above the band: not a UK estimate
+            </text>
+          </FadeG>
+        ) : null}
         {order.map((l) => (
           <Line
             key={l.id}

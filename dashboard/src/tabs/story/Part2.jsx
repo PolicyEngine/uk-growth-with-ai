@@ -70,7 +70,7 @@ function shockSteps() {
             In the model AI lets capital do tasks that workers did, so capital&rsquo;s share of income rises and labour&rsquo;s falls. The
             tiles that move are exaggerated so the shift is visible.
           </p>
-          <More tab="scenarios">How large the shift is in each scenario</More>
+          <More tab="method" sub="scenarios">How large the shift is in each scenario</More>
         </>
       ),
     },
@@ -85,7 +85,7 @@ function shockSteps() {
             depends on the size of each move and on how much new capital arrives. The shock comes as a surprise in {SURPRISE_YEAR}: nobody in
             the model sees it coming.
           </p>
-          <More tab="results" sub="economy">The labour share, capital and the rest of the economy</More>
+          <More tab="explore" sub="economy">The labour share, capital and the rest of the economy</More>
         </>
       ),
     },
@@ -127,7 +127,7 @@ function scenarioSteps(sid, cl) {
       id: 'p2-scen-3',
       kicker: 'Four scenarios',
       title: 'UK high',
-      body: <p>Larger again on both counts, and higher again.</p>,
+      body: <p>Larger again on both counts, and higher again. The shaded band is the UK range, from UK low to UK high.</p>,
     },
     {
       id: 'p2-scen-4',
@@ -136,11 +136,11 @@ function scenarioSteps(sid, cl) {
       body: (
         <>
           <p>
-            A US scenario, kept as a labelled upper case rather than a UK calibration. The scenario chosen at the top of the page,{' '}
+            A US scenario, kept as a labelled upper case rather than a UK calibration: it lies above the shaded UK range. The scenario chosen at the top of the page,{' '}
             {SCEN_NAME[sid]}, is the coloured line; change it there.
           </p>
-          <More tab="scenarios">What each scenario assumes, and its sources</More>
-          <More tab="results" sub="income">GDP and national income year by year</More>
+          <More tab="method" sub="scenarios">What each scenario assumes, and its sources</More>
+          <More tab="explore" sub="income">GDP and national income year by year</More>
         </>
       ),
     },
@@ -190,8 +190,8 @@ function armSteps(sid, closure) {
             AI adds no output, not a forecast.
           </p>
           {closureNote}
-          <More tab="method" anchor="m-closures">How the closures work</More>
-          <More tab="results" sub="income">Each arm year by year</More>
+          <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
+          <More tab="explore" sub="income">Each arm year by year</More>
         </>
       ),
     },
@@ -230,7 +230,7 @@ function whoSteps(sid) {
             People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.{allGain ? ' As modelled, they gain too.' : ''}{' '}
             The measures, the earnings groups and the other arms are on Who gains.
           </p>
-          <More tab="who">Who gains, by age and earnings group</More>
+          <More tab="explore" sub="who">Who gains, by age and earnings group</More>
         </>
       ),
     },
@@ -263,7 +263,7 @@ function debtSteps(sid, closure) {
               : 'The two arms with no productivity gain are drawn beside the main arm.'}{' '}
             Public finances also covers tax, the fiscal rules and why the tax effect is likely understated.
           </p>
-          <More tab="results" sub="finances">Debt, tax and the fiscal rules</More>
+          <More tab="explore" sub="finances">Debt, tax and the fiscal rules</More>
         </>
       ),
     },

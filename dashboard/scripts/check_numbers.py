@@ -234,6 +234,14 @@ for x in AI['deciles']['values']: exp3[dpct(x)] += 1
 # decile 1 under the other two rankings, printed in its caveat
 for x in re.findall(r"[−-]\d+\.\d+(?=%)", AI['deciles']['bottom_decile_caveat'])[-2:]:
     exp3[dpct(-float(x.lstrip('−-')))] += 1
+# Related PolicyEngine work, at the close of part 3: figures read off its
+# pages (relatedWork.json). Those the pattern sees are counted with part 3's;
+# the Gini values and the US revenue are checked as printed.
+REL = {r['id']: r for r in json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'relatedWork.json')))['items']}
+_sh, _lab = REL['income_shift'], REL['budget_lab']
+exp3[f"{_sh['shift_max_pct']}%"] += 2; exp3[f"{_sh['revenue_min_shift_pct']}%"] += 1; exp3[f"−£{_sh['revenue_min_bn']}"] += 1
+exp3[f"{_lab['rapid_poverty_pp']}pp"] += 1
+REL_TEXT = [_sh['gini_base'], _sh['gini_full'], f"${_lab['rapid_revenue_bn']}B", f"−£{_sh['revenue_min_bn']}B"]
 FIG3 = re.compile(r"−?£[\d,]+(?:\.\d)?(?:bn)?|[+−]?\d+\.\d\dpp|\d+\.\d\dpp|\b\d+p\b|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
 for sid in dump:
     t = dump[sid].get('story:part3')
@@ -241,6 +249,9 @@ for sid in dump:
         bad += 1; print(sid, 'story part 3 not in the dump'); break
     if 'NaN' in t or 'undefined' in t:
         bad += 1; print(sid, 'story part 3 prints NaN/undefined')
+    for x in REL_TEXT:
+        if t.count(x) != 1:
+            bad += 1; print(sid, 'story part 3: related work figure', x, 'printed', t.count(x), 'times')
     got = Counter(FIG3.findall(t))
     if got != exp3:
         bad += 1

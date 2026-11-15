@@ -119,7 +119,7 @@ function PipelineMap() {
       <ol className="mx-pipe-row">
         {STEPS.map((s, i) => (
           <li key={s.id}>
-            <NavLink tab="code" anchor={s.id} className="mx-pipe-node">
+            <NavLink tab="method" sub="code" anchor={s.id} className="mx-pipe-node">
               <span className="mx-pipe-n">{i + 1}</span>
               <Icon name={s.icon} size={18} />
               <span className="mx-pipe-label">{s.short}</span>
@@ -131,7 +131,7 @@ function PipelineMap() {
       <p className="mx-pipe-out">
         <Icon name="arrowDown" size={14} />
         <span>
-          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file the Results tab reads. Who gains reads{' '}
+          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file Explore’s results views read. Who gains reads{' '}
           <code>cohorts2028.json</code>, written by <code>paper/cohort_welfare.py --json</code>.
         </span>
       </p>
@@ -283,7 +283,7 @@ function UseOguk() {
 export default function CodeTab() {
   return (
     <div className="page-with-contents mx-tab mx-code">
-      <OnThisPage tab="code" sections={SECTIONS} label="Code contents" />
+      <OnThisPage tab="method" sub="code" sections={SECTIONS} label="Code contents" />
       <div className="page-body">
         <section>
           <SectionHeading id="before" icon="repeat" title="Reproduce the results">

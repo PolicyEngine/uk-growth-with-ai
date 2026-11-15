@@ -16,8 +16,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: 40px;
   align-items: center;
-  min-height: calc(100vh - var(--sticky-offset) - 40px);
-  padding: 32px 0 48px;
+  padding: 32px 0 24px;
 }
 .story-hero-text h2 {
   margin: 0 0 16px;
@@ -62,7 +61,7 @@
 
 /* Part openers */
 .story-part {
-  padding: 56px 0 24px;
+  padding: 40px 0 8px;
   scroll-margin-top: calc(var(--sticky-offset) + 8px);
 }
 .story-part + .story-part {
@@ -70,7 +69,7 @@
 }
 .story-part-head {
   max-width: 70ch;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .story-part-kicker {
   display: flex;
@@ -112,8 +111,8 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
-  gap: 40px;
-  margin: 8px 0 40px;
+  gap: 32px;
+  margin: 0 0 24px;
 }
 .scrolly-graphic {
   grid-column: 2;
@@ -121,10 +120,9 @@
   position: sticky;
   top: var(--story-graphic-top);
   align-self: start;
-  height: calc(100vh - var(--story-graphic-top) - 24px);
-  min-height: 420px;
-  display: flex;
-  align-items: center;
+  /* the graphic's own height: a fixed full-screen box left empty space
+     above and below short charts */
+  max-height: calc(100vh - var(--story-graphic-top) - 16px);
 }
 .scrolly-graphic-inner {
   width: 100%;
@@ -137,16 +135,21 @@
   grid-column: 1;
   grid-row: 1;
   margin: 0;
-  padding: 25vh 0 35vh;
+  /* no lead-in: the first card sits beside the graphic; the tail lets the
+     last card reach the trigger line (motion.js) while the graphic is held */
+  padding: 0 0 14vh;
   list-style: none;
 }
+/* Cards follow one another with a short gap; each step is tall enough
+   that the active card changes about once per half screen of scroll. */
 .scrolly-step {
-  min-height: 70vh;
+  min-height: 44vh;
+  padding-bottom: 24px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 .scrolly-step:last-child {
-  min-height: 50vh;
+  min-height: 0;
 }
 .scrolly-card {
   padding: 18px 20px;
@@ -305,16 +308,17 @@
 @media (max-width: 900px) {
   .story-hero {
     grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
     gap: 20px;
     padding-top: 20px;
+  }
+  .story-part {
+    padding-top: 28px;
   }
   .scrolly {
     display: block;
   }
   .scrolly-graphic {
-    height: auto;
-    min-height: 0;
+    max-height: none;
     z-index: 1;
   }
   .scrolly-graphic-inner {
@@ -323,11 +327,19 @@
   .scrolly-steps {
     position: relative;
     z-index: 2;
-    padding: 10vh 0 20vh;
+    padding: 4vh 0 12vh;
   }
+  /* The chart changes as the next card enters (trigger 0.88). The card
+     before is by then high on the screen; it fades out, so it never covers
+     the chart or reads as describing the new state. Between cards the chart
+     shows on its own: that is its reading time, not empty space. */
   .scrolly-step {
-    min-height: 95vh;
-    align-items: flex-start;
+    min-height: 76vh;
+    padding-bottom: 0;
+  }
+  .scrolly-step.is-past .scrolly-card {
+    opacity: 0;
+    pointer-events: none;
   }
   .scrolly-card {
     opacity: 1;

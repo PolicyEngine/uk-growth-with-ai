@@ -213,7 +213,7 @@ export default function WhoGainsTab() {
         Welfare by birth year and lifetime-earnings group when AI arrives as a surprise in {D.shock_year}.
       </SectionHeading>
       <ViewNote icon="lock">
-        This tab is solved for <b>UK central</b> only, so the Scenario picker is fixed here.
+        Who gains is solved for <b>UK central</b> only, so the Scenario picker is fixed here.
         {both ? ' With Both chosen, the figures and the chart show each closure; the reasons below are for the central closure.' : ''}
       </ViewNote>
       <ControlBar label="Who gains: options">

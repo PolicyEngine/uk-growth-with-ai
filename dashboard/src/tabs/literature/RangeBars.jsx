@@ -11,7 +11,7 @@ import { useHover } from '../shared/ui.jsx';
 // Range bars: published level gaps (bars, or dots for a single figure)
 // against our headline-year gaps for UK central and Korinek et al. (upper)
 // (automation + productivity arm), both read from surprise2028.json through
-// gap(). Our values appear in the tooltips only: their home is Results.
+// gap(). Our values appear in the tooltips only: their home is Explore.
 const META = {
   gdp: { title: 'GDP', v: 'Y', icon: 'factory', unit: '% against the OBR-central path', step: 2 },
   wage: { title: 'Average wage', v: 'w', icon: 'banknote', unit: '% against the OBR-central path', step: 1 },
@@ -137,7 +137,7 @@ export default function RangeBars({ metric }) {
       icon={m.icon}
       title={`${m.title}: ours in ${HEADLINE_YEAR} against published estimates`}
       className="mx-ranges"
-      finding="Our figures are in the tooltips here: their home is Results. Hover, tap or tab to a row for its figures."
+      finding="Our figures are in the tooltips here: their home is Explore. Hover, tap or tab to a row for its figures."
       unit={m.unit}
       legend={
         <ul className="mx-rb-key">
@@ -159,7 +159,7 @@ export default function RangeBars({ metric }) {
         </ul>
       }
       about={{
-        how: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path, from the same solves as Results. Published: each source’s own level gap, at its own horizon.`,
+        how: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path, from the same solves as Explore. Published: each source’s own level gap, at its own horizon.`,
         sources: 'Every published figure was read from the primary text; each row’s tooltip gives the page or table, and the sources are listed under Sources.',
       }}
       download={{

@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
+import R from '@/data/relatedWork.json';
 import Part3 from './Part3.jsx';
 import { fmtBn, fmtDecilePct, fmtGbp, fmtMillions, fmtPence, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
@@ -117,7 +118,9 @@ describe('Part3', () => {
   it('prints no signed, £, pence or per cent figure twice', () => {
     const { container } = renderPart();
     const c = container.cloneNode(true);
-    c.querySelectorAll('[data-axis], [data-input]').forEach((n) => n.remove());
+    // related PolicyEngine work quotes another study's figures, checked
+    // against relatedWork.json by check_numbers.py
+    c.querySelectorAll('[data-axis], [data-input], .p3-related').forEach((n) => n.remove());
     const figs = c.textContent.match(/[+\u2212]?£?\d[\d,]*(\.\d+)?(bn|pp|p|%|m)(?![a-z])|£\d[\d,]*/g) ?? [];
     const seen = {};
     for (const f of figs) seen[f] = (seen[f] ?? 0) + 1;
@@ -157,6 +160,9 @@ describe('Part3', () => {
     expect(close.textContent).toContain('corporation tax');
     const hrefs = [...close.querySelectorAll('a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/pull/18');
-    expect(hrefs.some((h) => h.includes('tab=studies'))).toBe(true);
+    expect(hrefs.some((h) => h.includes('tab=method&sub=studies'))).toBe(true);
+    const related = [...close.querySelectorAll('.p3-related a')].map((a) => a.getAttribute('href'));
+    expect(related).toEqual(R.items.map((x) => x.url));
+    for (const x of [R.items[0].gini_base, R.items[0].gini_full]) expect(close.textContent).toContain(x);
   });
 });

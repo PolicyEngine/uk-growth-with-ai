@@ -8,7 +8,7 @@ import { NavLink } from '@/lib/nav.jsx';
 // A page's contents (AB2026 MethodContents): a sticky list at the left on a
 // wide screen with the section being read marked, a "Jump to" select on a
 // phone. sections: [{ id, title, icon }]
-export default function OnThisPage({ tab, sections, label }) {
+export default function OnThisPage({ tab, sub, sections, label }) {
   const [current, setCurrent] = useState(sections[0]?.id);
   useEffect(() => {
     let frame = 0;
@@ -44,7 +44,7 @@ export default function OnThisPage({ tab, sections, label }) {
       <ol className="contents-list">
         {sections.map((s) => (
           <li key={s.id}>
-            <NavLink tab={tab} anchor={s.id} className="contents-link" aria-current={current === s.id ? 'location' : undefined}>
+            <NavLink tab={tab} sub={sub} anchor={s.id} className="contents-link" aria-current={current === s.id ? 'location' : undefined}>
               {s.icon ? <Icon name={s.icon} size={16} /> : null}
               <span>{s.title}</span>
             </NavLink>
@@ -53,17 +53,17 @@ export default function OnThisPage({ tab, sections, label }) {
       </ol>
       <label className="contents-jump">
         <span>Jump to</span>
-        <NavSelect tab={tab} sections={sections} current={current} />
+        <NavSelect tab={tab} sub={sub} sections={sections} current={current} />
       </label>
     </nav>
   );
 }
 
 import { useNav } from '@/lib/nav.jsx';
-function NavSelect({ tab, sections, current }) {
+function NavSelect({ tab, sub, sections, current }) {
   const { go } = useNav();
   return (
-    <select value={current} onChange={(e) => go(tab, { anchor: e.target.value })}>
+    <select value={current} onChange={(e) => go(tab, { sub, anchor: e.target.value })}>
       {sections.map((s) => (
         <option key={s.id} value={s.id}>
           {s.title}

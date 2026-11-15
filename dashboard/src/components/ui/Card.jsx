@@ -24,7 +24,7 @@ export function MethodLink({ section }) {
   if (!m) return null;
   return (
     <p className="method-link">
-      <NavLink tab="method" anchor={m.id}>
+      <NavLink tab="method" sub="how" anchor={m.id}>
         More in Method: {m.label} <Icon name="arrowRight" size={14} strokeWidth={2} />
       </NavLink>
     </p>

@@ -315,6 +315,27 @@
   text-underline-offset: 2px;
 }
 
+/* Related PolicyEngine work: a title link and one line each */
+.p3-close #p3-related-h {
+  margin-top: 20px;
+}
+.p3-related {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.p3-related a {
+  font-weight: 600;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Block 6: deciles, one line each */
 .p3-deciles {
   gap: 6px;

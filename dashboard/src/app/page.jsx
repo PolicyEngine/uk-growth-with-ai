@@ -2,32 +2,29 @@
 
 import { useState } from 'react';
 import StoryTab from '@/tabs/story/StoryTab.jsx';
-import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
-import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
-import ScenariosTab from '@/tabs/method/ScenariosTab.jsx';
-import MethodTab from '@/tabs/method/MethodTab.jsx';
-import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
-import CodeTab from '@/tabs/code/CodeTab.jsx';
+import ExploreTab from '@/tabs/explore/ExploreTab.jsx';
+import MethodSourcesTab from '@/tabs/method/MethodSourcesTab.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import Picker from '@/components/ui/Picker.jsx';
 import { NavProvider, useNav, subOf } from '@/lib/nav.jsx';
-import { TABS, tabById, CLOSURES, PAGE_TITLE } from '@/lib/labels.js';
+import { TABS, tabById, pickersFor, CLOSURES, PAGE_TITLE } from '@/lib/labels.js';
 import { SCENARIOS } from '@/tabs/ai/surprise.js';
 
 // The shell: a sticky title band holding the two global pickers (scenario,
 // capital closure), a sticky tab row, and a second row on the two tabs that
-// have sub-tabs. All state lives in the address (lib/nav.jsx).
+// have sub-tabs. Which pickers show is set per tab and sub-tab (labels.js). All state lives in the address (lib/nav.jsx).
 
 const SCEN_NOTE = { uk_low: 'UK range, lower end', uk_central: 'Headline scenario', uk_high: 'UK range, upper end', korinek: 'A US upper case: Korinek et al.’s “substantial” inputs' };
 const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
 const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note: c.note, icon: c.icon }));
 
-const PANELS = { story: StoryTab, results: ResultsTab, who: WhoGainsTab, scenarios: ScenariosTab, method: MethodTab, studies: StudiesTab, code: CodeTab };
+const PANELS = { story: StoryTab, explore: ExploreTab, method: MethodSourcesTab };
 
 function Shell() {
   const { st, set, go } = useNav();
   const tab = tabById(st.tab);
   const sub = subOf(st);
+  const pick = pickersFor(st.tab, sub);
   const [visited, setVisited] = useState({});
   if (!visited[st.tab]) setVisited((v) => ({ ...v, [st.tab]: true }));
 
@@ -36,21 +33,21 @@ function Shell() {
       <a className="skip-link" href={`#tab-${st.tab}`}>
         Skip to content
       </a>
-      <header className={`band${tab.scenario || tab.closure ? '' : ' no-pickers'}`} data-sticky-bar="">
+      <header className={`band${pick.scenario || pick.closure ? '' : ' no-pickers'}`} data-sticky-bar="">
         <h1>{PAGE_TITLE}</h1>
         <div className="band-pickers">
-          {tab.scenario ? (
+          {pick.scenario ? (
             <Picker
               icon="sliders"
               label="Scenario"
-              value={tab.scenario === 'locked' ? 'uk_central' : st.s}
+              value={pick.scenario === 'locked' ? 'uk_central' : st.s}
               options={SCEN_OPTIONS}
               onChange={(s) => set({ s })}
-              locked={tab.scenario === 'locked'}
-              lockedNote="This tab is solved for UK central only"
+              locked={pick.scenario === 'locked'}
+              lockedNote="Who gains is solved for UK central only"
             />
           ) : null}
-          {tab.closure ? (
+          {pick.closure ? (
             <Picker icon="globe" label="Closure" value={st.closure} options={CLOSURE_OPTIONS} onChange={(closure) => set({ closure })} />
           ) : null}
         </div>

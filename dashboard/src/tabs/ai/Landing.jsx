@@ -248,7 +248,7 @@ export function GoDeeper() {
       <h3 className="entries-title">Go deeper</h3>
       <div className="entry-grid">
         {ENTRIES.map((e) => (
-          <NavLink key={e.sub} tab="results" sub={e.sub} className="entry-card">
+          <NavLink key={e.sub} tab="explore" sub={e.sub} className="entry-card">
             <span className="entry-head">
               <Icon name={e.icon} size={20} />
               <span className="entry-title">{e.title}</span>
