@@ -37,7 +37,7 @@ export default function Hero() {
   }
   // Scenario names at the end of each main-arm, central-closure line,
   // pushed apart so they never overlap; the zero line is named too. Two
-  // sets: one line per name on wide screens; on phones (larger type in a
+  // sets, wide and narrow (larger type in a
   // narrower plot) a name with a bracket breaks before it and the zero
   // label is shortened, so every label stays inside the drawing. CSS shows
   // one set (story.css, .hero-names).
@@ -65,7 +65,9 @@ export default function Hero() {
     const zero = last && Math.abs(bottom(last) - (zeroY + 22)) < lh ? bottom(last) + lh : zeroY + 22;
     return { names: out, zero, top };
   };
-  const wide = layout(24, false);
+  // names with a bracket break before it at every width: one line ran past
+  // the drawing's edge at 1440
+  const wide = layout(24, true);
   const narrow = layout(20, true);
   const nameSet = ({ names, zero, top }, cls, lh, zeroText) => (
     <g className={`hero-names ${cls}`}>
@@ -78,7 +80,7 @@ export default function Hero() {
           ))}
         </text>
       ))}
-      <text x={X(YEARS.length - 1) + 8} y={zero} className="hero-name is-zero">
+      <text x={W - 2} y={zero} textAnchor="end" className="hero-name is-zero">
         {zeroText}
       </text>
     </g>
