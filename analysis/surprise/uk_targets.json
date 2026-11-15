@@ -12,7 +12,7 @@
       "gamma_terminal": 0.357,
       "tfp_gain_pct": 0.2,
       "sources": {
-        "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12, as read in the #31 review; BP9 not re-fetchable). Linear ramp gives a level of 2 x 0.1 = 0.2% at year 4 (our arithmetic). OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
+        "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12; BP9 re-read from the OBR PDF on 15 Nov 2026). Linear ramp gives a level of 2 x 0.1 = 0.2% at year 4 (our arithmetic). OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
         "labour_share": "IMF SIP/2026/072 task mapping (cost saving 27% per automated task, para 44 p.24): share of output moved from labour to AI capital = TFP gain / 0.27 = 0.2 / 0.27 = 0.74pp (our inference from the IMF calibration, not an IMF figure)."
       }
     },
@@ -46,7 +46,7 @@
   "recommended_central": "uk_central",
   "notes": [
     "All four pairs move gamma and Z together, as the IMF UK model does: a labour-share shift from automation comes with a cost-saving TFP gain. No UK source supports a share shift with zero TFP.",
-    "BP9 could not be re-read: obr.uk redirects automated downloads to a no-access page (12 Nov 2026). Its figures are from the #31 review and the FRS 2026 Box 4.1 restatement.",
+    "BP9 was re-read on 15 Nov 2026 from https://obr.uk/docs/dlm_uploads/Briefing_paper_No.9_Forecasting_productivity.pdf (on 12 Nov obr.uk refused automated downloads); paras B.9, B.12 and B.14 are as quoted. Para B.15 calls the assumptions behind its optimistic and transformative scenarios 'fairly unlikely', with most of any impact in the latter half of the decade: uk_high's linear ramp of the 0.8pp case to year five is an upper-end judgement, not an OBR projection (docs/uk_calibration.md).",
     "OBR productivity figures are for labour productivity growth; the model target is output at fixed inputs (TFP). Using them as TFP overstates the TFP part by the capital-deepening share; the IMF TFP figure (0.41-0.44%) agrees with the 0.4% used."
   ]
 }
