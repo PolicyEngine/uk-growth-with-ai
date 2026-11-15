@@ -43,7 +43,7 @@ SCENARIOS = [
 # debt-neutral rule, its debt/GDP check (dn_check.ok), as paper/make_values.py
 # requires. Fixed spending (`_fs`) holds G and TR at the baseline's levels.
 RULE_VARIANTS = [("debt_neutral", "dn", "Debt-neutral", ["uk_central", "korinek"]),
-                 ("fixed_spending", "fs", "Fixed spending", ["uk_central"])]
+                 ("fixed_spending", "fs", "Fixed spending", ["uk_central", "korinek"])]
 # Order everywhere: the main arm, then technology unchanged, then the stress
 # test. "tz" is the fixed-input Z solve (`_zfixed`): the labour share shifts
 # with Z at the value that leaves output at the baseline's 2027 inputs

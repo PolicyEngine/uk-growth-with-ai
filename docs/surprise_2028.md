@@ -294,39 +294,36 @@ The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age 
 
 **When it runs.** It reads only the SS/TPI pickles under `$WORK/surprise2028/`, which are never deleted. The final export runs after the last debt-neutral UK central solve.
 
-## Status and TODO (13 Nov 2026, 02:15)
+## Status (15 Nov 2026, 12:20)
 
-**Solved, with sanity passing (40 solves: 38 surprise solves plus 2 zk0.5 baseline passes):**
+**Every planned solve is done, and every one passes the sanity gate.** On 15 Nov:
 
-| closure | done |
-|---|---|
-| zk0.1 | restart; UK central, UK low, UK high and Korinek (common rule); UK central debt-neutral |
-| zk0 | restart; UK central and Korinek (common rule); UK central debt-neutral |
-| zk0.5 | R1 baseline (2 passes, automatic gate passed); restart; UK central and Korinek (common rule) |
+- **Korinek, fixed spending, ζK 0** (`zk0:arms_fs:korinek`): the tfp arm, then `zfixed_fs` and `fs_r4_1`. R4 accepted on its first iteration.
+- **UK high at ζK 0.5** (`zk0.5:arms:uk_high`): `zfixed`, then `r4_1`. R4 accepted on its first iteration.
+  - The first `zfixed` attempt (13 Nov, log kept as `uk_high_share_shift_ramp_zfixed.FAILED-ssrc-20261113.log`) failed OG-Core's steady-state resource-constraint check (`RC_SS` 1e-8), starting from the baseline's SS.
+  - The rerun starts the SS root finder from the UK high tfp arm's SS, with `UGAI_SS_GUESS=uk_high_share_shift_tfp_ramp`. Its RC residual is −2e-14.
+  - Every arm at ζK 0.5 carries the 2028 investment flag (I +37% for zfixed). Korinek at ζK 0.5 also has it (+50%). The flag is reported, never failed: capital is more open at ζK 0.5.
+- **`continuation_dnfull`** (zk0.1, `--stage continuation_dnfull`): the no-shock path under the `_dnfull` rule. γ and Z are at baseline, G = α_G·Y in every year (tG1 = tG2 = T−1), and TR holds the continuation's own debt/GDP to T−1.
+  - It is the like-for-like reference for `uk_central_share_shift_tfp_ramp_dnfull` (PR #24 comment 6869054877). The continuation moves G from 2036 on, so it is not like-for-like.
+  - Max |D/Y error| is 1.9e-5 over 2029–2086, and |G/Y − α_G| is 0.
+  - Its sanity branch checks the dn targets and the identities. The comparison with the baseline is reported only: it is not expected to match, because households anticipate the post-2036 TR rule. GDP is +0.15% in 2031.
+  - The cohort file is `analysis/surprise/cohorts/zk0.1/continuation_dnfull.npz`. Its 2026–27 arrays and its 2028 b_s are identical to `continuation.npz`.
 
-- Cohort paths are exported for the continuation and the UK central common-rule and debt-neutral arms, at zk0.1 and zk0 (`analysis/surprise/cohorts`).
-- The NICs evidence is in `analysis/nics/`.
+**`UGAI_SS_GUESS`** (opt-in, `solve.run_SS_with_guess`) takes a label in the same closure, or an `SS_vars.pkl` path.
+- It replaces only the SS guess fields (`b_sp1 n r_p r w p_m BQ TR Y`). `factor`, `theta` and the baseline TPI state stay the baseline's.
+- It applies to common-rule reform arms only.
+- The record notes the donor under `ss_guess`.
 
-**Not yet solved.** Run in this order, after the Monte Carlo, with `analysis/surprise/run_locked.sh <items>`. Each set is three or four solves of about 7–9 minutes.
+Cohort paths are exported for the continuation, `continuation_dnfull` and the UK central common, `_dn` and `_dnfull` arms (`analysis/surprise/cohorts`).
 
-1. `zk0.1:arms_dnfull:uk_central`: debt-neutral to the horizon, for the Fable cohort referee. It is a single solve. It was started at 02:13 and stopped at once by its own PID, because the lock had to be released; no record was written. The log is kept as `uk_central_share_shift_tfp_ramp_dnfull.KILLED-20261113.log`. Its first launch at 02:12 failed on a CLI stage-list bug, now fixed.
-2. `zk0.5:arms:uk_low`, `zk0.5:arms:uk_high`.
-3. `zk0.1:arms_fs:uk_central`, `zk0:arms_fs:uk_central`.
-4. `zk0:arms:uk_low`, `zk0:arms:uk_high`.
-5. `zk0.1:arms_dn:korinek`, `zk0:arms_dn:korinek`.
-6. `zk0.1:arms_fs:korinek`, `zk0:arms_fs:korinek`.
-7. `cohorts` (pickles only; it picks up `_dnfull` when it exists).
+**Still to do:**
+- `surprise assemble` for each scenario, closure and variant;
+- the downstream readers: `check`, `report`, `dashboard_data`, the dashboard and the paper macros, all on the 2027–2031 window with NNI.
 
-Command, with the deadline set to the slot:
+Command form, for any rerun:
 
 ```
 DEADLINE_AT=HH:MM PY=~/ogmodels/OG-UK/.venv/bin/python WORK=~/ugai-rerun-work \
-  UGAI_UN_CACHE=~/ugai-rerun-work/un_cache analysis/surprise/run_locked.sh \
-  zk0.1:arms_dnfull:uk_central zk0.5:arms:uk_low zk0.5:arms:uk_high \
-  zk0.1:arms_fs:uk_central zk0:arms_fs:uk_central zk0:arms:uk_low zk0:arms:uk_high \
-  zk0.1:arms_dn:korinek zk0:arms_dn:korinek zk0.1:arms_fs:korinek zk0:arms_fs:korinek cohorts
+  UGAI_UN_CACHE=~/ugai-rerun-work/un_cache [UGAI_SS_GUESS=<label>] \
+  analysis/surprise/run_locked.sh <closure>:<stage>[:<scenario>] ... cohorts
 ```
-
-**After the solves:**
-- `surprise assemble` for each scenario, closure and variant;
-- the downstream readers: `check`, `report`, `dashboard_data`, the dashboard and the paper macros, all on the 2027–2031 window with NNI.

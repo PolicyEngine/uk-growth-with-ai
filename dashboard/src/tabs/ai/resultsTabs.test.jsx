@@ -119,11 +119,12 @@ describe('tooltips', () => {
     const other = open('uk_high');
     expect(other).toContain('solved for UK central and Korinek et al. (upper) only');
     expect(other).not.toMatch(/\d\.\d\d%/);
-    // fixed spending: UK central at both closures
+    // fixed spending: UK central and Korinek at both closures
     const fs = open('uk_central', 'both', /Fixed spending/);
     expect(fs).toContain('fixed spending');
     expect(fs.match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
-    expect(open('korinek', 'central', /Fixed spending/)).toContain('solved for UK central only');
+    expect(open('korinek', 'both', /Fixed spending/).match(/[+−]?\d+\.\d\d%/g)).toHaveLength(24);
+    expect(open('uk_low', 'central', /Fixed spending/)).toContain('solved for UK central and Korinek et al. (upper) only');
   });
 
   it('the rule and the arms are in the address', () => {
