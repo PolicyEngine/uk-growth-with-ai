@@ -36,20 +36,53 @@ export default function Hero() {
     return H - 30 - ((v - a) / (b - a)) * (H - 60);
   }
   // Scenario names at the end of each main-arm, central-closure line,
-  // pushed apart so they never overlap; the zero line is named too.
-  const LH = 24;
-  const names = SCENARIOS.map((sc) => {
+  // pushed apart so they never overlap; the zero line is named too. Two
+  // sets: one line per name on wide screens; on phones (larger type in a
+  // narrower plot) a name with a bracket breaks before it and the zero
+  // label is shortened, so every label stays inside the drawing. CSS shows
+  // one set (story.css, .hero-names).
+  const ends = SCENARIOS.map((sc) => {
     const r = S.results[sc.id]?.tfp?.[CENTRAL];
-    return r?.status === 'done' ? { id: sc.id, y: Y(r.gaps.Y[r.gaps.Y.length - 1]) } : null;
+    return r?.status === 'done' ? { id: sc.id, y0: Y(r.gaps.Y[r.gaps.Y.length - 1]) } : null;
   })
     .filter(Boolean)
-    .sort((p, q) => p.y - q.y);
-  names.forEach((n, i) => {
-    if (i && n.y < names[i - 1].y + LH) n.y = names[i - 1].y + LH;
-  });
+    .sort((p, q) => p.y0 - q.y0);
   const zeroY = Y(0);
-  const last = names[names.length - 1];
-  const zeroLabelY = last && Math.abs(last.y - (zeroY + 22)) < LH ? last.y + LH : zeroY + 22;
+  const layout = (lh, split) => {
+    const out = ends.map((e) => {
+      const name = SCEN_NAME[e.id];
+      const cut = split ? name.indexOf(' (') : -1;
+      const parts = cut > 0 ? [name.slice(0, cut), name.slice(cut + 1)] : [name];
+      return { id: e.id, y: e.y0, parts };
+    });
+    // a two-line name sits half a line above and below its line end
+    const top = (n) => n.y - ((n.parts.length - 1) * lh) / 2;
+    const bottom = (n) => n.y + ((n.parts.length - 1) * lh) / 2;
+    out.forEach((n, i) => {
+      if (i && top(n) < bottom(out[i - 1]) + lh) n.y += bottom(out[i - 1]) + lh - top(n);
+    });
+    const last = out[out.length - 1];
+    const zero = last && Math.abs(bottom(last) - (zeroY + 22)) < lh ? bottom(last) + lh : zeroY + 22;
+    return { names: out, zero, top };
+  };
+  const wide = layout(24, false);
+  const narrow = layout(20, true);
+  const nameSet = ({ names, zero, top }, cls, lh, zeroText) => (
+    <g className={`hero-names ${cls}`}>
+      {names.map((n) => (
+        <text key={n.id} x={X(YEARS.length - 1) + 8} y={top(n)} dy="0.35em" className="hero-name">
+          {n.parts.map((t, i) => (
+            <tspan key={t} x={X(YEARS.length - 1) + 8} dy={i ? lh : undefined}>
+              {t}
+            </tspan>
+          ))}
+        </text>
+      ))}
+      <text x={X(YEARS.length - 1) + 8} y={zero} className="hero-name is-zero">
+        {zeroText}
+      </text>
+    </g>
+  );
   return (
     <section className="story-hero" aria-labelledby="story-q">
       <div className="story-hero-text">
@@ -77,14 +110,8 @@ export default function Hero() {
               opacity={l.cl === CENTRAL ? 0.85 : 0.45}
             />
           ))}
-          {names.map((n) => (
-            <text key={n.id} x={X(YEARS.length - 1) + 8} y={n.y} dy="0.35em" className="hero-name">
-              {SCEN_NAME[n.id]}
-            </text>
-          ))}
-          <text x={X(YEARS.length - 1) + 8} y={zeroLabelY} className="hero-name is-zero">
-            OBR-central path
-          </text>
+          {nameSet(wide, 'is-wide', 24, 'OBR-central path')}
+          {nameSet(narrow, 'is-narrow', 20, 'OBR path')}
           <text x={X(xs) + 6} y={H - 26} className="hero-name is-zero">
             AI arrives, {SURPRISE_YEAR}
           </text>

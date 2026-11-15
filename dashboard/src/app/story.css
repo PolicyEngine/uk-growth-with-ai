@@ -46,7 +46,9 @@
   display: inline-flex;
   gap: 6px;
   align-items: center;
-  margin-top: 12px;
+  /* padding: a hit area at least 24px tall */
+  margin-top: 8px;
+  padding: 4px 0;
   font-size: var(--fs-small);
   color: var(--pe-gray-500);
 }
@@ -317,7 +319,7 @@
   gap: 2px 6px;
   align-items: baseline;
   padding-bottom: 6px;
-  color: var(--pe-gray-500);
+  color: var(--pe-gray-600);
   text-decoration: none;
   font-size: var(--fs-micro);
 }
@@ -475,13 +477,12 @@
     padding: 2vh 0 6vh;
   }
   /* The chart changes as the next card enters (trigger 0.88). By then
-     the card before has mostly passed under the graphic; any tail still
-     showing below a short graphic fades out, so a card never sits beside
-     a state it does not describe. */
-  .scrolly-step.is-past .scrolly-card,
-  .scrolly.is-done .scrolly-step.is-active .scrolly-card {
-    opacity: 0;
-    pointer-events: none;
+     the card before has mostly passed under the opaque graphic; any tail
+     still showing is dimmed a little, never hidden, so text on screen
+     always reads. The last card of a block stays at full strength until
+     it passes under the graphic. Single-step blocks never dim. */
+  .scrolly:not(.is-single) .scrolly-step.is-past .scrolly-card {
+    opacity: 0.6;
   }
   .scrolly-step,
   .scrolly-step:nth-last-child(2) {
@@ -610,7 +611,7 @@
 
 /* Hero fan: scenario names at the line ends, the zero line and 2028 named */
 .hero-name {
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 600;
   fill: var(--pe-gray-700);
 }
@@ -618,17 +619,33 @@
   font-weight: 400;
   fill: var(--pe-gray-500);
 }
+.hero-names.is-wide {
+  display: none;
+}
 @media (min-width: 901px) {
   .hero-name {
     font-size: 15px;
+  }
+  .hero-names.is-wide {
+    display: inline;
+  }
+  .hero-names.is-narrow {
+    display: none;
   }
 }
 
 /* Source links under the story's figures: a hit area at least 24px tall
    without changing the line layout */
-.story-source a,
-.p1-figure figcaption a,
-.p3-figure .story-source a {
+.tab-story :is(p, figcaption) a {
   /* vertical padding on an inline box grows its hit area, not the line */
-  padding: 3px 0;
+  padding-block: 3px;
+}
+.tab-story .story-source a,
+.tab-story .p1-figure figcaption a,
+.tab-story .p3-figure .story-source a {
+  padding-block: 5px;
+}
+.tab-story .p2-deeper a,
+.tab-story .p3-close-link {
+  padding-block: 2px;
 }

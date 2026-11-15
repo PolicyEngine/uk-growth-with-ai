@@ -310,3 +310,14 @@
   line-height: 1.3;
   color: var(--pe-gray-700);
 }
+
+/* Links in the Evidence tables and lists: a hit area at least 24px tall on
+   a phone (vertical padding on an inline box leaves the line as it is) */
+.mx-lit td a,
+.mx-lit .mx-src a,
+.mx-lit .mx-sub a {
+  padding-block: 4px;
+}
+.mx-lit .ev-rb-home {
+  padding-block: 5px;
+}
