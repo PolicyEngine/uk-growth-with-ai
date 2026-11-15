@@ -9,6 +9,8 @@ import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import RangeBars from './RangeBars.jsx';
 import GrowthCheck from './GrowthCheck.jsx';
+import EvidenceMap from './EvidenceMap.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -203,6 +205,11 @@ export default function StudiesTab() {
   // sub-tab until the tabs were consolidated; old links land on its anchor).
   return (
     <div className="mx-tab mx-lit">
+      <PageIntro
+        icon="library"
+        question="How do our results compare with other work on AI and the UK economy?"
+        answer="Of the sources compared here, only OG-UK models households by age and ability, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, and the sources."
+      />
       <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
         Nine channels against five sources. OG-UK is the first column.
       </SectionHeading>
@@ -220,6 +227,10 @@ export default function StudiesTab() {
       </SectionHeading>
       <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
       <SourceList group="model" title="Model-based studies" icon="sigma" />
+      <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
+        UK studies from the OBR, the Bank of England, think tanks, government departments, international bodies and private forecasters.
+      </SectionHeading>
+      <EvidenceMap />
     </div>
   );
 }

@@ -2,15 +2,16 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
-import { SectionHeading } from '@/components/ui/Card.jsx';
+import Card, { SectionHeading } from '@/components/ui/Card.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD, RULES as RULE_NAMES } from '@/lib/labels.js';
 import { S, ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR } from '@/tabs/ai/surprise.js';
-import { REPO, issue, pr } from '@/tabs/ai/links.js';
+import { REPO, URLS, issue, pr } from '@/tabs/ai/links.js';
 import F from '@/data/methodFacts.json';
 import { ext } from '../shared/ui.jsx';
-import ModelFlow from './ModelFlow.jsx';
+import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';
 
 // Method, one page: the shock, closures and income measures, fiscal rules
@@ -24,10 +25,11 @@ const DOC_MAIN = (p) => `${REPO}/blob/main/docs/${p}`;
 const pct = (x, dp = 1) => `${(x * 100).toFixed(dp)}%`;
 
 const SECTIONS = [
+  { id: METHOD.model.id, title: METHOD.model.label, icon: 'sigma' },
   { id: METHOD.shock.id, title: METHOD.shock.label, icon: 'zap' },
   { id: METHOD.closures.id, title: METHOD.closures.label, icon: 'globe' },
   { id: METHOD.rules.id, title: METHOD.rules.label, icon: 'landmark' },
-  { id: METHOD.model.id, title: METHOD.model.label, icon: 'sigma' },
+  { id: 'm-path', title: 'Steady state and path', icon: 'repeat' },
   { id: METHOD.limits.id, title: METHOD.limits.label, icon: 'alert' },
   { id: METHOD.history.id, title: METHOD.history.label, icon: 'history' },
 ];
@@ -94,13 +96,13 @@ const RULE_TEXT = {
   common: {
     id: 'rule-default',
     icon: 'sliders',
-    tag: 'Default, on every chart in Explore',
+    tag: 'Default: every solve, and Explore unless you choose another',
     line: `Government consumption and transfers are fixed shares of GDP, so spending follows GDP. From ${LATE_YEAR} a debt rule steers spending.`,
   },
   fixed: {
     id: 'rule-fixed',
     icon: 'landmark',
-    tag: 'Sensitivity on Public finances',
+    tag: 'A choice on Explore (UK central, Korinek et al.)',
     line: 'Consumption and transfers stay at their OBR-central levels. This is the OBR’s convention.',
   },
   dn: {
@@ -203,7 +205,7 @@ const HISTORY = [
   ['12 Nov 2026', 'Debt-neutral variant for cohort welfare; NNI reported beside GNI.', 27],
   ['12 Nov 2026', '“Automation only” renamed the OBR-style stress test; technology-unchanged arm added.', 27],
   ['13 Nov 2026', 'Debt/GDP checked with debt repriced at the speed the OBR assumes; caveat added on Public finances.', 43],
-  ['15 Nov 2026', 'Fixed spending solved for UK central and Korinek et al.; ζK = 0.5 shown as a sensitivity on Method only.', 44],
+  ['15 Nov 2026', 'Fixed spending solved for UK central and Korinek et al.; ζK = 0.5 shown as a sensitivity, now on Explore, All scenarios.', 44],
 ];
 
 export default function MethodTab() {
@@ -212,6 +214,71 @@ export default function MethodTab() {
     <div className="page-with-contents mx-tab mx-method">
       <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
       <div className="page-body">
+        <PageIntro
+          icon="sigma"
+          question="How does OG-UK turn an AI scenario into these results?"
+          answer="OG-UK is a model of the whole UK economy: households of every age and earnings level, firms, a government and the rest of the world trade until every market clears. AI enters as two changes in how firms produce, and every result is the gap against a run of the same model without the shock, not a forecast."
+        />
+        <section>
+          <SectionHeading id="m-model" icon="sigma" title="The model">
+            OG-UK, the UK calibration of {ext(URLS.ogCore, 'OG-Core')}: households by age and earnings, firms, a government and the rest of the
+            world. Choose a block for its detail.
+          </SectionHeading>
+          <Card
+            id="model-diagram"
+            icon="layers"
+            title="OG-UK in four blocks"
+            finding="Households work and save; firms turn capital and labour into output; the government taxes, spends and borrows; the rest of the world supplies part of the capital and holds part of the debt."
+            logo={false}
+            download={{ title: 'OG-UK in four blocks', context: 'The flows between the blocks of the model', table: flowTable, svg: diagramSvg, legend: () => [] }}
+          >
+            <ModelDiagram />
+          </Card>
+          <div className="card-grid cols-2">
+            <div className="info-card mx-card mx-figure" id="m-generations">
+              <h3 className="info-card-title">
+                <Icon name="usersRound" size={18} />
+                <span>Many generations at once</span>
+              </h3>
+              <Cohorts />
+            </div>
+            <InfoCard
+              icon="receipt"
+              title="How labour is taxed"
+              className="mx-card"
+              id="m-tax"
+              more={
+                <>
+                  <p>The fitted functions already include employee NICs. Adding NICs would count them twice.</p>
+                  <p>Employer NICs are a payroll tax from the first pound, with no threshold or allowance.</p>
+                  <p>
+                    PolicyEngine-UK, {nic.year}: {pct(nic.employer_avg_of_employment_income)} of employment income;{' '}
+                    {pct(nic.employer_marginal)} at the margin (
+                    {ext(`${REPO}/blob/rerun/surprise-2028/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
+                  </p>
+                </>
+              }
+              moreTitle="Employee and employer NICs"
+              morePreview="Fitted function, flat payroll tax"
+            >
+              <dl className="mx-pair">
+                <div>
+                  <dt>Employee NICs</dt>
+                  <dd className="mx-dd-text">In the fitted income-tax function</dd>
+                </div>
+                <div>
+                  <dt>Employer NICs</dt>
+                  <dd>
+                    {pct(nic.oguk_tau_payroll, 0)} flat
+                    <span className="mx-vs">vs {pct(nic.employer_avg_of_labour_cost)} average</span>
+                  </dd>
+                </div>
+              </dl>
+              <p className="mx-sub">The average is PolicyEngine-UK&rsquo;s, as a share of labour cost.</p>
+            </InfoCard>
+          </div>
+        </section>
+
         <section>
           <SectionHeading id="m-shock" icon="zap" title="The shock">
             OG-UK has no AI parameter. AI changes two numbers in production.
@@ -325,53 +392,13 @@ export default function MethodTab() {
         </section>
 
         <section>
-          <SectionHeading id="m-model" icon="sigma" title="The model">
-            OG-UK, the UK calibration of OG-Core: households, firms, a government, markets.
+          <SectionHeading id="m-path" icon="repeat" title="Steady state and path">
+            How each run is solved and checked. When the shock arrives and how it ramps up is on 
+            <NavLink tab="method" sub="scenarios" anchor="s-timing">
+              Scenarios, when it happens
+            </NavLink>
+            .
           </SectionHeading>
-          <ModelFlow />
-          <div className="card-grid cols-2">
-            <div className="info-card mx-card mx-figure" id="m-generations">
-              <h3 className="info-card-title">
-                <Icon name="usersRound" size={18} />
-                <span>Many generations at once</span>
-              </h3>
-              <Cohorts />
-            </div>
-            <InfoCard
-              icon="receipt"
-              title="How labour is taxed"
-              className="mx-card"
-              id="m-tax"
-              more={
-                <>
-                  <p>The fitted functions already include employee NICs. Adding NICs would count them twice.</p>
-                  <p>Employer NICs are a payroll tax from the first pound, with no threshold or allowance.</p>
-                  <p>
-                    PolicyEngine-UK, {nic.year}: {pct(nic.employer_avg_of_employment_income)} of employment income;{' '}
-                    {pct(nic.employer_marginal)} at the margin (
-                    {ext(`${REPO}/blob/rerun/surprise-2028/analysis/nics/measure_nics.py`, 'measure_nics.py')}).
-                  </p>
-                </>
-              }
-              moreTitle="Employee and employer NICs"
-              morePreview="Fitted function, flat payroll tax"
-            >
-              <dl className="mx-pair">
-                <div>
-                  <dt>Employee NICs</dt>
-                  <dd className="mx-dd-text">In the fitted income-tax function</dd>
-                </div>
-                <div>
-                  <dt>Employer NICs</dt>
-                  <dd>
-                    {pct(nic.oguk_tau_payroll, 0)} flat
-                    <span className="mx-vs">vs {pct(nic.employer_avg_of_labour_cost)} average</span>
-                  </dd>
-                </div>
-              </dl>
-              <p className="mx-sub">The average is PolicyEngine-UK&rsquo;s, as a share of labour cost.</p>
-            </InfoCard>
-          </div>
           <div className="card-grid cols-2">
             <InfoCard
               icon="repeat"
@@ -386,7 +413,7 @@ export default function MethodTab() {
               moreTitle="Time path iteration"
               morePreview="Nested fixed points"
             >
-              <p>Each run finds the long-run equilibrium, then the yearly path from {SURPRISE_YEAR}.</p>
+              <p>Each run finds the long-run equilibrium, then the yearly path that leads to it.</p>
             </InfoCard>
             <InfoCard
               icon="lock"
@@ -407,6 +434,7 @@ export default function MethodTab() {
               <p>A restart test and a sanity check guard every number. The commands are on <NavLink tab="method" sub="code" anchor="pipeline">Code</NavLink>.</p>
             </InfoCard>
           </div>
+
         </section>
 
         <section>

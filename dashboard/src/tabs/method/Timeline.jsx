@@ -3,6 +3,8 @@
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { YEARS, FIRST_YEAR, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
+import { CHART_COLOURS } from '@/lib/chartTheme.js';
+import { cssColour, esc } from '@/lib/download.js';
 
 // The timing as a horizontal timeline: one column per year, a bar for the
 // weight of the γ and Z ramp, and the four dates that matter. Hover, tap or
@@ -37,14 +39,39 @@ function detail(y) {
   return `γ and Z stay at full weight; the economy keeps adjusting.`;
 }
 
-export default function Timeline() {
+// The timing as data and as SVG, for the downloads.
+export const timelineTable = () => ({
+  columns: ['Year', 'Ramp weight of γ and Z (0 = OBR-central path, 1 = full scenario)', 'Event'],
+  rows: YEARS.map((y) => [y, weight(y), MARK[y] ?? '']),
+});
+export function timelineSvg() {
+  const C = CHART_COLOURS;
+  const col = cssColour('var(--series-2)');
+  const cw = 60;
+  const top = 34;
+  const bh = 120;
+  let out = '';
+  YEARS.forEach((y, i) => {
+    const x = i * cw;
+    const w = weight(y);
+    out += `<rect x="${x + 14}" y="${top + bh * (1 - w)}" width="${cw - 28}" height="${Math.max(1, bh * w)}" fill="${col}" opacity="${phase(y) === 'full' ? 0.55 : 0.9}"/>`;
+    out += `<text x="${x + cw / 2}" y="${top + bh + 18}" font-size="12" text-anchor="middle" fill="${C.tick}">${y}</text>`;
+    if (MARK[y]) out += `<text x="${x + cw / 2}" y="${top - 12}" font-size="11" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(MARK[y])}</text>`;
+  });
+  out += `<line x1="0" x2="${YEARS.length * cw}" y1="${top + bh}" y2="${top + bh}" stroke="${C.axis}"/>`;
+  return { w: YEARS.length * cw, h: top + bh + 28, markup: out };
+}
+
+export default function Timeline({ caption = true }) {
   const { hi, ref, bind } = useHover();
   return (
     <figure className="mx-tl" ref={ref}>
-      <figcaption className="mx-fig-cap">
-        <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
-        <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (the OBR-central path) to 1 (full scenario)</span>
-      </figcaption>
+      {caption ? (
+        <figcaption className="mx-fig-cap">
+          <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
+          <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (the OBR-central path) to 1 (full scenario)</span>
+        </figcaption>
+      ) : null}
       <div className="mx-tl-phases" aria-hidden="true">
         <span className="ph-history">Same as the OBR-central path</span>
         <span className="ph-ramp">Ramp: adoption years 1–4</span>

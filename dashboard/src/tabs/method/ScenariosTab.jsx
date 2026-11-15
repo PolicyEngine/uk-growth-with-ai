@@ -1,13 +1,14 @@
 'use client';
 
 import InfoCard from '@/components/ab/InfoCard.jsx';
-import { SectionHeading } from '@/components/ui/Card.jsx';
+import Card, { SectionHeading } from '@/components/ui/Card.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
+import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
-import Timeline from './Timeline.jsx';
-import ScenarioMap from './ScenarioMap.jsx';
+import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
+import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
 // case), the three arms each is run in, and the timing. How the model turns
@@ -135,12 +136,23 @@ function ArmCards() {
 export default function ScenariosTab() {
   return (
     <div className="mx-tab mx-method">
+      <PageIntro
+        icon="target"
+        question="What goes into each run?"
+        answer={`Four scenarios, three UK and one US upper case, each a fall in the labour share and a gain in output at fixed inputs reached in ${HEADLINE_YEAR}. Each is run in three arms, from one start in ${FIRST_YEAR}, with AI arriving as a surprise in ${SURPRISE_YEAR}.`}
+      />
       <SectionHeading id="s-scenarios" icon="target" title="The scenarios">
-        Three UK scenarios and a US upper case. Each is a pair of inputs reached in {HEADLINE_YEAR}: a fall in the labour share and a gain in output at fixed inputs.
+        Each is a pair of inputs reached in {HEADLINE_YEAR}, taken from UK sources (and, for the upper case, US ones).
       </SectionHeading>
-      <div className="info-card mx-card mx-figure">
-        <ScenarioMap />
-      </div>
+      <Card
+        id="scenario-map"
+        icon="target"
+        title={`Scenario inputs, ${HEADLINE_YEAR}`}
+        unit="Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)"
+        download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources on each scenario card', table: scenarioTable }}
+      >
+        <ScenarioMap caption={false} />
+      </Card>
       <div className="card-grid mx-scen-grid">
         {SCENARIOS.map((s) => (
           <InfoCard
@@ -181,7 +193,7 @@ export default function ScenariosTab() {
       </div>
       <p className="mx-foot">
         Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}. Published figures are compared on{' '}
-        <NavLink tab="method" sub="studies" anchor="numbers">Other studies</NavLink>.
+        <NavLink tab="method" sub="studies" anchor="numbers">Evidence</NavLink>.
       </p>
 
       <SectionHeading id="s-arms" icon="shuffle" title="Three arms per scenario">
@@ -190,11 +202,17 @@ export default function ScenariosTab() {
       <ArmCards />
 
       <SectionHeading id="s-timing" icon="calendar" title="When it happens">
-        One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}.
+        One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}. This is the one home of the timing; Method links here.
       </SectionHeading>
-      <div className="info-card mx-card mx-figure">
-        <Timeline />
-      </div>
+      <Card
+        id="timing"
+        icon="calendar"
+        title={`The timing, ${YEARS[0]}–${LATE_YEAR}`}
+        unit="Bars: weight of the change in γ and Z, from 0 (the OBR-central path) to 1 (full scenario)"
+        download={{ title: `The timing, ${YEARS[0]}–${LATE_YEAR}`, context: 'Ramp weight of the capital share γ and productivity Z', table: timelineTable, svg: timelineSvg, legend: () => [] }}
+      >
+        <Timeline caption={false} />
+      </Card>
       <div className="card-grid">
         <InfoCard
           icon="flag"

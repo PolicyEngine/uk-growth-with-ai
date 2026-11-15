@@ -1,0 +1,15 @@
+{
+  "_note": "The UK evidence map: one row per UK study of AI's economic effects. Empty while the review table is compiled; the Evidence page renders whatever rows this file holds. Hand-maintained from the review, each row with its source and the date it was checked.",
+  "status": "being compiled",
+  "organisations": ["OBR", "Bank of England", "Resolution Foundation", "IFS", "DWP", "HMRC", "DSIT", "IPPR", "Tony Blair Institute", "NIESR", "IMF", "OECD", "Private forecasters"],
+  "columns": [
+    { "key": "organisation", "label": "Organisation" },
+    { "key": "title", "label": "Study" },
+    { "key": "date", "label": "Published" },
+    { "key": "measure", "label": "What it estimates" },
+    { "key": "horizon", "label": "Horizon" },
+    { "key": "finding", "label": "Headline finding" },
+    { "key": "method", "label": "Method" }
+  ],
+  "rows": []
+}

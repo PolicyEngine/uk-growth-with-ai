@@ -5,7 +5,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Card, { InfoCard, SectionHeading, StatTile, ViewNote } from '@/components/ui/Card.jsx';
 import ControlBar, { ControlGroup, Segmented, SeriesChips, RuleGroup } from '@/components/ui/ControlBar.jsx';
-import { useNav, WG_GROUPS } from '@/lib/nav.jsx';
+import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import D from '@/data/cohorts2028.json';
@@ -167,8 +167,8 @@ function Why({ cl, rule, arm }) {
       </InfoCard>
       <InfoCard icon="users" title="Young adults bear the stress test">
         <p>
-          With no output gain, the wage rate is lower still and there is less extra income to share. Young adults have most of their
-          working lives ahead and little wealth to gain from a higher return; older adults collect the higher return.
+          With no output gain the wage rate is lower still, and young adults, with most of their working lives ahead and little wealth, gain
+          least.
         </p>
       </InfoCard>
     </div>
@@ -334,8 +334,13 @@ export default function WhoGainsTab() {
           )}
         </Card>
       </div>
-      <SectionHeading id="who-why" icon="compass" title="Why">
-        What drives the pattern. The last card applies to the stress-test arm.
+      <SectionHeading id="who-why" icon="compass" title="What drives the result">
+        The results behind the pattern; the last card is for the stress-test arm. Why age matters at all, with many generations alive at
+        once, is on{' '}
+        <NavLink tab="method" sub="how" anchor="m-generations">
+          Method, many generations at once
+        </NavLink>
+        .
       </SectionHeading>
       <Why cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} />
     </>

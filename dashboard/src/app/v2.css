@@ -1810,3 +1810,248 @@
   color: var(--pe-gray-800);
   border: 1px solid var(--pe-gray-300);
 }
+
+/* ---------- OG-UK as four blocks in a loop (Method). On a phone the loop
+   becomes one column: households, firms, the rest of the world, government,
+   each followed by the flows to the next. */
+.md-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'h hf f'
+    'gh c fw'
+    'g wg w';
+  gap: 12px;
+  align-items: stretch;
+}
+.md-node-households { grid-area: h; }
+.md-node-firms { grid-area: f; }
+.md-node-world { grid-area: w; }
+.md-node-government { grid-area: g; }
+.md-edge-hf { grid-area: hf; }
+.md-edge-fw { grid-area: fw; }
+.md-edge-wg { grid-area: wg; }
+.md-edge-gh { grid-area: gh; }
+.md-centre { grid-area: c; }
+.md-node {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.md-node:hover,
+.md-node.is-open {
+  border-color: var(--c-gain-text);
+  background: var(--pe-gray-50);
+}
+.md-node:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+  outline-offset: 2px;
+}
+.md-node-firms {
+  border-width: 2px;
+  border-color: var(--c-gain);
+}
+.md-node-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.md-node-head .plain-icon {
+  display: inline-flex;
+  color: var(--c-gain-text);
+}
+.md-node-title {
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.md-node-tag {
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+}
+.md-node-line {
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+.md-edge {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 6px;
+  font-size: var(--fs-caption);
+  line-height: 1.35;
+  color: var(--pe-gray-700);
+}
+.md-edge-hf,
+.md-edge-wg {
+  align-items: center;
+  text-align: center;
+  border-top: 1px dashed var(--pe-gray-300);
+  border-bottom: 1px dashed var(--pe-gray-300);
+}
+.md-edge-fw,
+.md-edge-gh {
+  border-left: 1px dashed var(--pe-gray-300);
+  padding-left: 12px;
+}
+.md-flow {
+  display: block;
+}
+.md-to {
+  font-weight: 600;
+  color: var(--c-gain-text);
+}
+.md-centre {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+  text-align: center;
+  background: var(--pe-gray-50);
+  border-radius: var(--card-radius);
+}
+.md-centre b {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+}
+.md-detail {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--c-gain);
+  background: var(--pe-gray-50);
+}
+.md-detail h4 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+}
+.md-detail p {
+  margin: 4px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+@media (max-width: 760px) {
+  .md-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'h' 'hf' 'f' 'fw' 'w' 'wg' 'g' 'gh' 'c';
+    gap: 6px;
+  }
+  .md-edge,
+  .md-edge-hf,
+  .md-edge-wg {
+    align-items: flex-start;
+    text-align: left;
+    border: 0;
+    border-left: 1px dashed var(--pe-gray-300);
+    margin-left: 20px;
+    padding: 4px 0 4px 12px;
+  }
+}
+
+/* ---------- Evidence: the UK evidence map slot ---------- */
+.evidence-slot {
+  padding: 16px;
+  border: 1px dashed var(--pe-gray-300);
+  border-radius: var(--card-radius);
+}
+.evidence-slot-status {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.evidence-slot-who {
+  margin: 10px 0 6px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.evidence-slot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.evidence-slot-list li {
+  padding: 2px 10px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+  background: var(--pe-gray-50);
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 999px;
+}
+.evidence-table td,
+.evidence-table th {
+  vertical-align: top;
+}
+
+/* ---------- Data and code: stamp, ledger, citation ---------- */
+.updated-stamp {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ledger-wrap {
+  max-height: 560px;
+  overflow: auto;
+}
+.ledger-table th[scope='row'] {
+  font-weight: 500;
+}
+.ledger-table td,
+.ledger-table th {
+  vertical-align: top;
+  font-size: var(--fs-caption);
+  white-space: normal;
+}
+.ledger-where {
+  display: block;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.ledger-releases {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ledger-releases li {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px 0;
+  font-size: var(--fs-caption);
+  border-top: 1px solid var(--pe-gray-100);
+}
+.ledger-date {
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-500);
+}
+.cite-text {
+  font-size: var(--fs-small);
+  line-height: 1.55;
+}
