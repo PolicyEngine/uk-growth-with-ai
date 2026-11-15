@@ -53,7 +53,9 @@ const LEGACY_TAB = {
 };
 const STUDY_SUBS = { coverage: 'coverage', numbers: 'numbers', sources: 'sources', matrix: 'coverage' };
 const LEGACY_SUB = {
-  results: { overview: ['story'], summary: ['story'], variables: ['explore', 'economy'] },
+  results: { overview: ['story'], summary: ['story'], variables: ['explore', 'economy', 'explore-part-economy'], income: ['explore', 'economy', 'income'], economy: ['explore', 'economy', 'explore-part-economy'] },
+  // Income and output was its own sub-tab until it joined Economy
+  explore: { income: ['explore', 'economy', 'income'] },
   method: {
     built: ['method', null, 'm-closures'],
     limits: ['method', null, 'm-limits'],
@@ -72,16 +74,18 @@ const ALIAS = {
   literature: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
   code: (sub, anchor) => ['method', 'code', anchor],
 };
+const own = (o, k) => (k != null && Object.hasOwn(o, k) ? o[k] : undefined);
+
 // One step from any named place to a current one. An anchor on Method and
 // sources with no sub-tab named is a Method section.
 export function resolve(tab, sub = null, anchor = null) {
-  const legacy = tab && LEGACY_SUB[tab]?.[sub];
+  const legacy = own(own(LEGACY_SUB, tab) ?? {}, sub);
   if (legacy) {
     anchor = legacy[2] ?? anchor;
     sub = legacy[1] ?? null;
     tab = legacy[0];
   }
-  else if (ALIAS[tab]) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
+  else if (own(ALIAS, tab)) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
   if (tab === 'method' && anchor && !sub) sub = 'how';
   return [tab, sub, anchor];
 }
@@ -98,10 +102,10 @@ export function parseUrl(search, hash = '') {
   const h = hash.replace(/^#/, '');
   let [tab, sub, anchor] = resolve(q.get('tab'), q.get('sub'), h || null);
   if (!tabById(tab)) {
-    const old = LEGACY_TAB[tab] || LEGACY_TAB[h] || LEGACY_TAB[h.split('/')[0]];
+    const old = own(LEGACY_TAB, tab) || own(LEGACY_TAB, h) || own(LEGACY_TAB, h.split('/')[0]);
     if (old) {
       [tab, sub = sub] = old;
-      if (LEGACY_TAB[h] || LEGACY_TAB[h.split('/')[0]]) anchor = null;
+      if (own(LEGACY_TAB, h) || own(LEGACY_TAB, h.split('/')[0])) anchor = null;
     } else tab = sub && tabById('explore').subs.some((x) => x.id === sub) ? 'explore' : DEFAULTS.tab;
   }
   const subs = tabById(tab).subs;

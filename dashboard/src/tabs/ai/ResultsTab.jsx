@@ -275,7 +275,7 @@ export default function ResultsTab({ sub: named }) {
   const panels = { income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
   const Panel = panels[sub];
   return (
-    <div id={`explore-sub-${sub}`} role="tabpanel" aria-labelledby={`explore-subbtn-${sub}`} className="sub-panel">
+    <div id={`explore-part-${sub}`} className="explore-part">
       <Panel sid={sid} />
     </div>
   );

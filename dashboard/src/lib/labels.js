@@ -11,17 +11,19 @@ export const TABS = [
   { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
   { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true,
     subs: [
-      { id: 'income', label: 'Income and output', icon: 'home' },
       { id: 'economy', label: 'Economy', icon: 'factory' },
       { id: 'finances', label: 'Public finances', icon: 'landmark' },
       { id: 'who', label: 'Who gains', icon: 'usersRound', scenario: 'locked' },
+      { id: 'all', label: 'All scenarios', icon: 'layoutGrid', scenario: false, closure: false },
+      { id: 'households', label: 'Households', icon: 'briefcase', scenario: false, closure: false },
     ] },
-  { id: 'method', label: 'Method and sources', icon: 'book',
+  { id: 'method', label: 'Method and sources', short: 'Method', icon: 'book',
     subs: [
-      { id: 'how', label: 'Method', icon: 'sigma' },
+      { id: 'how', label: 'OG-UK method', icon: 'sigma' },
+      { id: 'households', label: 'Household method', icon: 'briefcase' },
       { id: 'scenarios', label: 'Scenarios', icon: 'target' },
-      { id: 'studies', label: 'Other studies', icon: 'library' },
-      { id: 'code', label: 'Code', icon: 'code' },
+      { id: 'studies', label: 'Evidence', icon: 'library' },
+      { id: 'code', label: 'Data and code', icon: 'code' },
     ] },
 ];
 export const tabById = (id) => TABS.find((t) => t.id === id);

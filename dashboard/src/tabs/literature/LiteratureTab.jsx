@@ -23,14 +23,14 @@ function ImfGap() {
     <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="imf-gap" id="imf-gap">
       <p>
         For about the same productivity gain, UK central&rsquo;s {HEADLINE_YEAR} GDP gain (on{' '}
-        <NavLink tab="explore" patch={{ s: 'uk_central' }}>Explore</NavLink>) is roughly{' '}
+        <NavLink tab="explore" sub="economy" anchor="income" patch={{ s: 'uk_central' }}>Explore</NavLink>) is roughly{' '}
         {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s about +
         {IMF_Y4.toFixed(1)}% at year 4.
       </p>
       <p>
         The capital closure is enough to account for the difference. Here the return on capital rises as capital grows
         (both on{' '}
-        <NavLink tab="explore" sub="economy" patch={{ s: 'uk_central' }}>Explore, Economy</NavLink>); if capital came in at an unchanged return, GDP would be about +2.9% to +3.2%
+        <NavLink tab="explore" sub="economy" anchor="explore-part-economy" patch={{ s: 'uk_central' }}>Explore, Economy</NavLink>); if capital came in at an unchanged return, GDP would be about +2.9% to +3.2%
         (arithmetic, not a solve).
       </p>
       <p className="mx-src">

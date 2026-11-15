@@ -148,8 +148,11 @@
   display: flex;
   align-items: flex-start;
 }
-.scrolly-step:last-child {
+.scrolly-step:nth-last-child(2) {
   min-height: 0;
+}
+.scrolly-end {
+  height: 1px;
 }
 .scrolly-card {
   padding: 18px 20px;
@@ -337,7 +340,11 @@
     min-height: 76vh;
     padding-bottom: 0;
   }
-  .scrolly-step.is-past .scrolly-card {
+  .scrolly-step:nth-last-child(2) {
+    min-height: 76vh;
+  }
+  .scrolly-step.is-past .scrolly-card,
+  .scrolly.is-done .scrolly-step.is-active .scrolly-card {
     opacity: 0;
     pointer-events: none;
   }
@@ -370,4 +377,78 @@
   .tab-panel:not([hidden]) {
     animation: none;
   }
+}
+
+/* Sankey (components/story/Sankey.jsx): ribbons and nodes morph between
+   states through their geometry; labels carry a halo so they read over
+   ribbons. */
+.sankey {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.sankey-link {
+  transition: d 800ms var(--story-ease, ease), opacity 400ms ease;
+}
+.sankey-rect {
+  transition: x 800ms var(--story-ease, ease), y 800ms var(--story-ease, ease), width 800ms var(--story-ease, ease), height 800ms var(--story-ease, ease);
+}
+.sankey-label {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--pe-gray-800);
+  paint-order: stroke;
+  stroke: var(--pe-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  transition: transform 800ms var(--story-ease, ease);
+}
+.sankey-sub {
+  font-weight: 400;
+  fill: var(--pe-gray-600);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sankey-link,
+  .sankey-rect,
+  .sankey-label {
+    transition: none !important;
+  }
+}
+
+/* A tab with a short label (labels.js `short`) shows it on narrow phones,
+   so the three tabs fit without scrolling; the full label stays for screen
+   readers. */
+.view-tab-short {
+  display: none;
+}
+@media (max-width: 480px) {
+  .view-tab-long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .view-tab-short {
+    display: inline;
+  }
+}
+
+/* The scope line under the tabs: what this page's model can and cannot say */
+.scope-strip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 110ch;
+  margin: 12px 0 0;
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--pe-gray-600);
+}
+.scope-strip svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
 }

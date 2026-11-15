@@ -330,10 +330,17 @@
   color: var(--pe-gray-700);
 }
 .p3-related a {
+  display: block;
   font-weight: 600;
   color: var(--c-gain-text);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.p3-related-note {
+  margin: 10px 0 0;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
 }
 
 /* Block 6: deciles, one line each */

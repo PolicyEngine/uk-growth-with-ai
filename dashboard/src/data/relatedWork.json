@@ -14,7 +14,8 @@
       "revenue_min_shift_pct": 70,
       "quote_gini": "Net-income Gini rises from 0.375 at baseline to 0.752 at a 100% shift.",
       "quote_revenue": "Net revenue bottoms at -£130B at a 70% shift under current law.",
-      "shift_max_pct": 100
+      "shift_max_pct": 100,
+      "quote_measure": "Net government revenue change (chart measure); \"Net revenue bottoms at -£130B at a 70% shift under current law.\""
     },
     {
       "id": "budget_lab",
@@ -25,7 +26,12 @@
       "model": "policyengine-us 1.764.6",
       "rapid_revenue_bn": 211,
       "rapid_poverty_pp": "0.11",
-      "quote": "Rapid / proportional: revenue +211 ($B, 2030), SPM poverty change +0.11 pp (scenario results table)."
+      "quote": "Rapid / proportional: revenue +211 ($B, 2030), SPM poverty change +0.11 pp (scenario results table).",
+      "compares": "The Budget Lab's How potential AI futures would play out in the current tax system (Iselin and Nunn, 20 July)",
+      "compares_short": "the Yale Budget Lab",
+      "scenarios": "the Karger et al. scenarios",
+      "cell": "Rapid / proportional",
+      "quote_cell": "Income-shift page, US view: rapid adoption with proportional wage changes, NET GOVERNMENT REVENUE +$211B, SPM POVERTY +0.11pp (2030)."
     }
   ]
 }

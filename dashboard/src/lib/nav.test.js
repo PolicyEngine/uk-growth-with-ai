@@ -18,7 +18,11 @@ describe('address', () => {
 
   it('resolves the seven tabs from before they were consolidated', () => {
     expect(parseUrl('?tab=results')).toMatchObject({ tab: 'explore', sub: null });
-    expect(parseUrl('?tab=results&sub=economy&s=uk_high')).toMatchObject({ tab: 'explore', sub: 'economy', s: 'uk_high' });
+    expect(parseUrl('?tab=results&sub=economy&s=uk_high')).toMatchObject({ tab: 'explore', sub: null, anchor: 'explore-part-economy', s: 'uk_high' });
+    expect(parseUrl('?tab=results&sub=income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'income' });
+    expect(parseUrl('?tab=explore&sub=income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'income' });
+    expect(parseUrl('?tab=explore&sub=households')).toMatchObject({ tab: 'explore', sub: 'households' });
+    expect(parseUrl('?tab=method&sub=households')).toMatchObject({ tab: 'method', sub: 'households' });
     expect(parseUrl('?tab=who&closure=both')).toMatchObject({ tab: 'explore', sub: 'who', closure: 'both' });
     expect(parseUrl('?tab=scenarios')).toMatchObject({ tab: 'method', sub: 'scenarios' });
     expect(parseUrl('?tab=method')).toMatchObject({ tab: 'method', sub: null });
@@ -36,7 +40,7 @@ describe('address', () => {
     expect(parseUrl('?tab=literature&sub=matrix')).toMatchObject({ tab: 'method', sub: 'studies', anchor: 'coverage' });
     expect(parseUrl('?tab=method&sub=scenarios')).toMatchObject({ tab: 'method', sub: 'scenarios' });
     expect(parseUrl('?tab=method&sub=limits')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-limits' });
-    expect(parseUrl('?tab=results&sub=variables&s=uk_high')).toMatchObject({ tab: 'explore', sub: 'economy', s: 'uk_high' });
+    expect(parseUrl('?tab=results&sub=variables&s=uk_high')).toMatchObject({ tab: 'explore', sub: null, anchor: 'explore-part-economy', s: 'uk_high' });
     expect(parseUrl('?tab=results&sub=overview')).toMatchObject({ tab: 'story', sub: null });
     expect(parseUrl('?tab=results&sub=summary')).toMatchObject({ tab: 'story', sub: null });
     expect(parseUrl('?tab=finances')).toMatchObject({ tab: 'explore', sub: 'finances' });
@@ -48,5 +52,8 @@ describe('address', () => {
   it('ignores a value it does not know', () => {
     expect(parseUrl('?tab=nope&s=nope&closure=nope&rule=nope&wrule=fixed')).toMatchObject({ tab: 'story', s: DEFAULTS.s, closure: 'central', rule: 'common', wrule: 'dn' });
     expect(parseUrl('?rule=fixed').rule).toBe('fixed');
+    for (const k of ['constructor', '__proto__', 'toString']) {
+      expect(parseUrl(`?tab=${k}&sub=${k}`, `#${k}`).tab).toBe('story');
+    }
   });
 });

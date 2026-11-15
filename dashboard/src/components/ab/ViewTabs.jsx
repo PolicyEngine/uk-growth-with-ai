@@ -95,7 +95,16 @@ export default function ViewTabs({ tabs, value, onChange, idPrefix = 'tab', labe
               onClick={() => onChange(t.id)}
             >
               <Icon name={t.icon} size={variant === 'sub' ? 16 : 18} className="view-tab-icon" />
-              <span className="view-tab-label">{t.label}</span>
+              {t.short ? (
+                <>
+                  <span className="view-tab-label view-tab-long">{t.label}</span>
+                  <span className="view-tab-label view-tab-short" aria-hidden="true">
+                    {t.short}
+                  </span>
+                </>
+              ) : (
+                <span className="view-tab-label">{t.label}</span>
+              )}
             </button>
           );
         })}

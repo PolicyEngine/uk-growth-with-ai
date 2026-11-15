@@ -85,7 +85,7 @@ function shockSteps() {
             depends on the size of each move and on how much new capital arrives. The shock comes as a surprise in {SURPRISE_YEAR}: nobody in
             the model sees it coming.
           </p>
-          <More tab="explore" sub="economy">The labour share, capital and the rest of the economy</More>
+          <More tab="explore" sub="economy" anchor="explore-part-economy">The labour share, capital and the rest of the economy</More>
         </>
       ),
     },
@@ -136,11 +136,11 @@ function scenarioSteps(sid, cl) {
       body: (
         <>
           <p>
-            A US scenario, kept as a labelled upper case rather than a UK calibration: it lies above the shaded UK range. The scenario chosen at the top of the page,{' '}
+            A US scenario, kept as a labelled upper case rather than a UK calibration. The scenario chosen at the top of the page,{' '}
             {SCEN_NAME[sid]}, is the coloured line; change it there.
           </p>
           <More tab="method" sub="scenarios">What each scenario assumes, and its sources</More>
-          <More tab="explore" sub="income">GDP and national income year by year</More>
+          <More tab="explore" sub="economy" anchor="income">GDP and national income year by year</More>
         </>
       ),
     },
@@ -191,7 +191,7 @@ function armSteps(sid, closure) {
           </p>
           {closureNote}
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
-          <More tab="explore" sub="income">Each arm year by year</More>
+          <More tab="explore" sub="economy" anchor="income">Each arm year by year</More>
         </>
       ),
     },

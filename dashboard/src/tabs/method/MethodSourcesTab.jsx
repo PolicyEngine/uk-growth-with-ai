@@ -4,11 +4,12 @@ import MethodTab from '@/tabs/method/MethodTab.jsx';
 import ScenariosTab from '@/tabs/method/ScenariosTab.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import CodeTab from '@/tabs/code/CodeTab.jsx';
+import HouseholdsMethod from '@/tabs/households/HouseholdsMethod.jsx';
 import { useNav, subOf } from '@/lib/nav.jsx';
 
-// Method and sources: how the results are made and where they sit. Method,
-// Scenarios, Other studies and Code, once four tabs.
-const PANELS = { how: MethodTab, scenarios: ScenariosTab, studies: StudiesTab, code: CodeTab };
+// Method and sources: how the results are made and where they sit. OG-UK
+// method, Household method (uk-ai-study), Scenarios, Evidence, and Data and code.
+const PANELS = { how: MethodTab, households: HouseholdsMethod, scenarios: ScenariosTab, studies: StudiesTab, code: CodeTab };
 
 export default function MethodSourcesTab() {
   const { st } = useNav();

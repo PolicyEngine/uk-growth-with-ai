@@ -11,10 +11,15 @@ import { useActiveStep, useReducedMotion } from './motion.js';
 //
 //   <Scrolly id="p1-output" steps={[{ id, title, body }]} graphic={(i) => ...} label="..." />
 export default function Scrolly({ id, steps, graphic, label, wide = false }) {
-  const [register, active] = useActiveStep(steps.length);
+  // One more registered element than steps: an end marker after the last
+  // card. Past it the block is done; on phones the last card then fades like
+  // every other, so it never covers the chart as the block scrolls away.
+  const [register, raw] = useActiveStep(steps.length + 1);
+  const done = raw >= steps.length;
+  const active = Math.min(raw, steps.length - 1);
   const reduce = useReducedMotion();
   return (
-    <div className={`scrolly${wide ? ' is-wide' : ''}`} id={id}>
+    <div className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}`} id={id}>
       <div className="scrolly-graphic" aria-label={label} role="group">
         <div className="scrolly-graphic-inner" data-step={active}>
           {graphic(active, reduce)}
@@ -30,6 +35,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false }) {
             </div>
           </li>
         ))}
+        <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
     </div>
   );

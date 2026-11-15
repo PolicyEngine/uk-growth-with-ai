@@ -5,6 +5,7 @@ import StoryTab from '@/tabs/story/StoryTab.jsx';
 import ExploreTab from '@/tabs/explore/ExploreTab.jsx';
 import MethodSourcesTab from '@/tabs/method/MethodSourcesTab.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
+import Icon from '@/components/ab/Icon.jsx';
 import Picker from '@/components/ui/Picker.jsx';
 import { NavProvider, useNav, subOf } from '@/lib/nav.jsx';
 import { TABS, tabById, pickersFor, CLOSURES, PAGE_TITLE } from '@/lib/labels.js';
@@ -17,6 +18,17 @@ import { SCENARIOS } from '@/tabs/ai/surprise.js';
 const SCEN_NOTE = { uk_low: 'UK range, lower end', uk_central: 'Headline scenario', uk_high: 'UK range, upper end', korinek: 'A US upper case: Korinek et al.’s “substantial” inputs' };
 const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
 const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note: c.note, icon: c.icon }));
+
+// What each page's results can and cannot say, in one line under the tabs.
+const SCOPE = {
+  oguk: 'OG-UK, a model of the whole economy: no unemployment; results are gaps against the OBR-central path, not forecasts.',
+  study: 'uk-ai-study: one year (FY 2026–27) of households when a share of employees lose their jobs; provisional (uk-ai-study #18).',
+};
+const scopeFor = (tab, sub) => {
+  if (tab === 'explore') return sub === 'households' ? [SCOPE.study] : [SCOPE.oguk];
+  if (tab === 'method') return sub === 'households' ? [SCOPE.study] : sub === 'how' || sub === 'scenarios' ? [SCOPE.oguk] : [SCOPE.oguk, SCOPE.study];
+  return [SCOPE.oguk, SCOPE.study];
+};
 
 const PANELS = { story: StoryTab, explore: ExploreTab, method: MethodSourcesTab };
 
@@ -69,6 +81,17 @@ function Shell() {
         </div>
       ) : null}
       <div className="main-content">
+        <p className="scope-strip">
+          <Icon name="info" size={16} />
+          <span>
+            {scopeFor(st.tab, sub).map((t, i) => (
+              <span key={t} className="scope-item">
+                {i ? ' · ' : ''}
+                {t}
+              </span>
+            ))}
+          </span>
+        </p>
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (

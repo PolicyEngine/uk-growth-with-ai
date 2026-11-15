@@ -33,7 +33,9 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
     // The keys keep the names of the tabs before they were consolidated;
     // each opens its current address: Results and Who gains are sub-tabs of
     // Explore, the rest of Method and sources.
-    const [newTab, newSub] = story ? ['story', null] : tab === 'results' ? ['explore', sub] : tab === 'who' ? ['explore', 'who'] : ['method', tab === 'method' ? 'how' : tab];
+    const [newTab, newSub] = story ? ['story', null] : tab === 'results' ? ['explore', sub === 'income' ? 'economy' : sub] : tab === 'who' ? ['explore', 'who'] : ['method', tab === 'method' ? 'how' : tab];
+    // Results' panels are parts of Explore's pages (income and economy share one)
+    const elId = tab === 'results' ? `explore-part-${sub}` : newSub ? `${newTab}-sub-${newSub}` : `tab-${newTab}`;
     const q = new URLSearchParams({ tab: newTab, s });
     if (newSub) q.set('sub', newSub);
     if (closure) q.set('closure', closure);
@@ -46,10 +48,10 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
       continue;
     }
     // Axis ticks are scale, not data: hidden before reading the text.
-    res[s][t] = await page.evaluate(([id, sb]) => {
+    res[s][t] = await page.evaluate((id) => {
       document.querySelectorAll('[data-axis]').forEach((e) => { e.style.display = 'none'; });
-      return document.getElementById(sb ? `${id}-sub-${sb}` : `tab-${id}`)?.innerText ?? '';
-    }, [newTab, newSub]);
+      return document.getElementById(id)?.innerText ?? '';
+    }, elId);
     if (story) {
       const el = sub === 'summary' ? 'story-part-2' : `story-${sub.replace('part', 'part-')}`;
       // Story: axis ticks and inputs quoted from the data's text (data-input:

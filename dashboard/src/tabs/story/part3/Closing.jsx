@@ -5,13 +5,14 @@ import { NavLink } from '@/lib/nav.jsx';
 import { D, PR_URL } from './shared.jsx';
 import R from '@/data/relatedWork.json';
 
-// The close of part 3: not sticky, no figures. What the study covers and
+// The close of part 3: not sticky; its only figures are related work's. What the study covers and
 // leaves out (docs/story/part3-notes.md, Caveats), and where to read more,
 // including related PolicyEngine work (figures read off its pages and kept
 // in relatedWork.json, with the date read).
 
 const SHIFT = R.items.find((x) => x.id === 'income_shift');
 const LAB = R.items.find((x) => x.id === 'budget_lab');
+const READ_DATE = new Date(`${R.read}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 export default function Closing() {
   return (
@@ -39,20 +40,22 @@ export default function Closing() {
         <li>
           <a href={SHIFT.url} target="_blank" rel="noreferrer">
             {SHIFT.title}
-          </a>{' '}
-          An experiment that shifts 0 to {SHIFT.shift_max_pct}% of labour income into capital income under current law, with UK and US
-          views. In the UK view ({SHIFT.model}), the net-income Gini rises from {SHIFT.gini_base} to {SHIFT.gini_full} at a{' '}
-          {SHIFT.shift_max_pct}% shift, and net revenue is lowest, at −£{SHIFT.revenue_min_bn}B, at a {SHIFT.revenue_min_shift_pct}% shift.
+          </a>
+          An experiment that moves a rising share of labour income, up to all of it, into capital income under current law, with UK
+          and US views. In the UK view ({SHIFT.model}), the net-income Gini rises from {SHIFT.gini_base} to {SHIFT.gini_full} when all of
+          it moves, and the change in net government revenue is lowest, −£{SHIFT.revenue_min_bn}B, at a {SHIFT.revenue_min_shift_pct}%
+          shift.
         </li>
         <li>
           <a href={LAB.url} target="_blank" rel="noreferrer">
             {LAB.title}
-          </a>{' '}
-          A US memo ({LAB.date}) comparing PolicyEngine with the Yale Budget Lab on the Karger et al. AI scenarios. With rapid adoption
-          and proportional wage changes, it finds net government revenue up ${LAB.rapid_revenue_bn}B and SPM poverty up{' '}
+          </a>
+          A US memo ({LAB.date}) that runs {LAB.scenarios}, as calibrated by {LAB.compares_short}, through PolicyEngine. For rapid
+          adoption with proportional wage changes, it finds net government revenue up ${LAB.rapid_revenue_bn}B and SPM poverty up{' '}
           {LAB.rapid_poverty_pp}pp in 2030.
         </li>
       </ul>
+      <p className="p3-related-note">Figures read off these pages on {READ_DATE}. They are not results of this dashboard.</p>
     </aside>
   );
 }

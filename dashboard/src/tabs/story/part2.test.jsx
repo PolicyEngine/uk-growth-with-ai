@@ -81,8 +81,8 @@ describe('story part 2', () => {
     expect(hrefs).toContain('/?tab=method&s=uk_high&closure=both#m-closures');
     expect(hrefs.some((h) => h.startsWith('/?tab=method&sub=scenarios'))).toBe(true);
     // Income and output is Results' first sub-tab, so the address leaves it out
-    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both');
-    expect(hrefs.some((h) => h.startsWith('/?tab=explore&sub=economy'))).toBe(true);
+    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#income');
+    expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-economy'))).toBe(true);
   });
 
   it('closed capital is dashed only with Both', () => {

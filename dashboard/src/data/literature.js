@@ -275,7 +275,7 @@ export const CHANNELS = [
       oguk: ['yes', 'Modelled', 'Tax functions fitted to PolicyEngine-UK; one schedule for labour and capital income.'],
       korinek: ['no', 'No', 'Research funded by lump-sum taxes.'],
       moll: ['no', 'No', 'No government.'],
-      obr: ['yes', 'Modelled', 'Fiscal forecast with separate effective rates on wages and profits (FRS 2026); the rates are on Results, Public finances.'],
+      obr: ['yes', 'Modelled', 'Fiscal forecast with separate effective rates on wages and profits (FRS 2026); the rates are on Explore, Public finances.'],
       imf: ['na', 'Not stated', 'No fiscal results.'],
     },
   },
