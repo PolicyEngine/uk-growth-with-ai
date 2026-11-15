@@ -404,24 +404,6 @@
   font-size: var(--fs-caption);
   color: var(--pe-gray-500);
 }
-.p3-sankey-key {
-  display: grid;
-  gap: 4px;
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-700);
-}
-.p3-sankey-key .p3-swatch {
-  margin-left: 0;
-  vertical-align: -1px;
-}
-.p3-sankey-key b {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-900);
-}
 
 /* Step 6: two bars in one row (cost above, poverty below) */
 .p3-row-bar-2 {

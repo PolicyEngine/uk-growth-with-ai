@@ -87,7 +87,7 @@ function Graphic() {
 export default function Margin() {
   const steps = [
     {
-      id: 'p3-margin',
+      id: 'p3-margin-step',
       kicker: '6 · Job loss or wage cuts',
       title: 'Wage cuts cost more per pound; job loss raises poverty more',
       body: (

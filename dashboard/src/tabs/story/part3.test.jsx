@@ -112,8 +112,8 @@ describe('Part3', () => {
 
   it('builds the Sankey from the OBR-sized run, with inflows equal to outflows at every node', () => {
     const S = D.sankey;
-    for (const phone of [false, true]) {
-      const g = absorbGraph(phone);
+    {
+      const g = absorbGraph();
       expect(imbalances(g)).toEqual([]);
       // a two-column graph has no node with both, so check each side too
       const out = {};
@@ -126,7 +126,7 @@ describe('Part3', () => {
       for (const d of DESTS) expect(inn[d.id]).toBeCloseTo(S.total[d.key], 3);
       const totalOut = Object.values(out).reduce((a, b) => a + b, 0);
       expect(totalOut).toBeCloseTo(S.total.earnings_lost_bn, 3);
-      if (!phone) S.deciles.forEach((f, i) => expect(out[`d${i + 1}`]).toBeCloseTo(f.earnings_lost_bn, 3));
+      S.deciles.forEach((f, i) => expect(out[`d${i + 1}`]).toBeCloseTo(f.earnings_lost_bn, 3));
     }
     // decile flows add up to each decile's earnings lost, and the deciles to the total
     S.deciles.forEach((f) => expect(f.tax_ni_bn + f.benefits_bn + f.other_bn + f.disposable_bn).toBeCloseTo(f.earnings_lost_bn, 3));

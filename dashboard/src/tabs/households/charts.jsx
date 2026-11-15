@@ -19,11 +19,11 @@ export function StoryRef({ step }) {
 }
 
 export const STEP = {
-  central: { n: 1, anchor: 'p3-central' },
-  rules: { n: 5, anchor: 'p3-rules' },
-  margin: { n: 6, anchor: 'p3-margin' },
-  moves: { n: 7, anchor: 'p3-moves' },
-  deciles: { n: 4, anchor: 'p3-deciles' },
+  central: { n: 1, anchor: 'p3-central-step' },
+  rules: { n: 5, anchor: 'p3-rules-step' },
+  margin: { n: 6, anchor: 'p3-margin-step' },
+  moves: { n: 7, anchor: 'p3-moves-step' },
+  deciles: { n: 4, anchor: 'p3-deciles-step' },
 };
 
 // Rows: [{ id, label, bar: { kind, value | parts, fill }, cells: [node] }].

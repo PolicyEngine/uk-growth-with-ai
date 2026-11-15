@@ -76,7 +76,7 @@ function Graphic() {
 export default function Central() {
   const steps = [
     {
-      id: 'p3-central',
+      id: 'p3-central-step',
       kicker: '1 · The central case',
       title: 'A year in which a share of employees lose their jobs',
       body: (

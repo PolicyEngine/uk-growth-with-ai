@@ -33,7 +33,7 @@ function Graphic() {
           </li>
         ))}
         <li className="p3-row p3-row-total is-reached" data-row="sum">
-          <span className="p3-row-label">The three together</span>{' '}
+          <span className="p3-row-label">Sum of the three runs</span>{' '}
           <span className="p3-row-bar">
             <DivBar value={C.sum_bn} lo={LO} hi={HI} fill="p3-fill-cost" />
           </span>{' '}
@@ -49,7 +49,7 @@ function Graphic() {
 export default function Channels() {
   const steps = [
     {
-      id: 'p3-channels',
+      id: 'p3-channels-step',
       kicker: '2 · Three channels',
       title: 'A cost that is the difference between larger flows',
       body: (

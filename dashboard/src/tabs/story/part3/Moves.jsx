@@ -12,6 +12,7 @@ import { D, FigureHead, HBar, OutsideRebuild, Source, ladder } from './shared.js
 
 const BE = D.breakeven;
 const TK = [
+  { id: 'central_20', label: 'The central case on these draws', base: true },
   { id: 'takeup', label: 'Every benefit unit with a displaced worker claims Universal Credit' },
   { id: 'takeup_jsa', label: 'And displaced workers who qualify also get 26 weeks of new-style JSA' },
 ];
@@ -78,10 +79,10 @@ function Graphic() {
             <li key={r.id} className="p3-row" data-row={r.id}>
               <span className="p3-row-label">{r.label}</span>{' '}
               <span className="p3-row-bar">
-                <HBar value={d.cost_bn} max={MAX} fill="p3-fill-cost" />
+                <HBar value={d.cost_bn} max={MAX} fill={r.base ? 'p3-fill-ref' : 'p3-fill-cost'} />
               </span>{' '}
-              <span className="p3-row-value">{fmtBn(d.cost_bn)}</span>{' '}
-              <span className="p3-row-value p3-row-value-2">{fmtPp(d.poverty_pp)}</span>
+              <span className="p3-row-value">{r.base ? <span className="p3-muted">step 6</span> : fmtBn(d.cost_bn)}</span>{' '}
+              <span className="p3-row-value p3-row-value-2">{r.base ? <span className="p3-muted">step 6</span> : fmtPp(d.poverty_pp)}</span>
             </li>
           );
         })}
@@ -95,7 +96,7 @@ function Graphic() {
 export default function Moves() {
   const steps = [
     {
-      id: 'p3-moves',
+      id: 'p3-moves-step',
       kicker: '7 · What moves the cost',
       title: 'Three assumptions decide its sign',
       body: (
@@ -103,7 +104,8 @@ export default function Moves() {
           <p>
             The cost is the difference between flows several times its size, so three assumptions have break-even values close to their central
             settings: the wage rise for those who keep their jobs, the rise in interest and dividend income, and how long people are out of work.
-            A shorter spell also withdraws Universal Credit that a real spell would pay, so the true break-even for time out of work is shorter.
+            The time-out-of-work value comes from a run in which the displaced keep half their annual earnings, which also withdraws Universal
+            Credit that a real six-month spell would pay, so the true break-even is shorter.
           </p>
           <p>
             Benefit take-up moves the cost one way only. In the data, not everyone entitled to Universal Credit claims it; when everyone with a

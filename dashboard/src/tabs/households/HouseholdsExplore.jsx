@@ -197,7 +197,7 @@ function PerPound() {
       id="hh-per-pound"
       icon="banknote"
       title="Cost per pound of earnings lost"
-      finding="Take-up and JSA raise the cost of a lost pound through job loss, but it stays below the wage-cut figure."
+      finding="On one draw, full take-up and JSA raise the cost of a pound lost through job loss; it stays below the 20-draw wage-cut figure."
       unit={
         <>
           Pence of cost per <span data-axis="">£1</span> of gross earnings removed, each margin alone (no wage or capital channel)
@@ -309,6 +309,11 @@ function Displaced() {
         caveats: 'The shares count benefit units, not persons. The groups overlap, and the data give no cross-tabulation.',
         sources: `${X.claim_uc.file} (diagnostics.obr, existing_unemployed); UC per worker: ${X.uc_per_displaced.file} and results/takeup/takeup_draws.csv.`,
       }}
+      foot={
+        <p className="hh-foot">
+          <OutsideRebuild />
+        </p>
+      }
     >
       <div className="hh-tiles">
         {tiles.map(([k, name, sub]) => (

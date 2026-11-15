@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
 import { fmtBn, fmtInputPct, fmtShare } from './format.js';
@@ -14,47 +13,32 @@ import { D, FigureHead, OutsideRebuild, Source } from './shared.jsx';
 // absorbed and employer NI, which sits on top of the earnings lost.
 
 const S = D.sankey;
-// Order: each small node sits between two tall ones, so labels never collide.
+// Order: each small node sits between two tall ones, so labels never
+// collide. Labels are short (the shared Sankey keeps about 112px for the last
+// column's labels on phones); the value is the `sub`.
 export const DESTS = [
-  { id: 'disposable', key: 'disposable_bn', label: 'Lower disposable income', color: 'var(--c-loss)' },
+  { id: 'disposable', key: 'disposable_bn', label: 'Disposable income', color: 'var(--c-loss)' },
   { id: 'benefits', key: 'benefits_bn', label: 'More benefits', color: 'var(--series-3)' },
-  { id: 'tax', key: 'tax_ni_bn', label: 'Less income tax and NI', color: 'var(--series-2)' },
-  { id: 'other', key: 'other_bn', label: 'Other, mainly pensions', color: 'var(--pe-gray-400)' },
+  { id: 'tax', key: 'tax_ni_bn', label: 'Less tax and NI', color: 'var(--series-2)' },
+  { id: 'other', key: 'other_bn', label: 'Other items', color: 'var(--pe-gray-400)' },
 ];
 
-// The graph: decile -> destination, £bn a year. Wide screens: ten deciles,
-// and the destination labels carry the values. Phones (`phone`): deciles 1
-// to 5 are one node, so the labels below the bars have room, and a key below
-// the chart carries the values.
-export function absorbGraph(phone = false) {
-  const groups = phone ? [[0, 1, 2, 3, 4], [5], [6], [7], [8], [9]] : S.deciles.map((_, i) => [i]);
-  const name = (g) => (g.length > 1 ? `${g[0] + 1}–${g[g.length - 1] + 1}` : String(g[0] + 1));
+// The graph: income decile -> destination, £bn a year, the same at every
+// width (components/story/Sankey.jsx flows left to right on phones too).
+export function absorbGraph() {
   const nodes = [
-    ...groups.map((g) => ({ id: `d${name(g)}`, label: name(g), color: 'var(--pe-gray-500)' })),
-    ...DESTS.map((d) => ({ id: d.id, label: phone ? '' : d.label, sub: phone ? undefined : fmtBn(S.total[d.key]), color: d.color })),
+    ...S.deciles.map((_, i) => ({ id: `d${i + 1}`, label: String(i + 1), color: 'var(--pe-gray-500)' })),
+    ...DESTS.map((d) => ({ id: d.id, label: d.label, sub: fmtBn(S.total[d.key]), color: d.color })),
   ];
   const links = [];
-  for (const g of groups) {
-    for (const d of DESTS) links.push({ source: `d${name(g)}`, target: d.id, value: g.reduce((a, i) => a + S.deciles[i][d.key], 0), color: d.color });
-  }
+  S.deciles.forEach((f, i) => {
+    for (const d of DESTS) links.push({ source: `d${i + 1}`, target: d.id, value: f[d.key], color: d.color });
+  });
   return { nodes, links };
 }
 
-function usePhone() {
-  const [phone, setPhone] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const mq = window.matchMedia('(max-width: 600px)');
-    const on = () => setPhone(mq.matches);
-    on();
-    mq.addEventListener?.('change', on);
-    return () => mq.removeEventListener?.('change', on);
-  }, []);
-  return phone;
-}
-
-function Graphic(phone) {
-  const g = absorbGraph(phone);
+function Graphic() {
+  const g = absorbGraph();
   return (
     <figure className="p3-figure p3-sankey">
       <FigureHead
@@ -67,35 +51,19 @@ function Graphic(phone) {
         unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes, £bn a year, mean of ${S.draws} draws`}
       />
       <p className="p3-sankey-axis" aria-hidden="true">
-        {phone ? (
-          <span>Top: income decile (1 = bottom). Bottom: where the loss lands.</span>
-        ) : (
-          <>
-            <span>Income decile (1 = bottom)</span>
-            <span>Where the loss lands</span>
-          </>
-        )}
+        <span>Income decile (1 = bottom)</span>
+        <span>Where the loss lands</span>
       </p>
       <Sankey
         graphs={[g]}
         label="Sankey diagram: earnings lost by each income decile, flowing to lower disposable income, lower income tax and employee NI, other items and more benefits"
         width={640}
-        height={380}
-        phoneHeight={250}
-        pad={phone ? 6 : 8}
+        height={360}
+        pad={7}
       />
-      {phone ? (
-        <ul className="p3-sankey-key">
-          {DESTS.map((d) => (
-            <li key={d.id}>
-              <span className="p3-swatch" style={{ background: d.color }} /> {d.label} <b>{fmtBn(S.total[d.key])}</b>
-            </li>
-          ))}
-        </ul>
-      ) : null}
       <p className="p3-key">
-        How to read it: each ribbon runs from an income decile to where its lost earnings land; its width is pounds a year.
-        {phone ? ' Deciles 1 to 5 are combined here.' : ''} Decile 1 carries the ranking caveat of step 4.
+        How to read it: each ribbon runs from an income decile to where its lost earnings land; its width is pounds a year. Other items are
+        mainly pension contributions no longer paid. Decile 1 carries the ranking caveat of step 4.
       </p>
       <Source>OBR-sized run, household flows by baseline decile</Source>
     </figure>
@@ -103,10 +71,9 @@ function Graphic(phone) {
 }
 
 export default function Absorb() {
-  const phone = usePhone();
   const steps = [
     {
-      id: 'p3-absorb',
+      id: 'p3-absorb-step',
       kicker: '3 · What the system absorbs',
       title: 'Where a lost pound of earnings goes',
       body: (
@@ -127,5 +94,5 @@ export default function Absorb() {
       ),
     },
   ];
-  return <Scrolly id="p3-absorb" steps={steps} graphic={() => Graphic(phone)} label="Where the earnings lost to job loss go, by income decile" />;
+  return <Scrolly id="p3-absorb" steps={steps} graphic={Graphic} label="Where the earnings lost to job loss go, by income decile" />;
 }

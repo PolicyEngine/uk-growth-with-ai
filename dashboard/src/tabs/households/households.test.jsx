@@ -66,7 +66,7 @@ describe('HouseholdsExplore', () => {
 
   it('flags the runs outside the rebuild', () => {
     const { container } = render(<HouseholdsExplore />);
-    for (const id of ['hh-ladder', 'hh-per-pound']) expect(container.querySelector(`#${id} .p3-chip`), id).not.toBeNull();
+    for (const id of ['hh-ladder', 'hh-per-pound', 'hh-displaced']) expect(container.querySelector(`#${id} .p3-chip`), id).not.toBeNull();
   });
 });
 

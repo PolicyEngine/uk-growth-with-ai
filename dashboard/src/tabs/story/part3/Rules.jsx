@@ -46,7 +46,7 @@ function Graphic() {
 export default function Rules() {
   const steps = [
     {
-      id: 'p3-rules',
+      id: 'p3-rules-step',
       kicker: '5 · Who loses the job',
       title: 'The same number displaced, different people',
       body: (
@@ -56,8 +56,8 @@ export default function Rules() {
             cost tracks the earnings of those displaced: each takes their income tax and National Insurance with them.
           </p>
           <p>
-            Uniform displacement costs least but raises poverty by more than the central case, because it reaches more workers in
-            lower-income households.{' '}
+            Uniform displacement costs least but raises poverty by more than the central case. The study names two possible routes, more
+            job losses in lower-income households or more sole earners displaced, and its draws do not separate them.{' '}
             <NavLink tab="explore" sub="households" anchor="hh-rules">
               Poverty and inequality under each rule, and a top-loaded stress test
             </NavLink>
