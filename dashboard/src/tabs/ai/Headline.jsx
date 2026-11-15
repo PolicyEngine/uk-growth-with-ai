@@ -249,7 +249,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
                             aria-label={`${a.label}, ${name}: see the headline figures in the story`}
                           >
-                            Headline figures <Icon name="arrowRight" size={12} strokeWidth={2} />
+                            Headline <Icon name="arrowRight" size={12} strokeWidth={2} />
                           </NavLink>
                         ) : (
                           <span

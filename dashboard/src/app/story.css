@@ -474,10 +474,15 @@
     z-index: 1;
     padding: 2vh 0 6vh;
   }
-  /* The chart changes as the next card enters (trigger 0.88). The gap
-     after each card is enough that the card before has by then passed
-     under the graphic, so a card never sits beside a state it does not
-     describe. */
+  /* The chart changes as the next card enters (trigger 0.88). By then
+     the card before has mostly passed under the graphic; any tail still
+     showing below a short graphic fades out, so a card never sits beside
+     a state it does not describe. */
+  .scrolly-step.is-past .scrolly-card,
+  .scrolly.is-done .scrolly-step.is-active .scrolly-card {
+    opacity: 0;
+    pointer-events: none;
+  }
   .scrolly-step,
   .scrolly-step:nth-last-child(2) {
     min-height: 0;

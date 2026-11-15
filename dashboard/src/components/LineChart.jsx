@@ -214,7 +214,6 @@ export default function LineChart({
   const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, 11)) : 0)));
   const labelW = rawLabels.length ? Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120)) : 6;
   const R = Math.max(L + 80, W - labelW - stripW - 8);
-  const TOP = PAD_T;
   const BOT = height - PAD_B;
   const H = height;
 
@@ -236,20 +235,37 @@ export default function LineChart({
   }
 
   const sx = (i) => (x.length === 1 ? L : L + ((R - L) * i) / (x.length - 1));
-  // Marker labels: each takes the first row where it does not overlap a
-  // label already placed (widths estimated from the text), so labels never
-  // overprint one another whatever the width.
+  // Labels above the plot, band labels and marker labels together: each
+  // takes the lowest row where it overlaps no label already placed (widths
+  // estimated from the text), and the plot starts below the rows used, so a
+  // label never overprints another label or the data.
+  const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
+  const placed = [];
+  const place = (a0, w) => {
+    let row = 0;
+    while (placed.some((p) => p.row === row && a0 < p.b && a0 + w > p.a)) row += 1;
+    placed.push({ row, a: a0, b: a0 + w });
+    return row;
+  };
+  const bandRows = bands.map((b) => {
+    const i = x.indexOf(b.year);
+    if (i < 0 || !b.label) return { b, i, row: 0 };
+    const w = String(b.label).length * 6.4 + 6;
+    return { b, i, row: place(sx(i) - w / 2, w) };
+  });
   const markerRows = [];
   for (const m of markers) {
     const i = x.indexOf(m.year);
     if (i < 0) continue;
-    const end = i === x.length - 1 || sx(i) + 4 + m.label.length * 6.4 > R;
-    const w = m.label.length * 6.4 + 6;
+    const len = String(m.label ?? '').length;
+    const end = i === x.length - 1 || sx(i) + 4 + len * 6.4 > R;
+    const w = len * 6.4 + 6;
     const a0 = end ? sx(i) - 4 - w : sx(i) + 4;
-    let row = 0;
-    while (markerRows.some((p) => p.row === row && a0 < p.b && a0 + w > p.a)) row += 1;
-    markerRows.push({ m, i, row, end, a: a0, b: a0 + w });
+    markerRows.push({ m, i, end, row: len ? place(a0, w) : 0 });
   }
+  const rowsUsed = placed.length ? Math.max(...placed.map((p) => p.row)) + 1 : 1;
+  const TOP = PAD_T + (rowsUsed - 1) * 14;
+  const labelY = (row) => TOP - 6 - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
   // edge would be drawn on top of each other, so each off-scale point after
@@ -352,17 +368,15 @@ export default function LineChart({
       ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
         {/* bands first, so a marker label that reaches into one stays readable */}
-        {bands.map((b) => {
-          const i = x.indexOf(b.year);
+        {bandRows.map(({ b, i, row }) => {
           if (i < 0) return null;
-          const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
           const x0 = Math.max(L, sx(i) - half);
           const x1 = Math.min(R + 6, sx(i) + half);
           return (
             <g key={`band-${b.year}`}>
               <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
               {b.label ? (
-                <text x={(x0 + x1) / 2} y={TOP - 6} className="ax band-label" textAnchor="middle">
+                <text x={(x0 + x1) / 2} y={labelY(row)} className="ax band-label" textAnchor="middle">
                   {b.label}
                 </text>
               ) : null}
@@ -372,7 +386,7 @@ export default function LineChart({
         {markerRows.map(({ m, i, row, end }) => (
           <g key={`m-${m.year}`}>
             <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-            <text x={end ? sx(i) - 4 : sx(i) + 4} y={TOP + 10 + row * 14} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
+            <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
               {m.label}
             </text>
           </g>

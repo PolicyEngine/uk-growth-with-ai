@@ -4138,10 +4138,11 @@ ul.disclosure-text {
   background: color-mix(in srgb, var(--series-2) 70%, var(--pe-surface));
 }
 
-.st-young .mx-olg-bar { background: color-mix(in srgb, var(--series-2) 55%, var(--pe-surface)); }
-.st-mid .mx-olg-bar { background: var(--series-2); }
-.st-pre .mx-olg-bar { background: var(--series-4); }
-.st-old .mx-olg-bar { background: var(--series-5); }
+/* life stages: a neutral slate-blue ramp (no gain teal, no arm colours) */
+.st-young .mx-olg-bar { background: #8fa9c4; }
+.st-mid .mx-olg-bar { background: #5a7b9f; }
+.st-pre .mx-olg-bar { background: #335476; }
+.st-old .mx-olg-bar { background: var(--pe-gray-400); }
 
 .mx-olg-label {
   font-size: var(--fs-caption);

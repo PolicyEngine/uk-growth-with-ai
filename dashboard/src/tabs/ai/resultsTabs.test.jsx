@@ -53,7 +53,7 @@ describe('Results follows the data file', () => {
     // wage rate are in the story, so here they link there
     const income = text('sub=income&closure=both');
     expect(income).not.toContain('+1.23%');
-    expect(income.match(/Headline figures/g)).toHaveLength(3);
+    expect(income.match(/Headline(?! year)/g)).toHaveLength(3);
     expect(income).toContain('closed capital pending');
     expect(text('sub=economy')).toContain('+4.44%');
     expect(text('sub=finances')).toContain('+7.78pp');
