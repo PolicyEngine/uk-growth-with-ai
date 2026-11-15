@@ -465,6 +465,15 @@ def emit(v: Values, R: dict) -> None:
         v.put(f"KorinekMainTaxFirstPos{cw}", f"{min(pos)}" if pos else "never")
         pos = [y for y in range(SHOCK, DEBT_RULE + 1) if debt_pp(rec_, ref_, y) > 0]
         v.put(f"UkCentralMainDebtFirstPos{cw}", f"{min(pos)}")
+        for sc, sw in SCEN.items():
+            if sc == "uk_central":
+                continue
+            r_s = R[cl]["arms"][(sc, "")]["tfp"]
+            if r_s is None:
+                v.put(f"{sw}MainDebtFirstPos{cw}", PE)
+                continue
+            pos = [y for y in range(SHOCK, DEBT_RULE + 1) if debt_pp(r_s, ref_, y) > 0]
+            v.put(f"{sw}MainDebtFirstPos{cw}", f"{min(pos)}" if pos else "never")
     # the 2028 capital that arrives with no 2027 investment (zeta_K = 0.1)
 
     # ---- tax: Korinek main arm at the bound, by base -------------------------
@@ -475,6 +484,9 @@ def emit(v: Values, R: dict) -> None:
     v.signed("KorinekMainBoundTaxIncome", tax_pp(rk, ref0, HEAD, "iit_revenue") - pay)
     v.signed("KorinekMainBoundTaxBusiness", tax_pp(rk, ref0, HEAD, "business_tax_revenue"))
     v.signed("KorinekMainBoundTaxConsumption", tax_pp(rk, ref0, HEAD, "cons_tax_revenue"))
+    # the rest of total tax (wealth and bequest taxes), so the stated parts sum to the total
+    v.signed("KorinekMainBoundTaxOther", tax_pp(rk, ref0, HEAD) - sum(
+        tax_pp(rk, ref0, HEAD, b) for b in ("iit_revenue", "business_tax_revenue", "cons_tax_revenue")))
     hk = lambda x: s_(x, "r_p", HEAD) * s_(x, "B", HEAD) / s_(x, "Y", HEAD)
     v.signed("KorinekMainBoundHhCapIncPp", (hk(rk) - hk(ref0)) * 100)
 
@@ -563,6 +575,8 @@ def emit(v: Values, R: dict) -> None:
     v.put("OgukSha", p["oguk_git_sha"][:7])
     for cl, (cw, _) in CLOSURES.items():
         recs = [R[cl]["cont"]] + [r for x in R[cl]["arms"].values() for r in x.values() if r]
+        done_ = cwf.records(cl)[0]   # plus the solves to the horizon (Section 6), where run
+        recs += [done_[k] for k in (cwf.DNFULL_LABEL, cwf.DNFULL_REF_LABEL) if k in done_]
         v.put(f"NSolves{cw}", len(recs), "{:.0f}")
         rc = max(r["diagnostics"]["rc_rel_Y_max_abs_interior"] for r in recs)
         eu = max(max(r["diagnostics"]["euler_savings_max"], r["diagnostics"]["euler_labour_max"])
@@ -1054,6 +1068,23 @@ def check_claims(R: dict, v: Values) -> None:
         y0 = int(v[key])
         if not all(tax_pp(r_, ref0, y) > 0 for y in range(y0, LAST_FLOW + 1)):
             fail.append(f"'tax/GDP positive in every year from {y0} at the bound' fails: {sc}")
+    # debt, main arm at 0.1: negative in 2031 and positive by 2036 in every scenario
+    for sc in SCEN:
+        r_ = R["zk0.1"]["arms"][(sc, "")]["tfp"]
+        if r_ is not None and not (debt_pp(r_, R["zk0.1"]["ref"], HEAD) < 0 < debt_pp(r_, R["zk0.1"]["ref"], DEBT_RULE)):
+            fail.append(f"'main-arm debt gap negative in {HEAD}, positive by {DEBT_RULE}' fails: {sc}")
+    # UK central first; the others later
+    if not all(int(v[f"{SCEN[sc]}MainDebtFirstPosCentral"]) >= int(v["UkCentralMainDebtFirstPosCentral"])
+               for sc in ("uk_high", "korinek")):
+        fail.append("'debt turns positive later in UK high and the upper case' fails")
+    # Korinek bound: the parts named in the text sum to the total
+    parts = sum(float(v[k + "Abs"]) * (1 if v[k + "Dir"] == "above" else -1) for k in (
+        "KorinekMainBoundTaxPayroll", "KorinekMainBoundTaxIncome", "KorinekMainBoundTaxBusiness",
+        "KorinekMainBoundTaxConsumption", "KorinekMainBoundTaxOther"))
+    if abs(parts - float(v["KorinekMainTaxGdpPpBoundAbs"])) > 0.011:
+        fail.append(f"'the Korinek bound tax parts sum to the total' fails ({parts:.3f})")
+    if not (v["KorinekMainBoundTaxOtherDir"] == "below"):
+        fail.append("'wealth and bequest taxes take less' fails")
     # debt: UK central main arm at 0.1 turns positive and rises every year to 2036
     ref, rec = R["zk0.1"]["ref"], R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
     y0 = int(v["UkCentralMainDebtFirstPosCentral"])
@@ -1279,6 +1310,9 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
         Xc = CR[cl_]
         if not cwf.losing_pct(Xc["par"], Xc["R"][("dn", "tfp")]) < 1:
             fail.append(f"'fewer than 1 per cent of adults lose in the main arm' fails: {cl_}")
+    # 'capital income rises by about the same in both' (bottom 25% and top 1%, main arm, dn, central)
+    if not abs(float(v["CohMainDnCentralSrcCapBottomAbs"]) - float(v["CohMainDnCentralSrcCapTopOneAbs"])) <= 0.05:
+        fail.append("'capital income rises by about the same in the bottom and top groups' fails")
     # the upper case (Korinek), debt-neutral transfers
     for cl_, (cw_, _) in CLOSURES.items():
         Xc, K = CR[cl_], CR[cl_]["kor"]

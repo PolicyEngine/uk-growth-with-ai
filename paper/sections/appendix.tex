@@ -36,7 +36,7 @@ Baseline growth, 2030 & & \genBaseGrowthThirty{} & \\
 \subsection{Solution diagnostics}
 \label{app:diagnostics}
 
-Every solve is checked after it runs (\texttt{analysis/surprise/sanity.py}): the accounting identities $K = K^d + K^f$, $K^d = B - D^d$ and $D = D^d + D^f$; the resource constraint; equality with the baseline in \genStartYear{} and \genRampZeroYear{}; the \genShockYear{} stocks against the baseline's; and the labour-share gap against its target in each year of the ramp. Table~\ref{tab:diagnostics} gives the largest errors across all the solves used in the paper. The no-shock restart's agreement with the committed baseline is in Section~\ref{sec:timing}.
+Every solve is checked after it runs (\texttt{analysis/surprise/sanity.py}): the accounting identities $K = K^d + K^f$, $K^d = B - D^d$ and $D = D^d + D^f$; the resource constraint; equality with the baseline in \genStartYear{} and \genRampZeroYear{}; the \genShockYear{} stocks against the baseline's; and the labour-share gap against its target in each year of the ramp. Table~\ref{tab:diagnostics} gives the largest errors across all the solves used in the paper, including the two solves to the horizon (Section~\ref{sec:incidence}) at the central closure. The no-shock restart's agreement with the committed baseline is in Section~\ref{sec:timing}.
 
 \begin{table}[htbp]
 \centering
@@ -47,7 +47,7 @@ Every solve is checked after it runs (\texttt{analysis/surprise/sanity.py}): the
 \toprule
  & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ \\
 \midrule
-Solves (restart and arms) & \genNSolvesCentral{} & \genNSolvesBound{} \\
+Solves (restart, arms and, at the central closure, the two to the horizon) & \genNSolvesCentral{} & \genNSolvesBound{} \\
 Max resource-constraint error, share of GDP, after \genShockYear{} & \genRcMaxCentral{} & \genRcMaxBound{} \\
 Max Euler error & \genEulerMaxCentral{} & \genEulerMaxBound{} \\
 Longest solve, minutes & \genSolveMinMaxCentral{} & \genSolveMinMaxBound{} \\
@@ -141,7 +141,7 @@ Ideas and R\&D & Ideas stock & Discussed, not in the baseline & None \\
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} $Z$ absorbs capability, adoption and productivity together, because the model has no tasks to count separately, and $\gamma$ carries automation. Reinstatement and search have no counterpart.
+\footnotesize \emph{Notes:} $Z$ absorbs capability, adoption and productivity together, because the model has no tasks to count separately, and $\gamma$ carries automation. Adoption, reinstatement, search and ideas have no separate counterpart.
 \end{minipage}
 \end{table}
 
