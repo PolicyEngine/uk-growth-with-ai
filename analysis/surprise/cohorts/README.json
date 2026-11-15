@@ -73,6 +73,15 @@
       7
      ],
      "handover_max_abs": 0.0
+    },
+    {
+     "label": "uk_central_share_shift_tfp_ramp_dnfull",
+     "shape": [
+      60,
+      80,
+      7
+     ],
+     "handover_max_abs": 0.0
     }
    ]
   },
