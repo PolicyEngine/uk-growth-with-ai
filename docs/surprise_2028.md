@@ -319,7 +319,7 @@ The arrays are `c`, `n`, `b_s`, `b_sp1`, `bq` and `tr`, by calendar period, age 
 - The record notes the donor under `ss_guess`: its path relative to the work dir, and its sha256. The two records made before this change (`zk0.5/uk_high_share_shift_ramp_zfixed`, `..._r4_1`) hold the absolute donor path with no hash. They are left as they were.
 - The `_dnfull` D/Y target is read from the continuation's TPI pickle. Before solving, it is checked against `continuation.json` over 2028–2036. The two agree exactly at every closure.
 
-Cohort paths are exported for the continuation, `continuation_dnfull` and the UK central common, `_dn` and `_dnfull` arms (`analysis/surprise/cohorts`).
+Cohort paths are exported for the continuation, `continuation_dnfull`, the UK central common, `_dn` and `_dnfull` arms, and the Korinek `_dn` arms at ζK 0.1 and 0 (`analysis/surprise/cohorts`; Korinek added 15 Nov).
 
 **Assembled and read (15 Nov).**
 - `surprise assemble` wrote the 20 results files: 4 scenarios × 3 closures on the common rule, plus fixed spending and debt-neutral for UK central and Korinek at ζK 0.1 and 0.
