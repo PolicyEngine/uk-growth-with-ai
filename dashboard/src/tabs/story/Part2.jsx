@@ -420,7 +420,7 @@ const DEEPER = [
   { tab: 'explore', sub: 'economy', label: 'Economy', icon: 'gdp' },
   { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
   { tab: 'explore', sub: 'who', label: 'Who gains', icon: 'age' },
-  { tab: 'explore', sub: 'all', label: 'All scenarios', icon: 'range' },
+  { tab: 'explore', sub: 'economy', anchor: 'ex-across', label: 'Across scenarios', icon: 'range' },
   { tab: 'method', sub: 'how', anchor: 'm-scenarios', label: 'Scenarios', icon: 'scenario' },
   { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
 ];
