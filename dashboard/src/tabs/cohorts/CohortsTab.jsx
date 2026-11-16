@@ -10,7 +10,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
 import { side } from '@/tabs/ai/lines.js';
 import { Dir, Lead } from '@/tabs/explore/direction.jsx';
-import ControlBar, { ControlGroup, Segmented, SeriesChips, RuleGroup } from '@/components/ui/ControlBar.jsx';
+import ControlBar, { ControlGroup, SeriesChips } from '@/components/ui/ControlBar.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
@@ -552,12 +552,7 @@ export default function WhoGainsTab() {
           </li>
         ) : null}
       </ul>
-      <ControlBar label="Who gains: options">
-        <ControlGroup label="Arm">
-          <Segmented options={ARMS} value={arm} onChange={(a) => set({ arm: a })} label="Arm" />
-        </ControlGroup>
-        <RuleGroup value={rule} onChange={(r) => set({ wrule: r })} only={['common', 'dn']} />
-      </ControlBar>
+      {/* arm and fiscal rule: the settings bar at the top of the page (one store) */}
       {both ? (
         cls.map((k) => (
           <div key={k} className="wg-closure">

@@ -50,8 +50,8 @@ describe('Who gains tab', () => {
   });
 
   it('stress test: the share losing and the young who all lose', () => {
-    const { container } = at();
-    fireEvent.click(screen.getByRole('radio', { name: /Stress test/ }));
+    // the arm is set in the settings bar (one store in the address)
+    const { container } = at('tab=who&arm=ss');
     const c = cell('zk0.1', 'dn', 'stress');
     const t = container.textContent;
     expect(t).toContain(`${Math.round(c.alive_losing_pct)}%`);
@@ -62,12 +62,13 @@ describe('Who gains tab', () => {
   it('charges the post-2035 cost only under debt-neutral transfers: first order, or solved where the data has it', () => {
     const { container } = at();
     expect(container.querySelector('.stat-row').textContent).toContain('solved to the horizon');
+    cleanup();
     // another arm has no solve to the horizon, so the first-order rows show
-    fireEvent.click(screen.getByRole('radio', { name: /Technology unchanged/ }));
-    expect(container.querySelector('.stat-row').textContent).toContain('first order');
-    fireEvent.click(screen.getByRole('radio', { name: /Common/ }));
-    expect(container.querySelector('.stat-row').textContent).not.toContain('later fiscal cost');
-    expect(window.location.search).toContain('rule=common'); // one store: &wrule= is now &rule=
+    const tz = at('tab=who&arm=tz');
+    expect(tz.container.querySelector('.stat-row').textContent).toContain('first order');
+    cleanup();
+    const common = at('tab=who&arm=tz&rule=common');
+    expect(common.container.querySelector('.stat-row').textContent).not.toContain('later fiscal cost');
   });
 
   it('follows the header closure, and the rule and arm of its control bar', () => {
