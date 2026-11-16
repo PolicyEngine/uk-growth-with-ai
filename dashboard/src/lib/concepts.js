@@ -133,6 +133,7 @@ export const CONCEPT_ICON = {
   handover: 'milestone', // a change of model between parts
   deeper: 'moveRight', // links to where a part's figures live in detail
   external: 'externalLink', // a link that leaves the dashboard
+  story: 'footprints', // a Story step that uses a Method section
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every

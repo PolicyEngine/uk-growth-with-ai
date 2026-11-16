@@ -323,3 +323,124 @@
 .mx-lit .ev-rb-home {
   padding-block: 5px;
 }
+
+/* Evidence lanes: one lane per measure inside one card, each with its own axis */
+.mx-lanes {
+  display: grid;
+  gap: 18px;
+}
+.mx-lane + .mx-lane {
+  padding-top: 14px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.mx-lane-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+/* Related PolicyEngine work: compact icon link cards */
+.mx-related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.mx-related-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 12px 14px;
+  border: 1px solid var(--pe-gray-200);
+  border-radius: var(--card-radius);
+}
+.mx-related-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.mx-related-title:hover,
+.mx-related-title:focus-visible {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+}
+.mx-related-line,
+.mx-related-where,
+.mx-related-tag {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.mx-related-where,
+.mx-related-tag {
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.mx-related-figs {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px dashed var(--pe-gray-200);
+  list-style: none;
+  font-size: var(--fs-small);
+}
+.mx-related-figs li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.mx-lane-unit {
+  margin: -2px 0 8px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.mx-share {
+  display: grid;
+  gap: 6px;
+}
+.mx-share-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 3px;
+  overflow: visible;
+}
+.mx-share-part {
+  position: relative;
+  min-width: 2px;
+  outline-offset: 2px;
+}
+.mx-share-part + .mx-share-part {
+  border-left: 2px solid var(--pe-surface, #fff);
+}
+.mx-share-part.is-hi {
+  filter: brightness(1.15);
+}
+.mx-share-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+}
+.mx-share-key li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mx-share-sw {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}

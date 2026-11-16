@@ -18,13 +18,29 @@ export const version = (id) => V.entries.find((e) => e.id === id);
 const day = (t) => (t ? String(t).slice(0, 10) : null);
 const shortSha = (x) => String(x).slice(0, 7);
 
-// Each data file and when it was built or read
+// The one vintages table: each data file or build, the model it belongs to
+// (OG-UK, uk-ai-study, or neither), and when it was built or read. The
+// household study's build rows were on Household method until November 2026.
+const AIM = AI.method;
 export const VINTAGES = [
-  { file: 'surprise2028.json', what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, date: day(S.generated_utc) },
-  { file: 'cohorts2028.json', what: 'Who gains', vintage: `${CO.generated_by}, ${CO.source}`, date: null },
-  { file: 'aiStudy2425.json', what: 'Household study (provisional)', vintage: `${AI.source.repo} #${AI.source.pr} at ${shortSha(AI.source.commit)}, ${AI.source.dataset}`, date: AI.source.fetched },
-  { file: 'ukContext.json', what: 'Official UK data (story, part 1)', vintage: `${Object.keys(UK.sources).length} releases, latest ${Object.values(UK.sources).map((s) => s.released).sort().at(-1)}`, date: Object.values(UK.sources).map((s) => s.fetched).sort().at(-1) },
-  { file: 'relatedWork.json', what: 'Related PolicyEngine work (story close)', vintage: 'Figures read off the published pages', date: REL.read },
+  { model: 'OG-UK', file: 'surprise2028.json', what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, date: day(S.generated_utc) },
+  { model: 'OG-UK', file: 'cohorts2028.json', what: 'Who gains', vintage: `${CO.generated_by}, ${CO.source}`, date: null },
+  { model: 'uk-ai-study', file: 'aiStudy2425.json', what: 'Household study (provisional)', vintage: `${AI.source.repo} #${AI.source.pr} (open draft, branch ${AI.source.branch}) at ${shortSha(AI.source.commit)}, ${AI.source.dataset}`, date: AI.source.fetched, url: `https://github.com/${AI.source.repo}/pull/${AI.source.pr}` },
+  { model: 'uk-ai-study', file: 'Results build', what: 'The study’s attested results', vintage: `Per the manifest at ${shortSha(AIM.manifest_commit)}`, date: day(AIM.manifest_finished) },
+  { model: 'uk-ai-study', file: 'Data build', what: 'Microcosm UK 2024–25', vintage: AIM.data_build, date: null },
+  { model: '—', file: 'ukContext.json', what: 'Official UK data (story, part 1)', vintage: `${Object.keys(UK.sources).length} releases, latest ${Object.values(UK.sources).map((s) => s.released).sort().at(-1)}`, date: Object.values(UK.sources).map((s) => s.fetched).sort().at(-1) },
+  { model: '—', file: 'relatedWork.json', what: 'Related PolicyEngine work (Evidence)', vintage: 'Figures read off the published pages', date: REL.read },
+];
+// Whether the study's results were rebuilt from clean (the manifest's flag)
+export const AI_FULL_RERUN = AIM.manifest_full_rerun;
+
+// Software versions, by model. OG-UK's come from site-versions.json (no data
+// file records them); uk-ai-study's from aiStudy2425.json's method block.
+// The two PolicyEngine-UK versions belong to different pipelines.
+export const MODEL_VERSIONS = [
+  ...V.entries.map((e) => ({ model: 'OG-UK', ...e })),
+  { model: 'uk-ai-study', id: 'ai_pe_uk', label: 'PolicyEngine-UK', value: AIM.policyengine_uk, where: 'aiStudy2425.json: the study’s build' },
+  { model: 'uk-ai-study', id: 'ai_pe', label: 'policyengine', value: AIM.policyengine, where: 'aiStudy2425.json: release bundle' },
 ];
 
 // The official releases themselves (ONS, OBR, DSIT), with release dates

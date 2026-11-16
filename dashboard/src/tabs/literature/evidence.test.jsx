@@ -6,8 +6,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import MAP from '@/data/site-evidence-map.json';
 import { CHANNELS, OBR_GROWTH, RANGES, SOURCES } from '@/data/literature.js';
-import EvidenceMap, { mapTable, ourRows, view } from '@/tabs/literature/EvidenceMap.jsx';
+import EvidenceMap, { mapTable, ourRows, view, hasFigure } from '@/tabs/literature/EvidenceMap.jsx';
 import { growthPairs } from '@/tabs/literature/GrowthCheck.jsx';
+import RelatedWork from '@/tabs/literature/RelatedWork.jsx';
+import EvidenceLanes from '@/tabs/literature/EvidenceLanes.jsx';
+import REL from '@/data/relatedWork.json';
 import { SCENARIOS, gap, fmt, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 
 afterEach(cleanup);
@@ -42,7 +45,7 @@ describe('UK evidence map data', () => {
   });
   it('bodies with no AI-specific estimate say so and give their nearest output', () => {
     const none = MAP.rows.filter((r) => r.metric === 'none');
-    expect(none.map((r) => r.institution).sort()).toEqual(['DWP', 'HM Treasury', 'HMRC', 'Resolution Foundation']);
+    expect(none.map((r) => r.institution).sort()).toEqual(['DWP', 'HM Treasury', 'HMRC', 'Imas and Schaal', 'Jacob Schaal (King’s College London)', 'ONS', 'Resolution Foundation']);
     for (const r of none) {
       expect(r.value).toMatch(/^No quantified estimate/);
       expect(r.measure).toMatch(/^Nearest output/);
@@ -92,13 +95,14 @@ describe('Growth check', () => {
 });
 
 describe('Evidence map table', () => {
-  it('renders every row plus OG-UK’s, and filters by measure and country', () => {
+  it('renders every confirmed row plus OG-UK’s, and filters by measure and country', () => {
     const { container } = render(<EvidenceMap />);
-    expect(container.querySelectorAll('tbody tr')).toHaveLength(MAP.rows.length + 2);
+    const confirmed = MAP.rows.filter((r) => !r.unverified);
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(confirmed.length + 2);
     fireEvent.click(screen.getByRole('radio', { name: 'No quantified estimate' }));
-    expect(container.querySelectorAll('tbody tr')).toHaveLength(4);
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(MAP.rows.filter((r) => r.metric === 'none').length);
     fireEvent.click(screen.getByRole('radio', { name: 'GDP or output' }));
-    const gdp = MAP.rows.filter((r) => r.metric === 'gdp').length;
+    const gdp = confirmed.filter((r) => r.metric === 'gdp').length;
     expect(container.querySelectorAll('tbody tr')).toHaveLength(gdp + 1);
     expect(container.querySelector('tbody tr').dataset.row).toBe('oguk-gdp');
   });
@@ -117,9 +121,47 @@ describe('Evidence map table', () => {
   it('each published value is printed once in the table', () => {
     const { container } = render(<EvidenceMap />);
     const text = [...container.querySelectorAll('td.ev-value')].map((td) => td.textContent).join('\n');
-    for (const r of MAP.rows) {
-      const expected = MAP.rows.filter((x) => x.value.includes(r.value)).length;
+    const confirmed = MAP.rows.filter((r) => !r.unverified);
+    for (const r of confirmed) {
+      const expected = confirmed.filter((x) => x.value.includes(r.value)).length;
       expect(text.split(r.value).length - 1, r.id).toBe(expected);
     }
+    // a figure not confirmed in a primary text is not printed
+    for (const r of MAP.rows.filter((x) => x.unverified)) expect(text, r.id).not.toContain(r.value);
+  });
+  it('the count of published figures is computed from rows that print a number', () => {
+    const { container } = render(<EvidenceMap />);
+    const n = MAP.rows.filter((r) => !r.unverified && hasFigure(r)).length;
+    expect(n).toBeLessThan(MAP.rows.length);
+    expect(container.textContent).toContain(`${n} published figures`);
+  });
+});
+
+describe('Related PolicyEngine work', () => {
+  it('prints its provenance line and each figure, labelled as those pages’ figures', () => {
+    const { container } = render(<RelatedWork />);
+    const t = container.textContent;
+    expect(t).toContain('Figures read off these pages on 15 November 2026');
+    expect(t).toContain('not this dashboard’s');
+    const s = REL.items.find((x) => x.id === 'income_shift');
+    const b = REL.items.find((x) => x.id === 'budget_lab');
+    const figs = [s.gini_base, s.gini_full, `−£${s.revenue_min_bn}B`, `${s.revenue_min_shift_pct}%`, `$${b.rapid_revenue_bn}B`, `${b.rapid_poverty_pp}pp`];
+    for (const fig of figs) expect(t).toContain(fig);
+    for (const it of REL.items) expect(container.querySelector(`a[href="${it.url}"]`)).not.toBeNull();
+    expect(container.querySelectorAll('[data-path^="relatedWork.items."]')).toHaveLength(6);
+  });
+});
+
+describe('Evidence lanes', () => {
+  it('give each plotted measure, and the new adoption, exposure and distribution measures, a lane', () => {
+    const { container } = render(<EvidenceLanes />);
+    for (const k of ['gdp', 'wage', 'adoption', 'exposure', 'distribution']) expect(container.querySelector(`#ranges-${k}`), k).not.toBeNull();
+    // OG-UK's rows only where comparable (GDP and wages)
+    expect(container.querySelector('#ranges-adoption .is-ours')).toBeNull();
+    expect(container.querySelectorAll('#ranges-gdp .is-ours').length).toBeGreaterThan(0);
+    // the exposure bar's parts are the row's printed shares
+    const row = MAP.rows.find((r) => r.shares);
+    for (const x of row.shares) expect(row.value).toContain(`${x.pct}%`);
+    expect(container.querySelectorAll('#ranges-exposure .mx-share-part')).toHaveLength(row.shares.length);
   });
 });

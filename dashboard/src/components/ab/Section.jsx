@@ -13,16 +13,6 @@ export function SectionHeading({ id, icon, title, children }) {
   );
 }
 
-// A visible one-line caveat (AB Note.jsx).
-export function Note({ children }) {
-  return (
-    <p className="note">
-      <Icon name="info" size={14} />
-      <span>{children}</span>
-    </p>
-  );
-}
-
 // A small notice chip for pending or provisional data.
 export function Notice({ children }) {
   return <p className="notice-chip">{children}</p>;

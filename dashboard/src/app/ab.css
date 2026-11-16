@@ -3562,9 +3562,8 @@ ul.disclosure-text {
 }
 
 .mx-steprail li.is-active .mx-step-num {
-  color: var(--pe-surface);
-  background: var(--c-highlight);
-  border-color: var(--c-highlight);
+  color: var(--pe-gray-900);
+  font-weight: 700;
 }
 
 .mx-steprail li.is-active a {
