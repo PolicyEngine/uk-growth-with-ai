@@ -16,7 +16,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "1.2%",
       "format": "pct1",
-      "json_path": "facts.gdp_growth_latest.value"
+      "json_path": "facts.gdp_growth_latest.value",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyp/pn2"
     },
     {
       "id": "obr_gdp_forecast_first",
@@ -32,7 +33,8 @@
       "read_by": "OBR Annex A xlsx, sheet TA.1; agrees to one decimal place with growth of real GDP in Table 1.1 of the detailed economy tables (2852.438 / 2817.414, analysis/story/raw/obr_economy_tables_oct2026.xlsx)",
       "printed": "1.2%",
       "format": "pct1",
-      "json_path": "series.obr_gdp_forecast.y.0"
+      "json_path": "series.obr_gdp_forecast.y.0",
+      "page": "https://obr.uk/efo/economic-and-fiscal-outlook-october-2026/"
     },
     {
       "id": "obr_gdp_forecast_second",
@@ -48,7 +50,8 @@
       "read_by": "OBR Annex A xlsx, sheet TA.1; agrees to one decimal place with growth of real GDP in Table 1.1 of the detailed economy tables (2882.226 / 2852.438, analysis/story/raw/obr_economy_tables_oct2026.xlsx)",
       "printed": "1.0%",
       "format": "pct1",
-      "json_path": "series.obr_gdp_forecast.y.1"
+      "json_path": "series.obr_gdp_forecast.y.1",
+      "page": "https://obr.uk/efo/economic-and-fiscal-outlook-october-2026/"
     },
     {
       "id": "obr_gdp_forecast_last",
@@ -64,7 +67,8 @@
       "read_by": "OBR Annex A xlsx, sheet TA.1; agrees to one decimal place with growth of real GDP in Table 1.1 of the detailed economy tables (3080.909 / 3032.538, analysis/story/raw/obr_economy_tables_oct2026.xlsx)",
       "printed": "1.6%",
       "format": "pct1",
-      "json_path": "series.obr_gdp_forecast.y.-1"
+      "json_path": "series.obr_gdp_forecast.y.-1",
+      "page": "https://obr.uk/efo/economic-and-fiscal-outlook-october-2026/"
     },
     {
       "id": "gdp_quarterly_latest",
@@ -80,7 +84,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "0.7%",
       "format": "pct1",
-      "json_path": "facts.gdp_quarterly_latest.value"
+      "json_path": "facts.gdp_quarterly_latest.value",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyq/pn2"
     },
     {
       "id": "gdp_quarterly_yoy",
@@ -96,7 +101,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "1.9%",
       "format": "pct1",
-      "json_path": "facts.gdp_quarterly_yoy.value"
+      "json_path": "facts.gdp_quarterly_yoy.value",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyr/pn2"
     },
     {
       "id": "productivity_oph_latest",
@@ -112,7 +118,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "100.1",
       "format": "idx1",
-      "json_path": "facts.productivity_oph_latest.value"
+      "json_path": "facts.productivity_oph_latest.value",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy"
     },
     {
       "id": "employment_rate_latest",
@@ -128,7 +135,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "75.3%",
       "format": "pct1",
-      "json_path": "facts.employment_rate_latest.value"
+      "json_path": "facts.employment_rate_latest.value",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms"
     },
     {
       "id": "unemployment_rate_latest",
@@ -144,7 +152,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "4.7%",
       "format": "pct1",
-      "json_path": "facts.unemployment_rate_latest.value"
+      "json_path": "facts.unemployment_rate_latest.value",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms"
     },
     {
       "id": "pay_growth_latest",
@@ -160,7 +169,8 @@
       "read_by": "ONS timeseries /data JSON (the builder reads the generator CSV)",
       "printed": "3.7%",
       "format": "pct1",
-      "json_path": "facts.pay_growth_latest.value"
+      "json_path": "facts.pay_growth_latest.value",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/lms"
     },
     {
       "id": "labour_share_latest",
@@ -176,7 +186,8 @@
       "read_by": "ONS /data JSON, 100 x DTWM / YBHA rounded to one decimal place",
       "printed": "49.9%",
       "format": "pct1",
-      "json_path": "facts.labour_share_latest.value"
+      "json_path": "facts.labour_share_latest.value",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/dtwm/pn2"
     },
     {
       "id": "business_ai_use",
@@ -193,7 +204,8 @@
       "bulletin_headline": "30%",
       "printed": "29.7%",
       "format": "pct1",
-      "json_path": "facts.business_ai_use.value"
+      "json_path": "facts.business_ai_use.value",
+      "page": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026"
     },
     {
       "id": "business_ai_use_10plus",
@@ -209,7 +221,8 @@
       "read_by": "xlrd read of the ONS figure .xls (the builder uses pandas)",
       "printed": "38.1%",
       "format": "pct1",
-      "json_path": "facts.business_ai_use_10plus.value"
+      "json_path": "facts.business_ai_use_10plus.value",
+      "page": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026"
     },
     {
       "id": "workers_high_exposure_high_complementarity",
@@ -217,7 +230,7 @@
       "dataset": "Assessment of AI capabilities and the impact on the UK labour market",
       "series_id": "Figure 2 table, row 'UK', column 'High exposure, High complementarity'",
       "release_date": "2026-01-28",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "value": 35.0,
       "primary_value_raw": "35%",
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
@@ -225,7 +238,8 @@
       "read_by": "cell-by-cell read of the GOV.UK HTML report (the builder parses table rows)",
       "printed": "35%",
       "format": "share0",
-      "json_path": "facts.workers_high_exposure_high_complementarity.value"
+      "json_path": "facts.workers_high_exposure_high_complementarity.value",
+      "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market"
     },
     {
       "id": "workers_high_exposure_low_complementarity",
@@ -233,7 +247,7 @@
       "dataset": "Assessment of AI capabilities and the impact on the UK labour market",
       "series_id": "Figure 2 table, row 'UK', column 'High exposure, Low complementarity'",
       "release_date": "2026-01-28",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "value": 32.0,
       "primary_value_raw": "32%",
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
@@ -241,7 +255,8 @@
       "read_by": "cell-by-cell read of the GOV.UK HTML report (the builder parses table rows)",
       "printed": "32%",
       "format": "share0",
-      "json_path": "facts.workers_high_exposure_low_complementarity.value"
+      "json_path": "facts.workers_high_exposure_low_complementarity.value",
+      "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market"
     },
     {
       "id": "workers_low_exposure",
@@ -249,7 +264,7 @@
       "dataset": "Assessment of AI capabilities and the impact on the UK labour market",
       "series_id": "Figure 2 table, row 'UK', column 'Low exposure'",
       "release_date": "2026-01-28",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "value": 33.0,
       "primary_value_raw": "33%",
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
@@ -257,7 +272,8 @@
       "read_by": "cell-by-cell read of the GOV.UK HTML report (the builder parses table rows)",
       "printed": "33%",
       "format": "share0",
-      "json_path": "facts.workers_low_exposure.value"
+      "json_path": "facts.workers_low_exposure.value",
+      "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market"
     },
     {
       "id": "workers_high_exposure_sum",
@@ -265,7 +281,7 @@
       "dataset": "Assessment of AI capabilities and the impact on the UK labour market",
       "series_id": "Figure 2 table, row 'UK', sum of the two high-exposure columns",
       "release_date": "2026-01-28",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "value": 67.0,
       "primary_value_raw": "35% + 32%",
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
@@ -273,7 +289,8 @@
       "read_by": "sum of the two cells",
       "printed": "67%",
       "format": "share0",
-      "json_path": null
+      "json_path": null,
+      "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market"
     },
     {
       "id": "dsit_around",
@@ -289,7 +306,8 @@
       "read_by": "the report's own sentence",
       "printed": "70%",
       "format": "share0",
-      "json_path": null
+      "json_path": null,
+      "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market"
     }
   ]
 }
