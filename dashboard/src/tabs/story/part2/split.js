@@ -20,16 +20,23 @@ export const PART_TEXT = {
 };
 // The waterfall's "of which" rows (the Sankey's note defines "paid abroad").
 const OF_WHICH = { domestic: 'kept in the UK', foreign: 'paid abroad', depreciation: 'depreciation' };
-// Neutral greys, as in the shock tiles (labour light, capital dark): teal
-// and amber mean gain and loss, and the arm colours mean arms.
+// Who receives output: labour indigo, capital a brown family (ab.css
+// tokens, also the shock tiles'); teal and amber mean gain and loss (the
+// waterfall's bars), and the arm colours mean arms. The light fills
+// (abroad, depreciation) are labelled in --c-capital, and depreciation's
+// node carries a 1px --c-capital stroke.
 export const PART_COLOR = {
   gdp: 'var(--pe-gray-800)',
-  labour: 'var(--pe-gray-400)',
-  capital: 'var(--pe-gray-600)',
-  domestic: 'var(--pe-gray-700)',
-  foreign: 'var(--pe-gray-500)',
-  depreciation: 'var(--pe-gray-300)',
+  labour: 'var(--c-labour)',
+  capital: 'var(--c-capital)',
+  domestic: 'var(--c-capital)',
+  foreign: 'var(--c-capital-abroad)',
+  depreciation: 'var(--c-capital-dep)',
 };
+const LABEL_COLOR = { foreign: 'var(--c-capital)', depreciation: 'var(--c-capital)' };
+const NODE_STROKE = { depreciation: 'var(--c-capital)' };
+// The waterfall: bars by sign, the GDP total in ink.
+export const barColor = (id, value) => (id === 'gdp' ? 'var(--pe-gray-800)' : value < 0 ? 'var(--c-loss)' : 'var(--c-gain)');
 export const CAPITAL_PARTS = ['domestic', 'foreign', 'depreciation'];
 
 // Shares print with one decimal, unsigned; changes with two, signed (U+2212).
@@ -63,12 +70,13 @@ export function sankeyGraph(base, short = false, bare = false) {
       { id: 'gdp', label: 'GDP', sub: gdp.toFixed(0), color: PART_COLOR.gdp },
       { id: 'labour', label: t('labour'), sub: sub(base.labour), color: PART_COLOR.labour },
       { id: 'capital', label: 'Gross capital income', sub: share(gross), color: PART_COLOR.capital },
-      ...CAPITAL_PARTS.map((k) => ({ id: k, label: t(k), sub: sub(base[k]), color: PART_COLOR[k] })),
+      ...CAPITAL_PARTS.map((k) => ({ id: k, label: t(k), sub: sub(base[k]), color: PART_COLOR[k], labelColor: LABEL_COLOR[k], stroke: NODE_STROKE[k] })),
     ],
+    // each ribbon in its target's colour
     links: [
-      { source: 'gdp', target: 'labour', value: base.labour },
-      { source: 'gdp', target: 'capital', value: gross },
-      ...CAPITAL_PARTS.map((k) => ({ source: 'capital', target: k, value: base[k] })),
+      { source: 'gdp', target: 'labour', value: base.labour, color: PART_COLOR.labour },
+      { source: 'gdp', target: 'capital', value: gross, color: PART_COLOR.capital },
+      ...CAPITAL_PARTS.map((k) => ({ source: 'capital', target: k, value: base[k], color: PART_COLOR[k] })),
     ],
   };
 }

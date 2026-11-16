@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+const WIPE_STEP = 600; // ms between columns revealed together
 import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
 
 // A Sankey diagram for the story: flows as ribbons whose width is the value.
@@ -22,6 +24,20 @@ import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
 // its left edge (under the incoming ribbon).
 // prefers-reduced-motion removes the transitions (story.css), so each state
 // is drawn at once.
+//
+// Opt-in, for part 2's output split (a caller that passes none of these
+// draws exactly as before):
+//   linkOpacity  ribbon opacity (default 0.38);
+//   reveal       the number of link columns shown, left to right: ribbons
+//                from deeper columns carry `is-wipe` without `is-on`, and
+//                nodes deeper than `reveal` carry `is-hidden` (the caller's
+//                CSS wipes and fades them; they stay in the DOM, figures too).
+//                `--wipe-delay` on each ribbon staggers columns revealed at
+//                once, so the left column wipes in first;
+//   highlight    a node id: ribbons into it get `is-hl`, the rest `is-dim`;
+//   onHover      called with a ribbon's target id on hover or focus, and
+//                null on leave;
+//   node.stroke, node.labelColor  a node's outline and label colour.
 
 // The box is the container's own width in pixels (measured), so text is
 // drawn at its CSS size whatever the card's width; narrow boxes (< 420px)
@@ -91,7 +107,28 @@ function ribbon(l) {
   return `M${P(x0, a0)}C${P(xm, a0)} ${P(xm, a1)} ${P(x1, a1)}L${P(x1, b1)}C${P(xm, b1)} ${P(xm, b0)} ${P(x0, b0)}Z`;
 }
 
-export default function Sankey({ graphs, active = 0, label, width = 640, height = 340, nodeWidth = 14, pad = 18, leftRoom = 56, rightRoom = 150, narrowLeftRoom = 40, narrowRightRoom = 112 }) {
+export default function Sankey({
+  graphs,
+  active = 0,
+  label,
+  width = 640,
+  height = 340,
+  nodeWidth = 14,
+  pad = 18,
+  leftRoom = 56,
+  rightRoom = 150,
+  narrowLeftRoom = 40,
+  narrowRightRoom = 112,
+  linkOpacity = 0.38,
+  reveal,
+  highlight,
+  onHover,
+}) {
+  // the columns shown before this render, so a newly revealed column waits
+  // only for the columns revealed with it
+  const [seen, setSeen] = useState({ cur: reveal, from: reveal ?? 0 });
+  if (seen.cur !== reveal) setSeen({ cur: reveal, from: seen.cur ?? 0 });
+  const wiping = reveal != null;
   const [ref, W] = useWidth(width);
   const narrow = W < 420;
   const H = narrow ? Math.round(height * 0.85) : height;
@@ -109,14 +146,22 @@ export default function Sankey({ graphs, active = 0, label, width = 640, height 
   return (
     <svg ref={ref} className="sankey" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       <g className="sankey-links">
-        {laid.links.map((l, i) => (
-          <path
-            key={`${l.source.id}-${l.target.id}-${i}`}
-            className="sankey-link"
-            d={ribbon(l)}
-            style={{ fill: l.color ?? l.source.color, opacity: l.width > 0.5 ? 0.38 : 0 }}
-          />
-        ))}
+        {laid.links.map((l, i) => {
+          const col = l.source.depth;
+          const cls = [
+            'sankey-link',
+            wiping ? `is-wipe${col < reveal ? ' is-on' : ''}` : '',
+            highlight != null ? (l.target.id === highlight ? 'is-hl' : 'is-dim') : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const style = { fill: l.color ?? l.source.color, opacity: l.width > 0.5 ? linkOpacity : 0 };
+          if (wiping) style['--wipe-delay'] = `${Math.max(0, col - Math.min(seen.from, reveal)) * WIPE_STEP}ms`;
+          const hover = onHover
+            ? { onMouseEnter: () => onHover(l.target.id), onMouseLeave: () => onHover(null), 'data-target': l.target.id }
+            : null;
+          return <path key={`${l.source.id}-${l.target.id}-${i}`} className={cls} d={ribbon(l)} style={style} {...hover} />;
+        })}
       </g>
       <g className="sankey-nodes">
         {laid.nodes.map((n) => {
@@ -130,9 +175,21 @@ export default function Sankey({ graphs, active = 0, label, width = 640, height 
           const anchor = first || middle ? 'end' : 'start';
           const ty = middle ? Math.min(n.y1 + 12, H - (n.sub ? 22 : 8)) : (n.y0 + n.y1) / 2 - (n.sub ? 7 : 0);
           return (
-            <g key={n.id} className="sankey-node" data-node={n.id}>
-              <rect className="sankey-rect" x={n.x0} y={n.y0} width={Math.max(n.x1 - n.x0, 1)} height={Math.max(n.y1 - n.y0, 1)} style={{ fill: n.color }} />
-              <text className="sankey-label" x={tx} y={ty} textAnchor={anchor} dominantBaseline="middle">
+            <g
+              key={n.id}
+              className={wiping ? `sankey-node${n.depth > reveal ? ' is-hidden' : ''}` : 'sankey-node'}
+              data-node={n.id}
+              style={wiping ? { '--wipe-delay': `${Math.max(0, n.depth - Math.min(seen.from, reveal)) * WIPE_STEP}ms` } : undefined}
+            >
+              <rect
+                className="sankey-rect"
+                x={n.x0}
+                y={n.y0}
+                width={Math.max(n.x1 - n.x0, 1)}
+                height={Math.max(n.y1 - n.y0, 1)}
+                style={n.stroke ? { fill: n.color, stroke: n.stroke, strokeWidth: 1 } : { fill: n.color }}
+              />
+              <text className="sankey-label" x={tx} y={ty} textAnchor={anchor} dominantBaseline="middle" style={n.labelColor ? { fill: n.labelColor } : undefined}>
                 <tspan x={tx}>{n.label}</tspan>
                 {n.sub ? (
                   <tspan className="sankey-sub" x={tx} dy="1.25em">

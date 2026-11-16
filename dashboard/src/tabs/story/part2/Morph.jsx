@@ -1,9 +1,8 @@
 'use client';
 
 import U from '@/data/ukContext.json';
-import { NavLink } from '@/lib/nav.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import { W, H, niceTicks, SOURCE } from './frame.jsx';
+import { W, H, niceTicks, SOURCE, More } from './frame.jsx';
 import { series } from './charts.jsx';
 import { MODEL_BASE_VINTAGE } from '../part1/data.js';
 
@@ -71,6 +70,17 @@ const X_TICKS = [
   [YEARS[0], SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR],
 ];
 
+// The x scale of state k.
+const xScale = (k) => lin(...X_DOMAIN[k], PX0, PX1);
+// Where an x tick sits in state s: its place in s when it is shown there,
+// otherwise its place in the nearest state that shows it. A tick that
+// leaves therefore fades where it stood, and one that arrives fades in where
+// it will stay; only ticks shown in both states slide.
+export function tickX(x, s) {
+  const order = [0, 1, 2].filter((k) => X_TICKS[k].includes(x)).sort((a, b) => Math.abs(a - s) - Math.abs(b - s) || a - b);
+  return xScale(order.length ? order[0] : s)(x);
+}
+
 // Gap axis for the chosen scenario's GDP line.
 function gapAxis(ys) {
   const v = ys ?? [0];
@@ -93,7 +103,7 @@ const pathOf = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},
 
 // Everything the chart draws in state s, as coordinates.
 export function morphGeometry(s, gapYs) {
-  const X = lin(...X_DOMAIN[s], PX0, PX1);
+  const X = xScale(s);
   const Yg = lin(G_LO, G_HI, PY1, PY0);
   const ga = gapAxis(gapYs);
   const Yd = lin(ga.lo, ga.hi, PY1, PY0);
@@ -148,7 +158,7 @@ const OFF_NOTE = OFF_YEARS.length ? ` ${OFF_YEARS.join(' and ')} run${OFF_YEARS.
 const STATE_TEXT = (sid, cl) => [
   { title: 'Real GDP growth', unit: `ONS outturn: percentage change on the previous calendar year.${OFF_NOTE}` },
   { title: 'Real GDP growth', unit: `ONS outturn (solid) and the OBR’s forecast${OBR_VINTAGE ? `, ${OBR_VINTAGE}` : ''} (dashed): percentage change on the previous year.${OFF_NOTE}` },
-  { title: 'GDP against the OBR-central path', unit: `${SCEN_NAME[sid]}, automation + productivity, ${CL_WORDS[cl]}. A gap in %, not a growth rate` },
+  { title: 'GDP against the OBR-central path', unit: `${SCEN_NAME[sid]}, automation + productivity, ${CL_WORDS[cl]}. A gap in %, not a growth rate or a level. OG-UK projects gaps and has no unemployment` },
 ];
 
 const sourceText = (s) => {
@@ -167,10 +177,16 @@ export function MorphChart({ state, sid, cl }) {
   const g = morphGeometry(s, ys);
   const all = STATE_TEXT(sid, cl);
   const allTicks = [...new Set(X_TICKS.flat())].sort((a, b) => a - b);
-  const split = OBR.length ? g.split : null;
+  // Layers shown in one state only are drawn where that state puts them,
+  // so they never jump while fading out.
+  const g0 = s === 0 ? g : morphGeometry(0, ys);
+  const g1 = s === 1 ? g : morphGeometry(1, ys);
+  const g2 = s === 2 ? g : morphGeometry(2, ys);
+  const gOff = s < 2 ? g : g1;
+  const split = OBR.length ? g1.split : null;
   const dPath = (pts) => pathOf(pts);
   const dStyle = (pts) => ({ d: `path('${pathOf(pts)}')` });
-  const lastGap = g.gap[g.gap.length - 1];
+  const lastGap = g2.gap[g2.gap.length - 1];
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s >= 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots.` : '',
@@ -225,11 +241,12 @@ export function MorphChart({ state, sid, cl }) {
             </g>
           ))}
         </g>
-        {/* x ticks slide to their place in each state */}
+        {/* x ticks: shown in both states, they slide; leaving or arriving,
+            they fade in place (tickX) */}
         {allTicks.map((x) => {
           const on = X_TICKS[s].includes(x);
           return (
-            <g key={`x${x}`} className={`p2-mo-move${on ? ' is-on' : ''}`} style={{ transform: `translate(${g.X(x).toFixed(1)}px, 0px)` }}>
+            <g key={`x${x}`} className={`p2-mo-x${on ? ' is-on' : ''}`} style={{ transform: `translate(${tickX(x, s).toFixed(1)}px, 0px)` }}>
               <text data-axis="" x={0} y={H - 8} textAnchor="middle" className="p2-tick">
                 {x}
               </text>
@@ -255,8 +272,8 @@ export function MorphChart({ state, sid, cl }) {
             [HEADLINE_YEAR, 'Shock complete'],
           ].map(([x, t]) => (
             <g key={x}>
-              <line x1={g.X(x)} x2={g.X(x)} y1={PY0 - 10} y2={PY1} className="p2-marker" />
-              <text data-axis="" x={g.X(x) + 5} y={PY0 - 12} className="p2-marker-label">
+              <line x1={g2.X(x)} x2={g2.X(x)} y1={PY0 - 10} y2={PY1} className="p2-marker" />
+              <text data-axis="" x={g2.X(x) + 5} y={PY0 - 12} className="p2-marker-label">
                 {t}
               </text>
             </g>
@@ -296,7 +313,7 @@ export function MorphChart({ state, sid, cl }) {
         ))}
         {/* off-scale years (states 0-1): named, not valued */}
         <g className={`p2-mo-fade${s < 2 ? ' is-on' : ''}`}>
-          {g.off.map((o) => (
+          {gOff.off.map((o) => (
             <text key={o.year} data-axis="" x={o.x + (o.up ? 7 : -7)} y={o.up ? PY0 + 8 : PY1 - 20} textAnchor={o.up ? 'start' : 'end'} className="p2-mo-off">
               {o.year} {o.up ? '↑' : '↓'}
             </text>
@@ -304,7 +321,7 @@ export function MorphChart({ state, sid, cl }) {
         </g>
         {/* direct labels */}
         <g className={`p2-mo-fade${s === 0 ? ' is-on' : ''}`}>
-          <text x={g.act[g.act.length - 1]?.[0] - 4} y={PY1 - 22} textAnchor="end" className="p2-mo-label">
+          <text x={g0.act[g0.act.length - 1]?.[0] - 4} y={PY1 - 22} textAnchor="end" className="p2-mo-label">
             ONS outturn
           </text>
         </g>
@@ -314,7 +331,7 @@ export function MorphChart({ state, sid, cl }) {
           </text>
         </g>
         <g className={`p2-mo-fade${s >= 2 ? ' is-on' : ''}`}>
-          <text x={PX1} y={g.zeroY + 14} textAnchor="end" className="p2-mo-label">
+          <text x={PX1} y={g2.zeroY + 14} textAnchor="end" className="p2-mo-label">
             OBR-central path = 0
           </text>
           {ys ? (
@@ -347,14 +364,11 @@ export function morphSteps(sid, cl) {
       body: (
         <>
           <p>
-            OG-UK starts from a path without the AI shock, built on the OBR&rsquo;s central assumptions (from the OBR&rsquo;s{' '}
-            {MODEL_BASE_VINTAGE} forecast): the OBR-central path.
-            Its results are not growth rates but gaps against that path, so the scale changes. Zero is now the OBR-central path,
-            and the blue line is how far GDP in {SCEN_NAME[sid]} sits above it, {cl === BOUND ? 'with closed capital' : 'at the central closure'}.
+            OG-UK&rsquo;s no-shock path, the OBR-central path, is built on the OBR&rsquo;s central assumptions ({MODEL_BASE_VINTAGE}{' '}
+            forecast). Its results are gaps against it: zero is that path, and the blue line is GDP in {SCEN_NAME[sid]} above it,{' '}
+            {cl === BOUND ? 'with closed capital' : 'at the central closure'}.
           </p>
-          <p>
-            The model projects gaps, not the level of GDP, and it has no unemployment. <NavLink tab="method" sub="how">How the path is set</NavLink>
-          </p>
+          <More tab="method" sub="how">How the path is set</More>
         </>
       ),
     },

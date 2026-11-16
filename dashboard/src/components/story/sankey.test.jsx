@@ -36,4 +36,22 @@ describe('Sankey', () => {
       unmount();
     }
   });
+  it('draws as before without the opt-in props', () => {
+    const { container } = render(<Sankey graphs={[g(0)]} label="test" />);
+    for (const l of container.querySelectorAll('.sankey-link')) {
+      expect(l.getAttribute('class')).toBe('sankey-link');
+      expect(l.style.opacity).toBe('0.38');
+    }
+    for (const n of container.querySelectorAll('.sankey-node')) expect(n.getAttribute('class')).toBe('sankey-node');
+  });
+  it('reveals columns, keeps hidden parts in the DOM, and highlights a target', () => {
+    const { container } = render(<Sankey graphs={[g(0)]} label="test" reveal={1} highlight="d" linkOpacity={0.7} />);
+    const links = [...container.querySelectorAll('.sankey-link')];
+    expect(links.map((l) => l.classList.contains('is-on'))).toEqual([true, true, false]);
+    expect(links.map((l) => l.classList.contains('is-hl'))).toEqual([false, false, true]);
+    expect(links[0].style.opacity).toBe('0.7');
+    const hidden = [...container.querySelectorAll('.sankey-node.is-hidden')].map((n) => n.dataset.node);
+    expect(hidden).toEqual(['d']);
+    expect(container.querySelectorAll('.sankey-node')).toHaveLength(4);
+  });
 });
