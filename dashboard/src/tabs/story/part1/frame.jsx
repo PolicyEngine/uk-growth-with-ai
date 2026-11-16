@@ -1,5 +1,6 @@
 'use client';
 
+import { Children } from 'react';
 import { SOURCES } from './data.js';
 import { dateLong, tick } from './format.js';
 
@@ -109,5 +110,22 @@ export function Figure({ title, titleReserve, unit, legend, source, children, in
       {legend?.length ? <Legend items={legend} /> : null}
       <figcaption>{source}</figcaption>
     </figure>
+  );
+}
+
+// Several figures in one sticky graphic, one shown at a time: the layers
+// share a grid cell (the box keeps the tallest one's height), and a change
+// fades the old layer out before the new one fades in, so no two sets of
+// labels overlap mid-transition. A hidden layer is inert and, once faded,
+// visibility: hidden (story-part1.css). `active`: the layer index shown.
+export function Swap({ active, children }) {
+  return (
+    <div className="p1-swap">
+      {Children.toArray(children).map((c, i) => (
+        <div key={i} className={`p1-swap-layer${i === active ? ' is-on' : ''}`} aria-hidden={i === active ? undefined : true} inert={i === active ? undefined : true}>
+          {c}
+        </div>
+      ))}
+    </div>
   );
 }

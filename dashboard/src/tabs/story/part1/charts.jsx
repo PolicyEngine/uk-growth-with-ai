@@ -1,14 +1,17 @@
 'use client';
 
 import { useInView } from '@/components/story/motion.js';
-import { DrawPath, FadeG, GrowRect, TileGrid } from '@/components/story/primitives.jsx';
+import { DrawEnd, DrawPath, FadeG, GrowRect, TileGrid } from '@/components/story/primitives.jsx';
 import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './data.js';
 import { Axes, Figure, Legend, SourceLine, W, linePath, scales } from './frame.jsx';
 import { span3 } from './format.js';
 
 // Part 1's graphics. Each takes the active `state` of its scrolly block and
 // draws the complete picture for that state; nothing prints a value (the
-// cards do, once). Bars are changes (growth rates by year or quarter);
+// cards do, once). A chart that is a later layer of a Swap (frame.jsx) takes
+// `on`, so it draws in when it is shown, not while hidden. Every drawn line
+// ends in a dot (DrawEnd) that appears as the draw finishes, so a line
+// mid-draw never reads as a series that stops early. Bars are changes (growth rates by year or quarter);
 // lines are levels or paths over time. Motion comes only from the framework
 // primitives, gated on the figure entering the viewport.
 
@@ -76,6 +79,11 @@ export function GdpChart({ state }) {
             { id: g.source, name: 'GDP year-on-year growth' },
             ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
           ]}
+          note={
+            fc
+              ? `The OBR’s table starts from an earlier estimate of ${gLast} growth than the ONS’s latest, so the two are drawn apart, not joined.`
+              : undefined
+          }
         />
       }
     >
@@ -121,8 +129,9 @@ export function GdpChart({ state }) {
 
 // 1b: the latest quarters. Quarter-on-quarter growth, a recent window, with
 // the current (incomplete) year's quarters marked.
-export function GdpQuartersChart() {
-  const [ref, seen] = useInView();
+export function GdpQuartersChart({ on = true }) {
+  const [ref, inView] = useInView();
+  const seen = inView && on;
   const g = SERIES.gdp_quarterly;
   const h = 230;
   const n = g.x.length;
@@ -190,6 +199,7 @@ function TimeLine({ s, step, h = 250, withZero = false, every = 4, title, unit, 
       <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} role="img" aria-label={label}>
         <Axes sc={sc} yTicks={ticks} zero={withZero} xTicks={xTicks} />
         <DrawPath d={linePath(sc, t, s.y)} on={on} className="p1-line" style={{ stroke: color }} />
+        <DrawEnd cx={sc.X(t[t.length - 1])} cy={sc.Y(s.y[s.y.length - 1])} on={on} style={{ fill: color }} />
       </svg>
     </Figure>
   );
@@ -230,6 +240,7 @@ function Panel({ s, step, withZero, title, on, color }) {
       <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} aria-hidden="true">
         <Axes sc={sc} yTicks={ticks} zero={withZero} xTicks={decimalYearTicks(s.t[0], s.t[s.t.length - 1], 4)} />
         <DrawPath d={linePath(sc, s.t, s.y)} on={on} className="p1-line" style={{ stroke: color }} />
+        <DrawEnd cx={sc.X(s.t[s.t.length - 1])} cy={sc.Y(s.y[s.y.length - 1])} on={on} style={{ fill: color }} />
       </svg>
     </div>
   );
@@ -269,8 +280,9 @@ export function LabourPanels({ state }) {
 }
 
 // 3b: regular pay growth, nominal, one point per rolling three-month period.
-export function PayChart() {
-  const [ref, seen] = useInView();
+export function PayChart({ on = true }) {
+  const [ref, inView] = useInView();
+  const seen = inView && on;
   const s = SERIES.pay_growth;
   const span = `${s.x[0].slice(0, 4)} to ${span3(s.last)}`;
   return (
@@ -284,14 +296,20 @@ export function PayChart() {
       title={`Regular pay growth, ${span}`}
       unit="Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation"
       label={`Line chart: growth of average weekly regular pay on a year earlier, three-month averages, ${span}.`}
-      source={<SourceLine items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]} />}
+      source={
+        <SourceLine
+          items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]}
+          note="From the ONS’s survey of employers’ payrolls, not the Labour Force Survey."
+        />
+      }
     />
   );
 }
 
 // 4: compensation of employees as a share of GDP, annual (full years only).
-export function LabourShareChart() {
-  const [ref, seen] = useInView();
+export function LabourShareChart({ on = true }) {
+  const [ref, inView] = useInView();
+  const seen = inView && on;
   const s = SERIES.labour_share;
   const last = s.x[s.x.length - 1];
   return (
@@ -301,7 +319,7 @@ export function LabourShareChart() {
       s={s}
       step={2}
       title={`Compensation of employees as a share of GDP, ${s.x[0]} to ${last}`}
-      unit="Per cent of GDP at current prices, annual. Leaves out the income of the self-employed."
+      unit="Per cent of GDP at current prices, annual. Leaves out the income of the self-employed, so it is lower than measures of labour’s share that count that income."
       label={`Line chart: compensation of employees as a share of GDP, annual, from ${s.x[0]} to ${last}.`}
       source={
         <SourceLine
@@ -341,7 +359,7 @@ export function AiUseChart({ state }) {
       source={
         <SourceLine
           items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]}
-          note="Private-sector businesses in the industries the survey covers, weighted by count of businesses."
+          note="Private-sector businesses in the industries the survey covers, weighted by count of businesses. The survey leaves out some industries, among them agriculture, finance and insurance, and public administration."
         />
       }
     >
@@ -361,7 +379,9 @@ export function AiUseChart({ state }) {
           ]}
         />
         <DrawPath d={linePath(sc, idx, a.y)} on={seen} className="p1-line" style={{ stroke: 'var(--series-5)' }} />
+        <DrawEnd cx={sc.X(last)} cy={sc.Y(a.y[last])} on={seen} style={{ fill: 'var(--series-5)' }} />
         <DrawPath d={linePath(sc, idx, b.y)} on={seen && two} className="p1-line" style={{ stroke: 'var(--series-2)' }} />
+        <DrawEnd cx={sc.X(last)} cy={sc.Y(b.y[last])} on={seen && two} style={{ fill: 'var(--series-2)' }} />
       </svg>
     </Figure>
   );
@@ -388,7 +408,12 @@ export function ExposureTiles({ state, source }) {
     : 'A grid of 100 tiles, each one per cent of UK workers.';
   return (
     <figure className="p1-figure">
-      <p className="story-figure-title">UK workers by exposure to AI</p>
+      <p className="story-figure-title p1-title-stack">
+        <span>{grouped ? 'UK workers by exposure to AI' : 'UK workers'}</span>
+        <span className="p1-title-ghost" aria-hidden="true">
+          UK workers by exposure to AI
+        </span>
+      </p>
       <p className="story-figure-unit">Each tile is one per cent of UK workers</p>
       <div className="p1-tiles">
         <TileGrid tiles={exposureTiles(state)} width={GRID_W} height={GRID_H} label={label} />

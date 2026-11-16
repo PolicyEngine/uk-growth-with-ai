@@ -126,16 +126,48 @@
   margin: 10px 0 0;
   line-height: 1.45;
 }
-.p1-lfs {
+
+/* Several figures in one sticky graphic (frame.jsx, Swap): the layers share
+   one grid cell; the old one fades out, then the new one fades in, so two
+   sets of labels never overlap. A hidden layer is visibility: hidden once
+   faded, so its links leave the tab order. */
+.p1-swap {
+  display: grid;
+}
+.p1-swap-layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 220ms ease, visibility 0s linear 220ms;
+}
+.p1-swap-layer.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 320ms ease 220ms, visibility 0s linear 220ms;
+}
+
+/* An old block id kept as a link target at the top of a merged step */
+.p1-anchor {
+  display: block;
+  height: 0;
+  scroll-margin-top: calc(var(--sticky-offset) + 40px);
+}
+
+/* "About these figures": a caveat under a card, closed by default */
+.p1-about {
+  margin-top: 10px;
   font-size: var(--fs-small);
   color: var(--pe-gray-600);
 }
-.p1-bridge {
-  max-width: 70ch;
-  margin: 0 0 16px;
-  font-size: var(--fs-lead);
-  line-height: 1.6;
-  color: var(--pe-gray-600);
+.p1-about summary {
+  cursor: pointer;
+  color: var(--pe-gray-700);
+  font-weight: 600;
+}
+.p1-about p {
+  margin: 6px 0 0;
+  line-height: 1.5;
 }
 
 @media (max-width: 900px) {
@@ -154,4 +186,16 @@
 }
 .p1-title-ghost {
   visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p1-swap-layer,
+  .p1-swap-layer.is-on {
+    transition: none;
+  }
+  /* story.css shows every .draw-end under reduced motion; keep the step
+     logic here: an end dot shows only with its drawn line. */
+  .p1-svg .draw-end:not(.is-on) {
+    opacity: 0;
+  }
 }

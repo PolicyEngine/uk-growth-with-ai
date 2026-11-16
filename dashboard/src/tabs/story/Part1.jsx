@@ -1,11 +1,11 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
-import Reveal from '@/components/story/Reveal.jsx';
+import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
 import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './part1/data.js';
 import { AiUseChart, ExposureTiles, GdpChart, GdpQuartersChart, LabourPanels, LabourShareChart, PayChart, ProductivityChart } from './part1/charts.jsx';
-import { SourceLine } from './part1/frame.jsx';
+import { SourceLine, Swap } from './part1/frame.jsx';
 import { idx1, pct1, share0 } from './part1/format.js';
 
 // Part 1: where the UK economy and labour market stand as AI arrives, from
@@ -16,18 +16,41 @@ import { idx1, pct1, share0 } from './part1/format.js';
 // printed figure has an entry in ukContextChecks.json, read there from the
 // primary file. Calendar-year series stop at the last full year; the
 // current year appears only as quarters or months, labelled as such.
-// Under reduced motion story.css shows every line at once, so the stateful
-// graphics are given their last state there, keeping legends and labels in
-// step with what is drawn.
+// Four scrolly blocks (output, work, productivity and the labour share, AI);
+// each holds several figures in one sticky graphic (Swap, frame.jsx), and
+// every state carries its own title, unit and source line. The blocks take
+// the first old block id; the others (p1-quarters, p1-pay, p1-share,
+// p1-exposure) sit on an anchor at the top of the step where that figure
+// first shows, so old links still land on it. Caveats sit in the figures'
+// source lines or in an "About these figures" disclosure under a card.
+// Under reduced motion the step logic is kept (story.css): a chart part that
+// is .is-on shows at once and one that is not stays hidden; only the motion
+// goes.
 
 const F = FACTS;
 const last = (a) => a[a.length - 1];
 
+// An old block id, kept as a link target at the top of a merged step.
+const Anchor = ({ id }) => <span id={id} className="p1-anchor" aria-hidden="true" />;
+
+// A caveat under a card, closed by default. No figures in here: the number
+// check reads the page's rendered text.
+const About = ({ children }) => (
+  <details className="p1-about">
+    <summary>About these figures</summary>
+    {children}
+  </details>
+);
+
+// (a) Output: annual growth, the OBR's forecast, then this year's quarters.
 function outputSteps() {
   const g = F.gdp_growth_latest;
   const gs = SERIES.gdp_growth;
   const low = gs.x[gs.y.indexOf(Math.min(...gs.y))];
   const high = gs.x[gs.y.indexOf(Math.max(...gs.y))];
+  const q = F.gdp_quarterly_latest;
+  const y = F.gdp_quarterly_yoy;
+  const year = q.period.slice(0, 4);
   return [
     {
       id: 'p1-output-0',
@@ -46,15 +69,25 @@ function outputSteps() {
       kicker: 'Output',
       title: 'The OBR’s forecast',
       body: (
+        <p>
+          The Office for Budget Responsibility&rsquo;s central forecast, published in {OBR_VINTAGE}, has growth of <strong>{pct1(OBR.y[0])}</strong> in{' '}
+          {OBR.x[0]}, <strong>{pct1(OBR.y[1])}</strong> in {OBR.x[1]} and <strong>{pct1(last(OBR.y))}</strong> in {last(OBR.x)}, the last
+          year it covers. Every year on the dashed line is a forecast. The modelling in part 2 starts from the OBR&rsquo;s {MODEL_BASE_VINTAGE}{' '}
+          forecast.
+        </p>
+      ),
+    },
+    {
+      id: 'p1-quarters-0',
+      kicker: 'Output',
+      title: `${year} so far`,
+      body: (
         <>
+          <Anchor id="p1-quarters" />
           <p>
-            The Office for Budget Responsibility&rsquo;s central forecast, published in {OBR_VINTAGE}, has growth of <strong>{pct1(OBR.y[0])}</strong> in{' '}
-            {OBR.x[0]}, <strong>{pct1(OBR.y[1])}</strong> in {OBR.x[1]} and <strong>{pct1(last(OBR.y))}</strong> in {last(OBR.x)}, the last
-            year it covers. Every year on the dashed line is a forecast.
-          </p>
-          <p>
-            The OBR&rsquo;s table starts from an earlier estimate of {g.period} growth than the ONS&rsquo;s latest, so the two are drawn
-            apart, not joined. The modelling in part 2 starts from the OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast.
+            {year} is not yet complete, so it has no calendar-year figure. In {q.period}, the latest quarter, real GDP grew by{' '}
+            <strong>{pct1(q.value)}</strong> on the previous quarter and was <strong>{pct1(y.value)}</strong> larger than a year earlier. These
+            are the ONS&rsquo;s first estimates.
           </p>
         </>
       ),
@@ -62,46 +95,11 @@ function outputSteps() {
   ];
 }
 
-function quarterSteps() {
-  const q = F.gdp_quarterly_latest;
-  const y = F.gdp_quarterly_yoy;
-  const year = q.period.slice(0, 4);
-  return [
-    {
-      id: 'p1-quarters-0',
-      kicker: 'Output',
-      title: `${year} so far`,
-      body: (
-        <p>
-          {year} is not yet complete, so it has no calendar-year figure. In {q.period}, the latest quarter, real GDP grew by{' '}
-          <strong>{pct1(q.value)}</strong> on the previous quarter and was <strong>{pct1(y.value)}</strong> larger than a year earlier. These
-          are the ONS&rsquo;s first estimates.
-        </p>
-      ),
-    },
-  ];
-}
-
-function productivitySteps() {
-  const p = F.productivity_oph_latest;
-  return [
-    {
-      id: 'p1-productivity-0',
-      kicker: 'Productivity',
-      title: 'Output per hour worked',
-      body: (
-        <p>
-          Output per hour worked, the main measure of labour productivity, stood at <strong>{idx1(p.value)}</strong> in {p.period}, the latest
-          quarter published, on an index where 2023 = 100.
-        </p>
-      ),
-    },
-  ];
-}
-
+// (b) Work: employment, unemployment, then pay.
 function workSteps() {
   const e = F.employment_rate_latest;
   const u = F.unemployment_rate_latest;
+  const p = F.pay_growth_latest;
   return [
     {
       id: 'p1-work-0',
@@ -123,9 +121,25 @@ function workSteps() {
           <p>
             The unemployment rate for people aged 16 and over was <strong>{pct1(u.value)}</strong> in {u.period}.
           </p>
-          <p className="p1-lfs">
-            Both rates come from the Labour Force Survey. The ONS advises focusing on long-term movements in its figures rather than
-            short-term changes: response has improved, but some volatility remains.
+          <About>
+            <p>
+              Both rates come from the Labour Force Survey. The ONS advises focusing on long-term movements in its figures rather than
+              short-term changes: response has improved, but some volatility remains.
+            </p>
+          </About>
+        </>
+      ),
+    },
+    {
+      id: 'p1-pay-0',
+      kicker: 'Work',
+      title: 'Pay',
+      body: (
+        <>
+          <Anchor id="p1-pay" />
+          <p>
+            Regular pay, which leaves out bonuses, was <strong>{pct1(p.value)}</strong> higher in {p.period} than a year earlier, before
+            adjusting for inflation.
           </p>
         </>
       ),
@@ -133,60 +147,56 @@ function workSteps() {
   ];
 }
 
-function paySteps() {
-  const p = F.pay_growth_latest;
+// (c) Productivity, then the labour share.
+function productivitySteps() {
+  const p = F.productivity_oph_latest;
+  const s = F.labour_share_latest;
   return [
     {
-      id: 'p1-pay-0',
-      kicker: 'Work',
-      title: 'Pay',
+      id: 'p1-productivity-0',
+      kicker: 'Productivity',
+      title: 'Output per hour worked',
       body: (
         <p>
-          Regular pay, which leaves out bonuses, was <strong>{pct1(p.value)}</strong> higher in {p.period} than a year earlier, before
-          adjusting for inflation. The figure comes from the ONS&rsquo;s survey of employers&rsquo; payrolls, not the Labour Force Survey.
+          Output per hour worked, the main measure of labour productivity, stood at <strong>{idx1(p.value)}</strong> in {p.period}, the latest
+          quarter published, on an index where 2023 = 100.
         </p>
       ),
     },
-  ];
-}
-
-function shareSteps() {
-  const s = F.labour_share_latest;
-  return [
     {
       id: 'p1-share-0',
       kicker: 'Labour’s share',
       title: 'What employees are paid, as a share of GDP',
       body: (
-        <p>
-          Compensation of employees (wages, salaries and employers&rsquo; contributions) was <strong>{pct1(s.value)}</strong> of GDP in{' '}
-          {s.period}, the latest full year. It leaves out the income of the self-employed, so it is lower than measures of labour&rsquo;s
-          share that count that income.
-        </p>
+        <>
+          <Anchor id="p1-share" />
+          <p>
+            Compensation of employees (wages, salaries and employers&rsquo; contributions) was <strong>{pct1(s.value)}</strong> of GDP in{' '}
+            {s.period}, the latest full year.
+          </p>
+        </>
       ),
     },
   ];
 }
 
+// (d) AI: business use (all, then 10+), then the exposure tiles (one
+// block, then the three groups).
 function aiSteps() {
   const a = F.business_ai_use;
   const b = F.business_ai_use_10plus;
+  const [hh, hl, lo] = EXPOSURE_GROUPS;
+  const when = F[hh.id].period.replace(/^IMF estimates?,\s*/, '');
   return [
     {
       id: 'p1-ai-0',
       kicker: 'AI arrives',
       title: 'Businesses using AI',
       body: (
-        <>
-          <p>
-            In {a.period}, <strong>{pct1(a.value)}</strong> of businesses told the ONS&rsquo;s Business Insights and Conditions Survey they
-            currently use at least one AI technology, such as text generation with large language models or machine learning on data.
-          </p>
-          <p>
-            The survey covers private-sector businesses and leaves out some industries, among them agriculture, finance and insurance, and
-            public administration.
-          </p>
-        </>
+        <p>
+          In {a.period}, <strong>{pct1(a.value)}</strong> of businesses told the ONS&rsquo;s Business Insights and Conditions Survey they
+          currently use at least one AI technology, such as text generation with large language models or machine learning on data.
+        </p>
       ),
     },
     {
@@ -200,13 +210,20 @@ function aiSteps() {
         </p>
       ),
     },
-  ];
-}
-
-function exposureSteps() {
-  const [hh, hl, lo] = EXPOSURE_GROUPS;
-  const when = F[hh.id].period.replace(/^IMF estimates?,\s*/, '');
-  return [
+    {
+      id: 'p1-exposure-0',
+      kicker: 'AI arrives',
+      title: 'UK workers',
+      body: (
+        <>
+          <Anchor id="p1-exposure" />
+          <p>
+            Each tile in the grid is one per cent of UK workers. Estimates from the IMF ({when}), reported by the Department for Science,
+            Innovation and Technology and the AI Security Institute, sort them by how exposed their occupations are to AI.
+          </p>
+        </>
+      ),
+    },
     {
       id: 'p1-exposure-1',
       kicker: 'AI arrives',
@@ -214,13 +231,14 @@ function exposureSteps() {
       body: (
         <>
           <p>
-            Each tile in the grid is one per cent of UK workers. Estimates from the IMF ({when}), reported by the Department for Science, Innovation and Technology and the AI Security
-            Institute, put <strong>{share0(hh.value)}</strong> of UK workers in occupations with high exposure to AI and high
-            complementarity. A further{' '}
-            <strong>{share0(hl.value)}</strong> are in highly exposed occupations with low complementarity, and{' '}
-            <strong>{share0(lo.value)}</strong> in occupations with low exposure.
+            The estimates put <strong>{share0(hh.value)}</strong> of UK workers in occupations with high exposure to AI and high
+            complementarity, <strong>{share0(hl.value)}</strong> in highly exposed occupations with low complementarity and{' '}
+            <strong>{share0(lo.value)}</strong> in occupations with low exposure. The two high-exposure groups sum to {share0(hh.value + hl.value)};
+            the department&rsquo;s text says around {share0(DSIT_AROUND)}.
           </p>
-          <p>The department notes that such indices are indicative rather than precise. No official table gives exposure by major occupation group.</p>
+          <About>
+            <p>The department notes that such indices are indicative rather than precise. No official table gives exposure by major occupation group.</p>
+          </About>
         </>
       ),
     },
@@ -228,11 +246,11 @@ function exposureSteps() {
 }
 
 function exposureSource() {
-  const [hh, hl] = EXPOSURE_GROUPS;
+  const [hh] = EXPOSURE_GROUPS;
   return (
     <SourceLine
       items={[{ id: F[hh.id].source, name: 'Assessment of AI capabilities and the impact on the UK labour market', detail: 'Figure 2' }]}
-      note={`Citing IMF, Gen-AI: Artificial Intelligence and the Future of Work. The two high-exposure groups sum to ${share0(hh.value + hl.value)}; the DSIT text says around ${share0(DSIT_AROUND)}.`}
+      note="Citing IMF, Gen-AI: Artificial Intelligence and the Future of Work."
     />
   );
 }
@@ -244,22 +262,53 @@ export default function Part1({ part }) {
         The UK economy and labour market as AI arrives, from official statistics as published. Nothing in this part is modelled by
         PolicyEngine; the one forecast shown is the OBR&rsquo;s own.
       </PartHead>
-      <Scrolly id="p1-output" label={`Real GDP growth, ONS outturn, and the ${OBR_LABEL}`} steps={outputSteps()} graphic={(i) => <GdpChart state={i} />} />
-      <Scrolly id="p1-quarters" label="Real GDP growth by quarter" steps={quarterSteps()} graphic={() => <GdpQuartersChart />} />
-      <Scrolly id="p1-productivity" label="Output per hour worked" steps={productivitySteps()} graphic={() => <ProductivityChart />} />
-      <Scrolly id="p1-work" label="Employment and unemployment rates" steps={workSteps()} graphic={(i) => <LabourPanels state={i} />} />
-      <Scrolly id="p1-pay" label="Regular pay growth" steps={paySteps()} graphic={() => <PayChart />} />
-      <Scrolly id="p1-share" label="Compensation of employees as a share of GDP" steps={shareSteps()} graphic={() => <LabourShareChart />} />
-      <Scrolly id="p1-ai" label="Businesses using AI" steps={aiSteps()} graphic={(i) => <AiUseChart state={i} />} />
       <Scrolly
-        id="p1-exposure"
-        label="UK workers by exposure to AI"
-        steps={exposureSteps()}
-        graphic={() => <ExposureTiles state={1} source={exposureSource()} />}
+        id="p1-output"
+        label={`Real GDP growth: by calendar year (ONS outturn), the ${OBR_LABEL}, and by quarter`}
+        steps={outputSteps()}
+        graphic={(i) => (
+          <Swap active={i < 2 ? 0 : 1}>
+            <GdpChart state={Math.min(i, 1)} />
+            <GdpQuartersChart on={i >= 2} />
+          </Swap>
+        )}
       />
-      <Reveal as="p" className="p1-bridge">
-        Part 2 turns from what has been measured to what a model of the whole economy projects if AI arrives as a shock.
-      </Reveal>
+      <Scrolly
+        id="p1-work"
+        label="Employment and unemployment rates, and regular pay growth"
+        steps={workSteps()}
+        graphic={(i) => (
+          <Swap active={i < 2 ? 0 : 1}>
+            <LabourPanels state={Math.min(i, 1)} />
+            <PayChart on={i >= 2} />
+          </Swap>
+        )}
+      />
+      <Scrolly
+        id="p1-productivity"
+        label="Output per hour worked, and compensation of employees as a share of GDP"
+        steps={productivitySteps()}
+        graphic={(i) => (
+          <Swap active={i < 1 ? 0 : 1}>
+            <ProductivityChart />
+            <LabourShareChart on={i >= 1} />
+          </Swap>
+        )}
+      />
+      <Scrolly
+        id="p1-ai"
+        label="Businesses using AI, and UK workers by exposure to AI"
+        steps={aiSteps()}
+        graphic={(i) => (
+          <Swap active={i < 2 ? 0 : 1}>
+            <AiUseChart state={Math.min(i, 1)} />
+            <ExposureTiles state={i >= 3 ? 1 : 0} source={exposureSource()} />
+          </Swap>
+        )}
+      />
+      <NextPart n={2} title="What a model of the whole economy projects" to="story-part-2">
+        Part 2 turns from what has been measured to what happens if AI arrives as a shock.
+      </NextPart>
     </>
   );
 }
