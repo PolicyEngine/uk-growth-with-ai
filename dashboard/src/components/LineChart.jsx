@@ -321,7 +321,9 @@ export default function LineChart({
   // A label that reaches left of the plot runs over the top y tick's column:
   // the label rows then sit LIFT px higher, so the label clears that tick.
   const LIFT = placed.some((p) => p.a < L) ? 6 : 0;
-  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (yUnit && yTitleTop ? 8 : 0);
+  // a horizontal y title wider than the chart wraps at its last comma
+  const topLines = !yUnit || !yTitleTop ? [] : textWidth(yUnit, `11px ${FONT}`) <= W - 2 * EDGE || !yUnit.includes(', ') ? [yUnit] : [yUnit.slice(0, yUnit.lastIndexOf(', ') + 1), yUnit.slice(yUnit.lastIndexOf(', ') + 2)];
+  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (topLines.length ? 8 + (topLines.length - 1) * 13 : 0);
   const labelY = (row) => TOP - 6 - LIFT - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
@@ -487,7 +489,11 @@ export default function LineChart({
           </text>
         ) : yUnit ? (
           <text className="ax axis-unit" x={EDGE} y={12} textAnchor="start" data-axis-title="y">
-            {yUnit}
+            {topLines.map((t, i) => (
+              <tspan key={t} x={EDGE} dy={i ? 13 : 0}>
+                {t}
+              </tspan>
+            ))}
           </text>
         ) : null}
         {x.map((yr, i) =>

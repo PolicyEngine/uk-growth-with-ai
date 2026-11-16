@@ -263,7 +263,7 @@ function Variants() {
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
-          yTitle="Absolute poverty (before housing costs), change, percentage points"
+          yTitle="Absolute poverty (BHC), change, pp"
           xTitle="Exchequer cost, £bn a year"
         />
       </div>
@@ -339,7 +339,7 @@ function Rules() {
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
-          yTitle="Absolute poverty (before housing costs), change, percentage points"
+          yTitle="Absolute poverty (BHC), change, pp"
           xTitle="Exchequer cost, £bn a year"
         />
       </div>

@@ -148,7 +148,7 @@ export function PathCard({
           unit={unit}
           tipTitle={title}
           yUnit={yTitle}
-          yTitleTop={tile && !open}
+          yTitleTop
           xUnit={tile && !open ? null : 'Year'}
           zeroNote={tile && !open ? null : 'OBR-central path = 0'}
           markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI arrives' }]}

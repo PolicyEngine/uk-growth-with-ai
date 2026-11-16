@@ -400,7 +400,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ))}
       </div>
       <IconLine icon={iconFor('rule')} className="net-line">
-        <b>Net:</b> the model probably understates the fall in revenue.
+        <b>Net:</b> the model likely understates the fall in revenue, if the first row outweighs the second ({ext(RED_FLAGS_URL, 'the argument')}).
       </IconLine>
     </Card>
   );
