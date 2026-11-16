@@ -690,7 +690,10 @@
 /* A waterfall value whose home is the headline figures: a labelled link */
 .p2-wf-link {
   display: inline-flex;
-  white-space: nowrap;
+  /* may wrap onto two lines rather than run past the card's edge */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 100%;
   gap: 2px;
   align-items: center;
   font-weight: 500;
