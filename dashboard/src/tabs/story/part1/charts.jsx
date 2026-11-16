@@ -5,7 +5,7 @@ import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
-import { idx1, pct1, span3 } from './format.js';
+import { idx1, pct1, span3, tick } from './format.js';
 
 // Part 1's graphics: four figures, each drawing the complete picture for
 // the active state of its scrolly block. Nothing prints a value (the cards
@@ -371,7 +371,10 @@ export function LabourBoard({ focus, notes }) {
   const [box, w, h] = useBox(BOARD_H);
   const gid = useSvgId('p1-pay-fade');
   const all = boardSeries();
-  const L = BOARD_M.l;
+  // the left margin holds the widest tick label of the three series (an
+  // index tick such as 102.5 is five characters), at about 7px a character
+  const widest = Math.max(...all.map((x) => Math.max(...unitSeries(x).d.ticks.map((t) => tick(t).length))));
+  const L = Math.max(BOARD_M.l, Math.ceil(widest * 7.2 + 10));
   const R = w - BOARD_M.r;
   const T = BOARD_M.t;
   const B = h - BOARD_M.b;

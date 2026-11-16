@@ -332,8 +332,8 @@ function AiAnswer() {
   const [hh, hl] = EXPOSURE_GROUPS;
   return (
     <>
-      <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs; DSIT says around{' '}
-      <N path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</N>, citing <L to="imf_genai">IMF (2024)</L>.
+      Business use is rising, fastest in larger firms; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (DSIT
+      says around <N path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</N>, citing <L to="imf_genai">IMF (2024)</L>).
     </>
   );
 }
