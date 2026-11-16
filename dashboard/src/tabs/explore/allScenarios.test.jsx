@@ -93,3 +93,17 @@ describe('All scenarios', () => {
     expect(driverWords('tfp').toLowerCase()).toContain(`the ${top === 'closure' ? 'capital closure' : top === 'rule' ? 'fiscal rule' : 'scenario'} moves gdp`);
   });
 });
+
+describe('Across scenarios: each fact once', () => {
+  it('with another rule picked, the story’s cells (main arm, common rule) print no figure', () => {
+    window.history.replaceState(null, '', '/?tab=explore&rule=fixed&closure=both');
+    const { container } = render(
+      <NavProvider>
+        <AllScenarios />
+      </NavProvider>,
+    );
+    for (const k of ['uk_central|common|zk0.1', 'uk_central|common|zk0', 'uk_central|fixed|zk0.1', 'uk_central|fixed|zk0'])
+      expect(container.querySelector(`[data-cell="${k}"]`).textContent).not.toMatch(/\d\.\d\d/);
+    expect(container.querySelector('[data-cell="korinek|common|zk0.1"]').textContent).toMatch(/\d\.\d\d%/);
+  });
+});

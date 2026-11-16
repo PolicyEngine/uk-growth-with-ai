@@ -43,6 +43,12 @@ export function inView(st, sid, cl, rule) {
   if (sid !== st.s || rule !== st.rule) return false;
   return st.closure === 'both' || closureOf(cl) === st.closure;
 }
+// The story's headline tiles print the main arm's GDP, GNI and wage rate for
+// the scenario and closure(s) picked, under the common rule: with another
+// rule picked, those cells keep the story as their home.
+export function inStory(st, sid, cl, rule, arm) {
+  return arm === 'tfp' && rule === 'common' && sid === st.s && (st.closure === 'both' || closureOf(cl) === st.closure);
+}
 
 // Each measure's largest absolute value over the matrix, for the glyph bars.
 function glyphScale(arm, ms) {
@@ -72,7 +78,7 @@ function Glyph({ sid, arm, row, ms, scale, pick }) {
   );
 }
 
-function Cell({ s, row, arm, m, ms, scale, current, printHome }) {
+function Cell({ s, row, arm, m, ms, scale, current, story, printHome }) {
   const { set } = useNav();
   const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
   const where = `${SCEN_NAME[s.id]}, ${RULES.find((r) => r.id === row.rule).label.toLowerCase()}, ${CLOSURE_LABEL[row.cl]}`;
@@ -87,19 +93,19 @@ function Cell({ s, row, arm, m, ms, scale, current, printHome }) {
     );
   const tone = toneOf(m.v, x);
   // the cell in view prints no figure where the charts below print it
-  const home = current && printHome;
+  const home = (current || story) && printHome;
   return (
     <td className={`ex-mx-cell${current ? ' is-current' : ''}${tone ? ` is-${tone}` : ''}`} data-cell={`${s.id}|${row.key}`}>
       <button
         type="button"
         className="ex-mx-btn"
         aria-pressed={current}
-        aria-label={`${where}, ${m.label}${home ? ': in view, values in the charts below' : `: ${fmt(x, 2, m.unit)}`}. Show this cell`}
+        aria-label={`${where}, ${m.label}${home ? (current ? ': in view, values in the charts below' : ': value in the story’s headline') : `: ${fmt(x, 2, m.unit)}`}. Show this cell`}
         onClick={() => set({ s: s.id, closure: closureOf(row.cl), rule: row.rule })}
       >
         {home ? (
           <span className="ex-mx-val is-home">
-            <Icon name={iconFor('link')} size={11} strokeWidth={2} /> In view
+            <Icon name={iconFor('link')} size={11} strokeWidth={2} /> {current ? 'In view' : 'In story'}
           </span>
         ) : (
           <span key={m.v} className="ex-mx-val">
@@ -147,7 +153,7 @@ export function Matrix({ arm, ms, m, printHome = true, label }) {
                   </span>
                 </th>
                 {SCENARIOS.map((s) => (
-                  <Cell key={s.id} s={s} row={row} arm={arm} m={m} ms={ms} scale={scale} current={inView(st, s.id, row.cl, row.rule)} printHome={printHome} />
+                  <Cell key={s.id} s={s} row={row} arm={arm} m={m} ms={ms} scale={scale} current={inView(st, s.id, row.cl, row.rule)} story={inStory(st, s.id, row.cl, row.rule, arm)} printHome={printHome} />
                 ))}
               </tr>
             ))}
@@ -194,7 +200,7 @@ function MatrixKey({ ms }) {
         <span className="ex-mx-key-cell" aria-hidden="true" data-icon="" /> Solved: click to show it below
       </li>
       <li>
-        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> The cell in view
+        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> The cell in view; “In story”: value in the story
       </li>
       <li>
         <span className="ex-mx-key-cell is-hole" aria-hidden="true" data-icon="" /> Not solved
