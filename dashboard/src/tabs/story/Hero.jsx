@@ -4,6 +4,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { useNav } from '@/lib/nav.jsx';
+import { useReducedMotion } from '@/components/story/motion.js';
+import { useEffect, useId, useRef, useState } from 'react';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
 import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SCEN_NAME } from '@/tabs/ai/surprise.js';
 
@@ -11,14 +13,55 @@ import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SC
 // and closure in the header, beside an image of every modelled GDP path
 // (four scenarios, three arms, two closures) leaving the OBR-central path
 // together in 2028 and fanning out to 2036. The image is art, not a chart:
-// no values, the figures are in part 2. It is static: nothing plays by
-// itself on the story. The drawing is hidden from screen readers; the
-// caption under it says what it shows.
+// no values, the figures are in part 2. Nothing plays by itself: the paths
+// after the year AI arrives are revealed as the reader scrolls the hero (a
+// clip that widens with the scroll position, geometry only); they start
+// part drawn, the scenario names show once the paths reach them, and under
+// reduced motion everything is drawn at once. The
+// three parts are named by the story rail, so the hero does not list them.
+// The drawing is hidden from screen readers; the caption under it says
+// what it shows.
 const W = 640;
 const H = 420;
 
+// The share of the post-arrival span drawn, from the scroll position only:
+// 40% at the top of the page, all of it once the reader has scrolled 60%
+// of the hero's height (so a reload or deep link below the hero shows the
+// full fan). Under reduced motion the fan is drawn in full at once.
+function useReveal() {
+  const reduce = useReducedMotion();
+  const ref = useRef(null);
+  const [f, setF] = useState(0.4);
+  useEffect(() => {
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const hero = el.closest('.story-hero') ?? el;
+      const top = hero.getBoundingClientRect().top + window.scrollY;
+      const passed = (window.scrollY - Math.max(0, top - 120)) / Math.max(1, hero.offsetHeight * 0.6);
+      setF(Math.max(0.4, Math.min(1, 0.4 + 0.6 * passed)));
+    };
+    const on = () => {
+      if (!raf) raf = window.requestAnimationFrame(measure);
+    };
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    return () => {
+      window.removeEventListener('scroll', on);
+      window.removeEventListener('resize', on);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+  return [ref, reduce ? 1 : f];
+}
+
 export default function Hero() {
   const { st } = useNav();
+  const [artRef, reveal] = useReveal();
+  const clip = `hero-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const lines = [];
   for (const s of SCENARIOS)
     for (const a of ARMS)
@@ -72,7 +115,7 @@ export default function Hero() {
   const wide = layout(24, true);
   const narrow = layout(20, true);
   const nameSet = ({ names, zero, top }, cls, lh, zeroText) => (
-    <g className={`hero-names ${cls}`}>
+    <g className={`hero-names ${cls}`} style={{ opacity: reveal > 0.97 ? 1 : 0, transition: 'opacity 300ms ease' }}>
       {names.map((n) => (
         <text key={n.id} x={X(YEARS.length - 1) + 8} y={top(n)} dy="0.35em" className="hero-name">
           {n.parts.map((t, i) => (
@@ -91,25 +134,20 @@ export default function Hero() {
     <section className="story-hero" aria-labelledby="story-q">
       <div className="story-hero-text">
         <SummaryQuestion sid={st.s} titleId="story-q" />
-        <p className="story-hero-lead">
-          <Icon name={iconFor('next')} size={16} className="p1-text-icon" /> Below, in three parts:
-        </p>
-        <Items
-          className="hero-parts"
-          items={[
-            { icon: 'record', text: <a href="#story-part-1">Where the UK economy and labour market stand</a> },
-            { icon: 'model', text: <a href="#story-part-2">What a model of the whole economy projects</a> },
-            { icon: 'households', text: <a href="#story-part-3">A household model: incomes, poverty, public finances, if job losses are assumed</a> },
-          ]}
-        />
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands
         </a>
       </div>
-      <div className="story-hero-art">
+      <div className="story-hero-art" ref={artRef}>
         <svg className="story-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          <defs>
+            <clipPath id={clip}>
+              <rect x={0} y={0} width={X(xs) + (X(YEARS.length - 1) + 2 - X(xs)) * reveal} height={H} />
+            </clipPath>
+          </defs>
           <line x1={X(0)} x2={X(YEARS.length - 1)} y1={Y(0)} y2={Y(0)} stroke="var(--pe-gray-300)" />
           <line x1={X(xs)} x2={X(xs)} y1={20} y2={H - 20} stroke="var(--pe-gray-300)" strokeDasharray="3 4" />
+          <g clipPath={`url(#${clip})`}>
           {lines.map((l) => (
             <path
               key={l.key}
@@ -121,6 +159,7 @@ export default function Hero() {
               opacity={l.cl === CENTRAL ? 0.85 : 0.45}
             />
           ))}
+          </g>
           {nameSet(wide, 'is-wide', 24, 'OBR-central path')}
           {nameSet(narrow, 'is-narrow', 20, 'OBR path')}
           <text x={X(xs) + 6} y={H - 26} className="hero-name is-zero">

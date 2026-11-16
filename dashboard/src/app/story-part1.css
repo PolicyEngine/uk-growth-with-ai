@@ -1,86 +1,304 @@
 /* Story part 1 (tabs/story/Part1.jsx): its own styles, one writer. */
 
-/* Charts: a 400-wide viewBox with 14-unit text keeps tick text at least
-   11px at 390px width (with up to a 20px gutter and the graphic's 12px
-   padding). On desktop the SVG is capped at 540px wide, where 9.6 units
-   render at about 13px, the same as part 2's ticks (story-part2.css); at
-   the narrowest two-column width (901px) they are still about 11px. */
+/* Charts (part1/charts.jsx), drawn at their measured pixel width, so the
+   type scale is exact (scene plan section 4): ticks 12px, direct labels
+   12px semibold, notes 11px, nothing smaller; tabular numbers. Horizontal
+   gridlines only, dotted; no axis lines or tick marks. Marks are ink (the
+   official record), context grey. Every move is a transform or an opacity
+   on the shared ease. */
 .p1-figure {
   margin: 0;
+  --p1-ease: var(--story-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  --p1-ink: var(--pe-gray-800);
+  --p1-context: var(--pe-gray-400);
+}
+.p1-plot {
+  position: relative;
+  max-width: 760px;
+  margin: 2px auto 0;
 }
 .p1-svg {
-  max-width: 540px;
-  margin: 0 auto;
+  display: block;
+  overflow: hidden;
 }
-.p1-tick,
-.p1-note-label {
-  font-size: 14px;
+.p1-tick {
+  font-size: 12px;
   fill: var(--pe-gray-500);
   font-variant-numeric: tabular-nums;
 }
-.p1-note-label {
-  fill: var(--pe-gray-600);
+.p1-note {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--pe-gray-500);
 }
-@media (min-width: 901px) {
-  .p1-tick,
-  .p1-note-label {
-    font-size: 9.6px;
-  }
+.p1-end-label {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .p1-grid {
-  stroke: var(--card-border);
+  stroke: var(--c-grid);
   stroke-width: 1;
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
 }
 .p1-zero {
-  stroke: var(--pe-gray-700);
-  stroke-width: 1.25;
+  stroke: var(--c-zero-line);
+  stroke-width: 1;
 }
-.p1-split {
-  stroke: var(--pe-gray-300);
-  stroke-dasharray: 3 4;
-}
-.p1-line {
-  stroke-width: 2.5;
-  stroke-linejoin: round;
+.p1-band {
+  fill: var(--pe-gray-100);
 }
 
-/* GDP bars: neutral series colour; a negative bar grows down from zero */
+/* Bars: 2px radius on the free end only (barPath); they grow from zero */
 .p1-bar {
-  fill: var(--series-2);
+  fill: var(--p1-ink);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+  transition: transform 200ms var(--p1-ease);
 }
-.p1-bar.is-past {
-  fill: var(--series-5);
-}
-.p1-bar.is-neg.grow-rect.is-v {
+.p1-bar.is-neg {
   transform-origin: 50% 0%;
+}
+.p1-bar.is-on {
+  transform: none;
+  transition-duration: 500ms;
+}
+.p1-bar-q {
+  fill: var(--p1-context);
+}
+.p1-bar-q.is-now {
+  fill: var(--p1-ink);
 }
 .p1-forecast {
   fill: none;
-  stroke: var(--pe-gray-800);
-  stroke-width: 2.25;
-  stroke-dasharray: 6 5;
+  stroke: var(--p1-ink);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
 }
 .p1-forecast-dot {
-  fill: var(--pe-surface);
-  stroke: var(--pe-gray-800);
+  fill: var(--pe-surface, #fff);
+  stroke: var(--p1-ink);
   stroke-width: 1.5;
 }
 
-/* Labour market: two stacked panels, each full width (never side by side,
-   which would halve the text scale on a phone) */
-.p1-panel + .p1-panel {
-  margin-top: 6px;
+/* 1A, the output canvas. Zooming in (.is-q): the x zoom (600ms), then the
+   annual layer fades (300ms from 600ms), then the quarters grow (from
+   900ms, inline delays). Zooming out reverses: the quarters shrink at
+   once, the annual layer returns (300ms), then the zoom eases back from
+   300ms. Labels of one state are visibility: hidden in the others. */
+.p1-zoom {
+  transition: transform 600ms var(--p1-ease) 300ms;
 }
-.p1-panel-title {
-  max-width: 540px;
-  margin: 0 auto 2px;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-  color: var(--pe-gray-700);
+.p1-canvas.is-q .p1-zoom {
+  transition-delay: 0ms;
+}
+.p1-annual {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease);
+}
+.p1-canvas.is-q .p1-annual {
+  opacity: 0;
+  transition-delay: 600ms;
+}
+.p1-quarterly {
+  opacity: 0;
+  transition: opacity 200ms var(--p1-ease);
+}
+.p1-canvas.is-q .p1-quarterly {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) 900ms;
+}
+.p1-only-fc,
+.p1-only-q,
+.p1-only-a {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-canvas.is-fc:not(.is-q) .p1-only-fc,
+.p1-canvas:not(.is-q) .p1-only-a {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease), visibility 0s;
+}
+.p1-canvas.is-q .p1-only-q {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 900ms, visibility 0s linear 900ms;
+}
+/* the forecast keeps its place while the annual layer fades with it */
+.p1-canvas.is-q .p1-annual .p1-only-fc,
+.p1-canvas.is-q .p1-zoom .p1-only-fc {
+  visibility: visible;
+  opacity: 1;
+}
+.p1-canvas.is-q:not(.is-fc) .p1-only-fc {
+  visibility: hidden;
+}
+.p1-forecast-dot.p1-zoom {
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-canvas.is-fc .p1-forecast-dot.p1-zoom {
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 300ms var(--p1-ease), visibility 0s;
+}
+.p1-canvas.is-q .p1-forecast-dot.p1-zoom {
+  transition-delay: 0ms, 0ms, 0s;
+}
+.p1-xt {
+  opacity: 0;
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 200ms var(--p1-ease);
+}
+.p1-xt.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 300ms var(--p1-ease) 300ms;
+}
+.p1-canvas.is-q .p1-xt {
+  transition-delay: 0ms, 0ms;
+}
+.p1-canvas.is-q .p1-xt.is-on {
+  transition-delay: 0ms, 300ms;
 }
 
-/* Legends */
-.p1-legend,
+/* 1B, the labour board: each series' group moves between the panel and
+   a sparkline slot (600ms); the axes of the new focus fade in after it */
+.p1-board-move {
+  transition: transform 600ms var(--p1-ease);
+}
+.p1-board-line {
+  fill: none;
+  stroke: var(--pe-gray-500);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+  transition: opacity 500ms var(--p1-ease), stroke-width 300ms var(--p1-ease), stroke 300ms var(--p1-ease);
+}
+.p1-board-line.is-drawn {
+  opacity: 1;
+}
+.is-focus .p1-board-line {
+  stroke: var(--p1-ink);
+  stroke-width: 2.5;
+}
+.p1-board-end {
+  fill: var(--pe-gray-500);
+  stroke: var(--pe-surface, #fff);
+  stroke-width: 2;
+  opacity: 0;
+  transition: transform 600ms var(--p1-ease), opacity 300ms var(--p1-ease) 300ms;
+}
+.p1-board-svg.is-seen .p1-board-end {
+  opacity: 1;
+}
+.is-focus .p1-board-end {
+  fill: var(--p1-ink);
+}
+.p1-board-area {
+  opacity: 0;
+  transition: opacity 150ms var(--p1-ease);
+}
+.is-focus .p1-board-area {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) 600ms;
+}
+.p1-board-axes {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms var(--p1-ease), visibility 0s linear 150ms;
+}
+.p1-board-axes.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 450ms, visibility 0s linear 0s;
+}
+.p1-spark-name {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--pe-gray-600);
+  opacity: 0;
+  transition: transform 600ms var(--p1-ease), opacity 150ms var(--p1-ease);
+}
+.p1-spark-name.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--p1-ease), opacity 300ms var(--p1-ease) 450ms;
+}
+.p1-spark-hits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.p1-spark-hit {
+  position: absolute;
+  pointer-events: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+.p1-spark-hit:hover {
+  background: color-mix(in srgb, var(--pe-gray-500) 8%, transparent);
+}
+.p1-spark-hit:focus-visible {
+  outline: 2px solid var(--pe-gray-600);
+  outline-offset: 1px;
+}
+
+/* 1C, AI use: two lines that draw, dots at the waves, end labels */
+.p1-ai-line {
+  fill: none;
+  stroke-linejoin: round;
+}
+.p1-ai-line.is-all {
+  stroke: var(--p1-ink);
+  stroke-width: 2.5;
+}
+.p1-ai-line.is-ten {
+  stroke: var(--pe-gray-500);
+  stroke-width: 2;
+}
+.p1-ai-dot {
+  stroke: var(--pe-surface, #fff);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease);
+}
+.p1-ai-dot.is-on {
+  opacity: 1;
+  transition-delay: 500ms;
+}
+.p1-ai-dot.is-all {
+  fill: var(--p1-ink);
+}
+.p1-ai-dot.is-ten {
+  fill: var(--pe-gray-500);
+}
+.p1-ai-area {
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease) 500ms;
+}
+.p1-ai-area.is-on {
+  opacity: 1;
+}
+.p1-end-label.is-all {
+  fill: var(--p1-ink);
+}
+.p1-end-label.is-ten {
+  fill: var(--pe-gray-600);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-end-label.is-ten.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 600ms, visibility 0s;
+}
+
+/* Legends: the exposure groups' key */
 .p1-groups {
   display: flex;
   flex-wrap: wrap;
@@ -91,40 +309,88 @@
   font-size: var(--fs-caption);
   color: var(--pe-gray-600);
 }
-.p1-legend li,
 .p1-groups li {
   display: inline-flex;
   gap: 6px;
   align-items: center;
 }
+.p1-groups {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-groups.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 1000ms, visibility 0s;
+}
 .p1-swatch {
   display: inline-block;
   flex: none;
-  width: 18px;
-  height: 0;
-  border-top: 3px solid var(--sw);
-}
-.p1-swatch.is-dashed {
-  border-top-style: dashed;
-  border-top-width: 2px;
-}
-.p1-swatch.is-block {
   width: 12px;
   height: 12px;
-  border: 0;
   border-radius: 2px;
   background: var(--sw);
 }
 
-/* Exposure tiles */
+/* Exposure tiles: travel 750ms, colour in the last third (inline delays:
+   travel, then colour 500ms later) */
 .p1-tiles {
-  max-width: 460px;
+  max-width: 400px;
   margin: 0 auto;
 }
+.p1-tile.tile {
+  transition: transform 750ms var(--p1-ease), fill 250ms var(--p1-ease);
+}
 
-.p1-figure .story-source {
-  margin: 10px 0 0;
+/* The foot: one source line and a "Sources" disclosure that opens over
+   the figure, so the figure's height never changes */
+.p1-foot {
+  position: relative;
+  display: flex;
+  gap: 4px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.p1-foot > .story-source {
+  margin: 0;
   line-height: 1.45;
+}
+.p1-sources {
+  flex: none;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.p1-sources summary {
+  cursor: pointer;
+  list-style: none;
+}
+.p1-sources summary::-webkit-details-marker {
+  display: none;
+}
+.p1-sources[open] summary {
+  color: var(--pe-gray-800);
+}
+.p1-sources-list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 3;
+  width: min(100%, 420px);
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  background: var(--pe-surface, #fff);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft, 0 4px 16px rgb(0 0 0 / 0.08));
+}
+.p1-sources-list li + li {
+  margin-top: 6px;
+}
+.p1-sources-list .story-source {
+  margin: 0;
 }
 
 /* Several figures in one sticky graphic (frame.jsx, Swap): the layers share
@@ -154,12 +420,6 @@
   display: none;
 }
 
-/* A drawn line's end dot leaves at once when the line retracts (scrolling
-   back); it still waits for the draw on the way in (story.css). */
-.p1-svg .draw-end:not(.is-on) {
-  transition-delay: 0s;
-  transition-duration: 120ms;
-}
 
 /* An old block id kept as a link target at the top of a merged step. A link
    to it lands with the card at the step trigger line (about 40% down), so
@@ -168,6 +428,13 @@
   display: block;
   height: 0;
   scroll-margin-top: 40vh;
+}
+/* at 900px and below the trigger line is at 88% (useActiveStep): land the
+   card low enough that it crosses it, below the sticky figure */
+@media (max-width: 900px) {
+  .p1-anchor {
+    scroll-margin-top: 78vh;
+  }
 }
 
 /* "About these figures": a caveat under a card, closed by default */
@@ -289,36 +556,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* each state at once; the step logic is kept by the classes */
   .p1-swap-layer,
-  .p1-swap-layer.is-on {
-    transition: none;
-  }
-  /* story.css shows every .draw-end under reduced motion; keep the step
-     logic here: an end dot shows only with its drawn line. */
-  .p1-svg .draw-end:not(.is-on) {
-    opacity: 0;
+  .p1-swap-layer.is-on,
+  .p1-figure *,
+  .p1-figure .p1-tile.tile {
+    transition: none !important;
   }
 }
 
 /* hero */
-.story-hero-text .hero-parts {
-  margin: 4px 0 8px;
-  font-size: var(--fs-lead);
-}
-.story-hero-text .hero-parts a {
-  color: var(--pe-gray-800);
-  text-decoration: underline;
-  text-decoration-color: var(--pe-gray-300);
-  text-underline-offset: 3px;
-}
-.story-hero-text .hero-parts a:hover,
-.story-hero-text .hero-parts a:focus-visible {
-  text-decoration-color: currentColor;
-}
-.story-hero-text .hero-parts .story-item-icon {
-  margin-top: 5px;
-  color: var(--c-highlight);
-}
 .story-hero-art .hero-key {
   margin-top: 10px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -328,4 +575,29 @@
 }
 .story-hero-art .hero-key + .story-source {
   margin-top: 6px;
+}
+
+/* Desktop: the plot box follows the viewport, so a sticky figure fills
+   the space beside its cards (addendum A2.4: the figure box is about
+   clamp(400px, 100vh - graphic top - 96px, 620px); the title, unit and
+   foot take about 170px of that). The charts draw to this height
+   (frame.jsx, useBox). At 900px and below the plot is its drawing's own
+   height, so the figure stays short enough to stick. */
+@media (min-width: 901px) {
+  .p1-plot {
+    height: clamp(240px, calc(100vh - var(--story-graphic-top, 168px) - 266px), 450px);
+  }
+  .p1-plot > svg {
+    height: 100%;
+  }
+  /* the exposure tiles centre in the box the AI chart sets */
+  .p1-swap-layer > .p1-exposure {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .p1-exposure .p1-tiles {
+    width: 100%;
+    margin: auto;
+  }
 }

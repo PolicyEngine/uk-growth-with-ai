@@ -23,9 +23,9 @@ export const MODEL_BASE_VINTAGE = 'March 2026';
 
 // The DSIT/AISI three-way split of UK workers (IMF estimates), in tile order.
 export const EXPOSURE_GROUPS = [
-  { id: 'workers_high_exposure_high_complementarity', name: 'High exposure, high complementarity', color: 'var(--series-2)' },
-  { id: 'workers_high_exposure_low_complementarity', name: 'High exposure, low complementarity', color: 'var(--series-3)' },
-  { id: 'workers_low_exposure', name: 'Low exposure', color: 'var(--series-5)' },
+  { id: 'workers_high_exposure_high_complementarity', name: 'High exposure, high complementarity', color: 'var(--rank-1)' },
+  { id: 'workers_high_exposure_low_complementarity', name: 'High exposure, low complementarity', color: 'var(--rank-2)' },
+  { id: 'workers_low_exposure', name: 'Low exposure', color: 'var(--rank-3)' },
 ].map((g) => ({ ...g, value: FACTS[g.id].value }));
 
 // The DSIT text's rounded total for the two high-exposure groups ("around
