@@ -2,7 +2,7 @@
 
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
-import AllScenarios from '@/tabs/explore/AllScenarios.jsx';
+import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import HouseholdsExplore from '@/tabs/households/HouseholdsExplore.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import AnswerStrip from '@/tabs/explore/AnswerStrip.jsx';
@@ -29,8 +29,11 @@ const WHO_ANSWER = {
 // Explore: every interactive view. Each sub-tab opens with its question and
 // a short answer in items that follows the pickers, then the charts. Economy
 // (income and output, then the rest of the economy) and Public finances
-// follow the header pickers and the fiscal rule; Who gains is UK central
-// only; All scenarios shows every cell at once; Households is the
+// follow the header pickers and the fiscal rule; Economy opens with "Across
+// scenarios" (every cell at once, AllScenarios) and Public finances ends with
+// debt/GDP in every cell (AcrossDebt). The All scenarios sub-tab renders the
+// same component until the shell removes it. Who gains is UK central
+// only; Households is the
 // uk-ai-study detail (its own page). Each sub-tab's sections keep their ids,
 // which links and scripts/dumptabs.mjs use.
 export default function ExploreTab() {
@@ -43,6 +46,7 @@ export default function ExploreTab() {
         <PageIntro icon={iconFor('gdp')} question="How do pay, national income and GDP move when AI arrives in 2028?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
           <RuleBar />
         </PageIntro>
+        <AllScenarios />
         <ResultsTab sub="income" />
         <ResultsTab sub="economy" />
       </>
@@ -54,6 +58,7 @@ export default function ExploreTab() {
           <RulePicker />
         </PageIntro>
         <ResultsTab sub="finances" />
+        <AcrossDebt />
       </>
     );
   else if (sub === 'who')

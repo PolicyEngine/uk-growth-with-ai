@@ -1,33 +1,82 @@
-// All scenarios: every cell is drawn, the cells not solved are named, no
-// figure is printed outside the sensitivity table, and the tooltips and
-// downloads carry each cell's value.
+// Across scenarios (the matrix explorer): every cell is drawn, the cells not
+// solved are holes, the cell in view prints no figure (its home is the
+// charts below), a cell sets the pickers, and the downloads carry every value.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import AllScenarios from '@/tabs/explore/AllScenarios.jsx';
+import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
+import { NavProvider } from '@/lib/nav.jsx';
+import { fmt } from '@/tabs/ai/surprise.js';
 import { cellsTable, cellValue, driverWords, spreads } from '@/tabs/explore/cells.js';
 import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
 
 afterEach(cleanup);
 
+const at = (query) => {
+  window.history.replaceState(null, '', `/?${query}`);
+  return render(
+    <NavProvider>
+      <AllScenarios />
+    </NavProvider>,
+  );
+};
+
 describe('All scenarios', () => {
-  it('draws every solved cell and names the pending ones', () => {
-    const { container } = render(<AllScenarios />);
-    // 4 measures x (common: 4 scenarios x 2 closures + two other rules: 2 x 2 x 2)
-    expect(container.querySelectorAll('#all-scenarios .as-mark')).toHaveLength(4 * (8 + 8));
-    expect(container.querySelectorAll('#all-scenarios .as-band')).toHaveLength(4 * 2);
-    expect(container.querySelector('#all-scenarios').textContent).toContain('UK low and UK high: not solved under this rule');
-    // values only in tooltips: the card body prints no signed figure
-    expect(container.querySelector('#all-scenarios .as-grid').textContent).not.toMatch(/[+−]\d+\.\d\d/);
-    // the sensitivity table moved here from Method
-    expect(container.querySelector('#closure-sensitivity')).not.toBeNull();
+  it('draws every cell: solved ones print their value, pending ones are holes, the cell in view links', () => {
+    const { container } = at('tab=explore');
+    const cells = container.querySelectorAll('#all-scenarios .ex-mx-cell');
+    // 4 scenarios x 3 rules x 2 closures
+    expect(cells).toHaveLength(4 * 6);
+    // debt-neutral and fixed spending: UK low and UK high not solved, both closures
+    expect(container.querySelectorAll('#all-scenarios .ex-mx-cell.is-hole')).toHaveLength(2 * 2 * 2);
+    // the cell in view (UK central, central closure, common rule) prints no figure
+    const cur = container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current');
+    expect(cur).toHaveLength(1);
+    expect(cur[0].textContent).not.toMatch(/\d\.\d\d/);
+    // every other solved cell prints its GDP gap, once
+    const txt = container.querySelector('#all-scenarios .ex-mx').textContent;
+    for (const sid of ['uk_low', 'uk_high', 'korinek'])
+      for (const cl of ['zk0.1', 'zk0']) {
+        const x = cellValue(sid, 'tfp', cl, 'common', 'Y');
+        expect(txt).toContain(fmt(x, 2, '%'));
+      }
+    // the sensitivity, as dot rows, moved here from Method
+    expect(container.querySelector('#closure-sensitivity .ex-sd')).not.toBeNull();
   });
 
-  it('a mark tooltip gives the cell and its value', () => {
-    render(<AllScenarios />);
-    const x = gap('uk_central', 'tfp', 'zk0.1', 'Y');
-    const mark = screen.getAllByLabelText(/^UK central, common rule, central closure, GDP:/)[0];
-    fireEvent.focus(mark);
-    expect(screen.getByRole('tooltip').textContent).toContain(`${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}%`);
+  it('with Closure = Both, both closures of the scenario in view are in view', () => {
+    const { container } = at('tab=explore&s=korinek&closure=both&rule=dn');
+    const cur = [...container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current')].map((e) => e.dataset.cell);
+    expect(cur.sort()).toEqual(['korinek|dn|zk0', 'korinek|dn|zk0.1']);
+  });
+
+  it('a cell sets the pickers', () => {
+    const { container } = at('tab=explore');
+    fireEvent.click(screen.getByRole('button', { name: /^Korinek et al\..*debt-neutral transfers, closed capital, GDP/ }));
+    const p = new URLSearchParams(window.location.search);
+    expect([p.get('s'), p.get('closure'), p.get('rule')]).toEqual(['korinek', 'closed', 'dn']);
+    expect(container.querySelector('[data-cell="korinek|dn|zk0"]').className).toContain('is-current');
+  });
+
+  it('the cell direction icons follow the signs', () => {
+    const { container } = at('tab=explore');
+    for (const td of container.querySelectorAll('#all-scenarios .ex-mx-cell:not(.is-hole):not(.is-current)')) {
+      const [sid, rule, cl] = td.dataset.cell.split('|');
+      const x = cellValue(sid, 'tfp', cl, rule, 'Y');
+      expect(td.querySelector('[data-dir]').dataset.dir).toBe(x > 0.005 ? 'above' : x < -0.005 ? 'below' : 'on');
+    }
+  });
+
+  it('Public finances: debt/GDP in every solved cell, the one in view too', () => {
+    window.history.replaceState(null, '', '/?tab=explore&sub=finances');
+    const { container } = render(
+      <NavProvider>
+        <AcrossDebt />
+      </NavProvider>,
+    );
+    const txt = container.querySelector('#debt-cells .ex-mx').textContent;
+    expect(container.querySelector('#fin-across')).not.toBeNull();
+    expect(txt).toContain(fmt(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'debt_gdp_pp'), 2, 'pp'));
+    expect(container.querySelectorAll('#debt-cells .ex-mx-cell.is-hole')).toHaveLength(8);
   });
 
   it('the download table covers every cell, with pending ones marked', () => {

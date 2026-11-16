@@ -208,11 +208,28 @@ for sid in dump:
             print(sid, key, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, key, 'ok:', sum(exp.values()), 'figures')
-# The zk0.5 sensitivity table (Explore > All scenarios, results:all) prints
-# each scenario and arm's headline-year GDP, GNI, NNI and wage gaps once, and
-# every shown gap equals its raw solve over that closure's continuation. The
-# rest of All scenarios prints no figure (values are in tooltips, the closed
-# table fold and downloads), and Method no longer prints the table.
+# Across scenarios (#explore-part-all: on Economy, and on the All scenarios
+# sub-tab while it exists; results:all) prints:
+#   - the zk0.5 sensitivity dot rows: each scenario and arm's headline-year
+#     GDP, GNI, NNI and wage gaps once, every shown gap equal to its raw solve
+#     over that closure's continuation;
+#   - the matrix explorer at load (main arm, GDP): every solved scenario x
+#     closure x fiscal-rule cell's headline-year gap once, except the cell in
+#     view (the address's scenario, central closure, common rule), whose
+#     figure has its home in the story's headline tiles.
+# Method no longer prints the table.
+RULE_RES = {'common': D['results'], **{k: v['results'] for k, v in (('fixed', D.get('rules', {}).get('fixed_spending', {})), ('dn', D.get('rules', {}).get('debt_neutral', {}))) if v}}
+def matrix(view):
+    exp = Counter()
+    for rule, res in RULE_RES.items():
+        for sid_ in res:
+            for cl_ in (C, B):
+                if (sid_, cl_, rule) == (view, C, 'common'):
+                    continue
+                r = res.get(sid_, {}).get('tfp', {}).get(cl_, {'status': 'pending'})
+                if r['status'] == 'done':
+                    exp[signed(r['gaps']['Y'][Y.index(H)], 2) + '%'] += 1
+    return exp
 for cl, sens in D.get('sensitivity', {}).items():
     exp = Counter()
     for sid, arms in sens['results'].items():
@@ -231,11 +248,12 @@ for cl, sens in D.get('sensitivity', {}).items():
         if 'results:all' not in dump[sid]:
             bad += 1; print(sid, 'results:all not in the dump'); continue
         got = Counter(NUM.findall(dump[sid]['results:all']))
-        if got != exp:
+        want = exp + matrix(sid)
+        if got != want:
             bad += 1
-            print(sid, 'all scenarios', cl, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
+            print(sid, 'all scenarios', cl, 'missing:', dict(want - got), 'extra:', dict(got - want))
         else:
-            print(sid, 'all scenarios', cl, 'ok:', sum(exp.values()), 'figures')
+            print(sid, 'all scenarios', cl, 'ok:', sum(want.values()), 'figures')
         # Method's other figures (rates, shares) are not two-decimal gaps
         left = re.findall(r"[+−]\d+\.\d\d%", dump[sid].get('method', ''))
         if left:

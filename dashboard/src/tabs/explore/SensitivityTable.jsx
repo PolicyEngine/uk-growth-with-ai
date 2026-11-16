@@ -3,7 +3,7 @@
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { S, ARMS, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
+import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 
@@ -75,6 +75,91 @@ function investmentItems(res) {
   ];
 }
 
+// Dot rows: one row per scenario and arm, one column per measure on its own
+// axis from zero (shared down the column), the value beside its dot. Each
+// figure prints once, here; the table is the download.
+const tick = (t) => (Math.abs(t) < 1e-9 ? '0' : `${t > 0 ? '+' : '−'}${Math.abs(t)}`);
+function colAxis(res, v) {
+  const xs = SCENARIOS.flatMap((s) => ARMS.map((a) => at(res[s.id]?.[a.id], v))).filter((x) => x != null);
+  const lo = Math.min(0, ...xs);
+  const hi = Math.max(0, ...xs);
+  const span = Math.max(hi - lo, 0.2);
+  const step = [0.25, 0.5, 1, 2, 2.5, 5, 10].find((st) => span / st <= 3) ?? 20;
+  const min = Math.floor(lo / step) * step;
+  const max = Math.ceil(hi / step) * step;
+  const ticks = [];
+  for (let t = min; t <= max + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
+  return { ticks, at: (x) => ((x - min) / (max - min || 1)) * 100 };
+}
+
+function SensDots({ res }) {
+  const axes = Object.fromEntries(VARS.map((c) => [c.v, colAxis(res, c.v)]));
+  return (
+    <div className="ex-sd" role="group" aria-label={`${HEADLINE_YEAR} gaps with more foreign capital, by scenario, arm and measure`}>
+      <div className="ex-sd-row ex-sd-head">
+        <span />
+        {VARS.map((c) => (
+          <span key={c.v} className="ex-sd-colhead">
+            {c.label}
+          </span>
+        ))}
+      </div>
+      {SCENARIOS.map((s) => (
+        <div key={s.id} className="ex-sd-group">
+          <p className="ex-sd-scen">
+            <Lead c="scenario">{s.label}</Lead>
+          </p>
+          {ARMS.map((a) => {
+            const r = res[s.id]?.[a.id];
+            return (
+              <div key={a.id} className="ex-sd-row">
+                <span className="ex-sd-arm">
+                  <span className="swatch" style={{ borderTopColor: ARM_COLOR[a.id] }} aria-hidden="true" />
+                  {a.short || a.label}
+                </span>
+                {VARS.map((c) => {
+                  const x = at(r, c.v);
+                  const ax = axes[c.v];
+                  if (x == null)
+                    return (
+                      <span key={c.v} className="ex-sd-cell is-pending">
+                        pending
+                      </span>
+                    );
+                  const left = ax.at(x);
+                  return (
+                    <span key={c.v} className="ex-sd-cell">
+                      <span className="ex-sd-track">
+                        <span className="ex-sd-zero" style={{ left: `${ax.at(0).toFixed(2)}%` }} aria-hidden="true" />
+                        <span className="ex-sd-dot" style={{ left: `${left.toFixed(2)}%`, background: ARM_COLOR[a.id] }} aria-hidden="true" />
+                      </span>
+                      <span className={`ex-sd-val${cls(x)}`}>{fmt(x, 2)}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <div className="ex-sd-row ex-sd-axis" aria-hidden="true">
+        <span />
+        {VARS.map((c) => (
+          <span key={c.v} className="ex-sd-cell is-axis">
+            <span className="ex-sd-track">
+            {axes[c.v].ticks.filter((t, i, all) => i === 0 || i === all.length - 1).map((t, i) => (
+              <span key={t} className={`ex-sd-tick${i ? ' is-end' : ''}`} style={{ left: `${axes[c.v].at(t).toFixed(2)}%` }} data-axis="">
+                {tick(t)}
+              </span>
+            ))}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function SensitivityTable() {
   const sens = S.sensitivity?.[SENS];
   if (!sens) return null;
@@ -88,7 +173,7 @@ export default function SensitivityTable() {
       controls={<Items className="ex-notes" items={sensClaims(res)} />}
       unit={<Lead c="measure">{`${HEADLINE_YEAR}, % difference from the OBR-central path at the same closure, common fiscal rule`}</Lead>}
       logo={false}
-      aboutTitle="About this table"
+      aboutTitle="About this chart"
       about={{
         shows: (
           <Items
@@ -96,6 +181,7 @@ export default function SensitivityTable() {
               { key: 'solved', icon: 'scenario', text: `Each scenario and arm solved with ζK = ${sens.zeta_K}` },
               { key: 'half', icon: 'foreign', text: 'Foreign investors supply half the excess demand for capital' },
               { key: 'only', icon: 'caveat', text: 'A sensitivity only: no other chart uses it' },
+              { key: 'dl', icon: 'table', text: 'The full table: the download menu, CSV or JSON' },
             ]}
           />
         ),
@@ -120,48 +206,7 @@ export default function SensitivityTable() {
         }),
       }}
     >
-      <div className="table-wrap">
-        <table className="data-table">
-          <caption className="visually-hidden">
-            {HEADLINE_YEAR} gaps with ζK = {sens.zeta_K}, by scenario and arm
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Arm</th>
-              {VARS.map((c) => (
-                <th key={c.v} scope="col" className="num">
-                  {c.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          {SCENARIOS.map((s) => (
-            <tbody key={s.id}>
-              <tr className="table-group">
-                <th colSpan={VARS.length + 1} scope="colgroup">
-                  <Lead c="scenario">{s.label}</Lead>
-                </th>
-              </tr>
-              {ARMS.map((a) => {
-                const r = res[s.id]?.[a.id];
-                return (
-                  <tr key={a.id}>
-                    <th scope="row">{a.short || a.label}</th>
-                    {VARS.map((c) => {
-                      const x = at(r, c.v);
-                      return (
-                        <td key={c.v} className={`num${cls(x)}`}>
-                          {fmt(x, 2)}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          ))}
-        </table>
-      </div>
+      <SensDots res={res} />
     </Card>
   );
 }
