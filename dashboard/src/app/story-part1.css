@@ -610,3 +610,147 @@
     margin: auto;
   }
 }
+
+/* A printed figure links to its source's page: the number keeps its look,
+   with a dotted underline that firms up on hover */
+.p1-val-link {
+  color: inherit;
+  text-decoration: underline dotted var(--pe-gray-400);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+.p1-val-link:hover,
+.p1-val-link:focus-visible {
+  text-decoration-style: solid;
+  text-decoration-color: currentColor;
+}
+.p1-through {
+  color: var(--pe-gray-600);
+}
+.p1-axis-title {
+  font-size: 11px;
+  fill: var(--pe-gray-500);
+}
+
+/* The UK vitals panel: seven tiles, one row on wide screens */
+.p1-vitals {
+  margin: 24px 0 8px;
+}
+.p1-vitals-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.p1-vitals-head h3 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-h4, 1.05rem);
+}
+.p1-vitals-asof {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-600);
+}
+.p1-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p1-vital {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 10px 8px;
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 8px;
+  background: var(--pe-white, #fff);
+  font-size: var(--fs-micro);
+  line-height: 1.3;
+  color: var(--pe-gray-600);
+}
+.p1-vital-name {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.p1-vital-value {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.p1-vital-dir {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.p1-vital-label {
+  color: var(--pe-gray-700);
+}
+.p1-vital-sub {
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.p1-flag {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  align-self: flex-start;
+  padding: 1px 6px;
+  border: 1px solid var(--pe-gray-300);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--pe-gray-700);
+}
+.p1-vital-spark {
+  width: 100%;
+  height: 26px;
+  margin-top: auto;
+  overflow: visible;
+}
+.p1-vital-spark path {
+  fill: none;
+  stroke: var(--pe-gray-700);
+  stroke-width: 1.5;
+}
+.p1-vital-spark circle {
+  fill: var(--pe-gray-800);
+}
+.p1-vital-span {
+  font-size: 11px;
+  color: var(--pe-gray-500);
+}
+.p1-vital-meta {
+  font-size: 11px;
+}
+.p1-vital-src {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1180px) {
+  .p1-vitals-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .p1-vitals-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

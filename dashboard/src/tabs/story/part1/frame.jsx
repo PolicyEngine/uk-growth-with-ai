@@ -4,7 +4,7 @@ import { Children, useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { Axis, Grid, ModelBadge, linear as chartLinear } from '@/components/story/chart/index.js';
-import { SOURCES } from './data.js';
+import { SOURCES, pageOf } from './data.js';
 import { dateLong, tick } from './format.js';
 
 // Shared pieces of part 1's charts. The charts print no values: every
@@ -153,8 +153,10 @@ export function FigTitle({ icon, title, reserve }) {
     </p>
   );
 }
+// The unit line is the chart's y-axis title (the measure and its unit,
+// with any reference such as "2023 = 100"), marked data-axis-title="y".
 export const FigUnit = ({ children, reserve }) => (
-  <p className="story-figure-unit p1-title-row">
+  <p className="story-figure-unit p1-title-row" data-axis-title="y">
     <Icon name={iconFor('measure')} size={14} className="p1-text-icon" />
     <Stack value={children} reserve={reserve} />
   </p>
@@ -171,7 +173,8 @@ const short = (s) => SHORT[s.publisher] ?? s.publisher;
 // publisher; then a "Sources" disclosure with each dataset's series and
 // release date, which opens over the figure without changing its height.
 // items: [{ id, name, detail }]; `note`: a line for the disclosure only.
-export function SourceLine({ items, note }) {
+// `through`: the last period the figure shows, stamped after the sources.
+export function SourceLine({ items, note, through }) {
   return (
     <div className="p1-foot">
       <p className="story-source">
@@ -184,12 +187,13 @@ export function SourceLine({ items, note }) {
             <span key={it.id}>
               {i ? '; ' : ''}
               {pub}
-              <a href={s.url} target="_blank" rel="noopener noreferrer">
+              <a href={pageOf(it.id)} target="_blank" rel="noopener noreferrer">
                 {it.name}
               </a>
             </span>
           );
         })}
+        {through ? <span className="p1-through">. Through {through}</span> : null}
       </p>
       <details className="p1-sources">
         <summary>
@@ -202,7 +206,14 @@ export function SourceLine({ items, note }) {
             return (
               <li key={it.id} className="story-source">
                 <Icon name={iconFor('source')} size={13} className="p1-source-icon" />
-                {s.publisher}, {it.name}, {it.detail ?? s.series}, released {dateLong(s.released)}.
+                {s.publisher}, <Ext href={pageOf(it.id)}>{it.name}</Ext>, {it.detail ?? s.series}, released {dateLong(s.released)}
+                {s.url !== pageOf(it.id) ? (
+                  <>
+                    {' '}
+                    (<Ext href={s.url}>{s.data_label ?? 'data'}</Ext>)
+                  </>
+                ) : null}
+                .
               </li>
             );
           })}
@@ -217,6 +228,13 @@ export function SourceLine({ items, note }) {
     </div>
   );
 }
+
+// A link that leaves the dashboard (a source page), in a new tab.
+export const Ext = ({ href, children, className }) => (
+  <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+    {children}
+  </a>
+);
 
 // The frame round a graphic: title, unit line, drawing, foot. `titleReserve`
 // and `unitReserve` hold the height of the longest title and unit line any
