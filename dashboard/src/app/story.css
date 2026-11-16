@@ -371,16 +371,24 @@
   --q-pin: 56svh;
   --q-pin-phone: 0.72;
 }
-.scrolly.has-stage > .q-stage {
-  grid-column: 1 / -1;
-  grid-row: 1;
-}
-.scrolly.has-stage > .scene-head {
-  grid-row: 2;
-}
-.scrolly.has-stage.has-sub > .scrolly-graphic,
-.scrolly.has-stage.has-sub > .scrolly-steps {
-  grid-row: 3;
+/* the stage takes the block's first row only where it is shown (not under
+   reduced motion or in print, where the rows stay as they were) */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .scrolly.has-stage > .q-stage {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .scrolly.has-stage > .scene-head {
+    grid-row: 2;
+  }
+  .scrolly.has-stage.has-sub > .scrolly-graphic,
+  .scrolly.has-stage.has-sub > .scrolly-steps {
+    grid-row: 3;
+  }
+  .scrolly.has-stage > .scrolly-takeaway,
+  .scrolly.has-stage > .scrolly-foot {
+    grid-row: 4;
+  }
 }
 .q-stage {
   --qa: 0;
@@ -412,7 +420,7 @@
   text-align: center;
   transform-origin: 50% 100%;
   transform: translateY(var(--qy)) scale(calc(1 - 0.55 * var(--qm)));
-  opacity: calc(1 - var(--qm) * 1.15);
+  opacity: calc(1 - var(--qm) * 1.6);
   will-change: transform, opacity;
 }
 .q-stage-numeral {
@@ -2416,4 +2424,58 @@
 .story-recap-a {
   font-weight: 600;
   color: var(--pe-gray-900);
+}
+/* A step's sentence anchored to its mark (MarkCallout.jsx, step.callout) */
+.mark-callout {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  max-width: min(260px, 60%);
+  padding: 6px 10px;
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--pe-gray-900);
+  background: var(--pe-surface);
+  border: 1px solid color-mix(in srgb, var(--part-accent, var(--c-highlight)) 45%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
+  pointer-events: none;
+  visibility: hidden;
+}
+.mark-callout.is-placed {
+  visibility: visible;
+  animation: mark-callout-in 350ms var(--story-ease) both;
+}
+@keyframes mark-callout-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.mark-callout-leader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+.mark-callout-leader line {
+  stroke: var(--part-accent, var(--c-highlight));
+  stroke-width: 1;
+}
+.mark-callout-leader circle {
+  fill: var(--part-accent, var(--c-highlight));
+}
+@media (max-width: 900px) {
+  .mark-callout {
+    max-width: min(220px, 70%);
+    font-size: var(--fs-caption);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mark-callout.is-placed {
+    animation: none;
+  }
 }

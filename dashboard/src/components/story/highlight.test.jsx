@@ -102,3 +102,23 @@ describe('highlight', () => {
     expect(stepsWithoutHighlight(container)).toEqual(['x2', 'x3']);
   });
 });
+
+describe('MarkCallout (step.callout)', () => {
+  it('renders the shown step sentence in the figure, aria-hidden and data-axis', () => {
+    const { container } = render(
+      <Scrolly
+        id="co"
+        steps={[
+          { id: 'c1', title: 'One', highlight: ['a'], callout: 'A rises', body: null },
+          { id: 'c2', title: 'Two', highlight: ['b'], callout: true, body: null },
+        ]}
+        graphic={() => <Fig2 />}
+        label="L"
+      />,
+    );
+    const c = container.querySelector('.scrolly-graphic-inner .mark-callout');
+    expect(c.textContent).toBe('Two');
+    expect(c.getAttribute('aria-hidden')).toBe('true');
+    expect(c.hasAttribute('data-axis')).toBe(true);
+  });
+});

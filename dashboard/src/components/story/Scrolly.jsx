@@ -8,6 +8,7 @@ import { scrollBelowBars } from '@/lib/scroll.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
 import QStage from './QStage.jsx';
+import MarkCallout from './MarkCallout.jsx';
 
 // a sticky figure may take 45% of the screen at 900px and below
 const capFor = () => 0.45;
@@ -252,6 +253,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const hl = useHighlightState(steps[shown]?.highlight);
   useApplyHighlight(live, hl, [shown, entered]);
   const hlDesc = useHighlightDescription(hl);
+  // the shown step's sentence anchored to its mark (opt-in: step.callout)
+  const cur = steps[shown];
+  const calloutText = cur?.callout ? (cur.callout === true ? cur.title : cur.callout) : null;
+  const calloutAnchor = cur?.anchor ?? normIds(cur?.highlight)[0];
   // the question-led sequence (QStage.jsx): arrive, hold, move into the
   // scene; the scene's entry moves wait until the question has moved in
   const subObj = sub && typeof sub === 'object' ? sub : null;
@@ -313,6 +318,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             />
           ) : null}
           {inline ? null : graphic(shown, reduce, ctx)}
+          {inline || !calloutText ? null : <MarkCallout rootRef={live} anchor={calloutAnchor} text={calloutText} stepKey={steps[shown]?.id} />}
           {phone ? null : footHere}
         </div>
         {reserve && measuring ? (
