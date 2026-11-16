@@ -21,6 +21,9 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           hollow dots in a narrow column right of the last year. A point
 //           marked offScale sits on the axis edge with an arrow (offScale:
 //           'high' puts it on the top edge, pointing up).
+// `compact`: for a small-multiple tile: at most four y ticks (alternate
+//           ticks dropped), no marker or band label rows (their lines stay),
+//           and markers only at the crosshair.
 // `link`:   the crosshair group (default 'oguk'): pointing at a year on one
 //           chart shows the crosshair at that year on every chart of the
 //           same group on the page; the tooltip stays on the chart under
@@ -173,9 +176,11 @@ export default function LineChart({
   endLabel = 'name',
   markers = [],
   bands = [],
-  dots = true,
+  dots: dotsProp = true,
   link = 'oguk',
+  compact = false,
 }) {
+  const dots = compact ? false : dotsProp;
   const [ref, W] = useWidth(880);
   useMeasured();
   // Crosshair: the year under the pointer, keyboard focus or tap.
@@ -214,8 +219,14 @@ export default function LineChart({
   const step = niceStep(span);
   lo = Math.floor((lo - span * 0.04) / step) * step;
   hi = Math.ceil((hi + span * 0.04) / step) * step;
-  const ticks = [];
+  let ticks = [];
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
+  // a compact tile keeps at most four ticks: every other one, zero kept
+  if (compact && ticks.length > 4) {
+    const z = ticks.findIndex((v) => Math.abs(v) < step / 2);
+    const keep = z >= 0 ? z % 2 : 0;
+    ticks = ticks.filter((_, i) => i % 2 === keep);
+  }
   const dp = decimalsFor(step);
   // No "-0.00": a tick that rounds to zero prints unsigned.
   const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (zeroLabel ? `${zeroLabel} 0` : (0).toFixed(dp)) : minus(v.toFixed(dp)));
@@ -284,7 +295,7 @@ export default function LineChart({
   };
   const bandRows = bands.map((b) => {
     const i = x.indexOf(b.year);
-    if (i < 0 || !b.label) return { b, i, row: 0 };
+    if (i < 0 || !b.label || compact) return { b, i, row: 0 };
     const w = String(b.label).length * 6.4 + 6;
     return { b, i, row: place(sx(i) - w / 2, w) };
   });
@@ -292,7 +303,7 @@ export default function LineChart({
   for (const m of markers) {
     const i = x.indexOf(m.year);
     if (i < 0) continue;
-    const len = String(m.label ?? '').length;
+    const len = compact ? 0 : String(m.label ?? '').length;
     const end = i === x.length - 1 || sx(i) + 4 + len * 6.4 > R;
     const w = len * 6.4 + 6;
     const a0 = end ? sx(i) - 4 - w : sx(i) + 4;
@@ -413,7 +424,7 @@ export default function LineChart({
           return (
             <g key={`band-${b.year}`}>
               <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
-              {b.label ? (
+              {b.label && !compact ? (
                 <text x={(x0 + x1) / 2} y={labelY(row)} className="ax band-label" textAnchor="middle">
                   {b.label}
                 </text>
@@ -424,9 +435,11 @@ export default function LineChart({
         {markerRows.map(({ m, i, row, end }) => (
           <g key={`m-${m.year}`}>
             <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-            <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
-              {m.label}
-            </text>
+            {compact ? null : (
+              <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
+                {m.label}
+              </text>
+            )}
           </g>
         ))}
         {cross != null ? <line x1={sx(cross)} x2={sx(cross)} y1={TOP} y2={BOT} className={`crosshair${hov == null ? ' is-linked' : ''}`} /> : null}

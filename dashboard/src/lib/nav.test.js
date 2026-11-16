@@ -21,8 +21,8 @@ describe('address', () => {
   it('resolves the seven tabs from before they were consolidated', () => {
     expect(parseUrl('?tab=results')).toMatchObject({ tab: 'explore', sub: null });
     expect(parseUrl('?tab=results&sub=economy&s=uk_high')).toMatchObject({ tab: 'explore', sub: null, anchor: 'explore-part-economy', s: 'uk_high' });
-    expect(parseUrl('?tab=results&sub=income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'income' });
-    expect(parseUrl('?tab=explore&sub=income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'income' });
+    expect(parseUrl('?tab=results&sub=income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'economy-wall' });
+    expect(parseUrl('?tab=explore&sub=income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'economy-wall' });
     expect(parseUrl('?tab=explore&sub=households')).toMatchObject({ tab: 'explore', sub: 'households' });
     expect(parseUrl('?tab=method&sub=households')).toMatchObject({ tab: 'method', sub: 'households' });
     expect(parseUrl('?tab=who&closure=both')).toMatchObject({ tab: 'explore', sub: 'who', closure: 'both' });
@@ -43,6 +43,8 @@ describe('address', () => {
     expect(parseUrl('?tab=method&sub=scenarios')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-scenarios' });
     expect(parseUrl('?tab=method&sub=scenarios', '#m-jump')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-jump' });
     expect(parseUrl('?tab=method&sub=scenarios&s=korinek')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-scenarios', s: 'korinek' });
+    expect(parseUrl('?tab=explore&sub=all')).toMatchObject({ tab: 'explore', sub: null, anchor: 'ex-across' });
+    expect(parseUrl('?tab=explore', '#income')).toMatchObject({ tab: 'explore', sub: null, anchor: 'economy-wall' });
     expect(parseUrl('?tab=method&sub=history')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'changelog' });
     expect(parseUrl('?tab=method', '#m-history')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'changelog' });
     expect(parseUrl('?tab=method&sub=limits')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-limits' });

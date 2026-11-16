@@ -9,16 +9,18 @@ export const PAGE_TITLE = 'The macroeconomic effects of AI on the UK';
 // pickers in the settings bar (`rule` may list the rules that page has
 // solves for; the others show disabled). `study`: a uk-ai-study page, which
 // shows the "different model" chip in place of the OG-UK settings. The site
-// had seven tabs until November 2026, and a Scenarios sub-tab until it
-// folded into OG-UK method; lib/nav.jsx sends their addresses here.
+// had seven tabs until November 2026, and eleven views until the All
+// scenarios and Scenarios sub-tabs folded into Economy ("Across scenarios")
+// and OG-UK method; lib/nav.jsx sends their addresses here. On Economy and
+// Public finances the arm picker drives the across-scenarios matrices (the
+// line charts draw every arm, &arms=).
 export const TABS = [
   { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
-  { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true, rule: true,
+  { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true, rule: true, arm: true,
     subs: [
       { id: 'economy', label: 'Economy', icon: 'factory' },
       { id: 'finances', label: 'Public finances', icon: 'landmark' },
       { id: 'who', label: 'Who gains', icon: 'usersRound', scenario: 'locked', arm: true, rule: ['common', 'dn'] },
-      { id: 'all', label: 'All scenarios', icon: 'layoutGrid', scenario: false, closure: false, rule: false },
       { id: 'households', label: 'Households', icon: 'briefcase', scenario: false, closure: false, rule: false, study: true },
     ] },
   { id: 'method', label: 'Method and sources', short: 'Method', icon: 'book',

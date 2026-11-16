@@ -89,9 +89,12 @@ const LEGACY_TAB = {
 };
 const STUDY_SUBS = { coverage: 'coverage', numbers: 'numbers', sources: 'sources', matrix: 'coverage' };
 const LEGACY_SUB = {
-  results: { overview: ['story'], summary: ['story'], variables: ['explore', 'economy', 'explore-part-economy'], income: ['explore', 'economy', 'income'], economy: ['explore', 'economy', 'explore-part-economy'] },
+  results: { overview: ['story'], summary: ['story'], variables: ['explore', 'economy', 'explore-part-economy'], income: ['explore', 'economy', 'economy-wall'], economy: ['explore', 'economy', 'explore-part-economy'] },
   // Income and output was its own sub-tab until it joined Economy
-  explore: { income: ['explore', 'economy', 'income'] },
+  // Income and output was its own sub-tab until it joined Economy; its eight
+  // charts are now one wall. All scenarios folded into Economy as "Across
+  // scenarios" (November 2026, 11 views to 9).
+  explore: { income: ['explore', 'economy', 'economy-wall'], all: ['explore', 'economy', 'ex-across'] },
   method: {
     built: ['method', null, 'm-closures'],
     limits: ['method', null, 'm-limits'],
@@ -127,6 +130,8 @@ export function resolve(tab, sub = null, anchor = null) {
   }
   else if (own(ALIAS, tab)) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
   if (tab === 'method' && anchor === 'm-history') [sub, anchor] = ['code', 'changelog'];
+  // moved anchors: the income charts are the Economy wall
+  if (tab === 'explore' && anchor === 'income') anchor = 'economy-wall';
   if (tab === 'method' && anchor && !sub) sub = 'how';
   return [tab, sub, anchor];
 }
