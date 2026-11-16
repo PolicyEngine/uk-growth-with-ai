@@ -5,7 +5,7 @@
 // links to the tab that holds the figures. Rendered against a fixture with
 // altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import real from '@/data/surprise2028.json';
 
 afterEach(cleanup);
@@ -217,10 +217,10 @@ describe('where output goes', () => {
       expect(subs).toEqual([(b.labour + gross).toFixed(0), b.labour.toFixed(1), gross.toFixed(1), ...['domestic', 'foreign', 'depreciation'].map((k) => b[k].toFixed(1))]);
       const ch = S2.change[sid][cl];
       const vals = [...out.querySelectorAll('.p2-wf-value')].map((n) => n.textContent.trim());
-      expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), 'Headline figures']);
+      expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), sgn(ch.gdp)]);
       // each printed change names its path in the data (trace a number)
       const paths = [...out.querySelectorAll('.p2-wf-value[data-path]')].map((n) => n.getAttribute('data-path'));
-      expect(paths).toEqual(['labour', 'gross_capital', 'domestic', 'foreign', 'depreciation'].map((k) => `output_split.change.${sid}.${cl}.${k}`));
+      expect(paths).toEqual(['labour', 'gross_capital', 'domestic', 'foreign', 'depreciation', 'gdp'].map((k) => `output_split.change.${sid}.${cl}.${k}`));
       expect(out.textContent.includes('both figures show the central closure')).toBe(q.endsWith('both'));
       expect(out.textContent).toContain(cl === 'zk0' ? 'Closed capital' : 'Central closure');
       unmount();
@@ -245,6 +245,7 @@ describe('where output goes', () => {
     expect(rows[4].to).toBeCloseTo(ch.gdp, 12);
     expect(rows[1].to).toBeCloseTo(ch.gdp, 12);
     expect(ch.gdp).toBeCloseTo(real.results.uk_central.tfp['zk0.1'].gaps.Y[H], 9);
+    expect(rows[5].value).toBe(ch.gdp);
   });
 });
 
@@ -373,7 +374,7 @@ describe('direction icons follow the signs', () => {
           expect(l.text).toContain(word[l.dir].trim());
         }
         // pay below the path always carries "not a cut"
-        expect(why.notes.some((n) => n.text.includes('not a cut'))).toBe(val.pay < 0);
+        expect(why.notes.some((n) => typeof n.text === 'string' && n.text.includes('not a cut'))).toBe(val.pay < 0);
         const gni = why.links.find((l) => l.key === 'gni');
         if (val.gdp > 0 && val.gni < val.gdp) expect(gni.text).toBe('National income gains less than GDP');
       }
@@ -430,5 +431,70 @@ describe('direction icons follow the signs', () => {
         expect(items[1].text).toContain(ch.labour < 0 ? 'below' : 'above');
       }
     }
+  });
+
+  it('attributes inputs: no first person, every model source linked', () => {
+    for (const q of ['tab=story', 'tab=story&s=korinek&closure=both']) {
+      const { container, unmount } = at(q);
+      const part = container.querySelector('#story-part-2');
+      expect(part.textContent).not.toMatch(/\b([Oo]ur|[Ww]e)\b/);
+      // every figure caption under a model chart links its result files or source
+      for (const cap of part.querySelectorAll('figure:not(.p2-shock-fig) figcaption, .p2-output-foot')) {
+        expect(cap.querySelector('a[href^="http"]'), cap.textContent).not.toBeNull();
+      }
+      // result files at the data file's commit
+      const files = [...part.querySelectorAll('a[href*="/analysis/surprise/output/"]')].map((a) => a.getAttribute('href'));
+      expect(files.length).toBeGreaterThan(0);
+      for (const f of files) expect(f).toContain(`/blob/${fixture.source_commit}/`);
+      unmount();
+    }
+  });
+
+  it('gives every block a question, and a key takeaway with no figure in its last card', async () => {
+    const { SUBS } = await import('@/tabs/story/Part2.jsx');
+    const { OUTPUT_SUB } = await import('@/tabs/story/part2/OutputSplit.jsx');
+    for (const sub of [...Object.values(SUBS), OUTPUT_SUB]) {
+      expect(sub.question).toMatch(/\?$/);
+      expect(sub.title).not.toContain('Where output goes in');
+    }
+    const { container, unmount } = at('tab=story');
+    for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-arms', 'p2-who']) {
+      const lines = [...container.querySelectorAll(`#${id} li`)].map((li) => li.textContent).filter((t) => t.startsWith('Key takeaway:'));
+      expect(lines.length, id).toBeGreaterThan(0);
+      for (const t of lines) expect(t).not.toMatch(/\d/);
+    }
+    unmount();
+  });
+
+  it('labels every chart axis', () => {
+    const { container, unmount } = at('tab=story');
+    const part = container.querySelector('#story-part-2');
+    for (const svg of part.querySelectorAll('svg[role="img"]')) {
+      const fig = svg.closest('figure');
+      if (fig?.hasAttribute('data-no-axes')) continue;
+      expect(fig?.querySelector('[data-axis-title="y"]'), svg.getAttribute('aria-label')).not.toBeNull();
+    }
+    unmount();
+  });
+
+  it('pins a scenario on the GDP canvas: its own line, in the axis domain', async () => {
+    const { canvasLines, canvasDomain, pinnedOf, rescales } = await import('@/tabs/story/part2/Morph.jsx');
+    const lines = canvasLines('zk0.1');
+    const kor = lines.find((l) => l.id === 'korinek').ys;
+    expect(pinnedOf('uk_central', 'uk_central', lines)).toBeNull();
+    expect(pinnedOf('korinek', 'uk_central', lines)).toBe('korinek');
+    // a pinned Korinek et al. is in the domain from state 2, so it never clips and nothing rescales later
+    expect(canvasDomain(2, 'uk_central', lines, 'korinek')).toEqual(expect.arrayContaining(kor));
+    expect(rescales('uk_central', 'zk0.1', 'korinek')).toBe(false);
+    const { container, unmount } = at('tab=story');
+    const btn = [...container.querySelectorAll('.p2-pin-btn')][0];
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(btn);
+    const after = [...container.querySelectorAll('.p2-pin-btn')][0];
+    expect(after.getAttribute('aria-pressed')).toBe('true');
+    // one path per scenario: pinning restyles, it never adds a copy
+    const fig = container.querySelector('.p2-morph');
+    expect(fig.querySelectorAll('.p2-mo-scen').length).toBe(lines.length - 1);
+    unmount();
   });
 });
