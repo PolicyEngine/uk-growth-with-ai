@@ -1,8 +1,8 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 
-// Which model a figure comes from, top-left of its frame: 11px, 600, the
-// part accent on the part tint (--part-accent, --part-tint), 4px radius.
+// Which model a figure comes from, top-left of its frame: a plain icon and
+// the model's name (11px, 600, in the part accent), no fill or chip.
 //   <ModelBadge model="oguk" />
 export const MODELS = {
   official: { label: 'Official statistics', icon: 'record' },

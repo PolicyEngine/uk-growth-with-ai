@@ -76,3 +76,22 @@ export function Compare({ columns, className = '' }) {
     </div>
   );
 }
+
+// A grid of icon items: a plain icon, a short name and a short line each
+// (part 3's "what the study leaves out", the limitations). `columns` on
+// desktop (two at 900px and below, one on narrow phones).
+//
+//   <IconGrid label="What the study leaves out" items={[{ icon: 'excluded', title: 'Firms', text: 'No firm-side response' }]} />
+export function IconGrid({ items, label, columns = 3, className = '' }) {
+  return (
+    <ul className={`icon-grid ${className}`.trim()} aria-label={label} style={{ '--icon-grid-cols': columns }}>
+      {items.filter(Boolean).map((it, i) => (
+        <li key={it.key ?? i}>
+          <Icon name={iconFor(it.icon)} size={20} className="icon-grid-icon" />
+          <span className="icon-grid-title">{it.title}</span>
+          {it.text ? <span className="icon-grid-text">{it.text}</span> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}

@@ -95,7 +95,7 @@ export default function Frame({
           <span className="ch-stack-cell">
             <span>{title}</span>
             {titleReserve ? (
-              <span className="ch-ghost" aria-hidden="true" data-axis="" inert="">
+              <span className="ch-ghost" aria-hidden="true" data-axis="" inert>
                 {titleReserve}
               </span>
             ) : null}
@@ -116,7 +116,7 @@ export default function Frame({
               <div>
                 <Foot legend={legend} source={source} sources={sources} />
               </div>
-              <div className="ch-ghost" aria-hidden="true" data-axis="" inert="">
+              <div className="ch-ghost" aria-hidden="true" data-axis="" inert>
                 <Legend items={footReserve.legend} />
                 {footReserve.source ? <div className="story-source ch-source">{footReserve.source}</div> : null}
               </div>
