@@ -4,7 +4,6 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
-import { useIsPhone } from '@/components/story/motion.js';
 import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
@@ -114,7 +113,7 @@ function DecBar({ v, on, fill, delay }) {
   );
 }
 
-function DecilesFigure({ phone, ctx }) {
+function DecilesFigure({ ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
     <figure className={entryClass(e, 'p3-figure p3-scene')}>
@@ -144,7 +143,6 @@ function DecilesFigure({ phone, ctx }) {
                 <DecBar v={v} on={e.on} fill={fill} delay={ORDER_DELAY(n)} />
               </span>{' '}
               <span className="p3-row-value">{first ? <span className="p3-muted">see note</span> : fmtDecilePct(v)}</span>
-              {first && !phone ? <BottomDecileCaveat /> : null}
             </li>
           );
         })}
@@ -155,9 +153,8 @@ function DecilesFigure({ phone, ctx }) {
 }
 
 export default function Deciles() {
-  // On phones the caveat moves from the graphic into the card, so the
-  // sticky graphic stays short; it is rendered in one place only.
-  const phone = useIsPhone();
+  // The caveat sits in the card at every width, so the figure stays short;
+  // it is rendered in one place only.
   const steps = [
     {
       id: 'p3-deciles-step',
@@ -186,10 +183,10 @@ export default function Deciles() {
               { icon: 'caveat', text: 'Decile 1 is drawn grey: not a finding; see the note' },
             ]}
           />
-          {phone ? <BottomDecileCaveat /> : null}
+          <BottomDecileCaveat />
         </>
       ),
     },
   ];
-  return <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={steps} graphic={(i, r, ctx) => <DecilesFigure phone={phone} ctx={ctx} />} label="Change in household disposable income by income decile" />;
+  return <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={steps} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />;
 }

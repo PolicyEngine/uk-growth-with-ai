@@ -177,7 +177,7 @@ describe('Part3', () => {
     const d1 = container.querySelector('[data-decile="1"]');
     expect(d1.querySelector('.p3-fill-muted')).not.toBeNull();
     expect(d1.querySelector('.p3-row-value').textContent).toBe('see note');
-    const cav = d1.querySelector('[data-caveat="bottom-decile"]');
+    const cav = container.querySelector('#p3-deciles-step [data-caveat="bottom-decile"]');
     expect(cav.textContent).toContain('does not report the bottom income decile as a finding');
     for (const s of ['+1.86%', `${MINUS}0.32%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
     expect(cav.querySelector('[data-input]')).toBeNull();

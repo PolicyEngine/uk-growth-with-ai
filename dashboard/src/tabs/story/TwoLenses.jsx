@@ -2,7 +2,7 @@
 
 import { Fragment } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
-import { Items } from '@/components/story/Items.jsx';
+import { Items, Recap } from '@/components/story/Items.jsx';
 import { useInView, useReducedMotion } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
@@ -62,6 +62,14 @@ export const CLOSE_SUB = {
   question: 'What can each model say?',
   takeaway: 'OG-UK speaks to the whole economy over decades; uk-ai-study to households in one year',
 };
+
+// The whole story's recap, one item per part, each linking to its home; no
+// figures.
+export const STORY_RECAP = [
+  { icon: 'gdp', text: 'Official statistics: how the UK has grown, and where AI arrives', to: 'p1-output' },
+  { icon: 'model', text: 'OG-UK: what AI could mean for output, pay and public finances', to: 'p2-output' },
+  { icon: 'households', text: 'uk-ai-study: who loses income if jobs are assumed lost', to: 'p3-central' },
+];
 
 export default function TwoLenses() {
   const [ref, seen] = useInView();
@@ -124,6 +132,7 @@ export default function TwoLenses() {
           </Fragment>
         ))}
       </div>
+      <Recap title="The story in three parts" items={STORY_RECAP} />
     </section>
   );
 }

@@ -109,7 +109,7 @@ function AbsorbFigure({ ctx }) {
         graphs={[g]}
         label="Sankey diagram: earnings lost by each income decile, flowing to lower disposable income, lower income tax and employee NI, other items and more benefits"
         width={900}
-        height={380}
+        height={330}
         pad={7}
         rightRoom={170}
         linkOpacity={0.55}
@@ -162,7 +162,6 @@ export default function Absorb() {
         <Items
           items={[
             { icon: 'jobLoss', text: `${SMALLER ? 'A smaller shock' : 'A different shock'}: job loss alone, no other income rises` },
-            { icon: 'households', text: `${MOST ? 'Most' : 'Part'} of the earnings lost ${MOST ? 'falls' : 'fall'} on households’ disposable income` },
             { icon: 'tax', text: <>Income tax, employee NI and benefits absorb {fmtShare(S.tax_benefit_share_pct)} of the loss</> },
             { icon: 'benefits', text: BENEFIT_SHARE < 5 ? 'Benefits replace under a twentieth of the earnings lost in this run' : 'Benefits replace part of the earnings lost in this run' },
           ]}

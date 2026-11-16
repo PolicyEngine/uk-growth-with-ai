@@ -145,7 +145,6 @@ export default function Rules() {
           <Items
             items={[
               { icon: 'jobLoss', text: 'The same expected number of job losses, moved between groups' },
-              { icon: 'cost', text: `The cost changes ${claims.spreadWords}` },
               { icon: 'tax', text: 'Each person displaced takes their income tax and NI with them' },
               { icon: 'poverty', text: claims.cheapText },
             ]}
