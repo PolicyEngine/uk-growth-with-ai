@@ -27,7 +27,8 @@ import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 const M = D.method;
 // The model year and status come from aiStudy2425.json once it carries them
 const MODEL_YEAR = AI_STUDY.modelYear ? (/^FY/.test(AI_STUDY.modelYear) ? AI_STUDY.modelYear : `FY ${AI_STUDY.modelYear}`) : PART3_YEAR;
-const STATUS = AI_STUDY.status;
+// a status chip only while the study is provisional; once merged, the line says so
+const STATUS = AI_STUDY.provisional ? 'Provisional' : AI_STUDY.merged ? `Merged${AI_STUDY.mergedDay ? ` ${AI_STUDY.mergedDay}` : ''}, at ${AI_STUDY.commit.slice(0, 7)}` : null;
 // Every published source this page names, linked
 const L = {
   frs: ['Family Resources Survey', 'https://www.gov.uk/government/collections/family-resources-survey--2'],
@@ -99,7 +100,7 @@ export default function HouseholdsMethod() {
           </p>
           {STATUS ? (
             <p className="notice-chip">
-              <IconText icon="provisional">{STATUS.charAt(0).toUpperCase() + STATUS.slice(1)}</IconText>
+              <IconText icon={AI_STUDY.provisional ? 'provisional' : 'version'}>{STATUS}</IconText>
             </p>
           ) : null}
         </header>
@@ -348,7 +349,7 @@ export default function HouseholdsMethod() {
           </p>
           <ul className="p3-close-links">
             <li>
-              <a href={PAPER_URL} target="_blank" rel="noreferrer">
+              <a href={AI_STUDY.paperUrl ?? PAPER_URL} target="_blank" rel="noreferrer">
                 <Icon name="arrowRight" size={16} strokeWidth={2} /> The paper (PDF)
               </a>
             </li>

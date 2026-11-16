@@ -9,7 +9,7 @@ import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import CHANGELOG from '@/data/site-changelog.json';
 import MF from '@/data/methodFacts.json';
-import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
@@ -371,7 +371,8 @@ function Vintages() {
           className="mx-foot-items"
           items={[
             AI_FULL_RERUN === false ? { icon: 'caveat', text: 'uk-ai-study: the manifest attests results without a clean-room rerun.' } : null,
-            { icon: 'provisional', text: 'Its wage-cut, take-up and OBR-sized results sit outside that rebuild.' },
+            // results outside the attested rebuild, as the data file lists them
+            AI_STUDY.outsideRebuild?.length ? { icon: 'provisional', text: `Outside that rebuild: ${AI_STUDY.outsideRebuild.join(', ')}.` } : null,
           ].filter(Boolean)}
         />
       </InfoCard>
