@@ -176,7 +176,8 @@ function Limitations() {
       title: 'Imposed technology paths',
       points: [
         { icon: 'scenario', text: 'The paths are imposed: derived from OBR and IMF figures, not estimated.' },
-        { icon: 'ai', text: <>Adoption and diffusion sit in the &gamma; and Z ramps; new tasks are not modelled.</> },
+        { icon: 'ai', text: <>Adoption and diffusion sit in the &gamma; and Z ramps.</> },
+        { icon: 'excluded', text: 'New tasks are not modelled.' },
       ],
     },
     {
@@ -185,8 +186,8 @@ function Limitations() {
       points: [
         { icon: 'timing', text: `Capital has three years to respond by ${HEADLINE_YEAR}.` },
         { icon: 'foreign', text: 'Foreign inflows are capped.' },
-        { icon: 'compare', text: 'Implied capital-supply elasticity at year 4: below the lowest case in one table.' },
-        { icon: 'source', text: <>That table: {cite('korinekT5')}.</> },
+        { icon: 'compare', text: 'Implied year-4 capital-supply elasticity: below the lowest case in:' },
+        { icon: 'source', text: <>{cite('korinekT5')}.</> },
         { icon: 'capital', text: <>It rises towards the steady state as saving builds ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
       ],
     },
@@ -515,7 +516,8 @@ export default function MethodTab() {
                   { icon: 'interest', text: 'All model debt is one-year: a rate rise reprices the whole stock.' },
                   { icon: 'finances', text: 'UK gilts reprice more slowly.' },
                   { icon: 'limit', text: <>So the model overstates the rise in debt/GDP after {HEADLINE_YEAR}.</> },
-                  { icon: 'check', text: <>Repriced at the speed of the OBR&rsquo;s debt interest ready reckoner ({cite('efoOct')}): {ext(pr(43), 'PR #43')}.</> },
+                  { icon: 'check', text: <>Repriced at the OBR&rsquo;s ready-reckoner speed: {ext(pr(43), 'PR #43')}.</> },
+                  { icon: 'source', text: <>That speed: {cite('efoOct')}.</> },
                 ]}
               />
             </InfoCard>

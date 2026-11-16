@@ -117,7 +117,7 @@ export default function ScenarioMap({ caption = true }) {
       <ul className="mx-map-read">
         <li>
           <span data-icon="" className="mx-key is-range" aria-hidden="true" />
-          <span>The line joins the UK scenarios; each pair is derived from OBR and IMF figures.</span>
+          <span>The line joins the UK scenarios, derived from OBR and IMF figures.</span>
         </li>
         <li>
           <span data-icon="" className="mx-key" aria-hidden="true" />
