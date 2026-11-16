@@ -36,7 +36,7 @@ export default function AnswerStrip({ a }) {
           ))}
           {a.closed ? (
             <li className="ex-chip is-note" data-chip="closed">
-              <I c="closedCapital" />
+              <I c="closed" />
               <span>
                 {a.closed.values.map((x, i) => (
                   <Dir key={i} x={x} />

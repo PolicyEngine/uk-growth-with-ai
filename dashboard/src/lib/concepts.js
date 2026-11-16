@@ -29,7 +29,7 @@ export const CONCEPT_ICON = {
   // people
   households: 'users',
   jobLoss: 'userMinus', // employees assumed displaced
-  jobKeep: 'userCheck', // those who keep their jobs
+  jobKeep: 'idCard', // those who keep their jobs
   age: 'hourglass', // birth year, cohorts
   poverty: 'home', // poverty measures
   inequality: 'pie', // Gini, how income is shared
@@ -93,21 +93,21 @@ export const CONCEPT_ICON = {
   // selfEmployed: uses `business`
   occupations: 'layoutGrid', // occupation groups
   // explore:
-  consumption: 'cart', // household consumption, spending
-  investment: 'construction', // new investment
-  interestRate: 'percent', // the interest rate, the return on capital
-  welfare: 'usersRound', // who gains: welfare by cohort and earnings group
-  lifetimeEarnings: 'coins', // lifetime-earnings groups
-  bequests: 'package', // bequests, assets passed on
-  leisure: 'play', // leisure, hours not worked
-  young: 'baby', // the youngest adults
-  closedCapital: 'lock', // closed capital: no new capital from abroad
-  cells: 'layoutGrid', // every scenario x closure x rule cell
-  policy: 'handshake', // a policy response
-  homeOwner: 'building', // owner-occupiers
-  reading: 'help', // how to read a chart
-  roughScale: 'calculator', // a rough scaling, not a model run
-  defaultRule: 'flag', // the default choice
+  consumption: 'basket', // household consumption, spending
+  investment: 'boxes', // new investment
+  // interestRate: uses `interest`
+  welfare: 'heartPulse', // who gains: welfare by cohort and earnings group
+  lifetimeEarnings: 'gem', // lifetime-earnings groups
+  bequests: 'gift', // bequests, assets passed on
+  leisure: 'sun', // leisure, hours not worked
+  young: 'sprout', // the youngest adults
+  // closedCapital: uses `closed`
+  cells: 'grid3', // every scenario x closure x rule cell
+  policy: 'clipboard', // a policy response
+  homeOwner: 'door', // owner-occupiers
+  reading: 'bookText', // how to read a chart
+  // roughScale: uses `arithmetic`
+  defaultRule: 'pin', // the default choice
   // method:
   equation: 'sigma', // the model's equations
   closed: 'lock', // closed capital: no foreign capital

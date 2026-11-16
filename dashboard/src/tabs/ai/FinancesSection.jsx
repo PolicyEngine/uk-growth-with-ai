@@ -92,7 +92,7 @@ function DebtFinding({ p }) {
 function debtNotes(p) {
   if (!p || p.kind === 'dn') return null;
   return [
-    { key: 'reprice', icon: 'interestRate', text: 'The model reprices debt at the higher interest rate at once' },
+    { key: 'reprice', icon: 'interest', text: 'The model reprices debt at the higher interest rate at once' },
     p.obr != null ? { key: 'obr', icon: dirConcept(p.obr), text: `At the OBR’s repricing speed it ends ${side(p.obr)} the path` } : null,
   ].filter(Boolean);
 }
@@ -258,7 +258,7 @@ function TaxStrip({ model, uk, onChart }) {
         </span>
       </div>
       <p className="ex-roughchip">
-        <Icon name={iconFor('roughScale')} size={14} /> Rough scaling, not a model run
+        <Icon name={iconFor('arithmetic')} size={14} /> Rough scaling, not a model run
       </p>
     </div>
   );
@@ -286,7 +286,7 @@ function TaxGapCard({ sid, closure, rule }) {
             model == null
               ? null
               : { key: 'falls', icon: dirConcept(model), text: model < 0 ? 'So revenue falls too little as income shifts to profits' : 'So the model misses a revenue fall as income shifts to profits' },
-            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closedCapital', text: `With closed capital the ${HEADLINE_YEAR} sign is not reliable:` } : null,
+            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: `With closed capital the ${HEADLINE_YEAR} sign is not reliable:` } : null,
             closure !== 'central' && closedTax ? { key: 'closed2', icon: 'caveat', text: `tax/GDP ${closedTax}` } : null,
           ]}
         />
@@ -322,7 +322,7 @@ function TaxGapCard({ sid, closure, rule }) {
             items={[
               { key: 'rough', icon: 'limit', text: 'A rough scaling, not a model run' },
               { key: 'arm', icon: 'scenario', text: 'Automation + productivity, central closure only' },
-              { key: 'closed', icon: 'closedCapital', text: 'It does not show the model’s sign is right with closed capital' },
+              { key: 'closed', icon: 'closed', text: 'It does not show the model’s sign is right with closed capital' },
             ]}
           />
         ),
@@ -421,7 +421,7 @@ function RuleTable({ rule, sid, closure }) {
           <tbody key={cl}>
             {cls.length > 1 ? (
               <tr className="table-group">
-                <th colSpan={RULE_VARS.length + 1} scope="colgroup"><Lead c={cl === BOUND ? 'closedCapital' : 'foreign'}>{CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase())}</Lead></th>
+                <th colSpan={RULE_VARS.length + 1} scope="colgroup"><Lead c={cl === BOUND ? 'closed' : 'foreign'}>{CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase())}</Lead></th>
               </tr>
             ) : null}
             {ARMS.map((a) => (
@@ -637,7 +637,7 @@ export default function FinancesSection({ sid }) {
             caveats: (
               <Items
                 items={[
-                  { key: 'once', icon: 'interestRate', text: 'The model reprices all government debt at the new rate at once' },
+                  { key: 'once', icon: 'interest', text: 'The model reprices all government debt at the new rate at once' },
                   { key: 'obr', icon: 'timing', text: `At the OBR’s repricing speed: the ${LATE_YEAR} rise is ${REPRICE_RANGE[0].toFixed(0)}–${REPRICE_RANGE[1].toFixed(0)}% as large` },
                   { key: 'where', icon: 'range', text: 'Where debt/GDP ends above the path: every scenario, arm and closure' },
                   { key: 'stocks', icon: 'rule', text: `${LATE_YEAR} is the debt rule’s first year: only stocks are quoted` },

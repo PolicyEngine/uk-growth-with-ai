@@ -5,6 +5,7 @@ import {
   Briefcase, Building2, Info, TriangleAlert, Zap, Flag, Database, Package, GitBranch, Play, Repeat, LayoutGrid, Ruler, ExternalLink,
   List, Scissors, ChevronDown, X, Link2, HeartHandshake, Hourglass, ChartLine, Library, Compass, Table2, ListTree, PiggyBank, Baby,
   TrendingDown, Eye, Bot, Coins, PoundSterling, Activity, Lightbulb, UserMinus, UserCheck, HandCoins, Split, CircleHelp, EyeOff, Ban,
+  ShoppingBasket, Boxes, HeartPulse, Gem, Gift, Sun, Sprout, Grid3x3, ClipboardList, DoorOpen, BookOpenText, Pin, IdCard,
   Workflow, Equal, CalendarClock, Calculator, Network, Microscope, ArrowUpRight, ArrowDownRight, Sparkles,
 } from 'lucide-react';
 
@@ -22,6 +23,8 @@ const ICONS = {
   externalLink: ExternalLink, list: List, scissors: Scissors, chevronDown: ChevronDown, x: X, link: Link2,
   handshake: HeartHandshake, hourglass: Hourglass, lineChart: ChartLine, library: Library, compass: Compass, table: Table2,
   listTree: ListTree, piggy: PiggyBank, baby: Baby,
+  basket: ShoppingBasket, boxes: Boxes, heartPulse: HeartPulse, gem: Gem, gift: Gift, sun: Sun, sprout: Sprout,
+  grid3: Grid3x3, clipboard: ClipboardList, door: DoorOpen, bookText: BookOpenText, pin: Pin, idCard: IdCard,
   trendDown: TrendingDown, eye: Eye, bot: Bot, coins: Coins, pound: PoundSterling, activity: Activity, lightbulb: Lightbulb,
   userMinus: UserMinus, userCheck: UserCheck, handCoins: HandCoins, split: Split, help: CircleHelp, eyeOff: EyeOff, ban: Ban,
   workflow: Workflow, equal: Equal, calendarClock: CalendarClock, calculator: Calculator, network: Network,

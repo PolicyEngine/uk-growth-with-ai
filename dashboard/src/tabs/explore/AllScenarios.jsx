@@ -95,7 +95,7 @@ function Panel({ m, arm }) {
             {rows.map((x) => (
               <div key={x.key} className="as-row">
                 <span className="as-row-label">
-                  <Lead c={x.cl === 'zk0' ? 'closedCapital' : 'foreign'}>{clName(x.cl)}</Lead>
+                  <Lead c={x.cl === 'zk0' ? 'closed' : 'foreign'}>{clName(x.cl)}</Lead>
                 </span>
                 <div className="as-track">
                   <span className="as-zero" style={{ left: pct(0) }} aria-hidden="true" />

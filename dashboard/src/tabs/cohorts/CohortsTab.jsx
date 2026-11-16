@@ -254,7 +254,7 @@ export function whySigns(cl, rule, arm) {
 // The consumption card: a why chain whose every direction is the data's.
 export function consumptionChain(x) {
   return [
-    x.r == null ? null : { key: 'r', icon: 'interestRate', dir: x.r, text: `Return on capital ${x.r > 0 ? 'rises' : 'falls'}` },
+    x.r == null ? null : { key: 'r', icon: 'interest', dir: x.r, text: `Return on capital ${x.r > 0 ? 'rises' : 'falls'}` },
     x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Wage rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the path` },
     { key: 's', icon: 'households', text: `Households ${x.c0 < 0 ? 'save more' : 'spend more'} at first` },
     { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the path` },
@@ -359,7 +359,7 @@ function Why({ cl, rule, arm }) {
           items={[
             {
               key: 'rw',
-              icon: 'interestRate',
+              icon: 'interest',
               text: (
                 <>
                   {links.r ? (
@@ -484,7 +484,7 @@ function Why({ cl, rule, arm }) {
 }
 
 const CL_WORDS = { 'zk0.1': 'central closure', zk0: 'closed capital' };
-const CL_HEAD = { 'zk0.1': { icon: iconFor('foreign'), text: 'Central closure' }, zk0: { icon: iconFor('closedCapital'), text: 'Closed capital' } };
+const CL_HEAD = { 'zk0.1': { icon: iconFor('foreign'), text: 'Central closure' }, zk0: { icon: iconFor('closed'), text: 'Closed capital' } };
 
 export default function WhoGainsTab() {
   const { st, set } = useNav();
@@ -527,7 +527,7 @@ export default function WhoGainsTab() {
       </SectionHeading>
       <ul className="ex-mchips ex-who-chips">
         <li className="ex-mchip" title="Cohort paths are solved for UK central only, so the Scenario picker at the top is fixed on this page">
-          <Icon name={iconFor('closedCapital')} size={14} /> UK central only
+          <Icon name={iconFor('closed')} size={14} /> UK central only
         </li>
         <li className="ex-mchip">
           <Icon name={iconFor('timing')} size={14} /> {`AI arrives ${D.shock_year}, as a surprise`}
@@ -625,7 +625,7 @@ export default function WhoGainsTab() {
                   { key: 'wealth', icon: 'inequality', text: 'It spreads wealth more evenly than UK data' },
                   { key: 'beq', icon: 'bequests', text: 'It places a value on leaving bequests' },
                   { key: 'sens', icon: 'range', text: 'The share of adults who lose is sensitive to all three' },
-                  { key: 'assets', icon: 'interestRate', text: 'No asset prices: revaluing existing assets is left out' },
+                  { key: 'assets', icon: 'interest', text: 'No asset prices: revaluing existing assets is left out' },
                   { key: 'old', icon: 'age', text: 'So that is not in the gain to older adults' },
                   { key: 'fill', icon: 'young', text: `Born after 2011: up to ${c.fill_max_pp.toFixed(2)} percentage points from extending past 2085` },
                 ]}

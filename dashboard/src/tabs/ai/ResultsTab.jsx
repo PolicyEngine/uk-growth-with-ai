@@ -200,8 +200,8 @@ const ECONOMY = [
       { key: 'jobs', icon: 'excluded', text: 'No unemployment in the model: it is not a count of jobs' },
     ]} /> } },
   ] },
-  { group: 'Prices and shares', concept: 'interestRate', lede: 'What capital earns and how income is divided.', rows: [
-    { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interestRate', unit: 'pp', scale: 0.01, method: 'closures', about: { shows: READING, how: HOW, definitions: 'The return on capital, in percentage points.' } },
+  { group: 'Prices and shares', concept: 'interest', lede: 'What capital earns and how income is divided.', rows: [
+    { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interest', unit: 'pp', scale: 0.01, method: 'closures', about: { shows: READING, how: HOW, definitions: 'The return on capital, in percentage points.' } },
     { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', concept: 'inequality', unit: 'pp', method: 'shock', about: { shows: READING, how: <Items items={[
       { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
       { key: 'same', icon: 'compare', text: 'It is the same in every arm' },
