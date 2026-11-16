@@ -217,7 +217,7 @@ const ECONOMY = [
     { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { shows: READING, how: HOW, caveats: <Items items={[
       { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
       { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
-      { key: 'others', icon: 'foreign', text: 'Saving is not the only route: government and foreign owners take part' },
+      { key: 'others', icon: 'foreign', text: 'Common rule, central closure: government and foreign owners take part too' },
       C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the path through ${C_BELOW}` } : null,
     ]} /> } },
     { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {

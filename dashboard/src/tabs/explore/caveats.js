@@ -110,3 +110,15 @@ export function debtSidesByRule(sid, cl) {
   if (f != null) out.push({ key: 'fixed', side: side(f) });
   return out;
 }
+
+// What moves the late-year sign away from the common rule's: "the fiscal
+// rule", "the repricing speed" or both; null when every key gives one side.
+export function signHeading(sides) {
+  const c = sides.find((x) => x.key === 'common');
+  if (!c) return null;
+  const differ = sides.filter((x) => x.key !== 'common' && x.side !== c.side).map((x) => x.key);
+  if (!differ.length) return null;
+  const rule = differ.includes('fixed');
+  const speed = differ.includes('obr');
+  return rule && speed ? 'the fiscal rule and repricing speed' : rule ? 'the fiscal rule' : 'the repricing speed';
+}

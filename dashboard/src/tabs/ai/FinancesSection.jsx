@@ -19,7 +19,11 @@ import { Dir, dirConcept, Lead, sentenceItems } from '@/tabs/explore/direction.j
 import { ext } from '@/tabs/shared/ui.jsx';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
-import { debtDipIsDenominator, debtSidesByRule } from '@/tabs/explore/caveats.js';
+import { debtDipIsDenominator, debtSidesByRule, signHeading } from '@/tabs/explore/caveats.js';
+import AIS from '@/data/aiScenarios.json';
+
+// OG-UK's world interest rate, the run's closure settings (aiScenarios.json).
+const WORLD_RATE = AIS.assum?.closure?.world_int_rate_annual;
 import { ResultSources, methodLink } from '@/tabs/explore/sources.jsx';
 import NICS from '@/tabs/explore/nics2028.json';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
@@ -105,14 +109,15 @@ export function debtReviewItems(sid, closure, rule) {
   if (rule === 'dn') return [];
   const cl = closure === 'closed' ? BOUND : CENTRAL;
   const sides = debtSidesByRule(sid, cl);
-  const split = new Set(sides.map((x) => x.side)).size > 1;
+  const head = signHeading(sides);
+  const split = head != null;
   return [
     debtDipIsDenominator(sid, cl, rule) ? { key: 'dip', icon: 'gdp', text: `The ${SURPRISE_YEAR} dip is GDP rising on a debt stock already set` } : null,
-    split ? { key: 'sign', icon: 'rule', text: `Its ${LATE_YEAR} sign depends on the fiscal rule and repricing:` } : null,
-    split ? { key: 'sides', icon: 'compare', text: sides.map((x) => `${RULE_WORD[x.key].replace(/^./, (c) => c.toUpperCase())}: ${x.side}`).join('; ') } : null,
+    split ? { key: 'sign', icon: 'rule', text: `Its ${LATE_YEAR} sign depends on ${head}:` } : null,
+    split ? { key: 'sides', icon: 'compare', text: sides.map((x) => `${RULE_WORD[x.key]}: ${x.side}`).join('; ').replace(/^./, (c) => c.toUpperCase()) } : null,
     rule === 'common' ? { key: 'dividend', icon: 'gdp', text: 'Common rule: spending grows with GDP, so growth brings no dividend' } : null,
     { key: 'gilt', icon: 'interest', text: <>Gilt yields rise {ext(OG_RESULT_URLS.giltRate, 'one for one')} with the return on capital</> },
-    { key: 'world', icon: 'foreign', text: 'The world interest rate stays fixed at 2%' },
+    typeof WORLD_RATE === 'number' ? { key: 'world', icon: 'foreign', text: `The world interest rate stays fixed at ${Math.round(WORLD_RATE * 100)}%` } : null,
   ].filter(Boolean);
 }
 

@@ -77,7 +77,7 @@ export function rulesReviewWords(rules) {
   const u = rules.find((r) => r.id === 'uniform');
   const out = [];
   if (k && rules.every((r) => r.poverty_pp <= k.poverty_pp) && rules.every((r) => r.cost_bn <= k.cost_bn))
-    out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most', 'The study does not break that poverty rise down');
+    out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most', 'The study’s published extract does not break that rise down');
   if (u && u.cost_sd_bn >= 0.8 * u.cost_bn) out.push('Uniform: the cost’s spread across draws is about its mean');
   return out;
 }

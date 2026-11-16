@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import S from '@/data/surprise2028.json';
-import { wageByClosure, wageClosureLines, investmentFlags, isFlagged, I_FLAG_PCT, belowThrough, debtDipIsDenominator, debtSidesByRule } from '@/tabs/explore/caveats.js';
+import { signHeading, wageByClosure, wageClosureLines, investmentFlags, isFlagged, I_FLAG_PCT, belowThrough, debtDipIsDenominator, debtSidesByRule } from '@/tabs/explore/caveats.js';
 
 const Y = (y) => S.years.indexOf(y);
 
@@ -34,5 +34,9 @@ describe('economics review caveats, read from surprise2028.json', () => {
     const sides = debtSidesByRule('uk_central', 'zk0.1');
     expect(sides.map((x) => x.key)).toEqual(['common', 'obr', 'fixed']);
     expect(sides.map((x) => x.side)).toEqual(['above', 'above', 'below']);
+    // repricing does not flip UK central's sign; fixed spending does
+    expect(signHeading(sides)).toBe('the fiscal rule');
+    expect(signHeading([{ key: 'common', side: 'above' }, { key: 'obr', side: 'below' }])).toBe('the repricing speed');
+    expect(signHeading([{ key: 'common', side: 'above' }, { key: 'obr', side: 'above' }])).toBeNull();
   });
 });

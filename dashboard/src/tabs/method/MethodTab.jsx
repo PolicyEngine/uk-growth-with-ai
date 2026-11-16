@@ -194,7 +194,7 @@ function Limitations() {
       title: 'Slow capital response',
       points: [
         { icon: 'timing', text: `Capital has three years to respond by ${HEADLINE_YEAR}.` },
-        { icon: 'foreign', text: <>Proportional inflow: foreigners meet {pct(ZETA[CENTRAL], 0)} of {ext(DOC('red_flags_1_3.md'), 'excess capital demand')}.</> },
+        { icon: 'foreign', text: <>Proportional inflow: foreigners meet {pct(ZETA[CENTRAL], 0)} of {ext(URLS.ogCoreParams, 'excess capital demand')}.</> },
         FOREIGN_DK != null && FOREIGN_DK > 50 ? { icon: 'capital', text: `So foreigners supply most of UK central’s extra capital by ${HEADLINE_YEAR}.` } : null,
         { icon: 'compare', text: 'Implied year-4 capital-supply elasticity: below the lowest case in:' },
         { icon: 'source', text: <>{cite('korinekT5')}.</> },
