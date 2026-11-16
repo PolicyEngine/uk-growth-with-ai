@@ -67,6 +67,12 @@
   padding: 96px 0 8px;
   scroll-margin-top: calc(var(--sticky-offset) + 40px);
 }
+/* After a part that ends on its "Next" band, the band is the break: a
+   shorter run of page before the next part's band */
+.story-part:has(.story-next) + .story-part {
+  padding-top: 40px;
+}
+
 /* The part head sits on a full-bleed teal-50 band (box-shadow and
    clip-path widen the background to the viewport without a scrollbar),
    with a large part numeral: the story reads as chapters. */
@@ -768,7 +774,7 @@
 .tab-story .p3-figure .story-source a {
   padding-block: 5px;
 }
-.tab-story .p2-deeper a,
+.tab-story .story-next-links a,
 .tab-story .p3-close-links a,
 .tab-story .p3-close-link {
   padding-block: 2px;
