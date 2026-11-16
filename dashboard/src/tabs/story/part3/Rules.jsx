@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtPp } from './format.js';
-import { AxisTitle, D, DrawsChip, FigureHead, Fold, Key, MarkProvider, Num, NumMarker, Source, rule, Ico, entryClass, useBeat, asLines } from './shared.jsx';
+import { AxisTitle, D, FigureHead, Key, MarkProvider, Num, NumMarker, Source, rule, entryClass, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
 // Step 5, who loses the job: the cost under the four stylised displacement
@@ -15,16 +15,34 @@ import { Ref } from './sources.jsx';
 // Explore > Households.
 
 const ROWS = [
-  { id: 'uniform', icon: 'draws', label: 'Uniform: every employee equally likely' },
-  { id: 'junior', icon: 'age', label: 'Tilted towards workers aged 16 to 24, after ', ref: 'klein' },
-  { id: 'exposure', icon: 'ai', label: 'In proportion to AI exposure: the central case', same: true },
-  { id: 'compression', icon: 'pay', label: 'Expertise compression (the study’s rule, after ', close: '): exposed higher earners', ref: 'autor' },
+  { id: 'uniform', label: 'Uniform: every employee equally likely' },
+  {
+    id: 'junior',
+    label: 'Tilted towards workers aged 16 to 24, after ',
+    ref: 'klein',
+  },
+  {
+    id: 'exposure',
+    label: 'In proportion to AI exposure: the central case',
+    same: true,
+  },
+  {
+    id: 'compression',
+    label: 'Expertise compression (the study’s rule, after ',
+    close: '): exposed higher earners',
+    ref: 'autor',
+  },
 ];
 // Both panels start at zero: the finding is that cost differs about
 // fivefold across rules while the poverty rise hardly moves.
 const MAXC = Math.max(...ROWS.map((r) => rule(r.id).cost_bn)) * 1.12;
 const MAXP = Math.max(...ROWS.map((r) => rule(r.id).poverty_pp)) * 1.12;
-const NAME = { uniform: 'Uniform', junior: 'Junior-tilted', exposure: 'Exposure-based', compression: 'Expertise-compression' };
+const NAME = {
+  uniform: 'Uniform',
+  junior: 'Junior-tilted',
+  exposure: 'Exposure-based',
+  compression: 'Expertise-compression',
+};
 
 // The card's claims, from the data (part3.test.jsx).
 export function rulesClaims() {
@@ -71,7 +89,11 @@ function PovertyDot({ id, d, on }) {
       onBlur={() => setTip(false)}
       onKeyDown={(ev) => ev.key === 'Escape' && setTip(false)}
     >
-      {tip ? <span className="p3-tip" role="status">{fmtPp(d.poverty_pp)}</span> : null}
+      {tip ? (
+        <span className="p3-tip" role="status">
+          {fmtPp(d.poverty_pp)}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -79,26 +101,22 @@ function PovertyDot({ id, d, on }) {
 // The dots slide in from zero along their axes on entry (positions only;
 // each cost value fades in once its dot lands).
 function RulesFigure({ ctx }) {
-  const e = useBeat(ctx?.entered ?? true);
+  const { attach, ...e } = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')}>
+    <figure ref={attach} className={entryClass(e, 'p3-figure p3-scene')}>
       <FigureHead
         icon="scenario"
         title="Who is displaced: cost, and the poverty rise"
         x="Rule for who is displaced"
-        unit={
-          <>
-            Both axes from zero <DrawsChip>{rule('uniform').draws} paired draws per rule</DrawsChip>
-          </>
-        }
+        unit={`Both axes from zero. ${rule('uniform').draws} paired draws per rule`}
         replay={e.replay}
       />
       <div className="p3-dp-heads">
         <span>
-          <NumMarker n={1} /> <Ico c="cost" size={12} /> <AxisTitle axis="y">Cost, £bn a year</AxisTitle>
+          <AxisTitle axis="y">Cost, £bn a year</AxisTitle>
         </span>
         <span>
-          <NumMarker n={2} /> <Ico c="poverty" size={12} /> <AxisTitle axis="y">Absolute poverty, change, percentage points</AxisTitle>
+          <AxisTitle axis="y">Absolute poverty, change, percentage points</AxisTitle>
         </span>
       </div>
       <ol className="p3-dp">
@@ -107,7 +125,7 @@ function RulesFigure({ ctx }) {
           return (
             <li key={r.id} className="p3-dp-row" data-row={r.id} style={{ '--beat': `${i * 120}ms` }}>
               <span className="p3-row-label">
-                {r.id === CLAIMS.cheapest && r.id !== 'exposure' ? <NumMarker n={3} /> : null} <Ico c={r.icon} /> {r.label}
+                {r.id === CLAIMS.cheapest && r.id !== 'exposure' ? <NumMarker n={1} /> : null} {r.label}
                 {r.ref ? <Ref id={r.ref} /> : null}
                 {r.close ?? null}
               </span>
@@ -123,8 +141,7 @@ function RulesFigure({ ctx }) {
           );
         })}
       </ol>
-      <p className="p3-key p3-iconed">
-        <Ico c="link" size={12} />
+      <p className="p3-key">
         <NavLink tab="explore" sub="households" anchor="hh-rules">
           Poverty values by rule, and a top-loaded stress test
         </NavLink>
@@ -156,7 +173,7 @@ function cheapSentence() {
   const [, ...rest] = c.cheapText.split(' ');
   return (
     <>
-      <Num n={3} mark={c.cheapest} /> <Key id={c.cheapest}>{NAME[c.cheapest]}</Key> {rest.join(' ').replace('the central case', '')}
+      <Num n={1} mark={c.cheapest} /> <Key id={c.cheapest}>{NAME[c.cheapest]}</Key> {rest.join(' ').replace('the central case', '')}
       <Key id="exposure">the central case</Key>
     </>
   );
@@ -165,12 +182,11 @@ function cheapSentence() {
 export const RULE_STEPS = [
   {
     id: 'p3-rules-step',
-    kicker: 'Step 5 · Who loses the job',
     icon: 'cost',
     highlight: ['cost', 'poverty'],
     title: (
       <>
-        The rule moves the cost <Num n={1} mark="cost" /> {CLAIMS.spreadWords}, the poverty rise <Num n={2} mark="poverty" /> {CLAIMS.costFar ? 'far less' : 'too'}
+        The rule moves the cost {CLAIMS.spreadWords}, the poverty rise {CLAIMS.costFar ? 'far less' : 'too'}
       </>
     ),
   },
@@ -179,30 +195,31 @@ export const RULE_STEPS = [
     icon: 'scenario',
     highlight: [CLAIMS.cheapest, 'exposure'],
     title: cheapSentence(),
-    body: (
-      <Fold
-        groups={[
-          { label: 'Definitions', items: ['Each rule moves the same expected number of job losses between groups; every other wage and capital-income change is the same'] },
-          {
-            label: 'Finding',
-            items: [
-              'Each person displaced takes their income tax and NI with them',
-              'Two routes to the poverty gap, not separated by the draws: more job losses in lower-income households, or more sole earners displaced',
-            ],
-          },
-        ]}
-      />
-    ),
   },
 ];
 
 // The rules, for the colour-keyed words: the cost dot's ink.
-const RULE_MARKS = Object.fromEntries(ROWS.map((r) => [r.id, { color: 'var(--pe-gray-800)', shape: r.same ? 'none' : 'circle', label: NAME[r.id] }]));
+const RULE_MARKS = Object.fromEntries(
+  ROWS.map((r) => [
+    r.id,
+    {
+      color: 'var(--pe-gray-800)',
+      shape: r.same ? 'none' : 'circle',
+      label: NAME[r.id],
+    },
+  ]),
+);
 
 export default function Rules() {
   return (
     <MarkProvider marks={RULE_MARKS}>
-      <Scrolly id="p3-rules" sub={rulesSub()} steps={asLines(RULE_STEPS)} graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />} label="Cost to the public finances under four rules for who is displaced" />
+      <Scrolly
+        id="p3-rules"
+        sub={rulesSub()}
+        steps={asLines(RULE_STEPS)}
+        graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />}
+        label="Cost to the public finances under four rules for who is displaced"
+      />
     </MarkProvider>
   );
 }

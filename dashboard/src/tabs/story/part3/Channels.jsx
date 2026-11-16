@@ -1,32 +1,43 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { iconFor } from '@/lib/concepts.js';
-import { fmtBn, fmtBn2 } from './format.js';
-import { D, DrawsChip, FigureHead, Fold, Ico, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
+import { NavLink } from '@/lib/nav.jsx';
+import { fmtBn, fmtBn2, fmtInputPct, fmtPct1 } from './format.js';
+import { D, FigureHead, InputFig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
+import { RETURN_BASE, RETURN_PP } from './Central.jsx';
+import { Ref } from './sources.jsx';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
 // sum; a positive value is a cost to the Exchequer, a negative one a gain.
+// The central cost is a residual of these larger flows: the figure's labels
+// quote the two assumed gains (inputs), and its notes say, once, how the
+// capital gain is built and that dividend tax is counted but corporation tax
+// is not.
+const M = D.method;
 
 const C = D.channels;
 const row = (id) => C.rows.find((r) => r.id === id);
 const ROWS = [
   {
     id: 'displacement',
-    icon: 'jobLoss',
     label: 'Job loss: less tax and NI, more benefits',
   },
   {
     id: 'wage',
-    icon: 'pay',
-    label: 'Higher wages for those who keep their jobs',
+    label: (
+      <>
+        Pay <InputFig path="method.survivor_wage_pct">+{fmtInputPct(M.survivor_wage_pct)}</InputFig> for those still employed
+      </>
+    ),
   },
   {
     id: 'capital',
-    icon: 'capital',
-    label: 'Higher interest and dividend income',
+    label: (
+      <>
+        Interest and dividends <InputFig path="method.capital_uplift_pct">+{fmtPct1(M.capital_uplift_pct)}</InputFig>
+      </>
+    ),
   },
 ];
 // A channel's fill and words follow its sign: positive is a cost to the
@@ -48,7 +59,6 @@ export function waterfall() {
   }
   bars.push({
     id: 'sum',
-    icon: 'arithmetic',
     label: 'Sum of the three runs',
     value: C.sum_bn,
     from: 0,
@@ -64,15 +74,15 @@ const HI = Math.max(0, ...ENDS) * 1.05;
 const X = (v) => ((v - LO) / (HI - LO)) * 100;
 
 function ChannelsFigure({ ctx }) {
-  const e = useBeat(ctx?.entered ?? true);
+  const { attach, ...e } = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, `p3-figure p3-scene`)}>
+    <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead
         icon="arithmetic"
         title="The central cost nets three flows"
-        y="Cost to the public finances, £bn a year"
+        y="Cost to the public finances, £bn a year; right of zero a cost"
         x="each channel run alone, then their sum"
-        unit={<DrawsChip>{C.draws} paired draws</DrawsChip>}
+        unit={`${C.draws} paired draws`}
         replay={e.replay}
       />
       <ol className="p3-rows p3-wf">
@@ -85,7 +95,7 @@ function ChannelsFigure({ ctx }) {
           return (
             <li key={b.id} {...m} data-row={b.id} style={{ '--beat': `${i * 600}ms` }}>
               <span className="p3-row-label p3-row-label-icon">
-                <NumMarker n={i + 1} /> <Icon name={iconFor(b.icon)} size={14} /> {b.label}
+                {b.sum ? null : <NumMarker n={i + 1} />} {b.label}
               </span>{' '}
               <span className="p3-row-bar">
                 <svg className="p3-bar p3-wf-svg" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
@@ -109,12 +119,17 @@ function ChannelsFigure({ ctx }) {
           );
         })}
       </ol>
-      {/* the reading guide (the card interprets) and the one figure of the sum's gap */}
-      <p className="p3-key p3-iconed">
-        <Ico c="cost" size={12} /> Right of zero: a cost to the public finances; left: higher net receipts
+      <p className="p3-key">The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run.</p>
+      <p className="p3-key">
+        Both gains are assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref>. The capital gain is a return <span data-input="">{RETURN_PP}</span> points higher on a{' '}
+        <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included.
       </p>
-      <p className="p3-key p3-iconed">
-        <Ico c="arithmetic" size={12} /> The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run
+      <p className="p3-key">
+        Tax on the higher dividends is counted (
+        <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
+          Explore, households
+        </NavLink>
+        ); corporation tax on the profits behind them is not.
       </p>
       <Source files={[C.file, D.per_pound_20.job_loss.file]}>channel split, seeds 0 to 19</Source>
     </figure>
@@ -142,22 +157,21 @@ function risesSentence() {
   const both = w === c ? w.replace('raises', 'raise').replace('costs', 'cost').replace('leaves', 'leave') : null;
   return (
     <>
-      <Num n={2} mark="wage" /> Assumed <Key id="wage">higher pay</Key> and <Num n={3} mark="capital" /> <Key id="capital">capital income</Key> {both ?? `: ${w}; ${c}`}, leaving{' '}
-      {bigger ? 'a far smaller cost' : 'the net cost'} <Num n={4} mark="sum" />
+      Assumed <Num n={2} mark="wage" /> <Key id="wage">higher pay</Key> and <Num n={3} mark="capital" /> <Key id="capital">capital income</Key> {both ?? `: ${w}; ${c}`}, leaving{' '}
+      {bigger ? 'a far smaller cost' : 'the net cost'}
     </>
   );
 }
 
-// Two steps, each one sentence about the marks it highlights.
+// Two steps, each one sentence about the marks it highlights; no folds.
 export const CHANNEL_STEPS = [
   {
     id: 'p3-channels-step',
-    kicker: 'Step 2 · Three channels',
     icon: 'jobLoss',
     highlight: ['displacement'],
     title: (
       <>
-        <Num n={1} mark="displacement" /> <Key id="displacement">Job loss</Key> alone {effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits
+        <Key id="displacement">Job loss</Key> alone {effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits
       </>
     ),
   },
@@ -166,24 +180,6 @@ export const CHANNEL_STEPS = [
     icon: 'arithmetic',
     highlight: ['wage', 'capital', 'sum'],
     title: risesSentence(),
-    body: (
-      <Fold
-        groups={[
-          {
-            label: 'Definitions',
-            items: ['Each channel is run alone on the same draws; capital income does not depend on who is displaced, so it is one run'],
-          },
-          {
-            label: 'See also',
-            items: [
-              <>
-                The central cost on three bases, which differ only by draws: <a href="#p3-central-step">50 draws</a>, <a href="#p3-margin-step">20 paired draws</a>, and this sum
-              </>,
-            ],
-          },
-        ]}
-      />
-    ),
   },
 ];
 
@@ -194,7 +190,7 @@ const CHANNEL_MARKS = Object.fromEntries(
     {
       color: b.sum ? 'var(--pe-gray-800)' : b.value > 0 ? 'var(--c-loss)' : 'var(--c-gain)',
       shape: 'square',
-      label: b.label,
+      label: typeof b.label === 'string' ? b.label : b.id === 'wage' ? 'Higher pay' : 'Higher capital income',
     },
   ]),
 );

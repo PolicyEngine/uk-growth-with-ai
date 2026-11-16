@@ -3,9 +3,6 @@
    (GrowRect, TileGrid, Reveal) in story.css. */
 
 /* The opening call-out ("A different model"): components/story/Callout */
-#story-part-3 .p3-model {
-  margin: 8px 0 24px;
-}
 
 /* Figures */
 .p3-figure {
@@ -75,8 +72,7 @@
   row-gap: 2px;
   align-items: center;
 }
-.p3-rows-2col .p3-row,
-.p3-cols {
+.p3-rows-2col .p3-row {
   grid-template-columns: minmax(0, 1fr) 4.5em 4.5em;
 }
 .p3-row-label {
@@ -108,14 +104,10 @@
 }
 .p3-dim svg,
 .p3-dim .p3-be-track,
-.p3-dim .p3-ladder-dot,
-.p3-dim .p3-ladder-arrow,
-.p3-dim .p3-ladder-ghost,
 .p3-dim .story-item-icon,
 svg.p3-dim {
   opacity: 0.4;
 }
-.p3-dim .p3-ladder-val,
 .p3-dim .p3-switch button,
 .p3-dim .p3-switch button.is-on {
   color: var(--pe-gray-600);
@@ -132,14 +124,7 @@ svg.p3-dim {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.p3-cols {
-  display: grid;
-  column-gap: 10px;
-  margin-bottom: 4px;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-500);
-  text-align: right;
-}
+
 .p3-group-head {
   margin: 16px 0 8px;
   padding-top: 10px;
@@ -296,7 +281,6 @@ svg.p3-dim {
   text-underline-offset: 2px;
 }
 
-
 /* Block 6: deciles, one line each */
 .p3-deciles {
   gap: 6px;
@@ -321,7 +305,6 @@ svg.p3-dim {
   color: var(--pe-gray-600);
 }
 
-
 /* Step 1: the baseline beside each rise */
 .p3-stat-base {
   font-size: var(--fs-caption);
@@ -329,72 +312,11 @@ svg.p3-dim {
 }
 
 /* The chip for results outside the study's attested rebuild */
-.p3-chip {
-  display: inline-block;
-  padding: 3px 8px;
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--c-notice-text);
-  background: var(--c-notice-bg);
-  border-radius: 6px;
-}
 
 /* The story's flag for runs outside the attested rebuild (shared.jsx
    OutsideRebuildFlag): small, inline, a plain icon, no fill */
-.p3-flag {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 6px 0 8px;
-  font-size: var(--fs-caption);
-  line-height: 1.4;
-  color: var(--pe-gray-600);
-}
-.p3-flag .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
 
 /* "About these figures": a step card's folded caveats (shared.jsx About) */
-.p3-about {
-  margin-top: 10px;
-  font-size: var(--fs-small);
-  line-height: 1.55;
-  color: var(--pe-gray-700);
-}
-.p3-about > summary {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  min-height: 24px;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-  color: var(--pe-gray-600);
-  cursor: pointer;
-  list-style: none;
-}
-.p3-about > summary::-webkit-details-marker {
-  display: none;
-}
-.p3-about > summary::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg);
-}
-.p3-about[open] > summary::before {
-  transform: rotate(45deg);
-}
-.p3-about > summary:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 2px;
-}
-.p3-about p {
-  margin: 6px 0 0;
-}
 
 /* Step 2: the net row */
 .p3-row-total {
@@ -419,15 +341,9 @@ svg.p3-dim {
   display: grid;
   gap: 2px;
 }
-.p3-group-first {
-  margin-top: 4px;
-  padding-top: 0;
-  border-top: 0;
-}
 
 /* Step 7: break-even rows */
-.p3-be-row,
-.p3-cols-be {
+.p3-be-row {
   grid-template-columns: minmax(0, 1fr) 5.5em 1.4em 6em;
 }
 .p3-be-row .p3-row-value-2 {
@@ -497,8 +413,7 @@ svg.p3-dim {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px 18px;
 }
-#story-part-3 .p3-ico,
-.story-close .lens-ico {
+#story-part-3 .p3-ico {
   display: inline-flex;
   margin-right: 6px;
   vertical-align: -2px;
@@ -508,9 +423,7 @@ svg.p3-dim {
   vertical-align: -3px;
   color: var(--c-highlight);
 }
-#story-part-3 .p3-about > summary .p3-ico {
-  margin-right: 0;
-}
+
 #story-part-3 .story-next-links .p3-ico,
 #story-part-3 .p3-row-label a .p3-ico {
   color: inherit;
@@ -522,16 +435,7 @@ svg.p3-dim {
 #story-part-3 .p3-facts .story-fact {
   align-content: start;
 }
-#story-part-3 .p3-fact-flag {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  color: var(--pe-gray-600);
-}
-#story-part-3 .p3-fact-flag .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
+
 #story-part-3 .p3-facts .story-fact-value {
   font-size: var(--fs-xl);
 }
@@ -539,16 +443,7 @@ svg.p3-dim {
 #story-part-3 .p3-facts .story-fact-sub {
   font-size: var(--fs-caption);
 }
-#story-part-3 .p3-key-items {
-  gap: 4px;
-  margin: 10px 0 0;
-  font-size: var(--fs-caption);
-  line-height: 1.45;
-  color: var(--pe-gray-600);
-}
-#story-part-3 .p3-key-items .story-item-icon {
-  margin-top: 1px;
-}
+
 #story-part-3 .p3-key-head {
   font-weight: 600;
   color: var(--pe-gray-600);
@@ -581,10 +476,7 @@ svg.p3-dim {
   font-variant-numeric: tabular-nums;
   color: var(--pe-gray-800);
 }
-#story-part-3 .p3-about .story-items {
-  margin-top: 6px;
-  gap: 6px;
-}
+
 #story-part-3 .story-callout .story-items {
   gap: 4px;
 }
@@ -602,79 +494,13 @@ svg.p3-dim {
 }
 /* step 8: a framing chip, then the icon grid of what is left out; a tile's
    detail line shows on hover, focus or tap (.is-open) */
-#story-part-3 .p3-chip-frame {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  margin: 0 0 12px;
-  padding: 3px 10px;
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  color: var(--pe-gray-700);
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-}
-#story-part-3 .p3-chip-frame .p3-ico {
-  margin-right: 0;
-}
-#story-part-3 .p3-out-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0 0 8px;
-  padding: 0;
-  list-style: none;
-}
-#story-part-3 .p3-out-btn {
-  display: grid;
-  gap: 6px;
-  justify-items: start;
-  width: 100%;
-  height: 100%;
-  align-content: start;
-  min-height: 0;
-  padding: 10px 12px;
-  font: inherit;
-  text-align: left;
-  color: var(--pe-gray-800);
-  background: transparent;
-  border: 1px solid var(--card-border);
-  border-radius: var(--pe-radius-md, 8px);
-}
-#story-part-3 .p3-out-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-#story-part-3 .p3-out-label {
-  font-size: var(--fs-small);
-  font-weight: 600;
-  line-height: 1.3;
-}
-#story-part-3 .p3-out-detail {
-  font-size: var(--fs-caption);
-  line-height: 1.4;
-  color: var(--pe-gray-600);
-}
-@media (max-width: 600px) {
-  #story-part-3 .p3-out-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
+
 @media (max-width: 900px) {
   #story-part-3 .p3-facts .story-fact {
-  align-content: start;
-}
-#story-part-3 .p3-fact-flag {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  color: var(--pe-gray-600);
-}
-#story-part-3 .p3-fact-flag .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-#story-part-3 .p3-facts .story-fact-value {
+    align-content: start;
+  }
+
+  #story-part-3 .p3-facts .story-fact-value {
     font-size: var(--fs-section);
   }
 }
@@ -1019,114 +845,11 @@ svg.p3-dim {
   grid-column: 1 / -1;
 }
 /* the lenses: "It can say" / "It cannot say", each over short icon items */
-.story-close .lens-say {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 14px 0 6px;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-  color: var(--pe-gray-600);
-}
-.story-close .lens-say .plain-icon {
-  display: inline-flex;
-  color: var(--c-highlight);
-}
-.story-close .lens .story-items {
-  gap: 5px;
-  font-size: var(--fs-small);
-  color: var(--pe-gray-700);
-}
-.story-close .lens-h-ico {
-  vertical-align: -4px;
-  color: var(--c-highlight);
-}
+
 /* the two columns: a divider between them; each slides in from its side
    (the framework's .reveal transition; reduced motion: no motion) */
-.story-close .lens-grid-split {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 0 16px;
-}
-.story-close .lens-divider {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  color: var(--pe-gray-400);
-}
-.story-close .lens-divider::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  border-left: 1px solid var(--pe-gray-300);
-}
-.story-close .lens-divider .plain-icon {
-  position: relative;
-  display: inline-flex;
-  padding: 6px 0;
-  background: var(--page-bg);
-}
-.story-close .lens.lens-from-left {
-  transform: translateX(-24px);
-}
-.story-close .lens.lens-from-right {
-  transform: translateX(24px);
-}
+
 /* the divider draws first, then the columns slide in */
-.story-close .lens-divider::before {
-  transform: scaleY(0);
-  transform-origin: top center;
-  transition: transform 400ms var(--story-ease);
-}
-.story-close .lens-grid-split.is-in .lens-divider::before {
-  transform: none;
-}
-.story-close .lens-grid-split .lens.reveal {
-  transition-delay: 300ms;
-}
-.story-close .lens.reveal.is-in {
-  transform: none;
-}
-.story-close .lens-links a .lens-ico {
-  margin-right: 4px;
-  color: inherit;
-}
-@media (max-width: 599px) {
-  .story-close .lens-grid-split {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-  .story-close .lens-divider {
-    width: auto;
-    height: 36px;
-  }
-  .story-close .lens-divider::before {
-    top: 50%;
-    bottom: auto;
-    left: 0;
-    right: 0;
-    border-left: 0;
-    border-top: 1px solid var(--pe-gray-300);
-  }
-  .story-close .lens-divider .plain-icon {
-    padding: 0 8px;
-  }
-}
-@media (max-width: 900px) and (min-width: 600px) {
-  .story-close .lens-grid-split {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .story-close .lens.lens-from-left,
-  .story-close .lens.lens-from-right,
-  .story-close .lens-divider::before {
-    transform: none;
-  }
-}
 
 /* ---- Wave 2 scenes (part3/*.jsx): entry beats, Replay, scene heads ---- */
 
@@ -1186,9 +909,7 @@ svg.p3-dim {
   .p3-wf-bar,
   .p3-dp-row,
   .p3-db-link,
-  .p3-ladder-arrow,
-  .p3-sankey .sankey-node,
-  .story-close .lens-divider::before {
+  .p3-sankey .sankey-node {
     transform: none !important;
   }
   .p3-sankey .sankey-link {
@@ -1201,20 +922,17 @@ svg.p3-dim {
   border-top: 1px solid var(--card-border);
   font-size: var(--fs-small);
 }
-@media (max-width: 599px) {
-  #story-part-3 .p3-central-tiles {
-    display: none;
-  }
-}
+/* phones keep the tile grid: the peel-out plays at every width */
 
 /* entry rows: a 12px slide and fade, staggered by --beat */
 .p3-wf-row .p3-row-value,
 .p3-wf-row .p3-row-label,
 .p3-dp-row,
-.p3-ladder-val,
 .p3-db-val {
   opacity: 0;
-  transition: opacity 300ms var(--story-ease) var(--beat, 0ms), transform 300ms var(--story-ease) var(--beat, 0ms);
+  transition:
+    opacity 300ms var(--story-ease) var(--beat, 0ms),
+    transform 300ms var(--story-ease) var(--beat, 0ms);
 }
 .p3-dp-row {
   transform: translateY(12px);
@@ -1253,11 +971,6 @@ svg.p3-dim {
   opacity: 1;
 }
 
-.p3-key-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 18px;
-}
 /* wide: the card's items as a strip above, the Sankey full width below */
 #p3-absorb.scrolly {
   grid-template-columns: minmax(0, 1fr);
@@ -1280,7 +993,9 @@ svg.p3-dim {
 /* 3-4: deciles; the largest fall is highlighted once the bars land */
 .p3-dec.is-worst .p3-dec-label,
 .p3-dec.is-worst .p3-row-value {
-  transition: color 300ms ease 900ms, font-weight 0ms linear 900ms;
+  transition:
+    color 300ms ease 900ms,
+    font-weight 0ms linear 900ms;
 }
 .p3-scene.is-on .p3-dec.is-worst .p3-dec-label {
   font-weight: 700;
@@ -1318,8 +1033,7 @@ svg.p3-dim {
 }
 .p3-dp-track,
 .p3-db-track,
-.p3-be-track,
-.p3-ladder-track {
+.p3-be-track {
   position: relative;
   display: block;
   height: 20px;
@@ -1327,8 +1041,7 @@ svg.p3-dim {
 }
 .p3-dp-track::before,
 .p3-db-track::before,
-.p3-be-track::before,
-.p3-ladder-track::before {
+.p3-be-track::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -1337,8 +1050,7 @@ svg.p3-dim {
   border-top: 1px dotted var(--pe-gray-300);
 }
 .p3-dot,
-.p3-db-dot,
-.p3-ladder-dot {
+.p3-db-dot {
   position: absolute;
   top: 50%;
   width: 11px;
@@ -1352,8 +1064,7 @@ svg.p3-dim {
   background: var(--c-loss);
   cursor: default;
 }
-.p3-dot.is-ring,
-.p3-ladder-dot.is-ring {
+.p3-dot.is-ring {
   background: var(--pe-surface);
   border: 2px solid var(--pe-gray-500);
 }
@@ -1538,11 +1249,7 @@ svg.p3-dim {
 }
 
 /* 3-7: break-even tracks, the switch, the take-up ladder */
-.p3-be-head {
-  display: flex;
-  justify-content: flex-end;
-  margin: 2px 0 4px;
-}
+
 .p3-switch {
   display: inline-flex;
   padding: 2px;
@@ -1570,8 +1277,7 @@ svg.p3-dim {
   outline: 2px solid var(--c-highlight);
   outline-offset: 1px;
 }
-.p3-be-tracks,
-.p3-ladder {
+.p3-be-tracks {
   display: grid;
   gap: 12px;
   margin: 0 0 10px;
@@ -1588,16 +1294,7 @@ svg.p3-dim {
   grid-column: 1 / -1;
   margin-bottom: 2px;
 }
-.p3-basis {
-  white-space: nowrap;
-  margin-left: 4px;
-  padding: 0 6px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--pe-gray-600);
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-}
+
 .p3-be-track {
   grid-column: 1;
 }
@@ -1677,86 +1374,8 @@ svg.p3-dim {
   opacity: 0;
   transition-delay: calc(var(--beat, 0ms) + 900ms);
 }
-.p3-cols-ladder {
-  grid-template-columns: minmax(0, 1fr) 4.5em;
-}
-.p3-ladder-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.5em;
-  column-gap: 10px;
-  align-items: center;
-}
-.p3-ladder-row .p3-row-label {
-  grid-column: 1 / -1;
-}
-.p3-ladder-dot {
-  opacity: 1;
-}
-.p3-ladder-val {
-  position: absolute;
-  top: 50%;
-  margin-left: 12px;
-  transform: translateY(-50%);
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  opacity: 1;
-}
-.p3-ladder-ghost {
-  position: absolute;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  margin: -4.5px 0 0 -4.5px;
-  border: 1px dashed var(--pe-gray-400);
-  border-radius: 50%;
-}
-.p3-ladder-arrow {
-  position: absolute;
-  top: 50%;
-  height: 0;
-  border-top: 1.5px solid var(--pe-gray-500);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 500ms var(--story-ease) var(--beat, 0ms);
-}
-.p3-ladder-arrow::after {
-  content: '';
-  position: absolute;
-  right: 4px;
-  top: -4.5px;
-  border: 4px solid transparent;
-  border-left: 6px solid var(--pe-gray-500);
-}
-.p3-ladder-arrow.is-back {
-  transform-origin: right center;
-}
-.p3-ladder-arrow.is-back::after {
-  right: auto;
-  left: 4px;
-  border-left: 4px solid transparent;
-  border-right: 6px solid var(--pe-gray-500);
-}
-.p3-ladder.is-on .p3-ladder-arrow {
-  transform: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .p3-ladder-arrow {
-    transform: none;
-  }
-}
 
 /* step 8: icon and label on one line, the detail line under them */
-#story-part-3 .p3-out-btn {
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 8px;
-  row-gap: 4px;
-  align-items: center;
-}
-#story-part-3 .p3-out-detail {
-  grid-column: 1 / -1;
-}
 
 @media (max-width: 900px) {
   #story-part-3 .p3-scene-head {
@@ -1773,7 +1392,6 @@ svg.p3-dim {
 }
 @media (max-width: 599px) {
   #p3-absorb .scrolly-body .story-items,
-  .p3-key-row,
   .p3-db-pair {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1783,13 +1401,11 @@ svg.p3-dim {
   }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
   .p3-scene * {
     transition: none !important;
   }
 }
-
 
 /* figure head actions (Pause, Replay: F's chart/Replay buttons) */
 .p3-figure .story-figure-title {
@@ -1817,11 +1433,7 @@ svg.p3-dim {
   font-size: var(--fs-caption);
   color: var(--pe-gray-600);
 }
-.p3-follow-dest {
-  margin-left: auto;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-500);
-}
+
 .p3-follow-btn {
   min-width: 26px;
   height: 24px;
@@ -1850,42 +1462,6 @@ svg.p3-dim {
 }
 
 /* 3-7: the two states side by side on desktop; stacked on phones */
-.p3-states {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0 28px;
-  align-items: start;
-}
-.p3-state {
-  min-width: 0;
-}
-.p3-state.is-off .p3-be-track,
-.p3-state.is-off .p3-ladder-dot,
-.p3-state.is-off .p3-ladder-arrow,
-.p3-state.is-off .p3-ladder-ghost,
-.p3-state.is-off .p3-switch,
-.p3-state.is-off .p3-flag .plain-icon {
-  opacity: 0.4;
-  transition: opacity 300ms var(--story-ease);
-}
-.p3-state.is-off,
-.p3-state.is-off .p3-row-value,
-.p3-state.is-off .p3-row-label,
-.p3-state.is-off .p3-group-head,
-.p3-state.is-off .p3-ladder-val {
-  color: var(--pe-gray-600);
-}
-.p3-state .p3-be-track-row {
-  grid-template-columns: minmax(0, 1fr) 5.2em;
-}
-.p3-states.is-all {
-  grid-template-columns: minmax(0, 1fr);
-}
-.p3-states.is-all .p3-state + .p3-state {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--card-border);
-}
 
 /* phones: the flow is off and the Sankey is drawn once, so the decile
    buttons step aside (hover and focus still light a decile end to end) */
@@ -1904,9 +1480,7 @@ svg.p3-dim {
 .story-close.story-part {
   padding-bottom: 0;
 }
-.story-close .lens-grid-split {
-  margin-bottom: 0;
-}
+
 @media (max-width: 900px) {
   #story-part-3 .p3-scene-head {
     margin-bottom: 8px;
@@ -1931,18 +1505,7 @@ svg.p3-dim {
   grid-row: 2;
 }
 /* the ladder: track, then cost and poverty in their own columns */
-.p3-cols-ladder,
-.p3-ladder-row {
-  grid-template-columns: minmax(0, 1fr) 4.5em 4.5em;
-}
-.p3-cols-ladder span:first-child {
-  grid-column: 2;
-}
-.p3-ladder-val {
-  position: static;
-  margin: 0;
-  transform: none;
-}
+
 /* the flow is off on phones, so its pause button goes too */
 @media (max-width: 900px) {
   .p3-sankey .ch-icon-btn[aria-label$='the flow'] {
@@ -1951,17 +1514,6 @@ svg.p3-dim {
 }
 
 /* The poverty basis chip (Central.jsx): said once for part 3 */
-.p3-pov-basis {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  margin: 0 0 10px;
-  padding: 2px 10px;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-700);
-}
 
 /* p2h push: each block carries its own topic header (Scrolly `sub`), so the
    gap under it is kept small; axis titles and source links */
@@ -1979,11 +1531,6 @@ svg.p3-dim {
 }
 /* short desktop windows (1366x650): the take-up and break-even states each
    hold for 180px of scroll; the cards' topic header replaced their kickers */
-@media (min-width: 901px) and (max-height: 700px) {
-  #p3-moves .scrolly-step {
-    padding-bottom: 112px;
-  }
-}
 
 /* p2h push: the wide block (3-3) keeps its topic header above the card
    strip and the Sankey */
@@ -2006,9 +1553,6 @@ svg.p3-dim {
   #story-part-3 .p3-close {
     max-width: none;
   }
-  #story-part-3 .p3-out-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
 }
 
 /* a numbered marker on an HTML chart, beside its row's label (the
@@ -2017,13 +1561,7 @@ svg.p3-dim {
   vertical-align: 0.1em;
 }
 /* the fold's groups under small icon sub-labels */
-.p3-fold-group + .p3-fold-group {
-  margin-top: 6px;
-}
-.p3-fold-label {
-  font-weight: 600;
-  color: var(--pe-gray-700);
-}
+
 /* a step's one sentence: the card's line, at title size */
 .p3-step-line {
   display: flex;
@@ -2042,45 +1580,9 @@ svg.p3-dim {
 .scrolly-step:not(.is-active) .p3-step-line {
   color: var(--pe-gray-600);
 }
-.p3-step-line + .p3-about {
-  margin-top: 8px;
-}
+
 /* step 3's three readings: buttons that light their destination */
-.p3-lines {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px 20px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.p3-line-btn {
-  display: block;
-  width: 100%;
-  padding: 6px 8px;
-  border: 0;
-  border-left: 3px solid var(--card-border);
-  background: transparent;
-  font: inherit;
-  font-size: 15px;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
-}
-.p3-lines li.is-on .p3-line-btn {
-  border-left-color: var(--part-accent, var(--c-highlight));
-  background: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 8%, transparent);
-}
-@media (max-width: 900px) {
-  .p3-lines {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.p3-fold-text {
-  margin: 0 0 2px;
-  font-size: 13px;
-  line-height: 1.45;
-}
+
 .p3-draws {
   display: inline-flex;
   align-items: center;
@@ -2119,16 +1621,13 @@ svg.p3-dim {
     min-height: calc((1322px - 100vh) / 2 - 32px);
   }
   #p3-deciles .scrolly-card {
-    min-height: calc((1580px - 100vh) / 3 - 32px);
+    min-height: calc((1322px - 100vh) / 2 - 32px);
   }
   #p3-rules .scrolly-card {
     min-height: calc((1298px - 100vh) / 2 - 32px);
   }
   #p3-margin .scrolly-card {
     min-height: calc((1298px - 100vh) / 2 - 32px);
-  }
-  #p3-moves .scrolly-card {
-    min-height: calc((1260px - 100vh) / 2 - 32px);
   }
 }
 
@@ -2158,4 +1657,187 @@ svg.p3-dim {
    other marks only once they have landed (useBeat's `settled`) */
 #story-part-3 .p3-scene:not(.is-settled) [data-mark]:not([data-on]) {
   opacity: 1;
+}
+
+/* ---- Round 1: de-cluttered part 3 and close ---------------------------- */
+/* figure notes: meta text, no icon, no box */
+#story-part-3 .p3-key {
+  margin: 8px 0 0;
+  max-width: 75ch;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-key a {
+  color: var(--pe-teal-700, var(--c-gain-text));
+}
+/* 3-1: stats not yet reached are hidden, not greyed (step 1 names the
+   displaced only); opacity keeps their text in the DOM for the checks */
+#p3-central [data-hl] .story-fact:not([data-on]) {
+  filter: none;
+}
+#p3-central [data-hl='displaced f-displaced'] .story-fact:not([data-on]) {
+  opacity: 0;
+}
+#p3-central .story-fact {
+  transition: opacity 300ms var(--story-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  #p3-central .story-fact {
+    transition: none;
+  }
+}
+/* 3-4: deciles at full strength. No step dims a bar (no pale peach); the
+   bars a step names are marked by their labels' weight, never by fading
+   the others; labels and values never fade */
+#p3-deciles [data-hl] [data-mark]:not([data-on]) {
+  filter: none;
+}
+#p3-deciles [data-hl] .p3-dec:has([data-mark][data-on]) .p3-dec-label,
+#p3-deciles [data-hl] .p3-dec:has([data-mark][data-on]) .p3-row-value {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+#p3-deciles .p3-dec-label,
+#p3-deciles .p3-row-value {
+  color: var(--pe-gray-700);
+  opacity: 1;
+}
+.p3-fill-caveat {
+  fill: var(--pe-gray-500);
+}
+#p3-deciles .p3-dec.is-caveat .p3-row-value {
+  color: var(--pe-gray-500);
+}
+.p3-dec-note {
+  grid-column: 1 / -1;
+  margin-top: -2px;
+  font-size: 12px;
+  color: var(--pe-gray-500);
+}
+.p3-rank-table th {
+  font-weight: 400;
+}
+/* the end of part 3: one header, one plain two-column list with dots */
+.p3-close {
+  margin: 48px 0 0;
+}
+.p3-close-h {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p3-out-list {
+  columns: 2;
+  column-gap: 32px;
+  margin: 0;
+  padding: 0 0 0 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+}
+.p3-out-list li {
+  break-inside: avoid;
+  margin: 0 0 6px;
+  padding-left: 2px;
+}
+.p3-out-list li::marker {
+  color: var(--pe-gray-500);
+}
+@media (max-width: 599px) {
+  .p3-out-list {
+    columns: 1;
+  }
+}
+/* the close: one header, one line, one ruled table, one row of links */
+.story-close .lens-lead {
+  margin: 8px 0 0;
+  max-width: 60ch;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+}
+.lens-h-ico {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+.lens-cap {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.lens-table {
+  width: 100%;
+  margin: 24px 0 0;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+}
+.lens-table th,
+.lens-table td {
+  padding: 10px 16px 10px 0;
+  border-bottom: 1px solid var(--pe-gray-200);
+  text-align: left;
+  vertical-align: top;
+}
+.lens-table thead th {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  border-bottom-color: var(--pe-gray-400);
+}
+.lens-table tbody th {
+  width: 7.5em;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.lens-table a,
+.lens-deeper a {
+  color: var(--pe-teal-700, var(--c-gain-text));
+}
+.lens-deeper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 24px 0 0;
+  font-size: 14px;
+}
+.lens-deeper-label {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+/* phones: each row's two cells stack under the row's name, each led by its model */
+@media (max-width: 599px) {
+  .lens-table thead {
+    display: none;
+  }
+  .lens-table,
+  .lens-table tbody,
+  .lens-table tr,
+  .lens-table th,
+  .lens-table td {
+    display: block;
+    width: auto;
+  }
+  .lens-table tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--pe-gray-200);
+  }
+  .lens-table th,
+  .lens-table td {
+    padding: 2px 0;
+    border: 0;
+  }
+  .lens-table td::before {
+    content: attr(data-model) ': ';
+    font-weight: 600;
+    color: var(--pe-gray-900);
+  }
 }
