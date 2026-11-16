@@ -18,6 +18,7 @@ export const CHART_COLOURS = {
   gainText: '#0F766E',
   ours: '#026AA2', // our own figure beside published ones: the main arm's blue
   mark: '#374151', // a neutral mark (coverage matrix)
+  markOff: '#9CA3AF', // its "not in the model" ring, as on the page (gray-400)
   loss: '#D97706',
   lossText: '#B45309',
   reference: '#6B7280',

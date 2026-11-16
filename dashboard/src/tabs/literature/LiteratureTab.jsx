@@ -122,7 +122,7 @@ function matrixSvg() {
   const rh = 30;
   const W = lw + MODELS.length * cw;
   const mark = (lv, cx, cy) => {
-    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.mark : C.surface}" stroke="${C.mark}" stroke-width="1.5"/>`;
+    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.mark : C.surface}" stroke="${lv === 'no' ? C.markOff : C.mark}" stroke-width="1.5"/>`;
     if (lv === 'na') return `<line x1="${cx - 6}" x2="${cx + 6}" y1="${cy}" y2="${cy}" stroke="${C.muted}" stroke-width="1.5"/>`;
     if (lv === 'part') return `${ring}<path d="M${cx} ${cy - 6} A6 6 0 0 1 ${cx} ${cy + 6} Z" fill="${C.mark}"/>`;
     return ring;
@@ -161,8 +161,8 @@ function Matrix() {
         }),
         svg: matrixSvg,
         legend: () => [
-          { label: 'Modelled', color: CHART_COLOURS.gainText, shape: 'dot' },
-          { label: 'Not in the model', color: CHART_COLOURS.gainText, shape: 'ring' },
+          { label: 'Modelled', color: CHART_COLOURS.mark, shape: 'dot' },
+          { label: 'Not in the model', color: CHART_COLOURS.markOff, shape: 'ring' },
         ],
       }}
     >

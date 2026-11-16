@@ -105,9 +105,9 @@ function BeforeYouStart() {
             <li>The R1–R4 baselines in WORK: each closure&rsquo;s baseline_p1 pickles.</li>
             {/* elapsed_min over the solve records in analysis/surprise/output: methodFacts.json solve_minutes */}
             <li>
-              About 15 GB of memory for a specification build; about {Math.round(MF.solve_minutes.median)} minutes a solve (median{' '}
-              {MF.solve_minutes.median.toFixed(1)}, {MF.solve_minutes.min.toFixed(1)} to {MF.solve_minutes.max.toFixed(1)} across the{' '}
-              {MF.solve_minutes.records} committed solve records).
+              About 15 GB of memory for a specification build; a median of {MF.solve_minutes.median.toFixed(1)} minutes a solve
+              ({MF.solve_minutes.min.toFixed(1)} to {MF.solve_minutes.max.toFixed(1)} across the {MF.solve_minutes.records} committed solve
+              records).
             </li>
           </ul>
         </div>

@@ -400,7 +400,7 @@ export default function FinancesSection({ sid }) {
               <>
                 <p>
                   The model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in
-                  debt/GDP by {LATE_YEAR} is {REPRICE_RANGE[0].toFixed(0)}–{REPRICE_RANGE[1].toFixed(0)}% as large where debt/GDP still ends above the path, over every scenario, arm and closure.
+                  debt/GDP by {LATE_YEAR} is {REPRICE_RANGE[0].toFixed(0)}–{REPRICE_RANGE[1].toFixed(0)}% as large where debt/GDP still ends above the path, over every scenario and arm at the central and closed-capital closures.
                 </p>
                 <p>
                   {LATE_YEAR} is the debt rule&rsquo;s first year, so only stocks are quoted for it. The stress test leaves out the cost of
