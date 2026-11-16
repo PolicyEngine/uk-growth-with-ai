@@ -2108,3 +2108,32 @@
   align-self: center;
   color: var(--pe-gray-500);
 }
+
+/* AsOf (components/story/AsOf.jsx): the page's as-of stamp, once in the shell */
+.as-of {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+.as-of-icon {
+  flex: none;
+  display: inline-flex;
+  align-self: center;
+  color: var(--pe-gray-500);
+}
+.as-of a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--pe-gray-300);
+  text-underline-offset: 2px;
+}
+.as-of a:hover {
+  text-decoration-color: currentColor;
+}
+.as-of code {
+  font-size: 0.95em;
+}
