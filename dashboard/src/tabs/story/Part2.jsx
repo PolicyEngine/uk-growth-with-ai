@@ -14,6 +14,8 @@ import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, entryDip, series, a
 import { More } from './part2/frame.jsx';
 import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
+import { EPS2 } from './part2/dir.js';
+import { Items, Compare } from '@/components/story/Items.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
 // 2028, against the no-shock OBR-central path. It is the one home of the
@@ -59,28 +61,38 @@ function shockSteps() {
   return [
     {
       id: 'p2-shock-1',
+      icon: 'shock',
       kicker: 'The shock',
       title: 'AI moves part of income from labour to capital',
       body: (
         <>
-          <p>
-            OG-UK models the whole economy: households, firms and government. Each tile is one per cent of output, paid for work (left)
-            or to capital&rsquo;s owners (right). In the model AI lets capital do tasks workers did, so capital&rsquo;s share rises.
-          </p>
+          <Items
+            items={[
+              { icon: 'model', text: 'OG-UK models the whole economy: households, firms, government' },
+              { icon: 'measure', text: 'Each tile is one per cent of output' },
+              { icon: 'labour', text: 'Left: paid for work. Right: paid to capital’s owners' },
+              { icon: 'capital', text: 'AI lets capital do workers’ tasks, so capital’s share rises' },
+            ]}
+          />
           <More tab="method" sub="scenarios">How large the shift is in each scenario</More>
         </>
       ),
     },
     {
       id: 'p2-shock-2',
+      icon: 'productivity',
       kicker: 'The shock',
       title: 'And the same inputs produce more',
       body: (
         <>
-          <p>
-            AI also raises output at given inputs: the new tiles. Whether pay ends above or below the no-shock path depends on each
-            move&rsquo;s size and how much new capital arrives. The shock comes as a surprise in {SURPRISE_YEAR}.
-          </p>
+          <Items
+            items={[
+              { icon: 'productivity', text: 'AI also raises output at given inputs: the new tiles' },
+              { icon: 'pay', text: 'Pay against the no-shock path depends on each move’s size' },
+              { icon: 'capital', text: 'And on how much new capital arrives' },
+              { icon: 'timing', text: `The shock comes as a surprise in ${SURPRISE_YEAR}` },
+            ]}
+          />
           <More tab="explore" sub="economy" anchor="explore-part-economy">The labour share, capital and the rest of the economy</More>
         </>
       ),
@@ -88,31 +100,54 @@ function shockSteps() {
   ];
 }
 
+// GDP after the surprise in every scenario's main arm: above the path in
+// every year from SURPRISE_YEAR when all of them are (the direction the
+// scenarios step states), otherwise null.
+export function scenarioDir(cl) {
+  const from = YEARS.indexOf(SURPRISE_YEAR);
+  const all = SCENARIOS.map((s) => series(s.id, 'tfp', cl, 'Y')).filter(Boolean);
+  if (!all.length) return null;
+  const tail = all.flatMap((ys) => ys.slice(from + 1));
+  if (tail.every((v) => v > EPS2)) return 'gapUp';
+  if (tail.every((v) => v < -EPS2)) return 'gapDown';
+  return null;
+}
+
 function scenarioSteps(sid, cl) {
   const after = afterWordsAll(SCENARIOS.map((s) => series(s.id, 'tfp', cl, 'Y')).filter(Boolean)) ?? 'changes more slowly';
+  const dir = scenarioDir(cl);
   return [
     {
       id: 'p2-scen-2',
+      icon: 'range',
       kicker: 'Four scenarios',
       title: 'The UK scenarios and their range',
       body: (
-        <p>
-          The scenarios differ in how far the labour share falls and output at given inputs rises. In each main arm, GDP rises above the
-          OBR-central path from {SURPRISE_YEAR} and {after} once the shock completes in {HEADLINE_YEAR}. UK low, central, high: one shape,
-          higher each time; the band is their range.
-        </p>
+        <Items
+          items={[
+            { icon: 'scenario', text: 'They differ in how far the labour share falls and output rises' },
+            dir
+              ? { icon: dir, text: `Main arm: GDP ${dir === 'gapUp' ? 'above' : 'below'} the OBR-central path from ${SURPRISE_YEAR}` }
+              : { icon: 'path', text: `Main arm: GDP against the OBR-central path from ${SURPRISE_YEAR}` },
+            { icon: 'timing', text: `Then it ${after} once the shock completes in ${HEADLINE_YEAR}` },
+            { icon: 'range', text: 'UK low, central, high: one shape, each higher; the band spans them' },
+          ]}
+        />
       ),
     },
     {
       id: 'p2-scen-4',
+      icon: 'scenario',
       kicker: 'Four scenarios',
       title: 'Korinek et al.: an upper case from the US',
       body: (
         <>
-          <p>
-            A US scenario, kept as a labelled upper case rather than a UK calibration. {SCEN_NAME[sid]}, chosen at the top of the page, is
-            the coloured line.
-          </p>
+          <Items
+            items={[
+              { icon: 'scenario', text: 'A US scenario, a labelled upper case, not a UK calibration' },
+              { icon: 'path', text: `${SCEN_NAME[sid]}, chosen at the top, is the coloured line` },
+            ]}
+          />
           <More tab="method" sub="scenarios">What each scenario assumes, and its sources</More>
           <More tab="explore" sub="economy" anchor="income">GDP and national income year by year</More>
         </>
@@ -121,54 +156,85 @@ function scenarioSteps(sid, cl) {
   ];
 }
 
-function armSteps(sid, closure) {
-  const cl = primaryClosure(closure);
+// The technology-unchanged arm's GDP against the main arm's, in the
+// headline year: the item the arms step prints, icon and words from the
+// same comparison. null when either is pending.
+export function tzItem(sid, cl) {
   const tz = gap(sid, 'tz', cl, 'Y');
   const tfp = gap(sid, 'tfp', cl, 'Y');
+  if (tz == null || tfp == null) return null;
+  return tz < tfp ? { icon: 'gapDown', text: 'GDP is lower than in the main arm' } : { icon: 'gapUp', text: 'GDP is at least as high as in the main arm' };
+}
+
+function armSteps(sid, closure) {
+  const cl = primaryClosure(closure);
   const kicker = `Three arms, ${SCEN_NAME[sid]}`;
   // the chart's unit line names the closure (and which is dashed with Both)
-  const closureNote =
-    closure === 'both' ? null : (
-      <p>
-        <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink> to see how much depends on foreign capital.
-      </p>
-    );
+  const closureItem =
+    closure === 'both'
+      ? null
+      : {
+          icon: 'closure',
+          text: (
+            <>
+              <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink>: how much depends on foreign capital
+            </>
+          ),
+        };
   return [
     {
       id: 'p2-arms-0',
+      icon: 'ai',
       kicker,
       title: 'Automation + productivity: the main arm',
       body: (
-        <>
-          <p>Both moves happen: capital&rsquo;s share rises and output at given inputs rises. This arm gives the headline figures above.</p>
-          {closureNote}
-        </>
+        <Items
+          items={[
+            { icon: 'capital', text: 'Capital’s share of income rises' },
+            { icon: 'productivity', text: 'Output at given inputs rises too' },
+            { icon: 'link', text: 'This arm gives the headline figures above' },
+            closureItem,
+          ]}
+        />
       ),
     },
     {
       id: 'p2-arms-1',
+      icon: 'capital',
       kicker,
       title: 'Automation with technology unchanged',
       body: (
-        <p>
-          Capital&rsquo;s share rises, but output at given inputs stays as it was.
-          {tz != null && tfp != null ? (tz < tfp ? ' GDP is lower than in the main arm.' : ' GDP is at least as high as in the main arm.') : ''}
-        </p>
+        <Items
+          items={[
+            { icon: 'capital', text: 'Capital’s share of income rises' },
+            { icon: 'productivity', text: 'Output at given inputs stays as it was' },
+            tzItem(sid, cl),
+          ]}
+        />
       ),
     },
     {
       id: 'p2-arms-2',
+      icon: 'breakEven',
       kicker,
       title: 'The OBR-style stress test',
       body: (
         <>
-          <p>
-            The same shift, with output at given inputs cut so that GDP in {HEADLINE_YEAR} is back on the OBR-central path: a bound in which
-            AI adds no output, not a forecast.
-          </p>
+          <Items
+            items={[
+              { icon: 'capital', text: 'The same shift in income to capital' },
+              { icon: 'productivity', text: `Output at given inputs cut: GDP back on the path in ${HEADLINE_YEAR}` },
+              { icon: 'limit', text: 'A bound in which AI adds no output, not a forecast' },
+            ]}
+          />
           <details className="p2-details">
             <summary>Against the OBR&rsquo;s own scenario</summary>
-            <p>It matches the OBR&rsquo;s scenario on GDP only: the OBR adjusts through jobs, OG-UK through the wage.</p>
+            <Items
+              items={[
+                { icon: 'compare', text: 'It matches the OBR’s scenario on GDP only' },
+                { icon: 'labour', text: 'The OBR adjusts through jobs, OG-UK through the wage' },
+              ]}
+            />
           </details>
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
           <More tab="explore" sub="economy" anchor="income">Each arm year by year</More>
@@ -186,47 +252,61 @@ function whoSteps(sid) {
     sid === 'uk_central' ? null : (
       <details className="p2-details">
         <summary>Always UK central here</summary>
-        <p>
-          Who gains shows UK central only: the paper also reports Korinek et al. (upper), under debt-neutral transfers only, and its cohort
-          paths are not yet in this site&rsquo;s data. This chart is always UK central, central closure, debt-neutral transfers, whatever is
-          chosen above.
-        </p>
+        <Items
+          items={[
+            { icon: 'scenario', text: 'Who gains shows UK central only' },
+            { icon: 'source', text: 'The paper also reports Korinek et al. (upper), debt-neutral transfers only' },
+            { icon: 'data', text: 'Its cohort paths are not yet in this site’s data' },
+            { icon: 'rule', text: 'Always central closure, debt-neutral transfers, whatever is chosen above' },
+          ]}
+        />
       </details>
     );
   const dip = entryDip();
   return [
     {
       id: 'p2-who-0',
+      icon: 'age',
       kicker: 'Who gains',
       title: 'Gains are largest around retirement age',
       body: (
         <>
-          <p>
-            Each birth year&rsquo;s welfare change, for adults alive in {SURPRISE_YEAR}, in UK central as modelled. The gain peaks around
-            retirement age, where more wealth earns the higher return, and is smaller for the oldest and the youngest, who have the least
-            wealth{someLose ? '; under some measures they lose' : ''}.
-          </p>
+          <Items
+            items={[
+              { icon: 'scenario', text: `UK central, as modelled: adults alive in ${SURPRISE_YEAR}, by birth year` },
+              { icon: 'capital', text: 'Near retirement, more wealth earns the higher return' },
+              { icon: 'households', text: 'Smaller for the oldest and youngest, who have least wealth' },
+              someLose ? { icon: 'limit', text: 'Under some measures they lose' } : null,
+            ]}
+          />
           {scope}
         </>
       ),
     },
     {
       id: 'p2-who-1',
+      icon: 'entrants',
       kicker: 'Who gains',
       title: 'Then the cohorts that enter later',
       body: (
         <>
-          <p>
-            People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.
-            {allGain ? ' As modelled, under debt-neutral transfers, they gain too: a higher return on saving and, later, higher consumption outweigh lower pay rates.' : ''}
-          </p>
+          <Items
+            items={[
+              { icon: 'entrants', text: `Entering after ${SURPRISE_YEAR}, they live whole lives on the new path` },
+              allGain ? { icon: 'gapUp', text: 'As modelled, under debt-neutral transfers, they gain too' } : null,
+              allGain ? { icon: 'capital', text: 'A higher return on saving and, later, higher consumption' } : null,
+              allGain ? { icon: 'pay', text: 'These outweigh pay rates below the path' } : null,
+            ]}
+          />
           {dip ? (
             <details className="p2-details">
               <summary>The dip after the entry line</summary>
-              <p>
-                It appears under debt-neutral transfers, which lower transfers until the debt rule starts, and not under the common fiscal
-                rule.
-              </p>
+              <Items
+                items={[
+                  { icon: 'benefits', text: 'Under debt-neutral transfers, transfers fall until the debt rule starts' },
+                  { icon: 'rule', text: 'Not under the common fiscal rule' },
+                ]}
+              />
             </details>
           ) : null}
           <More tab="explore" sub="who">Who gains, by age and earnings group</More>
@@ -236,26 +316,64 @@ function whoSteps(sid) {
   ];
 }
 
+// Debt/GDP against the path for one solve, as items: the early move, then
+// where it ends by LATE_YEAR, each icon from the same sign test as
+// debtWords (so the icon and the words always agree). null when pending.
+export function debtItems(sid, arm, cl) {
+  const r = result(sid, arm, cl);
+  if (r.status !== 'done') return null;
+  const ys = r.gaps.debt_gdp_pp;
+  const early = Math.min(...ys.slice(YEARS.indexOf(SURPRISE_YEAR), YEARS.indexOf(HEADLINE_YEAR) + 1));
+  const late = ys[YEARS.indexOf(LATE_YEAR)];
+  if (early < -EPS) {
+    const end =
+      late > EPS
+        ? { icon: 'gapUp', text: `Then rises above it by ${LATE_YEAR}` }
+        : late < -EPS
+          ? { icon: 'gapDown', text: `Still below it in ${LATE_YEAR}` }
+          : { icon: 'onPath', text: `Back on it by ${LATE_YEAR}` };
+    return [{ icon: 'gapDown', text: 'Debt as a share of GDP first falls below the OBR-central path' }, end];
+  }
+  return [
+    late > EPS
+      ? { icon: 'gapUp', text: `Debt as a share of GDP rises above the OBR-central path after ${SURPRISE_YEAR}` }
+      : { icon: 'onPath', text: 'Debt as a share of GDP stays close to the OBR-central path' },
+  ];
+}
+
 function debtSteps(sid, closure) {
   const cl = primaryClosure(closure);
   const main = debtWords(sid, 'tfp', cl);
+  const items = debtItems(sid, 'tfp', cl);
+  const higher = othersEndHigher(sid, cl);
   return [
     {
       id: 'p2-debt-0',
+      icon: 'debt',
       kicker: 'Public finances',
       title: 'Public debt against the path',
-      body: main ? (
+      body: items ? (
         <>
-          <p>
-            In {SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP {main}.
-            {main.includes('rises above') ? ' The model reprices all government debt at the higher interest rate at once, which overstates the later rise.' : ''}
-          </p>
+          <Items
+            items={[
+              { icon: 'scenario', text: `${SCEN_NAME[sid]}, main arm, common fiscal rule` },
+              ...items,
+              ...(main.includes('rises above')
+                ? [
+                    { icon: 'limit', text: 'OG-UK reprices all government debt at the higher interest rate at once' },
+                    { icon: 'caveat', text: 'So it overstates the later rise' },
+                  ]
+                : []),
+            ]}
+          />
           <details className="p2-details">
             <summary>The path after the OBR&rsquo;s forecast</summary>
-            <p>
-              The OBR-central path is OG-UK&rsquo;s own path, built on the OBR&rsquo;s central productivity growth; beyond the OBR&rsquo;s
-              forecast horizon it is the model&rsquo;s, not the OBR&rsquo;s.
-            </p>
+            <Items
+              items={[
+                { icon: 'forecast', text: 'The OBR-central path is OG-UK’s own, on the OBR’s central productivity growth' },
+                { icon: 'limit', text: 'Beyond the OBR’s forecast horizon it is the model’s, not the OBR’s' },
+              ]}
+            />
           </details>
         </>
       ) : (
@@ -264,16 +382,20 @@ function debtSteps(sid, closure) {
     },
     {
       id: 'p2-debt-1',
+      icon: 'finances',
       kicker: 'Public finances',
       title: 'Without the output gain',
       body: (
         <>
-          <p>
-            {othersEndHigher(sid, cl)
-              ? `In the two arms with no productivity gain, debt ends further above the path by ${LATE_YEAR}.`
-              : 'The two arms with no productivity gain are drawn beside the main arm.'}{' '}
-            Public finances also covers tax, the fiscal rules and why the tax effect is likely understated.
-          </p>
+          <Items
+            items={[
+              higher
+                ? { icon: 'gapUp', text: `No productivity gain: debt ends further above the path by ${LATE_YEAR}` }
+                : { icon: 'compare', text: 'The two arms with no productivity gain are drawn beside it' },
+              { icon: 'finances', text: 'Public finances also covers tax and the fiscal rules' },
+              { icon: 'tax', text: 'And why the tax effect is likely understated' },
+            ]}
+          />
           <More tab="explore" sub="finances">Debt, tax and the fiscal rules</More>
         </>
       ),
@@ -282,18 +404,33 @@ function debtSteps(sid, closure) {
 }
 
 // Two lenses, before part 2: which model this part uses and how part 3's
-// differs. The full comparison closes the story.
+// differs, side by side. The full comparison closes the story.
 function TwoLenses() {
   return (
     <Callout icon="compare" title="Two models, two lenses">
-      <p>
-        <b>This part: OG-UK</b>, a model of the whole economy. It has no unemployment, and its results are gaps against the OBR-central
-        path, not forecasts of levels.
-      </p>
-      <p>
-        <b>Part 3: a different model</b> (provisional), a one-year microsimulation of UK households if some employees are assumed to lose
-        their jobs. The two sets of numbers are not added together.
-      </p>
+      <Compare
+        className="p2-lenses"
+        columns={[
+          {
+            icon: 'model',
+            title: 'This part: OG-UK',
+            items: [
+              { icon: 'gdp', text: 'A model of the whole economy' },
+              { icon: 'excluded', text: 'It has no unemployment' },
+              { icon: 'path', text: 'Gaps against the OBR-central path, not forecasts of levels' },
+            ],
+          },
+          {
+            icon: 'provisional',
+            title: 'Part 3: a different model (provisional)',
+            items: [
+              { icon: 'households', text: 'A one-year microsimulation of UK households' },
+              { icon: 'jobLoss', text: 'It assumes some employees lose their jobs' },
+              { icon: 'limit', text: 'The two sets of numbers are not added together' },
+            ],
+          },
+        ]}
+      />
     </Callout>
   );
 }
@@ -352,7 +489,7 @@ export default function Part2({ part }) {
   return (
     <>
       <PartHead part={part}>
-        OG-UK results for an AI shock arriving as a surprise in {SURPRISE_YEAR}, as gaps against the OBR-central path, which already includes the OBR&rsquo;s own central AI assumption.
+        OG-UK results for an AI shock arriving as a surprise in {SURPRISE_YEAR}: gaps against the OBR-central path, which already includes the OBR&rsquo;s central AI assumption.
       </PartHead>
 
       <TwoLenses />

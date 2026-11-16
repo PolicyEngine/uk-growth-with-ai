@@ -293,3 +293,108 @@ describe('the morph with a longer outturn series', () => {
     expect(container.querySelectorAll('.p2-mo-dot.is-open').length).toBe(M.OBR.length + 1);
   });
 });
+
+// Every arrow part 2 draws (gapUp, gapDown, onPath) comes from the sign of
+// the value it describes, for every scenario and closure (and with the
+// header's Both, which reads the central closure).
+describe('direction icons follow the signs', () => {
+  const SIDS = fixture.scenarios.map((s) => s.id);
+  const CLS = ['zk0.1', 'zk0'];
+  const sign = (x) => (Math.abs(x) < 0.005 ? 'onPath' : x > 0 ? 'gapUp' : 'gapDown');
+  const g = (sid, arm, cl, v, yr = fixture.headline_year) => {
+    const r = fixture.results[sid]?.[arm]?.[cl];
+    return r?.status === 'done' ? r.gaps[v][fixture.years.indexOf(yr)] : null;
+  };
+
+  it('the headline tiles', () => {
+    for (const sid of SIDS) {
+      for (const [mode, cl] of [['central', 'zk0.1'], ['closed', 'zk0'], ['both', 'zk0.1']]) {
+        const { container, unmount } = at(`tab=story&s=${sid}&closure=${mode}`);
+        const tiles = [...container.querySelectorAll('#story-headline .stat-tile')];
+        expect(tiles).toHaveLength(3);
+        ['Y', 'w', 'GNI'].forEach((v, i) => {
+          const x = g(sid, 'tfp', cl, v);
+          const icon = tiles[i].querySelector('.stat-dir');
+          if (x == null) expect(icon).toBeNull();
+          else expect(icon.className, `${sid} ${mode} ${v}`).toContain(`is-${sign(x)}`);
+        });
+        unmount();
+      }
+    }
+  });
+
+  it('the why chain', async () => {
+    const { whyChain } = await import('@/tabs/ai/Landing.jsx');
+    for (const sid of SIDS) {
+      for (const cl of CLS) {
+        const why = whyChain(sid, cl);
+        if (g(sid, 'tfp', cl, 'Y') == null) {
+          expect(why).toBeNull();
+          continue;
+        }
+        const val = { gdp: g(sid, 'tfp', cl, 'Y'), capital: -g(sid, 'tfp', cl, 'labour_share_pp'), pay: g(sid, 'tfp', cl, 'w'), gni: g(sid, 'tfp', cl, 'GNI') };
+        const word = { gapUp: 'above', gapDown: 'below', onPath: ' on ' };
+        for (const l of why.links.filter((x) => x.dir)) {
+          expect(l.dir, `${sid} ${cl} ${l.key}`).toBe(sign(val[l.key]));
+          expect(l.text).toContain(word[l.dir].trim());
+        }
+        // pay below the path always carries "not a cut"
+        expect(why.notes.some((n) => n.text.includes('not a cut'))).toBe(val.pay < 0);
+        const gni = why.links.find((l) => l.key === 'gni');
+        if (val.gdp > 0 && val.gni < val.gdp) expect(gni.text).toBe('National income gains less than GDP');
+      }
+    }
+  });
+
+  it('the arms, the debt items, the morph and the scenarios', async () => {
+    const { tzItem, debtItems, debtWords, scenarioDir } = await import('@/tabs/story/Part2.jsx');
+    const { morphItems } = await import('@/tabs/story/part2/Morph.jsx');
+    const from = fixture.years.indexOf(fixture.surprise_year) + 1;
+    for (const cl of CLS) {
+      const tails = SIDS.map((sid) => fixture.results[sid].tfp[cl]).filter((r) => r.status === 'done').map((r) => r.gaps.Y.slice(from));
+      const flat = tails.flat();
+      expect(scenarioDir(cl)).toBe(flat.every((v) => v > 0.005) ? 'gapUp' : flat.every((v) => v < -0.005) ? 'gapDown' : null);
+      for (const sid of SIDS) {
+        const tz = g(sid, 'tz', cl, 'Y');
+        const tfp = g(sid, 'tfp', cl, 'Y');
+        const t = tzItem(sid, cl);
+        if (tz == null || tfp == null) expect(t).toBeNull();
+        else expect(t.icon).toBe(tz < tfp ? 'gapDown' : 'gapUp');
+        // the morph's blue line
+        const r = fixture.results[sid].tfp[cl];
+        const last = morphItems(sid, cl).at(-1);
+        if (r.status === 'done') {
+          const tail = r.gaps.Y.slice(from);
+          const want = tail.every((v) => v > 0.005) ? 'gapUp' : tail.every((v) => v < -0.005) ? 'gapDown' : 'path';
+          expect(last.icon, `${sid} ${cl} morph`).toBe(want);
+        }
+        // debt: the icons agree with the sentence (debtWords) and the data
+        for (const arm of ['tfp', 'tz', 'ss']) {
+          const items = debtItems(sid, arm, cl);
+          const words = debtWords(sid, arm, cl);
+          if (!items) {
+            expect(words).toBeNull();
+            continue;
+          }
+          const late = g(sid, arm, cl, 'debt_gdp_pp', fixture.late_year);
+          const end = items.at(-1).icon;
+          expect(end, `${sid} ${arm} ${cl} debt`).toBe(late > 0.05 ? 'gapUp' : late < -0.05 && words.startsWith('falls') ? 'gapDown' : 'onPath');
+          expect(items[0].icon === 'gapDown').toBe(words.includes('falls below'));
+        }
+      }
+    }
+  });
+
+  it('where output goes', async () => {
+    const { outChangeItems } = await import('@/tabs/story/part2/OutputSplit.jsx');
+    for (const [sid, byCl] of Object.entries(fixture.output_split.change)) {
+      for (const [cl, ch] of Object.entries(byCl)) {
+        if (ch.status !== 'done') continue;
+        const items = outChangeItems(ch);
+        expect(items[0].icon, `${sid} ${cl} gdp`).toBe(sign(ch.gdp));
+        expect(items[1].icon, `${sid} ${cl} labour`).toBe(sign(ch.labour));
+        expect(items[1].text).toContain(ch.labour < 0 ? 'below' : 'above');
+      }
+    }
+  });
+});

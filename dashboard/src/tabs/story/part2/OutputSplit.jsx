@@ -8,7 +8,10 @@ import { useInView, useIsPhone } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { SOURCE } from './frame.jsx';
-import { SPLIT_YEAR, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
+import { SPLIT_YEAR, PART_COLOR, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
+import { dirConcept, dirWord } from './dir.js';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 
 // Where output goes in the headline year, at the header's scenario and
 // closure (the central closure with Both, which the lead says), as a
@@ -93,31 +96,56 @@ function Waterfall({ rows, on, hl, setHl }) {
   );
 }
 
-// The sentence for step 3, true for the cell in view: it reads the signs,
-// and prints no figure (the figures are on the charts).
-function why(ch) {
-  const out = [];
-  if (ch.gdp > 0 && ch.labour < 0) {
-    out.push('GDP is above the path and labour income below it: capital takes all of the extra output, and more.');
-  } else {
-    out.push(`GDP is ${ch.gdp >= 0 ? 'above' : 'below'} the path and labour income is ${ch.labour >= 0 ? 'above' : 'below'} it.`);
-  }
+// Step 3's items, true for the cell in view: each reads a sign and prints
+// no figure (the figures are on the charts). `icon` is a concept (a
+// direction where the item states one, from the same sign as its words);
+// The render adds chips for the parts named (labour, abroad, wear).
+export function outChangeItems(ch) {
+  const out = [
+    { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the path` },
+    { key: 'labour', icon: dirConcept(ch.labour), text: `is ${dirWord(ch.labour)} it` },
+  ];
+  if (ch.gdp > 0 && ch.labour < 0) out.push({ key: 'all', icon: 'why', text: 'Capital takes all of the extra output, and more' });
   if (ch.foreign > 0 && ch.depreciation > 0) {
-    out.push('Part of the extra capital income goes abroad or covers wear on more capital, so national income rises less than GDP.');
+    out.push({ key: 'abroad', icon: 'foreign', text: 'Part goes abroad or covers wear on more capital' });
+    out.push({ key: 'gni', icon: 'gni', text: 'So national income rises less than GDP' });
   }
-  return out.join(' ');
+  return out;
+}
+
+// A part's name as a chip: hovering, focusing or tapping it picks out its
+// ribbon in the Sankey and its row in the waterfall. No number: each
+// figure is printed once, on the chart. `on` is the part picked.
+function Chip({ part, on, pick, children }) {
+  const lit = on === part;
+  return (
+    <button
+      type="button"
+      className={`p2-chip${lit ? ' is-on' : ''}`}
+      style={{ '--sw': PART_COLOR[part] }}
+      data-part={part}
+      onMouseEnter={() => pick(part)}
+      onMouseLeave={() => pick(null)}
+      onFocus={() => pick(part)}
+      onBlur={() => pick(null)}
+      onClick={() => pick(lit ? null : part)}
+    >
+      <span className="p2-chip-sw" aria-hidden="true" />
+      {children}
+    </button>
+  );
 }
 
 // The graphic: the Sankey, the waterfall below it. `state` 0-2; `all`
 // draws the last state with nothing hidden (phones).
-function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
+function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   const [ref, seen] = useInView({ rootMargin: '0px 0px -15% 0px' });
-  const [hl, setHl] = useState(null);
   const s = all ? 2 : state;
-  // a row focused when the reader scrolls back loses focus without a blur
-  // (the waterfall goes inert): clear its highlight then
-  if (s < 2 && hl !== null) setHl(null);
-  const lit = hl;
+  // a pick holds only in the state it was made in (phones: always), so a
+  // row focused when the reader scrolls back, which loses focus without a
+  // blur as the waterfall goes inert, lights nothing
+  const lit = hl && (all || hl.s === s) ? hl.id : null;
+  const pick2 = (id) => setHl(id ? { id, s: 2 } : null);
   // nothing wipes in before the block is seen; then column by column
   const reveal = all ? 2 : seen ? Math.min(s + 1, 2) : 0;
   const graph = base ? sankeyGraph(base, true) : null;
@@ -141,8 +169,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
               rightRoom={118}
               linkOpacity={0.7}
               reveal={reveal}
-              highlight={s >= 2 ? lit : undefined}
-              onHover={s >= 2 ? setHl : undefined}
+              highlight={lit ?? undefined}
+              onHover={s >= 2 ? pick2 : undefined}
             />
           </div>
         ) : (
@@ -158,7 +186,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
         <p className="story-figure-unit">{where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels</p>
         {ch ? (
           <>
-            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={setHl} />
+            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={pick2} />
             <p className="story-source">
               Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure.
             </p>
@@ -171,40 +199,97 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
   );
 }
 
-function outputSteps(sid, base, ch) {
+function outputSteps(sid, base, ch, hl, setHl, phone) {
   const labourMore = base ? base.labour > 50 : null;
+  // a chip in card i picks for graphic state i (phones draw state 2 for all)
+  const chip = (i) => {
+    const on = hl && (phone || hl.s === i) ? hl.id : null;
+    const pick = (id) => setHl(id ? { id, s: i } : null);
+    return function chipFor(part, text) {
+      return (
+        <Chip part={part} on={on} pick={pick}>
+          {text}
+        </Chip>
+      );
+    };
+  };
+  const c0 = chip(0);
+  const c1 = chip(1);
+  const c2 = chip(2);
+  // step 3's items, with the parts they name as chips
+  const changeText = (it) =>
+    it.key === 'labour' ? (
+      <>
+        {c2('labour', 'Labour income')} {it.text}
+      </>
+    ) : it.key === 'abroad' ? (
+      <>
+        Part goes {c2('foreign', 'abroad')} or covers {c2('depreciation', 'wear')} on more capital
+      </>
+    ) : (
+      it.text
+    );
   return [
     {
       id: 'p2-out-1',
+      icon: 'gdp',
       kicker: 'Where output goes',
       title: 'GDP is paid as labour or capital income',
       body: (
-        <p>
-          Every pound of GDP is paid to someone. On the OBR-central path in {SPLIT_YEAR},{' '}
-          {labourMore == null ? 'part' : labourMore ? 'the larger part' : 'the smaller part'} goes to workers as labour income, what
-          they are paid in total; the rest is gross capital income, paid to the owners of capital.
-        </p>
+        <Items
+          items={[
+            { icon: 'path', text: `Here: the OBR-central path in ${SPLIT_YEAR}` },
+            { icon: 'gdp', text: 'Every pound of GDP is paid to someone' },
+            {
+              icon: 'labour',
+              text: (
+                <>
+                  {c0('labour', 'Labour income')}, workers&rsquo; total pay: {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'}
+                </>
+              ),
+            },
+            {
+              icon: 'capital',
+              text: <>{c0('capital', 'Gross capital income')}: the rest, paid to capital&rsquo;s owners</>,
+            },
+          ]}
+        />
       ),
     },
     {
       id: 'p2-out-2',
+      icon: 'capital',
       kicker: 'Where output goes',
       title: 'Capital income splits three ways',
       body: (
-        <p>
-          Part is kept in the UK as net capital income. Part is paid abroad: profits on foreign-owned UK capital and interest on gilts
-          held abroad. The rest replaces capital that wears out: depreciation.
-        </p>
+        <Items
+          items={[
+            { icon: 'capital', text: <>{c1('domestic', 'Kept in the UK')} as net capital income</> },
+            { icon: 'foreign', text: <>{c1('foreign', 'Paid abroad')}: profits on foreign-owned UK capital, interest on gilts held abroad</> },
+            { icon: 'depreciation', text: <>{c1('depreciation', 'Depreciation')}: replaces capital that wears out</> },
+          ]}
+        />
       ),
     },
     {
       id: 'p2-out-3',
       pin: 'bottom',
+      icon: 'compare',
       kicker: 'Where output goes',
       title: `What ${SCEN_NAME[sid]} changes`,
       body: (
         <>
-          {ch ? <p>In this scenario, {why(ch)}</p> : <p>This solve is pending at the closure chosen above.</p>}
+          {ch ? (
+            <Items
+              items={outChangeItems(ch).map((it) => ({
+                key: it.key,
+                icon: it.icon,
+                text: changeText(it),
+              }))}
+            />
+          ) : (
+            <p>This solve is pending at the closure chosen above.</p>
+          )}
           <p className="p2-more">
             <Icon name="arrowRight" size={14} />
             <NavLink tab="explore" sub="economy" anchor="explore-part-economy">
@@ -221,7 +306,10 @@ export default function OutputSplit({ sid, closure }) {
   const { cl, base, ch } = splitFor(sid, closure);
   const both = closure === 'both';
   const phone = useIsPhone();
-  const steps = outputSteps(sid, base, ch);
+  // the part picked by a chip, a ribbon or a row, and the graphic state it
+  // was picked in: { id, s }
+  const [hl, setHl] = useState(null);
+  const steps = outputSteps(sid, base, ch, hl, setHl, phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
       <h3 id="story-output-h" className="p2-headline-title">
@@ -233,11 +321,14 @@ export default function OutputSplit({ sid, closure }) {
       </p>
       {phone ? (
         <div className="p2-output-static">
-          <OutputGraphic state={2} all sid={sid} cl={cl} base={base} ch={ch} />
+          <OutputGraphic state={2} all sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
           <ol className="p2-output-texts">
             {steps.map((s) => (
               <li key={s.id} id={s.id} className="p2-output-text">
-                <h4 className="scrolly-title">{s.title}</h4>
+                <h4 className="scrolly-title">
+                  {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-title-icon" /> : null}
+                  {s.title}
+                </h4>
                 <div className="scrolly-body">{s.body}</div>
               </li>
             ))}
@@ -248,7 +339,7 @@ export default function OutputSplit({ sid, closure }) {
           id="p2-output"
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={[...steps, { id: 'p2-out-end', spacer: true }]}
-          graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} />}
+          graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}
     </section>

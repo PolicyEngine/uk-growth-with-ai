@@ -66,6 +66,7 @@ export const CONCEPT_ICON = {
   // each to its own block). Each needs an icon no other concept uses.
   // part 1:
   // part 2:
+  entrants: 'baby', // cohorts that enter the economy after the shock
   // part 3:
   // explore:
   // method:
