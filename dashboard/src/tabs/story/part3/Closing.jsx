@@ -32,7 +32,7 @@ export function CloseLinks() {
       <NavLink tab="method" sub="studies">
         <Ico c="compare" />Other studies of AI and the UK economy
       </NavLink>
-      <NavLink tab="method" sub="studies" anchor="ev-related">
+      <NavLink tab="method" sub="studies" anchor="related-work">
         <Ico c="related" />Related PolicyEngine work
       </NavLink>
     </>

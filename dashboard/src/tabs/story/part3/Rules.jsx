@@ -5,7 +5,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtPp } from './format.js';
-import { About, FigureHead, Source, rule, Ico, entryClass, useEntry } from './shared.jsx';
+import { About, FigureHead, Source, rule, Ico, entryClass, useBeat } from './shared.jsx';
 
 // Step 5, who loses the job: the cost under the four stylised displacement
 // rules (results.tex, "Who loses the job"). The exposure rule is the central
@@ -67,10 +67,10 @@ function PovertyDot({ id, d, on }) {
   );
 }
 
-function RulesFigure() {
-  const [ref, e] = useEntry();
+function RulesFigure({ ctx }) {
+  const e = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
+    <figure className={entryClass(e, 'p3-figure p3-scene')}>
       <FigureHead icon="scenario" title="Who is displaced: cost, and the poverty rise" unit={`Mean of ${rule('uniform').draws} paired draws per rule; both axes from zero`} replay={e.replay} />
       <div className="p3-dp-heads" aria-hidden="true">
         <span>
@@ -144,6 +144,6 @@ export default function Rules() {
       ),
     },
   ];
-  return <Scrolly id="p3-rules" steps={steps} graphic={() => <RulesFigure />} label="Cost to the public finances under four rules for who is displaced" />;
+  return <Scrolly id="p3-rules" steps={steps} graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />} label="Cost to the public finances under four rules for who is displaced" />;
 }
 

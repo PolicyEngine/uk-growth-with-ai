@@ -5,7 +5,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
 import { useIsPhone } from '@/components/story/motion.js';
-import { D, FigureHead, Source, entryClass, useEntry } from './shared.jsx';
+import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Decile 1 is drawn grey with the caveat beside it and no
@@ -99,10 +99,10 @@ function DecBar({ v, on, fill, delay }) {
   );
 }
 
-function DecilesFigure({ phone }) {
-  const [ref, e] = useEntry();
+function DecilesFigure({ phone, ctx }) {
+  const e = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
+    <figure className={entryClass(e, 'p3-figure p3-scene')}>
       <FigureHead icon="deciles" title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" replay={e.replay} />
       <ol className="p3-rows p3-deciles">
         {VALUES.map((v, i) => {
@@ -157,5 +157,5 @@ export default function Deciles() {
       ),
     },
   ];
-  return <Scrolly id="p3-deciles" steps={steps} graphic={() => <DecilesFigure phone={phone} />} label="Change in household disposable income by income decile" />;
+  return <Scrolly id="p3-deciles" steps={steps} graphic={(i, r, ctx) => <DecilesFigure phone={phone} ctx={ctx} />} label="Change in household disposable income by income decile" />;
 }

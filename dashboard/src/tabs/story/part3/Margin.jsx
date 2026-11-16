@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtPence, fmtPenceRange, fmtPp } from './format.js';
-import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, perPound, Ico, entryClass, useEntry } from './shared.jsx';
+import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, perPound, Ico, entryClass, useBeat } from './shared.jsx';
 
 // Step 6, job loss against wage cuts (results.tex, "How the earnings loss
 // arrives"), on matching 20-draw bases only: pence per pound with each
@@ -73,8 +73,8 @@ function Dumbbell({ head, icon = 'measure', max, marks, on, delay, hl, setHl }) 
   );
 }
 
-function MarginFigure() {
-  const [ref, e] = useEntry();
+function MarginFigure({ ctx }) {
+  const e = useBeat(ctx?.entered ?? true);
   const [hl, setHl] = useState(null);
   const chip = (id, icon, name) => (
     <button
@@ -92,7 +92,7 @@ function MarginFigure() {
   const maxC = Math.max(JOB.cost_bn, CUT.cost_bn) * 1.15;
   const maxP = Math.max(JOB.poverty_pp, CUT.poverty_pp) * 1.15;
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene p3-margin')} ref={ref}>
+    <figure className={entryClass(e, 'p3-figure p3-scene p3-margin')}>
       <FigureHead icon="wageCut" title="The same earnings loss as job loss or as wage cuts" unit={`Mean of ${D.per_pound_20.draws} paired draws in every panel`} replay={e.replay} />
       <OutsideRebuildFlag />
       <p className="p3-legend-chips">
@@ -200,5 +200,5 @@ export default function Margin() {
       ),
     },
   ];
-  return <Scrolly id="p3-margin" steps={steps} graphic={() => <MarginFigure />} label={claims.aria} />;
+  return <Scrolly id="p3-margin" steps={steps} graphic={(i, r, ctx) => <MarginFigure ctx={ctx} />} label={claims.aria} />;
 }
