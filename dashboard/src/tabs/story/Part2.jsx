@@ -182,7 +182,7 @@ function whoSteps(sid) {
   const someLose = c.alive_losing_pct > 0 || c.no_bequest_losing_pct > 0 || (c.charged?.joint_losing_pct?.[1] ?? 0) > 0;
   const allGain = c.cev_all.every((v) => v > 0);
   const scope =
-    sid === 'uk_central' ? null : <p>Who gains is solved for UK central only. This chart is always UK central, central closure, debt-neutral transfers, whatever is chosen above.</p>;
+    sid === 'uk_central' ? null : <p>Who gains shows UK central only: the paper also reports Korinek et al. (upper), under debt-neutral transfers only, and its cohort paths are not yet in this site&rsquo;s data. This chart is always UK central, central closure, debt-neutral transfers, whatever is chosen above.</p>;
   return [
     {
       id: 'p2-who-0',

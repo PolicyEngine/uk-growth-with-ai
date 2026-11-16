@@ -53,7 +53,7 @@ function Shell() {
               options={SCEN_OPTIONS}
               onChange={(s) => set({ s })}
               locked={pick.scenario === 'locked'}
-              lockedNote="Who gains is solved for UK central only"
+              lockedNote="Who gains shows UK central only"
             />
           ) : null}
           {pick.closure ? (

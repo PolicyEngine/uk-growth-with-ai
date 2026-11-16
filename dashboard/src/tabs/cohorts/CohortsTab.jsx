@@ -33,6 +33,14 @@ const plain = (x, dp = 0) => `${x.toFixed(dp)}%`;
 // A share of adults: whole per cent, or "under 1%" (never "0%" for a few)
 const share = (x) => (x <= 0 ? 'none' : x < 1 ? 'under 1%' : `${Math.round(x)}%`);
 const shareRange = ([lo, hi]) => (Math.round(lo) === Math.round(hi) ? share(lo) : `${Math.round(lo)}–${Math.round(hi)}%`);
+// The tile's range over the measures, worded as its rows are: a true zero is
+// "none" (so the range reads "up to"), a few is "under 1%".
+export const tileRange = (lo, hi) => {
+  const cap = (t) => t[0].toUpperCase() + t.slice(1);
+  if (hi < 1 || Math.round(lo) === Math.round(hi)) return cap(share(hi));
+  if (lo <= 0) return `Up to ${Math.round(hi)}%`;
+  return `${lo < 1 ? 'Under 1%' : `${Math.round(lo)}%`} to ${Math.round(hi)}%`;
+};
 const tone = (x) => (Math.abs(x) < 0.005 ? null : x > 0 ? 'gain' : 'loss');
 
 // Age in the shock year of the adult cohort with the largest change, in words.
@@ -60,20 +68,39 @@ function Num({ x }) {
   return <b className={`num ${tone(x) === 'gain' ? 'is-gain' : tone(x) === 'loss' ? 'is-loss' : ''}`}>{pct(x)}</b>;
 }
 
+// The main arm solved with debt-neutral transfers kept on to the horizon,
+// measured against a no-shock path solved under the same rule (the paper's
+// "solved to the horizon" row, UK central, central closure). Read from the
+// `dnfull` block of cohorts2028.json, which paper/cohort_welfare.py --json
+// writes once that block is committed: {ready, closure, rule, arm, range:
+// {joint_losing_pct, no_bequest_losing_pct, ...: [low, high] over the two
+// extensions past the last solved year]}}. Until the block is in the data,
+// or while it is not ready, this returns null and nothing renders.
+export function dnfullFor(cl, rule, arm) {
+  const x = D.dnfull;
+  return x?.ready && x.closure === cl && x.rule === rule && x.arm === arm ? x : null;
+}
+
 // The headline tiles. The share who lose is a range, not one figure: it
 // moves with two accounting choices (whether bequests are valued, whether
 // the later fiscal cost is charged to households).
-export function Headline({ c, rule }) {
+export function Headline({ c, rule, cl, arm }) {
   const ch = rule === 'dn' ? c.charged : null;
+  const full = dnfullFor(cl, rule, arm);
   const s = c.sources_alive;
-  const all = [c.alive_losing_pct, c.no_bequest_losing_pct, ...(ch ? [...ch.joint_losing_pct, ...ch.no_bequest_losing_pct] : [])];
+  const all = [
+    c.alive_losing_pct,
+    c.no_bequest_losing_pct,
+    ...(ch ? [...ch.joint_losing_pct, ...ch.no_bequest_losing_pct] : []),
+    ...(full ? [...full.range.joint_losing_pct, ...full.range.no_bequest_losing_pct] : []),
+  ];
   const lo = Math.min(...all);
   const hi = Math.max(...all);
   const young = c.all_lose_up_to_age;
   const ages = ch?.oldest_losing_on_average;
   return (
     <div className="stat-row cols-4">
-      <StatTile icon="usersRound" name={`Adults who lose`} value={`${lo < 1 ? 'Under 1%' : `${Math.round(lo)}%`} to ${Math.round(hi)}%`} sub={`Share of adults alive in ${D.shock_year}, depending on the measure`}>
+      <StatTile icon="usersRound" name={`Adults who lose`} value={tileRange(lo, hi)} sub={`Share of adults alive in ${D.shock_year}, depending on the measure`}>
         <dl className="stat-rows">
           <div>
             <dt>As modelled</dt>
@@ -86,12 +113,24 @@ export function Headline({ c, rule }) {
           {ch ? (
             <>
               <div>
-                <dt>With the fiscal cost after 2035 charged</dt>
+                <dt>With the fiscal cost after 2035 charged{full ? ', first order' : ''}</dt>
                 <dd>{shareRange(ch.joint_losing_pct)}</dd>
               </div>
               <div>
-                <dt>With both</dt>
+                <dt>With both{full ? ', first order' : ''}</dt>
                 <dd>{shareRange(ch.no_bequest_losing_pct)}</dd>
+              </div>
+            </>
+          ) : null}
+          {full ? (
+            <>
+              <div data-dnfull="">
+                <dt>Solved to the horizon, with transfers bearing the fiscal cost</dt>
+                <dd>{shareRange(full.range.joint_losing_pct)}</dd>
+              </div>
+              <div data-dnfull="">
+                <dt>Solved to the horizon, bequests not valued</dt>
+                <dd>{shareRange(full.range.no_bequest_losing_pct)}</dd>
               </div>
             </>
           ) : null}
@@ -232,7 +271,7 @@ export default function WhoGainsTab() {
         Consumption-equivalent change for each birth year and lifetime-earnings group when AI arrives as a surprise in {D.shock_year}.
       </SectionHeading>
       <ViewNote icon="lock">
-        Who gains is solved for <b>UK central</b> only, so the Scenario picker is fixed here.
+        Who gains shows <b>UK central</b> only, so the Scenario picker is fixed here. The paper also reports Korinek et al. (upper), under debt-neutral transfers only; its cohort paths are not yet in this site&rsquo;s data.
         {both ? ' With Both chosen, the figures and the chart show each closure; the reasons below are for the central closure.' : ''}
       </ViewNote>
       <ControlBar label="Who gains: options">
@@ -247,11 +286,11 @@ export default function WhoGainsTab() {
             <h3 className="wg-closure-title">
               <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
             </h3>
-            <Headline c={cell(k, rule, arm)} rule={rule} />
+            <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} />
           </div>
         ))
       ) : (
-        <Headline c={c} rule={rule} />
+        <Headline c={c} rule={rule} cl={cl} arm={arm} />
       )}
       <div className="card fold-only">
         <Disclosure inCard title="The same average by form" preview="Consumption · Leisure · Bequests">
@@ -296,7 +335,9 @@ export default function WhoGainsTab() {
               <p>
                 Earnings groups are percentiles of lifetime earnings, not income deciles. Consumption-only figures, which scale consumption
                 alone, are a sensitivity in the paper. The figures with the fiscal cost after 2035 charged are a first-order estimate, not
-                a model run.
+                a model run.{D.dnfull?.ready
+                  ? ' The rows solved to the horizon are a model run for the main arm at the central closure: transfers, not government consumption, hold debt/GDP on the path to the horizon, measured against a no-shock path solved under the same rule.'
+                  : ''}
               </p>
             ),
             caveats: (

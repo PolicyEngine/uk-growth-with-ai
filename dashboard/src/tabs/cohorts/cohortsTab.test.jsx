@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
-import WhoGainsTab, { cell, pct } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { cell, pct, tileRange, dnfullFor } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 
 afterEach(cleanup);
@@ -75,6 +75,35 @@ describe('Who gains tab', () => {
     expect(container.textContent).toContain(pct(cell('zk0.1', 'dn', 'tfp').alive_avg));
     expect(container.textContent).toContain(pct(cell('zk0', 'dn', 'tfp').alive_avg));
     expect(container.querySelectorAll('#welfare-chart .wg-panel')).toHaveLength(2);
+  });
+
+  it('the tile range is worded as its rows: a true zero is none, so the range reads up to', () => {
+    const { container } = at('tab=who&wrule=common');
+    const c = cell('zk0.1', 'common', 'tfp');
+    const tile = container.querySelector('.stat-tile');
+    expect(tile.querySelector('.stat-value').textContent).toBe(tileRange(c.alive_losing_pct, c.no_bequest_losing_pct));
+    if (c.alive_losing_pct <= 0) {
+      expect(tile.querySelector('.stat-value').textContent).toBe(`Up to ${Math.round(c.no_bequest_losing_pct)}%`);
+      expect(tile.querySelector('dd').textContent).toBe('none');
+    }
+    expect(tileRange(0, 4.8)).toBe('Up to 5%');
+    expect(tileRange(0.05, 49.5)).toBe('Under 1% to 50%');
+    expect(tileRange(12.2, 12.4)).toBe('12%');
+    expect(tileRange(0, 0)).toBe('None');
+  });
+
+  it('the solve to the horizon shows only from the data, for the main arm, debt-neutral, central closure', () => {
+    const { container } = at();
+    const rows = container.querySelectorAll('[data-dnfull]');
+    if (D.dnfull?.ready) {
+      expect(rows).toHaveLength(2);
+      expect(dnfullFor('zk0.1', 'dn', 'tfp')).not.toBeNull();
+    } else {
+      expect(rows).toHaveLength(0);
+      expect(dnfullFor('zk0.1', 'dn', 'tfp')).toBeNull();
+    }
+    expect(dnfullFor('zk0', 'dn', 'tfp')).toBeNull();
+    expect(dnfullFor('zk0.1', 'common', 'tfp')).toBeNull();
   });
 
   it('data covers both closures, both rules and three arms', () => {
