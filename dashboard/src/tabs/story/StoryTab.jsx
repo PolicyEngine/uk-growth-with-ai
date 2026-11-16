@@ -70,7 +70,7 @@ export const PARTS = [
       <Items
         items={[
           { icon: 'data', text: 'PolicyEngine-UK on Microcosm UK survey data, static, for one year' },
-          { icon: 'source', text: 'Published study, merged on main; results rebuilt without a clean-room rerun' },
+          { icon: 'source', text: 'Merged study; its manifest: no full clean-room rerun' },
           { icon: 'jobLoss', text: 'People lose their jobs; in OG-UK the labour market clears' },
         ]}
       />

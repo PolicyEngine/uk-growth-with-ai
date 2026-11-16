@@ -332,7 +332,7 @@ export default function StudiesTab() {
         <Matrix />
         <Takeaways />
         <SectionHeading id="numbers" icon={iconFor('measure')} title="Where OG-UK’s results sit">
-            <IconText icon="range">Published figures by measure, ours beside them where comparable. Each row states its horizon.</IconText>
+            <IconText icon="range">Published figures by measure, OG-UK&rsquo;s beside them where comparable. Each row states its horizon.</IconText>
         </SectionHeading>
         <EvidenceLanes />
         <ImfGap />

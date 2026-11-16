@@ -181,7 +181,7 @@
       "period": "2025",
       "value": 49.9,
       "primary_value_raw": "DTWM 1519055 / YBHA 3044594",
-      "url": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/dtwm/data ; https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ybha/data",
+      "url": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/dtwm/data",
       "primary_file": "analysis/story/raw/ons_dtwm_pn2_2026-11-12.json ; analysis/story/raw/ons_ybha_pn2_2026-11-12.json",
       "read_by": "ONS /data JSON, 100 x DTWM / YBHA rounded to one decimal place",
       "printed": "49.9%",

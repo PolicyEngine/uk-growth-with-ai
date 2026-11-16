@@ -90,7 +90,7 @@ function rangeSvg(metric) {
     out += `<text x="0" y="${y + 28}" font-size="11" fill="${C.muted}">${esc(b)}</text>`;
   };
   const top0 = y;
-  if (ours.length) group(`Ours, automation + productivity, ${HEADLINE_YEAR}`);
+  if (ours.length) group(`OG-UK, automation + productivity, ${HEADLINE_YEAR}`);
   for (const o of ours) {
     const cy = y + ROW / 2;
     label(o.label, 'OG-UK, year 4 of adoption');

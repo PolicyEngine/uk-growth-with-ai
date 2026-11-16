@@ -51,7 +51,8 @@ export const SRC = {
   ogUk: { label: 'OG-UK', url: URLS.ogUk },
   // the study's own notes and code (modelling choices)
   closureMemo: { label: 'closure memo', url: `${REPO}/blob/${RUN}/docs/closure_choice.md` },
-  calibNote: { label: 'UK calibration note', url: `${REPO}/blob/${RUN}/docs/uk_calibration.md` },
+  // the note as revised on 16 Nov 2026 (derivations disclosed, no 'ours'/'we')
+  calibNote: { label: 'UK calibration note', url: `${REPO}/blob/5e538fd865d6ac9fdf1c2e14fafff09def4415a8/docs/uk_calibration.md` },
   ukTargets: { label: 'uk_targets.json', url: code('analysis/surprise/uk_targets.json') },
   tg1: { label: 'scenarios.py: TG1 = 10', url: code('uk_growth_with_ai/scenarios.py', 45) },
   surpriseYear: { label: 'surprise.py: SURPRISE_YEAR = 2028', url: code('uk_growth_with_ai/surprise.py', 55) },

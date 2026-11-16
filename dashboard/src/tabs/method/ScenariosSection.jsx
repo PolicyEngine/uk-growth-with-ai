@@ -341,7 +341,7 @@ export default function ScenariosSection({ uses = null }) {
       <Items
         className="mx-foot-items"
         items={[
-          { icon: 'arithmetic', text: <>Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}; targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)}.</> },
+          { icon: 'arithmetic', text: <>Derivations: {ext(SRC.calibNote.url, SRC.calibNote.label)}; targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)}.</> },
           { icon: 'rule', text: 'Which pairs to run is a modelling choice.' },
           { icon: 'rule', text: 'So is calling UK central the headline.' },
           { icon: 'compare', text: <>Published figures are compared on <NavLink tab="method" sub="studies" anchor="numbers">Evidence</NavLink>.</> },
