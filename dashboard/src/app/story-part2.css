@@ -731,3 +731,22 @@
   outline: 2px solid var(--c-highlight);
   outline-offset: 2px;
 }
+
+/* A plain icon before a line of text (frame.jsx Tx): titles, leads,
+   sources, links, disclosures */
+.p2-tx-icon {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -0.12em;
+  color: var(--pe-gray-500);
+}
+.story-next-links .p2-tx-icon,
+.p2-details summary .p2-tx-icon {
+  margin-right: 4px;
+}
+.p2-src-line {
+  display: block;
+}
+.p2-src-line + .p2-src-line {
+  margin-top: 2px;
+}

@@ -7,7 +7,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { useInView, useIsPhone } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import { SOURCE } from './frame.jsx';
+import { SOURCE, Tx } from './frame.jsx';
 import { SPLIT_YEAR, PART_COLOR, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -156,7 +156,9 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   return (
     <figure ref={ref} className="p2-figure p2-output-fig p2-output-graphic" data-state={s}>
       <div className="p2-output-base">
-        <p className="story-figure-title">The OBR-central path, {SPLIT_YEAR}</p>
+        <p className="story-figure-title">
+          <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
+        </p>
         <p className="story-figure-unit">{cap(CL_WORDS[cl])}. Of every 100 of GDP</p>
         {graph ? (
           <div className="p2-sankey">
@@ -174,25 +176,44 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
             />
           </div>
         ) : (
-          <p className="p2-pending">The reference path at this closure is pending.</p>
+          <p className="p2-pending">
+            <Tx icon="provisional">The reference path at this closure is pending.</Tx>
+          </p>
         )}
         <p className="story-source">
-          Taxes are not split out: in OG-UK income tax is one combined series. {SOURCE}
+          <span className="p2-src-line">
+            <Tx icon="tax" size={12}>
+              Taxes are not split out: in OG-UK income tax is one combined series.
+            </Tx>
+          </span>{' '}
+          <span className="p2-src-line">
+            <Tx icon="source" size={12}>
+              {SOURCE}
+            </Tx>
+          </span>
         </p>
       </div>
       {/* not yet reached: invisible, and out of reach of focus and pointer */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
-        <p className="story-figure-title">What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}</p>
+        <p className="story-figure-title">
+          <Tx icon="compare">
+            What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
+          </Tx>
+        </p>
         <p className="story-figure-unit">{where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels</p>
         {ch ? (
           <>
             <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={pick2} />
             <p className="story-source">
-              Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure.
+              <Tx icon="caveat" size={12}>
+                Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure.
+              </Tx>
             </p>
           </>
         ) : (
-          <p className="p2-pending">This solve is pending at the closure chosen above.</p>
+          <p className="p2-pending">
+            <Tx icon="provisional">This solve is pending at the closure chosen above.</Tx>
+          </p>
         )}
       </div>
     </figure>
@@ -291,7 +312,7 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
             <p>This solve is pending at the closure chosen above.</p>
           )}
           <p className="p2-more">
-            <Icon name="arrowRight" size={14} />
+            <Icon name={iconFor('link')} size={14} />
             <NavLink tab="explore" sub="economy" anchor="explore-part-economy">
               The labour share year by year
             </NavLink>
@@ -313,11 +334,15 @@ export default function OutputSplit({ sid, closure }) {
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
       <h3 id="story-output-h" className="p2-headline-title">
-        Where output goes in {SPLIT_YEAR}
+        <Tx icon="outputSplit" size={22}>
+          Where output goes in {SPLIT_YEAR}
+        </Tx>
       </h3>
       <p className="p2-headline-lead">
-        First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part.{' '}
-        {both ? 'With both closures chosen above, both figures show the central closure.' : null}
+        <Tx icon="path" size={16}>
+          First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part.{' '}
+          {both ? 'With both closures chosen above, both figures show the central closure.' : null}
+        </Tx>
       </p>
       {phone ? (
         <div className="p2-output-static">

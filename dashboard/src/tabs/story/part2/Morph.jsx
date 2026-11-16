@@ -2,7 +2,7 @@
 
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import { W, H, niceTicks, SOURCE, More } from './frame.jsx';
+import { W, H, niceTicks, SOURCE, More, Tx } from './frame.jsx';
 import { series } from './charts.jsx';
 import { EPS2 } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -205,7 +205,7 @@ export function MorphChart({ state, sid, cl }) {
       <p className="story-figure-title p2-text-stack">
         {all.map((t, i) => (
           <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
-            {t.title}
+            <Tx icon="path">{t.title}</Tx>
           </span>
         ))}
       </p>
@@ -349,7 +349,11 @@ export function MorphChart({ state, sid, cl }) {
           </g>
         </g>
       </svg>
-      <figcaption className="story-source">{sourceText(s)}</figcaption>
+      <figcaption className="story-source">
+        <Tx icon="source" size={12}>
+          {sourceText(s)}
+        </Tx>
+      </figcaption>
     </figure>
   );
 }

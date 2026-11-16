@@ -97,7 +97,10 @@ function RangeBar({ v, sid, title, cl }) {
   const pending = pts.filter((p) => p.x == null);
   return (
     <div className="kpi-range">
-      <p className="kpi-range-title">The four scenarios</p>
+      <p className="kpi-range-title">
+        <Icon name={iconFor('range')} size={12} className="p2-tx-icon" />
+        The four scenarios
+      </p>
       <div className="kpi-range-track">
         <span className="kpi-range-zero" style={{ left: pct(0) }} aria-hidden="true" />
         {done.map((p) => (
@@ -248,7 +251,10 @@ export function SummaryWhy({ sid }) {
     <>
       {why ? (
         <div className="why p2-why">
-          <h3 className="why-title">Why</h3>
+          <h3 className="why-title">
+            <Icon name={iconFor('why')} size={18} className="p2-tx-icon" />
+            Why
+          </h3>
           <WhyChain
             label="Why the figures move, step by step"
             links={why.links.map((l) => ({

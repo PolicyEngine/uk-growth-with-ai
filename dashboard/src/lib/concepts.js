@@ -67,6 +67,8 @@ export const CONCEPT_ICON = {
   // part 1:
   // part 2:
   entrants: 'baby', // cohorts that enter the economy after the shock
+  headline: 'flag', // the headline figures
+  outputSplit: 'workflow', // where output goes
   // part 3:
   // explore:
   // method:

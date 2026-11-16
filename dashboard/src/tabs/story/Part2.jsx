@@ -11,7 +11,7 @@ import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
 import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, entryDip, series, afterWords, afterWordsAll } from './part2/charts.jsx';
-import { More } from './part2/frame.jsx';
+import { More, Tx } from './part2/frame.jsx';
 import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { EPS2 } from './part2/dir.js';
@@ -228,7 +228,9 @@ function armSteps(sid, closure) {
             ]}
           />
           <details className="p2-details">
-            <summary>Against the OBR&rsquo;s own scenario</summary>
+            <summary>
+              <Tx icon="compare">Against the OBR&rsquo;s own scenario</Tx>
+            </summary>
             <Items
               items={[
                 { icon: 'compare', text: 'It matches the OBR’s scenario on GDP only' },
@@ -251,7 +253,9 @@ function whoSteps(sid) {
   const scope =
     sid === 'uk_central' ? null : (
       <details className="p2-details">
-        <summary>Always UK central here</summary>
+        <summary>
+          <Tx icon="scenario">Always UK central here</Tx>
+        </summary>
         <Items
           items={[
             { icon: 'scenario', text: 'Who gains shows UK central only' },
@@ -300,7 +304,9 @@ function whoSteps(sid) {
           />
           {dip ? (
             <details className="p2-details">
-              <summary>The dip after the entry line</summary>
+              <summary>
+                <Tx icon="benefits">The dip after the entry line</Tx>
+              </summary>
               <Items
                 items={[
                   { icon: 'benefits', text: 'Under debt-neutral transfers, transfers fall until the debt rule starts' },
@@ -367,7 +373,9 @@ function debtSteps(sid, closure) {
             ]}
           />
           <details className="p2-details">
-            <summary>The path after the OBR&rsquo;s forecast</summary>
+            <summary>
+              <Tx icon="forecast">The path after the OBR&rsquo;s forecast</Tx>
+            </summary>
             <Items
               items={[
                 { icon: 'forecast', text: 'The OBR-central path is OG-UK’s own, on the OBR’s central productivity growth' },
@@ -377,7 +385,9 @@ function debtSteps(sid, closure) {
           </details>
         </>
       ) : (
-        <p>This solve is not done yet at the closure chosen above.</p>
+        <p>
+          <Tx icon="provisional">This solve is not done yet at the closure chosen above.</Tx>
+        </p>
       ),
     },
     {
@@ -438,12 +448,12 @@ function TwoLenses() {
 // The band that ends part 2: part 3 next, and links to the figures' homes
 // (the tab row's sub-tabs).
 const DEEPER = [
-  { tab: 'explore', sub: 'economy', label: 'Economy' },
-  { tab: 'explore', sub: 'finances', label: 'Public finances' },
-  { tab: 'explore', sub: 'who', label: 'Who gains' },
-  { tab: 'explore', sub: 'all', label: 'All scenarios' },
-  { tab: 'method', sub: 'scenarios', label: 'Scenarios' },
-  { tab: 'method', sub: 'how', label: 'OG-UK method' },
+  { tab: 'explore', sub: 'economy', label: 'Economy', icon: 'gdp' },
+  { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
+  { tab: 'explore', sub: 'who', label: 'Who gains', icon: 'age' },
+  { tab: 'explore', sub: 'all', label: 'All scenarios', icon: 'range' },
+  { tab: 'method', sub: 'scenarios', label: 'Scenarios', icon: 'scenario' },
+  { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
 ];
 function NextBand() {
   return (
@@ -453,7 +463,7 @@ function NextBand() {
       to="story-part-3"
       links={DEEPER.map((d) => (
         <NavLink key={`${d.tab}-${d.sub}`} tab={d.tab} sub={d.sub}>
-          {d.label}
+          <Tx icon={d.icon}>{d.label}</Tx>
         </NavLink>
       ))}
     />
@@ -489,7 +499,9 @@ export default function Part2({ part }) {
   return (
     <>
       <PartHead part={part}>
-        OG-UK results for an AI shock arriving as a surprise in {SURPRISE_YEAR}: gaps against the OBR-central path, which already includes the OBR&rsquo;s central AI assumption.
+        <Tx icon="model" size={18}>
+          OG-UK results for an AI shock arriving as a surprise in {SURPRISE_YEAR}: gaps against the OBR-central path, which already includes the OBR&rsquo;s central AI assumption.
+        </Tx>
       </PartHead>
 
       <TwoLenses />
@@ -512,10 +524,14 @@ export default function Part2({ part }) {
 
       <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">
         <h3 id="story-headline-h" className="p2-headline-title">
-          The headline figures: {SCEN_NAME[sid]}, {HEADLINE_YEAR}
+          <Tx icon="headline" size={22}>
+            The headline figures: {SCEN_NAME[sid]}, {HEADLINE_YEAR}
+          </Tx>
         </h3>
         <p className="p2-headline-lead">
-          The main arm, automation + productivity, against the OBR-central path. Change the scenario or closure at the top of the page.
+          <Tx icon="path" size={16}>
+            The main arm, automation + productivity, against the OBR-central path. Change the scenario or closure at the top of the page.
+          </Tx>
         </p>
         <HeadlineTiles sid={sid} />
         <SummaryWhy sid={sid} />
