@@ -147,6 +147,7 @@ export default function EvidenceMap({ map = MAP }) {
               { icon: 'source', text: 'Each figure as published, against the study’s own baseline (mostly no AI).' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
               { icon: 'foreign', text: 'Studies of the US or other economies are labelled.' },
+              { icon: 'measure', text: 'Adoption and exposure rows are levels or shares, not effects.' },
               { icon: 'model', text: `OG-UK rows: the automation + productivity arm’s ${HEADLINE_YEAR} gap.` },
               { icon: 'link', text: 'That gap is against the OBR-central path; figures on Explore, download.' },
             ]}

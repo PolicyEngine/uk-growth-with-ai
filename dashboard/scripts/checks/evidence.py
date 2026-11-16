@@ -5,7 +5,9 @@ check(dump) returns the number of failures:
 - in the evidence-map card (from its title to the Sources heading), each
   quantified row's `value` appears exactly as often as the rows whose value
   contains it (each fact once; a value can be part of a longer one);
-- every no-estimate body is listed;
+- every no-estimate body is listed (seven since the 16 Nov 2026 additions,
+  among them ONS and Jacob Schaal; new measures adoption, exposure and
+  distribution are checked like the rest);
 - a row flagged `unverified` (not confirmed in a primary text) is not
   printed: its value appears nowhere in the card;
 - the Related PolicyEngine work section (from relatedWork.json) prints its

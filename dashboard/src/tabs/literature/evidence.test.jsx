@@ -9,6 +9,7 @@ import { CHANNELS, OBR_GROWTH, RANGES, SOURCES } from '@/data/literature.js';
 import EvidenceMap, { mapTable, ourRows, view, hasFigure } from '@/tabs/literature/EvidenceMap.jsx';
 import { growthPairs } from '@/tabs/literature/GrowthCheck.jsx';
 import RelatedWork from '@/tabs/literature/RelatedWork.jsx';
+import EvidenceLanes from '@/tabs/literature/EvidenceLanes.jsx';
 import REL from '@/data/relatedWork.json';
 import { SCENARIOS, gap, fmt, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 
@@ -44,7 +45,7 @@ describe('UK evidence map data', () => {
   });
   it('bodies with no AI-specific estimate say so and give their nearest output', () => {
     const none = MAP.rows.filter((r) => r.metric === 'none');
-    expect(none.map((r) => r.institution).sort()).toEqual(['DWP', 'HM Treasury', 'HMRC', 'Resolution Foundation']);
+    expect(none.map((r) => r.institution).sort()).toEqual(['DWP', 'HM Treasury', 'HMRC', 'Imas and Schaal', 'Jacob Schaal (King’s College London)', 'ONS', 'Resolution Foundation']);
     for (const r of none) {
       expect(r.value).toMatch(/^No quantified estimate/);
       expect(r.measure).toMatch(/^Nearest output/);
@@ -99,7 +100,7 @@ describe('Evidence map table', () => {
     const confirmed = MAP.rows.filter((r) => !r.unverified);
     expect(container.querySelectorAll('tbody tr')).toHaveLength(confirmed.length + 2);
     fireEvent.click(screen.getByRole('radio', { name: 'No quantified estimate' }));
-    expect(container.querySelectorAll('tbody tr')).toHaveLength(4);
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(MAP.rows.filter((r) => r.metric === 'none').length);
     fireEvent.click(screen.getByRole('radio', { name: 'GDP or output' }));
     const gdp = confirmed.filter((r) => r.metric === 'gdp').length;
     expect(container.querySelectorAll('tbody tr')).toHaveLength(gdp + 1);
@@ -148,5 +149,19 @@ describe('Related PolicyEngine work', () => {
     for (const fig of figs) expect(t).toContain(fig);
     for (const it of REL.items) expect(container.querySelector(`a[href="${it.url}"]`)).not.toBeNull();
     expect(container.querySelectorAll('[data-path^="relatedWork.items."]')).toHaveLength(6);
+  });
+});
+
+describe('Evidence lanes', () => {
+  it('give each plotted measure, and the new adoption, exposure and distribution measures, a lane', () => {
+    const { container } = render(<EvidenceLanes />);
+    for (const k of ['gdp', 'wage', 'adoption', 'exposure', 'distribution']) expect(container.querySelector(`#ranges-${k}`), k).not.toBeNull();
+    // OG-UK's rows only where comparable (GDP and wages)
+    expect(container.querySelector('#ranges-adoption .is-ours')).toBeNull();
+    expect(container.querySelectorAll('#ranges-gdp .is-ours').length).toBeGreaterThan(0);
+    // the exposure bar's parts are the row's printed shares
+    const row = MAP.rows.find((r) => r.shares);
+    for (const x of row.shares) expect(row.value).toContain(`${x.pct}%`);
+    expect(container.querySelectorAll('#ranges-exposure .mx-share-part')).toHaveLength(row.shares.length);
   });
 });
