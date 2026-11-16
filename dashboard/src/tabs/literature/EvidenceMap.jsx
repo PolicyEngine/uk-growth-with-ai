@@ -216,7 +216,7 @@ export default function EvidenceMap({ map = MAP }) {
                 </td>
                 <td data-label="Value" className="ev-value">
                   {r.ours ? (
-                    <NavLink tab="explore" sub="economy" anchor="income">
+                    <NavLink tab="explore" sub="economy" anchor="economy-wall">
                       On Explore
                     </NavLink>
                   ) : (
