@@ -2,6 +2,7 @@
 // component puts in the DOM. No demo pages: each primitive on its own.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, renderHook } from '@testing-library/react';
+import { studyLabel } from './ModelBadge.jsx';
 import {
   Axis, Band, Bars, EndLabels, Frame, Grid, Line, ModelBadge, View,
   affine, barDelay, barPath, crowded, fmtTick, linear, linePath, nearestIndex, niceDomain, niceTicks, placeLabels, tickStep, useChartBox, viewFor, yearTicks,
@@ -63,7 +64,9 @@ describe('useChartBox', () => {
 describe('ModelBadge and Frame', () => {
   it('names the model with an icon', () => {
     const { container } = render(<ModelBadge model="aistudy" />);
-    expect(container.textContent).toBe('uk-ai-study · provisional');
+    expect(container.textContent).toBe(studyLabel());
+    expect(studyLabel({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('uk-ai-study · FY 2027–28');
+    expect(studyLabel({ provisional: true })).toBe('uk-ai-study · provisional');
     expect(container.querySelector('svg')).not.toBeNull();
   });
   it('yTitle and xTitle render as icon lines marked data-axis-title', () => {

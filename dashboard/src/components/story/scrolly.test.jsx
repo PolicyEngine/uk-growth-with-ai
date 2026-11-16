@@ -121,7 +121,7 @@ describe('useEnterState', () => {
 
 describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
   const sub = { title: 'Output', icon: 'gdp', question: 'How fast has the UK grown?', takeaway: 'Growth slowed after 2008.' };
-  it('prints the question in the header and the takeaway after the last card', () => {
+  it('prints the question in the header and the takeaway after the block', () => {
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={() => null} label="L" />);
     const h = container.querySelector('header.scene-head');
     expect(h.dataset.scene).toBe('Output');
@@ -129,7 +129,8 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     expect(h.querySelector('.scene-head-q svg')).not.toBeNull();
     const t = container.querySelectorAll('.scrolly-takeaway');
     expect(t).toHaveLength(1);
-    expect(t[0].closest('li').id).toBe('s-c');
+    expect(t[0].closest('li')).toBeNull();
+    expect(t[0].previousElementSibling.classList.contains('scrolly-steps')).toBe(true);
     expect(t[0].textContent).toBe('Key takeaway: Growth slowed after 2008.');
     expect(t[0].querySelector('svg')).not.toBeNull();
   });

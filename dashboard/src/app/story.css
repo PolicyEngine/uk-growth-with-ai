@@ -277,8 +277,8 @@
   margin: 0 0 4px;
   color: var(--pe-gray-600);
 }
-.scene-head::after {
-  content: '';
+/* the hairline is an element (not ::after), so layout checks see it */
+.scene-head-rule {
   flex: 1 1 auto;
   height: 1px;
   background: var(--card-border);
@@ -298,13 +298,24 @@
 .scrolly.has-sub > .scrolly-steps {
   grid-row: 2;
 }
+/* the header sits close above its block, and the takeaway close under it:
+   16px, not the 48px column gap */
+.scrolly.has-sub,
+.scrolly:has(> .scrolly-takeaway) {
+  row-gap: 16px;
+}
+@media (max-width: 900px) {
+  .scrolly-takeaway {
+    margin-top: 12px;
+  }
+}
 /* The scene sub-header's question (Scrolly `sub.question`), on the title's
    row; it wraps under the title on narrow screens */
 .scene-head.has-q {
   flex-wrap: wrap;
   row-gap: 2px;
 }
-.scene-head.has-q::after {
+.scene-head.has-q .scene-head-rule {
   min-width: 24px;
 }
 .scene-head-q {
@@ -453,16 +464,13 @@
     display: none;
   }
 }
-/* `sub.takeaway`: one line after the block's last card */
-.scrolly-step.has-takeaway {
-  flex-direction: column;
-  align-items: stretch;
-}
+/* `sub.takeaway`: one line after the block, under both columns */
 .scrolly-takeaway {
+  grid-column: 1 / -1;
   display: flex;
   gap: 8px;
   align-items: baseline;
-  margin: 8px 0 0;
+  margin: 0;
   padding: 6px 10px;
   font-size: var(--fs-small);
   line-height: 1.4;

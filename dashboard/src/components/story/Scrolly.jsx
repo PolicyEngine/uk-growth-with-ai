@@ -71,7 +71,8 @@ const subscribeWidth = (cb) => {
 //                link, a step dot, scrolling up), under reduced motion, in
 //                print and in "is-inline" blocks. ctx.entered (and so
 //                useEnterState entry moves) waits until it has shrunk.
-//                `takeaway`: one "Key takeaway" line after the last card;
+//                `takeaway`: one "Key takeaway" line after the block (the
+//                full width, under both columns: one line on desktop);
 //   part         the part number for the opener (default: read from the page);
 //   step.kickerIcon  a concept leading the kicker (default: step.icon).
 export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, part }) {
@@ -272,6 +273,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               <span>{question}</span>
             </p>
           ) : null}
+          <span className="scene-head-rule" aria-hidden="true" />
         </header>
       ) : null}
       <div className="scrolly-graphic" ref={box} aria-label={label} role="group" hidden={inline || undefined}>
@@ -314,7 +316,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               key={s.id}
               id={s.id}
               ref={register(i)}
-              className={`scrolly-step${i === active ? ' is-active' : i < active ? ' is-past' : ''}${takeaway && i === lastCard ? ' has-takeaway' : ''}`}
+              className={`scrolly-step${i === active ? ' is-active' : i < active ? ' is-past' : ''}`}
               aria-current={i === active ? 'step' : undefined}
             >
               {inline ? <InlineCopy graphic={graphic} i={i} reduce={reduce} label={label} /> : null}
@@ -338,20 +340,20 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
                   </button>
                 ) : null}
               </div>
-              {takeaway && i === lastCard ? (
-                <p className="scrolly-takeaway">
-                  <Icon name={iconFor('takeaway')} size={16} className="scrolly-takeaway-icon" />
-                  <span>
-                    <strong>Key takeaway:</strong> {takeaway}
-                  </span>
-                </p>
-              ) : null}
             </li>
           ),
         )}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
       {phone ? footHere : null}
+      {takeaway ? (
+        <p className="scrolly-takeaway">
+          <Icon name={iconFor('takeaway')} size={16} className="scrolly-takeaway-icon" />
+          <span>
+            <strong>Key takeaway:</strong> {takeaway}
+          </span>
+        </p>
+      ) : null}
     </div>
   );
 }

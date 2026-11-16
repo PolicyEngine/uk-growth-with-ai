@@ -1,7 +1,7 @@
 // Chart actions: "Copy link to this chart" and the About fold's replication line.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import DownloadMenu, { chartLink } from './DownloadMenu.jsx';
+import DownloadMenu, { chartLink, studyCaption } from './DownloadMenu.jsx';
 import { AboutFold } from './Card.jsx';
 
 afterEach(cleanup);
@@ -27,6 +27,10 @@ describe('chart actions', () => {
     fireEvent.click([...container.querySelectorAll('.download-item')].find((b) => b.textContent.startsWith('Copy link')));
     await findByText('Link copied');
     expect(copied).toContain('debt-gdp');
+  });
+  it('the study caption names the model year and drops provisional once merged', () => {
+    expect(studyCaption({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('Model: uk-ai-study (PolicyEngine-UK microsimulation), FY 2027–28');
+    expect(studyCaption({ provisional: true })).toContain('provisional');
   });
   it('AboutFold prints a replication line with code and result file links', () => {
     const { container } = render(<AboutFold replication={{ code: 'https://github.com/x/run.py', result: 'https://github.com/x/out.json' }} />);

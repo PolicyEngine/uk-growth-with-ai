@@ -6,13 +6,18 @@ import { downloadCsv, downloadPng, downloadSvg, fromSvgEl } from '@/lib/download
 import { ARM_PICK, PAGE_TITLE, closureLabel, pickersFor, ruleLabel } from '@/lib/labels.js';
 import { useNav, subOf } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import AI from '@/data/aiStudy2425.json';
 import { SCEN_NAME } from '@/tabs/ai/surprise.js';
+
+// uk-ai-study's caption from its data file: the model year, and
+// "provisional" only while the study is (status merged: not provisional).
+export const studyCaption = (d) => ['Model: uk-ai-study (PolicyEngine-UK microsimulation)', d.model_year_label, d.provisional ? 'provisional' : null].filter(Boolean).join(', ');
 
 // The caption every download carries (addendum E4, copy this view): the
 // settings the chart was drawn with and the model's name, from the address.
 export function captionOf(st, sub) {
   const pick = pickersFor(st.tab, sub);
-  if (pick.study) return 'Model: uk-ai-study (PolicyEngine-UK microsimulation), provisional';
+  if (pick.study) return studyCaption(AI);
   const parts = [];
   if (pick.scenario) parts.push(`Scenario: ${SCEN_NAME[pick.scenario === 'locked' ? 'uk_central' : st.s]}`);
   if (pick.closure) parts.push(`Closure: ${closureLabel(st.closure)}`);
