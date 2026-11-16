@@ -3,14 +3,14 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
 import { fmtBn, fmtInputPct, fmtShare } from './format.js';
-import { D, FigureHead, OBR_SCENARIO, OutsideRebuild, Source } from './shared.jsx';
+import { D, FigureHead, OBR_SCENARIO, OutsideRebuildFlag, Source } from './shared.jsx';
 
 // Step 3, what the system absorbs (results.tex, "Household absorption of job
 // loss by baseline decile"): a Sankey of the OBR-sized run, job loss alone,
 // from results/next_runs/obr_household_deciles.csv. Each income decile's
 // earnings lost flow to four destinations. The figure is the home of the
-// destination totals and the earnings total; the card adds the share
-// absorbed and employer NI, which sits on top of the earnings lost.
+// destination totals, the earnings total and (in its key) employer NI, which
+// sits on top of the earnings lost; the card adds the share absorbed.
 
 const S = D.sankey;
 // Order: each small node sits between two tall ones, so labels never
@@ -50,6 +50,7 @@ function Graphic() {
         }
         unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes, £bn a year, mean of ${S.draws} draws`}
       />
+      <OutsideRebuildFlag />
       <p className="p3-sankey-axis" aria-hidden="true">
         <span>Income decile (1 = bottom)</span>
         <span>Where the loss lands</span>
@@ -63,7 +64,8 @@ function Graphic() {
       />
       <p className="p3-key">
         How to read it: each ribbon runs from an income decile to where its lost earnings land; its width is pounds a year. Other items are
-        mainly pension contributions no longer paid. Decile 1 carries the ranking caveat of step 4.
+        mainly pension contributions no longer paid. Decile 1 carries the ranking caveat of step 4. Employers also stop paying{' '}
+        {fmtBn(S.employer_ni_bn)} of National Insurance on these earnings, a cost to the government on top of the flows shown.
       </p>
       <Source>run sized to the OBR scenario, household flows by baseline decile</Source>
     </figure>
@@ -82,13 +84,6 @@ export default function Absorb() {
             To see job loss on its own, this run displaces fewer employees, with no rise in other wages or capital income. Most of the
             earnings lost fall on households’ disposable income. Income tax, employee National Insurance and benefits absorb{' '}
             {fmtShare(S.tax_benefit_share_pct)} of the loss; benefits add little.
-          </p>
-          <p>
-            Employers also stop paying {fmtBn(S.employer_ni_bn)} of National Insurance on these earnings, a cost to the government on top of
-            the flows shown.
-          </p>
-          <p>
-            <OutsideRebuild />
           </p>
         </>
       ),

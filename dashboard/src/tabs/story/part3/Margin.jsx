@@ -2,7 +2,7 @@
 
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { fmtBn, fmtPence, fmtPenceRange, fmtPp } from './format.js';
-import { D, FigureHead, HBar, OutsideRebuild, Source, StackBar, ladder, perPound } from './shared.jsx';
+import { About, D, FigureHead, HBar, OutsideRebuildFlag, Source, StackBar, ladder, perPound } from './shared.jsx';
 
 // Step 6, job loss against wage cuts (results.tex, "How the earnings loss
 // arrives"), on matching 20-draw bases only: pence per pound with each
@@ -24,6 +24,7 @@ function Graphic() {
   return (
     <figure className="p3-figure">
       <FigureHead title="The same earnings loss as job loss or as wage cuts" unit={`Mean of ${D.per_pound_20.draws} paired draws in every row`} />
+      <OutsideRebuildFlag />
       <p className="p3-group-head p3-group-first">
         Cost to the public finances per <span data-axis="">£1</span> of earnings lost, each margin alone
       </p>
@@ -93,18 +94,16 @@ export default function Margin() {
       body: (
         <>
           <p>
-            Here no one loses a job: wage cuts graded by occupational AI exposure remove the same gross earnings as the displacement did. Per
-            pound, wage cuts cost the public finances more. A cut removes pounds taxed at the worker’s marginal rates, while a lost job removes
-            whole earnings, including the part below the personal allowance, and the Universal Credit it adds is less than the tax forgone.
-            Employer NI is of similar size on both margins.
+            No one loses a job here: wage cuts graded by AI exposure remove the same gross earnings. Job loss concentrates the loss on fewer
+            households, moving more of them below the poverty line. The ordering is a result for this shock, not a property of the UK system.
           </p>
-          <p>
-            Poverty moves the other way: job loss concentrates the loss on fewer households and moves more of them below the poverty line, while the same
-            loss spread across many earners moves few below it. The ordering is a result for this shock, not a property of the UK system.
-          </p>
-          <p>
-            <OutsideRebuild />
-          </p>
+          <About>
+            <p>
+              A cut removes pounds taxed at the worker’s marginal rates, while a lost job removes whole earnings, including the part below the
+              personal allowance, and the Universal Credit it adds is less than the tax forgone. Employer NI is of similar size on both margins.
+              The same loss spread across many earners moves few households below the poverty line.
+            </p>
+          </About>
         </>
       ),
     },

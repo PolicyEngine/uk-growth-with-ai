@@ -1,10 +1,11 @@
-// Story part 3, eight steps in the paper's order, prints the provisional
-// uk-ai-study headline findings from aiStudy2425.json once each (the
-// detail is on Explore > Households), the Provisional chip, the "A
-// different model" card, decile 1 with its caveat, and a Sankey whose
-// inflows equal its outflows at every node.
+// Story part 3, eight sections in the paper's order (step 7 in two cards),
+// prints the provisional uk-ai-study headline findings from
+// aiStudy2425.json once each (the detail is on Explore > Households), the
+// "A different model" call-out that states it is provisional, decile 1 with
+// its caveat, a Sankey whose inflows equal its outflows at every node, and a
+// "Next" band to the close that carries the onward links.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
 import R from '@/data/relatedWork.json';
 import Part3 from './Part3.jsx';
@@ -66,18 +67,19 @@ describe('Part3', () => {
     expect(text).toContain(`${MINUS}£16.8bn`);
   });
 
-  it('runs eight steps in the paper order, each with a numbered kicker', () => {
+  it('runs eight sections in the paper order, each with a numbered kicker (step 7 in two cards)', () => {
     const { container } = renderPart();
     const kickers = [...container.querySelectorAll('.scrolly-kicker')].map((k) => k.textContent);
-    expect(kickers.map((k) => k.split(' · ')[0])).toEqual(['1', '2', '3', '4', '5', '6', '7', '8']);
-    expect(container.querySelectorAll('.scrolly-step')).toHaveLength(7);
+    expect(kickers.map((k) => k.split(' · ')[0])).toEqual(['1', '2', '3', '4', '5', '6', '7', '7', '8']);
+    expect(container.querySelectorAll('.scrolly-step')).toHaveLength(8);
+    expect(container.querySelector('#p3-moves #p3-moves-step')).not.toBeNull();
+    expect(container.querySelector('#p3-moves #p3-takeup-step')).not.toBeNull();
     expect(container.querySelector('.p3-close .scrolly-kicker').textContent).toContain('What the study leaves out');
   });
 
   it('marks the part provisional, links the PR in every source line, and flags runs outside the rebuild', () => {
     const { container } = renderPart();
-    const head = container.querySelector('.story-part-head');
-    expect(within(head).getByText('Provisional')).toHaveProperty('className', 'notice-chip');
+    expect(container.querySelector('.story-callout').textContent).toContain('provisional');
     const sources = container.querySelectorAll('.story-source');
     expect(sources.length).toBe(container.querySelectorAll('.scrolly').length);
     sources.forEach((s) => {
@@ -85,13 +87,14 @@ describe('Part3', () => {
       expect(s.textContent).toContain('FY 2026–27');
       expect(s.querySelector('a').getAttribute('href')).toBe('https://github.com/PolicyEngine/uk-ai-study/pull/18');
     });
-    for (const id of ['p3-absorb', 'p3-margin', 'p3-moves']) expect(container.querySelector(`#${id} .p3-chip`), id).not.toBeNull();
+    for (const id of ['p3-absorb', 'p3-margin', 'p3-moves']) expect(container.querySelector(`#${id} .p3-flag`), id).not.toBeNull();
+    expect(container.querySelector('.p3-chip')).toBeNull();
   });
 
-  it('opens with the "A different model" card', () => {
-    renderPart();
-    const h = screen.getByRole('heading', { name: 'A different model' });
-    const card = h.closest('.p3-break');
+  it('opens with the "A different model" call-out', () => {
+    const { container } = renderPart();
+    const card = container.querySelector('.story-callout');
+    expect(card.querySelector('.story-callout-title').textContent).toBe('A different model');
     expect(card.textContent).toContain('Microcosm UK 2024-25');
     expect(card.textContent).toContain('FY 2026–27');
     expect(card.textContent).toContain('cannot be added to or compared with');
@@ -157,12 +160,15 @@ describe('Part3', () => {
     expect(text).not.toMatch(/(^|[\s(])-(£|\d)/);
   });
 
-  it('closes with what the study leaves out and links onward', () => {
+  it('closes with what the study leaves out, then a band to the close that links onward', () => {
     const { container } = renderPart();
     const close = container.querySelector('.p3-close');
     expect(close.closest('.scrolly')).toBeNull();
     expect(close.textContent).toContain('corporation tax');
-    const hrefs = [...close.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    const next = container.querySelector('.story-next');
+    expect(next.querySelector('.story-next-link').getAttribute('href')).toBe('#story-close');
+    expect(next.textContent).toContain('Two lenses');
+    const hrefs = [...next.querySelectorAll('.story-next-links a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/pull/18');
     expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf');
     for (const q of ['tab=explore&sub=households', 'tab=method&sub=households', 'tab=method&sub=studies']) expect(hrefs.some((h) => h.includes(q)), q).toBe(true);

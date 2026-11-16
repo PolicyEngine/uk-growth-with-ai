@@ -29,8 +29,8 @@ export function BottomDecileCaveat() {
   ].filter(([v]) => fmtDecilePct(v));
   return (
     <p className="p3-caveat" data-caveat="bottom-decile">
-      Decile 1 is drawn in grey. The study does not report the bottom income decile as a finding, because its sign depends on how
-      households are ranked: {fmtDecilePct(VALUES[0])} on the ranking used here
+      Decile 1 is drawn in grey. The study does not report the bottom income decile as a finding: some households there make large pension
+      contributions and receive capital income, and its sign depends on how households are ranked: {fmtDecilePct(VALUES[0])} on the ranking used here
       {others.map(([v, how], i) => (
         <span key={how}>
           {i === others.length - 1 ? ', and ' : ', '}
@@ -99,12 +99,8 @@ export default function Deciles() {
       body: (
         <>
           <p>
-            Ranked by baseline income, the change is hump-shaped. Under the exposure rule, the assumed job losses fall mostly in the upper-middle deciles, where the largest fall is in
-            decile {WORST}. At the top, higher capital income offsets the earnings lost, and the change is close to zero.
-          </p>
-          <p>
-            The bottom decile is not a finding: some households there make large pension contributions and receive capital income, and its sign
-            changes with how households are ranked.
+            Ranked by baseline income, the change is hump-shaped: the assumed job losses fall mostly in the upper-middle deciles, with the largest
+            fall in decile {WORST}. At the top, higher capital income offsets the earnings lost. The bottom decile is not a finding; see the note.
           </p>
           {phone ? <BottomDecileCaveat /> : null}
         </>

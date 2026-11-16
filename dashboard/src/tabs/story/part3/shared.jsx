@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/ab/Icon.jsx';
 import { GrowRect } from '@/components/story/primitives.jsx';
 import D from '@/data/aiStudy2425.json';
 
@@ -48,6 +49,17 @@ export function OutsideRebuild() {
   return <span className="p3-chip">Provisional: outside the study’s attested rebuild</span>;
 }
 
+// The story's variant (part 3 states "provisional" once, in its opening
+// call-out): a small inline flag with a plain icon, placed in the figure
+// whose runs it covers. Explore keeps OutsideRebuild above.
+export function OutsideRebuildFlag({ className = '' }) {
+  return (
+    <p className={`p3-flag ${className}`.trim()}>
+      <Icon name="info" size={14} /> Outside the study’s attested rebuild
+    </p>
+  );
+}
+
 // A horizontal bar from zero, `value` out of `max`.
 export function HBar({ value, max, on = true, fill = 'p3-fill-neutral', delay = 0 }) {
   return (
@@ -89,5 +101,17 @@ export function DivBar({ value, lo, hi, on = true, fill }) {
       )}
       <line x1={zx} x2={zx} y1={0} y2={10} className="p3-zero" vectorEffect="non-scaling-stroke" />
     </svg>
+  );
+}
+
+// A step card's caveats, folded: the story keeps cards short and puts the
+// longer reasoning here. Prose only: a figure never goes in a closed
+// disclosure (the number check reads rendered text).
+export function About({ children }) {
+  return (
+    <details className="p3-about">
+      <summary>About these figures</summary>
+      {children}
+    </details>
   );
 }

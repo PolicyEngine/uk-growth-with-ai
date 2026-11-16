@@ -1,18 +1,41 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { D, MODEL_YEAR, PAPER_URL, PR_URL } from './shared.jsx';
 import R from '@/data/relatedWork.json';
 
 // Step 8, the close of part 3: not sticky; its only figures are related work's. What the study covers and
-// leaves out (docs/story/part3-notes.md, Caveats), and where to read more,
-// including related PolicyEngine work (figures read off its pages and kept
+// leaves out (docs/story/part3-notes.md, Caveats), and related PolicyEngine
+// work (figures read off its pages and kept
 // in relatedWork.json, with the date read).
 
 const SHIFT = R.items.find((x) => x.id === 'income_shift');
 const LAB = R.items.find((x) => x.id === 'budget_lab');
 const READ_DATE = new Date(`${R.read}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+// Where to read more: the row of links on the "Next" band that ends part 3
+// (Part3.jsx), so the part closes with one band rather than a list and a band.
+export function CloseLinks() {
+  return (
+    <>
+      <a href={PAPER_URL} target="_blank" rel="noreferrer">
+        The draft paper (PDF)
+      </a>
+      <a href={PR_URL} target="_blank" rel="noreferrer">
+        The study and its code: uk-ai-study PR #{D.source.pr}
+      </a>
+      <NavLink tab="explore" sub="households">
+        Explore: every variant, rule and policy response
+      </NavLink>
+      <NavLink tab="method" sub="households">
+        Method and sources: how the study is made
+      </NavLink>
+      <NavLink tab="method" sub="studies">
+        Other studies of AI and the UK economy
+      </NavLink>
+    </>
+  );
+}
 
 export default function Closing() {
   return (
@@ -30,33 +53,6 @@ export default function Closing() {
         the labour shock. Reduced hiring of young workers lies outside a framework that displaces existing jobs. AI exposure varies across
         nine occupation groups only, and the self-employed are outside the labour-market shocks.
       </p>
-      <ul className="p3-close-links">
-        <li>
-          <a href={PAPER_URL} target="_blank" rel="noreferrer">
-            <Icon name="arrowRight" size={16} strokeWidth={2} /> The draft paper (PDF)
-          </a>
-        </li>
-        <li>
-          <a href={PR_URL} target="_blank" rel="noreferrer">
-            <Icon name="arrowRight" size={16} strokeWidth={2} /> The study and its code: uk-ai-study PR #{D.source.pr}
-          </a>
-        </li>
-        <li>
-          <NavLink tab="explore" sub="households" className="p3-close-link">
-            <Icon name="arrowRight" size={16} strokeWidth={2} /> Explore: every variant, rule and policy response
-          </NavLink>
-        </li>
-        <li>
-          <NavLink tab="method" sub="households" className="p3-close-link">
-            <Icon name="arrowRight" size={16} strokeWidth={2} /> Method and sources: how the study is made
-          </NavLink>
-        </li>
-        <li>
-          <NavLink tab="method" sub="studies" className="p3-close-link">
-            <Icon name="arrowRight" size={16} strokeWidth={2} /> Other studies of AI and the UK economy
-          </NavLink>
-        </li>
-      </ul>
       <h3 id="p3-related-h">Related PolicyEngine work</h3>
       <ul className="p3-related" aria-labelledby="p3-related-h">
         <li>
