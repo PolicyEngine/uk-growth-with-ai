@@ -10,6 +10,7 @@ import REL from '@/data/relatedWork.json';
 import EV from '@/data/site-evidence-map.json';
 import V from '@/data/site-versions.json';
 import { SOURCES } from '@/data/literature.js';
+import { valueHref } from '@/tabs/literature/pages.js';
 import CHECKS from './checksHook.js';
 
 export const VERSIONS = V.entries;
@@ -22,14 +23,33 @@ const shortSha = (x) => String(x).slice(0, 7);
 // (OG-UK, uk-ai-study, or neither), and when it was built or read. The
 // household study's build rows were on Household method until November 2026.
 const AIM = AI.method;
+// The study's status, commit and model year, read from the data file (the
+// refreshed file carries them as top-level fields; the older one in source,
+// method and `provisional`). Nothing about the study's state is typed here.
+const AI_COMMIT = AI.commit ?? AI.source.commit;
+const AI_STATUS = AI.status ?? (AI.provisional ? 'provisional' : null);
+export const AI_STUDY = {
+  commit: AI_COMMIT,
+  status: AI_STATUS,
+  modelYear: AI.model_year ?? AIM.model_year ?? null,
+  // result files at the study's commit (merged to main)
+  blob: (p) => `https://github.com/${AI.source.repo}/blob/${AI_COMMIT}/${p}`,
+  prUrl: `https://github.com/${AI.source.repo}/pull/${AI.source.pr}`,
+};
+const aiLabel = (t) => (AI_STATUS ? `${t} (${AI_STATUS})` : t);
+// Each row: when its source was released (a publisher's release date, or
+// the build date of a file this project builds), and the code and result
+// file that reproduce it.
+const OG = (p) => `https://github.com/PolicyEngine/uk-growth-with-ai/blob/${S.source_commit}/${p}`;
+const UK_LATEST = Object.values(UK.sources).map((s) => s.released).sort().at(-1);
 export const VINTAGES = [
-  { model: 'OG-UK', file: 'surprise2028.json', what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, date: day(S.generated_utc) },
-  { model: 'OG-UK', file: 'cohorts2028.json', what: 'Who gains', vintage: `${CO.generated_by}, ${CO.source}`, date: null },
-  { model: 'uk-ai-study', file: 'aiStudy2425.json', what: 'Household study (provisional)', vintage: `${AI.source.repo} #${AI.source.pr} (open draft, branch ${AI.source.branch}) at ${shortSha(AI.source.commit)}, ${AI.source.dataset}`, date: AI.source.fetched, url: `https://github.com/${AI.source.repo}/pull/${AI.source.pr}` },
-  { model: 'uk-ai-study', file: 'Results build', what: 'The study’s attested results', vintage: `Per the manifest at ${shortSha(AIM.manifest_commit)}`, date: day(AIM.manifest_finished) },
-  { model: 'uk-ai-study', file: 'Data build', what: 'Microcosm UK 2024–25', vintage: AIM.data_build, date: null },
-  { model: '—', file: 'ukContext.json', what: 'Official UK data (story, part 1)', vintage: `${Object.keys(UK.sources).length} releases, latest ${Object.values(UK.sources).map((s) => s.released).sort().at(-1)}`, date: Object.values(UK.sources).map((s) => s.fetched).sort().at(-1) },
-  { model: '—', file: 'relatedWork.json', what: 'Related PolicyEngine work (Evidence)', vintage: 'Figures read off the published pages', date: REL.read },
+  { model: 'OG-UK', file: 'surprise2028.json', what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, released: day(S.generated_utc), date: day(S.generated_utc), code: { label: 'dashboard_data.py', url: OG('uk_growth_with_ai/dashboard_data.py') }, result: { label: 'solve outputs', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/analysis/surprise/output` } },
+  { model: 'OG-UK', file: 'cohorts2028.json', what: 'Who gains', vintage: `${CO.generated_by}, ${CO.source}`, released: null, date: null, code: { label: 'export_cohorts.py', url: OG('analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/analysis/surprise/cohorts` } },
+  { model: 'uk-ai-study', file: 'aiStudy2425.json', what: aiLabel('Household study'), vintage: `${AI.source.repo} #${AI.source.pr} at ${shortSha(AI_COMMIT)}, ${AI.source.dataset}`, released: AI.released ?? null, date: AI.source.fetched, url: AI_STUDY.prUrl, code: { label: 'build_ai_study_data.py', url: `https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_ai_study_data.py` }, result: { label: 'study results', url: `https://github.com/${AI.source.repo}/tree/${AI_COMMIT}/results` } },
+  { model: 'uk-ai-study', file: 'Results build', what: 'The study’s attested results', vintage: `Per the manifest at ${shortSha(AIM.manifest_commit)}`, released: day(AIM.manifest_finished), date: day(AIM.manifest_finished), code: { label: 'run_all.py', url: AI_STUDY.blob('analysis/run_all.py') }, result: { label: 'BUILD_MANIFEST.json', url: AI_STUDY.blob('results/BUILD_MANIFEST.json') } },
+  { model: 'uk-ai-study', file: 'Data build', what: 'Microcosm UK 2024–25', vintage: AIM.data_build, released: null, date: null, code: { label: 'download_data.py', url: AI_STUDY.blob('analysis/download_data.py') }, result: null },
+  { model: '—', file: 'ukContext.json', what: 'Official UK data (story, part 1)', vintage: `${Object.keys(UK.sources).length} releases`, released: UK_LATEST, date: Object.values(UK.sources).map((s) => s.fetched).sort().at(-1), code: { label: 'build_uk_context.py', url: `https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_uk_context.py` }, result: null },
+  { model: '—', file: 'relatedWork.json', what: 'Related PolicyEngine work (Evidence)', vintage: 'Figures read off the published pages', released: null, date: REL.read, code: null, result: null },
 ];
 // Whether the study's results were rebuilt from clean (the manifest's flag)
 export const AI_FULL_RERUN = AIM.manifest_full_rerun;
@@ -70,14 +90,14 @@ function officialRows(checks) {
 
 export function ledger(checks = CHECKS) {
   const rows = officialRows(checks);
-  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR-central path)', source: 'OG-UK solves, 2028 surprise', vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'Our results' });
-  rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: CO.source, checked: null, group: 'Our results' });
-  rows.push({ figure: 'Household study results (provisional)', source: `${AI.source.repo} #${AI.source.pr}`, vintage: `${shortSha(AI.source.commit)}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Our results' });
+  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR-central path)', source: 'OG-UK solves, 2028 surprise', vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
+  rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: CO.source, checked: null, group: 'OG-UK results' });
+  rows.push({ figure: aiLabel('Household study results'), source: `${AI.source.repo} #${AI.source.pr}`, url: AI_STUDY.prUrl, vintage: `${shortSha(AI_COMMIT)}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Household study results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });
   for (const it of REL.items) rows.push({ figure: it.title, source: `PolicyEngine, ${it.model}`, url: it.url, vintage: it.country, checked: REL.read, group: 'Related PolicyEngine work' });
   // the UK evidence map: one row per published figure (its value is printed
   // on Evidence, its home, so the ledger names it without the value)
-  for (const r of EV.rows) rows.push({ figure: `${r.institution}: ${r.measure}`, source: r.study, url: r.url, vintage: [r.horizon, r.loc].filter(Boolean).join('; '), checked: r.checked ?? null, how: r.how ?? null, group: 'UK evidence map' });
+  for (const r of EV.rows) rows.push({ figure: `${r.institution}: ${r.measure}`, source: r.study, url: valueHref(r), vintage: [r.horizon, r.loc].filter(Boolean).join('; '), checked: r.checked ?? null, how: r.how ?? null, group: 'UK evidence map' });
   return rows;
 }
 

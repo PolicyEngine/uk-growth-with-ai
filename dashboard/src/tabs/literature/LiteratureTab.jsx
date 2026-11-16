@@ -308,7 +308,7 @@ function SourceList({ group, title, icon }) {
 // The page's four sections, for "On this page" (ids match the headings).
 const SECTIONS = [
   { id: 'coverage', title: 'What each source can represent', icon: iconFor('coverage') },
-  { id: 'numbers', title: 'Where our numbers sit', icon: iconFor('measure') },
+  { id: 'numbers', title: 'Where OG-UK’s results sit', icon: iconFor('measure') },
   { id: 'related-work', title: 'Related PolicyEngine work', icon: iconFor('external') },
   { id: 'evidence-map', title: 'UK evidence map', icon: iconFor('table') },
   { id: 'sources', title: 'Sources', icon: iconFor('source') },
@@ -323,7 +323,7 @@ export default function StudiesTab() {
       <div className="page-body">
         <PageIntro
           icon={iconFor('source')}
-          question="How do our results compare with other work on AI and the UK economy?"
+          question="How do OG-UK’s results compare with other work on AI and the UK economy?"
           answer={<IconText icon="compare">The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
         />
         <SectionHeading id="coverage" icon={iconFor('coverage')} title="What each source can represent">
@@ -331,7 +331,7 @@ export default function StudiesTab() {
         </SectionHeading>
         <Matrix />
         <Takeaways />
-        <SectionHeading id="numbers" icon={iconFor('measure')} title="Where our numbers sit">
+        <SectionHeading id="numbers" icon={iconFor('measure')} title="Where OG-UK’s results sit">
             <IconText icon="range">Published figures by measure, ours beside them where comparable. Each row states its horizon.</IconText>
         </SectionHeading>
         <EvidenceLanes />

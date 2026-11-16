@@ -11,6 +11,7 @@ import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, 
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
+import { SRC } from './sources.js';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
@@ -116,7 +117,7 @@ const ARM_TEXT = {
         items={[
           { icon: 'equation', text: <>Z is solved by secant over full solves (&ldquo;R4&rdquo;).</> },
           { icon: 'breakEven', text: <>It stops when the {HEADLINE_YEAR} GDP gap is within 0.01pp of zero.</> },
-          { icon: 'forecast', text: 'Named after the OBR’s March 2026 displacement scenario, GDP unchanged.' },
+          { icon: 'forecast', text: <>Named after the OBR&rsquo;s March 2026 displacement scenario, GDP unchanged ({ext(SRC.efoMarBox22.url, SRC.efoMarBox22.label)}).</> },
           { icon: 'limit', text: 'It matches the OBR only on GDP.' },
           { icon: 'compare', text: 'The OBR adjusts through jobs; OG-UK, with no unemployment, through the wage.' },
         ]}
@@ -198,6 +199,32 @@ const MAX_LS = Math.max(...SCENARIOS.map((x) => x.labour_share_fall_pp));
 const MAX_TFP = Math.max(...SCENARIOS.map((x) => x.tfp_gain_pct));
 const SRC_KEY = { tfp: ['productivity', 'Productivity'], labour_share: ['labour', 'Labour share'], both: ['compare', 'Both inputs'] };
 
+// The published sources behind each input, linked to the page cited
+const SCEN_SRC = {
+  uk_low: { tfp: ['bp9B12', 'frs86'], labour_share: ['imfSip'] },
+  uk_central: { tfp: ['imfSip', 'bp9B14', 'efoOct127'], labour_share: ['imfSip', 'frs87'] },
+  uk_high: { tfp: ['frs86', 'imfArt4'], labour_share: ['frs87', 'frs88'] },
+  korinek: { both: ['korinekT3'] },
+};
+const cites = (keys = []) =>
+  keys.map((k, i) => (
+    <span key={k}>
+      {i ? '; ' : ''}
+      {ext(SRC[k].url, SRC[k].label)}
+    </span>
+  ));
+// The source notes say which steps are arithmetic on a published figure
+// rather than a figure in the source; that is said here without a first person.
+const neutral = (v) =>
+  v
+    .replace(/\(our arithmetic\)/g, '(arithmetic on the published figures, not a figure in the source)')
+    .replace(/\(our inference from the IMF calibration, not an IMF figure\)/g, '(an inference from the IMF calibration, not an IMF figure)')
+    .replace(/\(our inference\)/g, '(an inference from the IMF calibration, not an IMF figure)')
+    .replace(/\(our mapping\)/g, '(a proportional mapping, not a figure in the source)');
+// The labour-share derivation printed on each UK card: the first equation in
+// its source note (e.g. "0.2 / 0.27 = 0.74pp")
+const derivation = (v) => /(\d[\d.]* ?[/x] ?[\d./]+(?: ?[/x] ?[\d./]+)* = [\d.]+pp)/.exec(v ?? '')?.[1]?.replace(/ x /g, ' × ') ?? null;
+
 export default function ScenariosSection({ uses = null }) {
   return (
     <section className="mx-scenarios">
@@ -244,7 +271,8 @@ export default function ScenariosSection({ uses = null }) {
                     </dt>
                     <dd>
                       <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
-                      {v}
+                      {neutral(v)}
+                      <span className="mx-src-links"> Sources: {cites(SCEN_SRC[s.id]?.[k])}.</span>
                     </dd>
                   </div>
                 ))}
@@ -282,6 +310,17 @@ export default function ScenariosSection({ uses = null }) {
                 </dd>
               </div>
             </dl>
+            {derivation(s.sources.labour_share) ? (
+              <p className="mx-sub mx-derive">
+                <IconText icon="arithmetic">
+                  Labour-share fall: {derivation(s.sources.labour_share)}, from {cites(SCEN_SRC[s.id]?.labour_share)}.
+                </IconText>
+              </p>
+            ) : (
+              <p className="mx-sub mx-derive">
+                <IconText icon="source">Both inputs: {cites(SCEN_SRC[s.id]?.both)}.</IconText>
+              </p>
+            )}
             <p className="mx-sub">
               <IconText icon="capital">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</IconText>
             </p>
@@ -291,7 +330,8 @@ export default function ScenariosSection({ uses = null }) {
       <Items
         className="mx-foot-items"
         items={[
-          { icon: 'arithmetic', text: <>Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}.</> },
+          { icon: 'arithmetic', text: <>Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}; targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)}.</> },
+          { icon: 'rule', text: <>Which pairs to run, and calling UK central the headline, are the study&rsquo;s modelling choices, not from a published source.</> },
           { icon: 'compare', text: <>Published figures are compared on <NavLink tab="method" sub="studies" anchor="numbers">Evidence</NavLink>.</> },
         ]}
       />
@@ -334,6 +374,7 @@ export default function ScenariosSection({ uses = null }) {
           <Items
             items={[
               { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
+              { icon: 'rule', text: <>The {SURPRISE_YEAR} arrival and the linear four-year ramp are modelling choices, not from a published source ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
           />
@@ -368,7 +409,7 @@ export default function ScenariosSection({ uses = null }) {
           more={
             <Items
               items={[
-                { icon: 'code', text: <>OG-Core 0.17 defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</> },
+                { icon: 'code', text: <>{ext(SRC.ogCore017.url, 'OG-Core 0.17')} defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</> },
                 { icon: 'jump', text: 'So investment jumps for one year.' },
                 { icon: 'caveat', text: 'It reflects frictionless capital, not a forecast of a boom.' },
               ]}

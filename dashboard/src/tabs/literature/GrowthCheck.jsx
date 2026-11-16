@@ -11,6 +11,7 @@ import { cssColour, esc } from '@/lib/download.js';
 import { TipBox } from '@/components/ab/Tip.jsx';
 import F from '@/data/methodFacts.json';
 import { OBR_GROWTH, SOURCES } from '@/data/literature.js';
+import { code } from '@/tabs/method/sources.js';
 import { CENTRAL } from '@/tabs/ai/surprise.js';
 import { ext, useHover } from '../shared/ui.jsx';
 import './evidence.css';
@@ -74,7 +75,7 @@ export default function GrowthCheck() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: 'Ours: GDP growth each year on the committed OG-UK baseline (central closure).' },
+              { icon: 'model', text: 'OG-UK: GDP growth each year on the committed OG-UK baseline (central closure).' },
               { icon: 'forecast', text: 'The baseline takes some OBR inputs.' },
               { icon: 'excluded', text: 'It is not fitted to the OBR’s growth path.' },
               { icon: 'path', text: 'OBR: real GDP growth by calendar year.' },
@@ -86,6 +87,7 @@ export default function GrowthCheck() {
           <Items
             items={[
               { icon: 'source', text: <>{ext(OBR_GROWTH.url, src.short)}, {OBR_GROWTH.loc}.</> },
+              { icon: 'data', text: <>OG-UK: {ext(code('analysis/rerun/output/zk0.1/baseline_p1.json'), 'baseline_p1.json')}, the committed baseline solve.</> },
               { icon: 'measure', text: 'The OBR publishes one decimal place.' },
             ]}
           />
@@ -106,14 +108,18 @@ export default function GrowthCheck() {
               <Icon name={iconFor('model')} size={14} className="mx-dt-icon" />
               OG-UK baseline
             </span>
-            <span className="mx-kpi-v ev-kpi-ours">{ours.toFixed(2)}%</span>
+            <a className="mx-kpi-v ev-kpi-ours" href={code('analysis/rerun/output/zk0.1/baseline_p1.json')} target="_blank" rel="noreferrer">
+              {ours.toFixed(2)}%
+            </a>
           </div>
           <div>
             <span className="mx-kpi-k">
               <Icon name={iconFor('forecast')} size={14} className="mx-dt-icon" />
               {OBR_GROWTH.label}
             </span>
-            <span className="mx-kpi-v is-ref">{obr.toFixed(1)}%</span>
+            <a className="mx-kpi-v is-ref" href={OBR_GROWTH.url} target="_blank" rel="noreferrer">
+              {obr.toFixed(1)}%
+            </a>
           </div>
           <p className="mx-sub">
             <IconText icon="measure">Average GDP growth a year, {span}.</IconText>
@@ -128,6 +134,9 @@ export default function GrowthCheck() {
               <span className="ev-kpi-key-obr" /> {OBR_GROWTH.label}
             </li>
           </ul>
+          <p className="mx-axis-title ev-kpi-axis" data-axis-title="y">
+            Real GDP growth, % a year
+          </p>
           <div className="mx-kpi-plot">
             {pairs.map((p) => (
               <span key={p.yr} className={`mx-kpi-col${hi === p.yr ? ' is-hi' : ''}`} {...bind(p.yr, `${p.yr}: OG-UK ${p.ours.toFixed(2)}%, OBR ${p.obr.toFixed(1)}%`)}>
@@ -150,6 +159,9 @@ export default function GrowthCheck() {
               <span key={p.yr}>{p.yr}</span>
             ))}
           </div>
+          <p className="mx-axis-title ev-kpi-axis is-x" data-axis-title="x">
+            Calendar year
+          </p>
           <div className="mx-kpi-years ev-kpi-vals">
             {pairs.map((p) => (
               <span key={p.yr}>

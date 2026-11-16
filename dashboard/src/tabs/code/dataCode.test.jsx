@@ -15,7 +15,7 @@ describe('Data and code', () => {
   it('the ledger has a row per official figure and states each vintage', () => {
     const rows = ledger(null);
     expect(rows.filter((r) => r.group === 'Official UK data')).toHaveLength(Object.keys(UK.facts).length);
-    expect(rows.find((r) => r.group === 'Our results').vintage).toContain(S.source_commit);
+    expect(rows.find((r) => r.group === 'OG-UK results').vintage).toContain(S.source_commit);
     // with the checks file, one row per printed figure, from that file
     const id = Object.keys(UK.facts)[0];
     const withChecks = ledger({ figures: [{ id, publisher: 'ONS', dataset: 'PN2', series_id: 'X', period: '2025', release_date: '2099-01-01', read_by: 'probe', url: 'u' }] });

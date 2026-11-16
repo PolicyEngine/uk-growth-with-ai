@@ -17,7 +17,7 @@ const W = 560;
 // The bottom margin leaves room for the tick row and the axis title at the
 // phone's larger type (19 units), where they met at 44.
 const H = 272;
-const M = { l: 52, r: 24, t: 18, b: 56 };
+const M = { l: 70, r: 24, t: 18, b: 56 };
 
 export const scenarioTable = () => ({
   columns: ['Scenario', `Labour-share fall by ${HEADLINE_YEAR} (pp)`, `Gain in output at fixed inputs by ${HEADLINE_YEAR} (%)`, 'Capital share γ reached'],
@@ -62,8 +62,18 @@ export default function ScenarioMap({ caption = true }) {
               </text>
             </g>
           ))}
-          <text className="mx-axis-title" x={(M.l + W - M.r) / 2} y={H - 6} textAnchor="middle">
-            Output at fixed inputs →
+          <text className="mx-axis-title" data-axis-title="x" x={(M.l + W - M.r) / 2} y={H - 6} textAnchor="middle">
+            Gain in output at fixed inputs, % →
+          </text>
+          <text
+            className="mx-axis-title"
+            data-axis-title="y"
+            x={-(M.t + (H - M.t - M.b) / 2)}
+            y={16}
+            transform="rotate(-90)"
+            textAnchor="middle"
+          >
+            Labour-share fall, pp ↓
           </text>
           {/* the UK range as a band through its three points */}
           <polyline

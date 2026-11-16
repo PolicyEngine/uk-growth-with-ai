@@ -1,5 +1,7 @@
 'use client';
 
+import { valueHref } from './pages.js';
+
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { Items } from '@/components/story/Items.jsx';
@@ -15,7 +17,7 @@ import './evidence.css';
 // The UK evidence map: one row per published figure on AI's economic
 // effects (data/site-evidence-map.json), each against its own baseline and at
 // its own horizon, with OG-UK's rows beside the GDP and wage figures. This
-// table is the one home of the published figures; "Where our numbers sit"
+// table is the one home of the published figures; "Where OG-UK’s results sit"
 // draws the GDP and wage rows. OG-UK's figures are printed on Explore, so its
 // rows link there and carry the values only in the download (from
 // surprise2028.json, never typed).
@@ -199,7 +201,7 @@ export default function EvidenceMap({ map = MAP }) {
                 </th>
                 <td data-label="Study">
                   {r.url ? (
-                    <a href={r.url} target="_blank" rel="noreferrer">
+                    <a href={valueHref(r)} target="_blank" rel="noreferrer">
                       {r.study}
                     </a>
                   ) : (
@@ -220,7 +222,13 @@ export default function EvidenceMap({ map = MAP }) {
                       On Explore
                     </NavLink>
                   ) : (
+                    r.url ? (
+                    <a href={valueHref(r)} target="_blank" rel="noreferrer" className="ev-value-link" title={`${r.study}, ${r.loc}`}>
+                      <span data-path={`site-evidence-map.rows.${r.id}.value`}>{r.value}</span>
+                    </a>
+                  ) : (
                     <span data-path={`site-evidence-map.rows.${r.id}.value`}>{r.value}</span>
+                  )
                   )}
                 </td>
                 <td data-label="Horizon">

@@ -333,14 +333,16 @@ function Vintages() {
       <InfoCard icon={iconFor('data')} title="Data files and builds" id="data-files">
         <div className="table-wrap">
           <table className="data-table ledger-table">
-            <caption className="visually-hidden">Each data file or build, its model, what it feeds and its vintage</caption>
+            <caption className="visually-hidden">Each data file or build, its model, what it feeds, its vintage, its release date and the code that reproduces it</caption>
             <thead>
               <tr>
                 <th scope="col">Model</th>
                 <th scope="col">File or build</th>
                 <th scope="col">Feeds</th>
                 <th scope="col">Vintage</th>
+                <th scope="col">Released</th>
                 <th scope="col">Built or read</th>
+                <th scope="col">Replicate</th>
               </tr>
             </thead>
             <tbody>
@@ -352,7 +354,14 @@ function Vintages() {
                   <th scope="row">{v.file.includes('.') ? <code>{v.file}</code> : v.file}</th>
                   <td>{v.what}</td>
                   <td>{v.url ? ext(v.url, v.vintage) : v.vintage}</td>
-                  <td>{v.date ?? '—'}</td>
+                  <td className="ledger-date-cell">{v.released ?? '—'}</td>
+                  <td className="ledger-date-cell">{v.date ?? '—'}</td>
+                  <td>
+                    {v.code ? ext(v.code.url, v.code.label) : null}
+                    {v.code && v.result ? ' · ' : null}
+                    {v.result ? ext(v.result.url, v.result.label) : null}
+                    {!v.code && !v.result ? '—' : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -401,7 +410,10 @@ function Vintages() {
         <ul className="ledger-releases" data-reference="">
           {RELEASES.map((r) => (
             <li key={r.id}>
-              <span className="ledger-date">{r.released}</span>
+              <span className="ledger-date">
+                Released {r.released}
+                {r.fetched ? <span className="ledger-where">Read {r.fetched}</span> : null}
+              </span>
               <span>
                 {ext(r.url, `${r.publisher}: ${r.title}`)}
                 {r.series ? <span className="ledger-where">{r.series}</span> : null}
