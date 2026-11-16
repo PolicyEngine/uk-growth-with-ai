@@ -300,7 +300,10 @@ export default function ScenariosSection({ uses = null }) {
                   <span className="mx-bar" aria-hidden="true">
                     <span style={{ transform: `scaleX(${s.labour_share_fall_pp / MAX_LS})` }} />
                   </span>
-                  <span className="mx-chip-src">{s.sources.both ? '' : 'derived from '}{srcName(s.sources.labour_share ?? s.sources.both)}</span>
+                  <a className="mx-chip-src" href={SRC[(SCEN_SRC[s.id]?.labour_share ?? SCEN_SRC[s.id]?.both)[0]].url} target="_blank" rel="noreferrer">
+                    {s.sources.both ? '' : 'derived from '}
+                    {srcName(s.sources.labour_share ?? s.sources.both)}
+                  </a>
                 </dd>
               </div>
               <div>
@@ -311,14 +314,17 @@ export default function ScenariosSection({ uses = null }) {
                   <span className="mx-bar" aria-hidden="true">
                     <span style={{ transform: `scaleX(${s.tfp_gain_pct / MAX_TFP})` }} />
                   </span>
-                  <span className="mx-chip-src">{s.sources.both ? '' : 'derived from '}{srcName(s.sources.tfp ?? s.sources.both)}</span>
+                  <a className="mx-chip-src" href={SRC[(SCEN_SRC[s.id]?.tfp ?? SCEN_SRC[s.id]?.both)[0]].url} target="_blank" rel="noreferrer">
+                    {s.id === 'uk_central' ? 'model input (rounded; OBR ramp gives 0.40%)' : `${s.sources.both ? '' : 'derived from '}${srcName(s.sources.tfp ?? s.sources.both)}`}
+                  </a>
                 </dd>
               </div>
             </dl>
             {derivation(s.id) ? (
               <p className="mx-sub mx-derive" data-cite="">
                 <IconText icon="arithmetic">
-                  Derived from OBR/IMF figures by this study&rsquo;s rule, not published by them. Labour-share fall: {derivation(s.id)} {cites(SCEN_SRC[s.id]?.labour_share)}.
+                  {s.id === 'uk_central' ? null : <>Derived from OBR/IMF figures by this study&rsquo;s rule, not published by them. Labour-share fall: </>}
+                  {derivation(s.id)} {cites(SCEN_SRC[s.id]?.labour_share)}.
                 </IconText>
               </p>
             ) : (

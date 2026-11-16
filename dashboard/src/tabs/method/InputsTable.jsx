@@ -13,7 +13,7 @@ const COUNTS = Object.fromEntries(Object.keys(KIND).map((k) => [k, INPUTS.filter
 
 export const inputsTable = () => ({
   columns: ['Group', 'Input', 'Value used', 'Source type', 'How it is obtained', 'Sources'],
-  rows: INPUTS.map((r) => [r.group, r.input, r.value, KIND[r.kind].label, r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; ')]),
+  rows: INPUTS.map((r) => [r.group, r.input, r.value, KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; ')]),
 });
 
 export default function InputsTable() {
@@ -60,6 +60,7 @@ export default function InputsTable() {
                   </td>
                   <td>
                     {r.how}{' '}
+                    {r.note ? <span className="mx-inputs-note">{r.note}</span> : null}
                     <span className="mx-inputs-src">
                       {r.src.map((k, i) => (
                         <span key={k}>

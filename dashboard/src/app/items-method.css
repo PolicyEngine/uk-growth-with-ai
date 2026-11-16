@@ -422,3 +422,8 @@ p.mx-axis-title.is-x {
 @media (max-width: 600px) {
   .mx-inputs-v { white-space: normal; }
 }
+.mx-inputs-note {
+  display: block;
+  margin-top: 4px;
+  font-style: italic;
+}
