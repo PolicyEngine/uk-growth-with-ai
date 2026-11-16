@@ -5,7 +5,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { fmtBn, fmtBn2 } from './format.js';
-import { About, D, DivBar, FigureHead, Source } from './shared.jsx';
+import { About, D, FigureHead, Source, entryClass, useEntry } from './shared.jsx';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
@@ -30,34 +30,63 @@ export function channelItems() {
     { key: 'capital', icon: 'capital', text: `Higher interest and dividend income ${effectWords(row('capital').cost_bn)}` },
   ];
 }
-const LO = Math.min(0, ...C.rows.map((r) => r.cost_bn)) * 1.05;
-const HI = Math.max(0, ...C.rows.map((r) => r.cost_bn)) * 1.05;
+// The netting waterfall (scene 3-2): job loss rises from zero; higher wages
+// hangs from its top and drops; higher capital income drops again; the
+// landing bar, "Sum of the three runs", stands from zero. Only the three
+// channel values and their sum are printed: the intermediate bar ends are
+// positions, not running totals. Each bar spans [from, to] in £bn.
+export function waterfall() {
+  const bars = [];
+  let at = 0;
+  for (const r of ROWS) {
+    const v = row(r.id).cost_bn;
+    bars.push({ ...r, value: v, from: at, to: at + v });
+    at += v;
+  }
+  bars.push({ id: 'sum', icon: 'arithmetic', label: 'Sum of the three runs', value: C.sum_bn, from: 0, to: C.sum_bn, sum: true });
+  return bars;
+}
+const BARS = waterfall();
+const ENDS = BARS.flatMap((b) => [b.from, b.to]);
+const LO = Math.min(0, ...ENDS) * 1.05;
+const HI = Math.max(0, ...ENDS) * 1.05;
+const X = (v) => ((v - LO) / (HI - LO)) * 100;
 
-function Graphic() {
+function ChannelsFigure() {
+  const [ref, e] = useEntry();
   return (
-    <figure className="p3-figure">
-      <FigureHead icon="arithmetic" title="The central cost nets three flows" unit="Cost to the public finances of each channel run alone, £bn a year" />
-      <ol className="p3-rows">
-        {ROWS.map((r) => (
-          <li key={r.id} className="p3-row is-reached" data-row={r.id}>
-            <span className="p3-row-label p3-row-label-icon">
-              <Icon name={iconFor(r.icon)} size={14} /> {r.label}
-            </span>{' '}
-            <span className="p3-row-bar">
-              <DivBar value={row(r.id).cost_bn} lo={LO} hi={HI} fill={fillFor(row(r.id).cost_bn)} />
-            </span>{' '}
-            <span className="p3-row-value">{fmtBn(row(r.id).cost_bn)}</span>
-          </li>
-        ))}
-        <li className="p3-row p3-row-total is-reached" data-row="sum">
-          <span className="p3-row-label p3-row-label-icon">
-            <Icon name={iconFor('arithmetic')} size={14} /> Sum of the three runs
-          </span>{' '}
-          <span className="p3-row-bar">
-            <DivBar value={C.sum_bn} lo={LO} hi={HI} fill="p3-fill-cost" />
-          </span>{' '}
-          <span className="p3-row-value">{fmtBn(C.sum_bn)}</span>
-        </li>
+    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
+      <FigureHead icon="arithmetic" title="The central cost nets three flows" unit="Cost to the public finances of each channel run alone, £bn a year" replay={e.replay} />
+      <ol className="p3-rows p3-wf">
+        {BARS.map((b, i) => {
+          const lo = Math.min(b.from, b.to);
+          const w = X(Math.max(b.from, b.to)) - X(lo);
+          // a bar grows away from where it starts: from zero, or from the end of the bar above
+          const fromRight = b.to < b.from;
+          return (
+            <li key={b.id} className={`p3-row p3-wf-row${b.sum ? ' p3-row-total' : ''}`} data-row={b.id} style={{ '--beat': `${i * 600}ms` }}>
+              <span className="p3-row-label p3-row-label-icon">
+                <Icon name={iconFor(b.icon)} size={14} /> {b.label}
+              </span>{' '}
+              <span className="p3-row-bar">
+                <svg className="p3-bar p3-wf-svg" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+                  <line className="p3-zero" x1={X(0)} x2={X(0)} y1={0} y2={10} vectorEffect="non-scaling-stroke" />
+                  {/* the connector: where this bar starts, from the bar above */}
+                  {i > 0 ? <line className="p3-wf-link" x1={X(b.sum ? BARS[i - 1].to : b.from)} x2={X(b.sum ? BARS[i - 1].to : b.from)} y1={-6} y2={10} vectorEffect="non-scaling-stroke" /> : null}
+                  <rect
+                    className={`p3-wf-bar ${b.sum ? 'p3-fill-cost' : fillFor(b.value)}`}
+                    x={X(lo)}
+                    y={1}
+                    width={Math.max(0, w)}
+                    height={8}
+                    style={{ transformOrigin: fromRight ? 'right center' : 'left center' }}
+                  />
+                </svg>
+              </span>{' '}
+              <span className="p3-row-value">{fmtBn(b.value)}</span>
+            </li>
+          );
+        })}
       </ol>
       <Items
         className="p3-key-items"
@@ -82,7 +111,20 @@ export default function Channels() {
       icon: 'arithmetic',
       body: (
         <>
-          <Items items={channelItems()} />
+          <Items
+            items={[
+              ...channelItems(),
+              {
+                key: 'bases',
+                icon: 'draws',
+                text: (
+                  <>
+                    Other bases: <a href="#p3-central-step">step 1</a>, 50 draws; <a href="#p3-margin-step">step 6</a>, 20 paired
+                  </>
+                ),
+              },
+            ]}
+          />
           <About>
             <Items items={[{ icon: 'capital', text: 'Capital income does not depend on who is displaced' }]} />
           </About>
@@ -90,5 +132,5 @@ export default function Channels() {
       ),
     },
   ];
-  return <Scrolly id="p3-channels" steps={steps} graphic={Graphic} label="Cost to the public finances of each of the three channels run alone" />;
+  return <Scrolly id="p3-channels" steps={steps} graphic={() => <ChannelsFigure />} label="Cost to the public finances of each of the three channels run alone" />;
 }

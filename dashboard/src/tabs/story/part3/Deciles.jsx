@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fmtDecilePct } from './format.js';
-import { D, DivBar, FigureHead, Source } from './shared.jsx';
+import { GrowRect } from '@/components/story/primitives.jsx';
+import { useIsPhone } from '@/components/story/motion.js';
+import { D, FigureHead, Source, entryClass, useEntry } from './shared.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Decile 1 is drawn grey with the caveat beside it and no
@@ -60,25 +61,49 @@ export function BottomDecileCaveat() {
   );
 }
 
-// True at phone width (<= 900px). Without matchMedia (tests, server render)
-// it is false, so the caveat sits in the graphic.
-function usePhone() {
-  const [phone, setPhone] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const mq = window.matchMedia('(max-width: 900px)');
-    const on = () => setPhone(mq.matches);
-    on();
-    mq.addEventListener?.('change', on);
-    return () => mq.removeEventListener?.('change', on);
-  }, []);
-  return phone;
+// The decile with the largest fall (1-based), read from the data, and the
+// shape words the card uses, each a statement about the data that follows
+// it if the data change (part3.test.jsx).
+export function decileShape(values = VALUES) {
+  const worst = values.indexOf(Math.min(...values)) + 1;
+  const w = values[worst - 1];
+  return {
+    worst,
+    // deciles 6 to 9
+    upperMiddle: worst >= 6 && worst <= 9,
+    // falls smaller at decile 2 and at decile 10 than at the largest
+    hump: w < 0 && values[1] > w && values[9] > w,
+    // the top decile falls less than the largest fall
+    topLess: values[9] > w,
+  };
+}
+const SHAPE = decileShape();
+
+// Bars grow from the zero line (kind b): deciles 2 to 10, 40ms apart, then
+// the largest fall takes the highlight, then decile 1 grows last, grey.
+const ORDER_DELAY = (n) => (n === 1 ? 9 * 40 + 500 : (n - 2) * 40);
+function DecBar({ v, on, fill, delay }) {
+  const zx = ((0 - LO) / (HI - LO)) * 100;
+  const w = (Math.abs(v) / (HI - LO)) * 100;
+  return (
+    <svg className="p3-bar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+      {v >= 0 ? (
+        <GrowRect x={zx} y={1} width={w} height={8} on={on} horizontal className={fill} delay={delay} />
+      ) : (
+        <g transform={`translate(${zx} 0) scale(-1 1)`}>
+          <GrowRect x={0} y={1} width={w} height={8} on={on} horizontal className={fill} delay={delay} />
+        </g>
+      )}
+      <line x1={zx} x2={zx} y1={0} y2={10} className="p3-zero" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
 }
 
-function Graphic(phone) {
+function DecilesFigure({ phone }) {
+  const [ref, e] = useEntry();
   return (
-    <figure className="p3-figure">
-      <FigureHead icon="deciles" title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" />
+    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
+      <FigureHead icon="deciles" title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" replay={e.replay} />
       <ol className="p3-rows p3-deciles">
         {VALUES.map((v, i) => {
           const n = i + 1;
@@ -86,10 +111,15 @@ function Graphic(phone) {
           const fill = first ? 'p3-fill-muted' : v < 0 ? 'p3-fill-loss' : 'p3-fill-gain';
           const name = n === 1 ? '1 (bottom)' : n === 10 ? '10 (top)' : String(n);
           return (
-            <li key={n} className={`p3-row p3-dec${first ? ' is-caveat' : ''}`} data-decile={n}>
+            <li
+              key={n}
+              className={`p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`}
+              data-decile={n}
+              style={{ '--beat': `${ORDER_DELAY(n)}ms` }}
+            >
               <span className="p3-row-label p3-dec-label">{name}</span>{' '}
               <span className="p3-row-bar">
-                <DivBar value={v} lo={LO} hi={HI} on fill={fill} />
+                <DecBar v={v} on={e.on} fill={fill} delay={ORDER_DELAY(n)} />
               </span>{' '}
               <span className="p3-row-value">{first ? <span className="p3-muted">see note</span> : fmtDecilePct(v)}</span>
               {first && !phone ? <BottomDecileCaveat /> : null}
@@ -102,26 +132,23 @@ function Graphic(phone) {
   );
 }
 
-// The decile with the largest fall (1-based), read from the data.
-const WORST = VALUES.indexOf(Math.min(...VALUES)) + 1;
-
 export default function Deciles() {
   // On phones the caveat moves from the graphic into the card, so the
   // sticky graphic stays short; it is rendered in one place only.
-  const phone = usePhone();
+  const phone = useIsPhone();
   const steps = [
     {
       id: 'p3-deciles-step',
       kicker: '4 · Where the loss falls',
-      title: 'The largest falls are in the upper-middle deciles',
+      title: SHAPE.upperMiddle ? 'The largest falls are in the upper-middle deciles' : `The largest fall is in decile ${SHAPE.worst}`,
       icon: 'deciles',
       body: (
         <>
           <Items
             items={[
-              { icon: 'deciles', text: 'Hump-shaped: assumed job losses fall mostly in upper-middle deciles' },
-              { icon: signIcon(VALUES[WORST - 1]), text: `Largest fall: decile ${WORST}` },
-              { icon: 'capital', text: 'At the top, higher capital income offsets the earnings lost' },
+              SHAPE.hump && SHAPE.upperMiddle && { icon: 'deciles', text: 'Hump-shaped: assumed job losses fall mostly in upper-middle deciles' },
+              { icon: signIcon(VALUES[SHAPE.worst - 1]), text: `Largest fall: decile ${SHAPE.worst}` },
+              SHAPE.topLess && { icon: 'capital', text: VALUES[9] >= 0 ? 'At the top, higher capital income offsets the earnings lost' : 'At the top, higher capital income offsets part of the loss' },
               { icon: 'caveat', text: 'Decile 1 is drawn grey: not a finding; see the note' },
             ]}
           />
@@ -130,5 +157,5 @@ export default function Deciles() {
       ),
     },
   ];
-  return <Scrolly id="p3-deciles" steps={steps} graphic={() => Graphic(phone)} label="Change in household disposable income by income decile" />;
+  return <Scrolly id="p3-deciles" steps={steps} graphic={() => <DecilesFigure phone={phone} />} label="Change in household disposable income by income decile" />;
 }

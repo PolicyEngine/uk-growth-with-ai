@@ -54,3 +54,6 @@ export const fmtMonths = guard((v) => `${v.toFixed(1)} months`);
 
 // A pence range across draws: "41p–43p".
 export const fmtPenceRange = (lo, hi) => (ok(lo) && ok(hi) ? `${Math.round(lo)}p–${Math.round(hi)}p` : '');
+
+// A signed whole per cent: "+56%".
+export const fmtPctSigned0 = guard((v) => sign(v, `${Math.round(abs(v))}%`));

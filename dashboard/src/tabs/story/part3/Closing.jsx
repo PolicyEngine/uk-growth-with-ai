@@ -40,15 +40,17 @@ export function CloseLinks() {
 }
 
 // Step 8: what the one-year test leaves out, as an icon grid. Each tile is a
-// button; hover, focus or a tap shows its one line of detail (display:none
-// until then, so it is not counted as visible text). Tiles reveal one after
-// another on scroll (the framework's .reveal), at once under reduced motion.
+// button; hover, focus or a tap shows its one line of detail. The line is in
+// the DOM throughout, at opacity 0 until then (screen readers get it; the
+// tile keeps its height, so nothing moves), and a tile's label and line
+// together are 12 words or fewer. Tiles fade and rise in turn, 60ms apart,
+// at once under reduced motion.
 export const LEFT_OUT = [
   { id: 'reemploy', icon: 'labour', label: 'Re-employment', detail: 'The displaced stay out of work all year' },
   { id: 'partners', icon: 'households', label: 'Partners’ hours', detail: 'Partners do not change how much they work' },
   { id: 'redundancy', icon: 'pay', label: 'Redundancy pay', detail: 'No redundancy payments are counted' },
   { id: 'savings', icon: 'savings', label: 'Running down savings', detail: 'Households do not draw on their savings' },
-  { id: 'jsa', icon: 'takeUp', label: 'New-style JSA by default', detail: 'Central case: none for the newly displaced; claims follow take-up flags' },
+  { id: 'jsa', icon: 'takeUp', label: 'New-style JSA by default', detail: 'Central case: none for the newly displaced' },
   { id: 'corp', icon: 'tax', label: 'Corporation tax', detail: 'Profits replacing lost wages untaxed; capital rise kept apart' },
   { id: 'young', icon: 'age', label: 'Fewer young hires', detail: 'Reduced hiring lies outside a job-displacement framework' },
   { id: 'self', icon: 'business', label: 'Self-employed', detail: 'Outside the labour-market shocks' },
@@ -62,7 +64,7 @@ function LeftOutGrid() {
   return (
     <ul ref={ref} className="p3-out-grid" aria-label="What this one-year test leaves out">
       {LEFT_OUT.map((t, i) => (
-        <li key={t.id} className={`p3-out-tile reveal${seen || reduce ? ' is-in' : ''}${open === t.id ? ' is-open' : ''}`} style={{ '--reveal-delay': reduce ? '0ms' : `${i * 70}ms` }} data-tile={t.id}>
+        <li key={t.id} className={`p3-out-tile reveal${seen || reduce ? ' is-in' : ''}${open === t.id ? ' is-open' : ''}`} style={{ '--reveal-delay': reduce ? '0ms' : `${i * 60}ms` }} data-tile={t.id}>
           <button type="button" className="p3-out-btn" aria-expanded={open === t.id} onClick={() => setOpen(open === t.id ? null : t.id)}>
             <Icon name={iconFor(t.icon)} size={22} className="p3-out-icon" />
             <span className="p3-out-label">{t.label}</span>

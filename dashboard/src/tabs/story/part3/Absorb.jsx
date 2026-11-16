@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
 import { Items } from '@/components/story/Items.jsx';
-import { fmtBn, fmtInputPct, fmtShare } from './format.js';
-import { D, FigureHead, OBR_SCENARIO, OutsideRebuildFlag, Source, Ico } from './shared.jsx';
+import { fmtBn, fmtShare } from './format.js';
+import { D, FigureHead, OBR_SCENARIO, OutsideRebuildFlag, Source, entryClass, useEntry } from './shared.jsx';
 
 // Step 3, what the system absorbs (results.tex, "Household absorption of job
 // loss by baseline decile"): a Sankey of the OBR-sized run, job loss alone,
@@ -19,37 +20,46 @@ const S = D.sankey;
 // column's labels on phones); the value is the `sub`.
 export const DESTS = [
   { id: 'disposable', key: 'disposable_bn', label: 'Disposable income', color: 'var(--c-loss)' },
-  { id: 'benefits', key: 'benefits_bn', label: 'More benefits', color: 'var(--series-3)' },
-  { id: 'tax', key: 'tax_ni_bn', label: 'Less tax and NI', color: 'var(--series-2)' },
+  { id: 'benefits', key: 'benefits_bn', label: 'More benefits', color: 'var(--rank-2)' },
+  { id: 'tax', key: 'tax_ni_bn', label: 'Less tax and NI', color: 'var(--rank-1)' },
   { id: 'other', key: 'other_bn', label: 'Other items', color: 'var(--pe-gray-400)' },
 ];
+// Decile 1 carries the ranking caveat of step 4: its node and ribbons stay
+// grey in every beat, never coloured by a destination.
+export const CAVEAT_GREY = 'var(--pe-gray-300)';
 
 // The graph: income decile -> destination, £bn a year, the same at every
 // width (components/story/Sankey.jsx flows left to right on phones too).
 export function absorbGraph() {
   const nodes = [
-    ...S.deciles.map((_, i) => ({ id: `d${i + 1}`, label: String(i + 1), color: 'var(--pe-gray-500)' })),
+    ...S.deciles.map((_, i) => ({ id: `d${i + 1}`, label: String(i + 1), color: i === 0 ? CAVEAT_GREY : 'var(--pe-gray-700)' })),
     ...DESTS.map((d) => ({ id: d.id, label: d.label, sub: fmtBn(S.total[d.key]), color: d.color })),
   ];
   const links = [];
   S.deciles.forEach((f, i) => {
-    for (const d of DESTS) links.push({ source: `d${i + 1}`, target: d.id, value: f[d.key], color: d.color });
+    for (const d of DESTS) links.push({ source: `d${i + 1}`, target: d.id, value: f[d.key], color: i === 0 ? CAVEAT_GREY : d.color });
   });
   return { nodes, links };
 }
 
-function Graphic() {
+// The build (plan section 6, step 5) on entry: the ten decile nodes rise
+// from the bottom of the column upward, 40ms apart; then the ribbons pour
+// left to right, grouped by destination (disposable income, more benefits,
+// less tax and NI, other items), 150ms between groups; labels and values
+// land with their ribbons. Opacity and clip-path only (story-part3.css);
+// every label and value is in the DOM throughout. Hovering a ribbon lights
+// its destination end to end.
+function AbsorbFigure() {
+  const [ref, e] = useEntry();
+  const [hl, setHl] = useState(null);
   const g = absorbGraph();
   return (
-    <figure className="p3-figure p3-sankey">
-      <FigureHead icon="benefits"
-        title={
-          <>
-            Job loss alone, a run sized to {OBR_SCENARIO} (<span data-input="">{fmtInputPct(S.displacement_rate_pct)}</span> of employees
-            displaced), not the central case
-          </>
-        }
+    <figure className={entryClass(e, 'p3-figure p3-sankey p3-scene')} ref={ref}>
+      <FigureHead
+        icon="benefits"
+        title={<>Job loss alone, a smaller run sized to {OBR_SCENARIO}, not the central case</>}
         unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes, £bn a year, mean of ${S.draws} draws`}
+        replay={e.replay}
       />
       <OutsideRebuildFlag />
       <p className="p3-sankey-axis" aria-hidden="true">
@@ -59,20 +69,21 @@ function Graphic() {
       <Sankey
         graphs={[g]}
         label="Sankey diagram: earnings lost by each income decile, flowing to lower disposable income, lower income tax and employee NI, other items and more benefits"
-        width={640}
-        height={360}
+        width={900}
+        height={380}
         pad={7}
+        rightRoom={170}
+        linkOpacity={0.55}
+        highlight={hl}
+        onHover={setHl}
       />
-      <p className="p3-key p3-key-head p3-iconed">
-        <Ico c="caveat" size={14} /> How to read it
-      </p>
       <Items
-        className="p3-key-items"
+        className="p3-key-items p3-key-row"
         items={[
-          { icon: 'deciles', text: 'Ribbons: each decile’s lost earnings by destination; width £ a year' },
+          { icon: 'deciles', text: 'Ribbons: each decile’s lost earnings by destination' },
           { icon: 'caveat', text: 'Other items: mainly pension contributions no longer paid' },
-          { icon: 'limit', text: 'Decile 1 carries the ranking caveat of step 4' },
-          { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI: a further cost to government</> },
+          { icon: 'limit', text: 'Decile 1, grey, carries the ranking caveat of step 4' },
+          { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government</> },
         ]}
       />
       <Source>run sized to the OBR scenario, household flows by baseline decile</Source>
@@ -90,7 +101,7 @@ export default function Absorb() {
       body: (
         <Items
           items={[
-            { icon: 'jobLoss', text: 'Job loss on its own: fewer displaced, no other income rises' },
+            { icon: 'jobLoss', text: 'A smaller shock: job loss alone, no other income rises' },
             { icon: 'households', text: 'Most earnings lost fall on households’ disposable income' },
             { icon: 'tax', text: <>Income tax, employee NI and benefits absorb {fmtShare(S.tax_benefit_share_pct)} of the loss</> },
             { icon: 'benefits', text: 'Benefits add little' },
@@ -99,5 +110,5 @@ export default function Absorb() {
       ),
     },
   ];
-  return <Scrolly id="p3-absorb" steps={steps} graphic={Graphic} label="Where the earnings lost to job loss go, by income decile" />;
+  return <Scrolly id="p3-absorb" steps={steps} graphic={() => <AbsorbFigure />} wide label="Where the earnings lost to job loss go, by income decile" />;
 }

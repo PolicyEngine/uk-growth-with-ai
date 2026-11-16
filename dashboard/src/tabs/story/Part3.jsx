@@ -12,7 +12,7 @@ import Rules from './part3/Rules.jsx';
 import Margin from './part3/Margin.jsx';
 import Moves from './part3/Moves.jsx';
 import Closing, { CloseLinks } from './part3/Closing.jsx';
-import { Ico, MODEL_YEAR } from './part3/shared.jsx';
+import { Ico, MODEL_YEAR, SceneHead } from './part3/shared.jsx';
 
 // Part 3: a model of households. Provisional results of a separate study, a
 // PolicyEngine-UK microsimulation of AI job displacement in FY 2026-27
@@ -21,7 +21,10 @@ import { Ico, MODEL_YEAR } from './part3/shared.jsx';
 // Eight sections in the paper's order (results.tex): the central case, its
 // three channels, what the system absorbs, where the loss falls, who loses
 // the job, job loss against wage cuts, what moves the cost (two cards:
-// break-evens, then take-up and JSA), and what the study leaves out. A
+// break-evens, then take-up and JSA), and what the study leaves out, read
+// as three scenes under sub-headers (the cost; who it falls on; what changes
+// it). Each one-card block plays its beats once on entry (Replay reruns
+// them); step ids are unchanged. A
 // "Next" band hands over to the close (TwoLenses) and carries the links on. The headline findings are printed here once each; the
 // detail is on Explore > Households. Formats: part3/format.js.
 
@@ -41,10 +44,13 @@ export default function Part3({ part }) {
           ]}
         />
       </Callout>
+      <SceneHead title="The cost" icon="cost" />
       <Central />
       <Channels />
+      <SceneHead title="Who it falls on" icon="households" />
       <Absorb />
       <Deciles />
+      <SceneHead title="What changes it" icon="scenario" />
       <Rules />
       <Margin />
       <Moves />
