@@ -60,6 +60,17 @@ export function othersEndHigher(sid, cl) {
   });
 }
 
+// A topic's key takeaway, as the last item of its last card: no new figure.
+export const takeaway = (text) => ({
+  icon: 'takeaway',
+  key: 'takeaway',
+  text: (
+    <>
+      <strong>Key takeaway:</strong> {text}
+    </>
+  ),
+});
+
 function shockSteps() {
   return [
     {
@@ -90,7 +101,6 @@ function shockSteps() {
             items={[
               { icon: 'productivity', text: 'Assumed: AI raises output at given inputs, the new tiles' },
               { icon: 'pay', text: 'Pay against the no-shock path depends on each move’s size' },
-              { icon: 'capital', text: 'And on how much new capital arrives' },
               {
                 icon: 'timing',
                 text: (
@@ -102,6 +112,7 @@ function shockSteps() {
                   </>
                 ),
               },
+              takeaway('income shifts to capital; output per input rises'),
             ]}
           />
           <Cite
@@ -167,11 +178,11 @@ function scenarioSteps(sid, cl) {
                 icon: 'scenario',
                 text: (
                   <>
-                    <A href={SRC.korinekT3}>Korinek et al. (2026), Table 3</A>: US, an upper case here
+                    <A href={SRC.korinekT3}>Korinek et al. (2026), Table 3</A>
                   </>
                 ),
               },
-              { icon: 'path', text: `${SCEN_NAME[sid]}, chosen at the top, is the coloured line` },
+              dir === 'gapUp' ? takeaway('GDP ends above the path in every scenario') : null,
             ]}
           />
         <p className="p2-result-links" data-cite="">
@@ -354,9 +365,10 @@ function whoSteps(sid) {
           <Items
             items={[
               { icon: 'entrants', text: `Entering after ${SURPRISE_YEAR}, they live whole lives on the new path` },
-              allGain ? { icon: 'gapUp', text: 'As modelled, under debt-neutral transfers (a model fiscal rule), they gain too' } : null,
+              allGain ? { icon: 'gapUp', text: 'As modelled, under debt-neutral transfers, they gain too' } : null,
               allGain ? { icon: 'capital', text: 'A higher return on saving and, later, higher consumption' } : null,
               allGain ? { icon: 'pay', text: 'These outweigh pay rates below the path' } : null,
+              allGain && someLose ? takeaway('gains peak near retirement; some adults lose') : null,
             ]}
           />
           {dip ? (
@@ -489,7 +501,7 @@ function debtSteps(sid, closure) {
           <Items
             items={[
               higher
-                ? { icon: 'gapUp', text: `No productivity gain: debt ends further above the path by ${LATE_YEAR}` }
+                ? takeaway('without the productivity gain, debt ends further above the path')
                 : { icon: 'compare', text: 'The two arms with no productivity gain are drawn beside it' },
               { icon: 'finances', text: 'Public finances also covers tax and the fiscal rules' },
               {
@@ -527,7 +539,6 @@ const DEEPER = [
   { tab: 'explore', sub: 'economy', label: 'Economy', icon: 'gdp' },
   { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
   { tab: 'explore', sub: 'who', label: 'Gains and losses', icon: 'age' },
-  { tab: 'explore', sub: 'economy', anchor: 'ex-across', label: 'Across scenarios', icon: 'range' },
   { tab: 'method', sub: 'how', anchor: 'm-scenarios', label: 'Scenarios', icon: 'scenario' },
   { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
 ];
@@ -547,31 +558,29 @@ function NextBand() {
 }
 
 // Each block's opener (Scrolly renders it): a neutral question the block
-// answers, and one takeaway with no new figure.
+// answers. Its key takeaway is the last card's closing line (takeaway()),
+// not sub.takeaway: a line after the block would add height the Story has
+// no room for, and the last cards sit below their minimum height.
 export const SUBS = {
   shock: {
     title: 'The shock',
     icon: 'shock',
     question: 'What does the AI shock change in the model?',
-    takeaway: 'The scenarios move income from labour to capital and let the same inputs produce more.',
   },
   morph: {
     title: 'From the record to the scenarios',
     icon: 'path',
     question: 'How far does GDP move from the OBR-central path in each scenario?',
-    takeaway: 'In every scenario GDP rises above the OBR-central path; the larger the assumed shock, the higher the line.',
   },
   arms: {
     title: 'Three arms: output and public debt',
     icon: 'ai',
     question: 'What does the productivity gain add, for output and for public debt?',
-    takeaway: 'Without the productivity gain, GDP is lower and public debt ends further above the path.',
   },
   who: {
     title: 'Who gains and who loses',
     icon: 'age',
     question: 'Which generations gain, and which lose?',
-    takeaway: 'As modelled, gains are largest for adults near retirement, and later cohorts gain too; on other measures some adults lose.',
   },
 };
 

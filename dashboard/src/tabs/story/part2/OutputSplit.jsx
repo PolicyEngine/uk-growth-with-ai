@@ -141,7 +141,16 @@ export function outChangeItems(ch) {
     { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the path` },
     { key: 'labour', icon: dirConcept(ch.labour), text: `is ${dirWord(ch.labour)} it` },
   ];
-  if (ch.gdp > 0 && ch.labour < 0) out.push({ key: 'all', icon: 'why', text: 'Capital income rises by more than GDP' });
+  if (ch.gdp > 0 && ch.labour < 0)
+    out.push({
+      key: 'all',
+      icon: 'takeaway',
+      text: (
+        <>
+          <strong>Key takeaway:</strong> capital income rises by more than GDP
+        </>
+      ),
+    });
   if (ch.foreign > 0 && ch.depreciation > 0) {
     out.push({ key: 'abroad', icon: 'foreign', text: 'Part is net income paid abroad or covers wear on more capital' });
     out.push({ key: 'gni', icon: 'gni', text: 'So national income rises less than GDP' });
@@ -494,7 +503,6 @@ export const OUTPUT_SUB = {
   title: 'Where output goes',
   icon: 'outputSplit',
   question: 'Who receives the extra output: workers, capital’s owners at home or abroad?',
-  takeaway: 'Capital income rises by more than GDP, and labour income falls.',
 };
 
 export default function OutputSplit({ sid, closure }) {

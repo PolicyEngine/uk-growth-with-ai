@@ -449,14 +449,20 @@ describe('direction icons follow the signs', () => {
     }
   });
 
-  it('gives every block an opener: a question and a takeaway with no figure', async () => {
+  it('gives every block a question, and a key takeaway with no figure in its last card', async () => {
     const { SUBS } = await import('@/tabs/story/Part2.jsx');
     const { OUTPUT_SUB } = await import('@/tabs/story/part2/OutputSplit.jsx');
     for (const sub of [...Object.values(SUBS), OUTPUT_SUB]) {
       expect(sub.question).toMatch(/\?$/);
-      expect(sub.takeaway).not.toMatch(/\d/);
       expect(sub.title).not.toContain('Where output goes in');
     }
+    const { container, unmount } = at('tab=story');
+    for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-arms', 'p2-who']) {
+      const lines = [...container.querySelectorAll(`#${id} li`)].map((li) => li.textContent).filter((t) => t.startsWith('Key takeaway:'));
+      expect(lines.length, id).toBeGreaterThan(0);
+      for (const t of lines) expect(t).not.toMatch(/\d/);
+    }
+    unmount();
   });
 
   it('labels every chart axis', () => {
