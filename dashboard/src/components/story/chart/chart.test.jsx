@@ -66,6 +66,18 @@ describe('ModelBadge and Frame', () => {
     expect(container.textContent).toBe('uk-ai-study · provisional');
     expect(container.querySelector('svg')).not.toBeNull();
   });
+  it('yTitle and xTitle render as icon lines marked data-axis-title', () => {
+    const { container } = render(
+      <Frame title="GDP" yTitle="Gap against the OBR-central path, % of GDP" xTitle="Year">
+        <svg />
+      </Frame>,
+    );
+    const yT = container.querySelector('p[data-axis-title="y"]');
+    expect(yT.textContent).toBe('Gap against the OBR-central path, % of GDP');
+    expect(yT.querySelector('svg')).not.toBeNull();
+    expect(container.querySelector('p[data-axis-title="x"]').textContent).toBe('Year');
+    expect(yT.compareDocumentPosition(container.querySelector('.ch-plot')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
   it('every text line of the frame leads with an icon or swatch; reserves are hidden copies', () => {
     const { container } = render(
       <Frame model="oguk" title="GDP" titleReserve="GDP against the path" unit="% gap" legend={[{ key: 'a', label: 'UK central', color: 'red' }]} source="Source: OG-UK" sources={<p>Series ids</p>}>
@@ -92,6 +104,20 @@ describe('Axis, Grid, Band', () => {
     expect(t.every((e) => e.hasAttribute('data-axis'))).toBe(true);
     expect(c.querySelector('line')).toBeNull();
     expect(c.querySelector('.ch-tick-g').style.transform).toBe('translate(0px, 200px)');
+  });
+  it('axis titles carry data-axis-title (y on left/right, x on bottom)', () => {
+    let c = svg(<Axis side="left" scale={y} ticks={[-1, 0, 1, 2]} at={40} title="Percentage points" />);
+    const t = c.querySelector('[data-axis-title="y"]');
+    expect(t.textContent).toBe('Percentage points');
+    expect(t.hasAttribute('data-axis')).toBe(true);
+    expect(t.getAttribute('y')).toBe('12');
+    cleanup();
+    c = svg(<Axis side="bottom" scale={linear([2010, 2030], [0, 200])} ticks={[2010, 2030]} at={200} title="Year" format={String} />);
+    expect(c.querySelector('[data-axis-title="x"]').getAttribute('x')).toBe('100');
+    expect(c.querySelector('[data-axis-title="y"]')).toBeNull();
+    cleanup();
+    c = svg(<Axis side="left" scale={y} ticks={[0, 1]} at={40} />);
+    expect(c.querySelector('[data-axis-title]')).toBeNull();
   });
   it('dotted grid and a zero line only when zero is in the domain', () => {
     let c = svg(<Grid scale={y} ticks={[-1, 0, 1, 2]} x0={0} x1={100} />);

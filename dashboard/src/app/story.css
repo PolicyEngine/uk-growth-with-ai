@@ -1385,6 +1385,30 @@
   font: var(--ch-unit);
   color: var(--ch-unit-color);
 }
+/* axis titles (chart/Axis.jsx `title`, Frame.jsx `yTitle` / `xTitle`) */
+.ch-axis-title {
+  font: var(--ch-unit);
+  font-weight: 600;
+  fill: var(--pe-gray-700);
+}
+.ch-axis-title-html {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 6px;
+  font: var(--ch-unit);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.ch-axis-title-html.is-x {
+  justify-content: flex-end;
+  margin: 4px 0 0;
+}
+.ch-axis-title-icon {
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--pe-gray-400);
+}
 .ch-unit-icon {
   display: inline-flex;
   margin-top: 2px;

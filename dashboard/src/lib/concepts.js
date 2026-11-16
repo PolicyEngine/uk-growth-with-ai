@@ -142,6 +142,8 @@ export const CONCEPT_ICON = {
   saveImage: 'imageDown', // download the chart as an image
   asOf: 'calendarCheck', // the data's as-of date
   replication: 'fileCode', // the code and result file behind a figure
+  yAxis: 'moveVertical', // a chart's y-axis title (what is measured, with its unit)
+  xAxis: 'moveHorizontal', // a chart's x-axis title
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
