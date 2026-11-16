@@ -7,6 +7,7 @@ identity is recomputed here from the exported series.
 
     python analysis/surprise/audit_2028.py            # all sections
     python analysis/surprise/audit_2028.py --verdict  # the verdict tables (markdown)
+    python analysis/surprise/audit_2028.py --dnfull   # the `_dnfull` checks alone (outside the verdict design)
 """
 import glob
 import json
@@ -53,6 +54,8 @@ def load():
 
 
 OUTSIDE = []
+SANITY_WORST = {}  # sec_vs_sanity's worst gap difference over in-design runs
+IDENT_WORST = {}   # section 1's worst accepted values, filled by sec_identities
 
 
 def in_design(n):
@@ -143,6 +146,41 @@ def measures(d, n):
 
 
 # ---------------------------------------------------------------- sections
+def identity_errors(d, n, coef, gref, base, ref="continuation"):
+    """Section 1's identity errors for run n of closure dict d; ref is the no-shock reference."""
+    rec = d[n]
+    s = {v: S(d, n, v) for v in rec["series"]}
+    dl = rec["delta"]
+    g, z = gam(rec), zpath(rec)
+    e = {}
+    e["K"] = relmax(s["K_d"] + s["K_f"], s["K"])
+    e["Kd"] = relmax(s["B"] - s["D_d"], s["K_d"])
+    e["D"] = relmax(s["D_d"] + s["D_f"], s["D"])
+    e["GNI"] = relmax(s["Y"] - s["r_p"] * (s["K_f"] + s["D_f"]), s["GNI"])
+    e["NNI"] = relmax(s["GNI"] - dl * s["K"], s["NNI"])
+    e["Yfn"] = relmax(z * s["K"] ** g * s["L"] ** (1 - g), s["Y"])
+    e["w"] = relmax((1 - g) * s["Y"] / s["L"], s["w"])
+    e["r"] = float(np.max(np.abs(coef[0] * g * s["Y"] / s["K"] + coef[1] - dl - s["r"])))
+    rc = (s["Y"] - s["C"] - s["I_d"] - s["I_g"] - s["G"]
+          - (s["r_p"] + dl) * s["K_f"] + s["new_borrowing_f"] - s["debt_service_f"]) / s["Y"]
+    e["rc"] = float(np.max(np.abs(rc[IX[2028]:])))
+    e["rc27"] = float(abs(rc[IX[2027]]))
+    gf = growth_factors(d, n)
+    e["gr"] = float(np.max(np.abs(gf[2:] / gref[2:] - 1)))       # 2028->29 .. 2035->36
+    # 2027->28: K_f is reset on impact, so 2028 capital is not 2027 capital plus 2027 investment
+    e["jump"] = 100 * gref[1] * (s["K"][2] - S(d, ref, "K")[2]) / S(d, ref, "Y")[1]
+    lhs = gref * s["D"][1:]
+    rhs = ((1 + s["r_gov"]) * s["D"] + s["G"] + s["I_g"] + s["TR"] + s["agg_pension_outlays"]
+           - s["total_tax_revenue"])[:-1]
+    e["debt"] = float(np.max(np.abs(lhs - rhs) / s["Y"][:-1]))
+    e["zero"] = max(relmax(s[v][:2], np.array(base[v])[:2]) for v in base if v != "I_g" and v != "payroll_tax_revenue")
+    e["st"] = max(abs(s[v][2] / S(d, ref, v)[2] - 1) for v in ("B", "D", "D_d", "D_f", "K_d"))
+    ls = 100 * (s["w"] * s["L"] / s["Y"] - 0.65)
+    tgt = -100 * (g - G0)
+    e["ls"] = float(np.max(np.abs(ls - tgt)))
+    return e
+
+
 def sec_identities(runs):
     print("\n## 1. Identities, recomputed (max over 2026-36 unless stated)")
     hdr = ("closure|run|K=Kd+Kf|Kd=B-Dd|D=Dd+Df|GNI|NNI|delta|prod fn Y|wage FOC|r FOC|RC/GDP max 2028-36"
@@ -159,41 +197,15 @@ def sec_identities(runs):
         gref = growth_factors(d, "continuation")
         print(f"<!-- {c}: r + delta = {coef[0]:.6f} * gamma Y/K + {coef[1]:.6f} (fit on the continuation) -->")
         for n, rec in d.items():
-            s = {v: S(d, n, v) for v in rec["series"]}
+            e = identity_errors(d, n, coef, gref, base)
             dl = rec["delta"]
-            g, z = gam(rec), zpath(rec)
-            e = {}
-            e["K"] = relmax(s["K_d"] + s["K_f"], s["K"])
-            e["Kd"] = relmax(s["B"] - s["D_d"], s["K_d"])
-            e["D"] = relmax(s["D_d"] + s["D_f"], s["D"])
-            e["GNI"] = relmax(s["Y"] - s["r_p"] * (s["K_f"] + s["D_f"]), s["GNI"])
-            e["NNI"] = relmax(s["GNI"] - dl * s["K"], s["NNI"])
-            e["Yfn"] = relmax(z * s["K"] ** g * s["L"] ** (1 - g), s["Y"])
-            e["w"] = relmax((1 - g) * s["Y"] / s["L"], s["w"])
-            e["r"] = float(np.max(np.abs(coef[0] * g * s["Y"] / s["K"] + coef[1] - dl - s["r"])))
-            rc = (s["Y"] - s["C"] - s["I_d"] - s["I_g"] - s["G"]
-                  - (s["r_p"] + dl) * s["K_f"] + s["new_borrowing_f"] - s["debt_service_f"]) / s["Y"]
-            e["rc"] = float(np.max(np.abs(rc[IX[2028]:])))
-            e["rc27"] = float(abs(rc[IX[2027]]))
-            gf = growth_factors(d, n)
-            e["gr"] = float(np.max(np.abs(gf[2:] / gref[2:] - 1)))       # 2028->29 .. 2035->36
-            # 2027->28: K_f is reset on impact, so 2028 capital is not 2027 capital plus 2027 investment
-            e["jump"] = 100 * gref[1] * (s["K"][2] - S(d, "continuation", "K")[2]) / S(d, "continuation", "Y")[1]
-            lhs = gref * s["D"][1:]
-            rhs = ((1 + s["r_gov"]) * s["D"] + s["G"] + s["I_g"] + s["TR"] + s["agg_pension_outlays"]
-                   - s["total_tax_revenue"])[:-1]
-            e["debt"] = float(np.max(np.abs(lhs - rhs) / s["Y"][:-1]))
-            e["zero"] = max(relmax(s[v][:2], np.array(base[v])[:2]) for v in base if v != "I_g" and v != "payroll_tax_revenue")
-            e["st"] = max(abs(s[v][2] / S(d, "continuation", v)[2] - 1) for v in ("B", "D", "D_d", "D_f", "K_d"))
-            ls = 100 * (s["w"] * s["L"] / s["Y"] - 0.65)
-            tgt = -100 * (g - G0)
-            e["ls"] = float(np.max(np.abs(ls - tgt)))
             for k, v in e.items():
                 worst[k] = max(worst.get(k, 0), v)
             print(f"{c}|{n}|" + "|".join(f"{e[k]:.1e}" for k in
                   ("K", "Kd", "D", "GNI", "NNI")) + f"|{dl:.4f}|" + "|".join(f"{e[k]:.1e}" for k in
                   ("Yfn", "w", "r", "rc", "rc27", "gr")) + f"|{e['jump']:+.3f}|" + "|".join(f"{e[k]:.1e}" for k in ("debt", "zero", "st", "ls")))
     print("worst:", {k: f"{v:.1e}" for k, v in worst.items()})
+    IDENT_WORST.update(worst)
     # continuation against the committed baseline, 2028-36
     for c in CLOSURES:
         d = runs[c]
@@ -861,6 +873,105 @@ def sec_vs_sanity(runs):
             tx = j["diagnostics"]["tax_gdp_2031"]["change_pp"]
             worst = max(worst, abs(m["tax_pp"][IX[2031]] - tx))
     print(f"{nrep} reports; fails recorded {nfail}; flags recorded {nflag}; max |my gap - sanity.json gap| over 2028 and 2031 gaps and the 2031 tax/GDP change: {worst:.1e}")
+    SANITY_WORST["gap"] = worst
+
+
+def sec_dnfull(runs):
+    """The `_dnfull` solve (transfers hold debt/GDP on the reference path to the horizon) and its reference.
+
+    Outside the verdict design: nothing here enters `runs` or the verdict counts.  The checks and their pass
+    rules were set (by an independent Fable 5.2 decision, 16 Nov 2026) after some of these values had been seen,
+    so every threshold reuses a tolerance already in this script.  The cohort figures computed from this solve
+    (export_cohorts.py) are not audited here.
+    """
+    c, ref_n, arm_n, dn_n = "zk0.1", "continuation_dnfull", "uk_central_share_shift_tfp_ramp_dnfull", "uk_central_share_shift_tfp_ramp_dn"
+    print("\n## The `_dnfull` solve (outside the verdict design)")
+    fp = {k: os.path.join(OUT, c, k + ".json") for k in (ref_n, arm_n)}
+    if not all(os.path.exists(f) for f in fp.values()):
+        print("not solved"); return []
+    d = runs[c]
+    rec = {k: json.load(open(f)) for k, f in fp.items()}
+    base = json.load(open(os.path.join(OUT, c, "baseline_ext.json")))["series"]
+    Y, K = S(d, "continuation", "Y"), S(d, "continuation", "K")
+    coef = np.linalg.lstsq(np.c_[G0 * Y / K, np.ones(11)], S(d, "continuation", "r") + d["continuation"]["delta"], rcond=None)[0]
+    dR = {"continuation": d["continuation"], ref_n: rec[ref_n]}      # the reference, against the continuation
+    dA = {"continuation": rec[ref_n], arm_n: rec[arm_n]}             # the arm, with continuation_dnfull as "continuation"
+    W1 = IDENT_WORST
+    ident_keys = ("K", "Kd", "D", "GNI", "NNI", "Yfn", "w", "rc")
+    rows, bad = [], []
+
+    def row(no, what, val, tol, ok=None):
+        if ok is None:
+            ok = tol is None or val <= tol
+        verdict = "report only" if tol is None else ("pass" if ok else "FAIL")
+        if tol is not None and not ok:
+            bad.append(no)
+        rows.append(f"{no}|{what}|{val if isinstance(val, str) else f'{val:.1e}'}|{'' if tol is None else (tol if isinstance(tol, str) else f'{tol:.1e}')}|{verdict}")
+
+    def dy_dev(dd, n, r, lo=2029):
+        x = S(dd, n, "D") / S(dd, n, "Y") / (S(dd, r, "D") / S(dd, r, "Y")) - 1
+        return float(np.max(np.abs(x[IX[lo]:])))
+
+    def gy_dev(dd, n):
+        return float(np.max(np.abs(S(dd, n, "G") / S(dd, n, "Y") / dd[n]["alpha_G_used"] - 1)[IX[2028]:]))
+
+    # reference
+    eR = identity_errors(dR, ref_n, coef, growth_factors(dR, "continuation"), base)
+    row(1, "reference: 2026-27 equal to baseline_ext (rel)", eR["zero"], W1["zero"])
+    row(2, "reference: 2028 state (B, D, D_d, D_f, K_d) equal to continuation (rel)", eR["st"], W1["st"])
+    row(3, "reference: D/Y against continuation, 2029-36, max abs(ratio - 1)", dy_dev(dR, ref_n, "continuation"), 1e-4)
+    row(4, "reference: G/Y against alpha_G_used, 2028-36 (rel)", gy_dev(dR, ref_n), 1e-6)
+    for k in ident_keys:
+        row(5, f"reference: identity {k}", eR[k], W1[k])
+    rst = {v: relmax(S(dR, ref_n, v)[2:], np.array(base[v])[2:]) for v in ("Y", "K", "L", "C", "w", "r", "D", "B", "GNI")}
+    row(6, "reference: max rel gap to baseline_ext, 2028-36 (households anticipate the post-2036 transfer rule; "
+           f"record's continuation_report max {rec[ref_n]['continuation_report']['max']:.2e}, ok={rec[ref_n]['continuation_report']['ok']})",
+        max(rst.values()), None)
+    # arm
+    row(7, "arm: closure, D/Y against continuation_dnfull, 2029-36", dy_dev(dA, arm_n, "continuation"), 1e-4)
+    row(7, "arm: D/Y against continuation, 2029-36 (information)", dy_dev({**dA, "c0": d["continuation"]}, arm_n, "c0"), None)
+    row(8, "arm: G/Y against alpha_G_used, 2028-36 (rel)", gy_dev(dA, arm_n), 1e-6)
+    eA = identity_errors(dA, arm_n, coef, growth_factors(dA, "continuation"), base)
+    for k in ident_keys:
+        row(9, f"arm: identity {k}", eA[k], W1[k])
+    row(9, "arm: 2026-27 equal to baseline_ext (rel)", eA["zero"], W1["zero"])
+    row(9, "arm: 2028 state equal to continuation_dnfull (rel)", eA["st"], W1["st"])
+    row(9, "arm: labour share against -target x ramp weight (pp)", eA["ls"], W1["ls"])
+    mA = measures(dA, arm_n)          # gaps against continuation_dnfull
+    mD = measures(d, dn_n) if dn_n in d else None
+    i = IX[2031]
+    sg = {"Y > 0": mA["Y"][i] > 0, "K > 0": mA["K"][i] > 0, "r gap > 0": mA["r_bp"][i] > 0, "labour-share gap < 0": mA["ls_pp"][i] < 0}
+    row(10, "arm: 2031 signs against continuation_dnfull (" + ", ".join(f"{k}: {'yes' if v else 'no'}" for k, v in sg.items()) + ")",
+        "all" if all(sg.values()) else "not all", "all four", all(sg.values()))
+    if mD is not None:
+        same = {v: np.sign(mA[v][i]) == np.sign(mD[v][i]) for v in ("Y", "K", "w", "C", "r_bp")}
+        row(10, "arm: 2031 sign of Y, K, w, C, r equal to the `_dn` arm's against continuation ("
+                + ", ".join(f"{k} {mA[k][i]:+.2f} vs {mD[k][i]:+.2f}" for k in same) + ")",
+            "all" if all(same.values()) else "not all", "all five", all(same.values()))
+        row(11, "arm: 2031 dnfull less dn, Y / K / w / C %: " + " / ".join(f"{mA[v][i] - mD[v][i]:+.2f}" for v in ("Y", "K", "w", "C")), "-", None)
+    key = {"Y": "Y", "GNI": "GNI", "NNI": "NNI", "K": "K", "L": "L", "w": "w", "C": "C", "I": "I", "r_bp": "r_bp", "debt_gdp_pp": "debt_pp", "labour_share_pp": "ls_pp"}
+    j = json.load(open(os.path.join(OUT, c, arm_n + ".sanity.json")))
+    jr = json.load(open(os.path.join(OUT, c, ref_n + ".sanity.json")))
+    wd = 0.0
+    for yr, blk in ((2031, "gaps_2031"), (2028, "gaps_2028")):
+        for k, v in j.get(blk, {}).items():
+            wd = max(wd, abs(mA[key[k]][IX[yr]] - v))
+    wd = max(wd, abs(mA["tax_pp"][i] - j["diagnostics"]["tax_gdp_2031"]["change_pp"]))
+    tol = SANITY_WORST["gap"]
+    row(12, "arm: recomputed 2028 and 2031 gaps against the committed .sanity.json", wd, tol)
+    nf = len(j.get("fails", [])) + len(jr.get("fails", []))
+    row(12, f"sanity.json fails recorded (arm + reference); flags: arm {j.get('flags', [])}, reference {jr.get('flags', [])}",
+        str(nf), "0", nf == 0)
+    for k in (ref_n, arm_n):
+        q = rec[k]["dn_check_full"]
+        row(13, f"{k}: to-horizon closure {q['periods'][0]}-{q['periods'][1]}, max abs rel (quoted from the record, not recomputed; ok={q['ok']})",
+            q["max_abs_rel"], None)
+    print("check|what|value|pass if <=|result")
+    print("---|---|---|---|---")
+    for r_ in rows:
+        print(r_)
+    print("dnfull check failures:", bad or "none")
+    return bad
 
 
 def sec_tax_sign(runs):
@@ -1038,6 +1149,11 @@ if __name__ == "__main__":
         sec_mono(runs); sys.exit(0)
     if "--verdict" in sys.argv:
         sec_verdict(runs); sys.exit(0)
+    if "--dnfull" in sys.argv:
+        import contextlib, io
+        with contextlib.redirect_stdout(io.StringIO()):     # fills IDENT_WORST and SANITY_WORST
+            sec_identities(runs); sec_vs_sanity(runs)
+        sec_dnfull(runs); sys.exit(0)
     print("finished solves:", {c: sorted(runs[c]) for c in CLOSURES})
     print("finished, outside the three-arm design, not audited:", OUTSIDE or "none")
     sec_identities(runs)
@@ -1057,4 +1173,5 @@ if __name__ == "__main__":
     sec_lit(runs)
     sec_mono(runs)
     sec_vs_sanity(runs)
+    sec_dnfull(runs)
     sec_verdict(runs)

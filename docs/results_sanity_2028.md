@@ -2,6 +2,8 @@
 
 Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04).
 
+> **Consistency pass 16 Nov 2026:** the `_dnfull` solve behind the paper's cohort figure passes 13 aggregate checks, in a new section outside the verdict design. Its cohort calculation is not audited. The repricing range is corrected to 4–66% over the 20 of 24 cells where debt still rises. No verdict changed.
+>
 > **Review pass 15 Nov 2026:** an independent review reproduced every count. The cause of A16 is corrected (half depreciation, a third foreign owners), A14 and A15 have tighter tests, and the combined effect of the post-hoc rules is stated (815 / 182 / 23 under the earlier rules). No verdict changed. See "Review pass" near the end.
 >
 > **Final refresh 15 Nov 2026 at `ba2e7b0`: every planned solve is audited, and none is left unsolved.** Across every variant there are 799 consistent, 217 surprising-but-explained and 4 wrong cells. The four wrong cells are the same A6 cells as in the earlier refresh below. See "Final refresh" near the end.
@@ -41,7 +43,7 @@ The rule applied: every result must make sense in size and direction, and if it 
 3. **"The tax/GDP sign is right" is not true at ζK = 0 in the main arm.** Korinek is wrong from 2029 (above). UK central is −0.006pp in 2031 and positive from 2032 (A6).
 
 **Four things a reader will trip over, all explained:**
-- Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4) At the speed the OBR assumes for UK debt the rise is a tenth to two-thirds as large, and the main arm of UK high and Korinek et al. ends lower (PR #43).
+- Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4). At the speed the OBR assumes for UK debt the rise is 4–66% as large in the 20 of 24 cells where it stays a rise, and the main arm of UK high and Korinek et al. ends lower at both closures (PR #43).
 - Consumption falls while national income rises in the main arm until 2031–36 (A3).
 - 2036 is the debt rule's first year: G falls by up to 23% and investment jumps in every arm. No 2036 flow should be quoted (A9).
 - The UK central main arm gives GDP +0.92% against the IMF's +2.5% at year 4 for the same TFP. The capital closure is sufficient to account for the difference (section 7).
@@ -279,7 +281,7 @@ pp gap. The last four columns rerun the debt recursion on the continuation's pat
 - **The interest rate is the cause.** The return on gilts moves one for one with r (+37.8bp for UK central), and the model's debt is one-period, so the whole stock (95% of GDP) reprices at once. That alone adds 2.4pp by 2036 for UK central.
 - **Higher GDP does not pay it back under this spending rule.** G and transfers are fixed shares of GDP, so they rise with GDP. The only gain from growth is the denominator (−1.0pp). Tax/GDP falls, which adds 0.6pp.
 - **The 2031 figure alone misleads.** −0.13pp in 2031 is the denominator effect of the first years; the path is rising by 0.42pp a year from 2032.
-- This is the same mechanism as in the 2026-start runs (`docs/literature_comparison.md`, 3.5: whole-stock repricing, and the spending convention). The fixed-spending and debt-neutral variants are not solved yet, so the fiscal results under the OBR's convention cannot be checked here.
+- This is the same mechanism as in the 2026-start runs (`docs/literature_comparison.md`, 3.5: whole-stock repricing, and the spending convention). The fixed-spending and debt-neutral variants are not solved yet, so the fiscal results under the OBR's convention cannot be checked here. *(16 Nov: both were later solved and audited for UK central and Korinek at ζK = 0.1 and 0; see "Refresh 15 Nov 2026" and "Final refresh 15 Nov 2026". They were not run for UK low or UK high.)*
 
 ### The stress test after its target year
 
@@ -364,7 +366,7 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 | FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is about 14pp against the OBR's 19–23pp (`docs/red_flags_1_3.md`) |
 | same | stress test, ζK 0, per pp | −0.027 (UK central), −0.025 (Korinek) | 12–13% | closure: r rises 44–107bp on all household wealth, and the single income-tax schedule taxes that (A6) |
 | March 2026 EFO ¶6.18, displacement scenario: receipts −0.17% of GDP, GDP unchanged; implied share fall about 0.7pp (ours, in the literature note) | UK low stress test (0.7pp), ζK 0.1: receipts, % of GDP | −0.10 | 61% | the tax gap; no unemployment (the OBR's fall is mostly lower employment and VAT) |
-| same: debt +1.3% of GDP by 2030-31, with spending held at plans and welfare +£3bn a year | UK low stress test: debt/GDP | +0.38pp in 2031, +1.47pp in 2036 | 29% at year 4 | no unemployment or welfare channel; smaller revenue fall; the model's G/Y rule (fixed spending not solved yet) |
+| same: debt +1.3% of GDP by 2030-31, with spending held at plans and welfare +£3bn a year | UK low stress test: debt/GDP | +0.38pp in 2031, +1.47pp in 2036 | 29% at year 4 | no unemployment or welfare channel; smaller revenue fall; the model's G/Y rule (fixed spending was not run for UK low) |
 | Central AI productivity: +0.2pp a year by year five, about +0.4% on the level at year 4 (ours) | UK central TFP target | +0.4% | equal by construction | the baseline already contains this assumption (A11) |
 
 - **UK central's stress test is 2.3 times the OBR's displacement case** on the share fall (1.6pp against about 0.7pp), and gives receipts −0.24% of GDP and debt +0.87pp in 2031. UK low is the like-for-like size.
@@ -600,7 +602,7 @@ Rules used for "surprising-but-explained":
 - **What:** main arm at ζK = 0.1: −0.07, −0.13, −1.35 and −3.02pp in 2031, then +0.84, +1.99, +2.07 and +1.12pp in 2036. At ζK = 0, UK central is positive from 2030 and Korinek from 2034 (+1.03pp in 2036).
 - **Root cause:** whole-stock repricing. Gilts are one-period and their rate moves one for one with r, so debt of 95% of GDP pays 17–109bp more from the first year. For UK central that alone adds 2.4pp by 2036; the fall in tax/GDP adds 0.6pp; higher GDP takes off 1.0pp. G and transfers are shares of GDP, so they absorb the rest of the growth dividend.
 - **Verdict:** surprising-but-explained, and a known limitation (the referee's point 6 in the literature note). UK gilts have long maturities, so the real stock reprices over many years, not at once.
-- **Checked at the OBR's repricing speed** ([PR #43](https://github.com/PolicyEngine/uk-growth-with-ai/pull/43), `docs/debt_repricing.md`): the model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in debt/GDP by 2036 is a tenth to two-thirds as large, and in the main arm of the UK high and Korinek et al. scenarios debt/GDP ends lower than the no-shock path. "Rises in every arm" is the model's result, not a robust one.
+- **Checked at the OBR's repricing speed** ([PR #43](https://github.com/PolicyEngine/uk-growth-with-ai/pull/43), `docs/debt_repricing.md`): the model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in debt/GDP by 2036 is 4–66% as large in the 20 of 24 cells where it stays a rise, and in the main arm of the UK high and Korinek et al. scenarios (both closures) debt/GDP ends lower than the no-shock path. "Rises in every arm" is the model's result, not a robust one.
 - **For the copy:** the 2031 debt figure in the main arm has the opposite sign to the path. Quote it with 2035 or 2036 (decision 7 already says so), and lead with fixed spending once those are solved.
 
 ### A5. NNI falls while GNI rises in the technology-unchanged arm
@@ -827,7 +829,7 @@ Audited at `524849d` on `rerun/surprise-2028` (13 Nov 2026, 02:15), with the sam
 
 - **New in this pass:** the ζK = 0.5 closure. That is 10 solve records: the restart, and for UK central and Korinek the main arm, technology unchanged, and every stress-test iteration (2 for UK central, 3 for Korinek). The accepted stress tests are `uk_central_share_shift_ramp_r4_2` (2031 GDP gap −0.008%) and `korinek_share_shift_ramp_r4_3` (+0.001%).
 - **Rechecked:** the seven debt-neutral UK central solves at ζK = 0.1 and ζK = 0. The addendum above audited them one by one as they landed. This pass adds the orderings across closures and arms.
-- **Not solved, so not audited:** UK low and UK high at ζK = 0.5 and ζK = 0; every `_dnfull` and `_fs` variant; debt-neutral Korinek. The script skips them and reports them as "not solved".
+- **Not solved, so not audited:** UK low and UK high at ζK = 0.5 and ζK = 0; every `_dnfull` and `_fs` variant; debt-neutral Korinek. The script skips them and reports them as "not solved". *(16 Nov: all of these except `_dnfull` were solved later and are audited in "Refresh 15 Nov 2026" and "Final refresh 15 Nov 2026". `_fs` exists only for UK central and Korinek at ζK = 0.1 and 0.)*
 - **Script changes:** `"zk0.5"` in `CLOSURES`; four verdict rules keyed to a checked mechanism (A13–A16 below); a new section 9 for orderings and inequalities (`--mono` prints it alone); section 6 skips a closure with no 2026-start arm records. The verdict blocks for ζK = 0.1 and ζK = 0 come out identical, line for line, to the ones the previous version of the script prints.
 
 ### Result
@@ -1140,7 +1142,7 @@ Audited at `98e3381` on `rerun/surprise-2028` (14 Nov 2026, 03:53), with the sam
   - Fixed spending (`_fs`): UK central at ζK = 0.1 and ζK = 0; Korinek at ζK = 0.1 (all arms) and at ζK = 0 (main arm only).
   - Debt-neutral (`_dn`): Korinek at ζK = 0.1 and ζK = 0.
 - **Failed, not just unsolved:** UK high "technology unchanged" at ζK = 0.5 (`b50073b`, log only). Its stress test was never started. The 34 "not solved" cells in the common-rule table are these two arms.
-- **Outside the design, not audited:** `uk_central_share_shift_tfp_ramp_dnfull` at ζK = 0.1 (debt-neutral to the horizon). The script's `in_design` pattern excludes `_dnfull`. Debt-neutral and fixed spending were not run for UK low or UK high.
+- **Outside the design, not audited:** `uk_central_share_shift_tfp_ramp_dnfull` at ζK = 0.1 (debt-neutral to the horizon). *(16 Nov: aggregate checks added outside the verdict design; see "Consistency pass 16 Nov 2026".)* The script's `in_design` pattern excludes `_dnfull`. Debt-neutral and fixed spending were not run for UK low or UK high.
 
 ### Result
 
@@ -1195,7 +1197,7 @@ Audited at `ba2e7b0` on `rerun/surprise-2028` (15 Nov 2026, 12:23), with the scr
 - **New in this pass (4 solve records in the design):**
   - UK high at ζK = 0.5: technology unchanged and the stress test (`r4_1`). The technology-unchanged solve is a re-solve of the run that failed at `b50073b`. It starts from the main arm's steady state (`UGAI_SS_GUESS`, `1ce9c7c`). The stress test was solved for the first time.
   - Korinek, fixed spending, ζK = 0: technology unchanged and the stress test (`r4_1`).
-- **Outside the design, not audited:** `continuation_dnfull` (the no-shock reference for `_dnfull`) and `uk_central_share_shift_tfp_ramp_dnfull`, both at ζK = 0.1.
+- **Outside the design, not audited:** `continuation_dnfull` (the no-shock reference for `_dnfull`) and `uk_central_share_shift_tfp_ramp_dnfull`, both at ζK = 0.1. *(16 Nov: aggregate checks added outside the verdict design; see "Consistency pass 16 Nov 2026".)*
 - **No planned cell is left unsolved.** Debt-neutral and fixed spending were run only for UK central and Korinek, at ζK = 0.1 and 0. The 408 "not solved" cells in each variant table are the scenarios and closures that were never in that plan.
 
 ### Result
@@ -1311,10 +1313,69 @@ Half of the extra gross capital income is depreciation and a third is the net re
 - The Summary is marked as the first pass. "What this audit did not do" is rewritten for the final data.
 - The verdict tables for every solved block at `ba2e7b0` are appended below. The main verdict table above is the first pass at `a657e6d`, and it still shows UK low and UK high at ζK = 0 as "not solved".
 
+## Consistency pass 16 Nov 2026 (the `_dnfull` solve, and text fixes)
+
+Audited at `a5c4ea0`, which merges `rerun/surprise-2028` at `7930862` into this branch. Under `analysis/surprise/output` the merge changes only `uk_central_share_shift_tfp_ramp_dnfull.sanity.json` (re-run at `b348144`), a provenance field in two ζK = 0.5 UK high records (no series change), and `report_assembled.log`. `--verdict` prints byte-identical output before and after, so the counts stay **799 / 217 / 4**.
+
+### The `_dnfull` solve: aggregate checks
+
+The draft paper's cohort figure (44% of adults losing, or 16% with bequests valued) rests on `uk_central_share_shift_tfp_ramp_dnfull` at ζK = 0.1. In it, transfers hold debt/GDP on the reference path to the horizon, not just to 2036. The solve and its reference, `continuation_dnfull`, were outside the audit. A new section of the script checks them: `python analysis/surprise/audit_2028.py --dnfull`. It stays outside the verdict design, so nothing enters the verdict tables or counts.
+
+- **How the rules were set.** An independent reviewer (Fable 5.2, 16 Nov) chose the checks and their pass rules after seeing some of the values. So every threshold reuses a tolerance already in the script: section 1's worst accepted values, the debt-neutral tolerance (1e-4), the fixed-spending tolerance (1e-6) and the sanity-report tolerance. There are no new numbers.
+- **The first run failed check 12.** The audit worktree then held the `.sanity.json` from before `b348144`. That commit changed `sanity.py` to measure a `_dnfull` arm against `continuation_dnfull` instead of `continuation` (2031 GDP +1.09%, was +1.25%). After merging `7930862`, check 12 passes at the existing tolerance. The rule was not changed.
+- **Report only:**
+  - The reference's restart error: `continuation_dnfull` is up to 0.7% off `baseline_ext` in 2028–36. This is expected, because households anticipate the transfer rule after 2036.
+  - The to-horizon closure, 2029–2086. The exported series stop at 2036, so the years after 2036 cannot be checked here; the record's own `dn_check_full` is quoted, not recomputed.
+
+| check | what | value | pass if ≤ | result |
+|---|---|---|---|---|
+| 1 | reference: 2026-27 equal to baseline_ext (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 2 | reference: 2028 state (B, D, D_d, D_f, K_d) equal to continuation (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 3 | reference: D/Y against continuation, 2029-36, max abs(ratio - 1) | 3.9e-07 | 1.0e-04 | pass |
+| 4 | reference: G/Y against alpha_G_used, 2028-36 (rel) | 0.0e+00 | 1.0e-06 | pass |
+| 5 | reference: identity K | 0.0e+00 | 0.0e+00 | pass |
+| 5 | reference: identity Kd | 0.0e+00 | 0.0e+00 | pass |
+| 5 | reference: identity D | 1.6e-16 | 1.8e-16 | pass |
+| 5 | reference: identity GNI | 1.6e-16 | 1.6e-16 | pass |
+| 5 | reference: identity NNI | 1.9e-16 | 3.7e-16 | pass |
+| 5 | reference: identity Yfn | 1.2e-07 | 7.9e-06 | pass |
+| 5 | reference: identity w | 1.6e-06 | 8.9e-06 | pass |
+| 5 | reference: identity rc | 7.8e-08 | 4.6e-06 | pass |
+| 6 | reference: max rel gap to baseline_ext, 2028-36 (households anticipate the post-2036 transfer rule; record's continuation_report max 8.85e-03, ok=False) | 7.1e-03 |  | report only |
+| 7 | arm: closure, D/Y against continuation_dnfull, 2029-36 | 6.2e-07 | 1.0e-04 | pass |
+| 7 | arm: D/Y against continuation, 2029-36 (information) | 9.8e-07 |  | report only |
+| 8 | arm: G/Y against alpha_G_used, 2028-36 (rel) | 0.0e+00 | 1.0e-06 | pass |
+| 9 | arm: identity K | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: identity Kd | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: identity D | 0.0e+00 | 1.8e-16 | pass |
+| 9 | arm: identity GNI | 0.0e+00 | 1.6e-16 | pass |
+| 9 | arm: identity NNI | 1.9e-16 | 3.7e-16 | pass |
+| 9 | arm: identity Yfn | 1.2e-07 | 7.9e-06 | pass |
+| 9 | arm: identity w | 1.6e-06 | 8.9e-06 | pass |
+| 9 | arm: identity rc | 2.1e-08 | 4.6e-06 | pass |
+| 9 | arm: 2026-27 equal to baseline_ext (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: 2028 state equal to continuation_dnfull (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: labour share against -target x ramp weight (pp) | 1.1e-04 | 5.4e-04 | pass |
+| 10 | arm: 2031 signs against continuation_dnfull (Y > 0: yes, K > 0: yes, r gap > 0: yes, labour-share gap < 0: yes) | all | all four | pass |
+| 10 | arm: 2031 sign of Y, K, w, C, r equal to the `_dn` arm's against continuation (Y +1.09 vs +1.02, K +2.22 vs +2.14, w -1.25 vs -1.26, C -0.65 vs -0.56, r_bp +37.47 vs +37.61) | all | all five | pass |
+| 11 | arm: 2031 dnfull less dn, Y / K / w / C %: +0.07 / +0.08 / +0.01 / -0.10 | - |  | report only |
+| 12 | arm: recomputed 2028 and 2031 gaps against the committed .sanity.json | 3.1e-15 | 1.4e-14 | pass |
+| 12 | sanity.json fails recorded (arm + reference); flags: arm [], reference [] | 0 | 0 | pass |
+| 13 | continuation_dnfull: to-horizon closure 2029-2086, max abs rel (quoted from the record, not recomputed; ok=True) | 1.9e-05 |  | report only |
+| 13 | uk_central_share_shift_tfp_ramp_dnfull: to-horizon closure 2029-2086, max abs rel (quoted from the record, not recomputed; ok=True) | 1.6e-05 |  | report only |
+
+- **The result depends on the reference.** Against `continuation_dnfull`, its like-for-like reference, the arm's 2031 GDP gap is +1.09%. Against `continuation` it is +1.25%, about 0.15pp more. Gaps for the `_dnfull` arm should be quoted against `continuation_dnfull`.
+- **Not audited here: the cohort calculation.** The 44% and 16% come from `export_cohorts.py` and the cohort `.npz` files, which this script does not read. The checks above cover only the aggregate path the cohort figures rest on. Auditing the cohort calculation is a follow-up.
+
+### Text fixes in this pass
+
+- **Debt repricing (Summary, A4).** At the OBR's speed the 2036 rise in debt/GDP is 4–66% of the model's in the 20 of 24 cells where it stays a rise, and the main arm of UK high and Korinek et al. ends lower at both closures. The text said "a tenth to two-thirds". That came from PR #43's note, which was written on 18 cells, before UK low and UK high were solved at ζK = 0. The smallest ratio is UK low's main arm at ζK = 0, at 4%.
+- **Stale "not solved yet" in section 5 and the final pass.** Dated notes now point to the refreshes in which these solves were audited.
+
 ## What this audit did not do
 
 - No solve was run, and nothing under `analysis/surprise/output` was changed.
-- Debt-neutral and fixed spending were audited only for UK central and Korinek at ζK = 0.1 and 0, the solves that were planned. `_dnfull` (debt-neutral to the horizon) is outside the design and is not audited.
+- Debt-neutral and fixed spending were audited only for UK central and Korinek at ζK = 0.1 and 0, the solves that were planned. `_dnfull` (debt-neutral to the horizon) is outside the verdict design. Since 16 Nov its aggregate path is checked in a separate section (`--dnfull`; see "Consistency pass 16 Nov 2026"), but the cohort calculation behind the paper's 44% / 16% is not audited.
 - The rules for "surprising-but-explained" were written after the results were read (see "Review pass"). They are a consistency check, not a blind test.
 - Published figures (IMF, OBR, Korinek) are taken from `docs/literature_comparison.md` and `docs/uk_calibration.md` as verified there. They were not re-read from the PDFs.
 - The steady-state elasticity and GDP/TFP quoted in section 7 are the sanity gate's diagnostics; the steady state is not in the exported series, so they were not recomputed.
@@ -1325,6 +1386,7 @@ Half of the extra gross capital income is depreciation and a third is the net re
 python analysis/surprise/audit_2028.py            # every table in this document
 python analysis/surprise/audit_2028.py --verdict  # the verdict table only
 python analysis/surprise/audit_2028.py --mono     # section 9: orderings and inequalities (final pass)
+python analysis/surprise/audit_2028.py --dnfull   # the `_dnfull` checks (consistency pass, 16 Nov)
 ```
 
 The script needs numpy and the committed JSON, nothing else.
