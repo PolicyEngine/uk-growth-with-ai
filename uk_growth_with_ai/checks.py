@@ -22,7 +22,26 @@ What makes a file fail (issue #17):
   under each other's names, or one arm saved twice, cannot pass);
 * the baseline's solution diagnostics are bad. The baseline is checked in
   every file, whatever arms it holds;
-* the fiscal invariant of the recorded closure does not hold. Under the default
+* the fiscal invariant of the recorded closure does not hold.
+
+Surprise files (``surprise assemble``, docs/surprise_2028.md) are recognised by
+their top-level ``window``. Their years, headline year, scenario targets and
+gap reference are read from the file (``_context``):
+
+* year labels are the file's ``years`` (2027-2031 for a 2028 shock);
+* the labour-share target is 65% less the scenario's fall times the ramp
+  weight in the headline year, and Z is checked against the scenario's own
+  TFP gain at the Z anchor year's K and L (the window's first year);
+* the resource-constraint error is calendar RC/Y from ``rc_rel_Y_signed``:
+  the committed baseline's for the window years before the shock, the run's
+  from the shock year (an arm's run starts there). The baseline column of a
+  surprise file is the no-shock continuation's series with the committed
+  baseline's diagnostics, so its RC row is the committed baseline's;
+* under fixed spending the arms hold G at the committed baseline's level,
+  while the file's baseline is the continuation, which differs from it by
+  the restart's own solver error. So G must equal the reference exactly in the
+  year before the shock and within the continuation's recorded distance from
+  the baseline (``continuation_report``, plus 1e-8) after it. Under the default
   closure every arm uses the baseline's G/Y; under ``baseline_spending`` (the
   fixed-spending file) every arm keeps the baseline's G *level*. The closure
   is read from each arm's ``baseline_spending`` flag and must agree across
@@ -42,11 +61,38 @@ YEARS = [2026, 2027, 2028, 2029, 2030]
 assert len(YEARS) == NPER
 
 # Top-level keys that are not arms.
-META_KEYS = {"provenance", "assumptions", "arms_requested", "arm_status"}
+META_KEYS = {"provenance", "assumptions", "arms_requested", "arm_status", "window", "years"}
+LS_BASE = 65.0          # % baseline labour share, 1 - G_BASE
 SERIES = ("Y", "K", "L", "w", "r", "C", "I", "G", "D")
 DIAGNOSTICS = ("rc_first5", "rc_max_interior", "rc_nonfinite_periods",
                "euler_savings_max", "euler_labour_max")
 SHAPES = ("ramp", "step")
+
+
+def _context(res) -> dict:
+    """Years and targets: the legacy 2026-30 window, or a surprise file's own."""
+    a = res.get("assumptions") if isinstance(res, dict) else None
+    a = a if isinstance(a, dict) else {}
+    w = res.get("window") if isinstance(res, dict) else None
+    if not isinstance(w, dict):
+        return {"surprise": False, "years": YEARS, "headline": 2030,
+                "ls_target": 61.1, "z_targets": dict(Z_TARGETS), "label": ""}
+    years = list(res.get("years") or w.get("report_years") or [])
+    if len(years) != NPER or not all(isinstance(y, int) for y in years):
+        raise ValueError(f"surprise file: 'years' {years!r} is not {NPER} calendar years")
+    head = int(w.get("headline_year", years[-1]))
+    t = a.get("scenario_targets") if isinstance(a.get("scenario_targets"), dict) else {}
+    fall, gain = t.get("labour_share_fall_pp"), t.get("tfp_gain")
+    if not (_is_number(fall) and _is_number(gain)):
+        raise ValueError("surprise file: assumptions.scenario_targets lacks "
+                         "labour_share_fall_pp / tfp_gain")
+    weight = (a.get("ramp_weights") or {}).get(str(head), 1.0)
+    return {"surprise": True, "years": years, "headline": head, "start": int(w["surprise_year"]),
+            "k": int(w["k"]), "ls_target": LS_BASE - fall * weight,
+            "z_targets": {"share_shift_tfp": gain * 100, "share_shift": 0.0},
+            "scenario": a.get("scenario"), "fall": fall,
+            "label": f" [{a.get('scenario')}, surprise {w['surprise_year']}, gaps vs "
+                     f"{a.get('gap_reference', '?')}]"}
 
 
 def _is_number(v) -> bool:
@@ -179,20 +225,22 @@ def inventory(res, r, baseline_only=False) -> list[str] | None:
     return ok
 
 
-def baseline_checks(res, r):
+def baseline_checks(res, r, ctx=None):
+    ctx = ctx or _context(res)
+    Y_ = ctx["years"]
     b = res["baseline"]
     print("\nBaseline settings")
     r.line("INFO", f"tG1 = {b.get('tG1_used', 'not recorded (old run: 4)')}, "
                    f"g_y_annual = {b.get('g_y_annual_used', 'not recorded')}, "
                    f"alpha_G = {b.get('alpha_G_used', 'not recorded')}")
 
-    print("\n#3  No fiscal-rule break in 2030 (baseline)")
+    print(f"\n#3  No fiscal-rule break in {Y_[4]} (baseline)")
     for v in ("G", "I"):
         x = np.array(b[v])
         before, after = _dlog(x, 2), _dlog(x, 3)
         r.check(abs(after - before) < 1.0,
-                f"{v}: 2028->29 {before:+.2f}%, 2029->30 {after:+.2f}% "
-                f"(detrended; a jump over 1pp means the rule still bites)")
+                f"{v}: {Y_[2]}->{Y_[3] % 100:02d} {before:+.2f}%, {Y_[3]}->{Y_[4] % 100:02d} "
+                f"{after:+.2f}% (detrended; a jump over 1pp means the rule still bites)")
     cl = b.get("closure")
     if isinstance(cl, dict):
         r.line("INFO", "capital-account closure: " + ", ".join(f"{k} = {v}" for k, v in cl.items()))
@@ -201,13 +249,15 @@ def baseline_checks(res, r):
         r.line("INFO", f"demographics: pre-TP UK-consistent = {bool(dm.get('pretp'))}, "
                        f"2027->28 splice repaired = {bool(dm.get('splice'))}")
     dy = np.array(b["D"]) / np.array(b["Y"]) * 100
-    r.line("INFO", "debt/GDP (model units) " + ", ".join(f"{y} {d:.1f}" for y, d in zip(YEARS, dy)))
+    r.line("INFO", "debt/GDP (model units) " + ", ".join(f"{y} {d:.1f}" for y, d in zip(Y_, dy)))
 
     print("\n#5  Balanced growth (g_y, g_n) vs OBR potential output")
     g_n = b.get("g_n_used")
     if (_is_number(b.get("g_y_annual_used")) and isinstance(g_n, list)
             and len(g_n) > 3 and all(_is_number(v) for v in g_n)):
-        # Same formula and period as `obr`: growth into 2030 is g_n[3].
+        # Same formula and period as `obr`: growth into 2030 is g_n[3].  The
+        # baseline's g_n_used starts in 2026 in every file (a surprise file's
+        # baseline record is the committed 2026-start baseline's).
         bal = balanced_growth(b["g_y_annual_used"], b["g_n_used"], 3)
         obr = OBR_BASELINE["potential_output_2030"]
         r.check(abs(bal - obr) < 0.3,
@@ -217,7 +267,8 @@ def baseline_checks(res, r):
         r.line("FAIL", "baseline does not record a numeric g_y_annual_used and "
                        "g_n_used (4+ values)")
 
-    print("\nZ re-solved against this baseline")
+    print("\nZ re-solved against this baseline"
+          + (f" (anchor {Y_[0]} K and L)" if ctx["surprise"] else ""))
     a = res.get("assumptions")
     if not isinstance(a, dict):
         r.line("FAIL", "no 'assumptions' in the results file")
@@ -230,7 +281,7 @@ def baseline_checks(res, r):
         r.line("FAIL", "assumptions.gamma_shocked is not a number")
         return
     fixed_input_gain = lambda Z: (Z * (K0 / L0) ** (g1 - G_BASE) - 1) * 100
-    for scen, target in Z_TARGETS.items():
+    for scen, target in ctx["z_targets"].items():
         key = f"Z_{scen}"
         z = a.get(key)
         if not isinstance(z, (int, float)) or not np.isfinite(z):
@@ -244,8 +295,8 @@ def baseline_checks(res, r):
             r.check(ok, f"{scen}: fixed-input Z {zf} gives {fixed_input_gain(zf) if _is_number(zf) else float('nan'):+.4f}% "
                         f"at fixed inputs (target {target:+.1f}%)")
             arm, year, tol = f"{scen}_ramp", a.get(f"{key}_year"), a.get(f"{key}_tol_pp", 0.01)
-            if arm in res and year in YEARS:
-                i = YEARS.index(year)
+            if arm in res and year in Y_:
+                i = Y_.index(year)
                 gap = (res[arm]["Y"][i] / b["Y"][i] - 1) * 100
                 r.check(abs(gap) <= tol + 1e-12,
                         f"{scen}: equilibrium GDP gap {year} {gap:+.4f}% (R4 target 0 "
@@ -283,7 +334,12 @@ def fiscal_closure(res, arms, r) -> bool | None:
     fixed = kinds.pop() if kinds else False
     a = res.get("assumptions")
     fiscal = a.get("fiscal") if isinstance(a, dict) else None
-    if fiscal is not None:
+    variant = a.get("fiscal_variant") if isinstance(a, dict) else None
+    if variant is not None:      # surprise files record the variant itself
+        r.check((variant == "fs") == fixed,
+                f"assumptions.fiscal_variant ({variant!r}) agrees with the arms' "
+                f"baseline_spending = {fixed}")
+    elif fiscal is not None:
         says_fixed = "baseline_spending" in fiscal
         r.check(says_fixed == fixed,
                 f"assumptions.fiscal ({fiscal!r}) agrees with the arms' "
@@ -325,9 +381,31 @@ def arm_identity(res, arms, r):
                                        if not bad else "; ".join(bad)))
 
 
-def shocked_checks(res, arms, r):
+def _fs_tolerance(res, ctx) -> np.ndarray:
+    """Per-year tolerance on |G / reference G - 1| under fixed spending."""
+    tol = np.full(NPER, 1e-8)
+    if ctx["surprise"]:
+        # G = alpha_G Y on both the continuation and the baseline over the window,
+        # so the continuation's G distance from the baseline is its Y distance;
+        # fall back to the widest recorded distance when Y is not recorded
+        rep = (res.get("assumptions") or {}).get("continuation_report") or {}
+        tight = rep.get("tight") or {}
+        if _is_number(tight.get("Y")):
+            dist = tight["Y"]
+        else:
+            vals = [v for v in tight.values() if _is_number(v)]
+            vals += [rep["max"]] if _is_number(rep.get("max")) else []
+            dist = max(vals, default=0.0)
+        for i, y in enumerate(ctx["years"]):
+            tol[i] = 1e-12 if y < ctx["start"] else 1e-8 + dist
+    return tol
+
+
+def shocked_checks(res, arms, r, ctx=None):
     if not arms:
         return
+    ctx = ctx or _context(res)
+    Y_ = ctx["years"]
     b = res["baseline"]
 
     print("\nFiscal closure recorded by the arms")
@@ -335,9 +413,14 @@ def shocked_checks(res, arms, r):
     if fixed:
         print("\n#2  Common fiscal policy: G LEVELS identical across arms "
               "(fixed-spending closure)")
+        tol = _fs_tolerance(res, ctx)
+        if ctx["surprise"]:
+            r.line("INFO", "reference = the continuation; arms hold the committed baseline's "
+                           f"G, so after {ctx['start'] - 1} the tolerance is the continuation's "
+                           f"recorded distance from the baseline ({tol[-1]:.1e})")
         for a in arms:
-            diff = np.max(np.abs(np.array(res[a]["G"]) / np.array(b["G"]) - 1))
-            r.check(diff < 1e-8, f"{a}: max |G / baseline G - 1| = {diff:.2e}")
+            d = np.abs(np.array(res[a]["G"]) / np.array(b["G"]) - 1)
+            r.check(bool(np.all(d <= tol)), f"{a}: max |G / baseline G - 1| = {d.max():.2e}")
     elif fixed is False:
         print("\n#2  Common fiscal policy: G/Y identical across arms")
         gy_b = np.array(b["G"]) / np.array(b["Y"])
@@ -347,17 +430,18 @@ def shocked_checks(res, arms, r):
             r.check(diff < 1e-8, f"{a}: max |G/Y - baseline G/Y| = {diff:.2e}; "
                                  f"alpha_G {res[a].get('alpha_G_used')} vs {b.get('alpha_G_used')}")
 
-    print("\nLabour share 2030 (65% -> 61.1%)")
+    h = Y_.index(ctx["headline"])
+    print(f"\nLabour share {ctx['headline']} ({LS_BASE:g}% -> {ctx['ls_target']:.1f}%)")
     for a in ["baseline", *arms]:
         x = res[a]
-        sl = x["w"][4] * x["L"][4] / x["Y"][4] * 100
-        target = 65.0 if a == "baseline" else 61.1
-        r.check(abs(sl - target) < 0.1, f"{a}: {sl:.2f}% (target {target}%)")
+        sl = x["w"][h] * x["L"][h] / x["Y"][h] * 100
+        target = LS_BASE if a == "baseline" else ctx["ls_target"]
+        r.check(abs(sl - target) < 0.1, f"{a}: {sl:.2f}% (target {target:.1f}%)")
 
     print("\nGDP gap vs baseline (%), for the before/after table")
     for a in arms:
         gap = (np.array(res[a]["Y"]) / np.array(b["Y"]) - 1) * 100
-        r.line("INFO", f"{a}: " + ", ".join(f"{y} {g:+.2f}" for y, g in zip(YEARS, gap)))
+        r.line("INFO", f"{a}: " + ", ".join(f"{y} {g:+.2f}" for y, g in zip(Y_, gap)))
 
 
 # --- national accounts and plausibility (cheap; reads the saved series only) ---
@@ -397,26 +481,52 @@ R_BAND = (0.0, 0.15)
 SHARE_BANDS = {"C": (35.0, 75.0), "I": (5.0, 35.0), "G": (10.0, 40.0)}   # % of Y
 
 
-def accounts_checks(res, arms, r):
+def _rc_share_surprise(res, a, ctx) -> np.ndarray:
+    """Calendar |RC/Y| in % for the window years (see the module docstring)."""
+    from .scenarios import START
+    base = np.asarray(res["baseline"]["diagnostics"]["rc_rel_Y_signed"], dtype=float)
+    own = np.asarray(res[a]["diagnostics"]["rc_rel_Y_signed"], dtype=float)
+    out = []
+    for y in ctx["years"]:
+        if a == "baseline" or y < ctx["start"]:
+            out.append(base[y - START])
+        else:
+            out.append(own[y - ctx["start"]])
+    return np.abs(np.asarray(out)) * 100
+
+
+def accounts_checks(res, arms, r, ctx=None):
+    ctx = ctx or _context(res)
+    Y_ = ctx["years"]
+    legacy = not ctx["surprise"]
     print("\nNational accounts: model resource-constraint error, % of GDP "
-          f"(tolerance {RC_TOL}; 2026 known, #15, bound {RC_2026_KNOWN_MAX})")
+          f"(tolerance {RC_TOL}"
+          + (f"; 2026 known, #15, bound {RC_2026_KNOWN_MAX})" if legacy else
+             f"; calendar RC/Y, the committed baseline's before {ctx['start']})"))
     for a in ["baseline", *arms]:
         x = res[a]
         try:
-            rc = np.abs(np.asarray(x["diagnostics"]["rc_first5"], dtype=float))
-        except (TypeError, ValueError):
-            rc = np.array([])
-        if rc.shape != (NPER,) or not np.all(np.isfinite(rc)):
-            r.line("FAIL", f"{a}: diagnostics.rc_first5 is not {NPER} finite values")
+            if legacy:
+                rc = np.abs(np.asarray(x["diagnostics"]["rc_first5"], dtype=float))
+                share = rc / np.asarray(x["Y"], dtype=float) * 100
+            else:
+                share = _rc_share_surprise(res, a, ctx)
+        except (TypeError, ValueError, KeyError, IndexError):
+            share = np.array([])
+        if share.shape != (NPER,) or not np.all(np.isfinite(share)):
+            r.line("FAIL", f"{a}: the resource-constraint diagnostics are not {NPER} "
+                           "finite values")
             continue
-        share = rc / np.asarray(x["Y"], dtype=float) * 100
-        r.check(bool(np.all(share[1:] <= RC_TOL)),
-                f"{a}: " + ", ".join(f"{y} {s:.3f}" for y, s in zip(YEARS, share))
-                + f" (2027+ within {RC_TOL})")
-        for y, s in zip(YEARS[1:], share[1:]):
+        first = 1 if legacy else 0
+        r.check(bool(np.all(share[first:] <= RC_TOL)),
+                f"{a}: " + ", ".join(f"{y} {s:.3f}" for y, s in zip(Y_, share))
+                + f" ({Y_[first]}+ within {RC_TOL})")
+        for y, s in zip(Y_[first:], share[first:]):
             if RC_WARN < s <= RC_TOL:
                 r.line("WARN", f"{a}: {y} resource-constraint error {s:.3f}% of GDP, "
                                f"inside the {RC_TOL}% tolerance but over {RC_WARN}%")
+        if not legacy:
+            continue
         if share[0] <= RC_TOL:
             r.line("PASS", f"{a}: 2026 residual {share[0]:.3f}% is within tolerance; "
                            "if #15 is fixed, drop the KNOWN allowance")
@@ -435,11 +545,11 @@ def accounts_checks(res, arms, r):
         cy, iy = x["C"] / x["Y"] * 100, x["I"] / x["Y"] * 100
         xs = (x["Y"] - x["C"] - x["I"] - x["G"]) / x["Y"] * 100
         r.check(bool(np.all(np.abs(xs) <= X_SHARE_MAX)),
-                f"{a}: " + ", ".join(f"{y} {v:+.2f}" for y, v in zip(YEARS, xs)))
+                f"{a}: " + ", ".join(f"{y} {v:+.2f}" for y, v in zip(Y_, xs)))
         for i in range(NPER - 1):
             step = xs[i + 1] - xs[i]
             if abs(step) > X_STEP_WARN:
-                r.line("WARN", f"{a}: X/Y moves {step:+.2f}pp {YEARS[i]}->{YEARS[i + 1]} "
+                r.line("WARN", f"{a}: X/Y moves {step:+.2f}pp {Y_[i]}->{Y_[i + 1]} "
                                f"(over {X_STEP_WARN}pp); C/Y {cy[i]:.1f} -> {cy[i + 1]:.1f}, "
                                f"I/Y {iy[i]:.1f} -> {iy[i + 1]:.1f}")
 
@@ -479,13 +589,22 @@ def external_checks(res, arms, r):
 
 def main(res, baseline_only=False) -> int:
     r = _Report()
+    try:
+        ctx = _context(res)
+    except Exception as e:
+        r.line("FAIL", f"malformed surprise file: {type(e).__name__}: {e}")
+        print(f"\n{r.failed} CHECK(S) FAILED")
+        return 1
+    if ctx["surprise"]:
+        print("Surprise file" + ctx["label"] + f": years {ctx['years'][0]}-{ctx['years'][-1]}, "
+              f"headline {ctx['headline']}")
     arms = inventory(res, r, baseline_only=baseline_only)
     if arms is not None:
-        for step in (lambda: baseline_checks(res, r),
+        for step in (lambda: baseline_checks(res, r, ctx),
                      lambda: solution_quality(res, arms, r),
                      lambda: arm_identity(res, arms, r),
-                     lambda: shocked_checks(res, arms, r),
-                     lambda: accounts_checks(res, arms, r),
+                     lambda: shocked_checks(res, arms, r, ctx),
+                     lambda: accounts_checks(res, arms, r, ctx),
                      lambda: external_checks(res, arms, r)):
             try:
                 step()
