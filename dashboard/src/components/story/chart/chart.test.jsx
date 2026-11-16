@@ -184,3 +184,31 @@ describe('reduced motion hook-up', () => {
     vi.useRealTimers();
   });
 });
+
+describe('Replay, Pause, IconGrid, CountUp', async () => {
+  const { Replay, Pause } = await import('./index.js');
+  const { IconGrid } = await import('../Items.jsx');
+  const { default: CountUp } = await import('../CountUp.jsx');
+  it('icon buttons are labelled and hidden under reduced motion by class', () => {
+    const { container } = render(
+      <>
+        <Replay onClick={() => {}} />
+        <Pause paused onClick={() => {}} />
+      </>,
+    );
+    const b = [...container.querySelectorAll('button.ch-icon-btn.is-motion')];
+    expect(b.map((x) => x.getAttribute('aria-label'))).toEqual(['Replay the animation', 'Play the flow']);
+    expect(b[1].getAttribute('aria-pressed')).toBe('true');
+  });
+  it('icon grid: an icon, a name and a line per item', () => {
+    const { container } = render(<IconGrid label="Left out" items={[{ icon: 'excluded', title: 'Firms', text: 'No response' }]} />);
+    const li = container.querySelector('ul.icon-grid li');
+    expect(li.querySelector('svg')).not.toBeNull();
+    expect(li.textContent).toBe('FirmsNo response');
+  });
+  it('a count-up keeps the exact value in the DOM and never draws a partial value before it is seen', () => {
+    const { container } = render(<CountUp value="+2.34pp" />);
+    expect(container.querySelector('.visually-hidden').textContent).toBe('+2.34pp');
+    expect(container.querySelector('.count-up-vis').dataset.final).toBe('+2.34pp');
+  });
+});

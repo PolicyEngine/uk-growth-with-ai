@@ -127,6 +127,11 @@
      today's teal chrome) */
   --part-accent: var(--c-highlight);
   --part-tint: var(--c-highlight-band);
+
+  /* Story spacing (addendum A2): between step cards, between blocks */
+  --gap-card: 32px;
+  --gap-card-phone: 24px;
+  --gap-block: 40px;
 }
 
 html, body {
