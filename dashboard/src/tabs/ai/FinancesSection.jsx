@@ -109,7 +109,7 @@ export function debtReviewItems(sid, closure, rule) {
   return [
     debtDipIsDenominator(sid, cl, rule) ? { key: 'dip', icon: 'gdp', text: `The ${SURPRISE_YEAR} dip is GDP rising on a debt stock already set` } : null,
     split ? { key: 'sign', icon: 'rule', text: `Its ${LATE_YEAR} sign depends on the fiscal rule and repricing:` } : null,
-    split ? { key: 'sides', icon: 'compare', text: sides.map((x) => `${x.side} under ${RULE_WORD[x.key]}`).join('; ').replace(/^./, (c) => c.toUpperCase()) } : null,
+    split ? { key: 'sides', icon: 'compare', text: sides.map((x) => `${RULE_WORD[x.key].replace(/^./, (c) => c.toUpperCase())}: ${x.side}`).join('; ') } : null,
     rule === 'common' ? { key: 'dividend', icon: 'gdp', text: 'Common rule: spending grows with GDP, so growth brings no dividend' } : null,
     { key: 'gilt', icon: 'interest', text: <>Gilt yields rise {ext(OG_RESULT_URLS.giltRate, 'one for one')} with the return on capital</> },
     { key: 'world', icon: 'foreign', text: 'The world interest rate stays fixed at 2%' },

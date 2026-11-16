@@ -2490,3 +2490,9 @@
 
 /* Households plane axis titles (SVG) */
 .hh-axis-title { font-size: 11px; fill: var(--pe-color-gray-600); }
+
+/* Who gains: the by-form parts' two or three notes (economics review, round 1) */
+.ex-byform-notes {
+  margin-top: 8px;
+  font-size: 14px;
+}
