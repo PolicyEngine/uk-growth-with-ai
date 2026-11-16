@@ -7,7 +7,7 @@ import {
   TrendingDown, Eye, Bot, Coins, PoundSterling, Activity, Lightbulb, UserMinus, UserCheck, HandCoins, Split, CircleHelp, EyeOff, Ban,
   ShoppingBasket, Boxes, HeartPulse, Gem, Gift, Sun, Sprout, Grid3x3, ClipboardList, DoorOpen, BookOpenText, Pin, IdCard,
   Workflow, Equal, CalendarClock, Calculator, Network, Microscope, ArrowUpRight, ArrowDownRight, Sparkles,
-  UserX, UserSearch, Pause, RotateCcw, Crosshair, Waves, Droplets, GraduationCap, Truck, Hammer, Stethoscope, Laptop, Store, Wrench, Heart, ShieldCheck, MapPin, Timer, Plus, Gift, Grid3x3, ChartArea, ChartNoAxesColumn, Blocks, Boxes, MoveRight, Combine, Hand, Footprints, Signpost, Milestone, ChartSpline, ChartScatter, MousePointerClick, Shapes, Merge, Rows3, Columns3, Dot, TrendingUpDown,
+  UserX, UserSearch, Pause, RotateCcw, Crosshair, Waves, Droplets, GraduationCap, Truck, Hammer, Stethoscope, Laptop, Store, Wrench, Heart, ShieldCheck, MapPin, Timer, Plus, ChartArea, ChartNoAxesColumn, Blocks, MoveRight, Combine, Hand, Footprints, Signpost, Milestone, ChartSpline, ChartScatter, MousePointerClick, Shapes, Merge, Rows3, Columns3, Dot, TrendingUpDown,
 } from 'lucide-react';
 
 // Every icon on the page: Lucide, drawn plain (no chip, circle or box round
@@ -31,7 +31,7 @@ const ICONS = {
   workflow: Workflow, equal: Equal, calendarClock: CalendarClock, calculator: Calculator, network: Network,
   microscope: Microscope, arrowUpRight: ArrowUpRight, arrowDownRight: ArrowDownRight, sparkles: Sparkles,
   // wave 2: chart controls and spare keys for the part builders (concepts pick from these)
-  userX: UserX, userSearch: UserSearch, pause: Pause, replay: RotateCcw, crosshair: Crosshair, waves: Waves, droplets: Droplets, graduation: GraduationCap, truck: Truck, hammer: Hammer, stethoscope: Stethoscope, laptop: Laptop, store: Store, wrench: Wrench, heart: Heart, shield: ShieldCheck, mapPin: MapPin, timer: Timer, plus: Plus, gift: Gift, grid: Grid3x3, chartArea: ChartArea, chartBars: ChartNoAxesColumn, blocks: Blocks, boxes: Boxes, moveRight: MoveRight, combine: Combine, hand: Hand, footprints: Footprints, signpost: Signpost, milestone: Milestone, chartSpline: ChartSpline, chartScatter: ChartScatter, pointer: MousePointerClick, shapes: Shapes, merge: Merge, rows: Rows3, columns: Columns3, dot: Dot, trendUpDown: TrendingUpDown,
+  userX: UserX, userSearch: UserSearch, pause: Pause, replay: RotateCcw, crosshair: Crosshair, waves: Waves, droplets: Droplets, graduation: GraduationCap, truck: Truck, hammer: Hammer, stethoscope: Stethoscope, laptop: Laptop, store: Store, wrench: Wrench, heart: Heart, shield: ShieldCheck, mapPin: MapPin, timer: Timer, plus: Plus, grid: Grid3x3, chartArea: ChartArea, chartBars: ChartNoAxesColumn, blocks: Blocks, moveRight: MoveRight, combine: Combine, hand: Hand, footprints: Footprints, signpost: Signpost, milestone: Milestone, chartSpline: ChartSpline, chartScatter: ChartScatter, pointer: MousePointerClick, shapes: Shapes, merge: Merge, rows: Rows3, columns: Columns3, dot: Dot, trendUpDown: TrendingUpDown,
 };
 
 export default function Icon({ name, size = 16, className, strokeWidth = 1.8 }) {
