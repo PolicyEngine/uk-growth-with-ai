@@ -138,7 +138,7 @@
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 48px;
-  margin: 0 0 32px;
+  margin: 0 0 var(--gap-block, 40px);
 }
 /* The figure sticks below the rail while the step column beside it is
    taller; it is never taller than itself (no empty band round it). */
@@ -174,7 +174,7 @@
 .scrolly-step {
   /* a link to a step lands its card below the rail */
   scroll-margin-top: calc(var(--story-graphic-top) + 16px);
-  padding-bottom: 32px;
+  padding-bottom: var(--gap-card, 32px);
   display: flex;
   align-items: flex-start;
 }
@@ -710,7 +710,7 @@
   }
   .scrolly-step {
     min-height: 0;
-    padding-bottom: 24px;
+    padding-bottom: var(--gap-card-phone, 24px);
   }
   .scrolly-step:nth-last-child(2),
   .scrolly-step.is-spacer {
@@ -1171,12 +1171,10 @@
 .ch-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  gap: 5px;
   font: 600 11px/1.3 var(--ch-font);
+  letter-spacing: 0.01em;
   color: var(--part-accent);
-  background: var(--part-tint);
 }
 .ch-badge-icon {
   display: inline-flex;
@@ -1499,4 +1497,305 @@
   .scrolly.is-scene .scrolly-card {
     min-height: 156px;
   }
+}
+
+/* IconGrid (Items.jsx): plain icon, a short name, a short line */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--icon-grid-cols, 3), minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.icon-grid li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: start;
+}
+.icon-grid-icon {
+  grid-row: span 2;
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+}
+.icon-grid-title {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.icon-grid-text {
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+@media (max-width: 900px) {
+  .icon-grid {
+    grid-template-columns: repeat(min(2, var(--icon-grid-cols, 3)), minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .icon-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Replay and pause (chart/Replay.jsx): a 24px icon button in the frame head */
+.ch-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--pe-gray-500);
+  cursor: pointer;
+}
+.ch-icon-btn:hover {
+  color: var(--pe-gray-800);
+  background: var(--pe-gray-100);
+}
+.ch-icon-btn:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ch-icon-btn.is-motion {
+    display: none;
+  }
+}
+
+/* Print: every reveal visible, count-ups at their final value, nothing
+   flows or waits on scroll */
+@media print {
+  .reveal,
+  .fade-g,
+  .draw-end,
+  .ch-end,
+  .ch-area,
+  .ch-line.is-dashed {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .draw-path,
+  .ch-line {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .grow-rect,
+  .ch-bar {
+    transform: none !important;
+  }
+  .count-up-vis::after {
+    content: attr(data-final);
+  }
+  .sankey-flow,
+  .ch-icon-btn {
+    display: none !important;
+  }
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Sankey, wave 2 (opt-in props; see Sankey.jsx) */
+.sankey-value {
+  font: 600 12px/1 var(--ch-font);
+  font-variant-numeric: tabular-nums;
+  fill: #fff;
+  pointer-events: none;
+}
+.sankey-leader {
+  stroke: var(--pe-gray-500);
+  stroke-width: 1;
+}
+/* pour: ribbons revealed left to right, nodes and labels as they land */
+.sankey-link.is-pour {
+  clip-path: inset(-2px 100% -2px 0);
+  transition: clip-path 200ms ease, opacity 250ms ease;
+}
+.sankey-link.is-pour.is-on {
+  clip-path: inset(-2px 0 -2px 0);
+  transition: clip-path 800ms var(--ch-ease) var(--pour-delay, 0ms), opacity 250ms ease;
+}
+.sankey-node.is-pour {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+.sankey-node.is-pour.is-on {
+  opacity: 1;
+  transform: none;
+  transition: opacity 250ms ease var(--pour-delay, 0ms), transform 250ms var(--ch-ease) var(--pour-delay, 0ms);
+}
+.sankey-node.is-src {
+  transform: none;
+}
+.sankey-node.is-src .sankey-rect {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: scaleY(0);
+  transition: transform 150ms ease;
+}
+.sankey-node.is-src.is-on .sankey-rect {
+  transform: none;
+  transition: transform 400ms var(--ch-ease) var(--pour-delay, 0ms);
+}
+/* living flow: one speed (28px a second), density follows width */
+.sankey-flow {
+  pointer-events: none;
+  animation: ch-fade-in 400ms ease var(--flow-delay, 0ms) backwards;
+}
+.sankey-flow-lane {
+  fill: none;
+  stroke: var(--pe-surface);
+  stroke-opacity: 0.35;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 2 14;
+  animation: sankey-flow 571ms linear infinite;
+}
+.sankey-flow-lane.is-thin {
+  stroke-dasharray: 2 46;
+  animation-duration: 1714ms;
+}
+@keyframes sankey-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.sankey-flow-lane.is-thin {
+  animation-name: sankey-flow-thin;
+}
+@keyframes sankey-flow-thin {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+/* interactive: focus is visible; unrelated nodes recede; the tooltip */
+.sankey-wrap {
+  position: relative;
+}
+.sankey.is-interactive .sankey-link,
+.sankey.is-interactive .sankey-node {
+  cursor: default;
+}
+.sankey .sankey-link:focus,
+.sankey .sankey-node:focus {
+  outline: none;
+}
+.sankey .sankey-link:focus-visible,
+.sankey .sankey-node:focus-visible {
+  stroke: var(--pe-gray-900);
+  stroke-width: 1.5;
+}
+.sankey .sankey-node:focus-visible .sankey-rect {
+  stroke: var(--pe-gray-900);
+  stroke-width: 1.5;
+}
+.sankey.is-interactive .sankey-node.is-dim {
+  opacity: 0.4;
+}
+.sankey-tip {
+  position: absolute;
+  z-index: 5;
+  max-width: 240px;
+  margin: 0 0 0 12px;
+  padding: 8px 10px;
+  transform: translateY(-50%);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px var(--shadow-soft);
+  font: 400 12px/1.45 var(--ch-font);
+  color: var(--pe-gray-700);
+  pointer-events: none;
+}
+.sankey-tip.is-left {
+  margin: 0 0 0 -12px;
+  transform: translate(-100%, -50%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sankey-link.is-pour,
+  .sankey-node.is-pour,
+  .sankey-node.is-src .sankey-rect {
+    transition: none !important;
+  }
+  .sankey-flow {
+    display: none;
+  }
+}
+
+/* Crosshair (chart/Crosshair.jsx) */
+.ch-cross {
+  position: relative;
+  outline: none;
+  touch-action: pan-y;
+}
+.ch-cross:focus-visible {
+  box-shadow: 0 0 0 2px var(--part-accent, var(--c-highlight));
+  border-radius: 4px;
+}
+.ch-cross > svg {
+  display: block;
+  overflow: visible;
+}
+.ch-cross-line {
+  stroke: var(--ch-cross);
+  stroke-width: 1;
+}
+.ch-cross-dot {
+  stroke: var(--pe-surface);
+  stroke-width: 2;
+  paint-order: stroke;
+}
+.ch-tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 150px;
+  max-width: 280px;
+  margin-left: 12px;
+  padding: 8px 10px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px var(--shadow-soft);
+  pointer-events: none;
+}
+.ch-tip.is-left {
+  margin-left: -12px;
+  transform: translateX(-100%);
+}
+.ch-tip-head {
+  margin-bottom: 4px;
+  font: 600 12px/1.3 var(--ch-font);
+  color: var(--pe-gray-900);
+}
+.ch-tip-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  font: 400 12px/1.6 var(--ch-font);
+  color: var(--pe-gray-600);
+}
+.ch-tip-icon {
+  display: inline-flex;
+  color: var(--pe-gray-400);
+}
+.ch-tip-name {
+  white-space: nowrap;
+}
+.ch-tip-value {
+  font: 600 13px/1.6 var(--ch-font);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ch-tip-unit {
+  margin-top: 4px;
+  font: 400 11px/1.3 var(--ch-font);
+  color: var(--pe-gray-500);
 }

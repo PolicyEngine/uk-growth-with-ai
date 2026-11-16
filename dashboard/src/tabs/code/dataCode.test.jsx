@@ -3,7 +3,8 @@
 // (The evidence map's tests are in tabs/literature/evidence.test.jsx.)
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import { ledger, LAST_UPDATED, VINTAGES } from '@/tabs/code/ledger.js';
+import { ledger, LAST_UPDATED, VINTAGES, MODEL_VERSIONS } from '@/tabs/code/ledger.js';
+import AI from '@/data/aiStudy2425.json';
 import { jsonOf } from '@/components/ui/DownloadMenu.jsx';
 import UK from '@/data/ukContext.json';
 import S from '@/data/surprise2028.json';
@@ -26,6 +27,21 @@ describe('Data and code', () => {
   it('the last-updated stamp is the latest build date', () => {
     expect(LAST_UPDATED >= S.generated_utc.slice(0, 10)).toBe(true);
     expect(VINTAGES.map((v) => v.file)).toContain('surprise2028.json');
+  });
+  it('one vintages table carries both models, each row labelled', () => {
+    for (const v of VINTAGES) expect(['OG-UK', 'uk-ai-study', '—']).toContain(v.model);
+    const text = JSON.stringify(VINTAGES.filter((v) => v.model === 'uk-ai-study'));
+    // the household study's vintages, which were on Household method
+    expect(text).toContain(AI.source.commit.slice(0, 7));
+    expect(text).toContain(AI.method.data_build);
+    expect(text).toContain(AI.method.manifest_commit.slice(0, 7));
+  });
+  it('each PolicyEngine-UK version names its model', () => {
+    const pe = MODEL_VERSIONS.filter((e) => e.label === 'PolicyEngine-UK');
+    expect(pe.map((e) => [e.model, e.value])).toEqual([
+      ['OG-UK', '2.90.2'],
+      ['uk-ai-study', AI.method.policyengine_uk],
+    ]);
   });
 });
 

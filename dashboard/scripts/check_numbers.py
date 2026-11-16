@@ -236,10 +236,18 @@ for cl, sens in D.get('sensitivity', {}).items():
             print(sid, 'all scenarios', cl, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, 'all scenarios', cl, 'ok:', sum(exp.values()), 'figures')
-        # Method's other figures (rates, shares) are not two-decimal gaps
-        left = re.findall(r"[+−]\d+\.\d\d%", dump[sid].get('method', ''))
-        if left:
-            bad += 1; print(sid, 'method still prints gaps:', left)
+        # Method's other figures (rates, shares) are not two-decimal gaps,
+        # except the stress-test arm card (Scenarios, in OG-UK method): UK
+        # central's output at fixed inputs against technology unchanged,
+        # once per closure (fixedInputVsTz: Z_terminal of 'ss' over 'tz')
+        left = Counter(re.findall(r"[+−]\d+\.\d\d%", dump[sid].get('method', '')))
+        stress = Counter()
+        for scl, ss in D['results']['uk_central'].get('ss', {}).items():
+            tz = D['results']['uk_central'].get('tz', {}).get(scl, {})
+            if ss.get('status') == 'done' and tz.get('status') == 'done':
+                stress[signed((ss['Z_terminal'] / tz['Z_terminal'] - 1) * 100, 2) + '%'] += 1
+        if left != stress:
+            bad += 1; print(sid, 'method gaps: expected the stress-test pair', dict(stress), 'got', dict(left))
 
 # The story's parts 1 and 3, and any later part, are checked by their own
 # modules in scripts/checks/ (one writer each): check(dump) -> failures.

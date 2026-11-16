@@ -7,7 +7,7 @@ import { iconFor } from '@/lib/concepts.js';
 import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
 import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './part1/data.js';
-import { AiUseChart, ExposureTiles, GdpChart, GdpQuartersChart, LabourPanels, LabourShareChart, PayChart, ProductivityChart } from './part1/charts.jsx';
+import { AiUseChart, ExposureTiles, LabourBoard, OutputCanvas } from './part1/charts.jsx';
 import { SourceLine, Swap } from './part1/frame.jsx';
 import { dirOf, dirWord, idx1, pct1, share0 } from './part1/format.js';
 
@@ -19,16 +19,17 @@ import { dirOf, dirWord, idx1, pct1, share0 } from './part1/format.js';
 // printed figure has an entry in ukContextChecks.json, read there from the
 // primary file. Calendar-year series stop at the last full year; the
 // current year appears only as quarters or months, labelled as such.
-// Four scrolly blocks (output, work, productivity and the labour share, AI);
-// each holds several figures in one sticky graphic (Swap, frame.jsx), and
-// every state carries its own title, unit and source line. The blocks take
-// the first old block id; the others (p1-quarters, p1-pay, p1-share,
-// p1-exposure) sit on an anchor at the top of the step where that figure
-// first shows, so old links still land on it. Each card is a short title
-// (with its concept icon), a key-facts row holding its figures, and short
-// icon items; caveats are items, or (when they carry no figure and qualify
-// no headline) in an "About these figures" disclosure. Source lines hold
-// the citation only. Growth rates carry a small arrow from their sign.
+// Three scenes (scene plan 1A, 1B, 1C), each one scrolly block: the
+// output canvas (annual bars, the OBR's forecast, then a zoom to this
+// year's quarters), the labour board (five series, one in focus per step)
+// and AI arrives (business use, then the exposure tiles). Every old step id
+// is kept; old block ids that are now inside a scene (p1-quarters, p1-pay,
+// p1-productivity, p1-share, p1-exposure) sit on an anchor at the top of
+// the step where that figure first shows, so old links still land on it.
+// Each card is a short title (with its concept icon), a key-facts row
+// holding its figures (each marked with its data-path), and short icon
+// items; caveats with no figure go in an "About these figures" disclosure.
+// Growth rates carry a small arrow from their sign.
 // Under reduced motion the step logic is kept (story.css): a chart part that
 // is .is-on shows at once and one that is not stays hidden; only the motion
 // goes.
@@ -50,11 +51,14 @@ const About = ({ items }) => (
   </details>
 );
 
+// A printed figure, marked with its path in ukContext.json.
+const V = ({ path, children }) => <span data-path={path}>{children}</span>;
+
 // A growth rate. Its fact's icon is the arrow for its sign (format.js
 // dirOf: icon: dirOf(v)); the arrow is hidden from screen readers, so the
 // fact's sub line says the same in words (dirWord).
-const Growth = ({ v }) => (
-  <span className="p1-growth" data-dir={dirOf(v)}>
+const Growth = ({ v, path }) => (
+  <span className="p1-growth" data-dir={dirOf(v)} data-path={path}>
     {pct1(v)}
   </span>
 );
@@ -73,29 +77,26 @@ function outputSteps() {
     {
       id: 'p1-output-0',
       icon: 'gdp',
-      kicker: 'Output',
       title: 'How fast the economy has grown',
       body: (
         <>
           <KeyFacts
             className="p1-facts"
-            facts={[{ icon: dirOf(g.value), value: <Growth v={g.value} />, label: 'real GDP growth', sub: `${g.period}, output ${dirWord(g.value)} on a year earlier` }]}
+            facts={[{ icon: dirOf(g.value), value: <Growth v={g.value} path="facts.gdp_growth_latest.value" />, label: 'real GDP growth', sub: `${g.period}, output ${dirWord(g.value)} on a year earlier` }]}
           />
           <Items
             items={[
               { icon: 'period', text: 'The latest full calendar year the ONS has published' },
-              { icon: 'measure', text: 'Each bar is one year’s growth' },
-              { icon: 'revision', text: 'The latest years are open to revision' },
               { icon: 'why', text: `The fall in ${low} and rebound in ${high}: the pandemic` },
             ]}
           />
+          <About items={[{ icon: 'revision', text: 'The latest years are open to revision' }]} />
         </>
       ),
     },
     {
       id: 'p1-output-1',
       icon: 'forecast',
-      kicker: 'Output',
       title: 'The OBR’s forecast',
       body: (
         <>
@@ -104,17 +105,22 @@ function outputSteps() {
             facts={obr.map((i) => ({
               key: OBR.x[i],
               icon: dirOf(OBR.y[i]),
-              value: <Growth v={OBR.y[i]} />,
+              value: <Growth v={OBR.y[i]} path={`series.obr_gdp_forecast.y.${i === OBR.y.length - 1 ? -1 : i}`} />,
               label: `growth in ${OBR.x[i]}`,
-              sub: `output ${dirWord(OBR.y[i])}${i === OBR.y.length - 1 ? ', last year covered' : ''}`,
+              sub: `output ${dirWord(OBR.y[i])}`,
             }))}
           />
           <Items
             items={[
               { icon: 'forecast', text: `The OBR’s central forecast, published ${OBR_VINTAGE}` },
+              { icon: 'link', text: `Part 2’s modelling starts from the OBR’s ${MODEL_BASE_VINTAGE} forecast` },
+            ]}
+          />
+          <About
+            items={[
               { icon: 'path', text: 'Every year on the dashed line is a forecast' },
               { icon: 'revision', text: `Drawn apart: the OBR starts from an older ${last(gs.x)} estimate` },
-              { icon: 'link', text: `Part 2’s modelling starts from the OBR’s ${MODEL_BASE_VINTAGE} forecast` },
+              { icon: 'period', text: `${OBR.x[OBR.x.length - 1]} is the last year it covers` },
             ]}
           />
         </>
@@ -123,7 +129,6 @@ function outputSteps() {
     {
       id: 'p1-quarters-0',
       icon: 'period',
-      kicker: 'Output',
       title: `${year} so far`,
       body: (
         <>
@@ -131,8 +136,8 @@ function outputSteps() {
           <KeyFacts
             className="p1-facts"
             facts={[
-              { icon: dirOf(q.value), value: <Growth v={q.value} />, label: 'real GDP, on the previous quarter', sub: `${q.period}, output ${dirWord(q.value)}` },
-              { icon: dirOf(y.value), value: <Growth v={y.value} />, label: 'real GDP, on a year earlier', sub: `${q.period}, output ${dirWord(y.value)}` },
+              { icon: dirOf(q.value), value: <Growth v={q.value} path="facts.gdp_quarterly_latest.value" />, label: 'real GDP, on the previous quarter', sub: `${q.period}, output ${dirWord(q.value)}` },
+              { icon: dirOf(y.value), value: <Growth v={y.value} path="facts.gdp_quarterly_yoy.value" />, label: 'real GDP, on a year earlier', sub: `${q.period}, output ${dirWord(y.value)}` },
             ]}
           />
           <Items
@@ -147,7 +152,7 @@ function outputSteps() {
   ];
 }
 
-// (b) Work: employment, unemployment, then pay.
+// (b) Work, pay and productivity: one labour board, five series in turn.
 function workSteps() {
   const e = F.employment_rate_latest;
   const u = F.unemployment_rate_latest;
@@ -156,24 +161,21 @@ function workSteps() {
     {
       id: 'p1-work-0',
       icon: 'labour',
-      kicker: 'Work',
       title: 'Employment',
       body: (
         <>
-          <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: pct1(e.value), label: 'employment rate', sub: `aged 16 to 64, ${e.period}` }]} />
-          <Items items={[{ icon: 'measure', text: 'Each point on the panels is a three-month average' }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: <V path="facts.employment_rate_latest.value">{pct1(e.value)}</V>, label: 'employment rate', sub: `aged 16 to 64, ${e.period}` }]} />
+          <Items items={[{ icon: 'measure', text: 'Each point is a three-month average' }]} />
         </>
       ),
     },
     {
       id: 'p1-work-1',
-      pin: 'bottom',
       icon: 'labour',
-      kicker: 'Work',
       title: 'Unemployment',
       body: (
         <>
-          <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: pct1(u.value), label: 'unemployment rate', sub: `aged 16 and over, ${u.period}` }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: <V path="facts.unemployment_rate_latest.value">{pct1(u.value)}</V>, label: 'unemployment rate', sub: `aged 16 and over, ${u.period}` }]} />
           <Items
             items={[
               { icon: 'survey', text: 'Both rates come from the Labour Force Survey' },
@@ -187,22 +189,22 @@ function workSteps() {
     {
       id: 'p1-pay-0',
       icon: 'pay',
-      kicker: 'Work',
       title: 'Pay',
       body: (
         <>
           <Anchor id="p1-pay" />
-          <KeyFacts className="p1-facts" facts={[{ icon: dirOf(p.value), value: <Growth v={p.value} />, label: 'regular pay growth', sub: `${p.period}, pay ${dirWord(p.value)}` }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: dirOf(p.value), value: <Growth v={p.value} path="facts.pay_growth_latest.value" />, label: 'regular pay growth', sub: `${p.period}, pay ${dirWord(p.value)}` }]} />
           <Items
             items={[
               { icon: 'excluded', text: 'Regular pay leaves out bonuses' },
               { icon: 'measure', text: 'On a year earlier, before adjusting for inflation' },
-              { icon: 'survey', text: 'From employers’ payrolls, not the Labour Force Survey' },
+              { icon: 'survey', text: 'From employers’ payrolls, not a household survey' },
             ]}
           />
         </>
       ),
     },
+    ...productivitySteps(),
   ];
 }
 
@@ -214,16 +216,15 @@ function productivitySteps() {
     {
       id: 'p1-productivity-0',
       icon: 'productivity',
-      kicker: 'Productivity',
       title: 'Output per hour worked',
       body: (
         <>
-          <KeyFacts className="p1-facts" facts={[{ icon: 'productivity', value: <> {idx1(p.value)} </>, label: 'output per hour worked', sub: `${p.period}, index 2023 = 100` }]} />
+          <Anchor id="p1-productivity" />
+          <KeyFacts className="p1-facts" facts={[{ icon: 'productivity', value: <V path="facts.productivity_oph_latest.value"> {idx1(p.value)} </V>, label: 'output per hour worked', sub: `${p.period}, index 2023 = 100` }]} />
           <Items
             items={[
               { icon: 'measure', text: 'The main measure of labour productivity' },
               { icon: 'period', text: 'The latest quarter published' },
-              { icon: 'survey', text: 'Hours worked come partly from the Labour Force Survey' },
             ]}
           />
         </>
@@ -232,17 +233,20 @@ function productivitySteps() {
     {
       id: 'p1-share-0',
       icon: 'labourShare',
-      kicker: 'Labour’s share',
       title: 'What employees are paid, as a share of GDP',
       body: (
         <>
           <Anchor id="p1-share" />
-          <KeyFacts className="p1-facts" facts={[{ icon: 'labourShare', value: pct1(s.value), label: 'of GDP paid to employees', sub: `${s.period}, the latest full year` }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: 'labourShare', value: <V path="facts.labour_share_latest.value">{pct1(s.value)}</V>, label: 'of GDP paid to employees', sub: `${s.period}, the latest full year` }]} />
           <Items
             items={[
-              { icon: 'pay', text: 'Wages, salaries and employers’ contributions' },
               { icon: 'measure', text: 'Compensation of employees divided by GDP at current prices' },
               { icon: 'excluded', text: 'Leaves out the self-employed’s income' },
+            ]}
+          />
+          <About
+            items={[
+              { icon: 'pay', text: 'Wages, salaries and employers’ contributions' },
               { icon: 'caveat', text: 'So lower than measures of labour’s share that count it' },
             ]}
           />
@@ -265,21 +269,20 @@ function aiSteps() {
     {
       id: 'p1-ai-0',
       icon: 'ai',
-      kicker: 'AI arrives',
       title: 'Businesses using AI',
       body: (
         <>
-          <KeyFacts className="p1-facts" facts={[{ icon: 'business', value: pct1(a.value), label: 'of businesses use AI', sub: month }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: 'business', value: <V path="facts.business_ai_use.value">{pct1(a.value)}</V>, label: 'of businesses use AI', sub: month }]} />
           <Items
             items={[
               { icon: 'survey', text: 'The ONS’s Business Insights and Conditions Survey' },
               { icon: 'ai', text: 'At least one AI technology, in current use' },
-              { icon: 'caveat', text: 'Such as text generation or machine learning on data' },
-              { icon: 'business', text: 'Private sector, weighted by count; some industries left out' },
             ]}
           />
           <About
             items={[
+              { icon: 'caveat', text: 'AI tools such as text generation or machine learning' },
+              { icon: 'business', text: 'Private sector, weighted by count; some industries left out' },
               wave ? { icon: 'period', text: wave } : null,
               { icon: 'excluded', text: 'Left out: agriculture, finance and insurance, public administration, among others' },
             ]}
@@ -290,11 +293,10 @@ function aiSteps() {
     {
       id: 'p1-ai-1',
       icon: 'business',
-      kicker: 'AI arrives',
       title: 'Larger businesses',
       body: (
         <>
-          <KeyFacts className="p1-facts" facts={[{ icon: 'business', value: pct1(b.value), label: 'with 10 or more employees', sub: 'the same survey wave' }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: 'business', value: <V path="facts.business_ai_use_10plus.value">{pct1(b.value)}</V>, label: 'with 10 or more employees', sub: 'the same survey wave' }]} />
           <Items
             items={[
               { icon: 'caveat', text: 'The ONS often leads with this group' },
@@ -307,7 +309,6 @@ function aiSteps() {
     {
       id: 'p1-exposure-0',
       icon: 'workers',
-      kicker: 'AI arrives',
       title: 'UK workers',
       body: (
         <>
@@ -325,26 +326,29 @@ function aiSteps() {
     {
       id: 'p1-exposure-1',
       icon: 'ai',
-      kicker: 'AI arrives',
       title: 'Workers by exposure to AI',
       body: (
         <>
           <KeyFacts
             className="p1-facts is-three"
             facts={[
-              { icon: 'complement', value: share0(hh.value), label: 'high exposure, high complementarity' },
-              { icon: 'ai', value: share0(hl.value), label: 'high exposure, low complementarity' },
-              { icon: 'workers', value: share0(lo.value), label: 'low exposure' },
+              { icon: 'complement', value: <V path={`facts.${hh.id}.value`}>{share0(hh.value)}</V>, label: 'high exposure, high complementarity' },
+              { icon: 'ai', value: <V path={`facts.${hl.id}.value`}>{share0(hl.value)}</V>, label: 'high exposure, low complementarity' },
+              { icon: 'workers', value: <V path={`facts.${lo.id}.value`}>{share0(lo.value)}</V>, label: 'low exposure' },
             ]}
           />
           <Items
             items={[
-              { icon: 'compare', text: `The two high-exposure groups sum to ${share0(hh.value + hl.value)}` },
-              { icon: 'source', text: `DSIT’s text says around ${share0(DSIT_AROUND)}` },
-              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
+              { icon: 'compare', text: <>The two high-exposure groups sum to <V path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</V></> },
+              { icon: 'source', text: <>DSIT’s text says around <V path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</V></> },
             ]}
           />
-          <About items={[{ icon: 'limit', text: 'No official table gives exposure by major occupation group' }]} />
+          <About
+            items={[
+              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
+              { icon: 'limit', text: 'No official table gives exposure by major occupation group' },
+            ]}
+          />
         </>
       ),
     },
@@ -359,6 +363,22 @@ function exposureSource() {
       note="Citing IMF, Gen-AI: Artificial Intelligence and the Future of Work."
     />
   );
+}
+
+// The labour board's steps, in focus order: a click on a sparkline brings
+// that step across the trigger line (useActiveStep: 55% of the viewport on
+// desktop, 88% at 900px and below), the same as scrolling to it.
+const WORK_STEPS = ['p1-work-0', 'p1-work-1', 'p1-pay-0', 'p1-productivity-0', 'p1-share-0'];
+function pickWork(i) {
+  const el = document.getElementById(WORK_STEPS[i]);
+  if (!el) return;
+  const phone = window.matchMedia?.('(max-width: 900px)').matches;
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const line = window.innerHeight * (phone ? 0.88 : 0.55);
+  const r = el.getBoundingClientRect();
+  // the step's top a little above the line, so its box crosses it
+  const top = r.top + window.scrollY - line + Math.min(40, r.height / 2);
+  window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
 }
 
 export default function Part1({ part }) {
@@ -381,39 +401,24 @@ export default function Part1({ part }) {
       </PartHead>
       <Scrolly
         id="p1-output"
+        scene
+        sub={{ title: 'Output', icon: 'gdp' }}
         label={`Real GDP growth: by calendar year (ONS outturn), the ${OBR_LABEL}, and by quarter`}
         steps={outputSteps()}
-        graphic={(i) => (
-          <Swap active={i < 2 ? 0 : 1}>
-            <GdpChart state={Math.min(i, 1)} />
-            <GdpQuartersChart on={i >= 2} />
-          </Swap>
-        )}
+        graphic={(i) => <OutputCanvas state={i} />}
       />
       <Scrolly
         id="p1-work"
-        label="Employment and unemployment rates, and regular pay growth"
+        scene
+        sub={{ title: 'Work, pay and productivity', icon: 'labour' }}
+        label="Employment, unemployment, regular pay growth, output per hour worked and the labour share"
         steps={workSteps()}
-        graphic={(i) => (
-          <Swap active={i < 2 ? 0 : 1}>
-            <LabourPanels state={Math.min(i, 1)} />
-            <PayChart on={i >= 2} />
-          </Swap>
-        )}
-      />
-      <Scrolly
-        id="p1-productivity"
-        label="Output per hour worked, and compensation of employees as a share of GDP"
-        steps={productivitySteps()}
-        graphic={(i) => (
-          <Swap active={i < 1 ? 0 : 1}>
-            <ProductivityChart />
-            <LabourShareChart on={i >= 1} />
-          </Swap>
-        )}
+        graphic={(i) => <LabourBoard focus={i} onPick={pickWork} />}
       />
       <Scrolly
         id="p1-ai"
+        scene
+        sub={{ title: 'AI arrives', icon: 'ai' }}
         label="Businesses using AI, and UK workers by exposure to AI"
         steps={aiSteps()}
         graphic={(i) => (

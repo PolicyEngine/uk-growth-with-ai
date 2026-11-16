@@ -30,15 +30,16 @@ import { iconFor } from '@/lib/concepts.js';
 // checks, which read it at step 1) always holds each share and change. On
 // phones a sticky graphic this tall would leave no room to read, and the
 // scrolly would repeat it per step, so the figure is drawn once, complete,
-// above the three texts. A trailing spacer step holds the last state while
-// card 3 is read, so the tall sticky graphic is not pulled up early. The GDP bar carries no number: that figure is the
-// headline tile's. Bare numbers, the unit in each subtitle.
+// above the three texts. Before step 3 the waterfall's frame (its title
+// and the parts' names) shows faintly, values and bars hidden, as what
+// comes next. The GDP bar carries no number: that figure is the headline
+// tile's. Bare numbers, the unit in each subtitle.
 
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const GROW_STAGGER = 80; // ms between waterfall bars
 
-function Waterfall({ rows, on, hl, setHl }) {
+function Waterfall({ rows, on, hl, setHl, path }) {
   const ends = rows.flatMap((r) => [r.from, r.to]);
   let lo = Math.min(0, ...ends);
   let hi = Math.max(0, ...ends);
@@ -63,6 +64,7 @@ function Waterfall({ rows, on, hl, setHl }) {
             onBlur={() => setHl(null)}
           >
             <span className="p2-wf-label">
+              <span className="p2-wf-swatch" style={{ '--sw': PART_COLOR[r.id] }} aria-hidden="true" />
               {r.sub ? <span className="p2-wf-of">of which </span> : null}
               {r.label}
             </span>
@@ -80,7 +82,7 @@ function Waterfall({ rows, on, hl, setHl }) {
                 }}
               />
             </span>
-            <span className="p2-wf-value">
+            <span className="p2-wf-value" data-path={r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}`}>
               {r.value == null ? (
                 <NavLink tab="story" anchor="story-headline" className="p2-wf-link" aria-label="GDP: see the headline figures">
                   Headline figures <Icon name="arrowRight" size={12} strokeWidth={2} />
@@ -159,7 +161,11 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
         <p className="story-figure-title">
           <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
         </p>
-        <p className="story-figure-unit">{cap(CL_WORDS[cl])}. Of every 100 of GDP</p>
+        <p className="story-figure-unit">
+          <Tx icon="measure" size={12}>
+            {cap(CL_WORDS[cl])}. Of every 100 of GDP
+          </Tx>
+        </p>
         {graph ? (
           <div className="p2-sankey">
             <Sankey
@@ -200,10 +206,14 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
             What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
           </Tx>
         </p>
-        <p className="story-figure-unit">{where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels</p>
+        <p className="story-figure-unit">
+          <Tx icon="measure" size={12}>
+            {where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels
+          </Tx>
+        </p>
         {ch ? (
           <>
-            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={pick2} />
+            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={pick2} path={`output_split.change.${sid}.${cl}`} />
             <p className="story-source">
               <Tx icon="caveat" size={12}>
                 Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure.
@@ -254,7 +264,6 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
     {
       id: 'p2-out-1',
       icon: 'gdp',
-      kicker: 'Where output goes',
       title: 'GDP is paid as labour or capital income',
       body: (
         <Items
@@ -280,7 +289,6 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
     {
       id: 'p2-out-2',
       icon: 'capital',
-      kicker: 'Where output goes',
       title: 'Capital income splits three ways',
       body: (
         <Items
@@ -296,7 +304,6 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
       id: 'p2-out-3',
       pin: 'bottom',
       icon: 'compare',
-      kicker: 'Where output goes',
       title: `What ${SCEN_NAME[sid]} changes`,
       body: (
         <>
@@ -363,7 +370,7 @@ export default function OutputSplit({ sid, closure }) {
         <Scrolly
           id="p2-output"
           label={`Where output goes in ${SPLIT_YEAR}`}
-          steps={[...steps, { id: 'p2-out-end', spacer: true }]}
+          steps={steps}
           graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}

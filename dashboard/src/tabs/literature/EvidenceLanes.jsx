@@ -1,6 +1,7 @@
 'use client';
 
 import { iconFor } from '@/lib/concepts.js';
+import Icon from '@/components/ab/Icon.jsx';
 import IconText from '@/tabs/method/IconText.jsx';
 import { Items } from '@/components/story/Items.jsx';
 
@@ -9,24 +10,41 @@ import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { RANGES } from '@/data/literature.js';
+import MAP from '@/data/site-evidence-map.json';
 import { gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import './evidence.css';
 
-// Range bars: published level gaps (bars, or dots for a single figure), each
+// Evidence lanes: one lane per measure that has plotted figures (GDP and the
+// average wage today; a new measure gains a lane when its rows carry `plot`,
+// with a META entry for its title and axis). Each lane draws published level gaps (bars, or dots for a single figure), each
 // against its own study's baseline, from the UK evidence map
 // (site-evidence-map.json, through RANGES), beside our headline-year gaps for
 // UK central and Korinek et al. (upper) (automation + productivity arm)
 // against the OBR-central path, read from surprise2028.json through gap().
 // Published figures are printed in the evidence map; ours on Explore. Here
-// both appear in the tooltips only.
+// both appear in the tooltips only. A figure not confirmed in the published
+// text (`unverified`) is left out, as it is from the map.
+// A lane's `v` names OG-UK's variable where ours is comparable; lanes
+// without one show published figures only. Adoption and exposure are levels,
+// not effects. `kind: 'shares'` draws one row's `shares` as a 100% bar.
 const META = {
   gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 2 },
   wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 1 },
+  adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10, level: true },
+  exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers by occupation: a share, not a gap', kind: 'shares' },
+  distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points against each study’s own baseline', step: 5, suf: ' Gini pts' },
 };
+// Plotted rows of a measure the shared RANGES does not carry, read from the
+// map in the same shape (each row with `plot` set to the measure)
+const plotted = (metric) =>
+  MAP.rows
+    .filter((r) => r.plot === metric && !r.unverified)
+    .map((r) => ({ ids: [r.id], label: r.plotLabel, short: r.institution, horizon: r.plotHorizon, note: r.note, loc: r.loc, url: r.url, lo: r.lo, hi: r.hi, mark: r.mark ?? null, none: false, unverified: false }));
 const OURS = ['uk_central', 'korinek'];
-const n1 = (x) => `${x < 0 ? '−' : x > 0 ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}%`;
+// Signed for gaps; a level (adoption) prints without a sign
+const n1 = (x, suf = '%', level = false) => `${x < 0 ? '−' : x > 0 && !level ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}${suf}`;
 
 function ticks(lo, hi, step) {
   const out = [];
@@ -36,8 +54,8 @@ function ticks(lo, hi, step) {
 
 function rows(metric) {
   const m = META[metric];
-  const pub = RANGES[metric];
-  const ours = OURS.map((sid) => ({
+  const pub = (RANGES[metric] ?? plotted(metric)).filter((r) => !r.unverified);
+  const ours = !m.v ? [] : OURS.map((sid) => ({
     sid,
     label: scenarioById(sid).label,
     c: gap(sid, 'tfp', CENTRAL, m.v),
@@ -72,7 +90,7 @@ function rangeSvg(metric) {
     out += `<text x="0" y="${y + 28}" font-size="11" fill="${C.muted}">${esc(b)}</text>`;
   };
   const top0 = y;
-  group(`Ours, automation + productivity, ${HEADLINE_YEAR}`);
+  if (ours.length) group(`Ours, automation + productivity, ${HEADLINE_YEAR}`);
   for (const o of ours) {
     const cy = y + ROW / 2;
     label(o.label, 'OG-UK, year 4 of adoption');
@@ -86,7 +104,7 @@ function rangeSvg(metric) {
   for (const r of pub) {
     const cy = y + ROW / 2;
     label(r.label, r.unverified ? `${r.horizon} · unverified` : r.horizon);
-    const fig = r.none ? 'No number published' : r.lo === r.hi ? n1(r.lo) : `${n1(r.lo)} to ${n1(r.hi)}`;
+    const fig = r.none ? 'No number published' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`;
     if (!r.none && r.lo === r.hi) out += `<circle cx="${X(r.lo)}" cy="${cy}" r="6" fill="${s5}" stroke="${C.surface}" stroke-width="2"/>`;
     else if (!r.none) out += `<rect x="${X(r.lo)}" y="${cy - 6}" width="${Math.max(2, X(r.hi) - X(r.lo))}" height="12" rx="3" fill="${s5}" fill-opacity="${r.unverified ? 0.12 : 0.45}" stroke="${s5}" stroke-opacity="0.7"${r.unverified ? ' stroke-dasharray="3 2"' : ''}/>`;
     if (r.mark != null) out += `<rect x="${X(r.mark) - 1.5}" y="${cy - 9}" width="3" height="18" rx="1" fill="${C.ink}"/>`;
@@ -95,7 +113,7 @@ function rangeSvg(metric) {
   }
   out = `<line x1="${X(0)}" x2="${X(0)}" y1="${top0}" y2="${y}" stroke="${C.zeroLine}"/>` + out;
   for (const t of ticks(Math.min(Math.floor(Math.min(...vals) / m.step) * m.step, 0), top, m.step)) {
-    out += `<text x="${X(t)}" y="${y + 16}" font-size="11" text-anchor="middle" fill="${C.tick}">${t > 0 ? `+${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}%</text>`;
+    out += `<text x="${X(t)}" y="${y + 16}" font-size="11" text-anchor="middle" fill="${C.tick}">${t > 0 ? `${m.level ? '' : '+'}${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}${m.suf ? '' : '%'}</text>`;
   }
   return { w: W, h: y + 26, markup: out };
 }
@@ -109,21 +127,83 @@ const legendKeys = () => [
 ];
 
 function table(metric) {
-  const { pub, ours } = rows(metric);
+  const { m, pub, ours } = rows(metric);
   return {
-    columns: ['Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
+    columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [`${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
-        [`${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
       ]),
-      ...pub.map((r) => [r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
+      ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
   };
 }
 
-export default function RangeBars({ metric }) {
-  const { hi, ref, bind } = useHover();
+function LaneHead({ m }) {
+  return (
+    <>
+      <h3 className="mx-lane-h">
+        <Icon name={m.icon} size={16} />
+        <span>{m.title}</span>
+      </h3>
+      <p className="mx-lane-unit">
+        <IconText icon="measure">{m.unit}</IconText>
+      </p>
+    </>
+  );
+}
+
+// A composition lane: each row's `shares` as one 100% bar, its parts labelled
+// (the shares are the row's printed value, in the map below)
+const shareRows = (metric) => MAP.rows.filter((r) => r.metric === metric && r.shares && !r.unverified);
+const SHADES = ['var(--pe-gray-700)', 'var(--pe-gray-500)', 'var(--pe-gray-300)'];
+function SharesLane({ metric, hi, bind }) {
+  const m = META[metric];
+  return (
+    <div className="mx-lane" id={`ranges-${metric}`}>
+      <LaneHead m={m} />
+      {shareRows(metric).map((r) => (
+        <div key={r.id} className="mx-share">
+          <span className="mx-rb-label">
+            <b>{r.plotLabel}</b>
+            <span>
+              {r.horizon} ·{' '}
+              <a className="ev-rb-home" href={`#ev-row-${r.id}`}>
+                figures in the table
+              </a>
+            </span>
+          </span>
+          <span className="mx-share-bar">
+            {r.shares.map((x, i) => {
+              const key = `s-${r.id}-${i}`;
+              return (
+                <span key={key} className={`mx-share-part${hi === key ? ' is-hi' : ''}`} style={{ flexGrow: x.pct, background: SHADES[i % SHADES.length] }} {...bind(key, `${x.label}: ${x.pct}%`)}>
+                  {hi === key ? (
+                    <TipBox className="mx-tip">
+                      <b>{x.label}</b>
+                      <span>{x.pct}% of UK workers</span>
+                    </TipBox>
+                  ) : null}
+                </span>
+              );
+            })}
+          </span>
+          <ul className="mx-share-key">
+            {r.shares.map((x, i) => (
+              <li key={x.label}>
+                <span className="mx-share-sw" style={{ background: SHADES[i % SHADES.length] }} data-icon="" />
+                {x.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Lane({ metric, hi, bind }) {
   const { m, pub, ours } = rows(metric);
   const vals = [
     0,
@@ -141,68 +221,10 @@ export default function RangeBars({ metric }) {
   const rowTip = (key, body) => (hi === key ? <TipBox className="mx-tip">{body}</TipBox> : null);
 
   return (
-    <Card
-      id={`ranges-${metric}`}
-      icon={m.icon}
-      title={`${m.title}: ours in ${HEADLINE_YEAR} against published estimates`}
-      className="mx-ranges ev-rb"
-      finding={<IconText icon="link">Published figures live in the evidence map below, ours on Explore; each row links there. Hover, tap or tab to a row.</IconText>}
-      unit={<IconText icon="measure">{m.unit}</IconText>}
-      legend={
-        <ul className="mx-rb-key">
-          <li>
-            <span className="mx-rb-dot is-c is-key" data-icon="" /> Central closure
-          </li>
-          <li>
-            <span className="mx-rb-dot is-b is-key" data-icon="" /> Closed capital
-          </li>
-          <li>
-            <span className="mx-rb-bar is-key" data-icon="" /> Published range
-          </li>
-          <li>
-            <span className="mx-rb-pt is-key" data-icon="" /> Single figure
-          </li>
-          <li>
-            <span className="mx-rb-tick is-key" data-icon="" /> Source&rsquo;s own central case
-          </li>
-          {pub.some((r) => r.unverified) ? (
-            <li>
-              <span className="mx-rb-bar is-key is-unverified" data-icon="" /> Not confirmed in the published text
-            </li>
-          ) : null}
-        </ul>
-      }
-      about={{
-        how: (
-          <Items
-            items={[
-              { icon: 'model', text: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path.` },
-              { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
-              { icon: 'ai', text: 'Those baselines mostly have no AI.' },
-              { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
-              { icon: 'caveat', text: 'A hatched bar: a figure not confirmed in the published text.' },
-            ]}
-          />
-        ),
-        sources: (
-          <Items
-            items={[
-              { icon: 'table', text: 'Each published row is a row of the UK evidence map below.' },
-              { icon: 'source', text: 'It prints the figure, baseline, page or table and check date.' },
-            ]}
-          />
-        ),
-      }}
-      download={{
-        title: `${m.title}: ours in ${HEADLINE_YEAR} against published estimates`,
-        context: () => `Ours: automation + productivity · ${m.unit}`,
-        table: () => table(metric),
-        svg: () => rangeSvg(metric),
-        legend: legendKeys,
-      }}
-    >
-      <div className="mx-rb" ref={ref}>
-        <div className="mx-rb-group">Ours, automation + productivity, {HEADLINE_YEAR}</div>
+    <div className="mx-lane" id={`ranges-${metric}`}>
+      <LaneHead m={m} />
+      <div className="mx-rb">
+        {ours.length ? <div className="mx-rb-group">Ours, automation + productivity, {HEADLINE_YEAR}</div> : null}
         {ours.map((o) => {
           const key = `o-${o.sid}`;
           return (
@@ -245,7 +267,7 @@ export default function RangeBars({ metric }) {
         <div className="mx-rb-group">Published</div>
         {pub.map((r, i) => {
           const key = `p-${i}`;
-          const fig = r.none ? 'no number' : r.lo === r.hi ? n1(r.lo) : `${n1(r.lo)} to ${n1(r.hi)}`;
+          const fig = r.none ? 'no number' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`;
           return (
             <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} {...bind(key, `${r.label}, ${r.horizon}: ${fig}${r.unverified ? ', unverified' : ''}. ${r.note}`)}>
               <span className="mx-rb-label">
@@ -288,12 +310,99 @@ export default function RangeBars({ metric }) {
           <span className="mx-rb-plot">
             {tk.map((t) => (
               <span key={t} className="mx-rb-axtick" style={{ left: `${px(t)}%` }}>
-                {t > 0 ? `+${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}%
+                {t > 0 ? `${m.level ? '' : '+'}${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}
+                {m.suf ? '' : '%'}
               </span>
             ))}
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+const LANES = Object.keys(META).filter((k) => (META[k].kind === 'shares' ? shareRows(k).length : (RANGES[k] ?? plotted(k)).length));
+const RANGE_LANES = LANES.filter((k) => META[k].kind !== 'shares');
+const TITLE = `Published estimates by measure, with ours in ${HEADLINE_YEAR} where comparable`;
+
+export default function EvidenceLanes() {
+  const { hi, ref, bind } = useHover();
+  return (
+    <Card
+      id="evidence-lanes"
+      icon={iconFor('range')}
+      title={TITLE}
+      className="mx-ranges ev-rb"
+      finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, ours on Explore.</IconText>}
+      unit={<IconText icon="measure">Each lane has its own scale and unit.</IconText>}
+      legend={
+        <ul className="mx-rb-key">
+          <li>
+            <span className="mx-rb-dot is-c is-key" data-icon="" /> Central closure
+          </li>
+          <li>
+            <span className="mx-rb-dot is-b is-key" data-icon="" /> Closed capital
+          </li>
+          <li>
+            <span className="mx-rb-bar is-key" data-icon="" /> Published range
+          </li>
+          <li>
+            <span className="mx-rb-pt is-key" data-icon="" /> Single figure
+          </li>
+          <li>
+            <span className="mx-rb-tick is-key" data-icon="" /> Source&rsquo;s own central case
+          </li>
+        </ul>
+      }
+      about={{
+        how: (
+          <Items
+            items={[
+              { icon: 'model', text: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path.` },
+              { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
+              { icon: 'ai', text: 'Those baselines mostly have no AI.' },
+              { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
+              { icon: 'range', text: 'Units differ by measure, so each lane has its own axis.' },
+            ]}
+          />
+        ),
+        sources: (
+          <Items
+            items={[
+              { icon: 'table', text: 'Each published row is a row of the UK evidence map below.' },
+              { icon: 'excluded', text: 'A figure not confirmed in the published text is left out.' },
+            ]}
+          />
+        ),
+      }}
+      download={{
+        title: TITLE,
+        context: () => `Ours: automation + productivity, against the OBR-central path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
+        table: () => {
+          const ts = RANGE_LANES.map(table);
+          // composition lanes: one row per share, low = high = the share
+          const shares = LANES.filter((k) => META[k].kind === 'shares').flatMap((k) =>
+            shareRows(k).flatMap((r) => r.shares.map((x) => [META[k].title, `${r.plotLabel}: ${x.label}`, r.horizon, x.pct, x.pct, null, `${META[k].unit}`, `${r.institution}, ${r.loc}`, r.url])),
+          );
+          return { columns: ts[0].columns, rows: [...ts.flatMap((t) => t.rows), ...shares] };
+        },
+        svg: () => {
+          const parts = RANGE_LANES.map(rangeSvg);
+          let y = 0;
+          let markup = '';
+          parts.forEach((part, i) => {
+            markup += `<text x="0" y="${y + 16}" font-size="14" font-weight="700">${esc(META[RANGE_LANES[i]].title)}</text><g transform="translate(0 ${y + 28})">${part.markup}</g>`;
+            y += part.h + 44;
+          });
+          return { w: Math.max(...parts.map((part) => part.w)), h: y, markup };
+        },
+        legend: legendKeys,
+      }}
+    >
+      <div className="mx-lanes" ref={ref}>
+        {LANES.map((k) => (META[k].kind === 'shares' ? <SharesLane key={k} metric={k} hi={hi} bind={bind} /> : <Lane key={k} metric={k} hi={hi} bind={bind} />))}
+      </div>
     </Card>
   );
 }
+

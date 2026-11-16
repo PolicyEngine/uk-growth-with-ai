@@ -184,3 +184,66 @@ describe('reduced motion hook-up', () => {
     vi.useRealTimers();
   });
 });
+
+describe('Replay, Pause, IconGrid, CountUp', async () => {
+  const { Replay, Pause } = await import('./index.js');
+  const { IconGrid } = await import('../Items.jsx');
+  const { default: CountUp } = await import('../CountUp.jsx');
+  it('icon buttons are labelled and hidden under reduced motion by class', () => {
+    const { container } = render(
+      <>
+        <Replay onClick={() => {}} />
+        <Pause paused onClick={() => {}} />
+      </>,
+    );
+    const b = [...container.querySelectorAll('button.ch-icon-btn.is-motion')];
+    expect(b.map((x) => x.getAttribute('aria-label'))).toEqual(['Replay the animation', 'Play the flow']);
+    expect(b[1].getAttribute('aria-pressed')).toBe('true');
+  });
+  it('icon grid: an icon, a name and a line per item', () => {
+    const { container } = render(<IconGrid label="Left out" items={[{ icon: 'excluded', title: 'Firms', text: 'No response' }]} />);
+    const li = container.querySelector('ul.icon-grid li');
+    expect(li.querySelector('svg')).not.toBeNull();
+    expect(li.textContent).toBe('FirmsNo response');
+  });
+  it('a count-up keeps the exact value in the DOM and never draws a partial value before it is seen', () => {
+    const { container } = render(<CountUp value="+2.34pp" />);
+    expect(container.querySelector('.visually-hidden').textContent).toBe('+2.34pp');
+    expect(container.querySelector('.count-up-vis').dataset.final).toBe('+2.34pp');
+  });
+});
+
+describe('Crosshair', async () => {
+  const { Crosshair } = await import('./index.js');
+  const { fireEvent } = await import('@testing-library/react');
+  const x = linear([2020, 2023], [0, 300]);
+  const y = linear([0, 2], [200, 0]);
+  const el = (
+    <Crosshair width={300} height={200} x={x} y={y} xs={[2020, 2021, 2022, 2023]} top={0} bottom={200} unit="% gap" label="GDP"
+      series={[{ key: 'a', name: 'UK central', icon: 'gdp', color: 'red', ys: [0, 0.5, 1, 1.5], format: (v) => `${v.toFixed(1)}%` }]}>
+      <path d="M0,0" />
+    </Crosshair>
+  );
+  it('mounts nothing of the read-out while inactive', () => {
+    const { container } = render(el);
+    expect(container.querySelector('.ch-tip')).toBeNull();
+    expect(container.querySelector('[aria-live]').textContent).toBe('');
+    expect(container.querySelector('.ch-cross-line')).toBeNull();
+  });
+  it('keyboard: arrows read a point with year, icon and value; Home, End; Escape clears', () => {
+    const { container } = render(el);
+    const host = container.querySelector('.ch-cross');
+    expect(host.tabIndex).toBe(0);
+    fireEvent.keyDown(host, { key: 'ArrowLeft' });
+    expect(container.querySelector('.ch-tip-head').textContent).toBe('2023');
+    fireEvent.keyDown(host, { key: 'ArrowLeft' });
+    expect(container.querySelector('[aria-live]').textContent).toBe('2022: UK central 1.0%');
+    expect(container.querySelector('.ch-tip-row svg')).not.toBeNull();
+    fireEvent.keyDown(host, { key: 'Home' });
+    expect(container.querySelector('.ch-tip-value').textContent).toBe('0.0%');
+    expect(container.querySelector('.ch-cross-line').getAttribute('x1')).toBe('0');
+    fireEvent.keyDown(host, { key: 'Escape' });
+    expect(container.querySelector('.ch-tip')).toBeNull();
+    expect(container.querySelector('[aria-live]').textContent).toBe('');
+  });
+});

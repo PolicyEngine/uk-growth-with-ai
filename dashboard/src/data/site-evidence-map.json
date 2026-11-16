@@ -1,13 +1,43 @@
 {
   "_note": "The UK evidence map: one row per published figure on AI's economic effects, read from the primary text at `loc` on the `checked` date (`how`: 'read' = re-read in the primary text for this table; 'review' = confirmed in the 15 Nov 2026 UK-studies review, figures as in the literature comparison, PR #41). `value` is the figure as printed; `lo`/`hi`/`mark` are the same figure as numbers, for the 'Where our numbers sit' charts (RANGES in data/literature.js selects the rows with `plot`; rows sharing `join` draw as one bar). `none` = no number published; `unverified` = not confirmed in the published text. Each row is against its own `baseline`; OG-UK's figures are against the OBR-central path and come from surprise2028.json, not from this file. Figures on the review's 'keep off until checked' list are not here.",
-  "checked": "2026-11-15",
+  "checked": "2026-11-16",
   "metrics": [
-    { "id": "gdp", "label": "GDP or output" },
-    { "id": "wage", "label": "Wages and earnings" },
-    { "id": "productivity", "label": "Productivity" },
-    { "id": "jobs", "label": "Jobs and unemployment" },
-    { "id": "fiscal", "label": "Public finances" },
-    { "id": "none", "label": "No quantified estimate" }
+    {
+      "id": "gdp",
+      "label": "GDP or output"
+    },
+    {
+      "id": "wage",
+      "label": "Wages and earnings"
+    },
+    {
+      "id": "productivity",
+      "label": "Productivity"
+    },
+    {
+      "id": "jobs",
+      "label": "Jobs and unemployment"
+    },
+    {
+      "id": "fiscal",
+      "label": "Public finances"
+    },
+    {
+      "id": "adoption",
+      "label": "AI adoption by firms"
+    },
+    {
+      "id": "exposure",
+      "label": "Jobs exposed to AI"
+    },
+    {
+      "id": "distribution",
+      "label": "Inequality and distribution"
+    },
+    {
+      "id": "none",
+      "label": "No quantified estimate"
+    }
   ],
   "rows": [
     {
@@ -144,6 +174,82 @@
       "how": "read"
     },
     {
+      "id": "ons-bics-w165-all",
+      "institution": "ONS",
+      "study": "Business insights and impact on the UK economy: 8 October 2026 (BICS Wave 165)",
+      "url": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026",
+      "year": 2026,
+      "metric": "adoption",
+      "measure": "Businesses using at least one AI technology, all sizes (BICS industries, weighted by count)",
+      "value": "29.7% of businesses",
+      "horizon": "September 2026 (21 Sept to 4 Oct 2026)",
+      "baseline": "A level, not a gap (9.4% in September 2023)",
+      "country": "UK",
+      "loc": "Section 3, Figure 1 (data, ‘All industries’ column, 27 Sept 2026 row)",
+      "checked": "2026-11-16",
+      "how": "read",
+      "plot": "adoption",
+      "lo": 29.7,
+      "hi": 29.7,
+      "plotLabel": "ONS BICS, all sizes",
+      "plotHorizon": "September 2026",
+      "note": "Businesses using AI, all sizes"
+    },
+    {
+      "id": "ons-bics-w165-10plus",
+      "institution": "ONS",
+      "study": "Business insights and impact on the UK economy: 8 October 2026 (BICS Wave 165)",
+      "url": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026",
+      "year": 2026,
+      "metric": "adoption",
+      "measure": "Businesses with 10 or more employees using at least one AI technology",
+      "value": "38.1% of businesses with 10+ employees",
+      "horizon": "September 2026",
+      "baseline": "A level, not a gap (11.9% in September 2023)",
+      "country": "UK",
+      "loc": "Section 3, Figure 1 (data, ‘All size bands excluding 0 to 9’ column)",
+      "checked": "2026-11-16",
+      "how": "read",
+      "plot": "adoption",
+      "lo": 38.1,
+      "hi": 38.1,
+      "plotLabel": "ONS BICS, 10+ employees",
+      "plotHorizon": "September 2026",
+      "note": "Businesses using AI, 10+ employees"
+    },
+    {
+      "id": "ons-bics-w165-headcount",
+      "institution": "ONS",
+      "study": "Business insights and impact on the UK economy: 8 October 2026 (BICS Wave 165)",
+      "url": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026",
+      "year": 2026,
+      "metric": "jobs",
+      "measure": "Share of AI-using businesses (10+ employees) reporting lower headcount as a result of AI (fewer than 1% report a rise)",
+      "value": "6% of AI-using firms report lower headcount",
+      "horizon": "September 2026",
+      "baseline": "Firms’ own report",
+      "country": "UK",
+      "loc": "Section 3, ‘Impact of AI adoption on roles and headcount’",
+      "checked": "2026-11-16",
+      "how": "read"
+    },
+    {
+      "id": "ons-thematic-sep26",
+      "institution": "ONS",
+      "study": "Measuring artificial intelligence in the UK economy using a thematic account (methodology), 21 September 2026",
+      "url": "https://www.ons.gov.uk/economy/nationalaccounts/satelliteaccounts/methodologies/measuringartificialintelligenceintheukeconomyusingathematicaccount",
+      "year": 2026,
+      "metric": "none",
+      "measure": "Nearest output: says AI’s impact cannot yet be isolated in the national accounts; experimental estimates of AI’s impact on GDP and GVA are targeted for March 2028",
+      "value": "No quantified estimate",
+      "horizon": "—",
+      "baseline": "—",
+      "country": "UK",
+      "loc": "Section 1 (Main points); section 7 roadmap",
+      "checked": "2026-11-16",
+      "how": "read"
+    },
+    {
       "id": "boe-mpr-nov26-expected",
       "institution": "Bank of England",
       "study": "Monetary Policy Report, November 2026, Box D",
@@ -267,6 +373,22 @@
       "hi": 2.5
     },
     {
+      "id": "ifs-gb26-techgrowth",
+      "institution": "IFS / Barclays",
+      "study": "IFS Green Budget 2026, ch.1: Economic outlook (Barclays), baseline forecast",
+      "url": "https://ifs.org.uk/system/files/2026-10/IFS_Green_Budget_2026_Econonic_Outlook_chapter.pdf",
+      "year": 2026,
+      "metric": "productivity",
+      "measure": "Not an AI estimate: the part of growth in output per worker that the baseline forecast puts down to technology (fading cyclical drags and new technologies “such as” AI), separate from capital deepening; total growth in output per worker goes from 0.6% to 1.1% a year",
+      "value": "0.1% a year (2026) rising to 0.5% (2031)",
+      "horizon": "2026 to 2031",
+      "baseline": "A component of the baseline forecast, not a gap",
+      "country": "UK",
+      "loc": "Section 1.6, pp.25–26 (printed)",
+      "checked": "2026-11-16",
+      "how": "read"
+    },
+    {
       "id": "ifs-gb26-earnings",
       "institution": "IFS / Barclays",
       "study": "IFS Green Budget 2026, ch.2: The outlook for the public finances",
@@ -312,6 +434,38 @@
       "country": "UK",
       "loc": "p.31",
       "checked": "2026-11-15",
+      "how": "read"
+    },
+    {
+      "id": "ifs-wp2548-tfp",
+      "institution": "Evgenidis and Fasianos (IFS working paper)",
+      "study": "Evgenidis and Fasianos, “AI news shocks and the macroeconomy: evidence from UK patent data”, IFS Working Paper 25/48, 15 October 2025",
+      "url": "https://ifs.org.uk/sites/default/files/2025-10/WP202548-AI-news-shocks-and-the-macroeconomy-evidence-from-UK-patent-data.pdf",
+      "year": 2025,
+      "metric": "productivity",
+      "measure": "Not an adoption scenario: the response of TFP to a one-standard-deviation AI patent-news shock (Bayesian VAR on UK data to 2022, patents from 1982; 68% bands). It rises on impact and stays significant over 24 quarters. Not comparable with the level scenarios in this table",
+      "value": "+0.15% TFP at the peak, per one-s.d. news shock",
+      "horizon": "Peak on impact; 24-quarter horizon",
+      "baseline": "No shock",
+      "country": "UK",
+      "loc": "Section 3.1, p.22 (printed page numbers)",
+      "checked": "2026-11-16",
+      "how": "read"
+    },
+    {
+      "id": "ifs-wp2548-output",
+      "institution": "Evgenidis and Fasianos (IFS working paper)",
+      "study": "Evgenidis and Fasianos, “AI news shocks and the macroeconomy: evidence from UK patent data”, IFS Working Paper 25/48, 15 October 2025",
+      "url": "https://ifs.org.uk/sites/default/files/2025-10/WP202548-AI-news-shocks-and-the-macroeconomy-evidence-from-UK-patent-data.pdf",
+      "year": 2025,
+      "metric": "gdp",
+      "measure": "Not an adoption scenario: the response of real output to the same one-standard-deviation AI patent-news shock (consumption +0.3, investment +0.6 points; unemployment falls). Not comparable with the level scenarios in this table",
+      "value": "+0.3pp of output at the peak, per one-s.d. news shock",
+      "horizon": "Peak after about six quarters",
+      "baseline": "No shock",
+      "country": "UK",
+      "loc": "Section 3.1, p.25 (printed)",
+      "checked": "2026-11-16",
       "how": "read"
     },
     {
@@ -467,6 +621,50 @@
       "how": "read"
     },
     {
+      "id": "rockall-wage-gini",
+      "institution": "IMF",
+      "study": "Rockall, Tavares and Pizzinelli, “AI adoption and inequality”, IMF WP/25/68",
+      "url": "https://www.imf.org/-/media/files/publications/wp/2025/english/wpiea2025068-print-pdf.pdf",
+      "year": 2025,
+      "metric": "distribution",
+      "measure": "Wage Gini across the AI scenarios (model calibrated to the UK; AI displaces high-wage tasks)",
+      "value": "−3.91 to −0.22 Gini points (wages)",
+      "horizon": "Steady state, 2014 to 2048",
+      "baseline": "No AI (2014 economy)",
+      "country": "UK",
+      "loc": "Table 2, p.24; Table 4, p.38",
+      "checked": "2026-11-16",
+      "how": "read",
+      "plot": "distribution",
+      "lo": -3.91,
+      "hi": -0.22,
+      "plotLabel": "Rockall et al. (IMF), wages",
+      "plotHorizon": "Steady state, UK",
+      "note": "Wage Gini across the AI scenarios"
+    },
+    {
+      "id": "rockall-wealth-gini",
+      "institution": "IMF",
+      "study": "Rockall, Tavares and Pizzinelli, “AI adoption and inequality”, IMF WP/25/68",
+      "url": "https://www.imf.org/-/media/files/publications/wp/2025/english/wpiea2025068-print-pdf.pdf",
+      "year": 2025,
+      "metric": "distribution",
+      "measure": "Wealth Gini across the AI scenarios (capital share +5.5 to +10.2 points)",
+      "value": "+7.16 to +13.67 Gini points (wealth)",
+      "horizon": "Steady state, 2014 to 2048",
+      "baseline": "No AI (2014 economy)",
+      "country": "UK",
+      "loc": "Table 2, p.24; Table 4, p.38",
+      "checked": "2026-11-16",
+      "how": "read",
+      "plot": "distribution",
+      "lo": 7.16,
+      "hi": 13.67,
+      "plotLabel": "Rockall et al. (IMF), wealth",
+      "plotHorizon": "Steady state, UK",
+      "note": "Wealth Gini across the AI scenarios"
+    },
+    {
       "id": "oecd-aip41",
       "institution": "OECD",
       "study": "Filippucci, Gal, Laengle and Schief, “Macroeconomic productivity gains from artificial intelligence in G7 economies”, OECD AI Papers No.41",
@@ -497,6 +695,37 @@
       "loc": "Explainer, worked example",
       "checked": "2026-11-15",
       "how": "read"
+    },
+    {
+      "id": "dsit-imf-exposure",
+      "institution": "DSIT / AISI (IMF estimates)",
+      "study": "Assessment of AI capabilities and the impact on the UK labour market (28 January 2026), Figure 2, citing IMF, “Upskilling the UK Workforce” (July 2024)",
+      "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
+      "year": 2026,
+      "metric": "exposure",
+      "measure": "UK workers by occupation: high exposure and high complementarity / high exposure and low complementarity / low exposure (US: 30 / 30 / 41; advanced-economy average: 26 / 32 / 42)",
+      "value": "35% / 32% / 33% of UK workers",
+      "horizon": "IMF estimate, 2024",
+      "baseline": "A share, not a gap",
+      "country": "UK",
+      "loc": "Section 2, Figure 2 table, row ‘UK’",
+      "checked": "2026-11-16",
+      "how": "read",
+      "shares": [
+        {
+          "label": "High exposure, high complementarity",
+          "pct": 35
+        },
+        {
+          "label": "High exposure, low complementarity",
+          "pct": 32
+        },
+        {
+          "label": "Low exposure",
+          "pct": 33
+        }
+      ],
+      "plotLabel": "UK workers (IMF, via DSIT)"
     },
     {
       "id": "goscience-2030",
@@ -704,65 +933,97 @@
     {
       "id": "hmt-budget26",
       "institution": "HM Treasury",
-      "study": "Budget 2026",
+      "study": "Budget 2026 (28 October 2026); Chancellor’s speech at the AI Adoption Summit (delivered 8 June 2026, published 9 June)",
       "url": "https://www.gov.uk/government/publications/budget-2026-document/budget-2026-html",
       "year": 2026,
       "metric": "none",
-      "measure": "Nearest output: cites the OECD range in this table (OECD AI Papers No.41)",
+      "measure": "Nearest output: Budget 2026 cites the OECD range (0.4 to 1.3 percentage points a year on productivity growth). The Chancellor’s June speech adds “up to £140 billion of additional economic output by 2035”, for which the speech gives no method; the figure equals the top of DSIT’s range in this table, which DSIT gives for 2030",
       "value": "No quantified estimate of its own",
       "horizon": "—",
       "baseline": "—",
       "country": "UK",
-      "loc": "Section 5.7",
-      "checked": "2026-11-15",
+      "loc": "Budget 2026 sections 5.2 and 5.7; speech, opening section",
+      "checked": "2026-11-16",
       "how": "read"
     },
     {
       "id": "hmrc-receipts",
       "institution": "HMRC",
-      "study": "HMRC tax receipts and National Insurance contributions for the UK (annual bulletin)",
-      "url": "https://www.gov.uk/government/statistics/hmrc-tax-and-nics-receipts-for-the-uk/hmrc-tax-receipts-and-national-insurance-contributions-for-the-uk-new-annual-bulletin",
+      "study": "HMRC annual report and accounts 2025 to 2026: Executive summary (9 July 2026)",
+      "url": "https://www.gov.uk/government/publications/hmrc-annual-report-and-accounts-2025-to-2026/hmrcs-annual-report-and-accounts-2025-to-2026-executive-summary",
       "year": 2026,
       "metric": "none",
-      "measure": "Nearest output: income tax, CGT and NICs were 59% of receipts in 2025-26 (CGT is grouped with labour taxes, so there is no clean labour-capital split)",
+      "measure": "Nearest output: no estimate of AI’s effect on receipts; HMRC’s own use of AI and advanced analytics protected and recovered £10bn of tax in 2025-26 (compliance yield, not a macro effect)",
       "value": "No quantified estimate",
       "horizon": "—",
       "baseline": "—",
       "country": "UK",
-      "loc": "Bulletin summary",
-      "checked": "2026-11-15",
+      "loc": "Executive summary, Strategic Objective 3",
+      "checked": "2026-11-16",
       "how": "read"
     },
     {
       "id": "dwp-ari",
       "institution": "DWP",
-      "study": "DWP Areas of Research Interest 2026",
+      "study": "DWP Areas of Research Interest 2026 (19 June 2026); An Evaluation of DWP’s Microsoft 365 Copilot Trial (29 January 2026)",
       "url": "https://www.gov.uk/government/publications/dwp-areas-of-research-interest-2026/dwp-areas-of-research-interest-2026",
       "year": 2026,
       "metric": "none",
-      "measure": "Nearest output: lists AI’s labour-market impact as an open question; its Microsoft 365 Copilot trial estimated 19 minutes a day saved",
+      "measure": "Nearest output: lists AI’s labour-market impact as an open research question; its Microsoft 365 Copilot trial estimated 19 minutes a day saved (DWP’s own use)",
       "value": "No quantified estimate",
       "horizon": "—",
       "baseline": "—",
       "country": "UK",
-      "loc": "Question 1.16; Copilot trial evaluation, January 2026",
-      "checked": "2026-11-15",
+      "loc": "ARI question 1.16; Copilot trial evaluation, summary",
+      "checked": "2026-11-16",
       "how": "read"
     },
     {
       "id": "rf-mpo-q3-26",
       "institution": "Resolution Foundation",
-      "study": "The Macroeconomic Policy Outlook: Q3 2026",
+      "study": "The Macroeconomic Policy Outlook: Q3 2026; announcement of the ESRC-funded project “Measuring AI’s Impact on the UK Labour Market: New Tools and Evidence” (16 September 2026)",
       "url": "https://www.resolutionfoundation.org/publications/the-macroeconomic-policy-outlook-q3-2026/",
       "year": 2026,
       "metric": "none",
-      "measure": "Nearest output: output per hour grew 1.1% a year over the two years to Q2 2026; crediting AI is called “premature”",
+      "measure": "Nearest output: output per hour grew 1.1% a year over the two years to Q2 2026; crediting AI is called “premature”. An ESRC-funded project to measure AI’s UK labour-market impact is to publish a dashboard from April 2027",
       "value": "No quantified estimate",
       "horizon": "—",
       "baseline": "—",
       "country": "UK",
-      "loc": "p.1; p.10",
-      "checked": "2026-11-15",
+      "loc": "Outlook p.1 and p.10 (page numbers as in the existing row); announcement on the LSE Global AI Forum page",
+      "checked": "2026-11-16",
+      "how": "read"
+    },
+    {
+      "id": "schaal-smf-jul26",
+      "institution": "Jacob Schaal (King’s College London)",
+      "study": "Schaal, “AI looks set to squeeze junior hiring. The fix already exists in law”, Social Market Foundation, Opinion and Analysis (external contributor), 3 July 2026",
+      "url": "https://www.smf.co.uk/opinion-and-analysis/ai-looks-set-to-squeeze-junior-hiring-the-fix-already-exists-in-law/",
+      "year": 2026,
+      "metric": "none",
+      "measure": "Nearest output: no estimate of AI’s effect (cites a King’s College working paper he says he contributed to; not read for this table). Costs his proposed response, extending the under-21 employer NI exemption to age 25, at £7.4bn a year (static, back-of-envelope central estimate; PolicyEngine UK lower bound £4.7bn): a policy costing, not an AI effect",
+      "value": "No quantified estimate of AI’s effect",
+      "horizon": "—",
+      "baseline": "—",
+      "country": "UK",
+      "loc": "Costings paragraph",
+      "checked": "2026-11-16",
+      "how": "read"
+    },
+    {
+      "id": "schaal-imas-sep26",
+      "institution": "Imas and Schaal",
+      "study": "Imas and Schaal, “Has AI impacted the labor market yet? Evaluating the state of the evidence”, Ghosts of Electricity (Substack), 29 September 2026",
+      "url": "https://aleximas.substack.com/p/has-ai-impacted-the-labor-market",
+      "year": 2026,
+      "metric": "none",
+      "measure": "Nearest output: an evidence review; concludes that AI may already be affecting junior white-collar hiring, but that the attribution is contested and aggregate disruption is not yet in the data",
+      "value": "No quantified estimate",
+      "horizon": "—",
+      "baseline": "—",
+      "country": "International",
+      "loc": "Conclusion",
+      "checked": "2026-11-16",
       "how": "read"
     },
     {

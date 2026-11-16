@@ -1,428 +1,604 @@
 'use client';
 
 import { useInView } from '@/components/story/motion.js';
-import { DrawEnd, DrawPath, FadeG, GrowRect, TileGrid } from '@/components/story/primitives.jsx';
-import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './data.js';
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
-import { Axes, FigTitle, FigUnit, Figure, Legend, SourceLine, W, linePath, scales } from './frame.jsx';
+import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_VINTAGE, SERIES } from './data.js';
+import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
 import { span3 } from './format.js';
 
-// Part 1's graphics. Each takes the active `state` of its scrolly block and
-// draws the complete picture for that state; nothing prints a value (the
-// cards do, once). A chart that is a later layer of a Swap (frame.jsx) takes
-// `on`, so it draws in when it is shown, not while hidden. Every drawn line
-// ends in a dot (DrawEnd) that appears as the draw finishes, so a line
-// mid-draw never reads as a series that stops early. Bars are changes (growth rates by year or quarter);
-// lines are levels or paths over time. Motion comes only from the framework
-// primitives, gated on the figure entering the viewport.
-
-// Round domain and ticks round the data, with zero when asked.
-function domain(values, step, withZero = false) {
-  const lo = Math.floor(Math.min(...values, ...(withZero ? [0] : [])) / step) * step;
-  const hi = Math.ceil(Math.max(...values, ...(withZero ? [0] : [])) / step) * step;
-  const ticks = [];
-  for (let v = lo; v <= hi + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
-  return { lo, hi, ticks };
-}
-
-const yearTicks = (xs, every = 5) => xs.filter((x) => x % every === 0 || x === xs[xs.length - 1]).map((x) => ({ x }));
-
-// Year ticks on a decimal-year axis (monthly or quarterly points): at each
-// January, every `every` years from the first whole year.
-// The first tick is the first point's year (its January may sit a few weeks
-// before the first point), so panels sharing a start share their ticks.
-function decimalYearTicks(t0, t1, every) {
-  const out = [];
-  for (let y = Math.round(t0); y <= t1; y += every) out.push({ x: y, label: String(y) });
-  return out;
-}
+// Part 1's graphics: four figures, each drawing the complete picture for
+// the active state of its scrolly block. Nothing prints a value (the cards
+// do, once); ticks are data-axis. Motion follows the scene plan's rule 1:
+// a view change of the same data (zoom, a panel growing or shrinking),
+// entrance from a baseline (bars grow from zero, lines draw), or tiles
+// regrouping. No mark slides from one value to another. Every transition
+// is a CSS transition on transform or opacity (story-part1.css), so
+// reduced motion shows each state at once and scrolling back reverses it.
+//
+// Text that belongs to one state only (a band label, a direct label) is
+// visibility: hidden in the other states, not just transparent, so the
+// page's text at load holds only what that state shows.
 
 const qYear = (q) => Number(q.slice(0, 4));
+const qNum = (q) => Number(q.slice(-1));
+const longest = (a) => a.reduce((m, s) => (s.length > m.length ? s : m), '');
 
-// 1: real GDP growth by calendar year (ONS outturn, full years only), then
-// the OBR's forecast as a dashed line to the right. The two are not joined:
-// the OBR's table starts from an earlier estimate of the last outturn year.
-// The full scale is kept so the pandemic years read at their true size;
-// they are labelled. state 0: bars; 1: + OBR forecast.
-const gdpLegend = (fc) => [
-  { key: 'ons', label: 'ONS outturn', color: 'var(--series-2)', block: true },
-  ...(fc ? [{ key: 'obr', label: OBR_LABEL, color: 'var(--pe-gray-800)', dashed: true }] : []),
-];
-const gdpSource = (g, fc) => (
-  <SourceLine
-    items={[
-      { id: g.source, name: 'GDP year-on-year growth' },
-      ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
-    ]}
-  />
-);
+// A bar from y0 (the zero line) to y1 with a 2px radius on its free end
+// only (1px when thinner than 6px); the flat extreme of the cap is the value.
+export function barPath(x, w, y0, y1) {
+  const up = y1 < y0;
+  const len = Math.abs(y1 - y0);
+  const r = Math.min(w < 6 ? 1 : 2, w / 2, len);
+  const s = up ? 1 : -1; // from the free end back towards the base
+  const f = (v) => v.toFixed(2);
+  return `M${f(x)},${f(y0)}V${f(y1 + s * r)}Q${f(x)},${f(y1)} ${f(x + r)},${f(y1)}H${f(x + w - r)}Q${f(x + w)},${f(y1)} ${f(x + w)},${f(y1 + s * r)}V${f(y0)}Z`;
+}
 
-export function GdpChart({ state }) {
+// ---------------------------------------------------------------------------
+// Scene 1A. The output canvas: annual growth bars (state 0), the OBR's
+// forecast (1), then this year's quarters (2). State 2 is three beats:
+// the x axis zooms to the quarterly window, the annual bars widening and
+// sliding with it (a transform on their group, so no bar changes height);
+// the annual bars, forecast and annual ticks fade; the quarterly bars grow
+// from zero inside each year's slot. Annual and quarterly growth are
+// different measures, so no bar ever turns into another.
+
+const OUT_H = 236;
+const OUT_M = { l: 34, r: 8, t: 22, b: 24 };
+
+export function OutputCanvas({ state }) {
   const [ref, seen] = useInView();
+  const [box, w, h] = useBox(OUT_H);
+  const clip = useSvgId('p1-out-clip');
   const g = SERIES.gdp_growth;
-  const h = 260;
-  const { lo, hi, ticks } = domain([...g.y, ...OBR.y], 5, true);
-  const x0 = g.x[0];
-  const x1 = OBR.x[OBR.x.length - 1];
-  const gLast = g.x[g.x.length - 1];
-  const band = (W - 50) / (x1 - x0 + 1);
-  const sc = scales({ x0, x1, lo, hi, h, pad: band / 2 });
-  const bw = band * 0.68;
-  const split = (sc.X(gLast) + sc.X(OBR.x[0])) / 2;
+  const q = SERIES.gdp_quarterly;
+  const L = OUT_M.l;
+  const R = w - OUT_M.r;
+  const T = OUT_M.t;
+  const B = h - OUT_M.b;
   const fc = state >= 1;
+  const zoomed = state >= 2;
+
+  // annual: one slot per year, outturn then the OBR's years
+  const x0 = g.x[0];
+  const gLast = g.x[g.x.length - 1];
+  const x1 = OBR.x[OBR.x.length - 1];
+  const slotA = (R - L) / (x1 - x0 + 1);
+  const startA = (yr) => L + (yr - x0) * slotA;
+  const XA = (yr) => startA(yr) + slotA / 2;
+  // the quarterly window: the years its quarters fall in, one slot each
+  const z0 = qYear(q.x[0]);
+  const z1 = qYear(q.x[q.x.length - 1]);
+  const slotZ = (R - L) / (z1 - z0 + 1);
+  const XZ = (yr) => L + (yr - z0 + 0.5) * slotZ;
+  // the zoom, one transform on the annual marks: maps XA(yr) to XZ(yr)
+  const k = slotZ / slotA;
+  const tx = L - k * startA(z0);
+  const zoomX = (x) => k * x + tx;
+
+  const A = niceTicks([...g.y, ...OBR.y], { withZero: true });
+  const YA = linear(A.lo, A.hi, B, T);
+  const Q = niceTicks(q.y, { withZero: true });
+  const YQ = linear(Q.lo, Q.hi, B, T);
+
+  const bwA = slotA * 0.64;
+  const qSlot = slotZ / 4;
+  const bwQ = qSlot * 0.64;
+  const lastQ = q.x[q.x.length - 1];
+  const thisYear = `${z1} Q1${lastQ.endsWith('Q1') ? '' : `–${lastQ.slice(5)}`}`;
+
+  // x ticks, keyed by year: annual every five years (first and last always),
+  // the zoomed window every year; each slides with the zoom
+  const tA = yearTicks(x0, x1);
+  const tZ = Array.from({ length: z1 - z0 + 1 }, (_, i) => z0 + i);
+  const tAll = [...new Set([...tA, ...tZ])].sort((a, b) => a - b);
+
   const minAt = g.x[g.y.indexOf(Math.min(...g.y))];
   const maxAt = g.x[g.y.indexOf(Math.max(...g.y))];
-  const label = `Bar chart: real GDP growth in each calendar year from ${x0} to ${gLast}, ONS outturn. Growth was lowest in ${minAt}${
-    Math.min(...g.y) < 0 ? ', when it was below zero,' : ''
-  } and highest in ${maxAt}, the pandemic fall and rebound.${
-    fc ? ` A separate dashed line to the right shows the ${OBR_LABEL}, for ${OBR.x[0]} to ${x1}; it is not joined to the bars.` : ''
-  }`;
-  return (
-    <Figure
-      icon="gdp"
-      innerRef={ref}
-      title={fc ? `Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}` : `Real GDP growth, ${x0} to ${gLast}`}
-      titleReserve={`Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`}
-      unit={`Percentage change on the previous calendar year. Full years only: ${gLast} is the latest complete year.`}
-      legend={gdpLegend(fc)}
-      source={gdpSource(g, fc)}
-      footReserve={{ legend: gdpLegend(true), source: gdpSource(g, true) }}
-    >
-      <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} role="img" aria-label={label}>
-        <Axes sc={sc} yTicks={ticks} zero xTicks={[...yearTicks(g.x), { x: x1 }]} />
-        <line x1={split} x2={split} y1={sc.Y(hi)} y2={sc.bottom} className="p1-split" />
-        <text x={split - 5} y={sc.Y(hi) + 4} dy="0.7em" textAnchor="end" className="p1-note-label">
-          Outturn
-        </text>
-        <FadeG on={seen && fc}>
-          <text x={split + 5} y={sc.Y(hi) + 4} dy="0.7em" textAnchor="start" className="p1-note-label">
-            Forecast
-          </text>
-        </FadeG>
-        {g.x.map((x, i) => {
-          const v = g.y[i];
-          return (
-            <GrowRect
-              key={x}
-              x={sc.X(x) - bw / 2}
-              y={sc.Y(Math.max(0, v))}
-              width={bw}
-              height={Math.abs(sc.Y(v) - sc.Y(0))}
-              on={seen}
-              delay={i * 35}
-              className={`p1-bar${v < 0 ? ' is-neg' : ''}`}
-            />
-          );
-        })}
-        <text x={sc.X(minAt) + bw / 2 + 4} y={sc.Y(Math.min(...g.y) * 0.6)} dy="0.35em" textAnchor="start" className="p1-note-label">
-          Pandemic
-        </text>
-        <FadeG on={seen && fc}>
-          <path d={linePath(sc, OBR.x, OBR.y)} className="p1-forecast" />
-          {OBR.x.map((x, i) => (
-            <circle key={x} cx={sc.X(x)} cy={sc.Y(OBR.y[i])} r={3} className="p1-forecast-dot" />
-          ))}
-        </FadeG>
-      </svg>
-    </Figure>
-  );
-}
-
-// 1b: the latest quarters. Quarter-on-quarter growth, a recent window, with
-// the current (incomplete) year's quarters marked.
-export function GdpQuartersChart({ on = true }) {
-  const [ref, inView] = useInView();
-  const seen = inView && on;
-  const g = SERIES.gdp_quarterly;
-  const h = 230;
-  const n = g.x.length;
-  const lastQ = g.x[n - 1];
-  const yearNow = qYear(lastQ);
-  const thisYear = `${yearNow} Q1${lastQ.endsWith('Q1') ? '' : `–${lastQ.slice(5)}`}`;
-  const { lo, hi, ticks } = domain(g.y, 0.5, true);
-  const band = (W - 50) / n;
-  const sc = scales({ x0: 0, x1: n - 1, lo, hi, h, pad: band / 2 });
-  const bw = band * 0.66;
-  const firstOfYear = g.x.map((q, i) => ({ q, i })).filter(({ q }) => q.endsWith('Q1'));
-  return (
-    <Figure
-      icon="period"
-      innerRef={ref}
-      title={`Real GDP growth by quarter, ${g.x[0]} to ${lastQ}`}
-      unit={`Percentage change on the previous quarter, seasonally adjusted. ${lastQ} is a first estimate.`}
-      legend={[
-        { key: 'past', label: `${g.x[0]} to ${yearNow - 1} Q4`, color: 'var(--series-5)', block: true },
-        { key: 'now', label: `${thisYear} (year not yet complete)`, color: 'var(--series-2)', block: true },
+  const label = zoomed
+    ? `Bar chart: real GDP growth in each quarter from ${q.x[0]} to ${lastQ}, on the previous quarter, with the quarters of ${z1} marked.`
+    : `Bar chart: real GDP growth in each calendar year from ${x0} to ${gLast}, ONS outturn. Growth was lowest in ${minAt}${
+        Math.min(...g.y) < 0 ? ', when it was below zero,' : ''
+      } and highest in ${maxAt}, the pandemic fall and rebound.${
+        fc ? ` A separate dashed line to the right shows the OBR’s forecast, for ${OBR.x[0]} to ${x1}; it is not joined to the bars.` : ''
+      }`;
+  const titles = [
+    `Real GDP growth, ${x0} to ${gLast}`,
+    `Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`,
+    `Real GDP growth by quarter, ${q.x[0]} to ${lastQ}`,
+  ];
+  const units = [
+    `Percentage change on the previous calendar year. ${gLast} is the latest complete year.`,
+    `Percentage change on the previous quarter, seasonally adjusted. ${lastQ} is a first estimate.`,
+  ];
+  const source = zoomed ? (
+    <SourceLine
+      items={[
+        { id: q.source, name: 'GDP quarter-on-quarter growth' },
+        { id: 'ons_ihyr', name: 'GDP growth on the same quarter a year earlier' },
       ]}
-      source={
-        <SourceLine
-          items={[
-            { id: g.source, name: 'GDP quarter-on-quarter growth' },
-            { id: 'ons_ihyr', name: 'GDP growth on the same quarter a year earlier' },
-          ]}
-        />
-      }
-    >
-      <svg
-        className="story-svg p1-svg"
-        viewBox={`0 0 ${W} ${h}`}
-        role="img"
-        aria-label={`Bar chart: real GDP growth in each quarter from ${g.x[0]} to ${lastQ}, on the previous quarter, with the quarters of ${yearNow} marked.`}
-      >
-        <Axes sc={sc} yTicks={ticks} zero xTicks={firstOfYear.map(({ q, i }) => ({ x: i, label: q.slice(0, 4) }))} />
-        {g.x.map((q, i) => {
-          const v = g.y[i];
-          return (
-            <GrowRect
-              key={q}
-              x={sc.X(i) - bw / 2}
-              y={sc.Y(Math.max(0, v))}
-              width={bw}
-              height={Math.abs(sc.Y(v) - sc.Y(0))}
-              on={seen}
-              delay={i * 30}
-              className={`p1-bar${qYear(q) === yearNow ? '' : ' is-past'}${v < 0 ? ' is-neg' : ''}`}
-            />
-          );
-        })}
-      </svg>
-    </Figure>
-  );
-}
-
-// A single line over decimal years (t) or whole years (x), drawn in when seen.
-function TimeLine({ icon, s, step, h = 250, withZero = false, every = 4, title, unit, label, source, color = 'var(--series-2)', on = true, extraRef }) {
-  const t = s.t ?? s.x;
-  const { lo, hi, ticks } = domain(s.y, step, withZero);
-  const sc = scales({ x0: t[0], x1: t[t.length - 1], lo, hi, h });
-  const xTicks = s.t ? decimalYearTicks(t[0], t[t.length - 1], every) : yearTicks(s.x);
-  return (
-    <Figure icon={icon} title={title} unit={unit} source={source} innerRef={extraRef}>
-      <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} role="img" aria-label={label}>
-        <Axes sc={sc} yTicks={ticks} zero={withZero} xTicks={xTicks} />
-        <DrawPath d={linePath(sc, t, s.y)} on={on} className="p1-line" style={{ stroke: color }} />
-        <DrawEnd cx={sc.X(t[t.length - 1])} cy={sc.Y(s.y[s.y.length - 1])} on={on} style={{ fill: color }} />
-      </svg>
-    </Figure>
-  );
-}
-
-// 2: output per hour worked, quarterly index.
-export function ProductivityChart() {
-  const [ref, seen] = useInView();
-  const s = SERIES.productivity_oph;
-  const span = `${s.x[0]} to ${s.x[s.x.length - 1]}`;
-  return (
-    <TimeLine
-      icon="productivity"
-      extraRef={ref}
-      on={seen}
-      s={s}
-      step={5}
-      title={`Output per hour worked, whole economy, ${span}`}
-      unit="Index, 2023 = 100, quarterly, seasonally adjusted"
-      label={`Line chart: output per hour worked in the whole economy, a quarterly index with 2023 equal to 100, from ${span}.`}
-      source={<SourceLine items={[{ id: s.source, name: 'output per hour worked' }]} />}
+    />
+  ) : (
+    <SourceLine
+      items={[
+        { id: g.source, name: 'GDP year-on-year growth' },
+        ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
+      ]}
     />
   );
-}
 
-// One small panel of the labour market set: no figure frame of its own.
-function Panel({ icon, s, step, withZero, title, on, color }) {
-  const h = 150;
-  const { lo, hi, ticks } = domain(s.y, step, withZero);
-  const sc = scales({ x0: s.t[0], x1: s.t[s.t.length - 1], lo, hi, h });
   return (
-    <div className="p1-panel">
-      <p className="p1-panel-title p1-title-row">
-        <Icon name={iconFor(icon)} size={14} className="p1-text-icon" />
-        <span>{title}</span>
-      </p>
-      <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} aria-hidden="true">
-        <Axes sc={sc} yTicks={ticks} zero={withZero} xTicks={decimalYearTicks(s.t[0], s.t[s.t.length - 1], 4)} />
-        <DrawPath d={linePath(sc, s.t, s.y)} on={on} className="p1-line" style={{ stroke: color }} />
-        <DrawEnd cx={sc.X(s.t[s.t.length - 1])} cy={sc.Y(s.y[s.y.length - 1])} on={on} style={{ fill: color }} />
-      </svg>
-    </div>
+    <Figure
+      icon={zoomed ? 'period' : 'gdp'}
+      innerRef={ref}
+      title={titles[Math.min(state, 2)]}
+      titleReserve={longest(titles)}
+      unit={units[zoomed ? 1 : 0]}
+      unitReserve={longest(units)}
+      source={source}
+      className="p1-out"
+    >
+      <div ref={box} className="p1-plot">
+        <svg
+          className={`story-svg p1-svg p1-canvas${zoomed ? ' is-q' : ''}${fc ? ' is-fc' : ''}${seen ? ' is-seen' : ''}`}
+          width="100%"
+          height={h}
+          viewBox={`0 0 ${w} ${h}`}
+          role="img"
+          aria-label={label}
+          data-state={state}
+        >
+          <defs>
+            <clipPath id={clip}>
+              <rect x={L} y={0} width={R - L} height={h} />
+            </clipPath>
+          </defs>
+          <YGrid ticks={A.ticks} Y={YA} x0={L} x1={R} className="p1-annual" />
+          <YGrid ticks={Q.ticks} Y={YQ} x0={L} x1={R} className="p1-quarterly" />
+          <g clipPath={`url(#${clip})`}>
+            <g className="p1-zoom" style={{ transform: zoomed ? `translate(${tx.toFixed(2)}px, 0px) scale(${k.toFixed(4)}, 1)` : 'translate(0px, 0px) scale(1, 1)' }}>
+              <g className="p1-annual">
+                <rect x={startA(2020)} y={T} width={2 * slotA} height={B - T} className="p1-band" />
+                <rect x={startA(OBR.x[0])} y={T} width={R - startA(OBR.x[0])} height={B - T} className="p1-band p1-only-fc" />
+                {g.x.map((x, i) => (
+                  <path
+                    key={x}
+                    d={barPath(XA(x) - bwA / 2, bwA, YA(0), YA(g.y[i]))}
+                    className={`p1-bar p1-bar-a${g.y[i] < 0 ? ' is-neg' : ''}${seen ? ' is-on' : ''}`}
+                    style={{ transitionDelay: seen ? `${Math.min(i * 20, 400)}ms` : '0ms' }}
+                  />
+                ))}
+                <path d={linePath(XA, YA, OBR.x, OBR.y)} className="p1-forecast p1-only-fc" />
+              </g>
+            </g>
+          </g>
+          {/* the forecast's open dots move with the zoom (not scaled), so they stay round */}
+          <g className="p1-annual">
+            {OBR.x.map((x, i) => (
+              <circle
+                key={x}
+                cx={0}
+                cy={YA(OBR.y[i])}
+                r={3.5}
+                className="p1-forecast-dot p1-only-fc p1-zoom"
+                style={{ transform: `translateX(${(zoomed ? zoomX(XA(x)) : XA(x)).toFixed(2)}px)` }}
+              />
+            ))}
+          </g>
+          {/* band labels, above the plot */}
+          <text x={startA(2020) + 2} y={T - 8} className="p1-note p1-only-a">
+            Pandemic
+          </text>
+          <text x={startA(OBR.x[0]) + 2} y={T - 8} className="p1-note p1-only-fc">
+            OBR forecast
+          </text>
+          {/* quarters: they grow from zero once the zoom has landed */}
+          <rect x={L + (z1 - z0) * slotZ} y={T} width={slotZ} height={B - T} className="p1-band p1-only-q" />
+          <text x={R} y={T - 8} textAnchor="end" className="p1-note p1-only-q">
+            {thisYear}: year not yet complete
+          </text>
+          <g className="p1-quarterly">
+            {q.x.map((qq, i) => {
+              const yr = qYear(qq);
+              const x = L + (yr - z0) * slotZ + (qNum(qq) - 0.5) * qSlot - bwQ / 2;
+              return (
+                <path
+                  key={qq}
+                  d={barPath(x, bwQ, YQ(0), YQ(q.y[i]))}
+                  className={`p1-bar p1-bar-q${yr === z1 ? ' is-now' : ''}${q.y[i] < 0 ? ' is-neg' : ''}${zoomed ? ' is-on' : ''}`}
+                  style={{ transitionDelay: zoomed ? `${900 + Math.min(i * 20, 400)}ms` : '0ms' }}
+                />
+              );
+            })}
+          </g>
+          {tAll.map((yr) => {
+            const inZ = tZ.includes(yr);
+            const on = zoomed ? inZ : tA.includes(yr);
+            const x = zoomed ? (inZ ? XZ(yr) : zoomX(XA(yr))) : XA(yr);
+            return (
+              <text
+                key={yr}
+                data-axis=""
+                x={0}
+                y={h - 6}
+                textAnchor="middle"
+                className={`p1-tick p1-xt${on ? ' is-on' : ''}`}
+                style={{ transform: `translateX(${x.toFixed(2)}px)` }}
+              >
+                {yr}
+              </text>
+            );
+          })}
+        </svg>
+      </div>
+    </Figure>
   );
 }
 
-// 3: employment and unemployment rates, two stacked panels, each with its
-// own axis, one point per rolling three-month period. state 0: employment
-// drawn; 1: + unemployment.
-export function LabourPanels({ state }) {
-  const [ref, seen] = useInView();
+// ---------------------------------------------------------------------------
+// Scene 1B. The labour board: one large panel with the step's series and
+// full axes, over four sparklines of the other series (line, name, end dot,
+// no axes, each on its own scale). Each series is drawn once, in a unit box
+// on its own domain; its group's transform places it in the panel or in a
+// sparkline slot, so a change of focus is a view change of the same data:
+// the incoming series grows from its slot into the panel while the old one
+// shrinks into the slot it leaves. The axes then fade in for the new focus.
+// Clicking a sparkline (`onPick(i)`) brings its step to the trigger line,
+// the same as scrolling to it.
+
+const N = 1000; // the unit box each series is drawn in
+const BOARD_H = 264;
+const BOARD_M = { l: 34, r: 8, t: 10 };
+const PANEL_B = 172;
+const STRIP_NOTE_Y = 211;
+const STRIP_NAME_Y = 228;
+const SPARK = { y: 234, h: 26 };
+const CELL_GAP = 14;
+const FALLBACK_COLS = 4; // the fallback width (520) takes four in a row
+
+export const boardSeries = () => {
   const e = SERIES.employment_rate;
   const u = SERIES.unemployment_rate;
-  const span = `${e.x[0].slice(0, 4)} to ${span3(e.last)}`;
-  return (
-    <figure className="p1-figure" ref={ref}>
-      <FigTitle icon="labour" title={`Employment and unemployment, ${span}`} />
-      <FigUnit>Rolling three-month averages, seasonally adjusted. Each panel has its own scale.</FigUnit>
-      <div
-        role="img"
-        aria-label={`Two line charts, each with its own scale: the employment rate for people aged 16 to 64${
-          state >= 1 ? ' and the unemployment rate for people aged 16 and over' : ' (drawn) and the unemployment rate for people aged 16 and over (not yet drawn)'
-        }, three-month averages, ${span}.`}
-      >
-        <Panel icon="labour" s={e} step={2} title="Employment rate: % of people aged 16 to 64" on={seen} color="var(--series-2)" />
-        <Panel icon="labour" s={u} step={3} withZero title="Unemployment rate: % of economically active people aged 16 and over" on={seen && state >= 1} color="var(--pe-gray-700)" />
-      </div>
-      <figcaption>
-        <SourceLine
-          items={[
-            { id: e.source, name: 'employment rate' },
-            { id: u.source, name: 'unemployment rate' },
-          ]}
-        />
-      </figcaption>
-    </figure>
-  );
-}
-
-// 3b: regular pay growth, nominal, one point per rolling three-month period.
-export function PayChart({ on = true }) {
-  const [ref, inView] = useInView();
-  const seen = inView && on;
-  const s = SERIES.pay_growth;
-  const span = `${s.x[0].slice(0, 4)} to ${span3(s.last)}`;
-  return (
-    <TimeLine
-      icon="pay"
-      extraRef={ref}
-      on={seen}
-      s={s}
-      step={2}
-      withZero
-      color="var(--series-2)"
-      title={`Regular pay growth, ${span}`}
-      unit="Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation"
-      label={`Line chart: growth of average weekly regular pay on a year earlier, three-month averages, ${span}.`}
-      source={<SourceLine items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]} />}
-    />
-  );
-}
-
-// 4: compensation of employees as a share of GDP, annual (full years only).
-export function LabourShareChart({ on = true }) {
-  const [ref, inView] = useInView();
-  const seen = inView && on;
+  const p = SERIES.pay_growth;
+  const o = SERIES.productivity_oph;
   const s = SERIES.labour_share;
-  const last = s.x[s.x.length - 1];
+  const span = (x) => `${x.x[0].slice(0, 4)} to ${span3(x.last)}`;
+  const rolling = 'rolling three-month averages, seasonally adjusted';
+  return [
+    {
+      key: 'employment_rate',
+      s: e,
+      icon: 'labour',
+      name: 'Employment',
+      long: 'the employment rate for people aged 16 to 64',
+      span: span(e),
+      title: `Employment rate, ${span(e)}`,
+      unit: `Per cent of people aged 16 to 64; ${rolling}`,
+      src: [{ id: e.source, name: 'employment rate' }],
+    },
+    {
+      key: 'unemployment_rate',
+      s: u,
+      zero: true,
+      icon: 'labour',
+      name: 'Unemployment',
+      long: 'the unemployment rate for people aged 16 and over',
+      span: span(u),
+      title: `Unemployment rate, ${span(u)}`,
+      unit: `Per cent of economically active people aged 16 and over; ${rolling}`,
+      src: [{ id: u.source, name: 'unemployment rate' }],
+    },
+    {
+      key: 'pay_growth',
+      s: p,
+      zero: true,
+      area: true,
+      icon: 'pay',
+      name: 'Pay growth',
+      long: 'growth of average weekly regular pay on a year earlier',
+      span: span(p),
+      title: `Regular pay growth, ${span(p)}`,
+      unit: 'Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation',
+      src: [{ id: p.source, name: 'average weekly earnings, regular pay' }],
+    },
+    {
+      key: 'productivity_oph',
+      s: o,
+      icon: 'productivity',
+      name: 'Output per hour',
+      long: 'output per hour worked in the whole economy, a quarterly index with 2023 equal to 100',
+      span: `${o.x[0]} to ${o.x[o.x.length - 1]}`,
+      title: `Output per hour worked, whole economy, ${o.x[0]} to ${o.x[o.x.length - 1]}`,
+      unit: 'Index, 2023 = 100, quarterly, seasonally adjusted',
+      src: [{ id: o.source, name: 'output per hour worked' }],
+    },
+    {
+      key: 'labour_share',
+      s,
+      icon: 'labourShare',
+      name: 'Labour share',
+      long: 'compensation of employees as a share of GDP, annual',
+      span: `${s.x[0]} to ${s.x[s.x.length - 1]}`,
+      title: `Compensation of employees as a share of GDP, ${s.x[0]} to ${s.x[s.x.length - 1]}`,
+      unit: `Per cent of GDP at current prices, annual; ends at ${s.x[s.x.length - 1]}, the latest full year`,
+      src: [
+        { id: 'ons_dtwm', name: 'compensation of employees' },
+        { id: 'ons_ybha', name: 'GDP at current prices' },
+      ],
+    },
+  ];
+};
+
+// One series in its unit box: x over its own span, y over its own domain
+// (zero included for unemployment and pay growth).
+function unitSeries(b) {
+  const t = b.s.t ?? b.s.x;
+  const d = niceTicks(b.s.y, { withZero: !!b.zero });
+  const U = linear(t[0], t[t.length - 1], 0, N);
+  const V = linear(d.lo, d.hi, N, 0);
+  const d0 = linePath(U, V, t, b.s.y);
+  const end = [U(t[t.length - 1]), V(b.s.y[b.s.y.length - 1])];
+  const area = b.area ? `${d0}L${N},${V(0).toFixed(1)}L0,${V(0).toFixed(1)}Z` : null;
+  return { t, d, d0, end, area, top: V(Math.max(...b.s.y)), zeroV: V(0) };
+}
+
+const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs.join(''));
+
+export function LabourBoard({ focus, onPick }) {
+  const [ref, seen] = useInView();
+  const [box, w, hBox] = useBox(BOARD_H + (FALLBACK_COLS < 4 ? 44 : 0));
+  const gid = useSvgId('p1-pay-fade');
+  const all = boardSeries();
+  const L = BOARD_M.l;
+  const R = w - BOARD_M.r;
+  const T = BOARD_M.t;
+  // four sparklines in a row; two rows of two below 480px, where four
+  // names would collide
+  const cols = w < 480 ? 2 : 4;
+  const rowH = 44;
+  // the strip is fixed at the foot; the panel takes the rest
+  const boardH = Math.max(hBox, BOARD_H + (4 / cols - 1) * rowH);
+  const dy = boardH - BOARD_H - (4 / cols - 1) * rowH; // extra height above the strip
+  const B = PANEL_B + dy;
+  const cellW = (R - L - (cols - 1) * CELL_GAP) / cols;
+  const f = Math.max(0, Math.min(focus, all.length - 1));
+  const others = all.filter((_, i) => i !== f);
+  const slotOf = (i) => {
+    if (i === f) return { x: L, y: T, w: R - L, h: B - T };
+    const k = others.indexOf(all[i]);
+    const row = Math.floor(k / cols);
+    return { x: L + (k % cols) * (cellW + CELL_GAP), y: SPARK.y + dy + row * rowH, w: cellW, h: SPARK.h, nameY: STRIP_NAME_Y + dy + row * rowH };
+  };
+  const cur = all[f];
+  const label = `Line chart: ${cur.long}, ${cur.span}. Four smaller charts below it show ${andList(others.map((o) => o.name.toLowerCase()))}, each on its own scale.`;
   return (
-    <TimeLine
-      icon="labourShare"
-      extraRef={ref}
-      on={seen}
-      s={s}
-      step={2}
-      title={`Compensation of employees as a share of GDP, ${s.x[0]} to ${last}`}
-      unit={`Per cent of GDP at current prices, annual; ends at ${last}, the latest full year`}
-      label={`Line chart: compensation of employees as a share of GDP, annual, from ${s.x[0]} to ${last}.`}
-      source={
-        <SourceLine
-          items={[
-            { id: 'ons_dtwm', name: 'compensation of employees' },
-            { id: 'ons_ybha', name: 'GDP at current prices' },
-          ]}
-        />
-      }
-    />
+    <Figure
+      icon={cur.icon}
+      innerRef={ref}
+      title={cur.title}
+      titleReserve={longest(all.map((b) => b.title))}
+      unit={cur.unit}
+      unitReserve={longest(all.map((b) => b.unit))}
+      source={<SourceLine items={cur.src} />}
+      className="p1-board"
+    >
+      <div ref={box} className="p1-plot">
+        <svg
+          className={`story-svg p1-svg p1-board-svg${seen ? ' is-seen' : ''}`}
+          width="100%"
+          height={boardH}
+          viewBox={`0 0 ${w} ${boardH}`}
+          role="img"
+          aria-label={label}
+          data-focus={f}
+        >
+          {all.map((b, i) => {
+            const u = unitSeries(b);
+            const Y = linear(u.d.lo, u.d.hi, B, T);
+            const X = linear(u.t[0], u.t[u.t.length - 1], L, R);
+            const xt = yearTicks(u.t[0], u.t[u.t.length - 1]).map((yr) => {
+              const x = X(Math.max(yr, u.t[0]));
+              return { key: yr, x, label: String(yr), anchor: x > R - 16 ? 'end' : x < L + 16 ? 'start' : 'middle' };
+            });
+            return (
+              <g key={b.key} className={`p1-board-axes${i === f ? ' is-on' : ''}`}>
+                <YGrid ticks={u.d.ticks} Y={Y} x0={L} x1={R} />
+                <XTicks ticks={xt} y={B + 18} />
+              </g>
+            );
+          })}
+          <text x={L} y={STRIP_NOTE_Y + dy} className="p1-note">
+            The other four, each on its own scale
+          </text>
+          {all.map((b, i) => {
+            const u = unitSeries(b);
+            const sl = slotOf(i);
+            const on = i === f;
+            const tr = `translate(${sl.x.toFixed(2)}px, ${sl.y.toFixed(2)}px) scale(${(sl.w / N).toFixed(5)}, ${(sl.h / N).toFixed(5)})`;
+            const ex = sl.x + (u.end[0] * sl.w) / N;
+            const ey = sl.y + (u.end[1] * sl.h) / N;
+            return (
+              <g key={b.key} className={`p1-board-series${on ? ' is-focus' : ''}`}>
+                {u.area ? (
+                  <defs>
+                    <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={u.top} y2={u.zeroV}>
+                      <stop offset="0" stopColor="var(--pe-gray-800)" stopOpacity="0.18" />
+                      <stop offset="1" stopColor="var(--pe-gray-800)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                ) : null}
+                <g className="p1-board-move" style={{ transform: tr }}>
+                  {u.area ? <path d={u.area} className="p1-board-area" style={{ fill: `url(#${gid})` }} /> : null}
+                  <path d={u.d0} className={`p1-board-line${seen ? ' is-drawn' : ''}`} />
+                </g>
+                <circle cx={0} cy={0} r={3.5} className="p1-board-end p1-board-move" style={{ transform: `translate(${ex.toFixed(2)}px, ${ey.toFixed(2)}px)` }} />
+                <text x={0} y={0} className={`p1-spark-name${on ? '' : ' is-on'}`} style={{ transform: `translate(${sl.x.toFixed(2)}px, ${sl.nameY ?? STRIP_NAME_Y}px)` }}>
+                  {b.name}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        {onPick ? (
+          <div className="p1-spark-hits">
+            {others.map((o) => {
+              const i = all.indexOf(o);
+              const sl = slotOf(i);
+              return (
+                <button
+                  key={o.key}
+                  type="button"
+                  className="p1-spark-hit"
+                  style={{ left: `${(sl.x / w) * 100}%`, width: `${(sl.w / w) * 100}%`, top: sl.nameY - 14, height: SPARK.h + SPARK.y - STRIP_NAME_Y + 18 }}
+                  aria-label={`Show ${o.name.toLowerCase()} on the large chart`}
+                  onClick={() => onPick(i)}
+                />
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    </Figure>
   );
 }
 
-// 5a: share of businesses using AI by BICS wave. state 0: all businesses;
-// 1: + businesses with 10 or more employees.
+// ---------------------------------------------------------------------------
+// Scene 1C. AI arrives: the share of businesses using AI by survey wave
+// (state 0: all businesses; 1: + businesses with 10 or more employees),
+// then the exposure tiles.
+
+const AI_H = 220;
+const AI_M = { l: 34, r: 10, t: 12, b: 24 };
+
 export function AiUseChart({ state }) {
   const [ref, seen] = useInView();
+  const [box, w, aiH] = useBox(AI_H);
+  const gid = useSvgId('p1-ai-fade');
   const a = SERIES.business_ai_use;
   const b = SERIES.business_ai_use_10plus;
-  const h = 250;
   const idx = a.x.map((_, i) => i);
-  const { lo, hi, ticks } = domain([...a.y, ...b.y], 10, true);
-  const sc = scales({ x0: 0, x1: idx.length - 1, lo, hi, h });
   const last = idx.length - 1;
+  const L = AI_M.l;
+  const R = w - AI_M.r;
+  const T = AI_M.t;
+  const B = aiH - AI_M.b;
+  const D = niceTicks([...a.y, ...b.y], { withZero: true });
+  const X = linear(0, last, L + 4, R - 4);
+  const Y = linear(D.lo, D.hi, B, T);
   const two = state >= 1;
   const short = (d) => d.replace(/^\d+ /, '');
+  const dA = linePath(X, Y, idx, a.y);
+  const area = `${dA}L${X(last).toFixed(1)},${Y(0).toFixed(1)}L${X(0).toFixed(1)},${Y(0).toFixed(1)}Z`;
+  // end labels clear of their lines: over the label's width (about 7px a
+  // character at 12px), above the highest point of the upper line and
+  // below the lowest point of the lower one
+  const under = (ys, chars) => idx.filter((i) => X(i) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
+  const tenY = Math.max(T + 10, Math.min(...under(b.y, 20)) - 9);
+  const allY = Math.min(B - 4, Math.max(...under(a.y, 14)) + 17);
   return (
     <Figure
       icon="ai"
       innerRef={ref}
       title={`Businesses using at least one AI technology, ${short(a.x[0])} to ${short(a.x[last])}`}
       unit="Per cent of businesses, by survey wave (dated at its midpoint)"
-      legend={[
-        { key: 'all', label: 'All businesses', color: 'var(--series-5)' },
-        ...(two ? [{ key: 'ten', label: '10 or more employees', color: 'var(--series-2)' }] : []),
-      ]}
-      source={
-        <SourceLine
-          items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]}
-        />
-      }
+      source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} />}
+      className="p1-ai"
     >
-      <svg
-        className="story-svg p1-svg"
-        viewBox={`0 0 ${W} ${h}`}
-        role="img"
-        aria-label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
-      >
-        <Axes
-          sc={sc}
-          yTicks={ticks}
-          zero
-          xTicks={[
-            { x: 0, label: short(a.x[0]), anchor: 'start' },
-            { x: last, label: short(a.x[last]), anchor: 'end' },
-          ]}
-        />
-        <DrawPath d={linePath(sc, idx, a.y)} on={seen} className="p1-line" style={{ stroke: 'var(--series-5)' }} />
-        <DrawEnd cx={sc.X(last)} cy={sc.Y(a.y[last])} on={seen} style={{ fill: 'var(--series-5)' }} />
-        <DrawPath d={linePath(sc, idx, b.y)} on={seen && two} className="p1-line" style={{ stroke: 'var(--series-2)' }} />
-        <DrawEnd cx={sc.X(last)} cy={sc.Y(b.y[last])} on={seen && two} style={{ fill: 'var(--series-2)' }} />
-      </svg>
+      <div ref={box} className="p1-plot">
+        <svg
+          className={`story-svg p1-svg p1-ai-svg${two ? ' is-two' : ''}`}
+          width="100%"
+          height={aiH}
+          viewBox={`0 0 ${w} ${aiH}`}
+          role="img"
+          aria-label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
+        >
+          <defs>
+            <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={Y(Math.max(...a.y))} y2={Y(0)}>
+              <stop offset="0" stopColor="var(--pe-gray-800)" stopOpacity="0.18" />
+              <stop offset="1" stopColor="var(--pe-gray-800)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <YGrid ticks={D.ticks} Y={Y} x0={L} x1={R} />
+          <XTicks
+            y={aiH - 6}
+            ticks={[
+              { x: X(0), label: short(a.x[0]), anchor: 'start', key: 'a' },
+              { x: X(last), label: short(a.x[last]), anchor: 'end', key: 'b' },
+            ]}
+          />
+          <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} />
+          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen && two ? ' is-on' : ''}`} />
+          <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} />
+          {idx.map((i) => (
+            <g key={i}>
+              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen && two ? ' is-on' : ''}`} />
+              <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} />
+            </g>
+          ))}
+          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${two ? ' is-on' : ''}`}>
+            10 or more employees
+          </text>
+          <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on">
+            All businesses
+          </text>
+        </svg>
+      </div>
     </Figure>
   );
 }
 
-// 5b: 100 tiles, one per cent of UK workers each, regrouping into the three
-// exposure groups DSIT reports. Same grid size and keys in both states, so
-// the tiles travel. state 0: one block; 1: three groups.
+// 100 tiles, one per cent of UK workers each, regrouping into the three
+// exposure groups DSIT reports. Same keys in both states, so the tiles
+// travel. state 0: one block in grey; 1: three groups on the rank ramp,
+// staggered by destination group then row (at most about 450ms), each
+// tile's colour changing in the last third of its travel. The group names
+// fade in as the last tile lands.
 const GRID_W = 17;
 const GRID_H = 10;
+const TILE = 14;
+const TILE_GAP = 3;
 
 export function exposureTiles(state) {
   const groups = EXPOSURE_GROUPS.flatMap((g, gi) => Array.from({ length: Math.round(g.value) }, (_, j) => ({ g, gi, j })));
   return groups.map(({ g, gi, j }, i) => {
-    if (state < 1) return { key: `t${i}`, x: 3.5 + (i % 10), y: Math.floor(i / 10), color: 'var(--pe-gray-400)', delay: 0 };
-    return { key: `t${i}`, x: gi * 6 + (j % 5), y: GRID_H - 1 - Math.floor(j / 5), color: g.color, delay: (i % 10) * 12 };
+    if (state < 1) return { key: `t${i}`, x: 3.5 + (i % 10), y: Math.floor(i / 10), color: 'var(--pe-gray-400)', delay: Math.floor(i / 10) * 12 };
+    const row = Math.floor(j / 5);
+    return { key: `t${i}`, x: gi * 6 + (j % 5), y: GRID_H - 1 - row, color: g.color, delay: gi * 110 + row * 14 };
   });
 }
 
 export function ExposureTiles({ state, source }) {
   const grouped = state >= 1;
+  const step = TILE + TILE_GAP;
   const label = grouped
     ? 'A grid of 100 tiles, each one per cent of UK workers, in three groups by exposure to AI: high exposure and high complementarity, high exposure and low complementarity, and low exposure.'
     : 'A grid of 100 tiles, each one per cent of UK workers.';
   return (
-    <figure className="p1-figure">
+    <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`}>
       <FigTitle icon="workers" title={grouped ? 'UK workers by exposure to AI' : 'UK workers'} reserve="UK workers by exposure to AI" />
       <FigUnit>Each tile is one per cent of UK workers</FigUnit>
       <div className="p1-tiles">
-        <TileGrid tiles={exposureTiles(state)} width={GRID_W} height={GRID_H} label={label} />
-      </div>
-      {grouped ? (
-        <ol className="p1-groups">
-          {EXPOSURE_GROUPS.map((g) => (
-            <li key={g.id}>
-              <span className="p1-swatch is-block" style={{ '--sw': g.color }} aria-hidden="true" />
-              {g.name}
-            </li>
+        <svg className="tile-grid p1-tile-grid" viewBox={`0 0 ${GRID_W * step} ${GRID_H * step}`} role="img" aria-label={label}>
+          {exposureTiles(state).map((t) => (
+            <rect
+              key={t.key}
+              className="tile p1-tile"
+              width={TILE}
+              height={TILE}
+              rx={2}
+              style={{ transform: `translate(${t.x * step}px, ${t.y * step}px)`, fill: t.color, transitionDelay: `${t.delay}ms, ${t.delay + 500}ms` }}
+            />
           ))}
-        </ol>
-      ) : (
-        <Legend items={[{ key: 'w', label: 'UK workers', color: 'var(--pe-gray-400)', block: true }]} />
-      )}
+        </svg>
+      </div>
+      <ol className={`p1-groups${grouped ? ' is-on' : ''}`} aria-hidden={grouped ? undefined : true}>
+        {EXPOSURE_GROUPS.map((g) => (
+          <li key={g.id}>
+            <span className="p1-swatch is-block" style={{ '--sw': g.color }} aria-hidden="true" />
+            {g.name}
+          </li>
+        ))}
+      </ol>
       <figcaption>{source}</figcaption>
     </figure>
   );

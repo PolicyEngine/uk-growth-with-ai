@@ -6,7 +6,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
-import { ZETA, CENTRAL, LATE_YEAR } from '@/tabs/ai/surprise.js';
+import IconText from './IconText.jsx';
 
 // OG-UK as four blocks and the flows between them: households by age and
 // lifetime earnings, firms, the government and the rest of the world, in a
@@ -21,11 +21,12 @@ export const NODES = [
     icon: 'households',
     title: 'Households',
     tag: 'By age and lifetime earnings',
-    line: 'Eighty ages (20 to 99) and seven lifetime-earnings groups. Each chooses work, spending and saving over its life.',
+    line: 'Eighty ages (20 to 99), seven earnings groups; each plans work and saving.',
     detail: [
       ['why', 'Each values consumption, leisure and a bequest, and faces age-specific mortality.'],
-      ['labour', 'Work pays until the after-tax wage equals the cost of effort. Saving trades today against tomorrow’s return.'],
-      ['generations', 'Many generations are alive at once, so a change reaches young and old differently (see “Many generations at once” below).'],
+      ['labour', 'Work pays until the after-tax wage equals the cost of effort.'],
+      ['interest', 'Saving trades today against tomorrow’s return.'],
+      ['generations', 'Many generations live at once: a change reaches young and old differently.'],
     ],
   },
   {
@@ -33,10 +34,11 @@ export const NODES = [
     icon: 'capital',
     title: 'Firms',
     tag: 'Where AI enters',
-    line: 'One competitive industry combines capital and labour. AI raises the capital share γ and productivity Z.',
+    line: 'One competitive industry. AI raises the capital share γ and productivity Z.',
     detail: [
-      ['equation', 'At an elasticity of substitution of one, the labour share is exactly 1 − γ.'],
-      ['pay', 'The wage equals the marginal product of labour; the rental rate equals capital’s, after tax and depreciation.'],
+      ['equation', 'Elasticity of substitution one: the labour share is exactly 1 − γ.'],
+      ['pay', 'The wage equals the marginal product of labour.'],
+      ['capital', 'The rental rate equals capital’s, after tax and depreciation.'],
     ],
   },
   {
@@ -44,10 +46,10 @@ export const NODES = [
     icon: 'foreign',
     title: 'Rest of the world',
     tag: 'Foreign capital and gilts',
-    line: `Supplies part of any extra demand for capital (ζK = ${ZETA[CENTRAL]} under the central closure) and holds part of new government debt.`,
+    line: 'Supplies part of any new capital and holds part of new gilts.',
     detail: [
-      ['foreign', 'Foreign investors supply a share ζK of the excess demand for capital at a 2% world interest rate, and hold 40% of new government debt (ζD).'],
-      ['gni', 'What foreign-owned capital earns is paid abroad, so GNI rises less than GDP.'],
+      ['closure', 'How large each part is: the closures, below.'],
+      ['gni', 'Foreign-owned capital’s earnings go abroad, so GNI rises less than GDP.'],
     ],
   },
   {
@@ -55,10 +57,11 @@ export const NODES = [
     icon: 'finances',
     title: 'Government',
     tag: 'Taxes, spending, debt',
-    line: `Six taxes, pensions, transfers and its own consumption. It borrows; from ${LATE_YEAR} a debt rule steers spending.`,
+    line: 'Six taxes, pensions, transfers and its own consumption; it borrows.',
     detail: [
-      ['tax', 'Taxes on income, payroll, consumption, corporate profits, wealth and bequests. The income tax is a smooth function fitted to PolicyEngine-UK.'],
-      ['rule', 'How spending responds to the shock is the fiscal rule: see “Fiscal rules and public finances”.'],
+      ['tax', 'Taxes on income, payroll, consumption, corporate profits, wealth and bequests.'],
+      ['data', 'The income tax is a smooth function fitted to PolicyEngine-UK.'],
+      ['rule', 'How spending responds is the fiscal rule: see “Fiscal rules”, below.'],
     ],
   },
 ];
@@ -77,7 +80,7 @@ export const flowTable = () => ({
   rows: EDGES.flatMap((e) => [
     [nameOf(e.a), nameOf(e.b), e.ab],
     [nameOf(e.b), nameOf(e.a), e.ba],
-  ]).concat([['Firms', 'Government', 'Corporate tax']]),
+  ]),
 });
 
 // The same diagram as SVG, for the downloads
@@ -124,15 +127,32 @@ export function diagramSvg() {
 }
 
 // Each flow names where it goes, so it reads the same in the loop and in
-// the phone's single column.
-function Edge({ e }) {
+// the phone's single column. A drawn arrow gives its direction in the loop
+// (households and firms on top, government and the rest of the world below);
+// the arrows are hidden in the single column, where the words carry it.
+const DIR = { hf: ['right', 'left'], fw: ['down', 'up'], wg: ['left', 'right'], gh: ['up', 'down'] };
+function Arrow({ dir }) {
   return (
-    <div className={`md-edge md-edge-${e.id}`}>
+    <svg className={`md-arrow md-arrow-${dir}`} viewBox="0 0 24 12" width="24" height="12" aria-hidden="true">
+      <path d="M1 6 H21 M16 1.5 L21.5 6 L16 10.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function Edge({ e, lit }) {
+  const [d1, d2] = DIR[e.id];
+  return (
+    <div className={`md-edge md-edge-${e.id}${lit ? ' is-lit' : ''}`}>
       <span className="md-flow">
-        <span className="md-to">To {nameOf(e.b).toLowerCase()}:</span> {e.ab}
+        <Arrow dir={d1} />
+        <span>
+          <span className="md-to">To {nameOf(e.b).toLowerCase()}:</span> {e.ab}
+        </span>
       </span>
       <span className="md-flow">
-        <span className="md-to">To {nameOf(e.a).toLowerCase()}:</span> {e.ba}
+        <Arrow dir={d2} />
+        <span>
+          <span className="md-to">To {nameOf(e.a).toLowerCase()}:</span> {e.ba}
+        </span>
       </span>
     </div>
   );
@@ -143,7 +163,7 @@ export default function ModelDiagram() {
   const node = NODES.find((n) => n.id === open);
   return (
     <div className="md">
-      <div className="md-grid" role="group" aria-label="OG-UK: four blocks and the flows between them">
+      <div className={`md-grid${open ? ' is-lit' : ''}`} role="group" aria-label="OG-UK: four blocks and the flows between them">
         {NODES.map((n) => (
           <button
             key={n.id}
@@ -162,16 +182,20 @@ export default function ModelDiagram() {
           </button>
         ))}
         {EDGES.map((e) => (
-          <Edge key={e.id} e={e} />
+          <Edge key={e.id} e={e} lit={open === e.a || open === e.b} />
         ))}
         <div className="md-centre">
           <b>
             <Icon name={iconFor('breakEven')} size={16} className="mx-dt-icon" />
             Markets clear
           </b>
-          <span>Prices (the wage and the interest rate) adjust until labour, capital and goods markets all balance. Firms also pay corporate tax.</span>
+          <span>The wage and the interest rate adjust until every market balances.</span>
+          <span>Firms also pay corporate tax.</span>
         </div>
       </div>
+      <p className="md-note">
+        <IconText icon="caveat">A schematic: arrows show direction, not size.</IconText>
+      </p>
       <div id="md-detail" className="md-detail" hidden={!node} aria-live="polite">
         {node ? (
           <>
