@@ -166,12 +166,12 @@ describe('HouseholdsMethod', () => {
     for (const id of ['hm-pipeline', 'hm-data', 'hm-exposure', 'hm-shock', 'hm-rules', 'hm-takeup', 'hm-draws', 'hm-out', 'hm-vintage'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     const t = container.textContent;
-    expect(t).toContain('FY 2026–27');
+    expect(t).toContain(D.model_year_label);
     expect(t).toContain(`PolicyEngine-UK ${D.method.policyengine_uk}`);
     expect(t).toContain('C-AIOE');
     expect(t).not.toMatch(/NaN|undefined/);
     const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf');
+    expect(hrefs).toContain(D.source.paper_url);
   });
 
   it('prints no result figure', () => {

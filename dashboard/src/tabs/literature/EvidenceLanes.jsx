@@ -339,6 +339,7 @@ export default function EvidenceLanes() {
       icon={iconFor('range')}
       title={TITLE}
       className="mx-ranges ev-rb"
+      replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/tabs/literature/EvidenceLanes.jsx', result: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/data/site-evidence-map.json' }}
       finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, OG-UK’s on Explore.</IconText>}
       unit={<IconText icon="measure">Each lane has its own scale and unit.</IconText>}
       legend={

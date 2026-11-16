@@ -68,6 +68,7 @@ export default function GrowthCheck() {
       id="growth-check"
       icon={iconFor('path')}
       title="The OG-UK baseline against the OBR’s growth forecast"
+      replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_method_facts.py', result: code('analysis/rerun/output/zk0.1/baseline_p1.json') }}
       className="mx-kpi"
       finding={<IconText icon="compare">{`Without the shock, OG-UK’s average ${span} GDP growth is ${ours.toFixed(2)}%, against ${obr.toFixed(1)}% in the OBR’s October 2026 forecast${smoother ? '; smoother year by year' : ''}.`}</IconText>}
       about={{

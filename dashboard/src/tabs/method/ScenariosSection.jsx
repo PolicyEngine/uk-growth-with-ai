@@ -254,6 +254,7 @@ export default function ScenariosSection({ uses = null }) {
         title={`Scenario inputs, ${HEADLINE_YEAR}`}
         unit={<IconText icon="measure">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</IconText>}
         download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources on each scenario card', table: scenarioTable }}
+        replication={{ code: SRC.ukTargets.url, result: SRC.ukTargets.url }}
       >
         <ScenarioMap caption={false} />
       </Card>
@@ -348,6 +349,7 @@ export default function ScenariosSection({ uses = null }) {
         id="inputs-table"
         icon={iconFor('source')}
         title="Scenario inputs and model parameters"
+        replication={{ code: SRC.ukTargets.url, result: SRC.ogukParams.url }}
         download={{ title: 'Scenario inputs and model parameters', context: 'Each input, the value the model used, its kind of source and the source', table: inputsTable }}
       >
         <InputsTable />
@@ -366,6 +368,7 @@ export default function ScenariosSection({ uses = null }) {
         icon={iconFor('timing')}
         title={`The timing, ${YEARS[0]}–${LATE_YEAR}`}
         unit={<IconText icon="measure">Bars: weight of the change in γ and Z, from 0 (the OBR-central path) to 1 (full scenario)</IconText>}
+        replication={{ code: SRC.rampWeights.url, result: SRC.ukTargets.url }}
         download={{ title: `The timing, ${YEARS[0]}–${LATE_YEAR}`, context: 'Ramp weight of the capital share γ and productivity Z', table: timelineTable, svg: timelineSvg, legend: () => [] }}
       >
         <Timeline caption={false} />
