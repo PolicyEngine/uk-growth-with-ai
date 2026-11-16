@@ -88,9 +88,11 @@ def foreign_share(s, b, year=HEADLINE):
 
 
 def git_sha():
+    """The last commit that changed the solve outputs read here (OUT_DIR), not the
+    checkout's HEAD: a rebuild on a dashboard branch still names the results commit."""
     try:
-        return subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"],
-                                       text=True).strip()
+        return subprocess.check_output(["git", "-C", str(ROOT), "log", "-1", "--format=%h", "--",
+                                        str(OUT_DIR.relative_to(ROOT))], text=True).strip() or None
     except Exception:
         return None
 
