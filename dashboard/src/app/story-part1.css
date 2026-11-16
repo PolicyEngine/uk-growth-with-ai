@@ -128,7 +128,8 @@
 }
 
 /* Several figures in one sticky graphic (frame.jsx, Swap): the layers share
-   one grid cell; the old one fades out, then the new one fades in, so two
+   one grid cell (a shorter one centred in the tallest one's height); the
+   old one fades out, then the new one fades in, so two
    sets of labels never overlap. A hidden layer is visibility: hidden once
    faded, so its links leave the tab order. */
 .p1-swap {
@@ -136,6 +137,7 @@
 }
 .p1-swap-layer {
   grid-area: 1 / 1;
+  align-self: center;
   min-width: 0;
   opacity: 0;
   visibility: hidden;
