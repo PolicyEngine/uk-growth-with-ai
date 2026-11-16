@@ -6,6 +6,20 @@ import { iconFor } from '@/lib/concepts.js';
 import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { URLS } from '@/tabs/ai/links.js';
+import { ResultSources, methodLink } from './sources.jsx';
+
+// The foreign-owned share of the extra capital in 2031, the data file's
+// foreign_share_dK_2031, as a rounded range across the solves.
+const LATE_DK = 2031;
+function foreignShare(res) {
+  const xs = Object.values(res).flatMap((r) => Object.values(r)).map((c) => c?.foreign_share_dK_2031).filter((x) => x != null);
+  if (!xs.length) return null;
+  const lo = Math.round(Math.min(...xs));
+  const hi = Math.round(Math.max(...xs));
+  return hi - lo <= 1 ? `about ${lo}%` : `${lo}–${hi}%`;
+}
 
 // The zk0.5 sensitivity (surprise2028.json `sensitivity`, common fiscal
 // rule): half of the excess demand for capital met from abroad. It has no
@@ -68,10 +82,10 @@ function investmentItems(res) {
     { key: 'first', icon: 'investment', text: `Main-arm investment: ${range((g) => g[year(first)])} above the path in ${first}` },
     { key: 'peak', icon: 'timing', text: `${range(peak)} at its peak before ${HEADLINE_YEAR}` },
     { key: 'h', icon: 'path', text: `${range((g) => g[year(HEADLINE_YEAR)])} in ${HEADLINE_YEAR}, across the scenarios` },
-    { key: 'cost', icon: 'excluded', text: 'OG-Core has no capital adjustment cost' },
+    { key: 'cost', icon: 'excluded', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} has no capital adjustment cost</> },
     { key: 'speed', icon: 'foreign', text: 'Capital moves as fast as the closure lets foreign capital in' },
     { key: 'artefact', icon: 'limit', text: 'That path is an artefact of frictionless capital, not a forecast' },
-    { key: 'bound', icon: 'range', text: `By ${HEADLINE_YEAR}: an upper bound on speed as well as size` },
+    { key: 'bound', icon: 'range', text: `By ${HEADLINE_YEAR}: it likely overstates speed as well as size` },
   ];
 }
 
@@ -170,7 +184,7 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={`Sensitivity: half of new capital from abroad (ζK = ${sens.zeta_K})`}
+      title={`Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`}
       finding={<Lead c="compare">In every scenario’s main arm, against the central closure:</Lead>}
       controls={<Items className="ex-notes" items={sensClaims(res)} />}
       unit={<Lead c="measure">{`${HEADLINE_YEAR}, % difference from the OBR-central path at the same closure, common fiscal rule`}</Lead>}
@@ -181,7 +195,8 @@ export default function SensitivityTable() {
           <Items
             items={[
               { key: 'solved', icon: 'scenario', text: `Each scenario and arm solved with ζK = ${sens.zeta_K}` },
-              { key: 'half', icon: 'foreign', text: 'Foreign investors supply half the excess demand for capital' },
+              { key: 'half', icon: 'foreign', text: <>Foreign investors supply half the {ext(URLS.ogCoreParams, 'excess demand for capital')} (OG-Core&rsquo;s ζK)</> },
+              foreignShare(res) ? { key: 'share', icon: 'foreign', text: `So foreigners own ${foreignShare(res)} of the extra capital in ${LATE_DK}` } : null,
               { key: 'only', icon: 'caveat', text: 'A sensitivity only: no other chart uses it' },
               { key: 'dl', icon: 'table', text: 'The full table: the download menu, CSV or JSON' },
             ]}
@@ -197,10 +212,11 @@ export default function SensitivityTable() {
           />
         ),
         caveats: <Items items={[{ key: 'stress', icon: 'shock', text: `The stress test holds GDP on the path in ${HEADLINE_YEAR} by construction` }, ...investmentItems(res)]} />,
+        sources: <ResultSources closures={['zk0.1', 'zk0.5']} extra={[{ key: 'oguk', icon: 'model', text: <>ζK = {sens.zeta_K}: a sensitivity; OG-UK&rsquo;s default is 0.1 ({ext(URLS.ogUkDefaults, 'default parameters')}); see {methodLink('closures')}</> }]} />,
       }}
       method="closures"
       download={{
-        title: `Sensitivity: half of new capital from abroad (ζK = ${sens.zeta_K})`,
+        title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
         context: () => `${HEADLINE_YEAR} · % difference from the OBR-central path · common fiscal rule`,
         table: () => ({
           columns: ['Scenario', 'Arm', ...VARS.map((c) => `${c.label} (%)`)],

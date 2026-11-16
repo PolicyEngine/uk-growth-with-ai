@@ -8,6 +8,8 @@ import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -55,7 +57,7 @@ export function stressItems(sid) {
   const b = stressFalls(sid, BOUND);
   const phrase = (x) => (x ? 'has to fall' : 'has to rise slightly');
   return [
-    { key: 'held', icon: 'shock', text: `Stress test: ${HEADLINE_YEAR} GDP held on the path (OBR Box 2.2)` },
+    { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
     c != null ? { key: 'c', icon: stressDir(c), text: `Central closure: output at fixed inputs ${phrase(c)}` } : null,
     c ? { key: 'c2', icon: 'limit', text: 'So it is a pessimistic bound, not a forecast' } : null,
     b != null ? { key: 'b', icon: stressDir(b), text: `Closed capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
@@ -236,7 +238,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             className="db-dot is-diamond"
                             style={{ left: pct(b), borderColor: color }}
                             label={`${a.label}, closed capital, ${name}: ${fmt(b)}`}
-                            tip={<DotTip arm={a.label} closure="Closed capital (none foreign-owned)" measure={name} value={b} />}
+                            tip={<DotTip arm={a.label} closure="Closed capital (no foreign-owned private capital)" measure={name} value={b} />}
                           />
                         ) : null}
                         {c != null ? (

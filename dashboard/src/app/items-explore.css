@@ -2470,3 +2470,14 @@
 .hh-cost-grid {
   align-items: start;
 }
+
+/* LineChart reference label on the zero line ("OBR-central path = 0") */
+.linechart .zero-note { font-size: 10.5px; fill: var(--pe-color-gray-600); paint-order: stroke; stroke: var(--pe-color-bg-primary, #fff); stroke-width: 3px; stroke-linejoin: round; }
+
+/* Axis titles for HTML charts (AxisTitles) */
+.ex-axis-titles { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 8px; font-size: 12px; line-height: 1.4; color: var(--pe-color-gray-600); }
+.ex-axis-titles > svg { flex: none; margin-top: 2px; }
+.ex-axis-titles [data-axis-title] { font-weight: 600; color: var(--pe-color-gray-700, #344054); }
+
+/* Slope chart axis titles (SVG) */
+.ex-slope-axis-title { font-size: 10px; fill: var(--pe-color-gray-600); }

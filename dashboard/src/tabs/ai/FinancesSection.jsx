@@ -16,6 +16,11 @@ import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { Dir, dirConcept, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { SOURCES as LIT } from '@/data/literature.js';
+import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { ResultSources, methodLink } from '@/tabs/explore/sources.jsx';
+import NICS from '@/tabs/explore/nics2028.json';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
 // tax/GDP, why both are likely understated, and how the result changes with
@@ -158,10 +163,23 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
 // the paper's EffWedgePp): labour incl. employer NICs less gross capital.
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
 const TAX_GAP = ETR.labour - ETR.capital_gross;
+// Employer NICs on one basis, % of earnings (analysis/nics/nics_2028.json,
+// copied to tabs/explore/nics2028.json): OG-UK's flat tau_payroll (its
+// default, the 15% main rate HMRC sets above the secondary threshold) and
+// PolicyEngine-UK's 2028 microsimulation average.
+const NIC_OGUK = NICS.oguk_tau_payroll * 100;
+const NIC_PE = NICS.avg_employer_rate_on_employment_income * 100;
+// The debt rule's first year: OG-Core's tG1, set to 10 periods from 2026 in
+// scenarios.py (OG-UK's default is 4, so 2030).
+const TG1_URL = atRef(RESULTS_SHA, 'uk_growth_with_ai/scenarios.py#L45');
+const OGUK_TG1_YEAR = 2030;
+const EFO_NOV25 = 'https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/';
+const NICS_URL = atRef('bf5de33', 'analysis/nics/nics_2028.json');
+const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
 // The two rows of the tax card, as drawn and as downloaded
 const CAUSES = [
-  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the revenue fall (main effect)' },
-  { title: 'Employer National Insurance', max: 16, unit: '% of labour cost', ours: 15, oursText: 'flat rate', theirs: 'PolicyEngine-UK', value: 11, theirsText: 'average', effect: 'Partly offsets the first row (smaller)' },
+  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR rates, differenced', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Likely understates the revenue fall (main effect)' },
+  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine-UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%`, effect: 'Partly offsets the first row (smaller)' },
 ];
 // OG-UK's figure below the comparison: the model's revenue fall is too
 // small (the first row's main effect); above it, the row partly offsets.
@@ -191,7 +209,7 @@ function causesSvg() {
   return { w: W, h: y, markup: out };
 }
 
-export const TAX_TITLE = 'The model’s tax effect is likely too small';
+export const TAX_TITLE = 'OG-UK’s revenue fall is smaller than OBR effective rates imply';
 
 // Highlight the main arm's 2031 end point on the Tax/GDP chart while the
 // link is hovered or focused (the figure's one home is that end label).
@@ -234,7 +252,7 @@ function TaxStrip({ model, uk, onChart }) {
       ) : null}
       <div className="ex-taxrow">
         <span className="ex-taxlabel">
-          <Icon name={iconFor('tax')} size={16} /> With UK tax rates
+          <Icon name={iconFor('tax')} size={16} /> Scaled with OBR effective rates
         </span>
         <span className="ex-taxtrack">
           <span className="ex-taxzero" style={{ left: pos(0) }} aria-hidden="true" />
@@ -282,11 +300,11 @@ function TaxGapCard({ sid, closure, rule }) {
         <Items
           className="ex-notes"
           items={[
-            { key: 'rates', icon: 'rule', text: 'OG-UK taxes wages and profits at similar rates' },
+            { key: 'rates', icon: 'rule', text: `OG-UK’s labour–capital tax-rate gap is narrower than the OBR’s` },
             model == null
               ? null
-              : { key: 'falls', icon: dirConcept(model), text: model < 0 ? 'So revenue falls too little as income shifts to profits' : 'So the model misses a revenue fall as income shifts to profits' },
-            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: `With closed capital the ${HEADLINE_YEAR} sign is not reliable:` } : null,
+              : { key: 'falls', icon: dirConcept(model), text: model < 0 ? 'So revenue likely falls too little as income shifts to profits' : 'So the model likely misses a revenue fall as income shifts to profits' },
+            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: `With closed capital the ${HEADLINE_YEAR} sign changes:` } : null,
             closure !== 'central' && closedTax ? { key: 'closed2', icon: 'caveat', text: `tax/GDP ${closedTax}` } : null,
           ]}
         />
@@ -299,7 +317,7 @@ function TaxGapCard({ sid, closure, rule }) {
           ) : (
             <Items
               items={[
-                { key: 'obr', icon: 'tax', text: 'OBR rates: 0.19 to 0.23 points of revenue lost per point shifted' },
+                { key: 'obr', icon: 'tax', text: 'Implied by the two OBR rates below: 0.19 to 0.23 points of revenue per point shifted' },
                 {
                   key: 'times',
                   icon: 'inequality',
@@ -329,17 +347,18 @@ function TaxGapCard({ sid, closure, rule }) {
         sources: (
           <Items
             items={[
-              { key: 's0', icon: 'source', text: <>OBR Fiscal risks and sustainability, July 2026, Box 4.1: labour 46%, capital 27%.</> },
-              { key: 's1', icon: 'source', text: <>OBR Economic and fiscal outlook, November 2025, ¶2.64: labour 40%, capital 17%.</> },
+              { key: 's0', icon: 'source', text: <>{ext(LIT.obrFrs26.url, 'OBR Fiscal risks and sustainability, July 2026, Box 4.1')}: wages and salaries 46%, profits 27%</> },
+              { key: 's1', icon: 'source', text: <>{ext(EFO_NOV25, 'OBR Economic and fiscal outlook, November 2025, ¶2.64')}: labour income around 40%, corporate profits around 17%</> },
+              { key: 's0b', icon: 'arithmetic', text: <>19–23pp: those rates differenced, across two publications on different bases; the OBR publishes neither gap</> },
               { key: 's2', icon: 'source', text: <>OG-UK {TAX_GAP.toFixed(1)}pp: {ETR.labour.toFixed(1)}% on labour (with employer NICs), {ETR.capital_gross.toFixed(1)}% on gross capital</> },
               { key: 's3', icon: 'source', text: <>OG-UK rates: OBR-central path, {HEADLINE_YEAR}, central closure, the solves&rsquo; sanity check</> },
-              { key: 's4', icon: 'source', text: <>Direction of each bias: <code>docs/red_flags_1_3.md</code></> },
-              { key: 's5', icon: 'source', text: <>Employer NICs: OG-UK&rsquo;s flat rate against PolicyEngine-UK&rsquo;s average</> },
+              { key: 's4', icon: 'source', text: <>Direction of each bias: {ext(RED_FLAGS_URL, 'red_flags_1_3.md')}</> },
+              { key: 's5', icon: 'source', text: <>Employer NICs: OG-UK&rsquo;s flat {ext(URLS.ogUkDefaults, 'tau_payroll')}, the {ext(URLS.hmrcEmployerRates, 'HMRC main rate above the secondary threshold')}; PolicyEngine-UK&rsquo;s {NICS.year} average from its microsimulation ({ext(NICS_URL, 'nics_2028.json')}), no official source</> },
               { key: 's6', icon: 'source', text: <>Rates:{' '}
               <NavLink tab="method" sub="how" anchor="m-tax">
                 How labour is taxed on Method
               </NavLink>
-              ; data in <code>analysis/nics/nics_2028.json</code></> },
+              </> },
             ]}
           />
         ),
@@ -564,11 +583,13 @@ function FiscalRuleCard({ sid }) {
           <Items
             items={[
               { key: 'shift', icon: 'compare', text: 'Table: the gap under the rule picked, less the common rule’s' },
+              { key: 'choice', icon: 'rule', text: <>The three rules are modelling choices, not OBR rules: {methodLink('rules')}</> },
               { key: 'sign', icon: 'gapUp', text: 'Positive: the rule raises the measure against the common rule' },
               { key: 'dn', icon: 'debt', text: `Debt-neutral: debt/GDP stays on the path to ${LATE_YEAR} by construction` },
             ]}
           />
         ),
+        sources: <ResultSources sid={sid} />,
       }}
       aboutTitle="About these figures"
       method="rules"
@@ -631,20 +652,21 @@ export default function FinancesSection({ sid }) {
           unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${LATE_YEAR}`}
           finding={debt ? <DebtFinding p={debt} /> : undefined}
           notes={debtNotes(debt)}
-          markers={[{ year: SURPRISE_YEAR, label: 'AI arrives' }, { year: LATE_YEAR, label: 'Debt rule starts' }]}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI arrives' }, { year: LATE_YEAR, label: 'Debt rule starts (set in this study)' }]}
           about={{
             shows: reading('debt', 'Public debt as a share of GDP, against the path'),
             caveats: (
               <Items
                 items={[
-                  { key: 'once', icon: 'interest', text: 'The model reprices all government debt at the new rate at once' },
-                  { key: 'obr', icon: 'timing', text: `At the OBR’s repricing speed: the ${LATE_YEAR} rise is ${REPRICE_RANGE[0].toFixed(0)}–${REPRICE_RANGE[1].toFixed(0)}% as large` },
-                  { key: 'where', icon: 'range', text: 'Where debt/GDP ends above the path: every scenario, arm and closure' },
-                  { key: 'stocks', icon: 'rule', text: `${LATE_YEAR} is the debt rule’s first year: only stocks are quoted` },
-                  { key: 'stress', icon: 'excluded', text: 'The stress test leaves out the cost of unemployment' },
+                  { key: 'once', icon: 'interest', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} reprices all government debt at the new rate at once</> },
+                  { key: 'obr', icon: 'timing', text: `At the OBR’s repricing speed, a first-order recalculation: the ${LATE_YEAR} rise is ${REPRICE_RANGE[0].toFixed(0)}–${REPRICE_RANGE[1].toFixed(0)}% as large` },
+                  { key: 'where', icon: 'range', text: `That range covers the ${REPRICE_RATIOS.length} of ${REPRICED.length} cells still above the path at that speed` },
+                  { key: 'stocks', icon: 'rule', text: <>{LATE_YEAR}: {ext(URLS.ogCoreParams, 'OG-Core’s budget closure rule')} starts; {ext(TG1_URL, 'set in this study')} (OG-UK&rsquo;s default is {OGUK_TG1_YEAR})</> },
+                  { key: 'stress', icon: 'excluded', text: <>The stress test, after {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}, leaves out the cost of unemployment</> },
                 ]}
               />
             ),
+            sources: <ResultSources sid={sid} />,
           }}
           method="rules"
         />
@@ -658,18 +680,19 @@ export default function FinancesSection({ sid }) {
           name="tax/GDP"
           icon={iconFor('tax')}
           unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
-          finding={st.closure === 'central' ? undefined : 'With closed capital the model’s sign for tax/GDP is not reliable: see the card below.'}
+          finding={st.closure === 'central' ? undefined : 'With closed capital the model’s sign for tax/GDP changes: see the card below.'}
           about={{
             shows: reading('tax', 'Tax revenue as a share of GDP, against the path'),
             caveats: (
               <>
-                Under the central closure the fall is too small; with closed capital the sign itself is not reliable. See{' '}
+                Under the central closure the fall is smaller than OBR effective rates imply; with closed capital the sign changes. See{' '}
                 <NavLink tab="explore" sub="finances" anchor="tax-gap">
                   {TAX_TITLE}
                 </NavLink>
                 .
               </>
             ),
+            sources: <ResultSources sid={sid} />,
           }}
           method="rules"
         />

@@ -54,7 +54,7 @@ export function economyAnswer(sid, closure, rule) {
     ls == null
       ? null
       : [
-          { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${word(ls)}${side(ls) === 'on' ? '' : ' the path'}` },
+          { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${word(ls)}${side(ls) === 'on' ? '' : ' the path'} (imposed input)` },
           { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'Pay grows less than output' : side(ls) === 'above' ? 'Pay grows more than output' : 'Pay keeps pace with output' },
         ];
   return { ...r, why };
@@ -64,7 +64,7 @@ export function financesAnswer(sid, closure, rule) {
   if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
   const r = read(sid, closure, rule, [['debt', 'Debt/GDP', 'debt_gdp_pp'], ['tax', 'Tax/GDP', 'tax_gdp_pp']]);
   if (!r) return 'This combination is not solved yet.';
-  return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'The model’s tax effect is likely too small' } };
+  return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'OG-UK’s revenue fall is smaller than OBR effective rates imply' } };
 }
 
 // The All scenarios sub-tab's intro: context only (the matrix card below

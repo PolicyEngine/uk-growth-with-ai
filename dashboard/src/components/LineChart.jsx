@@ -14,7 +14,12 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           `noEndLabel` draws the line without an end label (use when another
 //           series' label already covers the same end point).
 // `x`:      number[] (same length as every series)
+// `yUnit`:  the y-axis title with its unit (data-axis-title="y"), drawn
+//           rotated left of the ticks, or horizontal above the plot with
+//           `yTitleTop` (a small tile, where a rotated title would not fit)
 // `xUnit`:  optional x-axis title, drawn under the year labels
+//           (data-axis-title="x")
+// `zeroNote`: a reference label on the zero line ("OBR-central path = 0")
 // `dots`:   false draws markers only at the crosshair (for long series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
@@ -179,6 +184,8 @@ export default function LineChart({
   dots: dotsProp = true,
   link = 'oguk',
   compact = false,
+  yTitleTop = false,
+  zeroNote = null,
 }) {
   const dots = compact ? false : dotsProp;
   const [ref, W] = useWidth(880);
@@ -237,7 +244,8 @@ export default function LineChart({
   // "112.5" needs more room than "4" at every width.
   const tickW = Math.max(...tickText.map((t) => textWidth(t, AX_FONT)));
   const unitX = EDGE + UNIT_ASCENT;
-  const L = Math.ceil((yUnit ? unitX + UNIT_DESCENT + UNIT_GAP : EDGE) + tickW + TICK_GAP);
+  const rotated = yUnit && !yTitleTop;
+  const L = Math.ceil((rotated ? unitX + UNIT_DESCENT + UNIT_GAP : EDGE) + tickW + TICK_GAP);
 
   // End labels: name, value and any "(off scale)" note, as segments.
   const points = strip?.points || [];
@@ -313,7 +321,7 @@ export default function LineChart({
   // A label that reaches left of the plot runs over the top y tick's column:
   // the label rows then sit LIFT px higher, so the label clears that tick.
   const LIFT = placed.some((p) => p.a < L) ? 6 : 0;
-  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14;
+  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (yUnit && yTitleTop ? 8 : 0);
   const labelY = (row) => TOP - 6 - LIFT - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
@@ -461,14 +469,24 @@ export default function LineChart({
         {lo < 0 && hi > 0 ? (
           <g>
             <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" />
+            {zeroNote ? (
+              <text x={L + 4} y={sy(0) - 4} className="ax zero-note" data-reference-label="">
+                {zeroNote}
+              </text>
+            ) : null}
           </g>
         ) : null}
-        {yUnit ? (
+        {rotated ? (
           <text
             className="ax axis-unit"
             transform={`translate(${unitX}, ${(TOP + BOT) / 2}) rotate(-90)`}
             textAnchor="middle"
+            data-axis-title="y"
           >
+            {yUnit}
+          </text>
+        ) : yUnit ? (
+          <text className="ax axis-unit" x={EDGE} y={12} textAnchor="start" data-axis-title="y">
             {yUnit}
           </text>
         ) : null}
@@ -480,7 +498,7 @@ export default function LineChart({
           ) : null,
         )}
         {xUnit ? (
-          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle">
+          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle" data-axis-title="x">
             {xUnit}
           </text>
         ) : null}

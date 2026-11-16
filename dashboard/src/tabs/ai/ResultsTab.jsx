@@ -17,6 +17,10 @@ import { iconFor } from '@/lib/concepts.js';
 import { Dir, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
+import { ResultSources } from '@/tabs/explore/sources.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { SOURCES as LIT } from '@/data/literature.js';
 
 // Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
@@ -88,6 +92,11 @@ export function PathCard({
   );
   const last = years[years.length - 1];
   const shown = finding ?? findingFor(sid, v, st.arms, st.closure, name, rule);
+  // The y-axis title, with the measure's unit: % for a level, percentage
+  // points of GDP for debt and tax, percentage points for a rate or share.
+  const ofGdp = v === 'debt_gdp_pp' || v === 'tax_gdp_pp';
+  const unitWords = unit === '%' ? '%' : ofGdp ? 'percentage points of GDP' : 'percentage points';
+  const yTitle = tile && !open ? `Gap against the OBR-central path, ${unit === '%' ? '%' : 'pp'}` : `Gap against the OBR-central path, ${unitWords}`;
   const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);
   // In the small-multiple wall (tile) the card is compact: title, download
   // and chart; the wall carries the arms control and the legend once. Opened
@@ -118,7 +127,7 @@ export function PathCard({
         )
       }
       legend={tile ? null : <ClosureKey closure={st.closure} />}
-      about={full ? about : null}
+      about={full ? { ...about, sources: about?.sources ?? <ResultSources sid={sid} /> } : null}
       method={full ? method : null}
       foot={full && notes?.length ? <Items items={notes} className="ex-notes" /> : null}
       download={{
@@ -138,7 +147,10 @@ export function PathCard({
           noEndLabels={!ends}
           unit={unit}
           tipTitle={title}
-          zeroLabel={tile && !open ? null : 'OBR central'}
+          yUnit={yTitle}
+          yTitleTop={tile && !open}
+          xUnit={tile && !open ? null : 'Year'}
+          zeroNote={tile && !open ? null : 'OBR-central path = 0'}
           markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI arrives' }]}
           bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => signed(x, endDp)}
@@ -195,15 +207,15 @@ function coincideFinding(sid, closure, rule = 'common') {
 const ECONOMY = [
   { group: 'Demand', concept: 'consumption', lede: 'What households spend and what is invested.', rows: [
     { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { shows: READING, how: HOW, caveats: <Items items={[
-      { key: 'foresight', icon: 'timing', text: 'The direction relies on households foreseeing the whole path' },
+      { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
       { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
     ]} /> } },
     { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
       shows: READING,
       how: HOW,
       caveats: <Items items={[
-        { key: 'jump', icon: 'investment', text: `Investment jumps in ${SURPRISE_YEAR}: the model has no adjustment costs` },
-        { key: 'year1', icon: 'capital', text: 'Capital is frictionless, so the whole response lands in year one' },
+        { key: 'jump', icon: 'investment', text: <>Investment jumps in {SURPRISE_YEAR}: {ext(URLS.ogCoreDocs, 'OG-Core')} has no adjustment costs</> },
+        { key: 'year1', icon: 'capital', text: `It stays high until the ramp ends in ${HEADLINE_YEAR}, then drops` },
         { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
         { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
       ]} />,
@@ -211,7 +223,7 @@ const ECONOMY = [
   ] },
   { group: 'Factors', concept: 'capital', lede: 'The capital and labour that production uses.', rows: [
     { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { shows: READING, how: HOW, caveats: <Items items={[
-      { key: 'reset', icon: 'foreign', text: 'Foreign capital resets each year' },
+      { key: 'reset', icon: 'foreign', text: <>Foreign capital resets each year ({ext(URLS.ogCoreParams, 'OG-Core’s ζK rule')})</> },
       { key: 'inflow', icon: 'capital', text: 'Part of the first-year gap is an inflow with no investment recorded' },
     ]} /> } },
     { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', concept: 'labour', about: { shows: READING, how: HOW, definitions: <Items items={[
@@ -225,7 +237,8 @@ const ECONOMY = [
       { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
       { key: 'same', icon: 'compare', text: 'It is the same in every arm' },
       { key: 'full', icon: 'timing', text: 'It reaches full size in the headline year' },
-    ]} /> } },
+      { key: 'derived', icon: 'arithmetic', text: 'UK sizes: derived from IMF and OBR inputs, not printed by either' },
+    ]} />, sources: <ResultSources /> } },
   ] },
 ];
 
@@ -314,14 +327,22 @@ function IncomePanel({ sid }) {
                 <Items
                   items={[
                     { key: 'w', icon: 'pay', text: 'Wage rate: pay per unit of labour, adjusted for skill' },
-                    { key: 'gni', icon: 'gni', text: 'GNI: GDP less the return paid on foreign-owned capital' },
+                    { key: 'gni', icon: 'gni', text: <>{ext('https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/abmz/ukea', 'GNI')}: GDP less returns paid to foreign owners of UK capital and gilts</> },
                     { key: 'nni', icon: 'depreciation', text: 'NNI: GNI after depreciation' },
                   ]}
                 />
                 <StressNote sid={sid} />
               </>
             ),
-            caveats: 'A negative wage gap is slower growth than a rising path, not a pay cut (main arm, every scenario).',
+            caveats: (
+              <Items
+                items={[
+                  { key: 'cut', icon: 'pay', text: 'A negative wage gap is a level below a rising path' },
+                  { key: 'obr', icon: 'source', text: <>The path assumes productivity growth of 1 per cent a year ({ext(efo(EFO_PAGE.p1_2), 'OBR EFO, March 2026, ¶1.2')})</> },
+                ]}
+              />
+            ),
+            sources: <ResultSources sid={sid} />,
           }}
           method="closures"
           download={{
@@ -361,9 +382,9 @@ const INCOME_TILES = [
               icon: 'link',
               text: (
                 <>
-                  Why below the IMF&rsquo;s UK estimate:{' '}
+                  Why below the {ext(LIT.imfSip.url, 'IMF’s UK estimate')}:{' '}
                   <NavLink tab="method" sub="studies" anchor="imf-gap">
-                    Evidence, where our numbers sit
+                    Evidence: OG-UK results beside it
                   </NavLink>
                 </>
               ),
