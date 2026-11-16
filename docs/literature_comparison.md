@@ -258,7 +258,7 @@ No UK source publishes an investment response to AI. The BoE reports that AI-rel
 | Korinek and Lockwood (B16) | rising capital share | long run | qualitative: labour-tax revenue falls as a share of output | — |
 
 - The FRS variant is the closest to our convention, because our spending is a fixed share of GDP. It holds interest rates at baseline. Ours do not stay at baseline, and that is the source of red flag 2.
-- The tax range used in Section 4 is the OBR's (−0.19 to −0.23), because it is the UK's. OG-UK's own labour–capital gap of 14.8pp at ζK = 0.1 (13.5pp at ζK = 0) in 2031 (13.6pp at ζK = 0 in 2030 in `docs/red_flags_1_3.md`) lies between the IMF's advanced-economy average (10pp) and the OBR's UK figures (19–23pp).
+- The tax range used in Section 4 is the OBR's (−0.19 to −0.23), because it is the UK's. OG-UK's own labour–capital gap of 14.8pp at ζK = 0.1 and 13.5pp at ζK = 0 in 2031 (`docs/red_flags_1_3.md` gives 13.6pp at ζK = 0 for 2030) lies between the IMF's advanced-economy average (10pp) and the OBR's UK figures (19–23pp).
 
 ## 4. Our results against the ranges
 
