@@ -14,6 +14,8 @@ import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
+import { A, OG_DEFAULTS, resultUrl } from '@/tabs/story/part2/sources.jsx';
+import { URLS } from '@/tabs/ai/links.js';
 
 // The headline: the question, a one-line answer built from the data, three
 // headline figures for the chosen scenario's main arm (automation +
@@ -176,9 +178,11 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
-        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path
+        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path: <A href={URLS.ogUk}>OG-UK</A>
+        &rsquo;s no-shock path. {SURPRISE_YEAR} is a modelling choice, not a forecast
         <InfoTip label="What is the OBR-central path?">
-          The path every figure here is compared with: the economy without the shock, growing at the OBR&rsquo;s central rate. It is defined under {METHOD.shock.label} on Method.
+          The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
+          <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). It is defined under {METHOD.shock.label} on Method.
         </InfoTip>
       </p>
     </div>
@@ -250,7 +254,7 @@ export function whyChain(sid, cl, central = cl === CENTRAL) {
   const links = [{ key: 'ai', icon: 'ai', text: `AI arrives in ${SURPRISE_YEAR}` }];
   links.push({ key: 'gdp', icon: 'gdp', dir: dirConcept(y), text: `GDP ${dirWord(y)} the path` });
   // capital's share is labour's, the other way round
-  if (ls != null) links.push({ key: 'capital', icon: 'capital', dir: dirConcept(-ls), text: `Capital’s share ${dirWord(-ls)} the path` });
+  if (ls != null) links.push({ key: 'capital', icon: 'capital', dir: dirConcept(-ls), text: `Capital’s share ${dirWord(-ls)} the path (assumed)` });
   if (w != null) links.push({ key: 'pay', icon: 'pay', dir: dirConcept(w), text: `Pay rates ${dirWord(w)} the path` });
   if (g != null) {
     links.push(
@@ -262,7 +266,17 @@ export function whyChain(sid, cl, central = cl === CENTRAL) {
   const notes = [];
   if (w != null && w < 0) notes.push({ key: 'cut', icon: 'caveat', text: 'Pay: slower growth against a rising path, not a cut' });
   if (ls != null && w != null) notes.push({ key: 'size', icon: 'capital', text: 'How far pay moves depends on how much new capital arrives' });
-  if (central && fs != null && g != null && g < y) notes.push({ key: 'foreign', icon: 'foreign', text: `About ${Math.round(fs)}% of the new capital is foreign-owned` });
+  if (central && fs != null && g != null && g < y) {
+    notes.push({
+      key: 'foreign',
+      icon: 'foreign',
+      text: (
+        <>
+          About {Math.round(fs)}% of added capital is foreign-owned, from <A href={OG_DEFAULTS}>OG-UK&rsquo;s default openness</A>
+        </>
+      ),
+    });
+  }
   return { links, notes };
 }
 
@@ -299,9 +313,28 @@ export function SummaryWhy({ sid }) {
         </p>
         <Items
           items={[
-            { key: 'scen', icon: 'scenario', text: 'Scenario results, not forecasts' },
-            { key: 'size', icon: 'shock', text: 'They depend on the assumed size of the shock' },
-            { key: 'foreign', icon: 'foreign', text: 'And on how much foreign capital flows in' },
+            {
+              key: 'scen',
+              icon: 'scenario',
+              text: (
+                <>
+                  <A href={resultUrl(sid, 'tfp', cl)}>Scenario results</A>, not forecasts
+                </>
+              ),
+            },
+            {
+              key: 'size',
+              icon: 'shock',
+              text: (
+                <>
+                  They depend on the{' '}
+                  <NavLink tab="method" sub="how" anchor="m-scenarios">
+                    shock&rsquo;s size
+                  </NavLink>{' '}
+                  and on foreign capital inflows
+                </>
+              ),
+            },
             {
               key: 'closure',
               icon: 'closure',

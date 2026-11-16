@@ -4,10 +4,13 @@ import { useId } from 'react';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
-import { NavLink } from '@/lib/nav.jsx';
+import { NavLink, useNav } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
-import { W, H, niceTicks, SOURCE, More, Tx, placeLabels } from './frame.jsx';
+import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
+import { A, ModelSource, ResultLinks, resultUrl, pathUrl, readable, SRC as LINKS } from './sources.jsx';
+
+const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll } from './charts.jsx';
 import { EPS2 } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -182,15 +185,17 @@ function frameBreaks(pts) {
 export function canvasLines(cl) {
   return SCENARIOS.map((s) => ({ id: s.id, ys: series(s.id, 'tfp', cl, 'Y') })).filter((l) => l.ys);
 }
-export function canvasDomain(s, sid, lines) {
-  const uk = lines.filter((l) => l.id !== 'korinek' || sid === 'korinek');
+// `pin`: a scenario pinned for comparison, drawn from state 2, so its line
+// is in every gap state's domain.
+export function canvasDomain(s, sid, lines, pin = null) {
+  const uk = lines.filter((l) => l.id !== 'korinek' || sid === 'korinek' || pin === 'korinek');
   return (s >= 4 ? lines : uk).flatMap((l) => l.ys);
 }
 // True when the move to state 4 rescales the gap axis.
-export const rescales = (sid, cl) => {
+export const rescales = (sid, cl, pin = null) => {
   const lines = canvasLines(cl);
-  const a = gapAxis(canvasDomain(3, sid, lines));
-  const b = gapAxis(canvasDomain(4, sid, lines));
+  const a = gapAxis(canvasDomain(3, sid, lines, pin));
+  const b = gapAxis(canvasDomain(4, sid, lines, pin));
   return a.lo !== b.lo || a.hi !== b.hi;
 };
 const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
@@ -216,24 +221,47 @@ const STATE_TEXT = (sid, cl) => [
   { title: GAP_TITLE, unit: `The four scenarios, ${SCEN_NAME[sid]} in colour. Automation + productivity, ${CL_WORDS[cl]}. Gap, %` },
 ];
 
-const sourceText = (s) => {
-  const ons = SRC[SER.gdp_growth?.source];
-  const obr = SRC[SER.obr_gdp_forecast?.source];
-  const a = ons ? `${ons.publisher}, ${ons.series ?? ons.title}` : 'ONS';
-  const b = obr ? `${obr.publisher ?? 'OBR'}, ${obr.title ?? 'Economic and fiscal outlook'}` : 'OBR, Economic and fiscal outlook';
-  if (s === 0) return `Source: ${a}.`;
-  if (s === 1) return `Sources: ${a}; ${b}.`;
-  return SOURCE;
-};
+// The source line of each geometry state: the record's (ONS, OBR) linked
+// to readable pages, then the model's with the drawn solves' result files.
+function SourceText({ s }) {
+  const ons = SRC_REC.ons;
+  const obr = SRC_REC.obr;
+  const a = ons ? (
+    <>
+      {ons.publisher}, <A href={readable(ons)}>{ons.series ?? ons.title}</A>
+    </>
+  ) : (
+    'ONS'
+  );
+  const b = obr ? (
+    <>
+      {obr.publisher ?? 'OBR'}, <A href={readable(obr)}>{obr.title ?? 'Economic and fiscal outlook'}</A>
+    </>
+  ) : (
+    'OBR, Economic and fiscal outlook'
+  );
+  if (s === 0) return <>Source: {a}.</>;
+  if (s === 1) return <>Sources: {a}; {b}.</>;
+  return <ModelSource method="m-shock" />;
+}
+const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecast?.source] };
 
-export function MorphChart({ state, sid, cl }) {
+// The pinned scenario, when it is not the one chosen and its solve is done:
+// drawn from state 2 as a dark grey line (its own path, restyled; never a
+// second copy), so two scenarios can be compared with the gap axis holding
+// both. Geometry from the solves only.
+export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((l) => l.id === pin) ? pin : null);
+
+export function MorphChart({ state, sid, cl, pin = null, onPin }) {
   const s = Math.max(0, Math.min(4, state));
   // one clip per copy (phones draw a copy per step)
   const clip = `p2-morph-clip${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const k = Math.min(s, 2);
   const ys = series(sid, 'tfp', cl, 'Y');
   const lines = canvasLines(cl);
-  const domAt = (st) => canvasDomain(st, sid, lines);
+  const pinned = pinnedOf(pin, sid, lines);
+  const from = (id) => (id === pinned ? 2 : lineFrom(id, sid));
+  const domAt = (st) => canvasDomain(st, sid, lines, pinned);
   const g = morphGeometry(k, ys, domAt(s));
   const all = STATE_TEXT(sid, cl);
   const allTicks = [...new Set(X_TICKS.flat())].sort((a, b) => a - b);
@@ -253,7 +281,7 @@ export function MorphChart({ state, sid, cl }) {
   const tickSets = [2, 4].map((st) => morphGeometry(2, ys, domAt(st)).yTicksD);
   const dTicks = [...new Map(tickSets.flat().map((t) => [t.v, t])).values()].sort((a, b) => a.v - b.v);
   const dNow = new Set(gG.yTicksD.map((t) => t.v));
-  const resc = rescales(sid, cl);
+  const resc = rescales(sid, cl, pinned);
   const lo = lines.find((l) => l.id === 'uk_low')?.ys;
   const hi = lines.find((l) => l.id === 'uk_high')?.ys;
   const band = lo && hi ? bandPath(gG.X, gG.Yd, lo, hi) : null;
@@ -262,27 +290,29 @@ export function MorphChart({ state, sid, cl }) {
   // direct labels in the gutter, placed over every label of the gap states
   // (drawn or not), so none moves when another line arrives
   const labelItems = [
-    { key: 'zero', v: 0, lines: ['OBR-central path'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true },
+    { key: 'zero', v: 0, lines: ['OBR-central', 'path = 0'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true },
     ...lines.map((l) => ({
       key: l.id,
       v: l.ys[l.ys.length - 1],
       lines: SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]],
       color: l.id === sid ? ARM_TEXT_COLOR.tfp : 'var(--pe-gray-600)',
-      on: s >= lineFrom(l.id, sid),
+      on: s >= from(l.id),
+      pinned: l.id === pinned,
     })),
   ];
   const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, 13);
-  const shownNames = lines.filter((l) => s >= lineFrom(l.id, sid));
+  const shownNames = lines.filter((l) => s >= from(l.id));
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the OBR-central path, OG-UK's no-shock path built on the OBR's central assumptions, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the OBR-central path, OG-UK's own no-shock path on one OBR input, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
       : '',
     s >= 3
       ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line. The UK range, from UK low to UK high, is shaded.`
       : '',
     s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., on US inputs, lies above the UK range.` : '',
+    s >= 2 && pinned ? `${SCEN_NAME[pinned]} is pinned for comparison, in dark grey.` : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -373,15 +403,15 @@ export function MorphChart({ state, sid, cl }) {
           {/* the UK range, shaded once UK low and UK high are drawn */}
           {band ? <path className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} d={band} style={{ d: `path('${band}')` }} /> : null}
           {/* the zero line moves from zero growth to the OBR-central path */}
-          <line x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
+          <line data-mark="path" x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
-            <path className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} d={dPath(g.act)} style={dStyle(g.act)} />
+            <path data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} d={dPath(g.act)} style={dStyle(g.act)} />
             {g.act.map(([x, y], i) => (
               <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 ? ' is-on' : ''}`} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
                 <circle r={2.8} className={`p2-mo-dot${PARTIAL && PARTIAL.x === ACT[i][0] ? ' is-open' : ''}`} />
               </g>
             ))}
-            <path className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} d={dPath(g.obr)} style={dStyle(g.obr)} />
+            <path data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} d={dPath(g.obr)} style={dStyle(g.obr)} />
             {OBR.map(([x], i) => {
               const j = YEARS.indexOf(x);
               const p = j >= 0 ? g.obr[j] : [g.X(x), g.zeroY];
@@ -397,13 +427,14 @@ export function MorphChart({ state, sid, cl }) {
               .filter((l) => l.id !== sid)
               .map((l) => {
                 const d = pathOf(YEARS.map((yr, i) => [gG.X(yr), gG.Yd(l.ys[i])]));
-                const on = s >= lineFrom(l.id, sid);
+                const on = s >= from(l.id);
                 return (
                   <path
                     key={l.id}
                     pathLength={1}
-                    className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc ? ' is-late' : ''}`}
+                    className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc && l.id !== pinned ? ' is-late' : ''}${l.id === pinned ? ' is-pinned' : ''}`}
                     data-scen={l.id}
+                    data-mark={`scen-${l.id}`}
                     d={d}
                     style={{ d: `path('${d}')` }}
                   />
@@ -412,6 +443,7 @@ export function MorphChart({ state, sid, cl }) {
             <path
               className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
               data-scen={sid}
+              data-mark={`scen-${sid}`}
               d={dPath(g.gap)}
               style={{ ...dStyle(g.gap), stroke: ARM_COLOR.tfp }}
             />
@@ -445,7 +477,7 @@ export function MorphChart({ state, sid, cl }) {
           {placed.map((p) => (
             <g
               key={p.key}
-              className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc ? ' is-late' : ''}`}
+              className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={13 * 0.75} style={{ fill: p.color }}>
@@ -471,6 +503,13 @@ export function MorphChart({ state, sid, cl }) {
               </text>
             </g>
           </g>
+          {/* the y axis's title: growth (states 0-1), gap (states 2-4) */}
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s < 2 ? ' is-on' : ''}`} data-axis-title={s < 2 ? 'y' : undefined} aria-hidden={s < 2 ? undefined : 'true'}>
+            Real GDP growth, % a year
+          </text>
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}`} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
+            Gap against the OBR-central path, %
+          </text>
         </svg>
         {/* the ring's link to the headline figures (no value: their home is
             the tiles below); a page link, so it sits over the drawing */}
@@ -492,12 +531,49 @@ export function MorphChart({ state, sid, cl }) {
           </NavLink>
         ) : null}
       </div>
+      <div className="p2-fig-foot">
+        {onPin ? <PinRow s={s} sid={sid} pin={pin} pinned={pinned} lines={lines} onPin={onPin} /> : null}
+        <span className="p2-axis-x" data-axis-title="x">
+          Year
+        </span>
+      </div>
       <figcaption className="story-source">
         <Tx icon="source" size={12}>
-          {sourceText(Math.min(s, 2))}
+          <SourceText s={s} />
         </Tx>
       </figcaption>
     </figure>
+  );
+}
+
+// Pin and compare: pin the chosen scenario, then choose another (here or
+// in the header); the pinned one stays drawn in dark grey. No value is
+// printed: the comparison is of shapes, the figures are the tiles'.
+function PinRow({ s, sid, pin, pinned, lines, onPin }) {
+  const { set } = useNav();
+  if (s < 2) return null;
+  const on = pin === sid || pinned != null;
+  const others = lines.filter((l) => l.id !== (pinned ?? sid));
+  return (
+    <span className={`p2-pin${on ? ' is-on' : ''}`}>
+      <button type="button" className="p2-pin-btn" aria-pressed={on} onClick={() => onPin(on ? null : sid)}>
+        <Icon name={iconFor('compare')} size={13} strokeWidth={2} />
+        {on ? `Pinned: ${SCEN_NAME[pin]}` : `Pin ${SCEN_NAME[sid]} to compare`}
+      </button>
+      {on ? (
+        <label className="p2-pin-pick">
+          <span className="visually-hidden">Compare it with</span>
+          <select value={pinned ? sid : ''} onChange={(e) => e.target.value && set({ s: e.target.value })}>
+            <option value="">{pinned ? 'Compare with…' : 'Compare with…'}</option>
+            {others.map((l) => (
+              <option key={l.id} value={l.id}>
+                {SCEN_NAME[l.id]}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+    </span>
   );
 }
 
@@ -507,18 +583,27 @@ export function morphSteps(sid, cl) {
     // then the morph to the gap (state 2).
     {
       id: 'p2-morph-1',
+      highlight: ['ons', 'obr'],
       icon: 'record',
       title: 'The record so far',
       body: <Items items={[{ icon: 'forecast', text: 'Where part 1 ended: ONS outturn and the OBR’s forecast' }]} />,
     },
     {
       id: 'p2-morph-2',
+      highlight: ['path', `scen-${sid}`],
       icon: 'path',
       title: 'From growth rates to a gap',
       body: (
         <>
           <Items items={morphItems(sid, cl)} />
-          <More tab="method" sub="how">How the path is set</More>
+          <ResultLinks
+            files={[
+              [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
+              ['no-shock path file', pathUrl(cl)],
+            ]}
+            method="m-path"
+            methodText="How the path is set"
+          />
         </>
       ),
     },
@@ -534,9 +619,16 @@ export function morphItems(sid, cl) {
   const dir = !tail.length ? null : tail.every((v) => v > EPS2) ? 'gapUp' : tail.every((v) => v < -EPS2) ? 'gapDown' : null;
   const where = cl === BOUND ? 'with closed capital' : 'at the central closure';
   return [
-    { icon: 'forecast', text: `OG-UK’s no-shock path, the OBR-central path, uses OBR assumptions` },
-    { icon: 'source', text: `From the OBR’s central forecast of ${MODEL_BASE_VINTAGE}` },
-    { icon: 'measure', text: 'Results are gaps against it: zero is that path' },
+    { icon: 'forecast', text: `Zero is OG-UK’s own no-shock path, not the OBR’s ${OBR_VINTAGE ? `${OBR_VINTAGE} ` : ''}forecast` },
+    {
+      icon: 'source',
+      text: (
+        <>
+          It takes one OBR input: <A href={EFO_MAR26}>trend productivity growth, {MODEL_BASE_VINTAGE}</A>
+        </>
+      ),
+    },
+    { icon: 'measure', text: 'Results are gaps against that path' },
     dir
       ? { icon: dir, text: `Blue line: GDP in ${SCEN_NAME[sid]} ${dir === 'gapUp' ? 'above' : 'below'} it, ${where}` }
       : { icon: 'path', text: `Blue line: GDP in ${SCEN_NAME[sid]} against it, ${where}` },

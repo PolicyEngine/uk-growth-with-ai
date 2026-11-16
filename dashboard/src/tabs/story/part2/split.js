@@ -15,11 +15,11 @@ export const SPLIT_YEAR = SPLIT.year;
 export const PART_TEXT = {
   labour: { long: 'Labour income', short: 'Labour income' },
   domestic: { long: 'Net capital income kept in the UK', short: 'Kept in the UK' },
-  foreign: { long: 'Paid to foreign owners of UK capital and gilts', short: 'Paid abroad' },
+  foreign: { long: 'Net income paid abroad', short: 'Net paid abroad' },
   depreciation: { long: 'Depreciation', short: 'Depreciation' },
 };
 // The waterfall's "of which" rows (the Sankey's note defines "paid abroad").
-const OF_WHICH = { domestic: 'kept in the UK', foreign: 'paid abroad', depreciation: 'depreciation' };
+const OF_WHICH = { domestic: 'kept in the UK', foreign: 'net paid abroad', depreciation: 'depreciation' };
 // Who receives output: labour indigo, capital a brown family (ab.css
 // tokens, also the shock tiles'); teal and amber mean gain and loss (the
 // waterfall's bars), and the arm colours mean arms. The light fills
@@ -94,6 +94,6 @@ export function waterfallRows(ch) {
     rows.push({ id: k, label: OF_WHICH[k], from: at, to: at + ch[k], value: ch[k], sub: true });
     at += ch[k];
   }
-  rows.push({ id: 'gdp', label: 'GDP', from: 0, to: ch.gdp, value: null });
+  rows.push({ id: 'gdp', label: 'GDP', from: 0, to: ch.gdp, value: ch.gdp });
   return rows;
 }

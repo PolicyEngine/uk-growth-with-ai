@@ -10,6 +10,7 @@ import { closuresFor } from '@/tabs/ai/lines.js';
 import D from '@/data/cohorts2028.json';
 import { NavLink } from '@/lib/nav.jsx';
 import { Crosshair, linear } from '@/components/story/chart/index.js';
+import { ModelSource, COHORT_URL, COHORT_COMMIT_TEXT, A, SRC } from './sources.jsx';
 import { W, H, scales, linePath, monotonePath, niceTicks, tickText, placeLabels, Figure, GUTTER, Tx } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
@@ -109,7 +110,7 @@ export function ArmsPair({ state, sid, closure, label }) {
   const ends = (lines, Y, top, bot, on) =>
     placeLabels(
       [
-        { key: 'zero', v: 0, lines: ['OBR-central path'], color: 'var(--pe-gray-600)', zero: true, on: on(0) },
+        { key: 'zero', v: 0, lines: ['OBR-central', 'path = 0'], color: 'var(--pe-gray-600)', zero: true, on: on(0) },
         ...ARMS.map((a, i) => {
           const l = lines.find((x) => x.arm === a.id && x.cl === cls[0]);
           return { key: a.id, v: l?.ys[l.ys.length - 1], lines: ARM_LINES[a.id] ?? [a.short], color: ARM_TEXT_COLOR[a.id], on: on(i) };
@@ -155,17 +156,19 @@ export function ArmsPair({ state, sid, closure, label }) {
   // line. Every GDP arm is fully drawn by then (states 3 and 4).
   const lineEl = (l, Y, on, delay = 0, vs = false) => {
     const d = linePath(X, Y, YEARS, l.ys);
+    const mark = `${l.key.startsWith('Y-') ? 'gdp' : 'debt'}-${l.arm}`;
     const style = { stroke: ARM_COLOR[l.arm], strokeWidth: l.arm === 'tfp' ? 2.5 : 2, opacity: l.arm === 'ss' ? 0.6 : 1 };
     if (both && l.cl === BOUND)
       return (
         <FadeG key={l.key} on={on} delay={on ? delay : 0}>
-          <path d={d} fill="none" vectorEffect={vs ? 'non-scaling-stroke' : undefined} style={{ ...style, strokeDasharray: '5 4' }} />
+          <path d={d} data-mark={mark} fill="none" vectorEffect={vs ? 'non-scaling-stroke' : undefined} style={{ ...style, strokeDasharray: '5 4' }} />
         </FadeG>
       );
     return (
       <DrawPath
         key={l.key}
         d={d}
+        data-mark={mark}
         on={on}
         className={vs ? 'is-whole' : ''}
         vectorEffect={vs ? 'non-scaling-stroke' : undefined}
@@ -206,6 +209,9 @@ export function ArmsPair({ state, sid, closure, label }) {
       title="GDP and public debt in three arms"
       unit={`${SCEN_NAME[sid]}, ${both ? 'central closure solid, closed capital dashed' : CL_WORDS[cls[0]]}. Gaps against the OBR-central path`}
       head={closureCtl}
+      source={
+        <ModelSource method="m-arms" />
+      }
     >
       <div ref={ref} className="p2-pair-box" data-state={s}>
       <Crosshair
@@ -231,11 +237,11 @@ export function ArmsPair({ state, sid, closure, label }) {
           <rect x={band[0]} y={DT} width={band[1] - band[0]} height={PB - DT} className="p2-band-shock" />
         </g>
         {/* panel names (their units) */}
-        <text x={PM.l} y={PT - 7} className="p2-panel-name">
-          GDP, %
+        <text x={PM.l - 30} y={PT - 7} className="p2-panel-name" data-axis-title="y">
+          GDP: gap against the OBR-central path, %
         </text>
-        <text x={PM.l} y={DT - 9} className={`p2-panel-name p2-pair-debt${split ? ' is-on' : ''}`}>
-          Public debt, % of GDP, points
+        <text x={PM.l - 30} y={DT - 9} className={`p2-panel-name p2-pair-debt${split ? ' is-on' : ''}`} data-axis-title="y">
+          Public debt: gap, percentage points of GDP
         </text>
         {/* GDP ticks and grid slide with the panel */}
         {ticksG(gFull, gNow.Y).map((t) => (
@@ -332,7 +338,16 @@ export function WelfareShape({ state }) {
     <Figure
       icon="age"
       title="Welfare change by birth year"
-      unit="UK central, main arm, central closure, debt-neutral transfers. Consumption-equivalent change, %, by birth year"
+      unit="UK central, main arm, central closure, debt-neutral transfers (a model fiscal rule). Consumption-equivalent change, %, by birth year"
+      xTitle="Birth year"
+      source={
+        <>
+          Source: <A href={SRC.ogUk}>OG-UK</A> (PolicyEngine), cohort welfare by <A href={COHORT_URL}>cohort_welfare.py</A> at {COHORT_COMMIT_TEXT} ·{' '}
+          <NavLink tab="method" sub="how" anchor="m-generations">
+            Method
+          </NavLink>
+        </>
+      }
       head={
         <p className="p2-born">
           <Tx icon="age" size={12}>
@@ -374,6 +389,9 @@ export function WelfareShape({ state }) {
             Enter later
           </text>
         </g>
+        <text x={6} y={9} className="p2-panel-name" data-axis-title="y">
+          Consumption-equivalent change, %
+        </text>
         <text data-axis="" x={bx - 4} y={yTop + 10} textAnchor="end" className="p2-band-note">
           Adults in {D.shock_year}
         </text>
@@ -390,8 +408,11 @@ export function WelfareShape({ state }) {
             {x}
           </text>
         ))}
-        <DrawPath d={monotonePath(sc.X, sc.Y, xs, adults)} on={seen} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
-        <DrawPath d={monotonePath(sc.X, sc.Y, xs, later)} on={seen && state >= 1} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
+        <text data-axis="" x={xr - 2} y={sc.Y(0) - 4} textAnchor="end" className="p2-band-note">
+          No change = 0
+        </text>
+        <DrawPath data-mark="cohort-adults" d={monotonePath(sc.X, sc.Y, xs, adults)} on={seen} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
+        <DrawPath data-mark="cohort-later" d={monotonePath(sc.X, sc.Y, xs, later)} on={seen && state >= 1} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
         {pick ? (
           <g className="p2-born-mark" aria-hidden="true">
             <line x1={pick[0]} x2={pick[0]} y1={yTop} y2={yBot} />

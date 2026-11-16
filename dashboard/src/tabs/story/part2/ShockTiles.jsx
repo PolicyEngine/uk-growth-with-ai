@@ -76,7 +76,7 @@ const LABELS = [
 export default function ShockTiles({ state, entered = true }) {
   const s = useEnterState(state === 1 ? 0 : state, state, entered);
   return (
-    <figure className="p2-figure p2-shock-fig" data-state={s}>
+    <figure className="p2-figure p2-shock-fig" data-state={s} data-no-axes="an illustrative tile grid: one tile is one per cent of output">
       <ModelBadge model="illustration" />
       <p className="story-figure-title">
         <Tx icon="gdp">Who output is paid to</Tx>
