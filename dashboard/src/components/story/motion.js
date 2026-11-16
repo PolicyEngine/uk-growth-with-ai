@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 // Scroll and motion hooks for the story. Every animation reads
 // useReducedMotion(): with "reduce" the final state shows at once. Nothing
@@ -67,15 +67,24 @@ export function useInView(options = {}) {
 // (<= 900px) the line is `phoneLine`, near the bottom: the graphic changes
 // as a card enters below it, before the card scrolls over it. Returns
 // [register(i) => ref callback, activeIndex].
+//
+// `line` and `phoneLine` may also be functions returning the line in px
+// from the top of the viewport (Scrolly measures a sticky scene's line from
+// its figure); they are read at each measure.
 export function useActiveStep(count, line = 0.55, phoneLine = 0.88) {
   const els = useRef([]);
+  const lines = useRef({ line, phoneLine });
+  useEffect(() => {
+    lines.current = { line, phoneLine };
+  });
   const [active, setActive] = useState(0);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     let raf = 0;
     const measure = () => {
       raf = 0;
-      const y = window.innerHeight * (window.innerWidth <= 900 ? phoneLine : line);
+      const l = window.innerWidth <= 900 ? lines.current.phoneLine : lines.current.line;
+      const y = typeof l === 'function' ? l() : window.innerHeight * l;
       let best = 0;
       els.current.forEach((el, i) => {
         if (el && el.getBoundingClientRect().top < y) best = i;
@@ -93,7 +102,7 @@ export function useActiveStep(count, line = 0.55, phoneLine = 0.88) {
       window.removeEventListener('resize', onScroll);
       if (raf) window.cancelAnimationFrame(raf);
     };
-  }, [count, line, phoneLine]);
+  }, [count]);
   const register = (i) => (el) => {
     els.current[i] = el;
   };
@@ -130,4 +139,27 @@ export function useScrollProgress() {
     };
   }, []);
   return [ref, p];
+}
+
+// A one-shot entry move for a figure whose opening state differs from its
+// "before" picture: renders `prev` until `entered` (the figure is in view;
+// Scrolly passes it as ctx.entered), holds `hold` ms, then renders `cur`, and
+// from then on follows `cur` (step changes). Under reduced motion, `cur` at
+// once. Call it inside a component (the figure), not inside Scrolly's
+// `graphic` callback, which Scrolly calls conditionally.
+//
+//   const s = useEnterState(0, state, ctx?.entered ?? true);
+// Inside FinalState (Scrolly's hidden measuring copies) it returns `cur`
+// at once, so the box is measured on the real state.
+export const FinalState = createContext(false);
+export function useEnterState(prev, cur, entered, hold = 400) {
+  const reduce = useReducedMotion();
+  const final = useContext(FinalState);
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!entered || armed || reduce || final) return undefined;
+    const t = setTimeout(() => setArmed(true), hold);
+    return () => clearTimeout(t);
+  }, [entered, armed, hold, reduce, final]);
+  return reduce || final || armed ? cur : prev;
 }

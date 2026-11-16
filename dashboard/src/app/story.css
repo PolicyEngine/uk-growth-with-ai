@@ -64,13 +64,8 @@
 
 /* Part openers */
 .story-part {
-  padding: 96px 0 8px;
+  padding: 32px 0 8px;
   scroll-margin-top: calc(var(--sticky-offset) + 40px);
-}
-/* After a part that ends on its "Next" line, a shorter run of page before
-   the next part's band */
-.story-part:has(.story-next) + .story-part {
-  padding-top: 56px;
 }
 
 /* The part head sits on a full-bleed teal-50 band (box-shadow and
@@ -145,22 +140,19 @@
   gap: 48px;
   margin: 0 0 32px;
 }
-/* The sticky box fills the screen below the rail and centres the figure
-   card in it ("safe": a card taller than the space aligns to the top). */
+/* The figure sticks below the rail while the step column beside it is
+   taller; it is never taller than itself (no empty band round it). */
 .scrolly-graphic {
   grid-column: 2;
   grid-row: 1;
   position: sticky;
   top: var(--story-graphic-top);
   align-self: start;
-  display: flex;
-  flex-direction: column;
-  justify-content: safe center;
-  height: calc(100vh - var(--story-graphic-top));
   transition: top 300ms var(--story-ease);
 }
 .scrolly.is-single .scrolly-graphic {
-  height: auto;
+  position: relative;
+  top: auto;
 }
 .scrolly-graphic-inner {
   position: relative;
@@ -174,32 +166,27 @@
   grid-column: 1;
   grid-row: 1;
   margin: 0;
-  /* no lead-in: the first card sits beside the graphic; the tail lets the
-     last card reach the trigger line (motion.js) while the graphic is held */
-  padding: 0 0 14vh;
+  /* no lead-in and no tail: the block ends with its last card */
+  padding: 0;
   list-style: none;
 }
-/* Cards follow one another with a short gap; each step is tall enough
-   that the active card changes about once per half screen of scroll. */
+/* Cards follow one another 32px apart: no step is taller than its card. */
 .scrolly-step {
   /* a link to a step lands its card below the rail */
   scroll-margin-top: calc(var(--story-graphic-top) + 16px);
-  min-height: 70vh;
-  padding-bottom: 24px;
+  padding-bottom: 32px;
   display: flex;
   align-items: flex-start;
 }
-/* the last card of a multi-step block keeps half a screen, so the graphic
-   stays pinned while it is read; a single card needs none */
 .scrolly-step:nth-last-child(2) {
-  min-height: 50vh;
+  padding-bottom: 0;
 }
-.scrolly.is-single .scrolly-step:nth-last-child(2) {
+/* a card-less step (old step lists): a zero-height marker */
+.scrolly-step.is-spacer,
+.scrolly-step.is-spacer:nth-last-child(2) {
+  height: 0;
   min-height: 0;
-}
-/* a card-less step: the graphic holds its opening state for a short scroll */
-.scrolly-step.is-spacer {
-  min-height: 36vh;
+  padding: 0;
 }
 .scrolly-end {
   height: 1px;
@@ -216,7 +203,7 @@
 }
 .scrolly-step.is-active .scrolly-card {
   opacity: 1;
-  border-left-color: var(--c-highlight);
+  border-left-color: var(--part-accent, var(--c-highlight));
 }
 .scrolly.is-single .scrolly-card {
   opacity: 1;
@@ -239,7 +226,24 @@
   display: flex;
   gap: 4px;
 }
-.scrolly-dots-row i {
+.scrolly-dots-row {
+  gap: 0;
+}
+/* each dot is a button: a 16px target round a 6px dot */
+.scrolly-dots-row button {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin: 0 -3px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.scrolly-dots-row button::before {
+  content: '';
   display: block;
   width: 6px;
   height: 6px;
@@ -247,12 +251,64 @@
   background: var(--pe-gray-300);
   transition: background-color 300ms var(--story-ease), transform 300ms var(--story-ease);
 }
-.scrolly-dots-row i.is-past {
+.scrolly-dots-row button:hover::before {
+  background: var(--pe-gray-500);
+}
+.scrolly-dots-row button.is-past::before {
   background: var(--pe-gray-400);
 }
-.scrolly-dots-row i.is-on {
-  background: var(--c-highlight);
+.scrolly-dots-row button.is-on::before {
+  background: var(--part-accent, var(--c-highlight));
   transform: scale(1.35);
+}
+.scrolly-dots-row button:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 0;
+}
+/* Scene sub-header (Scrolly `sub`): concept icon, scene name, a hairline
+   to the right; spans both columns above the block */
+.scene-head {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  margin: 0 0 4px;
+  color: var(--pe-gray-600);
+}
+.scene-head::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--card-border);
+}
+.scene-head-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.scene-head-title {
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--pe-gray-700);
+}
+.scrolly.has-sub > .scrolly-graphic,
+.scrolly.has-sub > .scrolly-steps {
+  grid-row: 2;
+}
+/* Scrolly `foot`: the figure's one-line source and legend */
+.scrolly-foot {
+  margin-top: 8px;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.scrolly-kicker-icon {
+  display: inline-flex;
+  vertical-align: -2px;
+  margin-right: 6px;
+  color: var(--pe-gray-400);
 }
 .scrolly-graphic-inner.is-inline {
   margin-bottom: 16px;
@@ -379,6 +435,26 @@
 }
 .tile.is-dim {
   opacity: 0.25;
+}
+/* TileField: staggered travel (--d per tile), colour in the last third */
+.tile-field .tile {
+  transition:
+    transform 750ms var(--ch-ease) var(--d, 0ms),
+    fill 250ms ease calc(var(--d, 0ms) + 500ms),
+    opacity 300ms ease var(--d, 0ms);
+}
+.tile-field .tile.is-drop {
+  animation: tile-drop 450ms var(--ch-ease) var(--d, 0ms) backwards;
+}
+@keyframes tile-drop {
+  from {
+    translate: 0 -28px;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
 }
 
 /* Tab change: the panel that appears eases in */
@@ -521,7 +597,7 @@
     padding-top: 20px;
   }
   .story-part {
-    padding-top: 56px;
+    padding-top: 24px;
   }
   .story-part-head {
     grid-template-columns: auto minmax(0, 1fr);
@@ -580,10 +656,28 @@
     top: 8px;
     right: 10px;
   }
+  /* the foot follows the last card */
+  .scrolly > .scrolly-foot {
+    margin: 0 0 24px;
+  }
+  /* phone="once": the figure once, complete, above the cards; not sticky */
+  .scrolly.is-once .scrolly-graphic {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    padding-bottom: 0;
+    box-shadow: none;
+  }
+  .scrolly.is-once .scrolly-step:nth-last-child(2) {
+    padding-bottom: 0;
+  }
+  .scrolly.is-once .scrolly-step.is-past .scrolly-card {
+    opacity: 1;
+  }
   .scrolly.is-inline .scrolly-step,
   .scrolly.is-inline .scrolly-step:nth-last-child(2) {
     display: block;
-    padding-bottom: 32px;
+    padding-bottom: 24px;
   }
   .scrolly.is-inline .scrolly-steps {
     padding-top: 0;
@@ -599,7 +693,7 @@
   .scrolly-steps {
     position: relative;
     z-index: 1;
-    padding: 2vh 0 6vh;
+    padding: 12px 0 0;
   }
   /* The chart changes as the next card enters (trigger 0.88). By then
      the card before has mostly passed under the opaque graphic; any tail
@@ -614,17 +708,13 @@
   .scrolly.is-inline .scrolly-step.is-past .scrolly-card {
     opacity: 1;
   }
-  .scrolly-step,
-  .scrolly-step:nth-last-child(2) {
+  .scrolly-step {
     min-height: 0;
-    padding-bottom: 24vh;
+    padding-bottom: 24px;
   }
-  .scrolly-step:nth-last-child(2) {
-    padding-bottom: 8vh;
-  }
+  .scrolly-step:nth-last-child(2),
   .scrolly-step.is-spacer {
-    min-height: 0;
-    padding-bottom: 30vh;
+    padding-bottom: 0;
   }
   .scrolly-card {
     opacity: 1;
@@ -651,9 +741,10 @@
   .grow-rect,
   .fade-g,
   .tile,
+  .tile-field .tile,
   .scrolly-card,
   .scrolly-graphic,
-  .scrolly-dots-row i,
+  .scrolly-dots-row button::before,
   .draw-end,
   .story-callout,
   .story-next {
@@ -667,6 +758,9 @@
   }
   .fade-g {
     transform: none;
+  }
+  .tile-field .tile.is-drop {
+    animation: none;
   }
   .tab-panel:not([hidden]) {
     animation: none;
@@ -1042,4 +1136,367 @@
   flex: none;
   margin-top: 2px;
   color: var(--c-highlight);
+}
+
+/* Phones: figure titles keep clear of the step dots (top right of the
+   card), so a long title wraps before it runs under them. */
+@media (max-width: 600px) {
+  .scrolly-graphic-inner.has-dots .story-figure-title,
+  .scrolly-graphic-inner.has-dots .ch-frame-head {
+    padding-right: 76px;
+  }
+}
+
+/* ---------- Chart primitives (components/story/chart/*) ----------
+   Type in real pixels from the --ch-* tokens (ab.css); nothing below 11px;
+   numbers tabular. Motion: transforms, opacity and stroke-dashoffset only. */
+.ch-frame {
+  margin: 0;
+}
+.ch-frame-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 22px;
+  margin: 0 0 6px;
+}
+.scrolly-graphic-inner.has-dots .ch-frame-head {
+  padding-right: 76px;
+}
+.ch-frame-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+.ch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font: 600 11px/1.3 var(--ch-font);
+  color: var(--part-accent);
+  background: var(--part-tint);
+}
+.ch-badge-icon {
+  display: inline-flex;
+}
+.ch-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 2px;
+  font: var(--ch-title);
+  color: var(--ch-title-color);
+}
+.ch-title-icon {
+  display: inline-flex;
+  margin-top: 3px;
+  color: var(--pe-gray-500);
+}
+.ch-unit {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 10px;
+  font: var(--ch-unit);
+  color: var(--ch-unit-color);
+}
+.ch-unit-icon {
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--pe-gray-400);
+}
+.ch-stack-cell {
+  display: grid;
+}
+.ch-stack-cell > * {
+  grid-area: 1 / 1;
+}
+.ch-ghost {
+  visibility: hidden;
+  pointer-events: none;
+}
+.ch-plot {
+  position: relative;
+}
+.ch-plot svg {
+  display: block;
+  overflow: visible;
+}
+.ch-foot {
+  margin-top: 8px;
+}
+.ch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+  font: 400 12px/1.4 var(--ch-font);
+  color: var(--pe-gray-600);
+}
+.ch-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ch-legend li.is-off {
+  opacity: 0.35;
+}
+.ch-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  border-top: 2.5px solid var(--sw);
+}
+.ch-swatch.is-dashed {
+  border-top-style: dashed;
+}
+.ch-swatch.is-block {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--sw);
+}
+.ch-source-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.ch-source {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  font: var(--ch-source);
+  color: var(--ch-source-color);
+}
+.ch-source-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ch-source-icon {
+  display: inline-flex;
+  align-self: center;
+}
+.ch-source a {
+  color: inherit;
+}
+.ch-sources {
+  flex: 0 0 auto;
+  font: var(--ch-source);
+  color: var(--ch-source-color);
+}
+.ch-sources > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  list-style: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ch-sources > summary::-webkit-details-marker {
+  display: none;
+}
+/* opens over the figure, so the card's height never changes */
+.ch-sources-body {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 4;
+  width: min(420px, 100%);
+  max-height: 60vh;
+  overflow: auto;
+  padding: 10px 12px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px var(--shadow-soft);
+  font: var(--ch-source);
+  color: var(--pe-gray-600);
+}
+.ch-tick {
+  font: var(--ch-tick);
+  fill: var(--ch-tick-color);
+  font-variant-numeric: tabular-nums;
+}
+.ch-tick-g,
+.ch-grid-line,
+.ch-zero {
+  transition: transform 600ms var(--ch-ease), opacity 300ms ease;
+}
+.ch-tick-g {
+  animation: ch-fade-in 300ms ease both;
+}
+@keyframes ch-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.ch-grid-line {
+  stroke: var(--ch-grid);
+  stroke-width: 1;
+  stroke-dasharray: var(--ch-grid-dash);
+  stroke-linecap: round;
+}
+.ch-zero {
+  stroke: var(--ch-zero);
+  stroke-width: 1;
+}
+.ch-band-rect {
+  fill: var(--ch-band);
+}
+.ch-band.is-shock .ch-band-rect {
+  fill: var(--ch-band-shock);
+}
+.ch-note {
+  font: var(--ch-note);
+  fill: var(--ch-note-color);
+}
+.ch-label {
+  font: var(--ch-label);
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: var(--pe-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+/* a series line: hidden until on, then draws along its path; once drawn
+   the dash is gone (the animation ends), so a View rescale never shows a
+   dash seam */
+.ch-line {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ch-line.is-on {
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  animation: ch-draw 700ms var(--ch-ease) var(--ch-delay, 0ms) backwards;
+}
+.ch-line.is-dashed {
+  stroke-dashoffset: 0;
+  opacity: 0;
+}
+.ch-line.is-dashed.is-on {
+  opacity: 1;
+  animation: ch-fade-in 300ms ease var(--ch-delay, 0ms) backwards;
+}
+@keyframes ch-draw {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+.ch-end {
+  stroke: var(--pe-surface);
+  stroke-width: 2;
+  paint-order: stroke;
+  opacity: 0;
+}
+/* end dot and area appear as the draw finishes (animations, so they also
+   wait on first render) */
+.ch-end.is-on,
+.ch-area.is-on {
+  opacity: 1;
+  animation: ch-fade-in 300ms ease var(--ch-delay, 0ms) backwards;
+}
+.ch-area {
+  opacity: 0;
+}
+.ch-bar {
+  transform-box: fill-box;
+  transition: transform 500ms var(--ch-ease);
+}
+.ch-bar.is-v {
+  transform: scaleY(0);
+}
+.ch-bar.is-h {
+  transform: scaleX(0);
+}
+.ch-bar.is-on {
+  transform: none;
+}
+.ch-view {
+  transition: transform 600ms var(--ch-ease);
+}
+.ch-view path,
+.ch-view line,
+.ch-view rect,
+.ch-view circle,
+.ch-view polyline {
+  vector-effect: non-scaling-stroke;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ch-tick-g,
+  .ch-grid-line,
+  .ch-zero,
+  .ch-line,
+  .ch-end,
+  .ch-area,
+  .ch-bar,
+  .ch-view {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Desktop, several cards: the figure box has a set height range, so a short
+   figure does not leave the right half blank while pinned (A2.4); the
+   figure is centred in it, a taller one grows past it. */
+@media (min-width: 901px) {
+  .scrolly:not(.is-single) .scrolly-graphic-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 96px), 620px);
+  }
+}
+/* "Show on chart" (the figure drawn once, phones): an icon button at the
+   card's top right that sets the figure's state; it adds no height */
+.scrolly.is-once .scrolly-card {
+  position: relative;
+  padding-right: 40px;
+}
+.scrolly-show {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  background: var(--pe-surface);
+  color: var(--pe-gray-500);
+  cursor: pointer;
+}
+.scrolly-show[aria-pressed='true'] {
+  border-color: var(--part-accent, var(--c-highlight));
+  color: var(--part-accent, var(--c-highlight));
+}
+.scrolly-show:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  /* a sticky scene holds each state for at least 180px of scroll */
+  .scrolly.is-scene .scrolly-card {
+    min-height: 156px;
+  }
 }

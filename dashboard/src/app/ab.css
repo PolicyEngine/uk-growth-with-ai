@@ -98,6 +98,35 @@
   --fs-caption: 0.8125rem;
   --fs-micro: 0.75rem;
   --sticky-offset: calc(var(--title-row-height) + var(--tab-row-height));
+  --c-loss-text: #b45309;
+
+  /* Chart tokens (wave 2; components/story/chart/*, mirrored as literals in
+     lib/chartTheme.js CH for exports). Type is set in real pixels: charts
+     are drawn at their measured width. Nothing in a chart below 11px. */
+  --ch-font: var(--pe-font-family);
+  --ch-title: 600 16px/1.35 var(--ch-font);
+  --ch-title-color: var(--pe-gray-900);
+  --ch-unit: 400 13px/1.4 var(--ch-font);
+  --ch-unit-color: var(--pe-gray-600);
+  --ch-tick: 400 12px/1 var(--ch-font);
+  --ch-tick-color: var(--pe-gray-500);
+  --ch-label: 600 12px/1.2 var(--ch-font);
+  --ch-note: 500 11px/1.2 var(--ch-font);
+  --ch-note-color: var(--pe-gray-500);
+  --ch-source: 400 12px/1.45 var(--ch-font);
+  --ch-source-color: var(--pe-gray-500);
+  --ch-grid: var(--c-grid);
+  --ch-grid-dash: 1 4;
+  --ch-zero: var(--c-zero-line);
+  --ch-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ch-band: var(--pe-gray-100);
+  --ch-band-shock: var(--c-highlight-band);
+  --ch-cross: var(--pe-gray-400);
+
+  /* Part identity (set per .story-part by the shell; these defaults keep
+     today's teal chrome) */
+  --part-accent: var(--c-highlight);
+  --part-tint: var(--c-highlight-band);
 }
 
 html, body {
