@@ -1,6 +1,6 @@
 // Story part 1: the home of the official statistics. Each latest figure is
-// printed once, in the UK vitals panel or a step card; graphics print no values (axis ticks carry
-// data-axis). The expected figures are built here by hand from the data
+// printed once, in the UK vitals panel, a step card, the AI chart's end
+// label or the AI closing line; other graphic text is axis ticks (data-axis). The expected figures are built here by hand from the data
 // file's paths, and the part is rendered against both the real file and a
 // fixture with altered values, so a hard-coded number fails.
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -101,20 +101,20 @@ describe('story part 1, real data', () => {
     }
   });
 
-  it('labels the current year by its quarters, apart from the full-year bars', () => {
+  it('labels the full-year bars by year and puts the latest quarter in the GDP tile', () => {
     const q = real.facts.gdp_quarterly_latest.period;
     const lastFull = real.series.gdp_growth.x[real.series.gdp_growth.x.length - 1];
     expect(Number(q.slice(0, 4))).toBeGreaterThan(lastFull);
     const annual = render(<OutputCanvas state={0} />).container;
     expect(annual.querySelector('.story-figure-unit').textContent).toContain(`${lastFull} is the latest complete year`);
     cleanup();
-    const quarters = render(<OutputCanvas state={2} />).container;
-    const note = quarters.querySelector('.p1-only-q.p1-note');
-    expect(note.textContent).toContain(`${q.slice(0, 4)} Q1`);
-    expect(note.textContent).toContain('year not yet complete');
-    cleanup();
-    const share = render(<LabourBoard focus={4} />).container;
-    expect(share.querySelector('.story-figure-unit').textContent).toContain(`ends at ${real.series.labour_share.x.at(-1)}, the latest full year`);
+    // the current year's latest quarter is in the GDP tile, a first estimate,
+    // with the growth on a year earlier (its home since the quarters step went)
+    const gdp = show(Part1Real).querySelector('#p1-vital-gdp');
+    expect(gdp.querySelector('#p1-quarters')).not.toBeNull();
+    expect(gdp.textContent).toContain(q);
+    expect(gdp.textContent).toContain('first estimate');
+    expect(gdp.querySelector('[data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
   });
 
   it('labels the OBR forecast with its vintage, from the data file', () => {
@@ -147,41 +147,48 @@ describe('story part 1, real data', () => {
     const figs = el.querySelectorAll('.p1-figure');
     expect(figs).toHaveLength(4); // output canvas, labour board, AI use, exposure tiles
     figs.forEach((fig) => {
-      const links = fig.querySelectorAll('.story-source a');
+      const links = fig.querySelectorAll('p.story-source a');
       expect(links.length).toBeGreaterThan(0);
       links.forEach((a) => expect(urls.has(a.getAttribute('href'))).toBe(true));
+      // one fold a figure: its sources, definitions and caveats
+      expect(fig.querySelectorAll('details')).toHaveLength(1);
+      fig.querySelectorAll('details a').forEach((a) => expect(a.getAttribute('href')).toMatch(/^https:\/\//));
       // the visible source line links readable pages, never a CSV or spreadsheet download
       fig.querySelectorAll('.story-source:not(li) a').forEach((a) => expect(a.getAttribute('href')).not.toMatch(/generator\?/));
     });
   });
 
-  it('links every printed figure to its source page, not a download', () => {
+  it('marks every printed figure with its data-path; numbers are not links (the source line links the source)', () => {
     const el = show(Part1Real);
     const paths = el.querySelectorAll('[data-path]');
     expect(paths.length).toBe(checks.figures.length);
-    paths.forEach((n) => {
-      const a = n.closest('a') ?? n.querySelector('a');
-      expect(a, n.getAttribute('data-path')).not.toBeNull();
-      expect(a.getAttribute('href')).toMatch(/^https:\/\//);
-      expect(a.getAttribute('href')).not.toMatch(/generator\?/);
-    });
+    paths.forEach((n) => expect(n.closest('a'), n.getAttribute('data-path')).toBeNull());
     for (const s of Object.values(real.sources)) expect(s.page).toMatch(/^https:\/\/(www\.ons\.gov\.uk|obr\.uk|www\.gov\.uk)\//);
     for (const f of checks.figures) expect(f.page).toMatch(/^https:\/\//);
   });
 
-  it('opens with a UK vitals panel: seven tiles, each value linked, period and release stamped', () => {
+  it('opens with a UK vitals panel: seven tiles of name, value with sparkline and one sub-line; sources in one fold', () => {
     const el = show(Part1Real);
     const tiles = el.querySelectorAll('#p1-vitals .p1-vital');
     expect([...tiles].map((t) => t.dataset.vital)).toEqual(['gdp', 'productivity', 'employment', 'unemployment', 'pay', 'share', 'ai']);
     tiles.forEach((t) => {
-      expect(t.querySelector('[data-path]').closest('a')).not.toBeNull();
-      expect(t.textContent).toMatch(/Through /);
-      expect(t.textContent).toMatch(/Released \d+ \w+ \d{4}/);
+      expect([...t.querySelectorAll(':scope > p')].map((pp) => pp.className)).toEqual(['p1-vital-name', 'p1-vital-value', 'p1-vital-sub']);
+      expect(t.querySelectorAll('a')).toHaveLength(0);
+      expect(t.querySelector('.p1-vital-name').querySelectorAll('svg')).toHaveLength(1);
       expect(t.querySelector('svg.p1-vital-spark').getAttribute('aria-hidden')).toBe('true');
     });
-    // the first estimate is flagged, from the fact's note
-    expect(el.querySelector('#p1-vital-gdp .p1-flag').textContent).toContain('First estimate');
-    expect(el.querySelector('#p1-vital-employment .p1-flag')).toBeNull();
+    // the first estimate is said in words, from the fact's note
+    expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toContain('first estimate');
+    expect(el.querySelector('#p1-vital-employment .p1-vital-sub').textContent).not.toContain('first estimate');
+    // one fold: each tile's dataset, linked to its page, and its release date
+    const fold = el.querySelectorAll('#p1-vitals details');
+    expect(fold).toHaveLength(1);
+    const items = fold[0].querySelectorAll('li[data-cite]');
+    expect(items).toHaveLength(7);
+    items.forEach((li) => {
+      expect(li.textContent).toMatch(/released \d+ \w+ \d{4}/);
+      expect(li.querySelector('a').getAttribute('href')).toMatch(/^https:\/\//);
+    });
     // the panel comes before the first scene
     expect(el.querySelector('#p1-vitals').compareDocumentPosition(el.querySelector('#p1-output')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -199,7 +206,7 @@ describe('story part 1, real data', () => {
   });
 
   it('keeps each topic takeaway true of the series on the page', async () => {
-    const { OUTPUT_TAKEAWAY, WORK_TAKEAWAY, AI_TAKEAWAY } = await import('@/tabs/story/Part1.jsx');
+    const { OUTPUT_TAKEAWAY, WORK_TAKEAWAY } = await import('@/tabs/story/Part1.jsx');
     const S = real.series;
     // output: every year after the rebound below most 2010s years; every quarter of the current year above zero
     const g = (y) => S.gdp_growth.y[S.gdp_growth.x.indexOf(y)];
@@ -208,8 +215,8 @@ describe('story part 1, real data', () => {
     const lastYear = S.gdp_quarterly.x.at(-1).slice(0, 4);
     S.gdp_quarterly.x.forEach((q, i) => q.startsWith(lastYear) && expect(S.gdp_quarterly.y[i]).toBeGreaterThan(0));
     expect(OUTPUT_TAKEAWAY).toContain('below most 2010s rates');
-    // work ("a steady labour market, with pay growth slowing and output per
-    // hour flat since 2023"): employment within 0.5 points of a year earlier;
+    // work ("a steady labour market: pay growth slowing, output per hour
+    // flat since 2023"): employment within 0.5 points of a year earlier;
     // pay growth peaked in 2023 and is lower now; output per hour about 100 (2023 = 100)
     const e = S.employment_rate;
     const yearAgo = (s) => s.y[s.x.indexOf(`${Number(s.x.at(-1).slice(0, 4)) - 1} ${s.x.at(-1).slice(5)}`)];
@@ -228,34 +235,26 @@ describe('story part 1, real data', () => {
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
     const f = real.facts;
     expect(f.workers_high_exposure_high_complementarity.value + f.workers_high_exposure_low_complementarity.value).toBeGreaterThan(50);
-    expect(AI_TAKEAWAY).toMatch(/most UK workers/);
   });
 
   it('keeps each step sentence true of the series it highlights', () => {
     const S = real.series;
     const text = show(Part1Real).textContent;
-    // output, step 3: every quarter of the latest year grew
-    const yr = S.gdp_quarterly.x.at(-1).slice(0, 4);
-    S.gdp_quarterly.x.forEach((q, i) => q.startsWith(yr) && expect(S.gdp_quarterly.y[i]).toBeGreaterThan(0));
-    expect(text).toContain(`GDP grew in each quarter of ${yr}`);
-    // jobs: employment within 0.5 points of a year earlier; unemployment below last December's
+    // jobs: employment within 0.5 points of a year earlier
     const e = S.employment_rate;
-    const u = S.unemployment_rate;
     const yearAgo = (s) => s.y[s.x.indexOf(`${Number(s.x.at(-1).slice(0, 4)) - 1} ${s.x.at(-1).slice(5)}`)];
     expect(Math.abs(e.y.at(-1) - yearAgo(e))).toBeLessThanOrEqual(0.5);
-    expect(u.y.at(-1)).toBeLessThan(u.y[u.x.indexOf(`${Number(u.x.at(-1).slice(0, 4)) - 1} DEC`)]);
-    expect(text).toContain('unemployment has eased since December');
+    expect(text).toContain('Employment is close to its level a year ago');
     // pay: slowed since its 2023 peak
     expect(S.pay_growth.x[S.pay_growth.y.indexOf(Math.max(...S.pay_growth.y))].slice(0, 4)).toBe('2023');
     expect(text).toContain('slowed since its 2023 peak');
-    // productivity back at its 2023 level (index 2023 = 100); the employee share rose in its last year
+    // productivity back at its 2023 level (index 2023 = 100)
     expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
-    const sh = S.labour_share;
-    expect(sh.y.at(-1)).toBeGreaterThan(sh.y.at(-2));
-    expect(text).toContain(`employee share of GDP rose in ${sh.x.at(-1)}`);
+    expect(text).toContain('Output per hour is back at its 2023 level');
     // AI: all businesses up every September; the 10+ group up more
-    expect(text).toContain('has risen every September since 2023');
-    expect(text).toContain('rose faster');
+    const rise = (k) => S[k].y.at(-1) - S[k].y[0];
+    expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
+    expect(text).toContain('has risen every September since 2023, fastest in larger businesses');
   });
 
   it('gives every topic a question, hint and answer, and a recap of the three, with no figure in a hint or question', async () => {
@@ -263,13 +262,14 @@ describe('story part 1, real data', () => {
     for (const q of [P.OUTPUT_Q, P.WORK_Q, P.AI_Q, P.OUTPUT_HINT, P.WORK_HINT, P.AI_HINT]) expect(q.match(FIGURE)).toBeNull();
     const el = show(Part1Real);
     expect([...el.querySelectorAll('.scene-head[id]')].map((h) => h.id)).toEqual(['q-p1-output', 'q-p1-work', 'q-p1-ai']);
-    // the output and work answers link to their figures' homes, so they are
-    // data-axis (not counted); the AI answer is the home of its two figures
-    const answers = [...el.querySelectorAll('.scrolly-answer-a')];
-    expect(answers).toHaveLength(3);
-    expect(answers.map((a) => a.hasAttribute('data-axis'))).toEqual([true, true, false]);
-    expect(answers[0].textContent).toContain(pct1(real.facts.gdp_growth_latest.value));
-    expect(answers[1].querySelector('a').getAttribute('href')).toContain('p1-vitals');
+    // one closing line a scene: the output and work lines hold no figures;
+    // the AI line is the home of its two figures
+    expect(P.OUTPUT_TAKEAWAY.match(FIGURE)).toBeNull();
+    expect(P.WORK_TAKEAWAY.match(FIGURE)).toBeNull();
+    const text = el.textContent;
+    expect(text).toContain(P.OUTPUT_TAKEAWAY);
+    expect(text).toContain(P.WORK_TAKEAWAY);
+    expect(text).toContain('of UK workers are in highly exposed jobs');
     // part 1's recap plays in part 2's first pinned screen (Fable): checked as data
     expect(P.P1_RECAP.map((r) => r.to)).toEqual(['q-p1-output', 'q-p1-work', 'q-p1-ai']);
   });
@@ -282,22 +282,24 @@ describe('story part 1, real data', () => {
     el.querySelectorAll('.scrolly').forEach((b) => expect(b.querySelectorAll('.scrolly-step:not(.is-spacer)').length).toBeLessThanOrEqual(3));
     const marks = (c) => new Set([...c.querySelectorAll('[data-mark]')].flatMap((m) => m.dataset.mark.split(/\s+/)));
     const out = marks(render(<OutputCanvas state={1} />).container);
-    for (const id of ['gdp-latest', 'gdp-annual', 'obr-forecast', 'q-now', 'num-1', 'num-2', 'num-3']) expect(out.has(id)).toBe(true);
+    for (const id of ['gdp-latest', 'gdp-annual', 'obr-forecast']) expect(out.has(id)).toBe(true);
     cleanup();
     const board = marks(render(<LabourBoard focus={0} />).container);
-    for (const id of ['employment', 'unemployment', 'pay', 'productivity', 'share']) expect(board.has(id)).toBe(true);
+    for (const id of ['employment', 'pay', 'productivity']) expect(board.has(id)).toBe(true);
     cleanup();
-    const ai = marks(render(<AiUseChart state={1} />).container);
+    const ai = marks(render(<AiUseChart />).container);
     for (const id of ['ai-all', 'ai-ten']) expect(ai.has(id)).toBe(true);
   });
 
   it('has three scenes that keep every old step id and block id as link targets', () => {
     const el = show(Part1Real);
     expect([...el.querySelectorAll('.scrolly')].map((b) => b.id)).toEqual(['p1-output', 'p1-work', 'p1-ai']);
-    const steps = ['p1-output-0', 'p1-output-1', 'p1-quarters-0', 'p1-work-0', 'p1-pay-0', 'p1-productivity-0', 'p1-ai-0', 'p1-ai-1', 'p1-exposure-0'];
+    const steps = ['p1-output-0', 'p1-output-1', 'p1-work-0', 'p1-pay-0', 'p1-productivity-0', 'p1-ai-0', 'p1-exposure-0'];
     expect([...el.querySelectorAll('.scrolly-step')].map((li) => li.id)).toEqual(steps);
+    // the removed quarters step: its anchor is on the GDP tile, which holds its figure
+    expect(el.querySelector('#p1-quarters').closest('#p1-vital-gdp')).not.toBeNull();
     // old block ids and removed step ids: an anchor in the card that now holds the figure
-    const home = { 'p1-quarters': 'p1-quarters-0', 'p1-pay': 'p1-pay-0', 'p1-productivity': 'p1-productivity-0', 'p1-share': 'p1-productivity-0', 'p1-exposure': 'p1-exposure-0', 'p1-work-1': 'p1-work-0', 'p1-share-0': 'p1-productivity-0', 'p1-exposure-1': 'p1-exposure-0' };
+    const home = { 'p1-ai-1': 'p1-ai-0', 'p1-pay': 'p1-pay-0', 'p1-productivity': 'p1-productivity-0', 'p1-share': 'p1-productivity-0', 'p1-exposure': 'p1-exposure-0', 'p1-work-1': 'p1-work-0', 'p1-share-0': 'p1-productivity-0', 'p1-exposure-1': 'p1-exposure-0' };
     for (const [id, step] of Object.entries(home)) {
       const a = el.querySelector(`#${id}`);
       expect(a, id).not.toBeNull();
@@ -326,7 +328,7 @@ describe('story part 1, real data', () => {
     });
   });
 
-  it('makes every card a short title with an icon, one sentence, and no long lines', () => {
+  it('makes every card one sentence, with no fold or links beside it', () => {
     const el = show(Part1Real);
     // each child span counted apart (textContent glues a fact's value, label and sub)
     const words = (n) => [...(n.children.length ? n.children : [n])].map((c) => c.textContent).join(' ').replace(/\s+/g, ' ').trim().split(' ').length;
@@ -336,35 +338,29 @@ describe('story part 1, real data', () => {
       const say = c.querySelectorAll('.p1-say');
       expect(say).toHaveLength(1);
       expect(say[0].textContent.replace(/\s+/g, ' ').trim().split(' ').length).toBeLessThanOrEqual(20);
-      // nothing beside it but the vitals links and the fold
-      expect(c.querySelectorAll('.story-facts')).toHaveLength(0);
-      c.querySelectorAll('.story-items').forEach((ul) => expect(ul.closest('details')).not.toBeNull());
+      // nothing beside it: no fold, no links, no facts row
+      expect(c.querySelectorAll('details, a, .story-facts')).toHaveLength(0);
       c.querySelectorAll('p').forEach((pp) => expect(words(pp)).toBeLessThanOrEqual(25));
-      // every item and fact has its icon, and is about a dozen words
-      c.querySelectorAll('.story-items > li, .story-facts > li').forEach((li) => {
-        expect(li.querySelector('svg')).not.toBeNull();
-        expect(words(li), li.textContent).toBeLessThanOrEqual(12);
-      });
+      c.querySelectorAll('li').forEach((li) => expect(words(li), li.textContent).toBeLessThanOrEqual(12));
     });
   });
 
-  it('leads every line of text with a plain icon (or a colour swatch in a legend)', () => {
+  it('puts icons only where they mark a kind of thing: none in source, unit or fold lines, never two in a block', () => {
     const el = show(Part1Real);
-    const bare = [];
-    el.querySelectorAll('p, li, summary, h2, h3, h4').forEach((n) => {
-      if (n.closest('svg, .p1-title-ghost, [data-axis]') || !n.textContent.trim()) return;
-      if (n.querySelector('p, li')) return; // leaf blocks only
-      // shared pieces this part does not own: the step kicker (scrolly), the part's heading (PartHead)
-      if (n.matches('.scrolly-kicker, .story-part-head h2')) return;
-      // a scene sub-header's icon sits beside its heading (Scrolly's scene-head)
-      if (!n.querySelector('svg, .p1-swatch') && !n.closest('.scene-head')?.querySelector('svg')) bare.push(n.textContent.slice(0, 40));
+    el.querySelectorAll('.story-source, .story-figure-unit, summary, details li, .p1-say, .p1-vital-sub').forEach((n) => {
+      // a key's swatch is the legend mark, not an icon
+      expect([...n.querySelectorAll('svg')].filter((v) => !v.closest('.p1-vital-spark, .hl-key')), n.textContent.slice(0, 40)).toHaveLength(0);
     });
-    expect(bare).toEqual([]);
+    el.querySelectorAll('p, li, h3').forEach((n) => {
+      if (n.closest('svg') || n.querySelector('p, li')) return;
+      const icons = [...n.querySelectorAll('svg')].filter((v) => !v.matches('.p1-vital-spark') && !v.closest('.hl-key') && v.getAttribute('role') !== 'img');
+      expect(icons.length, n.textContent.slice(0, 40)).toBeLessThanOrEqual(1);
+    });
   });
 
   it('keeps the source lines to the citation (no caveat notes)', () => {
     const el = show(Part1Real);
-    el.querySelectorAll('.p1-figure .story-source').forEach((s) => {
+    el.querySelectorAll('.p1-figure p.story-source').forEach((s) => {
       expect(s.textContent).not.toMatch(/Labour Force Survey|leaves out|drawn apart/i);
     });
   });
@@ -419,28 +415,23 @@ describe('story part 1, first states', () => {
     expect(barPath(10, 8, 100, 160)).toMatch(/^M10,100L10,158Q/);
   });
 
-  it('keeps all five series on the labour board at every step, one in focus', () => {
+  it('keeps the three series the cards name on the labour board, one in focus', () => {
     const n = boardSeries().length;
-    expect(n).toBe(5);
+    expect(n).toBe(3);
     for (let f = 0; f < n; f += 1) {
       const c = render(<LabourBoard focus={f} />).container;
-      expect(c.querySelectorAll('.p1-board-series')).toHaveLength(5);
-      expect(c.querySelectorAll('.p1-board-series.is-focus')).toHaveLength(1);
+      expect(c.querySelectorAll('.p1-board-series')).toHaveLength(3);
       expect([...c.querySelectorAll('.p1-board-series')].findIndex((g) => g.classList.contains('is-focus'))).toBe(f);
       expect(c.querySelectorAll('.p1-board-axes.is-on')).toHaveLength(1);
-      expect(c.querySelector('.ch-cross svg').getAttribute('aria-label')).toMatch(/Four smaller charts below it show .*, each on its own scale\./);
       cleanup();
     }
   });
 
-  it('draws one AI line at step 0 and labels the second only once it is drawn', () => {
-    const ai = render(<AiUseChart state={0} />).container;
-    expect([...ai.querySelectorAll('.p1-ai-line')].map((p) => p.classList.contains('is-on'))).toEqual([false, true]);
-    expect(ai.querySelector('.p1-end-label.is-ten').classList.contains('is-on')).toBe(false);
-    cleanup();
-    const two = render(<AiUseChart state={1} />).container;
-    expect([...two.querySelectorAll('.p1-ai-line')].map((p) => p.classList.contains('is-on'))).toEqual([true, true]);
-    expect(two.querySelector('.p1-end-label.is-ten').classList.contains('is-on')).toBe(true);
+  it('draws both AI lines, the larger businesses’ end label carrying their latest value', () => {
+    const ai = render(<AiUseChart />).container;
+    expect(ai.querySelectorAll('.p1-ai-line')).toHaveLength(2);
+    const lab = ai.querySelector('.p1-end-label.is-ten [data-path="facts.business_ai_use_10plus.value"]');
+    expect(lab.textContent).toBe(pct1(real.facts.business_ai_use_10plus.value));
   });
 
   it('shows the tiles as one block first, then in the three exposure groups', () => {
@@ -480,30 +471,10 @@ describe('story part 1, first states', () => {
   });
 });
 
-// Each growth-rate arrow must follow its value's sign, and the words beside
-// it ('up', 'down', 'unchanged') must say the same.
-const checkArrows = (el) => {
-  const arrows = [...el.querySelectorAll('.p1-growth')];
-  expect(arrows.length).toBe(2); // the GDP and pay tiles (the step sentences say the direction in words)
-  for (const a of arrows) {
-    const v = Number(a.textContent.replace('−', '-').replace('%', ''));
-    expect(a.getAttribute('data-dir')).toBe(dirOf(v));
-    // the fact's icon is the arrow for that sign (Lucide's class names the glyph)
-    const fact = a.closest('.story-fact, .p1-vital');
-    const glyph = fact.querySelector('.story-fact-icon svg, .p1-vital-dir svg').getAttribute('class');
-    expect(glyph).toContain({ rise: 'lucide-arrow-up', fall: 'lucide-arrow-down', flat: 'lucide-minus' }[dirOf(v)]);
-    const sub = fact.querySelector('.story-fact-sub, .p1-vital-label').textContent;
-    expect(sub).toContain(dirWord(v));
-  }
-};
-
-describe('story part 1, direction arrows', () => {
-  it('maps a sign to its arrow and word', () => {
+describe('story part 1, direction words', () => {
+  it('maps a sign to its word', () => {
     expect([dirOf(1.2), dirOf(-0.4), dirOf(0)]).toEqual(['rise', 'fall', 'flat']);
     expect([dirWord(1.2), dirWord(-0.4), dirWord(0)]).toEqual(['up', 'down', 'unchanged']);
-  });
-  it('draws each arrow from its value’s sign, real data', () => {
-    checkArrows(show(Part1Real));
   });
 });
 
@@ -531,11 +502,9 @@ describe('story part 1, altered data', () => {
     const el = show(Part1Fix);
     expect(figures(textWithoutAxes(el))).toEqual(expected(fx));
     expect(el.textContent).toContain('The OBR’s latest central forecast, published March 2027');
-    // the arrows follow the altered signs (a fall, a zero, rises)
-    checkArrows(el);
-    expect(el.querySelector('#p1-vital-gdp .p1-growth').getAttribute('data-dir')).toBe('fall');
-    expect(el.querySelector('#p1-vital-pay .p1-growth').getAttribute('data-dir')).toBe('flat');
-    expect(el.querySelector('#p1-vital-pay .p1-vital-label').textContent).toContain('unchanged');
+    // the direction words follow the altered signs (a fall, a zero)
+    expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toMatch(/^down /);
+    expect(el.querySelector('#p1-vital-pay .p1-vital-sub').textContent).toMatch(/^unchanged /);
     vi.doUnmock('@/data/ukContext.json');
   });
 });
@@ -584,10 +553,11 @@ describe('hero', () => {
     for (const p of lines) expect(p.getAttribute('d').match(/[ML]/g).length).toBe(S.years.length);
     const i = S.years.indexOf(S.headline_year);
     for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
-      expect(wide.textContent).toContain(`${sign(S.results[s].tfp['zk0.1'].gaps.Y[i])} in ${S.headline_year}`);
+      expect(wide.textContent).toContain(sign(S.results[s].tfp['zk0.1'].gaps.Y[i]));
     }
-    // nothing scrubs with the scroll: the reveal is a CSS animation only
-    expect(wide.querySelector('.hf-reveal').getAttribute('width')).not.toBeNull();
+    // the first frame is the final one: no draw-in, no count-up
+    expect(wide.querySelector('.hf-reveal, clipPath')).toBeNull();
+    expect(el.querySelector('.hf-figure .count-up, .hf-figure [data-count]')).toBeNull();
     expect(el.querySelector('.hf-line.is-on').dataset.mark).toBe('uk_central');
   });
 });

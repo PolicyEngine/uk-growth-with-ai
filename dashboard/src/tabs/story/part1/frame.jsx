@@ -144,7 +144,8 @@ function Stack({ value, reserve }) {
   );
 }
 
-// A figure's title and unit line, each led by a plain concept icon.
+// A figure's title, led by its one plain concept icon, and its unit line
+// (no icon).
 export function FigTitle({ icon, title, reserve }) {
   return (
     <p className="story-figure-title p1-title-row">
@@ -157,7 +158,6 @@ export function FigTitle({ icon, title, reserve }) {
 // with any reference such as "2023 = 100"), marked data-axis-title="y".
 export const FigUnit = ({ children, reserve }) => (
   <p className="story-figure-unit p1-title-row" data-axis-title="y">
-    <Icon name={iconFor('measure')} size={14} className="p1-text-icon" />
     <Stack value={children} reserve={reserve} />
   </p>
 );
@@ -170,15 +170,16 @@ const SHORT = {
 const short = (s) => SHORT[s.publisher] ?? s.publisher;
 
 // The foot of a figure: one line, "Source:" and the linked dataset names by
-// publisher; then a "Sources" disclosure with each dataset's series and
-// release date, which opens over the figure without changing its height.
-// items: [{ id, name, detail }]; `note`: a line for the disclosure only.
-// `through`: the last period the figure shows, stamped after the sources.
-export function SourceLine({ items, note, through }) {
+// publisher; then the figure's one disclosure, "Sources and notes": each
+// dataset's series and release date, then the definitions and caveats the
+// figure's cards point to (no figures in it), which opens over the figure
+// without changing its height. items: [{ id, name, detail }]; `note`: a
+// line on the sources; `notes`: the definitions and caveats. `through`:
+// the last period the figure shows, stamped after the sources.
+export function SourceLine({ items, note, notes = [], through }) {
   return (
     <div className="p1-foot">
       <p className="story-source">
-        <Icon name={iconFor('source')} size={13} className="p1-source-icon" />
         Source:{' '}
         {items.map((it, i) => {
           const s = SOURCES[it.id];
@@ -196,16 +197,12 @@ export function SourceLine({ items, note, through }) {
         {through ? <span className="p1-through">. Through {through}</span> : null}
       </p>
       <details className="p1-sources">
-        <summary>
-          <Icon name={iconFor('survey')} size={13} className="p1-source-icon" />
-          Sources
-        </summary>
+        <summary>Sources and notes</summary>
         <ul className="p1-sources-list" data-cite="">
           {items.map((it) => {
             const s = SOURCES[it.id];
             return (
               <li key={it.id} className="story-source">
-                <Icon name={iconFor('source')} size={13} className="p1-source-icon" />
                 {s.publisher}, <Ext href={pageOf(it.id)}>{it.name}</Ext>, {it.detail ?? s.series}, released {dateLong(s.released)}
                 {s.url !== pageOf(it.id) ? (
                   <>
@@ -217,12 +214,12 @@ export function SourceLine({ items, note, through }) {
               </li>
             );
           })}
-          {note ? (
-            <li className="story-source">
-              <Icon name={iconFor('source')} size={13} className="p1-source-icon" />
-              {note}
+          {note ? <li className="story-source">{note}</li> : null}
+          {notes.filter(Boolean).map((n, i) => (
+            <li key={`n${i}`} className="story-source p1-note-item">
+              {n}
             </li>
-          ) : null}
+          ))}
         </ul>
       </details>
     </div>

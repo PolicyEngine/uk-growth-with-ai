@@ -162,53 +162,37 @@
   transition-delay: 0ms, 300ms;
 }
 
-/* 1B, the labour board: each series' group moves between the panel and
-   a sparkline slot (600ms); the axes of the new focus fade in after it */
-.p1-board-move {
-  transition: transform 600ms var(--p1-ease);
-}
+/* 1B, the labour board: one panel; a change of focus fades the old
+   series and its axes out and the new ones in */
 .p1-board-line {
   fill: none;
-  stroke: var(--pe-gray-500);
-  stroke-width: 1.5;
+  stroke: var(--mk, var(--p1-ink));
+  stroke-width: 2.5;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   opacity: 0;
-  transition: opacity 500ms var(--p1-ease), stroke-width 300ms var(--p1-ease), stroke 300ms var(--p1-ease);
-}
-.p1-board-line.is-drawn {
-  opacity: 1;
-}
-.p1-board-series .p1-board-line {
-  stroke: var(--mk, var(--pe-gray-500));
-}
-.is-focus .p1-board-line {
-  stroke: var(--mk, var(--p1-ink));
-  stroke-width: 2.5;
+  transition: opacity 300ms var(--p1-ease);
 }
 .p1-board-end {
-  fill: var(--pe-gray-500);
+  fill: var(--mk, var(--p1-ink));
   stroke: var(--pe-surface, #fff);
   stroke-width: 2;
   opacity: 0;
-  transition: transform 600ms var(--p1-ease), opacity 300ms var(--p1-ease) 300ms;
-}
-.p1-board-svg.is-seen .p1-board-end {
-  opacity: 1;
-}
-.p1-board-series .p1-board-end {
-  fill: var(--mk, var(--pe-gray-500));
-}
-.is-focus .p1-board-end {
-  fill: var(--mk, var(--p1-ink));
+  transition: opacity 300ms var(--p1-ease);
 }
 .p1-board-area {
   opacity: 0;
-  transition: opacity 150ms var(--p1-ease);
+  transition: opacity 300ms var(--p1-ease);
 }
+.is-focus .p1-board-line.is-drawn,
+.p1-board-svg.is-seen .is-focus .p1-board-end,
 .is-focus .p1-board-area {
   opacity: 1;
-  transition: opacity 300ms var(--p1-ease) 600ms;
+  transition-delay: 200ms;
+}
+.p1-board-series:not(.is-focus) {
+  visibility: hidden;
+  transition: visibility 0s linear 300ms;
 }
 .p1-board-axes {
   opacity: 0;
@@ -218,39 +202,7 @@
 .p1-board-axes.is-on {
   opacity: 1;
   visibility: visible;
-  transition: opacity 300ms var(--p1-ease) 450ms, visibility 0s linear 0s;
-}
-.p1-spark-name {
-  font-size: 11px;
-  font-weight: 500;
-  fill: var(--pe-gray-600);
-  opacity: 0;
-  transition: transform 600ms var(--p1-ease), opacity 150ms var(--p1-ease);
-}
-.p1-spark-name.is-on {
-  opacity: 1;
-  transition: transform 600ms var(--p1-ease), opacity 300ms var(--p1-ease) 450ms;
-}
-.p1-spark-hits {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.p1-spark-hit {
-  position: absolute;
-  pointer-events: auto;
-  padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  cursor: pointer;
-}
-.p1-spark-hit:hover {
-  background: color-mix(in srgb, var(--pe-gray-500) 8%, transparent);
-}
-.p1-spark-hit:focus-visible {
-  outline: 2px solid var(--pe-gray-600);
-  outline-offset: 1px;
+  transition: opacity 300ms var(--p1-ease) 200ms, visibility 0s linear 0s;
 }
 
 /* 1C, AI use: two lines that draw, dots at the waves, end labels */
@@ -434,102 +386,6 @@
 }
 
 
-/* "About these figures": a caveat under a card, closed by default */
-.p1-about {
-  margin-top: 10px;
-  font-size: var(--fs-small);
-  color: var(--pe-gray-600);
-}
-.p1-about summary {
-  cursor: pointer;
-  color: var(--pe-gray-700);
-  font-weight: 600;
-}
-.p1-about summary .plain-icon {
-  display: inline-flex;
-  vertical-align: -2px;
-  margin-right: 4px;
-  color: var(--pe-gray-500);
-}
-.p1-about .story-items {
-  margin-top: 8px;
-}
-
-/* Key facts in a step card: smaller numbers than a page-level row, so a
-   card stays compact; three facts sit in one row where there is room. */
-.p1-facts {
-  margin: 4px 0 14px;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px 18px;
-}
-.p1-facts .story-fact {
-  align-content: start;
-  align-items: start;
-}
-.p1-facts .story-fact-value {
-  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
-}
-.p1-facts.is-three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px 12px;
-}
-/* blank room, not content: the exposure labels, unhyphenated, are a line
-   shorter, and this keeps the last exposure state's scroll hold (check_states) */
-#p1-exposure-1 .p1-facts.is-three {
-  margin-bottom: 34px;
-}
-/* three to a row: the icon sits above the number, so each fact is narrow */
-.p1-facts.is-three .story-fact {
-  grid-template-columns: minmax(0, 1fr);
-}
-.p1-facts.is-three .story-fact-label {
-  font-size: var(--fs-caption);
-}
-.p1-facts.is-three .story-fact-icon {
-  grid-row: auto;
-  margin-top: 0;
-}
-.p1-facts.is-three .story-fact-value {
-  font-size: clamp(1.125rem, 1.7vw, 1.375rem);
-}
-/* phones: the three stats stacked in one column, each with its icon beside
-   it again (one to a row leaves the room) */
-@media (max-width: 520px) {
-  .p1-facts.is-three {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-  #p1-exposure-1 .p1-facts.is-three {
-    margin-bottom: 14px;
-  }
-  .p1-facts.is-three .story-fact {
-    grid-template-columns: 22px minmax(0, 1fr);
-  }
-  .p1-facts.is-three .story-fact-icon {
-    grid-row: 1 / span 3;
-    margin-top: 4px;
-  }
-}
-/* the arrow beside a growth rate: from its sign, grey, never a colour */
-.p1-growth {
-  display: inline-flex;
-  gap: 2px;
-  align-items: center;
-}
-.p1-dir {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-
-/* Part 1's head: the lead as three short items */
-.story-items.p1-head-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  margin-top: 12px;
-  font-size: var(--fs-body);
-  color: var(--pe-gray-700);
-}
 
 @media (max-width: 900px) {
   .p1-figure .story-figure-unit {
@@ -587,7 +443,7 @@
 }
 
 /* hero (Hero.jsx): question, the big figure, then the four-scenario
-   chart, complete at rest; the lines draw in once on load */
+   chart, complete from the first frame (no draw-in, no fade) */
 .story-hero.hf {
   align-items: start;
 }
@@ -740,9 +596,6 @@
   font-size: var(--fs-small);
   color: var(--pe-gray-700);
 }
-.hf-legend-title {
-  color: var(--pe-gray-600);
-}
 .hf-chip {
   display: inline-flex;
   gap: 6px;
@@ -784,52 +637,6 @@
     display: flex;
   }
 }
-/* the draw-in, once on load: the plot, axes and labels of the dates are
-   there from the first frame; the lines sweep from the first year to the
-   last, then the band and the end labels arrive */
-@media (prefers-reduced-motion: no-preference) {
-  .hf-reveal {
-    transform-box: fill-box;
-    transform-origin: left center;
-    animation: hf-sweep 1000ms cubic-bezier(0.33, 0, 0.2, 1) 150ms both;
-  }
-  .hf-band-g {
-    animation: hf-fade 500ms ease-out 700ms both;
-  }
-  .hf-dot,
-  .hf-end {
-    animation: hf-land 420ms ease-out 1000ms both;
-  }
-  .hf-chip {
-    animation: hf-fade 400ms ease-out 900ms both;
-  }
-}
-@keyframes hf-sweep {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-@keyframes hf-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes hf-land {
-  from {
-    opacity: 0;
-    transform: translateX(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 
 /* Desktop: the plot box follows the viewport, so a sticky figure fills
    the space beside its cards (addendum A2.4: the figure box is about
@@ -853,19 +660,6 @@
   }
 }
 
-/* A printed figure links to its source's page: the number keeps its look,
-   with a dotted underline that firms up on hover */
-.p1-val-link {
-  color: inherit;
-  text-decoration: underline dotted var(--pe-gray-400);
-  text-underline-offset: 4px;
-  text-decoration-thickness: 1px;
-}
-.p1-val-link:hover,
-.p1-val-link:focus-visible {
-  text-decoration-style: solid;
-  text-decoration-color: currentColor;
-}
 .p1-through {
   color: var(--pe-gray-600);
 }
@@ -874,37 +668,24 @@
   fill: var(--pe-gray-500);
 }
 
-/* The UK vitals panel: seven tiles, one row on wide screens */
+/* The UK vitals panel: seven tiles, one row on wide screens. Each tile is
+   name, value with sparkline, one sub-line; a hairline above, no box. */
 .p1-vitals {
-  margin: 4px 0;
+  margin: 4px 0 24px;
 }
-.p1-vitals-head {
+.p1-vitals-title {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-.p1-vitals-head h3 {
-  display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  margin: 0;
-  font-size: var(--fs-h4, 1.05rem);
-}
-.p1-vitals-asof {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 0;
-  font-size: var(--fs-micro);
-  color: var(--pe-gray-600);
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
 }
 .p1-vitals-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -912,99 +693,59 @@
 .p1-vital {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
-  padding: 8px 9px 7px;
-  border: 1px solid var(--pe-gray-200);
-  border-radius: 8px;
-  background: var(--page-bg, #fff);
-  font-size: var(--fs-micro);
-  line-height: 1.3;
-  color: var(--pe-gray-600);
+  padding-top: 8px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.p1-vital p {
+  margin: 0;
 }
 .p1-vital-name {
   display: flex;
-  gap: 5px;
+  gap: 6px;
   align-items: center;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--pe-gray-800);
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.p1-vital-name svg {
+  flex: none;
+  color: var(--pe-gray-500);
 }
 .p1-vital-value {
   display: flex;
-  gap: 2px;
+  gap: 8px;
   align-items: center;
-  font-size: 1.45rem;
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
   color: var(--pe-gray-900);
 }
-.p1-vital-dir {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-.p1-vital-label {
-  color: var(--pe-gray-700);
-}
 .p1-vital-sub {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--pe-gray-700);
-}
-.p1-flag {
-  display: inline-flex;
-  gap: 3px;
-  align-items: center;
-  margin-left: auto;
-  font-weight: 400;
-  white-space: nowrap;
-  padding: 0 5px;
-  border: 1px solid var(--pe-gray-300);
-  border-radius: 999px;
-  font-size: 10px;
-  line-height: 14px;
-  color: var(--pe-gray-700);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pe-gray-500);
 }
 .p1-vital-spark {
   flex: 1 1 auto;
   min-width: 24px;
+  max-width: 72px;
   height: 22px;
-  margin-left: 8px;
   overflow: visible;
 }
 .p1-vital-spark path {
   fill: none;
-  stroke: var(--pe-gray-700);
+  stroke: var(--pe-gray-500);
   stroke-width: 1.5;
 }
 .p1-vital-spark circle {
-  fill: var(--pe-gray-800);
+  fill: var(--pe-gray-700);
 }
-.p1-vital-span {
-  font-size: 11px;
-  color: var(--pe-gray-500);
-}
-.p1-vital-main,
-.p1-vital-cite {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin: 0;
-}
-.p1-vital-cite {
-  margin-top: auto;
-  padding-top: 1px;
-}
-.p1-vital-meta {
-  font-size: 11px;
-}
-.p1-vital-src .p1-source-icon {
-  margin-right: 3px;
-  vertical-align: -1px;
-}
-.p1-vital-src {
-  font-size: 11px;
-  overflow-wrap: anywhere;
+.p1-vitals-sources {
+  margin-top: 8px;
 }
 @media (max-width: 1180px) {
   .p1-vitals-grid {
@@ -1034,92 +775,60 @@
   }
 }
 
-/* Step cards (Part1.jsx): one sentence, then the vitals links and the fold */
+/* Step cards (Part1.jsx): one sentence */
 .p1-say {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  margin: 0 0 10px;
-  font-size: var(--fs-body-lg);
-  line-height: 1.55;
-  color: var(--pe-gray-900);
-}
-.p1-say-icon {
-  flex: none;
-  position: relative;
-  top: 2px;
-  color: var(--pe-gray-500);
+  margin: 0 0 12px;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+  text-wrap: pretty;
 }
 .p1-say .hl-fig {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.p1-latest {
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-  margin: 0 0 6px;
-  font-size: var(--fs-small);
-  color: var(--pe-gray-600);
-}
-.p1-latest .p1-text-icon {
-  flex: none;
-  position: relative;
-  top: 2px;
-}
-.p1-about-group + .p1-about-group {
-  margin-top: 6px;
-}
-.p1-about-label {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  margin: 8px 0 0;
-  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--pe-gray-500);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
 }
-.p1-about .p1-about-group .story-items {
-  margin-top: 4px;
-}
-/* the exposure step's three groups: a small table, the coloured names as the legend */
+/* the exposure step's three groups: a small key, name and share on one
+   line, the coloured names as the legend */
 .p1-groups-say {
   display: grid;
   gap: 4px;
-  margin: 0 0 10px 24px;
+  margin: 0 0 12px;
   padding: 0;
   list-style: none;
 }
 .p1-groups-say li {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  min-width: 0;
   max-width: 340px;
-  font-size: var(--fs-body);
-}
-/* on a phone the key wraps rather than pushing the card off the screen */
-.p1-groups-say .hl-key {
-  white-space: normal;
+  font-size: 14px;
+  line-height: 1.4;
 }
 .p1-groups-say .hl-fig {
-  margin-left: auto;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
 }
 
-/* a series brought into the board's panel by a click (or an old link) is
-   never dimmed, whichever marks the step highlights */
-[data-hl] .p1-board-series.is-focus[data-mark] {
-  opacity: 1;
-}
 /* a mark not drawn in this state stays hidden while a step highlights
    others (the highlight's 25% would otherwise show it) */
 [data-hl] .p1-ai-dot[data-mark]:not(.is-on),
 [data-hl] .p1-ai-area[data-mark]:not(.is-on) {
   opacity: 0;
+}
+
+/* the hero's statements under the figure: plain lines, no icons */
+.story-hero-text p.hf-statement {
+  max-width: 34ch;
+  margin: 10px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: var(--pe-gray-900);
+}
+.story-hero-text p.hf-statement + p.hf-statement {
+  margin-top: 4px;
 }
