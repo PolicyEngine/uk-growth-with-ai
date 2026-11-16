@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { SCENARIOS, CLOSURES, fixedInputVsTz, gap } from '@/tabs/ai/surprise.js';
-import ScenariosTab, { stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosTab.jsx';
+import ScenariosSection, { stressMove, tzGdpMove, stressItems, tzGdpItems } from './ScenariosSection.jsx';
 
 afterEach(cleanup);
 
@@ -40,7 +40,7 @@ describe('Scenarios direction icons', () => {
   });
 
   it('renders the arm cards with their items and keeps the anchors', () => {
-    const { container } = render(<ScenariosTab />);
+    const { container } = render(<ScenariosSection />);
     for (const id of ['s-scenarios', 's-arms', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     expect(container.textContent).toContain('A bound, not a forecast');

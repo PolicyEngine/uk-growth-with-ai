@@ -95,7 +95,11 @@ const LEGACY_SUB = {
   method: {
     built: ['method', null, 'm-closures'],
     limits: ['method', null, 'm-limits'],
-    history: ['method', null, 'm-history'],
+    // the revision history is the changelog on Data and code
+    history: ['method', 'code', 'changelog'],
+    // Scenarios folded into OG-UK method; its old ids (s-*, scen-*, arm-*,
+    // timing, m-jump) are kept there, so a named anchor is kept
+    scenarios: ['method', null, 'm-scenarios'],
   },
   code: { reproduce: ['method', 'code'], oguk: ['method', 'code', 'use-oguk'] },
 };
@@ -105,7 +109,7 @@ const LEGACY_SUB = {
 const ALIAS = {
   results: (sub, anchor) => ['explore', sub, anchor],
   who: (sub, anchor) => ['explore', 'who', anchor],
-  scenarios: (sub, anchor) => ['method', 'scenarios', anchor],
+  scenarios: (sub, anchor) => ['method', null, anchor ?? 'm-scenarios'],
   studies: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
   literature: (sub, anchor) => ['method', 'studies', anchor ?? STUDY_SUBS[sub] ?? null],
   code: (sub, anchor) => ['method', 'code', anchor],
@@ -117,11 +121,12 @@ const own = (o, k) => (k != null && Object.hasOwn(o, k) ? o[k] : undefined);
 export function resolve(tab, sub = null, anchor = null) {
   const legacy = own(own(LEGACY_SUB, tab) ?? {}, sub);
   if (legacy) {
-    anchor = legacy[2] ?? anchor;
+    anchor = (tab === 'method' && sub === 'scenarios' ? anchor : null) ?? legacy[2] ?? anchor;
     sub = legacy[1] ?? null;
     tab = legacy[0];
   }
   else if (own(ALIAS, tab)) [tab, sub, anchor] = ALIAS[tab](sub, anchor);
+  if (tab === 'method' && anchor === 'm-history') [sub, anchor] = ['code', 'changelog'];
   if (tab === 'method' && anchor && !sub) sub = 'how';
   return [tab, sub, anchor];
 }

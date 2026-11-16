@@ -26,7 +26,7 @@ describe('address', () => {
     expect(parseUrl('?tab=explore&sub=households')).toMatchObject({ tab: 'explore', sub: 'households' });
     expect(parseUrl('?tab=method&sub=households')).toMatchObject({ tab: 'method', sub: 'households' });
     expect(parseUrl('?tab=who&closure=both')).toMatchObject({ tab: 'explore', sub: 'who', closure: 'both' });
-    expect(parseUrl('?tab=scenarios')).toMatchObject({ tab: 'method', sub: 'scenarios' });
+    expect(parseUrl('?tab=scenarios')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-scenarios' });
     expect(parseUrl('?tab=method')).toMatchObject({ tab: 'method', sub: null });
     expect(parseUrl('?tab=method', '#m-rules')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-rules' });
     expect(parseUrl('?tab=studies')).toMatchObject({ tab: 'method', sub: 'studies', anchor: null });
@@ -40,7 +40,11 @@ describe('address', () => {
     expect(parseUrl('?tab=cohorts')).toMatchObject({ tab: 'explore', sub: 'who' });
     expect(parseUrl('?tab=literature&sub=numbers')).toMatchObject({ tab: 'method', sub: 'studies', anchor: 'numbers' });
     expect(parseUrl('?tab=literature&sub=matrix')).toMatchObject({ tab: 'method', sub: 'studies', anchor: 'coverage' });
-    expect(parseUrl('?tab=method&sub=scenarios')).toMatchObject({ tab: 'method', sub: 'scenarios' });
+    expect(parseUrl('?tab=method&sub=scenarios')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-scenarios' });
+    expect(parseUrl('?tab=method&sub=scenarios', '#m-jump')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-jump' });
+    expect(parseUrl('?tab=method&sub=scenarios&s=korinek')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-scenarios', s: 'korinek' });
+    expect(parseUrl('?tab=method&sub=history')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'changelog' });
+    expect(parseUrl('?tab=method', '#m-history')).toMatchObject({ tab: 'method', sub: 'code', anchor: 'changelog' });
     expect(parseUrl('?tab=method&sub=limits')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-limits' });
     expect(parseUrl('?tab=results&sub=variables&s=uk_high')).toMatchObject({ tab: 'explore', sub: null, anchor: 'explore-part-economy', s: 'uk_high' });
     expect(parseUrl('?tab=results&sub=overview')).toMatchObject({ tab: 'story', sub: null });
@@ -52,7 +56,7 @@ describe('address', () => {
   });
 
   it('resolves hash addresses the live site hands out', () => {
-    expect(parseUrl('', '#scenarios')).toMatchObject({ tab: 'method', sub: 'scenarios' });
+    expect(parseUrl('', '#scenarios')).toMatchObject({ tab: 'method', sub: null, anchor: 'm-scenarios' });
     expect(parseUrl('', '#code')).toMatchObject({ tab: 'method', sub: 'code' });
     expect(parseUrl('', '#who')).toMatchObject({ tab: 'explore', sub: 'who' });
     expect(parseUrl('', '#results')).toMatchObject({ tab: 'explore', sub: null });

@@ -9,7 +9,8 @@ export const PAGE_TITLE = 'The macroeconomic effects of AI on the UK';
 // pickers in the settings bar (`rule` may list the rules that page has
 // solves for; the others show disabled). `study`: a uk-ai-study page, which
 // shows the "different model" chip in place of the OG-UK settings. The site
-// had seven tabs until November 2026; lib/nav.jsx sends their addresses here.
+// had seven tabs until November 2026, and a Scenarios sub-tab until it
+// folded into OG-UK method; lib/nav.jsx sends their addresses here.
 export const TABS = [
   { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
   { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true, rule: true,
@@ -24,7 +25,6 @@ export const TABS = [
     subs: [
       { id: 'how', label: 'OG-UK method', icon: 'sigma' },
       { id: 'households', label: 'Household method', icon: 'briefcase', study: true },
-      { id: 'scenarios', label: 'Scenarios', icon: 'target' },
       { id: 'studies', label: 'Evidence', icon: 'library' },
       { id: 'code', label: 'Data and code', icon: 'code' },
     ] },
