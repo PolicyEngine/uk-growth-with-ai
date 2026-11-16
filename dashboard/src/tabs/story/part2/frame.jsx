@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { FadeG } from '@/components/story/primitives.jsx';
 
 // Shared pieces of part 2's line charts. The charts draw shapes only: the
@@ -149,11 +150,24 @@ export function EndLabels({ sc, items, delay = 0 }) {
   );
 }
 
+// A plain icon (a concept) before a line of text: part 2 gives every text
+// element one, titles, sources, links and disclosures included.
+export function Tx({ icon, size = 14, children }) {
+  return (
+    <>
+      <Icon name={iconFor(icon)} size={size} className="p2-tx-icon" />
+      {children}
+    </>
+  );
+}
+
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, unit, legend, source = SOURCE, children }) {
+export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', children }) {
   return (
     <figure className="p2-figure">
-      <p className="story-figure-title">{title}</p>
+      <p className="story-figure-title">
+        <Tx icon={icon}>{title}</Tx>
+      </p>
       {unit ? <p className="story-figure-unit">{unit}</p> : null}
       {children}
       {legend?.length ? (
@@ -166,7 +180,11 @@ export function Figure({ title, unit, legend, source = SOURCE, children }) {
           ))}
         </ul>
       ) : null}
-      <figcaption className="story-source">{source}</figcaption>
+      <figcaption className="story-source">
+        <Tx icon="source" size={12}>
+          {source}
+        </Tx>
+      </figcaption>
     </figure>
   );
 }
@@ -175,7 +193,7 @@ export function Figure({ title, unit, legend, source = SOURCE, children }) {
 export function More({ children, ...link }) {
   return (
     <p className="p2-more">
-      <Icon name="arrowRight" size={14} />
+      <Icon name={iconFor('link')} size={14} />
       <NavLink {...link}>{children}</NavLink>
     </p>
   );

@@ -212,7 +212,8 @@
 }
 
 /* The headline stat tiles (Landing.jsx HeadlineTiles), in the story only:
-   a small label and a large tabular number, no icon */
+   a plain grey icon and small label, a large tabular number with an arrow
+   from its sign (in the number's own colour) */
 .story-headline .stat-name {
   font-size: var(--fs-caption);
   font-weight: 600;
@@ -613,4 +614,139 @@
     clip-path: none;
     transform: none;
   }
+}
+
+.story-headline .stat-name > .plain-icon {
+  color: var(--pe-gray-500);
+}
+.story-headline .stat-value {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.stat-dir {
+  display: inline-flex;
+  flex: none;
+}
+
+/* Why (Landing.jsx SummaryWhy): the chain, its arrows from the solve's
+   signs, the qualifiers, then how sure */
+.p2-why .story-chain {
+  margin-bottom: 12px;
+}
+.p2-why-dir {
+  display: inline-flex;
+  margin-left: 4px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.p2-why .story-chain-text {
+  display: inline-flex;
+  align-items: center;
+}
+.p2-why-notes {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.p2-sure {
+  margin: 20px 0 0;
+  padding: 12px 14px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--pe-radius-md);
+}
+.p2-sure-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p2-sure-title .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.p2-sure .story-items {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px 20px;
+}
+.p2-sure a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Two lenses: two columns of items inside the call-out */
+.p2-lenses {
+  margin-top: 4px;
+  font-size: var(--fs-small);
+}
+.p2-lenses .story-compare-title {
+  margin-bottom: 6px;
+}
+.p2-lenses .story-item-icon,
+.p2-lenses .story-compare-title .plain-icon {
+  color: var(--pe-gray-500);
+}
+
+/* Items inside details */
+.p2-details .story-items {
+  margin-top: 4px;
+  font-size: var(--fs-small);
+}
+
+/* The output split's chips: a part's name with its swatch; hovering,
+   focusing or tapping one picks out the ribbon and the row */
+.p2-chip {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 0 2px;
+  margin: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  background: none;
+  border: 0;
+  border-bottom: 1.5px dotted var(--pe-gray-400);
+  border-radius: 0;
+  cursor: pointer;
+}
+.p2-chip-sw {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  background: var(--sw);
+  border-radius: 2px;
+}
+.p2-chip:hover,
+.p2-chip.is-on {
+  border-bottom-color: var(--c-highlight);
+  border-bottom-style: solid;
+}
+.p2-chip:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+
+/* A plain icon before a line of text (frame.jsx Tx): titles, leads,
+   sources, links, disclosures */
+.p2-tx-icon {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -0.12em;
+  color: var(--pe-gray-500);
+}
+.story-next-links .p2-tx-icon,
+.p2-details summary .p2-tx-icon {
+  margin-right: 4px;
+}
+.p2-src-line {
+  display: block;
+}
+.p2-src-line + .p2-src-line {
+  margin-top: 2px;
 }

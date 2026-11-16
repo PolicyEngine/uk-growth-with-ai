@@ -2,8 +2,10 @@
 
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import { W, H, niceTicks, SOURCE, More } from './frame.jsx';
+import { W, H, niceTicks, SOURCE, More, Tx } from './frame.jsx';
 import { series } from './charts.jsx';
+import { EPS2 } from './dir.js';
+import { Items } from '@/components/story/Items.jsx';
 import { MODEL_BASE_VINTAGE } from '../part1/data.js';
 
 // From the record to the model, in one chart whose axes and lines move
@@ -203,7 +205,7 @@ export function MorphChart({ state, sid, cl }) {
       <p className="story-figure-title p2-text-stack">
         {all.map((t, i) => (
           <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
-            {t.title}
+            <Tx icon="path">{t.title}</Tx>
           </span>
         ))}
       </p>
@@ -347,7 +349,11 @@ export function MorphChart({ state, sid, cl }) {
           </g>
         </g>
       </svg>
-      <figcaption className="story-source">{sourceText(s)}</figcaption>
+      <figcaption className="story-source">
+        <Tx icon="source" size={12}>
+          {sourceText(s)}
+        </Tx>
+      </figcaption>
     </figure>
   );
 }
@@ -359,15 +365,12 @@ export function morphSteps(sid, cl) {
     { id: 'p2-morph-1', spacer: true },
     {
       id: 'p2-morph-2',
+      icon: 'path',
       kicker: 'From the record to the model',
       title: 'From growth rates to a gap',
       body: (
         <>
-          <p>
-            OG-UK&rsquo;s no-shock path, the OBR-central path, is built on the OBR&rsquo;s central assumptions ({MODEL_BASE_VINTAGE}{' '}
-            forecast). Its results are gaps against it: zero is that path, and the blue line is GDP in {SCEN_NAME[sid]} above it,{' '}
-            {cl === BOUND ? 'with closed capital' : 'at the central closure'}.
-          </p>
+          <Items items={morphItems(sid, cl)} />
           <More tab="method" sub="how">How the path is set</More>
         </>
       ),
@@ -375,3 +378,21 @@ export function morphSteps(sid, cl) {
   ];
 }
 
+
+// The morph card's items. The blue line's direction is read from the
+// scenario's GDP gap after the surprise (every year above, every year
+// below, or neither), so the icon and the words agree with the chart.
+export function morphItems(sid, cl) {
+  const ys = series(sid, 'tfp', cl, 'Y');
+  const tail = ys ? ys.slice(YEARS.indexOf(SURPRISE_YEAR) + 1) : [];
+  const dir = !tail.length ? null : tail.every((v) => v > EPS2) ? 'gapUp' : tail.every((v) => v < -EPS2) ? 'gapDown' : null;
+  const where = cl === BOUND ? 'with closed capital' : 'at the central closure';
+  return [
+    { icon: 'forecast', text: `OG-UK’s no-shock path, the OBR-central path, uses OBR assumptions` },
+    { icon: 'source', text: `From the OBR’s central forecast of ${MODEL_BASE_VINTAGE}` },
+    { icon: 'measure', text: 'Results are gaps against it: zero is that path' },
+    dir
+      ? { icon: dir, text: `Blue line: GDP in ${SCEN_NAME[sid]} ${dir === 'gapUp' ? 'above' : 'below'} it, ${where}` }
+      : { icon: 'path', text: `Blue line: GDP in ${SCEN_NAME[sid]} against it, ${where}` },
+  ];
+}

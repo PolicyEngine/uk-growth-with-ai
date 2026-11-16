@@ -1,6 +1,7 @@
 'use client';
 
 import { TileGrid } from '@/components/story/primitives.jsx';
+import { Tx } from './frame.jsx';
 
 // The shock, illustrated: one tile is one per cent of output. Labour's
 // tiles on the left, capital's on the right. Step 1 moves tiles from labour
@@ -62,7 +63,9 @@ const LABELS = [
 export default function ShockTiles({ state }) {
   return (
     <figure className="p2-figure">
-      <p className="story-figure-title">Who output is paid to</p>
+      <p className="story-figure-title">
+        <Tx icon="gdp">Who output is paid to</Tx>
+      </p>
       <p className="story-figure-unit">One tile is one per cent of output before the shock. Illustrative: sizes are exaggerated.</p>
       <div className="p2-tiles">
         <div className="p2-tile-heads" aria-hidden="true">
@@ -71,7 +74,11 @@ export default function ShockTiles({ state }) {
         </div>
         <TileGrid tiles={shockTiles(state)} width={COLS * 2 + GAP} height={ROWS} label={LABELS[state]} />
       </div>
-      <figcaption className="story-source">Illustration, not model output.</figcaption>
+      <figcaption className="story-source">
+        <Tx icon="caveat" size={12}>
+          Illustration, not model output.
+        </Tx>
+      </figcaption>
     </figure>
   );
 }

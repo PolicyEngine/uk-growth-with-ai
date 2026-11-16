@@ -241,6 +241,7 @@ export function WelfareShape({ state }) {
   const ticks = xs.filter((x) => x % 20 === 0);
   return (
     <Figure
+      icon="age"
       title="Welfare change by birth year"
       unit="UK central, automation + productivity, central closure, debt-neutral transfers, all earnings groups. Consumption-equivalent change, % (vertical axis), by birth year (horizontal axis)"
     >

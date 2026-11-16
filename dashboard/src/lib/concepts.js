@@ -77,6 +77,9 @@ export const CONCEPT_ICON = {
   nominal: 'coins', // before adjusting for inflation
   complement: 'handshake', // work that AI complements
   // part 2:
+  entrants: 'baby', // cohorts that enter the economy after the shock
+  headline: 'flag', // the headline figures
+  outputSplit: 'workflow', // where output goes
   // part 3:
   // explore:
   // method:
