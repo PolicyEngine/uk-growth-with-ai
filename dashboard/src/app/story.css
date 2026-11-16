@@ -363,12 +363,12 @@
     transform: none;
   }
 }
-/* The question-led sequence (QStage.jsx): one pinned screen per topic,
-   --q-pin tall, above the topic's header. --q-pin is the one knob for its
-   height (the Story's total height moves by about 15 x --q-pin); at 900px
-   and below it is scaled by --q-pin-phone. */
+/* The question-led sequence (QStage.jsx). Full pin (sub.pin: 'full', four
+   topics): one pinned screen, --q-pin tall, above the topic's header; at
+   900px and below scaled by --q-pin-phone. Every other topic: QFrame, the
+   question inside the figure frame (no added height). */
 .story {
-  --q-pin: 56svh;
+  --q-pin: 45svh;
   --q-pin-phone: 0.72;
 }
 /* the stage takes the block's first row only where it is shown (not under
@@ -406,14 +406,17 @@
   background: var(--part-tint, var(--pe-teal-50));
   opacity: calc(min(1, var(--qa) * 1.4) * (1 - var(--qm)));
 }
+.q-visual {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
 .q-stage-card {
   position: absolute;
   top: clamp(16px, 6%, 48px);
   left: 0;
   right: 0;
-  display: grid;
-  justify-items: center;
-  gap: 14px;
   max-width: 44rem;
   margin: 0 auto;
   padding: 0 16px;
@@ -468,12 +471,12 @@
   background: linear-gradient(currentColor, currentColor) 0 92% / 0 3px no-repeat;
   transition-property: opacity, transform, filter, background-size;
 }
-.q-stage.is-in .q-stage-w {
+:is(.q-stage, .q-frame).is-in .q-stage-w {
   opacity: 1;
   transform: none;
   filter: none;
 }
-.q-stage.is-in .q-stage-w.is-key {
+:is(.q-stage, .q-frame).is-in .q-stage-w.is-key {
   background-size: calc(100% - 0.3em) 3px;
 }
 .q-stage-hint {
@@ -483,7 +486,7 @@
   transition: opacity 500ms var(--story-ease);
   transition-delay: calc(240ms + var(--w) * 65ms);
 }
-.q-stage.is-in .q-stage-hint {
+:is(.q-stage, .q-frame).is-in .q-stage-hint {
   opacity: 1;
 }
 .q-stage-progress {
@@ -596,7 +599,8 @@
   text-underline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .q-stage {
+  .q-stage:not(.has-recap),
+  .q-frame {
     display: none;
   }
   .scrolly-answer-card {
@@ -611,7 +615,8 @@
   }
 }
 @media print {
-  .q-stage {
+  .q-stage:not(.has-recap),
+  .q-frame {
     display: none;
   }
   .scrolly-answer-card {
@@ -2421,12 +2426,16 @@
   padding: 8px 12px;
   border-radius: 10px;
 }
-.story-recap-chip.is-qa .story-recap-chip-icon {
-  margin-top: 0.2em;
-}
 .story-recap-qa {
   display: grid;
   gap: 2px;
+}
+.story-recap-q,
+.story-recap-a {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
 }
 .story-recap-q {
   color: var(--pe-gray-700);
@@ -2434,6 +2443,10 @@
 .story-recap-a {
   font-weight: 600;
   color: var(--pe-gray-900);
+}
+.story-recap-qa .story-recap-chip-icon {
+  align-self: center;
+  flex: none;
 }
 /* A step's sentence anchored to its mark (MarkCallout.jsx, step.callout) */
 .mark-callout {
@@ -2500,4 +2513,124 @@
 .scrolly > .scrolly-takeaway {
   position: relative;
   z-index: 2;
+}
+
+/* QFrame: the question inside the scene's own figure frame (the default;
+   no added height). The tint covers the chart until the move, then fades
+   as the question shrinks up into the header. */
+.q-frame {
+  --qa: 0;
+  --qm: 0;
+  --qdy: -240px;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.q-frame-tint {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(var(--part-tint, var(--pe-teal-50)), var(--part-tint, var(--pe-teal-50))),
+    var(--pe-surface);
+  opacity: calc(1 - (var(--qm) - 0.3) * 2);
+}
+.q-frame-card {
+  position: absolute;
+  top: clamp(16px, 20%, 140px);
+  left: 0;
+  right: 0;
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 0 16px;
+  text-align: center;
+  transform-origin: 50% 0;
+  transform: translateY(calc(var(--qm) * var(--qdy))) scale(calc(1 - 0.7 * var(--qm)));
+  opacity: calc(1 - var(--qm) * 1.3);
+  will-change: transform, opacity;
+}
+.q-frame .q-stage-numeral {
+  font-size: clamp(7rem, 14vw, 11rem);
+}
+.q-frame .q-stage-q {
+  font-size: clamp(1.45rem, 2.6vw, 2.25rem);
+}
+.q-frame .q-visual {
+  gap: 10px;
+}
+@media (max-width: 900px) {
+  .q-frame-card {
+    top: clamp(12px, 14%, 80px);
+  }
+  .q-frame .q-stage-q {
+    font-size: clamp(1.3rem, 6vw, 1.8rem);
+  }
+}
+/* The previous part's questions and answers under a full pin's question */
+.q-stage-recap {
+  margin: 20px 0 0;
+  padding: 10px 0 0;
+  text-align: left;
+  pointer-events: auto;
+  border-bottom: 0;
+  opacity: min(1, calc(var(--qa) * 1.4));
+}
+.q-stage-recap .story-recap-chip {
+  background: var(--pe-surface);
+}
+/* reduced motion and print: the recap stays as a static strip above the
+   header; the pinned screen and its question do not */
+@media (prefers-reduced-motion: reduce) {
+  .q-stage.has-recap {
+    height: auto !important;
+    min-height: 0 !important;
+    margin-bottom: 8px;
+  }
+  .q-stage.has-recap .q-stage-card {
+    position: static;
+    max-width: none;
+    padding: 0;
+    transform: none;
+    opacity: 1;
+  }
+  .q-stage.has-recap .q-visual,
+  .q-stage.has-recap .q-stage-tint {
+    display: none;
+  }
+  .q-stage.has-recap .q-stage-recap {
+    margin: 0;
+    opacity: 1;
+  }
+}
+@media print {
+  .q-stage.has-recap {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .q-stage.has-recap .q-stage-card {
+    position: static;
+    transform: none;
+    opacity: 1;
+  }
+  .q-stage.has-recap .q-visual,
+  .q-stage.has-recap .q-stage-tint {
+    display: none;
+  }
+}
+/* a full pin with a recap keeps its row in every mode (the recap stays) */
+.scrolly.has-stage:has(> .q-stage.has-recap) > .q-stage {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.scrolly.has-stage:has(> .q-stage.has-recap) > .scene-head {
+  grid-row: 2;
+}
+.scrolly.has-stage.has-sub:has(> .q-stage.has-recap) > .scrolly-graphic,
+.scrolly.has-stage.has-sub:has(> .q-stage.has-recap) > .scrolly-steps {
+  grid-row: 3;
+}
+.scrolly.has-stage:has(> .q-stage.has-recap) > .scrolly-takeaway {
+  grid-row: 4;
 }
