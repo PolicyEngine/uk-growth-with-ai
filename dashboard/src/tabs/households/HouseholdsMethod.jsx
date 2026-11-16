@@ -5,6 +5,8 @@ import InfoCard from '@/components/ab/InfoCard.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
 import { SectionHeading } from '@/components/ui/Card.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { Items, KeyFacts } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { D, MODEL_YEAR, PAPER_URL, PR_URL } from '@/tabs/story/part3/shared.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
@@ -19,25 +21,27 @@ import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 
 const M = D.method;
 const S = D.source;
+const In = ({ children }) => <span data-input="">{children}</span>;
+const CENTRAL_PCT = Number(/([\d.]+)% prescribed/.exec(D.headline.central_displaced.note)?.[1]);
 
 const SECTIONS = [
-  { id: 'hm-pipeline', title: 'The pipeline', icon: 'listTree' },
-  { id: 'hm-data', title: 'Data and model', icon: 'database' },
-  { id: 'hm-exposure', title: 'AI exposure', icon: 'cpu' },
-  { id: 'hm-shock', title: 'The shock', icon: 'zap' },
-  { id: 'hm-rules', title: 'Who loses the job', icon: 'users' },
-  { id: 'hm-takeup', title: 'Benefits and take-up', icon: 'wallet' },
-  { id: 'hm-draws', title: 'Draws and spread', icon: 'shuffle' },
-  { id: 'hm-out', title: 'What it leaves out', icon: 'alert' },
-  { id: 'hm-vintage', title: 'Vintages', icon: 'history' },
+  { id: 'hm-pipeline', title: 'The pipeline', icon: iconFor('stages') },
+  { id: 'hm-data', title: 'Data and model', icon: iconFor('data') },
+  { id: 'hm-exposure', title: 'AI exposure', icon: iconFor('ai') },
+  { id: 'hm-shock', title: 'The shock', icon: iconFor('shock') },
+  { id: 'hm-rules', title: 'Who loses the job', icon: iconFor('jobLoss') },
+  { id: 'hm-takeup', title: 'Benefits and take-up', icon: iconFor('takeUp') },
+  { id: 'hm-draws', title: 'Draws and spread', icon: iconFor('draws') },
+  { id: 'hm-out', title: 'What it leaves out', icon: iconFor('excluded') },
+  { id: 'hm-vintage', title: 'Vintages', icon: iconFor('revision') },
 ];
 
 const STAGES = [
-  ['database', 'Microcosm UK 2024–25', 'Households, people and their incomes, calibrated to official totals'],
-  ['cpu', 'AI exposure', 'A score for each of nine occupation groups (C-AIOE)'],
-  ['zap', 'The shock', 'Who loses the job, others’ wage rises, higher capital income'],
-  ['landmark', 'PolicyEngine-UK', `Taxes and benefits for ${MODEL_YEAR}, baseline and shocked, on the same records`],
-  ['shuffle', 'Draws', 'The difference, averaged over random draws of who is displaced'],
+  ['data', 'Microcosm UK 2024–25', 'Households and incomes, calibrated to official totals'],
+  ['ai', 'AI exposure', 'A score for each of nine occupation groups (C-AIOE)'],
+  ['shock', 'The shock', 'Job loss, wage rises, higher capital income'],
+  ['model', 'PolicyEngine-UK', `Taxes and benefits, ${MODEL_YEAR}, before and after`],
+  ['draws', 'Draws', 'The difference, averaged over random draws of who is displaced'],
 ];
 
 function Pipeline() {
@@ -46,7 +50,7 @@ function Pipeline() {
       {STAGES.map(([icon, title, text], i) => (
         <li key={title} className="hm-stage">
           <span className="hm-stage-n">{i + 1}</span>
-          <Icon name={icon} size={18} />
+          <Icon name={iconFor(icon)} size={18} />
           <b>{title}</b>
           <span>{text}</span>
         </li>
@@ -62,160 +66,215 @@ export default function HouseholdsMethod() {
       <div className="page-body">
         <header className="hh-lead">
           <p className="hh-question page-q">
-          <Icon name="usersRound" size={18} />
-          <span>How does the household study produce its results?</span>
-        </p>
+            <Icon name={iconFor('households')} size={18} />
+            <span>How does the household study produce its results?</span>
+          </p>
           <p className="hh-answer">
-            It takes a calibrated sample of UK households, removes the earnings of employees chosen at random in proportion to their
-            occupation’s AI exposure, and runs the tax and benefit system before and after, for one year.
+            On a calibrated sample of UK households, employees lose earnings at random, weighted by AI exposure, for one year.
           </p>
           <Notice>Provisional</Notice>
         </header>
 
         <section>
-          <SectionHeading id="hm-pipeline" icon="listTree" title="The pipeline">
+          <SectionHeading id="hm-pipeline" icon={iconFor('stages')} title="The pipeline">
             Data, exposure and the shock feed the tax-benefit model; results are averaged over draws.
           </SectionHeading>
           <Pipeline />
         </section>
 
         <section>
-          <SectionHeading id="hm-data" icon="database" title="Data and model">
+          <SectionHeading id="hm-data" icon={iconFor('data')} title="Data and model">
             One year, {MODEL_YEAR}.
           </SectionHeading>
           <div className="card-grid cols-2">
-            <InfoCard icon="database" title="Microcosm UK 2024–25">
-              <p>
-                The Family Resources Survey 2024–25, with records from the HMRC Survey of Personal Incomes for top incomes, imputed variables and
-                household weights calibrated to administrative and survey totals. The file holds {M.households} households and {M.persons} people,
-                grossing to {M.population_m} million people and {M.employees_m} million employees.
-              </p>
+            <InfoCard icon={iconFor('data')} title="Microcosm UK 2024–25">
+              <KeyFacts
+                className="mx-facts-row"
+                facts={[
+                  { icon: 'households', value: M.households, label: 'households in the file' },
+                  { icon: 'generations', value: M.persons, label: 'people in the file' },
+                  { icon: 'measure', value: `${M.population_m}m`, label: 'people, grossed up' },
+                  { icon: 'labour', value: `${M.employees_m}m`, label: 'employees, grossed up' },
+                ]}
+              />
+              <Items
+                items={[
+                  { icon: 'source', text: 'The Family Resources Survey 2024–25.' },
+                  { icon: 'pay', text: 'Top incomes from the HMRC Survey of Personal Incomes.' },
+                  { icon: 'check', text: 'Imputed variables; weights calibrated to administrative and survey totals.' },
+                ]}
+              />
             </InfoCard>
-            <InfoCard icon="landmark" title={`PolicyEngine-UK ${M.policyengine_uk}`}>
-              <p>
-                The tax-benefit model (policyengine.py {M.policyengine} release bundle) computes income tax, National Insurance and benefits for{' '}
-                {MODEL_YEAR}. Incomes follow the HBAI statistics, before and after housing costs. The cost is the fall in the government balance:
-                income tax, employee and employer NI and benefits, with no corporation tax and household spending held at baseline.
-              </p>
+            <InfoCard icon={iconFor('model')} title={`PolicyEngine-UK ${M.policyengine_uk}`}>
+              <Items
+                items={[
+                  { icon: 'version', text: `Release bundle: policyengine.py ${M.policyengine}.` },
+                  { icon: 'tax', text: `Income tax, National Insurance and benefits for ${MODEL_YEAR}.` },
+                  { icon: 'poverty', text: 'Incomes follow HBAI, before and after housing costs.' },
+                  { icon: 'cost', text: 'The cost is the fall in the government balance.' },
+                  { icon: 'finances', text: 'It counts income tax, employee and employer NI, and benefits.' },
+                  { icon: 'excluded', text: 'No corporation tax; household spending held at baseline.' },
+                ]}
+              />
             </InfoCard>
           </div>
         </section>
 
         <section>
-          <SectionHeading id="hm-exposure" icon="cpu" title="AI exposure">
+          <SectionHeading id="hm-exposure" icon={iconFor('ai')} title="AI exposure">
             The complementarity-adjusted AI occupational exposure index (C-AIOE).
           </SectionHeading>
-          <p className="hm-text">
-            The study starts from the AI Occupational Exposure index of Felten, Raj and Seamans, which links progress in ten AI applications to the
-            abilities each occupation needs, and scales it down where AI is more likely to complement than replace human judgement (the
-            complementarity index of Pizzinelli and co-authors). Scores are mapped to UK SOC2020 and averaged over the nine major occupation groups,
-            so exposure varies between groups, not within them. The scores are shifted so the least-exposed group, elementary occupations, scores
-            zero and has no displacement.
-          </p>
+          <Items
+            className="hm-items"
+            items={[
+              { icon: 'source', text: 'Starts from the AI Occupational Exposure index of Felten, Raj and Seamans.' },
+              { icon: 'ai', text: 'It links progress in ten AI applications to occupational abilities.' },
+              { icon: 'jobKeep', text: 'Scaled down where AI more likely complements than replaces (Pizzinelli et al.).' },
+              { icon: 'measure', text: 'Mapped to UK SOC2020, averaged over nine major occupation groups.' },
+              { icon: 'caveat', text: 'So exposure varies between groups, not within them.' },
+              { icon: 'excluded', text: 'Shifted so elementary occupations, the least exposed, score zero: no displacement.' },
+            ]}
+          />
         </section>
 
         <section>
-          <SectionHeading id="hm-shock" icon="zap" title="The shock">
+          <SectionHeading id="hm-shock" icon={iconFor('shock')} title="The shock">
             An assumed shock, applied in one year; not estimated from data.
           </SectionHeading>
           <div className="card-grid is-top">
-            <InfoCard icon="users" title="Job loss">
-              <p>
-                In the central case <span data-input="">{fmtInputPct(Number(/([\d.]+)% prescribed/.exec(D.headline.central_displaced.note)?.[1]))}</span>{' '}
-                of employees are displaced, a calibration taken from an Irish study of the same kind. The number is shared between occupation groups in
-                proportion to employment times exposure, and records are drawn at random within each group. A displaced worker’s earnings, hours,
-                pension contributions and statutory pay are set to zero, and they count as unemployed for the whole year.
-              </p>
+            <InfoCard icon={iconFor('jobLoss')} title="Job loss">
+              <Items
+                items={[
+                  { icon: 'jobLoss', text: <>Central case: <In>{fmtInputPct(CENTRAL_PCT)}</In> of employees displaced.</> },
+                  { icon: 'source', text: 'A calibration taken from an Irish study of the same kind.' },
+                  { icon: 'deciles', text: 'Shared between groups by employment times exposure.' },
+                  { icon: 'draws', text: 'Records drawn at random within each group.' },
+                  { icon: 'excluded', text: 'Earnings, hours, pension contributions and statutory pay set to zero.' },
+                  { icon: 'timing', text: 'Counted as unemployed for the whole year.' },
+                ]}
+              />
             </InfoCard>
-            <InfoCard icon="trend" title="Wages of those still employed">
-              <p>
-                The wage of each employee who keeps their job rises in proportion to their group’s complementarity, by{' '}
-                <span data-input="">{fmtInputPct(M.survivor_wage_pct)}</span> on average. No one who keeps their job loses pay.
-              </p>
+            <InfoCard icon={iconFor('pay')} title="Wages of those still employed">
+              <Items
+                items={[
+                  { icon: 'pay', text: <>Wages of those kept rise by <In>{fmtInputPct(M.survivor_wage_pct)}</In> on average.</> },
+                  { icon: 'why', text: 'In proportion to their group’s complementarity.' },
+                  { icon: 'jobKeep', text: 'No one who keeps their job loses pay.' },
+                ]}
+              />
             </InfoCard>
-            <InfoCard icon="piggy" title="Capital income">
-              <p>
-                Interest and dividend income rise by <span data-input="">{fmtPct1(M.capital_uplift_pct)}</span>, a{' '}
-                <span data-input="">{M.return_shock_pp}</span>-point rise in the return; rents and pension returns are unchanged. The self-employed are
-                outside both labour-market shocks.
-              </p>
+            <InfoCard icon={iconFor('capital')} title="Capital income">
+              <Items
+                items={[
+                  { icon: 'capital', text: <>Interest and dividend income rise by <In>{fmtPct1(M.capital_uplift_pct)}</In>.</> },
+                  { icon: 'interest', text: <>A <In>{M.return_shock_pp}</In>-point rise in the return.</> },
+                  { icon: 'onPath', text: 'Rents and pension returns are unchanged.' },
+                  { icon: 'excluded', text: 'The self-employed are outside both labour-market shocks.' },
+                ]}
+              />
             </InfoCard>
           </div>
         </section>
 
         <section>
-          <SectionHeading id="hm-rules" icon="users" title="Who loses the job">
+          <SectionHeading id="hm-rules" icon={iconFor('jobLoss')} title="Who loses the job">
             Five rules share out the same expected number of job losses.
           </SectionHeading>
-          <ul className="hm-list">
-            <li>
-              <b>In proportion to exposure</b> (the central case): the rule above.
-            </li>
-            <li>
-              <b>Junior-tilted:</b> a higher chance for workers aged 16 to 24, within the same occupation quotas.
-            </li>
-            <li>
-              <b>Expertise compression:</b> doubled chances for the top earnings third in above-median-exposure occupations.
-            </li>
-            <li>
-              <b>Uniform:</b> every employee equally likely.
-            </li>
-            <li>
-              <b>Top-loaded stress test:</b> exposure times a junior factor and wage-tier factors that load displacement on above-median earners; an
-              upper stress case.
-            </li>
-          </ul>
-          <p className="hm-text">
-            Every other wage change and every capital-income change is the same under each rule. A separate set of runs moves the same gross earnings
-            loss from job loss to wage cuts graded by exposure, so no one loses a job.
-          </p>
+          <Items
+            className="hm-items"
+            items={[
+              { icon: 'ai', text: <><b>In proportion to exposure</b> (the central case): the rule above.</> },
+              { icon: 'age', text: <><b>Junior-tilted:</b> higher chance at ages 16 to 24, same occupation quotas.</> },
+              { icon: 'pay', text: <><b>Expertise compression:</b> doubled chances for the top earnings third, above-median-exposure occupations.</> },
+              { icon: 'draws', text: <><b>Uniform:</b> every employee equally likely.</> },
+              { icon: 'limit', text: <><b>Top-loaded stress test:</b> exposure times junior and wage-tier factors.</> },
+              { icon: 'deciles', text: 'It loads displacement on above-median earners: an upper stress case.' },
+            ]}
+          />
+          <Items
+            className="hm-items mx-foot-items"
+            items={[
+              { icon: 'onPath', text: 'Every other wage and capital-income change is the same under each rule.' },
+              { icon: 'compare', text: 'Separate runs turn the same gross loss into exposure-graded wage cuts.' },
+              { icon: 'jobKeep', text: 'In those runs no one loses a job.' },
+            ]}
+          />
         </section>
 
         <section>
-          <SectionHeading id="hm-takeup" icon="wallet" title="Benefits and take-up">
+          <SectionHeading id="hm-takeup" icon={iconFor('takeUp')} title="Benefits and take-up">
             What a displaced worker can claim, and whether they do.
           </SectionHeading>
-          <p className="hm-text">
-            Universal Credit is means-tested on the benefit unit: in {MODEL_YEAR} the standard allowance is{' '}
-            <span data-input="">£{M.uc_single_month_gbp}</span> a month for a single claimant aged 25 or over and{' '}
-            <span data-input="">£{M.uc_couple_month_gbp}</span> for a couple, a partner’s earnings reduce it by{' '}
-            <span data-input="">{M.uc_taper_pct}</span> pence in the pound above the work allowance, and capital above{' '}
-            <span data-input="">£{M.uc_capital_limit_gbp}</span> removes entitlement. Each benefit unit keeps the take-up decision drawn for it in the
-            data, and the model pays new-style JSA only where the survey reports an award, so the newly displaced do not get it.
-          </p>
-          <p className="hm-text">
-            Two variants relax this on the same draws: every benefit unit with a displaced worker claims UC, and those who meet the contribution
-            condition also get <span data-input="">£{M.jsa_week_gbp}</span> a week of new-style JSA for 26 weeks.
-          </p>
+          <KeyFacts
+            className="mx-facts-row"
+            facts={[
+              { icon: 'benefits', value: <>£<In>{M.uc_single_month_gbp}</In></>, label: 'UC a month, single, 25 or over' },
+              { icon: 'households', value: <>£<In>{M.uc_couple_month_gbp}</In></>, label: 'UC a month, couple' },
+              { icon: 'pay', value: <><In>{M.uc_taper_pct}</In>p</>, label: 'in the pound of partner’s earnings, above the work allowance' },
+              { icon: 'capital', value: <>£<In>{M.uc_capital_limit_gbp}</In></>, label: 'capital above this removes entitlement' },
+            ]}
+          />
+          <Items
+            className="hm-items"
+            items={[
+              { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}.</> },
+              { icon: 'takeUp', text: 'Each benefit unit keeps its take-up decision drawn in the data.' },
+              { icon: 'excluded', text: 'New-style JSA is paid only where the survey reports an award.' },
+              { icon: 'jobLoss', text: 'So the newly displaced do not get it.' },
+            ]}
+          />
+          <Items
+            className="hm-items mx-foot-items"
+            items={[
+              { icon: 'compare', text: 'Two variants relax this, on the same draws:' },
+              { icon: 'takeUp', text: 'Every benefit unit with a displaced worker claims UC.' },
+              { icon: 'benefits', text: <>Contribution condition met: also <In>£{M.jsa_week_gbp}</In> a week of new-style JSA, 26 weeks.</> },
+            ]}
+          />
         </section>
 
         <section>
-          <SectionHeading id="hm-draws" icon="shuffle" title="Draws and spread">
+          <SectionHeading id="hm-draws" icon={iconFor('draws')} title="Draws and spread">
             Who is displaced is random, so each result is a mean over draws.
           </SectionHeading>
-          <p className="hm-text">
-            The central case, the five rules and the policy responses use 50 draws; the channel split, take-up and JSA, wage cuts, the OBR-sized runs
-            and the break-evens on capital and duration use 20; a few sensitivities use one draw (seed 0) and are labelled. Calibrated weights are
-            uneven: the {M.employee_rows} employee records have an effective sample size of about {M.kish_n}, so the realised number displaced varies
-            from {M.displaced_min_m} to {M.displaced_max_m} million across the 50 central draws.
-          </p>
-          <p className="hm-text">
-            A standard deviation describes how much a single draw can vary. It is not a confidence interval, and neither it nor the standard error of
-            a mean reflects survey sampling or uncertainty about the assumptions.
-          </p>
+          <KeyFacts
+            className="mx-facts-row"
+            facts={[
+              { icon: 'draws', value: '50', label: 'draws: central case, five rules, policy responses' },
+              { icon: 'draws', value: '20', label: 'draws: channel split, take-up and JSA, wage cuts', sub: 'also OBR-sized runs, break-evens' },
+              { icon: 'caveat', value: '1', label: 'draw (seed 0): a few labelled sensitivities' },
+            ]}
+          />
+          <Items
+            className="hm-items"
+            items={[
+              { icon: 'data', text: <>Uneven weights: {M.employee_rows} employee records, effective sample about {M.kish_n}.</> },
+              { icon: 'range', text: <>Realised displaced: {M.displaced_min_m} to {M.displaced_max_m} million across the 50 central draws.</> },
+              { icon: 'caveat', text: 'A standard deviation shows how much a single draw can vary.' },
+              { icon: 'limit', text: 'It is not a confidence interval.' },
+              { icon: 'limit', text: 'Neither it nor a mean’s standard error reflects sampling or assumption uncertainty.' },
+            ]}
+          />
         </section>
 
         <section>
-          <SectionHeading id="hm-out" icon="alert" title="What it leaves out">
+          <SectionHeading id="hm-out" icon={iconFor('excluded')} title="What it leaves out">
             The study traces current rules, not behaviour or the wider economy.
           </SectionHeading>
-          <ul className="hm-list">
-            <li>No re-employment, change in partners’ hours, redundancy pay or running down of savings: a one-year stock of job loss.</li>
-            <li>No corporation tax, VAT or other indirect taxes; the public-sector pay bill of the displaced is outside the balance.</li>
-            <li>Council tax reduction does not respond to the lost earnings, and the benefit cap applies without its nine-month grace period.</li>
-            <li>No reduced hiring of young workers, the margin early evidence emphasises.</li>
-            <li>No feedback to prices, interest rates or output: for that, see OG-UK in part 2, which has no unemployment.</li>
-          </ul>
+          <Items
+            className="hm-items"
+            items={[
+              { icon: 'excluded', text: 'No re-employment, partners’ hours, redundancy pay or drawing on savings.' },
+              { icon: 'timing', text: 'A one-year stock of job loss.' },
+              { icon: 'tax', text: 'No corporation tax, VAT or other indirect taxes.' },
+              { icon: 'finances', text: 'The public-sector pay bill of the displaced is outside the balance.' },
+              { icon: 'benefits', text: 'Council tax reduction does not respond to the lost earnings.' },
+              { icon: 'limit', text: 'The benefit cap applies without its nine-month grace period.' },
+              { icon: 'age', text: 'No reduced hiring of young workers, the margin early evidence emphasises.' },
+              { icon: 'model', text: 'No feedback to prices, interest rates or output.' },
+              { icon: 'link', text: 'For that, see OG-UK in part 2, which has no unemployment.' },
+            ]}
+          />
           <p className="hm-text">
             <NavLink tab="story" anchor="p3-close-h">
               What the study leaves out, in the story
@@ -224,7 +283,7 @@ export default function HouseholdsMethod() {
         </section>
 
         <section>
-          <SectionHeading id="hm-vintage" icon="history" title="Vintages">
+          <SectionHeading id="hm-vintage" icon={iconFor('revision')} title="Vintages">
             Which version of the study the dashboard reads.
           </SectionHeading>
           <dl className="hm-vintage">
@@ -247,9 +306,6 @@ export default function HouseholdsMethod() {
               <dt>Results build</dt>
               <dd>
                 Built per the manifest at commit <code>{M.manifest_commit.slice(0, 7)}</code>, {M.manifest_finished.slice(0, 10)}
-                {M.manifest_full_rerun === false ? ', which attests the existing results without a full clean-room rerun' : ''}; the dashboard
-                reads the data at <code>{S.commit.slice(0, 7)}</code>. The wage-cut, take-up and
-                OBR-sized results sit outside that attested rebuild.
               </dd>
             </div>
             <div>
@@ -259,6 +315,14 @@ export default function HouseholdsMethod() {
               </dd>
             </div>
           </dl>
+          <Items
+            className="hm-items mx-foot-items"
+            items={[
+              M.manifest_full_rerun === false ? { icon: 'caveat', text: 'The manifest attests existing results without a full clean-room rerun.' } : null,
+              { icon: 'data', text: <>The dashboard reads the data at <code>{S.commit.slice(0, 7)}</code>.</> },
+              { icon: 'provisional', text: 'Wage-cut, take-up and OBR-sized results sit outside that attested rebuild.' },
+            ]}
+          />
           <ul className="p3-close-links">
             <li>
               <a href={PAPER_URL} target="_blank" rel="noreferrer">

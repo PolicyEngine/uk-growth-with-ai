@@ -27,19 +27,9 @@
 }
 
 /* the page's opening chain and key facts sit under the answer */
-.mx-tab .page-options:has(.story-chain, .story-facts),
-.hm-page .hh-lead .story-facts,
-.hm-page .hh-lead .story-chain {
+.mx-tab .page-options:has(.story-chain, .story-facts) {
   display: block;
   margin-top: 16px;
-}
-.mx-tab .page-options:has(.story-chain) .story-chain,
-.hm-page .hh-lead .story-chain {
-  display: flex;
-}
-.mx-tab .page-options:has(.story-facts) .story-facts,
-.hm-page .hh-lead .story-facts {
-  display: grid;
 }
 .mx-tab .story-chain-node {
   font-weight: 500;
@@ -51,6 +41,12 @@
 .mx-tab .mx-facts-row .story-fact-value,
 .hm-page .mx-facts-row .story-fact-value {
   font-size: 1.5rem;
+}
+
+/* household method: item lists in place of paragraphs */
+.hm-page .hm-items {
+  max-width: 72ch;
+  margin: 0 0 12px;
 }
 
 /* icons beside labels */
