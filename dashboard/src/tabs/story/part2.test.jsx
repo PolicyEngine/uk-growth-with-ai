@@ -7,6 +7,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import real from '@/data/surprise2028.json';
+import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 
 afterEach(cleanup);
 
@@ -84,7 +85,7 @@ describe('story part 2', () => {
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
     expect(container.querySelectorAll('.story-source')).toHaveLength(5); // the output split's two charts share one foot
-    const hrefs = [...container.querySelectorAll('.p2-more a')].map((a) => a.getAttribute('href'));
+    const hrefs = [...container.querySelectorAll('#story-part-2 a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=method&s=uk_high&closure=both#m-closures');
@@ -459,10 +460,19 @@ describe('direction icons follow the signs', () => {
     }
     const { container, unmount } = at('tab=story');
     for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-arms', 'p2-who']) {
-      const lines = [...container.querySelectorAll(`#${id} li`)].map((li) => li.textContent).filter((t) => t.startsWith('Key takeaway:'));
-      expect(lines.length, id).toBeGreaterThan(0);
+      // one takeaway per scene, and at most three steps each one sentence
+      const lines = [...container.querySelectorAll(`#${id} .p2-say.is-takeaway`)].map((p) => p.textContent);
+      expect(lines.length, id).toBe(1);
       for (const t of lines) expect(t).not.toMatch(/\d/);
+      const cards = container.querySelectorAll(`#${id} .scrolly-step:not(.is-spacer)`);
+      expect(cards.length, id).toBeLessThanOrEqual(3);
+      for (const c of cards) {
+        const say = c.querySelectorAll('.p2-say');
+        expect(say.length, c.id).toBe(1);
+        expect(say[0].querySelector('.p2-say-text').textContent.trim().split(/\s+/).length, c.id).toBeLessThanOrEqual(16);
+      }
     }
+    expect(stepsWithoutHighlight(container.querySelector('#story-part-2'))).toEqual([]);
     unmount();
   });
 
