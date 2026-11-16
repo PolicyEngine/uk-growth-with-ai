@@ -1,0 +1,96 @@
+
+=== zk0.1 surprise2028 check-specs ===
+Demographics data: Initial Data year =  2026 , Final Data year =  2028
+Failed to retrieve population data from UN. Reading  from https://github.com/EAPD-DRB/Population-Data instead of UN WPP API
+Failed to retrieve population data from UN. Reading  from https://github.com/EAPD-DRB/Population-Data instead of UN WPP API
+Failed to retrieve population data from UN. Reading  from https://github.com/EAPD-DRB/Population-Data instead of UN WPP API
+  g_n: first 5 periods of the live UN fetch MATCH the vendored data/g_n_committed_run.json; the tail, g_n_ss, omega and imm_rates are unchecked (never recorded), so the solve is not network-free.
+  R2: pre-TP g_n/rho/imm_rates set from the UK fetch
+  R2: data splice 2027->2028 repaired (2.50e-03 -> 3.00e-16)
+  SURPRISE: period 0 is now 2028; shifted 7 time-varying inputs; tG1 8; foreign debt share 0.0995
+  gamma ramps 0.35 -> 0.389
+  Z ramps 1.0 -> 0.970000
+{
+ "built_for": "zk0.1",
+ "shift": {
+  "k": 2,
+  "shifted_varying": [
+   "rho",
+   "omega",
+   "g_n",
+   "imm_rates",
+   "etr_params",
+   "mtrx_params",
+   "mtry_params"
+  ],
+  "shifted_constant": [
+   "alpha_G",
+   "alpha_T",
+   "alpha_I",
+   "alpha_FA",
+   "alpha_bs_G",
+   "alpha_bs_T",
+   "alpha_bs_I",
+   "world_int_rate_annual",
+   "adjustment_factor_for_cit_receipts",
+   "tau_bq",
+   "tau_payroll",
+   "h_wealth",
+   "m_wealth",
+   "p_wealth",
+   "retirement_age",
+   "zeta_D",
+   "zeta_K",
+   "r_gov_scale",
+   "r_gov_shift",
+   "g_RM",
+   "Z",
+   "delta_tau_annual",
+   "cit_rate",
+   "inv_tax_credit",
+   "tau_c",
+   "labor_income_tax_noncompliance_rate",
+   "capital_income_tax_noncompliance_rate",
+   "replacement_rate_adjust",
+   "income_tax_filer",
+   "wealth_tax_filer",
+   "eta",
+   "eta_RM",
+   "chi_n",
+   "world_int_rate",
+   "retire",
+   "tau_b",
+   "delta_tau",
+   "ubi_nom_array",
+   "e"
+  ],
+  "pretp_from_period": 1,
+  "tG1": 8,
+  "tG2": 18,
+  "initial_foreign_debt_ratio": 0.09946961290225181
+ },
+ "law_of_motion_after_shift_max": 4.4007296247780326e-16,
+ "tG1": 8,
+ "start_year": 2028,
+ "ramp_weight_first5": [
+  0.2500000000000007,
+  0.5,
+  0.7499999999999993,
+  1.0,
+  1.0
+ ],
+ "states": {
+  "zk0.1": {
+   "B0": 2.3490027684079933,
+   "B_baseline_k": 2.3490027684079933,
+   "B0_rel_err": 0.0,
+   "BQ0_rel_err": 1.3520265204070014e-06
+  },
+  "zk0": {
+   "B0": 2.386483728930809,
+   "B_baseline_k": 2.3864837289308096,
+   "B0_rel_err": 2.220446049250313e-16,
+   "BQ0_rel_err": 9.047547261387123e-07
+  }
+ }
+}

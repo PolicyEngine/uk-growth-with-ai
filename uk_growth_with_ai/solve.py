@@ -22,11 +22,13 @@ patches/ogcore-0.17.0-firm-gamma-tv.diff; the step arms do not.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import pickle
 import platform
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -35,7 +37,7 @@ import numpy as np
 
 from .calibrate import solve_scenario
 from .data_access import load_committed_g_n
-from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, RAMP_YEARS, SCENARIOS, START, TG1
+from .scenarios import EPS, G_BASE, G_Y_ANNUAL, NPER, SCENARIOS, START, TG1
 
 # Demographics are the one input OG-UK fetches over the network at run time
 # (oguk.api._build_specs -> demographics.get_pop_objs, a UN WPP call), so the
@@ -111,6 +113,11 @@ def _load_oguk():
             "(see README, 'Time-varying gamma patch') before running the scenarios.")
     import oguk.api as api
 
+    # Cache, timeout and retries around the UN population fetch: a network
+    # drop hung a solve for two hours while it held the heavy-job lock.
+    from . import un_cache
+    un_cache.install()
+
     return TPI, SS, api, Client, LocalCluster
 
 
@@ -148,7 +155,11 @@ NEXP = 10
 EXPORT = ("Y", "B", "K", "K_d", "K_f", "D", "D_d", "D_f", "r", "r_p", "r_gov",
           "w", "L", "C", "I", "I_total", "I_d", "G", "TR", "I_g",
           "agg_pension_outlays", "new_borrowing_f", "debt_service_f",
-          "total_tax_revenue", "BQ")
+          "total_tax_revenue", "BQ",
+          # revenue by base (red flag 3, #37): tax/GDP decomposition per solve
+          "iit_revenue", "payroll_tax_revenue", "iit_payroll_tax_revenue",
+          "business_tax_revenue", "cons_tax_revenue", "bequest_tax_revenue",
+          "wealth_tax_revenue")
 TOP_LEVEL = ("Y", "K", "L", "w", "r", "C", "I", "G", "D", "total_tax_revenue",
              "B", "K_d", "K_f", "D_d", "D_f", "r_p", "r_gov")
 # The OG-UK data window: demographic data to 2028, projected after
@@ -247,10 +258,44 @@ def _capture_pop_objs():
     return captured
 
 
+SS_GUESS_KEYS = ("b_sp1", "n", "r_p", "r", "w", "p_m", "BQ", "TR", "Y")
+
+
+def run_SS_with_guess(SS, p, client, donor_path):
+    """``SS.run_SS`` with the root finder started from another solve's steady
+    state instead of the baseline's.  Only the guess fields (SS_GUESS_KEYS) are
+    taken from the donor; ``factor`` and ``theta`` stay the baseline's, and
+    ``baseline_dir`` (the baseline TPI state) is untouched.  OG-Core's SS logger
+    is switched to INFO for the call so the resource-constraint residual is logged."""
+    import logging
+    donor = pickle.load(open(donor_path, "rb"))
+    base_path = os.path.abspath(os.path.join(p.baseline_dir, "SS", "SS_vars.pkl"))
+    orig = SS.utils.safe_read_pickle
+
+    def read(path):
+        d = orig(path)
+        if os.path.abspath(path) == base_path:
+            d = {**d, **{k: donor[k] for k in SS_GUESS_KEYS}}
+        return d
+    lg = logging.getLogger(SS.__name__)
+    h = logging.StreamHandler(sys.stdout)
+    old_level = lg.level
+    lg.setLevel(logging.INFO); lg.addHandler(h)
+    SS.utils.safe_read_pickle = read
+    print(f"  SS guess from {donor_path}", flush=True)
+    try:
+        return SS.run_SS(p, client=client)
+    finally:
+        SS.utils.safe_read_pickle = orig
+        lg.removeHandler(h); lg.setLevel(old_level)
+
+
 def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
             baseline_spending=False, g_n_source=G_N_DEFAULT, zeta_K=None,
-            pretp=False, splice=False, alpha_G_shift=0.0, out_dir=None) -> dict:
+            pretp=False, splice=False, alpha_G_shift=0.0, out_dir=None,
+            surprise=None, nexp=None, stop_before_ss=False,
+            debt_neutral=None, ss_guess=None) -> dict:
     """Solve SS and TPI for one arm.
 
     ``alpha_G``: G/Y along the transition before tG1. None (the baseline) sets
@@ -281,6 +326,17 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     ``baseline_spending`` (shocked arms only): hold government spending and
     transfers at the baseline's LEVELS instead of its G/Y share, the OBR
     convention of fixed spending plans; debt absorbs the difference.
+
+    ``surprise``: a ``surprise.baseline_state`` dict.  The specification is
+    built for START as usual (same guard and R2 fixes), then shifted so model
+    period 0 is START + k, and the TPI starts from the baseline's period-k
+    state (``surprise.apply_to_specs`` / ``surprise.initial_state``).  The
+    gamma/Z ramp is offset so its zero-weight year is START + k - 1.
+    ``nexp``: years of each series to export (default NEXP).
+    ``debt_neutral``: ``{"target_dy", "D0"}``; TR adjusts so debt/GDP follows
+    target_dy until tG1 (``surprise.debt_neutral``), G keeps its rule.
+    ``stop_before_ss``: build, guard, fix, shift and set the ramp, then return
+    ``{"p", "surprise", "demographics"}`` without solving (the spec dry run).
     """
     from . import demography
 
@@ -332,11 +388,31 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         demo["law_of_motion_solved"] = demography.law_of_motion(p)
         demo["hash"] = demography.hashes(p)
         demo["g_n_ss"] = float(p.g_n_ss)
+    sp_rec = None
+    if surprise is not None:
+        from . import surprise as sp
+        sp_rec = {"shift": sp.apply_to_specs(p, surprise), "initial_state": {}}
+        if has_demo:
+            lom = demography.law_of_motion(p)
+            sp_rec["law_of_motion_after_shift"] = lom
+            worst = max(x["max_abs_rel"] for x in lom)
+            if splice and worst > demography.LOM_TOL:
+                raise RuntimeError(f"shifted demographics break the law of motion "
+                                   f"({worst:.2e}): {lom}")
+            # B0 and BQ0 against the baseline's period k, before SS (again in TPI)
+            from ogcore import aggregates as aggr
+            sp_rec["state_check_pre_ss"] = sp.state_check(p, surprise, aggr.get_B,
+                                                           aggr.get_BQ)
+        print(f"  SURPRISE: period 0 is now {START + surprise['k']}; shifted "
+              f"{len(sp_rec['shift']['shifted_varying'])} time-varying inputs; tG1 "
+              f"{sp_rec['shift']['tG1']}; foreign debt share "
+              f"{surprise['initial_foreign_debt_ratio']:.4f}", flush=True)
     p.TPI_outer_method = "anderson"
     if baseline_spending and not baseline:
         p.baseline_spending = True   # reads G, TR, I_g from base_dir's TPI output
     T = p.T + p.S
-    up = np.minimum(np.arange(T) / RAMP_YEARS, 1.0)[:, None]
+    from .surprise import ramp_weights
+    up = ramp_weights(T, surprise["k"] - 1 if surprise is not None else 0)
     if z_terminal is not None:
         # Z must be paired with the SHAPE of the gamma path.  Before this fix the
         # Z block sat outside `if ramp`, so a step arm (gamma already stepped to
@@ -360,9 +436,16 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     elif ramp:
         p.gamma = G_BASE + up * (gamma_val - G_BASE)
         print(f"  gamma ramps {G_BASE} -> {gamma_val}", flush=True)
+    if stop_before_ss:
+        return {"p": p, "surprise": sp_rec, "demographics": demo}
     print(f"  baseline={baseline}, initial state "
           f"{'own' if baseline else 'INHERITED from baseline'}", flush=True)
-    ss = SS.run_SS(p, client=client)
+    if ss_guess is not None:
+        if baseline or p.baseline_spending:
+            raise ValueError("ss_guess is for common-rule reform arms only")
+        ss = run_SS_with_guess(SS, p, client, ss_guess)
+    else:
+        ss = SS.run_SS(p, client=client)
     with open(os.path.join(out_dir, "SS", "SS_vars.pkl"), "wb") as f:
         pickle.dump(ss, f)
     alpha_G_ss = float(ss["G"] / ss["Y"])
@@ -373,16 +456,39 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
           f"{f' {alpha_G_shift:+.6f}' if baseline and alpha_G_shift else ''}), "
           f"tG1 = {p.tG1}, g_y_annual = {g_y_annual}, zeta_K = "
           f"{float(np.asarray(p.zeta_K).ravel()[0])}", flush=True)
-    with _TPILog() as tlog:
+    if surprise is not None:
+        init_ctx = sp.initial_state(TPI, surprise, sp_rec["initial_state"])
+    else:
+        init_ctx = contextlib.nullcontext()
+    dn_rec = None
+    if debt_neutral is not None:
+        from . import surprise as sp
+        dn_rec = {}
+        if debt_neutral.get("full"):
+            # TR closes debt to the horizon: switch the G debt rule off for the
+            # transition (D_G_path applies it for tG1 <= t < T-1 only)
+            p.tG1 = p.tG2 = int(p.T) - 1
+            dn_rec["tG1_tG2_set_to"] = int(p.tG1)
+        dn_ctx = sp.debt_neutral(TPI.fiscal, debt_neutral["target_dy"],
+                                 debt_neutral["D0"], dn_rec)
+        print(f"  DEBT-NEUTRAL: TR follows the restart's debt/GDP to tG1 = {p.tG1}",
+              flush=True)
+    else:
+        dn_ctx = contextlib.nullcontext()
+    with _TPILog() as tlog, init_ctx, dn_ctx:
         TPI.run_TPI(p, client=client)
     with open(os.path.join(out_dir, "TPI", "TPI_vars.pkl"), "rb") as f:
         tpi = pickle.load(f)
-    series = {v: _agg(tpi, v, p.T)[:NEXP].tolist() for v in EXPORT if v in tpi}
+    nexp = NEXP if nexp is None else nexp
+    series = {v: _agg(tpi, v, p.T)[:nexp].tolist() for v in EXPORT if v in tpi}
     s = {k: np.asarray(v) for k, v in series.items()}
     # GNI: GDP less the return paid to foreign owners of UK capital and gilts, at
     # the rate OG-Core itself charges them in the resource constraint (r_p).
     if all(k in s for k in ("Y", "r_p", "K_f", "D_f")):
         series["GNI"] = (s["Y"] - s["r_p"] * s["K_f"] - s["r_p"] * s["D_f"]).tolist()
+        # NNI = GNI - delta K, delta the model's per-period (= annual) depreciation
+        if getattr(p, "delta", None) is not None and "K" in s:
+            series["NNI"] = (np.asarray(series["GNI"]) - float(p.delta) * s["K"]).tolist()
     ident = {}
     if all(k in s for k in ("K", "K_d", "K_f", "B", "D", "D_d", "D_f")):
         ident = {
@@ -416,9 +522,15 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
                 "C", "G", "TR", "total_tax_revenue", "agg_pension_outlays")
                if k in ss},
         "years": list(range(START, START + NEXP)),
+        "surprise": sp_rec,
+        "debt_neutral": dn_rec,
+        "tau_payroll": (float(np.asarray(p.tau_payroll).ravel()[0])
+                        if getattr(p, "tau_payroll", None) is not None else None),
+        "delta": float(p.delta) if getattr(p, "delta", None) is not None else None,
         "series": series,
         **{v: series[v][:NPER] for v in TOP_LEVEL if v in series},
         **({"GNI": series["GNI"][:NPER]} if "GNI" in series else {}),
+        **({"NNI": series["NNI"][:NPER]} if "NNI" in series else {}),
     }
     d = rec["diagnostics"]
     print(f"OK {rec['elapsed_min']:.1f} min | SS labour share "
