@@ -265,7 +265,7 @@ describe('story part 1, real data', () => {
     expect([...el.querySelectorAll('.scene-head[id]')].map((h) => h.id)).toEqual(['q-p1-output', 'q-p1-work', 'q-p1-ai']);
     // the output and work answers link to their figures' homes, so they are
     // data-axis (not counted); the AI answer is the home of its two figures
-    const answers = [...el.querySelectorAll('.scene-head-a')];
+    const answers = [...el.querySelectorAll('.scrolly-answer-a')];
     expect(answers).toHaveLength(3);
     expect(answers.map((a) => a.hasAttribute('data-axis'))).toEqual([true, true, false]);
     expect(answers[0].textContent).toContain(pct1(real.facts.gdp_growth_latest.value));
