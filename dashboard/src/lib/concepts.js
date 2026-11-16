@@ -144,6 +144,7 @@ export const CONCEPT_ICON = {
   replication: 'fileCode', // the code and result file behind a figure
   yAxis: 'moveVertical', // a chart's y-axis title (what is measured, with its unit)
   xAxis: 'moveHorizontal', // a chart's x-axis title
+  answer: 'crosshair', // a topic's answer chip (Scrolly sub.answer, Recap q/a)
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every

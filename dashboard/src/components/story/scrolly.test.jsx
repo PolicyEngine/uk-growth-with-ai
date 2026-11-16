@@ -134,38 +134,61 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     expect(t[0].textContent).toBe('Key takeaway: Growth slowed after 2008.');
     expect(t[0].querySelector('svg')).not.toBeNull();
   });
-  it('without IntersectionObserver the opener is skipped and ctx.entered is true', () => {
+  it('without layout (jsdom, reduced motion: the stage has no height) the stage is done and ctx.entered is true', () => {
     const seen = [];
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
-    expect(container.querySelector('.topic-opener')).toBeNull();
+    expect(container.querySelector('.q-stage')).not.toBeNull();
     expect(seen.at(-1)).toBe(true);
   });
-  it('with IntersectionObserver the opener waits over the figure and holds entry moves back', () => {
-    const IO = globalThis.IntersectionObserver;
-    globalThis.IntersectionObserver = class {
-      observe() {}
-      disconnect() {}
+  it('renders the pinned question screen: aria-hidden, inert, data-axis, data-gap-exempt, words, hint, key word, part ring', () => {
+    const { container } = render(
+      <section className="story-part" data-part="2">
+        <Scrolly id="b" sub={{ ...sub, hint: 'Watch the gap open', key: 'grown' }} steps={steps} graphic={() => null} label="L" />
+      </section>,
+    );
+    const q = container.querySelector('.scrolly > .q-stage');
+    expect(q.getAttribute('aria-hidden')).toBe('true');
+    expect(q.hasAttribute('inert')).toBe(true);
+    expect(q.hasAttribute('data-axis')).toBe(true);
+    expect(q.hasAttribute('data-gap-exempt')).toBe(true);
+    expect(q.querySelectorAll('.q-stage-w')).toHaveLength(6);
+    expect(q.querySelector('.q-stage-w.is-key').textContent.trim()).toBe('grown?');
+    expect(q.querySelector('.q-stage-hint').textContent).toBe('Watch the gap open');
+    expect(q.querySelector('.q-stage-progress').textContent).toContain('Part 2');
+    // the header is the question's anchor
+    expect(container.querySelector('header.scene-head').id).toBe('q-b');
+  });
+  it('holds entry moves back while the stage is below the screen', () => {
+    const oh = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+    const gb = Element.prototype.getBoundingClientRect;
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 400 });
+    Element.prototype.getBoundingClientRect = function () {
+      return this.classList?.contains('q-stage') ? { top: 3000, bottom: 3400, left: 0, right: 0, width: 0, height: 400 } : gb.call(this);
     };
     try {
       const seen = [];
-      const { container } = render(
-        <section className="story-part" data-part="2">
-          <Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />
-        </section>,
-      );
-      const o = container.querySelector('.scrolly-graphic-inner .topic-opener');
-      expect(o).not.toBeNull();
-      expect(o.getAttribute('aria-hidden')).toBe('true');
-      expect(o.hasAttribute('data-axis')).toBe(true);
-      expect(o.querySelector('.topic-opener-part').textContent).toBe('Part 2');
-      expect(o.querySelectorAll('.topic-opener-w')).toHaveLength(6);
+      render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
       expect(seen.every((e) => e === false)).toBe(true);
     } finally {
-      globalThis.IntersectionObserver = IO;
+      if (oh) Object.defineProperty(HTMLElement.prototype, 'offsetHeight', oh);
+      else delete HTMLElement.prototype.offsetHeight;
+      Element.prototype.getBoundingClientRect = gb;
     }
+  });
+  it('prints the answer chip under the question; with answerTo it links to the home and is data-axis', () => {
+    const { container, rerender } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
+    let a = container.querySelector('header.scene-head .scene-head-a');
+    expect(a.textContent).toBe('AnswerAbout 1.5% a year');
+    expect(a.hasAttribute('data-axis')).toBe(false);
+    // jsdom: the last card is active, so the answer is shown
+    expect(a.classList.contains('is-shown')).toBe(true);
+    rerender(<Scrolly id="b" sub={{ ...sub, answer: <>1.5%</>, answerTo: 'p1-output-s3' }} steps={steps} graphic={() => null} label="L" />);
+    a = container.querySelector('.scene-head-a');
+    expect(a.hasAttribute('data-axis')).toBe(true);
+    expect(a.querySelector('a').getAttribute('href')).toContain('#p1-output-s3');
   });
   it('a plain string sub has no opener and no takeaway', () => {
     const { container } = render(<Scrolly id="b" sub="Output" steps={steps} graphic={() => null} label="L" />);
-    expect(container.querySelector('.topic-opener, .scene-head-q, .scrolly-takeaway')).toBeNull();
+    expect(container.querySelector('.q-stage, .scene-head-q, .scrolly-takeaway')).toBeNull();
   });
 });

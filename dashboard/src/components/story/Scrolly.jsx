@@ -5,6 +5,9 @@ import { FinalState, useActiveStep, useInView, useIsPhone, useReducedMotion } fr
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
+import { NavLink } from '@/lib/nav.jsx';
+import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
+import QStage from './QStage.jsx';
 
 // a sticky figure may take 45% of the screen at 900px and below
 const capFor = () => 0.45;
@@ -245,38 +248,56 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     };
   }, [pinBottom, width, single]);
   const cardIndex = steps.slice(0, active + 1).filter((x) => !x.spacer).length - 1;
-  // the topic opener: played once over the figure, then gone
+  // one step, one highlight (highlight.jsx): the shown step's marks
+  const hl = useHighlightState(steps[shown]?.highlight);
+  useApplyHighlight(live, hl, [shown, entered]);
+  const hlDesc = useHighlightDescription(hl);
+  // the question-led sequence (QStage.jsx): arrive, hold, move into the
+  // scene; the scene's entry moves wait until the question has moved in
   const subObj = sub && typeof sub === 'object' ? sub : null;
   const question = subObj?.question;
   const takeaway = subObj?.takeaway;
-  const [opener, setOpener] = useState(question ? 'pending' : 'none');
-  const openerLive = opener === 'pending' && !inline && !reduce;
-  const openerDone = !question || inline || reduce || opener !== 'pending';
-  const ctx = { inline: false, once, entered: entered && openerDone, prev: hist.prev };
-  const sizerCtx = { inline: false, once: false, entered: true, prev: null };
+  const answer = subObj?.answer;
+  const [stage, setStage] = useState(question ? 'pending' : 'done');
+  const stageDone = !question || inline || reduce || stage === 'done';
+  // the answer: once the scene's last card is reached (always when drawn
+  // once, under reduced motion and in print, by CSS)
+  const answered = once || inline || reduce || active >= lastCard;
+  const ctx = { inline: false, once, entered: entered && stageDone, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
+  const sizerCtx = { inline: false, once: false, entered: true, prev: null, highlight: [] };
   const dots = many && !inline;
   const subTitle = typeof sub === 'string' ? sub : sub?.title;
   const TitleTag = sub ? 'h4' : 'h3';
   const footHere = foot != null ? <div className="scrolly-foot">{foot}</div> : null;
   return (
+    <HighlightCtx.Provider value={hl}>
     <div
-      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}`}
+      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question ? ' has-stage' : ''}`}
       id={id}
     >
+      {question && !inline ? <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} onPhase={setStage} /> : null}
       {sub ? (
-        <header className={`scene-head${question ? ' has-q' : ''}${opener === 'arrived' ? ' is-arrived' : ''}`} data-scene={subTitle}>
-          {subObj?.icon ? <Icon name={iconFor(subObj.icon)} size={16} className="scene-head-icon" /> : null}
-          <h3 className="scene-head-title">{subTitle}</h3>
-          {question ? (
-            <p className="scene-head-q">
-              <Icon name={iconFor('question')} size={14} className="scene-head-q-icon" />
-              <span>{question}</span>
-            </p>
-          ) : null}
-          <span className="scene-head-rule" aria-hidden="true" />
+        <header
+          className={`scene-head${question ? ' has-q' : ''}${answer != null ? ' has-a' : ''}${question && stage === 'done' && !reduce ? ' is-arrived' : ''}`}
+          data-scene={subTitle}
+          id={question ? `q-${id}` : undefined}
+        >
+          <span className="scene-head-row">
+            {subObj?.icon ? <Icon name={iconFor(subObj.icon)} size={16} className="scene-head-icon" /> : null}
+            <h3 className="scene-head-title">{subTitle}</h3>
+            {question ? (
+              <p className="scene-head-q">
+                <Icon name={iconFor('question')} size={14} className="scene-head-q-icon" />
+                <span>{question}</span>
+              </p>
+            ) : null}
+            <span className="scene-head-rule" aria-hidden="true" />
+          </span>
+          {answer != null ? <Answer answer={answer} to={subObj.answerTo} shown={answered} /> : null}
         </header>
       ) : null}
-      <div className="scrolly-graphic" ref={box} aria-label={label} role="group" hidden={inline || undefined}>
+      <div className="scrolly-graphic" ref={box} aria-label={label} aria-describedby={hlDesc.node ? hlDesc.id : undefined} role="group" hidden={inline || undefined}>
+        {hlDesc.node}
         <div
           className={`scrolly-graphic-inner${dots ? ' has-dots' : ''}`}
           data-step={shown}
@@ -293,7 +314,6 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
           ) : null}
           {inline ? null : graphic(shown, reduce, ctx)}
           {phone ? null : footHere}
-          {openerLive ? <TopicOpener question={question} icon={subObj?.icon} part={part} onDone={setOpener} /> : null}
         </div>
         {reserve && measuring ? (
           <div className="scrolly-sizers" ref={sizers} aria-hidden="true" inert>
@@ -316,10 +336,12 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               key={s.id}
               id={s.id}
               ref={register(i)}
+              data-highlight={s.highlight == null ? undefined : normIds(s.highlight).join(' ') || 'none'}
+              data-highlight-why={s.highlightWhy}
               className={`scrolly-step${i === active ? ' is-active' : i < active ? ' is-past' : ''}`}
               aria-current={i === active ? 'step' : undefined}
             >
-              {inline ? <InlineCopy graphic={graphic} i={i} reduce={reduce} label={label} /> : null}
+              {inline ? <InlineCopy graphic={graphic} i={i} reduce={reduce} label={label} highlight={s.highlight} /> : null}
               <div className="scrolly-card">
                 {s.kicker ? (
                   <p className="scrolly-kicker">
@@ -355,95 +377,50 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         </p>
       ) : null}
     </div>
+    </HighlightCtx.Provider>
   );
 }
 
-// The topic opener (Scrolly `sub.question`): a panel over the figure card,
-// aria-hidden, inert and data-axis (the question is printed once, in the
-// header). Waits until the figure is half in view, then brings
-// in the icon, "Part n" and the question word by word; holds 1.6s, then
-// shrinks towards the header (sooner if the reader scrolls on 60% of a screen) and
-// calls onDone('arrived'). A block already above the rail on arrival (deep
-// link, step dot, scrolling up) or a browser without IntersectionObserver
-// skips it: onDone('skipped').
-const OPENER_HOLD = 1600;
-const OPENER_OUT = 450;
-function TopicOpener({ question, icon, part, onDone }) {
-  const ref = useRef(null);
-  const [phase, setPhase] = useState('wait');
-  const [n, setN] = useState(part ?? null);
-  const done = useRef(onDone);
-  useEffect(() => {
-    done.current = onDone;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    if (part == null) setN(el.closest('.story-part[data-part]')?.dataset.part ?? null);
-    const railBottom = () => document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
-    if (typeof IntersectionObserver === 'undefined' || el.getBoundingClientRect().top < railBottom()) {
-      done.current('skipped');
-      return undefined;
-    }
-    const io = new IntersectionObserver(
-      (es) => {
-        if (es.some((e) => e.isIntersecting)) {
-          io.disconnect();
-          setPhase('in');
-        }
-      },
-      { threshold: 0.5 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [part]);
-  useEffect(() => {
-    if (phase === 'in') {
-      const y0 = window.scrollY;
-      const out = () => setPhase('out');
-      const t = setTimeout(out, OPENER_HOLD);
-      const on = () => {
-        if (Math.abs(window.scrollY - y0) > window.innerHeight * 0.6) out();
-      };
-      window.addEventListener('scroll', on, { passive: true });
-      return () => {
-        clearTimeout(t);
-        window.removeEventListener('scroll', on);
-      };
-    }
-    if (phase === 'out') {
-      const t = setTimeout(() => done.current('arrived'), OPENER_OUT);
-      return () => clearTimeout(t);
-    }
-    return undefined;
-  }, [phase]);
-  const words = question.split(/\s+/);
+// The answer chip under the question (sub.answer): one line with the
+// scene's key number(s), slid up once the last card is reached. `answerTo`
+// (an anchor, or { tab, sub, anchor }) makes it a link to the figure's home;
+// then it restates a figure printed there, so it is data-axis (not a second
+// home for the number checks). Never hidden from innerText (opacity only),
+// so the number checks see the same text at any scroll.
+function Answer({ answer, to, shown }) {
+  const inner = (
+    <>
+      <Icon name={iconFor('answer')} size={14} className="scene-head-a-icon" />
+      <span className="scene-head-a-label">Answer</span>
+      <span className="scene-head-a-text">{answer}</span>
+    </>
+  );
+  const cls = `scene-head-a${shown ? ' is-shown' : ''}`;
+  if (to == null) return <p className={cls}>{inner}</p>;
+  const t = typeof to === 'string' ? { tab: 'story', anchor: to } : to;
   return (
-    <div ref={ref} className={`topic-opener is-${phase}`} aria-hidden="true" data-axis="" inert>
-      <div className="topic-opener-inner">
-        <span className="topic-opener-mark">
-          {icon ? <Icon name={iconFor(icon)} size={44} strokeWidth={1.5} className="topic-opener-icon" /> : null}
-          {n ? <span className="topic-opener-part">Part {n}</span> : null}
-        </span>
-        <span className="topic-opener-q">
-          {words.map((w, i) => (
-            <span key={i} className="topic-opener-w" style={{ '--w': i }}>
-              {w}{' '}
-            </span>
-          ))}
-        </span>
-      </div>
-    </div>
+    <p className={cls} data-axis="">
+      <NavLink tab={t.tab ?? 'story'} sub={t.sub} anchor={t.anchor} className="scene-head-a-link">
+        {inner}
+      </NavLink>
+    </p>
   );
 }
 
 // One step's own copy of the figure (inline fallback, 900px and below), with
 // its own `entered`, so each copy plays its one-shot move as it comes into view.
-function InlineCopy({ graphic, i, reduce, label }) {
+function InlineCopy({ graphic, i, reduce, label, highlight }) {
   const [ref, entered] = useInView({ rootMargin: '0px 0px -15% 0px' });
+  const box = useRef(null);
+  const hl = useHighlightState(highlight);
+  useApplyHighlight(box, hl, [entered]);
+  const setRef = (el) => {
+    ref.current = el;
+    box.current = el;
+  };
   return (
-    <div ref={ref} className="scrolly-graphic-inner is-inline" role="group" aria-label={label}>
-      {graphic(i, reduce, { inline: true, once: false, entered, prev: i > 0 ? i - 1 : null })}
+    <div ref={setRef} className="scrolly-graphic-inner is-inline" role="group" aria-label={label}>
+      {graphic(i, reduce, { inline: true, once: false, entered, prev: i > 0 ? i - 1 : null, highlight: hl.ids })}
     </div>
   );
 }
