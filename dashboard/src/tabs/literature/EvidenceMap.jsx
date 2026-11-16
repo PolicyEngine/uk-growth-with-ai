@@ -1,6 +1,8 @@
 'use client';
 
 import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
+import { Items } from '@/components/story/Items.jsx';
 
 import { useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
@@ -114,7 +116,7 @@ export default function EvidenceMap({ map = MAP }) {
       icon={iconFor('table')}
       title="Published estimates of AI’s economic effects"
       className="ev-card"
-      finding={`${published} published figures from ${bodies} institutions and authors, each on its own baseline and horizon; OG-UK’s rows sit beside them.`}
+      finding={<IconText icon="table">{`${published} published figures from ${bodies} institutions and authors, each on its own baseline and horizon; OG-UK’s rows sit beside them.`}</IconText>}
       controls={
         <ControlBar label="Evidence map: options">
           <ControlGroup label="Measure">
@@ -131,8 +133,29 @@ export default function EvidenceMap({ map = MAP }) {
       logo={false}
       aboutTitle="About this table"
       about={{
-        how: `Each figure is as published, against the study’s own baseline (mostly no AI) and at its own horizon; none is converted. Studies of the US or other economies are labelled. OG-UK’s rows are the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path; the figures are on Explore and in the download.`,
-        sources: `Every row was read in the primary text at the page or table given, on the date given, or (marked “review”) confirmed in the 15 November 2026 UK-studies review. A figure not yet confirmed in a primary text is left out. Bodies that publish no AI-specific estimate show their nearest output. The table is data/site-evidence-map.json.`,
+        how: (
+          <Items
+            items={[
+              { icon: 'source', text: 'Each figure as published, against the study’s own baseline (mostly no AI).' },
+              { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
+              { icon: 'foreign', text: 'Studies of the US or other economies are labelled.' },
+              { icon: 'model', text: `OG-UK rows: the automation + productivity arm’s ${HEADLINE_YEAR} gap.` },
+              { icon: 'link', text: 'That gap is against the OBR-central path; figures on Explore, download.' },
+            ]}
+          />
+        ),
+        sources: (
+          <Items
+            items={[
+              { icon: 'check', text: 'Read in the primary text, at the page or table given.' },
+              { icon: 'release', text: 'Read on the date given.' },
+              { icon: 'check', text: 'Or confirmed in the 15 November 2026 UK-studies review (marked “review”).' },
+              { icon: 'excluded', text: 'A figure not yet confirmed in a primary text is left out.' },
+              { icon: 'caveat', text: 'Bodies with no AI-specific estimate show their nearest output.' },
+              { icon: 'data', text: 'The table is data/site-evidence-map.json.' },
+            ]}
+          />
+        ),
       }}
       download={{
         title: 'UK evidence map',
@@ -141,7 +164,9 @@ export default function EvidenceMap({ map = MAP }) {
       }}
     >
       <p className="ev-count" aria-live="polite">
-        Showing {shown.length} of {all.length} rows
+        <IconText icon="table">
+          Showing {shown.length} of {all.length} rows
+        </IconText>
       </p>
       <div className="ev-wrap">
         <table className="data-table evidence-table ev-table">

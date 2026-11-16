@@ -2,6 +2,8 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
+import { Items } from '@/components/story/Items.jsx';
 
 import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
@@ -67,13 +69,26 @@ export default function GrowthCheck() {
       icon={iconFor('path')}
       title="The OG-UK baseline against the OBR’s growth forecast"
       className="mx-kpi"
-      finding={`Without the shock, OG-UK’s average ${span} GDP growth is ${close ? 'close to' : 'not close to'} the OBR’s October 2026 forecast${smoother ? ', but smoother year by year' : ''}.`}
+      finding={<IconText icon="compare">{`Without the shock, OG-UK’s average ${span} GDP growth is ${close ? 'close to' : 'not close to'} the OBR’s October 2026 forecast${smoother ? ', but smoother year by year' : ''}.`}</IconText>}
       about={{
-        how: 'Ours: GDP growth each year on the committed OG-UK baseline (central closure), from methodFacts.json. The baseline takes some inputs from the OBR but is not fitted to its growth path. OBR: real GDP growth by calendar year. Both averages are of the years shown.',
+        how: (
+          <Items
+            items={[
+              { icon: 'model', text: 'Ours: GDP growth each year on the committed OG-UK baseline (central closure).' },
+              { icon: 'forecast', text: 'The baseline takes some OBR inputs.' },
+              { icon: 'excluded', text: 'It is not fitted to the OBR’s growth path.' },
+              { icon: 'path', text: 'OBR: real GDP growth by calendar year.' },
+              { icon: 'measure', text: 'Both averages are of the years shown.' },
+            ]}
+          />
+        ),
         sources: (
-          <p>
-            {ext(OBR_GROWTH.url, src.short)}, {OBR_GROWTH.loc}. The OBR publishes one decimal place.
-          </p>
+          <Items
+            items={[
+              { icon: 'source', text: <>{ext(OBR_GROWTH.url, src.short)}, {OBR_GROWTH.loc}.</> },
+              { icon: 'measure', text: 'The OBR publishes one decimal place.' },
+            ]}
+          />
         ),
       }}
       download={{
@@ -100,7 +115,9 @@ export default function GrowthCheck() {
             </span>
             <span className="mx-kpi-v is-ref">{obr.toFixed(1)}%</span>
           </div>
-          <p className="mx-sub">Average GDP growth a year, {span}.</p>
+          <p className="mx-sub">
+            <IconText icon="measure">Average GDP growth a year, {span}.</IconText>
+          </p>
         </div>
         <div className="mx-kpi-chart" aria-label={`GDP growth by year, ${span}: OG-UK baseline bars, OBR forecast marks`}>
           <ul className="ev-kpi-key" aria-hidden="true">

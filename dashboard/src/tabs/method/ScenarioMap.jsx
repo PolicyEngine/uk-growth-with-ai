@@ -106,15 +106,15 @@ export default function ScenarioMap({ caption = true }) {
       </div>
       <ul className="mx-map-read">
         <li>
-          <span className="mx-key is-range" aria-hidden="true" />
+          <span data-icon="" className="mx-key is-range" aria-hidden="true" />
           <span>The line joins the UK scenarios; the same sources imply both inputs.</span>
         </li>
         <li>
-          <span className="mx-key" aria-hidden="true" />
+          <span data-icon="" className="mx-key" aria-hidden="true" />
           <span>UK central, the darker point, is the headline scenario.</span>
         </li>
         <li>
-          <span className="mx-key is-upper" aria-hidden="true" />
+          <span data-icon="" className="mx-key is-upper" aria-hidden="true" />
           <span>Korinek et al.&rsquo;s US &ldquo;substantial&rdquo; case: an upper case, beyond UK range.</span>
         </li>
       </ul>

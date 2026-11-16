@@ -7,6 +7,7 @@ import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
 import { REPO } from '@/tabs/ai/links.js';
@@ -76,7 +77,7 @@ const ARM_TEXT = {
         items={[
           { icon: 'equation', text: <>Z is solved jointly with &gamma;.</> },
           { icon: 'start', text: <>The gain is measured at the baseline&rsquo;s {FIRST_YEAR} capital and labour.</> },
-          { icon: 'onPath', text: 'No scenario has touched those inputs yet.' },
+          { icon: 'start', text: 'No scenario has touched those inputs yet.' },
         ]}
       />
     ),
@@ -86,7 +87,7 @@ const ARM_TEXT = {
     role: 'Shown beside the stress test',
     items: [
       { icon: 'capital', text: 'The same rise in the capital share.' },
-      { icon: 'onPath', text: 'Output at fixed inputs unchanged.' },
+      { icon: 'productivity', text: 'Output at fixed inputs unchanged.' },
     ],
     fixedText: 'Unchanged',
     glyph: <path d="M4 10 H20" />,
@@ -104,9 +105,10 @@ const ARM_TEXT = {
   ss: {
     icon: 'limit',
     role: 'A bound, not a forecast',
-    items: [{ icon: 'onPath', text: `${HEADLINE_YEAR} GDP is held at the OBR-central path.` }, ...stressItems()],
+    items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the OBR-central path.` }, ...stressItems()],
     fixedText: stressFixedText(),
-    glyph: <path d="M4 6 L12 14 L20 6" />,
+    // the chevron follows the central closure's sign, as the words do
+    glyph: (fx(CENTRAL) ?? 0) < 0 ? <path d="M4 6 L12 14 L20 6" /> : <path d="M4 14 L12 6 L20 14" />,
     preview: 'The R4 secant, the OBR comparison',
     more: (
       <Items
@@ -139,7 +141,9 @@ function ArmCards() {
             moreTitle="How Z is set"
             morePreview={t.preview}
           >
-            <p className="mx-kicker">{t.role}</p>
+            <p className="mx-kicker">
+              <IconText icon={a.id === 'ss' ? 'limit' : 'caveat'}>{t.role}</IconText>
+            </p>
             <Items items={t.items} />
             <div className="mx-fixed" aria-label={`Output at fixed inputs: ${t.fixedText}`}>
               <svg viewBox="0 0 24 20" width="24" height="20" aria-hidden="true">
@@ -174,7 +178,7 @@ export default function ScenariosTab() {
       <PageIntro
         icon={iconFor('scenario')}
         question="What goes into each run?"
-        answer={`Each scenario is a fall in the labour share and a gain in output at fixed inputs, reached in ${HEADLINE_YEAR}.`}
+        answer={<IconText icon="scenario">{`Each scenario is a fall in the labour share and a gain in output at fixed inputs, reached in ${HEADLINE_YEAR}.`}</IconText>}
       >
         <KeyFacts
           className="mx-facts-row"
@@ -187,13 +191,13 @@ export default function ScenariosTab() {
         />
       </PageIntro>
       <SectionHeading id="s-scenarios" icon={iconFor('scenario')} title="The scenarios">
-        Each is a pair of inputs reached in {HEADLINE_YEAR}, taken from UK sources (and, for the upper case, US ones).
+            <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, taken from UK sources (and, for the upper case, US ones).</IconText>
       </SectionHeading>
       <Card
         id="scenario-map"
         icon={iconFor('scenario')}
         title={`Scenario inputs, ${HEADLINE_YEAR}`}
-        unit="Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)"
+        unit={<IconText icon="measure">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</IconText>}
         download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources on each scenario card', table: scenarioTable }}
       >
         <ScenarioMap caption={false} />
@@ -207,11 +211,17 @@ export default function ScenariosTab() {
             title={s.id === 'korinek' ? KORINEK_FULL : s.label}
             className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
             more={
-              <dl className="mx-facts">
+              <dl className="mx-facts" data-cite="">
                 {Object.entries(s.sources).map(([k, v]) => (
                   <div key={k}>
-                    <dt>{k === 'tfp' ? 'Productivity' : k === 'labour_share' ? 'Labour share' : 'Both inputs'}</dt>
-                    <dd>{v}</dd>
+                    <dt>
+                      <Icon name={iconFor(k === 'tfp' ? 'productivity' : k === 'labour_share' ? 'labour' : 'compare')} size={14} className="mx-dt-icon" />
+                      {k === 'tfp' ? 'Productivity' : k === 'labour_share' ? 'Labour share' : 'Both inputs'}
+                    </dt>
+                    <dd>
+                      <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
+                      {v}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -220,25 +230,27 @@ export default function ScenariosTab() {
             morePreview={s.id === 'korinek' ? 'Korinek et al., Table 3' : 'IMF UK, OBR FRS, BP9'}
           >
             <p className="mx-kicker">
-              {s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US inputs' : 'UK range'}
+              <IconText icon={s.id === 'korinek' ? 'foreign' : 'scenario'}>
+                {s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US inputs' : 'UK range'}
+              </IconText>
             </p>
             <dl className="mx-pair">
               <div>
-                <dt>
-                  <Icon name={iconFor('labour')} size={14} className="mx-dt-icon" />
-                  Labour share
-                </dt>
-                <dd>−{s.labour_share_fall_pp.toFixed(1)}pp</dd>
+                <dt>Labour share</dt>
+                <dd>
+                  <Icon name={iconFor('labour')} size={16} className="mx-dt-icon" />
+                  −{s.labour_share_fall_pp.toFixed(1)}pp</dd>
               </div>
               <div>
-                <dt>
-                  <Icon name={iconFor('productivity')} size={14} className="mx-dt-icon" />
-                  Output at fixed inputs
-                </dt>
-                <dd>+{s.tfp_gain_pct.toFixed(1)}%</dd>
+                <dt>Output at fixed inputs</dt>
+                <dd>
+                  <Icon name={iconFor('productivity')} size={16} className="mx-dt-icon" />
+                  +{s.tfp_gain_pct.toFixed(1)}%</dd>
               </div>
             </dl>
-            <p className="mx-sub">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</p>
+            <p className="mx-sub">
+              <IconText icon="capital">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</IconText>
+            </p>
           </InfoCard>
         ))}
       </div>
@@ -251,18 +263,18 @@ export default function ScenariosTab() {
       />
 
       <SectionHeading id="s-arms" icon={iconFor('compare')} title="Three arms per scenario">
-        The same labour-share fall in each. They differ in output at fixed inputs.
+            <IconText icon="compare">The same labour-share fall in each. They differ in output at fixed inputs.</IconText>
       </SectionHeading>
       <ArmCards />
 
       <SectionHeading id="s-timing" icon={iconFor('timing')} title="When it happens">
-        One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}. This is the one home of the timing; Method links here.
+            <IconText icon="timing">One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}. This is the one home of the timing; Method links here.</IconText>
       </SectionHeading>
       <Card
         id="timing"
         icon={iconFor('timing')}
         title={`The timing, ${YEARS[0]}–${LATE_YEAR}`}
-        unit="Bars: weight of the change in γ and Z, from 0 (the OBR-central path) to 1 (full scenario)"
+        unit={<IconText icon="measure">Bars: weight of the change in γ and Z, from 0 (the OBR-central path) to 1 (full scenario)</IconText>}
         download={{ title: `The timing, ${YEARS[0]}–${LATE_YEAR}`, context: 'Ramp weight of the capital share γ and productivity Z', table: timelineTable, svg: timelineSvg, legend: () => [] }}
       >
         <Timeline caption={false} />
@@ -287,7 +299,7 @@ export default function ScenariosTab() {
         >
           <Items
             items={[
-              { icon: 'onPath', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
+              { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
           />

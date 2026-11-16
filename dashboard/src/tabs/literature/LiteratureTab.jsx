@@ -16,6 +16,7 @@ import PageIntro from '@/components/ui/PageIntro.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -56,8 +57,8 @@ function ImfGap() {
         ]}
       />
       <p className="mx-src">
-        {ext(`${REPO}/blob/audit/sanity-2028-final/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
-        figure read from SIP/2026/072, Figure 9.
+        <IconText icon="source">{ext(`${REPO}/blob/audit/sanity-2028-final/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
+        figure read from SIP/2026/072, Figure 9.</IconText>
       </p>
     </InfoCard>
   );
@@ -167,9 +168,21 @@ function Matrix() {
       icon={iconFor('coverage')}
       title="Coverage by channel"
       className="mx-matrix-card"
-      finding="Whether each source models each channel. Hover, tap or tab to a cell for the detail."
+      finding={<IconText icon="coverage">Whether each source models each channel. Hover, tap or tab to a cell for the detail.</IconText>}
       logo={false}
-      about={{ sources: 'OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072 and the model it uses, Rockall et al. (IMF WP/25/68); each cell’s note names its document. Every cell is read from the primary text; each source is listed under Sources.' }}
+      about={{
+        sources: (
+          <Items
+            items={[
+              { icon: 'forecast', text: 'OBR: March 2026 displacement scenario; July 2026 FRS labour-share box.' },
+              { icon: 'foreign', text: 'IMF UK: SIP/2026/072 and its model, Rockall et al. (IMF WP/25/68).' },
+              { icon: 'source', text: 'Each cell’s note names its document.' },
+              { icon: 'check', text: 'Every cell is read from the primary text.' },
+              { icon: 'link', text: 'Each source is listed under Sources.' },
+            ]}
+          />
+        ),
+      }}
       download={{
         title: 'Coverage by channel',
         table: () => ({
@@ -262,9 +275,17 @@ function SourceList({ group, title, icon }) {
               <Icon name="externalLink" size={14} />
             </span>
             <span className="mx-src-title">{s.title}</span>
-            <span className="mx-src-use">{s.use}</span>
-            <span className="mx-src-loc">{s.loc}</span>
-            {s.read ? <span className="mx-src-read">{s.read}</span> : null}
+            <span className="mx-src-use">
+              <IconText icon="why">{s.use}</IconText>
+            </span>
+            <span className="mx-src-loc">
+              <IconText icon="source">{s.loc}</IconText>
+            </span>
+            {s.read ? (
+              <span className="mx-src-read">
+                <IconText icon="caveat">{s.read}</IconText>
+              </span>
+            ) : null}
           </a>
         ))}
       </div>
@@ -290,26 +311,26 @@ export default function StudiesTab() {
         <PageIntro
           icon={iconFor('source')}
           question="How do our results compare with other work on AI and the UK economy?"
-          answer="The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline."
+          answer={<IconText icon="compare">The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
         />
         <SectionHeading id="coverage" icon={iconFor('coverage')} title="What each source can represent">
-          Nine channels against five sources. OG-UK is the first column.
+            <IconText icon="coverage">Nine channels against five sources. OG-UK is the first column.</IconText>
         </SectionHeading>
         <Matrix />
         <Takeaways />
         <SectionHeading id="numbers" icon={iconFor('measure')} title="Where our numbers sit">
-          Our headline-year results against published ranges. Horizons differ, so each row states its own.
+            <IconText icon="range">Our headline-year results against published ranges. Horizons differ, so each row states its own.</IconText>
         </SectionHeading>
         <RangeBars metric="gdp" />
         <ImfGap />
         <RangeBars metric="wage" />
         <GrowthCheck />
         <SectionHeading id="evidence-map" icon={iconFor('table')} title="UK evidence map">
-          Official, think-tank, international, private and academic estimates, each with baseline, horizon and check date. Published figures live here.
+            <IconText icon="source">Official, think-tank, international, private and academic estimates, each with baseline, horizon and check date. Published figures live here.</IconText>
         </SectionHeading>
         <EvidenceMap />
         <SectionHeading id="sources" icon={iconFor('source')} title="Sources">
-          Behind the coverage matrix and the growth check; figures in the evidence map. Earlier checks: {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
+            <IconText icon="link">Behind the coverage matrix and the growth check; figures in the evidence map. Earlier checks: {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.</IconText>
         </SectionHeading>
         <SourceList group="uk" title="UK official and UK-specific" icon={iconFor('finances')} />
         <SourceList group="model" title="Model-based studies" icon={iconFor('model')} />

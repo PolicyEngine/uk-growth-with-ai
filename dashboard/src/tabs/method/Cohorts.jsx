@@ -2,6 +2,7 @@
 
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { useHover } from '../shared/ui.jsx';
+import IconText from './IconText.jsx';
 
 // The overlapping-generations idea: at any date many cohorts coexist, each at
 // a different stage of life. A schematic (bar heights are illustrative, not
@@ -44,7 +45,7 @@ export default function Cohorts() {
         ))}
       </div>
       <figcaption className="mx-fig-note">
-        Earnings by age at one date; heights are illustrative. Cohorts and ability types: the Households block above.
+        <IconText icon="caveat">Earnings by age at one date; heights are illustrative. Cohorts and ability types: the Households block above.</IconText>
       </figcaption>
     </figure>
   );

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import { ZETA, CENTRAL, LATE_YEAR } from '@/tabs/ai/surprise.js';
@@ -16,47 +18,47 @@ import { ZETA, CENTRAL, LATE_YEAR } from '@/tabs/ai/surprise.js';
 export const NODES = [
   {
     id: 'households',
-    icon: 'users',
+    icon: 'households',
     title: 'Households',
     tag: 'By age and lifetime earnings',
     line: 'Eighty ages (20 to 99) and seven lifetime-earnings groups. Each chooses work, spending and saving over its life.',
     detail: [
-      'Each values consumption, leisure and a bequest, and faces age-specific mortality.',
-      'Work pays until the after-tax wage equals the cost of effort. Saving trades today against tomorrow’s return.',
-      'Many generations are alive at once, so a change reaches young and old differently (see “Many generations at once” below).',
+      ['why', 'Each values consumption, leisure and a bequest, and faces age-specific mortality.'],
+      ['labour', 'Work pays until the after-tax wage equals the cost of effort. Saving trades today against tomorrow’s return.'],
+      ['generations', 'Many generations are alive at once, so a change reaches young and old differently (see “Many generations at once” below).'],
     ],
   },
   {
     id: 'firms',
-    icon: 'factory',
+    icon: 'capital',
     title: 'Firms',
     tag: 'Where AI enters',
     line: 'One competitive industry combines capital and labour. AI raises the capital share γ and productivity Z.',
     detail: [
-      'At an elasticity of substitution of one, the labour share is exactly 1 − γ.',
-      'The wage equals the marginal product of labour; the rental rate equals capital’s, after tax and depreciation.',
+      ['equation', 'At an elasticity of substitution of one, the labour share is exactly 1 − γ.'],
+      ['pay', 'The wage equals the marginal product of labour; the rental rate equals capital’s, after tax and depreciation.'],
     ],
   },
   {
     id: 'world',
-    icon: 'globe',
+    icon: 'foreign',
     title: 'Rest of the world',
     tag: 'Foreign capital and gilts',
     line: `Supplies part of any extra demand for capital (ζK = ${ZETA[CENTRAL]} under the central closure) and holds part of new government debt.`,
     detail: [
-      'Foreign investors supply a share ζK of the excess demand for capital at a 2% world interest rate, and hold 40% of new government debt (ζD).',
-      'What foreign-owned capital earns is paid abroad, so GNI rises less than GDP.',
+      ['foreign', 'Foreign investors supply a share ζK of the excess demand for capital at a 2% world interest rate, and hold 40% of new government debt (ζD).'],
+      ['gni', 'What foreign-owned capital earns is paid abroad, so GNI rises less than GDP.'],
     ],
   },
   {
     id: 'government',
-    icon: 'landmark',
+    icon: 'finances',
     title: 'Government',
     tag: 'Taxes, spending, debt',
     line: `Six taxes, pensions, transfers and its own consumption. It borrows; from ${LATE_YEAR} a debt rule steers spending.`,
     detail: [
-      'Taxes on income, payroll, consumption, corporate profits, wealth and bequests. The income tax is a smooth function fitted to PolicyEngine-UK.',
-      'How spending responds to the shock is the fiscal rule: see “Fiscal rules and public finances”.',
+      ['tax', 'Taxes on income, payroll, consumption, corporate profits, wealth and bequests. The income tax is a smooth function fitted to PolicyEngine-UK.'],
+      ['rule', 'How spending responds to the shock is the fiscal rule: see “Fiscal rules and public finances”.'],
     ],
   },
 ];
@@ -152,7 +154,7 @@ export default function ModelDiagram() {
             onClick={() => setOpen(open === n.id ? null : n.id)}
           >
             <span className="md-node-head">
-              <Icon name={n.icon} size={18} />
+              <Icon name={iconFor(n.icon)} size={18} />
               <span className="md-node-title">{n.title}</span>
             </span>
             <span className="md-node-tag">{n.tag}</span>
@@ -163,7 +165,10 @@ export default function ModelDiagram() {
           <Edge key={e.id} e={e} />
         ))}
         <div className="md-centre">
-          <b>Markets clear</b>
+          <b>
+            <Icon name={iconFor('breakEven')} size={16} className="mx-dt-icon" />
+            Markets clear
+          </b>
           <span>Prices (the wage and the interest rate) adjust until labour, capital and goods markets all balance. Firms also pay corporate tax.</span>
         </div>
       </div>
@@ -171,12 +176,10 @@ export default function ModelDiagram() {
         {node ? (
           <>
             <h4>
-              <Icon name={node.icon} size={16} />
+              <Icon name={iconFor(node.icon)} size={16} />
               <span>{node.title}</span>
             </h4>
-            {node.detail.map((d) => (
-              <p key={d}>{d}</p>
-            ))}
+            <Items items={node.detail.map(([icon, text]) => ({ key: text, icon, text }))} />
           </>
         ) : null}
       </div>

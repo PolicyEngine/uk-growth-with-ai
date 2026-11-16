@@ -86,7 +86,6 @@ export const CONCEPT_ICON = {
   scarceGoods: 'cart', // demand for goods that stay scarce
   jump: 'construction', // a one-year jump, no adjustment costs
   prerequisite: 'key', // what you need first
-  repo: 'github', // the code repository
   check: 'microscope', // a check of the numbers
   arithmetic: 'calculator', // arithmetic, not a solve
 };

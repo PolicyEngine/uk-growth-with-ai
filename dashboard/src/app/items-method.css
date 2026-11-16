@@ -80,3 +80,31 @@
     margin-left: 0;
   }
 }
+
+/* a short line led by a plain concept icon (IconText) */
+.mx-it {
+  display: inline-flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.mx-it-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 0.2em;
+  color: var(--pe-gray-500);
+}
+.mx-it-text {
+  min-width: 0;
+}
+.disclosure-title .mx-it {
+  align-items: center;
+}
+.disclosure-title .mx-it-icon {
+  margin-top: 0;
+}
+.mx-tab .limit-list .story-items {
+  margin-top: 4px;
+}
+.mx-tab .md-detail .story-items {
+  margin-top: 6px;
+}

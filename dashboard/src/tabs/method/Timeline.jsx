@@ -3,6 +3,7 @@
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { YEARS, FIRST_YEAR, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
+import IconText from './IconText.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 
@@ -90,7 +91,7 @@ export default function Timeline({ caption = true }) {
             >
               <span className="mx-tl-mark">{m || ''}</span>
               <span className="mx-tl-track">
-                <span className="mx-tl-bar" />
+                <span className="mx-tl-bar" data-icon="" />
                 <span className="mx-tl-w">{phase(y) === 'ramp' || y === FIRST_YEAR ? w.toFixed(2).replace(/0$/, '').replace(/\.0$/, '') : ''}</span>
               </span>
               <span className="mx-tl-year">{y}</span>
@@ -106,8 +107,9 @@ export default function Timeline({ caption = true }) {
         })}
       </ol>
       <p className="mx-fig-note">
-        Perfect foresight from {SURPRISE_YEAR}: once announced, the whole path is known. Hover, tap or tab to a year
-        for detail.
+        <IconText icon="timing">
+          Perfect foresight from {SURPRISE_YEAR}: once announced, the whole path is known. Hover, tap or tab to a year for detail.
+        </IconText>
       </p>
     </figure>
   );

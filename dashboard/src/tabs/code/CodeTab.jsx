@@ -14,6 +14,7 @@ import { VERSIONS, VINTAGES, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CH
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, SP_HELPER, STEPS } from './pipeline.js';
 
@@ -63,20 +64,22 @@ function BeforeYouStart() {
       className="mx-before"
       foot={
         <>
-          <Disclosure inCard title="Install the model" preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
+          <Disclosure inCard title={<IconText icon="install">Install the model</IconText>} preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
             <CopyBlock code={INSTALL} />
           </Disclosure>
-          <Disclosure inCard title="Patch OG-Core for a time-varying γ" preview="Runs refuse to start without it">
-            <p className="mx-fold-p">
-              Stock OG-Core holds &gamma; fixed over time. The {ext(URLS.patch, 'patch')} adds a time dimension (
-              {ext(URLS.patchDoc, 'design')}).
-            </p>
+          <Disclosure inCard title={<IconText icon="code">Patch OG-Core for a time-varying γ</IconText>} preview="Runs refuse to start without it">
+            <Items
+              items={[
+                { icon: 'model', text: <>Stock OG-Core holds &gamma; fixed over time.</> },
+                { icon: 'code', text: <>The {ext(URLS.patch, 'patch')} adds a time dimension ({ext(URLS.patchDoc, 'design')}).</> },
+              ]}
+            />
             <CopyBlock code={PATCH} />
           </Disclosure>
-          <Disclosure inCard title="Environment" preview="Tokens, Hugging Face cache, Dask">
+          <Disclosure inCard title={<IconText icon="prerequisite">Environment</IconText>} preview="Tokens, Hugging Face cache, Dask">
             <CopyBlock code={ENV} />
           </Disclosure>
-          <Disclosure inCard title="The sp helper used below" preview="Runs the CLI as the driver does">
+          <Disclosure inCard title={<IconText icon="code">The sp helper used below</IconText>} preview="Runs the CLI as the driver does">
             <CopyBlock code={SP_HELPER} />
           </Disclosure>
         </>
@@ -84,8 +87,10 @@ function BeforeYouStart() {
     >
       <div className="mx-before-grid">
         <div>
-          <p className="mx-kicker">Versions used</p>
-          <dl className="mx-versions">
+          <p className="mx-kicker">
+            <IconText icon="version">Versions used</IconText>
+          </p>
+          <dl className="mx-versions" data-reference="">
             {VERSIONS.filter((e) => e.id !== 'solves').map((e) => (
               <div key={e.id}>
                 <dt>{e.label}</dt>
@@ -101,7 +106,9 @@ function BeforeYouStart() {
           </dl>
         </div>
         <div>
-          <p className="mx-kicker">You need</p>
+          <p className="mx-kicker">
+            <IconText icon="prerequisite">You need</IconText>
+          </p>
           {/* elapsed_min over the solve records in analysis/surprise/output: methodFacts.json solve_minutes */}
           <Items
             items={[
@@ -128,7 +135,9 @@ function BeforeYouStart() {
 function PipelineMap() {
   return (
     <InfoCard icon={iconFor('pipeline')} title="The 2028-surprise pipeline" className="mx-pipemap">
-      <p>Nine steps, in order. Choose one for its file and commands.</p>
+      <p>
+        <IconText icon="stages">Nine steps, in order. Choose one for its file and commands.</IconText>
+      </p>
       <nav aria-label="Pipeline steps">
       <ol className="mx-pipe-row">
         {STEPS.map((s, i) => (
@@ -167,11 +176,7 @@ function PipelineSteps() {
             morePreview={`Commands · ${firstCommand(s.code)}`}
             more={
               <>
-                {s.more.map((m) => (
-                  <p key={m} className="mx-fold-p">
-                    {m}
-                  </p>
-                ))}
+                <Items items={s.more.map((m) => ({ key: m, icon: 'caveat', text: m }))} />
                 <CopyBlock code={s.code} />
               </>
             }
@@ -180,7 +185,9 @@ function PipelineSteps() {
               <Icon name="github" size={14} />
               <code>{s.file}</code>
             </a>
-            <p>{s.line}</p>
+            <p>
+              <IconText icon="stages">{s.line}</IconText>
+            </p>
           </InfoCard>
         </li>
       ))}
@@ -232,14 +239,17 @@ function UseOguk() {
     {
       icon: 'install',
       title: 'Install',
-      line: 'Install OG-UK from PSLmodels with uv. It needs Python 3.11 or later.',
+      line: [
+        { icon: 'install', text: 'Install OG-UK from PSLmodels with uv.' },
+        { icon: 'version', text: 'It needs Python 3.11 or later.' },
+      ],
       code: OG_INSTALL,
       preview: 'git clone, uv sync, token',
     },
     {
       icon: 'scenario',
       title: 'Define a reform',
-      line: 'A reform is a PolicyEngine policy: a parameter, a value and a start date.',
+      line: [{ icon: 'rule', text: 'A PolicyEngine policy: a parameter, a value and a start date.' }],
       code: REFORM_PY,
       preview: 'reform.py',
       lang: 'py',
@@ -247,7 +257,10 @@ function UseOguk() {
     {
       icon: 'breakEven',
       title: 'Solve the steady state',
-      line: 'Solve the baseline and the reform, then compare the long run.',
+      line: [
+        { icon: 'equation', text: 'Solve the baseline and the reform.' },
+        { icon: 'compare', text: 'Then compare the long run.' },
+      ],
       code: SS_PY,
       preview: 'steady_state.py, a few minutes',
       lang: 'py',
@@ -255,7 +268,10 @@ function UseOguk() {
     {
       icon: 'path',
       title: 'Run the transition path',
-      line: 'The year-by-year path. Dask spreads the cohorts across cores.',
+      line: [
+        { icon: 'path', text: 'The year-by-year path.' },
+        { icon: 'generations', text: 'Dask spreads the cohorts across cores.' },
+      ],
       code: TPI_PY,
       preview: 'transition.py',
       lang: 'py',
@@ -263,7 +279,7 @@ function UseOguk() {
     {
       icon: 'model',
       title: 'More sectors',
-      line: 'Pass multi_sector=True for the eight-sector build.',
+      line: [{ icon: 'code', text: 'Pass multi_sector=True for the eight-sector build.' }],
       code: MULTI_PY,
       preview: 'multi_sector.py',
       lang: 'py',
@@ -280,14 +296,15 @@ function UseOguk() {
             more={<CopyBlock code={c.code} lang={c.lang || 'bash'} />}
             morePreview={`Code · ${c.preview}`}
           >
-            <p>{c.line}</p>
+            <Items items={c.line} />
           </InfoCard>
         ))}
         <InfoCard icon={iconFor('source')} title="Documentation">
-          <p>
-            Theory and API: {ext(URLS.ogCoreDocs, 'OG-Core')} and {ext('https://pslmodels.github.io/OG-UK', 'OG-UK')}{' '}
-            documentation.
-          </p>
+          <Items
+            items={[
+              { icon: 'link', text: <>Theory and API: {ext(URLS.ogCoreDocs, 'OG-Core')} and {ext('https://pslmodels.github.io/OG-UK', 'OG-UK')} documentation.</> },
+            ]}
+          />
         </InfoCard>
       </div>
     </>
@@ -326,7 +343,7 @@ function Vintages() {
       </InfoCard>
       <div className="cards-grid">
       <InfoCard icon={iconFor('version')} title="Model versions" id="model-versions">
-        <dl className="mx-versions">
+        <dl className="mx-versions" data-reference="">
           {VERSIONS.map((e) => (
             <div key={e.id}>
               <dt>{e.label}</dt>
@@ -339,7 +356,7 @@ function Vintages() {
         </dl>
       </InfoCard>
       <InfoCard icon={iconFor('release')} title="Official releases (ONS, OBR, DSIT)" id="releases">
-        <ul className="ledger-releases">
+        <ul className="ledger-releases" data-reference="">
           {RELEASES.map((r) => (
             <li key={r.id}>
               <span className="ledger-date">{r.released}</span>
@@ -364,14 +381,34 @@ function Ledger() {
       id="source-ledger"
       icon={iconFor('ledger')}
       title="Source ledger"
-      finding="Every figure or group of figures, with its source, vintage and last check, read from the data files."
+      finding={<IconText icon="ledger">Every figure or group of figures, with its source, vintage and last check, read from the data files.</IconText>}
       logo={false}
       aboutTitle="About this table"
       about={{
-        how: HAS_CHECKS
-          ? 'Each official figure the story prints is listed with its release and the second, independent read of its primary file recorded in ukContextChecks.json; the rest come from each data file.'
-          : 'Built from each data file’s own source fields. Official figures will also carry the checks in ukContextChecks.json once that file is part of the build.',
-        caveats: 'Published studies were checked against the primary text in the literature note (PR #37, then #41); the location in each source is given as its vintage.',
+        how: (
+          <Items
+            items={
+              HAS_CHECKS
+                ? [
+                    { icon: 'release', text: 'Each official figure the story prints is listed with its release.' },
+                    { icon: 'check', text: 'And the second, independent read of its primary file (ukContextChecks.json).' },
+                    { icon: 'data', text: 'The rest come from each data file.' },
+                  ]
+                : [
+                    { icon: 'data', text: 'Built from each data file’s own source fields.' },
+                    { icon: 'check', text: 'Official figures will also carry the checks in ukContextChecks.json.' },
+                  ]
+            }
+          />
+        ),
+        caveats: (
+          <Items
+            items={[
+              { icon: 'source', text: 'Published studies were checked against the primary text (PR #37, then #41).' },
+              { icon: 'release', text: 'The location in each source is given as its vintage.' },
+            ]}
+          />
+        ),
       }}
       download={{ title: 'Source ledger', context: `Data last updated ${LAST_UPDATED}`, table: ledgerTable }}
     >
@@ -429,7 +466,9 @@ function Cite() {
   return (
     <div className="cards-grid">
       <InfoCard icon={iconFor('source')} title="Citation" id="citation">
-        <p className="cite-text">{CITE_TEXT}</p>
+        <p className="cite-text">
+          <IconText icon="source">{CITE_TEXT}</IconText>
+        </p>
         <CopyBlock code={CITE_BIB} lang="text" />
       </InfoCard>
       <InfoCard icon={iconFor('limit')} title="Known limitations" id="known-limits">
@@ -481,14 +520,14 @@ const RECENT = 8;
 function Changelog() {
   const [recent, older] = [CHANGELOG.entries.slice(0, RECENT), CHANGELOG.entries.slice(RECENT)];
   return (
-    <div className="info-card mx-card mx-history">
+    <div className="info-card mx-card mx-history" data-reference="">
       <ol className="mx-history-list">
         {recent.map((e) => (
           <Entry key={e.commit} e={e} />
         ))}
       </ol>
       {older.length ? (
-        <Disclosure inCard title="Earlier changes" preview={`${older.length} more, back to ${longDate(older[older.length - 1].date)}`}>
+        <Disclosure inCard title={<IconText icon="revision">Earlier changes</IconText>} preview={`${older.length} more, back to ${longDate(older[older.length - 1].date)}`}>
           <ol className="mx-history-list">
             {older.map((e) => (
               <Entry key={e.commit} e={e} />
@@ -505,7 +544,7 @@ export default function CodeTab() {
     <div className="page-with-contents mx-tab mx-code">
       <OnThisPage tab="method" sub="code" sections={SECTIONS} label="Code contents" />
       <div className="page-body">
-        <PageIntro icon={iconFor('code')} question="Can I check and reproduce these results?" answer="Yes. The solves, the data files and the scripts that build every page are committed.">
+        <PageIntro icon={iconFor('code')} question="Can I check and reproduce these results?" answer={<IconText icon="check">Yes. The solves, the data files and the scripts that build every page are committed.</IconText>}>
           <WhyChain
             label="From a clean machine to the pages"
             links={[
@@ -525,20 +564,20 @@ export default function CodeTab() {
         </PageIntro>
         <section>
           <SectionHeading id="before" icon={iconFor('prerequisite')} title="Reproduce the results">
-            Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.
+            <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.</IconText>
           </SectionHeading>
           <BeforeYouStart />
         </section>
         <section>
           <SectionHeading id="pipeline" icon={iconFor('pipeline')} title="Run it step by step">
-            Each step has its file, one sentence and its commands.
+            <IconText icon="stages">Each step has its file, one sentence and its commands.</IconText>
           </SectionHeading>
           <PipelineMap />
           <PipelineSteps />
         </section>
         <section>
           <SectionHeading id="outputs" icon={iconFor('check')} title="Outputs and checks">
-            What the numbers are in, and how they are checked.
+            <IconText icon="measure">What the numbers are in, and how they are checked.</IconText>
           </SectionHeading>
           <div className="cards-grid">
             <InfoCard icon={iconFor('measure')} title="Model units, not pounds" id="units">
@@ -562,35 +601,35 @@ export default function CodeTab() {
         </section>
         <section>
           <SectionHeading id="vintages" icon={iconFor('data')} title="Data vintages and versions">
-            Which data, model and release each page is built from, read from the data files.
+            <IconText icon="release">Which data, model and release each page is built from, read from the data files.</IconText>
           </SectionHeading>
           <Vintages />
         </section>
         <section>
           <SectionHeading id="ledger" icon={iconFor('ledger')} title="Source ledger">
-            Where each figure comes from and when it was checked.
+            <IconText icon="source">Where each figure comes from and when it was checked.</IconText>
           </SectionHeading>
           <Ledger />
         </section>
         <section>
           <SectionHeading id="cite" icon={iconFor('source')} title="Cite this work">
-            A citation, and the limitations to cite with it.
+            <IconText icon="source">A citation, and the limitations to cite with it.</IconText>
           </SectionHeading>
           <Cite />
         </section>
         <section>
           <SectionHeading id="changelog" icon={iconFor('revision')} title="Changelog">
-            What changed on the site, newest first. Model decisions are on{' '}
+            <IconText icon="revision">What changed on the site, newest first. Model decisions are on{' '}
             <NavLink tab="method" sub="how" anchor="m-history">
               Method, revision history
             </NavLink>
-            .
+            .</IconText>
           </SectionHeading>
           <Changelog />
         </section>
         <section>
           <SectionHeading id="use-oguk" icon={iconFor('code')} title="Use OG-UK yourself">
-            The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.
+            <IconText icon="install">The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.</IconText>
           </SectionHeading>
           <UseOguk />
         </section>

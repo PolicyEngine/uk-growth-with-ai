@@ -1,6 +1,8 @@
 'use client';
 
 import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
+import { Items } from '@/components/story/Items.jsx';
 
 import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
@@ -144,35 +146,52 @@ export default function RangeBars({ metric }) {
       icon={m.icon}
       title={`${m.title}: ours in ${HEADLINE_YEAR} against published estimates`}
       className="mx-ranges ev-rb"
-      finding="Published figures live in the evidence map below, ours on Explore; each row links there. Hover, tap or tab to a row."
-      unit={m.unit}
+      finding={<IconText icon="link">Published figures live in the evidence map below, ours on Explore; each row links there. Hover, tap or tab to a row.</IconText>}
+      unit={<IconText icon="measure">{m.unit}</IconText>}
       legend={
         <ul className="mx-rb-key">
           <li>
-            <span className="mx-rb-dot is-c is-key" /> Central closure
+            <span className="mx-rb-dot is-c is-key" data-icon="" /> Central closure
           </li>
           <li>
-            <span className="mx-rb-dot is-b is-key" /> Closed capital
+            <span className="mx-rb-dot is-b is-key" data-icon="" /> Closed capital
           </li>
           <li>
-            <span className="mx-rb-bar is-key" /> Published range
+            <span className="mx-rb-bar is-key" data-icon="" /> Published range
           </li>
           <li>
-            <span className="mx-rb-pt is-key" /> Single figure
+            <span className="mx-rb-pt is-key" data-icon="" /> Single figure
           </li>
           <li>
-            <span className="mx-rb-tick is-key" /> Source&rsquo;s own central case
+            <span className="mx-rb-tick is-key" data-icon="" /> Source&rsquo;s own central case
           </li>
           {pub.some((r) => r.unverified) ? (
             <li>
-              <span className="mx-rb-bar is-key is-unverified" /> Not confirmed in the published text
+              <span className="mx-rb-bar is-key is-unverified" data-icon="" /> Not confirmed in the published text
             </li>
           ) : null}
         </ul>
       }
       about={{
-        how: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path, from the same solves as Explore. Published: each study’s own level gap against its own baseline (mostly no AI), at its own horizon; none is converted. A hatched bar is a figure not confirmed in the published text.`,
-        sources: 'Each published row is a row of the UK evidence map below, which prints the figure, its baseline, the page or table and the date it was checked.',
+        how: (
+          <Items
+            items={[
+              { icon: 'model', text: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path.` },
+              { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
+              { icon: 'ai', text: 'Those baselines mostly have no AI.' },
+              { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
+              { icon: 'caveat', text: 'A hatched bar: a figure not confirmed in the published text.' },
+            ]}
+          />
+        ),
+        sources: (
+          <Items
+            items={[
+              { icon: 'table', text: 'Each published row is a row of the UK evidence map below.' },
+              { icon: 'source', text: 'It prints the figure, baseline, page or table and check date.' },
+            ]}
+          />
+        ),
       }}
       download={{
         title: `${m.title}: ours in ${HEADLINE_YEAR} against published estimates`,

@@ -2,11 +2,11 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
-import { Notice } from '@/components/ab/Section.jsx';
 import { SectionHeading } from '@/components/ui/Card.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { D, MODEL_YEAR, PAPER_URL, PR_URL } from '@/tabs/story/part3/shared.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
@@ -70,21 +70,26 @@ export default function HouseholdsMethod() {
             <span>How does the household study produce its results?</span>
           </p>
           <p className="hh-answer">
-            On a calibrated sample of UK households, employees lose earnings at random, weighted by AI exposure, for one year.
+            <IconText icon="jobLoss">
+              On a calibrated sample of UK households, the study removes the earnings of employees chosen at random, weighted by AI exposure, for
+              one year.
+            </IconText>
           </p>
-          <Notice>Provisional</Notice>
+          <p className="notice-chip">
+            <IconText icon="provisional">Provisional</IconText>
+          </p>
         </header>
 
         <section>
           <SectionHeading id="hm-pipeline" icon={iconFor('stages')} title="The pipeline">
-            Data, exposure and the shock feed the tax-benefit model; results are averaged over draws.
+            <IconText icon="stages">Data, exposure and the shock feed the tax-benefit model; results are averaged over draws.</IconText>
           </SectionHeading>
           <Pipeline />
         </section>
 
         <section>
           <SectionHeading id="hm-data" icon={iconFor('data')} title="Data and model">
-            One year, {MODEL_YEAR}.
+            <IconText icon="timing">One year, {MODEL_YEAR}.</IconText>
           </SectionHeading>
           <div className="card-grid cols-2">
             <InfoCard icon={iconFor('data')} title="Microcosm UK 2024–25">
@@ -122,7 +127,7 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-exposure" icon={iconFor('ai')} title="AI exposure">
-            The complementarity-adjusted AI occupational exposure index (C-AIOE).
+            <IconText icon="measure">The complementarity-adjusted AI occupational exposure index (C-AIOE).</IconText>
           </SectionHeading>
           <Items
             className="hm-items"
@@ -139,7 +144,7 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-shock" icon={iconFor('shock')} title="The shock">
-            An assumed shock, applied in one year; not estimated from data.
+            <IconText icon="caveat">An assumed shock, applied in one year; not estimated from data.</IconText>
           </SectionHeading>
           <div className="card-grid is-top">
             <InfoCard icon={iconFor('jobLoss')} title="Job loss">
@@ -168,7 +173,7 @@ export default function HouseholdsMethod() {
                 items={[
                   { icon: 'capital', text: <>Interest and dividend income rise by <In>{fmtPct1(M.capital_uplift_pct)}</In>.</> },
                   { icon: 'interest', text: <>A <In>{M.return_shock_pp}</In>-point rise in the return.</> },
-                  { icon: 'onPath', text: 'Rents and pension returns are unchanged.' },
+                  { icon: 'capital', text: 'Rents and pension returns are unchanged.' },
                   { icon: 'excluded', text: 'The self-employed are outside both labour-market shocks.' },
                 ]}
               />
@@ -178,7 +183,7 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-rules" icon={iconFor('jobLoss')} title="Who loses the job">
-            Five rules share out the same expected number of job losses.
+            <IconText icon="draws">Five rules share out the same expected number of job losses.</IconText>
           </SectionHeading>
           <Items
             className="hm-items"
@@ -194,7 +199,7 @@ export default function HouseholdsMethod() {
           <Items
             className="hm-items mx-foot-items"
             items={[
-              { icon: 'onPath', text: 'Every other wage and capital-income change is the same under each rule.' },
+              { icon: 'compare', text: 'Every other wage and capital-income change is the same under each rule.' },
               { icon: 'compare', text: 'Separate runs turn the same gross loss into exposure-graded wage cuts.' },
               { icon: 'jobKeep', text: 'In those runs no one loses a job.' },
             ]}
@@ -203,15 +208,15 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-takeup" icon={iconFor('takeUp')} title="Benefits and take-up">
-            What a displaced worker can claim, and whether they do.
+            <IconText icon="takeUp">What a displaced worker can claim, and whether they do.</IconText>
           </SectionHeading>
           <KeyFacts
             className="mx-facts-row"
             facts={[
-              { icon: 'benefits', value: <>£<In>{M.uc_single_month_gbp}</In></>, label: 'UC a month, single, 25 or over' },
-              { icon: 'households', value: <>£<In>{M.uc_couple_month_gbp}</In></>, label: 'UC a month, couple' },
+              { icon: 'benefits', value: <In>£{M.uc_single_month_gbp}</In>, label: 'UC a month, single, 25 or over' },
+              { icon: 'households', value: <In>£{M.uc_couple_month_gbp}</In>, label: 'UC a month, couple' },
               { icon: 'pay', value: <><In>{M.uc_taper_pct}</In>p</>, label: 'in the pound of partner’s earnings, above the work allowance' },
-              { icon: 'capital', value: <>£<In>{M.uc_capital_limit_gbp}</In></>, label: 'capital above this removes entitlement' },
+              { icon: 'capital', value: <In>£{M.uc_capital_limit_gbp}</In>, label: 'capital above this removes entitlement' },
             ]}
           />
           <Items
@@ -235,7 +240,7 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-draws" icon={iconFor('draws')} title="Draws and spread">
-            Who is displaced is random, so each result is a mean over draws.
+            <IconText icon="draws">Who is displaced is random, so each result is a mean over draws.</IconText>
           </SectionHeading>
           <KeyFacts
             className="mx-facts-row"
@@ -259,7 +264,7 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-out" icon={iconFor('excluded')} title="What it leaves out">
-            The study traces current rules, not behaviour or the wider economy.
+            <IconText icon="excluded">The study traces current rules, not behaviour or the wider economy.</IconText>
           </SectionHeading>
           <Items
             className="hm-items"
@@ -276,19 +281,24 @@ export default function HouseholdsMethod() {
             ]}
           />
           <p className="hm-text">
-            <NavLink tab="story" anchor="p3-close-h">
-              What the study leaves out, in the story
-            </NavLink>
+            <IconText icon="link">
+              <NavLink tab="story" anchor="p3-close-h">
+                What the study leaves out, in the story
+              </NavLink>
+            </IconText>
           </p>
         </section>
 
         <section>
           <SectionHeading id="hm-vintage" icon={iconFor('revision')} title="Vintages">
-            Which version of the study the dashboard reads.
+            <IconText icon="version">Which version of the study the dashboard reads.</IconText>
           </SectionHeading>
-          <dl className="hm-vintage">
+          <dl className="hm-vintage" data-reference="">
             <div>
-              <dt>Study</dt>
+              <dt>
+                <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
+                Study
+              </dt>
               <dd>
                 <a href={PR_URL} target="_blank" rel="noreferrer">
                   PolicyEngine/uk-ai-study PR #{S.pr}
@@ -297,19 +307,28 @@ export default function HouseholdsMethod() {
               </dd>
             </div>
             <div>
-              <dt>Commit</dt>
+              <dt>
+                <Icon name={iconFor('code')} size={14} className="mx-dt-icon" />
+                Commit
+              </dt>
               <dd>
                 <code>{S.commit.slice(0, 7)}</code>, read {new Date(`${S.fetched}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}
               </dd>
             </div>
             <div>
-              <dt>Results build</dt>
+              <dt>
+                <Icon name={iconFor('version')} size={14} className="mx-dt-icon" />
+                Results build
+              </dt>
               <dd>
                 Built per the manifest at commit <code>{M.manifest_commit.slice(0, 7)}</code>, {M.manifest_finished.slice(0, 10)}
               </dd>
             </div>
             <div>
-              <dt>Data build</dt>
+              <dt>
+                <Icon name={iconFor('data')} size={14} className="mx-dt-icon" />
+                Data build
+              </dt>
               <dd>
                 <code>{M.data_build}</code>
               </dd>
