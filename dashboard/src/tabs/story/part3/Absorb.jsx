@@ -2,8 +2,9 @@
 
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtInputPct, fmtShare } from './format.js';
-import { D, FigureHead, OBR_SCENARIO, OutsideRebuildFlag, Source } from './shared.jsx';
+import { D, FigureHead, OBR_SCENARIO, OutsideRebuildFlag, Source, Ico } from './shared.jsx';
 
 // Step 3, what the system absorbs (results.tex, "Household absorption of job
 // loss by baseline decile"): a Sankey of the OBR-sized run, job loss alone,
@@ -41,7 +42,7 @@ function Graphic() {
   const g = absorbGraph();
   return (
     <figure className="p3-figure p3-sankey">
-      <FigureHead
+      <FigureHead icon="benefits"
         title={
           <>
             Job loss alone, a run sized to {OBR_SCENARIO} (<span data-input="">{fmtInputPct(S.displacement_rate_pct)}</span> of employees
@@ -62,11 +63,18 @@ function Graphic() {
         height={360}
         pad={7}
       />
-      <p className="p3-key">
-        How to read it: each ribbon runs from an income decile to where its lost earnings land; its width is pounds a year. Other items are
-        mainly pension contributions no longer paid. Decile 1 carries the ranking caveat of step 4. Employers also stop paying{' '}
-        {fmtBn(S.employer_ni_bn)} of National Insurance on these earnings, a cost to the government on top of the flows shown.
+      <p className="p3-key p3-key-head p3-iconed">
+        <Ico c="caveat" size={14} /> How to read it
       </p>
+      <Items
+        className="p3-key-items"
+        items={[
+          { icon: 'deciles', text: 'Ribbons: each decile’s lost earnings by destination; width £ a year' },
+          { icon: 'caveat', text: 'Other items: mainly pension contributions no longer paid' },
+          { icon: 'limit', text: 'Decile 1 carries the ranking caveat of step 4' },
+          { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI: a further cost to government</> },
+        ]}
+      />
       <Source>run sized to the OBR scenario, household flows by baseline decile</Source>
     </figure>
   );
@@ -78,14 +86,16 @@ export default function Absorb() {
       id: 'p3-absorb-step',
       kicker: '3 · What the system absorbs',
       title: 'Where a lost pound of earnings goes',
+      icon: 'households',
       body: (
-        <>
-          <p>
-            To see job loss on its own, this run displaces fewer employees, with no rise in other wages or capital income. Most of the
-            earnings lost fall on households’ disposable income. Income tax, employee National Insurance and benefits absorb{' '}
-            {fmtShare(S.tax_benefit_share_pct)} of the loss; benefits add little.
-          </p>
-        </>
+        <Items
+          items={[
+            { icon: 'jobLoss', text: 'Job loss on its own: fewer displaced, no other income rises' },
+            { icon: 'households', text: 'Most earnings lost fall on households’ disposable income' },
+            { icon: 'tax', text: <>Income tax, employee NI and benefits absorb {fmtShare(S.tax_benefit_share_pct)} of the loss</> },
+            { icon: 'benefits', text: 'Benefits add little' },
+          ]}
+        />
       ),
     },
   ];

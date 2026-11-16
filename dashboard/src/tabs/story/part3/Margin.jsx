@@ -1,8 +1,9 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtPence, fmtPenceRange, fmtPp } from './format.js';
-import { About, D, FigureHead, HBar, OutsideRebuildFlag, Source, StackBar, ladder, perPound } from './shared.jsx';
+import { About, D, FigureHead, HBar, OutsideRebuildFlag, Source, StackBar, ladder, perPound, Ico } from './shared.jsx';
 
 // Step 6, job loss against wage cuts (results.tex, "How the earnings loss
 // arrives"), on matching 20-draw bases only: pence per pound with each
@@ -23,10 +24,10 @@ const MAXP = Math.max(JOB.poverty_pp, CUT.poverty_pp);
 function Graphic() {
   return (
     <figure className="p3-figure">
-      <FigureHead title="The same earnings loss as job loss or as wage cuts" unit={`Mean of ${D.per_pound_20.draws} paired draws in every row`} />
+      <FigureHead icon="wageCut" title="The same earnings loss as job loss or as wage cuts" unit={`Mean of ${D.per_pound_20.draws} paired draws in every row`} />
       <OutsideRebuildFlag />
       <p className="p3-group-head p3-group-first">
-        Cost to the public finances per <span data-axis="">£1</span> of earnings lost, each margin alone
+        <Ico c="cost" /> Cost to the public finances per <span data-axis="">£1</span> of earnings lost, each margin alone
       </p>
       <p className="p3-legend" aria-hidden="true">
         <span className="p3-swatch p3-fill-hh" /> Income tax, employee NI and benefits <span className="p3-swatch p3-fill-gov" /> Employer NI
@@ -34,7 +35,7 @@ function Graphic() {
       <ol className="p3-rows">
         <li className="p3-row" data-row="pp-job">
           <span className="p3-row-label">
-            Job loss <span className="p3-muted">(range {fmtPenceRange(J.min_p, J.max_p)} across draws)</span>
+            <Ico c="jobLoss" /> Job loss <span className="p3-muted">(range {fmtPenceRange(J.min_p, J.max_p)} across draws)</span>
           </span>{' '}
           <span className="p3-row-bar">
             <HBar value={J.government_p} max={100} fill="p3-fill-ref" />
@@ -43,7 +44,7 @@ function Graphic() {
         </li>
         <li className="p3-row" data-row="pp-cut">
           <span className="p3-row-label">
-            Wage cuts: {fmtPence(W.household_p)} plus {fmtPence(ER)} of employer NI
+            <Ico c="wageCut" /> Wage cuts: {fmtPence(W.household_p)} plus {fmtPence(ER)} of employer NI
           </span>{' '}
           <span className="p3-row-bar">
             <StackBar
@@ -57,7 +58,8 @@ function Graphic() {
           <span className="p3-row-value">{fmtPence(W.government_p)}</span>
         </li>
       </ol>
-      <p className="p3-group-head">With higher wages for those still employed and higher capital income, as in the central case</p>
+      <p className="p3-group-head">
+        <Ico c="capital" /> With higher wages for those still employed and higher capital income, as in the central case</p>
       <div className="p3-cols" aria-hidden="true">
         <span />
         <span>Cost</span>
@@ -65,11 +67,13 @@ function Graphic() {
       </div>
       <ol className="p3-rows p3-rows-2col">
         {[
-          ['job', 'Job loss: the central case on these draws', JOB],
-          ['cut', 'Wage cuts of the same gross size', CUT],
-        ].map(([id, label, d]) => (
+          ['job', 'Job loss: the central case on these draws', JOB, 'jobLoss'],
+          ['cut', 'Wage cuts of the same gross size', CUT, 'wageCut'],
+        ].map(([id, label, d, ic]) => (
           <li key={id} className="p3-row p3-row-pair" data-row={`m-${id}`}>
-            <span className="p3-row-label">{label}</span>{' '}
+            <span className="p3-row-label">
+              <Ico c={ic} /> {label}
+            </span>{' '}
             <span className="p3-row-bar p3-row-bar-2">
               <HBar value={d.cost_bn} max={MAXC} fill="p3-fill-cost" />
               <HBar value={d.poverty_pp} max={MAXP} fill="p3-fill-loss" />
@@ -79,7 +83,8 @@ function Graphic() {
           </li>
         ))}
       </ol>
-      <p className="p3-key">Cost: £bn a year (blue). Poverty: change in absolute poverty before housing costs (amber). Job loss alone: no split by item on these draws (grey).</p>
+      <p className="p3-key">
+        <Ico c="measure" size={12} /> Cost: £bn a year (blue). Poverty: change in absolute poverty before housing costs (amber). Job loss alone: no split by item on these draws (grey).</p>
       <Source>wage-cut runs, central seeds 0 to 19</Source>
     </figure>
   );
@@ -91,18 +96,26 @@ export default function Margin() {
       id: 'p3-margin-step',
       kicker: '6 · Job loss or wage cuts',
       title: 'Wage cuts cost more per pound; job loss raises poverty more',
+      icon: 'wageCut',
       body: (
         <>
-          <p>
-            No one loses a job here: wage cuts graded by AI exposure remove the same gross earnings. Job loss concentrates the loss on fewer
-            households, moving more of them below the poverty line. The ordering is a result for this shock, not a property of the UK system.
-          </p>
+          <Items
+            items={[
+              { icon: 'wageCut', text: 'No one loses a job: wage cuts graded by AI exposure' },
+              { icon: 'pay', text: 'They remove the same gross earnings as the job losses' },
+              { icon: 'poverty', text: 'Job loss concentrates the loss, moving more households below the poverty line' },
+              { icon: 'caveat', text: 'The ordering is a result for this shock, not the UK system' },
+            ]}
+          />
           <About>
-            <p>
-              A cut removes pounds taxed at the worker’s marginal rates, while a lost job removes whole earnings, including the part below the
-              personal allowance, and the Universal Credit it adds is less than the tax forgone. Employer NI is of similar size on both margins.
-              The same loss spread across many earners moves few households below the poverty line.
-            </p>
+            <Items
+              items={[
+                { icon: 'wageCut', text: 'A cut removes pounds taxed at the worker’s marginal rates' },
+                { icon: 'tax', text: 'Employer NI is of similar size on both margins' },
+                { icon: 'jobLoss', text: 'A lost job removes whole earnings; UC replaces less than tax forgone' },
+                { icon: 'households', text: 'A loss spread across many earners moves few below the poverty line' },
+              ]}
+            />
           </About>
         </>
       ),

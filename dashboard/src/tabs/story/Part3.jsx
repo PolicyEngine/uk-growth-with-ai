@@ -1,6 +1,7 @@
 'use client';
 
 import Callout from '@/components/story/Callout.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
 import Central from './part3/Central.jsx';
@@ -11,6 +12,7 @@ import Rules from './part3/Rules.jsx';
 import Margin from './part3/Margin.jsx';
 import Moves from './part3/Moves.jsx';
 import Closing, { CloseLinks } from './part3/Closing.jsx';
+import { Ico, MODEL_YEAR } from './part3/shared.jsx';
 
 // Part 3: a model of households. Provisional results of a separate study, a
 // PolicyEngine-UK microsimulation of AI job displacement in FY 2026-27
@@ -27,14 +29,17 @@ export default function Part3({ part }) {
   return (
     <>
       <PartHead part={part}>
-        What a model of households finds for the public finances, poverty and incomes if a share of employees are assumed to lose their jobs to AI.
+        <Ico c="households" size={18} /> What a model of households finds if a share of employees are assumed to lose their jobs to AI.
       </PartHead>
       <Callout icon="model" title="A different model" className="p3-model">
-        <p>
-          This part reports a PolicyEngine-UK microsimulation on Microcosm UK 2024-25 data, static and for one year, FY 2026–27, whose figures
-          are provisional: the study is a draft under review and they may change. It assumes that people lose their jobs, whereas in OG-UK (part
-          2) the labour market clears and displacement shows in the wage, so its figures cannot be added to or compared with part 2’s gaps.
-        </p>
+        <Items
+          items={[
+            { icon: 'model', text: <>Static PolicyEngine-UK microsimulation, Microcosm UK 2024-25 data, {MODEL_YEAR}</> },
+            { icon: 'provisional', text: 'Figures are provisional: the study is a draft under review' },
+            { icon: 'jobLoss', text: 'Assumes job loss; in OG-UK (part 2) displacement shows in the wage' },
+            { icon: 'limit', text: 'Its figures cannot be added to or compared with part 2’s gaps' },
+          ]}
+        />
       </Callout>
       <Central />
       <Channels />

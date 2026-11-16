@@ -81,6 +81,17 @@ export const CONCEPT_ICON = {
   headline: 'flag', // the headline figures
   outputSplit: 'workflow', // where output goes
   // part 3:
+  wageCut: 'scissors', // a cut in pay rates with no job lost (part 3, step 6)
+  netSum: 'sigma', // the net of several flows, a sum of runs
+  higher: 'arrowUp', // higher than the comparison run (part 3 has no path)
+  lower: 'arrowDown', // lower than the comparison run
+  oneYear: 'calendar', // a single modelled year
+  related: 'externalLink', // related work elsewhere
+  partners: 'handshake', // a partner's hours of work
+  savings: 'coins', // household savings
+  corpTax: 'building', // corporation tax, company profits
+  selfEmployed: 'construction', // the self-employed
+  occupations: 'layoutGrid', // occupation groups
   // explore:
   // method:
   equation: 'sigma', // the model's equations
