@@ -1322,6 +1322,12 @@
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
+.ex-sd-flag {
+  margin-left: 2px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  cursor: help;
+}
 .ex-sd-arm {
   display: inline-flex;
   align-items: center;

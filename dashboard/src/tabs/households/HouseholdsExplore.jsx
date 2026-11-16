@@ -69,6 +69,27 @@ export function takeupWords() {
   if (more && less) return { long: 'Full take-up and JSA cost more and raise poverty less', short: 'full take-up costs more, raises poverty less' };
   return { long: 'Full take-up and JSA move the cost and the poverty rise', short: 'full take-up moves the cost and the poverty rise' };
 }
+// Economics review, round 1 (words only, computed from the data): the
+// top-loaded rule's poverty rise, which the stated routes do not explain,
+// and the uniform rule's spread across draws.
+export function rulesReviewWords(rules) {
+  const k = rules.find((r) => r.id === 'klein_top_loaded');
+  const u = rules.find((r) => r.id === 'uniform');
+  const out = [];
+  if (k && rules.every((r) => r.poverty_pp <= k.poverty_pp) && rules.every((r) => r.cost_bn <= k.cost_bn))
+    out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most', 'The study does not break that poverty rise down');
+  if (u && u.cost_sd_bn >= 0.8 * u.cost_bn) out.push('Uniform: the cost’s spread across draws is about its mean');
+  return out;
+}
+// The data's take-up flags: full take-up and JSA raise the cost and lower
+// the poverty rise, so the central poverty rise is an upper bound on that
+// count; its cost is not (economics review, round 1).
+export function takeupBoundWords() {
+  const c = L('central_20');
+  const vs = [L('takeup'), L('takeup_jsa')].filter(Boolean);
+  if (!c || !vs.length || !vs.every((r) => r.cost_bn > c.cost_bn && r.poverty_pp < c.poverty_pp)) return [];
+  return ['With the data’s take-up flags, the poverty rise is an upper bound', 'The cost is not: full take-up and JSA raise it'];
+}
 export function marginWords() {
   const j = L('central_20');
   const w = L('wage_cuts');
@@ -246,7 +267,7 @@ function Variants() {
           <Flag />
           <Notes
             how={['Take-up, JSA and wage cuts reuse the central seeds 0 to 19', 'Compare them with the central case on these draws, not the headline']}
-            caveats={['The OBR-sized runs are a smaller shock, not steps on the central ladder', `Sized to ${OBR_SCENARIO}`]}
+            caveats={['The OBR-sized runs are a smaller shock, not steps on the central ladder', `Sized to ${OBR_SCENARIO}`, ...takeupBoundWords()]}
             sources={['results/robustness/dividend_coverage_draws.csv (run central)', 'results/takeup/takeup_draws.csv', 'results/wage_cut/wage_cut_draws.csv (variant table3)', 'results/next_runs/obr_benchmark.json', <>26 weeks: the {ext(URLS.jsa, 'new-style JSA limit (GOV.UK)')}</>, <>OBR-sized: the study&rsquo;s conversion of {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}&rsquo;s unemployment rise</>]}
           />
         </>
@@ -323,7 +344,7 @@ function Rules() {
       foot={
         <Notes
           how={['Every rule displaces the same expected number of employees', 'Other wage and capital-income changes are the same; seeds are shared']}
-          caveats={['The rules are the study’s stylised designs', 'Junior-tilted: a higher chance for workers aged 16 to 24', 'Compression: doubled chances for top earners in exposed occupations', 'Top-loaded: displacement loaded on above-median earners']}
+          caveats={['The rules are the study’s stylised designs', 'Junior-tilted: a higher chance for workers aged 16 to 24', 'Compression: doubled chances for top earners in exposed occupations', 'Top-loaded: displacement loaded on above-median earners', ...rulesReviewWords(D.rules)]}
           sources={[`${D.rules[0].file}: exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp`]}
         />
       }

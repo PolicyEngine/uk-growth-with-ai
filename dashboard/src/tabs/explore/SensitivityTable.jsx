@@ -10,6 +10,8 @@ import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { ResultSources, methodLink } from './sources.jsx';
 import { AxisTitles } from './axes.jsx';
+import { investmentFlags, I_FLAG_PCT } from './caveats.js';
+import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 
 // The foreign-owned share of the extra capital in 2031, the data file's
 // foreign_share_dK_2031, as a rounded range across the solves.
@@ -107,7 +109,26 @@ function colAxis(res, v) {
   return { ticks, at: (x) => ((x - min) / (max - min || 1)) * 100 };
 }
 
+// Rows whose shock-year investment gap is above the project's flag
+// (explore/caveats.js): marked * beside the arm, worded once under the
+// claims. Korinek et al.'s main arm is the largest.
+const SENS_FLAGS = () => investmentFlags().filter((f) => f.cl === SENS);
+export function sensFlagItem() {
+  const fl = SENS_FLAGS();
+  if (!fl.length) return null;
+  return {
+    key: 'flag',
+    icon: 'caveat',
+    text: (
+      <>
+        * Investment above the {ext(OG_RESULT_URLS.sanity, `+${I_FLAG_PCT}% flag`)} in {S.surprise_year}: up to +{Math.round(fl[0].x)}%, {ext(OG_RESULT_URLS.plausibility, 'implausible')}
+      </>
+    ),
+  };
+}
+
 function SensDots({ res }) {
+  const flagged = new Set(SENS_FLAGS().map((f) => `${f.sid}|${f.arm}`));
   const axes = Object.fromEntries(VARS.map((c) => [c.v, colAxis(res, c.v)]));
   return (
     <div className="ex-sd" role="group" aria-label={`${HEADLINE_YEAR} gaps with more foreign capital, by scenario, arm and measure`}>
@@ -132,6 +153,11 @@ function SensDots({ res }) {
                 <span className="ex-sd-arm">
                   <span className="swatch" style={{ borderTopColor: ARM_COLOR[a.id] }} aria-hidden="true" />
                   {a.short || a.label}
+                  {flagged.has(`${s.id}|${a.id}`) ? (
+                    <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the path in ${S.surprise_year}: implausible`}>
+                      *
+                    </sup>
+                  ) : null}
                 </span>
                 {VARS.map((c) => {
                   const x = at(r, c.v);
@@ -188,7 +214,7 @@ export default function SensitivityTable() {
       icon={iconFor('foreign')}
       title={`Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`}
       finding={<Lead c="compare">In every scenario’s main arm, against the central closure:</Lead>}
-      controls={<Items className="ex-notes" items={sensClaims(res)} />}
+      controls={<Items className="ex-notes" items={[...sensClaims(res), sensFlagItem()]} />}
       unit={<Lead c="measure">{`${HEADLINE_YEAR}, % difference from the OBR-central path at the same closure, common fiscal rule`}</Lead>}
       logo={false}
       aboutTitle="About this chart"

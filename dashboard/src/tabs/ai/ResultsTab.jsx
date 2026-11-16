@@ -19,8 +19,10 @@ import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
 import { ResultSources } from '@/tabs/explore/sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
-import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
+import { wageClosureLines, investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
+import { CENTRAL, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
 
 // Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
@@ -203,12 +205,20 @@ function coincideFinding(sid, closure, rule = 'common') {
   return same ? 'The three arms’ lines coincide: the fall in the labour share is the same imposed input in each arm.' : null;
 }
 
+// Economics review, round 1: consumption below the path to the last year
+// shown (UK central, main arm, central closure, common rule) and the largest
+// investment jump above the project's flag (explore/caveats.js).
+const C_BELOW = belowThrough('uk_central', CENTRAL) === LATE_YEAR ? LATE_YEAR : null;
+const TOP_FLAG = investmentFlags()[0] ?? null;
+
 // Each group and card names its concept; the icon comes from lib/concepts.js.
 const ECONOMY = [
   { group: 'Demand', concept: 'consumption', lede: 'What households spend and what is invested.', rows: [
     { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { shows: READING, how: HOW, caveats: <Items items={[
       { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
       { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
+      { key: 'others', icon: 'foreign', text: 'Saving is not the only route: government and foreign owners take part' },
+      C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the path through ${C_BELOW}` } : null,
     ]} /> } },
     { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
       shows: READING,
@@ -218,6 +228,8 @@ const ECONOMY = [
         { key: 'year1', icon: 'capital', text: `It stays high until the ramp ends in ${HEADLINE_YEAR}, then drops` },
         { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
         { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
+        TOP_FLAG ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main arm' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
+        TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
       ]} />,
     } },
   ] },
@@ -339,6 +351,9 @@ function IncomePanel({ sid }) {
                 items={[
                   { key: 'cut', icon: 'pay', text: 'A negative wage gap is a level below a rising path' },
                   { key: 'obr', icon: 'source', text: <>The path assumes productivity growth of 1 per cent a year ({ext(efo(EFO_PAGE.p1_2), 'OBR EFO, March 2026, ¶1.2')})</> },
+                  ...(wageClosureLines(sid) ?? []).map((t, i) => ({ key: `wz${i}`, icon: i ? 'closure' : 'pay', text: t })),
+                  wageClosureLines(sid) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
+                  { key: 'us', icon: 'model', text: <>ζK 0.1: {ext(URLS.ogCoreParams, 'OG-Core’s setting for the US')}, kept by OG-UK</> },
                 ]}
               />
             ),
