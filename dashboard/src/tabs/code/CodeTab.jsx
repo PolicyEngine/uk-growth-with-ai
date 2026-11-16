@@ -9,6 +9,7 @@ import { ext } from '../shared/ui.jsx';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import CHANGELOG from '@/data/site-changelog.json';
+import MF from '@/data/methodFacts.json';
 import { VERSIONS, VINTAGES, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -102,8 +103,12 @@ function BeforeYouStart() {
           <ul className="mx-needs">
             <li>A Hugging Face token with read access, set as both HF_TOKEN and HUGGING_FACE_TOKEN.</li>
             <li>The R1–R4 baselines in WORK: each closure&rsquo;s baseline_p1 pickles.</li>
-            {/* elapsed_min over the 38 solve records in analysis/surprise/output (zk0.1, zk0, zk0.5) at 524849d: 6.5 to 8.7, median 6.8 */}
-            <li>About 15 GB of memory for a specification build; about seven minutes a solve (6.5 to 8.7 across the committed solves).</li>
+            {/* elapsed_min over the solve records in analysis/surprise/output: methodFacts.json solve_minutes */}
+            <li>
+              About 15 GB of memory for a specification build; about {Math.round(MF.solve_minutes.median)} minutes a solve (median{' '}
+              {MF.solve_minutes.median.toFixed(1)}, {MF.solve_minutes.min.toFixed(1)} to {MF.solve_minutes.max.toFixed(1)} across the{' '}
+              {MF.solve_minutes.records} committed solve records).
+            </li>
           </ul>
         </div>
       </div>

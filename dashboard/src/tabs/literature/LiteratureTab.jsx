@@ -39,7 +39,7 @@ function ImfGap() {
         (arithmetic, not a solve).
       </p>
       <p className="mx-src">
-        {ext(`${REPO}/blob/audit/sanity-2028/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
+        {ext(`${REPO}/blob/audit/sanity-2028-final/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
         figure read from SIP/2026/072, Figure 9.
       </p>
     </InfoCard>
