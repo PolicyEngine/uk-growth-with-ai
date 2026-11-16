@@ -210,15 +210,16 @@ function CostByTax() {
 }
 
 // --- 2. Every variant: one cost × poverty plane ------------------------------
-// The central case on 20 draws, full take-up, JSA and wage cuts (their cost
-// and poverty figures are printed in story steps 6 and 7: positions here),
+// The central case on 20 draws and wage cuts (their cost and poverty
+// figures are printed in story step 6: positions here), full take-up and JSA
+// (printed here: their home since round 1 moved them out of the story),
 // and the OBR-sized runs, a different, smaller shock in their own group and
 // colour (printed here). Arrows: central to full take-up to JSA, within
 // each group; none joins the groups.
 const VARIANTS = [
   { id: 'central_20', icon: 'jobLoss', label: 'Central case, the same 20 draws', story: STEP.margin, ring: true },
-  { id: 'takeup', icon: 'takeUp', label: 'Every displaced worker’s benefit unit claims UC', story: STEP.moves },
-  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA', story: STEP.moves },
+  { id: 'takeup', icon: 'takeUp', label: 'Every displaced worker’s benefit unit claims UC' },
+  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA' },
   { id: 'wage_cuts', icon: 'wageCut', label: 'Wage cuts of the same gross size', story: STEP.margin },
   { id: 'obr', icon: 'jobLoss', label: 'OBR-sized displacement', group: 'b' },
   { id: 'obr_takeup', icon: 'takeUp', label: 'OBR-sized, full UC take-up', group: 'b' },

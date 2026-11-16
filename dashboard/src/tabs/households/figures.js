@@ -37,9 +37,8 @@ export function storyFigures() {
     fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p), fmtPence(pp('wage_cuts').household_p), fmtPence(D.per_pound_20.wage_cuts_employer_ni_p),
     fmtPence(pp('wage_cuts').government_p), fmtBn(lad('central_20').cost_bn), fmtPp(lad('central_20').poverty_pp), fmtBn(lad('wage_cuts').cost_bn),
     fmtPp(lad('wage_cuts').poverty_pp),
-    // 7 break-evens, take-up and JSA
+    // 7 break-evens (take-up and JSA: Explore > Households since round 1)
     fmtPctSigned1(D.breakeven.wage.value_pct), `+${Math.round(D.breakeven.capital.value_pct)}%`,
-    ...['takeup', 'takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp)]),
   ];
 }
 
@@ -49,6 +48,7 @@ export function householdsFigures() {
   return [
     ...D.cost_components.rows.map((r) => small(r.cost_bn)),
     ...['central_20', 'takeup', 'takeup_jsa', 'wage_cuts'].map((k) => fmtPp(lad(k).gini_pp)),
+    ...['takeup', 'takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp)]),
     ...['obr', 'obr_takeup', 'obr_takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp), fmtPp(lad(k).gini_pp)]),
     fmtBn(rule('klein_top_loaded').cost_bn),
     ...['uniform', 'junior', 'compression', 'klein_top_loaded'].flatMap((k) => [fmtPp(rule(k).poverty_pp), fmtPp(rule(k).gini_pp)]),
