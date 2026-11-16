@@ -20,7 +20,7 @@ import { channelItems, effectWords, fillFor } from './part3/Channels.jsx';
 import { DECILES_SUB, bottomDecileRankings, decileShape, signIcon } from './part3/Deciles.jsx';
 import { takeupDirections } from './part3/Moves.jsx';
 import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
-import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
+import { MODEL_YEAR, OUTSIDE_REBUILD, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
 import TwoLenses, { CLOSE_SUB } from './TwoLenses.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
@@ -129,7 +129,9 @@ describe('Part3', () => {
     const { container } = renderPart();
     expect(container.querySelector('.story-callout').textContent.includes('provisional')).toBe(PROVISIONAL);
     expect(MODEL_YEAR).toMatch(/^FY \d{4}–\d{2}$/);
+    if (D.model_year_label) expect(MODEL_YEAR).toBe(D.model_year_label);
     const commit = D.commit ?? D.source.commit;
+    if (D.source.files_base_url) expect(D.source.files_base_url).toContain(commit);
     const sources = container.querySelectorAll('.story-source');
     expect(sources.length).toBe(container.querySelectorAll('.scrolly').length);
     sources.forEach((s) => {
@@ -141,7 +143,7 @@ describe('Part3', () => {
       expect(files.length).toBeGreaterThan(0);
       for (const h of files) expect(h.startsWith(`https://github.com/PolicyEngine/uk-ai-study/blob/${commit}/results/`), h).toBe(true);
     });
-    for (const id of ['p3-absorb', 'p3-margin', 'p3-moves']) expect(!!container.querySelector(`#${id} .p3-flag`), id).toBe(PROVISIONAL);
+    for (const id of ['p3-absorb', 'p3-margin', 'p3-moves']) expect(!!container.querySelector(`#${id} .p3-flag`), id).toBe(OUTSIDE_REBUILD);
     expect(container.querySelector('.p3-chip')).toBeNull();
     expect(container.textContent).not.toMatch(/\b(our|we assume)\b/i);
   });

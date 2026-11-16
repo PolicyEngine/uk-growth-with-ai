@@ -11,10 +11,13 @@ const SRC = D.source;
 // The commit the data builder records (top-level `commit` once the data
 // follow the merged study; `source.commit` before).
 export const COMMIT = D.commit ?? SRC.commit;
-export const REPO_URL = `https://github.com/${SRC.repo}`;
-export const PR_URL = `${REPO_URL}/pull/${SRC.pr}`;
-export const fileUrl = (path) => `${REPO_URL}/blob/${COMMIT}/${path}`;
-export const PAPER_URL = fileUrl('paper/main.pdf');
+// The refreshed data carry the links (source.repo_url, pr_url, paper_url,
+// files_base_url); before that they are built from repo, pr and commit.
+export const REPO_URL = SRC.repo_url ?? `https://github.com/${SRC.repo}`;
+export const PR_URL = SRC.pr_url ?? `${REPO_URL}/pull/${SRC.pr}`;
+const FILES_BASE = SRC.files_base_url ?? `${REPO_URL}/blob/${COMMIT}/`;
+export const fileUrl = (path) => `${FILES_BASE}${path}`;
+export const PAPER_URL = SRC.paper_url ?? fileUrl('paper/main.pdf');
 // Paper sections, as their LaTeX source at the same commit (readable on GitHub).
 export const SECTION = {
   method: { url: fileUrl('paper/sections/methodology.tex'), label: 'the paper, "Data and methods"' },

@@ -15,8 +15,10 @@ import { FileLink, PR_URL as STUDY_PR_URL } from './sources.jsx';
 // repeats inside an aria-label.
 
 export { D };
-export const PR_URL = 'https://github.com/PolicyEngine/uk-ai-study/pull/18';
-export const PAPER_URL = 'https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf';
+// From the data once refreshed (source.pr_url, source.paper_url: main at the
+// merged commit); the earlier data carry neither.
+export const PR_URL = D.source.pr_url ?? 'https://github.com/PolicyEngine/uk-ai-study/pull/18';
+export const PAPER_URL = D.source.paper_url ?? 'https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf';
 // The model year, read from the data: a top-level `model_year` (as the
 // refreshed data carry it, e.g. "2027-28" or "FY 2027-28"), else the year in
 // the baseline's note ("Baseline (no shock), FY 2026-27"). Printed with an en
@@ -25,13 +27,20 @@ export function fmtModelYear(raw) {
   const m = /(\d{4})\s*[-–/]\s*(\d{2,4})/.exec(String(raw ?? ''));
   return m ? `FY ${m[1]}–${m[2].slice(-2)}` : '';
 }
-export const MODEL_YEAR = fmtModelYear(D.model_year ?? D.source?.model_year ?? D.baseline?.absolute_bhc_pct?.note);
+export const MODEL_YEAR = D.model_year_label ?? fmtModelYear(D.model_year ?? D.baseline?.absolute_bhc_pct?.note);
 // The study's status, read from the data: a `status` field once the data
 // follow the merged study ("merged"), else the `provisional` flag. Story
 // text that says "provisional" or "draft" is shown only while this is true.
 export const PROVISIONAL = D.status != null ? /provisional|draft|open|review/i.test(String(D.status)) : D.provisional === true;
 // The baselines' owner: the field the data builder adds, else the model.
-export const BASELINE_LABEL = D.baseline?.label ?? 'PolicyEngine-UK baseline';
+export const BASELINE_LABEL = D.baseline?.baseline_source ?? 'PolicyEngine-UK baseline';
+// The status note's caveat (the build manifest attests the results tree
+// "without a full clean-room rerun"), said once in the part's call-out.
+export const NO_CLEAN_RERUN = /without a full clean-room rerun/i.test(D.status_note ?? '');
+// Runs outside the study's attested rebuild: the manifest's list once the
+// data carry it (empty after the merge), else every flagged run while the
+// study is provisional.
+export const OUTSIDE_REBUILD = Array.isArray(D.method?.outside_rebuild) ? D.method.outside_rebuild.length > 0 : PROVISIONAL;
 // The OBR scenario the smaller run is sized to, read from the ladder note
 // ("sized to the OBR March 2026 scenario").
 export const OBR_SCENARIO = `the OBR’s ${/OBR (\w+ \d{4}) scenario/.exec(D.ladder.find((r) => r.id === 'obr')?.note ?? '')?.[1] ?? ''} displacement scenario`.replace('  ', ' ');
@@ -119,10 +128,10 @@ export function OutsideRebuild() {
 // The story's variant (part 3 states "provisional" once, in its opening
 // call-out): a small inline flag with a plain icon, placed in the figure
 // whose runs it covers. Explore keeps OutsideRebuild above.
-// Shown only while the study is provisional: the merged study reruns these
-// stages inside its rebuild (Fable's story claim audit, P3-22).
+// Shown only while some runs are outside the rebuild (method.outside_rebuild;
+// claim audit P3-22).
 export function OutsideRebuildFlag({ className = '' }) {
-  if (!PROVISIONAL) return null;
+  if (!OUTSIDE_REBUILD) return null;
   return (
     <p className={`p3-flag ${className}`.trim()}>
       <Icon name={iconFor('provisional')} size={14} /> Outside the study’s attested rebuild

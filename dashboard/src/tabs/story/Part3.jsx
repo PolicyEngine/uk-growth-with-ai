@@ -12,7 +12,7 @@ import Rules from './part3/Rules.jsx';
 import Margin from './part3/Margin.jsx';
 import Moves from './part3/Moves.jsx';
 import Closing, { CloseLinks } from './part3/Closing.jsx';
-import { D, Ico, MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
+import { D, Ico, MODEL_YEAR, NO_CLEAN_RERUN, PROVISIONAL } from './part3/shared.jsx';
 
 // Part 3: a model of households. Provisional results of a separate study, a
 // PolicyEngine-UK microsimulation of AI job displacement in FY 2026-27
@@ -48,7 +48,7 @@ export default function Part3({ part }) {
             { icon: 'model', text: <>Static PolicyEngine-UK microsimulation, {D.source.dataset} data, {MODEL_YEAR}</> },
             PROVISIONAL
               ? { icon: 'provisional', text: 'Figures are provisional: the study is a draft under review' }
-              : { icon: 'source', text: <>From the merged study, uk-ai-study PR #{D.source.pr}; files linked under each figure</> },
+              : { icon: 'source', text: `Merged study${NO_CLEAN_RERUN ? '; its manifest: no full clean-room rerun' : ''}` },
             { icon: 'jobLoss', text: 'Assumes job loss; in OG-UK (part 2) displacement shows in the wage' },
             { icon: 'limit', text: 'Its figures cannot be added to or compared with part 2’s gaps' },
           ]}

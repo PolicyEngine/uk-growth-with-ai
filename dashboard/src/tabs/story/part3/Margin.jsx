@@ -20,6 +20,9 @@ const W = perPound('wage_cuts');
 const ER = D.per_pound_20.wage_cuts_employer_ni_p;
 const JOB = ladder('central_20');
 const CUT = ladder('wage_cuts');
+// The wage-cut pence and its two parts, each rounded to whole pence, need
+// not add up as printed (55p = 41p + 15p at the merged commit): say so.
+export const ROUNDED_APART = Math.round(W.household_p) + Math.round(ER) !== Math.round(W.government_p);
 
 // The card's title and claims, from the signs of the differences
 // (part3.test.jsx): per pound on the margins alone, and poverty with the
@@ -122,7 +125,10 @@ function MarginFigure({ ctx }) {
               name: 'Wage cuts',
               text: (
                 <>
-                  {fmtPence(W.government_p)} <span className="p3-muted">= {fmtPence(W.household_p)} + {fmtPence(ER)} employer NI</span>
+                  {fmtPence(W.government_p)}{' '}
+                  <span className="p3-muted">
+                    = {fmtPence(W.household_p)} + {fmtPence(ER)} employer NI{ROUNDED_APART ? ', each rounded' : ''}
+                  </span>
                 </>
               ),
             },
