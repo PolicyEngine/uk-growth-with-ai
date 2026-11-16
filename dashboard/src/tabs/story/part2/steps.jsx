@@ -227,8 +227,6 @@ export function morphCardSteps(sid, cl) {
       icon: 'path',
       title: 'From growth rates to a gap',
       highlight: ['path', `scen-${sid}`],
-      callout: `${SCEN_NAME[sid]}, main arm`,
-      anchor: `scen-${sid}`,
       body: (
         <>
           <Say kind="finding">
@@ -303,7 +301,6 @@ export function armsCardSteps(sid, closure) {
       icon: 'ai',
       title: 'Automation + productivity: the main arm',
       highlight: ['gdp-tfp'],
-      callout: true,
       body: (
         <>
           <Say kind="finding">
