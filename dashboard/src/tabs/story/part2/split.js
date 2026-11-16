@@ -72,7 +72,7 @@ export function sankeyGraph(base, short = false, bare = false) {
       { id: 'gdp', label: 'GDP', sub: gdp.toFixed(0), inner: gdp.toFixed(0), color: PART_COLOR.gdp },
       { id: 'labour', label: t('labour'), sub: sub(base.labour), inner: sub(base.labour), color: PART_COLOR.labour },
       { id: 'capital', label: 'Gross capital income', sub: share(gross), inner: share(gross), color: PART_COLOR.capital },
-      ...CAPITAL_PARTS.map((k) => ({ id: k, label: t(k), sub: sub(base[k]), inner: sub(base[k]), color: PART_COLOR[k], labelColor: LABEL_COLOR[k], stroke: NODE_STROKE[k] })),
+      ...CAPITAL_PARTS.map((k) => ({ id: k, label: t(k), sub: sub(base[k]), inner: sub(base[k]), color: PART_COLOR[k], labelColor: LABEL_COLOR[k], stroke: NODE_STROKE[k], inline: true })),
     ],
     // each ribbon in its target's colour
     links: [

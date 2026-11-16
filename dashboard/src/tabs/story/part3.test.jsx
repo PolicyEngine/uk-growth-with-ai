@@ -235,7 +235,6 @@ describe('Part3', () => {
       if (el.querySelector('p, li, dd') || el.closest('svg, [aria-hidden="true"]')) continue;
       if (el.matches('.story-source, .story-source *')) continue; // citation lines
       const c = el.cloneNode(true);
-      c.querySelectorAll('.p3-out-detail').forEach((s) => s.remove()); // hidden until hover, focus or tap
       c.querySelectorAll('span').forEach((s) => s.append(' '));
       const n = c.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
       if (n > (el.tagName === 'LI' ? 12 : 25)) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
@@ -255,11 +254,9 @@ describe('Part3', () => {
       expect(t.label.split(' ').length, t.id).toBeLessThanOrEqual(6);
       expect(t.detail.split(' ').length, t.id).toBeLessThanOrEqual(12);
     }
-    const btn = tiles[0].querySelector('button');
-    expect(btn.getAttribute('aria-expanded')).toBe('false');
-    fireEvent.click(btn);
-    expect(btn.getAttribute('aria-expanded')).toBe('true');
-    expect(tiles[0].classList.contains('is-open')).toBe(true);
+    // plain list items, every detail line shown (nothing to toggle)
+    expect(container.querySelector('.p3-close button')).toBeNull();
+    expect(tiles[0].querySelector('.p3-out-detail').textContent).toBe(LEFT_OUT[0].detail);
   });
 
   it('ends with the two lenses, what each can and cannot say as icon items', () => {

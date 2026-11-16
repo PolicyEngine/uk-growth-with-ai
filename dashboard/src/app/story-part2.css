@@ -690,6 +690,7 @@
 /* A waterfall value whose home is the headline figures: a labelled link */
 .p2-wf-link {
   display: inline-flex;
+  white-space: nowrap;
   gap: 2px;
   align-items: center;
   font-weight: 500;
@@ -1013,7 +1014,8 @@
   background: var(--pe-surface);
   border: 1px solid var(--card-border);
   border-radius: 4px;
-  transform: translate(calc(var(--x) * 1cqw - 100% - 8px), calc(var(--y) * 1cqw - 100% - 6px));
+  /* left edge clamped to the box: on phones the ring sits near the left */
+  transform: translate(max(0px, calc(var(--x) * 1cqw - 100% - 8px)), calc(var(--y) * 1cqw - 100% - 6px));
   opacity: 0;
   pointer-events: none;
   transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;

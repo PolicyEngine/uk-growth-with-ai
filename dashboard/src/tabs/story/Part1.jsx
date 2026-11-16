@@ -454,7 +454,7 @@ export default function Part1({ part }) {
         )}
       />
       <NextPart n={2} title="What a model of the whole economy projects" to="story-part-2">
-        <Icon name={iconFor('shock')} size={16} className="p1-text-icon" /> Part 2 turns from what has been measured to what happens if AI
+        Part 2 turns from what has been measured to what happens if AI
         arrives as a shock.
       </NextPart>
     </>

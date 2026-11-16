@@ -473,8 +473,12 @@
 }
 .p1-facts.is-three .story-fact-label {
   font-size: var(--fs-caption);
-  overflow-wrap: anywhere;
-  hyphens: auto;
+}
+/* phones: the three stats stacked in one column */
+@media (max-width: 520px) {
+  .p1-facts.is-three {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .p1-facts.is-three .story-fact-icon {
   grid-row: auto;
