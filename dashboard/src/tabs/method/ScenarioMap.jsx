@@ -8,9 +8,9 @@ import { useHover } from '../shared/ui.jsx';
 // fall (y), both the levels reached in the headline year, read from
 // surprise2028.json. Hover, tap or focus a point for its inputs.
 const ROLE = {
-  uk_low: 'Lower end of the UK sources',
-  uk_central: 'Headline: the IMF UK year-4 pair',
-  uk_high: 'OBR upper-end share path, high productivity',
+  uk_low: 'Derived from the OBR J-curve path (Briefing paper No.9, ¶B.12)',
+  uk_central: 'Headline: year 4 read off IMF SIP/2026/072 Figure 9, with the share fall derived from its 27% cost saving (¶44). Not an IMF pair',
+  uk_high: 'Derived from the OBR’s high alternative and upper-end share path (FRS 2026, Box 4.1)',
   korinek: 'US inputs, kept as an upper case',
 };
 const W = 560;
@@ -117,7 +117,7 @@ export default function ScenarioMap({ caption = true }) {
       <ul className="mx-map-read">
         <li>
           <span data-icon="" className="mx-key is-range" aria-hidden="true" />
-          <span>The line joins the UK scenarios; the same sources imply both inputs.</span>
+          <span>The line joins the UK scenarios; each pair is derived from OBR and IMF figures.</span>
         </li>
         <li>
           <span data-icon="" className="mx-key" aria-hidden="true" />

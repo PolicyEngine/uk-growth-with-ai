@@ -12,6 +12,8 @@ import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
 import { SRC } from './sources.js';
+import InputsTable, { inputsTable } from './InputsTable.jsx';
+import { INPUTS } from './inputs.js';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
@@ -169,6 +171,7 @@ function ArmCards() {
 // The sub-sections, for a page's contents list
 export const SCENARIO_SECTIONS = [
   { id: 's-scenarios', title: 'The scenarios', icon: iconFor('scenario') },
+  { id: 'm-inputs-head', title: 'Every input and its source', icon: iconFor('source') },
   { id: 'm-arms', title: 'Three arms per scenario', icon: iconFor('compare') },
   { id: 'm-timing', title: 'When it happens', icon: iconFor('timing') },
 ];
@@ -201,8 +204,8 @@ const SRC_KEY = { tfp: ['productivity', 'Productivity'], labour_share: ['labour'
 
 // The published sources behind each input, linked to the page cited
 const SCEN_SRC = {
-  uk_low: { tfp: ['bp9B12', 'frs86'], labour_share: ['imfSip'] },
-  uk_central: { tfp: ['imfSip', 'bp9B14', 'efoOct127'], labour_share: ['imfSip', 'frs87'] },
+  uk_low: { tfp: ['bp9B12', 'frs86'], labour_share: ['imfSip44'] },
+  uk_central: { tfp: ['imfSipT1', 'imfSipFig9', 'bp9B14', 'efoOct127'], labour_share: ['imfSipFig9', 'imfSip44', 'frs87'] },
   uk_high: { tfp: ['frs86', 'imfArt4'], labour_share: ['frs87', 'frs88'] },
   korinek: { both: ['korinekT3'] },
 };
@@ -221,9 +224,10 @@ const neutral = (v) =>
     .replace(/\(our inference from the IMF calibration, not an IMF figure\)/g, '(an inference from the IMF calibration, not an IMF figure)')
     .replace(/\(our inference\)/g, '(an inference from the IMF calibration, not an IMF figure)')
     .replace(/\(our mapping\)/g, '(a proportional mapping, not a figure in the source)');
-// The labour-share derivation printed on each UK card: the first equation in
-// its source note (e.g. "0.2 / 0.27 = 0.74pp")
-const derivation = (v) => /(\d[\d.]* ?[/x] ?[\d./]+(?: ?[/x] ?[\d./]+)* = [\d.]+pp)/.exec(v ?? '')?.[1]?.replace(/ x /g, ' × ') ?? null;
+// The labour-share derivation printed on each UK card: its row in the
+// inputs table (one wording, one place it is written)
+const SHARE_ROW = { uk_low: 'UK low: labour-share fall', uk_central: 'UK central: labour-share fall (headline)', uk_high: 'UK high: labour-share fall' };
+const derivation = (sid) => INPUTS.find((r) => r.input === SHARE_ROW[sid])?.how ?? null;
 
 export default function ScenariosSection({ uses = null }) {
   return (
@@ -242,7 +246,7 @@ export default function ScenariosSection({ uses = null }) {
         ]}
       />
       <SubHead id="s-scenarios" icon="scenario" title="The scenarios">
-        <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, taken from UK sources (and, for the upper case, US ones).</IconText>
+        <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, derived from OBR and IMF figures (the upper case: taken from Korinek et al.).</IconText>
       </SubHead>
       <Card
         id="scenario-map"
@@ -295,7 +299,7 @@ export default function ScenariosSection({ uses = null }) {
                   <span className="mx-bar" aria-hidden="true">
                     <span style={{ transform: `scaleX(${s.labour_share_fall_pp / MAX_LS})` }} />
                   </span>
-                  <span className="mx-chip-src">{srcName(s.sources.labour_share ?? s.sources.both)}</span>
+                  <span className="mx-chip-src">{s.sources.both ? '' : 'derived from '}{srcName(s.sources.labour_share ?? s.sources.both)}</span>
                 </dd>
               </div>
               <div>
@@ -306,14 +310,14 @@ export default function ScenariosSection({ uses = null }) {
                   <span className="mx-bar" aria-hidden="true">
                     <span style={{ transform: `scaleX(${s.tfp_gain_pct / MAX_TFP})` }} />
                   </span>
-                  <span className="mx-chip-src">{srcName(s.sources.tfp ?? s.sources.both)}</span>
+                  <span className="mx-chip-src">{s.sources.both ? '' : 'derived from '}{srcName(s.sources.tfp ?? s.sources.both)}</span>
                 </dd>
               </div>
             </dl>
-            {derivation(s.sources.labour_share) ? (
-              <p className="mx-sub mx-derive">
+            {derivation(s.id) ? (
+              <p className="mx-sub mx-derive" data-cite="">
                 <IconText icon="arithmetic">
-                  Labour-share fall: {derivation(s.sources.labour_share)}, from {cites(SCEN_SRC[s.id]?.labour_share)}.
+                  Derived from OBR/IMF figures by this study&rsquo;s rule, not published by them. Labour-share fall: {derivation(s.id)} {cites(SCEN_SRC[s.id]?.labour_share)}.
                 </IconText>
               </p>
             ) : (
@@ -331,10 +335,23 @@ export default function ScenariosSection({ uses = null }) {
         className="mx-foot-items"
         items={[
           { icon: 'arithmetic', text: <>Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}; targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)}.</> },
-          { icon: 'rule', text: <>Which pairs to run, and calling UK central the headline, are the study&rsquo;s modelling choices, not from a published source.</> },
+          { icon: 'rule', text: 'Which pairs to run is a modelling choice.' },
+          { icon: 'rule', text: 'So is calling UK central the headline.' },
           { icon: 'compare', text: <>Published figures are compared on <NavLink tab="method" sub="studies" anchor="numbers">Evidence</NavLink>.</> },
         ]}
       />
+
+      <SubHead id="m-inputs-head" icon="source" title="Every input and its source">
+        <IconText icon="source">Published, derived by this study, OG-UK&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
+      </SubHead>
+      <Card
+        id="inputs-table"
+        icon={iconFor('source')}
+        title="Scenario inputs and model parameters"
+        download={{ title: 'Scenario inputs and model parameters', context: 'Each input, the value the model used, its kind of source and the source', table: inputsTable }}
+      >
+        <InputsTable />
+      </Card>
 
       <SubHead id="m-arms" oldId="s-arms" icon="compare" title="Three arms per scenario">
         <IconText icon="compare">The same labour-share fall in each. They differ in output at fixed inputs.</IconText>
@@ -374,7 +391,8 @@ export default function ScenariosSection({ uses = null }) {
           <Items
             items={[
               { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
-              { icon: 'rule', text: <>The {SURPRISE_YEAR} arrival and the linear four-year ramp are modelling choices, not from a published source ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
+              { icon: 'rule', text: <>The {SURPRISE_YEAR} arrival: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
+              { icon: 'rule', text: <>So is the linear four-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
           />

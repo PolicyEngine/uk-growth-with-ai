@@ -375,3 +375,50 @@ p.mx-axis-title.is-x {
 .mx-derive {
   margin-top: 6px;
 }
+/* Method: every input and its source; one chip per kind of source */
+.mx-inputs-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.mx-inputs-key li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mx-kind-n {
+  font-variant-numeric: tabular-nums;
+  color: var(--c-muted, inherit);
+}
+.mx-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--pe-gray-300, #d0d5dd);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.mx-kind.is-published { border-color: var(--series-2); }
+.mx-kind.is-derived { border-style: dashed; }
+.mx-kind.is-choice { background: color-mix(in srgb, var(--pe-gray-300, #d0d5dd) 25%, transparent); }
+.mx-inputs-table td,
+.mx-inputs-table th {
+  vertical-align: top;
+}
+.mx-inputs-v {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.mx-inputs-src {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .mx-inputs-v { white-space: normal; }
+}

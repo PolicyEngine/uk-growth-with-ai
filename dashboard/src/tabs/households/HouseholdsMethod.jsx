@@ -161,9 +161,10 @@ export default function HouseholdsMethod() {
           <Items
             className="hm-items"
             items={[
-              { icon: 'source', text: <>Starts from the AI Occupational Exposure index of {l('felten')}.</> },
+              { icon: 'source', text: <>Starts from {l('felten')}&rsquo;s AI Occupational Exposure index.</> },
               { icon: 'ai', text: 'It links progress in ten AI applications to occupational abilities.' },
-              { icon: 'jobKeep', text: <>Scaled down where AI more likely complements than replaces ({l('pizzinelli')}).</> },
+              { icon: 'jobKeep', text: 'Scaled down where AI more likely complements than replaces.' },
+              { icon: 'source', text: <>That adjustment: {l('pizzinelli')}.</> },
               { icon: 'measure', text: 'Mapped to UK SOC2020, averaged over nine major occupation groups.' },
               { icon: 'caveat', text: 'So exposure varies between groups, not within them.' },
               { icon: 'excluded', text: 'Shifted so elementary occupations, the least exposed, score zero: no displacement.' },
@@ -203,7 +204,8 @@ export default function HouseholdsMethod() {
               <Items
                 items={[
                   { icon: 'capital', text: <>Interest and dividend income rise by <In>{fmtPct1(M.capital_uplift_pct)}</In>.</> },
-                  { icon: 'interest', text: <>A <In>{M.return_shock_pp}</In>-point rise in the return, as in {l('doorley')}, who motivate it with {l('cazzaniga')}.</> },
+                  { icon: 'interest', text: <>A <In>{M.return_shock_pp}</In>-point rise in the return, as in {l('doorley')}.</> },
+                  { icon: 'source', text: <>They motivate it with {l('cazzaniga')}.</> },
                   { icon: 'capital', text: 'Rents and pension returns are unchanged.' },
                   { icon: 'excluded', text: 'The self-employed are outside both labour-market shocks.' },
                 ]}
@@ -258,7 +260,8 @@ export default function HouseholdsMethod() {
           <Items
             className="hm-items"
             items={[
-              { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}: rates from {l('ucParams')} (current rates: {l('ucGov', 'GOV.UK')}).</> },
+              { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}.</> },
+              { icon: 'source', text: <>Rates: {l('ucParams', 'PolicyEngine-UK parameters')}; current rates on {l('ucGov', 'GOV.UK')}.</> },
               { icon: 'takeUp', text: 'Each benefit unit keeps its take-up decision drawn in the data.' },
               { icon: 'excluded', text: 'New-style JSA is paid only where the survey reports an award.' },
               { icon: 'jobLoss', text: 'So the newly displaced do not get it.' },
@@ -269,7 +272,8 @@ export default function HouseholdsMethod() {
             items={[
               { icon: 'compare', text: 'Two variants relax this, on the same draws:' },
               { icon: 'takeUp', text: 'Every benefit unit with a displaced worker claims UC.' },
-              { icon: 'benefits', text: <>Contribution condition met: also <In>£{M.jsa_week_gbp}</In> a week of new-style JSA, 26 weeks ({l('jsaGov', 'GOV.UK')}).</> },
+              { icon: 'benefits', text: <>Contribution condition met: also <In>£{M.jsa_week_gbp}</In> a week of new-style JSA, 26 weeks.</> },
+              { icon: 'source', text: <>JSA rates: {l('jsaGov', 'GOV.UK')}.</> },
             ]}
           />
         </section>

@@ -8,7 +8,7 @@ export const PDF_PAGE = {
   'obr-efo-oct26-ai': 24,
   'obr-bp9': 50,
   'obr-efo-mar26-unemployment': 35,
-  'obr-efo-mar26-wage': 36,
+  'obr-efo-mar26-wage': 35,
   'obr-efo-mar26-debt': 105,
   'obr-frs26': 91,
   'boe-mpr-nov26-expected': 59,

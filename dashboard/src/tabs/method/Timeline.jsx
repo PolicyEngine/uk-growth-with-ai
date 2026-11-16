@@ -78,8 +78,10 @@ export default function Timeline({ caption = true }) {
         <span className="ph-ramp">Ramp: adoption years 1–4</span>
         <span className="ph-full">Full weight</span>
       </div>
-      <p className="mx-axis-title mx-tl-axis" data-axis-title="y">
-        Ramp weight of &gamma; and Z: 0 = OBR-central path, 1 = full scenario
+      <p className="mx-axis-title mx-tl-axis">
+        <IconText icon="measure">
+          <span data-axis-title="y">Ramp weight of &gamma; and Z: 0 = OBR-central path, 1 = full scenario</span>
+        </IconText>
       </p>
       <ol className="mx-tl-cols">
         {YEARS.map((y) => {
@@ -109,8 +111,10 @@ export default function Timeline({ caption = true }) {
           );
         })}
       </ol>
-      <p className="mx-axis-title mx-tl-axis is-x" data-axis-title="x">
-        Calendar year
+      <p className="mx-axis-title mx-tl-axis is-x">
+        <IconText icon="timing">
+          <span data-axis-title="x">Calendar year</span>
+        </IconText>
       </p>
       <p className="mx-fig-note">
         <IconText icon="timing">

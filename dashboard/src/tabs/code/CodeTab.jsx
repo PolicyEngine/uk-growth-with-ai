@@ -466,7 +466,7 @@ function Ledger() {
       }}
       download={{ title: 'Source ledger', context: `Data last updated ${LAST_UPDATED}`, table: ledgerTable }}
     >
-      <div className="table-wrap ledger-wrap">
+      <div className="table-wrap ledger-wrap" data-no-axes="A table of sources">
         <table className="data-table ledger-table">
           <caption className="visually-hidden">Source ledger</caption>
           <thead>

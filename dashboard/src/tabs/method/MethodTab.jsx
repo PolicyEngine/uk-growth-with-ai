@@ -58,7 +58,8 @@ function ClosureCards() {
               { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s default, which OG-UK keeps ({cite('ogukParams')}); it was set for the US, not calibrated to the UK.</> },
               { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
-              { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}); the closed bound&rsquo;s does not ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
+              { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
+              { icon: 'caveat', text: <>It misses the current account; closed capital is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
               { icon: 'timing', text: 'Foreign capital resets each year.' },
               { icon: 'capital', text: <>So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</> },
             ]}
@@ -96,7 +97,8 @@ function ClosureCards() {
         </p>
         <Items
           items={[
-            { icon: 'closed', text: 'No foreign private capital flows in; foreigners still buy 40% of new gilts.' },
+            { icon: 'closed', text: 'No foreign private capital flows in.' },
+            { icon: 'debt', text: 'Foreigners still buy 40% of new gilts.' },
             { icon: 'interest', text: 'Results do not depend on the world interest rate.' },
           ]}
         />
@@ -107,7 +109,7 @@ function ClosureCards() {
 
 const MEASURES = [
   { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR-central path in ${HEADLINE_YEAR}.` },
-  { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital. The headline.' },
+  { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts. The headline.' },
   { k: 'NNI', icon: 'depreciation', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
 ];
 
@@ -121,7 +123,8 @@ const RULE_TEXT = {
     tag: 'Default: every solve, and Explore unless you choose another',
     items: [
       { icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' },
-      { icon: 'debt', text: <>From {LATE_YEAR} a debt rule steers spending, in every run: a modelling choice, OG-Core&rsquo;s tG1 set to 10 against OG-UK&rsquo;s default of 4 ({cite('tg1')}).</> },
+      { icon: 'debt', text: `From ${LATE_YEAR} a debt rule steers spending, in every run.` },
+      { icon: 'rule', text: <>A modelling choice, against OG-UK&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
     ],
   },
@@ -165,15 +168,15 @@ function Limitations() {
         { icon: 'labour', text: 'The labour market always clears.' },
         { icon: 'pay', text: 'Displacement shows in the wage, not in jobs.' },
         { icon: 'excluded', text: 'There is no search or matching.' },
-        { icon: 'compare', text: <>The OBR&rsquo;s scenario adjusts through jobs instead ({cite('efoMarBox22')}).</> },
+        { icon: 'compare', text: <>The OBR&rsquo;s scenario adjusts through jobs ({cite('efoMarBox22')}).</> },
       ],
     },
     {
       icon: 'scenario',
       title: 'Imposed technology paths',
       points: [
-        { icon: 'scenario', text: 'The capital-share and productivity paths are calibrated, not estimated.' },
-        { icon: 'ai', text: <>Adoption, new tasks and diffusion sit in the &gamma; and Z ramps.</> },
+        { icon: 'scenario', text: 'The paths are imposed: derived from OBR and IMF figures, not estimated.' },
+        { icon: 'ai', text: <>Adoption and diffusion sit in the &gamma; and Z ramps; new tasks are not modelled.</> },
       ],
     },
     {
@@ -182,7 +185,8 @@ function Limitations() {
       points: [
         { icon: 'timing', text: `Capital has three years to respond by ${HEADLINE_YEAR}.` },
         { icon: 'foreign', text: 'Foreign inflows are capped.' },
-        { icon: 'compare', text: <>Implied capital-supply elasticity: below every case in Korinek et al.&rsquo;s Table 5 ({cite('korinekT5')}).</> },
+        { icon: 'compare', text: 'Implied capital-supply elasticity at year 4: below the lowest case in one table.' },
+        { icon: 'source', text: <>That table: {cite('korinekT5')}.</> },
         { icon: 'capital', text: <>It rises towards the steady state as saving builds ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
       ],
     },
@@ -191,7 +195,8 @@ function Limitations() {
       title: 'Revenue responds too little',
       points: [
         { icon: 'tax', text: 'One income-tax schedule covers labour and capital income alike.' },
-        { icon: 'closed', text: 'With closed capital, tax/GDP can even rise.' },
+        { icon: 'closed', text: 'With closed capital, tax/GDP rises in UK high and Korinek et al.' },
+        { icon: 'source', text: <>The OBR&rsquo;s effective tax rates: {cite('frs87')}.</> },
         {
           icon: 'link',
           text: (
@@ -210,7 +215,8 @@ function Limitations() {
       icon: 'forecast',
       title: 'Part of the effect may be counted twice',
       points: [
-        { icon: 'forecast', text: <>UK central&rsquo;s TFP target partly uses the OBR central AI path ({cite('bp9B14')}).</> },
+        { icon: 'forecast', text: 'UK central’s TFP target partly uses the OBR central AI path.' },
+        { icon: 'source', text: <>That path: {cite('bp9B14')}.</> },
         { icon: 'compare', text: 'The baseline already contains that path.' },
         { icon: 'limit', text: 'So part of the effect may be counted twice.' },
         { icon: 'revision', text: <>Recorded on {ext(issue(27), 'issue #27')}; a decision is pending.</> },
@@ -222,7 +228,7 @@ function Limitations() {
       points: [
         { icon: 'timing', text: `From ${SURPRISE_YEAR} everyone knows the whole path.` },
         { icon: 'excluded', text: 'There is no uncertainty.' },
-        { icon: 'households', text: 'Earnings differ only by permanent ability type.' },
+        { icon: 'households', text: 'Within an age, earnings differ only by ability type.' },
         { icon: 'limit', text: 'Precautionary saving is not a channel.' },
       ],
     },
@@ -244,7 +250,10 @@ function Limitations() {
     {
       icon: 'foreign',
       title: 'Foreign AI providers',
-      points: [{ icon: 'foreign', text: 'Their returns enter only through ζK, the share of excess capital demand that foreigners supply.' }],
+      points: [
+        { icon: 'foreign', text: 'Their returns enter only through ζK.' },
+        { icon: 'capital', text: 'ζK: the share of excess capital demand foreigners supply.' },
+      ],
     },
     {
       icon: 'interest',
@@ -440,7 +449,13 @@ export default function MethodTab() {
               moreTitle="The OBR-central path"
               morePreview="OBR-central baseline, the restart"
             >
-              <Items items={[{ icon: 'model', text: 'Demographics, tax functions and policy stay as on the OBR-central path.' }]} />
+              <Items
+                items={[
+                  { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
+                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as in the no-shock run.</> },
+                  { icon: 'forecast', text: <>OBR-central path: the March 2026 EFO ({cite('efoMarPath')}).</> },
+                ]}
+              />
             </InfoCard>
           </div>
         </section>
@@ -500,7 +515,7 @@ export default function MethodTab() {
                   { icon: 'interest', text: 'All model debt is one-year: a rate rise reprices the whole stock.' },
                   { icon: 'finances', text: 'UK gilts reprice more slowly.' },
                   { icon: 'limit', text: <>So the model overstates the rise in debt/GDP after {HEADLINE_YEAR}.</> },
-                  { icon: 'check', text: <>Repriced at the OBR&rsquo;s assumed speed: {ext(pr(43), 'PR #43')}.</> },
+                  { icon: 'check', text: <>Repriced at the speed of the OBR&rsquo;s debt interest ready reckoner ({cite('efoOct')}): {ext(pr(43), 'PR #43')}.</> },
                 ]}
               />
             </InfoCard>
@@ -547,7 +562,7 @@ export default function MethodTab() {
                       icon: 'start',
                       text: (
                         <>
-                          A no-shock restart must reproduce the baseline, {SURPRISE_YEAR}–{LATE_YEAR}, within 10<sup>−4</sup>.
+                          A no-shock restart must reproduce the baseline, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
                         </>
                       ),
                     },

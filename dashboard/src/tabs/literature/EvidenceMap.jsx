@@ -179,7 +179,7 @@ export default function EvidenceMap({ map = MAP }) {
           Showing {shown.length} of {all.length} rows
         </IconText>
       </p>
-      <div className="ev-wrap">
+      <div className="ev-wrap" data-no-axes="A table of published figures">
         <table className="data-table evidence-table ev-table">
           <caption className="visually-hidden">Published estimates of AI’s economic effects, with OG-UK’s results</caption>
           <thead>
@@ -207,6 +207,14 @@ export default function EvidenceMap({ map = MAP }) {
                   ) : (
                     r.study
                   )}
+                  {r.url2 ? (
+                    <span className="ev-loc">
+                      Also:{' '}
+                      <a href={r.url2} target="_blank" rel="noreferrer">
+                        {r.url2Label}
+                      </a>
+                    </span>
+                  ) : null}
                   <span className="ev-loc">
                     {r.year}
                     {r.ours ? '' : ` · ${r.loc}`}

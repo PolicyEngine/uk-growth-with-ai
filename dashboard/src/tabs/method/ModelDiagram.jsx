@@ -162,7 +162,7 @@ export default function ModelDiagram() {
   const [open, setOpen] = useState(null);
   const node = NODES.find((n) => n.id === open);
   return (
-    <div className="md">
+    <div className="md" data-no-axes="A diagram of flows between blocks: no scale">
       <div className={`md-grid${open ? ' is-lit' : ''}`} role="group" aria-label="OG-UK: four blocks and the flows between them">
         {NODES.map((n) => (
           <button

@@ -19,6 +19,7 @@ import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
+import { SRC } from '@/tabs/method/sources.js';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -46,8 +47,8 @@ function ImfGap() {
               </>
             ),
           },
-          { icon: 'foreign', text: <>IMF: about <span data-path="imfGap.imf_y4_output_pct">+{IMF_Y4.toFixed(1)}%</span> at year 4, for about the same productivity gain.</> },
-          { icon: 'closure', text: 'The capital closure is enough to account for the difference.' },
+          { icon: 'foreign', text: <>IMF: about <span data-path="imfGap.imf_y4_output_pct">+{IMF_Y4.toFixed(1)}%</span> at year 4, read off its {ext(SRC.imfSipFig9.url, 'Figure 9')}.</> },
+          { icon: 'closure', text: 'Arithmetic suggests the capital closure could account for the difference.' },
           {
             icon: 'interest',
             text: (
@@ -188,8 +189,7 @@ function Matrix() {
             items={[
               { icon: 'forecast', text: 'OBR: March 2026 displacement scenario; July 2026 FRS labour-share box.' },
               { icon: 'foreign', text: 'IMF UK: SIP/2026/072 and its model, Rockall et al. (IMF WP/25/68).' },
-              { icon: 'source', text: 'Each cell’s note names its document.' },
-              { icon: 'check', text: 'Every cell is read from the primary text.' },
+              { icon: 'check', text: 'Each cell is read from the primary text or inferred from the model’s set-up.' },
               { icon: 'link', text: 'Each source is listed under Sources.' },
             ]}
           />
@@ -210,7 +210,7 @@ function Matrix() {
     >
       <div ref={ref}>
       <Legend />
-      <div className="mx-matrix" role="table" aria-label="Channels by source">
+      <div className="mx-matrix" data-no-axes="A table of channels by source" role="table" aria-label="Channels by source">
         <div className="mx-mrow mx-mhead" role="row">
           <span className="mx-mch" role="columnheader">
             Channel
@@ -243,23 +243,23 @@ function Matrix() {
 function Takeaways() {
   return (
     <div className="cards-grid cols-3">
-      <InfoCard icon={iconFor('generations')} title="Only OG-UK: households by age">
+      <InfoCard icon={iconFor('generations')} title="Of the five, only OG-UK: households by age">
         <Items
           items={[
             { icon: 'households', text: 'The IMF’s households differ by income and wealth, not by age.' },
-            { icon: 'tax', text: 'Only OG-UK and the OBR have a tax system.' },
+            { icon: 'tax', text: 'Of the five, only OG-UK and the OBR have a tax system.' },
           ]}
         />
       </InfoCard>
-      <InfoCard icon={iconFor('labour')} title="Only Korinek et al.: jobs and tasks">
+      <InfoCard icon={iconFor('labour')} title="Of the five, only Korinek et al.: jobs and tasks">
         <Items
           items={[
             { icon: 'jobLoss', text: 'They model new tasks and unemployment.' },
-            { icon: 'excluded', text: 'OG-UK has neither.' },
+            { icon: 'excluded', text: 'OG-UK has neither; the OBR assumes higher unemployment.' },
           ]}
         />
       </InfoCard>
-      <InfoCard icon={iconFor('scarceGoods')} title="What nobody models">
+      <InfoCard icon={iconFor('scarceGoods')} title="What none of the five models">
         <Items
           items={[
             { icon: 'scarceGoods', text: 'Demand shifting to goods that stay scarce.' },

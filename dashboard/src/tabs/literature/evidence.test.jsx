@@ -41,7 +41,7 @@ describe('UK evidence map data', () => {
   it('labels studies of other economies and keeps unchecked figures off', () => {
     for (const id of ['korinek-gdp', 'acemoglu-gdp', 'mrr-2020']) expect(MAP.rows.find((r) => r.id === id).country).toBe('US');
     const text = JSON.stringify(MAP.rows);
-    for (const off of ['Klein Teeselink', 'Eloundou', '1.63', 'Chandar', 'Hartley', 'Goldman']) expect(text).not.toContain(off);
+    for (const off of ['Eloundou', '1.63', 'Chandar', 'Hartley', 'Goldman']) expect(text).not.toContain(off);
   });
   it('bodies with no AI-specific estimate say so and give their nearest output', () => {
     const none = MAP.rows.filter((r) => r.metric === 'none');
@@ -53,14 +53,17 @@ describe('UK evidence map data', () => {
   });
 });
 
-describe('Where our numbers sit reads the map', () => {
+describe('Where OG-UK’s results sit reads the map', () => {
   it('joins rows into one bar and keeps the flags', () => {
     const ifs = RANGES.gdp.find((r) => r.ids.includes('ifs-gb26-capital'));
     expect([ifs.lo, ifs.hi]).toEqual([1.6, 2.5]);
     expect(ifs.ids).toEqual(['ifs-gb26-capital', 'ifs-gb26-tfp']);
     const obr = RANGES.wage.find((r) => r.ids.includes('obr-efo-mar26-wage'));
     expect(obr.none).toBe(true);
-    expect(RANGES.wage.find((r) => r.ids.includes('acemoglu-wage')).unverified).toBe(true);
+    // confirmed in NBER w32487 Table 1 (claim audit, 16 Nov 2026): plotted, not flagged
+    const ace = RANGES.wage.find((r) => r.ids.includes('acemoglu-wage'));
+    expect(ace.unverified).toBe(false);
+    expect([ace.lo, ace.hi]).toEqual([0.77, 1.01]);
     const rock = RANGES.wage.find((r) => r.ids.includes('rockall-wage'));
     expect([rock.lo, rock.hi]).toEqual([-0.5, 1.6]);
     for (const r of [...RANGES.gdp, ...RANGES.wage]) {
