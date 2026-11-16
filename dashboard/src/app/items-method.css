@@ -245,16 +245,19 @@
   font-size: var(--fs-small);
 }
 
-/* scenario cards: paired input bars, each with its source as a chip */
+/* scenario cards: paired input bars, one row per input, each with its source as a chip */
+.mx-tab .mx-scen-bars {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
 .mx-scen-bars dd {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  column-gap: 6px;
-  row-gap: 4px;
+  gap: 4px 6px;
 }
 .mx-scen-bars .mx-bar {
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
   display: block;
   height: 6px;
   border-radius: 3px;
@@ -269,13 +272,13 @@
   transition: transform 0.4s ease;
 }
 .mx-scen-bars .mx-chip-src {
-  grid-column: 1 / -1;
-  justify-self: start;
+  max-width: 100%;
   padding: 1px 8px;
   border: 1px solid var(--pe-gray-200);
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: var(--fs-caption);
   font-weight: 400;
+  line-height: 1.4;
   color: var(--pe-gray-600);
 }
 @media (prefers-reduced-motion: reduce) {

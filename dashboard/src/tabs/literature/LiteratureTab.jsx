@@ -332,7 +332,7 @@ export default function StudiesTab() {
         <Matrix />
         <Takeaways />
         <SectionHeading id="numbers" icon={iconFor('measure')} title="Where our numbers sit">
-            <IconText icon="range">Our headline-year results against published ranges. Horizons differ, so each row states its own.</IconText>
+            <IconText icon="range">Published figures by measure, ours beside them where comparable. Each row states its horizon.</IconText>
         </SectionHeading>
         <EvidenceLanes />
         <ImfGap />
