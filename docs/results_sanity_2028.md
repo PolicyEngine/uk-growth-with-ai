@@ -363,7 +363,7 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 
 | OBR figure | like-for-like model number | model | position | explained by |
 |---|---|---|---|---|
-| FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is 14.8pp at ζK = 0.1 (13.6pp at ζK = 0) against the OBR's 19–23pp (`docs/red_flags_1_3.md`) |
+| FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is 14.8pp at ζK = 0.1 (13.5pp at ζK = 0) in 2031, against the OBR's 19–23pp (`docs/red_flags_1_3.md`, which gives 13.6pp at ζK = 0 in 2030) |
 | same | stress test, ζK 0, per pp | −0.027 (UK central), −0.025 (Korinek) | 12–13% | closure: r rises 44–107bp on all household wealth, and the single income-tax schedule taxes that (A6) |
 | March 2026 EFO ¶6.18, displacement scenario: receipts −0.17% of GDP, GDP unchanged; implied share fall about 0.7pp (ours, in the literature note) | UK low stress test (0.7pp), ζK 0.1: receipts, % of GDP | −0.10 | 61% | the tax gap; no unemployment (the OBR's fall is mostly lower employment and VAT) |
 | same: debt +1.3% of GDP by 2030-31, with spending held at plans and welfare +£3bn a year | UK low stress test: debt/GDP | +0.38pp in 2031, +1.47pp in 2036 | 29% at year 4 | no unemployment or welfare channel; smaller revenue fall; the model's G/Y rule (fixed spending was not run for UK low) |
