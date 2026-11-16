@@ -760,6 +760,14 @@
   margin-top: 8px;
 }
 @media (max-width: 900px) {
+  .story-hero.hf .story-hero-art svg {
+    max-height: none;
+    max-width: 680px;
+    margin-inline: 0;
+  }
+}
+/* phones: the narrow drawing and the legend row */
+@media (max-width: 600px) {
   .hf-svg.is-wide {
     display: none;
   }
@@ -768,11 +776,6 @@
   }
   .hf-legend {
     display: flex;
-  }
-  .story-hero.hf .story-hero-art svg {
-    max-height: none;
-    max-width: 520px;
-    margin-inline: 0;
   }
 }
 /* the draw-in, once on load: the plot, axes and labels of the dates are

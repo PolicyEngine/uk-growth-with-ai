@@ -22,7 +22,7 @@ import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR
 // (about 1s, CSS, not tied to scroll), the UK range band fades in and the
 // end labels land; under reduced motion all of it is static. Each line is
 // labelled with its name and its 2031 value: at the line end on desktop, as
-// a legend row under the chart at 900px and below (two drawings; CSS shows
+// a legend row under the chart at 600px and below (two drawings; CSS shows
 // one, so the hidden one's text is not read), so labels never collide.
 
 // Korinek et al.'s US case is dashed (not calibrated to the UK)
