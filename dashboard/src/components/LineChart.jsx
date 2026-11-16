@@ -328,7 +328,7 @@ export default function LineChart({
   const LIFT = placed.some((p) => p.a < L) ? 6 : 0;
   // a horizontal y title wider than the chart wraps at its last comma
   const topLines = !yUnit || !yTitleTop ? [] : textWidth(yUnit, `11px ${FONT}`) <= W - 2 * EDGE || !yUnit.includes(', ') ? [yUnit] : [yUnit.slice(0, yUnit.lastIndexOf(', ') + 1), yUnit.slice(yUnit.lastIndexOf(', ') + 2)];
-  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (topLines.length ? 8 + (topLines.length - 1) * 13 : 0);
+  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (topLines.length ? 14 + (topLines.length - 1) * 13 : 0);
   const labelY = (row) => TOP - 6 - LIFT - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
