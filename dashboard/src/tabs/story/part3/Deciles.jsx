@@ -75,9 +75,24 @@ export function decileShape(values = VALUES) {
     hump: w < 0 && values[1] > w && values[9] > w,
     // the top decile falls less than the largest fall
     topLess: values[9] > w,
+    // the top decile's 95% interval spans zero (claim audit P3-29)
+    topNearZero: DEC.ci_low?.[9] < 0 && DEC.ci_high?.[9] > 0,
+    // earnings lost are largest in the top decile, in the study's own flows
+    // by decile (the step 3 run; claim audit P3-28)
+    lossTop: SANKEY_TOP === 10,
   };
 }
+const SANKEY_LOSS = D.sankey.deciles.map((f) => f.earnings_lost_bn);
+const SANKEY_TOP = SANKEY_LOSS.indexOf(Math.max(...SANKEY_LOSS)) + 1;
 const SHAPE = decileShape();
+export const DECILES_SUB = {
+  title: 'Where the loss falls',
+  icon: 'deciles',
+  question: 'Which households lose most income?',
+  takeaway: SHAPE.upperMiddle
+    ? 'Falls in income peak in the upper-middle deciles, as the study reports'
+    : 'The fall in income differs across the distribution; the bottom decile is not a finding',
+};
 
 // Bars grow from the zero line (kind b): deciles 2 to 10, 40ms apart, then
 // the largest fall takes the highlight, then decile 1 grows last, grey.
@@ -103,7 +118,14 @@ function DecilesFigure({ phone, ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
     <figure className={entryClass(e, 'p3-figure p3-scene')}>
-      <FigureHead icon="deciles" title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" replay={e.replay} />
+      <FigureHead
+        icon="deciles"
+        title="Change in household disposable income by income decile"
+        y="% change in disposable income, before housing costs"
+        x="Income decile, 1 = bottom"
+        unit="Central case"
+        replay={e.replay}
+      />
       <ol className="p3-rows p3-deciles">
         {VALUES.map((v, i) => {
           const n = i + 1;
@@ -127,7 +149,7 @@ function DecilesFigure({ phone, ctx }) {
           );
         })}
       </ol>
-      <Source>mean of {DEC.draws} draws, each household weighted by its number of members</Source>
+      <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>mean of {DEC.draws} draws, each household weighted by its number of members</Source>
     </figure>
   );
 }
@@ -139,16 +161,28 @@ export default function Deciles() {
   const steps = [
     {
       id: 'p3-deciles-step',
-      kicker: '4 · Where the loss falls',
       title: SHAPE.upperMiddle ? 'The largest falls are in the upper-middle deciles' : `The largest fall is in decile ${SHAPE.worst}`,
       icon: 'deciles',
       body: (
         <>
           <Items
             items={[
-              SHAPE.hump && SHAPE.upperMiddle && { icon: 'deciles', text: 'Hump-shaped: assumed job losses fall mostly in upper-middle deciles' },
+              SHAPE.hump &&
+                SHAPE.upperMiddle && {
+                  icon: 'deciles',
+                  text: SHAPE.lossTop
+                    ? 'Hump-shaped: earnings lost peak at the top, offset by assumed capital income'
+                    : 'Hump-shaped in net income: the largest falls are in the upper-middle deciles',
+                },
               { icon: signIcon(VALUES[SHAPE.worst - 1]), text: `Largest fall: decile ${SHAPE.worst}` },
-              SHAPE.topLess && { icon: 'capital', text: VALUES[9] >= 0 ? 'At the top, higher capital income offsets the earnings lost' : 'At the top, higher capital income offsets part of the loss' },
+              SHAPE.topLess && {
+                icon: 'capital',
+                text: SHAPE.topNearZero
+                  ? 'At the top, close to zero: its interval spans zero'
+                  : VALUES[9] >= 0
+                    ? 'At the top, assumed higher capital income offsets the earnings lost'
+                    : 'At the top, assumed higher capital income offsets part of the loss',
+              },
               { icon: 'caveat', text: 'Decile 1 is drawn grey: not a finding; see the note' },
             ]}
           />
@@ -157,5 +191,5 @@ export default function Deciles() {
       ),
     },
   ];
-  return <Scrolly id="p3-deciles" steps={steps} graphic={(i, r, ctx) => <DecilesFigure phone={phone} ctx={ctx} />} label="Change in household disposable income by income decile" />;
+  return <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={steps} graphic={(i, r, ctx) => <DecilesFigure phone={phone} ctx={ctx} />} label="Change in household disposable income by income decile" />;
 }

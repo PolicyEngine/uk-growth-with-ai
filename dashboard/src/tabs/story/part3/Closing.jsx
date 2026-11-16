@@ -4,7 +4,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import { useInView, useReducedMotion } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { D, Ico, PAPER_URL, PR_URL } from './shared.jsx';
+import { D, Ico, PROVISIONAL, SceneHead } from './shared.jsx';
+import { PAPER_URL, PR_URL, REPO_URL } from './sources.jsx';
 
 // Step 8, the close of part 3: not sticky, no figures. What the one-year
 // test leaves out (docs/story/part3-notes.md, Caveats). Related PolicyEngine
@@ -17,10 +18,14 @@ export function CloseLinks() {
   return (
     <>
       <a href={PAPER_URL} target="_blank" rel="noreferrer">
-        <Ico c="source" />The draft paper (PDF)
+        <Ico c="source" />
+        {PROVISIONAL ? 'The draft paper (PDF)' : 'The paper (PDF)'}
+      </a>
+      <a href={REPO_URL} target="_blank" rel="noreferrer">
+        <Ico c="code" />The study and its code: uk-ai-study
       </a>
       <a href={PR_URL} target="_blank" rel="noreferrer">
-        <Ico c="code" />The study and its code: uk-ai-study PR #{D.source.pr}
+        <Ico c="code" />Its review: PR #{D.source.pr}
       </a>
       <NavLink tab="explore" sub="households">
         <Ico c="scenario" />Explore: every variant, rule and policy response
@@ -72,15 +77,17 @@ function LeftOutGrid() {
   );
 }
 
+export const CLOSING_SUB = {
+  title: 'What the study leaves out',
+  icon: 'excluded',
+  question: 'What does the study leave out?',
+  takeaway: 'Responses such as re-employment, redundancy pay and drawing on savings are outside the test',
+};
+
 export default function Closing() {
   return (
     <aside className="p3-close" aria-labelledby="p3-close-h">
-      <p className="scrolly-kicker p3-iconed">
-        <Ico c="excluded" size={12} />8 · What the study leaves out
-      </p>
-      <h3 id="p3-close-h">
-        <Icon name={iconFor('excluded')} size={18} /> What this one-year test leaves out
-      </h3>
+      <SceneHead id="p3-close-h" {...CLOSING_SUB} />
       <p className="p3-chip-frame">
         <Ico c="caveat" size={14} /> A one-year stress test, not a forecast
       </p>

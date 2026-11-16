@@ -5,7 +5,8 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtPp } from './format.js';
-import { About, FigureHead, Source, rule, Ico, entryClass, useBeat } from './shared.jsx';
+import { About, AxisTitle, D, FigureHead, Source, rule, Ico, entryClass, useBeat } from './shared.jsx';
+import { Ref } from './sources.jsx';
 
 // Step 5, who loses the job: the cost under the four stylised displacement
 // rules (results.tex, "Who loses the job"). The exposure rule is the central
@@ -16,9 +17,9 @@ import { About, FigureHead, Source, rule, Ico, entryClass, useBeat } from './sha
 
 const ROWS = [
   { id: 'uniform', icon: 'draws', label: 'Uniform: every employee equally likely' },
-  { id: 'junior', icon: 'age', label: 'Tilted towards workers aged 16 to 24' },
+  { id: 'junior', icon: 'age', label: 'Tilted towards workers aged 16 to 24, after ', ref: 'klein' },
   { id: 'exposure', icon: 'ai', label: 'In proportion to AI exposure: ', same: true },
-  { id: 'compression', icon: 'pay', label: 'Expertise compression: higher earners in exposed occupations' },
+  { id: 'compression', icon: 'pay', label: 'Expertise compression (the study’s rule, after ', close: '): exposed higher earners', ref: 'autor' },
 ];
 // Both panels start at zero: the finding is that cost differs about
 // fivefold across rules while the poverty rise hardly moves.
@@ -33,13 +34,21 @@ export function rulesClaims() {
   const central = rule('exposure');
   const spread = Math.max(...rs.map((r) => r.cost_bn)) - Math.min(...rs.map((r) => r.cost_bn));
   const pov = cheap.poverty_pp > central.poverty_pp ? 'more' : cheap.poverty_pp < central.poverty_pp ? 'less' : 'as much';
+  // "slightly" when the gap is within one standard deviation of the central
+  // poverty rise across draws (claim audit P3-33)
+  const slight = Math.abs(cheap.poverty_pp - central.poverty_pp) < (D.headline.central_poverty.sd ?? 0) ? 'slightly ' : '';
+  // the cost's spread relative to its smallest value, against the poverty
+  // rise's: "far more" when the cost varies at least twice as much
+  const rel = (xs) => (Math.max(...xs) - Math.min(...xs)) / Math.min(...xs);
+  const costFar = rel(rs.map((r) => r.cost_bn)) > 2 * rel(rs.map((r) => r.poverty_pp));
   return {
+    costFar,
     cheapest: cheap.id,
     spreadWords: spread >= 2 ? 'by several billion pounds a year' : 'by less than two billion pounds a year',
     cheapText:
       cheap.id === 'exposure'
         ? 'The central case costs least'
-        : `${NAME[cheap.id]} displacement costs least but raises poverty ${pov}${pov === 'as much' ? ' as' : ' than'} the central case`,
+        : `${NAME[cheap.id]} costs least ${pov === 'more' ? 'but' : 'and'} raises poverty ${pov === 'as much' ? '' : slight}${pov}${pov === 'as much' ? ' as' : ' than'} the central case`,
   };
 }
 
@@ -71,13 +80,13 @@ function RulesFigure({ ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
     <figure className={entryClass(e, 'p3-figure p3-scene')}>
-      <FigureHead icon="scenario" title="Who is displaced: cost, and the poverty rise" unit={`Mean of ${rule('uniform').draws} paired draws per rule; both axes from zero`} replay={e.replay} />
-      <div className="p3-dp-heads" aria-hidden="true">
+      <FigureHead icon="scenario" title="Who is displaced: cost, and the poverty rise" x="Rule for who is displaced" unit={`Mean of ${rule('uniform').draws} paired draws per rule; both axes from zero`} replay={e.replay} />
+      <div className="p3-dp-heads">
         <span>
-          <Ico c="cost" size={12} /> Cost, £bn a year
+          <Ico c="cost" size={12} /> <AxisTitle axis="y">Cost, £bn a year</AxisTitle>
         </span>
         <span>
-          <Ico c="poverty" size={12} /> Absolute poverty, change
+          <Ico c="poverty" size={12} /> <AxisTitle axis="y">Absolute poverty, change, percentage points</AxisTitle>
         </span>
       </div>
       <ol className="p3-dp">
@@ -87,6 +96,8 @@ function RulesFigure({ ctx }) {
             <li key={r.id} className="p3-dp-row" data-row={r.id} style={{ '--beat': `${i * 120}ms` }}>
               <span className="p3-row-label">
                 <Ico c={r.icon} /> {r.label}
+                {r.ref ? <Ref id={r.ref} /> : null}
+                {r.close ?? null}
                 {r.same ? <a href="#p3-central-step">the central case, step 1</a> : null}
               </span>
               <span className="p3-dp-track">
@@ -107,9 +118,19 @@ function RulesFigure({ ctx }) {
           Poverty values by rule, and a top-loaded stress test
         </NavLink>
       </p>
-      <Source />
+      <Source files={[rule('uniform').file]} />
     </figure>
   );
+}
+
+export function rulesSub() {
+  const c = rulesClaims();
+  return {
+    title: 'Who loses the job',
+    icon: 'scenario',
+    question: 'Does it matter who loses the job?',
+    takeaway: c.costFar ? 'Who is displaced moves the cost far more than it moves the poverty rise' : 'Who is displaced moves both the cost and the poverty rise',
+  };
 }
 
 export default function Rules() {
@@ -117,7 +138,6 @@ export default function Rules() {
   const steps = [
     {
       id: 'p3-rules-step',
-      kicker: '5 · Who loses the job',
       title: 'The same number displaced, different people',
       icon: 'scenario',
       body: (
@@ -144,6 +164,6 @@ export default function Rules() {
       ),
     },
   ];
-  return <Scrolly id="p3-rules" steps={steps} graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />} label="Cost to the public finances under four rules for who is displaced" />;
+  return <Scrolly id="p3-rules" sub={rulesSub()} steps={steps} graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />} label="Cost to the public finances under four rules for who is displaced" />;
 }
 

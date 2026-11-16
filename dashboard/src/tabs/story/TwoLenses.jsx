@@ -6,6 +6,8 @@ import { Items } from '@/components/story/Items.jsx';
 import { useInView, useReducedMotion } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
+import { MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
+import { REFS } from './part3/sources.jsx';
 
 // The close of the story: the two models side by side, each with a header
 // icon and one line on what it is, then what it can say (3-4 items) and
@@ -29,14 +31,15 @@ const LENSES = [
       { icon: 'jobLoss', text: 'Unemployment: everyone who wants to work is employed' },
       { icon: 'forecast', text: 'Forecasts of levels' },
     ],
+    code: [REFS.ogcore, { ...REFS.oguk, label: 'OG-UK runs: uk-growth-with-ai' }],
     explore: { tab: 'explore', sub: 'economy', label: 'Explore the OG-UK results' },
     method: { tab: 'method', sub: 'how', label: 'How OG-UK works' },
   },
   {
     id: 'study',
     icon: 'households',
-    name: 'uk-ai-study (provisional)',
-    what: 'UK households in one year, FY 2026–27, under the tax and benefit system',
+    name: `uk-ai-study${PROVISIONAL ? ' (provisional)' : ''}`,
+    what: `UK households in one year, ${MODEL_YEAR}, under the tax and benefit system`,
     can: [
       { icon: 'households', text: 'Who loses income if jobs are assumed lost' },
       { icon: 'cost', text: 'The cost to the public finances' },
@@ -46,10 +49,19 @@ const LENSES = [
       { icon: 'timing', text: 'What happens over time: recovery, re-employment, prices' },
       { icon: 'jobLoss', text: 'Job loss as a result: it is assumed' },
     ],
+    code: [{ ...REFS.study, label: 'The study and its code: uk-ai-study' }],
     explore: { tab: 'explore', sub: 'households', label: 'Explore the household results' },
     method: { tab: 'method', sub: 'households', label: 'How the study works' },
   },
 ];
+
+// The close's opener (rendered by builder S's standalone opener when it lands).
+export const CLOSE_SUB = {
+  title: 'Two lenses',
+  icon: 'compare',
+  question: 'What can each model say?',
+  takeaway: 'OG-UK speaks to the whole economy over decades; uk-ai-study to households in one year',
+};
 
 export default function TwoLenses() {
   const [ref, seen] = useInView();
@@ -101,6 +113,12 @@ export default function TwoLenses() {
                   <Icon name={iconFor('source')} size={14} className="lens-ico" />
                   {l.method.label}
                 </NavLink>
+                {l.code.map((r) => (
+                  <a key={r.url} href={r.url} target="_blank" rel="noreferrer" title={r.title}>
+                    <Icon name={iconFor('code')} size={14} className="lens-ico" />
+                    {r.label}
+                  </a>
+                ))}
               </p>
             </article>
           </Fragment>

@@ -12,7 +12,7 @@ import Rules from './part3/Rules.jsx';
 import Margin from './part3/Margin.jsx';
 import Moves from './part3/Moves.jsx';
 import Closing, { CloseLinks } from './part3/Closing.jsx';
-import { Ico, MODEL_YEAR, SceneHead } from './part3/shared.jsx';
+import { D, Ico, MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 
 // Part 3: a model of households. Provisional results of a separate study, a
 // PolicyEngine-UK microsimulation of AI job displacement in FY 2026-27
@@ -28,6 +28,14 @@ import { Ico, MODEL_YEAR, SceneHead } from './part3/shared.jsx';
 // "Next" band hands over to the close (TwoLenses) and carries the links on. The headline findings are printed here once each; the
 // detail is on Explore > Households. Formats: part3/format.js.
 
+// What you just learned (the part's recap, rendered by builder S's Recap):
+// three items, each linking to its home, with no figures.
+export const P3_RECAP = [
+  { icon: 'cost', text: 'The cost to the public finances is the difference between much larger flows', to: '#p3-channels' },
+  { icon: 'deciles', text: 'Where the loss falls depends on who loses the job, and how', to: '#p3-rules' },
+  { icon: 'breakEven', text: 'A few assumptions, sourced from other studies, decide the cost’s sign', to: '#p3-moves' },
+];
+
 export default function Part3({ part }) {
   return (
     <>
@@ -37,20 +45,19 @@ export default function Part3({ part }) {
       <Callout icon="model" title="A different model" className="p3-model">
         <Items
           items={[
-            { icon: 'model', text: <>Static PolicyEngine-UK microsimulation, Microcosm UK 2024-25 data, {MODEL_YEAR}</> },
-            { icon: 'provisional', text: 'Figures are provisional: the study is a draft under review' },
+            { icon: 'model', text: <>Static PolicyEngine-UK microsimulation, {D.source.dataset} data, {MODEL_YEAR}</> },
+            PROVISIONAL
+              ? { icon: 'provisional', text: 'Figures are provisional: the study is a draft under review' }
+              : { icon: 'source', text: <>From the merged study, uk-ai-study PR #{D.source.pr}; files linked under each figure</> },
             { icon: 'jobLoss', text: 'Assumes job loss; in OG-UK (part 2) displacement shows in the wage' },
             { icon: 'limit', text: 'Its figures cannot be added to or compared with part 2’s gaps' },
           ]}
         />
       </Callout>
-      <SceneHead title="The cost" icon="cost" />
       <Central />
       <Channels />
-      <SceneHead title="Who it falls on" icon="households" />
       <Absorb />
       <Deciles />
-      <SceneHead title="What changes it" icon="scenario" />
       <Rules />
       <Margin />
       <Moves />

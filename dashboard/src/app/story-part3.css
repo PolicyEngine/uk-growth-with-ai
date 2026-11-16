@@ -1960,3 +1960,28 @@ svg.p3-dim {
   font-size: var(--fs-caption);
   color: var(--pe-gray-700);
 }
+
+/* p2h push: each block carries its own topic header (Scrolly `sub`), so the
+   gap under it is kept small; axis titles and source links */
+#story-part-3 .scrolly.has-sub {
+  row-gap: 12px;
+}
+#story-part-3 .p3-tile-notes {
+  margin-top: 8px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-axis-title {
+  font-weight: inherit;
+}
+#story-part-3 .p3-ref {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* short desktop windows (1366x650): the take-up and break-even states each
+   hold for 180px of scroll; the cards' topic header replaced their kickers */
+@media (min-width: 901px) and (max-height: 700px) {
+  #p3-moves .scrolly-step {
+    padding-bottom: 112px;
+  }
+}

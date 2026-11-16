@@ -7,6 +7,7 @@ import { useEnterState, useInView, useReducedMotion } from '@/components/story/m
 import { Replay } from '@/components/story/chart/index.js';
 import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
+import { FileLink, PR_URL as STUDY_PR_URL } from './sources.jsx';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
 // the source line, the chips and the bar rows. Figure text is HTML; bars are
@@ -16,7 +17,21 @@ import D from '@/data/aiStudy2425.json';
 export { D };
 export const PR_URL = 'https://github.com/PolicyEngine/uk-ai-study/pull/18';
 export const PAPER_URL = 'https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf';
-export const MODEL_YEAR = 'FY 2026–27';
+// The model year, read from the data: a top-level `model_year` (as the
+// refreshed data carry it, e.g. "2027-28" or "FY 2027-28"), else the year in
+// the baseline's note ("Baseline (no shock), FY 2026-27"). Printed with an en
+// dash: "FY 2026–27".
+export function fmtModelYear(raw) {
+  const m = /(\d{4})\s*[-–/]\s*(\d{2,4})/.exec(String(raw ?? ''));
+  return m ? `FY ${m[1]}–${m[2].slice(-2)}` : '';
+}
+export const MODEL_YEAR = fmtModelYear(D.model_year ?? D.source?.model_year ?? D.baseline?.absolute_bhc_pct?.note);
+// The study's status, read from the data: a `status` field once the data
+// follow the merged study ("merged"), else the `provisional` flag. Story
+// text that says "provisional" or "draft" is shown only while this is true.
+export const PROVISIONAL = D.status != null ? /provisional|draft|open|review/i.test(String(D.status)) : D.provisional === true;
+// The baselines' owner: the field the data builder adds, else the model.
+export const BASELINE_LABEL = D.baseline?.label ?? 'PolicyEngine-UK baseline';
 // The OBR scenario the smaller run is sized to, read from the ladder note
 // ("sized to the OBR March 2026 scenario").
 export const OBR_SCENARIO = `the OBR’s ${/OBR (\w+ \d{4}) scenario/.exec(D.ladder.find((r) => r.id === 'obr')?.note ?? '')?.[1] ?? ''} displacement scenario`.replace('  ', ' ');
@@ -32,20 +47,41 @@ export const ladder = (id) => byId(D.ladder, id);
 export const rule = (id) => byId(D.rules, id);
 export const perPound = (id) => byId(D.per_pound, id);
 
-export function Source({ children }) {
+// The source line under every part 3 figure: the model and data, then the
+// result file(s) each figure is read from, linked at the data's commit
+// (`files`: paths from aiStudy2425.json's `file` fields), then the study.
+export function Source({ children, files = [] }) {
+  const fs = [...new Set(files.filter(Boolean))];
   return (
     <p className="story-source p3-iconed">
       <Ico c="source" size={12} />
-      Source: PolicyEngine-UK microsimulation, provisional; {D.source.dataset}, {MODEL_YEAR}
-      {children ? <>; {children}</> : null}.{' '}
-      <a href={PR_URL} target="_blank" rel="noreferrer">
+      Source: PolicyEngine-UK microsimulation{PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
+      {children ? <>; {children}</> : null}:{' '}
+      {fs.map((f) => (
+        <span key={f}>
+          <FileLink path={f} />,{' '}
+        </span>
+      ))}
+      <a href={STUDY_PR_URL} target="_blank" rel="noreferrer">
         uk-ai-study PR #{D.source.pr}
       </a>
     </p>
   );
 }
 
-export function FigureHead({ title, unit, icon = 'path', replay, actions }) {
+// `y` and `x` are the axis titles, printed in the unit line and marked
+// data-axis-title (the value axis is "y", also on horizontal bars). A title
+// with a figure-like token ("£1", "1%") passes `axis` so the number check
+// skips it.
+export function AxisTitle({ axis, children, scale = false, className = '' }) {
+  return (
+    <span className={`p3-axis-title ${className}`.trim()} data-axis-title={axis} {...(scale ? { 'data-axis': '' } : {})}>
+      {children}
+    </span>
+  );
+}
+
+export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions }) {
   return (
     <>
       <p className="story-figure-title p3-iconed">
@@ -58,10 +94,16 @@ export function FigureHead({ title, unit, icon = 'path', replay, actions }) {
           </span>
         ) : null}
       </p>
-      {unit ? (
+      {unit || y || x ? (
         <p className="story-figure-unit p3-iconed">
           <Ico c="measure" size={12} />
-          <span>{unit}</span>
+          <span>
+            {y ? <AxisTitle axis="y">{y}</AxisTitle> : null}
+            {y && x ? '; ' : null}
+            {x ? <AxisTitle axis="x">{x}</AxisTitle> : null}
+            {(y || x) && unit ? '. ' : null}
+            {unit}
+          </span>
         </p>
       ) : null}
     </>
@@ -77,7 +119,10 @@ export function OutsideRebuild() {
 // The story's variant (part 3 states "provisional" once, in its opening
 // call-out): a small inline flag with a plain icon, placed in the figure
 // whose runs it covers. Explore keeps OutsideRebuild above.
+// Shown only while the study is provisional: the merged study reruns these
+// stages inside its rebuild (Fable's story claim audit, P3-22).
 export function OutsideRebuildFlag({ className = '' }) {
+  if (!PROVISIONAL) return null;
   return (
     <p className={`p3-flag ${className}`.trim()}>
       <Icon name={iconFor('provisional')} size={14} /> Outside the study’s attested rebuild
@@ -187,11 +232,15 @@ export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.r
 
 // A scene sub-header over a group of blocks (part 3 reads as three scenes:
 // the cost, who it falls on, what moves it). The rail reads [data-scene].
-export function SceneHead({ title, icon }) {
+// Used for the blocks that are not Scrolly blocks (step 8), with the same
+// markup as Scrolly's `sub` header; `question` is kept for the opener.
+export function SceneHead({ title, icon, question, id }) {
   return (
-    <header className="scene-head p3-scene-head" data-scene={title}>
+    <header className="scene-head p3-scene-head" data-scene={title} data-question={question}>
       <Ico c={icon} size={16} />
-      <span>{title}</span>
+      <h3 className="scene-head-title" id={id}>
+        {title}
+      </h3>
     </header>
   );
 }

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtPence, fmtPenceRange, fmtPp } from './format.js';
-import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, perPound, Ico, entryClass, useBeat } from './shared.jsx';
+import { About, AxisTitle, D, FigureHead, OutsideRebuildFlag, Source, ladder, perPound, Ico, entryClass, useBeat } from './shared.jsx';
+import { Ref } from './sources.jsx';
 
 // Step 6, job loss against wage cuts (results.tex, "How the earnings loss
 // arrives"), on matching 20-draw bases only: pence per pound with each
@@ -41,12 +42,12 @@ export function marginClaims() {
 // A dumbbell panel on its own axis from zero: two marks joined by a line;
 // each mark carries its printed value. The wage-cut pence mark draws its
 // employer-NI part as a segment of its own. `hl` dims the other margin.
-function Dumbbell({ head, icon = 'measure', max, marks, on, delay, hl, setHl }) {
+function Dumbbell({ head, icon = 'measure', scale = false, max, marks, on, delay, hl, setHl }) {
   const xs = marks.map((m) => (m.v / max) * 100);
   return (
     <div className="p3-db">
       <p className="p3-db-head p3-iconed">
-        <Ico c={icon} size={12} /> {head}
+        <Ico c={icon} size={12} /> <AxisTitle axis="y" scale={scale}>{head}</AxisTitle>
       </p>
       <div className="p3-db-track" style={{ '--beat': `${delay}ms` }}>
         <span className="p3-db-link" style={{ left: `${Math.min(...xs)}%`, width: `${Math.abs(xs[1] - xs[0])}%` }} />
@@ -93,7 +94,7 @@ function MarginFigure({ ctx }) {
   const maxP = Math.max(JOB.poverty_pp, CUT.poverty_pp) * 1.15;
   return (
     <figure className={entryClass(e, 'p3-figure p3-scene p3-margin')}>
-      <FigureHead icon="wageCut" title="The same earnings loss as job loss or as wage cuts" unit={`Mean of ${D.per_pound_20.draws} paired draws in every panel`} replay={e.replay} />
+      <FigureHead icon="wageCut" title="The same earnings loss as job loss or as wage cuts" x="Job loss against wage cuts" unit={`Mean of ${D.per_pound_20.draws} paired draws in every panel`} replay={e.replay} />
       <OutsideRebuildFlag />
       <p className="p3-legend-chips">
         {chip('job', 'jobLoss', 'Job loss')}
@@ -104,7 +105,8 @@ function MarginFigure({ ctx }) {
           <Ico c="cost" /> Each margin alone: cost per <span data-axis="">£1</span> of earnings lost
         </p>
         <Dumbbell
-          head="Pence"
+          head="Pence per £1 of earnings lost"
+          scale
           icon="cost"
           max={100}
           on={e.on}
@@ -146,7 +148,7 @@ function MarginFigure({ ctx }) {
             ]}
           />
           <Dumbbell
-            head="Absolute poverty, change"
+            head="Absolute poverty, change, percentage points"
             icon="poverty"
             max={maxP}
             on={e.on}
@@ -163,9 +165,22 @@ function MarginFigure({ ctx }) {
           <Ico c="jobLoss" size={12} /> Job loss here is the central case on these 20 draws
         </p>
       </section>
-      <Source>wage-cut runs, central seeds 0 to 19</Source>
+      <Source files={[D.per_pound_20.file, D.per_pound_20.job_loss.file]}>wage-cut runs, central seeds 0 to 19</Source>
     </figure>
   );
+}
+
+export function marginSub() {
+  const c = marginClaims();
+  return {
+    title: 'Job loss or wage cuts',
+    icon: 'wageCut',
+    question: 'Does it matter whether earnings fall through job loss or wage cuts?',
+    takeaway:
+      c.perPoundMore !== c.povertyMore
+        ? `${c.perPoundMore === 'job' ? 'Job loss' : 'Wage cuts'} weigh more on the public finances per pound; ${c.povertyMore === 'job' ? 'job loss' : 'wage cuts'} weigh more on poverty`
+        : `${c.povertyMore === 'job' ? 'Job loss' : 'Wage cuts'} weigh more on both the public finances and poverty`,
+  };
 }
 
 export default function Margin() {
@@ -173,14 +188,13 @@ export default function Margin() {
   const steps = [
     {
       id: 'p3-margin-step',
-      kicker: '6 · Job loss or wage cuts',
       title: claims.title,
       icon: 'wageCut',
       body: (
         <>
           <Items
             items={[
-              { icon: 'wageCut', text: 'No one loses a job: wage cuts graded by AI exposure' },
+              { icon: 'wageCut', text: <>Exposure-graded wage cuts, no job loss (<Ref id="acemoglu">Acemoglu and Restrepo, 2022</Ref>)</> },
               { icon: 'pay', text: 'They remove the same gross earnings as the job losses' },
               claims.povertyMore === 'job' && { icon: 'poverty', text: 'Job loss concentrates the loss, moving more households below the poverty line' },
               { icon: 'caveat', text: 'The ordering is a result for this shock, not the UK system' },
@@ -189,9 +203,9 @@ export default function Margin() {
           <About>
             <Items
               items={[
-                { icon: 'wageCut', text: 'A cut removes pounds taxed at the worker’s marginal rates' },
+                { icon: 'wageCut', text: 'Here a cut removes pounds taxed at the worker’s marginal rates' },
                 { icon: 'tax', text: 'Employer NI is of similar size on both margins' },
-                { icon: 'jobLoss', text: 'A lost job removes whole earnings; UC replaces less than tax forgone' },
+                { icon: 'jobLoss', text: 'A lost job removes all earnings; UC replaces less than tax forgone' },
                 { icon: 'households', text: 'A loss spread across many earners moves few below the poverty line' },
               ]}
             />
@@ -200,5 +214,5 @@ export default function Margin() {
       ),
     },
   ];
-  return <Scrolly id="p3-margin" steps={steps} graphic={(i, r, ctx) => <MarginFigure ctx={ctx} />} label={claims.aria} />;
+  return <Scrolly id="p3-margin" sub={marginSub()} steps={steps} graphic={(i, r, ctx) => <MarginFigure ctx={ctx} />} label={claims.aria} />;
 }
