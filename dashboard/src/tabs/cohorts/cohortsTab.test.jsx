@@ -28,8 +28,11 @@ describe('Who gains tab', () => {
     expect(t).toContain(pct(c.no_bequest_alive_avg));
     expect(t).toContain(pct(c.sources_alive.capital));
     expect(t).toContain(pct(c.sources_alive.labour));
-    expect(t).toContain(pct(c.charged.no_bequest_avg[0]));
-    expect(t).toContain(`${Math.round(c.charged.joint_losing_pct[0])}–${Math.round(c.charged.joint_losing_pct[1])}%`);
+    // the solve to the horizon replaces the first-order charge-back in this cell
+    const full = D.dnfull.range;
+    expect(t).toContain(pct(full.no_bequest_avg[0]));
+    expect(t).toContain(`${Math.round(full.joint_losing_pct[0])}%`);
+    expect(t).not.toContain('first order');
     expect(t).toContain(pct(c.parts_alive.bequests)); // in the by-form fold
     expect(t).not.toMatch(/\b(poor|rich)\b/i);
   });
@@ -39,7 +42,7 @@ describe('Who gains tab', () => {
     const c = cell('zk0.1', 'dn', 'tfp');
     const first = container.querySelector('.stat-tile');
     expect(first.querySelector('.stat-name').textContent).toContain('Adults who lose');
-    expect(first.querySelector('.stat-value').textContent).toBe(`Under 1% to ${Math.round(c.charged.no_bequest_losing_pct[1])}%`);
+    expect(first.querySelector('.stat-value').textContent).toBe(`Under 1% to ${Math.round(Math.max(c.no_bequest_losing_pct, ...D.dnfull.range.no_bequest_losing_pct))}%`);
     // the earnings-group ranking is a detail with its caveat, not a tile
     expect(container.querySelector('.stat-row').textContent).not.toContain('Top 1%');
     expect(container.textContent).toContain('a property of the model, not a finding about the UK');
@@ -55,11 +58,14 @@ describe('Who gains tab', () => {
     expect(window.location.search).toContain('arm=stress');
   });
 
-  it('charges the post-2035 cost only under debt-neutral transfers', () => {
+  it('charges the post-2035 cost only under debt-neutral transfers: first order, or solved where the data has it', () => {
     const { container } = at();
-    expect(container.querySelector('.stat-row').textContent).toContain('With the fiscal cost after 2035 charged');
+    expect(container.querySelector('.stat-row').textContent).toContain('solved to the horizon');
+    // another arm has no solve to the horizon, so the first-order rows show
+    fireEvent.click(screen.getByRole('radio', { name: /Technology unchanged/ }));
+    expect(container.querySelector('.stat-row').textContent).toContain('With the fiscal cost after 2035 charged, first order');
     fireEvent.click(screen.getByRole('radio', { name: /Common/ }));
-    expect(container.querySelector('.stat-row').textContent).not.toContain('With the fiscal cost after 2035 charged');
+    expect(container.querySelector('.stat-row').textContent).not.toContain('fiscal cost after 2035 charged');
     expect(window.location.search).toContain('wrule=common');
   });
 
@@ -96,7 +102,8 @@ describe('Who gains tab', () => {
     const { container } = at();
     const rows = container.querySelectorAll('[data-dnfull]');
     if (D.dnfull?.ready) {
-      expect(rows).toHaveLength(2);
+      // two rows in the share-who-lose tile, one in the average tile
+      expect(rows).toHaveLength(3);
       expect(dnfullFor('zk0.1', 'dn', 'tfp')).not.toBeNull();
     } else {
       expect(rows).toHaveLength(0);

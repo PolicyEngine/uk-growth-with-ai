@@ -84,9 +84,13 @@ export function dnfullFor(cl, rule, arm) {
 // The headline tiles. The share who lose is a range, not one figure: it
 // moves with two accounting choices (whether bequests are valued, whether
 // the later fiscal cost is charged to households).
+// Where the solved-to-the-horizon block exists for this cell it replaces the
+// first-order charge-back (its own note says so), so only one is shown.
 export function Headline({ c, rule, cl, arm }) {
-  const ch = rule === 'dn' ? c.charged : null;
   const full = dnfullFor(cl, rule, arm);
+  const ch = rule === 'dn' && !full ? c.charged : null;
+  const fills = full ? Object.values(full.by_fill ?? {}) : [];
+  const fullAges = fills.length ? [Math.min(...fills.map((f) => f.oldest_losing_on_average)), Math.max(...fills.map((f) => f.oldest_losing_on_average))] : null;
   const s = c.sources_alive;
   const all = [
     c.alive_losing_pct,
@@ -97,7 +101,7 @@ export function Headline({ c, rule, cl, arm }) {
   const lo = Math.min(...all);
   const hi = Math.max(...all);
   const young = c.all_lose_up_to_age;
-  const ages = ch?.oldest_losing_on_average;
+  const ages = fullAges ?? ch?.oldest_losing_on_average;
   return (
     <div className="stat-row cols-4">
       <StatTile icon="usersRound" name={`Adults who lose`} value={tileRange(lo, hi)} sub={`Share of adults alive in ${D.shock_year}, depending on the measure`}>
@@ -113,11 +117,11 @@ export function Headline({ c, rule, cl, arm }) {
           {ch ? (
             <>
               <div>
-                <dt>With the fiscal cost after 2035 charged{full ? ', first order' : ''}</dt>
+                <dt>With the fiscal cost after 2035 charged, first order</dt>
                 <dd>{shareRange(ch.joint_losing_pct)}</dd>
               </div>
               <div>
-                <dt>With both{full ? ', first order' : ''}</dt>
+                <dt>With both, first order</dt>
                 <dd>{shareRange(ch.no_bequest_losing_pct)}</dd>
               </div>
             </>
@@ -125,11 +129,11 @@ export function Headline({ c, rule, cl, arm }) {
           {full ? (
             <>
               <div data-dnfull="">
-                <dt>Solved to the horizon, with transfers bearing the fiscal cost</dt>
+                <dt>With transfers bearing the later fiscal cost, solved to the horizon</dt>
                 <dd>{shareRange(full.range.joint_losing_pct)}</dd>
               </div>
               <div data-dnfull="">
-                <dt>Solved to the horizon, bequests not valued</dt>
+                <dt>With both, solved to the horizon</dt>
                 <dd>{shareRange(full.range.no_bequest_losing_pct)}</dd>
               </div>
             </>
@@ -144,7 +148,9 @@ export function Headline({ c, rule, cl, arm }) {
           young
             ? `Every adult this age or younger in ${D.shock_year} loses, as modelled`
             : ages
-              ? `Adults this age or younger in ${D.shock_year} lose on average once the later fiscal cost is charged (first-order estimate, not a model run)`
+              ? full
+                ? `Adults this age or younger in ${D.shock_year} lose on average with transfers bearing the later fiscal cost, solved to the horizon`
+                : `Adults this age or younger in ${D.shock_year} lose on average once the later fiscal cost is charged (first-order estimate, not a model run)`
               : 'Losses, where there are any, fall on the youngest adults: they have the most working years ahead and the least wealth'
         }
       >
@@ -156,6 +162,12 @@ export function Headline({ c, rule, cl, arm }) {
             <dt>If bequests are not valued</dt>
             <dd>{pct(c.no_bequest_alive_avg)}</dd>
           </div>
+          {full ? (
+            <div data-dnfull="">
+              <dt>And transfers bearing the later fiscal cost, solved to the horizon</dt>
+              <dd>{full.range.no_bequest_avg[0].toFixed(2) === full.range.no_bequest_avg[1].toFixed(2) ? pct(full.range.no_bequest_avg[0]) : `${pct(full.range.no_bequest_avg[0])} to ${pct(full.range.no_bequest_avg[1])}`}</dd>
+            </div>
+          ) : null}
           {ch ? (
             <div>
               <dt>And the later fiscal cost charged</dt>
@@ -336,7 +348,7 @@ export default function WhoGainsTab() {
                 Earnings groups are percentiles of lifetime earnings, not income deciles. Consumption-only figures, which scale consumption
                 alone, are a sensitivity in the paper. The figures with the fiscal cost after 2035 charged are a first-order estimate, not
                 a model run.{D.dnfull?.ready
-                  ? ' The rows solved to the horizon are a model run for the main arm at the central closure: transfers, not government consumption, hold debt/GDP on the path to the horizon, measured against a no-shock path solved under the same rule.'
+                  ? ' For the main arm at the central closure the cost is instead solved to the horizon, a model run that replaces the first-order rows there: transfers, not government consumption, hold debt/GDP on the path to the horizon, measured against a no-shock path solved under the same rule.'
                   : ''}
               </p>
             ),

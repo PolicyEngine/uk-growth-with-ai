@@ -89,9 +89,11 @@ def check(dump):
             for k in ('joint_losing_pct', 'no_bequest_losing_pct'):
                 if share_range(*full['range'][k]) not in who:
                     bad += 1; print(sid, 'Who gains: dnfull', k, 'not printed')
-            if who.count('Solved to the horizon') != 2:
+            # two rows in the share-who-lose tile, the age tile's line and one
+            # row in the average tile
+            if who.count('solved to the horizon') != 4:
                 bad += 1; print(sid, 'Who gains: dnfull rows not printed once each')
-        elif 'Solved to the horizon' in who:
+        elif 'solved to the horizon' in who:
             bad += 1; print(sid, 'Who gains: dnfull rows print without the data')
     print('cross review:', 'ok' if not bad else f'{bad} failures',
           '(dnfull block', 'in the data)' if (CO.get('dnfull') or {}).get('ready') else 'not in the data yet: rows hidden)')
