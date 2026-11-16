@@ -6,7 +6,7 @@ import { NavLink } from '@/lib/nav.jsx';
 
 // The reverse of "More in Method": under each Method section, the charts and
 // Story steps that use it, as small icon link chips. Every target is an id
-// that exists on its page (checked by uses.test.js and by a click-through in
+// that exists on its page (checked by uses.test.js, and by a click-through in
 // the builder's Playwright run); links to Explore > All scenarios are left
 // out while it folds into Economy.
 export const USES = {

@@ -232,7 +232,6 @@ function Limitations() {
       title: 'No markups',
       points: [
         { icon: 'pay', text: 'Firms are competitive: wages and rents equal marginal products.' },
-        { icon: 'excluded', text: 'AI earns no rent above its cost.' },
       ],
     },
     {

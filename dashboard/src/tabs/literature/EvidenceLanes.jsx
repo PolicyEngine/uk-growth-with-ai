@@ -32,7 +32,7 @@ import './evidence.css';
 const META = {
   gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 2 },
   wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 1 },
-  adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10 },
+  adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10, level: true },
   exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers by occupation: a share, not a gap', kind: 'shares' },
   distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points against each study’s own baseline', step: 5, suf: ' Gini pts' },
 };
@@ -43,7 +43,8 @@ const plotted = (metric) =>
     .filter((r) => r.plot === metric && !r.unverified)
     .map((r) => ({ ids: [r.id], label: r.plotLabel, short: r.institution, horizon: r.plotHorizon, note: r.note, loc: r.loc, url: r.url, lo: r.lo, hi: r.hi, mark: r.mark ?? null, none: false, unverified: false }));
 const OURS = ['uk_central', 'korinek'];
-const n1 = (x, suf = '%') => `${x < 0 ? '−' : x > 0 ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}${suf}`;
+// Signed for gaps; a level (adoption) prints without a sign
+const n1 = (x, suf = '%', level = false) => `${x < 0 ? '−' : x > 0 && !level ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}${suf}`;
 
 function ticks(lo, hi, step) {
   const out = [];
@@ -103,7 +104,7 @@ function rangeSvg(metric) {
   for (const r of pub) {
     const cy = y + ROW / 2;
     label(r.label, r.unverified ? `${r.horizon} · unverified` : r.horizon);
-    const fig = r.none ? 'No number published' : r.lo === r.hi ? n1(r.lo, m.suf) : `${n1(r.lo, m.suf)} to ${n1(r.hi, m.suf)}`;
+    const fig = r.none ? 'No number published' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`;
     if (!r.none && r.lo === r.hi) out += `<circle cx="${X(r.lo)}" cy="${cy}" r="6" fill="${s5}" stroke="${C.surface}" stroke-width="2"/>`;
     else if (!r.none) out += `<rect x="${X(r.lo)}" y="${cy - 6}" width="${Math.max(2, X(r.hi) - X(r.lo))}" height="12" rx="3" fill="${s5}" fill-opacity="${r.unverified ? 0.12 : 0.45}" stroke="${s5}" stroke-opacity="0.7"${r.unverified ? ' stroke-dasharray="3 2"' : ''}/>`;
     if (r.mark != null) out += `<rect x="${X(r.mark) - 1.5}" y="${cy - 9}" width="3" height="18" rx="1" fill="${C.ink}"/>`;
@@ -112,7 +113,7 @@ function rangeSvg(metric) {
   }
   out = `<line x1="${X(0)}" x2="${X(0)}" y1="${top0}" y2="${y}" stroke="${C.zeroLine}"/>` + out;
   for (const t of ticks(Math.min(Math.floor(Math.min(...vals) / m.step) * m.step, 0), top, m.step)) {
-    out += `<text x="${X(t)}" y="${y + 16}" font-size="11" text-anchor="middle" fill="${C.tick}">${t > 0 ? `+${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}${m.suf ? '' : '%'}</text>`;
+    out += `<text x="${X(t)}" y="${y + 16}" font-size="11" text-anchor="middle" fill="${C.tick}">${t > 0 ? `${m.level ? '' : '+'}${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}${m.suf ? '' : '%'}</text>`;
   }
   return { w: W, h: y + 26, markup: out };
 }
@@ -266,7 +267,7 @@ function Lane({ metric, hi, bind }) {
         <div className="mx-rb-group">Published</div>
         {pub.map((r, i) => {
           const key = `p-${i}`;
-          const fig = r.none ? 'no number' : r.lo === r.hi ? n1(r.lo, m.suf) : `${n1(r.lo, m.suf)} to ${n1(r.hi, m.suf)}`;
+          const fig = r.none ? 'no number' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`;
           return (
             <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} {...bind(key, `${r.label}, ${r.horizon}: ${fig}${r.unverified ? ', unverified' : ''}. ${r.note}`)}>
               <span className="mx-rb-label">
@@ -309,7 +310,7 @@ function Lane({ metric, hi, bind }) {
           <span className="mx-rb-plot">
             {tk.map((t) => (
               <span key={t} className="mx-rb-axtick" style={{ left: `${px(t)}%` }}>
-                {t > 0 ? `+${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}
+                {t > 0 ? `${m.level ? '' : '+'}${t}` : t < 0 ? `−${Math.abs(t)}` : '0'}
                 {m.suf ? '' : '%'}
               </span>
             ))}
@@ -379,7 +380,11 @@ export default function EvidenceLanes() {
         context: () => `Ours: automation + productivity, against the OBR-central path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
         table: () => {
           const ts = RANGE_LANES.map(table);
-          return { columns: ts[0].columns, rows: ts.flatMap((t) => t.rows) };
+          // composition lanes: one row per share, low = high = the share
+          const shares = LANES.filter((k) => META[k].kind === 'shares').flatMap((k) =>
+            shareRows(k).flatMap((r) => r.shares.map((x) => [META[k].title, `${r.plotLabel}: ${x.label}`, r.horizon, x.pct, x.pct, null, `${META[k].unit}`, `${r.institution}, ${r.loc}`, r.url])),
+          );
+          return { columns: ts[0].columns, rows: [...ts.flatMap((t) => t.rows), ...shares] };
         },
         svg: () => {
           const parts = RANGE_LANES.map(rangeSvg);
