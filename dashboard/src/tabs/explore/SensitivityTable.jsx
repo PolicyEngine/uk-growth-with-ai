@@ -133,7 +133,9 @@ function SensDots({ res }) {
                         <span className="ex-sd-zero" style={{ left: `${ax.at(0).toFixed(2)}%` }} aria-hidden="true" />
                         <span className="ex-sd-dot" style={{ left: `${left.toFixed(2)}%`, background: ARM_COLOR[a.id] }} aria-hidden="true" />
                       </span>
-                      <span className={`ex-sd-val${cls(x)}`}>{fmt(x, 2)}</span>
+                      <span className={`ex-sd-val${cls(x)}`} data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
+                        {fmt(x, 2)}
+                      </span>
                     </span>
                   );
                 })}

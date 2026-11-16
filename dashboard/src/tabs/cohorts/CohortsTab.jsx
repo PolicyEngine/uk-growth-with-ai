@@ -134,42 +134,24 @@ function MeasureChips({ ms }) {
   );
 }
 
-// "Adults who lose" by measure: the four shares as a toggle (each prints its
-// share once), and a strip of 100 dots, one per 1% of adults, re-coloured
-// for the measure picked. A share is rounded to whole dots; "under 1%" is no
-// full dot. A range over two extensions draws its low end solid and the rest
-// to its high end hatched.
-export function dotCounts(losing) {
-  const lo = Math.min(...losing);
-  const hi = Math.max(...losing);
-  const solid = lo < 1 ? 0 : Math.round(lo);
-  return { solid, range: Math.max(0, (hi < 1 ? 0 : Math.round(hi)) - solid) };
-}
+// "Adults who lose" by measure: the four shares as a toggle, each printing
+// its share once (its home). The toggle drives the 100-dot strip and the
+// heatmap below (WhoHeatmap.jsx).
+export { dotCounts } from '@/tabs/cohorts/WhoHeatmap.jsx';
 function MeasureDots({ ms, measure, onMeasure }) {
   const m = ms.find((x) => x.id === measure) ?? ms[0];
-  const { solid, range } = dotCounts(m.losing);
   return (
-    <>
-      <ul className="ex-mtoggle" aria-label="Share of adults who lose, by measure: pick one for the dots">
-        {ms.map((x) => (
-          <li key={x.id} data-dnfull={x.full ? '' : undefined}>
-            <button type="button" aria-pressed={x.id === m.id} className={`ex-mtoggle-btn${x.id === m.id ? ' is-on' : ''}`} title={x.def} onClick={() => onMeasure(x.id)}>
-              <Icon name={iconFor(x.concept)} size={12} />
-              <b>{x.id}</b>
-              <span className="ex-dd">{shareOf(x.losing)}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="ex-dots" role="img" aria-label={`${m.label}: ${shareOf(m.losing)} of adults lose, one dot per 1%`} data-measure={m.id}>
-        {Array.from({ length: 100 }, (_, i) => (
-          <span key={i} className={`ex-dot${i < solid ? ' is-lose' : i < solid + range ? ' is-range' : ''}`} style={{ transitionDelay: `${Math.min(i, 60) * 3}ms` }} />
-        ))}
-      </div>
-      <p className="ex-dots-key">
-        <span className="ex-dot is-lose" aria-hidden="true" data-icon="" /> One dot = 1% of adults{range ? '; hatched: the range' : ''}
-      </p>
-    </>
+    <ul className="ex-mtoggle" aria-label="Share of adults who lose, by measure: pick one to show below">
+      {ms.map((x) => (
+        <li key={x.id} data-dnfull={x.full ? '' : undefined}>
+          <button type="button" aria-pressed={x.id === m.id} className={`ex-mtoggle-btn${x.id === m.id ? ' is-on' : ''}`} title={x.def} onClick={() => onMeasure(x.id)}>
+            <Icon name={iconFor(x.concept)} size={12} />
+            <b>{x.id}</b>
+            <span className="ex-dd">{shareOf(x.losing)}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 

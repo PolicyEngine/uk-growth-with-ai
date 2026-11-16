@@ -1423,11 +1423,32 @@
   outline: 2px solid var(--pe-teal-600, #2c7a7b);
   outline-offset: 1px;
 }
+.ex-hm-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .ex-hm-body { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .ex-dotstrip .ex-dots { grid-template-columns: repeat(20, minmax(0, 1fr)); max-width: 420px; }
+}
+.ex-dotstrip {
+  margin: 0;
+}
+.ex-dotstrip figcaption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pe-gray-800, #1f2937);
+}
 .ex-dots {
   display: grid;
-  grid-template-columns: repeat(25, minmax(0, 1fr));
-  gap: 2px;
-  margin-top: 10px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
 }
 .ex-dot {
   display: block;
@@ -1593,6 +1614,9 @@
 }
 .ex-bars.ex-avg > li {
   transition: opacity 250ms var(--story-ease, ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ex-bars.ex-avg > li { transition: none; }
 }
 .ex-bars.ex-avg:has(> li.is-on) > li:not(.is-on) {
   opacity: 0.55;

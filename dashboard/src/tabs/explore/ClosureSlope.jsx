@@ -164,7 +164,7 @@ export default function ClosureSlope({ sid }) {
             items={[
               { key: 'two', icon: 'closure', text: 'Left: central closure. Right: closed capital, none foreign-owned' },
               { key: 'line', icon: 'limit', text: 'The line joins two runs; nothing between them is solved' },
-              { key: 'home', icon: 'link', text: 'Values: the four-measure card above, and the story’s headline' },
+              { key: 'home', icon: 'link', text: 'Values: hover an end; closed capital prints above under Closure: Both' },
             ]}
           />
         ),

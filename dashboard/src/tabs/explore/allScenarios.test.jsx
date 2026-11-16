@@ -107,3 +107,42 @@ describe('Across scenarios: each fact once', () => {
     expect(container.querySelector('[data-cell="korinek|common|zk0.1"]').textContent).toMatch(/\d\.\d\d%/);
   });
 });
+
+describe('Across scenarios: direction icons for every measure and arm', () => {
+  it('GDP, GNI, wage rate x three arms, and the debt cells', () => {
+    const { container } = at('tab=explore&s=korinek&rule=dn');
+    const check = (root, arm, v) => {
+      for (const td of root.querySelectorAll('.ex-mx-cell:not(.is-hole)')) {
+        const dir = td.querySelector('[data-dir]');
+        if (!dir) continue; // a cell whose figure has its home elsewhere
+        const [sid, rule, cl] = td.dataset.cell.split('|');
+        const x = cellValue(sid, arm, cl, rule, v);
+        expect(dir.dataset.dir).toBe(x > 0.005 ? 'above' : x < -0.005 ? 'below' : 'on');
+        expect(td.className.includes('is-gain')).toBe(x > 0.005);
+        expect(td.className.includes('is-loss')).toBe(x < -0.005);
+      }
+    };
+    const card = container.querySelector('#all-scenarios');
+    for (const [arm, armName] of [['tfp', /Automation \+ productivity/], ['tz', /Technology unchanged/], ['ss', /Stress test/]]) {
+      fireEvent.click([...card.querySelectorAll('[aria-label="Arm"] [role=radio]')].find((b) => armName.test(b.textContent)));
+      for (const [v, name] of [['Y', 'GDP'], ['GNI', 'GNI'], ['w', 'Wage rate']]) {
+        fireEvent.click([...card.querySelectorAll('[aria-label="Measure"] [role=radio]')].find((b) => b.textContent === name));
+        check(card, arm, v);
+      }
+    }
+    cleanup();
+    window.history.replaceState(null, '', '/?tab=explore&sub=finances');
+    const fin = render(
+      <NavProvider>
+        <AcrossDebt />
+      </NavProvider>,
+    );
+    for (const td of fin.container.querySelectorAll('#debt-cells .ex-mx-cell:not(.is-hole)')) {
+      const [sid, rule, cl] = td.dataset.cell.split('|');
+      const x = cellValue(sid, 'tfp', cl, rule, 'debt_gdp_pp');
+      expect(td.querySelector('[data-dir]')?.dataset.dir ?? 'on').toBe(x > 0.005 ? 'above' : x < -0.005 ? 'below' : 'on');
+      // debt is drawn neutral: no gain or loss colour
+      expect(/is-(gain|loss)/.test(td.className)).toBe(false);
+    }
+  });
+});

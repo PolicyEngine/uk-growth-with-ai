@@ -108,7 +108,7 @@ function Cell({ s, row, arm, m, ms, scale, current, story, printHome }) {
             <Icon name={iconFor('link')} size={11} strokeWidth={2} /> {current ? 'In view' : 'In story'}
           </span>
         ) : (
-          <span key={m.v} className="ex-mx-val">
+          <span key={m.v} className="ex-mx-val" data-path={`${row.rule === 'common' ? 'results' : `rules.${row.rule}.results`}.${s.id}.${arm}.${row.cl}.gaps.${m.v}[${HEADLINE_YEAR}]`}>
             <Dir x={x} />
             {fmt(x, 2, m.unit)}
           </span>

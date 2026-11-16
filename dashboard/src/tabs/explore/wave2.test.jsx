@@ -79,9 +79,8 @@ describe('who gains: heatmap and dots', () => {
             const i = C.birth_year.indexOf(CO.shock_year - age);
             expect(g[k].cells).toEqual([...C.rules[rule][arm].cev[i], C.rules[rule][arm].cev_all[i]]);
           });
-          // no per-group grid for the other measures: holes, never synthesised
-          for (const m of ['B', 'T', 'BT']) expect(grid(cl, rule, arm, m).every((r) => r.cells.slice(0, 7).every((x) => x == null))).toBe(true);
-          expect(grid(cl, rule, arm, 'B').every((r) => r.cells[7] == null)).toBe(true);
+          // no grid for the other measures in the data: holes, never synthesised
+          for (const m of ['B', 'T', 'BT']) expect(grid(cl, rule, arm, m).every((r) => r.cells.every((x) => x == null))).toBe(true);
         }
   });
   it('100 dots, whole dots only: under 1% is none', () => {
@@ -91,11 +90,21 @@ describe('who gains: heatmap and dots', () => {
   });
   it('the toggle re-colours the dots and the heatmap together', () => {
     const { container } = wrap(<WhoGainsTab />, 'tab=explore&sub=who');
-    const dots = () => container.querySelectorAll('.ex-dots .ex-dot.is-lose').length;
+    const dots = () => container.querySelectorAll('.ex-dotstrip .ex-dots .ex-dot.is-lose').length;
     expect(dots()).toBe(0);
     fireEvent.click(screen.getByRole('button', { name: /^.*BT/ }));
     const bt = CO.dnfull.range.no_bequest_losing_pct;
     expect(dots()).toBe(Math.round(Math.min(...bt)));
     expect(container.querySelector('#who-heatmap table').dataset.measure).toBe('BT');
+    // the dot strip prints no share: each has its home in the tile's toggle
+    expect(container.querySelector('.ex-dotstrip').textContent.replace('One dot = 1% of adults', '')).not.toMatch(/\d+%/);
+    // heatmap cells: gain or loss class from the sign of the data
+    fireEvent.click(container.querySelector('.ex-mtoggle li:first-child button'));
+    const C = CO.closures['zk0.1'].rules.dn.tfp;
+    const cells = [...container.querySelectorAll('#who-heatmap tbody tr')].map((tr) => [...tr.querySelectorAll('td')].map((td) => (td.className.includes('is-gain') ? 1 : td.className.includes('is-loss') ? -1 : 0)));
+    AGES.forEach((age, k) => {
+      const i = CO.closures['zk0.1'].birth_year.indexOf(CO.shock_year - age);
+      expect(cells[k]).toEqual([...C.cev[i], C.cev_all[i]].map((x) => (x >= 0 ? 1 : -1)));
+    });
   });
 });
