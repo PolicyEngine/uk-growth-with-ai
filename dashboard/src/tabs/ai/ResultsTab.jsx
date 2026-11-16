@@ -237,7 +237,7 @@ const ECONOMY = [
       { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
       { key: 'same', icon: 'compare', text: 'It is the same in every arm' },
       { key: 'full', icon: 'timing', text: 'It reaches full size in the headline year' },
-      { key: 'derived', icon: 'arithmetic', text: 'UK sizes: derived from IMF and OBR inputs, not printed by either' },
+      { key: 'derived', icon: 'arithmetic', text: <>UK sizes: <NavLink tab="method" sub="how" anchor="m-scenarios">derived from IMF SIP/2026/072</NavLink>, not printed by it</> },
     ]} />, sources: <ResultSources /> } },
   ] },
 ];

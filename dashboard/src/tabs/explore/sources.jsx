@@ -35,7 +35,7 @@ export function scenarioItems(sid) {
     icon: 'source',
     text: (
       <>
-        UK paths: {ext(LIT.obrBp9.url, 'OBR Briefing paper No.9')}, {ext(LIT.obrFrs26.url, 'OBR FRS July 2026, Box 4.1')}, {ext(LIT.imfSip.url, 'IMF SIP/2026/072')}; year-4 levels derived in {methodLink('shock')}
+        UK paths: {ext(LIT.obrBp9.url, 'OBR Briefing paper No.9')}, {ext(LIT.obrFrs26.url, 'OBR FRS July 2026, Box 4.1')}, {ext(LIT.imfSip.url, 'IMF SIP/2026/072')}; year-4 levels <NavLink tab="method" sub="how" anchor="m-scenarios">derived from them</NavLink>
       </>
     ),
   };
