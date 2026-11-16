@@ -1,105 +1,246 @@
 'use client';
 
-import { Fragment, cloneElement, isValidElement } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { DivBar, HBar, StackBar } from '@/tabs/story/part3/shared.jsx';
 import { MINUS } from '@/tabs/story/part3/format.js';
 
-// Small chart pieces for Explore > Households: labelled bar rows in HTML
-// (text stays legible at phone width) with aria-hidden SVG bars. A value
-// whose home is the story is not reprinted: its cell links to the step.
+// Chart pieces for Explore > Households. Text stays HTML (legible at phone
+// width); marks are positioned spans or a measured SVG. A value whose home
+// is story part 3 is not reprinted here: its row carries one link to the
+// step ("See story, step N"), spanning the cells it would have filled.
+// Every figure is in the DOM from the first render; entry beats change
+// opacity and transforms only. Tooltips and popovers mount only while open.
 
-// A cell that points to the story step printing this figure.
-export function StoryRef({ step, wide = false }) {
+// An icon by concept name, or by Icon.jsx key when no concept has it.
+const ico = (name) => iconFor(name) ?? name;
+
+// One link per row to the story step that prints the row's other figures.
+export function StoryRef({ step }) {
   return (
-    <NavLink tab="story" anchor={step.anchor} className={`hh-ref${wide ? ' is-wide' : ''}`} title={`Printed in story part 3, step ${step.n}`} aria-label={`See story part 3, step ${step.n}`}>
-      <Icon name="link" size={12} strokeWidth={2} /> {wide ? `See story, step ${step.n}` : `Step ${step.n}`}
+    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in story part 3, step ${step.n}`}>
+      <Icon name="arrowRight" size={12} strokeWidth={2} /> See story, step {step.n}
     </NavLink>
   );
-}
-
-// Adjacent cells that link to the same story step become one link spanning
-// those columns ("See story, step N"), never "Step 6 Step 6".
-export function mergeRefs(cells) {
-  const out = [];
-  for (const c of cells) {
-    const step = isValidElement(c) && c.type === StoryRef ? c.props.step : null;
-    const prev = out[out.length - 1];
-    if (step && prev?.step === step) prev.span += 1;
-    else out.push({ node: c, step, span: 1 });
-  }
-  return out.map((x) => (x.span > 1 ? { ...x, node: cloneElement(x.node, { wide: true }) } : x));
 }
 
 export const STEP = {
   central: { n: 1, anchor: 'p3-central-step' },
   rules: { n: 5, anchor: 'p3-rules-step' },
   margin: { n: 6, anchor: 'p3-margin-step' },
-  moves: { n: 7, anchor: 'p3-moves-step' },
+  moves: { n: 7, anchor: 'p3-takeup-step' },
   deciles: { n: 4, anchor: 'p3-deciles-step' },
 };
 
-// Rows: [{ id, label, bar: { kind, value | parts, fill }, cells: [node] }].
-// A plain bar longer than `hi` is drawn to the edge and marked off scale.
-// `cols` names the value columns; the bar spans the space left of them.
-export function BarRows({ id, cols, rows, lo = 0, hi, className = '' }) {
-  const n = cols.length;
+// The measured width of a box (ResizeObserver), with a fallback for the
+// server and tests.
+export function useWidth(fallback = 600) {
+  const ref = useRef(null);
+  const [w, setW] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(([e]) => setW(Math.max(240, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, w];
+}
+
+// "Nice" ticks from zero: three to five.
+export function ticks(max, n = 4) {
+  const raw = max / n;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((s) => max / s <= n) ?? mag * 10;
+  const out = [];
+  for (let t = 0; t <= max + 1e-9; t += step) out.push(Math.round(t * 1000) / 1000);
+  return out;
+}
+export const signedTick = (t) => `${t > 0 ? '+' : t < 0 ? MINUS : ''}${Math.abs(t)}`;
+
+// The cost × poverty plane: cost on x, the change in absolute poverty on y,
+// both from zero. `points`: [{ id, x, y, icon, group, ring, name }];
+// `arrows`: [[fromId, toId]] (callers draw them only within a group); `off`:
+// a point beyond the x scale, drawn as an arrow at the right edge with its
+// printed value. Names and values are in the list under the plane.
+export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, label, height = 240 }) {
+  const [ref, W] = useWidth(560);
+  const L = 48;
+  const B = 24;
+  const T = 12;
+  const R = off ? 96 : 18;
+  const pw = W - L - R;
+  const ph = height - T - B;
+  const X = (v) => L + (v / xMax) * pw;
+  const Y = (v) => T + ph - (v / yMax) * ph;
+  const at = Object.fromEntries(points.map((p) => [p.id, p]));
   return (
-    <div className={`hh-rows cols-${n} ${className}`} id={id} style={{ '--hh-cols': n }}>
-      <div className="hh-head" aria-hidden="true">
+    <div className="hh-plane" ref={ref}>
+      <svg width={W} height={height} viewBox={`0 0 ${W} ${height}`} role="img" aria-label={label}>
+        <defs>
+          <marker id={`hh-head-${label.length}`} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 z" className="hh-arrow-head" />
+          </marker>
+        </defs>
+        <g className="hh-axis">
+          {ticks(yMax).map((t) => (
+            <line key={`y${t}`} x1={L} x2={L + pw} y1={Y(t)} y2={Y(t)} className={t === 0 ? 'hh-zero' : 'hh-grid'} />
+          ))}
+          <line x1={L} x2={L} y1={T} y2={T + ph} className="hh-zero" />
+        </g>
+        {arrows.map(([a, b], i) => {
+          const p = at[a];
+          const q = at[b];
+          // stop short of the target dot
+          const dx = X(q.x) - X(p.x);
+          const dy = Y(q.y) - Y(p.y);
+          const d = Math.hypot(dx, dy) || 1;
+          const k = Math.max(0, (d - 9) / d);
+          return (
+            <path
+              key={`${a}-${b}`}
+              className={`hh-arrow is-${p.group ?? 'a'}${on ? ' is-on' : ''}`}
+              d={`M${X(p.x)},${Y(p.y)} L${X(p.x) + dx * k},${Y(p.y) + dy * k}`}
+              pathLength={1}
+              markerEnd={`url(#hh-head-${label.length})`}
+              style={{ transitionDelay: `${500 + i * 300}ms` }}
+            />
+          );
+        })}
+        {off ? (
+          <path
+            className={`hh-arrow is-off${on ? ' is-on' : ''}`}
+            d={`M${L + pw - 36},${Y(off.y)} L${L + pw + 8},${Y(off.y)}`}
+            pathLength={1}
+            markerEnd={`url(#hh-head-${label.length})`}
+          />
+        ) : null}
+      </svg>
+      {/* tick labels as HTML (scale, not data: data-axis; SVG text would
+          still reach innerText inside a hidden group) */}
+      <div className="hh-ticks-ov" data-axis="" aria-hidden="true">
+        {ticks(yMax).map((t) => (
+          <span key={`y${t}`} className="is-y" style={{ left: L - 6, top: Y(t) }}>
+            {signedTick(t)}
+            {yUnit}
+          </span>
+        ))}
+        {ticks(xMax).map((t) => (
+          <span key={`x${t}`} className="is-x" style={{ left: X(t), top: height - 14 }}>
+            {xUnit(t)}
+          </span>
+        ))}
+      </div>
+      {points.map((p, i) => (
+        <span
+          key={p.id}
+          className={`hh-pt is-${p.group ?? 'a'}${p.ring ? ' is-ring' : ''}${on ? ' is-on' : ''}`}
+          style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${i * 90}ms` }}
+          title={p.name}
+          aria-hidden="true"
+        >
+          <Icon name={ico(p.icon)} size={11} strokeWidth={2.2} />
+        </span>
+      ))}
+      {off ? (
+        <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ left: L + pw + 12, top: Y(off.y) }}>
+          {off.text}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+// The list under a plane: one row per point, its marker, the name, the
+// values whose home is here, and one story link for the rest (a cell
+// { span, node } spans that many value columns).
+export function PointList({ rows, cols, wideFirst = false }) {
+  return (
+    <div className={`hh-list${wideFirst ? ' is-wide-c1' : ''}`} style={{ '--hh-cols': cols.length }}>
+      <div className="hh-list-head" aria-hidden="true">
+        <span />
         <span />
         {cols.map((c) => (
           <span key={c}>{c}</span>
         ))}
       </div>
-      <ol>
+      <ul>
         {rows.map((r) =>
           r.group ? (
-            <li key={r.id} className="hh-group">
+            <li key={r.id} className="hh-list-group">
               {r.group}
             </li>
           ) : (
-            <li key={r.id} className={`hh-row${r.muted ? ' is-muted' : ''}`} data-row={r.id}>
-              <span className="hh-label">{r.label}</span>
-              <span className={`hh-bar${r.bar && !r.bar.kind && r.bar.value > hi ? ' is-over' : ''}`}>
-                {r.bar?.kind === 'div' ? (
-                  <DivBar value={r.bar.value} lo={lo} hi={hi} fill={r.bar.fill} />
-                ) : r.bar?.kind === 'stack' ? (
-                  <StackBar parts={r.bar.parts} max={hi} />
-                ) : r.bar ? (
-                  <HBar value={Math.min(r.bar.value, hi)} max={hi} fill={r.bar.fill} />
-                ) : null}
+            <li key={r.id} className={`hh-list-row is-${r.tone ?? 'a'}`} data-row={r.id}>
+              <span className={`hh-pt-key is-${r.tone ?? 'a'}${r.ring ? ' is-ring' : ''}`}>
+                <Icon name={ico(r.icon)} size={11} strokeWidth={2.2} />
               </span>
-              {mergeRefs(r.cells).map((c, i) => (
-                <Fragment key={i}>
-                  {' '}
-                  <span className={`hh-val${i ? ' hh-val-2' : ''}${c.span > 1 ? ' is-span' : ''}`} style={c.span > 1 ? { gridColumn: `span ${c.span}` } : undefined}>
+              <span className="hh-list-label">{r.label}</span>
+              {r.cells.map((c, i) =>
+                c && c.span ? (
+                  <span key={i} className="hh-list-span" style={{ gridColumn: `span ${c.span}` }}>
+                    {' '}
                     {c.node}
                   </span>
-                </Fragment>
-              ))}
+                ) : (
+                  <span key={i} className="hh-val">
+                    {' '}
+                    {c}
+                  </span>
+                ),
+              )}
             </li>
           ),
         )}
-      </ol>
+      </ul>
     </div>
   );
 }
 
-// Axis ticks above a diverging chart, as data-axis text (scale, not data).
-export function Ticks({ lo, hi, step, unit = '%' }) {
-  const ticks = [];
-  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
+// The notes row that replaces "About this chart": three plain icon buttons
+// (how it is calculated, caveats, sources), each opening a popover of short
+// icon items. A popover is mounted only while open; Escape closes it.
+const NOTE_KINDS = [
+  ['how', 'arithmetic', 'How it is calculated'],
+  ['caveats', 'limit', 'Caveats'],
+  ['sources', 'source', 'Sources'],
+];
+export function Notes({ how, caveats, sources }) {
+  const [open, setOpen] = useState(null);
+  const parts = { how, caveats, sources };
+  const kinds = NOTE_KINDS.filter(([k]) => parts[k]?.length);
+  const cur = kinds.find(([k]) => k === open);
   return (
-    <div className="hh-ticks" aria-hidden="true" data-axis="">
-      {ticks.map((t) => (
-        <span key={t} style={{ left: `${((t - lo) / (hi - lo)) * 100}%` }}>
-          {t > 0 ? '+' : t < 0 ? MINUS : ''}
-          {Math.abs(t)}
-          {unit}
-        </span>
-      ))}
+    <div className="hh-notes" onKeyDown={(e) => e.key === 'Escape' && setOpen(null)}>
+      <div className="hh-note-row">
+        {kinds.map(([k, icon, name]) => (
+          <button key={k} type="button" className={`hh-note-btn${open === k ? ' is-open' : ''}`} aria-expanded={open === k} onClick={() => setOpen(open === k ? null : k)}>
+            <Icon name={iconFor(icon)} size={15} /> <span>{name}</span>
+          </button>
+        ))}
+      </div>
+      {cur ? (
+        <div className="hh-pop" role="region" aria-label={cur[2]}>
+          <ul className="story-items" {...(open === 'sources' ? { 'data-reference': '' } : {})}>
+            {parts[open].map((t, i) => (
+              <li key={i}>
+                <Icon name={iconFor(cur[1])} size={14} className="story-item-icon" />
+                <span className="story-item-text">{t}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
+  );
+}
+
+// A context chip beside a unit line (draws, base, run).
+export function Chip({ icon, children, tone }) {
+  return (
+    <span className={`hh-chip${tone ? ` is-${tone}` : ''}`}>
+      <Icon name={ico(icon)} size={12} /> {children}
+    </span>
   );
 }

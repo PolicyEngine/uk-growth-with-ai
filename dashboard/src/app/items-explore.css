@@ -674,6 +674,153 @@
   border-bottom: 1px solid var(--pe-gray-200);
 }
 .ex-split-bar {
+/* households (P3): Explore > Households (tabs/households/*). P3 writes only
+   inside this block; the rest of this file is the Explore builder's. */
+.hh-findings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.hh-finding {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  height: 100%;
+  padding: 10px 12px;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+  text-decoration: none;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+}
+.hh-finding b {
+  display: block;
+  color: var(--pe-gray-900);
+}
+.hh-finding .plain-icon {
+  display: inline-flex;
+  margin-top: 2px;
+  color: var(--c-highlight);
+}
+.hh-finding:hover,
+.hh-finding:focus-visible {
+  border-color: var(--c-highlight);
+}
+.hh-lead-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+}
+.hh-chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--pe-gray-700);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  vertical-align: 1px;
+}
+.hh-chip .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.hh-chip.is-b {
+  color: var(--rank-2);
+  border-color: currentColor;
+}
+.hh-chip.is-b .plain-icon {
+  color: inherit;
+}
+.hh-chip.is-link {
+  color: var(--c-gain-text);
+  text-decoration: none;
+}
+.hh-page .card-finding .plain-icon,
+.hh-page .card-unit .plain-icon,
+.hh-page .section-heading-text p .plain-icon {
+  display: inline-flex;
+  margin-right: 4px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.hh-muted {
+  color: var(--pe-gray-500);
+}
+.hh-page .hh-ref {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--c-gain-text);
+}
+.hh-flag {
+  margin: 10px 0 0;
+}
+/* Replay at the top right of each chart */
+.hh-wf,
+.hh-plane-wrap,
+.hh-pp,
+.hh-disp,
+.hh-db,
+.hh-pol {
+  position: relative;
+}
+.hh-page .p3-replay {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  z-index: 1;
+}
+
+/* the waterfall */
+.hh-wf .hh-rowlist {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 18px 0 0;
+  list-style: none;
+}
+.hh-wf-row {
+  display: grid;
+  grid-template-columns: minmax(0, 11em) minmax(0, 1fr) 8.4em;
+  column-gap: 10px;
+  align-items: center;
+  font-size: var(--fs-small);
+}
+.hh-wf-row.is-net {
+  padding-top: 6px;
+  border-top: 1px solid var(--card-border);
+}
+.hh-wf-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pe-gray-700);
+}
+.hh-wf-track {
+  position: relative;
+  height: 14px;
+}
+.hh-wf-zero {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  border-left: 1px solid var(--c-zero-line);
+}
+.hh-wf-bar {
   position: absolute;
   top: 2px;
   height: 10px;
@@ -1389,6 +1536,381 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
+  transform: scaleX(0);
+  transition: transform 500ms var(--story-ease);
+}
+.hh-wf-bar.is-loss {
+  background: var(--c-loss);
+}
+.hh-wf-bar.is-gain {
+  background: var(--c-gain);
+}
+.hh-wf-bar.is-net {
+  background: var(--pe-gray-800);
+}
+.hh-wf.is-on .hh-wf-bar {
+  transform: none;
+}
+.hh-page .hh-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+  color: var(--pe-gray-900);
+}
+
+/* the cost × poverty plane */
+.hh-plane {
+  position: relative;
+  margin-top: 16px;
+}
+.hh-plane svg {
+  display: block;
+  overflow: visible;
+}
+.hh-ticks-ov span {
+  position: absolute;
+  font-size: 11px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--pe-gray-500);
+}
+.hh-ticks-ov .is-y {
+  transform: translate(-100%, -50%);
+}
+.hh-ticks-ov .is-x {
+  transform: translateX(-50%);
+}
+.hh-grid {
+  stroke: var(--c-grid, var(--pe-gray-200));
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
+}
+.hh-zero {
+  stroke: var(--c-zero-line);
+}
+.hh-arrow {
+  fill: none;
+  stroke: var(--pe-gray-500);
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 600ms var(--story-ease);
+}
+.hh-arrow.is-b {
+  stroke: var(--rank-2);
+}
+.hh-arrow.is-on {
+  stroke-dashoffset: 0;
+}
+.hh-arrow-head {
+  fill: var(--pe-gray-500);
+}
+.hh-pt,
+.hh-pt-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--pe-surface);
+  background: var(--pe-gray-800);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--pe-surface);
+}
+.hh-pt {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 300ms var(--story-ease), transform 300ms var(--story-ease);
+}
+.hh-pt.is-on {
+  opacity: 1;
+  transform: none;
+}
+.hh-pt.is-b,
+.hh-pt-key.is-b {
+  background: var(--rank-2);
+}
+/* 50 paired draws: a square marker (20 draws: a circle) */
+.hh-pt.is-c,
+.hh-pt-key.is-c {
+  border-radius: 4px;
+}
+.hh-pt.is-ring,
+.hh-pt-key.is-ring {
+  color: var(--pe-gray-700);
+  background: var(--pe-surface);
+  border: 2px solid var(--pe-gray-500);
+}
+.hh-pt-key.is-off {
+  color: var(--pe-gray-700);
+  background: transparent;
+  box-shadow: none;
+}
+.hh-off-val {
+  position: absolute;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--pe-gray-900);
+}
+.hh-list {
+  margin-top: 10px;
+  font-size: var(--fs-small);
+}
+.hh-list-head,
+.hh-list-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) var(--hh-c1, 5.4em) repeat(calc(var(--hh-cols) - 1), 5.4em);
+  column-gap: 10px;
+  align-items: center;
+}
+.hh-list-head {
+  font-size: 12px;
+  text-align: right;
+  color: var(--pe-gray-500);
+}
+.hh-list ul {
+  display: grid;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-list-label {
+  color: var(--pe-gray-700);
+}
+.hh-list-span {
+  text-align: right;
+}
+.hh-list.is-wide-c1 {
+  --hh-c1: 8.6em;
+}
+.hh-list-group {
+  margin-top: 8px;
+  padding-top: 8px;
+  font-size: 12px;
+  color: var(--pe-gray-600);
+  border-top: 1px solid var(--card-border);
+}
+
+/* notes: an icon row and its popover */
+.hh-notes {
+  position: relative;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--card-border);
+}
+.hh-note-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.hh-note-btn {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--pe-gray-600);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.hh-note-btn:hover,
+.hh-note-btn.is-open {
+  color: var(--pe-gray-900);
+  background: var(--pe-gray-100);
+}
+.hh-note-btn:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 1px;
+}
+.hh-pop {
+  margin-top: 6px;
+  padding: 10px 12px;
+  font-size: var(--fs-small);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px var(--shadow-soft);
+}
+.hh-pop .story-items {
+  gap: 4px;
+}
+
+/* cost per pound: stacked pence */
+.hh-pp-group + .hh-pp-group {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--card-border);
+}
+.hh-pp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 6px;
+}
+.hh-pp-cols {
+  display: grid;
+  grid-template-columns: repeat(2, 5.4em);
+  column-gap: 10px;
+  font-size: 12px;
+  text-align: right;
+  color: var(--pe-gray-500);
+}
+.hh-pp .hh-rowlist {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-pp-row {
+  display: grid;
+  grid-template-columns: minmax(0, 10em) minmax(0, 1fr) 5.4em 5.4em;
+  column-gap: 10px;
+  align-items: center;
+  font-size: var(--fs-small);
+}
+.hh-pp-row .hh-list-span {
+  grid-column: span 2;
+}
+.hh-pence {
+  position: relative;
+  height: 12px;
+  background: var(--pe-gray-100);
+  border-radius: 2px;
+}
+.hh-pence-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 450ms var(--story-ease);
+}
+.hh-pp.is-on .hh-pence-seg {
+  transform: none;
+}
+.hh-pence-seg.p3-fill-ref {
+  background: var(--pe-gray-400);
+}
+.hh-note {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--pe-gray-600);
+}
+
+/* who the displaced are */
+.hh-funnel {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-funnel-row {
+  position: relative;
+  min-height: 30px;
+}
+.hh-funnel-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--rank-3) 35%, transparent);
+  border-radius: 4px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms var(--story-ease);
+}
+.hh-funnel-row.is-compare .hh-funnel-bar {
+  background: var(--pe-gray-100);
+}
+.hh-disp.is-on .hh-funnel-bar {
+  transform: none;
+}
+.hh-funnel-text {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 8px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+}
+.hh-funnel-text .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-600);
+}
+.hh-reasons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-reason {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  font-size: 12px;
+  color: var(--pe-gray-600);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+/* the tile's figure rises in as the funnel lands (its text stays readable) */
+.hh-reason b {
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform 300ms var(--story-ease) var(--d, 0ms), opacity 300ms var(--story-ease) var(--d, 0ms);
+}
+.hh-disp.is-on .hh-reason b {
+  opacity: 1;
+  transform: none;
+}
+.hh-reason .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.hh-reason b {
+  font-size: var(--fs-lg, 1.25rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.hh-uc {
+  margin-top: 14px;
+}
+.hh-uc-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+}
+.hh-uc-title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+.hh-uc-rows {
+  display: grid;
+  gap: 6px;
   margin: 8px 0 0;
   padding: 0;
   list-style: none;
@@ -1624,3 +2146,270 @@
 #fin-across-part {
   margin-top: 40px;
 }
+.hh-uc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 11em) minmax(0, 1fr) 5.4em;
+  column-gap: 10px;
+  align-items: center;
+  font-size: var(--fs-small);
+}
+.hh-uc-track {
+  position: relative;
+  height: 12px;
+  background: var(--pe-gray-100);
+  border-radius: 2px;
+}
+.hh-uc-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 0 2px 2px 0;
+  background: var(--rank-1);
+  transition: opacity 300ms ease;
+}
+.hh-uc-bar.is-ref {
+  background: var(--pe-gray-400);
+}
+.hh-uc-vals {
+  display: grid;
+  text-align: right;
+}
+.hh-uc-vals .hh-val {
+  grid-area: 1 / 1;
+  transition: opacity 300ms ease;
+}
+/* the take-up toggle cross-fades the two values and their bars; no tween */
+.hh-uc-rows.is-data .is-full,
+.hh-uc-rows.is-full .is-data {
+  opacity: 0;
+}
+
+/* deciles under three rankings */
+.hh-db .hh-rowlist {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-db-axis,
+.hh-db-row {
+  display: grid;
+  grid-template-columns: 6em minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+}
+.hh-db-axis {
+  margin-top: 26px;
+  height: 18px;
+}
+.hh-db-ticks {
+  position: relative;
+  height: 100%;
+}
+.hh-db-ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--pe-gray-500);
+}
+.hh-db-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.hh-db-row.is-caveat .hh-db-label {
+  color: var(--pe-gray-600);
+}
+.hh-db-track {
+  position: relative;
+  height: 18px;
+}
+.hh-db-zero {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--c-zero-line);
+}
+.hh-db-line {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--pe-gray-300);
+}
+.hh-db-dot {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--pe-surface);
+  opacity: 0;
+  transition: opacity 300ms var(--story-ease) var(--beat, 0ms);
+}
+.hh-db-dot.p3-fill-muted {
+  background: var(--pe-gray-400);
+}
+.hh-db.is-on .hh-db-dot {
+  opacity: 1;
+}
+.hh-items {
+  margin-top: 10px;
+  font-size: var(--fs-small);
+}
+
+/* policy responses: three cards in the study's order */
+.hh-pol-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-pol-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+}
+.hh-pol-title {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.hh-pol-title .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.hh-pol-track {
+  position: relative;
+  height: 10px;
+  background: var(--pe-gray-100);
+  border-radius: 2px;
+}
+.hh-pol-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--pe-gray-800);
+  border-radius: 0 2px 2px 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 500ms var(--story-ease);
+}
+.hh-pol.is-on .hh-pol-bar {
+  transform: none;
+}
+.hh-pol-nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.hh-pol-num {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.hh-pol-num .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.hh-pol-sub {
+  display: grid;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 8px 0 0;
+  list-style: none;
+  border-top: 1px dashed var(--card-border);
+}
+.hh-pol-sub li {
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+}
+.hh-pol-sub .hh-pol-nums {
+  font-size: 12px;
+  font-weight: 500;
+}
+.hh-pol-sub-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--pe-gray-600);
+}
+.hh-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+.hh-links a {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .hh-findings,
+  .hh-pol-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .hh-reasons {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hh-wf-row,
+  .hh-uc-row {
+    grid-template-columns: minmax(0, 8em) minmax(0, 1fr) 5.4em;
+  }
+  .hh-list-head,
+  .hh-list-row {
+    grid-template-columns: 20px minmax(0, 1fr) var(--hh-c1, 4.6em) repeat(calc(var(--hh-cols) - 1), 4.6em);
+    column-gap: 6px;
+  }
+  .hh-pp-row {
+    grid-template-columns: minmax(0, 7em) minmax(0, 1fr) 4.6em 4.6em;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hh-page .hh-wf-bar,
+  .hh-page .hh-pt,
+  .hh-page .hh-arrow,
+  .hh-page .hh-pence-seg,
+  .hh-page .hh-funnel-bar,
+  .hh-page .hh-reason,
+  .hh-page .hh-db-dot,
+  .hh-page .hh-pol-bar,
+  .hh-page .hh-uc-bar,
+  .hh-page .hh-uc-vals .hh-val {
+    transition: none !important;
+  }
+}
+@media print, (scripting: none) {
+  .hh-page .hh-wf-bar,
+  .hh-page .hh-pence-seg,
+  .hh-page .hh-funnel-bar,
+  .hh-page .hh-pol-bar {
+    transform: none;
+  }
+  .hh-page .hh-pt,
+  .hh-page .hh-reason,
+  .hh-page .hh-db-dot {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* end households (P3) */

@@ -2,21 +2,15 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { useState } from 'react';
-import { Items } from '@/components/story/Items.jsx';
 import { useInView, useReducedMotion } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { D, Ico, PAPER_URL, PR_URL } from './shared.jsx';
-import R from '@/data/relatedWork.json';
 
-// Step 8, the close of part 3: not sticky; its only figures are related work's. What the study covers and
-// leaves out (docs/story/part3-notes.md, Caveats), and related PolicyEngine
-// work (figures read off its pages and kept
-// in relatedWork.json, with the date read).
-
-const SHIFT = R.items.find((x) => x.id === 'income_shift');
-const LAB = R.items.find((x) => x.id === 'budget_lab');
-const READ_DATE = new Date(`${R.read}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+// Step 8, the close of part 3: not sticky, no figures. What the one-year
+// test leaves out (docs/story/part3-notes.md, Caveats). Related PolicyEngine
+// work, with its figures and the date they were read, is on Method and
+// sources > Evidence; the link row below points there.
 
 // Where to read more: the row of links on the "Next" band that ends part 3
 // (Part3.jsx), so the part closes with one band rather than a list and a band.
@@ -38,20 +32,25 @@ export function CloseLinks() {
       <NavLink tab="method" sub="studies">
         <Ico c="compare" />Other studies of AI and the UK economy
       </NavLink>
+      <NavLink tab="method" sub="studies" anchor="ev-related">
+        <Ico c="related" />Related PolicyEngine work
+      </NavLink>
     </>
   );
 }
 
 // Step 8: what the one-year test leaves out, as an icon grid. Each tile is a
-// button; hover, focus or a tap shows its one line of detail (display:none
-// until then, so it is not counted as visible text). Tiles reveal one after
-// another on scroll (the framework's .reveal), at once under reduced motion.
+// button; hover, focus or a tap shows its one line of detail. The line is in
+// the DOM throughout, at opacity 0 until then (screen readers get it; the
+// tile keeps its height, so nothing moves), and a tile's label and line
+// together are 12 words or fewer. Tiles fade and rise in turn, 60ms apart,
+// at once under reduced motion.
 export const LEFT_OUT = [
   { id: 'reemploy', icon: 'labour', label: 'Re-employment', detail: 'The displaced stay out of work all year' },
   { id: 'partners', icon: 'households', label: 'Partners’ hours', detail: 'Partners do not change how much they work' },
   { id: 'redundancy', icon: 'pay', label: 'Redundancy pay', detail: 'No redundancy payments are counted' },
   { id: 'savings', icon: 'savings', label: 'Running down savings', detail: 'Households do not draw on their savings' },
-  { id: 'jsa', icon: 'takeUp', label: 'New-style JSA by default', detail: 'Central case: none for the newly displaced; claims follow take-up flags' },
+  { id: 'jsa', icon: 'takeUp', label: 'New-style JSA by default', detail: 'Central case: none for the newly displaced' },
   { id: 'corp', icon: 'tax', label: 'Corporation tax', detail: 'Profits replacing lost wages untaxed; capital rise kept apart' },
   { id: 'young', icon: 'age', label: 'Fewer young hires', detail: 'Reduced hiring lies outside a job-displacement framework' },
   { id: 'self', icon: 'business', label: 'Self-employed', detail: 'Outside the labour-market shocks' },
@@ -65,7 +64,7 @@ function LeftOutGrid() {
   return (
     <ul ref={ref} className="p3-out-grid" aria-label="What this one-year test leaves out">
       {LEFT_OUT.map((t, i) => (
-        <li key={t.id} className={`p3-out-tile reveal${seen || reduce ? ' is-in' : ''}${open === t.id ? ' is-open' : ''}`} style={{ '--reveal-delay': reduce ? '0ms' : `${i * 70}ms` }} data-tile={t.id}>
+        <li key={t.id} className={`p3-out-tile reveal${seen || reduce ? ' is-in' : ''}${open === t.id ? ' is-open' : ''}`} style={{ '--reveal-delay': reduce ? '0ms' : `${i * 60}ms` }} data-tile={t.id}>
           <button type="button" className="p3-out-btn" aria-expanded={open === t.id} onClick={() => setOpen(open === t.id ? null : t.id)}>
             <Icon name={iconFor(t.icon)} size={22} className="p3-out-icon" />
             <span className="p3-out-label">{t.label}</span>
@@ -90,40 +89,6 @@ export default function Closing() {
         <Ico c="caveat" size={14} /> A one-year stress test, not a forecast
       </p>
       <LeftOutGrid />
-      <h3 id="p3-related-h">
-        <Icon name={iconFor('external')} size={18} /> Related PolicyEngine work
-      </h3>
-      <ul className="p3-related" aria-labelledby="p3-related-h">
-        <li>
-          <a href={SHIFT.url} target="_blank" rel="noreferrer">
-            <Ico c="external" />{SHIFT.title}
-          </a>
-          <Items
-            items={[
-              { icon: 'scenario', text: 'Shifts a rising share of labour income, up to all, to capital' },
-              { icon: 'model', text: <>Current law; UK view: {SHIFT.model}; a US view too</> },
-              { icon: 'inequality', text: <>Net-income Gini: {SHIFT.gini_base} to {SHIFT.gini_full} when all of it moves</> },
-              { icon: 'finances', text: <>Net revenue change lowest, −£{SHIFT.revenue_min_bn}B, at a {SHIFT.revenue_min_shift_pct}% shift</> },
-            ]}
-          />
-        </li>
-        <li>
-          <a href={LAB.url} target="_blank" rel="noreferrer">
-            <Ico c="external" />{LAB.title}
-          </a>
-          <Items
-            items={[
-              { icon: 'source', text: <>A US memo, {LAB.date}</> },
-              { icon: 'scenario', text: <>Runs {LAB.scenarios}, calibrated by {LAB.compares_short}</> },
-              { icon: 'finances', text: <>Rapid adoption, proportional wages: net revenue up ${LAB.rapid_revenue_bn}B in 2030</> },
-              { icon: 'poverty', text: <>SPM poverty up {LAB.rapid_poverty_pp}pp in 2030</> },
-            ]}
-          />
-        </li>
-      </ul>
-      <p className="p3-related-note p3-iconed">
-        <Ico c="caveat" size={12} /> Figures read off these pages on {READ_DATE}. They are not results of this dashboard.
-      </p>
     </aside>
   );
 }

@@ -69,7 +69,7 @@ export default function TwoLenses() {
           <Icon name={iconFor('limit')} size={18} className="lens-ico" /> Different models, years and assumptions: their numbers are not added or compared.
         </p>
       </header>
-      <div ref={ref} className="lens-grid lens-grid-split">
+      <div ref={ref} className={`lens-grid lens-grid-split${shown}`}>
         {LENSES.map((l, i) => (
           <Fragment key={l.id}>
             {i ? (
