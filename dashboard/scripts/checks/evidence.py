@@ -47,10 +47,12 @@ def our_gaps():
 def related(text):
     '''Related PolicyEngine work: its section, provenance line and figures.'''
     out = []
-    head = 'Related PolicyEngine work'
+    # the section's heading is its last occurrence (the page's contents
+    # list names it first); it ends at the evidence map's heading
+    head = '\nRelated PolicyEngine work\n'
     if head not in text:
         return ['related work: section missing']
-    sec = text[text.index(head):]
+    sec = text[text.rindex(head):]
     end = sec.find('\nUK evidence map\n')
     sec = sec if end < 0 else sec[:end]
     d = date.fromisoformat(REL['read'])
