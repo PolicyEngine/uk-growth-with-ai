@@ -79,7 +79,7 @@ export const SOURCES = {
     group: 'uk',
     url: 'https://www.bankofengland.co.uk/-/media/boe/files/monetary-policy-report/2026/november/monetary-policy-report-november-2026.pdf',
     use: 'Firms’ estimates of AI’s productivity effect so far and over the next three years.',
-    loc: 'Box D, PDF p.59',
+    loc: 'Box D, p.58',
   },
   ippr: {
     short: 'IPPR, Transformed by AI',
