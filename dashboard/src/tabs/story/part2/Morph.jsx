@@ -185,15 +185,17 @@ function frameBreaks(pts) {
 export function canvasLines(cl) {
   return SCENARIOS.map((s) => ({ id: s.id, ys: series(s.id, 'tfp', cl, 'Y') })).filter((l) => l.ys);
 }
-export function canvasDomain(s, sid, lines) {
-  const uk = lines.filter((l) => l.id !== 'korinek' || sid === 'korinek');
+// `pin`: a scenario pinned for comparison, drawn from state 2, so its line
+// is in every gap state's domain.
+export function canvasDomain(s, sid, lines, pin = null) {
+  const uk = lines.filter((l) => l.id !== 'korinek' || sid === 'korinek' || pin === 'korinek');
   return (s >= 4 ? lines : uk).flatMap((l) => l.ys);
 }
 // True when the move to state 4 rescales the gap axis.
-export const rescales = (sid, cl) => {
+export const rescales = (sid, cl, pin = null) => {
   const lines = canvasLines(cl);
-  const a = gapAxis(canvasDomain(3, sid, lines));
-  const b = gapAxis(canvasDomain(4, sid, lines));
+  const a = gapAxis(canvasDomain(3, sid, lines, pin));
+  const b = gapAxis(canvasDomain(4, sid, lines, pin));
   return a.lo !== b.lo || a.hi !== b.hi;
 };
 const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
@@ -245,14 +247,22 @@ function SourceText({ s, sid, cl, lines }) {
 }
 const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecast?.source] };
 
-export function MorphChart({ state, sid, cl }) {
+// The pinned scenario, when it is not the one chosen and its solve is done:
+// drawn from state 2 as a dark grey line (its own path, restyled; never a
+// second copy), so two scenarios can be compared with the gap axis holding
+// both. Geometry from the solves only.
+export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((l) => l.id === pin) ? pin : null);
+
+export function MorphChart({ state, sid, cl, pin = null, onPin }) {
   const s = Math.max(0, Math.min(4, state));
   // one clip per copy (phones draw a copy per step)
   const clip = `p2-morph-clip${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const k = Math.min(s, 2);
   const ys = series(sid, 'tfp', cl, 'Y');
   const lines = canvasLines(cl);
-  const domAt = (st) => canvasDomain(st, sid, lines);
+  const pinned = pinnedOf(pin, sid, lines);
+  const from = (id) => (id === pinned ? 2 : lineFrom(id, sid));
+  const domAt = (st) => canvasDomain(st, sid, lines, pinned);
   const g = morphGeometry(k, ys, domAt(s));
   const all = STATE_TEXT(sid, cl);
   const allTicks = [...new Set(X_TICKS.flat())].sort((a, b) => a - b);
@@ -272,7 +282,7 @@ export function MorphChart({ state, sid, cl }) {
   const tickSets = [2, 4].map((st) => morphGeometry(2, ys, domAt(st)).yTicksD);
   const dTicks = [...new Map(tickSets.flat().map((t) => [t.v, t])).values()].sort((a, b) => a.v - b.v);
   const dNow = new Set(gG.yTicksD.map((t) => t.v));
-  const resc = rescales(sid, cl);
+  const resc = rescales(sid, cl, pinned);
   const lo = lines.find((l) => l.id === 'uk_low')?.ys;
   const hi = lines.find((l) => l.id === 'uk_high')?.ys;
   const band = lo && hi ? bandPath(gG.X, gG.Yd, lo, hi) : null;
@@ -287,21 +297,23 @@ export function MorphChart({ state, sid, cl }) {
       v: l.ys[l.ys.length - 1],
       lines: SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]],
       color: l.id === sid ? ARM_TEXT_COLOR.tfp : 'var(--pe-gray-600)',
-      on: s >= lineFrom(l.id, sid),
+      on: s >= from(l.id),
+      pinned: l.id === pinned,
     })),
   ];
   const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, 13);
-  const shownNames = lines.filter((l) => s >= lineFrom(l.id, sid));
+  const shownNames = lines.filter((l) => s >= from(l.id));
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the OBR-central path, OG-UK's no-shock path built on the OBR's central assumptions, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the OBR-central path, OG-UK's own no-shock path on one OBR input, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
       : '',
     s >= 3
       ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line. The UK range, from UK low to UK high, is shaded.`
       : '',
     s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., on US inputs, lies above the UK range.` : '',
+    s >= 2 && pinned ? `${SCEN_NAME[pinned]} is pinned for comparison, in dark grey.` : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -416,12 +428,12 @@ export function MorphChart({ state, sid, cl }) {
               .filter((l) => l.id !== sid)
               .map((l) => {
                 const d = pathOf(YEARS.map((yr, i) => [gG.X(yr), gG.Yd(l.ys[i])]));
-                const on = s >= lineFrom(l.id, sid);
+                const on = s >= from(l.id);
                 return (
                   <path
                     key={l.id}
                     pathLength={1}
-                    className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc ? ' is-late' : ''}`}
+                    className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc && l.id !== pinned ? ' is-late' : ''}${l.id === pinned ? ' is-pinned' : ''}`}
                     data-scen={l.id}
                     d={d}
                     style={{ d: `path('${d}')` }}
@@ -464,7 +476,7 @@ export function MorphChart({ state, sid, cl }) {
           {placed.map((p) => (
             <g
               key={p.key}
-              className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc ? ' is-late' : ''}`}
+              className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={13 * 0.75} style={{ fill: p.color }}>
@@ -521,12 +533,41 @@ export function MorphChart({ state, sid, cl }) {
       <p className="p2-axis-x" data-axis-title="x">
         Year
       </p>
+      {onPin ? <PinRow s={s} sid={sid} pin={pin} pinned={pinned} lines={lines} onPin={onPin} /> : null}
       <figcaption className="story-source">
         <Tx icon="source" size={12}>
           <SourceText s={s} sid={sid} cl={cl} lines={lines} />
         </Tx>
       </figcaption>
     </figure>
+  );
+}
+
+// Pin and compare: pin the chosen scenario, then choose another (here or
+// in the header); the pinned one stays drawn in dark grey. No value is
+// printed: the comparison is of shapes, the figures are the tiles'.
+function PinRow({ s, sid, pin, pinned, lines, onPin }) {
+  if (s < 2) return null;
+  const on = pin === sid || pinned != null;
+  return (
+    <div className={`p2-pin${on ? ' is-on' : ''}`}>
+      <button type="button" className="p2-pin-btn" aria-pressed={on} onClick={() => onPin(on ? null : sid)}>
+        <Icon name={iconFor('compare')} size={13} strokeWidth={2} />
+        {pinned ? `Unpin ${SCEN_NAME[pinned]}` : pin === sid ? `Unpin ${SCEN_NAME[sid]}` : `Pin ${SCEN_NAME[sid]} to compare`}
+      </button>
+      {on ? (
+        <span className="p2-pin-pick">
+          {pinned ? 'Compare with:' : 'Now choose another:'}
+          {lines
+            .filter((l) => l.id !== pin)
+            .map((l) => (
+              <NavLink key={l.id} patch={{ s: l.id }} className={`p2-pin-opt${l.id === sid ? ' is-on' : ''}`} aria-current={l.id === sid ? 'true' : undefined}>
+                {SCEN_NAME[l.id]}
+              </NavLink>
+            ))}
+        </span>
+      ) : null}
+    </div>
   );
 }
 

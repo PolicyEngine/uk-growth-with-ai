@@ -5,7 +5,7 @@
 // links to the tab that holds the figures. Rendered against a fixture with
 // altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import real from '@/data/surprise2028.json';
 
 afterEach(cleanup);
@@ -466,6 +466,27 @@ describe('direction icons follow the signs', () => {
       const fig = svg.closest('figure');
       expect(fig?.querySelector('[data-axis-title="y"]'), svg.getAttribute('aria-label')).not.toBeNull();
     }
+    unmount();
+  });
+
+  it('pins a scenario on the GDP canvas: its own line, in the axis domain', async () => {
+    const { canvasLines, canvasDomain, pinnedOf, rescales } = await import('@/tabs/story/part2/Morph.jsx');
+    const lines = canvasLines('zk0.1');
+    const kor = lines.find((l) => l.id === 'korinek').ys;
+    expect(pinnedOf('uk_central', 'uk_central', lines)).toBeNull();
+    expect(pinnedOf('korinek', 'uk_central', lines)).toBe('korinek');
+    // a pinned Korinek et al. is in the domain from state 2, so it never clips and nothing rescales later
+    expect(canvasDomain(2, 'uk_central', lines, 'korinek')).toEqual(expect.arrayContaining(kor));
+    expect(rescales('uk_central', 'zk0.1', 'korinek')).toBe(false);
+    const { container, unmount } = at('tab=story');
+    const btn = [...container.querySelectorAll('.p2-pin-btn')][0];
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(btn);
+    const after = [...container.querySelectorAll('.p2-pin-btn')][0];
+    expect(after.getAttribute('aria-pressed')).toBe('true');
+    // one path per scenario: pinning restyles, it never adds a copy
+    const fig = container.querySelector('.p2-morph');
+    expect(fig.querySelectorAll('.p2-mo-scen').length).toBe(lines.length - 1);
     unmount();
   });
 });

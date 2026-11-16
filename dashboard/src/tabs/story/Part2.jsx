@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
@@ -599,6 +600,9 @@ export const SUBS = {
 export default function Part2({ part }) {
   const { st } = useNav();
   const sid = st.s;
+  // the scenario pinned on the GDP canvas, for comparison (one for every
+  // copy of the canvas, so phones' per-step copies agree)
+  const [pin, setPin] = useState(null);
   const closure = st.closure;
   const cl = primaryClosure(closure);
   const tzLess = (gap(sid, 'tz', cl, 'Y') ?? 0) < (gap(sid, 'tfp', cl, 'Y') ?? 0);
@@ -648,7 +652,7 @@ export default function Part2({ part }) {
         sub={SUBS.morph}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
         steps={[...morphSteps(sid, cl), ...scenarioSteps(sid, cl)]}
-        graphic={(i) => <MorphChart state={i + 1} sid={sid} cl={cl} />}
+        graphic={(i) => <MorphChart state={i + 1} sid={sid} cl={cl} pin={pin} onPin={setPin} />}
       />
 
       <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">

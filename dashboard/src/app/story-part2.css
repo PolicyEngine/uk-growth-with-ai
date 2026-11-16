@@ -1360,3 +1360,82 @@
     transform: none;
   }
 }
+
+/* Pin and compare on the GDP canvas: the pinned scenario's own line and
+   label, restyled dark grey (never teal or amber: no gain or loss meant) */
+.p2-mo-scen.is-pinned {
+  stroke: var(--pe-gray-700);
+  stroke-width: 2.25;
+}
+.p2-mo-end.is-pinned .p2-end-label {
+  fill: var(--pe-gray-800) !important;
+  font-weight: 700;
+}
+.p2-mo-scen.is-on {
+  pointer-events: stroke;
+}
+.p2-mo-scen.is-on:hover {
+  stroke-width: 3;
+}
+.p2-pin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 4px 0 2px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.p2-pin-btn {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 2px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--pe-surface);
+  color: var(--pe-gray-700);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.p2-pin-btn:hover {
+  border-color: var(--pe-gray-500);
+  transform: translateY(-1px);
+}
+.p2-pin-btn[aria-pressed='true'] {
+  background: var(--pe-gray-100);
+  border-color: var(--pe-gray-700);
+  color: var(--pe-gray-800);
+}
+.p2-pin-btn:focus-visible,
+.p2-pin-opt:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+.p2-pin-pick {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
+}
+.p2-pin-opt {
+  padding: 1px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  color: var(--pe-gray-700);
+  text-decoration: none;
+}
+.p2-pin-opt.is-on {
+  color: var(--pe-surface);
+  background: var(--c-highlight);
+  border-color: var(--c-highlight);
+}
+@media (prefers-reduced-motion: reduce) {
+  .p2-pin-btn {
+    transition: none;
+  }
+  .p2-pin-btn:hover {
+    transform: none;
+  }
+}
