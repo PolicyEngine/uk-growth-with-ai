@@ -16,7 +16,7 @@ sp() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" 
 export const STEPS = [
   {
     id: 'p-lock',
-    icon: 'lock',
+    icon: 'timing', // concept
     short: 'Lock',
     title: 'Take the lock and run the plan',
     file: 'analysis/surprise/run_locked.sh',
@@ -33,7 +33,7 @@ DEADLINE_AT=23:00 analysis/surprise/run_locked.sh zk0.1:arms:uk_central`,
   },
   {
     id: 'p-driver',
-    icon: 'list',
+    icon: 'stages', // concept
     short: 'Driver',
     title: 'The driver: one step at a time',
     file: 'analysis/surprise/driver.sh',
@@ -49,7 +49,7 @@ analysis/surprise/driver.sh check nics \\
   },
   {
     id: 'p-specs',
-    icon: 'flask',
+    icon: 'check', // concept
     short: 'Check specs',
     title: 'Check the specification',
     file: 'uk_growth_with_ai/surprise.py',
@@ -62,7 +62,7 @@ analysis/surprise/driver.sh check nics \\
   },
   {
     id: 'p-gate',
-    icon: 'repeat',
+    icon: 'onPath', // concept
     short: 'Continuation gate',
     title: 'The continuation gate',
     file: 'analysis/surprise/output/zk0.1/GATE_continuation.json',
@@ -77,7 +77,7 @@ sp gate --closure zk0.1 --approve --reference continuation --note "..."`,
   },
   {
     id: 'p-grid',
-    icon: 'layoutGrid',
+    icon: 'scenario', // concept
     short: 'Scenario grid',
     title: 'The scenario grid',
     file: 'analysis/surprise/uk_targets.json',
@@ -91,7 +91,7 @@ sp step --closure zk0.1 --stage arms --scenario uk_central --work "$WORK"`,
   },
   {
     id: 'p-r4',
-    icon: 'target',
+    icon: 'breakEven', // concept
     short: 'R4 on 2031 GDP',
     title: 'R4: hold 2031 GDP for the stress test',
     file: 'uk_growth_with_ai/surprise.py',
@@ -106,7 +106,7 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
   },
   {
     id: 'p-sanity',
-    icon: 'alert',
+    icon: 'limit', // concept
     short: 'Sanity gate',
     title: 'The sanity gate after every solve',
     file: 'analysis/surprise/sanity.py',
@@ -119,7 +119,7 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
   },
   {
     id: 'p-outputs',
-    icon: 'database',
+    icon: 'data', // concept
     short: 'Outputs',
     title: 'Per-solve records and results files',
     file: 'analysis/surprise/output/zk0.1',
@@ -131,7 +131,7 @@ sp assemble --closure zk0.1 --scenario uk_central
   },
   {
     id: 'p-dash',
-    icon: 'package',
+    icon: 'table', // concept
     short: 'Dashboard data',
     title: 'Build the dashboard data',
     file: 'analysis/surprise/build_dashboard_data.py',
