@@ -9,6 +9,7 @@ import Icon from "@/components/ab/Icon.jsx";
 import Picker from "@/components/ui/Picker.jsx";
 import { iconFor } from "@/lib/concepts.js";
 import AI_STUDY from "@/data/aiStudy2425.json";
+import AsOf from "@/components/story/AsOf.jsx";
 import { NavProvider, useNav, subOf } from "@/lib/nav.jsx";
 import SettingsBar, {
   CopyLink,
@@ -156,6 +157,7 @@ function Shell() {
             ))}
           </ul>
         )}
+        <AsOf />
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (
