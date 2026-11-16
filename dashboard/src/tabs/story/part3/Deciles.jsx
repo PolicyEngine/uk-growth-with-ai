@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { fmtDecilePct } from './format.js';
 import { D, DivBar, FigureHead, Source } from './shared.jsx';
 
@@ -21,24 +22,41 @@ export const RANK_PRE_PENSION = grab('pre_pension');
 export const RANK_EXCL_PPC = grab('hbai_excl_large_ppc');
 
 // The other two rankings are results (counted by the number check), not
-// inputs. A ranking whose value cannot be read is left out of the sentence.
-export function BottomDecileCaveat() {
-  const others = [
+// inputs. A ranking whose value cannot be read is left out. Itemised: the
+// caveat, its reason, then decile 1 under each ranking, each led by an
+// arrow drawn from the value's sign (higher or lower than in the baseline;
+// the signed number says the same in words).
+export const signIcon = (v) => (v > 0 ? 'higher' : v < 0 ? 'lower' : 'onPath');
+export function bottomDecileRankings() {
+  return [
+    [VALUES[0], 'on the ranking used here'],
     [RANK_PRE_PENSION, 'ranking on income before pension contributions'],
-    [RANK_EXCL_PPC, 'leaving out households with large personal pension contributions'],
+    [RANK_EXCL_PPC, 'leaving out large personal pension contributions'],
   ].filter(([v]) => fmtDecilePct(v));
+}
+export function BottomDecileCaveat() {
   return (
-    <p className="p3-caveat" data-caveat="bottom-decile">
-      Decile 1 is drawn in grey. The study does not report the bottom income decile as a finding: some households there make large pension
-      contributions and receive capital income, and its sign depends on how households are ranked: {fmtDecilePct(VALUES[0])} on the ranking used here
-      {others.map(([v, how], i) => (
-        <span key={how}>
-          {i === others.length - 1 ? ', and ' : ', '}
-          {fmtDecilePct(v)} {how}
-        </span>
-      ))}
-      .
-    </p>
+    <div className="p3-caveat-items" data-caveat="bottom-decile">
+      <Items
+        items={[
+          { icon: 'caveat', text: 'The study does not report the bottom income decile as a finding' },
+          { icon: 'why', text: 'Some households there make large pension contributions and receive capital income' },
+          { icon: 'range', text: 'Its sign depends on how households are ranked:' },
+        ]}
+      />
+      <Items
+        className="p3-rank-items"
+        items={bottomDecileRankings().map(([v, how]) => ({
+          key: how,
+          icon: signIcon(v),
+          text: (
+            <>
+              <strong>{fmtDecilePct(v)}</strong> {how}
+            </>
+          ),
+        }))}
+      />
+    </div>
   );
 }
 
@@ -60,7 +78,7 @@ function usePhone() {
 function Graphic(phone) {
   return (
     <figure className="p3-figure">
-      <FigureHead title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" />
+      <FigureHead icon="deciles" title="Change in household disposable income by income decile" unit="Per cent, before housing costs, central case" />
       <ol className="p3-rows p3-deciles">
         {VALUES.map((v, i) => {
           const n = i + 1;
@@ -96,12 +114,18 @@ export default function Deciles() {
       id: 'p3-deciles-step',
       kicker: '4 · Where the loss falls',
       title: 'The largest falls are in the upper-middle deciles',
+      icon: 'deciles',
       body: (
         <>
-          <p>
-            Ranked by baseline income, the change is hump-shaped: the assumed job losses fall mostly in the upper-middle deciles, with the largest
-            fall in decile {WORST}. At the top, higher capital income offsets the earnings lost. The bottom decile is not a finding; see the note.
-          </p>
+          <Items
+            items={[
+              { icon: 'deciles', text: 'Ranked by baseline income, the change is hump-shaped' },
+              { icon: 'jobLoss', text: 'Assumed job losses fall mostly in the upper-middle deciles' },
+              { icon: signIcon(VALUES[WORST - 1]), text: `Largest fall: decile ${WORST}` },
+              { icon: 'capital', text: 'At the top, higher capital income offsets the earnings lost' },
+              { icon: 'caveat', text: 'Decile 1 is drawn grey: not a finding; see the note' },
+            ]}
+          />
           {phone ? <BottomDecileCaveat /> : null}
         </>
       ),

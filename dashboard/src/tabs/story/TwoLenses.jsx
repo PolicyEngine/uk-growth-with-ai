@@ -1,20 +1,33 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
 // The close of the story: the two models side by side, what each can and
 // cannot say, and why their numbers are not added together. No figures:
 // each model's figures have their homes in parts 2 and 3 and in Explore.
+// Each lens: what it is, then what it can and cannot say as short icon
+// items (headed by the canSay and cannotSay icons).
 const LENSES = [
   {
     id: 'oguk',
     icon: 'model',
     name: 'OG-UK',
-    what: 'A model of the whole economy over decades: households by age and earnings, firms, the government and the rest of the world.',
-    can: 'How output, pay rates, national income, saving, investment and the public finances move when AI shifts income from labour to capital and raises productivity, and how that differs by birth year.',
-    cannot: 'Unemployment: everyone who wants to work is employed, so it says nothing about job losses. Results are gaps against the OBR-central path, not forecasts of levels.',
+    what: 'A model of the whole economy over decades: households by age and earnings, firms, government, the rest of the world.',
+    can: [
+      { icon: 'ai', text: 'What happens when AI shifts income to capital and lifts productivity:' },
+      { icon: 'gdp', text: 'Output, pay rates and national income' },
+      { icon: 'capital', text: 'Saving and investment' },
+      { icon: 'finances', text: 'The public finances' },
+      { icon: 'age', text: 'How the effects differ by birth year' },
+    ],
+    cannot: [
+      { icon: 'jobLoss', text: 'Unemployment: everyone who wants to work is employed' },
+      { icon: 'excluded', text: 'So it says nothing about job losses' },
+      { icon: 'path', text: 'Levels: results are gaps against the OBR-central path, not forecasts' },
+    ],
     explore: { tab: 'explore', sub: 'economy', label: 'Explore the OG-UK results' },
     method: { tab: 'method', sub: 'how', label: 'How OG-UK works' },
   },
@@ -22,9 +35,19 @@ const LENSES = [
     id: 'study',
     icon: 'households',
     name: 'uk-ai-study (provisional)',
-    what: 'A microsimulation of UK households in one year, FY 2026–27, built on survey data and the full tax and benefit system.',
-    can: 'Who loses income if a share of employees are assumed to lose their jobs, what that costs the public finances, and how poverty and inequality change, under stated assumptions about who is displaced.',
-    cannot: 'What happens over time: there is no recovery, re-employment, investment or price response, and job loss is an assumption, not a result.',
+    what: 'A microsimulation of UK households in one year, FY 2026–27, on survey data and the full tax and benefit system.',
+    can: [
+      { icon: 'jobLoss', text: 'If a share of employees are assumed to lose their jobs:' },
+      { icon: 'households', text: 'Who loses income' },
+      { icon: 'cost', text: 'What it costs the public finances' },
+      { icon: 'poverty', text: 'How poverty and inequality change' },
+      { icon: 'scenario', text: 'Under stated assumptions about who is displaced' },
+    ],
+    cannot: [
+      { icon: 'timing', text: 'What happens over time' },
+      { icon: 'excluded', text: 'No recovery, re-employment, investment or price response' },
+      { icon: 'limit', text: 'Job loss is an assumption, not a result' },
+    ],
     explore: { tab: 'explore', sub: 'households', label: 'Explore the household results' },
     method: { tab: 'method', sub: 'households', label: 'How the study works' },
   },
@@ -39,8 +62,7 @@ export default function TwoLenses() {
         </p>
         <h2 id="story-close-h">What each model can and cannot say</h2>
         <p>
-          Parts 2 and 3 use different models, years and assumptions. Their numbers answer different questions, so they are not added
-          together or compared directly.
+          <Icon name={iconFor('limit')} size={18} className="lens-ico" /> Parts 2 and 3 use different models, years and assumptions, so their numbers are not added or compared.
         </p>
       </header>
       <div className="lens-grid">
@@ -49,13 +71,17 @@ export default function TwoLenses() {
             <h3 id={`lens-${l.id}`}>
               <Icon name={iconFor(l.icon)} size={18} /> {l.name}
             </h3>
-            <p className="lens-what">{l.what}</p>
-            <dl>
-              <dt>It can say</dt>
-              <dd>{l.can}</dd>
-              <dt>It cannot say</dt>
-              <dd>{l.cannot}</dd>
-            </dl>
+            <p className="lens-what">
+              <Icon name={iconFor('measure')} size={16} className="lens-ico" /> {l.what}
+            </p>
+            <h4 className="lens-say">
+              <Icon name={iconFor('canSay')} size={16} /> It can say
+            </h4>
+            <Items items={l.can} />
+            <h4 className="lens-say">
+              <Icon name={iconFor('cannotSay')} size={16} /> It cannot say
+            </h4>
+            <Items items={l.cannot} />
             <p className="lens-links">
               <NavLink tab={l.explore.tab} sub={l.explore.sub}>
                 <Icon name="arrowRight" size={14} /> {l.explore.label}

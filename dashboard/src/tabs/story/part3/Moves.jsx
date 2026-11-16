@@ -2,9 +2,10 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPctSigned1, fmtPp } from './format.js';
-import { D, FigureHead, HBar, OutsideRebuildFlag, Source, ladder } from './shared.jsx';
+import { D, FigureHead, HBar, OutsideRebuildFlag, Source, ladder, Ico } from './shared.jsx';
 
 // Step 7, what moves the cost (results.tex, "What moves the central cost"),
 // in two cards over one figure: the three break-even values
@@ -15,15 +16,25 @@ import { D, FigureHead, HBar, OutsideRebuildFlag, Source, ladder } from './share
 
 const BE = D.breakeven;
 const TK = [
-  { id: 'central_20', label: 'The central case on these draws: ', base: true },
-  { id: 'takeup', label: 'Every benefit unit with a displaced worker claims Universal Credit' },
-  { id: 'takeup_jsa', label: 'And displaced workers who qualify also get 26 weeks of new-style JSA' },
+  { id: 'central_20', icon: 'jobLoss', label: 'The central case on these draws: ', base: true },
+  { id: 'takeup', icon: 'takeUp', label: 'Every benefit unit with a displaced worker claims Universal Credit' },
+  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA for those who qualify' },
 ];
 const MAX = Math.max(...TK.map((r) => ladder(r.id).cost_bn));
+
+// Full take-up and JSA against the central case on the same draws: the
+// direction words and arrows come from the signs of the differences.
+const dir = (d) => (d > 0 ? { icon: 'higher', word: 'rises' } : d < 0 ? { icon: 'lower', word: 'falls' } : { icon: 'onPath', word: 'is unchanged' });
+export function takeupDirections() {
+  const base = ladder('central_20');
+  const full = ladder('takeup_jsa');
+  return { cost: dir(full.cost_bn - base.cost_bn), poverty: dir(full.poverty_pp - base.poverty_pp) };
+}
 
 const BREAKS = [
   {
     id: 'wage',
+    icon: 'pay',
     label: 'Average wage rise for those still employed',
     central: <span data-input="">{fmtPctSigned1(BE.wage.central_pct)}</span>,
     value: fmtPctSigned1(BE.wage.value_pct),
@@ -31,6 +42,7 @@ const BREAKS = [
   },
   {
     id: 'capital',
+    icon: 'capital',
     label: 'Rise in interest and dividend income',
     central: <span data-input="">{fmtPctSigned1(BE.capital.central_pct)}</span>,
     value: `+${Math.round(BE.capital.value_pct)}%`,
@@ -38,6 +50,7 @@ const BREAKS = [
   },
   {
     id: 'duration',
+    icon: 'timing',
     label: 'Time out of work',
     central: 'a full year',
     value: fmtMonths(BE.duration.value_months),
@@ -50,7 +63,7 @@ function Graphic(active) {
   const tk = active === 1 ? '' : ' p3-dim';
   return (
     <figure className="p3-figure">
-      <FigureHead title="What moves the central cost" unit="Break-even: the value at which the cost is zero, the other two held at their central settings" />
+      <FigureHead icon="breakEven" title="What moves the central cost" unit="Break-even: the value at which the cost is zero, the other two held at their central settings" />
       <div className={`p3-cols p3-cols-be${be}`} aria-hidden="true">
         <span />
         <span>Central</span>
@@ -61,7 +74,7 @@ function Graphic(active) {
         {BREAKS.map((b) => (
           <li key={b.id} className={`p3-row p3-be-row${be}`} data-row={`be-${b.id}`}>
             <span className="p3-row-label">
-              {b.label} <span className="p3-muted">({b.basis})</span>
+              <Ico c={b.icon} /> {b.label} <span className="p3-muted">({b.basis})</span>
             </span>
             <span className="p3-row-value p3-row-value-2">{b.central}</span>
             <span className="p3-be-arrow" aria-hidden="true">
@@ -71,11 +84,16 @@ function Graphic(active) {
           </li>
         ))}
       </ol>
-      <p className={`p3-key${be}`}>
-        Time out of work comes from a run in which the displaced keep half their annual earnings, which also withdraws Universal Credit that a
-        real six-month spell would pay, so the break-even is likely shorter than shown.
-      </p>
-      <p className={`p3-group-head${tk}`}>Benefit take-up and new-style JSA, the same 20 draws as step 6</p>
+      <Items
+        className={`p3-key-items${be}`}
+        items={[
+          { icon: 'timing', text: 'Time out of work: from a run keeping half a year’s earnings' },
+          { icon: 'benefits', text: 'That also withdraws Universal Credit a real six-month spell would pay' },
+          { icon: 'caveat', text: 'So the break-even is likely shorter than shown' },
+        ]}
+      />
+      <p className={`p3-group-head${tk}`}>
+        <Ico c="takeUp" /> Benefit take-up and new-style JSA, the same 20 draws as step 6</p>
       <OutsideRebuildFlag className={tk.trim()} />
       <div className={`p3-cols${tk}`} aria-hidden="true">
         <span />
@@ -88,7 +106,7 @@ function Graphic(active) {
           return (
             <li key={r.id} className={`p3-row${tk}`} data-row={r.id}>
               <span className="p3-row-label">
-                {r.label}
+                <Ico c={r.icon} /> {r.label}
                 {r.base ? <a href="#p3-margin-step">step 6</a> : null}
               </span>{' '}
               <span className="p3-row-bar">
@@ -100,23 +118,31 @@ function Graphic(active) {
           );
         })}
       </ol>
-      <p className={`p3-key${tk}`}>Cost: £bn a year. Poverty: change in absolute poverty before housing costs.</p>
+      <p className={`p3-key${tk}`}>
+        <Ico c="measure" size={12} /> Cost: £bn a year. Poverty: change in absolute poverty before housing costs.</p>
       <Source>break-evens by linear interpolation between simulated runs</Source>
     </figure>
   );
 }
 
 export default function Moves() {
+  const t = takeupDirections();
   const steps = [
     {
       id: 'p3-moves-step',
       kicker: '7 · What moves the cost',
       title: 'Three assumptions decide its sign',
+      icon: 'breakEven',
       body: (
-        <p>
-          The cost is the difference between flows several times its size, so three assumptions have break-even values close to their central
-          settings: the wage rise for those who keep their jobs, the rise in interest and dividend income, and how long people are out of work.
-        </p>
+        <Items
+          items={[
+            { icon: 'netSum', text: 'The cost nets flows several times its size' },
+            { icon: 'breakEven', text: 'So three assumptions break even close to their central settings:' },
+            { icon: 'pay', text: 'The wage rise for those who keep their jobs' },
+            { icon: 'capital', text: 'The rise in interest and dividend income' },
+            { icon: 'timing', text: 'How long people are out of work' },
+          ]}
+        />
       ),
     },
     {
@@ -124,15 +150,24 @@ export default function Moves() {
       pin: 'bottom',
       kicker: '7 · Take-up and JSA',
       title: 'Benefit take-up moves the cost one way only',
+      icon: 'takeUp',
       body: (
-        <p>
-          In the data, not everyone entitled to Universal Credit claims it. When everyone with a displaced worker claims, and those who qualify
-          get new-style JSA, the cost rises and the poverty rise is smaller.{' '}
-          <NavLink tab="explore" sub="households" anchor="hh-ladder">
-            Every variant, including the OBR-sized runs
-          </NavLink>
-          .
-        </p>
+        <Items
+          items={[
+            { icon: 'takeUp', text: 'In the data, not everyone entitled to Universal Credit claims it' },
+            { icon: 'benefits', text: 'Here everyone with a displaced worker claims; qualifiers get new-style JSA' },
+            { icon: t.cost.icon, text: `The cost ${t.cost.word}` },
+            { icon: t.poverty.icon, text: `The poverty rise ${t.poverty.word === 'falls' ? 'is smaller' : t.poverty.word === 'rises' ? 'is larger' : 'is unchanged'}` },
+            {
+              icon: 'link',
+              text: (
+                <NavLink tab="explore" sub="households" anchor="hh-ladder">
+                  Every variant, including the OBR-sized runs
+                </NavLink>
+              ),
+            },
+          ]}
+        />
       ),
     },
   ];

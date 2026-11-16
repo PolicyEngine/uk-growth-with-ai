@@ -499,6 +499,155 @@
   }
 }
 
+/* Itemised part 3 (story only, scoped so Explore > Households is unchanged):
+   the scoreboard as key facts, figure keys as small icon items, icons on
+   row labels, decile 1's caveat as items, step 8 as two icon columns */
+#story-part-3 .p3-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+#story-part-3 .p3-ico,
+.story-close .lens-ico {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .story-figure-title .p3-ico {
+  vertical-align: -3px;
+  color: var(--c-highlight);
+}
+#story-part-3 .p3-about > summary .p3-ico {
+  margin-right: 0;
+}
+#story-part-3 .story-next-links .p3-ico,
+#story-part-3 .p3-related a .p3-ico,
+#story-part-3 .p3-row-label a .p3-ico {
+  color: inherit;
+}
+#story-part-3 .story-part-head .p3-ico {
+  vertical-align: -3px;
+  color: var(--c-highlight);
+}
+#story-part-3 .p3-facts .story-fact {
+  align-content: start;
+}
+#story-part-3 .p3-fact-flag {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-fact-flag .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-facts .story-fact-value {
+  font-size: var(--fs-xl);
+}
+#story-part-3 .p3-facts .story-fact-label,
+#story-part-3 .p3-facts .story-fact-sub {
+  font-size: var(--fs-caption);
+}
+#story-part-3 .p3-key-items {
+  gap: 4px;
+  margin: 10px 0 0;
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-key-items .story-item-icon {
+  margin-top: 1px;
+}
+#story-part-3 .p3-key-head {
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-row-label-icon {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+#story-part-3 .p3-row-label-icon .plain-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-caveat-items {
+  grid-column: 1 / -1;
+  margin: 4px 0 6px;
+}
+#story-part-3 .p3-caveat-items .story-items {
+  gap: 4px;
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-caveat-items .p3-rank-items {
+  margin-top: 4px;
+  padding-left: 28px;
+}
+#story-part-3 .p3-caveat-items strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-800);
+}
+#story-part-3 .p3-about .story-items {
+  margin-top: 6px;
+  gap: 6px;
+}
+#story-part-3 .story-callout .story-items {
+  gap: 4px;
+}
+#story-part-3 .p3-close {
+  max-width: 920px;
+}
+#story-part-3 .p3-related-note {
+  margin-top: 14px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-close h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#story-part-3 .p3-close h3 .plain-icon {
+  display: inline-flex;
+  color: var(--c-highlight);
+}
+#story-part-3 .p3-close-compare {
+  margin: 4px 0 8px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+#story-part-3 .p3-related .story-items {
+  gap: 4px;
+  margin-top: 4px;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+}
+#story-part-3 .p3-related a {
+  margin-bottom: 2px;
+}
+@media (max-width: 900px) {
+  #story-part-3 .p3-facts .story-fact {
+  align-content: start;
+}
+#story-part-3 .p3-fact-flag {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-fact-flag .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-facts .story-fact-value {
+    font-size: var(--fs-section);
+  }
+}
+
 /* ---------- Explore > Households and Household method (tabs/households) ---------- */
 .hh-lead {
   max-width: 72ch;
@@ -837,4 +986,23 @@
    band that ends part 3, rather than one grid gap in. */
 .story-close .story-part-head > :not(.story-part-numeral) {
   grid-column: 1 / -1;
+}
+/* the lenses: "It can say" / "It cannot say", each over short icon items */
+.story-close .lens-say {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 14px 0 6px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.story-close .lens-say .plain-icon {
+  display: inline-flex;
+  color: var(--c-highlight);
+}
+.story-close .lens .story-items {
+  gap: 5px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
 }

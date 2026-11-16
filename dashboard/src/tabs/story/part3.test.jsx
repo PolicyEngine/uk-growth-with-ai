@@ -12,6 +12,11 @@ import Part3 from './Part3.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 import { FIG, counts, storyFigures } from '@/tabs/households/figures.js';
 import { absorbGraph, DESTS } from './part3/Absorb.jsx';
+import { channelItems, effectWords, fillFor } from './part3/Channels.jsx';
+import { bottomDecileRankings, signIcon } from './part3/Deciles.jsx';
+import { takeupDirections } from './part3/Moves.jsx';
+import { ladder, rule } from './part3/shared.jsx';
+import TwoLenses from './TwoLenses.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
 afterEach(cleanup);
@@ -179,5 +184,56 @@ describe('Part3', () => {
 
   it('keeps unused formats importable', () => {
     expect([fmtGbp, fmtShare, fmtPence].every((f) => typeof f === 'function')).toBe(true);
+  });
+
+  // Part 3 does not change with the header's scenario, closure or rule (one
+  // provisional study, one year), so each direction is checked once per value.
+  it('draws every direction icon and word from the sign of its value', () => {
+    for (const r of D.channels.rows) {
+      expect(fillFor(r.cost_bn), r.id).toBe(r.cost_bn > 0 ? 'p3-fill-loss' : 'p3-fill-gain');
+      expect(effectWords(r.cost_bn), r.id).toBe(r.cost_bn > 0 ? 'costs the public finances' : 'raises net receipts');
+    }
+    const items = channelItems();
+    for (const it of items) expect(it.text).toContain(effectWords(D.channels.rows.find((r) => r.id === it.key).cost_bn));
+    for (const [v] of bottomDecileRankings()) expect(signIcon(v)).toBe(v > 0 ? 'higher' : v < 0 ? 'lower' : 'onPath');
+    expect(bottomDecileRankings()).toHaveLength(3);
+    const t = takeupDirections();
+    const dc = ladder('takeup_jsa').cost_bn - ladder('central_20').cost_bn;
+    const dp = ladder('takeup_jsa').poverty_pp - ladder('central_20').poverty_pp;
+    expect(t.cost.icon).toBe(dc > 0 ? 'higher' : 'lower');
+    expect(t.poverty.icon).toBe(dp > 0 ? 'higher' : 'lower');
+    const text = renderPart().container.textContent;
+    expect(text).toContain(`The cost ${t.cost.word}`);
+    expect(text).toContain(dp < 0 ? 'The poverty rise is smaller' : 'The poverty rise is larger');
+    // the words the card keeps: uniform displacement costs least and raises poverty more than the central case
+    const rules = ['uniform', 'junior', 'exposure', 'compression'].map(rule);
+    expect(rule('uniform').cost_bn).toBe(Math.min(...rules.map((r) => r.cost_bn)));
+    expect(rule('uniform').poverty_pp).toBeGreaterThan(D.headline.central_poverty.value);
+  });
+
+  it('keeps part 3 and the close itemised: no block over 25 words, no item over 12', () => {
+    const { container } = render(
+      <>
+        <Part3 part={PART} />
+        <TwoLenses />
+      </>,
+    );
+    const long = [];
+    for (const el of container.querySelectorAll('p, li, dd, summary')) {
+      if (el.querySelector('p, li, dd') || el.closest('svg, [aria-hidden="true"]')) continue;
+      if (el.matches('.story-source, .story-source *')) continue; // citation lines
+      const n = el.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
+      if (n > (el.tagName === 'LI' ? 12 : 25)) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
+    }
+    expect(long).toEqual([]);
+  });
+
+  it('ends with the two lenses, what each can and cannot say as icon items', () => {
+    const { container } = render(<TwoLenses />);
+    expect(container.querySelectorAll('.lens')).toHaveLength(2);
+    expect([...container.querySelectorAll('.lens-say')].map((h) => h.textContent.trim())).toEqual(['It can say', 'It cannot say', 'It can say', 'It cannot say']);
+    expect(container.querySelectorAll('.lens .story-items li .story-item-icon')).toHaveLength(container.querySelectorAll('.lens .story-items li').length);
+    expect(container.textContent).toContain('OBR-central path');
+    expect(container.textContent).toContain('Job loss is an assumption, not a result');
   });
 });

@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { GrowRect } from '@/components/story/primitives.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
@@ -17,6 +18,12 @@ export const MODEL_YEAR = 'FY 2026–27';
 // ("sized to the OBR March 2026 scenario").
 export const OBR_SCENARIO = `the OBR’s ${/OBR (\w+ \d{4}) scenario/.exec(D.ladder.find((r) => r.id === 'obr')?.note ?? '')?.[1] ?? ''} displacement scenario`.replace('  ', ' ');
 
+// A plain inline icon by concept, leading a line of the story's text
+// (figure titles, keys, source lines, row labels). Story only.
+export function Ico({ c, size = 14 }) {
+  return <Icon name={iconFor(c)} size={size} className="p3-ico" />;
+}
+
 export const byId = (rows, id) => rows.find((r) => r.id === id);
 export const ladder = (id) => byId(D.ladder, id);
 export const rule = (id) => byId(D.rules, id);
@@ -24,7 +31,8 @@ export const perPound = (id) => byId(D.per_pound, id);
 
 export function Source({ children }) {
   return (
-    <p className="story-source">
+    <p className="story-source p3-iconed">
+      <Ico c="source" size={12} />
       Source: PolicyEngine-UK microsimulation, provisional; {D.source.dataset}, {MODEL_YEAR}
       {children ? <>; {children}</> : null}.{' '}
       <a href={PR_URL} target="_blank" rel="noreferrer">
@@ -34,11 +42,19 @@ export function Source({ children }) {
   );
 }
 
-export function FigureHead({ title, unit }) {
+export function FigureHead({ title, unit, icon = 'path' }) {
   return (
     <>
-      <p className="story-figure-title">{title}</p>
-      {unit ? <p className="story-figure-unit">{unit}</p> : null}
+      <p className="story-figure-title p3-iconed">
+        <Ico c={icon} size={16} />
+        <span>{title}</span>
+      </p>
+      {unit ? (
+        <p className="story-figure-unit p3-iconed">
+          <Ico c="measure" size={12} />
+          <span>{unit}</span>
+        </p>
+      ) : null}
     </>
   );
 }
@@ -55,7 +71,7 @@ export function OutsideRebuild() {
 export function OutsideRebuildFlag({ className = '' }) {
   return (
     <p className={`p3-flag ${className}`.trim()}>
-      <Icon name="info" size={14} /> Outside the study’s attested rebuild
+      <Icon name={iconFor('provisional')} size={14} /> Outside the study’s attested rebuild
     </p>
   );
 }
@@ -110,7 +126,9 @@ export function DivBar({ value, lo, hi, on = true, fill }) {
 export function About({ children }) {
   return (
     <details className="p3-about">
-      <summary>About these figures</summary>
+      <summary>
+        <Ico c="caveat" size={12} /> About these figures
+      </summary>
       {children}
     </details>
   );
