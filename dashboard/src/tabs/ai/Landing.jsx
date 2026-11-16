@@ -4,6 +4,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget, InfoTip } from '@/components/ab/Tip.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
 import { StatTile } from '@/components/ui/Card.jsx';
+import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import {
@@ -16,28 +17,27 @@ import { primaryClosure } from '@/tabs/ai/lines.js';
 // productivity, headline year) at the closure chosen in the header, each
 // with the four scenarios on a small range strip, then why and how sure.
 // The story (tabs/story) places these; it is the one home of the three
-// headline figures.
+// headline figures. The tiles are a label and a large number, no icon; the
+// number counts up once when first seen (CountUp keeps the exact value in
+// the DOM).
 
 const SHORT = { uk_low: 'Low', uk_central: 'Central', uk_high: 'High', korinek: 'Korinek' };
 
 const KPIS = [
   {
     v: 'Y',
-    icon: 'factory',
     title: 'Output (GDP)',
     line: 'Everything produced in the UK',
     tip: 'Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital.',
   },
   {
     v: 'w',
-    icon: 'wallet',
     title: 'Pay rates',
     line: 'What a given amount of work earns, against a path on which pay rises',
     tip: 'The wage rate: pay per unit of labour, adjusted for skill. It is not average earnings, which also move with hours and the mix of jobs. A negative figure is slower growth than on the OBR-central path, not a cut in pay.',
   },
   {
     v: 'GNI',
-    icon: 'home',
     title: 'Income UK residents keep',
     line: 'Output less what goes to foreign owners (GNI)',
     tip: 'Gross national income: GDP plus the UK’s income from abroad, less income paid to foreign owners of UK capital.',
@@ -183,9 +183,8 @@ export function HeadlineTiles({ sid }) {
           return (
             <StatTile
               key={k.v}
-              icon={k.icon}
               name={k.title}
-              value={fmt(x)}
+              value={<CountUp value={fmt(x)} />}
               tone={tone(x)}
               sub={k.line}
               tip={<InfoTip label={`What is ${k.title.toLowerCase()}?`}>{k.tip}</InfoTip>}

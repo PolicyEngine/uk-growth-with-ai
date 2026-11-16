@@ -168,33 +168,63 @@
   }
 }
 
-/* Two lenses: a short note before part 2 */
-.p2-lenses {
-  display: grid;
-  gap: 8px;
-  max-width: 78ch;
-  margin: 0 0 32px;
-  padding: 14px 16px;
-  border-left: 3px solid var(--pe-gray-300);
-  background: var(--pe-surface);
-  border-radius: 0 var(--card-radius) var(--card-radius) 0;
+/* Disclosures in step cards: caveats a click away */
+.p2-details {
+  margin: 8px 0 0;
   font-size: var(--fs-small);
-  line-height: 1.55;
   color: var(--pe-gray-700);
 }
-.p2-lenses p {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+.p2-details summary {
+  list-style: none;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 24px;
+  cursor: pointer;
+  color: var(--pe-gray-600);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+.p2-details summary::-webkit-details-marker {
+  display: none;
+}
+.p2-details summary::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+.p2-details[open] summary::before {
+  transform: rotate(45deg);
+}
+.p2-details summary:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+.p2-details[open] summary {
+  margin-bottom: 4px;
+}
+.p2-details p {
   margin: 0;
 }
-.p2-lenses svg {
-  flex: none;
-  margin-top: 3px;
-  color: var(--pe-gray-500);
+
+/* The headline stat tiles (Landing.jsx HeadlineTiles), in the story only:
+   a small label and a large tabular number, no icon */
+.story-headline .stat-name {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
-.p2-lenses b {
-  color: var(--pe-gray-900);
+.story-headline .stat-value {
+  margin-top: 4px;
+  font-size: clamp(2.25rem, 3.6vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* From the record to the model: one chart, three states. Lines move
@@ -247,15 +277,24 @@
   opacity: 0;
   transition: transform 900ms var(--story-ease, ease), opacity 500ms ease;
 }
-.p2-mo-move.is-on,
-.p2-mo-axis.is-on,
-.p2-mo-fade.is-on {
+.p2-mo-move.is-on {
   opacity: 1;
 }
+/* Labels hand over in three beats, so two scales never show at once: the
+   outgoing labels fade out in 150ms, the lines morph (900ms), and the
+   incoming labels fade in from 600ms. The destination state's transition
+   applies, so the delay sits on .is-on only. */
 .p2-mo-axis,
-.p2-mo-fade {
+.p2-mo-fade,
+.p2-mo-x {
   opacity: 0;
-  transition: opacity 500ms ease;
+  transition: opacity 150ms ease, transform 900ms var(--story-ease, ease);
+}
+.p2-mo-axis.is-on,
+.p2-mo-fade.is-on,
+.p2-mo-x.is-on {
+  opacity: 1;
+  transition: opacity 300ms ease 600ms, transform 900ms var(--story-ease, ease);
 }
 .p2-mo-label,
 .p2-mo-off {
@@ -293,37 +332,90 @@
   .p2-mo-line,
   .p2-mo-move,
   .p2-mo-axis,
-  .p2-mo-fade {
+  .p2-mo-fade,
+  .p2-mo-x {
     transition: none !important;
   }
 }
 
-/* Where output goes: a Sankey and a waterfall side by side, stacked on
-   phones */
+/* Where output goes (OutputSplit.jsx): a three-step scrolly over one
+   graphic, the Sankey above the waterfall; on phones the figure, complete,
+   above the three texts */
 .p2-output {
   margin: 8px 0 56px;
   scroll-margin-top: calc(var(--sticky-offset) + 8px);
 }
-.p2-output-grid {
+.p2-output-graphic {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
+  gap: 10px;
 }
-@media (max-width: 900px) {
-  .p2-output-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.p2-output-change {
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
 }
-.p2-output-fig {
-  padding: 18px;
+/* in the scrolly the graphic box is the card; on phones the figure is its
+   own card */
+.p2-output-static .p2-output-fig {
+  padding: 14px 16px;
   background: var(--pe-surface);
   border: 1px solid var(--card-border);
   border-radius: var(--card-radius);
 }
+/* Layers not yet reached: hidden by opacity only, so their figures stay in
+   the page's text */
+.p2-out-later {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.p2-out-later.is-on {
+  opacity: 1;
+  transition: opacity 400ms ease 250ms;
+}
+.p2-output-static .p2-output-graphic {
+  margin-bottom: 16px;
+}
+.p2-output-texts {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p2-output-text {
+  max-width: 70ch;
+  scroll-margin-top: calc(var(--sticky-offset) + 8px);
+}
+.p2-output-text .scrolly-title {
+  margin: 0 0 6px;
+}
 .p2-sankey {
   max-width: 560px;
   margin: 8px auto 0;
+}
+/* Ribbons wipe in left to right, a column at a time (Sankey.jsx `reveal`:
+   --wipe-delay staggers columns revealed together); nodes fade in as their
+   ribbons arrive. Hidden ribbons and nodes stay in the DOM. */
+.p2-sankey .sankey-link.is-wipe {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 200ms ease, opacity 250ms ease;
+}
+.p2-sankey .sankey-link.is-wipe.is-on {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 700ms var(--story-ease, ease) var(--wipe-delay, 0ms), opacity 250ms ease;
+}
+.p2-sankey .sankey-node {
+  transition: opacity 400ms ease var(--wipe-delay, 0ms);
+}
+.p2-sankey .sankey-node.is-hidden {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+/* A waterfall row in focus picks out its ribbon, and the reverse */
+.p2-sankey .sankey-link.is-dim {
+  opacity: 0.16 !important;
+}
+.p2-sankey .sankey-link.is-hl {
+  opacity: 0.92 !important;
 }
 .p2-output-note {
   margin: 10px 0 0;
@@ -331,21 +423,14 @@
   line-height: 1.5;
   color: var(--pe-gray-600);
 }
-.p2-output-why {
-  max-width: 78ch;
-  margin: 16px 0 0;
-  font-size: var(--fs-body);
-  line-height: 1.6;
-  color: var(--pe-gray-700);
-}
 .p2-pending {
   color: var(--pe-gray-600);
 }
 
 .p2-wf {
   display: grid;
-  gap: 6px;
-  margin: 14px 0 0;
+  gap: 4px;
+  margin: 10px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -376,7 +461,7 @@
 }
 .p2-wf-track {
   position: relative;
-  height: 22px;
+  height: 20px;
 }
 .p2-wf-zero {
   position: absolute;
@@ -392,7 +477,29 @@
   bottom: 3px;
   border-radius: 2px;
   background: var(--bar);
-  transition: left 700ms var(--story-ease, ease), width 700ms var(--story-ease, ease);
+  /* grows from the end it starts at, in turn (80ms apart, inline delay) */
+  transform: scaleX(0);
+  transform-origin: 0% 50%;
+  transition: transform 500ms var(--story-ease, ease), opacity 200ms ease, left 700ms var(--story-ease, ease), width 700ms var(--story-ease, ease);
+}
+.p2-wf-bar.is-back {
+  transform-origin: 100% 50%;
+}
+.p2-wf.is-on .p2-wf-bar {
+  transform: none;
+}
+.p2-wf-row {
+  border-radius: 4px;
+}
+.p2-wf-row[tabindex]:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+.p2-wf-row.is-hl {
+  background: var(--c-hover);
+}
+.p2-wf.has-hl .p2-wf-row:not(.is-hl) .p2-wf-bar {
+  opacity: 0.35;
 }
 .p2-wf-row.is-outline .p2-wf-bar {
   background: transparent;
@@ -415,24 +522,14 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .p2-wf-bar {
+  .p2-wf-bar,
+  .p2-out-later,
+  .p2-sankey .sankey-link,
+  .p2-sankey .sankey-node {
     transition: none !important;
   }
 }
 
-/* One line of links in place of the "Go deeper" cards */
-.p2-deeper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  align-items: baseline;
-  margin: 8px 0 24px;
-  font-size: var(--fs-small);
-}
-.p2-deeper-lead {
-  font-weight: 600;
-  color: var(--pe-gray-700);
-}
 .p2-mo-newaxis-box {
   width: 122px;
 }

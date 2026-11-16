@@ -83,7 +83,7 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    expect(container.querySelectorAll('.story-source')).toHaveLength(8);
+    expect(container.querySelectorAll('.story-source')).toHaveLength(7); // the output split's Sankey and waterfall share one
     const hrefs = [...container.querySelectorAll('.p2-more a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
@@ -92,9 +92,9 @@ describe('story part 2', () => {
     // Income and output is Results' first sub-tab, so the address leaves it out
     expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#income');
     expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-economy'))).toBe(true);
-    // one line of links in place of the Go deeper cards
+    // the next-part band carries the links to the figures' homes
     expect(container.querySelector('.entry-grid')).toBeNull();
-    const deeper = [...container.querySelectorAll('.p2-deeper a')].map((a) => a.getAttribute('href'));
+    const deeper = [...container.querySelectorAll('.story-next-links a')].map((a) => a.getAttribute('href'));
     expect(deeper).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
     expect(deeper).toContain('/?tab=method&s=uk_high&closure=both'); // OG-UK method is Method's first sub-tab
     // the labour-share change is linked to, not reprinted

@@ -3,7 +3,8 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
-import Icon from '@/components/ab/Icon.jsx';
+import Callout from '@/components/story/Callout.jsx';
+import NextPart from '@/components/story/NextPart.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, BOUND, gap, result } from '@/tabs/ai/surprise.js';
 import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
@@ -24,7 +25,8 @@ import OutputSplit from './part2/OutputSplit.jsx';
 // scenario and closure apply throughout, except Who gains, which is solved
 // for UK central only. Order: two lenses, the shock, record to model (the
 // morph), four scenarios, the headline figures, where output goes, three
-// arms, who gains, public finances, then one line of links.
+// arms, who gains, public finances, then the band to part 3 with links
+// to the figures' homes.
 
 const EPS = 0.05;
 
@@ -62,12 +64,8 @@ function shockSteps() {
       body: (
         <>
           <p>
-            OG-UK is a model of the whole UK economy: households, firms and the government. Each tile in the grid is one per cent of output;
-            tiles on the left are paid for work, tiles on the right go to the owners of capital as profits, interest and rents.
-          </p>
-          <p>
-            In the model AI lets capital do tasks that workers did, so capital&rsquo;s share of income rises and labour&rsquo;s falls. The
-            tiles that move are exaggerated so the shift is visible.
+            OG-UK models the whole economy: households, firms and government. Each tile is one per cent of output, paid for work (left)
+            or to capital&rsquo;s owners (right). In the model AI lets capital do tasks workers did, so capital&rsquo;s share rises.
           </p>
           <More tab="method" sub="scenarios">How large the shift is in each scenario</More>
         </>
@@ -80,9 +78,8 @@ function shockSteps() {
       body: (
         <>
           <p>
-            AI also raises output at given inputs of capital and work: the new tiles. Whether pay ends up above or below the no-shock path
-            depends on the size of each move and on how much new capital arrives. The shock comes as a surprise in {SURPRISE_YEAR}: nobody in
-            the model sees it coming.
+            AI also raises output at given inputs: the new tiles. Whether pay ends above or below the no-shock path depends on each
+            move&rsquo;s size and how much new capital arrives. The shock comes as a surprise in {SURPRISE_YEAR}.
           </p>
           <More tab="explore" sub="economy" anchor="explore-part-economy">The labour share, capital and the rest of the economy</More>
         </>
@@ -100,10 +97,9 @@ function scenarioSteps(sid, cl) {
       title: 'The UK scenarios and their range',
       body: (
         <p>
-          The scenarios differ in how far the labour share falls and how much output at given inputs rises. In the main arm of each
-          scenario, GDP rises above the OBR-central path from {SURPRISE_YEAR} and {after} once the shock is complete in {HEADLINE_YEAR}.
-          UK central has a larger shift and a larger productivity gain than UK low, and UK high larger again: the same shape, higher. The
-          shaded band is the UK range, from UK low to UK high.
+          The scenarios differ in how far the labour share falls and output at given inputs rises. In each main arm, GDP rises above the
+          OBR-central path from {SURPRISE_YEAR} and {after} once the shock completes in {HEADLINE_YEAR}. UK low, central, high: one shape,
+          higher each time; the band is their range.
         </p>
       ),
     },
@@ -114,8 +110,8 @@ function scenarioSteps(sid, cl) {
       body: (
         <>
           <p>
-            A US scenario, kept as a labelled upper case rather than a UK calibration. The scenario chosen at the top of the page,{' '}
-            {SCEN_NAME[sid]}, is the coloured line; change it there.
+            A US scenario, kept as a labelled upper case rather than a UK calibration. {SCEN_NAME[sid]}, chosen at the top of the page, is
+            the coloured line.
           </p>
           <More tab="method" sub="scenarios">What each scenario assumes, and its sources</More>
           <More tab="explore" sub="economy" anchor="income">GDP and national income year by year</More>
@@ -130,13 +126,11 @@ function armSteps(sid, closure) {
   const tz = gap(sid, 'tz', cl, 'Y');
   const tfp = gap(sid, 'tfp', cl, 'Y');
   const kicker = `Three arms, ${SCEN_NAME[sid]}`;
+  // the chart's unit line names the closure (and which is dashed with Both)
   const closureNote =
-    closure === 'both' ? (
-      <p>Solid lines are the central closure, where some new capital is foreign-owned; dashed lines are closed capital, where none is.</p>
-    ) : (
+    closure === 'both' ? null : (
       <p>
-        {cl === BOUND ? 'The lines are for closed capital.' : 'The lines are at the central closure.'} <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink> to see how much depends on
-        foreign capital.
+        <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink> to see how much depends on foreign capital.
       </p>
     );
   return [
@@ -144,7 +138,12 @@ function armSteps(sid, closure) {
       id: 'p2-arms-0',
       kicker,
       title: 'Automation + productivity: the main arm',
-      body: <p>Both moves happen: capital&rsquo;s share rises and output at given inputs rises. This arm gives the headline figures above.</p>,
+      body: (
+        <>
+          <p>Both moves happen: capital&rsquo;s share rises and output at given inputs rises. This arm gives the headline figures above.</p>
+          {closureNote}
+        </>
+      ),
     },
     {
       id: 'p2-arms-1',
@@ -165,10 +164,12 @@ function armSteps(sid, closure) {
         <>
           <p>
             The same shift, with output at given inputs cut so that GDP in {HEADLINE_YEAR} is back on the OBR-central path: a bound in which
-            AI adds no output, not a forecast. It matches the OBR&rsquo;s scenario on GDP only: the OBR adjusts through jobs, OG-UK through the
-            wage.
+            AI adds no output, not a forecast.
           </p>
-          {closureNote}
+          <details className="p2-details">
+            <summary>Against the OBR&rsquo;s own scenario</summary>
+            <p>It matches the OBR&rsquo;s scenario on GDP only: the OBR adjusts through jobs, OG-UK through the wage.</p>
+          </details>
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
           <More tab="explore" sub="economy" anchor="income">Each arm year by year</More>
         </>
@@ -182,7 +183,17 @@ function whoSteps(sid) {
   const someLose = c.alive_losing_pct > 0 || c.no_bequest_losing_pct > 0 || (c.charged?.joint_losing_pct?.[1] ?? 0) > 0;
   const allGain = c.cev_all.every((v) => v > 0);
   const scope =
-    sid === 'uk_central' ? null : <p>Who gains shows UK central only: the paper also reports Korinek et al. (upper), under debt-neutral transfers only, and its cohort paths are not yet in this site&rsquo;s data. This chart is always UK central, central closure, debt-neutral transfers, whatever is chosen above.</p>;
+    sid === 'uk_central' ? null : (
+      <details className="p2-details">
+        <summary>Always UK central here</summary>
+        <p>
+          Who gains shows UK central only: the paper also reports Korinek et al. (upper), under debt-neutral transfers only, and its cohort
+          paths are not yet in this site&rsquo;s data. This chart is always UK central, central closure, debt-neutral transfers, whatever is
+          chosen above.
+        </p>
+      </details>
+    );
+  const dip = entryDip();
   return [
     {
       id: 'p2-who-0',
@@ -191,9 +202,9 @@ function whoSteps(sid) {
       body: (
         <>
           <p>
-            The line is the welfare change of each birth year, for adults alive in {SURPRISE_YEAR}, in UK central as modelled. The gain is largest for adults around
-            retirement age, who hold more wealth and collect the higher return on it. It is smaller for the oldest adults and for the
-            youngest, who have the most working years ahead and the least wealth{someLose ? '; under some measures they lose' : ''}.
+            Each birth year&rsquo;s welfare change, for adults alive in {SURPRISE_YEAR}, in UK central as modelled. The gain peaks around
+            retirement age, where more wealth earns the higher return, and is smaller for the oldest and the youngest, who have the least
+            wealth{someLose ? '; under some measures they lose' : ''}.
           </p>
           {scope}
         </>
@@ -206,12 +217,18 @@ function whoSteps(sid) {
       body: (
         <>
           <p>
-            People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.{allGain ? ' As modelled, under debt-neutral transfers, they gain too: a higher return on saving and, later, higher consumption outweigh lower pay rates.' : ''}{' '}
-            {entryDip()
-              ? 'The dip just after the entry line appears under debt-neutral transfers, which lower transfers until the debt rule starts, and not under the common fiscal rule. '
-              : ''}
-            The measures, the earnings groups and the other arms are on Who gains.
+            People who enter the economy after {SURPRISE_YEAR} live their whole lives on the new path.
+            {allGain ? ' As modelled, under debt-neutral transfers, they gain too: a higher return on saving and, later, higher consumption outweigh lower pay rates.' : ''}
           </p>
+          {dip ? (
+            <details className="p2-details">
+              <summary>The dip after the entry line</summary>
+              <p>
+                It appears under debt-neutral transfers, which lower transfers until the debt rule starts, and not under the common fiscal
+                rule.
+              </p>
+            </details>
+          ) : null}
           <More tab="explore" sub="who">Who gains, by age and earnings group</More>
         </>
       ),
@@ -227,14 +244,22 @@ function debtSteps(sid, closure) {
       id: 'p2-debt-0',
       kicker: 'Public finances',
       title: 'Public debt against the path',
-      body: (
-        <p>
-          {main
-            ? `In ${SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP ${main}.${
-                main.includes('rises above') ? ' The model reprices all government debt at the higher interest rate at once, which overstates the later rise.' : ''
-              } The OBR-central path is OG-UK’s own path, built on the OBR’s central productivity growth; beyond the OBR’s forecast horizon it is the model’s, not the OBR’s.`
-            : 'This solve is not done yet at the closure chosen above.'}
-        </p>
+      body: main ? (
+        <>
+          <p>
+            In {SCEN_NAME[sid]}, main arm, common fiscal rule, public debt as a share of GDP {main}.
+            {main.includes('rises above') ? ' The model reprices all government debt at the higher interest rate at once, which overstates the later rise.' : ''}
+          </p>
+          <details className="p2-details">
+            <summary>The path after the OBR&rsquo;s forecast</summary>
+            <p>
+              The OBR-central path is OG-UK&rsquo;s own path, built on the OBR&rsquo;s central productivity growth; beyond the OBR&rsquo;s
+              forecast horizon it is the model&rsquo;s, not the OBR&rsquo;s.
+            </p>
+          </details>
+        </>
+      ) : (
+        <p>This solve is not done yet at the closure chosen above.</p>
       ),
     },
     {
@@ -260,26 +285,21 @@ function debtSteps(sid, closure) {
 // differs. The full comparison closes the story.
 function TwoLenses() {
   return (
-    <aside className="p2-lenses" aria-label="Two models, two lenses">
+    <Callout icon="info" title="Two models, two lenses">
       <p>
-        <Icon name="trend" size={16} />
-        <span>
-          <b>This part: OG-UK</b>, a model of the whole economy. It has no unemployment, and its results are gaps against the
-          OBR-central path, not forecasts of levels.
-        </span>
+        <b>This part: OG-UK</b>, a model of the whole economy. It has no unemployment, and its results are gaps against the OBR-central
+        path, not forecasts of levels.
       </p>
       <p>
-        <Icon name="usersRound" size={16} />
-        <span>
-          <b>Part 3: a different model</b> (provisional), a one-year microsimulation of UK households if some employees are assumed to lose their jobs. The two
-          sets of numbers are not added together.
-        </span>
+        <b>Part 3: a different model</b> (provisional), a one-year microsimulation of UK households if some employees are assumed to lose
+        their jobs. The two sets of numbers are not added together.
       </p>
-    </aside>
+    </Callout>
   );
 }
 
-// One line of links to the figures' homes (the tab row's sub-tabs).
+// The band that ends part 2: part 3 next, and links to the figures' homes
+// (the tab row's sub-tabs).
 const DEEPER = [
   { tab: 'explore', sub: 'economy', label: 'Economy' },
   { tab: 'explore', sub: 'finances', label: 'Public finances' },
@@ -288,16 +308,21 @@ const DEEPER = [
   { tab: 'method', sub: 'scenarios', label: 'Scenarios' },
   { tab: 'method', sub: 'how', label: 'OG-UK method' },
 ];
-function DeeperLinks() {
+function NextBand() {
   return (
-    <nav className="p2-deeper" aria-label="Part 2 in detail">
-      <span className="p2-deeper-lead">In detail:</span>
-      {DEEPER.map((d) => (
+    <NextPart
+      n={3}
+      title="Jobs, incomes and the public finances"
+      to="story-part-3"
+      links={DEEPER.map((d) => (
         <NavLink key={`${d.tab}-${d.sub}`} tab={d.tab} sub={d.sub}>
           {d.label}
         </NavLink>
       ))}
-    </nav>
+    >
+      Part 3 turns to a different model (provisional): household incomes and the public finances if some employees are assumed to lose
+      their jobs.
+    </NextPart>
   );
 }
 
@@ -401,7 +426,7 @@ export default function Part2({ part }) {
         )}
       />
 
-      <DeeperLinks />
+      <NextBand />
     </>
   );
 }
