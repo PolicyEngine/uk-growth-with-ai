@@ -57,11 +57,24 @@ const subscribeWidth = (cb) => {
 //                figure card on desktop, after the last card at 900px and
 //                below, printed once either way;
 //   sub          the scene sub-header above the block: a string or
-//                { title, icon } (icon a concept). Rendered as
-//                <header class="scene-head" data-scene="title"> (the rail
-//                reads [data-scene]); step titles then become h4;
+//                { title, icon, question, takeaway } (icon a concept).
+//                Rendered as <header class="scene-head" data-scene="title">
+//                (the rail reads [data-scene]); step titles then become h4.
+//                `question` (about a dozen words, neutral, answered by the
+//                block): printed in the header on the title's row, and played
+//                once as a topic opener: a panel over the figure card (never
+//                over the cards, no added height) with a large plain icon,
+//                "Part n" (from the closest .story-part[data-part], or the
+//                `part` prop) and the question, scaling and fading in word by
+//                word on the part's tint, then shrinking into the header. It
+//                is skipped when the block is already above the rail (a deep
+//                link, a step dot, scrolling up), under reduced motion, in
+//                print and in "is-inline" blocks. ctx.entered (and so
+//                useEnterState entry moves) waits until it has shrunk.
+//                `takeaway`: one "Key takeaway" line after the last card;
+//   part         the part number for the opener (default: read from the page);
 //   step.kickerIcon  a concept leading the kicker (default: step.icon).
-export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub }) {
+export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, part }) {
   // One more registered element than steps: an end marker after the last
   // card, past which the block is done.
   const box = useRef(null);
@@ -231,7 +244,14 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     };
   }, [pinBottom, width, single]);
   const cardIndex = steps.slice(0, active + 1).filter((x) => !x.spacer).length - 1;
-  const ctx = { inline: false, once, entered, prev: hist.prev };
+  // the topic opener: played once over the figure, then gone
+  const subObj = sub && typeof sub === 'object' ? sub : null;
+  const question = subObj?.question;
+  const takeaway = subObj?.takeaway;
+  const [opener, setOpener] = useState(question ? 'pending' : 'none');
+  const openerLive = opener === 'pending' && !inline && !reduce;
+  const openerDone = !question || inline || reduce || opener !== 'pending';
+  const ctx = { inline: false, once, entered: entered && openerDone, prev: hist.prev };
   const sizerCtx = { inline: false, once: false, entered: true, prev: null };
   const dots = many && !inline;
   const subTitle = typeof sub === 'string' ? sub : sub?.title;
@@ -243,9 +263,15 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       id={id}
     >
       {sub ? (
-        <header className="scene-head" data-scene={subTitle}>
-          {typeof sub === 'object' && sub.icon ? <Icon name={iconFor(sub.icon)} size={16} className="scene-head-icon" /> : null}
+        <header className={`scene-head${question ? ' has-q' : ''}${opener === 'arrived' ? ' is-arrived' : ''}`} data-scene={subTitle}>
+          {subObj?.icon ? <Icon name={iconFor(subObj.icon)} size={16} className="scene-head-icon" /> : null}
           <h3 className="scene-head-title">{subTitle}</h3>
+          {question ? (
+            <p className="scene-head-q">
+              <Icon name={iconFor('question')} size={14} className="scene-head-q-icon" />
+              <span>{question}</span>
+            </p>
+          ) : null}
         </header>
       ) : null}
       <div className="scrolly-graphic" ref={box} aria-label={label} role="group" hidden={inline || undefined}>
@@ -265,6 +291,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
           ) : null}
           {inline ? null : graphic(shown, reduce, ctx)}
           {phone ? null : footHere}
+          {openerLive ? <TopicOpener question={question} icon={subObj?.icon} part={part} onDone={setOpener} /> : null}
         </div>
         {reserve && measuring ? (
           <div className="scrolly-sizers" ref={sizers} aria-hidden="true" inert>
@@ -287,7 +314,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               key={s.id}
               id={s.id}
               ref={register(i)}
-              className={`scrolly-step${i === active ? ' is-active' : i < active ? ' is-past' : ''}`}
+              className={`scrolly-step${i === active ? ' is-active' : i < active ? ' is-past' : ''}${takeaway && i === lastCard ? ' has-takeaway' : ''}`}
               aria-current={i === active ? 'step' : undefined}
             >
               {inline ? <InlineCopy graphic={graphic} i={i} reduce={reduce} label={label} /> : null}
@@ -311,12 +338,99 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
                   </button>
                 ) : null}
               </div>
+              {takeaway && i === lastCard ? (
+                <p className="scrolly-takeaway">
+                  <Icon name={iconFor('takeaway')} size={16} className="scrolly-takeaway-icon" />
+                  <span>
+                    <strong>Key takeaway:</strong> {takeaway}
+                  </span>
+                </p>
+              ) : null}
             </li>
           ),
         )}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
       {phone ? footHere : null}
+    </div>
+  );
+}
+
+// The topic opener (Scrolly `sub.question`): a panel over the figure card,
+// aria-hidden, inert and data-axis (the question is printed once, in the
+// header). Waits until the figure is half in view, then brings
+// in the icon, "Part n" and the question word by word; holds 1.6s, then
+// shrinks towards the header (sooner if the reader scrolls on 60% of a screen) and
+// calls onDone('arrived'). A block already above the rail on arrival (deep
+// link, step dot, scrolling up) or a browser without IntersectionObserver
+// skips it: onDone('skipped').
+const OPENER_HOLD = 1600;
+const OPENER_OUT = 450;
+function TopicOpener({ question, icon, part, onDone }) {
+  const ref = useRef(null);
+  const [phase, setPhase] = useState('wait');
+  const [n, setN] = useState(part ?? null);
+  const done = useRef(onDone);
+  useEffect(() => {
+    done.current = onDone;
+  });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    if (part == null) setN(el.closest('.story-part[data-part]')?.dataset.part ?? null);
+    const railBottom = () => document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
+    if (typeof IntersectionObserver === 'undefined' || el.getBoundingClientRect().top < railBottom()) {
+      done.current('skipped');
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (es) => {
+        if (es.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          setPhase('in');
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [part]);
+  useEffect(() => {
+    if (phase === 'in') {
+      const y0 = window.scrollY;
+      const out = () => setPhase('out');
+      const t = setTimeout(out, OPENER_HOLD);
+      const on = () => {
+        if (Math.abs(window.scrollY - y0) > window.innerHeight * 0.6) out();
+      };
+      window.addEventListener('scroll', on, { passive: true });
+      return () => {
+        clearTimeout(t);
+        window.removeEventListener('scroll', on);
+      };
+    }
+    if (phase === 'out') {
+      const t = setTimeout(() => done.current('arrived'), OPENER_OUT);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [phase]);
+  const words = question.split(/\s+/);
+  return (
+    <div ref={ref} className={`topic-opener is-${phase}`} aria-hidden="true" data-axis="" inert>
+      <div className="topic-opener-inner">
+        <span className="topic-opener-mark">
+          {icon ? <Icon name={iconFor(icon)} size={44} strokeWidth={1.5} className="topic-opener-icon" /> : null}
+          {n ? <span className="topic-opener-part">Part {n}</span> : null}
+        </span>
+        <span className="topic-opener-q">
+          {words.map((w, i) => (
+            <span key={i} className="topic-opener-w" style={{ '--w': i }}>
+              {w}{' '}
+            </span>
+          ))}
+        </span>
+      </div>
     </div>
   );
 }

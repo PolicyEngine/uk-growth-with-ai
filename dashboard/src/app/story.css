@@ -298,6 +298,189 @@
 .scrolly.has-sub > .scrolly-steps {
   grid-row: 2;
 }
+/* The scene sub-header's question (Scrolly `sub.question`), on the title's
+   row; it wraps under the title on narrow screens */
+.scene-head.has-q {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+.scene-head.has-q::after {
+  min-width: 24px;
+}
+.scene-head-q {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  color: var(--pe-gray-700);
+}
+.scene-head-q-icon {
+  flex: none;
+  display: inline-flex;
+  align-self: center;
+  color: var(--part-accent, var(--c-highlight));
+}
+/* the header picks up the opener as it shrinks into it */
+.scene-head.is-arrived {
+  animation: scene-arrive 900ms var(--story-ease) both;
+}
+.scene-head.is-arrived .scene-head-icon,
+.scene-head.is-arrived .scene-head-q-icon {
+  animation: scene-arrive-icon 900ms var(--story-ease) both;
+}
+@keyframes scene-arrive {
+  from {
+    background: var(--part-tint, var(--pe-teal-50));
+    box-shadow: 0 0 0 6px var(--part-tint, var(--pe-teal-50));
+  }
+  to {
+    background: transparent;
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+@keyframes scene-arrive-icon {
+  from {
+    transform: scale(1.6);
+    color: var(--part-accent, var(--c-highlight));
+  }
+  to {
+    transform: none;
+  }
+}
+/* The topic opener: over the figure card only (no added height), played
+   once, then unmounted (Scrolly.jsx TopicOpener) */
+.topic-opener {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  border-radius: inherit;
+  background: var(--pe-surface);
+  transform-origin: 0 0;
+  transition:
+    background-color 700ms var(--story-ease),
+    transform 450ms var(--story-ease),
+    opacity 450ms var(--story-ease);
+  pointer-events: none;
+}
+.topic-opener.is-in {
+  background: var(--part-tint, var(--pe-teal-50));
+}
+.topic-opener.is-out {
+  background: var(--part-tint, var(--pe-teal-50));
+  opacity: 0;
+  transform: translate(0, -48px) scale(0.3);
+}
+.topic-opener-inner {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  max-width: 34rem;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.88);
+  transition:
+    opacity 500ms var(--story-ease),
+    transform 700ms var(--story-ease);
+}
+.topic-opener.is-in .topic-opener-inner,
+.topic-opener.is-out .topic-opener-inner {
+  opacity: 1;
+  transform: none;
+}
+.topic-opener-mark {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  color: var(--part-accent, var(--c-highlight));
+}
+.topic-opener-icon {
+  display: inline-flex;
+}
+.topic-opener-part {
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.topic-opener-q {
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--pe-gray-900);
+  text-wrap: balance;
+}
+.topic-opener-w {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0;
+  transform: translateY(0.35em);
+  transition:
+    opacity 420ms var(--story-ease),
+    transform 520ms var(--story-ease);
+  transition-delay: calc(180ms + var(--w) * 70ms);
+}
+.topic-opener.is-in .topic-opener-w,
+.topic-opener.is-out .topic-opener-w {
+  opacity: 1;
+  transform: none;
+}
+@media (max-width: 900px) {
+  .topic-opener {
+    padding: 16px;
+  }
+  .topic-opener-q {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topic-opener {
+    display: none;
+  }
+  .scene-head.is-arrived,
+  .scene-head.is-arrived .scene-head-icon,
+  .scene-head.is-arrived .scene-head-q-icon {
+    animation: none;
+  }
+}
+@media print {
+  .topic-opener {
+    display: none;
+  }
+}
+/* `sub.takeaway`: one line after the block's last card */
+.scrolly-step.has-takeaway {
+  flex-direction: column;
+  align-items: stretch;
+}
+.scrolly-takeaway {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--pe-gray-800);
+  border-left: 3px solid var(--part-accent, var(--c-highlight));
+  background: var(--part-tint, var(--pe-teal-50));
+  border-radius: 0 6px 6px 0;
+}
+.scrolly-takeaway-icon {
+  flex: none;
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 0.15em;
+  color: var(--part-accent, var(--c-highlight));
+}
+.scrolly-takeaway strong {
+  font-weight: 600;
+}
 /* Scrolly `foot`: the figure's one-line source and legend */
 .scrolly-foot {
   margin-top: 8px;
