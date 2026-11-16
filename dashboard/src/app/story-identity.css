@@ -1,0 +1,469 @@
+/* Section identity on the Story (scene plan section 5, addendum A2.9):
+   per-part colours, the chapter opener strip (tabs/story/PartHead.jsx),
+   the tight link row that ends a part (components/story/NextPart.jsx), the
+   call-out in the part's colours (Callout.jsx), the rail as a sticky
+   chapter indicator (StoryRail.jsx) and the hero art cap. Owner: shell (E).
+   Loaded after story-part3.css. Clearly separate parts, not more gap: the
+   strip replaces the old head band and its padding.
+
+   Colours are chrome only (an edge, the numeral, the badge, the rail):
+   never a data hue. Grey reads as the record, the site's teal as OG-UK,
+   the notice colours as the provisional household study. */
+
+.story-part[data-part='1'],
+.story-rail li[data-part='1'] {
+  --part-accent: var(--pe-gray-600);
+  --part-tint: var(--pe-gray-100);
+}
+.story-part[data-part='2'],
+.story-rail li[data-part='2'] {
+  --part-accent: var(--c-highlight);
+  --part-tint: var(--pe-teal-50);
+}
+.story-part[data-part='3'],
+.story-rail li[data-part='3'] {
+  --part-accent: var(--c-notice-text);
+  --part-tint: var(--c-notice-bg);
+}
+#story-close,
+.story-rail li[data-part='4'] {
+  --part-accent: var(--pe-gray-800);
+  --part-tint: transparent;
+}
+
+/* ---------- Part spacing: 48px above the strip, 32px below it ---------- */
+.story > .story-part[data-part] {
+  padding-top: 48px;
+}
+.story > .story-part[data-part]:has(.part-links) + .story-part,
+.story > .story-part[data-part]:has(.part-links) + .story-close {
+  padding-top: 32px;
+}
+
+/* ---------- The chapter opener strip ---------- */
+.part-opener {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px 40px;
+  align-items: start;
+  margin: 0 0 32px;
+  padding: 20px 0 18px;
+  background: var(--part-tint, var(--pe-teal-50));
+  /* full bleed without a scrollbar, as the old head band */
+  box-shadow: 0 0 0 100vmax var(--part-tint, var(--pe-teal-50));
+  clip-path: inset(0 -100vmax);
+}
+/* the part's 3px accent edge along the top of the strip */
+.part-opener::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -100vmax;
+  left: -100vmax;
+  height: 3px;
+  background: var(--part-accent, var(--c-highlight));
+}
+@media (min-width: 1100px) {
+  .part-opener.has-side {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  }
+}
+.part-opener-main {
+  position: relative;
+  min-width: 0;
+  padding-left: 64px;
+}
+.part-opener-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0 0 4px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--part-accent);
+}
+.part-opener-numeral {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--part-accent);
+}
+.part-badge {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding-left: 10px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--part-accent);
+  border-left: 1px solid color-mix(in srgb, var(--part-accent) 35%, transparent);
+}
+.part-opener h2 {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--pe-gray-900);
+}
+.part-opener-h-ic {
+  flex: none;
+  display: inline-flex;
+  align-self: center;
+  color: var(--part-accent);
+}
+.part-opener-answers,
+.part-opener-handover {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.part-opener-answers > .plain-icon,
+.part-opener-answers > .part-opener-ic,
+.part-opener-handover > .part-opener-ic {
+  flex: none;
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 0.2em;
+}
+.part-opener-answers {
+  max-width: 70ch;
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+.part-opener-answers .plain-icon,
+.part-opener-ic {
+  color: var(--part-accent);
+}
+.part-opener-answers .story-items {
+  margin-top: 8px;
+}
+.part-opener-main .p1-head-items {
+  margin-top: 8px;
+}
+.part-opener-main > .part-opener-chips {
+  margin-top: 10px;
+}
+.part-opener-side {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+  align-content: start;
+  min-width: 0;
+  padding-left: 64px;
+}
+@media (min-width: 1100px) {
+  .part-opener-side {
+    padding: 4px 0 0 16px;
+    border-left: 1px solid color-mix(in srgb, var(--part-accent) 25%, transparent);
+  }
+}
+.part-opener-handover {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+}
+.part-opener-handover .plain-icon,
+.part-opener-handover .part-opener-ic {
+  color: var(--part-accent);
+}
+.part-opener-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.part-chip {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: var(--fs-small);
+  font-weight: 500;
+  color: var(--pe-gray-800);
+  text-decoration: none;
+  background: var(--pe-surface, #fff);
+  border: 1px solid color-mix(in srgb, var(--part-accent) 35%, transparent);
+  border-radius: 999px;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.part-chip .plain-icon {
+  color: var(--part-accent);
+}
+.part-chip:hover {
+  border-color: var(--part-accent);
+}
+.part-chip:focus-visible {
+  outline: 2px solid var(--part-accent);
+  outline-offset: 2px;
+}
+.part-opener-about summary {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  cursor: pointer;
+}
+.part-opener-about-body {
+  margin-top: 6px;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+.part-opener-about-body p {
+  margin: 0 0 6px;
+}
+
+/* ---------- The call-out, in the part's colours ---------- */
+.story-callout.part-callout {
+  border-left-color: var(--part-accent, var(--c-highlight));
+}
+.story-part[data-part] .story-callout.part-callout {
+  background: color-mix(in srgb, var(--part-tint) 70%, var(--pe-surface, #fff));
+}
+.story-callout.part-callout .story-callout-icon,
+.story-callout-title-icon {
+  color: var(--part-accent, var(--c-highlight));
+}
+.story-callout.has-title .story-callout-title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+/* directly under the opener: tucked to the strip, no second gap */
+.part-opener + .story-callout {
+  margin-top: -16px;
+}
+
+/* ---------- The end of a part: one tight line of links ---------- */
+.part-links.story-next {
+  margin: 32px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--card-border);
+}
+.part-links .part-links-inner {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: center;
+  max-width: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  white-space: nowrap;
+}
+.part-links .part-links-inner > * {
+  flex: none;
+}
+.part-links .part-links-inner[data-more] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
+.part-links .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.part-links .part-links-next {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.part-links-next .plain-icon,
+.part-links-kicker {
+  color: var(--part-accent, var(--c-highlight));
+}
+.part-links-kicker {
+  font-weight: 600;
+}
+.part-links-title {
+  font-weight: 600;
+}
+.part-links-next:hover .part-links-title,
+.part-links-next:focus-visible .part-links-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.part-links-next:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+.part-links-lead {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.part-links .part-links-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-small);
+}
+.part-links-label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.part-links-label .plain-icon {
+  color: var(--part-accent, var(--c-highlight));
+}
+.part-links .part-links-row a {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding-block: 4px;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* a link that brings no icon gets one: a link mark, or the external-link
+   mark when it leaves the dashboard (Lucide link-2 and external-link) */
+.part-links .part-links-row a:not(:has(svg))::before {
+  content: '';
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--ic-link) center / contain no-repeat;
+  mask: var(--ic-link) center / contain no-repeat;
+}
+.part-links .part-links-row a[target='_blank']:not(:has(svg))::before {
+  -webkit-mask-image: var(--ic-external);
+  mask-image: var(--ic-external);
+}
+.part-links {
+  --ic-link: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 17H7A5 5 0 0 1 7 7h2'/%3E%3Cpath d='M15 7h2a5 5 0 1 1 0 10h-2'/%3E%3Cline x1='8' x2='16' y1='12' y2='12'/%3E%3C/svg%3E");
+  --ic-external: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M10 14 21 3'/%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3C/svg%3E");
+}
+
+/* ---------- The rail: a sticky chapter indicator ---------- */
+.story-rail {
+  background: var(--page-bg);
+  backdrop-filter: none;
+}
+.story-rail-n {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.story-rail-ic {
+  display: inline-flex;
+  color: var(--part-accent);
+}
+.story-rail li.is-current .story-rail-link {
+  color: var(--part-accent);
+}
+.story-rail li.is-current .story-rail-bar i,
+.story-rail li.is-read .story-rail-bar i {
+  background: var(--part-accent);
+}
+.story-rail-scene {
+  font-weight: 400;
+  color: var(--pe-gray-600);
+}
+
+/* ---------- Anchors land below the stuck bars and the rail ---------- */
+.story > .story-part[data-part],
+.story > .story-close {
+  scroll-margin-top: calc(var(--sticky-offset) + 40px);
+}
+
+/* ---------- 900px and below ---------- */
+@media (max-width: 900px) {
+  .story > .story-part[data-part] {
+    padding-top: 32px;
+  }
+  .story > .story-part[data-part]:has(.part-links) + .story-part,
+  .story > .story-part[data-part]:has(.part-links) + .story-close {
+    padding-top: 24px;
+  }
+  .part-opener {
+    margin-bottom: 24px;
+    padding: 16px 0 14px;
+  }
+  .part-opener-main,
+  .part-opener-side {
+    padding-left: 52px;
+  }
+  .part-opener-numeral {
+    font-size: 2.75rem;
+  }
+  .part-opener h2 {
+    font-size: 1.375rem;
+  }
+  .part-opener + .story-callout {
+    margin-top: -8px;
+  }
+  .part-links.story-next {
+    margin-top: 24px;
+  }
+  .story-rail-scene {
+    display: none;
+  }
+  /* the hero art at most 300px tall: a shorter fan, the key in two columns */
+  .story-hero-art svg {
+    max-height: 190px;
+  }
+  .story-hero-art .hero-key {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 16px;
+    margin-top: 8px;
+  }
+}
+@media (max-width: 520px) {
+  .part-opener-main,
+  .part-opener-side {
+    padding-left: 0;
+  }
+  .part-opener-numeral {
+    position: static;
+    font-size: 1.5rem;
+  }
+  .story-hero-art .hero-key {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .part-chip {
+    transition: none;
+  }
+}
+.part-opener-part {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}

@@ -276,6 +276,23 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   outline: none;
 }
 
+/* ---------- Scope line: one short icon item per model (page.jsx) ---------- */
+.scope-strip.scope-items {
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  max-width: none;
+  padding: 0;
+  list-style: none;
+}
+.scope-items .scope-item {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.scope-items .scope-item svg {
+  margin-top: 0;
+}
+
 /* ---------- Section heading: plain icon, h2, one grey sentence ---------- */
 .section-heading {
   display: grid;

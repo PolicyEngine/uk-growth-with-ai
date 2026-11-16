@@ -7,6 +7,7 @@ import MethodSourcesTab from '@/tabs/method/MethodSourcesTab.jsx';
 import ViewTabs from '@/components/ab/ViewTabs.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import Picker from '@/components/ui/Picker.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { NavProvider, useNav, subOf } from '@/lib/nav.jsx';
 import { TABS, tabById, pickersFor, CLOSURES, PAGE_TITLE } from '@/lib/labels.js';
 import { SCENARIOS } from '@/tabs/ai/surprise.js';
@@ -19,10 +20,11 @@ const SCEN_NOTE = { uk_low: 'UK range, lower end', uk_central: 'Headline scenari
 const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
 const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note: c.note, icon: c.icon }));
 
-// What each page's results can and cannot say, in one line under the tabs.
+// What each page's results can and cannot say: one short icon item per
+// model, in one line under the tabs.
 const SCOPE = {
-  oguk: 'OG-UK, a model of the whole economy: no unemployment; results are gaps against the OBR-central path, not forecasts.',
-  study: 'uk-ai-study: one year (FY 2026–27) of households if a share of employees are assumed to lose their jobs; provisional (uk-ai-study #18).',
+  oguk: { icon: 'model', text: 'OG-UK, the whole economy: gaps against the OBR-central path, not forecasts; no unemployment' },
+  study: { icon: 'provisional', text: 'uk-ai-study: households in FY 2026–27 if some employees lose their jobs; provisional' },
 };
 const scopeFor = (tab, sub) => {
   if (tab === 'explore') return sub === 'households' ? [SCOPE.study] : [SCOPE.oguk];
@@ -78,17 +80,13 @@ function Shell() {
         </div>
       ) : null}
       <div className="main-content" id="main-content" tabIndex={-1}>
-        <p className="scope-strip">
-          <Icon name="info" size={16} />
-          <span>
-            {scopeFor(st.tab, sub).map((t, i) => (
-              <span key={t} className="scope-item">
-                {i ? ' · ' : ''}
-                {t}
-              </span>
-            ))}
-          </span>
-        </p>
+        <ul className="scope-strip scope-items" aria-label="What these results are">
+          {scopeFor(st.tab, sub).map((t) => (
+            <li key={t.text} className="scope-item">
+              <Icon name={iconFor(t.icon)} size={14} /> {t.text}
+            </li>
+          ))}
+        </ul>
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (

@@ -83,6 +83,11 @@ export const CONCEPT_ICON = {
   // part 3:
   // explore:
   // method:
+  // shell:
+  answers: 'help', // what a part of the story answers
+  handover: 'compass', // a change of model between parts
+  deeper: 'link', // links to where a part's figures live in detail
+  external: 'externalLink', // a link that leaves the dashboard
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
