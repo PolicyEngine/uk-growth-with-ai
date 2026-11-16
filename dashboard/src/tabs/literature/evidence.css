@@ -444,3 +444,15 @@
   height: 10px;
   border-radius: 2px;
 }
+
+/* "No number published": the zero line breaks around the note (a halo in the
+   row's own background), so the line never touches the text */
+.mx-rb-plot .mx-rb-none {
+  z-index: 1;
+  padding: 2px 8px;
+  margin-left: -8px;
+  background: var(--pe-surface, #fff);
+}
+.mx-rb-row.is-hi .mx-rb-plot .mx-rb-none {
+  background: var(--c-hover);
+}
