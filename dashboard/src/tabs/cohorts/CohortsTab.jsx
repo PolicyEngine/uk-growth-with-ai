@@ -354,7 +354,7 @@ function Spark({ c }) {
         <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-spark-line" />
       </svg>
       <figcaption>
-        <Icon name={iconFor('path')} size={12} /> {`Consumption gap, ${ys[0][0]}–${ys[ys.length - 1][0]}`}
+        <Icon name={iconFor('path')} size={12} /> <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
         {c.first_year_c_above ? <span className="ex-spark-cross">{` · above from ${c.first_year_c_above} →`}</span> : null}
       </figcaption>
     </figure>

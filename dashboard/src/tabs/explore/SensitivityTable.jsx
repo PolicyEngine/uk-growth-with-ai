@@ -9,6 +9,7 @@ import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { ResultSources, methodLink } from './sources.jsx';
+import { AxisTitles } from './axes.jsx';
 
 // The foreign-owned share of the extra capital in 2031, the data file's
 // foreign_share_dK_2031, as a rounded range across the solves.
@@ -110,6 +111,7 @@ function SensDots({ res }) {
   const axes = Object.fromEntries(VARS.map((c) => [c.v, colAxis(res, c.v)]));
   return (
     <div className="ex-sd" role="group" aria-label={`${HEADLINE_YEAR} gaps with more foreign capital, by scenario, arm and measure`}>
+      <AxisTitles y="Rows: scenario and arm" x={`Columns: each measure’s ${HEADLINE_YEAR} gap against the path, %, its own axis from zero`} />
       <div className="ex-sd-row ex-sd-head">
         <span />
         {VARS.map((c) => (

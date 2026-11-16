@@ -74,5 +74,5 @@ export const OG_RESULT_URLS = {
 // uk-ai-study PR #18: a file at the PR's commit (GitHub's blob view renders a
 // CSV as a table).
 export const AI_SHA = AI.source.commit;
-export const aiFile = (p) => `https://github.com/${AI.source.repo}/blob/${AI_SHA}/${p}`;
+export const aiFile = (p) => (AI.source.files_base_url ? `${AI.source.files_base_url}${p}` : `https://github.com/${AI.source.repo}/blob/${AI_SHA}/${p}`);
 export const AI_PR = `https://github.com/${AI.source.repo}/pull/${AI.source.pr}`;

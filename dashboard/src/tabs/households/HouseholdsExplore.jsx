@@ -51,6 +51,43 @@ export function rankingsWords(R) {
   if (!flip.length) return 'Every decile has the same sign under all three rankings';
   return `Deciles ${span(same)} have the same sign under all three; ${flip.length === 1 ? `decile ${flip[0]} changes` : `deciles ${span(flip)} change`} sign`;
 }
+// Cost lines: lost income tax and NI against the higher tax on dividends
+// and savings, from the cost components.
+export function costWords(rows) {
+  const v = (id) => rows.find((r) => r.id === id)?.cost_bn ?? 0;
+  const lost = v('other_income_tax') + v('employer_ni') + v('employee_ni');
+  const gained = -(v('dividend_tax') + v('savings_tax'));
+  return lost > gained ? 'Lost income tax and NI outweigh higher tax on dividends and savings' : 'Higher tax on dividends and savings outweighs lost income tax and NI';
+}
+// Full take-up and JSA against the central case on the same draws.
+const L = (id) => D.ladder.find((r) => r.id === id);
+export function takeupWords() {
+  const c = L('central_20');
+  const vs = [L('takeup'), L('takeup_jsa')].filter(Boolean);
+  const more = vs.every((r) => r.cost_bn > c.cost_bn);
+  const less = vs.every((r) => r.poverty_pp < c.poverty_pp);
+  if (more && less) return { long: 'Full take-up and JSA cost more and raise poverty less', short: 'full take-up costs more, raises poverty less' };
+  return { long: 'Full take-up and JSA move the cost and the poverty rise', short: 'full take-up moves the cost and the poverty rise' };
+}
+export function marginWords() {
+  const j = L('central_20');
+  const w = L('wage_cuts');
+  return !j || !w ? 'compared on the same draws' : j.poverty_pp > w.poverty_pp ? 'job loss raises poverty more' : 'wage cuts raise poverty at least as much';
+}
+export function rulesCostWords(rules) {
+  const cs = rules.map((r) => r.cost_bn);
+  const spread = Math.max(...cs) - Math.min(...cs);
+  return spread >= 2 ? 'moves the cost by billions a year' : 'moves the cost';
+}
+export function policyWords(main) {
+  const all = main.every((r) => r.poverty_pp < 0 && r.gini_pp < 0);
+  return all ? 'Each response lowers poverty and the Gini; costs and reach differ' : 'The responses differ in cost and in what they do to poverty and the Gini';
+}
+// The "outside the attested rebuild" flag: shown while the data file lists
+// results outside the study's rebuild (or, for an older file, says nothing).
+const OUTSIDE = D.method?.outside_rebuild;
+const Flag = () => (OUTSIDE == null || OUTSIDE.length ? <OutsideRebuildFlag className="hh-flag" /> : null);
+
 export function rulesWords(rules, central = 'exposure') {
   const c = rules.find((r) => r.id === central);
   const others = rules.filter((r) => r.id !== central);
@@ -109,7 +146,7 @@ function CostByTax() {
       id="hh-cost-lines"
       icon="landmark"
       title="Cost by tax and benefit"
-      finding={<Line icon="tax">Lost income tax and NI outweigh higher tax on dividends and savings</Line>}
+      finding={<Line icon="tax">{costWords(C.rows)}</Line>}
       unit={
         <>
           <Line icon="measure">Change in each line, £bn a year; positive is a cost</Line> <Chip icon="draws">{C.draws} draws</Chip>
@@ -194,7 +231,7 @@ function Variants() {
       id="hh-ladder"
       icon="layers"
       title="Every variant of the shock"
-      finding={<Line icon="takeUp">Full take-up and JSA cost more and raise poverty less</Line>}
+      finding={<Line icon="takeUp">{takeupWords().long}</Line>}
       unit={
         <>
           <Line icon="measure">Cost, £bn a year, against absolute poverty, change</Line> <Chip icon="draws">20 paired draws each</Chip>
@@ -206,7 +243,7 @@ function Variants() {
       }}
       foot={
         <>
-          <OutsideRebuildFlag className="hh-flag" />
+          <Flag />
           <Notes
             how={['Take-up, JSA and wage cuts reuse the central seeds 0 to 19', 'Compare them with the central case on these draws, not the headline']}
             caveats={['The OBR-sized runs are a smaller shock, not steps on the central ladder', `Sized to ${OBR_SCENARIO}`]}
@@ -376,7 +413,7 @@ function PerPound() {
       }}
       foot={
         <>
-          <OutsideRebuildFlag className="hh-flag" />
+          <Flag />
           <Notes
             how={['Government: the fall in the government balance, employer NI included', 'Household: the part tax, employee NI and benefits absorb']}
             sources={[`${j20.file} (run channel_displacement)`, `${D.per_pound_20.file} (variant cut_only)`, `seed 0: ${perPound('job_loss').file}`, 'results/takeup/takeup_draws.csv (scenario disp_only)']}
@@ -502,7 +539,7 @@ function Displaced() {
       }}
       foot={
         <>
-          <OutsideRebuildFlag className="hh-flag" />
+          <Flag />
           <Notes
             caveats={['Shares count benefit units, not persons', 'The groups overlap; the data give no cross-tabulation', 'Take-up flags: the dataset’s imputation, not DWP take-up statistics']}
             sources={[`${X.claim_uc.file} (diagnostics.obr, existing_unemployed)`, `UC per worker: ${X.uc_per_displaced.file}`, 'results/takeup/takeup_draws.csv', <>Capital limit: {ext(URLS.ucEligibility, 'UC eligibility (GOV.UK)')}</>]}
@@ -702,7 +739,7 @@ function Policy() {
       id="hh-policy"
       icon="handshake"
       title="Policy responses"
-      finding={<Line icon="poverty">Each response lowers poverty and the Gini; costs and reach differ</Line>}
+      finding={<Line icon="poverty">{policyWords(main)}</Line>}
       unit={
         <>
           <Line icon="measure">Cost £bn a year; poverty and Gini changes, against the shocked world</Line> <Chip icon="draws">{P.rows[0].draws} draws</Chip>
@@ -808,9 +845,9 @@ function Sources() {
 
 // The three findings of the lead, each a chip to its section.
 export const FINDINGS = [
-  { id: 'rules', anchor: 'hh-rules', icon: 'scenario', title: 'Who loses the job', text: 'moves the cost by billions a year' },
-  { id: 'margin', anchor: 'hh-ladder', icon: 'wageCut', title: 'Job loss vs wage cuts', text: 'job loss raises poverty more' },
-  { id: 'takeup', anchor: 'hh-ladder', icon: 'takeUp', title: 'Benefit take-up', text: 'full take-up costs more, raises poverty less' },
+  { id: 'rules', anchor: 'hh-rules', icon: 'scenario', title: 'Who loses the job', text: rulesCostWords(D.rules) },
+  { id: 'margin', anchor: 'hh-ladder', icon: 'wageCut', title: 'Job loss vs wage cuts', text: marginWords() },
+  { id: 'takeup', anchor: 'hh-ladder', icon: 'takeUp', title: 'Benefit take-up', text: takeupWords().short },
 ];
 
 export default function HouseholdsExplore() {

@@ -10,6 +10,7 @@ import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { AxisTitles } from '@/tabs/explore/axes.jsx';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -172,6 +173,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
 
   return (
     <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
+      <AxisTitles y="Rows: measure, one marker per arm" x={`Gap against the OBR-central path in ${HEADLINE_YEAR}, %`} reference="Centre line: OBR-central path = 0" />
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">

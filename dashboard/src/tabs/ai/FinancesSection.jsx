@@ -21,6 +21,7 @@ import { SOURCES as LIT } from '@/data/literature.js';
 import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { ResultSources, methodLink } from '@/tabs/explore/sources.jsx';
 import NICS from '@/tabs/explore/nics2028.json';
+import { AxisTitles } from '@/tabs/explore/axes.jsx';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
 // tax/GDP, why both are likely understated, and how the result changes with
@@ -371,8 +372,8 @@ function TaxGapCard({ sid, closure, rule }) {
           columns: ['Item', 'OG-UK', 'Comparison', 'Comparison source', 'Effect on revenue'],
           rows: [
             ...CAUSES.map((c) => [c.title, c.oursText, c.lo != null ? `${c.lo}–${c.hi}${c.unit}` : `${c.value}${c.unit === 'pp' ? 'pp' : '%'}`, c.theirs, c.effect]),
-            [`Tax/GDP in ${HEADLINE_YEAR} with UK tax rates (pp of GDP), low`, null, uk ? uk[0] : null, 'OBR effective rates x labour-share fall', ''],
-            [`Tax/GDP in ${HEADLINE_YEAR} with UK tax rates (pp of GDP), high`, null, uk ? uk[1] : null, 'OBR effective rates x labour-share fall', ''],
+            [`Tax/GDP in ${HEADLINE_YEAR} scaled with OBR effective rates (pp of GDP), low`, null, uk ? uk[0] : null, 'OBR effective rates x labour-share fall', ''],
+            [`Tax/GDP in ${HEADLINE_YEAR} scaled with OBR effective rates (pp of GDP), high`, null, uk ? uk[1] : null, 'OBR effective rates x labour-share fall', ''],
           ],
         }),
         svg: causesSvg,
@@ -382,6 +383,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ],
       }}
     >
+      <AxisTitles y="Rows: the model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = OBR-central path" />
       <TaxStrip model={model} uk={uk} onChart={onChart} />
       <div className="cause-rows">
         {CAUSES.map((c, i) => (
@@ -389,7 +391,7 @@ function TaxGapCard({ sid, closure, rule }) {
             key={c.title}
             icon={iconFor(i ? 'tax' : 'compare')}
             title={c.title}
-            axis={{ max: c.max, label: c.unit === 'pp' ? `${c.max}pp` : `${c.max}% of labour cost` }}
+            axis={{ max: c.max, label: c.unit === 'pp' ? `${c.max}pp` : `${c.max}${c.unit}` }}
             ours={{ value: c.ours, text: c.oursText }}
             theirs={c.lo != null ? { name: c.theirs, lo: c.lo, hi: c.hi, text: c.theirsText } : { name: c.theirs, value: c.value, text: c.theirsText }}
             up={understates(c)}

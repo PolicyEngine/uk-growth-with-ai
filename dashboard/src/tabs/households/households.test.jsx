@@ -28,8 +28,15 @@ describe('HouseholdsExplore', () => {
     const chips = [...container.querySelectorAll('.hh-findings .hh-finding')];
     expect(chips.map((c) => c.querySelector('b').textContent)).toEqual(['Who loses the job', 'Job loss vs wage cuts', 'Benefit take-up']);
     expect(chips.length).toBe(FINDINGS.length);
-    expect(container.querySelector('.hh-lead .notice-chip').textContent.trim()).toBe('Provisional');
-    expect(container.textContent.match(/provisional/gi)).toHaveLength(1);
+    // the status comes from the data file: "Provisional" once while the
+    // study is provisional, not at all once it is merged
+    if (D.provisional === false) {
+      expect(container.querySelector('.hh-lead .notice-chip')).toBeNull();
+      expect(container.textContent).not.toMatch(/provisional/i);
+    } else {
+      expect(container.querySelector('.hh-lead .notice-chip').textContent.trim()).toBe('Provisional');
+      expect(container.textContent.match(/provisional/gi)).toHaveLength(1);
+    }
     expect(container.textContent).not.toMatch(/cell marked/i);
     const story = [...container.querySelectorAll('.hh-lead a')].find((a) => a.textContent.includes('Headlines in story part 3'));
     expect(story.getAttribute('href')).toContain('#story-part-3');
@@ -70,8 +77,9 @@ describe('HouseholdsExplore', () => {
     const { container } = render(<HouseholdsExplore />);
     const rows = container.querySelector('#hh-displaced .hh-uc-rows');
     expect(rows.classList.contains('is-data')).toBe(true);
-    expect(rows.textContent).toContain('£1,385');
-    expect(rows.textContent).toContain('£2,735');
+    const gbp = (v) => `£${Math.round(v).toLocaleString('en-GB')}`;
+    expect(rows.textContent).toContain(gbp(D.displaced.uc_per_displaced.value));
+    expect(rows.textContent).toContain(gbp(D.displaced.uc_per_displaced_takeup.value));
     fireEvent.click([...container.querySelectorAll('#hh-displaced [role="radio"]')][1]);
     expect(rows.classList.contains('is-full')).toBe(true);
   });
@@ -126,9 +134,11 @@ describe('HouseholdsExplore', () => {
     expect(sub).toEqual(D.policy.rows.filter((r) => r.family !== 'exposure').map((r) => r.id));
   });
 
-  it('flags the runs outside the rebuild', () => {
+  it('flags the runs outside the rebuild while the data file lists any', () => {
     const { container } = render(<HouseholdsExplore />);
-    for (const id of ['hh-ladder', 'hh-per-pound', 'hh-displaced']) expect(container.querySelector(`#${id} .p3-flag`), id).not.toBeNull();
+    const out = D.method.outside_rebuild;
+    const flagged = out == null || out.length > 0;
+    for (const id of ['hh-ladder', 'hh-per-pound', 'hh-displaced']) expect(container.querySelector(`#${id} .p3-flag`) != null, id).toBe(flagged);
   });
 });
 
