@@ -790,7 +790,7 @@ export default function HouseholdsExplore() {
           <Notice>
             <I c="provisional" size={13} /> Provisional
           </Notice>
-          <span className="hh-chip" title="Every poverty figure on this page is before housing costs (BHC), the HBAI default">
+          <span className="hh-chip" title="Every poverty figure on this page is before housing costs (BHC), this dashboard’s default basis">
             <I c="poverty" size={13} /> Poverty: before housing costs (default)
           </span>
           <NavLink tab="story" anchor="story-part-3" className="hh-chip is-link">
