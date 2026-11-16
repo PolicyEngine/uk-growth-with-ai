@@ -105,7 +105,7 @@ function MarginFigure({ ctx }) {
       </p>
       <section className="p3-db-group is-a">
         <p className="p3-group-head p3-group-first">
-          <Ico c="cost" /> Each margin alone: cost per <span data-axis="">£1</span> of earnings lost
+          <Ico c="cost" /> Each margin alone, cost to the public finances
         </p>
         <Dumbbell
           head="Pence per £1 of earnings lost"
