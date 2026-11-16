@@ -121,6 +121,7 @@ export default function Moves() {
     },
     {
       id: 'p3-takeup-step',
+      pin: 'bottom',
       kicker: '7 · Take-up and JSA',
       title: 'Benefit take-up moves the cost one way only',
       body: (

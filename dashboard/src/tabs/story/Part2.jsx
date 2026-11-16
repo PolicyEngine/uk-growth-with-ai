@@ -319,10 +319,7 @@ function NextBand() {
           {d.label}
         </NavLink>
       ))}
-    >
-      Part 3 turns to a different model (provisional): household incomes and the public finances if some employees are assumed to lose
-      their jobs.
-    </NextPart>
+    />
   );
 }
 

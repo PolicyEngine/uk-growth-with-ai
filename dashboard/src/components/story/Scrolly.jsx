@@ -9,7 +9,8 @@ import {
 } from "react";
 import { useActiveStep, useIsPhone, useReducedMotion } from "./motion.js";
 
-const PHONE_CAP = 0.45;
+// a sticky graphic may take 45% of a phone screen, 50% of a tablet's
+const capFor = (w) => (w >= 600 ? 0.5 : 0.45);
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const subscribeWidth = (cb) => {
   window.addEventListener("resize", cb);
@@ -30,6 +31,11 @@ const subscribeWidth = (cb) => {
 // reduce)` draws the state for the active step; every state must be
 // readable on its own (a reader can land on any step from a link). Nothing
 // hijacks the scroll.
+//
+// A step marked `pin: 'bottom'` describes the bottom of a figure that may be
+// taller than the screen below the rail (laptops): while it is active, on
+// desktop, the sticky box rises by the overflow so the figure's foot is in
+// view. Other steps keep the figure pinned by its top.
 //
 // A step marked `spacer: true` has no card: the graphic holds its state while
 // it scrolls past (a block can open on the state the previous block ended
@@ -61,8 +67,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false }) {
     reserve &&
     minH > 0 &&
     typeof window !== "undefined" &&
-    minH > window.innerHeight * PHONE_CAP;
+    minH > window.innerHeight * capFor(window.innerWidth);
   const sizers = useRef(null);
+  const box = useRef(null);
   const live = useRef(null);
   useIso(() => {
     if (!measuring || !sizers.current) return;
@@ -85,6 +92,23 @@ export default function Scrolly({ id, steps, graphic, label, wide = false }) {
   }, [reserve]);
   const cards = steps.filter((x) => !x.spacer).length;
   const many = cards > 1;
+  const pinBottom = steps[active]?.pin === "bottom";
+  // pin a figure by its foot while a `pin: 'bottom'` step is active (desktop)
+  useEffect(() => {
+    const b = box.current;
+    if (!b) return undefined;
+    const place = () => {
+      const over =
+        pinBottom && window.innerWidth > 900 && live.current
+          ? live.current.offsetHeight - b.clientHeight
+          : 0;
+      b.style.top =
+        over > 0 ? `calc(var(--story-graphic-top) - ${over + 12}px)` : "";
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [pinBottom, width]);
   const cardIndex =
     steps.slice(0, active + 1).filter((x) => !x.spacer).length - 1;
   return (
@@ -94,6 +118,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false }) {
     >
       <div
         className="scrolly-graphic"
+        ref={box}
         aria-label={label}
         role="group"
         hidden={inline || undefined}

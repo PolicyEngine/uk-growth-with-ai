@@ -199,7 +199,10 @@ describe('story part 1, first states', () => {
   // A page load (and the number check's dump) starts each block on step 0.
   it('draws the outturn alone at step 0, and labels the forecast only once it is drawn', () => {
     const { container } = render(<GdpChart state={0} />);
-    expect(container.textContent).not.toContain('OBR forecast');
+    // the hidden ghost that holds the card's height (frame.jsx) is not shown
+    const shown = container.cloneNode(true);
+    shown.querySelectorAll('.p1-title-ghost').forEach((x) => x.remove());
+    expect(shown.textContent).not.toContain('OBR forecast');
     expect(container.querySelectorAll('.p1-bar')).toHaveLength(real.series.gdp_growth.x.length);
     expect(container.querySelector('.fade-g .p1-forecast').closest('.fade-g').classList.contains('is-on')).toBe(false);
   });

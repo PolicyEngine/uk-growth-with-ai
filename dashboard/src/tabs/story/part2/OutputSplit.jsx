@@ -114,6 +114,10 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
   const [ref, seen] = useInView({ rootMargin: '0px 0px -15% 0px' });
   const [hl, setHl] = useState(null);
   const s = all ? 2 : state;
+  // a row focused when the reader scrolls back loses focus without a blur
+  // (the waterfall goes inert): clear its highlight then
+  if (s < 2 && hl !== null) setHl(null);
+  const lit = hl;
   // nothing wipes in before the block is seen; then column by column
   const reveal = all ? 2 : seen ? Math.min(s + 1, 2) : 0;
   const graph = base ? sankeyGraph(base, true) : null;
@@ -137,13 +141,16 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
               rightRoom={118}
               linkOpacity={0.7}
               reveal={reveal}
-              highlight={s >= 2 ? hl : undefined}
+              highlight={s >= 2 ? lit : undefined}
               onHover={s >= 2 ? setHl : undefined}
             />
           </div>
         ) : (
           <p className="p2-pending">The reference path at this closure is pending.</p>
         )}
+        <p className="story-source">
+          Taxes are not split out: in OG-UK income tax is one combined series. {SOURCE}
+        </p>
       </div>
       {/* not yet reached: invisible, and out of reach of focus and pointer */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
@@ -151,16 +158,15 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
         <p className="story-figure-unit">{where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels</p>
         {ch ? (
           <>
-            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={hl} setHl={setHl} />
+            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={setHl} />
+            <p className="story-source">
+              Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure.
+            </p>
           </>
         ) : (
           <p className="p2-pending">This solve is pending at the closure chosen above.</p>
         )}
       </div>
-      <figcaption className="story-source">
-        {ch ? 'Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure. ' : null}Taxes are
-        not split out: in OG-UK income tax is one combined series. {SOURCE}
-      </figcaption>
     </figure>
   );
 }
@@ -193,6 +199,7 @@ function outputSteps(sid, base, ch) {
     },
     {
       id: 'p2-out-3',
+      pin: 'bottom',
       kicker: 'Where output goes',
       title: `What ${SCEN_NAME[sid]} changes`,
       body: (

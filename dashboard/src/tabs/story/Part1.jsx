@@ -114,6 +114,7 @@ function workSteps() {
     },
     {
       id: 'p1-work-1',
+      pin: 'bottom',
       kicker: 'Work',
       title: 'Unemployment',
       body: (

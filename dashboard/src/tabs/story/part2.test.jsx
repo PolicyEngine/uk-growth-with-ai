@@ -83,7 +83,7 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    expect(container.querySelectorAll('.story-source')).toHaveLength(7); // the output split's Sankey and waterfall share one
+    expect(container.querySelectorAll('.story-source')).toHaveLength(8); // the output split's Sankey and waterfall each have one
     const hrefs = [...container.querySelectorAll('.p2-more a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');

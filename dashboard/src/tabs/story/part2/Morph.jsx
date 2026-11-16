@@ -340,7 +340,7 @@ export function MorphChart({ state, sid, cl }) {
             </text>
           ) : null}
           <g className="p2-mo-newaxis">
-            <rect x={PX0 + 4} y={PY0 + 2} className="p2-mo-newaxis-box" width={122} height={20} rx={3} />
+            <rect x={PX0 + 4} y={PY0 + 2} className="p2-mo-newaxis-box" width={127} height={20} rx={3} />
             <text x={PX0 + 10} y={PY0 + 12} dy="0.35em">
               New scale: gap, %
             </text>

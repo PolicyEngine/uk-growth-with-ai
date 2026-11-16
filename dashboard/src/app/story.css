@@ -67,10 +67,10 @@
   padding: 96px 0 8px;
   scroll-margin-top: calc(var(--sticky-offset) + 40px);
 }
-/* After a part that ends on its "Next" band, the band is the break: a
-   shorter run of page before the next part's band */
+/* After a part that ends on its "Next" line, a shorter run of page before
+   the next part's band */
 .story-part:has(.story-next) + .story-part {
-  padding-top: 40px;
+  padding-top: 56px;
 }
 
 /* The part head sits on a full-bleed teal-50 band (box-shadow and
@@ -157,6 +157,7 @@
   flex-direction: column;
   justify-content: safe center;
   height: calc(100vh - var(--story-graphic-top));
+  transition: top 300ms var(--story-ease);
 }
 .scrolly.is-single .scrolly-graphic {
   height: auto;
@@ -181,6 +182,8 @@
 /* Cards follow one another with a short gap; each step is tall enough
    that the active card changes about once per half screen of scroll. */
 .scrolly-step {
+  /* a link to a step lands its card below the rail */
+  scroll-margin-top: calc(var(--story-graphic-top) + 16px);
   min-height: 70vh;
   padding-bottom: 24px;
   display: flex;
@@ -606,6 +609,11 @@
   .scrolly:not(.is-single) .scrolly-step.is-past .scrolly-card {
     opacity: 0.6;
   }
+  /* inline blocks have no graphic for a past card to slide under: it may
+     still be mid-screen, so it never dims */
+  .scrolly.is-inline .scrolly-step.is-past .scrolly-card {
+    opacity: 1;
+  }
   .scrolly-step,
   .scrolly-step:nth-last-child(2) {
     min-height: 0;
@@ -644,6 +652,7 @@
   .fade-g,
   .tile,
   .scrolly-card,
+  .scrolly-graphic,
   .scrolly-dots-row i,
   .draw-end,
   .story-callout,
@@ -842,14 +851,12 @@
   text-underline-offset: 2px;
 }
 
-/* "Next: part N" (components/story/NextPart.jsx): the band that ends each
-   part, the same full-bleed teal-50 as the part heads */
+/* "Next: part N" (components/story/NextPart.jsx): a plain line that ends
+   each part; the next part's head is the one band at the boundary */
 .story-next {
   margin: 48px 0 0;
-  padding: 28px 0;
-  background: var(--pe-teal-50);
-  box-shadow: 0 0 0 100vmax var(--pe-teal-50);
-  clip-path: inset(0 -100vmax);
+  padding: 24px 0 0;
+  border-top: 1px solid var(--card-border);
 }
 .story-next-inner {
   max-width: 70ch;
@@ -868,10 +875,10 @@
 }
 .story-next-title {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  font-size: var(--fs-section);
-  font-weight: 700;
+  font-size: var(--fs-body);
+  font-weight: 600;
   line-height: 1.25;
 }
 .story-next-link:hover .story-next-title,

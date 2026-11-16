@@ -67,7 +67,8 @@ function Graphic() {
         </ul>
       </div>
       <p className="p3-key">
-        After housing costs, absolute poverty rises by {fmtPp(H.central_poverty_ahc.value)}. Poverty lines as in the HBAI statistics: the
+        After housing costs, absolute poverty rises by {fmtPp(H.central_poverty_ahc.value)}. The study reads the poverty rise as an
+        upper bound, because every displaced worker is out of work all year. Poverty lines as in the HBAI statistics: the
         absolute line is held at its baseline value; the relative line is <span data-input="">60%</span> of the median.
       </p>
       <Source>
@@ -107,10 +108,6 @@ export default function Central() {
               Each employee’s chance of displacement is in proportion to their occupation’s AI exposure. The displacement rate and the wage
               rise follow the Irish design of Doorley et al. (2026), drawn from one investment-bank scenario exercise of displacement over
               about a decade; applying it all in one year makes the central case an impact-year stress test.
-            </p>
-            <p>
-              Because every displaced worker is out of work all year, the study reads the poverty rise as an upper bound for this way of
-              choosing who loses the job.
             </p>
           </About>
         </>

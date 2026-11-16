@@ -44,9 +44,7 @@ export default function Part3({ part }) {
       <Margin />
       <Moves />
       <Closing />
-      <NextPart title="Two lenses" to="story-close" links={<CloseLinks />}>
-        What each model can and cannot say, and why their numbers are not added together.
-      </NextPart>
+      <NextPart title="Two lenses" to="story-close" links={<CloseLinks />} />
     </>
   );
 }

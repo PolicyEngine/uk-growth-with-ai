@@ -91,8 +91,12 @@ export function Legend({ items }) {
 // The frame round a graphic: title, unit line, drawing, legend, source.
 // `titleReserve`: the longest title any state shows; it holds the title's
 // height (hidden, in the same grid cell), so a longer title in a later state
-// does not move the drawing below it.
-export function Figure({ title, titleReserve, unit, legend, source, children, innerRef }) {
+// does not move the drawing below it. `footReserve` ({ legend, source }):
+// the fullest legend and source line any state shows, held the same way, so
+// the card's height does not change between states (it is vertically
+// centred, so a taller foot would move its title). The ghost is
+// visibility: hidden (out of innerText) and data-axis (not a figure).
+export function Figure({ title, titleReserve, unit, legend, source, footReserve, children, innerRef }) {
   return (
     <figure className="p1-figure" ref={innerRef}>
       {titleReserve ? (
@@ -107,8 +111,23 @@ export function Figure({ title, titleReserve, unit, legend, source, children, in
       )}
       {unit ? <p className="story-figure-unit">{unit}</p> : null}
       {children}
-      {legend?.length ? <Legend items={legend} /> : null}
-      <figcaption>{source}</figcaption>
+      {footReserve ? (
+        <div className="p1-foot-stack">
+          <div>
+            {legend?.length ? <Legend items={legend} /> : null}
+            <figcaption>{source}</figcaption>
+          </div>
+          <div className="p1-title-ghost" aria-hidden="true" data-axis="" inert="">
+            {footReserve.legend?.length ? <Legend items={footReserve.legend} /> : null}
+            <div>{footReserve.source}</div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {legend?.length ? <Legend items={legend} /> : null}
+          <figcaption>{source}</figcaption>
+        </>
+      )}
     </figure>
   );
 }

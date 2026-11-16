@@ -203,6 +203,12 @@
 .p1-title-ghost {
   visibility: hidden;
 }
+.p1-foot-stack {
+  display: grid;
+}
+.p1-foot-stack > * {
+  grid-area: 1 / 1;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .p1-swap-layer,

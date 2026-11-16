@@ -43,6 +43,20 @@ const qYear = (q) => Number(q.slice(0, 4));
 // the OBR's table starts from an earlier estimate of the last outturn year.
 // The full scale is kept so the pandemic years read at their true size;
 // they are labelled. state 0: bars; 1: + OBR forecast.
+const gdpLegend = (fc) => [
+  { key: 'ons', label: 'ONS outturn', color: 'var(--series-2)', block: true },
+  ...(fc ? [{ key: 'obr', label: OBR_LABEL, color: 'var(--pe-gray-800)', dashed: true }] : []),
+];
+const gdpSource = (g, fc, gLast) => (
+  <SourceLine
+    items={[
+      { id: g.source, name: 'GDP year-on-year growth' },
+      ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
+    ]}
+    note={fc ? `The OBR’s table starts from an earlier estimate of ${gLast} growth than the ONS’s latest, so the two are drawn apart, not joined.` : undefined}
+  />
+);
+
 export function GdpChart({ state }) {
   const [ref, seen] = useInView();
   const g = SERIES.gdp_growth;
@@ -69,23 +83,9 @@ export function GdpChart({ state }) {
       title={fc ? `Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}` : `Real GDP growth, ${x0} to ${gLast}`}
       titleReserve={`Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`}
       unit={`Percentage change on the previous calendar year. Full years only: ${gLast} is the latest complete year.`}
-      legend={[
-        { key: 'ons', label: 'ONS outturn', color: 'var(--series-2)', block: true },
-        ...(fc ? [{ key: 'obr', label: OBR_LABEL, color: 'var(--pe-gray-800)', dashed: true }] : []),
-      ]}
-      source={
-        <SourceLine
-          items={[
-            { id: g.source, name: 'GDP year-on-year growth' },
-            ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
-          ]}
-          note={
-            fc
-              ? `The OBR’s table starts from an earlier estimate of ${gLast} growth than the ONS’s latest, so the two are drawn apart, not joined.`
-              : undefined
-          }
-        />
-      }
+      legend={gdpLegend(fc)}
+      source={gdpSource(g, fc, gLast)}
+      footReserve={{ legend: gdpLegend(true), source: gdpSource(g, true, gLast) }}
     >
       <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} role="img" aria-label={label}>
         <Axes sc={sc} yTicks={ticks} zero xTicks={[...yearTicks(g.x), { x: x1 }]} />

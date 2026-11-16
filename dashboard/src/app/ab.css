@@ -74,10 +74,9 @@
   --series-3: #0ea5e9;
   --series-4: #285e61;
   --series-5: #64748b;
-  /* Who receives output (story part 2's Sankey and shock tiles), chosen by
-     Fable 5.2 to stay clear of gain teal, loss amber and the arm blues,
-     including under deuteranopia and protanopia: labour indigo, capital a
-     brown family. The abroad and depreciation fills are labelled in
+  /* Who receives output (story part 2's Sankey and shock tiles): labour
+     indigo, capital a brown family, clear of gain teal, loss amber and the
+     arm blues, including under deuteranopia and protanopia. The abroad and depreciation fills are labelled in
      --c-capital (they fall short of 4.5:1 on white). */
   --c-labour: #4338ca;
   --c-capital: #5c4033;
