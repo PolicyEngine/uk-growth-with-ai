@@ -277,33 +277,6 @@
   text-underline-offset: 2px;
 }
 
-/* Related PolicyEngine work: a title link and one line each */
-.p3-close #p3-related-h {
-  margin-top: 20px;
-}
-.p3-related {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-body);
-  line-height: 1.6;
-  color: var(--pe-gray-700);
-}
-.p3-related a {
-  display: block;
-  font-weight: 600;
-  color: var(--c-gain-text);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.p3-related-note {
-  margin: 10px 0 0;
-  font-size: var(--fs-micro);
-  color: var(--pe-gray-500);
-}
 
 /* Block 6: deciles, one line each */
 .p3-deciles {
@@ -521,7 +494,6 @@
   margin-right: 0;
 }
 #story-part-3 .story-next-links .p3-ico,
-#story-part-3 .p3-related a .p3-ico,
 #story-part-3 .p3-row-label a .p3-ico {
   color: inherit;
 }
@@ -600,11 +572,6 @@
 }
 #story-part-3 .p3-close {
   max-width: 920px;
-}
-#story-part-3 .p3-related-note {
-  margin-top: 14px;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-500);
 }
 #story-part-3 .p3-close h3 {
   display: flex;
@@ -690,15 +657,6 @@
   #story-part-3 .p3-out-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-#story-part-3 .p3-related .story-items {
-  gap: 4px;
-  margin-top: 4px;
-  font-size: var(--fs-small);
-  line-height: 1.5;
-}
-#story-part-3 .p3-related a {
-  margin-bottom: 2px;
 }
 @media (max-width: 900px) {
   #story-part-3 .p3-facts .story-fact {

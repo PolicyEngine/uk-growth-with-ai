@@ -38,7 +38,7 @@ describe('HouseholdsExplore', () => {
   it('prints no figure across part 3 and this page that is not listed at one home', () => {
     const story = render(<Part3 part={{ id: 'story-part-3', n: 3, icon: 'usersRound', kicker: 'Part 3', title: 'A model of households' }} />).container;
     const page = render(<HouseholdsExplore />).container;
-    const got = counts([...(text(story, ', .p3-related').match(FIG) ?? []), ...(text(page).match(FIG) ?? [])]);
+    const got = counts([...(text(story).match(FIG) ?? []), ...(text(page).match(FIG) ?? [])]);
     expect(off(got, counts([...storyFigures(), ...householdsFigures()]))).toEqual([]);
   });
 

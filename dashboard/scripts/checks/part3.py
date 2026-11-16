@@ -72,15 +72,6 @@ for k in ('takeup', 'takeup_jsa'): story[bn(LAD[k]['cost_bn'])] += 1; story[pp(L
 STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months",
               'not the central case']
 
-# Related PolicyEngine work, at the close of part 3: figures read off its
-# pages (relatedWork.json). Those the pattern sees are counted with part 3's;
-# the Gini values and the US revenue are checked as printed.
-REL = {r['id']: r for r in json.load(open(os.path.join(DATA, 'relatedWork.json')))['items']}
-_sh, _lab = REL['income_shift'], REL['budget_lab']
-story[f"{_sh['revenue_min_shift_pct']}%"] += 1; story[f"−£{_sh['revenue_min_bn']}"] += 1
-story[f"{_lab['rapid_poverty_pp']}pp"] += 1
-REL_TEXT = [_sh['gini_base'], _sh['gini_full'], f"${_lab['rapid_revenue_bn']}B", f"−£{_sh['revenue_min_bn']}B"]
-
 hh = Counter()
 for r in AI['cost_components']['rows']:
     hh['£0.1bn' if abs(r['cost_bn']) < 0.05 else bn(r['cost_bn'])] += 1
@@ -136,7 +127,7 @@ def check(dump):
                 bad += 1; print(sid, name, 'prints NaN/undefined')
         if not (t and e):
             break
-        for x in REL_TEXT + STORY_TEXT:
+        for x in STORY_TEXT:
             if t.count(x) != 1:
                 bad += 1; print(sid, 'story part 3:', repr(x), 'printed', t.count(x), 'times')
         got_s, got_e = Counter(FIG3.findall(t)), Counter(FIG3.findall(e))

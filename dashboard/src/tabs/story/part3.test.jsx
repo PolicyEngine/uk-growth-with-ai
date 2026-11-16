@@ -7,7 +7,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
-import R from '@/data/relatedWork.json';
 import Part3 from './Part3.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 import { FIG, counts, storyFigures } from '@/tabs/households/figures.js';
@@ -56,7 +55,7 @@ describe('format', () => {
 describe('Part3', () => {
   it('prints every figure at its home exactly once, and nothing else', () => {
     const { container } = renderPart();
-    const text = checkedText(container, ', .p3-related');
+    const text = checkedText(container);
     const got = counts(text.match(FIG) ?? []);
     const exp = counts(storyFigures());
     const off = [...new Set([...Object.keys(got), ...Object.keys(exp)])].filter((k) => got[k] !== exp[k]);
@@ -178,9 +177,10 @@ describe('Part3', () => {
     expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/pull/18');
     expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf');
     for (const q of ['tab=explore&sub=households', 'tab=method&sub=households', 'tab=method&sub=studies']) expect(hrefs.some((h) => h.includes(q)), q).toBe(true);
-    const related = [...close.querySelectorAll('.p3-related a')].map((a) => a.getAttribute('href'));
-    expect(related).toEqual(R.items.map((x) => x.url));
-    for (const x of [R.items[0].gini_base, R.items[0].gini_full]) expect(close.textContent).toContain(x);
+    // related PolicyEngine work lives on Method and sources > Evidence: one link here, no figures
+    expect(close.querySelector('.p3-related')).toBeNull();
+    const rel = [...next.querySelectorAll('.story-next-links a')].find((a) => a.textContent.includes('Related PolicyEngine work'));
+    expect(rel.getAttribute('href')).toContain('tab=method&sub=studies');
   });
 
   it('keeps unused formats importable', () => {
