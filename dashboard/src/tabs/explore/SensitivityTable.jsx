@@ -16,6 +16,22 @@ const VARS = [
 const at = (r, v) => (r?.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
 const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-loss' : '');
 
+// The investment surge in the main arm (PR #41's third caveat, audit A7):
+// the range over the scenarios of the investment gap in the shock year, at
+// its peak before the headline year, and in the headline year.
+function investmentWords(res) {
+  const year = (y) => YEARS.indexOf(y);
+  const gaps = SCENARIOS.map((s) => res[s.id]?.tfp).filter((r) => r?.status === 'done').map((r) => r.gaps.I);
+  if (!gaps.length) return '';
+  const first = YEARS[YEARS.findIndex((y, i) => gaps.some((g) => Math.abs(g[i]) > 1e-9))];
+  const range = (f) => {
+    const xs = gaps.map(f);
+    return `${Math.round(Math.min(...xs))}–${Math.round(Math.max(...xs))}%`;
+  };
+  const peak = (g) => Math.max(...g.slice(year(first), year(HEADLINE_YEAR)));
+  return ` Main-arm investment is ${range((g) => g[year(first)])} above the path in ${first}, ${range(peak)} at its peak before ${HEADLINE_YEAR} and ${range((g) => g[year(HEADLINE_YEAR)])} in ${HEADLINE_YEAR}, across the scenarios. OG-Core has no capital adjustment cost, so the capital stock moves as fast as the closure lets foreign capital in: that path is an artefact of frictionless capital, not a forecast, and the capital response by ${HEADLINE_YEAR} is an upper bound on speed as well as size.`;
+}
+
 export default function SensitivityTable() {
   const sens = S.sensitivity?.[SENS];
   if (!sens) return null;
@@ -32,7 +48,7 @@ export default function SensitivityTable() {
       about={{
         shows: `Each scenario and arm solved with ζK = ${sens.zeta_K}: foreign investors supply half of the excess demand for capital at the world rate. It is a sensitivity only; no other chart uses it.`,
         how: 'The same solves, checks and reference path as the two closures in Explore, with only ζK changed. The reference is the no-shock path restarted in 2028 at this closure.',
-        caveats: 'The stress test holds GDP at the path in the headline year by construction.',
+        caveats: `The stress test holds GDP at the path in the headline year by construction.${investmentWords(res)}`,
       }}
       method="closures"
       download={{
