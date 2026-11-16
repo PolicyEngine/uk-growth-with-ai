@@ -128,8 +128,8 @@
 }
 
 /* Several figures in one sticky graphic (frame.jsx, Swap): the layers share
-   one grid cell (a shorter one centred in the tallest one's height); the
-   old one fades out, then the new one fades in, so two
+   one grid cell (top-aligned, so the title and dots stay put); the old one
+   fades out, then the new one fades in, so two
    sets of labels never overlap. A hidden layer is visibility: hidden once
    faded, so its links leave the tab order. */
 .p1-swap {
@@ -137,7 +137,6 @@
 }
 .p1-swap-layer {
   grid-area: 1 / 1;
-  align-self: center;
   min-width: 0;
   opacity: 0;
   visibility: hidden;
@@ -149,11 +148,35 @@
   transition: opacity 320ms ease 220ms, visibility 0s linear 220ms;
 }
 
-/* An old block id kept as a link target at the top of a merged step */
+/* A phone step that carries its own copy of the graphic shows only its own
+   layer, not a box the height of the tallest one. */
+.scrolly-graphic-inner.is-inline .p1-swap-layer:not(.is-on) {
+  display: none;
+}
+
+/* Desktop: each block's last card brings in a new figure, so the graphic
+   stays pinned while that card is read (story.css gives the last step no
+   height, which lets the graphic scroll away as the card arrives). */
+@media (min-width: 901px) {
+  .scrolly[id^='p1-'] .scrolly-step:nth-last-child(2) {
+    min-height: 50vh;
+  }
+}
+
+/* A drawn line's end dot leaves at once when the line retracts (scrolling
+   back); it still waits for the draw on the way in (story.css). */
+.p1-svg .draw-end:not(.is-on) {
+  transition-delay: 0s;
+  transition-duration: 120ms;
+}
+
+/* An old block id kept as a link target at the top of a merged step. A link
+   to it lands with the card at the step trigger line (about 40% down), so
+   that step is the active one and its figure is pinned in view. */
 .p1-anchor {
   display: block;
   height: 0;
-  scroll-margin-top: calc(var(--sticky-offset) + 40px);
+  scroll-margin-top: 40vh;
 }
 
 /* "About these figures": a caveat under a card, closed by default */

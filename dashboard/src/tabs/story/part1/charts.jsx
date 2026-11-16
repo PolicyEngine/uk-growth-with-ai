@@ -319,7 +319,7 @@ export function LabourShareChart({ on = true }) {
       s={s}
       step={2}
       title={`Compensation of employees as a share of GDP, ${s.x[0]} to ${last}`}
-      unit="Per cent of GDP at current prices, annual. Leaves out the income of the self-employed, so it is lower than measures of labour’s share that count that income."
+      unit="Per cent of GDP at current prices, annual. Leaves out the income of the self-employed."
       label={`Line chart: compensation of employees as a share of GDP, annual, from ${s.x[0]} to ${last}.`}
       source={
         <SourceLine
@@ -327,7 +327,7 @@ export function LabourShareChart({ on = true }) {
             { id: 'ons_dtwm', name: 'compensation of employees' },
             { id: 'ons_ybha', name: 'GDP at current prices' },
           ]}
-          note={`The share is one series divided by the other. The annual series ends at ${last}, the latest full year.`}
+          note={`The share is one series divided by the other. The annual series ends at ${last}, the latest full year. Leaving out the self-employed’s income makes it lower than measures of labour’s share that count that income.`}
         />
       }
     />
