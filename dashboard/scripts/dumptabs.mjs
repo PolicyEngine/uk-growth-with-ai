@@ -21,7 +21,7 @@ const tabs = [
   ...['closed', 'both'].flatMap((c) => SUBS.map((s) => `results:${s}:${c}`)),
   'results:finances:central:dn', 'results:finances:closed:dn', 'results:finances:both:dn',
   'results:finances:central:fixed', 'results:finances:closed:fixed', 'results:finances:both:fixed',
-  'who', 'who:both', 'scenarios', 'method', 'studies', 'code',
+  'who', 'who:both', 'method', 'studies', 'code',
   'results:all',
   'story:part1', 'story:part3',
   // uk-ai-study detail and method: ?tab=explore&sub=households and

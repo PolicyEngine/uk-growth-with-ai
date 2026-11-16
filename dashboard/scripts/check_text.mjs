@@ -18,11 +18,9 @@ const PAGES = {
   economy: '/?tab=explore',
   finances: '/?tab=explore&sub=finances',
   who: '/?tab=explore&sub=who',
-  all: '/?tab=explore&sub=all',
   households: '/?tab=explore&sub=households',
   method: '/?tab=method',
   'household-method': '/?tab=method&sub=households',
-  scenarios: '/?tab=method&sub=scenarios',
   evidence: '/?tab=method&sub=studies',
   data: '/?tab=method&sub=code',
 };
