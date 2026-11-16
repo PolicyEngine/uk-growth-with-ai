@@ -70,7 +70,7 @@ export const CONCEPT_ICON = {
   flat: 'minus', // an official growth rate of zero
   period: 'calendar', // the period a figure covers: year, quarter, months
   revision: 'history', // first estimates, open to revision
-  survey: 'list', // a survey (Labour Force Survey, BICS)
+  survey: 'help', // a survey (Labour Force Survey, BICS)
   business: 'building', // businesses
   workers: 'usersRound', // UK workers (the exposure grid)
   labourShare: 'percent', // labour's share of GDP
@@ -85,18 +85,18 @@ export const CONCEPT_ICON = {
   // method:
   equation: 'sigma', // the model's equations
   closed: 'lock', // closed capital: no foreign capital
-  start: 'flag', // the starting point of a run
-  revision: 'history', // a revision, the changelog
+  start: 'play', // the starting point of a run
+  // revision (history) is defined in the part 1 block: also used for the changelog
   pipeline: 'gitBranch', // the run pipeline
   version: 'package', // a software version
-  release: 'calendar', // a release or update date
+  // a release or update date uses `period` (calendar)
   install: 'download', // installing the model
   coverage: 'layoutGrid', // the coverage matrix
   table: 'table', // a table of estimates
   ledger: 'list', // the source ledger
   stages: 'listTree', // stages of a pipeline
-  generations: 'usersRound', // overlapping generations
-  interest: 'percent', // interest rates, repricing
+  generations: 'link', // overlapping generations
+  interest: 'activity', // interest rates, repricing
   scarceGoods: 'cart', // demand for goods that stay scarce
   jump: 'construction', // a one-year jump, no adjustment costs
   prerequisite: 'key', // what you need first

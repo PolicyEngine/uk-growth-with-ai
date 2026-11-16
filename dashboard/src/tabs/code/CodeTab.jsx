@@ -355,7 +355,7 @@ function Vintages() {
           ))}
         </dl>
       </InfoCard>
-      <InfoCard icon={iconFor('release')} title="Official releases (ONS, OBR, DSIT)" id="releases">
+      <InfoCard icon={iconFor('period')} title="Official releases (ONS, OBR, DSIT)" id="releases">
         <ul className="ledger-releases" data-reference="">
           {RELEASES.map((r) => (
             <li key={r.id}>
@@ -390,7 +390,7 @@ function Ledger() {
             items={
               HAS_CHECKS
                 ? [
-                    { icon: 'release', text: 'Each official figure the story prints is listed with its release.' },
+                    { icon: 'period', text: 'Each official figure the story prints is listed with its release.' },
                     { icon: 'check', text: 'And the second, independent read of its primary file (ukContextChecks.json).' },
                     { icon: 'data', text: 'The rest come from each data file.' },
                   ]
@@ -405,7 +405,7 @@ function Ledger() {
           <Items
             items={[
               { icon: 'source', text: 'Published studies were checked against the primary text (PR #37, then #41).' },
-              { icon: 'release', text: 'The location in each source is given as its vintage.' },
+              { icon: 'period', text: 'The location in each source is given as its vintage.' },
             ]}
           />
         ),

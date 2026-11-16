@@ -148,7 +148,7 @@ export default function EvidenceMap({ map = MAP }) {
           <Items
             items={[
               { icon: 'check', text: 'Read in the primary text, at the page or table given.' },
-              { icon: 'release', text: 'Read on the date given.' },
+              { icon: 'period', text: 'Read on the date given.' },
               { icon: 'check', text: 'Or confirmed in the 15 November 2026 UK-studies review (marked “review”).' },
               { icon: 'excluded', text: 'A figure not yet confirmed in a primary text is left out.' },
               { icon: 'caveat', text: 'Bodies with no AI-specific estimate show their nearest output.' },
