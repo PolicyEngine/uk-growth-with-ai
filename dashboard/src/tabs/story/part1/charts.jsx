@@ -3,7 +3,9 @@
 import { useInView } from '@/components/story/motion.js';
 import { DrawEnd, DrawPath, FadeG, GrowRect, TileGrid } from '@/components/story/primitives.jsx';
 import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './data.js';
-import { Axes, Figure, Legend, SourceLine, W, linePath, scales } from './frame.jsx';
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import { Axes, FigTitle, FigUnit, Figure, Legend, SourceLine, W, linePath, scales } from './frame.jsx';
 import { span3 } from './format.js';
 
 // Part 1's graphics. Each takes the active `state` of its scrolly block and
@@ -78,6 +80,7 @@ export function GdpChart({ state }) {
   }`;
   return (
     <Figure
+      icon="gdp"
       innerRef={ref}
       title={fc ? `Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}` : `Real GDP growth, ${x0} to ${gLast}`}
       titleReserve={`Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`}
@@ -144,6 +147,7 @@ export function GdpQuartersChart({ on = true }) {
   const firstOfYear = g.x.map((q, i) => ({ q, i })).filter(({ q }) => q.endsWith('Q1'));
   return (
     <Figure
+      icon="period"
       innerRef={ref}
       title={`Real GDP growth by quarter, ${g.x[0]} to ${lastQ}`}
       unit={`Percentage change on the previous quarter, seasonally adjusted. ${lastQ} is a first estimate.`}
@@ -188,13 +192,13 @@ export function GdpQuartersChart({ on = true }) {
 }
 
 // A single line over decimal years (t) or whole years (x), drawn in when seen.
-function TimeLine({ s, step, h = 250, withZero = false, every = 4, title, unit, label, source, color = 'var(--series-2)', on = true, extraRef }) {
+function TimeLine({ icon, s, step, h = 250, withZero = false, every = 4, title, unit, label, source, color = 'var(--series-2)', on = true, extraRef }) {
   const t = s.t ?? s.x;
   const { lo, hi, ticks } = domain(s.y, step, withZero);
   const sc = scales({ x0: t[0], x1: t[t.length - 1], lo, hi, h });
   const xTicks = s.t ? decimalYearTicks(t[0], t[t.length - 1], every) : yearTicks(s.x);
   return (
-    <Figure title={title} unit={unit} source={source} innerRef={extraRef}>
+    <Figure icon={icon} title={title} unit={unit} source={source} innerRef={extraRef}>
       <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} role="img" aria-label={label}>
         <Axes sc={sc} yTicks={ticks} zero={withZero} xTicks={xTicks} />
         <DrawPath d={linePath(sc, t, s.y)} on={on} className="p1-line" style={{ stroke: color }} />
@@ -211,6 +215,7 @@ export function ProductivityChart() {
   const span = `${s.x[0]} to ${s.x[s.x.length - 1]}`;
   return (
     <TimeLine
+      icon="productivity"
       extraRef={ref}
       on={seen}
       s={s}
@@ -218,21 +223,22 @@ export function ProductivityChart() {
       title={`Output per hour worked, whole economy, ${span}`}
       unit="Index, 2023 = 100, quarterly, seasonally adjusted"
       label={`Line chart: output per hour worked in the whole economy, a quarterly index with 2023 equal to 100, from ${span}.`}
-      source={
-<SourceLine items={[{ id: s.source, name: 'output per hour worked' }]} />
-      }
+      source={<SourceLine items={[{ id: s.source, name: 'output per hour worked' }]} />}
     />
   );
 }
 
 // One small panel of the labour market set: no figure frame of its own.
-function Panel({ s, step, withZero, title, on, color }) {
+function Panel({ icon, s, step, withZero, title, on, color }) {
   const h = 150;
   const { lo, hi, ticks } = domain(s.y, step, withZero);
   const sc = scales({ x0: s.t[0], x1: s.t[s.t.length - 1], lo, hi, h });
   return (
     <div className="p1-panel">
-      <p className="p1-panel-title">{title}</p>
+      <p className="p1-panel-title p1-title-row">
+        <Icon name={iconFor(icon)} size={14} className="p1-text-icon" />
+        <span>{title}</span>
+      </p>
       <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} aria-hidden="true">
         <Axes sc={sc} yTicks={ticks} zero={withZero} xTicks={decimalYearTicks(s.t[0], s.t[s.t.length - 1], 4)} />
         <DrawPath d={linePath(sc, s.t, s.y)} on={on} className="p1-line" style={{ stroke: color }} />
@@ -252,16 +258,16 @@ export function LabourPanels({ state }) {
   const span = `${e.x[0].slice(0, 4)} to ${span3(e.last)}`;
   return (
     <figure className="p1-figure" ref={ref}>
-      <p className="story-figure-title">Employment and unemployment, {span}</p>
-      <p className="story-figure-unit">Rolling three-month averages, seasonally adjusted. Each panel has its own scale.</p>
+      <FigTitle icon="labour" title={`Employment and unemployment, ${span}`} />
+      <FigUnit>Rolling three-month averages, seasonally adjusted. Each panel has its own scale.</FigUnit>
       <div
         role="img"
         aria-label={`Two line charts, each with its own scale: the employment rate for people aged 16 to 64${
           state >= 1 ? ' and the unemployment rate for people aged 16 and over' : ' (drawn) and the unemployment rate for people aged 16 and over (not yet drawn)'
         }, three-month averages, ${span}.`}
       >
-        <Panel s={e} step={2} title="Employment rate: % of people aged 16 to 64" on={seen} color="var(--series-2)" />
-        <Panel s={u} step={3} withZero title="Unemployment rate: % of economically active people aged 16 and over" on={seen && state >= 1} color="var(--pe-gray-700)" />
+        <Panel icon="labour" s={e} step={2} title="Employment rate: % of people aged 16 to 64" on={seen} color="var(--series-2)" />
+        <Panel icon="labour" s={u} step={3} withZero title="Unemployment rate: % of economically active people aged 16 and over" on={seen && state >= 1} color="var(--pe-gray-700)" />
       </div>
       <figcaption>
         <SourceLine
@@ -283,6 +289,7 @@ export function PayChart({ on = true }) {
   const span = `${s.x[0].slice(0, 4)} to ${span3(s.last)}`;
   return (
     <TimeLine
+      icon="pay"
       extraRef={ref}
       on={seen}
       s={s}
@@ -292,9 +299,7 @@ export function PayChart({ on = true }) {
       title={`Regular pay growth, ${span}`}
       unit="Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation"
       label={`Line chart: growth of average weekly regular pay on a year earlier, three-month averages, ${span}.`}
-      source={
-<SourceLine items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]} />
-      }
+      source={<SourceLine items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]} />}
     />
   );
 }
@@ -307,6 +312,7 @@ export function LabourShareChart({ on = true }) {
   const last = s.x[s.x.length - 1];
   return (
     <TimeLine
+      icon="labourShare"
       extraRef={ref}
       on={seen}
       s={s}
@@ -341,6 +347,7 @@ export function AiUseChart({ state }) {
   const short = (d) => d.replace(/^\d+ /, '');
   return (
     <Figure
+      icon="ai"
       innerRef={ref}
       title={`Businesses using at least one AI technology, ${short(a.x[0])} to ${short(a.x[last])}`}
       unit="Per cent of businesses, by survey wave (dated at its midpoint)"
@@ -399,13 +406,8 @@ export function ExposureTiles({ state, source }) {
     : 'A grid of 100 tiles, each one per cent of UK workers.';
   return (
     <figure className="p1-figure">
-      <p className="story-figure-title p1-title-stack">
-        <span>{grouped ? 'UK workers by exposure to AI' : 'UK workers'}</span>
-        <span className="p1-title-ghost" aria-hidden="true">
-          UK workers by exposure to AI
-        </span>
-      </p>
-      <p className="story-figure-unit">Each tile is one per cent of UK workers</p>
+      <FigTitle icon="workers" title={grouped ? 'UK workers by exposure to AI' : 'UK workers'} reserve="UK workers by exposure to AI" />
+      <FigUnit>Each tile is one per cent of UK workers</FigUnit>
       <div className="p1-tiles">
         <TileGrid tiles={exposureTiles(state)} width={GRID_W} height={GRID_H} label={label} />
       </div>

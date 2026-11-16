@@ -254,6 +254,27 @@
 .p1-title-stack {
   display: grid;
 }
+/* a figure title, unit line or panel title led by its concept icon */
+.p1-title-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.p1-title-row > .p1-text-icon {
+  flex: none;
+  margin-top: 2px;
+}
+/* an icon inline at the start of a line of text: plain, grey */
+.p1-text-icon,
+.p1-source-icon {
+  display: inline-flex;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.p1-source-icon {
+  margin-right: 4px;
+  vertical-align: -1px;
+}
 .p1-title-stack > span {
   grid-area: 1 / 1;
 }

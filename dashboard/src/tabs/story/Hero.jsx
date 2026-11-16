@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { useNav } from '@/lib/nav.jsx';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
 import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SCEN_NAME } from '@/tabs/ai/surprise.js';
@@ -90,13 +91,15 @@ export default function Hero() {
     <section className="story-hero" aria-labelledby="story-q">
       <div className="story-hero-text">
         <SummaryQuestion sid={st.s} titleId="story-q" />
-        <p className="story-hero-lead">Below, in three parts:</p>
+        <p className="story-hero-lead">
+          <Icon name={iconFor('next')} size={16} className="p1-text-icon" /> Below, in three parts:
+        </p>
         <Items
           className="hero-parts"
           items={[
             { icon: 'record', text: <a href="#story-part-1">Where the UK economy and labour market stand</a> },
             { icon: 'model', text: <a href="#story-part-2">What a model of the whole economy projects</a> },
-            { icon: 'households', text: <a href="#story-part-3">Incomes, poverty, public finances, if some jobs are assumed lost</a> },
+            { icon: 'households', text: <a href="#story-part-3">A household model: incomes, poverty, public finances, if job losses are assumed</a> },
           ]}
         />
         <a className="story-scroll-cue" href="#story-part-1">
@@ -133,7 +136,9 @@ export default function Hero() {
             { icon: 'caveat', text: 'Shape only: the figures are in part 2' },
           ]}
         />
-        <p className="story-source">Source: OG-UK, PolicyEngine.</p>
+        <p className="story-source">
+          <Icon name={iconFor('source')} size={13} className="p1-source-icon" /> Source: OG-UK, PolicyEngine.
+        </p>
       </div>
     </section>
   );

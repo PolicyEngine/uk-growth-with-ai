@@ -50,12 +50,11 @@ const About = ({ items }) => (
   </details>
 );
 
-// A growth rate with a small arrow from its sign (format.js dirOf). The
-// arrow is hidden from screen readers; the fact's sub line says the same
-// in words (dirWord).
+// A growth rate. Its fact's icon is the arrow for its sign (format.js
+// dirOf: icon: dirOf(v)); the arrow is hidden from screen readers, so the
+// fact's sub line says the same in words (dirWord).
 const Growth = ({ v }) => (
   <span className="p1-growth" data-dir={dirOf(v)}>
-    <Icon name={iconFor(dirOf(v))} size={18} className="p1-dir" />
     {pct1(v)}
   </span>
 );
@@ -80,7 +79,7 @@ function outputSteps() {
         <>
           <KeyFacts
             className="p1-facts"
-            facts={[{ icon: 'gdp', value: <Growth v={g.value} />, label: 'real GDP growth', sub: `${g.period}, output ${dirWord(g.value)} on a year earlier` }]}
+            facts={[{ icon: dirOf(g.value), value: <Growth v={g.value} />, label: 'real GDP growth', sub: `${g.period}, output ${dirWord(g.value)} on a year earlier` }]}
           />
           <Items
             items={[
@@ -104,7 +103,7 @@ function outputSteps() {
             className="p1-facts is-three"
             facts={obr.map((i) => ({
               key: OBR.x[i],
-              icon: 'forecast',
+              icon: dirOf(OBR.y[i]),
               value: <Growth v={OBR.y[i]} />,
               label: `growth in ${OBR.x[i]}`,
               sub: `output ${dirWord(OBR.y[i])}${i === OBR.y.length - 1 ? ', last year covered' : ''}`,
@@ -132,8 +131,8 @@ function outputSteps() {
           <KeyFacts
             className="p1-facts"
             facts={[
-              { icon: 'gdp', value: <Growth v={q.value} />, label: 'on the previous quarter', sub: `${q.period}, output ${dirWord(q.value)}` },
-              { icon: 'gdp', value: <Growth v={y.value} />, label: 'on a year earlier', sub: `${q.period}, output ${dirWord(y.value)}` },
+              { icon: dirOf(q.value), value: <Growth v={q.value} />, label: 'real GDP, on the previous quarter', sub: `${q.period}, output ${dirWord(q.value)}` },
+              { icon: dirOf(y.value), value: <Growth v={y.value} />, label: 'real GDP, on a year earlier', sub: `${q.period}, output ${dirWord(y.value)}` },
             ]}
           />
           <Items
@@ -193,7 +192,7 @@ function workSteps() {
       body: (
         <>
           <Anchor id="p1-pay" />
-          <KeyFacts className="p1-facts" facts={[{ icon: 'pay', value: <Growth v={p.value} />, label: 'regular pay growth', sub: `${p.period}, pay ${dirWord(p.value)}` }]} />
+          <KeyFacts className="p1-facts" facts={[{ icon: dirOf(p.value), value: <Growth v={p.value} />, label: 'regular pay growth', sub: `${p.period}, pay ${dirWord(p.value)}` }]} />
           <Items
             items={[
               { icon: 'excluded', text: 'Regular pay leaves out bonuses' },
@@ -316,7 +315,7 @@ function aiSteps() {
           <Items
             items={[
               { icon: 'workers', text: 'Each tile in the grid is one per cent of UK workers' },
-              { icon: 'source', text: `IMF estimates (${when}), via DSIT and the AI Security Institute` },
+              { icon: 'source', text: `IMF estimates (${when}), reported by the science department (DSIT)` },
               { icon: 'ai', text: 'Sorted by how exposed their occupations are to AI' },
             ]}
           />
@@ -341,8 +340,8 @@ function aiSteps() {
           <Items
             items={[
               { icon: 'compare', text: `The two high-exposure groups sum to ${share0(hh.value + hl.value)}` },
-              { icon: 'source', text: `The department’s text says around ${share0(DSIT_AROUND)}` },
-              { icon: 'caveat', text: 'Such indices are indicative rather than precise, it notes' },
+              { icon: 'source', text: `DSIT’s text says around ${share0(DSIT_AROUND)}` },
+              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
             ]}
           />
           <About items={[{ icon: 'limit', text: 'No official table gives exposure by major occupation group' }]} />
@@ -378,7 +377,7 @@ export default function Part1({ part }) {
           />
         }
       >
-        The UK economy and labour market as AI arrives.
+        <Icon name={iconFor('gdp')} size={16} className="p1-text-icon" /> The UK economy and labour market as AI arrives.
       </PartHead>
       <Scrolly
         id="p1-output"
@@ -425,7 +424,8 @@ export default function Part1({ part }) {
         )}
       />
       <NextPart n={2} title="What a model of the whole economy projects" to="story-part-2">
-        Part 2 turns from what has been measured to what happens if AI arrives as a shock.
+        <Icon name={iconFor('shock')} size={16} className="p1-text-icon" /> Part 2 turns from what has been measured to what happens if AI
+        arrives as a shock.
       </NextPart>
     </>
   );

@@ -14,7 +14,7 @@ import { DSIT_AROUND } from '@/tabs/story/part1/data.js';
 
 afterEach(cleanup);
 
-const PART = { id: 'story-part-1', n: 1, icon: 'landmark', kicker: 'Part 1', title: 'Where the UK stands' };
+const PART = { id: 'story-part-1', n: 1, icon: 'record', kicker: 'Part 1', title: 'Where the UK stands' };
 
 const show = (Part1) => {
   const { container } = render(
@@ -183,7 +183,8 @@ describe('story part 1, real data', () => {
 
   it('makes every card a short title with an icon, key facts or items, and no long lines', () => {
     const el = show(Part1Real);
-    const words = (n) => n.textContent.replace(/\s+/g, ' ').trim().split(' ').length;
+    // each child span counted apart (textContent glues a fact's value, label and sub)
+    const words = (n) => [...(n.children.length ? n.children : [n])].map((c) => c.textContent).join(' ').replace(/\s+/g, ' ').trim().split(' ').length;
     el.querySelectorAll('.scrolly-card').forEach((c) => {
       expect(c.querySelector('.scrolly-title-icon svg')).not.toBeNull();
       expect(c.querySelectorAll('.story-items > li, .story-facts > li').length).toBeGreaterThanOrEqual(2);
@@ -194,6 +195,19 @@ describe('story part 1, real data', () => {
         expect(words(li)).toBeLessThanOrEqual(12);
       });
     });
+  });
+
+  it('leads every line of text with a plain icon (or a colour swatch in a legend)', () => {
+    const el = show(Part1Real);
+    const bare = [];
+    el.querySelectorAll('p, li, summary, h2, h3, h4').forEach((n) => {
+      if (n.closest('svg, .p1-title-ghost, [data-axis]') || !n.textContent.trim()) return;
+      if (n.querySelector('p, li')) return; // leaf blocks only
+      // shared pieces this part does not own: the step kicker (scrolly), the part's heading (PartHead)
+      if (n.matches('.scrolly-kicker, .story-part-head h2')) return;
+      if (!n.querySelector('svg, .p1-swatch')) bare.push(n.textContent.slice(0, 40));
+    });
+    expect(bare).toEqual([]);
   });
 
   it('keeps the source lines to the citation (no caveat notes)', () => {
@@ -275,8 +289,11 @@ const checkArrows = (el) => {
   for (const a of arrows) {
     const v = Number(a.textContent.replace('−', '-').replace('%', ''));
     expect(a.getAttribute('data-dir')).toBe(dirOf(v));
-    expect(a.querySelector('.p1-dir svg')).not.toBeNull();
-    const sub = a.closest('.story-fact').querySelector('.story-fact-sub').textContent;
+    // the fact's icon is the arrow for that sign (Lucide's class names the glyph)
+    const fact = a.closest('.story-fact');
+    const glyph = fact.querySelector('.story-fact-icon svg').getAttribute('class');
+    expect(glyph).toContain({ rise: 'lucide-arrow-up', fall: 'lucide-arrow-down', flat: 'lucide-minus' }[dirOf(v)]);
+    const sub = fact.querySelector('.story-fact-sub').textContent;
     expect(sub).toContain(dirWord(v));
   }
 };

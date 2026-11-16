@@ -1,6 +1,8 @@
 'use client';
 
 import { Children } from 'react';
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { SOURCES } from './data.js';
 import { dateLong, tick } from './format.js';
 
@@ -50,11 +52,38 @@ export function Axes({ sc, yTicks, xTicks, zero = false }) {
   );
 }
 
+// A figure's title and unit line, each led by a plain concept icon. The
+// title may hold a hidden ghost of its longest form (see Figure).
+export function FigTitle({ icon, title, reserve }) {
+  return (
+    <p className="story-figure-title p1-title-row">
+      <Icon name={iconFor(icon)} size={16} className="p1-text-icon" />
+      {reserve ? (
+        <span className="p1-title-stack">
+          <span>{title}</span>
+          <span className="p1-title-ghost" aria-hidden="true">
+            {reserve}
+          </span>
+        </span>
+      ) : (
+        <span>{title}</span>
+      )}
+    </p>
+  );
+}
+export const FigUnit = ({ children }) => (
+  <p className="story-figure-unit p1-title-row">
+    <Icon name={iconFor('measure')} size={14} className="p1-text-icon" />
+    <span>{children}</span>
+  </p>
+);
+
 // "Source: ONS, <dataset>, <series>, released <date>; ..." with links from
 // the data file's sources. items: [{ id, name, detail }].
 export function SourceLine({ items, note }) {
   return (
     <p className="story-source">
+      <Icon name={iconFor('source')} size={13} className="p1-source-icon" />
       Source:{' '}
       {items.map((it, i) => {
         const s = SOURCES[it.id];
@@ -96,20 +125,11 @@ export function Legend({ items }) {
 // the card's height does not change between states (it is vertically
 // centred, so a taller foot would move its title). The ghost is
 // visibility: hidden (out of innerText) and data-axis (not a figure).
-export function Figure({ title, titleReserve, unit, legend, source, footReserve, children, innerRef }) {
+export function Figure({ icon = 'path', title, titleReserve, unit, legend, source, footReserve, children, innerRef }) {
   return (
     <figure className="p1-figure" ref={innerRef}>
-      {titleReserve ? (
-        <p className="story-figure-title p1-title-stack">
-          <span>{title}</span>
-          <span className="p1-title-ghost" aria-hidden="true">
-            {titleReserve}
-          </span>
-        </p>
-      ) : (
-        <p className="story-figure-title">{title}</p>
-      )}
-      {unit ? <p className="story-figure-unit">{unit}</p> : null}
+      <FigTitle icon={icon} title={title} reserve={titleReserve} />
+      {unit ? <FigUnit>{unit}</FigUnit> : null}
       {children}
       {footReserve ? (
         <div className="p1-foot-stack">
