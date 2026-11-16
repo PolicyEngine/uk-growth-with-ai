@@ -2,45 +2,9 @@
    No transitions here: motion comes only from the framework classes
    (GrowRect, TileGrid, Reveal) in story.css. */
 
-/* The provisional chip: .story-part-head p would otherwise restyle it */
-#story-part-3 .story-part-head .notice-chip {
-  display: inline-block;
-  margin: 12px 0 0;
-  padding: 4px 10px;
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--c-notice-text);
-  background: var(--c-notice-bg);
-  border-radius: 6px;
-}
-
-/* The break card: plain, not sticky */
-.p3-break {
-  max-width: 70ch;
+/* The opening call-out ("A different model"): components/story/Callout */
+#story-part-3 .p3-model {
   margin: 8px 0 24px;
-  padding: 18px 20px;
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
-}
-.p3-break h3 {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 0 0 8px;
-  font-size: var(--fs-card-title);
-  font-weight: 600;
-  color: var(--pe-gray-900);
-}
-.p3-break h3 .plain-icon {
-  color: var(--pe-gray-600);
-}
-.p3-break p {
-  margin: 0;
-  font-size: var(--fs-body);
-  line-height: 1.6;
-  color: var(--pe-gray-700);
 }
 
 /* Figures */
@@ -72,41 +36,27 @@
 }
 .p3-stats {
   display: grid;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 18px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
+/* Stat tiles: a large tabular number over a small label, no box or icon */
 .p3-stat {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 8px;
-  align-items: baseline;
-  padding: 8px 10px;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  opacity: 0.45;
-}
-.p3-stat.is-reached {
-  opacity: 1;
-}
-.p3-stat.is-current {
-  border-color: var(--pe-gray-400);
-}
-.p3-stat .plain-icon {
-  grid-row: span 3;
-  align-self: center;
-  color: var(--pe-gray-600);
+  row-gap: 2px;
 }
 .p3-stat-value {
   font-size: var(--fs-xl);
   font-weight: 700;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
   color: var(--pe-gray-900);
 }
 .p3-stat-label {
-  grid-column: 2;
   font-size: var(--fs-caption);
+  line-height: 1.4;
   color: var(--pe-gray-600);
 }
 
@@ -150,6 +100,18 @@
 .p3-case.is-pending,
 .p3-group-head.is-pending {
   opacity: 0.55;
+}
+/* Step 7: the group the active card is not about (Moves.jsx); not
+   .is-pending, which globals.css sets in italics */
+.p3-dim {
+  opacity: 0.5;
+}
+/* A row whose figure has its home in another step: the label links there,
+   the value cells stay empty beside the reference bar */
+.p3-row-label a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .p3-cols {
   display: grid;
@@ -370,7 +332,6 @@
 
 /* Step 1: the baseline beside each rise */
 .p3-stat-base {
-  grid-column: 2;
   font-size: var(--fs-caption);
   color: var(--pe-gray-500);
 }
@@ -385,6 +346,62 @@
   color: var(--c-notice-text);
   background: var(--c-notice-bg);
   border-radius: 6px;
+}
+
+/* The story's flag for runs outside the attested rebuild (shared.jsx
+   OutsideRebuildFlag): small, inline, a plain icon, no fill */
+.p3-flag {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0 8px;
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+.p3-flag .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+
+/* "About these figures": a step card's folded caveats (shared.jsx About) */
+.p3-about {
+  margin-top: 10px;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--pe-gray-700);
+}
+.p3-about > summary {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 24px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  cursor: pointer;
+  list-style: none;
+}
+.p3-about > summary::-webkit-details-marker {
+  display: none;
+}
+.p3-about > summary::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+.p3-about[open] > summary::before {
+  transform: rotate(45deg);
+}
+.p3-about > summary:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+.p3-about p {
+  margin: 6px 0 0;
 }
 
 /* Step 2: the net row */
@@ -469,6 +486,7 @@
   .p3-row.is-pending,
   .p3-case.is-pending,
   .p3-group-head.is-pending,
+  .p3-dim,
   .p3-phone-hide,
   .p3-tkey-item:not(.is-current) {
     display: none;
@@ -812,4 +830,11 @@
 .p3-fill-rank-3 {
   fill: var(--rank-3);
   background: var(--rank-3);
+}
+
+/* close: the story's close (tabs/story/TwoLenses.jsx). Its head has no
+   part numeral, so its text starts at the band's edge, under the "Next"
+   band that ends part 3, rather than one grid gap in. */
+.story-close .story-part-head > :not(.story-part-numeral) {
+  grid-column: 1 / -1;
 }

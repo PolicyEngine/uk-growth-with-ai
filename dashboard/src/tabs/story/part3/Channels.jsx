@@ -40,7 +40,10 @@ function Graphic() {
           <span className="p3-row-value">{fmtBn(C.sum_bn)}</span>
         </li>
       </ol>
-      <p className="p3-key">Positive: a cost (lower receipts or higher spending). Negative: higher net receipts.</p>
+      <p className="p3-key">
+        Positive: a cost (lower receipts or higher spending). Negative: higher net receipts. Together the three channels come within about{' '}
+        {fmtBn2(C.interaction_bn)} of the full shock on the same draws.
+      </p>
       <Source>channel split, seeds 0 to 19</Source>
     </figure>
   );
@@ -55,11 +58,10 @@ export default function Channels() {
       body: (
         <>
           <p>
-            The central cost nets three flows. Run alone, job loss costs the public finances the income tax and National Insurance the displaced no
-            longer pay, plus the benefits they now receive. Higher wages for those who keep their jobs, and higher interest and dividend
-            income, each raise net receipts by a similar amount.
+            Run alone, job loss costs the public finances the income tax and National Insurance the displaced no longer pay, plus the benefits
+            they now receive. Higher wages for those who keep their jobs, and higher interest and dividend income, each raise net receipts by a
+            similar amount.
           </p>
-          <p>Together the three channels come within about {fmtBn2(C.interaction_bn)} of the full shock on the same draws.</p>
         </>
       ),
     },
