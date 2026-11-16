@@ -24,7 +24,8 @@ const METRIC_LABEL = Object.fromEntries(MAP.metrics.map((m) => [m.id, m.label]))
 const METRIC_ORDER = Object.fromEntries(MAP.metrics.map((m, i) => [m.id, i]));
 const OUR_VARS = { gdp: ['Y', 'Real GDP'], wage: ['w', 'Average wage'] };
 
-const MEASURES = [{ id: 'all', label: 'All' }, ...MAP.metrics.map((m) => ({ id: m.id, label: m.label }))];
+// Filters from the data, so new measures and institutions need no code
+const MEASURES = [{ id: 'all', label: 'All' }, ...MAP.metrics.filter((m) => MAP.rows.some((r) => r.metric === m.id)).map((m) => ({ id: m.id, label: m.label }))];
 const COUNTRIES = [
   { id: 'all', label: 'All' },
   { id: 'uk', label: 'UK' },
@@ -37,6 +38,9 @@ const SORTS = [
 ];
 
 export const isUK = (r) => r.country === 'UK';
+// A row that prints a published number (not "No quantified estimate" or
+// "No number published")
+export const hasFigure = (r) => r.metric !== 'none' && /\d/.test(r.value);
 export const day = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 // OG-UK's rows: the main arm's headline-year gap in each scenario, at both
@@ -106,10 +110,14 @@ export default function EvidenceMap({ map = MAP }) {
   const [measure, setMeasure] = useState('all');
   const [country, setCountry] = useState('all');
   const [sort, setSort] = useState('metric');
-  const all = [...ourRows(), ...map.rows];
+  // A figure not confirmed in a primary text is left out (as the about fold
+  // says); the count is of rows that print a number, from the data.
+  const rows = map.rows.filter((r) => !r.unverified);
+  const all = [...ourRows(), ...rows];
   const shown = view(all, { measure, country, sort });
-  const published = map.rows.length;
-  const bodies = new Set(map.rows.map((r) => r.institution)).size;
+  const figures = rows.filter(hasFigure);
+  const published = figures.length;
+  const bodies = new Set(figures.map((r) => r.institution)).size;
   return (
     <Card
       id="uk-evidence-map"
@@ -211,7 +219,7 @@ export default function EvidenceMap({ map = MAP }) {
                       On Explore
                     </NavLink>
                   ) : (
-                    <span className={r.unverified ? 'ev-unverified' : undefined}>{r.value}</span>
+                    <span data-path={`site-evidence-map.rows.${r.id}.value`}>{r.value}</span>
                   )}
                 </td>
                 <td data-label="Horizon">

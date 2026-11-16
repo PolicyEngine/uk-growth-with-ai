@@ -323,3 +323,21 @@
 .mx-lit .ev-rb-home {
   padding-block: 5px;
 }
+
+/* Evidence lanes: one lane per measure inside one card, each with its own axis */
+.mx-lanes {
+  display: grid;
+  gap: 18px;
+}
+.mx-lane + .mx-lane {
+  padding-top: 14px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.mx-lane-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+}

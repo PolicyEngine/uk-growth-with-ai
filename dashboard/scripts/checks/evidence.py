@@ -6,6 +6,8 @@ check(dump) returns the number of failures:
   quantified row's `value` appears exactly as often as the rows whose value
   contains it (each fact once; a value can be part of a longer one);
 - every no-estimate body is listed;
+- a row flagged `unverified` (not confirmed in a primary text) is not
+  printed: its value appears nowhere in the card;
 - no headline-year GDP or wage gap of any scenario and closure from
   surprise2028.json (formatted as the site prints it) appears anywhere on the
   page: their home is Explore.
@@ -49,11 +51,15 @@ def check(dump):
         card = card if end < 0 else card[:end]
         fails = []
         for r in MAP['rows']:
+            if r.get('unverified'):
+                if r['value'] in card:
+                    fails.append(f"{r['id']}: unverified value {r['value']!r} printed")
+                continue
             if r['metric'] == 'none':
                 if r['institution'] not in card:
                     fails.append(f"{r['id']}: not listed")
                 continue
-            want = sum(1 for x in MAP['rows'] if r['value'] in x['value'])
+            want = sum(1 for x in MAP['rows'] if not x.get('unverified') and r['value'] in x['value'])
             got = card.count(r['value'])
             if got != want:
                 fails.append(f"{r['id']}: {r['value']!r} printed {got}x, expected {want}")

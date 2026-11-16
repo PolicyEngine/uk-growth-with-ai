@@ -9,7 +9,8 @@ import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import RangeBars from './RangeBars.jsx';
+import EvidenceLanes from './EvidenceLanes.jsx';
+import IMF from './imfGap.json';
 import GrowthCheck from './GrowthCheck.jsx';
 import EvidenceMap from './EvidenceMap.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
@@ -21,9 +22,12 @@ import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
 // (results sanity audit, docs/results_sanity_2028.md section 7). The IMF
-// year-4 output figure is digitised from SIP/2026/072 Figure 9
-// (docs/uk_calibration.md); the bound is arithmetic, not a solve.
-const IMF_Y4 = 2.52;
+// year-4 output figure (digitised from SIP/2026/072 Figure 9) and the
+// unchanged-return bound (arithmetic, not a solve) are read from
+// imfGap.json, which carries each one's source.
+const IMF_Y4 = IMF.imf_y4_output_pct;
+const BOUND_GDP = IMF.unchanged_return_gdp_pct;
+const pct1 = (x) => `+${x.toFixed(1)}%`;
 function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
@@ -41,7 +45,7 @@ function ImfGap() {
               </>
             ),
           },
-          { icon: 'foreign', text: <>IMF: about +{IMF_Y4.toFixed(1)}% at year 4, for about the same productivity gain.</> },
+          { icon: 'foreign', text: <>IMF: about <span data-path="imfGap.imf_y4_output_pct">+{IMF_Y4.toFixed(1)}%</span> at year 4, for about the same productivity gain.</> },
           { icon: 'closure', text: 'The capital closure is enough to account for the difference.' },
           {
             icon: 'interest',
@@ -53,7 +57,14 @@ function ImfGap() {
             ),
           },
           { icon: 'capital', text: 'If capital came in at an unchanged return:' },
-          { icon: 'arithmetic', text: 'GDP would be about +2.9% to +3.2% (arithmetic, not a solve).' },
+          {
+            icon: 'arithmetic',
+            text: (
+              <>
+                GDP would be about <span data-path="imfGap.unchanged_return_gdp_pct">{pct1(BOUND_GDP.lo)} to {pct1(BOUND_GDP.hi)}</span> (arithmetic, not a solve).
+              </>
+            ),
+          },
         ]}
       />
       <p className="mx-src">
@@ -321,9 +332,8 @@ export default function StudiesTab() {
         <SectionHeading id="numbers" icon={iconFor('measure')} title="Where our numbers sit">
             <IconText icon="range">Our headline-year results against published ranges. Horizons differ, so each row states its own.</IconText>
         </SectionHeading>
-        <RangeBars metric="gdp" />
+        <EvidenceLanes />
         <ImfGap />
-        <RangeBars metric="wage" />
         <GrowthCheck />
         <SectionHeading id="evidence-map" icon={iconFor('table')} title="UK evidence map">
             <IconText icon="source">Official, think-tank, international, private and academic estimates, each with baseline, horizon and check date. Published figures live here.</IconText>
