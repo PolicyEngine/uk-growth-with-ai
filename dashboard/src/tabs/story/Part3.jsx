@@ -31,9 +31,9 @@ import { D, Ico, MODEL_YEAR, NO_CLEAN_RERUN, PROVISIONAL } from './part3/shared.
 // What you just learned (the part's recap, rendered by builder S's Recap):
 // three items, each linking to its home, with no figures.
 export const P3_RECAP = [
-  { icon: 'cost', text: 'The cost to the public finances is the difference between much larger flows', to: '#p3-channels' },
-  { icon: 'deciles', text: 'Where the loss falls depends on who loses the job, and how', to: '#p3-rules' },
-  { icon: 'breakEven', text: 'A few assumptions, sourced from other studies, decide the cost’s sign', to: '#p3-moves' },
+  { icon: 'cost', text: 'The cost to the public finances is the difference between much larger flows', to: 'p3-channels' },
+  { icon: 'deciles', text: 'Where the loss falls depends on who loses the job, and how', to: 'p3-rules' },
+  { icon: 'breakEven', text: 'A few assumptions, sourced from other studies, decide the cost’s sign', to: 'p3-moves' },
 ];
 
 export default function Part3({ part }) {

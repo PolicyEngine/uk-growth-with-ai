@@ -121,7 +121,7 @@ describe('Part3', () => {
     expect(P3_RECAP).toHaveLength(3);
     for (const r of P3_RECAP) {
       expect(r.text).not.toMatch(/\d/);
-      expect(r.to).toMatch(/^#p3-/);
+      expect(r.to).toMatch(/^p3-/);
     }
   });
 
