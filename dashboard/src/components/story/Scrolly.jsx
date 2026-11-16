@@ -6,7 +6,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
 import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
-import QStage, { Answer } from './QStage.jsx';
+import QStage, { Answer, QFrame } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
 
 // a sticky figure may take 45% of the screen at 900px and below
@@ -60,20 +60,23 @@ const subscribeWidth = (cb) => {
 //                figure card on desktop, after the last card at 900px and
 //                below, printed once either way;
 //   sub          the scene sub-header above the block: a string or
-//                { title, icon, question, hint, key, takeaway, answer, answerTo }
+//                { title, icon, question, hint, key, pin, recap, takeaway, answer, answerTo }
 //                (icon a concept). Rendered as <header class="scene-head"
 //                data-scene="title" id="q-<id>"> (the rail reads
 //                [data-scene]; #q-<id> links to the question); step titles
 //                then become h4.
 //                `question` (about a dozen words, neutral, answered by the
 //                block): printed in the header, and played as the
-//                question-led sequence (QStage.jsx): one pinned screen
-//                (--q-pin on .story) above the header where the question
-//                arrives word by word on the part tint (`key`: the word to
-//                mark; `hint`: one line under it), holds, and is pushed up
-//                into the header as the scene comes in. Scroll-driven;
-//                hidden under reduced motion, in print and in "is-inline"
-//                blocks. ctx.entered waits until it has moved in.
+//                question-led sequence (QStage.jsx): by default (QFrame, no
+//                added height) the question plays big inside the figure
+//                frame as the block comes in, then shrinks into the header
+//                while the chart draws in; with `pin: 'full'` (QStage) one
+//                pinned screen (--q-pin on .story) above the header, with
+//                `recap` ({ icon, q, a, to }[]) under the question. `key`:
+//                the word to mark; `hint`: one line under it. Scroll-driven;
+//                skipped under reduced motion, in print, in "is-inline"
+//                blocks and when the reader lands past it; ctx.entered
+//                waits until the chart's turn.
 //                `answer` (string or node, the scene's own figures): after
 //                the last card, the question replayed with the answer,
 //                sliding up once the last card is reached (always shown when
@@ -249,7 +252,12 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       const room = window.innerHeight - top;
       const over = b.offsetHeight - room;
       if (pinBottom && over > 0) b.style.top = `${top - over - 12}px`;
-      else if (over < 0) b.style.top = `${top + Math.floor(-over / 2)}px`;
+      // centred, but never more than 96px below the rail (no blank band
+      // over 120px above it)
+      else if (over < 0) {
+        const rail = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? top;
+        b.style.top = `${Math.round(Math.min(top + Math.floor(-over / 2), Math.max(top, rail + 96)))}px`;
+      }
     };
     place();
     window.addEventListener('resize', place);
@@ -275,8 +283,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const question = subObj?.question;
   const takeaway = subObj?.takeaway;
   const answer = subObj?.answer;
+  const pinFull = subObj?.pin === 'full';
   const [stage, setStage] = useState(question ? 'pending' : 'done');
-  const stageDone = !question || inline || reduce || stage === 'done';
+  const stageDone = !question || inline || reduce || stage === 'done' || stage === 'reveal';
   // the answer: once the scene's last card is reached (always when drawn
   // once, under reduced motion and in print, by CSS)
   const answered = once || inline || reduce || active >= lastCard;
@@ -289,13 +298,15 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   return (
     <HighlightCtx.Provider value={hl}>
     <div
-      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question ? ' has-stage' : ''}`}
+      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}`}
       id={id}
     >
-      {question && !inline ? <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} onPhase={setStage} /> : null}
+      {question && pinFull && !inline ? (
+        <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} recap={subObj.recap} onPhase={setStage} />
+      ) : null}
       {sub ? (
         <header
-          className={`scene-head${question ? ' has-q' : ''}${question && stage === 'done' && !reduce ? ' is-arrived' : ''}`}
+          className={`scene-head${question ? ' has-q' : ''}${question && (stage === 'done' || stage === 'reveal') && !reduce ? ' is-arrived' : ''}`}
           data-scene={subTitle}
           id={question ? `q-${id}` : undefined}
         >
@@ -329,6 +340,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             />
           ) : null}
           {inline ? null : graphic(shown, reduce, ctx)}
+          {question && !pinFull && !inline && !reduce && stage !== 'done' ? (
+            <QFrame id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} boxRef={box} onPhase={setStage} />
+          ) : null}
           {inline || !calloutText ? null : <MarkCallout rootRef={live} anchor={calloutAnchor} text={calloutText} stepKey={steps[shown]?.id} />}
           {phone ? null : footHere}
         </div>

@@ -134,46 +134,73 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     expect(t[0].textContent).toBe('Key takeaway: Growth slowed after 2008.');
     expect(t[0].querySelector('svg')).not.toBeNull();
   });
-  it('without layout (jsdom, reduced motion: the stage has no height) the stage is done and ctx.entered is true', () => {
+  it('without layout (jsdom: the frame has no height) the question frame is done at once and ctx.entered is true', () => {
     const seen = [];
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
-    expect(container.querySelector('.q-stage')).not.toBeNull();
+    // done: the frame unmounts, the chart is drawn
+    expect(container.querySelector('.q-frame')).toBeNull();
+    expect(container.querySelector('.q-stage')).toBeNull();
     expect(seen.at(-1)).toBe(true);
   });
-  it('renders the pinned question screen: aria-hidden, inert, data-axis, data-gap-exempt, words, hint, key word, part ring', () => {
-    const { container } = render(
-      <section className="story-part" data-part="2">
-        <Scrolly id="b" sub={{ ...sub, hint: 'Watch the gap open', key: 'grown' }} steps={steps} graphic={() => null} label="L" />
-      </section>,
-    );
-    const q = container.querySelector('.scrolly > .q-stage');
-    expect(q.getAttribute('aria-hidden')).toBe('true');
-    expect(q.hasAttribute('inert')).toBe(true);
-    expect(q.hasAttribute('data-axis')).toBe(true);
-    expect(q.hasAttribute('data-gap-exempt')).toBe(true);
-    expect(q.querySelectorAll('.q-stage-w')).toHaveLength(6);
-    expect(q.querySelector('.q-stage-w.is-key').textContent.trim()).toBe('grown?');
-    expect(q.querySelector('.q-stage-hint').textContent).toBe('Watch the gap open');
-    expect(q.querySelector('.q-stage-progress').textContent).toContain('Part 2');
-    // the header is the question's anchor
-    expect(container.querySelector('header.scene-head').id).toBe('q-b');
-  });
-  it('holds entry moves back while the stage is below the screen', () => {
+  const withLayout = (fn, rectFor) => {
     const oh = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
     const gb = Element.prototype.getBoundingClientRect;
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 400 });
     Element.prototype.getBoundingClientRect = function () {
-      return this.classList?.contains('q-stage') ? { top: 3000, bottom: 3400, left: 0, right: 0, width: 0, height: 400 } : gb.call(this);
+      return rectFor(this) ?? gb.call(this);
     };
     try {
-      const seen = [];
-      render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
-      expect(seen.every((e) => e === false)).toBe(true);
+      fn();
     } finally {
       if (oh) Object.defineProperty(HTMLElement.prototype, 'offsetHeight', oh);
       else delete HTMLElement.prototype.offsetHeight;
       Element.prototype.getBoundingClientRect = gb;
     }
+  };
+  const below = (el) => (el.classList?.contains('q-frame') || el.classList?.contains('q-stage') ? { top: 3000, bottom: 3400, left: 0, right: 0, width: 0, height: 400 } : null);
+  it('default: the question plays inside the figure frame (aria-hidden, inert, data-axis, data-gap-exempt) and holds entry moves back', () => {
+    withLayout(() => {
+      const seen = [];
+      const { container } = render(
+        <section className="story-part" data-part="2">
+          <Scrolly id="b" sub={{ ...sub, hint: 'Watch the gap open', key: 'grown' }} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />
+        </section>,
+      );
+      const q = container.querySelector('.scrolly-graphic-inner > .q-frame');
+      expect(q).not.toBeNull();
+      expect(q.getAttribute('aria-hidden')).toBe('true');
+      expect(q.hasAttribute('inert')).toBe(true);
+      expect(q.hasAttribute('data-axis')).toBe(true);
+      expect(q.hasAttribute('data-gap-exempt')).toBe(true);
+      expect(q.querySelectorAll('.q-stage-w')).toHaveLength(6);
+      expect(q.querySelector('.q-stage-w.is-key').textContent.trim()).toBe('grown?');
+      expect(q.querySelector('.q-stage-hint').textContent).toBe('Watch the gap open');
+      expect(q.querySelector('.q-stage-progress').textContent).toContain('Part 2');
+      // no pinned screen, no added row
+      expect(container.querySelector('.q-stage')).toBeNull();
+      expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(false);
+      expect(container.querySelector('header.scene-head').id).toBe('q-b');
+      expect(seen.every((e) => e === false)).toBe(true);
+    }, below);
+  });
+  it("pin: 'full' renders the pinned screen with the recap as real links; the question copy is aria-hidden", () => {
+    withLayout(() => {
+      const recap = [{ icon: 'gdp', q: 'How fast has the UK grown?', a: 'About 1.5% a year', to: 'q-p1-output' }];
+      const { container } = render(
+        <section className="story-part" data-part="2">
+          <Scrolly id="b" sub={{ ...sub, pin: 'full', recap }} steps={steps} graphic={() => null} label="L" />
+        </section>,
+      );
+      const st = container.querySelector('.scrolly > .q-stage.has-recap');
+      expect(st).not.toBeNull();
+      expect(st.hasAttribute('data-gap-exempt')).toBe(true);
+      expect(st.querySelector('.q-visual').getAttribute('aria-hidden')).toBe('true');
+      expect(st.querySelector('.q-visual').hasAttribute('data-axis')).toBe(true);
+      expect(st.querySelector('.story-recap-title').textContent).toBe('Part 1 in short');
+      expect(st.querySelector('a.story-recap-chip').getAttribute('href')).toContain('#q-p1-output');
+      expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(true);
+      expect(container.querySelector('.q-frame')).toBeNull();
+    }, below);
   });
   it('prints the answer after the last card with the question replayed; with answerTo it links to the home and is data-axis', () => {
     const { container, rerender } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
@@ -200,10 +227,10 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
 });
 
 describe('TopicHead (a topic that is not a Scrolly)', () => {
-  it('renders the stage, the header with its q- anchor and the answer', async () => {
+  it('renders the header with its q- anchor and the answer (a stage only with pin full)', async () => {
     const { TopicHead } = await import('./QStage.jsx');
     const { container } = render(<TopicHead id="p3-close" titleId="p3-close-h" sub={{ title: 'Limits', icon: 'gdp', question: 'What does the study leave out?', answer: 'Firms and prices' }} />);
-    expect(container.querySelector('.q-stage')).not.toBeNull();
+    expect(container.querySelector('.q-stage')).toBeNull();
     const h = container.querySelector('header.scene-head');
     expect(h.id).toBe('q-p3-close');
     expect(h.dataset.scene).toBe('Limits');
