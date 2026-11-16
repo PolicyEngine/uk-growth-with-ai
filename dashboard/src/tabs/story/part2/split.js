@@ -15,7 +15,7 @@ export const SPLIT_YEAR = SPLIT.year;
 export const PART_TEXT = {
   labour: { long: 'Labour income', short: 'Labour income' },
   domestic: { long: 'Net capital income kept in the UK', short: 'Kept in the UK' },
-  foreign: { long: 'Net income paid abroad (GDP less GNI)', short: 'Net paid abroad' },
+  foreign: { long: 'Net income paid abroad', short: 'Net paid abroad' },
   depreciation: { long: 'Depreciation', short: 'Depreciation' },
 };
 // The waterfall's "of which" rows (the Sankey's note defines "paid abroad").

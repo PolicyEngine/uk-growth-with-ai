@@ -265,7 +265,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
         <div className="p2-output-head">
           <ModelBadge model="oguk" />
           <p className="story-figure-title p2-output-title">
-            <Tx icon="gdp">The OBR-central path (OG-UK&rsquo;s no-shock path), {SPLIT_YEAR}</Tx>
+            <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
             {' '}<span className="p2-output-unit" data-axis-title="y">
               {cap(CL_WORDS[cl])}, of every 100 of GDP
             </span>
