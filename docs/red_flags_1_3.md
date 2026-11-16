@@ -91,8 +91,8 @@ Baseline 2030. The payroll tax goes to labour. The income-tax function is split 
 
 ### Cause
 
-1. **The labour–capital wedge is about 14pp, against the OBR's 19–23pp.**
-   - So each point of income moved from labour to capital lowers revenue by about 0.14pp in OG-UK, against 0.19–0.23pp for the OBR.
+1. **The labour–capital wedge is 14.8pp at ζK = 0.1 (13.6pp at ζK = 0), against the OBR's 19–23pp.**
+   - So each point of income moved from labour to capital lowers revenue by about 0.14–0.15pp in OG-UK, against 0.19–0.23pp for the OBR.
    - That alone gives the right sign but too small a size (−0.53pp for 3.9 points).
 2. **The income-tax function's take rises: +0.41pp at zk0, +0.10pp at zk0.1.**
    - At zk0, household capital income r_p·B rises from 17.5% to 22.0% of GDP, because r_p rises by 140bp on all household wealth, gilts included.
