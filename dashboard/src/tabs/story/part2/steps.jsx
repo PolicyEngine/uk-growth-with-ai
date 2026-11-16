@@ -280,7 +280,11 @@ export function whoCardSteps() {
           </Say>
           {w?.bequests && w.consumption ? (
             <Note>
-              Of the adults&rsquo; average gain, {w.bequests} is the value placed on leaving bequests and {w.consumption} is consumption.
+              Of the adults&rsquo; average gain, {w.bequests} is the value placed on leaving bequests and {w.consumption} is consumption (
+              <NavLink tab="explore" sub="who">
+                Gains and losses
+              </NavLink>
+              ).
             </Note>
           ) : null}
         </>
@@ -297,18 +301,29 @@ export function whoCardSteps() {
             <Key id="cohort-later">Later cohorts</Key> {allGain ? 'gain too' : 'are drawn in the band'}
             {dip ? `, least those entering just after ${SURPRISE_YEAR}` : ''}.
           </Say>
-          {w?.lose ? (
-            <Note>
-              Under debt-neutral transfers. If transfers bear the later fiscal cost, {w.young ? `${w.young}-year-olds lose, as do ` : ''}
-              {w.lose} adults ({w.loseNb ?? 'more'} if bequests are not valued):{' '}
-              <NavLink tab="explore" sub="who">
-                Gains and losses
-              </NavLink>
-              .
-            </Note>
-          ) : null}
         </>
       ),
     },
   ];
+}
+
+// The GDP scene's closing line: the direction in every scenario, and which
+// ends nearest and furthest from the path (sizes in words; the figures are
+// the headline tiles' and Explore's). null when a scenario is pending.
+export function morphAnswer(cl) {
+  const dir = scenarioDir(cl);
+  const ends = SCENARIOS.map((s) => [s.id, gap(s.id, 'tfp', cl, 'Y')]);
+  if (!dir || ends.some(([, v]) => v == null)) return null;
+  const sorted = [...ends].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
+  const where = dir === 'gapUp' ? 'above' : 'below';
+  return `GDP ends ${where} the path in every scenario: least in ${SCEN_NAME[sorted[0][0]]}, most in ${SCEN_NAME[sorted.at(-1)[0]]}`;
+}
+
+// The generations scene's closing line: where gains peak and, with
+// transfers bearing the later cost (solved to the horizon), who loses.
+export function whoAnswer() {
+  const w = welfareWords();
+  if (!w?.lose) return null;
+  const peak = peakAge() >= 55 ? 'near retirement' : 'in middle age';
+  return `Gains peak ${peak}; if transfers bear the later cost, ${w.young ? `${w.young}-year-olds and ` : ''}${w.lose} adults lose`;
 }

@@ -14,6 +14,7 @@ import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitF
 import { dirConcept, dirWord } from './dir.js';
 import { Key } from '@/components/story/highlight.jsx';
 import { Say } from './steps.jsx';
+import { Answer } from '@/components/story/QStage.jsx';
 import { useLiveInView } from './live.js';
 import { iconFor } from '@/lib/concepts.js';
 
@@ -415,7 +416,6 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
 function outputSteps(sid, cl, base, ch) {
   const labourMore = base ? base.labour > 50 : null;
   const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
-  const up = ch ? ch.gdp > 0 && ch.labour < 0 : false;
   return [
     {
       id: 'p2-out-1',
@@ -447,15 +447,7 @@ function outputSteps(sid, cl, base, ch) {
       title: `What ${SCEN_NAME[sid]} changes`,
       body: ch ? (
         <Say>
-          {up ? (
-            <>
-              {k('capital', 'Capital income')} rises by more than GDP; labour income falls.
-            </>
-          ) : (
-            <>
-              {k('gdp', 'GDP')} is {dirWord(ch.gdp)} the path; labour income is {dirWord(ch.labour)} it.
-            </>
-          )}
+          The bars build each part&rsquo;s change against the path, one by one, with {k('gdp', 'GDP')} last.
         </Say>
       ) : (
         <p>This solve is pending at the closure chosen above.</p>
@@ -476,6 +468,12 @@ export const OUTPUT_SUB = {
   answer: 'Capital income rises by more than GDP; labour income falls',
   answerTo: 'story-output',
 };
+
+// The block's one closing line, from the signs of the cell in view.
+export function outputAnswer(ch) {
+  if (ch.gdp > 0 && ch.labour < 0) return 'Capital income rises by more than GDP; labour income falls';
+  return `GDP is ${dirWord(ch.gdp)} the path; labour income is ${dirWord(ch.labour)} it`;
+}
 
 export default function OutputSplit({ sid, closure }) {
   const { cl, base, ch } = splitFor(sid, closure);
@@ -520,6 +518,7 @@ export default function OutputSplit({ sid, closure }) {
           graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}
+      {ch ? <Answer answer={outputAnswer(ch)} to="story-output" /> : null}
     </section>
   );
 }

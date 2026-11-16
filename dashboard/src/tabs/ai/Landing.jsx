@@ -191,8 +191,8 @@ export function whyLine(sid, cl) {
   const ls = gap(sid, 'tfp', cl, 'labour_share_pp');
   if (y == null || w == null || ls == null) return null;
   const share = ls < 0 ? 'capital’s share' : 'labour’s share';
-  const keep = g != null && y > 0 && g < y ? ', and national income gains less, as part of the return goes abroad' : '';
-  return `AI raises ${share} and output at given inputs: GDP is ${dirWord(y)} the path, pay rates ${dirWord(w)} it${keep}.`;
+  const keep = g != null && y > 0 && g < y ? '; national income gains less, as returns go abroad' : '';
+  return `AI raises ${share} and output at given inputs: GDP is ${dirWord(y)} the path, pay ${dirWord(w)} it${keep}.`;
 }
 
 // Under the tiles: the one "why" line, then one line on how sure, with the
@@ -214,7 +214,7 @@ export function SummaryWhy({ sid }) {
       </p>
       {sh.capital || sh.nni ? (
         <p className="p2-note">
-          {sh.capital ? `Technology unchanged alone gives ${sh.capital} of the GDP gain, through capital drawn in` : ''}
+          {sh.capital ? `Technology unchanged alone gives ${sh.capital} the GDP gain, through capital drawn in` : ''}
           {sh.capital && sh.nni ? '; n' : sh.nni ? 'N' : ''}
           {sh.nni ? `et national income rises ${sh.nni} as much as GDP` : ''}:{' '}
           <NavLink tab="explore" sub="economy">

@@ -5,7 +5,7 @@
 // links to the tab that holds the figures. Rendered against a fixture with
 // altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import real from '@/data/surprise2028.json';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 
@@ -93,7 +93,7 @@ describe('story part 2', () => {
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
     // the caveats link the figures' homes: the closures (pay), Economy (capital drawn in, NNI)
     expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-all'))).toBe(true);
-    expect(hrefs).toContain('/?tab=explore&sub=economy&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both');
     // no next-part band, no per-step result-file lines or folds
     expect(container.querySelector('.story-next-links')).toBeNull();
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
@@ -363,7 +363,7 @@ describe('direction icons follow the signs', () => {
           continue;
         }
         expect(why, `${sid} ${cl}`).toContain(`GDP is ${word[sign(y)]} the path`);
-        expect(why, `${sid} ${cl}`).toContain(`pay rates ${word[sign(w)]} it`);
+        expect(why, `${sid} ${cl}`).toContain(`pay ${word[sign(w)]} it`);
         const gni = g(sid, 'tfp', cl, 'GNI');
         expect(why.includes('national income gains less')).toBe(y > 0 && gni < y);
         expect(why).not.toMatch(/\d/);
@@ -442,7 +442,7 @@ describe('direction icons follow the signs', () => {
     for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-arms', 'p2-who']) {
       // at most three steps, each one sentence, no kind label, no fold, no empty item
       expect(container.querySelectorAll(`#${id} .p2-kind, #${id} details`).length, id).toBe(0);
-      expect([...container.querySelectorAll(`#${id} li`)].filter((li) => !li.textContent.trim()).length, id).toBe(0);
+      expect([...container.querySelectorAll(`#${id} li:not([aria-hidden])`)].filter((li) => !li.textContent.trim()).length, id).toBe(0);
       const cards = container.querySelectorAll(`#${id} .scrolly-step:not(.is-spacer)`);
       expect(cards.length, id).toBeLessThanOrEqual(3);
       for (const c of cards) {

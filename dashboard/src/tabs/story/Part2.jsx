@@ -15,7 +15,7 @@ import OutputSplit from './part2/OutputSplit.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
 import { A, SRC } from './part2/sources.jsx';
 import {
-  shockSteps, morphCardSteps, MORPH_STATES, armsCardSteps, ARMS_STATES, whoCardSteps, partMarks, debtWords, othersEndHigher,
+  shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, armsCardSteps, ARMS_STATES, whoCardSteps, partMarks, debtWords, othersEndHigher,
 } from './part2/steps.jsx';
 
 export { debtWords, othersEndHigher, scenarioDir, tzItem, debtItems } from './part2/steps.jsx';
@@ -71,6 +71,7 @@ export const SUBS = {
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
     answer: 'Gains peak near retirement; on other measures some adults lose',
+    // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
   },
 };
@@ -131,7 +132,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-morph"
         scene
-        sub={SUBS.morph}
+        sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer }}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
         steps={morphCardSteps(sid, cl)}
         graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
@@ -165,7 +166,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-who"
         scene
-        sub={SUBS.who}
+        sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer }}
         label="Welfare change by birth year"
         steps={whoCardSteps()}
         graphic={(i) => <WelfareShape state={i} />}
