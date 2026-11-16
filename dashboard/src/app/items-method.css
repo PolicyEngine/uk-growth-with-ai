@@ -284,3 +284,68 @@
 @media (prefers-reduced-motion: reduce) {
   .mx-scen-bars .mx-bar > span { transition: none; }
 }
+
+/* Data and code: the versions and releases cards one above the other; the
+   citation and limitations cards keep their own heights */
+.cards-grid.mx-stack-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.cards-grid.mx-cite-grid {
+  align-items: start;
+}
+/* the BibTeX block: no inline-code chip behind each line */
+.card.info .card-body .copy-block code,
+.card.info .info-card-more .copy-block code {
+  padding: 0;
+  font-size: 12px;
+  background: none;
+  border-radius: 0;
+}
+/* tables keep words whole (only code and file paths break); on a narrow
+   card the table scrolls inside its card, never the page */
+.table-wrap > .ledger-table {
+  min-width: 600px;
+}
+.ledger-table td,
+.ledger-table th {
+  overflow-wrap: break-word;
+}
+.ledger-table code,
+.ledger-table .ledger-where {
+  overflow-wrap: anywhere;
+}
+.ledger-table thead th {
+  white-space: nowrap;
+}
+.mx-model-cell {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  white-space: nowrap;
+}
+/* the pipeline map: nine boxes in one row only when each has room for
+   "Continuation"; otherwise five and four, as on tablets */
+.mx-pipemap {
+  container-type: inline-size;
+}
+@container (min-width: 560px) and (max-width: 1100px) {
+  .mx-pipe-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    row-gap: 14px;
+  }
+  .mx-pipe-row li:nth-child(6)::before {
+    display: none;
+  }
+}
+/* Method: the three fiscal rule cards keep their own heights */
+.card-grid.mx-rules {
+  align-items: start;
+}
+/* Household method: paired cards keep their own heights */
+.hm-page .card-grid.cols-2 {
+  align-items: start;
+}
+/* Data files: a date on one line */
+#data-files .ledger-table td:last-child {
+  white-space: nowrap;
+}

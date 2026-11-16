@@ -62,8 +62,15 @@ export function CopyLink() {
 export default function SettingsBar({ pick }) {
   const { st, set } = useNav();
   const row = useRef(null);
-  // keep the chosen options in view when the row scrolls sideways
+  const prev = useRef(null);
+  // keep the chosen options in view when the row scrolls sideways, but only
+  // after the reader changes one: on first paint the row opens at its start,
+  // with Scenario and Closure in view
   useEffect(() => {
+    const key = `${st.armId}|${st.rule}|${st.wrule}`;
+    const first = prev.current === null || prev.current === key;
+    prev.current = key;
+    if (first) return;
     const r = row.current;
     if (!r || r.scrollWidth <= r.clientWidth) return;
     const on = [...r.querySelectorAll('.seg-option.is-on')].pop();

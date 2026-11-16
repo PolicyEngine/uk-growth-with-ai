@@ -366,7 +366,9 @@ function Vintages() {
           ].filter(Boolean)}
         />
       </InfoCard>
-      <div className="cards-grid">
+      {/* one column: the versions table needs the width, and the two cards
+          differ in height by hundreds of pixels */}
+      <div className="cards-grid mx-stack-grid">
       <InfoCard icon={iconFor('version')} title="Model versions" id="model-versions">
         <div className="table-wrap">
           <table className="data-table ledger-table" data-reference="">
@@ -504,7 +506,7 @@ const CITE_BIB = `@misc{policyengine_ai_uk_${year},
 
 function Cite() {
   return (
-    <div className="cards-grid">
+    <div className="cards-grid mx-cite-grid">
       <InfoCard icon={iconFor('source')} title="Citation" id="citation">
         <p className="cite-text">
           <IconText icon="source">{CITE_TEXT}</IconText>

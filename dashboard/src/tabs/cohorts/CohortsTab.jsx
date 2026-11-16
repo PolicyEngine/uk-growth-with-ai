@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import LineChart from '@/components/LineChart.jsx';
@@ -273,22 +273,29 @@ export function consumptionChain(x) {
 
 // Paired horizontal bars: [{ key, label, value, text, concept }], drawn
 // against the largest value; text is the printed figure.
-function Pairs({ rows, label }) {
+// label (what the figures measure) is printed as the list's caption.
+function Pairs({ rows, label, icon = 'measure' }) {
+  const id = useId();
   const max = Math.max(...rows.map((r) => Math.abs(r.value)), 1e-9);
   return (
-    <ul className="ex-pairs" aria-label={label}>
-      {rows.map((r) => (
-        <li key={r.key}>
-          <span className="ex-pair-label">
-            <Icon name={iconFor(r.concept)} size={14} /> {r.label}
-          </span>
-          <span className="ex-bar-track" aria-hidden="true">
-            <span className={`ex-bar-fill${r.tone ? ` is-${r.tone}` : ''}`} style={{ width: `${((Math.abs(r.value) / max) * 100).toFixed(1)}%` }} />
-          </span>
-          <span className="ex-dd">{r.text}</span>
-        </li>
-      ))}
-    </ul>
+    <div className="ex-pairs-block">
+      <p className="ex-pairs-cap" id={id}>
+        <Icon name={iconFor(icon)} size={14} /> {label}
+      </p>
+      <ul className="ex-pairs" aria-labelledby={id}>
+        {rows.map((r) => (
+          <li key={r.key}>
+            <span className="ex-pair-label">
+              <Icon name={iconFor(r.concept)} size={14} /> {r.label}
+            </span>
+            <span className="ex-bar-track" aria-hidden="true">
+              <span className={`ex-bar-fill${r.tone ? ` is-${r.tone}` : ''}`} style={{ width: `${((Math.abs(r.value) / max) * 100).toFixed(1)}%` }} />
+            </span>
+            <span className="ex-dd">{r.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -406,7 +413,7 @@ function Why({ cl, rule, arm }) {
       </InfoCard>
       <InfoCard icon={iconFor('lifetimeEarnings')} title="By earnings group: a property of the model">
         <Pairs
-          label="Change by lifetime-earnings group"
+          label="Welfare change of adults alive at the shock, by lifetime earnings"
           rows={[
             { key: 'bot', concept: 'lifetimeEarnings', label: 'Bottom 25%', value: bot, text: <Num x={bot} />, tone: tone(bot) },
             { key: 'top', concept: 'lifetimeEarnings', label: 'Top 1%', value: top, text: <Num x={top} />, tone: tone(top) },
@@ -416,6 +423,7 @@ function Why({ cl, rule, arm }) {
           <Icon name={iconFor('limit')} size={14} /> A property of the model, not a UK finding
         </p>
         <Pairs
+          icon="pay"
           label="Wages as a share of gross income"
           rows={[
             { key: 'wb', concept: 'labour', label: 'Wages, bottom 25%', value: prof.labour[0], text: plain(prof.labour[0]) },
@@ -429,6 +437,7 @@ function Why({ cl, rule, arm }) {
           ]}
         />
         <Pairs
+          icon="capital"
           label="Top tenth's share of wealth"
           rows={[
             { key: 'm', concept: 'model', label: 'Top tenth, model', value: C.wealth_concentration.top_tenth_pct, text: plain(C.wealth_concentration.top_tenth_pct) },
@@ -452,6 +461,7 @@ function Why({ cl, rule, arm }) {
             </div>
             <Items items={[{ key: 'value', icon: 'excluded', text: 'Households do not value government consumption in the model' }]} />
             <Pairs
+              icon="finances"
               label="Cost to a 45-year-old over 2028–35, share of consumption"
               rows={[
                 { key: 'b', concept: 'age', label: 'Age 45, bottom group', value: tr[0], text: plain(Math.abs(tr[0]), 1) },

@@ -69,7 +69,9 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
   const L = 48;
   const B = 24;
   const T = 12;
-  const R = off ? 96 : 18;
+  // room at the right for the off-scale arrow; its value sits above it,
+  // right-aligned inside the card
+  const R = off ? 40 : 18;
   const pw = W - L - R;
   const ph = height - T - B;
   const X = (v) => L + (v / xMax) * pw;
@@ -144,7 +146,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
         </span>
       ))}
       {off ? (
-        <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ left: L + pw + 12, top: Y(off.y) }}>
+        <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ right: 0, top: Y(off.y) - 4 }}>
           {off.text}
         </span>
       ) : null}

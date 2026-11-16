@@ -766,9 +766,6 @@
   font-size: var(--fs-caption);
   color: var(--pe-gray-600);
 }
-.ex-why-grid > .card {
-  height: 100%;
-}
 .ex-why-grid .card-body > * + * {
   margin-top: 10px;
 }
@@ -820,11 +817,24 @@
 .ex-tl-span .plain-icon {
   display: inline-flex;
 }
-.ex-why-grid .ex-pairs + .story-items,
-.ex-why-grid .story-items + .ex-pairs,
-.ex-why-grid .ex-timeline + .story-items,
-.ex-why-grid .ex-caveat-chip + .ex-pairs {
+.ex-why-grid * + .ex-pairs-block,
+.ex-why-grid .ex-timeline + .story-items {
   margin-top: 12px;
+}
+.ex-why-grid .ex-pairs-block:not(:last-child) {
+  margin-bottom: 12px;
+}
+/* what a pair of bars measures, printed above them */
+.ex-pairs-cap {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-pairs-cap + .ex-pairs {
+  margin-top: 6px;
 }
 .ex-bars > li {
   grid-template-columns: 40px minmax(0, 1fr) 4.8em;
@@ -1756,10 +1766,15 @@
   border-top: 1px solid var(--card-border);
 }
 .hh-wf-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: break-word;
   color: var(--pe-gray-700);
+}
+/* the Net row's story link, on its own line under the row */
+.hh-wf-ref {
+  grid-column: 1 / -1;
+  justify-self: end;
+  margin-top: 4px;
 }
 .hh-wf-track {
   position: relative;
@@ -1893,7 +1908,7 @@
 }
 .hh-off-val {
   position: absolute;
-  transform: translateY(-50%);
+  transform: translateY(-100%);
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -1901,6 +1916,7 @@
   color: var(--pe-gray-900);
 }
 .hh-list {
+  container-type: inline-size;
   margin-top: 10px;
   font-size: var(--fs-small);
 }
@@ -1931,6 +1947,28 @@
 }
 .hh-list.is-wide-c1 {
   --hh-c1: 8.6em;
+}
+/* a narrow card (not a narrow viewport: the page keeps two columns down to
+   900px): each name on its own full-width row, its values beneath */
+@container (max-width: 500px) {
+  .hh-list-head,
+  .hh-list-row {
+    grid-template-columns: 20px minmax(0, 1.6fr) repeat(calc(var(--hh-cols) - 1), minmax(0, 1fr));
+    column-gap: 8px;
+  }
+  .hh-list-head > span:nth-child(2) {
+    display: none;
+  }
+  .hh-list-row > .hh-pt-key {
+    grid-row: span 2;
+    align-self: start;
+  }
+  .hh-list-row > .hh-list-label {
+    grid-column: 2 / -1;
+  }
+  .hh-list ul {
+    gap: 8px;
+  }
 }
 .hh-list-group {
   margin-top: 8px;
@@ -2384,11 +2422,6 @@
   .hh-uc-row {
     grid-template-columns: minmax(0, 8em) minmax(0, 1fr) 5.4em;
   }
-  .hh-list-head,
-  .hh-list-row {
-    grid-template-columns: 20px minmax(0, 1fr) var(--hh-c1, 4.6em) repeat(calc(var(--hh-cols) - 1), 4.6em);
-    column-gap: 6px;
-  }
   .hh-pp-row {
     grid-template-columns: minmax(0, 7em) minmax(0, 1fr) 4.6em 4.6em;
   }
@@ -2422,3 +2455,8 @@
   }
 }
 /* end households (P3) */
+
+/* What moves the cost: cards keep their own height (no blank band inside) */
+.hh-cost-grid {
+  align-items: start;
+}

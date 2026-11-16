@@ -102,7 +102,7 @@ function CostByTax() {
               <b>Net: the central cost</b>
             </span>
             {bar(net.from, net.to, 'is-net', rows.length)}
-            <span className="hh-val">
+            <span className="hh-wf-ref">
               <StoryRef step={STEP.central} />
             </span>
           </div>
@@ -798,11 +798,12 @@ export default function HouseholdsExplore() {
       <SectionHeading id="hh-cost" icon="landmark" title="What moves the cost">
         <I c="cost" /> The cost by line, and how variants and rules move it
       </SectionHeading>
-      <div className="card-grid cols-2">
+      {/* the two shorter cards share a row, then the two planes */}
+      <div className="card-grid cols-2 hh-cost-grid">
         <CostByTax />
+        <PerPound />
         <Variants />
         <Rules />
-        <PerPound />
       </div>
       <SectionHeading id="hh-who" icon="usersRound" title="Who it falls on">
         <I c="households" /> Who the displaced are, and deciles under three rankings
