@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Shield, SlidersHorizontal } from 'lucide-react';
 import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
@@ -9,7 +8,7 @@ import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, PR_URL, Replay, entryClass, ladder, perPound, rule, useEntry } from '@/tabs/story/part3/shared.jsx';
+import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, PR_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { Chip, Notes, Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
 
@@ -52,7 +51,7 @@ export function costSteps() {
 
 function CostByTax() {
   const C = D.cost_components;
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const { rows, net } = costSteps();
   const ends = rows.flatMap((r) => [r.from, r.to]);
   const lo = Math.min(0, ...ends);
@@ -87,7 +86,7 @@ function CostByTax() {
       }
     >
       <div className={entryClass(e, 'hh-wf')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <div role="list" className="hh-rowlist">
           {rows.map((r, i) => (
             <div role="listitem" key={r.id} className="hh-wf-row" data-row={r.id}>
@@ -136,7 +135,7 @@ export const VARIANT_ARROWS = [
 ];
 
 function Variants() {
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const xs = VARIANTS.map((v) => ladder(v.id));
   const xMax = Math.max(...xs.map((r) => r.cost_bn)) * 1.08;
   const yMax = Math.max(...xs.map((r) => r.poverty_pp)) * 1.15;
@@ -178,7 +177,7 @@ function Variants() {
       }
     >
       <div className={entryClass(e, 'hh-plane-wrap')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <Plane
           on={e.on}
           label="Scatter: cost against the poverty rise for each variant; arrows run from the central case to full take-up to JSA, within each group"
@@ -224,7 +223,7 @@ const RULES = [
   { id: 'compression', icon: 'pay', label: 'Expertise compression' },
 ];
 function Rules() {
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const K = rule('klein_top_loaded');
   const xMax = Math.max(...RULES.map((r) => rule(r.id).cost_bn)) * 1.12;
   const yMax = Math.max(K.poverty_pp, ...RULES.map((r) => rule(r.id).poverty_pp)) * 1.12;
@@ -252,7 +251,7 @@ function Rules() {
       }
     >
       <div className={entryClass(e, 'hh-plane-wrap')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <Plane
           on={e.on}
           label="Scatter: cost against the poverty rise under each displacement rule; the top-loaded stress test is off the cost scale"
@@ -303,7 +302,7 @@ function Pence({ parts }) {
   );
 }
 function PerPound() {
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const j20 = D.per_pound_20.job_loss;
   const w = perPound('wage_cuts');
   const er = D.per_pound_20.wage_cuts_employer_ni_p;
@@ -351,7 +350,7 @@ function PerPound() {
         </span>
       </p>
       <div className={entryClass(e, 'hh-pp')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <div className="hh-pp-group">
           <p className="hh-pp-head">
             <Chip icon="draws">{D.per_pound_20.draws} paired draws</Chip>
@@ -418,7 +417,7 @@ function PerPound() {
 export const UC_VIEWS = ['data', 'full'];
 function Displaced() {
   const X = D.displaced;
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const [view, setView] = useState('data');
   // the UC capital limit, stated in the data as text ("16,000")
   const limit = Number(String(D.method.uc_capital_limit_gbp).replace(/,/g, ''));
@@ -468,7 +467,7 @@ function Displaced() {
       }
     >
       <div className={entryClass(e, 'hh-disp')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <ol className="hh-funnel">
           {stages.map(([k, name, v, base], i) => (
             <li key={k} className="hh-funnel-row" data-row={k}>
@@ -545,7 +544,7 @@ function Displaced() {
 const RANK_FILL = ['p3-fill-rank-1', 'p3-fill-rank-2', 'p3-fill-rank-3'];
 function Rankings() {
   const R = D.rankings;
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const all = R.flatMap((r) => r.values);
   const lo = Math.floor(Math.min(0, ...all));
   const hi = Math.ceil(Math.max(0, ...all));
@@ -583,7 +582,7 @@ function Rankings() {
         ))}
       </p>
       <div className={entryClass(e, 'hh-db')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <div className="hh-db-axis" aria-hidden="true" data-axis="">
           <span />
           <span className="hh-db-ticks">
@@ -631,11 +630,11 @@ function Rankings() {
 // Each card: a cost bar on one shared scale, and the poverty and Gini
 // changes. Wage insurance under the two other displacement rules is a strip
 // on its card. No ranking words; the order is the study's.
-const POLICY_ICON = { R1_wage_insurance: Shield, R2_uc_circuit_breaker: Plus, R3_cap_suspension_taper_cut: SlidersHorizontal };
+const POLICY_ICON = { R1_wage_insurance: 'shield', R2_uc_circuit_breaker: 'plus', R3_cap_suspension_taper_cut: 'sliders' };
 const FAMILY = { junior: 'Junior-tilted displacement', uniform: 'Uniform displacement' };
 function Policy() {
   const P = D.policy;
-  const [ref, e] = useEntry();
+  const [ref, e] = useSeenBeat();
   const max = Math.max(...P.rows.map((r) => r.cost_bn)) * 1.05;
   const main = P.rows.filter((r) => r.family === 'exposure');
   const others = (reform) => P.rows.filter((r) => r.reform === reform && r.family !== 'exposure');
@@ -679,16 +678,13 @@ function Policy() {
       }
     >
       <div className={entryClass(e, 'hh-pol')} ref={ref}>
-        <Replay {...e.replay} />
+        <Replay onClick={e.replay} />
         <ul className="hh-pol-cards">
           {main.map((r, i) => {
-            const Glyph = POLICY_ICON[r.reform];
             return (
               <li key={r.id} className="hh-pol-card" data-row={r.id}>
                 <p className="hh-pol-title">
-                  <span className="plain-icon" aria-hidden="true">
-                    {Glyph ? <Glyph size={18} strokeWidth={1.8} /> : null}
-                  </span>
+                  <Icon name={POLICY_ICON[r.reform]} size={18} />
                   <span data-input="">{r.label}</span>
                 </p>
                 <span className="hh-pol-track" aria-hidden="true">

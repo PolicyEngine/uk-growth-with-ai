@@ -384,7 +384,7 @@ describe('Part3', () => {
 
   it('gives each one-card scene a Replay button and plays it again', () => {
     const { container } = renderPart();
-    const buttons = container.querySelectorAll('.p3-replay');
+    const buttons = container.querySelectorAll('.ch-icon-btn[aria-label="Replay the animation"]');
     expect(buttons.length).toBe(7);
     buttons.forEach((b) => expect(b.getAttribute('aria-label')).toBe('Replay the animation'));
     act(() => fireEvent.click(buttons[0]));
@@ -400,5 +400,28 @@ describe('Part3', () => {
   it('reads as three scenes under sub-headers, then step 8', () => {
     const heads = [...renderPart().container.querySelectorAll('.p3-scene-head')].map((h) => h.dataset.scene);
     expect(heads).toEqual(['The cost', 'Who it falls on', 'What changes it']);
+  });
+
+  it('lets a reader follow one decile through the Sankey without printing a new figure', () => {
+    const { container } = renderPart();
+    const fig = container.querySelector('#p3-absorb');
+    const btns = fig.querySelectorAll('.p3-follow-btn');
+    expect(btns).toHaveLength(10);
+    expect(btns[0].classList.contains('is-caveat')).toBe(true);
+    const before = (checkedText(fig).match(FIG) ?? []).length;
+    fireEvent.click(btns[7]);
+    expect(btns[7].getAttribute('aria-pressed')).toBe('true');
+    expect((checkedText(fig).match(FIG) ?? []).length).toBe(before);
+    fireEvent.click(btns[7]);
+    expect(btns[7].getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('shows both states of step 7, the one not reached dimmed', () => {
+    const { container } = renderPart();
+    const states = container.querySelectorAll('#p3-moves .p3-state');
+    expect([...states].map((x) => x.dataset.state)).toEqual(['breakeven', 'takeup']);
+    const off = [...states].filter((x) => x.classList.contains('is-off'));
+    expect(off).toHaveLength(1);
+    expect(states[1].textContent).toContain(fmtBn(ladder('takeup').cost_bn));
   });
 });

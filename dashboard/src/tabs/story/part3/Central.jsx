@@ -3,10 +3,11 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { TileGrid } from '@/components/story/primitives.jsx';
+import { TileField } from '@/components/story/primitives.jsx';
+import CountUp from '@/components/story/CountUp.jsx';
 import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
-import { About, Count, D, FigureHead, MODEL_YEAR, Source, Ico, entryClass, useEntry } from './shared.jsx';
+import { About, D, FigureHead, MODEL_YEAR, Source, Ico, entryClass, useBeat } from './shared.jsx';
 
 // Step 1, the central case (results.tex, "The central scenario"). The
 // scoreboard is the home of the headline figures, each beside its baseline;
@@ -61,7 +62,7 @@ const FACTS = [
 
 // The tiles (scene 3-1, plan section 2): 100 employees in grey; after the
 // hold, the displaced peel out of the right-hand column to a group two
-// columns away, 80ms apart, turning ink. Positions only; the group carries
+// columns away, 80ms apart, turning ink as they land (F's TileField). Positions only; the group carries
 // no number (the rate's home is the card).
 const GAP_COLS = 2;
 export function centralTiles(on) {
@@ -76,16 +77,17 @@ export function centralTiles(on) {
       y,
       out,
       color: out && on ? 'var(--pe-gray-800)' : 'var(--pe-gray-200)',
-      delay: out ? 200 + y * 80 : 0,
+      group: out ? 'displaced' : 'employees',
+      delay: out ? y * 80 : 0,
     };
   });
 }
 
-function CentralFigure() {
-  const [ref, e] = useEntry();
+function CentralFigure({ ctx }) {
+  const e = useBeat(ctx?.entered ?? true);
   const tiles = centralTiles(e.on);
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
+    <figure className={entryClass(e, 'p3-figure p3-scene')}>
       <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} random draws of who is displaced`} replay={e.replay} />
       <div className="p3-central">
         <div className="p3-central-tiles">
@@ -93,7 +95,7 @@ function CentralFigure() {
             <span>Employees</span>
             <span className="p3-tile-head-out">Assumed displaced</span>
           </p>
-          <TileGrid
+          <TileField
             tiles={tiles}
             width={10 + 1 + GAP_COLS}
             height={10}
@@ -105,7 +107,7 @@ function CentralFigure() {
             <Ico c="measure" size={12} /> One tile = 1% of employees
           </p>
         </div>
-        <KeyFacts className="p3-facts" facts={FACTS.map((f, i) => ({ ...f, value: <Count value={f.value} on={e.on} reduce={e.reduce} delay={750 + i * 150} /> }))} />
+        <KeyFacts className="p3-facts" facts={FACTS.map((f) => ({ ...f, value: <CountUp key={e.run} value={f.value} /> }))} />
       </div>
       <Source />
     </figure>
@@ -198,5 +200,5 @@ export default function Central() {
       ),
     },
   ];
-  return <Scrolly id="p3-central" steps={steps} graphic={() => <CentralFigure />} label="The central case: people displaced, cost, poverty and inequality, beside their baselines" />;
+  return <Scrolly id="p3-central" steps={steps} graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />} label="The central case: people displaced, cost, poverty and inequality, beside their baselines" />;
 }

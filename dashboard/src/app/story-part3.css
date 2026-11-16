@@ -1147,26 +1147,6 @@ svg.p3-dim {
 
 /* ---- Wave 2 scenes (part3/*.jsx): entry beats, Replay, scene heads ---- */
 
-/* Part 3's blocks are one card each (Moves two): a block ends with its
-   card or its figure, cards 32px apart, no viewport-height steps (addendum
-   A2), until the shared Scrolly rework lands */
-#story-part-3 .scrolly {
-  margin-bottom: 40px;
-}
-#story-part-3 .scrolly-steps {
-  padding-bottom: 0;
-}
-#story-part-3 .scrolly-step,
-#story-part-3 .scrolly-step:nth-last-child(2) {
-  min-height: 0;
-  padding-bottom: 32px;
-}
-#story-part-3 .scrolly-step:nth-last-child(2) {
-  padding-bottom: 0;
-}
-#story-part-3 .scrolly-graphic {
-  height: auto;
-}
 #story-part-3 .p3-scene-head {
   display: flex;
   gap: 8px;
@@ -1183,33 +1163,6 @@ svg.p3-dim {
   color: var(--c-highlight);
 }
 
-/* Replay (figure head, right) */
-.p3-figure .story-figure-title {
-  position: relative;
-}
-.p3-replay {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-left: auto;
-  padding: 0;
-  color: var(--pe-gray-500);
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.p3-replay:hover,
-.p3-replay:focus-visible {
-  color: var(--pe-gray-900);
-  background: var(--pe-gray-100);
-}
-.p3-replay:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 1px;
-}
 /* a replay snaps the figure back without a transition, then it plays */
 .p3-reset,
 .p3-reset * {
@@ -1235,15 +1188,7 @@ svg.p3-dim {
 #story-part-3 .p3-central-tiles {
   max-width: 260px;
 }
-.p3-count .count-up-vis {
-  opacity: 0;
-  transition: opacity 200ms var(--story-ease);
-}
-.p3-count.is-on .count-up-vis {
-  opacity: 1;
-}
 @media print, (scripting: none) {
-  .p3-count .count-up-vis,
   .p3-tile-head-out,
   .p3-wf-row .p3-row-value,
   .p3-wf-row .p3-row-label,
@@ -1325,55 +1270,6 @@ svg.p3-dim {
   opacity: 1;
 }
 
-/* 3-3: the decile Sankey builds on entry */
-.p3-sankey .sankey-node[data-node^='d'] {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 300ms var(--story-ease), transform 300ms var(--story-ease);
-}
-.p3-sankey .sankey-node:not([data-node^='d']) {
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 250ms var(--story-ease), transform 250ms var(--story-ease);
-}
-.p3-sankey .sankey-link {
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path 800ms var(--story-ease), opacity 200ms ease;
-}
-.p3-sankey.is-on .sankey-node,
-.p3-sankey.is-on .sankey-node[data-node^='d'] {
-  opacity: 1;
-  transform: none;
-}
-.p3-sankey.is-on .sankey-link {
-  clip-path: inset(0 0 0 0);
-}
-/* deciles rise bottom to top (10 first), 40ms apart */
-.p3-sankey [data-node='d10'] { transition-delay: 0ms; }
-.p3-sankey [data-node='d9'] { transition-delay: 40ms; }
-.p3-sankey [data-node='d8'] { transition-delay: 80ms; }
-.p3-sankey [data-node='d7'] { transition-delay: 120ms; }
-.p3-sankey [data-node='d6'] { transition-delay: 160ms; }
-.p3-sankey [data-node='d5'] { transition-delay: 200ms; }
-.p3-sankey [data-node='d4'] { transition-delay: 240ms; }
-.p3-sankey [data-node='d3'] { transition-delay: 280ms; }
-.p3-sankey [data-node='d2'] { transition-delay: 320ms; }
-.p3-sankey [data-node='d1'] { transition-delay: 360ms; }
-/* ribbons pour by destination, 150ms between groups; a node lands with its ribbons */
-.p3-sankey .sankey-link[data-target='disposable'] { transition-delay: 700ms, 0ms; }
-.p3-sankey .sankey-link[data-target='benefits'] { transition-delay: 850ms, 0ms; }
-.p3-sankey .sankey-link[data-target='tax'] { transition-delay: 1000ms, 0ms; }
-.p3-sankey .sankey-link[data-target='other'] { transition-delay: 1150ms, 0ms; }
-.p3-sankey [data-node='disposable'] { transition-delay: 1300ms; }
-.p3-sankey [data-node='benefits'] { transition-delay: 1450ms; }
-.p3-sankey [data-node='tax'] { transition-delay: 1600ms; }
-.p3-sankey [data-node='other'] { transition-delay: 1750ms; }
-.p3-sankey .sankey-link.is-dim {
-  opacity: 0.12 !important;
-}
-.p3-sankey .sankey-link.is-hl {
-  opacity: 0.85 !important;
-}
 .p3-key-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1856,16 +1752,6 @@ svg.p3-dim {
 }
 
 @media (max-width: 900px) {
-  #story-part-3 .scrolly {
-    margin-bottom: 32px;
-  }
-  #story-part-3 .scrolly-step,
-  #story-part-3 .scrolly-step:nth-last-child(2) {
-    padding-bottom: 24px;
-  }
-  #story-part-3 .scrolly-step:nth-last-child(2) {
-    padding-bottom: 0;
-  }
   #story-part-3 .p3-scene-head {
     margin: 0 0 10px;
     padding-top: 0;
@@ -1889,29 +1775,177 @@ svg.p3-dim {
     column-gap: 14px;
   }
 }
-/* Moves on phones: the figure once, complete, then its two cards */
-.p3-once .scrolly-graphic-inner {
-  margin-bottom: 24px;
-}
-.p3-once .scrolly-steps {
-  padding: 0;
-}
-.p3-once .scrolly-card {
-  opacity: 1;
-}
+
 
 @media (prefers-reduced-motion: reduce) {
-  .p3-scene *,
-  .p3-count .count-up-vis {
+  .p3-scene * {
     transition: none !important;
   }
 }
-/* narrow: the two track labels on two lines, so they never overlap */
-@media (max-width: 600px) {
-  .p3-be-points {
-    height: 34px;
+
+
+/* figure head actions (Pause, Replay: F's chart/Replay buttons) */
+.p3-figure .story-figure-title {
+  position: relative;
+}
+.p3-head-actions {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+/* 3-3: follow a decile */
+.p3-follow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 6px 0 2px;
+}
+.p3-follow-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-right: 4px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p3-follow-dest {
+  margin-left: auto;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.p3-follow-btn {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-700);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.p3-follow-btn.is-caveat {
+  color: var(--pe-gray-600);
+  border-style: dashed;
+}
+.p3-follow-btn.is-on {
+  font-weight: 700;
+  color: var(--pe-gray-900);
+  border-color: var(--pe-gray-800);
+}
+.p3-follow-btn:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 1px;
+}
+
+/* 3-7: the two states side by side on desktop; stacked on phones */
+.p3-states {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 28px;
+  align-items: start;
+}
+.p3-state {
+  min-width: 0;
+}
+.p3-state.is-off .p3-be-track,
+.p3-state.is-off .p3-ladder-dot,
+.p3-state.is-off .p3-ladder-arrow,
+.p3-state.is-off .p3-ladder-ghost,
+.p3-state.is-off .p3-switch,
+.p3-state.is-off .p3-flag .plain-icon {
+  opacity: 0.4;
+  transition: opacity 300ms var(--story-ease);
+}
+.p3-state.is-off,
+.p3-state.is-off .p3-row-value,
+.p3-state.is-off .p3-row-label,
+.p3-state.is-off .p3-group-head,
+.p3-state.is-off .p3-ladder-val {
+  color: var(--pe-gray-600);
+}
+.p3-state .p3-be-track-row {
+  grid-template-columns: minmax(0, 1fr) 5.2em;
+}
+.p3-states.is-all {
+  grid-template-columns: minmax(0, 1fr);
+}
+.p3-states.is-all .p3-state + .p3-state {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--card-border);
+}
+
+/* phones: the flow is off and the Sankey is drawn once, so the decile
+   buttons step aside (hover and focus still light a decile end to end) */
+@media (max-width: 900px) {
+  .p3-follow-btn,
+  .p3-follow-hint {
+    display: none;
   }
-  .p3-be-point.is-be {
-    top: 17px;
+  /* a block ends with its last card (addendum A2.2): the shared Scrolly
+     leaves 8px under a one-card block's step at this width */
+  #story-part-3 .scrolly-step:nth-last-child(2) {
+    padding-bottom: 0;
+  }
+}
+/* the close ends with its columns: no band before the site footer */
+.story-close.story-part {
+  padding-bottom: 0;
+}
+.story-close .lens-grid-split {
+  margin-bottom: 0;
+}
+@media (max-width: 900px) {
+  #story-part-3 .p3-scene-head {
+    margin-bottom: 8px;
+  }
+}
+/* phones: the page's bottom padding and the footer's own top padding left a
+   blank band over 120px under the close; the close takes 32px of it */
+@media (max-width: 900px) {
+  .story-close.story-part {
+    margin-bottom: -32px;
+  }
+}
+/* 3-7 on desktop: the figure keeps its own height (its two states side by
+   side are short), so it stays in view while each card holds its state */
+@media (min-width: 901px) {
+  #p3-moves .scrolly-graphic-inner {
+    min-height: calc(100vh - var(--story-graphic-top) - 230px);
+  }
+}
+/* the track labels: the left one ends at its tick, the right one starts at
+   its tick; the cost word sits on the track's line only */
+.p3-be-point.is-end {
+  transform: translateX(calc(-100% + 2px));
+}
+.p3-be-point.is-start {
+  transform: translateX(-2px);
+}
+.p3-be-cost {
+  grid-row: 2;
+}
+/* the ladder: track, then cost and poverty in their own columns */
+.p3-cols-ladder,
+.p3-ladder-row {
+  grid-template-columns: minmax(0, 1fr) 4.5em 4.5em;
+}
+.p3-cols-ladder span:first-child {
+  grid-column: 2;
+}
+.p3-ladder-val {
+  position: static;
+  margin: 0;
+  transform: none;
+}
+/* the flow is off on phones, so its pause button goes too */
+@media (max-width: 900px) {
+  .p3-sankey .ch-icon-btn[aria-label$='the flow'] {
+    display: none;
   }
 }

@@ -5,7 +5,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { fmtBn, fmtBn2 } from './format.js';
-import { About, D, FigureHead, Source, entryClass, useEntry } from './shared.jsx';
+import { About, D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
@@ -52,10 +52,10 @@ const LO = Math.min(0, ...ENDS) * 1.05;
 const HI = Math.max(0, ...ENDS) * 1.05;
 const X = (v) => ((v - LO) / (HI - LO)) * 100;
 
-function ChannelsFigure() {
-  const [ref, e] = useEntry();
+function ChannelsFigure({ ctx }) {
+  const e = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
+    <figure className={entryClass(e, 'p3-figure p3-scene')}>
       <FigureHead icon="arithmetic" title="The central cost nets three flows" unit="Cost to the public finances of each channel run alone, £bn a year" replay={e.replay} />
       <ol className="p3-rows p3-wf">
         {BARS.map((b, i) => {
@@ -132,5 +132,5 @@ export default function Channels() {
       ),
     },
   ];
-  return <Scrolly id="p3-channels" steps={steps} graphic={() => <ChannelsFigure />} label="Cost to the public finances of each of the three channels run alone" />;
+  return <Scrolly id="p3-channels" steps={steps} graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />} label="Cost to the public finances of each of the three channels run alone" />;
 }

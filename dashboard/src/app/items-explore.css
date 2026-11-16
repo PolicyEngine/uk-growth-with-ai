@@ -1729,7 +1729,7 @@
 .hh-pol {
   position: relative;
 }
-.hh-page .p3-replay {
+.hh-page .ch-icon-btn[aria-label="Replay the animation"] {
   position: absolute;
   top: -6px;
   right: 0;

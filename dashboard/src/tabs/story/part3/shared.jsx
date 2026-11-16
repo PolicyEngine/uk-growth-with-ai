@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
 import Icon from '@/components/ab/Icon.jsx';
 import { GrowRect } from '@/components/story/primitives.jsx';
-import { useInView, useReducedMotion } from '@/components/story/motion.js';
-import { partial } from '@/components/story/CountUp.jsx';
+import { useEnterState, useInView, useReducedMotion } from '@/components/story/motion.js';
+import { Replay } from '@/components/story/chart/index.js';
 import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
 
@@ -46,13 +45,18 @@ export function Source({ children }) {
   );
 }
 
-export function FigureHead({ title, unit, icon = 'path', replay }) {
+export function FigureHead({ title, unit, icon = 'path', replay, actions }) {
   return (
     <>
       <p className="story-figure-title p3-iconed">
         <Ico c={icon} size={16} />
         <span>{title}</span>
-        {replay ? <Replay {...replay} /> : null}
+        {replay || actions ? (
+          <span className="p3-head-actions">
+            {actions}
+            {replay ? <Replay onClick={replay} /> : null}
+          </span>
+        ) : null}
       </p>
       {unit ? (
         <p className="story-figure-unit p3-iconed">
@@ -140,42 +144,43 @@ export function About({ children }) {
 }
 
 // Entry beats (addendum B0): a one-card scene plays its beats once, when its
-// figure comes into view, and a Replay button runs them again. Every label
-// and value is in the DOM from the first render; beats change opacity and
-// transforms only. `on` is false until the figure is seen (plus a short
-// hold), true after; under reduced motion it is true at once and nothing
-// moves. While a replay resets the figure, `reset` is true (the figure
-// snaps back without a transition, then plays again). Without
-// IntersectionObserver (tests, old browsers) the figure counts as seen.
-// Returns [ref, entry]; the shape matches Scrolly's ctx.entered, so a later
-// swap to it is local.
-export function useEntry(hold = 300) {
-  const [ref, seen] = useInView({ rootMargin: '0px 0px -12% 0px' });
+// figure comes into view (Scrolly's ctx.entered, through F's useEnterState),
+// and the figure head's Replay button runs them again. Every label and value
+// is in the DOM from the first render; beats change opacity and transforms
+// only. `on` is false until entered (plus the hold), true after; under
+// reduced motion it is true at once. A replay snaps the figure back for one
+// beat (`reset`, no transitions), then plays it again; `run` counts replays
+// (a key for anything that must restart, such as the Sankey's pour).
+export function useBeat(entered = true) {
   const reduce = useReducedMotion();
+  const armed = useEnterState(false, true, entered);
   const [run, setRun] = useState(0);
-  const [played, setPlayed] = useState(-1);
+  const [reset, setReset] = useState(false);
   useEffect(() => {
-    if (!seen || reduce) return undefined;
-    const t = setTimeout(() => setPlayed(run), run ? 60 : hold);
+    if (!reset) return undefined;
+    const t = setTimeout(() => setReset(false), 60);
     return () => clearTimeout(t);
-  }, [seen, reduce, run, hold]);
-  const on = reduce || played === run;
-  return [ref, { on, reduce, reset: run > 0 && !on, replay: { reduce, onClick: () => setRun((r) => r + 1) } }];
+  }, [reset, run]);
+  return {
+    on: reduce || (armed && !reset),
+    reduce,
+    reset,
+    run,
+    replay: () => {
+      setReset(true);
+      setRun((r) => r + 1);
+    },
+  };
 }
 
-// The figure-head Replay button (24px target); not rendered under reduced
-// motion, where there is nothing to replay. Lucide's RotateCcw drawn as a
-// plain icon, like Icon.jsx (no concept: until F's shared Replay lands).
-export function Replay({ reduce, onClick }) {
-  if (reduce) return null;
-  return (
-    <button type="button" className="p3-replay" onClick={onClick} aria-label="Replay the animation" title="Replay">
-      <span className="plain-icon" aria-hidden="true">
-        <RotateCcw size={14} strokeWidth={1.8} />
-      </span>
-    </button>
-  );
+// The same for a figure outside Scrolly (Explore > Households): entered when
+// the box first comes into view. Returns [ref, beat].
+export function useSeenBeat() {
+  const [ref, seen] = useInView({ rootMargin: '0px 0px -12% 0px' });
+  return [ref, useBeat(seen)];
 }
+
+export { Replay };
 
 // A scene's class list: entry state, and the no-transition reset.
 export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
@@ -188,36 +193,5 @@ export function SceneHead({ title, icon }) {
       <Ico c={icon} size={16} />
       <span>{title}</span>
     </header>
-  );
-}
-
-// A stat that counts up once its scene is `on`, `delay` ms after the beat
-// starts. The exact value is always in the DOM (visually hidden, read once by
-// screen readers and the number checks); the drawn copy is aria-hidden and
-// ends on the same string. Until its turn the drawn copy holds the final
-// string at opacity 0 (no zero is ever held on screen; print shows it).
-export function Count({ value, on, delay = 0, reduce }) {
-  const text = String(value);
-  // -1: waiting for its turn (drawn copy hidden); 0..1 counting; 1 done
-  const [frac, setFrac] = useState(1);
-  useEffect(() => {
-    if (!on || reduce) return undefined;
-    let raf = 0;
-    const t0 = performance.now() + delay;
-    const tick = (t) => {
-      const k = (t - t0) / 600;
-      setFrac(k < 0 ? -1 : Math.min(1, 1 - (1 - Math.min(1, k)) ** 3));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [on, reduce, delay]);
-  const shown = !on || reduce || frac >= 1 || frac < 0 ? text : partial(text, frac);
-  const visible = reduce || (on && frac >= 0);
-  return (
-    <span className={`count-up p3-count${visible ? ' is-on' : ''}`}>
-      <span className="visually-hidden">{text}</span>
-      <span className="count-up-vis" aria-hidden="true" data-final={text} data-text={shown} />
-    </span>
   );
 }

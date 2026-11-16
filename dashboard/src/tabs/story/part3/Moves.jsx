@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { useIsPhone } from '@/components/story/motion.js';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPctSigned0, fmtPctSigned1, fmtPp } from './format.js';
-import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useEntry } from './shared.jsx';
+import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat } from './shared.jsx';
 
 // Step 7, what moves the cost (results.tex, "What moves the central cost"),
 // in two cards over one figure: the three break-even values
@@ -19,9 +18,9 @@ import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, Ico, entryCla
 
 const BE = D.breakeven;
 const TK = [
-  { id: 'central_20', icon: 'jobLoss', label: 'The central case on these draws: ', base: true },
-  { id: 'takeup', icon: 'takeUp', label: 'Every benefit unit with a displaced worker claims Universal Credit' },
-  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA for those who qualify' },
+  { id: 'central_20', icon: 'jobLoss', label: 'Central case, these draws: ', base: true },
+  { id: 'takeup', icon: 'takeUp', label: 'Everyone with a displaced worker claims UC' },
+  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA' },
 ];
 const MAX = Math.max(...TK.map((r) => ladder(r.id).cost_bn));
 
@@ -116,10 +115,11 @@ function Tracks({ dim, pos }) {
               </span>
             </span>
             <span className="p3-be-points">
-              <span className="p3-be-point" style={{ left: `${xc}%` }}>
+              {/* each label grows away from the other point, so the two never overlap */}
+              <span className={`p3-be-point ${xc < xb ? 'is-end' : 'is-start'}`} style={{ left: `${xc}%` }}>
                 {b.centralText}
               </span>
-              <span className={`p3-be-point is-be${xb < xc ? ' is-left' : ''}`} style={{ left: `${xb}%` }}>
+              <span className={`p3-be-point is-be ${xb < xc ? 'is-end' : 'is-start'}`} style={{ left: `${xb}%` }}>
                 Break-even <strong className="p3-row-value">{b.valueText}</strong>
               </span>
             </span>
@@ -161,12 +161,8 @@ function Ladder({ dim, on }) {
               </>
             ) : null}
             <span className={`p3-ladder-dot${r.base ? ' is-ring' : ''}`} style={{ left: `${r.x}%` }} />
-            {r.base ? null : (
-              <span className="p3-ladder-val" style={{ left: `${r.x}%` }}>
-                {fmtBn(r.d.cost_bn)}
-              </span>
-            )}
-          </span>
+          </span>{' '}
+          <span className="p3-row-value p3-ladder-val">{r.base ? null : fmtBn(r.d.cost_bn)}</span>{' '}
           <span className="p3-row-value p3-row-value-2">{r.base ? null : fmtPp(r.d.poverty_pp)}</span>
         </li>
       ))}
@@ -174,70 +170,54 @@ function Ladder({ dim, on }) {
   );
 }
 
-function MovesFigure({ active, all = false }) {
-  const [ref, e] = useEntry();
+// Desktop: the two states side by side, so the figure is short enough to
+// stay in view while each card holds its state; the state not reached is
+// dimmed (marks fade, text greys), as before. Phones (Scrolly's
+// phone="once", ctx.once): both states, complete, one above the other.
+function MovesFigure({ active, all = false, ctx }) {
+  const e = useBeat(ctx?.entered ?? true);
   // the switch plays once on entry, Central to Break-even; a reader can set it after
   const [chosen, setChosen] = useState(null);
   const pos = chosen ?? (e.on ? 'be' : 'central');
-  const be = all || active === 0 ? '' : ' p3-dim';
-  const tk = all || active === 1 ? '' : ' p3-dim';
+  const show = (k) => all || active === k;
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')} ref={ref}>
-      <FigureHead icon="breakEven" title="What moves the central cost" unit="Break-even: the value at which the cost is zero, the other two held at their central settings, by linear interpolation between runs" replay={{ ...e.replay, onClick: () => { setChosen(null); e.replay.onClick(); } }} />
-      <div className={`p3-be-head${be}`}>
-        <Switch pos={pos} setPos={setChosen} />
-      </div>
-      <Tracks dim={be} pos={pos} />
-      <Items
-        className={`p3-key-items${be}`}
-        items={[
-          { icon: 'timing', text: 'Time out of work: from a run keeping half a year’s earnings' },
-          { icon: 'benefits', text: 'That also withdraws Universal Credit a real six-month spell would pay' },
-          { icon: 'caveat', text: 'So the break-even is likely shorter than shown' },
-        ]}
+    <figure className={entryClass(e, 'p3-figure p3-scene')}>
+      <FigureHead
+        icon="breakEven"
+        title="What moves the central cost"
+        unit="Break-even: zero cost, the other two at central settings; interpolated between runs"
+        replay={() => {
+          setChosen(null);
+          e.replay();
+        }}
       />
-      <p className={`p3-group-head${tk}`}>
-        <Ico c="takeUp" /> Benefit take-up and new-style JSA, the same 20 draws as step 6
-      </p>
-      <OutsideRebuildFlag className={tk.trim()} />
-      <div className={`p3-cols p3-cols-ladder${tk}`} aria-hidden="true">
-        <span>Cost, £bn a year</span>
-        <span>Poverty</span>
+      <div className={`p3-states${all ? ' is-all' : ''}`}>
+        <section className={`p3-state${show(0) ? '' : ' is-off'}`} data-state="breakeven">
+          <div className="p3-be-head">
+            <Switch pos={pos} setPos={setChosen} />
+          </div>
+          <Tracks dim="" pos={pos} />
+        </section>
+        <section className={`p3-state${show(1) ? '' : ' is-off'}`} data-state="takeup">
+          <p className="p3-group-head p3-group-first">
+            <Ico c="takeUp" /> Take-up and JSA, the same 20 draws as step 6
+          </p>
+          <OutsideRebuildFlag />
+          <div className="p3-cols p3-cols-ladder" aria-hidden="true">
+            <span>Cost</span>
+            <span>Poverty</span>
+          </div>
+          <Ladder dim="" on={all ? e.on : active === 1 && e.on} />
+        </section>
       </div>
-      <Ladder dim={tk} on={all ? e.on : active === 1} />
-      <Source>break-evens by linear interpolation between simulated runs</Source>
+      <Source />
     </figure>
   );
 }
 
 const LABEL = 'Break-even values of three assumptions, and the cost with full benefit take-up and new-style JSA';
 
-function Once({ id, steps, figure, label }) {
-  return (
-    <div className="scrolly is-single p3-once" id={id}>
-      <div className="scrolly-graphic" role="group" aria-label={label}>
-        <div className="scrolly-graphic-inner">{figure}</div>
-      </div>
-      <ol className="scrolly-steps">
-        {steps.map((s) => (
-          <li key={s.id} id={s.id} className="scrolly-step">
-            <div className="scrolly-card">
-              <p className="scrolly-kicker">{s.kicker}</p>
-              <h3 className="scrolly-title">
-                <Icon name={iconFor(s.icon)} size={18} className="scrolly-title-icon" />
-                <span>{s.title}</span>
-              </h3>
-              <div className="scrolly-body">{s.body}</div>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
 export default function Moves() {
-  const phone = useIsPhone();
   const t = takeupDirections();
   const steps = [
     {
@@ -246,14 +226,25 @@ export default function Moves() {
       title: 'Three assumptions decide its sign',
       icon: 'breakEven',
       body: (
-        <Items
-          items={[
-            { icon: 'breakEven', text: 'The cost nets far larger flows, so three assumptions break even nearby:' },
-            { icon: 'pay', text: 'The wage rise for those who keep their jobs' },
-            { icon: 'capital', text: 'The rise in interest and dividend income' },
-            { icon: 'timing', text: 'How long people are out of work' },
-          ]}
-        />
+        <>
+          <Items
+            items={[
+              { icon: 'breakEven', text: 'The cost nets far larger flows, so three assumptions break even nearby:' },
+              { icon: 'pay', text: 'The wage rise for those who keep their jobs' },
+              { icon: 'capital', text: 'The rise in interest and dividend income' },
+              { icon: 'timing', text: 'How long people are out of work' },
+            ]}
+          />
+          <About>
+            <Items
+              items={[
+                { icon: 'timing', text: 'Time out of work: from a run keeping half a year’s earnings' },
+                { icon: 'benefits', text: 'That also withdraws Universal Credit a real six-month spell would pay' },
+                { icon: 'caveat', text: 'So the break-even is likely shorter than shown' },
+              ]}
+            />
+          </About>
+        </>
       ),
     },
     {
@@ -286,9 +277,6 @@ export default function Moves() {
       ),
     },
   ];
-  // Phones: it prints values, so it is drawn once, complete, above both cards
-  // (the shared Scrolly's phone="once"; until that lands, laid out here with
-  // the same step ids and card classes).
-  if (phone) return <Once id="p3-moves" steps={steps} figure={<MovesFigure active={1} all />} label={LABEL} />;
-  return <Scrolly id="p3-moves" steps={steps} graphic={(i) => <MovesFigure active={i} />} label={LABEL} />;
+  // Phones: it prints values, so it is drawn once, complete, above both cards.
+  return <Scrolly id="p3-moves" steps={steps} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />;
 }
