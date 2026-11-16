@@ -1453,3 +1453,50 @@
     animation: none !important;
   }
 }
+
+/* Desktop, several cards: the figure box has a set height range, so a short
+   figure does not leave the right half blank while pinned (A2.4); the
+   figure is centred in it, a taller one grows past it. */
+@media (min-width: 901px) {
+  .scrolly:not(.is-single) .scrolly-graphic-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 96px), 620px);
+  }
+}
+/* "Show on chart" (the figure drawn once, phones): an icon button at the
+   card's top right that sets the figure's state; it adds no height */
+.scrolly.is-once .scrolly-card {
+  position: relative;
+  padding-right: 40px;
+}
+.scrolly-show {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  background: var(--pe-surface);
+  color: var(--pe-gray-500);
+  cursor: pointer;
+}
+.scrolly-show[aria-pressed='true'] {
+  border-color: var(--part-accent, var(--c-highlight));
+  color: var(--part-accent, var(--c-highlight));
+}
+.scrolly-show:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  /* a sticky scene holds each state for at least 180px of scroll */
+  .scrolly.is-scene .scrolly-card {
+    min-height: 156px;
+  }
+}

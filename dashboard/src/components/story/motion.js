@@ -67,15 +67,24 @@ export function useInView(options = {}) {
 // (<= 900px) the line is `phoneLine`, near the bottom: the graphic changes
 // as a card enters below it, before the card scrolls over it. Returns
 // [register(i) => ref callback, activeIndex].
+//
+// `line` and `phoneLine` may also be functions returning the line in px
+// from the top of the viewport (Scrolly measures a sticky scene's line from
+// its figure); they are read at each measure.
 export function useActiveStep(count, line = 0.55, phoneLine = 0.88) {
   const els = useRef([]);
+  const lines = useRef({ line, phoneLine });
+  useEffect(() => {
+    lines.current = { line, phoneLine };
+  });
   const [active, setActive] = useState(0);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     let raf = 0;
     const measure = () => {
       raf = 0;
-      const y = window.innerHeight * (window.innerWidth <= 900 ? phoneLine : line);
+      const l = window.innerWidth <= 900 ? lines.current.phoneLine : lines.current.line;
+      const y = typeof l === 'function' ? l() : window.innerHeight * l;
       let best = 0;
       els.current.forEach((el, i) => {
         if (el && el.getBoundingClientRect().top < y) best = i;
@@ -93,7 +102,7 @@ export function useActiveStep(count, line = 0.55, phoneLine = 0.88) {
       window.removeEventListener('resize', onScroll);
       if (raf) window.cancelAnimationFrame(raf);
     };
-  }, [count, line, phoneLine]);
+  }, [count]);
   const register = (i) => (el) => {
     els.current[i] = el;
   };
