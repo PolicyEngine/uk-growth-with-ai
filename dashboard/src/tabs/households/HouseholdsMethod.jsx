@@ -281,7 +281,7 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-draws" icon={iconFor('draws')} title="Draws and spread">
-            <IconText icon="draws">Who is displaced is random, so each result is a mean over draws. The draw counts are the study&rsquo;s choice ({l('methods')}).</IconText>
+            <IconText icon="draws">Who is displaced is random: each result is a mean over draws, whose counts the study chose ({l('methods')}).</IconText>
           </SectionHeading>
           <UsedBy id="hm-draws" />
           <KeyFacts

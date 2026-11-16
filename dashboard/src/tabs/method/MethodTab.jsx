@@ -194,7 +194,7 @@ function Limitations() {
       title: 'Slow capital response',
       points: [
         { icon: 'timing', text: `Capital has three years to respond by ${HEADLINE_YEAR}.` },
-        { icon: 'foreign', text: <>Proportional inflow: foreigners meet {pct(ZETA[CENTRAL], 0)} of {ext(URLS.ogCoreParams, 'excess capital demand')}.</> },
+        { icon: 'foreign', text: <>Not a cap: foreigners supply {pct(ZETA[CENTRAL], 0)} of {ext(URLS.ogCoreParams, 'excess capital demand')} (&zeta;<sub>K</sub>).</> },
         FOREIGN_DK != null && FOREIGN_DK > 50 ? { icon: 'capital', text: `So foreigners supply most of UK central’s extra capital by ${HEADLINE_YEAR}.` } : null,
         { icon: 'compare', text: 'Implied year-4 capital-supply elasticity: below the lowest case in:' },
         { icon: 'source', text: <>{cite('korinekT5')}.</> },
@@ -277,20 +277,34 @@ function Limitations() {
     {
       icon: 'excluded',
       title: 'No regions or housing',
-      points: [{ icon: 'excluded', text: 'One national economy, with no regions and no housing market.' }],
+      points: [{ icon: 'excluded', text: 'One national economy: no regions, no housing market.' }],
     },
   ];
+  // a tile: icon, title and one line; the rest opens below it
   return (
     <ul className="mx-limit-grid">
-      {items.map((it) => (
-        <li key={it.title} className="mx-limit-tile">
-          <h3>
-            <Icon name={iconFor(it.icon)} size={18} />
-            <span>{it.title}</span>
-          </h3>
-          <Items items={it.points} />
-        </li>
-      ))}
+      {items.map((it) => {
+        const [first, ...rest] = it.points.filter(Boolean);
+        const head = (
+          <>
+            <Icon name={iconFor(it.icon)} size={16} className="mx-limit-icon" />
+            <span className="mx-limit-title">{it.title}</span>
+            <span className="mx-limit-line">{first.text}</span>
+          </>
+        );
+        return (
+          <li key={it.title} className="mx-limit-tile">
+            {rest.length ? (
+              <details>
+                <summary>{head}</summary>
+                <Items items={rest} />
+              </details>
+            ) : (
+              <div className="mx-limit-head">{head}</div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

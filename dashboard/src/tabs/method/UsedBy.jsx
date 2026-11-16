@@ -1,7 +1,5 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { AI_STUDY } from '@/tabs/code/ledger.js';
 import { REPLICATE as OGUK_REPLICATE } from './sources.js';
@@ -63,51 +61,41 @@ export const REPLICATE = {
   'hm-draws': [{ label: 'runner.py', url: study('uk_ai_study/runner.py') }, { label: 'central.json', url: study('results/central.json') }],
 };
 
-function Replicate({ id }) {
-  const list = REPLICATE[id];
-  if (!list?.length) return null;
-  return (
-    <div className="mx-uses mx-replicate" data-replicate={id}>
-      <span className="mx-uses-label">
-        <Icon name={iconFor('code')} size={14} />
-        Replicate
-      </span>
-      <ul className="mx-uses-list">
-        {list.map((r) => (
-          <li key={r.url}>
-            <a className="mx-use-chip" href={r.url} target="_blank" rel="noreferrer">
-              <Icon name="github" size={14} />
-              <span>{r.label}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
+// One small row of links under each Method section: the charts and Story
+// steps that use it, then the code and result file to replicate it. Plain
+// text links, no chips or icons.
 export default function UsedBy({ id }) {
-  const list = USES[id];
-  if (!list?.length) return <Replicate id={id} />;
+  const uses = USES[id] ?? [];
+  const code = REPLICATE[id] ?? [];
+  if (!uses.length && !code.length) return null;
   return (
-    <>
-    <Replicate id={id} />
-    <div className="mx-uses" aria-label="Used by">
-      <span className="mx-uses-label">
-        <Icon name={iconFor('link')} size={14} />
-        Used by
-      </span>
-      <ul className="mx-uses-list">
-        {list.map((u) => (
-          <li key={`${u.tab}-${u.anchor}`}>
-            <NavLink tab={u.tab} sub={u.sub} anchor={u.anchor} className="mx-use-chip">
-              <Icon name={iconFor(u.icon)} size={14} />
-              <span>{u.label}</span>
-            </NavLink>
-          </li>
-        ))}
-      </ul>
-    </div>
-    </>
+    <p className="mx-uses" data-replicate={code.length ? id : undefined}>
+      {uses.length ? (
+        <span aria-label="Used by">
+          <span className="mx-uses-label">Used by</span>
+          {uses.map((u, i) => (
+            <span key={`${u.tab}-${u.anchor}`}>
+              {i ? ' · ' : ' '}
+              <NavLink tab={u.tab} sub={u.sub} anchor={u.anchor}>
+                {u.label}
+              </NavLink>
+            </span>
+          ))}
+        </span>
+      ) : null}
+      {code.length ? (
+        <span>
+          <span className="mx-uses-label">Replicate</span>
+          {code.map((r, i) => (
+            <span key={r.url}>
+              {i ? ' · ' : ' '}
+              <a href={r.url} target="_blank" rel="noreferrer">
+                {r.label}
+              </a>
+            </span>
+          ))}
+        </span>
+      ) : null}
+    </p>
   );
 }

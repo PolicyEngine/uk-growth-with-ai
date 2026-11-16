@@ -3,7 +3,7 @@
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import { Items, KeyFacts } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -13,7 +13,7 @@ import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
 import { SRC } from './sources.js';
 import InputsTable, { inputsTable } from './InputsTable.jsx';
-import { INPUTS } from './inputs.js';
+import { ROWS, KIND } from './inputs.js';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
@@ -177,10 +177,9 @@ export const SCENARIO_SECTIONS = [
 ];
 
 // A sub-section heading inside the section (h3), keeping the old anchor id
-function SubHead({ id, oldId, icon, title, children }) {
+function SubHead({ id, oldId, title, children }) {
   return (
     <div className="section-heading mx-subhead" id={id} tabIndex={-1}>
-      <Icon name={iconFor(icon)} size={18} className="section-icon" />
       <div className="section-heading-text">
         <h3 id={oldId}>{title}</h3>
         {children ? <p>{children}</p> : null}
@@ -189,45 +188,13 @@ function SubHead({ id, oldId, icon, title, children }) {
   );
 }
 
-// The short name of a source, for its chip on the card: the text before its
-// first colon, without brackets, to the first comma. The full derivation is
-// in the card's "Sources and arithmetic" fold, as a citation.
-const srcName = (v) => {
-  const n = v.split(/:\s/)[0].replace(/\s*\([^)]*\)/g, '').split(',')[0];
-  return n.includes(' ') ? n : `${n} et al.`;
-};
 // Paired bars on each scenario card: both inputs on one scale per input,
-// across the four scenarios (lengths only; the printed values are the data)
+// across the four scenarios (lengths only; the printed values are the data).
+// The card shows the values, the kind of source and one source; how each is
+// obtained (the arithmetic, every source) is its row in the inputs table.
 const MAX_LS = Math.max(...SCENARIOS.map((x) => x.labour_share_fall_pp));
 const MAX_TFP = Math.max(...SCENARIOS.map((x) => x.tfp_gain_pct));
-const SRC_KEY = { tfp: ['productivity', 'Productivity'], labour_share: ['labour', 'Labour share'], both: ['compare', 'Both inputs'] };
-
-// The published sources behind each input, linked to the page cited
-const SCEN_SRC = {
-  uk_low: { tfp: ['bp9B12', 'frs86'], labour_share: ['imfSip44'] },
-  uk_central: { tfp: ['imfSipT1', 'imfSipFig9', 'bp9B14', 'efoOct127'], labour_share: ['imfSipFig9', 'imfSip44', 'frs87'] },
-  uk_high: { tfp: ['frs86', 'imfArt4'], labour_share: ['frs87', 'frs88'] },
-  korinek: { both: ['korinekT3'] },
-};
-const cites = (keys = []) =>
-  keys.map((k, i) => (
-    <span key={k}>
-      {i ? '; ' : ''}
-      {ext(SRC[k].url, SRC[k].label)}
-    </span>
-  ));
-// The source notes say which steps are arithmetic on a published figure
-// rather than a figure in the source; that is said here without a first person.
-const neutral = (v) =>
-  v
-    .replace(/\(our arithmetic\)/g, '(arithmetic on the published figures, not a figure in the source)')
-    .replace(/\(our inference from the IMF calibration, not an IMF figure\)/g, '(an inference from the IMF calibration, not an IMF figure)')
-    .replace(/\(our inference\)/g, '(an inference from the IMF calibration, not an IMF figure)')
-    .replace(/\(our mapping\)/g, '(a proportional mapping, not a figure in the source)');
-// The labour-share derivation printed on each UK card: its row in the
-// inputs table (one wording, one place it is written)
-const SHARE_ROW = { uk_low: 'UK low: labour-share fall', uk_central: 'UK central: labour-share fall (headline)', uk_high: 'UK high: labour-share fall' };
-const derivation = (sid) => INPUTS.find((r) => r.input === SHARE_ROW[sid])?.how ?? null;
+const rowFor = (sid, k) => ROWS.find((r) => r.scen?.[0] === sid && (r.scen[1] === k || r.scen[1] === 'both'));
 
 export default function ScenariosSection({ uses = null }) {
   return (
@@ -236,15 +203,6 @@ export default function ScenariosSection({ uses = null }) {
         <IconText icon="scenario">{`Each scenario is a fall in the labour share and a gain in output at fixed inputs, reached in ${HEADLINE_YEAR}.`}</IconText>
       </SectionHeading>
       {uses}
-      <KeyFacts
-        className="mx-facts-row"
-        facts={[
-          { icon: 'scenario', value: SCENARIOS.length, label: 'scenarios: three UK, one US upper case' },
-          { icon: 'compare', value: ARMS.length, label: 'arms for each scenario' },
-          { icon: 'start', value: FIRST_YEAR, label: 'one starting point' },
-          { icon: 'shock', value: SURPRISE_YEAR, label: 'AI arrives as a surprise' },
-        ]}
-      />
       <SubHead id="s-scenarios" icon="scenario" title="The scenarios">
         <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, derived from OBR and IMF figures (the upper case: taken from Korinek et al.).</IconText>
       </SubHead>
@@ -258,95 +216,56 @@ export default function ScenariosSection({ uses = null }) {
       >
         <ScenarioMap caption={false} />
       </Card>
-      <div className="card-grid mx-scen-grid">
+      <div className="mx-scen-grid">
         {SCENARIOS.map((s) => (
-          <InfoCard
-            key={s.id}
-            id={`scen-${s.id}`}
-            icon={iconFor(s.id === 'korinek' ? 'foreign' : 'scenario')}
-            title={s.id === 'korinek' ? KORINEK_FULL : s.label}
-            className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
-            more={
-              <dl className="mx-facts" data-cite="">
-                {Object.entries(s.sources).map(([k, v]) => (
+          <article key={s.id} id={`scen-${s.id}`} className={`mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}>
+            <h3 className="mx-scen-title">
+              {s.id === 'korinek' ? KORINEK_FULL : s.label}
+              <span className="mx-scen-role">{s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US upper case' : 'UK range'}</span>
+            </h3>
+            <dl className="mx-pair mx-scen-bars">
+              {[
+                ['labour_share', 'Labour share', `−${s.labour_share_fall_pp.toFixed(1)}pp`, s.labour_share_fall_pp / MAX_LS, `surprise2028.scenarios.${s.id}.labour_share_fall_pp`],
+                ['tfp', 'Output at fixed inputs', `+${s.tfp_gain_pct.toFixed(1)}%`, s.tfp_gain_pct / MAX_TFP, `surprise2028.scenarios.${s.id}.tfp_gain_pct`],
+              ].map(([k, label, v, f, path]) => {
+                const row = rowFor(s.id, k);
+                return (
                   <div key={k}>
-                    <dt>
-                      <Icon name={iconFor(SRC_KEY[k]?.[0] ?? 'source')} size={14} className="mx-dt-icon" />
-                      {SRC_KEY[k]?.[1] ?? k}
-                    </dt>
+                    <dt>{label}</dt>
                     <dd>
-                      <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
-                      {neutral(v)}
-                      <span className="mx-src-links"> Sources: {cites(SCEN_SRC[s.id]?.[k])}.</span>
+                      <span className="mx-scen-v" data-path={path}>
+                        {v}
+                      </span>
+                      <span className="mx-bar" aria-hidden="true">
+                        <span style={{ transform: `scaleX(${f})` }} />
+                      </span>
+                      {row ? (
+                        <span className="mx-scen-src">
+                          <span className={`mx-kind is-${row.kind}`}>
+                            <Icon name={iconFor(KIND[row.kind].icon)} size={12} />
+                            {KIND[row.kind].label}
+                          </span>
+                          {ext(SRC[row.src[0]].url, SRC[row.src[0]].label)}
+                          <a className="mx-scen-row" href={`#${row.id}`}>
+                            How it is obtained
+                          </a>
+                        </span>
+                      ) : null}
                     </dd>
                   </div>
-                ))}
-              </dl>
-            }
-            moreTitle="Sources and arithmetic"
-            morePreview={s.id === 'korinek' ? 'Korinek et al., Table 3' : 'IMF UK, OBR FRS, BP9'}
-          >
-            <p className="mx-kicker">
-              <IconText icon={s.id === 'korinek' ? 'foreign' : 'scenario'}>
-                {s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US inputs' : 'UK range'}
-              </IconText>
-            </p>
-            <dl className="mx-pair mx-scen-bars">
-              <div>
-                <dt>Labour share</dt>
-                <dd>
-                  <Icon name={iconFor('labour')} size={16} className="mx-dt-icon" />
-                  <span data-path={`surprise2028.scenarios.${s.id}.labour_share_fall_pp`}>−{s.labour_share_fall_pp.toFixed(1)}pp</span>
-                  <span className="mx-bar" aria-hidden="true">
-                    <span style={{ transform: `scaleX(${s.labour_share_fall_pp / MAX_LS})` }} />
-                  </span>
-                  <a className="mx-chip-src" href={SRC[(SCEN_SRC[s.id]?.labour_share ?? SCEN_SRC[s.id]?.both)[0]].url} target="_blank" rel="noreferrer">
-                    {s.sources.both ? '' : 'derived from '}
-                    {srcName(s.sources.labour_share ?? s.sources.both)}
-                  </a>
-                </dd>
-              </div>
-              <div>
-                <dt>Output at fixed inputs</dt>
-                <dd>
-                  <Icon name={iconFor('productivity')} size={16} className="mx-dt-icon" />
-                  <span data-path={`surprise2028.scenarios.${s.id}.tfp_gain_pct`}>+{s.tfp_gain_pct.toFixed(1)}%</span>
-                  <span className="mx-bar" aria-hidden="true">
-                    <span style={{ transform: `scaleX(${s.tfp_gain_pct / MAX_TFP})` }} />
-                  </span>
-                  <a className="mx-chip-src" href={SRC[(SCEN_SRC[s.id]?.tfp ?? SCEN_SRC[s.id]?.both)[0]].url} target="_blank" rel="noreferrer">
-                    {s.id === 'uk_central' ? 'model input (rounded; OBR ramp gives 0.40%)' : `${s.sources.both ? '' : 'derived from '}${srcName(s.sources.tfp ?? s.sources.both)}`}
-                  </a>
-                </dd>
-              </div>
+                );
+              })}
             </dl>
-            {derivation(s.id) ? (
-              <p className="mx-sub mx-derive" data-cite="">
-                <IconText icon="arithmetic">
-                  {s.id === 'uk_central' ? null : <>Derived from OBR/IMF figures by this study&rsquo;s rule, not published by them. Labour-share fall: </>}
-                  {derivation(s.id)} {cites(SCEN_SRC[s.id]?.labour_share)}.
-                </IconText>
-              </p>
-            ) : (
-              <p className="mx-sub mx-derive">
-                <IconText icon="source">Both inputs: {cites(SCEN_SRC[s.id]?.both)}.</IconText>
-              </p>
-            )}
-            <p className="mx-sub">
-              <IconText icon="capital">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</IconText>
-            </p>
-          </InfoCard>
+            <p className="mx-sub">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</p>
+          </article>
         ))}
       </div>
-      <Items
-        className="mx-foot-items"
-        items={[
-          { icon: 'arithmetic', text: <>Derivations: {ext(SRC.calibNote.url, SRC.calibNote.label)}; targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)}.</> },
-          { icon: 'rule', text: 'Which pairs to run is a modelling choice.' },
-          { icon: 'rule', text: 'So is calling UK central the headline.' },
-          { icon: 'compare', text: <>Published figures are compared on <NavLink tab="method" sub="studies" anchor="numbers">Evidence</NavLink>.</> },
-        ]}
-      />
+      <p className="mx-foot-line">
+        Derivations: {ext(SRC.calibNote.url, SRC.calibNote.label)} · targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)} · published figures compared on{' '}
+        <NavLink tab="method" sub="studies" anchor="numbers">
+          Evidence
+        </NavLink>
+      </p>
 
       <SubHead id="m-inputs-head" icon="source" title="Every input and its source">
         <IconText icon="source">Published, derived by this study, OG-UK&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
@@ -367,13 +286,12 @@ export default function ScenariosSection({ uses = null }) {
       <ArmCards />
 
       <SubHead id="m-timing" oldId="s-timing" icon="timing" title="When it happens">
-        <IconText icon="timing">One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}. The one home of the timing.</IconText>
+        <IconText icon="timing">One start in {FIRST_YEAR}, a surprise in {SURPRISE_YEAR}, full weight by {HEADLINE_YEAR}.</IconText>
       </SubHead>
       <Card
         id="timing"
         icon={iconFor('timing')}
         title={`The timing, ${YEARS[0]}–${LATE_YEAR}`}
-        unit={<IconText icon="measure">Bars: weight of the change in γ and Z, from 0 (the OBR-central path) to 1 (full scenario)</IconText>}
         replication={{ code: SRC.rampWeights.url, result: SRC.ukTargets.url }}
         download={{ title: `The timing, ${YEARS[0]}–${LATE_YEAR}`, context: 'Ramp weight of the capital share γ and productivity Z', table: timelineTable, svg: timelineSvg, legend: () => [] }}
       >

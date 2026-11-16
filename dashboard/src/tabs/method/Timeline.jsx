@@ -116,11 +116,6 @@ export default function Timeline({ caption = true }) {
           <span data-axis-title="x">Calendar year</span>
         </IconText>
       </p>
-      <p className="mx-fig-note">
-        <IconText icon="timing">
-          Perfect foresight from {SURPRISE_YEAR}: once announced, the whole path is known. Hover, tap or tab to a year for detail.
-        </IconText>
-      </p>
     </figure>
   );
 }
