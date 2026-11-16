@@ -74,6 +74,7 @@
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 70ch);
+  justify-content: start;
   gap: 4px 28px;
   align-items: start;
   margin-bottom: 40px;
@@ -82,7 +83,7 @@
   box-shadow: 0 0 0 100vmax var(--pe-teal-50);
   clip-path: inset(0 -100vmax);
 }
-.story-part-numeral {
+.story-part-head .story-part-numeral {
   grid-row: 1 / span 3;
   margin: -6px 0 0;
   font-size: clamp(3.5rem, 7vw, 5.5rem);
@@ -514,7 +515,7 @@
     margin-bottom: 24px;
     padding: 24px 0 20px;
   }
-  .story-part-numeral {
+  .story-part-head .story-part-numeral {
     font-size: 3rem;
   }
   .lens-grid {
@@ -567,6 +568,7 @@
   }
   .scrolly.is-inline .scrolly-step,
   .scrolly.is-inline .scrolly-step:nth-last-child(2) {
+    display: block;
     padding-bottom: 32px;
   }
   .scrolly.is-inline .scrolly-steps {
