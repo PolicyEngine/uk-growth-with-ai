@@ -2494,11 +2494,10 @@
   margin: 0 0 16px;
 }
 /* Desktop: a sticky figure is held inside the whole block (Chrome takes the
-   grid container, not the grid area, as its sticky bound), so without this
-   it slides down over the takeaway line under the block; its bottom margin
-   keeps it above that line */
-@media (min-width: 901px) {
-  .scrolly:not(.is-single):has(> .scrolly-takeaway) > .scrolly-graphic {
-    margin-bottom: 84px;
-  }
+   grid container, not the grid area, as its sticky bound), so it can slide
+   down to the takeaway line under the block; the line stays on top (a
+   margin on the figure would cut the last state's hold) */
+.scrolly > .scrolly-takeaway {
+  position: relative;
+  z-index: 2;
 }
