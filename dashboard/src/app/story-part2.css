@@ -621,7 +621,20 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+/* the GDP row's value column fits the "Headline figures" link, so the link
+   stays inside the card on one line */
+@media (min-width: 601px) {
+  .p2-wf-row[data-row='gdp'] {
+    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr) auto;
+  }
+}
 @media (max-width: 600px) {
+  /* phones: the link may wrap inside its narrow column */
+  .p2-wf-link {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    white-space: normal;
+  }
   .p2-wf-row {
     grid-template-columns: minmax(0, 1fr) 6.5rem;
     gap: 2px 8px;
@@ -690,10 +703,7 @@
 /* A waterfall value whose home is the headline figures: a labelled link */
 .p2-wf-link {
   display: inline-flex;
-  /* may wrap onto two lines rather than run past the card's edge */
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  max-width: 100%;
+  white-space: nowrap;
   gap: 2px;
   align-items: center;
   font-weight: 500;
