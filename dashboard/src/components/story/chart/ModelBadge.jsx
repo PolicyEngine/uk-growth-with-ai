@@ -1,9 +1,7 @@
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
 
-// Which model a figure comes from, top-left of its frame: a plain icon and
-// the model's name (11px, 600, in the part accent), no fill or chip.
+// Which model a figure comes from, top-left of its frame: the model's name
+// as plain meta text (round 1: no icon, no pill).
 //   <ModelBadge model="oguk" />
 // uk-ai-study's label comes from its data file: the model year
 // (model_year_label) and, only while the study is provisional, that word.
@@ -20,7 +18,6 @@ export default function ModelBadge({ model, className = '' }) {
   if (!m) return null;
   return (
     <span className={`ch-badge ${className}`.trim()} data-model={model}>
-      <Icon name={iconFor(m.icon)} size={12} className="ch-badge-icon" />
       {m.label}
     </span>
   );

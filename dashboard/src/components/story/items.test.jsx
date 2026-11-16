@@ -9,6 +9,7 @@ describe('Recap', () => {
   it('renders a titled nav of icon chips linking to each home', () => {
     const { container } = render(
       <Recap
+        show
         items={[
           { icon: 'gdp', text: 'Growth slowed after 2008', to: 'p1-output' },
           { icon: 'labour', text: 'Pay tracks productivity', to: { tab: 'explore', sub: 'who', anchor: 'who-wall' } },
@@ -26,12 +27,16 @@ describe('Recap', () => {
     expect(links[1].getAttribute('href')).toContain('tab=explore');
     expect(links[1].getAttribute('href')).toContain('who-wall');
   });
+  it('is off the page by default (round 1: the closing lines are the recap)', () => {
+    const { container } = render(<Recap items={[{ icon: 'gdp', text: 'x', to: 'y' }]} />);
+    expect(container.innerHTML).toBe('');
+  });
   it('renders nothing without items', () => {
     const { container } = render(<Recap items={[]} />);
     expect(container.innerHTML).toBe('');
   });
   it('takes { q, a } items: the question and its answer (data-axis), linking back to the scene', () => {
-    const { container } = render(<Recap items={[{ icon: 'gdp', q: 'How fast has the UK grown?', a: 'About 1.5% a year', to: 'q-p1-output' }, { icon: 'gdp', text: 'Old shape', to: 'x' }]} />);
+    const { container } = render(<Recap show items={[{ icon: 'gdp', q: 'How fast has the UK grown?', a: 'About 1.5% a year', to: 'q-p1-output' }, { icon: 'gdp', text: 'Old shape', to: 'x' }]} />);
     const chips = container.querySelectorAll('.story-recap-chip');
     expect(container.querySelector('.story-recap').classList.contains('is-qa')).toBe(true);
     expect(chips[0].querySelector('.story-recap-q').textContent).toBe('How fast has the UK grown?');

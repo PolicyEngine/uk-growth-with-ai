@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { FinalState, useActiveStep, useInView, useIsPhone, useReducedMotion } from './motion.js';
+import { EntryCtx, FinalState, useActiveStep, useEntry, useIsPhone, useReducedMotion } from './motion.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
@@ -36,7 +36,7 @@ const subscribeWidth = (cb) => {
 // state for the active step; every state must be readable on its own (a
 // reader can land on any step from a link). Nothing hijacks the scroll.
 //
-// A step's `icon` (a concept from lib/concepts.js) leads its title.
+// A step's `icon` (a concept from lib/concepts.js) leads its sentence.
 //
 // A step marked `pin: 'bottom'` describes the bottom of a figure that may be
 // taller than the screen below the rail (laptops): while it is active, on
@@ -60,31 +60,29 @@ const subscribeWidth = (cb) => {
 //                figure card on desktop, after the last card at 900px and
 //                below, printed once either way;
 //   sub          the scene sub-header above the block: a string or
-//                { title, icon, question, hint, key, pin, recap, takeaway, answer, answerTo }
+//                { title, icon, question, hint, key, pin, answer, answerTo }
 //                (icon a concept). Rendered as <header class="scene-head"
 //                data-scene="title" id="q-<id>"> (the rail reads
 //                [data-scene]; #q-<id> links to the question); step titles
-//                then become h4.
+//                then become h4 (visually hidden: the step's accessible
+//                name and its dot label).
 //                `question` (about a dozen words, neutral, answered by the
-//                block): printed in the header, and played as the
-//                question-led sequence (QStage.jsx): by default (QFrame, no
-//                added height) the question plays big inside the figure
-//                frame as the block comes in, then shrinks into the header
+//                block): printed in the header, and played big (QStage.jsx):
+//                by default (QFrame, no added height) inside the figure
+//                frame as the block comes in, then shrunk into the header
 //                while the chart draws in; with `pin: 'full'` (QStage) one
-//                pinned screen (--q-pin on .story) above the header, with
-//                `recap` ({ icon, q, a, to }[]) under the question. `key`:
-//                the word to mark; `hint`: one line under it. Scroll-driven;
-//                skipped under reduced motion, in print, in "is-inline"
-//                blocks and when the reader lands past it; ctx.entered
-//                waits until the chart's turn.
-//                `answer` (string or node, the scene's own figures): after
-//                the last card, the question replayed with the answer,
-//                sliding up once the last card is reached (always shown when
-//                drawn once, under reduced motion and in print). With
-//                `answerTo` (anchor or { tab, sub, anchor }) it links to the
-//                figure's home and is data-axis (not a second home).
-//                `takeaway`: one "Key takeaway" line after the block (the
-//                full width, under both columns: one line on desktop);
+//                pinned screen above the header. `key`: the word to mark;
+//                `hint`: one line under it. It follows the scroll both ways
+//                (scrolling back up brings the question back); skipped under
+//                reduced motion, in print and in "is-inline" blocks; the
+//                chart draws in once, when the question first moves aside.
+//                `answer` (string or node): the scene's ONE closing line,
+//                after the last card (icon + sentence, no box), shown once
+//                the last card is reached (always when drawn once, under
+//                reduced motion and in print). With `answerTo` it is
+//                data-axis (it restates a figure whose home is elsewhere).
+//                `takeaway` (old API): the closing line when no `answer`;
+//                ignored when there is one. `recap` (old API): ignored.
 //   step.highlight  ids of the marks this step is about (highlight.jsx):
 //                the figure's other [data-mark]s dim; ctx.highlight /
 //                useHighlight() give the lit ids; `highlight: 'none'` with
@@ -92,9 +90,10 @@ const subscribeWidth = (cb) => {
 //   step.callout the step's sentence (true: its title) anchored to its mark
 //                (`anchor`, else the first highlight id) inside the figure,
 //                with a leader line (MarkCallout.jsx);
-//   part         the part number for the opener (default: read from the page);
-//   step.kickerIcon  a concept leading the kicker (default: step.icon).
-export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, part }) {
+//   step.icon    a concept: the card's one icon, leading its sentence.
+//   step.kicker, step.kickerIcon, part (old API): ignored (round 1: a step
+//                card is one sentence and one icon).
+export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub }) {
   // One more registered element than steps: an end marker after the last
   // card, past which the block is done.
   const box = useRef(null);
@@ -139,7 +138,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const sticky = reserve && !tooTall;
   const sizers = useRef(null);
   const live = useRef(null);
-  const [seenRef, entered] = useInView({ rootMargin: '0px 0px -15% 0px' });
+  // reversible entry (motion.js useEntry): true once the figure is 85% up
+  // the screen, false again when the reader scrolls back above the block,
+  // so its entry moves replay; `instant` when landed by a jump or a link
+  const [seenRef, entry] = useEntry();
+  const entered = entry.entered;
   const liveRef = (el) => {
     live.current = el;
     seenRef.current = el;
@@ -282,30 +285,41 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const subObj = sub && typeof sub === 'object' ? sub : null;
   const question = subObj?.question;
   const takeaway = subObj?.takeaway;
-  const answer = subObj?.answer;
+  // one closing line per scene (round 1): sub.answer, else sub.takeaway
+  const answer = subObj?.answer ?? takeaway;
+  const answerTo = subObj?.answer != null ? subObj?.answerTo : undefined;
   const pinFull = subObj?.pin === 'full';
+  // the question's phase follows the scroll both ways (QStage.jsx)
   const [stage, setStage] = useState(question ? 'pending' : 'done');
   const stageDone = !question || inline || reduce || stage === 'done' || stage === 'reveal';
+  // the chart draws in once, the first time the question moves aside, and
+  // stays drawn when the question comes back over it (scrolling up)
+  // (until the reader scrolls back above the block: then it replays)
+  const [drawn, setDrawn] = useState(false);
+  if (!drawn && entered && stageDone) setDrawn(true);
+  if (drawn && !entered) setDrawn(false);
   // the answer: once the scene's last card is reached (always when drawn
   // once, under reduced motion and in print, by CSS)
   const answered = once || inline || reduce || active >= lastCard;
   // a wide single block (cards above the figure, desktop): the answer goes
   // after the figure, once the question has moved into it (Fable, batch 2)
   const answerAfter = answer != null && wide && single && !phone;
-  const ctx = { inline: false, once, entered: entered && stageDone, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
+  const ctx = { inline: false, once, entered: drawn || (entered && stageDone), instant: entry.instant, run: entry.run, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
   const sizerCtx = { inline: false, once: false, entered: true, prev: null, highlight: [] };
   const dots = many && !inline;
   const subTitle = typeof sub === 'string' ? sub : sub?.title;
   const TitleTag = sub ? 'h4' : 'h3';
   const footHere = foot != null ? <div className="scrolly-foot">{foot}</div> : null;
+  const entryValue = { entered: ctx.entered, instant: entry.instant, run: entry.run };
   return (
+    <EntryCtx.Provider value={entryValue}>
     <HighlightCtx.Provider value={hl}>
     <div
       className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}`}
       id={id}
     >
       {question && pinFull && !inline ? (
-        <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} recap={subObj.recap} onPhase={setStage} />
+        <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} onPhase={setStage} />
       ) : null}
       {sub ? (
         <header
@@ -316,12 +330,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
           <span className="scene-head-row">
             {subObj?.icon ? <Icon name={iconFor(subObj.icon)} size={16} className="scene-head-icon" /> : null}
             <h3 className="scene-head-title">{subTitle}</h3>
-            {question ? (
-              <p className="scene-head-q">
-                <Icon name={iconFor('question')} size={14} className="scene-head-q-icon" />
-                <span>{question}</span>
-              </p>
-            ) : null}
+            {question ? <p className="scene-head-q">{question}</p> : null}
             <span className="scene-head-rule" aria-hidden="true" />
           </span>
         </header>
@@ -343,8 +352,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             />
           ) : null}
           {inline ? null : graphic(shown, reduce, ctx)}
-          {question && !pinFull && !inline && !reduce && stage !== 'done' ? (
-            <QFrame id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} boxRef={box} onPhase={setStage} />
+          {question && !pinFull && !inline && !reduce ? (
+            <QFrame id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} boxRef={box} onPhase={setStage} />
           ) : null}
           {inline || !calloutText ? null : <MarkCallout rootRef={live} anchor={calloutAnchor} text={calloutText} stepKey={steps[shown]?.id} />}
           {phone ? null : footHere}
@@ -376,19 +385,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               aria-current={i === active ? 'step' : undefined}
             >
               {inline ? <InlineCopy graphic={graphic} i={i} reduce={reduce} label={label} highlight={s.highlight} /> : null}
-              <div className="scrolly-card">
-                {s.kicker ? (
-                  <p className="scrolly-kicker">
-                    {s.kickerIcon || s.icon ? <Icon name={iconFor(s.kickerIcon ?? s.icon)} size={14} className="scrolly-kicker-icon" /> : null}
-                    {s.kicker}
-                  </p>
-                ) : null}
-                {s.title ? (
-                  <TitleTag className="scrolly-title">
-                    {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-title-icon" /> : null}
-                    <span>{s.title}</span>
-                  </TitleTag>
-                ) : null}
+              <div className={`scrolly-card${s.icon ? ' has-icon' : ''}`}>
+                {s.title ? <TitleTag className="scrolly-title visually-hidden">{s.title}</TitleTag> : null}
+                {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-card-icon" /> : null}
                 <div className="scrolly-body">{s.body}</div>
                 {once ? (
                   <button type="button" className="scrolly-show" aria-label="Show on chart" title="Show on chart" aria-pressed={shown === i} onClick={() => showOnChart(i)}>
@@ -401,7 +400,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         )}
         {answer != null && !answerAfter ? (
           <li className="scrolly-answer">
-            <Answer question={question} answer={answer} to={subObj.answerTo} shown={answered} />
+            <Answer answer={answer} to={answerTo} shown={answered} />
           </li>
         ) : null}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
@@ -409,26 +408,20 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       {phone ? footHere : null}
       {answerAfter ? (
         <div className="scrolly-answer scrolly-answer-after">
-          <Answer question={question} answer={answer} to={subObj.answerTo} shown={reduce || ctx.entered} />
+          <Answer answer={answer} to={answerTo} shown={reduce || ctx.entered} />
         </div>
-      ) : null}
-      {takeaway ? (
-        <p className="scrolly-takeaway">
-          <Icon name={iconFor('takeaway')} size={16} className="scrolly-takeaway-icon" />
-          <span>
-            <strong>Key takeaway:</strong> {takeaway}
-          </span>
-        </p>
       ) : null}
     </div>
     </HighlightCtx.Provider>
+    </EntryCtx.Provider>
   );
 }
 
 // One step's own copy of the figure (inline fallback, 900px and below), with
 // its own `entered`, so each copy plays its one-shot move as it comes into view.
 function InlineCopy({ graphic, i, reduce, label, highlight }) {
-  const [ref, entered] = useInView({ rootMargin: '0px 0px -15% 0px' });
+  const [ref, entry] = useEntry();
+  const entered = entry.entered;
   const box = useRef(null);
   const hl = useHighlightState(highlight);
   useApplyHighlight(box, hl, [entered]);
@@ -438,7 +431,7 @@ function InlineCopy({ graphic, i, reduce, label, highlight }) {
   };
   return (
     <div ref={setRef} className="scrolly-graphic-inner is-inline" role="group" aria-label={label}>
-      {graphic(i, reduce, { inline: true, once: false, entered, prev: i > 0 ? i - 1 : null, highlight: hl.ids })}
+      <EntryCtx.Provider value={entry}>{graphic(i, reduce, { inline: true, once: false, entered, instant: entry.instant, run: entry.run, prev: i > 0 ? i - 1 : null, highlight: hl.ids })}</EntryCtx.Provider>
     </div>
   );
 }

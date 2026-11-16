@@ -14,8 +14,9 @@ import ModelBadge from './ModelBadge.jsx';
 // The copies are visibility: hidden, aria-hidden, inert and data-axis (out
 // of innerText and the number checks).
 //
-// Every text line leads with a plain icon (title: `icon`, a concept; unit:
-// measure; source: source; a legend entry: its swatch).
+// Round 1 icon rule: the title carries the figure's one icon (`icon`, a
+// concept); the unit line, axis titles, model tag and source line carry
+// none (a legend entry's swatch is its mark).
 //
 // `yTitle` / `xTitle`: the axis titles as HTML lines (for charts whose svg
 // draws none): the y title with its unit above the plot (left), the x title
@@ -49,16 +50,12 @@ function Foot({ legend, source, sources }) {
         <div className="ch-source-row">
           {source ? (
             <p className="story-source ch-source" data-cite="">
-              <Icon name={iconFor('source')} size={12} className="ch-source-icon" />
               <span className="ch-source-text">{source}</span>
             </p>
           ) : null}
           {sources ? (
             <details className="ch-sources">
-              <summary>
-                <Icon name={iconFor('source')} size={12} />
-                Sources
-              </summary>
+              <summary>Sources</summary>
               <div className="ch-sources-body" data-reference="">
                 {sources}
               </div>
@@ -111,20 +108,17 @@ export default function Frame({
       ) : null}
       {unit ? (
         <p className="ch-unit">
-          <Icon name={iconFor('measure')} size={13} className="ch-unit-icon" />
           {unit}
         </p>
       ) : null}
       {yTitle ? (
         <p className="ch-axis-title-html is-y" data-axis-title="y">
-          <Icon name={iconFor('yAxis')} size={13} className="ch-axis-title-icon" />
           <span>{yTitle}</span>
         </p>
       ) : null}
       <div className="ch-plot">{children}</div>
       {xTitle ? (
         <p className="ch-axis-title-html is-x" data-axis-title="x">
-          <Icon name={iconFor('xAxis')} size={13} className="ch-axis-title-icon" />
           <span>{xTitle}</span>
         </p>
       ) : null}
