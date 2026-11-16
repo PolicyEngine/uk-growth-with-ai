@@ -7,6 +7,19 @@ import { NavLink } from '@/lib/nav.jsx';
 // of the story. Each segment fills as its part is read; the current part is
 // marked (aria-current) and named. On phones only the current part's name
 // shows, beside the numbers. Each segment is a link to its part.
+//
+// A section's progress runs from 0, when its top reaches the reading line,
+// to 1, when its bottom does. The page can end before the last section's
+// bottom reaches the line, so each section's span is capped at what is left
+// to scroll: the last bar fills smoothly and is full at the bottom of the
+// page. All positions are in page coordinates.
+export function sectionProgress({ top, height, scrollY, line, maxScroll }) {
+  const start = top - line; // scrollY at which the section begins
+  const span = Math.max(1, Math.min(height, maxScroll - start));
+  if (scrollY >= maxScroll - 2) return 1; // the bottom of the page: every part is read
+  return Math.min(1, Math.max(0, (scrollY - start) / span));
+}
+
 function useSectionProgress(ids) {
   const [p, setP] = useState(() => ids.map(() => 0));
   useEffect(() => {
@@ -15,12 +28,14 @@ function useSectionProgress(ids) {
     const measure = () => {
       raf = 0;
       const line = window.innerHeight * 0.35;
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       setP((old) => {
         const next = ids.map((id) => {
           const el = document.getElementById(id);
           if (!el) return 0;
           const r = el.getBoundingClientRect();
-          return Math.min(1, Math.max(0, (line - r.top) / Math.max(1, r.height)));
+          return sectionProgress({ top: r.top + scrollY, height: r.height, scrollY, line, maxScroll });
         });
         return next.every((x, i) => Math.abs(x - old[i]) < 0.002) ? old : next;
       });
