@@ -1,7 +1,7 @@
 // Who gains prints what cohorts2028.json holds and follows its control bar
 // and the header's closure.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
 import WhoGainsTab, { cell, pct, tileRange, dnfullFor } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
