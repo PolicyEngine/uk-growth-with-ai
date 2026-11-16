@@ -142,3 +142,41 @@ def test_effective_rates_separate_the_payroll_tax_inside_iit_revenue():
     assert r["labour_excl_payroll"] == pytest.approx(20.0)
     assert r["labour"] == pytest.approx(35.0)
     assert r["capital_gross"] == pytest.approx((0.2 * 15.0 + 4.0) / 35.0 * 100)
+
+
+# --- the _dnfull rule: continuation_dnfull and its like-for-like reference ---------
+
+def _dn_ok(rec, full=True):
+    rec["dn_check"] = {"ok": True, "max_abs_rel": 1e-5}
+    rec["dn_check_full"] = {"ok": full, "max_abs_rel": 1e-5 if full else 1e-3}
+    return rec
+
+
+def test_continuation_dnfull_checks_its_debt_targets_not_the_baseline(tmp_path):
+    def off(y):                      # 1% away from the baseline: info, not a failure
+        return {"Y": 1.01, "D": 1.01}
+    out = _out(tmp_path, {sp.CONT_DNFULL: _dn_ok(_rec(off))})
+    res = sanity.check("zk0.1", sp.CONT_DNFULL, out)
+    assert res["ok"], res["fails"]
+    out2 = _out(tmp_path / "b", {sp.CONT_DNFULL: _dn_ok(_rec(off), full=False)})
+    bad = sanity.check("zk0.1", sp.CONT_DNFULL, out2)
+    assert bad["fails"] == ["dnfull: D/Y to T-1 and G/Y = alpha_G"]
+
+
+def test_a_dnfull_arm_is_measured_against_continuation_dnfull(tmp_path):
+    label = "uk_central_share_shift_tfp_ramp_dnfull"
+    out = _out(tmp_path / "a", {label: _dn_ok(_tfp(1.0))})
+    with pytest.raises(RuntimeError, match="continuation_dnfull"):
+        sanity.check("zk0.1", label, out)          # no silent fallback
+    ref = _dn_ok(_rec(lambda y: {"Y": 1.01}))
+    arm = _dn_ok(_tfp(1.0))
+    out = _out(tmp_path / "b", {label: arm, sp.CONT_DNFULL: ref})
+    res = sanity.check("zk0.1", label, out)
+    i = 2031 - 2026
+    want = (arm["series"]["Y"][i] / ref["series"]["Y"][i] - 1) * 100
+    assert res["gaps_2031"]["Y"] == pytest.approx(want)
+    # the common arm still reads the continuation
+    out = _out(tmp_path / "c", {"uk_central_share_shift_tfp_ramp": _tfp(1.0),
+                                sp.CONT_DNFULL: ref})
+    res = sanity.check("zk0.1", "uk_central_share_shift_tfp_ramp", out)
+    assert res["gaps_2031"]["Y"] == pytest.approx(4.9, abs=1e-6)

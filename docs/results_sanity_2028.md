@@ -1,6 +1,16 @@
 # Results sanity audit: the 2028-surprise solves
 
-Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04). The rule applied: every result must make sense in size and direction, and if it does not, the cause is found and stated.
+Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04).
+
+> **Consistency pass 16 Nov 2026:** the `_dnfull` solve behind the paper's cohort figure is covered by 13 aggregate checks, in a new section outside the verdict design: the 10 with a pass rule all pass, and 3 (6, 11, 13) are report-only. Its cohort calculation is not audited. The repricing range is corrected to 4–66% over the 20 of 24 cells where debt still rises. No verdict changed.
+>
+> **Review pass 15 Nov 2026:** an independent review reproduced every count. The cause of A16 is corrected (half depreciation, a third foreign owners), A14 and A15 have tighter tests, and the combined effect of the post-hoc rules is stated (815 / 182 / 23 under the earlier rules). No verdict changed. See "Review pass" near the end.
+>
+> **Final refresh 15 Nov 2026 at `ba2e7b0`: every planned solve is audited, and none is left unsolved.** Across every variant there are 799 consistent, 217 surprising-but-explained and 4 wrong cells. The four wrong cells are the same A6 cells as in the earlier refresh below. See "Final refresh" near the end.
+>
+> **Refreshed 15 Nov 2026 at `98e3381`** (see "Refresh 15 Nov 2026" near the end). The solves of 13–14 Nov add UK low and UK high at ζK = 0 and 0.5, fixed spending, and debt-neutral Korinek. There are now **two** wrong cells under the common rule, not one. The second is the UK high main arm at ζK = 0, where tax/GDP rises 0.08pp, as section 8 predicted. Both come from the same mechanism (A6). Across every variant: 746 consistent, 202 surprising-but-explained, 4 wrong, all four A6.
+
+The rule applied: every result must make sense in size and direction, and if it does not, the cause is found and stated.
 
 - **Audited:** 21 solve records in `analysis/surprise/output/{zk0.1,zk0}/`. That is 2 continuations and 19 arm solves: 18 reported arms and one rejected R4 iteration (`korinek_share_shift_ramp_r4_1` at ζK = 0.1).
 - **Not solved at this commit:** UK low and UK high at ζK = 0, in the verdict table as "not solved"; and every debt-neutral and fixed-spending variant.
@@ -8,6 +18,8 @@ Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d`
 - Every number below is printed by that script. Gaps are against the continuation (the no-shock restart) of the same closure.
 
 ## Summary
+
+*This summary describes the first pass at `a657e6d`. The current counts are in the banner above and in "Final refresh" and "Review pass" near the end.*
 
 **Verdict counts.** The table has 408 cells: 4 scenarios × 2 closures × 3 arms × 17 rows.
 
@@ -31,7 +43,7 @@ Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d`
 3. **"The tax/GDP sign is right" is not true at ζK = 0 in the main arm.** Korinek is wrong from 2029 (above). UK central is −0.006pp in 2031 and positive from 2032 (A6).
 
 **Four things a reader will trip over, all explained:**
-- Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4).
+- Debt/GDP ends *higher* in every arm by 2036, including "automation + productivity" (+2.0pp for UK central), because the whole debt stock reprices at the higher interest rate (A4). At the speed the OBR assumes for UK debt the rise is 4–66% as large in the 20 of 24 cells where it stays a rise, and the main arm of UK high and Korinek et al. ends lower at both closures (PR #43).
 - Consumption falls while national income rises in the main arm until 2031–36 (A3).
 - 2036 is the debt rule's first year: G falls by up to 23% and investment jumps in every arm. No 2036 flow should be quoted (A9).
 - The UK central main arm gives GDP +0.92% against the IMF's +2.5% at year 4 for the same TFP. The capital closure is sufficient to account for the difference (section 7).
@@ -265,11 +277,11 @@ pp gap. The last four columns rerun the debt recursion on the continuation's pat
 | | technology unchanged | +1.85 | +5.49 | +6.43 | +7.12 | −0.56 | −0.14 |
 | | stress test | +1.79 | +5.40 | +6.33 | +7.16 | −0.61 | −0.21 |
 
-- **Debt/GDP is higher in every arm by 2036.** In the main arm it is lower in 2031 at ζK = 0.1 and turns positive in 2032 (UK low and central), 2033 (UK high) and 2035 (Korinek).
+- **In the model, debt/GDP is higher in every arm by 2036** (not at the OBR's repricing speed for the main arm of UK high and Korinek: see A4). In the main arm it is lower in 2031 at ζK = 0.1 and turns positive in 2032 (UK low and central), 2033 (UK high) and 2035 (Korinek).
 - **The interest rate is the cause.** The return on gilts moves one for one with r (+37.8bp for UK central), and the model's debt is one-period, so the whole stock (95% of GDP) reprices at once. That alone adds 2.4pp by 2036 for UK central.
 - **Higher GDP does not pay it back under this spending rule.** G and transfers are fixed shares of GDP, so they rise with GDP. The only gain from growth is the denominator (−1.0pp). Tax/GDP falls, which adds 0.6pp.
 - **The 2031 figure alone misleads.** −0.13pp in 2031 is the denominator effect of the first years; the path is rising by 0.42pp a year from 2032.
-- This is the same mechanism as in the 2026-start runs (`docs/literature_comparison.md`, 3.5: whole-stock repricing, and the spending convention). The fixed-spending and debt-neutral variants are not solved yet, so the fiscal results under the OBR's convention cannot be checked here.
+- This is the same mechanism as in the 2026-start runs (`docs/literature_comparison.md`, 3.5: whole-stock repricing, and the spending convention). The fixed-spending and debt-neutral variants are not solved yet, so the fiscal results under the OBR's convention cannot be checked here. *(16 Nov: both were later solved and audited for UK central and Korinek at ζK = 0.1 and 0; see "Refresh 15 Nov 2026" and "Final refresh 15 Nov 2026". They were not run for UK low or UK high.)*
 
 ### The stress test after its target year
 
@@ -351,10 +363,10 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 
 | OBR figure | like-for-like model number | model | position | explained by |
 |---|---|---|---|---|
-| FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is about 14pp against the OBR's 19–23pp (`docs/red_flags_1_3.md`) |
+| FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is 14.8pp at ζK = 0.1 (13.5pp at ζK = 0) in 2031, against the OBR's 19–23pp (`docs/red_flags_1_3.md`, which gives 13.6pp at ζK = 0 in 2030) |
 | same | stress test, ζK 0, per pp | −0.027 (UK central), −0.025 (Korinek) | 12–13% | closure: r rises 44–107bp on all household wealth, and the single income-tax schedule taxes that (A6) |
 | March 2026 EFO ¶6.18, displacement scenario: receipts −0.17% of GDP, GDP unchanged; implied share fall about 0.7pp (ours, in the literature note) | UK low stress test (0.7pp), ζK 0.1: receipts, % of GDP | −0.10 | 61% | the tax gap; no unemployment (the OBR's fall is mostly lower employment and VAT) |
-| same: debt +1.3% of GDP by 2030-31, with spending held at plans and welfare +£3bn a year | UK low stress test: debt/GDP | +0.38pp in 2031, +1.47pp in 2036 | 29% at year 4 | no unemployment or welfare channel; smaller revenue fall; the model's G/Y rule (fixed spending not solved yet) |
+| same: debt +1.3% of GDP by 2030-31, with spending held at plans and welfare +£3bn a year | UK low stress test: debt/GDP | +0.38pp in 2031, +1.47pp in 2036 | 29% at year 4 | no unemployment or welfare channel; smaller revenue fall; the model's G/Y rule (fixed spending was not run for UK low) |
 | Central AI productivity: +0.2pp a year by year five, about +0.4% on the level at year 4 (ours) | UK central TFP target | +0.4% | equal by construction | the baseline already contains this assumption (A11) |
 
 - **UK central's stress test is 2.3 times the OBR's displacement case** on the share fall (1.6pp against about 0.7pp), and gives receipts −0.24% of GDP and debt +0.87pp in 2031. UK low is the like-for-like size.
@@ -399,6 +411,8 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 One block per scenario and closure. Rows are 2031 gaps against the continuation unless a year is given. Codes A1–A8 refer to the anomalies below.
 
 **How the expectations were set.** The expected signs come from the model's structure and from `analysis/surprise/expectations.json`, which was committed before any surprise solve. The rules below for "surprising-but-explained" and "wrong" were written during this audit, after the first gaps had been read, so they are not a blind test. One rule changed during the audit: NNI was first required to rise by less than GNI in per cent; it is now required to rise by less in levels, because NNI = GNI − δK guarantees only that (A5). The rule that a rising tax/GDP in 2031 is wrong was fixed before the solve that breaks it landed.
+
+*Added 15 Nov:* these labels do not all carry the same weight. Only A13, A14, A15 and A17 test a mechanism in the series. A4 has no test. A7 tests the sign only, and A16 the size only. A1, A2, A3, A5 and A8 name a pattern with no size bound, and A6 accepts any fall smaller than half the OBR's figure. "Review pass" near the end gives the counts.
 
 Rules used for "surprising-but-explained":
 - technology-unchanged GDP or GNI below zero (A1);
@@ -588,6 +602,7 @@ Rules used for "surprising-but-explained":
 - **What:** main arm at ζK = 0.1: −0.07, −0.13, −1.35 and −3.02pp in 2031, then +0.84, +1.99, +2.07 and +1.12pp in 2036. At ζK = 0, UK central is positive from 2030 and Korinek from 2034 (+1.03pp in 2036).
 - **Root cause:** whole-stock repricing. Gilts are one-period and their rate moves one for one with r, so debt of 95% of GDP pays 17–109bp more from the first year. For UK central that alone adds 2.4pp by 2036; the fall in tax/GDP adds 0.6pp; higher GDP takes off 1.0pp. G and transfers are shares of GDP, so they absorb the rest of the growth dividend.
 - **Verdict:** surprising-but-explained, and a known limitation (the referee's point 6 in the literature note). UK gilts have long maturities, so the real stock reprices over many years, not at once.
+- **Checked at the OBR's repricing speed** ([PR #43](https://github.com/PolicyEngine/uk-growth-with-ai/pull/43), `docs/debt_repricing.md`): the model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in debt/GDP by 2036 is 4–66% as large in the 20 of 24 cells where it stays a rise, and in the main arm of the UK high and Korinek et al. scenarios (both closures) debt/GDP ends lower than the no-shock path. "Rises in every arm" is the model's result, not a robust one.
 - **For the copy:** the 2031 debt figure in the main arm has the opposite sign to the path. Quote it with 2035 or 2036 (decision 7 already says so), and lead with fixed spending once those are solved.
 
 ### A5. NNI falls while GNI rises in the technology-unchanged arm
@@ -808,11 +823,560 @@ The debt-neutral stress test at the closed-capital bound, accepted on its first 
 | 2036 GDP % | > 0 | +0.60 | consistent | small, sign open | +0.15 | consistent | near 0, not held after 2031 | +0.074 | surprising-but-explained (A8) |
 | 2036 debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent |
 
+## Final pass 13 Nov 2026 (zk0.5 and debt-neutral)
+
+Audited at `524849d` on `rerun/surprise-2028` (13 Nov 2026, 02:15), with the same script, extended. No solve was run and nothing under `analysis/surprise/output` was changed.
+
+- **New in this pass:** the ζK = 0.5 closure. That is 10 solve records: the restart, and for UK central and Korinek the main arm, technology unchanged, and every stress-test iteration (2 for UK central, 3 for Korinek). The accepted stress tests are `uk_central_share_shift_ramp_r4_2` (2031 GDP gap −0.008%) and `korinek_share_shift_ramp_r4_3` (+0.001%).
+- **Rechecked:** the seven debt-neutral UK central solves at ζK = 0.1 and ζK = 0. The addendum above audited them one by one as they landed. This pass adds the orderings across closures and arms.
+- **Not solved, so not audited:** UK low and UK high at ζK = 0.5 and ζK = 0; every `_dnfull` and `_fs` variant; debt-neutral Korinek. The script skips them and reports them as "not solved". *(16 Nov: all of these except `_dnfull` were solved later and are audited in "Refresh 15 Nov 2026" and "Final refresh 15 Nov 2026". `_fs` exists only for UK central and Korinek at ζK = 0.1 and 0.)*
+- **Script changes:** `"zk0.5"` in `CLOSURES`; four verdict rules keyed to a checked mechanism (A13–A16 below); a new section 9 for orderings and inequalities (`--mono` prints it alone); section 6 skips a closure with no 2026-start arm records. The verdict blocks for ζK = 0.1 and ζK = 0 come out identical, line for line, to the ones the previous version of the script prints.
+
+### Result
+
+**No new result is wrong.** The one wrong cell is still the Korinek main arm at ζK = 0, where tax/GDP rises 0.21pp (A6).
+
+| cells | consistent | surprising-but-explained | wrong | not solved |
+|---|---|---|---|---|
+| ζK = 0.1 and ζK = 0, common rule (unchanged) | 243 | 62 | 1 | 102 |
+| ζK = 0.5, common rule, rules as they stood | 82 | 12 | 8 | 102 |
+| ζK = 0.5, common rule, after this pass | 74 | 28 | 0 | 102 |
+| Debt-neutral, UK central, ζK = 0.1 and ζK = 0 (unchanged) | 85 | 17 | 0 | – |
+| **All audited cells** | **402** | **107** | **1** | |
+
+**ζK = 0.5 is a sensitivity closure, not a central case.** Its no-shock path pays 4.2% of GDP abroad in 2031, against 1.2–1.6% in UK data, and foreign owners hold 38% of the capital stock (8% at ζK = 0.1). Every size below should be read with that in mind.
+
+In the tables printed by the script, `tfp` is the main arm (automation + productivity), `zfixed` is technology unchanged, `r4` is the stress test, `common` is the common G/Y rule and `dn` is debt-neutral transfers.
+
+### The ζK = 0.5 baseline and restart
+
+The 2026-start baseline at ζK = 0.5 took two passes and passed the automatic gate. Verdict: **consistent as a sensitivity closure**, with one known departure from data (payments abroad).
+
+| no-shock path | ζK = 0 | ζK = 0.1 | ζK = 0.5 |
+|---|---|---|---|
+| return % | 5.72 | 5.35 | 3.77 |
+| K/Y | 2.55 | 2.63 | 3.07 |
+| C/Y % | 51.3 | 50.4 | 47.0 |
+| tax/GDP % | 42.8 | 42.0 | 39.3 |
+| GNI/GDP % | 99.44 | 98.42 | 95.81 |
+| paid abroad, % of GDP | 0.56 | 1.58 | 4.19 |
+| of which on foreign-owned capital | 0.00 | 1.06 | 3.83 |
+| K_f/K % | 0.0 | 8.3 | 37.8 |
+| D/Y % | 95.1 | 95.2 | 95.3 |
+| gate approved | True | True | True |
+| passes | 2 | 2 | 2 |
+| pass 1 vs pass 0, max rel (Y, K, r, D) | 1.8e-02 | 1.5e-02 | 5.3e-03 |
+| baseline_ext vs pass 1, 2026-35 | 0.0e+00 | 0.0e+00 | 0.0e+00 |
+| gate: tax/GDP 2026-30 % | 42.90, 42.90, 42.86, 42.83, 42.82 | 42.17, 42.17, 42.11, 42.09, 42.06 | 39.55, 39.50, 39.41, 39.35, 39.30 |
+| OBR | 37.00, 37.72, 37.85, 38.29, 38.46 | 37.00, 37.72, 37.85, 38.29, 38.46 | 37.00, 37.72, 37.85, 38.29, 38.46 |
+| gate: primary balance % | 2.01, 2.01, 1.95, 1.92, 1.89 | 1.65, 1.64, 1.58, 1.54, 1.51 | 0.11, 0.05, -0.04, -0.10, -0.16 |
+| gate: growth 2027-30 % | 1.59, 1.54, 1.58, 1.57 | 1.61, 1.54, 1.58, 1.57 | 1.75, 1.66, 1.69, 1.65 |
+| gate: payments abroad % | 0.43, 0.46, 0.48, 0.51, 0.53 | 1.40, 1.44, 1.47, 1.51, 1.55 | 3.82, 3.91, 3.99, 4.07, 4.13 |
+| TPI distance | 5.7e-05 | 3.5e-05 | 2.9e-05 |
+| gate RC/GDP max | 2.2e-06 | 1.9e-06 | 2.8e-06 |
+
+- The export the restarts read (`baseline_ext`) equals the accepted pass exactly over 2026–35, and the restart reproduces it over 2028–36 to 6.9e-6.
+- The levels move in the expected direction as ζK rises: more foreign capital, a lower return (3.8% against 5.3% and 5.7%), more capital per unit of output, and a wider gap between GDP and GNI.
+- Tax/GDP is 39.3–39.6%, closer to the OBR's 37.0–38.5% than at ζK = 0.1 (42.1–42.2%).
+- The primary balance is near zero (+0.1 to −0.2% of GDP) where ζK = 0.1 has a surplus of 1.5–1.7%. The gilt rate is lower by about as much as the return, so holding debt/GDP at 95% needs a smaller surplus.
+- Growth in 2027–30 is 1.65–1.75% a year, slightly above the OBR's 1.6% mean (1.54–1.61% at ζK = 0.1).
+- **Payments abroad are 3.8–4.1% of GDP, outside the 1–2% band the ζK = 0.1 baseline was reviewed against.** This is why ζK = 0.5 is a sensitivity only.
+
+### The eight cells the old rules marked wrong
+
+The old rules carried expectations that hold when little capital can flow in. Each of the eight cells fails one of those expectations for a reason that is checked in the series. The rules now test the reason, not the closure name, and return "wrong" if the reason does not hold.
+
+| # | cell (ζK = 0.5) | expected | model | reason | check in the series |
+|---|---|---|---|---|---|
+| 1 | Korinek, technology unchanged, GDP 2031 | small | +5.15% | A13 | capital term 5.23 log points against a GDP gap of 5.02; bound with the return pinned +6.88% |
+| 2 | Korinek, technology unchanged, GDP 2036 | small | +4.85% | A13 | capital term 5.07 against 4.74; bound +6.83% |
+| 3 | UK central, technology unchanged, debt/GDP 2031 | > 0 | −0.91pp | A14 | debt +0.92%, GDP +1.90% |
+| 4 | Korinek, technology unchanged, debt/GDP 2031 | > 0 | −2.63pp | A14 | debt +2.25%, GDP +5.15% |
+| 5 | UK central, main arm, 2028 labour | > 0 | −0.03% | A15 | wage +0.002% in 2028, +0.06% in 2031 |
+| 6 | UK central, main arm, 2028 consumption | < 0 | +0.02% | A15 | same |
+| 7 | Korinek, main arm, 2028 labour | > 0 | −0.56% | A15 | wage +0.81% in 2028, +3.62% in 2031 |
+| 8 | Korinek, main arm, 2028 consumption | < 0 | +1.16% | A15 | same |
+
+*15 Nov: the A14 and A15 tests behind cells 3–8 were tightened after review; see "Review pass" near the end. Every cell still passes.*
+
+Eight further cells that the old rules passed now carry a reason as well: the six tax/GDP cells (A16), and UK central's technology-unchanged GDP in 2031 and 2036 (+1.90% and +1.78%, A13). The "small" test is now per point of share fall (under 0.5% of GDP per pp), so that UK central (1.19 per pp) and Korinek (1.32 per pp) are judged alike. At ζK = 0.1 the same ratio is 0.28–0.34.
+
+### A13. At ζK = 0.5, "technology unchanged" raises GDP by 1.2–1.3% per point of share fall
+
+- The shock raises capital's share of output, so the return on capital rises and capital flows in. At ζK = 0.5 half of the gap to the open-economy capital stock is closed by foreign capital.
+- The capital term alone accounts for the GDP gap: 5.23 log points against 5.02 for Korinek, and 1.97 against 1.88 for UK central. Technology at the reference inputs is −0.05 and −0.02, and labour −0.16 and −0.07.
+- GDP is under the bound with the return pinned at its no-shock level (+6.88% Korinek, +2.58% UK central), at about three quarters of it.
+- Per point of share fall the GDP gap is −0.02 and −0.01 at ζK = 0, 0.28–0.34 at ζK = 0.1, and 1.19 and 1.32 at ζK = 0.5.
+
+| closure | run | year | GDP gap % | per pp of share fall | GDP gap, log points | capital term | bound with the return pinned, log points | bound % | debt gap % | debt/GDP gap pp |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | 2031 | +1.90 | 1.19 | +1.88 | +1.97 | +2.55 | +2.58 | +0.92 | -0.91 |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | 2036 | +1.78 | 1.11 | +1.77 | +1.90 | +2.53 | +2.56 | +3.80 | +1.95 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | 2031 | +5.15 | 1.32 | +5.02 | +5.23 | +6.65 | +6.88 | +2.25 | -2.63 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | 2036 | +4.85 | 1.24 | +4.74 | +5.07 | +6.60 | +6.83 | +9.52 | +4.35 |
+
+- Foreign capital finances all of the extra capital in 2031 (100–101% of ΔK). The capital-supply elasticity across the six accepted arms is 5.3–8.0.
+
+### A14. Debt/GDP is lower in 2031 in "technology unchanged", then higher by 2036
+
+- Debt itself is higher in 2031 (+0.92% UK central, +2.25% Korinek). GDP is higher by more (+1.90%, +5.15%), so the ratio falls.
+- The primary deficit is 0.48pp and 1.19pp of GDP wider in 2031, because tax/GDP falls. That compounds, and the ratio turns positive in 2033 and reaches +1.95pp and +4.35pp in 2036.
+- The split of the 2036 gap for Korinek: +7.5pp from the primary balance, +1.3pp from the interest rate, −4.5pp from higher GDP.
+- The main arm has the same shape, larger: −7.06pp in 2031 and −0.82pp in 2036 for Korinek (A4).
+
+### A15. In the main arm at ζK = 0.5, households work less and consume more on the news
+
+- At ζK = 0 and ζK = 0.1 the wage falls in every arm, so on the 2028 news households work more and save more. At ζK = 0.5 the main arm's wage rises (+0.06% UK central, +3.62% Korinek in 2031), so the signs reverse: lifetime labour income is higher.
+- The 2028 response lines up with the 2031 wage gap across all six accepted arms at ζK = 0.5, with a rank correlation of −1.00 for labour and +1.00 for consumption:
+
+| closure | run | wage gap 2031 % | wage gap 2028 % | labour 2028 % | consumption 2028 % |
+| --- | --- | --- | --- | --- | --- |
+| zk0.5 | korinek_share_shift_tfp_ramp | +3.62 | +0.808 | -0.556 | +1.158 |
+| zk0.5 | uk_central_share_shift_tfp_ramp | +0.06 | +0.002 | -0.026 | +0.021 |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | -0.50 | -0.141 | +0.052 | -0.159 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | -0.90 | -0.283 | +0.067 | -0.267 |
+| zk0.5 | uk_central_share_shift_ramp_r4_2 | -2.37 | -0.619 | +0.314 | -0.759 |
+| zk0.5 | korinek_share_shift_ramp_r4_3 | -5.74 | -1.471 | +0.777 | -1.832 |
+
+- The same holds at the other closures: −1.00 and +0.83 at ζK = 0 (6 arms), −0.99 and +0.98 at ζK = 0.1 (12 arms). *Updated 15 Nov, with UK low and UK high solved at every closure (12 arms each): −0.98 and +0.96 at ζK = 0, −0.99 and +0.98 at ζK = 0.1, and −0.99 and +1.00 at ζK = 0.5.*
+- The sign crosses zero where the wage gap does. UK central's main arm, with a wage gap of +0.06%, has a 2028 labour gap of −0.03% and a consumption gap of +0.02%.
+- The positive wage in the Korinek main arm is consistent with Korinek et al. Table 5 at a capital-supply elasticity of about 6. The model's elasticity in that arm is 5.7. The paper was not re-read for this pass.
+- The main arm's 2031 labour cell (−0.11% UK central, −0.25% Korinek) is marked consistent against an expectation worded "<= 0 by 2031 (wage falls)". The sign is as expected, but here the wage rises: labour is lower because households are better off, not because work pays less.
+
+### A16. Tax/GDP falls by 0.36–0.38pp per point of share fall at ζK = 0.5, 1.7–1.8 times the OBR's midpoint
+
+- The sign is the OBR's in every arm and every year 2028–36. The size is now above the OBR's 0.19–0.23pp, where at ζK = 0 and ζK = 0.1 it was below it (A6).
+- **Cause: almost none of the capital income that replaces labour income reaches a UK household's income-tax base.** Half of it is depreciation on the extra capital, which foreign capital finances in full (A13). A third is the return on foreign-owned capital, net of depreciation. Neither is in the income-tax base; business tax is the only receipt that rises with them. *(Corrected 15 Nov after review. The earlier text put the whole cause on foreign owners.)* Korinek stress test, 2031, in pp of no-shock GDP, with GDP held flat:
+  - labour income −3.90, and income tax plus payroll tax −1.68;
+  - gross capital income +3.90 = depreciation +1.97 (50%) + return on foreign-owned capital +1.30 (33%) + business tax +0.42 + return on domestic capital +0.21;
+  - household capital income +0.42 (r_p B, which includes gilt interest), and income paid abroad +1.25 (r_p on foreign-held capital and gilts);
+  - consumption tax −0.22, and total receipts −1.47.
+- UK central and UK high's stress tests at ζK = 0.5 split the same way (50% and 33%). At ζK = 0.1 it is 18–19% depreciation and 16–18% abroad, and at ζK = 0 6–7% and 0%. The depreciation share rises with openness because the capital stock rises more.
+- The table now covers UK high as well (added 15 Nov). The same arm across the three closures loses the same labour income (−3.90). Household capital income rises by 3.95 at ζK = 0, 2.56 at ζK = 0.1 and 0.42 at ζK = 0.5, and income tax plus payroll tax falls by 0.64, 1.06 and 1.68:
+
+| closure | run | labour income | gross capital income (Y - wL) | household capital income r_p B | income paid abroad | income tax + payroll | business tax | consumption tax | total receipts | tax/GDP pp per pp of share fall | depreciation delta K | return on foreign-owned capital r K_f | return on domestic capital r K_d | depreciation share of gross % | foreign share of gross % |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | uk_central_share_shift_tfp_ramp | -1.37 | +1.73 | +1.76 | +0.07 | -0.11 | +0.29 | -0.05 | +0.15 | -0.004 | +0.11 | +0.00 | +1.34 | 6 | 0 |
+| zk0 | uk_central_share_shift_ramp_zfixed | -1.62 | +1.59 | +1.61 | +0.06 | -0.28 | +0.26 | -0.07 | -0.06 | -0.029 | +0.10 | +0.00 | +1.22 | 7 | 0 |
+| zk0 | uk_central_share_shift_ramp_r4_1 | -1.60 | +1.60 | +1.62 | +0.06 | -0.26 | +0.27 | -0.07 | -0.04 | -0.027 | +0.10 | +0.00 | +1.23 | 7 | 0 |
+| zk0 | uk_high_share_shift_tfp_ramp | -1.94 | +3.49 | +3.54 | +0.13 | +0.16 | +0.58 | -0.05 | +0.74 | +0.028 | +0.21 | +0.00 | +2.69 | 6 | 0 |
+| zk0 | uk_high_share_shift_ramp_zfixed | -2.93 | +2.88 | +2.91 | +0.12 | -0.50 | +0.48 | -0.13 | -0.10 | -0.027 | +0.19 | +0.00 | +2.21 | 7 | 0 |
+| zk0 | uk_high_share_shift_ramp_r4_1 | -2.90 | +2.90 | +2.93 | +0.12 | -0.48 | +0.48 | -0.13 | -0.07 | -0.026 | +0.19 | +0.00 | +2.23 | 7 | 0 |
+| zk0 | korinek_share_shift_tfp_ramp | -2.04 | +5.09 | +5.17 | +0.19 | +0.61 | +0.85 | -0.02 | +1.52 | +0.053 | +0.30 | +0.00 | +3.94 | 6 | 0 |
+| zk0 | korinek_share_shift_ramp_zfixed | -3.93 | +3.88 | +3.92 | +0.16 | -0.66 | +0.64 | -0.17 | -0.12 | -0.026 | +0.25 | +0.00 | +2.98 | 7 | 0 |
+| zk0 | korinek_share_shift_ramp_r4_1 | -3.90 | +3.90 | +3.95 | +0.16 | -0.64 | +0.65 | -0.17 | -0.10 | -0.025 | +0.25 | +0.00 | +3.00 | 6 | 0 |
+| zk0.1 | uk_central_share_shift_tfp_ramp | -1.02 | +1.94 | +1.33 | +0.35 | -0.08 | +0.29 | -0.04 | +0.20 | -0.117 | +0.34 | +0.32 | +0.98 | 18 | 16 |
+| zk0.1 | uk_central_share_shift_ramp_zfixed | -1.30 | +1.77 | +1.22 | +0.33 | -0.25 | +0.27 | -0.06 | -0.02 | -0.134 | +0.32 | +0.29 | +0.89 | 18 | 16 |
+| zk0.1 | uk_central_share_shift_ramp_r4_1 | -1.60 | +1.60 | +1.09 | +0.30 | -0.42 | +0.24 | -0.08 | -0.24 | -0.153 | +0.30 | +0.26 | +0.80 | 18 | 16 |
+| zk0.1 | uk_high_share_shift_tfp_ramp | -1.20 | +3.94 | +2.66 | +0.75 | +0.24 | +0.60 | -0.02 | +0.85 | -0.101 | +0.70 | +0.68 | +1.96 | 18 | 17 |
+| zk0.1 | uk_high_share_shift_ramp_zfixed | -2.32 | +3.25 | +2.19 | +0.63 | -0.43 | +0.49 | -0.10 | -0.01 | -0.138 | +0.60 | +0.56 | +1.61 | 18 | 17 |
+| zk0.1 | uk_high_share_shift_ramp_r4_1 | -2.90 | +2.90 | +1.94 | +0.56 | -0.78 | +0.43 | -0.15 | -0.46 | -0.158 | +0.55 | +0.50 | +1.42 | 19 | 17 |
+| zk0.1 | korinek_share_shift_tfp_ramp | -0.91 | +5.80 | +3.85 | +1.15 | +0.73 | +0.88 | +0.03 | +1.69 | -0.089 | +1.03 | +1.06 | +2.83 | 18 | 18 |
+| zk0.1 | korinek_share_shift_ramp_zfixed | -3.08 | +4.42 | +2.92 | +0.88 | -0.57 | +0.66 | -0.14 | +0.01 | -0.141 | +0.82 | +0.79 | +2.14 | 19 | 18 |
+| zk0.1 | korinek_share_shift_ramp_r4_2 | -3.90 | +3.90 | +2.56 | +0.78 | -1.06 | +0.58 | -0.20 | -0.63 | -0.161 | +0.75 | +0.70 | +1.88 | 19 | 18 |
+| zk0.5 | uk_central_share_shift_tfp_ramp | -0.03 | +2.50 | +0.35 | +0.80 | +0.09 | +0.28 | +0.01 | +0.38 | -0.358 | +1.20 | +0.84 | +0.19 | 48 | 33 |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | -0.40 | +2.29 | +0.31 | +0.73 | -0.09 | +0.25 | -0.01 | +0.16 | -0.362 | +1.10 | +0.76 | +0.17 | 48 | 33 |
+| zk0.5 | uk_central_share_shift_ramp_r4_2 | -1.60 | +1.60 | +0.20 | +0.51 | -0.69 | +0.17 | -0.09 | -0.60 | -0.375 | +0.79 | +0.53 | +0.10 | 50 | 33 |
+| zk0.5 | uk_high_share_shift_tfp_ramp | +0.85 | +5.19 | +0.67 | +1.68 | +0.60 | +0.57 | +0.08 | +1.27 | -0.359 | +2.48 | +1.76 | +0.38 | 48 | 34 |
+| zk0.5 | uk_high_share_shift_ramp_zfixed | -0.63 | +4.29 | +0.54 | +1.38 | -0.13 | +0.47 | -0.01 | +0.33 | -0.366 | +2.07 | +1.44 | +0.30 | 48 | 34 |
+| zk0.5 | uk_high_share_shift_ramp_r4_1 | -2.91 | +2.90 | +0.33 | +0.92 | -1.25 | +0.31 | -0.16 | -1.10 | -0.376 | +1.45 | +0.96 | +0.17 | 50 | 33 |
+| zk0.5 | korinek_share_shift_tfp_ramp | +2.18 | +7.77 | +0.95 | +2.55 | +1.32 | +0.86 | +0.18 | +2.37 | -0.360 | +3.72 | +2.67 | +0.52 | 48 | 34 |
+| zk0.5 | korinek_share_shift_ramp_zfixed | -0.75 | +5.90 | +0.71 | +1.91 | -0.14 | +0.65 | -0.01 | +0.51 | -0.370 | +2.87 | +2.00 | +0.38 | 49 | 34 |
+| zk0.5 | korinek_share_shift_ramp_r4_3 | -3.90 | +3.90 | +0.42 | +1.25 | -1.68 | +0.42 | -0.22 | -1.47 | -0.378 | +1.97 | +1.30 | +0.21 | 50 | 33 |
+
+- The denominator is not the cause: the stress test holds GDP flat and has the largest fall (−1.47pp against −1.40pp in the main arm).
+- At ζK = 0 the same arm loses only 0.10pp, because residents own all the extra capital and the single income-tax schedule taxes their higher capital income (the return rises 107bp there, 11bp here).
+- This is the known tax limitation seen from the other side. The gap between the effective rates on labour and capital is about 14pp when residents own the capital. It is wider when foreign owners own the capital or depreciation absorbs the extra income. No fix is proposed for a sensitivity closure. A fiscal number from ζK = 0.5 should not be quoted without this caveat.
+
+### Identities at ζK = 0.5
+
+Recomputed from the exported series for all 10 records.
+
+- K = K_d + K_f, K_d = B − D_d and D = D_d + D_f hold exactly. GNI and NNI rebuild to 4e-16.
+- GDP exceeds GNI in every year of every record (the smallest gap is 3.8% of GDP). GNI exceeds NNI in every year (the smallest gap is 19.9% of GDP).
+- The resource constraint closes to 4.1e-6 of GDP over 2028–36, and to 1.6e-6 in 2027.
+- The production function, the wage condition and the return condition hold to 3.5e-6, 5.8e-6 and 1.1e-6.
+- The closure rule K_f = ζK (K_open − K_d) rebuilds to a ratio of 0.9999 in every year of every record.
+- All gaps are exactly zero in 2026 and 2027, and the 2028 stocks of wealth and debt equal the restart's.
+- The labour-share gap is the target times the ramp weight to 3.6e-4pp.
+- The restart reproduces the committed baseline over 2028–36 to 6.9e-6.
+- Z in the main and technology-unchanged arms re-derives from the restart's 2027 capital and labour to 1e-16.
+- My gaps agree with the committed `.sanity.json` reports to 1.4e-14. The reports record no fails, and seven flags at ζK = 0.5, all the 2028 investment jump.
+
+### The 2028 investment jump
+
+- Investment in 2028 is +21.4% (UK central) and +64.4% (Korinek) in the main arm. It stays there for three years (+74.9% and +86.3% in 2029–30 for Korinek) and drops to +19.9% in 2031.
+- This is A7 at a larger size. Capital has no adjustment cost in OG-Core 0.17, so the stock moves as fast as the closure allows, and all of it is foreign-financed. It is a model artefact and no 2028–30 investment number at ζK = 0.5 should be quoted.
+- The accounting holds: the growth factor implied by investment and capital equals the restart's in every year 2028–35.
+
+### Orderings
+
+**Across closures (ζK = 0, 0.1, 0.5).** All tests hold. In the main and technology-unchanged arms GDP, GNI, capital and the wage rise with ζK, the rise in the return shrinks, and the gap between GDP and GNI widens.
+
+| scenario | arm | variant | GDP % | GNI % | GDP - GNI, pp | K % | wage % | return bp | C % | tax/GDP pp | 2028 I % | ordering tests |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| uk_central | tfp | common (zk0, zk0.1, zk0.5) | +0.37 / +0.92 / +2.47 | +0.30 / +0.57 / +1.75 | +0.07 / +0.35 / +0.80 | +0.67 / +2.01 / +5.99 | -1.71 / -1.27 / +0.06 | +48.3 / +37.8 / +10.3 | -0.52 / -0.39 / +0.14 | -0.006 / -0.187 / -0.572 | +3.2 / +7.8 / +21.4 | all hold |
+| uk_central | zfixed | common (zk0, zk0.1, zk0.5) | -0.03 / +0.47 / +1.90 | -0.10 / +0.15 / +1.22 | +0.06 / +0.33 / +0.73 | +0.63 / +1.88 / +5.52 | -2.12 / -1.71 / -0.50 | +44.0 / +34.4 / +9.2 | -0.73 / -0.61 / -0.13 | -0.046 / -0.215 / -0.579 | +3.3 / +7.6 / +19.7 | all hold |
+| uk_central | r4 | common (zk0, zk0.1, zk0.5) | +0.001 / +0.005 / -0.008 | -0.06 / -0.30 / -0.54 | +0.06 / +0.30 / +0.51 | +0.63 / +1.73 / +3.97 | -2.09 / -2.19 / -2.37 | +44.4 / +30.7 / +5.4 | -0.71 / -0.84 / -1.01 | -0.042 / -0.245 / -0.599 | +3.3 / +7.3 / +14.2 | all hold |
+| korinek | tfp | common (zk0, zk0.1, zk0.5) | +3.05 / +4.89 / +9.96 | +2.88 / +3.80 / +7.73 | +0.19 / +1.15 / +2.55 | +1.80 / +6.03 / +18.62 | -2.03 / -0.59 / +3.62 | +141.9 / +109.2 / +28.5 | -0.16 / +0.28 / +1.97 | +0.207 / -0.347 / -1.403 | +6.7 / +21.3 / +64.4 | all hold |
+| korinek | zfixed | common (zk0, zk0.1, zk0.5) | -0.05 / +1.34 / +5.15 | -0.21 / +0.47 / +3.38 | +0.16 / +0.88 / +1.91 | +1.53 / +4.81 / +14.38 | -5.13 / -4.05 / -0.90 | +106.8 / +81.9 / +20.4 | -1.75 / -1.42 / -0.15 | -0.102 / -0.550 / -1.442 | +8.1 / +19.0 / +50.5 | all hold |
+| korinek | r4 | common (zk0, zk0.1, zk0.5) | +0.001 / -0.000 / +0.001 | -0.16 / -0.79 / -1.30 | +0.16 / +0.78 / +1.25 | +1.53 / +4.36 / +9.85 | -5.08 / -5.36 / -5.74 | +107.4 / +71.4 / +11.1 | -1.72 / -2.07 / -2.45 | -0.097 / -0.628 / -1.473 | +8.0 / +18.1 / +35.4 | all hold |
+| uk_central | tfp | dn (zk0, zk0.1) | +0.45 / +1.02 | +0.39 / +0.68 | +0.06 / +0.36 | +0.74 / +2.14 | -1.71 / -1.26 | +48.4 / +37.6 | -0.69 / -0.56 | -0.030 / -0.208 | +4.0 / +9.0 | all hold |
+| uk_central | zfixed | dn (zk0, zk0.1) | +0.07 / +0.60 | +0.02 / +0.28 | +0.05 / +0.32 | +0.70 / +2.00 | -2.14 / -1.71 | +44.4 / +34.4 | -0.96 / -0.84 | -0.080 / -0.247 | +4.1 / +8.6 | all hold |
+| uk_central | r4 | dn (zk0, zk0.1) | +0.003 / +0.000 | -0.05 / -0.28 | +0.05 / +0.28 | +0.69 / +1.80 | -2.21 / -2.36 | +43.7 / +29.9 | -1.01 / -1.24 | -0.089 / -0.302 | +4.2 / +8.2 | all hold |
+
+- In the stress test the wage falls by *more* as ζK rises (−5.08, −5.36, −5.74% for Korinek). This is not a break. With GDP held, the wage gap is the share term minus the labour gap, exactly:
+
+| closure | run | share term dln(1-g) | - dln L | dln Y (held near 0) | sum | dln w | residual |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | uk_central_share_shift_ramp_r4_1 | -2.492 | +0.385 | +0.001 | -2.107 | -2.107 | 2.6e-05 |
+| zk0 | korinek_share_shift_ramp_r4_1 | -6.188 | +0.973 | +0.001 | -5.213 | -5.213 | 6.0e-05 |
+| zk0 | uk_central_share_shift_ramp_dn_r4_1 | -2.492 | +0.252 | +0.003 | -2.237 | -2.237 | -3.9e-04 |
+| zk0.1 | uk_low_share_shift_ramp_r4_1 | -1.083 | +0.120 | +0.004 | -0.959 | -0.959 | 1.9e-05 |
+| zk0.1 | uk_central_share_shift_ramp_r4_1 | -2.492 | +0.275 | +0.005 | -2.212 | -2.212 | 3.2e-05 |
+| zk0.1 | uk_high_share_shift_ramp_r4_1 | -4.564 | +0.503 | -0.003 | -4.064 | -4.064 | 1.8e-05 |
+| zk0.1 | korinek_share_shift_ramp_r4_2 | -6.188 | +0.680 | -0.000 | -5.507 | -5.507 | -2.6e-05 |
+| zk0.1 | uk_central_share_shift_ramp_dn_r4_2 | -2.492 | +0.099 | +0.000 | -2.393 | -2.393 | -4.6e-04 |
+| zk0.5 | uk_central_share_shift_ramp_r4_2 | -2.492 | +0.107 | -0.008 | -2.393 | -2.393 | -1.3e-05 |
+| zk0.5 | korinek_share_shift_ramp_r4_3 | -6.188 | +0.272 | +0.001 | -5.914 | -5.914 | 7.1e-05 |
+
+- Labour falls by less at higher ζK because residents are worse off: GDP is held, more of it is paid abroad on a larger foreign-owned capital stock, GNI falls by more (−0.16, −0.79, −1.30%), and so does consumption (−1.72, −2.07, −2.45%). Households work more, and the wage per unit of labour is lower.
+
+**Across scenarios (low, central, high, Korinek).** All tests hold at every closure, for the scenarios that are solved: GDP and GNI in the main arm, capital and the return in every arm, and the wage and GNI falls in the stress test. The main arm's wage is not ordered by shock size, as before (A2).
+
+| closure | arm | scenarios | GDP % | GNI % | K % | return bp | tax/GDP pp | wage % (not expected to be ordered, A2) | ordering tests |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | tfp | uk_central, korinek | +0.37 / +3.05 | +0.30 / +2.88 | +0.67 / +1.80 | +48.3 / +141.9 | -0.006 / +0.207 | -1.71 / -2.03 | all hold |
+| zk0 | zfixed | uk_central, korinek | -0.03 / -0.05 | -0.10 / -0.21 | +0.63 / +1.53 | +44.0 / +106.8 | -0.046 / -0.102 | -2.12 / -5.13 | all hold |
+| zk0 | r4 | uk_central, korinek | +0.001 / +0.001 | -0.06 / -0.16 | +0.63 / +1.53 | +44.4 / +107.4 | -0.042 / -0.097 | -2.09 / -5.08 | all hold |
+| zk0.1 | tfp | uk_low, uk_central, uk_high, korinek | +0.41 / +0.92 / +2.74 / +4.89 | +0.27 / +0.57 / +2.02 / +3.80 | +0.87 / +2.01 / +4.09 / +6.03 | +16.9 / +37.8 / +75.5 / +109.2 | -0.078 / -0.187 / -0.292 / -0.347 | -0.53 / -1.27 / -1.27 / -0.59 | all hold |
+| zk0.1 | zfixed | uk_low, uk_central, uk_high, korinek | +0.20 / +0.47 / +0.94 / +1.34 | +0.06 / +0.15 / +0.32 / +0.47 | +0.81 / +1.88 / +3.50 / +4.81 | +15.2 / +34.4 / +61.5 / +81.9 | -0.092 / -0.215 / -0.400 / -0.550 | -0.76 / -1.71 / -3.05 / -4.05 | all hold |
+| zk0.1 | r4 | uk_low, uk_central, uk_high, korinek | +0.004 / +0.005 / -0.003 / -0.000 | -0.13 / -0.30 / -0.57 / -0.79 | +0.75 / +1.73 / +3.19 / +4.36 | +13.7 / +30.7 / +54.2 / +71.4 | -0.105 / -0.245 / -0.457 / -0.628 | -0.95 / -2.19 / -3.98 / -5.36 | all hold |
+| zk0.5 | tfp | uk_central, korinek | +2.47 / +9.96 | +1.75 / +7.73 | +5.99 / +18.62 | +10.3 / +28.5 | -0.572 / -1.403 | +0.06 / +3.62 | all hold |
+| zk0.5 | zfixed | uk_central, korinek | +1.90 / +5.15 | +1.22 / +3.38 | +5.52 / +14.38 | +9.2 / +20.4 | -0.579 / -1.442 | -0.50 / -0.90 | all hold |
+| zk0.5 | r4 | uk_central, korinek | -0.008 / +0.001 | -0.54 / -1.30 | +3.97 / +9.85 | +5.4 / +11.1 | -0.599 / -1.473 | -2.37 / -5.74 | all hold |
+
+**Across arms (main, technology unchanged, stress test).** GDP, GNI, NNI, the wage, consumption, capital and Z are in that order in 8 of 10 sets, including both at ζK = 0.5 and both debt-neutral sets.
+
+| closure | scenario | variant | GDP % | GNI % | NNI % | wage % | C % | K % | Z terminal | ordering tests (GDP, GNI, NNI, wage, C, K, Z: tfp > zfixed > stress) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | uk_central | common | +0.366 / -0.033 / +0.001 | +0.30 / -0.10 / -0.06 | +0.23 / -0.24 / -0.20 | -1.71 / -2.12 / -2.09 | -0.52 / -0.73 / -0.71 | +0.67 / +0.63 / +0.63 | 0.980978 / 0.977069 / 0.977399 | known A1 (Y, GNI, NNI, w, C, K, Z) |
+| zk0 | korinek | common | +3.047 / -0.053 / +0.001 | +2.88 / -0.21 / -0.16 | +3.09 / -0.56 / -0.50 | -2.03 / -5.13 / -5.08 | -0.16 / -1.75 / -1.72 | +1.80 / +1.53 / +1.53 | 0.974320 / 0.945025 / 0.945534 | known A1 (Y, GNI, NNI, w, C, K, Z) |
+| zk0 | uk_central | dn | +0.453 / +0.070 / +0.003 | +0.39 / +0.02 / -0.05 | +0.32 / -0.12 / -0.19 | -1.71 / -2.14 / -2.21 | -0.69 / -0.96 / -1.01 | +0.74 / +0.70 / +0.69 | 0.980978 / 0.977069 / 0.976386 | all hold |
+| zk0.1 | uk_low | common | +0.415 / +0.196 / +0.004 | +0.27 / +0.06 / -0.13 | +0.14 / -0.10 / -0.31 | -0.53 / -0.76 / -0.95 | -0.16 / -0.27 / -0.37 | +0.87 / +0.81 / +0.75 | 0.991517 / 0.989538 / 0.987803 | all hold |
+| zk0.1 | uk_central | common | +0.917 / +0.475 / +0.005 | +0.57 / +0.15 / -0.30 | +0.27 / -0.21 / -0.72 | -1.27 / -1.71 / -2.19 | -0.39 / -0.61 / -0.84 | +2.01 / +1.88 / +1.73 | 0.980153 / 0.976248 / 0.972100 | all hold |
+| zk0.1 | uk_high | common | +2.739 / +0.937 / -0.003 | +2.02 / +0.32 / -0.57 | +1.58 / -0.35 / -1.36 | -1.27 / -3.05 / -3.98 | -0.20 / -1.08 / -1.53 | +4.09 / +3.50 / +3.19 | 0.972683 / 0.957365 / 0.949354 | all hold |
+| zk0.1 | korinek | common | +4.890 / +1.344 / -0.000 | +3.80 / +0.47 / -0.79 | +3.33 / -0.44 / -1.87 | -0.59 / -4.05 / -5.36 | +0.28 / -1.42 / -2.07 | +6.03 / +4.81 / +4.36 | 0.972324 / 0.943089 / 0.931947 | all hold |
+| zk0.1 | uk_central | dn | +1.024 / +0.600 / +0.000 | +0.68 / +0.28 / -0.28 | +0.37 / -0.08 / -0.72 | -1.26 / -1.71 / -2.36 | -0.56 / -0.84 / -1.24 | +2.14 / +2.00 / +1.80 | 0.980153 / 0.976248 / 0.970724 | all hold |
+| zk0.5 | uk_central | common | +2.471 / +1.898 / -0.008 | +1.75 / +1.22 / -0.54 | +0.63 / +0.09 / -1.72 | +0.06 / -0.50 / -2.37 | +0.14 / -0.13 / -1.01 | +5.99 / +5.52 / +3.97 | 0.976442 / 0.972552 / 0.959551 | all hold |
+| zk0.5 | korinek | common | +9.957 / +5.151 / +0.001 | +7.73 / +3.38 / -1.30 | +4.86 / +0.48 / -4.24 | +3.62 / -0.90 / -5.74 | +1.97 / -0.15 / -2.45 | +18.62 / +14.38 / +9.85 | 0.963377 / 0.934410 / 0.902807 | all hold |
+
+- The two exceptions are the common-rule sets at ζK = 0, where "technology unchanged" sits just below the stress test (GDP −0.03 against +0.00% for UK central). This is A1, already documented: the technology-unchanged arm's GDP is slightly below zero there, so holding GDP flat needs slightly more technology. The main arm is above both in every measure.
+
+### Debt-neutral solves
+
+- The closure holds in all seven: debt/GDP is within 1.1e-5 (relative) of the restart's in every year 2029–36, against a tolerance of 1e-4.
+- The verdict cells are as the addendum reports: 85 consistent, 17 surprising-but-explained, 0 wrong.
+- The orderings across the two closures and across the three arms all hold (tables above). In particular the debt-neutral set at ζK = 0 has the three arms in order, where the common rule does not (A1).
+- The transfer cut in 2031 is 6.5, 7.4 and 8.7% across the arms at ζK = 0.1, and 5.4, 6.4 and 6.5% at ζK = 0. It rises as the output gain falls, as expected.
+
+### Against the literature at ζK = 0.5
+
+- **IMF.** The UK central main arm gives GDP +2.47% in 2031 for TFP +0.4%, a ratio of 6.2. The IMF's is about 6.0 at year 4 (+2.52% for +0.42%). At ζK = 0.1 the ratio is 2.3. This supports section 7's reading that the capital closure accounts for the distance from the IMF.
+- **Korinek et al.** The Korinek main arm's wage is positive (+3.62%) at a capital-supply elasticity of 5.7, consistent with their Table 5 at about 6.
+
+### Verdict tables, ζK = 0.5
+
+**uk_central, ζK 0.5** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp`; technology unchanged: `uk_central_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_central_share_shift_ramp_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +2.47 | consistent | small, sign open (>= 0 if capital flows in) | +1.90 | surprising-but-explained (A13) | 0 within 0.01pp | -0.008 | consistent |
+| GNI % | > 0, below GDP | +1.75 | consistent | below GDP | +1.22 | consistent | <= 0 | -0.54 | consistent |
+| NNI % | rises less than GNI in levels | +0.63 | consistent | rises less than GNI in levels | +0.09 | consistent | < 0 | -1.72 | consistent |
+| capital % | > 0 | +5.99 | consistent | > 0 | +5.52 | consistent | > 0 | +3.97 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.11 | consistent | <= 0 by 2031 (wage falls) | -0.11 | consistent | <= 0 by 2031 (wage falls) | -0.11 | consistent |
+| wage % | sign open: share effect against productivity | +0.06 | consistent | < 0 | -0.50 | consistent | < 0 | -2.37 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.14 | consistent | < 0 | -0.13 | consistent | < 0 | -1.01 | consistent |
+| investment % | > 0 | +6.11 | consistent | > 0 | +5.44 | consistent | > 0 | +3.21 | consistent |
+| return, bp | > 0 | +10.3 | consistent | > 0 | +9.2 | consistent | > 0 | +5.4 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -1.50 | surprising-but-explained (A4) | > 0 | -0.91 | surprising-but-explained (A14) | > 0 | +1.07 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.57 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.58 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.60 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +21.39 | surprising-but-explained (A7) | > 0, a one-year jump | +19.73 | surprising-but-explained (A7) | > 0, a one-year jump | +14.18 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.03 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.05 | consistent | > 0 (more work on the news) | +0.31 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +0.02 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.16 | consistent | < 0 (more saving on the news) | -0.76 | consistent |
+| 2036 GDP % | > 0 | +2.35 | consistent | small, sign open | +1.78 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.127 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.27 | surprising-but-explained (A4) | > 0 | +1.95 | consistent | > 0 | +4.25 | consistent |
+
+**korinek, ζK 0.5** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp`; technology unchanged: `korinek_share_shift_ramp_zfixed`; stress test (2031 GDP held): `korinek_share_shift_ramp_r4_3`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +9.96 | consistent | small, sign open (>= 0 if capital flows in) | +5.15 | surprising-but-explained (A13) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +7.73 | consistent | below GDP | +3.38 | consistent | <= 0 | -1.30 | consistent |
+| NNI % | rises less than GNI in levels | +4.86 | consistent | rises less than GNI in levels | +0.48 | consistent | < 0 | -4.24 | consistent |
+| capital % | > 0 | +18.62 | consistent | > 0 | +14.38 | consistent | > 0 | +9.85 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.25 | consistent | <= 0 by 2031 (wage falls) | -0.26 | consistent | <= 0 by 2031 (wage falls) | -0.27 | consistent |
+| wage % | sign open: share effect against productivity | +3.62 | consistent | < 0 | -0.90 | consistent | < 0 | -5.74 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +1.97 | consistent | < 0 | -0.15 | consistent | < 0 | -2.45 | consistent |
+| investment % | > 0 | +19.91 | consistent | > 0 | +14.19 | consistent | > 0 | +7.98 | consistent |
+| return, bp | > 0 | +28.5 | consistent | > 0 | +20.4 | consistent | > 0 | +11.1 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -7.06 | surprising-but-explained (A4) | > 0 | -2.63 | surprising-but-explained (A14) | > 0 | +2.60 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -1.40 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.44 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.47 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +64.45 | surprising-but-explained (A7) | > 0, a one-year jump | +50.50 | surprising-but-explained (A7) | > 0, a one-year jump | +35.38 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.56 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.07 | consistent | > 0 (more work on the news) | +0.78 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +1.16 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.27 | consistent | < 0 (more saving on the news) | -1.83 | consistent |
+| 2036 GDP % | > 0 | +9.64 | consistent | small, sign open | +4.85 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.289 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | -0.82 | surprising-but-explained (A4) | > 0 | +4.35 | consistent | > 0 | +10.36 | consistent |
+
+## Refresh 15 Nov 2026 (solves of 13–14 Nov)
+
+Audited at `98e3381` on `rerun/surprise-2028` (14 Nov 2026, 03:53), with the same script and three rule changes (below). No solve was run and nothing under `analysis/surprise/output` was changed. **This is a snapshot.** Korinek fixed spending at ζK = 0 has 1 of 3 arms. The other two were being solved when this audit ran, so these counts will change when they land.
+
+- **New in this pass (31 solve records: 30 in the design, plus one `_dnfull`):**
+  - UK low and UK high at ζK = 0: three arms each.
+  - UK low at ζK = 0.5: the main arm, technology unchanged, and two stress-test iterations.
+  - UK high at ζK = 0.5: the main arm only.
+  - Fixed spending (`_fs`): UK central at ζK = 0.1 and ζK = 0; Korinek at ζK = 0.1 (all arms) and at ζK = 0 (main arm only).
+  - Debt-neutral (`_dn`): Korinek at ζK = 0.1 and ζK = 0.
+- **Failed, not just unsolved:** UK high "technology unchanged" at ζK = 0.5 (`b50073b`, log only). Its stress test was never started. The 34 "not solved" cells in the common-rule table are these two arms.
+- **Outside the design, not audited:** `uk_central_share_shift_tfp_ramp_dnfull` at ζK = 0.1 (debt-neutral to the horizon). *(16 Nov: aggregate checks added outside the verdict design; see "Consistency pass 16 Nov 2026".)* The script's `in_design` pattern excludes `_dnfull`. Debt-neutral and fixed spending were not run for UK low or UK high.
+
+### Result
+
+| cells | consistent | surprising-but-explained | wrong | not solved |
+|---|---|---|---|---|
+| Common rule, all three closures, rules as they stood | 440 | 136 | 2 | 34 |
+| Common rule, after this pass (no change) | 440 | 136 | 2 | 34 |
+| Debt-neutral (UK central, Korinek; ζK 0.1 and 0), rules as they stood | 168 | 34 | 2 | – |
+| Debt-neutral, after this pass | 168 | 35 | 1 | – |
+| Fixed spending (UK central, Korinek; ζK 0.1 and 0), rules as they stood | 138 | 29 | 3 | – |
+| Fixed spending, after this pass | 138 | 31 | 1 | – |
+| **All audited cells, after this pass** | **746** | **202** | **4** | |
+
+Rows without a solve are left out of the variant counts.
+
+- **Earlier verdicts are unchanged.** All 170 verdict rows published in the passes above (163 distinct) come out identical, line for line, from the new script. UK central debt-neutral is still 85 / 17 / 0, and ζK = 0.5 for UK central and Korinek is still 74 / 28 / 0.
+- **Orderings:** section 9 (`--mono`) reports no break. The only listed exceptions are the documented A1 cases: technology unchanged below the stress test at ζK = 0. They now cover UK low, UK high, and UK central under fixed spending as well.
+- **Identities** hold in every new record to the same tolerances as in section 1. The worst error is 1.9e-5 for the return equation and 4.6e-6 for the resource constraint.
+
+### The four wrong cells: one mechanism (A6)
+
+All four are tax/GDP rising in 2031 in the main arm at ζK = 0.
+
+| run | tax/GDP 2031, pp | payroll | income tax + NICs | business | consumption | positive from |
+|---|---|---|---|---|---|---|
+| Korinek, common rule (known) | +0.21 | −0.59 | +0.41 | +0.71 | −0.30 | 2029 |
+| **UK high, common rule (new)** | **+0.08** | −0.44 | +0.20 | +0.51 | −0.20 | 2030 |
+| Korinek, debt-neutral (new) | +0.21 | −0.59 | +0.42 | +0.71 | −0.32 | 2029 |
+| Korinek, fixed spending (new) | +0.16 | −0.59 | +0.40 | +0.71 | −0.33 | 2029 |
+
+- **UK high was predicted.** Section 8's linear rule gives +0.08pp for UK high's TFP/share ratio of 0.55, and the solve gives +0.080. That ratio is above the break-even of about 0.3. The cause is the same as for Korinek: the single income-tax schedule taxes the extra household capital income, and business tax rises, against a smaller fall in payroll tax.
+- UK low (ratio 0.29) is −0.001pp in 2031 and positive from 2032, like UK central. That is under half the OBR's figure, so it counts as explained (A6), not wrong.
+- The fiscal variant barely moves the tax ratio. That is expected, since both variants change spending and transfers, not tax rules.
+- Vahid's 12 Nov decision covers all four: keep and report, no rerun. The caveat (fix 3) now has to name UK high as well as Korinek wherever ζK = 0 fiscal results appear.
+
+### Rule changes in this pass (made after reading the results)
+
+1. **Fixed-spending closure check: reference changed.** OG-Core's `baseline_spending` holds G and TR at the committed baseline's levels (`baseline_ext.json`), not the continuation's. The old check compared with the continuation and failed all 12 `_fs` records at 4–5e-6 against a tolerance of 1e-6. That gap is the continuation's own solver error against the baseline: 5.2e-6 at ζK = 0.1 and 4.8e-6 at ζK = 0. Against `baseline_ext`, G and TR match **exactly (0)** in 2028–35 in every `_fs` record. The tolerance is unchanged. In 2036, G moves (it is up 1.8% for UK central and 35% for Korinek in the main arm), because 2036 is the debt rule's first year (A9).
+2. **A14 extended to fixed spending.** Under "technology unchanged" at ζK = 0.1, debt/GDP is *lower* in 2031: −0.08pp for UK central and −0.46pp for Korinek. The old rule expected "> 0", which was carried over from the common rule. With G and TR fixed in levels and GDP up 0.51% and 1.45%, the spending ratio falls. The test is A14's own: debt is higher and GDP has risen by more. Both cells pass it. *(A14's test was tightened on 15 Nov; see "Review pass".)* Both turn positive by 2036 (+1.14pp and +2.12pp), as debt reprices (A4). At ζK = 0, where GDP is about 0 (−0.02%), debt/GDP is +0.62pp, as the old rule expected.
+3. **A17 (new): 2028 labour can fall under debt-neutral transfers.** In the Korinek main arm at ζK = 0.1, labour is −0.05% in 2028, against +0.07% under the common rule. The debt-neutral rule holds debt/GDP from 2029. Because GDP is higher, it lets transfers *rise* early: +36% in 2028 against +1.2% under the common rule. That is an income effect on the news. The rule: explained only if debt-neutral transfers are above the common rule's over 2028–31 (sum of the % gaps). In all 12 accepted debt-neutral solves, paired with the accepted common-rule solve of the same closure, scenario and arm, the sign of (debt-neutral − common) 2028 labour is the opposite of the sign of that transfer difference. *(Corrected 15 Nov. This said "13 solves", which counted two rejected stress-test iterations. The script now prints the pair table; see "Review pass" below.)* Only the two Korinek main arms have higher transfers (sum of % gaps +40.1 at ζK = 0.1 and +18.3 at ζK = 0), and only they have less labour than under the common rule. At ζK = 0 labour still rises (+0.17%), so only the ζK = 0.1 cell needed the rule.
+
+### Newly landed common-rule solves
+
+- **UK low and UK high at ζK = 0** follow UK central and Korinek. GDP gaps are +0.18% and +1.55% in the main arm. Technology unchanged is −0.02% and −0.05% (A1). The stress test holds GDP to within 0.001pp.
+- **UK low at ζK = 0.5** follows the other ζK = 0.5 results (A13–A16). Under the rules as they stood before the ζK = 0.5 pass, its A14 and A15 cells would be wrong (see "Review pass" below). The 2028 labour and consumption signs flip in the main arm (A15). Debt/GDP under technology unchanged falls in 2031 (−0.37pp, A14). Tax/GDP is −0.25pp, about 0.35 per point of share fall (A16).
+- **UK high main arm at ζK = 0.5:** GDP +6.05%, wage +1.51%, tax/GDP −1.04pp. It is in order between UK central and Korinek on every row in section 9.
+
+## Final refresh 15 Nov 2026 (all planned solves, `ba2e7b0`)
+
+Audited at `ba2e7b0` on `rerun/surprise-2028` (15 Nov 2026, 12:23), with the script unchanged since the refresh above. No solve was run and nothing under `analysis/surprise/output` was changed.
+
+- **New in this pass (4 solve records in the design):**
+  - UK high at ζK = 0.5: technology unchanged and the stress test (`r4_1`). The technology-unchanged solve is a re-solve of the run that failed at `b50073b`. It starts from the main arm's steady state (`UGAI_SS_GUESS`, `1ce9c7c`). The stress test was solved for the first time.
+  - Korinek, fixed spending, ζK = 0: technology unchanged and the stress test (`r4_1`).
+- **Outside the design, not audited:** `continuation_dnfull` (the no-shock reference for `_dnfull`) and `uk_central_share_shift_tfp_ramp_dnfull`, both at ζK = 0.1. *(16 Nov: aggregate checks added outside the verdict design; see "Consistency pass 16 Nov 2026".)*
+- **No planned cell is left unsolved.** Debt-neutral and fixed spending were run only for UK central and Korinek, at ζK = 0.1 and 0. The 408 "not solved" cells in each variant table are the scenarios and closures that were never in that plan.
+
+### Result
+
+| cells | consistent | surprising-but-explained | wrong | not solved |
+|---|---|---|---|---|
+| Common rule, all three closures | 466 | 144 | 2 | 0 |
+| Debt-neutral (unchanged) | 168 | 35 | 1 | – |
+| Fixed spending | 165 | 38 | 1 | – |
+| **All audited cells** | **799** | **217** | **4** | |
+
+- **The four wrong cells are unchanged:** the A6 tax/GDP sign in the main arm at ζK = 0. They are Korinek under the common rule, debt-neutral and fixed spending, and UK high under the common rule. No new cell is wrong.
+- **Earlier verdicts are unchanged.** Every row that the previous refresh printed with all three arms solved comes out identical. The only rows that change are the ones that had "not solved" cells.
+- **Identities** hold in the four new records to the tolerances of section 1: the return equation to 1.4e-5 and the resource constraint to 3.4e-6. The fixed-spending closure holds exactly against the baseline in 2028–35. Section 9 (`--mono`) reports no ordering break.
+
+### The new cells
+
+- **UK high, ζK = 0.5** follows UK low, UK central and Korinek at that closure. Under the rules as they stood before the ζK = 0.5 pass, its A13, A14 and A15 cells would be wrong (see "Review pass" below).
+  - Technology unchanged: GDP +3.65% (A13, capital inflow); debt/GDP −1.83pp in 2031 (A14); +3.36pp by 2036.
+  - Stress test: 2031 GDP −0.010%, at the edge of the 0.01pp tolerance, so `r4_1` is accepted.
+  - Tax/GDP falls 1.04–1.09pp, about 0.36–0.38 per point of share fall (A16).
+  - It sits between UK central and Korinek on every row of section 9.
+  - The steady-state guess changes only the starting point of the solve. The re-solved run passes the same gate and the same identities as every other record.
+- **Korinek, fixed spending, ζK = 0** follows its common-rule counterpart.
+  - Technology unchanged has GDP −0.01% (A1). It is below the stress test, the documented A1 ordering.
+  - Debt/GDP is +1.45pp in 2031 and +5.77pp by 2036. Without the GDP gain of ζK = 0.1, the fixed spending ratio does not fall, so A14 does not apply.
+
+## Review pass 15 Nov 2026 (independent review of this document)
+
+An independent review of PRs #41 and #42 reran the script and reproduced every count. It found one misattributed cause, rules that carry less weight than their label suggests, and stale text. This section records what changed. **No verdict changed:** the `--verdict` output is identical before and after, at 799 / 217 / 4.
+
+### What the rule changes did, taken together
+
+Each rule change was disclosed when it was made, but their combined effect was not. On the final data, the rules as they stood before the ζK = 0.5 pass (`5f20600`, with ζK = 0.5 added to the closures) give:
+
+| rules | consistent | surprising-but-explained | wrong |
+|---|---|---|---|
+| Before the ζK = 0.5 pass (`5f20600`), final data | 815 | 182 | 23 |
+| Current, final data | 799 | 217 | 4 |
+
+- **19 cells moved from wrong to explained:** 4 A13, 6 A14, 8 A15 and 1 A17. All are at ζK = 0.5 except the A17 cell and the two fixed-spending A14 cells (ζK = 0.1).
+- **16 cells moved from consistent to explained:** 4 A13 and 12 A16, all at ζK = 0.5.
+- Every one of these rules was written after the cells it covers had been read. Each tests a mechanism, but none is a blind test.
+
+### What "surprising-but-explained" rests on
+
+| basis | rules | cells |
+|---|---|---|
+| A mechanism tested in the series | A13, A14, A15, A17 | 23 |
+| A pattern with no size bound | A1, A2, A3, A5, A8 | 75 |
+| A size test only (any fall under half the OBR's figure) | A6 | 22 |
+| A size test only (over 1.5 times the OBR's figure) | A16 | 12 |
+| A sign test only: a positive 2028 investment jump is never "consistent" | A7 | 60 |
+| No test: the main arm's debt/GDP sign is open under the G/Y rule | A4 | 25 |
+| **All** | | **217** |
+
+A7 and A16 can still return "wrong", on the sign, before their label applies. A4 cannot.
+
+### A14 and A15: tighter tests
+
+The new tests were written after the values below had been read, from the mechanism each anomaly narrates. All cells pass, so no verdict changes. With doctored inputs (tax/GDP up, debt/GDP down in 2036, debt down, or the wage path scaled to a tenth) each test returns "wrong".
+
+- **A14.** The old test, "debt is higher and GDP has risen by more", was almost an identity: a lower debt/GDP ratio already implies that debt rose by less than GDP in per cent. The test is now the mechanism in the text: debt is higher, tax/GDP is lower in 2031 (a wider primary deficit), and debt/GDP is higher by 2036.
+
+| closure | run | debt/GDP gap 2031 pp | debt gap 2031 % | GDP gap 2031 % | tax/GDP gap 2031 pp | debt/GDP gap 2036 pp | passes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0.1 | uk_central_share_shift_ramp_zfixed_fs | -0.08 | +0.43 | +0.51 | -0.224 | +1.14 | True |
+| zk0.1 | korinek_share_shift_ramp_zfixed_fs | -0.46 | +0.96 | +1.45 | -0.573 | +2.12 | True |
+| zk0.5 | uk_low_share_shift_ramp_zfixed | -0.37 | +0.40 | +0.80 | -0.251 | +0.88 | True |
+| zk0.5 | uk_central_share_shift_ramp_zfixed | -0.91 | +0.92 | +1.90 | -0.579 | +1.95 | True |
+| zk0.5 | uk_high_share_shift_ramp_zfixed | -1.83 | +1.67 | +3.65 | -1.062 | +3.36 | True |
+| zk0.5 | korinek_share_shift_ramp_zfixed | -2.63 | +2.25 | +5.15 | -1.442 | +4.35 | True |
+
+- **A15.** The old test needed the wage to be above the no-shock path in 2028 and 2031. UK central's 2028 wage gap at ζK = 0.5 is +0.0022%. That is about three times the closure's largest restart error (6.9e-4%) and below the new tolerance, so one year's wage was too thin a test. The mechanism is lifetime labour income, so the test is now: the wage gap is above ten times the closure's restart error in 2031 and on average over 2028–36.
+
+| closure | run | wage gap 2028 % | wage gap 2031 % | mean wage gap 2028-36 % | tolerance (10 x restart error) % | passes |
+| --- | --- | --- | --- | --- | --- | --- |
+| zk0.5 | uk_low_share_shift_tfp_ramp | +0.0062 | +0.0352 | +0.0268 | 0.0069 | True |
+| zk0.5 | uk_central_share_shift_tfp_ramp | +0.0022 | +0.0574 | +0.0384 | 0.0069 | True |
+| zk0.5 | uk_high_share_shift_tfp_ramp | +0.3368 | +1.5119 | +1.2559 | 0.0069 | True |
+| zk0.5 | korinek_share_shift_tfp_ramp | +0.8079 | +3.6240 | +3.0200 | 0.0069 | True |
+
+### A17: the pair table
+
+The script now prints the pairs. Only the two Korinek main arms have higher transfers under debt-neutral than under the common rule, and only they have less 2028 labour. The tfp and technology-unchanged pairs share Z. The stress-test pairs do not, because each rule needed its own Z to hold 2031 GDP.
+
+| closure | scenario | arm | debt-neutral run | common-rule run | Z debt-neutral | Z common | transfers 2028 % (dn, common) | sum of transfer % gaps 2028-31, dn - common | 2028 labour %, dn - common | opposite signs |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| zk0 | uk_central | automation + productivity | uk_central_share_shift_tfp_ramp_dn | uk_central_share_shift_tfp_ramp | 0.980978 | 0.980978 | +3.5, +0.2 | -10.5 | +0.055 | True |
+| zk0 | uk_central | technology unchanged | uk_central_share_shift_ramp_zfixed_dn | uk_central_share_shift_ramp_zfixed | 0.977069 | 0.977069 | +0.6, +0.2 | -18.5 | +0.090 | True |
+| zk0 | uk_central | stress test (2031 GDP held) | uk_central_share_shift_ramp_dn_r4_1 | uk_central_share_shift_ramp_r4_1 | 0.976386 | 0.977399 | +0.1, +0.2 | -20.2 | +0.111 | True |
+| zk0 | korinek | automation + productivity | korinek_share_shift_tfp_ramp_dn | korinek_share_shift_tfp_ramp | 0.974320 | 0.974320 | +23.7, +0.9 | +18.3 | -0.051 | True |
+| zk0 | korinek | technology unchanged | korinek_share_shift_ramp_zfixed_dn | korinek_share_shift_ramp_zfixed | 0.945025 | 0.945025 | +1.8, +0.4 | -44.1 | +0.219 | True |
+| zk0 | korinek | stress test (2031 GDP held) | korinek_share_shift_ramp_dn_r4_1 | korinek_share_shift_ramp_r4_1 | 0.943227 | 0.945534 | +0.4, +0.5 | -48.5 | +0.271 | True |
+| zk0.1 | uk_central | automation + productivity | uk_central_share_shift_tfp_ramp_dn | uk_central_share_shift_tfp_ramp | 0.980153 | 0.980153 | +7.8, +0.4 | -4.0 | +0.037 | True |
+| zk0.1 | uk_central | technology unchanged | uk_central_share_shift_ramp_zfixed_dn | uk_central_share_shift_ramp_zfixed | 0.976248 | 0.976248 | +4.7, +0.3 | -12.6 | +0.074 | True |
+| zk0.1 | uk_central | stress test (2031 GDP held) | uk_central_share_shift_ramp_dn_r4_2 | uk_central_share_shift_ramp_r4_1 | 0.970724 | 0.972100 | +0.3, +0.2 | -25.1 | +0.149 | True |
+| zk0.1 | korinek | automation + productivity | korinek_share_shift_tfp_ramp_dn | korinek_share_shift_tfp_ramp | 0.972324 | 0.972324 | +36.1, +1.2 | +40.1 | -0.118 | True |
+| zk0.1 | korinek | technology unchanged | korinek_share_shift_ramp_zfixed_dn | korinek_share_shift_ramp_zfixed | 0.943089 | 0.943089 | +12.4, +0.7 | -27.7 | +0.175 | True |
+| zk0.1 | korinek | stress test (2031 GDP held) | korinek_share_shift_ramp_dn_r4_2 | korinek_share_shift_ramp_r4_2 | 0.928861 | 0.931947 | +0.9, +0.6 | -61.4 | +0.373 | True |
+
+All 12 accepted pairs have opposite signs.
+
+### A16: the cause, corrected
+
+Half of the extra gross capital income is depreciation and a third is the net return to foreign owners (Korinek stress test, ζK = 0.5). The text said it all went to foreign owners. The A16 section and its table now carry the split. The conclusion is unchanged: the extra capital income is almost entirely outside the income-tax base.
+
+### Other corrections
+
+- The A15 rank correlations are updated for UK low and UK high (A15 section).
+- A17's "13 solves" is corrected to 12 accepted pairs.
+- "163 verdict rows" now reads 170 (163 distinct).
+- The Summary is marked as the first pass. "What this audit did not do" is rewritten for the final data.
+- The verdict tables for every solved block at `ba2e7b0` are appended below. The main verdict table above is the first pass at `a657e6d`, and it still shows UK low and UK high at ζK = 0 as "not solved".
+
+## Consistency pass 16 Nov 2026 (the `_dnfull` solve, and text fixes)
+
+Audited at `a5c4ea0`, which merges `rerun/surprise-2028` at `7930862` into this branch. Under `analysis/surprise/output` the merge changes `uk_central_share_shift_tfp_ramp_dnfull.sanity.json` (re-run at `b348144`), a provenance field (`ss_guess`) in two ζK = 0.5 UK high records (no series change), and three logs: `report_assembled.log`, `check_assembled.log` and `export_cohorts.log`. `--verdict` prints byte-identical output before and after, so the counts stay **799 / 217 / 4**.
+
+### The `_dnfull` solve: aggregate checks
+
+The draft paper's cohort figure (44% of adults losing, or 16% with bequests valued) rests on `uk_central_share_shift_tfp_ramp_dnfull` at ζK = 0.1. In it, transfers hold debt/GDP on the reference path to the horizon, not just to 2036. The solve and its reference, `continuation_dnfull`, were outside the audit. A new section of the script checks them: `python analysis/surprise/audit_2028.py --dnfull`. It stays outside the verdict design, so nothing enters the verdict tables or counts.
+
+- **How the rules were set.** An independent reviewer (Fable 5.2, 16 Nov) chose the checks and their pass rules after seeing some of the values. So every threshold reuses a tolerance already in the script: section 1's worst accepted values, the debt-neutral tolerance (1e-4), the fixed-spending tolerance (1e-6) and the sanity-report tolerance. There are no new numbers.
+- **The first run failed check 12.** The audit worktree then held the `.sanity.json` from before `b348144`. That commit changed `sanity.py` to measure a `_dnfull` arm against `continuation_dnfull` instead of `continuation` (2031 GDP +1.09%, was +1.25%). After merging `7930862`, check 12 passes at the existing tolerance. The rule was not changed.
+- **Report only:**
+  - The reference's restart error: `continuation_dnfull` is up to 0.7% off `baseline_ext` in 2028–36. This is expected, because households anticipate the transfer rule after 2036.
+  - The to-horizon closure, 2029–2086. The exported series stop at 2036, so the years after 2036 cannot be checked here; the record's own `dn_check_full` is quoted, not recomputed.
+
+| check | what | value | pass if ≤ | result |
+|---|---|---|---|---|
+| 1 | reference: 2026-27 equal to baseline_ext (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 2 | reference: 2028 state (B, D, D_d, D_f, K_d) equal to continuation (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 3 | reference: D/Y against continuation, 2029-36, max abs(ratio - 1) | 3.9e-07 | 1.0e-04 | pass |
+| 4 | reference: G/Y against alpha_G_used, 2028-36 (rel) | 0.0e+00 | 1.0e-06 | pass |
+| 5 | reference: identity K | 0.0e+00 | 0.0e+00 | pass |
+| 5 | reference: identity Kd | 0.0e+00 | 0.0e+00 | pass |
+| 5 | reference: identity D | 1.6e-16 | 1.8e-16 | pass |
+| 5 | reference: identity GNI | 1.6e-16 | 1.6e-16 | pass |
+| 5 | reference: identity NNI | 1.9e-16 | 3.7e-16 | pass |
+| 5 | reference: identity Yfn | 1.2e-07 | 7.9e-06 | pass |
+| 5 | reference: identity w | 1.6e-06 | 8.9e-06 | pass |
+| 5 | reference: identity rc | 7.8e-08 | 4.6e-06 | pass |
+| 6 | reference: max rel gap to baseline_ext, 2028-36 (households anticipate the post-2036 transfer rule; record's continuation_report max 8.85e-03, ok=False) | 7.1e-03 |  | report only |
+| 7 | arm: closure, D/Y against continuation_dnfull, 2029-36 | 6.2e-07 | 1.0e-04 | pass |
+| 7 | arm: D/Y against continuation, 2029-36 (information) | 9.8e-07 |  | report only |
+| 8 | arm: G/Y against alpha_G_used, 2028-36 (rel) | 0.0e+00 | 1.0e-06 | pass |
+| 9 | arm: identity K | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: identity Kd | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: identity D | 0.0e+00 | 1.8e-16 | pass |
+| 9 | arm: identity GNI | 0.0e+00 | 1.6e-16 | pass |
+| 9 | arm: identity NNI | 1.9e-16 | 3.7e-16 | pass |
+| 9 | arm: identity Yfn | 1.2e-07 | 7.9e-06 | pass |
+| 9 | arm: identity w | 1.6e-06 | 8.9e-06 | pass |
+| 9 | arm: identity rc | 2.1e-08 | 4.6e-06 | pass |
+| 9 | arm: 2026-27 equal to baseline_ext (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: 2028 state equal to continuation_dnfull (rel) | 0.0e+00 | 0.0e+00 | pass |
+| 9 | arm: labour share against -target x ramp weight (pp) | 1.1e-04 | 5.4e-04 | pass |
+| 10 | arm: 2031 signs against continuation_dnfull (Y > 0: yes, K > 0: yes, r gap > 0: yes, labour-share gap < 0: yes) | all | all four | pass |
+| 10 | arm: 2031 sign of Y, K, w, C, r equal to the `_dn` arm's against continuation (Y +1.09 vs +1.02, K +2.22 vs +2.14, w -1.25 vs -1.26, C -0.65 vs -0.56, r_bp +37.47 vs +37.61) | all | all five | pass |
+| 11 | arm: 2031 dnfull less dn, Y / K / w / C %: +0.07 / +0.08 / +0.01 / -0.10 | - |  | report only |
+| 12 | arm: recomputed 2028 and 2031 gaps against the committed .sanity.json | 3.1e-15 | 1.4e-14 | pass |
+| 12 | sanity.json fails recorded (arm + reference); flags: arm [], reference [] | 0 | 0 | pass |
+| 13 | continuation_dnfull: to-horizon closure 2029-2086, max abs rel (quoted from the record, not recomputed; ok=True) | 1.9e-05 |  | report only |
+| 13 | uk_central_share_shift_tfp_ramp_dnfull: to-horizon closure 2029-2086, max abs rel (quoted from the record, not recomputed; ok=True) | 1.6e-05 |  | report only |
+
+- **The result depends on the reference.** Against `continuation_dnfull`, its like-for-like reference, the arm's 2031 GDP gap is +1.09%. Against `continuation` it is +1.25%, about 0.15pp more. Gaps for the `_dnfull` arm should be quoted against `continuation_dnfull`.
+- **Not audited here: the cohort calculation.** The 44% and 16% come from `export_cohorts.py` and the cohort `.npz` files, which this script does not read. The checks above cover only the aggregate path the cohort figures rest on. Auditing the cohort calculation is a follow-up.
+
+### Text fixes in this pass
+
+- **Debt repricing (Summary, A4).** At the OBR's speed the 2036 rise in debt/GDP is 4–66% of the model's in the 20 of 24 cells where it stays a rise, and the main arm of UK high and Korinek et al. ends lower at both closures. The text said "a tenth to two-thirds". That came from PR #43's note, which was written on 18 cells, before UK low and UK high were solved at ζK = 0. The smallest ratio is UK low's main arm at ζK = 0, at 4%.
+- **Stale "not solved yet" in section 5 and the final pass.** Dated notes now point to the refreshes in which these solves were audited.
+
 ## What this audit did not do
 
 - No solve was run, and nothing under `analysis/surprise/output` was changed.
-- UK low and UK high at ζK = 0 are not solved at `a657e6d`. The linear rule in section 8 predicts a wrong-signed tax/GDP for the UK high main arm there. When those solves land, `python analysis/surprise/audit_2028.py --verdict` regenerates the table.
-- No debt-neutral (`_dn`) or fixed-spending (`_fs`) solve exists at `a657e6d`, so the fiscal results under the OBR's spending convention are not checked here. The script is ready for them: it tests that debt/GDP tracks the reference to 1e-4 in 2029–36 (`_dn`) and that G and transfers equal the reference levels in 2028–35 (`_fs`), and adds a verdict block per variant once a solve lands.
+- Debt-neutral and fixed spending were audited only for UK central and Korinek at ζK = 0.1 and 0, the solves that were planned. `_dnfull` (debt-neutral to the horizon) is outside the verdict design. Since 16 Nov its aggregate path is checked in a separate section (`--dnfull`; see "Consistency pass 16 Nov 2026"), but the cohort calculation behind the paper's 44% / 16% is not audited.
+- The rules for "surprising-but-explained" were written after the results were read (see "Review pass"). They are a consistency check, not a blind test.
 - Published figures (IMF, OBR, Korinek) are taken from `docs/literature_comparison.md` and `docs/uk_calibration.md` as verified there. They were not re-read from the PDFs.
 - The steady-state elasticity and GDP/TFP quoted in section 7 are the sanity gate's diagnostics; the steady state is not in the exported series, so they were not recomputed.
 
@@ -821,6 +1385,462 @@ The debt-neutral stress test at the closed-capital bound, accepted on its first 
 ```
 python analysis/surprise/audit_2028.py            # every table in this document
 python analysis/surprise/audit_2028.py --verdict  # the verdict table only
+python analysis/surprise/audit_2028.py --mono     # section 9: orderings and inequalities (final pass)
+python analysis/surprise/audit_2028.py --dnfull   # the `_dnfull` checks (consistency pass, 16 Nov)
 ```
 
 The script needs numpy and the committed JSON, nothing else.
+
+## Appendix: verdict tables at `ba2e7b0` (`--verdict` output)
+
+Every solved block, every variant. Blocks for scenarios and closures where a variant was never planned are left out.
+
+**uk_low, zk0.1** (labour share −0.7pp, TFP +0.2%). Runs: automation + productivity: `uk_low_share_shift_tfp_ramp`; technology unchanged: `uk_low_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_low_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.41 | consistent | small, sign open (>= 0 if capital flows in) | +0.20 | consistent | 0 within 0.01pp | +0.004 | consistent |
+| GNI % | > 0, below GDP | +0.27 | consistent | below GDP | +0.06 | consistent | <= 0 | -0.13 | consistent |
+| NNI % | rises less than GNI in levels | +0.14 | consistent | rises less than GNI in levels | -0.10 | surprising-but-explained (A5) | < 0 | -0.31 | consistent |
+| capital % | > 0 | +0.87 | consistent | > 0 | +0.81 | consistent | > 0 | +0.75 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.13 | consistent | <= 0 by 2031 (wage falls) | -0.13 | consistent | <= 0 by 2031 (wage falls) | -0.12 | consistent |
+| wage % | sign open: share effect against productivity | -0.53 | surprising-but-explained (A2) | < 0 | -0.76 | consistent | < 0 | -0.95 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.16 | surprising-but-explained (A3) | < 0 | -0.27 | consistent | < 0 | -0.37 | consistent |
+| investment % | > 0 | +1.60 | consistent | > 0 | +1.21 | consistent | > 0 | +0.86 | consistent |
+| return, bp | > 0 | +16.9 | consistent | > 0 | +15.2 | consistent | > 0 | +13.7 | consistent |
+| labour share, pp | = -target | -0.70 | consistent | = -target | -0.70 | consistent | = -target | -0.70 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -0.07 | surprising-but-explained (A4) | > 0 | +0.17 | consistent | > 0 | +0.38 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.08 | consistent | < 0 (OBR sign) | -0.09 | consistent | < 0 (OBR sign) | -0.10 | consistent |
+| 2028 investment % | > 0, a one-year jump | +3.39 | surprising-but-explained (A7) | > 0, a one-year jump | +3.27 | surprising-but-explained (A7) | > 0, a one-year jump | +3.15 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.07 | consistent | > 0 (more work on the news) | +0.10 | consistent | > 0 (more work on the news) | +0.13 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.23 | consistent | < 0 (more saving on the news) | -0.30 | consistent | < 0 (more saving on the news) | -0.36 | consistent |
+| 2036 GDP % | > 0 | +0.42 | consistent | small, sign open | +0.17 | consistent | near 0, not held after 2031 | -0.045 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +0.84 | surprising-but-explained (A4) | > 0 | +1.18 | consistent | > 0 | +1.47 | consistent |
+
+**uk_central, zk0.1** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp`; technology unchanged: `uk_central_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_central_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.92 | consistent | small, sign open (>= 0 if capital flows in) | +0.47 | consistent | 0 within 0.01pp | +0.005 | consistent |
+| GNI % | > 0, below GDP | +0.57 | consistent | below GDP | +0.15 | consistent | <= 0 | -0.30 | consistent |
+| NNI % | rises less than GNI in levels | +0.27 | consistent | rises less than GNI in levels | -0.21 | surprising-but-explained (A5) | < 0 | -0.72 | consistent |
+| capital % | > 0 | +2.01 | consistent | > 0 | +1.88 | consistent | > 0 | +1.73 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.30 | consistent | <= 0 by 2031 (wage falls) | -0.29 | consistent | <= 0 by 2031 (wage falls) | -0.27 | consistent |
+| wage % | sign open: share effect against productivity | -1.27 | surprising-but-explained (A2) | < 0 | -1.71 | consistent | < 0 | -2.19 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.39 | surprising-but-explained (A3) | < 0 | -0.61 | consistent | < 0 | -0.84 | consistent |
+| investment % | > 0 | +3.58 | consistent | > 0 | +2.78 | consistent | > 0 | +1.94 | consistent |
+| return, bp | > 0 | +37.8 | consistent | > 0 | +34.4 | consistent | > 0 | +30.7 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -0.13 | surprising-but-explained (A4) | > 0 | +0.35 | consistent | > 0 | +0.87 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.19 | consistent | < 0 (OBR sign) | -0.21 | consistent | < 0 (OBR sign) | -0.24 | consistent |
+| 2028 investment % | > 0, a one-year jump | +7.82 | surprising-but-explained (A7) | > 0, a one-year jump | +7.55 | surprising-but-explained (A7) | > 0, a one-year jump | +7.27 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.17 | consistent | > 0 (more work on the news) | +0.23 | consistent | > 0 (more work on the news) | +0.30 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.55 | consistent | < 0 (more saving on the news) | -0.68 | consistent | < 0 (more saving on the news) | -0.83 | consistent |
+| 2036 GDP % | > 0 | +0.93 | consistent | small, sign open | +0.42 | consistent | near 0, not held after 2031 | -0.112 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.99 | surprising-but-explained (A4) | > 0 | +2.67 | consistent | > 0 | +3.40 | consistent |
+
+**uk_high, zk0.1** (labour share −2.9pp, TFP +1.6%). Runs: automation + productivity: `uk_high_share_shift_tfp_ramp`; technology unchanged: `uk_high_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_high_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +2.74 | consistent | small, sign open (>= 0 if capital flows in) | +0.94 | consistent | 0 within 0.01pp | -0.003 | consistent |
+| GNI % | > 0, below GDP | +2.02 | consistent | below GDP | +0.32 | consistent | <= 0 | -0.57 | consistent |
+| NNI % | rises less than GNI in levels | +1.58 | consistent | rises less than GNI in levels | -0.35 | surprising-but-explained (A5) | < 0 | -1.36 | consistent |
+| capital % | > 0 | +4.09 | consistent | > 0 | +3.50 | consistent | > 0 | +3.19 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.58 | consistent | <= 0 by 2031 (wage falls) | -0.53 | consistent | <= 0 by 2031 (wage falls) | -0.50 | consistent |
+| wage % | sign open: share effect against productivity | -1.27 | surprising-but-explained (A2) | < 0 | -3.05 | consistent | < 0 | -3.98 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.20 | surprising-but-explained (A3) | < 0 | -1.08 | consistent | < 0 | -1.53 | consistent |
+| investment % | > 0 | +8.32 | consistent | > 0 | +5.10 | consistent | > 0 | +3.42 | consistent |
+| return, bp | > 0 | +75.5 | consistent | > 0 | +61.5 | consistent | > 0 | +54.2 | consistent |
+| labour share, pp | = -target | -2.90 | consistent | = -target | -2.90 | consistent | = -target | -2.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -1.35 | surprising-but-explained (A4) | > 0 | +0.57 | consistent | > 0 | +1.59 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.29 | consistent | < 0 (OBR sign) | -0.40 | consistent | < 0 (OBR sign) | -0.46 | consistent |
+| 2028 investment % | > 0, a one-year jump | +15.07 | surprising-but-explained (A7) | > 0, a one-year jump | +13.93 | surprising-but-explained (A7) | > 0, a one-year jump | +13.35 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.17 | consistent | > 0 (more work on the news) | +0.41 | consistent | > 0 (more work on the news) | +0.54 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.66 | consistent | < 0 (more saving on the news) | -1.22 | consistent | < 0 (more saving on the news) | -1.51 | consistent |
+| 2036 GDP % | > 0 | +2.90 | consistent | small, sign open | +0.84 | consistent | near 0, not held after 2031 | -0.229 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +2.07 | surprising-but-explained (A4) | > 0 | +4.79 | consistent | > 0 | +6.24 | consistent |
+
+**korinek, zk0.1** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp`; technology unchanged: `korinek_share_shift_ramp_zfixed`; stress test (2031 GDP held): `korinek_share_shift_ramp_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +4.89 | consistent | small, sign open (>= 0 if capital flows in) | +1.34 | consistent | 0 within 0.01pp | -0.000 | consistent |
+| GNI % | > 0, below GDP | +3.80 | consistent | below GDP | +0.47 | consistent | <= 0 | -0.79 | consistent |
+| NNI % | rises less than GNI in levels | +3.33 | consistent | rises less than GNI in levels | -0.44 | surprising-but-explained (A5) | < 0 | -1.87 | consistent |
+| capital % | > 0 | +6.03 | consistent | > 0 | +4.81 | consistent | > 0 | +4.36 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.82 | consistent | <= 0 by 2031 (wage falls) | -0.72 | consistent | <= 0 by 2031 (wage falls) | -0.68 | consistent |
+| wage % | sign open: share effect against productivity | -0.59 | surprising-but-explained (A2) | < 0 | -4.05 | consistent | < 0 | -5.36 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.28 | consistent | < 0 | -1.42 | consistent | < 0 | -2.07 | consistent |
+| investment % | > 0 | +13.22 | consistent | > 0 | +6.93 | consistent | > 0 | +4.53 | consistent |
+| return, bp | > 0 | +109.2 | consistent | > 0 | +81.9 | consistent | > 0 | +71.4 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -3.02 | surprising-but-explained (A4) | > 0 | +0.67 | consistent | > 0 | +2.14 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.35 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.55 | consistent | < 0 (OBR sign) | -0.63 | consistent |
+| 2028 investment % | > 0, a one-year jump | +21.33 | surprising-but-explained (A7) | > 0, a one-year jump | +19.00 | surprising-but-explained (A7) | > 0, a one-year jump | +18.14 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.06 | consistent | > 0 (more work on the news) | +0.54 | consistent | > 0 (more work on the news) | +0.73 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.53 | consistent | < 0 (more saving on the news) | -1.61 | consistent | < 0 (more saving on the news) | -2.02 | consistent |
+| 2036 GDP % | > 0 | +5.26 | consistent | small, sign open | +1.21 | consistent | near 0, not held after 2031 | -0.319 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.12 | surprising-but-explained (A4) | > 0 | +6.38 | consistent | > 0 | +8.45 | consistent |
+
+**uk_low, zk0** (labour share −0.7pp, TFP +0.2%). Runs: automation + productivity: `uk_low_share_shift_tfp_ramp`; technology unchanged: `uk_low_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_low_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.18 | consistent | small, sign open (>= 0 if capital flows in) | -0.02 | surprising-but-explained (A1) | 0 within 0.01pp | -0.000 | consistent |
+| GNI % | > 0, below GDP | +0.15 | consistent | below GDP | -0.04 | surprising-but-explained (A1) | <= 0 | -0.03 | consistent |
+| NNI % | rises less than GNI in levels | +0.13 | consistent | rises less than GNI in levels | -0.11 | consistent | < 0 | -0.09 | consistent |
+| capital % | > 0 | +0.29 | consistent | > 0 | +0.28 | consistent | > 0 | +0.28 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.18 | consistent | <= 0 by 2031 (wage falls) | -0.16 | consistent | <= 0 by 2031 (wage falls) | -0.17 | consistent |
+| wage % | sign open: share effect against productivity | -0.72 | surprising-but-explained (A2) | < 0 | -0.93 | consistent | < 0 | -0.91 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.22 | surprising-but-explained (A3) | < 0 | -0.32 | consistent | < 0 | -0.31 | consistent |
+| investment % | > 0 | +1.50 | consistent | > 0 | +1.07 | consistent | > 0 | +1.11 | consistent |
+| return, bp | > 0 | +21.4 | consistent | > 0 | +19.3 | consistent | > 0 | +19.5 | consistent |
+| labour share, pp | = -target | -0.70 | consistent | = -target | -0.70 | consistent | = -target | -0.70 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | +0.12 | surprising-but-explained (A4) | > 0 | +0.34 | consistent | > 0 | +0.32 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.00 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.02 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.02 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +1.38 | surprising-but-explained (A7) | > 0, a one-year jump | +1.46 | surprising-but-explained (A7) | > 0, a one-year jump | +1.46 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.09 | consistent | > 0 (more work on the news) | +0.12 | consistent | > 0 (more work on the news) | +0.12 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.31 | consistent | < 0 (more saving on the news) | -0.37 | consistent | < 0 (more saving on the news) | -0.37 | consistent |
+| 2036 GDP % | > 0 | +0.25 | consistent | small, sign open | +0.01 | consistent | near 0, not held after 2031 | +0.027 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +0.83 | surprising-but-explained (A4) | > 0 | +1.17 | consistent | > 0 | +1.15 | consistent |
+
+**uk_central, zk0** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp`; technology unchanged: `uk_central_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_central_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.37 | consistent | small, sign open (>= 0 if capital flows in) | -0.03 | surprising-but-explained (A1) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +0.30 | consistent | below GDP | -0.10 | surprising-but-explained (A1) | <= 0 | -0.06 | consistent |
+| NNI % | rises less than GNI in levels | +0.23 | consistent | rises less than GNI in levels | -0.24 | consistent | < 0 | -0.20 | consistent |
+| capital % | > 0 | +0.67 | consistent | > 0 | +0.63 | consistent | > 0 | +0.63 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.40 | consistent | <= 0 by 2031 (wage falls) | -0.38 | consistent | <= 0 by 2031 (wage falls) | -0.38 | consistent |
+| wage % | sign open: share effect against productivity | -1.71 | surprising-but-explained (A2) | < 0 | -2.12 | consistent | < 0 | -2.09 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.52 | surprising-but-explained (A3) | < 0 | -0.73 | consistent | < 0 | -0.71 | consistent |
+| investment % | > 0 | +3.31 | consistent | > 0 | +2.45 | consistent | > 0 | +2.52 | consistent |
+| return, bp | > 0 | +48.3 | consistent | > 0 | +44.0 | consistent | > 0 | +44.4 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | +0.33 | surprising-but-explained (A4) | > 0 | +0.78 | consistent | > 0 | +0.74 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.01 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.05 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.04 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +3.16 | surprising-but-explained (A7) | > 0, a one-year jump | +3.33 | surprising-but-explained (A7) | > 0, a one-year jump | +3.32 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.22 | consistent | > 0 (more work on the news) | +0.27 | consistent | > 0 (more work on the news) | +0.27 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.72 | consistent | < 0 (more saving on the news) | -0.84 | consistent | < 0 (more saving on the news) | -0.83 | consistent |
+| 2036 GDP % | > 0 | +0.51 | consistent | small, sign open | +0.02 | consistent | near 0, not held after 2031 | +0.065 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.98 | surprising-but-explained (A4) | > 0 | +2.67 | consistent | > 0 | +2.61 | consistent |
+
+**uk_high, zk0** (labour share −2.9pp, TFP +1.6%). Runs: automation + productivity: `uk_high_share_shift_tfp_ramp`; technology unchanged: `uk_high_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_high_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +1.55 | consistent | small, sign open (>= 0 if capital flows in) | -0.05 | surprising-but-explained (A1) | 0 within 0.01pp | -0.000 | consistent |
+| GNI % | > 0, below GDP | +1.43 | consistent | below GDP | -0.17 | surprising-but-explained (A1) | <= 0 | -0.12 | consistent |
+| NNI % | rises less than GNI in levels | +1.46 | surprising-but-explained (A5) | rises less than GNI in levels | -0.43 | consistent | < 0 | -0.37 | consistent |
+| capital % | > 0 | +1.28 | consistent | > 0 | +1.14 | consistent | > 0 | +1.14 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.79 | consistent | <= 0 by 2031 (wage falls) | -0.71 | consistent | <= 0 by 2031 (wage falls) | -0.71 | consistent |
+| wage % | sign open: share effect against productivity | -2.21 | surprising-but-explained (A2) | < 0 | -3.83 | consistent | < 0 | -3.78 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.49 | surprising-but-explained (A3) | < 0 | -1.31 | consistent | < 0 | -1.29 | consistent |
+| investment % | > 0 | +7.89 | consistent | > 0 | +4.43 | consistent | > 0 | +4.53 | consistent |
+| return, bp | > 0 | +97.3 | consistent | > 0 | +79.6 | consistent | > 0 | +80.1 | consistent |
+| labour share, pp | = -target | -2.90 | consistent | = -target | -2.90 | consistent | = -target | -2.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -0.39 | surprising-but-explained (A4) | > 0 | +1.39 | consistent | > 0 | +1.34 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | +0.08 | WRONG (A6) | < 0 (OBR sign) | -0.08 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.07 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +5.31 | surprising-but-explained (A7) | > 0, a one-year jump | +6.01 | surprising-but-explained (A7) | > 0, a one-year jump | +5.99 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.27 | consistent | > 0 (more work on the news) | +0.49 | consistent | > 0 (more work on the news) | +0.48 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -1.01 | consistent | < 0 (more saving on the news) | -1.52 | consistent | < 0 (more saving on the news) | -1.50 | consistent |
+| 2036 GDP % | > 0 | +2.02 | consistent | small, sign open | +0.07 | consistent | near 0, not held after 2031 | +0.128 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +2.02 | surprising-but-explained (A4) | > 0 | +4.81 | consistent | > 0 | +4.72 | consistent |
+
+**korinek, zk0** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp`; technology unchanged: `korinek_share_shift_ramp_zfixed`; stress test (2031 GDP held): `korinek_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +3.05 | consistent | small, sign open (>= 0 if capital flows in) | -0.05 | surprising-but-explained (A1) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +2.88 | consistent | below GDP | -0.21 | surprising-but-explained (A1) | <= 0 | -0.16 | consistent |
+| NNI % | rises less than GNI in levels | +3.09 | surprising-but-explained (A5) | rises less than GNI in levels | -0.56 | consistent | < 0 | -0.50 | consistent |
+| capital % | > 0 | +1.80 | consistent | > 0 | +1.53 | consistent | > 0 | +1.53 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -1.13 | consistent | <= 0 by 2031 (wage falls) | -0.97 | consistent | <= 0 by 2031 (wage falls) | -0.97 | consistent |
+| wage % | sign open: share effect against productivity | -2.03 | surprising-but-explained (A2) | < 0 | -5.13 | consistent | < 0 | -5.08 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.16 | surprising-but-explained (A3) | < 0 | -1.75 | consistent | < 0 | -1.72 | consistent |
+| investment % | > 0 | +12.67 | consistent | > 0 | +5.94 | consistent | > 0 | +6.06 | consistent |
+| return, bp | > 0 | +141.9 | consistent | > 0 | +106.8 | consistent | > 0 | +107.4 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -1.56 | surprising-but-explained (A4) | > 0 | +1.85 | consistent | > 0 | +1.79 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | +0.21 | WRONG (A6) | < 0 (OBR sign) | -0.10 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.10 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +6.70 | surprising-but-explained (A7) | > 0, a one-year jump | +8.06 | surprising-but-explained (A7) | > 0, a one-year jump | +8.03 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.22 | consistent | > 0 (more work on the news) | +0.66 | consistent | > 0 (more work on the news) | +0.65 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -1.06 | consistent | < 0 (more saving on the news) | -2.03 | consistent | < 0 (more saving on the news) | -2.01 | consistent |
+| 2036 GDP % | > 0 | +3.94 | consistent | small, sign open | +0.12 | consistent | near 0, not held after 2031 | +0.183 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.03 | surprising-but-explained (A4) | > 0 | +6.43 | consistent | > 0 | +6.33 | consistent |
+
+**uk_low, zk0.5** (labour share −0.7pp, TFP +0.2%). Runs: automation + productivity: `uk_low_share_shift_tfp_ramp`; technology unchanged: `uk_low_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_low_share_shift_ramp_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +1.08 | consistent | small, sign open (>= 0 if capital flows in) | +0.80 | surprising-but-explained (A13) | 0 within 0.01pp | +0.000 | consistent |
+| GNI % | > 0, below GDP | +0.77 | consistent | below GDP | +0.51 | consistent | <= 0 | -0.23 | consistent |
+| NNI % | rises less than GNI in levels | +0.29 | consistent | rises less than GNI in levels | +0.02 | consistent | < 0 | -0.75 | consistent |
+| capital % | > 0 | +2.58 | consistent | > 0 | +2.36 | consistent | > 0 | +1.73 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.05 | consistent | <= 0 by 2031 (wage falls) | -0.05 | consistent | <= 0 by 2031 (wage falls) | -0.05 | consistent |
+| wage % | sign open: share effect against productivity | +0.04 | consistent | < 0 | -0.24 | consistent | < 0 | -1.03 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.06 | consistent | < 0 | -0.07 | consistent | < 0 | -0.44 | consistent |
+| investment % | > 0 | +2.65 | consistent | > 0 | +2.32 | consistent | > 0 | +1.40 | consistent |
+| return, bp | > 0 | +4.7 | consistent | > 0 | +4.2 | consistent | > 0 | +2.5 | consistent |
+| labour share, pp | = -target | -0.70 | consistent | = -target | -0.70 | consistent | = -target | -0.70 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -0.66 | surprising-but-explained (A4) | > 0 | -0.37 | surprising-but-explained (A14) | > 0 | +0.46 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.25 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.25 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.26 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +9.28 | surprising-but-explained (A7) | > 0, a one-year jump | +8.47 | surprising-but-explained (A7) | > 0, a one-year jump | +6.17 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.01 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.03 | consistent | > 0 (more work on the news) | +0.14 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +0.01 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.08 | consistent | < 0 (more saving on the news) | -0.33 | consistent |
+| 2036 GDP % | > 0 | +1.03 | consistent | small, sign open | +0.75 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.052 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +0.54 | surprising-but-explained (A4) | > 0 | +0.88 | consistent | > 0 | +1.85 | consistent |
+
+**uk_central, zk0.5** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp`; technology unchanged: `uk_central_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_central_share_shift_ramp_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +2.47 | consistent | small, sign open (>= 0 if capital flows in) | +1.90 | surprising-but-explained (A13) | 0 within 0.01pp | -0.008 | consistent |
+| GNI % | > 0, below GDP | +1.75 | consistent | below GDP | +1.22 | consistent | <= 0 | -0.54 | consistent |
+| NNI % | rises less than GNI in levels | +0.63 | consistent | rises less than GNI in levels | +0.09 | consistent | < 0 | -1.72 | consistent |
+| capital % | > 0 | +5.99 | consistent | > 0 | +5.52 | consistent | > 0 | +3.97 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.11 | consistent | <= 0 by 2031 (wage falls) | -0.11 | consistent | <= 0 by 2031 (wage falls) | -0.11 | consistent |
+| wage % | sign open: share effect against productivity | +0.06 | consistent | < 0 | -0.50 | consistent | < 0 | -2.37 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.14 | consistent | < 0 | -0.13 | consistent | < 0 | -1.01 | consistent |
+| investment % | > 0 | +6.11 | consistent | > 0 | +5.44 | consistent | > 0 | +3.21 | consistent |
+| return, bp | > 0 | +10.3 | consistent | > 0 | +9.2 | consistent | > 0 | +5.4 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -1.50 | surprising-but-explained (A4) | > 0 | -0.91 | surprising-but-explained (A14) | > 0 | +1.07 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.57 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.58 | surprising-but-explained (A16) | < 0 (OBR sign) | -0.60 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +21.39 | surprising-but-explained (A7) | > 0, a one-year jump | +19.73 | surprising-but-explained (A7) | > 0, a one-year jump | +14.18 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.03 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.05 | consistent | > 0 (more work on the news) | +0.31 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +0.02 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.16 | consistent | < 0 (more saving on the news) | -0.76 | consistent |
+| 2036 GDP % | > 0 | +2.35 | consistent | small, sign open | +1.78 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.127 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +1.27 | surprising-but-explained (A4) | > 0 | +1.95 | consistent | > 0 | +4.25 | consistent |
+
+**uk_high, zk0.5** (labour share −2.9pp, TFP +1.6%). Runs: automation + productivity: `uk_high_share_shift_tfp_ramp`; technology unchanged: `uk_high_share_shift_ramp_zfixed`; stress test (2031 GDP held): `uk_high_share_shift_ramp_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +6.05 | consistent | small, sign open (>= 0 if capital flows in) | +3.65 | surprising-but-explained (A13) | 0 within 0.01pp | -0.010 | consistent |
+| GNI % | > 0, below GDP | +4.56 | consistent | below GDP | +2.38 | consistent | <= 0 | -0.97 | consistent |
+| NNI % | rises less than GNI in levels | +2.49 | consistent | rises less than GNI in levels | +0.27 | consistent | < 0 | -3.14 | consistent |
+| capital % | > 0 | +12.42 | consistent | > 0 | +10.38 | consistent | > 0 | +7.26 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.19 | consistent | <= 0 by 2031 (wage falls) | -0.19 | consistent | <= 0 by 2031 (wage falls) | -0.20 | consistent |
+| wage % | sign open: share effect against productivity | +1.51 | consistent | < 0 | -0.78 | consistent | < 0 | -4.28 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.91 | consistent | < 0 | -0.16 | consistent | < 0 | -1.83 | consistent |
+| investment % | > 0 | +13.07 | consistent | > 0 | +10.24 | consistent | > 0 | +5.88 | consistent |
+| return, bp | > 0 | +20.1 | consistent | > 0 | +15.8 | consistent | > 0 | +8.9 | consistent |
+| labour share, pp | = -target | -2.90 | consistent | = -target | -2.90 | consistent | = -target | -2.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -4.14 | surprising-but-explained (A4) | > 0 | -1.83 | surprising-but-explained (A14) | > 0 | +1.94 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -1.04 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.06 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.09 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +43.71 | surprising-but-explained (A7) | > 0, a one-year jump | +36.75 | surprising-but-explained (A7) | > 0, a one-year jump | +26.02 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.25 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.07 | consistent | > 0 (more work on the news) | +0.57 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +0.49 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.24 | consistent | < 0 (more saving on the news) | -1.37 | consistent |
+| 2036 GDP % | > 0 | +5.82 | consistent | small, sign open | +3.44 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.225 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | +0.67 | surprising-but-explained (A4) | > 0 | +3.36 | consistent | > 0 | +7.71 | consistent |
+
+**korinek, zk0.5** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp`; technology unchanged: `korinek_share_shift_ramp_zfixed`; stress test (2031 GDP held): `korinek_share_shift_ramp_r4_3`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +9.96 | consistent | small, sign open (>= 0 if capital flows in) | +5.15 | surprising-but-explained (A13) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +7.73 | consistent | below GDP | +3.38 | consistent | <= 0 | -1.30 | consistent |
+| NNI % | rises less than GNI in levels | +4.86 | consistent | rises less than GNI in levels | +0.48 | consistent | < 0 | -4.24 | consistent |
+| capital % | > 0 | +18.62 | consistent | > 0 | +14.38 | consistent | > 0 | +9.85 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.25 | consistent | <= 0 by 2031 (wage falls) | -0.26 | consistent | <= 0 by 2031 (wage falls) | -0.27 | consistent |
+| wage % | sign open: share effect against productivity | +3.62 | consistent | < 0 | -0.90 | consistent | < 0 | -5.74 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +1.97 | consistent | < 0 | -0.15 | consistent | < 0 | -2.45 | consistent |
+| investment % | > 0 | +19.91 | consistent | > 0 | +14.19 | consistent | > 0 | +7.98 | consistent |
+| return, bp | > 0 | +28.5 | consistent | > 0 | +20.4 | consistent | > 0 | +11.1 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | sign open under the G/Y rule | -7.06 | surprising-but-explained (A4) | > 0 | -2.63 | surprising-but-explained (A14) | > 0 | +2.60 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -1.40 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.44 | surprising-but-explained (A16) | < 0 (OBR sign) | -1.47 | surprising-but-explained (A16) |
+| 2028 investment % | > 0, a one-year jump | +64.45 | surprising-but-explained (A7) | > 0, a one-year jump | +50.50 | surprising-but-explained (A7) | > 0, a one-year jump | +35.38 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.56 | surprising-but-explained (A15) | > 0 (more work on the news) | +0.07 | consistent | > 0 (more work on the news) | +0.78 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | +1.16 | surprising-but-explained (A15) | < 0 (more saving on the news) | -0.27 | consistent | < 0 (more saving on the news) | -1.83 | consistent |
+| 2036 GDP % | > 0 | +9.64 | consistent | small, sign open | +4.85 | surprising-but-explained (A13) | near 0, not held after 2031 | -0.289 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | sign open under the G/Y rule | -0.82 | surprising-but-explained (A4) | > 0 | +4.35 | consistent | > 0 | +10.36 | consistent |
+
+verdict counts: {'consistent': 466, 'surprising-but-explained': 144, 'WRONG': 2} | cells: 612
+
+#### Variant: debt-neutral transfers (`_dn`)
+
+**uk_central, zk0.1, debt-neutral transfers** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp_dn`; technology unchanged: `uk_central_share_shift_ramp_zfixed_dn`; stress test (2031 GDP held): `uk_central_share_shift_ramp_dn_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +1.02 | consistent | small, sign open (>= 0 if capital flows in) | +0.60 | consistent | 0 within 0.01pp | +0.000 | consistent |
+| GNI % | > 0, below GDP | +0.68 | consistent | below GDP | +0.28 | consistent | <= 0 | -0.28 | consistent |
+| NNI % | rises less than GNI in levels | +0.37 | consistent | rises less than GNI in levels | -0.08 | surprising-but-explained (A5) | < 0 | -0.72 | consistent |
+| capital % | > 0 | +2.14 | consistent | > 0 | +2.00 | consistent | > 0 | +1.80 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.21 | consistent | <= 0 by 2031 (wage falls) | -0.16 | consistent | <= 0 by 2031 (wage falls) | -0.10 | consistent |
+| wage % | sign open: share effect against productivity | -1.26 | surprising-but-explained (A2) | < 0 | -1.71 | consistent | < 0 | -2.36 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.56 | surprising-but-explained (A3) | < 0 | -0.84 | consistent | < 0 | -1.24 | consistent |
+| investment % | > 0 | +3.53 | consistent | > 0 | +2.91 | consistent | > 0 | +2.04 | consistent |
+| return, bp | > 0 | +37.6 | consistent | > 0 | +34.4 | consistent | > 0 | +29.9 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.21 | consistent | < 0 (OBR sign) | -0.25 | consistent | < 0 (OBR sign) | -0.30 | consistent |
+| 2028 investment % | > 0, a one-year jump | +8.96 | surprising-but-explained (A7) | > 0, a one-year jump | +8.63 | surprising-but-explained (A7) | > 0, a one-year jump | +8.16 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.21 | consistent | > 0 (more work on the news) | +0.31 | consistent | > 0 (more work on the news) | +0.45 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.61 | consistent | < 0 (more saving on the news) | -0.83 | consistent | < 0 (more saving on the news) | -1.13 | consistent |
+| 2036 GDP % | > 0 | +1.02 | consistent | small, sign open | +0.55 | consistent | near 0, not held after 2031 | -0.118 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | 0 (held on the reference path) | +0.001 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.001 | consistent |
+
+**korinek, zk0.1, debt-neutral transfers** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp_dn`; technology unchanged: `korinek_share_shift_ramp_zfixed_dn`; stress test (2031 GDP held): `korinek_share_shift_ramp_dn_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +5.06 | consistent | small, sign open (>= 0 if capital flows in) | +1.65 | consistent | 0 within 0.01pp | +0.000 | consistent |
+| GNI % | > 0, below GDP | +3.91 | consistent | below GDP | +0.79 | consistent | <= 0 | -0.73 | consistent |
+| NNI % | rises less than GNI in levels | +3.39 | consistent | rises less than GNI in levels | -0.13 | surprising-but-explained (A5) | < 0 | -1.84 | consistent |
+| capital % | > 0 | +6.38 | consistent | > 0 | +5.13 | consistent | > 0 | +4.53 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.76 | consistent | <= 0 by 2031 (wage falls) | -0.42 | consistent | <= 0 by 2031 (wage falls) | -0.24 | consistent |
+| wage % | sign open: share effect against productivity | -0.48 | surprising-but-explained (A2) | < 0 | -4.05 | consistent | < 0 | -5.77 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.23 | consistent | < 0 | -1.96 | consistent | < 0 | -3.02 | consistent |
+| investment % | > 0 | +12.09 | consistent | > 0 | +7.19 | consistent | > 0 | +4.80 | consistent |
+| return, bp | > 0 | +107.1 | consistent | > 0 | +81.9 | consistent | > 0 | +69.4 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | 0 (held on the reference path) | +0.001 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | -0.000 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.33 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.62 | consistent | < 0 (OBR sign) | -0.77 | consistent |
+| 2028 investment % | > 0, a one-year jump | +24.46 | surprising-but-explained (A7) | > 0, a one-year jump | +21.70 | surprising-but-explained (A7) | > 0, a one-year jump | +20.37 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | -0.05 | surprising-but-explained (A17) | > 0 (more work on the news) | +0.72 | consistent | > 0 (more work on the news) | +1.10 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.28 | consistent | < 0 (more saving on the news) | -1.94 | consistent | < 0 (more saving on the news) | -2.75 | consistent |
+| 2036 GDP % | > 0 | +5.30 | consistent | small, sign open | +1.51 | consistent | near 0, not held after 2031 | -0.318 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | 0 (held on the reference path) | +0.001 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.001 | consistent |
+
+**uk_central, zk0, debt-neutral transfers** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp_dn`; technology unchanged: `uk_central_share_shift_ramp_zfixed_dn`; stress test (2031 GDP held): `uk_central_share_shift_ramp_dn_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.45 | consistent | small, sign open (>= 0 if capital flows in) | +0.07 | consistent | 0 within 0.01pp | +0.003 | consistent |
+| GNI % | > 0, below GDP | +0.39 | consistent | below GDP | +0.02 | consistent | <= 0 | -0.05 | consistent |
+| NNI % | rises less than GNI in levels | +0.32 | consistent | rises less than GNI in levels | -0.12 | surprising-but-explained (A5) | < 0 | -0.19 | consistent |
+| capital % | > 0 | +0.74 | consistent | > 0 | +0.70 | consistent | > 0 | +0.69 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.31 | consistent | <= 0 by 2031 (wage falls) | -0.26 | consistent | <= 0 by 2031 (wage falls) | -0.25 | consistent |
+| wage % | sign open: share effect against productivity | -1.71 | surprising-but-explained (A2) | < 0 | -2.14 | consistent | < 0 | -2.21 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.69 | surprising-but-explained (A3) | < 0 | -0.96 | consistent | < 0 | -1.01 | consistent |
+| investment % | > 0 | +3.40 | consistent | > 0 | +2.73 | consistent | > 0 | +2.61 | consistent |
+| return, bp | > 0 | +48.4 | consistent | > 0 | +44.4 | consistent | > 0 | +43.7 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.03 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.08 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.09 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +4.03 | surprising-but-explained (A7) | > 0, a one-year jump | +4.14 | surprising-but-explained (A7) | > 0, a one-year jump | +4.15 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.27 | consistent | > 0 (more work on the news) | +0.36 | consistent | > 0 (more work on the news) | +0.38 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.83 | consistent | < 0 (more saving on the news) | -1.03 | consistent | < 0 (more saving on the news) | -1.06 | consistent |
+| 2036 GDP % | > 0 | +0.60 | consistent | small, sign open | +0.15 | consistent | near 0, not held after 2031 | +0.074 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent |
+
+**korinek, zk0, debt-neutral transfers** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp_dn`; technology unchanged: `korinek_share_shift_ramp_zfixed_dn`; stress test (2031 GDP held): `korinek_share_shift_ramp_dn_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +3.17 | consistent | small, sign open (>= 0 if capital flows in) | +0.19 | consistent | 0 within 0.01pp | +0.007 | consistent |
+| GNI % | > 0, below GDP | +2.96 | consistent | below GDP | +0.07 | consistent | <= 0 | -0.11 | consistent |
+| NNI % | rises less than GNI in levels | +3.14 | surprising-but-explained (A5) | rises less than GNI in levels | -0.26 | surprising-but-explained (A5) | < 0 | -0.46 | consistent |
+| capital % | > 0 | +2.02 | consistent | > 0 | +1.69 | consistent | > 0 | +1.67 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -1.07 | consistent | <= 0 by 2031 (wage falls) | -0.68 | consistent | <= 0 by 2031 (wage falls) | -0.65 | consistent |
+| wage % | sign open: share effect against productivity | -1.97 | surprising-but-explained (A2) | < 0 | -5.18 | consistent | < 0 | -5.38 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.23 | surprising-but-explained (A3) | < 0 | -2.29 | consistent | < 0 | -2.42 | consistent |
+| investment % | > 0 | +11.87 | consistent | > 0 | +6.59 | consistent | > 0 | +6.26 | consistent |
+| return, bp | > 0 | +140.6 | consistent | > 0 | +107.8 | consistent | > 0 | +105.7 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | 0 (held on the reference path) | -0.000 | consistent | 0 (held on the reference path) | -0.001 | consistent | 0 (held on the reference path) | -0.001 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | +0.21 | WRONG (A6) | < 0 (OBR sign) | -0.18 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.21 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +9.19 | surprising-but-explained (A7) | > 0, a one-year jump | +10.02 | surprising-but-explained (A7) | > 0, a one-year jump | +10.07 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.17 | consistent | > 0 (more work on the news) | +0.88 | consistent | > 0 (more work on the news) | +0.92 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.94 | consistent | < 0 (more saving on the news) | -2.46 | consistent | < 0 (more saving on the news) | -2.55 | consistent |
+| 2036 GDP % | > 0 | +3.97 | consistent | small, sign open | +0.43 | consistent | near 0, not held after 2031 | +0.209 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent | 0 (held on the reference path) | +0.000 | consistent |
+
+verdict counts, debt-neutral transfers: {'not solved': 408, 'consistent': 168, 'surprising-but-explained': 35, 'WRONG': 1} | cells: 612
+
+#### Variant: fixed spending (`_fs`)
+
+**uk_central, zk0.1, fixed spending** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp_fs`; technology unchanged: `uk_central_share_shift_ramp_zfixed_fs`; stress test (2031 GDP held): `uk_central_share_shift_ramp_fs_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.98 | consistent | small, sign open (>= 0 if capital flows in) | +0.51 | consistent | 0 within 0.01pp | -0.000 | consistent |
+| GNI % | > 0, below GDP | +0.65 | consistent | below GDP | +0.20 | consistent | <= 0 | -0.30 | consistent |
+| NNI % | rises less than GNI in levels | +0.34 | consistent | rises less than GNI in levels | -0.17 | surprising-but-explained (A5) | < 0 | -0.73 | consistent |
+| capital % | > 0 | +2.13 | consistent | > 0 | +1.95 | consistent | > 0 | +1.75 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.28 | consistent | <= 0 by 2031 (wage falls) | -0.27 | consistent | <= 0 by 2031 (wage falls) | -0.27 | consistent |
+| wage % | sign open: share effect against productivity | -1.23 | surprising-but-explained (A2) | < 0 | -1.69 | consistent | < 0 | -2.20 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.42 | surprising-but-explained (A3) | < 0 | -0.62 | consistent | < 0 | -0.85 | consistent |
+| investment % | > 0 | +4.63 | consistent | > 0 | +3.36 | consistent | > 0 | +1.96 | consistent |
+| return, bp | > 0 | +37.2 | consistent | > 0 | +34.0 | consistent | > 0 | +30.4 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | < 0 (spending fixed, GDP higher) | -0.78 | consistent | > 0 | -0.08 | surprising-but-explained (A14) | > 0 | +0.69 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.20 | consistent | < 0 (OBR sign) | -0.22 | consistent | < 0 (OBR sign) | -0.25 | consistent |
+| 2028 investment % | > 0, a one-year jump | +8.19 | surprising-but-explained (A7) | > 0, a one-year jump | +7.83 | surprising-but-explained (A7) | > 0, a one-year jump | +7.44 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.18 | consistent | > 0 (more work on the news) | +0.24 | consistent | > 0 (more work on the news) | +0.30 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.57 | consistent | < 0 (more saving on the news) | -0.70 | consistent | < 0 (more saving on the news) | -0.84 | consistent |
+| 2036 GDP % | > 0 | +1.17 | consistent | small, sign open | +0.56 | consistent | near 0, not held after 2031 | -0.117 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | < 0 (spending fixed, GDP higher) | -0.78 | consistent | > 0 | +1.14 | consistent | > 0 | +3.28 | consistent |
+
+**korinek, zk0.1, fixed spending** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp_fs`; technology unchanged: `korinek_share_shift_ramp_zfixed_fs`; stress test (2031 GDP held): `korinek_share_shift_ramp_fs_r4_2`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +5.19 | consistent | small, sign open (>= 0 if capital flows in) | +1.45 | consistent | 0 within 0.01pp | -0.001 | consistent |
+| GNI % | > 0, below GDP | +4.17 | consistent | below GDP | +0.61 | consistent | <= 0 | -0.78 | consistent |
+| NNI % | rises less than GNI in levels | +3.67 | consistent | rises less than GNI in levels | -0.32 | surprising-but-explained (A5) | < 0 | -1.87 | consistent |
+| capital % | > 0 | +6.57 | consistent | > 0 | +5.02 | consistent | > 0 | +4.42 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.68 | consistent | <= 0 by 2031 (wage falls) | -0.67 | consistent | <= 0 by 2031 (wage falls) | -0.67 | consistent |
+| wage % | sign open: share effect against productivity | -0.45 | surprising-but-explained (A2) | < 0 | -3.99 | consistent | < 0 | -5.37 | consistent |
+| consumption % | sign open; > 0 expected if income rises | +0.13 | consistent | < 0 | -1.46 | consistent | < 0 | -2.08 | consistent |
+| investment % | > 0 | +18.69 | consistent | > 0 | +8.56 | consistent | > 0 | +4.62 | consistent |
+| return, bp | > 0 | +106.4 | consistent | > 0 | +80.8 | consistent | > 0 | +70.6 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | < 0 (spending fixed, GDP higher) | -5.75 | consistent | > 0 | -0.46 | surprising-but-explained (A14) | > 0 | +1.70 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.41 | consistent | < 0 (OBR sign) | -0.57 | consistent | < 0 (OBR sign) | -0.64 | consistent |
+| 2028 investment % | > 0, a one-year jump | +22.75 | surprising-but-explained (A7) | > 0, a one-year jump | +19.72 | surprising-but-explained (A7) | > 0, a one-year jump | +18.55 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.13 | consistent | > 0 (more work on the news) | +0.56 | consistent | > 0 (more work on the news) | +0.74 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.64 | consistent | < 0 (more saving on the news) | -1.64 | consistent | < 0 (more saving on the news) | -2.04 | consistent |
+| 2036 GDP % | > 0 | +6.58 | consistent | small, sign open | +1.60 | consistent | near 0, not held after 2031 | -0.322 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | < 0 (spending fixed, GDP higher) | -12.60 | consistent | > 0 | +2.12 | consistent | > 0 | +8.17 | consistent |
+
+**uk_central, zk0, fixed spending** (labour share −1.6pp, TFP +0.4%). Runs: automation + productivity: `uk_central_share_shift_tfp_ramp_fs`; technology unchanged: `uk_central_share_shift_ramp_zfixed_fs`; stress test (2031 GDP held): `uk_central_share_shift_ramp_fs_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +0.40 | consistent | small, sign open (>= 0 if capital flows in) | -0.02 | surprising-but-explained (A1) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +0.34 | consistent | below GDP | -0.08 | surprising-but-explained (A1) | <= 0 | -0.06 | consistent |
+| NNI % | rises less than GNI in levels | +0.27 | consistent | rises less than GNI in levels | -0.23 | consistent | < 0 | -0.20 | consistent |
+| capital % | > 0 | +0.74 | consistent | > 0 | +0.66 | consistent | > 0 | +0.66 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -0.39 | consistent | <= 0 by 2031 (wage falls) | -0.38 | consistent | <= 0 by 2031 (wage falls) | -0.38 | consistent |
+| wage % | sign open: share effect against productivity | -1.69 | surprising-but-explained (A2) | < 0 | -2.11 | consistent | < 0 | -2.09 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.54 | surprising-but-explained (A3) | < 0 | -0.73 | consistent | < 0 | -0.73 | consistent |
+| investment % | > 0 | +3.85 | consistent | > 0 | +2.51 | consistent | > 0 | +2.57 | consistent |
+| return, bp | > 0 | +47.9 | consistent | > 0 | +43.9 | consistent | > 0 | +44.1 | consistent |
+| labour share, pp | = -target | -1.60 | consistent | = -target | -1.60 | consistent | = -target | -1.60 | consistent |
+| debt/GDP, pp | < 0 (spending fixed, GDP higher) | -0.03 | consistent | > 0 | +0.62 | consistent | > 0 | +0.59 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | -0.02 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.05 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.05 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +3.43 | surprising-but-explained (A7) | > 0, a one-year jump | +3.51 | surprising-but-explained (A7) | > 0, a one-year jump | +3.50 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.22 | consistent | > 0 (more work on the news) | +0.28 | consistent | > 0 (more work on the news) | +0.27 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -0.73 | consistent | < 0 (more saving on the news) | -0.85 | consistent | < 0 (more saving on the news) | -0.84 | consistent |
+| 2036 GDP % | > 0 | +0.65 | consistent | small, sign open | +0.05 | consistent | near 0, not held after 2031 | +0.081 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | < 0 (spending fixed, GDP higher) | +0.56 | surprising-but-explained (A4) | > 0 | +2.46 | consistent | > 0 | +2.37 | consistent |
+
+**korinek, zk0, fixed spending** (labour share −3.9pp, TFP +3.1%). Runs: automation + productivity: `korinek_share_shift_tfp_ramp_fs`; technology unchanged: `korinek_share_shift_ramp_zfixed_fs`; stress test (2031 GDP held): `korinek_share_shift_ramp_fs_r4_1`
+
+| gap (2031 unless stated) | automation + productivity: expected | model | verdict | technology unchanged: expected | model | verdict | stress test (2031 GDP held): expected | model | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| GDP % | > 0 | +3.27 | consistent | small, sign open (>= 0 if capital flows in) | -0.01 | surprising-but-explained (A1) | 0 within 0.01pp | +0.001 | consistent |
+| GNI % | > 0, below GDP | +3.15 | consistent | below GDP | -0.16 | surprising-but-explained (A1) | <= 0 | -0.15 | consistent |
+| NNI % | rises less than GNI in levels | +3.34 | surprising-but-explained (A5) | rises less than GNI in levels | -0.52 | consistent | < 0 | -0.50 | consistent |
+| capital % | > 0 | +2.20 | consistent | > 0 | +1.60 | consistent | > 0 | +1.61 | consistent |
+| labour % | <= 0 by 2031 (wage falls) | -1.03 | consistent | <= 0 by 2031 (wage falls) | -0.95 | consistent | <= 0 by 2031 (wage falls) | -0.95 | consistent |
+| wage % | sign open: share effect against productivity | -1.92 | surprising-but-explained (A2) | < 0 | -5.11 | consistent | < 0 | -5.10 | consistent |
+| consumption % | sign open; > 0 expected if income rises | -0.25 | surprising-but-explained (A3) | < 0 | -1.76 | consistent | < 0 | -1.75 | consistent |
+| investment % | > 0 | +16.66 | consistent | > 0 | +6.13 | consistent | > 0 | +6.18 | consistent |
+| return, bp | > 0 | +139.6 | consistent | > 0 | +106.3 | consistent | > 0 | +106.5 | consistent |
+| labour share, pp | = -target | -3.90 | consistent | = -target | -3.90 | consistent | = -target | -3.90 | consistent |
+| debt/GDP, pp | < 0 (spending fixed, GDP higher) | -3.47 | consistent | > 0 | +1.45 | consistent | > 0 | +1.43 | consistent |
+| tax/GDP, pp | < 0 (OBR sign) | +0.15 | WRONG (A6) | < 0 (OBR sign) | -0.11 | surprising-but-explained (A6) | < 0 (OBR sign) | -0.11 | surprising-but-explained (A6) |
+| 2028 investment % | > 0, a one-year jump | +7.84 | surprising-but-explained (A7) | > 0, a one-year jump | +8.49 | surprising-but-explained (A7) | > 0, a one-year jump | +8.49 | surprising-but-explained (A7) |
+| 2028 labour % | > 0 (more work on the news) | +0.26 | consistent | > 0 (more work on the news) | +0.66 | consistent | > 0 (more work on the news) | +0.66 | consistent |
+| 2028 consumption % | < 0 (more saving on the news) | -1.13 | consistent | < 0 (more saving on the news) | -2.04 | consistent | < 0 (more saving on the news) | -2.03 | consistent |
+| 2036 GDP % | > 0 | +4.99 | consistent | small, sign open | +0.20 | consistent | near 0, not held after 2031 | +0.223 | surprising-but-explained (A8) |
+| 2036 debt/GDP, pp | < 0 (spending fixed, GDP higher) | -8.83 | consistent | > 0 | +5.77 | consistent | > 0 | +5.70 | consistent |
+
+verdict counts, fixed spending: {'not solved': 408, 'consistent': 165, 'surprising-but-explained': 38, 'WRONG': 1} | cells: 612

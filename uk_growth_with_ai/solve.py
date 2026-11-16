@@ -28,6 +28,7 @@ import os
 import pickle
 import platform
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -257,12 +258,53 @@ def _capture_pop_objs():
     return captured
 
 
+SS_GUESS_KEYS = ("b_sp1", "n", "r_p", "r", "w", "p_m", "BQ", "TR", "Y")
+
+
+def run_SS_with_guess(SS, p, client, donor_path):
+    """``SS.run_SS`` with the root finder started from another solve's steady
+    state instead of the baseline's.  Only the guess fields (SS_GUESS_KEYS) are
+    taken from the donor; ``factor`` and ``theta`` stay the baseline's, and
+    ``baseline_dir`` (the baseline TPI state) is untouched.  OG-Core's SS logger
+    is switched to INFO for the call so the resource-constraint residual is logged."""
+    import logging
+    if not getattr(p, "reform_use_baseline_solution", False):
+        raise ValueError("ss_guess needs p.reform_use_baseline_solution: without it "
+                         "OG-Core never reads the baseline SS pickle the guess goes into")
+    donor = pickle.load(open(donor_path, "rb"))
+    base_path = os.path.abspath(os.path.join(p.baseline_dir, "SS", "SS_vars.pkl"))
+    orig = SS.utils.safe_read_pickle
+    hits = []
+
+    def read(path):
+        d = orig(path)
+        if os.path.abspath(path) == base_path:
+            d = {**d, **{k: donor[k] for k in SS_GUESS_KEYS}}
+            hits.append(path)
+        return d
+    lg = logging.getLogger(SS.__name__)
+    h = logging.StreamHandler(sys.stdout)
+    old_level = lg.level
+    lg.setLevel(logging.INFO); lg.addHandler(h)
+    SS.utils.safe_read_pickle = read
+    print(f"  SS guess from {donor_path}", flush=True)
+    try:
+        ss = SS.run_SS(p, client=client)
+        if not hits:   # the guess silently did not apply: refuse the result
+            raise RuntimeError(f"ss_guess: run_SS never read {base_path}; the guess "
+                               f"from {donor_path} was not used")
+        return ss
+    finally:
+        SS.utils.safe_read_pickle = orig
+        lg.removeHandler(h); lg.setLevel(old_level)
+
+
 def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
             baseline=False, alpha_G=None, tG1=TG1, g_y_annual=G_Y_ANNUAL,
             baseline_spending=False, g_n_source=G_N_DEFAULT, zeta_K=None,
             pretp=False, splice=False, alpha_G_shift=0.0, out_dir=None,
             surprise=None, nexp=None, stop_before_ss=False,
-            debt_neutral=None) -> dict:
+            debt_neutral=None, ss_guess=None) -> dict:
     """Solve SS and TPI for one arm.
 
     ``alpha_G``: G/Y along the transition before tG1. None (the baseline) sets
@@ -305,6 +347,9 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     ``stop_before_ss``: build, guard, fix, shift and set the ramp, then return
     ``{"p", "surprise", "demographics"}`` without solving (the spec dry run).
     """
+    if ss_guess is not None and (baseline or baseline_spending):
+        raise ValueError("ss_guess is for reform arms on a common G rule only "
+                         "(not baselines or baseline_spending)")
     from . import demography
 
     TPI, SS, api, _, _ = handles
@@ -407,7 +452,10 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
         return {"p": p, "surprise": sp_rec, "demographics": demo}
     print(f"  baseline={baseline}, initial state "
           f"{'own' if baseline else 'INHERITED from baseline'}", flush=True)
-    ss = SS.run_SS(p, client=client)
+    if ss_guess is not None:
+        ss = run_SS_with_guess(SS, p, client, ss_guess)
+    else:
+        ss = SS.run_SS(p, client=client)
     with open(os.path.join(out_dir, "SS", "SS_vars.pkl"), "wb") as f:
         pickle.dump(ss, f)
     alpha_G_ss = float(ss["G"] / ss["Y"])
@@ -426,6 +474,11 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     if debt_neutral is not None:
         from . import surprise as sp
         dn_rec = {}
+        if debt_neutral.get("full"):
+            # TR closes debt to the horizon: switch the G debt rule off for the
+            # transition (D_G_path applies it for tG1 <= t < T-1 only)
+            p.tG1 = p.tG2 = int(p.T) - 1
+            dn_rec["tG1_tG2_set_to"] = int(p.tG1)
         dn_ctx = sp.debt_neutral(TPI.fiscal, debt_neutral["target_dy"],
                                  debt_neutral["D0"], dn_rec)
         print(f"  DEBT-NEUTRAL: TR follows the restart's debt/GDP to tG1 = {p.tG1}",
