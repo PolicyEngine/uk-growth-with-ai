@@ -187,16 +187,23 @@ export function HeadlineTiles({ sid }) {
               value={
                 <>
                   {dir ? <Icon name={iconFor(dir)} size={22} strokeWidth={2.25} className={`stat-dir is-${dir}`} /> : null}
-                  <CountUp value={fmt(x)} />
+                  <span data-path={`results.${sid}.tfp.${cl}.gaps.${k.v}.${HEADLINE_YEAR}`}>
+                    <CountUp value={fmt(x)} />
+                  </span>
                 </>
               }
               tone={tone(x)}
-              sub={k.line}
+              sub={
+                <>
+                  <Icon name={iconFor('measure')} size={12} className="stat-sub-icon" />
+                  {k.line}
+                </>
+              }
               tip={<InfoTip label={`What is ${k.title.toLowerCase()}?`}>{k.tip}</InfoTip>}
             >
               {both ? (
                 <p className="stat-line">
-                  <Icon name={iconFor('closure')} size={14} /> With closed capital: <b>{fmt(b)}</b>
+                  <Icon name={iconFor('closure')} size={14} /> With closed capital: <b data-path={`results.${sid}.tfp.${BOUND}.gaps.${k.v}.${HEADLINE_YEAR}`}>{fmt(b)}</b>
                 </p>
               ) : null}
               <RangeBar v={k.v} sid={sid} title={k.title} cl={cl} />

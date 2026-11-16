@@ -3,19 +3,20 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
-import Callout from '@/components/story/Callout.jsx';
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import NextPart from '@/components/story/NextPart.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, BOUND, gap, result } from '@/tabs/ai/surprise.js';
 import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
-import { ScenarioPaths, ArmPaths, WelfareShape, welfareCell, entryDip, series, afterWords, afterWordsAll } from './part2/charts.jsx';
+import { ArmsPair, WelfareShape, welfareCell, entryDip, series, afterWords, afterWordsAll } from './part2/charts.jsx';
 import { More, Tx } from './part2/frame.jsx';
 import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { EPS2 } from './part2/dir.js';
-import { Items, Compare } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
 // 2028, against the no-shock OBR-central path. It is the one home of the
@@ -25,12 +26,14 @@ import { Items, Compare } from '@/components/story/Items.jsx';
 // home on another tab: here the charts draw shapes only, the sentences give
 // directions only, and each step links to the figure's home. The header's
 // scenario and closure apply throughout, except Who gains, which is solved
-// for UK central only. Order: two lenses, the shock, record to model (the
-// morph), four scenarios, the headline figures, where output goes, three
-// arms, who gains, public finances, then the band to part 3 with links
-// to the figures' homes.
+// for UK central only. Order: the model line, the shock (2S), the GDP
+// canvas from the record to the four scenarios (2A), the headline figures,
+// where output goes, three arms with output and public debt (2B), who gains
+// (2W), then the band to part 3 with links to the figures' homes.
 
-const EPS = 0.05;
+// One threshold for every direction part 2 states, in words and icons
+// (dir.js): no debt gap in the data lies between it and the old 0.05.
+const EPS = EPS2;
 
 // Direction of debt/GDP against the path for one solve, in words.
 export function debtWords(sid, arm, cl) {
@@ -62,7 +65,6 @@ function shockSteps() {
     {
       id: 'p2-shock-1',
       icon: 'shock',
-      kicker: 'The shock',
       title: 'AI moves part of income from labour to capital',
       body: (
         <>
@@ -81,7 +83,6 @@ function shockSteps() {
     {
       id: 'p2-shock-2',
       icon: 'productivity',
-      kicker: 'The shock',
       title: 'And the same inputs produce more',
       body: (
         <>
@@ -120,9 +121,10 @@ function scenarioSteps(sid, cl) {
     {
       id: 'p2-scen-2',
       icon: 'range',
-      kicker: 'Four scenarios',
       title: 'The UK scenarios and their range',
       body: (
+        <>
+        <span id="p2-scenarios" className="p2-anchor" aria-hidden="true" />
         <Items
           items={[
             { icon: 'scenario', text: 'They differ in how far the labour share falls and output rises' },
@@ -133,12 +135,12 @@ function scenarioSteps(sid, cl) {
             { icon: 'range', text: 'UK low, central, high: one shape, each higher; the band spans them' },
           ]}
         />
+        </>
       ),
     },
     {
       id: 'p2-scen-4',
       icon: 'scenario',
-      kicker: 'Four scenarios',
       title: 'Korinek et al.: an upper case from the US',
       body: (
         <>
@@ -168,7 +170,6 @@ export function tzItem(sid, cl) {
 
 function armSteps(sid, closure) {
   const cl = primaryClosure(closure);
-  const kicker = `Three arms, ${SCEN_NAME[sid]}`;
   // the chart's unit line names the closure (and which is dashed with Both)
   const closureItem =
     closure === 'both'
@@ -185,7 +186,6 @@ function armSteps(sid, closure) {
     {
       id: 'p2-arms-0',
       icon: 'ai',
-      kicker,
       title: 'Automation + productivity: the main arm',
       body: (
         <Items
@@ -201,7 +201,6 @@ function armSteps(sid, closure) {
     {
       id: 'p2-arms-1',
       icon: 'capital',
-      kicker,
       title: 'Automation with technology unchanged',
       body: (
         <Items
@@ -216,7 +215,6 @@ function armSteps(sid, closure) {
     {
       id: 'p2-arms-2',
       icon: 'breakEven',
-      kicker,
       title: 'The OBR-style stress test',
       body: (
         <>
@@ -271,7 +269,6 @@ function whoSteps(sid) {
     {
       id: 'p2-who-0',
       icon: 'age',
-      kicker: 'Who gains',
       title: 'Gains are largest around retirement age',
       body: (
         <>
@@ -290,7 +287,6 @@ function whoSteps(sid) {
     {
       id: 'p2-who-1',
       icon: 'entrants',
-      kicker: 'Who gains',
       title: 'Then the cohorts that enter later',
       body: (
         <>
@@ -349,27 +345,22 @@ export function debtItems(sid, arm, cl) {
 
 function debtSteps(sid, closure) {
   const cl = primaryClosure(closure);
-  const main = debtWords(sid, 'tfp', cl);
   const items = debtItems(sid, 'tfp', cl);
+  const rises = (gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR) ?? 0) > EPS;
   const higher = othersEndHigher(sid, cl);
   return [
     {
       id: 'p2-debt-0',
       icon: 'debt',
-      kicker: 'Public finances',
       title: 'Public debt against the path',
       body: items ? (
         <>
+          <span id="p2-debt" className="p2-anchor" aria-hidden="true" />
           <Items
             items={[
               { icon: 'scenario', text: `${SCEN_NAME[sid]}, main arm, common fiscal rule` },
               ...items,
-              ...(main.includes('rises above')
-                ? [
-                    { icon: 'limit', text: 'OG-UK reprices all government debt at the higher interest rate at once' },
-                    { icon: 'caveat', text: 'So it overstates the later rise' },
-                  ]
-                : []),
+              ...(rises ? [{ icon: 'limit', text: 'OG-UK reprices all government debt at once, overstating the later rise' }] : []),
             ]}
           />
           <details className="p2-details">
@@ -385,15 +376,17 @@ function debtSteps(sid, closure) {
           </details>
         </>
       ) : (
-        <p>
-          <Tx icon="provisional">This solve is not done yet at the closure chosen above.</Tx>
-        </p>
+        <>
+          <span id="p2-debt" className="p2-anchor" aria-hidden="true" />
+          <p>
+            <Tx icon="provisional">This solve is not done yet at the closure chosen above.</Tx>
+          </p>
+        </>
       ),
     },
     {
       id: 'p2-debt-1',
       icon: 'finances',
-      kicker: 'Public finances',
       title: 'Without the output gain',
       body: (
         <>
@@ -413,35 +406,24 @@ function debtSteps(sid, closure) {
   ];
 }
 
-// Two lenses, before part 2: which model this part uses and how part 3's
-// differs, side by side. The full comparison closes the story.
-function TwoLenses() {
+// Which model this part uses, in one line: the full comparison of the two
+// models closes the story.
+function LensLine() {
   return (
-    <Callout icon="compare" title="Two models, two lenses">
-      <Compare
-        className="p2-lenses"
-        columns={[
-          {
-            icon: 'model',
-            title: 'This part: OG-UK',
-            items: [
-              { icon: 'gdp', text: 'A model of the whole economy' },
-              { icon: 'excluded', text: 'It has no unemployment' },
-              { icon: 'path', text: 'Gaps against the OBR-central path, not forecasts of levels' },
-            ],
-          },
-          {
-            icon: 'provisional',
-            title: 'Part 3: a different model (provisional)',
-            items: [
-              { icon: 'households', text: 'A one-year microsimulation of UK households' },
-              { icon: 'jobLoss', text: 'It assumes some employees lose their jobs' },
-              { icon: 'limit', text: 'The two sets of numbers are not added together' },
-            ],
-          },
-        ]}
-      />
-    </Callout>
+    <p className="p2-lens-line">
+      <Tx icon="model">This part uses OG-UK, a whole-economy model with no unemployment. Part 3 uses a different model, not added to it.</Tx>
+    </p>
+  );
+}
+
+// A scene's slim sub-header: its icon and name, a hairline after. (Local
+// until the shared Scrolly `sub` lands; data-scene is the rail's contract.)
+function SceneHead({ icon, children }) {
+  return (
+    <header className="p2-scene-head" data-scene={children}>
+      <Icon name={iconFor(icon)} size={16} />
+      <span>{children}</span>
+    </header>
   );
 }
 
@@ -493,33 +475,28 @@ export default function Part2({ part }) {
       .join(' ');
   const debtMain = debtWords(sid, 'tfp', cl);
   const debtLabel = (i) =>
-    `Line chart, shape only: public debt as a share of GDP against the OBR-central path to ${LATE_YEAR}, ${SCEN_NAME[sid]}.${
+    `Below it, public debt as a share of GDP against the OBR-central path to ${LATE_YEAR}, ${SCEN_NAME[sid]}.${
       debtMain ? ` In the main arm it ${debtMain}.` : ''
     }${i >= 1 && othersEndHigher(sid, cl) ? ' The other two arms end further above the path.' : ''}`;
   return (
     <>
       <PartHead part={part}>
         <Tx icon="model" size={18}>
-          OG-UK results for an AI shock arriving as a surprise in {SURPRISE_YEAR}: gaps against the OBR-central path, which already includes the OBR&rsquo;s central AI assumption.
+          OG-UK: an AI shock arriving in {SURPRISE_YEAR}, as gaps against the OBR-central path (which already includes the OBR&rsquo;s central AI assumption).
         </Tx>
       </PartHead>
 
-      <TwoLenses />
+      <LensLine />
 
-      <Scrolly id="p2-shock" label="The shock, illustrated" steps={shockSteps()} graphic={(i) => <ShockTiles state={i + 1} />} />
+      <SceneHead icon="shock">The shock</SceneHead>
+      <Scrolly id="p2-shock" label="The shock, illustrated" steps={shockSteps()} graphic={(i, reduce) => <ShockTiles state={i + 1} reduce={reduce} />} />
 
+      <SceneHead icon="path">From the record to the scenarios</SceneHead>
       <Scrolly
         id="p2-morph"
-        label="From GDP growth to the gap against the OBR-central path"
-        steps={morphSteps(sid, cl)}
+        label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
+        steps={[...morphSteps(sid, cl), ...scenarioSteps(sid, cl)]}
         graphic={(i) => <MorphChart state={i + 1} sid={sid} cl={cl} />}
-      />
-
-      <Scrolly
-        id="p2-scenarios"
-        label="GDP in the four scenarios"
-        steps={scenarioSteps(sid, cl)}
-        graphic={(i) => <ScenarioPaths state={i + 3} sid={sid} cl={cl} />}
       />
 
       <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">
@@ -539,42 +516,16 @@ export default function Part2({ part }) {
 
       <OutputSplit sid={sid} closure={closure} />
 
+      <SceneHead icon="ai">Three arms: output and public debt</SceneHead>
       <Scrolly
         id="p2-arms"
-        label={`GDP in three arms, ${SCEN_NAME[sid]}`}
-        steps={armSteps(sid, closure)}
-        graphic={(i) => (
-          <ArmPaths
-            state={i}
-            sid={sid}
-            closure={closure}
-            v="Y"
-            title="GDP in three arms"
-            unit="Gap against the OBR-central path, %"
-            label={gdpLabel(i)}
-          />
-        )}
+        label={`GDP and public debt in three arms, ${SCEN_NAME[sid]}`}
+        steps={[...armSteps(sid, closure), ...debtSteps(sid, closure)]}
+        graphic={(i) => <ArmsPair state={i} sid={sid} closure={closure} label={i < 3 ? gdpLabel(i) : `${gdpLabel(2)} ${debtLabel(i - 3)}`} />}
       />
 
+      <SceneHead icon="age">Who gains</SceneHead>
       <Scrolly id="p2-who" label="Welfare change by birth year" steps={whoSteps(sid)} graphic={(i) => <WelfareShape state={i} />} />
-
-      <Scrolly
-        id="p2-debt"
-        label={`Public debt in three arms, ${SCEN_NAME[sid]}`}
-        steps={debtSteps(sid, closure)}
-        graphic={(i) => (
-          <ArmPaths
-            state={i}
-            sid={sid}
-            closure={closure}
-            v="debt_gdp_pp"
-            allFrom={1}
-            title="Public debt as a share of GDP"
-            unit="Gap against the OBR-central path, percentage points"
-            label={debtLabel(i)}
-          />
-        )}
-      />
 
       <NextBand />
     </>
