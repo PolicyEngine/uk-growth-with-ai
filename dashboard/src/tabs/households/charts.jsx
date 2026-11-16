@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, cloneElement, isValidElement } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { DivBar, HBar, StackBar } from '@/tabs/story/part3/shared.jsx';
@@ -11,12 +11,25 @@ import { MINUS } from '@/tabs/story/part3/format.js';
 // whose home is the story is not reprinted: its cell links to the step.
 
 // A cell that points to the story step printing this figure.
-export function StoryRef({ step }) {
+export function StoryRef({ step, wide = false }) {
   return (
-    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in story part 3, step ${step.n}`} aria-label={`See story part 3, step ${step.n}`}>
-      Step {step.n} <Icon name="arrowRight" size={12} strokeWidth={2} />
+    <NavLink tab="story" anchor={step.anchor} className={`hh-ref${wide ? ' is-wide' : ''}`} title={`Printed in story part 3, step ${step.n}`} aria-label={`See story part 3, step ${step.n}`}>
+      <Icon name="link" size={12} strokeWidth={2} /> {wide ? `See story, step ${step.n}` : `Step ${step.n}`}
     </NavLink>
   );
+}
+
+// Adjacent cells that link to the same story step become one link spanning
+// those columns ("See story, step N"), never "Step 6 Step 6".
+export function mergeRefs(cells) {
+  const out = [];
+  for (const c of cells) {
+    const step = isValidElement(c) && c.type === StoryRef ? c.props.step : null;
+    const prev = out[out.length - 1];
+    if (step && prev?.step === step) prev.span += 1;
+    else out.push({ node: c, step, span: 1 });
+  }
+  return out.map((x) => (x.span > 1 ? { ...x, node: cloneElement(x.node, { wide: true }) } : x));
 }
 
 export const STEP = {
@@ -58,10 +71,12 @@ export function BarRows({ id, cols, rows, lo = 0, hi, className = '' }) {
                   <HBar value={Math.min(r.bar.value, hi)} max={hi} fill={r.bar.fill} />
                 ) : null}
               </span>
-              {r.cells.map((c, i) => (
+              {mergeRefs(r.cells).map((c, i) => (
                 <Fragment key={i}>
                   {' '}
-                  <span className={`hh-val${i ? ' hh-val-2' : ''}`}>{c}</span>
+                  <span className={`hh-val${i ? ' hh-val-2' : ''}${c.span > 1 ? ' is-span' : ''}`} style={c.span > 1 ? { gridColumn: `span ${c.span}` } : undefined}>
+                    {c.node}
+                  </span>
                 </Fragment>
               ))}
             </li>

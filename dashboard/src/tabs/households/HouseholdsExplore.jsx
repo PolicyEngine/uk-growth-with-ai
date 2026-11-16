@@ -2,9 +2,11 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { Notice } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import { Lead } from '@/tabs/explore/direction.jsx';
 import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuild, PAPER_URL, PR_URL, ladder, perPound, rule } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { BarRows, STEP, StoryRef, Ticks } from './charts.jsx';
@@ -21,6 +23,13 @@ const CTX = `uk-ai-study PR #${D.source.pr} (provisional), ${D.source.dataset}, 
 const bnSmall = (v) => (Math.abs(v) < 0.05 ? 'under £0.1bn' : fmtBn(v));
 const OBR_RATE = D.sankey.displacement_rate_pct;
 const UNIT3 = 'Cost: £bn a year. Poverty: change in absolute poverty before housing costs, pp. Gini: change in points';
+// Shorter row labels where the data's label is long (the download keeps the
+// data's label). Policy labels quote inputs, so they stay data-input.
+const SHORT = {
+  other_income_tax: 'Income tax on earnings, net of stayers’ wage gains',
+  'R1_wage_insurance:exposure': 'Wage insurance: half of lost pay, £15,000 yearly cap',
+  'R3_cap_suspension_taper_cut:exposure': 'No benefit cap; UC taper 55% to 45%',
+};
 
 // --- 1. The cost by tax and benefit (50 draws) -------------------------------
 function CostByTax() {
@@ -30,17 +39,25 @@ function CostByTax() {
   return (
     <Card
       id="hh-cost-lines"
-      icon="landmark"
+      icon={iconFor('finances')}
       title="The central cost by tax and benefit"
-      finding="Lost income tax and National Insurance on earnings outweigh the higher tax on dividends and savings."
-      unit={`Change in each line, £bn a year; positive is a cost to the public finances. Mean of ${C.draws} draws`}
+      finding={<Lead c="canSay">Lost income tax and National Insurance on earnings outweigh the higher tax on dividends and savings.</Lead>}
+      unit={<Lead c="measure">{`Change in each line, £bn a year; positive is a cost to the public finances. Mean of ${C.draws} draws`}</Lead>}
       download={{
         context: CTX,
         table: { columns: ['line', 'cost_bn_mean', 'cost_bn_sd'], rows: C.rows.map((r) => [r.label, r.cost_bn, r.sd_bn]) },
       }}
       about={{
-        how: 'Each line is the change in that item of the government balance, baseline to shocked, averaged over the draws. The lines sum to the central cost in story part 3, step 1.',
-        sources: `${C.file}: ${C.key}.`,
+        how: (
+          <Items
+            items={[
+              { key: 'line', icon: 'finances', text: 'Each line: the change in that item of the government balance' },
+              { key: 'draws', icon: 'draws', text: 'Baseline to shocked, averaged over the draws' },
+              { key: 'sum', icon: 'link', text: 'They sum to the central cost: story part 3, step 1' },
+            ]}
+          />
+        ),
+        sources: <Lead c="source">{`${C.file}: ${C.key}.`}</Lead>,
       }}
     >
       <BarRows
@@ -49,7 +66,7 @@ function CostByTax() {
         hi={hi}
         rows={C.rows.map((r) => ({
           id: r.id,
-          label: r.label,
+          label: SHORT[r.id] ?? r.label,
           bar: { kind: 'div', value: r.cost_bn, fill: r.cost_bn >= 0 ? 'p3-fill-loss' : 'p3-fill-gain' },
           cells: [bnSmall(r.cost_bn)],
         }))}
@@ -61,9 +78,9 @@ function CostByTax() {
 // --- 2. Every variant: take-up, JSA, wage cuts, OBR-sized -------------------
 const LADDER = [
   { id: 'central_20', label: 'Central case, seeds 0 to 19', story: STEP.margin },
-  { id: 'takeup', label: 'Every benefit unit with a displaced worker claims UC', story: STEP.moves },
-  { id: 'takeup_jsa', label: 'Plus 26 weeks of new-style JSA for those who qualify', story: STEP.moves },
-  { id: 'wage_cuts', label: 'Wage cuts of the same gross size instead of job loss', story: STEP.margin },
+  { id: 'takeup', label: 'Full UC take-up by displaced workers’ units', story: STEP.moves },
+  { id: 'takeup_jsa', label: 'Plus 26 weeks of new-style JSA', story: STEP.moves },
+  { id: 'wage_cuts', label: 'Same-size wage cuts instead of job loss', story: STEP.margin },
   { group: true, id: 'g-obr' },
   { id: 'obr', label: 'OBR-sized displacement' },
   { id: 'obr_takeup', label: 'OBR-sized, every displaced worker’s benefit unit claims UC' },
@@ -75,10 +92,10 @@ function Ladder() {
   return (
     <Card
       id="hh-ladder"
-      icon="layers"
+      icon={iconFor('scenario')}
       title="Every variant of the shock"
-      finding="Full take-up and new-style JSA raise the cost and shrink the poverty rise; wage cuts cost most and raise poverty least."
-      unit={`${UNIT3}. Mean of 20 draws per row`}
+      finding={<Lead c="canSay">Full take-up and new-style JSA raise the cost and shrink the poverty rise; wage cuts cost most and raise poverty least.</Lead>}
+      unit={<Lead c="measure">{`${UNIT3}. Mean of 20 draws per row`}</Lead>}
       download={{
         context: CTX,
         table: {
@@ -87,30 +104,56 @@ function Ladder() {
         },
       }}
       about={{
-        how: 'The take-up, JSA and wage-cut rows reuse the central draws with seeds 0 to 19, so the same people are displaced in each: compare them with the first row, not with the 50-draw headline.',
-        caveats: 'The OBR-sized rows are a different, smaller shock, not steps on the central ladder. The take-up, JSA, wage-cut and OBR-sized runs sit outside the study’s attested rebuild.',
-        sources: 'results/robustness/dividend_coverage_draws.csv (run central), results/takeup/takeup_draws.csv, results/wage_cut/wage_cut_draws.csv (variant table3), results/next_runs/obr_benchmark.json.',
+        how: (
+          <Items
+            items={[
+              { key: 'seeds', icon: 'draws', text: 'Take-up, JSA and wage-cut rows reuse the central seeds 0 to 19' },
+              { key: 'same', icon: 'jobLoss', text: 'So the same people are displaced in each' },
+              { key: 'compare', icon: 'compare', text: 'Compare them with the first row, not the 50-draw headline' },
+            ]}
+          />
+        ),
+        caveats: (
+          <Items
+            items={[
+              { key: 'obr', icon: 'scenario', text: 'OBR-sized rows: a different, smaller shock, not ladder steps' },
+              { key: 'rebuild', icon: 'provisional', text: 'Take-up, JSA, wage-cut and OBR-sized runs: outside the attested rebuild' },
+            ]}
+          />
+        ),
+        sources: <Lead c="source">{'results/robustness/dividend_coverage_draws.csv (run central), results/takeup/takeup_draws.csv, results/wage_cut/wage_cut_draws.csv (variant table3), results/next_runs/obr_benchmark.json.'}</Lead>,
       }}
       foot={
-        <p className="hh-foot">
-          <OutsideRebuild />
-        </p>
+        <>
+          <Items
+            className="ex-notes"
+            items={[
+              { key: 'obr', icon: 'scenario', text: `OBR-sized rows: sized to ${OBR_SCENARIO}` },
+              {
+                key: 'rate',
+                icon: 'jobLoss',
+                text: (
+                  <>
+                    <span data-input="">{fmtInputPct(OBR_RATE)}</span> of employees displaced
+                  </>
+                ),
+              },
+              { key: 'none', icon: 'excluded', text: 'No rise in other wages or capital income' },
+            ]}
+          />
+          <p className="hh-foot">
+            <Lead c="provisional">
+            <OutsideRebuild />
+          </Lead>
+          </p>
+        </>
       }
     >
       <BarRows
         cols={['Cost', 'Poverty', 'Gini']}
         hi={hi}
         rows={LADDER.map((x) => {
-          if (x.group)
-            return {
-              id: x.id,
-              group: (
-                <>
-                  OBR-sized: a different, smaller shock, sized to {OBR_SCENARIO}. <span data-input="">{fmtInputPct(OBR_RATE)}</span> of
-                  employees displaced, no rise in other wages or capital income
-                </>
-              ),
-            };
+          if (x.group) return { id: x.id, group: <Lead c="scenario">OBR-sized: a different, smaller shock</Lead> };
           const r = ladder(x.id);
           return {
             id: x.id,
@@ -145,10 +188,10 @@ function Rules() {
   return (
     <Card
       id="hh-rules"
-      icon="users"
+      icon={iconFor('jobLoss')}
       title="Five rules for who loses the job"
-      finding="Poverty rises under every rule, and by more than in the central case under the other four."
-      unit={`${UNIT3}. Mean of ${rule('uniform').draws} paired draws`}
+      finding={<Lead c="canSay">Poverty rises under every rule, and by more than in the central case under the other four.</Lead>}
+      unit={<Lead c="measure">{`${UNIT3}. Mean of ${rule('uniform').draws} paired draws`}</Lead>}
       download={{
         context: CTX,
         table: {
@@ -157,10 +200,28 @@ function Rules() {
         },
       }}
       about={{
-        how: 'Every rule displaces the same expected number of employees; every other wage change and every capital-income change are the same, so the rows isolate who is displaced. The rules share assignment seeds.',
-        definitions:
-          'Junior-tilted: a higher chance for workers aged 16 to 24 within occupation quotas. Expertise compression: doubled chances for the top earnings third in above-median-exposure occupations. Top-loaded stress test: exposure times a junior factor and wage-tier factors that load displacement on above-median earners.',
-        sources: `${D.rules[0].file}: <rule>.exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp.`,
+        how: (
+          <Items
+            items={[
+              { key: 'n', icon: 'jobLoss', text: 'Every rule displaces the same expected number of employees' },
+              { key: 'same', icon: 'pay', text: 'Other wage and capital-income changes are the same' },
+              { key: 'who', icon: 'households', text: 'So the rows isolate who is displaced' },
+              { key: 'seeds', icon: 'draws', text: 'The rules share assignment seeds' },
+            ]}
+          />
+        ),
+        definitions: (
+          <Items
+            items={[
+              { key: 'junior', icon: 'young', text: 'Junior-tilted: higher chance for ages 16 to 24, within occupation quotas' },
+              { key: 'comp', icon: 'lifetimeEarnings', text: 'Expertise compression: doubled chances for the top earnings third' },
+              { key: 'comp2', icon: 'ai', text: '… in occupations with above-median exposure' },
+              { key: 'top', icon: 'shock', text: 'Top-loaded stress test: exposure times junior and wage-tier factors' },
+              { key: 'top2', icon: 'pay', text: 'Those factors load displacement on above-median earners' },
+            ]}
+          />
+        ),
+        sources: <Lead c="source">{`${D.rules[0].file}: <rule>.exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp.`}</Lead>,
       }}
     >
       <BarRows
@@ -199,13 +260,13 @@ function PerPound() {
   return (
     <Card
       id="hh-per-pound"
-      icon="banknote"
+      icon={iconFor('pay')}
       title="Cost per pound of earnings lost"
-      finding="On one draw, full take-up and JSA raise the cost of a pound lost through job loss; it stays below the 20-draw wage-cut figure."
+      finding={<Lead c="canSay">On one draw, full take-up and JSA raise the cost of a pound lost through job loss; it stays below the 20-draw wage-cut figure.</Lead>}
       unit={
-        <>
+        <Lead c="measure">
           Pence of cost per <span data-axis="">£1</span> of gross earnings removed, each margin alone (no wage or capital channel)
-        </>
+        </Lead>
       }
       download={{
         context: CTX,
@@ -219,14 +280,22 @@ function PerPound() {
         },
       }}
       about={{
-        definitions:
-          'Government: the fall in the government balance, employer NI included. Household: the part of the lost pound that income tax, employee NI and benefits absorb.',
+        definitions: (
+          <Items
+            items={[
+              { key: 'gov', icon: 'finances', text: 'Government: the fall in the government balance, employer NI included' },
+              { key: 'hh', icon: 'households', text: 'Household: the part income tax, employee NI and benefits absorb' },
+            ]}
+          />
+        ),
         caveats: 'At central scale the household split of job loss exists for one draw (seed 0) only, so it is shown apart from the 20-draw rows.',
-        sources: `${j20.file} (run channel_displacement) over ${D.per_pound_20.file} (variant cut_only); seed 0: ${perPound('job_loss').file} and results/takeup/takeup_draws.csv (scenario disp_only).`,
+        sources: <Lead c="source">{`${j20.file} (run channel_displacement) over ${D.per_pound_20.file} (variant cut_only); seed 0: ${perPound('job_loss').file} and results/takeup/takeup_draws.csv (scenario disp_only).`}</Lead>,
       }}
       foot={
         <p className="hh-foot">
-          <OutsideRebuild />
+          <Lead c="provisional">
+            <OutsideRebuild />
+          </Lead>
         </p>
       }
     >
@@ -237,7 +306,7 @@ function PerPound() {
         cols={['Government', 'Household']}
         hi={100}
         rows={[
-          { id: 'g20', group: `Matching bases: ${D.per_pound_20.draws} paired draws` },
+          { id: 'g20', group: <Lead c="draws">{`Matching bases: ${D.per_pound_20.draws} paired draws`}</Lead> },
           {
             id: 'pp-job',
             label: 'Job loss',
@@ -256,7 +325,7 @@ function PerPound() {
             },
             cells: [<StoryRef key="a" step={STEP.margin} />, <StoryRef key="b" step={STEP.margin} />],
           },
-          { id: 'g0', group: 'Job loss on one draw (seed 0), with the household split' },
+          { id: 'g0', group: <Lead c="draws">Job loss on one draw (seed 0), with the household split</Lead> },
           ...seed0.map((r) => ({
             id: `pp-${r.id}`,
             label: PP_LABEL[r.id],
@@ -276,6 +345,17 @@ function PerPound() {
 }
 
 // --- 5. Who the displaced are (OBR-sized run) ----------------------------------
+const TILE_ICON = {
+  claim_uc: 'takeUp',
+  claim_uc_entitled: 'benefits',
+  existing_unemployed_claim: 'jobLoss',
+  capital_over_limit: 'capital',
+  other_earner: 'jobKeep',
+  homeowner: 'homeOwner',
+  uc_per_displaced: 'cost',
+  uc_per_displaced_takeup: 'takeUp',
+  uc_per_existing_unemployed: 'compare',
+};
 function Displaced() {
   const X = D.displaced;
   const limit = Number(/£([\d,]+)/.exec(X.capital_over_limit.label)?.[1]?.replace(/,/g, '') ?? NaN);
@@ -301,32 +381,34 @@ function Displaced() {
   return (
     <Card
       id="hh-displaced"
-      icon="usersRound"
+      icon={iconFor('households')}
       title="Who the displaced are"
-      finding="Many displaced workers’ benefit units have capital, a working partner or an owned home, so Universal Credit replaces little of their earnings."
-      unit={`Benefit units containing a displaced worker, in the run sized to ${OBR_SCENARIO}`}
+      finding={<Lead c="canSay">Many displaced workers’ benefit units have capital, a working partner or an owned home, so Universal Credit replaces little of their earnings.</Lead>}
+      unit={<Lead c="measure">{`Benefit units containing a displaced worker, in the run sized to ${OBR_SCENARIO}`}</Lead>}
       download={{
         context: CTX,
         table: { columns: ['measure', 'value', 'unit'], rows: [...tiles, ...uc].map(([k]) => [X[k].label, X[k].value, X[k].unit]) },
       }}
       about={{
         caveats: 'The shares count benefit units, not persons. The groups overlap, and the data give no cross-tabulation.',
-        sources: `${X.claim_uc.file} (diagnostics.obr, existing_unemployed); UC per worker: ${X.uc_per_displaced.file} and results/takeup/takeup_draws.csv.`,
+        sources: <Lead c="source">{`${X.claim_uc.file} (diagnostics.obr, existing_unemployed); UC per worker: ${X.uc_per_displaced.file} and results/takeup/takeup_draws.csv.`}</Lead>,
       }}
       foot={
         <p className="hh-foot">
-          <OutsideRebuild />
+          <Lead c="provisional">
+            <OutsideRebuild />
+          </Lead>
         </p>
       }
     >
       <div className="hh-tiles">
         {tiles.map(([k, name, sub]) => (
-          <StatTile key={k} name={name} value={fmtShare(X[k].value)} sub={sub} />
+          <StatTile key={k} icon={iconFor(TILE_ICON[k])} name={name} value={fmtShare(X[k].value)} sub={<Lead c="households">{sub}</Lead>} />
         ))}
       </div>
       <div className="hh-tiles hh-tiles-3">
         {uc.map(([k, name, sub]) => (
-          <StatTile key={k} name={name} value={fmtGbp(X[k].value)} sub={sub} />
+          <StatTile key={k} icon={iconFor(TILE_ICON[k])} name={name} value={fmtGbp(X[k].value)} sub={<Lead c="benefits">{sub}</Lead>} />
         ))}
       </div>
     </Card>
@@ -355,19 +437,33 @@ function Rankings() {
   return (
     <Card
       id="hh-rankings"
-      icon="bars"
+      icon={iconFor('deciles')}
       title="Income change by decile under three rankings"
-      finding="Deciles 2 to 10 look alike under all three rankings; decile 1 changes sign, so the study does not report it."
-      unit={`Change in household disposable income before housing costs, %, central case; mean of ${D.deciles.draws} draws`}
+      finding={<Lead c="canSay">Deciles 2 to 10 look alike under all three rankings; decile 1 changes sign, so the study does not report it.</Lead>}
+      unit={<Lead c="measure">{`Change in household disposable income before housing costs, %, central case; mean of ${D.deciles.draws} draws`}</Lead>}
       download={{
         context: CTX,
         table: { columns: ['decile', ...R.map((r) => r.id)], rows: Array.from({ length: 10 }, (_, i) => [i + 1, ...R.map((r) => r.values[i])]) },
       }}
       about={{
-        how: 'Each household is weighted by its number of members. The rankings differ only in how households are placed in deciles.',
-        caveats:
-          'Decile 1: some high-weight households with large personal pension contributions sit there under the HBAI ranking and receive capital income. Its sign depends on the ranking, and the study does not report it as a finding.',
-        sources: 'results/appendix/decile_ranking_sensitivity.csv: disposable_change_pct.',
+        how: (
+          <Items
+            items={[
+              { key: 'w', icon: 'households', text: 'Each household is weighted by its number of members' },
+              { key: 'r', icon: 'deciles', text: 'The rankings differ only in how households are placed' },
+            ]}
+          />
+        ),
+        caveats: (
+          <Items
+            items={[
+              { key: 'ppc', icon: 'caveat', text: 'HBAI decile 1 holds high-weight households with large pension contributions' },
+              { key: 'cap', icon: 'capital', text: 'They receive capital income' },
+              { key: 'sign', icon: 'limit', text: 'Its sign depends on the ranking: not reported as a finding' },
+            ]}
+          />
+        ),
+        sources: <Lead c="source">{'results/appendix/decile_ranking_sensitivity.csv: disposable_change_pct.'}</Lead>,
       }}
     >
       <p className="p3-legend hh-legend" aria-hidden="true">
@@ -397,10 +493,23 @@ function Rankings() {
           ))}
         </ol>
       </div>
-      <p className="p3-caveat" data-caveat="bottom-decile">
-        Decile 1 is drawn in grey: its sign depends on the ranking, and the study does not report it as a finding. Its three values, and the
-        HBAI values for the other deciles, are printed in story part 3: <StoryRef step={STEP.deciles} />
-      </p>
+      <div className="p3-caveat ex-caveat" data-caveat="bottom-decile">
+        <Items
+          items={[
+            { key: 'grey', icon: 'caveat', text: 'Decile 1 is drawn in grey: its sign depends on the ranking' },
+            { key: 'finding', icon: 'limit', text: 'The study does not report it as a finding' },
+            {
+              key: 'story',
+              icon: 'link',
+              text: (
+                <>
+                  Its three values and the HBAI deciles: story part 3, <StoryRef step={STEP.deciles} />
+                </>
+              ),
+            },
+          ]}
+        />
+      </div>
     </Card>
   );
 }
@@ -409,7 +518,7 @@ function Rankings() {
 function policyRow(r) {
   return {
     id: r.id,
-    label: <span data-input="">{r.label}</span>,
+    label: <span data-input="">{SHORT[r.id] ?? r.label}</span>,
     bar: { value: r.cost_bn, fill: 'p3-fill-cost' },
     cells: [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtPp(r.gini_pp)],
   };
@@ -421,10 +530,10 @@ function Policy() {
   return (
     <Card
       id="hh-policy"
-      icon="handshake"
+      icon={iconFor('policy')}
       title="Three policy responses on top of the central shock"
-      finding="In these simulations, each response lowers poverty and the Gini; they differ in cost and in whom they reach."
-      unit={`${UNIT3}, against the shocked world. Mean of ${P.rows[0].draws} draws`}
+      finding={<Lead c="canSay">In these simulations, each response lowers poverty and the Gini; they differ in cost and in whom they reach.</Lead>}
+      unit={<Lead c="measure">{`${UNIT3}, against the shocked world. Mean of ${P.rows[0].draws} draws`}</Lead>}
       download={{
         context: CTX,
         table: {
@@ -434,14 +543,22 @@ function Policy() {
       }}
       about={{
         how: P.note,
-        caveats: 'The designs differ in aim, take-up and administration. The rows compare cost, poverty and the Gini only, and do not rank the designs.',
-        sources: `${P.file}: ${P.key}.`,
+        caveats: (
+          <Items
+            items={[
+              { key: 'differ', icon: 'policy', text: 'The designs differ in aim, take-up and administration' },
+              { key: 'only', icon: 'compare', text: 'The rows compare cost, poverty and the Gini only' },
+              { key: 'rank', icon: 'caveat', text: 'They do not rank the designs' },
+            ]}
+          />
+        ),
+        sources: <Lead c="source">{`${P.file}: ${P.key}.`}</Lead>,
       }}
     >
       <BarRows
         cols={['Cost', 'Poverty', 'Gini']}
         hi={hi}
-        rows={[...P.rows.slice(0, 3).map(policyRow), { id: 'g-r1', group: 'Wage insurance under two other displacement rules' }, ...P.rows.slice(3).map(policyRow)]}
+        rows={[...P.rows.slice(0, 3).map(policyRow), { id: 'g-r1', group: <Lead c="policy">Wage insurance under two other displacement rules</Lead> }, ...P.rows.slice(3).map(policyRow)]}
       />
     </Card>
   );
@@ -465,30 +582,58 @@ function Sources() {
   return (
     <Disclosure title="Detail and sources" preview="Result files, commit, how the page is built">
       <div className="hh-sources">
-        <p>
-          Every figure on this page and in story part 3 is read from copies of the study’s committed result files, at commit{' '}
-          <code>{D.source.commit.slice(0, 7)}</code> of branch <code>{D.source.branch}</code> (read {D.source.fetched}), by{' '}
-          <code>dashboard/scripts/build_ai_study_data.py</code>, which checks each against the value the paper prints.
-        </p>
-        <ul>
-          {FILES.map(([what, f]) => (
-            <li key={what}>
-              <b>{what}:</b> <code>{f}</code>
-            </li>
-          ))}
-        </ul>
-        <p>
-          <a href={PAPER_URL} target="_blank" rel="noreferrer">
-            The draft paper (PDF)
-          </a>{' '}
-          ·{' '}
-          <a href={PR_URL} target="_blank" rel="noreferrer">
-            uk-ai-study PR #{D.source.pr}
-          </a>{' '}
-          ·{' '}
-          <NavLink tab="method" sub="households">
-            Household method
-          </NavLink>
+        <Items
+          items={[
+            { key: 'files', icon: 'data', text: 'Every figure here and in part 3: the study’s committed result files' },
+            {
+              key: 'commit',
+              icon: 'code',
+              text: (
+                <>
+                  Commit <code>{D.source.commit.slice(0, 7)}</code>, branch <code>{D.source.branch}</code>, read {D.source.fetched}
+                </>
+              ),
+            },
+            {
+              key: 'script',
+              icon: 'code',
+              text: (
+                <>
+                  Copied by <code>dashboard/scripts/build_ai_study_data.py</code>
+                </>
+              ),
+            },
+            { key: 'check', icon: 'source', text: 'It checks each figure against the value the paper prints' },
+          ]}
+        />
+        <Items
+          className="ex-files"
+          items={FILES.map(([what, f]) => ({
+            key: what,
+            icon: 'data',
+            text: (
+              <>
+                <b>{what}:</b> <code>{f}</code>
+              </>
+            ),
+          }))}
+        />
+        <p className="ex-links">
+          <Lead c="source">
+            <a href={PAPER_URL} target="_blank" rel="noreferrer">
+              The draft paper (PDF)
+            </a>
+          </Lead>{' '}
+          <Lead c="code">
+            <a href={PR_URL} target="_blank" rel="noreferrer">
+              uk-ai-study PR #{D.source.pr}
+            </a>
+          </Lead>{' '}
+          <Lead c="link">
+            <NavLink tab="method" sub="households">
+              Household method
+            </NavLink>
+          </Lead>
         </p>
       </div>
     </Disclosure>
@@ -500,21 +645,40 @@ export default function HouseholdsExplore() {
     <div className="hh-page">
       <header className="hh-lead">
         <p className="hh-question page-q">
-          <Icon name="usersRound" size={18} />
+          <Icon name={iconFor('households')} size={18} />
           <span>What moves the cost of AI job displacement, and who it falls on?</span>
         </p>
-        <p className="hh-answer">
-          In this provisional microsimulation, who loses the job, whether earnings fall through job loss or wage cuts, and benefit take-up each
-          move the cost by billions of pounds a year. Job loss raises poverty more than wage cuts of the same size. The headline findings are in{' '}
-          <NavLink tab="story" anchor="story-part-3">
-            story part 3
-          </NavLink>
-          ; a cell marked “step” links to the figure there.
+        <div className="hh-answer">
+          <Items
+            className="ex-answer"
+            items={[
+              { key: 'prov', icon: 'provisional', text: 'A provisional microsimulation: the uk-ai-study' },
+              { key: 'who', icon: 'jobLoss', text: 'Who loses the job moves the cost by billions a year' },
+              { key: 'how', icon: 'pay', text: 'So does whether earnings fall through job loss or wage cuts' },
+              { key: 'takeup', icon: 'takeUp', text: 'So does benefit take-up' },
+              { key: 'poverty', icon: 'poverty', text: 'Job loss raises poverty more than wage cuts of the same size' },
+              {
+                key: 'story',
+                icon: 'link',
+                text: (
+                  <>
+                    Headline findings:{' '}
+                    <NavLink tab="story" anchor="story-part-3">
+                      story part 3
+                    </NavLink>
+                    ; a “step” cell links there
+                  </>
+                ),
+              },
+            ]}
+          />
+        </div>
+        <p className="notice-chip">
+          <Lead c="provisional">Provisional</Lead>
         </p>
-        <Notice>Provisional</Notice>
       </header>
-      <SectionHeading id="hh-cost" icon="landmark" title="What moves the cost">
-        How the central cost is made up, and how it changes with take-up, JSA, wage cuts and who loses the job.
+      <SectionHeading id="hh-cost" icon={iconFor('cost')} title="What moves the cost">
+        <Lead c="cost">The central cost, and how take-up, JSA, wage cuts and job-loss rules move it</Lead>
       </SectionHeading>
       <div className="card-grid cols-2">
         <CostByTax />
@@ -522,13 +686,13 @@ export default function HouseholdsExplore() {
         <Rules />
         <PerPound />
       </div>
-      <SectionHeading id="hh-who" icon="usersRound" title="Who it falls on">
-        Who the displaced are, and how the income change by decile depends on how households are ranked.
+      <SectionHeading id="hh-who" icon={iconFor('households')} title="Who it falls on">
+        <Lead c="households">Who the displaced are, and income change by decile under three rankings</Lead>
       </SectionHeading>
       <Displaced />
       <Rankings />
-      <SectionHeading id="hh-responses" icon="handshake" title="Policy responses">
-        Three stylised additions to the benefit system, simulated on top of the central shock.
+      <SectionHeading id="hh-responses" icon={iconFor('policy')} title="Policy responses">
+        <Lead c="policy">Three stylised benefit additions, simulated on top of the central shock</Lead>
       </SectionHeading>
       <Policy />
       <Sources />

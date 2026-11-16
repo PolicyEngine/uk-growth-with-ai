@@ -33,7 +33,8 @@ describe('Who gains tab', () => {
     expect(t).toContain(pct(full.no_bequest_avg[0]));
     expect(t).toContain(`${Math.round(full.joint_losing_pct[0])}%`);
     expect(t).not.toContain('first order');
-    expect(t).toContain(pct(c.parts_alive.bequests)); // in the by-form fold
+    // the by-form split: values in the segments' tooltips
+    expect(container.querySelector(`[aria-label="Bequests: ${pct(c.parts_alive.bequests)}"]`)).not.toBeNull();
     expect(t).not.toMatch(/\b(poor|rich)\b/i);
   });
 
@@ -45,7 +46,7 @@ describe('Who gains tab', () => {
     expect(first.querySelector('.stat-value').textContent).toBe(`Under 1% to ${Math.round(Math.max(c.no_bequest_losing_pct, ...D.dnfull.range.no_bequest_losing_pct))}%`);
     // the earnings-group ranking is a detail with its caveat, not a tile
     expect(container.querySelector('.stat-row').textContent).not.toContain('Top 1%');
-    expect(container.textContent).toContain('a property of the model, not a finding about the UK');
+    expect(container.textContent).toContain('A property of the model, not a UK finding');
   });
 
   it('stress test: the share losing and the young who all lose', () => {
@@ -63,9 +64,9 @@ describe('Who gains tab', () => {
     expect(container.querySelector('.stat-row').textContent).toContain('solved to the horizon');
     // another arm has no solve to the horizon, so the first-order rows show
     fireEvent.click(screen.getByRole('radio', { name: /Technology unchanged/ }));
-    expect(container.querySelector('.stat-row').textContent).toContain('With the fiscal cost after 2035 charged, first order');
+    expect(container.querySelector('.stat-row').textContent).toContain('first order');
     fireEvent.click(screen.getByRole('radio', { name: /Common/ }));
-    expect(container.querySelector('.stat-row').textContent).not.toContain('fiscal cost after 2035 charged');
+    expect(container.querySelector('.stat-row').textContent).not.toContain('later fiscal cost');
     expect(window.location.search).toContain('wrule=common');
   });
 
@@ -90,7 +91,7 @@ describe('Who gains tab', () => {
     expect(tile.querySelector('.stat-value').textContent).toBe(tileRange(c.alive_losing_pct, c.no_bequest_losing_pct));
     if (c.alive_losing_pct <= 0) {
       expect(tile.querySelector('.stat-value').textContent).toBe(`Up to ${Math.round(c.no_bequest_losing_pct)}%`);
-      expect(tile.querySelector('dd').textContent).toBe('none');
+      expect(tile.querySelector('.ex-dd').textContent).toBe('none');
     }
     expect(tileRange(0, 4.8)).toBe('Up to 5%');
     expect(tileRange(0.05, 49.5)).toBe('Under 1% to 50%');

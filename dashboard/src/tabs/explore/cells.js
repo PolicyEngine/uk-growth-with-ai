@@ -4,12 +4,13 @@
 // that is not solved is { value: null, status: 'pending' }.
 import { HEADLINE_YEAR, YEARS, SCENARIOS, CENTRAL, BOUND, CLOSURE_LABEL, resultAt } from '@/tabs/ai/surprise.js';
 import { RULES } from '@/lib/labels.js';
+import { iconFor } from '@/lib/concepts.js';
 
 export const MEASURES = [
-  { v: 'Y', label: 'GDP', title: 'Total output (GDP)', unit: '%', icon: 'factory' },
-  { v: 'GNI', label: 'GNI', title: 'Income UK residents keep (GNI)', unit: '%', icon: 'home' },
-  { v: 'w', label: 'Wage rate', title: 'Wage rate (pay per unit of labour)', unit: '%', icon: 'wallet' },
-  { v: 'debt_gdp_pp', label: 'Debt/GDP', title: 'Debt/GDP', unit: 'pp', icon: 'landmark' },
+  { v: 'Y', label: 'GDP', title: 'Total output (GDP)', unit: '%', icon: iconFor('gdp'), concept: 'gdp' },
+  { v: 'GNI', label: 'GNI', title: 'Income UK residents keep (GNI)', unit: '%', icon: iconFor('gni'), concept: 'gni' },
+  { v: 'w', label: 'Wage rate', title: 'Wage rate (pay per unit of labour)', unit: '%', icon: iconFor('pay'), concept: 'pay' },
+  { v: 'debt_gdp_pp', label: 'Debt/GDP', title: 'Debt/GDP', unit: 'pp', icon: iconFor('debt'), concept: 'debt' },
 ];
 export const CLS = [CENTRAL, BOUND];
 export const ROWS = RULES.flatMap((r) => CLS.map((cl) => ({ rule: r.id, cl, key: `${r.id}|${cl}` })));
@@ -82,7 +83,11 @@ export const topChoice = (arm, v) => Object.entries(spreads(arm, v)).sort((a, b)
 // A measure that barely moves with any choice (the stress test holds GDP
 // on the path by construction) is named as such, not given a driver.
 const NEGLIGIBLE = 0.05;
-export function driverWords(arm) {
+const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+// [{ choice: 'scenario' | 'closure' | 'rule' | 'still', measures, text }]:
+// one entry per choice that moves a measure most, then the measures that
+// barely move with any.
+export function drivers(arm) {
   const by = {};
   const still = [];
   for (const m of MEASURES) {
@@ -90,9 +95,12 @@ export function driverWords(arm) {
     if (Math.max(...Object.values(spreads(arm, m.v))) < NEGLIGIBLE) still.push(name);
     else (by[topChoice(arm, m.v)] ??= []).push(name);
   }
-  const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
-  const parts = Object.entries(by).map(([k, ms]) => `${CHOICE[k]} moves ${and(ms)} most`);
-  if (still.length) parts.push(`${and(still)} barely ${still.length > 1 ? 'move' : 'moves'} with any of them`);
-  const text = parts.join('; ');
-  return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
+  const cap = (t) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
+  const out = Object.entries(by).map(([k, ms]) => ({ choice: k, measures: ms, phrase: `${CHOICE[k]} moves ${and(ms)} most` }));
+  if (still.length) out.push({ choice: 'still', measures: still, phrase: `${and(still)} barely ${still.length > 1 ? 'move' : 'moves'} with any of them` });
+  return out.map((d) => ({ ...d, text: cap(d.phrase) }));
+}
+export function driverWords(arm) {
+  const ds = drivers(arm);
+  return `${[ds[0].text, ...ds.slice(1).map((d) => d.phrase)].join('; ')}.`;
 }

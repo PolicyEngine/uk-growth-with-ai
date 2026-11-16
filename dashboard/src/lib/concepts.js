@@ -93,6 +93,21 @@ export const CONCEPT_ICON = {
   // selfEmployed: uses `business`
   occupations: 'layoutGrid', // occupation groups
   // explore:
+  consumption: 'cart', // household consumption, spending
+  investment: 'construction', // new investment
+  interestRate: 'percent', // the interest rate, the return on capital
+  welfare: 'usersRound', // who gains: welfare by cohort and earnings group
+  lifetimeEarnings: 'coins', // lifetime-earnings groups
+  bequests: 'package', // bequests, assets passed on
+  leisure: 'play', // leisure, hours not worked
+  young: 'baby', // the youngest adults
+  closedCapital: 'lock', // closed capital: no new capital from abroad
+  cells: 'layoutGrid', // every scenario x closure x rule cell
+  policy: 'handshake', // a policy response
+  homeOwner: 'building', // owner-occupiers
+  reading: 'help', // how to read a chart
+  roughScale: 'calculator', // a rough scaling, not a model run
+  defaultRule: 'flag', // the default choice
   // method:
   equation: 'sigma', // the model's equations
   closed: 'lock', // closed capital: no foreign capital

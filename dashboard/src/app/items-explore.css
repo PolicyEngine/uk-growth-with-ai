@@ -1,2 +1,871 @@
 /* Explore: items, icons and key facts (itemised pages). Loaded after the
    story styles. */
+
+/* The page answer as items (PageIntro renders a div when the answer is a
+   list): the frame first, muted, then one line per measure led by its
+   direction icon, two columns where there is room. */
+.page-a.is-items {
+  max-width: 880px;
+}
+.ex-answer.story-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 32px;
+}
+.ex-answer.story-items li {
+  flex: 0 1 auto;
+}
+.ex-answer.has-frame li:first-child {
+  flex-basis: 100%;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-500);
+}
+@media (max-width: 760px) {
+  .ex-answer.story-items {
+    flex-direction: column;
+  }
+}
+
+/* A small direction arrow beside words or a number: grey, plain, computed
+   from the sign (tabs/explore/direction.jsx). */
+.ex-dir {
+  display: inline-flex;
+  margin: 0 3px 0 1px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.ex-dir .plain-icon {
+  display: inline-flex;
+}
+
+/* Notes under a card's finding or chart: short items, card text size. */
+.card .ex-notes.story-items {
+  margin: 10px 0 4px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.card .ex-notes.story-items li {
+  line-height: 1.45;
+}
+.info-section .story-items,
+.card-body .story-items,
+.hh-sources .story-items {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.card-body .story-items + .story-items,
+.card-body .story-facts + .story-items,
+.card-body .story-items + .story-facts,
+.card-body .story-chain + .story-items {
+  margin-top: 12px;
+}
+.info-section .story-items + .story-items {
+  margin-top: 8px;
+}
+
+/* Key facts inside a card: smaller numbers than the story's. */
+.card .ex-facts.story-facts {
+  margin: 12px 0 4px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 20px;
+}
+.card .ex-facts .story-fact-value {
+  font-size: 1.375rem;
+}
+.disclosure-content .ex-facts.story-facts {
+  margin: 4px 0 12px;
+}
+
+/* The why chain inside a Who gains card: wraps, smaller text. */
+.card-body .ex-chain.story-chain {
+  margin: 4px 0 0;
+}
+.card-body .ex-chain .story-chain-node {
+  font-size: var(--fs-caption);
+}
+.card-body .ex-chain .story-chain-node .ex-dir {
+  margin-right: 2px;
+}
+
+/* Who gains: what the view shows, as muted items. */
+.ex-view-note.story-items {
+  margin: -8px 0 16px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+  gap: 4px;
+}
+
+/* Public finances: the default fiscal-rule items; Households: the decile-1
+   caveat and the lead. */
+.rule-default.story-items {
+  margin: 12px 0 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.ex-caveat .story-items {
+  gap: 4px;
+  font-size: var(--fs-caption);
+}
+.hh-answer .ex-answer.story-items {
+  margin: 0;
+}
+
+/* The answer strip (tabs/explore/AnswerStrip.jsx): full content width. */
+.page-a.is-items {
+  max-width: none;
+}
+.ex-strip {
+  display: grid;
+  gap: 12px;
+}
+.ex-context,
+.ex-caveat-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.ex-context,
+.ex-caveat-line > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.ex-context .plain-icon,
+.ex-caveat-line .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-caveat-line a {
+  color: var(--pe-teal-700);
+}
+.ex-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex-chip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--pe-surface);
+  font-size: var(--fs-body);
+  line-height: 1.35;
+  color: var(--pe-gray-800);
+}
+.ex-chip > .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-chip-name {
+  font-weight: 600;
+}
+.ex-chip-dir {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.ex-chip-dir .plain-icon {
+  display: inline-flex;
+}
+.ex-chip.is-gain .ex-chip-dir {
+  color: var(--c-gain-text, var(--c-gain));
+}
+.ex-chip.is-loss .ex-chip-dir {
+  color: var(--c-loss-text, var(--c-loss));
+}
+.ex-chip.is-note,
+.ex-chip.is-plain {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.ex-chip.is-note {
+  border-style: dashed;
+}
+.ex-why.story-chain {
+  margin: 0;
+}
+.ex-why .story-chain-node {
+  font-size: var(--fs-small);
+}
+@media (max-width: 640px) {
+  .ex-chips {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Public finances: the tax strip (model dot, UK-rates range, one pp axis). */
+.ex-taxstrip {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 16px;
+}
+.ex-taxrow {
+  display: grid;
+  grid-template-columns: minmax(130px, 200px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 34px;
+}
+.ex-taxlabel {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.ex-taxlabel .plain-icon,
+.ex-taxlink .plain-icon,
+.ex-roughchip .plain-icon,
+.ex-rule .plain-icon,
+.ex-tl-year .plain-icon,
+.ex-rdb-label .plain-icon,
+.ex-rdb-none .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-taxtrack,
+.ex-rdb-track {
+  position: relative;
+  height: 28px;
+  border-bottom: 1px solid var(--pe-gray-200);
+}
+.ex-taxzero {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--pe-gray-500);
+}
+.ex-taxdot,
+.ex-rdb-dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--series-2);
+}
+.ex-taxbar {
+  position: absolute;
+  top: 50%;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg, var(--pe-gray-400) 0 3px, var(--pe-gray-200) 3px 6px);
+}
+.ex-taxval {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--pe-gray-900);
+}
+.ex-taxtrack > .ex-taxval {
+  left: 8px;
+  transform: none;
+  top: 4px;
+  bottom: auto;
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
+.ex-taxaxis {
+  min-height: 18px;
+}
+.ex-taxaxis .ex-taxtrack {
+  height: 16px;
+  border: 0;
+}
+.ex-taxtick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.ex-taxlink,
+.ex-roughchip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-taxlink a {
+  color: var(--pe-teal-700);
+}
+/* the Tax/GDP chart while the tax card's link is hovered or focused */
+#tax-gdp.ex-flag {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+#tax-gdp.ex-flag .linechart g > circle:last-of-type {
+  r: 6px;
+}
+
+/* Public finances: the rule cards, the timeline and the dumbbells. */
+.ex-rules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+.ex-rule {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--pe-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-700);
+  cursor: pointer;
+}
+.ex-rule:hover {
+  border-color: var(--pe-gray-400);
+}
+.ex-rule:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+}
+.ex-rule.is-active {
+  border-color: var(--c-highlight);
+  box-shadow: inset 0 0 0 1px var(--c-highlight);
+}
+.ex-rule-name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.ex-rule-tag {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  margin-left: auto;
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  color: var(--pe-gray-500);
+}
+.ex-rule-holds {
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+}
+.ex-timeline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-tl-year {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ex-tl-span {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--pe-gray-100);
+  text-align: center;
+}
+.ex-rdb {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 16px;
+}
+.ex-rdb-key {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 4px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-rdb-key .ex-rdb-dot {
+  position: static;
+  margin: 0;
+  display: inline-block;
+}
+.ex-rdb-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.ex-rdb-label {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-small);
+}
+.ex-rdb-dot.is-common {
+  background: var(--pe-surface);
+  border: 2px solid var(--series-2);
+}
+.ex-rdb-bar {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--series-2);
+  opacity: 0.45;
+}
+.ex-rdb-none {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding-top: 6px;
+  font-size: var(--fs-caption);
+  font-style: italic;
+  color: var(--pe-gray-500);
+}
+@media (max-width: 640px) {
+  .ex-taxrow,
+  .ex-rdb-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .ex-taxaxis > span:first-child {
+    display: none;
+  }
+  .ex-taxrow .ex-taxtrack {
+    margin-top: 18px;
+  }
+  .ex-taxaxis .ex-taxtrack {
+    margin-top: 0;
+  }
+  .ex-timeline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A plain icon leading a finding, unit line or group label. */
+.ex-lead {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.ex-lead .plain-icon {
+  display: inline-flex;
+}
+.ex-chip.is-plain,
+.ex-chip.is-note {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.ex-chip.is-plain > .plain-icon,
+.ex-chip.is-note > .plain-icon {
+  margin-top: 1px;
+}
+
+/* Who gains: the tiles' rows as items (icon, label, value). */
+.ex-stat-rows {
+  padding: 0;
+  list-style: none;
+}
+.ex-stat-rows > li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ex-stat-rows .ex-dt {
+  color: var(--pe-gray-600);
+}
+.ex-stat-rows .ex-dd {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pe-gray-900);
+}
+
+/* Who gains: measure chips, tiles with small visuals, and the why cards. */
+.ex-mchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.ex-who-tiles > .ex-mchips {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.ex-mchip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--pe-surface);
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+  cursor: help;
+}
+.ex-mchip .plain-icon,
+.ex-bar-code .plain-icon,
+.ex-pair-label .plain-icon,
+.ex-caveat-chip .plain-icon,
+.ex-byform .plain-icon,
+.ex-spark figcaption .plain-icon,
+.card-tag .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-mtag {
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.ex-who-tiles .stat-tile {
+  display: flex;
+  flex-direction: column;
+}
+.ex-who-tiles .stat-extra {
+  margin-top: auto;
+}
+.ex-who-tiles .stat-value {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  white-space: nowrap;
+}
+.ex-bars,
+.ex-pairs {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-caption);
+}
+.ex-bars > li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.ex-pairs > li {
+  display: grid;
+  grid-template-columns: minmax(110px, 40%) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.ex-bar-code,
+.ex-pair-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.ex-bar-track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--pe-gray-100);
+}
+.ex-bar-track.is-axis {
+  background: none;
+  border-bottom: 1px solid var(--pe-gray-200);
+  height: 12px;
+}
+.ex-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--pe-gray-500);
+  transform-origin: left;
+}
+.ex-bar-fill.is-gain,
+.ex-split-bar.is-gain {
+  background: var(--c-gain);
+}
+.ex-bar-fill.is-loss,
+.ex-split-bar.is-loss {
+  background: var(--c-loss);
+}
+.ex-bars .ex-dd,
+.ex-pairs .ex-dd {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pe-gray-900);
+}
+.ex-axis-zero {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  border-left: 1px solid var(--pe-gray-400);
+}
+.ex-avg-dot {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--series-2);
+}
+.ex-ruler {
+  position: relative;
+  height: 30px;
+  margin-top: 8px;
+}
+.ex-ruler-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--c-loss);
+  transform-origin: left;
+}
+.ex-ruler::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--pe-gray-100);
+  z-index: 0;
+}
+.ex-ruler-fill {
+  z-index: 1;
+}
+.ex-ruler-ticks {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.ex-split {
+  position: relative;
+  height: 14px;
+  margin: 10px 0 8px;
+  border-bottom: 1px solid var(--pe-gray-200);
+}
+.ex-split-bar {
+  position: absolute;
+  top: 2px;
+  height: 10px;
+  border-radius: 2px;
+}
+.ex-byform {
+  margin: 20px 0 24px;
+}
+.ex-byform-title,
+.ex-caveat-chip {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.ex-byform-bar {
+  display: flex;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.ex-byform-seg {
+  display: block;
+  height: 100%;
+}
+.ex-byform-seg.is-consumption,
+.ex-byform-swatch.is-consumption {
+  background: var(--series-2);
+}
+.ex-byform-seg.is-leisure,
+.ex-byform-swatch.is-leisure {
+  background: var(--series-3);
+}
+.ex-byform-seg.is-bequests,
+.ex-byform-swatch.is-bequests {
+  background: var(--series-5);
+}
+.ex-byform-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-byform-key li {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.ex-byform-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.ex-caveat-chip {
+  margin: 10px 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--c-highlight);
+  font-size: var(--fs-caption);
+}
+.ex-spark {
+  margin: 0 0 10px;
+}
+.ex-spark > svg {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: 52px;
+}
+.ex-spark-zero {
+  stroke: var(--pe-gray-400);
+  stroke-dasharray: 2 2;
+}
+.ex-spark-line {
+  fill: none;
+  stroke: var(--series-2);
+  stroke-width: 2;
+}
+.ex-spark figcaption {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-why-grid > .card {
+  height: 100%;
+}
+.ex-why-grid .card-body > * + * {
+  margin-top: 10px;
+}
+.ex-tl-who {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.ex-tl-who .is-end {
+  grid-column: 1 / -1;
+}
+.ex-ctx {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.ex-linkchip {
+  padding: 2px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+}
+/* visuals grow in once drawn (not under reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .ex-bar-fill,
+  .ex-ruler-fill,
+  .ex-byform-bar,
+  .ex-rdb-bar {
+    animation: ex-grow 0.7s ease-out both;
+  }
+}
+@keyframes ex-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.ex-byform-bar,
+.ex-taxbar,
+.ex-rdb-bar {
+  transform-origin: left;
+}
+
+.ex-tl-span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.ex-tl-span .plain-icon {
+  display: inline-flex;
+}
+.ex-why-grid .ex-pairs + .story-items,
+.ex-why-grid .story-items + .ex-pairs,
+.ex-why-grid .ex-timeline + .story-items,
+.ex-why-grid .ex-caveat-chip + .ex-pairs {
+  margin-top: 12px;
+}
+.ex-bars > li {
+  grid-template-columns: 40px minmax(0, 1fr) 4.8em;
+}
+.ex-bars.ex-avg > li {
+  grid-template-columns: 40px minmax(0, 1fr) 7.6em;
+}
+.ex-bars .ex-dd {
+  text-align: right;
+}
+
+/* Economy: the story-headline link beside the main arm's name */
+.db-headline-chip {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  font-size: var(--fs-micro);
+  color: var(--pe-teal-700);
+  white-space: nowrap;
+}
+.db-headline-chip .plain-icon {
+  display: inline-flex;
+}
+/* Households: one story link spanning the cells it stands for */
+.hh-val.is-span {
+  text-align: right;
+}
+/* Public finances: the rule cards as the page's picker */
+.page-options .ex-rules {
+  flex: 1 1 100%;
+  margin: 0;
+}
+.ex-bars.ex-avg > li {
+  grid-template-columns: 34px minmax(0, 1fr) 6.4em;
+}
+.ex-bars.ex-avg .ex-dd {
+  font-size: var(--fs-micro);
+  white-space: normal;
+  line-height: 1.25;
+}
