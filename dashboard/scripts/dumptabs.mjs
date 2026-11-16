@@ -23,7 +23,7 @@ const tabs = [
   'results:finances:central:fixed', 'results:finances:closed:fixed', 'results:finances:both:fixed',
   'who', 'who:both', 'method', 'studies', 'code',
   'results:all',
-  'story:part1', 'story:part3',
+  'story:hero', 'story:part1', 'story:part3',
   // uk-ai-study detail and method: ?tab=explore&sub=households and
   // ?tab=method&sub=households (#explore-sub-households, #method-sub-households)
   'explore:households', 'method:households',

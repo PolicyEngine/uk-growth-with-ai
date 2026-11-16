@@ -40,7 +40,8 @@ for (const [name, path] of Object.entries(PAGES)) {
       if (!t) continue;
       const words = t.split(' ').length;
       const cite = !!el.closest('.story-source, [data-cite]');
-      const max = el.tagName === 'LI' ? 12 : 25;
+      // a recap chip pairs a question with its answer: one item of two short parts
+      const max = el.tagName === 'LI' && !el.closest('.story-recap') ? 12 : 25;
       // an icon: an svg in the block, or a legend's colour swatch (the key)
       const icon = !!el.querySelector('svg, [class*="swatch"], [data-icon]');
       const why = [];
