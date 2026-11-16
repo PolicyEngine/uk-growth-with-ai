@@ -3,6 +3,7 @@
 import { Children, useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { Axis, Grid, ModelBadge, linear as chartLinear } from '@/components/story/chart/index.js';
 import { SOURCES } from './data.js';
 import { dateLong, tick } from './format.js';
 
@@ -81,25 +82,21 @@ export function niceTicks(values, { max = 5, withZero = false, pad = 0.04 } = {}
   return { lo, hi, ticks };
 }
 
-// A linear map from [d0, d1] to [r0, r1].
-export const linear = (d0, d1, r0, r1) => (v) => r0 + ((v - d0) / (d1 - d0 || 1)) * (r1 - r0);
+// A linear map from [d0, d1] to [r0, r1] (the shared chart scale, with
+// invert and domain, so Grid and Crosshair can read it).
+export const linear = (d0, d1, r0, r1) => chartLinear([d0, d1], [r0, r1]);
 
 // An SVG path through (X(xs[i]), Y(ys[i])), straight segments.
 export const linePath = (X, Y, xs, ys) => ys.map((v, i) => `${i ? 'L' : 'M'}${X(xs[i]).toFixed(1)},${Y(v).toFixed(1)}`).join('');
 
-// Horizontal gridlines (dotted) and y tick labels; a solid zero line when
-// zero is a tick. `x0`, `x1`: the plot's left and right edges.
+// Horizontal gridlines (dotted) and y tick labels, from the shared chart
+// primitives (Grid: a solid zero line when zero is in the domain; Axis:
+// data-axis tick text, no axis line). `x0`, `x1`: the plot's edges.
 export function YGrid({ ticks, Y, x0, x1, className = '' }) {
   return (
     <g className={`p1-ygrid ${className}`}>
-      {ticks.map((v) => (
-        <g key={v}>
-          <line x1={x0} x2={x1} y1={Y(v)} y2={Y(v)} className={v === 0 ? 'p1-zero' : 'p1-grid'} />
-          <text data-axis="" x={x0 - 6} y={Y(v)} dy="0.35em" textAnchor="end" className="p1-tick">
-            {tick(v)}
-          </text>
-        </g>
-      ))}
+      <Grid scale={Y} ticks={ticks} x0={x0} x1={x1} />
+      <Axis side="left" scale={Y} ticks={ticks} at={x0} offset={6} format={tick} />
     </g>
   );
 }
@@ -227,6 +224,7 @@ export function SourceLine({ items, note }) {
 export function Figure({ icon = 'path', title, titleReserve, unit, unitReserve, source, children, innerRef, className = '' }) {
   return (
     <figure className={`p1-figure ${className}`} ref={innerRef}>
+      <ModelBadge model="official" className="p1-badge" />
       <FigTitle icon={icon} title={title} reserve={titleReserve} />
       {unit ? <FigUnit reserve={unitReserve}>{unit}</FigUnit> : null}
       {children}

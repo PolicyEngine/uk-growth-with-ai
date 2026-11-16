@@ -75,7 +75,7 @@ describe('story part 2', () => {
 
   it('every chart is an image with a text alternative, and links keep the reader’s choices', () => {
     const { container } = at('tab=story&s=uk_high&closure=both');
-    const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid')];
+    const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid, .p2-pair .ch-cross > svg')];
     expect(svgs.length).toBe(4); // shock tiles, the GDP canvas (2A), the arms pair (2B), who gains
     expect(container.querySelectorAll('svg.sankey')).toHaveLength(1);
     for (const s of svgs) {
@@ -83,13 +83,14 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    expect(container.querySelectorAll('.story-source')).toHaveLength(6); // the output split's Sankey and waterfall each have one
+    expect(container.querySelectorAll('.story-source')).toHaveLength(5); // the output split's two charts share one foot
     const hrefs = [...container.querySelectorAll('.p2-more a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=method&s=uk_high&closure=both#m-closures');
-    // Scenarios folded into OG-UK method (lib/nav.jsx): the link lands on #m-scenarios
+    // the Scenarios sub-tab folded into OG-UK method
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
+    expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
     // Income and output is now the Economy wall (lib/nav.jsx redirects #income)
     expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#economy-wall');
     expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-economy'))).toBe(true);

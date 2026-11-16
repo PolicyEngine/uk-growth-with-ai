@@ -6,6 +6,7 @@ import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, A
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, SOURCE, More, Tx, placeLabels } from './frame.jsx';
 import { series, afterWordsAll } from './charts.jsx';
 import { EPS2 } from './dir.js';
@@ -287,6 +288,11 @@ export function MorphChart({ state, sid, cl }) {
     .join(' ');
   return (
     <figure className="p2-figure p2-morph" data-state={s} data-rescale={resc ? '' : undefined}>
+      {/* the badge flips from the record to the model with the axis */}
+      <span className="p2-badge-stack">
+        <ModelBadge model="official" className={s < 2 ? undefined : 'p2-text-ghost'} />
+        <ModelBadge model="oguk" className={s >= 2 ? undefined : 'p2-text-ghost'} />
+      </span>
       {/* every state's title and unit stacked in one grid cell, only the
           current one visible: the drawing below never moves between states */}
       <p className="story-figure-title p2-text-stack">

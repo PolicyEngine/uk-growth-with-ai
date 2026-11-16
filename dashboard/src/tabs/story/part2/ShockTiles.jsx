@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { TileGrid } from '@/components/story/primitives.jsx';
-import { useInView } from '@/components/story/motion.js';
+import { TileField } from '@/components/story/primitives.jsx';
+import { useEnterState } from '@/components/story/motion.js';
+import { ModelBadge } from '@/components/story/chart/index.js';
 import { Tx } from './frame.jsx';
 
 // The shock, illustrated: one tile is one per cent of output. Labour's
@@ -18,7 +18,6 @@ const LABOUR0 = 65; // illustrative starting split
 const MOVED = 5;
 const NEW_L = 3;
 const NEW_C = 2;
-const DROP = 1.6; // tiles a new tile falls
 // labour indigo, capital brown (ab.css), as in the output split's Sankey:
 // the arm colours (ARM_COLOR) and teal/amber mean other things
 export const LABOUR_COLOR = 'var(--c-labour)';
@@ -40,22 +39,26 @@ export function shockTiles(state) {
       key: `l${i}`,
       ...(moved ? at('capital', capital0 + k) : at('labour', i)),
       color: moved ? CAPITAL_COLOR : LABOUR_COLOR,
-      delay: moved ? k * 70 : 0,
+      group: moved ? 'moved' : 'labour',
+      // the five that move go 90ms apart; the rest stay put
+      delay: moved ? k * 90 : 0,
     });
   }
-  for (let i = 0; i < capital0; i++) tiles.push({ key: `c${i}`, ...at('capital', i), color: CAPITAL_COLOR });
-  // new output: drops in at step 2 from a little above its place (unseen
-  // before then: no fill)
-  for (let i = 0; i < NEW_L + NEW_C; i++) {
-    const labour = i < NEW_L;
-    const p = labour ? at('labour', LABOUR0 - MOVED + i) : at('capital', capital0 + MOVED + (i - NEW_L));
-    tiles.push({
-      key: `n${i}`,
-      x: p.x,
-      y: state >= 2 ? p.y : p.y - DROP,
-      color: state >= 2 ? (labour ? LABOUR_COLOR : CAPITAL_COLOR) : 'transparent',
-      delay: state >= 2 ? i * 90 : 0,
-    });
+  for (let i = 0; i < capital0; i++) tiles.push({ key: `c${i}`, ...at('capital', i), color: CAPITAL_COLOR, group: 'capital', delay: 0 });
+  // new output, step 2 only: tiles that did not exist before drop in
+  // (TileField `enter: 'drop'`), three on labour, two on capital
+  if (state >= 2) {
+    for (let i = 0; i < NEW_L + NEW_C; i++) {
+      const labour = i < NEW_L;
+      tiles.push({
+        key: `n${i}`,
+        ...(labour ? at('labour', LABOUR0 - MOVED + i) : at('capital', capital0 + MOVED + (i - NEW_L))),
+        color: labour ? LABOUR_COLOR : CAPITAL_COLOR,
+        group: 'new',
+        delay: i * 90,
+        enter: 'drop',
+      });
+    }
   }
   return tiles;
 }
@@ -67,24 +70,14 @@ const LABELS = [
 ];
 
 // The first card opens on the split before the shock (state 0) and moves
-// the tiles once the figure has been in view for `hold` ms, so the move is
-// seen on arrival without a step of its own. Reduced motion: state 1 at
-// once. (Scene-local until the shared useEnterState lands.)
-function useOpening(state, reduce, hold = 450) {
-  const [ref, seen] = useInView({ rootMargin: '0px 0px -30% 0px' });
-  const [go, setGo] = useState(false);
-  useEffect(() => {
-    if (!seen || go) return undefined;
-    const t = setTimeout(() => setGo(true), hold);
-    return () => clearTimeout(t);
-  }, [seen, go, hold]);
-  return [ref, state === 1 && !go && !reduce ? 0 : state];
-}
-
-export default function ShockTiles({ state, reduce = false }) {
-  const [ref, s] = useOpening(state, reduce);
+// the tiles once the figure has been in view (useEnterState), so the move
+// is seen on arrival without a step of its own. Reduced motion: state 1 at
+// once.
+export default function ShockTiles({ state, entered = true }) {
+  const s = useEnterState(state === 1 ? 0 : state, state, entered);
   return (
-    <figure ref={ref} className="p2-figure p2-shock-fig" data-state={s}>
+    <figure className="p2-figure p2-shock-fig" data-state={s}>
+      <ModelBadge model="illustration" />
       <p className="story-figure-title">
         <Tx icon="gdp">Who output is paid to</Tx>
       </p>
@@ -98,7 +91,7 @@ export default function ShockTiles({ state, reduce = false }) {
           <span style={{ '--sw': LABOUR_COLOR }}>Labour income</span>
           <span style={{ '--sw': CAPITAL_COLOR }}>Capital income</span>
         </div>
-        <TileGrid tiles={shockTiles(s)} width={COLS * 2 + GAP} height={ROWS} label={LABELS[s]} />
+        <TileField tiles={shockTiles(s)} width={COLS * 2 + GAP} height={ROWS} label={LABELS[s]} />
       </div>
       <figcaption className="story-source">
         <Tx icon="caveat" size={12}>
