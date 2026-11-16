@@ -61,6 +61,14 @@ export const CONCEPT_ICON = {
 
   // the story's parts
   record: 'library', // part 1: the official record
+
+  // Concepts added by the itemising pass, one block per page group (keep
+  // each to its own block). Each needs an icon no other concept uses.
+  // part 1:
+  // part 2:
+  // part 3:
+  // explore:
+  // method:
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
