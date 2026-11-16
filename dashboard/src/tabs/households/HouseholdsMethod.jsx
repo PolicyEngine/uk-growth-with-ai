@@ -8,7 +8,8 @@ import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { D, MODEL_YEAR, PAPER_URL, PR_URL } from '@/tabs/story/part3/shared.jsx';
+import UsedBy from '@/tabs/method/UsedBy.jsx';
+import { D, MODEL_YEAR, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 
 // Method and sources > Household method: how uk-ai-study (PolicyEngine/
@@ -17,10 +18,10 @@ import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 // methods" (paper/sections/methodology.tex). Model parameters and data
 // counts are the paper's printed values (paper/values_generated.tex) and the
 // build manifest, carried in aiStudy2425.json `method`. Results are not
-// repeated here.
+// repeated here. Its vintages are in Data and code's one vintages table;
+// this page keeps an anchored line there (#hm-vintage).
 
 const M = D.method;
-const S = D.source;
 const In = ({ children }) => <span data-input="">{children}</span>;
 const CENTRAL_PCT = Number(/([\d.]+)% prescribed/.exec(D.headline.central_displaced.note)?.[1]);
 
@@ -33,7 +34,6 @@ const SECTIONS = [
   { id: 'hm-takeup', title: 'Benefits and take-up', icon: iconFor('takeUp') },
   { id: 'hm-draws', title: 'Draws and spread', icon: iconFor('draws') },
   { id: 'hm-out', title: 'What it leaves out', icon: iconFor('excluded') },
-  { id: 'hm-vintage', title: 'Vintages', icon: iconFor('revision') },
 ];
 
 const STAGES = [
@@ -91,6 +91,7 @@ export default function HouseholdsMethod() {
           <SectionHeading id="hm-data" icon={iconFor('data')} title="Data and model">
             <IconText icon="timing">One year, {MODEL_YEAR}.</IconText>
           </SectionHeading>
+          <UsedBy id="hm-data" />
           <div className="card-grid cols-2">
             <InfoCard icon={iconFor('data')} title="Microcosm UK 2024–25">
               <KeyFacts
@@ -185,6 +186,7 @@ export default function HouseholdsMethod() {
           <SectionHeading id="hm-rules" icon={iconFor('jobLoss')} title="Who loses the job">
             <IconText icon="draws">Five rules share out the same expected number of job losses.</IconText>
           </SectionHeading>
+          <UsedBy id="hm-rules" />
           <Items
             className="hm-items"
             items={[
@@ -210,6 +212,7 @@ export default function HouseholdsMethod() {
           <SectionHeading id="hm-takeup" icon={iconFor('takeUp')} title="Benefits and take-up">
             <IconText icon="takeUp">What a displaced worker can claim, and whether they do.</IconText>
           </SectionHeading>
+          <UsedBy id="hm-takeup" />
           <KeyFacts
             className="mx-facts-row"
             facts={[
@@ -266,82 +269,45 @@ export default function HouseholdsMethod() {
           <SectionHeading id="hm-out" icon={iconFor('excluded')} title="What it leaves out">
             <IconText icon="excluded">The study traces current rules, not behaviour or the wider economy.</IconText>
           </SectionHeading>
-          <Items
-            className="hm-items"
-            items={[
-              { icon: 'excluded', text: 'No re-employment, partners’ hours, redundancy pay or drawing on savings.' },
-              { icon: 'timing', text: 'A one-year stock of job loss.' },
-              { icon: 'tax', text: 'No corporation tax, VAT or other indirect taxes.' },
-              { icon: 'finances', text: 'The public-sector pay bill of the displaced is outside the balance.' },
-              { icon: 'benefits', text: 'Council tax reduction does not respond to the lost earnings.' },
-              { icon: 'limit', text: 'The benefit cap applies without its nine-month grace period.' },
-              { icon: 'age', text: 'No reduced hiring of young workers, the margin early evidence emphasises.' },
-              { icon: 'model', text: 'No feedback to prices, interest rates or output.' },
-              { icon: 'link', text: 'For that, see OG-UK in part 2, which has no unemployment.' },
-            ]}
-          />
+          <ul className="mx-limit-grid hm-out-grid">
+            {[
+              ['excluded', 'No re-employment, partners’ hours, redundancy pay or drawing on savings.'],
+              ['timing', 'A one-year stock of job loss.'],
+              ['model', 'Not linked to OG-UK: no OG-UK prices, wages or interest rates.'],
+              ['tax', 'No corporation tax, VAT or other indirect taxes.'],
+              ['finances', 'The public-sector pay bill of the displaced is outside the balance.'],
+              ['benefits', 'Council tax reduction does not respond to the lost earnings.'],
+              ['limit', 'The benefit cap applies without its nine-month grace period.'],
+              ['age', 'No reduced hiring of young workers, the margin early evidence emphasises.'],
+              ['interest', 'No feedback to prices, interest rates or output.'],
+            ].map(([icon, text]) => (
+              <li key={text} className="mx-limit-tile hm-out-tile">
+                <Icon name={iconFor(icon)} size={16} />
+                <span>{text}</span>
+              </li>
+            ))}
+          </ul>
           <p className="hm-text">
             <IconText icon="link">
-              <NavLink tab="story" anchor="p3-close-h">
-                What the study leaves out, in the story
+              For the wider economy, see{' '}
+              <NavLink tab="method" sub="how" anchor="m-limits">
+                OG-UK&rsquo;s limitations
               </NavLink>
+              ; OG-UK has no unemployment.
             </IconText>
           </p>
         </section>
 
         <section>
-          <SectionHeading id="hm-vintage" icon={iconFor('revision')} title="Vintages">
-            <IconText icon="version">Which version of the study the dashboard reads.</IconText>
-          </SectionHeading>
-          <dl className="hm-vintage" data-reference="">
-            <div>
-              <dt>
-                <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
-                Study
-              </dt>
-              <dd>
-                <a href={PR_URL} target="_blank" rel="noreferrer">
-                  PolicyEngine/uk-ai-study PR #{S.pr}
-                </a>
-                , an open draft; branch <code>{S.branch}</code>
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <Icon name={iconFor('code')} size={14} className="mx-dt-icon" />
-                Commit
-              </dt>
-              <dd>
-                <code>{S.commit.slice(0, 7)}</code>, read {new Date(`${S.fetched}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <Icon name={iconFor('version')} size={14} className="mx-dt-icon" />
-                Results build
-              </dt>
-              <dd>
-                Built per the manifest at commit <code>{M.manifest_commit.slice(0, 7)}</code>, {M.manifest_finished.slice(0, 10)}
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <Icon name={iconFor('data')} size={14} className="mx-dt-icon" />
-                Data build
-              </dt>
-              <dd>
-                <code>{M.data_build}</code>
-              </dd>
-            </div>
-          </dl>
-          <Items
-            className="hm-items mx-foot-items"
-            items={[
-              M.manifest_full_rerun === false ? { icon: 'caveat', text: 'The manifest attests existing results without a full clean-room rerun.' } : null,
-              { icon: 'data', text: <>The dashboard reads the data at <code>{S.commit.slice(0, 7)}</code>.</> },
-              { icon: 'provisional', text: 'Wage-cut, take-up and OBR-sized results sit outside that attested rebuild.' },
-            ]}
-          />
+          <p className="mx-moved" id="hm-vintage" tabIndex={-1}>
+            <IconText icon="revision">
+              Vintages: which study commit and data build the dashboard reads, on{' '}
+              <NavLink tab="method" sub="code" anchor="vintages">
+                Data and code
+              </NavLink>
+              .
+            </IconText>
+          </p>
           <ul className="p3-close-links">
             <li>
               <a href={PAPER_URL} target="_blank" rel="noreferrer">

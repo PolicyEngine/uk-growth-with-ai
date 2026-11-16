@@ -3,14 +3,14 @@
 import Icon from '@/components/ab/Icon.jsx';
 import CopyBlock from '@/components/ab/CopyBlock.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { S } from '@/tabs/ai/surprise.js';
-import { REPO, URLS } from '@/tabs/ai/links.js';
+import { REPO, URLS, issue } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import CHANGELOG from '@/data/site-changelog.json';
 import MF from '@/data/methodFacts.json';
-import { VERSIONS, VINTAGES, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
+import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -18,9 +18,12 @@ import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, SP_HELPER, STEPS } from './pipeline.js';
 
-// Code: Reproduce (before you start, the 2028-surprise pipeline as connected
-// nodes, what the outputs are) and Use OG-UK (the general workflow).
-// Commands are checked against the scripts and CLI; see pipeline.js.
+// Data and code: reproduce the results (before you start, the 2028-surprise
+// pipeline, outputs and checks), the one vintages table and the model
+// versions (each with its model: OG-UK or uk-ai-study), the source ledger,
+// citation, the one changelog (model decisions and site changes) and the
+// general OG-UK workflow. Commands are checked against the scripts and CLI;
+// see pipeline.js.
 
 const SECTIONS = [
   { id: 'before', title: 'Reproduce the results', icon: iconFor('prerequisite') },
@@ -29,7 +32,7 @@ const SECTIONS = [
   { id: 'vintages', title: 'Data vintages and versions', icon: iconFor('data') },
   { id: 'ledger', title: 'Source ledger', icon: iconFor('ledger') },
   { id: 'cite', title: 'Cite this work', icon: iconFor('source') },
-  { id: 'changelog', title: 'Changelog', icon: iconFor('revision') },
+  { id: 'changelog', title: 'Changelog and revisions', icon: iconFor('revision') },
   { id: 'use-oguk', title: 'Use OG-UK yourself', icon: iconFor('code') },
 ];
 const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
@@ -90,20 +93,22 @@ function BeforeYouStart() {
           <p className="mx-kicker">
             <IconText icon="version">Versions used</IconText>
           </p>
-          <dl className="mx-versions" data-reference="">
-            {VERSIONS.filter((e) => e.id !== 'solves').map((e) => (
-              <div key={e.id}>
-                <dt>{e.label}</dt>
-                <dd>{e.url ? ext(e.url, e.value) : e.value}</dd>
-              </div>
-            ))}
-            <div>
-              <dt>Dashboard data</dt>
-              <dd>
-                {S.generated_utc} from {S.source_commit}
-              </dd>
-            </div>
-          </dl>
+          <Items
+            items={[
+              {
+                icon: 'link',
+                text: (
+                  <>
+                    Every version and data build:{' '}
+                    <NavLink tab="method" sub="code" anchor="vintages">
+                      the vintages table
+                    </NavLink>
+                    .
+                  </>
+                ),
+              },
+            ]}
+          />
         </div>
         <div>
           <p className="mx-kicker">
@@ -311,16 +316,28 @@ function UseOguk() {
   );
 }
 
+const MODEL_ICON = { 'OG-UK': 'model', 'uk-ai-study': 'households' };
+function ModelCell({ m }) {
+  if (!MODEL_ICON[m]) return <span className="ledger-where">Neither</span>;
+  return (
+    <span className="mx-model-cell">
+      <Icon name={iconFor(MODEL_ICON[m])} size={14} />
+      {m}
+    </span>
+  );
+}
+
 function Vintages() {
   return (
     <div className="cards-stack">
-      <InfoCard icon={iconFor('data')} title="Data files" id="data-files">
+      <InfoCard icon={iconFor('data')} title="Data files and builds" id="data-files">
         <div className="table-wrap">
           <table className="data-table ledger-table">
-            <caption className="visually-hidden">Each data file, what it feeds and its vintage</caption>
+            <caption className="visually-hidden">Each data file or build, its model, what it feeds and its vintage</caption>
             <thead>
               <tr>
-                <th scope="col">File</th>
+                <th scope="col">Model</th>
+                <th scope="col">File or build</th>
                 <th scope="col">Feeds</th>
                 <th scope="col">Vintage</th>
                 <th scope="col">Built or read</th>
@@ -329,31 +346,54 @@ function Vintages() {
             <tbody>
               {VINTAGES.map((v) => (
                 <tr key={v.file}>
-                  <th scope="row">
-                    <code>{v.file}</code>
-                  </th>
+                  <td>
+                    <ModelCell m={v.model} />
+                  </td>
+                  <th scope="row">{v.file.includes('.') ? <code>{v.file}</code> : v.file}</th>
                   <td>{v.what}</td>
-                  <td>{v.vintage}</td>
+                  <td>{v.url ? ext(v.url, v.vintage) : v.vintage}</td>
                   <td>{v.date ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <Items
+          className="mx-foot-items"
+          items={[
+            AI_FULL_RERUN === false ? { icon: 'caveat', text: 'uk-ai-study: the manifest attests results without a clean-room rerun.' } : null,
+            { icon: 'provisional', text: 'Its wage-cut, take-up and OBR-sized results sit outside that rebuild.' },
+          ].filter(Boolean)}
+        />
       </InfoCard>
       <div className="cards-grid">
       <InfoCard icon={iconFor('version')} title="Model versions" id="model-versions">
-        <dl className="mx-versions" data-reference="">
-          {VERSIONS.map((e) => (
-            <div key={e.id}>
-              <dt>{e.label}</dt>
-              <dd>
-                {e.url ? ext(e.url, e.value) : e.value}
-                <span className="ledger-where">{e.where}</span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <div className="table-wrap">
+          <table className="data-table ledger-table" data-reference="">
+            <caption className="visually-hidden">Software versions, by model</caption>
+            <thead>
+              <tr>
+                <th scope="col">Model</th>
+                <th scope="col">Software</th>
+                <th scope="col">Version</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MODEL_VERSIONS.map((e) => (
+                <tr key={e.id}>
+                  <td>
+                    <ModelCell m={e.model} />
+                  </td>
+                  <th scope="row">{e.label}</th>
+                  <td>
+                    {e.url ? ext(e.url, e.value) : e.value}
+                    <span className="ledger-where">{e.where}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </InfoCard>
       <InfoCard icon={iconFor('period')} title="Official releases (ONS, OBR, DSIT)" id="releases">
         <ul className="ledger-releases" data-reference="">
@@ -474,27 +514,25 @@ function Cite() {
       <InfoCard icon={iconFor('limit')} title="Known limitations" id="known-limits">
         <Items
           items={[
-            { icon: 'model', text: 'OG-UK: one sector, no unemployment, imposed technology paths, perfect foresight.' },
-            { icon: 'tax', text: 'Its tax effect is likely too small.' },
             {
-              icon: 'link',
+              icon: 'model',
               text: (
                 <>
-                  Each is stated once:{' '}
+                  OG-UK:{' '}
                   <NavLink tab="method" sub="how" anchor="m-limits">
-                    Method, limitations
+                    the limitations grid
                   </NavLink>
                   .
                 </>
               ),
             },
             {
-              icon: 'provisional',
+              icon: 'households',
               text: (
                 <>
-                  The household study is one year and provisional:{' '}
-                  <NavLink tab="method" sub="households">
-                    Household method
+                  The household study:{' '}
+                  <NavLink tab="method" sub="households" anchor="hm-out">
+                    what it leaves out
                   </NavLink>
                   .
                 </>
@@ -517,10 +555,40 @@ const Entry = ({ e }) => (
 );
 const RECENT = 8;
 
+// Model decisions (the revision history, each on the tracker), then the
+// site's changes: one list, in Data and code.
+function Revisions() {
+  return (
+    <div className="info-card mx-card mx-history" id="revisions">
+      <h3 className="info-card-title">
+        <Icon name={iconFor('revision')} size={18} />
+        <span>Model decisions</span>
+      </h3>
+      <ol className="mx-history-list" data-reference="">
+        {HISTORY.map(([d, c, t, n], i) => (
+          <li key={i}>
+            <span className="mx-history-date">{d}</span>
+            <span className="mx-history-text">
+              <Icon name={iconFor(c)} size={16} className="mx-history-icon" />
+              <span>
+                {t} {ext(issue(n), `#${n}`)}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function Changelog() {
   const [recent, older] = [CHANGELOG.entries.slice(0, RECENT), CHANGELOG.entries.slice(RECENT)];
   return (
     <div className="info-card mx-card mx-history" data-reference="">
+      <h3 className="info-card-title">
+        <Icon name={iconFor('code')} size={18} />
+        <span>Site changes</span>
+      </h3>
       <ol className="mx-history-list">
         {recent.map((e) => (
           <Entry key={e.commit} e={e} />
@@ -601,7 +669,7 @@ export default function CodeTab() {
         </section>
         <section>
           <SectionHeading id="vintages" icon={iconFor('data')} title="Data vintages and versions">
-            <IconText icon="release">Which data, model and release each page is built from, read from the data files.</IconText>
+            <IconText icon="release">Which data, model and release each page is built from.</IconText>
           </SectionHeading>
           <Vintages />
         </section>
@@ -618,13 +686,10 @@ export default function CodeTab() {
           <Cite />
         </section>
         <section>
-          <SectionHeading id="changelog" icon={iconFor('revision')} title="Changelog">
-            <IconText icon="revision">What changed on the site, newest first. Model decisions are on{' '}
-            <NavLink tab="method" sub="how" anchor="m-history">
-              Method, revision history
-            </NavLink>
-            .</IconText>
+          <SectionHeading id="changelog" icon={iconFor('revision')} title="Changelog and revisions">
+            <IconText icon="revision">How the model design and the site changed. Each decision is on the tracker.</IconText>
           </SectionHeading>
+          <Revisions />
           <Changelog />
         </section>
         <section>

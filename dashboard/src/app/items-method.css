@@ -108,3 +108,163 @@
 .mx-tab .md-detail .story-items {
   margin-top: 6px;
 }
+
+/* ---------- wave 2: consolidation ---------- */
+
+/* "Used by": the charts and Story steps that use a Method section */
+.mx-uses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: -4px 0 14px;
+  font-size: var(--fs-caption);
+}
+.mx-uses-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pe-gray-600);
+  font-weight: 600;
+}
+.mx-uses-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mx-use-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 999px;
+  color: var(--pe-gray-800);
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+.mx-use-chip:hover,
+.mx-use-chip:focus-visible {
+  border-color: var(--c-gain);
+  color: var(--c-gain-text);
+}
+
+/* a sub-section heading inside a section (Scenarios: the scenarios, arms, timing) */
+.mx-tab .mx-subhead h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.mx-tab .mx-scenarios {
+  display: block;
+}
+
+/* scenario sources: one icon line each; the derivation behind a disclosure */
+.mx-src-lines,
+.mx-src-full {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-small);
+}
+.mx-src-lines > li,
+.mx-src-full > li {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.mx-src-lines > li.mx-src-derive {
+  display: block;
+}
+.mx-src-full {
+  color: var(--pe-gray-700);
+  line-height: 1.5;
+}
+
+/* limitations: an icon grid, one tile per limitation */
+.mx-limit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mx-limit-tile {
+  padding: 12px 14px;
+  border: 1px solid var(--pe-gray-200);
+  border-radius: var(--card-radius);
+  background: var(--surface, #fff);
+}
+.mx-limit-tile h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+.mx-limit-tile .story-items {
+  font-size: var(--fs-caption);
+}
+
+/* a fact that moved: one line pointing to its home */
+.mx-tab .mx-moved,
+.hm-page .mx-moved {
+  margin: 16px 0;
+  color: var(--pe-gray-600);
+  font-size: var(--fs-small);
+}
+
+/* the drawn model diagram: arrows give each flow's direction; choosing a
+   block lights its flows and dims the rest */
+.md-flow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.md-edge-hf .md-flow,
+.md-edge-wg .md-flow {
+  justify-content: center;
+}
+.md-arrow {
+  flex: none;
+  margin-top: 3px;
+  color: var(--pe-gray-500);
+  transition: color 0.2s;
+}
+.md-arrow-left { transform: rotate(180deg); }
+.md-arrow-down { transform: rotate(90deg); }
+.md-arrow-up { transform: rotate(-90deg); }
+.md-edge {
+  transition: opacity 0.2s;
+}
+.md-grid.is-lit .md-edge:not(.is-lit) {
+  opacity: 0.4;
+}
+.md-edge.is-lit .md-arrow {
+  color: var(--c-gain);
+}
+.md-note {
+  margin: 8px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+@media (max-width: 760px) {
+  .md-arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-edge,
+  .md-arrow,
+  .mx-use-chip { transition: none; }
+}
+.hm-out-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--fs-small);
+}

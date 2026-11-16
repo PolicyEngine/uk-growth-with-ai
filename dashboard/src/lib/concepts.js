@@ -102,6 +102,8 @@ export const CONCEPT_ICON = {
   prerequisite: 'key', // what you need first
   check: 'microscope', // a check of the numbers
   arithmetic: 'calculator', // arithmetic, not a solve
+  story: 'compass', // a Story step that uses a Method section
+  related: 'externalLink', // related PolicyEngine work, on its own pages
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
