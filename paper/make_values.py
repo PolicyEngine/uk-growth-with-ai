@@ -97,12 +97,17 @@ OBR_TAX_PER_PP = (0.19, 0.23)                              # FRS 2026 Box 4.1 / 
 OBR_FRS_RATE_LABOUR, OBR_FRS_RATE_PROFITS = 46.0, 27.0     # FRS 2026 Box 4.1
 OBR_WEDGE_PP = (19.0, 23.0)                                # FRS 46-27, EFO 40-17
 IMF_OUTPUT_Y4_PCT, IMF_OUTPUT_Y5_PCT = 2.52, 3.26          # SIP/2026/072, uk_calibration.md
-IMF_TFP_Y4_PCT = 0.42
+IMF_TFP_Y4_PCT = 0.42            # read off SIP/2026/072 Figure 9 (only years 5 and 10 are printed)
+IMF_TFP_Y4_READ = (0.41, 0.44)   # the range of that reading
 IMF_TFP_Y5_PCT = 0.53                                      # SIP/2026/072, five years after adoption starts
 # OBR, October 2026 EFO, Table A.1 p.180 (comparison only; the baseline is calibrated to March)
 OBR_OCT_GDP_GROWTH = {2027: 1.0, 2028: 1.6, 2029: 1.8, 2030: 1.7}
 OBR_OCT_TREND_PROD = {2028: 1.0, 2029: 1.1, 2030: 1.1, 2031: 1.1}   # trend productivity per hour
 IMF_COST_SAVING_PCT = 27                                   # SIP/2026/072 para 44
+# OBR FRS 2026 Box 4.1 "reduced labour share": wage and salary share of GDP, linear
+OBR_WAGE_SHARE_PATH = ((2030, 40.0), (2075, 20.0))         # 2030-31 to 2075-76
+OBR_AI_BOOST_PP = {"uk_low": 0.1, "uk_central": 0.2, "uk_high": 0.8}   # pp a year by year five (BP9, FRS)
+IMF_LONGRUN_SHARE_PP, IMF_LONGRUN_YEARS = 10, 17          # SIP/2026/072 para 44
 KORINEK_T5_WAGE_PCT = {"One": -1.6, "Three": 2.1, "Six": 3.7, "Inf": 5.6}
 PE = r"\pend{}"
 SHARE = "share"                      # Values.put format for a % of adults losing
@@ -566,6 +571,53 @@ def emit(v: Values, R: dict) -> None:
     v.put("ImfTfpYFivePct", IMF_TFP_Y5_PCT, "{:.2f}")
     v.put("ImfOutputYFivePctTwoDp", IMF_OUTPUT_Y5_PCT, "{:.2f}")
     v.put("ImfCostSavingPct", IMF_COST_SAVING_PCT, "{:.0f}")
+    # UK central's labour-share fall: derived by the paper (TFP / cost saving), not an IMF figure
+    grid = sp.scenario_grid()
+    share = lambda tfp: tfp / (IMF_COST_SAVING_PCT / 100)
+    tfp_in = grid["uk_central"]["tfp_gain"] * 100
+    ramp4 = lambda g: sum(g * k / 5 for k in range(1, 5))   # linear to g by year five, level at year four
+    v.put("ImfTfpYFourLoPct", IMF_TFP_Y4_READ[0], "{:.2f}")
+    v.put("ImfTfpYFourHiPct", IMF_TFP_Y4_READ[1], "{:.2f}")
+    v.put("UkCentralTfpInputTwoDp", ramp4(OBR_AI_BOOST_PP["uk_central"]), "{:.2f}")
+    v.put("ImfShareReadLoPp", share(IMF_TFP_Y4_READ[0]), "{:.1f}")
+    v.put("ImfShareReadHiPp", share(IMF_TFP_Y4_READ[1]), "{:.1f}")
+    v.put("UkCentralShareInputConsistentPp", share(tfp_in), "{:.1f}")
+    v.put("UkLowShareFromTfpPp", share(grid["uk_low"]["tfp_gain"] * 100), "{:.1f}")
+    v.put("UkHighShareFromTfpPp", share(grid["uk_high"]["tfp_gain"] * 100), "{:.1f}")
+    for sc, g in OBR_AI_BOOST_PP.items():
+        v.put(f"{SCEN[sc]}ObrBoostPp", g, "{:.1f}")
+    v.put("ImfLongRunSharePp", IMF_LONGRUN_SHARE_PP, "{:.0f}")
+    v.put("ImfLongRunYears", IMF_LONGRUN_YEARS, "{:.0f}")
+    v.put("ImfLinearShareYFourPp", IMF_LONGRUN_SHARE_PP / IMF_LONGRUN_YEARS * 4, "{:.2f}")
+    (y0, w0), (y1, w1) = OBR_WAGE_SHARE_PATH
+    obr4 = (w0 - w1) / (y1 - y0) * 4
+    scaled = obr4 * (1 - G0) / (w0 / 100)
+    v.put("ObrWageShareFourYearPp", obr4, "{:.2f}")
+    v.put("ObrWageShareStartPct", w0, "{:.0f}")
+    v.put("ObrWageShareEndPct", w1, "{:.0f}")
+    v.put("ObrWageShareStartFy", f"{y0}--{(y0 + 1) % 100:02d}")
+    v.put("ObrWageShareEndFy", f"{y1}--{(y1 + 1) % 100:02d}")
+    v.put("ObrWageShareScaledPp", scaled, "{:.1f}")
+    fails = []
+    if not math.isclose(round(share(IMF_TFP_Y4_PCT), 1), grid["uk_central"]["labour_share_fall_pp"]):
+        fails.append("UK central's share fall is not TFP reading / cost saving, to 1 dp")
+    if not IMF_TFP_Y4_READ[0] <= IMF_TFP_Y4_PCT <= IMF_TFP_Y4_READ[1]:
+        fails.append("IMF year-4 reading outside its range")
+    if round(IMF_TFP_Y4_PCT, 1) != round(tfp_in, 1):
+        fails.append("'the two UK central sources agree to one decimal place' fails")
+    for sc, g in OBR_AI_BOOST_PP.items():   # each scenario's TFP input is its OBR ramp
+        if not math.isclose(ramp4(g), grid[sc]["tfp_gain"] * 100, abs_tol=1e-9):
+            fails.append(f"{sc} TFP input is not the OBR linear ramp to {g}pp a year by year five")
+    if not math.isclose(round(share(grid["uk_low"]["tfp_gain"] * 100), 1), grid["uk_low"]["labour_share_fall_pp"]):
+        fails.append("UK low's share fall is not its TFP / cost saving")
+    if not math.isclose(round(scaled, 1), grid["uk_high"]["labour_share_fall_pp"]):
+        fails.append("UK high's share fall is not the scaled OBR path")
+    if not share(grid["uk_high"]["tfp_gain"] * 100) > scaled:
+        fails.append("'the IMF-based rule would give more than the OBR path' fails for UK high")
+    if not obr4 > grid["uk_central"]["labour_share_fall_pp"]:
+        fails.append("the OBR four-year path is not above UK central's share fall")
+    if fails:
+        raise ResultsError("calibration claims fail: " + "; ".join(fails))
     v.put("ObrFrsRateLabourPct", OBR_FRS_RATE_LABOUR, "{:.0f}")
     v.put("ObrFrsRateProfitsPct", OBR_FRS_RATE_PROFITS, "{:.0f}")
     if OBR_FRS_RATE_LABOUR - OBR_FRS_RATE_PROFITS != OBR_WEDGE_PP[0]:
