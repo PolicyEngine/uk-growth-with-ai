@@ -637,7 +637,7 @@
 
 /* The UK vitals panel: seven tiles, one row on wide screens */
 .p1-vitals {
-  margin: 12px 0 4px;
+  margin: 4px 0;
 }
 .p1-vitals-head {
   display: flex;
@@ -645,7 +645,7 @@
   gap: 4px 16px;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .p1-vitals-head h3 {
   display: flex;
@@ -745,9 +745,23 @@
   font-size: 11px;
   color: var(--pe-gray-500);
 }
-.p1-vital-meta {
+.p1-vital-main,
+.p1-vital-cite {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+}
+.p1-vital-cite {
   margin-top: auto;
+  padding-top: 1px;
+}
+.p1-vital-meta {
   font-size: 11px;
+}
+.p1-vital-src .p1-source-icon {
+  margin-right: 3px;
+  vertical-align: -1px;
 }
 .p1-vital-src {
   font-size: 11px;

@@ -26,13 +26,66 @@ const periodOf = (p) =>
     .replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g, (m) => m.slice(0, 3));
 
 export const VITALS = [
-  { key: 'gdp', fact: 'gdp_quarterly_latest', series: 'gdp_quarterly', icon: 'gdp', name: 'GDP', label: 'on a quarter earlier', growth: true },
-  { key: 'productivity', fact: 'productivity_oph_latest', series: 'productivity_oph', icon: 'productivity', name: 'Output per hour', label: 'index, 2023 = 100', format: idx1 },
-  { key: 'employment', fact: 'employment_rate_latest', series: 'employment_rate', icon: 'labour', name: 'Employment', label: 'rate, aged 16 to 64' },
-  { key: 'unemployment', fact: 'unemployment_rate_latest', series: 'unemployment_rate', icon: 'labour', name: 'Unemployment', label: 'rate, aged 16 and over' },
-  { key: 'pay', fact: 'pay_growth_latest', series: 'pay_growth', icon: 'pay', name: 'Regular pay', label: 'on a year earlier', growth: true },
-  { key: 'share', fact: 'labour_share_latest', series: 'labour_share', icon: 'labourShare', name: 'Employee share', label: 'of GDP (computed)' },
-  { key: 'ai', fact: 'business_ai_use', series: 'business_ai_use', icon: 'ai', name: 'Business AI use', label: 'of businesses use AI', cite: `BICS Wave ${BICS_WAVE}` },
+  {
+    key: 'gdp',
+    fact: 'gdp_quarterly_latest',
+    series: 'gdp_quarterly',
+    icon: 'gdp',
+    name: 'GDP',
+    label: 'on a quarter earlier',
+    growth: true,
+  },
+  {
+    key: 'productivity',
+    fact: 'productivity_oph_latest',
+    series: 'productivity_oph',
+    icon: 'productivity',
+    name: 'Output per hour',
+    label: 'index, 2023 = 100',
+    format: idx1,
+  },
+  {
+    key: 'employment',
+    fact: 'employment_rate_latest',
+    series: 'employment_rate',
+    icon: 'labour',
+    name: 'Employment',
+    label: 'rate, aged 16 to 64',
+  },
+  {
+    key: 'unemployment',
+    fact: 'unemployment_rate_latest',
+    series: 'unemployment_rate',
+    icon: 'labour',
+    name: 'Unemployment',
+    label: 'rate, aged 16 and over',
+  },
+  {
+    key: 'pay',
+    fact: 'pay_growth_latest',
+    series: 'pay_growth',
+    icon: 'pay',
+    name: 'Regular pay',
+    label: 'on a year earlier',
+    growth: true,
+  },
+  {
+    key: 'share',
+    fact: 'labour_share_latest',
+    series: 'labour_share',
+    icon: 'labourShare',
+    name: 'Employee share',
+    label: 'of GDP (computed)',
+  },
+  {
+    key: 'ai',
+    fact: 'business_ai_use',
+    series: 'business_ai_use',
+    icon: 'ai',
+    name: 'Business AI use',
+    label: 'of businesses use AI',
+    cite: `BICS Wave ${BICS_WAVE}`,
+  },
 ];
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -73,57 +126,64 @@ function Tile({ v, today }) {
   const next = src.next_release;
   return (
     <li id={`p1-vital-${v.key}`} className="p1-vital" data-vital={v.key}>
-      <span className="p1-vital-name">
-        <Icon name={iconFor(v.icon)} size={15} className="p1-text-icon" />
-        {v.name}
-        {first ? (
-          <span className="p1-flag">
-            <Icon name={iconFor('revision')} size={11} /> First estimate
-          </span>
-        ) : null}
-      </span>{' '}
-      <span className="p1-vital-value">
-        {v.growth ? (
-          <span className="p1-vital-dir" aria-hidden="true">
-            <Icon name={iconFor(dirOf(f.value))} size={16} />
-          </span>
-        ) : null}
-        <Ext href={pageOf(f.source)} className="p1-val-link">
-          <span className={v.growth ? 'p1-growth' : undefined} data-dir={v.growth ? dirOf(f.value) : undefined} data-path={path}>
-            {text}
-          </span>
-        </Ext>
-        <Spark ys={s.y} />
-      </span>{' '}
-      <span className="p1-vital-label">{v.growth ? `${dirWord(f.value)}, ${v.label}` : v.label}</span>
-      <span className="p1-vital-sub">Through {periodOf(f.period)}</span>
-      <span className="p1-vital-meta">
-        Released {dateShort(src.released)}
-        {next && today ? (
-          <>
-            <br />
-            {next >= today ? `Next ${dateShort(next)}` : `Newer figures out ${dateShort(next)}, not shown`}
-          </>
-        ) : null}
-      </span>
-      <span className="p1-vital-src">
-        <Ext href={pageOf(f.source)}>
-          {short(src)}, {v.cite ?? src.series.replace(/\s*\(.*$/, '')}
-        </Ext>
-        {src.url !== pageOf(f.source) ? (
-          <>
-            {' · '}
-            <Ext href={src.url}>{src.data_label ?? 'data'}</Ext>
-          </>
-        ) : null}
-      </span>
+      <p className="p1-vital-main">
+        <span className="p1-vital-name">
+          <Icon name={iconFor(v.icon)} size={15} className="p1-text-icon" />
+          {v.name}
+          {first ? (
+            <span className="p1-flag">
+              <Icon name={iconFor('revision')} size={11} /> First estimate
+            </span>
+          ) : null}
+        </span>{' '}
+        <span className="p1-vital-value">
+          {v.growth ? (
+            <span className="p1-vital-dir" aria-hidden="true">
+              <Icon name={iconFor(dirOf(f.value))} size={16} />
+            </span>
+          ) : null}
+          <Ext href={pageOf(f.source)} className="p1-val-link">
+            <span className={v.growth ? 'p1-growth' : undefined} data-dir={v.growth ? dirOf(f.value) : undefined} data-path={path}>
+              {text}
+            </span>
+          </Ext>
+          <Spark ys={s.y} />
+        </span>{' '}
+        <span className="p1-vital-label">{v.growth ? `${dirWord(f.value)}, ${v.label}` : v.label}</span>
+        <span className="p1-vital-sub">Through {periodOf(f.period)}</span>
+      </p>
+      <p className="p1-vital-cite" data-cite="">
+        <span className="p1-vital-meta">
+          Released {dateShort(src.released)}
+          {next && today ? (
+            <>
+              <br />
+              {next >= today ? `Next ${dateShort(next)}` : `Newer figures out ${dateShort(next)}, not shown`}
+            </>
+          ) : null}
+        </span>
+        <span className="p1-vital-src">
+          <Icon name={iconFor('source')} size={11} className="p1-source-icon" />
+          <Ext href={pageOf(f.source)}>
+            {short(src)}, {v.cite ?? src.series.replace(/\s*\(.*$/, '')}
+          </Ext>
+          {src.url !== pageOf(f.source) ? (
+            <>
+              {' · '}
+              <Ext href={src.url}>{src.data_label ?? 'data'}</Ext>
+            </>
+          ) : null}
+        </span>
+      </p>
     </li>
   );
 }
 
 export default function Vitals() {
   const today = useToday();
-  const asOf = VITALS.map((v) => SOURCES[FACTS[v.fact].source].released).sort().at(-1);
+  const asOf = VITALS.map((v) => SOURCES[FACTS[v.fact].source].released)
+    .sort()
+    .at(-1);
   return (
     <section id="p1-vitals" className="p1-vitals" aria-labelledby="p1-vitals-title">
       <header className="p1-vitals-head">
