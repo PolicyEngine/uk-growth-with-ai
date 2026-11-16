@@ -70,8 +70,8 @@ describe('HouseholdsExplore', () => {
     const { container } = render(<HouseholdsExplore />);
     const rows = container.querySelector('#hh-displaced .hh-uc-rows');
     expect(rows.classList.contains('is-data')).toBe(true);
-    expect(rows.textContent).toContain('£1,385');
-    expect(rows.textContent).toContain('£2,735');
+    expect(rows.textContent).toContain('£1,415');
+    expect(rows.textContent).toContain('£2,807');
     fireEvent.click([...container.querySelectorAll('#hh-displaced [role="radio"]')][1]);
     expect(rows.classList.contains('is-full')).toBe(true);
   });

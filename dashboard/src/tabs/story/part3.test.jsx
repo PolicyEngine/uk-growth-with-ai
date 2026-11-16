@@ -72,9 +72,10 @@ describe('Part3', () => {
 
   it('prints the headline figures the paper prints', () => {
     const text = checkedText(renderPart().container);
-    for (const s of ['£7.4bn', '+2.34pp', '11.4%', '13.4%', '+1.76pp', '0.302', '£40.7bn', '£23.3bn', '£6.2bn', '£0.4bn', '£1.3bn', '£15.4bn', '£3.1bn', '42p', '41p–43p', '55p', '+3.7%', '+56%', '9.4 months', '£9.9bn', '£12.6bn', '+2.31pp', '+2.10pp', '+1.92pp'])
+    for (const s of ['£7.3bn', '+2.40pp', '12.0%', '13.4%', '+1.76pp', '0.303', '£42.5bn', '£24.0bn', '£6.5bn', '£0.4bn', '£1.3bn', '£15.8bn', '£3.2bn', '42p', '41p–43p', '55p', '+3.7%', '+55%', '9.5 months', '£9.9bn', '£12.6bn', '+2.38pp', '+2.18pp', '+1.99pp'])
       expect(text, s).toContain(s);
-    expect(text).toContain(`${MINUS}£16.8bn`);
+    expect(text).toContain(`${MINUS}£17.5bn`);
+    expect(text).toContain(`${MINUS}£17.9bn`);
   });
 
   it('runs eight sections in the paper order, each with a numbered kicker (step 7 in two cards)', () => {
@@ -118,7 +119,7 @@ describe('Part3', () => {
     expect(d1.querySelector('.p3-row-value').textContent).toBe('see note');
     const cav = d1.querySelector('[data-caveat="bottom-decile"]');
     expect(cav.textContent).toContain('does not report the bottom income decile as a finding');
-    for (const s of ['+1.78%', `${MINUS}0.33%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
+    for (const s of ['+1.86%', `${MINUS}0.32%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
     expect(cav.querySelector('[data-input]')).toBeNull();
     expect(container.querySelector('[data-decile="2"] .p3-fill-loss')).not.toBeNull();
   });
@@ -143,12 +144,12 @@ describe('Part3', () => {
     }
     // decile flows add up to each decile's earnings lost, and the deciles to the total
     S.deciles.forEach((f) => expect(f.tax_ni_bn + f.benefits_bn + f.other_bn + f.disposable_bn).toBeCloseTo(f.earnings_lost_bn, 3));
-    expect(fmtBn(S.total.earnings_lost_bn)).toBe('£23.3bn');
-    expect(fmtBn(S.total.tax_ni_bn)).toBe('£6.2bn');
+    expect(fmtBn(S.total.earnings_lost_bn)).toBe('£24.0bn');
+    expect(fmtBn(S.total.tax_ni_bn)).toBe('£6.5bn');
     expect(fmtBn(S.total.benefits_bn)).toBe('£0.4bn');
     expect(fmtBn(S.total.other_bn)).toBe('£1.3bn');
-    expect(fmtBn(S.total.disposable_bn)).toBe('£15.4bn');
-    expect(fmtBn(S.employer_ni_bn)).toBe('£3.1bn');
+    expect(fmtBn(S.total.disposable_bn)).toBe('£15.8bn');
+    expect(fmtBn(S.employer_ni_bn)).toBe('£3.2bn');
     const { container } = renderPart();
     const fig = container.querySelector('#p3-absorb');
     expect(fig.textContent).toContain('Job loss alone, a smaller run sized to the OBR’s March 2026 displacement scenario, not the central case');

@@ -1,7 +1,7 @@
-"""Write dashboard/src/data/aiStudy2425.json: the provisional results of the
-PolicyEngine-UK microsimulation of AI job displacement (PolicyEngine/uk-ai-study
-PR #18, branch data/microcosm-2024-25, Microcosm UK 2024-25), for part 3 of the
-story.
+"""Write dashboard/src/data/aiStudy2425.json: the results of the PolicyEngine-UK
+microsimulation of AI job displacement (PolicyEngine/uk-ai-study, main at the
+merge commit of PR #18, Microcosm UK 2024-25, fiscal year 2027-28), for part 3
+of the story, Explore > Households and Method > Household method.
 
 Reads only analysis/story/ai_study/ (verbatim copies of committed result files
 at their repo paths, plus SOURCE.json with the commit they came from). No
@@ -9,8 +9,11 @@ network. Every value is read or derived from those files with the formulas the
 study's own emitter (analysis/emit_tex_values.py and its helpers
 post_takeup_runs.py, post_wage_cut.py, revision_accounting.py) uses; nothing is
 typed in. The builder asserts its rounded outputs against the paper's printed
-values (paper/values_generated.tex at the same commit), so a silent change in
-the copied files fails loudly.
+values (paper/values_generated.tex at the same commit: every check reads its
+expected value from that file's macros), so a silent change in the copied
+files fails loudly. The model year (genModelFiscalYear) and the study's status
+(SOURCE.json; BUILD_MANIFEST recovery_note) are read from the same copies and
+written as data, so components never hard-code them.
 
     python dashboard/scripts/build_ai_study_data.py
 """
@@ -97,6 +100,17 @@ def sd(xs) -> float:
 
 def main() -> None:
     source = jload("SOURCE.json")
+    P = paper_macros()
+
+    def pc(name: str, value: float, ndp: int) -> None:
+        check(name, value, pnum(P, name), ndp)
+
+    # FY as the paper prints it (\genModelFiscalYear, "2027--28"), en dash
+    model_year = P["genModelFiscalYear"].replace("--", "\u2013")
+    man = jload(F_MAN)
+    status_note = (
+        f"PR #{source['pr']} was merged into main on {source['merged_utc'][:10]}. Neither the README nor the paper at "
+        f"{source['commit'][:7]} calls the study provisional or a draft. Its build manifest says: \"{man['recovery_note']}\"")
 
     # --- headline ------------------------------------------------------------
     cmc = jload(F_CMC)
@@ -109,12 +123,12 @@ def main() -> None:
                 "gini_pp": (d["gini_shocked"] - d["gini_baseline"]) * 100}
     lo, hi = preset(low), preset(high)
 
-    check("genCentralMcCostMeanBn", cmc["exchequer_cost_bn"]["mean"], 7.4, 1)
-    check("genCentralMcCostSdBn", cmc["exchequer_cost_bn"]["sd"], 1.8, 1)
-    check("genCentralMcPovBhcMeanPp", cmc["poverty_change_bhc_pp"]["mean"], 2.34, 2)
-    check("genCentralMcGiniMeanPp", cmc["gini_change_pp"]["mean"], 1.76, 2)
-    check("genLowCostBn", lo["cost_bn"], -10.4, 1)
-    check("genHighCostBn", hi["cost_bn"], 43.4, 1)
+    pc("genCentralMcCostMeanBn", cmc["exchequer_cost_bn"]["mean"], 1)
+    pc("genCentralMcCostSdBn", cmc["exchequer_cost_bn"]["sd"], 1)
+    pc("genCentralMcPovBhcMeanPp", cmc["poverty_change_bhc_pp"]["mean"], 2)
+    pc("genCentralMcGiniMeanPp", cmc["gini_change_pp"]["mean"], 2)
+    pc("genLowCostBn", lo["cost_bn"], 1)
+    pc("genHighCostBn", hi["cost_bn"], 1)
 
     cost_note = ("Fall in the government balance (income tax, NI incl. employer NI, benefits); "
                  "no corporation tax. Negative = net gain to the Exchequer.")
@@ -199,22 +213,22 @@ def main() -> None:
     assert sorted(int(x["seed"]) for x in t3) == list(range(20))
     obr = jload(F_OBR)["summary"]
 
-    check("central seeds 0-19 cost (PR table 7.2)", mean(x["exchequer_cost_bn"] for x in c20), 7.2, 1)
-    check("genTkCentralTakeupCostMeanBn", tk_mean("central", "takeup1", "exchequer_cost_bn"), 9.9, 1)
-    check("genTkCentralJsaCostMeanBn", tk_mean("central", "jsa", "exchequer_cost_bn"), 12.6, 1)
-    check("genTkCentralTakeupPovBhcMeanPp", tk_mean("central", "takeup1", "poverty_change_bhc_pp"), 2.10, 2)
-    check("genTkCentralJsaPovBhcMeanPp", tk_mean("central", "jsa", "poverty_change_bhc_pp"), 1.92, 2)
-    check("genTkCentralTakeupGiniMeanPp", tk_mean("central", "takeup1", "gini_change_pp"), 1.56, 2)
-    check("genTkCentralJsaGiniMeanPp", tk_mean("central", "jsa", "gini_change_pp"), 1.46, 2)
-    check("genWcWageCostMeanBn", mean(x["exchequer_cost_bn"] for x in t3), 18.9, 1)
-    check("genWcWagePovBhcMeanPp", mean(x["poverty_change_bhc_pp"] for x in t3), 0.20, 2)
-    check("genObrCostMeanBn", obr["exchequer_cost_bn"]["mean"], 9.7, 1)
-    check("genTkObrTakeupCostMeanBn", tk_mean("obr", "takeup1", "exchequer_cost_bn"), 10.4, 1)
-    check("genTkObrJsaCostMeanBn", tk_mean("obr", "jsa", "exchequer_cost_bn"), 11.1, 1)
+    pc("genCapCentralTwentyCostMeanBn", mean(x["exchequer_cost_bn"] for x in c20), 1)
+    pc("genTkCentralTakeupCostMeanBn", tk_mean("central", "takeup1", "exchequer_cost_bn"), 1)
+    pc("genTkCentralJsaCostMeanBn", tk_mean("central", "jsa", "exchequer_cost_bn"), 1)
+    pc("genTkCentralTakeupPovBhcMeanPp", tk_mean("central", "takeup1", "poverty_change_bhc_pp"), 2)
+    pc("genTkCentralJsaPovBhcMeanPp", tk_mean("central", "jsa", "poverty_change_bhc_pp"), 2)
+    pc("genTkCentralTakeupGiniMeanPp", tk_mean("central", "takeup1", "gini_change_pp"), 2)
+    pc("genTkCentralJsaGiniMeanPp", tk_mean("central", "jsa", "gini_change_pp"), 2)
+    pc("genWcWageCostMeanBn", mean(x["exchequer_cost_bn"] for x in t3), 1)
+    pc("genWcWagePovBhcMeanPp", mean(x["poverty_change_bhc_pp"] for x in t3), 2)
+    pc("genObrCostMeanBn", obr["exchequer_cost_bn"]["mean"], 1)
+    pc("genTkObrTakeupCostMeanBn", tk_mean("obr", "takeup1", "exchequer_cost_bn"), 1)
+    pc("genTkObrJsaCostMeanBn", tk_mean("obr", "jsa", "exchequer_cost_bn"), 1)
 
     def rung(id_, label, cost, pov, gini, draws, file, key, note=None):
-        return {"id": id_, "label": label, "cost_bn": r(cost, 2), "poverty_pp": None if pov is None else r(pov, 2),
-                "gini_pp": None if gini is None else r(gini, 2), "draws": draws, "file": file, "key": key,
+        return {"id": id_, "label": label, "cost_bn": r(cost, 4), "poverty_pp": None if pov is None else r(pov, 4),
+                "gini_pp": None if gini is None else r(gini, 4), "draws": draws, "file": file, "key": key,
                 "note": note}
 
     c = "mean over seeds of column {} (exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp)"
@@ -255,15 +269,19 @@ def main() -> None:
 
     # --- displacement rules ----------------------------------------------------
     inc = jload(F_INC)
-    check("genIncUniformCostMeanBn", inc["uniform"]["exchequer_cost_bn"]["mean"], 2.2, 1)
-    check("genIncCompressionCostMeanBn", inc["compression"]["exchequer_cost_bn"]["mean"], 11.2, 1)
-    check("genIncKleinCostMeanBn", inc["klein_top_loaded"]["exchequer_cost_bn"]["mean"], 26.9, 1)
+    pc("genIncUniformCostMeanBn", inc["uniform"]["exchequer_cost_bn"]["mean"], 1)
+    pc("genIncJuniorCostMeanBn", inc["junior"]["exchequer_cost_bn"]["mean"], 1)
+    pc("genIncUniformPovBhcMeanPp", inc["uniform"]["poverty_change_bhc_pp"]["mean"], 2)
+    pc("genIncKleinPovBhcMeanPp", inc["klein_top_loaded"]["poverty_change_bhc_pp"]["mean"], 2)
+    pc("genIncCompressionCostMeanBn", inc["compression"]["exchequer_cost_bn"]["mean"], 1)
+    pc("genIncKleinCostMeanBn", inc["klein_top_loaded"]["exchequer_cost_bn"]["mean"], 1)
     rule_labels = [("uniform", "Uniform"), ("junior", "Junior-tilted"), ("exposure", "Exposure-proportional (central)"),
                    ("compression", "Expertise compression"), ("klein_top_loaded", "Top-loaded stress test")]
-    rules = [{"id": k, "label": lab, "cost_bn": r(inc[k]["exchequer_cost_bn"]["mean"], 2),
-              "cost_sd_bn": r(inc[k]["exchequer_cost_bn"]["sd"], 2),
-              "poverty_pp": r(inc[k]["poverty_change_bhc_pp"]["mean"], 2),
-              "gini_pp": r(inc[k]["gini_change_pp"]["mean"], 2),
+    # four decimals: at cd54488 two would put uniform (1.948) and junior (7.047) on a one-decimal tie
+    rules = [{"id": k, "label": lab, "cost_bn": r(inc[k]["exchequer_cost_bn"]["mean"], 4),
+              "cost_sd_bn": r(inc[k]["exchequer_cost_bn"]["sd"], 4),
+              "poverty_pp": r(inc[k]["poverty_change_bhc_pp"]["mean"], 4),
+              "gini_pp": r(inc[k]["gini_change_pp"]["mean"], 4),
               "draws": int(inc["_metadata"]["draws"]), "file": F_INC, "key": f"{k}.exchequer_cost_bn.mean"}
              for k, lab in rule_labels]
 
@@ -281,11 +299,11 @@ def main() -> None:
     gross = mean(x["gross_cut_bn"] for x in co)
     cut_gov = mean(x["exchequer_cost_bn"] for x in co) / gross
     cut_hh = mean(x["household_basis_cost_bn"] for x in co) / gross
-    for name, val, exp in [("genAbsJobGovPct", job_gov, 42), ("genAbsJobHhPct", job_hh, 29),
-                           ("genAbsJobGovTakeupPct", pp["takeup1"][0], 45), ("genAbsJobHhTakeupPct", pp["takeup1"][1], 31),
-                           ("genAbsJobGovJsaPct", pp["jsa"][0], 47), ("genAbsJobHhJsaPct", pp["jsa"][1], 34),
-                           ("genAbsCutGovPct", cut_gov, 55), ("genAbsCutHhPct", cut_hh, 40)]:
-        check(name, 100 * val, exp, 0)
+    for name, val in [("genAbsJobGovPct", job_gov), ("genAbsJobHhPct", job_hh),
+                           ("genAbsJobGovTakeupPct", pp["takeup1"][0]), ("genAbsJobHhTakeupPct", pp["takeup1"][1]),
+                           ("genAbsJobGovJsaPct", pp["jsa"][0]), ("genAbsJobHhJsaPct", pp["jsa"][1]),
+                           ("genAbsCutGovPct", cut_gov), ("genAbsCutHhPct", cut_hh)]:
+        pc(name, 100 * val, 0)
     per_pound = [
         {"id": "job_loss", "label": "Job loss", "government_p": r(100 * job_gov, 1), "household_p": r(100 * job_hh, 1),
          "draws": 1, "file": F_CG,
@@ -308,15 +326,15 @@ def main() -> None:
     obrd = rows(F_OBRD)
     uc_pw = mean(x["uc_change_bn"] for x in obrd) * 1e3 / mean(x["displaced_weighted_m"] for x in obrd)
     uc_pw_tk = tk_mean("obr", "takeup1", "uc_change_bn") * 1e3 / tk_mean("obr", "takeup1", "displaced_weighted_m")
-    for name, val, exp in [("genTkFlagTruePct", 100 * diag["flag_true_share"], 48),
-                           ("genTkFlagTrueEntitledPct", 100 * diag["flag_true_share_entitled_after"], 53),
-                           ("genTkOverCapitalPct", 100 * diag["over_capital_limit_share"], 42),
-                           ("genTkOtherEarnerPct", 100 * diag["other_earner_share"], 59),
-                           ("genTkOwnerPct", 100 * diag["owner_share"], 70),
-                           ("genTkUnempFlagEntitledPct", 100 * eu["flag_true_share_entitled"], 88)]:
-        check(name, val, exp, 0)
-    check("genObrUcPerDisplacedGbp", round(uc_pw, -1), 1380, 0)
-    check("genTkObrTakeupUcPerDisplacedGbp", round(uc_pw_tk, -1), 2740, 0)
+    for name, val in [("genTkFlagTruePct", 100 * diag["flag_true_share"]),
+                           ("genTkFlagTrueEntitledPct", 100 * diag["flag_true_share_entitled_after"]),
+                           ("genTkOverCapitalPct", 100 * diag["over_capital_limit_share"]),
+                           ("genTkOtherEarnerPct", 100 * diag["other_earner_share"]),
+                           ("genTkOwnerPct", 100 * diag["owner_share"]),
+                           ("genTkUnempFlagEntitledPct", 100 * eu["flag_true_share_entitled"])]:
+        pc(name, val, 0)
+    pc("genObrUcPerDisplacedGbp", round(uc_pw, -1), 0)
+    pc("genTkObrTakeupUcPerDisplacedGbp", round(uc_pw_tk, -1), 0)
     k = "diagnostics.obr."
     displaced = {
         "claim_uc": {"label": "Benefit units of the displaced that claim UC (data take-up flags)",
@@ -350,8 +368,8 @@ def main() -> None:
     dec = sorted(rows(F_DEC), key=lambda x: int(x["decile"]))
     assert [int(x["decile"]) for x in dec] == list(range(1, 11))
     vals = [float(x["disposable_change_pct"]) for x in dec]
-    check("genDecompCiMaxLossPct", -min(vals), 2.86, 2)
-    check("genDecompCiDTenSignedPct", vals[9], 0.09, 2)
+    pc("genDecompCiMaxLossPct", -min(vals), 2)
+    pc("genDecompCiDTenSignedPct", vals[9], 2)
     decr = rows(F_DECR)
     hb = [x for x in decr if x["ranking"] == "hbai"]
     assert all(abs(float(a["disposable_change_pct"]) - b) < 1e-12 for a, b in zip(sorted(hb, key=lambda x: int(x["decile"])), vals))
@@ -372,8 +390,8 @@ def main() -> None:
     }
 
     notes = [
-        "Provisional: PR #18 is an open draft, not merged; numbers may change before publication.",
-        f"Data: Microcosm UK 2024-25 ({cmc['certified_data_build_id']}), simulated for 2026 with PolicyEngine-UK.",
+        f"Study: {source['repo']} main at {source['commit'][:7]} (PR #{source['pr']}, merged {source['merged_utc'][:10]}).",
+        f"Data: Microcosm UK 2024-25 ({cmc['certified_data_build_id']}), simulated for FY {model_year} with PolicyEngine-UK.",
         "Central scenario: 7% of employees displaced in proportion to occupational AI exposure (C-AIOE), "
         "wages of those who keep their jobs up 2.6% on average, interest and dividend income up 39.8% (+0.4pp return); displaced workers lose a full year of earnings.",
         "Exchequer cost is the fall in the government balance: income tax, employee and employer NI, and benefits; "
@@ -383,13 +401,24 @@ def main() -> None:
         "(central on those seeds costs £7.2bn); low and high scenarios one draw (seed 0); job-loss cost per pound seed 0.",
         "SDs describe assignment-draw variation only, not survey sampling or model uncertainty.",
         "The OBR-sized run is a different, smaller shock (1.7% displacement, no wage or capital channel), not a step on the central ladder.",
-        "Regional results are not on the study's data/microcosm-2024-25 branch; results/geo/ exists only on main and predates the move to Microcosm (FRS-era, superseded).",
+        "No regional results: the study's main branch has no results/geo/ (its README: the earlier maps used the enhanced FRS 2023-24 and were dropped with it).",
     ]
 
     out = {
-        "provisional": True,
-        "source": {"repo": source["repo"], "pr": source["pr"], "branch": source["branch"],
-                   "commit": source["commit"], "fetched": source["fetched"], "dataset": "Microcosm UK 2024-25"},
+        "provisional": False,
+        "model_year": model_year,
+        "model_year_label": f"FY {model_year}",
+        "status": source["pr_status"],
+        "status_note": status_note,
+        "commit": source["commit"],
+        "source": {"repo": source["repo"], "pr": source["pr"], "pr_status": source["pr_status"],
+                   "merged_utc": source["merged_utc"], "pr_head": source["pr_head"], "branch": source["branch"],
+                   "commit": source["commit"], "fetched": source["fetched"], "dataset": "Microcosm UK 2024-25",
+                   "repo_url": f"https://github.com/{source['repo']}",
+                   "commit_url": f"https://github.com/{source['repo']}/tree/{source['commit']}",
+                   "pr_url": f"https://github.com/{source['repo']}/pull/{source['pr']}",
+                   "paper_url": f"https://github.com/{source['repo']}/blob/{source['commit']}/paper/main.pdf",
+                   "files_base_url": f"https://github.com/{source['repo']}/blob/{source['commit']}/"},
         "headline": headline,
         "ladder": ladder,
         "rules": rules,
@@ -398,7 +427,7 @@ def main() -> None:
         "deciles": deciles,
         "regions": None,
         "notes": notes,
-        **extras(cmc, low),
+        **extras(cmc, low, model_year),
     }
     DEST.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
     print(f"wrote {DEST.relative_to(ROOT)}")
@@ -422,7 +451,7 @@ def zero_crossing(x, y) -> float:
     raise SystemExit("no zero crossing inside the grid")
 
 
-def extras(cmc: dict, low: dict) -> dict:
+def extras(cmc: dict, low: dict, model_year: str) -> dict:
     """The sections added for the eight-step part 3, Explore > Households and
     Method and sources > Household method (November 2026)."""
     P = paper_macros()
@@ -440,10 +469,13 @@ def extras(cmc: dict, low: dict) -> dict:
     baseline = {
         "absolute_bhc_pct": {"value": r(100 * povd["poverty_rate_bhc_baseline"], 2), "file": F_POVD,
                              "key": "poverty_rate_bhc_baseline * 100",
-                             "note": "Baseline (no shock), FY 2026-27; the baseline does not depend on the draw."},
+                             "note": f"Baseline (no shock), FY {model_year}; the baseline does not depend on the draw."},
         "relative_bhc_pct": {"value": r(100 * cmc["baseline_relative_poverty_bhc_rate"], 2), "file": F_CMC,
                              "key": "baseline_relative_poverty_bhc_rate * 100", "note": "60% of the baseline median."},
         "gini": {"value": r(low["gini_baseline"], 3), "file": F_LOW, "key": "gini_baseline", "note": None},
+        "baseline_source": "PolicyEngine-UK baseline",
+        "baseline_source_note": ("Simulated by PolicyEngine-UK on Microcosm UK 2024-25 for FY " + model_year +
+                                 "; not a DWP Households Below Average Income statistic."),
     }
 
     # --- the three channels (20 paired draws) -------------------------------
@@ -522,6 +554,12 @@ def extras(cmc: dict, low: dict) -> dict:
         "note": ("Each value sets the central cost to zero with the other two at their central settings (linear "
                  "interpolation). Full take-up and new-style JSA move each further away."),
         "paper_other_capital_pct": pnum(P, "genBeCapitalUpliftPct"),
+        "capital_choice_note": (
+            "capital.value_pct is the break-even the paper prints (genBeCapInterpUpliftPct, "
+            f"+{pnum(P, 'genBeCapInterpUpliftPct'):.0f}%, in the results.tex break-even table and intro.tex): linear between "
+            "the 20-draw central run and the simulated +60% uplift. paper_other_capital_pct "
+            f"(genBeCapitalUpliftPct, +{pnum(P, 'genBeCapitalUpliftPct'):.0f}%) is a second macro, extrapolated from the "
+            "one-run capital channel; the paper's text does not print it, so the dashboard does not show it."),
     }
 
     # --- pence per pound, matching 20-draw bases ---------------------------
@@ -631,6 +669,12 @@ def extras(cmc: dict, low: dict) -> dict:
         "policyengine": man["package_versions"]["policyengine"],
         "manifest_commit": man["git_commit"], "manifest_finished": man["finished_utc"],
         "manifest_full_rerun": "without a full clean-room rerun" not in man.get("recovery_note", ""), "file": F_MAN,
+        "manifest_recovery_note": man.get("recovery_note"),
+        "manifest_stages": [x["stage"] for x in man["stages"]],
+        # the runs the dashboard flagged "outside the study's attested rebuild" at 02956bd: those still
+        # missing from the manifest's stages (empty at cd54488, so the flag no longer applies)
+        "outside_rebuild": [k for k in ("wage_cut", "takeup", "obr_benchmark", "capital_variants", "obr_household_deciles")
+                            if k not in {x["stage"] for x in man["stages"]}],
         "households": P["genDataHouseholds"], "persons": P["genDataPersons"],
         "population_m": P["genDataPopulationM"], "employees_m": P["genDataEmployeesM"],
         "employee_rows": P["genDataEmployeeRows"], "kish_n": P["genDataEmployeeKishN"],
