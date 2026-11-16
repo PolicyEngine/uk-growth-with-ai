@@ -1,6 +1,6 @@
 # UK calibration of the AI scenarios (2028-surprise rerun)
 
-Decision (Vahid, 12 Nov 2026): the headline scenarios are calibrated to UK sources. Korinek et al.'s US "substantial" case is kept as a labelled upper scenario. Machine-readable targets are in `analysis/surprise/uk_targets.json`. Source texts and locations are as in `docs/literature_comparison.md`. "(ours)" marks our arithmetic or inference, not a figure printed in the source.
+Decision (Vahid, 12 Nov 2026): the headline scenarios are calibrated to UK sources. Korinek et al.'s US "substantial" case is kept as a labelled upper scenario. Machine-readable targets are in `analysis/surprise/uk_targets.json`. Source texts and locations are as in `docs/literature_comparison.md`. "(derived here)" marks arithmetic or inference done for this study, not a figure printed in the source.
 
 **Timing.** AI is an unanticipated shock from 2028. The γ and Z ramp weights are 0, 0.25, 0.5, 0.75 and 1 over 2027–2031, so 2028–2031 are adoption years 1–4. Every target is the level reached in **year 4 (2031)**.
 
@@ -22,26 +22,26 @@ UK sources give **one labour-share path each**, not a range:
 1. **IMF UK Selected Issues 2026** (Bellon, Deb, Gandhi and Rockall, SIP/2026/072).
    - The model is calibrated so that AI "raises the aggregate capital share by approximately 10 percentage points in the long run", reached "in 17 years rather than 34" (¶44, p.24; Annex III ¶4, p.37).
    - The share is the model's Cobb-Douglas capital share α(z), aggregated across 100 sectors (Annex III ¶1, p.37). That is a factor share of output, the same concept as the model's γ, so it maps point for point.
-   - **Where "about 0.6pp a year" came from.** It is 10/17 = 0.59pp, a straight line in time (ours). Over four years that gives 2.35pp.
-   - **That overstates year 4.** The IMF does not publish the share path. Its adoption path is convex: TFP is about +0.42% at year 4, +0.53% at year 5 and +1.40% at year 10 (Table 1, p.29; Figure 9, p.25). In its task framework each automated task saves 27% of its cost (¶44), so the output share moved from labour to AI capital is about the TFP gain divided by 0.27 (ours):
+   - **Where "about 0.6pp a year" came from.** It is 10/17 = 0.59pp, a straight line in time (derived here). Over four years that gives 2.35pp.
+   - **That overstates year 4.** The IMF does not publish the share path. Its adoption path is convex: TFP is about +0.42% at year 4, +0.53% at year 5 and +1.40% at year 10 (Table 1, p.29; Figure 9, p.25). In its task framework each automated task saves 27% of its cost (¶44), so the output share moved from labour to AI capital is about the TFP gain divided by 0.27 (derived here):
      - 1.56pp at year 4;
      - 1.96pp at year 5;
      - 5.2pp at year 10, against 10pp in the long run.
-   - **We use 1.6pp** as the IMF-consistent year-4 value.
+   - **The UK central scenario uses 1.6pp**, derived here as the IMF-consistent year-4 value (see the disclosure under section 2).
 2. **OBR *Fiscal risks and sustainability*, July 2026, Box 4.1.**
    - "The wage and salary share falls from 40 per cent in 2030-31 to 20 per cent in 2075-76" (p.87). The OBR calls this scale "at the upper end of the scenarios explored" in the literature.
    - The share is **wages and salaries as a share of GDP** (footnote a, p.88). It excludes employer social contributions and the labour part of mixed income, so it is not the model's factor share.
-   - **Where "0.44pp a year" came from.** It is 20pp over 45 years (ours). Chart E (p.88), digitised from the PDF's vector data, shows the tax gap opening linearly from 2030-31: about 0.26pp of GDP after 3 years and 3.7pp by 2073-74. That confirms a linear path.
+   - **Where "0.44pp a year" came from.** It is 20pp over 45 years (derived here). Chart E (p.88), digitised from the PDF's vector data, shows the tax gap opening linearly from 2030-31: about 0.26pp of GDP after 3 years and 3.7pp by 2073-74. That confirms a linear path.
    - After 4 years the fall is **1.78pp of GDP**, in wages-and-salaries terms.
    - **Mapping onto 1 − γ = 0.65:**
      - point for point, 1.78pp;
      - scaled to the OBR's labour-income share of 47% (Nov 2025 EFO ¶2.64), 2.09pp;
      - proportional to the model's 65%, **2.89pp**, the same relative fall of 4.4% of the share.
-   - We use the proportional mapping for **UK high**, because the OBR presents this path as the upper end.
+   - **UK high** uses the proportional mapping, because the OBR presents this path as the upper end.
 
 **How the labour-share and TFP figures are paired.** The IMF model ties the two together through the 27% cost saving, so each UK pair moves them together:
-- **Low:** 0.2% TFP / 0.27 → 0.7pp (ours).
-- **Central:** the IMF year-4 pair (0.42% TFP, 1.6pp).
+- **Low:** 0.2% TFP / 0.27 → 0.7pp (derived here).
+- **Central:** derived from the IMF's year-4 TFP reading (≈0.42%, 0.41–0.44%; the IMF prints only years 5 and 10) → 1.6pp.
 - **High:** the OBR upper-end share path (2.9pp) with the OBR's high productivity alternative. Here the IMF mapping (1.6/0.27 = 5.9pp) would exceed the OBR's own upper end, so the share is capped there.
 
 **No UK source supports a share shift with zero TFP.** That case was the old `share_shift` arm.
