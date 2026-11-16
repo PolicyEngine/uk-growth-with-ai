@@ -429,6 +429,13 @@
   height: 0;
   scroll-margin-top: 40vh;
 }
+/* at 900px and below the trigger line is at 88% (useActiveStep): land the
+   card low enough that it crosses it, below the sticky figure */
+@media (max-width: 900px) {
+  .p1-anchor {
+    scroll-margin-top: 78vh;
+  }
+}
 
 /* "About these figures": a caveat under a card, closed by default */
 .p1-about {
@@ -568,4 +575,29 @@
 }
 .story-hero-art .hero-key + .story-source {
   margin-top: 6px;
+}
+
+/* Desktop: the plot box follows the viewport, so a sticky figure fills
+   the space beside its cards (addendum A2.4: the figure box is about
+   clamp(400px, 100vh - graphic top - 96px, 620px); the title, unit and
+   foot take about 170px of that). The charts draw to this height
+   (frame.jsx, useBox). At 900px and below the plot is its drawing's own
+   height, so the figure stays short enough to stick. */
+@media (min-width: 901px) {
+  .p1-plot {
+    height: clamp(240px, calc(100vh - var(--story-graphic-top, 168px) - 266px), 450px);
+  }
+  .p1-plot > svg {
+    height: 100%;
+  }
+  /* the exposure tiles centre in the box the AI chart sets */
+  .p1-swap-layer > .p1-exposure {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .p1-exposure .p1-tiles {
+    width: 100%;
+    margin: auto;
+  }
 }

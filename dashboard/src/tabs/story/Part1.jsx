@@ -87,11 +87,10 @@ function outputSteps() {
           <Items
             items={[
               { icon: 'period', text: 'The latest full calendar year the ONS has published' },
-              { icon: 'measure', text: 'Each bar is one year’s growth' },
-              { icon: 'revision', text: 'The latest years are open to revision' },
               { icon: 'why', text: `The fall in ${low} and rebound in ${high}: the pandemic` },
             ]}
           />
+          <About items={[{ icon: 'revision', text: 'The latest years are open to revision' }]} />
         </>
       ),
     },
@@ -108,15 +107,20 @@ function outputSteps() {
               icon: dirOf(OBR.y[i]),
               value: <Growth v={OBR.y[i]} path={`series.obr_gdp_forecast.y.${i}`} />,
               label: `growth in ${OBR.x[i]}`,
-              sub: `output ${dirWord(OBR.y[i])}${i === OBR.y.length - 1 ? ', last year covered' : ''}`,
+              sub: `output ${dirWord(OBR.y[i])}`,
             }))}
           />
           <Items
             items={[
               { icon: 'forecast', text: `The OBR’s central forecast, published ${OBR_VINTAGE}` },
+              { icon: 'link', text: `Part 2’s modelling starts from the OBR’s ${MODEL_BASE_VINTAGE} forecast` },
+            ]}
+          />
+          <About
+            items={[
               { icon: 'path', text: 'Every year on the dashed line is a forecast' },
               { icon: 'revision', text: `Drawn apart: the OBR starts from an older ${last(gs.x)} estimate` },
-              { icon: 'link', text: `Part 2’s modelling starts from the OBR’s ${MODEL_BASE_VINTAGE} forecast` },
+              { icon: 'period', text: `${OBR.x[OBR.x.length - 1]} is the last year it covers` },
             ]}
           />
         </>
@@ -236,9 +240,13 @@ function productivitySteps() {
           <KeyFacts className="p1-facts" facts={[{ icon: 'labourShare', value: <V path="facts.labour_share_latest.value">{pct1(s.value)}</V>, label: 'of GDP paid to employees', sub: `${s.period}, the latest full year` }]} />
           <Items
             items={[
-              { icon: 'pay', text: 'Wages, salaries and employers’ contributions' },
               { icon: 'measure', text: 'Compensation of employees divided by GDP at current prices' },
               { icon: 'excluded', text: 'Leaves out the self-employed’s income' },
+            ]}
+          />
+          <About
+            items={[
+              { icon: 'pay', text: 'Wages, salaries and employers’ contributions' },
               { icon: 'caveat', text: 'So lower than measures of labour’s share that count it' },
             ]}
           />
@@ -269,12 +277,12 @@ function aiSteps() {
             items={[
               { icon: 'survey', text: 'The ONS’s Business Insights and Conditions Survey' },
               { icon: 'ai', text: 'At least one AI technology, in current use' },
-              { icon: 'caveat', text: 'Such as text generation or machine learning on data' },
-              { icon: 'business', text: 'Private sector, weighted by count; some industries left out' },
             ]}
           />
           <About
             items={[
+              { icon: 'caveat', text: 'AI tools such as text generation or machine learning' },
+              { icon: 'business', text: 'Private sector, weighted by count; some industries left out' },
               wave ? { icon: 'period', text: wave } : null,
               { icon: 'excluded', text: 'Left out: agriculture, finance and insurance, public administration, among others' },
             ]}
@@ -333,10 +341,14 @@ function aiSteps() {
             items={[
               { icon: 'compare', text: <>The two high-exposure groups sum to <V path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</V></> },
               { icon: 'source', text: <>DSIT’s text says around <V path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</V></> },
-              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
             ]}
           />
-          <About items={[{ icon: 'limit', text: 'No official table gives exposure by major occupation group' }]} />
+          <About
+            items={[
+              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
+              { icon: 'limit', text: 'No official table gives exposure by major occupation group' },
+            ]}
+          />
         </>
       ),
     },
@@ -354,13 +366,18 @@ function exposureSource() {
 }
 
 // The labour board's steps, in focus order: a click on a sparkline brings
-// that step to the trigger line, the same as scrolling to it.
+// that step across the trigger line (useActiveStep: 55% of the viewport on
+// desktop, 88% at 900px and below), the same as scrolling to it.
 const WORK_STEPS = ['p1-work-0', 'p1-work-1', 'p1-pay-0', 'p1-productivity-0', 'p1-share-0'];
 function pickWork(i) {
   const el = document.getElementById(WORK_STEPS[i]);
   if (!el) return;
+  const phone = window.matchMedia?.('(max-width: 900px)').matches;
   const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const top = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.4;
+  const line = window.innerHeight * (phone ? 0.88 : 0.55);
+  const r = el.getBoundingClientRect();
+  // the step's top a little above the line, so its box crosses it
+  const top = r.top + window.scrollY - line + Math.min(40, r.height / 2);
   window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
 }
 

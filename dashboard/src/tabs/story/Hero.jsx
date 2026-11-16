@@ -4,8 +4,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { useNav } from '@/lib/nav.jsx';
-import { useReducedMotion, useScrollProgress } from '@/components/story/motion.js';
-import { useId, useState } from 'react';
+import { useReducedMotion } from '@/components/story/motion.js';
+import { useEffect, useId, useRef, useState } from 'react';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
 import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SCEN_NAME } from '@/tabs/ai/surprise.js';
 
@@ -15,25 +15,47 @@ import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SC
 // together in 2028 and fanning out to 2036. The image is art, not a chart:
 // no values, the figures are in part 2. Nothing plays by itself: the paths
 // after the year AI arrives are revealed as the reader scrolls the hero (a
-// clip that widens with scroll progress, geometry only); they start part
-// drawn, and under reduced motion they are drawn in full at once. The
+// clip that widens with the scroll position, geometry only); they start
+// part drawn, the scenario names show once the paths reach them, and under
+// reduced motion everything is drawn at once. The
 // three parts are named by the story rail, so the hero does not list them.
 // The drawing is hidden from screen readers; the caption under it says
 // what it shows.
 const W = 640;
 const H = 420;
 
-// The share of the post-arrival span drawn: 40% on load, all of it after
-// about a fifth of the hero's scroll range.
+// The share of the post-arrival span drawn, from the scroll position only:
+// 40% at the top of the page, all of it once the reader has scrolled 60%
+// of the hero's height (so a reload or deep link below the hero shows the
+// full fan). Under reduced motion the fan is drawn in full at once.
 function useReveal() {
   const reduce = useReducedMotion();
-  const [ref, p] = useScrollProgress();
-  // the progress at the first measure (a render-time update, no effect)
-  const [p0, setP0] = useState(null);
-  if (p0 === null && p > 0) setP0(p);
-  const start = p0 ?? p;
-  const f = reduce ? 1 : Math.max(0.4, Math.min(1, 0.4 + (p - start) * 3));
-  return [ref, f];
+  const ref = useRef(null);
+  const [f, setF] = useState(0.4);
+  useEffect(() => {
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const hero = el.closest('.story-hero') ?? el;
+      const top = hero.getBoundingClientRect().top + window.scrollY;
+      const passed = (window.scrollY - Math.max(0, top - 120)) / Math.max(1, hero.offsetHeight * 0.6);
+      setF(Math.max(0.4, Math.min(1, 0.4 + 0.6 * passed)));
+    };
+    const on = () => {
+      if (!raf) raf = window.requestAnimationFrame(measure);
+    };
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    return () => {
+      window.removeEventListener('scroll', on);
+      window.removeEventListener('resize', on);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+  return [ref, reduce ? 1 : f];
 }
 
 export default function Hero() {
@@ -93,7 +115,7 @@ export default function Hero() {
   const wide = layout(24, true);
   const narrow = layout(20, true);
   const nameSet = ({ names, zero, top }, cls, lh, zeroText) => (
-    <g className={`hero-names ${cls}`}>
+    <g className={`hero-names ${cls}`} style={{ opacity: reveal > 0.97 ? 1 : 0, transition: 'opacity 300ms ease' }}>
       {names.map((n) => (
         <text key={n.id} x={X(YEARS.length - 1) + 8} y={top(n)} dy="0.35em" className="hero-name">
           {n.parts.map((t, i) => (

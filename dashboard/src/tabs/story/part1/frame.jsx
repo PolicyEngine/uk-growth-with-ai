@@ -20,22 +20,30 @@ import { dateLong, tick } from './format.js';
 export const MAX_W = 760;
 export const FALLBACK_W = 520;
 
-// The measured width of a box, capped at MAX_W. Without ResizeObserver
-// (server, jsdom) it stays at the fallback, so every state still renders.
-export function useWidth(fallback = FALLBACK_W) {
+// The measured box of a plot: its width (capped at MAX_W) and its height.
+// On desktop (story-part1.css) the plot box has a CSS height that follows
+// the viewport, so the chart is drawn to fill the sticky figure; at 900px
+// and below it has none, so its height is the drawing's own (`fallbackH`)
+// and the figure stays short enough to stick. Without ResizeObserver
+// (server, jsdom) both stay at their fallbacks, so every state renders.
+export function useBox(fallbackH, fallbackW = FALLBACK_W) {
   const ref = useRef(null);
-  const [w, setW] = useState(fallback);
+  const [box, setBox] = useState({ w: fallbackW, h: 0 });
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === 'undefined') return undefined;
     const ro = new ResizeObserver((entries) => {
-      const v = Math.round(entries[0]?.contentRect.width ?? 0);
-      if (v > 0) setW(Math.min(v, MAX_W));
+      const r = entries[0]?.contentRect;
+      if (!r || r.width <= 0) return;
+      const desktop = window.matchMedia?.('(min-width: 901px)').matches;
+      const w = Math.min(Math.round(r.width), MAX_W);
+      const h = desktop ? Math.round(r.height) : 0;
+      setBox((b) => (b.w === w && b.h === h ? b : { w, h }));
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  return [ref, w];
+  return [ref, box.w, box.h > 120 ? box.h : fallbackH];
 }
 
 // An id that is safe inside url(#...) (useId's may hold colons or guillemets).
@@ -46,7 +54,7 @@ export function useSvgId(prefix) {
 
 // Up to `max` round ticks (a step of 1, 2, 2.5 or 5 times a power of ten)
 // and a domain that holds the data and those ticks.
-export function niceTicks(values, { max = 4, withZero = false, pad = 0.04 } = {}) {
+export function niceTicks(values, { max = 5, withZero = false, pad = 0.04 } = {}) {
   const vs = withZero ? [...values, 0] : values;
   let lo = Math.min(...vs);
   let hi = Math.max(...vs);
@@ -61,12 +69,14 @@ export function niceTicks(values, { max = 4, withZero = false, pad = 0.04 } = {}
   let ticks = [];
   for (const m of [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10]) {
     const step = m * mag;
+    if (Math.abs(step * 10 - Math.round(step * 10)) > 1e-9) continue; // ticks print to one decimal
     const t = [];
     for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + 1e-9; v += step) t.push(Math.round(v * 1000) / 1000);
-    if (t.length <= max && t.length >= 2) {
+    if (t.length <= max && t.length >= 3) {
       ticks = t;
       break;
     }
+    if (t.length === 2 && !ticks.length) ticks = t; // two only if nothing gives three to max
   }
   return { lo, hi, ticks };
 }

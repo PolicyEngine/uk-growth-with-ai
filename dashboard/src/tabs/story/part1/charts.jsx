@@ -2,7 +2,7 @@
 
 import { useInView } from '@/components/story/motion.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_VINTAGE, SERIES } from './data.js';
-import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useSvgId, useWidth, yearTicks } from './frame.jsx';
+import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
 import { span3 } from './format.js';
 
 // Part 1's graphics: four figures, each drawing the complete picture for
@@ -47,11 +47,10 @@ const OUT_M = { l: 34, r: 8, t: 22, b: 24 };
 
 export function OutputCanvas({ state }) {
   const [ref, seen] = useInView();
-  const [box, w] = useWidth();
+  const [box, w, h] = useBox(OUT_H);
   const clip = useSvgId('p1-out-clip');
   const g = SERIES.gdp_growth;
   const q = SERIES.gdp_quarterly;
-  const h = OUT_H;
   const L = OUT_M.l;
   const R = w - OUT_M.r;
   const T = OUT_M.t;
@@ -247,13 +246,14 @@ export function OutputCanvas({ state }) {
 // the same as scrolling to it.
 
 const N = 1000; // the unit box each series is drawn in
-const BOARD_H = 270;
+const BOARD_H = 264;
 const BOARD_M = { l: 34, r: 8, t: 10 };
-const PANEL_B = 176;
-const STRIP_NOTE_Y = 216;
-const STRIP_NAME_Y = 234;
-const SPARK = { y: 240, h: 26 };
+const PANEL_B = 172;
+const STRIP_NOTE_Y = 211;
+const STRIP_NAME_Y = 228;
+const SPARK = { y: 234, h: 26 };
 const CELL_GAP = 14;
+const FALLBACK_COLS = 4; // the fallback width (520) takes four in a row
 
 export const boardSeries = () => {
   const e = SERIES.employment_rate;
@@ -345,18 +345,20 @@ const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs
 
 export function LabourBoard({ focus, onPick }) {
   const [ref, seen] = useInView();
-  const [box, w] = useWidth();
+  const [box, w, hBox] = useBox(BOARD_H + (FALLBACK_COLS < 4 ? 44 : 0));
   const gid = useSvgId('p1-pay-fade');
   const all = boardSeries();
   const L = BOARD_M.l;
   const R = w - BOARD_M.r;
   const T = BOARD_M.t;
-  const B = PANEL_B;
   // four sparklines in a row; two rows of two below 480px, where four
   // names would collide
   const cols = w < 480 ? 2 : 4;
   const rowH = 44;
-  const boardH = BOARD_H + (4 / cols - 1) * rowH;
+  // the strip is fixed at the foot; the panel takes the rest
+  const boardH = Math.max(hBox, BOARD_H + (4 / cols - 1) * rowH);
+  const dy = boardH - BOARD_H - (4 / cols - 1) * rowH; // extra height above the strip
+  const B = PANEL_B + dy;
   const cellW = (R - L - (cols - 1) * CELL_GAP) / cols;
   const f = Math.max(0, Math.min(focus, all.length - 1));
   const others = all.filter((_, i) => i !== f);
@@ -364,7 +366,7 @@ export function LabourBoard({ focus, onPick }) {
     if (i === f) return { x: L, y: T, w: R - L, h: B - T };
     const k = others.indexOf(all[i]);
     const row = Math.floor(k / cols);
-    return { x: L + (k % cols) * (cellW + CELL_GAP), y: SPARK.y + row * rowH, w: cellW, h: SPARK.h, nameY: STRIP_NAME_Y + row * rowH };
+    return { x: L + (k % cols) * (cellW + CELL_GAP), y: SPARK.y + dy + row * rowH, w: cellW, h: SPARK.h, nameY: STRIP_NAME_Y + dy + row * rowH };
   };
   const cur = all[f];
   const label = `Line chart: ${cur.long}, ${cur.span}. Four smaller charts below it show ${andList(others.map((o) => o.name.toLowerCase()))}, each on its own scale.`;
@@ -404,7 +406,7 @@ export function LabourBoard({ focus, onPick }) {
               </g>
             );
           })}
-          <text x={L} y={STRIP_NOTE_Y} className="p1-note">
+          <text x={L} y={STRIP_NOTE_Y + dy} className="p1-note">
             The other four, each on its own scale
           </text>
           {all.map((b, i) => {
@@ -446,7 +448,7 @@ export function LabourBoard({ focus, onPick }) {
                   key={o.key}
                   type="button"
                   className="p1-spark-hit"
-                  style={{ left: `${(sl.x / w) * 100}%`, width: `${(sl.w / w) * 100}%`, top: sl.nameY - 14, height: SPARK.y + SPARK.h - STRIP_NAME_Y + 18 }}
+                  style={{ left: `${(sl.x / w) * 100}%`, width: `${(sl.w / w) * 100}%`, top: sl.nameY - 14, height: SPARK.h + SPARK.y - STRIP_NAME_Y + 18 }}
                   aria-label={`Show ${o.name.toLowerCase()} on the large chart`}
                   onClick={() => onPick(i)}
                 />
@@ -469,7 +471,7 @@ const AI_M = { l: 34, r: 10, t: 12, b: 24 };
 
 export function AiUseChart({ state }) {
   const [ref, seen] = useInView();
-  const [box, w] = useWidth();
+  const [box, w, aiH] = useBox(AI_H);
   const gid = useSvgId('p1-ai-fade');
   const a = SERIES.business_ai_use;
   const b = SERIES.business_ai_use_10plus;
@@ -478,7 +480,7 @@ export function AiUseChart({ state }) {
   const L = AI_M.l;
   const R = w - AI_M.r;
   const T = AI_M.t;
-  const B = AI_H - AI_M.b;
+  const B = aiH - AI_M.b;
   const D = niceTicks([...a.y, ...b.y], { withZero: true });
   const X = linear(0, last, L + 4, R - 4);
   const Y = linear(D.lo, D.hi, B, T);
@@ -486,6 +488,12 @@ export function AiUseChart({ state }) {
   const short = (d) => d.replace(/^\d+ /, '');
   const dA = linePath(X, Y, idx, a.y);
   const area = `${dA}L${X(last).toFixed(1)},${Y(0).toFixed(1)}L${X(0).toFixed(1)},${Y(0).toFixed(1)}Z`;
+  // end labels clear of their lines: over the label's width (about 7px a
+  // character at 12px), above the highest point of the upper line and
+  // below the lowest point of the lower one
+  const under = (ys, chars) => idx.filter((i) => X(i) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
+  const tenY = Math.max(T + 10, Math.min(...under(b.y, 20)) - 9);
+  const allY = Math.min(B - 4, Math.max(...under(a.y, 14)) + 17);
   return (
     <Figure
       icon="ai"
@@ -499,8 +507,8 @@ export function AiUseChart({ state }) {
         <svg
           className={`story-svg p1-svg p1-ai-svg${two ? ' is-two' : ''}`}
           width="100%"
-          height={AI_H}
-          viewBox={`0 0 ${w} ${AI_H}`}
+          height={aiH}
+          viewBox={`0 0 ${w} ${aiH}`}
           role="img"
           aria-label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
         >
@@ -512,7 +520,7 @@ export function AiUseChart({ state }) {
           </defs>
           <YGrid ticks={D.ticks} Y={Y} x0={L} x1={R} />
           <XTicks
-            y={AI_H - 6}
+            y={aiH - 6}
             ticks={[
               { x: X(0), label: short(a.x[0]), anchor: 'start', key: 'a' },
               { x: X(last), label: short(a.x[last]), anchor: 'end', key: 'b' },
@@ -527,10 +535,10 @@ export function AiUseChart({ state }) {
               <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} />
             </g>
           ))}
-          <text x={X(last) - 8} y={Y(b.y[last]) - 10} textAnchor="end" className={`p1-end-label is-ten${two ? ' is-on' : ''}`}>
+          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${two ? ' is-on' : ''}`}>
             10 or more employees
           </text>
-          <text x={X(last) - 4} y={Y(a.y[last]) + 26} textAnchor="end" className="p1-end-label is-all is-on">
+          <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on">
             All businesses
           </text>
         </svg>
