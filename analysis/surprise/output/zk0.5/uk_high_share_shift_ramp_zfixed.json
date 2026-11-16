@@ -979,7 +979,9 @@
   0.5962011860736943
  ],
  "ss_guess": {
-  "donor": "/Users/vahid/ugai-rerun-work/surprise2028/zk0.5/uk_high_share_shift_tfp_ramp/SS/SS_vars.pkl",
+  "donor": "surprise2028/zk0.5/uk_high_share_shift_tfp_ramp/SS/SS_vars.pkl",
+  "donor_root": "work dir",
+  "sha256": "d847fdaa5626f87fefb3a4ec6ea243a91778bafb0c6610b18af799ae0305e8a2",
   "keys": [
    "b_sp1",
    "n",
@@ -990,7 +992,11 @@
    "BQ",
    "TR",
    "Y"
-  ]
+  ],
+  "backfilled": {
+   "date": "2026-11-15",
+   "basis": "sha256 not recorded at solve time; computed afterwards from the donor file, whose mtime 2026-11-14T00:46:44Z predates both solves (finished 15 Nov 12:09Z and 12:19Z, about 9 min each); the donor was recorded as the absolute form of the same path"
+  }
  },
  "series_run": {
   "Y": [
