@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Fig, Key, MarkProvider } from '@/components/story/highlight.jsx';
-import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
 import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_MARCH_2026, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
 import { AiUseChart, ExposureTiles, LabourBoard, OBR_NAMED, OutputCanvas, P1_MARKS } from './part1/charts.jsx';
@@ -176,7 +175,7 @@ function workNotes() {
   const p = F.productivity_oph_latest;
   return [
     [
-      'The employment rate comes from the Labour Force Survey.',
+      'The employment and unemployment rates come from the Labour Force Survey.',
       <L key="v" to="ons_lms_bulletin">
         The ONS says response has improved, but some volatility remains.
       </L>,
@@ -392,11 +391,6 @@ export default function Part1({ part }) {
           );
         }}
       />
-      {/* part 1's recap plays as the transition in part 2's first pinned screen */}
-      <NextPart n={2} title="What a model of the whole economy projects" to="story-part-2">
-        Part 2 turns from what has been measured to what happens if AI
-        arrives as a shock.
-      </NextPart>
     </MarkProvider>
   );
 }

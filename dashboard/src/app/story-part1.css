@@ -22,17 +22,17 @@
   overflow: hidden;
 }
 .p1-tick {
-  font-size: 12px;
+  font-size: var(--t-meta);
   fill: var(--pe-gray-500);
   font-variant-numeric: tabular-nums;
 }
 .p1-note {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--t-meta);
+  font-weight: 600;
   fill: var(--pe-gray-500);
 }
 .p1-end-label {
-  font-size: 12px;
+  font-size: var(--t-meta);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -264,8 +264,8 @@
   margin: 10px 0 0;
   padding: 0;
   list-style: none;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
+  font-size: var(--t-meta);
+  color: var(--t-muted);
 }
 .p1-groups li {
   display: inline-flex;
@@ -314,8 +314,8 @@
 }
 .p1-sources {
   flex: none;
-  font-size: var(--fs-micro);
-  color: var(--pe-gray-500);
+  font-size: var(--t-meta);
+  color: var(--t-muted);
 }
 .p1-sources summary {
   cursor: pointer;
@@ -325,7 +325,7 @@
   display: none;
 }
 .p1-sources[open] summary {
-  color: var(--pe-gray-800);
+  color: var(--t-ink);
 }
 .p1-sources-list {
   position: absolute;
@@ -413,7 +413,7 @@
 .p1-source-icon {
   display: inline-flex;
   vertical-align: -2px;
-  color: var(--pe-gray-500);
+  color: var(--t-muted);
 }
 .p1-source-icon {
   margin-right: 4px;
@@ -449,11 +449,11 @@
 }
 .story-hero.hf .story-hero-text h2.hero-q {
   margin: 0 0 18px;
-  font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+  font-size: var(--t-display);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 .hf-figure {
   display: flex;
@@ -463,12 +463,12 @@
   margin: 0 0 6px;
 }
 .hf-figure-value {
-  font-size: clamp(2.75rem, 5.5vw, 4rem);
+  font-size: var(--t-display);
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
   text-decoration: none;
 }
 .hf-figure-value.is-gain {
@@ -484,17 +484,17 @@
 .story-hero-text p.hf-figure-label {
   max-width: 24ch;
   margin: 0;
-  font-size: var(--fs-body);
+  font-size: var(--t-body);
   line-height: 1.35;
   font-weight: 600;
-  color: var(--pe-gray-700);
+  color: var(--t-text);
 }
 .hf-figure-meta {
   display: block;
   margin-top: 2px;
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   font-weight: 400;
-  color: var(--pe-gray-600);
+  color: var(--t-muted);
 }
 .hf-art {
   margin: 0;
@@ -580,7 +580,7 @@
 }
 .hf-end.is-on .hf-end-name,
 .hf-end.is-on .hf-end-value {
-  font-weight: 700;
+  font-weight: 600;
 }
 /* one drawing per width: end labels on desktop, a legend row at 900px and below */
 .hf-svg.is-narrow,
@@ -593,8 +593,8 @@
   margin: 8px 0 0;
   padding: 0;
   list-style: none;
-  font-size: var(--fs-small);
-  color: var(--pe-gray-700);
+  font-size: var(--t-ui);
+  color: var(--t-text);
 }
 .hf-chip {
   display: inline-flex;
@@ -602,7 +602,7 @@
   align-items: center;
 }
 .hf-chip.is-on {
-  font-weight: 700;
+  font-weight: 600;
 }
 .hf-swatch {
   width: 18px;
@@ -661,10 +661,10 @@
 }
 
 .p1-through {
-  color: var(--pe-gray-600);
+  color: var(--t-muted);
 }
 .p1-axis-title {
-  font-size: 11px;
+  font-size: var(--t-meta);
   fill: var(--pe-gray-500);
 }
 
@@ -678,9 +678,9 @@
   gap: 8px;
   align-items: center;
   margin: 0 0 8px;
-  font-size: 14px;
+  font-size: var(--t-label);
   font-weight: 600;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 .p1-vitals-grid {
   display: grid;
@@ -705,29 +705,29 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 14px;
+  font-size: var(--t-label);
   font-weight: 600;
   line-height: 1.35;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 .p1-vital-name svg {
   flex: none;
-  color: var(--pe-gray-500);
+  color: var(--t-muted);
 }
 .p1-vital-value {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 24px;
+  font-size: var(--t-title);
   font-weight: 700;
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 .p1-vital-sub {
-  font-size: 12px;
+  font-size: var(--t-meta);
   line-height: 1.4;
-  color: var(--pe-gray-500);
+  color: var(--t-muted);
 }
 .p1-vital-spark {
   flex: 1 1 auto;
@@ -758,7 +758,7 @@
   }
 }
 
-/* A step card is one sentence (and a fold), so a floor on its height keeps
+/* A step card is one sentence, so a floor on its height keeps
    each state on screen for long enough while scrolling (check_states:
    180px of scroll a state) */
 @media (min-width: 901px) {
@@ -768,25 +768,20 @@
     min-height: 330px;
   }
 }
-@media (min-width: 641px) and (max-width: 900px) {
-  #p1-output .scrolly-card,
-  #p1-work .scrolly-card {
-    min-height: 220px;
-  }
-}
 
-/* Step cards (Part1.jsx): one sentence */
+/* Step cards (Part1.jsx): one sentence, in a 34ch measure */
 .p1-say {
+  max-width: 34ch;
   margin: 0 0 12px;
-  font-size: 17px;
+  font-size: var(--t-body);
   line-height: 1.45;
-  color: var(--pe-gray-700);
+  color: var(--t-text);
   text-wrap: pretty;
 }
 .p1-say .hl-fig {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 /* the exposure step's three groups: a small key, name and share on one
    line, the coloured names as the legend */
@@ -803,13 +798,13 @@
   gap: 12px;
   align-items: baseline;
   max-width: 340px;
-  font-size: 14px;
+  font-size: var(--t-label);
   line-height: 1.4;
 }
 .p1-groups-say .hl-fig {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 
 /* a mark not drawn in this state stays hidden while a step highlights
@@ -823,12 +818,21 @@
 .story-hero-text p.hf-statement {
   max-width: 34ch;
   margin: 10px 0 0;
-  font-size: 17px;
+  font-size: var(--t-body);
   font-weight: 600;
   line-height: 1.45;
   letter-spacing: 0;
-  color: var(--pe-gray-900);
+  color: var(--t-ink);
 }
 .story-hero-text p.hf-statement + p.hf-statement {
   margin-top: 4px;
+}
+
+/* tablet: the AI scene's first card is one short sentence, so a lower
+   floor than the shared 156px keeps the blank under it within 120px; its
+   two states hold far over 180px (check_states) */
+@media (min-width: 641px) and (max-width: 900px) {
+  #p1-ai .scrolly-card {
+    min-height: 120px;
+  }
 }

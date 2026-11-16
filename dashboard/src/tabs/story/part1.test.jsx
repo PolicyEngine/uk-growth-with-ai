@@ -333,7 +333,9 @@ describe('story part 1, real data', () => {
     // each child span counted apart (textContent glues a fact's value, label and sub)
     const words = (n) => [...(n.children.length ? n.children : [n])].map((c) => c.textContent).join(' ').replace(/\s+/g, ' ').trim().split(' ').length;
     el.querySelectorAll('.scrolly-card').forEach((c) => {
-      expect(c.querySelector('.scrolly-title-icon svg')).not.toBeNull();
+      // the card's one icon (Scrolly draws it from step.icon)
+      expect([...c.querySelectorAll('svg')].filter((v) => !v.closest('.hl-key'))).toHaveLength(1);
+      expect(c.querySelector('.scrolly-card-icon')).not.toBeNull();
       // one sentence of about fifteen words (Key and Fig chips counted as words)
       const say = c.querySelectorAll('.p1-say');
       expect(say).toHaveLength(1);
@@ -363,11 +365,6 @@ describe('story part 1, real data', () => {
     el.querySelectorAll('.p1-figure p.story-source').forEach((s) => {
       expect(s.textContent).not.toMatch(/Labour Force Survey|leaves out|drawn apart/i);
     });
-  });
-
-  it('closes the part with the next-part band', () => {
-    const el = show(Part1Real);
-    expect(el.querySelector('.story-next a').getAttribute('href')).toBe('#story-part-2');
   });
 
   it('labels or hides every graphic for screen readers', () => {

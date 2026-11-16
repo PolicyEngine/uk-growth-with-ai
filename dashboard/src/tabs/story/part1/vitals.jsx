@@ -182,10 +182,10 @@ const NOTES = [
   <Ext key="ilo" href={LINKS.ons_lm_guide?.url}>
     Unemployment, ILO definition: jobless, looking for work, able to start
   </Ext>,
-  'Unemployment rate: per cent of economically active people aged 16 and over, from the Labour Force Survey',
-  'Employee share: compensation of employees (wages, salaries and employers’ contributions) over GDP, two ONS series',
-  `The share is annual, at current prices; ${SERIES.labour_share.x.at(-1)} is the latest full year`,
-  'It leaves out the self-employed’s income, so it is lower than measures of labour’s share that count it',
+  'Unemployment rate: share of the economically active, aged 16 and over',
+  'Employee share: pay and employers’ contributions over GDP, two ONS series',
+  `The share is annual, current prices; ${SERIES.labour_share.x.at(-1)} the latest full year`,
+  'It leaves out self-employed income, so is below wider measures of labour’s share',
 ];
 
 export default function Vitals() {
