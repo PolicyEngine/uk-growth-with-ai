@@ -67,10 +67,12 @@ export function sankeyGraph(base, short = false, bare = false) {
   const gdp = base.labour + gross;
   return {
     nodes: [
-      { id: 'gdp', label: 'GDP', sub: gdp.toFixed(0), color: PART_COLOR.gdp },
-      { id: 'labour', label: t('labour'), sub: sub(base.labour), color: PART_COLOR.labour },
-      { id: 'capital', label: 'Gross capital income', sub: share(gross), color: PART_COLOR.capital },
-      ...CAPITAL_PARTS.map((k) => ({ id: k, label: t(k), sub: sub(base[k]), color: PART_COLOR[k], labelColor: LABEL_COLOR[k], stroke: NODE_STROKE[k] })),
+      // `inner`: the same value, drawn inside the node when it is tall enough
+      // (Sankey `inside`); then `sub` is not drawn, so each value prints once
+      { id: 'gdp', label: 'GDP', sub: gdp.toFixed(0), inner: gdp.toFixed(0), color: PART_COLOR.gdp },
+      { id: 'labour', label: t('labour'), sub: sub(base.labour), inner: sub(base.labour), color: PART_COLOR.labour },
+      { id: 'capital', label: 'Gross capital income', sub: share(gross), inner: share(gross), color: PART_COLOR.capital },
+      ...CAPITAL_PARTS.map((k) => ({ id: k, label: t(k), sub: sub(base[k]), inner: sub(base[k]), color: PART_COLOR[k], labelColor: LABEL_COLOR[k], stroke: NODE_STROKE[k] })),
     ],
     // each ribbon in its target's colour
     links: [

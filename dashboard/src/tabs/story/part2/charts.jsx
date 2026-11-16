@@ -4,11 +4,12 @@ import { useId, useState } from 'react';
 import { DrawPath, FadeG } from '@/components/story/primitives.jsx';
 import { useInView } from '@/components/story/motion.js';
 import {
-  YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, ARMS, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND, result,
+  YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, ARMS, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND, result, fmt,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor } from '@/tabs/ai/lines.js';
 import D from '@/data/cohorts2028.json';
 import { NavLink } from '@/lib/nav.jsx';
+import { Crosshair, linear } from '@/components/story/chart/index.js';
 import { W, H, scales, linePath, monotonePath, niceTicks, tickText, placeLabels, Figure, GUTTER, Tx } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
@@ -55,7 +56,7 @@ export const afterWordsAll = (yss) => [...new Set(yss.map(afterWords).filter(Boo
 //   4    the other two arms draw in the debt panel.
 // Each panel has its own unit and zero line; the zero lines are labelled
 // in the gutter with the arms.
-const PH = 300; // the pair's height, in viewBox units
+const PH = 284; // the pair's height, in viewBox units
 const PM = { l: 36, r: GUTTER, t: 18, b: 26 };
 const PT = PM.t;
 const PB = PH - PM.b;
@@ -119,6 +120,32 @@ export function ArmsPair({ state, sid, closure, label }) {
   const gEnds = ends(gdp, gNow.Y, PT, split ? SPLIT_B : PB, gOn);
   const dEnds = ends(debt, dS.Y, DT, PB, dOn);
   const band = [X(SURPRISE_YEAR), X(HEADLINE_YEAR)];
+  // The shared crosshair: one year across both panels. Crosshair takes one
+  // y scale, so each series passes its points already in drawing units (in
+  // its own panel, at this state's scale) and formats the value it stands
+  // for: GDP as on Explore (% gap, two decimals), debt in points (one).
+  // Rows follow what is drawn: the GDP arms in states 0-2; then the main
+  // arm's GDP and the debt arms drawn. The primary closure only (the unit
+  // foot says which).
+  const xScale = linear([x0, x1], [X(x0), X(x1)]);
+  const asRow = (l, Y, v) => {
+    const px = l.ys.map((y) => Number(Y(y).toFixed(3)));
+    const back = new Map(px.map((p, i) => [p, l.ys[i]]));
+    const a = ARMS.find((x) => x.id === l.arm);
+    return {
+      key: `${v}-${l.arm}`,
+      name: `${v === 'Y' ? 'GDP' : 'Debt'}, ${a?.short ?? l.arm}`,
+      icon: v === 'Y' ? 'gdp' : 'debt',
+      color: ARM_COLOR[l.arm],
+      text: ARM_TEXT_COLOR[l.arm],
+      ys: px,
+      format: (p) => (v === 'Y' ? fmt(back.get(p)) : fmt(back.get(p), 1, ' pp')),
+    };
+  };
+  const prim = (lines) => lines.filter((l) => l.cl === cls[0]);
+  const crossSeries = split
+    ? [...prim(gdp).filter((l) => l.i === 0).map((l) => asRow(l, gSplit.Y, 'Y')), ...prim(debt).filter((l) => dOn(l.i)).map((l) => asRow(l, dS.Y, 'D'))]
+    : prim(gdp).filter((l) => gOn(l.i)).map((l) => asRow(l, gFull.Y, 'Y'));
   // vs: non-scaling strokes, for the GDP lines while their group is
   // compressed. A drawn line's dash (DrawPath) is then dropped: dashing is
   // measured in screen space under non-scaling strokes, which would cut the
@@ -177,7 +204,19 @@ export function ArmsPair({ state, sid, closure, label }) {
       unit={`${SCEN_NAME[sid]}, ${both ? 'central closure solid, closed capital dashed' : CL_WORDS[cls[0]]}. Gaps against the OBR-central path`}
       head={closureCtl}
     >
-      <svg ref={ref} className="story-svg p2-svg" viewBox={`0 0 ${W} ${PH}`} role="img" aria-label={label} data-state={s}>
+      <div ref={ref} className="p2-pair-box" data-state={s}>
+      <Crosshair
+        width={W}
+        height={PH}
+        x={xScale}
+        y={(v) => v}
+        xs={YEARS}
+        top={PT}
+        bottom={PB}
+        series={crossSeries}
+        unit={`${CL_WORDS[cls[0]]}; gaps against the OBR-central path`}
+        label={label}
+      >
         {/* the shock period, in both panels (the GDP panel's compresses with it) */}
         <g className="p2-pair-gdp" style={{ transform: gT }}>
           <rect x={band[0]} y={PT} width={band[1] - band[0]} height={PB - PT} className="p2-band-shock" />
@@ -227,7 +266,8 @@ export function ArmsPair({ state, sid, closure, label }) {
         ))}
         {gEnds.map((p) => endEl(p, 'g'))}
         {dEnds.map((p) => endEl(p, 'd'))}
-      </svg>
+      </Crosshair>
+      </div>
     </Figure>
   );
 }

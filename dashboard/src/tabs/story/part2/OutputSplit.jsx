@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Sankey from '@/components/story/Sankey.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import { useInView, useIsPhone } from '@/components/story/motion.js';
+import { ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
+import { useInView, useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { SOURCE, Tx } from './frame.jsx';
-import { SPLIT_YEAR, PART_COLOR, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
+import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -38,8 +39,26 @@ import { iconFor } from '@/lib/concepts.js';
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const GROW_STAGGER = 80; // ms between waterfall bars
+// "What the scenario changes" (scene plan section 6): the four changes
+// appear as chips beside their Sankey nodes for one beat, then each chip
+// travels to its waterfall row and is that row's value: the same element,
+// moved by a transform, so each change is printed once.
+const TRAVEL = ['labour', 'domestic', 'foreign', 'depreciation'];
+const CHIP_HOLD = 1100; // ms the chips sit at the nodes
+const CHIP_TRAVEL = 750;
+const CHIP_STAGGER = 120;
+// The tooltip's one line of meaning per part.
+const MEANING = {
+  gdp: 'Everything produced in the UK, the path’s GDP as 100',
+  labour: 'Workers’ total pay',
+  capital: 'Income paid to capital’s owners, before the three-way split',
+  domestic: 'Net capital income that stays with UK residents',
+  foreign: 'Profits on foreign-owned UK capital and interest on gilts held abroad',
+  depreciation: 'Replaces capital that wears out',
+};
+const CH_KEY = { labour: 'labour', capital: 'gross_capital', domestic: 'domestic', foreign: 'foreign', depreciation: 'depreciation' };
 
-function Waterfall({ rows, on, hl, setHl, path }) {
+function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
   const ends = rows.flatMap((r) => [r.from, r.to]);
   let lo = Math.min(0, ...ends);
   let hi = Math.max(0, ...ends);
@@ -82,7 +101,21 @@ function Waterfall({ rows, on, hl, setHl, path }) {
                 }}
               />
             </span>
-            <span className="p2-wf-value" data-path={r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}`}>
+            <span
+              ref={(el) => {
+                if (cells) cells.current[r.id] = el;
+              }}
+              className={`p2-wf-value${TRAVEL.includes(r.id) ? ` is-travel is-${dirConcept(r.value)}` : ''}${chips?.[r.id] ? ' is-chip' : ''}`}
+              data-path={r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}`}
+              style={
+                chips?.[r.id]
+                  ? { transform: `translate(${chips[r.id][0].toFixed(1)}px, ${chips[r.id][1].toFixed(1)}px)`, transition: 'none' }
+                  : TRAVEL.includes(r.id) && phase === 'travel'
+                    ? { transitionDelay: `${TRAVEL.indexOf(r.id) * CHIP_STAGGER}ms` }
+                    : undefined
+              }
+            >
+              {TRAVEL.includes(r.id) && dirConcept(r.value) ? <Icon name={iconFor(dirConcept(r.value))} size={12} strokeWidth={2.25} className="p2-wf-dir" /> : null}
               {r.value == null ? (
                 <NavLink tab="story" anchor="story-headline" className="p2-wf-link" aria-label="GDP: see the headline figures">
                   Headline figures <Icon name="arrowRight" size={12} strokeWidth={2} />
@@ -142,83 +175,170 @@ function Chip({ part, on, pick, children }) {
 // draws the last state with nothing hidden (phones).
 function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   const [ref, seen] = useInView({ rootMargin: '0px 0px -15% 0px' });
+  const reduce = useReducedMotion();
   const s = all ? 2 : state;
   // a pick holds only in the state it was made in (phones: always), so a
   // row focused when the reader scrolls back, which loses focus without a
   // blur as the waterfall goes inert, lights nothing
   const lit = hl && (all || hl.s === s) ? hl.id : null;
-  const pick2 = (id) => setHl(id ? { id, s: 2 } : null);
-  // nothing wipes in before the block is seen; then column by column
-  const reveal = all ? 2 : seen ? Math.min(s + 1, 2) : 0;
+  const pick = (id) => setHl(id ? { id, s } : null);
+  // nothing pours before the block is seen; then column by column
+  const pour = all ? 2 : seen ? Math.min(s + 1, 2) : 0;
+  const [replay, setReplay] = useState(0);
+  const [paused, setPaused] = useState(false);
   const graph = base ? sankeyGraph(base, true) : null;
   const where = `${SCEN_NAME[sid]}, automation + productivity, common fiscal rule`;
   const sankeyLabel = base
     ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), payments to foreign owners of UK capital and gilts (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
+  // the chips' beats: idle (before step 3), chips (at the nodes), travel,
+  // settled (in the rows, a gain or loss icon left on each node)
+  const instant = all || reduce || !ch;
+  const [phase, setPhase] = useState(s >= 2 && instant ? 'settled' : 'idle');
+  const [chips, setChips] = useState(null);
+  const [boxes, setBoxes] = useState(null);
+  const cells = useRef({});
+  const wrap = useRef(null);
+  if (s < 2 && phase !== 'idle') {
+    setPhase('idle');
+    setChips(null);
+  }
+  if (s >= 2 && phase === 'idle') setPhase(instant ? 'settled' : 'chips');
+  useLayoutEffect(() => {
+    if (phase !== 'chips' || !wrap.current || !boxes) return;
+    // measured once, at the beat's start (not in an animation frame)
+    const w = wrap.current.getBoundingClientRect();
+    const k = w.width / (boxes.width || w.width);
+    const at = {};
+    for (const id of TRAVEL) {
+      const n = boxes.nodes[id];
+      const c = cells.current[id];
+      if (!n || !c) continue;
+      const r = c.getBoundingClientRect();
+      at[id] = [w.left + n.x0 * k - 8 - r.right, w.top + ((n.y0 + n.y1) / 2) * k - (r.top + r.height / 2)];
+    }
+    setChips(at);
+  }, [phase, boxes]);
+  useEffect(() => {
+    if (phase === 'chips' && chips) {
+      const t = setTimeout(() => {
+        setChips(null);
+        setPhase('travel');
+      }, CHIP_HOLD);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'travel') {
+      const t = setTimeout(() => setPhase('settled'), CHIP_TRAVEL + CHIP_STAGGER * TRAVEL.length);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [phase, chips]);
+  const grown = s >= 2 && (phase === 'travel' || phase === 'settled');
+  const nodeBox = useMemo(() => (b) => setBoxes(b), []);
+  // icons left on the four nodes once the chips have landed (no number)
+  const icons = phase === 'settled' && ch && graph ? TRAVEL : [];
+  const tooltip = ({ kind, link, node }) => {
+    const id = kind === 'link' ? link.target.id : node.id;
+    const name = id === 'gdp' ? 'GDP' : id === 'capital' ? 'Gross capital income' : PART_TEXT[id]?.long;
+    const val = id === 'gdp' ? 100 : id === 'capital' ? CAPITAL_PARTS.reduce((a, k2) => a + base[k2], 0) : base[id];
+    const c = s >= 2 && ch && CH_KEY[id] ? ch[CH_KEY[id]] : null;
+    return (
+      <>
+        <div className="sankey-tip-head">{name}</div>
+        <div className="sankey-tip-row">
+          {id === 'gdp' ? val : share(val)} of every 100 on the path
+        </div>
+        <div className="sankey-tip-row is-note">{MEANING[id]}</div>
+        {c != null ? (
+          <div className={`sankey-tip-row is-${dirConcept(c)}`}>
+            {SCEN_NAME[sid]}: {change(c)}, % of the path&rsquo;s GDP
+          </div>
+        ) : null}
+      </>
+    );
+  };
   return (
-    <figure ref={ref} className="p2-figure p2-output-fig p2-output-graphic" data-state={s}>
+    <figure ref={ref} className="p2-figure p2-output-fig p2-output-graphic" data-state={s} data-phase={phase}>
       <div className="p2-output-base">
-        <p className="story-figure-title">
-          <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
-        </p>
-        <p className="story-figure-unit">
-          <Tx icon="measure" size={12}>
-            {cap(CL_WORDS[cl])}. Of every 100 of GDP
-          </Tx>
-        </p>
+        {/* one head row: badge, title with its unit, Replay and Pause */}
+        <div className="p2-output-head">
+          <ModelBadge model="oguk" />
+          <p className="story-figure-title p2-output-title">
+            <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
+            {' '}<span className="p2-output-unit">
+              {cap(CL_WORDS[cl])}, of every 100 of GDP
+            </span>
+          </p>
+          {graph && !all ? (
+            <span className="p2-output-actions">
+              <Replay onClick={() => setReplay((r) => r + 1)} label="Replay the build" />
+              <Pause paused={paused} onClick={() => setPaused((p) => !p)} />
+            </span>
+          ) : null}
+        </div>
         {graph ? (
-          <div className="p2-sankey">
+          <div className="p2-sankey" ref={wrap}>
             <Sankey
               graphs={[graph]}
               label={sankeyLabel}
               width={420}
-              height={196}
-              pad={24}
+              height={158}
+              pad={20}
               rightRoom={118}
               linkOpacity={0.7}
-              reveal={reveal}
+              nodeWidth={[44, 44, 44]}
+              inside
+              pour={pour}
+              replayKey={replay}
+              flow={seen && !paused}
+              interactive
+              tooltip={tooltip}
               highlight={lit ?? undefined}
-              onHover={s >= 2 ? pick2 : undefined}
+              onHover={pick}
+              onNodeBox={nodeBox}
             />
+            {icons.map((id) => {
+              const n = boxes?.nodes[id];
+              if (!n) return null;
+              const d = dirConcept(ch[id]);
+              return (
+                <span
+                  key={id}
+                  className={`p2-node-dir is-${d}${lit === id ? ' is-hl' : ''}`}
+                  style={{ left: `${n.x0 - 16}px`, top: `${(n.y0 + n.y1) / 2}px` }}
+                  aria-hidden="true"
+                >
+                  <Icon name={iconFor(d)} size={12} strokeWidth={2.5} />
+                </span>
+              );
+            })}
           </div>
         ) : (
           <p className="p2-pending">
             <Tx icon="provisional">The reference path at this closure is pending.</Tx>
           </p>
         )}
-        <p className="story-source">
-          <span className="p2-src-line">
-            <Tx icon="tax" size={12}>
-              Taxes are not split out: in OG-UK income tax is one combined series.
-            </Tx>
-          </span>{' '}
-          <span className="p2-src-line">
-            <Tx icon="source" size={12}>
-              {SOURCE}
-            </Tx>
-          </span>
-        </p>
       </div>
-      {/* not yet reached: invisible, and out of reach of focus and pointer */}
+      {/* not yet reached: faint, and out of reach of focus and pointer */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
-        <p className="story-figure-title">
+        <p className="story-figure-title p2-output-title">
           <Tx icon="compare">
             What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
           </Tx>
-        </p>
-        <p className="story-figure-unit">
-          <Tx icon="measure" size={12}>
-            {where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels
-          </Tx>
+          {' '}<span className="p2-output-unit">change, % of the path&rsquo;s GDP</span>
         </p>
         {ch ? (
           <>
-            <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={lit} setHl={pick2} path={`output_split.change.${sid}.${cl}`} />
-            <p className="story-source">
-              <Tx icon="caveat" size={12}>
-                Changes are rounded, so the parts may not add to the totals; the GDP bar ends at the headline GDP figure.
-              </Tx>
-            </p>
+            <Waterfall
+              rows={waterfallRows(ch)}
+              on={grown}
+              hl={lit}
+              setHl={pick}
+              path={`output_split.change.${sid}.${cl}`}
+              cells={cells}
+              chips={phase === 'chips' ? chips : null}
+              phase={phase}
+            />
           </>
         ) : (
           <p className="p2-pending">
@@ -226,6 +346,21 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
           </p>
         )}
       </div>
+      {/* one foot for both charts */}
+      <p className="story-source p2-output-foot">
+        <span className="p2-src-line">
+          <Tx icon="source" size={12}>
+            {SOURCE} Changes: {where}. Taxes are not split out (one combined income tax series).
+          </Tx>
+        </span>
+        {ch ? (
+          <span className="p2-src-line">
+            <Tx icon="caveat" size={12}>
+              Rounded, so parts may not add to totals; the GDP bar ends at the headline GDP figure.
+            </Tx>
+          </span>
+        ) : null}
+      </p>
     </figure>
   );
 }
