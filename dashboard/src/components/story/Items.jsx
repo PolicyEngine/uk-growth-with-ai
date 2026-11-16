@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { NavLink } from '@/lib/nav.jsx';
 
 // Short items in place of prose: each one a plain icon (a concept name from
 // lib/concepts.js, or an Icon.jsx key) and about a dozen words.
@@ -93,5 +94,37 @@ export function IconGrid({ items, label, columns = 3, className = '' }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// "What you just learned": a compact chip row at the end of a part, each
+// chip a plain icon and a short line (at most 12 words, no new numbers)
+// linking to the fact's home. `to` is an anchor on the Story (a string) or
+// { tab, sub, anchor } for a home elsewhere.
+//
+//   <Recap items={[{ icon: 'gdp', text: 'Growth slowed after 2008', to: 'p1-output' }]} />
+export function Recap({ title = 'What you just learned', items, className = '' }) {
+  const list = (items ?? []).filter(Boolean);
+  if (!list.length) return null;
+  return (
+    <nav className={`story-recap ${className}`.trim()} aria-label={title}>
+      <p className="story-recap-title">
+        <Icon name={iconFor('recap')} size={16} className="story-recap-icon" />
+        {title}
+      </p>
+      <ul className="story-recap-list">
+        {list.map((it, i) => {
+          const to = typeof it.to === 'string' ? { tab: 'story', anchor: it.to } : (it.to ?? {});
+          return (
+            <li key={it.key ?? i}>
+              <NavLink tab={to.tab ?? 'story'} sub={to.sub} anchor={to.anchor} className="story-recap-chip">
+                <Icon name={iconFor(it.icon)} size={14} className="story-recap-chip-icon" />
+                <span>{it.text}</span>
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }

@@ -108,9 +108,10 @@ export function OutputCanvas({ state }) {
   const source = zoomed ? (
     <SourceLine
       items={[
-        { id: q.source, name: 'GDP quarter-on-quarter growth' },
-        { id: 'ons_ihyr', name: 'GDP growth on the same quarter a year earlier' },
+        { id: q.source, name: 'GDP quarterly growth' },
+        { id: 'ons_ihyr', name: 'GDP growth on a year earlier' },
       ]}
+      through={`${lastQ}, first estimate`}
     />
   ) : (
     <SourceLine
@@ -118,6 +119,7 @@ export function OutputCanvas({ state }) {
         { id: g.source, name: 'GDP year-on-year growth' },
         ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
       ]}
+      through={fc ? `${gLast}; OBR forecast to ${x1}` : String(gLast)}
     />
   );
 
@@ -335,7 +337,7 @@ export const boardSeries = () => {
       tipUnit: '% of GDP',
       s,
       icon: 'labourShare',
-      name: 'Labour share',
+      name: 'Employee share',
       long: 'compensation of employees as a share of GDP, annual',
       span: `${s.x[0]} to ${s.x[s.x.length - 1]}`,
       title: `Compensation of employees as a share of GDP, ${s.x[0]} to ${s.x[s.x.length - 1]}`,
@@ -416,7 +418,7 @@ export function LabourBoard({ focus, onPick }) {
       titleReserve={longest(all.map((b) => b.title))}
       unit={cur.unit}
       unitReserve={longest(all.map((b) => b.unit))}
-      source={<SourceLine items={cur.src} />}
+      source={<SourceLine items={cur.src} through={periodLabel(cur.s.last ?? cur.s.x[cur.s.x.length - 1])} />}
       className="p1-board"
     >
       <div ref={box} className="p1-plot">
@@ -531,8 +533,8 @@ export function AiUseChart({ state }) {
       icon="ai"
       innerRef={ref}
       title={`Businesses using at least one AI technology, ${short(a.x[0])} to ${short(a.x[last])}`}
-      unit="Per cent of businesses, by survey wave (dated at its midpoint)"
-      source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} />}
+      unit="Per cent of businesses using at least one AI technology"
+      source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} through={`Wave ${BICS_WAVE}, ${a.x[last]}`} />}
       className="p1-ai"
     >
       <div ref={box} className="p1-plot">
@@ -567,6 +569,9 @@ export function AiUseChart({ state }) {
               { x: X(last), label: short(a.x[last]), anchor: 'end', key: 'b' },
             ]}
           />
+          <text x={(L + R) / 2} y={aiH - 6} textAnchor="middle" className="p1-axis-title" data-axis-title="x">
+            Survey wave, dated at its midpoint
+          </text>
           <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} />
           <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen && two ? ' is-on' : ''}`} />
           <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} />

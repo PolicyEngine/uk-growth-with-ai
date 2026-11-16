@@ -22,7 +22,7 @@ import { takeupDirections } from './part3/Moves.jsx';
 import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
 import { MODEL_YEAR, OUTSIDE_REBUILD, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
 import TwoLenses, { CLOSE_SUB } from './TwoLenses.jsx';
-import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
+import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
 afterEach(cleanup);
 
@@ -85,6 +85,8 @@ describe('Part3', () => {
       fmtGini(D.baseline.gini.value),
       fmtBn(D.channels.rows.find((r) => r.id === 'displacement').cost_bn),
       fmtBn(D.channels.rows.find((r) => r.id === 'wage').cost_bn),
+      fmtBn(D.channels.rows.find((r) => r.id === 'capital').cost_bn),
+      fmtPctSigned0(D.breakeven.capital.value_pct),
       ...['earnings_lost_bn', 'tax_ni_bn', 'benefits_bn', 'other_bn', 'disposable_bn'].map((k) => fmtBn(S.total[k])),
       fmtBn(S.employer_ni_bn),
       fmtPence(D.per_pound_20.job_loss.government_p),
@@ -165,7 +167,7 @@ describe('Part3', () => {
     const card = container.querySelector('.story-callout');
     expect(card.querySelector('.story-callout-title').textContent).toBe('A different model');
     expect(card.textContent).toContain('Microcosm UK 2024-25');
-    expect(card.textContent).toContain('FY 2026–27');
+    expect(card.textContent).toContain(MODEL_YEAR);
     expect(card.textContent).toContain('cannot be added to or compared with');
     expect(card.closest('.scrolly')).toBeNull();
   });
@@ -177,7 +179,7 @@ describe('Part3', () => {
     expect(d1.querySelector('.p3-row-value').textContent).toBe('see note');
     const cav = d1.querySelector('[data-caveat="bottom-decile"]');
     expect(cav.textContent).toContain('does not report the bottom income decile as a finding');
-    for (const s of ['+1.78%', `${MINUS}0.33%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
+    for (const s of ['+1.86%', `${MINUS}0.32%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
     expect(cav.querySelector('[data-input]')).toBeNull();
     expect(container.querySelector('[data-decile="2"] .p3-fill-loss')).not.toBeNull();
   });
@@ -202,12 +204,12 @@ describe('Part3', () => {
     }
     // decile flows add up to each decile's earnings lost, and the deciles to the total
     S.deciles.forEach((f) => expect(f.tax_ni_bn + f.benefits_bn + f.other_bn + f.disposable_bn).toBeCloseTo(f.earnings_lost_bn, 3));
-    expect(fmtBn(S.total.earnings_lost_bn)).toBe('£23.3bn');
-    expect(fmtBn(S.total.tax_ni_bn)).toBe('£6.2bn');
+    expect(fmtBn(S.total.earnings_lost_bn)).toBe('£24.0bn');
+    expect(fmtBn(S.total.tax_ni_bn)).toBe('£6.5bn');
     expect(fmtBn(S.total.benefits_bn)).toBe('£0.4bn');
     expect(fmtBn(S.total.other_bn)).toBe('£1.3bn');
-    expect(fmtBn(S.total.disposable_bn)).toBe('£15.4bn');
-    expect(fmtBn(S.employer_ni_bn)).toBe('£3.1bn');
+    expect(fmtBn(S.total.disposable_bn)).toBe('£15.8bn');
+    expect(fmtBn(S.employer_ni_bn)).toBe('£3.2bn');
     const { container } = renderPart();
     const fig = container.querySelector('#p3-absorb');
     expect(fig.textContent).toContain('Job loss alone, a smaller run sized to the OBR’s March 2026 displacement scenario, not the central case');

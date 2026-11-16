@@ -93,6 +93,35 @@ DSIT_PAGE = ("https://www.gov.uk/government/publications/assessment-of-ai-capabi
 BICS_BULLETINS = ONS + "/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/"
 BICS_FIRST = "8october2026"  # Wave 165; the builder follows "Next release" links from the newest cached bulletin
 LMS_BULLETIN = ONS + "/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/"
+# Readable pages (HTML, each fetched 16 November 2026 and found to return 200) that part 1 links its figures
+# and caveats to; the CSV/XLS downloads stay as each source's secondary "data" link.
+OBR_EFO_PAGE = "https://obr.uk/efo/economic-and-fiscal-outlook-october-2026/"
+IMF_GENAI = ("https://www.imf.org/en/Publications/Staff-Discussion-Notes/Issues/2024/01/14/"
+             "Gen-AI-Artificial-Intelligence-and-the-Future-of-Work-542379")
+IMF_UPSKILLING = ("https://www.imf.org/en/publications/selected-issues-papers/issues/2024/07/24/"
+                  "upskilling-the-uk-workforce-united-kingdom-552424")
+LINKS = {
+    "ons_lm_guide": {"title": "A guide to labour market statistics", "publisher": "Office for National Statistics",
+                     "url": ONS + "/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/methodologies/"
+                                  "aguidetolabourmarketstatistics"},
+    "ons_awe_qmi": {"title": "Average weekly earnings QMI", "publisher": "Office for National Statistics",
+                    "url": ONS + "/employmentandlabourmarket/peopleinwork/earningsandworkinghours/methodologies/"
+                                 "averageweeklyearningsqmi"},
+    "ons_productivity": {"title": "Labour productivity", "publisher": "Office for National Statistics",
+                         "url": ONS + "/employmentandlabourmarket/peopleinwork/labourproductivity"},
+    "ons_bics_qmi": {"title": "Business Insights and Conditions Survey (BICS) QMI", "publisher": "Office for National Statistics",
+                     "url": ONS + "/economy/economicoutputandproductivity/output/methodologies/"
+                                  "businessinsightsandconditionssurveybicsqmi"},
+    "ons_revisions": {"title": "Revisions policies for economic statistics", "publisher": "Office for National Statistics",
+                      "url": ONS + "/methodology/methodologytopicsandstatisticalconcepts/revisions/"
+                                   "revisionspoliciesforeconomicstatistics"},
+    "ons_gdp_first": {"title": "GDP first quarterly estimate, UK", "publisher": "Office for National Statistics",
+                      "url": ONS + "/economy/grossdomesticproductgdp/bulletins/gdpfirstquarterlyestimateuk/latest"},
+    "imf_upskilling": {"title": "Upskilling the UK Workforce: United Kingdom (July 2024)",
+                       "publisher": "International Monetary Fund", "url": IMF_UPSKILLING},
+    "imf_genai": {"title": "Gen-AI: Artificial Intelligence and the Future of Work (January 2024)",
+                  "publisher": "International Monetary Fund", "url": IMF_GENAI},
+}
 
 MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
 MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July",
@@ -374,9 +403,14 @@ def build(man: dict) -> dict:
             "publisher": "Office for National Statistics",
             "released": f["released"],
             "url": f["url"],
+            "page": f"{ONS}{ONS_SERIES[key][1]}/timeseries/{cdid.lower()}/{f['dataset'].lower()}",
+            "data_label": "CSV",
             "series": f"{cdid} (ONS dataset {f['dataset']})",
             "fetched": f["fetched"],
         }
+        nxt = long_date(f["next_release"]) if f.get("next_release") else ""
+        if nxt > f["fetched"]:  # only a release date the ONS still lists as to come on the fetch date
+            sources[f"ons_{key}"]["next_release"] = nxt
 
     # --- Output: annual growth (full years), and the latest quarters
     ihyp, ihyq, ihyr = s["ihyp"], s["ihyq"], s["ihyr"]
@@ -484,6 +518,8 @@ def build(man: dict) -> dict:
         "publisher": "Office for Budget Responsibility",
         "released": "2026-10-28",
         "url": OBR_GOVUK_PAGE,
+        "page": OBR_EFO_PAGE,
+        "data_label": "Table A.1 on GOV.UK",
         "series": "Table A.1, row 'GDP' (percentage change on a year earlier)",
         "fetched": fo["fetched"],
     }
@@ -520,6 +556,8 @@ def build(man: dict) -> dict:
         "publisher": "Office for National Statistics",
         "released": fb["released"],
         "url": fb["url"],
+        "page": fbb["url"],
+        "data_label": "spreadsheet",
         "series": "Figure 1: current use of at least one AI technology, by size band, weighted by count",
         "fetched": fb["fetched"],
     }
@@ -559,10 +597,11 @@ def build(man: dict) -> dict:
     pct = {h: float(v.rstrip("%")) for h, v in zip(head[1:], uk[1:]) if v}
     sources["dsit_ai_capabilities_2026"] = {
         "title": "Assessment of AI capabilities and the impact on the UK labour market (Figure 2, citing IMF, "
-                 "Gen-AI: Artificial Intelligence and the Future of Work, January 2024)",
+                 "Upskilling the UK Workforce: United Kingdom, July 2024)",
         "publisher": "Department for Science, Innovation and Technology and AI Security Institute",
         "released": dsit["first_published_at"][:10],
         "url": DSIT_PAGE,
+        "page": DSIT_PAGE,
         "series": "Figure 2 table, row 'UK'",
         "fetched": fd["fetched"],
     }
@@ -580,7 +619,7 @@ def build(man: dict) -> dict:
          "Workers in occupations with high AI exposure and low complementarity"),
         ("workers_low_exposure", "Low exposure", "Workers in occupations with low AI exposure"),
     ]:
-        facts[fid] = {"label": label, "value": pct[key], "unit": "% of workers", "period": "IMF estimate, January 2024",
+        facts[fid] = {"label": label, "value": pct[key], "unit": "% of workers", "period": "IMF estimate, July 2024",
                       "source": "dsit_ai_capabilities_2026", "note": imf_note}
 
     lm = F["lms_bulletin"]
@@ -609,8 +648,11 @@ def build(man: dict) -> dict:
         "ourselves (for example an unweighted mean by major group) is possible but would be our own construction on SOC 2010.",
         "BICS covers private-sector businesses in selected industries; results for businesses with 0 to 9 employees carry large survey weights, so the ONS often headlines the 10-or-more-employees figure.",
     ]
+    links = {**LINKS, "ons_lms_bulletin": {"title": f"Labour market overview, UK: {lm['slug'][:-4].capitalize()} {lm['slug'][-4:]}",
+                                           "publisher": "Office for National Statistics", "url": lm["url"],
+                                           "released": lm["released"]}}
     return {"generated_by": "dashboard/scripts/build_uk_context.py", "sources": sources, "series": series,
-            "facts": facts, "exposure": None, "notes": notes}
+            "facts": facts, "exposure": None, "notes": notes, "links": links}
 
 
 # ================================================================ primary-source checks
@@ -754,12 +796,12 @@ def primary_checks(man: dict, ctx: dict) -> dict:
                          ("workers_high_exposure_low_complementarity", "High exposure, Low complementarity"),
                          ("workers_low_exposure", "Low exposure")]:
         raw = dmap[colname]
-        add(fid, raw, float(raw.rstrip("%")), "IMF estimate, January 2024", dsit_name, dsit_ds,
+        add(fid, raw, float(raw.rstrip("%")), "IMF estimate, July 2024", dsit_name, dsit_ds,
             f"Figure 2 table, row 'UK', column '{colname}'", fd["released"], fd["url"], f"analysis/story/raw/{fd['file']}",
             "cell-by-cell read of the GOV.UK HTML report (the builder parses table rows)")
     a, b = figs["workers_high_exposure_high_complementarity"], figs["workers_high_exposure_low_complementarity"]
     add("workers_high_exposure_sum", f"{a['primary_value_raw']} + {b['primary_value_raw']}", a["value"] + b["value"],
-        "IMF estimate, January 2024", dsit_name, dsit_ds, "Figure 2 table, row 'UK', sum of the two high-exposure columns",
+        "IMF estimate, July 2024", dsit_name, dsit_ds, "Figure 2 table, row 'UK', sum of the two high-exposure columns",
         fd["released"], fd["url"], f"analysis/story/raw/{fd['file']}", "sum of the two cells")
     m = re.search(r"Around (\d+)% of UK workers[^.]*", _page_text(body))
     assert m, "DSIT text: 'Around N% of UK workers' not found"
@@ -770,6 +812,8 @@ def primary_checks(man: dict, ctx: dict) -> dict:
     for fid, path, kind in PRINTED:
         f = figs[fid]
         f.update({"printed": fmt(f["value"], kind), "format": kind, "json_path": path})
+        src = get_path(ctx, ".".join(path.split(".")[:2]) + ".source") if path else "dsit_ai_capabilities_2026"
+        f["page"] = ctx["sources"][src]["page"]
         if path is not None and fmt(get_path(ctx, path), kind) != f["printed"]:
             mismatches.append(f"{fid}: ukContext {get_path(ctx, path)} vs primary {f['primary_value_raw']} ({f['primary_file']})")
         out.append(f)

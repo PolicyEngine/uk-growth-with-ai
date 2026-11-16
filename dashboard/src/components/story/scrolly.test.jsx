@@ -118,3 +118,54 @@ describe('useEnterState', () => {
     );
   });
 });
+
+describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
+  const sub = { title: 'Output', icon: 'gdp', question: 'How fast has the UK grown?', takeaway: 'Growth slowed after 2008.' };
+  it('prints the question in the header and the takeaway after the block', () => {
+    const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={() => null} label="L" />);
+    const h = container.querySelector('header.scene-head');
+    expect(h.dataset.scene).toBe('Output');
+    expect(h.querySelector('.scene-head-q').textContent).toBe('How fast has the UK grown?');
+    expect(h.querySelector('.scene-head-q svg')).not.toBeNull();
+    const t = container.querySelectorAll('.scrolly-takeaway');
+    expect(t).toHaveLength(1);
+    expect(t[0].closest('li')).toBeNull();
+    expect(t[0].previousElementSibling.classList.contains('scrolly-steps')).toBe(true);
+    expect(t[0].textContent).toBe('Key takeaway: Growth slowed after 2008.');
+    expect(t[0].querySelector('svg')).not.toBeNull();
+  });
+  it('without IntersectionObserver the opener is skipped and ctx.entered is true', () => {
+    const seen = [];
+    const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
+    expect(container.querySelector('.topic-opener')).toBeNull();
+    expect(seen.at(-1)).toBe(true);
+  });
+  it('with IntersectionObserver the opener waits over the figure and holds entry moves back', () => {
+    const IO = globalThis.IntersectionObserver;
+    globalThis.IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+    };
+    try {
+      const seen = [];
+      const { container } = render(
+        <section className="story-part" data-part="2">
+          <Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />
+        </section>,
+      );
+      const o = container.querySelector('.scrolly-graphic-inner .topic-opener');
+      expect(o).not.toBeNull();
+      expect(o.getAttribute('aria-hidden')).toBe('true');
+      expect(o.hasAttribute('data-axis')).toBe(true);
+      expect(o.querySelector('.topic-opener-part').textContent).toBe('Part 2');
+      expect(o.querySelectorAll('.topic-opener-w')).toHaveLength(6);
+      expect(seen.every((e) => e === false)).toBe(true);
+    } finally {
+      globalThis.IntersectionObserver = IO;
+    }
+  });
+  it('a plain string sub has no opener and no takeaway', () => {
+    const { container } = render(<Scrolly id="b" sub="Output" steps={steps} graphic={() => null} label="L" />);
+    expect(container.querySelector('.topic-opener, .scene-head-q, .scrolly-takeaway')).toBeNull();
+  });
+});
