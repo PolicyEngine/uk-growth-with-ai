@@ -105,7 +105,7 @@ function outputSteps() {
             facts={obr.map((i) => ({
               key: OBR.x[i],
               icon: dirOf(OBR.y[i]),
-              value: <Growth v={OBR.y[i]} path={`series.obr_gdp_forecast.y.${i}`} />,
+              value: <Growth v={OBR.y[i]} path={`series.obr_gdp_forecast.y.${i === OBR.y.length - 1 ? -1 : i}`} />,
               label: `growth in ${OBR.x[i]}`,
               sub: `output ${dirWord(OBR.y[i])}`,
             }))}
