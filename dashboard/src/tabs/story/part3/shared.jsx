@@ -253,3 +253,94 @@ export function SceneHead({ title, icon, question, id }) {
     </header>
   );
 }
+
+// ---------------------------------------------------------------------------
+// One step, one sentence, one highlight (Vahid, 16 Nov: "someone cannot
+// trace the text between the plots"). Each scene has at most three steps;
+// each step is one sentence of about 15 words and declares `highlight`, the
+// ids of the marks it is about. The figure's marks carry data-mark="<id>";
+// while a step is active the highlighted marks keep full strength and the
+// rest dim (CSS: .p3-scene.has-hl [data-mark]:not(.is-hl)). Drawn once on
+// phones (ctx.once), every card is on screen together, so nothing dims;
+// the numbered markers and colour-keyed names tie each card to its marks.
+
+// The ids a step highlights, for the figure drawing step `i`.
+export const highlightFor = (steps, i, ctx) => (ctx?.once ? [] : (steps[i]?.highlight ?? []));
+
+// A mark's props: data-mark, and is-hl while it is highlighted.
+export function markProps(id, hl, cls = '') {
+  const on = hl.length > 0 && hl.includes(id);
+  return { 'data-mark': id, className: `${cls}${on ? ' is-hl' : ''}`.trim() };
+}
+export const hlClass = (hl) => (hl.length ? ' has-hl' : '');
+
+// A numbered marker, ① to ⑨, in step text and on the chart, where a step
+// needs more than one point.
+const CIRCLED = ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];
+export function NumMarker({ n, className = '' }) {
+  return (
+    <span className={`p3-nm ${className}`.trim()} data-marker={n} aria-label={`(${n})`}>
+      {CIRCLED[n] ?? `(${n})`}
+    </span>
+  );
+}
+
+// A series name in step text, in the series' colour with its marker: the
+// text works as the legend. `s` names the series (a class p3-s-<s>).
+export function SeriesName({ s, children }) {
+  return (
+    <span className={`p3-sname p3-s-${s}`} data-series={s}>
+      <span className="p3-sname-mark" aria-hidden="true" />
+      {children}
+    </span>
+  );
+}
+
+// A number in step text: a chip that pulses its data point (data-path, the
+// value's path in aiStudy2425.json; `mark`, the chart mark it belongs to).
+// `input` marks a quoted input (data-input: not a result, so the number
+// check skips it).
+export function NumChip({ path, mark, input = false, children }) {
+  return (
+    <span className="p3-num" data-path={path} data-num-mark={mark} {...(input ? { 'data-input': '' } : {})}>
+      {children}
+    </span>
+  );
+}
+
+// The step-card template, folded: an "About these figures" fold with its
+// items grouped under small icon sub-labels ("Assumed", "Finding",
+// "Caveat", "See also"), never a flat mixed list. `groups`:
+// [{ label, icon, items }]. Prose only (see About).
+export const GROUP_ICON = { Assumed: 'scenario', Finding: 'takeaway', Caveat: 'caveat', 'See also': 'link', Definitions: 'measure' };
+export function Fold({ groups }) {
+  const gs = groups.filter((g) => g && g.items.filter(Boolean).length);
+  return (
+    <details className="p3-about">
+      <summary>
+        <Ico c="caveat" size={12} /> About these figures
+      </summary>
+      {gs.map((g) => (
+        <section key={g.label} className="p3-fold-group">
+          <p className="p3-fold-label">
+            <Ico c={g.icon ?? GROUP_ICON[g.label] ?? 'caveat'} size={12} /> {g.label}
+          </p>
+          <ul className="p3-fold-items">
+            {g.items.filter(Boolean).map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </details>
+  );
+}
+
+// The one "draws" chip a figure carries: "50 draws", "20 paired draws".
+export function DrawsChip({ children }) {
+  return (
+    <span className="p3-basis p3-draws">
+      <Ico c="draws" size={12} /> {children}
+    </span>
+  );
+}

@@ -1,10 +1,9 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { Items } from '@/components/story/Items.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
-import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
+import { D, DrawsChip, FigureHead, Fold, Ico, NumChip, NumMarker, SeriesName, Source, entryClass, highlightFor, hlClass, markProps, useBeat } from './shared.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Decile 1 is drawn grey with the caveat beside it and no
@@ -34,29 +33,27 @@ export function bottomDecileRankings() {
     [RANK_EXCL_PPC, 'leaving out large personal pension contributions'],
   ].filter(([v]) => fmtDecilePct(v));
 }
+// Decile 1 under the three rankings: a small table (the home of these
+// figures), in the third step's card.
 export function BottomDecileCaveat() {
   return (
-    <div className="p3-caveat-items" data-caveat="bottom-decile">
-      <Items
-        items={[
-          { icon: 'caveat', text: 'The study does not report the bottom income decile as a finding' },
-          { icon: 'why', text: 'Some households there make large pension contributions and receive capital income' },
-          { icon: 'range', text: 'Its sign depends on how households are ranked:' },
-        ]}
-      />
-      <Items
-        className="p3-rank-items"
-        items={bottomDecileRankings().map(([v, how]) => ({
-          key: how,
-          icon: signIcon(v),
-          text: (
-            <>
-              <strong>{fmtDecilePct(v)}</strong> {how}
-            </>
-          ),
-        }))}
-      />
-    </div>
+    <table className="p3-rank-table" data-caveat="bottom-decile">
+      <caption className="p3-rank-cap">Decile 1’s change, by how households are ranked</caption>
+      <tbody>
+        {bottomDecileRankings().map(([v, how]) => (
+          <tr key={how}>
+            <th scope="row">
+              <Ico c={signIcon(v)} size={12} /> {how[0].toUpperCase() + how.slice(1)}
+            </th>
+            <td>
+              <NumChip path="rankings" mark="d1">
+                {fmtDecilePct(v)}
+              </NumChip>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -88,10 +85,16 @@ export const DECILES_SUB = {
   title: 'Where the loss falls',
   icon: 'deciles',
   question: 'Which households lose most income?',
+  hint: 'Watch the bars land, the bottom decile last',
+  answer: `Largest fall: decile ${SHAPE.worst}, ${fmtDecilePct(VALUES[SHAPE.worst - 1])}`,
   takeaway: SHAPE.upperMiddle
     ? 'Falls in income peak in the upper-middle deciles, as the study reports'
     : 'The fall in income differs across the distribution; the bottom decile is not a finding',
 };
+// The deciles the first step lights: the upper-middle ones (6 to 9) when the
+// largest fall is there, else the largest fall alone.
+const UPPER = SHAPE.upperMiddle ? ['d6', 'd7', 'd8', 'd9'] : [`d${SHAPE.worst}`];
+const MARKER = { [SHAPE.worst]: 1, 10: 2, 1: 3 };
 
 // Bars grow from the zero line (kind b): deciles 2 to 10, 40ms apart, then
 // the largest fall takes the highlight, then decile 1 grows last, grey.
@@ -113,16 +116,20 @@ function DecBar({ v, on, fill, delay }) {
   );
 }
 
-function DecilesFigure({ ctx }) {
+function DecilesFigure({ hl = [], ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, 'p3-figure p3-scene')}>
+    <figure className={entryClass(e, `p3-figure p3-scene${hlClass(hl)}`)}>
       <FigureHead
         icon="deciles"
         title="Change in household disposable income by income decile"
         y="% change in disposable income, before housing costs"
         x="Income decile, 1 = bottom"
-        unit="Central case"
+        unit={
+          <>
+            Central case <DrawsChip>{DEC.draws} draws</DrawsChip>
+          </>
+        }
         replay={e.replay}
       />
       <ol className="p3-rows p3-deciles">
@@ -131,62 +138,88 @@ function DecilesFigure({ ctx }) {
           const first = n === 1;
           const fill = first ? 'p3-fill-muted' : v < 0 ? 'p3-fill-loss' : 'p3-fill-gain';
           const name = n === 1 ? '1 (bottom)' : n === 10 ? '10 (top)' : String(n);
+          const m = markProps(`d${n}`, hl, `p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`);
           return (
-            <li
-              key={n}
-              className={`p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`}
-              data-decile={n}
-              style={{ '--beat': `${ORDER_DELAY(n)}ms` }}
-            >
-              <span className="p3-row-label p3-dec-label">{name}</span>{' '}
+            <li key={n} {...m} data-decile={n} style={{ '--beat': `${ORDER_DELAY(n)}ms` }}>
+              <span className="p3-row-label p3-dec-label">
+                {MARKER[n] ? <NumMarker n={MARKER[n]} /> : null} {name}
+              </span>{' '}
               <span className="p3-row-bar">
                 <DecBar v={v} on={e.on} fill={fill} delay={ORDER_DELAY(n)} />
               </span>{' '}
-              <span className="p3-row-value">{first ? <span className="p3-muted">see note</span> : fmtDecilePct(v)}</span>
+              <span className="p3-row-value">{first ? <span className="p3-muted">see ③</span> : fmtDecilePct(v)}</span>
             </li>
           );
         })}
       </ol>
-      <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>mean of {DEC.draws} draws, each household weighted by its number of members</Source>
+      <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>each household weighted by its number of members</Source>
     </figure>
   );
 }
 
+// Three steps, each one sentence about the bars it lights.
+const topSentence = SHAPE.topNearZero
+  ? 'the change is close to zero: its interval spans zero'
+  : VALUES[9] >= 0
+    ? 'assumed higher capital income offsets the earnings lost'
+    : 'assumed higher capital income offsets part of the loss';
+export const DECILE_STEPS = [
+  {
+    id: 'p3-deciles-step',
+    kicker: 'Step 4 · Where the loss falls',
+    icon: 'deciles',
+    highlight: UPPER,
+    title: SHAPE.upperMiddle ? (
+      <>
+        <NumMarker n={1} /> Falls peak in the upper-middle deciles, largest at <SeriesName s="loss">decile {SHAPE.worst}</SeriesName>
+      </>
+    ) : (
+      <>
+        <NumMarker n={1} /> The largest fall is at <SeriesName s="loss">decile {SHAPE.worst}</SeriesName>
+      </>
+    ),
+  },
+  {
+    id: 'p3-deciles-step-2',
+    icon: 'capital',
+    highlight: ['d10'],
+    title: (
+      <>
+        <NumMarker n={2} /> At <SeriesName s={VALUES[9] >= 0 ? 'gain' : 'loss'}>decile 10</SeriesName>, {topSentence}
+      </>
+    ),
+  },
+  {
+    id: 'p3-deciles-step-3',
+    icon: 'caveat',
+    highlight: ['d1'],
+    title: (
+      <>
+        <NumMarker n={3} /> <SeriesName s="muted">Decile 1</SeriesName> is not a finding: its sign depends on the ranking
+      </>
+    ),
+    body: (
+      <>
+        <BottomDecileCaveat />
+        <Fold
+          groups={[
+            { label: 'Caveat', items: ['The study does not report the bottom decile as a finding: some households there make large pension contributions and receive capital income'] },
+            SHAPE.hump && SHAPE.upperMiddle && SHAPE.lossTop ? { label: 'Finding', items: ['Hump-shaped: earnings lost peak at the top, where assumed capital income offsets them'] } : null,
+          ]}
+        />
+      </>
+    ),
+  },
+];
+
 export default function Deciles() {
-  // The caveat sits in the card at every width, so the figure stays short;
-  // it is rendered in one place only.
-  const steps = [
-    {
-      id: 'p3-deciles-step',
-      title: SHAPE.upperMiddle ? 'The largest falls are in the upper-middle deciles' : `The largest fall is in decile ${SHAPE.worst}`,
-      icon: 'deciles',
-      body: (
-        <>
-          <Items
-            items={[
-              SHAPE.hump &&
-                SHAPE.upperMiddle && {
-                  icon: 'deciles',
-                  text: SHAPE.lossTop
-                    ? 'Hump-shaped: earnings lost peak at the top, offset by assumed capital income'
-                    : 'Hump-shaped in net income: the largest falls are in the upper-middle deciles',
-                },
-              { icon: signIcon(VALUES[SHAPE.worst - 1]), text: `Largest fall: decile ${SHAPE.worst}` },
-              SHAPE.topLess && {
-                icon: 'capital',
-                text: SHAPE.topNearZero
-                  ? 'At the top, close to zero: its interval spans zero'
-                  : VALUES[9] >= 0
-                    ? 'At the top, assumed higher capital income offsets the earnings lost'
-                    : 'At the top, assumed higher capital income offsets part of the loss',
-              },
-              { icon: 'caveat', text: 'Decile 1 is drawn grey: not a finding; see the note' },
-            ]}
-          />
-          <BottomDecileCaveat />
-        </>
-      ),
-    },
-  ];
-  return <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={steps} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />;
+  return (
+    <Scrolly
+      id="p3-deciles"
+      sub={DECILES_SUB}
+      steps={DECILE_STEPS}
+      graphic={(i, r, ctx) => <DecilesFigure hl={highlightFor(DECILE_STEPS, i, ctx)} ctx={ctx} />}
+      label="Change in household disposable income by income decile"
+    />
+  );
 }

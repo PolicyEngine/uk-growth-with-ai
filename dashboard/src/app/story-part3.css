@@ -2000,3 +2000,122 @@ svg.p3-dim {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+/* One step, one sentence, one highlight: while a step is active its marks
+   keep full strength and the rest dim to about 25%. filter: opacity
+   composes with the entry beats' own opacity, so the two never fight. */
+.p3-scene [data-mark] {
+  transition: filter 300ms var(--story-ease);
+}
+.p3-scene.has-hl [data-mark]:not(.is-hl) {
+  filter: opacity(0.25);
+}
+/* numbered markers, in step text and on the chart */
+.p3-nm {
+  display: inline-block;
+  font-weight: 600;
+  color: var(--pe-gray-800);
+  line-height: 1;
+}
+.scrolly-title .p3-nm {
+  font-size: 1.05em;
+}
+/* series names in text: the series colour and its marker, the legend */
+.p3-sname {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--p3-s, var(--pe-gray-800));
+}
+.p3-sname-mark {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  border-radius: 2px;
+  background: var(--p3-s-fill, var(--p3-s, var(--pe-gray-800)));
+  vertical-align: 0.05em;
+}
+.p3-s-loss {
+  --p3-s: var(--c-loss-text, #b45309);
+  --p3-s-fill: var(--c-loss);
+}
+.p3-s-gain {
+  --p3-s: var(--c-gain-text);
+  --p3-s-fill: var(--c-gain);
+}
+.p3-s-neutral {
+  --p3-s: var(--pe-gray-800);
+}
+.p3-s-muted {
+  --p3-s: var(--pe-gray-600);
+  --p3-s-fill: var(--pe-gray-300);
+}
+.p3-s-disposable {
+  --p3-s: var(--c-loss-text, #b45309);
+  --p3-s-fill: var(--c-loss);
+}
+.p3-s-benefits {
+  --p3-s: var(--rank-2);
+}
+.p3-s-tax {
+  --p3-s: var(--rank-1);
+}
+.p3-s-other {
+  --p3-s: var(--pe-gray-600);
+  --p3-s-fill: var(--pe-gray-400);
+}
+.p3-s-ring .p3-sname-mark {
+  background: transparent;
+  border: 2px solid var(--pe-gray-800);
+  border-radius: 50%;
+}
+.p3-s-dot .p3-sname-mark {
+  border-radius: 50%;
+}
+/* a number in step text: a chip */
+.p3-num {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--pe-gray-800) 8%, transparent);
+}
+/* the fold's groups under small icon sub-labels */
+.p3-fold-group + .p3-fold-group {
+  margin-top: 6px;
+}
+.p3-fold-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 6px 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--pe-gray-600);
+}
+.p3-fold-items {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.p3-fold-items li + li {
+  margin-top: 2px;
+}
+.p3-draws {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 0;
+}
+/* Part 3's scenes keep their figures' own height on desktop (the shared
+   400-620px box would leave each state too little scroll to hold): the
+   cards' column, not a tall box, gives each state its 180px. */
+@media (min-width: 901px) {
+  #story-part-3 .scrolly:not(.is-single) .scrolly-graphic-inner {
+    min-height: 0;
+  }
+}
