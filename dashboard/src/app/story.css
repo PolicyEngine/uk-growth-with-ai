@@ -64,15 +64,36 @@
 
 /* Part openers */
 .story-part {
-  padding: 40px 0 8px;
+  padding: 96px 0 8px;
   scroll-margin-top: calc(var(--sticky-offset) + 40px);
 }
-.story-part + .story-part {
-  border-top: 1px solid var(--card-border);
-}
+/* The part head sits on a full-bleed teal-50 band (box-shadow and
+   clip-path widen the background to the viewport without a scrollbar),
+   with a large part numeral: the story reads as chapters. */
 .story-part-head {
-  max-width: 70ch;
-  margin-bottom: 16px;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 70ch);
+  gap: 4px 28px;
+  align-items: start;
+  margin-bottom: 40px;
+  padding: 36px 0 32px;
+  background: var(--pe-teal-50);
+  box-shadow: 0 0 0 100vmax var(--pe-teal-50);
+  clip-path: inset(0 -100vmax);
+}
+.story-part-numeral {
+  grid-row: 1 / span 3;
+  margin: -6px 0 0;
+  font-size: clamp(3.5rem, 7vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-highlight);
+}
+.story-part-head > :not(.story-part-numeral) {
+  grid-column: 2;
 }
 .story-part-kicker {
   display: flex;
@@ -113,21 +134,28 @@
 .scrolly {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
-  gap: 32px;
-  margin: 0 0 24px;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 48px;
+  margin: 0 0 32px;
 }
+/* The sticky box fills the screen below the rail and centres the figure
+   card in it ("safe": a card taller than the space aligns to the top). */
 .scrolly-graphic {
   grid-column: 2;
   grid-row: 1;
   position: sticky;
   top: var(--story-graphic-top);
   align-self: start;
-  /* the graphic's own height: a fixed full-screen box left empty space
-     above and below short charts */
-  max-height: calc(100vh - var(--story-graphic-top) - 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  height: calc(100vh - var(--story-graphic-top));
+}
+.scrolly.is-single .scrolly-graphic {
+  height: auto;
 }
 .scrolly-graphic-inner {
+  position: relative;
   width: 100%;
   padding: 20px;
   background: var(--pe-surface);
@@ -146,7 +174,7 @@
 /* Cards follow one another with a short gap; each step is tall enough
    that the active card changes about once per half screen of scroll. */
 .scrolly-step {
-  min-height: 44vh;
+  min-height: 70vh;
   padding-bottom: 24px;
   display: flex;
   align-items: flex-start;
@@ -154,21 +182,65 @@
 .scrolly-step:nth-last-child(2) {
   min-height: 0;
 }
+/* a card-less step: the graphic holds its opening state for a short scroll */
+.scrolly-step.is-spacer {
+  min-height: 36vh;
+}
 .scrolly-end {
   height: 1px;
 }
+/* Step cards are text on the page, not boxes: no border or fill; the
+   active one carries a 3px teal rule on its left. (Only figure cards are
+   boxed; stat tiles are a large number and a small label.) */
 .scrolly-card {
-  padding: 18px 20px;
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
+  padding: 4px 0 4px 20px;
+  background: transparent;
+  border-left: 3px solid var(--card-border);
   opacity: 0.7;
-  transition: opacity 400ms var(--story-ease), border-color 400ms var(--story-ease), box-shadow 400ms var(--story-ease);
+  transition: opacity 400ms var(--story-ease), border-color 400ms var(--story-ease);
 }
 .scrolly-step.is-active .scrolly-card {
   opacity: 1;
-  border-color: var(--pe-gray-300);
-  box-shadow: 0 4px 16px var(--shadow-faint, rgba(16, 24, 40, 0.06));
+  border-left-color: var(--c-highlight);
+}
+.scrolly.is-single .scrolly-card {
+  opacity: 1;
+}
+/* "n of m" on the figure card, top right, out of the flow */
+.scrolly-dots {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-500);
+}
+.scrolly-dots-row {
+  display: flex;
+  gap: 4px;
+}
+.scrolly-dots-row i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pe-gray-300);
+  transition: background-color 300ms var(--story-ease), transform 300ms var(--story-ease);
+}
+.scrolly-dots-row i.is-past {
+  background: var(--pe-gray-400);
+}
+.scrolly-dots-row i.is-on {
+  background: var(--c-highlight);
+  transform: scale(1.35);
+}
+.scrolly-graphic-inner.is-inline {
+  margin-bottom: 16px;
 }
 .scrolly-kicker {
   margin: 0 0 6px;
@@ -244,7 +316,16 @@
   fill: none;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 1200ms var(--story-ease);
+  transition: stroke-dashoffset 700ms var(--story-ease);
+}
+/* The dot at a drawn line's end appears as the draw finishes, so a line
+   mid-draw never reads as data that stops early. */
+.draw-end {
+  opacity: 0;
+  transition: opacity 200ms ease 650ms;
+}
+.draw-end.is-on {
+  opacity: 1;
 }
 .draw-path.is-on {
   stroke-dashoffset: 0;
@@ -302,7 +383,7 @@
   z-index: 5;
   margin: 0 calc(-1 * var(--page-gutter, 16px));
   padding: 6px var(--page-gutter, 16px) 0;
-  background: color-mix(in srgb, var(--pe-bg, #f8fafc) 92%, transparent);
+  background: color-mix(in srgb, var(--page-bg) 92%, transparent);
   backdrop-filter: blur(6px);
 }
 .story-rail ol {
@@ -425,7 +506,16 @@
     padding-top: 20px;
   }
   .story-part {
-    padding-top: 28px;
+    padding-top: 56px;
+  }
+  .story-part-head {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 16px;
+    margin-bottom: 24px;
+    padding: 24px 0 20px;
+  }
+  .story-part-numeral {
+    font-size: 3rem;
   }
   .lens-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -454,14 +544,33 @@
      beneath it, so no card covers the chart. Scrolly.jsx gives the inner box
      the height of its tallest state, so nothing below it moves. */
   .scrolly-graphic {
-    max-height: none;
+    display: block;
+    height: auto;
     z-index: 3;
     padding-bottom: 10px;
-    background: var(--pe-bg, #f8fafc);
-    box-shadow: 0 -12px 0 var(--pe-bg, #f8fafc);
+    background: var(--page-bg);
+    box-shadow: 0 -12px 0 var(--page-bg);
   }
   .scrolly-graphic-inner {
     padding: 12px;
+  }
+  /* tablets: a narrower figure is a shorter one, so more graphics fit the
+     45% of the screen a sticky graphic may take */
+  .scrolly-graphic-inner,
+  .scrolly-sizers {
+    max-width: 600px;
+    margin-inline: auto;
+  }
+  .scrolly-dots {
+    top: 8px;
+    right: 10px;
+  }
+  .scrolly.is-inline .scrolly-step,
+  .scrolly.is-inline .scrolly-step:nth-last-child(2) {
+    padding-bottom: 32px;
+  }
+  .scrolly.is-inline .scrolly-steps {
+    padding-top: 0;
   }
   .scrolly-sizers {
     position: absolute;
@@ -492,9 +601,12 @@
   .scrolly-step:nth-last-child(2) {
     padding-bottom: 8vh;
   }
+  .scrolly-step.is-spacer {
+    min-height: 0;
+    padding-bottom: 30vh;
+  }
   .scrolly-card {
     opacity: 1;
-    box-shadow: 0 6px 20px var(--shadow-faint, rgba(16, 24, 40, 0.1));
   }
   /* One step: figure, then its text; nothing sticky. */
   .scrolly.is-single .scrolly-graphic {
@@ -518,8 +630,15 @@
   .grow-rect,
   .fade-g,
   .tile,
-  .scrolly-card {
+  .scrolly-card,
+  .scrolly-dots-row i,
+  .draw-end,
+  .story-callout,
+  .story-next {
     transition: none !important;
+  }
+  .draw-end {
+    opacity: 1;
   }
   /* Reveals show at once. Chart parts keep the step logic: a part that is
      .is-on shows at once, one that is not stays hidden; only the motion goes. */
@@ -649,4 +768,127 @@
 .tab-story .p3-close-links a,
 .tab-story .p3-close-link {
   padding-block: 2px;
+}
+
+/* Count-ups (components/story/CountUp.jsx): the moving copy is drawn from
+   data attributes; a hidden copy of the final string holds the width. */
+.count-up {
+  display: inline-grid;
+}
+.count-up-vis {
+  display: inline-grid;
+  font-variant-numeric: tabular-nums;
+}
+.count-up-vis::before,
+.count-up-vis::after {
+  grid-area: 1 / 1;
+}
+.count-up-vis::before {
+  content: attr(data-final);
+  visibility: hidden;
+}
+.count-up-vis::after {
+  content: attr(data-text);
+}
+
+/* The story's one call-out (components/story/Callout.jsx) */
+.story-callout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 78ch;
+  margin: 0 0 32px;
+  padding: 14px 18px;
+  background: var(--c-highlight-band);
+  border-left: 3px solid var(--c-highlight);
+  border-radius: 0 var(--pe-radius-md) var(--pe-radius-md) 0;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--pe-gray-700);
+}
+.story-callout-icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--c-highlight);
+}
+.story-callout-body {
+  min-width: 0;
+}
+.story-callout-title {
+  margin: 0 0 4px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.story-callout-body p {
+  margin: 0 0 6px;
+}
+.story-callout-body p:last-child {
+  margin-bottom: 0;
+}
+.story-callout a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* "Next: part N" (components/story/NextPart.jsx): the band that ends each
+   part, the same full-bleed teal-50 as the part heads */
+.story-next {
+  margin: 48px 0 0;
+  padding: 28px 0;
+  background: var(--pe-teal-50);
+  box-shadow: 0 0 0 100vmax var(--pe-teal-50);
+  clip-path: inset(0 -100vmax);
+}
+.story-next-inner {
+  max-width: 70ch;
+}
+.story-next-link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.story-next-kicker {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--c-highlight);
+}
+.story-next-title {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-section);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.story-next-link:hover .story-next-title,
+.story-next-link:focus-visible .story-next-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.story-next-link:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 4px;
+}
+.story-next-lead {
+  margin: 8px 0 0;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.story-next-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 12px;
+  font-size: var(--fs-small);
+}
+.story-next-links a {
+  padding-block: 3px;
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

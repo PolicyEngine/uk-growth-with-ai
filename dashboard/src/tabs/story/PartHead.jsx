@@ -2,10 +2,14 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 
-// The opener of a story part: kicker, heading, one lead sentence.
+// The opener of a story part, on a full-bleed band: a large part numeral,
+// kicker, heading, one lead sentence.
 export default function PartHead({ part, children, extra }) {
   return (
     <header className="story-part-head">
+      <p className="story-part-numeral" aria-hidden="true" data-axis="">
+        {part.n}
+      </p>
       <p className="story-part-kicker">
         <Icon name={part.icon} size={16} /> {part.kicker}
       </p>

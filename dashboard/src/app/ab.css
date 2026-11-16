@@ -74,6 +74,20 @@
   --series-3: #0ea5e9;
   --series-4: #285e61;
   --series-5: #64748b;
+  /* Who receives output (story part 2's Sankey and shock tiles), chosen by
+     Fable 5.2 to stay clear of gain teal, loss amber and the arm blues,
+     including under deuteranopia and protanopia: labour indigo, capital a
+     brown family. The abroad and depreciation fills are labelled in
+     --c-capital (they fall short of 4.5:1 on white). */
+  --c-labour: #4338ca;
+  --c-capital: #5c4033;
+  --c-capital-abroad: #b98a5e;
+  --c-capital-dep: #d2cbc6;
+  /* Three decile rankings (Explore > Households), the GROUP_RAMP steps in
+     lib/chartTheme.js: keep the two in step */
+  --rank-1: #16314b;
+  --rank-2: #45668b;
+  --rank-3: #8fa9c4;
 
   --fs-stat: 1.75rem;
   --fs-xl: 1.5rem;

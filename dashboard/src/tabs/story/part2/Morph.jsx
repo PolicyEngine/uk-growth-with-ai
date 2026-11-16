@@ -337,18 +337,9 @@ export function MorphChart({ state, sid, cl }) {
 
 export function morphSteps(sid, cl) {
   return [
-    {
-      id: 'p2-morph-1',
-      kicker: 'From the record to the model',
-      title: 'The OBR’s forecast',
-      body: (
-        <p>
-          Part 1 ended with the official record: real GDP growth each year, as the ONS measures it, drawn solid with filled dots. The
-          OBR&rsquo;s forecast{OBR_VINTAGE ? ` of ${OBR_VINTAGE}` : ''} carries growth on to {OBR_LAST}. It is a forecast, not a
-          measurement, so it is dashed, with open dots.
-        </p>
-      ),
-    },
+    // Part 1 ends on the OBR's forecast; the chart opens there, with no card
+    // (its facts are part 1's), and morphs to the gap at the next step.
+    { id: 'p2-morph-1', spacer: true },
     {
       id: 'p2-morph-2',
       kicker: 'From the record to the model',

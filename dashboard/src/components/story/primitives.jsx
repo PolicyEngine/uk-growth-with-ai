@@ -2,12 +2,18 @@
 
 // Drawing primitives for the story's SVG charts. Each takes `on` (the state
 // is reached) and animates with CSS transitions only, so reduced motion is
-// handled in one place (story.css). Text is always the final value in the
-// DOM: numbers never count up, so what is read aloud or copied is exact.
+// handled in one place (story.css). Text in charts is always the final value
+// in the DOM; the stat tiles' count-ups (CountUp.jsx) keep the exact value in
+// the DOM too and animate only a drawn copy.
 
 // A path that draws itself when `on`.
 export function DrawPath({ d, on, className = '', style, ...rest }) {
   return <path d={d} pathLength={1} className={`draw-path${on ? ' is-on' : ''} ${className}`} style={style} {...rest} />;
+}
+
+// The dot at the end of a DrawPath: it fades in as the draw finishes.
+export function DrawEnd({ cx, cy, r = 3.5, on, className = '', ...rest }) {
+  return <circle cx={cx} cy={cy} r={r} className={`draw-end${on ? ' is-on' : ''} ${className}`} {...rest} />;
 }
 
 // A rect that grows from its base (vertical bars) or from x0 (horizontal).

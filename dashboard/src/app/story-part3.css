@@ -91,7 +91,7 @@
   opacity: 1;
 }
 .p3-stat.is-current {
-  border-color: var(--pe-gray-400, #9ca3af);
+  border-color: var(--pe-gray-400);
 }
 .p3-stat .plain-icon {
   grid-row: span 3;
@@ -176,7 +176,7 @@
   fill: var(--pe-gray-100);
 }
 .p3-zero {
-  stroke: var(--pe-gray-400, #9ca3af);
+  stroke: var(--pe-gray-400);
   stroke-width: 1;
 }
 .p3-fill-neutral,
@@ -802,14 +802,14 @@
    ramp of the earnings groups (chartTheme GROUP_RAMP), so no ranking
    borrows an arm or gain/loss colour; decile 1 stays muted grey */
 .p3-fill-rank-1 {
-  fill: #16314b;
-  background: #16314b;
+  fill: var(--rank-1);
+  background: var(--rank-1);
 }
 .p3-fill-rank-2 {
-  fill: #45668b;
-  background: #45668b;
+  fill: var(--rank-2);
+  background: var(--rank-2);
 }
 .p3-fill-rank-3 {
-  fill: #8fa9c4;
-  background: #8fa9c4;
+  fill: var(--rank-3);
+  background: var(--rank-3);
 }
