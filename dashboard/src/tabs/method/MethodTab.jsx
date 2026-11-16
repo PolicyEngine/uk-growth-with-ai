@@ -306,7 +306,7 @@ export default function MethodTab() {
           >
             <ModelDiagram />
           </Card>
-          <div className="card-grid cols-2">
+          <div className="card-grid cols-2 mx-gen-grid">
             <div className="info-card mx-card mx-figure" id="m-generations">
               <h3 className="info-card-title">
                 <Icon name={iconFor('generations')} size={18} />

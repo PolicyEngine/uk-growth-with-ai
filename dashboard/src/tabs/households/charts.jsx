@@ -70,7 +70,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
   const B = 24;
   const T = 12;
   // room at the right for the off-scale arrow; its value sits above it,
-  // right-aligned inside the card
+  // ending where the arrow ends (clear of the Replay button in the corner)
   const R = off ? 40 : 18;
   const pw = W - L - R;
   const ph = height - T - B;
@@ -146,7 +146,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
         </span>
       ))}
       {off ? (
-        <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ right: 0, top: Y(off.y) - 4 }}>
+        <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ right: W - (L + pw + 8), top: Y(off.y) - 4 }}>
           {off.text}
         </span>
       ) : null}

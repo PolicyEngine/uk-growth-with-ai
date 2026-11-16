@@ -1389,6 +1389,12 @@
   .ex-sd-val { text-align: left; }
   .ex-sd-cell .ex-sd-track { height: 12px; }
 }
+/* tablet: the value under its dot, as on phones, so each track is wide
+   enough for its two end ticks */
+@media (min-width: 701px) and (max-width: 900px) {
+  .ex-sd-cell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .ex-sd-val { text-align: left; }
+}
 @media (prefers-reduced-motion: reduce) {
   .ex-mx-val { animation: none; }
   .ex-mx-btn { transition: none; }
@@ -2421,6 +2427,10 @@
   .hh-wf-row,
   .hh-uc-row {
     grid-template-columns: minmax(0, 8em) minmax(0, 1fr) 5.4em;
+  }
+  /* "under £0.1bn" on one line */
+  .hh-wf-row {
+    grid-template-columns: minmax(0, 7.4em) minmax(0, 1fr) 6.6em;
   }
   .hh-pp-row {
     grid-template-columns: minmax(0, 7em) minmax(0, 1fr) 4.6em 4.6em;

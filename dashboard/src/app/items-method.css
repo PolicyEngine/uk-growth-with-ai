@@ -338,7 +338,8 @@
   }
 }
 /* Method: the three fiscal rule cards keep their own heights */
-.card-grid.mx-rules {
+.card-grid.mx-rules,
+.card-grid.mx-gen-grid {
   align-items: start;
 }
 /* Household method: paired cards keep their own heights */
