@@ -217,8 +217,19 @@ export function useBeat(entered = true) {
     const t = setTimeout(() => setReset(false), 60);
     return () => clearTimeout(t);
   }, [reset, run]);
+  // `settled`: the entry beats have played (about 2.8s after `on`), so the
+  // step's highlight may dim the other marks; until then every mark plays
+  // at full strength (CSS: .p3-scene:not(.is-settled)).
+  const on = reduce || (armed && !reset);
+  const [settledRun, setSettledRun] = useState(-1);
+  useEffect(() => {
+    if (!on || reduce) return undefined;
+    const t = setTimeout(() => setSettledRun(run), 2800);
+    return () => clearTimeout(t);
+  }, [on, reduce, run]);
   return {
-    on: reduce || (armed && !reset),
+    on,
+    settled: reduce || (on && settledRun === run),
     reduce,
     reset,
     run,
@@ -239,7 +250,7 @@ export function useSeenBeat() {
 export { Replay };
 
 // A scene's class list: entry state, and the no-transition reset.
-export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
+export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.settled ? ' is-settled' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
 
 // A scene sub-header for a block that is not a Scrolly block (step 8): the
 // same markup as Scrolly's topic header, the question static (no opener),

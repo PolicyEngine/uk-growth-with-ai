@@ -199,8 +199,9 @@ const CENTRAL_FOLD = [
         An upper bound, says <Sec id="results">the study</Sec>: the displaced are jobless all year
       </>,
       <>
-        The Goldman Sachs scenario behind Doorley et al. spreads displacement over about a decade (<Sec id="method">paper</Sec>)
+        Doorley et al. draw on Goldman Sachs (Briggs and Kodnani, 2023), which spreads displacement over about a decade (<Sec id="method">paper</Sec>)
       </>,
+      'Applied in one year, the study’s choice: an impact-year stress test',
     ],
   },
   {

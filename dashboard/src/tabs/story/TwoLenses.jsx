@@ -77,7 +77,7 @@ const SH = decileShape();
 // (Part1.jsx OUTPUT_TAKEAWAY; Part2.jsx RECAP, first item).
 export const STORY_RECAP = [
   { icon: 'gdp', q: 'How has the UK grown?', a: 'Since the rebound, below most 2010s rates', to: 'q-p1-output' },
-  { icon: 'model', q: 'What could AI do to GDP?', a: 'Above the OBR-central path, every scenario', to: 'q-p2-output' },
+  { icon: 'model', q: 'What could AI do to GDP?', a: 'Above the OBR-central path, every scenario', to: 'story-headline' },
   {
     icon: 'households',
     q: 'Who loses most income?',

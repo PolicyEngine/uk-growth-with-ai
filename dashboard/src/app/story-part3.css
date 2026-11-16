@@ -2137,3 +2137,8 @@ svg.p3-dim {
   text-align: right;
   white-space: nowrap;
 }
+/* the entry beats play at full strength; the step's highlight dims the
+   other marks only once they have landed (useBeat's `settled`) */
+#story-part-3 .p3-scene:not(.is-settled) [data-mark]:not([data-on]) {
+  opacity: 1;
+}

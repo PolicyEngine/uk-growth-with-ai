@@ -28,9 +28,9 @@ export const RANK_EXCL_PPC = grab('hbai_excl_large_ppc');
 export const signIcon = (v) => (v > 0 ? 'rise' : v < 0 ? 'fall' : 'onPath');
 export function bottomDecileRankings() {
   return [
-    [VALUES[0], 'on the ranking used here'],
-    [RANK_PRE_PENSION, 'ranking on income before pension contributions'],
-    [RANK_EXCL_PPC, 'leaving out large personal pension contributions'],
+    [VALUES[0], 'on the ranking used here', 'deciles.values.0'],
+    [RANK_PRE_PENSION, 'ranking on income before pension contributions', 'rankings.pre_pension.values.0'],
+    [RANK_EXCL_PPC, 'leaving out large personal pension contributions', 'rankings.hbai_excl_large_ppc.values.0'],
   ].filter(([v]) => fmtDecilePct(v));
 }
 // Decile 1 under the three rankings: a small table (the home of these
@@ -40,13 +40,13 @@ export function BottomDecileCaveat() {
     <table className="p3-rank-table" data-caveat="bottom-decile">
       <caption className="p3-rank-cap">Decile 1’s change, by how households are ranked</caption>
       <tbody>
-        {bottomDecileRankings().map(([v, how]) => (
+        {bottomDecileRankings().map(([v, how, path]) => (
           <tr key={how}>
             <th scope="row">
               <Ico c={signIcon(v)} size={12} /> {how[0].toUpperCase() + how.slice(1)}
             </th>
             <td>
-              <Fig path="rankings" mark="d1">
+              <Fig path={path} mark="d1">
                 {fmtDecilePct(v)}
               </Fig>
             </td>
