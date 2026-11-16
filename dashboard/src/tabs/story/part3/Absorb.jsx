@@ -287,7 +287,11 @@ export default function Absorb() {
       id: 'p3-absorb-step',
       kicker: 'Step 3 · Where a lost pound goes',
       icon: 'households',
-      highlight: ABSORB_LINES.flatMap((l) => l.highlight),
+      // one card over a full-width Sankey: each reading lights its own
+      // destination through the Sankey's highlight (in turn after the pour,
+      // and on pointing), so the step itself dims nothing
+      highlight: 'none',
+      highlightWhy: 'Each of the three readings lights its own destination in the Sankey',
       body: (
         <>
           <AbsorbLines cur={lit} setCur={setCur} />

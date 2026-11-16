@@ -1,7 +1,7 @@
 'use client';
 
 import Callout from '@/components/story/Callout.jsx';
-import { Items, Recap } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
 import Central, { CENTRAL_SUB } from './part3/Central.jsx';
@@ -28,10 +28,12 @@ import { D, Ico, MODEL_YEAR, NO_CLEAN_RERUN, PROVISIONAL } from './part3/shared.
 // "Next" band hands over to the close (TwoLenses) and carries the links on. The headline findings are printed here once each; the
 // detail is on Explore > Households. Formats: part3/format.js.
 
-// What you just learned (the part's recap, S2's Recap): three of the part's
+// What you just learned: three of the part's
 // questions, each with a worded answer (no figures: each figure has its home
 // in its scene) and a link back to the question's header (q-<scene>). The
-// words follow the signs of the results.
+// words follow the signs of the results. Data only: the close's pinned
+// question screen shows it as the transition (Fable), so part 3 draws no
+// end recap of its own.
 const H = D.headline;
 const RULES = rulesClaims();
 export const P3_RECAP = [
@@ -71,7 +73,6 @@ export default function Part3({ part }) {
       <Margin />
       <Moves />
       <Closing />
-      <Recap items={P3_RECAP} />
       <NextPart title="Two lenses" to="story-close" links={<CloseLinks />} />
     </>
   );

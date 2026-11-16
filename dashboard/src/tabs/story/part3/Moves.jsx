@@ -277,7 +277,6 @@ export const MOVES_STEPS = [
   },
   {
     id: 'p3-takeup-step',
-    pin: 'bottom',
     icon: 'takeUp',
     highlight: ['takeup'],
     title: (

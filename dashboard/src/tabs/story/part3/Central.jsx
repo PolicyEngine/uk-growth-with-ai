@@ -165,6 +165,8 @@ export const CENTRAL_SUB = {
   icon: 'jobLoss',
   question: 'What happens in the central case?',
   hint: 'Watch who steps out of the grid',
+  // the part's first topic takes the full pinned question screen (Fable)
+  pin: 'full',
   key: 'central',
   answerTo: 'p3-central-step',
   answer: `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,

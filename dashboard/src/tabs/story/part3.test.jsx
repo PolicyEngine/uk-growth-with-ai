@@ -11,7 +11,7 @@ import D from '@/data/aiStudy2425.json';
 import Part3, { P3_RECAP } from './Part3.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 import { FIG, counts, storyFigures } from '@/tabs/households/figures.js';
-import { ABSORB_SUB, absorbGraph, CAVEAT_GREY, DESTS } from './part3/Absorb.jsx';
+import { ABSORB_LINES, ABSORB_SUB, absorbGraph, CAVEAT_GREY, DESTS } from './part3/Absorb.jsx';
 import { CENTRAL_RATE, CENTRAL_SUB, DISPLACED_TILES, centralRate, centralTiles } from './part3/Central.jsx';
 import { CHANNELS_SUB, waterfall } from './part3/Channels.jsx';
 import { rulesClaims, rulesSub } from './part3/Rules.jsx';
@@ -125,7 +125,10 @@ describe('Part3', () => {
       const block = st.closest('.scrolly');
       const marks = new Set([...block.querySelectorAll('.scrolly-graphic [data-mark]')].flatMap((m) => m.dataset.mark.split(/\s+/)));
       // the Sankey's marks are set on its nodes after mount (a DOM effect)
-      if (block.id === 'p3-absorb') continue;
+      if (block.id === 'p3-absorb') {
+        for (const l of ABSORB_LINES) expect(DESTS.map((d) => d.id)).toContain(l.highlight[0]);
+        continue;
+      }
       for (const id of st.dataset.highlight.split(' ')) expect(marks.has(id), `${st.id}: ${id}`).toBe(true);
     }
     // the close of part 3 is a static header: question, then its answer

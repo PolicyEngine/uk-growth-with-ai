@@ -62,6 +62,9 @@ export const CLOSE_SUB = {
   title: 'Two lenses',
   icon: 'compare',
   question: 'What can each model say?',
+  // the close takes the full pinned question screen (Fable), with part 3's
+  // recap (P3_RECAP) as its transition once S2's TopicHead renders it
+  pin: 'full',
   answer: 'OG-UK: the whole economy over decades; uk-ai-study: households in one year',
   takeaway: 'Different models, years and assumptions: their numbers are not added or compared',
 };
