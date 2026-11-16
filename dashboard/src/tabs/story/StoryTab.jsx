@@ -65,12 +65,12 @@ export const PARTS = [
     title: 'Jobs, incomes and the public finances',
     model: 'aistudy',
     answers: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI.',
-    handover: 'A change of model: a one-year microsimulation of households, provisional. Its figures are not added to or compared with the whole-economy results.',
+    handover: 'A change of model: a one-year microsimulation of households. Its figures are not added to or compared with the whole-economy results.',
     about: (
       <Items
         items={[
           { icon: 'data', text: 'PolicyEngine-UK on Microcosm UK survey data, static, for one year' },
-          { icon: 'provisional', text: 'A draft under review: its figures may change' },
+          { icon: 'source', text: 'Published study, merged on main; results rebuilt without a clean-room rerun' },
           { icon: 'jobLoss', text: 'People lose their jobs; in OG-UK the labour market clears' },
         ]}
       />
