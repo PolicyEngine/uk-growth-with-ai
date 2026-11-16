@@ -107,7 +107,7 @@ export default function ScenarioMap({ caption = true }) {
       <ul className="mx-map-read">
         <li>
           <span className="mx-key is-range" aria-hidden="true" />
-          <span>The line joins the three UK scenarios. Each pairs a labour-share fall with the productivity gain the same sources imply, so they move together.</span>
+          <span>The line joins the UK scenarios; the same sources imply both inputs.</span>
         </li>
         <li>
           <span className="mx-key" aria-hidden="true" />
@@ -115,7 +115,7 @@ export default function ScenarioMap({ caption = true }) {
         </li>
         <li>
           <span className="mx-key is-upper" aria-hidden="true" />
-          <span>Korinek et al.&rsquo;s US &ldquo;substantial&rdquo; case lies beyond the UK range on both inputs and is kept as a labelled upper case.</span>
+          <span>Korinek et al.&rsquo;s US &ldquo;substantial&rdquo; case: an upper case, beyond UK range.</span>
         </li>
       </ul>
       </div>

@@ -1,2 +1,86 @@
 /* Method and sources: items, icons and key facts (itemised pages). Loaded
-   after the story styles. */
+   after the story styles. Scoped to the Method and sources pages (.mx-tab,
+   .hm-page). */
+
+/* items inside cards and folds */
+.mx-tab .story-items,
+.hm-page .story-items {
+  gap: 6px;
+  font-size: var(--fs-small);
+}
+.mx-tab .info-card-body > .story-items + *,
+.mx-tab .card-body > .story-items + *,
+.hm-page .info-card-body > .story-items + *,
+.hm-page .card-body > .story-items + * {
+  margin-top: 10px;
+}
+.mx-tab .info-card-more .story-items,
+.mx-tab .card-more .story-items,
+.hm-page .info-card-more .story-items,
+.hm-page .card-more .story-items {
+  margin: 4px 0;
+}
+.mx-tab .mx-foot-items,
+.hm-page .mx-foot-items {
+  margin: 12px 0 20px;
+  color: var(--pe-gray-600);
+}
+
+/* the page's opening chain and key facts sit under the answer */
+.mx-tab .page-options:has(.story-chain, .story-facts),
+.hm-page .hh-lead .story-facts,
+.hm-page .hh-lead .story-chain {
+  display: block;
+  margin-top: 16px;
+}
+.mx-tab .page-options:has(.story-chain) .story-chain,
+.hm-page .hh-lead .story-chain {
+  display: flex;
+}
+.mx-tab .page-options:has(.story-facts) .story-facts,
+.hm-page .hh-lead .story-facts {
+  display: grid;
+}
+.mx-tab .story-chain-node {
+  font-weight: 500;
+}
+.mx-tab .mx-facts-row,
+.hm-page .mx-facts-row {
+  margin: 4px 0 8px;
+}
+.mx-tab .mx-facts-row .story-fact-value,
+.hm-page .mx-facts-row .story-fact-value {
+  font-size: 1.5rem;
+}
+
+/* icons beside labels */
+.mx-measure-k {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.mx-measure-icon,
+.mx-dt-icon,
+.mx-history-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.mx-dt-icon {
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+.mx-history-text {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+.mx-history-text > .mx-history-icon {
+  margin-top: 3px;
+}
+
+@media (max-width: 640px) {
+  .mx-tab .page-options:has(.story-chain, .story-facts) {
+    margin-left: 0;
+  }
+}
