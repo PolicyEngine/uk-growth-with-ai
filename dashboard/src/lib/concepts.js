@@ -134,6 +134,16 @@ export const CONCEPT_ICON = {
   deeper: 'moveRight', // links to where a part's figures live in detail
   external: 'externalLink', // a link that leaves the dashboard
   story: 'footprints', // a Story step that uses a Method section
+  question: 'question', // a topic's question (Scrolly topic opener)
+  takeaway: 'bookmark', // a topic's key takeaway
+  recap: 'listChecks', // what you just learned, at the end of a part
+  copyLink: 'share', // copy a link to this chart
+  copyImage: 'copy', // copy the chart as an image
+  saveImage: 'imageDown', // download the chart as an image
+  asOf: 'calendarCheck', // the data's as-of date
+  replication: 'fileCode', // the code and result file behind a figure
+  yAxis: 'moveVertical', // a chart's y-axis title (what is measured, with its unit)
+  xAxis: 'moveHorizontal', // a chart's x-axis title
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
