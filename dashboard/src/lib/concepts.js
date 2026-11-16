@@ -65,6 +65,17 @@ export const CONCEPT_ICON = {
   // Concepts added by the itemising pass, one block per page group (keep
   // each to its own block). Each needs an icon no other concept uses.
   // part 1:
+  rise: 'arrowUp', // an official growth rate above zero
+  fall: 'arrowDown', // an official growth rate below zero
+  flat: 'minus', // an official growth rate of zero
+  period: 'calendar', // the period a figure covers: year, quarter, months
+  revision: 'history', // first estimates, open to revision
+  survey: 'list', // a survey (Labour Force Survey, BICS)
+  business: 'building', // businesses
+  workers: 'usersRound', // UK workers (the exposure grid)
+  labourShare: 'percent', // labour's share of GDP
+  nominal: 'coins', // before adjusting for inflation
+  complement: 'handshake', // work that AI complements
   // part 2:
   // part 3:
   // explore:

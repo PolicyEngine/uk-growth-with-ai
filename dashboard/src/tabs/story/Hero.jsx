@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { useNav } from '@/lib/nav.jsx';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
 import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SCEN_NAME } from '@/tabs/ai/surprise.js';
@@ -89,10 +90,15 @@ export default function Hero() {
     <section className="story-hero" aria-labelledby="story-q">
       <div className="story-hero-text">
         <SummaryQuestion sid={st.s} titleId="story-q" />
-        <p className="story-hero-lead">
-          Below: where the UK economy and labour market stand as AI arrives, what a model of the whole economy projects, and what a model
-          of households finds for incomes, poverty and the public finances if a share of employees are assumed to lose their jobs.
-        </p>
+        <p className="story-hero-lead">Below, in three parts:</p>
+        <Items
+          className="hero-parts"
+          items={[
+            { icon: 'record', text: <a href="#story-part-1">Where the UK economy and labour market stand</a> },
+            { icon: 'model', text: <a href="#story-part-2">What a model of the whole economy projects</a> },
+            { icon: 'households', text: <a href="#story-part-3">Incomes, poverty, public finances, if some jobs are assumed lost</a> },
+          ]}
+        />
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands
         </a>
@@ -118,10 +124,16 @@ export default function Hero() {
             AI arrives, {SURPRISE_YEAR}
           </text>
         </svg>
-        <p className="story-source">
-          Every modelled GDP path against the OBR-central path (the flat line): four scenarios, three arms, two closures, closed capital
-          dashed; each scenario named at the end of its main arm. OG-UK, PolicyEngine. Shape only; the figures are in part 2.
-        </p>
+        <Items
+          className="hero-key"
+          items={[
+            { icon: 'path', text: 'Every modelled GDP path, against the OBR-central path (flat)' },
+            { icon: 'range', text: 'Four scenarios, three arms, two closures' },
+            { icon: 'closure', text: 'Closed capital dashed; names at each main arm’s end' },
+            { icon: 'caveat', text: 'Shape only: the figures are in part 2' },
+          ]}
+        />
+        <p className="story-source">Source: OG-UK, PolicyEngine.</p>
       </div>
     </section>
   );

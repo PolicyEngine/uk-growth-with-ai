@@ -181,9 +181,66 @@
   color: var(--pe-gray-700);
   font-weight: 600;
 }
-.p1-about p {
-  margin: 6px 0 0;
-  line-height: 1.5;
+.p1-about summary .plain-icon {
+  display: inline-flex;
+  vertical-align: -2px;
+  margin-right: 4px;
+  color: var(--pe-gray-500);
+}
+.p1-about .story-items {
+  margin-top: 8px;
+}
+
+/* Key facts in a step card: smaller numbers than a page-level row, so a
+   card stays compact; three facts sit in one row where there is room. */
+.p1-facts {
+  margin: 4px 0 14px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 18px;
+}
+.p1-facts .story-fact {
+  align-content: start;
+  align-items: start;
+}
+.p1-facts .story-fact-value {
+  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+}
+.p1-facts.is-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 12px;
+}
+/* three to a row: the icon sits above the number, so each fact is narrow */
+.p1-facts.is-three .story-fact {
+  grid-template-columns: minmax(0, 1fr);
+}
+.p1-facts.is-three .story-fact-label {
+  font-size: var(--fs-caption);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+.p1-facts.is-three .story-fact-icon {
+  grid-row: auto;
+  margin-top: 0;
+}
+.p1-facts.is-three .story-fact-value {
+  font-size: clamp(1.125rem, 1.7vw, 1.375rem);
+}
+/* the arrow beside a growth rate: from its sign, grey, never a colour */
+.p1-growth {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+.p1-dir {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+
+/* Part 1's head: the lead as three short items */
+.p1-head-items {
+  margin-top: 12px;
+  font-size: var(--fs-body);
+  color: var(--pe-gray-700);
 }
 
 @media (max-width: 900px) {
@@ -220,4 +277,34 @@
   .p1-svg .draw-end:not(.is-on) {
     opacity: 0;
   }
+}
+
+/* hero */
+.story-hero-text .hero-parts {
+  margin: 4px 0 8px;
+  font-size: var(--fs-lead);
+}
+.story-hero-text .hero-parts a {
+  color: var(--pe-gray-800);
+  text-decoration: underline;
+  text-decoration-color: var(--pe-gray-300);
+  text-underline-offset: 3px;
+}
+.story-hero-text .hero-parts a:hover,
+.story-hero-text .hero-parts a:focus-visible {
+  text-decoration-color: currentColor;
+}
+.story-hero-text .hero-parts .story-item-icon {
+  margin-top: 5px;
+  color: var(--c-highlight);
+}
+.story-hero-art .hero-key {
+  margin-top: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px 18px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.story-hero-art .hero-key + .story-source {
+  margin-top: 6px;
 }

@@ -1,12 +1,15 @@
 'use client';
 
+import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
+import { Items, KeyFacts } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
 import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE, SERIES } from './part1/data.js';
 import { AiUseChart, ExposureTiles, GdpChart, GdpQuartersChart, LabourPanels, LabourShareChart, PayChart, ProductivityChart } from './part1/charts.jsx';
 import { SourceLine, Swap } from './part1/frame.jsx';
-import { idx1, pct1, share0 } from './part1/format.js';
+import { dirOf, dirWord, idx1, pct1, share0 } from './part1/format.js';
 
 // Part 1: where the UK economy and labour market stand as AI arrives, from
 // official published data only (ukContext.json); no forecasts or modelling
@@ -21,8 +24,11 @@ import { idx1, pct1, share0 } from './part1/format.js';
 // every state carries its own title, unit and source line. The blocks take
 // the first old block id; the others (p1-quarters, p1-pay, p1-share,
 // p1-exposure) sit on an anchor at the top of the step where that figure
-// first shows, so old links still land on it. Caveats sit in the figures'
-// source lines or in an "About these figures" disclosure under a card.
+// first shows, so old links still land on it. Each card is a short title
+// (with its concept icon), a key-facts row holding its figures, and short
+// icon items; caveats are items, or (when they carry no figure and qualify
+// no headline) in an "About these figures" disclosure. Source lines hold
+// the citation only. Growth rates carry a small arrow from their sign.
 // Under reduced motion the step logic is kept (story.css): a chart part that
 // is .is-on shows at once and one that is not stays hidden; only the motion
 // goes.
@@ -33,13 +39,25 @@ const last = (a) => a[a.length - 1];
 // An old block id, kept as a link target at the top of a merged step.
 const Anchor = ({ id }) => <span id={id} className="p1-anchor" aria-hidden="true" />;
 
-// A caveat under a card, closed by default. No figures in here: the number
-// check reads the page's rendered text.
-const About = ({ children }) => (
+// A caveat under a card, closed by default, as short items. No figures in
+// here: the number check reads the page's rendered text.
+const About = ({ items }) => (
   <details className="p1-about">
-    <summary>About these figures</summary>
-    {children}
+    <summary>
+      <Icon name={iconFor('caveat')} size={14} /> About these figures
+    </summary>
+    <Items items={items} />
   </details>
+);
+
+// A growth rate with a small arrow from its sign (format.js dirOf). The
+// arrow is hidden from screen readers; the fact's sub line says the same
+// in words (dirWord).
+const Growth = ({ v }) => (
+  <span className="p1-growth" data-dir={dirOf(v)}>
+    <Icon name={iconFor(dirOf(v))} size={18} className="p1-dir" />
+    {pct1(v)}
+  </span>
 );
 
 // (a) Output: annual growth, the OBR's forecast, then this year's quarters.
@@ -51,44 +69,79 @@ function outputSteps() {
   const q = F.gdp_quarterly_latest;
   const y = F.gdp_quarterly_yoy;
   const year = q.period.slice(0, 4);
+  const obr = [0, 1, OBR.y.length - 1];
   return [
     {
       id: 'p1-output-0',
+      icon: 'gdp',
       kicker: 'Output',
       title: 'How fast the economy has grown',
       body: (
-        <p>
-          Real GDP, the volume of everything the UK produces, grew by <strong>{pct1(g.value)}</strong> in {g.period}, the latest full
-          calendar year the ONS has published. Each bar is one year&rsquo;s growth; the latest years are open to revision. The fall in {low}{' '}
-          and the rebound in {high} came with the pandemic.
-        </p>
+        <>
+          <KeyFacts
+            className="p1-facts"
+            facts={[{ icon: 'gdp', value: <Growth v={g.value} />, label: 'real GDP growth', sub: `${g.period}, output ${dirWord(g.value)} on a year earlier` }]}
+          />
+          <Items
+            items={[
+              { icon: 'period', text: 'The latest full calendar year the ONS has published' },
+              { icon: 'measure', text: 'Each bar is one year’s growth' },
+              { icon: 'revision', text: 'The latest years are open to revision' },
+              { icon: 'why', text: `The fall in ${low} and rebound in ${high}: the pandemic` },
+            ]}
+          />
+        </>
       ),
     },
     {
       id: 'p1-output-1',
+      icon: 'forecast',
       kicker: 'Output',
       title: 'The OBR’s forecast',
       body: (
-        <p>
-          The Office for Budget Responsibility&rsquo;s central forecast, published in {OBR_VINTAGE}, has growth of <strong>{pct1(OBR.y[0])}</strong> in{' '}
-          {OBR.x[0]}, <strong>{pct1(OBR.y[1])}</strong> in {OBR.x[1]} and <strong>{pct1(last(OBR.y))}</strong> in {last(OBR.x)}, the last
-          year it covers. Every year on the dashed line is a forecast. The modelling in part 2 starts from the OBR&rsquo;s {MODEL_BASE_VINTAGE}{' '}
-          forecast.
-        </p>
+        <>
+          <KeyFacts
+            className="p1-facts is-three"
+            facts={obr.map((i) => ({
+              key: OBR.x[i],
+              icon: 'forecast',
+              value: <Growth v={OBR.y[i]} />,
+              label: `growth in ${OBR.x[i]}`,
+              sub: `output ${dirWord(OBR.y[i])}${i === OBR.y.length - 1 ? ', last year covered' : ''}`,
+            }))}
+          />
+          <Items
+            items={[
+              { icon: 'forecast', text: `The OBR’s central forecast, published ${OBR_VINTAGE}` },
+              { icon: 'path', text: 'Every year on the dashed line is a forecast' },
+              { icon: 'revision', text: `Drawn apart: the OBR starts from an older ${last(gs.x)} estimate` },
+              { icon: 'link', text: `Part 2’s modelling starts from the OBR’s ${MODEL_BASE_VINTAGE} forecast` },
+            ]}
+          />
+        </>
       ),
     },
     {
       id: 'p1-quarters-0',
+      icon: 'period',
       kicker: 'Output',
       title: `${year} so far`,
       body: (
         <>
           <Anchor id="p1-quarters" />
-          <p>
-            {year} is not yet complete, so it has no calendar-year figure. In {q.period}, the latest quarter, real GDP grew by{' '}
-            <strong>{pct1(q.value)}</strong> on the previous quarter and was <strong>{pct1(y.value)}</strong> larger than a year earlier. These
-            are the ONS&rsquo;s first estimates.
-          </p>
+          <KeyFacts
+            className="p1-facts"
+            facts={[
+              { icon: 'gdp', value: <Growth v={q.value} />, label: 'on the previous quarter', sub: `${q.period}, output ${dirWord(q.value)}` },
+              { icon: 'gdp', value: <Growth v={y.value} />, label: 'on a year earlier', sub: `${q.period}, output ${dirWord(y.value)}` },
+            ]}
+          />
+          <Items
+            items={[
+              { icon: 'period', text: `${year} is not yet complete: no calendar-year figure` },
+              { icon: 'revision', text: 'These are the ONS’s first estimates' },
+            ]}
+          />
         </>
       ),
     },
@@ -103,45 +156,51 @@ function workSteps() {
   return [
     {
       id: 'p1-work-0',
+      icon: 'labour',
       kicker: 'Work',
       title: 'Employment',
       body: (
-        <p>
-          The employment rate for people aged 16 to 64 was <strong>{pct1(e.value)}</strong> in {e.period}. Each point on the panels is a
-          three-month average.
-        </p>
+        <>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: pct1(e.value), label: 'employment rate', sub: `aged 16 to 64, ${e.period}` }]} />
+          <Items items={[{ icon: 'measure', text: 'Each point on the panels is a three-month average' }]} />
+        </>
       ),
     },
     {
       id: 'p1-work-1',
       pin: 'bottom',
+      icon: 'labour',
       kicker: 'Work',
       title: 'Unemployment',
       body: (
         <>
-          <p>
-            The unemployment rate for people aged 16 and over was <strong>{pct1(u.value)}</strong> in {u.period}.
-          </p>
-          <About>
-            <p>
-              Both rates come from the Labour Force Survey. The ONS advises focusing on long-term movements in its figures rather than
-              short-term changes: response has improved, but some volatility remains.
-            </p>
-          </About>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: pct1(u.value), label: 'unemployment rate', sub: `aged 16 and over, ${u.period}` }]} />
+          <Items
+            items={[
+              { icon: 'survey', text: 'Both rates come from the Labour Force Survey' },
+              { icon: 'caveat', text: 'The ONS advises focusing on long-term movements, not short-term changes' },
+            ]}
+          />
+          <About items={[{ icon: 'survey', text: 'Survey response has improved, but some volatility remains' }]} />
         </>
       ),
     },
     {
       id: 'p1-pay-0',
+      icon: 'pay',
       kicker: 'Work',
       title: 'Pay',
       body: (
         <>
           <Anchor id="p1-pay" />
-          <p>
-            Regular pay, which leaves out bonuses, was <strong>{pct1(p.value)}</strong> higher in {p.period} than a year earlier, before
-            adjusting for inflation.
-          </p>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'pay', value: <Growth v={p.value} />, label: 'regular pay growth', sub: `${p.period}, pay ${dirWord(p.value)}` }]} />
+          <Items
+            items={[
+              { icon: 'excluded', text: 'Regular pay leaves out bonuses' },
+              { icon: 'nominal', text: 'On a year earlier, before adjusting for inflation' },
+              { icon: 'survey', text: 'From employers’ payrolls, not the Labour Force Survey' },
+            ]}
+          />
         </>
       ),
     },
@@ -155,26 +214,39 @@ function productivitySteps() {
   return [
     {
       id: 'p1-productivity-0',
+      icon: 'productivity',
       kicker: 'Productivity',
       title: 'Output per hour worked',
       body: (
-        <p>
-          Output per hour worked, the main measure of labour productivity, stood at <strong>{idx1(p.value)}</strong> in {p.period}, the latest
-          quarter published, on an index where 2023 = 100.
-        </p>
+        <>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'productivity', value: <> {idx1(p.value)} </>, label: 'output per hour worked', sub: `${p.period}, index 2023 = 100` }]} />
+          <Items
+            items={[
+              { icon: 'measure', text: 'The main measure of labour productivity' },
+              { icon: 'period', text: 'The latest quarter published' },
+              { icon: 'survey', text: 'Hours worked come partly from the Labour Force Survey' },
+            ]}
+          />
+        </>
       ),
     },
     {
       id: 'p1-share-0',
+      icon: 'labourShare',
       kicker: 'Labour’s share',
       title: 'What employees are paid, as a share of GDP',
       body: (
         <>
           <Anchor id="p1-share" />
-          <p>
-            Compensation of employees (wages, salaries and employers&rsquo; contributions) was <strong>{pct1(s.value)}</strong> of GDP in{' '}
-            {s.period}, the latest full year.
-          </p>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'labourShare', value: pct1(s.value), label: 'of GDP paid to employees', sub: `${s.period}, the latest full year` }]} />
+          <Items
+            items={[
+              { icon: 'pay', text: 'Wages, salaries and employers’ contributions' },
+              { icon: 'measure', text: 'Compensation of employees divided by GDP at current prices' },
+              { icon: 'excluded', text: 'Leaves out the self-employed’s income' },
+              { icon: 'caveat', text: 'So lower than measures of labour’s share that count it' },
+            ]}
+          />
         </>
       ),
     },
@@ -188,58 +260,92 @@ function aiSteps() {
   const b = F.business_ai_use_10plus;
   const [hh, hl, lo] = EXPOSURE_GROUPS;
   const when = F[hh.id].period.replace(/^IMF estimates?,\s*/, '');
+  const month = a.period.replace(/\s*\(.*$/, '');
+  const wave = a.period.match(/\((.*)\)/)?.[1];
   return [
     {
       id: 'p1-ai-0',
+      icon: 'ai',
       kicker: 'AI arrives',
       title: 'Businesses using AI',
       body: (
-        <p>
-          In {a.period}, <strong>{pct1(a.value)}</strong> of businesses told the ONS&rsquo;s Business Insights and Conditions Survey they
-          currently use at least one AI technology, such as text generation with large language models or machine learning on data.
-        </p>
+        <>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'business', value: pct1(a.value), label: 'of businesses use AI', sub: month }]} />
+          <Items
+            items={[
+              { icon: 'survey', text: 'The ONS’s Business Insights and Conditions Survey' },
+              { icon: 'ai', text: 'At least one AI technology, in current use' },
+              { icon: 'caveat', text: 'Such as text generation or machine learning on data' },
+              { icon: 'business', text: 'Private sector, weighted by count; some industries left out' },
+            ]}
+          />
+          <About
+            items={[
+              wave ? { icon: 'period', text: wave } : null,
+              { icon: 'excluded', text: 'Left out: agriculture, finance and insurance, public administration, among others' },
+            ]}
+          />
+        </>
       ),
     },
     {
       id: 'p1-ai-1',
+      icon: 'business',
       kicker: 'AI arrives',
       title: 'Larger businesses',
       body: (
-        <p>
-          Among businesses with 10 or more employees the share was <strong>{pct1(b.value)}</strong> in the same wave. The ONS often leads
-          with this group, because results for the smallest businesses carry large survey weights.
-        </p>
+        <>
+          <KeyFacts className="p1-facts" facts={[{ icon: 'business', value: pct1(b.value), label: 'with 10 or more employees', sub: 'the same survey wave' }]} />
+          <Items
+            items={[
+              { icon: 'caveat', text: 'The ONS often leads with this group' },
+              { icon: 'why', text: 'Results for the smallest businesses carry large survey weights' },
+            ]}
+          />
+        </>
       ),
     },
     {
       id: 'p1-exposure-0',
+      icon: 'workers',
       kicker: 'AI arrives',
       title: 'UK workers',
       body: (
         <>
           <Anchor id="p1-exposure" />
-          <p>
-            Each tile in the grid is one per cent of UK workers. Estimates from the IMF ({when}), reported by the Department for Science,
-            Innovation and Technology and the AI Security Institute, sort them by how exposed their occupations are to AI.
-          </p>
+          <Items
+            items={[
+              { icon: 'workers', text: 'Each tile in the grid is one per cent of UK workers' },
+              { icon: 'source', text: `IMF estimates (${when}), via DSIT and the AI Security Institute` },
+              { icon: 'ai', text: 'Sorted by how exposed their occupations are to AI' },
+            ]}
+          />
         </>
       ),
     },
     {
       id: 'p1-exposure-1',
+      icon: 'ai',
       kicker: 'AI arrives',
       title: 'Workers by exposure to AI',
       body: (
         <>
-          <p>
-            The estimates put <strong>{share0(hh.value)}</strong> of UK workers in occupations with high exposure to AI and high
-            complementarity, <strong>{share0(hl.value)}</strong> in highly exposed occupations with low complementarity and{' '}
-            <strong>{share0(lo.value)}</strong> in occupations with low exposure. The two high-exposure groups sum to {share0(hh.value + hl.value)};
-            the department&rsquo;s text says around {share0(DSIT_AROUND)}.
-          </p>
-          <About>
-            <p>The department notes that such indices are indicative rather than precise. No official table gives exposure by major occupation group.</p>
-          </About>
+          <KeyFacts
+            className="p1-facts is-three"
+            facts={[
+              { icon: 'complement', value: share0(hh.value), label: 'high exposure, high complementarity' },
+              { icon: 'ai', value: share0(hl.value), label: 'high exposure, low complementarity' },
+              { icon: 'workers', value: share0(lo.value), label: 'low exposure' },
+            ]}
+          />
+          <Items
+            items={[
+              { icon: 'compare', text: `The two high-exposure groups sum to ${share0(hh.value + hl.value)}` },
+              { icon: 'source', text: `The department’s text says around ${share0(DSIT_AROUND)}` },
+              { icon: 'caveat', text: 'Such indices are indicative rather than precise, it notes' },
+            ]}
+          />
+          <About items={[{ icon: 'limit', text: 'No official table gives exposure by major occupation group' }]} />
         </>
       ),
     },
@@ -259,9 +365,20 @@ function exposureSource() {
 export default function Part1({ part }) {
   return (
     <>
-      <PartHead part={part}>
-        The UK economy and labour market as AI arrives, from official statistics as published. Nothing in this part is modelled by
-        PolicyEngine; the one forecast shown is the OBR&rsquo;s own.
+      <PartHead
+        part={part}
+        extra={
+          <Items
+            className="p1-head-items"
+            items={[
+              { icon: 'source', text: 'Official statistics, as published' },
+              { icon: 'excluded', text: 'Nothing in this part is modelled by PolicyEngine' },
+              { icon: 'forecast', text: 'The one forecast shown is the OBR’s own' },
+            ]}
+          />
+        }
+      >
+        The UK economy and labour market as AI arrives.
       </PartHead>
       <Scrolly
         id="p1-output"

@@ -37,3 +37,10 @@ export function monthYear(iso) {
 
 // "June to August 2026" -> "June–August 2026" (a three-month period in a title)
 export const span3 = (p) => p.replace(/^(\w+) to (\w+ \d{4})$/, '$1–$2');
+
+// The direction of a growth rate, from its sign: the concept for its arrow
+// (lib/concepts.js) and the word that says the same in the text, since the
+// arrow is hidden from screen readers. Only growth rates take one; levels
+// (rates, shares, the index) do not.
+export const dirOf = (v) => (v > 0 ? 'rise' : v < 0 ? 'fall' : 'flat');
+export const dirWord = (v) => ({ rise: 'up', fall: 'down', flat: 'unchanged' })[dirOf(v)];

@@ -8,7 +8,7 @@ import { cleanup, render } from '@testing-library/react';
 import real from '@/data/ukContext.json';
 import checks from '@/data/ukContextChecks.json';
 import Part1Real from '@/tabs/story/Part1.jsx';
-import { dateLong, idx1, monthYear, pct1, share0, tick } from '@/tabs/story/part1/format.js';
+import { dateLong, dirOf, dirWord, idx1, monthYear, pct1, share0, tick } from '@/tabs/story/part1/format.js';
 import { AiUseChart, ExposureTiles, GdpChart, LabourPanels, exposureTiles } from '@/tabs/story/part1/charts.jsx';
 import { DSIT_AROUND } from '@/tabs/story/part1/data.js';
 
@@ -181,6 +181,28 @@ describe('story part 1, real data', () => {
     });
   });
 
+  it('makes every card a short title with an icon, key facts or items, and no long lines', () => {
+    const el = show(Part1Real);
+    const words = (n) => n.textContent.replace(/\s+/g, ' ').trim().split(' ').length;
+    el.querySelectorAll('.scrolly-card').forEach((c) => {
+      expect(c.querySelector('.scrolly-title-icon svg')).not.toBeNull();
+      expect(c.querySelectorAll('.story-items > li, .story-facts > li').length).toBeGreaterThanOrEqual(2);
+      c.querySelectorAll('p').forEach((pp) => expect(words(pp)).toBeLessThanOrEqual(25));
+      // every item and fact has its icon, and is about a dozen words
+      c.querySelectorAll('.story-items > li, .story-facts > li').forEach((li) => {
+        expect(li.querySelector('svg')).not.toBeNull();
+        expect(words(li)).toBeLessThanOrEqual(12);
+      });
+    });
+  });
+
+  it('keeps the source lines to the citation (no caveat notes)', () => {
+    const el = show(Part1Real);
+    el.querySelectorAll('.p1-figure .story-source').forEach((s) => {
+      expect(s.textContent).not.toMatch(/Labour Force Survey|leaves out|drawn apart/i);
+    });
+  });
+
   it('closes the part with the next-part band', () => {
     const el = show(Part1Real);
     expect(el.querySelector('.story-next a').getAttribute('href')).toBe('#story-part-2');
@@ -245,13 +267,37 @@ describe('story part 1, first states', () => {
   });
 });
 
+// Each growth-rate arrow must follow its value's sign, and the words beside
+// it ('up', 'down', 'unchanged') must say the same.
+const checkArrows = (el) => {
+  const arrows = [...el.querySelectorAll('.p1-growth')];
+  expect(arrows.length).toBe(7); // annual, three OBR years, two quarterly, pay
+  for (const a of arrows) {
+    const v = Number(a.textContent.replace('−', '-').replace('%', ''));
+    expect(a.getAttribute('data-dir')).toBe(dirOf(v));
+    expect(a.querySelector('.p1-dir svg')).not.toBeNull();
+    const sub = a.closest('.story-fact').querySelector('.story-fact-sub').textContent;
+    expect(sub).toContain(dirWord(v));
+  }
+};
+
+describe('story part 1, direction arrows', () => {
+  it('maps a sign to its arrow and word', () => {
+    expect([dirOf(1.2), dirOf(-0.4), dirOf(0)]).toEqual(['rise', 'fall', 'flat']);
+    expect([dirWord(1.2), dirWord(-0.4), dirWord(0)]).toEqual(['up', 'down', 'unchanged']);
+  });
+  it('draws each arrow from its value’s sign, real data', () => {
+    checkArrows(show(Part1Real));
+  });
+});
+
 describe('story part 1, altered data', () => {
   it('prints the figures the data file holds', async () => {
     const fx = JSON.parse(JSON.stringify(real));
     fx.facts.gdp_growth_latest.value = 2.7;
     fx.facts.gdp_quarterly_latest.value = -0.4;
     fx.facts.gdp_quarterly_yoy.value = 2.2;
-    fx.facts.pay_growth_latest.value = 4.6;
+    fx.facts.pay_growth_latest.value = 0;
     fx.series.obr_gdp_forecast.y = [0.9, 1.4, 1.5, 1.6, 1.7, 2.1];
     fx.facts.productivity_oph_latest.value = 103.4;
     fx.facts.employment_rate_latest.value = 71.9;
@@ -269,6 +315,10 @@ describe('story part 1, altered data', () => {
     const el = show(Part1Fix);
     expect(figures(textWithoutAxes(el))).toEqual(expected(fx));
     expect(el.textContent).toContain('OBR forecast, March 2027');
+    // the arrows follow the altered signs (a fall, a zero, rises)
+    checkArrows(el);
+    expect(el.querySelector('#p1-quarters-0 .p1-growth').getAttribute('data-dir')).toBe('fall');
+    expect(el.querySelector('#p1-pay-0 .p1-growth').getAttribute('data-dir')).toBe('flat');
     vi.doUnmock('@/data/ukContext.json');
   });
 });

@@ -47,13 +47,12 @@ const gdpLegend = (fc) => [
   { key: 'ons', label: 'ONS outturn', color: 'var(--series-2)', block: true },
   ...(fc ? [{ key: 'obr', label: OBR_LABEL, color: 'var(--pe-gray-800)', dashed: true }] : []),
 ];
-const gdpSource = (g, fc, gLast) => (
+const gdpSource = (g, fc) => (
   <SourceLine
     items={[
       { id: g.source, name: 'GDP year-on-year growth' },
       ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
     ]}
-    note={fc ? `The OBR’s table starts from an earlier estimate of ${gLast} growth than the ONS’s latest, so the two are drawn apart, not joined.` : undefined}
   />
 );
 
@@ -84,8 +83,8 @@ export function GdpChart({ state }) {
       titleReserve={`Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`}
       unit={`Percentage change on the previous calendar year. Full years only: ${gLast} is the latest complete year.`}
       legend={gdpLegend(fc)}
-      source={gdpSource(g, fc, gLast)}
-      footReserve={{ legend: gdpLegend(true), source: gdpSource(g, true, gLast) }}
+      source={gdpSource(g, fc)}
+      footReserve={{ legend: gdpLegend(true), source: gdpSource(g, true) }}
     >
       <svg className="story-svg p1-svg" viewBox={`0 0 ${W} ${h}`} role="img" aria-label={label}>
         <Axes sc={sc} yTicks={ticks} zero xTicks={[...yearTicks(g.x), { x: x1 }]} />
@@ -220,10 +219,7 @@ export function ProductivityChart() {
       unit="Index, 2023 = 100, quarterly, seasonally adjusted"
       label={`Line chart: output per hour worked in the whole economy, a quarterly index with 2023 equal to 100, from ${span}.`}
       source={
-        <SourceLine
-          items={[{ id: s.source, name: 'output per hour worked' }]}
-          note="Hours worked come partly from the Labour Force Survey (see the note on its quality under work)."
-        />
+<SourceLine items={[{ id: s.source, name: 'output per hour worked' }]} />
       }
     />
   );
@@ -297,10 +293,7 @@ export function PayChart({ on = true }) {
       unit="Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation"
       label={`Line chart: growth of average weekly regular pay on a year earlier, three-month averages, ${span}.`}
       source={
-        <SourceLine
-          items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]}
-          note="From the ONS’s survey of employers’ payrolls, not the Labour Force Survey."
-        />
+<SourceLine items={[{ id: s.source, name: 'average weekly earnings, regular pay' }]} />
       }
     />
   );
@@ -319,7 +312,7 @@ export function LabourShareChart({ on = true }) {
       s={s}
       step={2}
       title={`Compensation of employees as a share of GDP, ${s.x[0]} to ${last}`}
-      unit="Per cent of GDP at current prices, annual. Leaves out the income of the self-employed."
+      unit={`Per cent of GDP at current prices, annual; ends at ${last}, the latest full year`}
       label={`Line chart: compensation of employees as a share of GDP, annual, from ${s.x[0]} to ${last}.`}
       source={
         <SourceLine
@@ -327,7 +320,6 @@ export function LabourShareChart({ on = true }) {
             { id: 'ons_dtwm', name: 'compensation of employees' },
             { id: 'ons_ybha', name: 'GDP at current prices' },
           ]}
-          note={`The share is one series divided by the other. The annual series ends at ${last}, the latest full year. Leaving out the self-employed’s income makes it lower than measures of labour’s share that count that income.`}
         />
       }
     />
@@ -359,7 +351,6 @@ export function AiUseChart({ state }) {
       source={
         <SourceLine
           items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]}
-          note="Private-sector businesses in the industries the survey covers, weighted by count of businesses. The survey leaves out some industries, among them agriculture, finance and insurance, and public administration."
         />
       }
     >
