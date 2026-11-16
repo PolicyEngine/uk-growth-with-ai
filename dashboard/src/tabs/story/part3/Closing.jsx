@@ -91,12 +91,12 @@ export default function Closing() {
       </p>
       <LeftOutGrid />
       <h3 id="p3-related-h">
-        <Icon name={iconFor('related')} size={18} /> Related PolicyEngine work
+        <Icon name={iconFor('external')} size={18} /> Related PolicyEngine work
       </h3>
       <ul className="p3-related" aria-labelledby="p3-related-h">
         <li>
           <a href={SHIFT.url} target="_blank" rel="noreferrer">
-            <Ico c="related" />{SHIFT.title}
+            <Ico c="external" />{SHIFT.title}
           </a>
           <Items
             items={[
@@ -109,7 +109,7 @@ export default function Closing() {
         </li>
         <li>
           <a href={LAB.url} target="_blank" rel="noreferrer">
-            <Ico c="related" />{LAB.title}
+            <Ico c="external" />{LAB.title}
           </a>
           <Items
             items={[

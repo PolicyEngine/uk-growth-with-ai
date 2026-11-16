@@ -86,7 +86,7 @@ export const CONCEPT_ICON = {
   // higher: uses `rise`
   // lower: uses `fall`
   // oneYear: uses `period`
-  related: 'externalLink', // related work elsewhere
+  // related: uses `external`
   // partners: uses `households`
   savings: 'coins', // household savings
   // corpTax: uses `tax`
@@ -128,6 +128,11 @@ export const CONCEPT_ICON = {
   prerequisite: 'key', // what you need first
   check: 'microscope', // a check of the numbers
   arithmetic: 'calculator', // arithmetic, not a solve
+  // shell:
+  answers: 'signpost', // what a part of the story answers
+  handover: 'milestone', // a change of model between parts
+  deeper: 'moveRight', // links to where a part's figures live in detail
+  external: 'externalLink', // a link that leaves the dashboard
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
