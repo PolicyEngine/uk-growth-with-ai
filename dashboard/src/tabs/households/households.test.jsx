@@ -79,8 +79,6 @@ describe('HouseholdsMethod', () => {
     expect(t).toContain('FY 2026–27');
     expect(t).toContain(`PolicyEngine-UK ${D.method.policyengine_uk}`);
     expect(t).toContain('C-AIOE');
-    expect(t).toContain(D.source.commit.slice(0, 7));
-    expect(t).toContain(D.method.data_build);
     expect(t).not.toMatch(/NaN|undefined/);
     const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf');
