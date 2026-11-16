@@ -4,6 +4,8 @@ import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
+import Icon from '@/components/ab/Icon.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
@@ -92,26 +94,9 @@ function investmentItems(res) {
   ];
 }
 
-// Dot rows: one row per scenario and arm, one column per measure on its own
-// axis from zero (shared down the column), the value beside its dot. Each
-// figure prints once, here; the table is the download.
-const tick = (t) => (Math.abs(t) < 1e-9 ? '0' : `${t > 0 ? '+' : '−'}${Math.abs(t)}`);
-function colAxis(res, v) {
-  const xs = SCENARIOS.flatMap((s) => ARMS.map((a) => at(res[s.id]?.[a.id], v))).filter((x) => x != null);
-  const lo = Math.min(0, ...xs);
-  const hi = Math.max(0, ...xs);
-  const span = Math.max(hi - lo, 0.2);
-  const step = [0.25, 0.5, 1, 2, 2.5, 5, 10].find((st) => span / st <= 3) ?? 20;
-  const min = Math.floor(lo / step) * step;
-  const max = Math.ceil(hi / step) * step;
-  const ticks = [];
-  for (let t = min; t <= max + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
-  return { ticks, at: (x) => ((x - min) / (max - min || 1)) * 100 };
-}
-
 // Rows whose shock-year investment gap is above the project's flag
 // (explore/caveats.js): marked * beside the arm, worded once under the
-// claims. Korinek et al.'s main arm is the largest.
+// claims (#sens-flag). Korinek et al.'s main arm is the largest.
 const SENS_FLAGS = () => investmentFlags().filter((f) => f.cl === SENS);
 export function sensFlagItem() {
   const fl = SENS_FLAGS();
@@ -127,81 +112,129 @@ export function sensFlagItem() {
   };
 }
 
-function SensDots({ res }) {
+// The grid: a compact heatmap, rows scenario x arm (grouped by scenario),
+// columns the four measures, each cell the zeta_K 0.5 gap printed once on a
+// diverging tint (teal above the path, amber below; strength against the
+// column's largest absolute value). Beside each value an unvalued arrow says
+// whether the gap is higher or lower than at the central closure (zeta_K
+// 0.1, whose figures have their home on the four-measure card), and a dashed
+// outline marks a sign flip between the two closures.
+// Phone labels for the arm column (the full names are in the arm picker).
+const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. fixed', ss: 'Stress test' };
+const centralAt = (sid, arm, v) => at(resultAt(sid, arm, CENTRAL, 'common'), v);
+export function flipOf(x, c) {
+  return x != null && c != null && side(x) !== 'on' && side(c) !== 'on' && side(x) !== side(c);
+}
+function colMax(res, v) {
+  const xs = SCENARIOS.flatMap((s) => ARMS.map((a) => at(res[s.id]?.[a.id], v))).filter((x) => x != null);
+  return Math.max(1e-9, ...xs.map(Math.abs));
+}
+
+function SensGrid({ res }) {
   const flagged = new Set(SENS_FLAGS().map((f) => `${f.sid}|${f.arm}`));
-  const axes = Object.fromEntries(VARS.map((c) => [c.v, colAxis(res, c.v)]));
+  const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
   return (
-    <div className="ex-sd" role="group" aria-label={`${HEADLINE_YEAR} gaps with more foreign capital, by scenario, arm and measure`}>
-      <AxisTitles y="Rows: scenario and arm" x={`Columns: each measure’s ${HEADLINE_YEAR} gap against the path, %, its own axis from zero`} />
-      <div className="ex-sd-row ex-sd-head">
-        <span />
-        {VARS.map((c) => (
-          <span key={c.v} className="ex-sd-colhead">
-            {c.label}
-          </span>
-        ))}
-      </div>
-      {SCENARIOS.map((s) => (
-        <div key={s.id} className="ex-sd-group">
-          <p className="ex-sd-scen">
-            <Lead c="scenario">{s.label}</Lead>
-          </p>
-          {ARMS.map((a) => {
-            const r = res[s.id]?.[a.id];
-            return (
-              <div key={a.id} className="ex-sd-row">
-                <span className="ex-sd-arm">
-                  <span className="swatch" style={{ borderTopColor: ARM_COLOR[a.id] }} aria-hidden="true" />
-                  {a.short || a.label}
-                  {flagged.has(`${s.id}|${a.id}`) ? (
-                    <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the path in ${S.surprise_year}: implausible`}>
-                      *
-                    </sup>
-                  ) : null}
-                </span>
-                {VARS.map((c) => {
-                  const x = at(r, c.v);
-                  const ax = axes[c.v];
-                  if (x == null)
-                    return (
-                      <span key={c.v} className="ex-sd-cell is-pending">
-                        pending
-                      </span>
-                    );
-                  const left = ax.at(x);
-                  return (
-                    <span key={c.v} className="ex-sd-cell">
-                      <span className="ex-sd-track">
-                        <span className="ex-sd-zero" style={{ left: `${ax.at(0).toFixed(2)}%` }} aria-hidden="true" />
-                        <span className="ex-sd-dot" style={{ left: `${left.toFixed(2)}%`, background: ARM_COLOR[a.id] }} aria-hidden="true" />
-                      </span>
-                      <span className={`ex-sd-val${cls(x)}`} data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
-                        {fmt(x, 2)}
-                      </span>
-                    </span>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-      <div className="ex-sd-row ex-sd-axis" aria-hidden="true">
-        <span />
-        {VARS.map((c) => (
-          <span key={c.v} className="ex-sd-cell is-axis">
-            <span className="ex-sd-track">
-            {axes[c.v].ticks.filter((t, i, all) => i === 0 || i === all.length - 1).map((t, i) => (
-              <span key={t} className={`ex-sd-tick${i ? ' is-end' : ''}`} style={{ left: `${axes[c.v].at(t).toFixed(2)}%` }} data-axis="">
-                {tick(t)}
-              </span>
+    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, arm and measure`}>
+      <AxisTitles y="Rows: scenario and arm" x={`Columns: each measure’s ${HEADLINE_YEAR} gap against the OBR-central path, %`} />
+      <table className="ex-sg">
+        <thead>
+          <tr>
+            <th scope="col" className="ex-sg-corner">
+              Scenario and arm
+            </th>
+            {VARS.map((c) => (
+              <th key={c.v} scope="col">
+                {c.v === 'w' ? (
+                  <>
+                    <span className="ex-mx-long">{c.label}</span>
+                    <span className="ex-mx-short">Wage</span>
+                  </>
+                ) : (
+                  c.label
+                )}
+                <span className="ex-sg-unit">% gap</span>
+              </th>
             ))}
-            </span>
-          </span>
-        ))}
-      </div>
+          </tr>
+        </thead>
+        {SCENARIOS.map((s) => {
+          const fl = SENS_FLAGS().find((f) => f.sid === s.id && f.arm === 'tfp');
+          return (
+            <tbody key={s.id}>
+              <tr className="ex-sg-group">
+                <th colSpan={VARS.length + 1} scope="rowgroup">
+                  {s.label}
+                  {fl && s.id === 'korinek' ? (
+                    <a className="ex-sg-implaus" href="#sens-flag">
+                      Implausible: investment +{Math.round(fl.x)}% in {S.surprise_year}
+                    </a>
+                  ) : null}
+                </th>
+              </tr>
+              {ARMS.map((a) => {
+                const r = res[s.id]?.[a.id];
+                return (
+                  <tr key={a.id}>
+                    <th scope="row" className="ex-sg-arm">
+                      <span className="swatch" style={{ borderTopColor: ARM_COLOR[a.id] }} aria-hidden="true" />
+                      <span className="ex-mx-long">{a.short || a.label}</span>
+                      <span className="ex-mx-short">{ARM_SHORT[a.id] ?? a.short}</span>
+                      {flagged.has(`${s.id}|${a.id}`) ? (
+                        <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the path in ${S.surprise_year}: implausible`}>
+                          *
+                        </sup>
+                      ) : null}
+                    </th>
+                    {VARS.map((c) => {
+                      const x = at(r, c.v);
+                      if (x == null)
+                        return (
+                          <td key={c.v} className="ex-sg-cell is-pending">
+                            not solved
+                          </td>
+                        );
+                      const ce = centralAt(s.id, a.id, c.v);
+                      const flip = flipOf(x, ce);
+                      const d = ce == null ? null : x - ce;
+                      const t = Math.round((Math.abs(x) / max[c.v]) * 38 + (Math.abs(x) < 0.005 ? 0 : 6));
+                      const tone = Math.abs(x) < 0.005 ? '' : x > 0 ? ' is-gain' : ' is-loss';
+                      const dirWord = d == null || Math.abs(d) < 0.005 ? null : d > 0 ? 'higher' : 'lower';
+                      return (
+                        <td key={c.v} className={`ex-sg-cell${tone}${flip ? ' is-flip' : ''}`} style={{ '--t': `${t}%` }} data-flip={flip ? '' : undefined}>
+                          <span className={`ex-sd-val${cls(x)}`} data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
+                            {fmt(x, 2)}
+                          </span>
+                          {dirWord ? (
+                            <span className="ex-sg-dir" title={`${dirWord === 'higher' ? 'Higher' : 'Lower'} than at the central closure (ζK 0.1)${flip ? '; the sign flips' : ''}`}>
+                              <Icon name={iconFor(dirWord === 'higher' ? 'gapUp' : 'gapDown')} size={12} />
+                              <span className="visually-hidden">{`, ${dirWord} than at the central closure${flip ? ', sign flips' : ''}`}</span>
+                            </span>
+                          ) : null}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          );
+        })}
+      </table>
     </div>
   );
+}
+
+// The grid's key: what the arrow and the outline mean, and how many cells
+// flip sign (counted from the data).
+export function gridKey(res) {
+  const cells = SCENARIOS.flatMap((s) => ARMS.flatMap((a) => VARS.map((c) => ({ x: at(res[s.id]?.[a.id], c.v), c: centralAt(s.id, a.id, c.v) }))));
+  const flips = cells.filter((k) => flipOf(k.x, k.c));
+  const up = flips.length && flips.every((k) => k.x > 0);
+  return [
+    { key: 'arrow', icon: 'compare', text: 'Arrow: higher or lower than at the central closure (ζK 0.1)' },
+    flips.length ? { key: 'flip', icon: 'closure', text: `Dashed outline: the sign flips against ζK 0.1 (${flips.length} cells)` } : null,
+    up ? { key: 'why', icon: 'capital', text: 'Each flip turns a fall into a rise: more capital per worker' } : null,
+  ].filter(Boolean);
 }
 
 export default function SensitivityTable() {
@@ -212,10 +245,50 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={`Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`}
-      finding={<Lead c="compare">In every scenario’s main arm, against the central closure:</Lead>}
-      controls={<Items className="ex-notes" items={[...sensClaims(res), sensFlagItem()]} />}
-      unit={<Lead c="measure">{`${HEADLINE_YEAR}, % difference from the OBR-central path at the same closure, common fiscal rule`}</Lead>}
+      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR-central path`}
+      finding={
+        <span className="ex-ctx ex-sg-ctx">
+          <span>
+            <Lead c="timing">{String(HEADLINE_YEAR)}</Lead>
+          </span>
+          <span>
+            <Lead c="rule">Common fiscal rule</Lead>
+          </span>
+          <span>
+            <Lead c="foreign">
+              <>{ext(URLS.ogCoreParams, 'ζK')}: the share of excess capital demand foreigners supply</>
+            </Lead>
+          </span>
+          {foreignShare(res) ? (
+            <span>
+              <Lead c="capital">{`${foreignShare(res).replace(/^./, (c) => c.toUpperCase())} of new capital foreign-owned`}</Lead>
+            </span>
+          ) : null}
+          <span>
+            <Lead c="model">
+              <NavLink tab="method" sub="how" anchor="m-closures">
+                Method: closures
+              </NavLink>
+            </Lead>
+          </span>
+        </span>
+      }
+      controls={
+        <>
+          <p className="ex-sg-lead">
+            <Lead c="compare">In every scenario’s main arm, against the central closure:</Lead>
+          </p>
+          <Items className="ex-notes" items={sensClaims(res)} />
+          {sensFlagItem() ? (
+            <p id="sens-flag" className="ex-sg-flagnote">
+              <Icon name={iconFor('caveat')} size={16} />
+              <span>{sensFlagItem().text}</span>
+            </p>
+          ) : null}
+        </>
+      }
+      unit={<Lead c="measure">{`% difference from the OBR-central path at the same closure, ${HEADLINE_YEAR}`}</Lead>}
+      legend={<Items className="ex-notes ex-sg-key" items={gridKey(res)} />}
       logo={false}
       aboutTitle="About this chart"
       about={{
@@ -252,7 +325,7 @@ export default function SensitivityTable() {
         }),
       }}
     >
-      <SensDots res={res} />
+      <SensGrid res={res} />
     </Card>
   );
 }
