@@ -16,16 +16,19 @@ export const CHART_COLOURS = {
   highlightBand: '#EAF5F4',
   gain: '#319795',
   gainText: '#0F766E',
+  ours: '#026AA2', // our own figure beside published ones: the main arm's blue
+  mark: '#374151', // a neutral mark (coverage matrix)
   loss: '#D97706',
   lossText: '#B45309',
   reference: '#6B7280',
 };
 
-// The three arms: teal (main), blue, slate (the stress test, drawn lighter).
+// The three arms, as on the page (--series-2, -3, -5): blue (main), light
+// blue, slate (the stress test, drawn lighter). Teal is kept for gains.
 // Text variants meet 4.5:1 on white.
 export const SERIES = {
-  tfp: { line: '#319795', text: '#0F766E' },
-  tz: { line: '#026AA2', text: '#026AA2' },
+  tfp: { line: '#026AA2', text: '#026AA2' },
+  tz: { line: '#0EA5E9', text: '#0369A1' },
   ss: { line: '#64748B', text: '#475569' },
 };
 

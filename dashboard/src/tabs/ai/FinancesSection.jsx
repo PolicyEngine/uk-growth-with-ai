@@ -142,7 +142,7 @@ function causesSvg() {
     else out += `<circle cx="${X(c.value)}" cy="${ty}" r="6" fill="${C.surface}" stroke="${C.muted}" stroke-width="2"/>`;
     const tx = c.lo != null ? (X(c.lo) + X(c.hi)) / 2 : X(c.value);
     out += `<text x="${tx}" y="${ty + 22}" font-size="11" text-anchor="middle" fill="${C.axisTitle}">${esc(`${c.theirs} ${c.theirsText}`)}</text>`;
-    out += `<circle cx="${X(c.ours)}" cy="${ty}" r="6" fill="${C.gain}"/>`;
+    out += `<circle cx="${X(c.ours)}" cy="${ty}" r="6" fill="${C.ours}"/>`;
     out += `<text x="${X(c.ours)}" y="${ty - 12}" font-size="11" font-weight="600" text-anchor="middle" fill="${C.ink}">${esc(`OG-UK ${c.oursText}`)}</text>`;
     out += `<text x="${x0}" y="${ty + 40}" font-size="11" fill="${C.tick}">0</text><text x="${x1}" y="${ty + 40}" font-size="11" text-anchor="end" fill="${C.tick}">${esc(`${c.max}${c.unit === 'pp' ? 'pp' : ` ${c.unit}`}`)}</text>`;
     out += `<text x="0" y="${ty + 62}" font-size="12" fill="${C.ink}">${esc(c.effect)}</text>`;

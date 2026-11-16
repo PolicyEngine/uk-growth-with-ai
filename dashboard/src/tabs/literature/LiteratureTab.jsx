@@ -122,9 +122,9 @@ function matrixSvg() {
   const rh = 30;
   const W = lw + MODELS.length * cw;
   const mark = (lv, cx, cy) => {
-    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.gainText : C.surface}" stroke="${C.gainText}" stroke-width="1.5"/>`;
+    const ring = `<circle cx="${cx}" cy="${cy}" r="6" fill="${lv === 'yes' ? C.mark : C.surface}" stroke="${C.mark}" stroke-width="1.5"/>`;
     if (lv === 'na') return `<line x1="${cx - 6}" x2="${cx + 6}" y1="${cy}" y2="${cy}" stroke="${C.muted}" stroke-width="1.5"/>`;
-    if (lv === 'part') return `${ring}<path d="M${cx} ${cy - 6} A6 6 0 0 1 ${cx} ${cy + 6} Z" fill="${C.gainText}"/>`;
+    if (lv === 'part') return `${ring}<path d="M${cx} ${cy - 6} A6 6 0 0 1 ${cx} ${cy + 6} Z" fill="${C.mark}"/>`;
     return ring;
   };
   let out = '';
