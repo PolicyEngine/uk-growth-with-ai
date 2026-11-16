@@ -19,7 +19,7 @@ def rnd(x, dp=0):
 
 
 # Story part 3 (#story-part-3) and Explore > Households
-# (#explore-sub-households): the provisional uk-ai-study figures, against
+# (#explore-sub-households): the uk-ai-study figures (main at cd54488, FY 2027-28), against
 # aiStudy2425.json with the formats of part3/format.js. Every figure has one
 # home: the story prints the headline findings, Explore the rest, and the two
 # are counted together so nothing is printed twice. Axis text and quoted
@@ -102,11 +102,13 @@ def sankey_failures():
         tot = sum(f[k] for f in S['deciles'])
         if abs(tot - S['total'][k]) > 1e-3:
             bad.append(f"{k}: deciles sum to {tot:.4f}, total {S['total'][k]:.4f}")
-    for k, want in [('earnings_lost_bn', '£23.3bn'), ('tax_ni_bn', '£6.2bn'), ('benefits_bn', '£0.4bn'),
-                    ('other_bn', '£1.3bn'), ('disposable_bn', '£15.4bn')]:
+    # printed values at uk-ai-study main cd54488 (results/next_runs/obr_household_deciles.csv, decile 'all';
+    # obr_benchmark.json summary.employer_ni_change_bn), FY 2027-28
+    for k, want in [('earnings_lost_bn', '£24.0bn'), ('tax_ni_bn', '£6.5bn'), ('benefits_bn', '£0.4bn'),
+                    ('other_bn', '£1.3bn'), ('disposable_bn', '£15.8bn')]:
         if bn(S['total'][k]) != want:
             bad.append(f"{k} prints {bn(S['total'][k])}, expected {want}")
-    if bn(S['employer_ni_bn']) != '£3.1bn':
+    if bn(S['employer_ni_bn']) != '£3.2bn':
         bad.append(f"employer NI prints {bn(S['employer_ni_bn'])}")
     return bad
 

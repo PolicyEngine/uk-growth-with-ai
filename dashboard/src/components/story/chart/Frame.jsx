@@ -17,6 +17,11 @@ import ModelBadge from './ModelBadge.jsx';
 // Every text line leads with a plain icon (title: `icon`, a concept; unit:
 // measure; source: source; a legend entry: its swatch).
 //
+// `yTitle` / `xTitle`: the axis titles as HTML lines (for charts whose svg
+// draws none): the y title with its unit above the plot (left), the x title
+// under it (right), each a plain icon and data-axis-title="y" / "x"
+// (check_axes.mjs). An svg chart may instead pass `title` to its <Axis>.
+//
 //   <Frame model="oguk" icon="gdp" title="GDP against the path" unit="% gap, not a forecast"
 //     legend={[{ key: 'a', label: 'UK central', color: 'var(--series-2)' }]}
 //     source={<>Source: <a href="…">OG-UK</a></>} sources={<p>…</p>}>
@@ -71,6 +76,8 @@ export default function Frame({
   title,
   titleReserve,
   unit,
+  yTitle,
+  xTitle,
   legend,
   source,
   sources,
@@ -108,7 +115,19 @@ export default function Frame({
           {unit}
         </p>
       ) : null}
+      {yTitle ? (
+        <p className="ch-axis-title-html is-y" data-axis-title="y">
+          <Icon name={iconFor('yAxis')} size={13} className="ch-axis-title-icon" />
+          <span>{yTitle}</span>
+        </p>
+      ) : null}
       <div className="ch-plot">{children}</div>
+      {xTitle ? (
+        <p className="ch-axis-title-html is-x" data-axis-title="x">
+          <Icon name={iconFor('xAxis')} size={13} className="ch-axis-title-icon" />
+          <span>{xTitle}</span>
+        </p>
+      ) : null}
       {legend?.length || source || sources ? (
         <figcaption className={`ch-foot${footReserve ? ' ch-stack' : ''}`}>
           {footReserve ? (
