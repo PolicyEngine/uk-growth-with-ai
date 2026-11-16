@@ -6,6 +6,7 @@ import Disclosure from '@/components/ab/Disclosure.jsx';
 import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
+import { iconFor } from '@/lib/concepts.js';
 
 // The one card. In fixed order: icon + title (+ download), one sentence
 // stating the finding, the control bar, the plot, the legend, the logo, and
@@ -31,9 +32,34 @@ export function MethodLink({ section }) {
   );
 }
 
-export function AboutFold({ about, method, title = 'About this chart' }) {
+// `replication`: { code, result } (URLs: the script that makes the figure
+// and its result file, e.g. on GitHub), one icon line at the end of the fold.
+export function Replication({ code, result }) {
+  if (!code && !result) return null;
+  return (
+    <p className="replication-link">
+      <Icon name={iconFor('replication')} size={14} />
+      <span>
+        Replicate:{' '}
+        {code ? (
+          <a href={code} target="_blank" rel="noopener noreferrer">
+            code
+          </a>
+        ) : null}
+        {code && result ? ' · ' : null}
+        {result ? (
+          <a href={result} target="_blank" rel="noopener noreferrer">
+            result file
+          </a>
+        ) : null}
+      </span>
+    </p>
+  );
+}
+
+export function AboutFold({ about, method, replication, title = 'About this chart' }) {
   const parts = ABOUT.filter(([k]) => about?.[k]);
-  if (!parts.length && !method) return null;
+  if (!parts.length && !method && !replication) return null;
   return (
     <Disclosure inCard title={title} preview={parts.map(([, t]) => t).join(' · ')}>
       {parts.map(([k, t]) => (
@@ -43,12 +69,13 @@ export function AboutFold({ about, method, title = 'About this chart' }) {
         </div>
       ))}
       {method ? <MethodLink section={method} /> : null}
+      {replication ? <Replication {...replication} /> : null}
     </Disclosure>
   );
 }
 
 export default function Card({
-  id, icon, title, finding, unit, controls, legend, about, method, download, logo = false, className = '', children, foot, aboutTitle,
+  id, icon, title, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, aboutTitle,
 }) {
   const ref = useRef(null);
   return (
@@ -72,7 +99,7 @@ export default function Card({
           <img src="/assets/logos/policyengine-teal.png" alt="PolicyEngine" width="80" height="17" />
         </div>
       ) : null}
-      <AboutFold about={about} method={method} title={aboutTitle} />
+      <AboutFold about={about} method={method} replication={replication} title={aboutTitle} />
     </article>
   );
 }

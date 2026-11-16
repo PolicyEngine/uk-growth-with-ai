@@ -20,7 +20,7 @@ export const TABS = [
     subs: [
       { id: 'economy', label: 'Economy', icon: 'factory' },
       { id: 'finances', label: 'Public finances', icon: 'landmark' },
-      { id: 'who', label: 'Who gains', icon: 'usersRound', scenario: 'locked', arm: true, rule: ['common', 'dn'] },
+      { id: 'who', label: 'Who gains and who loses', short: 'Who gains', icon: 'usersRound', scenario: 'locked', arm: true, rule: ['common', 'dn'] },
       { id: 'households', label: 'Households', icon: 'briefcase', scenario: false, closure: false, rule: false, study: true },
     ] },
   { id: 'method', label: 'Method and sources', short: 'Method', icon: 'book',

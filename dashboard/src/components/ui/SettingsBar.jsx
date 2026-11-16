@@ -84,9 +84,9 @@ export default function SettingsBar({ pick }) {
     return (
       <div className="settings-bar is-study" data-sticky-bar="">
         <NavLink tab="method" sub="households" className="model-chip">
-          <Icon name={iconFor('provisional')} size={15} />
+          <Icon name={iconFor('households')} size={15} />
           <span>
-            <strong>A different model:</strong> uk-ai-study, households in one year, provisional.
+            <strong>A different model:</strong> uk-ai-study, households in one year.
             <span className="model-chip-more"> The OG-UK settings do not apply.</span>
           </span>
         </NavLink>
