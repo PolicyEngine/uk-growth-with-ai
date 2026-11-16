@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { NavLink } from '@/lib/nav.jsx';
 
 // The question-led sequence (Scrolly `sub.question`): one pinned screen per
 // topic, in the flow just above the topic's header, `--q-pin` tall (one CSS
@@ -131,5 +132,74 @@ export default function QStage({ id, question, hint, icon, keyWord, part, onPhas
         ) : null}
       </div>
     </div>
+  );
+}
+
+// The answer (sub.answer): the topic's question replayed with one line of
+// the scene's key number(s), right after the last card, where the reader
+// is when the evidence is done; it slides up once the last card is reached.
+// `answerTo` (an anchor, or { tab, sub, anchor }) makes the answer a link
+// to the figure's home; then it restates a figure printed there, so it is
+// data-axis (not a second home for the number checks). Never hidden from
+// innerText (opacity only), so the number checks see the same text at any
+// scroll. The question copy here is aria-hidden (the header carries it).
+export function Answer({ question, answer, to, shown }) {
+  const t = to == null ? null : typeof to === 'string' ? { tab: 'story', anchor: to } : to;
+  const text = <span className="scrolly-answer-text">{answer}</span>;
+  return (
+    <div className={`scrolly-answer-card${shown ? ' is-shown' : ''}`}>
+      {question ? (
+        <p className="scrolly-answer-q" aria-hidden="true" data-axis="">
+          <Icon name={iconFor('question')} size={14} className="scrolly-answer-q-icon" />
+          {question}
+        </p>
+      ) : null}
+      <p className="scrolly-answer-a" data-axis={t ? '' : undefined}>
+        <Icon name={iconFor('answer')} size={16} className="scrolly-answer-icon" />
+        <span className="scrolly-answer-label">Answer</span>
+        {t ? (
+          <NavLink tab={t.tab ?? 'story'} sub={t.sub} anchor={t.anchor} className="scrolly-answer-link">
+            {text}
+          </NavLink>
+        ) : (
+          text
+        )}
+      </p>
+    </div>
+  );
+}
+
+// A topic head for a block that is not a Scrolly (part 3's closing, the
+// Two lenses close): the same pinned question screen, the header with the
+// question (id="q-<id>", the rail reads data-scene) and, when given, the
+// answer (shown at once: there are no steps to reach).
+//
+//   <TopicHead id="p3-close" sub={{ title, icon, question, hint, key, answer, answerTo }} titleId="p3-close-h" />
+export function TopicHead({ id, sub, part, titleId, className = '' }) {
+  const { title, icon, question, hint, key, answer, answerTo } = sub;
+  return (
+    <>
+      {question ? <QStage id={id} question={question} hint={hint} icon={icon} keyWord={key} part={part} /> : null}
+      <header className={`scene-head topic-head${question ? ' has-q' : ''} ${className}`.trim()} data-scene={title} id={question ? `q-${id}` : undefined}>
+        <span className="scene-head-row">
+          {icon ? <Icon name={iconFor(icon)} size={16} className="scene-head-icon" /> : null}
+          <h3 className="scene-head-title" id={titleId}>
+            {title}
+          </h3>
+          {question ? (
+            <p className="scene-head-q">
+              <Icon name={iconFor('question')} size={14} className="scene-head-q-icon" />
+              <span>{question}</span>
+            </p>
+          ) : null}
+          <span className="scene-head-rule" aria-hidden="true" />
+        </span>
+      </header>
+      {answer != null ? (
+        <div className="topic-head-answer">
+          <Answer question={null} answer={answer} to={answerTo} shown />
+        </div>
+      ) : null}
+    </>
   );
 }

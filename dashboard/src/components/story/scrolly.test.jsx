@@ -175,20 +175,39 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
       Element.prototype.getBoundingClientRect = gb;
     }
   });
-  it('prints the answer chip under the question; with answerTo it links to the home and is data-axis', () => {
+  it('prints the answer after the last card with the question replayed; with answerTo it links to the home and is data-axis', () => {
     const { container, rerender } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
-    let a = container.querySelector('header.scene-head .scene-head-a');
+    const li = container.querySelector('.scrolly-steps > .scrolly-answer');
+    expect(li.previousElementSibling.id).toBe('s-c');
+    expect(li.nextElementSibling.classList.contains('scrolly-end')).toBe(true);
+    let a = li.querySelector('.scrolly-answer-a');
     expect(a.textContent).toBe('AnswerAbout 1.5% a year');
     expect(a.hasAttribute('data-axis')).toBe(false);
+    const q = li.querySelector('.scrolly-answer-q');
+    expect(q.textContent).toBe('How fast has the UK grown?');
+    expect(q.getAttribute('aria-hidden')).toBe('true');
     // jsdom: the last card is active, so the answer is shown
-    expect(a.classList.contains('is-shown')).toBe(true);
+    expect(li.querySelector('.scrolly-answer-card').classList.contains('is-shown')).toBe(true);
     rerender(<Scrolly id="b" sub={{ ...sub, answer: <>1.5%</>, answerTo: 'p1-output-s3' }} steps={steps} graphic={() => null} label="L" />);
-    a = container.querySelector('.scene-head-a');
+    a = container.querySelector('.scrolly-answer-a');
     expect(a.hasAttribute('data-axis')).toBe(true);
     expect(a.querySelector('a').getAttribute('href')).toContain('#p1-output-s3');
   });
   it('a plain string sub has no opener and no takeaway', () => {
     const { container } = render(<Scrolly id="b" sub="Output" steps={steps} graphic={() => null} label="L" />);
     expect(container.querySelector('.q-stage, .scene-head-q, .scrolly-takeaway')).toBeNull();
+  });
+});
+
+describe('TopicHead (a topic that is not a Scrolly)', () => {
+  it('renders the stage, the header with its q- anchor and the answer', async () => {
+    const { TopicHead } = await import('./QStage.jsx');
+    const { container } = render(<TopicHead id="p3-close" titleId="p3-close-h" sub={{ title: 'Limits', icon: 'gdp', question: 'What does the study leave out?', answer: 'Firms and prices' }} />);
+    expect(container.querySelector('.q-stage')).not.toBeNull();
+    const h = container.querySelector('header.scene-head');
+    expect(h.id).toBe('q-p3-close');
+    expect(h.dataset.scene).toBe('Limits');
+    expect(h.querySelector('h3').id).toBe('p3-close-h');
+    expect(container.querySelector('.scrolly-answer-card.is-shown .scrolly-answer-text').textContent).toBe('Firms and prices');
   });
 });

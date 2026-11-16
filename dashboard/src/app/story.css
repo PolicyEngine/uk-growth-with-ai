@@ -531,63 +531,75 @@
     gap: 10px;
   }
 }
-/* the answer chip under the question (Scrolly sub.answer): slides up once
-   the scene's last card is reached; opacity only (the text is always in
-   the DOM) */
-.scene-head-a {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: baseline;
-  margin: 6px 0 0;
-  padding: 4px 12px 4px 10px;
-  font-size: var(--fs-small);
-  line-height: 1.35;
-  color: var(--pe-gray-900);
+/* The answer (Scrolly sub.answer): after the last card, the question
+   replayed small and the answer line; slides up once the last card is
+   reached (opacity only: the text is always in the DOM) */
+.scrolly-answer {
+  list-style: none;
+}
+.scrolly-answer-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
   background: var(--part-tint, var(--pe-teal-50));
   border-left: 3px solid var(--part-accent, var(--c-highlight));
-  border-radius: 0 999px 999px 0;
+  border-radius: 0 10px 10px 0;
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(14px);
   transition:
     opacity 450ms var(--story-ease),
     transform 550ms var(--story-ease);
 }
-.scene-head-a.is-shown {
+.scrolly-answer-card.is-shown {
   opacity: 1;
   transform: none;
 }
-.scene-head-a-icon {
+.scrolly-answer-q {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.scrolly-answer-q-icon,
+.scrolly-answer-icon {
+  flex: none;
   display: inline-flex;
   align-self: center;
   color: var(--part-accent, var(--c-highlight));
 }
-.scene-head-a-label {
+.scrolly-answer-a {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-body, 1rem);
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.scrolly-answer-label {
   font-size: var(--fs-caption);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--part-accent, var(--c-highlight));
 }
-.scene-head-a-text {
+.scrolly-answer-text {
   font-weight: 600;
 }
-.scene-head-a-link {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: baseline;
+.scrolly-answer-link {
   color: inherit;
-  text-decoration: none;
-}
-.scene-head-a-link:hover .scene-head-a-text {
   text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 50%, transparent);
+  text-underline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
   .q-stage {
     display: none;
   }
-  .scene-head-a {
+  .scrolly-answer-card {
     opacity: 1;
     transform: none;
     transition: none;
@@ -602,23 +614,21 @@
   .q-stage {
     display: none;
   }
-  .scene-head-a {
+  .scrolly-answer-card {
     opacity: 1;
     transform: none;
   }
 }
 /* One step, one highlight (highlight.jsx): while a step names marks, the
    figure carries data-hl, its named marks data-on; the rest dim to 25% */
-[data-hl] [data-mark] {
-  transition:
-    opacity 300ms var(--story-ease),
-    filter 300ms var(--story-ease);
+/* dimmed by filter, not opacity, and the transition at zero specificity:
+   the chart primitives' own opacity and draw transitions (.draw-path,
+   .grow-rect, .fade-g, .draw-end) keep working on a mark */
+:where([data-hl] [data-mark]) {
+  transition: filter 300ms var(--story-ease);
 }
 [data-hl] [data-mark]:not([data-on]) {
-  opacity: 0.25;
-}
-[data-hl] [data-mark][data-on] {
-  opacity: 1;
+  filter: opacity(0.25);
 }
 .hl-key {
   display: inline-flex;
@@ -706,7 +716,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-hl] [data-mark] {
+  :where([data-hl] [data-mark]) {
     transition: none;
   }
   [data-hl] [data-mark][data-on] {
@@ -2477,5 +2487,18 @@
 @media (prefers-reduced-motion: reduce) {
   .mark-callout.is-placed {
     animation: none;
+  }
+}
+/* TopicHead (QStage.jsx) outside a Scrolly: the answer under the header */
+.topic-head-answer {
+  margin: 0 0 16px;
+}
+/* Desktop: a sticky figure is held inside the whole block (Chrome takes the
+   grid container, not the grid area, as its sticky bound), so without this
+   it slides down over the takeaway line under the block; its bottom margin
+   keeps it above that line */
+@media (min-width: 901px) {
+  .scrolly:not(.is-single):has(> .scrolly-takeaway) > .scrolly-graphic {
+    margin-bottom: 84px;
   }
 }

@@ -5,9 +5,8 @@ import { FinalState, useActiveStep, useInView, useIsPhone, useReducedMotion } fr
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
-import { NavLink } from '@/lib/nav.jsx';
 import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
-import QStage from './QStage.jsx';
+import QStage, { Answer } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
 
 // a sticky figure may take 45% of the screen at 900px and below
@@ -61,22 +60,35 @@ const subscribeWidth = (cb) => {
 //                figure card on desktop, after the last card at 900px and
 //                below, printed once either way;
 //   sub          the scene sub-header above the block: a string or
-//                { title, icon, question, takeaway } (icon a concept).
-//                Rendered as <header class="scene-head" data-scene="title">
-//                (the rail reads [data-scene]); step titles then become h4.
+//                { title, icon, question, hint, key, takeaway, answer, answerTo }
+//                (icon a concept). Rendered as <header class="scene-head"
+//                data-scene="title" id="q-<id>"> (the rail reads
+//                [data-scene]; #q-<id> links to the question); step titles
+//                then become h4.
 //                `question` (about a dozen words, neutral, answered by the
-//                block): printed in the header on the title's row, and played
-//                once as a topic opener: a panel over the figure card (never
-//                over the cards, no added height) with a large plain icon,
-//                "Part n" (from the closest .story-part[data-part], or the
-//                `part` prop) and the question, scaling and fading in word by
-//                word on the part's tint, then shrinking into the header. It
-//                is skipped when the block is already above the rail (a deep
-//                link, a step dot, scrolling up), under reduced motion, in
-//                print and in "is-inline" blocks. ctx.entered (and so
-//                useEnterState entry moves) waits until it has shrunk.
+//                block): printed in the header, and played as the
+//                question-led sequence (QStage.jsx): one pinned screen
+//                (--q-pin on .story) above the header where the question
+//                arrives word by word on the part tint (`key`: the word to
+//                mark; `hint`: one line under it), holds, and is pushed up
+//                into the header as the scene comes in. Scroll-driven;
+//                hidden under reduced motion, in print and in "is-inline"
+//                blocks. ctx.entered waits until it has moved in.
+//                `answer` (string or node, the scene's own figures): after
+//                the last card, the question replayed with the answer,
+//                sliding up once the last card is reached (always shown when
+//                drawn once, under reduced motion and in print). With
+//                `answerTo` (anchor or { tab, sub, anchor }) it links to the
+//                figure's home and is data-axis (not a second home).
 //                `takeaway`: one "Key takeaway" line after the block (the
 //                full width, under both columns: one line on desktop);
+//   step.highlight  ids of the marks this step is about (highlight.jsx):
+//                the figure's other [data-mark]s dim; ctx.highlight /
+//                useHighlight() give the lit ids; `highlight: 'none'` with
+//                `highlightWhy` for a text-only step;
+//   step.callout the step's sentence (true: its title) anchored to its mark
+//                (`anchor`, else the first highlight id) inside the figure,
+//                with a leader line (MarkCallout.jsx);
 //   part         the part number for the opener (default: read from the page);
 //   step.kickerIcon  a concept leading the kicker (default: step.icon).
 export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, part }) {
@@ -283,7 +295,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       {question && !inline ? <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} part={part} onPhase={setStage} /> : null}
       {sub ? (
         <header
-          className={`scene-head${question ? ' has-q' : ''}${answer != null ? ' has-a' : ''}${question && stage === 'done' && !reduce ? ' is-arrived' : ''}`}
+          className={`scene-head${question ? ' has-q' : ''}${question && stage === 'done' && !reduce ? ' is-arrived' : ''}`}
           data-scene={subTitle}
           id={question ? `q-${id}` : undefined}
         >
@@ -298,7 +310,6 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             ) : null}
             <span className="scene-head-rule" aria-hidden="true" />
           </span>
-          {answer != null ? <Answer answer={answer} to={subObj.answerTo} shown={answered} /> : null}
         </header>
       ) : null}
       <div className="scrolly-graphic" ref={box} aria-label={label} aria-describedby={hlDesc.node ? hlDesc.id : undefined} role="group" hidden={inline || undefined}>
@@ -371,6 +382,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             </li>
           ),
         )}
+        {answer != null ? (
+          <li className="scrolly-answer">
+            <Answer question={question} answer={answer} to={subObj.answerTo} shown={answered} />
+          </li>
+        ) : null}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
       {phone ? footHere : null}
@@ -384,32 +400,6 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ) : null}
     </div>
     </HighlightCtx.Provider>
-  );
-}
-
-// The answer chip under the question (sub.answer): one line with the
-// scene's key number(s), slid up once the last card is reached. `answerTo`
-// (an anchor, or { tab, sub, anchor }) makes it a link to the figure's home;
-// then it restates a figure printed there, so it is data-axis (not a second
-// home for the number checks). Never hidden from innerText (opacity only),
-// so the number checks see the same text at any scroll.
-function Answer({ answer, to, shown }) {
-  const inner = (
-    <>
-      <Icon name={iconFor('answer')} size={14} className="scene-head-a-icon" />
-      <span className="scene-head-a-label">Answer</span>
-      <span className="scene-head-a-text">{answer}</span>
-    </>
-  );
-  const cls = `scene-head-a${shown ? ' is-shown' : ''}`;
-  if (to == null) return <p className={cls}>{inner}</p>;
-  const t = typeof to === 'string' ? { tab: 'story', anchor: to } : to;
-  return (
-    <p className={cls} data-axis="">
-      <NavLink tab={t.tab ?? 'story'} sub={t.sub} anchor={t.anchor} className="scene-head-a-link">
-        {inner}
-      </NavLink>
-    </p>
   );
 }
 
