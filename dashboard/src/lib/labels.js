@@ -59,8 +59,8 @@ export const RULE_PICK = {
 
 // Capital closure: who owns the new capital.
 export const CLOSURES = [
-  { id: 'central', label: 'Central', note: 'Some new capital is foreign-owned (ζK = 0.1)', icon: 'globe' },
-  { id: 'closed', label: 'Closed capital', note: 'None is foreign-owned (ζK = 0)', icon: 'lock' },
+  { id: 'central', label: 'Central', note: 'Foreigners supply 10% of excess capital demand (ζK = 0.1)', icon: 'globe' },
+  { id: 'closed', label: 'Closed capital', note: 'Foreigners supply none of it (ζK = 0)', icon: 'lock' },
   { id: 'both', label: 'Both', note: 'Central solid, closed capital dashed', icon: 'layers' },
 ];
 export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? id;
