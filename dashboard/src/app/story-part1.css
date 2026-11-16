@@ -179,8 +179,11 @@
 .p1-board-line.is-drawn {
   opacity: 1;
 }
+.p1-board-series .p1-board-line {
+  stroke: var(--mk, var(--pe-gray-500));
+}
 .is-focus .p1-board-line {
-  stroke: var(--p1-ink);
+  stroke: var(--mk, var(--p1-ink));
   stroke-width: 2.5;
 }
 .p1-board-end {
@@ -193,8 +196,11 @@
 .p1-board-svg.is-seen .p1-board-end {
   opacity: 1;
 }
+.p1-board-series .p1-board-end {
+  fill: var(--mk, var(--pe-gray-500));
+}
 .is-focus .p1-board-end {
-  fill: var(--p1-ink);
+  fill: var(--mk, var(--p1-ink));
 }
 .p1-board-area {
   opacity: 0;
@@ -253,11 +259,11 @@
   stroke-linejoin: round;
 }
 .p1-ai-line.is-all {
-  stroke: var(--p1-ink);
+  stroke: var(--mk-all, var(--p1-ink));
   stroke-width: 2.5;
 }
 .p1-ai-line.is-ten {
-  stroke: var(--pe-gray-500);
+  stroke: var(--mk-ten, var(--pe-gray-500));
   stroke-width: 2;
 }
 .p1-ai-dot {
@@ -271,10 +277,10 @@
   transition-delay: 500ms;
 }
 .p1-ai-dot.is-all {
-  fill: var(--p1-ink);
+  fill: var(--mk-all, var(--p1-ink));
 }
 .p1-ai-dot.is-ten {
-  fill: var(--pe-gray-500);
+  fill: var(--mk-ten, var(--pe-gray-500));
 }
 .p1-ai-area {
   opacity: 0;
@@ -284,10 +290,10 @@
   opacity: 1;
 }
 .p1-end-label.is-all {
-  fill: var(--p1-ink);
+  fill: var(--mk-all, var(--p1-ink));
 }
 .p1-end-label.is-ten {
-  fill: var(--pe-gray-600);
+  fill: var(--mk-ten, var(--pe-gray-600));
   opacity: 0;
   visibility: hidden;
   transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
@@ -580,16 +586,249 @@
   }
 }
 
-/* hero */
-.story-hero-art .hero-key {
-  margin-top: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 6px 18px;
+/* hero (Hero.jsx): question, the big figure, then the four-scenario
+   chart, complete at rest; the lines draw in once on load */
+.story-hero.hf {
+  align-items: start;
+}
+.story-hero.hf .story-hero-text h2.hero-q {
+  margin: 0 0 18px;
+  font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--pe-gray-900);
+}
+.hf-figure {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+  margin: 0 0 6px;
+}
+.hf-figure-value {
+  font-size: clamp(2.75rem, 5.5vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.hf-figure-value.is-gain {
+  color: var(--c-gain-text);
+}
+.hf-figure-value.is-loss {
+  color: var(--c-loss-text);
+}
+.hf-figure-value:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+.story-hero-text p.hf-figure-label {
+  max-width: 24ch;
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.hf-figure-meta {
+  display: block;
+  margin-top: 2px;
   font-size: var(--fs-small);
+  font-weight: 400;
   color: var(--pe-gray-600);
 }
-.story-hero-art .hero-key + .story-source {
-  margin-top: 6px;
+.hf-art {
+  margin: 0;
+}
+.hf-svg {
+  overflow: visible;
+}
+.hf-svg text {
+  font-size: var(--hf-fs);
+}
+.hf-axis-title {
+  font-weight: 600;
+  fill: var(--c-axis-title);
+}
+.hf-tick {
+  fill: var(--c-tick);
+  font-variant-numeric: tabular-nums;
+}
+.hf-grid {
+  stroke: var(--c-grid);
+}
+.hf-zero {
+  stroke: var(--c-zero-line);
+  stroke-width: 1.25;
+}
+.hf-zero-label {
+  fill: var(--pe-gray-600);
+}
+.hf-ann line {
+  stroke: var(--pe-gray-400);
+  stroke-dasharray: 3 4;
+}
+.hf-ann text {
+  fill: var(--pe-gray-600);
+}
+.hf-band {
+  fill: var(--series-2);
+  opacity: 0.1;
+}
+.hf-band-label {
+  fill: var(--series-2);
+  font-style: italic;
+}
+.hf-line {
+  fill: none;
+  stroke: var(--series-2);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  opacity: 0.75;
+}
+.hf-line.is-us,
+.hf-dot.is-us {
+  stroke: var(--pe-gray-700);
+}
+.hf-line.is-us {
+  stroke-dasharray: 6 4;
+}
+.hf-line.is-on {
+  stroke-width: 3.25;
+  opacity: 1;
+}
+.hf-dot {
+  fill: var(--page-bg, #fff);
+  stroke: var(--series-2);
+  stroke-width: 2;
+}
+.hf-dot.is-on {
+  fill: var(--series-2);
+}
+.hf-dot.is-us.is-on {
+  fill: var(--pe-gray-700);
+}
+.hf-end-name {
+  font-weight: 600;
+  fill: var(--series-2);
+}
+.hf-end.is-us .hf-end-name {
+  fill: var(--pe-gray-700);
+}
+.hf-end-value {
+  fill: var(--pe-gray-700);
+  font-variant-numeric: tabular-nums;
+}
+.hf-end.is-on .hf-end-name,
+.hf-end.is-on .hf-end-value {
+  font-weight: 700;
+}
+/* one drawing per width: end labels on desktop, a legend row at 900px and below */
+.hf-svg.is-narrow,
+.hf-legend {
+  display: none;
+}
+.hf-legend {
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.hf-legend-title {
+  color: var(--pe-gray-600);
+}
+.hf-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.hf-chip.is-on {
+  font-weight: 700;
+}
+.hf-swatch {
+  width: 18px;
+  height: 0;
+  border-top: 3px solid var(--series-2);
+}
+.hf-chip.is-us .hf-swatch {
+  border-top: 3px dashed var(--pe-gray-700);
+}
+.hf-chip-value {
+  font-variant-numeric: tabular-nums;
+}
+.hf-art .story-source {
+  margin-top: 8px;
+}
+@media (max-width: 900px) {
+  .story-hero.hf .story-hero-art svg {
+    max-height: none;
+    max-width: 680px;
+    margin-inline: 0;
+  }
+}
+/* phones: the narrow drawing and the legend row */
+@media (max-width: 600px) {
+  .hf-svg.is-wide {
+    display: none;
+  }
+  .hf-svg.is-narrow {
+    display: block;
+  }
+  .hf-legend {
+    display: flex;
+  }
+}
+/* the draw-in, once on load: the plot, axes and labels of the dates are
+   there from the first frame; the lines sweep from the first year to the
+   last, then the band and the end labels arrive */
+@media (prefers-reduced-motion: no-preference) {
+  .hf-reveal {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: hf-sweep 1000ms cubic-bezier(0.33, 0, 0.2, 1) 150ms both;
+  }
+  .hf-band-g {
+    animation: hf-fade 500ms ease-out 700ms both;
+  }
+  .hf-dot,
+  .hf-end {
+    animation: hf-land 420ms ease-out 1000ms both;
+  }
+  .hf-chip {
+    animation: hf-fade 400ms ease-out 900ms both;
+  }
+}
+@keyframes hf-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes hf-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hf-land {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Desktop: the plot box follows the viewport, so a sticky figure fills
@@ -678,7 +917,7 @@
   padding: 8px 9px 7px;
   border: 1px solid var(--pe-gray-200);
   border-radius: 8px;
-  background: var(--pe-white, #fff);
+  background: var(--page-bg, #fff);
   font-size: var(--fs-micro);
   line-height: 1.3;
   color: var(--pe-gray-600);
@@ -778,17 +1017,102 @@
   }
 }
 
-/* The labour and AI cards print no figure since the UK vitals panel holds
-   it; a floor on their height keeps each state on screen for long enough
-   while scrolling (check_states: 180px of scroll a state) */
+/* A step card is one sentence (and a fold), so a floor on its height keeps
+   each state on screen for long enough while scrolling (check_states:
+   180px of scroll a state) */
 @media (min-width: 901px) {
+  #p1-output .scrolly-card,
   #p1-work .scrolly-card,
   #p1-ai .scrolly-card {
-    min-height: 240px;
+    min-height: 330px;
   }
 }
 @media (min-width: 641px) and (max-width: 900px) {
+  #p1-output .scrolly-card,
   #p1-work .scrolly-card {
-    min-height: 200px;
+    min-height: 220px;
   }
+}
+
+/* Step cards (Part1.jsx): one sentence, then the vitals links and the fold */
+.p1-say {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 10px;
+  font-size: var(--fs-body-lg);
+  line-height: 1.55;
+  color: var(--pe-gray-900);
+}
+.p1-say-icon {
+  flex: none;
+  position: relative;
+  top: 2px;
+  color: var(--pe-gray-500);
+}
+.p1-say .hl-fig {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.p1-latest {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.p1-latest .p1-text-icon {
+  flex: none;
+  position: relative;
+  top: 2px;
+}
+.p1-about-group + .p1-about-group {
+  margin-top: 6px;
+}
+.p1-about-label {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--pe-gray-500);
+}
+.p1-about .p1-about-group .story-items {
+  margin-top: 4px;
+}
+/* the exposure step's three groups: a small table, the coloured names as the legend */
+.p1-groups-say {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 10px 24px;
+  padding: 0;
+  list-style: none;
+}
+.p1-groups-say li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  max-width: 340px;
+  font-size: var(--fs-body);
+}
+.p1-groups-say .hl-fig {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* a series brought into the board's panel by a click (or an old link) is
+   never dimmed, whichever marks the step highlights */
+[data-hl] .p1-board-series.is-focus[data-mark] {
+  opacity: 1;
+}
+/* a mark not drawn in this state stays hidden while a step highlights
+   others (the highlight's 25% would otherwise show it) */
+[data-hl] .p1-ai-dot[data-mark]:not(.is-on),
+[data-hl] .p1-ai-area[data-mark]:not(.is-on) {
+  opacity: 0;
 }

@@ -69,9 +69,47 @@ def data_checks():
     return bad
 
 
+SUR = json.load(open(os.path.join(DATA, 'surprise2028.json')))
+SCEN = ('uk_low', 'uk_central', 'uk_high', 'korinek')
+
+
+def signed2(x):
+    """surprise.js fmt: '+0.92%', U+2212 for negatives, 0.00% unsigned."""
+    if abs(x) < 0.005:
+        return '0.00%'
+    return ('+' if x >= 0 else '−') + f"{abs(x):.2f}%"
+
+
+def hero_expected(sid, cl='zk0.1'):
+    """The hero (#story-hero, Hero.jsx, central closure): the chosen
+    scenario's 2031 GDP gap as the big figure (its home is part 2's headline
+    tiles; the owner asked for it here too), and each scenario's 2031 GDP gap
+    on its line's end label (main arm)."""
+    i = SUR['years'].index(SUR['headline_year'])
+    gap = lambda s: SUR['results'][s]['tfp'][cl]['gaps']['Y'][i]
+    return Counter([signed2(gap(sid))] + [signed2(gap(s)) for s in SCEN if SUR['results'][s]['tfp'][cl]['status'] == 'done'])
+
+
+def check_hero(dump):
+    """The hero's figures, when the dump has it ('story:hero')."""
+    bad = 0
+    for sid in dump:
+        t = dump[sid].get('story:hero')
+        if t is None:
+            print('story hero not in the dump (add story:hero to dumptabs.mjs): skipped')
+            return 0
+        got = Counter(re.findall(r"[−+-]?\d+\.\d+%", t))
+        exp = hero_expected(sid)
+        if got != exp:
+            bad += 1; print(sid, 'story hero missing:', dict(exp - got), 'extra:', dict(got - exp))
+        else:
+            print(sid, 'story hero ok:', sum(exp.values()), 'figures')
+    return bad
+
+
 def check(dump):
-    """Return the number of failures for story part 1."""
-    bad = data_checks()
+    """Return the number of failures for story part 1 and the hero."""
+    bad = data_checks() + check_hero(dump)
     exp1 = Counter(f['printed'] for f in CHK['figures'])
     for sid in dump:
         t = dump[sid].get('story:part1')

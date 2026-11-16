@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useEnterState, useInView } from '@/components/story/motion.js';
+import { NumMark } from '@/components/story/highlight.jsx';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_VINTAGE, SERIES } from './data.js';
@@ -19,6 +21,30 @@ import { idx1, pct1, span3 } from './format.js';
 // Text that belongs to one state only (a band label, a direct label) is
 // visibility: hidden in the other states, not just transparent, so the
 // page's text at load holds only what that state shows.
+
+// The marks part 1's step texts point at (highlight.jsx): id -> colour,
+// marker shape and label. A step's highlight names these ids, the figure's
+// marks carry them as data-mark, and <Key id> in the text takes the colour
+// and shape, so the coloured words are the legend. Teal and amber are kept
+// for gains and losses, so none is used here.
+export const P1_MARKS = {
+  'gdp-latest': { color: 'var(--p1-ink)', shape: 'square', label: 'the latest full year' },
+  'gdp-annual': { color: 'var(--pe-gray-500)', shape: 'square', label: 'earlier years' },
+  'obr-forecast': { color: 'var(--p1-ink)', shape: 'circle', label: 'the OBR’s forecast' },
+  'q-now': { color: 'var(--p1-ink)', shape: 'square', label: 'this year’s quarters' },
+  'q-past': { color: 'var(--pe-gray-400)', shape: 'square', label: 'earlier quarters' },
+  employment: { color: 'var(--series-2)', shape: 'circle', label: 'Employment' },
+  unemployment: { color: 'var(--c-labour)', shape: 'square', label: 'Unemployment' },
+  pay: { color: 'var(--c-capital)', shape: 'triangle', label: 'Pay growth' },
+  productivity: { color: 'var(--rank-1)', shape: 'diamond', label: 'Output per hour' },
+  share: { color: 'var(--series-5)', shape: 'line', label: 'Employee share' },
+  'ai-all': { color: 'var(--series-2)', shape: 'circle', label: 'All businesses' },
+  'ai-ten': { color: 'var(--c-labour)', shape: 'square', label: '10 or more employees' },
+  workers_high_exposure_high_complementarity: { color: 'var(--rank-1)', shape: 'square', label: 'High exposure, high complementarity' },
+  workers_high_exposure_low_complementarity: { color: 'var(--rank-2)', shape: 'square', label: 'High exposure, low complementarity' },
+  workers_low_exposure: { color: 'var(--rank-3)', shape: 'square', label: 'Low exposure' },
+};
+const mk = (id) => ({ '--mk': P1_MARKS[id].color });
 
 const qYear = (q) => Number(q.slice(0, 4));
 const qNum = (q) => Number(q.slice(-1));
@@ -39,6 +65,10 @@ export const barPath = (x, w, y0, y1) => chartBar({ pos: x, size: w, from: y0, t
 
 const OUT_H = 218;
 const OUT_M = { l: 34, r: 8, t: 22, b: 24 };
+
+// The forecast years the card names, as indices into the OBR's series:
+// the first two and the last.
+export const OBR_NAMED = [0, 1, OBR.y.length - 1];
 
 export function OutputCanvas({ state }) {
   const [ref, seen] = useInView();
@@ -180,10 +210,11 @@ export function OutputCanvas({ state }) {
                     key={x}
                     d={barPath(XA(x) - bwA / 2, bwA, YA(0), YA(g.y[i]))}
                     className={`p1-bar p1-bar-a${g.y[i] < 0 ? ' is-neg' : ''}${seen ? ' is-on' : ''}`}
+                    data-mark={i === g.x.length - 1 ? 'gdp-latest' : 'gdp-annual'}
                     style={{ transitionDelay: seen ? `${Math.min(i * 20, 400)}ms` : '0ms' }}
                   />
                 ))}
-                <path d={linePath(XA, YA, OBR.x, OBR.y)} className="p1-forecast p1-only-fc" />
+                <path d={linePath(XA, YA, OBR.x, OBR.y)} className="p1-forecast p1-only-fc" data-mark="obr-forecast" />
               </g>
             </g>
           </g>
@@ -196,8 +227,15 @@ export function OutputCanvas({ state }) {
                 cy={YA(OBR.y[i])}
                 r={3.5}
                 className="p1-forecast-dot p1-only-fc p1-zoom"
+                data-mark="obr-forecast"
                 style={{ transform: `translateX(${(zoomed ? zoomX(XA(x)) : XA(x)).toFixed(2)}px)` }}
               />
+            ))}
+          </g>
+          {/* numbered markers on the three forecast years the card names */}
+          <g className="p1-only-fc">
+            {OBR_NAMED.map((oi, n) => (
+              <NumMark key={oi} n={n + 1} x={XA(OBR.x[oi])} y={YA(OBR.y[oi]) - 15} r={8} mark="obr-forecast" />
             ))}
           </g>
           {/* band labels, above the plot */}
@@ -221,6 +259,7 @@ export function OutputCanvas({ state }) {
                   key={qq}
                   d={barPath(x, bwQ, YQ(0), YQ(q.y[i]))}
                   className={`p1-bar p1-bar-q${yr === z1 ? ' is-now' : ''}${q.y[i] < 0 ? ' is-neg' : ''}${zoomed ? ' is-on' : ''}`}
+                  data-mark={yr === z1 ? 'q-now' : 'q-past'}
                   style={{ transitionDelay: zoomed ? `${900 + Math.min(i * 20, 400)}ms` : '0ms' }}
                 />
               );
@@ -283,6 +322,7 @@ export const boardSeries = () => {
   return [
     {
       key: 'employment_rate',
+      mark: 'employment',
       tipUnit: '% of people aged 16 to 64, three-month average',
       s: e,
       icon: 'labour',
@@ -295,6 +335,7 @@ export const boardSeries = () => {
     },
     {
       key: 'unemployment_rate',
+      mark: 'unemployment',
       tipUnit: '% of economically active people, three-month average',
       s: u,
       zero: true,
@@ -308,6 +349,7 @@ export const boardSeries = () => {
     },
     {
       key: 'pay_growth',
+      mark: 'pay',
       tipUnit: '% on a year earlier, three-month average',
       s: p,
       zero: true,
@@ -322,6 +364,7 @@ export const boardSeries = () => {
     },
     {
       key: 'productivity_oph',
+      mark: 'productivity',
       tipUnit: 'Index, 2023 = 100',
       s: o,
       icon: 'productivity',
@@ -334,6 +377,7 @@ export const boardSeries = () => {
     },
     {
       key: 'labour_share',
+      mark: 'share',
       tipUnit: '% of GDP',
       s,
       icon: 'labourShare',
@@ -373,6 +417,23 @@ const periodLabel = (x) => {
 const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs.join(''));
 
 export function LabourBoard({ focus, onPick }) {
+  // a click on a sparkline brings that series into the panel until the
+  // step changes (each card sets a focus; five series, three cards); a
+  // link to an old id for a series no card focuses (#p1-share) sends a
+  // 'p1-board-pick' event with the series' index (Part1.jsx). A change of
+  // step clears the pick, so it never comes back on scrolling back.
+  const [pick, setPick] = useState(null);
+  const [seenFocus, setSeenFocus] = useState(focus);
+  if (seenFocus !== focus) {
+    setSeenFocus(focus);
+    setPick(null);
+  }
+  const picked = pick;
+  useEffect(() => {
+    const on = (e) => setPick(e.detail);
+    window.addEventListener('p1-board-pick', on);
+    return () => window.removeEventListener('p1-board-pick', on);
+  }, []);
   const [ref, seen] = useInView();
   const [box, w, hBox] = useBox(BOARD_H + (FALLBACK_COLS < 4 ? 44 : 0));
   const gid = useSvgId('p1-pay-fade');
@@ -389,7 +450,7 @@ export function LabourBoard({ focus, onPick }) {
   const dy = boardH - BOARD_H - (4 / cols - 1) * rowH; // extra height above the strip
   const B = PANEL_B + dy;
   const cellW = (R - L - (cols - 1) * CELL_GAP) / cols;
-  const f = Math.max(0, Math.min(focus, all.length - 1));
+  const f = Math.max(0, Math.min(picked ?? focus, all.length - 1));
   const others = all.filter((_, i) => i !== f);
   const slotOf = (i) => {
     if (i === f) return { x: L, y: T, w: R - L, h: B - T };
@@ -450,12 +511,12 @@ export function LabourBoard({ focus, onPick }) {
             const ex = sl.x + (u.end[0] * sl.w) / N;
             const ey = sl.y + (u.end[1] * sl.h) / N;
             return (
-              <g key={b.key} className={`p1-board-series${on ? ' is-focus' : ''}`}>
+              <g key={b.key} className={`p1-board-series${on ? ' is-focus' : ''}`} data-mark={b.mark} style={mk(b.mark)}>
                 {u.area ? (
                   <defs>
                     <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={u.top} y2={u.zeroV}>
-                      <stop offset="0" stopColor="var(--pe-gray-800)" stopOpacity="0.18" />
-                      <stop offset="1" stopColor="var(--pe-gray-800)" stopOpacity="0" />
+                      <stop offset="0" stopColor={P1_MARKS.pay.color} stopOpacity="0.18" />
+                      <stop offset="1" stopColor={P1_MARKS.pay.color} stopOpacity="0" />
                     </linearGradient>
                   </defs>
                 ) : null}
@@ -472,7 +533,7 @@ export function LabourBoard({ focus, onPick }) {
           })}
         </g>
         </Crosshair>
-        {onPick ? (
+        {onPick !== false ? (
           <div className="p1-spark-hits">
             {others.map((o) => {
               const i = all.indexOf(o);
@@ -484,7 +545,10 @@ export function LabourBoard({ focus, onPick }) {
                   className="p1-spark-hit"
                   style={{ left: `${(sl.x / w) * 100}%`, width: `${(sl.w / w) * 100}%`, top: sl.nameY - 14, height: SPARK.h + SPARK.y - STRIP_NAME_Y + 18 }}
                   aria-label={`Show ${o.name.toLowerCase()} on the large chart`}
-                  onClick={() => onPick(i)}
+                  onClick={() => {
+                    setPick(i);
+                    onPick?.(i);
+                  }}
                 />
               );
             })}
@@ -554,11 +618,11 @@ export function AiUseChart({ state }) {
           ]}
           label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
         >
-        <g className={`p1-ai-svg${two ? ' is-two' : ''}`}>
+        <g className={`p1-ai-svg${two ? ' is-two' : ''}`} style={{ '--mk-all': P1_MARKS['ai-all'].color, '--mk-ten': P1_MARKS['ai-ten'].color }}>
           <defs>
             <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={Y(Math.max(...a.y))} y2={Y(0)}>
-              <stop offset="0" stopColor="var(--pe-gray-800)" stopOpacity="0.18" />
-              <stop offset="1" stopColor="var(--pe-gray-800)" stopOpacity="0" />
+              <stop offset="0" stopColor={P1_MARKS["ai-all"].color} stopOpacity="0.18" />
+              <stop offset="1" stopColor={P1_MARKS["ai-all"].color} stopOpacity="0" />
             </linearGradient>
           </defs>
           <YGrid ticks={D.ticks} Y={Y} x0={L} x1={R} />
@@ -572,19 +636,19 @@ export function AiUseChart({ state }) {
           <text x={(L + R) / 2} y={aiH - 6} textAnchor="middle" className="p1-axis-title" data-axis-title="x">
             Survey wave, dated at its midpoint
           </text>
-          <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} />
-          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen && two ? ' is-on' : ''}`} />
-          <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} />
+          <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} data-mark="ai-all" />
+          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen && two ? ' is-on' : ''}`} data-mark="ai-ten" />
+          <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
           {idx.map((i) => (
             <g key={i}>
-              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen && two ? ' is-on' : ''}`} />
-              <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} />
+              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen && two ? ' is-on' : ''}`} data-mark="ai-ten" />
+              <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
             </g>
           ))}
-          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${two ? ' is-on' : ''}`}>
+          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${two ? ' is-on' : ''}`} data-mark="ai-ten">
             10 or more employees
           </text>
-          <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on">
+          <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on" data-mark="ai-all">
             All businesses
           </text>
         </g>
@@ -598,8 +662,8 @@ export function AiUseChart({ state }) {
 // exposure groups DSIT reports. Same keys in both states, so the tiles
 // travel. state 0: one block in grey; 1: three groups on the rank ramp,
 // staggered by destination group then row (at most about 450ms), each
-// tile's colour changing in the last third of its travel. The group names
-// fade in as the last tile lands.
+// tile's colour changing in the last third of its travel. The step text's
+// coloured group names (<Key>) are the legend.
 const GRID_W = 17;
 const GRID_H = 10;
 
@@ -630,14 +694,6 @@ export function ExposureTiles({ state, source, entered = true }) {
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
       </div>
-      <ol className={`p1-groups${grouped ? ' is-on' : ''}`} aria-hidden={grouped ? undefined : true}>
-        {EXPOSURE_GROUPS.map((g) => (
-          <li key={g.id}>
-            <span className="p1-swatch is-block" style={{ '--sw': g.color }} aria-hidden="true" />
-            {g.name}
-          </li>
-        ))}
-      </ol>
       <figcaption>{source}</figcaption>
     </figure>
   );
