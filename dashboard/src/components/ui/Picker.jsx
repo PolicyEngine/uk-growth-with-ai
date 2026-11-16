@@ -152,8 +152,11 @@ export function SegPicker({ icon, label, value, options, onChange }) {
       setInd(el ? { x: el.offsetLeft, w: el.offsetWidth } : null);
     };
     place();
+    // re-measure once the web font is in (labels change width)
+    document.fonts?.ready.then(place);
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place);
     if (row.current) ro?.observe(row.current);
+    Object.values(refs.current).forEach((el) => el && ro?.observe(el));
     return () => ro?.disconnect();
   }, [value, options]);
   const enabled = options.filter((o) => !o.disabled);
