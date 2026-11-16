@@ -8,6 +8,7 @@ import { Replay } from '@/components/story/chart/index.js';
 import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
 import { FileLink, PR_URL as STUDY_PR_URL } from './sources.jsx';
+import { Fig as FigChip } from '@/components/story/highlight.jsx';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
 // the source line, the chips and the bar rows. Figure text is HTML; bars are
@@ -64,7 +65,8 @@ export function Source({ children, files = [] }) {
   return (
     <p className="story-source p3-iconed">
       <Ico c="source" size={12} />
-      Source: PolicyEngine-UK microsimulation{PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
+      Source: PolicyEngine-UK microsimulation
+      {PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
       {children ? <>; {children}</> : null}:{' '}
       {fs.map((f) => (
         <span key={f}>
@@ -215,8 +217,19 @@ export function useBeat(entered = true) {
     const t = setTimeout(() => setReset(false), 60);
     return () => clearTimeout(t);
   }, [reset, run]);
+  // `settled`: the entry beats have played (about 2.8s after `on`), so the
+  // step's highlight may dim the other marks; until then every mark plays
+  // at full strength (CSS: .p3-scene:not(.is-settled)).
+  const on = reduce || (armed && !reset);
+  const [settledRun, setSettledRun] = useState(-1);
+  useEffect(() => {
+    if (!on || reduce) return undefined;
+    const t = setTimeout(() => setSettledRun(run), 2800);
+    return () => clearTimeout(t);
+  }, [on, reduce, run]);
   return {
-    on: reduce || (armed && !reset),
+    on,
+    settled: reduce || (on && settledRun === run),
     reduce,
     reset,
     run,
@@ -237,19 +250,122 @@ export function useSeenBeat() {
 export { Replay };
 
 // A scene's class list: entry state, and the no-transition reset.
-export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
+export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.settled ? ' is-settled' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
 
-// A scene sub-header over a group of blocks (part 3 reads as three scenes:
-// the cost, who it falls on, what moves it). The rail reads [data-scene].
-// Used for the blocks that are not Scrolly blocks (step 8), with the same
-// markup as Scrolly's `sub` header; `question` is kept for the opener.
-export function SceneHead({ title, icon, question, id }) {
+// A scene sub-header for a block that is not a Scrolly block (step 8): the
+// same markup as Scrolly's topic header, the question static (no opener),
+// and its answer chip always shown, under it (brief A: under reduced motion
+// and outside Scrolly the question is a static header with its answer).
+export function SceneHead({ title, icon, question, answer, id, qid }) {
   return (
-    <header className="scene-head p3-scene-head" data-scene={title} data-question={question}>
-      <Ico c={icon} size={16} />
-      <h3 className="scene-head-title" id={id}>
-        {title}
-      </h3>
+    <header className={`scene-head p3-scene-head${question ? ' has-q' : ''}${answer ? ' has-a' : ''}`} data-scene={title} id={qid}>
+      <span className="scene-head-row">
+        <Ico c={icon} size={16} />
+        <h3 className="scene-head-title" id={id}>
+          {title}
+        </h3>
+        {question ? (
+          <p className="scene-head-q">
+            <Ico c="question" size={14} />
+            <span>{question}</span>
+          </p>
+        ) : null}
+        <span className="scene-head-rule" aria-hidden="true" />
+      </span>
+      {answer ? (
+        <p className="scene-head-a is-shown">
+          <Ico c="answer" size={14} />
+          <span className="scene-head-a-label">Answer</span>
+          <span className="scene-head-a-text">{answer}</span>
+        </p>
+      ) : null}
     </header>
   );
 }
+
+// ---------------------------------------------------------------------------
+// One step, one sentence, one highlight (Vahid, 16 Nov: "someone cannot
+// trace the text between the plots"). Each scene has at most three steps;
+// each step is one sentence of about 15 words and declares `highlight`, the
+// ids of the marks it is about. The figure's marks carry data-mark="<id>";
+// Scrolly (S2's highlight.jsx) dims the rest while the step is active.
+// Words in the text are S2's <Key id> (series colour and marker, from each
+// scene's MarkProvider registry), numbers <Fig path mark>, markers <Num n>.
+export { Fig, Key, MarkProvider, Num } from '@/components/story/highlight.jsx';
+
+// A numbered marker on an HTML chart (the text's <Num n> twin): inside the
+// marked row, so it dims and lights with it. Scale, not data (data-axis).
+export function NumMarker({ n, className = '' }) {
+  return (
+    <span className={`hl-num p3-nm ${className}`.trim()} data-axis="" aria-hidden="true">
+      {n}
+    </span>
+  );
+}
+
+// A quoted input as a number chip: not a result (data-input), so the number
+// check skips it.
+export function InputFig({ path, mark, children }) {
+  return (
+    <span data-input="">
+      <FigChip path={path} mark={mark}>
+        {children}
+      </FigChip>
+    </span>
+  );
+}
+// The step-card template, folded: an "About these figures" fold, its text
+// grouped under small icon sub-labels ("Assumed", "Finding", "Caveat",
+// "Definitions", "See also"), never a flat mixed list; each group a short
+// sentence or two. `groups`: [{ label, icon, items }]. Prose only (see About).
+export const GROUP_ICON = { Assumed: 'scenario', Finding: 'takeaway', Caveat: 'caveat', 'See also': 'link', Definitions: 'measure' };
+export function Fold({ groups }) {
+  const gs = groups.filter((g) => g && g.items.filter(Boolean).length);
+  return (
+    <details className="p3-about">
+      <summary>
+        <Ico c="caveat" size={12} /> About these figures
+      </summary>
+      {gs.map((g) => (
+        <section key={g.label} className="p3-fold-group">
+          {g.items.filter(Boolean).map((t, i) => (
+            <p key={i} className="p3-fold-text">
+              <Ico c={g.icon ?? GROUP_ICON[g.label] ?? 'caveat'} size={12} /> {i === 0 ? <strong className="p3-fold-label">{g.label}:</strong> : null} {t}
+            </p>
+          ))}
+        </section>
+      ))}
+    </details>
+  );
+}
+
+// The one "draws" chip a figure carries: "50 draws", "20 paired draws".
+export function DrawsChip({ children }) {
+  return (
+    <span className="p3-basis p3-draws">
+      <Ico c="draws" size={12} /> {children}
+    </span>
+  );
+}
+
+// A mark's props: data-mark (S2's highlight dims the marks a step does not name).
+export const markProps = (id, className = '') => ({
+  'data-mark': id,
+  className,
+});
+
+// A step's one sentence as the card's line: a paragraph led by the step's
+// icon (the text rule: every block leads with an icon, at most 25 words),
+// then the step's body (the fold), if any.
+export const asLines = (steps) =>
+  steps.map(({ title, body, ...s }) => ({
+    ...s,
+    body: (
+      <>
+        <p className="p3-step-line">
+          <Ico c={s.icon} size={16} /> <span>{title}</span>
+        </p>
+        {body ?? null}
+      </>
+    ),
+  }));

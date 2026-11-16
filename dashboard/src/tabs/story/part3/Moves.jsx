@@ -4,10 +4,9 @@ import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPctSigned0, fmtPctSigned1, fmtPp } from './format.js';
-import { About, AxisTitle, D, FigureHead, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat } from './shared.jsx';
+import { AxisTitle, D, DrawsChip, FigureHead, Fold, Num, NumMarker, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
 // Step 7, what moves the cost (results.tex, "What moves the central cost"),
@@ -19,7 +18,7 @@ import { Ref } from './sources.jsx';
 
 const BE = D.breakeven;
 const TK = [
-  { id: 'central_20', icon: 'jobLoss', label: 'Central case, these draws: ', base: true },
+  { id: 'central_20', icon: 'jobLoss', label: 'Central case, these draws', base: true },
   { id: 'takeup', icon: 'takeUp', label: 'Everyone with a displaced worker claims UC' },
   { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA, as on ', ref: 'jsa' },
 ];
@@ -47,7 +46,7 @@ export const BREAKS = [
     icon: 'pay',
     label: 'Wage rise for those still employed',
     central: BE.wage.central_pct,
-    centralText: <a href="#p3-central-step">Central, step 1</a>,
+    centralText: 'Central',
     value: BE.wage.value_pct,
     valueText: fmtPctSigned1(BE.wage.value_pct),
     basis: BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`,
@@ -57,7 +56,7 @@ export const BREAKS = [
     icon: 'capital',
     label: 'Rise in interest and dividend income',
     central: BE.capital.central_pct,
-    centralText: <a href="#p3-central-step">Central, step 1</a>,
+    centralText: 'Central',
     value: BE.capital.value_pct,
     valueText: fmtPctSigned0(BE.capital.value_pct),
     basis: `${BE.capital.draws} draws`,
@@ -104,9 +103,9 @@ function Tracks({ dim, pos }) {
         const xc = (b.central / max) * 100;
         const xb = (b.value / max) * 100;
         return (
-          <li key={b.id} className={`p3-be-track-row is-${pos}`} data-row={`be-${b.id}`} style={{ '--beat': `${i * 250}ms` }}>
+          <li key={b.id} className={`p3-be-track-row is-${pos}`} data-row={`be-${b.id}`} data-mark={`breakeven be-${b.id}`} style={{ '--beat': `${i * 250}ms` }}>
             <p className="p3-row-label">
-              <Ico c={b.icon} /> {b.label} <span className="p3-basis">{b.basis}</span>
+              <NumMarker n={i + 1} /> <Ico c={b.icon} /> {b.label}
             </p>
             <span className="p3-be-track" aria-hidden="true">
               <span className="p3-be-tick" style={{ left: `${xc}%` }} />
@@ -148,11 +147,10 @@ function Ladder({ dim, on }) {
   return (
     <ol className={`p3-ladder${dim}${on ? ' is-on' : ''}`}>
       {rows.map((r, i) => (
-        <li key={r.id} className="p3-ladder-row" data-row={r.id} style={{ '--beat': `${i * 450}ms` }}>
+        <li key={r.id} className="p3-ladder-row" data-row={r.id} data-mark={`takeup rung-${r.id}`} style={{ '--beat': `${i * 450}ms` }}>
           <span className="p3-row-label">
-            <Ico c={r.icon} /> {r.label}
+            {i ? <NumMarker n={i + 3} /> : null} <Ico c={r.icon} /> {r.label}
             {r.ref ? <Ref id={r.ref} /> : null}
-            {r.base ? <a href="#p3-margin-step">step 6</a> : null}
           </span>
           <span className="p3-ladder-track">
             {i > 0 ? (
@@ -188,7 +186,14 @@ function MovesFigure({ active, all = false, ctx }) {
         icon="breakEven"
         title="What moves the central cost"
         y="Each assumption’s setting, from zero"
-        unit="Break-even: zero cost, the other two at central settings; interpolated between runs"
+        unit={
+          <>
+            Break-even: zero cost, the other two at central settings; interpolated between runs{' '}
+            <DrawsChip>
+              {BE.capital.draws} paired draws{BE.wage.draws === 1 ? '; wage row one draw' : ''}
+            </DrawsChip>
+          </>
+        }
         replay={() => {
           setChosen(null);
           e.replay();
@@ -203,7 +208,7 @@ function MovesFigure({ active, all = false, ctx }) {
         </section>
         <section className={`p3-state${show(1) ? '' : ' is-off'}`} data-state="takeup">
           <p className="p3-group-head p3-group-first">
-            <Ico c="takeUp" /> Take-up and JSA, the same 20 draws as step 6
+            <Ico c="takeUp" /> Take-up and JSA
           </p>
           <OutsideRebuildFlag />
           <div className="p3-cols p3-cols-ladder">
@@ -226,68 +231,82 @@ export function movesSub() {
     title: 'What moves the cost',
     icon: 'breakEven',
     question: 'Which assumptions move the cost most?',
+    hint: 'Watch each marker travel to break-even',
+    key: 'assumptions',
+    answer: `Break-even: wages ${fmtPctSigned1(BE.wage.value_pct)}, capital income ${fmtPctSigned0(BE.capital.value_pct)}`,
+    answerTo: 'p3-moves-step',
     takeaway: `The cost’s sign turns on the assumed wage and capital-income rises and time out of work; fuller benefit take-up ${t.cost.word === 'rises' ? 'adds to it' : t.cost.word === 'falls' ? 'lowers it' : 'leaves it unchanged'}`,
   };
 }
 
+// The direction words of the break-evens against their central settings.
+const more = (b) => (b.value > b.central ? 'larger' : 'smaller');
+const [BW, BC, BD] = BREAKS;
+const spell = BD.value < BD.central ? 'shorter' : 'longer';
+const T = takeupDirections();
+const povWord = T.poverty.word === 'falls' ? 'shrink the poverty rise' : T.poverty.word === 'rises' ? 'add to the poverty rise' : 'leave the poverty rise';
+export const MOVES_STEPS = [
+  {
+    id: 'p3-moves-step',
+    kicker: 'Step 7 · What moves the cost',
+    icon: 'breakEven',
+    highlight: ['breakeven'],
+    title: (
+      <>
+        A {more(BW)} wage <Num n={1} mark="be-wage" /> or {more(BC) === more(BW) ? '' : `${more(BC)} `}capital-income <Num n={2} mark="be-capital" /> rise, or {spell} spells <Num n={3} mark="be-duration" />, erase the cost
+      </>
+    ),
+    body: (
+      <Fold
+        groups={[
+          {
+            label: 'Assumed',
+            items: [
+              <>
+                The wage and capital-income rises are <Ref id="doorley">Doorley et al. (2026)</Ref>’s; their central settings are in <a href="#p3-central-step">step 1</a>
+              </>,
+            ],
+          },
+          {
+            label: 'Caveat',
+            items: ['Time out of work comes from a run keeping half a year’s earnings', 'That run also withdraws UC a real six-month spell would pay, so the break-even is likely shorter than shown'],
+          },
+        ]}
+      />
+    ),
+  },
+  {
+    id: 'p3-takeup-step',
+    icon: 'takeUp',
+    highlight: ['takeup'],
+    title: (
+      <>
+        Full UC take-up <Num n={4} mark="rung-takeup" /> and new-style JSA <Num n={5} mark="rung-takeup_jsa" /> {T.cost.word === 'rises' ? 'raise the cost' : T.cost.word === 'falls' ? 'lower the cost' : 'leave the cost'}{' '}
+        and {povWord}
+      </>
+    ),
+    body: (
+      <Fold
+        groups={[
+          { label: 'Definitions', items: ['Everyone with a displaced worker claims UC; qualifiers also get 26 weeks of new-style JSA'] },
+          { label: 'Caveat', items: ['In the study’s data, not everyone newly entitled to UC claims'] },
+          {
+            label: 'See also',
+            items: [
+              <NavLink key="v" tab="explore" sub="households" anchor="hh-ladder">
+                Every variant, including the OBR-sized runs
+              </NavLink>,
+            ],
+          },
+        ]}
+      />
+    ),
+  },
+];
+
 export default function Moves() {
-  const t = takeupDirections();
-  const steps = [
-    {
-      id: 'p3-moves-step',
-      title: 'Three assumptions decide its sign',
-      icon: 'breakEven',
-      body: (
-        <>
-          <Items
-            items={[
-              { icon: 'breakEven', text: 'Three assumptions break even within reach of their central settings:' },
-              { icon: 'pay', text: <>The wage rise for those still employed (<Ref id="doorley">Doorley et al., 2026</Ref>)</> },
-              { icon: 'capital', text: <>The rise in interest and dividend income (Doorley et al.)</> },
-              { icon: 'timing', text: 'How long people are out of work' },
-            ]}
-          />
-          <About>
-            <Items
-              items={[
-                { icon: 'timing', text: 'Time out of work: from a run keeping half a year’s earnings' },
-                { icon: 'benefits', text: 'That also withdraws Universal Credit a real six-month spell would pay' },
-                { icon: 'caveat', text: 'So the break-even is likely shorter than shown' },
-              ]}
-            />
-          </About>
-        </>
-      ),
-    },
-    {
-      id: 'p3-takeup-step',
-      pin: 'bottom',
-      title: 'What fuller take-up and JSA do',
-      icon: 'takeUp',
-      body: (
-        <>
-        <Items
-          items={[
-            { icon: 'benefits', text: 'Here everyone with a displaced worker claims; qualifiers get new-style JSA' },
-            { icon: t.cost.icon, text: `The cost ${t.cost.word}` },
-            { icon: t.poverty.icon, text: `The poverty rise ${t.poverty.word === 'falls' ? 'is smaller' : t.poverty.word === 'rises' ? 'is larger' : 'is unchanged'}` },
-            {
-              icon: 'link',
-              text: (
-                <NavLink tab="explore" sub="households" anchor="hh-ladder">
-                  Every variant, including the OBR-sized runs
-                </NavLink>
-              ),
-            },
-          ]}
-        />
-        <About>
-          <Items items={[{ icon: 'takeUp', text: 'In the study’s data, not everyone newly entitled to UC claims' }]} />
-        </About>
-        </>
-      ),
-    },
-  ];
   // Phones: it prints values, so it is drawn once, complete, above both cards.
-  return <Scrolly id="p3-moves" sub={movesSub()} steps={steps} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />;
+  return (
+    <Scrolly id="p3-moves" sub={movesSub()} steps={asLines(MOVES_STEPS)} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />
+  );
 }

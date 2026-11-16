@@ -81,13 +81,14 @@ export const CLOSING_SUB = {
   title: 'What the study leaves out',
   icon: 'excluded',
   question: 'What does the study leave out?',
+  answer: `Re-employment, savings, redundancy pay and ${LEFT_OUT.length - 3} more responses`,
   takeaway: 'Responses such as re-employment, redundancy pay and drawing on savings are outside the test',
 };
 
 export default function Closing() {
   return (
     <aside className="p3-close" aria-labelledby="p3-close-h">
-      <SceneHead id="p3-close-h" {...CLOSING_SUB} />
+      <SceneHead id="p3-close-h" qid="q-p3-close" {...CLOSING_SUB} />
       <p className="p3-chip-frame">
         <Ico c="caveat" size={14} /> A one-year stress test, not a forecast
       </p>

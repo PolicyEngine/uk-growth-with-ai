@@ -1910,13 +1910,6 @@ svg.p3-dim {
     margin-bottom: -32px;
   }
 }
-/* 3-7 on desktop: the figure keeps its own height (its two states side by
-   side are short), so it stays in view while each card holds its state */
-@media (min-width: 901px) {
-  #p3-moves .scrolly-graphic-inner {
-    min-height: calc(100vh - var(--story-graphic-top) - 230px);
-  }
-}
 /* the track labels: the left one ends at its tick, the right one starts at
    its tick; the cost word sits on the track's line only */
 .p3-be-point.is-end {
@@ -1999,4 +1992,153 @@ svg.p3-dim {
   #story-part-3 .p3-out-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+}
+
+/* a numbered marker on an HTML chart, beside its row's label (the
+   text's <Num n> twin, S2's .hl-num disc) */
+.p3-nm {
+  vertical-align: 0.1em;
+}
+/* the fold's groups under small icon sub-labels */
+.p3-fold-group + .p3-fold-group {
+  margin-top: 6px;
+}
+.p3-fold-label {
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+/* a step's one sentence: the card's line, at title size */
+.p3-step-line {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--pe-gray-900, inherit);
+}
+.p3-step-line > .p3-ico {
+  flex: none;
+  align-self: center;
+}
+.scrolly-step:not(.is-active) .p3-step-line {
+  color: var(--pe-gray-600);
+}
+.p3-step-line + .p3-about {
+  margin-top: 8px;
+}
+/* step 3's three readings: buttons that light their destination */
+.p3-lines {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p3-line-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-left: 3px solid var(--card-border);
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+.p3-lines li.is-on .p3-line-btn {
+  border-left-color: var(--part-accent, var(--c-highlight));
+  background: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 8%, transparent);
+}
+@media (max-width: 900px) {
+  .p3-lines {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.p3-fold-text {
+  margin: 0 0 2px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.p3-draws {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 0;
+}
+/* Part 3's scenes keep their figures' own height on desktop (the shared
+   400-620px box would leave each state too little scroll to hold): the
+   cards' column, not a tall box, gives each state its 180px. */
+@media (min-width: 901px) {
+  #story-part-3 .scrolly:not(.is-single) .scrolly-graphic-inner {
+    /* tall enough that the figure, centred below the rail, leaves no
+       blank band over 120px above or below it */
+    min-height: calc(100vh - var(--story-graphic-top) - 200px);
+  }
+}
+/* 3-5: the rule dots slide in from zero along their axes */
+.p3-scene .p3-dot {
+  transition:
+    left 700ms var(--story-ease) var(--beat, 0ms),
+    opacity 300ms var(--story-ease),
+    filter 300ms var(--story-ease);
+}
+/* Each state holds 200px of scroll (check_states: 180px) while the figure
+   is in view. The scroll a scene gives its states is H - top - 0.8F plus
+   the cards' column beyond the figure (Scrolly's geometry), so each card
+   gets a floor of (1.8F + 130px + 200px a state + 20px - 100vh) / n, the
+   32px gap out: nothing at tall screens, more at short ones. F: the
+   figure's height at 1280x800, at least its 460px box (central 536, channels 403, deciles 429, rules
+   384 (plus 40px: its rows wrap), margin 416, moves 452). */
+@media (min-width: 901px) {
+  #p3-central .scrolly-card {
+    min-height: calc((1515px - 100vh) / 2 - 32px);
+  }
+  #p3-channels .scrolly-card {
+    min-height: calc((1442px - 100vh) / 2 - 32px);
+  }
+  #p3-deciles .scrolly-card {
+    min-height: calc((1580px - 100vh) / 3 - 32px);
+  }
+  #p3-rules .scrolly-card {
+    min-height: calc((1418px - 100vh) / 2 - 32px);
+  }
+  #p3-margin .scrolly-card {
+    min-height: calc((1418px - 100vh) / 2 - 32px);
+  }
+  #p3-moves .scrolly-card {
+    min-height: calc((1380px - 100vh) / 2 - 32px);
+  }
+}
+
+/* decile 1's rankings: a small table in its step's card */
+.p3-rank-table {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.p3-rank-cap {
+  caption-side: top;
+  text-align: left;
+  font-size: 12px;
+  color: var(--pe-gray-600);
+  padding-bottom: 2px;
+}
+.p3-rank-table th {
+  text-align: left;
+  font-weight: 500;
+  padding: 2px 10px 2px 0;
+}
+.p3-rank-table td {
+  text-align: right;
+  white-space: nowrap;
+}
+/* the entry beats play at full strength; the step's highlight dims the
+   other marks only once they have landed (useBeat's `settled`) */
+#story-part-3 .p3-scene:not(.is-settled) [data-mark]:not([data-on]) {
+  opacity: 1;
 }

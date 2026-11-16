@@ -1,14 +1,14 @@
 'use client';
 
 import Callout from '@/components/story/Callout.jsx';
-import { Items, Recap } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import NextPart from '@/components/story/NextPart.jsx';
 import PartHead from './PartHead.jsx';
-import Central from './part3/Central.jsx';
+import Central, { CENTRAL_SUB } from './part3/Central.jsx';
 import Channels from './part3/Channels.jsx';
 import Absorb from './part3/Absorb.jsx';
 import Deciles from './part3/Deciles.jsx';
-import Rules from './part3/Rules.jsx';
+import Rules, { rulesClaims } from './part3/Rules.jsx';
 import Margin from './part3/Margin.jsx';
 import Moves from './part3/Moves.jsx';
 import Closing, { CloseLinks } from './part3/Closing.jsx';
@@ -28,13 +28,24 @@ import { D, Ico, MODEL_YEAR, NO_CLEAN_RERUN, PROVISIONAL } from './part3/shared.
 // "Next" band hands over to the close (TwoLenses) and carries the links on. The headline findings are printed here once each; the
 // detail is on Explore > Households. Formats: part3/format.js.
 
-// What you just learned (the part's recap, S's Recap):
-// three items, each linking to its home, with no figures.
+// What you just learned: three of the part's
+// questions, each with a worded answer (no figures: each figure has its home
+// in its scene) and a link back to the question's header (q-<scene>). The
+// words follow the signs of the results. Data only: the close's pinned
+// question screen shows it as the transition (Fable), so part 3 draws no
+// end recap of its own.
+const H = D.headline;
+const RULES = rulesClaims();
 export const P3_RECAP = [
-  { icon: 'cost', text: 'The public finances’ cost is the difference between larger flows', to: 'p3-channels' },
-  { icon: 'deciles', text: 'Where the loss falls depends on who loses the job, and how', to: 'p3-rules' },
-  { icon: 'breakEven', text: 'A few assumptions, sourced from other studies, decide the cost’s sign', to: 'p3-moves' },
-];
+  {
+    icon: 'cost',
+    q: CENTRAL_SUB.question,
+    a: `${H.central_cost.value > 0 ? 'A net cost' : 'Net receipts'}; poverty, inequality ${H.central_poverty.value > 0 && H.central_gini.value > 0 ? 'rise' : 'move'}`,
+    to: 'q-p3-central',
+  },
+  { icon: 'scenario', q: 'Does who loses the job matter?', a: RULES.costFar ? 'For cost; far less for poverty' : 'For cost and for poverty', to: 'q-p3-rules' },
+  { icon: 'breakEven', q: 'What moves the cost most?', a: 'Wage and capital-income rises; spell length', to: 'q-p3-moves' },
+].map((it) => ({ ...it, text: it.a }));
 
 export default function Part3({ part }) {
   return (
@@ -62,7 +73,6 @@ export default function Part3({ part }) {
       <Margin />
       <Moves />
       <Closing />
-      <Recap items={P3_RECAP} />
       <NextPart title="Two lenses" to="story-close" links={<CloseLinks />} />
     </>
   );

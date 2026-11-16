@@ -8,6 +8,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { REFS } from './part3/sources.jsx';
+import { decileShape } from './part3/Deciles.jsx';
 
 // The close of the story: the two models side by side, each with a header
 // icon and one line on what it is, then what it can say (3-4 items) and
@@ -55,21 +56,35 @@ const LENSES = [
   },
 ];
 
-// The close's opener (rendered by builder S's standalone opener when it lands).
+// The close's question, a static header with its answer (it is not a
+// Scrolly block, so there is no opener; brief A).
 export const CLOSE_SUB = {
   title: 'Two lenses',
   icon: 'compare',
   question: 'What can each model say?',
-  takeaway: 'OG-UK speaks to the whole economy over decades; uk-ai-study to households in one year',
+  // the close takes the full pinned question screen (Fable), with part 3's
+  // recap (P3_RECAP) as its transition once S2's TopicHead renders it
+  pin: 'full',
+  answer: 'OG-UK: the whole economy over decades; uk-ai-study: households in one year',
+  takeaway: 'Different models, years and assumptions: their numbers are not added or compared',
 };
 
-// The whole story's recap, one item per part, each linking to its home; no
-// figures.
+// The whole story's recap, one question per part with a worded answer (no
+// figures), each linking back to its question's header.
+const SH = decileShape();
+// Each chip's question and answer together are 12 words at most (the text
+// rule); the part 1 and part 2 answers paraphrase those parts' takeaways
+// (Part1.jsx OUTPUT_TAKEAWAY; Part2.jsx RECAP, first item).
 export const STORY_RECAP = [
-  { icon: 'gdp', text: 'Official statistics: how the UK has grown, and where AI arrives', to: 'p1-output' },
-  { icon: 'model', text: 'OG-UK: what AI could mean for output, pay and public finances', to: 'p2-output' },
-  { icon: 'households', text: 'uk-ai-study: who loses income if jobs are assumed lost', to: 'p3-central' },
-];
+  { icon: 'gdp', q: 'How has the UK grown?', a: 'Since the rebound, below most 2010s rates', to: 'q-p1-output' },
+  { icon: 'model', q: 'What could AI do to GDP?', a: 'Above the OBR-central path, every scenario', to: 'story-headline' },
+  {
+    icon: 'households',
+    q: 'Who loses most income?',
+    a: `uk-ai-study: ${SH.upperMiddle ? 'the upper-middle deciles' : `decile ${SH.worst}`}`,
+    to: 'q-p3-deciles',
+  },
+].map((it) => ({ ...it, text: it.a }));
 
 export default function TwoLenses() {
   const [ref, seen] = useInView();
@@ -82,9 +97,14 @@ export default function TwoLenses() {
           <Icon name={iconFor('compare')} size={16} /> Two lenses
         </p>
         <h2 id="story-close-h">
-          <Icon name={iconFor('canSay')} size={28} className="lens-ico lens-h-ico" />
-          What each model can and cannot say
+          <Icon name={iconFor('question')} size={28} className="lens-ico lens-h-ico" />
+          {CLOSE_SUB.question}
         </h2>
+        <p className="scene-head-a is-shown lens-answer" id="q-story-close">
+          <Icon name={iconFor('answer')} size={14} />
+          <span className="scene-head-a-label">Answer</span>
+          <span className="scene-head-a-text">{CLOSE_SUB.answer}</span>
+        </p>
         <p>
           <Icon name={iconFor('limit')} size={18} className="lens-ico" /> Different models, years and assumptions: their numbers are not added or compared.
         </p>
