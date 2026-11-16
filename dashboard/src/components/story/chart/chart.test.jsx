@@ -212,3 +212,38 @@ describe('Replay, Pause, IconGrid, CountUp', async () => {
     expect(container.querySelector('.count-up-vis').dataset.final).toBe('+2.34pp');
   });
 });
+
+describe('Crosshair', async () => {
+  const { Crosshair } = await import('./index.js');
+  const { fireEvent } = await import('@testing-library/react');
+  const x = linear([2020, 2023], [0, 300]);
+  const y = linear([0, 2], [200, 0]);
+  const el = (
+    <Crosshair width={300} height={200} x={x} y={y} xs={[2020, 2021, 2022, 2023]} top={0} bottom={200} unit="% gap" label="GDP"
+      series={[{ key: 'a', name: 'UK central', icon: 'gdp', color: 'red', ys: [0, 0.5, 1, 1.5], format: (v) => `${v.toFixed(1)}%` }]}>
+      <path d="M0,0" />
+    </Crosshair>
+  );
+  it('mounts nothing of the read-out while inactive', () => {
+    const { container } = render(el);
+    expect(container.querySelector('.ch-tip')).toBeNull();
+    expect(container.querySelector('[aria-live]').textContent).toBe('');
+    expect(container.querySelector('.ch-cross-line')).toBeNull();
+  });
+  it('keyboard: arrows read a point with year, icon and value; Home, End; Escape clears', () => {
+    const { container } = render(el);
+    const host = container.querySelector('.ch-cross');
+    expect(host.tabIndex).toBe(0);
+    fireEvent.keyDown(host, { key: 'ArrowLeft' });
+    expect(container.querySelector('.ch-tip-head').textContent).toBe('2023');
+    fireEvent.keyDown(host, { key: 'ArrowLeft' });
+    expect(container.querySelector('[aria-live]').textContent).toBe('2022: UK central 1.0%');
+    expect(container.querySelector('.ch-tip-row svg')).not.toBeNull();
+    fireEvent.keyDown(host, { key: 'Home' });
+    expect(container.querySelector('.ch-tip-value').textContent).toBe('0.0%');
+    expect(container.querySelector('.ch-cross-line').getAttribute('x1')).toBe('0');
+    fireEvent.keyDown(host, { key: 'Escape' });
+    expect(container.querySelector('.ch-tip')).toBeNull();
+    expect(container.querySelector('[aria-live]').textContent).toBe('');
+  });
+});

@@ -11,3 +11,4 @@ export { default as Bars, barPath, barDelay } from './Bars.jsx';
 export { default as EndLabels, placeLabels, crowded } from './EndLabels.jsx';
 export { default as View, affine, viewFor } from './View.jsx';
 export { default as Replay, Pause } from './Replay.jsx';
+export { default as Crosshair } from './Crosshair.jsx';
