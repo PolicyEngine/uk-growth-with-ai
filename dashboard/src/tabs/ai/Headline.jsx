@@ -3,6 +3,8 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
@@ -14,10 +16,10 @@ import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIG
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const MEASURES = [
-  { v: 'w', label: 'Wage rate', sub: 'pay per unit of labour', icon: 'wallet' },
-  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: 'home' },
-  { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: 'layers' },
-  { v: 'Y', label: 'Total output', sub: 'GDP', icon: 'factory' },
+  { v: 'w', label: 'Wage rate', sub: 'pay per unit of labour', icon: iconFor('pay') },
+  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: iconFor('gni') },
+  { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: iconFor('depreciation') },
+  { v: 'Y', label: 'Total output', sub: 'GDP', icon: iconFor('gdp') },
 ];
 
 // The dumbbell card's values as a CSV table
@@ -43,28 +45,27 @@ export function stressFalls(sid, closure) {
   return s.Z_terminal < t.Z_terminal;
 }
 
-export function StressNote({ sid }) {
+// The stress test in items. Each direction icon follows the sign of the
+// stress test's Z against the technology-unchanged Z at that closure
+// (stressFalls): a cut at the central closure, a slight rise with closed
+// capital for UK central and Korinek (results sanity audit).
+export const stressDir = (falls) => (falls == null ? null : falls ? 'gapDown' : 'gapUp');
+export function stressItems(sid) {
   const c = stressFalls(sid, CENTRAL);
   const b = stressFalls(sid, BOUND);
-  const phrase = (x) => (x ? 'output at fixed inputs has to fall' : 'output at fixed inputs has to rise slightly');
-  // (signs from the Z values: a cut at the central closure, a slight rise
-  // with closed capital for UK central and Korinek; results sanity audit)
-  return (
-    <p>
-      The stress test holds {HEADLINE_YEAR} GDP at the OBR-central path, as in the OBR&rsquo;s Box 2.2 displacement scenario.
-      {c != null ? (
-        <>
-          {' '}Under the central closure {phrase(c)} for that{c ? ', so it is a pessimistic bound, not a forecast' : ''}.
-        </>
-      ) : null}
-      {b != null ? (
-        <>
-          {' '}Under closed capital {phrase(b)}{b === c ? ' too' : ', so there it almost coincides with “technology unchanged” and is not a pessimistic bound'}.
-        </>
-      ) : null}{' '}
-      &ldquo;Technology unchanged&rdquo; shifts the labour share and leaves output at fixed inputs where it was.
-    </p>
-  );
+  const phrase = (x) => (x ? 'has to fall' : 'has to rise slightly');
+  return [
+    { key: 'held', icon: 'shock', text: `Stress test: ${HEADLINE_YEAR} GDP held on the path (OBR Box 2.2)` },
+    c != null ? { key: 'c', icon: stressDir(c), text: `Central closure: output at fixed inputs ${phrase(c)}` } : null,
+    c ? { key: 'c2', icon: 'limit', text: 'So it is a pessimistic bound, not a forecast' } : null,
+    b != null ? { key: 'b', icon: stressDir(b), text: `Closed capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
+    b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”: not a pessimistic bound' } : null,
+    { key: 'tz', icon: 'productivity', text: '“Technology unchanged” shifts the labour share, not output at fixed inputs' },
+  ].filter(Boolean);
+}
+
+export function StressNote({ sid }) {
+  return <Items items={stressItems(sid)} />;
 }
 
 function niceMax(m) {

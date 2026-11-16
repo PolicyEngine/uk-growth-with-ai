@@ -11,7 +11,10 @@ import { RULES } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, LATE_YEAR, SCENARIOS, ARMS, ARM_COLOR, CLOSURE_LABEL, SCEN_NAME, fmt } from '@/tabs/ai/surprise.js';
-import { MEASURES, ROWS, rowOf, axisOf, cellsTable, cellValue, driverWords } from './cells.js';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import { Lead } from './direction.jsx';
+import { MEASURES, ROWS, rowOf, axisOf, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
 
 // Explore > All scenarios: every scenario x closure x fiscal rule cell at
@@ -23,6 +26,7 @@ import SensitivityTable from './SensitivityTable.jsx';
 // printed on the page: each figure has its home on Economy or Public
 // finances, and this page is for comparing shapes.
 
+const RULE_ICON = { common: 'gdp', fixed: 'finances', dn: 'benefits' };
 const ruleName = (id) => RULES.find((r) => r.id === id).short;
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
 const tickText = (t, unit) => (t === 0 ? `0${unit}` : `${t > 0 ? '+' : '−'}${Math.abs(t)}${unit}`);
@@ -76,7 +80,9 @@ function Panel({ m, arm }) {
         return (
           <div key={r.id} className="as-group">
             <p className="as-group-title">
-              <span>{r.label}</span>
+              <span>
+                <Lead c={RULE_ICON[r.id]}>{r.label}</Lead>
+              </span>
               {pending.length ? (
                 <span className="as-pending">
                   <Icon name="hourglass" size={12} />
@@ -86,7 +92,9 @@ function Panel({ m, arm }) {
             </p>
             {rows.map((x) => (
               <div key={x.key} className="as-row">
-                <span className="as-row-label">{clName(x.cl)}</span>
+                <span className="as-row-label">
+                  <Lead c={x.cl === 'zk0' ? 'closedCapital' : 'foreign'}>{clName(x.cl)}</Lead>
+                </span>
                 <div className="as-track">
                   <span className="as-zero" style={{ left: pct(0) }} aria-hidden="true" />
                   {x.band ? <span className="as-band" style={{ left: pct(x.band[0]), width: `${((ax.at(x.band[1]) - ax.at(x.band[0])) * 100).toFixed(3)}%` }} aria-hidden="true" /> : null}
@@ -195,7 +203,7 @@ function CellsTable({ arm }) {
           <tbody key={m.v}>
             <tr className="table-group">
               <th colSpan={SCENARIOS.length + 1} scope="colgroup">
-                {m.label} ({m.unit})
+                <Lead c={m.concept}>{`${m.label} (${m.unit})`}</Lead>
               </th>
             </tr>
             {ROWS.map((row) => (
@@ -224,28 +232,61 @@ export default function AllScenarios() {
     <div id="explore-part-all" className="explore-part">
       <Card
         id="all-scenarios"
-        icon="layoutGrid"
+        icon={iconFor('cells')}
         title={`GDP, GNI, the wage rate and debt/GDP in ${HEADLINE_YEAR}, every cell`}
-        finding={`Rows are the fiscal rule and closure; each mark is a scenario. Hover, tap or tab to a mark for its value.${arm === 'tfp' ? '' : ` ${driverWords(arm)}`}`}
+        finding={<Lead c="reading">Rows: fiscal rule and closure. Marks: scenarios. Hover, tap or tab to a mark for its value.</Lead>}
         controls={
-          <ControlBar label="All scenarios: options">
-            <ControlGroup label="Arm">
-              <Segmented options={ARMS} value={arm} onChange={setArm} label="Arm" />
-            </ControlGroup>
-          </ControlBar>
+          <>
+            {/* the main arm's drivers open the page; another arm's are here */}
+            {arm === 'tfp' ? null : (
+              <Items className="ex-notes" items={drivers(arm).map((d) => ({ key: d.choice, icon: d.choice === 'still' ? 'onPath' : d.choice, text: d.text }))} />
+            )}
+            <ControlBar label="All scenarios: options">
+              <ControlGroup label="Arm">
+                <Segmented options={ARMS} value={arm} onChange={setArm} label="Arm" />
+              </ControlGroup>
+            </ControlBar>
+          </>
         }
         legend={<Key arm={arm} />}
         about={{
-          shows: `Each scenario's ${HEADLINE_YEAR} gap against the OBR-central path at the same closure, for the arm chosen. The shaded band runs from UK low to UK high where both are solved; Korinek et al. use US inputs and are an upper case, not a UK estimate.`,
-          how: 'Read from the same solves as every other chart in Explore. Debt-neutral transfers and fixed spending are solved for UK central and Korinek et al. only, so UK low and UK high are marked pending under those rules. “Moves most” compares the spread of each measure across the scenarios, across the two closures and across the three rules (the last over the scenarios solved under every rule).',
+          shows: (
+            <Items
+              items={[
+                { key: 'gap', icon: 'onPath', text: `Each scenario’s ${HEADLINE_YEAR} gap against the path, same closure` },
+                { key: 'band', icon: 'range', text: 'Shaded band: UK low to UK high, where both are solved' },
+                { key: 'korinek', icon: 'foreign', text: 'Korinek et al.: US inputs, an upper case, not a UK estimate' },
+              ]}
+            />
+          ),
+          how: (
+            <Items
+              items={[
+                { key: 'same', icon: 'model', text: 'The same solves as every other chart in Explore' },
+                { key: 'pending', icon: 'timing', text: 'Debt-neutral and fixed spending: UK central and Korinek et al. only' },
+                { key: 'most', icon: 'compare', text: '“Moves most”: the widest spread across scenarios, closures or rules' },
+                { key: 'rules', icon: 'rule', text: 'Rules compared over the scenarios solved under every rule' },
+              ]}
+            />
+          ),
           caveats: (
-            <>
-              Debt/GDP is shown for {HEADLINE_YEAR}; the {LATE_YEAR} figures and why the model overstates the later rise are on{' '}
-              <NavLink tab="explore" sub="finances" anchor="public-finances">
-                Public finances
-              </NavLink>
-              . These are gaps against the path, not forecasts of levels.
-            </>
+            <Items
+              items={[
+                {
+                  key: 'debt',
+                  icon: 'debt',
+                  text: (
+                    <>
+                      Debt/GDP here is {HEADLINE_YEAR}; {LATE_YEAR} and its overstated rise:{' '}
+                      <NavLink tab="explore" sub="finances" anchor="public-finances">
+                        Public finances
+                      </NavLink>
+                    </>
+                  ),
+                },
+                { key: 'levels', icon: 'caveat', text: 'Gaps against the path, not forecasts of levels' },
+              ]}
+            />
           ),
         }}
         method="rules"
@@ -273,7 +314,7 @@ export default function AllScenarios() {
         </div>
       </Card>
 
-      <SectionHeading id="all-sensitivity" icon="sliders" title="More foreign capital">
+      <SectionHeading id="all-sensitivity" icon={iconFor('foreign')} title="More foreign capital">
         One more closure, solved as a sensitivity only: half of the new capital financed from abroad.
       </SectionHeading>
       <SensitivityTable />

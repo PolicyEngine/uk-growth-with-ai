@@ -1,2 +1,485 @@
 /* Explore: items, icons and key facts (itemised pages). Loaded after the
    story styles. */
+
+/* The page answer as items (PageIntro renders a div when the answer is a
+   list): the frame first, muted, then one line per measure led by its
+   direction icon, two columns where there is room. */
+.page-a.is-items {
+  max-width: 880px;
+}
+.ex-answer.story-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 32px;
+}
+.ex-answer.story-items li {
+  flex: 0 1 auto;
+}
+.ex-answer.has-frame li:first-child {
+  flex-basis: 100%;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-500);
+}
+@media (max-width: 760px) {
+  .ex-answer.story-items {
+    flex-direction: column;
+  }
+}
+
+/* A small direction arrow beside words or a number: grey, plain, computed
+   from the sign (tabs/explore/direction.jsx). */
+.ex-dir {
+  display: inline-flex;
+  margin: 0 3px 0 1px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.ex-dir .plain-icon {
+  display: inline-flex;
+}
+
+/* Notes under a card's finding or chart: short items, card text size. */
+.card .ex-notes.story-items {
+  margin: 10px 0 4px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.card .ex-notes.story-items li {
+  line-height: 1.45;
+}
+.info-section .story-items,
+.card-body .story-items,
+.hh-sources .story-items {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.card-body .story-items + .story-items,
+.card-body .story-facts + .story-items,
+.card-body .story-items + .story-facts,
+.card-body .story-chain + .story-items {
+  margin-top: 12px;
+}
+.info-section .story-items + .story-items {
+  margin-top: 8px;
+}
+
+/* Key facts inside a card: smaller numbers than the story's. */
+.card .ex-facts.story-facts {
+  margin: 12px 0 4px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 20px;
+}
+.card .ex-facts .story-fact-value {
+  font-size: 1.375rem;
+}
+.disclosure-content .ex-facts.story-facts {
+  margin: 4px 0 12px;
+}
+
+/* The why chain inside a Who gains card: wraps, smaller text. */
+.card-body .ex-chain.story-chain {
+  margin: 4px 0 0;
+}
+.card-body .ex-chain .story-chain-node {
+  font-size: var(--fs-caption);
+}
+.card-body .ex-chain .story-chain-node .ex-dir {
+  margin-right: 2px;
+}
+
+/* Who gains: what the view shows, as muted items. */
+.ex-view-note.story-items {
+  margin: -8px 0 16px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+  gap: 4px;
+}
+
+/* Public finances: the default fiscal-rule items; Households: the decile-1
+   caveat and the lead. */
+.rule-default.story-items {
+  margin: 12px 0 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.ex-caveat .story-items {
+  gap: 4px;
+  font-size: var(--fs-caption);
+}
+.hh-answer .ex-answer.story-items {
+  margin: 0;
+}
+
+/* The answer strip (tabs/explore/AnswerStrip.jsx): full content width. */
+.page-a.is-items {
+  max-width: none;
+}
+.ex-strip {
+  display: grid;
+  gap: 12px;
+}
+.ex-context,
+.ex-caveat-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.ex-context,
+.ex-caveat-line > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.ex-context .plain-icon,
+.ex-caveat-line .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-caveat-line a {
+  color: var(--pe-teal-700);
+}
+.ex-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex-chip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--pe-surface);
+  font-size: var(--fs-body);
+  line-height: 1.35;
+  color: var(--pe-gray-800);
+}
+.ex-chip > .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-chip-name {
+  font-weight: 600;
+}
+.ex-chip-dir {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.ex-chip-dir .plain-icon {
+  display: inline-flex;
+}
+.ex-chip.is-gain .ex-chip-dir {
+  color: var(--c-gain-text, var(--c-gain));
+}
+.ex-chip.is-loss .ex-chip-dir {
+  color: var(--c-loss-text, var(--c-loss));
+}
+.ex-chip.is-note,
+.ex-chip.is-plain {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.ex-chip.is-note {
+  border-style: dashed;
+}
+.ex-why.story-chain {
+  margin: 0;
+}
+.ex-why .story-chain-node {
+  font-size: var(--fs-small);
+}
+@media (max-width: 640px) {
+  .ex-chips {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Public finances: the tax strip (model dot, UK-rates range, one pp axis). */
+.ex-taxstrip {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 16px;
+}
+.ex-taxrow {
+  display: grid;
+  grid-template-columns: minmax(130px, 200px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 34px;
+}
+.ex-taxlabel {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.ex-taxlabel .plain-icon,
+.ex-taxlink .plain-icon,
+.ex-roughchip .plain-icon,
+.ex-rule .plain-icon,
+.ex-tl-year .plain-icon,
+.ex-rdb-label .plain-icon,
+.ex-rdb-none .plain-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+.ex-taxtrack,
+.ex-rdb-track {
+  position: relative;
+  height: 28px;
+  border-bottom: 1px solid var(--pe-gray-200);
+}
+.ex-taxzero {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--pe-gray-500);
+}
+.ex-taxdot,
+.ex-rdb-dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--series-2);
+}
+.ex-taxbar {
+  position: absolute;
+  top: 50%;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg, var(--pe-gray-400) 0 3px, var(--pe-gray-200) 3px 6px);
+}
+.ex-taxval {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--pe-gray-900);
+}
+.ex-taxtrack > .ex-taxval {
+  left: 8px;
+  transform: none;
+  top: 4px;
+  bottom: auto;
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
+.ex-taxaxis {
+  min-height: 18px;
+}
+.ex-taxaxis .ex-taxtrack {
+  height: 16px;
+  border: 0;
+}
+.ex-taxtick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.ex-taxlink,
+.ex-roughchip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-taxlink a {
+  color: var(--pe-teal-700);
+}
+/* the Tax/GDP chart while the tax card's link is hovered or focused */
+#tax-gdp.ex-flag {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+#tax-gdp.ex-flag .linechart g > circle:last-of-type {
+  r: 6px;
+}
+
+/* Public finances: the rule cards, the timeline and the dumbbells. */
+.ex-rules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+.ex-rule {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--pe-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-700);
+  cursor: pointer;
+}
+.ex-rule:hover {
+  border-color: var(--pe-gray-400);
+}
+.ex-rule:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+}
+.ex-rule.is-active {
+  border-color: var(--c-highlight);
+  box-shadow: inset 0 0 0 1px var(--c-highlight);
+}
+.ex-rule-name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.ex-rule-tag {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  margin-left: auto;
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  color: var(--pe-gray-500);
+}
+.ex-rule-holds {
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+}
+.ex-timeline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-tl-year {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ex-tl-span {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--pe-gray-100);
+  text-align: center;
+}
+.ex-rdb {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 16px;
+}
+.ex-rdb-key {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 4px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ex-rdb-key .ex-rdb-dot {
+  position: static;
+  margin: 0;
+  display: inline-block;
+}
+.ex-rdb-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.ex-rdb-label {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-small);
+}
+.ex-rdb-dot.is-common {
+  background: var(--pe-surface);
+  border: 2px solid var(--series-2);
+}
+.ex-rdb-bar {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--series-2);
+  opacity: 0.45;
+}
+.ex-rdb-none {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding-top: 6px;
+  font-size: var(--fs-caption);
+  font-style: italic;
+  color: var(--pe-gray-500);
+}
+@media (max-width: 640px) {
+  .ex-taxrow,
+  .ex-rdb-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .ex-taxaxis > span:first-child {
+    display: none;
+  }
+  .ex-taxrow .ex-taxtrack {
+    margin-top: 18px;
+  }
+  .ex-taxaxis .ex-taxtrack {
+    margin-top: 0;
+  }
+  .ex-timeline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A plain icon leading a finding, unit line or group label. */
+.ex-lead {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+.ex-lead .plain-icon {
+  display: inline-flex;
+}
+.ex-chip.is-plain,
+.ex-chip.is-note {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.ex-chip.is-plain > .plain-icon,
+.ex-chip.is-note > .plain-icon {
+  margin-top: 1px;
+}
