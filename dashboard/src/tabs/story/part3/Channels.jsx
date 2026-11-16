@@ -4,7 +4,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { fmtBn, fmtBn2 } from './format.js';
-import { D, DrawsChip, FigureHead, Fold, Ico, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat } from './shared.jsx';
+import { D, DrawsChip, FigureHead, Fold, Ico, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
@@ -137,24 +137,21 @@ export const CHANNELS_SUB = {
     : 'The net cost combines job loss with the two assumed income rises',
 };
 
-// The two assumed income rises, said together when their effects agree.
+// The two assumed income rises and the net, in one sentence: their words
+// from the signs of the runs.
 function risesSentence() {
   const w = effectWords(row('wage').cost_bn);
   const c = effectWords(row('capital').cost_bn);
-  const pay = <Key id="wage">higher pay</Key>;
-  const cap = <Key id="capital">capital income</Key>;
-  return w === c ? (
+  const both = w === c ? w.replace('raises', 'raise').replace('costs', 'cost').replace('leaves', 'leave') : null;
+  return (
     <>
-      <Num n={2} mark="wage" /> Assumed {pay} and <Num n={3} mark="capital" /> {cap} each {w.replace('raises', 'raise').replace('costs', 'cost').replace('leaves', 'leave')}
-    </>
-  ) : (
-    <>
-      <Num n={2} mark="wage" /> Assumed {pay} {w}; <Num n={3} mark="capital" /> {cap} {c}
+      <Num n={2} mark="wage" /> <Key id="wage">Higher pay</Key> and <Num n={3} mark="capital" /> <Key id="capital">capital income</Key> {both ?? `: ${w}; ${c}`}, leaving{' '}
+      {bigger ? 'a far smaller cost' : 'the net cost'} <Num n={4} mark="sum" />
     </>
   );
 }
 
-// Three steps, each one sentence about the marks it highlights.
+// Two steps, each one sentence about the marks it highlights.
 export const CHANNEL_STEPS = [
   {
     id: 'p3-channels-step',
@@ -169,19 +166,9 @@ export const CHANNEL_STEPS = [
   },
   {
     id: 'p3-channels-step-2',
-    icon: 'pay',
-    highlight: ['wage', 'capital'],
-    title: risesSentence(),
-  },
-  {
-    id: 'p3-channels-step-3',
     icon: 'arithmetic',
-    highlight: ['sum'],
-    title: (
-      <>
-        <Num n={4} mark="sum" /> Netted, the three runs leave {bigger ? 'a far smaller cost' : 'the net cost'}
-      </>
-    ),
+    highlight: ['wage', 'capital', 'sum'],
+    title: risesSentence(),
     body: (
       <Fold
         groups={[
@@ -221,7 +208,7 @@ export default function Channels() {
       <Scrolly
         id="p3-channels"
         sub={CHANNELS_SUB}
-        steps={CHANNEL_STEPS}
+        steps={asLines(CHANNEL_STEPS)}
         graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />}
         label="Cost to the public finances of each of the three channels run alone"
       />

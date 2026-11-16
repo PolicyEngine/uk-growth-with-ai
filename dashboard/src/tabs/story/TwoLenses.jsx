@@ -9,8 +9,6 @@ import { NavLink } from '@/lib/nav.jsx';
 import { MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { REFS } from './part3/sources.jsx';
 import { decileShape } from './part3/Deciles.jsx';
-import { RECAP as P2_RECAP } from './Part2.jsx';
-import { OUTPUT_TAKEAWAY } from './Part1.jsx';
 
 // The close of the story: the two models side by side, each with a header
 // icon and one line on what it is, then what it can say (3-4 items) and
@@ -71,13 +69,16 @@ export const CLOSE_SUB = {
 // The whole story's recap, one question per part with a worded answer (no
 // figures), each linking back to its question's header.
 const SH = decileShape();
+// Each chip's question and answer together are 12 words at most (the text
+// rule); the part 1 and part 2 answers paraphrase those parts' takeaways
+// (Part1.jsx OUTPUT_TAKEAWAY; Part2.jsx RECAP, first item).
 export const STORY_RECAP = [
-  { icon: 'gdp', q: 'How fast has the UK economy grown?', a: OUTPUT_TAKEAWAY.split(';')[0].replace(/\.$/, ''), to: 'q-p1-output' },
-  { icon: 'model', q: 'What could AI mean for the whole economy?', a: `OG-UK: GDP ${P2_RECAP[0].a.charAt(0).toLowerCase()}${P2_RECAP[0].a.slice(1)}`, to: 'q-p2-output' },
+  { icon: 'gdp', q: 'How has the UK grown?', a: 'Since the rebound, below most 2010s rates', to: 'q-p1-output' },
+  { icon: 'model', q: 'What could AI do to GDP?', a: 'Above the OBR-central path, every scenario', to: 'q-p2-output' },
   {
     icon: 'households',
-    q: 'Who loses income if jobs are assumed lost?',
-    a: `uk-ai-study: ${SH.upperMiddle ? 'the upper-middle deciles lose most' : `decile ${SH.worst} loses most`}`,
+    q: 'Who loses most income?',
+    a: `uk-ai-study: ${SH.upperMiddle ? 'the upper-middle deciles' : `decile ${SH.worst}`}`,
     to: 'q-p3-deciles',
   },
 ].map((it) => ({ ...it, text: it.a }));

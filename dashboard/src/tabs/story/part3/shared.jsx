@@ -317,12 +317,9 @@ export function Fold({ groups }) {
       </summary>
       {gs.map((g) => (
         <section key={g.label} className="p3-fold-group">
-          <p className="p3-fold-label">
-            <Ico c={g.icon ?? GROUP_ICON[g.label] ?? 'caveat'} size={12} /> {g.label}
-          </p>
           {g.items.filter(Boolean).map((t, i) => (
             <p key={i} className="p3-fold-text">
-              {t}
+              <Ico c={g.icon ?? GROUP_ICON[g.label] ?? 'caveat'} size={12} /> {i === 0 ? <strong className="p3-fold-label">{g.label}:</strong> : null} {t}
             </p>
           ))}
         </section>
@@ -345,3 +342,19 @@ export const markProps = (id, className = '') => ({
   'data-mark': id,
   className,
 });
+
+// A step's one sentence as the card's line: a paragraph led by the step's
+// icon (the text rule: every block leads with an icon, at most 25 words),
+// then the step's body (the fold), if any.
+export const asLines = (steps) =>
+  steps.map(({ title, body, ...s }) => ({
+    ...s,
+    body: (
+      <>
+        <p className="p3-step-line">
+          <Ico c={s.icon} size={16} /> <span>{title}</span>
+        </p>
+        {body ?? null}
+      </>
+    ),
+  }));

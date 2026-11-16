@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtPp } from './format.js';
-import { AxisTitle, D, DrawsChip, FigureHead, Fold, Key, MarkProvider, Num, NumMarker, Source, rule, Ico, entryClass, useBeat } from './shared.jsx';
+import { AxisTitle, D, DrawsChip, FigureHead, Fold, Key, MarkProvider, Num, NumMarker, Source, rule, Ico, entryClass, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
 // Step 5, who loses the job: the cost under the four stylised displacement
@@ -204,7 +204,7 @@ const RULE_MARKS = Object.fromEntries(ROWS.map((r) => [r.id, { color: 'var(--pe-
 export default function Rules() {
   return (
     <MarkProvider marks={RULE_MARKS}>
-      <Scrolly id="p3-rules" sub={rulesSub()} steps={RULE_STEPS} graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />} label="Cost to the public finances under four rules for who is displaced" />
+      <Scrolly id="p3-rules" sub={rulesSub()} steps={asLines(RULE_STEPS)} graphic={(i, r, ctx) => <RulesFigure ctx={ctx} />} label="Cost to the public finances under four rules for who is displaced" />
     </MarkProvider>
   );
 }

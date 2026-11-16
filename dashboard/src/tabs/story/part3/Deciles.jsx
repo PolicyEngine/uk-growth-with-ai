@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
-import { D, DrawsChip, FigureHead, Fold, Ico, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat } from './shared.jsx';
+import { D, DrawsChip, FigureHead, Fold, Ico, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Decile 1 is drawn grey with the caveat beside it and no
@@ -235,7 +235,7 @@ const DECILE_MARKS = Object.fromEntries(
 export default function Deciles() {
   return (
     <MarkProvider marks={DECILE_MARKS}>
-      <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={DECILE_STEPS} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
+      <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={asLines(DECILE_STEPS)} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
     </MarkProvider>
   );
 }

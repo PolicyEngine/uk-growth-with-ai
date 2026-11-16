@@ -6,7 +6,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
 import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
-import { AxisTitle, BASELINE_LABEL, D, DrawsChip, FigureHead, Fold, MODEL_YEAR, InputFig, Num, NumMarker, Key, MarkProvider, Source, Ico, entryClass, markProps, useBeat } from './shared.jsx';
+import { AxisTitle, BASELINE_LABEL, D, DrawsChip, FigureHead, Fold, MODEL_YEAR, InputFig, Num, NumMarker, Key, MarkProvider, Source, Ico, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { Ref, Sec } from './sources.jsx';
 
 // Step 1, the central case (results.tex, "The central scenario"). The
@@ -137,12 +137,10 @@ function CentralFigure({ ctx }) {
           </p>
         </div>
         <ul className="story-facts p3-facts">
-          {facts.map((f, i) => (
+          {facts.map((f) => (
             <li key={f.key} {...markProps(`f-${f.key}`, 'story-fact')}>
               <Icon name={iconFor(f.icon)} size={18} className="story-fact-icon" />
-              <span className="story-fact-value">
-                <NumMarker n={i ? 2 : 1} className="p3-fact-nm" /> {f.value}
-              </span>
+              <span className="story-fact-value">{f.value}</span>
               <span className="story-fact-label">{f.label}</span>
               {f.sub ? <span className="story-fact-sub">{f.sub}</span> : null}
             </li>
@@ -180,12 +178,15 @@ const CENTRAL_FOLD = [
     label: 'Assumed',
     items: [
       <>
-        Also from <Ref id="doorley">Doorley et al. (2026)</Ref>: wages of those still employed rise <InputFig path="method.survivor_wage_pct">{fmtInputPct(M.survivor_wage_pct)}</InputFig>; their
-        capital return rises <span data-input="">+{RETURN_PP}</span> points on <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span>, so interest and dividends{' '}
-        <InputFig path="method.capital_uplift_pct">+{fmtPct1(M.capital_uplift_pct)}</InputFig>
+        <Ref id="doorley">Doorley et al. (2026)</Ref>: wages of those still employed rise <InputFig path="method.survivor_wage_pct">{fmtInputPct(M.survivor_wage_pct)}</InputFig>
       </>,
       <>
-        Job loss is likelier in occupations more exposed to AI: C-AIOE, <Ref id="felten" /> exposure with the <Ref id="pizzinelli" /> adjustment, mapped to the UK by <Ref id="dfe" />
+        Their capital return rises <span data-input="">+{RETURN_PP}</span> points on <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span>: interest and dividends{' '}
+        <InputFig path="method.capital_uplift_pct">+{fmtPct1(M.capital_uplift_pct)}</InputFig>
+      </>,
+      'Job loss is likelier in occupations more exposed to AI (C-AIOE index)',
+      <>
+        C-AIOE: <Ref id="felten" /> exposure, <Ref id="pizzinelli" /> adjustment, mapped to the UK by <Ref id="dfe" />
       </>,
     ],
   },
@@ -265,7 +266,7 @@ export default function Central() {
       <Scrolly
         id="p3-central"
         sub={CENTRAL_SUB}
-        steps={CENTRAL_STEPS}
+        steps={asLines(CENTRAL_STEPS)}
         graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />}
         label="The central case: people displaced, cost, poverty and inequality, beside their baselines"
       />

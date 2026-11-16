@@ -216,14 +216,13 @@ export const ABSORB_SUB = {
   takeaway: MOST ? 'Households bear most of the earnings lost; lower tax, more benefits and other items take the rest' : 'Tax and benefits absorb much of the earnings lost',
 };
 
-// The tax and NI absorbed, against the rest of the loss households do not bear.
-const TAX_MOST = S.total.tax_ni_bn > (S.total.earnings_lost_bn - S.total.disposable_bn) / 2;
 // Three sentences, each lighting one destination; one card (the Sankey is
 // full width below it), so the sentences light in turn after the pour and
 // on pointing, rather than by scroll.
 export const ABSORB_LINES = [
   {
     highlight: ['disposable'],
+    icon: 'households',
     text: (
       <>
         <Num n={1} mark="disposable" /> {MOST ? 'Most' : 'Part'} of the loss comes out of households’ <Key id="disposable">disposable income</Key>
@@ -232,9 +231,10 @@ export const ABSORB_LINES = [
   },
   {
     highlight: ['tax'],
+    icon: 'tax',
     text: (
       <>
-        <Num n={2} mark="tax" /> <Key id="tax">Less tax and NI</Key> takes {TAX_MOST ? 'most of the rest' : 'part of the rest'}; with benefits,{' '}
+        <Num n={2} mark="tax" /> <Key id="tax">Less tax and NI</Key>, with benefits, absorbs{' '}
         <Fig path="sankey.tax_benefit_share_pct" mark="tax">
           {fmtShare(S.tax_benefit_share_pct)}
         </Fig>
@@ -243,6 +243,7 @@ export const ABSORB_LINES = [
   },
   {
     highlight: ['benefits'],
+    icon: 'benefits',
     text: (
       <>
         <Num n={3} mark="benefits" /> <Key id="benefits">More benefits</Key> replace {BENEFIT_SHARE < 5 ? 'under a twentieth' : 'part'} of the earnings lost
@@ -269,7 +270,7 @@ function AbsorbLines({ cur, setCur }) {
             onBlur={() => setCur('held')}
             onClick={() => setCur(k)}
           >
-            {l.text}
+            <Ico c={l.icon} size={14} /> {l.text}
           </button>
         </li>
       ))}

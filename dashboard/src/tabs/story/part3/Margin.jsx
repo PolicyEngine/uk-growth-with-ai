@@ -2,7 +2,7 @@
 
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { fmtBn, fmtPence, fmtPenceRange, fmtPp } from './format.js';
-import { AxisTitle, D, DrawsChip, FigureHead, Fold, Key, MarkProvider, Num, NumMarker, OutsideRebuildFlag, Source, ladder, perPound, Ico, entryClass, useBeat } from './shared.jsx';
+import { AxisTitle, D, DrawsChip, FigureHead, Fold, Key, MarkProvider, Num, NumMarker, OutsideRebuildFlag, Source, ladder, perPound, Ico, entryClass, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
 // Step 6, job loss against wage cuts (results.tex, "How the earnings loss
@@ -178,8 +178,8 @@ export function marginSub() {
     answerTo: 'p3-margin-step',
     takeaway:
       c.perPoundMore !== c.povertyMore
-        ? `${c.perPoundMore === 'job' ? 'Job loss' : 'Wage cuts'} weigh more on the public finances per pound; ${c.povertyMore === 'job' ? 'job loss' : 'wage cuts'} weigh more on poverty`
-        : `${c.povertyMore === 'job' ? 'Job loss' : 'Wage cuts'} weigh more on both the public finances and poverty`,
+        ? `${c.perPoundMore === 'job' ? 'Job loss weighs' : 'Wage cuts weigh'} more on the public finances per pound; ${c.povertyMore === 'job' ? 'job loss weighs' : 'wage cuts weigh'} more on poverty`
+        : `${c.povertyMore === 'job' ? 'Job loss weighs' : 'Wage cuts weigh'} more on both the public finances and poverty`,
   };
 }
 
@@ -247,7 +247,7 @@ export default function Margin() {
   const claims = marginClaims();
   return (
     <MarkProvider marks={MARGIN_MARKS}>
-      <Scrolly id="p3-margin" sub={marginSub()} steps={MARGIN_STEPS} graphic={(i, r, ctx) => <MarginFigure ctx={ctx} />} label={claims.aria} />
+      <Scrolly id="p3-margin" sub={marginSub()} steps={asLines(MARGIN_STEPS)} graphic={(i, r, ctx) => <MarginFigure ctx={ctx} />} label={claims.aria} />
     </MarkProvider>
   );
 }

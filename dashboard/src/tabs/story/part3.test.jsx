@@ -116,7 +116,7 @@ describe('Part3', () => {
     expect(stepsWithoutHighlight(container)).toEqual([]);
     // each step's sentence is about 15 words at most, and every id it lights is a mark in its figure
     for (const st of container.querySelectorAll('.scrolly-step')) {
-      const t = st.querySelector('.scrolly-title');
+      const t = st.querySelector('.p3-step-line');
       if (t) {
         const c = t.cloneNode(true);
         c.querySelectorAll('.hl-num').forEach((m) => m.remove());
@@ -152,7 +152,7 @@ describe('Part3', () => {
       expect(r.q).toMatch(/\?$/);
       expect(r.a).not.toMatch(/\d/);
       expect(r.to).toMatch(/^q-p3-/);
-      expect(r.q.split(' ').length + r.a.split(' ').length).toBeLessThanOrEqual(20);
+      expect(r.q.split(' ').length + r.a.split(' ').length).toBeLessThanOrEqual(12);
     }
   });
 
@@ -404,7 +404,7 @@ describe('Part3', () => {
     const { container } = renderPart();
     const line = [...container.querySelectorAll('p')].filter((p) => /three bases/.test(p.textContent));
     expect(line).toHaveLength(1);
-    expect(line[0].closest('#p3-channels-step-3')).not.toBeNull();
+    expect(line[0].closest('#p3-channels-step-2')).not.toBeNull();
     expect(line[0].querySelector('a[href="#p3-central-step"]')).not.toBeNull();
     expect(line[0].querySelector('a[href="#p3-margin-step"]')).not.toBeNull();
     // one draws chip per figure, no "Other bases" clutter
@@ -461,9 +461,9 @@ describe('Part3', () => {
     expect(c.perPoundMore).toBe(pw > pj ? 'cut' : 'job');
     expect(c.povertyMore).toBe(ladder('central_20').poverty_pp > ladder('wage_cuts').poverty_pp ? 'job' : 'cut');
     const { container } = renderPart();
-    const t1 = container.querySelector('#p3-margin-step .scrolly-title').textContent;
+    const t1 = container.querySelector('#p3-margin-step .p3-step-line').textContent;
     expect(t1).toContain(c.perPoundMore === 'cut' ? 'wage cuts cost the public finances more than' : 'job loss costs the public finances more than');
-    expect(container.querySelector('#p3-margin-step-2 .scrolly-title').textContent).toContain(`${c.povertyMore === 'job' ? 'job loss raises' : 'wage cuts raise'} poverty`);
+    expect(container.querySelector('#p3-margin-step-2 .p3-step-line').textContent).toContain(`${c.povertyMore === 'job' ? 'job loss raises' : 'wage cuts raise'} poverty`);
     expect(container.querySelector('#p3-margin .scrolly-graphic').getAttribute('aria-label')).toBe(c.aria);
   });
 

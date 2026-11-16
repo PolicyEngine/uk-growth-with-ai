@@ -6,7 +6,7 @@ import { iconFor } from '@/lib/concepts.js';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPctSigned0, fmtPctSigned1, fmtPp } from './format.js';
-import { AxisTitle, D, DrawsChip, FigureHead, Fold, Num, NumMarker, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat } from './shared.jsx';
+import { AxisTitle, D, DrawsChip, FigureHead, Fold, Num, NumMarker, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
 // Step 7, what moves the cost (results.tex, "What moves the central cost"),
@@ -308,6 +308,6 @@ export const MOVES_STEPS = [
 export default function Moves() {
   // Phones: it prints values, so it is drawn once, complete, above both cards.
   return (
-    <Scrolly id="p3-moves" sub={movesSub()} steps={MOVES_STEPS} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />
+    <Scrolly id="p3-moves" sub={movesSub()} steps={asLines(MOVES_STEPS)} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />
   );
 }

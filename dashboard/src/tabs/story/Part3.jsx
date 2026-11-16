@@ -8,9 +8,9 @@ import Central, { CENTRAL_SUB } from './part3/Central.jsx';
 import Channels from './part3/Channels.jsx';
 import Absorb from './part3/Absorb.jsx';
 import Deciles from './part3/Deciles.jsx';
-import Rules, { rulesClaims, rulesSub } from './part3/Rules.jsx';
+import Rules, { rulesClaims } from './part3/Rules.jsx';
 import Margin from './part3/Margin.jsx';
-import Moves, { movesSub } from './part3/Moves.jsx';
+import Moves from './part3/Moves.jsx';
 import Closing, { CloseLinks } from './part3/Closing.jsx';
 import { D, Ico, MODEL_YEAR, NO_CLEAN_RERUN, PROVISIONAL } from './part3/shared.jsx';
 
@@ -38,11 +38,11 @@ export const P3_RECAP = [
   {
     icon: 'cost',
     q: CENTRAL_SUB.question,
-    a: `${H.central_cost.value > 0 ? 'A net cost' : 'Higher net receipts'}; poverty and inequality ${H.central_poverty.value > 0 && H.central_gini.value > 0 ? 'rise' : 'move'}`,
+    a: `${H.central_cost.value > 0 ? 'A net cost' : 'Net receipts'}; poverty, inequality ${H.central_poverty.value > 0 && H.central_gini.value > 0 ? 'rise' : 'move'}`,
     to: 'q-p3-central',
   },
-  { icon: 'scenario', q: rulesSub().question, a: RULES.costFar ? 'Yes for the cost; far less for poverty' : 'Yes, for the cost and for poverty', to: 'q-p3-rules' },
-  { icon: 'breakEven', q: movesSub().question, a: 'Assumed wage and capital-income rises, and time out of work', to: 'q-p3-moves' },
+  { icon: 'scenario', q: 'Does who loses the job matter?', a: RULES.costFar ? 'For cost; far less for poverty' : 'For cost and for poverty', to: 'q-p3-rules' },
+  { icon: 'breakEven', q: 'What moves the cost most?', a: 'Wage and capital-income rises; spell length', to: 'q-p3-moves' },
 ].map((it) => ({ ...it, text: it.a }));
 
 export default function Part3({ part }) {
