@@ -470,3 +470,55 @@ describe('story part 1, altered data', () => {
     vi.doUnmock('@/data/ukContext.json');
   });
 });
+
+// The hero (#story-hero): the first question, its answer as one big figure
+// for the scenario and closure in the address (the 2031 GDP gap, main arm;
+// its home is part 2's headline tiles, which it links to), and the four
+// scenarios' GDP paths drawn over the whole horizon with a y-axis title and
+// an end label per line. Expected values are read here from the data file.
+describe('hero', () => {
+  const sign = (x) => (Math.abs(x) < 0.005 ? '0.00%' : `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(2)}%`);
+  const at = async (query) => {
+    const { default: Hero } = await import('@/tabs/story/Hero.jsx');
+    const { NavProvider } = await import('@/lib/nav.jsx');
+    window.history.replaceState(null, '', `/?${query}`);
+    return render(
+      <NavProvider>
+        <Hero />
+      </NavProvider>,
+    ).container;
+  };
+  it('prints the chosen scenario’s 2031 GDP gap, linked to its home', async () => {
+    const S = (await import('@/data/surprise2028.json')).default;
+    const i = S.years.indexOf(S.headline_year);
+    for (const [s, cl, q] of [['uk_high', 'zk0.1', 's=uk_high'], ['uk_low', 'zk0', 's=uk_low&closure=closed']]) {
+      const el = await at(q);
+      const fig = el.querySelector(`.hf-figure [data-path="results.${s}.tfp.${cl}.gaps.Y.${S.headline_year}"]`);
+      expect(fig).not.toBeNull();
+      expect(fig.textContent).toContain(sign(S.results[s].tfp[cl].gaps.Y[i]));
+      expect(el.querySelector('.hf-figure a[href*="story-headline"]')).not.toBeNull();
+      cleanup();
+    }
+  });
+  it('draws all four lines over the whole horizon, each labelled, with axis titles', async () => {
+    const S = (await import('@/data/surprise2028.json')).default;
+    const el = await at('s=uk_central');
+    const wide = el.querySelector('svg.hf-svg.is-wide');
+    expect(wide.getAttribute('role')).toBe('img');
+    expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the OBR-central path, %/);
+    expect(wide.textContent).toContain('OBR-central path = 0');
+    expect(wide.textContent).toContain(`AI arrives, ${S.surprise_year}`);
+    expect(wide.textContent).toContain(`Shock complete, ${S.headline_year}`);
+    const lines = [...wide.querySelectorAll('path.hf-line')];
+    expect(lines.map((p) => p.dataset.mark).sort()).toEqual(['korinek', 'uk_central', 'uk_high', 'uk_low']);
+    // every line has a point for every year (none stops short)
+    for (const p of lines) expect(p.getAttribute('d').match(/[ML]/g).length).toBe(S.years.length);
+    const i = S.years.indexOf(S.headline_year);
+    for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
+      expect(wide.textContent).toContain(`${sign(S.results[s].tfp['zk0.1'].gaps.Y[i])} in ${S.headline_year}`);
+    }
+    // nothing scrubs with the scroll: the reveal is a CSS animation only
+    expect(wide.querySelector('.hf-reveal').getAttribute('width')).not.toBeNull();
+    expect(el.querySelector('.hf-line.is-on').dataset.mark).toBe('uk_central');
+  });
+});
