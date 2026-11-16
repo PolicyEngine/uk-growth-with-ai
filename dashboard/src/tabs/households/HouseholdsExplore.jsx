@@ -190,7 +190,7 @@ function Variants() {
         />
       </div>
       <PointList
-        cols={['Cost', 'Poverty', 'Gini']}
+        cols={['Cost', 'Poverty, pp', 'Gini']}
         rows={[
           ...VARIANTS.filter((v) => !v.group).map(row),
           {
@@ -264,7 +264,7 @@ function Rules() {
         />
       </div>
       <PointList
-        cols={['Cost', 'Poverty', 'Gini']}
+        cols={['Cost', 'Poverty, pp', 'Gini']}
         wideFirst
         rows={[
           ...RULES.map((x) => {
@@ -790,6 +790,9 @@ export default function HouseholdsExplore() {
           <Notice>
             <I c="provisional" size={13} /> Provisional
           </Notice>
+          <span className="hh-chip" title="Every poverty figure on this page is before housing costs (BHC), the HBAI default">
+            <I c="poverty" size={13} /> Poverty: before housing costs (default)
+          </span>
           <NavLink tab="story" anchor="story-part-3" className="hh-chip is-link">
             <I c="link" size={13} /> Headlines in story part 3
           </NavLink>

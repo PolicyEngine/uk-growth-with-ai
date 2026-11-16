@@ -1947,3 +1947,16 @@ svg.p3-dim {
     display: none;
   }
 }
+
+/* The poverty basis chip (Central.jsx): said once for part 3 */
+.p3-pov-basis {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: 2px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+}

@@ -89,6 +89,10 @@ function CentralFigure({ ctx }) {
   return (
     <figure className={entryClass(e, 'p3-figure p3-scene')}>
       <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} random draws of who is displaced`} replay={e.replay} />
+      {/* the poverty basis, said once for the part: before housing costs */}
+      <p className="p3-pov-basis" title="Every poverty figure in this part is before housing costs (BHC); the after-housing-costs rise is shown once, as a secondary figure">
+        <Ico c="poverty" size={13} /> Poverty: before housing costs (default)
+      </p>
       <div className="p3-central">
         <div className="p3-central-tiles">
           <p className="p3-tile-heads" aria-hidden="true">
@@ -121,7 +125,7 @@ function KeyCard() {
       className="p3-key-card"
       items={[
         { icon: 'caveat', text: 'Upper bound, says the study: the displaced are jobless all year' },
-        { icon: 'poverty', text: <>After housing costs, absolute poverty rises by {fmtPp(H.central_poverty_ahc.value)}</> },
+        { icon: 'poverty', text: <>After housing costs (secondary): absolute poverty {fmtPp(H.central_poverty_ahc.value)}</> },
         {
           icon: 'measure',
           text: (
