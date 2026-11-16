@@ -289,6 +289,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // the answer: once the scene's last card is reached (always when drawn
   // once, under reduced motion and in print, by CSS)
   const answered = once || inline || reduce || active >= lastCard;
+  // a wide single block (cards above the figure, desktop): the answer goes
+  // after the figure, once the question has moved into it (Fable, batch 2)
+  const answerAfter = answer != null && wide && single && !phone;
   const ctx = { inline: false, once, entered: entered && stageDone, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
   const sizerCtx = { inline: false, once: false, entered: true, prev: null, highlight: [] };
   const dots = many && !inline;
@@ -396,7 +399,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             </li>
           ),
         )}
-        {answer != null ? (
+        {answer != null && !answerAfter ? (
           <li className="scrolly-answer">
             <Answer question={question} answer={answer} to={subObj.answerTo} shown={answered} />
           </li>
@@ -404,6 +407,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
       {phone ? footHere : null}
+      {answerAfter ? (
+        <div className="scrolly-answer scrolly-answer-after">
+          <Answer question={question} answer={answer} to={subObj.answerTo} shown={reduce || ctx.entered} />
+        </div>
+      ) : null}
       {takeaway ? (
         <p className="scrolly-takeaway">
           <Icon name={iconFor('takeaway')} size={16} className="scrolly-takeaway-icon" />

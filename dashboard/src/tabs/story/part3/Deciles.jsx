@@ -89,7 +89,6 @@ export const DECILES_SUB = {
   key: 'lose most',
   answerTo: 'p3-deciles-step',
   answer: `Largest fall: decile ${SHAPE.worst}, ${fmtDecilePct(VALUES[SHAPE.worst - 1])}`,
-  takeaway: SHAPE.upperMiddle ? 'Falls in income peak in the upper-middle deciles, as the study reports' : 'The fall in income differs across the distribution; the bottom decile is not a finding',
 };
 // The deciles the first step lights: the upper-middle ones (6 to 9) when the
 // largest fall is there, else the largest fall alone.

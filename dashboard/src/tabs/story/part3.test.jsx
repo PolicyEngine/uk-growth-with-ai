@@ -134,21 +134,31 @@ describe('Part3', () => {
     // the close of part 3 is a static header: question, then its answer
     const head = container.querySelector('.p3-close [data-scene]');
     expect(head.querySelector('.scene-head-q').textContent).toBe('What does the study leave out?');
-    expect(head.querySelector('.scene-head-a').textContent).toContain('Re-employment');
+    expect(head.nextElementSibling.querySelector('.scrolly-answer-a').textContent).toContain('Re-employment');
+    // no Scrolly in part 3 ends in a takeaway strip; the hedge it carried is in the step
+    expect(container.querySelector('#story-part-3 .scrolly-takeaway')).toBeNull();
+    const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
+    expect(line('p3-central-step-2')).toContain('The assumed year of job loss');
+    expect(line('p3-channels-step-2')).toContain('Assumed higher pay');
+    expect(line('p3-moves-step')).toContain('assumed wage');
   });
 
-  it('gives every topic a neutral question and a takeaway with no figures', () => {
+  it('gives every topic a neutral question and an answer; only the closes keep a takeaway, with no figures', () => {
     for (const sub of [CENTRAL_SUB, CHANNELS_SUB, ABSORB_SUB, DECILES_SUB, rulesSub(), marginSub(), movesSub(), CLOSING_SUB, CLOSE_SUB]) {
       expect(sub.question, sub.title).toMatch(/\?$/);
-      expect(sub.takeaway, sub.title).toBeTruthy();
-      expect(sub.takeaway, sub.title).not.toMatch(/\d/);
       expect(sub.question, sub.title).not.toMatch(/\d/);
       expect(sub.answer, sub.title).toBeTruthy();
     }
-    // every Scrolly topic has a hint, and an answer that links to its home (data-axis, not a second home)
+    for (const sub of [CLOSING_SUB, CLOSE_SUB]) {
+      expect(sub.takeaway, sub.title).toBeTruthy();
+      expect(sub.takeaway, sub.title).not.toMatch(/\d/);
+    }
+    // every Scrolly topic has a hint, and an answer that links to its home (data-axis, not a second home);
+    // its last step and answer close it, with no takeaway strip repeating a step (Fable, batch 2)
     for (const sub of [CENTRAL_SUB, CHANNELS_SUB, ABSORB_SUB, DECILES_SUB, rulesSub(), marginSub(), movesSub()]) {
       expect(sub.hint, sub.title).toBeTruthy();
       expect(sub.answerTo, sub.title).toMatch(/^p3-.*-step$/);
+      expect(sub.takeaway, sub.title).toBeUndefined();
     }
     expect(P3_RECAP).toHaveLength(3);
     for (const r of P3_RECAP) {

@@ -167,7 +167,6 @@ function MarginFigure({ ctx }) {
 }
 
 export function marginSub() {
-  const c = marginClaims();
   return {
     title: 'Job loss or wage cuts',
     icon: 'wageCut',
@@ -176,10 +175,6 @@ export function marginSub() {
     key: 'job loss or wage cuts',
     answer: `Per £1 lost: ${fmtPence(J.government_p)} against ${fmtPence(W.government_p)}; poverty ${fmtPp(JOB.poverty_pp)} against ${fmtPp(CUT.poverty_pp)}`,
     answerTo: 'p3-margin-step',
-    takeaway:
-      c.perPoundMore !== c.povertyMore
-        ? `${c.perPoundMore === 'job' ? 'Job loss weighs' : 'Wage cuts weigh'} more on the public finances per pound; ${c.povertyMore === 'job' ? 'job loss weighs' : 'wage cuts weigh'} more on poverty`
-        : `${c.povertyMore === 'job' ? 'Job loss weighs' : 'Wage cuts weigh'} more on both the public finances and poverty`,
   };
 }
 

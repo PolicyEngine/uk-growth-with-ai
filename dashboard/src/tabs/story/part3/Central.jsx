@@ -173,7 +173,6 @@ export const CENTRAL_SUB = {
   key: 'central',
   answerTo: 'p3-central-step',
   answer: `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,
-  takeaway: `A year of assumed job loss ${COSTS ? 'costs the public finances' : 'adds to net receipts'}, ${up(H.central_poverty.value)} poverty and ${up(H.central_gini.value)} inequality`,
 };
 
 // The fold: the assumptions with their sources, then the caveats and
@@ -245,7 +244,7 @@ export const CENTRAL_STEPS = [
     highlight: ['f-cost', 'f-poverty', 'f-relative', 'f-gini'],
     title: (
       <>
-        <Num n={2} mark="f-cost" /> The year {COSTS ? 'costs the public finances' : 'adds to net receipts'}, {up(H.central_poverty.value)} poverty and {up(H.central_gini.value)} inequality
+        <Num n={2} mark="f-cost" /> The assumed year of job loss {COSTS ? 'costs the public finances' : 'adds to net receipts'}, {up(H.central_poverty.value)} poverty and {up(H.central_gini.value)} inequality
       </>
     ),
     body: <Fold groups={CENTRAL_FOLD} />,

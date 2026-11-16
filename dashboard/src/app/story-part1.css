@@ -1097,10 +1097,17 @@
   gap: 10px;
   align-items: baseline;
   justify-content: space-between;
+  flex-wrap: wrap;
+  min-width: 0;
   max-width: 340px;
   font-size: var(--fs-body);
 }
+/* on a phone the key wraps rather than pushing the card off the screen */
+.p1-groups-say .hl-key {
+  white-space: normal;
+}
 .p1-groups-say .hl-fig {
+  margin-left: auto;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }

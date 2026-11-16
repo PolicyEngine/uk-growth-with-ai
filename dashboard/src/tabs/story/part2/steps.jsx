@@ -338,8 +338,8 @@ export function armsCardSteps(sid, closure) {
       body: (
         <>
           <Say kind="finding">
-            <Key id="gdp-tz">Technology unchanged</Key> {tz?.icon === 'gapDown' ? 'is lower' : 'is at least as high'}; the <Key id="gdp-ss">stress test</Key> holds GDP
-            on the path.
+            <Key id="gdp-tz">Technology unchanged</Key> {tz?.icon === 'gapDown' ? 'is lower' : 'is at least as high'}; the <Key id="gdp-ss">stress test</Key> returns GDP
+            to the path by {HEADLINE_YEAR}.
           </Say>
           <Fold
             title="The stress test"

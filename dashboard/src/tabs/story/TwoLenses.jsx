@@ -9,7 +9,7 @@ import { NavLink } from '@/lib/nav.jsx';
 import { MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { REFS } from './part3/sources.jsx';
 import { decileShape } from './part3/Deciles.jsx';
-import QStage from '@/components/story/QStage.jsx';
+import QStage, { Answer } from '@/components/story/QStage.jsx';
 import { P3_RECAP } from './Part3.jsx';
 
 // The close of the story: the two models side by side, each with a header
@@ -104,11 +104,9 @@ export default function TwoLenses() {
           <Icon name={iconFor('question')} size={28} className="lens-ico lens-h-ico" />
           {CLOSE_SUB.question}
         </h2>
-        <p className="scene-head-a is-shown lens-answer" id="q-story-close">
-          <Icon name={iconFor('answer')} size={14} />
-          <span className="scene-head-a-label">Answer</span>
-          <span className="scene-head-a-text">{CLOSE_SUB.answer}</span>
-        </p>
+        <div className="topic-head-answer" id="q-story-close">
+          <Answer question={null} answer={CLOSE_SUB.answer} shown />
+        </div>
         <p>
           <Icon name={iconFor('limit')} size={18} className="lens-ico" /> Different models, years and assumptions: their numbers are not added or compared.
         </p>

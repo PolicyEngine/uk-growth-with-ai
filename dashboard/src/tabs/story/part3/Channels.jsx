@@ -132,9 +132,6 @@ export const CHANNELS_SUB = {
   key: 'cost',
   answerTo: 'p3-channels-step',
   answer: `Job loss alone ${fmtBn(row('displacement').cost_bn)}; netted, ${fmtBn(C.sum_bn)}`,
-  takeaway: bigger
-    ? 'The net cost is far smaller than the cost of job loss alone: assumed higher pay and capital income offset much of it'
-    : 'The net cost combines job loss with the two assumed income rises',
 };
 
 // The two assumed income rises and the net, in one sentence: their words
@@ -145,7 +142,7 @@ function risesSentence() {
   const both = w === c ? w.replace('raises', 'raise').replace('costs', 'cost').replace('leaves', 'leave') : null;
   return (
     <>
-      <Num n={2} mark="wage" /> <Key id="wage">Higher pay</Key> and <Num n={3} mark="capital" /> <Key id="capital">capital income</Key> {both ?? `: ${w}; ${c}`}, leaving{' '}
+      <Num n={2} mark="wage" /> Assumed <Key id="wage">higher pay</Key> and <Num n={3} mark="capital" /> <Key id="capital">capital income</Key> {both ?? `: ${w}; ${c}`}, leaving{' '}
       {bigger ? 'a far smaller cost' : 'the net cost'} <Num n={4} mark="sum" />
     </>
   );

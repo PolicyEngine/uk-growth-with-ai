@@ -117,7 +117,7 @@ export const SUBS = {
 export const RECAP = [
   { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the OBR-central path in every scenario', to: 'story-headline' },
   { icon: 'outputSplit', q: 'Who gets the extra output?', a: 'Capital income rises more than GDP', to: 'story-output' },
-  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; some adults lose', to: { tab: 'explore', sub: 'who' } },
+  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; on other measures some lose', to: { tab: 'explore', sub: 'who' } },
 ].map((it) => ({ ...it, text: it.a }));
 
 export default function Part2({ part }) {

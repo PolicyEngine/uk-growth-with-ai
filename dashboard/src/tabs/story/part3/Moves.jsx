@@ -226,7 +226,6 @@ function MovesFigure({ active, all = false, ctx }) {
 const LABEL = 'Break-even values of three assumptions, and the cost with full benefit take-up and new-style JSA';
 
 export function movesSub() {
-  const t = takeupDirections();
   return {
     title: 'What moves the cost',
     icon: 'breakEven',
@@ -235,7 +234,6 @@ export function movesSub() {
     key: 'assumptions',
     answer: `Break-even: wages ${fmtPctSigned1(BE.wage.value_pct)}, capital income ${fmtPctSigned0(BE.capital.value_pct)}`,
     answerTo: 'p3-moves-step',
-    takeaway: `The cost’s sign turns on the assumed wage and capital-income rises and time out of work; fuller benefit take-up ${t.cost.word === 'rises' ? 'adds to it' : t.cost.word === 'falls' ? 'lowers it' : 'leaves it unchanged'}`,
   };
 }
 
@@ -253,7 +251,7 @@ export const MOVES_STEPS = [
     highlight: ['breakeven'],
     title: (
       <>
-        A {more(BW)} wage <Num n={1} mark="be-wage" /> or {more(BC) === more(BW) ? '' : `${more(BC)} `}capital-income <Num n={2} mark="be-capital" /> rise, or {spell} spells <Num n={3} mark="be-duration" />, erase the cost
+        A {more(BW)} assumed wage <Num n={1} mark="be-wage" /> or {more(BC) === more(BW) ? '' : `${more(BC)} `}capital-income <Num n={2} mark="be-capital" /> rise, or {spell} spells <Num n={3} mark="be-duration" />, erase the cost
       </>
     ),
     body: (

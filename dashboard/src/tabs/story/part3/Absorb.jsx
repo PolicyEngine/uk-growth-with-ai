@@ -213,7 +213,6 @@ export const ABSORB_SUB = {
   key: 'lost pound',
   answerTo: 'p3-absorb-step',
   answer: `Households bear ${fmtBn(S.total.disposable_bn)} of ${fmtBn(S.total.earnings_lost_bn)}`,
-  takeaway: MOST ? 'Households bear most of the earnings lost; lower tax, more benefits and other items take the rest' : 'Tax and benefits absorb much of the earnings lost',
 };
 
 // Three sentences, each lighting one destination; one card (the Sankey is

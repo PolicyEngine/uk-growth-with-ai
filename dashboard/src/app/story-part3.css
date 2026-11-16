@@ -1455,6 +1455,15 @@ svg.p3-dim {
   transform-origin: left center;
   transition: transform 500ms var(--story-ease) calc(var(--beat, 0ms) + 250ms);
 }
+/* the mark spans the track, so a filter on it (dimmed or pulsing) keeps its children's left: X% */
+.p3-db-mark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.p3-db-mark .p3-db-dot {
+  pointer-events: auto;
+}
 .p3-db-mark .p3-db-dot,
 .p3-db-seg {
   opacity: 0;
@@ -1984,6 +1993,14 @@ svg.p3-dim {
 #p3-absorb.has-sub .scrolly-graphic {
   grid-row: 3;
 }
+/* its answer after the Sankey (Scrolly answerAfter), not above it */
+#p3-absorb > .scrolly-answer-after {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+#p3-absorb.has-sub > .scrolly-answer-after {
+  grid-row: 4;
+}
 /* step 8 on wide screens: the nine tiles in two rows across the full width */
 @media (min-width: 1100px) {
   #story-part-3 .p3-close {
@@ -2099,19 +2116,19 @@ svg.p3-dim {
     min-height: calc((1515px - 100vh) / 2 - 32px);
   }
   #p3-channels .scrolly-card {
-    min-height: calc((1442px - 100vh) / 2 - 32px);
+    min-height: calc((1322px - 100vh) / 2 - 32px);
   }
   #p3-deciles .scrolly-card {
     min-height: calc((1580px - 100vh) / 3 - 32px);
   }
   #p3-rules .scrolly-card {
-    min-height: calc((1418px - 100vh) / 2 - 32px);
+    min-height: calc((1298px - 100vh) / 2 - 32px);
   }
   #p3-margin .scrolly-card {
-    min-height: calc((1418px - 100vh) / 2 - 32px);
+    min-height: calc((1298px - 100vh) / 2 - 32px);
   }
   #p3-moves .scrolly-card {
-    min-height: calc((1380px - 100vh) / 2 - 32px);
+    min-height: calc((1260px - 100vh) / 2 - 32px);
   }
 }
 

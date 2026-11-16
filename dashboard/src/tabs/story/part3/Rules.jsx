@@ -136,7 +136,6 @@ function RulesFigure({ ctx }) {
 
 const CLAIMS = rulesClaims();
 export function rulesSub() {
-  const c = CLAIMS;
   const rs = ROWS.map((r) => rule(r.id).cost_bn);
   return {
     title: 'Who loses the job',
@@ -146,7 +145,6 @@ export function rulesSub() {
     key: 'who',
     answer: `Cost ${fmtBn(Math.min(...rs))} to ${fmtBn(Math.max(...rs))} a year by rule`,
     answerTo: 'p3-rules-step',
-    takeaway: c.costFar ? 'Who is displaced moves the cost far more than it moves the poverty rise' : 'Who is displaced moves both the cost and the poverty rise',
   };
 }
 

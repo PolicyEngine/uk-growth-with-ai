@@ -9,6 +9,7 @@ import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
 import { FileLink, PR_URL as STUDY_PR_URL } from './sources.jsx';
 import { Fig as FigChip } from '@/components/story/highlight.jsx';
+import { Answer } from '@/components/story/QStage.jsx';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
 // the source line, the chips and the bar rows. Figure text is HTML; bars are
@@ -258,7 +259,8 @@ export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.s
 // and outside Scrolly the question is a static header with its answer).
 export function SceneHead({ title, icon, question, answer, id, qid }) {
   return (
-    <header className={`scene-head p3-scene-head${question ? ' has-q' : ''}${answer ? ' has-a' : ''}`} data-scene={title} id={qid}>
+    <>
+      <header className={`scene-head p3-scene-head${question ? ' has-q' : ''}${answer ? ' has-a' : ''}`} data-scene={title} id={qid}>
       <span className="scene-head-row">
         <Ico c={icon} size={16} />
         <h3 className="scene-head-title" id={id}>
@@ -272,14 +274,13 @@ export function SceneHead({ title, icon, question, answer, id, qid }) {
         ) : null}
         <span className="scene-head-rule" aria-hidden="true" />
       </span>
+      </header>
       {answer ? (
-        <p className="scene-head-a is-shown">
-          <Ico c="answer" size={14} />
-          <span className="scene-head-a-label">Answer</span>
-          <span className="scene-head-a-text">{answer}</span>
-        </p>
+        <div className="topic-head-answer">
+          <Answer question={null} answer={answer} shown />
+        </div>
       ) : null}
-    </header>
+    </>
   );
 }
 
