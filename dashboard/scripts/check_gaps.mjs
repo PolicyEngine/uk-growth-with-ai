@@ -38,6 +38,12 @@ for (let y = 0; y < height - H; y += Math.round(H / 3)) {
       return s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity) > 0.05;
     };
     const walker = document.createTreeWalker(document.querySelector('.tab-panel:not([hidden])') ?? document.body, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+    // the site footer under the panel is content too (the band above it at
+    // the page's end is measured to it, not to the viewport's foot)
+    for (const el of document.querySelectorAll('footer')) {
+      const b = el.getBoundingClientRect();
+      if (b.height > 0) spans.push([b.top, b.bottom, b.left, b.right]);
+    }
     // the pinned question screens: content by definition
     for (const el of document.querySelectorAll('[data-gap-exempt]')) {
       const b = el.getBoundingClientRect();

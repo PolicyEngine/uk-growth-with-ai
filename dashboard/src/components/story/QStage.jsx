@@ -68,10 +68,11 @@ export default function QStage({ id, question, hint, icon, keyWord, part, onPhas
       // the card's own place (top of the stage + its padding): pinned at
       // mid once it gets there, pushed up again by the stage's foot
       const natural = r.top + pad + H / 2;
-      const foot = r.bottom - H / 2;
+      // pushed up by the stage's foot, clear of the header below
+      const foot = r.bottom - H / 2 - 28;
       const y = Math.min(Math.max(natural, mid), foot);
       const qa = Math.min(1, Math.max(0, (V - r.top) / (0.55 * V)));
-      const qm = Math.min(1, Math.max(0, (mid + H / 2 - r.bottom) / Math.max(1, mid + H / 2 - R)));
+      const qm = Math.min(1, Math.max(0, (mid + H / 2 + 28 - r.bottom) / Math.max(1, mid + H / 2 + 28 - R)));
       el.style.setProperty('--qy', `${Math.round(y - natural)}px`);
       el.style.setProperty('--qa', qa.toFixed(3));
       el.style.setProperty('--qm', qm.toFixed(3));
