@@ -2481,3 +2481,6 @@
 
 /* Slope chart axis titles (SVG) */
 .ex-slope-axis-title { font-size: 10px; fill: var(--pe-color-gray-600); }
+
+/* Households plane axis titles (SVG) */
+.hh-axis-title { font-size: 11px; fill: var(--pe-color-gray-600); }

@@ -8,6 +8,10 @@ import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
+import { linkAiFiles } from '@/tabs/explore/sources.jsx';
+import { AxisTitles } from '@/tabs/explore/axes.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, PR_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { Chip, Notes, Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
@@ -21,8 +25,42 @@ import { Chip, Notes, Plane, PointList, STEP, StoryRef, signedTick } from './cha
 // data/aiStudy2425.json (docs/story/part3-notes.md); the two models are never
 // drawn together here.
 
-const CTX = `uk-ai-study PR #${D.source.pr} (provisional), ${D.source.dataset}, ${MODEL_YEAR}, commit ${D.source.commit.slice(0, 7)}`;
-const bnSmall = (v) => (Math.abs(v) < 0.05 ? 'under £0.1bn' : fmtBn(v));
+// The study's model year and status come from the data file (the refreshed
+// file carries model_year_label, provisional and status; the older one only
+// the shared MODEL_YEAR).
+const YEAR = D.model_year_label ?? MODEL_YEAR;
+const STATUS = D.provisional === false ? (D.status ?? null) : 'provisional';
+const PR = D.source.pr_url ?? PR_URL;
+const PAPER = D.source.paper_url ?? PAPER_URL;
+const CTX = `uk-ai-study PR #${D.source.pr}${STATUS ? ` (${STATUS})` : ''}, ${D.source.dataset}, ${YEAR}, commit ${D.source.commit.slice(0, 7)}`;
+// Orderings in words, computed, so a rerun that moves them changes the text.
+const span = (is) => {
+  const runs = [];
+  for (const i of is) {
+    const last = runs[runs.length - 1];
+    if (last && i === last[1] + 1) last[1] = i;
+    else runs.push([i, i]);
+  }
+  return runs.map(([a, b]) => (a === b ? `${a}` : `${a} to ${b}`)).join(', ');
+};
+export function rankingsWords(R) {
+  const sgn = (x) => (x > 0 ? 1 : x < 0 ? -1 : 0);
+  const same = [];
+  const flip = [];
+  for (let i = 0; i < 10; i += 1) (new Set(R.map((r) => sgn(r.values[i]))).size === 1 ? same : flip).push(i + 1);
+  if (!flip.length) return 'Every decile has the same sign under all three rankings';
+  return `Deciles ${span(same)} have the same sign under all three; ${flip.length === 1 ? `decile ${flip[0]} changes` : `deciles ${span(flip)} change`} sign`;
+}
+export function rulesWords(rules, central = 'exposure') {
+  const c = rules.find((r) => r.id === central);
+  const others = rules.filter((r) => r.id !== central);
+  const every = rules.every((r) => r.poverty_pp > 0);
+  const atLeast = others.filter((r) => r.poverty_pp >= c.poverty_pp).length;
+  const lead = every ? 'Poverty rises under every rule' : 'Poverty does not rise under every rule';
+  if (atLeast === others.length) return `${lead}, by at least as much as centrally under the other ${others.length}`;
+  return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the central rule`;
+}
+const bnSmall = (v) => (Math.abs(v) < 0.05 ? (v < 0 ? 'a saving under £0.1bn' : 'under £0.1bn') : fmtBn(v));
 const OBR_RATE = D.sankey.displacement_rate_pct;
 const I = ({ c, size = 14 }) => <Icon name={iconFor(c) ?? c} size={size} />;
 // a line with a leading icon (Card's finding and unit lines)
@@ -87,6 +125,7 @@ function CostByTax() {
     >
       <div className={entryClass(e, 'hh-wf')} ref={ref}>
         <Replay onClick={e.replay} />
+        <AxisTitles y="Rows: tax and benefit lines" x="Bars: change in each line, £bn a year, stacked from zero" reference="Zero line: no change" />
         <div role="list" className="hh-rowlist">
           {rows.map((r, i) => (
             <div role="listitem" key={r.id} className="hh-wf-row" data-row={r.id}>
@@ -171,7 +210,7 @@ function Variants() {
           <Notes
             how={['Take-up, JSA and wage cuts reuse the central seeds 0 to 19', 'Compare them with the central case on these draws, not the headline']}
             caveats={['The OBR-sized runs are a smaller shock, not steps on the central ladder', `Sized to ${OBR_SCENARIO}`]}
-            sources={['results/robustness/dividend_coverage_draws.csv (run central)', 'results/takeup/takeup_draws.csv', 'results/wage_cut/wage_cut_draws.csv (variant table3)', 'results/next_runs/obr_benchmark.json']}
+            sources={['results/robustness/dividend_coverage_draws.csv (run central)', 'results/takeup/takeup_draws.csv', 'results/wage_cut/wage_cut_draws.csv (variant table3)', 'results/next_runs/obr_benchmark.json', <>26 weeks: the {ext(URLS.jsa, 'new-style JSA limit (GOV.UK)')}</>, <>OBR-sized: the study&rsquo;s conversion of {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}&rsquo;s unemployment rise</>]}
           />
         </>
       }
@@ -187,6 +226,8 @@ function Variants() {
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
+          yTitle="Absolute poverty (before housing costs), change, percentage points"
+          xTitle="Exchequer cost, £bn a year"
         />
       </div>
       <PointList
@@ -232,7 +273,7 @@ function Rules() {
       id="hh-rules"
       icon="users"
       title="Five rules for who loses the job"
-      finding={<Line icon="poverty">Poverty rises under every rule, more than centrally under the other four</Line>}
+      finding={<Line icon="poverty">{rulesWords(D.rules)}</Line>}
       unit={
         <>
           <Line icon="measure">Cost, £bn a year, against absolute poverty, change</Line> <Chip icon="draws">{rule('uniform').draws} paired draws each</Chip>
@@ -245,7 +286,7 @@ function Rules() {
       foot={
         <Notes
           how={['Every rule displaces the same expected number of employees', 'Other wage and capital-income changes are the same; seeds are shared']}
-          caveats={['Junior-tilted: a higher chance for workers aged 16 to 24', 'Compression: doubled chances for top earners in exposed occupations', 'Top-loaded: displacement loaded on above-median earners']}
+          caveats={['The rules are the study’s stylised designs', 'Junior-tilted: a higher chance for workers aged 16 to 24', 'Compression: doubled chances for top earners in exposed occupations', 'Top-loaded: displacement loaded on above-median earners']}
           sources={[`${D.rules[0].file}: exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp`]}
         />
       }
@@ -261,6 +302,8 @@ function Rules() {
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
+          yTitle="Absolute poverty (before housing costs), change, percentage points"
+          xTitle="Exchequer cost, £bn a year"
         />
       </div>
       <PointList
@@ -351,6 +394,7 @@ function PerPound() {
       </p>
       <div className={entryClass(e, 'hh-pp')} ref={ref}>
         <Replay onClick={e.replay} />
+        <AxisTitles y="Rows: job loss and wage cuts" x="Bar: where each pound of lost gross pay goes, pence" />
         <div className="hh-pp-group">
           <p className="hh-pp-head">
             <Chip icon="draws">{D.per_pound_20.draws} paired draws</Chip>
@@ -443,7 +487,7 @@ function Displaced() {
       id="hh-displaced"
       icon="usersRound"
       title="Who the displaced are"
-      finding={<Line icon="benefits">Capital, a working partner or a home: UC replaces little</Line>}
+      finding={<Line icon="benefits">Capital, a working partner or a home each limit UC entitlement</Line>}
       unit={
         <>
           <Line icon="households">Benefit units with a displaced worker</Line> <Chip icon="limit" tone="b">OBR-sized run</Chip>
@@ -460,14 +504,15 @@ function Displaced() {
         <>
           <OutsideRebuildFlag className="hh-flag" />
           <Notes
-            caveats={['Shares count benefit units, not persons', 'The groups overlap; the data give no cross-tabulation']}
-            sources={[`${X.claim_uc.file} (diagnostics.obr, existing_unemployed)`, `UC per worker: ${X.uc_per_displaced.file}`, 'results/takeup/takeup_draws.csv']}
+            caveats={['Shares count benefit units, not persons', 'The groups overlap; the data give no cross-tabulation', 'Take-up flags: the dataset’s imputation, not DWP take-up statistics']}
+            sources={[`${X.claim_uc.file} (diagnostics.obr, existing_unemployed)`, `UC per worker: ${X.uc_per_displaced.file}`, 'results/takeup/takeup_draws.csv', <>Capital limit: {ext(URLS.ucEligibility, 'UC eligibility (GOV.UK)')}</>]}
           />
         </>
       }
     >
       <div className={entryClass(e, 'hh-disp')} ref={ref}>
         <Replay onClick={e.replay} />
+        <AxisTitles y="Rows: benefit units with a displaced worker" x="Bar: share of those units, %" />
         <ol className="hh-funnel">
           {stages.map(([k, name, v, base], i) => (
             <li key={k} className="hh-funnel-row" data-row={k}>
@@ -556,7 +601,7 @@ function Rankings() {
       id="hh-rankings"
       icon="bars"
       title="Deciles under three rankings"
-      finding={<Line icon="deciles">Deciles 2 to 10 look alike under all three; decile 1 changes sign</Line>}
+      finding={<Line icon="deciles">{rankingsWords(R)}</Line>}
       unit={
         <>
           <Line icon="measure">Change in disposable income before housing costs, %, central case</Line> <Chip icon="draws">{D.deciles.draws} draws</Chip>
@@ -583,6 +628,7 @@ function Rankings() {
       </p>
       <div className={entryClass(e, 'hh-db')} ref={ref}>
         <Replay onClick={e.replay} />
+        <AxisTitles y="Rows: income decile, 1 = bottom" x="Change in disposable income before housing costs, %" reference="Zero line: no change" />
         <div className="hh-db-axis" aria-hidden="true" data-axis="">
           <span />
           <span className="hh-db-ticks">
@@ -672,13 +718,14 @@ function Policy() {
       foot={
         <Notes
           how={['Each response simulated on top of the central shock', 'Poverty lines held at their shocked values', 'Wage insurance: an untaxed transfer, so its cost is gross', 'The two UC changes: costs net of withdrawal elsewhere']}
-          caveats={['The designs differ in aim, take-up and administration', 'Compared on cost, poverty and the Gini only, not ranked']}
+          caveats={['The designs are the study’s own; no external source', 'The designs differ in aim, take-up and administration', 'Compared on cost, poverty and the Gini only, not ranked']}
           sources={[`${P.file}: ${P.key}`]}
         />
       }
     >
       <div className={entryClass(e, 'hh-pol')} ref={ref}>
         <Replay onClick={e.replay} />
+        <AxisTitles y="Cards: one policy response each" x="Bar: Exchequer cost, £bn a year" />
         <ul className="hh-pol-cards">
           {main.map((r, i) => {
             return (
@@ -717,12 +764,12 @@ const FILES = [
   ['The central case', 'results/robustness/central_monte_carlo.json'],
   ['Cost by tax and benefit', D.cost_components.file],
   ['Channels', D.channels.file],
-  ['Take-up and JSA', 'results/takeup/takeup_draws.csv, takeup_runs.json'],
+  ['Take-up and JSA', 'results/takeup/takeup_draws.csv, results/takeup/takeup_runs.json'],
   ['Wage cuts', 'results/wage_cut/wage_cut_draws.csv'],
-  ['OBR-sized runs and the Sankey', 'results/next_runs/obr_benchmark.json, obr_benchmark_draws.csv, obr_household_deciles.csv'],
+  ['OBR-sized runs and the Sankey', 'results/next_runs/obr_benchmark.json, results/next_runs/obr_benchmark_draws.csv, results/next_runs/obr_household_deciles.csv'],
   ['Displacement rules', D.rules[0].file],
-  ['Deciles', 'results/appendix/decomposition_ci.csv, decile_ranking_sensitivity.csv'],
-  ['Break-evens', 'results/robustness/survivor_wage_grid.csv, next_runs/capital_variants_draws.csv, robustness/duration_takeup_sensitivity.json'],
+  ['Deciles', 'results/appendix/decomposition_ci.csv, results/appendix/decile_ranking_sensitivity.csv'],
+  ['Break-evens', 'results/robustness/survivor_wage_grid.csv, results/next_runs/capital_variants_draws.csv, results/robustness/duration_takeup_sensitivity.json'],
   ['Policy responses', D.policy.file],
 ];
 
@@ -732,22 +779,22 @@ function Sources() {
       <div className="hh-sources">
         <Items
           items={[
-            { icon: 'source', text: <>Read from the study’s committed result files, commit <code>{D.source.commit.slice(0, 7)}</code></> },
+            { icon: 'source', text: <>Read from the study’s committed result files, commit <a href={`https://github.com/${D.source.repo}/tree/${D.source.commit}`} target="_blank" rel="noreferrer"><code>{D.source.commit.slice(0, 7)}</code></a></> },
             { icon: 'check', text: <>Each checked against the paper by <code>build_ai_study_data.py</code></> },
           ]}
         />
         <ul data-reference="">
           {FILES.map(([what, f]) => (
             <li key={what}>
-              <b>{what}:</b> <code>{f}</code>
+              <b>{what}:</b> {linkAiFiles(f)}
             </li>
           ))}
         </ul>
         <p className="hh-links">
-          <a href={PAPER_URL} target="_blank" rel="noreferrer">
-            <I c="source" /> The draft paper (PDF)
+          <a href={PAPER} target="_blank" rel="noreferrer">
+            <I c="source" /> {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
           </a>
-          <a href={PR_URL} target="_blank" rel="noreferrer">
+          <a href={PR} target="_blank" rel="noreferrer">
             <I c="code" /> uk-ai-study PR #{D.source.pr}
           </a>
           <NavLink tab="method" sub="households">
@@ -787,12 +834,14 @@ export default function HouseholdsExplore() {
           ))}
         </ul>
         <div className="hh-lead-row">
-          <Notice>
-            <I c="provisional" size={13} /> Provisional
-          </Notice>
-          <span className="hh-chip" title="Every poverty figure on this page is before housing costs (BHC), this dashboard’s default basis">
+          {STATUS === 'provisional' ? (
+            <Notice>
+              <I c="provisional" size={13} /> Provisional
+            </Notice>
+          ) : null}
+          <a className="hh-chip is-link" href={URLS.hbai} target="_blank" rel="noreferrer" title="Every poverty figure on this page is before housing costs (BHC), this dashboard’s default basis; DWP's HBAI publishes both. Absolute poverty: the line is held at its baseline value">
             <I c="poverty" size={13} /> Poverty: before housing costs (default)
-          </span>
+          </a>
           <NavLink tab="story" anchor="story-part-3" className="hh-chip is-link">
             <I c="link" size={13} /> Headlines in story part 3
           </NavLink>
