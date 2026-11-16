@@ -1273,3 +1273,17 @@
     gap: 6px 24px;
   }
 }
+
+/* The hero answer as icon items (Landing.jsx heroItems): a lead size, not
+   the old one-sentence display size */
+.hero-a.hero-items {
+  margin: 12px 0 8px;
+  font-size: clamp(1.125rem, 1.6vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--pe-gray-900);
+}
+.hero-a.hero-items .story-item-icon {
+  color: var(--pe-gray-500);
+}
