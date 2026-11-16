@@ -1,5 +1,7 @@
 'use client';
 
+import { iconFor } from '@/lib/concepts.js';
+
 import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
@@ -18,8 +20,8 @@ import './evidence.css';
 // Published figures are printed in the evidence map; ours on Explore. Here
 // both appear in the tooltips only.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: 'factory', unit: '% against each study’s own baseline; ours against the OBR-central path', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: 'banknote', unit: '% against each study’s own baseline; ours against the OBR-central path', step: 1 },
+  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 1 },
 };
 const OURS = ['uk_central', 'korinek'];
 const n1 = (x) => `${x < 0 ? '−' : x > 0 ? '+' : ''}${String(parseFloat(Math.abs(x).toFixed(2)))}%`;
@@ -142,7 +144,7 @@ export default function RangeBars({ metric }) {
       icon={m.icon}
       title={`${m.title}: ours in ${HEADLINE_YEAR} against published estimates`}
       className="mx-ranges ev-rb"
-      finding="Each figure has one home: published figures are printed in the UK evidence map below, ours on Explore; each row links there, and its tooltip gives the figure. Hover, tap or tab to a row."
+      finding="Published figures live in the evidence map below, ours on Explore; each row links there. Hover, tap or tab to a row."
       unit={m.unit}
       legend={
         <ul className="mx-rb-key">

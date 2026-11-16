@@ -1,5 +1,7 @@
 'use client';
 
+import { iconFor } from '@/lib/concepts.js';
+
 import { useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
 import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
@@ -109,10 +111,10 @@ export default function EvidenceMap({ map = MAP }) {
   return (
     <Card
       id="uk-evidence-map"
-      icon="table"
+      icon={iconFor('table')}
       title="Published estimates of AI’s economic effects"
       className="ev-card"
-      finding={`${published} published figures from ${bodies} institutions and authors, each against its own baseline and at its own horizon, with OG-UK’s rows beside the GDP and wage figures. Filter by measure or country, or sort.`}
+      finding={`${published} published figures from ${bodies} institutions and authors, each on its own baseline and horizon; OG-UK’s rows sit beside them.`}
       controls={
         <ControlBar label="Evidence map: options">
           <ControlGroup label="Measure">

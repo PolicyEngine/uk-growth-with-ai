@@ -1,5 +1,8 @@
 'use client';
 
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
+
 import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
@@ -61,10 +64,10 @@ export default function GrowthCheck() {
   return (
     <Card
       id="growth-check"
-      icon="gauge"
+      icon={iconFor('path')}
       title="The OG-UK baseline against the OBR’s growth forecast"
       className="mx-kpi"
-      finding={`Without the shock, OG-UK’s average GDP growth over ${span} is ${close ? 'close to' : 'not close to'} the OBR’s October 2026 forecast${smoother ? ', but its path is smoother year by year' : ''}. Each year’s figures are under its bar.`}
+      finding={`Without the shock, OG-UK’s average ${span} GDP growth is ${close ? 'close to' : 'not close to'} the OBR’s October 2026 forecast${smoother ? ', but smoother year by year' : ''}.`}
       about={{
         how: 'Ours: GDP growth each year on the committed OG-UK baseline (central closure), from methodFacts.json. The baseline takes some inputs from the OBR but is not fitted to its growth path. OBR: real GDP growth by calendar year. Both averages are of the years shown.',
         sources: (
@@ -84,11 +87,17 @@ export default function GrowthCheck() {
       <div className="mx-kpi-body" ref={ref}>
         <div className="mx-kpi-figs">
           <div>
-            <span className="mx-kpi-k">OG-UK baseline</span>
+            <span className="mx-kpi-k">
+              <Icon name={iconFor('model')} size={14} className="mx-dt-icon" />
+              OG-UK baseline
+            </span>
             <span className="mx-kpi-v ev-kpi-ours">{ours.toFixed(2)}%</span>
           </div>
           <div>
-            <span className="mx-kpi-k">{OBR_GROWTH.label}</span>
+            <span className="mx-kpi-k">
+              <Icon name={iconFor('forecast')} size={14} className="mx-dt-icon" />
+              {OBR_GROWTH.label}
+            </span>
             <span className="mx-kpi-v is-ref">{obr.toFixed(1)}%</span>
           </div>
           <p className="mx-sub">Average GDP growth a year, {span}.</p>
