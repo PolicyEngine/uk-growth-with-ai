@@ -14,7 +14,8 @@ import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
-import { A, OG_DEFAULTS } from '@/tabs/story/part2/sources.jsx';
+import { A, OG_DEFAULTS, resultUrl } from '@/tabs/story/part2/sources.jsx';
+import { URLS } from '@/tabs/ai/links.js';
 
 // The headline: the question, a one-line answer built from the data, three
 // headline figures for the chosen scenario's main arm (automation +
@@ -177,9 +178,11 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
-        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path
+        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path: <A href={URLS.ogUk}>OG-UK</A>
+        &rsquo;s no-shock path. {SURPRISE_YEAR} is a modelling choice, not a forecast
         <InfoTip label="What is the OBR-central path?">
-          The path every figure here is compared with: the economy without the shock, growing at the OBR&rsquo;s central rate. It is defined under {METHOD.shock.label} on Method.
+          The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
+          <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). It is defined under {METHOD.shock.label} on Method.
         </InfoTip>
       </p>
     </div>
@@ -310,7 +313,15 @@ export function SummaryWhy({ sid }) {
         </p>
         <Items
           items={[
-            { key: 'scen', icon: 'scenario', text: 'Scenario results, not forecasts' },
+            {
+              key: 'scen',
+              icon: 'scenario',
+              text: (
+                <>
+                  <A href={resultUrl(sid, 'tfp', cl)}>Scenario results</A>, not forecasts
+                </>
+              ),
+            },
             {
               key: 'size',
               icon: 'shock',
@@ -318,12 +329,12 @@ export function SummaryWhy({ sid }) {
                 <>
                   They depend on the{' '}
                   <NavLink tab="method" sub="how" anchor="m-scenarios">
-                    shock&rsquo;s size: OBR, IMF, Korinek et al.
-                  </NavLink>
+                    shock&rsquo;s size
+                  </NavLink>{' '}
+                  and on foreign capital inflows
                 </>
               ),
             },
-            { key: 'foreign', icon: 'foreign', text: 'And on how much foreign capital flows in' },
             {
               key: 'closure',
               icon: 'closure',

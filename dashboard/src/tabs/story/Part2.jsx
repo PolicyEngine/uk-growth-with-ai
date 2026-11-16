@@ -15,7 +15,7 @@ import { More, Tx } from './part2/frame.jsx';
 import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { EPS2 } from './part2/dir.js';
-import { Items } from '@/components/story/Items.jsx';
+import { Items, Recap } from '@/components/story/Items.jsx';
 import { A, Cite, ResultLinks, resultUrl, OG_DEFAULTS, SRC } from './part2/sources.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
@@ -150,19 +150,8 @@ function scenarioSteps(sid, cl) {
               ? { icon: dir, text: `Main arm: GDP ${dir === 'gapUp' ? 'above' : 'below'} the OBR-central path from ${SURPRISE_YEAR}` }
               : { icon: 'path', text: `Main arm: GDP against the OBR-central path from ${SURPRISE_YEAR}` },
             { icon: 'timing', text: `Then it ${after} once the scenario’s ramp completes in ${HEADLINE_YEAR}` },
-            { icon: 'range', text: 'UK low, central, high: one shape, each higher; the band spans them' },
           ]}
         />
-        <p className="p2-result-links" data-cite="">
-          <Tx icon="source" size={12}>
-            Inputs from <A href={SRC.bp9}>OBR</A>, <A href={SRC.frs26}>OBR</A> and <A href={SRC.imfSip}>IMF</A> figures,{' '}
-            <NavLink tab="method" sub="how" anchor="m-scenarios">
-              derived by this study&rsquo;s rule
-            </NavLink>
-            , not published by them.
-          </Tx>
-        </p>
-        <ResultLinks files={SCENARIOS.map((x) => [x.label, resultUrl(x.id, 'tfp', cl)])} method="m-scenarios" methodText="What each scenario assumes" />
         </>
       ),
     },
@@ -185,7 +174,16 @@ function scenarioSteps(sid, cl) {
               { icon: 'path', text: `${SCEN_NAME[sid]}, chosen at the top, is the coloured line` },
             ]}
           />
-          <More tab="method" sub="how" anchor="m-scenarios">What each scenario assumes, and its sources</More>
+        <p className="p2-result-links" data-cite="">
+          <Tx icon="source" size={12}>
+            UK inputs from <A href={SRC.bp9}>OBR BP9</A>, <A href={SRC.frs26}>OBR FRS</A> and <A href={SRC.imfSip}>IMF</A> figures,{' '}
+            <NavLink tab="method" sub="how" anchor="m-scenarios">
+              derived by this study&rsquo;s rule
+            </NavLink>
+            , not published by them.
+          </Tx>
+        </p>
+        <ResultLinks files={SCENARIOS.map((x) => [x.label, resultUrl(x.id, 'tfp', cl)])} method="m-scenarios" methodText="What each scenario assumes" />
           <More tab="explore" sub="economy" anchor="economy-wall">GDP and national income year by year</More>
         </>
       ),
@@ -252,6 +250,14 @@ function armSteps(sid, closure) {
               tzItem(sid, cl),
             ]}
           />
+          <ResultLinks
+            files={[
+              ['main', resultUrl(sid, 'tfp', cl)],
+              ['unchanged', resultUrl(sid, 'tz', cl)],
+              ['stress test', resultUrl(sid, 'ss', cl)],
+            ]}
+            method="m-arms"
+          />
         </>
       ),
     },
@@ -279,16 +285,7 @@ function armSteps(sid, closure) {
               ]}
             />
           </details>
-          <ResultLinks
-            files={[
-              ['main', resultUrl(sid, 'tfp', cl)],
-              ['unchanged', resultUrl(sid, 'tz', cl)],
-              ['stress test', resultUrl(sid, 'ss', cl)],
-            ]}
-            method="m-arms"
-          />
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
-          <More tab="explore" sub="economy" anchor="economy-wall">Each arm year by year</More>
         </>
       ),
     },
@@ -468,6 +465,7 @@ function debtSteps(sid, closure) {
                     </>
                   ),
                 },
+                { icon: 'ai', text: <>Its productivity growth includes <A href={SRC.bp9}>the OBR&rsquo;s central AI assumption</A></> },
                 { icon: 'limit', text: 'Beyond the OBR’s forecast horizon it is the model’s, not the OBR’s' },
               ]}
             />
@@ -523,24 +521,12 @@ function debtSteps(sid, closure) {
   ];
 }
 
-// Which model this part uses, in one line: the full comparison of the two
-// models closes the story.
-function LensLine() {
-  return (
-    <p className="p2-lens-line">
-      <Tx icon="model">
-        This part uses <A href={SRC.ogUk}>OG-UK</A>, a whole-economy model built on <A href={SRC.ogCore}>OG-Core</A>, with no unemployment. Part 3 uses a different model, not added to it.
-      </Tx>
-    </p>
-  );
-}
-
 // The band that ends part 2: part 3 next, and links to the figures' homes
 // (the tab row's sub-tabs).
 const DEEPER = [
   { tab: 'explore', sub: 'economy', label: 'Economy', icon: 'gdp' },
   { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
-  { tab: 'explore', sub: 'who', label: 'Who gains and who loses', icon: 'age' },
+  { tab: 'explore', sub: 'who', label: 'Gains and losses', icon: 'age' },
   { tab: 'explore', sub: 'economy', anchor: 'ex-across', label: 'Across scenarios', icon: 'range' },
   { tab: 'method', sub: 'how', anchor: 'm-scenarios', label: 'Scenarios', icon: 'scenario' },
   { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
@@ -589,6 +575,13 @@ export const SUBS = {
   },
 };
 
+// What part 2 showed, three items, each to its home, no figure.
+export const RECAP = [
+  { icon: 'gdp', text: 'In every scenario GDP rises above the OBR-central path', to: 'story-headline' },
+  { icon: 'outputSplit', text: 'Capital income gains more than GDP; labour income falls', to: 'story-output' },
+  { icon: 'age', text: 'Gains are largest near retirement; some adults lose', to: { tab: 'explore', sub: 'who' } },
+];
+
 export default function Part2({ part }) {
   const { st } = useNav();
   const sid = st.s;
@@ -622,12 +615,9 @@ export default function Part2({ part }) {
     <>
       <PartHead part={part}>
         <Tx icon="model" size={18}>
-          OG-UK: an AI shock arriving in {SURPRISE_YEAR}, as gaps against the OBR-central path, OG-UK&rsquo;s no-shock path, whose OBR productivity growth already includes{' '}
-          <A href={SRC.bp9}>the OBR&rsquo;s central AI assumption</A>.
+          <A href={SRC.ogUk}>OG-UK</A> (on <A href={SRC.ogCore}>OG-Core</A>, no unemployment): an AI shock in {SURPRISE_YEAR}, as gaps against the OBR-central path. Part 3 uses a different model.
         </Tx>
       </PartHead>
-
-      <LensLine />
 
       <Scrolly
         id="p2-shock"
@@ -655,19 +645,11 @@ export default function Part2({ part }) {
         </h3>
         <p className="p2-headline-lead">
           <Tx icon="path" size={16}>
-            The main arm, automation + productivity, against the OBR-central path. Change the scenario or closure at the top of the page.
+            The main arm, automation + productivity, against the OBR-central path. Change the scenario or closure at the top.
           </Tx>
         </p>
         <HeadlineTiles sid={sid} />
         <SummaryWhy sid={sid} />
-        <ResultLinks
-          files={[
-            ['result file', resultUrl(sid, 'tfp', cl)],
-            ...(closure === 'both' ? [['closed-capital result file', resultUrl(sid, 'tfp', BOUND)]] : []),
-          ]}
-          method="m-measures"
-          methodText="The three income measures"
-        />
       </Reveal>
 
       <OutputSplit sid={sid} closure={closure} />
@@ -689,6 +671,8 @@ export default function Part2({ part }) {
         steps={whoSteps(sid)}
         graphic={(i) => <WelfareShape state={i} />}
       />
+
+      <Recap items={RECAP} />
 
       <NextBand />
     </>

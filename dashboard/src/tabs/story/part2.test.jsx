@@ -464,6 +464,7 @@ describe('direction icons follow the signs', () => {
     const part = container.querySelector('#story-part-2');
     for (const svg of part.querySelectorAll('svg[role="img"]')) {
       const fig = svg.closest('figure');
+      if (fig?.hasAttribute('data-no-axes')) continue;
       expect(fig?.querySelector('[data-axis-title="y"]'), svg.getAttribute('aria-label')).not.toBeNull();
     }
     unmount();

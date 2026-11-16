@@ -188,7 +188,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   const [replay, setReplay] = useState(0);
   const [paused, setPaused] = useState(false);
   const graph = base ? sankeyGraph(base, true) : null;
-  const where = `${SCEN_NAME[sid]}, automation + productivity, common fiscal rule`;
+  const where = `${SCEN_NAME[sid]}, main arm, common fiscal rule`;
   const sankeyLabel = base
     ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
@@ -352,13 +352,13 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
         <span className="p2-src-line">
           <Tx icon="source" size={12}>
             <ModelSource method="m-measures" />{' '}
-            Changes: {where}. Taxes are not split out (one combined income tax series).
+            Changes: {where}; taxes not split out.
           </Tx>
         </span>
         {ch ? (
           <span className="p2-src-line">
             <Tx icon="caveat" size={12}>
-              Rounded, so parts may not add to totals; the GDP bar ends at the headline GDP figure.
+              Rounded: parts may not add up; the GDP bar ends at the headline figure.
             </Tx>
           </span>
         ) : null}
@@ -416,17 +416,6 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
               ),
             },
             {
-              icon: 'measure',
-              text: (
-                <>
-                  Its size: <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, counting the self-employed, unlike{' '}
-                  <NavLink tab="story" anchor="p1-share">
-                    part 1&rsquo;s ONS share
-                  </NavLink>
-                </>
-              ),
-            },
-            {
               icon: 'capital',
               text: <>{c0('capital', 'Gross capital income')}: the rest, paid to capital&rsquo;s owners</>,
             },
@@ -444,6 +433,17 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
             { icon: 'capital', text: <>{c1('domestic', 'Kept in the UK')} as net capital income</> },
             { icon: 'foreign', text: <>{c1('foreign', 'Net paid abroad')}: GDP less GNI, a net flow</> },
             { icon: 'depreciation', text: <>{c1('depreciation', 'Depreciation')}: replaces capital that wears out</> },
+            {
+              icon: 'measure',
+              text: (
+                <>
+                  Labour income&rsquo;s size: <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, counting self-employed, unlike{' '}
+                  <NavLink tab="story" anchor="p1-share">
+                    part 1&rsquo;s ONS share
+                  </NavLink>
+                </>
+              ),
+            },
           ]}
         />
       ),
@@ -486,14 +486,15 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
   ];
 }
 
-// The block's opener (Scrolly renders it): a question the block answers,
-// and one takeaway with no figure. The title avoids "Where output goes in",
+// The block's question (in its lead: a Scrolly opener's sticky header
+// would leave the tall figure too little room at 1366x650) and takeaway
+// (the last card's closing line). The title avoids "Where output goes in",
 // which part2.py reads as the start of the block's figures.
 export const OUTPUT_SUB = {
   title: 'Where output goes',
   icon: 'outputSplit',
   question: 'Who receives the extra output: workers, capital’s owners at home or abroad?',
-  takeaway: 'In the main arm, capital income rises by more than GDP and labour income falls; part of the gain leaves the UK or replaces worn capital.',
+  takeaway: 'Capital income rises by more than GDP, and labour income falls.',
 };
 
 export default function OutputSplit({ sid, closure }) {
@@ -506,21 +507,17 @@ export default function OutputSplit({ sid, closure }) {
   const steps = outputSteps(sid, cl, base, ch, hl, setHl, phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
-      {/* phones: the heading and lead; desktop: the block's opener (sub)
-          names the topic, and the heading stays for the outline */}
-      <h3 id="story-output-h" className={phone ? 'p2-headline-title' : 'visually-hidden'}>
+      <h3 id="story-output-h" className="p2-headline-title">
         <Tx icon="outputSplit" size={22}>
           Where output goes in {SPLIT_YEAR}
         </Tx>
       </h3>
-      {phone || both ? (
-        <p className="p2-headline-lead">
-          <Tx icon="path" size={16}>
-            {phone ? <>First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part. </> : null}
-            {both ? 'With both closures chosen above, both figures show the central closure.' : null}
-          </Tx>
-        </p>
-      ) : null}
+      <p className="p2-headline-lead">
+        <Tx icon="path" size={16}>
+          {OUTPUT_SUB.question}{' '}
+          {both ? 'With both closures chosen above, both figures show the central closure.' : null}
+        </Tx>
+      </p>
       {phone ? (
         <div className="p2-output-static">
           <OutputGraphic state={2} all sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
@@ -539,7 +536,6 @@ export default function OutputSplit({ sid, closure }) {
       ) : (
         <Scrolly
           id="p2-output"
-          sub={OUTPUT_SUB}
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={steps}
           graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
