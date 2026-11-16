@@ -124,18 +124,25 @@ export function Recap({ title = 'What you just learned', items, className = '' }
           return (
             <li key={it.key ?? i}>
               <NavLink tab={to.tab ?? 'story'} sub={to.sub} anchor={to.anchor} className={`story-recap-chip${it.q != null ? ' is-qa' : ''}`}>
-                <Icon name={iconFor(it.icon)} size={14} className="story-recap-chip-icon" />
                 {it.q != null ? (
+                  // two short blocks (question, answer), each led by its icon
                   <span className="story-recap-qa">
-                    <span className="story-recap-q">{it.q}</span>
+                    <p className="story-recap-q">
+                      <Icon name={iconFor(it.icon)} size={14} className="story-recap-chip-icon" />
+                      {it.q}
+                    </p>
                     {it.a != null ? (
-                      <span className="story-recap-a" data-axis="">
+                      <p className="story-recap-a" data-axis="">
+                        <Icon name={iconFor('answer')} size={14} className="story-recap-chip-icon" />
                         {it.a}
-                      </span>
+                      </p>
                     ) : null}
                   </span>
                 ) : (
-                  <span>{it.text}</span>
+                  <>
+                    <Icon name={iconFor(it.icon)} size={14} className="story-recap-chip-icon" />
+                    <span>{it.text}</span>
+                  </>
                 )}
               </NavLink>
             </li>

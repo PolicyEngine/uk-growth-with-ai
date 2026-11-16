@@ -2426,12 +2426,16 @@
   padding: 8px 12px;
   border-radius: 10px;
 }
-.story-recap-chip.is-qa .story-recap-chip-icon {
-  margin-top: 0.2em;
-}
 .story-recap-qa {
   display: grid;
   gap: 2px;
+}
+.story-recap-q,
+.story-recap-a {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
 }
 .story-recap-q {
   color: var(--pe-gray-700);
@@ -2439,6 +2443,10 @@
 .story-recap-a {
   font-weight: 600;
   color: var(--pe-gray-900);
+}
+.story-recap-qa .story-recap-chip-icon {
+  align-self: center;
+  flex: none;
 }
 /* A step's sentence anchored to its mark (MarkCallout.jsx, step.callout) */
 .mark-callout {
