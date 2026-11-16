@@ -136,7 +136,7 @@ export const CONCEPT_ICON = {
   story: 'footprints', // a Story step that uses a Method section
   question: 'question', // a topic's question (Scrolly topic opener)
   takeaway: 'bookmark', // a topic's key takeaway
-  recap: 'listChecks', // what you just learned, at the end of a part
+  recap: 'blocks', // what you just learned (round 1: not a tick, which read as "done")
   copyLink: 'share', // copy a link to this chart
   copyImage: 'copy', // copy the chart as an image
   saveImage: 'imageDown', // download the chart as an image

@@ -7,6 +7,8 @@ import Part3 from './Part3.jsx';
 import StoryRail from './StoryRail.jsx';
 import TwoLenses from './TwoLenses.jsx';
 import { Items } from '@/components/story/Items.jsx';
+import { Hy } from '@/components/story/Hy.jsx';
+import { URLS } from '@/tabs/ai/links.js';
 
 // The story: a hero, then three parts, each a run of scrolly blocks.
 //   1 Where the UK stands: official data only, no forecasts of ours
@@ -16,10 +18,12 @@ import { Items } from '@/components/story/Items.jsx';
 //   Close: what each model can and cannot say (TwoLenses)
 // The part files are one writer each; this shell owns the order and the
 // "you are here" rail (StoryRail).
-// Each part's opener (PartHead / PartOpener): its model badge, a handover
-// line naming the change of model, and chips that link to the homes of its
-// facts (names only: no numbers, each fact has one home). New copy has no
-// digits, so the number check's multiset is unchanged.
+// Each part's opener (PartHead / PartOpener), in four lines: "Part n ·
+// model" (meta), the title, the one question the part answers, and one
+// model line, which carries the handover the old "Next: part n" band said
+// (round 1, plan S5/S6). New copy has no digits, so the number check's
+// multiset is unchanged.
+const ext = { target: '_blank', rel: 'noopener noreferrer' };
 export const PARTS = [
   {
     id: 'story-part-1',
@@ -28,11 +32,8 @@ export const PARTS = [
     kicker: 'Part 1',
     title: 'Where the UK stands',
     model: 'official',
-    chips: [
-      { concept: 'gdp', label: 'Output', anchor: 'p1-output' },
-      { concept: 'pay', label: 'Work and pay', anchor: 'p1-work' },
-      { concept: 'ai', label: 'AI exposure', anchor: 'p1-exposure' },
-    ],
+    question: 'Where do the UK economy and its labour market stand before AI arrives?',
+    modelLine: <Hy>Published statistics only: nothing here is modelled by PolicyEngine, and the one forecast is the OBR’s.</Hy>,
   },
   {
     id: 'story-part-2',
@@ -41,21 +42,21 @@ export const PARTS = [
     kicker: 'Part 2',
     title: 'What a model of the whole economy projects',
     model: 'oguk',
-    handover: 'From measured to modelled: above, published statistics; from here, OG-UK projections, as gaps against the OBR-central path, not forecasts.',
+    question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
+    modelLine: (
+      <>
+        From measured to modelled: <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> (on <a href={URLS.ogCore} {...ext}><Hy>OG-Core</Hy></a>, no unemployment), as gaps against the <Hy>OBR-central</Hy> path, not forecasts.
+      </>
+    ),
     about: (
       <Items
         items={[
           { icon: 'gdp', text: 'A model of the whole economy, over decades' },
           { icon: 'excluded', text: 'It has no unemployment: displacement shows in the wage' },
-          { icon: 'path', text: 'Gaps against the OBR-central path, not forecasts of levels' },
+          { icon: 'path', text: <Hy>Gaps against the OBR-central path, not forecasts of levels</Hy> },
         ]}
       />
     ),
-    chips: [
-      { concept: 'headline', label: 'Headline figures', anchor: 'story-headline' },
-      { concept: 'outputSplit', label: 'Where output goes', anchor: 'story-output' },
-      { concept: 'age', label: 'Who gains', anchor: 'p2-who' },
-    ],
   },
   {
     id: 'story-part-3',
@@ -64,22 +65,17 @@ export const PARTS = [
     kicker: 'Part 3',
     title: 'Jobs, incomes and the public finances',
     model: 'aistudy',
-    answers: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI.',
-    handover: 'A change of model: a one-year microsimulation of households. Its figures are not added to or compared with the whole-economy results.',
+    question: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI?',
+    modelLine: <Hy>A change of model: a one-year microsimulation of households. Its figures are not added to or compared with the whole-economy results.</Hy>,
     about: (
       <Items
         items={[
-          { icon: 'data', text: 'PolicyEngine-UK on Microcosm UK survey data, static, for one year' },
+          { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data, static, for one year</Hy> },
           { icon: 'source', text: 'Merged study; its manifest: no full clean-room rerun' },
-          { icon: 'jobLoss', text: 'People lose their jobs; in OG-UK the labour market clears' },
+          { icon: 'jobLoss', text: <Hy>People lose their jobs; in OG-UK the labour market clears</Hy> },
         ]}
       />
     ),
-    chips: [
-      { concept: 'jobLoss', label: 'The central case', anchor: 'p3-central' },
-      { concept: 'deciles', label: 'Where the loss falls', anchor: 'p3-deciles' },
-      { concept: 'cost', label: 'What moves the cost', anchor: 'p3-moves' },
-    ],
   },
 ];
 // the rail's names are short, so four fit in one row

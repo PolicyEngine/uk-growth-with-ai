@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
-import { useIsPhone, useReducedMotion } from './motion.js';
+import { useReducedMotion, useScrollyEntry } from './motion.js';
 
 const WIPE_STEP = 600; // ms between columns revealed together
 // wave-2 build-up (scene plan section 6), ms
@@ -182,7 +182,10 @@ export default function Sankey({
   const wiping = reveal != null;
   const [ref, W] = useWidth(width);
   const reduce = useReducedMotion();
-  const phone = useIsPhone();
+  // reversible (round 1): inside a Scrolly the pour waits for the figure's
+  // entry, re-arms on each entry (scrolling back above the scene resets
+  // it), and a landing by a jump or a link shows it poured at once
+  const entry = useScrollyEntry();
   const narrow = W < 420;
   const perDepth = Array.isArray(nodeWidth);
   const refined = perDepth || inside || pour != null;
@@ -239,15 +242,18 @@ export default function Sankey({
   }, [laid, W, H]);
 
   // build-up: re-armed by replayKey (one frame at nothing poured)
-  const [armed, setArmed] = useState({ key: replayKey, on: true });
-  if (armed.key !== replayKey) setArmed({ key: replayKey, on: false });
+  const armKey = `${replayKey ?? ''}|${entry?.run ?? 0}`;
+  const [armed, setArmed] = useState({ key: armKey, on: true });
+  if (armed.key !== armKey) setArmed({ key: armKey, on: false });
   useEffect(() => {
     if (armed.on) return undefined;
     const r = requestAnimationFrame(() => requestAnimationFrame(() => setArmed((a) => ({ ...a, on: true }))));
     return () => cancelAnimationFrame(r);
   }, [armed.on]);
   const pouring = pour != null;
-  const poured = pouring ? (armed.on ? pour : 0) : null;
+  const entryOn = !entry || entry.entered;
+  const instant = Boolean(entry?.instant) && !reduce;
+  const poured = pouring ? (armed.on && entryOn ? pour : 0) : null;
   const [pseen, setPseen] = useState({ cur: poured, from: poured ?? 0 });
   if (pseen.cur !== poured) setPseen({ cur: poured, from: Math.min(pseen.cur ?? 0, poured ?? 0) });
   const timing = useMemo(() => {
@@ -279,7 +285,8 @@ export default function Sankey({
     }
     return { link, node, settle: t };
   }, [pouring, pseen.from, poured, laid, pourOrder, pourGap]);
-  const flowing = flow && !reduce && !phone && (!pouring || poured > 0);
+  // at every width (round 1: nothing is static just because the screen is narrow)
+  const flowing = flow && !reduce && (!pouring || poured > 0);
 
   // interactive highlight, end to end
   const [hot, setHot] = useState(null);
@@ -323,7 +330,7 @@ export default function Sankey({
   const svg = (
     <svg
       ref={interactive ? undefined : ref}
-      className={`sankey${interactive ? ' is-interactive' : ''}${pouring ? ' is-pouring' : ''}`}
+      className={`sankey${interactive ? ' is-interactive' : ''}${pouring ? ' is-pouring' : ''}${instant ? ' is-instant' : ''}`}
       viewBox={`0 0 ${W} ${H}`}
       role={focusable ? 'group' : 'img'}
       aria-label={label}
