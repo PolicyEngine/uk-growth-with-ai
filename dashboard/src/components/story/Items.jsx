@@ -4,16 +4,18 @@ import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
-// Short items in place of prose: each one a plain icon (a concept name from
-// lib/concepts.js, or an Icon.jsx key) and about a dozen words.
+// Short items in place of prose, about a dozen words each. Round 1 icon
+// rule: items of one kind take a 4px dot (CSS), no icon; pass `icons` for
+// a list whose items are unlike kinds (at most 4), and each item's `icon`
+// (a concept name from lib/concepts.js) leads it.
 //
 //   <Items items={[{ icon: 'gapUp', text: <>GDP <strong>+0.92%</strong> above the path</> }]} />
-export function Items({ items, className = '' }) {
+export function Items({ items, className = '', icons = false }) {
   return (
-    <ul className={`story-items ${className}`}>
+    <ul className={`story-items${icons ? ' has-icons' : ''} ${className}`}>
       {items.filter(Boolean).map((it, i) => (
         <li key={it.key ?? i}>
-          <Icon name={iconFor(it.icon)} size={16} className="story-item-icon" />
+          {icons ? <Icon name={iconFor(it.icon)} size={16} className="story-item-icon" /> : null}
           <span className="story-item-text">{it.text}</span>
         </li>
       ))}
@@ -108,9 +110,13 @@ export function IconGrid({ items, label, columns = 3, className = '' }) {
 //             checks). `to` is the scene's question anchor, e.g. 'q-p1-output'.
 //
 //   <Recap items={[{ icon: 'gdp', q: 'How fast has the UK economy grown?', a: 'About 1.5% a year since 2010', to: 'q-p1-output' }]} />
-export function Recap({ title = 'What you just learned', items, className = '' }) {
+//
+// Round 1 (plan S4): the recap is off the page. A scene's closing line is
+// the recap and the rail is the map, so Recap renders nothing unless a
+// caller asks for it with `show` (kept for old callers and the tests).
+export function Recap({ title = 'What you just learned', items, className = '', show = false }) {
   const list = (items ?? []).filter(Boolean);
-  if (!list.length) return null;
+  if (!list.length || !show) return null;
   const qa = list.some((it) => it.q != null);
   return (
     <nav className={`story-recap${qa ? ' is-qa' : ''} ${className}`.trim()} aria-label={title}>
