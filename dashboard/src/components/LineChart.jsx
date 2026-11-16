@@ -310,8 +310,11 @@ export default function LineChart({
     markerRows.push({ m, i, end, row: len ? place(a0, w) : 0 });
   }
   const rowsUsed = placed.length ? Math.max(...placed.map((p) => p.row)) + 1 : 1;
-  const TOP = PAD_T + (rowsUsed - 1) * 14;
-  const labelY = (row) => TOP - 6 - row * 14;
+  // A label that reaches left of the plot runs over the top y tick's column:
+  // the label rows then sit LIFT px higher, so the label clears that tick.
+  const LIFT = placed.some((p) => p.a < L) ? 6 : 0;
+  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14;
+  const labelY = (row) => TOP - 6 - LIFT - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
   // edge would be drawn on top of each other, so each off-scale point after
@@ -347,8 +350,11 @@ export default function LineChart({
     prev = e.ly;
     prevH = ROW + e.extra;
   }
-  // If the stack runs past the bottom, push it back up.
-  let floor = H - 10 - 4;
+  // If the stack runs past the bottom, push it back up. When the last year
+  // label reaches into the label column, the floor is the top of the year
+  // row instead, so an end label never sits on that year.
+  const lastYearRight = sx(x.length - 1) + textWidth(String(x[x.length - 1]), AX_FONT) / 2;
+  let floor = lastYearRight + 4 > labelX ? Math.min(H - 14, BOT + 3) : H - 10 - 4;
   for (let i = labels.length - 1; i >= 0; i -= 1) {
     const e = labels[i];
     if (e.ly + e.extra > floor) e.ly = floor - e.extra;

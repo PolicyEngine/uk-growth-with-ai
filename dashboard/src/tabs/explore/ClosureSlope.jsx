@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
+import { useChartBox } from '@/components/story/chart/useChartBox.js';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
@@ -49,11 +50,14 @@ function scaleOf(rows) {
 }
 const tickText = (t) => (Math.abs(t) < 1e-9 ? '0' : `${t > 0 ? '+' : '−'}${Math.abs(t)}`);
 
-const W = 220;
+// Drawn at the panel's measured width (220 before the first measure), so the
+// 11px axis text stays 11px on a phone instead of scaling down with a viewBox.
+const W0 = 220;
 const H = 168;
 const PAD = { l: 34, r: 14, t: 18, b: 22 };
 
 function Panel({ m, rows, sc, hot, setHot, sid }) {
+  const { ref: boxRef, width: W } = useChartBox({ width: W0, height: H });
   const x0 = PAD.l;
   const x1 = W - PAD.r;
   const Y = (v) => PAD.t + ((sc.top - v) / (2 * sc.top)) * (H - PAD.t - PAD.b);
@@ -65,7 +69,8 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
       <figcaption className="ex-slope-title" data-panel-title="">
         <Icon name={iconFor(m.concept)} size={14} /> {m.label}
       </figcaption>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, central closure to closed capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no arm flips sign'}`}>
+      <div ref={boxRef}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, central closure to closed capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no arm flips sign'}`}>
         {sc.ticks.map((t) => (
           <g key={t}>
             <line x1={x0} x2={x1} y1={Y(t)} y2={Y(t)} className={Math.abs(t) < 1e-9 ? 'ex-slope-zero' : 'ex-slope-grid'} />
@@ -108,6 +113,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
           );
         })}
       </svg>
+      </div>
       <div className="ex-slope-foot">
         {active ? (
           <p className="ex-slope-readout" role="status">
