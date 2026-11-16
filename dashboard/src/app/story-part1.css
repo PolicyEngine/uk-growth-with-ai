@@ -466,9 +466,11 @@
 .p1-facts.is-three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px 12px;
-  /* unhyphenated labels are a line shorter; the room below keeps the last
-     exposure state's scroll hold (check_states) */
-  margin-bottom: 36px;
+}
+/* blank room, not content: the exposure labels, unhyphenated, are a line
+   shorter, and this keeps the last exposure state's scroll hold (check_states) */
+#p1-exposure-1 .p1-facts.is-three {
+  margin-bottom: 34px;
 }
 /* three to a row: the icon sits above the number, so each fact is narrow */
 .p1-facts.is-three .story-fact {
@@ -490,6 +492,8 @@
   .p1-facts.is-three {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
+  }
+  #p1-exposure-1 .p1-facts.is-three {
     margin-bottom: 14px;
   }
   .p1-facts.is-three .story-fact {
