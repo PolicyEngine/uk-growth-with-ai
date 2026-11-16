@@ -147,7 +147,7 @@ export default function Central() {
                 { icon: 'measure', text: 'Each employee’s chance is in proportion to their occupation’s AI exposure' },
                 { icon: 'source', text: 'Rate and wage rise follow Doorley et al. (2026), an Irish design' },
                 { icon: 'scenario', text: 'Drawn from one investment-bank scenario of displacement over about a decade' },
-                { icon: 'oneYear', text: 'Applied in one year: an impact-year stress test' },
+                { icon: 'period', text: 'Applied in one year: an impact-year stress test' },
               ]}
             />
           </About>

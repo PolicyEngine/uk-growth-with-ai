@@ -196,7 +196,7 @@ function workSteps() {
           <Items
             items={[
               { icon: 'excluded', text: 'Regular pay leaves out bonuses' },
-              { icon: 'nominal', text: 'On a year earlier, before adjusting for inflation' },
+              { icon: 'measure', text: 'On a year earlier, before adjusting for inflation' },
               { icon: 'survey', text: 'From employers’ payrolls, not the Labour Force Survey' },
             ]}
           />

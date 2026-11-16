@@ -196,13 +196,13 @@ describe('Part3', () => {
     }
     const items = channelItems();
     for (const it of items) expect(it.text).toContain(effectWords(D.channels.rows.find((r) => r.id === it.key).cost_bn));
-    for (const [v] of bottomDecileRankings()) expect(signIcon(v)).toBe(v > 0 ? 'higher' : v < 0 ? 'lower' : 'onPath');
+    for (const [v] of bottomDecileRankings()) expect(signIcon(v)).toBe(v > 0 ? 'rise' : v < 0 ? 'fall' : 'onPath');
     expect(bottomDecileRankings()).toHaveLength(3);
     const t = takeupDirections();
     const dc = ladder('takeup_jsa').cost_bn - ladder('central_20').cost_bn;
     const dp = ladder('takeup_jsa').poverty_pp - ladder('central_20').poverty_pp;
-    expect(t.cost.icon).toBe(dc > 0 ? 'higher' : 'lower');
-    expect(t.poverty.icon).toBe(dp > 0 ? 'higher' : 'lower');
+    expect(t.cost.icon).toBe(dc > 0 ? 'rise' : 'fall');
+    expect(t.poverty.icon).toBe(dp > 0 ? 'rise' : 'fall');
     const text = renderPart().container.textContent;
     expect(text).toContain(`The cost ${t.cost.word}`);
     expect(text).toContain(dp < 0 ? 'The poverty rise is smaller' : 'The poverty rise is larger');

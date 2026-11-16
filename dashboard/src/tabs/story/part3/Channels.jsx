@@ -36,7 +36,7 @@ const HI = Math.max(0, ...C.rows.map((r) => r.cost_bn)) * 1.05;
 function Graphic() {
   return (
     <figure className="p3-figure">
-      <FigureHead icon="netSum" title="The central cost nets three flows" unit="Cost to the public finances of each channel run alone, £bn a year" />
+      <FigureHead icon="arithmetic" title="The central cost nets three flows" unit="Cost to the public finances of each channel run alone, £bn a year" />
       <ol className="p3-rows">
         {ROWS.map((r) => (
           <li key={r.id} className="p3-row is-reached" data-row={r.id}>
@@ -51,7 +51,7 @@ function Graphic() {
         ))}
         <li className="p3-row p3-row-total is-reached" data-row="sum">
           <span className="p3-row-label p3-row-label-icon">
-            <Icon name={iconFor('netSum')} size={14} /> Sum of the three runs
+            <Icon name={iconFor('arithmetic')} size={14} /> Sum of the three runs
           </span>{' '}
           <span className="p3-row-bar">
             <DivBar value={C.sum_bn} lo={LO} hi={HI} fill="p3-fill-cost" />
@@ -64,7 +64,7 @@ function Graphic() {
         items={[
           { icon: 'cost', text: 'Positive: a cost (lower receipts or higher spending)' },
           { icon: 'tax', text: 'Negative: higher net receipts' },
-          { icon: 'netSum', text: <>The three come within about {fmtBn2(C.interaction_bn)} of the full shock</> },
+          { icon: 'arithmetic', text: <>The three come within about {fmtBn2(C.interaction_bn)} of the full shock</> },
           { icon: 'draws', text: `Job loss and wages: mean of ${C.draws} draws; capital income: one run` },
         ]}
       />
@@ -79,7 +79,7 @@ export default function Channels() {
       id: 'p3-channels-step',
       kicker: '2 · Three channels',
       title: 'A cost that is the difference between larger flows',
-      icon: 'netSum',
+      icon: 'arithmetic',
       body: (
         <>
           <Items items={channelItems()} />

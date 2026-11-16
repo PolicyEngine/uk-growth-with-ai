@@ -24,7 +24,7 @@ const MAX = Math.max(...TK.map((r) => ladder(r.id).cost_bn));
 
 // Full take-up and JSA against the central case on the same draws: the
 // direction words and arrows come from the signs of the differences.
-const dir = (d) => (d > 0 ? { icon: 'higher', word: 'rises' } : d < 0 ? { icon: 'lower', word: 'falls' } : { icon: 'onPath', word: 'is unchanged' });
+const dir = (d) => (d > 0 ? { icon: 'rise', word: 'rises' } : d < 0 ? { icon: 'fall', word: 'falls' } : { icon: 'onPath', word: 'is unchanged' });
 export function takeupDirections() {
   const base = ladder('central_20');
   const full = ladder('takeup_jsa');

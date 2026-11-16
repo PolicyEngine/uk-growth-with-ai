@@ -74,7 +74,7 @@ export const CONCEPT_ICON = {
   business: 'building', // businesses
   workers: 'usersRound', // UK workers (the exposure grid)
   labourShare: 'percent', // labour's share of GDP
-  nominal: 'coins', // before adjusting for inflation
+  // nominal: uses `measure`
   complement: 'handshake', // work that AI complements
   // part 2:
   entrants: 'baby', // cohorts that enter the economy after the shock
@@ -82,15 +82,15 @@ export const CONCEPT_ICON = {
   outputSplit: 'workflow', // where output goes
   // part 3:
   wageCut: 'scissors', // a cut in pay rates with no job lost (part 3, step 6)
-  netSum: 'sigma', // the net of several flows, a sum of runs
-  higher: 'arrowUp', // higher than the comparison run (part 3 has no path)
-  lower: 'arrowDown', // lower than the comparison run
-  oneYear: 'calendar', // a single modelled year
+  // netSum: uses `arithmetic`
+  // higher: uses `rise`
+  // lower: uses `fall`
+  // oneYear: uses `period`
   related: 'externalLink', // related work elsewhere
-  partners: 'handshake', // a partner's hours of work
+  // partners: uses `households`
   savings: 'coins', // household savings
-  corpTax: 'building', // corporation tax, company profits
-  selfEmployed: 'construction', // the self-employed
+  // corpTax: uses `tax`
+  // selfEmployed: uses `business`
   occupations: 'layoutGrid', // occupation groups
   // explore:
   // method:
@@ -102,7 +102,7 @@ export const CONCEPT_ICON = {
   version: 'package', // a software version
   // a release or update date uses `period` (calendar)
   install: 'download', // installing the model
-  coverage: 'layoutGrid', // the coverage matrix
+  coverage: 'compass', // the coverage matrix
   table: 'table', // a table of estimates
   ledger: 'list', // the source ledger
   stages: 'listTree', // stages of a pipeline

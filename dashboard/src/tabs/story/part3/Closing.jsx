@@ -48,13 +48,13 @@ export function CloseLinks() {
 // another on scroll (the framework's .reveal), at once under reduced motion.
 export const LEFT_OUT = [
   { id: 'reemploy', icon: 'labour', label: 'Re-employment', detail: 'The displaced stay out of work all year' },
-  { id: 'partners', icon: 'partners', label: 'Partners’ hours', detail: 'Partners do not change how much they work' },
+  { id: 'partners', icon: 'households', label: 'Partners’ hours', detail: 'Partners do not change how much they work' },
   { id: 'redundancy', icon: 'pay', label: 'Redundancy pay', detail: 'No redundancy payments are counted' },
   { id: 'savings', icon: 'savings', label: 'Running down savings', detail: 'Households do not draw on their savings' },
   { id: 'jsa', icon: 'takeUp', label: 'New-style JSA by default', detail: 'Central case: none for the newly displaced; claims follow take-up flags' },
-  { id: 'corp', icon: 'corpTax', label: 'Corporation tax', detail: 'Profits replacing lost wages untaxed; capital rise kept apart' },
+  { id: 'corp', icon: 'tax', label: 'Corporation tax', detail: 'Profits replacing lost wages untaxed; capital rise kept apart' },
   { id: 'young', icon: 'age', label: 'Fewer young hires', detail: 'Reduced hiring lies outside a job-displacement framework' },
-  { id: 'self', icon: 'selfEmployed', label: 'Self-employed', detail: 'Outside the labour-market shocks' },
+  { id: 'self', icon: 'business', label: 'Self-employed', detail: 'Outside the labour-market shocks' },
   { id: 'occ', icon: 'occupations', label: 'Only 9 occupation groups', detail: 'AI exposure varies across nine groups only' },
 ];
 

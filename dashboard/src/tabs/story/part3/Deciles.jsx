@@ -26,7 +26,7 @@ export const RANK_EXCL_PPC = grab('hbai_excl_large_ppc');
 // caveat, its reason, then decile 1 under each ranking, each led by an
 // arrow drawn from the value's sign (higher or lower than in the baseline;
 // the signed number says the same in words).
-export const signIcon = (v) => (v > 0 ? 'higher' : v < 0 ? 'lower' : 'onPath');
+export const signIcon = (v) => (v > 0 ? 'rise' : v < 0 ? 'fall' : 'onPath');
 export function bottomDecileRankings() {
   return [
     [VALUES[0], 'on the ranking used here'],
