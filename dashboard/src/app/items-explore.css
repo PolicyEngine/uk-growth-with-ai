@@ -1597,3 +1597,6 @@
 .ex-bars.ex-avg:has(> li.is-on) > li:not(.is-on) {
   opacity: 0.55;
 }
+#fin-across-part {
+  margin-top: 40px;
+}

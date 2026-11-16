@@ -193,14 +193,14 @@ export function matrixSvg(arm, m) {
   return [{ w: W, h: y + 4, markup: out, label: `${m.title}, ${HEADLINE_YEAR}` }];
 }
 
-function MatrixKey({ ms }) {
+function MatrixKey({ ms, story = true }) {
   return (
     <ul className="ex-mx-key">
       <li>
         <span className="ex-mx-key-cell" aria-hidden="true" data-icon="" /> Solved: click to show it below
       </li>
       <li>
-        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> The cell in view; “In story”: value in the story
+        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> {story ? 'The cell in view; “In story”: value in the story' : 'The cell in view'}
       </li>
       <li>
         <span className="ex-mx-key-cell is-hole" aria-hidden="true" data-icon="" /> Not solved
@@ -323,7 +323,7 @@ export function AcrossDebt() {
           </ControlBar>
         }
         unit={<Lead c="measure">Percentage points of GDP, difference from the OBR-central path at the same closure</Lead>}
-        legend={<MatrixKey ms={DEBT} />}
+        legend={<MatrixKey ms={DEBT} story={false} />}
         about={{
           shows: (
             <Items
