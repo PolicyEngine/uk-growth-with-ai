@@ -133,3 +133,85 @@ export default function Picker({ icon, label, value, options, onChange, locked =
     </div>
   );
 }
+
+// A page picker in the settings bar (arm, fiscal rule): a WAI-ARIA radio
+// group. Each option has a plain icon, a label, a sub-label of six words or
+// fewer (desktop only) and a tooltip; the chosen one has a filled brand tint,
+// bold text and a sliding indicator; an option with no solve for the current
+// view is disabled, its tooltip saying why. Arrow keys move and choose
+// (roving tabindex), Home and End jump. On a phone the options are compact
+// chips in a row that scrolls sideways.
+//   options: [{ value, label, sub, icon, note (tooltip), disabled, why }]
+export function SegPicker({ icon, label, value, options, onChange }) {
+  const row = useRef(null);
+  const refs = useRef({});
+  const [ind, setInd] = useState(null);
+  useEffect(() => {
+    const place = () => {
+      const el = refs.current[value];
+      setInd(el ? { x: el.offsetLeft, w: el.offsetWidth } : null);
+    };
+    place();
+    // re-measure once the web font is in (labels change width)
+    document.fonts?.ready.then(place);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place);
+    if (row.current) ro?.observe(row.current);
+    Object.values(refs.current).forEach((el) => el && ro?.observe(el));
+    return () => ro?.disconnect();
+  }, [value, options]);
+  const enabled = options.filter((o) => !o.disabled);
+  const onKey = (e) => {
+    const i = enabled.findIndex((o) => o.value === value);
+    const last = enabled.length - 1;
+    const next = { ArrowRight: i >= last ? 0 : i + 1, ArrowDown: i >= last ? 0 : i + 1, ArrowLeft: i <= 0 ? last : i - 1, ArrowUp: i <= 0 ? last : i - 1, Home: 0, End: last }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    const o = enabled[next];
+    onChange(o.value);
+    refs.current[o.value]?.focus();
+  };
+  const groupId = useId();
+  const chosenEnabled = options.some((o) => o.value === value && !o.disabled);
+  return (
+    <div className="seg-picker">
+      <span className="seg-picker-label" id={groupId}>
+        <Icon name={icon} size={14} /> <span className="seg-picker-name">{label}</span>
+      </span>
+      <div className="seg-picker-row" role="radiogroup" aria-labelledby={groupId} ref={row} onKeyDown={onKey}>
+        {ind ? <span className="seg-picker-ind" aria-hidden="true" style={{ transform: `translateX(${ind.x}px)`, width: ind.w }} /> : null}
+        {options.map((o) => {
+          const on = o.value === value;
+          const tab = on || (!chosenEnabled && o === enabled[0]) ? 0 : -1;
+          return (
+            <button
+              key={o.value}
+              ref={(el) => {
+                refs.current[o.value] = el;
+              }}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              aria-disabled={o.disabled || undefined}
+              aria-describedby={o.disabled ? `${groupId}-${o.value}` : undefined}
+              tabIndex={o.disabled ? -1 : tab}
+              title={o.disabled ? o.why : o.note ?? o.sub}
+              className={`seg-option${on ? ' is-on' : ''}${o.disabled ? ' is-disabled' : ''}`}
+              onClick={() => !o.disabled && onChange(o.value)}
+            >
+              {o.icon ? <Icon name={o.icon} size={14} /> : null}
+              <span className="seg-option-text">
+                <span className="seg-option-label">{o.short ?? o.label}</span>
+                {o.sub ? <span className="seg-option-sub">{o.disabled ? 'Not solved' : o.sub}</span> : null}
+              </span>
+              {o.disabled ? (
+                <span className="visually-hidden" id={`${groupId}-${o.value}`}>
+                  {o.why}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -215,7 +215,10 @@ function MatrixKey({ ms, story = true }) {
 }
 
 export default function AllScenarios() {
-  const [arm, setArm] = useState('tfp');
+  // the arm is the one store's (&arm=, lib/nav.jsx), shared with the settings bar
+  const { st, set } = useNav();
+  const arm = st.armId;
+  const setArm = (armId) => set({ armId });
   const [v, setV] = useState('Y');
   const m = ECON.find((x) => x.v === v);
   const armLabel = ARMS.find((a) => a.id === arm).label;
@@ -302,7 +305,9 @@ export default function AllScenarios() {
 // headline year is printed nowhere else (the debt chart's end labels are
 // LATE_YEAR), so every solved cell prints its value, the one in view too.
 export function AcrossDebt() {
-  const [arm, setArm] = useState('tfp');
+  const { st, set } = useNav();
+  const arm = st.armId;
+  const setArm = (armId) => set({ armId });
   const m = DEBT[0];
   const armLabel = ARMS.find((a) => a.id === arm).label;
   return (

@@ -467,3 +467,8 @@
   gap: 5px;
   align-items: center;
 }
+
+/* Story anchors land below the stuck bars and the rail (36px) */
+:where(.story [id]:not(.p1-anchor)) {
+  scroll-margin-top: calc(var(--sticky-offset) + 52px);
+}

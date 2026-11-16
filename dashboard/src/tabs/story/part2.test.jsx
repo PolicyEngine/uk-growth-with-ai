@@ -91,7 +91,7 @@ describe('story part 2', () => {
     // the Scenarios sub-tab folded into OG-UK method
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
-    // Income and output is Results' first sub-tab, so the address leaves it out
+    // Income and output is now the Economy wall (lib/nav.jsx redirects #income)
     expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#economy-wall');
     expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-economy'))).toBe(true);
     // the next-part band carries the links to the figures' homes

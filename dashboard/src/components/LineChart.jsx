@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
 import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 
@@ -21,6 +21,23 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           hollow dots in a narrow column right of the last year. A point
 //           marked offScale sits on the axis edge with an arrow (offScale:
 //           'high' puts it on the top edge, pointing up).
+// `compact`: for a small-multiple tile: at most four y ticks (alternate
+//           ticks dropped), no marker or band label rows (their lines stay),
+//           and markers only at the crosshair.
+// `link`:   the crosshair group (default 'oguk'): pointing at a year on one
+//           chart shows the crosshair at that year on every chart of the
+//           same group on the page; the tooltip stays on the chart under
+//           the pointer. false: not linked (uk-ai-study charts never link to
+//           OG-UK ones).
+//
+// Motion: when the data changes (a picker), the lines and their markers
+// move to the new values (geometry only, 320ms; the CSS `d` transition, so
+// a browser without it switches at once); printed values (end labels)
+// cross-fade and never count through intermediate values. Reduced motion:
+// everything switches at once (ab.css).
+
+// The linked crosshair: one window event, `lc-year`, { year, src, group }
+const LINK_EVENT = 'lc-year';
 
 const FONT = CHART_FONT;
 const PAD_T = 22;
@@ -159,14 +176,34 @@ export default function LineChart({
   endLabel = 'name',
   markers = [],
   bands = [],
-  dots = true,
+  dots: dotsProp = true,
+  link = 'oguk',
+  compact = false,
 }) {
+  const dots = compact ? false : dotsProp;
   const [ref, W] = useWidth(880);
   useMeasured();
   // Crosshair: the year under the pointer, keyboard focus or tap.
   const [hov, setHov] = useState(null);
+  // the year another chart of the same group points at
+  const [linkedYear, setLinkedYear] = useState(null);
   const boxRef = useRef(null);
+  const src = useId();
   useOutside(boxRef, hov != null, () => setHov(null));
+  const hovYear = hov == null ? null : x[hov];
+  useEffect(() => {
+    if (!link || typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent(LINK_EVENT, { detail: { year: hovYear ?? null, src, group: link } }));
+  }, [hovYear, link, src]);
+  useEffect(() => {
+    if (!link || typeof window === 'undefined') return undefined;
+    const on = (e) => {
+      const d = e.detail;
+      if (d.src !== src && d.group === link) setLinkedYear(d.year);
+    };
+    window.addEventListener(LINK_EVENT, on);
+    return () => window.removeEventListener(LINK_EVENT, on);
+  }, [link, src]);
 
   const onScale = (strip?.points || []).filter((p) => !p.offScale).map((p) => p.value);
   const all = series.flatMap((s) => s.values).concat(onScale).filter((v) => Number.isFinite(v));
@@ -182,8 +219,14 @@ export default function LineChart({
   const step = niceStep(span);
   lo = Math.floor((lo - span * 0.04) / step) * step;
   hi = Math.ceil((hi + span * 0.04) / step) * step;
-  const ticks = [];
+  let ticks = [];
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
+  // a compact tile keeps at most four ticks: every other one, zero kept
+  if (compact && ticks.length > 4) {
+    const z = ticks.findIndex((v) => Math.abs(v) < step / 2);
+    const keep = z >= 0 ? z % 2 : 0;
+    ticks = ticks.filter((_, i) => i % 2 === keep);
+  }
   const dp = decimalsFor(step);
   // No "-0.00": a tick that rounds to zero prints unsigned.
   const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (zeroLabel ? `${zeroLabel} 0` : (0).toFixed(dp)) : minus(v.toFixed(dp)));
@@ -252,7 +295,7 @@ export default function LineChart({
   };
   const bandRows = bands.map((b) => {
     const i = x.indexOf(b.year);
-    if (i < 0 || !b.label) return { b, i, row: 0 };
+    if (i < 0 || !b.label || compact) return { b, i, row: 0 };
     const w = String(b.label).length * 6.4 + 6;
     return { b, i, row: place(sx(i) - w / 2, w) };
   });
@@ -260,7 +303,7 @@ export default function LineChart({
   for (const m of markers) {
     const i = x.indexOf(m.year);
     if (i < 0) continue;
-    const len = String(m.label ?? '').length;
+    const len = compact ? 0 : String(m.label ?? '').length;
     const end = i === x.length - 1 || sx(i) + 4 + len * 6.4 > R;
     const w = len * 6.4 + 6;
     const a0 = end ? sx(i) - 4 - w : sx(i) + 4;
@@ -327,6 +370,9 @@ export default function LineChart({
     e.preventDefault();
   };
   const tipLeft = hov == null ? 0 : sx(hov);
+  const linkedAt = linkedYear == null ? -1 : x.indexOf(linkedYear);
+  const cross = hov ?? (linkedAt >= 0 ? linkedAt : null);
+  const pathOf = (vals) => vals.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
   // One closure for every line: said once in the tooltip's header
   const closures = [...new Set(series.map((s) => s.closure).filter(Boolean))];
   const oneClosure = closures.length === 1 && series.every((s) => s.closure) ? closures[0] : null;
@@ -378,7 +424,7 @@ export default function LineChart({
           return (
             <g key={`band-${b.year}`}>
               <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
-              {b.label ? (
+              {b.label && !compact ? (
                 <text x={(x0 + x1) / 2} y={labelY(row)} className="ax band-label" textAnchor="middle">
                   {b.label}
                 </text>
@@ -389,12 +435,14 @@ export default function LineChart({
         {markerRows.map(({ m, i, row, end }) => (
           <g key={`m-${m.year}`}>
             <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-            <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
-              {m.label}
-            </text>
+            {compact ? null : (
+              <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
+                {m.label}
+              </text>
+            )}
           </g>
         ))}
-        {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
+        {cross != null ? <line x1={sx(cross)} x2={sx(cross)} y1={TOP} y2={BOT} className={`crosshair${hov == null ? ' is-linked' : ''}`} /> : null}
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
@@ -440,8 +488,10 @@ export default function LineChart({
         ) : null}
         {series.map((s) => (
           <g key={s.key ?? s.label}>
-            <polyline
-              points={s.values.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')}
+            <path
+              className="lc-line"
+              d={pathOf(s.values)}
+              style={{ d: `path('${pathOf(s.values)}')` }}
               fill="none"
               stroke={s.color}
               strokeWidth={s.light ? '1.75' : s.dashed ? '2' : '2.5'}
@@ -450,12 +500,12 @@ export default function LineChart({
               strokeLinejoin="round"
             />
             {s.values.map((v, i) =>
-              !dots && i !== hov ? null : s.dashed ? (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3} fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
+              !dots && i !== cross ? null : s.dashed ? (
+                <circle key={i} className="lc-dot" cx={0} cy={0} style={{ transform: `translate(${sx(i).toFixed(1)}px, ${sy(v).toFixed(1)}px)` }} r={i === cross ? 5 : 3} fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>
               ) : (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3.2} fill={s.color}>
+                <circle key={i} className="lc-dot" cx={0} cy={0} style={{ transform: `translate(${sx(i).toFixed(1)}px, ${sy(v).toFixed(1)}px)` }} r={i === cross ? 5 : 3.2} fill={s.color}>
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>
               ),
@@ -496,7 +546,7 @@ export default function LineChart({
                 opacity=".5"
               />
             ) : null}
-            <text x={labelX} y={e.ly + 4} style={{ font: `12px ${FONT}` }}>
+            <text key={e.lines.map((l) => l.map((w) => w.text).join(' ')).join('|')} className="lc-fade" x={labelX} y={e.ly + 4} style={{ font: `12px ${FONT}` }}>
               {e.lines.map((line, li) => (
                 <tspan key={li} x={labelX} dy={li ? LINE : 0}>
                   {line.map((w, wi) => (
