@@ -600,3 +600,16 @@
 .p2-text-ghost {
   visibility: hidden;
 }
+
+/* Without JavaScript the output split shows every layer at once */
+@media (scripting: none) {
+  .p2-out-later,
+  .p2-sankey .sankey-node.is-hidden {
+    opacity: 1;
+  }
+  .p2-sankey .sankey-link.is-wipe,
+  .p2-wf-bar {
+    clip-path: none;
+    transform: none;
+  }
+}

@@ -27,7 +27,8 @@ import { SPLIT_YEAR, share, change, splitFor, sankeyGraph, waterfallRows, barCol
 // checks, which read it at step 1) always holds each share and change. On
 // phones a sticky graphic this tall would leave no room to read, and the
 // scrolly would repeat it per step, so the figure is drawn once, complete,
-// above the three texts. The GDP bar carries no number: that figure is the
+// above the three texts. A trailing spacer step holds the last state while
+// card 3 is read, so the tall sticky graphic is not pulled up early. The GDP bar carries no number: that figure is the
 // headline tile's. Bare numbers, the unit in each subtitle.
 
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
@@ -144,9 +145,10 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false }) {
           <p className="p2-pending">The reference path at this closure is pending.</p>
         )}
       </div>
-      <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`}>
+      {/* not yet reached: invisible, and out of reach of focus and pointer */}
+      <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
         <p className="story-figure-title">What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}</p>
-        <p className="story-figure-unit">{where}. Gaps against the path, % of its GDP, not forecasts of levels</p>
+        <p className="story-figure-unit">{where}. Gaps against the OBR-central path, % of its GDP, not forecasts of levels</p>
         {ch ? (
           <>
             <Waterfall rows={waterfallRows(ch)} on={s >= 2} hl={hl} setHl={setHl} />
@@ -238,8 +240,8 @@ export default function OutputSplit({ sid, closure }) {
         <Scrolly
           id="p2-output"
           label={`Where output goes in ${SPLIT_YEAR}`}
-          steps={steps}
-          graphic={(i) => <OutputGraphic state={i} sid={sid} cl={cl} base={base} ch={ch} />}
+          steps={[...steps, { id: 'p2-out-end', spacer: true }]}
+          graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} />}
         />
       )}
     </section>

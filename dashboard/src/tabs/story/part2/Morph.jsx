@@ -365,7 +365,7 @@ export function morphSteps(sid, cl) {
         <>
           <p>
             OG-UK&rsquo;s no-shock path, the OBR-central path, is built on the OBR&rsquo;s central assumptions ({MODEL_BASE_VINTAGE}{' '}
-            forecast). Its results are gaps against it: zero is now that path, and the blue line is GDP in {SCEN_NAME[sid]} above it,{' '}
+            forecast). Its results are gaps against it: zero is that path, and the blue line is GDP in {SCEN_NAME[sid]} above it,{' '}
             {cl === BOUND ? 'with closed capital' : 'at the central closure'}.
           </p>
           <More tab="method" sub="how">How the path is set</More>
