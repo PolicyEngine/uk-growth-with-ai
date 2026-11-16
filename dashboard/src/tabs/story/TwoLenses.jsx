@@ -9,6 +9,8 @@ import { NavLink } from '@/lib/nav.jsx';
 import { MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { REFS } from './part3/sources.jsx';
 import { decileShape } from './part3/Deciles.jsx';
+import QStage from '@/components/story/QStage.jsx';
+import { P3_RECAP } from './Part3.jsx';
 
 // The close of the story: the two models side by side, each with a header
 // icon and one line on what it is, then what it can say (3-4 items) and
@@ -92,6 +94,8 @@ export default function TwoLenses() {
   const shown = seen || reduce ? ' is-in' : '';
   return (
     <section className="story-part story-close" id="story-close" aria-labelledby="story-close-h">
+      {/* the close's full pinned question, with part 3's recap as the transition (Fable) */}
+      <QStage id="story-close" question={CLOSE_SUB.question} icon="compare" keyWord="model" recap={P3_RECAP} />
       <header className="story-part-head">
         <p className="story-part-kicker">
           <Icon name={iconFor('compare')} size={16} /> Two lenses

@@ -14,7 +14,6 @@ import { ArmsPair, WelfareShape, series, afterWords } from './part2/charts.jsx';
 import { Tx } from './part2/frame.jsx';
 import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
-import { Recap } from '@/components/story/Items.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
 import { A, SRC } from './part2/sources.jsx';
 import * as P1 from './Part1.jsx';
@@ -215,7 +214,7 @@ export default function Part2({ part }) {
         graphic={(i) => <WelfareShape state={i} />}
       />
 
-      <Recap items={RECAP} />
+      {/* part 2's recap plays as the transition in part 3's first pinned screen */}
 
       <NextBand />
     </MarkProvider>

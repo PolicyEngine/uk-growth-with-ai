@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { Items, Recap } from '@/components/story/Items.jsx';
+import { Items } from '@/components/story/Items.jsx';
 import { Fig, Key, MarkProvider, Num } from '@/components/story/highlight.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import NextPart from '@/components/story/NextPart.jsx';
@@ -559,7 +559,7 @@ export default function Part1({ part }) {
           );
         }}
       />
-      <Recap items={P1_RECAP} />
+      {/* part 1's recap plays as the transition in part 2's first pinned screen */}
       <NextPart n={2} title="What a model of the whole economy projects" to="story-part-2">
         Part 2 turns from what has been measured to what happens if AI
         arrives as a shock.

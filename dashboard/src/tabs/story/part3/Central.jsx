@@ -8,6 +8,7 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
 import { AxisTitle, BASELINE_LABEL, D, DrawsChip, FigureHead, Fold, MODEL_YEAR, InputFig, Num, NumMarker, Key, MarkProvider, Source, Ico, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { Ref, Sec } from './sources.jsx';
+import { RECAP as P2_RECAP } from '../Part2.jsx';
 
 // Step 1, the central case (results.tex, "The central scenario"). The
 // scoreboard is the home of the headline figures, each beside its baseline;
@@ -167,6 +168,8 @@ export const CENTRAL_SUB = {
   hint: 'Watch who steps out of the grid',
   // the part's first topic takes the full pinned question screen (Fable)
   pin: 'full',
+  // part 2's recap as the transition into part 3 (Fable)
+  recap: P2_RECAP,
   key: 'central',
   answerTo: 'p3-central-step',
   answer: `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,

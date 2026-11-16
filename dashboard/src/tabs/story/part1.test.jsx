@@ -270,10 +270,8 @@ describe('story part 1, real data', () => {
     expect(answers.map((a) => a.hasAttribute('data-axis'))).toEqual([true, true, false]);
     expect(answers[0].textContent).toContain(pct1(real.facts.gdp_growth_latest.value));
     expect(answers[1].querySelector('a').getAttribute('href')).toContain('p1-vitals');
-    const recap = el.querySelectorAll('.story-recap-chip');
-    expect([...recap].map((a) => a.getAttribute('href'))).toEqual(['#q-p1-output', '#q-p1-work', '#q-p1-ai'].map((h) => expect.stringContaining(h)));
-    // recap answers are data-axis: they restate, they are no figure's home
-    el.querySelectorAll('.story-recap-a').forEach((a) => expect(a.hasAttribute('data-axis')).toBe(true));
+    // part 1's recap plays in part 2's first pinned screen (Fable): checked as data
+    expect(P.P1_RECAP.map((r) => r.to)).toEqual(['q-p1-output', 'q-p1-work', 'q-p1-ai']);
   });
 
   it('gives every step a highlight, and its marks exist on the chart', async () => {
