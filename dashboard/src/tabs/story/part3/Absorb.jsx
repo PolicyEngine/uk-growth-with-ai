@@ -69,8 +69,7 @@ function Graphic() {
       <Items
         className="p3-key-items"
         items={[
-          { icon: 'deciles', text: 'Each ribbon: a decile’s lost earnings, to where they land' },
-          { icon: 'measure', text: 'Width: pounds a year' },
+          { icon: 'deciles', text: 'Ribbons: each decile’s lost earnings by destination; width £ a year' },
           { icon: 'caveat', text: 'Other items: mainly pension contributions no longer paid' },
           { icon: 'limit', text: 'Decile 1 carries the ranking caveat of step 4' },
           { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI: a further cost to government</> },

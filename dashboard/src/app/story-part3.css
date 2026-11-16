@@ -615,10 +615,81 @@
   display: inline-flex;
   color: var(--c-highlight);
 }
-#story-part-3 .p3-close-compare {
-  margin: 4px 0 8px;
-  font-size: var(--fs-small);
+/* step 8: a framing chip, then the icon grid of what is left out; a tile's
+   detail line shows on hover, focus or tap (.is-open) */
+#story-part-3 .p3-chip-frame {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 3px 10px;
+  font-size: var(--fs-caption);
+  font-weight: 500;
   color: var(--pe-gray-700);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+}
+#story-part-3 .p3-chip-frame .p3-ico {
+  margin-right: 0;
+}
+#story-part-3 .p3-out-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+#story-part-3 .p3-out-btn {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  width: 100%;
+  height: 100%;
+  align-content: start;
+  min-height: 132px;
+  padding: 12px;
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-800);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: var(--pe-radius-md, 8px);
+  cursor: pointer;
+}
+#story-part-3 .p3-out-btn:hover,
+#story-part-3 .p3-out-btn:focus-visible,
+#story-part-3 .p3-out-tile.is-open .p3-out-btn {
+  border-color: var(--c-highlight);
+}
+#story-part-3 .p3-out-btn:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+#story-part-3 .p3-out-icon {
+  display: inline-flex;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-out-label {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1.3;
+}
+#story-part-3 .p3-out-detail {
+  display: none;
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-out-btn:hover .p3-out-detail,
+#story-part-3 .p3-out-btn:focus-visible .p3-out-detail,
+#story-part-3 .p3-out-tile.is-open .p3-out-detail {
+  display: block;
+}
+@media (max-width: 600px) {
+  #story-part-3 .p3-out-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 #story-part-3 .p3-related .story-items {
   gap: 4px;
@@ -1005,4 +1076,76 @@
   gap: 5px;
   font-size: var(--fs-small);
   color: var(--pe-gray-700);
+}
+.story-close .lens-h-ico {
+  vertical-align: -4px;
+  color: var(--c-highlight);
+}
+/* the two columns: a divider between them; each slides in from its side
+   (the framework's .reveal transition; reduced motion: no motion) */
+.story-close .lens-grid-split {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0 16px;
+}
+.story-close .lens-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  color: var(--pe-gray-400);
+}
+.story-close .lens-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 1px solid var(--pe-gray-300);
+}
+.story-close .lens-divider .plain-icon {
+  position: relative;
+  display: inline-flex;
+  padding: 6px 0;
+  background: var(--page-bg);
+}
+.story-close .lens.lens-from-left {
+  transform: translateX(-32px);
+}
+.story-close .lens.lens-from-right {
+  transform: translateX(32px);
+}
+.story-close .lens.reveal.is-in {
+  transform: none;
+}
+.story-close .lens-links a .lens-ico {
+  margin-right: 4px;
+  color: inherit;
+}
+@media (max-width: 900px) {
+  .story-close .lens-grid-split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .story-close .lens-divider {
+    width: auto;
+    height: 36px;
+  }
+  .story-close .lens-divider::before {
+    top: 50%;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    border-left: 0;
+    border-top: 1px solid var(--pe-gray-300);
+  }
+  .story-close .lens-divider .plain-icon {
+    padding: 0 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-close .lens.lens-from-left,
+  .story-close .lens.lens-from-right {
+    transform: none;
+  }
 }

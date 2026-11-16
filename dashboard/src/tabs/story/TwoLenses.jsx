@@ -1,32 +1,33 @@
 'use client';
 
+import { Fragment } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
+import { useInView, useReducedMotion } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
-// The close of the story: the two models side by side, what each can and
-// cannot say, and why their numbers are not added together. No figures:
-// each model's figures have their homes in parts 2 and 3 and in Explore.
-// Each lens: what it is, then what it can and cannot say as short icon
-// items (headed by the canSay and cannotSay icons).
+// The close of the story: the two models side by side, each with a header
+// icon and one line on what it is, then what it can say (3-4 items) and
+// cannot say (2-3 items), and icon links. No figures: each model's figures
+// have their homes in parts 2 and 3 and in Explore. The columns slide in from
+// either side (the framework's .reveal), with a divider between them; under
+// reduced motion they show at once.
 const LENSES = [
   {
     id: 'oguk',
     icon: 'model',
     name: 'OG-UK',
-    what: 'A model of the whole economy over decades: households by age and earnings, firms, government, the rest of the world.',
+    what: 'The whole economy over decades, as gaps against the OBR-central path',
     can: [
-      { icon: 'ai', text: 'What happens when AI shifts income to capital and lifts productivity:' },
-      { icon: 'gdp', text: 'Output, pay rates and national income' },
-      { icon: 'capital', text: 'Saving and investment' },
+      { icon: 'gdp', text: 'Output and pay rates' },
+      { icon: 'gni', text: 'National income UK residents keep' },
       { icon: 'finances', text: 'The public finances' },
-      { icon: 'age', text: 'How the effects differ by birth year' },
+      { icon: 'age', text: 'Effects by birth year' },
     ],
     cannot: [
       { icon: 'jobLoss', text: 'Unemployment: everyone who wants to work is employed' },
-      { icon: 'excluded', text: 'So it says nothing about job losses' },
-      { icon: 'path', text: 'Levels: results are gaps against the OBR-central path, not forecasts' },
+      { icon: 'forecast', text: 'Forecasts of levels' },
     ],
     explore: { tab: 'explore', sub: 'economy', label: 'Explore the OG-UK results' },
     method: { tab: 'method', sub: 'how', label: 'How OG-UK works' },
@@ -35,18 +36,15 @@ const LENSES = [
     id: 'study',
     icon: 'households',
     name: 'uk-ai-study (provisional)',
-    what: 'A microsimulation of UK households in one year, FY 2026–27, on survey data and the full tax and benefit system.',
+    what: 'UK households in one year, FY 2026–27, under the tax and benefit system',
     can: [
-      { icon: 'jobLoss', text: 'If a share of employees are assumed to lose their jobs:' },
-      { icon: 'households', text: 'Who loses income' },
-      { icon: 'cost', text: 'What it costs the public finances' },
-      { icon: 'poverty', text: 'How poverty and inequality change' },
-      { icon: 'scenario', text: 'Under stated assumptions about who is displaced' },
+      { icon: 'households', text: 'Who loses income if jobs are assumed lost' },
+      { icon: 'cost', text: 'The cost to the public finances' },
+      { icon: 'poverty', text: 'Poverty and inequality' },
     ],
     cannot: [
-      { icon: 'timing', text: 'What happens over time' },
-      { icon: 'excluded', text: 'No recovery, re-employment, investment or price response' },
-      { icon: 'limit', text: 'Job loss is an assumption, not a result' },
+      { icon: 'timing', text: 'What happens over time: recovery, re-employment, prices' },
+      { icon: 'jobLoss', text: 'Job loss as a result: it is assumed' },
     ],
     explore: { tab: 'explore', sub: 'households', label: 'Explore the household results' },
     method: { tab: 'method', sub: 'households', label: 'How the study works' },
@@ -54,43 +52,58 @@ const LENSES = [
 ];
 
 export default function TwoLenses() {
+  const [ref, seen] = useInView();
+  const reduce = useReducedMotion();
+  const shown = seen || reduce ? ' is-in' : '';
   return (
     <section className="story-part story-close" id="story-close" aria-labelledby="story-close-h">
       <header className="story-part-head">
         <p className="story-part-kicker">
           <Icon name={iconFor('compare')} size={16} /> Two lenses
         </p>
-        <h2 id="story-close-h">What each model can and cannot say</h2>
+        <h2 id="story-close-h">
+          <Icon name={iconFor('canSay')} size={28} className="lens-ico lens-h-ico" />
+          What each model can and cannot say
+        </h2>
         <p>
-          <Icon name={iconFor('limit')} size={18} className="lens-ico" /> Parts 2 and 3 use different models, years and assumptions, so their numbers are not added or compared.
+          <Icon name={iconFor('limit')} size={18} className="lens-ico" /> Different models, years and assumptions: their numbers are not added or compared.
         </p>
       </header>
-      <div className="lens-grid">
-        {LENSES.map((l) => (
-          <article key={l.id} className="lens" aria-labelledby={`lens-${l.id}`}>
-            <h3 id={`lens-${l.id}`}>
-              <Icon name={iconFor(l.icon)} size={18} /> {l.name}
-            </h3>
-            <p className="lens-what">
-              <Icon name={iconFor('measure')} size={16} className="lens-ico" /> {l.what}
-            </p>
-            <h4 className="lens-say">
-              <Icon name={iconFor('canSay')} size={16} /> It can say
-            </h4>
-            <Items items={l.can} />
-            <h4 className="lens-say">
-              <Icon name={iconFor('cannotSay')} size={16} /> It cannot say
-            </h4>
-            <Items items={l.cannot} />
-            <p className="lens-links">
-              <NavLink tab={l.explore.tab} sub={l.explore.sub}>
-                <Icon name="arrowRight" size={14} /> {l.explore.label}
-              </NavLink>
-              <NavLink tab={l.method.tab} sub={l.method.sub}>
-                <Icon name="arrowRight" size={14} /> {l.method.label}
-              </NavLink>
-            </p>
-          </article>
+      <div ref={ref} className="lens-grid lens-grid-split">
+        {LENSES.map((l, i) => (
+          <Fragment key={l.id}>
+            {i ? (
+              <div className="lens-divider" aria-hidden="true">
+                <Icon name={iconFor('compare')} size={18} />
+              </div>
+            ) : null}
+            <article className={`lens reveal ${i ? 'lens-from-right' : 'lens-from-left'}${shown}`} aria-labelledby={`lens-${l.id}`}>
+              <h3 id={`lens-${l.id}`}>
+                <Icon name={iconFor(l.icon)} size={18} /> {l.name}
+              </h3>
+              <p className="lens-what">
+                <Icon name={iconFor('measure')} size={16} className="lens-ico" /> {l.what}
+              </p>
+              <h4 className="lens-say">
+                <Icon name={iconFor('canSay')} size={16} /> It can say
+              </h4>
+              <Items items={l.can} />
+              <h4 className="lens-say">
+                <Icon name={iconFor('cannotSay')} size={16} /> It cannot say
+              </h4>
+              <Items items={l.cannot} />
+              <p className="lens-links">
+                <NavLink tab={l.explore.tab} sub={l.explore.sub}>
+                  <Icon name={iconFor('scenario')} size={14} className="lens-ico" />
+                  {l.explore.label}
+                </NavLink>
+                <NavLink tab={l.method.tab} sub={l.method.sub}>
+                  <Icon name={iconFor('source')} size={14} className="lens-ico" />
+                  {l.method.label}
+                </NavLink>
+              </p>
+            </article>
+          </Fragment>
         ))}
       </div>
     </section>

@@ -26,7 +26,7 @@ export const effectWords = (v) => (v > 0 ? 'costs the public finances' : v < 0 ?
 export function channelItems() {
   return [
     { key: 'displacement', icon: 'jobLoss', text: `Job loss ${effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits` },
-    { key: 'wage', icon: 'pay', text: `Higher wages for those still employed ${effectWords(row('wage').cost_bn)}` },
+    { key: 'wage', icon: 'pay', text: `Higher pay for those still employed ${effectWords(row('wage').cost_bn)}` },
     { key: 'capital', icon: 'capital', text: `Higher interest and dividend income ${effectWords(row('capital').cost_bn)}` },
   ];
 }

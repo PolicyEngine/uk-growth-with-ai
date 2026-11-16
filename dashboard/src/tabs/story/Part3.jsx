@@ -34,10 +34,9 @@ export default function Part3({ part }) {
       <Callout icon="model" title="A different model" className="p3-model">
         <Items
           items={[
-            { icon: 'model', text: 'A PolicyEngine-UK microsimulation on Microcosm UK 2024-25 data' },
-            { icon: 'oneYear', text: <>Static, for one year: {MODEL_YEAR}</> },
+            { icon: 'model', text: <>Static PolicyEngine-UK microsimulation, Microcosm UK 2024-25 data, {MODEL_YEAR}</> },
             { icon: 'provisional', text: 'Figures are provisional: the study is a draft under review' },
-            { icon: 'jobLoss', text: 'Job loss is assumed; in OG-UK (part 2) it shows in wages' },
+            { icon: 'jobLoss', text: 'Assumes job loss; in OG-UK (part 2) displacement shows in the wage' },
             { icon: 'limit', text: 'Its figures cannot be added to or compared with part 2’s gaps' },
           ]}
         />

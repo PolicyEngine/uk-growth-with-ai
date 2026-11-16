@@ -74,10 +74,9 @@ export default function Rules() {
           <About>
             <Items
               items={[
-                { icon: 'why', text: 'Two possible routes for the larger poverty rise:' },
+                { icon: 'why', text: 'Two possible routes, which the study’s draws do not separate:' },
                 { icon: 'households', text: 'More job losses in lower-income households' },
                 { icon: 'jobLoss', text: 'Or more sole earners displaced' },
-                { icon: 'draws', text: 'The study’s draws do not separate them' },
                 {
                   icon: 'link',
                   text: (

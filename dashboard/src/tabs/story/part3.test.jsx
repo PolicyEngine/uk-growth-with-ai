@@ -5,7 +5,7 @@
 // its caveat, a Sankey whose inflows equal its outflows at every node, and a
 // "Next" band to the close that carries the onward links.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
 import R from '@/data/relatedWork.json';
 import Part3 from './Part3.jsx';
@@ -15,6 +15,7 @@ import { absorbGraph, DESTS } from './part3/Absorb.jsx';
 import { channelItems, effectWords, fillFor } from './part3/Channels.jsx';
 import { bottomDecileRankings, signIcon } from './part3/Deciles.jsx';
 import { takeupDirections } from './part3/Moves.jsx';
+import { LEFT_OUT } from './part3/Closing.jsx';
 import { ladder, rule } from './part3/shared.jsx';
 import TwoLenses from './TwoLenses.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
@@ -169,7 +170,7 @@ describe('Part3', () => {
     const { container } = renderPart();
     const close = container.querySelector('.p3-close');
     expect(close.closest('.scrolly')).toBeNull();
-    expect(close.textContent).toContain('corporation tax');
+    expect(close.textContent).toMatch(/corporation tax/i);
     const next = container.querySelector('.story-next');
     expect(next.querySelector('.story-next-link').getAttribute('href')).toBe('#story-close');
     expect(next.textContent).toContain('Two lenses');
@@ -222,10 +223,32 @@ describe('Part3', () => {
     for (const el of container.querySelectorAll('p, li, dd, summary')) {
       if (el.querySelector('p, li, dd') || el.closest('svg, [aria-hidden="true"]')) continue;
       if (el.matches('.story-source, .story-source *')) continue; // citation lines
-      const n = el.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
+      const c = el.cloneNode(true);
+      c.querySelectorAll('.p3-out-detail').forEach((s) => s.remove()); // hidden until hover, focus or tap
+      c.querySelectorAll('span').forEach((s) => s.append(' '));
+      const n = c.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
       if (n > (el.tagName === 'LI' ? 12 : 25)) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
     }
     expect(long).toEqual([]);
+    // every icon slot draws an icon (a concept typo in Ico or FigureHead would leave it empty)
+    const empty = [...container.querySelectorAll('.p3-ico, .lens-ico, .story-item-icon, .story-fact-icon, .scrolly-title-icon, .plain-icon')].filter((i) => !i.querySelector('svg'));
+    expect(empty.length).toBe(0);
+  });
+
+  it('shows what the one-year test leaves out as an icon grid, a detail line per tile', () => {
+    const { container } = renderPart();
+    const tiles = container.querySelectorAll('.p3-close .p3-out-tile');
+    expect(tiles).toHaveLength(LEFT_OUT.length);
+    expect(container.querySelector('.p3-chip-frame').textContent).toContain('A one-year stress test, not a forecast');
+    for (const t of LEFT_OUT) {
+      expect(t.label.split(' ').length, t.id).toBeLessThanOrEqual(6);
+      expect(t.detail.split(' ').length, t.id).toBeLessThanOrEqual(12);
+    }
+    const btn = tiles[0].querySelector('button');
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(btn);
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    expect(tiles[0].classList.contains('is-open')).toBe(true);
   });
 
   it('ends with the two lenses, what each can and cannot say as icon items', () => {
@@ -234,6 +257,6 @@ describe('Part3', () => {
     expect([...container.querySelectorAll('.lens-say')].map((h) => h.textContent.trim())).toEqual(['It can say', 'It cannot say', 'It can say', 'It cannot say']);
     expect(container.querySelectorAll('.lens .story-items li .story-item-icon')).toHaveLength(container.querySelectorAll('.lens .story-items li').length);
     expect(container.textContent).toContain('OBR-central path');
-    expect(container.textContent).toContain('Job loss is an assumption, not a result');
+    expect(container.textContent).toContain('Job loss as a result: it is assumed');
   });
 });

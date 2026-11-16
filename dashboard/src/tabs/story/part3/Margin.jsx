@@ -111,9 +111,8 @@ export default function Margin() {
             <Items
               items={[
                 { icon: 'wageCut', text: 'A cut removes pounds taxed at the worker’s marginal rates' },
-                { icon: 'jobLoss', text: 'A lost job removes whole earnings, even below the personal allowance' },
-                { icon: 'benefits', text: 'The Universal Credit it adds is less than the tax forgone' },
                 { icon: 'tax', text: 'Employer NI is of similar size on both margins' },
+                { icon: 'jobLoss', text: 'A lost job removes whole earnings; UC replaces less than tax forgone' },
                 { icon: 'households', text: 'A loss spread across many earners moves few below the poverty line' },
               ]}
             />

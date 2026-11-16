@@ -5,7 +5,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPctSigned1, fmtPp } from './format.js';
-import { D, FigureHead, HBar, OutsideRebuildFlag, Source, ladder, Ico } from './shared.jsx';
+import { About, D, FigureHead, HBar, OutsideRebuildFlag, Source, ladder, Ico } from './shared.jsx';
 
 // Step 7, what moves the cost (results.tex, "What moves the central cost"),
 // in two cards over one figure: the three break-even values
@@ -136,8 +136,7 @@ export default function Moves() {
       body: (
         <Items
           items={[
-            { icon: 'netSum', text: 'The cost nets flows several times its size' },
-            { icon: 'breakEven', text: 'So three assumptions break even close to their central settings:' },
+            { icon: 'breakEven', text: 'The cost nets far larger flows, so three assumptions break even nearby:' },
             { icon: 'pay', text: 'The wage rise for those who keep their jobs' },
             { icon: 'capital', text: 'The rise in interest and dividend income' },
             { icon: 'timing', text: 'How long people are out of work' },
@@ -152,9 +151,9 @@ export default function Moves() {
       title: 'Benefit take-up moves the cost one way only',
       icon: 'takeUp',
       body: (
+        <>
         <Items
           items={[
-            { icon: 'takeUp', text: 'In the data, not everyone entitled to Universal Credit claims it' },
             { icon: 'benefits', text: 'Here everyone with a displaced worker claims; qualifiers get new-style JSA' },
             { icon: t.cost.icon, text: `The cost ${t.cost.word}` },
             { icon: t.poverty.icon, text: `The poverty rise ${t.poverty.word === 'falls' ? 'is smaller' : t.poverty.word === 'rises' ? 'is larger' : 'is unchanged'}` },
@@ -168,6 +167,10 @@ export default function Moves() {
             },
           ]}
         />
+        <About>
+          <Items items={[{ icon: 'takeUp', text: 'In the data, not everyone entitled to Universal Credit claims it' }]} />
+        </About>
+        </>
       ),
     },
   ];

@@ -119,8 +119,7 @@ export default function Deciles() {
         <>
           <Items
             items={[
-              { icon: 'deciles', text: 'Ranked by baseline income, the change is hump-shaped' },
-              { icon: 'jobLoss', text: 'Assumed job losses fall mostly in the upper-middle deciles' },
+              { icon: 'deciles', text: 'Hump-shaped: assumed job losses fall mostly in upper-middle deciles' },
               { icon: signIcon(VALUES[WORST - 1]), text: `Largest fall: decile ${WORST}` },
               { icon: 'capital', text: 'At the top, higher capital income offsets the earnings lost' },
               { icon: 'caveat', text: 'Decile 1 is drawn grey: not a finding; see the note' },

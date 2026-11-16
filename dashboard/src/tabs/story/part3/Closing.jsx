@@ -1,10 +1,12 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
-import { Compare, Items } from '@/components/story/Items.jsx';
+import { useState } from 'react';
+import { Items } from '@/components/story/Items.jsx';
+import { useInView, useReducedMotion } from '@/components/story/motion.js';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { D, Ico, MODEL_YEAR, PAPER_URL, PR_URL } from './shared.jsx';
+import { D, Ico, PAPER_URL, PR_URL } from './shared.jsx';
 import R from '@/data/relatedWork.json';
 
 // Step 8, the close of part 3: not sticky; its only figures are related work's. What the study covers and
@@ -40,24 +42,40 @@ export function CloseLinks() {
   );
 }
 
-// What the study traces, and what it leaves out (each led by the "excluded"
-// icon), as two icon columns.
-const TRACES = [
-  { icon: 'scenario', text: 'Current tax and benefit rules, for a given shock size and incidence' },
-  { icon: 'oneYear', text: <>Displacement as a one-year stock in {MODEL_YEAR}</> },
-  { icon: 'jobLoss', text: 'The displaced earn nothing for the whole year' },
-  { icon: 'takeUp', text: 'Claiming follows the data’s take-up flags' },
-  { icon: 'benefits', text: 'Central case: no new-style JSA for the newly displaced' },
-  { icon: 'capital', text: 'The capital-income rise is set apart from the labour shock' },
+// Step 8: what the one-year test leaves out, as an icon grid. Each tile is a
+// button; hover, focus or a tap shows its one line of detail (display:none
+// until then, so it is not counted as visible text). Tiles reveal one after
+// another on scroll (the framework's .reveal), at once under reduced motion.
+export const LEFT_OUT = [
+  { id: 'reemploy', icon: 'labour', label: 'Re-employment', detail: 'The displaced stay out of work all year' },
+  { id: 'partners', icon: 'partners', label: 'Partners’ hours', detail: 'Partners do not change how much they work' },
+  { id: 'redundancy', icon: 'pay', label: 'Redundancy pay', detail: 'No redundancy payments are counted' },
+  { id: 'savings', icon: 'savings', label: 'Running down savings', detail: 'Households do not draw on their savings' },
+  { id: 'jsa', icon: 'takeUp', label: 'New-style JSA by default', detail: 'Central case: none for the newly displaced; claims follow take-up flags' },
+  { id: 'corp', icon: 'corpTax', label: 'Corporation tax', detail: 'Profits replacing lost wages untaxed; capital rise kept apart' },
+  { id: 'young', icon: 'age', label: 'Fewer young hires', detail: 'Reduced hiring lies outside a job-displacement framework' },
+  { id: 'self', icon: 'selfEmployed', label: 'Self-employed', detail: 'Outside the labour-market shocks' },
+  { id: 'occ', icon: 'occupations', label: 'Only 9 occupation groups', detail: 'AI exposure varies across nine groups only' },
 ];
-const LEAVES_OUT = [
-  'Re-employment, or changes in partners’ hours',
-  'Redundancy pay and running down savings',
-  'Profits replacing lost wages: no corporation tax is counted',
-  'Reduced hiring of young workers',
-  'The self-employed, from the labour-market shocks',
-  'AI exposure finer than nine occupation groups',
-].map((text) => ({ key: text, icon: 'excluded', text }));
+
+function LeftOutGrid() {
+  const [ref, seen] = useInView();
+  const reduce = useReducedMotion();
+  const [open, setOpen] = useState(null);
+  return (
+    <ul ref={ref} className="p3-out-grid" aria-label="What this one-year test leaves out">
+      {LEFT_OUT.map((t, i) => (
+        <li key={t.id} className={`p3-out-tile reveal${seen || reduce ? ' is-in' : ''}${open === t.id ? ' is-open' : ''}`} style={{ '--reveal-delay': reduce ? '0ms' : `${i * 70}ms` }} data-tile={t.id}>
+          <button type="button" className="p3-out-btn" aria-expanded={open === t.id} onClick={() => setOpen(open === t.id ? null : t.id)}>
+            <Icon name={iconFor(t.icon)} size={22} className="p3-out-icon" />
+            <span className="p3-out-label">{t.label}</span>
+            <span className="p3-out-detail">{t.detail}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function Closing() {
   return (
@@ -66,15 +84,12 @@ export default function Closing() {
         <Ico c="excluded" size={12} />8 · What the study leaves out
       </p>
       <h3 id="p3-close-h">
-        <Icon name={iconFor('limit')} size={18} /> A one-year stress test, not a forecast
+        <Icon name={iconFor('excluded')} size={18} /> What this one-year test leaves out
       </h3>
-      <Compare
-        className="p3-close-compare"
-        columns={[
-          { icon: 'canSay', title: 'What it traces', items: TRACES },
-          { icon: 'excluded', title: 'What it leaves out', items: LEAVES_OUT },
-        ]}
-      />
+      <p className="p3-chip-frame">
+        <Ico c="caveat" size={14} /> A one-year stress test, not a forecast
+      </p>
+      <LeftOutGrid />
       <h3 id="p3-related-h">
         <Icon name={iconFor('related')} size={18} /> Related PolicyEngine work
       </h3>
