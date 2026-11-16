@@ -30,4 +30,13 @@ describe('Recap', () => {
     const { container } = render(<Recap items={[]} />);
     expect(container.innerHTML).toBe('');
   });
+  it('takes { q, a } items: the question and its answer (data-axis), linking back to the scene', () => {
+    const { container } = render(<Recap items={[{ icon: 'gdp', q: 'How fast has the UK grown?', a: 'About 1.5% a year', to: 'q-p1-output' }, { icon: 'gdp', text: 'Old shape', to: 'x' }]} />);
+    const chips = container.querySelectorAll('.story-recap-chip');
+    expect(container.querySelector('.story-recap').classList.contains('is-qa')).toBe(true);
+    expect(chips[0].querySelector('.story-recap-q').textContent).toBe('How fast has the UK grown?');
+    expect(chips[0].querySelector('.story-recap-a').hasAttribute('data-axis')).toBe(true);
+    expect(chips[0].getAttribute('href')).toContain('#q-p1-output');
+    expect(chips[1].textContent).toBe('Old shape');
+  });
 });

@@ -4,6 +4,11 @@
 // is in view (below the sticky rail). Blocks drawn once (phones) are
 // skipped: their states are set by buttons, not scroll.
 //
+// The topic's pinned question screen (QStage) sits above the block's figure;
+// the walk starts one screen above the block's figure (not the block), so
+// states are measured after the opener. MOTION=1 runs with motion on (the
+// pinned screens in the page).
+//
 //   bun scripts/check_states.mjs http://localhost:4360 [width height ...]
 //   (needs Playwright; CHROMIUM may name a Chrome binary). Exits 1 on a miss.
 import { chromium } from 'playwright';
@@ -16,14 +21,17 @@ const TICK = 40;
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let misses = 0;
 for (const [W, H] of sizes) {
-  const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'reduce' })).newPage();
+  const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: process.env.MOTION === '1' ? 'no-preference' : 'reduce' })).newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
   const blocks = await page.evaluate(() =>
     [...document.querySelectorAll('.scrolly')]
       .filter((s) => !/is-single|is-once|is-inline/.test(s.className))
       .map((s) => {
-        const r = s.getBoundingClientRect();
+        // measured from the figure: the pinned question screen above it is not a state
+        const r0 = s.getBoundingClientRect();
+        const g = s.querySelector('.scrolly-graphic');
+        const r = { top: Math.max(r0.top, (g ?? s).getBoundingClientRect().top), bottom: r0.bottom };
         const cards = [...s.querySelectorAll('.scrolly-step')].map((li, i) => (li.classList.contains('is-spacer') ? -1 : i)).filter((i) => i >= 0);
         return { id: s.id, top: r.top + scrollY, bottom: r.bottom + scrollY, cards };
       }),

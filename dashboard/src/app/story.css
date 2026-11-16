@@ -270,12 +270,15 @@
 .scene-head {
   grid-column: 1 / -1;
   grid-row: 1;
+  margin: 0 0 4px;
+  color: var(--pe-gray-600);
+  scroll-margin-top: calc(var(--story-graphic-top) + 8px);
+}
+.scene-head-row {
   display: flex;
   align-items: center;
   gap: 8px;
   min-height: 28px;
-  margin: 0 0 4px;
-  color: var(--pe-gray-600);
 }
 /* the hairline is an element (not ::after), so layout checks see it */
 .scene-head-rule {
@@ -311,7 +314,7 @@
 }
 /* The scene sub-header's question (Scrolly `sub.question`), on the title's
    row; it wraps under the title on narrow screens */
-.scene-head.has-q {
+.scene-head.has-q .scene-head-row {
   flex-wrap: wrap;
   row-gap: 2px;
 }
@@ -360,98 +363,246 @@
     transform: none;
   }
 }
-/* The topic opener: over the figure card only (no added height), played
-   once, then unmounted (Scrolly.jsx TopicOpener) */
-.topic-opener {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  border-radius: inherit;
-  background: var(--pe-surface);
-  transform-origin: 0 0;
-  transition:
-    background-color 700ms var(--story-ease),
-    transform 450ms var(--story-ease),
-    opacity 450ms var(--story-ease);
+/* The question-led sequence (QStage.jsx): one pinned screen per topic,
+   --q-pin tall, above the topic's header. --q-pin is the one knob for its
+   height (the Story's total height moves by about 15 x --q-pin); at 900px
+   and below it is scaled by --q-pin-phone. */
+.story {
+  --q-pin: 56svh;
+  --q-pin-phone: 0.72;
+}
+/* the stage takes the block's first row only where it is shown (not under
+   reduced motion or in print, where the rows stay as they were) */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .scrolly.has-stage > .q-stage {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .scrolly.has-stage > .scene-head {
+    grid-row: 2;
+  }
+  .scrolly.has-stage.has-sub > .scrolly-graphic,
+  .scrolly.has-stage.has-sub > .scrolly-steps {
+    grid-row: 3;
+  }
+  .scrolly.has-stage > .scrolly-takeaway,
+  .scrolly.has-stage > .scrolly-foot {
+    grid-row: 4;
+  }
+}
+.q-stage {
+  --qa: 0;
+  --qm: 0;
+  --qy: 0px;
+  position: relative;
+  height: var(--q-pin);
+  margin-bottom: -8px;
   pointer-events: none;
 }
-.topic-opener.is-in {
+.q-stage-tint {
+  position: absolute;
+  inset: 0 -24px;
+  border-radius: 20px;
   background: var(--part-tint, var(--pe-teal-50));
+  opacity: calc(min(1, var(--qa) * 1.4) * (1 - var(--qm)));
 }
-.topic-opener.is-out {
-  background: var(--part-tint, var(--pe-teal-50));
-  opacity: 0;
-  transform: translate(0, -48px) scale(0.3);
-}
-.topic-opener-inner {
+.q-stage-card {
+  position: absolute;
+  top: clamp(16px, 6%, 48px);
+  left: 0;
+  right: 0;
   display: grid;
   justify-items: center;
   gap: 14px;
-  max-width: 34rem;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0 16px;
   text-align: center;
-  opacity: 0;
-  transform: scale(0.88);
-  transition:
-    opacity 500ms var(--story-ease),
-    transform 700ms var(--story-ease);
+  transform-origin: 50% 100%;
+  transform: translateY(var(--qy)) scale(calc(1 - 0.55 * var(--qm)));
+  opacity: calc(1 - var(--qm) * 1.6);
+  will-change: transform, opacity;
 }
-.topic-opener.is-in .topic-opener-inner,
-.topic-opener.is-out .topic-opener-inner {
-  opacity: 1;
-  transform: none;
-}
-.topic-opener-mark {
-  display: inline-flex;
-  gap: 12px;
-  align-items: center;
+.q-stage-numeral {
+  position: absolute;
+  top: -0.32em;
+  left: 50%;
+  z-index: -1;
+  font-size: clamp(9rem, 22vw, 15rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
   color: var(--part-accent, var(--c-highlight));
+  opacity: calc(0.07 * min(1, var(--qa) * 1.5));
+  translate: -50% calc((1 - var(--qa)) * 40px);
 }
-.topic-opener-icon {
+.q-stage-icon {
   display: inline-flex;
+  color: var(--part-accent, var(--c-highlight));
+  transform: scale(calc(0.7 + 0.3 * var(--qa)));
+  opacity: min(1, calc(var(--qa) * 2));
 }
-.topic-opener-part {
-  font-size: var(--fs-caption);
+.q-stage-q {
+  font-size: clamp(1.9rem, 3.9vw, 3.1rem);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.topic-opener-q {
-  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
   color: var(--pe-gray-900);
   text-wrap: balance;
 }
-.topic-opener-w {
+.q-stage-w {
   display: inline-block;
   white-space: pre;
   opacity: 0;
-  transform: translateY(0.35em);
+  transform: translateY(0.45em) scale(0.96);
+  filter: blur(3px);
   transition:
     opacity 420ms var(--story-ease),
-    transform 520ms var(--story-ease);
-  transition-delay: calc(180ms + var(--w) * 70ms);
+    transform 560ms var(--story-ease),
+    filter 420ms var(--story-ease),
+    color 500ms var(--story-ease);
+  transition-delay: calc(80ms + var(--w) * 65ms);
 }
-.topic-opener.is-in .topic-opener-w,
-.topic-opener.is-out .topic-opener-w {
+.q-stage-w.is-key {
+  color: var(--part-accent, var(--c-highlight));
+  background: linear-gradient(currentColor, currentColor) 0 92% / 0 3px no-repeat;
+  transition-property: opacity, transform, filter, background-size;
+}
+.q-stage.is-in .q-stage-w {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+.q-stage.is-in .q-stage-w.is-key {
+  background-size: calc(100% - 0.3em) 3px;
+}
+.q-stage-hint {
+  font-size: var(--fs-body, 1rem);
+  color: var(--pe-gray-600);
+  opacity: 0;
+  transition: opacity 500ms var(--story-ease);
+  transition-delay: calc(240ms + var(--w) * 65ms);
+}
+.q-stage.is-in .q-stage-hint {
+  opacity: 1;
+}
+.q-stage-progress {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--pe-gray-600);
+  opacity: min(1, calc(var(--qa) * 1.6));
+}
+.q-stage-ring circle {
+  fill: none;
+  stroke-width: 2.5;
+}
+.q-stage-ring-track {
+  stroke: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 20%, transparent);
+}
+.q-stage-ring-fill {
+  stroke: var(--part-accent, var(--c-highlight));
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 15px 15px;
+  stroke-dashoffset: 0;
+  transition: stroke-dasharray 700ms var(--story-ease);
+}
+.q-stage-ring text {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--part-accent, var(--c-highlight));
+}
+@media (max-width: 900px) {
+  .q-stage {
+    height: calc(var(--q-pin) * var(--q-pin-phone));
+  }
+  .q-stage-tint {
+    inset: 0 -8px;
+    border-radius: 14px;
+  }
+  .q-stage-q {
+    font-size: clamp(1.55rem, 7vw, 2.2rem);
+  }
+  .q-stage-card {
+    gap: 10px;
+  }
+}
+/* The answer (Scrolly sub.answer): after the last card, the question
+   replayed small and the answer line; slides up once the last card is
+   reached (opacity only: the text is always in the DOM) */
+.scrolly-answer {
+  list-style: none;
+}
+.scrolly-answer-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--part-tint, var(--pe-teal-50));
+  border-left: 3px solid var(--part-accent, var(--c-highlight));
+  border-radius: 0 10px 10px 0;
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 450ms var(--story-ease),
+    transform 550ms var(--story-ease);
+}
+.scrolly-answer-card.is-shown {
   opacity: 1;
   transform: none;
 }
-@media (max-width: 900px) {
-  .topic-opener {
-    padding: 16px;
-  }
-  .topic-opener-q {
-    font-size: clamp(1.5rem, 6vw, 2rem);
-  }
+.scrolly-answer-q {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.scrolly-answer-q-icon,
+.scrolly-answer-icon {
+  flex: none;
+  display: inline-flex;
+  align-self: center;
+  color: var(--part-accent, var(--c-highlight));
+}
+.scrolly-answer-a {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--fs-body, 1rem);
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.scrolly-answer-label {
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--part-accent, var(--c-highlight));
+}
+.scrolly-answer-text {
+  font-weight: 600;
+}
+.scrolly-answer-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 50%, transparent);
+  text-underline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .topic-opener {
+  .q-stage {
     display: none;
+  }
+  .scrolly-answer-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
   .scene-head.is-arrived,
   .scene-head.is-arrived .scene-head-icon,
@@ -460,8 +611,116 @@
   }
 }
 @media print {
-  .topic-opener {
+  .q-stage {
     display: none;
+  }
+  .scrolly-answer-card {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* One step, one highlight (highlight.jsx): while a step names marks, the
+   figure carries data-hl, its named marks data-on; the rest dim to 25% */
+/* dimmed by filter, not opacity, and the transition at zero specificity:
+   the chart primitives' own opacity and draw transitions (.draw-path,
+   .grow-rect, .fade-g, .draw-end) keep working on a mark */
+:where([data-hl] [data-mark]) {
+  transition: filter 300ms var(--story-ease);
+}
+[data-hl] [data-mark]:not([data-on]) {
+  filter: opacity(0.25);
+}
+.hl-key {
+  display: inline-flex;
+  gap: 4px;
+  align-items: baseline;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.hl-key .mark-shape {
+  align-self: center;
+  flex: none;
+}
+.hl-key-text {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--key-c, currentColor);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: auto;
+}
+.hl-key[tabindex],
+.hl-fig[tabindex],
+.hl-num[tabindex] {
+  cursor: pointer;
+}
+.hl-key.is-pointed .hl-key-text {
+  text-decoration-thickness: 4px;
+}
+.hl-key:focus-visible,
+.hl-fig:focus-visible,
+.hl-num:focus-visible {
+  outline: 2px solid var(--part-accent, var(--c-highlight));
+  outline-offset: 2px;
+}
+.hl-fig {
+  padding: 0 4px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 10%, transparent);
+  box-shadow: inset 0 -1.5px 0 color-mix(in srgb, var(--part-accent, var(--c-highlight)) 45%, transparent);
+}
+.hl-fig.is-pointed {
+  background: color-mix(in srgb, var(--part-accent, var(--c-highlight)) 22%, transparent);
+}
+.hl-num,
+.hl-nummark text {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.hl-num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin: 0 2px;
+  border-radius: 50%;
+  vertical-align: 0.1em;
+  color: var(--pe-surface, #fff);
+  background: var(--pe-gray-800);
+}
+.hl-num.is-pointed {
+  background: var(--part-accent, var(--c-highlight));
+}
+.hl-nummark circle {
+  fill: var(--pe-gray-800);
+  stroke: var(--pe-surface, #fff);
+  stroke-width: 1.5;
+}
+.hl-nummark text {
+  fill: var(--pe-surface, #fff);
+}
+.hl-nummark[data-on] circle {
+  fill: var(--part-accent, var(--c-highlight));
+}
+/* a mark pointed at from the text pulses once */
+[data-hl] [data-mark][data-on] {
+  animation: hl-pulse 700ms var(--story-ease) 1;
+}
+@keyframes hl-pulse {
+  40% {
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--part-accent, var(--c-highlight)) 70%, transparent));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where([data-hl] [data-mark]) {
+    transition: none;
+  }
+  [data-hl] [data-mark][data-on] {
+    animation: none;
   }
 }
 /* `sub.takeaway`: one line after the block, under both columns */
@@ -2148,4 +2407,97 @@
 }
 .as-of code {
   font-size: 0.95em;
+}
+/* Recap with questions and answers ({ q, a }): a chip per question, the
+   answer under it in bold; three across on desktop, one per row on phones */
+.story-recap.is-qa .story-recap-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  width: 100%;
+}
+.story-recap-chip.is-qa {
+  align-items: flex-start;
+  height: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.story-recap-chip.is-qa .story-recap-chip-icon {
+  margin-top: 0.2em;
+}
+.story-recap-qa {
+  display: grid;
+  gap: 2px;
+}
+.story-recap-q {
+  color: var(--pe-gray-700);
+}
+.story-recap-a {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+/* A step's sentence anchored to its mark (MarkCallout.jsx, step.callout) */
+.mark-callout {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  max-width: min(260px, 60%);
+  padding: 6px 10px;
+  font-size: var(--fs-small);
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--pe-gray-900);
+  background: var(--pe-surface);
+  border: 1px solid color-mix(in srgb, var(--part-accent, var(--c-highlight)) 45%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
+  pointer-events: none;
+  visibility: hidden;
+}
+.mark-callout.is-placed {
+  visibility: visible;
+  animation: mark-callout-in 350ms var(--story-ease) both;
+}
+@keyframes mark-callout-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.mark-callout-leader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+.mark-callout-leader line {
+  stroke: var(--part-accent, var(--c-highlight));
+  stroke-width: 1;
+}
+.mark-callout-leader circle {
+  fill: var(--part-accent, var(--c-highlight));
+}
+@media (max-width: 900px) {
+  .mark-callout {
+    max-width: min(220px, 70%);
+    font-size: var(--fs-caption);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mark-callout.is-placed {
+    animation: none;
+  }
+}
+/* TopicHead (QStage.jsx) outside a Scrolly: the answer under the header */
+.topic-head-answer {
+  margin: 0 0 16px;
+}
+/* Desktop: a sticky figure is held inside the whole block (Chrome takes the
+   grid container, not the grid area, as its sticky bound), so it can slide
+   down to the takeaway line under the block; the line stays on top (a
+   margin on the figure would cut the last state's hold) */
+.scrolly > .scrolly-takeaway {
+  position: relative;
+  z-index: 2;
 }
