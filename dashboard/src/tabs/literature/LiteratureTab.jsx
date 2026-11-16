@@ -10,6 +10,7 @@ import { esc } from '@/lib/download.js';
 import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import EvidenceLanes from './EvidenceLanes.jsx';
+import RelatedWork from './RelatedWork.jsx';
 import IMF from './imfGap.json';
 import GrowthCheck from './GrowthCheck.jsx';
 import EvidenceMap from './EvidenceMap.jsx';
@@ -308,6 +309,7 @@ function SourceList({ group, title, icon }) {
 const SECTIONS = [
   { id: 'coverage', title: 'What each source can represent', icon: iconFor('coverage') },
   { id: 'numbers', title: 'Where our numbers sit', icon: iconFor('measure') },
+  { id: 'related-work', title: 'Related PolicyEngine work', icon: iconFor('related') },
   { id: 'evidence-map', title: 'UK evidence map', icon: iconFor('table') },
   { id: 'sources', title: 'Sources', icon: iconFor('source') },
 ];
@@ -335,6 +337,7 @@ export default function StudiesTab() {
         <EvidenceLanes />
         <ImfGap />
         <GrowthCheck />
+        <RelatedWork />
         <SectionHeading id="evidence-map" icon={iconFor('table')} title="UK evidence map">
             <IconText icon="source">Official, think-tank, international, private and academic estimates, each with baseline, horizon and check date. Published figures live here.</IconText>
         </SectionHeading>

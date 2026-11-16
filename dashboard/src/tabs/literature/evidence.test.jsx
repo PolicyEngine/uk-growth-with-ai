@@ -8,6 +8,8 @@ import MAP from '@/data/site-evidence-map.json';
 import { CHANNELS, OBR_GROWTH, RANGES, SOURCES } from '@/data/literature.js';
 import EvidenceMap, { mapTable, ourRows, view, hasFigure } from '@/tabs/literature/EvidenceMap.jsx';
 import { growthPairs } from '@/tabs/literature/GrowthCheck.jsx';
+import RelatedWork from '@/tabs/literature/RelatedWork.jsx';
+import REL from '@/data/relatedWork.json';
 import { SCENARIOS, gap, fmt, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 
 afterEach(cleanup);
@@ -131,5 +133,20 @@ describe('Evidence map table', () => {
     const n = MAP.rows.filter((r) => !r.unverified && hasFigure(r)).length;
     expect(n).toBeLessThan(MAP.rows.length);
     expect(container.textContent).toContain(`${n} published figures`);
+  });
+});
+
+describe('Related PolicyEngine work', () => {
+  it('prints its provenance line and each figure, labelled as those pages’ figures', () => {
+    const { container } = render(<RelatedWork />);
+    const t = container.textContent;
+    expect(t).toContain('Figures read off these pages on 15 November 2026');
+    expect(t).toContain('not this dashboard’s');
+    const s = REL.items.find((x) => x.id === 'income_shift');
+    const b = REL.items.find((x) => x.id === 'budget_lab');
+    const figs = [s.gini_base, s.gini_full, `−£${s.revenue_min_bn}B`, `${s.revenue_min_shift_pct}%`, `$${b.rapid_revenue_bn}B`, `${b.rapid_poverty_pp}pp`];
+    for (const fig of figs) expect(t).toContain(fig);
+    for (const it of REL.items) expect(container.querySelector(`a[href="${it.url}"]`)).not.toBeNull();
+    expect(container.querySelectorAll('[data-path^="relatedWork.items."]')).toHaveLength(6);
   });
 });

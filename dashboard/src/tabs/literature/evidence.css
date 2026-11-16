@@ -341,3 +341,60 @@
   font-size: var(--fs-small);
   font-weight: 600;
 }
+
+/* Related PolicyEngine work: compact icon link cards */
+.mx-related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.mx-related-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 12px 14px;
+  border: 1px solid var(--pe-gray-200);
+  border-radius: var(--card-radius);
+}
+.mx-related-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  text-decoration: none;
+}
+.mx-related-title:hover,
+.mx-related-title:focus-visible {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+}
+.mx-related-line,
+.mx-related-where,
+.mx-related-tag {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.mx-related-where,
+.mx-related-tag {
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.mx-related-figs {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px dashed var(--pe-gray-200);
+  list-style: none;
+  font-size: var(--fs-small);
+}
+.mx-related-figs li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}

@@ -8,6 +8,8 @@ check(dump) returns the number of failures:
 - every no-estimate body is listed;
 - a row flagged `unverified` (not confirmed in a primary text) is not
   printed: its value appears nowhere in the card;
+- the Related PolicyEngine work section (from relatedWork.json) prints its
+  provenance line and each of its figures;
 - no headline-year GDP or wage gap of any scenario and closure from
   surprise2028.json (formatted as the site prints it) appears anywhere on the
   page: their home is Explore.
@@ -15,11 +17,13 @@ check(dump) returns the number of failures:
 Run alone (python3 scripts/checks/evidence.py dump.json) for this check only.
 """
 import json, os, sys
+from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
 MAP = json.load(open(os.path.join(DATA, 'site-evidence-map.json')))
 S = json.load(open(os.path.join(DATA, 'surprise2028.json')))
+REL = json.load(open(os.path.join(DATA, 'relatedWork.json')))
 TITLE = 'Published estimates of AI’s economic effects'
 
 
@@ -37,6 +41,26 @@ def our_gaps():
             if r.get('status') == 'done':
                 for v in ('Y', 'w'):
                     out.add(signed(r['gaps'][v][h]) + '%')
+    return out
+
+
+def related(text):
+    '''Related PolicyEngine work: its section, provenance line and figures.'''
+    out = []
+    head = 'Related PolicyEngine work'
+    if head not in text:
+        return ['related work: section missing']
+    sec = text[text.index(head):]
+    end = sec.find('\nUK evidence map\n')
+    sec = sec if end < 0 else sec[:end]
+    d = date.fromisoformat(REL['read'])
+    line = f"Figures read off these pages on {d.day} {d.strftime('%B')} {d.year}"
+    if line not in sec:
+        out.append(f'related work: provenance line {line!r} missing')
+    s, b = (next(i for i in REL['items'] if i['id'] == k) for k in ('income_shift', 'budget_lab'))
+    for fig in (s['gini_base'], s['gini_full'], f"−£{s['revenue_min_bn']}B", f"{s['revenue_min_shift_pct']}%", f"${b['rapid_revenue_bn']}B", f"{b['rapid_poverty_pp']}pp"):
+        if fig not in sec:
+            out.append(f'related work: figure {fig!r} missing')
     return out
 
 
@@ -63,6 +87,7 @@ def check(dump):
             got = card.count(r['value'])
             if got != want:
                 fails.append(f"{r['id']}: {r['value']!r} printed {got}x, expected {want}")
+        fails += related(text)
         left = [g for g in our_gaps() if g in text]
         if left:
             fails.append(f'OG-UK gaps printed on the page: {sorted(left)}')
