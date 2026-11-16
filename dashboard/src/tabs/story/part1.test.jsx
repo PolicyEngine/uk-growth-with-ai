@@ -1,5 +1,5 @@
 // Story part 1: the home of the official statistics. Each latest figure is
-// printed once, in a step card; graphics print no values (axis ticks carry
+// printed once, in the UK vitals panel or a step card; graphics print no values (axis ticks carry
 // data-axis). The expected figures are built here by hand from the data
 // file's paths, and the part is rendered against both the real file and a
 // fixture with altered values, so a hard-coded number fails.
@@ -124,7 +124,7 @@ describe('story part 1, real data', () => {
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
     expect(el.textContent).toContain(`The OBR’s central forecast, published ${vintage}`);
-    expect(el.textContent).toContain('starts from the OBR’s March 2026 forecast');
+    expect(el.textContent).toContain('no-shock path uses the OBR’s March 2026 productivity growth');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
   });
@@ -143,14 +143,89 @@ describe('story part 1, real data', () => {
 
   it('gives every graphic a source line with links from the data file', () => {
     const el = show(Part1Real);
-    const urls = new Set(Object.values(real.sources).map((s) => s.url));
+    const urls = new Set([...Object.values(real.sources).flatMap((s) => [s.page, s.url]), ...Object.values(real.links).map((l) => l.url)]);
     const figs = el.querySelectorAll('.p1-figure');
     expect(figs).toHaveLength(4); // output canvas, labour board, AI use, exposure tiles
     figs.forEach((fig) => {
       const links = fig.querySelectorAll('.story-source a');
       expect(links.length).toBeGreaterThan(0);
       links.forEach((a) => expect(urls.has(a.getAttribute('href'))).toBe(true));
+      // the visible source line links readable pages, never a CSV or spreadsheet download
+      fig.querySelectorAll('.story-source:not(li) a').forEach((a) => expect(a.getAttribute('href')).not.toMatch(/generator\?/));
     });
+  });
+
+  it('links every printed figure to its source page, not a download', () => {
+    const el = show(Part1Real);
+    const paths = el.querySelectorAll('[data-path]');
+    expect(paths.length).toBe(checks.figures.length);
+    paths.forEach((n) => {
+      const a = n.closest('a');
+      expect(a, n.getAttribute('data-path')).not.toBeNull();
+      expect(a.getAttribute('href')).toMatch(/^https:\/\//);
+      expect(a.getAttribute('href')).not.toMatch(/generator\?/);
+    });
+    for (const s of Object.values(real.sources)) expect(s.page).toMatch(/^https:\/\/(www\.ons\.gov\.uk|obr\.uk|www\.gov\.uk)\//);
+    for (const f of checks.figures) expect(f.page).toMatch(/^https:\/\//);
+  });
+
+  it('opens with a UK vitals panel: seven tiles, each value linked, period and release stamped', () => {
+    const el = show(Part1Real);
+    const tiles = el.querySelectorAll('#p1-vitals .p1-vital');
+    expect([...tiles].map((t) => t.dataset.vital)).toEqual(['gdp', 'productivity', 'employment', 'unemployment', 'pay', 'share', 'ai']);
+    tiles.forEach((t) => {
+      expect(t.querySelector('[data-path]').closest('a')).not.toBeNull();
+      expect(t.textContent).toMatch(/Through /);
+      expect(t.textContent).toMatch(/Released \d+ \w+ \d{4}/);
+      expect(t.querySelector('svg.p1-vital-spark').getAttribute('aria-hidden')).toBe('true');
+    });
+    // the first estimate is flagged, from the fact's note
+    expect(el.querySelector('#p1-vital-gdp .p1-flag').textContent).toContain('First estimate');
+    expect(el.querySelector('#p1-vital-employment .p1-flag')).toBeNull();
+    // the panel comes before the first scene
+    expect(el.querySelector('#p1-vitals').compareDocumentPosition(el.querySelector('#p1-output')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('records a next release only where the publisher lists one after the fetch date', () => {
+    for (const s of Object.values(real.sources)) if (s.next_release) expect(s.next_release > s.fetched).toBe(true);
+    expect(real.sources.ons_bics.next_release).toBeUndefined();
+    expect(real.sources.obr_efo_oct2026.next_release).toBeUndefined();
+  });
+
+  it('marks a y-axis title on every chart', () => {
+    const el = show(Part1Real);
+    el.querySelectorAll('.p1-figure').forEach((fig) => expect(fig.querySelector('[data-axis-title="y"]')).not.toBeNull());
+    expect(el.querySelector('.p1-ai [data-axis-title="x"]')).not.toBeNull();
+  });
+
+  it('keeps each topic takeaway true of the series on the page', async () => {
+    const { OUTPUT_TAKEAWAY, WORK_TAKEAWAY, AI_TAKEAWAY } = await import('@/tabs/story/Part1.jsx');
+    const S = real.series;
+    // output: every year after the rebound below most 2010s years; every quarter of the current year above zero
+    const g = (y) => S.gdp_growth.y[S.gdp_growth.x.indexOf(y)];
+    const tens = S.gdp_growth.x.filter((y) => y >= 2010 && y <= 2019).map(g);
+    S.gdp_growth.x.filter((y) => y >= 2023).forEach((y) => expect(tens.filter((t) => t > g(y)).length).toBeGreaterThan(tens.length / 2));
+    const lastYear = S.gdp_quarterly.x.at(-1).slice(0, 4);
+    S.gdp_quarterly.x.forEach((q, i) => q.startsWith(lastYear) && expect(S.gdp_quarterly.y[i]).toBeGreaterThan(0));
+    expect(OUTPUT_TAKEAWAY).toContain('each quarter of this year has grown');
+    // work: unemployment lower than at the end of last year; pay growth peaked in 2023 and is lower now; output per hour about 100
+    const u = S.unemployment_rate;
+    expect(u.y.at(-1)).toBeLessThan(u.y[u.x.indexOf(`${Number(u.x.at(-1).slice(0, 4)) - 1} DEC`)]);
+    const p = S.pay_growth;
+    expect(p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4)).toBe('2023');
+    expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
+    expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
+    expect(WORK_TAKEAWAY).toContain('2023 peak');
+    // AI: each September wave above the one a year before; the 10+ group up more; the two high-exposure groups a majority
+    for (const k of ['business_ai_use', 'business_ai_use_10plus']) {
+      const sep = S[k].x.map((x, i) => (/Sept/.test(x) ? S[k].y[i] : null)).filter((v) => v != null);
+      sep.slice(1).forEach((v, i) => expect(v).toBeGreaterThan(sep[i]));
+    }
+    const rise = (k) => S[k].y.at(-1) - S[k].y[0];
+    expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
+    const f = real.facts;
+    expect(f.workers_high_exposure_high_complementarity.value + f.workers_high_exposure_low_complementarity.value).toBeGreaterThan(50);
+    expect(AI_TAKEAWAY).toMatch(/most UK workers/);
   });
 
   it('has three scenes that keep every old step id and block id as link targets', () => {
@@ -340,15 +415,15 @@ describe('story part 1, first states', () => {
 // it ('up', 'down', 'unchanged') must say the same.
 const checkArrows = (el) => {
   const arrows = [...el.querySelectorAll('.p1-growth')];
-  expect(arrows.length).toBe(7); // annual, three OBR years, two quarterly, pay
+  expect(arrows.length).toBe(7); // annual, three OBR years, year-on-year quarter; the GDP and pay tiles
   for (const a of arrows) {
     const v = Number(a.textContent.replace('−', '-').replace('%', ''));
     expect(a.getAttribute('data-dir')).toBe(dirOf(v));
     // the fact's icon is the arrow for that sign (Lucide's class names the glyph)
-    const fact = a.closest('.story-fact');
-    const glyph = fact.querySelector('.story-fact-icon svg').getAttribute('class');
+    const fact = a.closest('.story-fact, .p1-vital');
+    const glyph = fact.querySelector('.story-fact-icon svg, .p1-vital-dir svg').getAttribute('class');
     expect(glyph).toContain({ rise: 'lucide-arrow-up', fall: 'lucide-arrow-down', flat: 'lucide-minus' }[dirOf(v)]);
-    const sub = fact.querySelector('.story-fact-sub').textContent;
+    const sub = fact.querySelector('.story-fact-sub, .p1-vital-label').textContent;
     expect(sub).toContain(dirWord(v));
   }
 };
@@ -389,8 +464,9 @@ describe('story part 1, altered data', () => {
     expect(el.textContent).toContain('The OBR’s central forecast, published March 2027');
     // the arrows follow the altered signs (a fall, a zero, rises)
     checkArrows(el);
-    expect(el.querySelector('#p1-quarters-0 .p1-growth').getAttribute('data-dir')).toBe('fall');
-    expect(el.querySelector('#p1-pay-0 .p1-growth').getAttribute('data-dir')).toBe('flat');
+    expect(el.querySelector('#p1-vital-gdp .p1-growth').getAttribute('data-dir')).toBe('fall');
+    expect(el.querySelector('#p1-vital-pay .p1-growth').getAttribute('data-dir')).toBe('flat');
+    expect(el.querySelector('#p1-vital-pay .p1-vital-label').textContent).toContain('unchanged');
     vi.doUnmock('@/data/ukContext.json');
   });
 });

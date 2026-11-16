@@ -3,7 +3,8 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { useNav } from '@/lib/nav.jsx';
+import { NavLink, useNav } from '@/lib/nav.jsx';
+import { REPO } from '@/tabs/ai/links.js';
 import { useReducedMotion } from '@/components/story/motion.js';
 import { useEffect, useId, useRef, useState } from 'react';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
@@ -161,7 +162,7 @@ export default function Hero() {
           ))}
           </g>
           {nameSet(wide, 'is-wide', 24, 'OBR-central path')}
-          {nameSet(narrow, 'is-narrow', 20, 'OBR path')}
+          {nameSet(narrow, 'is-narrow', 20, 'OBR-central path')}
           <text x={X(xs) + 6} y={H - 26} className="hero-name is-zero">
             AI arrives, {SURPRISE_YEAR}
           </text>
@@ -176,7 +177,15 @@ export default function Hero() {
           ]}
         />
         <p className="story-source">
-          <Icon name={iconFor('source')} size={13} className="p1-source-icon" /> Source: OG-UK, PolicyEngine.
+          <Icon name={iconFor('source')} size={13} className="p1-source-icon" /> Source:{' '}
+          <a href={REPO} target="_blank" rel="noopener noreferrer">
+            OG-UK runs, PolicyEngine
+          </a>
+          ; how they are built:{' '}
+          <NavLink tab="method" anchor="m-model">
+            Method
+          </NavLink>
+          .
         </p>
       </div>
     </section>
