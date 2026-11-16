@@ -191,11 +191,17 @@ export default function Sankey({
   const baseW = perDepth ? (widths ? Math.max(...widths) : 14) : nodeWidth;
   const H = narrow ? Math.round(height * 0.85) : height;
   const L = narrow ? narrowLeftRoom : leftRoom;
-  const R = narrow ? narrowRightRoom : rightRoom;
+  // end nodes with an `inline` value need room for "label value" on one
+  // line: about 6.7 units a character at 12px, plus the 6-unit offset
+  const g0 = graphs[0];
+  const inlineRoom = Math.max(
+    0,
+    ...g0.nodes.filter((n) => n.inline && n.sub && !g0.links.some((l) => l.source === n.id)).map((n) => Math.ceil((n.label.length + 1 + String(n.sub).length) * 6.7) + 10),
+  );
+  const R = Math.max(narrow ? narrowRightRoom : rightRoom, inlineRoom);
   const top = 8;
   const long = W - L - R;
   // room below for middle-column labels, when the graph has a middle column
-  const g0 = graphs[0];
   const hasMiddle = g0.nodes.some((n) => g0.links.some((l) => l.source === n.id) && g0.links.some((l) => l.target === n.id));
   const short = H - top - (hasMiddle ? 30 : 6);
   const max = Math.max(...graphs.map(total));

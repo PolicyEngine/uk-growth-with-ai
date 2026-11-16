@@ -1493,7 +1493,8 @@ svg.p3-dim {
   white-space: nowrap;
   color: var(--pe-gray-900);
 }
-.p3-db-val.is-left {
+.p3-db-val.is-left,
+.p3-scene.is-on .p3-db-val.is-left {
   transform: translateX(-100%);
 }
 /* a centred value never leaves its track: it slides left by what would
@@ -1501,7 +1502,8 @@ svg.p3-dim {
 .p3-db-track {
   container-type: inline-size;
 }
-.p3-db-val:not(.is-left) {
+.p3-db-val:not(.is-left),
+.p3-scene.is-on .p3-db-val:not(.is-left) {
   transform: translateX(max(calc(var(--x, 50) * -1cqw), min(-50%, calc((100 - var(--x, 50)) * 1cqw - 100%))));
 }
 .p3-db-mark.is-cut .p3-db-val {
