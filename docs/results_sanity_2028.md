@@ -2,7 +2,7 @@
 
 Independent review of every finished solve on `rerun/surprise-2028` at `a657e6d` (12 Nov 2026, 18:04).
 
-> **Consistency pass 16 Nov 2026:** the `_dnfull` solve behind the paper's cohort figure passes 13 aggregate checks, in a new section outside the verdict design. Its cohort calculation is not audited. The repricing range is corrected to 4–66% over the 20 of 24 cells where debt still rises. No verdict changed.
+> **Consistency pass 16 Nov 2026:** the `_dnfull` solve behind the paper's cohort figure is covered by 13 aggregate checks, in a new section outside the verdict design: the 10 with a pass rule all pass, and 3 (6, 11, 13) are report-only. Its cohort calculation is not audited. The repricing range is corrected to 4–66% over the 20 of 24 cells where debt still rises. No verdict changed.
 >
 > **Review pass 15 Nov 2026:** an independent review reproduced every count. The cause of A16 is corrected (half depreciation, a third foreign owners), A14 and A15 have tighter tests, and the combined effect of the post-hoc rules is stated (815 / 182 / 23 under the earlier rules). No verdict changed. See "Review pass" near the end.
 >
@@ -363,7 +363,7 @@ Verdict: **plausible given the closure, and below the IMF for a stated reason.**
 
 | OBR figure | like-for-like model number | model | position | explained by |
 |---|---|---|---|---|
-| FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is about 14pp against the OBR's 19–23pp (`docs/red_flags_1_3.md`) |
+| FRS 2026 Box 4.1: tax/GDP −0.19pp per pp of labour-share fall, GDP unchanged (−0.23 with the Nov 2025 EFO rates) | stress test, ζK 0.1, per pp | −0.150 (low), −0.153 (central), −0.158 (high), −0.161 (Korinek) | 71–77% of the midpoint | the tax gap: OG-UK's labour–capital wedge is 14.8pp at ζK = 0.1 (13.6pp at ζK = 0) against the OBR's 19–23pp (`docs/red_flags_1_3.md`) |
 | same | stress test, ζK 0, per pp | −0.027 (UK central), −0.025 (Korinek) | 12–13% | closure: r rises 44–107bp on all household wealth, and the single income-tax schedule taxes that (A6) |
 | March 2026 EFO ¶6.18, displacement scenario: receipts −0.17% of GDP, GDP unchanged; implied share fall about 0.7pp (ours, in the literature note) | UK low stress test (0.7pp), ζK 0.1: receipts, % of GDP | −0.10 | 61% | the tax gap; no unemployment (the OBR's fall is mostly lower employment and VAT) |
 | same: debt +1.3% of GDP by 2030-31, with spending held at plans and welfare +£3bn a year | UK low stress test: debt/GDP | +0.38pp in 2031, +1.47pp in 2036 | 29% at year 4 | no unemployment or welfare channel; smaller revenue fall; the model's G/Y rule (fixed spending was not run for UK low) |
@@ -1315,7 +1315,7 @@ Half of the extra gross capital income is depreciation and a third is the net re
 
 ## Consistency pass 16 Nov 2026 (the `_dnfull` solve, and text fixes)
 
-Audited at `a5c4ea0`, which merges `rerun/surprise-2028` at `7930862` into this branch. Under `analysis/surprise/output` the merge changes only `uk_central_share_shift_tfp_ramp_dnfull.sanity.json` (re-run at `b348144`), a provenance field in two ζK = 0.5 UK high records (no series change), and `report_assembled.log`. `--verdict` prints byte-identical output before and after, so the counts stay **799 / 217 / 4**.
+Audited at `a5c4ea0`, which merges `rerun/surprise-2028` at `7930862` into this branch. Under `analysis/surprise/output` the merge changes `uk_central_share_shift_tfp_ramp_dnfull.sanity.json` (re-run at `b348144`), a provenance field (`ss_guess`) in two ζK = 0.5 UK high records (no series change), and three logs: `report_assembled.log`, `check_assembled.log` and `export_cohorts.log`. `--verdict` prints byte-identical output before and after, so the counts stay **799 / 217 / 4**.
 
 ### The `_dnfull` solve: aggregate checks
 
