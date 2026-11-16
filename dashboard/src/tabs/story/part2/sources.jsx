@@ -4,6 +4,8 @@ import S from '@/data/surprise2028.json';
 import C from '@/data/cohorts2028.json';
 import U from '@/data/ukContext.json';
 import { NavLink } from '@/lib/nav.jsx';
+import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { result } from '@/tabs/ai/surprise.js';
@@ -64,13 +66,15 @@ export function A({ href, children }) {
   );
 }
 
-// "OG-UK result: result file · Method" at the foot of a card that states a
-// model result. `files`: [[label, url]]; `method`: a Method anchor (m-…).
-export function ResultLinks({ files = [], method, methodText = 'Method' }) {
+// One line of linked sources at the foot of a card: a model result's files
+// and its Method section ("OG-UK result: …"), or an input's documents
+// ("Sources: …"). A citation line (data-cite), with its icon.
+export function ResultLinks({ files = [], method, methodText = 'Method', lead = 'OG-UK result' }) {
   const fs = files.filter(([, u]) => u);
   return (
-    <p className="p2-result-links">
-      OG-UK result:{' '}
+    <p className="p2-result-links" data-cite="">
+      <Icon name={iconFor('source')} size={12} className="p2-tx-icon" />
+      {lead}:{' '}
       {fs.map(([t, u], i) => (
         <span key={u}>
           {i ? ', ' : ''}
@@ -88,26 +92,27 @@ export function ResultLinks({ files = [], method, methodText = 'Method' }) {
     </p>
   );
 }
+export const Cite = ({ items, method, methodText }) => <ResultLinks lead="Sources" files={items} method={method} methodText={methodText} />;
 
-// The source line under a part 2 model figure: the model, the runs at their
-// commit, the result files drawn, and the Method section.
-export function ModelSource({ files = [], method = 'm-model', lead = 'Source' }) {
+// The source line under a part 2 model figure, kept to about one line: the
+// model, the solves at their commit (each drawn solve's result file), and
+// the Method section.
+export function ModelSource({ files = [], method = 'm-model' }) {
   const fs = files.filter(([, u]) => u);
   return (
     <>
-      {lead}: <A href={SRC.ogUk}>OG-UK</A>, run by PolicyEngine (<A href={SRC.repo}>uk-growth-with-ai</A>), 2028-surprise solves at{' '}
-      <A href={`${REPO}/tree/${COMMIT}/analysis/surprise/output`}>{COMMIT}</A>
-      {fs.map(([t, u]) => (
+      Source: <A href={SRC.ogUk}>OG-UK</A> (<A href={SRC.repo}>PolicyEngine</A>), solves at <A href={`${REPO}/tree/${COMMIT}/analysis/surprise/output`}>{COMMIT}</A>
+      {fs.length ? ': ' : ''}
+      {fs.map(([t, u], i) => (
         <span key={u}>
-          {'; '}
+          {i ? ', ' : ''}
           <A href={u}>{t}</A>
         </span>
       ))}
-      {'. '}
+      {' · '}
       <NavLink tab="method" sub="how" anchor={method}>
-        How OG-UK works
+        Method
       </NavLink>
-      .
     </>
   );
 }

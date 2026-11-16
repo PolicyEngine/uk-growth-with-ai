@@ -9,7 +9,7 @@ import { useInView, useIsPhone, useReducedMotion } from '@/components/story/moti
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
-import { A, ModelSource, resultUrl, pathUrl, OG_DEFAULTS } from './sources.jsx';
+import { A, ModelSource, ResultLinks, resultUrl, pathUrl, OG_DEFAULTS } from './sources.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -351,13 +351,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
       <p className="story-source p2-output-foot">
         <span className="p2-src-line">
           <Tx icon="source" size={12}>
-            <ModelSource
-              method="m-measures"
-              files={[
-                ['no-shock path file', pathUrl(cl)],
-                [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
-              ]}
-            />{' '}
+            <ModelSource method="m-measures" />{' '}
             Changes: {where}. Taxes are not split out (one combined income tax series).
           </Tx>
         </span>
@@ -373,7 +367,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   );
 }
 
-function outputSteps(sid, base, ch, hl, setHl, phone) {
+function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
   const labourMore = base ? base.labour > 50 : null;
   // a chip in card i picks for graphic state i (phones draw state 2 for all)
   const chip = (i) => {
@@ -425,11 +419,10 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
               icon: 'measure',
               text: (
                 <>
-                  Its size is <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, wider than{' '}
+                  Its size: <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, counting the self-employed, unlike{' '}
                   <NavLink tab="story" anchor="p1-share">
-                    part 1&rsquo;s ONS labour share
+                    part 1&rsquo;s ONS share
                   </NavLink>
-                  , which leaves out the self-employed
                 </>
               ),
             },
@@ -449,7 +442,7 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
         <Items
           items={[
             { icon: 'capital', text: <>{c1('domestic', 'Kept in the UK')} as net capital income</> },
-            { icon: 'foreign', text: <>{c1('foreign', 'Net paid abroad')}: GDP less GNI, payments to foreign owners less income from abroad</> },
+            { icon: 'foreign', text: <>{c1('foreign', 'Net paid abroad')}: GDP less GNI, a net flow</> },
             { icon: 'depreciation', text: <>{c1('depreciation', 'Depreciation')}: replaces capital that wears out</> },
           ]}
         />
@@ -473,6 +466,14 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
           ) : (
             <p>This solve is pending at the closure chosen above.</p>
           )}
+          <ResultLinks
+            files={[
+              ['no-shock path file', pathUrl(cl)],
+              [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
+            ]}
+            method="m-measures"
+            methodText="Income measures"
+          />
           <p className="p2-more">
             <Icon name={iconFor('link')} size={14} />
             <NavLink tab="explore" sub="economy" anchor="explore-part-economy">
@@ -502,7 +503,7 @@ export default function OutputSplit({ sid, closure }) {
   // the part picked by a chip, a ribbon or a row, and the graphic state it
   // was picked in: { id, s }
   const [hl, setHl] = useState(null);
-  const steps = outputSteps(sid, base, ch, hl, setHl, phone);
+  const steps = outputSteps(sid, cl, base, ch, hl, setHl, phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
       {/* phones: the heading and lead; desktop: the block's opener (sub)
@@ -512,12 +513,14 @@ export default function OutputSplit({ sid, closure }) {
           Where output goes in {SPLIT_YEAR}
         </Tx>
       </h3>
-      <p className="p2-headline-lead">
-        <Tx icon="path" size={16}>
-          {phone ? <>First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part. </> : null}
-          {both ? 'With both closures chosen above, both figures show the central closure.' : null}
-        </Tx>
-      </p>
+      {phone || both ? (
+        <p className="p2-headline-lead">
+          <Tx icon="path" size={16}>
+            {phone ? <>First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part. </> : null}
+            {both ? 'With both closures chosen above, both figures show the central closure.' : null}
+          </Tx>
+        </p>
+      ) : null}
       {phone ? (
         <div className="p2-output-static">
           <OutputGraphic state={2} all sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />

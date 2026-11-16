@@ -10,7 +10,7 @@ import { closuresFor } from '@/tabs/ai/lines.js';
 import D from '@/data/cohorts2028.json';
 import { NavLink } from '@/lib/nav.jsx';
 import { Crosshair, linear } from '@/components/story/chart/index.js';
-import { ModelSource, resultUrl, COHORT_URL, COHORT_COMMIT_TEXT, A, SRC } from './sources.jsx';
+import { ModelSource, COHORT_URL, COHORT_COMMIT_TEXT, A, SRC } from './sources.jsx';
 import { W, H, scales, linePath, monotonePath, niceTicks, tickText, placeLabels, Figure, GUTTER, Tx } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
@@ -208,10 +208,7 @@ export function ArmsPair({ state, sid, closure, label }) {
       unit={`${SCEN_NAME[sid]}, ${both ? 'central closure solid, closed capital dashed' : CL_WORDS[cls[0]]}. Gaps against the OBR-central path`}
       head={closureCtl}
       source={
-        <ModelSource
-          method="m-arms"
-          files={ARMS.map((a) => [`${a.short ?? a.id} result file`, resultUrl(sid, a.id, cls[0])])}
-        />
+        <ModelSource method="m-arms" />
       }
     >
       <div ref={ref} className="p2-pair-box" data-state={s}>
@@ -343,11 +340,10 @@ export function WelfareShape({ state }) {
       xTitle="Birth year"
       source={
         <>
-          Source: <A href={SRC.ogUk}>OG-UK</A>, run by PolicyEngine; cohort welfare from <A href={COHORT_URL}>cohort_welfare.py</A> at {COHORT_COMMIT_TEXT}.{' '}
+          Source: <A href={SRC.ogUk}>OG-UK</A> (PolicyEngine), cohort welfare by <A href={COHORT_URL}>cohort_welfare.py</A> at {COHORT_COMMIT_TEXT} ·{' '}
           <NavLink tab="method" sub="how" anchor="m-generations">
-            How welfare is measured
+            Method
           </NavLink>
-          .
         </>
       }
       head={

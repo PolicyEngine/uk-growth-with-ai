@@ -4,7 +4,7 @@ import { useId } from 'react';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
-import { NavLink } from '@/lib/nav.jsx';
+import { NavLink, useNav } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
@@ -223,7 +223,7 @@ const STATE_TEXT = (sid, cl) => [
 
 // The source line of each geometry state: the record's (ONS, OBR) linked
 // to readable pages, then the model's with the drawn solves' result files.
-function SourceText({ s, sid, cl, lines }) {
+function SourceText({ s }) {
   const ons = SRC_REC.ons;
   const obr = SRC_REC.obr;
   const a = ons ? (
@@ -242,8 +242,7 @@ function SourceText({ s, sid, cl, lines }) {
   );
   if (s === 0) return <>Source: {a}.</>;
   if (s === 1) return <>Sources: {a}; {b}.</>;
-  const shown = s >= 3 ? lines.map((l) => l.id) : [sid];
-  return <ModelSource method="m-shock" files={shown.map((id) => [`${SCEN_NAME[id]} result file`, resultUrl(id, 'tfp', cl)])} />;
+  return <ModelSource method="m-shock" />;
 }
 const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecast?.source] };
 
@@ -530,13 +529,15 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
           </NavLink>
         ) : null}
       </div>
-      <p className="p2-axis-x" data-axis-title="x">
-        Year
-      </p>
-      {onPin ? <PinRow s={s} sid={sid} pin={pin} pinned={pinned} lines={lines} onPin={onPin} /> : null}
+      <div className="p2-fig-foot">
+        {onPin ? <PinRow s={s} sid={sid} pin={pin} pinned={pinned} lines={lines} onPin={onPin} /> : null}
+        <span className="p2-axis-x" data-axis-title="x">
+          Year
+        </span>
+      </div>
       <figcaption className="story-source">
         <Tx icon="source" size={12}>
-          <SourceText s={s} sid={sid} cl={cl} lines={lines} />
+          <SourceText s={s} />
         </Tx>
       </figcaption>
     </figure>
@@ -547,27 +548,30 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
 // in the header); the pinned one stays drawn in dark grey. No value is
 // printed: the comparison is of shapes, the figures are the tiles'.
 function PinRow({ s, sid, pin, pinned, lines, onPin }) {
+  const { set } = useNav();
   if (s < 2) return null;
   const on = pin === sid || pinned != null;
+  const others = lines.filter((l) => l.id !== (pinned ?? sid));
   return (
-    <div className={`p2-pin${on ? ' is-on' : ''}`}>
+    <span className={`p2-pin${on ? ' is-on' : ''}`}>
       <button type="button" className="p2-pin-btn" aria-pressed={on} onClick={() => onPin(on ? null : sid)}>
         <Icon name={iconFor('compare')} size={13} strokeWidth={2} />
-        {pinned ? `Unpin ${SCEN_NAME[pinned]}` : pin === sid ? `Unpin ${SCEN_NAME[sid]}` : `Pin ${SCEN_NAME[sid]} to compare`}
+        {on ? `Pinned: ${SCEN_NAME[pin]}` : `Pin ${SCEN_NAME[sid]} to compare`}
       </button>
       {on ? (
-        <span className="p2-pin-pick">
-          {pinned ? 'Compare with:' : 'Now choose another:'}
-          {lines
-            .filter((l) => l.id !== pin)
-            .map((l) => (
-              <NavLink key={l.id} patch={{ s: l.id }} className={`p2-pin-opt${l.id === sid ? ' is-on' : ''}`} aria-current={l.id === sid ? 'true' : undefined}>
+        <label className="p2-pin-pick">
+          <span className="visually-hidden">Compare it with</span>
+          <select value={pinned ? sid : ''} onChange={(e) => e.target.value && set({ s: e.target.value })}>
+            <option value="">{pinned ? 'Compare with…' : 'Compare with…'}</option>
+            {others.map((l) => (
+              <option key={l.id} value={l.id}>
                 {SCEN_NAME[l.id]}
-              </NavLink>
+              </option>
             ))}
-        </span>
+          </select>
+        </label>
       ) : null}
-    </div>
+    </span>
   );
 }
 
@@ -611,27 +615,16 @@ export function morphItems(sid, cl) {
   const dir = !tail.length ? null : tail.every((v) => v > EPS2) ? 'gapUp' : tail.every((v) => v < -EPS2) ? 'gapDown' : null;
   const where = cl === BOUND ? 'with closed capital' : 'at the central closure';
   return [
-    {
-      icon: 'forecast',
-      text: (
-        <>
-          The zero line is OG-UK&rsquo;s own no-shock path, the OBR-central path, not the OBR&rsquo;s {OBR_VINTAGE || 'latest'} forecast drawn before it
-        </>
-      ),
-    },
+    { icon: 'forecast', text: `Zero is OG-UK’s own no-shock path, not the OBR’s ${OBR_VINTAGE ? `${OBR_VINTAGE} ` : ''}forecast` },
     {
       icon: 'source',
       text: (
         <>
-          It takes one OBR input, trend productivity growth, from the <A href={EFO_MAR26}>OBR&rsquo;s {MODEL_BASE_VINTAGE} outlook</A> (
-          <NavLink tab="method" sub="how" anchor="m-shock">
-            its value on Method
-          </NavLink>
-          )
+          It takes one OBR input: <A href={EFO_MAR26}>trend productivity growth, {MODEL_BASE_VINTAGE}</A>
         </>
       ),
     },
-    { icon: 'measure', text: 'Results are gaps against it: zero is that path' },
+    { icon: 'measure', text: 'Results are gaps against that path' },
     dir
       ? { icon: dir, text: `Blue line: GDP in ${SCEN_NAME[sid]} ${dir === 'gapUp' ? 'above' : 'below'} it, ${where}` }
       : { icon: 'path', text: `Blue line: GDP in ${SCEN_NAME[sid]} against it, ${where}` },

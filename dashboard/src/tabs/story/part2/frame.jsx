@@ -230,11 +230,6 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
       ) : null}
       {head}
       {children}
-      {xTitle ? (
-        <p className="p2-axis-x" data-axis-title="x">
-          {xTitle}
-        </p>
-      ) : null}
       {legend?.length ? (
         <ul className="p2-legend">
           {legend.map((l) => (
@@ -244,6 +239,11 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
             </li>
           ))}
         </ul>
+      ) : null}
+      {xTitle ? (
+        <span className="p2-axis-x" data-axis-title="x">
+          {xTitle}
+        </span>
       ) : null}
       <figcaption className="story-source">
         <Tx icon="source" size={12}>

@@ -263,16 +263,17 @@ export function whyChain(sid, cl, central = cl === CENTRAL) {
   const notes = [];
   if (w != null && w < 0) notes.push({ key: 'cut', icon: 'caveat', text: 'Pay: slower growth against a rising path, not a cut' });
   if (ls != null && w != null) notes.push({ key: 'size', icon: 'capital', text: 'How far pay moves depends on how much new capital arrives' });
-  if (central && fs != null && g != null && g < y)
+  if (central && fs != null && g != null && g < y) {
     notes.push({
       key: 'foreign',
       icon: 'foreign',
       text: (
         <>
-          As modelled, about {Math.round(fs)}% of the added capital is foreign-owned: this follows from <A href={OG_DEFAULTS}>OG-UK&rsquo;s default openness setting</A>, not from UK data
+          About {Math.round(fs)}% of added capital is foreign-owned, from <A href={OG_DEFAULTS}>OG-UK&rsquo;s default openness</A>
         </>
       ),
     });
+  }
   return { links, notes };
 }
 
@@ -315,9 +316,9 @@ export function SummaryWhy({ sid }) {
               icon: 'shock',
               text: (
                 <>
-                  They depend on the size of the shock,{' '}
+                  They depend on the{' '}
                   <NavLink tab="method" sub="how" anchor="m-scenarios">
-                    derived from OBR and IMF figures and Korinek et al.
+                    shock&rsquo;s size: OBR, IMF, Korinek et al.
                   </NavLink>
                 </>
               ),

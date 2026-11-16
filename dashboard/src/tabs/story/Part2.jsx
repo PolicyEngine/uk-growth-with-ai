@@ -16,7 +16,7 @@ import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { EPS2 } from './part2/dir.js';
 import { Items } from '@/components/story/Items.jsx';
-import { A, ResultLinks, resultUrl, COHORT_URL, OG_DEFAULTS, SRC } from './part2/sources.jsx';
+import { A, Cite, ResultLinks, resultUrl, OG_DEFAULTS, SRC } from './part2/sources.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
 // 2028, against the no-shock OBR-central path. It is the one home of the
@@ -73,15 +73,7 @@ function shockSteps() {
               { icon: 'model', text: <><A href={SRC.ogUk}>OG-UK</A> models the whole economy: households, firms, government</> },
               { icon: 'measure', text: 'Each tile is one per cent of output' },
               { icon: 'labour', text: 'Left: paid for work. Right: paid to capital’s owners' },
-              {
-                icon: 'capital',
-                text: (
-                  <>
-                    The scenarios assume AI lets capital do some workers&rsquo; tasks, so capital&rsquo;s share rises (<A href={SRC.imfSip}>IMF, SIP/2026/072</A>;{' '}
-                    <A href={SRC.korinekT3}>Korinek et al., 2026</A>)
-                  </>
-                ),
-              },
+              { icon: 'capital', text: 'Assumed: AI does some workers’ tasks, so capital’s share rises' },
             ]}
           />
           <More tab="method" sub="how" anchor="m-scenarios">How large the shift is in each scenario</More>
@@ -96,14 +88,7 @@ function shockSteps() {
         <>
           <Items
             items={[
-              {
-                icon: 'productivity',
-                text: (
-                  <>
-                    They also assume AI raises output at given inputs, the new tiles (<A href={SRC.bp9}>OBR, Briefing paper No.9</A>; <A href={SRC.imfSip}>IMF, SIP/2026/072</A>)
-                  </>
-                ),
-              },
+              { icon: 'productivity', text: 'Assumed: AI raises output at given inputs, the new tiles' },
               { icon: 'pay', text: 'Pay against the no-shock path depends on each move’s size' },
               { icon: 'capital', text: 'And on how much new capital arrives' },
               {
@@ -117,6 +102,13 @@ function shockSteps() {
                   </>
                 ),
               },
+            ]}
+          />
+          <Cite
+            items={[
+              ['OBR, Briefing paper No.9', SRC.bp9],
+              ['IMF, SIP/2026/072', SRC.imfSip],
+              ['Korinek et al. (2026)', SRC.korinekT3],
             ]}
           />
           <More tab="explore" sub="economy" anchor="explore-part-economy">The labour share, capital and the rest of the economy</More>
@@ -153,17 +145,7 @@ function scenarioSteps(sid, cl) {
         <Items
           items={[
             { icon: 'scenario', text: 'They differ in how far the labour share falls and output rises' },
-            {
-              icon: 'source',
-              text: (
-                <>
-                  <NavLink tab="method" sub="how" anchor="scen-uk_low">UK low</NavLink>: the <A href={SRC.bp9}>OBR&rsquo;s low AI case</A> and the <A href={SRC.imfSip}>IMF&rsquo;s task mapping</A>.{' '}
-                  <NavLink tab="method" sub="how" anchor="scen-uk_central">UK central</NavLink>: the <A href={SRC.imfSip}>IMF&rsquo;s UK baseline</A>.{' '}
-                  <NavLink tab="method" sub="how" anchor="scen-uk_high">UK high</NavLink>: the <A href={SRC.frs26}>OBR&rsquo;s upper AI case</A> (Fiscal risks and sustainability, July 2026)
-                </>
-              ),
-            },
-            { icon: 'arithmetic', text: 'Each size at the end of the ramp is calculated here from those sources, not published by the OBR or IMF' },
+
             dir
               ? { icon: dir, text: `Main arm: GDP ${dir === 'gapUp' ? 'above' : 'below'} the OBR-central path from ${SURPRISE_YEAR}` }
               : { icon: 'path', text: `Main arm: GDP against the OBR-central path from ${SURPRISE_YEAR}` },
@@ -171,7 +153,16 @@ function scenarioSteps(sid, cl) {
             { icon: 'range', text: 'UK low, central, high: one shape, each higher; the band spans them' },
           ]}
         />
-        <ResultLinks files={[[`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)]]} method="m-scenarios" methodText="What each scenario assumes" />
+        <p className="p2-result-links" data-cite="">
+          <Tx icon="source" size={12}>
+            Inputs from <A href={SRC.bp9}>OBR</A>, <A href={SRC.frs26}>OBR</A> and <A href={SRC.imfSip}>IMF</A> figures,{' '}
+            <NavLink tab="method" sub="how" anchor="m-scenarios">
+              derived by this study&rsquo;s rule
+            </NavLink>
+            , not published by them.
+          </Tx>
+        </p>
+        <ResultLinks files={SCENARIOS.map((x) => [x.label, resultUrl(x.id, 'tfp', cl)])} method="m-scenarios" methodText="What each scenario assumes" />
         </>
       ),
     },
@@ -187,7 +178,7 @@ function scenarioSteps(sid, cl) {
                 icon: 'scenario',
                 text: (
                   <>
-                    <A href={SRC.korinekT3}>Korinek et al. (2026), the &lsquo;substantial&rsquo; scenario for the US, Table 3</A>: not a UK calibration
+                    <A href={SRC.korinekT3}>Korinek et al. (2026), Table 3</A>: US, an upper case here
                   </>
                 ),
               },
@@ -215,18 +206,21 @@ export function tzItem(sid, cl) {
 function armSteps(sid, closure) {
   const cl = primaryClosure(closure);
   // the chart's unit line names the closure (and which is dashed with Both)
-  const closureItem =
-    closure === 'both'
-      ? null
-      : {
-          icon: 'closure',
-          text: (
+  const closureItems = [
+    {
+      icon: 'closure',
+      text: (
+        <>
+          Central closure: <A href={OG_DEFAULTS}>OG-UK&rsquo;s inherited default</A>, not UK-calibrated
+          {closure === 'both' ? null : (
             <>
-              The central closure is <A href={OG_DEFAULTS}>OG-UK&rsquo;s inherited default openness</A>, not a UK calibration.{' '}
-              <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink>: how much depends on foreign capital
+              ; <NavLink patch={{ closure: 'both' }}>show both</NavLink>
             </>
-          ),
-        };
+          )}
+        </>
+      ),
+    },
+  ];
   return [
     {
       id: 'p2-arms-0',
@@ -239,10 +233,9 @@ function armSteps(sid, closure) {
             { icon: 'capital', text: 'Assumed: capital’s share of income rises' },
             { icon: 'productivity', text: 'Assumed: output at given inputs rises too (sources as above)' },
             { icon: 'link', text: 'This arm gives the headline figures above' },
-            closureItem,
+            ...closureItems,
           ]}
         />
-        <ResultLinks files={[['result file', resultUrl(sid, 'tfp', cl)]]} method="m-arms" methodText="The three arms" />
         </>
       ),
     },
@@ -259,7 +252,6 @@ function armSteps(sid, closure) {
               tzItem(sid, cl),
             ]}
           />
-          <ResultLinks files={[['result file', resultUrl(sid, 'tz', cl)]]} method="arm-tz" methodText="This arm on Method" />
         </>
       ),
     },
@@ -273,14 +265,6 @@ function armSteps(sid, closure) {
             items={[
               { icon: 'capital', text: 'The same shift in income to capital' },
               { icon: 'productivity', text: `Output at given inputs cut: GDP back on the path in ${HEADLINE_YEAR}` },
-              {
-                icon: 'compare',
-                text: (
-                  <>
-                    Like the <A href={SRC.efoBox22}>OBR&rsquo;s technological displacement scenario (March 2026 outlook)</A>, it leaves GDP unchanged
-                  </>
-                ),
-              },
               { icon: 'limit', text: 'A bound in which AI adds no output, not a forecast' },
             ]}
           />
@@ -295,7 +279,14 @@ function armSteps(sid, closure) {
               ]}
             />
           </details>
-          <ResultLinks files={[['result file', resultUrl(sid, 'ss', cl)]]} method="arm-ss" methodText="How the stress test is set" />
+          <ResultLinks
+            files={[
+              ['main', resultUrl(sid, 'tfp', cl)],
+              ['unchanged', resultUrl(sid, 'tz', cl)],
+              ['stress test', resultUrl(sid, 'ss', cl)],
+            ]}
+            method="m-arms"
+          />
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
           <More tab="explore" sub="economy" anchor="economy-wall">Each arm year by year</More>
         </>
@@ -353,7 +344,6 @@ function whoSteps(sid) {
                 : null,
             ]}
           />
-          <ResultLinks files={[['cohort welfare script', COHORT_URL]]} method="m-generations" methodText="How welfare is measured" />
           {scope}
         </>
       ),
@@ -463,7 +453,7 @@ function debtSteps(sid, closure) {
                 : []),
             ]}
           />
-          <ResultLinks files={[['result file', resultUrl(sid, 'tfp', cl)]]} method="m-rules" methodText="Fiscal rules and public finances" />
+
           <details className="p2-details">
             <summary>
               <Tx icon="forecast">The path after the OBR&rsquo;s forecast</Tx>
@@ -474,7 +464,7 @@ function debtSteps(sid, closure) {
                   icon: 'forecast',
                   text: (
                     <>
-                      The OBR-central path is OG-UK&rsquo;s own, on the OBR&rsquo;s central productivity growth (<A href={SRC.efoMar26}>March 2026 outlook</A>)
+                      The OBR-central path is OG-UK&rsquo;s own, on <A href={SRC.efoMar26}>OBR productivity growth</A>
                     </>
                   ),
                 },
@@ -519,10 +509,12 @@ function debtSteps(sid, closure) {
           />
           <ResultLinks
             files={[
+              ['main arm', resultUrl(sid, 'tfp', cl)],
               ['technology unchanged', resultUrl(sid, 'tz', cl)],
               ['stress test', resultUrl(sid, 'ss', cl)],
             ]}
-            method="m-arms"
+            method="m-rules"
+            methodText="Fiscal rules"
           />
           <More tab="explore" sub="finances">Debt, tax and the fiscal rules</More>
         </>
@@ -630,8 +622,8 @@ export default function Part2({ part }) {
     <>
       <PartHead part={part}>
         <Tx icon="model" size={18}>
-          OG-UK: an AI shock arriving in {SURPRISE_YEAR}, as gaps against the OBR-central path, OG-UK&rsquo;s own no-shock path on the OBR&rsquo;s central productivity growth. That growth already
-          includes the OBR&rsquo;s central assumption for AI (<A href={SRC.bp9}>Briefing paper No.9, Annex B</A>).
+          OG-UK: an AI shock arriving in {SURPRISE_YEAR}, as gaps against the OBR-central path, OG-UK&rsquo;s no-shock path, whose OBR productivity growth already includes{' '}
+          <A href={SRC.bp9}>the OBR&rsquo;s central AI assumption</A>.
         </Tx>
       </PartHead>
 
