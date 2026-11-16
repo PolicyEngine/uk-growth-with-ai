@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 // Scroll and motion hooks for the story. Every animation reads
 // useReducedMotion(): with "reduce" the final state shows at once. Nothing
@@ -130,4 +130,27 @@ export function useScrollProgress() {
     };
   }, []);
   return [ref, p];
+}
+
+// A one-shot entry move for a figure whose opening state differs from its
+// "before" picture: renders `prev` until `entered` (the figure is in view;
+// Scrolly passes it as ctx.entered), holds `hold` ms, then renders `cur`, and
+// from then on follows `cur` (step changes). Under reduced motion, `cur` at
+// once. Call it inside a component (the figure), not inside Scrolly's
+// `graphic` callback, which Scrolly calls conditionally.
+//
+//   const s = useEnterState(0, state, ctx?.entered ?? true);
+// Inside FinalState (Scrolly's hidden measuring copies) it returns `cur`
+// at once, so the box is measured on the real state.
+export const FinalState = createContext(false);
+export function useEnterState(prev, cur, entered, hold = 400) {
+  const reduce = useReducedMotion();
+  const final = useContext(FinalState);
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!entered || armed || reduce || final) return undefined;
+    const t = setTimeout(() => setArmed(true), hold);
+    return () => clearTimeout(t);
+  }, [entered, armed, hold, reduce, final]);
+  return reduce || final || armed ? cur : prev;
 }
