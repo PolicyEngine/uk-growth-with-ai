@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
 // The close of the story: the two models side by side, what each can and
@@ -9,7 +10,7 @@ import { NavLink } from '@/lib/nav.jsx';
 const LENSES = [
   {
     id: 'oguk',
-    icon: 'trend',
+    icon: 'model',
     name: 'OG-UK',
     what: 'A model of the whole economy over decades: households by age and earnings, firms, the government and the rest of the world.',
     can: 'How output, pay rates, national income, saving, investment and the public finances move when AI shifts income from labour to capital and raises productivity, and how that differs by birth year.',
@@ -19,7 +20,7 @@ const LENSES = [
   },
   {
     id: 'study',
-    icon: 'usersRound',
+    icon: 'households',
     name: 'uk-ai-study (provisional)',
     what: 'A microsimulation of UK households in one year, FY 2026–27, built on survey data and the full tax and benefit system.',
     can: 'Who loses income if a share of employees are assumed to lose their jobs, what that costs the public finances, and how poverty and inequality change, under stated assumptions about who is displaced.',
@@ -34,7 +35,7 @@ export default function TwoLenses() {
     <section className="story-part story-close" id="story-close" aria-labelledby="story-close-h">
       <header className="story-part-head">
         <p className="story-part-kicker">
-          <Icon name="layers" size={16} /> Two lenses
+          <Icon name={iconFor('compare')} size={16} /> Two lenses
         </p>
         <h2 id="story-close-h">What each model can and cannot say</h2>
         <p>
@@ -46,7 +47,7 @@ export default function TwoLenses() {
         {LENSES.map((l) => (
           <article key={l.id} className="lens" aria-labelledby={`lens-${l.id}`}>
             <h3 id={`lens-${l.id}`}>
-              <Icon name={l.icon} size={18} /> {l.name}
+              <Icon name={iconFor(l.icon)} size={18} /> {l.name}
             </h3>
             <p className="lens-what">{l.what}</p>
             <dl>

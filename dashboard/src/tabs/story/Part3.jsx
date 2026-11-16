@@ -29,7 +29,7 @@ export default function Part3({ part }) {
       <PartHead part={part}>
         What a model of households finds for the public finances, poverty and incomes if a share of employees are assumed to lose their jobs to AI.
       </PartHead>
-      <Callout icon="layers" title="A different model" className="p3-model">
+      <Callout icon="model" title="A different model" className="p3-model">
         <p>
           This part reports a PolicyEngine-UK microsimulation on Microcosm UK 2024-25 data, static and for one year, FY 2026–27, whose figures
           are provisional: the study is a draft under review and they may change. It assumes that people lose their jobs, whereas in OG-UK (part

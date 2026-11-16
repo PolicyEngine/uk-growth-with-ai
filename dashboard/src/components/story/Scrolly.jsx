@@ -144,7 +144,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false }) {
                 {s.title ? (
                   <h3 className="scrolly-title">
                     {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-title-icon" /> : null}
-                    {s.title}
+                    <span>{s.title}</span>
                   </h3>
                 ) : null}
                 <div className="scrolly-body">{s.body}</div>

@@ -14,6 +14,8 @@ import './story.css';
 import './story-part1.css';
 import './story-part2.css';
 import './story-part3.css';
+import './items-explore.css';
+import './items-method.css';
 import 'katex/dist/katex.min.css';
 import SiteFooter from '@/components/ab/SiteFooter.jsx';
 import { SITE_HEADER_STYLES, SITE_NAV_ITEMS } from '@/lib/siteNav.js';

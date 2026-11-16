@@ -58,6 +58,11 @@ export const CONCEPT_ICON = {
   why: 'lightbulb', // the reason
   next: 'arrowRight',
   link: 'arrowRight',
+
+  // the story's parts
+  record: 'library', // part 1: the official record
 };
 
-export const iconFor = (concept) => CONCEPT_ICON[concept] ?? concept;
+// Strict: an unknown concept draws no icon (concepts.test.js checks every
+// concept named in the source exists, so a typo fails the tests).
+export const iconFor = (concept) => CONCEPT_ICON[concept];

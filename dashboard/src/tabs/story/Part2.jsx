@@ -285,7 +285,7 @@ function debtSteps(sid, closure) {
 // differs. The full comparison closes the story.
 function TwoLenses() {
   return (
-    <Callout icon="info" title="Two models, two lenses">
+    <Callout icon="compare" title="Two models, two lenses">
       <p>
         <b>This part: OG-UK</b>, a model of the whole economy. It has no unemployment, and its results are gaps against the OBR-central
         path, not forecasts of levels.

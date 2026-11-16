@@ -16,9 +16,9 @@ import TwoLenses from './TwoLenses.jsx';
 // The part files are one writer each; this shell owns the order and the
 // "you are here" rail (StoryRail).
 export const PARTS = [
-  { id: 'story-part-1', n: 1, icon: 'landmark', kicker: 'Part 1', title: 'Where the UK stands' },
-  { id: 'story-part-2', n: 2, icon: 'trend', kicker: 'Part 2', title: 'What a model of the whole economy projects' },
-  { id: 'story-part-3', n: 3, icon: 'usersRound', kicker: 'Part 3', title: 'Jobs, incomes and the public finances' },
+  { id: 'story-part-1', n: 1, icon: 'record', kicker: 'Part 1', title: 'Where the UK stands' },
+  { id: 'story-part-2', n: 2, icon: 'model', kicker: 'Part 2', title: 'What a model of the whole economy projects' },
+  { id: 'story-part-3', n: 3, icon: 'households', kicker: 'Part 3', title: 'Jobs, incomes and the public finances' },
 ];
 // the rail's names are short, so four fit in one row
 const RAIL = [
