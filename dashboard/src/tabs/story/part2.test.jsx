@@ -373,7 +373,7 @@ describe('direction icons follow the signs', () => {
           expect(l.text).toContain(word[l.dir].trim());
         }
         // pay below the path always carries "not a cut"
-        expect(why.notes.some((n) => n.text.includes('not a cut'))).toBe(val.pay < 0);
+        expect(why.notes.some((n) => typeof n.text === 'string' && n.text.includes('not a cut'))).toBe(val.pay < 0);
         const gni = why.links.find((l) => l.key === 'gni');
         if (val.gdp > 0 && val.gni < val.gdp) expect(gni.text).toBe('National income gains less than GDP');
       }
@@ -430,5 +430,42 @@ describe('direction icons follow the signs', () => {
         expect(items[1].text).toContain(ch.labour < 0 ? 'below' : 'above');
       }
     }
+  });
+
+  it('attributes inputs: no first person, every model source linked', () => {
+    for (const q of ['tab=story', 'tab=story&s=korinek&closure=both']) {
+      const { container, unmount } = at(q);
+      const part = container.querySelector('#story-part-2');
+      expect(part.textContent).not.toMatch(/\b([Oo]ur|[Ww]e)\b/);
+      // every figure caption under a model chart links its result files or source
+      for (const cap of part.querySelectorAll('figure:not(.p2-shock-fig) figcaption, .p2-output-foot')) {
+        expect(cap.querySelector('a[href^="http"]'), cap.textContent).not.toBeNull();
+      }
+      // result files at the data file's commit
+      const files = [...part.querySelectorAll('a[href*="/analysis/surprise/output/"]')].map((a) => a.getAttribute('href'));
+      expect(files.length).toBeGreaterThan(0);
+      for (const f of files) expect(f).toContain(`/blob/${fixture.source_commit}/`);
+      unmount();
+    }
+  });
+
+  it('gives every block an opener: a question and a takeaway with no figure', async () => {
+    const { SUBS } = await import('@/tabs/story/Part2.jsx');
+    const { OUTPUT_SUB } = await import('@/tabs/story/part2/OutputSplit.jsx');
+    for (const sub of [...Object.values(SUBS), OUTPUT_SUB]) {
+      expect(sub.question).toMatch(/\?$/);
+      expect(sub.takeaway).not.toMatch(/\d/);
+      expect(sub.title).not.toContain('Where output goes in');
+    }
+  });
+
+  it('labels every chart axis', () => {
+    const { container, unmount } = at('tab=story');
+    const part = container.querySelector('#story-part-2');
+    for (const svg of part.querySelectorAll('svg[role="img"]')) {
+      const fig = svg.closest('figure');
+      expect(fig?.querySelector('[data-axis-title="y"]'), svg.getAttribute('aria-label')).not.toBeNull();
+    }
+    unmount();
   });
 });

@@ -15,6 +15,7 @@ import { MorphChart, morphSteps } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { EPS2 } from './part2/dir.js';
 import { Items } from '@/components/story/Items.jsx';
+import { A, ResultLinks, resultUrl, COHORT_URL, OG_DEFAULTS, SRC } from './part2/sources.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
 // 2028, against the no-shock OBR-central path. It is the one home of the
@@ -68,10 +69,18 @@ function shockSteps() {
         <>
           <Items
             items={[
-              { icon: 'model', text: 'OG-UK models the whole economy: households, firms, government' },
+              { icon: 'model', text: <><A href={SRC.ogUk}>OG-UK</A> models the whole economy: households, firms, government</> },
               { icon: 'measure', text: 'Each tile is one per cent of output' },
               { icon: 'labour', text: 'Left: paid for work. Right: paid to capital’s owners' },
-              { icon: 'capital', text: 'AI lets capital do workers’ tasks, so capital’s share rises' },
+              {
+                icon: 'capital',
+                text: (
+                  <>
+                    The scenarios assume AI lets capital do some workers&rsquo; tasks, so capital&rsquo;s share rises (<A href={SRC.imfSip}>IMF, SIP/2026/072</A>;{' '}
+                    <A href={SRC.korinekT3}>Korinek et al., 2026</A>)
+                  </>
+                ),
+              },
             ]}
           />
           <More tab="method" sub="how" anchor="m-scenarios">How large the shift is in each scenario</More>
@@ -86,10 +95,27 @@ function shockSteps() {
         <>
           <Items
             items={[
-              { icon: 'productivity', text: 'AI also raises output at given inputs: the new tiles' },
+              {
+                icon: 'productivity',
+                text: (
+                  <>
+                    They also assume AI raises output at given inputs, the new tiles (<A href={SRC.bp9}>OBR, Briefing paper No.9</A>; <A href={SRC.imfSip}>IMF, SIP/2026/072</A>)
+                  </>
+                ),
+              },
               { icon: 'pay', text: 'Pay against the no-shock path depends on each move’s size' },
               { icon: 'capital', text: 'And on how much new capital arrives' },
-              { icon: 'timing', text: `The shock comes as a surprise in ${SURPRISE_YEAR}` },
+              {
+                icon: 'timing',
+                text: (
+                  <>
+                    The shock arrives unannounced in {SURPRISE_YEAR}:{' '}
+                    <NavLink tab="method" sub="how" anchor="m-timing">
+                      a modelling choice
+                    </NavLink>
+                  </>
+                ),
+              },
             ]}
           />
           <More tab="explore" sub="economy" anchor="explore-part-economy">The labour share, capital and the rest of the economy</More>
@@ -126,25 +152,44 @@ function scenarioSteps(sid, cl) {
         <Items
           items={[
             { icon: 'scenario', text: 'They differ in how far the labour share falls and output rises' },
+            {
+              icon: 'source',
+              text: (
+                <>
+                  <NavLink tab="method" sub="how" anchor="scen-uk_low">UK low</NavLink>: the <A href={SRC.bp9}>OBR&rsquo;s low AI case</A> and the <A href={SRC.imfSip}>IMF&rsquo;s task mapping</A>.{' '}
+                  <NavLink tab="method" sub="how" anchor="scen-uk_central">UK central</NavLink>: the <A href={SRC.imfSip}>IMF&rsquo;s UK baseline</A>.{' '}
+                  <NavLink tab="method" sub="how" anchor="scen-uk_high">UK high</NavLink>: the <A href={SRC.frs26}>OBR&rsquo;s upper AI case</A> (Fiscal risks and sustainability, July 2026)
+                </>
+              ),
+            },
+            { icon: 'arithmetic', text: 'Each size at the end of the ramp is calculated here from those sources, not published by the OBR or IMF' },
             dir
               ? { icon: dir, text: `Main arm: GDP ${dir === 'gapUp' ? 'above' : 'below'} the OBR-central path from ${SURPRISE_YEAR}` }
               : { icon: 'path', text: `Main arm: GDP against the OBR-central path from ${SURPRISE_YEAR}` },
-            { icon: 'timing', text: `Then it ${after} once the shock completes in ${HEADLINE_YEAR}` },
+            { icon: 'timing', text: `Then it ${after} once the scenario’s ramp completes in ${HEADLINE_YEAR}` },
             { icon: 'range', text: 'UK low, central, high: one shape, each higher; the band spans them' },
           ]}
         />
+        <ResultLinks files={[[`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)]]} method="m-scenarios" methodText="What each scenario assumes" />
         </>
       ),
     },
     {
       id: 'p2-scen-4',
       icon: 'scenario',
-      title: 'Korinek et al.: an upper case from the US',
+      title: 'Korinek et al.: a US scenario, used here as an upper case',
       body: (
         <>
           <Items
             items={[
-              { icon: 'scenario', text: 'A US scenario, a labelled upper case, not a UK calibration' },
+              {
+                icon: 'scenario',
+                text: (
+                  <>
+                    <A href={SRC.korinekT3}>Korinek et al. (2026), the &lsquo;substantial&rsquo; scenario for the US, Table 3</A>: not a UK calibration
+                  </>
+                ),
+              },
               { icon: 'path', text: `${SCEN_NAME[sid]}, chosen at the top, is the coloured line` },
             ]}
           />
@@ -176,6 +221,7 @@ function armSteps(sid, closure) {
           icon: 'closure',
           text: (
             <>
+              The central closure is <A href={OG_DEFAULTS}>OG-UK&rsquo;s inherited default openness</A>, not a UK calibration.{' '}
               <NavLink patch={{ closure: 'both' }}>Show both closures</NavLink>: how much depends on foreign capital
             </>
           ),
@@ -186,14 +232,17 @@ function armSteps(sid, closure) {
       icon: 'ai',
       title: 'Automation + productivity: the main arm',
       body: (
+        <>
         <Items
           items={[
-            { icon: 'capital', text: 'Capital’s share of income rises' },
-            { icon: 'productivity', text: 'Output at given inputs rises too' },
+            { icon: 'capital', text: 'Assumed: capital’s share of income rises' },
+            { icon: 'productivity', text: 'Assumed: output at given inputs rises too (sources as above)' },
             { icon: 'link', text: 'This arm gives the headline figures above' },
             closureItem,
           ]}
         />
+        <ResultLinks files={[['result file', resultUrl(sid, 'tfp', cl)]]} method="m-arms" methodText="The three arms" />
+        </>
       ),
     },
     {
@@ -201,25 +250,36 @@ function armSteps(sid, closure) {
       icon: 'capital',
       title: 'Automation with technology unchanged',
       body: (
-        <Items
-          items={[
-            { icon: 'capital', text: 'Capital’s share of income rises' },
-            { icon: 'productivity', text: 'Output at given inputs stays as it was' },
-            tzItem(sid, cl),
-          ]}
-        />
+        <>
+          <Items
+            items={[
+              { icon: 'capital', text: 'Assumed: capital’s share of income rises' },
+              { icon: 'productivity', text: 'Assumed: output at given inputs stays as it was' },
+              tzItem(sid, cl),
+            ]}
+          />
+          <ResultLinks files={[['result file', resultUrl(sid, 'tz', cl)]]} method="arm-tz" methodText="This arm on Method" />
+        </>
       ),
     },
     {
       id: 'p2-arms-2',
       icon: 'breakEven',
-      title: 'The OBR-style stress test',
+      title: 'The stress test: GDP held on the path',
       body: (
         <>
           <Items
             items={[
               { icon: 'capital', text: 'The same shift in income to capital' },
               { icon: 'productivity', text: `Output at given inputs cut: GDP back on the path in ${HEADLINE_YEAR}` },
+              {
+                icon: 'compare',
+                text: (
+                  <>
+                    Like the <A href={SRC.efoBox22}>OBR&rsquo;s technological displacement scenario (March 2026 outlook)</A>, it leaves GDP unchanged
+                  </>
+                ),
+              },
               { icon: 'limit', text: 'A bound in which AI adds no output, not a forecast' },
             ]}
           />
@@ -229,11 +289,12 @@ function armSteps(sid, closure) {
             </summary>
             <Items
               items={[
-                { icon: 'compare', text: 'It matches the OBR’s scenario on GDP only' },
+                { icon: 'compare', text: <>It matches the <A href={SRC.efoBox22}>OBR&rsquo;s scenario</A> on GDP only</> },
                 { icon: 'labour', text: 'The OBR adjusts through jobs, OG-UK through the wage' },
               ]}
             />
           </details>
+          <ResultLinks files={[['result file', resultUrl(sid, 'ss', cl)]]} method="arm-ss" methodText="How the stress test is set" />
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
           <More tab="explore" sub="economy" anchor="economy-wall">Each arm year by year</More>
         </>
@@ -254,8 +315,8 @@ function whoSteps(sid) {
         </summary>
         <Items
           items={[
-            { icon: 'scenario', text: 'Who gains shows UK central only' },
-            { icon: 'source', text: 'The paper also reports Korinek et al. (upper), debt-neutral transfers only' },
+            { icon: 'scenario', text: 'Who gains and who loses shows UK central only' },
+            { icon: 'source', text: <>The <A href={SRC.repo}>study</A> also reports Korinek et al. (upper), debt-neutral transfers only</> },
             { icon: 'data', text: 'Its cohort paths are not yet in this site’s data' },
             { icon: 'rule', text: 'Always central closure, debt-neutral transfers, whatever is chosen above' },
           ]}
@@ -267,7 +328,7 @@ function whoSteps(sid) {
     {
       id: 'p2-who-0',
       icon: 'age',
-      title: 'Gains are largest around retirement age',
+      title: 'Gains are largest around retirement age; some lose',
       body: (
         <>
           <Items
@@ -275,9 +336,23 @@ function whoSteps(sid) {
               { icon: 'scenario', text: `UK central, as modelled: adults alive in ${SURPRISE_YEAR}, by birth year` },
               { icon: 'capital', text: 'Near retirement, more wealth earns the higher return' },
               { icon: 'households', text: 'Smaller for the oldest and youngest, who have least wealth' },
-              someLose ? { icon: 'limit', text: 'Under some measures they lose' } : null,
+              someLose
+                ? {
+                    icon: 'limit',
+                    text: (
+                      <>
+                        On{' '}
+                        <NavLink tab="explore" sub="who">
+                          other welfare measures
+                        </NavLink>
+                        , some adults alive in {SURPRISE_YEAR} lose
+                      </>
+                    ),
+                  }
+                : null,
             ]}
           />
+          <ResultLinks files={[['cohort welfare script', COHORT_URL]]} method="m-generations" methodText="How welfare is measured" />
           {scope}
         </>
       ),
@@ -291,7 +366,7 @@ function whoSteps(sid) {
           <Items
             items={[
               { icon: 'entrants', text: `Entering after ${SURPRISE_YEAR}, they live whole lives on the new path` },
-              allGain ? { icon: 'gapUp', text: 'As modelled, under debt-neutral transfers, they gain too' } : null,
+              allGain ? { icon: 'gapUp', text: 'As modelled, under debt-neutral transfers (a model fiscal rule), they gain too' } : null,
               allGain ? { icon: 'capital', text: 'A higher return on saving and, later, higher consumption' } : null,
               allGain ? { icon: 'pay', text: 'These outweigh pay rates below the path' } : null,
             ]}
@@ -309,7 +384,7 @@ function whoSteps(sid) {
               />
             </details>
           ) : null}
-          <More tab="explore" sub="who">Who gains, by age and earnings group</More>
+          <More tab="explore" sub="who">Who gains and who loses, by age and earnings group</More>
         </>
       ),
     },
@@ -356,18 +431,52 @@ function debtSteps(sid, closure) {
           <span id="p2-debt" className="p2-anchor" aria-hidden="true" />
           <Items
             items={[
-              { icon: 'scenario', text: `${SCEN_NAME[sid]}, main arm, common fiscal rule` },
+              {
+                icon: 'scenario',
+                text: (
+                  <>
+                    {SCEN_NAME[sid]}, main arm,{' '}
+                    <NavLink tab="method" sub="how" anchor="m-rules">
+                      common fiscal rule
+                    </NavLink>{' '}
+                    (a model setting)
+                  </>
+                ),
+              },
               ...items,
-              ...(rises ? [{ icon: 'limit', text: 'OG-UK reprices all government debt at once, overstating the later rise' }] : []),
+              ...(rises
+                ? [
+                    {
+                      icon: 'limit',
+                      text: (
+                        <>
+                          OG-UK{' '}
+                          <NavLink tab="method" sub="how" anchor="m-debt">
+                            reprices all government debt at once
+                          </NavLink>
+                          , overstating the later rise
+                        </>
+                      ),
+                    },
+                  ]
+                : []),
             ]}
           />
+          <ResultLinks files={[['result file', resultUrl(sid, 'tfp', cl)]]} method="m-rules" methodText="Fiscal rules and public finances" />
           <details className="p2-details">
             <summary>
               <Tx icon="forecast">The path after the OBR&rsquo;s forecast</Tx>
             </summary>
             <Items
               items={[
-                { icon: 'forecast', text: 'The OBR-central path is OG-UK’s own, on the OBR’s central productivity growth' },
+                {
+                  icon: 'forecast',
+                  text: (
+                    <>
+                      The OBR-central path is OG-UK&rsquo;s own, on the OBR&rsquo;s central productivity growth (<A href={SRC.efoMar26}>March 2026 outlook</A>)
+                    </>
+                  ),
+                },
                 { icon: 'limit', text: 'Beyond the OBR’s forecast horizon it is the model’s, not the OBR’s' },
               ]}
             />
@@ -394,8 +503,25 @@ function debtSteps(sid, closure) {
                 ? { icon: 'gapUp', text: `No productivity gain: debt ends further above the path by ${LATE_YEAR}` }
                 : { icon: 'compare', text: 'The two arms with no productivity gain are drawn beside it' },
               { icon: 'finances', text: 'Public finances also covers tax and the fiscal rules' },
-              { icon: 'tax', text: 'And why the tax effect is likely understated' },
+              {
+                icon: 'tax',
+                text: (
+                  <>
+                    And{' '}
+                    <NavLink tab="method" sub="how" anchor="m-tax">
+                      why the tax effect is likely understated
+                    </NavLink>
+                  </>
+                ),
+              },
             ]}
+          />
+          <ResultLinks
+            files={[
+              ['technology unchanged', resultUrl(sid, 'tz', cl)],
+              ['stress test', resultUrl(sid, 'ss', cl)],
+            ]}
+            method="m-arms"
           />
           <More tab="explore" sub="finances">Debt, tax and the fiscal rules</More>
         </>
@@ -409,7 +535,9 @@ function debtSteps(sid, closure) {
 function LensLine() {
   return (
     <p className="p2-lens-line">
-      <Tx icon="model">This part uses OG-UK, a whole-economy model with no unemployment. Part 3 uses a different model, not added to it.</Tx>
+      <Tx icon="model">
+        This part uses <A href={SRC.ogUk}>OG-UK</A>, a whole-economy model built on <A href={SRC.ogCore}>OG-Core</A>, with no unemployment. Part 3 uses a different model, not added to it.
+      </Tx>
     </p>
   );
 }
@@ -419,7 +547,7 @@ function LensLine() {
 const DEEPER = [
   { tab: 'explore', sub: 'economy', label: 'Economy', icon: 'gdp' },
   { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
-  { tab: 'explore', sub: 'who', label: 'Who gains', icon: 'age' },
+  { tab: 'explore', sub: 'who', label: 'Who gains and who loses', icon: 'age' },
   { tab: 'explore', sub: 'economy', anchor: 'ex-across', label: 'Across scenarios', icon: 'range' },
   { tab: 'method', sub: 'how', anchor: 'm-scenarios', label: 'Scenarios', icon: 'scenario' },
   { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
@@ -438,6 +566,35 @@ function NextBand() {
     />
   );
 }
+
+// Each block's opener (Scrolly renders it): a neutral question the block
+// answers, and one takeaway with no new figure.
+export const SUBS = {
+  shock: {
+    title: 'The shock',
+    icon: 'shock',
+    question: 'What does the AI shock change in the model?',
+    takeaway: 'The scenarios move income from labour to capital and let the same inputs produce more.',
+  },
+  morph: {
+    title: 'From the record to the scenarios',
+    icon: 'path',
+    question: 'How far does GDP move from the OBR-central path in each scenario?',
+    takeaway: 'In every scenario GDP rises above the OBR-central path; the larger the assumed shock, the higher the line.',
+  },
+  arms: {
+    title: 'Three arms: output and public debt',
+    icon: 'ai',
+    question: 'What does the productivity gain add, for output and for public debt?',
+    takeaway: 'Without the productivity gain, GDP is lower and public debt ends further above the path.',
+  },
+  who: {
+    title: 'Who gains and who loses',
+    icon: 'age',
+    question: 'Which generations gain, and which lose?',
+    takeaway: 'As modelled, gains are largest for adults near retirement, and later cohorts gain too; on other measures some adults lose.',
+  },
+};
 
 export default function Part2({ part }) {
   const { st } = useNav();
@@ -469,7 +626,8 @@ export default function Part2({ part }) {
     <>
       <PartHead part={part}>
         <Tx icon="model" size={18}>
-          OG-UK: an AI shock arriving in {SURPRISE_YEAR}, as gaps against the OBR-central path (which already includes the OBR&rsquo;s central AI assumption).
+          OG-UK: an AI shock arriving in {SURPRISE_YEAR}, as gaps against the OBR-central path, OG-UK&rsquo;s own no-shock path on the OBR&rsquo;s central productivity growth. That growth already
+          includes the OBR&rsquo;s central assumption for AI (<A href={SRC.bp9}>Briefing paper No.9, Annex B</A>).
         </Tx>
       </PartHead>
 
@@ -478,7 +636,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-shock"
         scene
-        sub={{ title: 'The shock', icon: 'shock' }}
+        sub={SUBS.shock}
         label="The shock, illustrated"
         steps={shockSteps()}
         graphic={(i, reduce, ctx) => <ShockTiles state={i + 1} entered={ctx?.entered ?? true} />}
@@ -487,7 +645,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-morph"
         scene
-        sub={{ title: 'From the record to the scenarios', icon: 'path' }}
+        sub={SUBS.morph}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
         steps={[...morphSteps(sid, cl), ...scenarioSteps(sid, cl)]}
         graphic={(i) => <MorphChart state={i + 1} sid={sid} cl={cl} />}
@@ -506,6 +664,14 @@ export default function Part2({ part }) {
         </p>
         <HeadlineTiles sid={sid} />
         <SummaryWhy sid={sid} />
+        <ResultLinks
+          files={[
+            ['result file', resultUrl(sid, 'tfp', cl)],
+            ...(closure === 'both' ? [['closed-capital result file', resultUrl(sid, 'tfp', BOUND)]] : []),
+          ]}
+          method="m-measures"
+          methodText="The three income measures"
+        />
       </Reveal>
 
       <OutputSplit sid={sid} closure={closure} />
@@ -513,7 +679,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-arms"
         scene
-        sub={{ title: 'Three arms: output and public debt', icon: 'ai' }}
+        sub={SUBS.arms}
         label={`GDP and public debt in three arms, ${SCEN_NAME[sid]}`}
         steps={[...armSteps(sid, closure), ...debtSteps(sid, closure)]}
         graphic={(i) => <ArmsPair state={i} sid={sid} closure={closure} label={i < 3 ? gdpLabel(i) : `${gdpLabel(2)} ${debtLabel(i - 3)}`} />}
@@ -522,7 +688,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-who"
         scene
-        sub={{ title: 'Who gains', icon: 'age' }}
+        sub={SUBS.who}
         label="Welfare change by birth year"
         steps={whoSteps(sid)}
         graphic={(i) => <WelfareShape state={i} />}

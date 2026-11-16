@@ -8,7 +8,8 @@ import { ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
 import { useInView, useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import { SOURCE, Tx } from './frame.jsx';
+import { Tx } from './frame.jsx';
+import { A, ModelSource, resultUrl, pathUrl, OG_DEFAULTS } from './sources.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -50,10 +51,10 @@ const CHIP_STAGGER = 120;
 // The tooltip's one line of meaning per part.
 const MEANING = {
   gdp: 'Everything produced in the UK, the path’s GDP as 100',
-  labour: 'Workers’ total pay',
+  labour: 'Income from work, the self-employed’s included',
   capital: 'Income paid to capital’s owners, before the three-way split',
   domestic: 'Net capital income that stays with UK residents',
-  foreign: 'Profits on foreign-owned UK capital and interest on gilts held abroad',
+  foreign: 'GDP less GNI: income paid to foreign owners of UK capital and gilts, net of income from abroad',
   depreciation: 'Replaces capital that wears out',
 };
 const CH_KEY = { labour: 'labour', capital: 'gross_capital', domestic: 'domestic', foreign: 'foreign', depreciation: 'depreciation' };
@@ -140,9 +141,9 @@ export function outChangeItems(ch) {
     { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the path` },
     { key: 'labour', icon: dirConcept(ch.labour), text: `is ${dirWord(ch.labour)} it` },
   ];
-  if (ch.gdp > 0 && ch.labour < 0) out.push({ key: 'all', icon: 'why', text: 'Capital takes all of the extra output, and more' });
+  if (ch.gdp > 0 && ch.labour < 0) out.push({ key: 'all', icon: 'why', text: 'Capital income rises by more than GDP' });
   if (ch.foreign > 0 && ch.depreciation > 0) {
-    out.push({ key: 'abroad', icon: 'foreign', text: 'Part goes abroad or covers wear on more capital' });
+    out.push({ key: 'abroad', icon: 'foreign', text: 'Part is net income paid abroad or covers wear on more capital' });
     out.push({ key: 'gni', icon: 'gni', text: 'So national income rises less than GDP' });
   }
   return out;
@@ -189,7 +190,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   const graph = base ? sankeyGraph(base, true) : null;
   const where = `${SCEN_NAME[sid]}, automation + productivity, common fiscal rule`;
   const sankeyLabel = base
-    ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), payments to foreign owners of UK capital and gilts (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
+    ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
   // the chips' beats: idle (before step 3), chips (at the nodes), travel,
   // settled (in the rows, a gain or loss icon left on each node)
@@ -264,8 +265,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
         <div className="p2-output-head">
           <ModelBadge model="oguk" />
           <p className="story-figure-title p2-output-title">
-            <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
-            {' '}<span className="p2-output-unit">
+            <Tx icon="gdp">The OBR-central path (OG-UK&rsquo;s no-shock path), {SPLIT_YEAR}</Tx>
+            {' '}<span className="p2-output-unit" data-axis-title="y">
               {cap(CL_WORDS[cl])}, of every 100 of GDP
             </span>
           </p>
@@ -325,7 +326,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
           <Tx icon="compare">
             What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
           </Tx>
-          {' '}<span className="p2-output-unit">change, % of the path&rsquo;s GDP</span>
+          {' '}<span className="p2-output-unit" data-axis-title="x">change, % of the path&rsquo;s GDP</span>
         </p>
         {ch ? (
           <>
@@ -350,7 +351,14 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
       <p className="story-source p2-output-foot">
         <span className="p2-src-line">
           <Tx icon="source" size={12}>
-            {SOURCE} Changes: {where}. Taxes are not split out (one combined income tax series).
+            <ModelSource
+              method="m-measures"
+              files={[
+                ['no-shock path file', pathUrl(cl)],
+                [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
+              ]}
+            />{' '}
+            Changes: {where}. Taxes are not split out (one combined income tax series).
           </Tx>
         </span>
         {ch ? (
@@ -390,7 +398,7 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
       </>
     ) : it.key === 'abroad' ? (
       <>
-        Part goes {c2('foreign', 'abroad')} or covers {c2('depreciation', 'wear')} on more capital
+        Part is {c2('foreign', 'net income paid abroad')} or covers {c2('depreciation', 'wear')} on more capital
       </>
     ) : (
       it.text
@@ -404,12 +412,24 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
         <Items
           items={[
             { icon: 'path', text: `Here: the OBR-central path in ${SPLIT_YEAR}` },
-            { icon: 'gdp', text: 'Every pound of GDP is paid to someone' },
+            { icon: 'gdp', text: 'In the model, every pound of GDP is paid to someone' },
             {
               icon: 'labour',
               text: (
                 <>
-                  {c0('labour', 'Labour income')}, workers&rsquo; total pay: {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'}
+                  {c0('labour', 'Labour income')}, income from work: {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'}
+                </>
+              ),
+            },
+            {
+              icon: 'measure',
+              text: (
+                <>
+                  Its size is <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, wider than{' '}
+                  <NavLink tab="story" anchor="p1-share">
+                    part 1&rsquo;s ONS labour share
+                  </NavLink>
+                  , which leaves out the self-employed
                 </>
               ),
             },
@@ -429,7 +449,7 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
         <Items
           items={[
             { icon: 'capital', text: <>{c1('domestic', 'Kept in the UK')} as net capital income</> },
-            { icon: 'foreign', text: <>{c1('foreign', 'Paid abroad')}: profits on foreign-owned UK capital, interest on gilts held abroad</> },
+            { icon: 'foreign', text: <>{c1('foreign', 'Net paid abroad')}: GDP less GNI, payments to foreign owners less income from abroad</> },
             { icon: 'depreciation', text: <>{c1('depreciation', 'Depreciation')}: replaces capital that wears out</> },
           ]}
         />
@@ -465,6 +485,16 @@ function outputSteps(sid, base, ch, hl, setHl, phone) {
   ];
 }
 
+// The block's opener (Scrolly renders it): a question the block answers,
+// and one takeaway with no figure. The title avoids "Where output goes in",
+// which part2.py reads as the start of the block's figures.
+export const OUTPUT_SUB = {
+  title: 'Where output goes',
+  icon: 'outputSplit',
+  question: 'Who receives the extra output: workers, capital’s owners at home or abroad?',
+  takeaway: 'In the main arm, capital income rises by more than GDP and labour income falls; part of the gain leaves the UK or replaces worn capital.',
+};
+
 export default function OutputSplit({ sid, closure }) {
   const { cl, base, ch } = splitFor(sid, closure);
   const both = closure === 'both';
@@ -475,14 +505,16 @@ export default function OutputSplit({ sid, closure }) {
   const steps = outputSteps(sid, base, ch, hl, setHl, phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
-      <h3 id="story-output-h" className="p2-headline-title">
+      {/* phones: the heading and lead; desktop: the block's opener (sub)
+          names the topic, and the heading stays for the outline */}
+      <h3 id="story-output-h" className={phone ? 'p2-headline-title' : 'visually-hidden'}>
         <Tx icon="outputSplit" size={22}>
           Where output goes in {SPLIT_YEAR}
         </Tx>
       </h3>
       <p className="p2-headline-lead">
         <Tx icon="path" size={16}>
-          First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part.{' '}
+          {phone ? <>First the split on the OBR-central path, then how {SCEN_NAME[sid]} changes each part. </> : null}
           {both ? 'With both closures chosen above, both figures show the central closure.' : null}
         </Tx>
       </p>
@@ -504,6 +536,7 @@ export default function OutputSplit({ sid, closure }) {
       ) : (
         <Scrolly
           id="p2-output"
+          sub={OUTPUT_SUB}
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={steps}
           graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}

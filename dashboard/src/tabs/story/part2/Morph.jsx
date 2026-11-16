@@ -7,7 +7,10 @@ import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
-import { W, H, niceTicks, SOURCE, More, Tx, placeLabels } from './frame.jsx';
+import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
+import { A, ModelSource, ResultLinks, resultUrl, pathUrl, readable, SRC as LINKS } from './sources.jsx';
+
+const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll } from './charts.jsx';
 import { EPS2 } from './dir.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -216,15 +219,31 @@ const STATE_TEXT = (sid, cl) => [
   { title: GAP_TITLE, unit: `The four scenarios, ${SCEN_NAME[sid]} in colour. Automation + productivity, ${CL_WORDS[cl]}. Gap, %` },
 ];
 
-const sourceText = (s) => {
-  const ons = SRC[SER.gdp_growth?.source];
-  const obr = SRC[SER.obr_gdp_forecast?.source];
-  const a = ons ? `${ons.publisher}, ${ons.series ?? ons.title}` : 'ONS';
-  const b = obr ? `${obr.publisher ?? 'OBR'}, ${obr.title ?? 'Economic and fiscal outlook'}` : 'OBR, Economic and fiscal outlook';
-  if (s === 0) return `Source: ${a}.`;
-  if (s === 1) return `Sources: ${a}; ${b}.`;
-  return SOURCE;
-};
+// The source line of each geometry state: the record's (ONS, OBR) linked
+// to readable pages, then the model's with the drawn solves' result files.
+function SourceText({ s, sid, cl, lines }) {
+  const ons = SRC_REC.ons;
+  const obr = SRC_REC.obr;
+  const a = ons ? (
+    <>
+      {ons.publisher}, <A href={readable(ons)}>{ons.series ?? ons.title}</A>
+    </>
+  ) : (
+    'ONS'
+  );
+  const b = obr ? (
+    <>
+      {obr.publisher ?? 'OBR'}, <A href={readable(obr)}>{obr.title ?? 'Economic and fiscal outlook'}</A>
+    </>
+  ) : (
+    'OBR, Economic and fiscal outlook'
+  );
+  if (s === 0) return <>Source: {a}.</>;
+  if (s === 1) return <>Sources: {a}; {b}.</>;
+  const shown = s >= 3 ? lines.map((l) => l.id) : [sid];
+  return <ModelSource method="m-shock" files={shown.map((id) => [`${SCEN_NAME[id]} result file`, resultUrl(id, 'tfp', cl)])} />;
+}
+const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecast?.source] };
 
 export function MorphChart({ state, sid, cl }) {
   const s = Math.max(0, Math.min(4, state));
@@ -262,7 +281,7 @@ export function MorphChart({ state, sid, cl }) {
   // direct labels in the gutter, placed over every label of the gap states
   // (drawn or not), so none moves when another line arrives
   const labelItems = [
-    { key: 'zero', v: 0, lines: ['OBR-central path'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true },
+    { key: 'zero', v: 0, lines: ['OBR-central', 'path = 0'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true },
     ...lines.map((l) => ({
       key: l.id,
       v: l.ys[l.ys.length - 1],
@@ -471,6 +490,13 @@ export function MorphChart({ state, sid, cl }) {
               </text>
             </g>
           </g>
+          {/* the y axis's title: growth (states 0-1), gap (states 2-4) */}
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s < 2 ? ' is-on' : ''}`} data-axis-title={s < 2 ? 'y' : undefined} aria-hidden={s < 2 ? undefined : 'true'}>
+            Real GDP growth, % a year
+          </text>
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}`} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
+            Gap against the OBR-central path, %
+          </text>
         </svg>
         {/* the ring's link to the headline figures (no value: their home is
             the tiles below); a page link, so it sits over the drawing */}
@@ -492,9 +518,12 @@ export function MorphChart({ state, sid, cl }) {
           </NavLink>
         ) : null}
       </div>
+      <p className="p2-axis-x" data-axis-title="x">
+        Year
+      </p>
       <figcaption className="story-source">
         <Tx icon="source" size={12}>
-          {sourceText(Math.min(s, 2))}
+          <SourceText s={s} sid={sid} cl={cl} lines={lines} />
         </Tx>
       </figcaption>
     </figure>
@@ -518,7 +547,14 @@ export function morphSteps(sid, cl) {
       body: (
         <>
           <Items items={morphItems(sid, cl)} />
-          <More tab="method" sub="how">How the path is set</More>
+          <ResultLinks
+            files={[
+              [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
+              ['no-shock path file', pathUrl(cl)],
+            ]}
+            method="m-path"
+            methodText="How the path is set"
+          />
         </>
       ),
     },
@@ -534,8 +570,26 @@ export function morphItems(sid, cl) {
   const dir = !tail.length ? null : tail.every((v) => v > EPS2) ? 'gapUp' : tail.every((v) => v < -EPS2) ? 'gapDown' : null;
   const where = cl === BOUND ? 'with closed capital' : 'at the central closure';
   return [
-    { icon: 'forecast', text: `OG-UK’s no-shock path, the OBR-central path, uses OBR assumptions` },
-    { icon: 'source', text: `From the OBR’s central forecast of ${MODEL_BASE_VINTAGE}` },
+    {
+      icon: 'forecast',
+      text: (
+        <>
+          The zero line is OG-UK&rsquo;s own no-shock path, the OBR-central path, not the OBR&rsquo;s {OBR_VINTAGE || 'latest'} forecast drawn before it
+        </>
+      ),
+    },
+    {
+      icon: 'source',
+      text: (
+        <>
+          It takes one OBR input, trend productivity growth, from the <A href={EFO_MAR26}>OBR&rsquo;s {MODEL_BASE_VINTAGE} outlook</A> (
+          <NavLink tab="method" sub="how" anchor="m-shock">
+            its value on Method
+          </NavLink>
+          )
+        </>
+      ),
+    },
     { icon: 'measure', text: 'Results are gaps against it: zero is that path' },
     dir
       ? { icon: dir, text: `Blue line: GDP in ${SCEN_NAME[sid]} ${dir === 'gapUp' ? 'above' : 'below'} it, ${where}` }

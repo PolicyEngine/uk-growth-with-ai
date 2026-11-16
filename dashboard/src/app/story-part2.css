@@ -1306,3 +1306,57 @@
 .hero-a.hero-items .story-item-icon {
   color: var(--pe-gray-500);
 }
+
+/* Axis titles outside the drawing: the x title under the ticks, right
+   aligned (the y titles are SVG text in each chart, data-axis-title). */
+.p2-axis-x {
+  margin: -2px 0 0 !important;
+  text-align: right;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+
+/* "OG-UK result: result file · Method" under a card that states a result */
+.p2-result-links {
+  margin: 6px 0 0 !important;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.p2-result-links a,
+.story-source a {
+  text-underline-offset: 2px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.p2-result-links a:hover,
+.story-source a:hover {
+  color: var(--pe-gray-800);
+}
+
+/* Micro-interactions: links in cards nudge their icon, chips lift */
+.p2-more svg {
+  transition: transform 0.18s ease;
+}
+.p2-more:hover svg {
+  transform: translateX(2px);
+}
+.p2-chip {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.p2-chip:hover,
+.p2-chip:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .p2-more svg,
+  .p2-chip,
+  .p2-result-links a,
+  .story-source a {
+    transition: none;
+  }
+  .p2-more:hover svg,
+  .p2-chip:hover,
+  .p2-chip:focus-visible {
+    transform: none;
+  }
+}

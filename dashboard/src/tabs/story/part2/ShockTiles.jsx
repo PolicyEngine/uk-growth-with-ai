@@ -81,7 +81,7 @@ export default function ShockTiles({ state, entered = true }) {
       <p className="story-figure-title">
         <Tx icon="gdp">Who output is paid to</Tx>
       </p>
-      <p className="story-figure-unit">
+      <p className="story-figure-unit" data-axis-title="y">
         <Tx icon="measure" size={12}>
           One tile is one per cent of output before the shock. Illustrative: sizes are exaggerated.
         </Tx>
