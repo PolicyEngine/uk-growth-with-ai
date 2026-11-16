@@ -1507,3 +1507,43 @@
     transition: none !important;
   }
 }
+
+/* A step's one sentence (steps.jsx Say): a small kind label, then the
+   sentence at reading size; the fold and links sit under it */
+.p2-say {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 6px !important;
+}
+.p2-kind {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.p2-say.is-takeaway .p2-kind {
+  color: var(--part-accent, var(--c-highlight));
+}
+.p2-say-text {
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--pe-gray-800);
+}
+.p2-fold {
+  margin-top: 4px;
+}
+
+/* Three steps per scene (pass 3): fewer, shorter cards, so a few states
+   need more scroll to hold 180px (check_states, with and without motion) */
+#p2-arms-2.scrolly-step {
+  padding-bottom: 80px;
+}
+#p2-out-1.scrolly-step {
+  padding-bottom: 72px;
+}
+#p2-scen-2.scrolly-step,
+#p2-out-3.scrolly-step {
+  padding-bottom: 120px;
+}

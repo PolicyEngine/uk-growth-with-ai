@@ -12,7 +12,8 @@ import { Tx } from './frame.jsx';
 import { A, ModelSource, ResultLinks, resultUrl, pathUrl, OG_DEFAULTS } from './sources.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
-import { Items } from '@/components/story/Items.jsx';
+import { Key } from '@/components/story/highlight.jsx';
+import { Say, Fold } from './steps.jsx';
 import { iconFor } from '@/lib/concepts.js';
 
 // Where output goes in the headline year, at the header's scenario and
@@ -164,28 +165,6 @@ export function outChangeItems(ch) {
   return out;
 }
 
-// A part's name as a chip: hovering, focusing or tapping it picks out its
-// ribbon in the Sankey and its row in the waterfall. No number: each
-// figure is printed once, on the chart. `on` is the part picked.
-function Chip({ part, on, pick, children }) {
-  const lit = on === part;
-  return (
-    <button
-      type="button"
-      className={`p2-chip${lit ? ' is-on' : ''}`}
-      style={{ '--sw': PART_COLOR[part] }}
-      data-part={part}
-      onMouseEnter={() => pick(part)}
-      onMouseLeave={() => pick(null)}
-      onFocus={() => pick(part)}
-      onBlur={() => pick(null)}
-      onClick={() => pick(lit ? null : part)}
-    >
-      <span className="p2-chip-sw" aria-hidden="true" />
-      {children}
-    </button>
-  );
-}
 
 // The graphic: the Sankey, the waterfall below it. `state` 0-2; `all`
 // draws the last state with nothing hidden (phones).
@@ -215,6 +194,15 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   const [boxes, setBoxes] = useState(null);
   const cells = useRef({});
   const wrap = useRef(null);
+  // the Sankey's ribbons and nodes as marks (wf-<part>, the waterfall rows'
+  // ids), so a step's highlight lights the ribbon and the row together; set
+  // after each render (Sankey.jsx draws them without data-mark)
+  useLayoutEffect(() => {
+    const root = wrap.current;
+    if (!root) return;
+    root.querySelectorAll('.sankey-link[data-target]').forEach((el) => el.setAttribute('data-mark', `wf-${el.getAttribute('data-target')}`));
+    root.querySelectorAll('.sankey-node[data-node]').forEach((el) => el.setAttribute('data-mark', `wf-${el.getAttribute('data-node')}`));
+  });
   if (s < 2 && phase !== 'idle') {
     setPhase('idle');
     setChips(null);
@@ -385,87 +373,61 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   );
 }
 
-function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
+function outputSteps(sid, cl, base, ch) {
   const labourMore = base ? base.labour > 50 : null;
-  // a chip in card i picks for graphic state i (phones draw state 2 for all)
-  const chip = (i) => {
-    const on = hl && (phone || hl.s === i) ? hl.id : null;
-    const pick = (id) => setHl(id ? { id, s: i } : null);
-    return function chipFor(part, text) {
-      return (
-        <Chip part={part} on={on} pick={pick}>
-          {text}
-        </Chip>
-      );
-    };
-  };
-  const c0 = chip(0);
-  const c1 = chip(1);
-  const c2 = chip(2);
-  // step 3's items, with the parts they name as chips
-  const changeText = (it) =>
-    it.key === 'labour' ? (
-      <>
-        {c2('labour', 'Labour income')} {it.text}
-      </>
-    ) : it.key === 'abroad' ? (
-      <>
-        Part is {c2('foreign', 'net income paid abroad')} or covers {c2('depreciation', 'wear')} on more capital
-      </>
-    ) : (
-      it.text
-    );
+  const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
+  const up = ch ? ch.gdp > 0 && ch.labour < 0 : false;
   return [
     {
       id: 'p2-out-1',
-      highlight: [],
+      highlight: ['wf-labour', 'wf-capital'],
       icon: 'gdp',
       title: 'GDP is paid as labour or capital income',
       body: (
-        <Items
-          items={[
-            { icon: 'path', text: `Here: the OBR-central path in ${SPLIT_YEAR}` },
-            { icon: 'gdp', text: 'In the model, every pound of GDP is paid to someone' },
-            {
-              icon: 'labour',
-              text: (
-                <>
-                  {c0('labour', 'Labour income')}, income from work: {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'}
-                </>
-              ),
-            },
-            {
-              icon: 'capital',
-              text: <>{c0('capital', 'Gross capital income')}: the rest, paid to capital&rsquo;s owners</>,
-            },
-          ]}
-        />
+        <>
+          <Say kind="finding">
+            On the path, {k('labour', 'labour income')} is {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'} of GDP; {k('capital', 'capital income')} the rest.
+          </Say>
+          <Fold
+            title="In the model"
+            icon="model"
+            items={[
+              { icon: 'gdp', text: 'Every pound of GDP is paid to someone' },
+              {
+                icon: 'measure',
+                text: (
+                  <>
+                    Labour&rsquo;s size: <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, wider than{' '}
+                    <NavLink tab="story" anchor="p1-share">
+                      part 1&rsquo;s ONS share
+                    </NavLink>
+                  </>
+                ),
+              },
+            ]}
+          />
+        </>
       ),
     },
     {
       id: 'p2-out-2',
-      highlight: [],
+      highlight: ['wf-domestic', 'wf-foreign', 'wf-depreciation'],
       icon: 'capital',
       title: 'Capital income splits three ways',
       body: (
-        <Items
-          items={[
-            { icon: 'capital', text: <>{c1('domestic', 'Kept in the UK')} as net capital income</> },
-            { icon: 'foreign', text: <>{c1('foreign', 'Net paid abroad')}: GDP less GNI, a net flow</> },
-            { icon: 'depreciation', text: <>{c1('depreciation', 'Depreciation')}: replaces capital that wears out</> },
-            {
-              icon: 'measure',
-              text: (
-                <>
-                  Labour income&rsquo;s size: <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, counting self-employed, unlike{' '}
-                  <NavLink tab="story" anchor="p1-share">
-                    part 1&rsquo;s ONS share
-                  </NavLink>
-                </>
-              ),
-            },
-          ]}
-        />
+        <>
+          <Say kind="finding">
+            It splits into {k('domestic', 'kept in the UK')}, {k('foreign', 'net paid abroad')} and {k('depreciation', 'depreciation')}.
+          </Say>
+          <Fold
+            title="The three parts"
+            icon="capital"
+            items={[
+              { icon: 'foreign', text: 'Net paid abroad: GDP less GNI, a net flow' },
+              { icon: 'depreciation', text: 'Depreciation replaces capital that wears out' },
+            ]}
+          />
+        </>
       ),
     },
     {
@@ -477,16 +439,23 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
       body: (
         <>
           {ch ? (
-            <Items
-              items={outChangeItems(ch).map((it) => ({
-                key: it.key,
-                icon: it.icon,
-                text: changeText(it),
-              }))}
-            />
+            <Say kind="takeaway">
+              {up ? (
+                <>
+                  {k('capital', 'Capital income')} rises by more than {k('gdp', 'GDP')}; {k('labour', 'labour income')} falls.
+                </>
+              ) : (
+                <>
+                  {k('gdp', 'GDP')} is {dirWord(ch.gdp)} the path; {k('labour', 'labour income')} is {dirWord(ch.labour)} it.
+                </>
+              )}
+            </Say>
           ) : (
             <p>This solve is pending at the closure chosen above.</p>
           )}
+          {ch ? <Fold title="What else changes" icon="compare" items={outChangeItems(ch)
+                .filter((it) => it.key !== 'all')
+                .map((it) => (it.key === 'labour' ? { ...it, text: `Labour income ${it.text}` } : it))} /> : null}
           <ResultLinks
             files={[
               ['no-shock path file', pathUrl(cl)],
@@ -527,7 +496,7 @@ export default function OutputSplit({ sid, closure }) {
   // the part picked by a chip, a ribbon or a row, and the graphic state it
   // was picked in: { id, s }
   const [hl, setHl] = useState(null);
-  const steps = outputSteps(sid, cl, base, ch, hl, setHl, phone);
+  const steps = outputSteps(sid, cl, base, ch);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
       <h3 id="story-output-h" className="p2-headline-title">
