@@ -28,7 +28,7 @@ export const SOURCES = {
     year: 2026,
     group: 'uk',
     url: 'https://assets.publishing.service.gov.uk/media/6a4cb4c74889d85e75ab40e0/E03599617_OBR_FRS_2026_Accessible.pdf',
-    use: 'Illustrative fall in the labour share with GDP unchanged, and what it does to tax.',
+    use: 'Illustrative fall in the wages-and-salaries share of GDP (40% to 20%) with GDP unchanged, and what it does to tax.',
     loc: 'Box 4.1, pp.86–88',
   },
   obrEfoOct26: {
@@ -73,7 +73,7 @@ export const SOURCES = {
   },
   boeMpr: {
     short: 'Bank of England MPR, Nov 2026',
-    title: 'Monetary Policy Report, November 2026, Boxes C and D',
+    title: 'Monetary Policy Report, November 2026, Box D',
     who: 'Bank of England',
     year: 2026,
     group: 'uk',
@@ -191,7 +191,7 @@ export const CHANNELS = [
     icon: 'cpu',
     cells: {
       oguk: ['part', 'Imposed', 'A rising capital share γ on a set path.'],
-      korinek: ['yes', 'Modelled', 'Tasks automated as the affected mass and automation shares rise.'],
+      korinek: ['yes', 'Modelled', 'Tasks automated as the affected mass and the diffusion share rise; the automation share is fixed in each scenario (Table 1, pp.23–24).'],
       moll: ['yes', 'Modelled', 'Automated task share rises from one third to one by 2045.'],
       obr: ['part', 'Stated', 'Box 2.2: technology substitutes for labour; not modelled.'],
       imf: ['yes', 'Modelled', 'Endogenous task adoption, 27% cost saving per automated task.'],

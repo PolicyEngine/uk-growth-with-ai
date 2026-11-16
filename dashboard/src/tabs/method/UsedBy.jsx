@@ -3,6 +3,8 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
+import { AI_STUDY } from '@/tabs/code/ledger.js';
+import { REPLICATE as OGUK_REPLICATE } from './sources.js';
 
 // The reverse of "More in Method": under each Method section, the charts and
 // Story steps that use it, as small icon link chips. Every target is an id
@@ -47,10 +49,49 @@ export const USES = {
   'hm-takeup': [{ tab: 'story', anchor: 'p3-takeup-step', icon: 'story', label: 'Story, part 3: take-up' }],
 };
 
-export default function UsedBy({ id }) {
-  const list = USES[id];
+// Replication: the code and the result file behind each section. OG-UK's at
+// the commit the results were built from; the household study's at the
+// study's commit (read from aiStudy2425.json).
+const study = AI_STUDY.blob;
+export const REPLICATE = {
+  ...OGUK_REPLICATE,
+  'hm-data': [{ label: 'data.py', url: study('uk_ai_study/data.py') }, { label: 'BUILD_MANIFEST.json', url: study('results/BUILD_MANIFEST.json') }],
+  'hm-exposure': [{ label: 'exposure.py', url: study('uk_ai_study/exposure.py') }],
+  'hm-shock': [{ label: 'shocks.py', url: study('uk_ai_study/shocks.py') }, { label: 'central.json', url: study('results/central.json') }],
+  'hm-rules': [{ label: 'incidence_scenarios.py', url: study('analysis/incidence_scenarios.py') }, { label: 'incidence results', url: study('results/incidence/summary_five.csv') }],
+  'hm-takeup': [{ label: 'displaced_takeup_runs.py', url: study('analysis/displaced_takeup_runs.py') }, { label: 'takeup_runs.json', url: study('results/takeup/takeup_runs.json') }],
+  'hm-draws': [{ label: 'runner.py', url: study('uk_ai_study/runner.py') }, { label: 'central.json', url: study('results/central.json') }],
+};
+
+function Replicate({ id }) {
+  const list = REPLICATE[id];
   if (!list?.length) return null;
   return (
+    <div className="mx-uses mx-replicate" data-replicate={id}>
+      <span className="mx-uses-label">
+        <Icon name={iconFor('code')} size={14} />
+        Replicate
+      </span>
+      <ul className="mx-uses-list">
+        {list.map((r) => (
+          <li key={r.url}>
+            <a className="mx-use-chip" href={r.url} target="_blank" rel="noreferrer">
+              <Icon name="github" size={14} />
+              <span>{r.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function UsedBy({ id }) {
+  const list = USES[id];
+  if (!list?.length) return <Replicate id={id} />;
+  return (
+    <>
+    <Replicate id={id} />
     <div className="mx-uses" aria-label="Used by">
       <span className="mx-uses-label">
         <Icon name={iconFor('link')} size={14} />
@@ -67,5 +108,6 @@ export default function UsedBy({ id }) {
         ))}
       </ul>
     </div>
+    </>
   );
 }

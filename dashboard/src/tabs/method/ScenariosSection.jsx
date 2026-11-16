@@ -11,6 +11,9 @@ import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, 
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
+import { SRC } from './sources.js';
+import InputsTable, { inputsTable } from './InputsTable.jsx';
+import { INPUTS } from './inputs.js';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
@@ -116,7 +119,7 @@ const ARM_TEXT = {
         items={[
           { icon: 'equation', text: <>Z is solved by secant over full solves (&ldquo;R4&rdquo;).</> },
           { icon: 'breakEven', text: <>It stops when the {HEADLINE_YEAR} GDP gap is within 0.01pp of zero.</> },
-          { icon: 'forecast', text: 'Named after the OBR’s March 2026 displacement scenario, GDP unchanged.' },
+          { icon: 'forecast', text: <>Named after the OBR&rsquo;s March 2026 displacement scenario, GDP unchanged ({ext(SRC.efoMarBox22.url, SRC.efoMarBox22.label)}).</> },
           { icon: 'limit', text: 'It matches the OBR only on GDP.' },
           { icon: 'compare', text: 'The OBR adjusts through jobs; OG-UK, with no unemployment, through the wage.' },
         ]}
@@ -168,6 +171,7 @@ function ArmCards() {
 // The sub-sections, for a page's contents list
 export const SCENARIO_SECTIONS = [
   { id: 's-scenarios', title: 'The scenarios', icon: iconFor('scenario') },
+  { id: 'm-inputs-head', title: 'Every input and its source', icon: iconFor('source') },
   { id: 'm-arms', title: 'Three arms per scenario', icon: iconFor('compare') },
   { id: 'm-timing', title: 'When it happens', icon: iconFor('timing') },
 ];
@@ -198,6 +202,33 @@ const MAX_LS = Math.max(...SCENARIOS.map((x) => x.labour_share_fall_pp));
 const MAX_TFP = Math.max(...SCENARIOS.map((x) => x.tfp_gain_pct));
 const SRC_KEY = { tfp: ['productivity', 'Productivity'], labour_share: ['labour', 'Labour share'], both: ['compare', 'Both inputs'] };
 
+// The published sources behind each input, linked to the page cited
+const SCEN_SRC = {
+  uk_low: { tfp: ['bp9B12', 'frs86'], labour_share: ['imfSip44'] },
+  uk_central: { tfp: ['imfSipT1', 'imfSipFig9', 'bp9B14', 'efoOct127'], labour_share: ['imfSipFig9', 'imfSip44', 'frs87'] },
+  uk_high: { tfp: ['frs86', 'imfArt4'], labour_share: ['frs87', 'frs88'] },
+  korinek: { both: ['korinekT3'] },
+};
+const cites = (keys = []) =>
+  keys.map((k, i) => (
+    <span key={k}>
+      {i ? '; ' : ''}
+      {ext(SRC[k].url, SRC[k].label)}
+    </span>
+  ));
+// The source notes say which steps are arithmetic on a published figure
+// rather than a figure in the source; that is said here without a first person.
+const neutral = (v) =>
+  v
+    .replace(/\(our arithmetic\)/g, '(arithmetic on the published figures, not a figure in the source)')
+    .replace(/\(our inference from the IMF calibration, not an IMF figure\)/g, '(an inference from the IMF calibration, not an IMF figure)')
+    .replace(/\(our inference\)/g, '(an inference from the IMF calibration, not an IMF figure)')
+    .replace(/\(our mapping\)/g, '(a proportional mapping, not a figure in the source)');
+// The labour-share derivation printed on each UK card: its row in the
+// inputs table (one wording, one place it is written)
+const SHARE_ROW = { uk_low: 'UK low: labour-share fall', uk_central: 'UK central: labour-share fall (headline)', uk_high: 'UK high: labour-share fall' };
+const derivation = (sid) => INPUTS.find((r) => r.input === SHARE_ROW[sid])?.how ?? null;
+
 export default function ScenariosSection({ uses = null }) {
   return (
     <section className="mx-scenarios">
@@ -215,7 +246,7 @@ export default function ScenariosSection({ uses = null }) {
         ]}
       />
       <SubHead id="s-scenarios" icon="scenario" title="The scenarios">
-        <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, taken from UK sources (and, for the upper case, US ones).</IconText>
+        <IconText icon="source">Each is a pair of inputs reached in {HEADLINE_YEAR}, derived from OBR and IMF figures (the upper case: taken from Korinek et al.).</IconText>
       </SubHead>
       <Card
         id="scenario-map"
@@ -223,6 +254,7 @@ export default function ScenariosSection({ uses = null }) {
         title={`Scenario inputs, ${HEADLINE_YEAR}`}
         unit={<IconText icon="measure">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</IconText>}
         download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources on each scenario card', table: scenarioTable }}
+        replication={{ code: SRC.ukTargets.url, result: SRC.ukTargets.url }}
       >
         <ScenarioMap caption={false} />
       </Card>
@@ -244,7 +276,8 @@ export default function ScenariosSection({ uses = null }) {
                     </dt>
                     <dd>
                       <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
-                      {v}
+                      {neutral(v)}
+                      <span className="mx-src-links"> Sources: {cites(SCEN_SRC[s.id]?.[k])}.</span>
                     </dd>
                   </div>
                 ))}
@@ -267,7 +300,10 @@ export default function ScenariosSection({ uses = null }) {
                   <span className="mx-bar" aria-hidden="true">
                     <span style={{ transform: `scaleX(${s.labour_share_fall_pp / MAX_LS})` }} />
                   </span>
-                  <span className="mx-chip-src">{srcName(s.sources.labour_share ?? s.sources.both)}</span>
+                  <a className="mx-chip-src" href={SRC[(SCEN_SRC[s.id]?.labour_share ?? SCEN_SRC[s.id]?.both)[0]].url} target="_blank" rel="noreferrer">
+                    {s.sources.both ? '' : 'derived from '}
+                    {srcName(s.sources.labour_share ?? s.sources.both)}
+                  </a>
                 </dd>
               </div>
               <div>
@@ -278,10 +314,24 @@ export default function ScenariosSection({ uses = null }) {
                   <span className="mx-bar" aria-hidden="true">
                     <span style={{ transform: `scaleX(${s.tfp_gain_pct / MAX_TFP})` }} />
                   </span>
-                  <span className="mx-chip-src">{srcName(s.sources.tfp ?? s.sources.both)}</span>
+                  <a className="mx-chip-src" href={SRC[(SCEN_SRC[s.id]?.tfp ?? SCEN_SRC[s.id]?.both)[0]].url} target="_blank" rel="noreferrer">
+                    {s.id === 'uk_central' ? 'model input (rounded; OBR ramp gives 0.40%)' : `${s.sources.both ? '' : 'derived from '}${srcName(s.sources.tfp ?? s.sources.both)}`}
+                  </a>
                 </dd>
               </div>
             </dl>
+            {derivation(s.id) ? (
+              <p className="mx-sub mx-derive" data-cite="">
+                <IconText icon="arithmetic">
+                  {s.id === 'uk_central' ? null : <>Derived from OBR/IMF figures by this study&rsquo;s rule, not published by them. Labour-share fall: </>}
+                  {derivation(s.id)} {cites(SCEN_SRC[s.id]?.labour_share)}.
+                </IconText>
+              </p>
+            ) : (
+              <p className="mx-sub mx-derive">
+                <IconText icon="source">Both inputs: {cites(SCEN_SRC[s.id]?.both)}.</IconText>
+              </p>
+            )}
             <p className="mx-sub">
               <IconText icon="capital">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</IconText>
             </p>
@@ -291,10 +341,25 @@ export default function ScenariosSection({ uses = null }) {
       <Items
         className="mx-foot-items"
         items={[
-          { icon: 'arithmetic', text: <>Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}.</> },
+          { icon: 'arithmetic', text: <>Derivations: {ext(DOC('uk_calibration.md'), 'UK calibration note')}; targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)}.</> },
+          { icon: 'rule', text: 'Which pairs to run is a modelling choice.' },
+          { icon: 'rule', text: 'So is calling UK central the headline.' },
           { icon: 'compare', text: <>Published figures are compared on <NavLink tab="method" sub="studies" anchor="numbers">Evidence</NavLink>.</> },
         ]}
       />
+
+      <SubHead id="m-inputs-head" icon="source" title="Every input and its source">
+        <IconText icon="source">Published, derived by this study, OG-UK&rsquo;s default, or a modelling choice: each row says which, and links it.</IconText>
+      </SubHead>
+      <Card
+        id="inputs-table"
+        icon={iconFor('source')}
+        title="Scenario inputs and model parameters"
+        replication={{ code: SRC.ukTargets.url, result: SRC.ogukParams.url }}
+        download={{ title: 'Scenario inputs and model parameters', context: 'Each input, the value the model used, its kind of source and the source', table: inputsTable }}
+      >
+        <InputsTable />
+      </Card>
 
       <SubHead id="m-arms" oldId="s-arms" icon="compare" title="Three arms per scenario">
         <IconText icon="compare">The same labour-share fall in each. They differ in output at fixed inputs.</IconText>
@@ -309,6 +374,7 @@ export default function ScenariosSection({ uses = null }) {
         icon={iconFor('timing')}
         title={`The timing, ${YEARS[0]}–${LATE_YEAR}`}
         unit={<IconText icon="measure">Bars: weight of the change in γ and Z, from 0 (the OBR-central path) to 1 (full scenario)</IconText>}
+        replication={{ code: SRC.rampWeights.url, result: SRC.ukTargets.url }}
         download={{ title: `The timing, ${YEARS[0]}–${LATE_YEAR}`, context: 'Ramp weight of the capital share γ and productivity Z', table: timelineTable, svg: timelineSvg, legend: () => [] }}
       >
         <Timeline caption={false} />
@@ -334,6 +400,8 @@ export default function ScenariosSection({ uses = null }) {
           <Items
             items={[
               { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
+              { icon: 'rule', text: <>The {SURPRISE_YEAR} arrival: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
+              { icon: 'rule', text: <>So is the linear four-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
           />
@@ -368,7 +436,7 @@ export default function ScenariosSection({ uses = null }) {
           more={
             <Items
               items={[
-                { icon: 'code', text: <>OG-Core 0.17 defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</> },
+                { icon: 'code', text: <>{ext(SRC.ogCore017.url, 'OG-Core 0.17')} defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</> },
                 { icon: 'jump', text: 'So investment jumps for one year.' },
                 { icon: 'caveat', text: 'It reflects frictionless capital, not a forecast of a boom.' },
               ]}

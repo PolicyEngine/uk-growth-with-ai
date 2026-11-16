@@ -9,11 +9,14 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
-import { D, MODEL_YEAR, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
+import { D, MODEL_YEAR as PART3_YEAR, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
+import { AI_STUDY } from '@/tabs/code/ledger.js';
+import { URLS } from '@/tabs/ai/links.js';
+import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 
 // Method and sources > Household method: how uk-ai-study (PolicyEngine/
-// uk-ai-study PR #18, provisional) produces the results in story part 3 and
+// uk-ai-study PR #18; its status is read from the data) produces the results in story part 3 and
 // Explore > Households, in short sections, following the paper's "Data and
 // methods" (paper/sections/methodology.tex). Model parameters and data
 // counts are the paper's printed values (paper/values_generated.tex) and the
@@ -22,6 +25,26 @@ import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
 // this page keeps an anchored line there (#hm-vintage).
 
 const M = D.method;
+// The model year and status come from aiStudy2425.json once it carries them
+const MODEL_YEAR = AI_STUDY.modelYear ? (/^FY/.test(AI_STUDY.modelYear) ? AI_STUDY.modelYear : `FY ${AI_STUDY.modelYear}`) : PART3_YEAR;
+// a status chip only while the study is provisional; once merged, the line says so
+const STATUS = AI_STUDY.provisional ? 'Provisional' : AI_STUDY.merged ? `Merged${AI_STUDY.mergedDay ? ` ${AI_STUDY.mergedDay}` : ''}, at ${AI_STUDY.commit.slice(0, 7)}` : null;
+// Every published source this page names, linked
+const L = {
+  frs: ['Family Resources Survey', 'https://www.gov.uk/government/collections/family-resources-survey--2'],
+  spi: ['HMRC Survey of Personal Incomes', 'https://www.gov.uk/government/collections/personal-incomes-statistics'],
+  hbai: ['HBAI', 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2'],
+  peUk: ['PolicyEngine-UK', URLS.peUk],
+  felten: ['Felten, Raj and Seamans (2021)', 'https://doi.org/10.1002/smj.3286'],
+  pizzinelli: ['Pizzinelli et al. (2023)', 'https://doi.org/10.5089/9798400254802.001'],
+  doorley: ['Doorley et al. (2026)', 'https://doi.org/10.26504/jr16'],
+  cazzaniga: ['Cazzaniga et al. (2024)', 'https://doi.org/10.5089/9798400262548.006'],
+  ucParams: ['PolicyEngine-UK’s Universal Credit parameters', 'https://github.com/PolicyEngine/policyengine-uk/tree/main/policyengine_uk/parameters/gov/dwp/universal_credit'],
+  ucGov: ['GOV.UK: Universal Credit, what you’ll get', 'https://www.gov.uk/universal-credit/what-youll-get'],
+  jsaGov: ['GOV.UK: Jobseeker’s Allowance, what you’ll get', 'https://www.gov.uk/jobseekers-allowance/what-youll-get'],
+  methods: ['the study’s data and methods', AI_STUDY.blob('paper/sections/methodology.tex')],
+};
+const l = (k, text) => ext(L[k][1], text ?? L[k][0]);
 const In = ({ children }) => <span data-input="">{children}</span>;
 const CENTRAL_PCT = Number(/([\d.]+)% prescribed/.exec(D.headline.central_displaced.note)?.[1]);
 
@@ -75,9 +98,11 @@ export default function HouseholdsMethod() {
               one year.
             </IconText>
           </p>
-          <p className="notice-chip">
-            <IconText icon="provisional">Provisional</IconText>
-          </p>
+          {STATUS ? (
+            <p className="notice-chip">
+              <IconText icon={AI_STUDY.provisional ? 'provisional' : 'version'}>{STATUS}</IconText>
+            </p>
+          ) : null}
         </header>
 
         <section>
@@ -105,18 +130,21 @@ export default function HouseholdsMethod() {
               />
               <Items
                 items={[
-                  { icon: 'source', text: 'The Family Resources Survey 2024–25.' },
-                  { icon: 'pay', text: 'Top incomes from the HMRC Survey of Personal Incomes.' },
+                  { icon: 'source', text: <>The {l('frs')} 2024–25.</> },
+                  { icon: 'pay', text: <>Top incomes from the {l('spi')}.</> },
                   { icon: 'check', text: 'Imputed variables; weights calibrated to administrative and survey totals.' },
                 ]}
               />
             </InfoCard>
             <InfoCard icon={iconFor('model')} title={`PolicyEngine-UK ${M.policyengine_uk}`}>
+              <p className="mx-sub">
+                <IconText icon="link">{l('peUk', 'PolicyEngine-UK on GitHub')}</IconText>
+              </p>
               <Items
                 items={[
                   { icon: 'version', text: `Release bundle: policyengine.py ${M.policyengine}.` },
                   { icon: 'tax', text: `Income tax, National Insurance and benefits for ${MODEL_YEAR}.` },
-                  { icon: 'poverty', text: 'Incomes follow HBAI, before and after housing costs.' },
+                  { icon: 'poverty', text: <>Incomes follow {l('hbai', 'HBAI (DWP)')}, before and after housing costs.</> },
                   { icon: 'cost', text: 'The cost is the fall in the government balance.' },
                   { icon: 'finances', text: 'It counts income tax, employee and employer NI, and benefits.' },
                   { icon: 'excluded', text: 'No corporation tax; household spending held at baseline.' },
@@ -130,12 +158,14 @@ export default function HouseholdsMethod() {
           <SectionHeading id="hm-exposure" icon={iconFor('ai')} title="AI exposure">
             <IconText icon="measure">The complementarity-adjusted AI occupational exposure index (C-AIOE).</IconText>
           </SectionHeading>
+          <UsedBy id="hm-exposure" />
           <Items
             className="hm-items"
             items={[
-              { icon: 'source', text: 'Starts from the AI Occupational Exposure index of Felten, Raj and Seamans.' },
+              { icon: 'source', text: <>Starts from {l('felten')}&rsquo;s AI Occupational Exposure index.</> },
               { icon: 'ai', text: 'It links progress in ten AI applications to occupational abilities.' },
-              { icon: 'jobKeep', text: 'Scaled down where AI more likely complements than replaces (Pizzinelli et al.).' },
+              { icon: 'jobKeep', text: 'Scaled down where AI more likely complements than replaces.' },
+              { icon: 'source', text: <>That adjustment: {l('pizzinelli')}.</> },
               { icon: 'measure', text: 'Mapped to UK SOC2020, averaged over nine major occupation groups.' },
               { icon: 'caveat', text: 'So exposure varies between groups, not within them.' },
               { icon: 'excluded', text: 'Shifted so elementary occupations, the least exposed, score zero: no displacement.' },
@@ -145,14 +175,15 @@ export default function HouseholdsMethod() {
 
         <section>
           <SectionHeading id="hm-shock" icon={iconFor('shock')} title="The shock">
-            <IconText icon="caveat">An assumed shock, applied in one year; not estimated from data.</IconText>
+            <IconText icon="caveat">A scenario input from {l('doorley')}, applied in one year; not estimated from data.</IconText>
           </SectionHeading>
+          <UsedBy id="hm-shock" />
           <div className="card-grid is-top">
             <InfoCard icon={iconFor('jobLoss')} title="Job loss">
               <Items
                 items={[
                   { icon: 'jobLoss', text: <>Central case: <In>{fmtInputPct(CENTRAL_PCT)}</In> of employees displaced.</> },
-                  { icon: 'source', text: 'A calibration taken from an Irish study of the same kind.' },
+                  { icon: 'source', text: <>{l('doorley')}&rsquo;s Irish design, which the study follows.</> },
                   { icon: 'deciles', text: 'Shared between groups by employment times exposure.' },
                   { icon: 'draws', text: 'Records drawn at random within each group.' },
                   { icon: 'excluded', text: 'Earnings, hours, pension contributions and statutory pay set to zero.' },
@@ -164,6 +195,7 @@ export default function HouseholdsMethod() {
               <Items
                 items={[
                   { icon: 'pay', text: <>Wages of those kept rise by <In>{fmtInputPct(M.survivor_wage_pct)}</In> on average.</> },
+                  { icon: 'source', text: <>The rise follows {l('doorley')}.</> },
                   { icon: 'why', text: 'In proportion to their group’s complementarity.' },
                   { icon: 'jobKeep', text: 'No one who keeps their job loses pay.' },
                 ]}
@@ -173,7 +205,8 @@ export default function HouseholdsMethod() {
               <Items
                 items={[
                   { icon: 'capital', text: <>Interest and dividend income rise by <In>{fmtPct1(M.capital_uplift_pct)}</In>.</> },
-                  { icon: 'interest', text: <>A <In>{M.return_shock_pp}</In>-point rise in the return.</> },
+                  { icon: 'interest', text: <>A <In>{M.return_shock_pp}</In>-point rise in the return, as in {l('doorley')}.</> },
+                  { icon: 'source', text: <>They motivate it with {l('cazzaniga')}.</> },
                   { icon: 'capital', text: 'Rents and pension returns are unchanged.' },
                   { icon: 'excluded', text: 'The self-employed are outside both labour-market shocks.' },
                 ]}
@@ -187,6 +220,9 @@ export default function HouseholdsMethod() {
             <IconText icon="draws">Five rules share out the same expected number of job losses.</IconText>
           </SectionHeading>
           <UsedBy id="hm-rules" />
+          <p className="hm-text">
+            <IconText icon="rule">The five rules and the policy variants are the study&rsquo;s designs: {l('methods')}.</IconText>
+          </p>
           <Items
             className="hm-items"
             items={[
@@ -226,6 +262,7 @@ export default function HouseholdsMethod() {
             className="hm-items"
             items={[
               { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}.</> },
+              { icon: 'source', text: <>Rates: {l('ucParams', 'PolicyEngine-UK parameters')}; current rates on {l('ucGov', 'GOV.UK')}.</> },
               { icon: 'takeUp', text: 'Each benefit unit keeps its take-up decision drawn in the data.' },
               { icon: 'excluded', text: 'New-style JSA is paid only where the survey reports an award.' },
               { icon: 'jobLoss', text: 'So the newly displaced do not get it.' },
@@ -237,14 +274,16 @@ export default function HouseholdsMethod() {
               { icon: 'compare', text: 'Two variants relax this, on the same draws:' },
               { icon: 'takeUp', text: 'Every benefit unit with a displaced worker claims UC.' },
               { icon: 'benefits', text: <>Contribution condition met: also <In>£{M.jsa_week_gbp}</In> a week of new-style JSA, 26 weeks.</> },
+              { icon: 'source', text: <>JSA rates: {l('jsaGov', 'GOV.UK')}.</> },
             ]}
           />
         </section>
 
         <section>
           <SectionHeading id="hm-draws" icon={iconFor('draws')} title="Draws and spread">
-            <IconText icon="draws">Who is displaced is random, so each result is a mean over draws.</IconText>
+            <IconText icon="draws">Who is displaced is random, so each result is a mean over draws. The draw counts are the study&rsquo;s choice ({l('methods')}).</IconText>
           </SectionHeading>
+          <UsedBy id="hm-draws" />
           <KeyFacts
             className="mx-facts-row"
             facts={[
@@ -310,8 +349,8 @@ export default function HouseholdsMethod() {
           </p>
           <ul className="p3-close-links">
             <li>
-              <a href={PAPER_URL} target="_blank" rel="noreferrer">
-                <Icon name="arrowRight" size={16} strokeWidth={2} /> The draft paper (PDF)
+              <a href={AI_STUDY.paperUrl ?? PAPER_URL} target="_blank" rel="noreferrer">
+                <Icon name="arrowRight" size={16} strokeWidth={2} /> The paper (PDF)
               </a>
             </li>
             <li>

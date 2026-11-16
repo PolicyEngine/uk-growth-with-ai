@@ -30,8 +30,8 @@ import './evidence.css';
 // without one show published figures only. Adoption and exposure are levels,
 // not effects. `kind: 'shares'` draws one row's `shares` as a 100% bar.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; ours against the OBR-central path', step: 1 },
+  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; OG-UK against the OBR-central path', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; OG-UK against the OBR-central path', step: 1 },
   adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10, level: true },
   exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers by occupation: a share, not a gap', kind: 'shares' },
   distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points against each study’s own baseline', step: 5, suf: ' Gini pts' },
@@ -132,15 +132,15 @@ function table(metric) {
     columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [m.title, `${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
-        [m.title, `${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'Ours, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
       ]),
       ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
   };
 }
 
-function LaneHead({ m }) {
+function LaneHead({ m, y = 'Rows: each estimate, with its horizon' }) {
   return (
     <>
       <h3 className="mx-lane-h">
@@ -148,7 +148,13 @@ function LaneHead({ m }) {
         <span>{m.title}</span>
       </h3>
       <p className="mx-lane-unit">
-        <IconText icon="measure">{m.unit}</IconText>
+        <IconText icon="measure">
+          <span data-axis-title="x">
+            {m.title}: {m.unit}
+          </span>
+          {' · '}
+          <span data-axis-title="y">{y}</span>
+        </IconText>
       </p>
     </>
   );
@@ -162,7 +168,7 @@ function SharesLane({ metric, hi, bind }) {
   const m = META[metric];
   return (
     <div className="mx-lane" id={`ranges-${metric}`}>
-      <LaneHead m={m} />
+      <LaneHead m={m} y="Rows: each source" />
       {shareRows(metric).map((r) => (
         <div key={r.id} className="mx-share">
           <span className="mx-rb-label">
@@ -224,7 +230,7 @@ function Lane({ metric, hi, bind }) {
     <div className="mx-lane" id={`ranges-${metric}`}>
       <LaneHead m={m} />
       <div className="mx-rb">
-        {ours.length ? <div className="mx-rb-group">Ours, automation + productivity, {HEADLINE_YEAR}</div> : null}
+        {ours.length ? <div className="mx-rb-group">OG-UK, automation + productivity, {HEADLINE_YEAR}</div> : null}
         {ours.map((o) => {
           const key = `o-${o.sid}`;
           return (
@@ -323,7 +329,7 @@ function Lane({ metric, hi, bind }) {
 
 const LANES = Object.keys(META).filter((k) => (META[k].kind === 'shares' ? shareRows(k).length : (RANGES[k] ?? plotted(k)).length));
 const RANGE_LANES = LANES.filter((k) => META[k].kind !== 'shares');
-const TITLE = `Published estimates by measure, with ours in ${HEADLINE_YEAR} where comparable`;
+const TITLE = `Published estimates by measure, with OG-UK’s in ${HEADLINE_YEAR} where comparable`;
 
 export default function EvidenceLanes() {
   const { hi, ref, bind } = useHover();
@@ -333,7 +339,8 @@ export default function EvidenceLanes() {
       icon={iconFor('range')}
       title={TITLE}
       className="mx-ranges ev-rb"
-      finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, ours on Explore.</IconText>}
+      replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/tabs/literature/EvidenceLanes.jsx', result: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/data/site-evidence-map.json' }}
+      finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, OG-UK’s on Explore.</IconText>}
       unit={<IconText icon="measure">Each lane has its own scale and unit.</IconText>}
       legend={
         <ul className="mx-rb-key">
@@ -358,7 +365,7 @@ export default function EvidenceLanes() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: `Ours: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path.` },
+              { icon: 'model', text: `OG-UK: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path.` },
               { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
               { icon: 'ai', text: 'Those baselines mostly have no AI.' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
@@ -377,7 +384,7 @@ export default function EvidenceLanes() {
       }}
       download={{
         title: TITLE,
-        context: () => `Ours: automation + productivity, against the OBR-central path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
+        context: () => `OG-UK: automation + productivity, against the OBR-central path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
         table: () => {
           const ts = RANGE_LANES.map(table);
           // composition lanes: one row per share, low = high = the share

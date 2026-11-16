@@ -9,7 +9,7 @@ import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import CHANGELOG from '@/data/site-changelog.json';
 import MF from '@/data/methodFacts.json';
-import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
 import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
 import { Items, WhyChain } from '@/components/story/Items.jsx';
@@ -333,14 +333,16 @@ function Vintages() {
       <InfoCard icon={iconFor('data')} title="Data files and builds" id="data-files">
         <div className="table-wrap">
           <table className="data-table ledger-table">
-            <caption className="visually-hidden">Each data file or build, its model, what it feeds and its vintage</caption>
+            <caption className="visually-hidden">Each data file or build, its model, what it feeds, its vintage, its release date and the code that reproduces it</caption>
             <thead>
               <tr>
                 <th scope="col">Model</th>
                 <th scope="col">File or build</th>
                 <th scope="col">Feeds</th>
                 <th scope="col">Vintage</th>
+                <th scope="col">Released</th>
                 <th scope="col">Built or read</th>
+                <th scope="col">Replicate</th>
               </tr>
             </thead>
             <tbody>
@@ -352,7 +354,14 @@ function Vintages() {
                   <th scope="row">{v.file.includes('.') ? <code>{v.file}</code> : v.file}</th>
                   <td>{v.what}</td>
                   <td>{v.url ? ext(v.url, v.vintage) : v.vintage}</td>
-                  <td>{v.date ?? '—'}</td>
+                  <td className="ledger-date-cell">{v.released ?? '—'}</td>
+                  <td className="ledger-date-cell">{v.date ?? '—'}</td>
+                  <td>
+                    {v.code ? ext(v.code.url, v.code.label) : null}
+                    {v.code && v.result ? ' · ' : null}
+                    {v.result ? ext(v.result.url, v.result.label) : null}
+                    {!v.code && !v.result ? '—' : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -362,7 +371,8 @@ function Vintages() {
           className="mx-foot-items"
           items={[
             AI_FULL_RERUN === false ? { icon: 'caveat', text: 'uk-ai-study: the manifest attests results without a clean-room rerun.' } : null,
-            { icon: 'provisional', text: 'Its wage-cut, take-up and OBR-sized results sit outside that rebuild.' },
+            // results outside the attested rebuild, as the data file lists them
+            AI_STUDY.outsideRebuild?.length ? { icon: 'provisional', text: `Outside that rebuild: ${AI_STUDY.outsideRebuild.join(', ')}.` } : null,
           ].filter(Boolean)}
         />
       </InfoCard>
@@ -401,7 +411,10 @@ function Vintages() {
         <ul className="ledger-releases" data-reference="">
           {RELEASES.map((r) => (
             <li key={r.id}>
-              <span className="ledger-date">{r.released}</span>
+              <span className="ledger-date">
+                Released {r.released}
+                {r.fetched ? <span className="ledger-where">Read {r.fetched}</span> : null}
+              </span>
               <span>
                 {ext(r.url, `${r.publisher}: ${r.title}`)}
                 {r.series ? <span className="ledger-where">{r.series}</span> : null}
@@ -454,7 +467,7 @@ function Ledger() {
       }}
       download={{ title: 'Source ledger', context: `Data last updated ${LAST_UPDATED}`, table: ledgerTable }}
     >
-      <div className="table-wrap ledger-wrap">
+      <div className="table-wrap ledger-wrap" data-no-axes="A table of sources">
         <table className="data-table ledger-table">
           <caption className="visually-hidden">Source ledger</caption>
           <thead>
