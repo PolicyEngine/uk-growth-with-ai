@@ -169,7 +169,7 @@ describe('Who gains: the consumption chain and the stress test by age', () => {
           const cards = [...container.querySelectorAll('.card.info')];
           const stressCard = cards[cards.length - 1];
           expect([...stressCard.querySelectorAll('[data-dir]')].map((e) => e.dataset.dir)).toEqual([dataDir(young)]);
-          expect(stressCard.textContent).toContain(young < 0 ? 'youngest adults lose' : 'youngest adults gain least');
+          expect(stressCard.textContent).toContain(young < 0 ? 'Youngest adults lose' : 'Youngest adults gain least');
           unmount();
         });
 });
