@@ -120,7 +120,7 @@
 
 /* The headline figures: full width between two scrolly blocks */
 .story-headline {
-  margin: 24px 0 56px;
+  margin: 24px 0 24px;
   scroll-margin-top: calc(var(--sticky-offset) + 8px);
 }
 .p2-headline-title {
@@ -132,7 +132,7 @@
 }
 .p2-headline-lead {
   max-width: 70ch;
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   font-size: var(--fs-body);
   line-height: 1.6;
   color: var(--pe-gray-600);
@@ -347,7 +347,7 @@
    graphic, the Sankey above the waterfall; on phones the figure, complete,
    above the three texts */
 .p2-output {
-  margin: 8px 0 56px;
+  margin: 0 0 16px;
   scroll-margin-top: calc(var(--sticky-offset) + 8px);
 }
 .p2-output-graphic {
@@ -380,6 +380,109 @@
 .p2-wf-value {
   transition: opacity 300ms ease 400ms;
 }
+/* The four changes travel: chips beside the Sankey's nodes for one beat
+   (OutputSplit.jsx sets the offset with no transition), then back to their
+   rows by transform, 120ms apart, while the bars grow */
+.p2-wf-value.is-travel {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  justify-self: end;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition: transform 750ms var(--story-ease, ease), opacity 300ms ease 400ms, background-color 300ms ease, border-color 300ms ease;
+}
+.p2-wf-value.is-chip {
+  font-weight: 600;
+  background: var(--pe-surface);
+  border-color: var(--card-border);
+  box-shadow: 0 2px 8px var(--shadow-soft, rgba(0, 0, 0, 0.08));
+}
+.p2-wf-value.is-gapUp {
+  color: var(--c-gain-text);
+}
+.p2-wf-value.is-gapDown {
+  color: var(--c-loss-text, #b45309);
+}
+.p2-wf-dir {
+  flex: none;
+}
+/* the gain or loss icon left on each node once its chip has landed */
+.p2-node-dir {
+  position: absolute;
+  display: inline-flex;
+  transform: translate(-50%, -50%);
+  padding: 1px;
+  background: var(--pe-surface);
+  border-radius: 999px;
+  pointer-events: none;
+  animation: p2-node-dir-in 300ms ease both;
+}
+.p2-node-dir.is-gapUp {
+  color: var(--c-gain-text);
+}
+.p2-node-dir.is-gapDown {
+  color: var(--c-loss-text, #b45309);
+}
+.p2-node-dir.is-hl {
+  outline: 2px solid var(--c-highlight);
+}
+@keyframes p2-node-dir-in {
+  from {
+    opacity: 0;
+  }
+}
+.p2-output-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  align-items: center;
+  min-height: 24px;
+  padding-right: 64px; /* clear of the step dots */
+}
+.p2-output-title {
+  flex: 1 1 auto;
+  margin: 0 !important;
+}
+.p2-output-unit {
+  margin-left: 8px;
+  font-size: var(--fs-caption);
+  font-weight: 400;
+  color: var(--pe-gray-600);
+}
+.p2-output-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+.p2-output-graphic {
+  gap: 6px;
+}
+.p2-output-change {
+  padding-top: 8px !important;
+}
+.p2-wf {
+  gap: 1px !important;
+  margin-top: 4px !important;
+}
+.p2-wf-track {
+  height: 16px !important;
+}
+.p2-wf-row[data-row='gdp'] {
+  margin-top: 4px !important;
+  padding-top: 4px !important;
+}
+.sankey-tip-row.is-note {
+  color: var(--pe-gray-600);
+}
+.sankey-tip-row.is-gapUp {
+  color: var(--c-gain-text);
+}
+.sankey-tip-row.is-gapDown {
+  color: var(--c-loss-text, #b45309);
+}
 .p2-out-later.is-on {
   opacity: 1;
   transition: opacity 400ms ease 250ms;
@@ -402,6 +505,7 @@
   margin: 0 0 6px;
 }
 .p2-sankey {
+  position: relative;
   max-width: 560px;
   margin: 8px auto 0;
 }
@@ -423,13 +527,6 @@
   opacity: 0;
   transition: opacity 150ms ease;
 }
-/* A waterfall row in focus picks out its ribbon, and the reverse */
-.p2-sankey .sankey-link.is-dim {
-  opacity: 0.16 !important;
-}
-.p2-sankey .sankey-link.is-hl {
-  opacity: 0.92 !important;
-}
 .p2-output-note {
   margin: 10px 0 0;
   font-size: var(--fs-caption);
@@ -449,7 +546,7 @@
 }
 .p2-wf-row {
   display: grid;
-  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 6rem;
+  grid-template-columns: minmax(0, 13rem) minmax(0, 1fr) 6rem;
   gap: 10px;
   align-items: center;
   font-size: var(--fs-small);
@@ -1061,6 +1158,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .p2-node-dir {
+    animation: none;
+  }
   .p2-mo-yt,
   .p2-mo-scen,
   .p2-mo-band,
@@ -1090,4 +1190,100 @@
   .p2-canvas-box {
     max-width: 420px;
   }
+}
+
+/* The model badge that flips inside 2A: both in one grid cell */
+.p2-badge-stack {
+  display: inline-grid;
+}
+.p2-badge-stack > * {
+  grid-area: 1 / 1;
+}
+
+/* 2B: the pair's drawing inside the shared crosshair, scaled to its box */
+.p2-pair-box {
+  max-width: 540px;
+  margin: 0 auto;
+}
+.p2-pair-box .ch-cross > svg {
+  width: 100%;
+  height: auto;
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .p2-pair-box {
+    max-width: 420px;
+  }
+}
+.p2-sankey .sankey-tip-head {
+  margin-bottom: 2px;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p2-sankey .sankey-tip-row {
+  font-variant-numeric: tabular-nums;
+}
+
+.p2-output-foot {
+  margin-top: 8px;
+}
+
+/* Enough scroll to read each state (check_states.mjs: every state held for
+   at least 180px with the figure in view). Scrolly splits the scroll over
+   which a figure is in view evenly between its cards, so each block's
+   cards take a minimum height (on the card itself, so its rule runs the
+   full height and no blank band opens between cards), in px, from its figure and card count
+   (step column at least figure + 180 x cards - 218 at 800 high), more on
+   short screens. Desktop only: phones keep Scrolly's own card minimum. */
+@media (min-width: 901px) {
+  #p2-shock .scrolly-card {
+    min-height: 360px;
+  }
+  #p2-morph .scrolly-step:not(:first-child) .scrolly-card {
+    min-height: 330px;
+  }
+  #p2-output .scrolly-card {
+    min-height: 310px;
+  }
+  #p2-arms .scrolly-card {
+    min-height: 280px;
+  }
+  #p2-who .scrolly-card {
+    min-height: 350px;
+  }
+}
+@media (min-width: 901px) and (max-height: 700px) {
+  #p2-morph .scrolly-step:not(:first-child) .scrolly-card {
+    min-height: 370px;
+  }
+  #p2-arms .scrolly-card {
+    min-height: 310px;
+  }
+  #p2-who .scrolly-card {
+    min-height: 420px;
+  }
+}
+
+/* Why's qualifiers run across the width in one row (desktop), as "How
+   sure" below them: no empty half beside a short list */
+@media (min-width: 901px) {
+  .p2-why-notes.story-items,
+  .p2-why-notes .story-items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px 24px;
+  }
+}
+
+/* The hero answer as icon items (Landing.jsx heroItems): a lead size, not
+   the old one-sentence display size */
+.hero-a.hero-items {
+  margin: 12px 0 8px;
+  font-size: clamp(1.125rem, 1.6vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--pe-gray-900);
+}
+.hero-a.hero-items .story-item-icon {
+  color: var(--pe-gray-500);
 }

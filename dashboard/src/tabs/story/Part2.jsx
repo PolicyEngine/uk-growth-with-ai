@@ -3,8 +3,6 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import NextPart from '@/components/story/NextPart.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, BOUND, gap, result } from '@/tabs/ai/surprise.js';
@@ -76,7 +74,7 @@ function shockSteps() {
               { icon: 'capital', text: 'AI lets capital do workers’ tasks, so capital’s share rises' },
             ]}
           />
-          <More tab="method" sub="scenarios">How large the shift is in each scenario</More>
+          <More tab="method" sub="how" anchor="m-scenarios">How large the shift is in each scenario</More>
         </>
       ),
     },
@@ -150,8 +148,8 @@ function scenarioSteps(sid, cl) {
               { icon: 'path', text: `${SCEN_NAME[sid]}, chosen at the top, is the coloured line` },
             ]}
           />
-          <More tab="method" sub="scenarios">What each scenario assumes, and its sources</More>
-          <More tab="explore" sub="economy" anchor="income">GDP and national income year by year</More>
+          <More tab="method" sub="how" anchor="m-scenarios">What each scenario assumes, and its sources</More>
+          <More tab="explore" sub="economy" anchor="economy-wall">GDP and national income year by year</More>
         </>
       ),
     },
@@ -237,7 +235,7 @@ function armSteps(sid, closure) {
             />
           </details>
           <More tab="method" sub="how" anchor="m-closures">How the closures work</More>
-          <More tab="explore" sub="economy" anchor="income">Each arm year by year</More>
+          <More tab="explore" sub="economy" anchor="economy-wall">Each arm year by year</More>
         </>
       ),
     },
@@ -416,17 +414,6 @@ function LensLine() {
   );
 }
 
-// A scene's slim sub-header: its icon and name, a hairline after. (Local
-// until the shared Scrolly `sub` lands; data-scene is the rail's contract.)
-function SceneHead({ icon, children }) {
-  return (
-    <header className="p2-scene-head" data-scene={children}>
-      <Icon name={iconFor(icon)} size={16} />
-      <span>{children}</span>
-    </header>
-  );
-}
-
 // The band that ends part 2: part 3 next, and links to the figures' homes
 // (the tab row's sub-tabs).
 const DEEPER = [
@@ -434,7 +421,7 @@ const DEEPER = [
   { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
   { tab: 'explore', sub: 'who', label: 'Who gains', icon: 'age' },
   { tab: 'explore', sub: 'all', label: 'All scenarios', icon: 'range' },
-  { tab: 'method', sub: 'scenarios', label: 'Scenarios', icon: 'scenario' },
+  { tab: 'method', sub: 'how', anchor: 'm-scenarios', label: 'Scenarios', icon: 'scenario' },
   { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
 ];
 function NextBand() {
@@ -444,7 +431,7 @@ function NextBand() {
       title="Jobs, incomes and the public finances"
       to="story-part-3"
       links={DEEPER.map((d) => (
-        <NavLink key={`${d.tab}-${d.sub}`} tab={d.tab} sub={d.sub}>
+        <NavLink key={`${d.tab}-${d.sub}-${d.anchor ?? ''}`} tab={d.tab} sub={d.sub} anchor={d.anchor}>
           <Tx icon={d.icon}>{d.label}</Tx>
         </NavLink>
       ))}
@@ -488,12 +475,19 @@ export default function Part2({ part }) {
 
       <LensLine />
 
-      <SceneHead icon="shock">The shock</SceneHead>
-      <Scrolly id="p2-shock" label="The shock, illustrated" steps={shockSteps()} graphic={(i, reduce) => <ShockTiles state={i + 1} reduce={reduce} />} />
+      <Scrolly
+        id="p2-shock"
+        scene
+        sub={{ title: 'The shock', icon: 'shock' }}
+        label="The shock, illustrated"
+        steps={shockSteps()}
+        graphic={(i, reduce, ctx) => <ShockTiles state={i + 1} entered={ctx?.entered ?? true} />}
+      />
 
-      <SceneHead icon="path">From the record to the scenarios</SceneHead>
       <Scrolly
         id="p2-morph"
+        scene
+        sub={{ title: 'From the record to the scenarios', icon: 'path' }}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
         steps={[...morphSteps(sid, cl), ...scenarioSteps(sid, cl)]}
         graphic={(i) => <MorphChart state={i + 1} sid={sid} cl={cl} />}
@@ -516,16 +510,23 @@ export default function Part2({ part }) {
 
       <OutputSplit sid={sid} closure={closure} />
 
-      <SceneHead icon="ai">Three arms: output and public debt</SceneHead>
       <Scrolly
         id="p2-arms"
+        scene
+        sub={{ title: 'Three arms: output and public debt', icon: 'ai' }}
         label={`GDP and public debt in three arms, ${SCEN_NAME[sid]}`}
         steps={[...armSteps(sid, closure), ...debtSteps(sid, closure)]}
         graphic={(i) => <ArmsPair state={i} sid={sid} closure={closure} label={i < 3 ? gdpLabel(i) : `${gdpLabel(2)} ${debtLabel(i - 3)}`} />}
       />
 
-      <SceneHead icon="age">Who gains</SceneHead>
-      <Scrolly id="p2-who" label="Welfare change by birth year" steps={whoSteps(sid)} graphic={(i) => <WelfareShape state={i} />} />
+      <Scrolly
+        id="p2-who"
+        scene
+        sub={{ title: 'Who gains', icon: 'age' }}
+        label="Welfare change by birth year"
+        steps={whoSteps(sid)}
+        graphic={(i) => <WelfareShape state={i} />}
+      />
 
       <NextBand />
     </>

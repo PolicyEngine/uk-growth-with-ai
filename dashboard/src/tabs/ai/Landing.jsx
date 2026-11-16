@@ -61,6 +61,21 @@ export function heroAnswer(sid, cl = CENTRAL) {
   return `In this scenario, GDP is ${rel(y)} the OBR-central path in ${HEADLINE_YEAR}, ${pay}${keep}.`;
 }
 
+// The same answer as icon items (the text rule): each direction's arrow
+// from the sign of the figure it describes (dirConcept, as the tiles').
+export function heroItems(sid, cl = CENTRAL) {
+  const y = gap(sid, 'tfp', cl, 'Y');
+  const w = gap(sid, 'tfp', cl, 'w');
+  const g = gap(sid, 'tfp', cl, 'GNI');
+  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet at the closure chosen above' }];
+  const out = [
+    { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the OBR-central path in ${HEADLINE_YEAR}` },
+    { icon: dirConcept(w), text: `Pay rates are ${dirWord(w)} it${dirWord(w) === dirWord(y) ? ' too' : ''}` },
+  ];
+  if (g != null && y > 0 && g < y) out.push({ icon: 'gni', text: 'National income gains less than GDP' });
+  return out;
+}
+
 // The four scenarios on one line: tooltips only. The scenario is chosen in
 // the header, nowhere else.
 function RangeBar({ v, sid, title, cl }) {
@@ -159,7 +174,7 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       <h2 id={titleId} className="hero-q">
         What happens to the UK economy if AI arrives in {SURPRISE_YEAR}?
       </h2>
-      <p className="hero-a">{heroAnswer(sid, cl)}</p>
+      <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
         {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path
         <InfoTip label="What is the OBR-central path?">

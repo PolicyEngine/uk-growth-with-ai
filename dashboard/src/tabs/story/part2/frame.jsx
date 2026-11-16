@@ -4,6 +4,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { FadeG } from '@/components/story/primitives.jsx';
+import { ModelBadge } from '@/components/story/chart/index.js';
 
 // Shared pieces of part 2's line charts. The charts draw shapes only: the
 // figures have their homes on other tabs, so the only numbers here are axis
@@ -211,9 +212,10 @@ export function Tx({ icon, size = 14, children }) {
 }
 
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', head = null, className = '', children }) {
+export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', head = null, className = '', model = 'oguk', children }) {
   return (
     <figure className={`p2-figure ${className}`}>
+      <ModelBadge model={model} />
       <p className="story-figure-title">
         <Tx icon={icon}>{title}</Tx>
       </p>
