@@ -17,7 +17,7 @@
 .p3-key,
 .p3-tile-key {
   margin: 8px 0 0;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 
@@ -45,14 +45,14 @@
   row-gap: 2px;
 }
 .p3-stat-value {
-  font-size: var(--fs-xl);
-  font-weight: 700;
+  font-size: var(--t-title);
+  font-weight: 600;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
   color: var(--pe-gray-900);
 }
 .p3-stat-label {
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   line-height: 1.4;
   color: var(--pe-gray-600);
 }
@@ -77,19 +77,19 @@
 }
 .p3-row-label {
   grid-column: 1 / -1;
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   line-height: 1.35;
   color: var(--pe-gray-700);
 }
 .p3-row-value {
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: var(--pe-gray-900);
 }
 .p3-row-value-2 {
-  font-weight: 500;
+  font-weight: 400;
   color: var(--pe-gray-700);
 }
 .p3-row.is-pending,
@@ -128,7 +128,7 @@ svg.p3-dim {
 .p3-group-head {
   margin: 16px 0 8px;
   padding-top: 10px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--pe-gray-600);
   border-top: 1px dashed var(--card-border);
@@ -177,7 +177,7 @@ svg.p3-dim {
   gap: 6px;
   align-items: center;
   margin: 0 0 10px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-600);
 }
 .p3-swatch {
@@ -195,7 +195,7 @@ svg.p3-dim {
   gap: 4px;
 }
 .p3-case-label {
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   font-weight: 600;
   color: var(--pe-gray-800);
 }
@@ -204,7 +204,7 @@ svg.p3-dim {
 }
 .p3-row-sub .p3-sub-label {
   grid-column: auto;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-600);
 }
 
@@ -220,7 +220,7 @@ svg.p3-dim {
   margin: 10px 0 0;
   padding: 0;
   list-style: none;
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   line-height: 1.4;
   color: var(--pe-gray-700);
 }
@@ -235,50 +235,12 @@ svg.p3-dim {
   color: var(--pe-gray-900);
 }
 .p3-tkey-item b {
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .p3-tkey .p3-swatch {
   flex: none;
   margin-left: 0;
-}
-
-/* The close of part 3: plain, not sticky */
-.p3-close {
-  max-width: 70ch;
-  margin: 24px 0 8px;
-  padding: 18px 20px;
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
-}
-.p3-close h3 {
-  margin: 0 0 8px;
-  font-size: var(--fs-card-title);
-  font-weight: 600;
-  color: var(--pe-gray-900);
-}
-.p3-close p {
-  margin: 0 0 12px;
-  font-size: var(--fs-body);
-  line-height: 1.6;
-  color: var(--pe-gray-700);
-}
-.p3-close-links {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.p3-close-links a {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  font-size: var(--fs-body);
-  color: var(--c-gain-text);
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
 /* Block 6: deciles, one line each */
@@ -300,14 +262,14 @@ svg.p3-dim {
 }
 .p3-caveat {
   margin: 4px 0 6px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   line-height: 1.5;
   color: var(--pe-gray-600);
 }
 
 /* Step 1: the baseline beside each rise */
 .p3-stat-base {
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 
@@ -332,7 +294,7 @@ svg.p3-dim {
   display: flex;
   justify-content: space-between;
   margin: 4px 0 6px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 
@@ -376,7 +338,7 @@ svg.p3-dim {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .p3-stat-value {
-    font-size: var(--fs-section);
+    font-size: var(--t-title);
   }
   .p3-tiles-wrap {
     max-width: 180px;
@@ -400,9 +362,6 @@ svg.p3-dim {
   }
   .p3-figure[data-group='obr'] .p3-group-head {
     margin-top: 8px;
-  }
-  .p3-close {
-    margin-top: 16px;
   }
 }
 
@@ -433,15 +392,18 @@ svg.p3-dim {
   color: var(--c-highlight);
 }
 #story-part-3 .p3-facts .story-fact {
+  /* no icon column: number, label, sub-line stacked */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
   align-content: start;
 }
 
 #story-part-3 .p3-facts .story-fact-value {
-  font-size: var(--fs-xl);
+  font-size: var(--t-title);
 }
 #story-part-3 .p3-facts .story-fact-label,
 #story-part-3 .p3-facts .story-fact-sub {
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
 }
 
 #story-part-3 .p3-key-head {
@@ -464,7 +426,7 @@ svg.p3-dim {
 }
 #story-part-3 .p3-caveat-items .story-items {
   gap: 4px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   line-height: 1.45;
   color: var(--pe-gray-600);
 }
@@ -480,18 +442,6 @@ svg.p3-dim {
 #story-part-3 .story-callout .story-items {
   gap: 4px;
 }
-#story-part-3 .p3-close {
-  max-width: 920px;
-}
-#story-part-3 .p3-close h3 {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-#story-part-3 .p3-close h3 .plain-icon {
-  display: inline-flex;
-  color: var(--c-highlight);
-}
 /* step 8: a framing chip, then the icon grid of what is left out; a tile's
    detail line shows on hover, focus or tap (.is-open) */
 
@@ -501,7 +451,7 @@ svg.p3-dim {
   }
 
   #story-part-3 .p3-facts .story-fact-value {
-    font-size: var(--fs-section);
+    font-size: var(--t-title);
   }
 }
 
@@ -516,7 +466,7 @@ svg.p3-dim {
 }
 .hh-answer {
   margin: 0 0 10px;
-  font-size: var(--fs-body);
+  font-size: var(--t-body);
   line-height: 1.6;
   color: var(--pe-gray-700);
 }
@@ -524,8 +474,8 @@ svg.p3-dim {
   display: inline-block;
   margin: 0 0 10px;
   padding: 4px 10px;
-  font-size: var(--fs-caption);
-  font-weight: 500;
+  font-size: var(--t-meta);
+  font-weight: 400;
   color: var(--c-notice-text);
   background: var(--c-notice-bg);
   border-radius: 6px;
@@ -554,7 +504,7 @@ svg.p3-dim {
 }
 .hh-head {
   margin-bottom: 4px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
   text-align: right;
 }
@@ -567,7 +517,7 @@ svg.p3-dim {
 }
 .hh-label {
   grid-column: 1 / -1;
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   line-height: 1.35;
   color: var(--pe-gray-700);
 }
@@ -575,20 +525,20 @@ svg.p3-dim {
   grid-column: 1;
 }
 .hh-val {
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: var(--pe-gray-900);
 }
 .hh-val-2 {
-  font-weight: 500;
+  font-weight: 400;
   color: var(--pe-gray-700);
 }
 .hh-group {
   margin-top: 6px;
   padding-top: 8px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--pe-gray-600);
   border-top: 1px dashed var(--card-border);
@@ -603,8 +553,8 @@ svg.p3-dim {
   gap: 2px;
   align-items: center;
   min-height: 24px;
-  font-size: var(--fs-caption);
-  font-weight: 500;
+  font-size: var(--t-meta);
+  font-weight: 400;
   color: var(--c-link, var(--series-2));
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -621,7 +571,7 @@ svg.p3-dim {
   margin-top: 12px;
 }
 .hh-tiles .stat-value {
-  font-size: var(--fs-stat, 1.6rem);
+  font-size: var(--t-title);
 }
 
 /* Deciles under three rankings */
@@ -663,7 +613,7 @@ svg.p3-dim {
 .hh-ticks {
   position: relative;
   height: 1.4em;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 .hh-ticks span {
@@ -674,7 +624,7 @@ svg.p3-dim {
 
 /* Sources fold */
 .hh-sources {
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   line-height: 1.6;
   color: var(--pe-gray-700);
 }
@@ -692,7 +642,7 @@ svg.p3-dim {
 .hm-text {
   max-width: 72ch;
   margin: 0 0 12px;
-  font-size: var(--fs-body);
+  font-size: var(--t-body);
   line-height: 1.65;
   color: var(--pe-gray-700);
 }
@@ -700,7 +650,7 @@ svg.p3-dim {
   max-width: 72ch;
   margin: 0 0 12px;
   padding-left: 20px;
-  font-size: var(--fs-body);
+  font-size: var(--t-body);
   line-height: 1.6;
   color: var(--pe-gray-700);
 }
@@ -722,7 +672,7 @@ svg.p3-dim {
   gap: 4px;
   align-content: start;
   padding: 12px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   line-height: 1.45;
   color: var(--pe-gray-600);
   background: var(--pe-surface);
@@ -730,7 +680,7 @@ svg.p3-dim {
   border-radius: var(--card-radius);
 }
 .hm-stage b {
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   color: var(--pe-gray-900);
 }
 .hm-stage .plain-icon {
@@ -756,7 +706,7 @@ svg.p3-dim {
   gap: 8px;
   max-width: 72ch;
   margin: 0 0 16px;
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
 }
 .hm-vintage > div {
   display: grid;
@@ -816,7 +766,7 @@ svg.p3-dim {
   top: 50%;
   transform: translateY(-50%);
   padding: 0 3px;
-  font-size: 11px;
+  font-size: var(--t-meta);
   font-weight: 600;
   line-height: 1;
   color: var(--pe-surface);
@@ -860,9 +810,8 @@ svg.p3-dim {
   margin: 8px 0 16px;
   padding-top: 12px;
   border-top: 1px solid var(--card-border);
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
   font-weight: 600;
-  letter-spacing: 0.01em;
   color: var(--pe-gray-700);
 }
 #story-part-3 .p3-scene-head .p3-ico {
@@ -880,8 +829,8 @@ svg.p3-dim {
   display: flex;
   justify-content: space-between;
   margin: 0 0 4px;
-  font-size: var(--ch-note-size, 11px);
-  font-weight: 500;
+  font-size: var(--t-meta);
+  font-weight: 400;
   color: var(--pe-gray-500);
 }
 .p3-tile-head-out {
@@ -920,7 +869,7 @@ svg.p3-dim {
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--card-border);
-  font-size: var(--fs-small);
+  font-size: var(--t-ui);
 }
 /* phones keep the tile grid: the peel-out plays at every width */
 
@@ -998,7 +947,7 @@ svg.p3-dim {
     font-weight 0ms linear 900ms;
 }
 .p3-scene.is-on .p3-dec.is-worst .p3-dec-label {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--c-loss-text);
 }
 .p3-scene.is-on .p3-dec.is-worst .p3-row-value {
@@ -1014,7 +963,7 @@ svg.p3-dim {
 }
 .p3-dp-heads {
   margin: 4px 0 6px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 .p3-dp-heads .p3-ico {
@@ -1078,7 +1027,7 @@ svg.p3-dim {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 12px;
+  font-size: var(--t-meta);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1095,7 +1044,7 @@ svg.p3-dim {
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: var(--t-meta);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1118,7 +1067,7 @@ svg.p3-dim {
   align-items: center;
   padding: 3px 10px;
   font: inherit;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--pe-gray-800);
   background: transparent;
@@ -1153,7 +1102,7 @@ svg.p3-dim {
 }
 .p3-db-head {
   margin: 0 0 4px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 .p3-db-link {
@@ -1207,7 +1156,7 @@ svg.p3-dim {
   position: absolute;
   top: 16px;
   transform: translateX(-50%);
-  font-size: 12px;
+  font-size: var(--t-meta);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1259,8 +1208,8 @@ svg.p3-dim {
 .p3-switch button {
   padding: 3px 12px;
   font: inherit;
-  font-size: var(--fs-caption);
-  font-weight: 500;
+  font-size: var(--t-meta);
+  font-weight: 400;
   color: var(--pe-gray-700);
   background: transparent;
   border: 0;
@@ -1268,7 +1217,7 @@ svg.p3-dim {
   cursor: pointer;
 }
 .p3-switch button.is-on {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--pe-gray-900);
   background: var(--pe-surface);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
@@ -1330,7 +1279,7 @@ svg.p3-dim {
   grid-column: 1;
   display: block;
   height: 18px;
-  font-size: 12px;
+  font-size: var(--t-meta);
   color: var(--pe-gray-600);
 }
 .p3-be-point {
@@ -1343,7 +1292,7 @@ svg.p3-dim {
   color: var(--pe-gray-800);
 }
 .p3-be-point.is-be .p3-row-value {
-  font-size: 12px;
+  font-size: var(--t-meta);
 }
 .p3-be-point.is-left {
   transform: translateX(-100%);
@@ -1358,7 +1307,7 @@ svg.p3-dim {
   grid-column: 2;
   grid-row: 2 / span 2;
   display: grid;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--pe-gray-800);
 }
@@ -1430,7 +1379,7 @@ svg.p3-dim {
   gap: 4px;
   align-items: center;
   margin-right: 4px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-600);
 }
 
@@ -1439,7 +1388,7 @@ svg.p3-dim {
   height: 24px;
   padding: 0 6px;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--t-meta);
   font-variant-numeric: tabular-nums;
   color: var(--pe-gray-700);
   background: transparent;
@@ -1452,7 +1401,7 @@ svg.p3-dim {
   border-style: dashed;
 }
 .p3-follow-btn.is-on {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--pe-gray-900);
   border-color: var(--pe-gray-800);
 }
@@ -1519,7 +1468,7 @@ svg.p3-dim {
    gap under it is kept small; axis titles and source links */
 #story-part-3 .p3-tile-notes {
   margin-top: 8px;
-  font-size: var(--fs-caption);
+  font-size: var(--t-meta);
   color: var(--pe-gray-600);
 }
 #story-part-3 .p3-axis-title {
@@ -1549,11 +1498,6 @@ svg.p3-dim {
   grid-row: 4;
 }
 /* step 8 on wide screens: the nine tiles in two rows across the full width */
-@media (min-width: 1100px) {
-  #story-part-3 .p3-close {
-    max-width: none;
-  }
-}
 
 /* a numbered marker on an HTML chart, beside its row's label (the
    text's <Num n> twin, S2's .hl-num disc) */
@@ -1564,21 +1508,15 @@ svg.p3-dim {
 
 /* a step's one sentence: the card's line, at title size */
 .p3-step-line {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
   margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--pe-gray-900, inherit);
-}
-.p3-step-line > .p3-ico {
-  flex: none;
-  align-self: center;
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.45;
+  text-wrap: pretty;
+  color: var(--t-text);
 }
 .scrolly-step:not(.is-active) .p3-step-line {
-  color: var(--pe-gray-600);
+  color: var(--t-muted);
 }
 
 /* step 3's three readings: buttons that light their destination */
@@ -1612,7 +1550,8 @@ svg.p3-dim {
    gets a floor of (1.8F + 130px + 200px a state + 20px - 100vh) / n, the
    32px gap out: nothing at tall screens, more at short ones. F: the
    figure's height at 1280x800, at least its 460px box (central 536, channels 403, deciles 429, rules
-   384 (plus 40px: its rows wrap), margin 416, moves 452). */
+   384 (plus 80px in round 1: its second state held 160px), margin 416 (plus 80px, likewise with motion)). Moves and absorb are one card
+   each since round 1: no floor. */
 @media (min-width: 901px) {
   #p3-central .scrolly-card {
     min-height: calc((1515px - 100vh) / 2 - 32px);
@@ -1624,10 +1563,10 @@ svg.p3-dim {
     min-height: calc((1322px - 100vh) / 2 - 32px);
   }
   #p3-rules .scrolly-card {
-    min-height: calc((1298px - 100vh) / 2 - 32px);
+    min-height: calc((1378px - 100vh) / 2 - 32px);
   }
   #p3-margin .scrolly-card {
-    min-height: calc((1298px - 100vh) / 2 - 32px);
+    min-height: calc((1378px - 100vh) / 2 - 32px);
   }
 }
 
@@ -1635,18 +1574,18 @@ svg.p3-dim {
 .p3-rank-table {
   margin-top: 8px;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--t-meta);
 }
 .p3-rank-cap {
   caption-side: top;
   text-align: left;
-  font-size: 12px;
+  font-size: var(--t-meta);
   color: var(--pe-gray-600);
   padding-bottom: 2px;
 }
 .p3-rank-table th {
   text-align: left;
-  font-weight: 500;
+  font-weight: 400;
   padding: 2px 10px 2px 0;
 }
 .p3-rank-table td {
@@ -1664,9 +1603,9 @@ svg.p3-dim {
 #story-part-3 .p3-key {
   margin: 8px 0 0;
   max-width: 75ch;
-  font-size: 12px;
+  font-size: var(--t-meta);
   line-height: 1.4;
-  color: var(--pe-gray-500);
+  color: var(--t-muted);
 }
 #story-part-3 .p3-key a {
   color: var(--pe-teal-700, var(--c-gain-text));
@@ -1712,7 +1651,7 @@ svg.p3-dim {
 .p3-dec-note {
   grid-column: 1 / -1;
   margin-top: -2px;
-  font-size: 12px;
+  font-size: var(--t-meta);
   color: var(--pe-gray-500);
 }
 .p3-rank-table th {
@@ -1727,16 +1666,17 @@ svg.p3-dim {
   gap: 8px;
   align-items: center;
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: var(--t-ui);
   font-weight: 600;
   color: var(--pe-gray-900);
 }
 .p3-out-list {
+  list-style: disc outside;
   columns: 2;
   column-gap: 32px;
   margin: 0;
   padding: 0 0 0 16px;
-  font-size: 14px;
+  font-size: var(--t-ui);
   line-height: 1.4;
   color: var(--pe-gray-700);
 }
@@ -1757,7 +1697,7 @@ svg.p3-dim {
 .story-close .lens-lead {
   margin: 8px 0 0;
   max-width: 60ch;
-  font-size: 17px;
+  font-size: var(--t-body);
   line-height: 1.45;
   color: var(--pe-gray-700);
 }
@@ -1777,7 +1717,7 @@ svg.p3-dim {
   width: 100%;
   margin: 24px 0 0;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: var(--t-ui);
   line-height: 1.4;
   color: var(--pe-gray-700);
 }
@@ -1807,7 +1747,7 @@ svg.p3-dim {
   flex-wrap: wrap;
   gap: 6px 20px;
   margin: 24px 0 0;
-  font-size: 14px;
+  font-size: var(--t-ui);
 }
 .lens-deeper-label {
   font-weight: 600;
@@ -1840,4 +1780,20 @@ svg.p3-dim {
     font-weight: 600;
     color: var(--pe-gray-900);
   }
+}
+
+/* the close's header: icon and title on one line, no tint (parts are neutral) */
+#story-close .story-part-head {
+  display: block;
+  margin-bottom: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+}
+#story-close-h {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
 }

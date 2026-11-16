@@ -299,17 +299,15 @@ export const markProps = (id, className = '') => ({
   className,
 });
 
-// A step's one sentence as the card's line: a paragraph led by the step's
-// icon (the text rule: every block leads with an icon, at most 25 words),
-// then the step's body (the fold), if any.
+// A step's one sentence as the card's line (Scrolly draws step.icon as the
+// card's one icon), then the step's body, if any. The sentence is not also
+// passed as step.title: a hidden copy would print its figures twice.
 export const asLines = (steps) =>
   steps.map(({ title, body, ...s }) => ({
     ...s,
     body: (
       <>
-        <p className="p3-step-line">
-          <Ico c={s.icon} size={16} /> <span>{title}</span>
-        </p>
+        <p className="p3-step-line">{title}</p>
         {body ?? null}
       </>
     ),
