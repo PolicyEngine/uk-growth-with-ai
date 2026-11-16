@@ -179,8 +179,11 @@
 .p1-board-line.is-drawn {
   opacity: 1;
 }
+.p1-board-series .p1-board-line {
+  stroke: var(--mk, var(--pe-gray-500));
+}
 .is-focus .p1-board-line {
-  stroke: var(--p1-ink);
+  stroke: var(--mk, var(--p1-ink));
   stroke-width: 2.5;
 }
 .p1-board-end {
@@ -193,8 +196,11 @@
 .p1-board-svg.is-seen .p1-board-end {
   opacity: 1;
 }
+.p1-board-series .p1-board-end {
+  fill: var(--mk, var(--pe-gray-500));
+}
 .is-focus .p1-board-end {
-  fill: var(--p1-ink);
+  fill: var(--mk, var(--p1-ink));
 }
 .p1-board-area {
   opacity: 0;
@@ -253,11 +259,11 @@
   stroke-linejoin: round;
 }
 .p1-ai-line.is-all {
-  stroke: var(--p1-ink);
+  stroke: var(--mk-all, var(--p1-ink));
   stroke-width: 2.5;
 }
 .p1-ai-line.is-ten {
-  stroke: var(--pe-gray-500);
+  stroke: var(--mk-ten, var(--pe-gray-500));
   stroke-width: 2;
 }
 .p1-ai-dot {
@@ -271,10 +277,10 @@
   transition-delay: 500ms;
 }
 .p1-ai-dot.is-all {
-  fill: var(--p1-ink);
+  fill: var(--mk-all, var(--p1-ink));
 }
 .p1-ai-dot.is-ten {
-  fill: var(--pe-gray-500);
+  fill: var(--mk-ten, var(--pe-gray-500));
 }
 .p1-ai-area {
   opacity: 0;
@@ -284,10 +290,10 @@
   opacity: 1;
 }
 .p1-end-label.is-all {
-  fill: var(--p1-ink);
+  fill: var(--mk-all, var(--p1-ink));
 }
 .p1-end-label.is-ten {
-  fill: var(--pe-gray-600);
+  fill: var(--mk-ten, var(--pe-gray-600));
   opacity: 0;
   visibility: hidden;
   transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
@@ -1011,17 +1017,90 @@
   }
 }
 
-/* The labour and AI cards print no figure since the UK vitals panel holds
-   it; a floor on their height keeps each state on screen for long enough
-   while scrolling (check_states: 180px of scroll a state) */
+/* A step card is one sentence (and a fold), so a floor on its height keeps
+   each state on screen for long enough while scrolling (check_states:
+   180px of scroll a state) */
 @media (min-width: 901px) {
+  #p1-output .scrolly-card,
   #p1-work .scrolly-card,
   #p1-ai .scrolly-card {
-    min-height: 240px;
+    min-height: 330px;
   }
 }
 @media (min-width: 641px) and (max-width: 900px) {
+  #p1-output .scrolly-card,
   #p1-work .scrolly-card {
-    min-height: 200px;
+    min-height: 220px;
   }
+}
+
+/* Step cards (Part1.jsx): one sentence, then the vitals links and the fold */
+.p1-say {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 10px;
+  font-size: var(--fs-body-lg);
+  line-height: 1.55;
+  color: var(--pe-gray-900);
+}
+.p1-say-icon {
+  flex: none;
+  position: relative;
+  top: 2px;
+  color: var(--pe-gray-500);
+}
+.p1-say .hl-fig {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.p1-latest {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-600);
+}
+.p1-latest .p1-text-icon {
+  flex: none;
+  position: relative;
+  top: 2px;
+}
+.p1-about-group + .p1-about-group {
+  margin-top: 6px;
+}
+.p1-about-label {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--pe-gray-500);
+}
+.p1-about .p1-about-group .story-items {
+  margin-top: 4px;
+}
+/* the exposure step's three groups: a small table, the coloured names as the legend */
+.p1-groups-say {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 10px 24px;
+  padding: 0;
+  list-style: none;
+}
+.p1-groups-say li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  max-width: 340px;
+  font-size: var(--fs-body);
+}
+.p1-groups-say .hl-fig {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
