@@ -236,7 +236,9 @@
 }
 .hh-pt {
   position: absolute;
-  margin: -10px 0 0 -10px;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
   opacity: 0;
   transform: scale(0.6);
   transition: opacity 300ms var(--story-ease), transform 300ms var(--story-ease);

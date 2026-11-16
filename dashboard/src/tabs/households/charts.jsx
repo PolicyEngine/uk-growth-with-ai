@@ -96,7 +96,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           const dx = X(q.x) - X(p.x);
           const dy = Y(q.y) - Y(p.y);
           const d = Math.hypot(dx, dy) || 1;
-          const k = Math.max(0, (d - 11) / d);
+          const k = Math.max(0, (d - 9) / d);
           return (
             <path
               key={`${a}-${b}`}

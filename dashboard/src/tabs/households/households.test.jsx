@@ -132,6 +132,34 @@ describe('HouseholdsExplore', () => {
   });
 });
 
+describe('Households finding lines hold in the data', () => {
+  const lad = (id) => D.ladder.find((r) => r.id === id);
+  it('full take-up and JSA cost more and raise poverty less (both groups)', () => {
+    for (const [a, b] of [['central_20', 'takeup'], ['takeup', 'takeup_jsa'], ['obr', 'obr_takeup'], ['obr_takeup', 'obr_takeup_jsa']]) {
+      expect(lad(b).cost_bn, b).toBeGreaterThan(lad(a).cost_bn);
+      expect(lad(b).poverty_pp, b).toBeLessThan(lad(a).poverty_pp);
+    }
+  });
+  it('poverty rises under every rule, more than centrally under the other four', () => {
+    const central = D.rules.find((r) => r.id === 'exposure').poverty_pp;
+    for (const r of D.rules) {
+      expect(r.poverty_pp, r.id).toBeGreaterThan(0);
+      if (r.id !== 'exposure') expect(r.poverty_pp, r.id).toBeGreaterThan(central);
+    }
+  });
+  it('each policy response lowers poverty and the Gini', () => {
+    for (const r of D.policy.rows) {
+      expect(r.poverty_pp, r.id).toBeLessThan(0);
+      expect(r.gini_pp, r.id).toBeLessThan(0);
+    }
+  });
+  it('on one draw, full take-up and JSA raise the cost of a pound lost', () => {
+    const p = (id) => D.per_pound.find((r) => r.id === id).government_p;
+    expect(p('job_loss_takeup')).toBeGreaterThan(p('job_loss'));
+    expect(p('job_loss_takeup_jsa')).toBeGreaterThan(p('job_loss_takeup'));
+  });
+});
+
 describe('HouseholdsMethod', () => {
   it('covers data, exposure, the shock, rules, take-up, draws, what it leaves out and vintages', () => {
     const { container } = render(<HouseholdsMethod />);

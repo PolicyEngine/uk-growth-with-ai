@@ -767,7 +767,7 @@ function Sources() {
 export const FINDINGS = [
   { id: 'rules', anchor: 'hh-rules', icon: 'scenario', title: 'Who loses the job', text: 'moves the cost by billions a year' },
   { id: 'margin', anchor: 'hh-ladder', icon: 'wageCut', title: 'Job loss vs wage cuts', text: 'job loss raises poverty more' },
-  { id: 'takeup', anchor: 'hh-displaced', icon: 'takeUp', title: 'Benefit take-up', text: 'about half of displaced workers’ units claim UC' },
+  { id: 'takeup', anchor: 'hh-ladder', icon: 'takeUp', title: 'Benefit take-up', text: 'full take-up costs more, raises poverty less' },
 ];
 
 export default function HouseholdsExplore() {

@@ -108,11 +108,17 @@
 }
 .p3-dim svg,
 .p3-dim .p3-be-track,
-.p3-dim .p3-ladder-track,
+.p3-dim .p3-ladder-dot,
+.p3-dim .p3-ladder-arrow,
+.p3-dim .p3-ladder-ghost,
 .p3-dim .story-item-icon,
-.p3-dim .p3-switch,
 svg.p3-dim {
   opacity: 0.4;
+}
+.p3-dim .p3-ladder-val,
+.p3-dim .p3-switch button,
+.p3-dim .p3-switch button.is-on {
+  color: var(--pe-gray-600);
 }
 .p3-dim .p3-row-value,
 .p3-dim.p3-group-head,
@@ -1081,10 +1087,22 @@ svg.p3-dim {
   background: var(--page-bg);
 }
 .story-close .lens.lens-from-left {
-  transform: translateX(-32px);
+  transform: translateX(-24px);
 }
 .story-close .lens.lens-from-right {
-  transform: translateX(32px);
+  transform: translateX(24px);
+}
+/* the divider draws first, then the columns slide in */
+.story-close .lens-divider::before {
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 400ms var(--story-ease);
+}
+.story-close .lens-grid-split.is-in .lens-divider::before {
+  transform: none;
+}
+.story-close .lens-grid-split .lens.reveal {
+  transition-delay: 300ms;
 }
 .story-close .lens.reveal.is-in {
   transform: none;
@@ -1093,7 +1111,7 @@ svg.p3-dim {
   margin-right: 4px;
   color: inherit;
 }
-@media (max-width: 900px) {
+@media (max-width: 599px) {
   .story-close .lens-grid-split {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
@@ -1114,9 +1132,15 @@ svg.p3-dim {
     padding: 0 8px;
   }
 }
+@media (max-width: 900px) and (min-width: 600px) {
+  .story-close .lens-grid-split {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .story-close .lens.lens-from-left,
-  .story-close .lens.lens-from-right {
+  .story-close .lens.lens-from-right,
+  .story-close .lens-divider::before {
     transform: none;
   }
 }
@@ -1218,19 +1242,28 @@ svg.p3-dim {
 .p3-count.is-on .count-up-vis {
   opacity: 1;
 }
-@media print {
+@media print, (scripting: none) {
   .p3-count .count-up-vis,
-  .p3-scene * {
+  .p3-tile-head-out,
+  .p3-wf-row .p3-row-value,
+  .p3-wf-row .p3-row-label,
+  .p3-wf-link,
+  .p3-dp-row,
+  .p3-db-val,
+  .p3-db-mark .p3-db-dot,
+  .p3-db-seg,
+  .p3-sankey .sankey-node {
     opacity: 1 !important;
-    transform: none !important;
-    clip-path: none !important;
   }
-}
-@media (scripting: none) {
-  .p3-count .count-up-vis,
-  .p3-scene * {
-    opacity: 1 !important;
+  .p3-wf-bar,
+  .p3-dp-row,
+  .p3-db-link,
+  .p3-ladder-arrow,
+  .p3-sankey .sankey-node,
+  .story-close .lens-divider::before {
     transform: none !important;
+  }
+  .p3-sankey .sankey-link {
     clip-path: none !important;
   }
 }
