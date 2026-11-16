@@ -4,6 +4,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { useNav } from '@/lib/nav.jsx';
+import { useReducedMotion, useScrollProgress } from '@/components/story/motion.js';
+import { useId, useState } from 'react';
 import { SummaryQuestion } from '@/tabs/ai/Landing.jsx';
 import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SCEN_NAME } from '@/tabs/ai/surprise.js';
 
@@ -11,14 +13,33 @@ import { S, YEARS, SURPRISE_YEAR, ARMS, ARM_COLOR, CENTRAL, BOUND, SCENARIOS, SC
 // and closure in the header, beside an image of every modelled GDP path
 // (four scenarios, three arms, two closures) leaving the OBR-central path
 // together in 2028 and fanning out to 2036. The image is art, not a chart:
-// no values, the figures are in part 2. It is static: nothing plays by
-// itself on the story. The drawing is hidden from screen readers; the
-// caption under it says what it shows.
+// no values, the figures are in part 2. Nothing plays by itself: the paths
+// after the year AI arrives are revealed as the reader scrolls the hero (a
+// clip that widens with scroll progress, geometry only); they start part
+// drawn, and under reduced motion they are drawn in full at once. The
+// three parts are named by the story rail, so the hero does not list them.
+// The drawing is hidden from screen readers; the caption under it says
+// what it shows.
 const W = 640;
 const H = 420;
 
+// The share of the post-arrival span drawn: 40% on load, all of it after
+// about a fifth of the hero's scroll range.
+function useReveal() {
+  const reduce = useReducedMotion();
+  const [ref, p] = useScrollProgress();
+  // the progress at the first measure (a render-time update, no effect)
+  const [p0, setP0] = useState(null);
+  if (p0 === null && p > 0) setP0(p);
+  const start = p0 ?? p;
+  const f = reduce ? 1 : Math.max(0.4, Math.min(1, 0.4 + (p - start) * 3));
+  return [ref, f];
+}
+
 export default function Hero() {
   const { st } = useNav();
+  const [artRef, reveal] = useReveal();
+  const clip = `hero-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const lines = [];
   for (const s of SCENARIOS)
     for (const a of ARMS)
@@ -91,25 +112,20 @@ export default function Hero() {
     <section className="story-hero" aria-labelledby="story-q">
       <div className="story-hero-text">
         <SummaryQuestion sid={st.s} titleId="story-q" />
-        <p className="story-hero-lead">
-          <Icon name={iconFor('next')} size={16} className="p1-text-icon" /> Below, in three parts:
-        </p>
-        <Items
-          className="hero-parts"
-          items={[
-            { icon: 'record', text: <a href="#story-part-1">Where the UK economy and labour market stand</a> },
-            { icon: 'model', text: <a href="#story-part-2">What a model of the whole economy projects</a> },
-            { icon: 'households', text: <a href="#story-part-3">A household model: incomes, poverty, public finances, if job losses are assumed</a> },
-          ]}
-        />
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands
         </a>
       </div>
-      <div className="story-hero-art">
+      <div className="story-hero-art" ref={artRef}>
         <svg className="story-svg" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          <defs>
+            <clipPath id={clip}>
+              <rect x={0} y={0} width={X(xs) + (X(YEARS.length - 1) + 2 - X(xs)) * reveal} height={H} />
+            </clipPath>
+          </defs>
           <line x1={X(0)} x2={X(YEARS.length - 1)} y1={Y(0)} y2={Y(0)} stroke="var(--pe-gray-300)" />
           <line x1={X(xs)} x2={X(xs)} y1={20} y2={H - 20} stroke="var(--pe-gray-300)" strokeDasharray="3 4" />
+          <g clipPath={`url(#${clip})`}>
           {lines.map((l) => (
             <path
               key={l.key}
@@ -121,6 +137,7 @@ export default function Hero() {
               opacity={l.cl === CENTRAL ? 0.85 : 0.45}
             />
           ))}
+          </g>
           {nameSet(wide, 'is-wide', 24, 'OBR-central path')}
           {nameSet(narrow, 'is-narrow', 20, 'OBR path')}
           <text x={X(xs) + 6} y={H - 26} className="hero-name is-zero">

@@ -9,7 +9,7 @@ import real from '@/data/ukContext.json';
 import checks from '@/data/ukContextChecks.json';
 import Part1Real from '@/tabs/story/Part1.jsx';
 import { dateLong, dirOf, dirWord, idx1, monthYear, pct1, share0, tick } from '@/tabs/story/part1/format.js';
-import { AiUseChart, ExposureTiles, GdpChart, LabourPanels, exposureTiles } from '@/tabs/story/part1/charts.jsx';
+import { AiUseChart, ExposureTiles, LabourBoard, OutputCanvas, barPath, boardSeries, exposureTiles } from '@/tabs/story/part1/charts.jsx';
 import { DSIT_AROUND } from '@/tabs/story/part1/data.js';
 
 afterEach(cleanup);
@@ -101,15 +101,19 @@ describe('story part 1, real data', () => {
   });
 
   it('labels the current year by its quarters, apart from the full-year bars', () => {
-    const el = show(Part1Real);
     const q = real.facts.gdp_quarterly_latest.period;
     const lastFull = real.series.gdp_growth.x[real.series.gdp_growth.x.length - 1];
     expect(Number(q.slice(0, 4))).toBeGreaterThan(lastFull);
-    const fig = el.querySelectorAll('#p1-output .p1-figure')[1];
-    expect(fig.textContent).toContain(`${q.slice(0, 4)} Q1`);
-    expect(fig.textContent).toContain('year not yet complete');
-    expect(el.querySelectorAll('#p1-output .p1-figure')[0].textContent).toContain(`${lastFull} is the latest complete year`);
-    expect(el.querySelectorAll('#p1-productivity .p1-figure')[1].textContent).toContain(`ends at ${real.series.labour_share.x.at(-1)}, the latest full year`);
+    const annual = render(<OutputCanvas state={0} />).container;
+    expect(annual.querySelector('.story-figure-unit').textContent).toContain(`${lastFull} is the latest complete year`);
+    cleanup();
+    const quarters = render(<OutputCanvas state={2} />).container;
+    const note = quarters.querySelector('.p1-only-q.p1-note');
+    expect(note.textContent).toContain(`${q.slice(0, 4)} Q1`);
+    expect(note.textContent).toContain('year not yet complete');
+    cleanup();
+    const share = render(<LabourBoard focus={4} />).container;
+    expect(share.querySelector('.story-figure-unit').textContent).toContain(`ends at ${real.series.labour_share.x.at(-1)}, the latest full year`);
   });
 
   it('labels the OBR forecast with its vintage, from the data file', () => {
@@ -118,7 +122,7 @@ describe('story part 1, real data', () => {
     const vintage = monthYear(src.released);
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
-    expect(el.textContent).toContain(`OBR forecast, ${vintage}`);
+    expect(el.textContent).toContain(`The OBR’s central forecast, published ${vintage}`);
     expect(el.textContent).toContain('starts from the OBR’s March 2026 forecast');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
@@ -131,7 +135,7 @@ describe('story part 1, real data', () => {
 
   it('says what one tile of the exposure grid stands for', () => {
     const el = show(Part1Real);
-    const fig = el.querySelectorAll('#p1-ai .p1-figure')[1];
+    const fig = el.querySelector('#p1-ai .p1-exposure');
     expect(fig.textContent).toContain('Each tile is one per cent of UK workers');
     expect(fig.querySelectorAll('.tile')).toHaveLength(100);
   });
@@ -140,7 +144,7 @@ describe('story part 1, real data', () => {
     const el = show(Part1Real);
     const urls = new Set(Object.values(real.sources).map((s) => s.url));
     const figs = el.querySelectorAll('.p1-figure');
-    expect(figs).toHaveLength(8);
+    expect(figs).toHaveLength(4); // output canvas, labour board, AI use, exposure tiles
     figs.forEach((fig) => {
       const links = fig.querySelectorAll('.story-source a');
       expect(links.length).toBeGreaterThan(0);
@@ -148,12 +152,12 @@ describe('story part 1, real data', () => {
     });
   });
 
-  it('has four blocks that keep every old step id and block id as link targets', () => {
+  it('has three scenes that keep every old step id and block id as link targets', () => {
     const el = show(Part1Real);
-    expect([...el.querySelectorAll('.scrolly')].map((b) => b.id)).toEqual(['p1-output', 'p1-work', 'p1-productivity', 'p1-ai']);
+    expect([...el.querySelectorAll('.scrolly')].map((b) => b.id)).toEqual(['p1-output', 'p1-work', 'p1-ai']);
     const steps = ['p1-output-0', 'p1-output-1', 'p1-quarters-0', 'p1-work-0', 'p1-work-1', 'p1-pay-0', 'p1-productivity-0', 'p1-share-0', 'p1-ai-0', 'p1-ai-1', 'p1-exposure-0', 'p1-exposure-1'];
     expect([...el.querySelectorAll('.scrolly-step')].map((li) => li.id)).toEqual(steps);
-    for (const id of ['p1-quarters', 'p1-pay', 'p1-share', 'p1-exposure']) {
+    for (const id of ['p1-quarters', 'p1-pay', 'p1-productivity', 'p1-share', 'p1-exposure']) {
       const a = el.querySelector(`#${id}`);
       expect(a).not.toBeNull();
       expect(a.closest('.scrolly-step').id).toBe(`${id}-0`);
@@ -233,28 +237,62 @@ describe('story part 1, real data', () => {
 
 describe('story part 1, first states', () => {
   // A page load (and the number check's dump) starts each block on step 0.
-  it('draws the outturn alone at step 0, and labels the forecast only once it is drawn', () => {
-    const { container } = render(<GdpChart state={0} />);
-    // the hidden ghost that holds the card's height (frame.jsx) is not shown
-    const shown = container.cloneNode(true);
-    shown.querySelectorAll('.p1-title-ghost').forEach((x) => x.remove());
-    expect(shown.textContent).not.toContain('OBR forecast');
-    expect(container.querySelectorAll('.p1-bar')).toHaveLength(real.series.gdp_growth.x.length);
-    expect(container.querySelector('.fade-g .p1-forecast').closest('.fade-g').classList.contains('is-on')).toBe(false);
+  it('draws the outturn alone at step 0, and shows the forecast only from step 1', () => {
+    const { container } = render(<OutputCanvas state={0} />);
+    const svg = container.querySelector('.p1-canvas');
+    expect(svg.classList.contains('is-fc')).toBe(false);
+    expect(svg.classList.contains('is-q')).toBe(false);
+    expect(container.querySelectorAll('.p1-bar-a')).toHaveLength(real.series.gdp_growth.x.length);
+    expect(container.querySelectorAll('.p1-bar-q')).toHaveLength(real.series.gdp_quarterly.x.length);
+    expect(container.querySelector('.p1-forecast').classList.contains('p1-only-fc')).toBe(true);
+    cleanup();
+    const fc = render(<OutputCanvas state={1} />).container.querySelector('.p1-canvas');
+    expect(fc.classList.contains('is-fc')).toBe(true);
+    expect(fc.classList.contains('is-q')).toBe(false);
   });
 
-  it('draws one labour panel and one AI line at step 0', () => {
-    const lab = render(<LabourPanels state={0} />).container;
-    expect([...lab.querySelectorAll('.draw-path')].map((p) => p.classList.contains('is-on'))).toEqual([true, false]);
+  it('zooms the annual bars as one group, never changing a bar, then grows the quarters', () => {
+    const a = render(<OutputCanvas state={1} />).container;
+    const dA = [...a.querySelectorAll('.p1-bar-a')].map((p) => p.getAttribute('d'));
+    expect(a.querySelector('.p1-zoom').style.transform).toContain('scale(1, 1)');
     cleanup();
+    const q = render(<OutputCanvas state={2} />).container;
+    // the bars' own geometry is the same in both states: only their group's transform changes
+    expect([...q.querySelectorAll('.p1-bar-a')].map((p) => p.getAttribute('d'))).toEqual(dA);
+    expect(q.querySelector('.p1-zoom').style.transform).toMatch(/translate\(.*\) scale\([\d.]+, 1\)/);
+    expect([...q.querySelectorAll('.p1-bar-q')].every((p) => p.classList.contains('is-on'))).toBe(true);
+  });
+
+  it('rounds only the free end of a bar', () => {
+    // a positive bar from y=100 up to y=40: the base corners are square
+    expect(barPath(10, 8, 100, 40)).toMatch(/^M10\.00,100\.00V42\.00Q/);
+    expect(barPath(10, 8, 100, 40)).toMatch(/V100\.00Z$/);
+    // a negative bar from y=100 down to y=160
+    expect(barPath(10, 8, 100, 160)).toMatch(/^M10\.00,100\.00V158\.00Q/);
+  });
+
+  it('keeps all five series on the labour board at every step, one in focus', () => {
+    const n = boardSeries().length;
+    expect(n).toBe(5);
+    for (let f = 0; f < n; f += 1) {
+      const c = render(<LabourBoard focus={f} />).container;
+      expect(c.querySelectorAll('.p1-board-series')).toHaveLength(5);
+      expect(c.querySelectorAll('.p1-board-series.is-focus')).toHaveLength(1);
+      expect([...c.querySelectorAll('.p1-board-series')].findIndex((g) => g.classList.contains('is-focus'))).toBe(f);
+      expect(c.querySelectorAll('.p1-board-axes.is-on')).toHaveLength(1);
+      expect(c.querySelector('.p1-board-svg').getAttribute('aria-label')).toMatch(/Four smaller charts below it show .*, each on its own scale\./);
+      cleanup();
+    }
+  });
+
+  it('draws one AI line at step 0 and labels the second only once it is drawn', () => {
     const ai = render(<AiUseChart state={0} />).container;
-    expect([...ai.querySelectorAll('.draw-path')].map((p) => p.classList.contains('is-on'))).toEqual([true, false]);
-    expect(ai.textContent).not.toContain('10 or more employees');
-    // each drawn line ends in a dot that shows with it
-    expect([...ai.querySelectorAll('.draw-end')].map((p) => p.classList.contains('is-on'))).toEqual([true, false]);
+    expect([...ai.querySelectorAll('.p1-ai-line')].map((p) => p.classList.contains('is-on'))).toEqual([false, true]);
+    expect(ai.querySelector('.p1-end-label.is-ten').classList.contains('is-on')).toBe(false);
     cleanup();
-    const lab2 = render(<LabourPanels state={1} />).container;
-    expect([...lab2.querySelectorAll('.draw-end')].map((p) => p.classList.contains('is-on'))).toEqual([true, true]);
+    const two = render(<AiUseChart state={1} />).container;
+    expect([...two.querySelectorAll('.p1-ai-line')].map((p) => p.classList.contains('is-on'))).toEqual([true, true]);
+    expect(two.querySelector('.p1-end-label.is-ten').classList.contains('is-on')).toBe(true);
   });
 
   it('shows the tiles as one block first, then in the three exposure groups', () => {
@@ -263,10 +301,11 @@ describe('story part 1, first states', () => {
     expect(new Set(exposureTiles(1).map((t) => t.color)).size).toBe(3);
     const block = render(<ExposureTiles state={0} source={null} />).container;
     expect(block.textContent).toContain('Each tile is one per cent of UK workers');
-    expect(block.querySelector('.p1-groups')).toBeNull();
+    expect(block.querySelector('.p1-groups').classList.contains('is-on')).toBe(false);
     cleanup();
     const groups = render(<ExposureTiles state={1} source={null} />).container;
     expect(groups.querySelectorAll('.p1-groups li')).toHaveLength(3);
+    expect(groups.querySelector('.p1-groups').classList.contains('is-on')).toBe(true);
   });
 
   it('keeps the same 100 tile keys in both states, so the tiles travel', () => {
@@ -331,7 +370,7 @@ describe('story part 1, altered data', () => {
     const { default: Part1Fix } = await import('@/tabs/story/Part1.jsx');
     const el = show(Part1Fix);
     expect(figures(textWithoutAxes(el))).toEqual(expected(fx));
-    expect(el.textContent).toContain('OBR forecast, March 2027');
+    expect(el.textContent).toContain('The OBR’s central forecast, published March 2027');
     // the arrows follow the altered signs (a fall, a zero, rises)
     checkArrows(el);
     expect(el.querySelector('#p1-quarters-0 .p1-growth').getAttribute('data-dir')).toBe('fall');
