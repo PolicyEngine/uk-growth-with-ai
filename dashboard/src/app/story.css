@@ -842,8 +842,10 @@
 }
 
 /* Hero fan: scenario names at the line ends, the zero line and 2028 named */
+/* phones and tablets: the fan is drawn about 0.45x, so 25 viewBox units
+   render at about 11px */
 .hero-name {
-  font-size: 17px;
+  font-size: 25px;
   font-weight: 600;
   fill: var(--pe-gray-700);
 }

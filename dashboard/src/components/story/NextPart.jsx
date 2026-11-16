@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 
@@ -11,32 +10,10 @@ import { iconFor } from '@/lib/concepts.js';
 // band. Links that bring no icon get one from story-identity.css (a link or
 // an external-link mark). The story-next* classes stay as test hooks; the
 // look is .part-links in story-identity.css.
-// When the line is wider than the page it scrolls sideways, and its end
-// fades (data-more) so the cut-off link reads as more to come.
-function useMore() {
-  const ref = useRef(null);
-  const [more, setMore] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const check = () => setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
-    check();
-    el.addEventListener('scroll', check, { passive: true });
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(check);
-    ro?.observe(el);
-    return () => {
-      el.removeEventListener('scroll', check);
-      ro?.disconnect();
-    };
-  }, []);
-  return [ref, more];
-}
-
 export default function NextPart({ n, title, to, children, links }) {
-  const [ref, more] = useMore();
   return (
     <nav className="part-links story-next" aria-label={n ? `Next: part ${n}` : 'Next'}>
-      <div className="part-links-inner story-next-inner" ref={ref} data-more={more || undefined}>
+      <div className="part-links-inner story-next-inner">
         <a className="part-links-next story-next-link" href={`#${to}`}>
           <Icon name="arrowDown" size={16} />
           <span className="part-links-kicker">{n ? `Next: part ${n}` : 'Next'}</span>
