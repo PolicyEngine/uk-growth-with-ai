@@ -48,9 +48,9 @@ UK sources give **one labour-share path each**, not a range:
 
 ## 2. TFP / output at fixed inputs by 2031
 
-| Source | Published figure | Year-4 level (ours) |
+| Source | Published figure | Year-4 level (derived here) |
 |---|---|---|
-| IMF SIP/2026/072 baseline | TFP +0.53% at year 5 (Table 1, p.29) | Figure 9 vector data give 0.443 / 0.570 at years 4 and 5. Applied to the table's 0.53, that is 0.53 × 0.78 = **0.41%**. The digitised output line reproduces the table exactly (3.26% at year 5, 7.95% at year 10), and gives 2.52% at year 4. |
+| IMF SIP/2026/072 baseline | TFP +0.53% at year 5 (Table 1, p.29) | Figure 9 vector data give 0.443 / 0.570 at years 4 and 5 (raw values, before rescaling). Rescaled to the table's 0.53 (0.53 × 0.78), the year-4 reading is **≈0.42% (0.41–0.44%)**: only years 5 and 10 are printed. The digitised output line reproduces the table exactly (3.26% at year 5, 7.95% at year 10), and gives 2.52% at year 4. |
 | OBR central (BP9 ¶B.14; EFO Oct 2026 ¶1.27, p.21; FRS 2026 Box 4.1, p.86) | Growth boost 0.2pp a year by the five-year horizon | A linear ramp of g·k/5 in year k gives a level of 2g at year 4 and 3g at year 5: **0.4%** (0.6% at year 5) |
 | OBR J-curve (BP9 ¶B.12) | 0.1pp a year by year five | **0.2%** |
 | OBR S-curve (BP9 ¶B.12) | 0.25pp a year by year five | 0.5% |
@@ -59,7 +59,9 @@ UK sources give **one labour-share path each**, not a range:
 
 **Year 4 rather than year 5.** The ramp reaches its terminal value in the fourth adoption year (2031), so the target is the year-4 level. Keeping the IMF's year-5 0.53% would front-load the IMF's own path by one year.
 
-**Central +0.4%.** The two independent UK central estimates agree at year 4: the IMF's 0.41–0.44% and the OBR's linear ramp at 0.40%.
+**Central +0.4%.** The two independent UK central estimates agree at year 4: the IMF's ≈0.42% (0.41–0.44%) and the OBR's linear ramp at 0.40%. The model input is +0.4% (rounded; the OBR ramp gives 0.40%).
+
+**The UK central share fall, −1.6pp: derived, not published by the IMF.** Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%). Divided by the IMF's 27% cost saving, a reading of 0.40–0.44% gives 1.5–1.6pp; the UK central scenario uses 1.6pp (`labour_share_fall_pp: 1.6` in analysis/surprise/uk_targets.json). The share is derived from the 0.42 reading while the TFP input is the rounded 0.4, which alone would give 0.4 ÷ 0.27 = 1.5pp. The OBR cross-check (1.78pp) sits above 1.6, so 1.6 is not biased high. Decided by review on 16 Nov 2026: kept, no re-solve.
 
 **Low and high.**
 - Low +0.2%: the OBR J-curve; the FRS describes the low end as "less than 0.1 percentage points" a year.
