@@ -30,13 +30,15 @@ export function latestRelease(sources, publisher) {
     .reduce((best, s) => (!best || s.released > best.released ? s : best), null);
 }
 
-export default function AsOf({ className = '' }) {
+// `inline`: a span inside the shell's one meta line (page.jsx), no icon.
+export default function AsOf({ className = '', inline = false }) {
   const ons = latestRelease(UK.sources, 'Office for National Statistics');
   const obr = latestRelease(UK.sources, 'Office for Budget Responsibility');
   const commit = S.source_commit;
+  const Tag = inline ? 'span' : 'p';
   return (
-    <p className={`as-of ${className}`.trim()} data-cite="">
-      <Icon name={iconFor('asOf')} size={14} className="as-of-icon" />
+    <Tag className={`as-of${inline ? ' is-inline' : ''} ${className}`.trim()} data-cite={inline ? undefined : ''}>
+      {inline ? null : <Icon name={iconFor('asOf')} size={14} className="as-of-icon" />}
       <span>
         As of:{' '}
         {ons ? (
@@ -65,6 +67,6 @@ export default function AsOf({ className = '' }) {
           </>
         ) : null}
       </span>
-    </p>
+    </Tag>
   );
 }

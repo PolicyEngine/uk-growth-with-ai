@@ -10,7 +10,12 @@ import { iconFor } from '@/lib/concepts.js';
 // band. Links that bring no icon get one from story-identity.css (a link or
 // an external-link mark). The story-next* classes stay as test hooks; the
 // look is .part-links in story-identity.css.
-export default function NextPart({ n, title, to, children, links }) {
+//
+// Round 1 (plan S6): the band is folded into the next part's opener (its
+// handover line); the deep links move to the close. NextPart renders
+// nothing unless `show` is passed (old callers keep working).
+export default function NextPart({ n, title, to, children, links, show = false }) {
+  if (!show) return null;
   return (
     <nav className="part-links story-next" aria-label={n ? `Next: part ${n}` : 'Next'}>
       <div className="part-links-inner story-next-inner">

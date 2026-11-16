@@ -21,7 +21,8 @@ describe('Scrolly', () => {
     // jsdom has no layout: every step is past the trigger line, so the last
     expect(container.querySelector('.scrolly-graphic .g').textContent).toBe('3');
     expect(container.querySelectorAll('.scrolly-step:not(.is-spacer)')).toHaveLength(3);
-    expect(container.querySelector('h3.scrolly-title')).not.toBeNull();
+    // the title stays as the step's accessible name, visually hidden
+    expect(container.querySelector('h3.scrolly-title.visually-hidden')).not.toBeNull();
     expect(container.querySelector('.scene-head')).toBeNull();
   });
   it('passes ctx as the third argument', () => {
@@ -55,11 +56,12 @@ describe('Scrolly', () => {
     expect(container.querySelector('h4.scrolly-title')).not.toBeNull();
     expect(container.querySelectorAll('.f')).toHaveLength(1);
   });
-  it('leads a kicker with the step icon', () => {
+  it('a card is one sentence and one icon: no kicker, no visible title', () => {
     const { container } = render(<Scrolly id="b" steps={steps} graphic={() => null} label="L" />);
-    const k = container.querySelector('.scrolly-kicker');
-    expect(k.querySelector('svg')).not.toBeNull();
-    expect(k.textContent).toBe('One');
+    expect(container.querySelector('.scrolly-kicker')).toBeNull();
+    const card = container.querySelector('#s-a .scrolly-card');
+    expect(card.querySelectorAll('svg')).toHaveLength(1);
+    expect(card.querySelector('.scrolly-card-icon')).not.toBeNull();
   });
   it('a single card is a plain block without dots', () => {
     const { container } = render(<Scrolly id="b" steps={[steps[0], steps[2]]} graphic={() => null} label="L" />);
@@ -121,24 +123,30 @@ describe('useEnterState', () => {
 
 describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
   const sub = { title: 'Output', icon: 'gdp', question: 'How fast has the UK grown?', takeaway: 'Growth slowed after 2008.' };
-  it('prints the question in the header and the takeaway after the block', () => {
+  it('prints the question in the header (one icon: the title\'s) and the takeaway as the one closing line', () => {
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={() => null} label="L" />);
     const h = container.querySelector('header.scene-head');
     expect(h.dataset.scene).toBe('Output');
     expect(h.querySelector('.scene-head-q').textContent).toBe('How fast has the UK grown?');
-    expect(h.querySelector('.scene-head-q svg')).not.toBeNull();
-    const t = container.querySelectorAll('.scrolly-takeaway');
-    expect(t).toHaveLength(1);
-    expect(t[0].closest('li')).toBeNull();
-    expect(t[0].previousElementSibling.classList.contains('scrolly-steps')).toBe(true);
-    expect(t[0].textContent).toBe('Key takeaway: Growth slowed after 2008.');
-    expect(t[0].querySelector('svg')).not.toBeNull();
+    expect(h.querySelectorAll('svg')).toHaveLength(1);
+    expect(container.querySelector('.scrolly-takeaway')).toBeNull();
+    const c = container.querySelectorAll('.scrolly-close');
+    expect(c).toHaveLength(1);
+    expect(c[0].textContent).toBe('Growth slowed after 2008.');
+    expect(c[0].querySelectorAll('svg')).toHaveLength(1);
+  });
+  it('an answer wins over a takeaway: still one closing line, no "Answer" label, no repeated question', () => {
+    const { container } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
+    const c = container.querySelectorAll('.scrolly-close');
+    expect(c).toHaveLength(1);
+    expect(c[0].textContent).toBe('About 1.5% a year');
+    expect(container.querySelector('.scrolly-answer-q, .scrolly-answer-label')).toBeNull();
   });
   it('without layout (jsdom: the frame has no height) the question frame is done at once and ctx.entered is true', () => {
     const seen = [];
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
-    // done: the frame unmounts, the chart is drawn
-    expect(container.querySelector('.q-frame')).toBeNull();
+    // done: the frame is hidden (it stays mounted to come back on scroll up), the chart is drawn
+    expect(container.querySelector('.q-frame').classList.contains('is-done')).toBe(true);
     expect(container.querySelector('.q-stage')).toBeNull();
     expect(seen.at(-1)).toBe(true);
   });
@@ -175,7 +183,9 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
       expect(q.querySelectorAll('.q-stage-w')).toHaveLength(6);
       expect(q.querySelector('.q-stage-w.is-key').textContent.trim()).toBe('grown?');
       expect(q.querySelector('.q-stage-hint').textContent).toBe('Watch the gap open');
-      expect(q.querySelector('.q-stage-progress').textContent).toContain('Part 2');
+      // question and hint only: no numeral, no progress ring
+      expect(q.querySelector('.q-stage-progress, .q-stage-numeral, .q-stage-ring')).toBeNull();
+      expect(q.querySelectorAll('svg')).toHaveLength(1);
       // no pinned screen, no added row
       expect(container.querySelector('.q-stage')).toBeNull();
       expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(false);
@@ -183,7 +193,7 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
       expect(seen.every((e) => e === false)).toBe(true);
     }, below);
   });
-  it("pin: 'full' renders the pinned screen with the recap as real links; the question copy is aria-hidden", () => {
+  it("pin: 'full' renders the pinned screen, question and hint only (a recap is not drawn); the question copy is aria-hidden", () => {
     withLayout(() => {
       const recap = [{ icon: 'gdp', q: 'How fast has the UK grown?', a: 'About 1.5% a year', to: 'q-p1-output' }];
       const { container } = render(
@@ -191,38 +201,33 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
           <Scrolly id="b" sub={{ ...sub, pin: 'full', recap }} steps={steps} graphic={() => null} label="L" />
         </section>,
       );
-      const st = container.querySelector('.scrolly > .q-stage.has-recap');
+      const st = container.querySelector('.scrolly > .q-stage');
       expect(st).not.toBeNull();
       expect(st.hasAttribute('data-gap-exempt')).toBe(true);
       expect(st.querySelector('.q-visual').getAttribute('aria-hidden')).toBe('true');
       expect(st.querySelector('.q-visual').hasAttribute('data-axis')).toBe(true);
-      expect(st.querySelector('.story-recap-title').textContent).toBe('Part 1 in short');
-      expect(st.querySelector('a.story-recap-chip').getAttribute('href')).toContain('#q-p1-output');
+      expect(st.querySelector('.story-recap, a')).toBeNull();
       expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(true);
       expect(container.querySelector('.q-frame')).toBeNull();
     }, below);
   });
-  it('prints the answer after the last card with the question replayed; with answerTo it links to the home and is data-axis', () => {
+  it('prints the closing line after the last card; with answerTo it is data-axis, never a link', () => {
     const { container, rerender } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
     const li = container.querySelector('.scrolly-steps > .scrolly-answer');
     expect(li.previousElementSibling.id).toBe('s-c');
     expect(li.nextElementSibling.classList.contains('scrolly-end')).toBe(true);
-    let a = li.querySelector('.scrolly-answer-a');
-    expect(a.textContent).toBe('AnswerAbout 1.5% a year');
+    let a = li.querySelector('.scrolly-close');
     expect(a.hasAttribute('data-axis')).toBe(false);
-    const q = li.querySelector('.scrolly-answer-q');
-    expect(q.textContent).toBe('How fast has the UK grown?');
-    expect(q.getAttribute('aria-hidden')).toBe('true');
-    // jsdom: the last card is active, so the answer is shown
-    expect(li.querySelector('.scrolly-answer-card').classList.contains('is-shown')).toBe(true);
+    // jsdom: the last card is active, so the line is shown
+    expect(a.classList.contains('is-shown')).toBe(true);
     rerender(<Scrolly id="b" sub={{ ...sub, answer: <>1.5%</>, answerTo: 'p1-output-s3' }} steps={steps} graphic={() => null} label="L" />);
-    a = container.querySelector('.scrolly-answer-a');
+    a = container.querySelector('.scrolly-close');
     expect(a.hasAttribute('data-axis')).toBe(true);
-    expect(a.querySelector('a').getAttribute('href')).toContain('#p1-output-s3');
+    expect(a.querySelector('a')).toBeNull();
   });
   it('a plain string sub has no opener and no takeaway', () => {
     const { container } = render(<Scrolly id="b" sub="Output" steps={steps} graphic={() => null} label="L" />);
-    expect(container.querySelector('.q-stage, .scene-head-q, .scrolly-takeaway')).toBeNull();
+    expect(container.querySelector('.q-stage, .scene-head-q, .scrolly-close')).toBeNull();
   });
 });
 
@@ -235,6 +240,87 @@ describe('TopicHead (a topic that is not a Scrolly)', () => {
     expect(h.id).toBe('q-p3-close');
     expect(h.dataset.scene).toBe('Limits');
     expect(h.querySelector('h3').id).toBe('p3-close-h');
-    expect(container.querySelector('.scrolly-answer-card.is-shown .scrolly-answer-text').textContent).toBe('Firms and prices');
+    expect(container.querySelector('.scrolly-close.is-shown .scrolly-close-text').textContent).toBe('Firms and prices');
+  });
+});
+
+describe('the question follows the scroll both ways (round 1)', async () => {
+  const { framePhase, stagePhase, nextSkip } = await import('./QStage.jsx');
+  const V = 800;
+  const y1 = 140;
+  const y0 = Math.max(y1 + 120, V * 0.55);
+  // the frame's top as the reader scrolls down, back up, and down again
+  const run = (tops) => {
+    let skip = false;
+    let last = null;
+    return tops.map((top, i) => {
+      const dy = last == null ? 0 : last - top; // scrolling down moves the frame up
+      last = top;
+      skip = nextSkip({ skip, jumped: i === 0, past: top < y0, before: top >= y0, up: dy < 0 });
+      return skip ? 'done' : framePhase({ top, V, y0, y1 }).phase;
+    });
+  };
+  const down = [900, 760, 700, 560, 420, 300, 200, 140];
+  it('down: wait, in, reveal, done', () => {
+    const p = run(down);
+    expect(p[0]).toBe('wait');
+    expect(p).toContain('in');
+    expect(p).toContain('reveal');
+    expect(p.at(-1)).toBe('done');
+  });
+  it('back up re-expands the question; down again replays arrive, hold, shrink', () => {
+    const up = [...down].reverse().slice(1);
+    const p = run([...down, ...up, ...down.slice(1)]);
+    const n = down.length;
+    const back = p.slice(n, n + up.length);
+    expect(back).toContain('reveal');
+    expect(back).toContain('in');
+    expect(back.at(-1)).toBe('wait');
+    const again = p.slice(n + up.length);
+    expect(again).toContain('in');
+    expect(again).toContain('reveal');
+    expect(again.at(-1)).toBe('done');
+  });
+  it('a jump that lands past the start shows the drawn chart; scrolling up by hand brings the question back', () => {
+    let skip = nextSkip({ skip: false, jumped: true, past: true, before: false, up: false });
+    expect(skip).toBe(true);
+    skip = nextSkip({ skip, jumped: false, past: true, before: false, up: false });
+    expect(skip).toBe(true);
+    skip = nextSkip({ skip, jumped: false, past: true, before: false, up: true });
+    expect(skip).toBe(false);
+    expect(framePhase({ top: 220, V, y0, y1 }).phase).toBe('reveal');
+  });
+  it('the pinned stage: arriving, then done once its foot passes the middle, and back', () => {
+    const at = (top) => stagePhase({ top, bottom: top + 360, V, R: 100, H: 160 }).phase;
+    expect(at(900)).toBe('wait');
+    expect(at(300)).toBe('in');
+    expect(at(-200)).toBe('done');
+    expect(at(300)).toBe('in');
+  });
+});
+
+describe('reversible entry (motion.js entryStep, round 1)', async () => {
+  const { entryStep } = await import('./motion.js');
+  const V = 800;
+  const at = (s, top, jumped = false) => entryStep(s, { top, bottom: top + 400, V, jumped });
+  it('enters on the way down, resets only when scrolled back above (wholly below the screen), replays', () => {
+    let s = { entered: false, instant: false, run: 0 };
+    s = at(s, 900);
+    expect(s.entered).toBe(false);
+    s = at(s, 600);
+    expect(s).toEqual({ entered: true, instant: false, run: 1 });
+    // past the top: still entered (coming back up shows the final state)
+    s = at(s, -900);
+    expect(s.entered).toBe(true);
+    s = at(s, 700);
+    expect(s.entered).toBe(true);
+    s = at(s, 820);
+    expect(s.entered).toBe(false);
+    s = at(s, 500);
+    expect(s).toEqual({ entered: true, instant: false, run: 2 });
+  });
+  it('a jump or a link lands on the final state (instant)', () => {
+    const s = at({ entered: false, instant: false, run: 0 }, 200, true);
+    expect(s.instant).toBe(true);
   });
 });

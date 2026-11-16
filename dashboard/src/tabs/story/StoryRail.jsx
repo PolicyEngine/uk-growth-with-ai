@@ -16,11 +16,8 @@ import { NavLink } from '@/lib/nav.jsx';
 // to scroll: the last bar fills smoothly and is full at the bottom of the
 // page. All positions are in page coordinates.
 //
-// The rail is also the sticky chapter indicator: each segment wears its
-// part's accent (data-part, story-identity.css) and the current one names
-// the scene being read after a middle dot, on desktop. Scene names come from
-// the scene sub-headers ([data-scene], rendered by Scrolly's `sub`); with
-// none on the page the rail shows the part name alone.
+// The rail is also the sticky chapter indicator: part names only (round 1:
+// the scene sub-label truncated and repeated the scene header).
 export function sectionProgress({ top, height, scrollY, line, maxScroll }) {
   const start = top - line; // scrollY at which the section begins
   const span = Math.max(1, Math.min(height, maxScroll - start));
@@ -28,20 +25,8 @@ export function sectionProgress({ top, height, scrollY, line, maxScroll }) {
   return Math.min(1, Math.max(0, (scrollY - start) / span));
 }
 
-// the scene being read: the last [data-scene] inside the section whose top
-// has passed the reading line
-function sceneAt(section, line) {
-  if (!section) return '';
-  let name = '';
-  for (const el of section.querySelectorAll('[data-scene]')) {
-    if (el.getBoundingClientRect().top <= line) name = el.getAttribute('data-scene') || '';
-  }
-  return name;
-}
-
 function useSectionProgress(ids) {
   const [p, setP] = useState(() => ids.map(() => 0));
-  const [scene, setScene] = useState('');
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     let raf = 0;
@@ -56,11 +41,6 @@ function useSectionProgress(ids) {
         const r = el.getBoundingClientRect();
         return sectionProgress({ top: r.top + scrollY, height: r.height, scrollY, line, maxScroll });
       });
-      let cur = -1;
-      next.forEach((x, i) => {
-        if (x > 0) cur = i;
-      });
-      setScene(cur >= 0 ? sceneAt(document.getElementById(ids[cur]), line) : '');
       setP((old) => (next.every((x, i) => Math.abs(x - old[i]) < 0.002) ? old : next));
     };
     const on = () => {
@@ -75,13 +55,13 @@ function useSectionProgress(ids) {
       if (raf) window.cancelAnimationFrame(raf);
     };
   }, [ids]);
-  return [p, scene];
+  return [p];
 }
 
 export default function StoryRail({ sections }) {
   const ids = sections.map((s) => s.id);
   const [key] = useState(() => ids);
-  const [p, scene] = useSectionProgress(key);
+  const [p] = useSectionProgress(key);
   // the current part: the last one begun and not finished, else the last begun
   let cur = -1;
   p.forEach((x, i) => {
@@ -97,10 +77,7 @@ export default function StoryRail({ sections }) {
                 {s.icon ? <Icon name={iconFor(s.icon)} size={14} className="story-rail-ic" /> : null}
                 {s.short}
               </span>
-              <span className="story-rail-t">
-                {s.title}
-                {i === cur && scene ? <span className="story-rail-scene"> · {scene}</span> : null}
-              </span>
+              <span className="story-rail-t">{s.title}</span>
               <span className="story-rail-bar" aria-hidden="true">
                 <i style={{ transform: `scaleX(${p[i].toFixed(3)})` }} />
               </span>
