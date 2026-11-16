@@ -4,7 +4,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { fmtBn, fmtBn2 } from './format.js';
-import { D, DrawsChip, FigureHead, Fold, Ico, NumMarker, SeriesName, Source, entryClass, highlightFor, hlClass, markProps, useBeat } from './shared.jsx';
+import { D, DrawsChip, FigureHead, Fold, Ico, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat } from './shared.jsx';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
@@ -13,22 +13,26 @@ import { D, DrawsChip, FigureHead, Fold, Ico, NumMarker, SeriesName, Source, ent
 const C = D.channels;
 const row = (id) => C.rows.find((r) => r.id === id);
 const ROWS = [
-  { id: 'displacement', icon: 'jobLoss', label: 'Job loss: less tax and NI, more benefits' },
-  { id: 'wage', icon: 'pay', label: 'Higher wages for those who keep their jobs' },
-  { id: 'capital', icon: 'capital', label: 'Higher interest and dividend income' },
+  {
+    id: 'displacement',
+    icon: 'jobLoss',
+    label: 'Job loss: less tax and NI, more benefits',
+  },
+  {
+    id: 'wage',
+    icon: 'pay',
+    label: 'Higher wages for those who keep their jobs',
+  },
+  {
+    id: 'capital',
+    icon: 'capital',
+    label: 'Higher interest and dividend income',
+  },
 ];
 // A channel's fill and words follow its sign: positive is a cost to the
 // public finances (amber), negative higher net receipts (teal).
 export const fillFor = (v) => (v > 0 ? 'p3-fill-loss' : 'p3-fill-gain');
 export const effectWords = (v) => (v > 0 ? 'costs the public finances' : v < 0 ? 'raises net receipts' : 'leaves the balance unchanged');
-// The card's lines, one per channel, the words from the sign of each run.
-export function channelItems() {
-  return [
-    { key: 'displacement', icon: 'jobLoss', text: `Job loss ${effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits` },
-    { key: 'wage', icon: 'pay', text: `Assumed higher pay for those still employed ${effectWords(row('wage').cost_bn)}` },
-    { key: 'capital', icon: 'capital', text: `Assumed higher interest and dividend income ${effectWords(row('capital').cost_bn)}` },
-  ];
-}
 // The netting waterfall (scene 3-2): job loss rises from zero; higher wages
 // hangs from its top and drops; higher capital income drops again; the
 // landing bar, "Sum of the three runs", stands from zero. Only the three
@@ -42,7 +46,15 @@ export function waterfall() {
     bars.push({ ...r, value: v, from: at, to: at + v });
     at += v;
   }
-  bars.push({ id: 'sum', icon: 'arithmetic', label: 'Sum of the three runs', value: C.sum_bn, from: 0, to: C.sum_bn, sum: true });
+  bars.push({
+    id: 'sum',
+    icon: 'arithmetic',
+    label: 'Sum of the three runs',
+    value: C.sum_bn,
+    from: 0,
+    to: C.sum_bn,
+    sum: true,
+  });
   return bars;
 }
 const BARS = waterfall();
@@ -51,10 +63,10 @@ const LO = Math.min(0, ...ENDS) * 1.05;
 const HI = Math.max(0, ...ENDS) * 1.05;
 const X = (v) => ((v - LO) / (HI - LO)) * 100;
 
-function ChannelsFigure({ hl = [], ctx }) {
+function ChannelsFigure({ ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, `p3-figure p3-scene${hlClass(hl)}`)}>
+    <figure className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead
         icon="arithmetic"
         title="The central cost nets three flows"
@@ -69,7 +81,7 @@ function ChannelsFigure({ hl = [], ctx }) {
           const w = X(Math.max(b.from, b.to)) - X(lo);
           // a bar grows away from where it starts: from zero, or from the end of the bar above
           const fromRight = b.to < b.from;
-          const m = markProps(b.id, hl, `p3-row p3-wf-row${b.sum ? ' p3-row-total' : ''}`);
+          const m = markProps(b.id, `p3-row p3-wf-row${b.sum ? ' p3-row-total' : ''}`);
           return (
             <li key={b.id} {...m} data-row={b.id} style={{ '--beat': `${i * 600}ms` }}>
               <span className="p3-row-label p3-row-label-icon">
@@ -86,7 +98,9 @@ function ChannelsFigure({ hl = [], ctx }) {
                     y={1}
                     width={Math.max(0, w)}
                     height={8}
-                    style={{ transformOrigin: fromRight ? 'right center' : 'left center' }}
+                    style={{
+                      transformOrigin: fromRight ? 'right center' : 'left center',
+                    }}
                   />
                 </svg>
               </span>{' '}
@@ -115,23 +129,27 @@ export const CHANNELS_SUB = {
   icon: 'arithmetic',
   question: 'What makes up the cost?',
   hint: 'Watch three flows net to one cost',
+  key: 'cost',
+  answerTo: 'p3-channels-step',
   answer: `Job loss alone ${fmtBn(row('displacement').cost_bn)}; netted, ${fmtBn(C.sum_bn)}`,
-  takeaway: bigger ? 'The net cost is far smaller than the cost of job loss alone: assumed higher pay and capital income offset much of it' : 'The net cost combines job loss with the two assumed income rises',
+  takeaway: bigger
+    ? 'The net cost is far smaller than the cost of job loss alone: assumed higher pay and capital income offset much of it'
+    : 'The net cost combines job loss with the two assumed income rises',
 };
 
 // The two assumed income rises, said together when their effects agree.
 function risesSentence() {
   const w = effectWords(row('wage').cost_bn);
   const c = effectWords(row('capital').cost_bn);
-  const pay = <SeriesName s="gain">higher pay</SeriesName>;
-  const cap = <SeriesName s="gain">capital income</SeriesName>;
+  const pay = <Key id="wage">higher pay</Key>;
+  const cap = <Key id="capital">capital income</Key>;
   return w === c ? (
     <>
-      <NumMarker n={2} /> Assumed {pay} and <NumMarker n={3} /> {cap} each {w.replace('raises', 'raise').replace('costs', 'cost').replace('leaves', 'leave')}
+      <Num n={2} mark="wage" /> Assumed {pay} and <Num n={3} mark="capital" /> {cap} each {w.replace('raises', 'raise').replace('costs', 'cost').replace('leaves', 'leave')}
     </>
   ) : (
     <>
-      <NumMarker n={2} /> Assumed {pay} {w}; <NumMarker n={3} /> {cap} {c}
+      <Num n={2} mark="wage" /> Assumed {pay} {w}; <Num n={3} mark="capital" /> {cap} {c}
     </>
   );
 }
@@ -145,24 +163,32 @@ export const CHANNEL_STEPS = [
     highlight: ['displacement'],
     title: (
       <>
-        <NumMarker n={1} /> <SeriesName s={row('displacement').cost_bn > 0 ? 'loss' : 'gain'}>Job loss</SeriesName> alone {effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits
+        <Num n={1} mark="displacement" /> <Key id="displacement">Job loss</Key> alone {effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits
       </>
     ),
   },
-  { id: 'p3-channels-step-2', icon: 'pay', highlight: ['wage', 'capital'], title: risesSentence() },
+  {
+    id: 'p3-channels-step-2',
+    icon: 'pay',
+    highlight: ['wage', 'capital'],
+    title: risesSentence(),
+  },
   {
     id: 'p3-channels-step-3',
     icon: 'arithmetic',
     highlight: ['sum'],
     title: (
       <>
-        <NumMarker n={4} /> Netted, the three runs leave {bigger ? 'a far smaller cost' : 'the net cost'}
+        <Num n={4} mark="sum" /> Netted, the three runs leave {bigger ? 'a far smaller cost' : 'the net cost'}
       </>
     ),
     body: (
       <Fold
         groups={[
-          { label: 'Definitions', items: ['Each channel is run alone on the same draws; capital income does not depend on who is displaced, so it is one run'] },
+          {
+            label: 'Definitions',
+            items: ['Each channel is run alone on the same draws; capital income does not depend on who is displaced, so it is one run'],
+          },
           {
             label: 'See also',
             items: [
@@ -177,14 +203,28 @@ export const CHANNEL_STEPS = [
   },
 ];
 
+// The scene's marks: each bar's colour follows its sign.
+const CHANNEL_MARKS = Object.fromEntries(
+  BARS.map((b) => [
+    b.id,
+    {
+      color: b.sum ? 'var(--pe-gray-800)' : b.value > 0 ? 'var(--c-loss)' : 'var(--c-gain)',
+      shape: 'square',
+      label: b.label,
+    },
+  ]),
+);
+
 export default function Channels() {
   return (
-    <Scrolly
-      id="p3-channels"
-      sub={CHANNELS_SUB}
-      steps={CHANNEL_STEPS}
-      graphic={(i, r, ctx) => <ChannelsFigure hl={highlightFor(CHANNEL_STEPS, i, ctx)} ctx={ctx} />}
-      label="Cost to the public finances of each of the three channels run alone"
-    />
+    <MarkProvider marks={CHANNEL_MARKS}>
+      <Scrolly
+        id="p3-channels"
+        sub={CHANNELS_SUB}
+        steps={CHANNEL_STEPS}
+        graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />}
+        label="Cost to the public finances of each of the three channels run alone"
+      />
+    </MarkProvider>
   );
 }

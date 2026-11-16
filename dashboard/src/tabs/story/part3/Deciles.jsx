@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
-import { D, DrawsChip, FigureHead, Fold, Ico, NumChip, NumMarker, SeriesName, Source, entryClass, highlightFor, hlClass, markProps, useBeat } from './shared.jsx';
+import { D, DrawsChip, FigureHead, Fold, Ico, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat } from './shared.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Decile 1 is drawn grey with the caveat beside it and no
@@ -46,9 +46,9 @@ export function BottomDecileCaveat() {
               <Ico c={signIcon(v)} size={12} /> {how[0].toUpperCase() + how.slice(1)}
             </th>
             <td>
-              <NumChip path="rankings" mark="d1">
+              <Fig path="rankings" mark="d1">
                 {fmtDecilePct(v)}
-              </NumChip>
+              </Fig>
             </td>
           </tr>
         ))}
@@ -86,10 +86,10 @@ export const DECILES_SUB = {
   icon: 'deciles',
   question: 'Which households lose most income?',
   hint: 'Watch the bars land, the bottom decile last',
+  key: 'lose most',
+  answerTo: 'p3-deciles-step',
   answer: `Largest fall: decile ${SHAPE.worst}, ${fmtDecilePct(VALUES[SHAPE.worst - 1])}`,
-  takeaway: SHAPE.upperMiddle
-    ? 'Falls in income peak in the upper-middle deciles, as the study reports'
-    : 'The fall in income differs across the distribution; the bottom decile is not a finding',
+  takeaway: SHAPE.upperMiddle ? 'Falls in income peak in the upper-middle deciles, as the study reports' : 'The fall in income differs across the distribution; the bottom decile is not a finding',
 };
 // The deciles the first step lights: the upper-middle ones (6 to 9) when the
 // largest fall is there, else the largest fall alone.
@@ -116,10 +116,10 @@ function DecBar({ v, on, fill, delay }) {
   );
 }
 
-function DecilesFigure({ hl = [], ctx }) {
+function DecilesFigure({ ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
-    <figure className={entryClass(e, `p3-figure p3-scene${hlClass(hl)}`)}>
+    <figure className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead
         icon="deciles"
         title="Change in household disposable income by income decile"
@@ -138,7 +138,7 @@ function DecilesFigure({ hl = [], ctx }) {
           const first = n === 1;
           const fill = first ? 'p3-fill-muted' : v < 0 ? 'p3-fill-loss' : 'p3-fill-gain';
           const name = n === 1 ? '1 (bottom)' : n === 10 ? '10 (top)' : String(n);
-          const m = markProps(`d${n}`, hl, `p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`);
+          const m = markProps(`d${n}`, `p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`);
           return (
             <li key={n} {...m} data-decile={n} style={{ '--beat': `${ORDER_DELAY(n)}ms` }}>
               <span className="p3-row-label p3-dec-label">
@@ -171,11 +171,11 @@ export const DECILE_STEPS = [
     highlight: UPPER,
     title: SHAPE.upperMiddle ? (
       <>
-        <NumMarker n={1} /> Falls peak in the upper-middle deciles, largest at <SeriesName s="loss">decile {SHAPE.worst}</SeriesName>
+        <Num n={1} mark={`d${SHAPE.worst}`} /> Falls peak in the upper-middle deciles, largest at <Key id={`d${SHAPE.worst}`}>decile {SHAPE.worst}</Key>
       </>
     ) : (
       <>
-        <NumMarker n={1} /> The largest fall is at <SeriesName s="loss">decile {SHAPE.worst}</SeriesName>
+        <Num n={1} mark={`d${SHAPE.worst}`} /> The largest fall is at <Key id={`d${SHAPE.worst}`}>decile {SHAPE.worst}</Key>
       </>
     ),
   },
@@ -185,7 +185,7 @@ export const DECILE_STEPS = [
     highlight: ['d10'],
     title: (
       <>
-        <NumMarker n={2} /> At <SeriesName s={VALUES[9] >= 0 ? 'gain' : 'loss'}>decile 10</SeriesName>, {topSentence}
+        <Num n={2} mark="d10" /> At <Key id="d10">decile 10</Key>, {topSentence}
       </>
     ),
   },
@@ -195,7 +195,7 @@ export const DECILE_STEPS = [
     highlight: ['d1'],
     title: (
       <>
-        <NumMarker n={3} /> <SeriesName s="muted">Decile 1</SeriesName> is not a finding: its sign depends on the ranking
+        <Num n={3} mark="d1" /> <Key id="d1">Decile 1</Key> is not a finding: its sign depends on the ranking
       </>
     ),
     body: (
@@ -203,8 +203,16 @@ export const DECILE_STEPS = [
         <BottomDecileCaveat />
         <Fold
           groups={[
-            { label: 'Caveat', items: ['The study does not report the bottom decile as a finding: some households there make large pension contributions and receive capital income'] },
-            SHAPE.hump && SHAPE.upperMiddle && SHAPE.lossTop ? { label: 'Finding', items: ['Hump-shaped: earnings lost peak at the top, where assumed capital income offsets them'] } : null,
+            {
+              label: 'Caveat',
+              items: ['The study does not report the bottom decile as a finding: some households there make large pension contributions and receive capital income'],
+            },
+            SHAPE.hump && SHAPE.upperMiddle && SHAPE.lossTop
+              ? {
+                  label: 'Finding',
+                  items: ['Hump-shaped: earnings lost peak at the top, where assumed capital income offsets them'],
+                }
+              : null,
           ]}
         />
       </>
@@ -212,14 +220,22 @@ export const DECILE_STEPS = [
   },
 ];
 
+// The deciles, for the colour-keyed words: each bar's colour.
+const DECILE_MARKS = Object.fromEntries(
+  VALUES.map((v, i) => [
+    `d${i + 1}`,
+    {
+      color: i === 0 ? 'var(--pe-gray-300)' : v < 0 ? 'var(--c-loss)' : 'var(--c-gain)',
+      shape: 'square',
+      label: `Decile ${i + 1}`,
+    },
+  ]),
+);
+
 export default function Deciles() {
   return (
-    <Scrolly
-      id="p3-deciles"
-      sub={DECILES_SUB}
-      steps={DECILE_STEPS}
-      graphic={(i, r, ctx) => <DecilesFigure hl={highlightFor(DECILE_STEPS, i, ctx)} ctx={ctx} />}
-      label="Change in household disposable income by income decile"
-    />
+    <MarkProvider marks={DECILE_MARKS}>
+      <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={DECILE_STEPS} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
+    </MarkProvider>
   );
 }

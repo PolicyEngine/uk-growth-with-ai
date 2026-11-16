@@ -1910,13 +1910,6 @@ svg.p3-dim {
     margin-bottom: -32px;
   }
 }
-/* 3-7 on desktop: the figure keeps its own height (its two states side by
-   side are short), so it stays in view while each card holds its state */
-@media (min-width: 901px) {
-  #p3-moves .scrolly-graphic-inner {
-    min-height: calc(100vh - var(--story-graphic-top) - 230px);
-  }
-}
 /* the track labels: the left one ends at its tick, the right one starts at
    its tick; the cost word sits on the track's line only */
 .p3-be-point.is-end {
@@ -2001,85 +1994,10 @@ svg.p3-dim {
   }
 }
 
-/* One step, one sentence, one highlight: while a step is active its marks
-   keep full strength and the rest dim to about 25%. filter: opacity
-   composes with the entry beats' own opacity, so the two never fight. */
-.p3-scene [data-mark] {
-  transition: filter 300ms var(--story-ease);
-}
-.p3-scene.has-hl [data-mark]:not(.is-hl) {
-  filter: opacity(0.25);
-}
-/* numbered markers, in step text and on the chart */
+/* a numbered marker on an HTML chart, beside its row's label (the
+   text's <Num n> twin, S2's .hl-num disc) */
 .p3-nm {
-  display: inline-block;
-  font-weight: 600;
-  color: var(--pe-gray-800);
-  line-height: 1;
-}
-.scrolly-title .p3-nm {
-  font-size: 1.05em;
-}
-/* series names in text: the series colour and its marker, the legend */
-.p3-sname {
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--p3-s, var(--pe-gray-800));
-}
-.p3-sname-mark {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 4px;
-  border-radius: 2px;
-  background: var(--p3-s-fill, var(--p3-s, var(--pe-gray-800)));
-  vertical-align: 0.05em;
-}
-.p3-s-loss {
-  --p3-s: var(--c-loss-text, #b45309);
-  --p3-s-fill: var(--c-loss);
-}
-.p3-s-gain {
-  --p3-s: var(--c-gain-text);
-  --p3-s-fill: var(--c-gain);
-}
-.p3-s-neutral {
-  --p3-s: var(--pe-gray-800);
-}
-.p3-s-muted {
-  --p3-s: var(--pe-gray-600);
-  --p3-s-fill: var(--pe-gray-300);
-}
-.p3-s-disposable {
-  --p3-s: var(--c-loss-text, #b45309);
-  --p3-s-fill: var(--c-loss);
-}
-.p3-s-benefits {
-  --p3-s: var(--rank-2);
-}
-.p3-s-tax {
-  --p3-s: var(--rank-1);
-}
-.p3-s-other {
-  --p3-s: var(--pe-gray-600);
-  --p3-s-fill: var(--pe-gray-400);
-}
-.p3-s-ring .p3-sname-mark {
-  background: transparent;
-  border: 2px solid var(--pe-gray-800);
-  border-radius: 50%;
-}
-.p3-s-dot .p3-sname-mark {
-  border-radius: 50%;
-}
-/* a number in step text: a chip */
-.p3-num {
-  display: inline-block;
-  padding: 0 6px;
-  border-radius: 999px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  background: color-mix(in srgb, var(--pe-gray-800) 8%, transparent);
+  vertical-align: 0.1em;
 }
 /* the fold's groups under small icon sub-labels */
 .p3-fold-group + .p3-fold-group {
@@ -2096,14 +2014,10 @@ svg.p3-dim {
   text-transform: uppercase;
   color: var(--pe-gray-600);
 }
-.p3-fold-items {
-  margin: 0;
-  padding-left: 18px;
+.p3-fold-text {
+  margin: 0 0 2px;
   font-size: 13px;
   line-height: 1.45;
-}
-.p3-fold-items li + li {
-  margin-top: 2px;
 }
 .p3-draws {
   display: inline-flex;
@@ -2117,5 +2031,39 @@ svg.p3-dim {
 @media (min-width: 901px) {
   #story-part-3 .scrolly:not(.is-single) .scrolly-graphic-inner {
     min-height: 0;
+  }
+}
+/* 3-5: the rule dots slide in from zero along their axes */
+.p3-scene .p3-dot {
+  transition:
+    left 700ms var(--story-ease) var(--beat, 0ms),
+    opacity 300ms var(--story-ease),
+    filter 300ms var(--story-ease);
+}
+/* Each state holds 200px of scroll (check_states: 180px) while the figure
+   is in view. The scroll a scene gives its states is H - top - 0.8F plus
+   the cards' column beyond the figure (Scrolly's geometry), so each card
+   gets a floor of (1.8F + 130px + 200px a state + 20px - 100vh) / n, the
+   32px gap out: nothing at tall screens, more at short ones. F: the
+   figure's height at 1280px (central 536, channels 403, deciles 429, rules
+   384 (plus 40px: its rows wrap), margin 416, moves 452). */
+@media (min-width: 901px) {
+  #p3-central .scrolly-card {
+    min-height: calc((1515px - 100vh) / 2 - 32px);
+  }
+  #p3-channels .scrolly-card {
+    min-height: calc((1475px - 100vh) / 3 - 32px);
+  }
+  #p3-deciles .scrolly-card {
+    min-height: calc((1522px - 100vh) / 3 - 32px);
+  }
+  #p3-rules .scrolly-card {
+    min-height: calc((1281px - 100vh) / 2 - 32px);
+  }
+  #p3-margin .scrolly-card {
+    min-height: calc((1299px - 100vh) / 2 - 32px);
+  }
+  #p3-moves .scrolly-card {
+    min-height: calc((1364px - 100vh) / 2 - 32px);
   }
 }

@@ -8,6 +8,7 @@ import { Replay } from '@/components/story/chart/index.js';
 import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
 import { FileLink, PR_URL as STUDY_PR_URL } from './sources.jsx';
+import { Fig as FigChip } from '@/components/story/highlight.jsx';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
 // the source line, the chips and the bar rows. Figure text is HTML; bars are
@@ -64,7 +65,8 @@ export function Source({ children, files = [] }) {
   return (
     <p className="story-source p3-iconed">
       <Ico c="source" size={12} />
-      Source: PolicyEngine-UK microsimulation{PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
+      Source: PolicyEngine-UK microsimulation
+      {PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
       {children ? <>; {children}</> : null}:{' '}
       {fs.map((f) => (
         <span key={f}>
@@ -239,17 +241,33 @@ export { Replay };
 // A scene's class list: entry state, and the no-transition reset.
 export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
 
-// A scene sub-header over a group of blocks (part 3 reads as three scenes:
-// the cost, who it falls on, what moves it). The rail reads [data-scene].
-// Used for the blocks that are not Scrolly blocks (step 8), with the same
-// markup as Scrolly's `sub` header; `question` is kept for the opener.
-export function SceneHead({ title, icon, question, id }) {
+// A scene sub-header for a block that is not a Scrolly block (step 8): the
+// same markup as Scrolly's topic header, the question static (no opener),
+// and its answer chip always shown, under it (brief A: under reduced motion
+// and outside Scrolly the question is a static header with its answer).
+export function SceneHead({ title, icon, question, answer, id, qid }) {
   return (
-    <header className="scene-head p3-scene-head" data-scene={title} data-question={question}>
-      <Ico c={icon} size={16} />
-      <h3 className="scene-head-title" id={id}>
-        {title}
-      </h3>
+    <header className={`scene-head p3-scene-head${question ? ' has-q' : ''}${answer ? ' has-a' : ''}`} data-scene={title} id={qid}>
+      <span className="scene-head-row">
+        <Ico c={icon} size={16} />
+        <h3 className="scene-head-title" id={id}>
+          {title}
+        </h3>
+        {question ? (
+          <p className="scene-head-q">
+            <Ico c="question" size={14} />
+            <span>{question}</span>
+          </p>
+        ) : null}
+        <span className="scene-head-rule" aria-hidden="true" />
+      </span>
+      {answer ? (
+        <p className="scene-head-a is-shown">
+          <Ico c="answer" size={14} />
+          <span className="scene-head-a-label">Answer</span>
+          <span className="scene-head-a-text">{answer}</span>
+        </p>
+      ) : null}
     </header>
   );
 }
@@ -259,59 +277,36 @@ export function SceneHead({ title, icon, question, id }) {
 // trace the text between the plots"). Each scene has at most three steps;
 // each step is one sentence of about 15 words and declares `highlight`, the
 // ids of the marks it is about. The figure's marks carry data-mark="<id>";
-// while a step is active the highlighted marks keep full strength and the
-// rest dim (CSS: .p3-scene.has-hl [data-mark]:not(.is-hl)). Drawn once on
-// phones (ctx.once), every card is on screen together, so nothing dims;
-// the numbered markers and colour-keyed names tie each card to its marks.
+// Scrolly (S2's highlight.jsx) dims the rest while the step is active.
+// Words in the text are S2's <Key id> (series colour and marker, from each
+// scene's MarkProvider registry), numbers <Fig path mark>, markers <Num n>.
+export { Fig, Key, MarkProvider, Num } from '@/components/story/highlight.jsx';
 
-// The ids a step highlights, for the figure drawing step `i`.
-export const highlightFor = (steps, i, ctx) => (ctx?.once ? [] : (steps[i]?.highlight ?? []));
-
-// A mark's props: data-mark, and is-hl while it is highlighted.
-export function markProps(id, hl, cls = '') {
-  const on = hl.length > 0 && hl.includes(id);
-  return { 'data-mark': id, className: `${cls}${on ? ' is-hl' : ''}`.trim() };
-}
-export const hlClass = (hl) => (hl.length ? ' has-hl' : '');
-
-// A numbered marker, ① to ⑨, in step text and on the chart, where a step
-// needs more than one point.
-const CIRCLED = ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];
+// A numbered marker on an HTML chart (the text's <Num n> twin): inside the
+// marked row, so it dims and lights with it. Scale, not data (data-axis).
 export function NumMarker({ n, className = '' }) {
   return (
-    <span className={`p3-nm ${className}`.trim()} data-marker={n} aria-label={`(${n})`}>
-      {CIRCLED[n] ?? `(${n})`}
+    <span className={`hl-num p3-nm ${className}`.trim()} data-axis="" aria-hidden="true">
+      {n}
     </span>
   );
 }
 
-// A series name in step text, in the series' colour with its marker: the
-// text works as the legend. `s` names the series (a class p3-s-<s>).
-export function SeriesName({ s, children }) {
+// A quoted input as a number chip: not a result (data-input), so the number
+// check skips it.
+export function InputFig({ path, mark, children }) {
   return (
-    <span className={`p3-sname p3-s-${s}`} data-series={s}>
-      <span className="p3-sname-mark" aria-hidden="true" />
-      {children}
+    <span data-input="">
+      <FigChip path={path} mark={mark}>
+        {children}
+      </FigChip>
     </span>
   );
 }
-
-// A number in step text: a chip that pulses its data point (data-path, the
-// value's path in aiStudy2425.json; `mark`, the chart mark it belongs to).
-// `input` marks a quoted input (data-input: not a result, so the number
-// check skips it).
-export function NumChip({ path, mark, input = false, children }) {
-  return (
-    <span className="p3-num" data-path={path} data-num-mark={mark} {...(input ? { 'data-input': '' } : {})}>
-      {children}
-    </span>
-  );
-}
-
-// The step-card template, folded: an "About these figures" fold with its
-// items grouped under small icon sub-labels ("Assumed", "Finding",
-// "Caveat", "See also"), never a flat mixed list. `groups`:
-// [{ label, icon, items }]. Prose only (see About).
+// The step-card template, folded: an "About these figures" fold, its text
+// grouped under small icon sub-labels ("Assumed", "Finding", "Caveat",
+// "Definitions", "See also"), never a flat mixed list; each group a short
+// sentence or two. `groups`: [{ label, icon, items }]. Prose only (see About).
 export const GROUP_ICON = { Assumed: 'scenario', Finding: 'takeaway', Caveat: 'caveat', 'See also': 'link', Definitions: 'measure' };
 export function Fold({ groups }) {
   const gs = groups.filter((g) => g && g.items.filter(Boolean).length);
@@ -325,11 +320,11 @@ export function Fold({ groups }) {
           <p className="p3-fold-label">
             <Ico c={g.icon ?? GROUP_ICON[g.label] ?? 'caveat'} size={12} /> {g.label}
           </p>
-          <ul className="p3-fold-items">
-            {g.items.filter(Boolean).map((t, i) => (
-              <li key={i}>{t}</li>
-            ))}
-          </ul>
+          {g.items.filter(Boolean).map((t, i) => (
+            <p key={i} className="p3-fold-text">
+              {t}
+            </p>
+          ))}
         </section>
       ))}
     </details>
@@ -344,3 +339,9 @@ export function DrawsChip({ children }) {
     </span>
   );
 }
+
+// A mark's props: data-mark (S2's highlight dims the marks a step does not name).
+export const markProps = (id, className = '') => ({
+  'data-mark': id,
+  className,
+});

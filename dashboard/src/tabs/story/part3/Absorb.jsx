@@ -7,7 +7,7 @@ import { Pause } from '@/components/story/chart/index.js';
 import Sankey from '@/components/story/Sankey.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtShare } from './format.js';
-import { AxisTitle, D, DrawsChip, FigureHead, Fold, Ico, NumChip, NumMarker, OBR_SCENARIO, OutsideRebuildFlag, SeriesName, Source, entryClass, ladder, useBeat } from './shared.jsx';
+import { AxisTitle, D, DrawsChip, FigureHead, Fold, Ico, Fig, Num, OBR_SCENARIO, OutsideRebuildFlag, Key, MarkProvider, Source, entryClass, ladder, useBeat } from './shared.jsx';
 import { CENTRAL_RATE } from './Central.jsx';
 import { Ref } from './sources.jsx';
 
@@ -23,10 +23,30 @@ const S = D.sankey;
 // collide. Labels are short (the shared Sankey keeps about 112px for the last
 // column's labels on phones); the value is the `sub`.
 export const DESTS = [
-  { id: 'disposable', key: 'disposable_bn', label: 'Disposable income', color: 'var(--c-loss)' },
-  { id: 'benefits', key: 'benefits_bn', label: 'More benefits', color: 'var(--rank-2)' },
-  { id: 'tax', key: 'tax_ni_bn', label: 'Less tax and NI', color: 'var(--rank-1)' },
-  { id: 'other', key: 'other_bn', label: 'Other items', color: 'var(--pe-gray-400)' },
+  {
+    id: 'disposable',
+    key: 'disposable_bn',
+    label: 'Disposable income',
+    color: 'var(--c-loss)',
+  },
+  {
+    id: 'benefits',
+    key: 'benefits_bn',
+    label: 'More benefits',
+    color: 'var(--rank-2)',
+  },
+  {
+    id: 'tax',
+    key: 'tax_ni_bn',
+    label: 'Less tax and NI',
+    color: 'var(--rank-1)',
+  },
+  {
+    id: 'other',
+    key: 'other_bn',
+    label: 'Other items',
+    color: 'var(--pe-gray-400)',
+  },
 ];
 // Decile 1 carries the ranking caveat of step 4: its node and ribbons stay
 // grey in every beat, never coloured by a destination.
@@ -36,12 +56,27 @@ export const CAVEAT_GREY = 'var(--pe-gray-300)';
 // width (components/story/Sankey.jsx flows left to right on phones too).
 export function absorbGraph() {
   const nodes = [
-    ...S.deciles.map((_, i) => ({ id: `d${i + 1}`, label: String(i + 1), color: i === 0 ? CAVEAT_GREY : 'var(--pe-gray-700)' })),
-    ...DESTS.map((d) => ({ id: d.id, label: d.label, sub: fmtBn(S.total[d.key]), color: d.color })),
+    ...S.deciles.map((_, i) => ({
+      id: `d${i + 1}`,
+      label: String(i + 1),
+      color: i === 0 ? CAVEAT_GREY : 'var(--pe-gray-700)',
+    })),
+    ...DESTS.map((d) => ({
+      id: d.id,
+      label: d.label,
+      sub: fmtBn(S.total[d.key]),
+      color: d.color,
+    })),
   ];
   const links = [];
   S.deciles.forEach((f, i) => {
-    for (const d of DESTS) links.push({ source: `d${i + 1}`, target: d.id, value: f[d.key], color: i === 0 ? CAVEAT_GREY : d.color });
+    for (const d of DESTS)
+      links.push({
+        source: `d${i + 1}`,
+        target: d.id,
+        value: f[d.key],
+        color: i === 0 ? CAVEAT_GREY : d.color,
+      });
   });
   return { nodes, links };
 }
@@ -148,8 +183,14 @@ function AbsorbFigure({ ctx, cur, setCur }) {
       <Items
         className="p3-key-items p3-key-row"
         items={[
-          { icon: 'caveat', text: 'Other items: mainly pension contributions no longer paid' },
-          { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government</> },
+          {
+            icon: 'caveat',
+            text: 'Other items: mainly pension contributions no longer paid',
+          },
+          {
+            icon: 'tax',
+            text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government</>,
+          },
         ]}
       />
       <Source files={[S.file, ladder('obr')?.file]}>run sized to the OBR scenario (Box 2.2), household flows by baseline decile</Source>
@@ -169,6 +210,8 @@ export const ABSORB_SUB = {
   icon: 'households',
   question: 'Where does a lost pound of earnings go?',
   hint: 'Watch where the lost earnings land',
+  key: 'lost pound',
+  answerTo: 'p3-absorb-step',
   answer: `Households bear ${fmtBn(S.total.disposable_bn)} of ${fmtBn(S.total.earnings_lost_bn)}`,
   takeaway: MOST ? 'Households bear most of the earnings lost; lower tax, more benefits and other items take the rest' : 'Tax and benefits absorb much of the earnings lost',
 };
@@ -183,7 +226,7 @@ export const ABSORB_LINES = [
     highlight: ['disposable'],
     text: (
       <>
-        <NumMarker n={1} /> {MOST ? 'Most' : 'Part'} of the loss comes out of households’ <SeriesName s="disposable">disposable income</SeriesName>
+        <Num n={1} mark="disposable" /> {MOST ? 'Most' : 'Part'} of the loss comes out of households’ <Key id="disposable">disposable income</Key>
       </>
     ),
   },
@@ -191,10 +234,10 @@ export const ABSORB_LINES = [
     highlight: ['tax'],
     text: (
       <>
-        <NumMarker n={2} /> <SeriesName s="tax">Less tax and NI</SeriesName> takes {TAX_MOST ? 'most of the rest' : 'part of the rest'}; with benefits,{' '}
-        <NumChip path="sankey.tax_benefit_share_pct" mark="tax">
+        <Num n={2} mark="tax" /> <Key id="tax">Less tax and NI</Key> takes {TAX_MOST ? 'most of the rest' : 'part of the rest'}; with benefits,{' '}
+        <Fig path="sankey.tax_benefit_share_pct" mark="tax">
           {fmtShare(S.tax_benefit_share_pct)}
-        </NumChip>
+        </Fig>
       </>
     ),
   },
@@ -202,11 +245,14 @@ export const ABSORB_LINES = [
     highlight: ['benefits'],
     text: (
       <>
-        <NumMarker n={3} /> <SeriesName s="benefits">More benefits</SeriesName> replace {BENEFIT_SHARE < 5 ? 'under a twentieth' : 'part'} of the earnings lost
+        <Num n={3} mark="benefits" /> <Key id="benefits">More benefits</Key> replace {BENEFIT_SHARE < 5 ? 'under a twentieth' : 'part'} of the earnings lost
       </>
     ),
   },
 ];
+
+// The destinations, for the colour-keyed words.
+const ABSORB_MARKS = Object.fromEntries(DESTS.map((d) => [d.id, { color: d.color, shape: 'square', label: d.label }]));
 
 function AbsorbLines({ cur, setCur }) {
   return (
@@ -246,13 +292,34 @@ export default function Absorb() {
           <AbsorbLines cur={lit} setCur={setCur} />
           <Fold
             groups={[
-              { label: 'Definitions', items: ['A smaller shock than the central case: job loss alone, with no assumed pay or capital-income rises'] },
-              { label: 'Caveat', items: [<>Decile 1 is grey: the study does not report it as a finding (<a href="#p3-deciles-step">step 4</a>)</>] },
+              {
+                label: 'Definitions',
+                items: ['A smaller shock than the central case: job loss alone, with no assumed pay or capital-income rises'],
+              },
+              {
+                label: 'Caveat',
+                items: [
+                  <>
+                    Decile 1 is grey: the study does not report it as a finding (<a href="#p3-deciles-step">step 4</a>)
+                  </>,
+                ],
+              },
             ]}
           />
         </>
       ),
     },
   ];
-  return <Scrolly id="p3-absorb" sub={ABSORB_SUB} steps={steps} graphic={(i, r, ctx) => <AbsorbFigure ctx={ctx} cur={lit} setCur={setCur} />} wide label="Where the earnings lost to job loss go, by income decile" />;
+  return (
+    <MarkProvider marks={ABSORB_MARKS}>
+      <Scrolly
+        id="p3-absorb"
+        sub={ABSORB_SUB}
+        steps={steps}
+        graphic={(i, r, ctx) => <AbsorbFigure ctx={ctx} cur={lit} setCur={setCur} />}
+        wide
+        label="Where the earnings lost to job loss go, by income decile"
+      />
+    </MarkProvider>
+  );
 }

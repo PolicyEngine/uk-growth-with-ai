@@ -6,7 +6,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
 import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
-import { AxisTitle, BASELINE_LABEL, D, DrawsChip, FigureHead, Fold, MODEL_YEAR, NumChip, NumMarker, SeriesName, Source, Ico, entryClass, highlightFor, hlClass, markProps, useBeat } from './shared.jsx';
+import { AxisTitle, BASELINE_LABEL, D, DrawsChip, FigureHead, Fold, MODEL_YEAR, InputFig, Num, NumMarker, Key, MarkProvider, Source, Ico, entryClass, markProps, useBeat } from './shared.jsx';
 import { Ref, Sec } from './sources.jsx';
 
 // Step 1, the central case (results.tex, "The central scenario"). The
@@ -39,8 +39,19 @@ export const DISPLACED_TILES = CENTRAL_RATE == null ? 0 : Math.round(CENTRAL_RAT
 // The cost's spread across draws sits under the cost; the upper-bound
 // reading stays visible beside the poverty tile (it qualifies a headline).
 const FACTS = [
-  { key: 'displaced', icon: 'jobLoss', value: fmtMillions(H.central_displaced.value), label: 'employees assumed displaced' },
-  { key: 'cost', icon: 'cost', value: fmtBn(H.central_cost.value), label: 'cost to the public finances, a year', sub: `standard deviation ${fmtBn(H.central_cost.sd)}` },
+  {
+    key: 'displaced',
+    icon: 'jobLoss',
+    value: fmtMillions(H.central_displaced.value),
+    label: 'employees assumed displaced',
+  },
+  {
+    key: 'cost',
+    icon: 'cost',
+    value: fmtBn(H.central_cost.value),
+    label: 'cost to the public finances, a year',
+    sub: `standard deviation ${fmtBn(H.central_cost.sd)}`,
+  },
   {
     key: 'poverty',
     icon: 'poverty',
@@ -62,7 +73,13 @@ const FACTS = [
     label: 'relative poverty, before housing costs',
     sub: `from ${fmtPct1(B.relative_bhc_pct.value)}`,
   },
-  { key: 'gini', icon: 'inequality', value: fmtPp(H.central_gini.value), label: 'Gini coefficient, in points', sub: `from ${fmtGini(B.gini.value)}` },
+  {
+    key: 'gini',
+    icon: 'inequality',
+    value: fmtPp(H.central_gini.value),
+    label: 'Gini coefficient, in points',
+    sub: `from ${fmtGini(B.gini.value)}`,
+  },
 ];
 
 // The tiles (scene 3-1, plan section 2): 100 employees in grey; after the
@@ -88,21 +105,24 @@ export function centralTiles(on) {
   });
 }
 
-function CentralFigure({ hl = [], ctx }) {
+function CentralFigure({ ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   const tiles = centralTiles(e.on);
   // each fact a mark (data-mark="f-<key>"); the count-up restarts when the
   // entry beat plays (after the topic opener), not while it covers the figure
-  const facts = FACTS.map((f) => ({ ...f, value: <CountUp key={`${e.run}-${e.on}`} value={f.value} /> }));
+  const facts = FACTS.map((f) => ({
+    ...f,
+    value: <CountUp key={`${e.run}-${e.on}`} value={f.value} />,
+  }));
   return (
-    <figure className={entryClass(e, `p3-figure p3-scene${hlClass(hl)}`)}>
+    <figure className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={<DrawsChip>{H.central_cost.draws} draws</DrawsChip>} replay={e.replay} />
       {/* the poverty basis, said once for the part: before housing costs */}
       <p className="p3-pov-basis" title="Every poverty figure in this part is before housing costs (BHC); the after-housing-costs rise is shown once, as a secondary figure">
         <Ico c="poverty" size={13} /> Poverty: before housing costs (default)
       </p>
       <div className="p3-central">
-        <div {...markProps('displaced', hl, 'p3-central-tiles')}>
+        <div {...markProps('displaced', 'p3-central-tiles')}>
           <p className="p3-tile-heads">
             <AxisTitle axis="x">
               <Ico c="workers" size={12} /> Employees
@@ -111,21 +131,14 @@ function CentralFigure({ hl = [], ctx }) {
               <NumMarker n={1} /> Assumed displaced
             </span>
           </p>
-          <TileField
-            tiles={tiles}
-            width={10 + 1 + GAP_COLS}
-            height={10}
-            size={14}
-            gap={3}
-            label="Tile grid of employees; the tiles set apart in ink are those assumed displaced in the central case"
-          />
+          <TileField tiles={tiles} width={10 + 1 + GAP_COLS} height={10} size={14} gap={3} label="Tile grid of employees; the tiles set apart in ink are those assumed displaced in the central case" />
           <p className="p3-tile-key p3-iconed" data-axis="">
             <Ico c="measure" size={12} /> <AxisTitle axis="y">Share of employees, one tile = 1%</AxisTitle>
           </p>
         </div>
         <ul className="story-facts p3-facts">
           {facts.map((f, i) => (
-            <li key={f.key} {...markProps(`f-${f.key}`, hl, 'story-fact')}>
+            <li key={f.key} {...markProps(`f-${f.key}`, 'story-fact')}>
               <Icon name={iconFor(f.icon)} size={18} className="story-fact-icon" />
               <span className="story-fact-value">
                 <NumMarker n={i ? 2 : 1} className="p3-fact-nm" /> {f.value}
@@ -154,6 +167,8 @@ export const CENTRAL_SUB = {
   icon: 'jobLoss',
   question: 'What happens in the central case?',
   hint: 'Watch who steps out of the grid',
+  key: 'central',
+  answerTo: 'p3-central-step',
   answer: `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,
   takeaway: `A year of assumed job loss ${COSTS ? 'costs the public finances' : 'adds to net receipts'}, ${up(H.central_poverty.value)} poverty and ${up(H.central_gini.value)} inequality`,
 };
@@ -165,10 +180,9 @@ const CENTRAL_FOLD = [
     label: 'Assumed',
     items: [
       <>
-        Also from <Ref id="doorley">Doorley et al. (2026)</Ref>: wages of those still employed rise{' '}
-        <NumChip input path="method.survivor_wage_pct">{fmtInputPct(M.survivor_wage_pct)}</NumChip>; their capital return rises <span data-input="">+{RETURN_PP}</span> points on{' '}
-        <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span>, so interest and dividends{' '}
-        <NumChip input path="method.capital_uplift_pct">+{fmtPct1(M.capital_uplift_pct)}</NumChip>
+        Also from <Ref id="doorley">Doorley et al. (2026)</Ref>: wages of those still employed rise <InputFig path="method.survivor_wage_pct">{fmtInputPct(M.survivor_wage_pct)}</InputFig>; their
+        capital return rises <span data-input="">+{RETURN_PP}</span> points on <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span>, so interest and dividends{' '}
+        <InputFig path="method.capital_uplift_pct">+{fmtPct1(M.capital_uplift_pct)}</InputFig>
       </>,
       <>
         Job loss is likelier in occupations more exposed to AI: C-AIOE, <Ref id="felten" /> exposure with the <Ref id="pizzinelli" /> adjustment, mapped to the UK by <Ref id="dfe" />
@@ -179,8 +193,10 @@ const CENTRAL_FOLD = [
     label: 'Caveat',
     items: [
       <>
-        An upper bound, says <Sec id="results">the study</Sec>: the displaced are jobless all year; the Goldman Sachs scenario behind Doorley et al. spreads displacement over about a decade (
-        <Sec id="method">paper</Sec>)
+        An upper bound, says <Sec id="results">the study</Sec>: the displaced are jobless all year
+      </>,
+      <>
+        The Goldman Sachs scenario behind Doorley et al. spreads displacement over about a decade (<Sec id="method">paper</Sec>)
       </>,
     ],
   },
@@ -204,15 +220,15 @@ export const CENTRAL_STEPS = [
     highlight: ['displaced', 'f-displaced'],
     title: (
       <>
-        <NumMarker n={1} />{' '}
+        <Num n={1} mark="displaced" />{' '}
         {CENTRAL_RATE != null ? (
-          <NumChip input path="headline.central_displaced.note" mark="displaced">
+          <InputFig path="headline.central_displaced.note" mark="displaced">
             {fmtInputPct(CENTRAL_RATE)}
-          </NumChip>
+          </InputFig>
         ) : (
           'A share'
         )}{' '}
-        of employees are <SeriesName s="neutral">jobless all year</SeriesName>, the rate from <Ref id="doorley">Doorley et al. (2026)</Ref>
+        of employees are <Key id="displaced">jobless all year</Key>, the rate from <Ref id="doorley">Doorley et al. (2026)</Ref>
       </>
     ),
   },
@@ -222,21 +238,37 @@ export const CENTRAL_STEPS = [
     highlight: ['f-cost', 'f-poverty', 'f-relative', 'f-gini'],
     title: (
       <>
-        <NumMarker n={2} /> The year {COSTS ? 'costs the public finances' : 'adds to net receipts'}, {up(H.central_poverty.value)} poverty and {up(H.central_gini.value)} inequality
+        <Num n={2} mark="f-cost" /> The year {COSTS ? 'costs the public finances' : 'adds to net receipts'}, {up(H.central_poverty.value)} poverty and {up(H.central_gini.value)} inequality
       </>
     ),
     body: <Fold groups={CENTRAL_FOLD} />,
   },
 ];
 
+// The scene's marks, for the colour-keyed words.
+const CENTRAL_MARKS = {
+  displaced: {
+    color: 'var(--pe-gray-800)',
+    shape: 'square',
+    label: 'Employees assumed displaced',
+  },
+  'f-cost': {
+    color: 'var(--pe-gray-800)',
+    shape: 'none',
+    label: 'Cost to the public finances',
+  },
+};
+
 export default function Central() {
   return (
-    <Scrolly
-      id="p3-central"
-      sub={CENTRAL_SUB}
-      steps={CENTRAL_STEPS}
-      graphic={(i, r, ctx) => <CentralFigure hl={highlightFor(CENTRAL_STEPS, i, ctx)} ctx={ctx} />}
-      label="The central case: people displaced, cost, poverty and inequality, beside their baselines"
-    />
+    <MarkProvider marks={CENTRAL_MARKS}>
+      <Scrolly
+        id="p3-central"
+        sub={CENTRAL_SUB}
+        steps={CENTRAL_STEPS}
+        graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />}
+        label="The central case: people displaced, cost, poverty and inequality, beside their baselines"
+      />
+    </MarkProvider>
   );
 }
