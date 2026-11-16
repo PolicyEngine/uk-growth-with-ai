@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items, KeyFacts } from '@/components/story/Items.jsx';
@@ -113,12 +114,12 @@ function outputSteps() {
           <Items
             items={[
               { icon: 'forecast', text: `The OBR’s central forecast, published ${OBR_VINTAGE}` },
+              { icon: 'path', text: 'Dashed, with open dots: forecast years' },
               { icon: 'link', text: `Part 2’s modelling starts from the OBR’s ${MODEL_BASE_VINTAGE} forecast` },
             ]}
           />
           <About
             items={[
-              { icon: 'path', text: 'Every year on the dashed line is a forecast' },
               { icon: 'revision', text: `Drawn apart: the OBR starts from an older ${last(gs.x)} estimate` },
               { icon: 'period', text: `${OBR.x[OBR.x.length - 1]} is the last year it covers` },
             ]}
@@ -144,6 +145,7 @@ function outputSteps() {
             items={[
               { icon: 'period', text: `${year} is not yet complete: no calendar-year figure` },
               { icon: 'revision', text: 'These are the ONS’s first estimates' },
+              { icon: 'compare', text: 'This year’s quarters in dark, earlier ones in grey' },
             ]}
           />
         </>
@@ -165,7 +167,12 @@ function workSteps() {
       body: (
         <>
           <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: <V path="facts.employment_rate_latest.value">{pct1(e.value)}</V>, label: 'employment rate', sub: `aged 16 to 64, ${e.period}` }]} />
-          <Items items={[{ icon: 'measure', text: 'Each point is a three-month average' }]} />
+          <Items
+            items={[
+              { icon: 'measure', text: 'Each point is a three-month average' },
+              { icon: 'survey', text: 'Survey response has improved, but some volatility remains' },
+            ]}
+          />
         </>
       ),
     },
@@ -178,11 +185,11 @@ function workSteps() {
           <KeyFacts className="p1-facts" facts={[{ icon: 'labour', value: <V path="facts.unemployment_rate_latest.value">{pct1(u.value)}</V>, label: 'unemployment rate', sub: `aged 16 and over, ${u.period}` }]} />
           <Items
             items={[
+              { icon: 'measure', text: 'Unemployed: without work, looking and able to start' },
               { icon: 'survey', text: 'Both rates come from the Labour Force Survey' },
               { icon: 'caveat', text: 'The ONS advises focusing on long-term movements, not short-term changes' },
             ]}
           />
-          <About items={[{ icon: 'survey', text: 'Survey response has improved, but some volatility remains' }]} />
         </>
       ),
     },
@@ -224,6 +231,7 @@ function productivitySteps() {
           <Items
             items={[
               { icon: 'measure', text: 'The main measure of labour productivity' },
+              { icon: 'gdp', text: 'Output divided by total hours worked' },
               { icon: 'period', text: 'The latest quarter published' },
             ]}
           />
@@ -301,6 +309,7 @@ function aiSteps() {
             items={[
               { icon: 'caveat', text: 'The ONS often leads with this group' },
               { icon: 'why', text: 'Results for the smallest businesses carry large survey weights' },
+              { icon: 'survey', text: 'The same survey and question, for a subset of businesses' },
             ]}
           />
         </>
@@ -318,8 +327,10 @@ function aiSteps() {
               { icon: 'workers', text: 'Each tile in the grid is one per cent of UK workers' },
               { icon: 'source', text: `IMF estimates (${when}), reported by the science department (DSIT)` },
               { icon: 'ai', text: 'Sorted by how exposed their occupations are to AI' },
+              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
             ]}
           />
+          <About items={[{ icon: 'limit', text: 'No official table gives exposure by major occupation group' }]} />
         </>
       ),
     },
@@ -343,12 +354,6 @@ function aiSteps() {
               { icon: 'source', text: <>DSIT’s text says around <V path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</V></> },
             ]}
           />
-          <About
-            items={[
-              { icon: 'caveat', text: 'Such indices are indicative rather than precise, DSIT notes' },
-              { icon: 'limit', text: 'No official table gives exposure by major occupation group' },
-            ]}
-          />
         </>
       ),
     },
@@ -365,23 +370,43 @@ function exposureSource() {
   );
 }
 
-// The labour board's steps, in focus order: a click on a sparkline brings
-// that step across the trigger line (useActiveStep: 55% of the viewport on
-// desktop, 88% at 900px and below), the same as scrolling to it.
-const WORK_STEPS = ['p1-work-0', 'p1-work-1', 'p1-pay-0', 'p1-productivity-0', 'p1-share-0'];
+// A click on a sparkline does what that step's dot does (Scrolly): on
+// desktop and in a sticky phone scene it scrolls to the step, and where the
+// figure is drawn once it sets the state.
 function pickWork(i) {
-  const el = document.getElementById(WORK_STEPS[i]);
-  if (!el) return;
-  const phone = window.matchMedia?.('(max-width: 900px)').matches;
-  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const line = window.innerHeight * (phone ? 0.88 : 0.55);
-  const r = el.getBoundingClientRect();
-  // the step's top a little above the line, so its box crosses it
-  const top = r.top + window.scrollY - line + Math.min(40, r.height / 2);
-  window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+  document.querySelectorAll('#p1-work .scrolly-dots button')[i]?.click();
+}
+
+// Old ids that are now steps inside a scene: a link to one lands on its
+// card (the anchor), then does what that step's dot does, so the scene is
+// in the right state however Scrolly maps scroll to steps.
+const ANCHOR_STEP = {
+  'p1-quarters': ['p1-output', 2],
+  'p1-pay': ['p1-work', 2],
+  'p1-productivity': ['p1-work', 3],
+  'p1-share': ['p1-work', 4],
+  'p1-exposure': ['p1-ai', 2],
+};
+function useAnchorSteps() {
+  useEffect(() => {
+    let t = 0;
+    const go = () => {
+      const hit = ANCHOR_STEP[window.location.hash.slice(1)];
+      if (!hit) return;
+      window.clearTimeout(t);
+      t = window.setTimeout(() => document.querySelectorAll(`#${hit[0]} .scrolly-dots button`)[hit[1]]?.click(), 250);
+    };
+    go();
+    window.addEventListener('hashchange', go);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('hashchange', go);
+    };
+  }, []);
 }
 
 export default function Part1({ part }) {
+  useAnchorSteps();
   return (
     <>
       <PartHead
@@ -421,10 +446,10 @@ export default function Part1({ part }) {
         sub={{ title: 'AI arrives', icon: 'ai' }}
         label="Businesses using AI, and UK workers by exposure to AI"
         steps={aiSteps()}
-        graphic={(i) => (
+        graphic={(i, reduce, ctx) => (
           <Swap active={i < 2 ? 0 : 1}>
             <AiUseChart state={Math.min(i, 1)} />
-            <ExposureTiles state={i >= 3 ? 1 : 0} source={exposureSource()} />
+            <ExposureTiles state={i >= 3 ? 1 : 0} source={exposureSource()} entered={ctx?.entered ?? true} />
           </Swap>
         )}
       />

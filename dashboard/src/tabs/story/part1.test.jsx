@@ -4,13 +4,14 @@
 // file's paths, and the part is rendered against both the real file and a
 // fixture with altered values, so a hard-coded number fails.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
 import real from '@/data/ukContext.json';
 import checks from '@/data/ukContextChecks.json';
 import Part1Real from '@/tabs/story/Part1.jsx';
 import { dateLong, dirOf, dirWord, idx1, monthYear, pct1, share0, tick } from '@/tabs/story/part1/format.js';
 import { AiUseChart, ExposureTiles, LabourBoard, OutputCanvas, barPath, boardSeries, exposureTiles } from '@/tabs/story/part1/charts.jsx';
 import { DSIT_AROUND } from '@/tabs/story/part1/data.js';
+import { FinalState } from '@/components/story/motion.js';
 
 afterEach(cleanup);
 
@@ -264,12 +265,12 @@ describe('story part 1, first states', () => {
     expect([...q.querySelectorAll('.p1-bar-q')].every((p) => p.classList.contains('is-on'))).toBe(true);
   });
 
-  it('rounds only the free end of a bar', () => {
+  it('rounds only the free end of a bar (the shared Bars outline)', () => {
     // a positive bar from y=100 up to y=40: the base corners are square
-    expect(barPath(10, 8, 100, 40)).toMatch(/^M10\.00,100\.00V42\.00Q/);
-    expect(barPath(10, 8, 100, 40)).toMatch(/V100\.00Z$/);
+    expect(barPath(10, 8, 100, 40)).toMatch(/^M10,100L10,42Q/);
+    expect(barPath(10, 8, 100, 40)).toMatch(/L18,100Z$/);
     // a negative bar from y=100 down to y=160
-    expect(barPath(10, 8, 100, 160)).toMatch(/^M10\.00,100\.00V158\.00Q/);
+    expect(barPath(10, 8, 100, 160)).toMatch(/^M10,100L10,158Q/);
   });
 
   it('keeps all five series on the labour board at every step, one in focus', () => {
@@ -281,7 +282,7 @@ describe('story part 1, first states', () => {
       expect(c.querySelectorAll('.p1-board-series.is-focus')).toHaveLength(1);
       expect([...c.querySelectorAll('.p1-board-series')].findIndex((g) => g.classList.contains('is-focus'))).toBe(f);
       expect(c.querySelectorAll('.p1-board-axes.is-on')).toHaveLength(1);
-      expect(c.querySelector('.p1-board-svg').getAttribute('aria-label')).toMatch(/Four smaller charts below it show .*, each on its own scale\./);
+      expect(c.querySelector('.ch-cross svg').getAttribute('aria-label')).toMatch(/Four smaller charts below it show .*, each on its own scale\./);
       cleanup();
     }
   });
@@ -304,9 +305,23 @@ describe('story part 1, first states', () => {
     expect(block.textContent).toContain('Each tile is one per cent of UK workers');
     expect(block.querySelector('.p1-groups').classList.contains('is-on')).toBe(false);
     cleanup();
-    const groups = render(<ExposureTiles state={1} source={null} />).container;
+    // FinalState: the figure's final state at once (no one-shot entry hold)
+    const groups = render(
+      <FinalState.Provider value>
+        <ExposureTiles state={1} source={null} />
+      </FinalState.Provider>,
+    ).container;
     expect(groups.querySelectorAll('.p1-groups li')).toHaveLength(3);
     expect(groups.querySelector('.p1-groups').classList.contains('is-on')).toBe(true);
+  });
+
+  it('opens the exposure tiles on the one block, then moves to the step state once in view', () => {
+    vi.useFakeTimers();
+    const { container } = render(<ExposureTiles state={1} source={null} entered />);
+    expect(container.querySelector('.p1-exposure').classList.contains('is-grouped')).toBe(false);
+    act(() => vi.advanceTimersByTime(500));
+    expect(container.querySelector('.p1-exposure').classList.contains('is-grouped')).toBe(true);
+    vi.useRealTimers();
   });
 
   it('keeps the same 100 tile keys in both states, so the tiles travel', () => {

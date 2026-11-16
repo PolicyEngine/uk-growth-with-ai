@@ -1,9 +1,11 @@
 'use client';
 
-import { useInView } from '@/components/story/motion.js';
+import { useEnterState, useInView } from '@/components/story/motion.js';
+import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
+import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_VINTAGE, SERIES } from './data.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
-import { span3 } from './format.js';
+import { idx1, pct1, span3 } from './format.js';
 
 // Part 1's graphics: four figures, each drawing the complete picture for
 // the active state of its scrolly block. Nothing prints a value (the cards
@@ -22,16 +24,9 @@ const qYear = (q) => Number(q.slice(0, 4));
 const qNum = (q) => Number(q.slice(-1));
 const longest = (a) => a.reduce((m, s) => (s.length > m.length ? s : m), '');
 
-// A bar from y0 (the zero line) to y1 with a 2px radius on its free end
-// only (1px when thinner than 6px); the flat extreme of the cap is the value.
-export function barPath(x, w, y0, y1) {
-  const up = y1 < y0;
-  const len = Math.abs(y1 - y0);
-  const r = Math.min(w < 6 ? 1 : 2, w / 2, len);
-  const s = up ? 1 : -1; // from the free end back towards the base
-  const f = (v) => v.toFixed(2);
-  return `M${f(x)},${f(y0)}V${f(y1 + s * r)}Q${f(x)},${f(y1)} ${f(x + r)},${f(y1)}H${f(x + w - r)}Q${f(x + w)},${f(y1)} ${f(x + w)},${f(y1 + s * r)}V${f(y0)}Z`;
-}
+// A vertical bar from y0 (the zero line) to y1, from the shared Bars
+// outline: a 2px radius on its free end only (1px when thinner than 6px).
+export const barPath = (x, w, y0, y1) => chartBar({ pos: x, size: w, from: y0, to: y1 });
 
 // ---------------------------------------------------------------------------
 // Scene 1A. The output canvas: annual growth bars (state 0), the OBR's
@@ -42,7 +37,7 @@ export function barPath(x, w, y0, y1) {
 // from zero inside each year's slot. Annual and quarterly growth are
 // different measures, so no bar ever turns into another.
 
-const OUT_H = 236;
+const OUT_H = 218;
 const OUT_M = { l: 34, r: 8, t: 22, b: 24 };
 
 export function OutputCanvas({ state }) {
@@ -126,6 +121,32 @@ export function OutputCanvas({ state }) {
     />
   );
 
+  // the crosshair's read-out: the bars' values by year (outturn, then the
+  // OBR's years once drawn), or by quarter once zoomed; mounted only while
+  // a pointer, touch or key is on the chart
+  const years = Array.from({ length: x1 - x0 + 1 }, (_, i) => x0 + i);
+  const at = (xs, ys) => years.map((yr) => (xs.includes(yr) ? ys[xs.indexOf(yr)] : NaN));
+  const qIdx = q.x.map((_, i) => i);
+  const qX = (i) => L + (qYear(q.x[i]) - z0) * slotZ + (qNum(q.x[i]) - 0.5) * qSlot;
+  const cross = zoomed
+    ? {
+        xs: qIdx,
+        x: linear(0, q.x.length - 1, qX(0), qX(q.x.length - 1)),
+        y: YQ,
+        formatX: (i) => q.x[i],
+        unit: 'Percentage change on the previous quarter',
+        series: [{ key: 'q', name: 'Real GDP growth', icon: 'gdp', color: 'var(--pe-gray-800)', ys: q.y, format: pct1 }],
+      }
+    : {
+        xs: years,
+        x: linear(x0, x1, XA(x0), XA(x1)),
+        y: YA,
+        unit: 'Percentage change on the previous calendar year',
+        series: [
+          { key: 'ons', name: 'ONS outturn', icon: 'gdp', color: 'var(--pe-gray-800)', ys: at(g.x, g.y), format: pct1 },
+          ...(fc ? [{ key: 'obr', name: 'OBR forecast', icon: 'forecast', color: 'var(--pe-gray-800)', ys: at(OBR.x, OBR.y), format: pct1 }] : []),
+        ],
+      };
   return (
     <Figure
       icon={zoomed ? 'period' : 'gdp'}
@@ -138,15 +159,8 @@ export function OutputCanvas({ state }) {
       className="p1-out"
     >
       <div ref={box} className="p1-plot">
-        <svg
-          className={`story-svg p1-svg p1-canvas${zoomed ? ' is-q' : ''}${fc ? ' is-fc' : ''}${seen ? ' is-seen' : ''}`}
-          width="100%"
-          height={h}
-          viewBox={`0 0 ${w} ${h}`}
-          role="img"
-          aria-label={label}
-          data-state={state}
-        >
+        <Crosshair {...cross} width={w} height={h} top={T} bottom={B} label={label}>
+        <g className={`p1-canvas${zoomed ? ' is-q' : ''}${fc ? ' is-fc' : ''}${seen ? ' is-seen' : ''}`} data-state={state}>
           <defs>
             <clipPath id={clip}>
               <rect x={L} y={0} width={R - L} height={h} />
@@ -228,7 +242,8 @@ export function OutputCanvas({ state }) {
               </text>
             );
           })}
-        </svg>
+        </g>
+        </Crosshair>
       </div>
     </Figure>
   );
@@ -246,12 +261,12 @@ export function OutputCanvas({ state }) {
 // the same as scrolling to it.
 
 const N = 1000; // the unit box each series is drawn in
-const BOARD_H = 264;
+const BOARD_H = 246;
 const BOARD_M = { l: 34, r: 8, t: 10 };
-const PANEL_B = 172;
-const STRIP_NOTE_Y = 211;
-const STRIP_NAME_Y = 228;
-const SPARK = { y: 234, h: 26 };
+const PANEL_B = 154;
+const STRIP_NOTE_Y = 193;
+const STRIP_NAME_Y = 210;
+const SPARK = { y: 216, h: 26 };
 const CELL_GAP = 14;
 const FALLBACK_COLS = 4; // the fallback width (520) takes four in a row
 
@@ -266,6 +281,7 @@ export const boardSeries = () => {
   return [
     {
       key: 'employment_rate',
+      tipUnit: '% of people aged 16 to 64, three-month average',
       s: e,
       icon: 'labour',
       name: 'Employment',
@@ -277,6 +293,7 @@ export const boardSeries = () => {
     },
     {
       key: 'unemployment_rate',
+      tipUnit: '% of economically active people, three-month average',
       s: u,
       zero: true,
       icon: 'labour',
@@ -289,6 +306,7 @@ export const boardSeries = () => {
     },
     {
       key: 'pay_growth',
+      tipUnit: '% on a year earlier, three-month average',
       s: p,
       zero: true,
       area: true,
@@ -302,6 +320,7 @@ export const boardSeries = () => {
     },
     {
       key: 'productivity_oph',
+      tipUnit: 'Index, 2023 = 100',
       s: o,
       icon: 'productivity',
       name: 'Output per hour',
@@ -313,6 +332,7 @@ export const boardSeries = () => {
     },
     {
       key: 'labour_share',
+      tipUnit: '% of GDP',
       s,
       icon: 'labourShare',
       name: 'Labour share',
@@ -340,6 +360,13 @@ function unitSeries(b) {
   const area = b.area ? `${d0}L${N},${V(0).toFixed(1)}L0,${V(0).toFixed(1)}Z` : null;
   return { t, d, d0, end, area, top: V(Math.max(...b.s.y)), zeroV: V(0) };
 }
+
+// "2026 JUL" -> "Jul 2026" (a rolling three-month average's middle month);
+// quarters and years as they are
+const periodLabel = (x) => {
+  const m = String(x).match(/^(\d{4}) ([A-Z]{3})$/);
+  return m ? `${m[2][0]}${m[2].slice(1).toLowerCase()} ${m[1]}` : String(x);
+};
 
 const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs.join(''));
 
@@ -369,6 +396,17 @@ export function LabourBoard({ focus, onPick }) {
     return { x: L + (k % cols) * (cellW + CELL_GAP), y: SPARK.y + dy + row * rowH, w: cellW, h: SPARK.h, nameY: STRIP_NAME_Y + dy + row * rowH };
   };
   const cur = all[f];
+  // the crosshair reads the series in focus, as its card formats it
+  const ct = cur.s.t ?? cur.s.x;
+  const cd = niceTicks(cur.s.y, { withZero: !!cur.zero });
+  const boardCross = {
+    xs: ct,
+    x: linear(ct[0], ct[ct.length - 1], L, R),
+    y: linear(cd.lo, cd.hi, B, T),
+    formatX: (t) => periodLabel(cur.s.x[ct.indexOf(t)]),
+    unit: cur.tipUnit,
+    series: [{ key: cur.key, name: cur.name, icon: cur.icon, color: 'var(--pe-gray-800)', ys: cur.s.y, format: cur.key === 'productivity_oph' ? idx1 : pct1 }],
+  };
   const label = `Line chart: ${cur.long}, ${cur.span}. Four smaller charts below it show ${andList(others.map((o) => o.name.toLowerCase()))}, each on its own scale.`;
   return (
     <Figure
@@ -382,15 +420,8 @@ export function LabourBoard({ focus, onPick }) {
       className="p1-board"
     >
       <div ref={box} className="p1-plot">
-        <svg
-          className={`story-svg p1-svg p1-board-svg${seen ? ' is-seen' : ''}`}
-          width="100%"
-          height={boardH}
-          viewBox={`0 0 ${w} ${boardH}`}
-          role="img"
-          aria-label={label}
-          data-focus={f}
-        >
+        <Crosshair {...boardCross} width={w} height={boardH} top={T} bottom={B} label={label}>
+        <g className={`p1-board-svg${seen ? ' is-seen' : ''}`} data-focus={f}>
           {all.map((b, i) => {
             const u = unitSeries(b);
             const Y = linear(u.d.lo, u.d.hi, B, T);
@@ -437,7 +468,8 @@ export function LabourBoard({ focus, onPick }) {
               </g>
             );
           })}
-        </svg>
+        </g>
+        </Crosshair>
         {onPick ? (
           <div className="p1-spark-hits">
             {others.map((o) => {
@@ -466,7 +498,7 @@ export function LabourBoard({ focus, onPick }) {
 // (state 0: all businesses; 1: + businesses with 10 or more employees),
 // then the exposure tiles.
 
-const AI_H = 220;
+const AI_H = 204;
 const AI_M = { l: 34, r: 10, t: 12, b: 24 };
 
 export function AiUseChart({ state }) {
@@ -504,14 +536,23 @@ export function AiUseChart({ state }) {
       className="p1-ai"
     >
       <div ref={box} className="p1-plot">
-        <svg
-          className={`story-svg p1-svg p1-ai-svg${two ? ' is-two' : ''}`}
-          width="100%"
+        <Crosshair
+          xs={idx}
+          x={X}
+          y={Y}
+          width={w}
           height={aiH}
-          viewBox={`0 0 ${w} ${aiH}`}
-          role="img"
-          aria-label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
+          top={T}
+          bottom={B}
+          formatX={(i) => a.x[i]}
+          unit="Per cent of businesses"
+          series={[
+            { key: 'all', name: 'All businesses', icon: 'business', color: 'var(--pe-gray-800)', ys: a.y, format: pct1 },
+            ...(two ? [{ key: 'ten', name: '10 or more employees', icon: 'business', color: 'var(--pe-gray-500)', ys: b.y, format: pct1 }] : []),
+          ]}
+          label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
         >
+        <g className={`p1-ai-svg${two ? ' is-two' : ''}`}>
           <defs>
             <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={Y(Math.max(...a.y))} y2={Y(0)}>
               <stop offset="0" stopColor="var(--pe-gray-800)" stopOpacity="0.18" />
@@ -541,7 +582,8 @@ export function AiUseChart({ state }) {
           <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on">
             All businesses
           </text>
-        </svg>
+        </g>
+        </Crosshair>
       </div>
     </Figure>
   );
@@ -555,41 +597,33 @@ export function AiUseChart({ state }) {
 // fade in as the last tile lands.
 const GRID_W = 17;
 const GRID_H = 10;
-const TILE = 14;
-const TILE_GAP = 3;
 
 export function exposureTiles(state) {
   const groups = EXPOSURE_GROUPS.flatMap((g, gi) => Array.from({ length: Math.round(g.value) }, (_, j) => ({ g, gi, j })));
   return groups.map(({ g, gi, j }, i) => {
-    if (state < 1) return { key: `t${i}`, x: 3.5 + (i % 10), y: Math.floor(i / 10), color: 'var(--pe-gray-400)', delay: Math.floor(i / 10) * 12 };
-    const row = Math.floor(j / 5);
-    return { key: `t${i}`, x: gi * 6 + (j % 5), y: GRID_H - 1 - row, color: g.color, delay: gi * 110 + row * 14 };
+    if (state < 1) return { key: `t${i}`, x: 3.5 + (i % 10), y: Math.floor(i / 10), color: 'var(--pe-gray-400)', group: 'all' };
+    return { key: `t${i}`, x: gi * 6 + (j % 5), y: GRID_H - 1 - Math.floor(j / 5), color: g.color, group: g.id };
   });
 }
 
-export function ExposureTiles({ state, source }) {
-  const grouped = state >= 1;
-  const step = TILE + TILE_GAP;
+// `entered` (Scrolly's ctx.entered): the first time the figure comes into
+// view it shows the one block, holds, then moves to the step's state
+// (useEnterState), so the tiles travel on a deep link and on phones, where
+// the figure is drawn once in its last state.
+export function ExposureTiles({ state, source, entered = true }) {
+  const shown = useEnterState(0, state, entered);
+  const grouped = shown >= 1;
+  const tiles = exposureTiles(shown);
   const label = grouped
     ? 'A grid of 100 tiles, each one per cent of UK workers, in three groups by exposure to AI: high exposure and high complementarity, high exposure and low complementarity, and low exposure.'
     : 'A grid of 100 tiles, each one per cent of UK workers.';
   return (
-    <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`}>
+    <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`} style={{ '--p1-settle': `${tileSettleMs(exposureTiles(1))}ms` }}>
+      <ModelBadge model="official" className="p1-badge" />
       <FigTitle icon="workers" title={grouped ? 'UK workers by exposure to AI' : 'UK workers'} reserve="UK workers by exposure to AI" />
       <FigUnit>Each tile is one per cent of UK workers</FigUnit>
       <div className="p1-tiles">
-        <svg className="tile-grid p1-tile-grid" viewBox={`0 0 ${GRID_W * step} ${GRID_H * step}`} role="img" aria-label={label}>
-          {exposureTiles(state).map((t) => (
-            <rect
-              key={t.key}
-              className="tile p1-tile"
-              width={TILE}
-              height={TILE}
-              rx={2}
-              style={{ transform: `translate(${t.x * step}px, ${t.y * step}px)`, fill: t.color, transitionDelay: `${t.delay}ms, ${t.delay + 500}ms` }}
-            />
-          ))}
-        </svg>
+        <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
       </div>
       <ol className={`p1-groups${grouped ? ' is-on' : ''}`} aria-hidden={grouped ? undefined : true}>
         {EXPOSURE_GROUPS.map((g) => (
