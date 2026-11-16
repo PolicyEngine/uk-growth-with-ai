@@ -1943,3 +1943,9 @@ svg.p3-dim {
   margin: 0;
   transform: none;
 }
+/* the flow is off on phones, so its pause button goes too */
+@media (max-width: 900px) {
+  .p3-sankey .ch-icon-btn[aria-label$='the flow'] {
+    display: none;
+  }
+}
