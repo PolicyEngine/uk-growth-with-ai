@@ -2028,6 +2028,10 @@
   border-top: 1px solid var(--card-border);
   border-bottom: 1px solid var(--card-border);
 }
+/* the last thing on the page: no gap of its own above the footer */
+.story-recap:last-child {
+  margin-bottom: 0;
+}
 .story-recap-title {
   display: inline-flex;
   gap: 6px;
