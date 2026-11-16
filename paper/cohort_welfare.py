@@ -951,7 +951,35 @@ def dashboard(source: str = "") -> dict:
                 }
             C["rules"][v or "common"] = rule
         out["closures"][cl] = C
+    out["dnfull"] = dnfull_dashboard()
     return out
+
+
+def dnfull_dashboard() -> dict:
+    """The debt-neutral-to-the-horizon solve for the dashboard: UK central, main arm,
+    zeta_K = 0.1, against the matched no-shock reference (as the paper quotes it), per
+    fill and as a [low, high] range over the fills.  {"ready": False} until dnfull_ready."""
+    cl = "zk0.1"
+    if not dnfull_ready(cl):
+        return {"ready": False, "closure": cl}
+    r3 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 3)
+    r4 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 4)
+    m = dnfull_measures(cl, "matched")
+    keys = ("joint_avg", "joint_losing_pct", "no_bequest_avg", "no_bequest_losing_pct")
+    span = lambda k: [r4(min(m[f][k] for f in FILL_PATHS)), r4(max(m[f][k] for f in FILL_PATHS))]
+    return {"ready": True, "closure": cl, "rule": "dn", "arm": "tfp", "label": DNFULL_LABEL,
+            "reference": DNFULL_REF_LABEL,
+            "what": "Debt-neutral transfers kept on to the horizon (government consumption at "
+                    "its share of GDP throughout), adults alive in 2028, measured against a "
+                    "no-shock path solved under the same rule. Replaces the first-order "
+                    "charge-back (rules.dn.tfp.charged). [low, high] over the two extensions "
+                    "past the last solved year.",
+            "range": {k: span(k) for k in keys},
+            "by_fill": {f: {**{k: r4(m[f][k]) for k in keys},
+                            "oldest_losing_on_average": m[f]["oldest_losing_on_average"],
+                            "all_lose_up_to_age": m[f]["all_lose_up_to_age"],
+                            "by_age": {str(a): [r3(j), r3(nb)] for a, (j, nb) in m[f]["by_age"].items()}}
+                        for f in FILL_PATHS}}
 
 
 if __name__ == "__main__":

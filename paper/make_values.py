@@ -69,6 +69,9 @@ NICS = ROOT / "analysis" / "nics"
 BASELINE_FILE = DATA / "scenarios.json"
 
 CLOSURES = {"zk0.1": ("Central", 0.1), "zk0": ("Bound", 0.0)}
+# a sensitivity, not a reported closure: common fiscal rule only, no cohorts (results.tex)
+HALF = ("zk0.5", "Half", 0.5)
+ZETA = {**{k: z for k, (_, z) in CLOSURES.items()}, HALF[0]: HALF[2]}
 SCEN = {"uk_low": "UkLow", "uk_central": "UkCentral", "uk_high": "UkHigh",
         "korinek": "Korinek"}
 UK = ("uk_low", "uk_central", "uk_high")
@@ -96,9 +99,13 @@ OBR_WEDGE_PP = (19.0, 23.0)                                # FRS 46-27, EFO 40-1
 IMF_OUTPUT_Y4_PCT, IMF_OUTPUT_Y5_PCT = 2.52, 3.26          # SIP/2026/072, uk_calibration.md
 IMF_TFP_Y4_PCT = 0.42
 IMF_TFP_Y5_PCT = 0.53                                      # SIP/2026/072, five years after adoption starts
+# OBR, October 2026 EFO, Table A.1 p.180 (comparison only; the baseline is calibrated to March)
+OBR_OCT_GDP_GROWTH = {2027: 1.0, 2028: 1.6, 2029: 1.8, 2030: 1.7}
+OBR_OCT_TREND_PROD = {2028: 1.0, 2029: 1.1, 2030: 1.1, 2031: 1.1}   # trend productivity per hour
 IMF_COST_SAVING_PCT = 27                                   # SIP/2026/072 para 44
 KORINEK_T5_WAGE_PCT = {"One": -1.6, "Three": 2.1, "Six": 3.7, "Inf": 5.6}
 PE = r"\pend{}"
+SHARE = "share"                      # Values.put format for a % of adults losing
 COH_INCOME_AGE = 45                  # income-by-source illustration, age in 2028
 
 
@@ -129,8 +136,8 @@ def validate(rec: dict, ref: dict, base_ext: dict, cl: str, sc: str | None) -> N
     """The record is the solve it claims to be (raises on any failure)."""
     lab = rec.get("label", "?")
     z = (rec.get("closure") or {}).get("zeta_K")
-    if z is None or not math.isclose(float(z), CLOSURES[cl][1], abs_tol=1e-12):
-        raise ResultsError(f"{cl}/{lab}: zeta_K {z}, expected {CLOSURES[cl][1]}")
+    if z is None or not math.isclose(float(z), ZETA[cl], abs_tol=1e-12):
+        raise ResultsError(f"{cl}/{lab}: zeta_K {z}, expected {ZETA[cl]}")
     if rec.get("closure_label") != cl:
         raise ResultsError(f"{cl}/{lab}: closure_label {rec.get('closure_label')}")
     if not (rec.get("surprise") or {}).get("predetermined", {}).get("ok"):
@@ -203,6 +210,33 @@ def load_all() -> dict:
                 arms[(sc, v)] = recs
         out[cl] = {"ref": ref, "base_ext": base_ext, "cont": cont, "arms": arms}
     return out
+
+
+def load_half() -> dict:
+    """zeta_K = 0.5, common fiscal rule: every scenario and arm must be in and pass."""
+    cl = HALF[0]
+    base_ext = sp.load_base_ext(OUTDIR, cl)
+    gate = sp.read_gate(OUTDIR, cl)
+    if gate is None or gate.get("reference") != "continuation":
+        raise ResultsError(f"{cl}: the continuation gate is not approved ({gate})")
+    ref = sp.reference_ext(OUTDIR, cl, base_ext)
+    done = sp.load(OUTDIR, cl)
+    cont = done["continuation"]
+    validate(cont, ref, base_ext, cl, None)
+    arms = {}
+    for sc in SCEN:
+        k = sp._keys("", sc)
+        recs = {"tfp": done.get(k["tfp"]), "zfixed": done.get(k["zfixed"]),
+                "stress": sp.accepted_r4(done, ref, "", scenario=sc)}
+        for a, r in recs.items():
+            if r is None:
+                raise ResultsError(f"{cl}: {sc} lacks arm {a}")
+            ok, reason = sanity_ok(cl, r["label"])
+            if not ok:
+                raise ResultsError(f"{cl}/{r['label']}: {reason}")
+            validate(r, ref, base_ext, cl, sc)
+        arms[(sc, "")] = recs
+    return {"ref": ref, "base_ext": base_ext, "cont": cont, "arms": arms}
 
 
 # --- measures -----------------------------------------------------------------
@@ -304,6 +338,10 @@ class Values(dict):
             raise KeyError(f"duplicate macro: {name}")
         if value is None or (isinstance(value, float) and not math.isfinite(value)):
             raise ResultsError(f"no value for macro \\gen{name}")
+        if fmt == SHARE:   # a share of adults: "0" only when none, "$<$1" when some
+            fmt = "{:.0f}"
+            if not isinstance(value, str) and value > 0 and fmt.format(value) == "0":
+                value = "$<$1"
         self[name] = value if isinstance(value, str) else fmt.format(value)
 
     def signed(self, name: str, x, fmt_signed="{:+.2f}", fmt_abs="{:.2f}",
@@ -567,6 +605,15 @@ def emit(v: Values, R: dict) -> None:
     v.put("BaseGrowthEndYear", cmp_["years"][-1], "{:.0f}")
     v.put("ObrProductivityPct", obr_mod.OBR_BASELINE["productivity_medium_term"], "{:.1f}")
     v.put("ModelProductivityPct", (np.exp(cmp_["g_y"]) - 1) * 100)
+    if sorted(OBR_OCT_GDP_GROWTH) != list(cmp_["years"]):
+        raise ResultsError(f"October EFO years {sorted(OBR_OCT_GDP_GROWTH)} != {cmp_['years']}")
+    for year, g in OBR_OCT_GDP_GROWTH.items():
+        v.put(f"ObrOctGrowth{YW[year]}", g, "{:.1f}")
+    v.put("ObrOctGrowthMean", sum(OBR_OCT_GDP_GROWTH.values()) / len(OBR_OCT_GDP_GROWTH), "{:.1f}")
+    lo, hi = min(OBR_OCT_TREND_PROD.values()), max(OBR_OCT_TREND_PROD.values())
+    v.put("ObrOctProductivityRange", f"{lo:.1f}--{hi:.1f}" if lo != hi else f"{lo:.1f}")
+    v.put("ObrOctProductivityFirstYear", min(OBR_OCT_TREND_PROD), "{:.0f}")
+    v.put("ObrOctProductivityLastYear", max(OBR_OCT_TREND_PROD), "{:.0f}")
 
     # ---- provenance and diagnostics ------------------------------------------
     p = R["zk0.1"]["cont"]["provenance"]
@@ -589,6 +636,84 @@ def emit(v: Values, R: dict) -> None:
     v.put("PatchSites", 14, "{:.0f}")
     v.put("PatchEpsilonSites", 20, "{:.0f}")
 
+
+
+# --- zeta_K = 0.5 sensitivity (results.tex, "A more open capital account") --------
+
+def emit_half(v: Values, R: dict, H: dict) -> None:
+    """{Scen}{Arm}{Measure}Half: the zeta_K = 0.5 solves, common fiscal rule."""
+    cl, cw, z = HALF
+    v.put("ZetaKHalf", z, "{:.1f}")
+    c0 = R["zk0.1"]["cont"]["closure"]
+    c = H["cont"]["closure"]
+    if (c["zeta_D"], c["world_int_rate_annual"]) != (c0["zeta_D"], c0["world_int_rate_annual"]):
+        raise ResultsError(f"{cl}: zeta_D or the world rate differ from the central closure")
+    ref = H["ref"]
+    for (sc, _), recs in H["arms"].items():
+        for a, aw in ARMS.items():
+            rec, pre = recs[a], f"{SCEN[sc]}{aw}"
+            m = measures(rec, ref, HEAD)
+            for k in FLOW_VARS + ("DebtPp",):
+                v.signed(f"{pre}{k}{cw}", m[k],
+                         fmt_signed="{:+.0f}" if k == "InterestBp" else "{:+.2f}",
+                         fmt_abs="{:.0f}" if k == "InterestBp" else "{:.2f}")
+            v.signed(f"{pre}DebtPpThirtySix{cw}", debt_pp(rec, ref, DEBT_RULE))
+            m28 = measures(rec, ref, SHOCK)
+            for k in ("Labour", "Consumption", "Investment"):
+                v.signed(f"{pre}{k}TwentyEight{cw}", m28[k])
+    # UK central main-arm investment over the ramp, central closure and zeta_K = 0.5
+    for RR, w in ((R["zk0.1"], "Central"), (H, cw)):
+        rec = RR["arms"][("uk_central", "")]["tfp"]
+        for y in (2029, 2030):
+            v.signed(f"UkCentralMainInvestment{YW[y]}{w}", pct(rec, RR["ref"], "I", y))
+    recs = [H["cont"]] + [r for x in H["arms"].values() for r in x.values()]
+    v.put(f"NSolves{cw}", len(recs), "{:.0f}")
+    v.put(f"RcMax{cw}", sci(max(r["diagnostics"]["rc_rel_Y_max_abs_interior"] for r in recs)))
+    v.put(f"EulerMax{cw}", sci(max(max(r["diagnostics"]["euler_savings_max"],
+                                       r["diagnostics"]["euler_labour_max"]) for r in recs)))
+    v.put(f"SolveMinMax{cw}", max(r["elapsed_min"] for r in recs), "{:.1f}")
+
+
+def check_half(R: dict, H: dict, v: Values) -> None:
+    """The sentences results.tex and discussion.tex state in words about zeta_K = 0.5."""
+    fail = []
+    ref = H["ref"]
+    M = lambda sc, a, y=HEAD: measures(H["arms"][(sc, "")][a], ref, y)
+    D36 = lambda sc, a: debt_pp(H["arms"][(sc, "")][a], ref, DEBT_RULE)
+    for sc in ("uk_low", "uk_central"):        # "close to the path"
+        if not 0 < M(sc, "tfp")["Wage"] < 0.1:
+            fail.append(f"zk0.5: {sc} main-arm wage not within 0.1 above the path")
+    for sc in ("uk_high", "korinek"):          # "above it"
+        if not M(sc, "tfp")["Wage"] >= 0.1:
+            fail.append(f"zk0.5: {sc} main-arm wage not above the path")
+    cons = {sc: M(sc, "tfp")["Consumption"] for sc in SCEN}
+    if not min(cons.values()) > 0:
+        fail.append("zk0.5: main-arm consumption not above the path in every scenario")
+    if min(cons, key=cons.get) != "uk_low" or max(cons, key=cons.get) != "korinek":
+        fail.append("zk0.5: consumption range is not UK low to the upper case")
+    for sc in SCEN:
+        m28 = M(sc, "tfp", SHOCK)
+        if not (m28["Labour"] < 0 and m28["Consumption"] > 0):
+            fail.append(f"zk0.5: {sc} main arm, {SHOCK} hours do not fall or consumption does not rise")
+        if (D36(sc, "tfp") < 0) != (sc == "korinek"):
+            fail.append(f"zk0.5: {sc} main-arm {DEBT_RULE} debt sign differs from the text")
+        for a in ("zfixed", "stress"):
+            if not (M(sc, a)["Wage"] < 0 and D36(sc, a) > 0):
+                fail.append(f"zk0.5: {sc} {a}: wage not below or debt not above the path")
+    # the investment sentence: rises over 2028-30, then drops in 2031, at both closures
+    for RR, w in ((R["zk0.1"], "Central"), (H, "Half")):
+        rec = RR["arms"][("uk_central", "")]["tfp"]
+        inv = [pct(rec, RR["ref"], "I", y) for y in range(SHOCK, HEAD + 1)]
+        if not (inv[0] < inv[1] < inv[2] and inv[3] < inv[0]):
+            fail.append(f"{w}: UK central investment does not rise to {HEAD - 1} and drop in {HEAD}")
+    hc = R["zk0.1"]["arms"][("uk_central", "")]["tfp"]
+    if not pct(H["arms"][("uk_central", "")]["tfp"], ref, "I", SHOCK) > 2 * pct(hc, R["zk0.1"]["ref"], "I", HEAD - 1):
+        fail.append("zk0.5: investment surge not more than twice the central closure's")
+    m = M("uk_central", "tfp")
+    if not 0 < m["Gni"] < m["Gdp"]:
+        fail.append("zk0.5: UK central GNI gap not between zero and the GDP gap")
+    if fail:
+        raise ResultsError("zeta_K = 0.5 claims fail:\n  " + "\n  ".join(fail))
 
 
 # --- cohort incidence (paper/cohort_welfare.py) ---------------------------------
@@ -638,8 +763,8 @@ def emit_dnfull(v: Values) -> None:
     cohort_welfare.dnfull_ready: against the usual continuation it is not like-for-like."""
     pre = "CohMainDnfullCentral"
     cols = (("joint_avg", "Avg", None), ("no_bequest_avg", "NoBeqAvg", None),
-            ("joint_losing_pct", "LosingPct", "{:.0f}"),
-            ("no_bequest_losing_pct", "NoBeqLosingPct", "{:.0f}"),
+            ("joint_losing_pct", "LosingPct", SHARE),
+            ("no_bequest_losing_pct", "NoBeqLosingPct", SHARE),
             ("oldest_losing_on_average", "OldestLosingAge", "{:.0f}"))
     if not cwf.dnfull_ready("zk0.1"):
         for _, kw, fmt in cols:
@@ -686,7 +811,7 @@ def emit_korinek(v: Values, CR: dict) -> None:
                 xs = sorted(cwf.averages(par, l)["alive_all"] if avg_ else cwf.losing_pct(par, l)
                             for l in pair)
                 for x, lh in zip(xs, ("Lo", "Hi")):
-                    v.signed(f"{pre}{nm}{lh}", x) if avg_ else v.put(f"{pre}{nm}{lh}", x, "{:.0f}")
+                    v.signed(f"{pre}{nm}{lh}", x) if avg_ else v.put(f"{pre}{nm}{lh}", x, SHARE)
                 lo, hi = v[f"{pre}{nm}Lo"], v[f"{pre}{nm}Hi"]
                 v.put(f"{pre}{nm}", lo if lo == hi else (f"{lo} to {hi}" if avg_ else f"{lo}--{hi}"))
             v.signed(f"{pre}Bottom", av["alive_by_group"][0])
@@ -718,7 +843,7 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 v.signed(f"{pre}FutBottom", av["future_by_group"][0])
                 v.signed(f"{pre}FutTopOne", av["future_by_group"][6])
                 v.signed(f"{pre}FutAll", av["future_all"])
-                v.put(f"{pre}LosingPct", cwf.losing_pct(par, lam), "{:.0f}")
+                v.put(f"{pre}LosingPct", cwf.losing_pct(par, lam), SHARE)
                 for p, pw in (("consumption", "PartCons"), ("leisure", "PartLeis"),
                               ("bequests", "PartBeq")):
                     v.signed(f"{pre}{pw}", X["parts"][key][p]["all"])
@@ -750,7 +875,7 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                 # income by source at unchanged behaviour, the post-2035 cost charged back
                 rb = X["rob"][key]
                 v.signed(f"{pre}NoBeqAvg", rb["no_bequest_avg"])
-                v.put(f"{pre}NoBeqLosingPct", rb["no_bequest_losing_pct"], "{:.0f}")
+                v.put(f"{pre}NoBeqLosingPct", rb["no_bequest_losing_pct"], SHARE)
                 for k, kw in (("capital", "Cap"), ("labour", "Lab"), ("transfers", "Tr"),
                               ("bequests", "Beq"), ("total", "Tot")):
                     v.signed(f"{pre}Src{kw}", rb["sources"][k])
@@ -760,8 +885,8 @@ def emit_cohorts(v: Values, CR: dict) -> None:
                     ch = rb["charged"]
                     for k, kw, fmt in (("joint_avg", "ChargedAvg", None),
                                        ("no_bequest_avg", "ChargedNoBeqAvg", None),
-                                       ("joint_losing_pct", "ChargedLosingPct", "{:.0f}"),
-                                       ("no_bequest_losing_pct", "ChargedNoBeqLosingPct", "{:.0f}"),
+                                       ("joint_losing_pct", "ChargedLosingPct", SHARE),
+                                       ("no_bequest_losing_pct", "ChargedNoBeqLosingPct", SHARE),
                                        ("oldest_losing_on_average", "ChargedOldestLosingAge", "{:.0f}")):
                         for i, lh in ((0, "Lo"), (1, "Hi")):
                             if fmt is None:
@@ -1324,7 +1449,8 @@ def check_cohort_claims(R: dict, CR: dict, v: Values) -> None:
             g = cwf.averages(par_, K["R"][("dn", a)])["alive_by_group"]
             if not g[0] > g[6]:
                 fail.append(f"'Korinek: bottom 25% gain more than the top 1% on average' fails: {cl_} {a}")
-            if v[f"CohKor{ARMS[a]}Dn{cw_}LosingPct"] == "0" and a != "tfp":
+            if a != "tfp" and min(cwf.losing_pct(par_, l)
+                                   for l in (K["R"][("dn", a)], K["Rss"][("dn", a)])) == 0:
                 fail.append(f"'Korinek {a}: some adults lose' fails: {cl_}")
         if cl_ == "zk0.1":
             la = cwf.all_lose_up_to_age(par_, K["R"][("dn", "stress")])
@@ -1345,6 +1471,9 @@ def build() -> tuple[Values, list[str]]:
     v = Values()
     emit(v, R)
     check_claims(R, v)
+    H = load_half()
+    emit_half(v, R, H)
+    check_half(R, H, v)
     CR = cohort_results()
     emit_cohorts(v, CR)
     emit_dnfull(v)
@@ -1357,6 +1486,8 @@ def build() -> tuple[Values, list[str]]:
         pend = sorted(f"{sc}{'_' + var if var else ''}" for (sc, var), x in R[cl]["arms"].items()
                       if any(r is None for r in x.values()))
         sources.append(f"{cl}  pending: " + ", ".join(pend))
+    sources.append(f"{HALF[0]}  {sp.OUTDIR}/{HALF[0]}/: continuation + "
+                   + ", ".join(sorted(r["label"] for x in H["arms"].values() for r in x.values())))
     sources.append("nics  analysis/nics/nics_2027.json, nics_2028.json")
     sources.append("cohorts  analysis/surprise/cohorts/<closure>/*.npz via paper/cohort_welfare.py")
     return v, sources

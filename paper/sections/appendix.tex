@@ -4,32 +4,33 @@
 \renewcommand{\thesubsection}{A.\arabic{subsection}}
 \setcounter{subsection}{0}
 
-\subsection{The baseline against the OBR's March 2026 forecast}
+\subsection{The baseline against the OBR's 2026 forecasts}
 \label{app:obr}
 
-The baseline takes its productivity growth rate from the \emph{Economic and fiscal outlook} and is then compared with it. Its debt/GDP is calibrated so that 2030 is matched (Section~\ref{sec:baseline}); it is not compared in the table.
+The baseline takes its productivity growth rate from the March 2026 \emph{Economic and fiscal outlook} and is then compared with it. The October 2026 forecast is shown beside it for comparison; the baseline has not been recalibrated to it. Its debt/GDP is calibrated so that 2030 is matched (Section~\ref{sec:baseline}); it is not compared in the table.
 
 \begin{table}[htbp]
 \centering
-\caption{The baseline ($\zetaK = \genZetaKCentral{}$) against the OBR, March 2026 EFO}
+\caption{The baseline ($\zetaK = \genZetaKCentral{}$) against the OBR's March and October 2026 forecasts}
 \label{tab:obr}
 \small
-\begin{tabular}{lrrr}
+\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrr}
 \toprule
- & OBR & This model & Gap, points \\
+ & OBR, Mar.\ 2026 & OBR, Oct.\ 2026 & This model & Gap to March \\
 \midrule
-Real GDP growth, \genBaseGrowthStartYear--\genBaseGrowthEndYear{} mean, per cent & \genObrGrowthMean{} & \genBaseGrowthMean{} & \genBaseObrGrowthDiffPp{} \\
-Productivity growth, medium term, per cent & \genObrProductivityPct{} & \genModelProductivityPct{} & \\
+Real GDP growth, \genBaseGrowthStartYear--\genBaseGrowthEndYear{} mean, per cent & \genObrGrowthMean{} & \genObrOctGrowthMean{} & \genBaseGrowthMean{} & \genBaseObrGrowthDiffPp{} \\
+Productivity growth, medium term, per cent & \genObrProductivityPct{} & \genObrOctProductivityRange{} & \genModelProductivityPct{} & \\
 \addlinespace
-Baseline growth, 2027 & & \genBaseGrowthTwentySeven{} & \\
-Baseline growth, 2028 & & \genBaseGrowthTwentyEight{} & \\
-Baseline growth, 2029 & & \genBaseGrowthTwentyNine{} & \\
-Baseline growth, 2030 & & \genBaseGrowthThirty{} & \\
+Growth, 2027 & & \genObrOctGrowthTwentySeven{} & \genBaseGrowthTwentySeven{} & \\
+Growth, 2028 & & \genObrOctGrowthTwentyEight{} & \genBaseGrowthTwentyEight{} & \\
+Growth, 2029 & & \genObrOctGrowthTwentyNine{} & \genBaseGrowthTwentyNine{} & \\
+Growth, 2030 & & \genObrOctGrowthThirty{} & \genBaseGrowthThirty{} & \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} OBR figures from the March 2026 EFO, paragraphs 1.2, 1.9 and 2.10. The productivity rate includes the OBR's own AI assumption. Source: \texttt{uk\_growth\_with\_ai/data/scenarios.json} and \texttt{uk\_growth\_with\_ai/obr.py}.
+\footnotesize \emph{Notes:} The baseline was calibrated to the March 2026 EFO (paragraphs 1.2, 1.9 and 2.10) and has not been recalibrated. October 2026 figures are from \citet[Table~A.1]{obr2026efooctrep}, shown for comparison; the gap is the model less the March figure, in percentage points. The October productivity entry is trend productivity growth per hour over \genObrOctProductivityFirstYear--\genObrOctProductivityLastYear{}. The productivity rate includes the OBR's own AI assumption. Source: \texttt{uk\_growth\_with\_ai/data/scenarios.json} and \texttt{uk\_growth\_with\_ai/obr.py}.
 \end{minipage}
 \end{table}
 
@@ -43,19 +44,19 @@ Every solve is checked after it runs (\texttt{analysis/surprise/sanity.py}): the
 \caption{Solution diagnostics, all solves used}
 \label{tab:diagnostics}
 \small
-\begin{tabular}{lrr}
+\begin{tabular}{lrrr}
 \toprule
- & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ \\
+ & $\zetaK = \genZetaKCentral{}$ & $\zetaK = \genZetaKBound{}$ & $\zetaK = \genZetaKHalf{}$ \\
 \midrule
-Solves (restart, arms and, at the central closure, the two to the horizon) & \genNSolvesCentral{} & \genNSolvesBound{} \\
-Max resource-constraint error, share of GDP, after \genShockYear{} & \genRcMaxCentral{} & \genRcMaxBound{} \\
-Max Euler error & \genEulerMaxCentral{} & \genEulerMaxBound{} \\
-Longest solve, minutes & \genSolveMinMaxCentral{} & \genSolveMinMaxBound{} \\
+Solves & \genNSolvesCentral{} & \genNSolvesBound{} & \genNSolvesHalf{} \\
+Max resource-constraint error, share of GDP, after \genShockYear{} & \genRcMaxCentral{} & \genRcMaxBound{} & \genRcMaxHalf{} \\
+Max Euler error & \genEulerMaxCentral{} & \genEulerMaxBound{} & \genEulerMaxHalf{} \\
+Longest solve, minutes & \genSolveMinMaxCentral{} & \genSolveMinMaxBound{} & \genSolveMinMaxHalf{} \\
 \bottomrule
 \end{tabular}
 \par\medskip
 \begin{minipage}{0.92\textwidth}
-\footnotesize \emph{Notes:} OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} is off, so solution quality is recorded per solve rather than enforced at solve time. Investment follows from the capital law of motion; it is not a residual. Source: \texttt{analysis/surprise/output/}.
+\footnotesize \emph{Notes:} OG-Core's \texttt{ENFORCE\_SOLUTION\_CHECKS} is off, so solution quality is recorded per solve rather than enforced at solve time. Solves count the restart, the arms and, at the central closure, the two solves to the horizon. The $\zetaK = \genZetaKHalf{}$ column is the sensitivity of Section~\ref{sec:results-half}: restart and arms under the common fiscal rule only. Investment follows from the capital law of motion; it is not a residual. Source: \texttt{analysis/surprise/output/}.
 \end{minipage}
 \end{table}
 
