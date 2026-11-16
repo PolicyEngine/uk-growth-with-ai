@@ -56,7 +56,7 @@ describe('Who gains tab', () => {
     const t = container.textContent;
     expect(t).toContain(`${Math.round(c.alive_losing_pct)}%`);
     expect(t).toContain(`Up to age ${c.all_lose_up_to_age}`);
-    expect(window.location.search).toContain('arm=stress');
+    expect(window.location.search).toContain('arm=ss'); // one store: the model's arm id (lib/nav.jsx)
   });
 
   it('charges the post-2035 cost only under debt-neutral transfers: first order, or solved where the data has it', () => {
@@ -67,7 +67,7 @@ describe('Who gains tab', () => {
     expect(container.querySelector('.stat-row').textContent).toContain('first order');
     fireEvent.click(screen.getByRole('radio', { name: /Common/ }));
     expect(container.querySelector('.stat-row').textContent).not.toContain('later fiscal cost');
-    expect(window.location.search).toContain('wrule=common');
+    expect(window.location.search).toContain('rule=common'); // one store: &wrule= is now &rule=
   });
 
   it('follows the header closure, and the rule and arm of its control bar', () => {

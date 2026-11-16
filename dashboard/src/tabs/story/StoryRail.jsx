@@ -88,7 +88,7 @@ export default function StoryRail({ sections }) {
     if (x > 0) cur = i;
   });
   return (
-    <nav className="story-rail" aria-label="Parts of the story">
+    <nav className="story-rail" aria-label="Parts of the story" data-sticky-bar="">
       <ol>
         {sections.map((s, i) => (
           <li key={s.id} data-part={i + 1} className={i === cur ? 'is-current' : p[i] >= 1 ? 'is-read' : undefined}>

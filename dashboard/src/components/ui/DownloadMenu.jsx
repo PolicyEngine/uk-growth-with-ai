@@ -3,7 +3,23 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { downloadCsv, downloadPng, downloadSvg, fromSvgEl } from '@/lib/download.js';
-import { PAGE_TITLE } from '@/lib/labels.js';
+import { ARM_PICK, PAGE_TITLE, closureLabel, pickersFor, ruleLabel } from '@/lib/labels.js';
+import { useNav, subOf } from '@/lib/nav.jsx';
+import { SCEN_NAME } from '@/tabs/ai/surprise.js';
+
+// The caption every download carries (addendum E4, copy this view): the
+// settings the chart was drawn with and the model's name, from the address.
+export function captionOf(st, sub) {
+  const pick = pickersFor(st.tab, sub);
+  if (pick.study) return 'Model: uk-ai-study (PolicyEngine-UK microsimulation), provisional';
+  const parts = [];
+  if (pick.scenario) parts.push(`Scenario: ${SCEN_NAME[pick.scenario === 'locked' ? 'uk_central' : st.s]}`);
+  if (pick.closure) parts.push(`Closure: ${closureLabel(st.closure)}`);
+  if (pick.arm) parts.push(`Arm: ${ARM_PICK.find((a) => a.id === st.armId)?.label}`);
+  if (pick.rule) parts.push(`Fiscal rule: ${ruleLabel(Array.isArray(pick.rule) ? st.wrule : st.rule)}`);
+  parts.push('Model: OG-UK');
+  return parts.join(' · ');
+}
 
 const FORMATS = [
   { id: 'csv', name: 'CSV', detail: 'Data' },
@@ -14,10 +30,11 @@ const FORMATS = [
 
 // The chart's data as JSON: the same context as the CSV's "#" lines, then
 // one object per row keyed by the column names.
-export function jsonOf({ title, context, table }) {
+export function jsonOf({ title, context, caption, table }) {
   return {
     title,
     context: context ?? null,
+    settings: caption ?? null,
     source: `PolicyEngine, ${PAGE_TITLE}`,
     downloaded: new Date().toISOString().slice(0, 10),
     columns: table.columns,
@@ -45,6 +62,7 @@ function saveJson(frame) {
 export default function DownloadMenu({ title, context, table, legend, svg, cardRef }) {
   const [open, setOpen] = useState(false);
   const [hasSvg, setHasSvg] = useState(false);
+  const { st } = useNav();
   const root = useRef(null);
   const button = useRef(null);
   const menuId = useId();
@@ -81,7 +99,7 @@ export default function DownloadMenu({ title, context, table, legend, svg, cardR
 
   if (!table) return null;
   const run = async (id) => {
-    const frame = { title, context: typeof context === 'function' ? context() : context, legend: typeof legend === 'function' ? legend() : legend };
+    const frame = { title, context: typeof context === 'function' ? context() : context, caption: captionOf(st, subOf(st)), legend: typeof legend === 'function' ? legend() : legend };
     try {
       const data = () => ({ ...frame, table: typeof table === 'function' ? table() : table });
       if (id === 'csv') downloadCsv(data());

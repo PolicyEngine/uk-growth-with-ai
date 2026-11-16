@@ -130,16 +130,16 @@ describe('tooltips', () => {
   });
 
   it('the rule and the arms are in the address', async () => {
-    const { default: RuleBar } = await import('@/tabs/explore/RuleBar.jsx');
+    // the rule picker is in the settings bar (components/ui/SettingsBar.jsx)
+    const { default: SettingsBar } = await import('@/components/ui/SettingsBar.jsx');
     window.history.replaceState(null, '', '/?tab=explore&sub=finances');
     render(
       <NavProvider>
-        <RuleBar />
+        <SettingsBar pick={{ rule: true }} />
         <ResultsTab />
       </NavProvider>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /Fiscal rule: Common fiscal rule/ }));
-    fireEvent.click(screen.getByRole('option', { name: /Debt-neutral/ }));
+    fireEvent.click(screen.getByRole('radio', { name: /Debt-neutral/ }));
     expect(window.location.search).toContain('rule=dn');
     fireEvent.click(screen.getAllByRole('button', { name: 'Stress test' })[0]);
     expect(window.location.search).toContain('arms=tfp,tz');
