@@ -94,6 +94,6 @@ export function waterfallRows(ch) {
     rows.push({ id: k, label: OF_WHICH[k], from: at, to: at + ch[k], value: ch[k], sub: true });
     at += ch[k];
   }
-  rows.push({ id: 'gdp', label: 'GDP', from: 0, to: ch.gdp, value: null });
+  rows.push({ id: 'gdp', label: 'GDP', from: 0, to: ch.gdp, value: ch.gdp });
   return rows;
 }

@@ -403,15 +403,15 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
           {/* the UK range, shaded once UK low and UK high are drawn */}
           {band ? <path className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} d={band} style={{ d: `path('${band}')` }} /> : null}
           {/* the zero line moves from zero growth to the OBR-central path */}
-          <line x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
+          <line data-mark="path" x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
-            <path className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} d={dPath(g.act)} style={dStyle(g.act)} />
+            <path data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} d={dPath(g.act)} style={dStyle(g.act)} />
             {g.act.map(([x, y], i) => (
               <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 ? ' is-on' : ''}`} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
                 <circle r={2.8} className={`p2-mo-dot${PARTIAL && PARTIAL.x === ACT[i][0] ? ' is-open' : ''}`} />
               </g>
             ))}
-            <path className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} d={dPath(g.obr)} style={dStyle(g.obr)} />
+            <path data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} d={dPath(g.obr)} style={dStyle(g.obr)} />
             {OBR.map(([x], i) => {
               const j = YEARS.indexOf(x);
               const p = j >= 0 ? g.obr[j] : [g.X(x), g.zeroY];
@@ -434,6 +434,7 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
                     pathLength={1}
                     className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc && l.id !== pinned ? ' is-late' : ''}${l.id === pinned ? ' is-pinned' : ''}`}
                     data-scen={l.id}
+                    data-mark={`scen-${l.id}`}
                     d={d}
                     style={{ d: `path('${d}')` }}
                   />
@@ -442,6 +443,7 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
             <path
               className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
               data-scen={sid}
+              data-mark={`scen-${sid}`}
               d={dPath(g.gap)}
               style={{ ...dStyle(g.gap), stroke: ARM_COLOR.tfp }}
             />
@@ -581,12 +583,14 @@ export function morphSteps(sid, cl) {
     // then the morph to the gap (state 2).
     {
       id: 'p2-morph-1',
+      highlight: ['ons', 'obr'],
       icon: 'record',
       title: 'The record so far',
       body: <Items items={[{ icon: 'forecast', text: 'Where part 1 ended: ONS outturn and the OBR’s forecast' }]} />,
     },
     {
       id: 'p2-morph-2',
+      highlight: ['path', `scen-${sid}`],
       icon: 'path',
       title: 'From growth rates to a gap',
       body: (

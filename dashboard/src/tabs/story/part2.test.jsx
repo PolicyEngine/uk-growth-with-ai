@@ -217,10 +217,10 @@ describe('where output goes', () => {
       expect(subs).toEqual([(b.labour + gross).toFixed(0), b.labour.toFixed(1), gross.toFixed(1), ...['domestic', 'foreign', 'depreciation'].map((k) => b[k].toFixed(1))]);
       const ch = S2.change[sid][cl];
       const vals = [...out.querySelectorAll('.p2-wf-value')].map((n) => n.textContent.trim());
-      expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), 'Headline figures']);
+      expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), sgn(ch.gdp)]);
       // each printed change names its path in the data (trace a number)
       const paths = [...out.querySelectorAll('.p2-wf-value[data-path]')].map((n) => n.getAttribute('data-path'));
-      expect(paths).toEqual(['labour', 'gross_capital', 'domestic', 'foreign', 'depreciation'].map((k) => `output_split.change.${sid}.${cl}.${k}`));
+      expect(paths).toEqual(['labour', 'gross_capital', 'domestic', 'foreign', 'depreciation', 'gdp'].map((k) => `output_split.change.${sid}.${cl}.${k}`));
       expect(out.textContent.includes('both figures show the central closure')).toBe(q.endsWith('both'));
       expect(out.textContent).toContain(cl === 'zk0' ? 'Closed capital' : 'Central closure');
       unmount();
@@ -245,6 +245,7 @@ describe('where output goes', () => {
     expect(rows[4].to).toBeCloseTo(ch.gdp, 12);
     expect(rows[1].to).toBeCloseTo(ch.gdp, 12);
     expect(ch.gdp).toBeCloseTo(real.results.uk_central.tfp['zk0.1'].gaps.Y[H], 9);
+    expect(rows[5].value).toBe(ch.gdp);
   });
 });
 

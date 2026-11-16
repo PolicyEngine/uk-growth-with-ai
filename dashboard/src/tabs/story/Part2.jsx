@@ -75,6 +75,7 @@ function shockSteps() {
   return [
     {
       id: 'p2-shock-1',
+      highlight: [],
       icon: 'shock',
       title: 'AI moves part of income from labour to capital',
       body: (
@@ -93,6 +94,7 @@ function shockSteps() {
     },
     {
       id: 'p2-shock-2',
+      highlight: [],
       icon: 'productivity',
       title: 'And the same inputs produce more',
       body: (
@@ -148,6 +150,7 @@ function scenarioSteps(sid, cl) {
   return [
     {
       id: 'p2-scen-2',
+      highlight: ['scen-uk_low', 'scen-uk_central', 'scen-uk_high'],
       icon: 'range',
       title: 'The UK scenarios and their range',
       body: (
@@ -168,6 +171,7 @@ function scenarioSteps(sid, cl) {
     },
     {
       id: 'p2-scen-4',
+      highlight: ['scen-korinek'],
       icon: 'scenario',
       title: 'Korinek et al.: a US scenario, used here as an upper case',
       body: (
@@ -233,6 +237,7 @@ function armSteps(sid, closure) {
   return [
     {
       id: 'p2-arms-0',
+      highlight: ['gdp-tfp'],
       icon: 'ai',
       title: 'Automation + productivity: the main arm',
       body: (
@@ -250,6 +255,7 @@ function armSteps(sid, closure) {
     },
     {
       id: 'p2-arms-1',
+      highlight: ['gdp-tz'],
       icon: 'capital',
       title: 'Automation with technology unchanged',
       body: (
@@ -274,6 +280,7 @@ function armSteps(sid, closure) {
     },
     {
       id: 'p2-arms-2',
+      highlight: ['gdp-ss'],
       icon: 'breakEven',
       title: 'The stress test: GDP held on the path',
       body: (
@@ -327,6 +334,7 @@ function whoSteps(sid) {
   return [
     {
       id: 'p2-who-0',
+      highlight: ['cohort-adults'],
       icon: 'age',
       title: 'Gains are largest around retirement age; some lose',
       body: (
@@ -358,6 +366,7 @@ function whoSteps(sid) {
     },
     {
       id: 'p2-who-1',
+      highlight: ['cohort-later'],
       icon: 'entrants',
       title: 'Then the cohorts that enter later',
       body: (
@@ -424,6 +433,7 @@ function debtSteps(sid, closure) {
   return [
     {
       id: 'p2-debt-0',
+      highlight: ['debt-tfp'],
       icon: 'debt',
       title: 'Public debt against the path',
       body: items ? (
@@ -494,6 +504,7 @@ function debtSteps(sid, closure) {
     },
     {
       id: 'p2-debt-1',
+      highlight: ['debt-tz', 'debt-ss'],
       icon: 'finances',
       title: 'Without the output gain',
       body: (
@@ -566,30 +577,44 @@ export const SUBS = {
     title: 'The shock',
     icon: 'shock',
     question: 'What does the AI shock change in the model?',
+    hint: 'Watch tiles move from labour to capital, then new tiles arrive',
+    answer: 'Income shifts to capital, and the same inputs produce more',
+    answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
   },
   morph: {
     title: 'From the record to the scenarios',
     icon: 'path',
     question: 'How far does GDP move from the OBR-central path in each scenario?',
+    hint: 'Watch the growth axis turn into a gap against the path',
+    answer: 'GDP ends above the path in every scenario: see the headline figures',
+    answerTo: 'story-headline',
   },
   arms: {
     title: 'Three arms: output and public debt',
     icon: 'ai',
     question: 'What does the productivity gain add, for output and for public debt?',
+    hint: 'Compare the three arms after the shock completes',
+    answer: 'Without it, GDP is lower and public debt ends further above the path',
+    answerTo: { tab: 'explore', sub: 'finances' },
   },
   who: {
     title: 'Who gains and who loses',
     icon: 'age',
     question: 'Which generations gain, and which lose?',
+    hint: 'Mark your birth year on the curve',
+    answer: 'Gains peak near retirement; on other measures some adults lose',
+    answerTo: { tab: 'explore', sub: 'who' },
   },
 };
 
 // What part 2 showed, three items, each to its home, no figure.
+// Question and answer chips (q, a); `text` is the answer, for the chip's
+// one-line form.
 export const RECAP = [
-  { icon: 'gdp', text: 'In every scenario GDP rises above the OBR-central path', to: 'story-headline' },
-  { icon: 'outputSplit', text: 'Capital income gains more than GDP; labour income falls', to: 'story-output' },
-  { icon: 'age', text: 'Gains are largest near retirement; some adults lose', to: { tab: 'explore', sub: 'who' } },
-];
+  { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the OBR-central path in every scenario', to: 'story-headline' },
+  { icon: 'outputSplit', q: 'Who receives the extra output?', a: 'Capital income gains more than GDP; labour income falls', to: 'story-output' },
+  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; some adults lose', to: { tab: 'explore', sub: 'who' } },
+].map((it) => ({ ...it, text: it.a }));
 
 export default function Part2({ part }) {
   const { st } = useNav();

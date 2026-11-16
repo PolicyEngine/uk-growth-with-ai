@@ -156,17 +156,19 @@ export function ArmsPair({ state, sid, closure, label }) {
   // line. Every GDP arm is fully drawn by then (states 3 and 4).
   const lineEl = (l, Y, on, delay = 0, vs = false) => {
     const d = linePath(X, Y, YEARS, l.ys);
+    const mark = `${l.key.startsWith('Y-') ? 'gdp' : 'debt'}-${l.arm}`;
     const style = { stroke: ARM_COLOR[l.arm], strokeWidth: l.arm === 'tfp' ? 2.5 : 2, opacity: l.arm === 'ss' ? 0.6 : 1 };
     if (both && l.cl === BOUND)
       return (
         <FadeG key={l.key} on={on} delay={on ? delay : 0}>
-          <path d={d} fill="none" vectorEffect={vs ? 'non-scaling-stroke' : undefined} style={{ ...style, strokeDasharray: '5 4' }} />
+          <path d={d} data-mark={mark} fill="none" vectorEffect={vs ? 'non-scaling-stroke' : undefined} style={{ ...style, strokeDasharray: '5 4' }} />
         </FadeG>
       );
     return (
       <DrawPath
         key={l.key}
         d={d}
+        data-mark={mark}
         on={on}
         className={vs ? 'is-whole' : ''}
         vectorEffect={vs ? 'non-scaling-stroke' : undefined}
@@ -409,8 +411,8 @@ export function WelfareShape({ state }) {
         <text data-axis="" x={xr - 2} y={sc.Y(0) - 4} textAnchor="end" className="p2-band-note">
           No change = 0
         </text>
-        <DrawPath d={monotonePath(sc.X, sc.Y, xs, adults)} on={seen} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
-        <DrawPath d={monotonePath(sc.X, sc.Y, xs, later)} on={seen && state >= 1} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
+        <DrawPath data-mark="cohort-adults" d={monotonePath(sc.X, sc.Y, xs, adults)} on={seen} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
+        <DrawPath data-mark="cohort-later" d={monotonePath(sc.X, sc.Y, xs, later)} on={seen && state >= 1} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
         {pick ? (
           <g className="p2-born-mark" aria-hidden="true">
             <line x1={pick[0]} x2={pick[0]} y1={yTop} y2={yBot} />

@@ -39,7 +39,9 @@ import { iconFor } from '@/lib/concepts.js';
 
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
-const GROW_STAGGER = 80; // ms between waterfall bars
+// ms between waterfall bars: one at a time, labour, gross capital, its three
+// parts (each from where the last ended), then GDP from zero
+export const GROW_STAGGER = 420;
 // "What the scenario changes" (scene plan section 6): the four changes
 // appear as chips beside their Sankey nodes for one beat, then each chip
 // travels to its waterfall row and is that row's value: the same element,
@@ -78,6 +80,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
             key={r.id}
             className={`p2-wf-row${r.sub ? ' is-sub' : ''}${r.outline ? ' is-outline' : ''}${hl && hl === r.id ? ' is-hl' : ''}`}
             data-row={r.id}
+            data-mark={`wf-${r.id}`}
             tabIndex={pick && on ? 0 : undefined}
             onMouseEnter={() => setHl(pick)}
             onFocus={() => setHl(pick)}
@@ -90,6 +93,9 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
             </span>
             <span className="p2-wf-track" aria-hidden="true">
               <span className="p2-wf-zero" />
+              {/* GDP equals the sum: a dashed connector from the last part's
+                  end down to the GDP bar's end, once the GDP bar is drawn */}
+              {r.id === 'gdp' ? <span className="p2-wf-sum" style={{ left: `${at(r.to)}%`, transitionDelay: on ? `${(i + 1) * GROW_STAGGER + 200}ms` : '0ms' }} /> : null}
               {/* grows from the end it starts at: zero for labour and GDP,
                   the previous row's end for the parts */}
               <span
@@ -108,6 +114,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
               }}
               className={`p2-wf-value${TRAVEL.includes(r.id) ? ` is-travel is-${dirConcept(r.value)}` : ''}${chips?.[r.id] ? ' is-chip' : ''}`}
               data-path={r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}`}
+              data-delay={i}
               style={
                 chips?.[r.id]
                   ? { transform: `translate(${chips[r.id][0].toFixed(1)}px, ${chips[r.id][1].toFixed(1)}px)`, transition: 'none' }
@@ -117,13 +124,12 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
               }
             >
               {TRAVEL.includes(r.id) && dirConcept(r.value) ? <Icon name={iconFor(dirConcept(r.value))} size={12} strokeWidth={2.25} className="p2-wf-dir" /> : null}
-              {r.value == null ? (
-                <NavLink tab="story" anchor="story-headline" className="p2-wf-link" aria-label="GDP: see the headline figures">
-                  Headline figures <Icon name="arrowRight" size={12} strokeWidth={2} />
+              {r.value == null ? null : change(r.value)}
+              {r.id === 'gdp' ? (
+                <NavLink tab="story" anchor="story-headline" className="p2-wf-link" aria-label="GDP: the headline figures" title="Headline figures">
+                  <Icon name={iconFor('headline')} size={12} strokeWidth={2} />
                 </NavLink>
-              ) : (
-                change(r.value)
-              )}
+              ) : null}
             </span>
           </li>
         );
@@ -246,7 +252,9 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
   const grown = s >= 2 && (phase === 'travel' || phase === 'settled');
   const nodeBox = useMemo(() => (b) => setBoxes(b), []);
   // icons left on the four nodes once the chips have landed (no number)
-  const icons = phase === 'settled' && ch && graph ? TRAVEL : [];
+  // each node's icon appears with its waterfall row's bar
+  const icons = grown && ch && graph ? TRAVEL : [];
+  const rowAt = { labour: 0, domestic: 2, foreign: 3, depreciation: 4 };
   const tooltip = ({ kind, link, node }) => {
     const id = kind === 'link' ? link.target.id : node.id;
     const name = id === 'gdp' ? 'GDP' : id === 'capital' ? 'Gross capital income' : PART_TEXT[id]?.long;
@@ -261,7 +269,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
         <div className="sankey-tip-row is-note">{MEANING[id]}</div>
         {c != null ? (
           <div className={`sankey-tip-row is-${dirConcept(c)}`}>
-            {SCEN_NAME[sid]}: {change(c)}, % of the path&rsquo;s GDP
+            {SCEN_NAME[sid]}: {change(c)} percentage points of GDP
           </div>
         ) : null}
       </>
@@ -276,7 +284,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
           <p className="story-figure-title p2-output-title">
             <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
             {' '}<span className="p2-output-unit" data-axis-title="y">
-              {cap(CL_WORDS[cl])}, of every 100 of GDP
+              percentage points of GDP (of every 100 of the path&rsquo;s GDP)
             </span>
           </p>
           {graph && !all ? (
@@ -299,6 +307,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
               nodeWidth={[44, 44, 44]}
               inside
               pour={pour}
+              pourGap={280}
               replayKey={replay}
               flow={seen && !paused}
               interactive
@@ -315,7 +324,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
                 <span
                   key={id}
                   className={`p2-node-dir is-${d}${lit === id ? ' is-hl' : ''}`}
-                  style={{ left: `${n.x0 - 16}px`, top: `${(n.y0 + n.y1) / 2}px` }}
+                  style={{ left: `${n.x0 - 16}px`, top: `${(n.y0 + n.y1) / 2}px`, animationDelay: `${(rowAt[id] ?? 0) * GROW_STAGGER + 300}ms` }}
                   aria-hidden="true"
                 >
                   <Icon name={iconFor(d)} size={12} strokeWidth={2.5} />
@@ -335,7 +344,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
           <Tx icon="compare">
             What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
           </Tx>
-          {' '}<span className="p2-output-unit" data-axis-title="x">change, % of the path&rsquo;s GDP</span>
+          {' '}<span className="p2-output-unit" data-axis-title="x">change, in the same units</span>
         </p>
         {ch ? (
           <>
@@ -361,7 +370,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
         <span className="p2-src-line">
           <Tx icon="source" size={12}>
             <ModelSource method="m-measures" />{' '}
-            Changes: {where}; taxes not split out.
+            {cap(CL_WORDS[cl])}. Changes: {where}; taxes not split out.
           </Tx>
         </span>
         {ch ? (
@@ -409,6 +418,7 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
   return [
     {
       id: 'p2-out-1',
+      highlight: [],
       icon: 'gdp',
       title: 'GDP is paid as labour or capital income',
       body: (
@@ -434,6 +444,7 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
     },
     {
       id: 'p2-out-2',
+      highlight: [],
       icon: 'capital',
       title: 'Capital income splits three ways',
       body: (
@@ -459,6 +470,7 @@ function outputSteps(sid, cl, base, ch, hl, setHl, phone) {
     },
     {
       id: 'p2-out-3',
+      highlight: ['wf-labour', 'wf-capital', 'wf-gdp'],
       pin: 'bottom',
       icon: 'compare',
       title: `What ${SCEN_NAME[sid]} changes`,
@@ -503,6 +515,9 @@ export const OUTPUT_SUB = {
   title: 'Where output goes',
   icon: 'outputSplit',
   question: 'Who receives the extra output: workers, capital’s owners at home or abroad?',
+  hint: 'Follow each ribbon into its row of the waterfall',
+  answer: 'Capital income rises by more than GDP; labour income falls',
+  answerTo: 'story-output',
 };
 
 export default function OutputSplit({ sid, closure }) {

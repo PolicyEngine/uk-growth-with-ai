@@ -46,7 +46,9 @@ def expected(sid, cl):
         exp[f"{sum(b[k] for k in CAPITAL):.1f}"] += 1
     c = SPLIT['change'].get(sid, {}).get(cl, {})
     if c.get('status') == 'done':
-        for k in ['labour', 'gross_capital', *CAPITAL]:
+        # the GDP row prints its change too (Vahid, 16 Nov: the waterfall
+        # shows GDP's value beside its link to the headline figures)
+        for k in ['labour', 'gross_capital', *CAPITAL, 'gdp']:
             exp[signed(c[k], 2)] += 1
     return exp
 
