@@ -61,7 +61,7 @@ UK sources give **one labour-share path each**, not a range:
 
 **Central +0.4%.** The two independent UK central estimates agree at year 4: the IMF's ≈0.42% (0.41–0.44%) and the OBR's linear ramp at 0.40%. The model input is +0.4% (rounded; the OBR ramp gives 0.40%).
 
-**The UK central share fall, −1.6pp: derived, not published by the IMF.** Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%). Divided by the IMF's 27% cost saving, a reading of 0.40–0.44% gives 1.5–1.6pp; the UK central scenario uses 1.6pp (`labour_share_fall_pp: 1.6` in analysis/surprise/uk_targets.json). The share is derived from the 0.42 reading while the TFP input is the rounded 0.4, which alone would give 0.4 ÷ 0.27 = 1.5pp. The OBR cross-check (1.78pp) sits above 1.6, so 1.6 is not biased high. Decided by review on 16 Nov 2026: kept, no re-solve.
+**The UK central share fall, −1.6pp: derived, not published by the IMF.** Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%). Divided by the IMF's 27% cost saving, the 0.41–0.44% reading gives 1.5–1.6pp; the UK central scenario uses 1.6pp (`labour_share_fall_pp: 1.6` in analysis/surprise/uk_targets.json). The share is derived from the 0.42 reading while the TFP input is the rounded 0.4, which alone would give 0.4 ÷ 0.27 = 1.5pp. The OBR cross-check (1.78pp) sits above 1.6, so 1.6 is not biased high. Decided by review on 16 Nov 2026: kept, no re-solve.
 
 **Low and high.**
 - Low +0.2%: the OBR J-curve; the FRS describes the low end as "less than 0.1 percentage points" a year.

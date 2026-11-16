@@ -30,8 +30,8 @@
    "gamma_terminal": 0.357,
    "tfp_gain_pct": 0.2,
    "sources": {
-    "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12, as read in the #31 review). Year-4 level of 0.2%: derived from the OBR's 0.1pp a year by a linear ramp, 2 x 0.1 = 0.2%; calculated here, not published by the OBR. OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
-    "labour_share": "IMF SIP/2026/072 task mapping (cost saving 27% per automated task, para 44 p.24): share of output moved from labour to AI capital of 0.74pp, derived from the IMF's 27% cost saving by dividing the TFP gain by it, 0.2 / 0.27 = 0.74pp; calculated here, not published by the IMF."
+    "tfp": "OBR Briefing paper No.9 Annex B J-curve: AI growth boost reaching 0.1pp a year by year five (para B.12, as read in the #31 review). Year-4 level of 0.2%: derived from the OBR's 0.1pp a year by a linear ramp, 2 x 0.1 = 0.2%; derived here, not published by the OBR. OBR FRS July 2026 Box 4.1 p.86: low alternative 'less than 0.1 percentage points' a year.",
+    "labour_share": "IMF SIP/2026/072 task mapping (cost saving 27% per automated task, para 44 p.24): share of output moved from labour to AI capital of 0.74pp, derived from the IMF's 27% cost saving by dividing the TFP gain by it, 0.2 / 0.27 = 0.74pp; derived here, not published by the IMF."
    }
   },
   {
@@ -41,8 +41,8 @@
    "gamma_terminal": 0.366,
    "tfp_gain_pct": 0.4,
    "sources": {
-    "tfp": "IMF SIP/2026/072 baseline: TFP +0.53% at year 5 (Table 1, p.29); year-4 value read off Figure 9 (p.25) as about 0.42% (0.41-0.44%; only years 5 and 10 are printed); model input 0.4% (rounded; the OBR ramp gives 0.40%). Cross-check: OBR central 0.2pp a year at year five (BP9 para B.14; OBR EFO Oct 2026 para 1.27 p.21) gives 0.4% at year 4, derived from the OBR's 0.2pp a year by a linear ramp, 2 x 0.2 = 0.4%; calculated here, not published by the OBR.",
-    "labour_share": "IMF SIP/2026/072: long-run capital share +10pp reached in 17 years (para 44 p.24; Annex III para 4 p.37). Year-4 share shift of 1.56pp: derived from the IMF's year-4 TFP gain and 27% cost saving by dividing one by the other, 0.42 / 0.27 = 1.56pp; calculated here, not published by the IMF. A straight line in time gives 10/17 x 4 = 2.35pp but overstates the early years because the IMF adoption path is convex (Figure 9). Cross-check: OBR FRS 2026 Box 4.1 upper-end path, 4 years at 0.44pp a year of wages and salaries = 1.78pp of GDP."
+    "tfp": "IMF SIP/2026/072 baseline: TFP +0.53% at year 5 (Table 1, p.29); year-4 value read off Figure 9 (p.25) as about 0.42% (0.41-0.44%; only years 5 and 10 are printed); model input 0.4% (rounded; the OBR ramp gives 0.40%). Cross-check: OBR central 0.2pp a year at year five (BP9 para B.14; OBR EFO Oct 2026 para 1.27 p.21) gives 0.4% at year 4, derived from the OBR's 0.2pp a year by a linear ramp, 2 x 0.2 = 0.4%; derived here, not published by the OBR.",
+    "labour_share": "IMF SIP/2026/072: long-run capital share +10pp reached in 17 years (para 44 p.24; Annex III para 4 p.37). Year-4 share shift of 1.56pp: derived from the IMF's year-4 TFP gain and 27% cost saving by dividing one by the other, 0.42 / 0.27 = 1.56pp; derived here, not published by the IMF. A straight line in time gives 10/17 x 4 = 2.35pp but overstates the early years because the IMF adoption path is convex (Figure 9). Cross-check: OBR FRS 2026 Box 4.1 upper-end path, 4 years at 0.44pp a year of wages and salaries = 1.78pp of GDP."
    }
   },
   {
@@ -52,8 +52,8 @@
    "gamma_terminal": 0.379,
    "tfp_gain_pct": 1.6,
    "sources": {
-    "tfp": "OBR FRS July 2026 Box 4.1 p.86: high alternative 'up to 0.8 percentage points' a year (BP9 scenario); 1.6% at year 4, derived from the OBR's 0.8pp a year by a linear ramp to year five, 2 x 0.8 = 1.6%; calculated here, not published by the OBR. Cross-check: IMF 2026 Article IV RAM p.47, TFP +1 to 5pp over 10 years; 5pp linear gives 2.0% at year 4.",
-    "labour_share": "OBR FRS July 2026 Box 4.1 p.87: wages and salaries 40% -> 20% of GDP between 2030-31 and 2075-76, described as 'at the upper end' of the literature; Chart E (p.88) is linear from 2030-31, so 0.44pp of GDP a year, 1.78pp after 4 years. 2.89pp, derived from the OBR's 1.78pp by scaling it to the model's 65% labour share, 1.78 x 65/40 = 2.89pp; calculated here, not published by the OBR."
+    "tfp": "OBR FRS July 2026 Box 4.1 p.86: high alternative 'up to 0.8 percentage points' a year (BP9 scenario); 1.6% at year 4, derived from the OBR's 0.8pp a year by a linear ramp to year five, 2 x 0.8 = 1.6%; derived here, not published by the OBR. Cross-check: IMF 2026 Article IV RAM p.47, TFP +1 to 5pp over 10 years; 5pp linear gives 2.0% at year 4.",
+    "labour_share": "OBR FRS July 2026 Box 4.1 p.87: wages and salaries 40% -> 20% of GDP between 2030-31 and 2075-76, described as 'at the upper end' of the literature; Chart E (p.88) is linear from 2030-31, so 0.44pp of GDP a year, 1.78pp after 4 years. 2.89pp, derived from the OBR's 1.78pp by scaling it to the model's 65% labour share, 1.78 x 65/40 = 2.89pp; derived here, not published by the OBR."
    }
   },
   {
