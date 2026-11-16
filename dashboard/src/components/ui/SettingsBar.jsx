@@ -16,7 +16,7 @@ import { SCENARIOS, SCEN_NAME, ruleSolved, solvedUnder } from '@/tabs/ai/surpris
 // choice. On a uk-ai-study page the OG-UK settings do not apply: the bar
 // shows a "different model" chip instead.
 
-const SCEN_NOTE = { uk_low: 'UK range, lower end', uk_central: 'Headline scenario', uk_high: 'UK range, upper end', korinek: 'A US upper case: Korinek et al.’s “substantial” inputs' };
+const SCEN_NOTE = { uk_low: 'Lower UK scenario, derived from OBR/IMF inputs', uk_central: 'Headline scenario, derived from IMF/OBR inputs', uk_high: 'Upper UK scenario, derived from OBR inputs', korinek: 'A US upper case: Korinek et al.’s “substantial” inputs' };
 export const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
 export const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note: c.note, icon: c.icon }));
 
