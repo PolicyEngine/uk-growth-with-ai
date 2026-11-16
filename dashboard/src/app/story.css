@@ -2072,3 +2072,39 @@
     transition: none;
   }
 }
+
+/* DownloadMenu: the copy actions under the downloads, and the status line */
+.download-sep {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.download-item-icon {
+  display: inline-flex;
+  vertical-align: -2px;
+  margin-right: 6px;
+  color: var(--pe-gray-500);
+}
+.download-status {
+  padding: 0 10px;
+  font-size: var(--fs-caption);
+  color: var(--pe-teal-700);
+}
+.download-status:empty {
+  display: none;
+}
+
+/* AboutFold `replication` (Card.jsx): code and result file */
+.replication-link {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 8px 0 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+.replication-link > svg {
+  flex: none;
+  align-self: center;
+  color: var(--pe-gray-500);
+}
