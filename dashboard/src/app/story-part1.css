@@ -154,15 +154,6 @@
   display: none;
 }
 
-/* Desktop: each block's last card brings in a new figure, so the graphic
-   stays pinned while that card is read (story.css gives the last step no
-   height, which lets the graphic scroll away as the card arrives). */
-@media (min-width: 901px) {
-  .scrolly[id^='p1-'] .scrolly-step:nth-last-child(2) {
-    min-height: 50vh;
-  }
-}
-
 /* A drawn line's end dot leaves at once when the line retracts (scrolling
    back); it still waits for the draw on the way in (story.css). */
 .p1-svg .draw-end:not(.is-on) {

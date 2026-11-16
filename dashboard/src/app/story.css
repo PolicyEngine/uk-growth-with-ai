@@ -180,7 +180,12 @@
   display: flex;
   align-items: flex-start;
 }
+/* the last card of a multi-step block keeps half a screen, so the graphic
+   stays pinned while it is read; a single card needs none */
 .scrolly-step:nth-last-child(2) {
+  min-height: 50vh;
+}
+.scrolly.is-single .scrolly-step:nth-last-child(2) {
   min-height: 0;
 }
 /* a card-less step: the graphic holds its opening state for a short scroll */
@@ -638,9 +643,6 @@
   .story-callout,
   .story-next {
     transition: none !important;
-  }
-  .draw-end {
-    opacity: 1;
   }
   /* Reveals show at once. Chart parts keep the step logic: a part that is
      .is-on shows at once, one that is not stays hidden; only the motion goes. */
