@@ -6,13 +6,14 @@ import AllScenarios from '@/tabs/explore/AllScenarios.jsx';
 import HouseholdsExplore from '@/tabs/households/HouseholdsExplore.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import AnswerStrip from '@/tabs/explore/AnswerStrip.jsx';
+import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import RuleBar from '@/tabs/explore/RuleBar.jsx';
 import { useNav, subOf } from '@/lib/nav.jsx';
 import { economyAnswer, financesAnswer, allAnswer } from '@/tabs/explore/answers.js';
 
 // An answer is a strip of chips, or a sentence when the view is not solved.
-const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: [{ key: 'pending', icon: 'timing', text: a }] } : a} />;
+const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sentenceItems(a) } : a} />;
 // Who gains is UK central only, so its answer does not move with the pickers.
 const WHO_ANSWER = {
   context: 'UK central only · lifetime welfare by birth year and earnings group',

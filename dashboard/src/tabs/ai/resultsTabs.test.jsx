@@ -126,7 +126,7 @@ describe('tooltips', () => {
     expect(other.card).not.toMatch(/\d\.\d\d/);
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
-    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending is solved for UK central and Korinek et al. (upper) only');
+    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending: solved for UK central and Korinek et al. (upper) only');
   });
 
   it('the rule and the arms are in the address', async () => {

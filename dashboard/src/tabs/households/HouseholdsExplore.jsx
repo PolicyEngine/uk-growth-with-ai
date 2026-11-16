@@ -2,7 +2,6 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { Notice } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { Items } from '@/components/story/Items.jsx';
@@ -143,7 +142,9 @@ function Ladder() {
             ]}
           />
           <p className="hh-foot">
+            <Lead c="provisional">
             <OutsideRebuild />
+          </Lead>
           </p>
         </>
       }
@@ -292,7 +293,9 @@ function PerPound() {
       }}
       foot={
         <p className="hh-foot">
-          <OutsideRebuild />
+          <Lead c="provisional">
+            <OutsideRebuild />
+          </Lead>
         </p>
       }
     >
@@ -392,18 +395,20 @@ function Displaced() {
       }}
       foot={
         <p className="hh-foot">
-          <OutsideRebuild />
+          <Lead c="provisional">
+            <OutsideRebuild />
+          </Lead>
         </p>
       }
     >
       <div className="hh-tiles">
         {tiles.map(([k, name, sub]) => (
-          <StatTile key={k} icon={iconFor(TILE_ICON[k])} name={name} value={fmtShare(X[k].value)} sub={sub} />
+          <StatTile key={k} icon={iconFor(TILE_ICON[k])} name={name} value={fmtShare(X[k].value)} sub={<Lead c="households">{sub}</Lead>} />
         ))}
       </div>
       <div className="hh-tiles hh-tiles-3">
         {uc.map(([k, name, sub]) => (
-          <StatTile key={k} icon={iconFor(TILE_ICON[k])} name={name} value={fmtGbp(X[k].value)} sub={sub} />
+          <StatTile key={k} icon={iconFor(TILE_ICON[k])} name={name} value={fmtGbp(X[k].value)} sub={<Lead c="benefits">{sub}</Lead>} />
         ))}
       </div>
     </Card>
@@ -668,10 +673,12 @@ export default function HouseholdsExplore() {
             ]}
           />
         </div>
-        <Notice>Provisional</Notice>
+        <p className="notice-chip">
+          <Lead c="provisional">Provisional</Lead>
+        </p>
       </header>
       <SectionHeading id="hh-cost" icon={iconFor('cost')} title="What moves the cost">
-        How the central cost is made up, and how it changes with take-up, JSA, wage cuts and who loses the job.
+        <Lead c="cost">The central cost, and how take-up, JSA, wage cuts and job-loss rules move it</Lead>
       </SectionHeading>
       <div className="card-grid cols-2">
         <CostByTax />
@@ -680,12 +687,12 @@ export default function HouseholdsExplore() {
         <PerPound />
       </div>
       <SectionHeading id="hh-who" icon={iconFor('households')} title="Who it falls on">
-        Who the displaced are, and how the income change by decile depends on how households are ranked.
+        <Lead c="households">Who the displaced are, and income change by decile under three rankings</Lead>
       </SectionHeading>
       <Displaced />
       <Rankings />
       <SectionHeading id="hh-responses" icon={iconFor('policy')} title="Policy responses">
-        Three stylised additions to the benefit system, simulated on top of the central shock.
+        <Lead c="policy">Three stylised benefit additions, simulated on top of the central shock</Lead>
       </SectionHeading>
       <Policy />
       <Sources />

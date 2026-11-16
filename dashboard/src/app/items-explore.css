@@ -483,3 +483,23 @@
 .ex-chip.is-note > .plain-icon {
   margin-top: 1px;
 }
+
+/* Who gains: the tiles' rows as items (icon, label, value). */
+.ex-stat-rows {
+  padding: 0;
+  list-style: none;
+}
+.ex-stat-rows > li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ex-stat-rows .ex-dt {
+  color: var(--pe-gray-600);
+}
+.ex-stat-rows .ex-dd {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pe-gray-900);
+}

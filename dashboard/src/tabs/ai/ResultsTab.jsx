@@ -2,7 +2,6 @@
 
 import LineChart from '@/components/LineChart.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import { Unpublished } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ArmsGroup } from '@/components/ui/ControlBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
@@ -14,7 +13,7 @@ import { ruleLabel } from '@/lib/labels.js';
 import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { Dir, Lead } from '@/tabs/explore/direction.jsx';
+import { Dir, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 
 // Results. The answer and the three headline figures are on Story.
@@ -128,7 +127,9 @@ export function PathCard({
           ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />
       ) : (
-        <Unpublished>{emptyText(st.arms, st.closure, rule, sid)}</Unpublished>
+        <div className="unpublished-plot">
+          <Items items={sentenceItems(emptyText(st.arms, st.closure, rule, sid))} />
+        </div>
       )}
     </Card>
   );
@@ -252,7 +253,7 @@ function IncomePanel({ sid }) {
   return (
     <>
       <SectionHeading id="income" icon={iconFor('gni')} title={`Income and output, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        Four measures in {HEADLINE_YEAR}, then how national income and GDP build up from the {SURPRISE_YEAR} surprise.
+        <Lead c="path">{`Four measures in ${HEADLINE_YEAR}, then how GNI and GDP build up from ${SURPRISE_YEAR}`}</Lead>
       </SectionHeading>
       <div className="cards-stack">
         <Card
@@ -270,7 +271,7 @@ function IncomePanel({ sid }) {
             st.closure === 'both' ? (
               <p className="line-key">
                 <span className="line-key-item">
-                  <span className="key-dot" aria-hidden="true" /> Circle: central closure
+                  <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: central closure
                 </span>
                 <span className="line-key-item">
                   <span className="key-diamond" aria-hidden="true" /> Diamond: closed capital
@@ -312,7 +313,9 @@ function IncomePanel({ sid }) {
             legend: () => dumbbellLegend(st.arms, st.closure),
           }}
         >
-          {ruleSolved(st.rule, sid) ? <Dumbbells sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : <Unpublished>{ruleGapText(st.rule, sid)}</Unpublished>}
+          {ruleSolved(st.rule, sid) ? <Dumbbells sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : <div className="unpublished-plot">
+              <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
+            </div>}
         </Card>
         <div className="cards-grid">
           <PathCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" name="national income" icon={iconFor('gni')} ends={false} about={{ shows: READING_PATH, how: HOW, caveats: IMPOSED }} />
@@ -360,7 +363,7 @@ function EconomyPanel({ sid }) {
       {ECONOMY.map((g, gi) => (
         <section key={g.group} aria-label={g.group} className={gi ? 'section-gap' : ''}>
           <SectionHeading id={`economy-${g.group.split(' ')[0].toLowerCase()}`} icon={iconFor(g.concept)} title={g.group}>
-            {g.lede}
+            <Lead c="measure">{g.lede}</Lead>
           </SectionHeading>
           <div className="cards-grid">
             {g.rows.map((r) => (
@@ -394,9 +397,7 @@ export function RulePending({ sid }) {
   return (
     <Card id="rule-pending" icon={iconFor('timing')} title={`${SCEN_NAME[sid]} is not solved under ${ruleLabel(st.rule).toLowerCase()}`} logo={false}>
       <div className="rule-pending">
-        <p>
-          <Lead c="timing">{ruleGapText(st.rule, sid)}</Lead>
-        </p>
+        <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
         <div className="rule-pending-actions">
           {solved.map((s) => (
             <button key={s.id} type="button" className="segment" onClick={() => set({ s: s.id })}>

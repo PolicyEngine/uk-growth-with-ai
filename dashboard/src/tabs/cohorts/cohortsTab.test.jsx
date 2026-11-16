@@ -90,7 +90,7 @@ describe('Who gains tab', () => {
     expect(tile.querySelector('.stat-value').textContent).toBe(tileRange(c.alive_losing_pct, c.no_bequest_losing_pct));
     if (c.alive_losing_pct <= 0) {
       expect(tile.querySelector('.stat-value').textContent).toBe(`Up to ${Math.round(c.no_bequest_losing_pct)}%`);
-      expect(tile.querySelector('dd').textContent).toBe('none');
+      expect(tile.querySelector('.ex-dd').textContent).toBe('none');
     }
     expect(tileRange(0, 4.8)).toBe('Up to 5%');
     expect(tileRange(0.05, 49.5)).toBe('Under 1% to 50%');

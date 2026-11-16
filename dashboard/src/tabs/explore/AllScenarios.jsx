@@ -73,7 +73,9 @@ function Panel({ m, arm }) {
         <Icon name={m.icon} size={16} />
         <span>{m.title}</span>
       </figcaption>
-      <p className="as-panel-unit">{m.unit === '%' ? '% difference from the OBR-central path' : 'Percentage points of GDP, difference from the OBR-central path'}</p>
+      <p className="as-panel-unit">
+        <Lead c="measure">{m.unit === '%' ? '% difference from the OBR-central path' : 'Percentage points of GDP, difference from the OBR-central path'}</Lead>
+      </p>
       {RULES.map((r) => {
         const rows = ROWS.filter((row) => row.rule === r.id).map((row) => rowOf(arm, row, m.v));
         const pending = [...new Set(rows.flatMap((x) => x.pending))];
@@ -166,7 +168,7 @@ function Key({ arm }) {
   return (
     <p className="line-key as-key">
       <span className="line-key-item">
-        <span className="as-key-band" aria-hidden="true">
+        <span className="as-key-band" aria-hidden="true" data-icon="">
           <span className="as-key-end" style={{ '--mark': ARM_COLOR[arm] }} />
           <span className="as-key-end" style={{ '--mark': ARM_COLOR[arm] }} />
         </span>
@@ -315,7 +317,7 @@ export default function AllScenarios() {
       </Card>
 
       <SectionHeading id="all-sensitivity" icon={iconFor('foreign')} title="More foreign capital">
-        One more closure, solved as a sensitivity only: half of the new capital financed from abroad.
+        <Lead c="foreign">A sensitivity only: half of new capital financed from abroad</Lead>
       </SectionHeading>
       <SensitivityTable />
 

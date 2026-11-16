@@ -35,3 +35,14 @@ export function Lead({ c, children }) {
     </>
   );
 }
+
+// A sentence or two (an "unsolved" note) as items: one per sentence, each
+// with the concept's icon, in the plot-sized box the charts leave empty.
+export const sentenceItems = (text, c = 'timing') =>
+  String(text)
+    .replace(/^(.+?) is solved for /, '$1: solved for ')
+    .split(/(?<=\.)\s+(?=[A-Z])/)
+    .flatMap((t) => t.split(/,\s+(?=or )/))
+    .filter(Boolean)
+    .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+    .map((t, i) => ({ key: i, icon: c, text: t }));

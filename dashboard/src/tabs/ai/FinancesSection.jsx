@@ -2,7 +2,6 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import { Unpublished } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel, RULES } from '@/lib/labels.js';
@@ -16,7 +15,7 @@ import { closuresFor, closureWords, contextLine, side, ruleGapText, primaryClosu
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { Dir, dirConcept, Lead } from '@/tabs/explore/direction.jsx';
+import { Dir, dirConcept, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
 // tax/GDP, why both are likely understated, and how the result changes with
@@ -54,7 +53,7 @@ export function debtParts(sid, closure, rule) {
   const a = gap(sid, 'tfp', cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
   const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR, rule);
   if (a == null || b == null) return null;
-  const lead = `With automation + productivity${closure === 'closed' ? ' and closed capital' : ''}`;
+  const lead = `Automation + productivity${closure === 'closed' ? ', closed capital' : ''}:`;
   if (rule === 'dn') {
     const first = gap(sid, 'tfp', cl, 'debt_gdp_pp', SURPRISE_YEAR, rule);
     return { kind: 'dn', lead, first: first == null || side(first) === 'on' ? null : first, late: b };
@@ -69,7 +68,7 @@ function DebtFinding({ p }) {
   if (p.kind === 'dn')
     return (
       <>
-        {p.lead}, debt/GDP
+        {p.lead} debt/GDP
         {p.first != null ? (
           <>
             {' '}is <Dir x={p.first} />
@@ -77,12 +76,12 @@ function DebtFinding({ p }) {
           </>
         ) : null}{' '}
         stays <Dir x={p.late} />
-        on the path: debt-neutral transfers hold it there from {SURPRISE_YEAR + 1}.
+        on the path: transfers hold it there from {SURPRISE_YEAR + 1}.
       </>
     );
   return (
     <>
-      {p.lead}, debt/GDP is <Dir x={p.a} />
+      {p.lead} debt/GDP is <Dir x={p.a} />
       {sideOf(p.a)} the path in {HEADLINE_YEAR} and {sideOf(p.a) === sideOf(p.b) ? 'still ' : ''}
       <Dir x={p.b} />
       {sideOf(p.b)} it by {LATE_YEAR}.
@@ -581,7 +580,9 @@ function FiscalRuleCard({ sid }) {
           <Icon name={iconFor('compare')} size={14} /> Pick another rule to see how far each gap moves
         </p>
       ) : !has ? (
-        <Unpublished>{ruleGapText(rule, sid)}</Unpublished>
+        <div className="unpublished-plot">
+          <Items items={sentenceItems(ruleGapText(rule, sid))} />
+        </div>
       ) : (
         <>
           <RuleDumbbells rule={rule} sid={sid} closure={st.closure} />
@@ -617,7 +618,7 @@ export default function FinancesSection({ sid }) {
   return (
     <>
       <SectionHeading id="public-finances" icon={iconFor('finances')} title="Public finances">
-        Debt and tax as shares of GDP, {SCEN_NAME[sid]}, {cl}, {ruleLabel(st.rule).toLowerCase()}.
+        <Lead c="scenario">{`Debt and tax as shares of GDP: ${SCEN_NAME[sid]}, ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</Lead>
       </SectionHeading>
       <div className="cards-grid">
         <PathCard

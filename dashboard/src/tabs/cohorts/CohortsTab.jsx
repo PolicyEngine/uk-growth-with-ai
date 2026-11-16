@@ -109,107 +109,107 @@ export function Headline({ c, rule, cl, arm }) {
   const ages = fullAges ?? ch?.oldest_losing_on_average;
   return (
     <div className="stat-row cols-4">
-      <StatTile icon={iconFor('households')} name={`Adults who lose`} value={tileRange(lo, hi)} sub={`Share of adults alive in ${D.shock_year}, depending on the measure`}>
-        <dl className="stat-rows">
-          <div>
-            <dt>
+      <StatTile icon={iconFor('households')} name={`Adults who lose`} value={tileRange(lo, hi)} sub={<Lead c="range">{`Share of adults alive in ${D.shock_year}, depending on the measure`}</Lead>}>
+        <ul className="stat-rows ex-stat-rows">
+          <li>
+            <span className="ex-dt">
               <Lead c="model">As modelled</Lead>
-            </dt>
-            <dd>{share(c.alive_losing_pct)}</dd>
-          </div>
-          <div>
-            <dt>
+            </span>
+            <span className="ex-dd">{share(c.alive_losing_pct)}</span>
+          </li>
+          <li>
+            <span className="ex-dt">
               <Lead c="bequests">If bequests are not valued</Lead>
-            </dt>
-            <dd>{share(c.no_bequest_losing_pct)}</dd>
-          </div>
+            </span>
+            <span className="ex-dd">{share(c.no_bequest_losing_pct)}</span>
+          </li>
           {ch ? (
             <>
-              <div>
-                <dt>
+              <li>
+                <span className="ex-dt">
               <Lead c="provisional">With the fiscal cost after 2035 charged, first order</Lead>
-            </dt>
-                <dd>{shareRange(ch.joint_losing_pct)}</dd>
-              </div>
-              <div>
-                <dt>
+            </span>
+                <span className="ex-dd">{shareRange(ch.joint_losing_pct)}</span>
+              </li>
+              <li>
+                <span className="ex-dt">
               <Lead c="range">With both, first order</Lead>
-            </dt>
-                <dd>{shareRange(ch.no_bequest_losing_pct)}</dd>
-              </div>
+            </span>
+                <span className="ex-dd">{shareRange(ch.no_bequest_losing_pct)}</span>
+              </li>
             </>
           ) : null}
           {full ? (
             <>
-              <div data-dnfull="">
-                <dt>
-              <Lead c="benefits">With transfers bearing the later fiscal cost, solved to the horizon</Lead>
-            </dt>
-                <dd>{shareRange(full.range.joint_losing_pct)}</dd>
-              </div>
-              <div data-dnfull="">
-                <dt>
+              <li data-dnfull="">
+                <span className="ex-dt">
+              <Lead c="benefits">Transfers bear later fiscal cost, solved to the horizon</Lead>
+            </span>
+                <span className="ex-dd">{shareRange(full.range.joint_losing_pct)}</span>
+              </li>
+              <li data-dnfull="">
+                <span className="ex-dt">
               <Lead c="range">With both, solved to the horizon</Lead>
-            </dt>
-                <dd>{shareRange(full.range.no_bequest_losing_pct)}</dd>
-              </div>
+            </span>
+                <span className="ex-dd">{shareRange(full.range.no_bequest_losing_pct)}</span>
+              </li>
             </>
           ) : null}
-        </dl>
+        </ul>
       </StatTile>
       <StatTile
         icon={iconFor('young')}
         name="Who loses, by age"
         value={young ? (young === 20 ? 'Age 20' : `Up to age ${young}`) : ages ? `Up to age ${ages[0] === ages[1] ? ages[0] : `${ages[0]}–${ages[1]}`}` : 'The youngest'}
         sub={
-          young
+          <Lead c="age">{young
             ? `Every adult this age or younger in ${D.shock_year} loses, as modelled`
             : ages
               ? full
                 ? `Adults this age or younger in ${D.shock_year} lose on average with transfers bearing the later fiscal cost, solved to the horizon`
                 : `Adults this age or younger in ${D.shock_year} lose on average once the later fiscal cost is charged (first-order estimate, not a model run)`
-              : 'Losses, where there are any, fall on the youngest adults: they have the most working years ahead and the least wealth'
+              : 'Losses, where any, fall on the youngest adults: most working years ahead, least wealth'}</Lead>
         }
       >
         <p className="stat-line">
           <Lead c="age">The gain is largest for adults {peakWords(c)}, who hold more wealth and collect the higher return on it.</Lead>
         </p>
       </StatTile>
-      <StatTile icon={iconFor('measure')} name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub="Of remaining-lifetime consumption and bequests, adults alive">
-        <dl className="stat-rows">
-          <div>
-            <dt>
+      <StatTile icon={iconFor('measure')} name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub={<Lead c="consumption">Of remaining-lifetime consumption and bequests, adults alive</Lead>}>
+        <ul className="stat-rows ex-stat-rows">
+          <li>
+            <span className="ex-dt">
               <Lead c="bequests">If bequests are not valued</Lead>
-            </dt>
-            <dd>{pct(c.no_bequest_alive_avg)}</dd>
-          </div>
+            </span>
+            <span className="ex-dd">{pct(c.no_bequest_alive_avg)}</span>
+          </li>
           {full ? (
-            <div data-dnfull="">
-              <dt>
-              <Lead c="benefits">And transfers bearing the later fiscal cost, solved to the horizon</Lead>
-            </dt>
-              <dd>{full.range.no_bequest_avg[0].toFixed(2) === full.range.no_bequest_avg[1].toFixed(2) ? pct(full.range.no_bequest_avg[0]) : `${pct(full.range.no_bequest_avg[0])} to ${pct(full.range.no_bequest_avg[1])}`}</dd>
-            </div>
+            <li data-dnfull="">
+              <span className="ex-dt">
+              <Lead c="benefits">Plus transfers bear later cost, solved to the horizon</Lead>
+            </span>
+              <span className="ex-dd">{full.range.no_bequest_avg[0].toFixed(2) === full.range.no_bequest_avg[1].toFixed(2) ? pct(full.range.no_bequest_avg[0]) : `${pct(full.range.no_bequest_avg[0])} to ${pct(full.range.no_bequest_avg[1])}`}</span>
+            </li>
           ) : null}
           {ch ? (
-            <div>
-              <dt>
+            <li>
+              <span className="ex-dt">
               <Lead c="finances">And the later fiscal cost charged</Lead>
-            </dt>
-              <dd>{ch.no_bequest_avg[0].toFixed(2) === ch.no_bequest_avg[1].toFixed(2) ? pct(ch.no_bequest_avg[0]) : `${pct(ch.no_bequest_avg[0])} to ${pct(ch.no_bequest_avg[1])}`}</dd>
-            </div>
+            </span>
+              <span className="ex-dd">{ch.no_bequest_avg[0].toFixed(2) === ch.no_bequest_avg[1].toFixed(2) ? pct(ch.no_bequest_avg[0]) : `${pct(ch.no_bequest_avg[0])} to ${pct(ch.no_bequest_avg[1])}`}</span>
+            </li>
           ) : null}
-        </dl>
+        </ul>
       </StatTile>
-      <StatTile icon={iconFor('inequality')} name="Where it comes from" value={pct(s.capital)} tone={tone(s.capital)} sub="From capital income, at unchanged behaviour">
-        <dl className="stat-rows">
-          <div>
-            <dt>
+      <StatTile icon={iconFor('inequality')} name="Where it comes from" value={pct(s.capital)} tone={tone(s.capital)} sub={<Lead c="capital">From capital income, at unchanged behaviour</Lead>}>
+        <ul className="stat-rows ex-stat-rows">
+          <li>
+            <span className="ex-dt">
               <Lead c="labour">From labour income</Lead>
-            </dt>
-            <dd>{pct(s.labour)}</dd>
-          </div>
-        </dl>
+            </span>
+            <span className="ex-dd">{pct(s.labour)}</span>
+          </li>
+        </ul>
       </StatTile>
     </div>
   );
@@ -372,7 +372,7 @@ export default function WhoGainsTab() {
   return (
     <>
       <SectionHeading id="who-gains" icon={iconFor('welfare')} title="Welfare by birth year and earnings group">
-        Consumption-equivalent change for each birth year and lifetime-earnings group when AI arrives as a surprise in {D.shock_year}.
+        <Lead c="measure">{`Consumption-equivalent change by birth year and earnings group, AI arriving in ${D.shock_year}`}</Lead>
       </SectionHeading>
       <Items
         className="ex-view-note"
@@ -543,11 +543,12 @@ export default function WhoGainsTab() {
         </Card>
       </div>
       <SectionHeading id="who-why" icon={iconFor('why')} title="What drives the result">
-        The results behind the pattern; the last card is the stress test. Why age matters:{' '}
-        <NavLink tab="method" sub="how" anchor="m-generations">
-          Method, many generations at once
-        </NavLink>
-        .
+        <Lead c="link">
+          Why age matters:{' '}
+          <NavLink tab="method" sub="how" anchor="m-generations">
+            Method, many generations at once
+          </NavLink>
+        </Lead>
       </SectionHeading>
       <Why cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} />
     </>
