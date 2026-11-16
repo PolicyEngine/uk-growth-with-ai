@@ -15,6 +15,10 @@ import { toneOf } from './answers.js';
 import { Dir, Lead } from './direction.jsx';
 import { MEASURES, ROWS, rowOf, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
+import { ResultSources } from './sources.jsx';
+import { AxisTitles } from './axes.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { URLS } from '@/tabs/ai/links.js';
 
 // "Across scenarios": every scenario x closure x fiscal rule cell at once,
 // for one arm, in the headline year, as a matrix explorer. Rows: fiscal rule
@@ -124,6 +128,7 @@ export function Matrix({ arm, ms, m, printHome = true, label }) {
   const scale = glyphScale(arm, ms);
   return (
     <div className="ex-mx-wrap">
+      <AxisTitles y={`Rows: fiscal rule and closure; each cell, the ${m.label} gap against the OBR-central path, ${m.unit === 'pp' ? 'percentage points of GDP' : '%'}`} x="Columns: scenario" />
       <table className="ex-mx" aria-label={label}>
         <thead>
           <tr>
@@ -250,7 +255,7 @@ export default function AllScenarios() {
               items={[
                 { key: 'gap', icon: 'onPath', text: `Each cell: one solve’s ${HEADLINE_YEAR} gap against the path, same closure` },
                 { key: 'view', icon: 'link', text: 'The cell in view: its values are in the charts below' },
-                { key: 'korinek', icon: 'foreign', text: 'Korinek et al.: US inputs, an upper case, not a UK estimate' },
+                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al.')}: US inputs, an upper case, not a UK estimate</> },
               ]}
             />
           ),
@@ -281,6 +286,7 @@ export default function AllScenarios() {
               ]}
             />
           ),
+          sources: <ResultSources />,
         }}
         method="rules"
         download={{
@@ -294,7 +300,7 @@ export default function AllScenarios() {
       </Card>
 
       <SectionHeading id="ex-sensitivity" icon={iconFor('foreign')} title="More foreign capital">
-        <Lead c="foreign">A sensitivity only: half of new capital financed from abroad</Lead>
+        <Lead c="foreign">A sensitivity only: foreigners supply half of excess capital demand</Lead>
       </SectionHeading>
       <SensitivityTable />
     </div>
@@ -334,11 +340,13 @@ export function AcrossDebt() {
             <Items
               items={[
                 { key: 'common', icon: 'gdp', text: 'Common rule: spending follows GDP; debt absorbs the rest' },
-                { key: 'fixed', icon: 'finances', text: 'Fixed spending: spending held, so debt moves more' },
+                { key: 'fixed', icon: 'finances', text: 'Fixed spending: spending held at its OBR-central level' },
                 { key: 'dn', icon: 'benefits', text: 'Debt-neutral: transfers adjust to hold debt on the path' },
+                { key: 'choice', icon: 'rule', text: 'All three are modelling choices, not OBR rules' },
               ]}
             />
           ),
+          sources: <ResultSources />,
         }}
         method="rules"
         download={{

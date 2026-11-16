@@ -15,7 +15,13 @@ import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import D from '@/data/cohorts2028.json';
-import WhoHeatmap from '@/tabs/cohorts/WhoHeatmap.jsx';
+import WhoHeatmap, { CohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { atRef, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
+
+// ONS, Household total wealth in Great Britain, April 2018 to March 2020: the
+// top tenth of households held 43% of wealth.
+const ONS_WEALTH = 'https://www.ons.gov.uk/peoplepopulationandcommunity/personalandhouseholdfinances/incomeandwealth/bulletins/totalwealthingreatbritain/april2018tomarch2020';
 
 // Who gains: consumption-equivalent welfare change by birth year and
 // lifetime-earnings group, UK central only, from cohorts2028.json (written
@@ -66,6 +72,38 @@ const youngest = (c) => {
   const xs = D.closures[Object.keys(D.closures)[0]].birth_year;
   return c.cev_all[xs.lastIndexOf(LAST_ALIVE)];
 };
+
+// Where the smallest change among adults falls, in words, for one cell: the
+// youngest adults, the youngest working-age adults (20 to 64), or an age.
+export function leastWords(c) {
+  const xs = D.closures[Object.keys(D.closures)[0]].birth_year;
+  const ages = xs.map((y) => D.shock_year - y);
+  const adults = ages.map((a, i) => i).filter((i) => ages[i] >= 20 && xs[i] <= LAST_ALIVE);
+  const work = adults.filter((i) => ages[i] <= 64);
+  const argmin = (is) => is.reduce((b, i) => (c.cev_all[i] < c.cev_all[b] ? i : b), is[0]);
+  const y = argmin(adults);
+  const verb = (i) => (c.cev_all[i] < 0 ? 'lose' : 'gain least');
+  if (ages[y] === 20) return `The youngest adults ${verb(y)}`;
+  const w = argmin(work);
+  if (ages[w] === 20) return `Among working-age adults, the youngest ${verb(w)}`;
+  return `Adults around age ${ages[y]} ${verb(y)}`;
+}
+
+// The Who gains answer for the view picked: computed, so it follows the arm,
+// rule and closure pickers.
+export function whoAnswer(closure, rule, arm) {
+  const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
+  const c = cell(cl, rule, arm);
+  return {
+    context: 'UK central only · lifetime welfare by birth year and earnings group',
+    drivers: [
+      { key: 'old', icon: 'age', text: `Adults ${peakWords(c)} gain most` },
+      { key: 'why', icon: 'capital', text: 'They hold more wealth and collect the higher return' },
+      { key: 'young', icon: 'young', text: leastWords(c) },
+      { key: 'how', icon: 'range', text: 'How many lose depends on how bequests and later fiscal cost count' },
+    ],
+  };
+}
 
 export function cell(closure, rule, arm) {
   return D.closures[closure].rules[rule][arm];
@@ -316,7 +354,7 @@ function Spark({ c }) {
         <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-spark-line" />
       </svg>
       <figcaption>
-        <Icon name={iconFor('path')} size={12} /> {`Consumption gap, ${ys[0][0]}–${ys[ys.length - 1][0]}`}
+        <Icon name={iconFor('path')} size={12} /> <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
         {c.first_year_c_above ? <span className="ex-spark-cross">{` · above from ${c.first_year_c_above} →`}</span> : null}
       </figcaption>
     </figure>
@@ -444,6 +482,12 @@ function Why({ cl, rule, arm }) {
             { key: 'd', concept: 'data', label: 'ONS, 2018–20', value: 43, text: '43%' },
           ]}
         />
+        <Items
+          items={[
+            { key: 'ons', icon: 'source', text: <>{ext(ONS_WEALTH, 'ONS, Household total wealth, April 2018 to March 2020')}</> },
+            { key: 'like', icon: 'limit', text: 'Not like for like: GB households against model individuals' },
+          ]}
+        />
       </InfoCard>
       <InfoCard icon={iconFor('finances')} title="Who pays the fiscal cost">
         {rule === 'dn' ? (
@@ -474,7 +518,7 @@ function Why({ cl, rule, arm }) {
           <Items
             items={[
               { key: 'share', icon: 'benefits', text: 'Common rule: transfers stay a fixed share of GDP' },
-              { key: 'debt', icon: 'debt', text: 'Public debt absorbs the fiscal effect; no cohort repays it' },
+              { key: 'debt', icon: 'debt', text: 'Public debt absorbs the fiscal effect; no cohort is charged in the welfare measure' },
               { key: 'pick', icon: 'rule', text: 'Pick debt-neutral transfers under Fiscal rule to charge households' },
             ]}
           />
@@ -538,7 +582,7 @@ export default function WhoGainsTab() {
 
   return (
     <>
-      <SectionHeading id="who-gains" icon={iconFor('age')} title="Welfare by birth year and earnings group">
+      <SectionHeading id="who-gains" icon={iconFor('age')} title="Who gains and who loses, by birth year and earnings group">
         <Lead c="measure">
           Gain or loss, as a %{' '}
           <abbr title="Consumption-equivalent: the constant % change in consumption and bequests, every remaining year, that leaves a household as well off">
@@ -551,10 +595,10 @@ export default function WhoGainsTab() {
           <Icon name={iconFor('closed')} size={14} /> UK central only
         </li>
         <li className="ex-mchip">
-          <Icon name={iconFor('timing')} size={14} /> {`AI arrives ${D.shock_year}, as a surprise`}
+          <Icon name={iconFor('timing')} size={14} /> AI arrives {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
         </li>
         <li className="ex-mchip" title="The paper also reports Korinek et al. (upper), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
-          <Icon name={iconFor('caveat')} size={14} /> Korinek et al. (upper): in the paper, not yet here
+          <Icon name={iconFor('caveat')} size={14} /> Korinek et al. (upper): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
         </li>
         {both ? (
           <li className="ex-mchip" title="The reasons below are for the central closure">
@@ -639,7 +683,7 @@ export default function WhoGainsTab() {
               <Items
                 items={[
                   { key: 'job', icon: 'excluded', text: 'The model has no job loss' },
-                  { key: 'wealth', icon: 'inequality', text: 'It spreads wealth more evenly than UK data' },
+                  { key: 'wealth', icon: 'inequality', text: <>It spreads wealth more evenly than {ext(ONS_WEALTH, 'ONS wealth data')}</> },
                   { key: 'beq', icon: 'bequests', text: 'It places a value on leaving bequests' },
                   { key: 'sens', icon: 'range', text: 'The share of adults who lose is sensitive to all three' },
                   { key: 'assets', icon: 'interest', text: 'No asset prices: revaluing existing assets is left out' },
@@ -648,7 +692,7 @@ export default function WhoGainsTab() {
                 ]}
               />
             ),
-            sources: <Lead c="source">{`${D.source}, paper/cohort_welfare.py.`}</Lead>,
+            sources: <CohortSources />,
           }}
           method="welfare"
           download={{
@@ -676,9 +720,10 @@ export default function WhoGainsTab() {
                     height={both ? 320 : 380}
                     noEndLabels
                     dots={false}
-                    yUnit="% change"
+                    yUnit="Welfare change, % of lifetime consumption"
                     xUnit="Birth year"
                     unit="%"
+                    zeroNote="No change = 0"
                     yDomain={yDomain}
                     valueFormat={(v) => minus(`${v > 0 ? '+' : ''}${v.toFixed(2)}`)}
                     tipTitle="Born"

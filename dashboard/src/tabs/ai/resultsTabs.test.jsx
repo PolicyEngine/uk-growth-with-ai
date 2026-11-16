@@ -94,7 +94,7 @@ describe('tooltips', () => {
     fireEvent.blur(dot);
     unmount();
     at('sub=finances');
-    const bar = screen.getByLabelText(/^OBR: 19–23pp/);
+    const bar = screen.getByLabelText(/^OBR rates, differenced: 19–23pp/);
     fireEvent.focus(bar);
     tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('OBR');

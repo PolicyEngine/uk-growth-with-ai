@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
+import { AxisTitles } from '@/tabs/explore/axes.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
 import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
@@ -68,6 +71,7 @@ export function DotStrip({ m }) {
       <figcaption>
         <Icon name={iconFor('households')} size={14} /> Adults who lose, {m.id}
       </figcaption>
+      <AxisTitles y="Share of adults who lose: each dot is one adult in a hundred" />
       <div className="ex-dots" role="img" aria-label={`${m.label}: ${solid + range} of 100 dots${range ? `, ${range} of them the range` : ''}`} data-measure={m.id}>
         {Array.from({ length: 100 }, (_, i) => (
           <span key={i} className={`ex-dot${i < solid ? ' is-lose' : i < solid + range ? ' is-range' : ''}`} style={{ transitionDelay: `${Math.min(i, 60) * 3}ms` }} />
@@ -87,6 +91,21 @@ export function DotStrip({ m }) {
         </p>
       ) : null}
     </figure>
+  );
+}
+
+// The cohort results' files: the solves' state files on GitHub at the data
+// file's results commit, and the script that computes the welfare change.
+export function CohortSources() {
+  return (
+    <div data-reference="">
+      <Items
+        items={[
+          { key: 'npz', icon: 'source', text: <>OG-UK cohort state files at commit {RESULTS_SHA}: {ext(OG_RESULT_URLS.cohortsDir, 'analysis/surprise/cohorts')}</> },
+          { key: 'py', icon: 'code', text: <>Welfare change computed by {ext(OG_RESULT_URLS.cohortScript, 'paper/cohort_welfare.py')} (commit {COHORTS_SHA}, branch paper/first-draft)</> },
+        ]}
+      />
+    </div>
   );
 }
 
@@ -142,6 +161,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
             ]}
           />
         ),
+        sources: <CohortSources />,
       }}
       method="welfare"
       download={{
@@ -157,6 +177,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       )}
       <div className="ex-hm-body">
       <div className="ex-hm-wrap">
+        <AxisTitles y={`Rows: age in ${D.shock_year}`} x="Columns: lifetime-earnings group" reference="Colour: teal a gain, amber a loss; deeper is larger" />
         <table className="ex-hm" aria-label={`Welfare change by age and earnings group, ${m.label}`} data-measure={m.id}>
           <thead>
             <tr>

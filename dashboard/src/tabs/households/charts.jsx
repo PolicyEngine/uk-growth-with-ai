@@ -5,6 +5,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { MINUS } from '@/tabs/story/part3/format.js';
+import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 
 // Chart pieces for Explore > Households. Text stays HTML (legible at phone
 // width); marks are positioned spans or a measured SVG. A value whose home
@@ -64,11 +65,13 @@ export const signedTick = (t) => `${t > 0 ? '+' : t < 0 ? MINUS : ''}${Math.abs(
 // `arrows`: [[fromId, toId]] (callers draw them only within a group); `off`:
 // a point beyond the x scale, drawn as an arrow at the right edge with its
 // printed value. Names and values are in the list under the plane.
-export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, label, height = 240 }) {
+export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, label, height = 240, yTitle, xTitle }) {
   const [ref, W] = useWidth(560);
   const L = 48;
-  const B = 24;
-  const T = 12;
+  // room for the axis titles: the y title above the plot, the x title
+  // under the tick labels
+  const B = xTitle ? 40 : 24;
+  const T = yTitle ? 24 : 12;
   // room at the right for the off-scale arrow; its value sits above it,
   // ending where the arrow ends (clear of the Replay button in the corner)
   const R = off ? 40 : 18;
@@ -91,6 +94,16 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           ))}
           <line x1={L} x2={L} y1={T} y2={T + ph} className="hh-zero" />
         </g>
+        {yTitle ? (
+          <text x={4} y={12} className="hh-axis-title" data-axis-title="y" data-axis="">
+            {yTitle}
+          </text>
+        ) : null}
+        {xTitle ? (
+          <text x={L + pw / 2} y={height - 4} className="hh-axis-title" textAnchor="middle" data-axis-title="x" data-axis="">
+            {xTitle}
+          </text>
+        ) : null}
         {arrows.map(([a, b], i) => {
           const p = at[a];
           const q = at[b];
@@ -129,7 +142,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           </span>
         ))}
         {ticks(xMax).map((t) => (
-          <span key={`x${t}`} className="is-x" style={{ left: X(t), top: height - 14 }}>
+          <span key={`x${t}`} className="is-x" style={{ left: X(t), top: T + ph + 10 }}>
             {xUnit(t)}
           </span>
         ))}
@@ -228,7 +241,7 @@ export function Notes({ how, caveats, sources }) {
             {parts[open].map((t, i) => (
               <li key={i}>
                 <Icon name={iconFor(cur[1])} size={14} className="story-item-icon" />
-                <span className="story-item-text">{t}</span>
+                <span className="story-item-text">{open === 'sources' ? linkAiFiles(t) : t}</span>
               </li>
             ))}
           </ul>

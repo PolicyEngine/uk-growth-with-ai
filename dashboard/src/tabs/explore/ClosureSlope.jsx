@@ -11,6 +11,7 @@ import { useNav } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { Lead, dirConcept, sentenceItems } from '@/tabs/explore/direction.jsx';
+import { ResultSources } from '@/tabs/explore/sources.jsx';
 
 // Central closure -> closed capital, per measure: a slope chart of two solved
 // cases joined by a straight line. The line is not a range between them: no
@@ -79,6 +80,12 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             </text>
           </g>
         ))}
+        <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
+          Gap against the OBR-central path, %
+        </text>
+        <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
+          Closure
+        </text>
         <text x={x0} y={H - 6} className="ex-slope-tick" data-axis="">
           Central
         </text>
@@ -168,12 +175,13 @@ export default function ClosureSlope({ sid }) {
         shows: (
           <Items
             items={[
-              { key: 'two', icon: 'closure', text: 'Left: central closure. Right: closed capital, none foreign-owned' },
+              { key: 'two', icon: 'closure', text: 'Left: central closure. Right: closed capital, no foreign-owned private capital' },
               { key: 'line', icon: 'limit', text: 'The line joins two runs; nothing between them is solved' },
               { key: 'home', icon: 'link', text: 'Values: hover an end; closed capital prints above under Closure: Both' },
             ]}
           />
         ),
+        sources: <ResultSources sid={sid} />,
       }}
       method="closures"
       download={{

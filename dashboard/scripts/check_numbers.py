@@ -16,7 +16,7 @@ label is a different number). Signed figures with a unit (+0.57%, -1.6pp) are pu
 text as a multiset and compared with the multiset built from the data file
 with the page's own formatting.
 """
-import json, re, sys
+import json, os, re, sys
 from collections import Counter
 
 dump = json.load(open(sys.argv[1]))
@@ -98,6 +98,12 @@ def expected(sid, mode):
     # headline year, central closure (one decimal, unsigned): the causes chart
     etr = D['closures'][C]['reference_effective_tax_rates']
     exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
+    # and PolicyEngine-UK's average employer NICs rate, % of earnings (one
+    # decimal): the causes chart's NICs row, from analysis/nics/nics_2028.json
+    # (copied to src/tabs/explore/nics2028.json); OG-UK's flat rate prints
+    # as a whole number
+    nics = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'tabs', 'explore', 'nics2028.json')))
+    exp[f"{nics['avg_employer_rate_on_employment_income'] * 100:.1f}%"] += 1
     return exp
 
 for sid in dump:

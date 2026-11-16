@@ -1,7 +1,7 @@
 'use client';
 
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
-import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { whoAnswer } from '@/tabs/cohorts/CohortsTab.jsx';
 import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import HouseholdsExplore from '@/tabs/households/HouseholdsExplore.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
@@ -15,16 +15,6 @@ import { economyAnswer, financesAnswer } from '@/tabs/explore/answers.js';
 
 // An answer is a strip of chips, or a sentence when the view is not solved.
 const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sentenceItems(a) } : a} />;
-// Who gains is UK central only, so its answer does not move with the pickers.
-const WHO_ANSWER = {
-  context: 'UK central only · lifetime welfare by birth year and earnings group',
-  drivers: [
-    { key: 'old', icon: 'age', text: 'Adults around retirement age gain most' },
-    { key: 'why', icon: 'capital', text: 'They hold more wealth and collect the higher return' },
-    { key: 'young', icon: 'young', text: 'The youngest adults gain least or lose' },
-    { key: 'how', icon: 'range', text: 'How many lose depends on how bequests and later fiscal cost count' },
-  ],
-};
 
 // Explore: every interactive view. Each sub-tab opens with its question and
 // a short answer in items that follows the pickers, then the charts. Economy
@@ -43,7 +33,7 @@ export default function ExploreTab() {
   if (sub === 'economy')
     body = (
       <>
-        <PageIntro icon={iconFor('gdp')} question="How do pay, national income and GDP move when AI arrives in 2028?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
+        <PageIntro icon={iconFor('gdp')} question="How do pay, national income and GDP move if AI arrives in 2028 (an assumed date)?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
           <RuleBar />
         </PageIntro>
         <AllScenarios />
@@ -64,7 +54,7 @@ export default function ExploreTab() {
   else if (sub === 'who')
     body = (
       <>
-        <PageIntro icon={iconFor('welfare')} question="Who gains and who loses, by birth year and lifetime earnings?" answer={answerOf(WHO_ANSWER)} />
+        <PageIntro icon={iconFor('welfare')} question="Who gains and who loses, by birth year and lifetime earnings?" answer={answerOf(whoAnswer(st.closure, st.wrule, st.arm))} />
         <div id="explore-sub-who-inner">
           <WhoGainsTab />
         </div>
