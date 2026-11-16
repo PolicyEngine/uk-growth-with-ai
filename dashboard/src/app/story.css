@@ -1386,12 +1386,10 @@
 .ch-line.is-dashed {
   stroke-dashoffset: 0;
   opacity: 0;
-  transition: opacity 300ms ease;
 }
 .ch-line.is-dashed.is-on {
   opacity: 1;
-  animation: none;
-  transition-delay: var(--ch-delay, 0ms);
+  animation: ch-fade-in 300ms ease var(--ch-delay, 0ms) backwards;
 }
 @keyframes ch-draw {
   from {
@@ -1408,19 +1406,16 @@
   stroke-width: 2;
   paint-order: stroke;
   opacity: 0;
-  transition: opacity 200ms ease;
 }
-.ch-end.is-on {
+/* end dot and area appear as the draw finishes (animations, so they also
+   wait on first render) */
+.ch-end.is-on,
+.ch-area.is-on {
   opacity: 1;
-  transition-delay: var(--ch-delay, 0ms);
+  animation: ch-fade-in 300ms ease var(--ch-delay, 0ms) backwards;
 }
 .ch-area {
   opacity: 0;
-  transition: opacity 300ms ease;
-}
-.ch-area.is-on {
-  opacity: 1;
-  transition-delay: var(--ch-delay, 0ms);
 }
 .ch-bar {
   transform-box: fill-box;

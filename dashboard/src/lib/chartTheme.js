@@ -46,3 +46,25 @@ export const STROKE = { line: 2.5, dashed: 2, light: 1.75 };
 
 // U+2212 for every negative number on a chart.
 export const minus = (text) => String(text).replace(/^-/, '−');
+
+// Chart tokens (ab.css --ch-*), as literals for exported SVG and PNG.
+export const CH = {
+  title: { size: 16, weight: 600, color: '#111827' },
+  unit: { size: 13, weight: 400, color: '#4B5563' },
+  tick: { size: 12, weight: 400, color: '#6B7280' },
+  label: { size: 12, weight: 600 },
+  note: { size: 11, weight: 500, color: '#6B7280' },
+  source: { size: 12, weight: 400, color: '#6B7280' },
+  grid: '#E5E7EB',
+  gridDash: '1 4',
+  zero: '#374151',
+  ease: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+  band: '#F3F4F6',
+  bandShock: '#EAF5F4',
+  cross: '#9CA3AF',
+  // stroke widths: main series, others, context
+  line: { main: 2.5, other: 2, context: 1.5 },
+  endDot: 3.5,
+  // motion, ms
+  dur: { draw: 700, bar: 500, barStagger: 20, barStaggerMax: 400, fade: 300, view: 600, tile: 750, exit: 200 },
+};
