@@ -426,7 +426,7 @@ function useAnchorSteps() {
 // one fails the tests.
 export const OUTPUT_TAKEAWAY = 'Since the pandemic rebound, annual growth has been below most 2010s rates; each quarter of this year has grown.';
 export const WORK_TAKEAWAY = 'Unemployment has eased this year and pay growth has slowed from its 2023 peak; output per hour is back at its 2023 level.';
-export const AI_TAKEAWAY = 'Business AI use has risen from each September to the next since 2023, more steeply in larger businesses; IMF estimates place most UK workers in highly exposed occupations.';
+export const AI_TAKEAWAY = 'Business AI use has risen every September since 2023, faster in larger firms; most UK workers are in highly exposed jobs (IMF).';
 
 export default function Part1({ part }) {
   useAnchorSteps();
