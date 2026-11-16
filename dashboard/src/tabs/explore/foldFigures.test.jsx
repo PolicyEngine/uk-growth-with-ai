@@ -34,7 +34,7 @@ describe('figures in folds', () => {
         <SensitivityTable />
       </NavProvider>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /About this table/ }));
+    fireEvent.click(screen.getByRole('button', { name: /About this chart/ }));
     const gaps = Object.values(S.sensitivity['zk0.5'].results).map((a) => a.tfp.gaps.I);
     const s28 = S.years.indexOf(2028);
     const range = (xs) => `${Math.round(Math.min(...xs))}–${Math.round(Math.max(...xs))}%`;

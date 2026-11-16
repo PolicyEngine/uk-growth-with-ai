@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import LineChart from '@/components/LineChart.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
@@ -15,6 +16,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { Dir, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
+import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
 
 // Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
@@ -73,6 +75,7 @@ const COINCIDE = 0.005;
 // 2031 value at each line end, and the arms control bar.
 export function PathCard({
   sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true, notes,
+  tile = false, open = false, onToggle,
 }) {
   const { st, set } = useNav();
   const rule = st.rule;
@@ -86,22 +89,38 @@ export function PathCard({
   const last = years[years.length - 1];
   const shown = finding ?? findingFor(sid, v, st.arms, st.closure, name, rule);
   const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);
+  // In the small-multiple wall (tile) the card is compact: title, download
+  // and chart; the wall carries the arms control and the legend once. Opened
+  // (click or Enter on the title), it spans the wall and shows its finding,
+  // notes and "About this chart" too.
+  const full = !tile || open;
+  const head = tile ? (
+    <button type="button" className="ex-tile-open" aria-expanded={open} onClick={onToggle} title={open ? 'Back to the wall (Escape)' : 'Enlarge this chart'}>
+      <span>{title}</span>
+      <Icon name={open ? 'x' : 'arrowUpRight'} size={14} strokeWidth={2} />
+    </button>
+  ) : (
+    title
+  );
   return (
     <Card
       id={id}
       icon={icon}
-      title={title}
-      finding={typeof shown === 'string' ? <Lead c="canSay">{shown}</Lead> : shown}
-      unit={<Lead c="measure">{unitLine}</Lead>}
+      title={head}
+      className={tile ? `ex-tile${open ? ' is-open' : ''}` : ''}
+      finding={full ? (typeof shown === 'string' ? <Lead c="canSay">{shown}</Lead> : shown) : null}
+      unit={full ? <Lead c="measure">{unitLine}</Lead> : null}
       controls={
-        <ControlBar label={`${title}: options`}>
-          <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
-        </ControlBar>
+        tile ? null : (
+          <ControlBar label={`${title}: options`}>
+            <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
+          </ControlBar>
+        )
       }
-      legend={<ClosureKey closure={st.closure} />}
-      about={about}
-      method={method}
-      foot={notes?.length ? <Items items={notes} className="ex-notes" /> : null}
+      legend={tile ? null : <ClosureKey closure={st.closure} />}
+      about={full ? about : null}
+      method={full ? method : null}
+      foot={full && notes?.length ? <Items items={notes} className="ex-notes" /> : null}
       download={{
         title: `${title}, ${years[0]}–${last}`,
         context: () => contextLine(sid, st.closure, unitLine, rule),
@@ -114,14 +133,14 @@ export function PathCard({
         <LineChart
           x={years}
           series={series}
-          height={260}
+          height={tile ? (open ? 340 : 190) : 260}
           endLabel="value"
           noEndLabels={!ends}
           unit={unit}
           tipTitle={title}
-          zeroLabel="OBR central"
-          markers={markers ?? [{ year: SURPRISE_YEAR, label: 'AI arrives' }]}
-          bands={[{ year: HEADLINE_YEAR, label: 'Headline year' }]}
+          zeroLabel={tile && !open ? null : 'OBR central'}
+          markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI arrives' }]}
+          bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => signed(x, endDp)}
           tipFormat={(x) => signed(x, dp)}
           ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
@@ -253,7 +272,7 @@ function IncomePanel({ sid }) {
   return (
     <>
       <SectionHeading id="income" icon={iconFor('gni')} title={`Income and output, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        <Lead c="path">{`Four measures in ${HEADLINE_YEAR}, then how GNI and GDP build up from ${SURPRISE_YEAR}`}</Lead>
+        <Lead c="path">{`Four measures in ${HEADLINE_YEAR}, then what closed capital changes`}</Lead>
       </SectionHeading>
       <div className="cards-stack">
         <Card
@@ -317,75 +336,115 @@ function IncomePanel({ sid }) {
               <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
             </div>}
         </Card>
-        <div className="cards-grid">
-          <PathCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" name="national income" icon={iconFor('gni')} ends={false} about={{ shows: READING_PATH, how: HOW, caveats: IMPOSED }} />
-          <PathCard
-            sid={sid}
-            v="Y"
-            title="Total output (GDP)"
-            name="GDP"
-            icon={iconFor('gdp')}
-            ends={false}
-            about={{
-              shows: READING_PATH,
-              how: HOW,
-              caveats: (
-                <Items
-                  items={[
-                    { key: 'imposed', icon: 'scenario', text: IMPOSED },
-                    {
-                      key: 'imf',
-                      icon: 'link',
-                      text: (
-                        <>
-                          Why below the IMF&rsquo;s UK estimate:{' '}
-                          <NavLink tab="method" sub="studies" anchor="imf-gap">
-                            Evidence, where our numbers sit
-                          </NavLink>
-                        </>
-                      ),
-                    },
-                  ]}
-                />
-              ),
-            }}
-          />
-        </div>
+        <ClosureSlope sid={sid} />
       </div>
     </>
   );
 }
 
+// GNI and GDP open the wall: their main-arm values are the story's headline
+// figures and the other arms' are in the four-measure card, so their lines
+// carry no end value.
+const INCOME_TILES = [
+  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', ends: false, method: 'closures', about: { shows: READING_PATH, how: HOW, caveats: IMPOSED } },
+  {
+    v: 'Y', title: 'Total output (GDP)', name: 'GDP', concept: 'gdp', ends: false, method: 'closures',
+    about: {
+      shows: READING_PATH,
+      how: HOW,
+      caveats: (
+        <Items
+          items={[
+            { key: 'imposed', icon: 'scenario', text: IMPOSED },
+            {
+              key: 'imf',
+              icon: 'link',
+              text: (
+                <>
+                  Why below the IMF&rsquo;s UK estimate:{' '}
+                  <NavLink tab="method" sub="studies" anchor="imf-gap">
+                    Evidence, where our numbers sit
+                  </NavLink>
+                </>
+              ),
+            },
+          ]}
+        />
+      ),
+    },
+  },
+];
+
+// The economy as one small-multiple wall: eight path charts (4 x 2 at full
+// width) on the same years, one arms control and one key for them all. A
+// tile opens in place across the wall (click or Enter on its title; Escape
+// or the title again closes it), and each keeps its own download. The first
+// tile of each group keeps the group's old section id, so links still land.
 function EconomyPanel({ sid }) {
-  const { st } = useNav();
+  const { st, set } = useNav();
+  const [open, setOpen] = useState(null);
+  const tiles = [
+    ...INCOME_TILES.map((r) => ({ ...r, group: 'Income' })),
+    ...ECONOMY.flatMap((g) => g.rows.map((r, i) => ({ ...r, group: g.group, groupId: i ? null : `economy-${g.group.split(' ')[0].toLowerCase()}` }))),
+  ];
+  const toggle = (v) => setOpen((o) => (o === v ? null : v));
+  const onKey = (e) => {
+    if (e.key !== 'Escape' || open == null) return;
+    const btn = e.currentTarget.querySelector('.ex-tile.is-open .ex-tile-open');
+    setOpen(null);
+    btn?.focus();
+  };
   return (
-    <>
-      {ECONOMY.map((g, gi) => (
-        <section key={g.group} aria-label={g.group} className={gi ? 'section-gap' : ''}>
-          <SectionHeading id={`economy-${g.group.split(' ')[0].toLowerCase()}`} icon={iconFor(g.concept)} title={g.group}>
-            <Lead c="measure">{g.lede}</Lead>
-          </SectionHeading>
-          <div className="cards-grid">
-            {g.rows.map((r) => (
-              <PathCard
-                key={r.v}
-                sid={sid}
-                v={r.v}
-                title={r.title}
-                name={r.name}
-                icon={iconFor(r.concept)}
-                unit={r.unit ?? '%'}
-                scale={r.scale ?? 1}
-                endDp={2}
-                finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
-                about={r.about}
-                method={r.method ?? 'model'}
-              />
-            ))}
+    <section aria-label="The economy, path by path" className="ex-wall-section">
+      <SectionHeading id="economy-wall" icon={iconFor('path')} title={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
+        <Lead c="measure">Eight measures, each against the OBR-central path</Lead>
+      </SectionHeading>
+      <div className="ex-wall-head">
+        <ControlBar label="Every chart on the wall: options">
+          <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
+        </ControlBar>
+        <ul className="ex-wall-key" aria-label="How to read the wall">
+          <li>
+            <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR-central path
+          </li>
+          <li>
+            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, AI arrives; shaded: ${HEADLINE_YEAR}`}
+          </li>
+          {st.closure === 'both' ? (
+            <li>
+              <span className="swatch dashed is-ink" aria-hidden="true" data-icon="" /> Dashed: closed capital
+            </li>
+          ) : null}
+          <li>
+            <Icon name="arrowUpRight" size={14} /> Click a title to enlarge
+          </li>
+        </ul>
+      </div>
+      <div className="ex-wall" onKeyDown={onKey}>
+        {tiles.map((r) => (
+          <div key={r.v} className={`ex-wall-cell${open === r.v ? ' is-open' : ''}`} id={r.groupId ?? undefined} data-group={r.group}>
+            <PathCard
+              tile
+              open={open === r.v}
+              onToggle={() => toggle(r.v)}
+              id={`tile-${r.v}`}
+              sid={sid}
+              v={r.v}
+              title={r.title}
+              name={r.name}
+              icon={iconFor(r.concept)}
+              unit={r.unit ?? '%'}
+              scale={r.scale ?? 1}
+              endDp={2}
+              ends={r.ends ?? true}
+              finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
+              about={r.about}
+              method={r.method ?? 'model'}
+            />
           </div>
-        </section>
-      ))}
-    </>
+        ))}
+      </div>
+    </section>
   );
 }
 

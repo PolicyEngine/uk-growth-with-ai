@@ -41,7 +41,7 @@ function ImfGap() {
             text: (
               <>
                 UK central&rsquo;s {HEADLINE_YEAR} GDP gain (
-                <NavLink tab="explore" sub="economy" anchor="income" patch={{ s: 'uk_central' }}>Explore</NavLink>): roughly{' '}
+                <NavLink tab="explore" sub="economy" anchor="economy-wall" patch={{ s: 'uk_central' }}>Explore</NavLink>): roughly{' '}
                 {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s.
               </>
             ),

@@ -233,7 +233,7 @@ function Lane({ metric, hi, bind }) {
                 <b>{o.label}</b>
                 <span>
                   OG-UK, year 4 of adoption ·{' '}
-                  <NavLink tab="explore" sub="economy" anchor="income" patch={{ s: o.sid }} className="nav-link ev-rb-home">
+                  <NavLink tab="explore" sub="economy" anchor="economy-wall" patch={{ s: o.sid }} className="nav-link ev-rb-home">
                     figures on Explore
                   </NavLink>
                 </span>
