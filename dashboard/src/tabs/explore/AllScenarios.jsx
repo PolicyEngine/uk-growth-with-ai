@@ -286,7 +286,6 @@ export default function AllScenarios() {
                     </>
                   ),
                 },
-                { key: 'levels', icon: 'caveat', text: 'Gaps against the path, not forecasts of levels' },
               ]}
             />
           ),

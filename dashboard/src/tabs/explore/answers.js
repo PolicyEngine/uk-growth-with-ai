@@ -12,7 +12,8 @@ import { ruleLabel } from '@/lib/labels.js';
 import { drivers } from '@/tabs/explore/cells.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
 
-export const LEVELS = 'Gaps against the path, not forecasts of levels';
+// ("Gaps against the path, not forecasts" is stated once per page, by the
+// shared banner above every tab.)
 const word = (x) => (side(x) === 'on' ? 'on the path' : side(x));
 // Above the path is a gain for income and output, a loss below; debt and
 // tax are drawn neutral (grey).
@@ -57,14 +58,14 @@ export function economyAnswer(sid, closure, rule) {
           { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${word(ls)}${side(ls) === 'on' ? '' : ' the path'}` },
           { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'Pay grows less than output' : side(ls) === 'above' ? 'Pay grows more than output' : 'Pay keeps pace with output' },
         ];
-  return { ...r, why, caveat: LEVELS };
+  return { ...r, why };
 }
 
 export function financesAnswer(sid, closure, rule) {
   if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
   const r = read(sid, closure, rule, [['debt', 'Debt/GDP', 'debt_gdp_pp'], ['tax', 'Tax/GDP', 'tax_gdp_pp']]);
   if (!r) return 'This combination is not solved yet.';
-  return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'The model’s tax effect is likely too small' }, caveat: LEVELS };
+  return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'The model’s tax effect is likely too small' } };
 }
 
 // Which choice moves each measure most, one chip per choice, for the main arm.
@@ -72,6 +73,5 @@ export function allAnswer() {
   return {
     context: `Automation + productivity · ${HEADLINE_YEAR} · every solved cell below, UK range shaded`,
     drivers: drivers('tfp').map((d) => ({ key: d.choice, icon: d.choice === 'still' ? 'onPath' : d.choice, text: d.text })),
-    caveat: LEVELS,
   };
 }

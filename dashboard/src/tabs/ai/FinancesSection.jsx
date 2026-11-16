@@ -9,9 +9,9 @@ import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import {
   S,
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt,
 } from '@/tabs/ai/surprise.js';
-import { closuresFor, closureWords, contextLine, side, ruleGapText, primaryClosure } from '@/tabs/ai/lines.js';
+import { closuresFor, contextLine, side, ruleGapText, primaryClosure } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -462,7 +462,7 @@ const RULE_DB = [
   { v: 'tax_gdp_pp', label: 'Tax/GDP', concept: 'tax', unit: 'pp' },
 ];
 
-function RulePicker() {
+export function RulePicker() {
   const { st, set } = useNav();
   return (
     <div className="ex-rules" role="group" aria-label="Fiscal rule">
@@ -551,10 +551,9 @@ function FiscalRuleCard({ sid }) {
       title="What the fiscal rule changes"
       controls={
         <>
-          <RulePicker />
           <RuleTimeline rule={rule} />
           <p className="ex-roughchip">
-            <Icon name={iconFor('caveat')} size={14} /> Applies to every chart on this page
+            <Icon name={iconFor('caveat')} size={14} /> The rule picked at the top applies to every chart on this page
           </p>
         </>
       }
@@ -602,7 +601,6 @@ export default function FinancesSection({ sid }) {
         <FiscalRuleCard sid={sid} />
       </div>
     );
-  const cl = closureWords(st.closure);
   const reading = (concept, what) => (
     <Items
       items={[
@@ -618,7 +616,7 @@ export default function FinancesSection({ sid }) {
   return (
     <>
       <SectionHeading id="public-finances" icon={iconFor('finances')} title="Public finances">
-        <Lead c="scenario">{`Debt and tax as shares of GDP: ${SCEN_NAME[sid]}, ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</Lead>
+        <Lead c="measure">Debt and tax as shares of GDP, against the path</Lead>
       </SectionHeading>
       <div className="cards-grid">
         <PathCard

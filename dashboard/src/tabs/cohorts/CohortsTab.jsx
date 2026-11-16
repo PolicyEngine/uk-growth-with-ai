@@ -532,15 +532,15 @@ export default function WhoGainsTab() {
         <li className="ex-mchip">
           <Icon name={iconFor('timing')} size={14} /> {`AI arrives ${D.shock_year}, as a surprise`}
         </li>
+        <li className="ex-mchip" title="The paper also reports Korinek et al. (upper), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
+          <Icon name={iconFor('caveat')} size={14} /> Korinek et al. (upper): in the paper, not yet here
+        </li>
+        {both ? (
+          <li className="ex-mchip" title="The reasons below are for the central closure">
+            <Icon name={iconFor('closure')} size={14} /> With Both, the figures and the chart show each closure
+          </li>
+        ) : null}
       </ul>
-      <Items
-        className="ex-view-note"
-        items={[
-          { key: 'paper', icon: 'caveat', text: 'Korinek et al. (upper) is in the paper, not yet here' },
-          both ? { key: 'both', icon: 'closure', text: 'With Both, the figures and the chart show each closure' } : null,
-          both ? { key: 'why', icon: 'caveat', text: 'The reasons below are for the central closure' } : null,
-        ]}
-      />
       <ControlBar label="Who gains: options">
         <ControlGroup label="Arm">
           <Segmented options={ARMS} value={arm} onChange={(a) => set({ arm: a })} label="Arm" />

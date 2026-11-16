@@ -212,6 +212,11 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                   <span className="db-arm-key">
                     <span className="swatch" style={{ borderTopColor: color }} aria-hidden="true" />
                     <span className="db-arm-name">{a.short || a.label}</span>
+                    {onSummary(a.id, m.v, rule) ? (
+                      <NavLink tab="story" anchor="story-headline" className="db-headline-chip" aria-label={`${a.label}, ${name}: see the headline figures in the story`}>
+                        <Icon name={iconFor('link')} size={11} strokeWidth={2} /> Headline
+                      </NavLink>
+                    ) : null}
                   </span>
                   <div className="db-track">
                     <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />
@@ -242,17 +247,9 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
-                        {onSummary(a.id, m.v, rule) ? (
-                          <NavLink
-                            tab="story"
-                            anchor="story-headline"
-                            className={`db-value db-value-link${right ? ' is-right' : ' is-left'}`}
-                            style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
-                            aria-label={`${a.label}, ${name}: see the headline figures in the story`}
-                          >
-                            Headline <Icon name="arrowRight" size={12} strokeWidth={2} />
-                          </NavLink>
-                        ) : (
+                        {/* the main arm's GDP, wage and GNI: the dot alone here; the
+                            value's home is the story tile, linked by the chip */}
+                        {onSummary(a.id, m.v, rule) ? null : (
                           <span
                             className={`db-value${right ? ' is-right' : ' is-left'}`}
                             style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), color: ARM_TEXT_COLOR[a.id] }}

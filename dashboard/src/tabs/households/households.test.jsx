@@ -42,6 +42,18 @@ describe('HouseholdsExplore', () => {
     expect(off(got, counts([...storyFigures(), ...householdsFigures()]))).toEqual([]);
   });
 
+  it('never repeats a story link in adjacent cells: one link spans them', () => {
+    const { container } = render(<HouseholdsExplore />);
+    const rows = [...container.querySelectorAll('.hh-row')];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      const links = [...row.querySelectorAll('.hh-ref')].map((a) => a.textContent.trim());
+      links.forEach((t, i) => expect(t, row.dataset.row).not.toBe(links[i - 1]));
+      expect(row.textContent).not.toMatch(/(Step \d+)\s*\1/);
+    }
+    expect(container.querySelectorAll('.hh-ref.is-wide').length).toBeGreaterThan(0);
+  });
+
   it('gives every chart card a download', () => {
     const { container } = render(<HouseholdsExplore />);
     const cards = container.querySelectorAll('article.card');

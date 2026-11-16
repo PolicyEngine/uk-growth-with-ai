@@ -9,6 +9,7 @@ import AnswerStrip from '@/tabs/explore/AnswerStrip.jsx';
 import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import RuleBar from '@/tabs/explore/RuleBar.jsx';
+import { RulePicker } from '@/tabs/ai/FinancesSection.jsx';
 import { useNav, subOf } from '@/lib/nav.jsx';
 import { economyAnswer, financesAnswer, allAnswer } from '@/tabs/explore/answers.js';
 
@@ -50,7 +51,7 @@ export default function ExploreTab() {
     body = (
       <>
         <PageIntro icon={iconFor('finances')} question="What happens to public debt and tax under each fiscal rule?" answer={answerOf(financesAnswer(st.s, st.closure, st.rule))}>
-          <RuleBar />
+          <RulePicker />
         </PageIntro>
         <ResultsTab sub="finances" />
       </>
