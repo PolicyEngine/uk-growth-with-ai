@@ -95,12 +95,12 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           <line x1={L} x2={L} y1={T} y2={T + ph} className="hh-zero" />
         </g>
         {yTitle ? (
-          <text x={4} y={12} className="hh-axis-title" data-axis-title="y">
+          <text x={4} y={12} className="hh-axis-title" data-axis-title="y" data-axis="">
             {yTitle}
           </text>
         ) : null}
         {xTitle ? (
-          <text x={L + pw / 2} y={height - 4} className="hh-axis-title" textAnchor="middle" data-axis-title="x">
+          <text x={L + pw / 2} y={height - 4} className="hh-axis-title" textAnchor="middle" data-axis-title="x" data-axis="">
             {xTitle}
           </text>
         ) : null}

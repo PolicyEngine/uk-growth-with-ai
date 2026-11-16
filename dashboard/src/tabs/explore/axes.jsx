@@ -13,11 +13,11 @@ export function AxisTitles({ y, x, reference, className = '' }) {
     <p className={`ex-axis-titles ${className}`}>
       <Icon name={iconFor('measure')} size={14} />
       <span>
-        <span data-axis-title="y">{y}</span>
+        <span data-axis-title="y" data-axis="">{y}</span>
         {x ? (
           <>
             {' · '}
-            <span data-axis-title="x">{x}</span>
+            <span data-axis-title="x" data-axis="">{x}</span>
           </>
         ) : null}
         {reference ? (

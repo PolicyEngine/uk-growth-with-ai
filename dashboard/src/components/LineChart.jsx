@@ -14,7 +14,7 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           `noEndLabel` draws the line without an end label (use when another
 //           series' label already covers the same end point).
 // `x`:      number[] (same length as every series)
-// `yUnit`:  the y-axis title with its unit (data-axis-title="y"), drawn
+// `yUnit` (or `yTitle`): the y-axis title with its unit (data-axis-title="y"), drawn
 //           rotated left of the ticks, or horizontal above the plot with
 //           `yTitleTop` (a small tile, where a rotated title would not fit)
 // `xUnit`:  optional x-axis title, drawn under the year labels
@@ -169,8 +169,10 @@ export default function LineChart({
   height = 360,
   valueFormat = (v) => v.toFixed(1),
   tipFormat = null,
-  yUnit = null,
-  xUnit = null,
+  yUnit: yUnitProp = null,
+  xUnit: xUnitProp = null,
+  yTitle = null,
+  xTitle = null,
   ariaLabel,
   noValue = false,
   noEndLabels = false,
@@ -187,6 +189,9 @@ export default function LineChart({
   yTitleTop = false,
   zeroNote = null,
 }) {
+  // yTitle / xTitle (the shared chart API) are the same as yUnit / xUnit
+  const yUnit = yTitle ?? yUnitProp;
+  const xUnit = xTitle ?? xUnitProp;
   const dots = compact ? false : dotsProp;
   const [ref, W] = useWidth(880);
   useMeasured();
@@ -484,11 +489,12 @@ export default function LineChart({
             transform={`translate(${unitX}, ${(TOP + BOT) / 2}) rotate(-90)`}
             textAnchor="middle"
             data-axis-title="y"
+            data-axis=""
           >
             {yUnit}
           </text>
         ) : yUnit ? (
-          <text className="ax axis-unit" x={EDGE} y={12} textAnchor="start" data-axis-title="y">
+          <text className="ax axis-unit" x={EDGE} y={12} textAnchor="start" data-axis-title="y" data-axis="">
             {topLines.map((t, i) => (
               <tspan key={t} x={EDGE} dy={i ? 13 : 0}>
                 {t}
@@ -504,7 +510,7 @@ export default function LineChart({
           ) : null,
         )}
         {xUnit ? (
-          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle" data-axis-title="x">
+          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle" data-axis-title="x" data-axis="">
             {xUnit}
           </text>
         ) : null}

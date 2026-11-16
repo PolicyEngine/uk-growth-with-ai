@@ -80,10 +80,10 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             </text>
           </g>
         ))}
-        <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y">
+        <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
           Gap against the OBR-central path, %
         </text>
-        <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x">
+        <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
           Closure
         </text>
         <text x={x0} y={H - 6} className="ex-slope-tick" data-axis="">
