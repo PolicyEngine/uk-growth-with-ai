@@ -423,7 +423,7 @@ const checkArrows = (el) => {
     const fact = a.closest('.story-fact, .p1-vital');
     const glyph = fact.querySelector('.story-fact-icon svg, .p1-vital-dir svg').getAttribute('class');
     expect(glyph).toContain({ rise: 'lucide-arrow-up', fall: 'lucide-arrow-down', flat: 'lucide-minus' }[dirOf(v)]);
-    const sub = fact.querySelector('.story-fact-sub, .p1-vital-sub').textContent;
+    const sub = fact.querySelector('.story-fact-sub, .p1-vital-label').textContent;
     expect(sub).toContain(dirWord(v));
   }
 };
@@ -466,7 +466,7 @@ describe('story part 1, altered data', () => {
     checkArrows(el);
     expect(el.querySelector('#p1-vital-gdp .p1-growth').getAttribute('data-dir')).toBe('fall');
     expect(el.querySelector('#p1-vital-pay .p1-growth').getAttribute('data-dir')).toBe('flat');
-    expect(el.querySelector('#p1-vital-pay .p1-vital-sub').textContent).toContain('unchanged');
+    expect(el.querySelector('#p1-vital-pay .p1-vital-label').textContent).toContain('unchanged');
     vi.doUnmock('@/data/ukContext.json');
   });
 });

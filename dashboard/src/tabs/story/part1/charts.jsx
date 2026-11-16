@@ -108,10 +108,10 @@ export function OutputCanvas({ state }) {
   const source = zoomed ? (
     <SourceLine
       items={[
-        { id: q.source, name: 'GDP quarter-on-quarter growth' },
-        { id: 'ons_ihyr', name: 'GDP growth on the same quarter a year earlier' },
+        { id: q.source, name: 'GDP quarterly growth' },
+        { id: 'ons_ihyr', name: 'GDP growth on a year earlier' },
       ]}
-      through={`${lastQ} (first estimate)`}
+      through={`${lastQ}, first estimate`}
     />
   ) : (
     <SourceLine

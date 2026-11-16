@@ -158,7 +158,6 @@ function outputSteps() {
             items={[
               { icon: 'period', text: `${year} is not yet complete: no calendar-year figure` },
               { icon: 'revision', text: <L to="ons_gdp_first">These are the ONS’s first estimates</L> },
-              { icon: 'gdp', text: <Tile k="gdp" /> },
               { icon: 'compare', text: 'This year’s quarters in dark, earlier ones in grey' },
             ]}
           />
@@ -439,9 +438,8 @@ export default function Part1({ part }) {
           <Items
             className="p1-head-items"
             items={[
-              { icon: 'source', text: 'Official statistics; one ratio is computed from two ONS series' },
-              { icon: 'excluded', text: 'Nothing in this part is modelled by PolicyEngine' },
-              { icon: 'forecast', text: 'The one forecast shown is the OBR’s own' },
+              { icon: 'source', text: 'Official statistics; one ratio computed from two ONS series' },
+              { icon: 'excluded', text: 'Nothing here is modelled by PolicyEngine; the one forecast is the OBR’s' },
             ]}
           />
         }

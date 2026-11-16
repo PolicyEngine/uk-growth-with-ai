@@ -3,9 +3,9 @@
 import { useSyncExternalStore } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { FACTS, SERIES, SOURCES, pageOf } from './data.js';
+import { BICS_WAVE, FACTS, SERIES, SOURCES, pageOf } from './data.js';
 import { Ext } from './frame.jsx';
-import { dateLong, dirOf, dirWord, idx1, pct1, span3 } from './format.js';
+import { dateLong, dirOf, dirWord, idx1, pct1 } from './format.js';
 
 // The UK vitals panel that opens part 1: seven tiles, each the latest
 // published figure for one series (value, period, sparkline, release date,
@@ -17,18 +17,30 @@ import { dateLong, dirOf, dirWord, idx1, pct1, span3 } from './format.js';
 
 const short = (s) => ({ 'Office for National Statistics': 'ONS' })[s.publisher] ?? s.publisher;
 
-// "September 2026 (Wave 165, ...)" -> "September 2026"
-const periodOf = (p) => p.replace(/\s*\(.*$/, '');
+// "September 2026 (Wave 165, ...)" -> "Sep 2026"; "June to August 2026" ->
+// "Jun–Aug 2026"; quarters and years as they are
+const periodOf = (p) =>
+  p
+    .replace(/\s*\(.*$/, '')
+    .replace(/^(\w+) to (\w+) (\d{4})$/, '$1–$2 $3')
+    .replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g, (m) => m.slice(0, 3));
 
 export const VITALS = [
-  { key: 'gdp', fact: 'gdp_quarterly_latest', series: 'gdp_quarterly', icon: 'gdp', name: 'GDP', label: 'real GDP growth on the previous quarter', growth: 'on the previous quarter' },
-  { key: 'productivity', fact: 'productivity_oph_latest', series: 'productivity_oph', icon: 'productivity', name: 'Output per hour', label: 'output per hour worked, index 2023 = 100', format: idx1 },
-  { key: 'employment', fact: 'employment_rate_latest', series: 'employment_rate', icon: 'labour', name: 'Employment', label: 'employment rate, aged 16 to 64' },
-  { key: 'unemployment', fact: 'unemployment_rate_latest', series: 'unemployment_rate', icon: 'labour', name: 'Unemployment', label: 'unemployment rate, aged 16 and over' },
-  { key: 'pay', fact: 'pay_growth_latest', series: 'pay_growth', icon: 'pay', name: 'Regular pay', label: 'regular pay growth on a year earlier, before inflation', growth: 'on a year earlier' },
-  { key: 'share', fact: 'labour_share_latest', series: 'labour_share', icon: 'labourShare', name: 'Employee share', label: 'of GDP paid to employees, computed from two ONS series' },
-  { key: 'ai', fact: 'business_ai_use', series: 'business_ai_use', icon: 'ai', name: 'Business AI use', label: 'of businesses use at least one AI technology' },
+  { key: 'gdp', fact: 'gdp_quarterly_latest', series: 'gdp_quarterly', icon: 'gdp', name: 'GDP', label: 'on a quarter earlier', growth: true },
+  { key: 'productivity', fact: 'productivity_oph_latest', series: 'productivity_oph', icon: 'productivity', name: 'Output per hour', label: 'index, 2023 = 100', format: idx1 },
+  { key: 'employment', fact: 'employment_rate_latest', series: 'employment_rate', icon: 'labour', name: 'Employment', label: 'rate, aged 16 to 64' },
+  { key: 'unemployment', fact: 'unemployment_rate_latest', series: 'unemployment_rate', icon: 'labour', name: 'Unemployment', label: 'rate, aged 16 and over' },
+  { key: 'pay', fact: 'pay_growth_latest', series: 'pay_growth', icon: 'pay', name: 'Regular pay', label: 'on a year earlier', growth: true },
+  { key: 'share', fact: 'labour_share_latest', series: 'labour_share', icon: 'labourShare', name: 'Employee share', label: 'of GDP (computed)' },
+  { key: 'ai', fact: 'business_ai_use', series: 'business_ai_use', icon: 'ai', name: 'Business AI use', label: 'of businesses use AI', cite: `BICS Wave ${BICS_WAVE}` },
 ];
+
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// "2026-11-17" -> "17 Nov 2026"
+const dateShort = (iso) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${d} ${MON[m - 1]} ${y}`;
+};
 
 // A line through the series' values, in a 100 x 28 box.
 function Spark({ ys }) {
@@ -59,12 +71,16 @@ function Tile({ v, today }) {
   const text = (v.format ?? pct1)(f.value);
   const first = /first estimate/i.test(f.note ?? '');
   const next = src.next_release;
-  const span = s.first ? `${s.x[0].slice(0, 4)} to ${span3(s.last)}` : `${s.x[0]} to ${s.x[s.x.length - 1]}`;
   return (
     <li id={`p1-vital-${v.key}`} className="p1-vital" data-vital={v.key}>
       <span className="p1-vital-name">
         <Icon name={iconFor(v.icon)} size={15} className="p1-text-icon" />
         {v.name}
+        {first ? (
+          <span className="p1-flag">
+            <Icon name={iconFor('revision')} size={11} /> First estimate
+          </span>
+        ) : null}
       </span>{' '}
       <span className="p1-vital-value">
         {v.growth ? (
@@ -77,28 +93,22 @@ function Tile({ v, today }) {
             {text}
           </span>
         </Ext>
+        <Spark ys={s.y} />
       </span>{' '}
-      <span className="p1-vital-label">{v.label}</span>
-      <span className="p1-vital-sub">
-        Through {periodOf(f.period)}
-        {v.growth ? `, ${dirWord(f.value)} ${v.growth}` : ''}
-      </span>
-      {first ? (
-        <span className="p1-flag">
-          <Icon name={iconFor('revision')} size={12} /> First estimate
-        </span>
-      ) : null}
-      <Spark ys={s.y} />
-      <span className="p1-vital-span" data-axis="">
-        {span}
-      </span>
+      <span className="p1-vital-label">{v.growth ? `${dirWord(f.value)}, ${v.label}` : v.label}</span>
+      <span className="p1-vital-sub">Through {periodOf(f.period)}</span>
       <span className="p1-vital-meta">
-        Released {dateLong(src.released)}
-        {next && today ? (next >= today ? `; next ${dateLong(next)}` : `; newer figures out ${dateLong(next)}, not yet shown here`) : ''}
+        Released {dateShort(src.released)}
+        {next && today ? (
+          <>
+            <br />
+            {next >= today ? `Next ${dateShort(next)}` : `Newer figures out ${dateShort(next)}, not shown`}
+          </>
+        ) : null}
       </span>
       <span className="p1-vital-src">
         <Ext href={pageOf(f.source)}>
-          {short(src)}, {src.series.replace(/\s*\(.*$/, '')}
+          {short(src)}, {v.cite ?? src.series.replace(/\s*\(.*$/, '')}
         </Ext>
         {src.url !== pageOf(f.source) ? (
           <>
