@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import LineChart from '@/components/LineChart.jsx';
@@ -14,6 +15,7 @@ import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import D from '@/data/cohorts2028.json';
+import WhoHeatmap from '@/tabs/cohorts/WhoHeatmap.jsx';
 
 // Who gains: consumption-equivalent welfare change by birth year and
 // lifetime-earnings group, UK central only, from cohorts2028.json (written
@@ -132,10 +134,31 @@ function MeasureChips({ ms }) {
   );
 }
 
+// "Adults who lose" by measure: the four shares as a toggle, each printing
+// its share once (its home). The toggle drives the 100-dot strip and the
+// heatmap below (WhoHeatmap.jsx).
+export { dotCounts } from '@/tabs/cohorts/WhoHeatmap.jsx';
+function MeasureDots({ ms, measure, onMeasure }) {
+  const m = ms.find((x) => x.id === measure) ?? ms[0];
+  return (
+    <ul className="ex-mtoggle" aria-label="Share of adults who lose, by measure: pick one to show below">
+      {ms.map((x) => (
+        <li key={x.id} data-dnfull={x.full ? '' : undefined}>
+          <button type="button" aria-pressed={x.id === m.id} className={`ex-mtoggle-btn${x.id === m.id ? ' is-on' : ''}`} title={x.def} onClick={() => onMeasure(x.id)}>
+            <Icon name={iconFor(x.concept)} size={12} />
+            <b>{x.id}</b>
+            <span className="ex-dd">{shareOf(x.losing)}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 // The headline tiles: the share who lose (a range over the measures, then a
 // bar per measure), who loses by age (a ruler), the average (a strip of the
 // measures), and where it comes from (capital against labour income).
-export function Headline({ c, rule, cl, arm }) {
+export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {} }) {
   const full = dnfullFor(cl, rule, arm);
   const ch = rule === 'dn' && !full ? c.charged : null;
   const fills = full ? Object.values(full.by_fill ?? {}) : [];
@@ -147,7 +170,6 @@ export function Headline({ c, rule, cl, arm }) {
   const hi = Math.max(...all);
   const young = c.all_lose_up_to_age;
   const ages = fullAges ?? ch?.oldest_losing_on_average;
-  const maxShare = Math.max(1, hi);
   const ageTo = young ?? (ages ? ages[1] : null);
   const avgs = ms.flatMap((m) => m.avg);
   const A = Math.max(0.1, ...avgs.map(Math.abs)) * 1.15;
@@ -158,19 +180,7 @@ export function Headline({ c, rule, cl, arm }) {
     <div className="stat-row cols-4 ex-who-tiles">
       <MeasureChips ms={ms} />
       <StatTile icon={iconFor('households')} name="Adults who lose" value={tileRange(lo, hi)} sub={<Lead c="range">{`Share of adults alive in ${D.shock_year}, by measure`}</Lead>}>
-        <ul className="ex-bars">
-          {ms.map((m) => (
-            <li key={m.id} data-dnfull={m.full ? '' : undefined}>
-              <span className="ex-bar-code" title={m.def}>
-                <Icon name={iconFor(m.concept)} size={12} /> {m.id}
-              </span>
-              <span className="ex-bar-track" aria-hidden="true">
-                <span className="ex-bar-fill" style={{ width: `${((Math.max(...m.losing) / maxShare) * 100).toFixed(1)}%` }} />
-              </span>
-              <span className="ex-dd">{shareOf(m.losing)}</span>
-            </li>
-          ))}
-        </ul>
+        <MeasureDots ms={ms} measure={measure} onMeasure={onMeasure} />
       </StatTile>
       <StatTile
         icon={iconFor('young')}
@@ -191,7 +201,7 @@ export function Headline({ c, rule, cl, arm }) {
       <StatTile icon={iconFor('measure')} name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub={<Lead c="consumption">Of remaining-lifetime consumption and bequests</Lead>}>
         <ul className="ex-bars ex-avg">
           {ms.map((m) => (
-            <li key={m.id} data-dnfull={m.id === 'BT' && m.full ? '' : undefined}>
+            <li key={m.id} data-dnfull={m.id === 'BT' && m.full ? '' : undefined} className={m.id === measure ? 'is-on' : undefined}>
               <span className="ex-bar-code" title={m.def}>
                 <Icon name={iconFor(m.concept)} size={12} /> {m.id}
               </span>
@@ -488,6 +498,7 @@ const CL_HEAD = { 'zk0.1': { icon: iconFor('foreign'), text: 'Central closure' }
 
 export default function WhoGainsTab() {
   const { st, set } = useNav();
+  const [measure, setMeasure] = useState('M');
   const arm = st.arm;
   const rule = st.wrule;
   const both = st.closure === 'both';
@@ -553,13 +564,14 @@ export default function WhoGainsTab() {
             <h3 className="wg-closure-title">
               <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
             </h3>
-            <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} />
+            <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} measure={measure} onMeasure={setMeasure} />
           </div>
         ))
       ) : (
-        <Headline c={c} rule={rule} cl={cl} arm={arm} />
+        <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} onMeasure={setMeasure} />
       )}
       <ByForm p={p} both={both} />
+      <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
       <div className="cards-stack stack-gap">
         <Card
           id="welfare-chart"

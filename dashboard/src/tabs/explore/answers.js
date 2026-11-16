@@ -9,7 +9,6 @@
 import { HEADLINE_YEAR, SCEN_NAME, CENTRAL, BOUND, gap, ruleSolved } from '@/tabs/ai/surprise.js';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { ruleLabel } from '@/lib/labels.js';
-import { drivers } from '@/tabs/explore/cells.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
 
 // ("Gaps against the path, not forecasts" is stated once per page, by the
@@ -68,10 +67,11 @@ export function financesAnswer(sid, closure, rule) {
   return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'The model’s tax effect is likely too small' } };
 }
 
-// Which choice moves each measure most, one chip per choice, for the main arm.
+// The All scenarios sub-tab's intro: context only (the matrix card below
+// says which choice moves each measure most).
 export function allAnswer() {
   return {
-    context: `Automation + productivity · ${HEADLINE_YEAR} · every solved cell below, UK range shaded`,
-    drivers: drivers('tfp').map((d) => ({ key: d.choice, icon: d.choice === 'still' ? 'onPath' : d.choice, text: d.text })),
+    // the drivers print once, in the matrix card's finding
+    context: `Automation + productivity · ${HEADLINE_YEAR} · every solved cell below`,
   };
 }
