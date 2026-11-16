@@ -91,7 +91,7 @@ function RulesFigure({ ctx }) {
               </span>
               <span className="p3-dp-track">
                 <span className={`p3-dot p3-dot-cost${r.same ? ' is-ring' : ''}`} style={{ left: `${(d.cost_bn / MAXC) * 100}%` }}>
-                  {r.same ? null : <span className="p3-dot-val">{fmtBn(d.cost_bn)}</span>}
+                  {r.same ? null : <span className={`p3-dot-val${d.cost_bn / MAXC > 0.6 ? ' is-left' : ''}`}>{fmtBn(d.cost_bn)}</span>}
                 </span>
               </span>
               <span className="p3-dp-track">

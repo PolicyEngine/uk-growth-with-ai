@@ -63,7 +63,7 @@ function Dumbbell({ head, icon = 'measure', max, marks, on, delay, hl, setHl }) 
               onFocus={() => setHl(m.id)}
               onBlur={() => setHl(null)}
             />
-            <span className={`p3-db-val${xs[i] > 70 ? ' is-left' : ''}`} style={{ left: `${xs[i]}%` }}>
+            <span className={`p3-db-val${xs[i] > 70 ? ' is-left' : ''}`} style={{ left: `${xs[i]}%`, '--x': xs[i] }}>
               {m.text}
             </span>
           </span>

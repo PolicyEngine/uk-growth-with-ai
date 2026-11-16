@@ -65,6 +65,9 @@ const SPLIT_B = PT + (PB - PT - PGAP) / 2; // GDP panel's bottom when split
 const DT = SPLIT_B + PGAP; // debt panel's top
 const ARM_LINES = { tfp: ['Automation +', 'productivity'], tz: ['Technology', 'unchanged'], ss: ['Stress test'] };
 const PLH = 12; // end-label line height
+// Label blocks are placed as if each line were PLH + 3 tall: at 900px and
+// below the labels are 13.5 units, so blocks packed at PLH would touch.
+const PLH_PLACE = PLH + 3;
 
 function panelScale(values, top, bot) {
   const finite = values.filter(Number.isFinite);
@@ -115,7 +118,7 @@ export function ArmsPair({ state, sid, closure, label }) {
       Y,
       top,
       bot,
-      PLH,
+      PLH_PLACE,
     );
   const gEnds = ends(gdp, gNow.Y, PT, split ? SPLIT_B : PB, gOn);
   const dEnds = ends(debt, dS.Y, DT, PB, dOn);
@@ -172,7 +175,7 @@ export function ArmsPair({ state, sid, closure, label }) {
   };
   const endEl = (p, prefix) => (
     <g key={`${prefix}${p.key}`} className={`p2-pair-end${p.on ? ' is-on' : ''}`} style={{ transform: `translate(${X(x1) + 6}px, ${p.t.toFixed(1)}px)` }}>
-      <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={PLH * 0.75} style={{ fill: p.color }}>
+      <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={PLH_PLACE / 2 + PLH * 0.25} style={{ fill: p.color }}>
         {p.lines.map((t, i) => (
           <tspan key={t} x={0} dy={i ? PLH : 0}>
             {t}

@@ -265,20 +265,16 @@
 }
 .part-links .part-links-inner {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 2px 12px;
   align-items: center;
   max-width: none;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  white-space: nowrap;
+  overflow-x: visible;
+  white-space: normal;
 }
 .part-links .part-links-inner > * {
-  flex: none;
-}
-.part-links .part-links-inner[data-more] {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  flex: 0 1 auto;
+  min-width: 0;
 }
 .part-links .visually-hidden {
   position: absolute;
@@ -317,18 +313,32 @@
   outline: 2px solid var(--part-accent, var(--c-highlight));
   outline-offset: 2px;
 }
+/* the row wraps: the kicker and icons never split, the title and lead wrap */
+.part-links-kicker,
+.part-links-next .plain-icon {
+  flex: none;
+  white-space: nowrap;
+}
 .part-links-lead {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
   margin: 0;
   font-size: var(--fs-small);
   color: var(--pe-gray-700);
 }
 .part-links .part-links-row {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 0 12px;
   align-items: center;
   margin: 0;
   font-size: var(--fs-small);
+}
+.part-links-lead .plain-icon {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 0.2em;
 }
 .part-links-label {
   display: inline-flex;
@@ -435,7 +445,9 @@
   }
   /* the hero art at most 300px tall: a shorter fan, the key in two columns */
   .story-hero-art svg {
-    max-height: 190px;
+    max-height: 300px;
+    max-width: 460px;
+    margin-inline: auto;
   }
   .story-hero-art .hero-key {
     display: grid;

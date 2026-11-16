@@ -467,14 +467,17 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px 12px;
 }
+/* blank room, not content: the exposure labels, unhyphenated, are a line
+   shorter, and this keeps the last exposure state's scroll hold (check_states) */
+#p1-exposure-1 .p1-facts.is-three {
+  margin-bottom: 34px;
+}
 /* three to a row: the icon sits above the number, so each fact is narrow */
 .p1-facts.is-three .story-fact {
   grid-template-columns: minmax(0, 1fr);
 }
 .p1-facts.is-three .story-fact-label {
   font-size: var(--fs-caption);
-  overflow-wrap: anywhere;
-  hyphens: auto;
 }
 .p1-facts.is-three .story-fact-icon {
   grid-row: auto;
@@ -482,6 +485,24 @@
 }
 .p1-facts.is-three .story-fact-value {
   font-size: clamp(1.125rem, 1.7vw, 1.375rem);
+}
+/* phones: the three stats stacked in one column, each with its icon beside
+   it again (one to a row leaves the room) */
+@media (max-width: 520px) {
+  .p1-facts.is-three {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  #p1-exposure-1 .p1-facts.is-three {
+    margin-bottom: 14px;
+  }
+  .p1-facts.is-three .story-fact {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+  .p1-facts.is-three .story-fact-icon {
+    grid-row: 1 / span 3;
+    margin-top: 4px;
+  }
 }
 /* the arrow beside a growth rate: from its sign, grey, never a colour */
 .p1-growth {

@@ -45,6 +45,8 @@ const LANE = 7; // flow lanes about 7px apart
 //   onHover      called with a ribbon's target id on hover or focus, and
 //                null on leave;
 //   node.stroke, node.labelColor  a node's outline and label colour.
+//   node.inline  `sub` on the label's own line ("Kept in the UK 16.3"),
+//                not a second line: for crowded end columns.
 //   With onHover, ribbons are also focusable (focus and blur act as hover).
 //
 // Opt-in, wave 2 (scene plan section 6; none changes the default drawing):
@@ -189,11 +191,17 @@ export default function Sankey({
   const baseW = perDepth ? (widths ? Math.max(...widths) : 14) : nodeWidth;
   const H = narrow ? Math.round(height * 0.85) : height;
   const L = narrow ? narrowLeftRoom : leftRoom;
-  const R = narrow ? narrowRightRoom : rightRoom;
+  // end nodes with an `inline` value need room for "label value" on one
+  // line: about 6.7 units a character at 12px, plus the 6-unit offset
+  const g0 = graphs[0];
+  const inlineRoom = Math.max(
+    0,
+    ...g0.nodes.filter((n) => n.inline && n.sub && !g0.links.some((l) => l.source === n.id)).map((n) => Math.ceil((n.label.length + 1 + String(n.sub).length) * 6.7) + 10),
+  );
+  const R = Math.max(narrow ? narrowRightRoom : rightRoom, inlineRoom);
   const top = 8;
   const long = W - L - R;
   // room below for middle-column labels, when the graph has a middle column
-  const g0 = graphs[0];
   const hasMiddle = g0.nodes.some((n) => g0.links.some((l) => l.source === n.id) && g0.links.some((l) => l.target === n.id));
   const short = H - top - (hasMiddle ? 30 : 6);
   const max = Math.max(...graphs.map(total));
@@ -376,12 +384,14 @@ export default function Sankey({
           const nh = n.y1 - n.y0;
           const inner = inside && !tight && n.inner != null && nh >= 18;
           const sub = inner ? null : n.sub;
+          // `inline`: the value on the label's own line (crowded end nodes)
+          const twoLine = sub && !n.inline;
           // beside the node, centred on it. A middle-column label goes
           // below its node, ending at the node's left edge: there it sits
           // under the incoming ribbon, never on a ribbon. Kept inside the box.
           const tx = first ? n.x0 - 6 : last ? n.x1 + 6 : n.x0 - 4;
           const anchor = first || middle ? 'end' : 'start';
-          const ty = middle ? Math.min(n.y1 + 12, H - (sub ? 22 : 8)) : (n.y0 + n.y1) / 2 - (sub ? 7 : 0);
+          const ty = middle ? Math.min(n.y1 + 12, H - (twoLine ? 22 : 8)) : (n.y0 + n.y1) / 2 - (twoLine ? 7 : 0);
           const shown = !pouring || n.depth === 0 ? !pouring || poured > 0 : n.depth <= poured;
           const cls = ['sankey-node', wiping && n.depth > reveal ? 'is-hidden' : '', pouring ? `is-pour${n.depth === 0 ? ' is-src' : ''}${shown ? ' is-on' : ''}` : '', lit ? (lit.nodes.has(n.id) ? 'is-hl' : 'is-dim') : '']
             .filter(Boolean)
@@ -420,7 +430,12 @@ export default function Sankey({
               ) : null}
               <text className="sankey-label" x={tx} y={ty} textAnchor={anchor} dominantBaseline="middle" style={n.labelColor ? { fill: n.labelColor } : undefined}>
                 <tspan x={tx}>{n.label}</tspan>
-                {sub ? (
+                {sub && n.inline ? (
+                  <tspan className="sankey-sub" dx="0.3em">
+                    {sub}
+                  </tspan>
+                ) : null}
+                {twoLine ? (
                   <tspan className="sankey-sub" x={tx} dy="1.25em">
                     {sub}
                   </tspan>
