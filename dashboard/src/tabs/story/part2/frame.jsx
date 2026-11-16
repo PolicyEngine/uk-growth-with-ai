@@ -28,7 +28,7 @@ export function niceTicks(lo, hi, n = 4) {
   return { ticks: out, step };
 }
 
-const tickText = (v, step) => {
+export const tickText = (v, step) => {
   const dp = step < 1 ? (step < 0.25 ? 1 : String(step).split('.')[1]?.length ?? 1) : 0;
   const t = Math.abs(v) < 1e-9 ? '0' : Math.abs(v).toFixed(Math.min(dp, 2));
   return v < -1e-9 ? `−${t}` : t;
@@ -47,7 +47,7 @@ export function scales(xs, values, r = M.r) {
   // value is negative
   lo -= lo < 0 ? pad : (hi - lo || 1) * 0.1;
   hi += pad;
-  const { ticks, step } = niceTicks(lo, hi);
+  const { ticks, step } = niceTicks(lo, hi, 3);
   lo = Math.min(lo, ticks[0]);
   hi = Math.max(hi, ticks[ticks.length - 1]);
   const x0 = xs[0];
@@ -70,6 +70,50 @@ export function linePath(X, Y, xs, ys) {
     pen = true;
   });
   return d;
+}
+
+// A monotone-x curve through the points (Fritsch-Carlson: no overshoot),
+// for the welfare-by-birth-year curve only (plan section 4), skipping gaps.
+export function monotonePath(X, Y, xs, ys) {
+  const runs = [];
+  let cur = [];
+  ys.forEach((v, i) => {
+    if (Number.isFinite(v)) cur.push([X(xs[i]), Y(v)]);
+    else if (cur.length) {
+      runs.push(cur);
+      cur = [];
+    }
+  });
+  if (cur.length) runs.push(cur);
+  return runs
+    .map((p) => {
+      const n = p.length;
+      if (n < 3) return p.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('');
+      const d = p.slice(1).map(([x, y], i) => (y - p[i][1]) / (x - p[i][0] || 1));
+      const m = p.map((_, i) => (i === 0 ? d[0] : i === n - 1 ? d[n - 2] : d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2));
+      for (let i = 0; i < n - 1; i++) {
+        if (d[i] === 0) {
+          m[i] = 0;
+          m[i + 1] = 0;
+          continue;
+        }
+        const a = m[i] / d[i];
+        const b = m[i + 1] / d[i];
+        const h = a * a + b * b;
+        if (h > 9) {
+          const t = 3 / Math.sqrt(h);
+          m[i] = t * a * d[i];
+          m[i + 1] = t * b * d[i];
+        }
+      }
+      let out = `M${p[0][0].toFixed(1)},${p[0][1].toFixed(1)}`;
+      for (let i = 0; i < n - 1; i++) {
+        const dx = (p[i + 1][0] - p[i][0]) / 3;
+        out += `C${(p[i][0] + dx).toFixed(1)},${(p[i][1] + m[i] * dx).toFixed(1)} ${(p[i + 1][0] - dx).toFixed(1)},${(p[i + 1][1] - m[i + 1] * dx).toFixed(1)} ${p[i + 1][0].toFixed(1)},${p[i + 1][1].toFixed(1)}`;
+      }
+      return out;
+    })
+    .join('');
 }
 
 // Grid, zero line, ticks and vertical markers.
@@ -112,19 +156,19 @@ export function Axes({ sc, xTicks, markers = [] }) {
 const LH = 16;
 // `delay` (ms) holds a label back until its line, drawn by DrawPath over
 // 1200ms, has nearly reached the line end, so no name shows before its line.
-export function EndLabels({ sc, items, delay = 0 }) {
-  const top = M.t;
-  const bot = H - M.b;
+// Places direct labels in a column: each item's first line centred on its
+// value (Y(v)), overlapping labels pushed apart downwards, then kept inside
+// [top, bot]. Returns the items (finite values only) with `t`, the top of
+// each label. items: [{ key, v, lines: [text], ... }].
+export function placeLabels(items, Y, top, bot, lh = LH) {
   const placed = items
     .filter((it) => Number.isFinite(it.v))
-    .map((it) => ({ ...it, h: it.lines.length * LH, y: sc.Y(it.v) }))
+    .map((it) => ({ ...it, h: it.lines.length * lh, y: Y(it.v) }))
     .sort((a, b) => a.y - b.y);
-  // first line centred on the line end, then push apart downwards
   placed.forEach((p, i) => {
-    p.t = p.y - LH / 2;
+    p.t = p.y - lh / 2;
     if (i && p.t < placed[i - 1].t + placed[i - 1].h) p.t = placed[i - 1].t + placed[i - 1].h;
   });
-  // keep inside the bottom, pushing up where needed
   for (let i = placed.length - 1; i >= 0; i--) {
     const limit = i === placed.length - 1 ? bot : placed[i + 1].t;
     if (placed[i].t + placed[i].h > limit) placed[i].t = limit - placed[i].h;
@@ -132,6 +176,11 @@ export function EndLabels({ sc, items, delay = 0 }) {
   placed.forEach((p) => {
     p.t = Math.max(top - 6, p.t);
   });
+  return placed;
+}
+
+export function EndLabels({ sc, items, delay = 0 }) {
+  const placed = placeLabels(items, sc.Y, M.t, H - M.b);
   const x = sc.X(sc.x1) + 6;
   return (
     <g className="p2-end-labels">
@@ -162,13 +211,20 @@ export function Tx({ icon, size = 14, children }) {
 }
 
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', children }) {
+export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', head = null, className = '', children }) {
   return (
-    <figure className="p2-figure">
+    <figure className={`p2-figure ${className}`}>
       <p className="story-figure-title">
         <Tx icon={icon}>{title}</Tx>
       </p>
-      {unit ? <p className="story-figure-unit">{unit}</p> : null}
+      {unit ? (
+        <p className="story-figure-unit">
+          <Tx icon="measure" size={12}>
+            {unit}
+          </Tx>
+        </p>
+      ) : null}
+      {head}
       {children}
       {legend?.length ? (
         <ul className="p2-legend">

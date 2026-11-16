@@ -76,14 +76,14 @@ describe('story part 2', () => {
   it('every chart is an image with a text alternative, and links keep the reader’s choices', () => {
     const { container } = at('tab=story&s=uk_high&closure=both');
     const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid')];
-    expect(svgs.length).toBe(6);
+    expect(svgs.length).toBe(4); // shock tiles, the GDP canvas (2A), the arms pair (2B), who gains
     expect(container.querySelectorAll('svg.sankey')).toHaveLength(1);
     for (const s of svgs) {
       expect(s.getAttribute('role')).toBe('img');
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    expect(container.querySelectorAll('.story-source')).toHaveLength(8); // the output split's Sankey and waterfall each have one
+    expect(container.querySelectorAll('.story-source')).toHaveLength(6); // the output split's Sankey and waterfall each have one
     const hrefs = [...container.querySelectorAll('.p2-more a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
@@ -108,8 +108,9 @@ describe('story part 2', () => {
     expect(dashed(one.container)).toBe(0);
     one.unmount();
     const both = at('tab=story&s=uk_low&closure=both');
-    // three arms in two charts (GDP and debt)
+    // three arms in two panels of one figure (GDP and debt)
     expect(dashed(both.container)).toBe(6);
+    expect(both.container.querySelectorAll('.p2-pair path[style*="dasharray"]')).toHaveLength(6);
   });
 });
 
@@ -117,20 +118,48 @@ describe('story part 2', () => {
 // last state; the graphics are rendered here at each state directly.
 describe('each state of each graphic', () => {
   it('lines draw in turn', async () => {
-    const { ScenarioPaths, ArmPaths, WelfareShape } = await import('@/tabs/story/part2/charts.jsx');
+    const { ArmsPair, WelfareShape } = await import('@/tabs/story/part2/charts.jsx');
     const drawn = (el) => {
       const { container, unmount } = render(<NavProvider>{el}</NavProvider>);
       const n = container.querySelectorAll('.draw-path.is-on').length + container.querySelectorAll('.fade-g.is-on path').length;
       unmount();
       return n;
     };
-    // the shaded UK range fades in with UK high (state 3), as one more path
-    expect([0, 1, 2, 3, 4].map((i) => drawn(<ScenarioPaths state={i} sid="uk_central" cl="zk0.1" />))).toEqual([0, 1, 2, 4, 5]);
-    const arms = (i, closure, allFrom) => drawn(<ArmPaths state={i} sid="uk_high" closure={closure} v="Y" title="t" unit="u" label="l" allFrom={allFrom} />);
-    expect([0, 1, 2].map((i) => arms(i, 'central'))).toEqual([1, 2, 3]);
-    expect([0, 1, 2].map((i) => arms(i, 'both'))).toEqual([2, 4, 6]);
-    expect([0, 1].map((i) => arms(i, 'central', 1))).toEqual([1, 3]);
+    // GDP arms in turn (0-2), then the debt panel's main arm (3) and the rest (4)
+    const pair = (i, closure) => drawn(<ArmsPair state={i} sid="uk_high" closure={closure} label="l" />);
+    expect([0, 1, 2, 3, 4].map((i) => pair(i, 'central'))).toEqual([1, 2, 3, 4, 6]);
+    expect([0, 1, 2, 3, 4].map((i) => pair(i, 'both'))).toEqual([2, 4, 6, 8, 12]);
     expect([0, 1].map((i) => drawn(<WelfareShape state={i} />))).toEqual([1, 2]);
+  });
+
+  it('the GDP canvas: the other scenarios draw in at states 3 and 4, and only Korinek et al. rescales the axis', async () => {
+    const { MorphChart, rescales } = await import('@/tabs/story/part2/Morph.jsx');
+    const scen = (state, sid, cl) => {
+      const { container, unmount } = render(
+        <NavProvider>
+          <MorphChart state={state} sid={sid} cl={cl} />
+        </NavProvider>,
+      );
+      const on = [...container.querySelectorAll('.p2-mo-scen.is-on')].map((p) => p.getAttribute('data-scen')).sort();
+      const ticks = [...container.querySelectorAll('.p2-mo-yt.is-on text')].map((t) => t.textContent);
+      unmount();
+      return { on, ticks };
+    };
+    for (const cl of ['zk0.1', 'zk0']) {
+      for (const sid of fixture.scenarios.map((x) => x.id)) {
+        if (fixture.results[sid].tfp[cl].status !== 'done') continue;
+        const st = [2, 3, 4].map((i) => scen(i, sid, cl));
+        expect(st[0].on).toEqual([]);
+        expect(st[1].on).not.toContain('korinek');
+        expect(st[2].on).toContain(sid === 'korinek' ? 'uk_high' : 'korinek');
+        // no rescale between states 2 and 3; between 3 and 4 only when
+        // Korinek et al. is not the chosen scenario and lies beyond the UK axis
+        expect(st[1].ticks).toEqual(st[0].ticks);
+        if (sid === 'korinek') expect(rescales(sid, cl)).toBe(false);
+        if (!rescales(sid, cl)) expect(st[2].ticks).toEqual(st[1].ticks);
+      }
+    }
+    expect(rescales('uk_central', 'zk0.1')).toBe(true);
   });
 
   it('tiles move between groups and never overlap', async () => {
@@ -187,6 +216,9 @@ describe('where output goes', () => {
       const ch = S2.change[sid][cl];
       const vals = [...out.querySelectorAll('.p2-wf-value')].map((n) => n.textContent.trim());
       expect(vals).toEqual([sgn(ch.labour), sgn(ch.gross_capital), sgn(ch.domestic), sgn(ch.foreign), sgn(ch.depreciation), 'Headline figures']);
+      // each printed change names its path in the data (trace a number)
+      const paths = [...out.querySelectorAll('.p2-wf-value[data-path]')].map((n) => n.getAttribute('data-path'));
+      expect(paths).toEqual(['labour', 'gross_capital', 'domestic', 'foreign', 'depreciation'].map((k) => `output_split.change.${sid}.${cl}.${k}`));
       expect(out.textContent.includes('both figures show the central closure')).toBe(q.endsWith('both'));
       expect(out.textContent).toContain(cl === 'zk0' ? 'Closed capital' : 'Central closure');
       unmount();
@@ -378,7 +410,7 @@ describe('direction icons follow the signs', () => {
           }
           const late = g(sid, arm, cl, 'debt_gdp_pp', fixture.late_year);
           const end = items.at(-1).icon;
-          expect(end, `${sid} ${arm} ${cl} debt`).toBe(late > 0.05 ? 'gapUp' : late < -0.05 && words.startsWith('falls') ? 'gapDown' : 'onPath');
+          expect(end, `${sid} ${arm} ${cl} debt`).toBe(late > 0.005 ? 'gapUp' : late < -0.005 && words.startsWith('falls') ? 'gapDown' : 'onPath');
           expect(items[0].icon === 'gapDown').toBe(words.includes('falls below'));
         }
       }

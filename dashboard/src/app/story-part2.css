@@ -28,8 +28,11 @@
   }
 }
 .p2-grid {
-  stroke: var(--card-border);
+  /* faint dotted horizontal gridlines only (plan section 4) */
+  stroke: var(--c-grid);
   stroke-width: 1;
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
 }
 .p2-zero {
   stroke: var(--pe-gray-700);
@@ -366,8 +369,16 @@
 /* Layers not yet reached: hidden by opacity only, so their figures stay in
    the page's text */
 .p2-out-later {
-  opacity: 0;
+  /* before step 3 the waterfall's frame shows faintly (title, parts),
+     with its values and bars hidden: what comes next, not a blank half */
+  opacity: 0.4;
   transition: opacity 150ms ease;
+}
+.p2-out-later:not(.is-on) .p2-wf-value {
+  opacity: 0;
+}
+.p2-wf-value {
+  transition: opacity 300ms ease 400ms;
 }
 .p2-out-later.is-on {
   opacity: 1;
@@ -477,7 +488,8 @@
   position: absolute;
   top: 3px;
   bottom: 3px;
-  border-radius: 2px;
+  /* rounded on the free end only: the flat end is the start */
+  border-radius: 0 2px 2px 0;
   background: var(--bar);
   /* grows from the end it starts at, in turn (80ms apart, inline delay) */
   transform: scaleX(0);
@@ -486,6 +498,7 @@
 }
 .p2-wf-bar.is-back {
   transform-origin: 100% 50%;
+  border-radius: 2px 0 0 2px;
 }
 .p2-wf.is-on .p2-wf-bar {
   transform: none;
@@ -749,4 +762,332 @@
 }
 .p2-src-line + .p2-src-line {
   margin-top: 2px;
+}
+
+
+/* ---- Wave 2 scenes (2S, 2A, 2B, 2W) ---- */
+
+/* One line on which model this part uses (the full comparison closes the story) */
+.p2-lens-line {
+  max-width: 70ch;
+  margin: 0 0 24px;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+
+/* A scene's slim sub-header: icon, name, a hairline (local until Scrolly's `sub`) */
+.p2-scene-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 32px 0 8px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.p2-scene-head .plain-icon,
+.p2-scene-head svg {
+  flex: none;
+  color: var(--pe-gray-500);
+}
+.p2-scene-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--card-border);
+}
+.p2-anchor {
+  display: block;
+  height: 0;
+  scroll-margin-top: calc(var(--sticky-offset, 0px) + 24px);
+}
+
+/* Bands: the forecast years, the shock period, later cohorts. Full plot
+   height, no border, a small note inside the top-left corner. */
+.p2-band-period {
+  fill: var(--pe-gray-100);
+}
+.p2-band-shock {
+  fill: var(--c-highlight-band);
+}
+.p2-band-note {
+  /* about 11px on screen: phone width (svg about 330px) and desktop (540px) */
+  font-size: 13.3px;
+  font-weight: 500;
+  fill: var(--pe-gray-500);
+}
+@media (min-width: 901px) {
+  .p2-band-note {
+    font-size: 8.2px;
+  }
+}
+.p2-end-label.is-zero {
+  font-weight: 400;
+}
+
+/* 2A, the GDP canvas */
+.p2-canvas-box {
+  position: relative;
+  max-width: 540px;
+  margin: 0 auto;
+  container-type: inline-size;
+}
+.p2-canvas-box .p2-svg {
+  max-width: none;
+}
+.p2-mo-yt {
+  opacity: 0;
+  transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;
+}
+.p2-mo-yt.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 300ms;
+}
+/* states 3 and 4: the rescale beat takes 600ms (the morph into state 2 900ms) */
+.p2-morph[data-state='3'] .p2-mo-line,
+.p2-morph[data-state='4'] .p2-mo-line {
+  transition: d 600ms var(--story-ease, ease), opacity 500ms ease, stroke-width 500ms ease;
+}
+.p2-mo-scen {
+  fill: none;
+  stroke: var(--pe-gray-400);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 200ms ease, d 600ms var(--story-ease, ease);
+}
+.p2-mo-scen.is-on {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 700ms var(--story-ease, ease), d 600ms var(--story-ease, ease);
+}
+/* Korinek et al. draws once the rescale has settled */
+.p2-mo-scen.is-on.is-late {
+  transition: stroke-dashoffset 700ms var(--story-ease, ease) 600ms, d 600ms var(--story-ease, ease);
+}
+.p2-mo-band {
+  fill: var(--pe-gray-200);
+  opacity: 0;
+  transition: opacity 300ms ease, d 600ms var(--story-ease, ease);
+}
+.p2-mo-band.is-on {
+  opacity: 0.7;
+  transition: opacity 400ms ease 500ms, d 600ms var(--story-ease, ease);
+}
+.p2-mo-end {
+  opacity: 0;
+  transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;
+}
+.p2-mo-end.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 700ms;
+}
+.p2-mo-end.is-on.is-late {
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 1200ms;
+}
+.p2-mo-ring {
+  opacity: 0;
+  transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;
+}
+.p2-mo-ring.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 900ms;
+}
+.p2-mo-ring circle {
+  fill: none;
+  stroke: var(--series-2);
+  stroke-width: 1.75;
+}
+/* the ring's link: placed in the box's own width units (cqw), so it stays
+   on the ring at every width; moves by transform only */
+.p2-mo-hl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--c-gain-text);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  transform: translate(calc(var(--x) * 1cqw - 100% - 8px), calc(var(--y) * 1cqw - 100% - 6px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;
+}
+/* a ring in the upper half (a large scenario): the link sits below and to
+   the right, clear of the new-scale flag and the line climbing to it */
+.p2-mo-hl.is-below {
+  transform: translate(calc(var(--x) * 1cqw + 10px), calc(var(--y) * 1cqw + 8px));
+}
+.p2-mo-hl.is-on {
+  opacity: 1;
+  pointer-events: auto;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 900ms;
+}
+.p2-mo-hl:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+.p2-mo-hl-sep {
+  color: var(--pe-gray-400);
+}
+
+/* 2B, the arms pair: the GDP panel compresses by transform (strokes do not
+   scale), the debt panel fades in, then its lines draw */
+.p2-pair-gdp {
+  transition: transform 600ms var(--story-ease, ease);
+}
+.p2-pair-tick {
+  transition: transform 600ms var(--story-ease, ease);
+}
+.p2-pair-debt {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.p2-pair-debt.is-on {
+  opacity: 1;
+  transition: opacity 300ms ease 500ms;
+}
+.p2-pair-end {
+  opacity: 0;
+  transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;
+}
+.p2-pair-end.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 900ms;
+}
+.p2-panel-name {
+  font-size: 13.3px;
+  font-weight: 600;
+  fill: var(--pe-gray-600);
+}
+@media (min-width: 901px) {
+  .p2-panel-name {
+    font-size: 8.9px;
+  }
+}
+/* the closure control in the figure head: the header picker's state */
+.p2-closure-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
+  margin: 2px 0 6px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p2-closure-opt {
+  padding: 1px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  color: var(--pe-gray-700);
+  text-decoration: none;
+}
+.p2-closure-opt.is-on {
+  color: var(--pe-surface);
+  background: var(--c-highlight);
+  border-color: var(--c-highlight);
+}
+.p2-closure-opt:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+
+/* 2W: later cohorts under a band; a birth year marked on the curve */
+.p2-who-band {
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.p2-who-band.is-on {
+  opacity: 1;
+}
+.p2-born {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 2px 0 6px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p2-born input {
+  width: 6.5em;
+  padding: 2px 6px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+}
+.p2-born input:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 1px;
+}
+.p2-born-mark line {
+  stroke: var(--pe-gray-400);
+  stroke-dasharray: 2 3;
+}
+.p2-born-mark circle {
+  fill: var(--pe-surface);
+  stroke: var(--c-highlight);
+  stroke-width: 2;
+}
+
+/* The waterfall's rows: each part's swatch, as in the Sankey */
+.p2-wf-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--sw);
+  vertical-align: 0;
+}
+.p2-wf-row[data-row='capital'] .p2-wf-swatch {
+  background: transparent;
+  border: 1.5px solid var(--c-capital);
+}
+
+.stat-sub-icon {
+  display: inline-flex;
+  margin-right: 4px;
+  vertical-align: -0.12em;
+  color: var(--pe-gray-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p2-mo-yt,
+  .p2-mo-scen,
+  .p2-mo-band,
+  .p2-mo-end,
+  .p2-mo-ring,
+  .p2-mo-hl,
+  .p2-pair-gdp,
+  .p2-pair-tick,
+  .p2-pair-debt,
+  .p2-pair-end,
+  .p2-who-band,
+  .p2-wf-value {
+    transition: none !important;
+  }
+}
+
+/* 2B: a GDP line drawn in full, while its group is compressed (charts.jsx) */
+.p2-pair .draw-path.is-on.is-whole {
+  stroke-dasharray: none;
+}
+
+/* Tablet widths: part 2's charts are drawn at most 420px wide, so each
+   multi-state scene stays within the sticky cap (half the screen at 800
+   by 1000) instead of repeating per step */
+@media (min-width: 601px) and (max-width: 900px) {
+  .p2-svg,
+  .p2-canvas-box {
+    max-width: 420px;
+  }
 }
