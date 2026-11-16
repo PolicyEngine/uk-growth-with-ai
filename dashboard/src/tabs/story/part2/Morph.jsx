@@ -3,18 +3,12 @@
 import { useId } from 'react';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import Icon from '@/components/ab/Icon.jsx';
-import { NavLink, useNav } from '@/lib/nav.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
-import { A, ModelSource, ResultLinks, resultUrl, pathUrl, readable, SRC as LINKS } from './sources.jsx';
+import { A, ModelSource, readable, SRC as LINKS } from './sources.jsx';
 
 const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll } from './charts.jsx';
-import { EPS2 } from './dir.js';
-import { Items } from '@/components/story/Items.jsx';
-import { MODEL_BASE_VINTAGE } from '../part1/data.js';
 
 // Scene 2A, the GDP canvas: from the record to the scenarios, in one chart
 // whose axes and lines move between five states as the reader scrolls:
@@ -199,6 +193,9 @@ export const rescales = (sid, cl, pin = null) => {
   return a.lo !== b.lo || a.hi !== b.hi;
 };
 const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
+// end-label block height per line, in viewBox units: room at phone width,
+// where the labels are largest
+const LH = 15;
 // the state from which each scenario's line is drawn
 const lineFrom = (id, sid) => (id === sid ? 2 : id === 'korinek' ? 4 : 3);
 
@@ -242,7 +239,12 @@ function SourceText({ s }) {
   );
   if (s === 0) return <>Source: {a}.</>;
   if (s === 1) return <>Sources: {a}; {b}.</>;
-  return <ModelSource method="m-shock" />;
+  return (
+    <>
+      <ModelSource method="m-scenarios" />. Path: one OBR input, <A href={EFO_MAR26}>trend productivity growth</A>; scenario inputs: <A href={LINKS.bp9}>OBR</A>,{' '}
+      <A href={LINKS.imfSip}>IMF</A>, <A href={LINKS.korinekT3}>Korinek et al. (2026), Table 3</A>
+    </>
+  );
 }
 const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecast?.source] };
 
@@ -252,7 +254,7 @@ const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecas
 // both. Geometry from the solves only.
 export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((l) => l.id === pin) ? pin : null);
 
-export function MorphChart({ state, sid, cl, pin = null, onPin }) {
+export function MorphChart({ state, sid, cl, pin = null }) {
   const s = Math.max(0, Math.min(4, state));
   // one clip per copy (phones draw a copy per step)
   const clip = `p2-morph-clip${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
@@ -300,7 +302,7 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
       pinned: l.id === pinned,
     })),
   ];
-  const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, 13);
+  const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, LH);
   const shownNames = lines.filter((l) => s >= from(l.id));
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
@@ -335,9 +337,7 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
       <p className="story-figure-unit p2-text-stack">
         {all.map((t, i) => (
           <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
-            <Tx icon="measure" size={12}>
-              {t.unit}
-            </Tx>
+            {t.unit}
           </span>
         ))}
       </p>
@@ -480,9 +480,9 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
-              <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={13 * 0.75} style={{ fill: p.color }}>
+              <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={LH * 0.7} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
-                  <tspan key={l} x={0} dy={i ? 13 : 0}>
+                  <tspan key={l} x={0} dy={i ? LH - 2 : 0}>
                     {l}
                   </tspan>
                 ))}
@@ -503,6 +503,9 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
               </text>
             </g>
           </g>
+          <text x={W - 4} y={H - 8} textAnchor="end" className="p2-axis-x-svg" data-axis-title="x">
+            Year
+          </text>
           {/* the y axis's title: growth (states 0-1), gap (states 2-4) */}
           <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s < 2 ? ' is-on' : ''}`} data-axis-title={s < 2 ? 'y' : undefined} aria-hidden={s < 2 ? undefined : 'true'}>
             Real GDP growth, % a year
@@ -511,126 +514,10 @@ export function MorphChart({ state, sid, cl, pin = null, onPin }) {
             Gap against the OBR-central path, %
           </text>
         </svg>
-        {/* the ring's link to the headline figures (no value: their home is
-            the tiles below); a page link, so it sits over the drawing */}
-        {ring ? (
-          <NavLink
-            tab="story"
-            anchor="story-headline"
-            className={`p2-mo-hl${s >= 2 ? ' is-on' : ''}${ring[1] < (PY0 + PY1) / 2 ? ' is-below' : ''}`}
-            tabIndex={s >= 2 ? undefined : -1}
-            aria-hidden={s >= 2 ? undefined : 'true'}
-            style={{ '--x': ((ring[0] / W) * 100).toFixed(2), '--y': ((ring[1] / W) * 100).toFixed(2) }}
-          >
-            <span data-axis="">{HEADLINE_YEAR}</span>
-            <span className="p2-mo-hl-sep" aria-hidden="true">
-              ·
-            </span>
-            Headline figures
-            <Icon name={iconFor('next')} size={12} strokeWidth={2} />
-          </NavLink>
-        ) : null}
-      </div>
-      <div className="p2-fig-foot">
-        {onPin ? <PinRow s={s} sid={sid} pin={pin} pinned={pinned} lines={lines} onPin={onPin} /> : null}
-        <span className="p2-axis-x" data-axis-title="x">
-          Year
-        </span>
       </div>
       <figcaption className="story-source">
-        <Tx icon="source" size={12}>
-          <SourceText s={s} />
-        </Tx>
+        <SourceText s={s} />
       </figcaption>
     </figure>
   );
-}
-
-// Pin and compare: pin the chosen scenario, then choose another (here or
-// in the header); the pinned one stays drawn in dark grey. No value is
-// printed: the comparison is of shapes, the figures are the tiles'.
-function PinRow({ s, sid, pin, pinned, lines, onPin }) {
-  const { set } = useNav();
-  if (s < 2) return null;
-  const on = pin === sid || pinned != null;
-  const others = lines.filter((l) => l.id !== (pinned ?? sid));
-  return (
-    <span className={`p2-pin${on ? ' is-on' : ''}`}>
-      <button type="button" className="p2-pin-btn" aria-pressed={on} onClick={() => onPin(on ? null : sid)}>
-        <Icon name={iconFor('compare')} size={13} strokeWidth={2} />
-        {on ? `Pinned: ${SCEN_NAME[pin]}` : `Pin ${SCEN_NAME[sid]} to compare`}
-      </button>
-      {on ? (
-        <label className="p2-pin-pick">
-          <span className="visually-hidden">Compare it with</span>
-          <select value={pinned ? sid : ''} onChange={(e) => e.target.value && set({ s: e.target.value })}>
-            <option value="">{pinned ? 'Compare with…' : 'Compare with…'}</option>
-            {others.map((l) => (
-              <option key={l.id} value={l.id}>
-                {SCEN_NAME[l.id]}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-    </span>
-  );
-}
-
-export function morphSteps(sid, cl) {
-  return [
-    // A short opener on the OBR's forecast, where part 1 ends (state 1),
-    // then the morph to the gap (state 2).
-    {
-      id: 'p2-morph-1',
-      highlight: ['ons', 'obr'],
-      icon: 'record',
-      title: 'The record so far',
-      body: <Items items={[{ icon: 'forecast', text: 'Where part 1 ended: ONS outturn and the OBR’s forecast' }]} />,
-    },
-    {
-      id: 'p2-morph-2',
-      highlight: ['path', `scen-${sid}`],
-      icon: 'path',
-      title: 'From growth rates to a gap',
-      body: (
-        <>
-          <Items items={morphItems(sid, cl)} />
-          <ResultLinks
-            files={[
-              [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
-              ['no-shock path file', pathUrl(cl)],
-            ]}
-            method="m-path"
-            methodText="How the path is set"
-          />
-        </>
-      ),
-    },
-  ];
-}
-
-// The morph card's items. The blue line's direction is read from the
-// scenario's GDP gap after the surprise (every year above, every year
-// below, or neither), so the icon and the words agree with the chart.
-export function morphItems(sid, cl) {
-  const ys = series(sid, 'tfp', cl, 'Y');
-  const tail = ys ? ys.slice(YEARS.indexOf(SURPRISE_YEAR) + 1) : [];
-  const dir = !tail.length ? null : tail.every((v) => v > EPS2) ? 'gapUp' : tail.every((v) => v < -EPS2) ? 'gapDown' : null;
-  const where = cl === BOUND ? 'with closed capital' : 'at the central closure';
-  return [
-    { icon: 'forecast', text: `Zero is OG-UK’s own no-shock path, not the OBR’s ${OBR_VINTAGE ? `${OBR_VINTAGE} ` : ''}forecast` },
-    {
-      icon: 'source',
-      text: (
-        <>
-          It takes one OBR input: <A href={EFO_MAR26}>trend productivity growth, {MODEL_BASE_VINTAGE}</A>
-        </>
-      ),
-    },
-    { icon: 'measure', text: 'Results are gaps against that path' },
-    dir
-      ? { icon: dir, text: `Blue line: GDP in ${SCEN_NAME[sid]} ${dir === 'gapUp' ? 'above' : 'below'} it, ${where}` }
-      : { icon: 'path', text: `Blue line: GDP in ${SCEN_NAME[sid]} against it, ${where}` },
-  ];
 }

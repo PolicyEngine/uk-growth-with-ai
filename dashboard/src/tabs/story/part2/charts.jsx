@@ -10,7 +10,7 @@ import { closuresFor } from '@/tabs/ai/lines.js';
 import D from '@/data/cohorts2028.json';
 import { NavLink } from '@/lib/nav.jsx';
 import { Crosshair, linear } from '@/components/story/chart/index.js';
-import { ModelSource, COHORT_URL, COHORT_COMMIT_TEXT, A, SRC } from './sources.jsx';
+import { ModelSource, COHORT_URL, COHORT_COMMIT_TEXT, A, SRC, OG_DEFAULTS } from './sources.jsx';
 import { W, H, scales, linePath, monotonePath, niceTicks, tickText, placeLabels, Figure, GUTTER, Tx } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
@@ -209,8 +209,11 @@ export function ArmsPair({ state, sid, closure, label }) {
       title="GDP and public debt in three arms"
       unit={`${SCEN_NAME[sid]}, ${both ? 'central closure solid, closed capital dashed' : CL_WORDS[cls[0]]}. Gaps against the OBR-central path`}
       head={closureCtl}
+      xTitle={null}
       source={
-        <ModelSource method="m-arms" />
+        <>
+          <ModelSource method="m-arms" />. Central closure: <A href={OG_DEFAULTS}>OG-UK&rsquo;s inherited default</A>, not UK-calibrated
+        </>
       }
     >
       <div ref={ref} className="p2-pair-box" data-state={s}>
@@ -273,6 +276,9 @@ export function ArmsPair({ state, sid, closure, label }) {
             {x}
           </text>
         ))}
+        <text x={W - 4} y={PH - 8} textAnchor="end" className="p2-axis-x-svg" data-axis-title="x">
+          Year
+        </text>
         {gEnds.map((p) => endEl(p, 'g'))}
         {dEnds.map((p) => endEl(p, 'd'))}
       </Crosshair>
