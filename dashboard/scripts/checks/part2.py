@@ -46,7 +46,9 @@ def expected(sid, cl):
         exp[f"{sum(b[k] for k in CAPITAL):.1f}"] += 1
     c = SPLIT['change'].get(sid, {}).get(cl, {})
     if c.get('status') == 'done':
-        for k in ['labour', 'gross_capital', *CAPITAL]:
+        # the GDP row prints its change too (Vahid, 16 Nov: the waterfall
+        # shows GDP's value beside its link to the headline figures)
+        for k in ['labour', 'gross_capital', *CAPITAL, 'gdp']:
             exp[signed(c[k], 2)] += 1
     return exp
 
@@ -93,9 +95,44 @@ def raw():
     return bad
 
 
+SRC_DIR = os.path.join(HERE, '..', '..', 'src')
+PART2_FILES = ['tabs/story/Part2.jsx', 'tabs/ai/Landing.jsx'] + [
+    f'tabs/story/part2/{f}' for f in os.listdir(os.path.join(SRC_DIR, 'tabs', 'story', 'part2'))]
+
+
+def links():
+    """Every Method anchor part 2 links to exists on Method (an id in
+    tabs/method), and the result files it links to exist at the data
+    file's commit (analysis/surprise/output/<closure>/<label>.json)."""
+    bad = 0
+    method = ''
+    mdir = os.path.join(SRC_DIR, 'tabs', 'method')
+    for f in os.listdir(mdir):
+        if f.endswith('.jsx'):
+            method += open(os.path.join(mdir, f)).read()
+    ids = set(re.findall(r'id="([\w-]+)"', method)) | set(re.findall(r'id=\{`([\w-]+)\$\{', method))
+    seen = 0
+    for f in PART2_FILES:
+        t = open(os.path.join(SRC_DIR, f)).read()
+        for a in re.findall(r'anchor="((?:m|arm|scen|closure)-[\w-]+)"', t):
+            seen += 1
+            ok = a in ids or any(a.startswith(p) for p in ids if p.endswith('-'))
+            if not ok and a.startswith(('arm-', 'scen-')):
+                ok = ('arm-' if a.startswith('arm-') else 'scen-') in ids
+            if not ok:
+                bad += 1; print('part 2 links: no Method anchor', a, 'in', f)
+    for sid, by_arm in S['results'].items():
+        for arm, by_cl in by_arm.items():
+            for cl, r in by_cl.items():
+                if r.get('label') and not os.path.exists(f"{OUT}/{cl}/{r['label']}.json"):
+                    bad += 1; print('part 2 links: no result file', cl, r['label'])
+    print('part 2 links:', seen, 'Method anchors checked')
+    return bad
+
+
 def check(dump):
     """Return the number of failures for story part 2's own figures."""
-    bad = raw()
+    bad = raw() + links()
     # the large shares only: a small one (1.6) is too often another fact
     shares_pct = {f"{v:.1f}%" for base in SPLIT["baseline"].values() if base for v in base.values() if v >= 10}
     for sid in dump:
