@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useEnterState, useInView } from '@/components/story/motion.js';
 import { NumMark } from '@/components/story/highlight.jsx';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
@@ -418,9 +418,22 @@ const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs
 
 export function LabourBoard({ focus, onPick }) {
   // a click on a sparkline brings that series into the panel until the
-  // step changes (each card sets a focus; five series, three cards)
-  const [pick, setPick] = useState({ from: focus, f: null });
-  const picked = pick.from === focus ? pick.f : null;
+  // step changes (each card sets a focus; five series, three cards); a
+  // link to an old id for a series no card focuses (#p1-share) sends a
+  // 'p1-board-pick' event with the series' index (Part1.jsx). A change of
+  // step clears the pick, so it never comes back on scrolling back.
+  const [pick, setPick] = useState(null);
+  const [seenFocus, setSeenFocus] = useState(focus);
+  if (seenFocus !== focus) {
+    setSeenFocus(focus);
+    setPick(null);
+  }
+  const picked = pick;
+  useEffect(() => {
+    const on = (e) => setPick(e.detail);
+    window.addEventListener('p1-board-pick', on);
+    return () => window.removeEventListener('p1-board-pick', on);
+  }, []);
   const [ref, seen] = useInView();
   const [box, w, hBox] = useBox(BOARD_H + (FALLBACK_COLS < 4 ? 44 : 0));
   const gid = useSvgId('p1-pay-fade');
@@ -533,7 +546,7 @@ export function LabourBoard({ focus, onPick }) {
                   style={{ left: `${(sl.x / w) * 100}%`, width: `${(sl.w / w) * 100}%`, top: sl.nameY - 14, height: SPARK.h + SPARK.y - STRIP_NAME_Y + 18 }}
                   aria-label={`Show ${o.name.toLowerCase()} on the large chart`}
                   onClick={() => {
-                    setPick({ from: focus, f: i });
+                    setPick(i);
                     onPick?.(i);
                   }}
                 />

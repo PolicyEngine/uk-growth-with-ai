@@ -102,6 +102,9 @@ const N = ({ path, mark, children }) => (
   </Fig>
 );
 
+// A trend claim, linked to its series' readable source page.
+const S = ({ k, children }) => <Ext href={pageOf(SERIES[k].source)}>{children}</Ext>;
+
 // An attributed caveat: its text linked to the page that says it.
 const L = ({ to, children }) => <Ext href={LINKS[to]?.url ?? pageOf(to)}>{children}</Ext>;
 
@@ -166,7 +169,7 @@ function outputSteps() {
           </Say>
           <About
             groups={[
-              { kind: 'source', items: [`The OBR’s central forecast, published ${OBR_VINTAGE}`] },
+              { kind: 'source', items: [`The OBR’s latest central forecast, published ${OBR_VINTAGE}`] },
               { kind: 'caveat', items: [`Drawn apart: the OBR starts from an older ${last(gs.x)} estimate`] },
               {
                 kind: 'link',
@@ -219,12 +222,19 @@ function workSteps() {
         <>
           <Anchor id="p1-work-1" />
           <Say icon="labour">
-            <Key id="employment">Employment</Key> is close to its level a year ago; <Key id="unemployment">unemployment</Key> has eased since December.
+            <Key id="employment">Employment</Key> <S k="employment_rate">is close to its level a year ago</S>; <Key id="unemployment">unemployment</Key>{' '}
+            <S k="unemployment_rate">has eased since December</S>.
           </Say>
           <Latest tiles={[['employment', 'employment'], ['unemployment', 'unemployment']]} />
           <About
             groups={[
-              { kind: 'measure', items: [<L key="i" to="ons_lm_guide">Unemployment, ILO definition: jobless, looking for work, able to start</L>] },
+              {
+                kind: 'measure',
+                items: [
+                  <L key="i" to="ons_lm_guide">Unemployment, ILO definition: jobless, looking for work, able to start</L>,
+                  'Unemployment rate: per cent of economically active people aged 16 and over',
+                ],
+              },
               { kind: 'source', items: ['Both rates come from the Labour Force Survey'] },
               {
                 kind: 'caveat',
@@ -248,7 +258,7 @@ function workSteps() {
         <>
           <Anchor id="p1-pay" />
           <Say icon="pay">
-            <Key id="pay">Regular pay growth</Key> has slowed since its 2023 peak, before adjusting for inflation.
+            <Key id="pay">Regular pay growth</Key> <S k="pay_growth">has slowed since its 2023 peak</S>, before adjusting for inflation.
           </Say>
           <Latest tiles={[['pay', 'regular pay']]} />
           <About
@@ -272,7 +282,8 @@ function workSteps() {
           <Anchor id="p1-share" />
           <Anchor id="p1-share-0" />
           <Say icon="productivity">
-            <Key id="productivity">Output per hour</Key> is back at its 2023 level; the <Key id="share">employee share</Key> of GDP rose in {last(SERIES.labour_share.x)}.
+            <Key id="productivity">Output per hour</Key> <S k="productivity_oph">is back at its 2023 level</S>; the <Key id="share">employee share</Key> of GDP{' '}
+            <S k="labour_share">rose in {last(SERIES.labour_share.x)}</S>.
           </Say>
           <Latest tiles={[['productivity', 'output per hour'], ['share', 'employee share']]} />
           <About
@@ -287,7 +298,12 @@ function workSteps() {
               },
               {
                 kind: 'caveat',
-                items: [`${p.period}: the latest quarter in the ${dateLong(SOURCES[p.source].released)} release`, 'The share leaves out the self-employed’s income'],
+                items: [
+                  `${p.period}: the latest quarter in the ${dateLong(SOURCES[p.source].released)} release`,
+                  `The share: annual, current prices; ${last(SERIES.labour_share.x)} is the latest full year`,
+                  'It leaves out the self-employed’s income',
+                  'So it is lower than measures of labour’s share that count it',
+                ],
               },
             ]}
           />
@@ -314,7 +330,7 @@ function aiSteps() {
       body: (
         <>
           <Say icon="business">
-            AI use among <Key id="ai-all">all businesses</Key> has risen every September since 2023.
+            AI use among <Key id="ai-all">all businesses</Key> <S k="business_ai_use">has risen every September since 2023</S>.
           </Say>
           <Latest tiles={[['ai', 'business AI use']]} />
           <About
@@ -336,7 +352,7 @@ function aiSteps() {
       body: (
         <>
           <Say icon="business">
-            Use among <Key id="ai-ten">businesses with 10 or more employees</Key> rose faster, to{' '}
+            Use among <Key id="ai-ten">businesses with 10 or more employees</Key> <S k="business_ai_use_10plus">rose faster</S>, to{' '}
             <N path="facts.business_ai_use_10plus.value" mark="ai-ten">
               {pct1(b.value)}
             </N>{' '}
@@ -413,13 +429,15 @@ function exposureSource() {
 // Old ids that are now inside a scene: a link to one lands on its card (the
 // anchor), then does what that step's dot does, so the scene is in the
 // right state however Scrolly maps scroll to steps.
+// A third entry: the labour board series to bring into the panel (no card
+// focuses unemployment or the employee share).
 export const ANCHOR_STEP = {
   'p1-quarters': ['p1-output', 2],
-  'p1-work-1': ['p1-work', 0],
+  'p1-work-1': ['p1-work', 0, 1],
   'p1-pay': ['p1-work', 1],
   'p1-productivity': ['p1-work', 2],
-  'p1-share': ['p1-work', 2],
-  'p1-share-0': ['p1-work', 2],
+  'p1-share': ['p1-work', 2, 4],
+  'p1-share-0': ['p1-work', 2, 4],
   'p1-exposure': ['p1-ai', 2],
   'p1-exposure-1': ['p1-ai', 2],
 };
@@ -430,7 +448,10 @@ function useAnchorSteps() {
       const hit = ANCHOR_STEP[window.location.hash.slice(1)];
       if (!hit) return;
       window.clearTimeout(t);
-      t = window.setTimeout(() => document.querySelectorAll(`#${hit[0]} .scrolly-dots button`)[hit[1]]?.click(), 250);
+      t = window.setTimeout(() => {
+        document.querySelectorAll(`#${hit[0]} .scrolly-dots button`)[hit[1]]?.click();
+        if (hit[2] != null) t = window.setTimeout(() => window.dispatchEvent(new CustomEvent('p1-board-pick', { detail: hit[2] })), 900);
+      }, 250);
     };
     go();
     window.addEventListener('hashchange', go);
@@ -449,7 +470,7 @@ function useAnchorSteps() {
 // answer is the home of the high-exposure total and DSIT's rounded figure.
 export const OUTPUT_Q = 'How fast has the UK economy grown?';
 export const WORK_Q = 'How are jobs, pay and productivity doing?';
-export const AI_Q = 'How widely is AI used, and who is exposed?';
+export const AI_Q = 'Who uses AI, and who is exposed?';
 export const OUTPUT_HINT = 'Watch the years after the pandemic';
 export const WORK_HINT = 'Five official series, one in focus at a time';
 export const AI_HINT = 'Two survey lines, then one grid of workers';
@@ -469,18 +490,19 @@ function AiAnswer() {
   const [hh, hl] = EXPOSURE_GROUPS;
   return (
     <>
-      <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (IMF);{' '}
+      Business use: <a href="#p1-vital-ai">UK vitals</a>; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of workers highly exposed (IMF);{' '}
       DSIT says around <N path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</N>, citing <L to="imf_genai">IMF (2024)</L>
     </>
   );
 }
 
-// The part's recap: each question with a short form of its answer (a chip
-// is at most a dozen words), linking back to its scene.
-export const p1Recap = () => [
+// The part's recap, as data: each question with a short form of its answer
+// (a chip is at most a dozen words), linking back to its scene. Part 2's
+// first pinned screen replays it as the transition.
+export const P1_RECAP = [
   { icon: 'gdp', q: OUTPUT_Q, a: `${pct1(F.gdp_growth_latest.value)} in ${F.gdp_growth_latest.period}`, text: OUTPUT_Q, to: 'q-p1-output' },
   { icon: 'labour', q: WORK_Q, a: `Unemployment ${pct1(F.unemployment_rate_latest.value)}, pay growth ${pct1(F.pay_growth_latest.value)}`, text: WORK_Q, to: 'q-p1-work' },
-  { icon: 'ai', q: AI_Q, a: `${pct1(F.business_ai_use.value)} of businesses`, text: AI_Q, to: 'q-p1-ai' },
+  { icon: 'ai', q: AI_Q, a: `${pct1(F.business_ai_use.value)} of firms; ${share0(EXPOSURE_GROUPS[0].value + EXPOSURE_GROUPS[1].value)} exposed`, text: AI_Q, to: 'q-p1-ai' },
 ];
 
 export default function Part1({ part }) {
@@ -508,7 +530,7 @@ export default function Part1({ part }) {
       <Scrolly
         id="p1-output"
         scene
-        sub={{ title: 'Output', icon: 'gdp', question: OUTPUT_Q, hint: OUTPUT_HINT, key: 'grown', takeaway: OUTPUT_TAKEAWAY, answer: outputAnswer(), answerTo: 'p1-output-0' }}
+        sub={{ title: 'Output', icon: 'gdp', pin: 'full', question: OUTPUT_Q, hint: OUTPUT_HINT, key: 'grown', takeaway: OUTPUT_TAKEAWAY, answer: outputAnswer(), answerTo: 'p1-output-0' }}
         label={`Real GDP growth: by calendar year (ONS outturn), the ${OBR_LABEL}, and by quarter`}
         steps={output}
         graphic={(i) => <OutputCanvas state={output[i]?.state ?? 0} />}
@@ -537,7 +559,7 @@ export default function Part1({ part }) {
           );
         }}
       />
-      <Recap items={p1Recap()} />
+      <Recap items={P1_RECAP} />
       <NextPart n={2} title="What a model of the whole economy projects" to="story-part-2">
         Part 2 turns from what has been measured to what happens if AI
         arrives as a shock.

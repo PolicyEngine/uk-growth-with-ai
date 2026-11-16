@@ -123,7 +123,7 @@ describe('story part 1, real data', () => {
     const vintage = monthYear(src.released);
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
-    expect(el.textContent).toContain(`The OBR’s central forecast, published ${vintage}`);
+    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}`);
     expect(el.textContent).toContain('no-shock path uses the OBR’s March 2026 productivity growth');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
@@ -532,7 +532,7 @@ describe('story part 1, altered data', () => {
     const { default: Part1Fix } = await import('@/tabs/story/Part1.jsx');
     const el = show(Part1Fix);
     expect(figures(textWithoutAxes(el))).toEqual(expected(fx));
-    expect(el.textContent).toContain('The OBR’s central forecast, published March 2027');
+    expect(el.textContent).toContain('The OBR’s latest central forecast, published March 2027');
     // the arrows follow the altered signs (a fall, a zero, rises)
     checkArrows(el);
     expect(el.querySelector('#p1-vital-gdp .p1-growth').getAttribute('data-dir')).toBe('fall');

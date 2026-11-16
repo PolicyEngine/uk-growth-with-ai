@@ -1104,3 +1104,15 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* a series brought into the board's panel by a click (or an old link) is
+   never dimmed, whichever marks the step highlights */
+[data-hl] .p1-board-series.is-focus[data-mark] {
+  opacity: 1;
+}
+/* a mark not drawn in this state stays hidden while a step highlights
+   others (the highlight's 25% would otherwise show it) */
+[data-hl] .p1-ai-dot[data-mark]:not(.is-on),
+[data-hl] .p1-ai-area[data-mark]:not(.is-on) {
+  opacity: 0;
+}
