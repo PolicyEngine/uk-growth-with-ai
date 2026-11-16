@@ -98,16 +98,22 @@ export function IconGrid({ items, label, columns = 3, className = '' }) {
 }
 
 // "What you just learned": a compact chip row at the end of a part, each
-// chip a plain icon and a short line (at most 12 words, no new numbers)
-// linking to the fact's home. `to` is an anchor on the Story (a string) or
-// { tab, sub, anchor } for a home elsewhere.
+// chip a plain icon and a short line linking to the fact's home. `to` is an
+// anchor on the Story (a string) or { tab, sub, anchor } for a home
+// elsewhere.
+//   old shape: { icon, text, to }       a line of at most 12 words, no new numbers
+//   q/a shape: { icon, q, a, to }        the part's question replayed with its
+//             answer (a string or node; the scene's own figures restated,
+//             so the answer is data-axis: not a second home for the number
+//             checks). `to` is the scene's question anchor, e.g. 'q-p1-output'.
 //
-//   <Recap items={[{ icon: 'gdp', text: 'Growth slowed after 2008', to: 'p1-output' }]} />
+//   <Recap items={[{ icon: 'gdp', q: 'How fast has the UK economy grown?', a: 'About 1.5% a year since 2010', to: 'q-p1-output' }]} />
 export function Recap({ title = 'What you just learned', items, className = '' }) {
   const list = (items ?? []).filter(Boolean);
   if (!list.length) return null;
+  const qa = list.some((it) => it.q != null);
   return (
-    <nav className={`story-recap ${className}`.trim()} aria-label={title}>
+    <nav className={`story-recap${qa ? ' is-qa' : ''} ${className}`.trim()} aria-label={title}>
       <p className="story-recap-title">
         <Icon name={iconFor('recap')} size={16} className="story-recap-icon" />
         {title}
@@ -117,9 +123,20 @@ export function Recap({ title = 'What you just learned', items, className = '' }
           const to = typeof it.to === 'string' ? { tab: 'story', anchor: it.to } : (it.to ?? {});
           return (
             <li key={it.key ?? i}>
-              <NavLink tab={to.tab ?? 'story'} sub={to.sub} anchor={to.anchor} className="story-recap-chip">
+              <NavLink tab={to.tab ?? 'story'} sub={to.sub} anchor={to.anchor} className={`story-recap-chip${it.q != null ? ' is-qa' : ''}`}>
                 <Icon name={iconFor(it.icon)} size={14} className="story-recap-chip-icon" />
-                <span>{it.text}</span>
+                {it.q != null ? (
+                  <span className="story-recap-qa">
+                    <span className="story-recap-q">{it.q}</span>
+                    {it.a != null ? (
+                      <span className="story-recap-a" data-axis="">
+                        {it.a}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : (
+                  <span>{it.text}</span>
+                )}
               </NavLink>
             </li>
           );
