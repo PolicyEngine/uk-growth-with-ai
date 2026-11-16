@@ -161,30 +161,6 @@
   display: block;
 }
 
-/* scenario sources: one icon line each; the derivation behind a disclosure */
-.mx-src-lines,
-.mx-src-full {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-small);
-}
-.mx-src-lines > li,
-.mx-src-full > li {
-  display: flex;
-  gap: 6px;
-  align-items: flex-start;
-}
-.mx-src-lines > li.mx-src-derive {
-  display: block;
-}
-.mx-src-full {
-  color: var(--pe-gray-700);
-  line-height: 1.5;
-}
-
 /* limitations: an icon grid, one tile per limitation */
 .mx-limit-grid {
   display: grid;

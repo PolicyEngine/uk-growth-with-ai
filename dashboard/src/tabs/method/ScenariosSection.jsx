@@ -235,16 +235,20 @@ export default function ScenariosSection({ uses = null }) {
             title={s.id === 'korinek' ? KORINEK_FULL : s.label}
             className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
             more={
-              <ul className="mx-src-full" data-cite="">
+              <dl className="mx-facts" data-cite="">
                 {Object.entries(s.sources).map(([k, v]) => (
-                  <li key={k}>
-                    <Icon name={iconFor(SRC_KEY[k]?.[0] ?? 'source')} size={14} className="mx-dt-icon" />
-                    <span>
-                      <b>{SRC_KEY[k]?.[1] ?? k}:</b> {v}
-                    </span>
-                  </li>
+                  <div key={k}>
+                    <dt>
+                      <Icon name={iconFor(SRC_KEY[k]?.[0] ?? 'source')} size={14} className="mx-dt-icon" />
+                      {SRC_KEY[k]?.[1] ?? k}
+                    </dt>
+                    <dd>
+                      <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
+                      {v}
+                    </dd>
+                  </div>
                 ))}
-              </ul>
+              </dl>
             }
             moreTitle="Sources and arithmetic"
             morePreview={s.id === 'korinek' ? 'Korinek et al., Table 3' : 'IMF UK, OBR FRS, BP9'}
