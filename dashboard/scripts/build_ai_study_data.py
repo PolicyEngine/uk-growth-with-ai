@@ -305,17 +305,17 @@ def main() -> None:
                            ("genAbsCutGovPct", cut_gov), ("genAbsCutHhPct", cut_hh)]:
         pc(name, 100 * val, 0)
     per_pound = [
-        {"id": "job_loss", "label": "Job loss", "government_p": r(100 * job_gov, 1), "household_p": r(100 * job_hh, 1),
+        {"id": "job_loss", "label": "Job loss", "government_p": r(100 * job_gov, 4), "household_p": r(100 * job_hh, 4),
          "draws": 1, "file": F_CG,
          "key": ("row unemployment_pct=7: -microsim_gov_balance_change_bn and -microsim_net_revenue_change_bn, over "
                  f"{F_WM} gross_cut_realised/1e9")},
-        {"id": "job_loss_takeup", "label": "Job loss, UC take-up = 1", "government_p": r(100 * pp["takeup1"][0], 1),
-         "household_p": r(100 * pp["takeup1"][1], 1), "draws": 1, "file": F_TK,
+        {"id": "job_loss_takeup", "label": "Job loss, UC take-up = 1", "government_p": r(100 * pp["takeup1"][0], 4),
+         "household_p": r(100 * pp["takeup1"][1], 4), "draws": 1, "file": F_TK,
          "key": "row scenario=disp_only, variant=takeup1: exchequer_cost_bn and -narrow_cash_change_bn, over wage_bill_lost_bn"},
         {"id": "job_loss_takeup_jsa", "label": "Job loss, UC take-up = 1 and new-style JSA",
-         "government_p": r(100 * pp["jsa"][0], 1), "household_p": r(100 * pp["jsa"][1], 1), "draws": 1, "file": F_TK,
+         "government_p": r(100 * pp["jsa"][0], 4), "household_p": r(100 * pp["jsa"][1], 4), "draws": 1, "file": F_TK,
          "key": "row scenario=disp_only, variant=jsa: exchequer_cost_bn and -narrow_cash_change_bn, over wage_bill_lost_bn"},
-        {"id": "wage_cuts", "label": "Wage cuts", "government_p": r(100 * cut_gov, 1), "household_p": r(100 * cut_hh, 1),
+        {"id": "wage_cuts", "label": "Wage cuts", "government_p": r(100 * cut_gov, 4), "household_p": r(100 * cut_hh, 4),
          "draws": len(co), "file": F_WC,
          "key": "rows variant=cut_only: mean(exchequer_cost_bn)/mean(gross_cut_bn), mean(household_basis_cost_bn)/mean(gross_cut_bn)"},
     ]
@@ -559,7 +559,7 @@ def extras(cmc: dict, low: dict, model_year: str) -> dict:
             f"+{pnum(P, 'genBeCapInterpUpliftPct'):.0f}%, in the results.tex break-even table and intro.tex): linear between "
             "the 20-draw central run and the simulated +60% uplift. paper_other_capital_pct "
             f"(genBeCapitalUpliftPct, +{pnum(P, 'genBeCapitalUpliftPct'):.0f}%) is a second macro, extrapolated from the "
-            "one-run capital channel; the paper's text does not print it, so the dashboard does not show it."),
+            "capital channel run alone (identical on every draw); the paper's text does not print it, so the dashboard does not show it."),
     }
 
     # --- pence per pound, matching 20-draw bases ---------------------------

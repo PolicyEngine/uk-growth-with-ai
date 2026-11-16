@@ -290,8 +290,8 @@
     {
       "id": "job_loss",
       "label": "Job loss",
-      "government_p": 42.7,
-      "household_p": 29.2,
+      "government_p": 42.6618,
+      "household_p": 29.195,
       "draws": 1,
       "file": "results/tax_composition/composition_grid.csv",
       "key": "row unemployment_pct=7: -microsim_gov_balance_change_bn and -microsim_net_revenue_change_bn, over results/wage_margin_central.json gross_cut_realised/1e9"
@@ -299,8 +299,8 @@
     {
       "id": "job_loss_takeup",
       "label": "Job loss, UC take-up = 1",
-      "government_p": 45.2,
-      "household_p": 31.7,
+      "government_p": 45.173,
+      "household_p": 31.7061,
       "draws": 1,
       "file": "results/takeup/takeup_draws.csv",
       "key": "row scenario=disp_only, variant=takeup1: exchequer_cost_bn and -narrow_cash_change_bn, over wage_bill_lost_bn"
@@ -308,8 +308,8 @@
     {
       "id": "job_loss_takeup_jsa",
       "label": "Job loss, UC take-up = 1 and new-style JSA",
-      "government_p": 47.7,
-      "household_p": 34.2,
+      "government_p": 47.7027,
+      "household_p": 34.2361,
       "draws": 1,
       "file": "results/takeup/takeup_draws.csv",
       "key": "row scenario=disp_only, variant=jsa: exchequer_cost_bn and -narrow_cash_change_bn, over wage_bill_lost_bn"
@@ -317,8 +317,8 @@
     {
       "id": "wage_cuts",
       "label": "Wage cuts",
-      "government_p": 55.4,
-      "household_p": 40.5,
+      "government_p": 55.3895,
+      "household_p": 40.543,
       "draws": 20,
       "file": "results/wage_cut/wage_cut_draws.csv",
       "key": "rows variant=cut_only: mean(exchequer_cost_bn)/mean(gross_cut_bn), mean(household_basis_cost_bn)/mean(gross_cut_bn)"
@@ -580,7 +580,7 @@
     },
     "note": "Each value sets the central cost to zero with the other two at their central settings (linear interpolation). Full take-up and new-style JSA move each further away.",
     "paper_other_capital_pct": 56.0,
-    "capital_choice_note": "capital.value_pct is the break-even the paper prints (genBeCapInterpUpliftPct, +55%, in the results.tex break-even table and intro.tex): linear between the 20-draw central run and the simulated +60% uplift. paper_other_capital_pct (genBeCapitalUpliftPct, +56%) is a second macro, extrapolated from the one-run capital channel; the paper's text does not print it, so the dashboard does not show it."
+    "capital_choice_note": "capital.value_pct is the break-even the paper prints (genBeCapInterpUpliftPct, +55%, in the results.tex break-even table and intro.tex): linear between the 20-draw central run and the simulated +60% uplift. paper_other_capital_pct (genBeCapitalUpliftPct, +56%) is a second macro, extrapolated from the capital channel run alone (identical on every draw); the paper's text does not print it, so the dashboard does not show it."
   },
   "per_pound_20": {
     "draws": 20,
