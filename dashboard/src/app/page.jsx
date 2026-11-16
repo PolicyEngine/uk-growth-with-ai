@@ -8,6 +8,8 @@ import ViewTabs from "@/components/ab/ViewTabs.jsx";
 import Icon from "@/components/ab/Icon.jsx";
 import Picker from "@/components/ui/Picker.jsx";
 import { iconFor } from "@/lib/concepts.js";
+import AI_STUDY from "@/data/aiStudy2425.json";
+import AsOf from "@/components/story/AsOf.jsx";
 import { NavProvider, useNav, subOf } from "@/lib/nav.jsx";
 import SettingsBar, {
   CopyLink,
@@ -36,8 +38,8 @@ const SCOPE = {
     text: "OG-UK, the whole economy: gaps against the OBR-central path, not forecasts; no unemployment",
   },
   study: {
-    icon: "provisional",
-    text: "uk-ai-study: households in FY 2026–27 if some employees lose their jobs; provisional",
+    icon: "households",
+    text: `uk-ai-study: households in ${AI_STUDY.model_year_label} if some employees lose their jobs`,
   },
 };
 const scopeFor = (tab, sub) => {
@@ -155,6 +157,7 @@ function Shell() {
             ))}
           </ul>
         )}
+        <AsOf />
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (

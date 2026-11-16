@@ -6,78 +6,107 @@
       "publisher": "Office for National Statistics",
       "released": "2026-11-12",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ihyp/pn2",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyp/pn2",
+      "data_label": "CSV",
       "series": "IHYP (ONS dataset PN2)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-12-22"
     },
     "ons_ihyq": {
       "title": "Gross Domestic Product: Quarter on Quarter growth: CVM SA %",
       "publisher": "Office for National Statistics",
       "released": "2026-11-12",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
+      "data_label": "CSV",
       "series": "IHYQ (ONS dataset PN2)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-12-22"
     },
     "ons_ihyr": {
       "title": "Gross Domestic Product: q-on-q4 growth rate CVM SA %",
       "publisher": "Office for National Statistics",
       "released": "2026-11-12",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ihyr/pn2",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyr/pn2",
+      "data_label": "CSV",
       "series": "IHYR (ONS dataset PN2)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-12-22"
     },
     "ons_lzvb": {
       "title": "UK Whole Economy: Output per hour worked SA: Index 2023 = 100",
       "publisher": "Office for National Statistics",
       "released": "2026-08-18",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy",
+      "data_label": "CSV",
       "series": "LZVB (ONS dataset PRDY)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-11-17"
     },
     "ons_lf24": {
       "title": "Employment rate (aged 16 to 64, seasonally adjusted): %",
       "publisher": "Office for National Statistics",
       "released": "2026-10-20",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms",
+      "data_label": "CSV",
       "series": "LF24 (ONS dataset LMS)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-11-17"
     },
     "ons_mgsx": {
       "title": "Unemployment rate (aged 16 and over, seasonally adjusted): %",
       "publisher": "Office for National Statistics",
       "released": "2026-10-20",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
+      "data_label": "CSV",
       "series": "MGSX (ONS dataset LMS)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-11-17"
     },
     "ons_kai9": {
       "title": "AWE: Whole Economy Year on Year Three Month Average Growth (%): Seasonally Adjusted Regular Pay Excluding Arrears",
       "publisher": "Office for National Statistics",
       "released": "2026-10-20",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/lms",
+      "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/lms",
+      "data_label": "CSV",
       "series": "KAI9 (ONS dataset LMS)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-11-17"
     },
     "ons_dtwm": {
       "title": "UK (S.1): Compensation of employees (D.1) Uses: Current price: £m: SA",
       "publisher": "Office for National Statistics",
       "released": "2026-11-12",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/dtwm/pn2",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/dtwm/pn2",
+      "data_label": "CSV",
       "series": "DTWM (ONS dataset PN2)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-12-22"
     },
     "ons_ybha": {
       "title": "Gross Domestic Product at market prices: Current price: Seasonally adjusted £m",
       "publisher": "Office for National Statistics",
       "released": "2026-11-12",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/economy/grossdomesticproductgdp/timeseries/ybha/pn2",
+      "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ybha/pn2",
+      "data_label": "CSV",
       "series": "YBHA (ONS dataset PN2)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-15",
+      "next_release": "2026-12-22"
     },
     "obr_efo_oct2026": {
       "title": "Economic and fiscal outlook – October 2026 (Table A.1: Economy forecast)",
       "publisher": "Office for Budget Responsibility",
       "released": "2026-10-28",
       "url": "https://www.gov.uk/government/publications/october-2026-economic-and-fiscal-outlook/economic-and-fiscal-outlook-october-2026",
+      "page": "https://obr.uk/efo/economic-and-fiscal-outlook-october-2026/",
+      "data_label": "Table A.1 on GOV.UK",
       "series": "Table A.1, row 'GDP' (percentage change on a year earlier)",
       "fetched": "2026-11-15"
     },
@@ -86,14 +115,17 @@
       "publisher": "Office for National Statistics",
       "released": "2026-10-08",
       "url": "https://www.ons.gov.uk/generator?uri=/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026/a52309bf&format=xls",
+      "page": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026",
+      "data_label": "spreadsheet",
       "series": "Figure 1: current use of at least one AI technology, by size band, weighted by count",
       "fetched": "2026-11-15"
     },
     "dsit_ai_capabilities_2026": {
-      "title": "Assessment of AI capabilities and the impact on the UK labour market (Figure 2, citing IMF, Gen-AI: Artificial Intelligence and the Future of Work, January 2024)",
+      "title": "Assessment of AI capabilities and the impact on the UK labour market (Figure 2, citing IMF, Upskilling the UK Workforce: United Kingdom, July 2024)",
       "publisher": "Department for Science, Innovation and Technology and AI Security Institute",
       "released": "2026-01-28",
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
+      "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
       "series": "Figure 2 table, row 'UK'",
       "fetched": "2026-11-15"
     }
@@ -2478,7 +2510,7 @@
       "label": "Workers in occupations with high AI exposure and high complementarity",
       "value": 35.0,
       "unit": "% of workers",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "source": "dsit_ai_capabilities_2026",
       "note": "IMF estimates as reported by DSIT/AISI. DSIT: the IMF measures exposure using an index of the correspondence between AI applications and the human abilities each occupation requires; its complementarity assessment is based on the social and physical context of work, and in high-complementarity roles AI may be more likely to boost efficiency and productivity. DSIT notes such indices are indicative rather than precise. The two high-exposure groups sum to 67%; the DSIT text says 'around 70%'."
     },
@@ -2486,7 +2518,7 @@
       "label": "Workers in occupations with high AI exposure and low complementarity",
       "value": 32.0,
       "unit": "% of workers",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "source": "dsit_ai_capabilities_2026",
       "note": "IMF estimates as reported by DSIT/AISI. DSIT: the IMF measures exposure using an index of the correspondence between AI applications and the human abilities each occupation requires; its complementarity assessment is based on the social and physical context of work, and in high-complementarity roles AI may be more likely to boost efficiency and productivity. DSIT notes such indices are indicative rather than precise. The two high-exposure groups sum to 67%; the DSIT text says 'around 70%'."
     },
@@ -2494,7 +2526,7 @@
       "label": "Workers in occupations with low AI exposure",
       "value": 33.0,
       "unit": "% of workers",
-      "period": "IMF estimate, January 2024",
+      "period": "IMF estimate, July 2024",
       "source": "dsit_ai_capabilities_2026",
       "note": "IMF estimates as reported by DSIT/AISI. DSIT: the IMF measures exposure using an index of the correspondence between AI applications and the human abilities each occupation requires; its complementarity assessment is based on the social and physical context of work, and in high-complementarity roles AI may be more likely to boost efficiency and productivity. DSIT notes such indices are indicative rather than precise. The two high-exposure groups sum to 67%; the DSIT text says 'around 70%'."
     }
@@ -2510,5 +2542,53 @@
     "Compensation of employees as a share of GDP is the only computed series (a ratio of two ONS series); it is not the ONS's self-employment-adjusted labour share.",
     "Exposure by SOC major group is null: the DfE report 'The impact of AI on UK jobs and training' (November 2023) publishes AIOE scores only for 4-digit SOC 2010 unit groups with no major-group table or employment counts, and no later DfE/DSIT source with SOC 2020 major-group scores was found. Aggregating the unit-group scores ourselves (for example an unweighted mean by major group) is possible but would be our own construction on SOC 2010.",
     "BICS covers private-sector businesses in selected industries; results for businesses with 0 to 9 employees carry large survey weights, so the ONS often headlines the 10-or-more-employees figure."
-  ]
+  ],
+  "links": {
+    "ons_lm_guide": {
+      "title": "A guide to labour market statistics",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/methodologies/aguidetolabourmarketstatistics"
+    },
+    "ons_awe_qmi": {
+      "title": "Average weekly earnings QMI",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/methodologies/averageweeklyearningsqmi"
+    },
+    "ons_productivity": {
+      "title": "Labour productivity",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity"
+    },
+    "ons_bics_qmi": {
+      "title": "Business Insights and Conditions Survey (BICS) QMI",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/economy/economicoutputandproductivity/output/methodologies/businessinsightsandconditionssurveybicsqmi"
+    },
+    "ons_revisions": {
+      "title": "Revisions policies for economic statistics",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/methodology/methodologytopicsandstatisticalconcepts/revisions/revisionspoliciesforeconomicstatistics"
+    },
+    "ons_gdp_first": {
+      "title": "GDP first quarterly estimate, UK",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/bulletins/gdpfirstquarterlyestimateuk/latest"
+    },
+    "imf_upskilling": {
+      "title": "Upskilling the UK Workforce: United Kingdom (July 2024)",
+      "publisher": "International Monetary Fund",
+      "url": "https://www.imf.org/en/publications/selected-issues-papers/issues/2024/07/24/upskilling-the-uk-workforce-united-kingdom-552424"
+    },
+    "imf_genai": {
+      "title": "Gen-AI: Artificial Intelligence and the Future of Work (January 2024)",
+      "publisher": "International Monetary Fund",
+      "url": "https://www.imf.org/en/Publications/Staff-Discussion-Notes/Issues/2024/01/14/Gen-AI-Artificial-Intelligence-and-the-Future-of-Work-542379"
+    },
+    "ons_lms_bulletin": {
+      "title": "Labour market overview, UK: October 2026",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/october2026",
+      "released": "2026-10-20"
+    }
+  }
 }

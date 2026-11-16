@@ -31,3 +31,22 @@ export const EXPOSURE_GROUPS = [
 // The DSIT text's rounded total for the two high-exposure groups ("around
 // 70%"); the facts' notes record it beside the exact sum.
 export const DSIT_AROUND = 70;
+
+// Readable pages for the caveats part 1 attributes (ONS methodology and
+// bulletins, the IMF papers DSIT cites), from the data file.
+export const LINKS = U.links;
+
+// The source a printed figure comes from, from its data-path: a fact's or a
+// series' own source (a sum of two facts takes the first one's).
+export function sourceOfPath(path) {
+  const [kind, key] = path.split(/[.\s]/);
+  return (kind === 'series' ? SERIES[key] : FACTS[key])?.source;
+}
+
+// A source's readable page (an ONS time-series page, a bulletin, a report),
+// never a CSV or spreadsheet download; the download is its secondary link.
+export const pageOf = (id) => SOURCES[id]?.page ?? SOURCES[id]?.url;
+
+// The OBR's March 2026 Economic and fiscal outlook (the PDF on GOV.UK),
+// whose central productivity growth part 2's no-shock path uses.
+export const OBR_MARCH_2026 = 'https://assets.publishing.service.gov.uk/media/69a6d7b62e1f4fbda4252208/economic-and-fiscal-outlook-march-2026-web-accessible.pdf';

@@ -16,7 +16,7 @@ import { NavLink } from '@/lib/nav.jsx';
 export const MODELS = {
   official: { label: 'Official statistics', icon: 'source' },
   oguk: { label: 'OG-UK', icon: 'model' },
-  aistudy: { label: 'uk-ai-study · provisional', icon: 'provisional' },
+  aistudy: { label: 'uk-ai-study', icon: 'households' },
 };
 
 // Text with a leading icon: a plain string gets the concept's icon; a node
