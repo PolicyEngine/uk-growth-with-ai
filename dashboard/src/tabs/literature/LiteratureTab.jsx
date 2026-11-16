@@ -14,6 +14,9 @@ import GrowthCheck from './GrowthCheck.jsx';
 import EvidenceMap from './EvidenceMap.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -25,22 +28,37 @@ function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
   return (
-    <InfoCard icon="globe" title="Why UK central GDP is below the IMF’s" className="imf-gap" id="imf-gap">
-      <p>
-        For about the same productivity gain, UK central&rsquo;s {HEADLINE_YEAR} GDP gain (on{' '}
-        <NavLink tab="explore" sub="economy" anchor="income" patch={{ s: 'uk_central' }}>Explore</NavLink>) is roughly{' '}
-        {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s about +
-        {IMF_Y4.toFixed(1)}% at year 4.
-      </p>
-      <p>
-        The capital closure is enough to account for the difference. Here the return on capital rises as capital grows
-        (both on{' '}
-        <NavLink tab="explore" sub="economy" anchor="explore-part-economy" patch={{ s: 'uk_central' }}>Explore, Economy</NavLink>); if capital came in at an unchanged return, GDP would be about +2.9% to +3.2%
-        (arithmetic, not a solve).
-      </p>
+    <InfoCard icon={iconFor('foreign')} title="Why UK central GDP is below the IMF’s" className="imf-gap" id="imf-gap">
+      <Items
+        items={[
+          {
+            icon: 'gdp',
+            text: (
+              <>
+                UK central&rsquo;s {HEADLINE_YEAR} GDP gain (
+                <NavLink tab="explore" sub="economy" anchor="income" patch={{ s: 'uk_central' }}>Explore</NavLink>): roughly{' '}
+                {Math.round((y / IMF_Y4) * 3) === 1 ? 'a third' : `${Math.round((y / IMF_Y4) * 100)}%`} of the IMF&rsquo;s.
+              </>
+            ),
+          },
+          { icon: 'foreign', text: <>IMF: about +{IMF_Y4.toFixed(1)}% at year 4, for about the same productivity gain.</> },
+          { icon: 'closure', text: 'The capital closure is enough to account for the difference.' },
+          {
+            icon: 'interest',
+            text: (
+              <>
+                Here the return on capital rises as capital grows (
+                <NavLink tab="explore" sub="economy" anchor="explore-part-economy" patch={{ s: 'uk_central' }}>Explore, Economy</NavLink>).
+              </>
+            ),
+          },
+          { icon: 'capital', text: 'If capital came in at an unchanged return:' },
+          { icon: 'arithmetic', text: 'GDP would be about +2.9% to +3.2% (arithmetic, not a solve).' },
+        ]}
+      />
       <p className="mx-src">
-        {ext(`${REPO}/blob/audit/sanity-2028-final/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
-        figure read from SIP/2026/072, Figure 9.
+        <IconText icon="source">{ext(`${REPO}/blob/audit/sanity-2028-final/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
+        figure read from SIP/2026/072, Figure 9.</IconText>
       </p>
     </InfoCard>
   );
@@ -147,12 +165,24 @@ function Matrix() {
   return (
     <Card
       id="coverage-matrix"
-      icon="layoutGrid"
+      icon={iconFor('coverage')}
       title="Coverage by channel"
       className="mx-matrix-card"
-      finding="Whether each source models each channel. Hover, tap or tab to a cell for the detail."
+      finding={<IconText icon="coverage">Whether each source models each channel. Hover, tap or tab to a cell for the detail.</IconText>}
       logo={false}
-      about={{ sources: 'OBR: the March 2026 displacement scenario and the July 2026 FRS labour-share box. IMF UK: SIP/2026/072 and the model it uses, Rockall et al. (IMF WP/25/68); each cell’s note names its document. Every cell is read from the primary text; each source is listed under Sources.' }}
+      about={{
+        sources: (
+          <Items
+            items={[
+              { icon: 'forecast', text: 'OBR: March 2026 displacement scenario; July 2026 FRS labour-share box.' },
+              { icon: 'foreign', text: 'IMF UK: SIP/2026/072 and its model, Rockall et al. (IMF WP/25/68).' },
+              { icon: 'source', text: 'Each cell’s note names its document.' },
+              { icon: 'check', text: 'Every cell is read from the primary text.' },
+              { icon: 'link', text: 'Each source is listed under Sources.' },
+            ]}
+          />
+        ),
+      }}
       download={{
         title: 'Coverage by channel',
         table: () => ({
@@ -201,14 +231,29 @@ function Matrix() {
 function Takeaways() {
   return (
     <div className="cards-grid cols-3">
-      <InfoCard icon="usersRound" title="Only OG-UK: households by age">
-        <p>The IMF&rsquo;s households differ by income and wealth but not by age. Only OG-UK and the OBR have a tax system.</p>
+      <InfoCard icon={iconFor('generations')} title="Only OG-UK: households by age">
+        <Items
+          items={[
+            { icon: 'households', text: 'The IMF’s households differ by income and wealth, not by age.' },
+            { icon: 'tax', text: 'Only OG-UK and the OBR have a tax system.' },
+          ]}
+        />
       </InfoCard>
-      <InfoCard icon="briefcase" title="Only Korinek et al.: jobs and tasks">
-        <p>They model new tasks and unemployment. OG-UK has neither.</p>
+      <InfoCard icon={iconFor('labour')} title="Only Korinek et al.: jobs and tasks">
+        <Items
+          items={[
+            { icon: 'jobLoss', text: 'They model new tasks and unemployment.' },
+            { icon: 'excluded', text: 'OG-UK has neither.' },
+          ]}
+        />
       </InfoCard>
-      <InfoCard icon="cart" title="What nobody models">
-        <p>Demand shifting to goods that stay scarce. Moll and Imas argue it but do not model it.</p>
+      <InfoCard icon={iconFor('scarceGoods')} title="What nobody models">
+        <Items
+          items={[
+            { icon: 'scarceGoods', text: 'Demand shifting to goods that stay scarce.' },
+            { icon: 'source', text: 'Moll and Imas argue it but do not model it.' },
+          ]}
+        />
       </InfoCard>
     </div>
   );
@@ -230,9 +275,17 @@ function SourceList({ group, title, icon }) {
               <Icon name="externalLink" size={14} />
             </span>
             <span className="mx-src-title">{s.title}</span>
-            <span className="mx-src-use">{s.use}</span>
-            <span className="mx-src-loc">{s.loc}</span>
-            {s.read ? <span className="mx-src-read">{s.read}</span> : null}
+            <span className="mx-src-use">
+              <IconText icon="why">{s.use}</IconText>
+            </span>
+            <span className="mx-src-loc">
+              <IconText icon="source">{s.loc}</IconText>
+            </span>
+            {s.read ? (
+              <span className="mx-src-read">
+                <IconText icon="caveat">{s.read}</IconText>
+              </span>
+            ) : null}
           </a>
         ))}
       </div>
@@ -242,10 +295,10 @@ function SourceList({ group, title, icon }) {
 
 // The page's four sections, for "On this page" (ids match the headings).
 const SECTIONS = [
-  { id: 'coverage', title: 'What each source can represent', icon: 'layoutGrid' },
-  { id: 'numbers', title: 'Where our numbers sit', icon: 'ruler' },
-  { id: 'evidence-map', title: 'UK evidence map', icon: 'table' },
-  { id: 'sources', title: 'Sources', icon: 'fileText' },
+  { id: 'coverage', title: 'What each source can represent', icon: iconFor('coverage') },
+  { id: 'numbers', title: 'Where our numbers sit', icon: iconFor('measure') },
+  { id: 'evidence-map', title: 'UK evidence map', icon: iconFor('table') },
+  { id: 'sources', title: 'Sources', icon: iconFor('source') },
 ];
 
 export default function StudiesTab() {
@@ -256,31 +309,31 @@ export default function StudiesTab() {
       <OnThisPage tab="method" sub="studies" sections={SECTIONS} label="Evidence contents" />
       <div className="page-body">
         <PageIntro
-          icon="library"
+          icon={iconFor('source')}
           question="How do our results compare with other work on AI and the UK economy?"
-          answer="Of the sources compared here, only OG-UK models households by age, and only OG-UK and the OBR have a tax system; others model jobs, tasks or the whole world economy. Below: what each can represent, where our headline-year results sit against published figures and why they differ, a table of published estimates, and the sources."
+          answer={<IconText icon="compare">The sources model different channels, from households by age to jobs, tasks or the world economy. Each published figure keeps its own baseline.</IconText>}
         />
-        <SectionHeading id="coverage" icon="layoutGrid" title="What each source can represent">
-          Nine channels against five sources. OG-UK is the first column.
+        <SectionHeading id="coverage" icon={iconFor('coverage')} title="What each source can represent">
+            <IconText icon="coverage">Nine channels against five sources. OG-UK is the first column.</IconText>
         </SectionHeading>
         <Matrix />
         <Takeaways />
-        <SectionHeading id="numbers" icon="ruler" title="Where our numbers sit">
-          Our headline-year results against published ranges. Horizons differ, so each row states its own.
+        <SectionHeading id="numbers" icon={iconFor('measure')} title="Where our numbers sit">
+            <IconText icon="range">Our headline-year results against published ranges. Horizons differ, so each row states its own.</IconText>
         </SectionHeading>
         <RangeBars metric="gdp" />
         <ImfGap />
         <RangeBars metric="wage" />
         <GrowthCheck />
-        <SectionHeading id="evidence-map" icon="table" title="UK evidence map">
-          Published estimates from the OBR, the Bank of England, government departments, think tanks, international bodies, private forecasters and academic studies, each with its baseline, horizon and the date it was checked. The published figures are printed here.
+        <SectionHeading id="evidence-map" icon={iconFor('table')} title="UK evidence map">
+            <IconText icon="source">Official, think-tank, international, private and academic estimates, each with baseline, horizon and check date. Published figures live here.</IconText>
         </SectionHeading>
         <EvidenceMap />
-        <SectionHeading id="sources" icon="fileText" title="Sources">
-          The sources behind the coverage matrix and the growth check; their figures are in the UK evidence map. Earlier checks are in {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.
+        <SectionHeading id="sources" icon={iconFor('source')} title="Sources">
+            <IconText icon="link">Behind the coverage matrix and the growth check; figures in the evidence map. Earlier checks: {ext(`${REPO}/pull/41`, 'the literature comparison (PR #41)')}.</IconText>
         </SectionHeading>
-        <SourceList group="uk" title="UK official and UK-specific" icon="landmark" />
-        <SourceList group="model" title="Model-based studies" icon="sigma" />
+        <SourceList group="uk" title="UK official and UK-specific" icon={iconFor('finances')} />
+        <SourceList group="model" title="Model-based studies" icon={iconFor('model')} />
       </div>
     </div>
   );

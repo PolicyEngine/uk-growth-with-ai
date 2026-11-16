@@ -16,14 +16,15 @@ sp() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" 
 export const STEPS = [
   {
     id: 'p-lock',
-    icon: 'lock',
+    icon: 'timing', // concept
     short: 'Lock',
     title: 'Take the lock and run the plan',
     file: 'analysis/surprise/run_locked.sh',
     line: 'One heavy job at a time. It stops at a solve boundary before a deadline.',
     more: [
-      'It takes the machine’s heavy-job lock as a labelled file and never touches anyone else’s.',
-      'DEADLINE_AT (default 19:25) and SOLVE_BUDGET (default 600 s) decide whether a solve may start.',
+      'It takes the machine’s heavy-job lock as a labelled file.',
+      'It never touches anyone else’s lock.',
+      'DEADLINE_AT (default 19:25) and SOLVE_BUDGET (default 600 s) gate each solve.',
     ],
     code: `# The default plan, in Vahid's order of 12 Nov 2026
 analysis/surprise/run_locked.sh
@@ -33,13 +34,14 @@ DEADLINE_AT=23:00 analysis/surprise/run_locked.sh zk0.1:arms:uk_central`,
   },
   {
     id: 'p-driver',
-    icon: 'list',
+    icon: 'stages', // concept
     short: 'Driver',
     title: 'The driver: one step at a time',
     file: 'analysis/surprise/driver.sh',
     line: 'Runs each item in order, skips what is done, commits and pushes each output.',
     more: [
-      'It refuses to run on any branch but rerun/surprise-2028. For a fork, edit BRANCH and progress().',
+      'It refuses to run on any branch but rerun/surprise-2028.',
+      'For a fork, edit BRANCH and progress().',
       'Items: check, nics, <closure>:continuation, <closure>:gate, <closure>:<arms|arms_dn|arms_fs>:<scenario>.',
     ],
     code: `# Normally called by run_locked.sh; the item syntax:
@@ -49,27 +51,30 @@ analysis/surprise/driver.sh check nics \\
   },
   {
     id: 'p-specs',
-    icon: 'flask',
+    icon: 'check', // concept
     short: 'Check specs',
     title: 'Check the specification',
     file: 'uk_growth_with_ai/surprise.py',
     line: 'One specification build, no solve. It checks the 2028 restart before anything runs.',
     more: [
-      'It tests the inherited wealth and bequests, the population law of motion and the list of shifted inputs.',
+      'It tests inherited wealth and bequests, and the population law of motion.',
+      'It also checks the list of shifted inputs.',
       'The build needs about 15 GB of memory and covers both closures.',
     ],
     code: `sp check-specs --closure zk0.1 --work "$WORK"`,
   },
   {
     id: 'p-gate',
-    icon: 'repeat',
+    icon: 'start', // concept
     short: 'Continuation gate',
     title: 'The continuation gate',
     file: 'analysis/surprise/output/zk0.1/GATE_continuation.json',
     line: 'A no-shock restart must reproduce the baseline. Every gap is measured against it.',
     more: [
-      'GDP, capital and debt/GDP must match within 10⁻⁴ over 2028–2036; the rest within 10⁻³.',
-      'If it fails, the driver stops and nothing else runs. The tolerance is never loosened silently.',
+      'GDP, capital and debt/GDP must match within 10⁻⁴, 2028–2036.',
+      'The rest must match within 10⁻³.',
+      'If it fails, the driver stops and nothing else runs.',
+      'The tolerance is never loosened silently.',
     ],
     code: `sp step --closure zk0.1 --stage continuation --work "$WORK"
 sp gate --closure zk0.1                     # print the gate report
@@ -77,21 +82,21 @@ sp gate --closure zk0.1 --approve --reference continuation --note "..."`,
   },
   {
     id: 'p-grid',
-    icon: 'layoutGrid',
+    icon: 'scenario', // concept
     short: 'Scenario grid',
     title: 'The scenario grid',
     file: 'analysis/surprise/uk_targets.json',
     line: 'UK low, central and high, plus Korinek et al. (upper). Each has three arms.',
     more: [
       '--scenario defaults to korinek, so always pass it.',
-      'next prints the next solve for a scenario, or nothing when the set is done.',
+      'next prints a scenario’s next solve, or nothing once done.',
     ],
     code: `sp next --closure zk0.1 --stage arms --scenario uk_central
 sp step --closure zk0.1 --stage arms --scenario uk_central --work "$WORK"`,
   },
   {
     id: 'p-r4',
-    icon: 'target',
+    icon: 'breakEven', // concept
     short: 'R4 on 2031 GDP',
     title: 'R4: hold 2031 GDP for the stress test',
     file: 'uk_growth_with_ai/surprise.py',
@@ -106,7 +111,7 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
   },
   {
     id: 'p-sanity',
-    icon: 'alert',
+    icon: 'limit', // concept
     short: 'Sanity gate',
     title: 'The sanity gate after every solve',
     file: 'analysis/surprise/sanity.py',
@@ -119,7 +124,7 @@ sp status --closure zk0.1                   # minutes and convergence per solve`
   },
   {
     id: 'p-outputs',
-    icon: 'database',
+    icon: 'data', // concept
     short: 'Outputs',
     title: 'Per-solve records and results files',
     file: 'analysis/surprise/output/zk0.1',
@@ -131,7 +136,7 @@ sp assemble --closure zk0.1 --scenario uk_central
   },
   {
     id: 'p-dash',
-    icon: 'package',
+    icon: 'table', // concept
     short: 'Dashboard data',
     title: 'Build the dashboard data',
     file: 'analysis/surprise/build_dashboard_data.py',

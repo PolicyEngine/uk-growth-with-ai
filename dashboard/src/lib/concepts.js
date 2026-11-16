@@ -83,6 +83,25 @@ export const CONCEPT_ICON = {
   // part 3:
   // explore:
   // method:
+  equation: 'sigma', // the model's equations
+  closed: 'lock', // closed capital: no foreign capital
+  start: 'flag', // the starting point of a run
+  revision: 'history', // a revision, the changelog
+  pipeline: 'gitBranch', // the run pipeline
+  version: 'package', // a software version
+  release: 'calendar', // a release or update date
+  install: 'download', // installing the model
+  coverage: 'layoutGrid', // the coverage matrix
+  table: 'table', // a table of estimates
+  ledger: 'list', // the source ledger
+  stages: 'listTree', // stages of a pipeline
+  generations: 'usersRound', // overlapping generations
+  interest: 'percent', // interest rates, repricing
+  scarceGoods: 'cart', // demand for goods that stay scarce
+  jump: 'construction', // a one-year jump, no adjustment costs
+  prerequisite: 'key', // what you need first
+  check: 'microscope', // a check of the numbers
+  arithmetic: 'calculator', // arithmetic, not a solve
 };
 
 // Strict: an unknown concept draws no icon (concepts.test.js checks every
