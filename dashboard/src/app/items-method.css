@@ -268,3 +268,40 @@
   gap: 8px;
   font-size: var(--fs-small);
 }
+
+/* scenario cards: paired input bars, each with its source as a chip */
+.mx-scen-bars dd {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  column-gap: 6px;
+  row-gap: 4px;
+}
+.mx-scen-bars .mx-bar {
+  grid-column: 1 / -1;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--pe-gray-100);
+  overflow: hidden;
+}
+.mx-scen-bars .mx-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--pe-gray-600);
+  transform-origin: left center;
+  transition: transform 0.4s ease;
+}
+.mx-scen-bars .mx-chip-src {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 1px 8px;
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  font-weight: 400;
+  color: var(--pe-gray-600);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mx-scen-bars .mx-bar > span { transition: none; }
+}

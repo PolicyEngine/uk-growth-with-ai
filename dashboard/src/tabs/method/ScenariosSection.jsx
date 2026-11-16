@@ -3,7 +3,6 @@
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import Disclosure from '@/components/ab/Disclosure.jsx';
 import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
@@ -186,9 +185,17 @@ function SubHead({ id, oldId, icon, title, children }) {
   );
 }
 
-// The short name of a source: the text before its first colon. The full
-// derivation stays behind a disclosure, as a citation.
-const srcName = (v) => v.split(/:\s/)[0].replace(/\s*\([^)]*\)/g, '');
+// The short name of a source, for its chip on the card: the text before its
+// first colon, without brackets, to the first comma. The full derivation is
+// in the card's "Sources and arithmetic" fold, as a citation.
+const srcName = (v) => {
+  const n = v.split(/:\s/)[0].replace(/\s*\([^)]*\)/g, '').split(',')[0];
+  return n.includes(' ') ? n : `${n} et al.`;
+};
+// Paired bars on each scenario card: both inputs on one scale per input,
+// across the four scenarios (lengths only; the printed values are the data)
+const MAX_LS = Math.max(...SCENARIOS.map((x) => x.labour_share_fall_pp));
+const MAX_TFP = Math.max(...SCENARIOS.map((x) => x.tfp_gain_pct));
 const SRC_KEY = { tfp: ['productivity', 'Productivity'], labour_share: ['labour', 'Labour share'], both: ['compare', 'Both inputs'] };
 
 export default function ScenariosSection({ uses = null }) {
@@ -228,27 +235,15 @@ export default function ScenariosSection({ uses = null }) {
             title={s.id === 'korinek' ? KORINEK_FULL : s.label}
             className={`mx-card mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}
             more={
-              <ul className="mx-src-lines" data-cite="">
+              <ul className="mx-src-full" data-cite="">
                 {Object.entries(s.sources).map(([k, v]) => (
                   <li key={k}>
                     <Icon name={iconFor(SRC_KEY[k]?.[0] ?? 'source')} size={14} className="mx-dt-icon" />
                     <span>
-                      <b>{SRC_KEY[k]?.[1] ?? k}:</b> {srcName(v)}
+                      <b>{SRC_KEY[k]?.[1] ?? k}:</b> {v}
                     </span>
                   </li>
                 ))}
-                <li className="mx-src-derive">
-                  <Disclosure inCard title={<IconText icon="arithmetic">The derivation</IconText>} preview="As read in each source">
-                    <ul className="mx-src-full" data-cite="">
-                      {Object.entries(s.sources).map(([k, v]) => (
-                        <li key={k}>
-                          <Icon name={iconFor('source')} size={14} className="mx-dt-icon" />
-                          <span>{v}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Disclosure>
-                </li>
               </ul>
             }
             moreTitle="Sources and arithmetic"
@@ -259,18 +254,28 @@ export default function ScenariosSection({ uses = null }) {
                 {s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US inputs' : 'UK range'}
               </IconText>
             </p>
-            <dl className="mx-pair">
+            <dl className="mx-pair mx-scen-bars">
               <div>
                 <dt>Labour share</dt>
                 <dd>
                   <Icon name={iconFor('labour')} size={16} className="mx-dt-icon" />
-                  −{s.labour_share_fall_pp.toFixed(1)}pp</dd>
+                  <span data-path={`surprise2028.scenarios.${s.id}.labour_share_fall_pp`}>−{s.labour_share_fall_pp.toFixed(1)}pp</span>
+                  <span className="mx-bar" aria-hidden="true">
+                    <span style={{ transform: `scaleX(${s.labour_share_fall_pp / MAX_LS})` }} />
+                  </span>
+                  <span className="mx-chip-src">{srcName(s.sources.labour_share ?? s.sources.both)}</span>
+                </dd>
               </div>
               <div>
                 <dt>Output at fixed inputs</dt>
                 <dd>
                   <Icon name={iconFor('productivity')} size={16} className="mx-dt-icon" />
-                  +{s.tfp_gain_pct.toFixed(1)}%</dd>
+                  <span data-path={`surprise2028.scenarios.${s.id}.tfp_gain_pct`}>+{s.tfp_gain_pct.toFixed(1)}%</span>
+                  <span className="mx-bar" aria-hidden="true">
+                    <span style={{ transform: `scaleX(${s.tfp_gain_pct / MAX_TFP})` }} />
+                  </span>
+                  <span className="mx-chip-src">{srcName(s.sources.tfp ?? s.sources.both)}</span>
+                </dd>
               </div>
             </dl>
             <p className="mx-sub">

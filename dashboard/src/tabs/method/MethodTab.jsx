@@ -245,7 +245,7 @@ function Limitations() {
       title: 'No money, trade or exchange rate',
       points: [
         { icon: 'interest', text: 'A real model: no inflation or monetary policy.' },
-        { icon: 'foreign', text: 'Links abroad are capital and gilts only: no goods trade, no exchange rate.' },
+        { icon: 'foreign', text: 'Links abroad: capital and gilts only; no trade or exchange rate.' },
       ],
     },
     {
@@ -348,7 +348,7 @@ export default function MethodTab() {
                     icon: 'link',
                     text: (
                       <>
-                        Employer NICs: a flat payroll tax; its rate against the average is on{' '}
+                        Employer NICs: flat payroll tax; rate against average on{' '}
                         <NavLink tab="explore" sub="finances" anchor="tax-gap">
                           Explore, Public finances
                         </NavLink>

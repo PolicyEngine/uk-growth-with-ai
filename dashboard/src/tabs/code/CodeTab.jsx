@@ -669,7 +669,7 @@ export default function CodeTab() {
         </section>
         <section>
           <SectionHeading id="vintages" icon={iconFor('data')} title="Data vintages and versions">
-            <IconText icon="release">Which data, model and release each page is built from.</IconText>
+            <IconText icon="version">Which data, model and release each page is built from.</IconText>
           </SectionHeading>
           <Vintages />
         </section>
