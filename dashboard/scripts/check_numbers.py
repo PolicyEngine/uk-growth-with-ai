@@ -94,6 +94,10 @@ def expected(sid, mode):
     ls = g(sid, 'tfp', C, 'labour_share_pp')
     if ls is not None:
         add(ls * 0.23, 2, 'pp')
+    # and OG-UK's labour vs capital effective tax-rate gap on the path in the
+    # headline year, central closure (one decimal, unsigned): the causes chart
+    etr = D['closures'][C]['reference_effective_tax_rates']
+    exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
     return exp
 
 for sid in dump:

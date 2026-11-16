@@ -9,7 +9,8 @@ import { ruleLabel } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import {
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
+  S,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, closureWords, contextLine, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
@@ -21,13 +22,24 @@ import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 
 const LONG_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= LATE_YEAR);
 const SHORT_YEARS = YEARS.filter((y) => y >= FIRST_YEAR && y <= HEADLINE_YEAR);
-// The cells (scenario|closure) whose main arm ends below the path by the
-// debt rule's first year once debt is repriced at the speed the OBR assumes
-// for UK debt (PR #43, docs/debt_repricing.md at f097ae6, common fiscal
-// rule). That note computed UK low and UK high at the central closure only,
-// so no other cell is named. The model's own figure is above the path in
-// each.
-const BELOW_AT_OBR_SPEED = new Set(['uk_high|zk0.1', 'korinek|zk0.1', 'korinek|zk0']);
+// Debt/GDP in the debt rule's first year with debt repriced at the speed the
+// OBR assumes for UK debt (common fiscal rule): debt_gdp_pp_obr_repricing_late,
+// built by analysis/surprise/build_dashboard_data.py with the method and
+// constants of PR #43 (docs/debt_repricing.md) and paper/make_values.py.
+// Over every solved scenario, arm and closure (24 cells): the cells
+// (scenario|closure) whose main arm ends below the path at that speed while
+// the model's own figure is above it, and, where both are above, the
+// repriced rise as a share of the model's, as a [min, max] percentage.
+const REPRICED = CLOSURES.flatMap((cl) =>
+  SCENARIOS.flatMap((s) =>
+    ARMS.map((a) => ({ sid: s.id, arm: a.id, cl, r: resultAt(s.id, a.id, cl, 'common') }))
+      .filter((c) => c.r.status === 'done')
+      .map((c) => ({ ...c, model: c.r.gaps.debt_gdp_pp[YEARS.indexOf(LATE_YEAR)], obr: c.r.debt_gdp_pp_obr_repricing_late })),
+  ),
+);
+const BELOW_AT_OBR_SPEED = new Set(REPRICED.filter((c) => c.arm === 'tfp' && c.model > 0 && c.obr < 0).map((c) => `${c.sid}|${c.cl}`));
+const REPRICE_RATIOS = REPRICED.filter((c) => c.model > 0 && c.obr > 0).map((c) => (c.obr / c.model) * 100);
+export const REPRICE_RANGE = [Math.min(...REPRICE_RATIOS), Math.max(...REPRICE_RATIOS)];
 
 // The main arm's debt/GDP in words, by sign, for the closure in view. No
 // claim about every arm: the lines and their end values show each one.
@@ -104,9 +116,14 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
+// OG-UK's labour vs capital effective tax-rate gap on the OBR-central path in
+// the headline year, central closure (the sanity gate's effective rates, as
+// the paper's EffWedgePp): labour incl. employer NICs less gross capital.
+const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
+const TAX_GAP = ETR.labour - ETR.capital_gross;
 // The two rows of the tax card, as drawn and as downloaded
 const CAUSES = [
-  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: 14, oursText: 'about 14pp', theirs: 'OBR', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the revenue fall (main effect)' },
+  { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the revenue fall (main effect)' },
   { title: 'Employer National Insurance', max: 16, unit: '% of labour cost', ours: 15, oursText: 'flat rate', theirs: 'PolicyEngine-UK', value: 11, theirsText: 'average', effect: 'Partly offsets the first row (smaller)' },
 ];
 function causesSvg() {
@@ -176,7 +193,7 @@ function TaxGapCard({ sid, closure, rule }) {
             <li>OBR Fiscal risks and sustainability, July 2026, Box 4.1: labour 46%, capital 27%.</li>
             <li>OBR Economic and fiscal outlook, November 2025, ¶2.64: labour 40%, capital 17%.</li>
             <li>
-              OG-UK&rsquo;s gap of about 14pp and the direction of each bias: <code>docs/red_flags_1_3.md</code>.
+              OG-UK&rsquo;s gap of {TAX_GAP.toFixed(1)}pp: effective rates on the OBR-central path in {HEADLINE_YEAR}, central closure ({ETR.labour.toFixed(1)}% on labour income with employer NICs, {ETR.capital_gross.toFixed(1)}% on gross capital income), from the solves&rsquo; sanity check. The direction of each bias: <code>docs/red_flags_1_3.md</code>.
             </li>
             <li>
               Employer NICs, OG-UK&rsquo;s flat rate against PolicyEngine-UK&rsquo;s average: the rates are under{' '}
@@ -383,7 +400,7 @@ export default function FinancesSection({ sid }) {
               <>
                 <p>
                   The model reprices all government debt at the new interest rate at once; at the speed the OBR assumes for UK debt, the rise in
-                  debt/GDP by {LATE_YEAR} is a tenth to two-thirds as large where debt/GDP still ends above the path.
+                  debt/GDP by {LATE_YEAR} is {REPRICE_RANGE[0].toFixed(0)}–{REPRICE_RANGE[1].toFixed(0)}% as large where debt/GDP still ends above the path, over every scenario, arm and closure.
                 </p>
                 <p>
                   {LATE_YEAR} is the debt rule&rsquo;s first year, so only stocks are quoted for it. The stress test leaves out the cost of

@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-16T00:19Z",
+ "generated_utc": "2026-11-16T00:22Z",
  "source_commit": "ba2e7b0",
  "years": [
   2026,
@@ -129,6 +129,10 @@
      64.99958214282198,
      64.9995680601911
     ]
+   },
+   "reference_effective_tax_rates": {
+    "labour": 34.43035443841032,
+    "capital_gross": 19.62768266048495
    }
   },
   "zk0": {
@@ -175,6 +179,10 @@
      64.999666515946,
      64.99961560678688
     ]
+   },
+   "reference_effective_tax_rates": {
+    "labour": 34.41407527800951,
+    "capital_gross": 20.8645997506179
    }
   }
  },
@@ -386,7 +394,8 @@
        64.29953572114434
       ]
      },
-     "foreign_share_dK_2031": 76.58330057565038
+     "foreign_share_dK_2031": 76.58330057565038,
+     "debt_gdp_pp_obr_repricing_late": 0.21488963526561378
     },
     "zk0": {
      "status": "done",
@@ -593,7 +602,8 @@
        64.2995832457366
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 0.03663003164847689
     }
    },
    "tz": {
@@ -802,7 +812,8 @@
        64.2995401726554
       ]
      },
-     "foreign_share_dK_2031": 76.14984873418419
+     "foreign_share_dK_2031": 76.14984873418419,
+     "debt_gdp_pp_obr_repricing_late": 0.6033697869202714
     },
     "zk0": {
      "status": "done",
@@ -1009,7 +1020,8 @@
        64.29958532006978
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 0.4425933413612193
     }
    },
    "ss": {
@@ -1218,7 +1230,8 @@
        64.29954422498801
       ]
      },
-     "foreign_share_dK_2031": 75.70607317266852
+     "foreign_share_dK_2031": 75.70607317266852,
+     "debt_gdp_pp_obr_repricing_late": 0.9450249811443934
     },
     "zk0": {
      "status": "done",
@@ -1425,7 +1438,8 @@
        64.29958514748176
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 0.40919384775112144
     }
    }
   },
@@ -1636,7 +1650,8 @@
        63.39951389240882
       ]
      },
-     "foreign_share_dK_2031": 77.30021184465792
+     "foreign_share_dK_2031": 77.30021184465792,
+     "debt_gdp_pp_obr_repricing_late": 0.5801169258178973
     },
     "zk0": {
      "status": "done",
@@ -1843,7 +1858,8 @@
        63.39954401791641
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 0.16860640476672462
     }
    },
    "tz": {
@@ -2052,7 +2068,8 @@
        63.39951965654876
       ]
      },
-     "foreign_share_dK_2031": 76.84885349910601
+     "foreign_share_dK_2031": 76.84885349910601,
+     "debt_gdp_pp_obr_repricing_late": 1.3596550291559262
     },
     "zk0": {
      "status": "done",
@@ -2259,7 +2276,8 @@
        63.39954771995744
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 0.9860138274869201
     }
    },
    "ss": {
@@ -2468,7 +2486,8 @@
        63.39952671186162
       ]
      },
-     "foreign_share_dK_2031": 76.2886990201251
+     "foreign_share_dK_2031": 76.2886990201251,
+     "debt_gdp_pp_obr_repricing_late": 2.193880371559165
     },
     "zk0": {
      "status": "done",
@@ -2675,7 +2694,8 @@
        63.39954739773393
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 0.9168458374525068
     }
    }
   },
@@ -2886,7 +2906,8 @@
        62.09953015413666
       ]
      },
-     "foreign_share_dK_2031": 78.98327940910602
+     "foreign_share_dK_2031": 78.98327940910602,
+     "debt_gdp_pp_obr_repricing_late": -0.6923483683834997
     },
     "zk0": {
      "status": "done",
@@ -3093,7 +3114,8 @@
        62.09948802380504
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": -1.5565043654577893
     }
    },
    "tz": {
@@ -3302,7 +3324,8 @@
        62.099528418032314
       ]
      },
-     "foreign_share_dK_2031": 77.86958488005418
+     "foreign_share_dK_2031": 77.86958488005418,
+     "debt_gdp_pp_obr_repricing_late": 2.4130295189533246
     },
     "zk0": {
      "status": "done",
@@ -3509,7 +3532,8 @@
        62.099497843422554
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 1.7192972446693267
     }
    },
    "ss": {
@@ -3718,7 +3742,8 @@
        62.099532176291014
       ]
      },
-     "foreign_share_dK_2031": 77.11861053224318
+     "foreign_share_dK_2031": 77.11861053224318,
+     "debt_gdp_pp_obr_repricing_late": 4.073672034265319
     },
     "zk0": {
      "status": "done",
@@ -3925,7 +3950,8 @@
        62.09949747866182
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 1.618881648339554
     }
    }
   },
@@ -4136,7 +4162,8 @@
        61.09946627495769
       ]
      },
-     "foreign_share_dK_2031": 80.36644722344455
+     "foreign_share_dK_2031": 80.36644722344455,
+     "debt_gdp_pp_obr_repricing_late": -2.771146137894598
     },
     "zk0": {
      "status": "done",
@@ -4343,7 +4370,8 @@
        61.099456471349676
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": -4.083653974605883
     }
    },
    "tz": {
@@ -4552,7 +4580,8 @@
        61.09954953517608
       ]
      },
-     "foreign_share_dK_2031": 78.66339008874166
+     "foreign_share_dK_2031": 78.66339008874166,
+     "debt_gdp_pp_obr_repricing_late": 3.1916310585408114
     },
     "zk0": {
      "status": "done",
@@ -4759,7 +4788,8 @@
        61.09946482829258
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 2.241128260349279
     }
    },
    "ss": {
@@ -4968,7 +4998,8 @@
        61.09955427849213
       ]
      },
-     "foreign_share_dK_2031": 77.76002702878499
+     "foreign_share_dK_2031": 77.76002702878499,
+     "debt_gdp_pp_obr_repricing_late": 5.555312182298944
     },
     "zk0": {
      "status": "done",
@@ -5175,7 +5206,8 @@
        61.09946453606885
       ]
      },
-     "foreign_share_dK_2031": 0.0
+     "foreign_share_dK_2031": 0.0,
+     "debt_gdp_pp_obr_repricing_late": 2.128309429136288
     }
    }
   }
@@ -10414,7 +10446,8 @@
         64.30005406193412
        ]
       },
-      "foreign_share_dK_2031": 100.2309301859534
+      "foreign_share_dK_2031": 100.2309301859534,
+      "debt_gdp_pp_obr_repricing_late": 0.36918393461832233
      },
      "tz": {
       "status": "done",
@@ -10621,7 +10654,8 @@
         64.30005513728223
        ]
       },
-      "foreign_share_dK_2031": 100.20190706742338
+      "foreign_share_dK_2031": 100.20190706742338,
+      "debt_gdp_pp_obr_repricing_late": 0.7233623091743913
      },
      "ss": {
       "status": "done",
@@ -10828,7 +10862,8 @@
         64.30005381046875
        ]
       },
-      "foreign_share_dK_2031": 100.06634099815604
+      "foreign_share_dK_2031": 100.06634099815604,
+      "debt_gdp_pp_obr_repricing_late": 1.7444048876349538
      }
     },
     "uk_central": {
@@ -11037,7 +11072,8 @@
         63.40004909948686
        ]
       },
-      "foreign_share_dK_2031": 100.36891115556838
+      "foreign_share_dK_2031": 100.36891115556838,
+      "debt_gdp_pp_obr_repricing_late": 0.8966893735031234
      },
      "tz": {
       "status": "done",
@@ -11244,7 +11280,8 @@
         63.40005582184188
        ]
       },
-      "foreign_share_dK_2031": 100.32262573955045
+      "foreign_share_dK_2031": 100.32262573955045,
+      "debt_gdp_pp_obr_repricing_late": 1.6049278582361715
      },
      "ss": {
       "status": "done",
@@ -11451,7 +11488,8 @@
         63.40006156761982
        ]
       },
-      "foreign_share_dK_2031": 100.06190161925336
+      "foreign_share_dK_2031": 100.06190161925336,
+      "debt_gdp_pp_obr_repricing_late": 4.013510955409172
      }
     },
     "uk_high": {
@@ -11660,7 +11698,8 @@
         62.099842375463744
        ]
       },
-      "foreign_share_dK_2031": 100.63700803865918
+      "foreign_share_dK_2031": 100.63700803865918,
+      "debt_gdp_pp_obr_repricing_late": -0.015009528707432551
      },
      "tz": {
       "status": "done",
@@ -11867,7 +11906,8 @@
         62.0998638861525
        ]
       },
-      "foreign_share_dK_2031": 100.49429573660065
+      "foreign_share_dK_2031": 100.49429573660065,
+      "debt_gdp_pp_obr_repricing_late": 2.7905756144310456
      },
      "ss": {
       "status": "done",
@@ -12074,7 +12114,8 @@
         62.09989335982365
        ]
       },
-      "foreign_share_dK_2031": 100.04918239295503
+      "foreign_share_dK_2031": 100.04918239295503,
+      "debt_gdp_pp_obr_repricing_late": 7.320966768211113
      }
     },
     "korinek": {
@@ -12283,7 +12324,8 @@
         61.09989769778289
        ]
       },
-      "foreign_share_dK_2031": 100.85366943345635
+      "foreign_share_dK_2031": 100.85366943345635,
+      "debt_gdp_pp_obr_repricing_late": -1.749775771596429
      },
      "tz": {
       "status": "done",
@@ -12490,7 +12532,8 @@
         61.09995017942435
        ]
       },
-      "foreign_share_dK_2031": 100.62061947458871
+      "foreign_share_dK_2031": 100.62061947458871,
+      "debt_gdp_pp_obr_repricing_late": 3.6105729706889966
      },
      "ss": {
       "status": "done",
@@ -12697,7 +12740,8 @@
         61.09994195108208
        ]
       },
-      "foreign_share_dK_2031": 100.0277625284402
+      "foreign_share_dK_2031": 100.0277625284402,
+      "debt_gdp_pp_obr_repricing_late": 9.847957150838537
      }
     }
    }
