@@ -258,7 +258,7 @@ No UK source publishes an investment response to AI. The BoE reports that AI-rel
 | Korinek and Lockwood (B16) | rising capital share | long run | qualitative: labour-tax revenue falls as a share of output | — |
 
 - The FRS variant is the closest to our convention, because our spending is a fixed share of GDP. It holds interest rates at baseline. Ours do not stay at baseline, and that is the source of red flag 2.
-- The tax range used in Section 4 is the OBR's (−0.19 to −0.23), because it is the UK's. OG-UK's own labour–capital gap of 14.8pp at ζK = 0.1 (13.6pp at ζK = 0; `docs/red_flags_1_3.md`) lies between the IMF's advanced-economy average (10pp) and the OBR's UK figures (19–23pp).
+- The tax range used in Section 4 is the OBR's (−0.19 to −0.23), because it is the UK's. OG-UK's own labour–capital gap of 14.8pp at ζK = 0.1 (13.5pp at ζK = 0) in 2031 (13.6pp at ζK = 0 in 2030 in `docs/red_flags_1_3.md`) lies between the IMF's advanced-economy average (10pp) and the OBR's UK figures (19–23pp).
 
 ## 4. Our results against the ranges
 
@@ -578,7 +578,7 @@ The shock itself is judged once per scenario, not once per cell (Section 4.3). S
 - Per point of share fall: −0.15 to −0.16 in the stress test at ζK = 0.1, −0.13 to −0.14 with technology unchanged and −0.09 to −0.12 in the main arm, against the OBR's −0.19 to −0.23. At ζK = 0 it is −0.03 in the arms without TFP, −0.002 in UK low's main arm, −0.004 in UK central's, and **+0.03 in UK high's and +0.05 in the Korinek main arm**.
 - The OBR's figure holds GDP and interest rates fixed, so the stress test is the like-for-like arm. It is 71–77% of the OBR's midpoint at ζK = 0.1 and 12–13% at ζK = 0 (audit Section 7).
 - Causes, from the audit (A6) and `docs/red_flags_1_3.md`:
-  - OG-UK's gap between labour and capital tax rates is 14.8pp at ζK = 0.1 (13.6pp at ζK = 0), against the OBR's 19–23pp.
+  - OG-UK's gap between labour and capital tax rates is 14.8pp at ζK = 0.1 (13.5pp at ζK = 0) in 2031, against the OBR's 19–23pp.
   - At ζK = 0 the return rises 19–142bp on all household wealth, and the single income-tax schedule taxes that extra capital income.
 - At ζK = 0.5 it is −0.35 to −0.38 in all twelve cells, 1.7–1.8 times the OBR's midpoint. Section 4.10 gives the cause (audit A16).
 - Verdict: **below in 22 cells, wrong sign in 2, above in 12.** Red flag 3.
@@ -741,7 +741,7 @@ The test was: a result outside every published range with no cause in the model.
 ### 3. Tax/GDP: the wrong sign in two cells at ζK = 0, and 42–77% of the OBR's size at ζK = 0.1
 
 - **What.** The Korinek main arm at ζK = 0 has tax/GDP +0.21pp with the labour share 3.9pp lower, and the UK high main arm +0.08pp with it 2.9pp lower. UK low's and UK central's main arms at ζK = 0 are −0.001pp and −0.006pp, zero in practice. At ζK = 0.1 the response is 0.09–0.16pp per point against the OBR's 0.19–0.23pp, which is 42–77% of the OBR's midpoint. In the eight arms without TFP at ζK = 0 it is about 0.03pp per point, 12–14%.
-- **Why.** A labour–capital tax gap of 14.8pp at ζK = 0.1 (13.6pp at ζK = 0) against the OBR's 19–23pp, and a single income-tax schedule that taxes the extra capital income when the return rises (audit A6).
+- **Why.** A labour–capital tax gap of 14.8pp at ζK = 0.1 (13.5pp at ζK = 0) in 2031, against the OBR's 19–23pp, and a single income-tax schedule that taxes the extra capital income when the return rises (audit A6).
 - **Status.** Known. Vahid decided on 12 November to keep and report it. The audit predicted a second wrong sign for UK high at ζK = 0 (+0.08pp), and the solve gives +0.080pp. The two cells have one cause, and the same caveat covers both.
 - **Fix without a rerun:** a caveat wherever fiscal results at ζK = 0 appear. The ζK = 0.5 solves lower the rise in the return, but they do not bring the tax response to the OBR's: it overshoots for a different reason (Section 4.10, caveat 2).
 
