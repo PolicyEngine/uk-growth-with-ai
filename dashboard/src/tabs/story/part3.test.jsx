@@ -7,22 +7,22 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
-import Part3 from './Part3.jsx';
+import Part3, { P3_RECAP } from './Part3.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 import { FIG, counts, storyFigures } from '@/tabs/households/figures.js';
-import { absorbGraph, CAVEAT_GREY, DESTS } from './part3/Absorb.jsx';
-import { CENTRAL_RATE, DISPLACED_TILES, centralRate, centralTiles } from './part3/Central.jsx';
-import { waterfall } from './part3/Channels.jsx';
-import { rulesClaims } from './part3/Rules.jsx';
-import { marginClaims } from './part3/Margin.jsx';
-import { BREAKS } from './part3/Moves.jsx';
+import { ABSORB_SUB, absorbGraph, CAVEAT_GREY, DESTS } from './part3/Absorb.jsx';
+import { CENTRAL_RATE, CENTRAL_SUB, DISPLACED_TILES, centralRate, centralTiles } from './part3/Central.jsx';
+import { CHANNELS_SUB, waterfall } from './part3/Channels.jsx';
+import { rulesClaims, rulesSub } from './part3/Rules.jsx';
+import { marginClaims, marginSub } from './part3/Margin.jsx';
+import { BREAKS, movesSub } from './part3/Moves.jsx';
 import { channelItems, effectWords, fillFor } from './part3/Channels.jsx';
-import { bottomDecileRankings, decileShape, signIcon } from './part3/Deciles.jsx';
+import { DECILES_SUB, bottomDecileRankings, decileShape, signIcon } from './part3/Deciles.jsx';
 import { takeupDirections } from './part3/Moves.jsx';
-import { LEFT_OUT } from './part3/Closing.jsx';
-import { ladder, rule } from './part3/shared.jsx';
-import TwoLenses from './TwoLenses.jsx';
-import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
+import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
+import { MODEL_YEAR, OUTSIDE_REBUILD, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
+import TwoLenses, { CLOSE_SUB } from './TwoLenses.jsx';
+import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
 afterEach(cleanup);
 
@@ -72,34 +72,94 @@ describe('Part3', () => {
 
   it('prints the headline figures the paper prints', () => {
     const text = checkedText(renderPart().container);
-    for (const s of ['£7.3bn', '+2.40pp', '12.0%', '13.4%', '+1.76pp', '0.303', '£42.5bn', '£24.0bn', '£6.5bn', '£0.4bn', '£1.3bn', '£15.8bn', '£3.2bn', '42p', '41p–43p', '55p', '+3.7%', '+55%', '9.5 months', '£9.9bn', '£12.6bn', '+2.38pp', '+2.18pp', '+1.99pp'])
+    // read from the data, so the test follows a rerun of the study
+    const H = D.headline;
+    const S = D.sankey;
+    const L = (id) => ladder(id);
+    for (const s of [
+      fmtBn(H.central_cost.value),
+      fmtPp(H.central_poverty.value),
+      fmtPct1(D.baseline.absolute_bhc_pct.value),
+      fmtPct1(D.baseline.relative_bhc_pct.value),
+      fmtPp(H.central_gini.value),
+      fmtGini(D.baseline.gini.value),
+      fmtBn(D.channels.rows.find((r) => r.id === 'displacement').cost_bn),
+      fmtBn(D.channels.rows.find((r) => r.id === 'wage').cost_bn),
+      fmtBn(D.channels.rows.find((r) => r.id === 'capital').cost_bn),
+      fmtPctSigned0(D.breakeven.capital.value_pct),
+      ...['earnings_lost_bn', 'tax_ni_bn', 'benefits_bn', 'other_bn', 'disposable_bn'].map((k) => fmtBn(S.total[k])),
+      fmtBn(S.employer_ni_bn),
+      fmtPence(D.per_pound_20.job_loss.government_p),
+      fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p),
+      fmtPence(D.per_pound.find((r) => r.id === 'wage_cuts').government_p),
+      fmtPctSigned1(D.breakeven.wage.value_pct),
+      fmtMonths(D.breakeven.duration.value_months),
+      fmtBn(L('takeup').cost_bn),
+      fmtBn(L('takeup_jsa').cost_bn),
+      fmtPp(L('central_20').poverty_pp),
+      fmtPp(L('takeup').poverty_pp),
+      fmtPp(L('takeup_jsa').poverty_pp),
+    ])
       expect(text, s).toContain(s);
-    expect(text).toContain(`${MINUS}£17.5bn`);
-    expect(text).toContain(`${MINUS}£17.9bn`);
   });
 
-  it('runs eight sections in the paper order, each with a numbered kicker (step 7 in two cards)', () => {
+  it('runs eight sections in the paper order, each under a topic header with a question (step 7 in two cards)', () => {
     const { container } = renderPart();
-    const kickers = [...container.querySelectorAll('.scrolly-kicker')].map((k) => k.textContent);
-    expect(kickers.map((k) => k.split(' · ')[0])).toEqual(['1', '2', '3', '4', '5', '6', '7', '7', '8']);
+    const topics = [...container.querySelectorAll('[data-scene]')].map((h) => h.dataset.scene);
+    expect(topics).toEqual(['The central case', 'Three channels', 'Where a lost pound goes', 'Where the loss falls', 'Who loses the job', 'Job loss or wage cuts', 'What moves the cost', 'What the study leaves out']);
     expect(container.querySelectorAll('.scrolly-step')).toHaveLength(8);
     expect(container.querySelector('#p3-moves #p3-moves-step')).not.toBeNull();
     expect(container.querySelector('#p3-moves #p3-takeup-step')).not.toBeNull();
-    expect(container.querySelector('.p3-close .scrolly-kicker').textContent).toContain('What the study leaves out');
+    expect(container.querySelector('.p3-close [data-scene]').dataset.question).toBe('What does the study leave out?');
   });
 
-  it('marks the part provisional, links the PR in every source line, and flags runs outside the rebuild', () => {
+  it('gives every topic a neutral question and a takeaway with no figures', () => {
+    for (const sub of [CENTRAL_SUB, CHANNELS_SUB, ABSORB_SUB, DECILES_SUB, rulesSub(), marginSub(), movesSub(), CLOSING_SUB, CLOSE_SUB]) {
+      expect(sub.question, sub.title).toMatch(/\?$/);
+      expect(sub.takeaway, sub.title).toBeTruthy();
+      expect(sub.takeaway, sub.title).not.toMatch(/\d/);
+      expect(sub.question, sub.title).not.toMatch(/\d/);
+    }
+    expect(P3_RECAP).toHaveLength(3);
+    for (const r of P3_RECAP) {
+      expect(r.text).not.toMatch(/\d/);
+      expect(r.to).toMatch(/^p3-/);
+    }
+  });
+
+  it('states the study status from the data, links each figure’s result files at the commit, and flags runs outside the rebuild only while provisional', () => {
     const { container } = renderPart();
-    expect(container.querySelector('.story-callout').textContent).toContain('provisional');
+    expect(container.querySelector('.story-callout').textContent.includes('provisional')).toBe(PROVISIONAL);
+    expect(MODEL_YEAR).toMatch(/^FY \d{4}–\d{2}$/);
+    if (D.model_year_label) expect(MODEL_YEAR).toBe(D.model_year_label);
+    const commit = D.commit ?? D.source.commit;
+    if (D.source.files_base_url) expect(D.source.files_base_url).toContain(commit);
     const sources = container.querySelectorAll('.story-source');
     expect(sources.length).toBe(container.querySelectorAll('.scrolly').length);
     sources.forEach((s) => {
-      expect(s.textContent).toContain('PolicyEngine-UK microsimulation, provisional');
-      expect(s.textContent).toContain('FY 2026–27');
-      expect(s.querySelector('a').getAttribute('href')).toBe('https://github.com/PolicyEngine/uk-ai-study/pull/18');
+      expect(s.textContent).toContain(`PolicyEngine-UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
+      expect(s.textContent).toContain(MODEL_YEAR);
+      const hrefs = [...s.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+      expect(hrefs.at(-1)).toBe(`https://github.com/PolicyEngine/uk-ai-study/pull/${D.source.pr}`);
+      const files = hrefs.slice(0, -1);
+      expect(files.length).toBeGreaterThan(0);
+      for (const h of files) expect(h.startsWith(`https://github.com/PolicyEngine/uk-ai-study/blob/${commit}/results/`), h).toBe(true);
     });
-    for (const id of ['p3-absorb', 'p3-margin', 'p3-moves']) expect(container.querySelector(`#${id} .p3-flag`), id).not.toBeNull();
+    for (const id of ['p3-absorb', 'p3-margin', 'p3-moves']) expect(!!container.querySelector(`#${id} .p3-flag`), id).toBe(OUTSIDE_REBUILD);
     expect(container.querySelector('.p3-chip')).toBeNull();
+    expect(container.textContent).not.toMatch(/\b(our|we assume)\b/i);
+  });
+
+  it('names and links every external input', () => {
+    const hrefs = [...renderPart().container.querySelectorAll('a.p3-ref')].map((a) => a.getAttribute('href'));
+    for (const u of ['https://doi.org/10.26504/jr16', 'https://doi.org/10.1002/smj.3286', 'https://doi.org/10.5089/9798400254802.001', 'https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/', 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2'])
+      expect(hrefs, u).toContain(u);
+  });
+
+  it('titles the axes of every part 3 figure, the value axis "y"', () => {
+    const { container } = renderPart();
+    for (const id of ['p3-central', 'p3-channels', 'p3-absorb', 'p3-deciles', 'p3-rules', 'p3-margin', 'p3-moves'])
+      expect(container.querySelector(`#${id} .scrolly-graphic [data-axis-title="y"]`), id).not.toBeNull();
   });
 
   it('opens with the "A different model" call-out', () => {
@@ -107,7 +167,7 @@ describe('Part3', () => {
     const card = container.querySelector('.story-callout');
     expect(card.querySelector('.story-callout-title').textContent).toBe('A different model');
     expect(card.textContent).toContain('Microcosm UK 2024-25');
-    expect(card.textContent).toContain('FY 2026–27');
+    expect(card.textContent).toContain(MODEL_YEAR);
     expect(card.textContent).toContain('cannot be added to or compared with');
     expect(card.closest('.scrolly')).toBeNull();
   });
@@ -117,7 +177,7 @@ describe('Part3', () => {
     const d1 = container.querySelector('[data-decile="1"]');
     expect(d1.querySelector('.p3-fill-muted')).not.toBeNull();
     expect(d1.querySelector('.p3-row-value').textContent).toBe('see note');
-    const cav = d1.querySelector('[data-caveat="bottom-decile"]');
+    const cav = container.querySelector('#p3-deciles-step [data-caveat="bottom-decile"]');
     expect(cav.textContent).toContain('does not report the bottom income decile as a finding');
     for (const s of ['+1.86%', `${MINUS}0.32%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
     expect(cav.querySelector('[data-input]')).toBeNull();
@@ -161,7 +221,7 @@ describe('Part3', () => {
   it('reads the quoted inputs from the data and keeps them out of the count', () => {
     const { container } = renderPart();
     const inputs = [...container.querySelectorAll('[data-input]')].map((n) => n.textContent);
-    expect(inputs).toEqual(expect.arrayContaining(['7%', '2.6%', '39.8%', '60%']));
+    expect(inputs).toEqual(expect.arrayContaining(['7%', '2.6%', '+39.8%', '60%']));
     // each quoted input once in the part (the number checks skip [data-input], so count here):
     // the central wage and capital settings at step 1, the OBR-sized rate on Explore > Households
     const text = container.textContent;
@@ -186,8 +246,8 @@ describe('Part3', () => {
     expect(next.querySelector('.story-next-link').getAttribute('href')).toBe('#story-close');
     expect(next.textContent).toContain('Two lenses');
     const hrefs = [...next.querySelectorAll('.story-next-links a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/pull/18');
-    expect(hrefs).toContain('https://github.com/PolicyEngine/uk-ai-study/blob/data/microcosm-2024-25/paper/main.pdf');
+    expect(hrefs).toContain(`https://github.com/PolicyEngine/uk-ai-study/pull/${D.source.pr}`);
+    expect(hrefs).toContain(`https://github.com/PolicyEngine/uk-ai-study/blob/${D.commit ?? D.source.commit}/paper/main.pdf`);
     for (const q of ['tab=explore&sub=households', 'tab=method&sub=households', 'tab=method&sub=studies']) expect(hrefs.some((h) => h.includes(q)), q).toBe(true);
     // related PolicyEngine work lives on Method and sources > Evidence: one link here, no figures
     expect(close.querySelector('.p3-related')).toBeNull();
@@ -236,6 +296,8 @@ describe('Part3', () => {
       if (el.querySelector('p, li, dd') || el.closest('svg, [aria-hidden="true"]')) continue;
       if (el.matches('.story-source, .story-source *')) continue; // citation lines
       const c = el.cloneNode(true);
+      // a linked citation ("Doorley et al. (2026)") counts as one word
+      c.querySelectorAll('.p3-ref').forEach((a) => a.replaceWith('ref'));
       c.querySelectorAll('span').forEach((s) => s.append(' '));
       const n = c.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
       if (n > (el.tagName === 'LI' ? 12 : 25)) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
@@ -395,9 +457,10 @@ describe('Part3', () => {
     expect(container.querySelectorAll('.p3-out-detail')).toHaveLength(LEFT_OUT.length);
   });
 
-  it('reads as three scenes under sub-headers, then step 8', () => {
-    const heads = [...renderPart().container.querySelectorAll('.p3-scene-head')].map((h) => h.dataset.scene);
-    expect(heads).toEqual(['The cost', 'Who it falls on', 'What changes it']);
+  it('gives each Scrolly block its own topic header (one scheme: no separate scene heads)', () => {
+    const { container } = renderPart();
+    expect([...container.querySelectorAll('.p3-scene-head')].map((h) => h.dataset.scene)).toEqual(['What the study leaves out']);
+    for (const sc of container.querySelectorAll('#story-part-3 .scrolly, .scrolly')) expect(sc.querySelector(':scope > .scene-head'), sc.id).not.toBeNull();
   });
 
   it('lets a reader follow one decile through the Sankey without printing a new figure', () => {

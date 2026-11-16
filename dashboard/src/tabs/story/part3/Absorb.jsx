@@ -7,7 +7,9 @@ import { Pause } from '@/components/story/chart/index.js';
 import Sankey from '@/components/story/Sankey.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtShare } from './format.js';
-import { D, FigureHead, Ico, OBR_SCENARIO, OutsideRebuildFlag, Source, entryClass, useBeat } from './shared.jsx';
+import { AxisTitle, D, FigureHead, Ico, OBR_SCENARIO, OutsideRebuildFlag, Source, entryClass, ladder, useBeat } from './shared.jsx';
+import { CENTRAL_RATE } from './Central.jsx';
+import { Ref } from './sources.jsx';
 
 // Step 3, what the system absorbs (results.tex, "Household absorption of job
 // loss by baseline decile"): a Sankey of the OBR-sized run, job loss alone,
@@ -78,15 +80,21 @@ function AbsorbFigure({ ctx }) {
     <figure className={entryClass(e, 'p3-figure p3-sankey p3-scene')}>
       <FigureHead
         icon="benefits"
-        title={<>Job loss alone, a smaller run sized to {OBR_SCENARIO}, not the central case</>}
-        unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes, £bn a year, mean of ${S.draws} draws`}
+        title={
+          <>
+            Job loss alone, a {SMALLER ? 'smaller ' : ''}run sized to <Ref id="obr">{OBR_SCENARIO}</Ref>, not the central case
+          </>
+        }
+        y="£bn a year"
+        unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes, mean of ${S.draws} draws`}
         replay={e.replay}
         actions={<Pause paused={paused} onClick={() => setPaused(!paused)} />}
       />
       <OutsideRebuildFlag />
       <div className="p3-follow" role="group" aria-label="Follow one decile’s lost earnings">
         <span className="p3-follow-label">
-          <Ico c="deciles" size={13} /> Income decile (1 = bottom)<span className="p3-follow-hint">: follow one</span>
+          <Ico c="deciles" size={13} /> <AxisTitle axis="x">Income decile, 1 = bottom</AxisTitle>
+          <span className="p3-follow-hint">: follow one</span>
         </span>
         {S.deciles.map((_, i) => (
           <button key={i} type="button" className={`p3-follow-btn${follow === i + 1 ? ' is-on' : ''}${i === 0 ? ' is-caveat' : ''}`} aria-pressed={follow === i + 1} onClick={() => pick(i + 1)}>
@@ -101,7 +109,7 @@ function AbsorbFigure({ ctx }) {
         graphs={[g]}
         label="Sankey diagram: earnings lost by each income decile, flowing to lower disposable income, lower income tax and employee NI, other items and more benefits"
         width={900}
-        height={380}
+        height={330}
         pad={7}
         rightRoom={170}
         linkOpacity={0.55}
@@ -125,29 +133,41 @@ function AbsorbFigure({ ctx }) {
           { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government</> },
         ]}
       />
-      <Source>run sized to the OBR scenario, household flows by baseline decile</Source>
+      <Source files={[S.file, ladder('obr')?.file]}>run sized to the OBR scenario (Box 2.2), household flows by baseline decile</Source>
     </figure>
   );
 }
+
+// Statements about this run, from the data (claim audit P3-25): whether the
+// run is smaller than the central case, whether disposable income takes most
+// of the loss, and the share benefits replace.
+export const SMALLER = CENTRAL_RATE != null && S.displacement_rate_pct < CENTRAL_RATE;
+export const MOST = S.total.disposable_bn > S.total.earnings_lost_bn / 2;
+export const BENEFIT_SHARE = (S.total.benefits_bn / S.total.earnings_lost_bn) * 100;
+
+export const ABSORB_SUB = {
+  title: 'Where a lost pound goes',
+  icon: 'households',
+  question: 'Where does a lost pound of earnings go?',
+  takeaway: MOST ? 'Households bear most of the earnings lost; lower tax, more benefits and other items take the rest' : 'Tax and benefits absorb much of the earnings lost',
+};
 
 export default function Absorb() {
   const steps = [
     {
       id: 'p3-absorb-step',
-      kicker: '3 · What the system absorbs',
       title: 'Where a lost pound of earnings goes',
       icon: 'households',
       body: (
         <Items
           items={[
-            { icon: 'jobLoss', text: 'A smaller shock: job loss alone, no other income rises' },
-            { icon: 'households', text: 'Most earnings lost fall on households’ disposable income' },
+            { icon: 'jobLoss', text: `${SMALLER ? 'A smaller shock' : 'A different shock'}: job loss alone, no other income rises` },
             { icon: 'tax', text: <>Income tax, employee NI and benefits absorb {fmtShare(S.tax_benefit_share_pct)} of the loss</> },
-            { icon: 'benefits', text: 'Benefits add little' },
+            { icon: 'benefits', text: BENEFIT_SHARE < 5 ? 'Benefits replace under a twentieth of the earnings lost in this run' : 'Benefits replace part of the earnings lost in this run' },
           ]}
         />
       ),
     },
   ];
-  return <Scrolly id="p3-absorb" steps={steps} graphic={(i, r, ctx) => <AbsorbFigure ctx={ctx} />} wide label="Where the earnings lost to job loss go, by income decile" />;
+  return <Scrolly id="p3-absorb" sub={ABSORB_SUB} steps={steps} graphic={(i, r, ctx) => <AbsorbFigure ctx={ctx} />} wide label="Where the earnings lost to job loss go, by income decile" />;
 }

@@ -7,7 +7,8 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPctSigned0, fmtPctSigned1, fmtPp } from './format.js';
-import { About, D, FigureHead, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat } from './shared.jsx';
+import { About, AxisTitle, D, FigureHead, OutsideRebuildFlag, Source, ladder, Ico, entryClass, useBeat } from './shared.jsx';
+import { Ref } from './sources.jsx';
 
 // Step 7, what moves the cost (results.tex, "What moves the central cost"),
 // in two cards over one figure: the three break-even values
@@ -20,7 +21,7 @@ const BE = D.breakeven;
 const TK = [
   { id: 'central_20', icon: 'jobLoss', label: 'Central case, these draws: ', base: true },
   { id: 'takeup', icon: 'takeUp', label: 'Everyone with a displaced worker claims UC' },
-  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA' },
+  { id: 'takeup_jsa', icon: 'benefits', label: 'Plus 26 weeks of new-style JSA, as on ', ref: 'jsa' },
 ];
 const MAX = Math.max(...TK.map((r) => ladder(r.id).cost_bn));
 
@@ -150,6 +151,7 @@ function Ladder({ dim, on }) {
         <li key={r.id} className="p3-ladder-row" data-row={r.id} style={{ '--beat': `${i * 450}ms` }}>
           <span className="p3-row-label">
             <Ico c={r.icon} /> {r.label}
+            {r.ref ? <Ref id={r.ref} /> : null}
             {r.base ? <a href="#p3-margin-step">step 6</a> : null}
           </span>
           <span className="p3-ladder-track">
@@ -185,6 +187,7 @@ function MovesFigure({ active, all = false, ctx }) {
       <FigureHead
         icon="breakEven"
         title="What moves the central cost"
+        y="Each assumption’s setting, from zero"
         unit="Break-even: zero cost, the other two at central settings; interpolated between runs"
         replay={() => {
           setChosen(null);
@@ -203,35 +206,44 @@ function MovesFigure({ active, all = false, ctx }) {
             <Ico c="takeUp" /> Take-up and JSA, the same 20 draws as step 6
           </p>
           <OutsideRebuildFlag />
-          <div className="p3-cols p3-cols-ladder" aria-hidden="true">
-            <span>Cost</span>
-            <span>Poverty</span>
+          <div className="p3-cols p3-cols-ladder">
+            <AxisTitle axis="y">Cost, £bn a year</AxisTitle>
+            <AxisTitle axis="y">Poverty, pp</AxisTitle>
           </div>
           <Ladder dim="" on={all ? e.on : active === 1 && e.on} />
         </section>
       </div>
-      <Source />
+      <Source files={[D.breakeven.wage.file, D.breakeven.capital.file, D.breakeven.duration.file, ladder('takeup').file]} />
     </figure>
   );
 }
 
 const LABEL = 'Break-even values of three assumptions, and the cost with full benefit take-up and new-style JSA';
 
+export function movesSub() {
+  const t = takeupDirections();
+  return {
+    title: 'What moves the cost',
+    icon: 'breakEven',
+    question: 'Which assumptions move the cost most?',
+    takeaway: `The cost’s sign turns on the assumed wage and capital-income rises and time out of work; fuller benefit take-up ${t.cost.word === 'rises' ? 'adds to it' : t.cost.word === 'falls' ? 'lowers it' : 'leaves it unchanged'}`,
+  };
+}
+
 export default function Moves() {
   const t = takeupDirections();
   const steps = [
     {
       id: 'p3-moves-step',
-      kicker: '7 · What moves the cost',
       title: 'Three assumptions decide its sign',
       icon: 'breakEven',
       body: (
         <>
           <Items
             items={[
-              { icon: 'breakEven', text: 'The cost nets far larger flows, so three assumptions break even nearby:' },
-              { icon: 'pay', text: 'The wage rise for those who keep their jobs' },
-              { icon: 'capital', text: 'The rise in interest and dividend income' },
+              { icon: 'breakEven', text: 'Three assumptions break even within reach of their central settings:' },
+              { icon: 'pay', text: <>The wage rise for those still employed (<Ref id="doorley">Doorley et al., 2026</Ref>)</> },
+              { icon: 'capital', text: <>The rise in interest and dividend income (Doorley et al.)</> },
               { icon: 'timing', text: 'How long people are out of work' },
             ]}
           />
@@ -250,8 +262,7 @@ export default function Moves() {
     {
       id: 'p3-takeup-step',
       pin: 'bottom',
-      kicker: '7 · Take-up and JSA',
-      title: 'Benefit take-up moves the cost one way only',
+      title: 'What fuller take-up and JSA do',
       icon: 'takeUp',
       body: (
         <>
@@ -271,12 +282,12 @@ export default function Moves() {
           ]}
         />
         <About>
-          <Items items={[{ icon: 'takeUp', text: 'In the data, not everyone entitled to Universal Credit claims it' }]} />
+          <Items items={[{ icon: 'takeUp', text: 'In the study’s data, not everyone newly entitled to UC claims' }]} />
         </About>
         </>
       ),
     },
   ];
   // Phones: it prints values, so it is drawn once, complete, above both cards.
-  return <Scrolly id="p3-moves" steps={steps} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />;
+  return <Scrolly id="p3-moves" sub={movesSub()} steps={steps} phone="once" graphic={(i, r, ctx) => <MovesFigure active={i} all={!!ctx?.once} ctx={ctx} />} label={LABEL} />;
 }

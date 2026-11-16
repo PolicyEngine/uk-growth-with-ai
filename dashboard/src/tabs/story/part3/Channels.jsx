@@ -26,8 +26,8 @@ export const effectWords = (v) => (v > 0 ? 'costs the public finances' : v < 0 ?
 export function channelItems() {
   return [
     { key: 'displacement', icon: 'jobLoss', text: `Job loss ${effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits` },
-    { key: 'wage', icon: 'pay', text: `Higher pay for those still employed ${effectWords(row('wage').cost_bn)}` },
-    { key: 'capital', icon: 'capital', text: `Higher interest and dividend income ${effectWords(row('capital').cost_bn)}` },
+    { key: 'wage', icon: 'pay', text: `Assumed higher pay for those still employed ${effectWords(row('wage').cost_bn)}` },
+    { key: 'capital', icon: 'capital', text: `Assumed higher interest and dividend income ${effectWords(row('capital').cost_bn)}` },
   ];
 }
 // The netting waterfall (scene 3-2): job loss rises from zero; higher wages
@@ -56,7 +56,7 @@ function ChannelsFigure({ ctx }) {
   const e = useBeat(ctx?.entered ?? true);
   return (
     <figure className={entryClass(e, 'p3-figure p3-scene')}>
-      <FigureHead icon="arithmetic" title="The central cost nets three flows" unit="Cost to the public finances of each channel run alone, £bn a year" replay={e.replay} />
+      <FigureHead icon="arithmetic" title="The central cost nets three flows" y="Cost to the public finances, £bn a year" x="each channel run alone, then their sum" replay={e.replay} />
       <ol className="p3-rows p3-wf">
         {BARS.map((b, i) => {
           const lo = Math.min(b.from, b.to);
@@ -97,16 +97,24 @@ function ChannelsFigure({ ctx }) {
           { icon: 'draws', text: `Job loss and wages: mean of ${C.draws} draws; capital income: one run` },
         ]}
       />
-      <Source>channel split, seeds 0 to 19</Source>
+      <Source files={[C.file, D.per_pound_20.job_loss.file]}>channel split, seeds 0 to 19</Source>
     </figure>
   );
 }
+
+// The topic opener; the takeaway's words follow the signs of the runs.
+const bigger = Math.abs(row('displacement').cost_bn) > Math.abs(C.sum_bn) && row('wage').cost_bn < 0 && row('capital').cost_bn < 0;
+export const CHANNELS_SUB = {
+  title: 'Three channels',
+  icon: 'arithmetic',
+  question: 'What makes up the cost?',
+  takeaway: bigger ? 'The net cost is far smaller than the cost of job loss alone: assumed higher pay and capital income offset much of it' : 'The net cost combines job loss with the two assumed income rises',
+};
 
 export default function Channels() {
   const steps = [
     {
       id: 'p3-channels-step',
-      kicker: '2 · Three channels',
       title: 'A cost that is the difference between larger flows',
       icon: 'arithmetic',
       body: (
@@ -132,5 +140,5 @@ export default function Channels() {
       ),
     },
   ];
-  return <Scrolly id="p3-channels" steps={steps} graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />} label="Cost to the public finances of each of the three channels run alone" />;
+  return <Scrolly id="p3-channels" sub={CHANNELS_SUB} steps={steps} graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />} label="Cost to the public finances of each of the three channels run alone" />;
 }

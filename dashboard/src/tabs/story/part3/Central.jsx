@@ -7,7 +7,8 @@ import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
 import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
-import { About, D, FigureHead, MODEL_YEAR, Source, Ico, entryClass, useBeat } from './shared.jsx';
+import { About, AxisTitle, BASELINE_LABEL, D, FigureHead, MODEL_YEAR, Source, Ico, entryClass, useBeat } from './shared.jsx';
+import { Ref, Sec } from './sources.jsx';
 
 // Step 1, the central case (results.tex, "The central scenario"). The
 // scoreboard is the home of the headline figures, each beside its baseline;
@@ -27,6 +28,11 @@ export function centralRate(note = H.central_displaced.note) {
   return Number.isFinite(v) && v > 0 && v < 100 ? v : null;
 }
 export const CENTRAL_RATE = centralRate();
+// Doorley et al.'s return shock and the base it sits on, from the data: the
+// income rise is shock / base, so base = shock / rise (1.005% for +0.4pp and
+// +39.8%; claim audit P3-15).
+export const RETURN_PP = Number(M.return_shock_pp);
+export const RETURN_BASE = RETURN_PP / (M.capital_uplift_pct / 100);
 // Whole tiles of 100 (one tile = 1% of employees) for the displaced group.
 export const DISPLACED_TILES = CENTRAL_RATE == null ? 0 : Math.round(CENTRAL_RATE);
 
@@ -95,8 +101,10 @@ function CentralFigure({ ctx }) {
       </p>
       <div className="p3-central">
         <div className="p3-central-tiles">
-          <p className="p3-tile-heads" aria-hidden="true">
-            <span>Employees</span>
+          <p className="p3-tile-heads">
+            <AxisTitle axis="x">
+              <Ico c="workers" size={12} /> Employees
+            </AxisTitle>
             <span className="p3-tile-head-out">Assumed displaced</span>
           </p>
           <TileField
@@ -108,12 +116,19 @@ function CentralFigure({ ctx }) {
             label="Tile grid of employees; the tiles set apart in ink are those assumed displaced in the central case"
           />
           <p className="p3-tile-key p3-iconed" data-axis="">
-            <Ico c="measure" size={12} /> One tile = 1% of employees
+            <Ico c="measure" size={12} /> <AxisTitle axis="y">Share of employees, one tile = 1%</AxisTitle>
           </p>
+          <Items
+            className="p3-tile-notes"
+            items={[
+              { icon: 'source', text: <>Baselines: {BASELINE_LABEL}, not DWP’s published rates</> },
+              { icon: 'cost', text: 'Cost: income tax, NI and benefits; no corporation tax' },
+            ]}
+          />
         </div>
         <KeyFacts className="p3-facts" facts={FACTS.map((f) => ({ ...f, value: <CountUp key={e.run} value={f.value} /> }))} />
       </div>
-      <Source />
+      <Source files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]} />
     </figure>
   );
 }
@@ -124,27 +139,35 @@ function KeyCard() {
     <Items
       className="p3-key-card"
       items={[
-        { icon: 'caveat', text: 'Upper bound, says the study: the displaced are jobless all year' },
+        { icon: 'caveat', text: <>Upper bound, says <Sec id="results">the study</Sec>: the displaced are jobless all year</> },
         { icon: 'poverty', text: <>After housing costs (secondary): absolute poverty {fmtPp(H.central_poverty_ahc.value)}</> },
         {
           icon: 'measure',
           text: (
             <>
-              HBAI poverty lines: absolute held at baseline, relative <span data-input="">60%</span> of median
+              <Ref id="hbai">HBAI</Ref> income; absolute line fixed at no-shock value, relative <span data-input="">60%</span> of median
             </>
           ),
         },
-        { icon: 'cost', text: 'Cost: income tax, NI and benefits; no corporation tax' },
       ]}
     />
   );
 }
 
+// The topic opener: a neutral question the block answers, and its takeaway
+// (no figures), the words from the signs of the headline results.
+const up = (v) => (v > 0 ? 'raises' : v < 0 ? 'lowers' : 'leaves unchanged');
+export const CENTRAL_SUB = {
+  title: 'The central case',
+  icon: 'jobLoss',
+  question: 'What happens in the central case?',
+  takeaway: `A year of assumed job loss ${H.central_cost.value > 0 ? 'costs the public finances' : 'adds to net receipts'}, ${up(H.central_poverty.value)} poverty and ${up(H.central_gini.value)} inequality`,
+};
+
 export default function Central() {
   const steps = [
     {
       id: 'p3-central-step',
-      kicker: '1 · The central case',
       title: 'A year in which a share of employees lose their jobs',
       icon: 'jobLoss',
       body: (
@@ -155,24 +178,30 @@ export default function Central() {
                 icon: 'jobLoss',
                 text: (
                   <>
-                    Assumed:{' '}
+                    <Ref id="doorley" />:{' '}
                     <span data-input="" data-path="headline.central_displaced.note">
                       {fmtInputPct(CENTRAL_RATE)}
                     </span>{' '}
-                    of employees lose their job for all of {MODEL_YEAR}
+                    of employees jobless throughout {MODEL_YEAR}
                   </>
                 ),
               },
-              { icon: 'ai', text: 'More often in occupations more exposed to AI' },
+              {
+                icon: 'ai',
+                text: (
+                  <>
+                    More often in occupations more exposed to AI (C-AIOE index)
+                  </>
+                ),
+              },
               {
                 icon: 'pay',
                 text: (
                   <>
-                    Wages of those who keep their jobs rise{' '}
+                    Also from Doorley et al.: wages of those still employed rise{' '}
                     <span data-input="" data-path="method.survivor_wage_pct">
                       {fmtInputPct(M.survivor_wage_pct)}
-                    </span>{' '}
-                    on average
+                    </span>
                   </>
                 ),
               },
@@ -180,9 +209,10 @@ export default function Central() {
                 icon: 'capital',
                 text: (
                   <>
-                    Interest and dividend income rise{' '}
+                    Their capital return: <span data-input="">+{RETURN_PP}</span> points on{' '}
+                    <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span>; interest and dividends{' '}
                     <span data-input="" data-path="method.capital_uplift_pct">
-                      {fmtPct1(M.capital_uplift_pct)}
+                      +{fmtPct1(M.capital_uplift_pct)}
                     </span>
                   </>
                 ),
@@ -193,10 +223,12 @@ export default function Central() {
           <About>
             <Items
               items={[
-                { icon: 'measure', text: 'Each employee’s chance is in proportion to their occupation’s AI exposure' },
-                { icon: 'source', text: 'Rate and wage rise follow Doorley et al. (2026), an Irish design' },
-                { icon: 'scenario', text: 'Drawn from one investment-bank scenario of displacement over about a decade' },
-                { icon: 'period', text: 'Applied in one year: an impact-year stress test' },
+                { icon: 'ai', text: <>C-AIOE: <Ref id="felten" /> exposure, <Ref id="pizzinelli" /> adjustment</> },
+                { icon: 'measure', text: 'Each employee’s chance follows their occupation’s exposure' },
+                { icon: 'source', text: <>The study builds the UK series from the <Ref id="dfe" /> mapping</> },
+                { icon: 'scenario', text: 'Doorley et al. draw on Goldman Sachs (Briggs and Kodnani, 2023)' },
+                { icon: 'period', text: <>That scenario spreads displacement over about a decade (<Sec id="method">paper</Sec>)</> },
+                { icon: 'period', text: 'Applied in one year, the study’s choice: an impact-year stress test' },
               ]}
             />
           </About>
@@ -204,5 +236,5 @@ export default function Central() {
       ),
     },
   ];
-  return <Scrolly id="p3-central" steps={steps} graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />} label="The central case: people displaced, cost, poverty and inequality, beside their baselines" />;
+  return <Scrolly id="p3-central" sub={CENTRAL_SUB} steps={steps} graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />} label="The central case: people displaced, cost, poverty and inequality, beside their baselines" />;
 }
