@@ -26,9 +26,9 @@ import { Ref } from './sources.jsx';
 // `short`: the phone label (600px and below), each with its citation
 const RULES = [
   { id: 'uniform', label: 'Uniform: every employee equally likely', short: 'Uniform' },
-  { id: 'junior', label: 'Tilted towards workers aged 16 to 24, after ', ref: 'klein', short: 'Junior-tilted, after ' },
+  { id: 'junior', label: 'Tilted to ages 16 to 24, after ', ref: 'klein', short: 'Junior-tilted, after ' },
   { id: 'exposure', label: 'In proportion to AI exposure: the central case', central: true, short: 'AI exposure: the central case' },
-  { id: 'compression', label: 'Expertise compression (the study’s rule, after ', close: '): exposed higher earners', ref: 'autor', short: 'Expertise compression, after ' },
+  { id: 'compression', label: 'Expertise compression, after ', close: ': exposed higher earners', ref: 'autor', short: 'Expertise compression, after ' },
 ];
 // Both rule axes start at zero: the cost differs about fivefold across
 // rules while the poverty rise hardly moves.

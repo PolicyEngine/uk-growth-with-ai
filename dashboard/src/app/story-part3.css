@@ -2051,3 +2051,10 @@ svg.p3-dim {
 .p3-ch.is-all .p3-ch-panel .p3-ch-be {
   flex: none;
 }
+/* phones, the pinned four-state scene: each card holds its state for at
+   least 180px of scroll (check_states at 390 and 360) */
+@media (max-width: 600px) {
+  #p3-changes .scrolly-card {
+    min-height: 184px;
+  }
+}
