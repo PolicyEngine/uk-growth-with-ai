@@ -173,7 +173,7 @@ function ArmCards() {
 export const SCENARIO_SECTIONS = [
   { id: 's-scenarios', title: 'The scenarios', icon: iconFor('scenario') },
   { id: 'm-inputs-head', title: 'Every input and its source', icon: iconFor('source') },
-  { id: 'm-arms', title: 'Three arms per scenario', icon: iconFor('compare') },
+  { id: 'm-arms', title: 'Three versions (arms) per scenario', icon: iconFor('compare') },
   { id: 'm-timing', title: 'When it happens', icon: iconFor('timing') },
 ];
 
@@ -229,7 +229,7 @@ export default function ScenariosSection({ uses = null }) {
         <InputsTable />
       </Card>
 
-      <SubHead id="m-arms" oldId="s-arms" icon="compare" title="Three arms per scenario">
+      <SubHead id="m-arms" oldId="s-arms" icon="compare" title="Three versions (arms) per scenario">
         <IconText icon="compare">The same labour-share fall in each. They differ in output at fixed inputs.</IconText>
       </SubHead>
       <ArmCards />

@@ -42,7 +42,7 @@ export const PARTS = [
     title: 'What a model of the whole economy projects',
     model: 'oguk',
     question: 'What happens to output, incomes and the public finances if an AI shock starts in 2028?',
-    line: 'No unemployment: lost tasks show up as lower pay rates.',
+    line: 'No unemployment: the shock shows up in pay rates, not in job losses.',
     about: (
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}

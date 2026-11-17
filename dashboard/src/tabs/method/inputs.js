@@ -35,7 +35,7 @@ export const INPUTS = [
   { group: 'Timing', input: 'Linear four-year ramp to full weight', value: '2028–2031', kind: 'choice', how: 'No published source; the IMF’s adoption path is convex.', src: ['rampWeights'] },
   { group: 'Timing', input: 'Perfect foresight after the surprise', value: '—', kind: 'choice', how: 'OG-Core’s time path iteration.', src: ['fiscalRules'] },
   // the baseline
-  { group: 'Baseline', input: 'Trend productivity growth', value: '1% a year', kind: 'published', how: 'The no-shock baseline is the March 2026 EFO. It includes the OBR’s central AI effect.', src: ['efoMarPath', 'bp9B14'] },
+  { group: 'Baseline', input: 'Trend productivity growth', value: '1% a year', kind: 'published', how: 'The no-shock baseline uses the March 2026 EFO’s trend. It includes the OBR’s central AI effect.', src: ['efoMarPath', 'bp9B14'] },
   { group: 'Baseline', input: '2030 debt/GDP target', value: 'OBR March 2026', kind: 'published', how: 'Government consumption is set so 2030 debt/GDP equals the OBR’s forecast; only that point is matched.', src: ['efoMarDebt', 'debtTarget'] },
   { group: 'Baseline', input: 'Vintage', value: 'March 2026', kind: 'external', how: 'The baseline uses the March 2026 EFO; the growth check on Evidence uses October 2026.', src: ['efoMarPath', 'efoOctA1'] },
   { group: 'Baseline', input: 'Demographics', value: '—', kind: 'external', how: 'UN World Population Prospects, read by OG-Core through a GitHub mirror; not an OBR or ONS projection.', src: ['unWpp', 'popData'] },

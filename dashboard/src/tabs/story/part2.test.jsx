@@ -146,7 +146,7 @@ describe('story part 2', () => {
     // Explore" link is the debt note under its caption, in the frame
     expect([...head.closest('.scrolly-step').querySelectorAll('a')].filter((x) => !x.closest('.scrolly-takeaway-in-step'))).toHaveLength(0);
     const note = container.querySelector('#p2-morph .scrolly-takeaway-note');
-    expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the path in \d{4}.* More on Explore$/);
+    expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the baseline in \d{4}.* More on Explore$/);
     expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });
 });
@@ -427,11 +427,11 @@ describe('direction icons follow the signs', () => {
         }
         const d = r.gaps.debt_gdp_pp[L];
         const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
-        expect(line).toContain(`ends ${side(d)} the path in ${fixture.late_year}`);
+        expect(line).toContain(`ends ${side(d)} the baseline in ${fixture.late_year}`);
         expect(line.includes('if repriced at once')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
         // the OBR's slower repricing: the other side of the path, or a smaller rise, in words
         const obr = r.debt_gdp_pp_obr_repricing_late;
-        if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the path`);
+        if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the baseline`);
         else if (d > 0.005 && obr < d) expect(line).toMatch(/at the OBR’s repricing pace, the gap is .*$/);
         expect(line).not.toMatch(/\d\.\d/);
       }

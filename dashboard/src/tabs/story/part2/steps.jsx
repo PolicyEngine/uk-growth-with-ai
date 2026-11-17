@@ -175,7 +175,7 @@ export function morphAnswer(cl) {
   const sorted = [...ends].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
   const where = dir === 'gapUp' ? 'above' : 'below';
   const name = (id) => SCEN_NAME[id].replace(/ \(.*\)$/, '');
-  return `GDP ends ${where} the path in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
+  return `GDP ends ${where} the baseline in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
 }
 
 // The generations scene's one closing line (newcomer review item 8): the

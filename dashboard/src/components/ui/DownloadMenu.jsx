@@ -20,7 +20,7 @@ export function captionOf(st, sub) {
   if (pick.study) return studyCaption(AI);
   const parts = [];
   if (pick.scenario) parts.push(`Scenario: ${SCEN_NAME[pick.scenario === 'locked' ? 'uk_central' : st.s]}`);
-  if (pick.closure) parts.push(`Foreign capital: ${closureLabel(st.closure)}`);
+  if (pick.closure) parts.push(`Foreign capital: ${{ central: 'some', closed: 'none', both: 'both' }[st.closure] ?? closureLabel(st.closure)}`);
   if (pick.arm) parts.push(`Version: ${ARM_PICK.find((a) => a.id === st.armId)?.label}`);
   if (pick.rule) parts.push(`Budget assumption: ${ruleLabel(Array.isArray(pick.rule) ? st.wrule : st.rule)}`);
   parts.push('Model: OG-UK');

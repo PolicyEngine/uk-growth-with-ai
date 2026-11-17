@@ -259,7 +259,7 @@ function Variants() {
       foot={<Flag />}
       about={about({
         how: ['Take-up, JSA and wage cuts reuse the main-case seeds 0 to 19', 'Compare them with the main case on these draws, not the headline'],
-        caveats: ['The OBR-sized runs are a smaller shock, not steps on the central ladder', `Sized to ${OBR_SCENARIO}`, ...takeupBoundWords()],
+        caveats: ['The OBR-sized runs are a smaller shock, not steps on the main-case ladder', `Sized to ${OBR_SCENARIO}`, ...takeupBoundWords()],
         sources: ['results/robustness/dividend_coverage_draws.csv (run central)', 'results/takeup/takeup_draws.csv', 'results/wage_cut/wage_cut_draws.csv (variant table3)', 'results/next_runs/obr_benchmark.json', <>26 weeks: the {ext(URLS.jsa, 'new-style JSA limit (GOV.UK)')}</>, <>OBR-sized: the study&rsquo;s conversion of {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}&rsquo;s unemployment rise</>],
       })}
     >

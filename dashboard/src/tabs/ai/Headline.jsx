@@ -177,7 +177,7 @@ export function HeadlineNote({ rule = 'common' }) {
   if (rule !== 'common') return null;
   return (
     <p className="db-headline-note">
-      Grey values: the main arm&rsquo;s headline figures, at home in the{' '}
+      Grey values: the main version&rsquo;s headline figures, at home in the{' '}
       <NavLink tab="story" anchor="story-part-2">
         story
       </NavLink>
@@ -192,7 +192,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
   const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
-    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-shock baseline, by measure and arm`}>
+    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-shock baseline, by measure and version`}>
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">

@@ -23,7 +23,11 @@ import { SCENARIOS, SCEN_NAME, ruleSolved, solvedUnder } from '@/tabs/ai/surpris
 
 const SCEN_NOTE = { uk_low: 'Lower UK scenario, derived from OBR/IMF inputs', uk_central: 'Headline scenario, derived from IMF/OBR inputs', uk_high: 'Upper UK scenario, derived from OBR inputs', korinek: 'A US upper case: Korinek et al.’s “substantial” inputs' };
 export const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
-export const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: c.label, note: c.note, icon: c.icon }));
+// Under the "Foreign capital" label the options say only Some / None / Both.
+// The closed picker shows the full name (`short`, which Picker shows first):
+// on a laptop the settings bar hides the picker's label.
+const CLOSURE_SHORT = { central: 'Some', closed: 'None', both: 'Both' };
+export const CLOSURE_OPTIONS = CLOSURES.map((c) => ({ value: c.id, label: CLOSURE_SHORT[c.id] ?? c.label, short: c.label, note: c.note, icon: c.icon }));
 
 // Why a rule is unavailable, for the tooltip of a disabled option
 function ruleWhy(id, sid, only) {

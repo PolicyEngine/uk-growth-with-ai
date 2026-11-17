@@ -53,7 +53,7 @@ export function ourRows() {
     id: `oguk-${metric}`,
     ours: true,
     institution: 'PolicyEngine (this study)',
-    study: 'OG-UK, the 2028 surprise: automation + productivity arm',
+    study: 'OG-UK, the 2028 surprise: automation + productivity',
     url: null,
     year: Number(S.generated_utc.slice(0, 4)),
     metric,
@@ -150,7 +150,7 @@ export default function EvidenceMap({ map = MAP }) {
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
               { icon: 'foreign', text: 'Studies of the US or other economies are labelled.' },
               { icon: 'measure', text: 'Adoption and exposure rows are levels or shares, not effects.' },
-              { icon: 'model', text: `OG-UK rows: the automation + productivity arm’s ${HEADLINE_YEAR} gap.` },
+              { icon: 'model', text: `OG-UK rows: automation + productivity, ${HEADLINE_YEAR} gap.` },
               { icon: 'link', text: 'That gap is against the no-shock baseline; figures on Explore, download.' },
             ]}
           />

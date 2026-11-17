@@ -62,7 +62,7 @@ function ClosureCards() {
               { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
-              { icon: 'caveat', text: <>It misses the current account; no foreign capital is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
+              { icon: 'caveat', text: <>It misses the current account; the no-foreign-capital case is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
               { icon: 'timing', text: 'Foreign capital resets each year.' },
               { icon: 'capital', text: <>So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</> },
             ]}
@@ -78,7 +78,7 @@ function ClosureCards() {
         <Items
           items={[
             { icon: 'foreign', text: 'Share of excess capital demand met from abroad, not of added capital.' },
-            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned, so gross national income (GNI) lags GDP.` },
+            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned: national income (GNI) trails GDP.` },
             { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
           ]}
         />
@@ -378,7 +378,7 @@ export default function MethodTab() {
                 items={[
                   { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
                   { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the no-shock baseline.</> },
-                  { icon: 'forecast', text: <>No-shock baseline: the March 2026 EFO ({cite('efoMarPath')}).</> },
+                  { icon: 'forecast', text: <>No-shock baseline: built on the March 2026 EFO ({cite('efoMarPath')}).</> },
                 ]}
               />
             </InfoCard>

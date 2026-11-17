@@ -82,7 +82,7 @@ function investmentItems(res) {
   };
   const peak = (g) => Math.max(...g.slice(year(first), year(HEADLINE_YEAR)));
   return [
-    { key: 'first', icon: 'investment', text: `Main-arm investment: ${range((g) => g[year(first)])} above the path in ${first}` },
+    { key: 'first', icon: 'investment', text: `Main-version investment: ${range((g) => g[year(first)])} above the path in ${first}` },
     { key: 'peak', icon: 'timing', text: `${range(peak)} at its peak before ${HEADLINE_YEAR}` },
     { key: 'h', icon: 'path', text: `${range((g) => g[year(HEADLINE_YEAR)])} in ${HEADLINE_YEAR}, across the scenarios` },
     { key: 'cost', icon: 'excluded', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} has no capital adjustment cost</> },
@@ -132,7 +132,7 @@ function SensGrid({ res }) {
   const flagged = new Set(SENS_FLAGS().map((f) => `${f.sid}|${f.arm}`));
   const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
   return (
-    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, arm and measure`}>
+    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, version and measure`}>
       <table className="ex-sg">
         <thead>
           <tr>
@@ -272,7 +272,7 @@ export default function SensitivityTable() {
       controls={
         <>
           <p className="ex-sg-lead">
-            <Lead c="compare">In every scenario’s main arm, against some foreign capital:</Lead>
+            <Lead c="compare">In every scenario’s main version, compared with some foreign capital (ζK 0.1):</Lead>
           </p>
           <Items className="ex-notes" items={sensClaims(res)} />
           {sensFlagItem() ? (
@@ -282,7 +282,7 @@ export default function SensitivityTable() {
           ) : null}
         </>
       }
-      unit={<span data-axis-title="y">{`Gap against the no-shock baseline at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
+      unit={<span data-axis-title="y">{`Gap against the no-shock baseline for the same foreign-capital case, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
       read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}

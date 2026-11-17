@@ -33,7 +33,7 @@ const KPIS = [
     concept: 'gdp',
     title: 'Output (GDP)',
     line: 'everything produced in the UK',
-    tip: `Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital. The figure is a level ${HEADLINE_YEAR - SURPRISE_YEAR + 1} years on, not a growth rate.`,
+    tip: `Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital. The figure is a gap in the level ${HEADLINE_YEAR - SURPRISE_YEAR + 1} years on, not a growth rate.`,
   },
   {
     v: 'w',
@@ -60,7 +60,7 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
-  if (y == null || w == null) return 'This scenario is not solved yet with the foreign capital chosen above.';
+  if (y == null || w == null) return 'This scenario is not solved yet for the foreign-capital case chosen above.';
   const rel = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
   const keep = g != null && y > 0 && g < y ? ', and national income gains less than GDP' : '';
   const pay = `pay rates are ${rel(w)} it${rel(w) === rel(y) ? ' too' : ''}`;
@@ -73,7 +73,7 @@ export function heroItems(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
-  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet with the foreign capital chosen above' }];
+  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet for the foreign-capital case chosen above' }];
   const out = [
     { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the no-shock baseline in ${HEADLINE_YEAR}` },
     { icon: dirConcept(w), text: `Pay rates are ${dirWord(w)} it${dirWord(w) === dirWord(y) ? ' too' : ''}` },
@@ -85,7 +85,7 @@ export function heroItems(sid, cl = CENTRAL) {
 const tone = (x) => (x == null || Math.abs(x) < 0.005 ? null : x > 0 ? 'gain' : 'loss');
 
 const ENTRIES = [
-  { sub: 'income', icon: 'path', title: 'Year by year', text: `How national income and GDP build up from ${FIRST_YEAR} to ${HEADLINE_YEAR}, in three arms.` },
+  { sub: 'income', icon: 'path', title: 'Year by year', text: `How national income and GDP build up from ${FIRST_YEAR} to ${HEADLINE_YEAR}, in three versions.` },
   { sub: 'economy', icon: 'capital', title: 'Inside the economy', text: 'Consumption, investment, capital, labour, the interest rate and the labour share.' },
   { sub: 'finances', icon: 'finances', title: 'Public finances', text: 'Debt and tax as shares of GDP, and why the tax effect is likely understated.' },
 ];
@@ -206,12 +206,12 @@ export function debtParts(sid, cl) {
   const obr = result(sid, 'tfp', cl).debt_gdp_pp_obr_repricing_late;
   const why = d > 0.005 && r != null && r > 0 ? ' if repriced at once' : '';
   let slow = null;
-  if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the path`;
+  if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the baseline`;
   else if (Number.isFinite(obr) && d > 0.005 && obr < d) {
     const k = obr / d;
     slow = `the gap is ${k < 0.2 ? 'under a fifth' : (fracWord(k) ?? 'smaller')}${fracWord(k) || k < 0.2 ? ' as large' : ''}`;
   }
-  return { text: ` ends ${side(d)} the path in ${LATE_YEAR}${why}`, slow };
+  return { text: ` ends ${side(d)} the baseline in ${LATE_YEAR}${why}`, slow };
 }
 export function debtLine(sid, cl) {
   const p = debtParts(sid, cl);
