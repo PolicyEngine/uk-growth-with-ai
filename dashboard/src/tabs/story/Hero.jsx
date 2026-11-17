@@ -2,6 +2,7 @@
 
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
+import { asOfItems } from '@/components/story/AsOf.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -247,7 +248,7 @@ export default function Hero() {
         </ul>
         <figcaption className="hf-src">
           <SourceLine
-            items={[docItem('OG-UK runs', REPO, 'PolicyEngine'), navItem('Method: the model', 'method', 'm-model'), navItem('Part 2: the headline figures', 'story', 'story-headline')]}
+            items={[docItem('OG-UK runs', REPO, 'PolicyEngine'), navItem('Method: the model', 'method', 'm-model'), navItem('Part 2: the headline figures', 'story', 'story-headline'), ...asOfItems()]}
             groups={[
               {
                 title: 'How to read',
