@@ -87,6 +87,12 @@
   --rank-1: #16314b;
   --rank-2: #45668b;
   --rank-3: #8fa9c4;
+  /* The Story's Two lenses close (charts-finale-fable.md B1): one colour per
+     model, neither the gain/loss teal nor amber, nor labour/capital. OG-UK
+     takes --rank-2; uk-ai-study this muted plum of matched strength (both
+     pass 4.5:1 on white). */
+  --c-lens-economy: var(--rank-2);
+  --c-lens-households: #7b5f8a;
 
   --fs-stat: 1.75rem;
   --fs-xl: 1.5rem;

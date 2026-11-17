@@ -20,7 +20,7 @@ import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 import { DECILES_SUB, bottomDecileRankings, decileShape } from './part3/Deciles.jsx';
 import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
 import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
-import TwoLenses, { CLOSE_SUB, LENS_ROWS } from './TwoLenses.jsx';
+import TwoLenses, { CLOSE_SUB, LENSES, PAY_RESULT } from './TwoLenses.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
 afterEach(cleanup);
@@ -127,11 +127,11 @@ describe('Part3', () => {
     const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
     // T14; the central cost is a residual: said once, in the figure's note
     // round 2 sign-off #3: the cost is net of the assumed gains, said in the sentence (the next scene's job loss alone is gross)
-    expect(line('p3-central-step-2')).toMatch(/^Net of assumed pay and capital gains, job loss costs £\d+\.\dbn a year, raising absolute poverty by \+\d\.\d\dpp$/);
+    expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \+\d\.\d\dpp$/);
     expect(line('p3-channels-step-2')).toContain('Assumed');
     // T12, T7, T6
-    expect(line('p3-moves-step')).toBe(`The cost reaches zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
-    expect(line('p3-margin-step-2')).toBe('With the wage and capital-income effects included, wage cuts still cost more; job loss raises poverty far more');
+    expect(line('p3-moves-step')).toBe(`The cost falls to zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
+    expect(line('p3-margin-step-2')).toBe('With the assumed gains added back, wage cuts still cost more; job loss raises poverty far more');
     expect(line('p3-deciles-step-2')).toBe('Decile 1’s direction depends on how households are ranked, so no conclusion is drawn');
   });
 
@@ -297,30 +297,39 @@ describe('Part3', () => {
     }
     expect(long).toEqual([]);
     // no icon inside a fact, a note, a source line or a table cell
-    expect(container.querySelectorAll('.story-fact svg, .p3-key svg, .story-source svg, .lens-table svg, .p3-out-list svg')).toHaveLength(0);
+    expect(container.querySelectorAll('.story-fact svg, .p3-key svg, .story-source svg, .lens-chips svg, .p3-out-list svg')).toHaveLength(0);
   });
 
   it('says once in the close that the two models assume opposite pay directions', () => {
     const { container } = render(<TwoLenses />);
-    expect(container.querySelector('.lens-lead').textContent).toContain('opposite pay directions');
-    const pay = container.querySelector('[data-row="pay"]');
-    expect(pay.textContent).toContain('A result');
-    expect(pay.textContent).toContain('An input');
-    expect(pay.querySelector('[data-input]').textContent).toBe(`+${D.method.survivor_wage_pct}%`);
+    expect(container.querySelector('.lens-close').textContent).toContain('opposite pay directions');
+    const cards = container.querySelectorAll('.lens-pay-card');
+    expect([...cards].map((c) => c.querySelector('.lens-pay-head').textContent)).toEqual(['Pay is a result', 'Pay is an input']);
+    // the input is quoted (data-input); the result restates part 2's pay tile (data-axis), linked to it
+    expect(cards[1].querySelector('[data-input]').textContent).toBe(`+${D.method.survivor_wage_pct}%`);
+    const res = cards[0].querySelector('[data-axis]');
+    expect(res.textContent).toBe(`${PAY_RESULT < 0 ? '−' : '+'}${Math.abs(PAY_RESULT).toFixed(2)}%`);
+    expect(res.getAttribute('href')).toContain('#story-headline');
     expect(container.textContent.match(/opposite pay/g)).toHaveLength(1);
   });
 
-  it('ends with one header and the two lenses as one ruled table, then at most six links', () => {
+  it('ends with one header, the two lenses as real lists of chip links, then at most six links', () => {
     const { container } = render(<TwoLenses />);
     // the question is on the pinned screen only; the header is the title
     expect(container.querySelector('#story-close-h').textContent.trim()).toBe('Two lenses');
     expect(container.textContent.split(CLOSE_SUB.question).length - 1).toBeLessThanOrEqual(1);
-    expect(container.querySelector('.lens, .lens-grid, .story-recap, .scrolly-answer')).toBeNull();
-    const table = container.querySelector('table.lens-table');
-    expect([...table.querySelectorAll('thead th')].map((t) => t.textContent)).toEqual(['OG-UK', expect.stringMatching(/^uk-ai-study/)]);
-    expect([...table.querySelectorAll('tbody th')].map((t) => t.textContent)).toEqual(LENS_ROWS.map((r) => r.head));
-    expect(container.textContent).toContain('OBR-central path');
-    expect(container.textContent).toContain('Job loss as a result: it is assumed');
+    expect(container.querySelector('.lens-table, .story-recap, .scrolly-answer')).toBeNull();
+    // one heading per lens naming its model; 4 + 3 "can say" chips, each a link to its scene; 2 outside chips each
+    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^uk-ai-study/)]);
+    const can = [...container.querySelectorAll('.lens-circle ul.lens-chips')];
+    expect(can.map((u) => u.querySelectorAll('li a').length)).toEqual([4, 3]);
+    for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central)$/);
+    expect([...container.querySelectorAll('.lens-outside ul.lens-chips')].map((u) => u.querySelectorAll('li').length)).toEqual([2, 2]);
+    for (const l of LENSES) for (const c of [...l.can, ...l.outside]) expect(c.text.split(/\s+/).length, c.text).toBeLessThanOrEqual(4);
+    expect(container.querySelector('.lens-overlap').textContent.trim()).toBe('The public finances');
+    // decorative circles; no hidden table
+    for (const svg of container.querySelectorAll('.lens-rings')) expect(svg.getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelector('table')).toBeNull();
     expect(container.querySelectorAll('.lens-deeper a').length).toBeLessThanOrEqual(6);
   });
 
@@ -388,13 +397,20 @@ describe('Part3', () => {
     const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="rules"]');
     // B10: the three non-central rules' poverty rises are counted here; the central one restates step 1
     expect(checkedText(fig).match(/[+−]\d\.\d\dpp/g)).toEqual(['uniform', 'junior', 'compression'].map((k) => fmtPp(rule(k).poverty_pp)));
-    expect(fig.querySelector('[data-row="exposure"] .p3-dot-pov .p3-dot-val').hasAttribute('data-axis')).toBe(true);
-    // ticks on both axes (C10), scale only
-    expect(fig.querySelectorAll('.p3-ch-ticks[data-axis]')).toHaveLength(2);
-    // the exposure rule is the central case: a ring, its £ label restated from step 1 (data-axis)
-    const val = fig.querySelector('[data-row="exposure"] .p3-dot-cost.is-ring .p3-dot-val');
-    expect(val.textContent).toBe(fmtBn(rule('exposure').cost_bn));
-    expect(val.hasAttribute('data-axis')).toBe(true);
+    // one cost x poverty plane, both axes from zero (charts-finale A): ticks on both axes, scale only
+    expect(fig.querySelectorAll('.p3-plane-ticks[data-axis]')).toHaveLength(2);
+    expect(fig.querySelector('.p3-plane-ticks.is-x').textContent).toContain('£0');
+    expect(fig.querySelector('[data-axis-title="x"]').textContent).toBe('Cost to the public finances, £bn a year');
+    expect(fig.querySelector('[data-axis-title="y"]').textContent).toBe('Absolute poverty rise, pp');
+    // one direct label per rule, each with both values; the central case's restate step 1 (data-axis)
+    const labels = [...fig.querySelectorAll('ol.p3-plane-labels > li')];
+    expect(labels.map((l) => l.dataset.row)).toEqual(['uniform', 'junior', 'exposure', 'compression']);
+    const central = fig.querySelector('[data-row="exposure"] .p3-plane-vals');
+    expect(central.textContent).toBe(`${fmtBn(rule('exposure').cost_bn)} · ${fmtPp(rule('exposure').poverty_pp)}`);
+    expect([...central.querySelectorAll('[data-axis]')]).toHaveLength(2);
+    expect(fig.querySelectorAll('.p3-plane-dot.is-ring')).toHaveLength(1);
+    // the stress test is named, not drawn or printed
+    expect(fig.querySelector('.p3-plane-stress').textContent).not.toMatch(/\d/);
   });
 
   it('derives the margin sentences and the aria sentence from the signs, and names each margin’s dots', () => {

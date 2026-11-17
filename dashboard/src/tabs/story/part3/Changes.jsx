@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
@@ -23,17 +25,28 @@ import { Ref } from './sources.jsx';
 // here, a read-out on hover or focus).
 
 // ---- panel A: four stylised rules (50 paired draws) -----------------------
-// `short`: the phone label (600px and below), each with its citation
+// One cost x poverty plane, both axes from zero (charts-finale-fable.md A):
+// cost runs left to right while the poverty rise stays nearly flat. Each
+// rule's name and values are one direct label (an <ol> over the plot: each
+// number once in the DOM); `place` is the label's side of its dot and the
+// leader's depth. `short`: the phone label (600px and below).
+// SOURCES: move into notes icon: "Uniform: every employee equally likely.
+// Ages 16 to 24: tilted to them, after Klein Teeselink (2025) [REFS.klein].
+// Central: in proportion to AI exposure. Exposed higher earners: expertise
+// compression, after Autor (2024) [REFS.autor]. 50 paired draws per rule."
 const RULES = [
-  { id: 'uniform', label: 'Uniform: every employee equally likely', short: 'Uniform' },
-  { id: 'junior', label: 'Tilted to ages 16 to 24, after ', ref: 'klein', short: 'Junior-tilted, after ' },
-  { id: 'exposure', label: 'In proportion to AI exposure: the central case', central: true, short: 'AI exposure: the central case' },
-  { id: 'compression', label: 'Expertise compression, after ', close: ': exposed higher earners', ref: 'autor', short: 'Expertise compression, after ' },
+  { id: 'uniform', label: 'Uniform', place: { side: 'below', anchor: 'start', lead: 16 }, beat: 400 },
+  { id: 'junior', label: 'Ages 16 to 24', place: { side: 'below', anchor: 'end', lead: 58 }, beat: 800 },
+  { id: 'exposure', label: 'Central: by AI exposure', short: 'Central: AI exposure', central: true, place: { side: 'below', anchor: 'start', lead: 16 }, beat: 0 },
+  { id: 'compression', label: 'Exposed higher earners', place: { side: 'above', anchor: 'end', lead: 16 }, beat: 1200 },
 ];
-// Both rule axes start at zero: the cost differs about fivefold across
-// rules while the poverty rise hardly moves.
-const MAXC = Math.max(...RULES.map((r) => rule(r.id).cost_bn)) * 1.12;
-const MAXP = Math.max(...RULES.map((r) => rule(r.id).poverty_pp)) * 1.12;
+// The plane's domain: cost £0-12bn, the poverty rise 0-3.3pp.
+const X_MAX = 12;
+const Y_MAX = 3.3;
+const X_TICKS = [0, 3, 6, 9, 12];
+const Y_TICKS = [0, 1, 2, 3];
+const px = (v) => (v / X_MAX) * 100;
+const py = (v) => (1 - v / Y_MAX) * 100;
 
 // The rules' claims, from the data (part3.test.jsx).
 export function rulesClaims() {
@@ -134,69 +147,114 @@ function Ticks({ max, fmt }) {
   );
 }
 
-// A position-only poverty dot; its value mounts only while hovered or focused.
-// Each rule's poverty rise, printed beside its dot (round 2, B10: their
-// home moved here from Explore > Households). The exposure rule's is the
-// central case's, whose home is step 1: restated (data-axis).
-function PovertyDot({ id, d, on }) {
-  const left = d.poverty_pp / MAXP > 0.6;
-  return (
-    <span className={`p3-dot p3-dot-pov${id === 'exposure' ? ' is-ring' : ''}`} style={{ left: on ? `${(d.poverty_pp / MAXP) * 100}%` : 0 }}>
-      <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(id === 'exposure' ? { 'data-axis': '' } : {})}>
-        {fmtPp(d.poverty_pp)}
-      </span>
-    </span>
-  );
-}
-
+// Panel A: the plane. Positions are a pure function of `on` (the beat):
+// before it, every dot sits on the central ring and only the central label
+// shows; then the others slide out along their connectors in turn
+// (--beat), and the stress-test note fades in last. Final state on a jump
+// or reload, replay on scroll-back, static under reduced motion (CSS).
+// The list items are the hover and focus targets; the readout mounts only
+// while one is hovered or focused (data-axis: it restates the labels).
 function RulesPanel({ on }) {
+  const [hot, setHot] = useState(null);
+  const c = rule('exposure');
+  const cx = px(c.cost_bn);
+  const cy = py(c.poverty_pp);
+  const hd = hot ? rule(hot) : null;
+  const hr = RULES.find((r) => r.id === hot);
   return (
-    <>
-      <p className="p3-group-head p3-group-first">Who loses the job: four rules, {rule('uniform').draws} draws each</p>
-      <div className="p3-dp-heads">
-        <AxisTitle axis="y">Cost, £bn a year</AxisTitle>
-        <AxisTitle axis="y">Absolute poverty rise, pp</AxisTitle>
+    <div className={`p3-plane${on ? ' is-on' : ''}${hot ? ' is-hot' : ''}`}>
+      <p className="p3-group-head p3-group-first">Four rules for who loses the job, {rule('uniform').draws} draws each</p>
+      <div className="p3-plane-heads">
+        <span data-mark="r-poverty" className="p3-plane-ytitle">
+          <AxisTitle axis="y">Absolute poverty rise, pp</AxisTitle>
+        </span>
+        <span className="p3-plane-stress" style={{ '--beat': '1700ms' }}>
+          <span className="p3-long">Top-loaded stress test: off the scale</span>
+          <span className="p3-short">Stress test: off the scale</span>
+          <Icon name="arrowRight" size={14} />
+        </span>
       </div>
-      <ol className="p3-dp">
-        {RULES.map((r, i) => {
+      <div className="p3-plane-plot">
+        <svg className="p3-plane-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {Y_TICKS.filter((t) => t > 0).map((t) => (
+            <line key={t} className="p3-plane-grid" x1={0} x2={100} y1={py(t)} y2={py(t)} />
+          ))}
+          <line className="p3-plane-axis is-y" data-mark="r-poverty" x1={0} x2={0} y1={0} y2={100} />
+          <line className="p3-plane-axis is-x" data-mark="r-cost" x1={0} x2={100} y1={100} y2={100} />
+          {RULES.filter((r) => !r.central).map((r) => {
+            const d = rule(r.id);
+            return <line key={r.id} className="p3-plane-link" pathLength={1} x1={cx} y1={cy} x2={px(d.cost_bn)} y2={py(d.poverty_pp)} style={{ '--beat': `${r.beat}ms` }} />;
+          })}
+        </svg>
+        <span className="p3-plane-ticks is-y" data-axis="" aria-hidden="true">
+          {Y_TICKS.map((t) => (
+            <span key={t} style={{ top: `${py(t)}%` }}>
+              {t ? `${t}pp` : '0'}
+            </span>
+          ))}
+        </span>
+        <span className="p3-plane-ticks is-x" data-axis="" aria-hidden="true">
+          {X_TICKS.map((t) => (
+            <span key={t} style={{ left: `${px(t)}%` }}>
+              £{t}
+              {t ? 'bn' : ''}
+            </span>
+          ))}
+        </span>
+        {RULES.map((r) => {
           const d = rule(r.id);
-          const left = d.cost_bn / MAXC > 0.6;
-          return (
-            <li key={r.id} className="p3-dp-row" data-row={r.id} style={{ '--beat': `${i * 120}ms` }}>
-              <span className="p3-row-label">
-                <span className="p3-long">
-                  {r.label}
-                  {r.ref ? <Ref id={r.ref} /> : null}
-                  {r.close ?? null}
-                </span>
-                <span className="p3-short">
-                  {r.short}
-                  {r.ref ? <Ref id={r.ref} /> : null}
-                </span>
-              </span>
-              <span className="p3-dp-track" data-mark="r-cost">
-                <span className={`p3-dot p3-dot-cost${r.central ? ' is-ring' : ''}`} style={{ left: on ? `${(d.cost_bn / MAXC) * 100}%` : 0 }}>
-                  {/* the central case's cost has its home in step 1: restated (data-axis) */}
-                  <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(r.central ? { 'data-axis': '' } : {})}>
-                    {fmtBn(d.cost_bn)}
-                  </span>
-                </span>
-              </span>
-              <span className="p3-dp-track" data-mark="r-poverty">
-                <PovertyDot id={r.id} d={d} on={on} />
-              </span>
-            </li>
-          );
+          const x = on || r.central ? px(d.cost_bn) : cx;
+          const y = on || r.central ? py(d.poverty_pp) : cy;
+          return <span key={r.id} className={`p3-plane-dot${r.central ? ' is-ring' : ''}${hot === r.id ? ' is-hot' : ''}`} style={{ left: `${x}%`, top: `${y}%`, '--beat': `${r.beat}ms` }} aria-hidden="true" />;
         })}
-        <li className="p3-dp-row p3-ch-tickrow" aria-hidden="true">
-          <Ticks max={MAXC} fmt={(t) => `£${t}bn`} />
-          <Ticks max={MAXP} fmt={(t) => `${t}pp`} />
-        </li>
-      </ol>
+        <ol className="p3-plane-labels" aria-label="Cost and absolute poverty rise under each rule">
+          {RULES.map((r) => {
+            const d = rule(r.id);
+            const { side, anchor, lead } = r.place;
+            const restate = r.central ? { 'data-axis': '' } : {};
+            return (
+              <li
+                key={r.id}
+                data-row={r.id}
+                className={`p3-plane-label is-${side} is-${anchor}${r.central ? ' is-central' : ''}${hot === r.id ? ' is-hot' : ''}`}
+                style={{ left: `${px(d.cost_bn)}%`, top: `${py(d.poverty_pp)}%`, '--lead': `${lead}px`, '--beat': `${r.beat}ms` }}
+                tabIndex={0}
+                onMouseEnter={() => setHot(r.id)}
+                onMouseLeave={() => setHot(null)}
+                onFocus={() => setHot(r.id)}
+                onBlur={() => setHot(null)}
+              >
+                <span className="p3-plane-name">
+                  {r.short ? (
+                    <>
+                      <span className="p3-long">{r.label}</span>
+                      <span className="p3-short">{r.short}</span>
+                    </>
+                  ) : (
+                    r.label
+                  )}
+                </span>
+                {/* the central case's figures have their home in step 1: restated (data-axis) */}
+                <span className="p3-plane-vals">
+                  <span {...restate}>{fmtBn(d.cost_bn)}</span> · <span {...restate}>{fmtPp(d.poverty_pp)}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+        {hd ? (
+          <p className="p3-plane-readout" data-axis="">
+            <strong>{hr.label}</strong>: {fmtBn(hd.cost_bn)} a year; poverty {fmtPp(hd.poverty_pp)}; Gini {fmtPp(hd.gini_pp).replace('pp', ' points')}
+          </p>
+        ) : null}
+      </div>
+      <p className="p3-plane-xtitle" data-mark="r-cost">
+        <AxisTitle axis="x">Cost to the public finances, £bn a year</AxisTitle>
+      </p>
       <div className="p3-ch-notes">
         <RulesNotes />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -360,7 +418,7 @@ function MarginNotes() {
       <p className="p3-key">
         Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
       </p>
-      {marginClaims().perPoundMore === 'cut' ? <p className="p3-key">A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here.</p> : null}
+      {marginClaims().perPoundMore === 'cut' ? <p className="p3-key">A pay cut loses tax at the worker’s marginal (last-pound) rate, a lost job at the average rate, and benefits replace little here.</p> : null}
     </>
   );
 }
@@ -395,7 +453,7 @@ function ChangesFigure({ step, ctx }) {
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
-      <FigureHead icon="scenario" title="What changes the answer" replay={e.replay} />
+      <FigureHead icon="scenario" title="The central case under other assumptions" replay={e.replay} />
       <div className="p3-ch-panels">
         {PANELS.map((Panel, k) => {
           const shown = all || k === cur;
@@ -444,9 +502,9 @@ export function changesSub() {
     title: 'What changes the answer',
     icon: 'scenario',
     // the scene head prints the title beside the question: they differ
-    question: 'What moves the cost and the poverty rise?',
+    question: 'What would change the cost and the poverty rise?',
     hint: 'Watch the chart change with each assumption',
-    key: 'moves',
+    key: 'change',
     answer: `Cost ${fmtBn(Math.min(...cs))} to ${fmtBn(Math.max(...cs))} a year by rule; zero if wages rise ${fmtPctSigned1(BE.wage.value_pct)}`,
     answerTo: 'p3-moves-step',
   };
@@ -459,7 +517,7 @@ export const CHANGES_STEPS = [
     highlight: ['r-cost', 'r-poverty'],
     title: (
       <>
-        Who loses the job moves the cost {RC.spreadWords}, the poverty rise {RC.costFar ? 'far less' : 'too'}
+        Change who loses the job and the cost moves {RC.spreadWords}; poverty, {RC.costFar ? 'far less' : 'too'}
       </>
     ),
   },
@@ -480,12 +538,12 @@ export const CHANGES_STEPS = [
     title:
       CL.costMore === CL.povertyMore ? (
         <>
-          With the wage and capital-income effects included, {K[CL.costMore]} {CL.costMore === CL.perPoundMore ? 'still ' : ''}
+          With the assumed gains added back, {K[CL.costMore]} {CL.costMore === CL.perPoundMore ? 'still ' : ''}
           {verb(CL.costMore, 'costs', 'cost')} more and {verb(CL.costMore, 'raises', 'raise')} poverty more
         </>
       ) : (
         <>
-          With the wage and capital-income effects included, {K[CL.costMore]} {CL.costMore === CL.perPoundMore ? 'still ' : ''}
+          With the assumed gains added back, {K[CL.costMore]} {CL.costMore === CL.perPoundMore ? 'still ' : ''}
           {verb(CL.costMore, 'costs', 'cost')} more; {K[CL.povertyMore]} {verb(CL.povertyMore, 'raises', 'raise')} poverty {CL.far ? 'far ' : ''}more
         </>
       ),
@@ -496,7 +554,7 @@ export const CHANGES_STEPS = [
     highlight: ['breakeven'],
     title: (
       <>
-        The cost reaches zero if wages rise <Re>{BW.valueText}</Re>, capital income <Re>{BC.valueText}</Re>, or job loss lasts{' '}
+        The cost falls to zero if wages rise <Re>{BW.valueText}</Re>, capital income <Re>{BC.valueText}</Re>, or job loss lasts{' '}
         <Re>{BD.valueText}</Re>
       </>
     ),
