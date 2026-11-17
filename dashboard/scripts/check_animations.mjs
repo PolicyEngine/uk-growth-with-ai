@@ -6,7 +6,7 @@
 //    (above its question moment), and wheel down at a reading speed (SPEED px
 //    a frame, under the fast-scroll threshold) until the figure's top is at
 //    30% of the screen; sample the figure's marks every 80ms from the start
-//    until 1.5s after the stop. The marks' drawn state (opacity, transform,
+//    until 3s after the stop (a staggered entry starts late). The marks' drawn state (opacity, transform,
 //    stroke-dashoffset, clip-path, width and height of their boxes; only once the
 //    figure is on screen and its question moment has moved aside): at least one mark
 //    must take 3 or more values (from, between, to); a figure already drawn
@@ -52,7 +52,7 @@ const TARGETS = [
 ];
 
 // the figure's marks, one value string each (in document order), leaving
-// out anything in an inert or aria-hidden layer (a swapped-out state)
+// out anything in an inert layer (a swapped-out state)
 const SIG = (sel) => {
   const blk = document.querySelector(sel.block);
   const root = blk?.querySelector(sel.fig) ?? blk;
@@ -66,7 +66,7 @@ const SIG = (sel) => {
   const els = root.querySelectorAll('*');
   const parts = [];
   for (const el of els) {
-    if (el.closest('.scrolly-sizers, [inert], [aria-hidden="true"]:not(svg *)')) {
+    if (el.closest('.scrolly-sizers, [inert]')) {
       parts.push('');
       continue;
     }
@@ -150,7 +150,7 @@ for (const [name, block, fig] of TARGETS.filter(([n, b]) => !ONLY || ONLY.some((
       if (s) sigs.push(s);
     }
   }
-  for (let t = 0; t < 19; t++) {
+  for (let t = 0; t < 38; t++) {
     const s = await page.evaluate(SIG, sel);
     if (s) sigs.push(s);
     await page.waitForTimeout(80);

@@ -2,7 +2,7 @@
 
 import { TileField } from '@/components/story/primitives.jsx';
 import { useEffect, useState } from 'react';
-import { useReducedMotion } from '@/components/story/motion.js';
+import { useReducedMotion, useScrollyEntry } from '@/components/story/motion.js';
 import { useLiveInView } from './live.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { Tx } from './frame.jsx';
@@ -90,7 +90,11 @@ export default function ShockTiles({ state }) {
   }, [inView]);
   // the first card's move from the split before the shock replays each
   // time the figure comes back into view
-  const s = state === 1 && !reduce && !armed ? 0 : state;
+  // landed by a jump, a reload or a link: the final state at once (polish
+  // F: the move ran 400ms after a landing)
+  const entry = useScrollyEntry();
+  const landed = Boolean(entry?.entered && entry?.instant);
+  const s = state === 1 && !reduce && !armed && !landed ? 0 : state;
   return (
     <figure ref={ref} className="p2-figure p2-shock-fig" data-state={s} data-no-axes="an illustrative tile grid: one tile is one per cent of output">
       <ModelBadge model="illustration" />
