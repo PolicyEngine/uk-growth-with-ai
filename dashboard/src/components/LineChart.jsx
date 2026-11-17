@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
 import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 
@@ -14,12 +14,35 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           `noEndLabel` draws the line without an end label (use when another
 //           series' label already covers the same end point).
 // `x`:      number[] (same length as every series)
+// `yUnit` (or `yTitle`): the y-axis title with its unit (data-axis-title="y"), drawn
+//           rotated left of the ticks, or horizontal above the plot with
+//           `yTitleTop` (a small tile, where a rotated title would not fit)
+// `xUnit`:  optional x-axis title, drawn under the year labels
+//           (data-axis-title="x")
+// `zeroNote`: a reference label on the zero line ("OBR-central path = 0")
 // `dots`:   false draws markers only at the crosshair (for long series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
 //           hollow dots in a narrow column right of the last year. A point
 //           marked offScale sits on the axis edge with an arrow (offScale:
 //           'high' puts it on the top edge, pointing up).
+// `compact`: for a small-multiple tile: at most four y ticks (alternate
+//           ticks dropped), no marker or band label rows (their lines stay),
+//           and markers only at the crosshair.
+// `link`:   the crosshair group (default 'oguk'): pointing at a year on one
+//           chart shows the crosshair at that year on every chart of the
+//           same group on the page; the tooltip stays on the chart under
+//           the pointer. false: not linked (uk-ai-study charts never link to
+//           OG-UK ones).
+//
+// Motion: when the data changes (a picker), the lines and their markers
+// move to the new values (geometry only, 320ms; the CSS `d` transition, so
+// a browser without it switches at once); printed values (end labels)
+// cross-fade and never count through intermediate values. Reduced motion:
+// everything switches at once (ab.css).
+
+// The linked crosshair: one window event, `lc-year`, { year, src, group }
+const LINK_EVENT = 'lc-year';
 
 const FONT = CHART_FONT;
 const PAD_T = 22;
@@ -146,7 +169,10 @@ export default function LineChart({
   height = 360,
   valueFormat = (v) => v.toFixed(1),
   tipFormat = null,
-  yUnit = null,
+  yUnit: yUnitProp = null,
+  xUnit: xUnitProp = null,
+  yTitle = null,
+  xTitle = null,
   ariaLabel,
   noValue = false,
   noEndLabels = false,
@@ -157,14 +183,39 @@ export default function LineChart({
   endLabel = 'name',
   markers = [],
   bands = [],
-  dots = true,
+  dots: dotsProp = true,
+  link = 'oguk',
+  compact = false,
+  yTitleTop = false,
+  zeroNote = null,
 }) {
+  // yTitle / xTitle (the shared chart API) are the same as yUnit / xUnit
+  const yUnit = yTitle ?? yUnitProp;
+  const xUnit = xTitle ?? xUnitProp;
+  const dots = compact ? false : dotsProp;
   const [ref, W] = useWidth(880);
   useMeasured();
   // Crosshair: the year under the pointer, keyboard focus or tap.
   const [hov, setHov] = useState(null);
+  // the year another chart of the same group points at
+  const [linkedYear, setLinkedYear] = useState(null);
   const boxRef = useRef(null);
+  const src = useId();
   useOutside(boxRef, hov != null, () => setHov(null));
+  const hovYear = hov == null ? null : x[hov];
+  useEffect(() => {
+    if (!link || typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent(LINK_EVENT, { detail: { year: hovYear ?? null, src, group: link } }));
+  }, [hovYear, link, src]);
+  useEffect(() => {
+    if (!link || typeof window === 'undefined') return undefined;
+    const on = (e) => {
+      const d = e.detail;
+      if (d.src !== src && d.group === link) setLinkedYear(d.year);
+    };
+    window.addEventListener(LINK_EVENT, on);
+    return () => window.removeEventListener(LINK_EVENT, on);
+  }, [link, src]);
 
   const onScale = (strip?.points || []).filter((p) => !p.offScale).map((p) => p.value);
   const all = series.flatMap((s) => s.values).concat(onScale).filter((v) => Number.isFinite(v));
@@ -180,8 +231,14 @@ export default function LineChart({
   const step = niceStep(span);
   lo = Math.floor((lo - span * 0.04) / step) * step;
   hi = Math.ceil((hi + span * 0.04) / step) * step;
-  const ticks = [];
+  let ticks = [];
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
+  // a compact tile keeps at most four ticks: every other one, zero kept
+  if (compact && ticks.length > 4) {
+    const z = ticks.findIndex((v) => Math.abs(v) < step / 2);
+    const keep = z >= 0 ? z % 2 : 0;
+    ticks = ticks.filter((_, i) => i % 2 === keep);
+  }
   const dp = decimalsFor(step);
   // No "-0.00": a tick that rounds to zero prints unsigned.
   const tickFmt = (v) => (Math.abs(v) < 0.5 * 10 ** -dp ? (zeroLabel ? `${zeroLabel} 0` : (0).toFixed(dp)) : minus(v.toFixed(dp)));
@@ -192,7 +249,8 @@ export default function LineChart({
   // "112.5" needs more room than "4" at every width.
   const tickW = Math.max(...tickText.map((t) => textWidth(t, AX_FONT)));
   const unitX = EDGE + UNIT_ASCENT;
-  const L = Math.ceil((yUnit ? unitX + UNIT_DESCENT + UNIT_GAP : EDGE) + tickW + TICK_GAP);
+  const rotated = yUnit && !yTitleTop;
+  const L = Math.ceil((rotated ? unitX + UNIT_DESCENT + UNIT_GAP : EDGE) + tickW + TICK_GAP);
 
   // End labels: name, value and any "(off scale)" note, as segments.
   const points = strip?.points || [];
@@ -214,8 +272,8 @@ export default function LineChart({
   const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, 11)) : 0)));
   const labelW = rawLabels.length ? Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120)) : 6;
   const R = Math.max(L + 80, W - labelW - stripW - 8);
-  const TOP = PAD_T;
-  const BOT = height - PAD_B;
+  // an x-axis title takes one more line under the year labels
+  const BOT = height - PAD_B - (xUnit ? 16 : 0);
   const H = height;
 
   const stripX = R + stripW / 2 + 4;
@@ -236,6 +294,42 @@ export default function LineChart({
   }
 
   const sx = (i) => (x.length === 1 ? L : L + ((R - L) * i) / (x.length - 1));
+  // Labels above the plot, band labels and marker labels together: each
+  // takes the lowest row where it overlaps no label already placed (widths
+  // estimated from the text), and the plot starts below the rows used, so a
+  // label never overprints another label or the data.
+  const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
+  const placed = [];
+  const place = (a0, w) => {
+    let row = 0;
+    while (placed.some((p) => p.row === row && a0 < p.b && a0 + w > p.a)) row += 1;
+    placed.push({ row, a: a0, b: a0 + w });
+    return row;
+  };
+  const bandRows = bands.map((b) => {
+    const i = x.indexOf(b.year);
+    if (i < 0 || !b.label || compact) return { b, i, row: 0 };
+    const w = String(b.label).length * 6.4 + 6;
+    return { b, i, row: place(sx(i) - w / 2, w) };
+  });
+  const markerRows = [];
+  for (const m of markers) {
+    const i = x.indexOf(m.year);
+    if (i < 0) continue;
+    const len = compact ? 0 : String(m.label ?? '').length;
+    const end = i === x.length - 1 || sx(i) + 4 + len * 6.4 > R;
+    const w = len * 6.4 + 6;
+    const a0 = end ? sx(i) - 4 - w : sx(i) + 4;
+    markerRows.push({ m, i, end, row: len ? place(a0, w) : 0 });
+  }
+  const rowsUsed = placed.length ? Math.max(...placed.map((p) => p.row)) + 1 : 1;
+  // A label that reaches left of the plot runs over the top y tick's column:
+  // the label rows then sit LIFT px higher, so the label clears that tick.
+  const LIFT = placed.some((p) => p.a < L) ? 6 : 0;
+  // a horizontal y title wider than the chart wraps at its last comma
+  const topLines = !yUnit || !yTitleTop ? [] : textWidth(yUnit, `11px ${FONT}`) <= W - 2 * EDGE || !yUnit.includes(', ') ? [yUnit] : [yUnit.slice(0, yUnit.lastIndexOf(', ') + 1), yUnit.slice(yUnit.lastIndexOf(', ') + 2)];
+  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (topLines.length ? 14 + (topLines.length - 1) * 13 : 0);
+  const labelY = (row) => TOP - 6 - LIFT - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // Where a strip point's marker sits. Two points pushed to the same axis
   // edge would be drawn on top of each other, so each off-scale point after
@@ -271,8 +365,11 @@ export default function LineChart({
     prev = e.ly;
     prevH = ROW + e.extra;
   }
-  // If the stack runs past the bottom, push it back up.
-  let floor = H - 10 - 4;
+  // If the stack runs past the bottom, push it back up. When the last year
+  // label reaches into the label column, the floor is the top of the year
+  // row instead, so an end label never sits on that year.
+  const lastYearRight = sx(x.length - 1) + textWidth(String(x[x.length - 1]), AX_FONT) / 2;
+  let floor = lastYearRight + 4 > labelX ? Math.min(H - 14, BOT + 3) : H - 10 - 4;
   for (let i = labels.length - 1; i >= 0; i -= 1) {
     const e = labels[i];
     if (e.ly + e.extra > floor) e.ly = floor - e.extra;
@@ -294,6 +391,9 @@ export default function LineChart({
     e.preventDefault();
   };
   const tipLeft = hov == null ? 0 : sx(hov);
+  const linkedAt = linkedYear == null ? -1 : x.indexOf(linkedYear);
+  const cross = hov ?? (linkedAt >= 0 ? linkedAt : null);
+  const pathOf = (vals) => vals.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
   // One closure for every line: said once in the tooltip's header
   const closures = [...new Set(series.map((s) => s.closure).filter(Boolean))];
   const oneClosure = closures.length === 1 && series.every((s) => s.closure) ? closures[0] : null;
@@ -338,41 +438,32 @@ export default function LineChart({
       ) : null}
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
         {/* bands first, so a marker label that reaches into one stays readable */}
-        {bands.map((b) => {
-          const i = x.indexOf(b.year);
+        {bandRows.map(({ b, i, row }) => {
           if (i < 0) return null;
-          const half = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
           const x0 = Math.max(L, sx(i) - half);
           const x1 = Math.min(R + 6, sx(i) + half);
           return (
             <g key={`band-${b.year}`}>
               <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
-              {b.label ? (
-                <text x={(x0 + x1) / 2} y={TOP - 6} className="ax band-label" textAnchor="middle">
+              {b.label && !compact ? (
+                <text x={(x0 + x1) / 2} y={labelY(row)} className="ax band-label" textAnchor="middle">
                   {b.label}
                 </text>
               ) : null}
             </g>
           );
         })}
-        {markers.map((m, mi) => {
-          const i = x.indexOf(m.year);
-          if (i < 0) return null;
-          return (
-            <g key={`m-${m.year}`}>
-              <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
-              <text
-                x={i === x.length - 1 ? sx(i) - 4 : sx(i) + 4}
-                y={TOP + 10 + mi * 14}
-                className="ax marker-label"
-                textAnchor={i === x.length - 1 ? 'end' : 'start'}
-              >
+        {markerRows.map(({ m, i, row, end }) => (
+          <g key={`m-${m.year}`}>
+            <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
+            {compact ? null : (
+              <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
                 {m.label}
               </text>
-            </g>
-          );
-        })}
-        {hov != null ? <line x1={sx(hov)} x2={sx(hov)} y1={TOP} y2={BOT} className="crosshair" /> : null}
+            )}
+          </g>
+        ))}
+        {cross != null ? <line x1={sx(cross)} x2={sx(cross)} y1={TOP} y2={BOT} className={`crosshair${hov == null ? ' is-linked' : ''}`} /> : null}
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
@@ -385,15 +476,30 @@ export default function LineChart({
         {lo < 0 && hi > 0 ? (
           <g>
             <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" />
+            {zeroNote ? (
+              <text x={L + 4} y={sy(0) - 4} className="ax zero-note" data-reference-label="">
+                {zeroNote}
+              </text>
+            ) : null}
           </g>
         ) : null}
-        {yUnit ? (
+        {rotated ? (
           <text
             className="ax axis-unit"
             transform={`translate(${unitX}, ${(TOP + BOT) / 2}) rotate(-90)`}
             textAnchor="middle"
+            data-axis-title="y"
+            data-axis=""
           >
             {yUnit}
+          </text>
+        ) : yUnit ? (
+          <text className="ax axis-unit" x={EDGE} y={12} textAnchor="start" data-axis-title="y" data-axis="">
+            {topLines.map((t, i) => (
+              <tspan key={t} x={EDGE} dy={i ? 13 : 0}>
+                {t}
+              </tspan>
+            ))}
           </text>
         ) : null}
         {x.map((yr, i) =>
@@ -403,6 +509,11 @@ export default function LineChart({
             </text>
           ) : null,
         )}
+        {xUnit ? (
+          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle" data-axis-title="x" data-axis="">
+            {xUnit}
+          </text>
+        ) : null}
         {strip ? (
           <g>
             <line x1={stripX} y1={TOP} x2={stripX} y2={BOT} className="strip-rule" />
@@ -413,8 +524,10 @@ export default function LineChart({
         ) : null}
         {series.map((s) => (
           <g key={s.key ?? s.label}>
-            <polyline
-              points={s.values.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')}
+            <path
+              className="lc-line"
+              d={pathOf(s.values)}
+              style={{ d: `path('${pathOf(s.values)}')` }}
               fill="none"
               stroke={s.color}
               strokeWidth={s.light ? '1.75' : s.dashed ? '2' : '2.5'}
@@ -423,12 +536,12 @@ export default function LineChart({
               strokeLinejoin="round"
             />
             {s.values.map((v, i) =>
-              !dots && i !== hov ? null : s.dashed ? (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3} fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
+              !dots && i !== cross ? null : s.dashed ? (
+                <circle key={i} className="lc-dot" cx={0} cy={0} style={{ transform: `translate(${sx(i).toFixed(1)}px, ${sy(v).toFixed(1)}px)` }} r={i === cross ? 5 : 3} fill="var(--pe-surface, #fff)" stroke={s.color} strokeWidth="1.6">
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>
               ) : (
-                <circle key={i} cx={sx(i)} cy={sy(v)} r={i === hov ? 5 : 3.2} fill={s.color}>
+                <circle key={i} className="lc-dot" cx={0} cy={0} style={{ transform: `translate(${sx(i).toFixed(1)}px, ${sy(v).toFixed(1)}px)` }} r={i === cross ? 5 : 3.2} fill={s.color}>
                   <title>{`${s.label}, ${x[i]}: ${valueFormat(v)}`}</title>
                 </circle>
               ),
@@ -469,7 +582,7 @@ export default function LineChart({
                 opacity=".5"
               />
             ) : null}
-            <text x={labelX} y={e.ly + 4} style={{ font: `12px ${FONT}` }}>
+            <text key={e.lines.map((l) => l.map((w) => w.text).join(' ')).join('|')} className="lc-fade" x={labelX} y={e.ly + 4} style={{ font: `12px ${FONT}` }}>
               {e.lines.map((line, li) => (
                 <tspan key={li} x={labelX} dy={li ? LINE : 0}>
                   {line.map((w, wi) => (

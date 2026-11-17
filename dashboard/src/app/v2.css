@@ -10,11 +10,13 @@
   --band-height: 52px;
   --tabs-height: 44px;
   --subtabs-height: 40px;
+  --settings-height: 46px;
   --title-row-height: var(--band-height);
   --tab-row-height: var(--tabs-height);
   --sticky-offset: calc(var(--band-height) + var(--tabs-height));
   --series-1-text: #0f766e;
   --series-5-text: #475569;
+  --series-3-text: #0369a1;
   --c-loss-text: #b45309;
   --c-loss-soft: #fef4e8;
   --pe-teal-600: #0d9488;
@@ -204,19 +206,67 @@
   color: var(--band-teal);
 }
 
-/* ---------- Tab rows ---------- */
+/* ---------- A shared link to another tab, before the client reads it ----------
+   The server always renders the Story tab. A head script (layout.tsx) marks
+   <html data-nav-pending> when the address names another tab or a sub-tab;
+   until the client has read the address (lib/nav.jsx removes the mark in the
+   same commit that shows the named tab), the content stays hidden and the
+   sub-tab row's height is held, so neither the Story hero flashes nor the
+   page shifts. If scripts fail, the content shows after 5s anyway (3s was too close to hydration on a throttled phone: 3.3s measured). */
+html[data-nav-pending] .app .main-content {
+  visibility: hidden;
+  animation: nav-pending-reveal 0s linear 5s forwards;
+}
+html[data-nav-pending] .app .tabs-bar {
+  margin-bottom: calc(var(--settings-height) + 1px);
+}
+html[data-nav-pending] .app .tabs-bar .view-tab {
+  visibility: hidden;
+  animation: nav-pending-reveal 0s linear 5s forwards;
+}
+@keyframes nav-pending-reveal {
+  to {
+    visibility: visible;
+  }
+}
+
+/* ---------- Tab rows and the sticky stack ----------
+   Story: the title band (with the scenario and closure pickers) and the tab
+   row stick; the rail sticks under them (story.css). Explore and Method
+   (.has-subs): the title band scrolls away, which is how the header
+   condenses; the tab row sticks at the top with the sub-tabs beside the
+   tabs, and on Explore the settings bar sticks under it. The stack is at
+   most 92px tall on desktop (tab row 45, settings bar 47). At 900px and
+   below the sub-tabs are their own row that scrolls sideways. Each bar is
+   solid and the last one casts a soft shadow once the page has scrolled
+   (data-stuck, page.jsx). --sticky-offset is the stack's height: every
+   anchor's scroll-margin, the page contents and lib/scroll.js read it (the
+   last by measuring the [data-sticky-bar] elements). */
 .tabs-bar {
   position: sticky;
   top: var(--band-height);
   z-index: 1090;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 0 var(--bar-pad-x);
   background: var(--pe-surface);
   border-bottom: 1px solid var(--card-border);
 }
+.tabs-bar > .view-tabs-bar {
+  flex: none;
+  min-width: 0;
+}
 .subtabs-bar {
-  padding: 0 var(--bar-pad-x);
-  background: var(--pe-surface);
-  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  padding-left: 12px;
+  border-left: 1px solid var(--card-border);
+}
+.subtabs-bar > .view-tabs-bar {
+  min-width: 0;
 }
 .tabs-bar .view-tabs-bar,
 .subtabs-bar .view-tabs-bar,
@@ -235,10 +285,334 @@
   font-size: var(--fs-body);
 }
 .subtabs-bar .view-tabs-bar.is-sub .view-tabs {
-  height: var(--subtabs-height);
+  height: var(--tabs-height);
+}
+.subtabs-bar .view-tab {
+  font-size: var(--fs-small);
 }
 .view-tab {
   min-width: 44px;
+}
+.app.has-subs {
+  --sticky-offset: calc(var(--tabs-height) + 1px);
+}
+.app.has-subs.has-settings {
+  --sticky-offset: calc(var(--tabs-height) + var(--settings-height) + 2px);
+}
+.app.has-subs .band {
+  position: relative;
+  top: auto;
+}
+.app.has-subs .tabs-bar {
+  top: 0;
+}
+.app[data-stuck]:not(.has-subs) .story-rail,
+.app[data-stuck].has-subs:not(.has-settings) .tabs-bar,
+.app[data-stuck] .settings-bar {
+  box-shadow: 0 6px 12px -8px var(--shadow-strong);
+}
+
+/* Copy this view (SettingsBar.jsx CopyLink): at the end of the tab row */
+.copy-link {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+  align-items: center;
+  height: 32px;
+  margin-left: auto;
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--pe-radius-md);
+  cursor: pointer;
+}
+.copy-link:hover {
+  color: var(--pe-gray-900);
+  border-color: var(--card-border);
+}
+.copy-link:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 2px;
+}
+
+/* The settings bar (SettingsBar.jsx): one row of compact choices */
+.settings-bar {
+  position: sticky;
+  top: calc(var(--tabs-height) + 1px);
+  z-index: 1080;
+  min-height: var(--settings-height);
+  padding: 0 var(--bar-pad-x);
+  background: var(--pe-surface);
+  border-bottom: 1px solid var(--card-border);
+}
+.settings-row {
+  display: flex;
+  gap: 8px 16px;
+  align-items: center;
+  min-height: var(--settings-height);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.settings-row > * {
+  flex: none;
+}
+.settings-bar .picker-button {
+  height: 32px;
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border-color: var(--card-border);
+}
+.settings-bar .picker-button:hover:not(.is-locked),
+.settings-bar .picker-button[aria-expanded='true'] {
+  background: var(--pe-teal-50);
+  border-color: var(--pe-teal-500);
+}
+.settings-bar .picker-button:focus-visible {
+  outline-color: var(--pe-teal-500);
+}
+.settings-bar .picker-label {
+  color: var(--pe-gray-500);
+}
+.settings-bar .picker-icon {
+  color: var(--pe-gray-500);
+}
+.settings-bar .picker-pop {
+  left: 0;
+  right: auto;
+}
+/* a uk-ai-study page: the different-model chip in place of the settings */
+.settings-bar.is-study {
+  display: flex;
+  align-items: center;
+}
+.model-chip {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: var(--fs-small);
+  color: var(--c-notice-text);
+  text-decoration: none;
+  background: var(--c-notice-bg);
+  border: 1px solid color-mix(in srgb, var(--c-notice-text) 30%, transparent);
+  border-radius: 999px;
+}
+.model-chip:hover span {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Under 1440px the settings bar is one compact row: the option sub-labels,
+   the picker labels and the group names go to the tooltips and the
+   accessible names (the text stays for screen readers) */
+@media (max-width: 1439px) {
+  .seg-option-sub {
+    display: none;
+  }
+  .settings-bar .picker-label,
+  .seg-picker-label .seg-picker-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .seg-option {
+    min-height: 32px;
+    padding: 2px 8px;
+  }
+  /* an option with no solve is left out of the compact row (the wide row
+     shows it disabled, its tooltip saying why) */
+  .seg-option.is-disabled {
+    display: none;
+  }
+  /* option icons only on the chosen option; the copy-link label in the
+     tooltip, so the sub-tabs have the row */
+  .seg-option:not(.is-on) .plain-icon {
+    display: none;
+  }
+  .settings-row {
+    column-gap: 10px;
+  }
+  .settings-bar .picker-icon {
+    display: none;
+  }
+  .settings-bar .seg-option {
+    padding: 2px 7px;
+  }
+  .app.has-subs .copy-link-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* 900px and below: the sub-tabs are their own sticky row that scrolls
+   sideways; the settings bar's sub-labels go (tooltips keep them) and its
+   choices scroll sideways as compact chips */
+@media (max-width: 900px) {
+  .app.has-subs .tabs-bar {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .app.has-subs .subtabs-bar {
+    order: 3;
+    flex-basis: 100%;
+    margin: 0 calc(-1 * var(--bar-pad-x));
+    padding: 0 var(--bar-pad-x);
+    border-top: 1px solid var(--card-border);
+    border-left: 0;
+  }
+  .app.has-subs .subtabs-bar .view-tabs-bar.is-sub .view-tabs {
+    height: var(--subtabs-height);
+  }
+  .app.has-subs {
+    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
+  }
+  .app.has-subs.has-settings {
+    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + var(--settings-height) + 3px);
+  }
+  .settings-bar {
+    top: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
+  }
+  .seg-option-sub {
+    display: none;
+  }
+  .seg-option {
+    min-height: 32px;
+  }
+  .copy-link-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+@media (max-width: 640px) {
+  .app.has-subs .band {
+    position: relative;
+    top: auto;
+  }
+  .settings-bar .picker {
+    flex: none;
+  }
+  .settings-bar .picker-button {
+    width: auto;
+  }
+  .seg-picker-label {
+    display: none;
+  }
+  .model-chip {
+    font-size: var(--fs-caption);
+  }
+  .model-chip-more {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg-picker-ind {
+    transition: none;
+  }
+}
+
+/* A page picker (Picker.jsx SegPicker): radio group, sliding indicator */
+.seg-picker {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.seg-picker-label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+}
+.seg-picker-row {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--pe-gray-100);
+  border-radius: var(--pe-radius-md);
+}
+.seg-picker-ind {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  background: var(--pe-teal-50);
+  border: 1px solid var(--pe-teal-500);
+  border-radius: 6px;
+  transition: transform 220ms var(--ease-out), width 220ms var(--ease-out);
+}
+.seg-option {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 2px 10px;
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-700);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.seg-option .plain-icon {
+  color: var(--pe-gray-500);
+}
+.seg-option-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.seg-option-label {
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.seg-option-sub {
+  font-size: 0.6875rem;
+  color: var(--pe-gray-500);
+  white-space: nowrap;
+}
+.seg-option.is-on .seg-option-label {
+  font-weight: 700;
+  color: var(--band-teal, var(--pe-teal-800));
+}
+.seg-option.is-on .plain-icon {
+  color: var(--band-teal, var(--pe-teal-800));
+}
+.seg-option:hover:not(.is-on):not(.is-disabled) {
+  background: var(--pe-surface);
+}
+.seg-option:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 1px;
+}
+.seg-option.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.seg-option.is-disabled .seg-option-label {
+  text-decoration: line-through;
+  text-decoration-color: var(--pe-gray-400);
 }
 
 .app .main-content {
@@ -249,6 +623,31 @@
 }
 .app .tab-panel:focus {
   outline: none;
+}
+
+/* ---------- Anchors land below the sticky stack (all tabs) ---------- */
+.app .tab-panel[id] {
+  scroll-margin-top: var(--sticky-offset);
+}
+:where(.app .main-content [id]) {
+  scroll-margin-top: calc(var(--sticky-offset) + 16px);
+}
+
+/* ---------- Scope line: one short icon item per model (page.jsx) ---------- */
+.scope-strip.scope-items {
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  max-width: none;
+  padding: 0;
+  list-style: none;
+}
+.scope-items .scope-item {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.scope-items .scope-item svg {
+  margin-top: 0;
 }
 
 /* ---------- Section heading: plain icon, h2, one grey sentence ---------- */
@@ -854,9 +1253,13 @@
   margin-top: 20px;
   font-size: var(--fs-body);
 }
-.icon-line.cause-effect.is-main,
-.icon-line.cause-effect.is-main > .plain-icon {
-  color: var(--c-loss-text);
+/* model caveats (which way the missing channel would move the figure), not
+   a gain or a loss: neutral ink */
+.icon-line.cause-effect,
+.icon-line.cause-effect > .plain-icon {
+  color: var(--pe-gray-700);
+}
+.icon-line.cause-effect.is-main {
   font-weight: 600;
 }
 .icon-line.cause-effect {
@@ -1492,4 +1895,473 @@
   top: 50%;
   height: 24px;
   transform: translateY(-50%);
+}
+
+/* ---------- Page intro: question, answer, page options (every Explore and
+   Method sub-tab opens with it). One spacing scale: 8 / 12 / 20 / 32 / 48. */
+.page-intro {
+  margin: 0 0 32px;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+.page-q {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--pe-gray-900);
+}
+.page-q .plain-icon {
+  display: inline-flex;
+  margin-top: 6px;
+  color: var(--c-gain-text);
+}
+.page-a {
+  max-width: 78ch;
+  margin: 8px 0 0 28px;
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--pe-gray-700);
+}
+.page-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 12px 0 0 28px;
+}
+/* A picker on the page: the header picker's behaviour on a light surface */
+.page-options .picker-button {
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border-color: var(--pe-gray-300);
+}
+.page-options .picker-button:hover,
+.page-options .picker-button[aria-expanded='true'] {
+  background: var(--pe-gray-50);
+  border-color: var(--pe-gray-500);
+}
+.page-options .picker-button:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+}
+.page-options .picker-label {
+  color: var(--pe-gray-500);
+}
+.page-options .picker-pop {
+  right: auto;
+  left: 0;
+}
+.app .page-intro + .section-heading,
+.app .page-intro + * > .section-heading:first-child,
+.app .page-intro + * > section:first-child > .section-heading:first-child {
+  margin-top: 0;
+}
+@media (max-width: 640px) {
+  .page-q {
+    font-size: var(--fs-section);
+  }
+  .page-a,
+  .page-options {
+    margin-left: 0;
+  }
+  .page-a {
+    font-size: var(--fs-body);
+  }
+  .page-options .picker {
+    flex: 0 1 auto;
+  }
+  .page-options .picker-button {
+    width: auto;
+  }
+}
+
+/* ---------- Sub-tab change: a short fade, no movement of the layout.
+   Charts reserve their height, so nothing shifts as they draw. */
+.sub-panel {
+  animation: sub-in 180ms var(--ease-out);
+}
+@keyframes sub-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sub-panel {
+    animation: none;
+  }
+}
+
+/* A scenario not solved under the fiscal rule chosen */
+.rule-pending p {
+  margin: 8px 0 0;
+  font-size: var(--fs-body);
+  color: var(--pe-gray-700);
+}
+.rule-pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.rule-pending-actions .segment {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+  border: 1px solid var(--pe-gray-300);
+}
+
+/* ---------- OG-UK as four blocks in a loop (Method). On a phone the loop
+   becomes one column: households, firms, the rest of the world, government,
+   each followed by the flows to the next. */
+.md-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'h hf f'
+    'gh c fw'
+    'g wg w';
+  gap: 12px;
+  align-items: stretch;
+}
+.md-node-households { grid-area: h; }
+.md-node-firms { grid-area: f; }
+.md-node-world { grid-area: w; }
+.md-node-government { grid-area: g; }
+.md-edge-hf { grid-area: hf; }
+.md-edge-fw { grid-area: fw; }
+.md-edge-wg { grid-area: wg; }
+.md-edge-gh { grid-area: gh; }
+.md-centre { grid-area: c; }
+.md-node {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-300);
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.md-node:hover,
+.md-node.is-open {
+  border-color: var(--c-gain-text);
+  background: var(--pe-gray-50);
+}
+.md-node:focus-visible {
+  outline: 2px solid var(--c-gain-text);
+  outline-offset: 2px;
+}
+.md-node-firms {
+  border-width: 2px;
+  border-color: var(--c-gain);
+}
+.md-node-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.md-node-head .plain-icon {
+  display: inline-flex;
+  color: var(--c-gain-text);
+}
+.md-node-title {
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.md-node-tag {
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  color: var(--pe-gray-500);
+}
+.md-node-line {
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+.md-edge {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 6px;
+  font-size: var(--fs-caption);
+  line-height: 1.35;
+  color: var(--pe-gray-700);
+}
+.md-edge-hf,
+.md-edge-wg {
+  align-items: center;
+  text-align: center;
+  border-top: 1px dashed var(--pe-gray-300);
+  border-bottom: 1px dashed var(--pe-gray-300);
+}
+.md-edge-fw,
+.md-edge-gh {
+  border-left: 1px dashed var(--pe-gray-300);
+  padding-left: 12px;
+}
+.md-flow {
+  display: block;
+}
+.md-to {
+  font-weight: 600;
+  color: var(--c-gain-text);
+}
+.md-centre {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+  text-align: center;
+  background: var(--pe-gray-50);
+  border-radius: var(--card-radius);
+}
+.md-centre b {
+  font-size: var(--fs-small);
+  color: var(--pe-gray-800);
+}
+.md-detail {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--c-gain);
+  background: var(--pe-gray-50);
+}
+.md-detail h4 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 6px;
+  font-size: var(--fs-small);
+}
+.md-detail p {
+  margin: 4px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+@media (max-width: 760px) {
+  .md-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'h' 'hf' 'f' 'fw' 'w' 'wg' 'g' 'gh' 'c';
+    gap: 6px;
+  }
+  .md-edge,
+  .md-edge-hf,
+  .md-edge-wg {
+    align-items: flex-start;
+    text-align: left;
+    border: 0;
+    border-left: 1px dashed var(--pe-gray-300);
+    margin-left: 20px;
+    padding: 4px 0 4px 12px;
+  }
+}
+
+/* ---------- Evidence: the UK evidence map slot ---------- */
+.evidence-slot {
+  padding: 16px;
+  border: 1px dashed var(--pe-gray-300);
+  border-radius: var(--card-radius);
+}
+.evidence-slot-status {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+.evidence-slot-who {
+  margin: 10px 0 6px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+.evidence-slot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.evidence-slot-list li {
+  padding: 2px 10px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-700);
+  background: var(--pe-gray-50);
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 999px;
+}
+.evidence-table td,
+.evidence-table th {
+  vertical-align: top;
+}
+
+/* ---------- Data and code: stamp, ledger, citation ---------- */
+.updated-stamp {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.ledger-wrap {
+  max-height: 560px;
+  overflow: auto;
+}
+.ledger-table th[scope='row'] {
+  font-weight: 500;
+}
+.ledger-table td,
+.ledger-table th {
+  vertical-align: top;
+  font-size: var(--fs-caption);
+  white-space: normal;
+  /* long file names and keys break instead of running past the card */
+  overflow-wrap: anywhere;
+}
+.ledger-where {
+  display: block;
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-500);
+}
+.ledger-releases {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ledger-releases li {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px 0;
+  font-size: var(--fs-caption);
+  border-top: 1px solid var(--pe-gray-100);
+}
+.ledger-date {
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-500);
+}
+.cite-text {
+  font-size: var(--fs-small);
+  line-height: 1.55;
+}
+
+/* Tax-gap card: no text under 11px, phones included */
+.app .cause-ticks,
+.app .cause-mark-label {
+  font-size: 11px;
+}
+.app .copy-block pre,
+.app .card .copy-block code {
+  font-size: 12px;
+}
+.app .mx-tab > .page-intro + *,
+.app .page-body > .page-intro + * {
+  margin-top: 0;
+}
+#explore-sub-who-inner > .control-bar {
+  margin: 0 0 16px;
+}
+
+
+/* Card grids whose cards differ a lot in length: each card keeps its own
+   height instead of stretching to the tallest (no blank lower halves). */
+.card-grid.is-top,
+.cards-grid.is-top {
+  align-items: start;
+}
+
+/* ---------- Line charts in motion (components/LineChart.jsx) ----------
+   A picker change moves the lines and markers to the new values (geometry
+   only); printed values cross-fade; a linked crosshair (another chart's
+   year) is lighter than the one under the pointer. */
+.linechart .lc-line {
+  transition: d 320ms var(--ease-out);
+}
+.linechart .lc-dot {
+  transition: transform 320ms var(--ease-out);
+}
+.linechart .lc-fade {
+  animation: lc-fade 260ms ease-out;
+}
+.linechart .crosshair.is-linked {
+  stroke-dasharray: 3 3;
+}
+@keyframes lc-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .linechart .lc-line,
+  .linechart .lc-dot {
+    transition: none;
+  }
+  .linechart .lc-fade {
+    animation: none;
+  }
+}
+
+/* Round 2 (C14), phones: the sub-tabs show their short names without icons
+   so the row fits at 390px; the settings bar wraps its pickers onto a
+   second line instead of clipping them, and scrolls away with the page (it
+   is no longer sticky there, so the sticky stack stays two rows: tabs and
+   sub-tabs). lib/scroll.js counts only sticky bars. */
+@media (max-width: 480px) {
+  .app.has-subs .subtabs-bar .view-tab-icon {
+    display: none;
+  }
+  .app.has-subs .subtabs-bar .view-tab {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+@media (max-width: 640px) {
+  .app.has-subs .settings-bar {
+    position: static;
+  }
+  .app.has-subs .settings-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 6px 0;
+    overflow-x: visible;
+  }
+  .app.has-subs.has-settings {
+    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
+  }
+}
+/* phones: the page pickers' options wrap rather than clip; the sliding
+   indicator assumes one line, so the chosen option is marked in place */
+@media (max-width: 640px) {
+  .app.has-subs .settings-row > .seg-picker {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .app.has-subs .settings-bar .seg-picker-row {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .app.has-subs .settings-bar .seg-picker-ind {
+    display: none;
+  }
+  .app.has-subs .settings-bar .seg-option.is-on {
+    background: var(--pe-teal-50);
+    box-shadow: inset 0 0 0 1px var(--pe-teal-500);
+    border-radius: 6px;
+  }
 }

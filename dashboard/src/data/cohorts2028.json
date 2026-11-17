@@ -1,7 +1,7 @@
 {
  "what": "Consumption-equivalent welfare change by birth year and lifetime-earnings group, UK central, 2028 surprise. Per cent of remaining-lifetime consumption and bequests, labour held at the no-shock path. no_bequest_*: warm glow dropped, per cent of consumption. sources_alive: change in remaining-lifetime after-tax income by source at unchanged behaviour, per cent of remaining-lifetime consumption (first order). charged: the government-consumption shortfall from 2036 charged to households per head (first order, debt-neutral only; [low, high] over two extensions past 2036).",
  "generated_by": "paper/cohort_welfare.py --json",
- "source": "uk-growth-with-ai@ff0d7e0",
+ "source": "uk-growth-with-ai@2558375",
  "reference": "no-shock continuation of the same closure",
  "shock_year": 2028,
  "groups": [
@@ -17529,6 +17529,119 @@
       },
       "fill_max_pp": 0.051
      }
+    }
+   }
+  }
+ },
+ "dnfull": {
+  "ready": true,
+  "closure": "zk0.1",
+  "rule": "dn",
+  "arm": "tfp",
+  "label": "uk_central_share_shift_tfp_ramp_dnfull",
+  "reference": "continuation_dnfull",
+  "what": "Debt-neutral transfers kept on to the horizon (government consumption at its share of GDP throughout), adults alive in 2028, measured against a no-shock path solved under the same rule. Replaces the first-order charge-back (rules.dn.tfp.charged). [low, high] over the two extensions past the last solved year.",
+  "range": {
+   "joint_avg": [
+    0.5412,
+    0.5445
+   ],
+   "joint_losing_pct": [
+    15.9557,
+    16.3407
+   ],
+   "no_bequest_avg": [
+    0.1835,
+    0.1853
+   ],
+   "no_bequest_losing_pct": [
+    44.4824,
+    44.4824
+   ]
+  },
+  "by_fill": {
+   "hold": {
+    "joint_avg": 0.5412,
+    "joint_losing_pct": 16.3407,
+    "no_bequest_avg": 0.1835,
+    "no_bequest_losing_pct": 44.4824,
+    "oldest_losing_on_average": 29,
+    "all_lose_up_to_age": 25,
+    "by_age": {
+     "90": [
+      0.559,
+      0.583
+     ],
+     "80": [
+      0.956,
+      0.867
+     ],
+     "70": [
+      1.095,
+      0.817
+     ],
+     "60": [
+      0.968,
+      0.56
+     ],
+     "50": [
+      0.591,
+      0.111
+     ],
+     "40": [
+      0.272,
+      -0.194
+     ],
+     "30": [
+      0.02,
+      -0.368
+     ],
+     "20": [
+      -0.144,
+      -0.429
+     ]
+    }
+   },
+   "ss": {
+    "joint_avg": 0.5445,
+    "joint_losing_pct": 15.9557,
+    "no_bequest_avg": 0.1853,
+    "no_bequest_losing_pct": 44.4824,
+    "oldest_losing_on_average": 28,
+    "all_lose_up_to_age": 24,
+    "by_age": {
+     "90": [
+      0.559,
+      0.583
+     ],
+     "80": [
+      0.956,
+      0.867
+     ],
+     "70": [
+      1.095,
+      0.817
+     ],
+     "60": [
+      0.968,
+      0.56
+     ],
+     "50": [
+      0.591,
+      0.111
+     ],
+     "40": [
+      0.272,
+      -0.194
+     ],
+     "30": [
+      0.029,
+      -0.363
+     ],
+     "20": [
+      -0.122,
+      -0.417
+     ]
     }
    }
   }

@@ -87,10 +87,63 @@ def foreign_share(s, b, year=HEADLINE):
     return (s["K_f"][i] - b["K_f"][i]) / dk * 100
 
 
+# Debt repriced at the OBR's speed (same method, constants and source as
+# paper/make_values.py repriced_debt_pp and docs/debt_repricing.md, PR #43).
+# The model's debt is one-period, so a rise in the interest rate reaches the
+# whole stock at once. This redoes the debt recursion with the rate gap (arm
+# less path) reaching the stock at the speed of the OBR's debt interest ready
+# reckoner, holding GDP, the primary balance and the market rate at the
+# solve's values (first order, no feedback). Source: OBR, October 2026
+# Economic and fiscal outlook, detailed forecast tables, ready reckoner table
+# 5.1 (GBP bn for +1pp on gilt and on short rates, 2026-27 to 2031-32) and
+# aggregates tables 6.13 and 6.17 (2025-26 to 2031-32).
+OBR_RR_GILT = (1.1313, 3.7303, 6.4512, 8.6640, 10.5657, 12.6125)
+OBR_RR_SHORT = (6.5150, 7.1503, 6.6096, 6.1767, 5.5172, 5.2053)
+OBR_CG_GROSS_DEBT_BN = (2996.06, 3172.4991, 3336.7799, 3489.3976, 3619.2944, 3735.8203,
+                        3857.1338)
+OBR_CG_GROSS_DEBT_PCT = (98.4223, 101.0028, 101.9149, 102.4897, 101.8414, 101.6155, 101.3471)
+OBR_PSND_PCT = (93.1017, 95.5055, 96.6997, 97.2848, 96.6742, 95.8675, 95.6107)
+SURPRISE = 2028
+
+
+def obr_passthrough(n):
+    """Share of a sustained rate rise that has reached the debt stock in its k-th
+    year, k = 1..n (the OBR gives six years; later years add the mean annual step
+    of years three to six)."""
+    psnd = [b * p / c for b, p, c in
+            zip(OBR_CG_GROSS_DEBT_BN, OBR_PSND_PCT, OBR_CG_GROSS_DEBT_PCT)]
+    phi = [(g + s) / (0.01 * 0.5 * (psnd[k] + psnd[k + 1]))
+           for k, (g, s) in enumerate(zip(OBR_RR_GILT, OBR_RR_SHORT))]
+    step = (phi[5] - phi[2]) / 3
+    while len(phi) < n:
+        phi.append(min(1.0, phi[-1] + step))
+    return phi[:n]
+
+
+def repriced_debt_pp(S, Rf, y=LATE, full=False):
+    """Debt/GDP gap (pp) in year y with the rate gap phased in at the OBR's speed.
+    full=True passes the whole gap through at once: the solve's own gap."""
+    k0, n = YEARS.index(SURPRISE), YEARS.index(y)
+    phi = [1.0] * (n - k0) if full else obr_passthrough(n - k0)
+    pd = [Rf["G"][t] + Rf["I_g"][t] + Rf["TR"][t] + Rf["agg_pension_outlays"][t]
+          - Rf["total_tax_revenue"][t] for t in range(n)]
+    growth = [((1 + Rf["r_gov"][t]) * Rf["D"][t] + pd[t]) / Rf["D"][t + 1] for t in range(n)]
+    gap = [S["r_gov"][t] - Rf["r_gov"][t] for t in range(n)]
+    D = S["D"][k0]                                # debt in the shock year is predetermined
+    for t in range(k0, n):
+        eff = sum(phi[t - j] * (gap[j] - (gap[j - 1] if j > k0 else 0.0))
+                  for j in range(k0, t + 1))
+        D = S["D"][t + 1] + ((1 + Rf["r_gov"][t] + eff) * D
+                             - (1 + S["r_gov"][t]) * S["D"][t]) / growth[t]
+    return (D / S["Y"][n] - Rf["D"][n] / Rf["Y"][n]) * 100
+
+
 def git_sha():
+    """The last commit that changed the solve outputs read here (OUT_DIR), not the
+    checkout's HEAD: a rebuild on a dashboard branch still names the results commit."""
     try:
-        return subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"],
-                                       text=True).strip()
+        return subprocess.check_output(["git", "-C", str(ROOT), "log", "-1", "--format=%h", "--",
+                                        str(OUT_DIR.relative_to(ROOT))], text=True).strip() or None
     except Exception:
         return None
 
@@ -131,10 +184,68 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
             # share of the extra 2031 capital stock that is foreign-owned, %
             "foreign_share_dK_2031": foreign_share(rec["series"], b),
         }
+        if variant is False:  # common rule: debt/GDP in LATE at the OBR's repricing speed
+            own = repriced_debt_pp(rec["series"], b, full=True)
+            assert abs(own - dest[a][cl]["gaps"]["debt_gdp_pp"][-1]) < 1e-9, rec["label"]
+            dest[a][cl]["debt_gdp_pp_obr_repricing_late"] = repriced_debt_pp(rec["series"], b)
         for v, path in dest[a][cl]["gaps"].items():  # 2026-27 are history: every gap must be zero
             assert all(abs(x) < 1e-9 for x in path[:2]), (rec["label"], v, path[:2])
         n += 1
     return n
+
+
+# Where output goes in the headline year (story part 2's Sankey and
+# waterfall): GDP split into four parts from the solve's own series, so the
+# parts add up to GDP exactly. Labour income = w L; payments to foreign
+# owners of UK capital and gilts = Y - GNI (GNI = Y - r_p (K_f + D_f));
+# depreciation = GNI - NNI (= delta K); domestic net capital income, the
+# rest = NNI - w L. Shares are of the OBR-central path's GDP (the closure's
+# no-shock reference); changes are scenario minus reference, in % of the
+# reference's GDP. Main arm, default (common) rule only.
+SPLIT_PARTS = [("labour", "Labour income"),
+               ("domestic", "Net capital income kept in the UK"),
+               ("foreign", "Paid to foreign owners of UK capital and gilts"),
+               ("depreciation", "Depreciation")]
+
+
+def split_levels(x, i):
+    lab = x["w"][i] * x["L"][i]
+    return {"gdp": x["Y"][i], "labour": lab, "domestic": x["NNI"][i] - lab,
+            "foreign": x["Y"][i] - x["GNI"][i], "depreciation": x["GNI"][i] - x["NNI"][i]}
+
+
+def output_split(results, year=HEADLINE):
+    i = YEARS.index(year)
+    out = {"year": year, "arm": "tfp", "parts": [{"id": k, "label": l} for k, l in SPLIT_PARTS],
+           "baseline": {}, "change": {sid: {} for sid, *_ in SCENARIOS}}
+    for cl, *_ in CLOSURES:
+        try:
+            b = sp.reference_ext(OUT_DIR, cl)["series"]
+        except Exception:
+            out["baseline"][cl] = None
+            for sid, *_ in SCENARIOS:
+                out["change"][sid][cl] = {"status": "pending"}
+            continue
+        lb = split_levels(b, i)
+        sh = {k: lb[k] / lb["gdp"] * 100 for k, _ in SPLIT_PARTS}
+        assert all(v > 0 for v in sh.values()), (cl, sh)
+        assert abs(sum(sh.values()) - 100) < 1e-9, (cl, sh)
+        out["baseline"][cl] = sh
+        for sid, *_ in SCENARIOS:
+            r = results[sid]["tfp"][cl]
+            if r["status"] != "done":
+                out["change"][sid][cl] = {"status": "pending"}
+                continue
+            s = json.loads((OUT_DIR / cl / f"{r['label']}.json").read_text())["series"]
+            ls = split_levels(s, i)
+            ch = {k: (ls[k] - lb[k]) / lb["gdp"] * 100 for k in ls}
+            assert abs(sum(ch[k] for k, _ in SPLIT_PARTS) - ch["gdp"]) < 1e-9, (sid, cl)
+            # the GDP change is the GDP gap the results already hold
+            assert abs(ch["gdp"] - r["gaps"]["Y"][i]) < 1e-9, (sid, cl)
+            assert all(v > 0 for k, v in split_levels(s, i).items()), (sid, cl)
+            ch["gross_capital"] = ch["domestic"] + ch["foreign"] + ch["depreciation"]
+            out["change"][sid][cl] = {"status": "done", "label": r["label"], **ch}
+    return out
 
 
 def main():
@@ -161,8 +272,15 @@ def main():
             continue
         b = ref["series"]
         assert done["continuation"]["years_series"] == YEARS
+        # Effective tax rates on the no-shock path in HEADLINE, as the sanity gate
+        # computes them (the paper's EffLabourPct / EffCapitalPct / EffWedgePp read
+        # the same file): % of labour income incl. employer NICs, % of gross
+        # capital income.
+        eff = json.loads((OUT_DIR / cl / "uk_central_share_shift_tfp_ramp.sanity.json").read_text())[
+            "diagnostics"][f"effective_rates_{HEADLINE}"]["reference"]
         closures[cl] = {"zeta_K": zk, "role": role, "reference": ref["reference"],
-                        "reference_levels": levels(b)}
+                        "reference_levels": levels(b),
+                        "reference_effective_tax_rates": {k: eff[k] for k in ("labour", "capital_gross")}}
         for sid, *_ in SCENARIOS:
             n_done += fill(results[sid], cl, done, sanities, ref, False, sid)
         for rid, var, _, sids in RULE_VARIANTS:
@@ -195,6 +313,7 @@ def main():
         "scenarios": scen, "arms": [{"id": a, "label": l, "short": sh} for a, l, sh in ARMS],
         "closures": closures, "results": results, "rules": rules, "sensitivity": sensitivity,
         "solves_done": n_done,
+        "output_split": output_split(results),
         "solves_total": len(SCENARIOS) * len(ARMS) * len(CLOSURES),
     }
     DEST.write_text(json.dumps(data, indent=1, allow_nan=False) + "\n")

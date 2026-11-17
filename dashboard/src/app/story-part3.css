@@ -1,0 +1,2060 @@
+/* Story part 3 (tabs/story/Part3.jsx): its own styles, one writer.
+   No transitions here: motion comes only from the framework classes
+   (GrowRect, TileGrid, Reveal) in story.css. */
+
+/* The opening call-out ("A different model"): components/story/Callout */
+
+/* Figures */
+.p3-figure {
+  margin: 0;
+}
+.p3-figure .story-source {
+  margin-top: 12px;
+}
+.p3-muted {
+  color: var(--pe-gray-500);
+}
+.p3-key,
+.p3-tile-key {
+  margin: 8px 0 0;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+
+/* Block 1: tiles beside the scoreboard */
+.p3-central {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.p3-central-tiles {
+  max-width: 220px;
+}
+.p3-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Stat tiles: a large tabular number over a small label, no box or icon */
+.p3-stat {
+  display: grid;
+  row-gap: 2px;
+}
+.p3-stat-value {
+  font-size: var(--t-title);
+  font-weight: 600;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+}
+.p3-stat-label {
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+
+/* Bar rows: a label line, then bar and value(s) */
+.p3-rows {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p3-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5em;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+}
+.p3-rows-2col .p3-row {
+  grid-template-columns: minmax(0, 1fr) 4.5em 4.5em;
+}
+.p3-row-label {
+  grid-column: 1 / -1;
+  font-size: var(--t-ui);
+  line-height: 1.35;
+  color: var(--pe-gray-700);
+}
+.p3-row-value {
+  font-size: var(--t-ui);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--pe-gray-900);
+}
+.p3-row-value-2 {
+  font-weight: 400;
+  color: var(--pe-gray-700);
+}
+.p3-row.is-pending,
+.p3-case.is-pending,
+.p3-group-head.is-pending {
+  opacity: 0.55;
+}
+/* Step 7: the group the active card is not about (Moves.jsx); not
+   .is-pending, which globals.css sets in italics */
+.p3-dim {
+  color: var(--pe-gray-600);
+}
+.p3-dim svg,
+.p3-dim .p3-be-track,
+.p3-dim .story-item-icon,
+svg.p3-dim {
+  opacity: 0.4;
+}
+.p3-dim .p3-switch button,
+.p3-dim .p3-switch button.is-on {
+  color: var(--pe-gray-600);
+}
+.p3-dim .p3-row-value,
+.p3-dim.p3-group-head,
+.p3-dim .p3-row-label {
+  color: var(--pe-gray-600);
+}
+/* A row whose figure has its home in another step: the label links there,
+   the value cells stay empty beside the reference bar */
+.p3-row-label a {
+  color: var(--c-gain-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.p3-group-head {
+  margin: 16px 0 8px;
+  padding-top: 10px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  border-top: 1px dashed var(--card-border);
+}
+.p3-bar {
+  display: block;
+  width: 100%;
+  height: 12px;
+}
+.p3-bar-track {
+  fill: var(--pe-gray-100);
+}
+.p3-zero {
+  stroke: var(--pe-gray-400);
+  stroke-width: 1;
+}
+.p3-fill-neutral,
+.p3-fill-cost {
+  fill: var(--pe-gray-800);
+}
+.p3-fill-ref {
+  fill: var(--pe-gray-400);
+}
+.p3-fill-gov {
+  fill: var(--rank-1);
+  background: var(--rank-1);
+}
+.p3-fill-hh {
+  fill: var(--rank-3);
+  background: var(--rank-3);
+}
+.p3-fill-gain {
+  fill: var(--c-gain);
+}
+.p3-fill-loss {
+  fill: var(--c-loss);
+}
+.p3-fill-muted {
+  fill: var(--pe-gray-300);
+}
+
+/* Block 4: two sub-rows per case */
+.p3-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 10px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+}
+.p3-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 8px;
+  border-radius: 2px;
+}
+.p3-swatch:first-child {
+  margin-left: 0;
+}
+.p3-case {
+  display: grid;
+  gap: 4px;
+}
+.p3-case-label {
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.p3-row-sub {
+  grid-template-columns: 9em minmax(0, 1fr) 3.5em;
+}
+.p3-row-sub .p3-sub-label {
+  grid-column: auto;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+}
+
+/* Block 5: tiles */
+.p3-tiles-wrap {
+  max-width: 260px;
+}
+
+/* Block 5: the tile key, one line per step (the home of the shares) */
+.p3-tkey {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-ui);
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+}
+.p3-tkey-item {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  opacity: 0.55;
+}
+.p3-tkey-item.is-current {
+  opacity: 1;
+  color: var(--pe-gray-900);
+}
+.p3-tkey-item b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.p3-tkey .p3-swatch {
+  flex: none;
+  margin-left: 0;
+}
+
+/* Block 6: deciles, one line each */
+.p3-deciles {
+  gap: 6px;
+}
+.p3-dec {
+  grid-template-columns: 5.5em minmax(0, 1fr) 4.5em;
+}
+.p3-dec .p3-dec-label {
+  grid-column: auto;
+  font-variant-numeric: tabular-nums;
+}
+.p3-dec.is-dim {
+  opacity: 0.5;
+}
+.p3-dec.is-caveat .p3-caveat {
+  grid-column: 1 / -1;
+}
+.p3-caveat {
+  margin: 4px 0 6px;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--pe-gray-600);
+}
+
+/* Step 1: the baseline beside each rise */
+.p3-stat-base {
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+
+/* The chip for results outside the study's attested rebuild */
+
+/* The story's flag for runs outside the attested rebuild (shared.jsx
+   OutsideRebuildFlag): small, inline, a plain icon, no fill */
+
+/* "About these figures": a step card's folded caveats (shared.jsx About) */
+
+/* Step 2: the net row */
+.p3-row-total {
+  padding-top: 8px;
+  border-top: 1px solid var(--card-border);
+}
+.p3-row-total .p3-row-label {
+  font-weight: 600;
+}
+
+/* Step 3: the Sankey */
+.p3-sankey-axis {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0 6px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+
+/* Step 6: two bars in one row (cost above, poverty below) */
+.p3-row-bar-2 {
+  display: grid;
+  gap: 2px;
+}
+
+/* Step 7: break-even rows */
+.p3-be-row {
+  grid-template-columns: minmax(0, 1fr) 5.5em 1.4em 6em;
+}
+.p3-be-row .p3-row-value-2 {
+  grid-column: 2;
+}
+.p3-be-arrow {
+  display: flex;
+  justify-content: center;
+  color: var(--pe-gray-400);
+}
+.p3-swatch.p3-fill-cost,
+.p3-swatch.p3-fill-neutral {
+  background: var(--pe-gray-800);
+}
+.p3-swatch.p3-fill-ref {
+  background: var(--pe-gray-400);
+}
+.p3-swatch.p3-fill-loss {
+  background: var(--c-loss);
+}
+
+@media (max-width: 599px) {
+  .p3-central {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+@media (max-width: 900px) {
+  .p3-stats {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .p3-stat-value {
+    font-size: var(--t-title);
+  }
+  .p3-tiles-wrap {
+    max-width: 180px;
+  }
+  .p3-rows {
+    gap: 6px;
+  }
+  .p3-row-sub {
+    grid-template-columns: 7.5em minmax(0, 1fr) 3em;
+  }
+  /* Keep the sticky graphics short (under about 55vh at 390x844): rows
+     not yet reached are hidden, and the ladder shows one group at a time
+     (its first row stays as the reference for the OBR-sized group). */
+  .p3-row.is-pending,
+  .p3-case.is-pending,
+  .p3-group-head.is-pending,
+  .p3-dim,
+  .p3-phone-hide,
+  .p3-tkey-item:not(.is-current) {
+    display: none;
+  }
+  .p3-figure[data-group='obr'] .p3-group-head {
+    margin-top: 8px;
+  }
+}
+
+/* Itemised part 3 (story only, scoped so Explore > Households is unchanged):
+   the scoreboard as key facts, figure keys as small icon items, icons on
+   row labels, decile 1's caveat as items, step 8 as two icon columns */
+#story-part-3 .p3-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+#story-part-3 .p3-ico {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .story-figure-title .p3-ico {
+  vertical-align: -3px;
+  color: var(--c-highlight);
+}
+
+#story-part-3 .story-next-links .p3-ico,
+#story-part-3 .p3-row-label a .p3-ico {
+  color: inherit;
+}
+#story-part-3 .story-part-head .p3-ico {
+  vertical-align: -3px;
+  color: var(--c-highlight);
+}
+#story-part-3 .p3-facts .story-fact {
+  /* no icon column: number, label, sub-line stacked */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  align-content: start;
+}
+
+#story-part-3 .p3-facts .story-fact-value {
+  font-size: var(--t-title);
+}
+#story-part-3 .p3-facts .story-fact-label,
+#story-part-3 .p3-facts .story-fact-sub {
+  font-size: var(--t-meta);
+}
+
+#story-part-3 .p3-key-head {
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-row-label-icon {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+#story-part-3 .p3-row-label-icon .plain-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--pe-gray-500);
+}
+#story-part-3 .p3-caveat-items {
+  grid-column: 1 / -1;
+  margin: 4px 0 6px;
+}
+#story-part-3 .p3-caveat-items .story-items {
+  gap: 4px;
+  font-size: var(--t-meta);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-caveat-items .p3-rank-items {
+  margin-top: 4px;
+  padding-left: 28px;
+}
+#story-part-3 .p3-caveat-items strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-800);
+}
+
+#story-part-3 .story-callout .story-items {
+  gap: 4px;
+}
+/* step 8: a framing chip, then the icon grid of what is left out; a tile's
+   detail line shows on hover, focus or tap (.is-open) */
+
+@media (max-width: 900px) {
+  #story-part-3 .p3-facts .story-fact {
+    align-content: start;
+  }
+
+  #story-part-3 .p3-facts .story-fact-value {
+    font-size: var(--t-title);
+  }
+}
+
+/* ---------- Explore > Households and Household method (tabs/households) ---------- */
+.hh-lead {
+  max-width: 72ch;
+  margin: 4px 0 20px;
+}
+/* the question line takes .page-q (v2.css), as on every other page */
+.hh-question {
+  margin: 0 0 8px;
+}
+.hh-answer {
+  margin: 0 0 10px;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.hh-lead .notice-chip {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 4px 10px;
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--c-notice-text);
+  background: var(--c-notice-bg);
+  border-radius: 6px;
+}
+.hh-page > .card,
+.hh-page > .disclosure {
+  margin-bottom: 20px;
+}
+.hh-page .card-grid {
+  margin-bottom: 24px;
+}
+.hh-foot {
+  margin: 10px 0 0;
+}
+
+/* Labelled bar rows: label, bar, then one to three value columns */
+.hh-rows {
+  --hh-col: 5.2em;
+}
+.hh-head,
+.hh-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(var(--hh-cols), var(--hh-col));
+  column-gap: 10px;
+  align-items: center;
+}
+.hh-head {
+  margin-bottom: 4px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+  text-align: right;
+}
+.hh-rows ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-label {
+  grid-column: 1 / -1;
+  font-size: var(--t-ui);
+  line-height: 1.35;
+  color: var(--pe-gray-700);
+}
+.hh-bar {
+  grid-column: 1;
+}
+.hh-val {
+  font-size: var(--t-ui);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--pe-gray-900);
+}
+.hh-val-2 {
+  font-weight: 400;
+  color: var(--pe-gray-700);
+}
+.hh-group {
+  margin-top: 6px;
+  padding-top: 8px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+  border-top: 1px dashed var(--card-border);
+}
+.hh-group:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.hh-ref {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  min-height: 24px;
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--c-link, var(--series-2));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+/* Tiles */
+.hh-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.hh-tiles + .hh-tiles {
+  margin-top: 12px;
+}
+.hh-tiles .stat-value {
+  font-size: var(--t-title);
+}
+
+/* Deciles under three rankings */
+.hh-legend {
+  gap: 4px 14px;
+}
+.hh-leg {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.hh-leg .p3-swatch {
+  margin-left: 0;
+}
+.hh-rank ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hh-rank-axis,
+.hh-rank-row {
+  display: grid;
+  grid-template-columns: 6em minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+}
+.hh-rank-row .hh-label {
+  grid-column: 1;
+}
+.hh-rank-bars {
+  display: grid;
+  gap: 1px;
+}
+.hh-rank-bars .p3-bar {
+  height: 7px;
+}
+.hh-ticks {
+  position: relative;
+  height: 1.4em;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.hh-ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* Sources fold */
+.hh-sources {
+  font-size: var(--t-ui);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.hh-sources ul {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+.hh-sources code,
+.hm-page code {
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+
+/* Household method */
+.hm-text {
+  max-width: 72ch;
+  margin: 0 0 12px;
+  font-size: var(--t-body);
+  line-height: 1.65;
+  color: var(--pe-gray-700);
+}
+.hm-list {
+  max-width: 72ch;
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  color: var(--pe-gray-700);
+}
+.hm-list li + li {
+  margin-top: 4px;
+}
+.hm-flow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 22px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.hm-stage {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 12px;
+  font-size: var(--t-meta);
+  line-height: 1.45;
+  color: var(--pe-gray-600);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+.hm-stage b {
+  font-size: var(--t-ui);
+  color: var(--pe-gray-900);
+}
+.hm-stage .plain-icon {
+  color: var(--pe-gray-600);
+}
+.hm-stage-n {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-weight: 600;
+  color: var(--pe-gray-400);
+}
+.hm-stage + .hm-stage::before {
+  position: absolute;
+  top: 50%;
+  left: -18px;
+  content: '→';
+  color: var(--pe-gray-400);
+  transform: translateY(-50%);
+}
+.hm-vintage {
+  display: grid;
+  gap: 8px;
+  max-width: 72ch;
+  margin: 0 0 16px;
+  font-size: var(--t-ui);
+}
+.hm-vintage > div {
+  display: grid;
+  grid-template-columns: 9em minmax(0, 1fr);
+  gap: 10px;
+}
+.hm-vintage dt {
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.hm-vintage dd {
+  margin: 0;
+  color: var(--pe-gray-700);
+}
+
+@media (max-width: 900px) {
+  .hh-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hm-flow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .hm-stage + .hm-stage::before {
+    top: -16px;
+    left: 18px;
+    content: '↓';
+    transform: none;
+  }
+}
+@media (max-width: 600px) {
+  .hh-rows {
+    --hh-col: 4.4em;
+  }
+  /* two value columns leave room for headers like "Government" */
+  .hh-rows.cols-2 {
+    --hh-col: 6em;
+  }
+  .hh-tiles-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hm-vintage > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+/* A bar beyond the card's scale (charts.jsx BarRows): drawn to the edge,
+   with a break mark and a note */
+.hh-bar.is-over {
+  position: relative;
+}
+.hh-bar.is-over::after {
+  content: '//';
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 3px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--pe-surface);
+}
+
+/* Three decile rankings (Explore > Households): the neutral slate-blue
+   ramp of the earnings groups (chartTheme GROUP_RAMP), so no ranking
+   borrows an arm or gain/loss colour; decile 1 stays muted grey */
+.p3-fill-rank-1 {
+  fill: var(--rank-1);
+  background: var(--rank-1);
+}
+.p3-fill-rank-2 {
+  fill: var(--rank-2);
+  background: var(--rank-2);
+}
+.p3-fill-rank-3 {
+  fill: var(--rank-3);
+  background: var(--rank-3);
+}
+
+/* close: the story's close (tabs/story/TwoLenses.jsx). Its head has no
+   part numeral, so its text starts at the band's edge, under the "Next"
+   band that ends part 3, rather than one grid gap in. */
+.story-close .story-part-head > :not(.story-part-numeral) {
+  grid-column: 1 / -1;
+}
+/* the lenses: "It can say" / "It cannot say", each over short icon items */
+
+/* the two columns: a divider between them; each slides in from its side
+   (the framework's .reveal transition; reduced motion: no motion) */
+
+/* the divider draws first, then the columns slide in */
+
+/* ---- Wave 2 scenes (part3/*.jsx): entry beats, Replay, scene heads ---- */
+
+#story-part-3 .p3-scene-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--pe-gray-700);
+}
+#story-part-3 .p3-scene-head .p3-ico {
+  color: var(--c-highlight);
+}
+
+/* a replay snaps the figure back without a transition, then it plays */
+.p3-reset,
+.p3-reset * {
+  transition: none !important;
+}
+
+/* 3-1: tiles peel out (TileGrid's transform transition); stats count up */
+.p3-tile-heads {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 4px;
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
+.p3-tile-head-out {
+  opacity: 0;
+  transition: opacity 300ms var(--story-ease) 800ms;
+}
+.p3-scene.is-on .p3-tile-head-out {
+  opacity: 1;
+}
+#story-part-3 .p3-central-tiles {
+  max-width: 260px;
+}
+@media print, (scripting: none) {
+  .p3-tile-head-out,
+  .p3-wf-row .p3-row-value,
+  .p3-wf-row .p3-row-label,
+  .p3-wf-link,
+  .p3-dp-row,
+  .p3-db-val,
+  .p3-db-mark .p3-db-dot,
+  .p3-db-seg,
+  .p3-sankey .sankey-node {
+    opacity: 1 !important;
+  }
+  .p3-wf-bar,
+  .p3-dp-row,
+  .p3-db-link,
+  .p3-sankey .sankey-node {
+    transform: none !important;
+  }
+  .p3-sankey .sankey-link {
+    clip-path: none !important;
+  }
+}
+.p3-key-card {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+  font-size: var(--t-ui);
+}
+/* phones keep the tile grid: the peel-out plays at every width */
+
+/* entry rows: a 12px slide and fade, staggered by --beat */
+.p3-wf-row .p3-row-value,
+.p3-wf-row .p3-row-label,
+.p3-dp-row,
+.p3-db-val {
+  opacity: 0;
+  transition:
+    opacity 300ms var(--story-ease) var(--beat, 0ms),
+    transform 300ms var(--story-ease) var(--beat, 0ms);
+}
+.p3-dp-row {
+  transform: translateY(12px);
+}
+.p3-scene.is-on .p3-wf-row .p3-row-value,
+.p3-scene.is-on .p3-wf-row .p3-row-label,
+.p3-scene.is-on .p3-dp-row,
+.p3-scene.is-on .p3-db-val {
+  opacity: 1;
+  transform: none;
+}
+
+/* 3-2: the netting waterfall; bars grow from where they start */
+.p3-wf {
+  gap: 8px;
+}
+.p3-wf-svg {
+  overflow: visible;
+}
+.p3-wf-bar {
+  transform: scaleX(0);
+  transform-box: fill-box;
+  transition: transform 500ms var(--story-ease) var(--beat, 0ms);
+}
+.p3-scene.is-on .p3-wf-bar {
+  transform: none;
+}
+.p3-wf-link {
+  stroke: var(--pe-gray-400);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0;
+  transition: opacity 200ms ease var(--beat, 0ms);
+}
+.p3-scene.is-on .p3-wf-link {
+  opacity: 1;
+}
+
+/* wide: the card's items as a strip above, the Sankey full width below */
+#p3-absorb.scrolly {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+#p3-absorb .scrolly-steps {
+  grid-row: 1;
+}
+#p3-absorb .scrolly-graphic {
+  grid-column: 1;
+  grid-row: 2;
+  position: static;
+}
+#p3-absorb .scrolly-body .story-items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 20px;
+}
+
+/* 3-4: deciles; the largest fall is highlighted once the bars land */
+.p3-dec.is-worst .p3-dec-label,
+.p3-dec.is-worst .p3-row-value {
+  transition:
+    color 300ms ease 900ms,
+    font-weight 0ms linear 900ms;
+}
+.p3-scene.is-on .p3-dec.is-worst .p3-dec-label {
+  font-weight: 600;
+  color: var(--c-loss-text);
+}
+.p3-scene.is-on .p3-dec.is-worst .p3-row-value {
+  color: var(--c-loss-text);
+}
+
+/* 3-5: two dot panels per rule, both from zero */
+.p3-dp-heads,
+.p3-dp-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 28px;
+}
+.p3-dp-heads {
+  margin: 4px 0 6px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-dp-heads .p3-ico {
+  vertical-align: -2px;
+}
+.p3-dp {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.p3-dp-row .p3-row-label {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+}
+.p3-dp-track,
+.p3-db-track,
+.p3-be-track {
+  position: relative;
+  display: block;
+  height: 20px;
+  border-left: 1px solid var(--c-zero-line, var(--pe-gray-400));
+}
+.p3-dp-track::before,
+.p3-db-track::before,
+.p3-be-track::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px dotted var(--pe-gray-300);
+}
+.p3-dot,
+.p3-db-dot {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: var(--pe-gray-800);
+  box-shadow: 0 0 0 2px var(--pe-surface);
+}
+.p3-dot-pov {
+  background: var(--c-loss);
+  cursor: default;
+}
+.p3-dot.is-ring {
+  background: var(--pe-surface);
+  border: 2px solid var(--pe-gray-500);
+}
+.p3-dot:focus-visible,
+.p3-db-dot:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+.p3-dot-val {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--pe-gray-900);
+}
+/* a dot far to the right: its value sits to its left, clear of the next axis */
+.p3-dot-val.is-left {
+  left: auto;
+  right: 14px;
+}
+.p3-tip {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--c-loss-text);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+/* 3-6: chips and dumbbells */
+.p3-legend-chips {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+.p3-legend-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  cursor: default;
+}
+.p3-legend-chip::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--pe-gray-800);
+}
+.p3-legend-chip.is-cut::before {
+  background: var(--rank-3);
+}
+.p3-legend-chip.is-dim {
+  color: var(--pe-gray-600);
+  border-color: transparent;
+}
+.p3-db-group.is-a {
+  margin-bottom: 4px;
+}
+.p3-db-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.p3-db {
+  margin: 4px 0 26px;
+}
+.p3-db-head {
+  margin: 0 0 4px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-db-link {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--pe-gray-300);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 500ms var(--story-ease) calc(var(--beat, 0ms) + 250ms);
+}
+/* the mark spans the track, so a filter on it (dimmed or pulsing) keeps its children's left: X% */
+.p3-db-mark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.p3-db-mark .p3-db-dot {
+  pointer-events: auto;
+}
+.p3-db-mark .p3-db-dot,
+.p3-db-seg {
+  opacity: 0;
+  transition: opacity 300ms var(--story-ease) var(--beat, 0ms);
+}
+.p3-db-mark.is-second .p3-db-dot,
+.p3-db-mark.is-second .p3-db-seg,
+.p3-db-mark.is-second .p3-db-val {
+  transition-delay: calc(var(--beat, 0ms) + 500ms);
+}
+.p3-scene.is-on .p3-db-link {
+  transform: none;
+}
+.p3-scene.is-on .p3-db-mark .p3-db-dot,
+.p3-scene.is-on .p3-db-seg {
+  opacity: 1;
+}
+.p3-db-mark.is-cut .p3-db-dot {
+  background: var(--rank-3);
+}
+.p3-db-seg {
+  position: absolute;
+  top: 50%;
+  height: 8px;
+  margin-top: -4px;
+  background: var(--rank-1);
+  border-radius: 0 2px 2px 0;
+}
+.p3-db-val {
+  position: absolute;
+  top: 16px;
+  transform: translateX(-50%);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--pe-gray-900);
+}
+.p3-db-val.is-left,
+.p3-scene.is-on .p3-db-val.is-left {
+  transform: translateX(-100%);
+}
+/* a centred value never leaves its track: it slides left by what would
+   cross the right edge (or right by what would cross the left) */
+.p3-db-track {
+  container-type: inline-size;
+}
+.p3-db-val:not(.is-left),
+.p3-scene.is-on .p3-db-val:not(.is-left) {
+  transform: translateX(max(calc(var(--x, 50) * -1cqw), min(-50%, calc((100 - var(--x, 50)) * 1cqw - 100%))));
+}
+.p3-db-mark.is-cut .p3-db-val {
+  top: auto;
+  bottom: 16px;
+}
+.p3-db-mark.is-dim .p3-db-dot,
+.p3-db-mark.is-dim .p3-db-seg {
+  opacity: 0.25 !important;
+}
+.p3-db-mark.is-dim .p3-db-val {
+  color: var(--pe-gray-600);
+}
+/* the emphasis moves to group B once it draws */
+.p3-margin .p3-db-group.is-a .p3-db-track {
+  transition: opacity 400ms ease 1100ms;
+}
+.p3-db-track {
+  margin-top: 18px;
+}
+.p3-db-group.is-a .p3-db-track {
+  margin-top: 22px;
+}
+
+/* 3-7: break-even tracks, the switch, the take-up ladder */
+
+.p3-switch {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--pe-gray-100);
+  border-radius: 999px;
+}
+.p3-switch button {
+  padding: 3px 12px;
+  font: inherit;
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--pe-gray-700);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.p3-switch button.is-on {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  background: var(--pe-surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+.p3-switch button:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 1px;
+}
+/* step 8: icon and label on one line, the detail line under them */
+
+@media (max-width: 900px) {
+  #story-part-3 .p3-scene-head {
+    margin: 0 0 10px;
+    padding-top: 0;
+    border-top: 0;
+  }
+  #story-part-3 .p3-central-tiles {
+    max-width: 210px;
+  }
+  #p3-absorb .scrolly-body .story-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 599px) {
+  #p3-absorb .scrolly-body .story-items,
+  .p3-db-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .p3-dp-heads,
+  .p3-dp-row {
+    column-gap: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p3-scene * {
+    transition: none !important;
+  }
+}
+
+/* figure head actions (Pause, Replay: F's chart/Replay buttons) */
+.p3-figure .story-figure-title {
+  position: relative;
+}
+.p3-head-actions {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+/* 3-3: follow a decile */
+.p3-follow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 6px 0 2px;
+}
+.p3-follow-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-right: 4px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+}
+
+.p3-follow-btn {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  font: inherit;
+  font-size: var(--t-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-700);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.p3-follow-btn.is-caveat {
+  color: var(--pe-gray-600);
+  border-style: dashed;
+}
+.p3-follow-btn.is-on {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  border-color: var(--pe-gray-800);
+}
+.p3-follow-btn:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 1px;
+}
+
+/* 3-7: the two states side by side on desktop; stacked on phones */
+
+/* phones: the flow is off and the Sankey is drawn once, so the decile
+   buttons step aside (hover and focus still light a decile end to end) */
+@media (max-width: 900px) {
+  .p3-follow-btn,
+  .p3-follow-hint {
+    display: none;
+  }
+  /* a block ends with its last card (addendum A2.2): the shared Scrolly
+     leaves 8px under a one-card block's step at this width */
+  #story-part-3 .scrolly-step:nth-last-child(2) {
+    padding-bottom: 0;
+  }
+}
+/* the close ends with its columns: no band before the site footer */
+.story-close.story-part {
+  padding-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  #story-part-3 .p3-scene-head {
+    margin-bottom: 8px;
+  }
+}
+/* phones: the page's bottom padding and the footer's own top padding left a
+   blank band over 120px under the close; the close takes 32px of it */
+@media (max-width: 900px) {
+  .story-close.story-part {
+    margin-bottom: -32px;
+  }
+}
+/* the track labels: the left one ends at its tick, the right one starts at
+   its tick; the cost word sits on the track's line only */
+.p3-be-point.is-end {
+  transform: translateX(calc(-100% + 2px));
+}
+.p3-be-point.is-start {
+  transform: translateX(-2px);
+}
+.p3-be-cost {
+  grid-row: 2;
+}
+/* the ladder: track, then cost and poverty in their own columns */
+
+/* the flow is off on phones, so its pause button goes too */
+@media (max-width: 900px) {
+  .p3-sankey .ch-icon-btn[aria-label$='the flow'] {
+    display: none;
+  }
+}
+
+/* The poverty basis chip (Central.jsx): said once for part 3 */
+
+/* p2h push: each block carries its own topic header (Scrolly `sub`), so the
+   gap under it is kept small; axis titles and source links */
+#story-part-3 .p3-tile-notes {
+  margin-top: 8px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+}
+#story-part-3 .p3-axis-title {
+  font-weight: inherit;
+}
+#story-part-3 .p3-ref {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* short desktop windows (1366x650): the take-up and break-even states each
+   hold for 180px of scroll; the cards' topic header replaced their kickers */
+
+/* p2h push: the wide block (3-3) keeps its topic header above the card
+   strip and the Sankey */
+#p3-absorb.has-sub .scrolly-steps {
+  grid-row: 2;
+}
+#p3-absorb.has-sub .scrolly-graphic {
+  grid-row: 3;
+}
+/* its answer after the Sankey (Scrolly answerAfter), not above it */
+#p3-absorb > .scrolly-answer-after {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+#p3-absorb.has-sub > .scrolly-answer-after {
+  grid-row: 4;
+}
+/* step 8 on wide screens: the nine tiles in two rows across the full width */
+
+/* a numbered marker on an HTML chart, beside its row's label (the
+   text's <Num n> twin, S2's .hl-num disc) */
+.p3-nm {
+  vertical-align: 0.1em;
+}
+/* the fold's groups under small icon sub-labels */
+
+/* a step's one sentence: the card's line, at title size */
+.p3-step-line {
+  margin: 0;
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.45;
+  text-wrap: pretty;
+  color: var(--t-text);
+}
+.scrolly-step:not(.is-active) .p3-step-line {
+  color: var(--t-muted);
+}
+
+/* step 3's three readings: buttons that light their destination */
+
+.p3-draws {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 0;
+}
+/* Part 3's scenes keep their figures' own height on desktop (the shared
+   400-620px box would leave each state too little scroll to hold): the
+   cards' column, not a tall box, gives each state its 180px. */
+@media (min-width: 901px) {
+  #story-part-3 .scrolly:not(.is-single) .scrolly-graphic-inner {
+    /* tall enough that the figure, centred below the rail, leaves no
+       blank band over 120px above or below it */
+    min-height: calc(100vh - var(--story-graphic-top) - 200px);
+  }
+}
+/* 3-5: the rule dots slide in from zero along their axes */
+.p3-scene .p3-dot {
+  transition:
+    left 700ms var(--story-ease) var(--beat, 0ms),
+    opacity 300ms var(--story-ease),
+    filter 300ms var(--story-ease);
+}
+/* Each state holds 200px of scroll (check_states: 180px) while the figure
+   is in view. The scroll a scene gives its states is H - top - 0.8F plus
+   the cards' column beyond the figure (Scrolly's geometry), so each card
+   gets a floor of (1.8F + 130px + 200px a state + 20px - 100vh) / n, the
+   32px gap out: nothing at tall screens, more at short ones. F: the
+   figure's height at 1280x800, at least its 460px box (central 536, channels 403, deciles 429, rules
+   384, margin 416; round 2 merged rules, margin and moves into one
+   four-state scene, #p3-changes). */
+@media (min-width: 901px) {
+  #p3-central .scrolly-card {
+    min-height: calc((1515px - 100vh) / 2 - 32px);
+  }
+  /* round 2: plus the labelled zero line (16px), 1.8 x 16 */
+  #p3-channels .scrolly-card {
+    min-height: calc((1362px - 100vh) / 2 - 32px);
+  }
+  #p3-deciles .scrolly-card {
+    min-height: calc((1322px - 100vh) / 2 - 32px);
+  }
+  /* round 2: what changes the answer, four states, F about 470px:
+     (1.8F + 130 + 800 + 20 + 4px) / 4 */
+  #p3-changes .scrolly-card {
+    min-height: calc((1800px - 100vh) / 4 - 32px);
+  }
+}
+
+/* decile 1's rankings: a small table in its step's card */
+.p3-rank-table {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: var(--t-meta);
+}
+.p3-rank-cap {
+  caption-side: top;
+  text-align: left;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-600);
+  padding-bottom: 2px;
+}
+.p3-rank-table th {
+  text-align: left;
+  font-weight: 400;
+  padding: 2px 10px 2px 0;
+}
+.p3-rank-table td {
+  text-align: right;
+  white-space: nowrap;
+}
+/* the entry beats play at full strength; the step's highlight dims the
+   other marks only once they have landed (useBeat's `settled`) */
+#story-part-3 .p3-scene:not(.is-settled) [data-mark]:not([data-on]) {
+  opacity: 1;
+}
+
+/* ---- Round 1: de-cluttered part 3 and close ---------------------------- */
+/* figure notes: meta text, no icon, no box */
+#story-part-3 .p3-key {
+  margin: 8px 0 0;
+  max-width: 75ch;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--t-muted);
+}
+#story-part-3 .p3-key a {
+  color: var(--pe-teal-700, var(--c-gain-text));
+}
+/* 3-1: stats step 1 does not name are lightened, not hidden (round 2) */
+#p3-central [data-hl] .story-fact:not([data-on]) {
+  filter: none;
+}
+/* round 2 (C7): the facts step 1 does not name stay legible at 65%, so the
+   grid does not read as disabled */
+#p3-central [data-hl='displaced f-displaced'] .story-fact:not([data-on]) {
+  opacity: 0.65;
+}
+#p3-central .story-fact {
+  transition: opacity 300ms var(--story-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  #p3-central .story-fact {
+    transition: none;
+  }
+}
+/* 3-4: deciles at full strength. No step dims a bar (no pale peach); the
+   bars a step names are marked by their labels' weight, never by fading
+   the others; labels and values never fade */
+#p3-deciles [data-hl] [data-mark]:not([data-on]) {
+  filter: none;
+}
+#p3-deciles [data-hl] .p3-dec:has([data-mark][data-on]) .p3-dec-label,
+#p3-deciles [data-hl] .p3-dec:has([data-mark][data-on]) .p3-row-value {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+#p3-deciles .p3-dec-label,
+#p3-deciles .p3-row-value {
+  color: var(--pe-gray-700);
+  opacity: 1;
+}
+.p3-fill-caveat {
+  fill: var(--pe-gray-500);
+}
+#p3-deciles .p3-dec.is-caveat .p3-row-value {
+  color: var(--pe-gray-500);
+}
+.p3-dec-note {
+  grid-column: 1 / -1;
+  margin-top: -2px;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-rank-table th {
+  font-weight: 400;
+}
+/* the end of part 3: one header, one plain two-column list with dots */
+.p3-close {
+  margin: 48px 0 0;
+}
+.p3-close-h {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 12px;
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.p3-out-list {
+  list-style: disc outside;
+  columns: 2;
+  column-gap: 32px;
+  margin: 0;
+  padding: 0 0 0 16px;
+  font-size: var(--t-ui);
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+}
+.p3-out-list li {
+  break-inside: avoid;
+  margin: 0 0 6px;
+  padding-left: 2px;
+}
+.p3-out-list li::marker {
+  color: var(--pe-gray-500);
+}
+@media (max-width: 599px) {
+  .p3-out-list {
+    columns: 1;
+  }
+}
+/* the close: one header, one line, one ruled table, one row of links */
+.story-close .lens-lead {
+  margin: 8px 0 0;
+  max-width: 60ch;
+  font-size: var(--t-body);
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+}
+.lens-h-ico {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+.lens-cap {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.lens-table {
+  width: 100%;
+  margin: 24px 0 0;
+  border-collapse: collapse;
+  font-size: var(--t-ui);
+  line-height: 1.4;
+  color: var(--pe-gray-700);
+}
+.lens-table th,
+.lens-table td {
+  padding: 10px 16px 10px 0;
+  border-bottom: 1px solid var(--pe-gray-200);
+  text-align: left;
+  vertical-align: top;
+}
+.lens-table thead th {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+  border-bottom-color: var(--pe-gray-400);
+}
+.lens-table tbody th {
+  width: 7.5em;
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.lens-table a,
+.lens-deeper a {
+  color: var(--pe-teal-700, var(--c-gain-text));
+}
+.lens-deeper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 24px 0 0;
+  font-size: var(--t-ui);
+}
+.lens-deeper-label {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+/* phones: each row's two cells stack under the row's name, each led by its model */
+@media (max-width: 599px) {
+  .lens-table thead {
+    display: none;
+  }
+  .lens-table,
+  .lens-table tbody,
+  .lens-table tr,
+  .lens-table th,
+  .lens-table td {
+    display: block;
+    width: auto;
+  }
+  .lens-table tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--pe-gray-200);
+  }
+  .lens-table th,
+  .lens-table td {
+    padding: 2px 0;
+    border: 0;
+  }
+  .lens-table td::before {
+    content: attr(data-model) ': ';
+    font-weight: 600;
+    color: var(--pe-gray-900);
+  }
+}
+
+/* the close's header: icon and title on one line, no tint (parts are neutral) */
+#story-close .story-part-head {
+  display: block;
+  margin-bottom: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+}
+#story-close-h {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+}
+
+/* Round 1f (round 2: the merged scene, #p3-changes): a dimmed mark's value
+   label stays readable, at the muted text token; only the dot or segment
+   fades (the highlight's filter would fade the label with its mark) */
+#p3-changes [data-hl] [data-mark]:not([data-on]) {
+  filter: none;
+}
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot {
+  background: color-mix(in srgb, var(--pe-gray-800) 40%, var(--pe-surface));
+}
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot-pov {
+  background: color-mix(in srgb, var(--c-loss) 40%, var(--pe-surface));
+}
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot.is-ring {
+  background: var(--pe-surface);
+  border-color: color-mix(in srgb, var(--pe-gray-500) 40%, var(--pe-surface));
+}
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot-val,
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-val,
+#p3-changes .p3-db-val .p3-muted {
+  color: var(--t-muted);
+}
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-dot,
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-seg {
+  opacity: 0.4;
+}
+
+/* ---- Round 2: What changes the answer (part3/Changes.jsx) ----
+   Three panels on one grid cell; the step picks the one shown (opacity,
+   inert), so the box keeps the tallest panel's height and never shifts.
+   Phones draw the figure once: the panels stack, all shown. */
+.p3-ch-panels {
+  display: grid;
+}
+.p3-ch-panel {
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  transition: opacity 350ms var(--story-ease);
+}
+.p3-ch-panel.is-shown {
+  opacity: 1;
+}
+.p3-ch.is-all .p3-ch-panel {
+  grid-area: auto;
+}
+.p3-ch.is-all .p3-ch-panel + .p3-ch-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.p3-ch .p3-group-first {
+  margin-top: 2px;
+}
+/* tick rows under a track: scale labels at their positions */
+.p3-ch-ticks {
+  position: relative;
+  display: block;
+  height: 16px;
+  margin-top: 2px;
+  font-size: var(--t-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-500);
+}
+.p3-ch-ticks > span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.p3-ch-ticks > span.is-start {
+  transform: none;
+}
+.p3-ch-ticks > span.is-end {
+  transform: translateX(-100%);
+}
+.p3-ch-tickrow {
+  margin-top: -4px;
+}
+/* the dots slide from zero when their panel is shown */
+.p3-ch .p3-dot {
+  transition: left 600ms var(--story-ease) var(--beat, 0ms);
+}
+.p3-ch .p3-dot-val {
+  opacity: 1;
+}
+.p3-ch .p3-db {
+  margin: 4px 0 10px;
+}
+.p3-ch .p3-db-track {
+  margin-top: 22px;
+  margin-bottom: 18px;
+}
+.p3-ch .p3-db-track.is-on .p3-db-link {
+  transform: none;
+}
+.p3-ch .p3-db-track.is-on .p3-db-dot,
+.p3-ch .p3-db-track.is-on .p3-db-seg {
+  opacity: 1;
+}
+.p3-ch .p3-db-val {
+  font-weight: 400;
+  color: var(--pe-gray-700);
+}
+.p3-ch .p3-db-val::first-line {
+  font-weight: 600;
+}
+.p3-db-name {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+/* break-evens: central setting, an arrow, the break-even setting */
+.p3-ch-be {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.p3-ch-be-row {
+  display: grid;
+  grid-template-columns: max-content minmax(48px, 1fr) max-content;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+}
+.p3-ch-be-row .p3-row-label {
+  grid-column: 1 / -1;
+}
+.p3-ch-be-from,
+.p3-ch-be-to {
+  font-size: var(--t-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-700);
+  white-space: nowrap;
+}
+.p3-ch-be-from {
+  min-width: 9.5em;
+}
+.p3-ch-be-to {
+  min-width: 10.5em;
+  text-align: right;
+}
+.p3-ch-be-cap {
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-ch-be-to .p3-row-value {
+  color: var(--pe-gray-900);
+}
+.p3-ch-be-arrow {
+  position: relative;
+  height: 2px;
+  background: var(--pe-gray-800);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms var(--story-ease) calc(var(--beat, 0ms) + 150ms);
+}
+.p3-ch-be-arrow::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--pe-gray-800);
+}
+.p3-ch-be-arrow.is-on {
+  transform: none;
+}
+@media (max-width: 599px) {
+  .p3-ch-be-row {
+    column-gap: 8px;
+  }
+}
+
+/* C8: the zero of the netting waterfall, labelled */
+.p3-wf-axis {
+  position: relative;
+  display: block;
+  height: 16px;
+  margin: 2px calc(4.5em + 10px) 0 0;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-wf-axis > span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+/* drawn once (phones): every panel shown, none dimmed by the last step */
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot {
+  background: var(--pe-gray-800);
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot-pov {
+  background: var(--c-loss);
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot.is-ring {
+  background: var(--pe-surface);
+  border-color: var(--pe-gray-500);
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-dot,
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-seg {
+  opacity: 1;
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot-val,
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-val {
+  color: var(--pe-gray-700);
+}
+@media (max-width: 599px) {
+  .p3-ch-be-row {
+    grid-template-columns: max-content minmax(20px, 1fr) max-content;
+  }
+  .p3-ch-be-from,
+  .p3-ch-be-to {
+    min-width: 0;
+  }
+}
+/* the margins' colour key, beside each value's name */
+.p3-db-sw {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  vertical-align: 0;
+  background: var(--pe-gray-800);
+}
+.p3-db-sw.is-cut {
+  background: var(--rank-3);
+}
+/* round 2, phones: a scene's notes leave the pinned figure for the foot */
+@media (min-width: 601px) {
+  .p3-ch-footnotes {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .p3-ch-notes {
+    display: none;
+  }
+}
+/* round 2, phones (600px and below): each pinned figure within about 45%
+   of the screen at 390x844 and 360x740; text stays at 12px or more */
+.p3-short {
+  display: none;
+}
+@media (max-width: 600px) {
+  .p3-long {
+    display: none;
+  }
+  .p3-short {
+    display: inline;
+  }
+  #story-part-3 .story-figure-unit {
+    margin-bottom: 6px;
+  }
+  #story-part-3 .p3-row-label {
+    font-size: var(--t-meta);
+  }
+  #story-part-3 .p3-rows {
+    gap: 4px;
+  }
+  /* 3-1: tiles in a narrow column, the facts beside and under them */
+  #story-part-3 .p3-central {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+  #story-part-3 .p3-central-tiles {
+    max-width: none;
+  }
+  #story-part-3 .p3-central .p3-facts {
+    display: contents;
+  }
+  #story-part-3 .p3-facts .story-fact-value {
+    font-size: 17px;
+  }
+  #story-part-3 .p3-tile-heads {
+    font-size: var(--t-meta);
+  }
+  /* the set-apart group is named by the fact beside it */
+  #story-part-3 .p3-tile-head-out {
+    display: none;
+  }
+  #story-part-3 .p3-dec .p3-row-label,
+  #story-part-3 .p3-dec-note {
+    line-height: 1.25;
+  }
+  #story-part-3 .p3-dec .hl-num,
+  #story-part-3 .p3-wf .hl-num {
+    width: 1.3em;
+    height: 1.3em;
+  }
+  #story-part-3 .p3-wf-axis {
+    margin-top: 0;
+  }
+  /* 3-3: one line per decile */
+  #story-part-3 .p3-dec {
+    grid-template-columns: 4.6em minmax(0, 1fr) 4.2em;
+    row-gap: 0;
+  }
+  #story-part-3 .p3-dec .p3-row-value {
+    font-size: var(--t-meta);
+  }
+  /* what changes the answer: tighter rows; the margins' pair side by side */
+  .p3-ch .p3-group-head {
+    margin-bottom: 2px;
+  }
+  .p3-ch .p3-dp {
+    gap: 4px;
+  }
+  .p3-ch .p3-dp-row .p3-row-label {
+    margin-bottom: 0;
+  }
+  .p3-ch .p3-dp-heads {
+    margin: 0 0 2px;
+  }
+  .p3-ch .p3-db {
+    margin: 0 0 4px;
+  }
+  .p3-ch .p3-db-track {
+    margin-top: 18px;
+    margin-bottom: 16px;
+  }
+  .p3-ch .p3-db-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+  .p3-ch-be {
+    gap: 6px;
+  }
+}
+/* the zero label starts at the zero line when it sits at an edge */
+.p3-wf-axis > span.is-start {
+  transform: none;
+}
+.p3-wf-axis > span.is-end {
+  transform: translateX(-100%);
+}
+/* the break-even panel fills the shared cell: its rows spread out, so no
+   blank band sits under it (the cell is as tall as the tallest panel) */
+.p3-ch-panel {
+  display: flex;
+  flex-direction: column;
+}
+.p3-ch-panel .p3-ch-be {
+  flex: 1;
+  align-content: space-evenly;
+}
+.p3-ch.is-all .p3-ch-panel .p3-ch-be {
+  flex: none;
+}
+/* phones, the pinned four-state scene: each card holds its state for at
+   least 180px of scroll (check_states at 390 and 360) */
+@media (max-width: 600px) {
+  #p3-changes .scrolly-card {
+    min-height: 184px;
+  }
+}

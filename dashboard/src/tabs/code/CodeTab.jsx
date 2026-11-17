@@ -3,24 +3,40 @@
 import Icon from '@/components/ab/Icon.jsx';
 import CopyBlock from '@/components/ab/CopyBlock.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { S } from '@/tabs/ai/surprise.js';
-import { REPO, URLS } from '@/tabs/ai/links.js';
+import { REPO, URLS, issue } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
-import { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
+import Card, { InfoCard, SectionHeading } from '@/components/ui/Card.jsx';
+import PageIntro from '@/components/ui/PageIntro.jsx';
+import CHANGELOG from '@/data/site-changelog.json';
+import MF from '@/data/methodFacts.json';
+import { MODEL_VERSIONS, VINTAGES, AI_FULL_RERUN, AI_STUDY, RELEASES, ledger, ledgerTable, LAST_UPDATED, HAS_CHECKS, version } from './ledger.js';
+import { HISTORY } from './history.js';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
+import { Items, WhyChain } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { REF, SP_HELPER, STEPS } from './pipeline.js';
 
-// Code: Reproduce (before you start, the 2028-surprise pipeline as connected
-// nodes, what the outputs are) and Use OG-UK (the general workflow).
-// Commands are checked against the scripts and CLI; see pipeline.js.
+// Data and code: reproduce the results (before you start, the 2028-surprise
+// pipeline, outputs and checks), the one vintages table and the model
+// versions (each with its model: OG-UK or uk-ai-study), the source ledger,
+// citation, the one changelog (model decisions and site changes) and the
+// general OG-UK workflow. Commands are checked against the scripts and CLI;
+// see pipeline.js.
 
 const SECTIONS = [
-  { id: 'before', title: 'Reproduce the results', icon: 'key' },
-  { id: 'pipeline', title: 'Run it step by step', icon: 'gitBranch' },
-  { id: 'outputs', title: 'Outputs and checks', icon: 'flask' },
-  { id: 'use-oguk', title: 'Use OG-UK yourself', icon: 'code' },
+  { id: 'before', title: 'Reproduce the results', icon: iconFor('prerequisite') },
+  { id: 'pipeline', title: 'Run it step by step', icon: iconFor('pipeline') },
+  { id: 'outputs', title: 'Outputs and checks', icon: iconFor('check') },
+  { id: 'vintages', title: 'Data vintages and versions', icon: iconFor('data') },
+  { id: 'ledger', title: 'Source ledger', icon: iconFor('ledger') },
+  { id: 'cite', title: 'Cite this work', icon: iconFor('source') },
+  { id: 'changelog', title: 'Changelog and revisions', icon: iconFor('revision') },
+  { id: 'use-oguk', title: 'Use OG-UK yourself', icon: iconFor('code') },
 ];
+const SITE_URL = 'https://uk-growth-with-ai.vercel.app';
+const longDate = (d) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
 const blob = (p) => `${REPO}/blob/${REF}/${p}`;
@@ -43,37 +59,29 @@ export HF_HUB_DISABLE_SHARED_BLOBS=1
 export DASK_DISTRIBUTED__SCHEDULER__WORKER_TTL=None
 : > "$WORK/un_api_token.txt"   # empty: demographics from the GitHub mirror, as every run so far`;
 
-const VERSIONS = [
-  ['Python', '3.13.15'],
-  ['OG-Core', '0.17.0, plus the γ patch'],
-  ['OG-UK', 'vahid-ahmadi/OG-UK at d0e6ae5'],
-  ['policyengine', '5.0.4'],
-  ['policyengine-uk', '2.90.2'],
-  ['NumPy, pandas', '2.3.5, 3.0.5'],
-];
-
 function BeforeYouStart() {
   return (
     <InfoCard
-      icon="key"
       title="Before you start"
       className="mx-before"
       foot={
         <>
-          <Disclosure inCard title="Install the model" preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
+          <Disclosure inCard title={<IconText icon="install">Install the model</IconText>} preview="Clone, OG-Core 0.17.0, OG-UK d0e6ae5">
             <CopyBlock code={INSTALL} />
           </Disclosure>
-          <Disclosure inCard title="Patch OG-Core for a time-varying γ" preview="Runs refuse to start without it">
-            <p className="mx-fold-p">
-              Stock OG-Core holds &gamma; fixed over time. The {ext(URLS.patch, 'patch')} adds a time dimension (
-              {ext(URLS.patchDoc, 'design')}).
-            </p>
+          <Disclosure inCard title={<IconText icon="code">Patch OG-Core for a time-varying γ</IconText>} preview="Runs refuse to start without it">
+            <Items
+              items={[
+                { icon: 'model', text: <>Stock OG-Core holds &gamma; fixed over time.</> },
+                { icon: 'code', text: <>The {ext(URLS.patch, 'patch')} adds a time dimension ({ext(URLS.patchDoc, 'design')}).</> },
+              ]}
+            />
             <CopyBlock code={PATCH} />
           </Disclosure>
-          <Disclosure inCard title="Environment" preview="Tokens, Hugging Face cache, Dask">
+          <Disclosure inCard title={<IconText icon="prerequisite">Environment</IconText>} preview="Tokens, Hugging Face cache, Dask">
             <CopyBlock code={ENV} />
           </Disclosure>
-          <Disclosure inCard title="The sp helper used below" preview="Runs the CLI as the driver does">
+          <Disclosure inCard title={<IconText icon="code">The sp helper used below</IconText>} preview="Runs the CLI as the driver does">
             <CopyBlock code={SP_HELPER} />
           </Disclosure>
         </>
@@ -81,30 +89,47 @@ function BeforeYouStart() {
     >
       <div className="mx-before-grid">
         <div>
-          <p className="mx-kicker">Versions used</p>
-          <dl className="mx-versions">
-            {VERSIONS.map(([k, v]) => (
-              <div key={k}>
-                <dt>{k}</dt>
-                <dd>{k === 'OG-UK' ? ext(URLS.ogUkFork, v) : v}</dd>
-              </div>
-            ))}
-            <div>
-              <dt>Dashboard data</dt>
-              <dd>
-                {S.generated_utc} from {S.source_commit}
-              </dd>
-            </div>
-          </dl>
+          <p className="mx-kicker">
+            <IconText icon="version">Versions used</IconText>
+          </p>
+          <Items
+            items={[
+              {
+                icon: 'link',
+                text: (
+                  <>
+                    Every version and data build:{' '}
+                    <NavLink tab="method" sub="code" anchor="vintages">
+                      the vintages table
+                    </NavLink>
+                    .
+                  </>
+                ),
+              },
+            ]}
+          />
         </div>
         <div>
-          <p className="mx-kicker">You need</p>
-          <ul className="mx-needs">
-            <li>A Hugging Face token with read access, set as both HF_TOKEN and HUGGING_FACE_TOKEN.</li>
-            <li>The R1–R4 baselines in WORK: each closure&rsquo;s baseline_p1 pickles.</li>
-            {/* elapsed_min over the 38 solve records in analysis/surprise/output (zk0.1, zk0, zk0.5) at 524849d: 6.5 to 8.7, median 6.8 */}
-            <li>About 15 GB of memory for a specification build; about seven minutes a solve (6.5 to 8.7 across the committed solves).</li>
-          </ul>
+          <p className="mx-kicker">
+            <IconText icon="prerequisite">You need</IconText>
+          </p>
+          {/* elapsed_min over the solve records in analysis/surprise/output: methodFacts.json solve_minutes */}
+          <Items
+            items={[
+              { icon: 'prerequisite', text: 'A Hugging Face read token, as HF_TOKEN and HUGGING_FACE_TOKEN.' },
+              { icon: 'data', text: 'The R1–R4 baselines in WORK: each closure’s baseline_p1 pickles.' },
+              { icon: 'measure', text: 'About 15 GB of memory for a specification build.' },
+              {
+                icon: 'timing',
+                text: (
+                  <>
+                    Solves: median {MF.solve_minutes.median.toFixed(1)} minutes, {MF.solve_minutes.min.toFixed(1)} to{' '}
+                    {MF.solve_minutes.max.toFixed(1)} across {MF.solve_minutes.records} committed solve records.
+                  </>
+                ),
+              },
+            ]}
+          />
         </div>
       </div>
     </InfoCard>
@@ -113,28 +138,30 @@ function BeforeYouStart() {
 
 function PipelineMap() {
   return (
-    <InfoCard icon="gitBranch" title="The 2028-surprise pipeline" className="mx-pipemap">
-      <p>Nine steps, in order. Choose one for its file and commands.</p>
+    <InfoCard title="The 2028-surprise pipeline" className="mx-pipemap">
+      <p>
+        <IconText icon="stages">Nine steps, in order. Choose one for its file and commands.</IconText>
+      </p>
       <nav aria-label="Pipeline steps">
       <ol className="mx-pipe-row">
         {STEPS.map((s, i) => (
           <li key={s.id}>
-            <NavLink tab="code" anchor={s.id} className="mx-pipe-node">
+            <NavLink tab="method" sub="code" anchor={s.id} className="mx-pipe-node">
               <span className="mx-pipe-n">{i + 1}</span>
-              <Icon name={s.icon} size={18} />
+              <Icon name={iconFor(s.icon)} size={18} />
               <span className="mx-pipe-label">{s.short}</span>
             </NavLink>
           </li>
         ))}
       </ol>
       </nav>
-      <p className="mx-pipe-out">
-        <Icon name="arrowDown" size={14} />
-        <span>
-          Output: <code>dashboard/src/data/surprise2028.json</code>, the only file the Results tab reads. Who gains reads{' '}
-          <code>cohorts2028.json</code>, written by <code>paper/cohort_welfare.py --json</code>.
-        </span>
-      </p>
+      <Items
+        className="mx-pipe-items"
+        items={[
+          { icon: 'data', text: <>Output: <code>dashboard/src/data/surprise2028.json</code>, the only file Explore&rsquo;s results views read.</> },
+          { icon: 'households', text: <>Who gains reads <code>cohorts2028.json</code>, from <code>paper/cohort_welfare.py --json</code>.</> },
+        ]}
+      />
     </InfoCard>
   );
 }
@@ -148,25 +175,21 @@ function PipelineSteps() {
             {i + 1}
           </span>
           <InfoCard
-            icon={s.icon}
             title={s.title}
             morePreview={`Commands · ${firstCommand(s.code)}`}
             more={
               <>
-                {s.more.map((m) => (
-                  <p key={m} className="mx-fold-p">
-                    {m}
-                  </p>
-                ))}
+                <Items items={s.more.map((m) => ({ key: m, icon: 'caveat', text: m }))} />
                 <CopyBlock code={s.code} />
               </>
             }
           >
             <a className="mx-file" href={s.file.endsWith('zk0.1') ? tree(s.file) : blob(s.file)} target="_blank" rel="noreferrer">
-              <Icon name="github" size={14} />
               <code>{s.file}</code>
             </a>
-            <p>{s.line}</p>
+            <p>
+              <IconText icon="stages">{s.line}</IconText>
+            </p>
           </InfoCard>
         </li>
       ))}
@@ -216,40 +239,49 @@ const MULTI_PY = `base_tp, reform_tp = run_transition_path(
 function UseOguk() {
   const cards = [
     {
-      icon: 'download',
+      icon: 'install',
       title: 'Install',
-      line: 'Install OG-UK from PSLmodels with uv. It needs Python 3.11 or later.',
+      line: [
+        { icon: 'install', text: 'Install OG-UK from PSLmodels with uv.' },
+        { icon: 'version', text: 'It needs Python 3.11 or later.' },
+      ],
       code: OG_INSTALL,
       preview: 'git clone, uv sync, token',
     },
     {
-      icon: 'sliders',
+      icon: 'scenario',
       title: 'Define a reform',
-      line: 'A reform is a PolicyEngine policy: a parameter, a value and a start date.',
+      line: [{ icon: 'rule', text: 'A PolicyEngine policy: a parameter, a value and a start date.' }],
       code: REFORM_PY,
       preview: 'reform.py',
       lang: 'py',
     },
     {
-      icon: 'target',
+      icon: 'breakEven',
       title: 'Solve the steady state',
-      line: 'Solve the baseline and the reform, then compare the long run.',
+      line: [
+        { icon: 'equation', text: 'Solve the baseline and the reform.' },
+        { icon: 'compare', text: 'Then compare the long run.' },
+      ],
       code: SS_PY,
       preview: 'steady_state.py, a few minutes',
       lang: 'py',
     },
     {
-      icon: 'trend',
+      icon: 'path',
       title: 'Run the transition path',
-      line: 'The year-by-year path. Dask spreads the cohorts across cores.',
+      line: [
+        { icon: 'path', text: 'The year-by-year path.' },
+        { icon: 'generations', text: 'Dask spreads the cohorts across cores.' },
+      ],
       code: TPI_PY,
       preview: 'transition.py',
       lang: 'py',
     },
     {
-      icon: 'layers',
+      icon: 'model',
       title: 'More sectors',
-      line: 'Pass multi_sector=True for the eight-sector build.',
+      line: [{ icon: 'code', text: 'Pass multi_sector=True for the eight-sector build.' }],
       code: MULTI_PY,
       preview: 'multi_sector.py',
       lang: 'py',
@@ -261,64 +293,417 @@ function UseOguk() {
         {cards.map((c) => (
           <InfoCard
             key={c.title}
-            icon={c.icon}
             title={c.title}
             more={<CopyBlock code={c.code} lang={c.lang || 'bash'} />}
             morePreview={`Code · ${c.preview}`}
           >
-            <p>{c.line}</p>
+            <Items items={c.line} />
           </InfoCard>
         ))}
-        <InfoCard icon="book" title="Documentation">
-          <p>
-            Theory and API: {ext(URLS.ogCoreDocs, 'OG-Core')} and {ext('https://pslmodels.github.io/OG-UK', 'OG-UK')}{' '}
-            documentation.
-          </p>
+        <InfoCard title="Documentation">
+          <Items
+            items={[
+              { icon: 'link', text: <>Theory and API: {ext(URLS.ogCoreDocs, 'OG-Core')} and {ext('https://pslmodels.github.io/OG-UK', 'OG-UK')} documentation.</> },
+            ]}
+          />
         </InfoCard>
       </div>
     </>
   );
 }
 
+const MODEL_ICON = { 'OG-UK': 'model', 'uk-ai-study': 'households' };
+function ModelCell({ m }) {
+  if (!MODEL_ICON[m]) return <span className="ledger-where">Neither</span>;
+  return (
+    <span className="mx-model-cell">
+      {m}
+    </span>
+  );
+}
+
+function Vintages() {
+  return (
+    <div className="cards-stack">
+      <InfoCard title="Data files and builds" id="data-files">
+        <div className="table-wrap">
+          <table className="data-table ledger-table">
+            <caption className="visually-hidden">Each data file or build, its model, what it feeds, its vintage, its release date and the code that reproduces it</caption>
+            <thead>
+              <tr>
+                <th scope="col">Model</th>
+                <th scope="col">File or build</th>
+                <th scope="col">Feeds</th>
+                <th scope="col">Vintage</th>
+                <th scope="col">Released</th>
+                <th scope="col">Built or read</th>
+                <th scope="col">Replicate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {VINTAGES.map((v) => (
+                <tr key={v.file}>
+                  <td>
+                    <ModelCell m={v.model} />
+                  </td>
+                  <th scope="row">{v.file.includes('.') ? <code>{v.file}</code> : v.file}</th>
+                  <td>{v.what}</td>
+                  <td>{v.url ? ext(v.url, v.vintage) : v.vintage}</td>
+                  <td className="ledger-date-cell">{v.released ?? '—'}</td>
+                  <td className="ledger-date-cell">{v.date ?? '—'}</td>
+                  <td>
+                    {v.code ? ext(v.code.url, v.code.label) : null}
+                    {v.code && v.result ? ' · ' : null}
+                    {v.result ? ext(v.result.url, v.result.label) : null}
+                    {!v.code && !v.result ? '—' : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Items
+          className="mx-foot-items"
+          items={[
+            AI_FULL_RERUN === false ? { icon: 'caveat', text: 'uk-ai-study: the manifest attests results without a clean-room rerun.' } : null,
+            // results outside the attested rebuild, as the data file lists them
+            AI_STUDY.outsideRebuild?.length ? { icon: 'provisional', text: `Outside that rebuild: ${AI_STUDY.outsideRebuild.join(', ')}.` } : null,
+          ].filter(Boolean)}
+        />
+      </InfoCard>
+      {/* one column: the versions table needs the width, and the two cards
+          differ in height by hundreds of pixels */}
+      <div className="cards-grid mx-stack-grid">
+      <InfoCard title="Model versions" id="model-versions">
+        <div className="table-wrap">
+          <table className="data-table ledger-table" data-reference="">
+            <caption className="visually-hidden">Software versions, by model</caption>
+            <thead>
+              <tr>
+                <th scope="col">Model</th>
+                <th scope="col">Software</th>
+                <th scope="col">Version</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MODEL_VERSIONS.map((e) => (
+                <tr key={e.id}>
+                  <td>
+                    <ModelCell m={e.model} />
+                  </td>
+                  <th scope="row">{e.label}</th>
+                  <td>
+                    {e.url ? ext(e.url, e.value) : e.value}
+                    <span className="ledger-where">{e.where}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </InfoCard>
+      <InfoCard title="Official releases (ONS, OBR, DSIT)" id="releases">
+        <ul className="ledger-releases" data-reference="">
+          {RELEASES.map((r) => (
+            <li key={r.id}>
+              <span className="ledger-date">
+                Released {r.released}
+                {r.fetched ? <span className="ledger-where">Read {r.fetched}</span> : null}
+              </span>
+              <span>
+                {ext(r.url, `${r.publisher}: ${r.title}`)}
+                {r.series ? <span className="ledger-where">{r.series}</span> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </InfoCard>
+      </div>
+    </div>
+  );
+}
+
+function Ledger() {
+  const rows = ledger();
+  const groups = [...new Set(rows.map((r) => r.group))];
+  return (
+    <Card
+      id="source-ledger"
+      icon={iconFor('ledger')}
+      title="Source ledger"
+      finding={<IconText icon="ledger">Every figure or group of figures, with its source, vintage and last check, read from the data files.</IconText>}
+      logo={false}
+      aboutTitle="About this table"
+      about={{
+        how: (
+          <Items
+            items={
+              HAS_CHECKS
+                ? [
+                    { icon: 'period', text: 'Each official figure the story prints is listed with its release.' },
+                    { icon: 'check', text: 'And the second, independent read of its primary file (ukContextChecks.json).' },
+                    { icon: 'data', text: 'The rest come from each data file.' },
+                  ]
+                : [
+                    { icon: 'data', text: 'Built from each data file’s own source fields.' },
+                    { icon: 'check', text: 'Official figures will also carry the checks in ukContextChecks.json.' },
+                  ]
+            }
+          />
+        ),
+        caveats: (
+          <Items
+            items={[
+              { icon: 'source', text: 'Published studies were checked against the primary text (PR #37, then #41).' },
+              { icon: 'period', text: 'The location in each source is given as its vintage.' },
+            ]}
+          />
+        ),
+      }}
+      download={{ title: 'Source ledger', context: `Data last updated ${LAST_UPDATED}`, table: ledgerTable }}
+    >
+      <div className="table-wrap ledger-wrap" data-no-axes="A table of sources">
+        <table className="data-table ledger-table">
+          <caption className="visually-hidden">Source ledger</caption>
+          <thead>
+            <tr>
+              <th scope="col">Figure</th>
+              <th scope="col">Source</th>
+              <th scope="col">Vintage</th>
+              <th scope="col">Date checked</th>
+            </tr>
+          </thead>
+          {groups.map((g) => (
+            <tbody key={g}>
+              <tr className="table-group">
+                <th colSpan={4} scope="colgroup">
+                  {g}
+                </th>
+              </tr>
+              {rows
+                .filter((r) => r.group === g)
+                .map((r, i) => (
+                  <tr key={`${g}-${i}`}>
+                    <th scope="row">{r.figure}</th>
+                    <td>{r.url ? ext(r.url, r.source) : r.source}</td>
+                    <td>{r.vintage}</td>
+                    <td>
+                      {r.checked ?? '—'}
+                      {r.how ? <span className="ledger-where">Second read: {r.how}</span> : null}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+const year = LAST_UPDATED.slice(0, 4);
+const CITE_TEXT = `PolicyEngine (${year}). The macroeconomic effects of AI on the UK. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
+const CITE_BIB = `@misc{policyengine_ai_uk_${year},
+  author       = {{PolicyEngine}},
+  title        = {The macroeconomic effects of {AI} on the {UK}},
+  year         = {${year}},
+  howpublished = {Interactive dashboard},
+  url          = {${SITE_URL}},
+  note         = {Data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}; code at ${REPO}}
+}`;
+
+function Cite() {
+  return (
+    <div className="cards-grid mx-cite-grid">
+      <InfoCard title="Citation" id="citation">
+        <p className="cite-text">
+          <IconText icon="source">{CITE_TEXT}</IconText>
+        </p>
+        <CopyBlock code={CITE_BIB} lang="text" />
+      </InfoCard>
+      <InfoCard title="Known limitations" id="known-limits">
+        <Items
+          items={[
+            {
+              icon: 'model',
+              text: (
+                <>
+                  OG-UK:{' '}
+                  <NavLink tab="method" sub="how" anchor="m-limits">
+                    the limitations grid
+                  </NavLink>
+                  .
+                </>
+              ),
+            },
+            {
+              icon: 'households',
+              text: (
+                <>
+                  The household study:{' '}
+                  <NavLink tab="method" sub="households" anchor="hm-out">
+                    what it leaves out
+                  </NavLink>
+                  .
+                </>
+              ),
+            },
+          ]}
+        />
+      </InfoCard>
+    </div>
+  );
+}
+
+const Entry = ({ e }) => (
+  <li>
+    <span className="mx-history-date">{longDate(e.date)}</span>
+    <span>
+      {e.text} {ext(`${REPO}/commit/${e.commit}`, e.commit)}
+    </span>
+  </li>
+);
+const RECENT = 8;
+
+// Model decisions (the revision history, each on the tracker), then the
+// site's changes: one list, in Data and code.
+function Revisions() {
+  return (
+    <div className="info-card mx-card mx-history" id="revisions">
+      <h3 className="info-card-title">
+        <Icon name={iconFor('revision')} size={18} />
+        <span>Model decisions</span>
+      </h3>
+      <ol className="mx-history-list" data-reference="">
+        {HISTORY.map(([d, , t, n], i) => (
+          <li key={i}>
+            <span className="mx-history-date">{d}</span>
+            <span className="mx-history-text">
+              <span>
+                {t} {ext(issue(n), `#${n}`)}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function Changelog() {
+  const [recent, older] = [CHANGELOG.entries.slice(0, RECENT), CHANGELOG.entries.slice(RECENT)];
+  return (
+    <div className="info-card mx-card mx-history" data-reference="">
+      <h3 className="info-card-title">
+        <Icon name={iconFor('code')} size={18} />
+        <span>Site changes</span>
+      </h3>
+      <ol className="mx-history-list">
+        {recent.map((e) => (
+          <Entry key={e.commit} e={e} />
+        ))}
+      </ol>
+      {older.length ? (
+        <Disclosure inCard title={<IconText icon="revision">Earlier changes</IconText>} preview={`${older.length} more, back to ${longDate(older[older.length - 1].date)}`}>
+          <ol className="mx-history-list">
+            {older.map((e) => (
+              <Entry key={e.commit} e={e} />
+            ))}
+          </ol>
+        </Disclosure>
+      ) : null}
+    </div>
+  );
+}
+
 export default function CodeTab() {
   return (
     <div className="page-with-contents mx-tab mx-code">
-      <OnThisPage tab="code" sections={SECTIONS} label="Code contents" />
+      <OnThisPage tab="method" sub="code" sections={SECTIONS} label="Code contents" />
       <div className="page-body">
+        <PageIntro icon={iconFor('code')} question="Can I check and reproduce these results?" answer={<IconText icon="check">Yes. The solves, the data files and the scripts that build every page are committed.</IconText>}>
+          <WhyChain
+            label="From a clean machine to the pages"
+            links={[
+              { icon: 'install', text: 'Install the model' },
+              { icon: 'code', text: 'Patch OG-Core' },
+              { icon: 'pipeline', text: 'Run the pipeline' },
+              { icon: 'check', text: 'Check the numbers' },
+              { icon: 'data', text: 'Build the pages' },
+            ]}
+          />
+          <p className="updated-stamp">
+            <Icon name="calendar" size={14} />
+            <span>
+              Data last updated <time dateTime={LAST_UPDATED}>{longDate(LAST_UPDATED)}</time>
+            </span>
+          </p>
+        </PageIntro>
         <section>
-          <SectionHeading id="before" icon="repeat" title="Reproduce the results">
-            Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.
+          <SectionHeading id="before" icon={iconFor('prerequisite')} title="Reproduce the results">
+            <IconText icon="code">Everything here comes from {ext(REPO, 'uk-growth-with-ai')}. The solves are committed, so the pages rebuild without the model.</IconText>
           </SectionHeading>
           <BeforeYouStart />
         </section>
         <section>
-          <SectionHeading id="pipeline" icon="gitBranch" title="Run it step by step">
-            Each step has its file, one sentence and its commands.
+          <SectionHeading id="pipeline" icon={iconFor('pipeline')} title="Run it step by step">
+            <IconText icon="stages">Each step has its file, one sentence and its commands.</IconText>
           </SectionHeading>
           <PipelineMap />
           <PipelineSteps />
         </section>
         <section>
-          <SectionHeading id="outputs" icon="flask" title="Outputs and checks">
-            What the numbers are in, and how they are checked.
+          <SectionHeading id="outputs" icon={iconFor('check')} title="Outputs and checks">
+            <IconText icon="measure">What the numbers are in, and how they are checked.</IconText>
           </SectionHeading>
           <div className="cards-grid">
-            <InfoCard icon="ruler" title="Model units, not pounds" id="units">
-              <p>Solver outputs are in model units. This study reports gaps against the OBR-central path instead.</p>
-              <p className="mx-sub">OG-UK&rsquo;s map functions scale units to £bn by one ONS GDP anchor.</p>
+            <InfoCard title="Model units, not pounds" id="units">
+              <Items
+                items={[
+                  { icon: 'measure', text: 'Solver outputs are in model units.' },
+                  { icon: 'path', text: 'This study reports gaps against the OBR-central path instead.' },
+                  { icon: 'cost', text: 'OG-UK’s map functions scale units to £bn by one ONS GDP anchor.' },
+                ]}
+              />
             </InfoCard>
-            <InfoCard icon="flask" title="Check the numbers">
-              <p>
-                Every finished gap is compared with its raw solve by{' '}
-                {ext(blob('dashboard/scripts/check_numbers.py'), 'check_numbers.py')}.
-              </p>
-              <p className="mx-sub">The build also runs asserts on the data file.</p>
+            <InfoCard title="Check the numbers">
+              <Items
+                items={[
+                  { icon: 'check', text: <>Every finished gap is checked against its raw solve: {ext(blob('dashboard/scripts/check_numbers.py'), 'check_numbers.py')}.</> },
+                  { icon: 'data', text: 'The build also runs asserts on the data file.' },
+                ]}
+              />
             </InfoCard>
           </div>
         </section>
         <section>
-          <SectionHeading id="use-oguk" icon="code" title="Use OG-UK yourself">
-            The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.
+          <SectionHeading id="vintages" icon={iconFor('data')} title="Data vintages and versions">
+            <IconText icon="version">Which data, model and release each page is built from.</IconText>
+          </SectionHeading>
+          <Vintages />
+        </section>
+        <section>
+          <SectionHeading id="ledger" icon={iconFor('ledger')} title="Source ledger">
+            <IconText icon="source">Where each figure comes from and when it was checked.</IconText>
+          </SectionHeading>
+          <Ledger />
+        </section>
+        <section>
+          <SectionHeading id="cite" icon={iconFor('source')} title="Cite this work">
+            <IconText icon="source">A citation, and the limitations to cite with it.</IconText>
+          </SectionHeading>
+          <Cite />
+        </section>
+        <section>
+          <SectionHeading id="changelog" icon={iconFor('revision')} title="Changelog and revisions">
+            <IconText icon="revision">How the model design and the site changed. Each decision is on the tracker.</IconText>
+          </SectionHeading>
+          <Revisions />
+          <Changelog />
+        </section>
+        <section>
+          <SectionHeading id="use-oguk" icon={iconFor('code')} title="Use OG-UK yourself">
+            <IconText icon="install">The general workflow for any UK tax or benefit reform. It uses PSLmodels/OG-UK.</IconText>
           </SectionHeading>
           <UseOguk />
         </section>

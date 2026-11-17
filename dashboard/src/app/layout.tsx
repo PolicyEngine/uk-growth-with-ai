@@ -10,6 +10,13 @@ import './fonts.css';
 import './siteHeader.css';
 import './ab.css';
 import './v2.css';
+import './story.css';
+import './story-part1.css';
+import './story-part2.css';
+import './story-part3.css';
+import './story-identity.css';
+import './items-explore.css';
+import './items-method.css';
 import 'katex/dist/katex.min.css';
 import SiteFooter from '@/components/ab/SiteFooter.jsx';
 import { SITE_HEADER_STYLES, SITE_NAV_ITEMS } from '@/lib/siteNav.js';
@@ -60,12 +67,25 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// The hash keys: lib/nav.jsx's LEGACY_TAB and ALIAS (old addresses).
+const OLD_HASHES = ['cohorts', 'literature', 'finances', 'public-finances', 'growth', 'methodology', 'coverage', 'results', 'who', 'scenarios', 'studies', 'code'];
+const NAV_PENDING = `try{var q=new URLSearchParams(location.search),t=q.get('tab'),h=location.hash.replace(/^#/,'').split('/')[0];if((t&&t!=='story')||q.get('sub')||(!t&&${JSON.stringify(OLD_HASHES)}.indexOf(h)>=0))document.documentElement.setAttribute('data-nav-pending','')}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB" className={inter.variable}>
+    <html lang="en-GB" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* A shared link to another tab: hide the server-rendered Story until
+            the client shows the named tab (v2.css, lib/nav.jsx). */}
+        <script dangerouslySetInnerHTML={{ __html: NAV_PENDING }} />
+      </head>
       <body>
+        {/* first tab stop, before the PolicyEngine site nav */}
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
         <PolicyEngineShell country="uk" showFooter={false} headerProps={{ navItems: SITE_NAV_ITEMS, styles: SITE_HEADER_STYLES }}>
           {children}
           <SiteFooter />

@@ -1,20 +1,30 @@
 'use client';
 
+import { useState } from 'react';
 import LineChart from '@/components/LineChart.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import { Unpublished } from '@/components/ab/Section.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ArmsGroup } from '@/components/ui/ControlBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, signed, SCEN_NAME,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder,
 } from '@/tabs/ai/surprise.js';
-import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side } from '@/tabs/ai/lines.js';
-import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
-import Summary from '@/tabs/ai/Landing.jsx';
+import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
+import { ruleLabel } from '@/lib/labels.js';
+import { Dumbbells, HeadlineNote, stressItems, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
+import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
+import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
+import { SourcesLine } from '@/tabs/explore/sources.jsx';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
+import { SOURCES as LIT } from '@/data/literature.js';
+import { wageClosureLines, investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
+import { CENTRAL, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
 
-// Results. Summary: the answer, three headline figures, why, how sure.
+// Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
 // each with the same control bar (arms) and reading the header's scenario
 // and closure. Every number comes from surprise2028.json through
@@ -45,129 +55,245 @@ export function PendingLine({ names }) {
 }
 
 // "Automation + productivity above, Technology unchanged above, Stress test
-// on the OBR-central path": words only. The 2031 figures are at the line ends.
-function findingFor(sid, v, arms, closure, name) {
+// on the path": words only (the unit line names the OBR-central path). The
+// 2031 figures are at the line ends.
+function findingFor(sid, v, arms, closure, name, rule = 'common') {
   const cl = primaryClosure(closure);
   const parts = ARMS.filter((a) => arms.includes(a.id))
     .map((a) => {
-      const p = path(sid, a.id, cl, v);
+      const p = path(sid, a.id, cl, v, rule);
       return p ? { arm: a.short || a.label, side: side(p[p.length - 1]) } : null;
     })
     .filter(Boolean);
   if (!parts.length) return null;
   const sides = [...new Set(parts.map((p) => p.side))];
-  const where = (s) => (s === 'on' ? 'on the OBR-central path' : `${s} the OBR-central path`);
+  const where = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
   const lead = `In ${HEADLINE_YEAR}${closure === 'closed' ? ', with closed capital,' : ''} ${name}`;
   if (sides.length === 1) return `${lead} is ${where(sides[0])}${parts.length > 1 ? ' in every arm shown' : ''}.`;
   return `${lead} is ${sides.map((s) => `${where(s)} in ${parts.filter((p) => p.side === s).map((p) => p.arm.toLowerCase()).join(' and ')}`).join(', and ')}.`;
 }
 
+// Two paths closer than half the last printed digit (0.01) in every year
+// coincide on the page.
+const COINCIDE = 0.005;
+
 // One path chart in the one card: its own y-scale with a visible axis, the
 // 2031 value at each line end, and the arms control bar.
 export function PathCard({
-  sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true,
+  sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true, notes,
+  tile = false, open = false, onToggle, sources = true,
 }) {
   const { st, set } = useNav();
-  const series = seriesFor(sid, v, years, st.arms, st.closure, scale);
+  const rule = st.rule;
+  // A line that coincides with one before it and ends on the same printed
+  // value (the labour share, an imposed input, is the same in every arm)
+  // carries no end value of its own: the value prints once and the card's
+  // finding says the lines coincide.
+  const series = seriesFor(sid, v, years, st.arms, st.closure, scale, rule).map((s, i, all) =>
+    all.slice(0, i).some((t) => !t.noEndLabel && t.values.length === s.values.length && signed(t.values[t.values.length - 1], endDp) === signed(s.values[s.values.length - 1], endDp) && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE)) ? { ...s, noEndLabel: true } : s,
+  );
   const last = years[years.length - 1];
+  const shown = finding ?? findingFor(sid, v, st.arms, st.closure, name, rule);
+  // The y-axis title, with the measure's unit: % for a level, percentage
+  // points of GDP for debt and tax, percentage points for a rate or share.
+  const ofGdp = v === 'debt_gdp_pp' || v === 'tax_gdp_pp';
+  const unitWords = unit === '%' ? '%' : ofGdp ? 'percentage points of GDP' : 'percentage points';
+  const yTitle = tile && !open ? `Gap against the OBR-central path, ${unit === '%' ? '%' : 'pp'}` : `Gap against the OBR-central path, ${unitWords}`;
   const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);
+  // In the small-multiple wall (tile) the card is compact: title, download
+  // and chart; the wall carries the arms control and the legend once. Opened
+  // (click or Enter on the title), it spans the wall and shows its finding,
+  // notes and "About this chart" too.
+  const full = !tile || open;
+  const head = tile ? (
+    <button type="button" className="ex-tile-open" aria-expanded={open} onClick={onToggle} title={open ? 'Back to the wall (Escape)' : 'Enlarge this chart'}>
+      <span>{title}</span>
+      <Icon name={open ? 'x' : 'arrowUpRight'} size={14} strokeWidth={2} />
+    </button>
+  ) : (
+    title
+  );
   return (
     <Card
       id={id}
       icon={icon}
-      title={title}
-      finding={finding ?? findingFor(sid, v, st.arms, st.closure, name)}
-      unit={unitLine}
+      title={head}
+      className={tile ? `ex-tile${open ? ' is-open' : ''}` : ''}
+      finding={full ? (typeof shown === 'string' ? <Lead c="canSay">{shown}</Lead> : shown) : null}
+      unit={full ? <Lead c="measure">{unitLine}</Lead> : null}
       controls={
-        <ControlBar label={`${title}: options`}>
-          <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
-        </ControlBar>
+        tile ? null : (
+          <ControlBar label={`${title}: options`}>
+            <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
+          </ControlBar>
+        )
       }
-      legend={<ClosureKey closure={st.closure} />}
-      about={about}
-      method={method}
+      legend={tile ? null : <ClosureKey closure={st.closure} />}
+      about={full && about?.caveats ? { caveats: about.caveats } : null}
+      foot={
+        full ? (
+          <>
+            {notes?.length ? <Items items={notes} className="ex-notes" /> : null}
+            {sources ? <SourcesLine sid={sid} method={method} /> : null}
+          </>
+        ) : null
+      }
       download={{
         title: `${title}, ${years[0]}–${last}`,
-        context: () => contextLine(sid, st.closure, unitLine),
+        context: () => contextLine(sid, st.closure, unitLine, rule),
         table: series.length ? () => seriesTable(years, series, unit) : null,
         legend: () => legendOf(series),
       }}
     >
-      <PendingLine names={series.length ? boundPending(sid, st.arms, st.closure) : []} />
+      <PendingLine names={series.length ? boundPending(sid, st.arms, st.closure, rule) : []} />
       {series.length ? (
         <LineChart
           x={years}
           series={series}
-          height={260}
+          height={tile ? (open ? 340 : 190) : 260}
           endLabel="value"
           noEndLabels={!ends}
           unit={unit}
           tipTitle={title}
-          zeroLabel="OBR central"
-          markers={markers ?? [{ year: SURPRISE_YEAR, label: 'AI shock' }]}
-          bands={[{ year: HEADLINE_YEAR }]}
+          yUnit={yTitle}
+          yTitleTop
+          xUnit={tile && !open ? null : 'Year'}
+          zeroNote={tile && !open ? null : 'OBR-central path = 0'}
+          markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI arrives' }]}
+          bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => signed(x, endDp)}
           tipFormat={(x) => signed(x, dp)}
-          ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}`}
+          ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />
       ) : (
-        <Unpublished>{emptyText(st.arms, st.closure)}</Unpublished>
+        <div className="unpublished-plot">
+          <Items items={sentenceItems(emptyText(st.arms, st.closure, rule, sid))} />
+        </div>
       )}
     </Card>
   );
 }
 
-// The GNI and GDP paths carry no end values: their 2031 figures have one home, the four-measure card above them
-const READING_PATH = `The zero line is the OBR-central path. The dotted vertical line marks the ${SURPRISE_YEAR} AI shock and the shaded year is ${HEADLINE_YEAR}, the headline year, whose values are in the card above. Hover, tap or use the arrow keys for each year.`;
-const READING = `The zero line is the OBR-central path. The dotted vertical line marks the ${SURPRISE_YEAR} AI shock and the shaded year is ${HEADLINE_YEAR}, the headline year. Each line ends with its ${HEADLINE_YEAR} value; hover, tap or use the arrow keys for other years.`;
-const HOW = 'Each gap is the difference from a no-shock restart of OG-UK at the same closure.';
-const IMPOSED = 'The technology paths are imposed, so the lines show the consequences of given scenarios, not their likelihood.';
+const IMPOSED = 'Technology paths are imposed: consequences of given scenarios, not likelihood.';
 
-function consumptionFinding(sid, closure) {
+function consumptionFinding(sid, closure, rule = 'common') {
   const cl = primaryClosure(closure);
-  const c = path(sid, 'tfp', cl, 'C');
-  const g = path(sid, 'tfp', cl, 'GNI');
+  const c = path(sid, 'tfp', cl, 'C', rule);
+  const g = path(sid, 'tfp', cl, 'GNI', rule);
   if (!c || !g) return null;
   const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
-    ? `With automation + productivity, consumption stays below the OBR-central path through ${HEADLINE_YEAR} while national income is above it: households save more as soon as AI is announced.`
+    ? `With automation + productivity, consumption stays below the path through ${HEADLINE_YEAR} while national income is above it: households save more.`
     : null;
 }
 
+// The labour-share fall is an imposed input, the same in every arm: when
+// the arms' paths are equal, their lines coincide and the card says so.
+function coincideFinding(sid, closure, rule = 'common') {
+  const cl = primaryClosure(closure);
+  const ps = ARMS.map((a) => path(sid, a.id, cl, 'labour_share_pp', rule)).filter(Boolean);
+  if (ps.length < 2) return null;
+  const same = ps.every((p) => p.every((x, i) => Math.abs(x - ps[0][i]) < COINCIDE));
+  return same ? 'The three arms’ lines coincide: the fall in the labour share is the same imposed input in each arm.' : null;
+}
+
+// Economics review, round 1: consumption below the path to the last year
+// shown (UK central, main arm, central closure, common rule) and the largest
+// investment jump above the project's flag (explore/caveats.js).
+const C_BELOW = belowThrough('uk_central', CENTRAL) === LATE_YEAR ? LATE_YEAR : null;
+const TOP_FLAG = investmentFlags()[0] ?? null;
+
+// Each group and card names its concept; the icon comes from lib/concepts.js.
 const ECONOMY = [
-  { group: 'Demand', icon: 'cart', lede: 'What households spend and what is invested.', rows: [
-    { v: 'C', title: 'Consumption', name: 'consumption', icon: 'cart', about: { shows: READING, how: HOW, caveats: 'The direction relies on households foreseeing the whole path from the announcement. The model has no share-price gains or demand effects.' } },
-    { v: 'I', title: 'Investment', name: 'investment', icon: 'construction', method: 'limits', about: {
-      shows: READING,
-      how: HOW,
-      caveats: `Investment jumps in ${SURPRISE_YEAR} because the model has no adjustment costs: capital is frictionless, so the whole response to the news lands in the first year. The size of that first-year jump is a property of the model, not a forecast of an investment boom, and it grows with the scenario.`,
+  { group: 'Demand', concept: 'consumption', lede: 'What households spend and what is invested.', rows: [
+    { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { caveats: <Items items={[
+      { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
+      { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
+      { key: 'others', icon: 'foreign', text: 'Common rule, central closure: government and foreign owners take part too' },
+      C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the path through ${C_BELOW}` } : null,
+    ]} /> } },
+    { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
+      caveats: <Items items={[
+        { key: 'jump', icon: 'investment', text: <>Investment jumps in {SURPRISE_YEAR}: {ext(URLS.ogCoreDocs, 'OG-Core')} has no adjustment costs</> },
+        { key: 'year1', icon: 'capital', text: `It stays high until the ramp ends in ${HEADLINE_YEAR}, then drops` },
+        { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
+        { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
+        TOP_FLAG ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main arm' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
+        TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
+      ]} />,
     } },
   ] },
-  { group: 'Factors', icon: 'factory', lede: 'The capital and labour that production uses.', rows: [
-    { v: 'K', title: 'Capital stock', name: 'the capital stock', icon: 'building', about: { shows: READING, how: HOW, caveats: 'Foreign capital resets each year, so part of the first-year gap is an inflow that arrives with no investment recorded.' } },
-    { v: 'L', title: 'Labour', name: 'labour supplied', icon: 'users', about: { shows: READING, how: HOW, definitions: 'Labour is hours worked, weighted by skill. The model has no unemployment, so it is not a count of jobs.' } },
+  { group: 'Factors', concept: 'capital', lede: 'The capital and labour that production uses.', rows: [
+    { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { caveats: <Items items={[
+      { key: 'reset', icon: 'foreign', text: <>Foreign capital resets each year ({ext(URLS.ogCoreParams, 'OG-Core’s ζK rule')})</> },
+      { key: 'inflow', icon: 'capital', text: 'Part of the first-year gap is an inflow with no investment recorded' },
+    ]} /> } },
+    { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', concept: 'labour', about: { caveats: <Items items={[
+      { key: 'hours', icon: 'labour', text: 'Labour is hours worked, weighted by skill' },
+      { key: 'jobs', icon: 'excluded', text: 'No unemployment in the model: it is not a count of jobs' },
+    ]} /> } },
   ] },
-  { group: 'Prices and shares', icon: 'percent', lede: 'What capital earns and how income is divided.', rows: [
-    { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', icon: 'percent', unit: 'pp', scale: 0.01, method: 'closures', about: { shows: READING, how: HOW, definitions: 'The return on capital, in percentage points.' } },
-    { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', icon: 'pie', unit: 'pp', method: 'shock', about: { shows: READING, how: 'The fall in the labour share is the scenario’s input: it is imposed, the same in every arm, and reaches full size in the headline year.' } },
+  { group: 'Prices and shares', concept: 'interest', lede: 'What capital earns and how income is divided.', rows: [
+    { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interest', unit: 'pp', scale: 0.01, method: 'closures' },
+    { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', concept: 'inequality', unit: 'pp', method: 'shock', about: { caveats: <Items items={[
+      { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
+      { key: 'same', icon: 'compare', text: 'It is the same in every arm' },
+      { key: 'full', icon: 'timing', text: 'It reaches full size in the headline year' },
+      { key: 'derived', icon: 'arithmetic', text: <>UK sizes: <NavLink tab="method" sub="how" anchor="m-scenarios">derived from IMF SIP/2026/072</NavLink>, not printed by it</> },
+    ]} /> } },
   ] },
 ];
+
+// The four-measure card's finding, from the signs of the arms shown: the
+// pay rate's side in every arm, and whether national income's side
+// depends on the arm (the productivity gain). The arrow follows the sign.
+export function measuresFinding(sid, arms, closure, rule) {
+  const cl = primaryClosure(closure);
+  const shown = ARMS.filter((a) => arms.includes(a.id));
+  const at = (v) => shown.map((a) => gap(sid, a.id, cl, v, HEADLINE_YEAR, rule)).filter((x) => x != null);
+  const w = at('w');
+  const g = at('GNI');
+  if (!w.length) return null;
+  const one = (xs) => new Set(xs.map(side)).size === 1;
+  const where = (x) => (side(x) === 'on' ? 'on the path' : `${side(x)} the path`);
+  const every = shown.length > 1 ? ' in every arm shown' : '';
+  return {
+    wage: one(w) ? { value: w[0], text: `The pay rate is ${where(w[0])}${every}` } : { value: null, text: 'The pay rate’s side depends on the arm' },
+    gni: !g.length ? null : one(g) ? { value: g[0], text: `national income is ${where(g[0])}${every}` } : { value: null, text: 'whether national income is above it depends on the productivity gain' },
+  };
+}
+
+function MeasuresFinding({ sid, arms, closure, rule }) {
+  const f = measuresFinding(sid, arms, closure, rule);
+  if (!f) return null;
+  return (
+    <>
+      <span data-dir={f.wage.value == null ? undefined : side(f.wage.value)}>{f.wage.text}</span>
+      {f.gni ? (
+        <>
+          ; <span data-dir={f.gni.value == null ? undefined : side(f.gni.value)}>{f.gni.text}</span>
+        </>
+      ) : null}
+      .
+    </>
+  );
+}
 
 function IncomePanel({ sid }) {
   const { st, set } = useNav();
   const cl = closureWords(st.closure);
   return (
     <>
-      <SectionHeading id="income" icon="home" title={`Income and output, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        Four measures in {HEADLINE_YEAR}, then how national income and GDP build up from the {SURPRISE_YEAR} surprise.
+      <SectionHeading id="income" icon={iconFor('gni')} title="How does each arm move pay, income and output?">
+        <Lead c="path">{`The three arms in ${HEADLINE_YEAR}, then what closed capital changes`}</Lead>
       </SectionHeading>
       <div className="cards-stack">
         <Card
           id="measures"
-          icon="gauge"
+          icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
-          finding={`Each arm’s gap against the OBR-central path in ${HEADLINE_YEAR}, ${cl}. The wage rate is lower in every arm; whether national income is higher depends on the productivity gain.`}
-          unit="% difference from the OBR-central path"
+          finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
+          unit={<span data-axis-title="y">{`Each arm’s gap against the OBR-central path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
           controls={
             <ControlBar label="Four measures: options">
               <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
@@ -175,108 +301,196 @@ function IncomePanel({ sid }) {
           }
           legend={
             st.closure === 'both' ? (
+              <>
               <p className="line-key">
                 <span className="line-key-item">
-                  <span className="key-dot" aria-hidden="true" /> Circle: central closure
+                  <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: central closure
                 </span>
                 <span className="line-key-item">
                   <span className="key-diamond" aria-hidden="true" /> Diamond: closed capital
                 </span>
               </p>
-            ) : null
+              <HeadlineNote rule={st.rule} />
+              </>
+            ) : (
+              <HeadlineNote rule={st.rule} />
+            )
           }
           about={{
-            shows: `One row per measure, one marker per arm, on one axis centred on the OBR-central path. Under Both, the circle is the central closure and the diamond is closed capital.`,
-            how: HOW,
-            definitions: (
-              <>
-                <p>Wage rate: pay per unit of labour, adjusted for skill. GNI: GDP less the return paid on foreign-owned capital. NNI: GNI after depreciation.</p>
-                <StressNote sid={sid} />
-              </>
+            caveats: (
+              <Items
+                items={[
+                  { key: 'cut', icon: 'pay', text: 'A negative pay-rate gap is a level below a rising path' },
+                  { key: 'obr', icon: 'source', text: <>The path assumes productivity growth of 1 per cent a year ({ext(efo(EFO_PAGE.p1_2), 'OBR EFO, March 2026, ¶1.2')})</> },
+                  ...(wageClosureLines(sid) ?? []).map((t, i) => ({ key: `wz${i}`, icon: i ? 'closure' : 'pay', text: t })),
+                  wageClosureLines(sid) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
+                  ...stressItems(sid),
+                ]}
+              />
             ),
-            caveats: 'A negative wage gap is slower growth against a rising path, not a cut in the level of pay, in the main arm of every scenario.',
           }}
-          method="closures"
+          foot={<SourcesLine sid={sid} method="closures" />}
           download={{
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
-            context: () => contextLine(sid, st.closure, '% difference from the OBR-central path'),
-            table: () => dumbbellTable(sid, st.arms, st.closure),
-            svg: () => dumbbellSvg(sid, st.arms, st.closure),
+            context: () => contextLine(sid, st.closure, '% difference from the OBR-central path', st.rule),
+            table: () => dumbbellTable(sid, st.arms, st.closure, st.rule),
+            svg: () => dumbbellSvg(sid, st.arms, st.closure, st.rule),
             legend: () => dumbbellLegend(st.arms, st.closure),
           }}
         >
-          <Dumbbells sid={sid} arms={st.arms} closure={st.closure} />
+          {ruleSolved(st.rule, sid) ? <Dumbbells sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : <div className="unpublished-plot">
+              <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
+            </div>}
         </Card>
-        <div className="cards-grid">
-          <PathCard sid={sid} v="GNI" title="Income UK residents keep (GNI)" name="national income" icon="home" ends={false} about={{ shows: READING_PATH, how: HOW, caveats: IMPOSED }} />
-          <PathCard
-            sid={sid}
-            v="Y"
-            title="Total output (GDP)"
-            name="GDP"
-            icon="factory"
-            ends={false}
-            about={{
-              shows: READING_PATH,
-              how: HOW,
-              caveats: (
-                <>
-                  {IMPOSED} Why GDP is below the IMF&rsquo;s UK estimate:{' '}
-                  <NavLink tab="studies" sub="numbers" anchor="imf-gap">
-                    Other studies, our numbers
-                  </NavLink>
-                  .
-                </>
-              ),
-            }}
-          />
-        </div>
+        <ClosureSlope sid={sid} />
       </div>
     </>
   );
 }
 
+// GNI and GDP open the wall: their main-arm values are the story's headline
+// figures and the other arms' are in the four-measure card, so their lines
+// carry no end value.
+const INCOME_TILES = [
+  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', ends: false, method: 'closures', about: { caveats: IMPOSED } },
+  {
+    v: 'Y', title: 'Total output (GDP)', name: 'GDP', concept: 'gdp', ends: false, method: 'closures',
+    about: {
+      caveats: (
+        <Items
+          items={[
+            { key: 'imposed', icon: 'scenario', text: IMPOSED },
+            {
+              key: 'imf',
+              icon: 'link',
+              text: (
+                <>
+                  Why below the {ext(LIT.imfSip.url, 'IMF’s UK estimate')}:{' '}
+                  <NavLink tab="method" sub="studies" anchor="imf-gap">
+                    Evidence: OG-UK results beside it
+                  </NavLink>
+                </>
+              ),
+            },
+          ]}
+        />
+      ),
+    },
+  },
+];
+
+// The economy as one small-multiple wall: eight path charts (4 x 2 at full
+// width) on the same years, one arms control and one key for them all. A
+// tile opens in place across the wall (click or Enter on its title; Escape
+// or the title again closes it), and each keeps its own download. The first
+// tile of each group keeps the group's old section id, so links still land.
 function EconomyPanel({ sid }) {
-  const { st } = useNav();
+  const { st, set } = useNav();
+  const [open, setOpen] = useState(null);
+  const tiles = [
+    ...INCOME_TILES.map((r) => ({ ...r, group: 'Income' })),
+    ...ECONOMY.flatMap((g) => g.rows.map((r, i) => ({ ...r, group: g.group, groupId: i ? null : `economy-${g.group.split(' ')[0].toLowerCase()}` }))),
+  ];
+  const toggle = (v) => setOpen((o) => (o === v ? null : v));
+  const onKey = (e) => {
+    if (e.key !== 'Escape' || open == null) return;
+    const btn = e.currentTarget.querySelector('.ex-tile.is-open .ex-tile-open');
+    setOpen(null);
+    btn?.focus();
+  };
   return (
-    <>
-      {ECONOMY.map((g, gi) => (
-        <section key={g.group} aria-label={g.group} className={gi ? 'section-gap' : ''}>
-          <SectionHeading id={`economy-${g.group.split(' ')[0].toLowerCase()}`} icon={g.icon} title={g.group}>
-            {g.lede}
-          </SectionHeading>
-          <div className="cards-grid">
-            {g.rows.map((r) => (
-              <PathCard
-                key={r.v}
-                sid={sid}
-                v={r.v}
-                title={r.title}
-                name={r.name}
-                icon={r.icon}
-                unit={r.unit ?? '%'}
-                scale={r.scale ?? 1}
-                endDp={1}
-                finding={r.v === 'C' ? (consumptionFinding(sid, st.closure) ?? undefined) : undefined}
-                about={r.about}
-                method={r.method ?? 'model'}
-              />
-            ))}
+    <section aria-label="The economy, path by path" className="ex-wall-section">
+      <SectionHeading id="economy-wall" icon={iconFor('path')} title={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
+        <Lead c="measure">Eight measures, each against the OBR-central path</Lead>
+      </SectionHeading>
+      <div className="ex-wall-head">
+        <ControlBar label="Every chart on the wall: options">
+          <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
+        </ControlBar>
+        <ul className="ex-wall-key" aria-label="How to read the wall">
+          <li>
+            <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR-central path
+          </li>
+          <li>
+            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, AI arrives; shaded: ${HEADLINE_YEAR}`}
+          </li>
+          {st.closure === 'both' ? (
+            <li>
+              <span className="swatch dashed is-ink" aria-hidden="true" data-icon="" /> Dashed: closed capital
+            </li>
+          ) : null}
+          <li>
+            <Icon name="arrowUpRight" size={14} /> Click a title to enlarge
+          </li>
+        </ul>
+      </div>
+      <div className="ex-wall" onKeyDown={onKey}>
+        {tiles.map((r) => (
+          <div key={r.v} className={`ex-wall-cell${open === r.v ? ' is-open' : ''}`} id={r.groupId ?? undefined} data-group={r.group}>
+            <PathCard
+              tile
+              open={open === r.v}
+              onToggle={() => toggle(r.v)}
+              id={`tile-${r.v}`}
+              sid={sid}
+              v={r.v}
+              title={r.title}
+              name={r.name}
+              icon={iconFor(r.concept)}
+              unit={r.unit ?? '%'}
+              scale={r.scale ?? 1}
+              endDp={2}
+              ends={r.ends ?? true}
+              finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
+              about={r.about}
+              method={r.method ?? 'model'}
+            />
           </div>
-        </section>
-      ))}
-    </>
+        ))}
+      </div>
+    </section>
   );
 }
 
-export default function ResultsTab() {
-  const { st } = useNav();
-  const sub = st.tab === 'results' ? subOf(st) : 'summary';
-  const sid = st.s;
-  const panels = { summary: Summary, income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
-  const Panel = panels[sub];
+// A scenario not solved under the fiscal rule chosen: one card in place of
+// the page's charts, with the two ways back to a solved view.
+export function RulePending({ sid }) {
+  const { st, set } = useNav();
+  const solved = solvedUnder(st.rule);
   return (
-    <div id={`results-sub-${sub}`} role="tabpanel" aria-labelledby={`results-subbtn-${sub}`} className="sub-panel">
+    <Card id="rule-pending" icon={iconFor('timing')} title={`${SCEN_NAME[sid]} is not solved under ${ruleLabel(st.rule).toLowerCase()}`} logo={false}>
+      <div className="rule-pending">
+        <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
+        <div className="rule-pending-actions">
+          {solved.map((s) => (
+            <button key={s.id} type="button" className="segment" onClick={() => set({ s: s.id })}>
+              Show {s.label}
+            </button>
+          ))}
+          <button type="button" className="segment" onClick={() => set({ rule: 'common' })}>
+            Use the common fiscal rule
+          </button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+export default function ResultsTab({ sub: named }) {
+  const { st } = useNav();
+  const sub = named ?? (st.tab === 'explore' && st.sub !== 'who' ? subOf(st, 'explore') : 'income');
+  const sid = st.s;
+  const panels = { income: IncomePanel, economy: EconomyPanel, finances: FinancesSection };
+  const Panel = panels[sub];
+  // Income and Economy share one page: one pending card for both
+  if (sub !== 'finances' && !ruleSolved(st.rule, sid))
+    return sub === 'income' ? (
+      <div id="explore-part-income" className="explore-part">
+        <RulePending sid={sid} />
+      </div>
+    ) : null;
+  return (
+    <div id={`explore-part-${sub}`} className="explore-part">
       <Panel sid={sid} />
     </div>
   );

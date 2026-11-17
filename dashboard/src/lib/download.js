@@ -26,8 +26,10 @@ const cell = (v) => {
 };
 
 // table: { columns: [..], rows: [[..]] }
-export function downloadCsv({ title, context, table }) {
-  const head = [`# ${title}`, context ? `# ${context}` : null, `# ${SOURCE}`, `# Downloaded ${today()}`].filter(Boolean);
+// caption: the view's settings line (scenario, closure, arm, rule, model),
+// from DownloadMenu's captionOf
+export function downloadCsv({ title, context, caption, table }) {
+  const head = [`# ${title}`, context ? `# ${context}` : null, caption ? `# ${caption}` : null, `# ${SOURCE}`, `# Downloaded ${today()}`].filter(Boolean);
   const body = [table.columns, ...table.rows].map((r) => r.map(cell).join(','));
   save(new Blob([[...head, ...body].join('\n') + '\n'], { type: 'text/csv;charset=utf-8' }), `${slug(title)}.csv`);
 }
@@ -68,13 +70,20 @@ export function fromSvgEl(svgEl, label) {
 
 // The plot(s) as one standalone SVG with a title, context, legend and
 // source line. Several plots (panels) stack, each under its own label.
-function framedSvg(plots, { title, context, legend = [] }) {
+function framedSvg(plots, { title, context, caption, legend = [] }) {
   const list = Array.isArray(plots) ? plots : [plots];
   const pad = 24;
   const w = Math.max(...list.map((p) => p.w));
   const W = Math.round(Math.max(w + pad * 2, 720));
   // context: one part per line when it would run past the frame
   const ctx = context ? (context.length * 6.8 > W - pad * 2 ? context.split(' · ') : [context]) : [];
+  // the settings caption: one more line (two when it would run past the frame)
+  const halves = (t) => {
+    const parts = t.split(' · ');
+    const k = Math.ceil(parts.length / 2);
+    return [parts.slice(0, k).join(' · '), parts.slice(k).join(' · ')].filter(Boolean);
+  };
+  if (caption) ctx.push(...(caption.length * 6.8 > W - pad * 2 ? halves(caption) : [caption]));
   // legend entries wrap onto rows
   const rows = [[]];
   let lx = pad;

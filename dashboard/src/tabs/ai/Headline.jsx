@@ -3,9 +3,13 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
+import { ext } from '@/tabs/shared/ui.jsx';
+import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -14,20 +18,20 @@ import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIG
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const MEASURES = [
-  { v: 'w', label: 'Wage rate', sub: 'pay per unit of labour', icon: 'wallet' },
-  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: 'home' },
-  { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: 'layers' },
-  { v: 'Y', label: 'Total output', sub: 'GDP', icon: 'factory' },
+  { v: 'w', label: 'Pay rate', sub: 'wage per unit of labour', icon: iconFor('pay') },
+  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: iconFor('gni') },
+  { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: iconFor('depreciation') },
+  { v: 'Y', label: 'Total output', sub: 'GDP', icon: iconFor('gdp') },
 ];
 
 // The dumbbell card's values as a CSV table
-export function dumbbellTable(sid, arms, closure) {
+export function dumbbellTable(sid, arms, closure, rule = 'common') {
   const cls = closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL];
   return {
     columns: ['Measure', 'Arm', 'Closure', `Gap in ${HEADLINE_YEAR} (%)`],
     rows: MEASURES.flatMap((m) =>
       ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
-        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'Closed capital' : 'Central', gap(sid, a.id, cl, m.v)]),
+        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'Closed capital' : 'Central', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
       ),
     ),
   };
@@ -43,28 +47,27 @@ export function stressFalls(sid, closure) {
   return s.Z_terminal < t.Z_terminal;
 }
 
-export function StressNote({ sid }) {
+// The stress test in items. Each direction icon follows the sign of the
+// stress test's Z against the technology-unchanged Z at that closure
+// (stressFalls): a cut at the central closure, a slight rise with closed
+// capital for UK central and Korinek (results sanity audit).
+export const stressDir = (falls) => (falls == null ? null : falls ? 'gapDown' : 'gapUp');
+export function stressItems(sid) {
   const c = stressFalls(sid, CENTRAL);
   const b = stressFalls(sid, BOUND);
-  const phrase = (x) => (x ? 'output at fixed inputs has to fall' : 'output at fixed inputs has to rise slightly');
-  // (signs from the Z values: a cut at the central closure, a slight rise
-  // with closed capital for UK central and Korinek; results sanity audit)
-  return (
-    <p>
-      The stress test holds {HEADLINE_YEAR} GDP at the OBR-central path, as in the OBR&rsquo;s Box 2.2 displacement scenario.
-      {c != null ? (
-        <>
-          {' '}Under the central closure {phrase(c)} for that{c ? ', so it is a pessimistic bound, not a forecast' : ''}.
-        </>
-      ) : null}
-      {b != null ? (
-        <>
-          {' '}Under closed capital {phrase(b)}{b === c ? ' too' : ', so there it almost coincides with “technology unchanged” and is not a pessimistic bound'}.
-        </>
-      ) : null}{' '}
-      &ldquo;Technology unchanged&rdquo; shifts the labour share and leaves output at fixed inputs where it was.
-    </p>
-  );
+  const phrase = (x) => (x ? 'has to fall' : 'has to rise slightly');
+  return [
+    { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
+    c != null ? { key: 'c', icon: stressDir(c), text: `Central closure: output at fixed inputs ${phrase(c)}` } : null,
+    c ? { key: 'c2', icon: 'limit', text: 'A stress test, not a bound or a forecast' } : null,
+    b != null ? { key: 'b', icon: stressDir(b), text: `Closed capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
+    b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”' } : null,
+    { key: 'tz', icon: 'productivity', text: '“Technology unchanged” shifts the labour share, not output at fixed inputs' },
+  ].filter(Boolean);
+}
+
+export function StressNote({ sid }) {
+  return <Items items={stressItems(sid)} />;
 }
 
 function niceMax(m) {
@@ -83,21 +86,25 @@ function DotTip({ arm, closure, measure, value }) {
   );
 }
 
-// The main arm's GDP, wage-rate and GNI values are the Summary tiles: their
+// The main arm's GDP, wage-rate and GNI values are the story's headline tiles: their
 // one home. Here those three markers keep their tooltip and the download
-// keeps the value; the printed label links to Summary instead.
+// keeps the value; the printed label links to the story instead.
 export const ON_SUMMARY = { arm: 'tfp', measures: ['Y', 'w', 'GNI'] };
-const onSummary = (arm, v) => arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
+// Only under the common fiscal rule: the story shows no other rule.
+const onSummary = (arm, v, rule = 'common') => rule === 'common' && arm === ON_SUMMARY.arm && ON_SUMMARY.measures.includes(v);
 
 // The axis both drawings share: half-width D (room for the labels beyond
 // the outer dots) and the ticks.
-function dumbbellScale(sid, arms, closure) {
+function dumbbellScale(sid, arms, closure, rule = 'common') {
   const shown = ARMS.filter((a) => arms.includes(a.id));
   const showC = closure !== 'closed';
   const showB = closure !== 'central';
-  const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? gap(sid, a.id, CENTRAL, m.v) : null, showB ? gap(sid, a.id, BOUND, m.v) : null])).filter((x) => x != null);
+  const g = (a, cl, v) => gap(sid, a, cl, v, HEADLINE_YEAR, rule);
+  const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? g(a.id, CENTRAL, m.v) : null, showB ? g(a.id, BOUND, m.v) : null])).filter((x) => x != null);
   const top = niceMax(Math.max(0.25, ...vals.map(Math.abs)));
-  const D = top * 1.6;
+  // room beyond the outer dots for their labels, also on a phone, where the
+  // arm names take a narrow column beside the track
+  const D = top * 1.9;
   const step = [0.1, 0.25, 0.5, 1, 2, 5].find((st) => top / st <= 2.5) ?? top;
   const ticks = [];
   for (let t = -Math.floor(top / step) * step; t <= top + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);
@@ -108,8 +115,8 @@ const tickText = (t) => (t === 0 ? '0%' : `${t > 0 ? '+' : '−'}${Math.abs(t)}%
 // The same chart drawn as SVG from the data, for the PNG and SVG downloads
 // (the page draws it in HTML). Every value is printed here, the main arm's
 // too: the file stands alone.
-export function dumbbellSvg(sid, arms, closure) {
-  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure);
+export function dumbbellSvg(sid, arms, closure, rule = 'common') {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
   const W = 1000;
   const x0 = 400;
   const x1 = W - 10;
@@ -130,8 +137,8 @@ export function dumbbellSvg(sid, arms, closure) {
       const txt = cssColour(ARM_TEXT_COLOR[a.id]);
       out += `<line x1="200" x2="214" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="2.5"/>`;
       out += `<text x="220" y="${cy + 4}" font-size="11" fill="${C.axisTitle}">${esc(a.short || a.label)}</text>`;
-      const c = showC ? gap(sid, a.id, CENTRAL, m.v) : null;
-      const b = showB ? gap(sid, a.id, BOUND, m.v) : null;
+      const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
+      const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
       const main = showC ? c : b;
       if (main == null) {
         out += `<text x="${X(0) + 8}" y="${cy + 4}" font-size="11" fill="${C.muted}">pending</text>`;
@@ -160,10 +167,29 @@ export function dumbbellLegend(arms, closure) {
   return keys;
 }
 
-export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central' }) {
-  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure);
+// Short arm names for narrow screens, beside each row's swatch.
+export const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. unchanged', ss: 'Stress test' };
+
+// One line under the chart, in place of a "Headline" chip on each of the
+// main arm's GDP, GNI and wage-rate rows: their grey values are the story's
+// headline figures, whose one home is the story.
+export function HeadlineNote({ rule = 'common' }) {
+  if (rule !== 'common') return null;
+  return (
+    <p className="db-headline-note">
+      Grey values: the main arm&rsquo;s headline figures, at home in the{' '}
+      <NavLink tab="story" anchor="story-part-2">
+        story
+      </NavLink>
+      .
+    </p>
+  );
+}
+
+export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central', rule = 'common' }) {
+  const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
   const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
-  const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y') != null;
+  const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
     <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
@@ -194,8 +220,8 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
           </div>
           <div className="db-arms">
             {shown.map((a) => {
-              const c = showC ? gap(sid, a.id, CENTRAL, m.v) : null;
-              const b = showB ? gap(sid, a.id, BOUND, m.v) : null;
+              const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
+              const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
               // the value printed beside the markers: central, or closed capital alone
               const main = showC ? c : b;
               const color = ARM_COLOR[a.id];
@@ -209,6 +235,9 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                   <span className="db-arm-key">
                     <span className="swatch" style={{ borderTopColor: color }} aria-hidden="true" />
                     <span className="db-arm-name">{a.short || a.label}</span>
+                    <span className="db-arm-short" aria-hidden="true">
+                      {ARM_SHORT[a.id] ?? a.label}
+                    </span>
                   </span>
                   <div className="db-track">
                     <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />
@@ -228,7 +257,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             className="db-dot is-diamond"
                             style={{ left: pct(b), borderColor: color }}
                             label={`${a.label}, closed capital, ${name}: ${fmt(b)}`}
-                            tip={<DotTip arm={a.label} closure="Closed capital (none foreign-owned)" measure={name} value={b} />}
+                            tip={<DotTip arm={a.label} closure="Closed capital (no foreign-owned private capital)" measure={name} value={b} />}
                           />
                         ) : null}
                         {c != null ? (
@@ -239,26 +268,17 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
-                        {onSummary(a.id, m.v) ? (
-                          <NavLink
-                            sub="summary"
-                            className={`db-value db-value-link${right ? ' is-right' : ' is-left'}`}
-                            style={right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }}
-                            aria-label={`${a.label}, ${name}: the value is on Summary`}
-                          >
-                            on Summary
-                          </NavLink>
-                        ) : (
-                          <span
-                            className={`db-value${right ? ' is-right' : ' is-left'}`}
-                            style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), color: ARM_TEXT_COLOR[a.id] }}
-                          >
-                            {fmt(main)}
-                          </span>
-                        )}
+                        {/* the main arm's GDP, wage and GNI: a muted reference
+                            value; their home is the story tile, linked by the chip */}
+                        <span
+                          className={`db-value${right ? ' is-right' : ' is-left'}${onSummary(a.id, m.v, rule) ? ' is-ref' : ''}`}
+                          style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), ...(onSummary(a.id, m.v, rule) ? {} : { color: ARM_TEXT_COLOR[a.id] }) }}
+                        >
+                          {fmt(main)}
+                        </span>
                       </>
                     )}
-                    {showC && showB && !onSummary(a.id, m.v) ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
+                    {showC && showB ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
                   </div>
                 </div>
               );

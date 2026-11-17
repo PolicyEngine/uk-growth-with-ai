@@ -12,24 +12,40 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 // closure picker set through the address.
 // results:finances:<closure>:<rule> sets the fiscal rule (&rule=) and dumps
 // the fiscal-rule card's content only.
+// results:summary[:<closure>] is the story's part 2 (#story-part-2), the
+// home of the former Summary tiles; story:part1 and story:part3 dump those
+// parts (they do not change with the header pickers).
 const SUBS = ['summary', 'income', 'economy', 'finances'];
 const tabs = [
   ...SUBS.map((s) => `results:${s}`),
   ...['closed', 'both'].flatMap((c) => SUBS.map((s) => `results:${s}:${c}`)),
   'results:finances:central:dn', 'results:finances:closed:dn', 'results:finances:both:dn',
   'results:finances:central:fixed', 'results:finances:closed:fixed', 'results:finances:both:fixed',
-  'who', 'who:both', 'scenarios', 'method', 'studies', 'code',
+  'who', 'who:both', 'method', 'studies', 'code',
+  'results:all',
+  'story:hero', 'story:part1', 'story:part3',
+  // uk-ai-study detail and method: ?tab=explore&sub=households and
+  // ?tab=method&sub=households (#explore-sub-households, #method-sub-households)
+  'explore:households', 'method:households',
 ];
 const res = {};
 for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
   res[s] = {};
   for (const t of tabs) {
     const [tab, sub, closure, rule] = t.split(':');
-    const q = new URLSearchParams({ tab, s });
-    if (sub) q.set('sub', sub);
+    const story = tab === 'story' || sub === 'summary';
+    const hh = sub === 'households';
+    // The keys keep the names of the tabs before they were consolidated;
+    // each opens its current address: Results and Who gains are sub-tabs of
+    // Explore, the rest of Method and sources.
+    const [newTab, newSub] = hh ? [tab, sub] : story ? ['story', null] : tab === 'results' ? ['explore', sub === 'income' ? 'economy' : sub] : tab === 'who' ? ['explore', 'who'] : ['method', tab === 'method' ? 'how' : tab];
+    // Results' panels are parts of Explore's pages (income and economy share one)
+    const elId = hh ? `${tab}-sub-households` : tab === 'results' ? `explore-part-${sub}` : newSub ? `${newTab}-sub-${newSub}` : `tab-${newTab}`;
+    const q = new URLSearchParams({ tab: newTab, s });
+    if (newSub) q.set('sub', newSub);
     if (closure) q.set('closure', closure);
     if (rule) q.set('rule', rule);
-    if (tab === 'who' && sub) { q.delete('sub'); q.set('closure', sub); }
+    if (tab === 'who' && sub) q.set('closure', sub);
     await page.goto(`${base}/?${q}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(300);
     if (rule) {
@@ -37,10 +53,26 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
       continue;
     }
     // Axis ticks are scale, not data: hidden before reading the text.
-    res[s][t] = await page.evaluate(([id, sb]) => {
+    res[s][t] = await page.evaluate((id) => {
       document.querySelectorAll('[data-axis]').forEach((e) => { e.style.display = 'none'; });
-      return document.getElementById(sb ? `results-sub-${sb}` : `tab-${id}`)?.innerText ?? '';
-    }, [tab, tab === 'who' ? null : sub]);
+      return document.getElementById(id)?.innerText ?? '';
+    }, elId);
+    if (hh) {
+      // as the story: quoted inputs (data-input) are not results
+      res[s][t] = await page.evaluate((id) => {
+        document.querySelectorAll('[data-axis], [data-input]').forEach((e) => { e.style.display = 'none'; });
+        return document.getElementById(id)?.innerText ?? '';
+      }, elId);
+    }
+    if (story) {
+      const el = sub === 'summary' ? 'story-part-2' : `story-${sub.replace('part', 'part-')}`;
+      // Story: axis ticks and inputs quoted from the data's text (data-input:
+      // a rate or limit printed inside a definition) are not results.
+      res[s][t] = await page.evaluate((id) => {
+        document.querySelectorAll('[data-axis], [data-input]').forEach((e) => { e.style.display = 'none'; });
+        return document.getElementById(id)?.innerText ?? '';
+      }, el);
+    }
   }
 }
 fs.writeFileSync(out, JSON.stringify(res));

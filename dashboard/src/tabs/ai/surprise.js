@@ -30,10 +30,11 @@ export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
 // 'ss' the OBR-style stress test that holds 2031 GDP at the OBR-central path.
 export const ARMS = S.arms;
-export const ARM_COLOR = { tfp: 'var(--series-1)', tz: 'var(--series-2)', ss: 'var(--series-5)' };
+// Teal (--series-1) is the gain colour, so no arm uses it.
+export const ARM_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3)', ss: 'var(--series-5)' };
 // The stress test is drawn lighter: a bound, not a forecast.
 // End labels and figures in text: the darker variant that meets 4.5:1 on white
-export const ARM_TEXT_COLOR = { tfp: 'var(--series-1-text)', tz: 'var(--series-2)', ss: 'var(--series-5-text)' };
+export const ARM_TEXT_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3-text)', ss: 'var(--series-5-text)' };
 export const ARM_LIGHT = { ss: true };
 export const armById = (id) => ARMS.find((a) => a.id === id);
 export const CLOSURE_LABEL = { 'zk0.1': 'central closure', zk0: 'closed capital' };
@@ -48,16 +49,27 @@ export const ruleResult = (rule, sid, arm, closure) =>
   S.rules?.[rule]?.results?.[sid]?.[arm]?.[closure] ?? { status: 'pending' };
 export const ruleScenarios = (rule) => S.rules?.[rule]?.scenarios ?? [];
 
+// The fiscal-rule ids of the pickers (labels.js RULES) against the data
+// file's keys. 'common' is the default of every solve (S.results).
+export const RULE_KEY = { dn: 'debt_neutral', fixed: 'fixed_spending' };
+// The record for a scenario, arm and closure under a fiscal rule.
+export const resultAt = (sid, arm, closure, rule = 'common') =>
+  RULE_KEY[rule] ? ruleResult(RULE_KEY[rule], sid, arm, closure) : result(sid, arm, closure);
+// Is the scenario solved under the rule (any arm or closure)?
+export const ruleSolved = (rule, sid) => !RULE_KEY[rule] || ruleScenarios(RULE_KEY[rule]).includes(sid);
+// The scenarios a rule is solved for, in display order.
+export const solvedUnder = (rule) => SCENARIOS.filter((s) => ruleSolved(rule, s.id));
+
 // Gap of variable v in a calendar year, or null when pending.
-export function gap(sid, arm, closure, v, year = HEADLINE_YEAR) {
-  const r = result(sid, arm, closure);
+export function gap(sid, arm, closure, v, year = HEADLINE_YEAR, rule = 'common') {
+  const r = resultAt(sid, arm, closure, rule);
   if (r.status !== 'done') return null;
   const x = r.gaps[v]?.[YEARS.indexOf(year)];
   return typeof x === 'number' ? x : null;
 }
 // The 2027-2031 path, or null when pending.
-export function path(sid, arm, closure, v) {
-  const r = result(sid, arm, closure);
+export function path(sid, arm, closure, v, rule = 'common') {
+  const r = resultAt(sid, arm, closure, rule);
   if (r.status !== 'done') return null;
   return WINDOW_YEARS.map((y) => r.gaps[v][YEARS.indexOf(y)]);
 }
