@@ -599,6 +599,9 @@ p.mx-axis-title.is-x {
 .mx-limit-tile .story-items { margin: 8px 0 0 24px; font-size: 12px; }
 
 /* Method card grids: one Details fold under the grid, not one per card */
-.mx-foldgrid {
-  margin-top: 4px;
+.mx-foldgrid > .disclosure-in-card {
+  margin-top: 8px;
+}
+.mx-foldgrid > .disclosure-in-card > .disclosure-toggle {
+  padding-top: 10px;
 }
