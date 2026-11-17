@@ -567,7 +567,7 @@ describe('hero', () => {
       expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
       // national income's definition is its tooltip; the GDP figure says it is a level
       expect(stats[2].querySelector('.hf-stat-name .tip-target')).not.toBeNull();
-      expect(el.querySelector('.hf-figure-value').getAttribute('title')).toMatch(/^A level \d+ years on, not a growth rate$/);
+      expect(el.querySelector('.hf-figure-value').getAttribute('title')).toMatch(/^A gap in the level, \d+ years on; not a growth rate$/);
       for (const m of stats.slice(1)) expect(m.textContent).not.toMatch(/\d/);
       expect(el.querySelector('.hf-chip-ctx').textContent).toMatch(new RegExp(`· ${S.headline_year} · scenario, not a forecast$`));
       // no inline link in the unit but the figure's own

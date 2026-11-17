@@ -63,7 +63,7 @@ export const TIMING = {
 const CHIP_GAP = 4;
 // The tooltip's one line of meaning per part.
 const MEANING = {
-  gdp: 'Everything produced in the UK, the path’s GDP as 100',
+  gdp: 'Everything produced in the UK, the baseline’s GDP as 100',
   labour: 'Income from work, the self-employed’s included',
   capital: 'Income paid to capital’s owners, before the three-way split',
   domestic: 'Net capital income that stays with UK residents',
@@ -197,7 +197,7 @@ const travelRank = (id) => TRAVEL.length - 1 - TRAVEL.indexOf(id);
 // The render adds chips for the parts named (labour, abroad, wear).
 export function outChangeItems(ch) {
   const out = [
-    { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the path` },
+    { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the baseline` },
     { key: 'labour', icon: dirConcept(ch.labour), text: `is ${dirWord(ch.labour)} it` },
   ];
   if (ch.gdp > 0 && ch.labour < 0)
@@ -325,7 +325,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
       <>
         <div className="sankey-tip-head">{name}</div>
         <div className="sankey-tip-row">
-          {id === 'gdp' ? val : share(val)} of every 100 on the path
+          {id === 'gdp' ? val : share(val)} of every 100 on the baseline
         </div>
         <div className="sankey-tip-row is-note">{MEANING[id]}</div>
         {c != null ? (
@@ -403,7 +403,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </div>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">The reference path with this foreign capital is pending.</Tx>
+            <Tx icon="provisional">The baseline for this foreign-capital case is pending.</Tx>
           </p>
         )}
       </div>
@@ -433,7 +433,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">This solve is pending with the foreign capital chosen above.</Tx>
+            <Tx icon="provisional">This solve is pending for the foreign-capital case chosen above.</Tx>
           </p>
         )}
       </div>
@@ -457,7 +457,7 @@ function outputSteps(sid, cl, base, ch) {
       title: 'GDP is paid as labour or capital income',
       body: (
         <Say>
-          On the path, {k('labour', 'labour income')} is {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'} of GDP; capital income is the rest.
+          On the baseline, {k('labour', 'labour income')} is {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'} of GDP; capital income is the rest.
         </Say>
       ),
     },
@@ -480,10 +480,10 @@ function outputSteps(sid, cl, base, ch) {
       title: `What ${SCEN_NAME[sid]} changes`,
       body: ch ? (
         <Say>
-          Now the shock: each bar is one part&rsquo;s change against the path. {k('gdp', 'GDP')} comes last.
+          Now the shock: each bar is one part&rsquo;s change against the baseline. {k('gdp', 'GDP')} comes last.
         </Say>
       ) : (
-        <p>This solve is pending with the foreign capital chosen above.</p>
+        <p>This solve is pending for the foreign-capital case chosen above.</p>
       ),
     },
   ];
@@ -505,7 +505,7 @@ export const OUTPUT_SUB = {
 // The block's one closing line, from the signs of the cell in view.
 export function outputAnswer(ch) {
   if (ch.gdp > 0 && ch.labour < 0) return 'Capital income rises by more than GDP; labour income falls';
-  return `GDP is ${dirWord(ch.gdp)} the path; labour income is ${dirWord(ch.labour)} it`;
+  return `GDP is ${dirWord(ch.gdp)} the baseline; labour income is ${dirWord(ch.labour)} it`;
 }
 
 export default function OutputSplit({ sid, closure }) {

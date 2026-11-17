@@ -49,7 +49,7 @@ export function PendingLine({ names }) {
   return (
     <p className="icon-line is-muted">
       <Icon name="hourglass" size={16} />
-      <span>No foreign capital is not solved yet for: {names.join(', ')}.</span>
+      <span>The no-foreign-capital case is not solved yet for: {names.join(', ')}.</span>
     </p>
   );
 }
@@ -69,7 +69,7 @@ function findingFor(sid, v, arms, closure, name, rule = 'common') {
   const sides = [...new Set(parts.map((p) => p.side))];
   const where = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
   const lead = `In ${HEADLINE_YEAR}${closure === 'closed' ? ', with no foreign capital,' : ''} ${name}`;
-  if (sides.length === 1) return `${lead} is ${where(sides[0])}${parts.length > 1 ? ' in every arm shown' : ''}.`;
+  if (sides.length === 1) return `${lead} is ${where(sides[0])}${parts.length > 1 ? ' in every version shown' : ''}.`;
   return `${lead} is ${sides.map((s) => `${where(s)} in ${parts.filter((p) => p.side === s).map((p) => p.arm.toLowerCase()).join(' and ')}`).join(', and ')}.`;
 }
 
@@ -188,7 +188,7 @@ function coincideFinding(sid, closure, rule = 'common') {
   const ps = ARMS.map((a) => path(sid, a.id, cl, 'labour_share_pp', rule)).filter(Boolean);
   if (ps.length < 2) return null;
   const same = ps.every((p) => p.every((x, i) => Math.abs(x - ps[0][i]) < COINCIDE));
-  return same ? 'The three arms’ lines coincide: the fall in the labour share is the same imposed input in each arm.' : null;
+  return same ? 'The three versions’ lines coincide: the fall in the labour share is the same imposed input in each version.' : null;
 }
 
 // Economics review, round 1: consumption below the path to the last year
@@ -212,7 +212,7 @@ const ECONOMY = [
         { key: 'year1', icon: 'capital', text: `It stays high until the ramp ends in ${HEADLINE_YEAR}, then drops` },
         { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
         { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
-        TOP_FLAG ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main arm' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
+        TOP_FLAG ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
         TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
       ]} />,
     } },
@@ -231,7 +231,7 @@ const ECONOMY = [
     { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interest', unit: 'pp', scale: 0.01, method: 'closures' },
     { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', concept: 'inequality', unit: 'pp', method: 'shock', about: { caveats: <Items items={[
       { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
-      { key: 'same', icon: 'compare', text: 'It is the same in every arm' },
+      { key: 'same', icon: 'compare', text: 'It is the same in every version' },
       { key: 'full', icon: 'timing', text: 'It reaches full size in the headline year' },
       { key: 'derived', icon: 'arithmetic', text: <>UK sizes: <NavLink tab="method" sub="how" anchor="m-scenarios">derived from IMF SIP/2026/072</NavLink>, not printed by it</> },
     ]} /> } },
@@ -250,9 +250,9 @@ export function measuresFinding(sid, arms, closure, rule) {
   if (!w.length) return null;
   const one = (xs) => new Set(xs.map(side)).size === 1;
   const where = (x) => (side(x) === 'on' ? 'on the path' : `${side(x)} the path`);
-  const every = shown.length > 1 ? ' in every arm shown' : '';
+  const every = shown.length > 1 ? ' in every version shown' : '';
   return {
-    wage: one(w) ? { value: w[0], text: `The pay rate is ${where(w[0])}${every}` } : { value: null, text: 'The pay rate’s side depends on the arm' },
+    wage: one(w) ? { value: w[0], text: `The pay rate is ${where(w[0])}${every}` } : { value: null, text: 'The pay rate’s side depends on the version' },
     gni: !g.length ? null : one(g) ? { value: g[0], text: `national income is ${where(g[0])}${every}` } : { value: null, text: 'whether national income is above it depends on the productivity gain' },
   };
 }
@@ -278,8 +278,8 @@ function IncomePanel({ sid }) {
   const cl = closureWords(st.closure);
   return (
     <>
-      <SectionHeading id="income" icon={iconFor('gni')} title="How does each arm move pay, income and output?">
-        <Lead c="path">{`The three arms in ${HEADLINE_YEAR}, then what no foreign capital changes`}</Lead>
+      <SectionHeading id="income" icon={iconFor('gni')} title="How does each version move pay, income and output?">
+        <Lead c="path">{`The three versions in ${HEADLINE_YEAR}, then what changes with no foreign capital`}</Lead>
       </SectionHeading>
       <div className="cards-stack">
         <Card
@@ -287,7 +287,7 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
-          unit={<span data-axis-title="y">{`Each arm’s gap against the no-shock baseline (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
+          unit={<span data-axis-title="y">{`Each version’s gap against the no-shock baseline (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
           controls={
             <ControlBar label="Four measures: options">
               <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />

@@ -77,8 +77,8 @@ export const ARM_ITEMS = ARMS.map((a) => ({ id: a.id, label: a.short || a.label,
 
 export function ArmsGroup({ shown, onChange }) {
   return (
-    <ControlGroup label="Arms">
-      <SeriesChips items={ARM_ITEMS} shown={shown} onChange={onChange} label="Arms shown" />
+    <ControlGroup label="Versions">
+      <SeriesChips items={ARM_ITEMS} shown={shown} onChange={onChange} label="Versions shown" />
     </ControlGroup>
   );
 }

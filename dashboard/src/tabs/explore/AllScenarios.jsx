@@ -106,7 +106,7 @@ export function Matrix({ arm, m, printHome = true, label }) {
         <thead>
           <tr>
             <th scope="col" className="ex-mx-corner">
-              Rule and closure
+              Budget and foreign capital
             </th>
             {SCENARIOS.map((s) => (
               <th key={s.id} scope="col" className={s.id === st.s ? 'is-current' : ''}>
@@ -204,7 +204,7 @@ export default function AllScenarios() {
   return (
     <div id="explore-part-all" className="explore-part ex-across">
       <SectionHeading id="ex-across" icon={iconFor('cells')} title="Across scenarios">
-        <Lead c="compare">{`Every scenario, closure and fiscal rule in ${HEADLINE_YEAR}; pick a cell to show it`}</Lead>
+        <Lead c="compare">{`Every scenario, foreign-capital case and budget assumption in ${HEADLINE_YEAR}; pick a cell to show it`}</Lead>
       </SectionHeading>
       <Card
         id="all-scenarios"
@@ -221,7 +221,7 @@ export default function AllScenarios() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">{`${m.label} gap against the no-shock baseline at the same closure, %`}</span>}
+        unit={<span data-axis-title="y">{`${m.label} gap against the no-shock baseline for the same foreign-capital case, %`}</span>}
         legend={<MatrixKey />}
         about={{
           caveats: (
@@ -246,13 +246,13 @@ export default function AllScenarios() {
         }}
         sources={sourcesItems({ method: 'rules' })}
         download={{
-          title: `Every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the no-shock baseline at the same closure`,
+          title: `Every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the no-shock baseline for the same foreign-capital case`,
           table: () => cellsTable(arm, armLabel),
           svg: () => matrixSvg(arm, m),
         }}
       >
-        <Matrix arm={arm} m={m} label={`${m.title}, ${HEADLINE_YEAR}, ${armLabel}: every scenario, closure and fiscal rule`} />
+        <Matrix arm={arm} m={m} label={`${m.title}, ${HEADLINE_YEAR}, ${armLabel}: every scenario, foreign-capital case and budget assumption`} />
       </Card>
 
       <SectionHeading id="ex-sensitivity" icon={iconFor('foreign')} title="More foreign capital">
@@ -275,7 +275,7 @@ export function AcrossDebt() {
   return (
     <div className="explore-part ex-across" id="fin-across-part">
       <SectionHeading id="fin-across" icon={iconFor('cells')} title="Debt/GDP across scenarios">
-        <Lead c="compare">{`Every scenario, closure and fiscal rule in ${HEADLINE_YEAR}`}</Lead>
+        <Lead c="compare">{`Every scenario, foreign-capital case and budget assumption in ${HEADLINE_YEAR}`}</Lead>
       </SectionHeading>
       <Card
         id="debt-cells"
@@ -289,12 +289,12 @@ export function AcrossDebt() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">Debt/GDP gap against the no-shock baseline at the same closure, percentage points of GDP</span>}
+        unit={<span data-axis-title="y">Debt/GDP gap against the no-shock baseline for the same foreign-capital case, percentage points of GDP</span>}
         legend={<MatrixKey story={false} />}
         sources={sourcesItems({ method: 'rules' })}
         download={{
-          title: `Debt/GDP, every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the no-shock baseline at the same closure`,
+          title: `Debt/GDP, every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the no-shock baseline for the same foreign-capital case`,
           table: () => {
             const t = cellsTable(arm, armLabel);
             return { ...t, rows: t.rows.filter((r) => r[0] === m.label) };
@@ -302,7 +302,7 @@ export function AcrossDebt() {
           svg: () => matrixSvg(arm, m),
         }}
       >
-        <Matrix arm={arm} m={m} printHome={false} label={`Debt/GDP, ${HEADLINE_YEAR}, ${armLabel}: every scenario, closure and fiscal rule`} />
+        <Matrix arm={arm} m={m} printHome={false} label={`Debt/GDP, ${HEADLINE_YEAR}, ${armLabel}: every scenario, foreign-capital case and budget assumption`} />
       </Card>
     </div>
   );

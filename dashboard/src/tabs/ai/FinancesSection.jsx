@@ -274,7 +274,7 @@ function TaxStrip({ model, uk, onChart }) {
         <p className="ex-taxlink">
           <Icon name={iconFor('link')} size={14} />
           <a href="#tax-gdp" onMouseEnter={flag(true)} onMouseLeave={flag(false)} onFocus={flag(true)} onBlur={flag(false)}>
-            Its value: the main-arm end point of the Tax/GDP chart
+            Its value: the main-version end point of the Tax/GDP chart
           </a>
         </p>
       ) : null}
@@ -457,7 +457,7 @@ function RuleTable({ rule, sid, closure }) {
         </caption>
         <thead>
           <tr>
-            <th scope="col">Arm</th>
+            <th scope="col">Version</th>
             {RULE_VARS.map((c) => (
               <th key={c.v} scope="col" className="num">{c.label}</th>
             ))}
@@ -598,7 +598,7 @@ function FiscalRuleCard({ sid }) {
       title="What the fiscal rule changes"
       controls={<RuleTimeline rule={rule} />}
       read={[{ key: 'rule', icon: 'defaultRule', text: 'The rule picked at the top applies to every chart on this page' }]}
-      unit={has ? <Lead c="measure">{`How far each ${HEADLINE_YEAR} gap moves, main arm; the table: every arm, pp`}</Lead> : null}
+      unit={has ? <Lead c="measure">{`How far each ${HEADLINE_YEAR} gap moves, main version; the table: every version, pp`}</Lead> : null}
       logo={false}
       about={has ? {
         caveats: (
@@ -645,7 +645,7 @@ export default function FinancesSection({ sid }) {
   const debt = debtParts(sid, st.closure, st.rule);
   return (
     <>
-      <SectionHeading id="public-finances" icon={iconFor('finances')} title="How do debt and tax move in each arm?">
+      <SectionHeading id="public-finances" icon={iconFor('finances')} title="How do debt and tax move in each version?">
         <Lead c="measure">Shares of GDP, against the no-shock baseline</Lead>
       </SectionHeading>
       <div className="cards-grid">

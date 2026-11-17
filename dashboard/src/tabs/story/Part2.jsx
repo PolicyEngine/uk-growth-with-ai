@@ -4,7 +4,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { useNav } from '@/lib/nav.jsx';
 import { DebtNote, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
-import { HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
+import { BOUND, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
@@ -51,8 +51,8 @@ export const SUBS = {
     title: 'GDP, scenario by scenario',
     icon: 'path',
     question: 'How far does GDP move from the no-shock baseline?',
-    hint: 'Watch the axis switch from growth to a gap against the path',
-    answer: 'GDP ends above the path in every scenario',
+    hint: 'Watch the axis switch from growth to a gap against the baseline',
+    answer: 'GDP ends above the baseline in every scenario',
     // the caption is about every scenario's line
     answerHighlight: ['scen-uk_low', 'scen-uk_central', 'scen-uk_high', 'scen-korinek'],
   },
@@ -88,7 +88,7 @@ export function beat2031(sid, cl) {
   if (y > 0.005 && g != null && g > 0.005 && g < y) {
     return {
       head: 'Output is up. Part of the gain goes abroad.',
-      line: 'The shock is complete. More is produced than on the no-shock baseline; some of the extra income goes to owners abroad.',
+      line: `The shock is complete. More is produced than on the no-shock baseline; ${cl === BOUND ? 'some of the extra income goes to holders of UK government debt abroad' : 'some of the extra income goes to owners abroad'}.`,
     };
   }
   return { head: 'The shock is complete', line: `GDP is ${dirWord(y)} the no-shock baseline.` };
@@ -119,7 +119,7 @@ export default function Part2({ part }) {
         id={String(SURPRISE_YEAR)}
         num={SURPRISE_YEAR}
         head="The AI shock starts, as a surprise"
-        line={`The shock starts here in every scenario. Nobody in the model has planned for it, so the economy stays on the path until ${SURPRISE_YEAR}.`}
+        line={`The shock starts here in every scenario. Nobody in the model has planned for it, so the economy stays on the baseline until ${SURPRISE_YEAR}.`}
       />
 
       {/* the GDP scene: the gap, the four scenarios, then the headline
@@ -164,7 +164,7 @@ function headlineStep(sid) {
     highlight: [`scen-${sid}`],
     body: (
       <>
-        <Say>Each is a gap against the path in {HEADLINE_YEAR}: a scenario result, not a forecast.</Say>
+        <Say>Each is a gap against the baseline in {HEADLINE_YEAR}: a scenario result, not a forecast.</Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
           <p className="p2-headline-chip">
             {SCEN_NAME[sid]} · {HEADLINE_YEAR}

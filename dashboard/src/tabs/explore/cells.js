@@ -76,7 +76,7 @@ export function spreads(arm, v) {
     rule: Math.max(0, ...ids.flatMap((sid) => CLS.map((cl) => span(RULES.map((r) => cellValue(sid, arm, cl, r.id, v)))))),
   };
 }
-const CHOICE = { scenario: 'the scenario', closure: 'the capital closure', rule: 'the fiscal rule' };
+const CHOICE = { scenario: 'the scenario', closure: 'foreign capital', rule: 'the budget assumption' };
 export const topChoice = (arm, v) => Object.entries(spreads(arm, v)).sort((a, b) => b[1] - a[1])[0][0];
 // "The scenario moves GDP and GNI most; the capital closure, the pay rate;
 // the fiscal rule, debt/GDP." Words only.

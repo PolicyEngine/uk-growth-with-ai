@@ -365,7 +365,7 @@ export default function EvidenceLanes() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: `OG-UK: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the no-shock baseline.` },
+              { icon: 'model', text: `OG-UK: automation + productivity, ${HEADLINE_YEAR} gap against the no-shock baseline.` },
               { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
               { icon: 'ai', text: 'Those baselines mostly have no AI.' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },

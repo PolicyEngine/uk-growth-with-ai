@@ -72,7 +72,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
         {m.label}
       </figcaption>
       <div ref={boxRef}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, some foreign capital to no foreign capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no arm flips sign'}`}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, some foreign capital to no foreign capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no version flips sign'}`}>
         {sc.ticks.map((t) => (
           <g key={t}>
             <line x1={x0} x2={x1} y1={Y(t)} y2={Y(t)} className={Math.abs(t) < 1e-9 ? 'ex-slope-zero' : 'ex-slope-grid'} />
@@ -138,7 +138,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
           </p>
         ) : pending.length ? (
           <p className="ex-slope-note">
-            No foreign capital not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
+            No-foreign-capital case not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
           </p>
         ) : (
           <p className="ex-slope-note">
@@ -164,7 +164,7 @@ export default function ClosureSlope({ sid }) {
       icon={iconFor('closure')}
       title="Some foreign capital to no foreign capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<Lead c="measure">{`Each arm’s % difference from the no-shock baseline, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
+      unit={<Lead c="measure">{`Each version’s % difference from the no-shock baseline, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
       legend={
         <ul className="ex-slope-key">
           {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
@@ -194,7 +194,7 @@ export default function ClosureSlope({ sid }) {
         </div>
       ) : (
         <div className="unpublished-plot">
-          <Items items={sentenceItems(ruleSolved(rule, sid) ? 'No arm shown is solved.' : ruleGapText(rule, sid))} />
+          <Items items={sentenceItems(ruleSolved(rule, sid) ? 'No version shown is solved.' : ruleGapText(rule, sid))} />
         </div>
       )}
     </Card>

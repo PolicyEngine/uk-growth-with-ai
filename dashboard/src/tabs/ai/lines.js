@@ -49,9 +49,9 @@ export function ruleGapText(rule, sid) {
 }
 
 export function emptyText(arms, closure, rule = 'common', sid = null) {
-  if (!arms.length) return 'Every arm is hidden. Choose one under Arms above.';
+  if (!arms.length) return 'Every version is hidden. Choose one under Versions above.';
   if (sid && !ruleSolved(rule, sid)) return ruleGapText(rule, sid);
-  if (closure === 'closed') return 'The no-foreign-capital results for this scenario are not solved yet. Choose Some foreign capital under Foreign capital at the top of the page.';
+  if (closure === 'closed') return 'The no-foreign-capital results for this scenario are not solved yet. Choose Some under Foreign capital at the top of the page.';
   return 'This scenario is not solved yet.';
 }
 

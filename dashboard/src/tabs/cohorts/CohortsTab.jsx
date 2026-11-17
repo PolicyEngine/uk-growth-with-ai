@@ -521,12 +521,12 @@ function Why({ cl, rule, arm }) {
             items={[
               { key: 'share', icon: 'benefits', text: 'Common rule: transfers stay a fixed share of GDP' },
               { key: 'debt', icon: 'debt', text: 'Public debt absorbs the fiscal effect; no cohort is charged in the welfare measure' },
-              { key: 'pick', icon: 'rule', text: 'Pick debt-neutral transfers under Fiscal rule to charge households' },
+              { key: 'pick', icon: 'rule', text: 'Pick debt-neutral transfers under Budget assumption to charge households' },
             ]}
           />
         )}
       </InfoCard>
-      <InfoCard icon={iconFor('young')} title="The stress test by age" tag={<><Icon name={iconFor('shock')} size={12} /> Stress-test arm</>}>
+      <InfoCard icon={iconFor('young')} title="The stress test by age" tag={<><Icon name={iconFor('shock')} size={12} /> Stress-test version</>}>
         <Items
           items={[
             x.stressW == null || x.tfpW == null
@@ -603,8 +603,8 @@ export default function WhoGainsTab() {
           Korinek et al. (upper): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
         </li>
         {both ? (
-          <li className="ex-mchip" title="The reasons below are for some foreign capital">
-            With Both, the figures and the chart show each closure
+          <li className="ex-mchip" title="The reasons below are for the case with some foreign capital">
+            With Both, the figures and the chart show each foreign-capital case
           </li>
         ) : null}
       </ul>

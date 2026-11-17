@@ -48,7 +48,7 @@ function ImfGap() {
             ),
           },
           { icon: 'foreign', text: <>IMF: about <span data-path="imfGap.imf_y4_output_pct">+{IMF_Y4.toFixed(1)}%</span> at year 4, read off its {ext(SRC.imfSipFig9.url, 'Figure 9')}.</> },
-          { icon: 'closure', text: 'Arithmetic suggests the capital closure could account for the difference.' },
+          { icon: 'closure', text: 'Arithmetic suggests foreign capital (the capital closure) could account for the difference.' },
           {
             icon: 'interest',
             text: (

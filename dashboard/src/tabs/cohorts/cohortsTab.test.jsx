@@ -79,7 +79,7 @@ describe('Who gains tab', () => {
   it('says it is UK central only; with Both it shows each closure, in tiles and two chart panels', () => {
     const { container } = at('tab=who&s=korinek&closure=both');
     expect(container.textContent).toContain('UK central only');
-    expect(container.textContent).toContain('the figures and the chart show each closure');
+    expect(container.textContent).toContain('the figures and the chart show each foreign-capital case');
     expect(container.textContent).toContain(pct(cell('zk0.1', 'dn', 'tfp').alive_avg));
     expect(container.textContent).toContain(pct(cell('zk0', 'dn', 'tfp').alive_avg));
     expect(container.querySelectorAll('#welfare-chart .wg-panel')).toHaveLength(2);
