@@ -384,11 +384,15 @@
    source line (typography spec, option b). 14/600 in ink; the part accent
    only on a 3px left rule; no icon. It fades up once the last card is
    reached (opacity only: always in the DOM, its height reserved). */
+.story {
+  /* polish round: every closing or answer line is this far below its chart */
+  --gap-answer: 24px;
+}
 .scrolly-takeaway {
   position: relative;
   z-index: 2;
   max-width: 60ch;
-  margin: 12px 0 0;
+  margin: var(--gap-answer, 24px) 0 0;
   padding-left: 10px;
   border-left: 3px solid var(--part-accent, var(--c-highlight));
   font-size: var(--t-label);
