@@ -177,8 +177,8 @@ export const CENTRAL_STEPS = [
     // T14; the two figures restate the tiles they light (their home): data-axis
     title: (
       <>
-        A year of job loss {COSTS ? 'costs' : 'adds to net receipts'} <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> and {up(H.central_poverty.value)} absolute poverty by{' '}
-        <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
+        Net of assumed pay and capital gains, job loss {COSTS ? 'costs' : 'adds to net receipts'} <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> a year and{' '}
+        {up(H.central_poverty.value)} absolute poverty <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
       </>
     ),
   },
@@ -208,7 +208,7 @@ const CENTRAL_MARKS = {
 function CentralNotes() {
   return (
     <>
-      <p className="p3-key">The cost is net of two assumed gains, higher pay and capital income. After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
+      <p className="p3-key">After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
       <p className="p3-key">
         The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
         <NavLink tab="explore" sub="households" anchor="hh-ladder">

@@ -28,7 +28,7 @@ export function storyFigures() {
     ...D.deciles.values.slice(1).map(fmtDecilePct), fmtDecilePct(D.deciles.values[0]), fmtDecilePct(rk('pre_pension')[0]),
     fmtDecilePct(rk('hbai_excl_large_ppc')[0]),
     // 4 what changes the answer: four stylised rules (exposure: step 1, restated as an axis label)
-    ...['uniform', 'junior', 'compression'].map((k) => fmtBn(rule(k).cost_bn)),
+    ...['uniform', 'junior', 'compression'].flatMap((k) => [fmtBn(rule(k).cost_bn), fmtPp(rule(k).poverty_pp)]),
     // ... job loss against wage cuts
     fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p),
     fmtPence(pp('wage_cuts').government_p), fmtBn(lad('central_20').cost_bn), fmtPp(lad('central_20').poverty_pp), fmtBn(lad('wage_cuts').cost_bn),
@@ -48,7 +48,8 @@ export function householdsFigures() {
     ...['takeup', 'takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp)]),
     ...['obr', 'obr_takeup', 'obr_takeup_jsa'].flatMap((k) => [fmtBn(lad(k).cost_bn), fmtPp(lad(k).poverty_pp), fmtPp(lad(k).gini_pp)]),
     fmtBn(rule('klein_top_loaded').cost_bn),
-    ...['uniform', 'junior', 'compression', 'klein_top_loaded'].flatMap((k) => [fmtPp(rule(k).poverty_pp), fmtPp(rule(k).gini_pp)]),
+    ...['uniform', 'junior', 'compression'].map((k) => fmtPp(rule(k).gini_pp)),
+    fmtPp(rule('klein_top_loaded').poverty_pp), fmtPp(rule('klein_top_loaded').gini_pp),
     ...['job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'].flatMap((k) => [fmtPence(pp(k).government_p), fmtPence(pp(k).household_p)]),
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),

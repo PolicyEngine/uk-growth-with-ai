@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
@@ -27,11 +26,10 @@ import { Ref } from './sources.jsx';
 // `short`: the phone label (600px and below), each with its citation
 const RULES = [
   { id: 'uniform', label: 'Uniform: every employee equally likely', short: 'Uniform' },
-  { id: 'junior', label: 'Tilted towards workers aged 16 to 24, after ', ref: 'klein', short: 'Junior-tilted, after ' },
+  { id: 'junior', label: 'Tilted to ages 16 to 24, after ', ref: 'klein', short: 'Junior-tilted, after ' },
   { id: 'exposure', label: 'In proportion to AI exposure: the central case', central: true, short: 'AI exposure: the central case' },
-  { id: 'compression', label: 'Expertise compression (the study’s rule, after ', close: '): exposed higher earners', ref: 'autor', short: 'Expertise compression, after ' },
+  { id: 'compression', label: 'Expertise compression, after ', close: ': exposed higher earners', ref: 'autor', short: 'Expertise compression, after ' },
 ];
-const NAME = { uniform: 'Uniform', junior: 'Junior-tilted', exposure: 'Exposure-based', compression: 'Expertise-compression' };
 // Both rule axes start at zero: the cost differs about fivefold across
 // rules while the poverty rise hardly moves.
 const MAXC = Math.max(...RULES.map((r) => rule(r.id).cost_bn)) * 1.12;
@@ -137,26 +135,16 @@ function Ticks({ max, fmt }) {
 }
 
 // A position-only poverty dot; its value mounts only while hovered or focused.
+// Each rule's poverty rise, printed beside its dot (round 2, B10: their
+// home moved here from Explore > Households). The exposure rule's is the
+// central case's, whose home is step 1: restated (data-axis).
 function PovertyDot({ id, d, on }) {
-  const [tip, setTip] = useState(false);
+  const left = d.poverty_pp / MAXP > 0.6;
   return (
-    <span
-      className={`p3-dot p3-dot-pov${id === 'exposure' ? ' is-ring' : ''}`}
-      style={{ left: on ? `${(d.poverty_pp / MAXP) * 100}%` : 0 }}
-      tabIndex={on ? 0 : -1}
-      role="img"
-      aria-label={`${NAME[id]}: poverty rise, position only; values on Explore`}
-      onMouseEnter={() => setTip(true)}
-      onMouseLeave={() => setTip(false)}
-      onFocus={() => setTip(true)}
-      onBlur={() => setTip(false)}
-      onKeyDown={(ev) => ev.key === 'Escape' && setTip(false)}
-    >
-      {tip ? (
-        <span className="p3-tip" role="status">
-          {fmtPp(d.poverty_pp)}
-        </span>
-      ) : null}
+    <span className={`p3-dot p3-dot-pov${id === 'exposure' ? ' is-ring' : ''}`} style={{ left: on ? `${(d.poverty_pp / MAXP) * 100}%` : 0 }}>
+      <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(id === 'exposure' ? { 'data-axis': '' } : {})}>
+        {fmtPp(d.poverty_pp)}
+      </span>
     </span>
   );
 }
@@ -290,7 +278,7 @@ function MarginPanel({ on }) {
       <p className="p3-group-head">With the wage and capital effects on</p>
       <div className="p3-db-pair">
         <Dumbbell
-          head="Cost, £bn a year"
+          head="Cost, £bn a year, these 20 draws"
           panel="m-cost"
           max={maxC}
           on={on}
@@ -358,7 +346,7 @@ function RulesNotes() {
     <>
       <p className="p3-key">
         <NavLink tab="explore" sub="households" anchor="hh-rules">
-          Poverty values by rule, and a top-loaded stress test
+          Gini changes by rule, and a top-loaded stress test
         </NavLink>
       </p>
     </>
@@ -455,9 +443,10 @@ export function changesSub() {
   return {
     title: 'What changes the answer',
     icon: 'scenario',
-    question: 'What changes the answer?',
+    // the scene head prints the title beside the question: they differ
+    question: 'What moves the cost and the poverty rise?',
     hint: 'Watch the chart change with each assumption',
-    key: 'changes',
+    key: 'moves',
     answer: `Cost ${fmtBn(Math.min(...cs))} to ${fmtBn(Math.max(...cs))} a year by rule; zero if wages rise ${fmtPctSigned1(BE.wage.value_pct)}`,
     answerTo: 'p3-moves-step',
   };
