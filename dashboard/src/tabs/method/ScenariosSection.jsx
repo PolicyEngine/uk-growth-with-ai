@@ -49,8 +49,10 @@ export function stressItems(sid = REF_SID) {
     const x = fixedInputVsTz(sid, 'ss', cl);
     const m = stressMove(x);
     if (!m) return [];
+    // the figure says how much, so "slightly" goes (12 words with the longer
+    // closure name)
     const tail = cl === CENTRAL ? 'against technology unchanged' : 'near technology unchanged';
-    return [{ key: cl, icon: m.icon, text: `${CL_NAME[cl]}: fixed-input output ${m.word} (UK central: ${signed(x, 2)}%), ${tail}.` }];
+    return [{ key: cl, icon: m.icon, text: `${CL_NAME[cl]}: fixed-input output ${m.word.replace(' slightly', '')} (UK central: ${signed(x, 2)}%), ${tail}.` }];
   });
 }
 function stressFixedText() {
