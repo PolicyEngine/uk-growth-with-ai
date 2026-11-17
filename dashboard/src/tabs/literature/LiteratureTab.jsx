@@ -181,7 +181,7 @@ function Matrix() {
       icon={iconFor('coverage')}
       title="Coverage by channel"
       className="mx-matrix-card"
-      finding={<IconText icon="coverage">Whether each source models each channel. Hover, tap or tab to a cell for the detail.</IconText>}
+      finding={<IconText icon="coverage">Whether each source models each channel.</IconText>}
       logo={false}
       about={{
         sources: (
@@ -284,7 +284,6 @@ function SourceList({ group, title, icon }) {
           <a key={id} id={`src-${id}`} className="link-card mx-src" href={s.url} target="_blank" rel="noreferrer">
             <span className="mx-src-top">
               <span className="link-card-title">{s.short}</span>
-              <Icon name="externalLink" size={14} />
             </span>
             <span className="mx-src-title">{s.title}</span>
             <span className="mx-src-use">

@@ -60,3 +60,46 @@ export const INPUTS = [
   { group: 'Household study', input: 'Employees displaced; survivors’ wage rise', value: 'Study inputs', kind: 'external', how: 'Doorley et al. (2026), who take them from a Goldman Sachs scenario exercise.', src: ['doorley'] },
   { group: 'Household study', input: 'Rise in the return on capital', value: '0.4 points', kind: 'external', how: 'On the 1.005% base in Doorley et al. (2026).', src: ['doorley'] },
 ];
+
+// The table row's short line (at most 12 words) for each input; the full
+// derivation above (`how`, `note`) is the row's detail, word for word.
+// `scen`: the scenario file's own note for that input (surprise2028.json
+// scenarios[].sources), which the detail also prints: its one home since the
+// scenario cards stopped repeating it.
+const SHORT = {
+  'UK low: output at fixed inputs': ['OBR J-curve, phased in linearly: 0.1 × (1+2+3+4)/5 = 0.2%', ['uk_low', 'tfp']],
+  'UK low: labour-share fall': ['0.2 ÷ 0.27 = 0.74pp; rule not published by the IMF', ['uk_low', 'labour_share']],
+  'UK central: output at fixed inputs': ['IMF Figure 9 reads about 0.42%; the model input is rounded', ['uk_central', 'tfp']],
+  'UK central: labour-share fall (headline)': ['0.42 ÷ 0.27 ≈ 1.6pp; derived, not published by the IMF', ['uk_central', 'labour_share']],
+  'UK high: output at fixed inputs': ['OBR high alternative, 0.8pp a year, ramped: 2 × 0.8 = 1.6%', ['uk_high', 'tfp']],
+  'UK high: labour-share fall': ['OBR upper-end path 1.78pp, rescaled × 65/40 = 2.89pp', ['uk_high', 'labour_share']],
+  'Korinek et al.: labour share and TFP': ['“Substantial” scenario, a US scenario for 2030; an upper case', ['korinek', 'both']],
+  'Stress test: GDP held at the no-shock path': ['The OBR’s displacement scenario, GDP unchanged', null],
+  'Trend productivity growth': ['OBR March 2026 EFO; includes the OBR’s central AI effect', null],
+  '2030 debt/GDP target': ['Spending set so 2030 debt/GDP matches the OBR’s forecast', null],
+  Vintage: ['March 2026 EFO; the growth check uses October 2026', null],
+  Demographics: ['UN World Population Prospects, via OG-Core; not OBR or ONS', null],
+  'ζK: share of excess capital demand foreigners supply': ['OG-Core’s US default; closest on UK income paid abroad', null],
+  'World interest rate': ['Not calibrated; OG-Core’s own default is 4%', null],
+  'Depreciation δ': ['From ONS capital stocks and fixed capital consumption, 2022', null],
+  'Common rule; debt rule from 2036': ['OG-UK’s default is 4; not an OBR rule', null],
+  'Fixed spending': ['A choice on Explore; no OBR source is cited', null],
+  'Debt-neutral transfers': ['Households receive or pay the fiscal effect as transfers', null],
+  'Debt repricing speed (sensitivity)': ['OBR ready reckoner: 26% in year one, 50% by year six', null],
+  'Solver and gate tolerances': ['10⁻⁴ for GDP, capital and debt/GDP; 10⁻³ for the rest', null],
+  'Employees displaced; survivors’ wage rise': ['Doorley et al. (2026), from a Goldman Sachs scenario exercise', null],
+};
+
+const slug = (s) =>
+  s
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40);
+
+// Rows as the table renders them: id, short line, detail flag.
+export const ROWS = INPUTS.map((r) => {
+  const [short, scen] = SHORT[r.input] ?? [r.how, null];
+  return { ...r, id: `in-${slug(r.input)}`, short, scen, value: r.value.replace(/, model input \(rounded; OBR ramp gives 0\.40%\)$/, '') };
+});

@@ -62,7 +62,6 @@ export DASK_DISTRIBUTED__SCHEDULER__WORKER_TTL=None
 function BeforeYouStart() {
   return (
     <InfoCard
-      icon={iconFor('prerequisite')}
       title="Before you start"
       className="mx-before"
       foot={
@@ -139,7 +138,7 @@ function BeforeYouStart() {
 
 function PipelineMap() {
   return (
-    <InfoCard icon={iconFor('pipeline')} title="The 2028-surprise pipeline" className="mx-pipemap">
+    <InfoCard title="The 2028-surprise pipeline" className="mx-pipemap">
       <p>
         <IconText icon="stages">Nine steps, in order. Choose one for its file and commands.</IconText>
       </p>
@@ -176,7 +175,6 @@ function PipelineSteps() {
             {i + 1}
           </span>
           <InfoCard
-            icon={iconFor(s.icon)}
             title={s.title}
             morePreview={`Commands · ${firstCommand(s.code)}`}
             more={
@@ -187,7 +185,6 @@ function PipelineSteps() {
             }
           >
             <a className="mx-file" href={s.file.endsWith('zk0.1') ? tree(s.file) : blob(s.file)} target="_blank" rel="noreferrer">
-              <Icon name="github" size={14} />
               <code>{s.file}</code>
             </a>
             <p>
@@ -296,7 +293,6 @@ function UseOguk() {
         {cards.map((c) => (
           <InfoCard
             key={c.title}
-            icon={iconFor(c.icon)}
             title={c.title}
             more={<CopyBlock code={c.code} lang={c.lang || 'bash'} />}
             morePreview={`Code · ${c.preview}`}
@@ -304,7 +300,7 @@ function UseOguk() {
             <Items items={c.line} />
           </InfoCard>
         ))}
-        <InfoCard icon={iconFor('source')} title="Documentation">
+        <InfoCard title="Documentation">
           <Items
             items={[
               { icon: 'link', text: <>Theory and API: {ext(URLS.ogCoreDocs, 'OG-Core')} and {ext('https://pslmodels.github.io/OG-UK', 'OG-UK')} documentation.</> },
@@ -321,7 +317,6 @@ function ModelCell({ m }) {
   if (!MODEL_ICON[m]) return <span className="ledger-where">Neither</span>;
   return (
     <span className="mx-model-cell">
-      <Icon name={iconFor(MODEL_ICON[m])} size={14} />
       {m}
     </span>
   );
@@ -330,7 +325,7 @@ function ModelCell({ m }) {
 function Vintages() {
   return (
     <div className="cards-stack">
-      <InfoCard icon={iconFor('data')} title="Data files and builds" id="data-files">
+      <InfoCard title="Data files and builds" id="data-files">
         <div className="table-wrap">
           <table className="data-table ledger-table">
             <caption className="visually-hidden">Each data file or build, its model, what it feeds, its vintage, its release date and the code that reproduces it</caption>
@@ -379,7 +374,7 @@ function Vintages() {
       {/* one column: the versions table needs the width, and the two cards
           differ in height by hundreds of pixels */}
       <div className="cards-grid mx-stack-grid">
-      <InfoCard icon={iconFor('version')} title="Model versions" id="model-versions">
+      <InfoCard title="Model versions" id="model-versions">
         <div className="table-wrap">
           <table className="data-table ledger-table" data-reference="">
             <caption className="visually-hidden">Software versions, by model</caption>
@@ -407,7 +402,7 @@ function Vintages() {
           </table>
         </div>
       </InfoCard>
-      <InfoCard icon={iconFor('period')} title="Official releases (ONS, OBR, DSIT)" id="releases">
+      <InfoCard title="Official releases (ONS, OBR, DSIT)" id="releases">
         <ul className="ledger-releases" data-reference="">
           {RELEASES.map((r) => (
             <li key={r.id}>
@@ -520,13 +515,13 @@ const CITE_BIB = `@misc{policyengine_ai_uk_${year},
 function Cite() {
   return (
     <div className="cards-grid mx-cite-grid">
-      <InfoCard icon={iconFor('source')} title="Citation" id="citation">
+      <InfoCard title="Citation" id="citation">
         <p className="cite-text">
           <IconText icon="source">{CITE_TEXT}</IconText>
         </p>
         <CopyBlock code={CITE_BIB} lang="text" />
       </InfoCard>
-      <InfoCard icon={iconFor('limit')} title="Known limitations" id="known-limits">
+      <InfoCard title="Known limitations" id="known-limits">
         <Items
           items={[
             {
@@ -580,11 +575,10 @@ function Revisions() {
         <span>Model decisions</span>
       </h3>
       <ol className="mx-history-list" data-reference="">
-        {HISTORY.map(([d, c, t, n], i) => (
+        {HISTORY.map(([d, , t, n], i) => (
           <li key={i}>
             <span className="mx-history-date">{d}</span>
             <span className="mx-history-text">
-              <Icon name={iconFor(c)} size={16} className="mx-history-icon" />
               <span>
                 {t} {ext(issue(n), `#${n}`)}
               </span>
@@ -663,7 +657,7 @@ export default function CodeTab() {
             <IconText icon="measure">What the numbers are in, and how they are checked.</IconText>
           </SectionHeading>
           <div className="cards-grid">
-            <InfoCard icon={iconFor('measure')} title="Model units, not pounds" id="units">
+            <InfoCard title="Model units, not pounds" id="units">
               <Items
                 items={[
                   { icon: 'measure', text: 'Solver outputs are in model units.' },
@@ -672,7 +666,7 @@ export default function CodeTab() {
                 ]}
               />
             </InfoCard>
-            <InfoCard icon={iconFor('check')} title="Check the numbers">
+            <InfoCard title="Check the numbers">
               <Items
                 items={[
                   { icon: 'check', text: <>Every finished gap is checked against its raw solve: {ext(blob('dashboard/scripts/check_numbers.py'), 'check_numbers.py')}.</> },
