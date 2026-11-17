@@ -73,8 +73,9 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
         const top0 = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
         const gr = g.getBoundingClientRect();
         const vis = Math.max(0, Math.min(gr.bottom, innerHeight) - Math.max(gr.top, top0)) / (gr.height || 1);
-        // the closing line must never sit over a step's text (review 3, B1)
-        const close = s.querySelector('.scrolly-steps .scrolly-close');
+        // the closing caption (in the figure frame) must never sit over a
+        // step's text (review 3, B1)
+        const close = s.querySelector('.scrolly-takeaway');
         let hit = null;
         if (close && getComputedStyle(close).opacity > 0.05) {
           const c = close.getBoundingClientRect();

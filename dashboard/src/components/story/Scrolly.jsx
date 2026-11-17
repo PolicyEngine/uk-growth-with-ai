@@ -105,10 +105,14 @@ const lineGap = (room) => {
 //                reduced motion, in print and in "is-inline" blocks; the
 //                chart draws in once, when the question first moves aside.
 //                `answer` (string or node): the scene's ONE closing line,
-//                after the last card (icon + sentence, no box), shown once
-//                the last card is reached (always when drawn once, under
+//                a takeaway caption inside the figure frame, under the plot
+//                (no icon; a 3px rule in the part accent), shown once the
+//                last card is reached (always when drawn once, under
 //                reduced motion and in print). With `answerTo` it is
 //                data-axis (it restates a figure whose home is elsewhere).
+//                `answerHighlight`: the marks the caption is about, in the
+//                syntax of step.highlight; they replace the last step's
+//                once the reader is past the last card.
 //                `takeaway` (old API): the closing line when no `answer`;
 //                ignored when there is one. `recap` (old API): ignored.
 //   step.highlight  ids of the marks this step is about (highlight.jsx):
@@ -345,12 +349,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       } else {
         y = fig.bottom - H - 10;
       }
-      // never outside its own block's column, and never over the closing
-      // line (round 2, review 3 B1): the sentence stops 16px above it
+      // never outside its own block's column (the closing line is a
+      // caption inside the figure frame now: nothing to stop above)
       const cr = col.getBoundingClientRect();
-      const close = col.querySelector(':scope > .scrolly-answer');
-      const foot = close ? Math.min(cr.bottom, close.getBoundingClientRect().top - 16) : cr.bottom;
-      y = Math.min(Math.max(y, cr.top), Math.max(cr.top, foot - H));
+      y = Math.min(Math.max(y, cr.top), Math.max(cr.top, cr.bottom - H));
       return { card, t: `translateY(${Math.round(y - liTop)}px)` };
     };
     // writes only
@@ -424,9 +426,12 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [sticky, width]);
-  // one step, one highlight (highlight.jsx): the shown step's marks
-  const hl = useHighlightState(steps[shown]?.highlight);
-  useApplyHighlight(live, hl, [shown, entered]);
+  // one step, one highlight (highlight.jsx): the shown step's marks; once
+  // the end sentinel is active (`done`: past the last card), the closing
+  // caption's own marks (sub.answerHighlight), if it names any
+  const answerHl = sub && typeof sub === 'object' ? sub.answerHighlight : undefined;
+  const hl = useHighlightState(done && answerHl != null && !once ? answerHl : steps[shown]?.highlight);
+  useApplyHighlight(live, hl, [shown, entered, done]);
   const hlDesc = useHighlightDescription(hl);
   // the shown step's sentence anchored to its mark (opt-in: step.callout)
   const cur = steps[shown];
@@ -471,9 +476,21 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // the answer: once the scene's last card is reached (always when drawn
   // once, under reduced motion and in print, by CSS)
   const answered = once || inline || reduce || active >= lastCard;
-  // a wide single block (cards above the figure, desktop): the answer goes
-  // after the figure, once the question has moved into it (Fable, batch 2)
-  const answerAfter = answer != null && wide && single && !phone;
+  // the closing line is a caption inside the figure frame (typography
+  // spec, option b): under the plot, above the source line, its height
+  // reserved (always in the DOM, opacity only; in the sizers too). An
+  // inline block (no shared figure) prints it after its cards.
+  // `sub.answerNote`: one 12px line under the caption, in the frame (the
+  // GDP scene's debt line and its one "More on Explore" link)
+  const answerNote = subObj?.answerNote;
+  const noteEl = (on) => (answerNote != null ? <p className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`}>{answerNote}</p> : null);
+  const takeawayEl =
+    answer != null ? (
+      <>
+        <Answer answer={answer} to={answerTo} shown={answered} />
+        {noteEl(answered)}
+      </>
+    ) : null;
   const ctx = { inline: false, once, entered: drawn || (entered && stageDone), instant: entry.instant, run: entry.run, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
   const sizerCtx = { inline: false, once: false, entered: true, prev: null, highlight: [] };
   const subTitle = typeof sub === 'string' ? sub : sub?.title;
@@ -513,6 +530,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             <QFrame id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} boxRef={box} onPhase={setStage} />
           ) : null}
           {inline || !calloutText ? null : <MarkCallout rootRef={live} anchor={calloutAnchor} text={calloutText} stepKey={steps[shown]?.id} />}
+          {inline ? null : takeawayEl}
           {phone ? null : footHere}
         </div>
         {reserve && measuring ? (
@@ -521,6 +539,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               {steps.map((s, i) => (
                 <div key={s.id} className="scrolly-graphic-inner">
                   {graphic(i, reduce, sizerCtx)}
+                  {answer != null ? <Answer answer={answer} shown /> : null}
+                  {noteEl(true)}
                 </div>
               ))}
             </FinalState.Provider>
@@ -555,20 +575,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
             </li>
           ),
         )}
-        {answer != null && !answerAfter ? (
-          <li className="scrolly-answer">
-            <Answer answer={answer} to={answerTo} shown={answered} />
-          </li>
-        ) : null}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
       {sticky && small ? <div className="scrolly-notes" ref={setNotesEl} /> : null}
+      {inline ? takeawayEl : null}
       {phone ? footHere : null}
-      {answerAfter ? (
-        <div className="scrolly-answer scrolly-answer-after">
-          <Answer answer={answer} to={answerTo} shown={reduce || ctx.entered} />
-        </div>
-      ) : null}
     </div>
     </HighlightCtx.Provider>
     </NotesSlot.Provider>

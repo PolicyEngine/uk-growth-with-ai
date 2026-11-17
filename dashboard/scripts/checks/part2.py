@@ -55,9 +55,12 @@ def expected(sid, cl):
 
 def block(text):
     """The text of the 'Where output goes' block within part 2's dump."""
-    a = text.find('Where output goes in')
-    if a < 0:
+    # the topic header's question (typography spec: the old 'Where output
+    # goes in' title is gone), else the old title
+    starts = [b for b in (text.find('Who gets the extra output'), text.find('Where output goes in')) if b >= 0]
+    if not starts:
         return None
+    a = min(starts)
     # it ends where the Who gains block starts (its title or its question)
     ends = [b for b in (text.find('Who gains and who loses', a), text.find('Which generations gain', a)) if b > 0]
     return text[a:min(ends)] if ends else text[a:]

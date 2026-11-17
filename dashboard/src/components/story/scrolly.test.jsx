@@ -123,15 +123,16 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     expect(h.dataset.scene).toBe('Output');
     expect(h.querySelector('h3.scene-head-q').textContent).toBe('How fast has the UK grown?');
     expect(h.querySelectorAll('svg')).toHaveLength(0);
-    expect(container.querySelector('.scrolly-takeaway')).toBeNull();
-    const c = container.querySelectorAll('.scrolly-close');
+    const c = container.querySelectorAll('.scrolly-takeaway');
     expect(c).toHaveLength(1);
     expect(c[0].textContent).toBe('Growth slowed after 2008.');
-    expect(c[0].querySelectorAll('svg')).toHaveLength(1);
+    // a caption in the figure frame, with no icon
+    expect(c[0].closest('.scrolly-graphic-inner')).not.toBeNull();
+    expect(c[0].querySelectorAll('svg')).toHaveLength(0);
   });
   it('an answer wins over a takeaway: still one closing line, no "Answer" label, no repeated question', () => {
     const { container } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
-    const c = container.querySelectorAll('.scrolly-close');
+    const c = container.querySelectorAll('.scrolly-takeaway');
     expect(c).toHaveLength(1);
     expect(c[0].textContent).toBe('About 1.5% a year');
     expect(container.querySelector('.scrolly-answer-q, .scrolly-answer-label')).toBeNull();
@@ -218,23 +219,34 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
       expect(container.querySelector('.q-frame')).toBeNull();
     }, below);
   });
-  it('prints the closing line after the last card; with answerTo it is data-axis, never a link', () => {
+  it('prints the closing line as a caption in the figure frame; with answerTo it is data-axis, never a link', () => {
     const { container, rerender } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
-    const li = container.querySelector('.scrolly-steps > .scrolly-answer');
-    expect(li.previousElementSibling.id).toBe('s-c');
-    expect(li.nextElementSibling.classList.contains('scrolly-end')).toBe(true);
-    let a = li.querySelector('.scrolly-close');
+    expect(container.querySelector('.scrolly-steps .scrolly-takeaway, .scrolly-answer')).toBeNull();
+    let a = container.querySelector('.scrolly-graphic-inner > .scrolly-takeaway');
     expect(a.hasAttribute('data-axis')).toBe(false);
     // jsdom: the last card is active, so the line is shown
     expect(a.classList.contains('is-shown')).toBe(true);
     rerender(<Scrolly id="b" sub={{ ...sub, answer: <>1.5%</>, answerTo: 'p1-output-s3' }} steps={steps} graphic={() => null} label="L" />);
-    a = container.querySelector('.scrolly-close');
+    a = container.querySelector('.scrolly-takeaway');
     expect(a.hasAttribute('data-axis')).toBe(true);
     expect(a.querySelector('a')).toBeNull();
   });
+  it('past the last card, the caption\'s answerHighlight replaces the last step\'s highlight', () => {
+    const st = steps.map((x, i) => ({ ...x, highlight: i === steps.length - 1 ? ['a'] : ['b'] }));
+    const g = () => (
+      <svg>
+        <g data-mark="a" />
+        <g data-mark="z" />
+      </svg>
+    );
+    const { container } = render(<Scrolly id="b" sub={{ ...sub, answer: 'Done', answerHighlight: ['z'] }} steps={st} graphic={g} label="L" />);
+    // jsdom: every card is past the trigger line, so the end sentinel is active
+    expect(container.querySelector('[data-mark="z"]').hasAttribute('data-on')).toBe(true);
+    expect(container.querySelector('[data-mark="a"]').hasAttribute('data-on')).toBe(false);
+  });
   it('a plain string sub has no opener and no takeaway', () => {
     const { container } = render(<Scrolly id="b" sub="Output" steps={steps} graphic={() => null} label="L" />);
-    expect(container.querySelector('.q-stage, .q-frame, .scrolly-close')).toBeNull();
+    expect(container.querySelector('.q-stage, .q-frame, .scrolly-takeaway')).toBeNull();
     // the header is the topic name alone
     expect(container.querySelector('.scene-head-q').textContent).toBe('Output');
   });
@@ -249,7 +261,7 @@ describe('TopicHead (a topic that is not a Scrolly)', () => {
     expect(h.id).toBe('q-p3-close');
     expect(h.dataset.scene).toBe('Limits');
     expect(h.querySelector('h3').id).toBe('p3-close-h');
-    expect(container.querySelector('.scrolly-close.is-shown .scrolly-close-text').textContent).toBe('Firms and prices');
+    expect(container.querySelector('.scrolly-takeaway.is-shown').textContent).toBe('Firms and prices');
   });
 });
 

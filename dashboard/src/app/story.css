@@ -375,54 +375,36 @@
     gap: 10px;
   }
 }
-/* The closing line (Scrolly sub.answer, else sub.takeaway; round 1: one
-   per scene, it replaces the answer box, the takeaway strip and the recap
-   card): a plain icon and one sentence in the label role, no box; it fades
-   up once the last card is reached (opacity only: always in the DOM) */
-.scrolly-answer {
-  list-style: none;
-  padding-top: 16px;
-}
-@media (max-width: 900px) {
-  .scrolly-answer {
-    padding-top: 0;
-  }
-}
-.scrolly-close {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
-  column-gap: 10px;
-  align-items: start;
+/* The closing line (Scrolly sub.answer, else sub.takeaway): a takeaway
+   caption inside the figure frame, directly under the plot and above the
+   source line (typography spec, option b). 14/600 in ink; the part accent
+   only on a 3px left rule; no icon. It fades up once the last card is
+   reached (opacity only: always in the DOM, its height reserved). */
+.scrolly-takeaway {
+  position: relative;
+  z-index: 2;
   max-width: 60ch;
-  margin: 0;
+  margin: 12px 0 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--part-accent, var(--c-highlight));
   font-size: var(--t-label);
   font-weight: 600;
   line-height: 1.4;
   color: var(--t-ink);
   text-wrap: pretty;
   opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 450ms var(--story-ease),
-    transform 550ms var(--story-ease);
+  transition: opacity 450ms var(--story-ease);
 }
-.scrolly-close.is-shown {
+.scrolly-takeaway.is-shown {
   opacity: 1;
-  transform: none;
-}
-.scrolly-close-icon {
-  display: inline-flex;
-  margin-top: 0.15em;
-  color: var(--t-ink);
 }
 @media (prefers-reduced-motion: reduce) {
   .q-stage,
   .q-frame {
     display: none;
   }
-  .scrolly-close {
+  .scrolly-takeaway {
     opacity: 1;
-    transform: none;
     transition: none;
   }
 }
@@ -431,9 +413,8 @@
   .q-frame {
     display: none;
   }
-  .scrolly-close {
+  .scrolly-takeaway {
     opacity: 1;
-    transform: none;
   }
 }
 /* One step, one highlight (highlight.jsx): while a step names marks, the
@@ -2456,9 +2437,7 @@
     opacity: 0;
   }
   .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
-  .scrolly.is-asking .scrolly-steps .scrolly-close,
-  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card,
-  .scrolly.is-arming .scrolly-steps .scrolly-close {
+  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card {
     opacity: 0;
     transform: none;
   }
@@ -2467,9 +2446,7 @@
    counts text under 5% opacity as blank page) */
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 900px) {
   .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
-  .scrolly.is-asking .scrolly-steps .scrolly-close,
-  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card,
-  .scrolly.is-arming .scrolly-steps .scrolly-close {
+  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card {
     opacity: 0.12;
   }
 }
@@ -2501,7 +2478,7 @@
   .scrolly.is-once > .scrolly-steps > .scrolly-step:nth-last-child(2) {
     padding-bottom: 0;
   }
-  .scrolly.is-once > .scrolly-steps > :is(.scrolly-answer, .scrolly-end) {
+  .scrolly.is-once > .scrolly-steps > .scrolly-end {
     grid-column: 1 / -1;
   }
 }
@@ -2595,5 +2572,158 @@
   .part-opener-model-tip .tip-box {
     top: calc(100% + 6px);
     bottom: auto;
+  }
+}
+/* one 12px line under the takeaway caption, in the frame (Scrolly
+   sub.answerNote: the GDP scene's debt line) */
+.scrolly-takeaway-note {
+  position: relative;
+  z-index: 2;
+  max-width: 60ch;
+  margin: 4px 0 0;
+  padding-left: 13px;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--t-muted);
+  opacity: 0;
+  transition: opacity 450ms var(--story-ease);
+}
+.scrolly-takeaway-note.is-shown {
+  opacity: 1;
+}
+.scrolly-takeaway-note a {
+  color: var(--t-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrolly-takeaway-note {
+    opacity: 1;
+    transition: none;
+  }
+}
+@media print {
+  .scrolly-takeaway-note {
+    opacity: 1;
+  }
+}
+
+/* ---- Story beats (StoryBeat.jsx; story-beats-fable.md): a numeral, a
+   statement and a meaning line, left-aligned, with a 1px marker rule in
+   the chart annotations' stroke. Desktop: on the Scrolly grid, the numeral
+   in the text column, the statement in the figure column. With motion, a
+   short sticky track; --ba / --bh come from the scroll loop. ---- */
+.story {
+  --t-beat: clamp(64px, 7.5vw, 96px);
+  --beat-h: 48svh;
+}
+@supports not (height: 1svh) {
+  .story {
+    --beat-h: 48vh;
+  }
+}
+.story-beat {
+  --ba: 1;
+  --bh: 0;
+  position: relative;
+}
+.story-part > .story-beat + :is(.scrolly.has-sub, .p2-output) {
+  margin-top: 24px;
+}
+.story-beat-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  column-gap: 24px;
+  align-items: baseline;
+  padding: 40px 0 40px 20px;
+}
+.beat-rule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--pe-gray-400);
+  transform-origin: 50% 100%;
+}
+.story-beat.is-from-above .beat-rule {
+  transform-origin: 50% 0;
+}
+.beat-num {
+  margin: 0;
+  font-size: var(--t-beat);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+  transform-origin: 0 100%;
+}
+.beat-text {
+  display: grid;
+  gap: 8px;
+}
+.beat-head {
+  max-width: 22ch;
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--t-ink);
+  text-wrap: balance;
+}
+.beat-line {
+  max-width: 46ch;
+  margin: 0;
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--t-text);
+  text-wrap: pretty;
+}
+@media (max-width: 900px) {
+  .story {
+    --beat-h: 40svh;
+  }
+  .story-beat-card {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 4px;
+    padding: 28px 0 28px 16px;
+  }
+  .beat-num {
+    font-size: 56px;
+  }
+  .beat-head {
+    font-size: 22px;
+  }
+  .beat-line {
+    font-size: 16px;
+  }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .story-beat {
+    min-height: var(--beat-h);
+  }
+  .story-beat-card {
+    position: sticky;
+    top: calc(var(--story-graphic-top) + max(0px, (100svh - var(--story-graphic-top) - 220px) / 2));
+  }
+  .beat-rule {
+    transform: scaleY(var(--ba));
+  }
+  .beat-num {
+    opacity: calc((0.3 + 0.7 * var(--ba)) * (1 - 0.4 * var(--bh)));
+    transform: scale(calc(0.96 + 0.04 * var(--ba)));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beat-num {
+    font-size: 64px;
+  }
+}
+@media (prefers-reduced-motion: reduce) and (max-width: 900px) {
+  .beat-num {
+    font-size: 56px;
   }
 }

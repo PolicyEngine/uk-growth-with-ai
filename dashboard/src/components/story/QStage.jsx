@@ -259,19 +259,17 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
   );
 }
 
-// A scene's one closing line (round 1: it replaces the answer box, the
-// takeaway strip and the recap card): a plain icon and one sentence, no
-// box, no "Answer" label, no repeated question. Never hidden from
-// innerText (opacity only), so the number checks see the same text at any
-// scroll. `to` (the old answerTo: the figure's home) is not a link (a
-// sentence is never a link); it marks the line data-axis: it restates a
-// figure printed there, so it is not a second home for the number checks.
+// A scene's one closing line: a takeaway caption inside its figure frame
+// (typography spec, 17 Nov, option b), directly under the plot. No icon; a
+// 3px left rule in the part accent; the text in the three greys. Never
+// hidden from innerText (opacity only), so the number checks see the same
+// text at any scroll. `to` (the figure's home) is not a link; it marks the
+// line data-axis: it restates a figure printed there.
 // eslint-disable-next-line no-unused-vars
 export function Answer({ question, answer, to, shown = true }) {
   return (
-    <p className={`scrolly-close${shown ? ' is-shown' : ''}`} data-axis={to != null ? '' : undefined}>
-      <Icon name={iconFor('answer')} size={16} className="scrolly-close-icon" />
-      <span className="scrolly-close-text">{answer}</span>
+    <p className={`scrolly-takeaway${shown ? ' is-shown' : ''}`} data-axis={to != null ? '' : undefined}>
+      {answer}
     </p>
   );
 }
