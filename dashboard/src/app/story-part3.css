@@ -1797,3 +1797,30 @@ svg.p3-dim {
   align-items: center;
   margin: 0;
 }
+
+/* Round 1f: in Rules (3-5) and Margin (3-6) a dimmed mark's value label
+   stays readable, at the muted text token; only the dot or segment fades
+   (the highlight's filter would fade the label with its mark) */
+#p3-rules [data-hl] [data-mark]:not([data-on]),
+#p3-margin [data-hl] [data-mark]:not([data-on]) {
+  filter: none;
+}
+#p3-rules [data-hl] .p3-dot[data-mark]:not([data-on]) {
+  background: color-mix(in srgb, var(--pe-gray-800) 40%, var(--pe-surface));
+}
+#p3-rules [data-hl] .p3-dot-pov[data-mark]:not([data-on]) {
+  background: color-mix(in srgb, var(--c-loss) 40%, var(--pe-surface));
+}
+#p3-rules [data-hl] .p3-dot.is-ring[data-mark]:not([data-on]) {
+  background: var(--pe-surface);
+  border-color: color-mix(in srgb, var(--pe-gray-500) 40%, var(--pe-surface));
+}
+#p3-rules [data-hl] [data-mark]:not([data-on]) .p3-dot-val,
+#p3-margin [data-hl] [data-mark]:not([data-on]) .p3-db-val,
+#p3-margin .p3-db-val .p3-muted {
+  color: var(--t-muted);
+}
+#p3-margin [data-hl] [data-mark]:not([data-on]) .p3-db-dot,
+#p3-margin [data-hl] [data-mark]:not([data-on]) .p3-db-seg {
+  opacity: 0.4;
+}

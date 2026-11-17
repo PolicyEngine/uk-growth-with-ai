@@ -204,7 +204,10 @@ export const ABSORB_STEPS = [
     highlight: ['disposable', 'tax'],
     title: (
       <>
-        {MOST ? 'Most' : 'Part'} is lost from <Key id="disposable">disposable income</Key>; <Key id="tax">less tax and NI</Key>, with benefits, absorbs{' '}
+        {MOST ? 'Most' : 'Part'} is lost from <span style={{ whiteSpace: 'nowrap' }}>
+          <Key id="disposable">disposable income</Key>.
+        </span>{' '}
+        <Key id="tax">Less tax and NI</Key> and more benefits absorb{' '}
         <Fig path="sankey.tax_benefit_share_pct" mark="tax">
           {fmtShare(S.tax_benefit_share_pct)}
         </Fig>
