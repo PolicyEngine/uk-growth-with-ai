@@ -2380,6 +2380,21 @@
     justify-self: end;
     margin-left: auto;
   }
+  /* polish round E: each step's item is pinned by the browser at its
+     sentence's place beside the stuck figure (Scrolly writes --pin-top and
+     --pin-bottom once per step change and resize, never per frame), held
+     inside its own column; only while the block is near the screen */
+  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-spacer) {
+    position: sticky;
+    top: var(--pin-top, 0px);
+    bottom: var(--pin-bottom, auto);
+  }
+  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-active) {
+    pointer-events: none;
+  }
+  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step.is-active {
+    z-index: 4;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .scrolly.is-anchored .scrolly-card {
@@ -2882,11 +2897,12 @@
     transition: none;
   }
 }
-/* desktop: a little more scroll per scene, so each state keeps its 180px
-   hold now that the last card carries the closing caption */
+/* desktop: the step column's length, so each state is held for its
+   scroll (Scrolly --col-pad, height-cut-fable.md 2a): one margin above
+   the end marker, inside the column, so the pinned items stay in it */
 @media (min-width: 901px) {
-  .scrolly.is-anchored > .scrolly-steps {
-    padding-bottom: 40px;
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
+    margin-top: var(--col-pad, 0px);
   }
 }
 /* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */
@@ -2917,9 +2933,4 @@
   margin: 6px 0 0;
   font-size: var(--t-meta);
   color: var(--t-muted);
-}
-@media (min-width: 901px) {
-  #p3-deciles.is-anchored > .scrolly-steps {
-    padding-bottom: 72px;
-  }
 }

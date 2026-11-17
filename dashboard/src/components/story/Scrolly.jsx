@@ -29,6 +29,9 @@ const svh = () => {
   return svhPx;
 };
 const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+// desktop: the scroll each state is held for (check_states needs 180px;
+// height-cut-fable.md 2c: 215 leaves slack against rounding)
+const HOLD = 215;
 const subscribeWidth = (cb) => {
   window.addEventListener('resize', cb);
   return () => window.removeEventListener('resize', cb);
@@ -244,6 +247,51 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     return { colTop: col.getBoundingClientRect().top, enter, exit: Math.min(exit, enter - 1) };
   };
 
+  // The step column's length (height-cut-fable.md cut 2a): desktop, several
+  // cards, each state is held for HOLD px of scroll with the figure in view.
+  // The states share (V - rail - 1.8F + C) px (geom above), so the column
+  // needs C = 1.8F + rail + HOLD n - V; what the cards lack is one margin
+  // above the end marker (story.css --col-pad), not a floor on every card,
+  // so each card's pinned item is only as tall as its words. Set before
+  // paint, per screen size, and raise-only within a size: a state that
+  // makes the figure taller raises it once, and the page never shrinks
+  // under the reader.
+  const [colPad, setColPad] = useState({ k: '', v: 0 });
+  const padRef = useRef(colPad);
+  const fitCol = () => {
+    const col = stepsCol.current;
+    const g = live.current;
+    if (!col || !g || single || window.innerWidth <= 900) return;
+    const V = window.innerHeight;
+    const k = `${window.innerWidth}x${V}`;
+    const cur = padRef.current.k === k ? padRef.current.v : 0;
+    const railEl = document.querySelector('.story-rail');
+    const rs = railEl ? getComputedStyle(railEl) : null;
+    const rail = (railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : 0) + 8;
+    const C0 = col.offsetHeight - (padRef.current.k ? padRef.current.v : 0);
+    const want = Math.max(0, Math.ceil(1.8 * g.offsetHeight + rail + HOLD * cardSteps.length - V - C0));
+    if (padRef.current.k !== k || want > cur) setColPad({ k, v: Math.max(want, cur) });
+  };
+  const fitRef = useRef(fitCol);
+  useIso(() => {
+    padRef.current = colPad;
+    fitRef.current = fitCol;
+  });
+  useIso(() => {
+    fitRef.current();
+  }, [width, single]);
+  useEffect(() => {
+    if (single || typeof window === 'undefined') return undefined;
+    const fit = () => fitRef.current();
+    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(fit);
+    ro?.observe(live.current);
+    window.addEventListener('resize', fit);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', fit);
+    };
+  }, [single]);
+
   // the page's one scroll loop (lib/scrollLoop.js): reads, then writes;
   // setProg only when the step changes
   const progRef = useRef(null);
@@ -299,81 +347,100 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   }, [id]);
   // The active step's sentence sits against the chart (round 1, Vahid:
   // "these kind of text are like in nowhere in space"). Desktop, several
-  // cards: the active card is moved (a transform, written each frame; the
-  // card stays in its list item, so the scroll that drives the steps, the
-  // links and the text are unchanged) level with the mark it names
-  // (step.anchor, else its first highlight id: the figure's [data-mark]),
-  // or near the figure's top for a step that names none, in the column
-  // 24px from the chart; inactive cards fade out entirely.
-  const anchorRef = useRef(null);
-  useEffect(() => {
-    anchorRef.current = { shown, steps };
-  });
+  // cards: each step's list item is pinned by the browser (position:
+  // sticky, top and bottom, story.css .is-pinned) at the place where its
+  // sentence is level with the mark it names (step.anchor, else its first
+  // highlight id: the figure's [data-mark]) once the figure is stuck, or
+  // near the figure's top for a step that names none; inactive cards fade
+  // out entirely. The place is computed once per step change, resize or
+  // figure resize, from the figure's settled geometry, never per frame
+  // (polish round E: a transform rewritten every frame against the scroll
+  // shook on a slow scroll, as the compositor scrolls ahead of the page).
   // desktop only: on phones a sticky scene's active card already sits just
-  // under the stuck chart (its trigger line), and moving it would leave a
-  // blank slot in the flow (the gap check)
+  // under the stuck chart (its trigger line)
   const anchored = !single && !inline && !once && !phone;
+  const shownRef = useRef(shown);
+  useEffect(() => {
+    shownRef.current = shown;
+  });
+  const pinStep = (i) => {
+    const g = live.current;
+    const b = box.current;
+    const col = stepsCol.current;
+    const step = steps[i];
+    if (!g || !b || !col || !step || step.spacer || window.innerWidth <= 900) return;
+    const li = document.getElementById(step.id);
+    const card = li?.querySelector('.scrolly-card');
+    if (!card) return;
+    const body = card.querySelector('.scrolly-body') ?? card;
+    const V = window.innerHeight;
+    const gr = g.getBoundingClientRect();
+    // where the figure sits once stuck: the sticky box's top, plus the
+    // figure's offset inside it
+    const stuck = (parseFloat(b.style.top || getComputedStyle(b).top) || 0) + (gr.top - b.getBoundingClientRect().top);
+    const figTop = stuck;
+    const figBottom = stuck + g.offsetHeight;
+    const lead = body.getBoundingClientRect().top - li.getBoundingClientRect().top;
+    const Hb = body.offsetHeight;
+    // the last card carries the closing caption: its sentence and caption
+    // stay inside the figure's height together
+    const H = i === lastCard ? card.getBoundingClientRect().bottom - body.getBoundingClientRect().top : Hb;
+    const ids = normIds(step.anchor ?? step.highlight);
+    const sel = ids.map((id) => `[data-mark~="${String(id).replace(/"/g, '')}"]`).join(',');
+    const mark = sel ? g.querySelector(sel) : null;
+    const r = mark ? settledRect(g, mark) : null;
+    let y = r && r.height + r.width > 0 ? figTop + (r.top - gr.top) + r.height / 2 - Hb / 2 : figTop + 48;
+    const railEl = document.querySelector('.story-rail');
+    const rs = railEl ? getComputedStyle(railEl) : null;
+    const rail = railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : 0;
+    y = Math.min(Math.max(y, figTop + 8, rail + 8), Math.max(figTop + 8, figBottom - H - 8), V - H - 8);
+    const top = Math.round(y - lead);
+    setStyle(li, '--pin-top', `${top}px`);
+    setStyle(li, '--pin-bottom', `${Math.round(V - top - li.offsetHeight)}px`);
+  };
+  const pinRef = useRef(pinStep);
+  useIso(() => {
+    pinRef.current = pinStep;
+  });
+  // the active step: placed before paint on every change
+  useIso(() => {
+    if (anchored) pinRef.current(shown);
+  }, [anchored, shown, width]);
   useEffect(() => {
     if (!anchored || typeof window === 'undefined') return undefined;
     const col0 = stepsCol.current;
-    // reads only: which card goes where (null: every card in place)
-    const read = (f) => {
-      const g = live.current;
-      const col = stepsCol.current;
-      if (!g || !col) return undefined;
-      const V = f.V;
-      const fig = g.getBoundingClientRect();
-      // only while the figure is on screen; elsewhere every card in place
-      if (fig.bottom < 0 || fig.top > V) return { card: null };
-      if (!anchorRef.current) return undefined;
-      const { shown: i, steps: st } = anchorRef.current;
-      const step = st[i];
-      if (!step) return undefined;
-      const li = [...col.children].find((c) => c.id === step.id);
-      const card = li?.querySelector('.scrolly-card');
-      if (!card) return undefined;
-      // centre the sentence (the body), not the card: part CSS floors a
-      // card's height, which would put the sentence above its mark
-      const body = card.querySelector('.scrolly-body') ?? card;
-      const H = body.offsetHeight;
-      const lead = body.getBoundingClientRect().top - card.getBoundingClientRect().top;
-      const liTop = li.getBoundingClientRect().top + lead;
-      const desk = window.innerWidth > 900;
-      let y;
-      if (desk) {
-        const ids = normIds(step.anchor ?? step.highlight);
-        const sel = ids.map((id) => `[data-mark~="${String(id).replace(/"/g, '')}"]`).join(',');
-        const mark = sel ? g.querySelector(sel) : null;
-        const r = mark?.getBoundingClientRect();
-        y = r && r.height + r.width > 0 ? r.top + r.height / 2 - H / 2 : fig.top + 48;
-        const rail = document.querySelector('.story-rail') ? f.rail() : 0;
-        y = Math.min(Math.max(y, fig.top + 8, rail + 8), Math.max(fig.top + 8, fig.bottom - H - 8), V - H - 8);
-      } else {
-        y = fig.bottom - H - 10;
-      }
-      // never outside its own block's column (the closing line is a
-      // caption inside the figure frame now: nothing to stop above)
-      const cr = col.getBoundingClientRect();
-      y = Math.min(Math.max(y, cr.top), Math.max(cr.top, cr.bottom - H));
-      return { card, t: `translateY(${Math.round(y - liTop)}px)` };
-    };
-    // writes only
-    const write = (d) => {
-      const col = stepsCol.current;
-      if (!d || !col) return;
-      for (const c of col.querySelectorAll('.scrolly-card')) setStyle(c, 'transform', c === d.card ? d.t : '');
-    };
-    const off = subscribe({ el: col0, read, write });
-    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(() => off.invalidate());
+    // every card once (the inactive ones keep the place they were shown at
+    // while they fade), then the active one
+    steps.forEach((x, i) => {
+      if (i !== shownRef.current) pinRef.current(i);
+    });
+    pinRef.current(shownRef.current);
+    const again = () => pinRef.current(shownRef.current);
+    // pinned only while the block is near the screen: from afar every item
+    // is in its place in the flow (links to a step, the landing probes)
+    const off = subscribe({
+      el: col0,
+      read: (f) => {
+        const r = col0?.getBoundingClientRect();
+        return Boolean(r && r.bottom > -f.V && r.top < 2 * f.V);
+      },
+      write: (near) => {
+        if (col0 && col0.classList.contains('is-pinned') !== near) col0.classList.toggle('is-pinned', near);
+      },
+    });
+    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(again);
     if (ro) ro.observe(live.current);
+    window.addEventListener('resize', again);
+    document.fonts?.ready.then(() => pinRef.current && again());
     return () => {
       off();
       ro?.disconnect();
-      col0?.querySelectorAll('.scrolly-card').forEach((c) => {
-        c.style.transform = '';
-      });
+      window.removeEventListener('resize', again);
+      col0?.classList.remove('is-pinned');
     };
-  }, [anchored, shown]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anchored]);
+
   const pinBottom = steps[active]?.pin === 'bottom';
   // pin a figure by its foot while a `pin: 'bottom'` step is active (desktop)
   useEffect(() => {
@@ -405,6 +472,30 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [pinBottom, width, single]);
+  // phones and tablets, a sticky scene: the figure lets go while its last
+  // card (sentence and closing caption) is still below it, 24px clear
+  // (polish round: the caption ran up under the figure's foot): a margin
+  // under the figure shortens its sticky range, and the steps take it back
+  // (layout unchanged)
+  useEffect(() => {
+    const b = box.current;
+    const col = stepsCol.current;
+    if (!sticky || !b || !col) return undefined;
+    const fit = () => {
+      const li = steps[lastCard] ? document.getElementById(steps[lastCard].id) : null;
+      const x = li ? Math.min(Math.round(li.offsetHeight + 24), Math.round(window.innerHeight * 0.4)) : 0;
+      setStyle(b, 'margin-bottom', `${x}px`);
+      setStyle(col, 'margin-top', `${-x}px`);
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => {
+      window.removeEventListener('resize', fit);
+      b.style.marginBottom = '';
+      col.style.marginTop = '';
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sticky, width, lastCard]);
   // tablets, a sticky scene: where the stuck figure's foot is (its sticky
   // top plus its height), written as --scene-foot; each card's sentence
   // sticks just under it (story.css) until its card has scrolled past
@@ -517,7 +608,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     <div
       className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
       id={id}
-      style={footY ? { '--scene-foot': `${footY}px` } : undefined}
+      style={footY || colPad.v ? { ...(footY ? { '--scene-foot': `${footY}px` } : null), ...(colPad.v ? { '--col-pad': `${colPad.v}px` } : null) } : undefined}
     >
       {question && pinFull && !inline ? (
         <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} onPhase={setStage} />
@@ -595,6 +686,24 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     </NotesSlot.Provider>
     </EntryCtx.Provider>
   );
+}
+
+// A mark's box as it will be once the figure's running transitions and
+// entry animations end (the step's settled geometry): each running
+// animation in the figure is moved to its end, the box read, and the
+// animation put back where it was, so nothing visible changes.
+function settledRect(root, el) {
+  const anims = typeof root.getAnimations === 'function' ? root.getAnimations({ subtree: true }).filter((a) => a.playState === 'running' && a.effect) : [];
+  const saved = [];
+  for (const a of anims) {
+    const t = a.effect.getComputedTiming();
+    if (!Number.isFinite(t.endTime)) continue;
+    saved.push([a, a.currentTime]);
+    a.currentTime = t.endTime - 0.01;
+  }
+  const r = el.getBoundingClientRect();
+  for (const [a, t] of saved) a.currentTime = t;
+  return r;
 }
 
 // One step's own copy of the figure (inline fallback, 900px and below), with

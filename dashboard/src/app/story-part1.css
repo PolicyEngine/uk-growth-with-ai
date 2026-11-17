@@ -876,23 +876,8 @@
   }
 }
 
-/* A step card is one sentence, so a floor on its height keeps
-   each state on screen for long enough while scrolling (check_states:
-   180px of scroll a state) */
-@media (min-width: 901px) {
-  #p1-work .scrolly-card {
-    min-height: 290px;
-  }
-  /* two-card scenes: each state takes half the scroll, so a taller floor */
-  #p1-ai .scrolly-card {
-    min-height: 320px;
-  }
-  /* the growth chart is taller under the slim header's offset: a little
-     more floor keeps its second state 180px */
-  #p1-output .scrolly-card {
-    min-height: 345px;
-  }
-}
+/* Desktop: each state's scroll comes from Scrolly's computed column
+   length (--col-pad), not a floor on every card (height-cut-fable.md 2a) */
 
 /* Step cards (Part1.jsx): one sentence, in a 34ch measure */
 .p1-say {

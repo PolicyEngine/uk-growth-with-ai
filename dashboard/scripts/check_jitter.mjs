@@ -7,6 +7,11 @@
 // painted). Scrolling down, a sentence's top must never move down (a
 // back-and-forth of 1px or more) and its left edge must never move. A
 // sentence counts while its card's opacity is at least 0.3 in both frames.
+// And nothing may rewrite the step list's inline styles per frame: a style
+// write under .scrolly-steps in a frame where the active step did not
+// change is a miss (a per-frame counter-scroll shakes on a real trackpad,
+// where the compositor scrolls ahead of the page, even when the page's own
+// frames look still).
 // The walk covers WIN px around every step change and the middle of every
 // hold (the whole block when FULL=1).
 //
@@ -59,7 +64,7 @@ for (const [W, H] of sizes) {
         const blk = document.getElementById(id);
         window.scrollTo({ top: Math.max(0, a), behavior: 'instant' });
         // settle after the jump (render-on-landing, transitions)
-        await new Promise((r) => setTimeout(r, 1100));
+        await new Promise((r) => setTimeout(r, 700));
         const eff = (el) => {
           let o = 1;
           for (let n = el; n && n !== blk; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
@@ -70,6 +75,11 @@ for (const [W, H] of sizes) {
         probe.style.cssText = 'position:fixed;left:0;top:0;height:1px;width:1px;pointer-events:none;visibility:hidden';
         document.body.appendChild(probe);
         let k = 0;
+        let writes = 0;
+        const mo = new MutationObserver((ms) => {
+          writes += ms.length;
+        });
+        mo.observe(blk.querySelector('.scrolly-steps'), { attributes: true, subtree: true, attributeFilter: ['style'] });
         const sample = () => {
           const rows = {};
           for (const li of blk.querySelectorAll('.scrolly-step:not(.is-spacer)')) {
@@ -80,7 +90,8 @@ for (const [W, H] of sizes) {
             if (r.bottom < 0 || r.top > innerHeight || r.height === 0) continue;
             rows[li.id] = { y: r.top, x: r.left, o: eff(card) };
           }
-          samples.push({ sy: scrollY, rows });
+          const act = blk.querySelector('.scrolly-step.is-active')?.id ?? '';
+          samples.push({ sy: scrollY, rows, act, writes });
         };
         const ro = new ResizeObserver(sample);
         ro.observe(probe);
@@ -97,6 +108,7 @@ for (const [W, H] of sizes) {
           requestAnimationFrame(tick);
         });
         ro.disconnect();
+        mo.disconnect();
         probe.remove();
         const out = [];
         for (let i = 1; i < samples.length; i++) {
@@ -104,6 +116,7 @@ for (const [W, H] of sizes) {
           const c = samples[i];
           const dy = c.sy - p.sy;
           if (dy <= 0) continue;
+          if (c.writes > p.writes && c.act === p.act && i > 2) out.push({ card: c.act, at: Math.round(c.sy), down: 0, dx: 0, writes: c.writes - p.writes });
           for (const key of Object.keys(c.rows)) {
             const r0 = p.rows[key];
             const r1 = c.rows[key];
@@ -121,7 +134,7 @@ for (const [W, H] of sizes) {
   const byBlock = {};
   for (const m of misses) (byBlock[m.block] ??= []).push(m);
   console.log(`${W}x${H} ${WK ? 'webkit' : 'chromium'}: ${blocks.length} blocks, ${misses.length} jitter frames`);
-  for (const [id, ms] of Object.entries(byBlock)) console.log(`  MISS ${id}: ${ms.length} frames, e.g. ${ms.slice(0, 3).map((m) => `${m.card}@${m.at} down ${m.down} dx ${m.dx}`).join('; ')}`);
+  for (const [id, ms] of Object.entries(byBlock)) console.log(`  MISS ${id}: ${ms.length} frames, e.g. ${ms.slice(0, 3).map((m) => `${m.card}@${m.at} ${m.writes ? `${m.writes} style writes` : `down ${m.down} dx ${m.dx}`}`).join('; ')}`);
   bad += misses.length;
 }
 await browser.close();
