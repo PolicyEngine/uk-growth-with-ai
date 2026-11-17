@@ -14,7 +14,7 @@ import { ruleLabel } from '@/lib/labels.js';
 import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { Dir, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
+import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
 import { ResultSources } from '@/tabs/explore/sources.jsx';
@@ -278,12 +278,10 @@ function MeasuresFinding({ sid, arms, closure, rule }) {
   if (!f) return null;
   return (
     <>
-      <Dir x={f.wage.value} />
-      {f.wage.text}
+      <span data-dir={f.wage.value == null ? undefined : side(f.wage.value)}>{f.wage.text}</span>
       {f.gni ? (
         <>
-          ; <Dir x={f.gni.value} />
-          {f.gni.text}
+          ; <span data-dir={f.gni.value == null ? undefined : side(f.gni.value)}>{f.gni.text}</span>
         </>
       ) : null}
       .
@@ -305,7 +303,7 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
-          unit={<Lead c="measure">{`Each arm’s % difference from the OBR-central path, ${HEADLINE_YEAR}, ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</Lead>}
+          unit={<span data-axis-title="y">{`Each arm’s gap against the OBR-central path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
           controls={
             <ControlBar label="Four measures: options">
               <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
@@ -324,16 +322,6 @@ function IncomePanel({ sid }) {
             ) : null
           }
           about={{
-            shows: (
-              <Items
-                items={[
-                  { key: 'rows', icon: 'measure', text: 'One row per measure, one marker per arm' },
-                  { key: 'axis', icon: 'onPath', text: 'One axis, centred on the OBR-central path' },
-                  { key: 'both', icon: 'closure', text: 'Under Both: circle for central closure, diamond for closed capital' },
-                ]}
-              />
-            ),
-            how: HOW,
             definitions: (
               <>
                 <Items
@@ -353,7 +341,7 @@ function IncomePanel({ sid }) {
                   { key: 'obr', icon: 'source', text: <>The path assumes productivity growth of 1 per cent a year ({ext(efo(EFO_PAGE.p1_2), 'OBR EFO, March 2026, ¶1.2')})</> },
                   ...(wageClosureLines(sid) ?? []).map((t, i) => ({ key: `wz${i}`, icon: i ? 'closure' : 'pay', text: t })),
                   wageClosureLines(sid) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
-                  { key: 'us', icon: 'model', text: <>ζK 0.1: {ext(URLS.ogCoreParams, 'OG-Core’s setting for the US')}, kept by OG-UK</> },
+                  { key: 'us', icon: 'model', text: <>ζK 0.1: {ext(URLS.ogCoreParams, 'OG-Core’s US default')}, chosen by the study</> },
                 ]}
               />
             ),

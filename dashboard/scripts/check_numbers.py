@@ -8,7 +8,7 @@ Summary, the three headline tiles (main arm, at the closure picked in the
 header; with Both, the closed-capital value beside it); Income and output,
 the four-measure card (one value per arm and measure at the closure picked;
 with Both, the closed-capital value as screen-reader text; the main arm's
-GDP, wage and GNI link to Summary instead) - the GNI and GDP
+GDP, wage and GNI as a muted reference row linked to the story) - the GNI and GDP
 path charts print no end value; Economy, each line's headline-year end
 label; Public finances, the debt/GDP and tax/GDP end labels and the tax
 card (its model figure only with closed capital, when the chart's end
@@ -67,10 +67,10 @@ def expected(sid, mode):
             add(g(sid, 'tfp', B, v), 2, '%')
     for arm in ARMS:
         # Income and output: the four-measure card. The main arm's GDP, wage
-        # and GNI are the Summary tiles' (their one home): there they link.
+        # and GNI have their home in the story's headline tiles; the card
+        # prints them as one muted reference row linked to that home (the
+        # reference-row rule: one per comparison chart).
         for v in ['GNI', 'Y', 'NNI', 'w']:
-            if arm == 'tfp' and v in ('Y', 'w', 'GNI'):
-                continue
             for cl in shown:
                 add(g(sid, arm, cl, v), 2, '%')
         # Economy: headline-year end labels (the central line with Both)
@@ -223,9 +223,10 @@ for sid in dump:
 #     GDP, GNI, NNI and wage gaps once, every shown gap equal to its raw solve
 #     over that closure's continuation;
 #   - the matrix explorer at load (main arm, GDP): every solved scenario x
-#     closure x fiscal-rule cell's headline-year gap once, except the cell in
-#     view (the address's scenario, central closure, common rule), whose
-#     figure has its home in the story's headline tiles.
+#     closure x fiscal-rule cell's headline-year gap once, the cell in view
+#     too (the address's scenario, central closure, common rule): its figure
+#     has its home in the story's headline tiles, and the matrix prints it as
+#     a muted reference value linked to that home (reference-row rule).
 # Method no longer prints the table.
 RULE_RES = {'common': D['results'], **{k: v['results'] for k, v in (('fixed', D.get('rules', {}).get('fixed_spending', {})), ('dn', D.get('rules', {}).get('debt_neutral', {}))) if v}}
 def matrix(view):
@@ -233,8 +234,6 @@ def matrix(view):
     for rule, res in RULE_RES.items():
         for sid_ in res:
             for cl_ in (C, B):
-                if (sid_, cl_, rule) == (view, C, 'common'):
-                    continue
                 r = res.get(sid_, {}).get('tfp', {}).get(cl_, {'status': 'pending'})
                 if r['status'] == 'done':
                     exp[signed(r['gaps']['Y'][Y.index(H)], 2) + '%'] += 1

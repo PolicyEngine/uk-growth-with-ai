@@ -846,18 +846,17 @@
   text-align: right;
 }
 
-/* Economy: the story-headline link beside the main arm's name */
+/* Economy: the story-headline link beside the main arm's name (plain
+   text, no pill), and that arm's muted reference values on the track */
 .db-headline-chip {
-  display: inline-flex;
-  gap: 3px;
-  align-items: center;
   margin-left: 6px;
-  padding: 0 6px;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
   font-size: var(--fs-micro);
   color: var(--pe-teal-700);
   white-space: nowrap;
+}
+.db-value.is-ref {
+  font-weight: 500;
+  color: var(--pe-gray-600);
 }
 .db-headline-chip .plain-icon {
   display: inline-flex;
@@ -2579,4 +2578,23 @@
   .ex-sg-dir svg { width: 9px; height: 9px; }
   .ex-sg-cell { padding: 4px 1px; }
   .ex-sg-arm { padding-right: 1px; }
+}
+
+/* Across scenarios: every cell prints its value; the cell in view carries a
+   small marker, and a value whose home is the story's headline is muted */
+.ex-mx-here {
+  margin-left: 6px;
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  color: var(--pe-gray-600);
+  white-space: nowrap;
+}
+.ex-mx-val.is-ref {
+  font-weight: 500;
+  color: var(--pe-gray-600);
+}
+/* ζK 0.5 grid: the stress test's GDP, held on the path by design */
+.ex-sg-held {
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-600);
 }

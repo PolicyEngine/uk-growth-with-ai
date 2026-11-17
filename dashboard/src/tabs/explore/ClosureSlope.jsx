@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { useChartBox } from '@/components/story/chart/useChartBox.js';
@@ -10,7 +9,7 @@ import { ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
-import { Lead, dirConcept, sentenceItems } from '@/tabs/explore/direction.jsx';
+import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import { ResultSources } from '@/tabs/explore/sources.jsx';
 
 // Central closure -> closed capital, per measure: a slope chart of two solved
@@ -68,7 +67,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
   return (
     <figure className="ex-slope-panel" data-measure={m.v}>
       <figcaption className="ex-slope-title" data-panel-title="">
-        <Icon name={iconFor(m.concept)} size={14} /> {m.label}
+        {m.label}
       </figcaption>
       <div ref={boxRef}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, central closure to closed capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no arm flips sign'}`}>
@@ -124,20 +123,19 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
       <div className="ex-slope-foot">
         {active ? (
           <p className="ex-slope-readout" role="status">
-            <Icon name={iconFor('reading')} size={12} /> {active.arm.short || active.arm.label}: {fmt(active.c)} → {fmt(active.b)}
+            {active.arm.short || active.arm.label}: {fmt(active.c)} → {fmt(active.b)}
           </p>
         ) : flips.length ? (
           <p className="ex-slope-note is-flip">
-            <Icon name={iconFor(dirConcept(flips[0].b))} size={12} strokeWidth={2} />
             {`Flips ${side(flips[0].b)} the path: ${flips.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}`}
           </p>
         ) : pending.length ? (
           <p className="ex-slope-note">
-            <Icon name={iconFor('timing')} size={12} /> Closed capital not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
+            Closed capital not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
           </p>
         ) : (
           <p className="ex-slope-note">
-            <Icon name={iconFor('compare')} size={12} /> Same side of the path in both cases
+            Same side of the path in both cases
           </p>
         )}
       </div>
@@ -172,15 +170,6 @@ export default function ClosureSlope({ sid }) {
         </ul>
       }
       about={{
-        shows: (
-          <Items
-            items={[
-              { key: 'two', icon: 'closure', text: 'Left: central closure. Right: closed capital, no foreign-owned private capital' },
-              { key: 'line', icon: 'limit', text: 'The line joins two runs; nothing between them is solved' },
-              { key: 'home', icon: 'link', text: 'Values: hover an end; closed capital prints above under Closure: Both' },
-            ]}
-          />
-        ),
         sources: <ResultSources sid={sid} />,
       }}
       method="closures"

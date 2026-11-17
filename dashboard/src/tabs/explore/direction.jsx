@@ -22,18 +22,13 @@ export function Dir({ x }) {
   );
 }
 
-// A plain icon leading a line of text (a card's finding or unit line, a
-// table group label): the concept's icon, then the words.
+// A line of text (a card's finding or unit line, a table group label).
+// Round 1 icon rule: icons mark headers only, so the line no longer leads
+// with its concept's icon; `c` names the concept, kept for the callers.
+// eslint-disable-next-line no-unused-vars
 export function Lead({ c, children }) {
   if (children == null || children === '') return null;
-  return (
-    <>
-      <span className="ex-lead">
-        <Icon name={iconFor(c)} size={14} />
-      </span>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }
 
 // A sentence or two (an "unsolved" note) as items: one per sentence, each

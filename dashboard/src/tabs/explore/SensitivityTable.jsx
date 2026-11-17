@@ -11,13 +11,11 @@ import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { ResultSources, methodLink } from './sources.jsx';
-import { AxisTitles } from './axes.jsx';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 
 // The foreign-owned share of the extra capital in 2031, the data file's
 // foreign_share_dK_2031, as a rounded range across the solves.
-const LATE_DK = 2031;
 function foreignShare(res) {
   const xs = Object.values(res).flatMap((r) => Object.values(r)).map((c) => c?.foreign_share_dK_2031).filter((x) => x != null);
   if (!xs.length) return null;
@@ -88,9 +86,7 @@ function investmentItems(res) {
     { key: 'peak', icon: 'timing', text: `${range(peak)} at its peak before ${HEADLINE_YEAR}` },
     { key: 'h', icon: 'path', text: `${range((g) => g[year(HEADLINE_YEAR)])} in ${HEADLINE_YEAR}, across the scenarios` },
     { key: 'cost', icon: 'excluded', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} has no capital adjustment cost</> },
-    { key: 'speed', icon: 'foreign', text: 'Capital moves as fast as the closure lets foreign capital in' },
-    { key: 'artefact', icon: 'limit', text: 'That path is an artefact of frictionless capital, not a forecast' },
-    { key: 'bound', icon: 'range', text: `By ${HEADLINE_YEAR}: it likely overstates speed as well as size` },
+    { key: 'artefact', icon: 'limit', text: 'Frictionless capital: an artefact, not a forecast; likely overstates speed and size' },
   ];
 }
 
@@ -121,6 +117,8 @@ export function sensFlagItem() {
 // outline marks a sign flip between the two closures.
 // Phone labels for the arm column (the full names are in the arm picker).
 const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. fixed', ss: 'Stress test' };
+// The stress test's GDP: held on the path by construction.
+export const held = (arm, v) => arm === 'ss' && v === 'Y';
 const centralAt = (sid, arm, v) => at(resultAt(sid, arm, CENTRAL, 'common'), v);
 export function flipOf(x, c) {
   return x != null && c != null && side(x) !== 'on' && side(c) !== 'on' && side(x) !== side(c);
@@ -135,7 +133,6 @@ function SensGrid({ res }) {
   const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
   return (
     <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, arm and measure`}>
-      <AxisTitles y="Rows: scenario and arm" x={`Columns: each measure’s ${HEADLINE_YEAR} gap against the OBR-central path, %`} />
       <table className="ex-sg">
         <thead>
           <tr>
@@ -193,6 +190,17 @@ function SensGrid({ res }) {
                             not solved
                           </td>
                         );
+                      // the stress test holds GDP on the path by design (the
+                      // solver stops within 0.01pp): no tint, no comparison
+                      if (held(a.id, c.v))
+                        return (
+                          <td key={c.v} className="ex-sg-cell is-held" title={`GDP held on the path in ${HEADLINE_YEAR} by design, within the solver’s 0.01pp`}>
+                            <span className="ex-sd-val" data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
+                              {fmt(x, 2)}
+                            </span>
+                            <span className="ex-sg-held"> (held)</span>
+                          </td>
+                        );
                       const ce = centralAt(s.id, a.id, c.v);
                       const flip = flipOf(x, ce);
                       const d = ce == null ? null : x - ce;
@@ -227,11 +235,12 @@ function SensGrid({ res }) {
 // The grid's key: what the arrow and the outline mean, and how many cells
 // flip sign (counted from the data).
 export function gridKey(res) {
-  const cells = SCENARIOS.flatMap((s) => ARMS.flatMap((a) => VARS.map((c) => ({ x: at(res[s.id]?.[a.id], c.v), c: centralAt(s.id, a.id, c.v) }))));
+  const cells = SCENARIOS.flatMap((s) => ARMS.flatMap((a) => VARS.filter((c) => !held(a.id, c.v)).map((c) => ({ x: at(res[s.id]?.[a.id], c.v), c: centralAt(s.id, a.id, c.v) }))));
   const flips = cells.filter((k) => flipOf(k.x, k.c));
   const up = flips.length && flips.every((k) => k.x > 0);
   return [
     { key: 'arrow', icon: 'compare', text: 'Arrow: higher or lower than at the central closure (ζK 0.1)' },
+    { key: 'held', icon: 'shock', text: 'Held: the stress test holds GDP on the path by design' },
     flips.length ? { key: 'flip', icon: 'closure', text: `Dashed outline: the sign flips against ζK 0.1 (${flips.length} cells)` } : null,
     up ? { key: 'why', icon: 'capital', text: 'Each flip turns a fall into a rise: more capital per worker' } : null,
   ].filter(Boolean);
@@ -248,12 +257,6 @@ export default function SensitivityTable() {
       title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR-central path`}
       finding={
         <span className="ex-ctx ex-sg-ctx">
-          <span>
-            <Lead c="timing">{String(HEADLINE_YEAR)}</Lead>
-          </span>
-          <span>
-            <Lead c="rule">Common fiscal rule</Lead>
-          </span>
           <span>
             <Lead c="foreign">
               <>{ext(URLS.ogCoreParams, 'ζK')}: the share of excess capital demand foreigners supply</>
@@ -281,38 +284,18 @@ export default function SensitivityTable() {
           <Items className="ex-notes" items={sensClaims(res)} />
           {sensFlagItem() ? (
             <p id="sens-flag" className="ex-sg-flagnote">
-              <Icon name={iconFor('caveat')} size={16} />
               <span>{sensFlagItem().text}</span>
             </p>
           ) : null}
         </>
       }
-      unit={<Lead c="measure">{`% difference from the OBR-central path at the same closure, ${HEADLINE_YEAR}`}</Lead>}
+      unit={<span data-axis-title="y">{`Gap against the OBR-central path at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
       legend={<Items className="ex-notes ex-sg-key" items={gridKey(res)} />}
       logo={false}
       aboutTitle="About this chart"
       about={{
-        shows: (
-          <Items
-            items={[
-              { key: 'solved', icon: 'scenario', text: `Each scenario and arm solved with ζK = ${sens.zeta_K}` },
-              { key: 'half', icon: 'foreign', text: <>Foreign investors supply half the {ext(URLS.ogCoreParams, 'excess demand for capital')} (OG-Core&rsquo;s ζK)</> },
-              foreignShare(res) ? { key: 'share', icon: 'foreign', text: `So foreigners own ${foreignShare(res)} of the extra capital in ${LATE_DK}` } : null,
-              { key: 'only', icon: 'caveat', text: 'A sensitivity only: no other chart uses it' },
-              { key: 'dl', icon: 'table', text: 'The full table: the download menu, CSV or JSON' },
-            ]}
-          />
-        ),
-        how: (
-          <Items
-            items={[
-              { key: 'same', icon: 'model', text: 'Same solves, checks and reference path as Explore’s two closures' },
-              { key: 'zk', icon: 'closure', text: 'Only ζK changed' },
-              { key: 'ref', icon: 'onPath', text: 'Reference: the no-shock path restarted in 2028 at this closure' },
-            ]}
-          />
-        ),
-        caveats: <Items items={[{ key: 'stress', icon: 'shock', text: `The stress test holds GDP on the path in ${HEADLINE_YEAR} by construction` }, ...investmentItems(res)]} />,
+        how: <Items items={[{ key: 'zk', icon: 'closure', text: 'Only ζK changed; reference: the no-shock path from 2028, this closure' }]} />,
+        caveats: <Items items={investmentItems(res)} />,
         sources: <ResultSources closures={['zk0.1', 'zk0.5']} extra={[{ key: 'oguk', icon: 'model', text: <>ζK = {sens.zeta_K}: a sensitivity; the central 0.1 is OG-Core&rsquo;s US default, chosen by the study ({ext(URLS.ogUkDefaults, 'default parameters')}); see {methodLink('closures')}</> }]} />,
       }}
       method="closures"

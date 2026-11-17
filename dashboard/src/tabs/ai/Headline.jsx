@@ -10,7 +10,6 @@ import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
-import { AxisTitles } from '@/tabs/explore/axes.jsx';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
@@ -173,7 +172,6 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
 
   return (
     <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
-      <AxisTitles y="Rows: measure, one marker per arm" x={`Gap against the OBR-central path in ${HEADLINE_YEAR}, %`} reference="Centre line: OBR-central path = 0" />
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">
@@ -218,7 +216,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                     <span className="db-arm-name">{a.short || a.label}</span>
                     {onSummary(a.id, m.v, rule) ? (
                       <NavLink tab="story" anchor="story-headline" className="db-headline-chip" aria-label={`${a.label}, ${name}: see the headline figures in the story`}>
-                        <Icon name={iconFor('link')} size={11} strokeWidth={2} /> Headline
+                        Headline
                       </NavLink>
                     ) : null}
                   </span>
@@ -251,19 +249,17 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
-                        {/* the main arm's GDP, wage and GNI: the dot alone here; the
-                            value's home is the story tile, linked by the chip */}
-                        {onSummary(a.id, m.v, rule) ? null : (
-                          <span
-                            className={`db-value${right ? ' is-right' : ' is-left'}`}
-                            style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), color: ARM_TEXT_COLOR[a.id] }}
-                          >
-                            {fmt(main)}
-                          </span>
-                        )}
+                        {/* the main arm's GDP, wage and GNI: a muted reference
+                            value; their home is the story tile, linked by the chip */}
+                        <span
+                          className={`db-value${right ? ' is-right' : ' is-left'}${onSummary(a.id, m.v, rule) ? ' is-ref' : ''}`}
+                          style={{ ...(right ? { left: pct(outer) } : { right: `calc(100% - ${pct(outer)})` }), ...(onSummary(a.id, m.v, rule) ? {} : { color: ARM_TEXT_COLOR[a.id] }) }}
+                        >
+                          {fmt(main)}
+                        </span>
                       </>
                     )}
-                    {showC && showB && !onSummary(a.id, m.v, rule) ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
+                    {showC && showB ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
                   </div>
                 </div>
               );
