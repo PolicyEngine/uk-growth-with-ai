@@ -1,6 +1,6 @@
 // Across scenarios (the matrix explorer): every cell is drawn, the cells not
-// solved are holes, the cell in view prints no figure (its home is the
-// charts below), a cell sets the pickers, and the downloads carry every value.
+// solved are holes, every solved cell prints its figure (the one in view
+// with a marker), a cell sets the pickers, and the downloads carry every value.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
@@ -28,10 +28,13 @@ describe('All scenarios', () => {
     expect(cells).toHaveLength(4 * 6);
     // debt-neutral and fixed spending: UK low and UK high not solved, both closures
     expect(container.querySelectorAll('#all-scenarios .ex-mx-cell.is-hole')).toHaveLength(2 * 2 * 2);
-    // the cell in view (UK central, central closure, common rule) prints no figure
+    // the cell in view (UK central, central closure, common rule) prints its
+    // figure as a muted reference (its home: the story's headline) and a marker
     const cur = container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current');
     expect(cur).toHaveLength(1);
-    expect(cur[0].textContent).not.toMatch(/\d\.\d\d/);
+    expect(cur[0].textContent).toContain(fmt(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'Y'), 2, '%'));
+    expect(cur[0].querySelector('.ex-mx-val.is-ref')).not.toBeNull();
+    expect(cur[0].textContent).toContain('In view');
     // every other solved cell prints its GDP gap, once
     const txt = container.querySelector('#all-scenarios .ex-mx').textContent;
     for (const sid of ['uk_low', 'uk_high', 'korinek'])
@@ -95,15 +98,20 @@ describe('All scenarios', () => {
 });
 
 describe('Across scenarios: each fact once', () => {
-  it('with another rule picked, the story’s cells (main arm, common rule) print no figure', () => {
+  it('with another rule picked, the story’s cells (main arm, common rule) print a muted reference figure', () => {
     window.history.replaceState(null, '', '/?tab=explore&rule=fixed&closure=both');
     const { container } = render(
       <NavProvider>
         <AllScenarios />
       </NavProvider>,
     );
-    for (const k of ['uk_central|common|zk0.1', 'uk_central|common|zk0', 'uk_central|fixed|zk0.1', 'uk_central|fixed|zk0'])
-      expect(container.querySelector(`[data-cell="${k}"]`).textContent).not.toMatch(/\d\.\d\d/);
+    for (const k of ['uk_central|common|zk0.1', 'uk_central|common|zk0']) expect(container.querySelector(`[data-cell="${k}"] .ex-mx-val.is-ref`).textContent).toMatch(/\d\.\d\d%/);
+    // the cells in view print their figure with the marker, not muted
+    for (const k of ['uk_central|fixed|zk0.1', 'uk_central|fixed|zk0']) {
+      const td = container.querySelector(`[data-cell="${k}"]`);
+      expect(td.textContent).toMatch(/\d\.\d\d%In view/);
+      expect(td.querySelector('.is-ref')).toBeNull();
+    }
     expect(container.querySelector('[data-cell="korinek|common|zk0.1"]').textContent).toMatch(/\d\.\d\d%/);
   });
 });

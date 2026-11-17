@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import S from '@/data/surprise2028.json';
 import { INPUTS, KIND, ROWS } from './inputs.js';
 import { SRC } from './sources.js';
@@ -29,14 +28,13 @@ const hasDetail = (r) => r.how !== r.short || !!r.note || r.src.length > 1 || !!
 
 export const inputsTable = () => ({
   columns: ['Group', 'Input', 'Value used', 'Source type', 'How it is obtained', 'Sources'],
-  rows: INPUTS.map((r) => [r.group, r.input, r.value, KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; ')]),
+  rows: INPUTS.map((r) => [r.group, r.input, r.value, r.kindLabel ?? KIND[r.kind].label, r.note ? `${r.how} ${r.note}` : r.how, r.src.map((k) => `${SRC[k].label} <${SRC[k].url}>`).join('; ')]),
 });
 
-function Kind({ k }) {
+function Kind({ k, label }) {
   return (
     <span className={`mx-kind is-${k}`}>
-      <Icon name={iconFor(KIND[k].icon)} size={12} />
-      {KIND[k].label}
+      {label ?? KIND[k].label}
     </span>
   );
 }
@@ -125,7 +123,7 @@ export default function InputsTable() {
                     </th>
                     <td className="mx-inputs-v">{r.value}</td>
                     <td className="mx-inputs-k">
-                      <Kind k={r.kind} />
+                      <Kind k={r.kind} label={r.kindLabel} />
                     </td>
                     <td className="mx-inputs-src">
                       {link(r.src[0])}

@@ -140,7 +140,7 @@ function table(metric) {
   };
 }
 
-function LaneHead({ m, y = 'Rows: each estimate, with its horizon' }) {
+function LaneHead({ m, y = 'Each estimate, with its horizon' }) {
   return (
     <>
       <h3 className="mx-lane-h">
@@ -168,7 +168,7 @@ function SharesLane({ metric, hi, bind }) {
   const m = META[metric];
   return (
     <div className="mx-lane" id={`ranges-${metric}`}>
-      <LaneHead m={m} y="Rows: each source" />
+      <LaneHead m={m} y="Each source" />
       {shareRows(metric).map((r) => (
         <div key={r.id} className="mx-share">
           <span className="mx-rb-label">

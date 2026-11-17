@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
@@ -12,11 +11,11 @@ import { HEADLINE_YEAR, LATE_YEAR, SCENARIOS, ARMS, CLOSURE_LABEL, SCEN_NAME, BO
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { toneOf } from './answers.js';
-import { Dir, Lead } from './direction.jsx';
+import { Lead } from './direction.jsx';
+import { side } from '@/tabs/ai/lines.js';
 import { MEASURES, ROWS, rowOf, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
 import { ResultSources } from './sources.jsx';
-import { AxisTitles } from './axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 
@@ -25,16 +24,16 @@ import { URLS } from '@/tabs/ai/links.js';
 // and closure; columns: the four scenarios. Each cell prints the chosen
 // measure's gap and carries a small glyph of the cell's measures (direction
 // and relative size only). Clicking a cell sets the header pickers
-// (scenario, closure, fiscal rule) to it; a cell not solved is a hole. The
-// cell in view prints no value: its figures have their home in the charts
-// below (the story's headline tiles for the main arm's GDP, GNI and wage
-// rate, the four-measure card for the rest). Debt/GDP has its own matrix on
-// Public finances (AcrossDebt, #fin-across).
+// (scenario, closure, fiscal rule) to it; a cell not solved is a hole. Every
+// solved cell prints its value; the cell in view carries a small "In view"
+// marker, and where its figure's home is the story's headline tiles (the
+// main arm's GDP, GNI and wage rate) the value is a muted reference, and
+// the key links to that home (check_numbers' reference-row rule). Debt/GDP
+// has its own matrix on Public finances (AcrossDebt, #fin-across).
 //
 // It renders on Economy (#ex-across, inside #explore-part-all) and, until
 // the All scenarios sub-tab is removed, on that sub-tab: the same component.
 
-const RULE_ICON = { common: 'gdp', fixed: 'finances', dn: 'benefits' };
 export const ECON = MEASURES.filter((m) => m.v !== 'debt_gdp_pp');
 const DEBT = MEASURES.filter((m) => m.v === 'debt_gdp_pp');
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
@@ -90,33 +89,31 @@ function Cell({ s, row, arm, m, ms, scale, current, story, printHome }) {
     return (
       <td className="ex-mx-cell is-hole" data-cell={`${s.id}|${row.key}`}>
         <span className="ex-mx-hole" title={`${where}: not solved`}>
-          <Icon name={iconFor('timing')} size={12} />
+          <span aria-hidden="true">–</span>
           <span className="visually-hidden">{`${where}: not solved`}</span>
         </span>
       </td>
     );
   const tone = toneOf(m.v, x);
-  // the cell in view prints no figure where the charts below print it
-  const home = (current || story) && printHome;
+  // where the figure's home is the story's headline, a muted reference value
+  const home = story && printHome;
   return (
     <td className={`ex-mx-cell${current ? ' is-current' : ''}${tone ? ` is-${tone}` : ''}`} data-cell={`${s.id}|${row.key}`}>
       <button
         type="button"
         className="ex-mx-btn"
         aria-pressed={current}
-        aria-label={`${where}, ${m.label}${home ? (current ? ': in view, values in the charts below' : ': value in the story’s headline') : `: ${fmt(x, 2, m.unit)}`}. Show this cell`}
+        aria-label={`${where}, ${m.label}: ${fmt(x, 2, m.unit)}${current ? ', in view' : ''}${home ? ', the story’s headline' : ''}. Show this cell`}
         onClick={() => set({ s: s.id, closure: closureOf(row.cl), rule: row.rule })}
       >
-        {home ? (
-          <span className="ex-mx-val is-home">
-            <Icon name={iconFor('link')} size={11} strokeWidth={2} /> {current ? 'In view' : 'In story'}
+        <span key={m.v} className={`ex-mx-val${home ? ' is-ref' : ''}`} data-dir={side(x)} data-path={`${row.rule === 'common' ? 'results' : `rules.${row.rule}.results`}.${s.id}.${arm}.${row.cl}.gaps.${m.v}[${HEADLINE_YEAR}]`}>
+          {fmt(x, 2, m.unit)}
+        </span>
+        {current ? (
+          <span className="ex-mx-here" aria-hidden="true">
+            In view
           </span>
-        ) : (
-          <span key={m.v} className="ex-mx-val" data-path={`${row.rule === 'common' ? 'results' : `rules.${row.rule}.results`}.${s.id}.${arm}.${row.cl}.gaps.${m.v}[${HEADLINE_YEAR}]`}>
-            <Dir x={x} />
-            {fmt(x, 2, m.unit)}
-          </span>
-        )}
+        ) : null}
         {ms.length > 1 ? <Glyph sid={s.id} arm={arm} row={row} ms={ms} scale={scale} pick={m.v} /> : null}
       </button>
     </td>
@@ -128,12 +125,11 @@ export function Matrix({ arm, ms, m, printHome = true, label }) {
   const scale = glyphScale(arm, ms);
   return (
     <div className="ex-mx-wrap">
-      <AxisTitles y={`Rows: fiscal rule and closure; each cell, the ${m.label} gap against the OBR-central path, ${m.unit === 'pp' ? 'percentage points of GDP' : '%'}`} x="Columns: scenario" />
       <table className="ex-mx" aria-label={label}>
         <thead>
           <tr>
             <th scope="col" className="ex-mx-corner">
-              <span className="visually-hidden">Fiscal rule and closure</span>
+              Rule and closure
             </th>
             {SCENARIOS.map((s) => (
               <th key={s.id} scope="col" className={s.id === st.s ? 'is-current' : ''}>
@@ -146,13 +142,13 @@ export function Matrix({ arm, ms, m, printHome = true, label }) {
           <tbody key={r.id}>
             <tr className="ex-mx-group">
               <th colSpan={SCENARIOS.length + 1} scope="colgroup">
-                <Icon name={iconFor(RULE_ICON[r.id])} size={13} /> {r.label}
+                {r.label}
               </th>
             </tr>
             {ROWS.filter((row) => row.rule === r.id).map((row) => (
               <tr key={row.key}>
                 <th scope="row" className="ex-mx-rowhead">
-                  <Icon name={iconFor(row.cl === BOUND ? 'closed' : 'foreign')} size={12} /> <span className="ex-mx-long">{clName(row.cl)}</span>
+                  <span className="ex-mx-long">{clName(row.cl)}</span>
                   <span className="ex-mx-short" aria-hidden="true">
                     {row.cl === BOUND ? 'Closed' : 'Central'}
                   </span>
@@ -205,7 +201,15 @@ function MatrixKey({ ms, story = true }) {
         <span className="ex-mx-key-cell" aria-hidden="true" data-icon="" /> Solved: click to show it below
       </li>
       <li>
-        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> {story ? 'The cell in view; “In story”: value in the story' : 'The cell in view'}
+        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> In view
+        {story ? (
+          <>
+            {'; grey: the '}
+            <NavLink tab="story" anchor="story-headline">
+              story’s headline
+            </NavLink>
+          </>
+        ) : null}
       </li>
       <li>
         <span className="ex-mx-key-cell is-hole" aria-hidden="true" data-icon="" /> Not solved
@@ -247,30 +251,14 @@ export default function AllScenarios() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<Lead c="measure">% difference from the OBR-central path at the same closure</Lead>}
+        unit={<span data-axis-title="y">{`${m.label} gap against the OBR-central path at the same closure, %`}</span>}
         legend={<MatrixKey ms={ECON} />}
         about={{
-          shows: (
-            <Items
-              items={[
-                { key: 'gap', icon: 'onPath', text: `Each cell: one solve’s ${HEADLINE_YEAR} gap against the path, same closure` },
-                { key: 'view', icon: 'link', text: 'The cell in view: its values are in the charts below' },
-                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al.')}: US inputs, an upper case, not a UK estimate</> },
-              ]}
-            />
-          ),
-          how: (
-            <Items
-              items={[
-                { key: 'same', icon: 'model', text: 'The same solves as every other chart in Explore' },
-                { key: 'pending', icon: 'timing', text: 'Debt-neutral and fixed spending: UK central and Korinek et al. only' },
-                { key: 'most', icon: 'compare', text: '“Moves most”: the widest spread across scenarios, closures or rules' },
-              ]}
-            />
-          ),
           caveats: (
             <Items
               items={[
+                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al.')}: US inputs, an upper case, not a UK estimate</> },
+                { key: 'pending', icon: 'timing', text: 'Debt-neutral and fixed spending: UK central and Korinek et al. only' },
                 {
                   key: 'debt',
                   icon: 'debt',
@@ -333,7 +321,7 @@ export function AcrossDebt() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<Lead c="measure">Percentage points of GDP, difference from the OBR-central path at the same closure</Lead>}
+        unit={<span data-axis-title="y">Debt/GDP gap against the OBR-central path at the same closure, percentage points of GDP</span>}
         legend={<MatrixKey ms={DEBT} story={false} />}
         about={{
           shows: (

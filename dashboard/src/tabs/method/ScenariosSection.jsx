@@ -1,6 +1,7 @@
 'use client';
 
 import InfoCard from '@/components/ab/InfoCard.jsx';
+import FoldGrid from './FoldGrid.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
@@ -108,7 +109,7 @@ const ARM_TEXT = {
   },
   ss: {
     icon: 'limit',
-    role: 'A bound, not a forecast',
+    role: 'A stress test, not a bound or a forecast',
     items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the OBR-central path.` }, ...stressItems()],
     fixedText: stressFixedText(),
     // the chevron follows the central closure's sign, as the words do
@@ -130,7 +131,7 @@ const ARM_TEXT = {
 
 function ArmCards() {
   return (
-    <div className="card-grid mx-arms is-top">
+    <FoldGrid className="card-grid mx-arms is-top">
       {ARMS.map((a) => {
         const t = ARM_TEXT[a.id];
         if (!t) return null;
@@ -163,7 +164,7 @@ function ArmCards() {
           </InfoCard>
         );
       })}
-    </div>
+    </FoldGrid>
   );
 }
 
@@ -297,7 +298,7 @@ export default function ScenariosSection({ uses = null }) {
       >
         <Timeline caption={false} />
       </Card>
-      <div className="card-grid">
+      <FoldGrid className="card-grid">
         <InfoCard
           icon={iconFor('start')}
           title={`One starting point, ${FIRST_YEAR}`}
@@ -365,7 +366,7 @@ export default function ScenariosSection({ uses = null }) {
         >
           <Items items={[{ icon: 'jump', text: 'No adjustment costs: investment and hours jump in the announcement year.' }]} />
         </InfoCard>
-      </div>
+      </FoldGrid>
     </section>
   );
 }
