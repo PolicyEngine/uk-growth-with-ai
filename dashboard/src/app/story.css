@@ -1776,9 +1776,11 @@
   outline-offset: 2px;
 }
 @media (max-width: 900px) {
-  /* a sticky scene holds each state for at least 180px of scroll */
+  /* a sticky scene holds each state for at least 180px of scroll: cards
+     200px apart (176 + the 24px step gap; at 180 apart the 40px-step walk
+     read 160px for some, round 2 sign-off) */
   .scrolly.is-scene .scrolly-card {
-    min-height: 156px;
+    min-height: 176px;
   }
 }
 
@@ -2335,8 +2337,9 @@
   inset: 0;
   border-radius: inherit;
   background: var(--pe-surface);
-  /* opaque until the question has gone (card gone by qm 0.75), then a
-     quick fade: never two layers of text at once */
+  /* opaque until qm 0.78 (the chart starts to draw), then a quick fade;
+     the question overlaps it (card gone at 0.86), never a blank
+     frame */
   opacity: calc(1 - (var(--qm) - 0.78) * 5);
 }
 .q-frame.is-done {
@@ -2353,7 +2356,10 @@
   text-align: center;
   transform-origin: 50% 0;
   transform: translateY(calc(var(--qm) * var(--qdy))) scale(calc(1 - 0.7 * var(--qm)));
-  opacity: calc(1 - var(--qm) * 1.35);
+  /* full until qm 0.61, gone at 0.86: it is still leaving when the cover
+     starts to fade at 0.78 (the chart starts to draw), so the frame is
+     never blank (round 2 sign-off #1: it was gone by 0.74) */
+  opacity: calc((0.86 - var(--qm)) * 4);
   will-change: transform, opacity;
 }
 .q-frame .q-stage-q {

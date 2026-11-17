@@ -10,10 +10,23 @@ import QStage, { Answer, QFrame } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
 import { NotesSlot } from './FigNotes.jsx';
 
-// a sticky figure may take 45% of the screen at 601-900px, and 58% on
-// phones (round 2, review 3 B5: pin the chart; its notes move after the
-// steps, FigNotes.jsx, so the pinned box is the chart alone)
-const capFor = (w) => (w <= 600 ? 0.58 : 0.45);
+// a sticky figure may take 45% of the screen at 900px and below (round 2
+// sign-off #5: at most 45% on phones too, so the step text has room), of
+// the small viewport height (svh: browser bars shown)
+const capFor = () => 0.45;
+let svhPx = 0;
+const svh = () => {
+  if (svhPx) return svhPx;
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;height:100svh;visibility:hidden;pointer-events:none';
+  document.body.appendChild(d);
+  svhPx = d.offsetHeight || window.innerHeight;
+  d.remove();
+  window.addEventListener('resize', () => {
+    svhPx = 0;
+  }, { once: true });
+  return svhPx;
+};
 const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 const subscribeWidth = (cb) => {
   window.addEventListener('resize', cb);
@@ -147,7 +160,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const measuring = reserve && measured.w !== mkey;
   const minH = reserve && measured.w === mkey ? measured.h : 0;
   // too tall to stick on a phone
-  const tooTall = reserve && minH > 0 && typeof window !== 'undefined' && minH > window.innerHeight * capFor(window.innerWidth);
+  const tooTall = reserve && minH > 0 && typeof window !== 'undefined' && minH > svh() * capFor(window.innerWidth);
   const flat = phone && !single && (!scene || tooTall);
   // phone="steps": each step carries its own copy of the figure (for blocks
   // whose states are different figures); otherwise one figure, then the cards
