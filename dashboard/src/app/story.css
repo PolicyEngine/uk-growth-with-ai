@@ -283,14 +283,16 @@
    900px and below scaled by --q-pin-phone. Every other topic: QFrame, the
    question inside the figure frame (no added height). */
 .story {
-  /* item 16: every question moment about 55-60vh, on the page background */
-  --q-pin: 56svh;
-  --q-pin-phone: 0.9;
+  /* item 16: every question moment on the page background; polish round:
+     tall enough that the question holds centred and still for about 40vh
+     of scroll before it moves (QStage stagePhase) */
+  --q-pin: 72svh;
+  --q-pin-phone: 1;
 }
 /* browsers before svh (Safari < 15.4): the layout viewport */
 @supports not (height: 1svh) {
   .story {
-    --q-pin: 56vh;
+    --q-pin: 72vh;
   }
 }
 /* the stage takes the block's first row only where it is shown (not under
@@ -337,7 +339,8 @@
   text-align: center;
   transform-origin: 50% 100%;
   transform: translateY(var(--qy)) scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
-  opacity: calc(1 - var(--qm) * 1.6);
+  /* shrinks over the whole move, fades over its second half */
+  opacity: calc(1 - max(0, var(--qm) - 0.4) * 1.67);
   will-change: transform, opacity;
 }
 .q-stage-icon {

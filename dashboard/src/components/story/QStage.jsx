@@ -50,12 +50,18 @@ export function framePhase({ top, V, y0, y1 }) {
 }
 
 // QStage's phase from the stage's box: arrival as its top comes up the
-// screen, the move as its foot rises past the middle below the rail.
+// screen, then the hold (the card centred and still, for the stage's
+// height less the card's: about 40vh), then the move, which starts as the
+// stage's foot reaches the held card and runs over 28% of the screen of
+// scroll, eased (polish round, Vahid: "going so fast"). qm is the eased
+// move, 0 to 1; the chart starts to draw at 70% of it.
+export const Q_MOVE = 0.28;
 export function stagePhase({ top, bottom, V, R, H }) {
   const mid = (R + V) / 2;
   const qa = clamp01((V - top) / (0.55 * V));
-  const qm = clamp01((mid + H / 2 + 28 - bottom) / Math.max(1, mid + H / 2 + 28 - R));
-  const phase = bottom <= R + 1 || qm >= 0.7 ? 'done' : qa >= 0.5 ? 'in' : 'wait';
+  const raw = clamp01((mid + H / 2 + 28 - bottom) / Math.max(1, Q_MOVE * V));
+  const qm = raw * raw * (3 - 2 * raw);
+  const phase = bottom <= R + 1 || raw >= 0.7 ? 'done' : qa >= 0.5 ? 'in' : 'wait';
   return { qa, qm, phase };
 }
 
