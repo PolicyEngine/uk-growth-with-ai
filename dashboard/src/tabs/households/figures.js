@@ -16,7 +16,6 @@ const rk = (id) => D.rankings.find((r) => r.id === id).values;
 
 export function storyFigures() {
   const H = D.headline;
-  const S = D.sankey;
   const J = D.per_pound_20.job_loss;
   return [
     // 1 the central case
@@ -25,25 +24,23 @@ export function storyFigures() {
     fmtPp(H.central_poverty_ahc.value),
     // 2 channels
     ...['displacement', 'wage', 'capital'].map((k) => fmtBn(ch(k).cost_bn)), fmtBn(D.channels.sum_bn), fmtBn2(D.channels.interaction_bn),
-    // 3 the Sankey (wide labels) and its card
-    fmtBn(S.total.earnings_lost_bn), ...['disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'].map((k) => fmtBn(S.total[k])),
-    fmtShare(S.tax_benefit_share_pct), fmtBn(S.employer_ni_bn),
-    // 4 deciles 2-10, and decile 1 under the three rankings in its caveat
+    // 3 deciles 2-10, and decile 1 under the three rankings in its caveat
     ...D.deciles.values.slice(1).map(fmtDecilePct), fmtDecilePct(D.deciles.values[0]), fmtDecilePct(rk('pre_pension')[0]),
     fmtDecilePct(rk('hbai_excl_large_ppc')[0]),
-    // 5 four stylised rules (exposure: step 1)
+    // 4 what changes the answer: four stylised rules (exposure: step 1, restated as an axis label)
     ...['uniform', 'junior', 'compression'].map((k) => fmtBn(rule(k).cost_bn)),
-    // 6 job loss against wage cuts
-    fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p), fmtPence(D.per_pound_20.wage_cuts_employer_ni_p),
+    // ... job loss against wage cuts
+    fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p),
     fmtPence(pp('wage_cuts').government_p), fmtBn(lad('central_20').cost_bn), fmtPp(lad('central_20').poverty_pp), fmtBn(lad('wage_cuts').cost_bn),
     fmtPp(lad('wage_cuts').poverty_pp),
-    // 7 break-evens (take-up and JSA: Explore > Households since round 1)
+    // ... break-evens (take-up and JSA: Explore > Households since round 1)
     fmtPctSigned1(D.breakeven.wage.value_pct), `+${Math.round(D.breakeven.capital.value_pct)}%`,
   ];
 }
 
 export function householdsFigures() {
   const X = D.displaced;
+  const S = D.sankey;
   const small = (v) => (Math.abs(v) < 0.05 ? '£0.1bn' : fmtBn(v));
   return [
     ...D.cost_components.rows.map((r) => small(r.cost_bn)),
@@ -56,6 +53,9 @@ export function householdsFigures() {
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),
     ...D.policy.rows.flatMap((r) => [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtPp(r.gini_pp)]),
+    // where a lost pound goes (the OBR-sized Sankey, moved from story part 3 in round 2)
+    fmtBn(S.total.earnings_lost_bn), ...['disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'].map((k) => fmtBn(S.total[k])),
+    fmtShare(S.tax_benefit_share_pct), fmtBn(S.employer_ni_bn),
   ];
 }
 

@@ -126,22 +126,24 @@ export function dnfullFor(cl, rule, arm) {
   return x?.ready && x.closure === cl && x.rule === rule && x.arm === arm ? x : null;
 }
 
-// The measures the tiles compare, defined once in a legend of chips: as
-// modelled, bequests not valued, transfers bearing the later fiscal cost
-// (solved to the horizon where the data has it, else a first-order
-// estimate; debt-neutral transfers only) and both. Rows then use the code.
+// The measures the tiles compare: as modelled, bequests not valued,
+// transfers bearing the later fiscal cost (solved to the horizon where the
+// data has it, else a first-order estimate; debt-neutral transfers only) and
+// both. Each row names its measure directly (short); the full definition is
+// its tooltip.
 export function measuresOf(c, rule, cl, arm) {
   const full = dnfullFor(cl, rule, arm);
   const ch = rule === 'dn' && !full ? c.charged : null;
   const t = full ? full.range : ch;
   return [
-    { id: 'M', concept: 'model', label: 'As modelled', def: 'The model’s own welfare measure: consumption, leisure and bequests', losing: [c.alive_losing_pct], avg: [c.alive_avg] },
-    { id: 'B', concept: 'bequests', label: 'Bequests not valued', def: 'The same, with no value placed on leaving bequests', losing: [c.no_bequest_losing_pct], avg: [c.no_bequest_alive_avg] },
+    { id: 'M', concept: 'model', label: 'As modelled', short: 'Modelled', def: 'The model’s own welfare measure: consumption, leisure and bequests', losing: [c.alive_losing_pct], avg: [c.alive_avg] },
+    { id: 'B', concept: 'bequests', label: 'Bequests not valued', short: 'No bequests', def: 'The same, with no value placed on leaving bequests', losing: [c.no_bequest_losing_pct], avg: [c.no_bequest_alive_avg] },
     t
       ? {
           id: 'T',
           concept: 'benefits',
           label: 'Transfers bear the later fiscal cost',
+          short: 'Transfers pay',
           tag: full ? 'solved to the horizon' : 'first order',
           def: full
             ? 'Transfers, not government consumption, hold debt/GDP on the path to the horizon: a model run'
@@ -151,25 +153,12 @@ export function measuresOf(c, rule, cl, arm) {
           full: !!full,
         }
       : null,
-    t ? { id: 'BT', concept: 'range', label: 'Both', def: 'Bequests not valued and transfers bearing the later fiscal cost', losing: t.no_bequest_losing_pct, avg: t.no_bequest_avg, full: !!full } : null,
+    t ? { id: 'BT', concept: 'range', label: 'Both', short: 'Both', def: 'Bequests not valued and transfers bearing the later fiscal cost', losing: t.no_bequest_losing_pct, avg: t.no_bequest_avg, full: !!full } : null,
   ].filter(Boolean);
 }
 
 const shareOf = (xs) => (xs.length > 1 ? shareRange(xs) : share(xs[0]));
 const avgOf = (xs) => (xs.length > 1 ? (xs[0].toFixed(2) === xs[1].toFixed(2) ? pct(xs[0]) : `${pct(xs[0])} to ${pct(xs[1])}`) : pct(xs[0]));
-
-function MeasureChips({ ms }) {
-  return (
-    <ul className="ex-mchips" aria-label="Measures">
-      {ms.map((m) => (
-        <li key={m.id} className="ex-mchip" title={m.def}>
-          <b>{m.id}</b> {m.label}
-          {m.tag ? <span className="ex-mtag">{m.tag}</span> : null}
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 // "Adults who lose" by measure: the four shares as a toggle, each printing
 // its share once (its home). The toggle drives the 100-dot strip and the
@@ -182,8 +171,10 @@ function MeasureDots({ ms, measure, onMeasure }) {
       {ms.map((x) => (
         <li key={x.id} data-dnfull={x.full ? '' : undefined}>
           <button type="button" aria-pressed={x.id === m.id} className={`ex-mtoggle-btn${x.id === m.id ? ' is-on' : ''}`} title={x.def} onClick={() => onMeasure(x.id)}>
-            
-            <b>{x.id}</b>
+            <span className="ex-mtoggle-name">
+              {x.short}
+              {x.tag ? <span className="ex-mtag"> ({x.tag})</span> : null}
+            </span>
             <span className="ex-dd">{shareOf(x.losing)}</span>
           </button>
         </li>
@@ -215,7 +206,6 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
   const spos = (x) => `${(((x + S) / (2 * S)) * 100).toFixed(2)}%`;
   return (
     <div className="stat-row cols-4 ex-who-tiles">
-      <MeasureChips ms={ms} />
       <StatTile icon={iconFor('households')} name="Adults who lose" value={tileRange(lo, hi)} sub={<Lead c="range">{`Share of adults alive in ${D.shock_year}, by measure`}</Lead>}>
         <MeasureDots ms={ms} measure={measure} onMeasure={onMeasure} />
       </StatTile>
@@ -223,7 +213,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
         icon={iconFor('young')}
         name="Who loses, by age"
         value={young ? (young === 20 ? 'Age 20' : `Up to age ${young}`) : ages ? `Up to age ${ages[0] === ages[1] ? ages[0] : `${ages[0]}–${ages[1]}`}` : 'The youngest'}
-        sub={<Lead c="age">{young ? 'Every adult this age or younger loses (M)' : ages ? 'Lose on average when transfers bear the cost (T)' : 'Losses, where any, fall on the youngest adults'}</Lead>}
+        sub={<Lead c="age">{young ? 'Every adult this age or younger loses, as modelled' : ages ? 'Lose on average when transfers bear the later cost' : 'Losses, where any, fall on the youngest adults'}</Lead>}
       >
         <div className="ex-ruler" aria-hidden="true">
           <span className="ex-ruler-fill" style={{ width: ageTo ? `${(((ageTo - 20) / 70) * 100).toFixed(1)}%` : '6%' }} />
@@ -240,7 +230,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
           {ms.map((m) => (
             <li key={m.id} data-dnfull={m.id === 'BT' && m.full ? '' : undefined} className={m.id === measure ? 'is-on' : undefined}>
               <span className="ex-bar-code" title={m.def}>
-                {m.id}
+                {m.short}
               </span>
               <span className="ex-bar-track is-axis">
                 <span className="ex-axis-zero" style={{ left: apos(0) }} aria-hidden="true" />
@@ -280,7 +270,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
 
 // The aggregate signs behind the Why cards, from the same OG-UK solves
 // (surprise2028.json, UK central, headline year): the interest rate and the
-// wage rate for the arm, closure and rule in view, and aggregate consumption
+// pay rate for the arm, closure and rule in view, and aggregate consumption
 // in the shock year (cohorts2028.json). Every direction word and arrow on
 // the cards is computed from these signs.
 const SURPRISE_ARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
@@ -302,7 +292,7 @@ export function whySigns(cl, rule, arm) {
 export function consumptionChain(x) {
   return [
     x.r == null ? null : { key: 'r', icon: 'interest', dir: x.r, text: `Return on capital ${x.r > 0 ? 'rises' : 'falls'}` },
-    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Wage rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the path` },
+    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Pay rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the path` },
     { key: 's', icon: 'households', text: `Households ${x.c0 < 0 ? 'save more' : 'spend more'} at first` },
     { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the path` },
   ].filter(Boolean);
@@ -338,7 +328,7 @@ function Pairs({ rows, label, icon = 'measure' }) {
 
 // The aggregate consumption gap in the data's years, as a sparkline; the
 // first year above the path (beyond the data's window) marked at its end.
-function Spark({ c }) {
+function Spark({ c, rule }) {
   const ys = Object.entries(c.c_gap).map(([y, v]) => [Number(y), v]);
   const lo = Math.min(0, ...ys.map(([, v]) => v));
   const hi = Math.max(0, ...ys.map(([, v]) => v));
@@ -354,7 +344,7 @@ function Spark({ c }) {
       </svg>
       <figcaption>
         <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
-        {c.first_year_c_above ? <span className="ex-spark-cross">{` · above from ${c.first_year_c_above} →`}</span> : null}
+        {c.first_year_c_above ? <span className="ex-spark-cross">{` · above from ${c.first_year_c_above} under ${ruleLabel(rule).toLowerCase()} →`}</span> : null}
       </figcaption>
     </figure>
   );
@@ -371,7 +361,7 @@ export function byFormWords(p, hasT) {
   return [
     p.bequests > p.consumption + p.leisure ? { key: 'most', icon: 'bequests', text: 'Most of the average is the value of leaving bequests' } : null,
     p.consumption < Math.min(p.leisure, p.bequests) ? { key: 'least', icon: 'consumption', text: 'Consumption is the smallest part' } : null,
-    hasT ? { key: 'rule', icon: 'benefits', text: 'Who bears the later fiscal cost changes who gains: measure T' } : null,
+    hasT ? { key: 'rule', icon: 'benefits', text: 'Who bears the later fiscal cost changes who gains' } : null,
   ].filter(Boolean);
 }
 
@@ -420,7 +410,7 @@ function Why({ cl, rule, arm }) {
   return (
     <div className="cards-grid is-top ex-why-grid">
       <InfoCard icon={iconFor('consumption')} title={title}>
-        <Spark c={c} />
+        <Spark c={c} rule={rule} />
         <Items
           className="ex-chain"
           items={[
@@ -439,7 +429,7 @@ function Why({ cl, rule, arm }) {
                   {links.w ? (
                     <>
                       <Dir x={links.w.dir} />
-                      {links.w.text.replace('Wage rate', 'wage rate')}
+                      {links.w.text.replace('Pay rate', 'pay rate')}
                     </>
                   ) : null}
                 </>
@@ -453,7 +443,7 @@ function Why({ cl, rule, arm }) {
                 <>
                   <Dir x={links.c.dir} />
                   {links.c.text}
-                  {x.cAbove ? `; above it from ${x.cAbove}` : '; below it through 2085'}
+                  {x.cAbove ? `; above it from ${x.cAbove} (${ruleLabel(rule).toLowerCase()})` : '; below it through 2085'}
                 </>
               ),
             },
@@ -541,7 +531,7 @@ function Why({ cl, rule, arm }) {
           items={[
             x.stressW == null || x.tfpW == null
               ? null
-              : { key: 'w', icon: 'pay', text: `No output gain: the wage rate is ${x.stressW < x.tfpW ? 'lower still' : 'no lower'}` },
+              : { key: 'w', icon: 'pay', text: `No output gain: the pay rate is ${x.stressW < x.tfpW ? 'lower still' : 'no lower'}` },
             {
               key: 'young',
               icon: 'jobLoss',
@@ -639,11 +629,7 @@ export default function WhoGainsTab() {
           icon={iconFor('path')}
           title="Welfare change by birth year"
           finding={
-            <span className="ex-ctx">
-              <Lead c="scenario">{armLabel}</Lead>
-              <Lead c="rule">{ruleLabel(rule)}</Lead>
-              <Lead c="closure">{clWords.charAt(0).toUpperCase() + clWords.slice(1)}</Lead>
-            </span>
+            <Lead c="scenario">{`${armLabel} · ${ruleLabel(rule)} · ${clWords}`}</Lead>
           }
           unit={<Lead c="measure">Consumption-equivalent change, % of remaining-lifetime consumption and bequests</Lead>}
           controls={
@@ -654,43 +640,6 @@ export default function WhoGainsTab() {
             </ControlBar>
           }
           about={{
-            shows: (
-              <Items
-                items={[
-                  { key: 'cev', icon: 'consumption', text: 'Constant % change in consumption and bequests, every remaining year' },
-                  { key: 'path', icon: 'onPath', text: 'On the OBR-central path, it leaves the household as well off' },
-                  { key: 'labour', icon: 'labour', text: 'Labour is held at the OBR-central path' },
-                  { key: 'alive', icon: 'age', text: `Born up to ${LAST_ALIVE}: adults in ${D.shock_year}, remaining lives only` },
-                  { key: 'later', icon: 'young', text: 'Later cohorts count their whole lives' },
-                ]}
-              />
-            ),
-            how: (
-              <Items
-                items={[
-                  { key: 'paths', icon: 'model', text: 'From the household paths of the OG-UK solves' },
-                  { key: 'own', icon: 'measure', text: 'The model’s own utility, discounting, survival and growth adjustment' },
-                  { key: 'ref', icon: 'onPath', text: 'Reference: the OBR-central path, restarted in 2028 without the shock' },
-                  { key: 'check', icon: 'data', text: 'Household consumption matches every solve’s aggregate gap, 2028–2036' },
-                ]}
-              />
-            ),
-            definitions: (
-              <Items
-                items={[
-                  { key: 'groups', icon: 'lifetimeEarnings', text: 'Earnings groups: percentiles of lifetime earnings, not income deciles' },
-                  { key: 'conly', icon: 'consumption', text: 'Consumption-only figures are a sensitivity in the paper' },
-                  { key: 'first', icon: 'provisional', text: 'Post-2035 fiscal cost charged: a first-order estimate, not a model run' },
-                  ...(D.dnfull?.ready
-                    ? [
-                        { key: 'full', icon: 'model', text: 'Main arm, central closure: solved to the horizon instead, a model run' },
-                        { key: 'tr', icon: 'benefits', text: 'Transfers, not government consumption, hold debt/GDP on the path' },
-                        { key: 'ref', icon: 'compare', text: 'Against a no-shock path solved under the same rule' },
-                      ]
-                    : []),
-                ]}
-              />
-            ),
             caveats: (
               <Items
                 items={[
@@ -701,12 +650,12 @@ export default function WhoGainsTab() {
                   { key: 'assets', icon: 'interest', text: 'No asset prices: revaluing existing assets is left out' },
                   { key: 'old', icon: 'age', text: 'So that is not in the gain to older adults' },
                   { key: 'fill', icon: 'young', text: `Born after 2011: up to ${c.fill_max_pp.toFixed(2)} percentage points from extending past 2085` },
+                  { key: 'groups', icon: 'lifetimeEarnings', text: 'Earnings groups: percentiles of lifetime earnings, not income deciles' },
                 ]}
               />
             ),
-            sources: <CohortSources />,
           }}
-          method="welfare"
+          foot={<CohortSources />}
           download={{
             title: 'Welfare change by birth year',
             context: () => `UK central · ${armLabel} · ${ruleLabel(rule)} · ${clWords}`,

@@ -3,18 +3,16 @@
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import FoldGrid from './FoldGrid.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
-import Icon from '@/components/ab/Icon.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { SCENARIOS, KORINEK_FULL, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
+import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed } from '@/tabs/ai/surprise.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
 import { SRC } from './sources.js';
 import InputsTable, { inputsTable } from './InputsTable.jsx';
-import { ROWS, KIND } from './inputs.js';
 import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 
 // Scenarios: what is assumed. The four scenarios (three UK, one US upper
@@ -189,14 +187,6 @@ function SubHead({ id, oldId, title, children }) {
   );
 }
 
-// Paired bars on each scenario card: both inputs on one scale per input,
-// across the four scenarios (lengths only; the printed values are the data).
-// The card shows the values, the kind of source and one source; how each is
-// obtained (the arithmetic, every source) is its row in the inputs table.
-const MAX_LS = Math.max(...SCENARIOS.map((x) => x.labour_share_fall_pp));
-const MAX_TFP = Math.max(...SCENARIOS.map((x) => x.tfp_gain_pct));
-const rowFor = (sid, k) => ROWS.find((r) => r.scen?.[0] === sid && (r.scen[1] === k || r.scen[1] === 'both'));
-
 export default function ScenariosSection({ uses = null }) {
   return (
     <section className="mx-scenarios">
@@ -212,55 +202,11 @@ export default function ScenariosSection({ uses = null }) {
         icon={iconFor('scenario')}
         title={`Scenario inputs, ${HEADLINE_YEAR}`}
         unit={<IconText icon="measure">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</IconText>}
-        download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources on each scenario card', table: scenarioTable }}
+        download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources in the inputs table below', table: scenarioTable }}
         replication={{ code: SRC.ukTargets.url, result: SRC.ukTargets.url }}
       >
         <ScenarioMap caption={false} />
       </Card>
-      <div className="mx-scen-grid">
-        {SCENARIOS.map((s) => (
-          <article key={s.id} id={`scen-${s.id}`} className={`mx-scen${s.id === 'korinek' ? ' is-upper' : ''}`}>
-            <h3 className="mx-scen-title">
-              {s.id === 'korinek' ? KORINEK_FULL : s.label}
-              <span className="mx-scen-role">{s.id === 'uk_central' ? 'Headline scenario' : s.id === 'korinek' ? 'US upper case' : 'UK range'}</span>
-            </h3>
-            <dl className="mx-pair mx-scen-bars">
-              {[
-                ['labour_share', 'Labour share', `−${s.labour_share_fall_pp.toFixed(1)}pp`, s.labour_share_fall_pp / MAX_LS, `surprise2028.scenarios.${s.id}.labour_share_fall_pp`],
-                ['tfp', 'Output at fixed inputs', `+${s.tfp_gain_pct.toFixed(1)}%`, s.tfp_gain_pct / MAX_TFP, `surprise2028.scenarios.${s.id}.tfp_gain_pct`],
-              ].map(([k, label, v, f, path]) => {
-                const row = rowFor(s.id, k);
-                return (
-                  <div key={k}>
-                    <dt>{label}</dt>
-                    <dd>
-                      <span className="mx-scen-v" data-path={path}>
-                        {v}
-                      </span>
-                      <span className="mx-bar" aria-hidden="true">
-                        <span style={{ transform: `scaleX(${f})` }} />
-                      </span>
-                      {row ? (
-                        <span className="mx-scen-src">
-                          <span className={`mx-kind is-${row.kind}`}>
-                            <Icon name={iconFor(KIND[row.kind].icon)} size={12} />
-                            {KIND[row.kind].label}
-                          </span>
-                          {ext(SRC[row.src[0]].url, SRC[row.src[0]].label)}
-                          <a className="mx-scen-row" href={`#${row.id}`}>
-                            How it is obtained
-                          </a>
-                        </span>
-                      ) : null}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-            <p className="mx-sub">&gamma; reaches {s.gamma_terminal.toFixed(3)}.</p>
-          </article>
-        ))}
-      </div>
       <p className="mx-foot-line">
         Derivations: {ext(SRC.calibNote.url, SRC.calibNote.label)} · targets: {ext(SRC.ukTargets.url, SRC.ukTargets.label)} · published figures compared on{' '}
         <NavLink tab="method" sub="studies" anchor="numbers">

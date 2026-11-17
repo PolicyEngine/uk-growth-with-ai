@@ -2315,3 +2315,53 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     animation: none;
   }
 }
+
+/* Round 2 (C14), phones: the sub-tabs show their short names without icons
+   so the row fits at 390px; the settings bar wraps its pickers onto a
+   second line instead of clipping them, and scrolls away with the page (it
+   is no longer sticky there, so the sticky stack stays two rows: tabs and
+   sub-tabs). lib/scroll.js counts only sticky bars. */
+@media (max-width: 480px) {
+  .app.has-subs .subtabs-bar .view-tab-icon {
+    display: none;
+  }
+  .app.has-subs .subtabs-bar .view-tab {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+@media (max-width: 640px) {
+  .app.has-subs .settings-bar {
+    position: static;
+  }
+  .app.has-subs .settings-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 6px 0;
+    overflow-x: visible;
+  }
+  .app.has-subs.has-settings {
+    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
+  }
+}
+/* phones: the page pickers' options wrap rather than clip; the sliding
+   indicator assumes one line, so the chosen option is marked in place */
+@media (max-width: 640px) {
+  .app.has-subs .settings-row > .seg-picker {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .app.has-subs .settings-bar .seg-picker-row {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .app.has-subs .settings-bar .seg-picker-ind {
+    display: none;
+  }
+  .app.has-subs .settings-bar .seg-option.is-on {
+    background: var(--pe-teal-50);
+    box-shadow: inset 0 0 0 1px var(--pe-teal-500);
+    border-radius: 6px;
+  }
+}

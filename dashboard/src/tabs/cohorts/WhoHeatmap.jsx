@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Card from '@/components/ui/Card.jsx';
-import { Items } from '@/components/story/Items.jsx';
+import { SourcesLine } from '@/tabs/explore/sources.jsx';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
@@ -69,7 +69,7 @@ export function DotStrip({ m }) {
   return (
     <figure className="ex-dotstrip">
       <figcaption>
-        <Icon name={iconFor('households')} size={14} /> Adults who lose, {m.id}
+        <Icon name={iconFor('households')} size={14} /> Adults who lose, {m.label.toLowerCase()}
       </figcaption>
       <AxisTitles y="Share of adults who lose: each dot is one adult in a hundred" />
       <div className="ex-dots" role="img" aria-label={`${m.label}: ${solid + range} of 100 dots${range ? `, ${range} of them the range` : ''}`} data-measure={m.id}>
@@ -98,14 +98,14 @@ export function DotStrip({ m }) {
 // file's results commit, and the script that computes the welfare change.
 export function CohortSources() {
   return (
-    <div data-reference="">
-      <Items
-        items={[
-          { key: 'npz', icon: 'source', text: <>OG-UK cohort state files at commit {RESULTS_SHA}: {ext(OG_RESULT_URLS.cohortsDir, 'analysis/surprise/cohorts')}</> },
-          { key: 'py', icon: 'code', text: <>Welfare change computed by {ext(OG_RESULT_URLS.cohortScript, 'paper/cohort_welfare.py')} (commit {COHORTS_SHA}, branch paper/first-draft)</> },
-        ]}
-      />
-    </div>
+    <SourcesLine
+      closures={[]}
+      code={false}
+      extra={[
+        <>OG-UK cohort state files at commit {RESULTS_SHA}: {ext(OG_RESULT_URLS.cohortsDir, 'analysis/surprise/cohorts')}</>,
+        <>{ext(OG_RESULT_URLS.cohortScript, 'paper/cohort_welfare.py')} (commit {COHORTS_SHA})</>,
+      ]}
+    />
   );
 }
 
@@ -121,16 +121,11 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       id="who-heatmap"
       icon={iconFor('lifetimeEarnings')}
       title="By age and earnings group"
-      finding={
-        <span className="ex-ctx">
-          {m.label}
-          {both ? ', central closure' : ''}
-        </span>
-      }
+      finding={both ? <span className="ex-ctx">Central closure</span> : null}
       controls={
         <ControlBar label="Heatmap: options">
           <ControlGroup label="Measure">
-            <Segmented options={ms.map((x) => ({ id: x.id, label: x.id, icon: iconFor(x.concept) }))} value={m.id} onChange={onMeasure} label="Measure" />
+            <Segmented options={ms.map((x) => ({ id: x.id, label: x.short, icon: iconFor(x.concept) }))} value={m.id} onChange={onMeasure} label="Measure" />
           </ControlGroup>
         </ControlBar>
       }
@@ -150,20 +145,6 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
           </li>
         </ul>
       }
-      about={{
-        shows: (
-          <Items
-            items={[
-              { key: 'cev', icon: 'consumption', text: 'Change in remaining-lifetime consumption and bequests, %' },
-              { key: 'rows', icon: 'age', text: `Rows: single cohorts, by age in ${D.shock_year}` },
-              { key: 'grid', icon: 'data', text: 'Only “as modelled” has a value per earnings group in the data' },
-              { key: 'dots', icon: 'households', text: 'Dots: one per 1% of adults, whole dots only' },
-            ]}
-          />
-        ),
-        sources: <CohortSources />,
-      }}
-      method="welfare"
       download={{
         title: `Welfare change by age and earnings group, ${m.label}`,
         context: () => `UK central · ${ARM_NAME[arm] ?? arm} · ${ruleLabel(rule)} · ${cl === 'zk0' ? 'closed capital' : 'central closure'}`,

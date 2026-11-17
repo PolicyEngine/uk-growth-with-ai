@@ -119,6 +119,10 @@ function ChannelsFigure({ ctx }) {
           );
         })}
       </ol>
+      {/* the zero line, labelled (C8): scale, not data */}
+      <span className="p3-wf-axis" data-axis="" aria-hidden="true">
+        <span style={{ left: `${X(0)}%` }}>£0bn: no change</span>
+      </span>
       <p className="p3-key">
         The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run on these {C.draws} draws;{' '}
         <NavLink tab="story" anchor="p3-central">
@@ -184,7 +188,8 @@ export const CHANNEL_STEPS = [
   {
     id: 'p3-channels-step-2',
     icon: 'arithmetic',
-    highlight: ['wage', 'capital', 'sum'],
+    // the last step lights every bar: full contrast once the sum lands (C8)
+    highlight: ['displacement', 'wage', 'capital', 'sum'],
     title: risesSentence(),
   },
 ];

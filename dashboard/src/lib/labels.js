@@ -19,16 +19,16 @@ export const TABS = [
   { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true, rule: true, arm: true,
     subs: [
       { id: 'economy', label: 'Economy', icon: 'factory' },
-      { id: 'finances', label: 'Public finances', icon: 'landmark' },
+      { id: 'finances', label: 'Public finances', short: 'Finances', icon: 'landmark' },
       { id: 'who', label: 'Who gains and who loses', short: 'Who gains', icon: 'usersRound', scenario: 'locked', arm: true, rule: ['common', 'dn'] },
       { id: 'households', label: 'Households', icon: 'briefcase', scenario: false, closure: false, rule: false, study: true },
     ] },
   { id: 'method', label: 'Method and sources', short: 'Method', icon: 'book',
     subs: [
-      { id: 'how', label: 'OG-UK method', icon: 'sigma' },
-      { id: 'households', label: 'Household method', icon: 'briefcase', study: true },
+      { id: 'how', label: 'OG-UK method', short: 'OG-UK', icon: 'sigma' },
+      { id: 'households', label: 'Household method', short: 'Households', icon: 'briefcase', study: true },
       { id: 'studies', label: 'Evidence', icon: 'library' },
-      { id: 'code', label: 'Data and code', icon: 'code' },
+      { id: 'code', label: 'Data and code', short: 'Code', icon: 'code' },
     ] },
 ];
 export const tabById = (id) => TABS.find((t) => t.id === id);

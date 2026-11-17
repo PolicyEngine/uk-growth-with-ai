@@ -1,14 +1,14 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
-import { InfoTip } from '@/components/ab/Tip.jsx';
+import { InfoTip, TipTarget } from '@/components/ab/Tip.jsx';
 import { Notice } from '@/components/ab/Section.jsx';
 import { StatTile } from '@/components/ui/Card.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, ZETA, gap, fmt, result, DONE, TOTAL,
+  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -20,8 +20,8 @@ import { URLS } from '@/tabs/ai/links.js';
 
 // The headline: the question, a one-line answer built from the data, three
 // headline figures for the chosen scenario's main arm (automation +
-// productivity, headline year) at the closure chosen in the header, each
-// with the four scenarios on a small range strip, then why and how sure.
+// productivity, headline year) at the closure chosen in the header, then
+// the one why line.
 // The story (tabs/story) places these; it is the one home of the three
 // headline figures. Each tile is a plain icon, a label and a large number
 // with an arrow from its sign; the number counts up once when first seen
@@ -39,8 +39,8 @@ const KPIS = [
     v: 'w',
     concept: 'pay',
     title: 'Pay rates',
-    line: 'What a given amount of work earns, against a path on which pay rises',
-    tip: 'The wage rate: pay per unit of labour, adjusted for skill. It is not average earnings, which also move with hours and the mix of jobs. A negative figure is slower growth than on the OBR-central path, not a cut in pay.',
+    line: 'Pay for the same work. Below the path is slower growth than on it, not a cut',
+    tip: 'Pay per unit of labour, adjusted for skill. It is not average earnings, which also move with hours and the mix of jobs.',
   },
   {
     v: 'GNI',
@@ -108,8 +108,8 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
-        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path: <A href={URLS.ogUk}>OG-UK</A>
-        &rsquo;s no-shock path. {SURPRISE_YEAR} is a modelling choice, not a forecast
+        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against <A href={URLS.ogUk}>OG-UK</A>
+        &rsquo;s OBR-central path. {SURPRISE_YEAR} is a modelling choice, not a forecast
         <InfoTip label="What is the OBR-central path?">
           The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
           <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). It is defined under {METHOD.shock.label} on Method.
@@ -137,14 +137,9 @@ export function HeadlineTiles({ sid }) {
     ) : null,
     GNI:
       cl === CENTRAL && fs != null && g != null && y != null && g < y ? (
-        [
-          <span key="share">About {Math.round(fs)}% of added capital is foreign-owned</span>,
-          // one span: the tile's note lays out its children as blocks
-          <span key="zeta">
-            ζK = {ZETA[CENTRAL]} is the share of excess capital demand, not of added capital, met from abroad:{' '}
-            <A href={URLS.ogCoreParams}>OG-Core&rsquo;s US default, chosen by the study</A>
-          </span>,
-        ]
+        <>
+          About {Math.round(fs)}% of the extra capital is owned abroad, with openness at <A href={URLS.ogCoreParams}>OG-Core&rsquo;s US default, chosen by the study</A>
+        </>
       ) : null,
   };
   return (
@@ -156,8 +151,13 @@ export function HeadlineTiles({ sid }) {
           return (
             <StatTile
               key={k.v}
-              icon={iconFor(k.concept)}
-              name={k.title}
+              // the GDP scene's step card holds one icon (the step's): the
+              // definition opens from the name itself, no tile icon
+              name={
+                <TipTarget className="p2-tile-name" label={`What is ${k.title.toLowerCase()}?`} tip={<span>{k.tip}</span>}>
+                  {k.title}
+                </TipTarget>
+              }
               value={
                 <span data-path={`results.${sid}.tfp.${cl}.gaps.${k.v}.${HEADLINE_YEAR}`}>
                   <CountUp value={fmt(x)} />
@@ -165,7 +165,6 @@ export function HeadlineTiles({ sid }) {
               }
               tone={tone(x)}
               sub={k.line}
-              tip={<InfoTip label={`What is ${k.title.toLowerCase()}?`}>{k.tip}</InfoTip>}
             >
               {[extra[k.v]].flat().filter(Boolean).map((line, i) => (
                 <p key={i} className="stat-line p2-tile-note">
@@ -190,59 +189,59 @@ export function HeadlineTiles({ sid }) {
   );
 }
 
-// Why the headline figures move as they do, in one sentence for the
-// scenario's main arm at closure `cl`: every direction is read from the
-// solve's sign. null when the solve is pending.
-export function whyLine(sid, cl) {
-  const y = gap(sid, 'tfp', cl, 'Y');
-  const w = gap(sid, 'tfp', cl, 'w');
-  const g = gap(sid, 'tfp', cl, 'GNI');
-  const ls = gap(sid, 'tfp', cl, 'labour_share_pp');
-  if (y == null || w == null || ls == null) return null;
-  const share = ls < 0 ? 'capital’s share' : 'labour’s share';
-  const keep = g != null && y > 0 && g < y ? '; national income gains less, as returns go abroad' : '';
-  return `AI raises ${share} and output at given inputs: GDP is ${dirWord(y)} the path, pay ${dirWord(w)} it${keep}.`;
+// Public debt in the main arm at the late year, in words, and why (as
+// Explore > Public finances explains it): the common fiscal rule holds
+// spending as a share of GDP, so growth brings no dividend, and the model
+// reprices all debt at once at the higher interest rate. The reason only
+// where the debt gap and the interest-rate gap are both positive. null when
+// pending.
+export function debtLine(sid, cl) {
+  const d = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
+  if (d == null) return null;
+  const r = gap(sid, 'tfp', cl, 'r_bp', LATE_YEAR);
+  const where = Math.abs(d) < 0.005 ? 'ends on the path' : d > 0 ? 'ends above the path' : 'ends below the path';
+  const why = d > 0.005 && r != null && r > 0 ? ': spending keeps its share of GDP, and debt is repriced at once at higher rates' : ', under the common fiscal rule';
+  return `Public debt ${where} in ${LATE_YEAR}${why}`;
 }
 
-// Under the tiles: the one "why" line, then one line on how sure, with the
-// capital drawn in and net national income in words (their figures are on
-// Explore > Economy).
+// Under the tiles: household consumption where the cell has it, and one
+// line to Explore for what the other two arms add (capital drawn in, net
+// national income in words; public debt in the three arms): their figures
+// are on Explore > Economy and Public finances. Why the figures move
+// (capital's share, output at given inputs) is the shock scene's sentence.
 export function SummaryWhy({ sid }) {
   const { cl } = useSummary(sid);
-  const why = whyLine(sid, cl);
   const sh = headlineShares(sid, cl);
   // one clause on what households spend, where the cell has it (UK central)
-  const cBelow = why ? consumptionBelowUntil(sid, cl) : null;
+  const cBelow = consumptionBelowUntil(sid, cl);
+  const debt = debtLine(sid, cl);
   return (
     <div className="p2-why">
-      {why ? (
-        <p className="p2-why-line">
-          {why}
-        </p>
-      ) : null}
       {cBelow ? (
         <p className="p2-why-line">
-          Household consumption stays below the path until{' '}
+          Under the common fiscal rule, household consumption stays below the path until{' '}
           <NavLink tab="explore" sub="who" patch={{ wrule: 'common' }}>
             {cBelow}
           </NavLink>
           .
         </p>
       ) : null}
-      <p className="p2-note">
-        Scenario results, not forecasts: they depend on the{' '}
-        <NavLink tab="method" sub="how" anchor="m-scenarios">
-          shock&rsquo;s size
-        </NavLink>{' '}
-        and on foreign capital inflows.
-      </p>
       {sh.capital || sh.nni ? (
         <p className="p2-note">
           {sh.capital ? `Technology unchanged alone gives ${sh.capital} the GDP gain, through capital drawn in` : ''}
           {sh.capital && sh.nni ? '; n' : sh.nni ? 'N' : ''}
           {sh.nni ? `et national income rises ${sh.nni} as much as GDP` : ''}:{' '}
-          <NavLink tab="explore" sub="economy">
+          <NavLink tab="explore" sub="economy" anchor="income">
             Economy
+          </NavLink>
+          .
+        </p>
+      ) : null}
+      {debt ? (
+        <p className="p2-note">
+          {debt}:{' '}
+          <NavLink tab="explore" sub="finances" anchor="public-finances">
+            Public finances
           </NavLink>
           .
         </p>

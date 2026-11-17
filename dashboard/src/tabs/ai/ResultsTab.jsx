@@ -11,13 +11,13 @@ import {
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { ruleLabel } from '@/lib/labels.js';
-import { Dumbbells, StressNote, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
+import { Dumbbells, HeadlineNote, stressItems, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
-import { ResultSources } from '@/tabs/explore/sources.jsx';
+import { SourcesLine } from '@/tabs/explore/sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
@@ -81,7 +81,7 @@ const COINCIDE = 0.005;
 // 2031 value at each line end, and the arms control bar.
 export function PathCard({
   sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true, notes,
-  tile = false, open = false, onToggle,
+  tile = false, open = false, onToggle, sources = true,
 }) {
   const { st, set } = useNav();
   const rule = st.rule;
@@ -129,9 +129,15 @@ export function PathCard({
         )
       }
       legend={tile ? null : <ClosureKey closure={st.closure} />}
-      about={full ? { ...about, sources: about?.sources ?? <ResultSources sid={sid} /> } : null}
-      method={full ? method : null}
-      foot={full && notes?.length ? <Items items={notes} className="ex-notes" /> : null}
+      about={full && about?.caveats ? { caveats: about.caveats } : null}
+      foot={
+        full ? (
+          <>
+            {notes?.length ? <Items items={notes} className="ex-notes" /> : null}
+            {sources ? <SourcesLine sid={sid} method={method} /> : null}
+          </>
+        ) : null
+      }
       download={{
         title: `${title}, ${years[0]}–${last}`,
         context: () => contextLine(sid, st.closure, unitLine, rule),
@@ -168,20 +174,6 @@ export function PathCard({
   );
 }
 
-// How to read a path chart, in items. The GNI and GDP paths carry no end
-// values: their 2031 figures have one home, the four-measure card above them.
-const readingItems = (linked) => [
-  { key: 'zero', icon: 'onPath', text: 'Zero line: the OBR-central path' },
-  { key: 'arrives', icon: 'shock', text: `Dotted line: ${SURPRISE_YEAR}, when AI arrives` },
-  { key: 'year', icon: 'timing', text: `Shaded: ${HEADLINE_YEAR}, the headline year` },
-  linked
-    ? { key: 'ends', icon: 'link', text: `Main-arm ${HEADLINE_YEAR} values: the story’s headline figures, linked above` }
-    : { key: 'ends', icon: 'path', text: `Each line ends with its ${HEADLINE_YEAR} value` },
-  { key: 'tip', icon: 'reading', text: 'Hover, tap or use the arrow keys for each year' },
-];
-const READING_PATH = <Items items={readingItems(true)} />;
-const READING = <Items items={readingItems(false)} />;
-const HOW = 'Each gap is the difference from a no-shock restart of OG-UK at the same closure.';
 const IMPOSED = 'Technology paths are imposed: consequences of given scenarios, not likelihood.';
 
 function consumptionFinding(sid, closure, rule = 'common') {
@@ -214,15 +206,13 @@ const TOP_FLAG = investmentFlags()[0] ?? null;
 // Each group and card names its concept; the icon comes from lib/concepts.js.
 const ECONOMY = [
   { group: 'Demand', concept: 'consumption', lede: 'What households spend and what is invested.', rows: [
-    { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { shows: READING, how: HOW, caveats: <Items items={[
+    { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { caveats: <Items items={[
       { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
       { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
       { key: 'others', icon: 'foreign', text: 'Common rule, central closure: government and foreign owners take part too' },
       C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the path through ${C_BELOW}` } : null,
     ]} /> } },
     { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
-      shows: READING,
-      how: HOW,
       caveats: <Items items={[
         { key: 'jump', icon: 'investment', text: <>Investment jumps in {SURPRISE_YEAR}: {ext(URLS.ogCoreDocs, 'OG-Core')} has no adjustment costs</> },
         { key: 'year1', icon: 'capital', text: `It stays high until the ramp ends in ${HEADLINE_YEAR}, then drops` },
@@ -234,28 +224,28 @@ const ECONOMY = [
     } },
   ] },
   { group: 'Factors', concept: 'capital', lede: 'The capital and labour that production uses.', rows: [
-    { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { shows: READING, how: HOW, caveats: <Items items={[
+    { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { caveats: <Items items={[
       { key: 'reset', icon: 'foreign', text: <>Foreign capital resets each year ({ext(URLS.ogCoreParams, 'OG-Core’s ζK rule')})</> },
       { key: 'inflow', icon: 'capital', text: 'Part of the first-year gap is an inflow with no investment recorded' },
     ]} /> } },
-    { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', concept: 'labour', about: { shows: READING, how: HOW, definitions: <Items items={[
+    { v: 'L', title: 'Labour', name: 'labour (hours worked, not jobs)', concept: 'labour', about: { caveats: <Items items={[
       { key: 'hours', icon: 'labour', text: 'Labour is hours worked, weighted by skill' },
       { key: 'jobs', icon: 'excluded', text: 'No unemployment in the model: it is not a count of jobs' },
     ]} /> } },
   ] },
   { group: 'Prices and shares', concept: 'interest', lede: 'What capital earns and how income is divided.', rows: [
-    { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interest', unit: 'pp', scale: 0.01, method: 'closures', about: { shows: READING, how: HOW, definitions: 'The return on capital, in percentage points.' } },
-    { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', concept: 'inequality', unit: 'pp', method: 'shock', about: { shows: READING, how: <Items items={[
+    { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interest', unit: 'pp', scale: 0.01, method: 'closures' },
+    { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', concept: 'inequality', unit: 'pp', method: 'shock', about: { caveats: <Items items={[
       { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
       { key: 'same', icon: 'compare', text: 'It is the same in every arm' },
       { key: 'full', icon: 'timing', text: 'It reaches full size in the headline year' },
       { key: 'derived', icon: 'arithmetic', text: <>UK sizes: <NavLink tab="method" sub="how" anchor="m-scenarios">derived from IMF SIP/2026/072</NavLink>, not printed by it</> },
-    ]} />, sources: <ResultSources /> } },
+    ]} /> } },
   ] },
 ];
 
 // The four-measure card's finding, from the signs of the arms shown: the
-// wage rate's side in every arm, and whether national income's side
+// pay rate's side in every arm, and whether national income's side
 // depends on the arm (the productivity gain). The arrow follows the sign.
 export function measuresFinding(sid, arms, closure, rule) {
   const cl = primaryClosure(closure);
@@ -268,7 +258,7 @@ export function measuresFinding(sid, arms, closure, rule) {
   const where = (x) => (side(x) === 'on' ? 'on the path' : `${side(x)} the path`);
   const every = shown.length > 1 ? ' in every arm shown' : '';
   return {
-    wage: one(w) ? { value: w[0], text: `The wage rate is ${where(w[0])}${every}` } : { value: null, text: 'The wage rate’s side depends on the arm' },
+    wage: one(w) ? { value: w[0], text: `The pay rate is ${where(w[0])}${every}` } : { value: null, text: 'The pay rate’s side depends on the arm' },
     gni: !g.length ? null : one(g) ? { value: g[0], text: `national income is ${where(g[0])}${every}` } : { value: null, text: 'whether national income is above it depends on the productivity gain' },
   };
 }
@@ -294,8 +284,8 @@ function IncomePanel({ sid }) {
   const cl = closureWords(st.closure);
   return (
     <>
-      <SectionHeading id="income" icon={iconFor('gni')} title={`Income and output, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        <Lead c="path">{`Four measures in ${HEADLINE_YEAR}, then what closed capital changes`}</Lead>
+      <SectionHeading id="income" icon={iconFor('gni')} title="How does each arm move pay, income and output?">
+        <Lead c="path">{`The three arms in ${HEADLINE_YEAR}, then what closed capital changes`}</Lead>
       </SectionHeading>
       <div className="cards-stack">
         <Card
@@ -311,6 +301,7 @@ function IncomePanel({ sid }) {
           }
           legend={
             st.closure === 'both' ? (
+              <>
               <p className="line-key">
                 <span className="line-key-item">
                   <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: central closure
@@ -319,35 +310,26 @@ function IncomePanel({ sid }) {
                   <span className="key-diamond" aria-hidden="true" /> Diamond: closed capital
                 </span>
               </p>
-            ) : null
+              <HeadlineNote rule={st.rule} />
+              </>
+            ) : (
+              <HeadlineNote rule={st.rule} />
+            )
           }
           about={{
-            definitions: (
-              <>
-                <Items
-                  items={[
-                    { key: 'w', icon: 'pay', text: 'Wage rate: pay per unit of labour, adjusted for skill' },
-                    { key: 'gni', icon: 'gni', text: <>{ext('https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/abmz/ukea', 'GNI')}: GDP less returns paid to foreign owners of UK capital and gilts</> },
-                    { key: 'nni', icon: 'depreciation', text: 'NNI: GNI after depreciation' },
-                  ]}
-                />
-                <StressNote sid={sid} />
-              </>
-            ),
             caveats: (
               <Items
                 items={[
-                  { key: 'cut', icon: 'pay', text: 'A negative wage gap is a level below a rising path' },
+                  { key: 'cut', icon: 'pay', text: 'A negative pay-rate gap is a level below a rising path' },
                   { key: 'obr', icon: 'source', text: <>The path assumes productivity growth of 1 per cent a year ({ext(efo(EFO_PAGE.p1_2), 'OBR EFO, March 2026, ¶1.2')})</> },
                   ...(wageClosureLines(sid) ?? []).map((t, i) => ({ key: `wz${i}`, icon: i ? 'closure' : 'pay', text: t })),
                   wageClosureLines(sid) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
-                  { key: 'us', icon: 'model', text: <>ζK 0.1: {ext(URLS.ogCoreParams, 'OG-Core’s US default')}, chosen by the study</> },
+                  ...stressItems(sid),
                 ]}
               />
             ),
-            sources: <ResultSources sid={sid} />,
           }}
-          method="closures"
+          foot={<SourcesLine sid={sid} method="closures" />}
           download={{
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
             context: () => contextLine(sid, st.closure, '% difference from the OBR-central path', st.rule),
@@ -370,12 +352,10 @@ function IncomePanel({ sid }) {
 // figures and the other arms' are in the four-measure card, so their lines
 // carry no end value.
 const INCOME_TILES = [
-  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', ends: false, method: 'closures', about: { shows: READING_PATH, how: HOW, caveats: IMPOSED } },
+  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', ends: false, method: 'closures', about: { caveats: IMPOSED } },
   {
     v: 'Y', title: 'Total output (GDP)', name: 'GDP', concept: 'gdp', ends: false, method: 'closures',
     about: {
-      shows: READING_PATH,
-      how: HOW,
       caveats: (
         <Items
           items={[

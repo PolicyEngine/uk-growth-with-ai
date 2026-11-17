@@ -1,37 +1,33 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
-import Reveal from '@/components/story/Reveal.jsx';
 import { useNav } from '@/lib/nav.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
-import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, BOUND, gap } from '@/tabs/ai/surprise.js';
-import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
+import { HEADLINE_YEAR, SCEN_NAME } from '@/tabs/ai/surprise.js';
+import { primaryClosure } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
-import { ArmsPair, WelfareShape, series, afterWords } from './part2/charts.jsx';
-import { Tx } from './part2/frame.jsx';
+import { WelfareShape } from './part2/charts.jsx';
 import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
-import { A, SRC } from './part2/sources.jsx';
-import {
-  shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, armsCardSteps, ARMS_STATES, whoCardSteps, partMarks, debtWords, othersEndHigher,
-} from './part2/steps.jsx';
+import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, whoCardSteps, partMarks, Say } from './part2/steps.jsx';
 
-export { debtWords, othersEndHigher, scenarioDir, tzItem, debtItems } from './part2/steps.jsx';
+export { scenarioDir } from './part2/steps.jsx';
 
 // Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
 // 2028, against the no-shock OBR-central path. It is the one home of the
 // three headline figures (HeadlineTiles and SummaryWhy, in #story-headline,
-// which Results links to) and of where 2031 output goes (#story-output: the
-// Sankey's shares and the waterfall's changes). Every other figure has its
-// home on another tab: here the charts draw shapes only, the sentences give
-// directions only, and each step links to the figure's home. The header's
-// scenario and closure apply throughout, except Who gains, which is solved
-// for UK central only. Order: the model line, the shock (2S), the GDP
-// canvas from the record to the four scenarios (2A), the headline figures,
-// where output goes, three arms with output and public debt (2B), who gains
-// (2W), then the band to part 3 with links to the figures' homes.
+// the GDP scene's last step, which the Hero and Explore link to) and of
+// where 2031 output goes (#story-output: the Sankey's shares and the
+// waterfall's changes). Every other figure has its home on another tab:
+// here the charts draw shapes only, the sentences give directions only.
+// The header's scenario and closure apply throughout, except Who gains,
+// which is solved for UK central only. Order: the model line, the shock
+// (2S), the GDP canvas from the record to the four scenarios and the
+// headline figures (2A), where output goes, who gains (2W). The three arms
+// and public debt live on Explore (Economy, Public finances), linked from
+// the headline step.
 
 // Each block's opener (Scrolly renders it): a neutral question the block
 // answers. Its key takeaway is the last card's closing line (takeaway()),
@@ -50,27 +46,18 @@ export const SUBS = {
     answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
   },
   morph: {
-    title: 'From the record to the scenarios',
+    title: 'GDP and the headline figures',
     icon: 'path',
     question: 'How far does GDP move from the OBR-central path in each scenario?',
-    hint: 'Watch the growth axis turn into a gap against the path',
+    hint: 'Watch the axis switch from growth to a gap against the path',
     answer: 'GDP ends above the path in every scenario',
-    answerTo: 'story-headline',
-  },
-  arms: {
-    title: 'Three arms: output and public debt',
-    icon: 'ai',
-    question: 'What does the productivity gain add, for output and for public debt?',
-    hint: 'Compare the three arms after the shock completes',
-    answer: 'Without it, GDP is lower and public debt ends further above the path',
-    answerTo: { tab: 'explore', sub: 'finances' },
   },
   who: {
     title: 'Who gains and who loses',
     icon: 'age',
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
-    answer: 'Gains peak near retirement; on other measures some adults lose',
+    answer: 'Gains peak near retirement; with debt-neutral transfers kept on past 2036, some adults lose',
     // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
   },
@@ -82,7 +69,7 @@ export const SUBS = {
 export const RECAP = [
   { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the OBR-central path in every scenario', to: 'story-headline' },
   { icon: 'outputSplit', q: 'Who gets the extra output?', a: 'Capital income rises more than GDP', to: 'story-output' },
-  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; on other measures some lose', to: { tab: 'explore', sub: 'who' } },
+  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; with transfers kept on past 2036, some adults lose', to: { tab: 'explore', sub: 'who' } },
 ].map((it) => ({ ...it, text: it.a }));
 
 export default function Part2({ part }) {
@@ -90,35 +77,11 @@ export default function Part2({ part }) {
   const sid = st.s;
   const closure = st.closure;
   const cl = primaryClosure(closure);
-  const tzLess = (gap(sid, 'tz', cl, 'Y') ?? 0) < (gap(sid, 'tfp', cl, 'Y') ?? 0);
-  // what the main arm does after HEADLINE_YEAR at each closure drawn
-  const afterMain = closuresFor(closure)
-    .map((c) => [c, afterWords(series(sid, 'tfp', c, 'Y'))])
-    .filter(([, w]) => w);
-  const afterText = afterMain.length
-    ? ` and ${afterMain.map(([c, w]) => (afterMain.length > 1 ? `${w} at ${c === BOUND ? 'closed capital' : 'the central closure'}` : w)).join(' and ')} after ${HEADLINE_YEAR}`
-    : '';
-  const gdpLabel = (i) =>
-    [
-      `Line chart, shape only: GDP against the OBR-central path, ${SCEN_NAME[sid]}. The main arm, automation + productivity, rises from ${SURPRISE_YEAR}${afterText}.`,
-      i >= 1 ? `Technology unchanged is ${tzLess ? 'lower than the main arm' : 'at least as high as the main arm'}.` : '',
-      i >= 2 ? `The stress test is back on the path by ${HEADLINE_YEAR}.` : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
-  const debtMain = debtWords(sid, 'tfp', cl);
-  const debtLabel = (i) =>
-    `Below it, public debt as a share of GDP against the OBR-central path to ${LATE_YEAR}, ${SCEN_NAME[sid]}.${
-      debtMain ? ` In the main arm it ${debtMain}.` : ''
-    }${i >= 1 && othersEndHigher(sid, cl) ? ' The other two arms end further above the path.' : ''}`;
   const marks = partMarks(sid);
   return (
     <MarkProvider marks={marks}>
-      <PartHead part={part}>
-        <span className="p2-lead">
-          <A href={SRC.ogUk}>OG-UK</A>, built on <A href={SRC.ogCore}>OG-Core</A> with no unemployment: an AI shock in {SURPRISE_YEAR}, as gaps against the OBR-central path.
-        </span>
-      </PartHead>
+      {/* the part's model line is StoryTab's (PARTS[1].modelLine) */}
+      <PartHead part={part} />
 
       <Scrolly
         id="p2-shock"
@@ -129,39 +92,18 @@ export default function Part2({ part }) {
         graphic={(i) => <ShockTiles state={i + 1} />}
       />
 
+      {/* the GDP scene: the gap, the four scenarios, then the headline
+          figures as its last step (the tiles are in the DOM in every state) */}
       <Scrolly
         id="p2-morph"
         scene
         sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer }}
-        label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
-        steps={morphCardSteps(sid, cl)}
+        label="From GDP growth to the gap against the OBR-central path, then the four scenarios and the headline figures"
+        steps={[...morphCardSteps(sid, cl), headlineStep(sid)]}
         graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
       />
 
-      <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">
-        <h3 id="story-headline-h" className="p2-headline-title">
-          <Tx icon="headline" size={22}>
-            The headline figures: {SCEN_NAME[sid]}, {HEADLINE_YEAR}
-          </Tx>
-        </h3>
-        <p className="p2-headline-lead">The main arm, automation + productivity, against the OBR-central path.</p>
-        <HeadlineTiles sid={sid} />
-        <SummaryWhy sid={sid} />
-      </Reveal>
-
       <OutputSplit sid={sid} closure={closure} />
-
-      <Scrolly
-        id="p2-arms"
-        scene
-        sub={SUBS.arms}
-        label={`GDP and public debt in three arms, ${SCEN_NAME[sid]}`}
-        steps={armsCardSteps(sid, closure)}
-        graphic={(i) => {
-          const s = ARMS_STATES[i] ?? 4;
-          return <ArmsPair state={s} sid={sid} closure={closure} label={s < 3 ? gdpLabel(s) : `${gdpLabel(2)} ${debtLabel(s - 3)}`} />;
-        }}
-      />
 
       <Scrolly
         id="p2-who"
@@ -171,7 +113,29 @@ export default function Part2({ part }) {
         steps={whoCardSteps()}
         graphic={(i) => <WelfareShape state={i} />}
       />
-
     </MarkProvider>
   );
+}
+
+// The GDP scene's last step: the three headline figures (their one home,
+// #story-headline, which the Hero, Explore and Headline link to) and the
+// one why line under them.
+function headlineStep(sid) {
+  return {
+    id: 'p2-headline',
+    icon: 'headline',
+    title: `The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`,
+    highlight: [`scen-${sid}`],
+    body: (
+      <>
+        <Say>
+          {SCEN_NAME[sid]} in {HEADLINE_YEAR}: the main arm, automation + productivity, against the OBR-central path.
+        </Say>
+        <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
+          <HeadlineTiles sid={sid} />
+          <SummaryWhy sid={sid} />
+        </section>
+      </>
+    ),
+  };
 }

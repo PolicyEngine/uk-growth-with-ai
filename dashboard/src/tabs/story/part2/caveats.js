@@ -6,7 +6,7 @@
 // caveat does not hold for the cell in view.
 import S from '@/data/surprise2028.json';
 import C from '@/data/cohorts2028.json';
-import { YEARS, HEADLINE_YEAR, LATE_YEAR, CENTRAL, BOUND, gap, result } from '@/tabs/ai/surprise.js';
+import { YEARS, HEADLINE_YEAR, CENTRAL, BOUND, gap } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
 
 const H = YEARS.indexOf(HEADLINE_YEAR);
@@ -71,30 +71,6 @@ export function paySigns(sid) {
   if (ws.length < 2) return null;
   const signs = new Set(ws.map((w) => (Math.abs(w) < EPS2 ? 0 : Math.sign(w))));
   return signs.size > 1 ? 'flips' : null;
-}
-
-// The stress test: output at fixed inputs ends below the technology-
-// unchanged arm's (a productivity loss built in to hold GDP on the path).
-export function stressBelow(sid, cl) {
-  const ss = result(sid, 'ss', cl);
-  const tz = result(sid, 'tz', cl);
-  if (ss.status !== 'done' || tz.status !== 'done') return false;
-  return ss.Z_terminal < tz.Z_terminal;
-}
-
-// Public debt: what another fiscal setting does to the main arm's late-year
-// gap. Fixed spending (solved for some scenarios) when it ends on the other
-// side of the path, else OBR-style repricing when the rise is smaller.
-export function debtRuleWord(sid, cl) {
-  const main = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
-  if (main == null) return null;
-  const side = (x) => (Math.abs(x) < EPS2 ? 0 : Math.sign(x));
-  const f = S.rules?.fixed_spending?.results?.[sid]?.tfp?.[cl];
-  const fixed = f?.status === 'done' ? f.gaps.debt_gdp_pp[YEARS.indexOf(LATE_YEAR)] : null;
-  if (fixed != null && side(fixed) !== side(main)) return { kind: 'fixed', dir: fixed < 0 ? 'below' : fixed > 0 ? 'above' : 'on' };
-  const rep = result(sid, 'tfp', cl).debt_gdp_pp_obr_repricing_late;
-  if (Number.isFinite(rep) && main > EPS2 && rep < main) return { kind: 'repricing', dir: rep < 0 ? 'below' : 'smaller' };
-  return null;
 }
 
 // Who gains (UK central, central closure, debt-neutral transfers): what the

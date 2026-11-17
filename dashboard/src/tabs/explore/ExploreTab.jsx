@@ -19,9 +19,10 @@ const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sente
 // Explore: every interactive view. Each sub-tab opens with its question and
 // a short answer in items that follows the pickers, then the charts. Economy
 // (income and output, then the rest of the economy) and Public finances
-// follow the header pickers and the fiscal rule; Economy opens with "Across
-// scenarios" (every cell at once, AllScenarios) and Public finances ends with
-// debt/GDP in every cell (AcrossDebt). The All scenarios sub-tab is gone
+// follow the header pickers and the fiscal rule; Economy opens with the
+// three arms (the home the story links to) and ends with "Across scenarios"
+// (every cell at once, AllScenarios); Public finances opens with debt/GDP by
+// arm and ends with debt/GDP in every cell (AcrossDebt). The All scenarios sub-tab is gone
 // (lib/nav.jsx sends ?sub=all to #ex-across). Who gains is UK central
 // only; Households is the
 // uk-ai-study detail (its own page). Each sub-tab's sections keep their ids,
@@ -36,9 +37,9 @@ export default function ExploreTab() {
         <PageIntro icon={iconFor('gdp')} question="How do pay, national income and GDP move if AI arrives in 2028 (an assumed date)?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
           <RuleBar />
         </PageIntro>
-        <AllScenarios />
         <ResultsTab sub="income" />
         <ResultsTab sub="economy" />
+        <AllScenarios />
       </>
     );
   else if (sub === 'finances')

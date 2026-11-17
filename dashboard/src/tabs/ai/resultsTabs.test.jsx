@@ -50,11 +50,11 @@ describe('Results follows the data file', () => {
     // The headline tiles (and the pending closed-capital value with Both)
     // live in story part 2: tested in tabs/story/part2.test.jsx.
     // Income and output: the four-measure card; the main arm's GNI, GDP and
-    // wage rate have their home in the story: a muted reference row here,
-    // each linked there
+    // pay rate have their home in the story: muted reference values here,
+    // named once in a line linked there
     const income = text('sub=income&closure=both');
     expect(income.match(/\+1\.23%/g)).toHaveLength(1);
-    expect(income.match(/Headline(?! year)/g)).toHaveLength(3);
+    expect(income.match(/headline figures, at home in the story/g)).toHaveLength(1);
     expect(income).toContain('closed capital pending');
     expect(text('sub=economy')).toContain('+4.44%');
     expect(text('sub=finances')).toContain('+7.78pp');

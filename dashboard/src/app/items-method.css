@@ -76,10 +76,10 @@
 }
 
 /* a short line led by a plain concept icon (IconText) */
+/* text only since round 1 (no icon), so plain inline text: a flex box
+   split its words and links into narrow columns on a phone */
 .mx-it {
-  display: inline-flex;
-  gap: 6px;
-  align-items: flex-start;
+  display: inline;
 }
 .mx-it-icon {
   display: inline-flex;
@@ -170,46 +170,6 @@
   font-size: var(--fs-small);
 }
 
-/* scenario cards: paired input bars, one row per input, each with its source as a chip */
-.mx-tab .mx-scen-bars {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
-}
-.mx-scen-bars dd {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 6px;
-}
-.mx-scen-bars .mx-bar {
-  flex: 0 0 100%;
-  display: block;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--pe-gray-100);
-  overflow: hidden;
-}
-.mx-scen-bars .mx-bar > span {
-  display: block;
-  height: 100%;
-  background: var(--pe-gray-600);
-  transform-origin: left center;
-  transition: transform 0.4s ease;
-}
-.mx-scen-bars .mx-chip-src {
-  max-width: 100%;
-  padding: 1px 8px;
-  border: 1px solid var(--pe-gray-200);
-  border-radius: 6px;
-  font-size: var(--fs-caption);
-  font-weight: 400;
-  line-height: 1.4;
-  color: var(--pe-gray-600);
-}
-@media (prefers-reduced-motion: reduce) {
-  .mx-scen-bars .mx-bar > span { transition: none; }
-}
-
 /* Data and code: the versions and releases cards one above the other; the
    citation and limitations cards keep their own heights */
 .cards-grid.mx-stack-grid {
@@ -298,9 +258,6 @@ p.mx-axis-title.is-x {
 }
 /* One row of links under a Method section: used by, then replicate */
 .mx-uses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
   margin: -4px 0 16px;
   font-size: 12px;
   color: var(--pe-gray-600);
@@ -317,8 +274,7 @@ p.mx-axis-title.is-x {
 
 /* Kind of source: a small chip, a plain icon, one colour per kind (no teal
    or amber: those mark gains and losses) */
-.mx-inputs,
-.mx-scen {
+.mx-inputs {
   --k-published: #026aa2;
   --k-derived: #6941c6;
   --k-default: #475467;
@@ -503,100 +459,26 @@ p.mx-axis-title.is-x {
   .mx-inputs-row > th { flex: 1 1 60%; min-width: 0; padding-left: 18px; }
   .mx-inputs-row > .mx-inputs-v { flex: 0 1 auto; max-width: 38%; white-space: normal; text-align: right; }
   .mx-inputs-row > .mx-inputs-k { flex: none; padding-left: 18px; }
-  .mx-inputs-row > .mx-inputs-src { flex: 1 1 0; min-width: 0; }
+  .mx-inputs-row > .mx-inputs-src { flex: 1 1 100%; min-width: 0; padding-left: 18px; overflow-wrap: anywhere; }
   .mx-inputs-detail td { padding: 0 0 12px 18px; }
 }
 
-/* scenario cards: values, the kind of source, one source, a link to the row */
-.mx-scen-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin: 12px 0;
-}
-.mx-scen {
-  padding: 14px 16px;
-  border: 1px solid var(--pe-gray-200);
-  border-radius: var(--card-radius, 12px);
-}
-.mx-scen.is-upper { border-style: dashed; }
-.mx-scen-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2px 8px;
-  margin: 0 0 10px;
-  font-size: 17px;
-  font-weight: 600;
-}
-.mx-scen-role {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--pe-gray-600);
-}
-.mx-scen .mx-scen-bars dt {
-  font-size: 12px;
-  color: var(--pe-gray-600);
-}
-.mx-scen-v {
-  font-size: 24px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-.mx-scen-src {
-  font-weight: 400;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  font-size: 12px;
-}
-.mx-scen .mx-sub { margin: 10px 0 0; font-size: 12px; color: var(--pe-gray-600); }
-
-/* limitations: tiles of icon, title and one line; the rest opens below */
-.mx-limit-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0 24px;
+/* limitations: one short list, a line each */
+.mx-limit-list {
+  max-width: 78ch;
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.mx-limit-tile {
-  padding: 12px 0;
-  border-top: 1px solid var(--pe-gray-200);
+  padding: 0 0 0 18px;
   font-size: 14px;
+  line-height: 1.5;
+  color: var(--pe-gray-700);
 }
-.mx-limit-tile summary {
-  list-style: none;
-  cursor: pointer;
-}
-.mx-limit-tile summary::-webkit-details-marker { display: none; }
-.mx-limit-tile summary,
-.mx-limit-head {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) 14px;
-  gap: 2px 8px;
-  align-items: start;
-}
-.mx-limit-tile summary::after {
-  content: '';
-  grid-column: 3;
-  grid-row: 1;
-  width: 7px;
-  height: 7px;
+.mx-limit-list li + li {
   margin-top: 6px;
-  border-right: 1.5px solid var(--pe-gray-500);
-  border-bottom: 1.5px solid var(--pe-gray-500);
-  transform: rotate(45deg);
 }
-.mx-limit-tile details[open] summary::after { transform: rotate(-135deg); margin-top: 9px; }
-.mx-limit-icon { grid-row: 1; margin-top: 2px; color: var(--pe-gray-500); display: inline-flex; }
-.mx-limit-title { grid-column: 2; font-weight: 600; }
-.mx-limit-line { grid-column: 2; font-size: 12px; color: var(--pe-gray-600); }
-.mx-limit-tile .story-items { margin: 8px 0 0 24px; font-size: 12px; }
+.mx-limit-title {
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
 
 /* Method card grids: one Details fold under the grid, not one per card */
 .mx-foldgrid > .disclosure-in-card {
@@ -604,4 +486,14 @@ p.mx-axis-title.is-x {
 }
 .mx-foldgrid > .disclosure-in-card > .disclosure-toggle {
   padding-top: 10px;
+}
+@media (min-width: 900px) {
+  .mx-limit-list {
+    max-width: none;
+    columns: 2;
+    column-gap: 40px;
+  }
+  .mx-limit-list li {
+    break-inside: avoid;
+  }
 }
