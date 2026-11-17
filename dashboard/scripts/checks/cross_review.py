@@ -13,6 +13,11 @@ import glob, importlib.util, json, os, statistics, sys
 #     equal the per-solve records, and the page prints that count.
 #   - Who gains: the rows solved to the horizon print only when
 #     cohorts2028.json has a ready `dnfull` block, and then print its ranges.
+# And from the economics review of round 1 (explanations only):
+#   - gilt yields rise one for one with the return on capital (Public
+#     finances): in every solve, r_gov moves with r within 0.5bp a year;
+#   - the 2028 investment flag the Explore cards print (explore/caveats.js
+#     I_FLAG_PCT) equals analysis/surprise/expectations.json i_jump_flag_pct.
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, '..', '..', '..')
@@ -95,6 +100,28 @@ def check(dump):
                 bad += 1; print(sid, 'Who gains: dnfull rows not printed once each')
         elif 'solved to the horizon' in who:
             bad += 1; print(sid, 'Who gains: dnfull rows print without the data')
+    # gilt rate one for one with r
+    worst = 0.0
+    for sid, arms in S['results'].items():
+        for a, by in arms.items():
+            for cl, r in by.items():
+                if r['status'] != 'done':
+                    continue
+                s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
+                f_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
+                for k in range(len(S['years'])):
+                    worst = max(worst, abs((s_['r_gov'][k] - f_['r_gov'][k]) - (s_['r'][k] - f_['r'][k])) * 1e4)
+    if worst > 0.5:
+        bad += 1; print(f'gilt rate: moves {worst:.2f}bp apart from r in a solve')
+    else:
+        print(f'gilt rate: one for one with r in every solve (largest gap {worst:.2f}bp)')
+    # investment flag
+    exp_ = json.load(open(os.path.join(ROOT, 'analysis', 'surprise', 'expectations.json')))
+    src = open(os.path.join(HERE, '..', '..', 'src', 'tabs', 'explore', 'caveats.js')).read()
+    import re
+    m = re.search(r"I_FLAG_PCT = ([\d.]+)", src)
+    if not m or float(m.group(1)) != float(exp_['i_jump_flag_pct']):
+        bad += 1; print('investment flag: caveats.js does not match expectations.json')
     print('cross review:', 'ok' if not bad else f'{bad} failures',
           '(dnfull block', 'in the data)' if (CO.get('dnfull') or {}).get('ready') else 'not in the data yet: rows hidden)')
     return bad

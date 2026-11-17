@@ -182,8 +182,9 @@ for rid, rule in D.get('rules', {}).items():
 # the post-2035 cost charged (a range), the capital and labour sources, the
 # bottom and top earnings groups, and the 45-year-old's transfer cost. Two
 # different facts can round to the same figure (the no-bequest average and
-# the top 1%), so this is a multiset. The by-form parts sit in a closed fold
-# and are not in the page text.
+# the top 1%), so this is a multiset. The by-form parts (consumption,
+# leisure, bequests: parts_alive) print once, beside their key, at the
+# central closure (with Both too).
 CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
 def tiles(c, cl=None):
     exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['sources_alive']['capital'], c['sources_alive']['labour']])
@@ -203,9 +204,11 @@ def why(c):
         exp[f"{abs(x):.1f}%"] += 1
     return exp
 c = CO['closures'][C]['rules']['dn']['tfp']
+def parts(c):
+    return Counter(signed(c['parts_alive'][k], 2) + '%' for k in ('consumption', 'leisure', 'bequests'))
 # With Closure = Both (who:both) the tiles print once per closure; the Why
 # cards stay at the central closure.
-EXPECT = {'who': tiles(c, C) + why(c), 'who:both': tiles(c, C) + tiles(CO['closures'][B]['rules']['dn']['tfp'], B) + why(c)}
+EXPECT = {'who': tiles(c, C) + why(c) + parts(c), 'who:both': tiles(c, C) + tiles(CO['closures'][B]['rules']['dn']['tfp'], B) + why(c) + parts(c)}
 for sid in dump:
     for key, exp in EXPECT.items():
         got = Counter(NUM.findall(dump[sid].get(key, '')))

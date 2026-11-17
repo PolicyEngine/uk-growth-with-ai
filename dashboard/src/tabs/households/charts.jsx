@@ -30,7 +30,6 @@ export const STEP = {
   central: { n: 1, anchor: 'p3-central-step' },
   rules: { n: 5, anchor: 'p3-rules-step' },
   margin: { n: 6, anchor: 'p3-margin-step' },
-  moves: { n: 7, anchor: 'p3-takeup-step' },
   deciles: { n: 4, anchor: 'p3-deciles-step' },
 };
 

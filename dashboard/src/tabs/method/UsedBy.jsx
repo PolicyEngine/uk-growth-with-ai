@@ -46,7 +46,7 @@ export const USES = {
     { tab: 'story', anchor: 'p3-rules-step', icon: 'story', label: 'Story, part 3: five rules' },
     { tab: 'explore', sub: 'households', anchor: 'hh-rules', icon: 'draws', label: 'Households: the rules' },
   ],
-  'hm-takeup': [{ tab: 'story', anchor: 'p3-takeup-step', icon: 'story', label: 'Story, part 3: take-up' }],
+  'hm-takeup': [{ tab: 'explore', sub: 'households', anchor: 'hh-ladder', icon: 'takeUp', label: 'Households: take-up and JSA' }],
 };
 
 // Replication: the code and the result file behind each section. OG-UK's at

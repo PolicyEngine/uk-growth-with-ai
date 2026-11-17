@@ -70,6 +70,12 @@ export const OG_RESULT_URLS = {
   doc: atRef(RESULTS_SHA, 'docs/surprise_2028.md'),
   cohortsDir: atRef(RESULTS_SHA, 'analysis/surprise/cohorts', 'tree'),
   cohortScript: atRef(COHORTS_SHA, 'paper/cohort_welfare.py'),
+  // the sanity gate: the 2028 investment flag (+17%), flagged, never failed
+  sanity: atRef(RESULTS_SHA, 'docs/surprise_2028.md#the-sanity-gate-after-every-solve'),
+  // the gilt rate is the private return less about 2pp: one for one with r
+  giltRate: atRef(RESULTS_SHA, 'docs/rerun_r1_r4.md'),
+  // the real-world plausibility review: investment rows rated implausible
+  plausibility: atRef('bf9b55f706f965c6d29d5070bc3a7dd409d9a5eb', 'docs/redesign/real-world-plausibility.md'),
 };
 // uk-ai-study PR #18: a file at the PR's commit (GitHub's blob view renders a
 // CSV as a table).

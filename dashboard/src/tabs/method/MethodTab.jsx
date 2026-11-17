@@ -107,9 +107,18 @@ function ClosureCards() {
   );
 }
 
+// The foreign-owned share of UK central's extra capital in the headline year
+// (main arm, central closure, common rule): surprise2028.json
+// foreign_share_dK_2031, whole per cent. Its figure has one home (the
+// story's GNI tile); Method says only whether it is most.
+const FOREIGN_DK = (() => {
+  const x = S.results?.uk_central?.tfp?.[CENTRAL]?.foreign_share_dK_2031;
+  return typeof x === 'number' ? Math.round(x) : null;
+})();
+
 const MEASURES = [
   { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR-central path in ${HEADLINE_YEAR}.` },
-  { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts. The headline.' },
+  { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts.' },
   { k: 'NNI', icon: 'depreciation', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
 ];
 
@@ -185,7 +194,8 @@ function Limitations() {
       title: 'Slow capital response',
       points: [
         { icon: 'timing', text: `Capital has three years to respond by ${HEADLINE_YEAR}.` },
-        { icon: 'foreign', text: 'Foreign inflows are capped.' },
+        { icon: 'foreign', text: <>Proportional inflow: foreigners meet {pct(ZETA[CENTRAL], 0)} of {ext(URLS.ogCoreParams, 'excess capital demand')}.</> },
+        FOREIGN_DK != null && FOREIGN_DK > 50 ? { icon: 'capital', text: `So foreigners supply most of UK central’s extra capital by ${HEADLINE_YEAR}.` } : null,
         { icon: 'compare', text: 'Implied year-4 capital-supply elasticity: below the lowest case in:' },
         { icon: 'source', text: <>{cite('korinekT5')}.</> },
         { icon: 'capital', text: <>It rises towards the steady state as saving builds ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },

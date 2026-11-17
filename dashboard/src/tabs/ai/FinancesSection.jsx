@@ -18,7 +18,12 @@ import { iconFor } from '@/lib/concepts.js';
 import { Dir, dirConcept, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { SOURCES as LIT } from '@/data/literature.js';
-import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
+import { debtDipIsDenominator, debtSidesByRule, signHeading } from '@/tabs/explore/caveats.js';
+import AIS from '@/data/aiScenarios.json';
+
+// OG-UK's world interest rate, the run's closure settings (aiScenarios.json).
+const WORLD_RATE = AIS.assum?.closure?.world_int_rate_annual;
 import { ResultSources, methodLink } from '@/tabs/explore/sources.jsx';
 import NICS from '@/tabs/explore/nics2028.json';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
@@ -93,6 +98,27 @@ function DebtFinding({ p }) {
       {sideOf(p.b)} it by {LATE_YEAR}.
     </>
   );
+}
+
+// Economics review, round 1 (explore/caveats.js): why debt/GDP first dips,
+// how its late-year sign moves with the fiscal rule and repricing, and the
+// gilt rate. Each item is gated on the data for the scenario and closure in
+// view; none under the debt-neutral rule, which holds debt on the path.
+const RULE_WORD = { common: 'common rule', obr: 'OBR repricing', fixed: 'fixed spending' };
+export function debtReviewItems(sid, closure, rule) {
+  if (rule === 'dn') return [];
+  const cl = closure === 'closed' ? BOUND : CENTRAL;
+  const sides = debtSidesByRule(sid, cl);
+  const head = signHeading(sides);
+  const split = head != null;
+  return [
+    debtDipIsDenominator(sid, cl, rule) ? { key: 'dip', icon: 'gdp', text: `The ${SURPRISE_YEAR} dip is GDP rising on a debt stock already set` } : null,
+    split ? { key: 'sign', icon: 'rule', text: `Its ${LATE_YEAR} sign depends on ${head}:` } : null,
+    split ? { key: 'sides', icon: 'compare', text: sides.map((x) => `${RULE_WORD[x.key]}: ${x.side}`).join('; ').replace(/^./, (c) => c.toUpperCase()) } : null,
+    rule === 'common' ? { key: 'dividend', icon: 'gdp', text: 'Common rule: spending grows with GDP, so growth brings no dividend' } : null,
+    { key: 'gilt', icon: 'interest', text: <>Gilt yields rise {ext(OG_RESULT_URLS.giltRate, 'one for one')} with the return on capital</> },
+    typeof WORLD_RATE === 'number' ? { key: 'world', icon: 'foreign', text: `The world interest rate stays fixed at ${Math.round(WORLD_RATE * 100)}%` } : null,
+  ].filter(Boolean);
 }
 
 function debtNotes(p) {
@@ -661,6 +687,7 @@ export default function FinancesSection({ sid }) {
               <Items
                 items={[
                   { key: 'once', icon: 'interest', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} reprices all government debt at the new rate at once</> },
+                  ...debtReviewItems(sid, st.closure, st.rule),
                   { key: 'obr', icon: 'timing', text: `At the OBR’s repricing speed, a first-order recalculation: the ${LATE_YEAR} rise is ${REPRICE_RANGE[0].toFixed(0)}–${REPRICE_RANGE[1].toFixed(0)}% as large` },
                   { key: 'where', icon: 'range', text: `That range covers the ${REPRICE_RATIOS.length} of ${REPRICED.length} cells still above the path at that speed` },
                   { key: 'stocks', icon: 'rule', text: <>{LATE_YEAR}: {ext(URLS.ogCoreParams, 'OG-Core’s budget closure rule')} starts; {ext(TG1_URL, 'set in this study')} (OG-UK&rsquo;s default is {OGUK_TG1_YEAR})</> },

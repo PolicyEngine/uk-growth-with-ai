@@ -364,7 +364,19 @@ function Spark({ c }) {
 // The same average by form: a bar split into consumption, leisure and
 // bequests (one part at a time on the scenario path). The values are in the
 // tooltips: the parts need not add up to the total.
-function ByForm({ p, both }) {
+// The parts of the average (cohorts2028.json parts_alive): each printed
+// once here, beside its key. A line says when bequest value is most of it
+// (economics review, round 1: of +0.79%, bequests 0.52) and, when the later
+// fiscal cost can be charged (measure T), that the split depends on it.
+export function byFormWords(p, hasT) {
+  return [
+    p.bequests > p.consumption + p.leisure ? { key: 'most', icon: 'bequests', text: 'Most of the average is the value of leaving bequests' } : null,
+    p.consumption < Math.min(p.leisure, p.bequests) ? { key: 'least', icon: 'consumption', text: 'Consumption is the smallest part' } : null,
+    hasT ? { key: 'rule', icon: 'benefits', text: 'Who bears the later fiscal cost changes who gains: measure T' } : null,
+  ].filter(Boolean);
+}
+
+function ByForm({ p, both, hasT = false }) {
   const parts = [
     { k: 'consumption', label: 'Consumption', v: p.consumption },
     { k: 'leisure', label: 'Leisure', v: p.leisure },
@@ -385,13 +397,14 @@ function ByForm({ p, both }) {
         {parts.map((x) => (
           <li key={x.k}>
             <span className={`ex-byform-swatch is-${x.k}`} data-icon="" aria-hidden="true" />
-            <Icon name={iconFor(x.k)} size={12} /> {x.label}
+            <Icon name={iconFor(x.k)} size={12} /> {x.label} <b className="num">{pct(x.v)}</b>
           </li>
         ))}
         <li>
           <Icon name={iconFor('caveat')} size={12} /> Parts need not add up to the total
         </li>
       </ul>
+      <Items className="ex-byform-notes" items={byFormWords(p, hasT)} />
     </div>
   );
 }
@@ -619,7 +632,7 @@ export default function WhoGainsTab() {
       ) : (
         <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} onMeasure={setMeasure} />
       )}
-      <ByForm p={p} both={both} />
+      <ByForm p={p} both={both} hasT={measuresOf(c, rule, cl, arm).some((m) => m.id === 'T')} />
       <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
       <div className="cards-stack stack-gap">
         <Card
