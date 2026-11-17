@@ -281,8 +281,12 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       const card = li?.querySelector('.scrolly-card');
       if (!card) return;
       for (const c of col.querySelectorAll('.scrolly-card')) if (c !== card) c.style.transform = '';
-      const H = card.offsetHeight;
-      const liTop = li.getBoundingClientRect().top;
+      // centre the sentence (the body), not the card: part CSS floors a
+      // card's height, which would put the sentence above its mark
+      const body = card.querySelector('.scrolly-body') ?? card;
+      const H = body.offsetHeight;
+      const lead = body.getBoundingClientRect().top - card.getBoundingClientRect().top;
+      const liTop = li.getBoundingClientRect().top + lead;
       const desk = window.innerWidth > 900;
       let y;
       if (desk) {
