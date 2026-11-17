@@ -58,8 +58,8 @@ def block(text):
     a = text.find('Where output goes in')
     if a < 0:
         return None
-    # it ends where the three-arms block starts (its title or its question)
-    ends = [b for b in (text.find('Three arms', a), text.find('What does the productivity gain add', a)) if b > 0]
+    # it ends where the Who gains block starts (its title or its question)
+    ends = [b for b in (text.find('Who gains and who loses', a), text.find('Which generations gain', a)) if b > 0]
     return text[a:min(ends)] if ends else text[a:]
 
 

@@ -76,38 +76,39 @@ describe('story part 2', () => {
 
   it('every chart is an image with a text alternative, and links keep the reader’s choices', () => {
     const { container } = at('tab=story&s=uk_high&closure=both');
-    const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid, .p2-pair .ch-cross > svg')];
-    expect(svgs.length).toBe(4); // shock tiles, the GDP canvas (2A), the arms pair (2B), who gains
+    const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid')];
+    expect(svgs.length).toBe(3); // shock tiles, the GDP canvas (2A), who gains
     expect(container.querySelectorAll('svg.sankey')).toHaveLength(1);
     for (const s of svgs) {
       expect(s.getAttribute('role')).toBe('img');
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    expect(container.querySelectorAll('.story-source')).toHaveLength(5); // the output split's two charts share one foot
+    expect(container.querySelectorAll('.story-source')).toHaveLength(4); // the output split's two charts share one foot
     const hrefs = [...container.querySelectorAll('#story-part-2 a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
-    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both#public-finances');
     // the Scenarios sub-tab folded into OG-UK method
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
     // the caveats link the figures' homes: the closures (pay), Economy (capital drawn in, NNI)
     expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-all'))).toBe(true);
-    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#economy-wall');
     // no next-part band, no per-step result-file lines or folds
     expect(container.querySelector('.story-next-links')).toBeNull();
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
   });
 
-  it('closed capital is dashed only with Both', () => {
-    const one = at('tab=story');
-    const dashed = (c) => [...c.querySelectorAll('path')].filter((p) => p.style.strokeDasharray).length;
-    expect(dashed(one.container)).toBe(0);
-    one.unmount();
-    const both = at('tab=story&s=uk_low&closure=both');
-    // three arms in two panels of one figure (GDP and debt)
-    expect(dashed(both.container)).toBe(6);
-    expect(both.container.querySelectorAll('.p2-pair path[style*="dasharray"]')).toHaveLength(6);
+  it('the headline figures are the GDP scene’s last step, and the arms leave the Story for Explore', () => {
+    const { container } = at('tab=story&s=uk_low&closure=both');
+    const head = container.querySelector('#p2-morph #story-headline');
+    expect(head).not.toBeNull();
+    expect(head.closest('.scrolly-step').id).toBe('p2-headline');
+    expect(container.querySelector('#p2-arms, .p2-pair')).toBeNull();
+    // the arms' homes (nav maps Explore's #income to #economy-wall)
+    const hrefs = [...head.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/?tab=explore&s=uk_low&closure=both#economy-wall');
+    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances');
   });
 });
 
@@ -115,17 +116,13 @@ describe('story part 2', () => {
 // last state; the graphics are rendered here at each state directly.
 describe('each state of each graphic', () => {
   it('lines draw in turn', async () => {
-    const { ArmsPair, WelfareShape } = await import('@/tabs/story/part2/charts.jsx');
+    const { WelfareShape } = await import('@/tabs/story/part2/charts.jsx');
     const drawn = (el) => {
       const { container, unmount } = render(<NavProvider>{el}</NavProvider>);
       const n = container.querySelectorAll('.draw-path.is-on').length + container.querySelectorAll('.fade-g.is-on path').length;
       unmount();
       return n;
     };
-    // GDP arms in turn (0-2), then the debt panel's main arm (3) and the rest (4)
-    const pair = (i, closure) => drawn(<ArmsPair state={i} sid="uk_high" closure={closure} label="l" />);
-    expect([0, 1, 2, 3, 4].map((i) => pair(i, 'central'))).toEqual([1, 2, 3, 4, 6]);
-    expect([0, 1, 2, 3, 4].map((i) => pair(i, 'both'))).toEqual([2, 4, 6, 8, 12]);
     expect([0, 1].map((i) => drawn(<WelfareShape state={i} />))).toEqual([1, 2]);
   });
 
@@ -331,11 +328,6 @@ describe('direction icons follow the signs', () => {
   const SIDS = fixture.scenarios.map((s) => s.id);
   const CLS = ['zk0.1', 'zk0'];
   const sign = (x) => (Math.abs(x) < 0.005 ? 'onPath' : x > 0 ? 'gapUp' : 'gapDown');
-  const g = (sid, arm, cl, v, yr = fixture.headline_year) => {
-    const r = fixture.results[sid]?.[arm]?.[cl];
-    return r?.status === 'done' ? r.gaps[v][fixture.years.indexOf(yr)] : null;
-  };
-
   it('the headline tiles: no arrow beside a signed figure; the pay caveat where its sign flips', async () => {
     const { paySigns } = await import('@/tabs/story/part2/caveats.js');
     for (const sid of SIDS) {
@@ -361,63 +353,41 @@ describe('direction icons follow the signs', () => {
     const yr = cohorts.closures['zk0.1'].rules.common.tfp.first_year_c_above;
     expect(base.gaps.C[H]).toBeLessThan(0);
     const uk = at('tab=story&s=uk_central');
-    expect(uk.container.querySelector('#story-headline').textContent).toContain(`Household consumption stays below the path until ${yr}.`);
+    expect(uk.container.querySelector('#story-headline').textContent).toContain(`Under the common fiscal rule, household consumption stays below the path until ${yr}.`);
     // its year links to Who gains under the same (common) rule, which prints the same year
     const link = [...uk.container.querySelectorAll('#story-headline a')].find((x) => x.textContent === String(yr));
     expect(link.getAttribute('href')).toBe('/?tab=explore&sub=who&rule=common');
     uk.unmount();
     const kor = at('tab=story&s=korinek');
-    expect(kor.container.querySelector('#story-headline').textContent).not.toContain('Household consumption');
+    expect(kor.container.querySelector('#story-headline').textContent).not.toContain('household consumption');
   });
 
-  it('the why line', async () => {
-    const { whyLine } = await import('@/tabs/ai/Landing.jsx');
-    const word = { gapUp: 'above', gapDown: 'below', onPath: 'on' };
+  it('the debt line follows the signs, and gives the reason only where debt and the interest rate end above the path', async () => {
+    const { debtLine } = await import('@/tabs/ai/Landing.jsx');
+    const L = fixture.years.indexOf(fixture.late_year);
     for (const sid of SIDS) {
       for (const cl of CLS) {
-        const why = whyLine(sid, cl);
-        const y = g(sid, 'tfp', cl, 'Y');
-        const w = g(sid, 'tfp', cl, 'w');
-        if (y == null || w == null) {
-          expect(why).toBeNull();
+        const r = fixture.results[sid].tfp[cl];
+        const line = debtLine(sid, cl);
+        if (r.status !== 'done') {
+          expect(line).toBeNull();
           continue;
         }
-        expect(why, `${sid} ${cl}`).toContain(`GDP is ${word[sign(y)]} the path`);
-        expect(why, `${sid} ${cl}`).toContain(`pay ${word[sign(w)]} it`);
-        const gni = g(sid, 'tfp', cl, 'GNI');
-        expect(why.includes('national income gains less')).toBe(y > 0 && gni < y);
-        expect(why).not.toMatch(/\d/);
+        const d = r.gaps.debt_gdp_pp[L];
+        expect(line).toContain(d > 0.005 ? 'ends above the path' : d < -0.005 ? 'ends below the path' : 'ends on the path');
+        expect(line).toContain(String(fixture.late_year));
+        expect(line.includes('repriced at once at higher rates')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
       }
     }
   });
 
-  it('the arms, the debt items, the morph and the scenarios', async () => {
-    const { tzItem, debtItems, debtWords, scenarioDir } = await import('@/tabs/story/Part2.jsx');
+  it('the scenarios', async () => {
+    const { scenarioDir } = await import('@/tabs/story/Part2.jsx');
     const from = fixture.years.indexOf(fixture.surprise_year) + 1;
     for (const cl of CLS) {
       const tails = SIDS.map((sid) => fixture.results[sid].tfp[cl]).filter((r) => r.status === 'done').map((r) => r.gaps.Y.slice(from));
       const flat = tails.flat();
       expect(scenarioDir(cl)).toBe(flat.every((v) => v > 0.005) ? 'gapUp' : flat.every((v) => v < -0.005) ? 'gapDown' : null);
-      for (const sid of SIDS) {
-        const tz = g(sid, 'tz', cl, 'Y');
-        const tfp = g(sid, 'tfp', cl, 'Y');
-        const t = tzItem(sid, cl);
-        if (tz == null || tfp == null) expect(t).toBeNull();
-        else expect(t.icon).toBe(tz < tfp ? 'gapDown' : 'gapUp');
-        // debt: the icons agree with the sentence (debtWords) and the data
-        for (const arm of ['tfp', 'tz', 'ss']) {
-          const items = debtItems(sid, arm, cl);
-          const words = debtWords(sid, arm, cl);
-          if (!items) {
-            expect(words).toBeNull();
-            continue;
-          }
-          const late = g(sid, arm, cl, 'debt_gdp_pp', fixture.late_year);
-          const end = items.at(-1).icon;
-          expect(end, `${sid} ${arm} ${cl} debt`).toBe(late > 0.005 ? 'gapUp' : late < -0.005 && words.startsWith('falls') ? 'gapDown' : 'onPath');
-          expect(items[0].icon === 'gapDown').toBe(words.includes('falls below'));
-        }
-      }
     }
   });
 
@@ -459,7 +429,7 @@ describe('direction icons follow the signs', () => {
       expect(sub.title).not.toContain('Where output goes in');
     }
     const { container, unmount } = at('tab=story');
-    for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-arms', 'p2-who']) {
+    for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-who']) {
       // at most three steps, each one sentence, no kind label, no fold, no empty item
       expect(container.querySelectorAll(`#${id} .p2-kind, #${id} details`).length, id).toBe(0);
       expect([...container.querySelectorAll(`#${id} li:not([aria-hidden])`)].filter((li) => !li.textContent.trim()).length, id).toBe(0);

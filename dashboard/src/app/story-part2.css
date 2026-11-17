@@ -104,10 +104,71 @@
   grid-column: 3;
 }
 
-/* The headline figures: full width between two scrolly blocks */
+/* The headline figures: the GDP scene's last step (round 2). The three
+   figures stacked in the step's column, no tile boxes: a thin rule between
+   them, the number large */
 .story-headline {
-  margin: 24px 0 24px;
+  margin: 12px 0 0;
   scroll-margin-top: calc(var(--sticky-offset) + 8px);
+}
+.p2-headline-step .stat-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.p2-headline-step .stat-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--card-border);
+  border-radius: 0;
+}
+.p2-headline-step .stat-tile:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.p2-headline-step .stat-value {
+  grid-row: 1;
+  grid-column: 1;
+  margin: 0;
+}
+.p2-headline-step .stat-name {
+  grid-row: 1;
+  grid-column: 2;
+  line-height: 1.3;
+}
+.p2-headline-step .stat-sub,
+.p2-headline-step .stat-extra {
+  grid-column: 1 / -1;
+}
+.p2-headline-step .stat-sub,
+.p2-headline-step .stat-line {
+  margin: 4px 0 0;
+}
+/* a tile's caveat runs on under its line: no rule, the link inline */
+.p2-headline-step .stat-extra {
+  padding-top: 0;
+}
+.p2-headline-step .stat-extra > :first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.p2-headline-step .stat-line {
+  display: block;
+}
+.p2-headline-step .stat-line > span + span {
+  display: block;
+  margin-top: 2px;
+}
+.p2-headline-step .p2-why {
+  display: block;
+  margin-top: 4px;
+}
+.p2-headline-step .p2-why-line {
+  font-size: var(--t-meta);
 }
 .p2-headline-title {
   margin: 0 0 6px;
@@ -312,10 +373,18 @@
 /* Layers not yet reached: hidden by opacity only, so their figures stay in
    the page's text */
 .p2-out-later {
-  /* before step 3 the waterfall's frame shows faintly (title, parts),
-     with its values and bars hidden: what comes next, not a blank half */
-  opacity: 0.4;
-  transition: opacity 150ms ease;
+  /* before step 3 (C5, round 2) the waterfall is collapsed and hidden: no
+     greyed panel that reads as broken. Its text stays in the DOM (height 0,
+     not display: none), so the number checks read it at step 1. It opens
+     at once at step 3 (no height animation: the chips fly out of it) */
+  opacity: 1;
+}
+.p2-out-later:not(.is-on) {
+  height: 0;
+  padding-top: 0 !important;
+  border-top-color: transparent;
+  overflow: hidden;
+  opacity: 0;
 }
 .p2-out-later:not(.is-on) .p2-wf-value {
   opacity: 0;
@@ -431,8 +500,19 @@
   color: var(--c-loss-text, #b45309);
 }
 .p2-out-later.is-on {
-  opacity: 1;
-  transition: opacity 400ms ease 250ms;
+  animation: p2-out-open 400ms ease both;
+}
+@keyframes p2-out-open {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* at step 3 every row at full contrast: the parts' names in the body grey */
+.p2-out-later.is-on .p2-wf-row.is-sub .p2-wf-label {
+  color: var(--pe-gray-800);
 }
 .p2-output-static .p2-output-graphic {
   margin-bottom: 16px;
@@ -595,15 +675,23 @@
   .p2-sankey .sankey-node {
     transition: none !important;
   }
+  .p2-out-later.is-on {
+    animation: none;
+  }
 }
 
 .p2-mo-newaxis-box {
-  width: 127px;
+  width: 245px;
 }
 @media (min-width: 901px) {
   .p2-mo-newaxis-box {
-    width: 100px;
+    width: 168px;
   }
+}
+/* the gap axis's title while the switch flag shows: in the flag's colour */
+.p2-panel-name.is-new {
+  fill: var(--series-2);
+  font-weight: 700;
 }
 
 /* Phones: the Sankey's end nodes share one row, so a key below carries
@@ -892,30 +980,6 @@
   stroke-width: 1.75;
 }
 
-/* 2B, the arms pair: the GDP panel compresses by transform (strokes do not
-   scale), the debt panel fades in, then its lines draw */
-.p2-pair-gdp {
-  transition: transform 600ms var(--story-ease, ease);
-}
-.p2-pair-tick {
-  transition: transform 600ms var(--story-ease, ease);
-}
-.p2-pair-debt {
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-.p2-pair-debt.is-on {
-  opacity: 1;
-  transition: opacity 300ms ease 500ms;
-}
-.p2-pair-end {
-  opacity: 0;
-  transition: transform 600ms var(--story-ease, ease), opacity 200ms ease;
-}
-.p2-pair-end.is-on {
-  opacity: 1;
-  transition: transform 600ms var(--story-ease, ease), opacity 300ms ease 900ms;
-}
 .p2-panel-name {
   font-size: 13.3px;
   font-weight: 600;
@@ -926,33 +990,6 @@
     font-size: 8.9px;
   }
 }
-/* the closure control in the figure head: the header picker's state */
-.p2-closure-ctl {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 6px;
-  align-items: center;
-  margin: 2px 0 6px;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.p2-closure-opt {
-  padding: 1px 8px;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-  color: var(--pe-gray-700);
-  text-decoration: none;
-}
-.p2-closure-opt.is-on {
-  color: var(--pe-surface);
-  background: var(--c-highlight);
-  border-color: var(--c-highlight);
-}
-.p2-closure-opt:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 2px;
-}
-
 /* 2W: later cohorts under a band; a birth year marked on the curve */
 .p2-who-band {
   opacity: 0;
@@ -1016,19 +1053,10 @@
   .p2-mo-end,
   .p2-mo-ring,
   .p2-mo-hl,
-  .p2-pair-gdp,
-  .p2-pair-tick,
-  .p2-pair-debt,
-  .p2-pair-end,
   .p2-who-band,
   .p2-wf-value {
     transition: none !important;
   }
-}
-
-/* 2B: a GDP line drawn in full, while its group is compressed (charts.jsx) */
-.p2-pair .draw-path.is-on.is-whole {
-  stroke-dasharray: none;
 }
 
 /* Tablet widths: part 2's charts are drawn at most 420px wide, so each
@@ -1049,26 +1077,6 @@
   grid-area: 1 / 1;
 }
 
-/* 2B: the pair's drawing inside the shared crosshair, scaled to its box */
-.p2-pair-box {
-  max-width: 540px;
-  margin: 0 auto;
-}
-.p2-pair-box .ch-cross > svg {
-  width: 100%;
-  height: auto;
-}
-@media (min-width: 601px) and (max-width: 900px) {
-  .p2-pair-box {
-    max-width: 420px;
-  }
-}
-/* short screens: the whole pair in view below the rail */
-@media (min-width: 901px) and (max-height: 700px) {
-  .p2-pair-box {
-    max-width: 460px;
-  }
-}
 .p2-sankey .sankey-tip-head {
   margin-bottom: 2px;
   font-weight: 600;
@@ -1100,9 +1108,6 @@
   #p2-output .scrolly-card {
     min-height: 290px;
   }
-  #p2-arms .scrolly-card {
-    min-height: 330px;
-  }
   #p2-who .scrolly-card {
     min-height: 350px;
   }
@@ -1113,9 +1118,6 @@
   }
   #p2-output .scrolly-card {
     min-height: 310px;
-  }
-  #p2-arms .scrolly-card {
-    min-height: 430px;
   }
   #p2-who .scrolly-card {
     min-height: 420px;
@@ -1276,9 +1278,6 @@
 /* Three steps per scene (pass 3): fewer, shorter cards, so a few states
    need more scroll to hold 180px (check_states, with and without motion) */
 @media (min-width: 901px) {
-  #p2-arms-2.scrolly-step {
-    padding-bottom: 80px;
-  }
   #p2-out-1.scrolly-step {
     padding-bottom: 72px;
   }
@@ -1348,7 +1347,6 @@
 @media (max-width: 900px) {
   #p2-shock-2 .scrolly-card,
   #p2-scen-2 .scrolly-card,
-  #p2-debt-1 .scrolly-card,
   #p2-who-1 .scrolly-card {
     min-height: 72px;
   }
@@ -1360,4 +1358,34 @@
   display: flex;
   gap: 8px;
   align-items: baseline;
+}
+
+/* The headline tiles' names open their definitions (Landing.jsx): no icon,
+   no underline (only links are underlined) */
+.p2-tile-name {
+  cursor: help;
+  border-radius: 3px;
+}
+.p2-tile-name:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+}
+
+/* Where output goes, desktop: the box keeps its tallest state's height
+   (Scrolly); the figure sits at its top, so the Sankey does not move when
+   the waterfall opens below it at step 3 */
+@media (min-width: 901px) {
+  #p2-output .scrolly-graphic-inner {
+    justify-content: flex-start;
+  }
+}
+
+/* Where output goes, landed on step 3 (a jump, a link, a reload): every
+   bar, value and icon in place at once, no build */
+.p2-output-graphic.is-landed :is(.p2-wf-bar, .p2-wf-value, .p2-wf-sum, .p2-out-later),
+.p2-output-graphic.is-landed .p2-node-dir {
+  transition: none !important;
+  transition-delay: 0ms !important;
+  animation-delay: 0ms !important;
+  animation-duration: 1ms !important;
 }

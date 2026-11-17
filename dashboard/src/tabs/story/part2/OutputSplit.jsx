@@ -35,9 +35,8 @@ import { iconFor } from '@/lib/concepts.js';
 // checks, which read it at step 1) always holds each share and change. On
 // phones a sticky graphic this tall would leave no room to read, and the
 // scrolly would repeat it per step, so the figure is drawn once, complete,
-// above the three texts. Before step 3 the waterfall's frame (its title
-// and the parts' names) shows faintly, values and bars hidden, as what
-// comes next. The GDP bar carries no number: that figure is the headline
+// above the three texts. Before step 3 the waterfall is collapsed and
+// hidden (its text kept in the DOM); it opens at step 3. The GDP bar carries no number: that figure is the headline
 // tile's. Bare numbers, the unit in each subtitle.
 
 const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
@@ -244,8 +243,15 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
     : '';
   // the chips' beats: idle (before step 3), chips (at the nodes), travel,
   // settled (in the rows, a gain or loss icon left on each node)
-  const instant = all || reduce || !ch;
+  // `climbed`: the figure was in view before step 3 (the reader scrolled
+  // through steps 1 and 2). A reader who lands on step 3 (a jump, a link, a
+  // reload) gets the settled state at once, at full contrast (`landed`)
+  const [climbed, setClimbed] = useState(false);
+  if (seen && s < 2 && !climbed) setClimbed(true);
+  if (!seen && climbed) setClimbed(false);
+  const instant = all || reduce || !ch || !climbed;
   const [phase, setPhase] = useState(s >= 2 && instant ? 'settled' : 'idle');
+  const [landed, setLanded] = useState(false);
   const [chips, setChips] = useState(null);
   const [boxes, setBoxes] = useState(null);
   const cells = useRef({});
@@ -264,8 +270,12 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   if ((s < 2 || !seen) && phase !== 'idle') {
     setPhase('idle');
     setChips(null);
+    setLanded(false);
   }
-  if (s >= 2 && seen && phase === 'idle') setPhase(instant ? 'settled' : 'chips');
+  if (s >= 2 && seen && phase === 'idle') {
+    setPhase(instant ? 'settled' : 'chips');
+    setLanded(instant && !all && !reduce);
+  }
   useLayoutEffect(() => {
     if (phase !== 'chips' || !wrap.current || !boxes) return;
     // measured once, at the beat's start (not in an animation frame)
@@ -329,7 +339,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   return (
     <figure
       ref={ref}
-      className={`p2-figure p2-output-fig p2-output-graphic${fast ? ' is-fast' : ''}`}
+      className={`p2-figure p2-output-fig p2-output-graphic${fast ? ' is-fast' : ''}${landed ? ' is-landed' : ''}`}
       data-state={s}
       data-phase={phase}
       style={{ '--wf-capital-delay': `${t.capital}ms`, '--wf-gdp-delay': `${t.gdp}ms` }}
@@ -339,9 +349,9 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
         <div className="p2-output-head">
           <ModelBadge model="oguk" />
           <p className="story-figure-title p2-output-title">
-            <Tx icon="gdp">The OBR-central path, {SPLIT_YEAR}</Tx>
+            <Tx icon="gdp">Who is paid GDP in {SPLIT_YEAR}</Tx>
             {' '}<span className="p2-output-unit" data-axis-title="y">
-              percentage points of GDP (of every 100 of the path&rsquo;s GDP)
+              per 100 of GDP on the OBR-central path
             </span>
           </p>
           {graph && !all ? (
@@ -395,7 +405,9 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </p>
         )}
       </div>
-      {/* not yet reached: faint, and out of reach of focus and pointer */}
+      {/* not yet reached: collapsed and hidden (its text stays in the DOM,
+          for the number checks), out of reach of focus and pointer; it opens
+          at step 3, where it is discussed, at full contrast */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
         <p className="story-figure-title p2-output-title">
           <Tx icon="compare">
@@ -467,7 +479,7 @@ function outputSteps(sid, cl, base, ch) {
     },
     {
       id: 'p2-out-3',
-      highlight: ['wf-labour', 'wf-capital', 'wf-gdp'],
+      highlight: ['wf-labour', 'wf-capital', 'wf-domestic', 'wf-foreign', 'wf-depreciation', 'wf-gdp'],
       pin: 'bottom',
       icon: 'compare',
       title: `What ${SCEN_NAME[sid]} changes`,
