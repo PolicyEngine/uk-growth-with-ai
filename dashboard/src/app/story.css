@@ -2533,10 +2533,16 @@
 .hl-key .mark-shape {
   display: none;
 }
-/* a card's one icon is Scrolly's; an icon the sentence brings is not drawn */
+/* a card's one icon is Scrolly's; an icon the sentence brings (an
+   aria-hidden icon span leading its first line) is not drawn */
 .scrolly-card.has-icon .scrolly-body > .plain-icon:first-child,
-.scrolly-card.has-icon .scrolly-body > :first-child > .plain-icon:first-child,
-.scrolly-card.has-icon .scrolly-body > :first-child > :first-child > .plain-icon:first-child {
+.scrolly-card.has-icon .scrolly-body > :is(p, div):first-of-type > span[aria-hidden='true']:first-child:has(> svg),
+.scrolly-card.has-icon .scrolly-body > :is(p, div):first-of-type > .plain-icon:first-child {
+  display: none;
+}
+/* no per-step kind labels ("Finding", "Assumed", "Key takeaway") in a
+   step card: one closing line per scene says the finding */
+.scrolly-card :is(.p2-kind, [data-kind-label]) {
   display: none;
 }
 /* the rail marks the current part by weight; the figure's dots are the one
