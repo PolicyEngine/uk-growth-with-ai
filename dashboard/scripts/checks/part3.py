@@ -69,7 +69,7 @@ story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
 story[bn(S['total']['earnings_lost_bn'])] += 1
 for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): story[bn(S['total'][k])] += 1
 story[share(S['tax_benefit_share_pct'])] += 1; story[bn(S['employer_ni_bn'])] += 1
-STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the central case']
+STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
 
 hh = Counter()
 for r in AI['cost_components']['rows']:
