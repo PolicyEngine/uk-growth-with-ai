@@ -803,20 +803,6 @@ svg.p3-dim {
 
 /* ---- Wave 2 scenes (part3/*.jsx): entry beats, Replay, scene heads ---- */
 
-#story-part-3 .p3-scene-head {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 8px 0 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--card-border);
-  font-size: var(--t-ui);
-  font-weight: 600;
-  color: var(--pe-gray-700);
-}
-#story-part-3 .p3-scene-head .p3-ico {
-  color: var(--c-highlight);
-}
 
 /* a replay snaps the figure back without a transition, then it plays */
 .p3-reset,
@@ -1229,11 +1215,6 @@ svg.p3-dim {
 /* step 8: icon and label on one line, the detail line under them */
 
 @media (max-width: 900px) {
-  #story-part-3 .p3-scene-head {
-    margin: 0 0 10px;
-    padding-top: 0;
-    border-top: 0;
-  }
   #story-part-3 .p3-central-tiles {
     max-width: 210px;
   }
@@ -1332,11 +1313,6 @@ svg.p3-dim {
   padding-bottom: 0;
 }
 
-@media (max-width: 900px) {
-  #story-part-3 .p3-scene-head {
-    margin-bottom: 8px;
-  }
-}
 /* phones: the page's bottom padding and the footer's own top padding left a
    blank band over 120px under the close; the close takes 32px of it */
 @media (max-width: 900px) {
@@ -1562,16 +1538,10 @@ svg.p3-dim {
 }
 /* the end of part 3: one header, one plain two-column list with dots */
 .p3-close {
-  margin: 48px 0 0;
+  margin: 0;
 }
-.p3-close-h {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 0 0 12px;
-  font-size: var(--t-ui);
-  font-weight: 600;
-  color: var(--pe-gray-900);
+.p3-close > .scene-head {
+  margin-bottom: 16px;
 }
 .p3-out-list {
   list-style: disc outside;
@@ -1596,17 +1566,13 @@ svg.p3-dim {
     columns: 1;
   }
 }
-/* the close: one header, one line, one ruled table, one row of links */
-.story-close .lens-lead {
+/* the close: one header, one ruled table, a 12px note under it, one row
+   of links */
+.story-close .lens-note {
   margin: 8px 0 0;
-  max-width: 60ch;
-  font-size: var(--t-body);
-  line-height: 1.45;
-  color: var(--pe-gray-700);
-}
-.lens-h-ico {
-  vertical-align: -3px;
-  margin-right: 4px;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--t-muted);
 }
 .lens-cap {
   position: absolute;
@@ -1695,10 +1661,12 @@ svg.p3-dim {
   clip-path: none;
 }
 #story-close-h {
-  display: flex;
-  gap: 8px;
-  align-items: center;
   margin: 0;
+  font-size: var(--t-title);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--t-ink);
+  text-wrap: balance;
 }
 
 /* Round 1f (round 2: the merged scene, #p3-changes): a dimmed mark's value

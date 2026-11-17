@@ -170,20 +170,6 @@
 .p2-headline-step .p2-why-line {
   font-size: var(--t-meta);
 }
-.p2-headline-title {
-  margin: 0 0 6px;
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--pe-gray-900);
-}
-.p2-headline-lead {
-  max-width: 70ch;
-  margin: 0 0 12px;
-  font-size: var(--fs-body);
-  line-height: 1.6;
-  color: var(--pe-gray-600);
-}
 /* The UK range on the scenario chart: a neutral shaded band from UK low to
    UK high; the label above it marks what lies beyond as an upper case. */
 .p2-band {
@@ -464,10 +450,10 @@
   margin: 0 !important;
 }
 .p2-output-unit {
-  margin-left: 8px;
-  font-size: var(--fs-caption);
+  margin: 0 0 8px;
+  font-size: var(--t-meta);
   font-weight: 400;
-  color: var(--pe-gray-600);
+  color: var(--t-muted);
 }
 .p2-output-actions {
   display: inline-flex;
@@ -856,27 +842,6 @@
   color: var(--pe-gray-700);
 }
 
-/* A scene's slim sub-header: icon, name, a hairline (local until Scrolly's `sub`) */
-.p2-scene-head {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 32px 0 8px;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  color: var(--pe-gray-700);
-}
-.p2-scene-head .plain-icon,
-.p2-scene-head svg {
-  flex: none;
-  color: var(--pe-gray-500);
-}
-.p2-scene-head::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--card-border);
-}
 .p2-anchor {
   display: block;
   height: 0;

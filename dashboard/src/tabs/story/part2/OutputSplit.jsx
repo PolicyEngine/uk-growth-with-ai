@@ -15,7 +15,7 @@ import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitF
 import { dirConcept, dirWord } from './dir.js';
 import { Key } from '@/components/story/highlight.jsx';
 import { Say } from './steps.jsx';
-import { Answer } from '@/components/story/QStage.jsx';
+import { Answer, TopicHead } from '@/components/story/QStage.jsx';
 import { useLiveInView } from './live.js';
 import { iconFor } from '@/lib/concepts.js';
 
@@ -219,7 +219,7 @@ export function outChangeItems(ch) {
 
 // The graphic: the Sankey, the waterfall below it. `state` 0-2; `all`
 // draws the last state with nothing hidden (phones).
-function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen: seenProp, figRef, fast = false }) {
+function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen: seenProp, figRef, fast = false, both = false }) {
   const t = fast ? TIMING.fast : TIMING.full;
   const [ownRef, ownSeen] = useLiveInView();
   const ref = figRef ?? ownRef;
@@ -349,9 +349,6 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           <ModelBadge model="oguk" />
           <p className="story-figure-title p2-output-title">
             <Tx icon="gdp">Who is paid GDP in {SPLIT_YEAR}</Tx>
-            {' '}<span className="p2-output-unit" data-axis-title="y">
-              per 100 of GDP on the OBR-central path
-            </span>
           </p>
           {graph && !all ? (
             <span className="p2-output-actions">
@@ -360,6 +357,10 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
             </span>
           ) : null}
         </div>
+        <p className="story-figure-unit p2-output-unit">
+          <span data-axis-title="y">per 100 of GDP on the OBR-central path</span>
+          {both ? <span>. With both closures chosen above, both figures show the central closure.</span> : null}
+        </p>
         {graph ? (
           <div className="p2-sankey" ref={wrap}>
             <Sankey
@@ -412,8 +413,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           <Tx icon="compare">
             What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
           </Tx>
-          {' '}<span className="p2-output-unit" data-axis-title="x">change, in the same units</span>
         </p>
+        <p className="story-figure-unit p2-output-unit" data-axis-title="x">change, in the same units</p>
         {ch ? (
           <>
             <Waterfall
@@ -500,7 +501,7 @@ function outputSteps(sid, cl, base, ch) {
 export const OUTPUT_SUB = {
   title: 'Where output goes',
   icon: 'outputSplit',
-  question: 'Who receives the extra output: workers, capital’s owners at home or abroad?',
+  question: 'Who gets the extra output: workers, owners of capital in the UK, or owners abroad?',
   hint: 'Follow each ribbon into its row of the waterfall',
   answer: 'Capital income rises by more than GDP; labour income falls',
   answerTo: 'story-output',
@@ -523,18 +524,10 @@ export default function OutputSplit({ sid, closure }) {
   const [phoneRef, phoneSt] = useScrollState(phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
-      <h3 id="story-output-h" className="p2-headline-title">
-        <Tx icon="outputSplit" size={22}>
-          Where output goes in {SPLIT_YEAR}
-        </Tx>
-      </h3>
-      <p className="p2-headline-lead">
-        {OUTPUT_SUB.question}{' '}
-        {both ? 'With both closures chosen above, both figures show the central closure.' : null}
-      </p>
+      <TopicHead id="story-output" sub={{ title: OUTPUT_SUB.title, question: OUTPUT_SUB.question }} titleId="story-output-h" />
       {phone ? (
         <div className="p2-output-static">
-          <OutputGraphic fast state={phoneSt.s} seen={phoneSt.seen} figRef={phoneRef} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
+          <OutputGraphic fast both={both} state={phoneSt.s} seen={phoneSt.seen} figRef={phoneRef} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
           <ol className="p2-output-texts">
             {steps.map((s) => (
               <li key={s.id} id={s.id} className="p2-output-text">
@@ -552,7 +545,7 @@ export default function OutputSplit({ sid, closure }) {
           id="p2-output"
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={steps}
-          graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
+          graphic={(i) => <OutputGraphic both={both} state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}
       {ch ? <Answer answer={outputAnswer(ch)} to="story-output" /> : null}

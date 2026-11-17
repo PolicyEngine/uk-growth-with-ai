@@ -1,7 +1,5 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { D, MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { PAPER_URL, REFS, REPO_URL } from './part3/sources.jsx';
@@ -84,10 +82,7 @@ export default function TwoLenses() {
     <section className="story-part story-close" id="story-close" aria-labelledby="story-close-h">
       <QStage id="story-close" question={CLOSE_SUB.question} icon="compare" keyWord="model" />
       <header className="story-part-head" id="q-story-close">
-        <h2 id="story-close-h">
-          <Icon name={iconFor(CLOSE_SUB.icon)} size={24} className="lens-h-ico" /> {CLOSE_SUB.title}
-        </h2>
-        <p className="lens-lead">Different models, years and assumptions, including opposite pay directions: their numbers are not added or compared.</p>
+        <h2 id="story-close-h">{CLOSE_SUB.title}</h2>
       </header>
       <table className="lens-table">
         <caption className="lens-cap">What each model covers and can say</caption>
@@ -108,6 +103,7 @@ export default function TwoLenses() {
           ))}
         </tbody>
       </table>
+      <p className="lens-lead lens-note">Different models, years and assumptions, including opposite pay directions: their numbers are not added or compared.</p>
       <p className="lens-deeper">
         <span className="lens-deeper-label">Go deeper</span>
         {DEEPER.map((l) =>

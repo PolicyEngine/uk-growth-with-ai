@@ -30,11 +30,11 @@
   padding-top: 16px;
 }
 
-/* ---------- The chapter opener: four lines under one thin rule ---------- */
+/* ---------- The chapter opener: a kicker and the question (h2) under one
+   thin rule, at the full content width (item 6) ---------- */
 .part-opener {
   display: grid;
   gap: 6px;
-  max-width: 60ch;
   margin: 0 0 32px;
   padding: 16px 0 0;
   border-top: 2px solid var(--pe-gray-900);
@@ -46,40 +46,12 @@
   color: var(--pe-gray-500);
 }
 .part-opener h2 {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
   margin: 0;
   font-size: 24px;
   font-weight: 700;
   line-height: 1.25;
   color: var(--pe-gray-900);
   text-wrap: balance;
-}
-.part-opener-h-ic {
-  flex: none;
-  display: inline-flex;
-  align-self: center;
-  color: var(--pe-gray-900);
-}
-.part-opener-q {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.45;
-  color: var(--pe-gray-900);
-  text-wrap: pretty;
-}
-.part-opener-model {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--pe-gray-700);
-  text-wrap: pretty;
-}
-.part-opener-model a {
-  color: var(--pe-teal-700, #0f766e);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
 }
 .part-opener-about {
   margin-top: 4px;

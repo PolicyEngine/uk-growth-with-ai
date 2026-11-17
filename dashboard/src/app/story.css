@@ -251,73 +251,32 @@
 .scrolly.is-single .scrolly-card {
   opacity: 1;
 }
-/* Scene sub-header (Scrolly `sub`): concept icon, scene name, a hairline
-   to the right; spans both columns above the block */
+/* Level (b), the topic header (typography spec, 17 Nov): the question
+   alone, an h3, 17/600 in ink, spanning both columns at the full content
+   width (balanced lines, no 60ch cap). No icon, kicker or hairline: the
+   topic name is data-scene (the rail). */
 .scene-head {
   grid-column: 1 / -1;
   grid-row: 1;
-  margin: 0 0 4px;
-  color: var(--t-text);
+  margin: 0;
   scroll-margin-top: calc(var(--story-graphic-top) + 8px);
 }
-.scene-head-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 28px;
-}
-/* the hairline is an element (not ::after), so layout checks see it */
-.scene-head-rule {
-  flex: 1 1 auto;
-  height: 1px;
-  background: var(--card-border);
-}
-.scene-head-icon {
-  display: inline-flex;
-  color: var(--t-ink);
-}
-.scene-head-title {
+.scene-head-q {
   margin: 0;
-  font-size: var(--t-label);
+  font-size: var(--t-body);
   font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: normal;
   color: var(--t-ink);
+  text-wrap: balance;
 }
 .scrolly.has-sub > .scrolly-graphic,
 .scrolly.has-sub > .scrolly-steps {
   grid-row: 2;
 }
-/* the header sits close above its block, and the takeaway close under it:
-   16px, not the 48px column gap */
+/* 16px between the header and its block */
 .scrolly.has-sub {
   row-gap: 16px;
-}
-/* The scene sub-header's question (Scrolly `sub.question`), on the title's
-   row; it wraps under the title on narrow screens */
-.scene-head.has-q .scene-head-row {
-  flex-wrap: wrap;
-  row-gap: 2px;
-}
-.scene-head.has-q .scene-head-rule {
-  min-width: 24px;
-}
-.scene-head-q {
-  margin: 0;
-  font-size: var(--t-ui);
-  line-height: 1.35;
-  color: var(--t-text);
-  text-wrap: pretty;
-}
-/* the header picks up the opener as it shrinks into it */
-.scene-head.is-arrived .scene-head-icon {
-  animation: scene-arrive-icon 900ms var(--story-ease) both;
-}
-@keyframes scene-arrive-icon {
-  from {
-    transform: scale(1.6);
-  }
-  to {
-    transform: none;
-  }
 }
 /* The question-led sequence (QStage.jsx). Full pin (sub.pin: 'full', four
    topics): one pinned screen, --q-pin tall, above the topic's header; at
@@ -376,7 +335,7 @@
   padding: 0 16px;
   text-align: center;
   transform-origin: 50% 100%;
-  transform: translateY(var(--qy)) scale(calc(1 - 0.55 * var(--qm)));
+  transform: translateY(var(--qy)) scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
   opacity: calc(1 - var(--qm) * 1.6);
   will-change: transform, opacity;
 }
@@ -411,9 +370,6 @@
 @media (max-width: 900px) {
   .q-stage {
     height: calc(var(--q-pin) * var(--q-pin-phone));
-  }
-  .q-stage-q {
-    font-size: 28px;
   }
   .q-stage-card {
     gap: 10px;
@@ -468,9 +424,6 @@
     opacity: 1;
     transform: none;
     transition: none;
-  }
-  .scene-head.is-arrived .scene-head-icon {
-    animation: none;
   }
 }
 @media print {
@@ -2361,7 +2314,7 @@
   padding: 0 16px;
   text-align: center;
   transform-origin: 50% 0;
-  transform: translateY(calc(var(--qm) * var(--qdy))) scale(calc(1 - 0.7 * var(--qm)));
+  transform: translateY(calc(var(--qm) * var(--qdy))) scale(calc(1 - (1 - var(--q-end, 0.3)) * var(--qm)));
   /* full until qm 0.61, gone at 0.86: it is still leaving when the cover
      starts to fade at 0.78 (the chart starts to draw), so the frame is
      never blank (round 2 sign-off #1: it was gone by 0.74) */
@@ -2377,9 +2330,6 @@
 @media (max-width: 900px) {
   .q-frame-card {
     top: clamp(12px, 14%, 80px);
-  }
-  .q-frame .q-stage-q {
-    font-size: 24px;
   }
 }
 /* ---- Round 1: hyphenated names (Hy.jsx), the shell's one meta line,
@@ -2571,4 +2521,79 @@
   transition-delay: 0s !important;
   animation-duration: 1ms !important;
   animation-delay: 0s !important;
+}
+
+/* ---- Story structure (typography spec, 17 Nov): topics are separated by
+   whitespace, not rows. --gap-topic from the bottom of one topic block to
+   the top of the next topic's header; the part opener keeps its own 32px
+   (24px at 900px and below) below it. ---- */
+.story {
+  --gap-topic: 64px;
+}
+@media (max-width: 900px) {
+  .story {
+    --gap-topic: 48px;
+  }
+}
+.story-part > :is(.scrolly.has-sub, .p1-vitals, .p2-output, .p3-close, .story-beat) {
+  margin-top: var(--gap-topic);
+  margin-bottom: 0;
+}
+.story-part > .part-opener + :is(.scrolly.has-sub, .p1-vitals, .p2-output, .p3-close, .story-beat) {
+  margin-top: 0;
+}
+.story-part > :is(.scrolly.has-sub, .p1-vitals, .p2-output, .p3-close):last-child {
+  margin-bottom: var(--gap-block, 40px);
+}
+.p2-output > .scrolly {
+  margin-bottom: 0;
+}
+.story-part.story-close {
+  margin-top: calc(var(--gap-topic) - 40px);
+}
+/* a non-Scrolly topic's header (TopicHead): 16px above its block */
+.topic-head {
+  margin: 0 0 16px;
+}
+/* the shared card for a framed block that is not a chart (the study's
+   omissions list; the vitals and lens table after the sources merge) */
+.story-frame {
+  padding: 20px;
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+}
+@media (max-width: 600px) {
+  .story-frame {
+    padding: 16px;
+  }
+}
+/* the part opener's model label opens "which model?" (PartHead ModelTip):
+   a dotted underline, no icon */
+.part-opener-model-tip {
+  position: relative;
+  text-decoration: underline dotted var(--pe-gray-400);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.part-opener-model-tip .tip-box {
+  max-width: 36ch;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .part-opener-model-tip .tip-box {
+    animation: part-tip-in 120ms ease both;
+  }
+}
+@keyframes part-tip-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 600px) {
+  .part-opener-model-tip .tip-box {
+    top: calc(100% + 6px);
+    bottom: auto;
+  }
 }

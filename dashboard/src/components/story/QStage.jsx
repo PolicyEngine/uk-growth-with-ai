@@ -123,6 +123,21 @@ function useScrollDriver(ref, read, write, deps) {
   }, deps);
 }
 
+// --q-end: the settled header's font size over the opener's, so the
+// question shrinks to exactly the header's size (typography spec: 0.386 at
+// 1280, 0.607 at 390). Read once per width (in the loop's read phase).
+function qEnd(memo, id, el) {
+  const w = window.innerWidth;
+  if (memo.current && memo.current.w === w) return memo.current.v;
+  const head = document.getElementById(`q-${id}`)?.querySelector('.scene-head-q, h2, h3');
+  const big = el.querySelector('.q-stage-q');
+  const a = head ? parseFloat(getComputedStyle(head).fontSize) : 0;
+  const b = big ? parseFloat(getComputedStyle(big).fontSize) : 0;
+  const v = a > 0 && b > 0 ? Math.min(1, a / b) : null;
+  memo.current = { w, v };
+  return v;
+}
+
 const setVars = (el, qa, qm) => {
   setStyle(el, '--qa', qa.toFixed(3));
   setStyle(el, '--qm', qm.toFixed(3));
@@ -137,6 +152,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   const card = useRef(null);
   const go = usePhase(onPhase);
   const skip = useRef(false);
+  const end = useRef(null);
   useScrollDriver(
     ref,
     (el, f) => {
@@ -154,7 +170,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       const natural = r.top + pad + H / 2;
       const foot = r.bottom - H / 2 - 28;
       const y = Math.min(Math.max(natural, Math.min(mid, natural + Math.max(0, Q - H - 2 * pad))), foot);
-      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H }), dy: Math.round(y - natural) };
+      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H }), dy: Math.round(y - natural), qe: qEnd(end, id, el) };
     },
     (el, d, f) => {
       if (!d) {
@@ -164,6 +180,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: p.qm > 0, before: p.qm === 0, up: f.up });
       setStyle(el, '--qy', `${d.dy}px`);
+      if (d.qe != null) setStyle(el, '--q-end', d.qe.toFixed(3));
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');
@@ -191,6 +208,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
   const ref = useRef(null);
   const go = usePhase(onPhase);
   const skip = useRef(false);
+  const end = useRef(null);
   useScrollDriver(
     ref,
     (el, f) => {
@@ -210,7 +228,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       const head = document.getElementById(`q-${id}`);
       const card = el.querySelector('.q-frame-card');
       const qdy = head && card && r.bottom > -V && r.top < 2 * V ? Math.round(head.getBoundingClientRect().top - r.top - card.offsetTop) : null;
-      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0, qdy };
+      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0, qdy, qe: qEnd(end, id, el) };
     },
     (el, d, f) => {
       if (!d) {
@@ -220,6 +238,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: d.past, before: !d.past, up: f.up });
       if (d.qdy != null) setStyle(el, '--qdy', `${d.qdy}px`);
+      if (d.qe != null) setStyle(el, '--q-end', d.qe.toFixed(3));
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');
@@ -270,14 +289,9 @@ export function TopicHead({ id, sub, part, titleId, className = '' }) {
     <>
       {question && pin === 'full' ? <QStage id={id} question={question} hint={hint} icon={icon} keyWord={key} part={part} /> : null}
       <header className={`scene-head topic-head${question ? ' has-q' : ''} ${className}`.trim()} data-scene={title} id={question ? `q-${id}` : undefined}>
-        <span className="scene-head-row">
-          {icon ? <Icon name={iconFor(icon)} size={16} className="scene-head-icon" /> : null}
-          <h3 className="scene-head-title" id={titleId}>
-            {title}
-          </h3>
-          {question ? <p className="scene-head-q">{question}</p> : null}
-          <span className="scene-head-rule" aria-hidden="true" />
-        </span>
+        <h3 className="scene-head-q" id={titleId}>
+          {question ?? title}
+        </h3>
       </header>
       {closing != null ? (
         <div className="topic-head-answer">

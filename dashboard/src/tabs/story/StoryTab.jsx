@@ -19,43 +19,50 @@ import { MODEL_BASE_VINTAGE, OBR_MARCH_2026 } from './part1/data.js';
 //   Close: what each model can and cannot say (TwoLenses)
 // The part files are one writer each; this shell owns the order and the
 // "you are here" rail (StoryRail).
-// Each part's opener (PartHead / PartOpener), in four lines: "Part n ·
-// model" (meta), the title, the one question the part answers, and one
-// model line, which carries the handover the old "Next: part n" band said
-// (round 1, plan S5/S6). Its copy prints no signed figure (years only, from
-// part1/data.js), so the number check's multiset is unchanged.
+// Each part's opener (PartHead / PartOpener, Fable's ruling of 17 Nov): a
+// kicker "Part n · model" and the part's one question as the h2. `title`
+// is the rail's name. The model sentence and its links, and part 3's "not
+// added to part 2's", live in the "About this model" fold. Its copy prints
+// no signed figure (years only, from part1/data.js), so the number check's
+// multiset is unchanged.
 const ext = { target: '_blank', rel: 'noopener noreferrer' };
 export const PARTS = [
   {
     id: 'story-part-1',
     n: 1,
-    icon: 'record',
     kicker: 'Part 1',
     title: 'Where the UK stands',
     model: 'official',
     question: 'Where do the UK economy and its labour market stand before AI arrives?',
-    modelLine: <Hy>Published statistics only; the one forecast is the OBR’s.</Hy>,
   },
   {
     id: 'story-part-2',
     n: 2,
-    icon: 'gdp',
     kicker: 'Part 2',
     title: 'What a model of the whole economy projects',
     model: 'oguk',
     question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
-    modelLine: (
-      <>
-        <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> models the whole economy, with no unemployment. Results are gaps against a path built on the{' '}
-        <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>.
-      </>
-    ),
     about: (
       <Items
         items={[
-          { icon: 'gdp', text: 'A model of the whole economy, over decades' },
-          { icon: 'excluded', text: 'It has no unemployment: displacement shows in the wage' },
-          { icon: 'path', text: <Hy>Gaps against the OBR-central path, not forecasts of levels</Hy> },
+          {
+            icon: 'gdp',
+            text: (
+              <>
+                <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a>: a model of the whole economy, over decades
+              </>
+            ),
+          },
+          { icon: 'excluded', text: 'No unemployment: lost tasks show up as lower pay rates' },
+          { icon: 'path', text: <Hy>Results are gaps against the OBR-central path, not forecasts</Hy> },
+          {
+            icon: 'forecast',
+            text: (
+              <>
+                The path is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
+              </>
+            ),
+          },
         ]}
       />
     ),
@@ -63,17 +70,16 @@ export const PARTS = [
   {
     id: 'story-part-3',
     n: 3,
-    icon: 'households',
     kicker: 'Part 3',
     title: 'Jobs, incomes and the public finances',
     model: 'aistudy',
     question: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI?',
-    modelLine: <Hy>A different model: uk-ai-study simulates households for one year; its figures are not added to or compared with part 2’s.</Hy>,
     about: (
       <Items
         items={[
-          { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data, static, for one year</Hy> },
-          { icon: 'jobLoss', text: <Hy>People lose their jobs; in OG-UK the labour market clears</Hy> },
+          { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data: one year, no behaviour change</Hy> },
+          { icon: 'jobLoss', text: <Hy>Here people lose jobs; in OG-UK everyone who wants work has it</Hy> },
+          { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
         ]}
       />
     ),

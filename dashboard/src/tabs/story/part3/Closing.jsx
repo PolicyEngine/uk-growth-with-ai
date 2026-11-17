@@ -1,6 +1,6 @@
 'use client';
 
-import { Ico } from './shared.jsx';
+import { TopicHead } from '@/components/story/QStage.jsx';
 
 // The end of part 3: not sticky, no figures. What the one-year test leaves
 // out (docs/story/part3-notes.md, Caveats), as one plain two-column list of
@@ -29,24 +29,26 @@ export const LEFT_OUT = [
   { id: 'occ', text: 'AI exposure: varies across nine occupation groups only' },
 ];
 
+// A level-(b) topic header (typography spec): the question, the list in a
+// framed card under it.
 export const CLOSING_SUB = {
   title: 'What the study leaves out',
-  icon: 'excluded',
+  question: 'What does the study leave out?',
 };
 
 export default function Closing() {
   return (
-    <aside className="p3-close" aria-labelledby="p3-close-h" id="q-p3-close">
-      <h3 className="p3-close-h" id="p3-close-h">
-        <Ico c={CLOSING_SUB.icon} size={16} /> {CLOSING_SUB.title}
-      </h3>
-      <ul className="p3-out-list" aria-label="What this one-year test leaves out">
-        {LEFT_OUT.map((t) => (
-          <li key={t.id} data-item={t.id}>
-            {t.text}
-          </li>
-        ))}
-      </ul>
+    <aside className="p3-close" aria-labelledby="p3-close-h">
+      <TopicHead id="p3-close" sub={CLOSING_SUB} titleId="p3-close-h" />
+      <div className="story-frame p3-close-card">
+        <ul className="p3-out-list" aria-label="What this one-year test leaves out">
+          {LEFT_OUT.map((t) => (
+            <li key={t.id} data-item={t.id}>
+              {t.text}
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }

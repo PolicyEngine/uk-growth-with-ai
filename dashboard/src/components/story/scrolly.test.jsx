@@ -22,7 +22,7 @@ describe('Scrolly', () => {
     expect(container.querySelector('.scrolly-graphic .g').textContent).toBe('3');
     expect(container.querySelectorAll('.scrolly-step:not(.is-spacer)')).toHaveLength(3);
     // the title stays as the step's accessible name, visually hidden
-    expect(container.querySelector('h3.scrolly-title.visually-hidden')).not.toBeNull();
+    expect(container.querySelector('h4.scrolly-title.visually-hidden')).not.toBeNull();
     expect(container.querySelector('.scene-head')).toBeNull();
   });
   it('passes ctx as the third argument', () => {
@@ -42,7 +42,10 @@ describe('Scrolly', () => {
     const { container } = render(<Scrolly id="b" sub={{ title: 'Output', icon: 'gdp' }} foot={<span className="f">Source: ONS</span>} steps={steps} graphic={() => null} label="L" />);
     const h = container.querySelector('header.scene-head');
     expect(h.dataset.scene).toBe('Output');
-    expect(h.querySelector('svg')).not.toBeNull();
+    // the header is one h3 with no icon (typography spec): the topic name
+    // when there is no question
+    expect(h.querySelector('svg')).toBeNull();
+    expect(h.querySelector('h3.scene-head-q').textContent).toBe('Output');
     expect(container.querySelector('#b').classList.contains('has-sub')).toBe(true);
     expect(container.querySelector('h4.scrolly-title')).not.toBeNull();
     expect(container.querySelectorAll('.f')).toHaveLength(1);
@@ -114,12 +117,12 @@ describe('useEnterState', () => {
 
 describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
   const sub = { title: 'Output', icon: 'gdp', question: 'How fast has the UK grown?', takeaway: 'Growth slowed after 2008.' };
-  it('prints the question in the header (one icon: the title\'s) and the takeaway as the one closing line', () => {
+  it('prints the question as the header (no icon) and the takeaway as the one closing line', () => {
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={() => null} label="L" />);
     const h = container.querySelector('header.scene-head');
     expect(h.dataset.scene).toBe('Output');
-    expect(h.querySelector('.scene-head-q').textContent).toBe('How fast has the UK grown?');
-    expect(h.querySelectorAll('svg')).toHaveLength(1);
+    expect(h.querySelector('h3.scene-head-q').textContent).toBe('How fast has the UK grown?');
+    expect(h.querySelectorAll('svg')).toHaveLength(0);
     expect(container.querySelector('.scrolly-takeaway')).toBeNull();
     const c = container.querySelectorAll('.scrolly-close');
     expect(c).toHaveLength(1);
@@ -231,7 +234,9 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
   });
   it('a plain string sub has no opener and no takeaway', () => {
     const { container } = render(<Scrolly id="b" sub="Output" steps={steps} graphic={() => null} label="L" />);
-    expect(container.querySelector('.q-stage, .scene-head-q, .scrolly-close')).toBeNull();
+    expect(container.querySelector('.q-stage, .q-frame, .scrolly-close')).toBeNull();
+    // the header is the topic name alone
+    expect(container.querySelector('.scene-head-q').textContent).toBe('Output');
   });
 });
 

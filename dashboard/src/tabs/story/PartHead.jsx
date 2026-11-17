@@ -1,42 +1,53 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
+import { TipTarget } from '@/components/ab/Tip.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 
-// The chapter opener of a story part, in four lines (round 1, plan S5/S6):
-// one thin rule above it (neutral: no tint, no part colour), then
-//   meta:     "Part n · <model>" as plain meta text
-//   title:    the h2, with the part's one icon
-//   question: the one question the part answers
-//   model:    one line on the model (it carries the handover the old "Next:
-//             part n" band said at the end of the previous part)
-// and "About this model" as the part's one fold, under them. No numeral,
-// badge, chips or side column. New copy has no digits, so the number
-// check's multiset is unchanged.
+// The chapter opener of a story part (Fable's part-opener ruling, 17 Nov):
+// one thin rule above it, then
+//   kicker: "Part n · <model>", 12px muted, the page's one kicker above a
+//           heading; the model label opens one line saying which model
+//           this is (story-beats-fable.md section 8: a TipTarget, dotted
+//           underline, no icon)
+//   h2:     the one question the part answers, 24/700, at the full content
+//           width
+// and "About this model" as the part's one fold, under them. No icon, no
+// second line. Its copy prints no signed figure, so the number check's
+// multiset is unchanged.
 export const MODELS = {
-  official: { label: 'Official statistics' },
-  oguk: { label: 'OG-UK' },
-  aistudy: { label: 'uk-ai-study' },
+  official: { label: 'Official statistics', tip: 'Published statistics only. The one forecast shown is the OBR’s.' },
+  oguk: { label: 'OG-UK', tip: 'A model of the whole economy over decades. It has no unemployment. Results are gaps against the OBR-central path.' },
+  aistudy: { label: 'uk-ai-study', tip: 'A one-year simulation of UK households. Job losses are assumed. Its figures are never added to part 2’s.' },
 };
 
+// The model label with its one-line tip.
+export function ModelTip({ model }) {
+  const m = MODELS[model];
+  if (!m) return null;
+  return (
+    <TipTarget className="part-opener-model-tip" label="Which model is this?" tip={<span className="part-opener-tip">{m.tip}</span>}>
+      <Hy>{m.label}</Hy>
+    </TipTarget>
+  );
+}
+
 // API for the part builders:
-//   <PartOpener part={part} />   part = { id, n, icon, kicker, title, model,
-//                                         question, modelLine, about }
-// `answers`, `handover`, `chips` and `extra` (old API) are not drawn.
-export function PartOpener({ part, question, modelLine, about }) {
-  const m = MODELS[part.model];
+//   <PartOpener part={part} />   part = { id, n, kicker, model, question, about }
+// `title` stays on the part object for the rail; `answers`, `handover`,
+// `chips`, `extra`, `icon` and `modelLine` (old API) are not drawn.
+export function PartOpener({ part, question, about }) {
   return (
     <header className="part-opener">
       <p className="part-opener-meta">
         {part.kicker}
-        {m ? <> · <Hy>{m.label}</Hy></> : null}
+        {MODELS[part.model] ? (
+          <>
+            {' · '}
+            <ModelTip model={part.model} />
+          </>
+        ) : null}
       </p>
-      <h2 id={`${part.id}-h`}>
-        <Icon name={iconFor(part.icon)} size={24} className="part-opener-h-ic" /> {part.title}
-      </h2>
-      {question ? <p className="part-opener-q">{question}</p> : null}
-      {modelLine ? <p className="part-opener-model">{modelLine}</p> : null}
+      <h2 id={`${part.id}-h`}>{question ?? part.title}</h2>
       {about ? (
         <details className="part-opener-about">
           <summary>About this model</summary>
@@ -49,10 +60,9 @@ export function PartOpener({ part, question, modelLine, about }) {
 
 // Backward compatible: the part files call
 //   <PartHead part={part} extra={…}>lead</PartHead>.
-// The question, model line and about come from the part object (StoryTab's
-// PARTS); the old lead (`children`) and `extra` are not drawn: the model
-// line says what they said.
+// The question and about come from the part object (StoryTab's PARTS); the
+// old lead (`children`) and `extra` are not drawn.
 // eslint-disable-next-line no-unused-vars
 export default function PartHead({ part, children, extra }) {
-  return <PartOpener part={part} question={part.question} modelLine={part.modelLine} about={part.about} />;
+  return <PartOpener part={part} question={part.question} about={part.about} />;
 }

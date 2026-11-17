@@ -477,7 +477,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const ctx = { inline: false, once, entered: drawn || (entered && stageDone), instant: entry.instant, run: entry.run, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
   const sizerCtx = { inline: false, once: false, entered: true, prev: null, highlight: [] };
   const subTitle = typeof sub === 'string' ? sub : sub?.title;
-  const TitleTag = sub ? 'h4' : 'h3';
+  const TitleTag = 'h4';
   const footHere = foot != null ? <div className="scrolly-foot">{foot}</div> : null;
   const entryValue = { entered: ctx.entered, instant: entry.instant, run: entry.run };
   return (
@@ -493,17 +493,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} onPhase={setStage} />
       ) : null}
       {sub ? (
-        <header
-          className={`scene-head${question ? ' has-q' : ''}${question && (stage === 'done' || stage === 'reveal') && !reduce ? ' is-arrived' : ''}`}
-          data-scene={subTitle}
-          id={question ? `q-${id}` : undefined}
-        >
-          <span className="scene-head-row">
-            {subObj?.icon ? <Icon name={iconFor(subObj.icon)} size={16} className="scene-head-icon" /> : null}
-            <h3 className="scene-head-title">{subTitle}</h3>
-            {question ? <p className="scene-head-q">{question}</p> : null}
-            <span className="scene-head-rule" aria-hidden="true" />
-          </span>
+        // the topic's one header: its question, an h3 (typography spec,
+        // 17 Nov: no icon, kicker, topic name or hairline; the topic name
+        // stays as data-scene, for the rail)
+        <header className={`scene-head${question ? ' has-q' : ''}`} data-scene={subTitle} id={question ? `q-${id}` : undefined}>
+          <h3 className="scene-head-q">{question ?? subTitle}</h3>
         </header>
       ) : null}
       <div className="scrolly-graphic" ref={box} aria-label={label} aria-describedby={hlDesc.node ? hlDesc.id : undefined} role="group" hidden={inline || undefined}>
