@@ -189,17 +189,18 @@ export function HeadlineTiles({ sid }) {
   );
 }
 
-// Public debt in the main arm at the late year, in words, and why, from the
-// signs: the common fiscal rule holds spending as a share of GDP, so debt
-// rises above the path when tax as a share of GDP falls (as income moves to
-// capital). The tax clause only where the headline-year tax/GDP gap is
-// negative. null when pending.
+// Public debt in the main arm at the late year, in words, and why (as
+// Explore > Public finances explains it): the common fiscal rule holds
+// spending as a share of GDP, so growth brings no dividend, and the model
+// reprices all debt at once at the higher interest rate. The reason only
+// where the debt gap and the interest-rate gap are both positive. null when
+// pending.
 export function debtLine(sid, cl) {
   const d = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
   if (d == null) return null;
-  const t = gap(sid, 'tfp', cl, 'tax_gdp_pp');
+  const r = gap(sid, 'tfp', cl, 'r_bp', LATE_YEAR);
   const where = Math.abs(d) < 0.005 ? 'ends on the path' : d > 0 ? 'ends above the path' : 'ends below the path';
-  const why = d > 0.005 && t != null && t < -0.005 ? ': spending keeps its share of GDP while tax’s share falls as income moves to capital' : ', under the common fiscal rule';
+  const why = d > 0.005 && r != null && r > 0 ? ': spending keeps its share of GDP, and all debt is repriced at once at higher rates' : ', under the common fiscal rule';
   return `Public debt ${where} in ${LATE_YEAR}${why}`;
 }
 

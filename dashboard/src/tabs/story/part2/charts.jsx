@@ -96,7 +96,7 @@ export function WelfareShape({ state }) {
     <Figure
       icon="age"
       title="Welfare change by birth year"
-      unit="UK central, main arm, central closure, debt-neutral transfers (a model fiscal rule). Lifetime gain as a consumption-equivalent change, %, by birth year"
+      unit="UK central, main arm, central closure, debt-neutral transfers (a model fiscal rule). Remaining-lifetime gain, consumption-equivalent, %, by birth year"
       xTitle="Birth year"
       source={
         <>

@@ -362,7 +362,7 @@ describe('direction icons follow the signs', () => {
     expect(kor.container.querySelector('#story-headline').textContent).not.toContain('household consumption');
   });
 
-  it('the debt line follows the signs, and gives the tax reason only where tax/GDP falls', async () => {
+  it('the debt line follows the signs, and gives the reason only where debt and the interest rate end above the path', async () => {
     const { debtLine } = await import('@/tabs/ai/Landing.jsx');
     const L = fixture.years.indexOf(fixture.late_year);
     for (const sid of SIDS) {
@@ -376,7 +376,7 @@ describe('direction icons follow the signs', () => {
         const d = r.gaps.debt_gdp_pp[L];
         expect(line).toContain(d > 0.005 ? 'ends above the path' : d < -0.005 ? 'ends below the path' : 'ends on the path');
         expect(line).toContain(String(fixture.late_year));
-        expect(line.includes('tax’s share falls')).toBe(d > 0.005 && r.gaps.tax_gdp_pp[H] < -0.005);
+        expect(line.includes('repriced at once at higher rates')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
       }
     }
   });
