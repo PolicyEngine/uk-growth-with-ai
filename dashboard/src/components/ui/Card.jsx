@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { isValidElement, useRef } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
@@ -19,6 +19,7 @@ import { fileItem, navItem } from '@/lib/sourceItems.js';
 // sections in a fixed order, then the sources (`sources`: items), the
 // Method section that explains the chart and the replication files.
 const ABOUT = [
+  ['read', 'How to read'],
   ['shows', 'What it shows'],
   ['how', 'How it’s calculated'],
   ['definitions', 'Definitions'],
@@ -80,11 +81,17 @@ export function AboutFold({ about, method, replication, title = 'About this char
   );
 }
 
+// A section's content as note items: an <Items> list becomes one icon-led
+// line per item; anything else is one note.
+const asItems = (node) =>
+  isValidElement(node) && node.type === Items ? (node.props.items ?? []).filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) : [node];
+
 // Everything secondary about a card, for its "Sources and notes" button.
-function cardSources({ about, method, replication, sources = [], notes }) {
+function cardSources({ about, method, replication, sources = [], notes, read }) {
   const groups = [
-    notes?.length ? { title: 'Notes', notes: [<Items key="n" items={notes} className="src-pop-items" />] } : null,
-    ...ABOUT.filter(([k]) => about?.[k]).map(([k, t]) => ({ title: t, notes: [about[k]] })),
+    read?.length ? { title: 'How to read', notes: read.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
+    notes?.length ? { title: 'Notes', notes: notes.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
+    ...ABOUT.filter(([k]) => about?.[k]).map(([k, t]) => ({ title: t, notes: asItems(about[k]) })),
   ].filter(Boolean);
   const m = METHOD[method];
   const items = [
@@ -97,10 +104,10 @@ function cardSources({ about, method, replication, sources = [], notes }) {
 }
 
 export default function Card({
-  id, icon, title, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, essential,
+  id, icon, title, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, read, essential,
 }) {
   const ref = useRef(null);
-  const src = cardSources({ about, method, replication, sources, notes });
+  const src = cardSources({ about, method, replication, sources, notes, read });
   return (
     <article className={`card ${className}`} id={id} ref={ref}>
       <header className="card-head">
@@ -120,9 +127,9 @@ export default function Card({
       {foot}
       {/* the notes, hidden, for the page's number checks (a note may be a
           number's one home); they show behind the button */}
-      {notes?.length ? (
+      {notes?.length || read?.length ? (
         <div hidden data-source-notes="">
-          <Items items={notes} />
+          <Items items={[...(read ?? []), ...(notes ?? [])]} />
         </div>
       ) : null}
       {logo ? (

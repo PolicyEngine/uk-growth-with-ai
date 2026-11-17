@@ -295,7 +295,6 @@ function IncomePanel({ sid }) {
           }
           legend={
             st.closure === 'both' ? (
-              <>
               <p className="line-key">
                 <span className="line-key-item">
                   <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: central closure
@@ -304,13 +303,10 @@ function IncomePanel({ sid }) {
                   <span className="key-diamond" aria-hidden="true" /> Diamond: closed capital
                 </span>
               </p>
-              <HeadlineNote rule={st.rule} />
-              </>
-            ) : (
-              <HeadlineNote rule={st.rule} />
-            )
+            ) : null
           }
           about={{
+            read: st.rule === 'common' ? <HeadlineNote rule={st.rule} /> : null,
             caveats: (
               <Items
                 items={[

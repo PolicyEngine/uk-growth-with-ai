@@ -95,9 +95,27 @@
   padding: 0;
   list-style: none;
 }
-.src-pop-item {
+.src-pop-item,
+.src-pop-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.src-pop-ic {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--pe-gray-500, #6b7280);
+}
+.src-pop-body {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+.src-pop-note .src-pop-body {
+  display: block;
+}
+.src-pop-item {
   padding: 6px 0;
   border-top: 1px solid var(--pe-gray-100, #f3f4f6);
 }

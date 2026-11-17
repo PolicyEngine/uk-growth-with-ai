@@ -4,6 +4,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
 import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, MODEL_YEAR, InputFig, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -128,6 +129,7 @@ function CentralFigure({ ctx }) {
           ))}
         </ul>
       </div>
+      <Essential>Poverty rise is an upper bound: the displaced are jobless all year</Essential>
     </figure>
   );
 }
@@ -212,14 +214,19 @@ function CentralSource() {
         {
           title: 'How it’s counted',
           notes: [
-            <>After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</>,
-            <>
-              The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
-              <NavLink tab="explore" sub="households" anchor="hh-ladder">
-                Explore, households
-              </NavLink>
-              ).
-            </>,
+            { icon: 'poverty', text: <>After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</> },
+            {
+              icon: 'takeUp',
+              text: (
+                <>
+                  {TAKEUP_RAISES ? 'The cost is not an upper bound: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
+                  <NavLink tab="explore" sub="households" anchor="hh-ladder">
+                    Explore, households
+                  </NavLink>
+                  ).
+                </>
+              ),
+            },
           ],
         },
       ]}

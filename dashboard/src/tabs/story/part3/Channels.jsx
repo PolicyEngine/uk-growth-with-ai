@@ -3,6 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtBn2, fmtInputPct, fmtPct1 } from './format.js';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { D, FigureHead, InputFig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { RETURN_BASE, RETURN_PP } from './Central.jsx';
 import { Ref } from './sources.jsx';
@@ -126,6 +127,7 @@ function ChannelsFigure({ ctx }) {
           £0bn: no change
         </span>
       </span>
+      <Essential>Dividend tax is counted; corporation tax on the profits is not</Essential>
     </figure>
   );
 }
@@ -199,36 +201,50 @@ function ChannelsSource() {
       refs={['doorley']}
       groups={[
         {
-          title: 'Draws',
-          notes: [
-            <>
-              The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run on these {C.draws} draws;{' '}
-              <NavLink tab="story" anchor="p3-central">
-                the central case
-              </NavLink>{' '}
-              is a mean of {D.headline.central_cost.draws}.
-            </>,
-          ],
-        },
-        {
           title: 'Assumptions',
           notes: [
-            <>
-              Both gains are assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref>. The capital gain is a return <span data-input="">{RETURN_PP}</span> points higher on a{' '}
-              <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included.
-            </>,
+            { icon: 'scenario', text: <>Both gains assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref></> },
+            {
+              icon: 'interest',
+              text: (
+                <>
+                  Capital gain: a return <span data-input="">{RETURN_PP}</span> points higher on a <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included
+                </>
+              ),
+            },
           ],
         },
         {
           title: 'How it’s counted',
           notes: [
-            <>
-              Tax on the higher dividends is counted (
-              <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
-                Explore, households
-              </NavLink>
-              ); corporation tax on the profits behind them is not.
-            </>,
+            {
+              icon: 'tax',
+              text: (
+                <>
+                  Dividend tax by household:{' '}
+                  <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
+                    Explore, households
+                  </NavLink>
+                </>
+              ),
+            },
+          ],
+        },
+        {
+          title: 'Draws',
+          notes: [
+            { icon: 'draws', text: <>{C.draws} draws; the sum comes within {fmtBn2(C.interaction_bn)} of the full shock run</> },
+            {
+              icon: 'answer',
+              text: (
+                <>
+                  <NavLink tab="story" anchor="p3-central">
+                    The central case
+                  </NavLink>{' '}
+                  is a mean of {D.headline.central_cost.draws}
+                </>
+              ),
+            },
           ],
         },
       ]}

@@ -10,7 +10,7 @@ import S from '@/data/surprise2028.json';
 export const RUN = S.source_commit;
 export const code = (p, line) => `${REPO}/blob/${RUN}/${p}${line ? `#L${line}` : ''}`;
 
-const OGUK_PARAMS = 'https://github.com/vahid-ahmadi/OG-UK/blob/d0e6ae535da4ffbface55f0e64fb2074583a46a6/oguk/oguk_default_parameters.json';
+const OGUK_PARAMS = 'https://github.com/PSLmodels/OG-UK/blob/d0e6ae535da4ffbface55f0e64fb2074583a46a6/oguk/oguk_default_parameters.json';
 const EFO_OCT = 'https://assets.publishing.service.gov.uk/media/6ae4a7a9ec36e258a1998484/economic-and-fiscal-outlook-october-2026-web-accessible.pdf';
 const FRS = 'https://assets.publishing.service.gov.uk/media/6a4cb4c74889d85e75ab40e0/E03599617_OBR_FRS_2026_Accessible.pdf';
 const IMF_SIP = 'https://www.imf.org/-/media/files/publications/selected-issues-papers/2026/english/sipea2026072.pdf';

@@ -283,7 +283,7 @@ export default function SensitivityTable() {
         </>
       }
       unit={<span data-axis-title="y">{`Gap against the OBR-central path at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
-      legend={<Items className="ex-notes ex-sg-key" items={gridKey(res)} />}
+      read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
       sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}

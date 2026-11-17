@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { isValidElement, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { iconFor } from '@/lib/concepts.js';
 
 // The one quiet "Sources and notes" button of every figure (Story,
 // Explore, Method), the vitals panel and the "As of" stamp: a small plain
@@ -64,6 +65,28 @@ export function summaryOf(items, lead = 'Source') {
 
 const PHONE = '(max-width: 600px)';
 
+// Inside the popover every line is one item led by one plain icon, by
+// concept (lib/concepts.js): a note's own `icon`, else its group's; a
+// source's by its kind.
+const GROUP_ICON = {
+  Notes: 'caveat',
+  Assumptions: 'scenario',
+  Settings: 'scenario',
+  'How it’s counted': 'measure',
+  'How to read': 'reading',
+  Draws: 'draws',
+  Model: 'model',
+  'What it shows': 'canSay',
+  'How it’s calculated': 'arithmetic',
+  Definitions: 'measure',
+  Caveats: 'caveat',
+  Sources: 'source',
+  More: 'deeper',
+};
+const KIND_ICON = { series: 'path', file: 'replication', document: 'source', page: 'source', release: 'asOf', source: 'source' };
+// a note: a node, or { icon: concept, text }
+const asNote = (n) => (n && typeof n === 'object' && !isValidElement(n) && 'text' in n ? n : { text: n });
+
 function Item({ it, onNav }) {
   const meta = [it.publisher && !it.nav ? shortPublisher(it.publisher) : null, it.id, it.date ? `released ${fmtDate(it.date)}` : null, it.extra].filter(Boolean);
   const label = it.nav ? (
@@ -79,8 +102,11 @@ function Item({ it, onNav }) {
   );
   return (
     <li className="src-pop-item">
-      {label}
-      {meta.length ? <span className="src-pop-meta">{meta.join(' · ')}</span> : null}
+      <Icon name={iconFor(it.nav ? 'deeper' : KIND_ICON[it.kind ?? 'source'] ?? 'source')} size={14} className="src-pop-ic" />
+      <span className="src-pop-body">
+        {label}
+        {meta.length ? <span className="src-pop-meta">{meta.join(' · ')}</span> : null}
+      </span>
     </li>
   );
 }
@@ -100,7 +126,7 @@ export default function SourceLine({ items = [], notes = [], groups = [], throug
   const list = items.filter((it) => it && (it.label || it.url));
   // the note groups ("Assumptions", "How it's counted", "Draws", ...), then
   // any ungrouped notes as "Notes"; the sources come last
-  const gs = [...groups, { title: 'Notes', notes }].map((g) => ({ ...g, notes: (g.notes ?? []).filter(Boolean) })).filter((g) => g.notes.length);
+  const gs = [...groups, { title: 'Notes', notes }].map((g) => ({ ...g, notes: (g.notes ?? []).filter((n) => n && ![null, undefined, false, ''].includes(asNote(n).text)) })).filter((g) => g.notes.length);
 
   const close = useCallback((refocus = true) => {
     setOpen(false);
@@ -181,8 +207,11 @@ export default function SourceLine({ items = [], notes = [], groups = [], throug
                 <div key={g.title} className="src-pop-group">
                   <span className="src-pop-sub">{g.title}</span>
                   <ul className="src-pop-notes">
-                    {g.notes.map((n, i) => (
-                      <li key={i}>{n}</li>
+                    {g.notes.map(asNote).map((n, i) => (
+                      <li key={i} className="src-pop-note">
+                        <Icon name={iconFor(n.icon ?? g.icon ?? GROUP_ICON[g.title] ?? 'caveat')} size={14} className="src-pop-ic" />
+                        <span className="src-pop-body">{n.text}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -226,8 +255,8 @@ export default function SourceLine({ items = [], notes = [], groups = [], throug
         <span hidden data-source-notes="">
           {gs.map((g) => (
             <span key={g.title}>
-              {g.notes.map((n, i) => (
-                <span key={i}> {n}</span>
+              {g.notes.map(asNote).map((n, i) => (
+                <span key={i}> {n.text}</span>
               ))}
             </span>
           ))}

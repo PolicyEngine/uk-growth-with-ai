@@ -7,7 +7,7 @@ import { useLiveInView } from './live.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { Tx } from './frame.jsx';
 import { SRC } from './sources.jsx';
-import SourceLine from '@/components/ui/SourceLine.jsx';
+import SourceLine, { Essential } from '@/components/ui/SourceLine.jsx';
 import { docItem } from '@/lib/sourceItems.js';
 
 // The shock, illustrated: one tile is one per cent of output. Labour's
@@ -104,7 +104,6 @@ export default function ShockTiles({ state }) {
             docItem('Scenario inputs: Korinek et al. (2026)', SRC.korinekT3, 'Korinek et al.'),
             docItem('Scenario inputs: Briefing paper No.9', SRC.bp9, 'Office for Budget Responsibility'),
           ]}
-          notes={['Illustration, not model output.']}
         />
       </p>
       <p className="story-figure-unit">
@@ -117,6 +116,7 @@ export default function ShockTiles({ state }) {
         </div>
         <TileField tiles={shockTiles(s)} width={COLS * 2 + GAP} height={ROWS} label={LABELS[s]} />
       </div>
+      <Essential>Illustration, not model output</Essential>
     </figure>
   );
 }

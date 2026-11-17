@@ -8,8 +8,8 @@
 //     button, or more than one;
 //   - a source line shows a link, or any source or caveat text shows at rest
 //     under a figure (.story-source, .ch-source, .p3-key, .p1-sources, an
-//     old inline foot), beyond one optional essential line (.src-essential,
-//     12 words or fewer);
+//     old inline foot), beyond the essential lines Fable approved
+//     (.src-essential, 12 words or fewer, on six figures);
 //   - step text (.scrolly-step) holds a citation link: one leaving the
 //     dashboard, or one to a source document;
 //   - a sources button opens no links, or does not open and close (Enter,
@@ -84,9 +84,15 @@ function audit({ story }) {
     const t = s.innerText.replace(/\s+/g, ' ').trim();
     if (t) out.push(`${where(s)}: source or note text at rest (${[...s.querySelectorAll('a')].filter(visible).length} links): ${t.slice(0, 70)}`);
   }
+  // the essential caveat lines Fable approved (charts-finale-fable.md, C):
+  // one per figure, 12 words or fewer, only on these figures
+  const ESSENTIAL = ['p2-shock', 'p2-output', 'story-output', 'p3-central', 'p3-channels', 'p3-changes'];
   for (const e of panel.querySelectorAll('.src-essential')) {
+    if (!visible(e)) continue;
     const w = e.innerText.trim().split(/\s+/).length;
-    if (visible(e) && w > 12) out.push(`${where(e)}: essential caveat of ${w} words (at most 12)`);
+    const id = e.closest('.scrolly[id], section[id]')?.id ?? where(e);
+    if (w > 12) out.push(`${where(e)}: essential caveat of ${w} words (at most 12)`);
+    if (!ESSENTIAL.some((k) => e.closest(`#${k}`))) out.push(`${id}: an essential caveat line on a figure not approved for one: ${e.innerText.trim()}`);
   }
   // step text: no citation links
   const origin = location.origin;

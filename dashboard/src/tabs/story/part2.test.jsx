@@ -104,9 +104,9 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    // one quiet "Sources and notes" button a figure, no phone-only repeats
-    // (the output split keeps its inline source foot until OutputSplit.jsx moves)
-    expect(container.querySelectorAll('#story-part-2 button.src-line-btn')).toHaveLength(3);
+    // one quiet "Sources and notes" button a figure (the output split's two
+    // charts share one), no phone-only repeats
+    expect(container.querySelectorAll('#story-part-2 button.src-line-btn')).toHaveLength(4);
     expect(container.querySelectorAll('.p2-src-phone')).toHaveLength(0);
     const part2 = container.querySelector('#story-part-2');
     const hrefs = [...[...part2.querySelectorAll('a')].map((a) => a.getAttribute('href')), ...sourceLinks(part2)];

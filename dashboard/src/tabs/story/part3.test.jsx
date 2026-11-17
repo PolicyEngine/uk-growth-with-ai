@@ -252,7 +252,7 @@ describe('Part3', () => {
     expect(container.querySelector('.story-next')).toBeNull();
     // the dividend and corporation tax asymmetry is said once, in the channels scene
     expect(container.textContent.match(/corporation tax/gi)).toHaveLength(1);
-    expect(container.querySelector('#p3-channels').textContent).toContain('corporation tax on the profits behind them is not');
+    expect(container.querySelector('#p3-channels .src-essential').textContent).toBe('Dividend tax is counted; corporation tax on the profits is not');
   });
 
   it('keeps unused formats importable', () => {
@@ -271,7 +271,7 @@ describe('Part3', () => {
     expect(bottomDecileRankings()).toHaveLength(2);
     // "upper bound" qualifies the poverty rise; the cost note follows the take-up runs' sign
     const text = renderPart().container.textContent;
-    expect(text).toContain('The poverty rise is an upper bound');
+    expect(text).toContain('Poverty rise is an upper bound');
     expect(text).toContain(ladder('takeup').cost_bn > ladder('central_20').cost_bn ? 'fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost');
     // uniform displacement costs least
     const rules = ['uniform', 'junior', 'exposure', 'compression'].map(rule);

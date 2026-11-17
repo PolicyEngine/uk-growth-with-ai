@@ -45,7 +45,7 @@ const tree = (p) => `${REPO}/tree/${REF}/${p}`;
 const INSTALL = `git clone ${REPO}.git && cd uk-growth-with-ai
 pip install -e ".[test]"
 pip install "ogcore==0.17.0"
-git clone https://github.com/vahid-ahmadi/OG-UK.git
+git clone https://github.com/PSLmodels/OG-UK.git
 git -C OG-UK checkout d0e6ae535da4ffbface55f0e64fb2074583a46a6
 pip install -e OG-UK`;
 

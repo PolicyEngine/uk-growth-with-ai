@@ -3,6 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, Key, MarkProvider, OutsideRebuildFlag, Source, entryClass, ladder, perPound, rule, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
@@ -307,6 +308,7 @@ function MarginPanel({ on }) {
           ]}
         />
       </div>
+      <Essential>Wage cuts are sized to the same gross earnings loss</Essential>
     </>
   );
 }
@@ -332,6 +334,7 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
+      <Essential>Each break-even holds the other two at central settings</Essential>
     </>
   );
 }
@@ -339,31 +342,38 @@ function BreakEvenPanel({ on }) {
 // Each panel's notes, in the figure's "Sources and notes" (one group a
 // panel), worded as they were.
 const rulesNotes = () => [
-  <NavLink key="g" tab="explore" sub="households" anchor="hh-rules">
-    Gini changes by rule, and a top-loaded stress test
-  </NavLink>,
+  {
+    icon: 'inequality',
+    text: (
+      <NavLink tab="explore" sub="households" anchor="hh-rules">
+        Gini changes by rule, and a top-loaded stress test
+      </NavLink>
+    ),
+  },
 ];
 
 const marginNotes = () => [
-  <>Both pence figures include employer NI. Job loss here is the central case on these {D.per_pound_20.draws} draws.</>,
-  <>
-    Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
-  </>,
-  marginClaims().perPoundMore === 'cut' ? <>A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here.</> : null,
+  { icon: 'tax', text: 'Both pence figures include employer NI' },
+  { icon: 'draws', text: <>Job loss here is the central case on these {D.per_pound_20.draws} draws</> },
+  { icon: 'wageCut', text: <>Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref></> },
+  marginClaims().perPoundMore === 'cut' ? { icon: 'why', text: 'A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here' } : null,
 ];
 
 const breakEvenNotes = () => [
-  <>
-    Each break-even holds the other two at central settings, interpolated between runs. The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws.
-  </>,
-  <>The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter.</>,
-  <>
-    Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
-    <NavLink tab="explore" sub="households" anchor="hh-ladder">
-      Explore, households
-    </NavLink>
-    .
-  </>,
+  { icon: 'arithmetic', text: 'Interpolated between runs' },
+  { icon: 'draws', text: <>The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws</> },
+  { icon: 'timing', text: 'The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter' },
+  {
+    icon: 'takeUp',
+    text: (
+      <>
+        Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
+        <NavLink tab="explore" sub="households" anchor="hh-ladder">
+          Explore, households
+        </NavLink>
+      </>
+    ),
+  },
 ];
 
 function ChangesSource() {

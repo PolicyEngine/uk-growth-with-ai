@@ -9,7 +9,8 @@ import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
-import { A, ModelSource, OG_DEFAULTS } from './sources.jsx';
+import { OutputSource } from './sources.jsx';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Key } from '@/components/story/highlight.jsx';
@@ -353,6 +354,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
             {' '}<span className="p2-output-unit" data-axis-title="y">
               per 100 of GDP on the OBR-central path
             </span>
+            <OutputSource closure={cap(CL_WORDS[cl])} where={where} />
           </p>
           {graph && !all ? (
             <span className="p2-output-actions">
@@ -435,18 +437,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </p>
         )}
       </div>
-      {/* one foot for both charts */}
-      <p className="story-source p2-output-foot">
-        <span className="p2-src-line">
-          <ModelSource method="m-measures" />. {cap(CL_WORDS[cl])}. Changes: {where}; taxes not split out. Labour&rsquo;s share:{' '}
-          <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, wider than the ONS measure.
-        </span>
-        {ch ? (
-          <span className="p2-src-line">
-            Rounded: parts may not add up; the GDP bar ends at the headline figure.
-          </span>
-        ) : null}
-      </p>
+      {/* sources and notes behind the title's button; one essential line */}
+      {ch ? <Essential>Rounded: parts may not add up</Essential> : null}
     </figure>
   );
 }
