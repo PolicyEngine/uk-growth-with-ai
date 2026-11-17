@@ -250,31 +250,32 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // The step column's length (height-cut-fable.md cut 2a): desktop, several
   // cards, each state is held for HOLD px of scroll with the figure in view.
   // The states share (V - rail - 1.8F + C) px (geom above), so the column
-  // needs C = 1.8F + rail + HOLD n - V; what the cards lack is one margin
-  // above the end marker (story.css --col-pad), not a floor on every card,
-  // so each card's pinned item is only as tall as its words. Set before
-  // paint, per screen size, and raise-only within a size: a state that
-  // makes the figure taller raises it once, and the page never shrinks
-  // under the reader.
-  const [colPad, setColPad] = useState({ k: '', v: 0 });
-  const padRef = useRef(colPad);
+  // needs C = 1.8F + rail + HOLD n - V: a min-height on the column
+  // (story.css), not a floor on every card, so each card's pinned item is
+  // only as tall as its words. The stylesheet sets it from the figure box's
+  // own floor and --n before any script runs (the prerendered first paint);
+  // this raises it (--col-min) to the figure's measured height, in a layout
+  // effect, per screen size, raise-only within a size: a state that makes
+  // the figure taller raises it once, and the page never shrinks under the
+  // reader.
+  const [colMin, setColMin] = useState({ k: '', v: 0 });
+  const minRef = useRef(colMin);
   const fitCol = () => {
     const col = stepsCol.current;
     const g = live.current;
     if (!col || !g || single || window.innerWidth <= 900) return;
     const V = window.innerHeight;
     const k = `${window.innerWidth}x${V}`;
-    const cur = padRef.current.k === k ? padRef.current.v : 0;
+    const cur = minRef.current.k === k ? minRef.current.v : 0;
     const railEl = document.querySelector('.story-rail');
     const rs = railEl ? getComputedStyle(railEl) : null;
     const rail = (railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : 0) + 8;
-    const C0 = col.offsetHeight - (padRef.current.k ? padRef.current.v : 0);
-    const want = Math.max(0, Math.ceil(1.8 * g.offsetHeight + rail + HOLD * cardSteps.length - V - C0));
-    if (padRef.current.k !== k || want > cur) setColPad({ k, v: Math.max(want, cur) });
+    const want = Math.max(0, Math.ceil(1.8 * g.offsetHeight + rail + HOLD * cardSteps.length - V));
+    if (minRef.current.k !== k || want > cur) setColMin({ k, v: Math.max(want, cur) });
   };
   const fitRef = useRef(fitCol);
   useIso(() => {
-    padRef.current = colPad;
+    minRef.current = colMin;
     fitRef.current = fitCol;
   });
   useIso(() => {
@@ -608,7 +609,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     <div
       className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
       id={id}
-      style={footY || colPad.v ? { ...(footY ? { '--scene-foot': `${footY}px` } : null), ...(colPad.v ? { '--col-pad': `${colPad.v}px` } : null) } : undefined}
+      style={single ? (footY ? { '--scene-foot': `${footY}px` } : undefined) : { '--n': cards, ...(footY ? { '--scene-foot': `${footY}px` } : null), ...(colMin.v ? { '--col-min': `${colMin.v}px` } : null) }}
     >
       {question && pinFull && !inline ? (
         <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} onPhase={setStage} />

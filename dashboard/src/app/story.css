@@ -2926,12 +2926,19 @@
     transition: none;
   }
 }
-/* desktop: the step column's length, so each state is held for its
-   scroll (Scrolly --col-pad, height-cut-fable.md 2a): one margin above
-   the end marker, inside the column, so the pinned items stay in it */
+/* desktop: the step column's length, so each state is held for its scroll
+   (height-cut-fable.md 2a): C = 1.8F + rail + 215px n - 100vh, from the
+   figure box's floor (F) and the card count (--n, prerendered) before any
+   script runs; Scrolly raises it to the measured figure (--col-min). The
+   end marker stays at the column's foot, and the pinned items inside it. */
 @media (min-width: 901px) {
+  .scrolly.is-anchored > .scrolly-steps {
+    display: flex;
+    flex-direction: column;
+    min-height: max(calc(1.8 * clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + var(--story-graphic-top) + 215px * var(--n, 1) - 100vh), var(--col-min, 0px));
+  }
   .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
-    margin-top: var(--col-pad, 0px);
+    margin-top: auto;
   }
 }
 /* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */
