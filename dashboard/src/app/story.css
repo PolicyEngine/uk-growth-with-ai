@@ -494,7 +494,12 @@
    up once the last card is reached (opacity only: always in the DOM) */
 .scrolly-answer {
   list-style: none;
-  padding-top: 24px;
+  padding-top: 16px;
+}
+@media (max-width: 900px) {
+  .scrolly-answer {
+    padding-top: 0;
+  }
 }
 .scrolly-close {
   display: grid;
@@ -2512,15 +2517,6 @@
     margin-left: auto;
   }
 }
-/* phones, a sticky scene: the active card overlaid on the chart's foot */
-@media (max-width: 900px) {
-  .scrolly.is-anchored .scrolly-step.is-active .scrolly-card {
-    z-index: 8;
-    padding: 8px 10px;
-    background: color-mix(in srgb, var(--pe-surface, #fff) 94%, transparent);
-    border-radius: 6px;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .scrolly.is-anchored .scrolly-card {
     transition: none;
@@ -2552,4 +2548,16 @@
 }
 .story-rail li.is-current .story-rail-bar {
   background: var(--pe-gray-900);
+}
+/* phones and tablets (no anchoring): the step cards keep one 1px hairline
+   on the left, the length of the card and its floor, so a card's floor
+   reads as part of the card, not as blank page */
+@media (max-width: 900px) {
+  .scrolly:not(.is-single) .scrolly-card {
+    padding-left: 12px;
+    border-left: 1px solid var(--card-border);
+  }
+  .scrolly:not(.is-single) .scrolly-step.is-active .scrolly-card {
+    border-left-color: var(--pe-gray-500);
+  }
 }

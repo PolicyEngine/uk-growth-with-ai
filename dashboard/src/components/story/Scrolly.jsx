@@ -247,13 +247,15 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // links and the text are unchanged) level with the mark it names
   // (step.anchor, else its first highlight id: the figure's [data-mark]),
   // or near the figure's top for a step that names none, in the column
-  // 24px from the chart; inactive cards fade out entirely. Phones, a sticky
-  // scene: the active card is overlaid on the chart's foot.
+  // 24px from the chart; inactive cards fade out entirely.
   const anchorRef = useRef(null);
   useEffect(() => {
     anchorRef.current = { shown, steps };
   });
-  const anchored = !single && !inline && !once && (!phone || sticky);
+  // desktop only: on phones a sticky scene's active card already sits just
+  // under the stuck chart (its trigger line), and moving it would leave a
+  // blank slot in the flow (the gap check)
+  const anchored = !single && !inline && !once && !phone;
   useEffect(() => {
     if (!anchored || typeof window === 'undefined') return undefined;
     let raf = 0;
