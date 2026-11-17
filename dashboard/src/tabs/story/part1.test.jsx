@@ -108,13 +108,14 @@ describe('story part 1, real data', () => {
     const annual = render(<OutputCanvas state={0} />).container;
     expect(annual.querySelector('.story-figure-unit').textContent).toContain(`${lastFull} is the latest complete year`);
     cleanup();
-    // the current year's latest quarter is in the GDP tile, a first estimate,
-    // with the growth on a year earlier (its home since the quarters step went)
-    const gdp = show(Part1Real).querySelector('#p1-vital-gdp');
+    // the current year's latest quarter is in the GDP tile ("Q3 2026"), flagged
+    // a first estimate; the growth on a year earlier is in the panel's notes
+    const el = show(Part1Real);
+    const gdp = el.querySelector('#p1-vital-gdp');
     expect(gdp.querySelector('#p1-quarters')).not.toBeNull();
-    expect(gdp.textContent).toContain(q);
-    expect(gdp.textContent).toContain('first estimate');
-    expect(gdp.querySelector('[data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
+    expect(gdp.textContent).toContain(q.replace(/^(\d{4}) (Q\d)$/, '$2 $1'));
+    expect(gdp.querySelector('.p1-vital-flag').textContent).toBe('first estimate');
+    expect(el.querySelector('#p1-vitals [data-source-notes] [data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
   });
 
   it('labels the OBR forecast with its vintage, from the data file', () => {
@@ -525,9 +526,10 @@ describe('story part 1, altered data', () => {
     const el = show(Part1Fix);
     expect(figures(textWithoutAxes(el))).toEqual(expected(fx));
     expect(el.textContent).toContain('The OBR’s latest central forecast, published March 2027');
-    // the direction words follow the altered signs (a fall, a zero)
-    expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toMatch(/^down /);
-    expect(el.querySelector('#p1-vital-pay .p1-vital-sub').textContent).toMatch(/^unchanged /);
+    // the signed values follow the altered signs (a fall, a zero); the sub-lines carry no direction words
+    expect(el.querySelector('#p1-vital-gdp .p1-vital-value').textContent).toMatch(/^−/);
+    expect(el.querySelector('#p1-vital-pay .p1-vital-value').textContent).not.toMatch(/^[+−]/);
+    expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).not.toMatch(/^(up|down|unchanged) /);
     vi.doUnmock('@/data/ukContext.json');
   });
 });

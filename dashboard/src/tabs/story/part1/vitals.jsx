@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { useEnterState, useEntry } from '@/components/story/motion.js';
 import { fmtDate } from '@/components/ui/SourceLine.jsx';
 import { FACTS, LINKS, SERIES, SOURCES } from './data.js';
 import { Ext, SourceLine } from './frame.jsx';
-import { dirWord, idx1, pct1 } from './format.js';
+import { idx1, pct1 } from './format.js';
 
 // The UK vitals panel that opens part 1: one instrument panel (a single
 // tinted band, one box) holding six metrics on shared baselines, each the
@@ -42,7 +40,7 @@ export const VITALS = [
     fact: 'gdp_quarterly_latest',
     icon: 'gdp',
     name: 'GDP',
-    label: 'on a quarter earlier',
+    label: 'on the quarter',
     growth: true,
   },
   {
@@ -53,7 +51,7 @@ export const VITALS = [
     fact: 'productivity_oph_latest',
     icon: 'productivity',
     name: 'Output per hour',
-    label: 'index, 2023 = 100',
+    label: 'Index, 2023 = 100',
     format: idx1,
   },
   {
@@ -64,7 +62,8 @@ export const VITALS = [
     fact: 'employment_rate_latest',
     icon: 'labour',
     name: 'Employment',
-    label: 'rate, aged 16 to 64',
+    label: 'Ages 16–64',
+    define: 'Employment: the rate for people aged 16 to 64, a three-month average.',
   },
   {
     key: 'unemployment',
@@ -74,7 +73,8 @@ export const VITALS = [
     fact: 'unemployment_rate_latest',
     icon: 'labour',
     name: 'Unemployment',
-    label: 'rate, aged 16 and over',
+    label: 'Ages 16+',
+    define: 'Unemployment: the rate for people aged 16 and over, a three-month average.',
   },
   {
     key: 'pay',
@@ -84,7 +84,8 @@ export const VITALS = [
     fact: 'pay_growth_latest',
     icon: 'pay',
     name: 'Regular pay',
-    label: 'on a year earlier',
+    label: 'On a year earlier',
+    define: 'Regular pay: average weekly earnings excluding bonuses, on the same three months a year earlier.',
     growth: true,
   },
   {
@@ -95,18 +96,28 @@ export const VITALS = [
     fact: 'labour_share_latest',
     icon: 'labourShare',
     name: 'Employee share',
-    label: 'of GDP (computed)',
+    label: 'Of GDP',
   },
 ];
 
-// The GDP tile's sub-line also holds the year-on-year growth (its home)
-// and says the quarter is a first estimate.
-function GdpExtra() {
+// The panel's one year, from the latest figure (GDP's quarter): the chip
+// says it once, so a sub-line drops it where it matches.
+const YEAR = String(FACTS.gdp_quarterly_latest.period).match(/\d{4}/)?.[0] ?? '';
+// "2026 Q3" -> "Q3"; "Jun–Aug 2026" -> "Jun–Aug"; another year kept
+const shortPeriod = (p) => {
+  const q = /^(\d{4}) (Q\d)$/.exec(p);
+  const t = q ? `${q[2]} ${q[1]}` : periodOf(p);
+  return t.replace(new RegExp(`\\s*${YEAR}$`), '') || t;
+};
+const FIRST = /first estimate/i.test(FACTS.gdp_quarterly_latest.note ?? '');
+
+// GDP's year-on-year growth (its home), in the panel's notes.
+function GdpYoy() {
   const y = FACTS.gdp_quarterly_yoy;
-  const first = /first estimate/i.test(FACTS.gdp_quarterly_latest.note ?? '');
   return (
     <>
-      {first ? ', first estimate' : null}; <span data-path="facts.gdp_quarterly_yoy.value">{pct1(y.value)}</span> on a year earlier
+      GDP: <span data-path="facts.gdp_quarterly_yoy.value">{pct1(y.value)}</span> on a year earlier, {shortPeriod(y.period)} {YEAR}
+      {FIRST ? ', first estimate' : ''}.
     </>
   );
 }
@@ -181,8 +192,14 @@ function Tile({ v, drawn, instant }) {
       <Spark v={v} drawn={drawn} />
       <p className="p1-vital-sub">
         <span className="p1-vital-sub-rest">
-          {v.growth ? `${dirWord(f.value)} ${v.label}` : v.label} · {periodOf(f.period)}
-          {v.key === 'gdp' ? <GdpExtra /> : null}
+          {v.key === 'gdp' ? (
+            <>
+              {shortPeriod(f.period)} {YEAR}, {v.label}
+              {FIRST ? <span className="p1-vital-flag">first estimate</span> : null}
+            </>
+          ) : (
+            `${v.label} · ${shortPeriod(f.period)}`
+          )}
         </span>
         <span className="p1-vital-sub-hot">
           {src.released ? `Released ${fmtDate(src.released)}` : null}
@@ -196,10 +213,12 @@ function Tile({ v, drawn, instant }) {
 // The two definitions only the panel needs (unemployment and the
 // employee share), moved from the step cards.
 const NOTES = [
+  <GdpYoy key="yoy" />,
+  ...VITALS.filter((v) => v.define).map((v) => v.define),
   <Ext key="ilo" href={LINKS.ons_lm_guide?.url}>
     Unemployment, ILO definition: jobless, looking for work, able to start.
   </Ext>,
-  'Employee share: pay and employers’ contributions over GDP; it leaves out self-employed income.',
+  'Employee share: pay and employers’ contributions over GDP, computed here; it leaves out self-employed income.',
   <NavLink key="ledger" tab="method" sub="code" anchor="source-ledger">
     Release dates and series codes: the source ledger
   </NavLink>,
@@ -223,7 +242,8 @@ export default function Vitals() {
   return (
     <section id="p1-vitals" ref={ref} className="p1-vitals" aria-labelledby="p1-vitals-title">
       <h3 id="p1-vitals-title" className="p1-vitals-title">
-        <Icon name={iconFor('record')} size={18} className="p1-text-icon" /> UK vitals: the latest published figures
+        <span>Latest figures</span>
+        <span className="p1-vitals-chip">{YEAR} data</span>
         <SourceLine items={SRC} notes={NOTES} />
       </h3>
       <ul className="p1-vitals-grid">

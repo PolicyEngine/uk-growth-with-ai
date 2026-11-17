@@ -138,12 +138,18 @@ function Ticks({ max, fmt }) {
 // Each rule's poverty rise, printed beside its dot (round 2, B10: their
 // home moved here from Explore > Households). The exposure rule's is the
 // central case's, whose home is step 1: restated (data-axis).
+// A dot's rail spans its track, so a translateX in % is a share of the
+// track: the dot moves on the compositor (transform), not by `left`.
+const rail = (share) => ({ transform: `translateX(${(share * 100).toFixed(3)}%)` });
+
 function PovertyDot({ id, d, on }) {
   const left = d.poverty_pp / MAXP > 0.6;
   return (
-    <span className={`p3-dot p3-dot-pov${id === 'exposure' ? ' is-ring' : ''}`} style={{ left: on ? `${(d.poverty_pp / MAXP) * 100}%` : 0 }}>
-      <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(id === 'exposure' ? { 'data-axis': '' } : {})}>
-        {fmtPp(d.poverty_pp)}
+    <span className="p3-dot-rail" style={rail(on ? d.poverty_pp / MAXP : 0)}>
+      <span className={`p3-dot p3-dot-pov${id === 'exposure' ? ' is-ring' : ''}`}>
+        <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(id === 'exposure' ? { 'data-axis': '' } : {})}>
+          {fmtPp(d.poverty_pp)}
+        </span>
       </span>
     </span>
   );
@@ -175,10 +181,12 @@ function RulesPanel({ on }) {
                 </span>
               </span>
               <span className="p3-dp-track" data-mark="r-cost">
-                <span className={`p3-dot p3-dot-cost${r.central ? ' is-ring' : ''}`} style={{ left: on ? `${(d.cost_bn / MAXC) * 100}%` : 0 }}>
-                  {/* the central case's cost has its home in step 1: restated (data-axis) */}
-                  <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(r.central ? { 'data-axis': '' } : {})}>
-                    {fmtBn(d.cost_bn)}
+                <span className="p3-dot-rail" style={rail(on ? d.cost_bn / MAXC : 0)}>
+                  <span className={`p3-dot p3-dot-cost${r.central ? ' is-ring' : ''}`}>
+                    {/* the central case's cost has its home in step 1: restated (data-axis) */}
+                    <span className={`p3-dot-val${left ? ' is-left' : ''}`} {...(r.central ? { 'data-axis': '' } : {})}>
+                      {fmtBn(d.cost_bn)}
+                    </span>
                   </span>
                 </span>
               </span>

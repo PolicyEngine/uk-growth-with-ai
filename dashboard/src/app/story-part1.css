@@ -680,10 +680,32 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  margin: 0 0 8px;
-  font-size: var(--t-label);
+  margin: 0 0 6px;
+  font-size: var(--t-meta);
   font-weight: 600;
-  color: var(--t-ink);
+  letter-spacing: 0.02em;
+  color: var(--t-muted);
+}
+.p1-vitals-chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pe-teal-700, #0f766e) 8%, #fff);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-text);
+}
+.p1-vitals-title > .src-line {
+  margin-left: 0;
+}
+.p1-vital-flag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--pe-gray-300, #d1d5db);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--t-muted);
+  white-space: nowrap;
 }
 .p1-vitals-grid {
   display: grid;
