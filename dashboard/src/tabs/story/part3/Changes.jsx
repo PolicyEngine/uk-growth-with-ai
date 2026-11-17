@@ -393,7 +393,7 @@ const rulesNotes = () => [
   { icon: 'scenario', text: <>Ages 16 to 24: tilted to them, after <Ref id="klein">Klein Teeselink (2025)</Ref></> },
   { icon: 'scenario', text: 'Central: in proportion to AI exposure' },
   { icon: 'scenario', text: <>Exposed higher earners: expertise compression, after <Ref id="autor">Autor (2024)</Ref></> },
-  { icon: 'draws', text: 'Paired draws: every rule uses the same draws' },
+  { icon: 'draws', text: `${rule('uniform').draws} paired draws per rule` },
   {
     icon: 'inequality',
     text: (
