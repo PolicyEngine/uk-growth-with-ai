@@ -192,7 +192,7 @@ export const CENTRAL_STEPS = [
 
 // The scene's marks, for the colour-keyed words.
 const CENTRAL_MARKS = {
-  'f-displaced': { color: 'var(--pe-gray-800)', shape: 'none', label: 'employees assumed displaced' },
+  'f-displaced': { color: 'var(--pe-gray-800)', shape: 'none', label: 'their number' },
   'f-poverty': { color: 'var(--pe-gray-800)', shape: 'none', label: 'absolute poverty' },
   'f-relative': { color: 'var(--pe-gray-800)', shape: 'none', label: 'relative poverty' },
   'f-gini': { color: 'var(--pe-gray-800)', shape: 'none', label: 'Gini coefficient' },

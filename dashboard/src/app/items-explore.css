@@ -2512,6 +2512,13 @@
 .hh-page > #hh-absorb {
   margin-bottom: 16px;
 }
+/* the decile buttons stay on Explore at every width (the story's old rule
+   hid them at 900px and below) */
+@media (max-width: 900px) {
+  .hh-absorb .p3-follow-btn {
+    display: inline-block;
+  }
+}
 /* end households (P3) */
 
 /* What moves the cost: cards keep their own height (no blank band inside) */

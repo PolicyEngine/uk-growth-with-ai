@@ -36,7 +36,7 @@ describe('HouseholdsExplore', () => {
       expect(container.querySelector('.hh-lead .notice-chip')).toBeNull();
       expect(container.textContent).not.toMatch(/provisional/i);
     } else {
-      expect(container.querySelector('.hh-lead .notice-chip').textContent.trim()).toBe('Provisional');
+      expect(container.querySelector('.hh-model').textContent).toContain('(provisional)');
       expect(container.textContent.match(/provisional/gi)).toHaveLength(1);
     }
     expect(container.textContent).not.toMatch(/cell marked/i);

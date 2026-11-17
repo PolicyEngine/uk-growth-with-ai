@@ -64,8 +64,8 @@ export function decileShape(values = VALUES) {
   const w = values[worst - 1];
   return {
     worst,
-    // deciles 6 to 9
-    upperMiddle: worst >= 6 && worst <= 9,
+    // deciles 6 to 9: the largest fall is there and they are the four largest falls
+    upperMiddle: worst >= 6 && worst <= 9 && [...values].sort((a, b) => a - b).slice(0, 4).every((v) => values.slice(5, 9).includes(v)),
     // falls smaller at decile 2 and at decile 10 than at the largest
     hump: w < 0 && values[1] > w && values[9] > w,
     // the top decile falls less than the largest fall
