@@ -257,7 +257,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             className="db-dot is-diamond"
                             style={{ left: pct(b), borderColor: color }}
                             label={`${a.label}, no foreign capital, ${name}: ${fmt(b)}`}
-                            tip={<DotTip arm={a.label} closure="No foreign capital (no foreign-owned private capital)" measure={name} value={b} />}
+                            tip={<DotTip arm={a.label} closure="No foreign capital (closure ζK = 0: no foreign-owned private capital)" measure={name} value={b} />}
                           />
                         ) : null}
                         {c != null ? (
@@ -265,7 +265,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             className="db-dot"
                             style={{ left: pct(c), background: color, borderColor: color }}
                             label={`${a.label}, some foreign capital, ${name}: ${fmt(c)}`}
-                            tip={<DotTip arm={a.label} closure="Some foreign capital (some new capital foreign-owned)" measure={name} value={c} />}
+                            tip={<DotTip arm={a.label} closure="Some foreign capital (closure ζK = 0.1: some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
                         {/* the main arm's GDP, wage and GNI: a muted reference
