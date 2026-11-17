@@ -203,3 +203,8 @@
   right: 0;
   z-index: 2;
 }
+
+/* the shell's scope line ends in the "As of" button: no separator before it */
+.scope-line .scope-item:has(+ .as-of) .scope-sep {
+  display: none;
+}

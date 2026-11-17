@@ -674,7 +674,7 @@
    the same anatomy on shared baselines: label, value, sparkline, unit
    line. */
 .p1-vitals {
-  margin: 4px 0 24px;
+  margin: 4px 0 16px;
 }
 .p1-vitals-title {
   display: flex;
