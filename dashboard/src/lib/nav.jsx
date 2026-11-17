@@ -267,7 +267,7 @@ export function NavProvider({ children }) {
       ref.current = next;
       setSt(next);
       if (next.anchor) revealAnchor(next.anchor);
-      else if (next.tab !== cur.tab || next.sub !== cur.sub) window.scrollTo({ top: 0 });
+      else if (next.tab !== cur.tab || next.sub !== cur.sub) window.scrollTo({ top: 0, behavior: 'instant' });
     },
     [target],
   );

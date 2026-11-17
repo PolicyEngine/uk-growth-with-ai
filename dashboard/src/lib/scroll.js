@@ -21,12 +21,14 @@ export function scrollBelowBars(el, { smooth = true } = {}) {
     if (getComputedStyle(b).position === 'sticky') bars += b.offsetHeight - (parseFloat(getComputedStyle(b).top) < 0 ? -parseFloat(getComputedStyle(b).top) : 0);
   });
   const top = el.getBoundingClientRect().top + window.scrollY - bars - 16;
-  window.scrollTo({ top: Math.max(0, top), behavior: smooth && !reduced() ? 'smooth' : 'auto' });
+  window.scrollTo({ top: Math.max(0, top), behavior: smooth && !reduced() ? 'smooth' : 'instant' });
 }
 
 // Bring an anchor into view once it is laid out (its tab may have just been
-// shown): open any fold round it, then scroll and move focus to it.
-export function revealAnchor(id, { smooth = true } = {}) {
+// shown): open any fold round it, then scroll and move focus to it. Instant
+// unless `smooth` (a smooth scroll through the story reads as lag, and runs
+// every scene on the way).
+export function revealAnchor(id, { smooth = false } = {}) {
   let tries = 0;
   const attempt = () => {
     const el = document.getElementById(id);

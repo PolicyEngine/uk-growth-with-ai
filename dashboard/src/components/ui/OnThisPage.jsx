@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { stickyBottom } from '@/lib/scroll.js';
+import { subscribe } from '@/lib/scrollLoop.js';
 import { NavLink } from '@/lib/nav.jsx';
 
 // A page's contents (AB2026 MethodContents): a sticky list at the left on a
@@ -10,34 +11,31 @@ import { NavLink } from '@/lib/nav.jsx';
 // phone. sections: [{ id, title, icon }]
 export default function OnThisPage({ tab, sub, sections, label }) {
   const [current, setCurrent] = useState(sections[0]?.id);
-  useEffect(() => {
-    let frame = 0;
-    const update = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const line = stickyBottom() + 48;
-        let cur = sections[0]?.id;
-        for (const { id } of sections) {
-          const el = document.getElementById(id);
-          if (el && el.offsetHeight > 0 && el.getBoundingClientRect().top <= line) cur = id;
-        }
-        const doc = document.documentElement;
-        if (doc.scrollHeight > window.innerHeight && window.innerHeight + window.scrollY >= doc.scrollHeight - 2) cur = sections[sections.length - 1]?.id;
-        setCurrent(cur);
-      });
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [sections]);
+  const nav = useRef(null);
+  useEffect(
+    () =>
+      // the page's one scroll loop (lib/scrollLoop.js): reads, then writes;
+      // idle while the list is off screen (a hidden tab)
+      subscribe({
+        el: nav.current,
+        read: () => {
+          const line = stickyBottom() + 48;
+          let cur = sections[0]?.id;
+          for (const { id } of sections) {
+            const el = document.getElementById(id);
+            if (el && el.offsetHeight > 0 && el.getBoundingClientRect().top <= line) cur = id;
+          }
+          const doc = document.documentElement;
+          if (doc.scrollHeight > window.innerHeight && window.innerHeight + window.scrollY >= doc.scrollHeight - 2) cur = sections[sections.length - 1]?.id;
+          return cur;
+        },
+        write: (cur) => setCurrent(cur),
+      }),
+    [sections],
+  );
 
   return (
-    <nav className="page-contents" aria-label={label}>
+    <nav ref={nav} className="page-contents" aria-label={label}>
       <p className="contents-title" aria-hidden="true">
         On this page
       </p>

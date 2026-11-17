@@ -5,6 +5,7 @@ import { EntryCtx, FinalState, useActiveStep, useEntry, useIsPhone, useReducedMo
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
+import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
 import QStage, { Answer, QFrame } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
@@ -133,7 +134,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const bottom = (parseFloat(getComputedStyle(b).top) || 0) + b.offsetHeight;
     return bottom + lineGap(h - bottom);
   };
-  const [register, raw] = useActiveStep(steps.length + 1, 0.55, phoneLine);
+  // desktop, several cards: the state follows `prog` (below), so the trigger
+  // line only says whether the block is done (no re-render per card)
+  const pickStep = (i) => (window.innerWidth > 900 && steps.filter((x) => !x.spacer).length > 1 ? (i >= steps.length ? steps.length : 0) : i);
+  const [register, raw] = useActiveStep(steps.length + 1, 0.55, phoneLine, pickStep);
   const done = raw >= steps.length;
   // desktop, several cards: the state follows progress through the scroll
   // over which the figure is in view (see the effect below)
@@ -221,44 +225,41 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // in view (from entering at the bottom to leaving under the rail, sticky
   // or not) is split evenly between the cards, so every state is held for
   // the same distance with the figure in view; the active card is marked.
-  const geom = () => {
+  const geom = (railBottom) => {
     const col = stepsCol.current;
     const g = live.current;
     const b = box.current;
     if (!col || !g || !b) return null;
     const F = g.offsetHeight;
     const C = col.offsetHeight;
-    const top0 = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? parseFloat(getComputedStyle(b).top) ?? 0;
+    const top0 = railBottom ?? document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? parseFloat(getComputedStyle(b).top) ?? 0;
     const enter = window.innerHeight - 0.9 * F;
     const exit = top0 - 0.1 * F - Math.max(0, C - F);
     return { colTop: col.getBoundingClientRect().top, enter, exit: Math.min(exit, enter - 1) };
   };
+
+  // the page's one scroll loop (lib/scrollLoop.js): reads, then writes;
+  // setProg only when the step changes
+  const progRef = useRef(null);
   useEffect(() => {
     if (single || typeof window === 'undefined') return undefined;
-    let raf = 0;
     const n = cardSteps.length;
-    const measure = () => {
-      raf = 0;
-      const m = window.innerWidth > 900 ? geom() : null;
-      if (!m) {
-        setProg(null);
-        return;
-      }
-      const p = (m.enter - m.colTop) / (m.enter - m.exit);
-      const k = Math.max(0, Math.min(n - 1, Math.floor(p * n)));
-      setProg(cardSteps[k]);
+    const put = (v) => {
+      if (v === progRef.current) return;
+      progRef.current = v;
+      setProg(v);
     };
-    const on = () => {
-      if (!raf) raf = window.requestAnimationFrame(measure);
-    };
-    measure();
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
-    return () => {
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    return subscribe({
+      el: stepsCol.current,
+      read: (f) => {
+        const railBottom = document.querySelector('.story-rail') ? f.rail() : undefined;
+        const m = window.innerWidth > 900 ? geom(railBottom) : null;
+        if (!m) return null;
+        const p = (m.enter - m.colTop) / (m.enter - m.exit);
+        return cardSteps[Math.max(0, Math.min(n - 1, Math.floor(p * n)))];
+      },
+      write: put,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [single, cardSteps.join(',')]);
   // go to card k (a link to an old step id, through a 'scrolly-go' event
@@ -273,7 +274,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const m = window.innerWidth > 900 ? geom() : null;
     if (m) {
       const target = m.enter - ((k + 0.5) / cardSteps.length) * (m.enter - m.exit);
-      window.scrollTo({ top: Math.max(0, window.scrollY + m.colTop - target), behavior: reduce ? 'auto' : 'smooth' });
+      window.scrollTo({ top: Math.max(0, window.scrollY + m.colTop - target), behavior: reduce ? 'instant' : 'smooth' });
       return;
     }
     const el = document.getElementById(steps[cardSteps[k]].id);
@@ -308,29 +309,23 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const anchored = !single && !inline && !once && !phone;
   useEffect(() => {
     if (!anchored || typeof window === 'undefined') return undefined;
-    let raf = 0;
-    const place = () => {
-      raf = 0;
+    const col0 = stepsCol.current;
+    // reads only: which card goes where (null: every card in place)
+    const read = (f) => {
       const g = live.current;
       const col = stepsCol.current;
-      if (!g || !col) return;
-      const V = window.innerHeight;
+      if (!g || !col) return undefined;
+      const V = f.V;
       const fig = g.getBoundingClientRect();
       // only while the figure is on screen; elsewhere every card in place
-      if (fig.bottom < 0 || fig.top > V) {
-        col.querySelectorAll('.scrolly-card').forEach((c) => {
-          c.style.transform = '';
-        });
-        return;
-      }
-      if (!anchorRef.current) return;
+      if (fig.bottom < 0 || fig.top > V) return { card: null };
+      if (!anchorRef.current) return undefined;
       const { shown: i, steps: st } = anchorRef.current;
       const step = st[i];
-      if (!step) return;
+      if (!step) return undefined;
       const li = [...col.children].find((c) => c.id === step.id);
       const card = li?.querySelector('.scrolly-card');
-      if (!card) return;
-      for (const c of col.querySelectorAll('.scrolly-card')) if (c !== card) c.style.transform = '';
+      if (!card) return undefined;
       // centre the sentence (the body), not the card: part CSS floors a
       // card's height, which would put the sentence above its mark
       const body = card.querySelector('.scrolly-body') ?? card;
@@ -345,7 +340,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         const mark = sel ? g.querySelector(sel) : null;
         const r = mark?.getBoundingClientRect();
         y = r && r.height + r.width > 0 ? r.top + r.height / 2 - H / 2 : fig.top + 48;
-        const rail = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
+        const rail = document.querySelector('.story-rail') ? f.rail() : 0;
         y = Math.min(Math.max(y, fig.top + 8, rail + 8), Math.max(fig.top + 8, fig.bottom - H - 8), V - H - 8);
       } else {
         y = fig.bottom - H - 10;
@@ -356,23 +351,21 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       const close = col.querySelector(':scope > .scrolly-answer');
       const foot = close ? Math.min(cr.bottom, close.getBoundingClientRect().top - 16) : cr.bottom;
       y = Math.min(Math.max(y, cr.top), Math.max(cr.top, foot - H));
-      card.style.transform = `translateY(${Math.round(y - liTop)}px)`;
+      return { card, t: `translateY(${Math.round(y - liTop)}px)` };
     };
-    const on = () => {
-      if (!raf) raf = window.requestAnimationFrame(place);
+    // writes only
+    const write = (d) => {
+      const col = stepsCol.current;
+      if (!d || !col) return;
+      for (const c of col.querySelectorAll('.scrolly-card')) setStyle(c, 'transform', c === d.card ? d.t : '');
     };
-    place();
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
-    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(on);
+    const off = subscribe({ el: col0, read, write });
+    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(() => off.invalidate());
     if (ro) ro.observe(live.current);
-    const col = stepsCol.current;
     return () => {
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
+      off();
       ro?.disconnect();
-      if (raf) window.cancelAnimationFrame(raf);
-      col?.querySelectorAll('.scrolly-card').forEach((c) => {
+      col0?.querySelectorAll('.scrolly-card').forEach((c) => {
         c.style.transform = '';
       });
     };
@@ -635,6 +628,6 @@ function goToStep(el, box, reduce) {
     y = Math.max(y, line - gap + 12);
   }
   y = Math.min(y, line - 12);
-  window.scrollTo({ top: Math.max(0, r.top + window.scrollY - y), behavior: reduce ? 'auto' : 'smooth' });
+  window.scrollTo({ top: Math.max(0, r.top + window.scrollY - y), behavior: reduce ? 'instant' : 'smooth' });
 }
 

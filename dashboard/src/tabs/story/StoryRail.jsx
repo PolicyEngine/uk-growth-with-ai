@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { subscribe } from '@/lib/scrollLoop.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
@@ -25,53 +26,88 @@ export function sectionProgress({ top, height, scrollY, line, maxScroll }) {
   return Math.min(1, Math.max(0, (scrollY - start) / span));
 }
 
-function useSectionProgress(ids) {
-  const [p, setP] = useState(() => ids.map(() => 0));
+// The sections' places (page coordinates) and the page's scroll range are
+// measured on resize and when any section (or the page) changes size, not
+// every frame; each frame only computes the progress from scrollY. The bars'
+// fill is written straight to the DOM (bars[i].style.transform); React state
+// changes only when the current part or a part's "read" mark does.
+function useSectionProgress(ids, bars) {
+  const [st, setSt] = useState(() => ({ cur: -1, read: ids.map(() => false) }));
+  const last = useRef(st);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    let raf = 0;
-    const measure = () => {
-      raf = 0;
-      const line = window.innerHeight * 0.35;
-      const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const next = ids.map((id) => {
-        const el = document.getElementById(id);
-        if (!el) return 0;
-        const r = el.getBoundingClientRect();
-        return sectionProgress({ top: r.top + scrollY, height: r.height, scrollY, line, maxScroll });
+    let geo = null;
+    const fill = ids.map(() => '');
+    const read = (f) => {
+      if (!geo) {
+        const maxScroll = document.documentElement.scrollHeight - f.V;
+        geo = {
+          maxScroll,
+          V: f.V,
+          secs: ids.map((id) => {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const r = el.getBoundingClientRect();
+            return { top: r.top + f.y, height: r.height };
+          }),
+        };
+      }
+      const line = geo.V * 0.35;
+      return geo.secs.map((g) => (g ? sectionProgress({ top: g.top, height: g.height, scrollY: f.y, line, maxScroll: geo.maxScroll }) : 0));
+    };
+    const write = (p) => {
+      p.forEach((x, i) => {
+        const t = `scaleX(${x.toFixed(3)})`;
+        const el = bars.current[i];
+        if (el && fill[i] !== t) {
+          fill[i] = t;
+          el.style.transform = t;
+        }
       });
-      setP((old) => (next.every((x, i) => Math.abs(x - old[i]) < 0.002) ? old : next));
+      // the current part: the last one begun and not finished, else the last begun
+      let cur = -1;
+      p.forEach((x, i) => {
+        if (x > 0) cur = i;
+      });
+      const rd = p.map((x) => x >= 1);
+      const o = last.current;
+      if (o.cur === cur && rd.every((x, i) => x === o.read[i])) return;
+      last.current = { cur, read: rd };
+      setSt(last.current);
     };
-    const on = () => {
-      if (!raf) raf = window.requestAnimationFrame(measure);
+    const off = subscribe({ read, write });
+    const stale = () => {
+      geo = null;
+      off.invalidate();
     };
-    measure();
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
+    window.addEventListener('resize', stale);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(stale);
+    if (ro) {
+      ro.observe(document.body);
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) ro.observe(el);
+      });
+    }
     return () => {
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
-      if (raf) window.cancelAnimationFrame(raf);
+      off();
+      ro?.disconnect();
+      window.removeEventListener('resize', stale);
     };
-  }, [ids]);
-  return [p];
+  }, [ids, bars]);
+  return st;
 }
 
 export default function StoryRail({ sections }) {
   const ids = sections.map((s) => s.id);
   const [key] = useState(() => ids);
-  const [p] = useSectionProgress(key);
-  // the current part: the last one begun and not finished, else the last begun
-  let cur = -1;
-  p.forEach((x, i) => {
-    if (x > 0) cur = i;
-  });
+  const bars = useRef([]);
+  const { cur, read } = useSectionProgress(key, bars);
   return (
     <nav className="story-rail" aria-label="Parts of the story" data-sticky-bar="">
       <ol>
         {sections.map((s, i) => (
-          <li key={s.id} data-part={i + 1} className={i === cur ? 'is-current' : p[i] >= 1 ? 'is-read' : undefined}>
+          <li key={s.id} data-part={i + 1} className={i === cur ? 'is-current' : read[i] ? 'is-read' : undefined}>
             <NavLink tab="story" anchor={s.id} className="story-rail-link" aria-current={i === cur ? 'location' : undefined}>
               <span className="story-rail-n">
                 {s.icon ? <Icon name={iconFor(s.icon)} size={14} className="story-rail-ic" /> : null}
@@ -79,7 +115,12 @@ export default function StoryRail({ sections }) {
               </span>
               <span className="story-rail-t">{s.title}</span>
               <span className="story-rail-bar" aria-hidden="true">
-                <i style={{ transform: `scaleX(${p[i].toFixed(3)})` }} />
+                <i
+                  ref={(el) => {
+                    bars.current[i] = el;
+                  }}
+                  style={{ transform: 'scaleX(0)' }}
+                />
               </span>
             </NavLink>
           </li>

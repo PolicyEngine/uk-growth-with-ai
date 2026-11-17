@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { fastRecent } from './motion.js';
+import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 
 // The question-led sequence (Scrolly `sub.question`), in two forms:
 //
@@ -35,19 +35,8 @@ import { fastRecent } from './motion.js';
 // plays (CSS); the header carries the question, static, and the chart is
 // drawn. data-gap-exempt: the gap check skips them.
 
-const railBottom = () => document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const norm = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}-]/gu, '');
-const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
-
-// a nav link (revealAnchor) marks the next 1.5s as a jump
-let navAt = -1e9;
-if (typeof document !== 'undefined') {
-  document.addEventListener('reveal', () => {
-    navAt = now();
-  });
-}
-const navRecent = () => now() - navAt < 1500;
 
 // QFrame's phase from the frame's top: arrival over the quarter screen
 // below the fold, the move from y0 (the start) to y1 (under the header).
@@ -122,42 +111,26 @@ function usePhase(onPhase) {
   };
 }
 
-// Run `measure(el, scroll)` on scroll and resize, one rAF per frame.
-// `scroll`: { jumped, up } since the last frame.
-function useScrollDriver(ref, measure, deps) {
+// Run `read(el, f)` then `write(el, data, f)` in the page's one scroll loop
+// (lib/scrollLoop.js: all reads, then all writes, one rAF per frame), while
+// the element is within a screen of the viewport. f: { V, jumped, up, rail }.
+function useScrollDriver(ref, read, write, deps) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
-    let raf = 0;
-    let first = true;
-    let lastY = window.scrollY;
-    const tick = () => {
-      raf = 0;
-      const y = window.scrollY;
-      const dy = y - lastY;
-      lastY = y;
-      const jumped = first || Math.abs(dy) > 0.5 * window.innerHeight || navRecent() || fastRecent(window.innerHeight);
-      first = false;
-      measure(el, { jumped, up: dy < 0 && !jumped });
-    };
-    const on = () => {
-      if (!raf) raf = window.requestAnimationFrame(tick);
-    };
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
-    tick();
-    return () => {
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    return subscribe({ el, read: (f) => read(el, f), write: (d, f) => write(el, d, f) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
 
+// is-live: the card is moving (story.css gives it a layer only then)
+const live = (el, on) => {
+  if (el.classList.contains('is-live') !== on) el.classList.toggle('is-live', on);
+};
+
 const setVars = (el, qa, qm) => {
-  el.style.setProperty('--qa', qa.toFixed(3));
-  el.style.setProperty('--qm', qm.toFixed(3));
+  setStyle(el, '--qa', qa.toFixed(3));
+  setStyle(el, '--qm', qm.toFixed(3));
 };
 
 // The full pinned screen (sub.pin: 'full'). `recap` and `part` are
@@ -171,15 +144,12 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   const skip = useRef(false);
   useScrollDriver(
     ref,
-    (el, s) => {
+    (el, f) => {
       const c = card.current;
-      if (!el.offsetHeight || getComputedStyle(c ?? el).position !== 'absolute') {
-        go(el, 'done');
-        return;
-      }
+      if (!el.offsetHeight || getComputedStyle(c ?? el).position !== 'absolute') return null;
       const r = el.getBoundingClientRect();
-      const V = window.innerHeight;
-      const R = Math.max(0, railBottom());
+      const V = f.V;
+      const R = Math.max(0, f.rail());
       const H = c ? c.offsetHeight : 0;
       const pad = c ? c.offsetTop : 0;
       const mid = (R + V) / 2;
@@ -189,9 +159,17 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       const natural = r.top + pad + H / 2;
       const foot = r.bottom - H / 2 - 28;
       const y = Math.min(Math.max(natural, Math.min(mid, natural + Math.max(0, Q - H - 2 * pad))), foot);
-      const p = stagePhase({ top: r.top, bottom: r.bottom, V, R, H });
-      skip.current = nextSkip({ skip: skip.current, jumped: s.jumped, past: p.qm > 0, before: p.qm === 0, up: s.up });
-      el.style.setProperty('--qy', `${Math.round(y - natural)}px`);
+      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H }), dy: Math.round(y - natural) };
+    },
+    (el, d, f) => {
+      if (!d) {
+        live(el, false);
+        go(el, 'done');
+        return;
+      }
+      const { p } = d;
+      skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: p.qm > 0, before: p.qm === 0, up: f.up });
+      setStyle(el, '--qy', `${d.dy}px`);
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');
@@ -199,6 +177,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
         setVars(el, p.qa, p.qm);
         go(el, p.phase);
       }
+      live(el, !skip.current && p.qa > 0 && p.qm < 1);
     },
     [id],
   );
@@ -221,14 +200,11 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
   const skip = useRef(false);
   useScrollDriver(
     ref,
-    (el, s) => {
-      if (!el.offsetHeight) {
-        go(el, 'done');
-        return;
-      }
+    (el, f) => {
+      if (!el.offsetHeight) return null;
       const r = el.getBoundingClientRect();
-      const V = window.innerHeight;
-      const R = Math.max(0, railBottom());
+      const V = f.V;
+      const R = Math.max(0, f.rail());
       const box = boxRef?.current;
       const sticky = box && getComputedStyle(box).position === 'sticky';
       const stop = sticky ? Math.max(R, parseFloat(box.style.top || getComputedStyle(box).top) || R) : R;
@@ -236,13 +212,22 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
       // where it stops (sticky) or the rail
       const y1 = stop + 24;
       const y0 = Math.max(y1 + 120, V * 0.55);
-      const p = framePhase({ top: r.top, V, y0, y1 });
-      skip.current = nextSkip({ skip: skip.current, jumped: s.jumped, past: r.top < y0, before: r.top >= y0, up: s.up });
       // where the question goes: up into the header above the frame
       // (the card's layout top, untransformed, to the header's top)
       const head = document.getElementById(`q-${id}`);
       const card = el.querySelector('.q-frame-card');
-      if (head && card && r.bottom > -V && r.top < 2 * V) el.style.setProperty('--qdy', `${Math.round(head.getBoundingClientRect().top - r.top - card.offsetTop)}px`);
+      const qdy = head && card && r.bottom > -V && r.top < 2 * V ? Math.round(head.getBoundingClientRect().top - r.top - card.offsetTop) : null;
+      return { p: framePhase({ top: r.top, V, y0, y1 }), past: r.top < y0, qdy };
+    },
+    (el, d, f) => {
+      if (!d) {
+        live(el, false);
+        go(el, 'done');
+        return;
+      }
+      const { p } = d;
+      skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: d.past, before: !d.past, up: f.up });
+      if (d.qdy != null) setStyle(el, '--qdy', `${d.qdy}px`);
       if (skip.current) {
         setVars(el, 1, 1);
         go(el, 'done');
@@ -250,6 +235,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
         setVars(el, p.qa, p.qm);
         go(el, p.phase);
       }
+      live(el, !skip.current && p.qa > 0 && p.qm < 1);
     },
     [id],
   );

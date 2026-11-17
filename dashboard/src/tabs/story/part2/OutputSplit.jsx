@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { subscribe } from '@/lib/scrollLoop.js';
 import Sankey from '@/components/story/Sankey.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Icon from '@/components/ab/Icon.jsx';
@@ -77,32 +78,30 @@ const MEANING = {
 function useScrollState(active) {
   const ref = useRef(null);
   const [st, setSt] = useState({ seen: false, s: 0 });
+  const last = useRef(st);
   useEffect(() => {
     if (!active) return undefined;
-    let raf = 0;
-    const measure = () => {
-      raf = 0;
-      const el = ref.current;
-      if (!el) return;
-      const vh = window.innerHeight;
-      const r = el.getBoundingClientRect();
-      const sk = el.querySelector('.p2-sankey')?.getBoundingClientRect() ?? r;
-      const wf = el.querySelector('.p2-output-change')?.getBoundingClientRect() ?? r;
-      const seen = r.top < vh * 0.85 && r.bottom > 0;
-      const s = wf.top < vh * 0.75 ? 2 : (sk.top + sk.bottom) / 2 < vh * 0.75 ? 1 : 0;
-      setSt((o) => (o.seen === seen && o.s === s ? o : { seen, s }));
-    };
-    const on = () => {
-      if (!raf) raf = requestAnimationFrame(measure);
-    };
-    measure();
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
-    return () => {
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
-      if (raf) cancelAnimationFrame(raf);
-    };
+    // the page's one scroll loop (lib/scrollLoop.js): reads, then writes
+    return subscribe({
+      el: ref.current,
+      read: (f) => {
+        const el = ref.current;
+        if (!el) return null;
+        const vh = f.V;
+        const r = el.getBoundingClientRect();
+        const sk = el.querySelector('.p2-sankey')?.getBoundingClientRect() ?? r;
+        const wf = el.querySelector('.p2-output-change')?.getBoundingClientRect() ?? r;
+        const seen = r.top < vh * 0.85 && r.bottom > 0;
+        const s = wf.top < vh * 0.75 ? 2 : (sk.top + sk.bottom) / 2 < vh * 0.75 ? 1 : 0;
+        return { seen, s };
+      },
+      write: (n) => {
+        const o = last.current;
+        if (!n || (o.seen === n.seen && o.s === n.s)) return;
+        last.current = n;
+        setSt(n);
+      },
+    });
   }, [active]);
   return [ref, st];
 }

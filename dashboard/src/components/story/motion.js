@@ -1,42 +1,17 @@
 'use client';
 
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { fastRecent, navRecent, subscribe } from '@/lib/scrollLoop.js';
 
 // ---- Reversible entry (round 1) ----
 // A nav link (lib/scroll revealAnchor fires a 'reveal' event) or a jump of
 // more than half a screen in one frame lands the reader somewhere: what is
-// entered then shows its final state at once (`instant`).
-const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
-let navAt = -1e9;
-if (typeof document !== 'undefined') {
-  document.addEventListener('reveal', () => {
-    navAt = now();
-  });
-}
-export const navRecent = () => now() - navAt < 1500;
-
-// A fast scroll counts as a jump too (round 2): the page moved more than
-// half a screen within the last 150ms, in one frame or several (four
-// quarter-screen moves in 80ms), so the figure is landed on, not scrolled
-// through. One page-wide record of recent scroll positions.
-const SPAN = 150;
-let marks = [];
-if (typeof window !== 'undefined') {
-  window.addEventListener(
-    'scroll',
-    () => {
-      const t = now();
-      marks.push([t, window.scrollY]);
-      marks = marks.filter((m) => t - m[0] <= SPAN + 50);
-    },
-    { passive: true, capture: true },
-  );
-}
-export function fastRecent(V) {
-  const t = now();
-  const y = typeof window !== 'undefined' ? window.scrollY : 0;
-  return marks.some((m) => t - m[0] <= SPAN && Math.abs(y - m[1]) > 0.5 * V);
-}
+// entered then shows its final state at once (`instant`). A fast scroll
+// counts as a jump too (round 2): the page moved more than half a screen
+// within the last 150ms, in one frame or several, so the figure is landed
+// on, not scrolled through. Both are kept by the page's one scroll loop
+// (lib/scrollLoop.js), which every hook here subscribes to.
+export { navRecent, fastRecent };
 
 // The entry rule, pure: given the element's box this frame and the state
 // before, the state after. It enters when its top is above `line` (share
@@ -59,39 +34,28 @@ export function entryStep(prev, { top, bottom, V, line = 0.85, jumped = false })
 export function useEntry({ line = 0.85 } = {}) {
   const ref = useRef(null);
   const [st, setSt] = useState(() => ({ entered: typeof window !== 'undefined' && typeof IntersectionObserver === 'undefined', instant: true, run: 0 }));
+  const cur = useRef(st);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    let raf = 0;
-    let first = true;
-    let lastY = window.scrollY;
-    const measure = () => {
-      raf = 0;
-      const el = ref.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const V = window.innerHeight;
-      // no layout (jsdom): entered, instantly
-      if (!r.height && !r.width) {
-        setSt((s) => (s.entered ? s : { entered: true, instant: true, run: s.run + 1 }));
-        return;
-      }
-      const y = window.scrollY;
-      const jumped = first || Math.abs(y - lastY) > 0.5 * V || navRecent() || fastRecent(V);
-      first = false;
-      lastY = y;
-      setSt((s) => entryStep(s, { top: r.top, bottom: r.bottom, V, line, jumped }));
+    const put = (next) => {
+      if (next === cur.current) return;
+      cur.current = next;
+      setSt(next);
     };
-    const on = () => {
-      if (!raf) raf = window.requestAnimationFrame(measure);
-    };
-    measure();
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
-    return () => {
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    return subscribe({
+      el: ref.current,
+      read: () => ref.current?.getBoundingClientRect() ?? null,
+      write: (r, f) => {
+        if (!r) return;
+        const s = cur.current;
+        // no layout (jsdom): entered, instantly
+        if (!r.height && !r.width) {
+          put(s.entered ? s : { entered: true, instant: true, run: s.run + 1 });
+          return;
+        }
+        put(entryStep(s, { top: r.top, bottom: r.bottom, V: f.V, line, jumped: f.jumped }));
+      },
+    });
   }, [line]);
   return [ref, st];
 }
@@ -116,27 +80,22 @@ export function useSnap(ref, entry, ms = 900) {
   }, [landed, entry.run, ms]);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    let lastY = window.scrollY;
-    let raf = 0;
-    const measure = () => {
-      raf = 0;
-      const y = window.scrollY;
-      const V = window.innerHeight;
-      const el = ref.current;
-      if (el && (Math.abs(y - lastY) > 0.5 * V || navRecent() || fastRecent(V))) {
+    let first = true;
+    return subscribe({
+      el: ref.current,
+      // only on a jump (not the first run): is the block on screen?
+      read: (f) => {
+        const el = ref.current;
+        const jump = !first && el && (Math.abs(f.dy) > 0.5 * f.V || navRecent() || fastRecent(f.V));
+        first = false;
+        if (!jump) return false;
         const r = el.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < V) setJump((j) => j + 1);
-      }
-      lastY = y;
-    };
-    const on = () => {
-      if (!raf) raf = window.requestAnimationFrame(measure);
-    };
-    window.addEventListener('scroll', on, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', on);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+        return r.bottom > 0 && r.top < f.V;
+      },
+      write: (hit) => {
+        if (hit) setJump((j) => j + 1);
+      },
+    });
   }, [ref]);
   useEffect(() => {
     if (jump === jumpDone) return undefined;
@@ -220,38 +179,37 @@ export function useInView(options = {}) {
 //
 // `line` and `phoneLine` may also be functions returning the line in px
 // from the top of the viewport (Scrolly measures a sticky scene's line from
-// its figure); they are read at each measure.
-export function useActiveStep(count, line = 0.55, phoneLine = 0.88) {
+// its figure); they are read at each measure. `pick(i)` (optional) maps the
+// step to the value kept as state, so a caller that needs less than the
+// index (Scrolly on desktop: only whether the block is done) re-renders
+// only when that changes.
+export function useActiveStep(count, line = 0.55, phoneLine = 0.88, pick = null) {
   const els = useRef([]);
-  const lines = useRef({ line, phoneLine });
+  const lines = useRef({ line, phoneLine, pick });
   useEffect(() => {
-    lines.current = { line, phoneLine };
+    lines.current = { line, phoneLine, pick };
   });
   const [active, setActive] = useState(0);
+  const cur = useRef(0);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    let raf = 0;
-    const measure = () => {
-      raf = 0;
-      const l = window.innerWidth <= 900 ? lines.current.phoneLine : lines.current.line;
-      const y = typeof l === 'function' ? l() : window.innerHeight * l;
-      let best = 0;
-      els.current.forEach((el, i) => {
-        if (el && el.getBoundingClientRect().top < y) best = i;
-      });
-      setActive((a) => (a === best ? a : best));
-    };
-    const onScroll = () => {
-      if (!raf) raf = window.requestAnimationFrame(measure);
-    };
-    measure();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    return subscribe({
+      el: els.current.find(Boolean)?.parentElement ?? null,
+      read: (f) => {
+        const l = window.innerWidth <= 900 ? lines.current.phoneLine : lines.current.line;
+        const y = typeof l === 'function' ? l() : f.V * l;
+        let best = 0;
+        els.current.forEach((el, i) => {
+          if (el && el.getBoundingClientRect().top < y) best = i;
+        });
+        return lines.current.pick ? lines.current.pick(best) : best;
+      },
+      write: (best) => {
+        if (best === cur.current) return;
+        cur.current = best;
+        setActive(best);
+      },
+    });
   }, [count]);
   const register = (i) => (el) => {
     els.current[i] = el;
@@ -266,27 +224,18 @@ export function useScrollProgress() {
   const [p, setP] = useState(0);
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    let raf = 0;
-    const measure = () => {
-      raf = 0;
-      const el = ref.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const total = r.height + window.innerHeight;
-      const x = Math.min(1, Math.max(0, (window.innerHeight - r.top) / total));
-      setP(x);
-    };
-    const onScroll = () => {
-      if (!raf) raf = window.requestAnimationFrame(measure);
-    };
-    measure();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    return subscribe({
+      el: ref.current,
+      read: (f) => {
+        const el = ref.current;
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return Math.min(1, Math.max(0, (f.V - r.top) / (r.height + f.V)));
+      },
+      write: (x) => {
+        if (x != null) setP(x);
+      },
+    });
   }, []);
   return [ref, p];
 }
