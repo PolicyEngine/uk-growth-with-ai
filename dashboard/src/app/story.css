@@ -180,7 +180,6 @@
   position: sticky;
   top: var(--story-graphic-top);
   align-self: start;
-  transition: top 300ms var(--story-ease);
 }
 .scrolly.is-single .scrolly-graphic {
   position: relative;
@@ -754,8 +753,7 @@
   z-index: 5;
   margin: 0 calc(-1 * var(--page-gutter, 16px));
   padding: 6px var(--page-gutter, 16px) 0;
-  background: color-mix(in srgb, var(--page-bg) 92%, transparent);
-  backdrop-filter: blur(6px);
+  background: var(--page-bg);
 }
 .story-rail ol {
   display: grid;

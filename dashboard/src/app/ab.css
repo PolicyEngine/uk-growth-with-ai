@@ -3484,8 +3484,7 @@ ul.disclosure-text {
   z-index: 1070;
   margin: 0 -4px;
   padding: 8px 4px;
-  background: color-mix(in srgb, var(--page-bg) 92%, transparent);
-  backdrop-filter: blur(6px);
+  background: var(--page-bg);
 }
 
 .mx-steprail ol {
