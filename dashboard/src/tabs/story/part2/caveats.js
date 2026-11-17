@@ -33,7 +33,9 @@ export function peopleWord(pct) {
   if (pct >= 50) return 'more than half';
   if (pct >= 40) return 'more than two in five';
   if (pct >= 33) return 'about one in three';
-  return `about one in ${Math.round(100 / pct)}`;
+  const n = Math.round(100 / pct);
+  const word = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][n] ?? String(n);
+  return `about one in ${word}`;
 }
 
 // Headline figures: how much of the main arm's GDP gain the technology-

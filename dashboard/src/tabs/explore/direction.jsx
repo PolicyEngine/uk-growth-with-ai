@@ -28,7 +28,7 @@ export function Dir({ x }) {
 // eslint-disable-next-line no-unused-vars
 export function Lead({ c, children }) {
   if (children == null || children === '') return null;
-  return <>{children}</>;
+  return <span>{children}</span>;
 }
 
 // A sentence or two (an "unsolved" note) as items: one per sentence, each

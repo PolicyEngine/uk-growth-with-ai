@@ -326,5 +326,5 @@ export function whoAnswer() {
   const w = welfareWords();
   if (!w?.lose) return null;
   const peak = peakAge() >= 55 ? 'near retirement' : 'in middle age';
-  return `Gains peak ${peak}; if transfers bear the later cost, ${w.young ? `${w.young}-year-olds and ` : ''}${w.lose} adults lose`;
+  return `Gains peak ${peak}; if debt-neutral transfers are kept on past 2036, ${w.young ? `${w.young}-year-olds and ` : ''}${w.lose} adults lose`;
 }

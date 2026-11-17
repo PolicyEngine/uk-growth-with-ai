@@ -801,6 +801,12 @@
   font-size: var(--t-label);
   line-height: 1.4;
 }
+.p1-groups-say li > *,
+.p1-groups-say .key {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
 .p1-groups-say .hl-fig {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
