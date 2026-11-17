@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { GrowRect } from '@/components/story/primitives.jsx';
 import { useEnterState, useInView, useReducedMotion } from '@/components/story/motion.js';
 import { Replay } from '@/components/story/chart/index.js';
 import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
-import { FileLink, PR_URL as STUDY_PR_URL } from './sources.jsx';
+import { COMMIT, REPO_URL } from './sources.jsx';
 import { Fig as FigChip } from '@/components/story/highlight.jsx';
-import { Answer } from '@/components/story/QStage.jsx';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
 // the source line, the chips and the bar rows. Figure text is HTML; bars are
@@ -58,24 +57,20 @@ export const ladder = (id) => byId(D.ladder, id);
 export const rule = (id) => byId(D.rules, id);
 export const perPound = (id) => byId(D.per_pound, id);
 
-// The source line under every part 3 figure: the model and data, then the
-// result file(s) each figure is read from, linked at the data's commit
-// (`files`: paths from aiStudy2425.json's `file` fields), then the study.
+// The one source line under every part 3 figure: the model, the year and
+// the basis (`children`, e.g. "50 draws"), then one link, "uk-ai-study", to
+// the study's results at the data's commit; the figure's result files
+// (`files`: paths from aiStudy2425.json's `file` fields) are named in the
+// link's title, not linked one by one.
 export function Source({ children, files = [] }) {
   const fs = [...new Set(files.filter(Boolean))];
   return (
-    <p className="story-source p3-iconed">
-      <Ico c="source" size={12} />
+    <p className="story-source">
       Source: PolicyEngine-UK microsimulation
       {PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
-      {children ? <>; {children}</> : null}:{' '}
-      {fs.map((f) => (
-        <span key={f}>
-          <FileLink path={f} />,{' '}
-        </span>
-      ))}
-      <a href={STUDY_PR_URL} target="_blank" rel="noreferrer">
-        uk-ai-study PR #{D.source.pr}
+      {children ? <>, {children}</> : null}:{' '}
+      <a href={`${REPO_URL}/tree/${COMMIT}/results`} target="_blank" rel="noreferrer" className="p3-ref" title={fs.length ? `Results files: ${fs.join(', ')}` : undefined} data-files={fs.join(' ')}>
+        uk-ai-study
       </a>
     </p>
   );
@@ -107,8 +102,7 @@ export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions }
         ) : null}
       </p>
       {unit || y || x ? (
-        <p className="story-figure-unit p3-iconed">
-          <Ico c="measure" size={12} />
+        <p className="story-figure-unit">
           <span>
             {y ? <AxisTitle axis="y">{y}</AxisTitle> : null}
             {y && x ? '; ' : null}
@@ -186,20 +180,6 @@ export function DivBar({ value, lo, hi, on = true, fill }) {
   );
 }
 
-// A step card's caveats, folded: the story keeps cards short and puts the
-// longer reasoning here. Prose only: a figure never goes in a closed
-// disclosure (the number check reads rendered text).
-export function About({ children }) {
-  return (
-    <details className="p3-about">
-      <summary>
-        <Ico c="caveat" size={12} /> About these figures
-      </summary>
-      {children}
-    </details>
-  );
-}
-
 // Entry beats (addendum B0): a one-card scene plays its beats once, when its
 // figure comes into view (Scrolly's ctx.entered, through F's useEnterState),
 // and the figure head's Replay button runs them again. Every label and value
@@ -213,6 +193,33 @@ export function useBeat(entered = true) {
   const armed = useEnterState(false, true, entered);
   const [run, setRun] = useState(0);
   const [reset, setReset] = useState(false);
+  // Replays tied to scroll position, both ways (Vahid, round 1): `attach` (a
+  // callback ref) goes on the figure; once it has played, the figure leaving the screen (up or
+  // down) snaps it back to its start, unseen, and coming back plays it
+  // again. The first play still waits for Scrolly's `entered` (after the
+  // topic opener). Every width, phones included.
+  const [el, attach] = useState(null);
+  const [away, setAway] = useState(false);
+  const awayRef = useRef(false);
+  useEffect(() => {
+    if (!el || reduce || typeof IntersectionObserver === 'undefined') return undefined;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const vis = entries.some((x) => x.isIntersecting);
+        if (!vis && !awayRef.current) {
+          awayRef.current = true;
+          setAway(true);
+        } else if (vis && awayRef.current) {
+          awayRef.current = false;
+          setAway(false);
+          setRun((r) => r + 1);
+        }
+      },
+      { threshold: 0, rootMargin: '-10% 0px -10% 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [el, reduce]);
   useEffect(() => {
     if (!reset) return undefined;
     const t = setTimeout(() => setReset(false), 60);
@@ -221,7 +228,7 @@ export function useBeat(entered = true) {
   // `settled`: the entry beats have played (about 2.8s after `on`), so the
   // step's highlight may dim the other marks; until then every mark plays
   // at full strength (CSS: .p3-scene:not(.is-settled)).
-  const on = reduce || (armed && !reset);
+  const on = reduce || (armed && !reset && !away);
   const [settledRun, setSettledRun] = useState(-1);
   useEffect(() => {
     if (!on || reduce) return undefined;
@@ -229,10 +236,12 @@ export function useBeat(entered = true) {
     return () => clearTimeout(t);
   }, [on, reduce, run]);
   return {
+    attach,
     on,
     settled: reduce || (on && settledRun === run),
     reduce,
-    reset,
+    // away: snapped back with no transitions, ready to play again
+    reset: reset || (away && !reduce),
     run,
     replay: () => {
       setReset(true);
@@ -252,37 +261,6 @@ export { Replay };
 
 // A scene's class list: entry state, and the no-transition reset.
 export const entryClass = (e, base = '') => `${base}${e.on ? ' is-on' : ''}${e.settled ? ' is-settled' : ''}${e.reset ? ' p3-reset' : ''}`.trim();
-
-// A scene sub-header for a block that is not a Scrolly block (step 8): the
-// same markup as Scrolly's topic header, the question static (no opener),
-// and its answer chip always shown, under it (brief A: under reduced motion
-// and outside Scrolly the question is a static header with its answer).
-export function SceneHead({ title, icon, question, answer, id, qid }) {
-  return (
-    <>
-      <header className={`scene-head p3-scene-head${question ? ' has-q' : ''}${answer ? ' has-a' : ''}`} data-scene={title} id={qid}>
-      <span className="scene-head-row">
-        <Ico c={icon} size={16} />
-        <h3 className="scene-head-title" id={id}>
-          {title}
-        </h3>
-        {question ? (
-          <p className="scene-head-q">
-            <Ico c="question" size={14} />
-            <span>{question}</span>
-          </p>
-        ) : null}
-        <span className="scene-head-rule" aria-hidden="true" />
-      </span>
-      </header>
-      {answer ? (
-        <div className="topic-head-answer">
-          <Answer question={null} answer={answer} shown />
-        </div>
-      ) : null}
-    </>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // One step, one sentence, one highlight (Vahid, 16 Nov: "someone cannot
@@ -315,57 +293,21 @@ export function InputFig({ path, mark, children }) {
     </span>
   );
 }
-// The step-card template, folded: an "About these figures" fold, its text
-// grouped under small icon sub-labels ("Assumed", "Finding", "Caveat",
-// "Definitions", "See also"), never a flat mixed list; each group a short
-// sentence or two. `groups`: [{ label, icon, items }]. Prose only (see About).
-export const GROUP_ICON = { Assumed: 'scenario', Finding: 'takeaway', Caveat: 'caveat', 'See also': 'link', Definitions: 'measure' };
-export function Fold({ groups }) {
-  const gs = groups.filter((g) => g && g.items.filter(Boolean).length);
-  return (
-    <details className="p3-about">
-      <summary>
-        <Ico c="caveat" size={12} /> About these figures
-      </summary>
-      {gs.map((g) => (
-        <section key={g.label} className="p3-fold-group">
-          {g.items.filter(Boolean).map((t, i) => (
-            <p key={i} className="p3-fold-text">
-              <Ico c={g.icon ?? GROUP_ICON[g.label] ?? 'caveat'} size={12} /> {i === 0 ? <strong className="p3-fold-label">{g.label}:</strong> : null} {t}
-            </p>
-          ))}
-        </section>
-      ))}
-    </details>
-  );
-}
-
-// The one "draws" chip a figure carries: "50 draws", "20 paired draws".
-export function DrawsChip({ children }) {
-  return (
-    <span className="p3-basis p3-draws">
-      <Ico c="draws" size={12} /> {children}
-    </span>
-  );
-}
-
 // A mark's props: data-mark (S2's highlight dims the marks a step does not name).
 export const markProps = (id, className = '') => ({
   'data-mark': id,
   className,
 });
 
-// A step's one sentence as the card's line: a paragraph led by the step's
-// icon (the text rule: every block leads with an icon, at most 25 words),
-// then the step's body (the fold), if any.
+// A step's one sentence as the card's line (Scrolly draws step.icon as the
+// card's one icon), then the step's body, if any. The sentence is not also
+// passed as step.title: a hidden copy would print its figures twice.
 export const asLines = (steps) =>
   steps.map(({ title, body, ...s }) => ({
     ...s,
     body: (
       <>
-        <p className="p3-step-line">
-          <Ico c={s.icon} size={16} /> <span>{title}</span>
-        </p>
+        <p className="p3-step-line">{title}</p>
         {body ?? null}
       </>
     ),

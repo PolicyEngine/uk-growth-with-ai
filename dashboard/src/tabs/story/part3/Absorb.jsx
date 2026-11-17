@@ -5,9 +5,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Pause } from '@/components/story/chart/index.js';
 import Sankey from '@/components/story/Sankey.jsx';
-import { Items } from '@/components/story/Items.jsx';
 import { fmtBn, fmtShare } from './format.js';
-import { AxisTitle, D, DrawsChip, FigureHead, Fold, Ico, Fig, Num, OBR_SCENARIO, OutsideRebuildFlag, Key, MarkProvider, Source, entryClass, ladder, useBeat } from './shared.jsx';
+import { AxisTitle, D, FigureHead, Fig, OBR_SCENARIO, OutsideRebuildFlag, Key, MarkProvider, Source, entryClass, ladder, useBeat, asLines } from './shared.jsx';
 import { CENTRAL_RATE } from './Central.jsx';
 import { Ref } from './sources.jsx';
 
@@ -16,7 +15,8 @@ import { Ref } from './sources.jsx';
 // from results/next_runs/obr_household_deciles.csv. Each income decile's
 // earnings lost flow to four destinations. The figure is the home of the
 // destination totals, the earnings total and (in its key) employer NI, which
-// sits on top of the earnings lost; the card adds the share absorbed.
+// sits on top of the earnings lost; the one sentence adds the share absorbed.
+// A normal two-column scene: text left, the Sankey right.
 
 const S = D.sankey;
 // Order: each small node sits between two tall ones, so labels never
@@ -105,11 +105,11 @@ const sankeyTip = ({ kind, link, node }) =>
     <>{DEST_NAME[node.id]}</>
   );
 
-function AbsorbFigure({ ctx, cur, setCur }) {
-  const e = useBeat(ctx?.entered ?? true);
+function AbsorbFigure({ ctx }) {
+  const { attach, ...e } = useBeat(ctx?.entered ?? true);
+  const box = useRef(null);
   const [follow, setFollow] = useState(null);
   const [paused, setPaused] = useState(false);
-  const box = useRef(null);
   const g = absorbGraph();
   const pick = (n) => setFollow(follow === n ? null : n);
   // the destination nodes and their ribbons are the scene's marks
@@ -119,17 +119,14 @@ function AbsorbFigure({ ctx, cur, setCur }) {
       if (POUR_ORDER.includes(id)) el.setAttribute('data-mark', id);
     });
   });
-  // after the pour, the three sentences light their destinations in turn,
-  // once (not under reduced motion); a reader can point at any sentence
-  const stepHl = cur == null ? null : ABSORB_LINES[cur]?.highlight[0];
-  useEffect(() => {
-    if (!e.on || e.reduce || setCur == null) return undefined;
-    const ts = [0, 1, 2].map((k) => setTimeout(() => setCur((c) => (c === 'held' ? c : k)), 2200 + k * 2400));
-    ts.push(setTimeout(() => setCur((c) => (c === 'held' ? c : null)), 2200 + 3 * 2400));
-    return () => ts.forEach(clearTimeout);
-  }, [e.on, e.reduce, e.run, setCur]);
   return (
-    <figure ref={box} className={entryClass(e, 'p3-figure p3-sankey p3-scene')}>
+    <figure
+      ref={(n) => {
+        box.current = n;
+        attach(n);
+      }}
+      className={entryClass(e, 'p3-figure p3-sankey p3-scene')}
+    >
       <FigureHead
         icon="benefits"
         title={
@@ -138,18 +135,14 @@ function AbsorbFigure({ ctx, cur, setCur }) {
           </>
         }
         y="£bn a year"
-        unit={
-          <>
-            Where {fmtBn(S.total.earnings_lost_bn)} of earnings lost goes <DrawsChip>{S.draws} draws</DrawsChip>
-          </>
-        }
+        unit={`Where ${fmtBn(S.total.earnings_lost_bn)} of earnings lost goes. ${S.draws} draws`}
         replay={e.replay}
         actions={<Pause paused={paused} onClick={() => setPaused(!paused)} />}
       />
       <OutsideRebuildFlag />
       <div className="p3-follow" role="group" aria-label="Follow one decile’s lost earnings">
         <span className="p3-follow-label">
-          <Ico c="deciles" size={13} /> <AxisTitle axis="x">Income decile, 1 = bottom</AxisTitle>
+          <AxisTitle axis="x">Income decile, 1 = bottom</AxisTitle>
           <span className="p3-follow-hint">: follow one</span>
         </span>
         {S.deciles.map((_, i) => (
@@ -177,22 +170,11 @@ function AbsorbFigure({ ctx, cur, setCur }) {
         replayKey={`${e.run}-${follow ?? ''}`}
         flow={e.on && !paused}
         interactive
-        highlight={follow ? `d${follow}` : stepHl}
+        highlight={follow ? `d${follow}` : null}
         tooltip={sankeyTip}
       />
-      <Items
-        className="p3-key-items p3-key-row"
-        items={[
-          {
-            icon: 'caveat',
-            text: 'Other items: mainly pension contributions no longer paid',
-          },
-          {
-            icon: 'tax',
-            text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government</>,
-          },
-        ]}
-      />
+      <p className="p3-key">Other items: mainly pension contributions no longer paid. Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government.</p>
+      <p className="p3-key">Benefits replace little partly because the study’s data flag only some newly entitled people as claiming Universal Credit. Decile 1 is grey: not a finding.</p>
       <Source files={[S.file, ladder('obr')?.file]}>run sized to the OBR scenario (Box 2.2), household flows by baseline decile</Source>
     </figure>
   );
@@ -203,7 +185,6 @@ function AbsorbFigure({ ctx, cur, setCur }) {
 // of the loss, and the share benefits replace.
 export const SMALLER = CENTRAL_RATE != null && S.displacement_rate_pct < CENTRAL_RATE;
 export const MOST = S.total.disposable_bn > S.total.earnings_lost_bn / 2;
-export const BENEFIT_SHARE = (S.total.benefits_bn / S.total.earnings_lost_bn) * 100;
 
 export const ABSORB_SUB = {
   title: 'Where a lost pound goes',
@@ -215,37 +196,18 @@ export const ABSORB_SUB = {
   answer: `Households bear ${fmtBn(S.total.disposable_bn)} of ${fmtBn(S.total.earnings_lost_bn)}`,
 };
 
-// Three sentences, each lighting one destination; one card (the Sankey is
-// full width below it), so the sentences light in turn after the pour and
-// on pointing, rather than by scroll.
-export const ABSORB_LINES = [
+// One step, one sentence: the destinations it names light in the Sankey.
+export const ABSORB_STEPS = [
   {
-    highlight: ['disposable'],
+    id: 'p3-absorb-step',
     icon: 'households',
-    text: (
+    highlight: ['disposable', 'tax'],
+    title: (
       <>
-        <Num n={1} mark="disposable" /> {MOST ? 'Most' : 'Part'} of the loss comes out of households’ <Key id="disposable">disposable income</Key>
-      </>
-    ),
-  },
-  {
-    highlight: ['tax'],
-    icon: 'tax',
-    text: (
-      <>
-        <Num n={2} mark="tax" /> <Key id="tax">Less tax and NI</Key>, with benefits, absorbs{' '}
+        {MOST ? 'Most' : 'Part'} is lost from <Key id="disposable">disposable income</Key>; <Key id="tax">less tax and NI</Key>, with benefits, absorbs{' '}
         <Fig path="sankey.tax_benefit_share_pct" mark="tax">
           {fmtShare(S.tax_benefit_share_pct)}
         </Fig>
-      </>
-    ),
-  },
-  {
-    highlight: ['benefits'],
-    icon: 'benefits',
-    text: (
-      <>
-        <Num n={3} mark="benefits" /> <Key id="benefits">More benefits</Key> replace {BENEFIT_SHARE < 5 ? 'under a twentieth' : 'part'} of the earnings lost
       </>
     ),
   },
@@ -254,76 +216,10 @@ export const ABSORB_LINES = [
 // The destinations, for the colour-keyed words.
 const ABSORB_MARKS = Object.fromEntries(DESTS.map((d) => [d.id, { color: d.color, shape: 'square', label: d.label }]));
 
-function AbsorbLines({ cur, setCur }) {
-  return (
-    <ol className="p3-lines" aria-label="Three readings of the diagram; each lights its destination">
-      {ABSORB_LINES.map((l, k) => (
-        <li key={k} className={cur === k ? 'is-on' : ''} data-highlight={l.highlight.join(' ')}>
-          <button
-            type="button"
-            className="p3-line-btn"
-            aria-pressed={cur === k}
-            onMouseEnter={() => setCur(k)}
-            onMouseLeave={() => setCur('held')}
-            onFocus={() => setCur(k)}
-            onBlur={() => setCur('held')}
-            onClick={() => setCur(k)}
-          >
-            <Ico c={l.icon} size={14} /> {l.text}
-          </button>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 export default function Absorb() {
-  // the sentence lit: an index, null (none), or 'held' once a reader has pointed
-  const [cur, setCur] = useState(null);
-  const lit = typeof cur === 'number' ? cur : null;
-  const steps = [
-    {
-      id: 'p3-absorb-step',
-      kicker: 'Step 3 · Where a lost pound goes',
-      icon: 'households',
-      // one card over a full-width Sankey: each reading lights its own
-      // destination through the Sankey's highlight (in turn after the pour,
-      // and on pointing), so the step itself dims nothing
-      highlight: 'none',
-      highlightWhy: 'Each of the three readings lights its own destination in the Sankey',
-      body: (
-        <>
-          <AbsorbLines cur={lit} setCur={setCur} />
-          <Fold
-            groups={[
-              {
-                label: 'Definitions',
-                items: ['A smaller shock than the central case: job loss alone, with no assumed pay or capital-income rises'],
-              },
-              {
-                label: 'Caveat',
-                items: [
-                  <>
-                    Decile 1 is grey: the study does not report it as a finding (<a href="#p3-deciles-step">step 4</a>)
-                  </>,
-                ],
-              },
-            ]}
-          />
-        </>
-      ),
-    },
-  ];
   return (
     <MarkProvider marks={ABSORB_MARKS}>
-      <Scrolly
-        id="p3-absorb"
-        sub={ABSORB_SUB}
-        steps={steps}
-        graphic={(i, r, ctx) => <AbsorbFigure ctx={ctx} cur={lit} setCur={setCur} />}
-        wide
-        label="Where the earnings lost to job loss go, by income decile"
-      />
+      <Scrolly id="p3-absorb" sub={ABSORB_SUB} steps={asLines(ABSORB_STEPS)} graphic={(i, r, ctx) => <AbsorbFigure ctx={ctx} />} label="Where the earnings lost to job loss go, by income decile" />
     </MarkProvider>
   );
 }

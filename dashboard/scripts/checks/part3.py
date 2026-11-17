@@ -65,10 +65,9 @@ for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']), pence(
           bn(LAD['central_20']['cost_bn']), pp(LAD['central_20']['poverty_pp']), bn(LAD['wage_cuts']['cost_bn']),
           pp(LAD['wage_cuts']['poverty_pp'])]:
     story[x] += 1
-# 7 break-evens, take-up and JSA
+# 7 break-evens (take-up and JSA moved to Explore > Households in round 1)
 story[signed(AI['breakeven']['wage']['value_pct'], 1) + '%'] += 1
 story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
-for k in ('takeup', 'takeup_jsa'): story[bn(LAD[k]['cost_bn'])] += 1; story[pp(LAD[k]['poverty_pp'])] += 1
 STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months",
               'not the central case']
 
@@ -76,6 +75,8 @@ hh = Counter()
 for r in AI['cost_components']['rows']:
     hh['£0.1bn' if abs(r['cost_bn']) < 0.05 else bn(r['cost_bn'])] += 1
 for k in ('central_20', 'takeup', 'takeup_jsa', 'wage_cuts'): hh[pp(LAD[k]['gini_pp'])] += 1
+# full UC take-up and JSA: their home is Explore > Households (#hh-ladder) from round 1
+for k in ('takeup', 'takeup_jsa'): hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1
 for k in ('obr', 'obr_takeup', 'obr_takeup_jsa'):
     hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pp(LAD[k]['gini_pp'])] += 1
 hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1
