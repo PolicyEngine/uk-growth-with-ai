@@ -9,6 +9,7 @@ import TwoLenses from './TwoLenses.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
+import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js';
 
 // The story: a hero, then three parts, each a run of scrolly blocks.
 //   1 Where the UK stands: official data only, no forecasts of ours
@@ -21,8 +22,8 @@ import { URLS } from '@/tabs/ai/links.js';
 // Each part's opener (PartHead / PartOpener), in four lines: "Part n ·
 // model" (meta), the title, the one question the part answers, and one
 // model line, which carries the handover the old "Next: part n" band said
-// (round 1, plan S5/S6). New copy has no digits, so the number check's
-// multiset is unchanged.
+// (round 1, plan S5/S6). Its copy prints no signed figure (years only, from
+// part1/data.js), so the number check's multiset is unchanged.
 const ext = { target: '_blank', rel: 'noopener noreferrer' };
 export const PARTS = [
   {
@@ -45,7 +46,8 @@ export const PARTS = [
     question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
     modelLine: (
       <>
-        From measured to modelled: <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> (on <a href={URLS.ogCore} {...ext}><Hy>OG-Core</Hy></a>, no unemployment), as gaps against the <Hy>OBR-central</Hy> path, not forecasts.
+        Modelled with <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> (on <a href={URLS.ogCore} {...ext}><Hy>OG-Core</Hy></a>, no unemployment): gaps against the <Hy>OBR-central</Hy> path, on the{' '}
+        <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE}</a> productivity growth, not part 1&rsquo;s {OBR_VINTAGE} forecast.
       </>
     ),
     about: (

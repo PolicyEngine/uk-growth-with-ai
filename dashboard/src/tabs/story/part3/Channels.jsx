@@ -119,7 +119,13 @@ function ChannelsFigure({ ctx }) {
           );
         })}
       </ol>
-      <p className="p3-key">The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run.</p>
+      <p className="p3-key">
+        The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run on these {C.draws} draws;{' '}
+        <NavLink tab="story" anchor="p3-central">
+          the central case
+        </NavLink>{' '}
+        is a mean of {D.headline.central_cost.draws}.
+      </p>
       <p className="p3-key">
         Both gains are assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref>. The capital gain is a return <span data-input="">{RETURN_PP}</span> points higher on a{' '}
         <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included.

@@ -166,10 +166,11 @@ const LH = 16;
 export function placeLabels(items, Y, top, bot, lh = LH) {
   const placed = items
     .filter((it) => Number.isFinite(it.v))
-    .map((it) => ({ ...it, h: it.lines.length * lh, y: Y(it.v) }))
+    // `pad`: extra room above a label (its text drawn that much lower)
+    .map((it) => ({ ...it, h: it.lines.length * lh + (it.pad ?? 0), y: Y(it.v) }))
     .sort((a, b) => a.y - b.y);
   placed.forEach((p, i) => {
-    p.t = p.y - lh / 2;
+    p.t = p.y - lh / 2 - (p.pad ?? 0);
     if (i && p.t < placed[i - 1].t + placed[i - 1].h) p.t = placed[i - 1].t + placed[i - 1].h;
   });
   for (let i = placed.length - 1; i >= 0; i--) {

@@ -124,7 +124,8 @@ describe('story part 1, real data', () => {
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
     expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}`);
-    expect(el.textContent).toContain('no-shock path uses the OBR’s March 2026 productivity growth');
+    // the model path's vintage is said once, in part 2's model line
+    expect(el.textContent).not.toContain('March 2026');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
   });

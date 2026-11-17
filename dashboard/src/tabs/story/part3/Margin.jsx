@@ -18,9 +18,8 @@ const W = perPound('wage_cuts');
 const ER = D.per_pound_20.wage_cuts_employer_ni_p;
 const JOB = ladder('central_20');
 const CUT = ladder('wage_cuts');
-// The wage-cut pence and its two parts, each rounded to whole pence, need
-// not add up as printed (55p = 41p + 15p at the merged commit): say so.
-export const ROUNDED_APART = Math.round(W.household_p) + Math.round(ER) !== Math.round(W.government_p);
+// The wage-cut pence prints with its employer NI part only ("of which"):
+// its two parts, each rounded to whole pence, need not add up as printed.
 
 // The card's title and claims, from the signs of the differences
 // (part3.test.jsx): per pound on the margins alone, and poverty with the
@@ -123,11 +122,10 @@ function MarginFigure({ ctx }) {
               name: 'Wage cuts',
               text: (
                 <>
-                  {fmtPence(W.government_p)}{' '}
-                  <span className="p3-muted">
-                    = {fmtPence(W.household_p)} + {fmtPence(ER)} employer NI
-                    {ROUNDED_APART ? ', each rounded' : ''}
-                  </span>
+                  {fmtPence(W.government_p)}
+                  <span className="p3-muted">, of which {fmtPence(ER)} employer NI</span>
+                  {/* the rest, the worker's part, for screen readers: shown, it read as a sum that does not add up once rounded */}
+                  <span className="visually-hidden">; the rest, from the worker&rsquo;s pay, about {fmtPence(W.household_p)}</span>
                 </>
               ),
             },
@@ -182,7 +180,7 @@ function MarginFigure({ ctx }) {
             ]}
           />
         </div>
-        <p className="p3-key">Job loss here is the central case on these draws.</p>
+        <p className="p3-key">Job loss here is the central case on these {D.per_pound_20.draws} draws.</p>
       </section>
       <p className="p3-key">
         Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.

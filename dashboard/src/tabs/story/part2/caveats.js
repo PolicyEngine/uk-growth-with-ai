@@ -50,6 +50,17 @@ export function headlineShares(sid, cl) {
   };
 }
 
+// Household consumption in the headline cell: below the path in the
+// headline year (surprise2028.json gaps.C) and the first year it is back
+// above it, under the headline's common fiscal rule (cohorts2028.json, UK
+// central only, solved past the dashboard's years). null otherwise.
+export function consumptionBelowUntil(sid, cl) {
+  if (sid !== 'uk_central') return null;
+  const c = gap(sid, 'tfp', cl, 'C');
+  const yr = C.closures?.[cl]?.rules?.common?.tfp?.first_year_c_above;
+  return c != null && c < -EPS2 && yr ? yr : null;
+}
+
 // The pay tile: the wage gap's sign at closed capital, the central closure
 // and the half-foreign sensitivity (zk0.5). 'flips' when the signs differ.
 export function paySigns(sid) {
