@@ -115,7 +115,7 @@ function Fan({ lines, sid, wide }) {
       <g className="hf-ann" data-axis="">
         <line x1={XY(SURPRISE_YEAR)} x2={XY(SURPRISE_YEAR)} y1={T - (wide ? 22 : 46)} y2={B} />
         <text x={XY(SURPRISE_YEAR) + (wide ? -5 : 5)} y={T - (wide ? 10 : 32)} textAnchor={wide ? 'end' : 'start'}>
-          AI arrives, {SURPRISE_YEAR}
+          AI shock starts, {SURPRISE_YEAR}
         </text>
         <line x1={XY(HEADLINE_YEAR)} x2={XY(HEADLINE_YEAR)} y1={T - 22} y2={B} />
         <text x={XY(HEADLINE_YEAR) + 5} y={T - 10}>
@@ -183,7 +183,7 @@ export default function Hero() {
       <div className="story-hero-text">
         <div className="hero">
           <h2 id="story-q" className="hero-q">
-            What happens to the UK economy if AI arrives in {SURPRISE_YEAR}?
+            What happens to the UK economy if AI takes on more work from {SURPRISE_YEAR}?
           </h2>
         </div>
         <a className="story-scroll-cue" href="#story-part-1">

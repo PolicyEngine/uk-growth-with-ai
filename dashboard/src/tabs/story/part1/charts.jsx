@@ -456,7 +456,7 @@ export function LabourBoard({ focus, notes }) {
 }
 
 // ---------------------------------------------------------------------------
-// Scene 1C. AI arrives: the share of businesses using AI by survey wave,
+// Scene 1C. AI so far: the share of businesses using AI by survey wave,
 // all businesses and those with 10 or more employees (whose end label
 // carries their latest value, its home), then the exposure tiles.
 

@@ -550,7 +550,7 @@ describe('hero', () => {
     expect(wide.getAttribute('role')).toBe('img');
     expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the OBR-central path, %/);
     expect(wide.textContent).toContain('OBR-central path = 0');
-    expect(wide.textContent).toContain(`AI arrives, ${S.surprise_year}`);
+    expect(wide.textContent).toContain(`AI shock starts, ${S.surprise_year}`);
     expect(wide.textContent).toContain(`Shock complete, ${S.headline_year}`);
     const lines = [...wide.querySelectorAll('path.hf-line')];
     expect(lines.map((p) => p.dataset.mark).sort()).toEqual(['korinek', 'uk_central', 'uk_high', 'uk_low']);

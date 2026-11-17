@@ -33,7 +33,7 @@ export const PARTS = [
     kicker: 'Part 1',
     title: 'Where the UK stands',
     model: 'official',
-    question: 'Where do the UK economy and its labour market stand before AI arrives?',
+    question: 'Where do the UK economy and its labour market stand today?',
   },
   {
     id: 'story-part-2',
@@ -41,8 +41,12 @@ export const PARTS = [
     kicker: 'Part 2',
     title: 'What a model of the whole economy projects',
     model: 'oguk',
-    question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
+    question: 'What happens to output, incomes and the public finances if an AI shock starts in 2028?',
     about: (
+      <>
+        {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
+        <p>The AI shock: AI takes on some tasks workers do, so capital’s share of income rises, and the same inputs produce more.</p>
+        <p>It starts in 2028, unannounced, and builds in four yearly steps to 2031.</p>
       <Items
         items={[
           {
@@ -65,6 +69,7 @@ export const PARTS = [
           },
         ]}
       />
+      </>
     ),
   },
   {

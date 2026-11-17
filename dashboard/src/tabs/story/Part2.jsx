@@ -18,7 +18,7 @@ import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, whoCa
 
 export { scenarioDir } from './part2/steps.jsx';
 
-// Part 2: what OG-UK projects when AI arrives as an unanticipated shock in
+// Part 2: what OG-UK projects when the AI shock starts, unanticipated, in
 // 2028, against the no-shock OBR-central path. It is the one home of the
 // three headline figures (HeadlineTiles and SummaryWhy, in #story-headline,
 // the GDP scene's last step, which the Hero and Explore link to) and of
@@ -119,7 +119,7 @@ export default function Part2({ part }) {
       <StoryBeat
         id={String(SURPRISE_YEAR)}
         num={SURPRISE_YEAR}
-        head="AI arrives, as a surprise"
+        head="The AI shock starts, as a surprise"
         line={`The shock starts here in every scenario. Nobody in the model has planned for it, so the economy stays on the path until ${SURPRISE_YEAR}.`}
       />
 

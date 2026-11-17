@@ -11,7 +11,7 @@ import { Ext, SourceLine, Swap } from './part1/frame.jsx';
 import Vitals from './part1/vitals.jsx';
 import { dateLong, pct1, share0 } from './part1/format.js';
 
-// Part 1: where the UK economy and labour market stand as AI arrives, from
+// Part 1: where the UK economy and labour market stand before the AI shock, from
 // official published data only (ukContext.json); no forecasts or modelling
 // of ours, and the one forecast shown is the OBR's. Every printed figure has
 // an entry in ukContextChecks.json, read there from the primary file, and is
