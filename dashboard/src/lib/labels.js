@@ -59,7 +59,7 @@ export const RULE_PICK = {
 
 // Capital closure: who owns the new capital.
 export const CLOSURES = [
-  { id: 'central', label: 'Central', note: 'Foreign investors supply 10% of excess capital demand (ζK = 0.1, OG-UK default)', icon: 'globe' },
+  { id: 'central', label: 'Central', note: 'Foreign investors supply 10% of excess capital demand (ζK = 0.1; OG-Core’s US default, chosen by the study)', icon: 'globe' },
   { id: 'closed', label: 'Closed capital', note: 'No foreign-owned private capital (ζK = 0)', icon: 'lock' },
   { id: 'both', label: 'Both', note: 'Central solid, closed capital dashed', icon: 'layers' },
 ];

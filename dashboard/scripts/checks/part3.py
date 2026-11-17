@@ -60,7 +60,7 @@ story[dpct(RK['pre_pension'][0])] += 1; story[dpct(RK['hbai_excl_large_ppc'][0])
 # 5 four stylised rules (exposure: step 1)
 for k in ('uniform', 'junior', 'compression'): story[bn(RUL[k]['cost_bn'])] += 1
 # 6 job loss against wage cuts, 20-draw bases
-for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']), pence(PP['wage_cuts']['household_p']),
+for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']), 
           pence(AI['per_pound_20']['wage_cuts_employer_ni_p']), pence(PP['wage_cuts']['government_p']),
           bn(LAD['central_20']['cost_bn']), pp(LAD['central_20']['poverty_pp']), bn(LAD['wage_cuts']['cost_bn']),
           pp(LAD['wage_cuts']['poverty_pp'])]:

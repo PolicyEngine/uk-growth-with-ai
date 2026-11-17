@@ -34,7 +34,7 @@ export function storyFigures() {
     // 5 four stylised rules (exposure: step 1)
     ...['uniform', 'junior', 'compression'].map((k) => fmtBn(rule(k).cost_bn)),
     // 6 job loss against wage cuts
-    fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p), fmtPence(pp('wage_cuts').household_p), fmtPence(D.per_pound_20.wage_cuts_employer_ni_p),
+    fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p), fmtPence(D.per_pound_20.wage_cuts_employer_ni_p),
     fmtPence(pp('wage_cuts').government_p), fmtBn(lad('central_20').cost_bn), fmtPp(lad('central_20').poverty_pp), fmtBn(lad('wage_cuts').cost_bn),
     fmtPp(lad('wage_cuts').poverty_pp),
     // 7 break-evens (take-up and JSA: Explore > Households since round 1)

@@ -125,7 +125,6 @@ function MarginFigure({ ctx }) {
                   {fmtPence(W.government_p)}
                   <span className="p3-muted">, of which {fmtPence(ER)} employer NI</span>
                   {/* the rest, the worker's part, for screen readers: shown, it read as a sum that does not add up once rounded */}
-                  <span className="visually-hidden">; the rest, from the worker&rsquo;s pay, about {fmtPence(W.household_p)}</span>
                 </>
               ),
             },
