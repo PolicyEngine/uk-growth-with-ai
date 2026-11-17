@@ -49,8 +49,6 @@ describe('story beats', () => {
       expect(b.querySelector('.beat-line').textContent.split(/\s+/).length).toBeLessThanOrEqual(25);
       expect(b.textContent).not.toMatch(SIGNED);
     }
-    // the part 3 scene after B4 is no longer a full pinned question
-    expect(el.querySelector('#p3-central').classList.contains('has-stage')).toBe(false);
   });
 
   it('builds B3 from the signs for every scenario and closure, never from pay', () => {

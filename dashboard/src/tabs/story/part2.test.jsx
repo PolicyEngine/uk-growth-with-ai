@@ -109,8 +109,8 @@ describe('story part 2', () => {
     expect(container.querySelector('#p2-arms, .p2-pair')).toBeNull();
     // no inline links in the step (item 7); the scene's one "More on
     // Explore" link is the debt note under its caption, in the frame
-    expect(head.closest('.scrolly-step').querySelectorAll('a')).toHaveLength(0);
-    const note = container.querySelector('#p2-morph .scrolly-graphic-inner .scrolly-takeaway-note');
+    expect([...head.closest('.scrolly-step').querySelectorAll('a')].filter((x) => !x.closest('.scrolly-takeaway-in-step'))).toHaveLength(0);
+    const note = container.querySelector('#p2-morph .scrolly-takeaway-note');
     expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the path in \d{4}.* More on Explore$/);
     expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });

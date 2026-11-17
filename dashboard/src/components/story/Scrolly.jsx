@@ -7,7 +7,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
 import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
-import QStage, { Answer, QFrame } from './QStage.jsx';
+import QStage, { Answer } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
 import { NotesSlot } from './FigNotes.jsx';
 
@@ -96,10 +96,10 @@ const lineGap = (room) => {
 //                name).
 //                `question` (about a dozen words, neutral, answered by the
 //                block): printed in the header, and played big (QStage.jsx):
-//                by default (QFrame, no added height) inside the figure
-//                frame as the block comes in, then shrunk into the header
-//                while the chart draws in; with `pin: 'full'` (QStage) one
-//                pinned screen above the header. `key`: the word to mark;
+//                always as a question moment on the page background, one
+//                pinned screen above the header (item 16; the in-frame QFrame
+//                is no longer used), the icon, the words and the hint centred,
+//                then shrunk into the header. `key`: the word to mark;
 //                `hint`: one line under it. It follows the scroll both ways
 //                (scrolling back up brings the question back); skipped under
 //                reduced motion, in print and in "is-inline" blocks; the
@@ -125,7 +125,9 @@ const lineGap = (room) => {
 //   step.icon    a concept: the card's one icon, leading its sentence.
 //   step.kicker, step.kickerIcon, part (old API): ignored (round 1: a step
 //                card is one sentence and one icon).
-export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub }) {
+// `close`: { answer, answerTo } for a block with no `sub` (the output scene,
+// whose header is its own TopicHead): the same caption, placed the same way.
+export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, close: closeProp }) {
   // One more registered element than steps: an end marker after the last
   // card, past which the block is done.
   const box = useRef(null);
@@ -443,9 +445,13 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const question = subObj?.question;
   const takeaway = subObj?.takeaway;
   // one closing line per scene (round 1): sub.answer, else sub.takeaway
-  const answer = subObj?.answer ?? takeaway;
-  const answerTo = subObj?.answer != null ? subObj?.answerTo : undefined;
-  const pinFull = subObj?.pin === 'full';
+  const answer = subObj?.answer ?? takeaway ?? closeProp?.answer;
+  const answerTo = subObj?.answer != null ? subObj?.answerTo : closeProp?.answerTo;
+  // every topic question is a full question moment on the page background
+  // (Vahid, item 16: "no box background"): the pinned screen (QStage) above
+  // the header, never inside the figure frame. `pin` is accepted and
+  // ignored.
+  const pinFull = true;
   // the question's phase follows the scroll both ways (QStage.jsx)
   const [stage, setStage] = useState(question ? 'pending' : 'done');
   const stageDone = !question || inline || reduce || stage === 'done' || stage === 'reveal';
@@ -484,6 +490,13 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // GDP scene's debt line and its one "More on Explore" link)
   const answerNote = subObj?.answerNote;
   const noteEl = (on) => (answerNote != null ? <p className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`}>{answerNote}</p> : null);
+  // Where the caption goes: in the frame where the figure is drawn once
+  // (phones: the figure, complete, then its cards); with a pinned figure
+  // (desktop, sticky phone scenes) it ends the last card, so the pinned
+  // frame keeps its height (each state's hold, the 45% phone cap). After
+  // the quiet-sources merge frees the frame's source lines, the integrator
+  // may move it into the pinned frame too.
+  const capInFrame = once;
   const takeawayEl =
     answer != null ? (
       <>
@@ -526,11 +539,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
           style={reserve && minH && !inline ? { minHeight: minH } : undefined}
         >
           {inline ? null : graphic(shown, reduce, ctx)}
-          {question && !pinFull && !inline && !reduce ? (
-            <QFrame id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} boxRef={box} onPhase={setStage} />
-          ) : null}
           {inline || !calloutText ? null : <MarkCallout rootRef={live} anchor={calloutAnchor} text={calloutText} stepKey={steps[shown]?.id} />}
-          {inline ? null : takeawayEl}
+          {capInFrame ? takeawayEl : null}
           {phone ? null : footHere}
         </div>
         {reserve && measuring ? (
@@ -539,8 +549,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
               {steps.map((s, i) => (
                 <div key={s.id} className="scrolly-graphic-inner">
                   {graphic(i, reduce, sizerCtx)}
-                  {answer != null ? <Answer answer={answer} shown /> : null}
-                  {noteEl(true)}
+                  {/* a sticky phone scene's caption is in its last card */}
                 </div>
               ))}
             </FinalState.Provider>
@@ -566,6 +575,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
                 {s.title ? <TitleTag className="scrolly-title visually-hidden">{s.title}</TitleTag> : null}
                 {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-card-icon" /> : null}
                 <div className="scrolly-body">{s.body}</div>
+                {i === lastCard && !capInFrame && !inline ? <div className="scrolly-takeaway-in-step">{takeawayEl}</div> : null}
                 {once ? (
                   <button type="button" className="scrolly-show" aria-label="Show on chart" title="Show on chart" aria-pressed={shown === i} onClick={() => showOnChart(i)}>
                     <Icon name="eye" size={16} />

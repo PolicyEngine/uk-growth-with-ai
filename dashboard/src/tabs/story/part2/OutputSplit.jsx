@@ -437,7 +437,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
       </div>
       {/* the scene's closing line: a caption in the frame, under the plot
           (typography spec), shown once the change is drawn */}
-      {ch ? <Answer answer={outputAnswer(ch)} to="story-output" shown={fast || s >= 2} /> : null}
+      {ch && fast ? <Answer answer={outputAnswer(ch)} to="story-output" /> : null}
       {/* one foot for both charts */}
       <p className="story-source p2-output-foot">
         <span className="p2-src-line">
@@ -505,7 +505,7 @@ export const OUTPUT_SUB = {
   title: 'Where output goes',
   icon: 'outputSplit',
   question: 'Who gets the extra output: workers, owners of capital in the UK, or owners abroad?',
-  hint: 'Follow each ribbon into its row of the waterfall',
+  hint: 'Follow each ribbon into the waterfall',
   answer: 'Capital income rises by more than GDP; labour income falls',
   answerTo: 'story-output',
 };
@@ -527,7 +527,7 @@ export default function OutputSplit({ sid, closure }) {
   const [phoneRef, phoneSt] = useScrollState(phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
-      <TopicHead id="story-output" sub={{ title: OUTPUT_SUB.title, question: OUTPUT_SUB.question }} titleId="story-output-h" />
+      <TopicHead id="story-output" sub={{ title: OUTPUT_SUB.title, question: OUTPUT_SUB.question, hint: OUTPUT_SUB.hint, icon: OUTPUT_SUB.icon, key: 'output', pin: 'full' }} titleId="story-output-h" />
       {phone ? (
         <div className="p2-output-static">
           <OutputGraphic fast both={both} state={phoneSt.s} seen={phoneSt.seen} figRef={phoneRef} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
@@ -548,6 +548,7 @@ export default function OutputSplit({ sid, closure }) {
           id="p2-output"
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={steps}
+          close={ch ? { answer: outputAnswer(ch), answerTo: 'story-output' } : undefined}
           graphic={(i) => <OutputGraphic both={both} state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}

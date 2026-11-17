@@ -8,7 +8,7 @@ import {
   ShoppingBasket, Boxes, HeartPulse, Gem, Gift, Sun, Sprout, Grid3x3, ClipboardList, DoorOpen, BookOpenText, Pin, IdCard,
   Workflow, Equal, CalendarClock, Calculator, Network, Microscope, ArrowUpRight, ArrowDownRight, Sparkles,
   UserX, UserSearch, Pause, RotateCcw, Crosshair, Waves, Droplets, GraduationCap, Truck, Hammer, Stethoscope, Laptop, Store, Wrench, Heart, ShieldCheck, MapPin, Timer, Plus, ChartArea, ChartNoAxesColumn, Blocks, MoveRight, Combine, Hand, Footprints, Signpost, Milestone, ChartSpline, ChartScatter, MousePointerClick, Shapes, Merge, Rows3, Columns3, Dot, TrendingUpDown,
-  MessageCircleQuestion, Bookmark, ListChecks, Share2, Copy, ImageDown, CalendarCheck, FileCode, MoveVertical, MoveHorizontal,
+  FileX, FolderGit2, MessageCircleQuestion, Bookmark, ListChecks, Share2, Copy, ImageDown, CalendarCheck, FileCode, MoveVertical, MoveHorizontal,
 } from 'lucide-react';
 
 // Every icon on the page: Lucide, drawn plain (no chip, circle or box round
@@ -28,7 +28,7 @@ const ICONS = {
   basket: ShoppingBasket, boxes: Boxes, heartPulse: HeartPulse, gem: Gem, gift: Gift, sun: Sun, sprout: Sprout,
   grid3: Grid3x3, clipboard: ClipboardList, door: DoorOpen, bookText: BookOpenText, pin: Pin, idCard: IdCard,
   trendDown: TrendingDown, eye: Eye, bot: Bot, coins: Coins, pound: PoundSterling, activity: Activity, lightbulb: Lightbulb,
-  userMinus: UserMinus, userCheck: UserCheck, handCoins: HandCoins, split: Split, help: CircleHelp, eyeOff: EyeOff, ban: Ban,
+  userMinus: UserMinus, fileX: FileX, folderGit: FolderGit2, userCheck: UserCheck, handCoins: HandCoins, split: Split, help: CircleHelp, eyeOff: EyeOff, ban: Ban,
   workflow: Workflow, equal: Equal, calendarClock: CalendarClock, calculator: Calculator, network: Network,
   microscope: Microscope, arrowUpRight: ArrowUpRight, arrowDownRight: ArrowDownRight, sparkles: Sparkles,
   // wave 2: chart controls and spare keys for the part builders (concepts pick from these)

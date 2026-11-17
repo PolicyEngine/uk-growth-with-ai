@@ -126,8 +126,8 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     const c = container.querySelectorAll('.scrolly-takeaway');
     expect(c).toHaveLength(1);
     expect(c[0].textContent).toBe('Growth slowed after 2008.');
-    // a caption in the figure frame, with no icon
-    expect(c[0].closest('.scrolly-graphic-inner')).not.toBeNull();
+    // a caption ending the last card (a pinned figure keeps its height), no icon
+    expect(c[0].closest('#s-c .scrolly-card')).not.toBeNull();
     expect(c[0].querySelectorAll('svg')).toHaveLength(0);
   });
   it('an answer wins over a takeaway: still one closing line, no "Answer" label, no repeated question', () => {
@@ -137,12 +137,10 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     expect(c[0].textContent).toBe('About 1.5% a year');
     expect(container.querySelector('.scrolly-answer-q, .scrolly-answer-label')).toBeNull();
   });
-  it('without layout (jsdom: the frame has no height) the question frame is done at once and ctx.entered is true', () => {
+  it('without layout (jsdom) the question moment is done at once and ctx.entered is true', () => {
     const seen = [];
     const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />);
-    // done: the frame is hidden (it stays mounted to come back on scroll up), the chart is drawn
-    expect(container.querySelector('.q-frame').classList.contains('is-done')).toBe(true);
-    expect(container.querySelector('.q-stage')).toBeNull();
+    expect(container.querySelector('.q-stage').classList.contains('is-done')).toBe(true);
     expect(seen.at(-1)).toBe(true);
   });
   const withLayout = (fn, rectFor) => {
@@ -161,35 +159,27 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
     }
   };
   const below = (el) => (el.classList?.contains('q-frame') || el.classList?.contains('q-stage') ? { top: 3000, bottom: 3400, left: 0, right: 0, width: 0, height: 400 } : null);
-  it('default: the question plays inside the figure frame (aria-hidden, inert, data-axis, data-gap-exempt) and holds entry moves back', () => {
+  it('every question is a moment on the page background (item 16): a pinned screen above the header, never in the frame', () => {
     withLayout(() => {
-      const seen = [];
       const { container } = render(
         <section className="story-part" data-part="2">
-          <Scrolly id="b" sub={{ ...sub, hint: 'Watch the gap open', key: 'grown' }} steps={steps} graphic={(i, r, ctx) => (seen.push(ctx.entered), null)} label="L" />
+          <Scrolly id="b" sub={{ ...sub, hint: 'Watch the gap open', key: 'grown' }} steps={steps} graphic={() => null} label="L" />
         </section>,
       );
-      const q = container.querySelector('.scrolly-graphic-inner > .q-frame');
-      expect(q).not.toBeNull();
-      expect(q.getAttribute('aria-hidden')).toBe('true');
-      expect(q.hasAttribute('inert')).toBe(true);
-      expect(q.hasAttribute('data-axis')).toBe(true);
+      expect(container.querySelector('.q-frame')).toBeNull();
+      const q = container.querySelector('.scrolly > .q-stage');
       expect(q.hasAttribute('data-gap-exempt')).toBe(true);
-      expect(q.querySelectorAll('.q-stage-w')).toHaveLength(6);
-      expect(q.querySelector('.q-stage-w.is-key').textContent.trim()).toBe('grown?');
-      expect(q.querySelector('.q-stage-hint').textContent).toBe('Watch the gap open');
-      // question and hint only: no numeral, no progress ring
-      expect(q.querySelector('.q-stage-progress, .q-stage-numeral, .q-stage-ring')).toBeNull();
-      expect(q.querySelectorAll('svg')).toHaveLength(1);
-      // no pinned screen, no added row
-      expect(container.querySelector('.q-stage')).toBeNull();
-      expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(false);
+      const v = q.querySelector('.q-visual');
+      expect(v.getAttribute('aria-hidden')).toBe('true');
+      expect(v.hasAttribute('data-axis')).toBe(true);
+      expect(v.querySelectorAll('.q-stage-w')).toHaveLength(6);
+      expect(v.querySelector('.q-stage-w.is-key').textContent.trim()).toBe('grown?');
+      expect(v.querySelector('.q-stage-hint').textContent).toBe('Watch the gap open');
+      // the icon in the big state only; the settled header has none
+      expect(v.querySelectorAll('svg')).toHaveLength(1);
+      expect(container.querySelectorAll('header.scene-head svg')).toHaveLength(0);
+      expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(true);
       expect(container.querySelector('header.scene-head').id).toBe('q-b');
-      expect(seen.every((e) => e === false)).toBe(true);
-      // review #3: while the big question waits in the frame, the block is
-      // .is-asking (story.css holds the header's copy and the step text)
-      expect(container.querySelector('.scrolly').classList.contains('is-asking')).toBe(true);
-      // the header still prints the question (opacity only, never removed)
       expect(container.querySelector('.scene-head-q').textContent).toBe('How fast has the UK grown?');
     }, below);
   });
@@ -219,10 +209,10 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
       expect(container.querySelector('.q-frame')).toBeNull();
     }, below);
   });
-  it('prints the closing line as a caption in the figure frame; with answerTo it is data-axis, never a link', () => {
+  it('prints the closing line as a caption with the last card; with answerTo it is data-axis, never a link', () => {
     const { container, rerender } = render(<Scrolly id="b" sub={{ ...sub, answer: 'About 1.5% a year' }} steps={steps} graphic={() => null} label="L" />);
-    expect(container.querySelector('.scrolly-steps .scrolly-takeaway, .scrolly-answer')).toBeNull();
-    let a = container.querySelector('.scrolly-graphic-inner > .scrolly-takeaway');
+    expect(container.querySelector('.scrolly-answer')).toBeNull();
+    let a = container.querySelector('#s-c .scrolly-takeaway-in-step > .scrolly-takeaway');
     expect(a.hasAttribute('data-axis')).toBe(false);
     // jsdom: the last card is active, so the line is shown
     expect(a.classList.contains('is-shown')).toBe(true);

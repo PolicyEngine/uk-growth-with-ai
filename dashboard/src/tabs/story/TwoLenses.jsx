@@ -41,6 +41,7 @@ export const CLOSE_SUB = {
   title: 'Two lenses',
   icon: 'compare',
   question: 'What can each model say?',
+  hint: 'Two models side by side, never added',
 };
 
 export const CLOSE_LINE = 'Different models, years and assumptions, including opposite pay directions: their numbers are not added or compared.';
@@ -87,24 +88,36 @@ export const LENSES = [
 const PAY_SID = 'uk_central';
 export const PAY_RESULT = gap(PAY_SID, 'tfp', CENTRAL, 'w');
 
-// Six links at most, plain text.
+// Go deeper: six link cards in one tinted panel (one hairline grid, no
+// underlines); the targets are unchanged.
 const DEEPER = [
-  {
-    nav: { tab: 'explore', sub: 'economy' },
-    label: 'Explore the OG-UK results',
-  },
-  {
-    nav: { tab: 'explore', sub: 'households' },
-    label: 'Explore the household results',
-  },
-  { nav: { tab: 'method', sub: 'how' }, label: 'Method and sources' },
-  {
-    href: PAPER_URL,
-    label: PROVISIONAL ? 'The study’s draft paper (PDF)' : 'The study’s paper (PDF)',
-  },
-  { href: REPO_URL, label: 'Code: uk-ai-study' },
-  { href: REFS.oguk.url, label: 'Code: uk-growth-with-ai' },
+  { nav: { tab: 'explore', sub: 'economy' }, ic: 'trend', label: 'Explore, economy-wide', desc: 'OG-UK results by scenario' },
+  { nav: { tab: 'explore', sub: 'households' }, ic: 'users', label: 'Explore, households', desc: 'Every variant and rule' },
+  { nav: { tab: 'method', sub: 'how' }, ic: 'book', label: 'Method and sources', desc: 'How the models work' },
+  { href: PAPER_URL, ic: 'fileText', label: PROVISIONAL ? 'Study paper, draft PDF' : 'Study paper, PDF', desc: 'The study’s full write-up' },
+  { href: REPO_URL, ic: 'code', label: 'Code: uk-ai-study', desc: 'Household model code' },
+  { href: REFS.oguk.url, ic: 'folderGit', label: 'Code: uk-growth-with-ai', desc: 'Economy model code' },
 ];
+
+function DeeperCard({ l }) {
+  const inner = (
+    <>
+      <Icon name={l.ic} size={18} className="go-deeper-ic" />
+      <span className="go-deeper-title">{l.label}</span>
+      <span className="go-deeper-desc">{l.desc}</span>
+      <Icon name="arrowRight" size={14} className="go-deeper-arrow" />
+    </>
+  );
+  return l.nav ? (
+    <NavLink tab={l.nav.tab} sub={l.nav.sub} className="go-deeper-card">
+      {inner}
+    </NavLink>
+  ) : (
+    <a href={l.href} target="_blank" rel="noreferrer" className="go-deeper-card">
+      {inner}
+    </a>
+  );
+}
 
 // A "can say" chip: a link to its scene; hover or focus says where it goes.
 function CanChip({ chip, i }) {
@@ -173,7 +186,7 @@ export default function TwoLenses() {
   const [og, st] = LENSES;
   return (
     <section className="story-part story-close" id="story-close" aria-labelledby="story-close-h">
-      <QStage id="story-close" question={CLOSE_SUB.question} icon="compare" keyWord="model" />
+      <QStage id="story-close" question={CLOSE_SUB.question} hint={CLOSE_SUB.hint} icon="compare" keyWord="model" />
       <header className="story-part-head" id="q-story-close">
         <h2 id="story-close-h">{CLOSE_SUB.title}</h2>
       </header>
@@ -227,20 +240,20 @@ export default function TwoLenses() {
         </div>
         <p className="lens-close">{CLOSE_LINE}</p>
       </figure>
-      <p className="lens-deeper">
-        <span className="lens-deeper-label">Go deeper</span>
-        {DEEPER.map((l) =>
-          l.nav ? (
-            <NavLink key={l.label} tab={l.nav.tab} sub={l.nav.sub}>
-              {l.label}
-            </NavLink>
-          ) : (
-            <a key={l.label} href={l.href} target="_blank" rel="noreferrer">
-              {l.label}
-            </a>
-          ),
-        )}
-      </p>
+      <nav className="lens-deeper go-deeper" aria-labelledby="go-deeper-h">
+        <p className="go-deeper-kicker" id="go-deeper-h">
+          Go deeper
+        </p>
+        <div className="story-frame story-panel">
+          <ul className="go-deeper-list">
+            {DEEPER.map((l) => (
+              <li key={l.label}>
+                <DeeperCard l={l} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
     </section>
   );
 }

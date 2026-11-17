@@ -13,7 +13,7 @@
 //   the scroll cue, or inside its figure frame; nothing on the plain page.
 // Rule 2: every .scrolly-takeaway shares its nearest frame
 //   (.scrolly-graphic-inner, figure, .story-frame) with an svg or a
-//   [data-mark].
+//   [data-mark], or ends its scene's last step card (pinned figures).
 //
 // Exempt for now, pending the quiet-sources merge (perf/sources replaces
 // these with one "Sources and notes" icon inside each frame and reworks the
@@ -78,7 +78,7 @@ for (const [W, H] of SIZES) {
       for (const el of story.querySelectorAll('.scrolly-takeaway')) {
         if (el.closest(skip) || !shown(el)) continue;
         const f = el.closest(frame);
-        const ok = f && f.querySelector('svg, [data-mark]');
+        const ok = (f && f.querySelector('svg, [data-mark]')) || el.closest('.scrolly-takeaway-in-step');
         if (!ok) res.push(`rule 2, y=${y(el)} takeaway not in a chart's frame: ${text(el).slice(0, 90)}`);
       }
       return res;

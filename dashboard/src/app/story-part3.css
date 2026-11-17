@@ -1543,29 +1543,6 @@ svg.p3-dim {
 .p3-close > .scene-head {
   margin-bottom: 16px;
 }
-.p3-out-list {
-  list-style: disc outside;
-  columns: 2;
-  column-gap: 32px;
-  margin: 0;
-  padding: 0 0 0 16px;
-  font-size: var(--t-ui);
-  line-height: 1.4;
-  color: var(--pe-gray-700);
-}
-.p3-out-list li {
-  break-inside: avoid;
-  margin: 0 0 6px;
-  padding-left: 2px;
-}
-.p3-out-list li::marker {
-  color: var(--pe-gray-500);
-}
-@media (max-width: 599px) {
-  .p3-out-list {
-    columns: 1;
-  }
-}
 /* the close: one header, one ruled table, a 12px note under it, one row
    of links */
 .story-close .lens-note {
@@ -2227,8 +2204,11 @@ svg.p3-dim {
 }
 @media (max-width: 600px) {
   .p3-plane-plot {
-    height: 200px;
-    margin: 36px 4px 28px 36px;
+    height: 150px;
+    margin: 30px 4px 24px 36px;
+  }
+  .p3-plane .p3-group-head {
+    margin-bottom: 0;
   }
   .p3-plane-xtitle {
     margin-left: 36px;

@@ -253,7 +253,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
     <div ref={ref} className="q-frame" data-gap-exempt="" data-q={id} aria-hidden="true" data-axis="" inert>
       <span className="q-frame-tint" />
       <div className="q-frame-card">
-        <QVisual question={question} hint={hint} icon={icon} keyWord={keyWord} big={false} />
+        <QVisual question={question} hint={hint} icon={icon} keyWord={keyWord} />
       </div>
     </div>
   );

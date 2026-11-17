@@ -101,7 +101,7 @@ describe('Part3', () => {
     const { container } = renderPart();
     const topics = [...container.querySelectorAll('.scrolly > .scene-head[data-scene]')].map((h) => h.dataset.scene);
     expect(topics).toEqual(['The central case', 'Three channels', 'Where the loss falls', 'What changes the answer']);
-    expect(container.querySelector('#p3-close-h').textContent.trim()).toBe('What does the study leave out?');
+    expect(container.querySelector('#p3-close-h').textContent.trim()).toBe('What this one-year test leaves out');
     // at most two steps a scene, four in the merged one; the step ids links point at are kept
     for (const s of container.querySelectorAll('.scrolly')) expect(s.querySelectorAll('.scrolly-step').length, s.id).toBeLessThanOrEqual(s.id === 'p3-changes' ? 4 : 2);
     for (const id of ['p3-central-step', 'p3-channels-step', 'p3-deciles-step', 'p3-rules-step', 'p3-margin-step', 'p3-moves-step']) expect(container.querySelector(`#${id}`), id).not.toBeNull();
@@ -147,7 +147,8 @@ describe('Part3', () => {
       expect(sub.answer, sub.title).toBeTruthy();
       expect(sub.answerTo, sub.title).toMatch(/^p3-.*-step$/);
     }
-    expect(CLOSING_SUB.question).toBe('What does the study leave out?');
+    // the leaves-out panel is headed, not asked
+    expect(CLOSING_SUB.question).toBeUndefined();
   });
 
   it('states the study status from the data and gives each figure one source line with one link, at the commit', () => {
@@ -239,10 +240,11 @@ describe('Part3', () => {
     expect(close.closest('.scrolly')).toBeNull();
     expect(close.querySelectorAll('.p3-out-list li')).toHaveLength(LEFT_OUT.length);
     for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(12);
-    // a level-(b) header (no icon) and the list in one framed card
-    expect(close.querySelectorAll('svg').length).toBe(0);
+    // a level-(b) header (no icon) and one tinted panel of tiles, one plain icon each
+    expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
     expect(close.querySelector('.scene-head h3#p3-close-h')).not.toBeNull();
-    expect(close.querySelector('.story-frame .p3-out-list')).not.toBeNull();
+    expect(close.querySelector('.p3-close-chip').textContent).toBe('A stress test, not a forecast');
+    for (const li of close.querySelectorAll('.story-panel .p3-out-list > li')) expect(li.querySelectorAll('svg')).toHaveLength(1);
     expect(close.querySelector('button, .p3-chip-frame')).toBeNull();
     expect(container.querySelector('.story-next')).toBeNull();
     // the dividend and corporation tax asymmetry is said once, in the channels scene
@@ -297,7 +299,7 @@ describe('Part3', () => {
     }
     expect(long).toEqual([]);
     // no icon inside a fact, a note, a source line or a table cell
-    expect(container.querySelectorAll('.story-fact svg, .p3-key svg, .story-source svg, .lens-chips svg, .p3-out-list svg')).toHaveLength(0);
+    expect(container.querySelectorAll('.story-fact svg, .p3-key svg, .story-source svg, .lens-chips svg')).toHaveLength(0);
   });
 
   it('says once in the close that the two models assume opposite pay directions', () => {
