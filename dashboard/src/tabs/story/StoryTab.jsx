@@ -9,7 +9,7 @@ import TwoLenses from './TwoLenses.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
-import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js';
+import { MODEL_BASE_VINTAGE, OBR_MARCH_2026 } from './part1/data.js';
 
 // The story: a hero, then three parts, each a run of scrolly blocks.
 //   1 Where the UK stands: official data only, no forecasts of ours
@@ -46,8 +46,8 @@ export const PARTS = [
     question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
     modelLine: (
       <>
-        <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> models the whole economy, with no unemployment: gaps against a path on the{' '}
-        <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE}</a> productivity growth, not part 1&rsquo;s {OBR_VINTAGE} forecast.
+        <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> models the whole economy, with no unemployment. Results are gaps against a path built on the{' '}
+        <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>.
       </>
     ),
     about: (
