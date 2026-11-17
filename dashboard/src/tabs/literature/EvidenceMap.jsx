@@ -64,7 +64,7 @@ export function ourRows() {
     loc: 'surprise2028.json',
     checked: S.generated_utc.slice(0, 10),
     how: 'solve',
-    csv: SCENARIOS.map((s) => `${s.label}: ${fmt(gap(s.id, 'tfp', CENTRAL, v))} (central closure), ${fmt(gap(s.id, 'tfp', BOUND, v))} (closed capital)`).join('; '),
+    csv: SCENARIOS.map((s) => `${s.label}: ${fmt(gap(s.id, 'tfp', CENTRAL, v))} (some foreign capital), ${fmt(gap(s.id, 'tfp', BOUND, v))} (no foreign capital)`).join('; '),
   }));
 }
 

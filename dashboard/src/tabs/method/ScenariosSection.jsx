@@ -25,7 +25,7 @@ import ScenarioMap, { scenarioTable } from './ScenarioMap.jsx';
 const DOC = (p) => `${REPO}/blob/rerun/surprise-2028/docs/${p}`;
 
 // The stress test's technology change, from the solves (UK central), per
-// closure: a cut under the central closure, a slight rise with closed
+// closure: a cut under some foreign capital, a slight rise with closed
 // capital (results sanity audit, #39). Words and arrows follow the signs.
 export const REF_SID = 'uk_central';
 const fx = (cl) => fixedInputVsTz(REF_SID, 'ss', cl);
@@ -42,7 +42,7 @@ export function tzGdpMove(x) {
   if (Math.abs(x) < 0.005) return { icon: 'onPath', word: 'is unchanged' };
   return x > 0 ? { icon: 'gapUp', word: 'rises a little as capital deepens' } : { icon: 'gapDown', word: 'ends slightly below the no-shock baseline' };
 }
-const CL_NAME = { [CENTRAL]: 'Central closure', [BOUND]: 'Closed capital' };
+const CL_NAME = { [CENTRAL]: 'Some foreign capital', [BOUND]: 'No foreign capital' };
 
 export function stressItems(sid = REF_SID) {
   return [CENTRAL, BOUND].flatMap((cl) => {
@@ -55,7 +55,7 @@ export function stressItems(sid = REF_SID) {
 }
 function stressFixedText() {
   const w = (x) => stressMove(x)?.word ?? 'pending';
-  return `Central closure: ${w(fx(CENTRAL))}; closed capital: ${w(fx(BOUND))}`;
+  return `Some foreign capital: ${w(fx(CENTRAL))}; no foreign capital: ${w(fx(BOUND))}`;
 }
 export function tzGdpItems(sid = REF_SID) {
   return [CENTRAL, BOUND].map((cl) => {
@@ -110,7 +110,7 @@ const ARM_TEXT = {
     role: 'A stress test, not a bound or a forecast',
     items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the no-shock baseline.` }, ...stressItems()],
     fixedText: stressFixedText(),
-    // the chevron follows the central closure's sign, as the words do
+    // the chevron follows some foreign capital's sign, as the words do
     glyph: (fx(CENTRAL) ?? 0) < 0 ? <path d="M4 6 L12 14 L20 6" /> : <path d="M4 14 L12 6 L20 14" />,
     preview: 'The R4 secant, the OBR comparison',
     more: (

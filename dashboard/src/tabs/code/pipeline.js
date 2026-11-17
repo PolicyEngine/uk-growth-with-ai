@@ -59,7 +59,7 @@ analysis/surprise/driver.sh check nics \\
     more: [
       'It tests inherited wealth and bequests, and the population law of motion.',
       'It also checks the list of shifted inputs.',
-      'The build needs about 15 GB of memory and covers both closures.',
+      'The build needs about 15 GB of memory and covers both foreign-capital cases.',
     ],
     code: `sp check-specs --closure zk0.1 --work "$WORK"`,
   },

@@ -26,9 +26,9 @@ describe('All scenarios', () => {
     const cells = container.querySelectorAll('#all-scenarios .ex-mx-cell');
     // 4 scenarios x 3 rules x 2 closures
     expect(cells).toHaveLength(4 * 6);
-    // debt-neutral and fixed spending: UK low and UK high not solved, both closures
+    // debt-neutral and fixed spending: UK low and UK high not solved, both foreign-capital cases
     expect(container.querySelectorAll('#all-scenarios .ex-mx-cell.is-hole')).toHaveLength(2 * 2 * 2);
-    // the cell in view (UK central, central closure, common rule) prints its
+    // the cell in view (UK central, some foreign capital, common rule) prints its
     // figure as a muted reference (its home: the story's headline) and a marker
     const cur = container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current');
     expect(cur).toHaveLength(1);
@@ -46,7 +46,7 @@ describe('All scenarios', () => {
     expect(container.querySelector('#closure-sensitivity .ex-sd')).not.toBeNull();
   });
 
-  it('with Closure = Both, both closures of the scenario in view are in view', () => {
+  it('with Closure = Both, both foreign-capital cases of the scenario in view are in view', () => {
     const { container } = at('tab=explore&s=korinek&closure=both&rule=dn');
     const cur = [...container.querySelectorAll('#all-scenarios .ex-mx-cell.is-current')].map((e) => e.dataset.cell);
     expect(cur.sort()).toEqual(['korinek|dn|zk0', 'korinek|dn|zk0.1']);
@@ -54,7 +54,7 @@ describe('All scenarios', () => {
 
   it('a cell sets the pickers', () => {
     const { container } = at('tab=explore');
-    fireEvent.click(screen.getByRole('button', { name: /^Korinek et al\..*debt-neutral transfers, closed capital, GDP/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Korinek et al\..*debt-neutral transfers, no foreign capital, GDP/ }));
     const p = new URLSearchParams(window.location.search);
     expect([p.get('s'), p.get('closure'), p.get('rule')]).toEqual(['korinek', 'closed', 'dn']);
     expect(container.querySelector('[data-cell="korinek|dn|zk0"]').className).toContain('is-current');
@@ -132,7 +132,7 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
     };
     const card = container.querySelector('#all-scenarios');
     for (const [arm, armName] of [['tfp', /Automation \+ productivity/], ['tz', /Technology unchanged/], ['ss', /Stress test/]]) {
-      fireEvent.click([...card.querySelectorAll('[aria-label="Arm"] [role=radio]')].find((b) => armName.test(b.textContent)));
+      fireEvent.click([...card.querySelectorAll('[aria-label="Version"] [role=radio]')].find((b) => armName.test(b.textContent)));
       for (const [v, name] of [['Y', 'GDP'], ['GNI', 'GNI'], ['w', 'Pay rate']]) {
         fireEvent.click([...card.querySelectorAll('[aria-label="Measure"] [role=radio]')].find((b) => b.textContent === name));
         check(card, arm, v);

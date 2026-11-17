@@ -110,7 +110,7 @@ export const CONCEPT_ICON = {
   defaultRule: 'pin', // the default choice
   // method:
   equation: 'sigma', // the model's equations
-  closed: 'lock', // closed capital: no foreign capital
+  closed: 'lock', // no foreign capital: no foreign capital
   start: 'play', // the starting point of a run
   // revision (history) is defined in the part 1 block: also used for the changelog
   pipeline: 'gitBranch', // the run pipeline

@@ -38,7 +38,7 @@ export function peopleWord(pct) {
   return `about one in ${word}`;
 }
 
-// The pay tile: the wage gap's sign at closed capital, the central closure
+// The pay tile: the wage gap's sign with no foreign capital, some foreign capital
 // and the half-foreign sensitivity (zk0.5). 'flips' when the signs differ.
 export function paySigns(sid) {
   const sens = S.sensitivity?.['zk0.5']?.results?.[sid]?.tfp;
@@ -48,7 +48,7 @@ export function paySigns(sid) {
   return signs.size > 1 ? 'flips' : null;
 }
 
-// Who gains (UK central, central closure, debt-neutral transfers): what the
+// Who gains (UK central, some foreign capital, debt-neutral transfers): what the
 // adults' average is made of, and who loses when transfers bear the cost
 // after the solved years (cohorts2028.json dnfull, solved to the horizon).
 export function welfareWords() {

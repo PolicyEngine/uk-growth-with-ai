@@ -14,7 +14,7 @@ export const LATE_YEAR = S.late_year; // 2036
 export const SURPRISE_YEAR = S.surprise_year; // 2028
 export const WINDOW_YEARS = YEARS.filter((y) => y >= S.window[0] && y <= S.window[1]); // 2027-2031
 export const FIRST_YEAR = WINDOW_YEARS[0];
-export const CLOSURES = ['zk0.1', 'zk0']; // central, closed-capital bound
+export const CLOSURES = ['zk0.1', 'zk0']; // central, no-foreign-capital bound
 export const CENTRAL = 'zk0.1';
 export const BOUND = 'zk0';
 export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.zeta_K };
@@ -37,7 +37,7 @@ export const ARM_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3)', ss: 'v
 export const ARM_TEXT_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3-text)', ss: 'var(--series-5-text)' };
 export const ARM_LIGHT = { ss: true };
 export const armById = (id) => ARMS.find((a) => a.id === id);
-export const CLOSURE_LABEL = { 'zk0.1': 'central closure', zk0: 'closed capital' };
+export const CLOSURE_LABEL = { 'zk0.1': 'some foreign capital', zk0: 'no foreign capital' };
 
 export const result = (sid, arm, closure) => S.results[sid]?.[arm]?.[closure] ?? { status: 'pending' };
 export const isDone = (sid, arm, closure) => result(sid, arm, closure).status === 'done';

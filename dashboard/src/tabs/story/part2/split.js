@@ -43,8 +43,8 @@ export const CAPITAL_PARTS = ['domestic', 'foreign', 'depreciation'];
 export const share = (x) => x.toFixed(1);
 export const change = (x) => signed(x, 2);
 
-// The closure the split is drawn at for the header's closure: closed capital
-// for "closed", otherwise the central closure ("both" says so).
+// The closure the split is drawn at for the header's closure: no foreign capital
+// for "closed", otherwise some foreign capital ("both" says so).
 export const splitClosure = (closure) => (closure === 'closed' ? BOUND : CENTRAL);
 
 // { cl, base, ch } for a scenario and header closure; base or ch is null

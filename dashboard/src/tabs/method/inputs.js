@@ -42,7 +42,7 @@ export const INPUTS = [
   { group: 'Baseline', input: 'Tax functions', value: '—', kind: 'external', how: 'Fitted to PolicyEngine-UK.', src: ['peUk'] },
   // OG-UK defaults
   { group: 'Model parameters', input: 'ζK: share of excess capital demand foreigners supply', value: '0.1', kind: 'default', kindLabel: 'OG-Core’s US default, chosen by the study', how: 'OG-Core’s US default, chosen by the study as central, which OG-UK keeps: its baseline is closest to UK income paid abroad; it misses the current account. It is the share of excess capital demand met from abroad, so most of the added capital ends up foreign-owned.', src: ['ogukParams', 'ogCoreParams', 'pinkBook', 'closureMemo'] },
-  { group: 'Model parameters', input: 'ζK bound (closed capital)', value: '0', kind: 'choice', how: 'A bound, not an estimate.', src: ['closureMemo'] },
+  { group: 'Model parameters', input: 'ζK bound (no foreign capital)', value: '0', kind: 'choice', how: 'A bound, not an estimate.', src: ['closureMemo'] },
   { group: 'Model parameters', input: 'ζD: foreign share of new government debt', value: '0.4', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },
   { group: 'Model parameters', input: 'World interest rate', value: '2%', kind: 'default', how: 'Not calibrated; OG-Core’s own default is 4%.', src: ['ogukParams', 'ogCoreParams'] },
   { group: 'Model parameters', input: 'Capital share γ (labour share 65%)', value: '0.35', kind: 'default', how: 'No UK estimate is used.', src: ['ogukParams'] },

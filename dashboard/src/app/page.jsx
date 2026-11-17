@@ -88,7 +88,7 @@ function Shell() {
             {pick.closure ? (
               <Picker
                 icon="globe"
-                label="Closure"
+                label="Foreign capital"
                 value={st.closure}
                 options={CLOSURE_OPTIONS}
                 onChange={(closure) => set({ closure })}

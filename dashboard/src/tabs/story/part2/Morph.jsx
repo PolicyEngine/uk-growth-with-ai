@@ -67,7 +67,7 @@ const monthYear = (iso) => {
   return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
 };
 const OBR_VINTAGE = monthYear(SRC[SER.obr_gdp_forecast?.source]?.released);
-const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
+const CL_WORDS = { [CENTRAL]: 'some foreign capital', [BOUND]: 'no foreign capital' };
 
 // Growth axis: round ticks over the in-scale values, always with room below zero.
 const inScale = [...ACT, ...OBR].map(([, y]) => y).filter((y) => Math.abs(y) <= OFF);

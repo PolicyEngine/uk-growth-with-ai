@@ -27,7 +27,7 @@ const ONS_WEALTH = 'https://www.ons.gov.uk/peoplepopulationandcommunity/personal
 // lifetime-earnings group, UK central only, from cohorts2028.json (written
 // by paper/cohort_welfare.py --json). With Closure = Both, the tiles and the
 // chart show each closure (two rows, two panels on one y-axis); the Why
-// cards stay at the central closure. The headline is the share of adults
+// cards stay with some foreign capital. The headline is the share of adults
 // who lose, as a range over the measure, and their ages; then the average
 // and where it comes from; then the chart; then why. The ranking by
 // earnings group is a detail under Why, with its caveat.
@@ -115,7 +115,7 @@ function Num({ x }) {
 
 // The main arm solved with debt-neutral transfers kept on to the horizon,
 // measured against a no-shock path solved under the same rule (the paper's
-// "solved to the horizon" row, UK central, central closure). Read from the
+// "solved to the horizon" row, UK central, some foreign capital). Read from the
 // `dnfull` block of cohorts2028.json, which paper/cohort_welfare.py --json
 // writes once that block is committed: {ready, closure, rule, arm, range:
 // {joint_losing_pct, no_bequest_losing_pct, ...: [low, high] over the two
@@ -375,7 +375,7 @@ function ByForm({ p, both, hasT = false }) {
   return (
     <div className="ex-byform" role="group" aria-label="The same average by form">
       <p className="ex-byform-title">
-        <Icon name={iconFor('range')} size={14} /> The same average by form{both ? ', central closure' : ''}
+        <Icon name={iconFor('range')} size={14} /> The same average by form{both ? ', some foreign capital' : ''}
       </p>
       <div className="ex-byform-bar">
         {parts.map((x) => (
@@ -549,8 +549,8 @@ function Why({ cl, rule, arm }) {
   );
 }
 
-const CL_WORDS = { 'zk0.1': 'central closure', zk0: 'closed capital' };
-const CL_HEAD = { 'zk0.1': { icon: iconFor('foreign'), text: 'Central closure' }, zk0: { icon: iconFor('closed'), text: 'Closed capital' } };
+const CL_WORDS = { 'zk0.1': 'some foreign capital', zk0: 'no foreign capital' };
+const CL_HEAD = { 'zk0.1': { icon: iconFor('foreign'), text: 'Some foreign capital' }, zk0: { icon: iconFor('closed'), text: 'No foreign capital' } };
 
 export default function WhoGainsTab() {
   const { st, set } = useNav();
@@ -579,7 +579,7 @@ export default function WhoGainsTab() {
   const ys = panels.flatMap((pn) => pn.series.flatMap((s) => s.values)).filter(Number.isFinite);
   const yDomain = both && ys.length ? [Math.min(...ys), Math.max(...ys)] : null;
   const armLabel = ARMS.find((a) => a.id === arm).label;
-  const clWords = both ? 'central closure and closed capital' : CL_WORDS[cl];
+  const clWords = both ? 'some foreign capital and no foreign capital' : CL_WORDS[cl];
   const p = c.parts_alive;
 
   return (
@@ -603,7 +603,7 @@ export default function WhoGainsTab() {
           Korinek et al. (upper): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
         </li>
         {both ? (
-          <li className="ex-mchip" title="The reasons below are for the central closure">
+          <li className="ex-mchip" title="The reasons below are for some foreign capital">
             With Both, the figures and the chart show each closure
           </li>
         ) : null}

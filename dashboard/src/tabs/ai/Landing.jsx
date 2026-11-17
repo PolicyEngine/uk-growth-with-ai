@@ -60,7 +60,7 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
-  if (y == null || w == null) return 'This scenario is not solved yet at the closure chosen above.';
+  if (y == null || w == null) return 'This scenario is not solved yet with the foreign capital chosen above.';
   const rel = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
   const keep = g != null && y > 0 && g < y ? ', and national income gains less than GDP' : '';
   const pay = `pay rates are ${rel(w)} it${rel(w) === rel(y) ? ' too' : ''}`;
@@ -73,7 +73,7 @@ export function heroItems(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
   const g = gap(sid, 'tfp', cl, 'GNI');
-  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet at the closure chosen above' }];
+  if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet with the foreign capital chosen above' }];
   const out = [
     { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the no-shock baseline in ${HEADLINE_YEAR}` },
     { icon: dirConcept(w), text: `Pay rates are ${dirWord(w)} it${dirWord(w) === dirWord(y) ? ' too' : ''}` },
@@ -113,7 +113,7 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
-        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against <A href={URLS.ogUk}>OG-UK</A>
+        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'no foreign capital' : 'some foreign capital'}, {HEADLINE_YEAR}, against <A href={URLS.ogUk}>OG-UK</A>
         &rsquo;s no-shock baseline. {SURPRISE_YEAR} is a modelling choice, not a forecast
         <InfoTip label="What is the no-shock baseline?">
           The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
@@ -140,7 +140,7 @@ export function HeadlineTiles({ sid }) {
   // number whose sign can flip does not hide it; the full caveat is in the
   // GDP figure's notes (part2/Morph.jsx, morphGroups)
   const extra = {
-    w: flips ? 'sign depends on the closure' : null,
+    w: flips ? 'sign depends on foreign capital' : null,
   };
   return (
     <>
@@ -173,7 +173,7 @@ export function HeadlineTiles({ sid }) {
               ))}
               {both ? (
                 <p className="stat-line">
-                  With closed capital: <b data-path={`results.${sid}.tfp.${BOUND}.gaps.${k.v}.${HEADLINE_YEAR}`}>{fmt(b)}</b>
+                  With no foreign capital: <b data-path={`results.${sid}.tfp.${BOUND}.gaps.${k.v}.${HEADLINE_YEAR}`}>{fmt(b)}</b>
                 </p>
               ) : null}
             </StatTile>
@@ -182,7 +182,7 @@ export function HeadlineTiles({ sid }) {
       </div>
       {DONE < TOTAL && sidPending ? (
         <Notice>
-          {DONE} of {TOTAL} solves are done. For this scenario the closed-capital results are not solved yet and show “pending”.
+          {DONE} of {TOTAL} solves are done. For this scenario the no-foreign-capital results are not solved yet and show “pending”.
         </Notice>
       ) : null}
     </>

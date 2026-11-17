@@ -180,7 +180,7 @@ export default function Hero() {
   const lines = heroSeries(cl);
   const sel = lines.find((l) => l.id === sid);
   const stats = sel ? heroStats(sid, cl) : null;
-  const closure = cl === BOUND ? 'closed capital' : 'central closure';
+  const closure = cl === BOUND ? 'no foreign capital' : 'some foreign capital';
   return (
     <section id="story-hero" className="story-hero hf" aria-labelledby="story-q">
       <div className="story-hero-text">

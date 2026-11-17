@@ -35,10 +35,10 @@ export function ClosureKey({ closure }) {
   return (
     <p className="line-key">
       <span className="line-key-item">
-        <span className="swatch is-ink" aria-hidden="true" /> Solid: central closure
+        <span className="swatch is-ink" aria-hidden="true" /> Solid: some foreign capital
       </span>
       <span className="line-key-item">
-        <span className="swatch dashed is-ink" aria-hidden="true" /> Dashed: closed capital
+        <span className="swatch dashed is-ink" aria-hidden="true" /> Dashed: no foreign capital
       </span>
     </p>
   );
@@ -49,7 +49,7 @@ export function PendingLine({ names }) {
   return (
     <p className="icon-line is-muted">
       <Icon name="hourglass" size={16} />
-      <span>Closed capital is not solved yet for: {names.join(', ')}.</span>
+      <span>No foreign capital is not solved yet for: {names.join(', ')}.</span>
     </p>
   );
 }
@@ -68,7 +68,7 @@ function findingFor(sid, v, arms, closure, name, rule = 'common') {
   if (!parts.length) return null;
   const sides = [...new Set(parts.map((p) => p.side))];
   const where = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
-  const lead = `In ${HEADLINE_YEAR}${closure === 'closed' ? ', with closed capital,' : ''} ${name}`;
+  const lead = `In ${HEADLINE_YEAR}${closure === 'closed' ? ', with no foreign capital,' : ''} ${name}`;
   if (sides.length === 1) return `${lead} is ${where(sides[0])}${parts.length > 1 ? ' in every arm shown' : ''}.`;
   return `${lead} is ${sides.map((s) => `${where(s)} in ${parts.filter((p) => p.side === s).map((p) => p.arm.toLowerCase()).join(' and ')}`).join(', and ')}.`;
 }
@@ -192,7 +192,7 @@ function coincideFinding(sid, closure, rule = 'common') {
 }
 
 // Economics review, round 1: consumption below the path to the last year
-// shown (UK central, main arm, central closure, common rule) and the largest
+// shown (UK central, main arm, some foreign capital, common rule) and the largest
 // investment jump above the project's flag (explore/caveats.js).
 const C_BELOW = belowThrough('uk_central', CENTRAL) === LATE_YEAR ? LATE_YEAR : null;
 const TOP_FLAG = investmentFlags()[0] ?? null;
@@ -203,7 +203,7 @@ const ECONOMY = [
     { v: 'C', title: 'Consumption', name: 'consumption', concept: 'consumption', about: { caveats: <Items items={[
       { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
       { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
-      { key: 'others', icon: 'foreign', text: 'Common rule, central closure: government and foreign owners take part too' },
+      { key: 'others', icon: 'foreign', text: 'Common rule, some foreign capital: government and foreign owners take part too' },
       C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the path through ${C_BELOW}` } : null,
     ]} /> } },
     { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
@@ -279,7 +279,7 @@ function IncomePanel({ sid }) {
   return (
     <>
       <SectionHeading id="income" icon={iconFor('gni')} title="How does each arm move pay, income and output?">
-        <Lead c="path">{`The three arms in ${HEADLINE_YEAR}, then what closed capital changes`}</Lead>
+        <Lead c="path">{`The three arms in ${HEADLINE_YEAR}, then what no foreign capital changes`}</Lead>
       </SectionHeading>
       <div className="cards-stack">
         <Card
@@ -297,10 +297,10 @@ function IncomePanel({ sid }) {
             st.closure === 'both' ? (
               <p className="line-key">
                 <span className="line-key-item">
-                  <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: central closure
+                  <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: some foreign capital
                 </span>
                 <span className="line-key-item">
-                  <span className="key-diamond" aria-hidden="true" /> Diamond: closed capital
+                  <span className="key-diamond" aria-hidden="true" /> Diamond: no foreign capital
                 </span>
               </p>
             ) : null
@@ -406,7 +406,7 @@ function EconomyPanel({ sid }) {
           </li>
           {st.closure === 'both' ? (
             <li>
-              <span className="swatch dashed is-ink" aria-hidden="true" data-icon="" /> Dashed: closed capital
+              <span className="swatch dashed is-ink" aria-hidden="true" data-icon="" /> Dashed: no foreign capital
             </li>
           ) : null}
           <li>

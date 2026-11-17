@@ -97,7 +97,7 @@ function rangeSvg(metric) {
     if (o.c != null && o.b != null) out += `<line x1="${X(o.c)}" x2="${X(o.b)}" y1="${cy}" y2="${cy}" stroke="${hl}" stroke-width="3"/>`;
     if (o.b != null) out += `<circle cx="${X(o.b)}" cy="${cy}" r="5.5" fill="${C.surface}" stroke="${hl}" stroke-width="2.5"/>`;
     if (o.c != null) out += `<circle cx="${X(o.c)}" cy="${cy}" r="6" fill="${hl}"/>`;
-    out += `<text x="${x1 + 16}" y="${cy + 4}" font-size="12" fill="${C.ink}">${esc(`Central ${fmt(o.c)}, closed capital ${fmt(o.b)}`)}</text>`;
+    out += `<text x="${x1 + 16}" y="${cy + 4}" font-size="12" fill="${C.ink}">${esc(`Some foreign capital ${fmt(o.c)}, no foreign capital ${fmt(o.b)}`)}</text>`;
     y += ROW;
   }
   group('Published');
@@ -119,8 +119,8 @@ function rangeSvg(metric) {
 }
 
 const legendKeys = () => [
-  { label: 'Central closure', color: cssColour('var(--series-2)'), shape: 'dot' },
-  { label: 'Closed capital', color: cssColour('var(--series-2)'), shape: 'ring' },
+  { label: 'Some foreign capital', color: cssColour('var(--series-2)'), shape: 'dot' },
+  { label: 'No foreign capital', color: cssColour('var(--series-2)'), shape: 'ring' },
   { label: 'Published range', color: cssColour('var(--series-5)'), shape: 'box' },
   { label: 'Single figure', color: cssColour('var(--series-5)'), shape: 'dot' },
   { label: 'Source’s own central case', color: CHART_COLOURS.ink, shape: 'tick' },
@@ -132,8 +132,8 @@ function table(metric) {
     columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [m.title, `${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
-        [m.title, `${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
+        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
+        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
       ]),
       ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
@@ -254,7 +254,7 @@ function Lane({ metric, hi, bind }) {
                 {o.c == null && o.b == null ? <span className="mx-rb-pending">pending</span> : null}
                 {o.c != null && o.b == null ? (
                   <span className="mx-rb-note" style={{ left: `${px(o.c)}%` }}>
-                    closed capital pending
+                    no foreign capital pending
                   </span>
                 ) : null}
                 {rowTip(
@@ -262,7 +262,7 @@ function Lane({ metric, hi, bind }) {
                   <>
                     <b>{o.label}</b>
                     <span>
-                      Central closure {fmt(o.c)}; closed capital {fmt(o.b)}
+                      Some foreign capital {fmt(o.c)}; no foreign capital {fmt(o.b)}
                     </span>
                   </>,
                 )}
@@ -345,10 +345,10 @@ export default function EvidenceLanes() {
       legend={
         <ul className="mx-rb-key">
           <li>
-            <span className="mx-rb-dot is-c is-key" data-icon="" /> Central closure
+            <span className="mx-rb-dot is-c is-key" data-icon="" /> Some foreign capital
           </li>
           <li>
-            <span className="mx-rb-dot is-b is-key" data-icon="" /> Closed capital
+            <span className="mx-rb-dot is-b is-key" data-icon="" /> No foreign capital
           </li>
           <li>
             <span className="mx-rb-bar is-key" data-icon="" /> Published range

@@ -51,7 +51,7 @@ function ClosureCards() {
     <FoldGrid className="card-grid cols-2">
       <InfoCard
         icon={iconFor('foreign')}
-        title="Central closure"
+        title="Some foreign capital"
         className="mx-card"
         id="closure-central"
         more={
@@ -62,7 +62,7 @@ function ClosureCards() {
               { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
-              { icon: 'caveat', text: <>It misses the current account; closed capital is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
+              { icon: 'caveat', text: <>It misses the current account; no foreign capital is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
               { icon: 'timing', text: 'Foreign capital resets each year.' },
               { icon: 'capital', text: <>So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</> },
             ]}
@@ -85,7 +85,7 @@ function ClosureCards() {
       </InfoCard>
       <InfoCard
         icon={iconFor('closed')}
-        title="Closed-capital bound"
+        title="No-foreign-capital bound"
         className="mx-card"
         id="closure-bound"
         more={
@@ -93,7 +93,7 @@ function ClosureCards() {
             items={[
               { icon: 'households', text: 'UK households’ saving finances all the extra capital.' },
               { icon: 'gni', text: 'GNI and GDP nearly coincide.' },
-              { icon: 'closure', text: <>The {S.closures[BOUND].role}: on Explore, choose Closed capital or Both.</> },
+              { icon: 'closure', text: <>The {S.closures[BOUND].role}: on Explore, choose No foreign capital or Both.</> },
             ]}
           />
         }
@@ -117,7 +117,7 @@ function ClosureCards() {
 }
 
 // The foreign-owned share of UK central's extra capital in the headline year
-// (main arm, central closure, common rule): surprise2028.json
+// (main arm, some foreign capital, common rule): surprise2028.json
 // foreign_share_dK_2031, whole per cent. Its figure has one home (the
 // story's GNI tile); Method says only whether it is most.
 const FOREIGN_DK = (() => {

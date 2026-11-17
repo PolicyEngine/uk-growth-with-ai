@@ -19,7 +19,7 @@ tfpC.gaps.C[H] = 4.44;
 fixture.results.uk_central.tfp['zk0.1'] = tfpC;
 fixture.results.uk_central.tfp.zk0 = { status: 'pending' };
 
-// the debt-neutral variant: an altered main-arm GDP gap at the central closure
+// the debt-neutral variant: an altered main-arm GDP gap with some foreign capital
 fixture.rules.debt_neutral.results.uk_central.tfp['zk0.1'].gaps.Y[H] = 3.2109;
 
 vi.doMock('@/data/surprise2028.json', () => ({ default: fixture }));
@@ -47,7 +47,7 @@ describe('Results follows the data file', () => {
       unmount();
       return t;
     };
-    // The headline tiles (and the pending closed-capital value with Both)
+    // The headline tiles (and the pending no-foreign-capital value with Both)
     // live in story part 2: tested in tabs/story/part2.test.jsx.
     // Income and output: the four-measure card; the main arm's GNI, GDP and
     // pay rate have their home in the story: muted reference values here,
@@ -65,7 +65,7 @@ describe('Results follows the data file', () => {
       expect(pop.match(/headline figures, at home in the story/g)).toHaveLength(1);
       unmount();
     }
-    expect(income).toContain('closed capital pending');
+    expect(income).toContain('no foreign capital pending');
     expect(text('sub=economy')).toContain('+4.44%');
     expect(text('sub=finances')).toContain('+7.78pp');
   });
@@ -77,7 +77,7 @@ describe('tooltips', () => {
     const { container } = render(
       <LineChart
         x={[2027, 2028, 2029, 2030, 2031]}
-        series={[{ key: 'a', label: 'Automation + productivity', closure: 'central closure', color: 'red', values }]}
+        series={[{ key: 'a', label: 'Automation + productivity', closure: 'some foreign capital', color: 'red', values }]}
         unit="%"
         tipTitle="GNI"
         valueFormat={(x) => x.toFixed(2)}
@@ -88,7 +88,7 @@ describe('tooltips', () => {
     fireEvent.focus(chart);
     const tip = screen.getByRole('tooltip');
     expect(tip.textContent).toContain('GNI, 2031');
-    expect(tip.textContent).toContain('central closure');
+    expect(tip.textContent).toContain('some foreign capital');
     expect(tip.textContent).toContain('Automation + productivity');
     expect(tip.textContent).toContain('1.23%');
     fireEvent.keyDown(chart, { key: 'ArrowLeft' });
@@ -97,10 +97,10 @@ describe('tooltips', () => {
 
   it('dumbbell dot and tax-gap bar: focus shows arm, closure and value', () => {
     const { unmount } = at('sub=income');
-    const dot = screen.getByLabelText(/Automation \+ productivity, central closure, Income UK residents keep/);
+    const dot = screen.getByLabelText(/Automation \+ productivity, some foreign capital, Income UK residents keep/);
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
-    expect(tip).toContain('Central closure');
+    expect(tip).toContain('Some foreign capital');
     expect(tip).toContain('+1.23% against the no-shock baseline');
     fireEvent.blur(dot);
     unmount();

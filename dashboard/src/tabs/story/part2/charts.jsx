@@ -22,8 +22,8 @@ export const series = (sid, arm, cl, v) => {
 // What a GDP gap does after the shock is complete in HEADLINE_YEAR, in
 // words, so a sentence is true for the scenario and closure in view: it
 // "levels off" when it moves by less than a tenth of its HEADLINE_YEAR size
-// by LATE_YEAR (the central closure), and otherwise rises, more
-// slowly than before HEADLINE_YEAR (closed capital). null when pending.
+// by LATE_YEAR (some foreign capital), and otherwise rises, more
+// slowly than before HEADLINE_YEAR (no foreign capital). null when pending.
 export function afterWords(ys) {
   if (!ys) return null;
   const y0 = ys[YEARS.indexOf(SURPRISE_YEAR) - 1] ?? 0;
@@ -51,7 +51,7 @@ export function WelfareSource() {
 }
 
 // 4: welfare by birth year, all earnings groups together, the main arm,
-// central closure, the Who gains tab's default rule (debt-neutral
+// some foreign capital, the Who gains tab's default rule (debt-neutral
 // transfers). UK central only. State 0 draws the adults alive in 2028,
 // state 1 adds the cohorts that enter later.
 export const LAST_ALIVE = D.shock_year - 20; // youngest adult in the shock year
@@ -108,7 +108,7 @@ export function WelfareShape({ state }) {
     <Figure
       icon="age"
       title="Welfare change by birth year"
-      unit="UK central, main arm, central closure, debt-neutral transfers (a model fiscal rule)"
+      unit="UK central, main arm, some foreign capital, debt-neutral transfers (a model fiscal rule)"
       xTitle={null}
       source={<WelfareSource />}
       head={

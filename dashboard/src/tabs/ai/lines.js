@@ -9,8 +9,8 @@ import { SCEN_NAME } from '@/tabs/ai/surprise.js';
 export const closuresFor = (closure) => (closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL]);
 // The closure a single-valued element (a sentence, a tile) reads
 export const primaryClosure = (closure) => (closure === 'closed' ? BOUND : CENTRAL);
-export const closureWords = (closure) => (closure === 'closed' ? 'closed capital' : closure === 'both' ? 'both closures' : 'central closure');
-const CL_NAME = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
+export const closureWords = (closure) => (closure === 'closed' ? 'no foreign capital' : closure === 'both' ? 'both foreign-capital cases' : 'some foreign capital');
+const CL_NAME = { [CENTRAL]: 'some foreign capital', [BOUND]: 'no foreign capital' };
 
 export function seriesFor(sid, v, years, arms, closure, scale = 1, rule = 'common') {
   return ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
@@ -35,7 +35,7 @@ export function seriesFor(sid, v, years, arms, closure, scale = 1, rule = 'commo
   );
 }
 
-// Arms in view whose closed-capital solve is pending
+// Arms in view whose no-foreign-capital solve is pending
 export function boundPending(sid, arms, closure, rule = 'common') {
   if (closure === 'central' || !ruleSolved(rule, sid)) return [];
   return ARMS.filter((a) => arms.includes(a.id) && resultAt(sid, a.id, BOUND, rule).status !== 'done').map((a) => a.short || a.label);
@@ -51,13 +51,13 @@ export function ruleGapText(rule, sid) {
 export function emptyText(arms, closure, rule = 'common', sid = null) {
   if (!arms.length) return 'Every arm is hidden. Choose one under Arms above.';
   if (sid && !ruleSolved(rule, sid)) return ruleGapText(rule, sid);
-  if (closure === 'closed') return 'The closed-capital results for this scenario are not solved yet. Choose Central under Closure at the top of the page.';
+  if (closure === 'closed') return 'The no-foreign-capital results for this scenario are not solved yet. Choose Some foreign capital under Foreign capital at the top of the page.';
   return 'This scenario is not solved yet.';
 }
 
 // What a download says was selected
 export const contextLine = (sid, closure, extra, rule = 'common') =>
-  [SCEN_NAME[sid], closureLabel(closure) + (closure === 'both' ? ' closures' : closure === 'central' ? ' closure' : ''), ruleLabel(rule), extra].filter(Boolean).join(' · ');
+  [SCEN_NAME[sid], closureLabel(closure) + (closure === 'both' ? ' foreign-capital cases' : ''), ruleLabel(rule), extra].filter(Boolean).join(' · ');
 
 // A chart's lines as a CSV table: one row per year, one column per line
 export function seriesTable(years, series, unit) {
@@ -67,7 +67,7 @@ export function seriesTable(years, series, unit) {
   };
 }
 
-export const legendOf = (series) => series.map((s) => ({ label: `${s.label}${s.dashed ? ', closed capital' : ''}`, color: `var(--x)`.length ? cssColor(s.color) : s.color, dashed: s.dashed }));
+export const legendOf = (series) => series.map((s) => ({ label: `${s.label}${s.dashed ? ', no foreign capital' : ''}`, color: `var(--x)`.length ? cssColor(s.color) : s.color, dashed: s.dashed }));
 function cssColor(c) {
   const m = /^var\((--[\w-]+)\)$/.exec(c);
   if (!m || typeof document === 'undefined') return c;

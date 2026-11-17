@@ -24,7 +24,7 @@ const wrap = (ui, q) => {
   return render(<NavProvider>{ui}</NavProvider>);
 };
 
-describe('central closure to closed capital', () => {
+describe('some foreign capital to no foreign capital', () => {
   for (const s of S.scenarios)
     for (const rule of ['common', 'fixed', 'dn'])
       it(`${s.id}, ${rule}: flips from the signs`, () => {

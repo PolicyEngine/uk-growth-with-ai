@@ -21,7 +21,7 @@ import { useLiveInView } from './live.js';
 import { iconFor } from '@/lib/concepts.js';
 
 // Where output goes in the headline year, at the header's scenario and
-// closure (the central closure with Both, which the lead says), as a
+// closure (some foreign capital with Both, which the lead says), as a
 // three-step scrolly over one graphic:
 //   1  a Sankey of the no-shock baseline: GDP to labour income and gross
 //      capital income, as shares of GDP (the left column's ribbons wipe in);
@@ -41,7 +41,7 @@ import { iconFor } from '@/lib/concepts.js';
 // hidden (its text kept in the DOM); it opens at step 3. The GDP bar carries no number: that figure is the headline
 // tile's. Bare numbers, the unit in each subtitle.
 
-const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
+const CL_WORDS = { [CENTRAL]: 'some foreign capital', [BOUND]: 'no foreign capital' };
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 // ms between waterfall bars: one at a time, labour, gross capital, its three
 // parts (each from where the last ended), then GDP from zero
@@ -361,7 +361,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
         </div>
         <p className="story-figure-unit p2-output-unit">
           <span data-axis-title="y">per 100 of GDP on the no-shock baseline</span>
-          {both ? <span>. With both closures chosen above, both figures show the central closure.</span> : null}
+          {both ? <span>. With both foreign-capital cases chosen above, both figures show some foreign capital.</span> : null}
         </p>
         {graph ? (
           <div className="p2-sankey" ref={wrap}>
@@ -433,7 +433,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">This solve is pending at the closure chosen above.</Tx>
+            <Tx icon="provisional">This solve is pending with the foreign capital chosen above.</Tx>
           </p>
         )}
       </div>
@@ -483,7 +483,7 @@ function outputSteps(sid, cl, base, ch) {
           Now the shock: each bar is one part&rsquo;s change against the path. {k('gdp', 'GDP')} comes last.
         </Say>
       ) : (
-        <p>This solve is pending at the closure chosen above.</p>
+        <p>This solve is pending with the foreign capital chosen above.</p>
       ),
     },
   ];

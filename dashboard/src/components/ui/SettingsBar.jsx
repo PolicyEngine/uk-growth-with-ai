@@ -68,7 +68,7 @@ export function CopyLink() {
 
 // The settings in words, for the chip: one segment per setting the page
 // reads, in the bar's order (scenario, closure, arm, rule). Pure, so tested.
-const CLOSURE_WORDS = { central: 'central closure', closed: 'closed capital', both: 'both closures' };
+const CLOSURE_WORDS = { central: 'some foreign capital', closed: 'no foreign capital', both: 'foreign capital: both' };
 const lower = (t) => t.charAt(0).toLowerCase() + t.slice(1);
 export function settingsSegments(pick, st) {
   if (!pick || pick.study) return [];
@@ -160,10 +160,10 @@ function SettingsPanel({ pick }) {
       {pick.scenario ? (
         <OptionGroup icon="sliders" label="Scenario" value={sid} options={SCEN_OPTIONS} onChange={(s) => set({ s })} locked={pick.scenario === 'locked' ? 'Who gains shows UK central only' : null} />
       ) : null}
-      {pick.closure ? <OptionGroup icon="globe" label="Closure" value={st.closure} options={CLOSURE_OPTIONS} onChange={(closure) => set({ closure })} /> : null}
-      {pick.arm ? <OptionGroup icon="gitBranch" label="Arm" value={st.armId} options={ARM_OPTIONS.map((o) => ({ ...o, desc: o.sub }))} onChange={(armId) => set({ armId })} /> : null}
+      {pick.closure ? <OptionGroup icon="globe" label="Foreign capital" value={st.closure} options={CLOSURE_OPTIONS} onChange={(closure) => set({ closure })} /> : null}
+      {pick.arm ? <OptionGroup icon="gitBranch" label="Version" value={st.armId} options={ARM_OPTIONS.map((o) => ({ ...o, desc: o.sub }))} onChange={(armId) => set({ armId })} /> : null}
       {pick.rule ? (
-        <OptionGroup icon="landmark" label="Fiscal rule" value={only ? st.wrule : st.rule} options={ruleOptions(sid, only).map((o) => ({ ...o, desc: o.sub }))} onChange={(rule) => set({ rule })} />
+        <OptionGroup icon="landmark" label="Budget assumption" value={only ? st.wrule : st.rule} options={ruleOptions(sid, only).map((o) => ({ ...o, desc: o.sub }))} onChange={(rule) => set({ rule })} />
       ) : null}
     </>
   );
@@ -364,9 +364,9 @@ export default function SettingsBar({ pick }) {
             lockedNote="Who gains shows UK central only"
           />
         ) : null}
-        {pick.closure ? <Picker icon="globe" label="Closure" value={st.closure} options={CLOSURE_OPTIONS} onChange={(closure) => set({ closure })} /> : null}
-        {pick.arm ? <SegPicker icon="gitBranch" label="Arm" value={st.armId} options={ARM_OPTIONS} onChange={(armId) => set({ armId })} /> : null}
-        {pick.rule ? <SegPicker icon="landmark" label="Fiscal rule" value={ruleValue} options={ruleOptions(sid, only)} onChange={(rule) => set({ rule })} /> : null}
+        {pick.closure ? <Picker icon="globe" label="Foreign capital" value={st.closure} options={CLOSURE_OPTIONS} onChange={(closure) => set({ closure })} /> : null}
+        {pick.arm ? <SegPicker icon="gitBranch" label="Version" value={st.armId} options={ARM_OPTIONS} onChange={(armId) => set({ armId })} /> : null}
+        {pick.rule ? <SegPicker icon="landmark" label="Budget assumption" value={ruleValue} options={ruleOptions(sid, only)} onChange={(rule) => set({ rule })} /> : null}
       </div>
     </div>
   );

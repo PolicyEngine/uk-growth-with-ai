@@ -49,7 +49,7 @@ export function axisOf(arm, v) {
 }
 
 export const cellsTable = (arm, armLabel) => ({
-  columns: ['Measure', 'Unit', 'Fiscal rule', 'Closure', 'Scenario', 'Arm', `Gap in ${HEADLINE_YEAR}`, 'Status'],
+  columns: ['Measure', 'Unit', 'Budget assumption', 'Foreign capital', 'Scenario', 'Version', `Gap in ${HEADLINE_YEAR}`, 'Status'],
   rows: MEASURES.flatMap((m) =>
     ROWS.flatMap((row) =>
       SCENARIOS.map((s) => {
@@ -61,7 +61,7 @@ export const cellsTable = (arm, armLabel) => ({
 });
 
 // Which choice moves a measure most for an arm: the largest spread of its
-// headline-year gap across scenarios (common rule, central closure), across
+// headline-year gap across scenarios (common rule, some foreign capital), across
 // the two closures (any scenario, common rule) and across the three rules
 // (the scenarios solved under every rule, either closure).
 export function spreads(arm, v) {

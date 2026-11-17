@@ -65,7 +65,7 @@ export function debtParts(sid, closure, rule) {
   const a = gap(sid, 'tfp', cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
   const b = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR, rule);
   if (a == null || b == null) return null;
-  const lead = `Automation + productivity${closure === 'closed' ? ', closed capital' : ''}:`;
+  const lead = `Automation + productivity${closure === 'closed' ? ', no foreign capital' : ''}:`;
   if (rule === 'dn') {
     const first = gap(sid, 'tfp', cl, 'debt_gdp_pp', SURPRISE_YEAR, rule);
     return { kind: 'dn', lead, first: first == null || side(first) === 'on' ? null : first, late: b };
@@ -130,7 +130,7 @@ function debtNotes(p) {
   ].filter(Boolean);
 }
 
-// Tax/GDP with closed capital in the main arm, in words (results sanity
+// Tax/GDP with no foreign capital in the main arm, in words (results sanity
 // audit A6): it can rise, so the model's sign there is not reliable.
 function closedTaxWords(sid, rule) {
   const r = resultAt(sid, 'tfp', BOUND, rule);
@@ -139,7 +139,7 @@ function closedTaxWords(sid, rule) {
   if (atYear(HEADLINE_YEAR) > 0) return `rises by ${HEADLINE_YEAR}`;
   const first = YEARS.find((y) => y > HEADLINE_YEAR && y < LATE_YEAR && atYear(y) > 0);
   if (first) return `near zero in ${HEADLINE_YEAR}, positive from ${first}`;
-  return 'falls far less than at the central closure';
+  return 'falls far less than with some foreign capital';
 }
 
 // The OBR's labour-minus-capital effective-rate gap, pp: FRS July 2026 Box
@@ -187,7 +187,7 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
 }
 
 // OG-UK's labour vs capital effective tax-rate gap on the no-shock baseline in
-// the headline year, central closure (the sanity gate's effective rates, as
+// the headline year, some foreign capital (the sanity gate's effective rates, as
 // the paper's EffWedgePp): labour incl. employer NICs less gross capital.
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
 const TAX_GAP = ETR.labour - ETR.capital_gross;
@@ -312,7 +312,7 @@ function TaxStrip({ model, uk, onChart }) {
 
 function TaxGapCard({ sid, closure, rule }) {
   // The model's central-closure figure is the tax/GDP chart's end label
-  // unless that chart is showing closed capital: each fact once.
+  // unless that chart is showing no foreign capital: each fact once.
   const onChart = closure !== 'closed';
   const closedTax = closedTaxWords(sid, rule);
   const model = gap(sid, 'tfp', CENTRAL, 'tax_gdp_pp', HEADLINE_YEAR, rule);
@@ -332,7 +332,7 @@ function TaxGapCard({ sid, closure, rule }) {
             model == null
               ? null
               : { key: 'falls', icon: dirConcept(model), text: model < 0 ? 'So revenue likely falls too little as income shifts to profits' : 'So the model likely misses a revenue fall as income shifts to profits' },
-            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: `With closed capital the ${HEADLINE_YEAR} sign changes:` } : null,
+            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: `With no foreign capital the ${HEADLINE_YEAR} sign changes:` } : null,
             closure !== 'central' && closedTax ? { key: 'closed2', icon: 'caveat', text: `tax/GDP ${closedTax}` } : null,
           ]}
         />
@@ -348,7 +348,7 @@ function TaxGapCard({ sid, closure, rule }) {
                 { key: 'obr', icon: 'tax', text: 'Implied by two OBR effective rates: 0.19 to 0.23 points of revenue per point shifted' },
                 { key: 'r1', icon: 'source', text: 'OBR, July 2026: wages and salaries 46%, profits 27%; November 2025: labour income around 40%, corporate profits around 17%' },
                 { key: 'r2', icon: 'arithmetic', text: '19–23pp: those rates differenced, on different bases; the OBR publishes neither gap' },
-                { key: 'r3', icon: 'model', text: <>OG-UK {TAX_GAP.toFixed(1)}pp: {ETR.labour.toFixed(1)}% on labour (with employer NICs), {ETR.capital_gross.toFixed(1)}% on gross capital, {HEADLINE_YEAR}, central closure</> },
+                { key: 'r3', icon: 'model', text: <>OG-UK {TAX_GAP.toFixed(1)}pp: {ETR.labour.toFixed(1)}% on labour (with employer NICs), {ETR.capital_gross.toFixed(1)}% on gross capital, {HEADLINE_YEAR}, some foreign capital</> },
                 {
                   key: 'times',
                   icon: 'inequality',
@@ -370,8 +370,8 @@ function TaxGapCard({ sid, closure, rule }) {
           <Items
             items={[
               { key: 'rough', icon: 'limit', text: 'A rough scaling, not a model run' },
-              { key: 'arm', icon: 'scenario', text: 'Automation + productivity, central closure only' },
-              { key: 'closed', icon: 'closed', text: 'It does not show the model’s sign is right with closed capital' },
+              { key: 'arm', icon: 'scenario', text: 'Automation + productivity, some foreign capital only' },
+              { key: 'closed', icon: 'closed', text: 'It does not show the model’s sign is right with no foreign capital' },
             ]}
           />
         ),
@@ -392,7 +392,7 @@ function TaxGapCard({ sid, closure, rule }) {
         })}
       download={{
         title: TAX_TITLE,
-        context: () => contextLine(sid, closure, `tax/GDP in ${HEADLINE_YEAR} with UK tax rates: rough scaling, central closure, automation + productivity`, rule),
+        context: () => contextLine(sid, closure, `tax/GDP in ${HEADLINE_YEAR} with UK tax rates: rough scaling, some foreign capital, automation + productivity`, rule),
         table: () => ({
           columns: ['Item', 'OG-UK', 'Comparison', 'Comparison source', 'Effect on revenue'],
           rows: [
@@ -488,7 +488,7 @@ function RuleTable({ rule, sid, closure }) {
 
 function ruleTable(rule, sid, closure) {
   return {
-    columns: ['Closure', 'Arm', ...RULE_VARS.map((c) => `${c.label}, change against the common rule (pp)`)],
+    columns: ['Foreign capital', 'Version', ...RULE_VARS.map((c) => `${c.label}, change against the common rule (pp)`)],
     rows: closuresFor(closure).flatMap((cl) => ARMS.map((a) => [CLOSURE_LABEL[cl], a.label, ...RULE_VARS.map((c) => ruleShift(rule, sid, a.id, cl, c.v))])),
   };
 }
@@ -511,7 +511,7 @@ const RULE_DB = [
 export function RulePicker() {
   const { st, set } = useNav();
   return (
-    <div className="ex-rules" role="group" aria-label="Fiscal rule">
+    <div className="ex-rules" role="group" aria-label="Budget assumption">
       {RULES.map((r) => (
         <button key={r.id} type="button" className={`ex-rule${st.rule === r.id ? ' is-active' : ''}`} aria-pressed={st.rule === r.id} onClick={() => set({ rule: r.id })}>
           <span className="ex-rule-name">
@@ -688,7 +688,7 @@ export default function FinancesSection({ sid }) {
           name="tax/GDP"
           icon={iconFor('tax')}
           unitLine={`Percentage points of GDP, difference from the no-shock baseline, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
-          finding={st.closure === 'central' ? undefined : 'With closed capital the model’s sign for tax/GDP changes: see the card below.'}
+          finding={st.closure === 'central' ? undefined : 'With no foreign capital the model’s sign for tax/GDP changes: see the card below.'}
           sources={false}
           method="rules"
         />

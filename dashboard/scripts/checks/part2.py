@@ -150,8 +150,8 @@ def check(dump):
                 bad += 1; print(sid, mode, 'story part 2: no "Where output goes" block'); continue
             if 'NaN' in blk or 'undefined' in blk:
                 bad += 1; print(sid, mode, 'story part 2 prints NaN/undefined')
-            if mode == 'both' and 'show the central closure' not in blk:
-                bad += 1; print(sid, mode, 'story part 2: Both does not say it shows the central closure')
+            if mode == 'both' and 'show some foreign capital' not in blk:
+                bad += 1; print(sid, mode, 'story part 2: Both does not say it shows some foreign capital')
             got = Counter(re.findall(r"[+−]?\d+\.\d+", blk))
             exp = expected(sid, cl)
             if got != exp:

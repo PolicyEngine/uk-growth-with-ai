@@ -120,7 +120,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       sources={cohortSources()}
       icon={iconFor('lifetimeEarnings')}
       title="By age and earnings group"
-      finding={both ? <span className="ex-ctx">Central closure</span> : null}
+      finding={both ? <span className="ex-ctx">Some foreign capital</span> : null}
       controls={
         <ControlBar label="Heatmap: options">
           <ControlGroup label="Measure">
@@ -146,7 +146,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       }
       download={{
         title: `Welfare change by age and earnings group, ${m.label}`,
-        context: () => `UK central · ${ARM_NAME[arm] ?? arm} · ${ruleLabel(rule)} · ${cl === 'zk0' ? 'closed capital' : 'central closure'}`,
+        context: () => `UK central · ${ARM_NAME[arm] ?? arm} · ${ruleLabel(rule)} · ${cl === 'zk0' ? 'no foreign capital' : 'some foreign capital'}`,
         table: () => ({ columns: ['Age in 2028', ...cols.map((c) => `${c} (%)`)], rows: rows.map((r) => [r.age, ...r.cells]) }),
       }}
     >
