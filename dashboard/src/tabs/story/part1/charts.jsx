@@ -474,7 +474,10 @@ export function AiUseChart({ notes }) {
   const L = AI_M.l;
   const R = w - AI_M.r;
   const T = AI_M.t;
-  const B = aiH - AI_M.b;
+  // narrow (phones): the x title gets its own line under the two dates,
+  // which it overlapped at 390 and 360 (review r2 #2)
+  const narrow = R - L < 460;
+  const B = aiH - AI_M.b - (narrow ? 16 : 0);
   const D = niceTicks([...a.y, ...b.y], { withZero: true });
   const X = linear(0, last, L + 4, R - 4);
   const Y = linear(D.lo, D.hi, B, T);
@@ -522,13 +525,13 @@ export function AiUseChart({ notes }) {
           </defs>
           <YGrid ticks={D.ticks} Y={Y} x0={L} x1={R} />
           <XTicks
-            y={aiH - 6}
+            y={narrow ? aiH - 22 : aiH - 6}
             ticks={[
               { x: X(0), label: short(a.x[0]), anchor: 'start', key: 'a' },
               { x: X(last), label: short(a.x[last]), anchor: 'end', key: 'b' },
             ]}
           />
-          <text x={(L + R) / 2} y={aiH - 6} textAnchor="middle" className="p1-axis-title" data-axis-title="x">
+          <text x={(L + R) / 2} y={aiH - 4} textAnchor="middle" className="p1-axis-title" data-axis-title="x">
             Survey wave, dated at its midpoint
           </text>
           <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} data-mark="ai-all" />

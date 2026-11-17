@@ -9,6 +9,13 @@
 // states are measured after the opener. MOTION=1 runs with motion on (the
 // pinned screens in the page).
 //
+// Opener probe (round 2 sign-off #1): motion on, at 1280x800 and 390x844
+// (OPENER_SIZES), the scroll through every in-frame question (QFrame) in
+// 10px steps, both ways: at every sample with the frame on screen, the
+// question (card opacity >= 0.15) or the chart (cover opacity <= 0.85, or
+// the frame done) must be visible; a blank frame is a miss. OPENERS=0
+// skips it.
+//
 // Landing probe (round 2): every sticky scene must draw its current step on
 // arrival, not only when a step changes. For every card of every sticky
 // block, at 1280x800, 1024x768 and 390x844 (JUMP_SIZES="w,h w,h" to change), motion
@@ -30,7 +37,7 @@ import { chromium } from 'playwright';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const rest = process.argv.slice(3).map(Number);
-const sizes = rest.length >= 2 ? Array.from({ length: rest.length >> 1 }, (_, i) => [rest[2 * i], rest[2 * i + 1]]) : [[1280, 800], [1366, 650], [807, 933]];
+const sizes = rest.length >= 2 ? Array.from({ length: rest.length >> 1 }, (_, i) => [rest[2 * i], rest[2 * i + 1]]) : [[1280, 800], [1366, 650], [807, 933], [390, 844]];
 const HOLD = Number(process.env.HOLD ?? 180);
 const TICK = 40;
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
@@ -91,6 +98,59 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
   console.log(`${W}x${H}: ${blocks.length} sticky blocks`);
   for (const l of lines) console.log(l);
   await page.close();
+}
+
+// ---- opener probe ----
+const olines = [];
+let omiss = 0;
+const osizes = (process.env.OPENER_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
+for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' ? [] : osizes) {
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const frames = await page.evaluate(() =>
+    [...document.querySelectorAll('.scrolly .q-frame')].map((f) => {
+      const r = f.getBoundingClientRect();
+      return { id: f.closest('.scrolly').id, top: Math.round(r.top + scrollY) };
+    }),
+  );
+  const at = (t) => page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), t);
+  const probe = (id) =>
+    page.evaluate((id) => {
+      const f = document.querySelector(`#${id} .q-frame`);
+      const r = f.getBoundingClientRect();
+      const rail = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
+      if (r.bottom < rail + 40 || r.top > innerHeight - 40) return { off: true };
+      if (f.classList.contains('is-done') || getComputedStyle(f).display === 'none') return { ok: true };
+      const card = Number(getComputedStyle(f.querySelector('.q-frame-card')).opacity);
+      const tint = Number(getComputedStyle(f.querySelector('.q-frame-tint')).opacity);
+      return { ok: card >= 0.15 || tint <= 0.85, card, tint };
+    }, id);
+  for (const fr of frames) {
+    const blank = [];
+    const y0 = Math.max(0, fr.top - H);
+    const y1 = fr.top + 200;
+    // down, then back up (the phase follows the scroll both ways)
+    await at(Math.max(0, y0 - H));
+    await page.waitForTimeout(250);
+    for (const dir of ['down', 'up']) {
+      for (let k = 0; k <= (y1 - y0) / 10; k++) {
+        const y = dir === 'down' ? y0 + 10 * k : y1 - 10 * k;
+        await at(y);
+        await page.waitForTimeout(25);
+        const r = await probe(fr.id);
+        if (!r.off && !r.ok) blank.push(`${dir} ${y} (q ${r.card.toFixed(2)}, cover ${r.tint.toFixed(2)})`);
+      }
+    }
+    if (blank.length) omiss++;
+    olines.push(`  ${blank.length ? 'MISS' : 'ok  '} ${W}x${H} ${fr.id}${blank.length ? `: blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}`);
+  }
+  await ctx.close();
+}
+if (olines.length) {
+  console.log('openers (question or chart always visible):');
+  for (const l of olines) console.log(l);
 }
 
 // ---- landing probe ----
@@ -186,6 +246,6 @@ if (jlines.length) {
   for (const l of jlines) console.log(l);
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);
