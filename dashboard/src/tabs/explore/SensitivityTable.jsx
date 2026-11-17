@@ -313,7 +313,7 @@ export default function SensitivityTable() {
           />
         ),
         caveats: <Items items={[{ key: 'stress', icon: 'shock', text: `The stress test holds GDP on the path in ${HEADLINE_YEAR} by construction` }, ...investmentItems(res)]} />,
-        sources: <ResultSources closures={['zk0.1', 'zk0.5']} extra={[{ key: 'oguk', icon: 'model', text: <>ζK = {sens.zeta_K}: a sensitivity; OG-UK&rsquo;s default is 0.1 ({ext(URLS.ogUkDefaults, 'default parameters')}); see {methodLink('closures')}</> }]} />,
+        sources: <ResultSources closures={['zk0.1', 'zk0.5']} extra={[{ key: 'oguk', icon: 'model', text: <>ζK = {sens.zeta_K}: a sensitivity; the central 0.1 is OG-Core&rsquo;s US default, chosen by the study ({ext(URLS.ogUkDefaults, 'default parameters')}); see {methodLink('closures')}</> }]} />,
       }}
       method="closures"
       download={{

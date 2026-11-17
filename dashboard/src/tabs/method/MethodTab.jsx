@@ -55,7 +55,7 @@ function ClosureCards() {
           <Items
             items={[
               { icon: 'foreign', text: <>&zeta;<sub>K</sub>, in OG-Core&rsquo;s definition: the share of excess capital demand that foreigners supply ({cite('ogCoreParams')}).</> },
-              { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s default, which OG-UK keeps ({cite('ogukParams')}); it was set for the US, not calibrated to the UK.</> },
+              { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s US default, chosen by the study and kept by OG-UK ({cite('ogukParams')}); not calibrated to the UK.</> },
               { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
@@ -72,7 +72,13 @@ function ClosureCards() {
           <Icon name={iconFor('foreign')} size={18} className="mx-dt-icon" />
           &zeta;<sub>K</sub> = {ZETA[CENTRAL]}
         </p>
-        <Items items={[{ icon: 'gni', text: 'Part of the extra capital is foreign-owned: GNI rises less than GDP.' }, { icon: 'rule', text: <>Central by the study&rsquo;s choice, a modelling choice ({cite('closureMemo')}).</> }]} />
+        <Items
+          items={[
+            { icon: 'foreign', text: 'The share of excess capital demand met from abroad, not of added capital.' },
+            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Part' : 'Most'} of the added capital is foreign-owned: GNI rises less than GDP.` },
+            { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
+          ]}
+        />
       </InfoCard>
       <InfoCard
         icon={iconFor('closed')}
