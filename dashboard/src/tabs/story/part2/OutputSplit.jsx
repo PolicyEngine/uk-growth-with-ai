@@ -50,9 +50,16 @@ export const GROW_STAGGER = 420;
 // travels to its waterfall row and is that row's value: the same element,
 // moved by a transform, so each change is printed once.
 const TRAVEL = ['labour', 'domestic', 'foreign', 'depreciation'];
-const CHIP_HOLD = 1100; // ms the chips sit at the nodes
-const CHIP_TRAVEL = 750;
-const CHIP_STAGGER = 120;
+// The beats' timings (ms). Phones and tablets (one unpinned figure, read
+// while scrolling) take the short set: the whole build, chips to the GDP
+// value, ends within about 1.5s of state 2 (round 1f).
+export const TIMING = {
+  full: { grow: GROW_STAGGER, hold: 1100, travel: 750, stagger: 120, capital: 700, gdp: 2500 },
+  fast: { grow: 130, hold: 300, travel: 450, stagger: 110, capital: 250, gdp: 950 },
+};
+// the smallest vertical gap between two chips at the nodes, px: the
+// nodes of the capital split sit closer than a chip's height
+const CHIP_GAP = 4;
 // The tooltip's one line of meaning per part.
 const MEANING = {
   gdp: 'Everything produced in the UK, the path’s GDP as 100',
@@ -64,8 +71,9 @@ const MEANING = {
 };
 // Phones: one figure, too tall to stick, so its state follows its own place
 // on screen, both ways: in view, the path's first column pours (state 0);
-// once the Sankey's foot passes 75% of the screen, the capital split
-// (state 1); once the waterfall's top passes 45%, the change bars (state 2).
+// once the Sankey's middle passes 75% of the screen, the capital split
+// (state 1); once the waterfall's top passes 75%, the change bars (state 2),
+// so the build runs while the waterfall is in view, not after.
 // Above the screen's foot again, it resets, so the build replays.
 function useScrollState(active) {
   const ref = useRef(null);
@@ -82,7 +90,7 @@ function useScrollState(active) {
       const sk = el.querySelector('.p2-sankey')?.getBoundingClientRect() ?? r;
       const wf = el.querySelector('.p2-output-change')?.getBoundingClientRect() ?? r;
       const seen = r.top < vh * 0.85 && r.bottom > 0;
-      const s = wf.top < vh * 0.45 ? 2 : sk.bottom < vh * 0.75 ? 1 : 0;
+      const s = wf.top < vh * 0.75 ? 2 : (sk.top + sk.bottom) / 2 < vh * 0.75 ? 1 : 0;
       setSt((o) => (o.seen === seen && o.s === s ? o : { seen, s }));
     };
     const on = () => {
@@ -102,7 +110,7 @@ function useScrollState(active) {
 
 const CH_KEY = { labour: 'labour', capital: 'gross_capital', domestic: 'domestic', foreign: 'foreign', depreciation: 'depreciation' };
 
-function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
+function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
   const ends = rows.flatMap((r) => [r.from, r.to]);
   let lo = Math.min(0, ...ends);
   let hi = Math.max(0, ...ends);
@@ -136,7 +144,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
               <span className="p2-wf-zero" />
               {/* GDP equals the sum: a dashed connector from the last part's
                   end down to the GDP bar's end, once the GDP bar is drawn */}
-              {r.id === 'gdp' ? <span className="p2-wf-sum" style={{ left: `${at(r.to)}%`, transitionDelay: on ? `${(i + 1) * GROW_STAGGER + 200}ms` : '0ms' }} /> : null}
+              {r.id === 'gdp' ? <span className="p2-wf-sum" style={{ left: `${at(r.to)}%`, transitionDelay: on ? `${(i + 1) * t.grow + 200}ms` : '0ms' }} /> : null}
               {/* grows from the end it starts at: zero for labour and GDP,
                   the previous row's end for the parts */}
               <span
@@ -145,7 +153,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
                   left: `${at(a)}%`,
                   width: `${Math.max(at(b) - at(a), 0.4)}%`,
                   '--bar': barColor(r.id, r.to - r.from),
-                  transitionDelay: on ? `${i * GROW_STAGGER}ms` : '0ms',
+                  transitionDelay: on ? `${i * t.grow}ms` : '0ms',
                 }}
               />
             </span>
@@ -160,7 +168,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
                 chips?.[r.id]
                   ? { transform: `translate(${chips[r.id][0].toFixed(1)}px, ${chips[r.id][1].toFixed(1)}px)`, transition: 'none' }
                   : TRAVEL.includes(r.id) && phase === 'travel'
-                    ? { transitionDelay: `${TRAVEL.indexOf(r.id) * CHIP_STAGGER}ms` }
+                    ? { transitionDelay: `${travelRank(r.id) * t.stagger}ms`, transitionDuration: `${t.travel}ms, 300ms, 300ms, 300ms` }
                     : undefined
               }
             >
@@ -178,6 +186,11 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
     </ol>
   );
 }
+
+// The chips leave bottom first (depreciation, then up to labour): every
+// row lies below every node, so a chip in flight only moves away from the
+// chips still waiting above it, and none crosses another.
+const travelRank = (id) => TRAVEL.length - 1 - TRAVEL.indexOf(id);
 
 // Step 3's items, true for the cell in view: each reads a sign and prints
 // no figure (the figures are on the charts). `icon` is a concept (a
@@ -208,7 +221,8 @@ export function outChangeItems(ch) {
 
 // The graphic: the Sankey, the waterfall below it. `state` 0-2; `all`
 // draws the last state with nothing hidden (phones).
-function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen: seenProp, figRef }) {
+function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen: seenProp, figRef, fast = false }) {
+  const t = fast ? TIMING.fast : TIMING.full;
   const [ownRef, ownSeen] = useLiveInView();
   const ref = figRef ?? ownRef;
   const seen = seenProp ?? ownSeen;
@@ -258,29 +272,34 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
     const w = wrap.current.getBoundingClientRect();
     const k = w.width / (boxes.width || w.width);
     const at = {};
+    // each chip's centre beside its node, top to bottom, pushed down where
+    // it would overlap the chip above (the capital split's nodes sit close)
+    let floor = -Infinity;
     for (const id of TRAVEL) {
       const n = boxes.nodes[id];
       const c = cells.current[id];
       if (!n || !c) continue;
       const r = c.getBoundingClientRect();
-      at[id] = [w.left + n.x0 * k - 8 - r.right, w.top + ((n.y0 + n.y1) / 2) * k - (r.top + r.height / 2)];
+      const cy = Math.max(w.top + ((n.y0 + n.y1) / 2) * k, floor + r.height + CHIP_GAP);
+      floor = cy;
+      at[id] = [w.left + n.x0 * k - 8 - r.right, cy - (r.top + r.height / 2)];
     }
     setChips(at);
   }, [phase, boxes]);
   useEffect(() => {
     if (phase === 'chips' && chips) {
-      const t = setTimeout(() => {
+      const id = setTimeout(() => {
         setChips(null);
         setPhase('travel');
-      }, CHIP_HOLD);
-      return () => clearTimeout(t);
+      }, t.hold);
+      return () => clearTimeout(id);
     }
     if (phase === 'travel') {
-      const t = setTimeout(() => setPhase('settled'), CHIP_TRAVEL + CHIP_STAGGER * TRAVEL.length);
-      return () => clearTimeout(t);
+      const id = setTimeout(() => setPhase('settled'), t.travel + t.stagger * TRAVEL.length);
+      return () => clearTimeout(id);
     }
     return undefined;
-  }, [phase, chips]);
+  }, [phase, chips, t]);
   const grown = s >= 2 && (phase === 'travel' || phase === 'settled');
   const nodeBox = useMemo(() => (b) => setBoxes(b), []);
   // icons left on the four nodes once the chips have landed (no number)
@@ -308,7 +327,13 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
     );
   };
   return (
-    <figure ref={ref} className="p2-figure p2-output-fig p2-output-graphic" data-state={s} data-phase={phase}>
+    <figure
+      ref={ref}
+      className={`p2-figure p2-output-fig p2-output-graphic${fast ? ' is-fast' : ''}`}
+      data-state={s}
+      data-phase={phase}
+      style={{ '--wf-capital-delay': `${t.capital}ms`, '--wf-gdp-delay': `${t.gdp}ms` }}
+    >
       <div className="p2-output-base">
         {/* one head row: badge, title with its unit, Replay and Pause */}
         <div className="p2-output-head">
@@ -356,7 +381,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
                 <span
                   key={id}
                   className={`p2-node-dir is-${d}${lit === id ? ' is-hl' : ''}`}
-                  style={{ left: `${n.x0 - 16}px`, top: `${(n.y0 + n.y1) / 2}px`, animationDelay: `${(rowAt[id] ?? 0) * GROW_STAGGER + 300}ms` }}
+                  style={{ left: `${n.x0 - 16}px`, top: `${(n.y0 + n.y1) / 2}px`, animationDelay: `${(rowAt[id] ?? 0) * t.grow + 300}ms` }}
                   aria-hidden="true"
                 >
                   <Icon name={iconFor(d)} size={12} strokeWidth={2.5} />
@@ -389,6 +414,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
               cells={cells}
               chips={phase === 'chips' ? chips : null}
               phase={phase}
+              t={t}
             />
           </>
         ) : (
@@ -497,7 +523,7 @@ export default function OutputSplit({ sid, closure }) {
       </p>
       {phone ? (
         <div className="p2-output-static">
-          <OutputGraphic state={phoneSt.s} seen={phoneSt.seen} figRef={phoneRef} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
+          <OutputGraphic fast state={phoneSt.s} seen={phoneSt.seen} figRef={phoneRef} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
           <ol className="p2-output-texts">
             {steps.map((s) => (
               <li key={s.id} id={s.id} className="p2-output-text">

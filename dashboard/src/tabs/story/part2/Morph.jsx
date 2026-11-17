@@ -292,7 +292,8 @@ export function MorphChart({ state, sid, cl, pin = null }) {
   // direct labels in the gutter, placed over every label of the gap states
   // (drawn or not), so none moves when another line arrives
   const labelItems = [
-    { key: 'zero', v: 0, lines: ['OBR-central', 'path = 0'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true },
+    // pad: clear of the scenario label just above it (UK low at phone width)
+    { key: 'zero', v: 0, lines: ['OBR-central', 'path = 0'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true, pad: 6 },
     ...lines.map((l) => ({
       key: l.id,
       v: l.ys[l.ys.length - 1],
@@ -480,7 +481,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
-              <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={LH * 0.7} style={{ fill: p.color }}>
+              <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={LH * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
                   <tspan key={l} x={0} dy={i ? LH - 2 : 0}>
                     {l}
