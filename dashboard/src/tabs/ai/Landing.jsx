@@ -33,7 +33,7 @@ const KPIS = [
     concept: 'gdp',
     title: 'Output (GDP)',
     line: 'everything produced in the UK',
-    tip: 'Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital.',
+    tip: `Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital. The figure is a level ${HEADLINE_YEAR - SURPRISE_YEAR + 1} years on, not a growth rate.`,
   },
   {
     v: 'w',
@@ -139,8 +139,11 @@ export function HeadlineTiles({ sid }) {
   // the pay tile keeps a short visible form of its caveat (voice pass): a
   // number whose sign can flip does not hide it; the full caveat is in the
   // GDP figure's notes (part2/Morph.jsx, morphGroups)
+  // and one clause of reason (newcomer review item 11): below the path,
+  // the shift to capital outweighs the productivity gain
+  const w = gap(sid, 'tfp', cl, 'w');
   const extra = {
-    w: flips ? 'sign depends on foreign capital' : null,
+    w: [w != null && w < -0.005 ? 'capital takes a larger share' : null, flips ? 'sign depends on foreign capital' : null],
   };
   return (
     <>

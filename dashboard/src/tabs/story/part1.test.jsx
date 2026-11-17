@@ -564,7 +564,10 @@ describe('hero', () => {
       expect(el.querySelector('.hf-unit a[href*="story-headline"]')).not.toBeNull();
       // three mini-stats; pay rates and resident income are words, not figures
       const stats = [...el.querySelectorAll('.hf-stat')];
-      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'Income UK residents keep']);
+      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
+      // national income's definition is its tooltip; the GDP figure says it is a level
+      expect(stats[2].querySelector('.hf-stat-name .tip-target')).not.toBeNull();
+      expect(el.querySelector('.hf-figure-value').getAttribute('title')).toMatch(/^A level \d+ years on, not a growth rate$/);
       for (const m of stats.slice(1)) expect(m.textContent).not.toMatch(/\d/);
       expect(el.querySelector('.hf-chip-ctx').textContent).toMatch(new RegExp(`· ${S.headline_year} · scenario, not a forecast$`));
       // no inline link in the unit but the figure's own

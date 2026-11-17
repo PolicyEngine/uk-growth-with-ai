@@ -1,6 +1,7 @@
 'use client';
 
 import SourceLine from '@/components/ui/SourceLine.jsx';
+import { TipTarget } from '@/components/ab/Tip.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -156,8 +157,13 @@ function Fan({ lines, sid, wide }) {
 }
 
 // The three mini-stats, from the signs (as heroItems in tabs/ai/Landing.jsx,
-// whose strings are kept for Explore; new strings here).
-const SIDE = (x) => (Math.abs(x) < 0.005 ? 'On the path' : x > 0 ? 'Above the path' : 'Below the path');
+// whose strings are kept for Explore; new strings here). Labels one line
+// each; national income's definition is its tooltip (`tip`).
+const SIDE = (x) => (Math.abs(x) < 0.005 ? 'on the path' : x > 0 ? 'above the path' : 'below the path');
+// the headline year as years into the shock (2028 is year 1): the GDP
+// figure is a level gap that year, not a growth rate
+export const YEARS_ON = HEADLINE_YEAR - SURPRISE_YEAR + 1;
+export const GDP_LEVEL_TIP = `A level ${YEARS_ON} years on, not a growth rate`;
 export function heroStats(sid, cl) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
@@ -167,7 +173,7 @@ export function heroStats(sid, cl) {
   return [
     { id: 'gdp', name: 'GDP', x: y, sub: `${dirWord(y)} the no-shock baseline` },
     { id: 'pay', name: 'Pay rates', x: w, value: SIDE(w), sub: w < -0.005 ? 'slower growth, not a cut' : null },
-    g == null ? null : { id: 'gni', name: 'Income UK residents keep', x: g, value: keepsLess ? 'Up, by less than GDP' : SIDE(g), sub: keepsLess ? 'part goes to owners abroad' : null },
+    g == null ? null : { id: 'gni', name: 'National income', tip: 'Gross national income (GNI): the income UK residents keep, GDP less income paid to owners abroad.', x: g, value: keepsLess ? 'up, less than GDP' : SIDE(g), sub: keepsLess ? 'part goes to owners abroad' : null },
   ].filter(Boolean);
 }
 
@@ -202,10 +208,18 @@ export default function Hero() {
             <dl className="hf-stats">
               {stats.map((m) => (
                 <div key={m.id} className={`hf-stat is-${m.id}`}>
-                  <dt className="hf-stat-name">{m.name}</dt>
+                  <dt className="hf-stat-name">
+                    {m.tip ? (
+                      <TipTarget label={`What is ${m.name.toLowerCase()}?`} tip={<span>{m.tip}</span>}>
+                        {m.name}
+                      </TipTarget>
+                    ) : (
+                      m.name
+                    )}
+                  </dt>
                   <dd className={`hf-stat-value ${toneOf(m.x)}`}>
                     {m.id === 'gdp' ? (
-                      <NavLink tab="story" anchor="story-headline" className="hf-figure-value" aria-label={`GDP ${fmt(sel.at)} against the no-shock baseline in ${HEADLINE_YEAR}: the headline figures in part 2`}>
+                      <NavLink tab="story" anchor="story-headline" className="hf-figure-value" title={GDP_LEVEL_TIP} aria-label={`GDP ${fmt(sel.at)} against the no-shock baseline in ${HEADLINE_YEAR}, ${GDP_LEVEL_TIP.toLowerCase()}: the headline figures in part 2`}>
                         <span data-path={`results.${sid}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}`}>{fmt(sel.at)}</span>
                       </NavLink>
                     ) : (
