@@ -473,10 +473,11 @@ export function AiUseChart({ notes }) {
   const last = idx.length - 1;
   const L = AI_M.l;
   const R = w - AI_M.r;
-  const T = AI_M.t;
   // narrow (phones): the x title gets its own line under the two dates,
-  // which it overlapped at 390 and 360 (review r2 #2)
+  // which it overlapped at 390 and 360 (review r2 #2), and the plot starts
+  // 16px lower, so the upper end label has room above its line's end
   const narrow = R - L < 460;
+  const T = AI_M.t + (narrow ? 16 : 0);
   const B = aiH - AI_M.b - (narrow ? 16 : 0);
   const D = niceTicks([...a.y, ...b.y], { withZero: true });
   const X = linear(0, last, L + 4, R - 4);
