@@ -8,9 +8,12 @@ import { scrollBelowBars } from '@/lib/scroll.js';
 import { HighlightCtx, normIds, useApplyHighlight, useHighlightDescription, useHighlightState } from './highlight.jsx';
 import QStage, { Answer, QFrame } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
+import { NotesSlot } from './FigNotes.jsx';
 
-// a sticky figure may take 45% of the screen at 900px and below
-const capFor = () => 0.45;
+// a sticky figure may take 45% of the screen at 601-900px, and 58% on
+// phones (round 2, review 3 B5: pin the chart; its notes move after the
+// steps, FigNotes.jsx, so the pinned box is the chart alone)
+const capFor = (w) => (w <= 600 ? 0.58 : 0.45);
 const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 const subscribeWidth = (cb) => {
   window.addEventListener('resize', cb);
@@ -147,6 +150,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const inline = flat && phoneMode === 'steps';
   const once = flat && !inline;
   const sticky = reserve && !tooTall;
+  // the notes slot after the steps (FigNotes.jsx): a sticky phone scene
+  // draws its figures' notes there; while measuring they are left out
+  const [notesEl, setNotesEl] = useState(null);
+  const notesSlot = reserve && (measuring || sticky) ? { phone: true, el: sticky ? notesEl : null } : null;
   const sizers = useRef(null);
   const live = useRef(null);
   // reversible entry (motion.js useEntry): true once the figure is 85% up
@@ -325,9 +332,12 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       } else {
         y = fig.bottom - H - 10;
       }
-      // never outside its own block's column
+      // never outside its own block's column, and never over the closing
+      // line (round 2, review 3 B1): the sentence stops 16px above it
       const cr = col.getBoundingClientRect();
-      y = Math.min(Math.max(y, cr.top), Math.max(cr.top, cr.bottom - H));
+      const close = col.querySelector(':scope > .scrolly-answer');
+      const foot = close ? Math.min(cr.bottom, close.getBoundingClientRect().top - 16) : cr.bottom;
+      y = Math.min(Math.max(y, cr.top), Math.max(cr.top, foot - H));
       card.style.transform = `translateY(${Math.round(y - liTop)}px)`;
     };
     const on = () => {
@@ -461,6 +471,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const entryValue = { entered: ctx.entered, instant: entry.instant, run: entry.run };
   return (
     <EntryCtx.Provider value={entryValue}>
+    <NotesSlot.Provider value={notesSlot}>
     <HighlightCtx.Provider value={hl}>
     <div
       className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
@@ -546,6 +557,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         ) : null}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
+      {sticky ? <div className="scrolly-notes" ref={setNotesEl} /> : null}
       {phone ? footHere : null}
       {answerAfter ? (
         <div className="scrolly-answer scrolly-answer-after">
@@ -554,6 +566,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ) : null}
     </div>
     </HighlightCtx.Provider>
+    </NotesSlot.Provider>
     </EntryCtx.Provider>
   );
 }

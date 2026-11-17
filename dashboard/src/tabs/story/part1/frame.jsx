@@ -1,5 +1,6 @@
 'use client';
 
+import FigNotes from '@/components/story/FigNotes.jsx';
 import { Children, useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -179,7 +180,9 @@ const short = (s) => SHORT[s.publisher] ?? s.publisher;
 // figure shows, stamped after the sources.
 export function SourceLine({ items, note, notes = [], through }) {
   const rest = notes.filter(Boolean);
+  // on a phone, after the steps, not in the pinned figure (FigNotes.jsx)
   return (
+    <FigNotes>
     <div className="p1-foot">
       <p className="story-source">
         Source:{' '}
@@ -213,6 +216,7 @@ export function SourceLine({ items, note, notes = [], through }) {
         </details>
       ) : null}
     </div>
+    </FigNotes>
   );
 }
 

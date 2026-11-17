@@ -389,36 +389,19 @@
   color: var(--t-ink);
   text-wrap: balance;
 }
+/* the words are on screen from the first frame (round 2, review 3 B2: the
+   card was blank while it waited); the arrival is the card's scale and
+   the icon's fade, not the words */
 .q-stage-w {
   display: inline-block;
   white-space: pre;
-  opacity: 0;
-  transform: translateY(0.45em) scale(0.96);
-  filter: blur(3px);
-  transition:
-    opacity 420ms var(--story-ease),
-    transform 560ms var(--story-ease),
-    filter 420ms var(--story-ease),
-    color 500ms var(--story-ease);
-  transition-delay: calc(80ms + var(--w) * 65ms);
 }
 .q-stage-w.is-key {
   color: var(--t-ink);
 }
-:is(.q-stage, .q-frame).is-in .q-stage-w {
-  opacity: 1;
-  transform: none;
-  filter: none;
-}
 .q-stage-hint {
   font-size: var(--t-body);
   color: var(--t-text);
-  opacity: 0;
-  transition: opacity 500ms var(--story-ease);
-  transition-delay: calc(240ms + var(--w) * 65ms);
-}
-:is(.q-stage, .q-frame).is-in .q-stage-hint {
-  opacity: 1;
 }
 @media (max-width: 900px) {
   .q-stage {

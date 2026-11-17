@@ -46,7 +46,7 @@ export const PARTS = [
     question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
     modelLine: (
       <>
-        <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> models the whole economy, with no unemployment; results are gaps against the <Hy>OBR-central</Hy> path, on the{' '}
+        <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> models the whole economy, with no unemployment: gaps against a path on the{' '}
         <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE}</a> productivity growth, not part 1&rsquo;s {OBR_VINTAGE} forecast.
       </>
     ),

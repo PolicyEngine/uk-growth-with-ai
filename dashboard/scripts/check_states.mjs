@@ -11,7 +11,7 @@
 //
 // Landing probe (round 2): every sticky scene must draw its current step on
 // arrival, not only when a step changes. For every card of every sticky
-// block, at 1280x800 and 1024x768 (JUMP_SIZES="w,h w,h" to change), motion
+// block, at 1280x800, 1024x768 and 390x844 (JUMP_SIZES="w,h w,h" to change), motion
 // on: load fresh, scrollTo the card's middle at the trigger line in one
 // instant jump, wait JWAIT ms (600), and count the figure's drawn marks
 // (svg rect/path/circle/line/polygon and [data-mark] boxes, not axes, grid,
@@ -21,7 +21,8 @@
 // after a reload at that position ("reload"), and after a fast scroll of a
 // few under-half-screen moves from one screen above ("fast": marks on
 // arrival must be at least half the settled count, as entry moves may still
-// be playing). JUMP=0 skips this probe; JUMP=only runs it alone.
+// be playing). A size with no sticky scene at all is a miss. JUMP=0 skips
+// this probe; JUMP=only runs it alone.
 //
 //   bun scripts/check_states.mjs http://localhost:4360 [width height ...]
 //   (needs Playwright; CHROMIUM may name a Chrome binary). Exits 1 on a miss.
@@ -54,6 +55,7 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
   const lines = [];
   for (const b of blocks) {
     const held = {};
+    const overlaps = new Set();
     for (let y = Math.max(0, b.top - H); y <= b.bottom; y += TICK) {
       await page.evaluate((t) => window.scrollTo({ top: t, behavior: 'instant' }), y);
       await page.waitForTimeout(30);
@@ -63,14 +65,28 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
         const top0 = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
         const gr = g.getBoundingClientRect();
         const vis = Math.max(0, Math.min(gr.bottom, innerHeight) - Math.max(gr.top, top0)) / (gr.height || 1);
-        return { step: Number(g.dataset.step), vis };
+        // the closing line must never sit over a step's text (review 3, B1)
+        const close = s.querySelector('.scrolly-steps .scrolly-close');
+        let hit = null;
+        if (close && getComputedStyle(close).opacity > 0.05) {
+          const c = close.getBoundingClientRect();
+          for (const card of s.querySelectorAll('.scrolly-step .scrolly-card')) {
+            const k = (card.querySelector('.scrolly-body') ?? card).getBoundingClientRect();
+            if (Number(getComputedStyle(card).opacity) < 0.05 || !k.height) continue;
+            const ov = Math.min(c.bottom, k.bottom) - Math.max(c.top, k.top);
+            const ox = Math.min(c.right, k.right) - Math.max(c.left, k.left);
+            if (ov > 2 && ox > 2) hit = Math.round(ov);
+          }
+        }
+        return { step: Number(g.dataset.step), vis, hit };
       }, b.id);
       if (r.vis >= 0.9) held[r.step] = (held[r.step] ?? 0) + TICK;
+      if (r.hit) overlaps.add(`${y}:${r.hit}px`);
     }
     const per = b.cards.map((i) => held[i] ?? 0);
-    const bad = per.some((v) => v < HOLD);
+    const bad = per.some((v) => v < HOLD) || overlaps.size > 0;
     if (bad) misses++;
-    lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: ${per.join(', ')}px`);
+    lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: ${per.join(', ')}px${overlaps.size ? `; closing line over a step at ${[...overlaps].slice(0, 3).join(', ')}` : ''}`);
   }
   console.log(`${W}x${H}: ${blocks.length} sticky blocks`);
   for (const l of lines) console.log(l);
@@ -80,7 +96,7 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
 // ---- landing probe ----
 const JWAIT = Number(process.env.JWAIT ?? 600);
 const JSETTLE = Number(process.env.JSETTLE ?? 2400);
-const jsizes = (process.env.JUMP_SIZES ?? '1280,800 1024,768').split(/\s+/).map((x) => x.split(',').map(Number));
+const jsizes = (process.env.JUMP_SIZES ?? '1280,800 1024,768 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
 // the figure's drawn marks, counted in the page
 const drawn = (id) => {
   const s = document.getElementById(id);
@@ -128,6 +144,10 @@ for (const [W, H] of JUMP === '0' ? [] : jsizes) {
           }),
       })),
   );
+  if (!blocks.length) {
+    jmiss++;
+    jlines.push(`  MISS ${W}x${H}: no sticky scene at this size (every block drawn once)`);
+  }
   const to = (t) => page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), t);
   for (const b of blocks) {
     for (let k = 0; k < b.cards.length; k++) {
@@ -166,6 +186,6 @@ if (jlines.length) {
   for (const l of jlines) console.log(l);
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

@@ -417,7 +417,7 @@ export function LabourBoard({ focus, notes }) {
                   return { key: yr, x: xx, label: String(yr), anchor: xx > R - 16 ? 'end' : xx < L + 16 ? 'start' : 'middle' };
                 })
                 // a year label too close to the last one is dropped (390px: "20232026")
-                .filter((t, k, a) => k === a.length - 1 || a[a.length - 1].x - t.x >= 44);
+                .filter((t, k, a) => k === a.length - 1 || a[a.length - 1].x - t.x >= 56);
               return (
                 <g key={x.key} className={`p1-board-axes${i === f ? ' is-on' : ''}`}>
                   <YGrid ticks={u.d.ticks} Y={Y} x0={L} x1={R} />
