@@ -1688,7 +1688,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 96px), 620px);
+    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px);
   }
 }
 /* "Show on chart" (the figure drawn once, phones): an icon button at the
@@ -2482,6 +2482,11 @@
     position: sticky;
     top: calc(var(--scene-foot) + 8px);
   }
+  /* the last card's sentence stays put over its closing caption
+     (height-cut-fable.md cut 3) */
+  .scrolly.is-scene.has-foot .scrolly-step:nth-last-child(2) .scrolly-card > :is(.scrolly-body, .scrolly-card-icon) {
+    position: static;
+  }
 }
 /* 768-900px, a figure drawn once (not sticky): its cards sit side by side
    directly under it, not stacked down the page (the second card was up to
@@ -2643,23 +2648,27 @@
   --bh: 0;
   position: relative;
 }
+/* a beat leads into its scene, with the same clear space above the scene's
+   question as between topics (polish round), less the beat's own padding */
 .story-part > .story-beat + :is(.scrolly.has-sub, .p2-output) {
-  margin-top: 24px;
+  margin-top: calc(var(--gap-topic) - 8px);
 }
 .story-beat-card {
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 6px;
   max-width: 44rem;
   margin: 0 auto;
-  padding: 16px 16px 24px;
+  /* height-cut-fable.md cut 4: less padding, a shorter rule, a wider
+     meaning line (three lines become two) */
+  padding: 8px 16px 12px;
   text-align: center;
 }
 .beat-rule {
   display: block;
   width: 1px;
-  height: 28px;
+  height: 16px;
   background: var(--pe-gray-400);
   transform-origin: 50% 100%;
 }
@@ -2690,7 +2699,7 @@
   text-wrap: balance;
 }
 .beat-line {
-  max-width: 46ch;
+  max-width: 58ch;
   margin: 0;
   font-size: var(--t-body);
   line-height: 1.5;
@@ -2700,10 +2709,10 @@
 @media (max-width: 900px) {
   .story-beat-card {
     gap: 6px;
-    padding: 8px 16px 16px;
+    padding: 4px 16px 8px;
   }
   .beat-rule {
-    height: 20px;
+    height: 12px;
   }
   .beat-num {
     font-size: 56px;
@@ -2734,9 +2743,22 @@
 .scrolly-takeaway-in-step {
   margin-top: 10px;
 }
+/* height-cut-fable.md cut 1: the closing caption at the sentence's width,
+   in the text column of an icon-led card (it was auto-placed in the 18px
+   icon column, one word per line), and the card's rows packed at its top */
+.scrolly-card.has-icon > .scrolly-takeaway-in-step {
+  grid-column: 2;
+}
+.scrolly-card.has-icon {
+  align-content: start;
+}
 .scrolly-takeaway-in-step .scrolly-takeaway,
 .scrolly-takeaway-in-step .scrolly-takeaway-note {
   opacity: 1;
+}
+/* in a step card it follows the sentence, not a chart */
+.scrolly-takeaway-in-step .scrolly-takeaway {
+  margin-top: 12px;
 }
 /* ---- One-panel lists (item: "need boxes or something"): one tinted
    panel, one radius, hairline dividers between tiles, no card per tile.
