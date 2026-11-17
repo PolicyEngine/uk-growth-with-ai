@@ -243,7 +243,7 @@
   stroke-width: 2.25;
   stroke-linejoin: round;
   opacity: 0;
-  transition: d 900ms var(--story-ease, ease), opacity 500ms ease, stroke-width 500ms ease;
+  transition: --morph 900ms var(--story-ease, ease), opacity 500ms ease, stroke-width 500ms ease;
 }
 .p2-mo-line.is-on {
   opacity: 1;
@@ -927,7 +927,7 @@
 /* states 3 and 4: the rescale beat takes 600ms (the morph into state 2 900ms) */
 .p2-morph[data-state='3'] .p2-mo-line,
 .p2-morph[data-state='4'] .p2-mo-line {
-  transition: d 600ms var(--story-ease, ease), opacity 500ms ease, stroke-width 500ms ease;
+  transition: --morph 600ms var(--story-ease, ease), opacity 500ms ease, stroke-width 500ms ease;
 }
 .p2-mo-scen {
   fill: none;
@@ -936,24 +936,24 @@
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 200ms ease, d 600ms var(--story-ease, ease);
+  transition: stroke-dashoffset 200ms ease, --morph 600ms var(--story-ease, ease);
 }
 .p2-mo-scen.is-on {
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 700ms var(--story-ease, ease), d 600ms var(--story-ease, ease);
+  transition: stroke-dashoffset 700ms var(--story-ease, ease), --morph 600ms var(--story-ease, ease);
 }
 /* Korinek et al. draws once the rescale has settled */
 .p2-mo-scen.is-on.is-late {
-  transition: stroke-dashoffset 700ms var(--story-ease, ease) 600ms, d 600ms var(--story-ease, ease);
+  transition: stroke-dashoffset 700ms var(--story-ease, ease) 600ms, --morph 600ms var(--story-ease, ease);
 }
 .p2-mo-band {
   fill: var(--pe-gray-200);
   opacity: 0;
-  transition: opacity 300ms ease, d 600ms var(--story-ease, ease);
+  transition: opacity 300ms ease, --morph 600ms var(--story-ease, ease);
 }
 .p2-mo-band.is-on {
   opacity: 0.7;
-  transition: opacity 400ms ease 500ms, d 600ms var(--story-ease, ease);
+  transition: opacity 400ms ease 500ms, --morph 600ms var(--story-ease, ease);
 }
 .p2-mo-end {
   opacity: 0;

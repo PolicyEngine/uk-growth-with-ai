@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { sankey as d3sankey, sankeyJustify } from 'd3-sankey';
 import { useReducedMotion, useScrollyEntry } from './motion.js';
+import Tween from './Tween.jsx';
 
 const WIPE_STEP = 600; // ms between columns revealed together
 // wave-2 build-up (scene plan section 6), ms
@@ -373,7 +374,7 @@ export default function Sankey({
               'data-target': l.target.id,
             };
           }
-          return <path key={`${l.source.id}-${l.target.id}-${i}`} className={cls} d={ribbon(l)} style={style} {...hover} />;
+          return <Tween key={`${l.source.id}-${l.target.id}-${i}`} className={cls} morph={{ d: ribbon(l) }} style={style} {...hover} />;
         })}
       </g>
       {flowing ? (
@@ -418,12 +419,10 @@ export default function Sankey({
             : null;
           return (
             <g key={n.id} className={cls} data-node={n.id} style={wiping || pouring ? style : undefined} {...nodeHover}>
-              <rect
+              <Tween
+                as="rect"
                 className="sankey-rect"
-                x={n.x0}
-                y={n.y0}
-                width={Math.max(n.x1 - n.x0, 1)}
-                height={Math.max(nh, 1)}
+                morph={{ x: n.x0, y: n.y0, width: Math.max(n.x1 - n.x0, 1), height: Math.max(nh, 1) }}
                 rx={refined && !tight ? Math.min(3, nh / 2) : undefined}
                 style={n.stroke ? { fill: n.color, stroke: n.stroke, strokeWidth: 1 } : { fill: n.color }}
               />

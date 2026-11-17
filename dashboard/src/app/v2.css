@@ -1800,6 +1800,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     left: 0;
     z-index: 1260;
     min-width: 0;
+    max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
     padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
     overflow-y: auto;
@@ -2290,7 +2291,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
    only); printed values cross-fade; a linked crosshair (another chart's
    year) is lighter than the one under the pointer. */
 .linechart .lc-line {
-  transition: d 320ms var(--ease-out);
+  transition: --morph 320ms var(--ease-out);
 }
 .linechart .lc-dot {
   transition: transform 320ms var(--ease-out);

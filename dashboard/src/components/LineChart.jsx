@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import Tween from '@/components/story/Tween.jsx';
 import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
 import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 
@@ -524,10 +525,9 @@ export default function LineChart({
         ) : null}
         {series.map((s) => (
           <g key={s.key ?? s.label}>
-            <path
+            <Tween
               className="lc-line"
-              d={pathOf(s.values)}
-              style={{ d: `path('${pathOf(s.values)}')` }}
+              morph={{ d: pathOf(s.values) }}
               fill="none"
               stroke={s.color}
               strokeWidth={s.light ? '1.75' : s.dashed ? '2' : '2.5'}

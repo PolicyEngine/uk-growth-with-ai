@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import Tween from '@/components/story/Tween.jsx';
 import { useIsPhone } from '@/components/story/motion.js';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
@@ -287,7 +288,6 @@ export function MorphChart({ state, sid, cl, pin = null }) {
   const gOff = k < 2 ? g : g1;
   const split = OBR.length ? g1.split : null;
   const dPath = (pts) => pathOf(pts);
-  const dStyle = (pts) => ({ d: `path('${pathOf(pts)}')` });
   // the gap axis's ticks over states 2-4: one element per value, sliding
   // with the rescale; a value that leaves fades where the new scale puts it
   const tickSets = [2, 4].map((st) => morphGeometry(2, ys, domAt(st)).yTicksD);
@@ -412,17 +412,17 @@ export function MorphChart({ state, sid, cl, pin = null }) {
             );
           })}
           {/* the UK range, shaded once UK low and UK high are drawn */}
-          {band ? <path className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} d={band} style={{ d: `path('${band}')` }} /> : null}
+          {band ? <Tween className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} morph={{ d: band }} /> : null}
           {/* the zero line moves from zero growth to the OBR-central path */}
           <line data-mark="path" x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
-            <path data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} d={dPath(g.act)} style={dStyle(g.act)} />
+            <Tween data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
             {g.act.map(([x, y], i) => (
               <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 ? ' is-on' : ''}`} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
                 <circle r={2.8} className={`p2-mo-dot${PARTIAL && PARTIAL.x === ACT[i][0] ? ' is-open' : ''}`} />
               </g>
             ))}
-            <path data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} d={dPath(g.obr)} style={dStyle(g.obr)} />
+            <Tween data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} morph={{ d: dPath(g.obr) }} />
             {OBR.map(([x], i) => {
               const j = YEARS.indexOf(x);
               const p = j >= 0 ? g.obr[j] : [g.X(x), g.zeroY];
@@ -440,23 +440,22 @@ export function MorphChart({ state, sid, cl, pin = null }) {
                 const d = pathOf(YEARS.map((yr, i) => [gG.X(yr), gG.Yd(l.ys[i])]));
                 const on = s >= from(l.id);
                 return (
-                  <path
+                  <Tween
                     key={l.id}
                     pathLength={1}
                     className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc && l.id !== pinned ? ' is-late' : ''}${l.id === pinned ? ' is-pinned' : ''}`}
                     data-scen={l.id}
                     data-mark={`scen-${l.id}`}
-                    d={d}
-                    style={{ d: `path('${d}')` }}
+                    morph={{ d }}
                   />
                 );
               })}
-            <path
+            <Tween
               className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
               data-scen={sid}
               data-mark={`scen-${sid}`}
-              d={dPath(g.gap)}
-              style={{ ...dStyle(g.gap), stroke: ARM_COLOR.tfp }}
+              morph={{ d: dPath(g.gap) }}
+              style={{ stroke: ARM_COLOR.tfp }}
             />
           </g>
           {/* break marks where the outturn leaves the frame (states 0-1) */}
