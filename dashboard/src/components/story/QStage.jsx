@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { fastRecent } from './motion.js';
 
 // The question-led sequence (Scrolly `sub.question`), in two forms:
 //
@@ -135,7 +136,7 @@ function useScrollDriver(ref, measure, deps) {
       const y = window.scrollY;
       const dy = y - lastY;
       lastY = y;
-      const jumped = first || Math.abs(dy) > 0.5 * window.innerHeight || navRecent();
+      const jumped = first || Math.abs(dy) > 0.5 * window.innerHeight || navRecent() || fastRecent(window.innerHeight);
       first = false;
       measure(el, { jumped, up: dy < 0 && !jumped });
     };
