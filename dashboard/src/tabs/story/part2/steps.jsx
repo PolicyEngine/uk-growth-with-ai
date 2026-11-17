@@ -190,6 +190,6 @@ export function whoAnswer() {
   const xs = D.closures[CENTRAL].birth_year;
   const adultsGain = c.cev_all.every((v, i) => xs[i] > LAST_ALIVE || v > 0);
   const head = adultsGain ? 'All adults gain as modelled' : `Gains peak ${peakAge() >= 55 ? 'near retirement' : 'in middle age'}`;
-  const nb = w.loseNb ? `; without bequest value too, ${w.loseNb}` : '';
-  return `${head}; with transfers kept on past 2036, ${w.lose} lose${nb}`;
+  const nb = w.loseNb ? `, or ${w.loseNb} ignoring bequests` : '';
+  return `${head}; if transfers bear the cost after 2036, ${w.lose} lose${nb}`;
 }

@@ -134,7 +134,7 @@ export function HeadlineTiles({ sid }) {
   const extra = {
     w: flips ? (
       <>
-        Its sign depends on how much capital comes from abroad:{' '}
+        Its sign depends on how much capital comes from abroad; compare{' '}
         <NavLink tab="explore" sub="economy" anchor="explore-part-all">
           each closure
         </NavLink>
@@ -200,12 +200,12 @@ export function debtParts(sid, cl) {
   if (d == null) return null;
   const r = gap(sid, 'tfp', cl, 'r_bp', LATE_YEAR);
   const obr = result(sid, 'tfp', cl).debt_gdp_pp_obr_repricing_late;
-  const why = d > 0.005 && r != null && r > 0 ? ' as debt reprices at once' : '';
+  const why = d > 0.005 && r != null && r > 0 ? ' on immediate repricing' : '';
   let slow = null;
   if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the path`;
   else if (Number.isFinite(obr) && d > 0.005 && obr < d) {
     const k = obr / d;
-    slow = `${k < 0.2 ? 'under a fifth' : (fracWord(k) ?? 'less')} as much`;
+    slow = `the gap is ${k < 0.2 ? 'under a fifth' : (fracWord(k) ?? 'smaller')}${fracWord(k) || k < 0.2 ? ' as large' : ''}`;
   }
   return { text: ` ends ${side(d)} the path in ${LATE_YEAR}${why}`, slow };
 }

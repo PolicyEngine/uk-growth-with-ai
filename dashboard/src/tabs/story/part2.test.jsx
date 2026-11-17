@@ -374,11 +374,11 @@ describe('direction icons follow the signs', () => {
         const d = r.gaps.debt_gdp_pp[L];
         const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
         expect(line).toContain(`ends ${side(d)} the path in ${fixture.late_year}`);
-        expect(line.includes('as debt reprices at once')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
+        expect(line.includes('on immediate repricing')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
         // the OBR's slower repricing: the other side of the path, or a smaller rise, in words
         const obr = r.debt_gdp_pp_obr_repricing_late;
         if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the path`);
-        else if (d > 0.005 && obr < d) expect(line).toMatch(/at the OBR’s repricing pace, .* as much$/);
+        else if (d > 0.005 && obr < d) expect(line).toMatch(/at the OBR’s repricing pace, the gap is .*$/);
         expect(line).not.toMatch(/\d\.\d/);
       }
     }

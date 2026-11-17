@@ -134,7 +134,7 @@ function CentralFigure({ ctx }) {
 
 // The topic opener: a neutral question the block answers, its hint, and the
 // closing line (the scene's own figures, by the same formatters).
-const up = (v) => (v > 0 ? 'raises' : v < 0 ? 'lowers' : 'leaves unchanged');
+const upIng = (v) => (v > 0 ? 'raising' : v < 0 ? 'lowering' : 'leaving unchanged');
 const COSTS = H.central_cost.value > 0;
 // whether full take-up costs more than the central case on the same draws
 const lad = (id) => D.ladder.find((r) => r.id === id)?.cost_bn;
@@ -177,8 +177,8 @@ export const CENTRAL_STEPS = [
     // T14; the two figures restate the tiles they light (their home): data-axis
     title: (
       <>
-        Net of assumed pay and capital gains, job loss {COSTS ? 'costs' : 'adds to net receipts'} <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> a year and{' '}
-        {up(H.central_poverty.value)} absolute poverty <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
+        Net of assumed pay and capital gains, job loss {COSTS ? 'costs' : 'adds to net receipts'} <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> a year,{' '}
+        {upIng(H.central_poverty.value)} absolute poverty by <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
       </>
     ),
   },

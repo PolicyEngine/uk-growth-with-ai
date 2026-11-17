@@ -58,7 +58,7 @@ export const SUBS = {
     icon: 'age',
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
-    answer: 'All adults gain as modelled; with transfers kept on past 2036, some adults lose',
+    answer: 'All adults gain as modelled; if transfers bear the cost after 2036, some adults lose',
     // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
   },
@@ -70,7 +70,7 @@ export const SUBS = {
 export const RECAP = [
   { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the OBR-central path in every scenario', to: 'story-headline' },
   { icon: 'outputSplit', q: 'Who gets the extra output?', a: 'Capital income rises more than GDP', to: 'story-output' },
-  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; with transfers kept on past 2036, some adults lose', to: { tab: 'explore', sub: 'who' } },
+  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; if transfers bear the cost after 2036, some adults lose', to: { tab: 'explore', sub: 'who' } },
 ].map((it) => ({ ...it, text: it.a }));
 
 export default function Part2({ part }) {
