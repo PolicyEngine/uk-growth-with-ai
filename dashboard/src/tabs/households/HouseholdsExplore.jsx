@@ -57,7 +57,7 @@ export function costWords(rows) {
   const gained = -(v('dividend_tax') + v('savings_tax'));
   return lost > gained ? 'Lost income tax and NI outweigh higher tax on dividends and savings' : 'Higher tax on dividends and savings outweighs lost income tax and NI';
 }
-// Full take-up and JSA against the central case on the same draws.
+// Full take-up and JSA against the main case on the same draws.
 const L = (id) => D.ladder.find((r) => r.id === id);
 export function takeupWords() {
   const c = L('central_20');
@@ -115,7 +115,7 @@ export function rulesWords(rules, central = 'exposure') {
   const lead = every ? 'Poverty rises under every rule' : 'Poverty does not rise under every rule';
   // T15: "least under the central rule" only when every other rule raises it more
   if (others.every((r) => r.poverty_pp > c.poverty_pp)) return `${lead}, least under the central rule`;
-  if (atLeast === others.length) return `${lead}, by at least as much as centrally under the other ${others.length}`;
+  if (atLeast === others.length) return `${lead}, by at least as much as in the main case under the other ${others.length}`;
   return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the central rule`;
 }
 const bnSmall = (v) => (Math.abs(v) < 0.05 ? (v < 0 ? 'a saving under £0.1bn' : 'under £0.1bn') : fmtBn(v));
@@ -206,7 +206,7 @@ function CostByTax() {
 }
 
 // --- 2. Every variant: one cost × poverty plane ------------------------------
-// The central case on 20 draws and wage cuts (their cost and poverty
+// The main case on 20 draws and wage cuts (their cost and poverty
 // figures are printed in story step 6: positions here), full take-up and JSA
 // (printed here: their home since round 1 moved them out of the story),
 // and the OBR-sized runs, a different, smaller shock in their own group and
@@ -215,7 +215,7 @@ function CostByTax() {
 // `lab` and `pos`: the plane's direct label and where it sits; the three
 // OBR-sized points sit close together, so their group is labelled once.
 const VARIANTS = [
-  { id: 'central_20', label: 'Central case, same 20 draws', story: STEP.margin, ring: true, lab: 'Central', pos: 'b' },
+  { id: 'central_20', label: 'Main case, same 20 draws', story: STEP.margin, ring: true, lab: 'Main', pos: 'b' },
   { id: 'takeup', label: 'Every displaced worker’s benefit unit claims UC', lab: 'Full take-up', pos: 't' },
   { id: 'takeup_jsa', label: 'Plus 26 weeks of new-style JSA', lab: 'Plus JSA', pos: 't' },
   { id: 'wage_cuts', label: 'Wage cuts, same gross size', story: STEP.margin, lab: 'Wage cuts', pos: 'tl' },
@@ -258,7 +258,7 @@ function Variants() {
       }}
       foot={<Flag />}
       about={about({
-        how: ['Take-up, JSA and wage cuts reuse the central seeds 0 to 19', 'Compare them with the central case on these draws, not the headline'],
+        how: ['Take-up, JSA and wage cuts reuse the main-case seeds 0 to 19', 'Compare them with the main case on these draws, not the headline'],
         caveats: ['The OBR-sized runs are a smaller shock, not steps on the central ladder', `Sized to ${OBR_SCENARIO}`, ...takeupBoundWords()],
         sources: ['results/robustness/dividend_coverage_draws.csv (run central)', 'results/takeup/takeup_draws.csv', 'results/wage_cut/wage_cut_draws.csv (variant table3)', 'results/next_runs/obr_benchmark.json', <>26 weeks: the {ext(URLS.jsa, 'new-style JSA limit (GOV.UK)')}</>, <>OBR-sized: the study&rsquo;s conversion of {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}&rsquo;s unemployment rise</>],
       })}
@@ -267,7 +267,7 @@ function Variants() {
         <Replay onClick={e.replay} />
         <Plane
           on={e.on}
-          label="Scatter: cost against the poverty rise for each variant; arrows run from the central case to full take-up to JSA, within each group"
+          label="Scatter: cost against the poverty rise for each variant; arrows run from the main case to full take-up to JSA, within each group"
           points={VARIANTS.map((v) => ({ id: v.id, group: v.group, ring: v.ring, name: v.label, lab: v.lab, pos: v.pos, x: ladder(v.id).cost_bn, y: ladder(v.id).poverty_pp }))}
           arrows={VARIANT_ARROWS}
           xMax={xMax}
@@ -301,7 +301,7 @@ function Variants() {
 // --- 3. Five rules: the same plane, 50 paired draws --------------------------
 // Rule costs are printed in story step 5 (the exposure rule is the central
 // case, step 1): positions here. Poverty and Gini by rule are printed here.
-// The top-loaded stress test runs off the cost scale: an arrow at the edge,
+// The top-loaded extreme case runs off the cost scale: an arrow at the edge,
 // its value printed there.
 // Junior-tilted and exposure-based sit almost on one point: their labels
 // go to opposite sides.
@@ -337,7 +337,7 @@ function Rules() {
         <Replay onClick={e.replay} />
         <Plane
           on={e.on}
-          label="Scatter: cost against the poverty rise under each displacement rule; the top-loaded stress test is off the cost scale"
+          label="Scatter: cost against the poverty rise under each displacement rule; the top-loaded extreme case is off the cost scale"
           points={RULES.map((r) => ({ id: r.id, ring: r.ring, group: 'c', name: r.label, lab: r.lab, pos: r.pos, x: rule(r.id).cost_bn, y: rule(r.id).poverty_pp }))}
           off={{ y: K.poverty_pp, text: <>Top-loaded {fmtBn(K.cost_bn)}</> }}
           xMax={xMax}
@@ -363,7 +363,7 @@ function Rules() {
               cells: x.ring ? [{ span: 3, node: <StoryRef step={STEP.central} /> }] : [{ span: 2, node: <StoryRef step={STEP.rules} /> }, fmtPp(r.gini_pp)],
             };
           }),
-          { id: 'klein_top_loaded', tone: 'off', label: 'Top-loaded stress test', cells: [<span key="a" className="hh-muted">at the arrow</span>, fmtPp(K.poverty_pp), fmtPp(K.gini_pp)] },
+          { id: 'klein_top_loaded', tone: 'off', label: 'Top-loaded extreme case', cells: [<span key="a" className="hh-muted">at the arrow</span>, fmtPp(K.poverty_pp), fmtPp(K.gini_pp)] },
         ]}
       />
     </Card>
@@ -624,7 +624,7 @@ function Rankings() {
       icon="bars"
       title="Deciles under three rankings"
       finding={rankingsWords(R)}
-      unit={`Change in disposable income before housing costs, %, central case. ${D.deciles.draws} draws`}
+      unit={`Change in disposable income before housing costs, %, main case. ${D.deciles.draws} draws`}
       download={{
         context: CTX,
         table: { columns: ['decile', ...R.map((r) => r.id)], rows: Array.from({ length: 10 }, (_, i) => [i + 1, ...R.map((r) => r.values[i])]) },
@@ -764,7 +764,7 @@ function Policy() {
 
 // --- page ------------------------------------------------------------------------
 const FILES = [
-  ['The central case', 'results/robustness/central_monte_carlo.json'],
+  ['The main case', 'results/robustness/central_monte_carlo.json'],
   ['Cost by tax and benefit', D.cost_components.file],
   ['Channels', D.channels.file],
   ['Take-up and JSA', 'results/takeup/takeup_draws.csv, results/takeup/takeup_runs.json'],

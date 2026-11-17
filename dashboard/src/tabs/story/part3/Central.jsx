@@ -8,7 +8,7 @@ import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, MODEL_YEAR, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 
-// Step 1, the central case (results.tex, "The central scenario"). The
+// Step 1, the main case (results.tex, "The central scenario"). The
 // scoreboard is the home of the headline figures, each beside its baseline:
 // a number, one label, one sub-line, no icons. Its notes say, once each, that
 // the cost is net of two assumed gains (their sizes are in the next scene)
@@ -103,14 +103,14 @@ function CentralFigure({ ctx }) {
   }));
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
-      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} source={<CentralSource />} />
+      <FigureHead icon="jobLoss" title={`The main case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} source={<CentralSource />} />
       <div className="p3-central">
         <div {...markProps('displaced', 'p3-central-tiles')}>
           <p className="p3-tile-heads">
             <AxisTitle axis="x">Employees</AxisTitle>
             <span className="p3-tile-head-out">Assumed displaced</span>
           </p>
-          <TileField tiles={tiles} width={10 + 1 + GAP_COLS} height={10} size={14} gap={3} label="Tile grid of employees; the tiles set apart in ink are those assumed displaced in the central case" />
+          <TileField tiles={tiles} width={10 + 1 + GAP_COLS} height={10} size={14} gap={3} label="Tile grid of employees; the tiles set apart in ink are those assumed displaced in the main case" />
           <p className="p3-tile-key" data-axis="">
             <AxisTitle axis="y">
               <span className="p3-long">Share of employees, one tile = 1%</span>
@@ -137,13 +137,13 @@ function CentralFigure({ ctx }) {
 // closing line (the scene's own figures, by the same formatters).
 const moveBy = (v) => (v > 0 ? 'rises by' : v < 0 ? 'falls by' : 'changes by');
 const COSTS = H.central_cost.value > 0;
-// whether full take-up costs more than the central case on the same draws
+// whether full take-up costs more than the main case on the same draws
 const lad = (id) => D.ladder.find((r) => r.id === id)?.cost_bn;
 const TAKEUP_RAISES = lad('takeup') > lad('central_20');
 export const CENTRAL_SUB = {
-  title: 'The central case',
+  title: 'The main case',
   icon: 'jobLoss',
-  question: 'What happens in the central case?',
+  question: 'What happens in the main case?',
   hint: 'Watch who steps out of the grid',
   // beat B4 (the 7%) sits above this scene, so its question takes the
   // in-figure form, not the full pinned screen (story-beats-fable.md)
@@ -244,7 +244,7 @@ export default function Central() {
         sub={CENTRAL_SUB}
         steps={asLines(CENTRAL_STEPS)}
         graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />}
-        label="The central case: people displaced, cost, poverty and inequality, beside their baselines"
+        label="The main case: people displaced, cost, poverty and inequality, beside their baselines"
       />
     </MarkProvider>
   );

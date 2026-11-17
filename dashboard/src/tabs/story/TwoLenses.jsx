@@ -75,8 +75,8 @@ export const LENSES = [
     time: `One year, ${MODEL_YEAR}`,
     can: [
       { text: 'Who loses income', to: 'p3-deciles', scene: 'where the loss falls' },
-      { text: 'Poverty', to: 'p3-central', scene: 'the central case' },
-      { text: 'Inequality', to: 'p3-central', scene: 'the central case' },
+      { text: 'Poverty', to: 'p3-central', scene: 'the main case' },
+      { text: 'Inequality', to: 'p3-central', scene: 'the main case' },
     ],
     outside: [
       { text: 'Change over time', tip: 'Recovery, re-employment, prices' },

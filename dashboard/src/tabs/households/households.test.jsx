@@ -197,7 +197,7 @@ describe('Households finding lines hold in the data', () => {
 });
 
 describe('Where a lost pound goes (the Story again, item 19; Explore links to it)', () => {
-  it('builds the Sankey from the OBR-sized run, with inflows equal to outflows at every node, and says it is not the central case', () => {
+  it('builds the Sankey from the OBR-sized run, with inflows equal to outflows at every node, and says it is not the main case', () => {
     const S = D.sankey;
     const g = absorbGraph();
     expect(imbalances(g)).toEqual([]);

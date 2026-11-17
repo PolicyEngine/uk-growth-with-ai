@@ -15,7 +15,7 @@ import { MODEL_YEAR } from './part3/shared.jsx';
 // Part 3: a model of households, the uk-ai-study PolicyEngine-UK
 // microsimulation of AI job displacement for one year, from
 // data/aiStudy2425.json; docs/story/part3-notes.md defines every value.
-// Four Scrolly scenes in the paper's order (results.tex): the central case,
+// Four Scrolly scenes in the paper's order (results.tex): the main case,
 // its three channels, where the loss falls, and what changes the answer (who
 // loses the job, job loss against wage cuts, the break-evens: one scene,
 // round 2); then what the study leaves out, a plain list. Where a lost pound

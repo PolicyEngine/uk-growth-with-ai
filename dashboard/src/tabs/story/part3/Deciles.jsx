@@ -133,7 +133,7 @@ function DecilesFigure({ ctx }) {
           </>
         }
         x="Income decile, 1 = bottom"
-        unit={`Central case, ${DEC.draws} draws`}
+        unit={`Main case, ${DEC.draws} draws`}
         replay={e.replay}
         source={<DecilesSource />}
       />

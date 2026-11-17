@@ -18,7 +18,7 @@ export function storyFigures() {
   const H = D.headline;
   const J = D.per_pound_20.job_loss;
   return [
-    // 1 the central case
+    // 1 the main case
     fmtMillions(H.central_displaced.value), fmtBn(H.central_cost.value), fmtPp(H.central_poverty.value), fmtPct1(D.baseline.absolute_bhc_pct.value),
     fmtPp(H.central_poverty_relative.value), fmtPct1(D.baseline.relative_bhc_pct.value), fmtPp(H.central_gini.value), fmtBn(H.central_cost.sd),
     fmtPp(H.central_poverty_ahc.value),

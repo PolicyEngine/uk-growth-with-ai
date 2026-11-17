@@ -104,7 +104,7 @@ describe('Part3', () => {
   it('runs four Scrolly scenes in the paper order, then the leaves-out list; one step, one sentence, one highlight', () => {
     const { container } = renderPart();
     const topics = [...container.querySelectorAll('.scrolly > .scene-head[data-scene]')].map((h) => h.dataset.scene);
-    expect(topics).toEqual(['The central case', 'Three channels', 'Where the loss falls', 'Where a lost pound goes', 'What changes the answer']);
+    expect(topics).toEqual(['The main case', 'Three channels', 'Where the loss falls', 'Where a lost pound goes', 'What changes the answer']);
     expect(container.querySelector('#p3-close-h').textContent.trim()).toBe('What this one-year test leaves out');
     // at most two steps a scene, four in the merged one; the step ids links point at are kept
     for (const s of container.querySelectorAll('.scrolly')) expect(s.querySelectorAll('.scrolly-step').length, s.id).toBeLessThanOrEqual(s.id === 'p3-changes' ? 4 : 2);
@@ -228,7 +228,7 @@ describe('Part3', () => {
     const inputs = [...container.querySelectorAll('[data-input]')].map((n) => n.textContent);
     expect(inputs).toEqual(expect.arrayContaining(['7%', '+2.6%', '+39.8%', '0.4']));
     // the assumed pay and capital-income rises are quoted twice (the number checks skip [data-input], so count here):
-    // on the channel bars, and as the central settings of the break-even rows (C11); the OBR-sized rate on Explore
+    // on the channel bars, and as the main settings of the break-even rows (C11); the OBR-sized rate on Explore
     const text = container.textContent;
     for (const s of ['2.6%', '39.8%']) expect(text.split(s).length - 1, s).toBe(2);
     for (const b of container.querySelectorAll('.p3-ch-be-from [data-input]')) expect(b.closest('.p3-ch-be-row')).not.toBeNull();
@@ -254,7 +254,7 @@ describe('Part3', () => {
     // a level-(b) header (no icon) and one tinted panel of tiles, one plain icon each
     expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
     expect(close.querySelector('.scene-head h3#p3-close-h')).not.toBeNull();
-    expect(close.querySelector('.p3-close-chip').textContent).toBe('A stress test, not a forecast');
+    expect(close.querySelector('.p3-close-chip').textContent).toBe('A one-year test, not a forecast');
     for (const li of close.querySelectorAll('.story-panel .p3-out-list > li')) expect(li.querySelectorAll('svg')).toHaveLength(1);
     expect(close.querySelector('button, .p3-chip-frame')).toBeNull();
     expect(container.querySelector('.story-next')).toBeNull();
@@ -418,7 +418,7 @@ describe('Part3', () => {
     expect(fig.querySelector('.p3-plane-ticks.is-x').textContent).toContain('£0');
     expect(fig.querySelector('[data-axis-title="x"]').textContent).toBe('Cost to the public finances, £bn a year');
     expect(fig.querySelector('[data-axis-title="y"]').textContent).toBe('Absolute poverty rise, pp');
-    // one direct label per rule, each with both values; the central case's restate step 1 (data-axis)
+    // one direct label per rule, each with both values; the main case's restate step 1 (data-axis)
     const labels = [...fig.querySelectorAll('ol.p3-plane-labels > li')];
     expect(labels.map((l) => l.dataset.row)).toEqual(['uniform', 'junior', 'exposure', 'compression']);
     const central = fig.querySelector('[data-row="exposure"] .p3-plane-vals');
@@ -446,7 +446,7 @@ describe('Part3', () => {
     expect(fig.querySelectorAll('.p3-ch-ticks[data-axis]')).toHaveLength(3);
   });
 
-  it('shows each break-even as one row: central setting, an arrow, the break-even setting', () => {
+  it('shows each break-even as one row: main setting, an arrow, the break-even setting', () => {
     const { container } = renderPart();
     const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="breakeven"]');
     expect(fig.querySelectorAll('.p3-ch-be-row')).toHaveLength(3);

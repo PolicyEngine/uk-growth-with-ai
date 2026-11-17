@@ -20,7 +20,7 @@ export const LEFT_OUT = [
   { id: 'partners', ic: 'users', title: 'Partners’ hours', line: 'Unchanged' },
   { id: 'redundancy', ic: 'banknote', title: 'Redundancy pay', line: 'None counted' },
   { id: 'savings', ic: 'piggy', title: 'Running down savings', line: 'Households do not draw on them' },
-  { id: 'jsa', ic: 'fileX', title: 'New-style JSA', line: 'None in the central case' },
+  { id: 'jsa', ic: 'fileX', title: 'New-style JSA', line: 'None in the main case' },
   { id: 'young', ic: 'userMinus', title: 'Fewer young hires', line: 'Jobs lost are counted, not jobs never offered' },
   { id: 'self', ic: 'briefcase', title: 'The self-employed', line: 'The shocks apply to employees only' },
   { id: 'occ', ic: 'layers', title: 'AI exposure', line: 'Varies across nine occupation groups only' },
@@ -40,7 +40,7 @@ export default function Closing() {
         <h3 className="scene-head-q" id="p3-close-h">
           {CLOSING_SUB.title}
         </h3>
-        <span className="p3-close-chip">A stress test, not a forecast</span>
+        <span className="p3-close-chip">A one-year test, not a forecast</span>
       </header>
       <div ref={ref} className={`story-frame story-panel p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
         <ul className="p3-out-list" aria-label="What this one-year test leaves out">

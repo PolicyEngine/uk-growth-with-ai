@@ -186,7 +186,7 @@ export default function HouseholdsMethod() {
             <InfoCard icon={iconFor('jobLoss')} title="Job loss">
               <Items
                 items={[
-                  { icon: 'jobLoss', text: <>Central case: <In>{fmtInputPct(CENTRAL_PCT)}</In> of employees displaced.</> },
+                  { icon: 'jobLoss', text: <>Main case: <In>{fmtInputPct(CENTRAL_PCT)}</In> of employees displaced.</> },
                   { icon: 'source', text: <>{l('doorley')}&rsquo;s Irish design, which the study follows.</> },
                   { icon: 'deciles', text: 'Shared between groups by employment times exposure.' },
                   { icon: 'draws', text: 'Records drawn at random within each group.' },
@@ -230,11 +230,11 @@ export default function HouseholdsMethod() {
           <Items
             className="hm-items"
             items={[
-              { icon: 'ai', text: <><b>In proportion to exposure</b> (the central case): the rule above.</> },
+              { icon: 'ai', text: <><b>In proportion to exposure</b> (the main case): the rule above.</> },
               { icon: 'age', text: <><b>Junior-tilted:</b> higher chance at ages 16 to 24, same occupation quotas.</> },
               { icon: 'pay', text: <><b>Expertise compression:</b> doubled chances for the top earnings third, above-median-exposure occupations.</> },
               { icon: 'draws', text: <><b>Uniform:</b> every employee equally likely.</> },
-              { icon: 'limit', text: <><b>Top-loaded stress test:</b> exposure times junior and wage-tier factors.</> },
+              { icon: 'limit', text: <><b>Top-loaded extreme case:</b> exposure times junior and wage-tier factors.</> },
               { icon: 'deciles', text: 'It loads displacement on above-median earners: an upper stress case.' },
             ]}
           />
@@ -291,7 +291,7 @@ export default function HouseholdsMethod() {
           <KeyFacts
             className="mx-facts-row"
             facts={[
-              { icon: 'draws', value: '50', label: 'draws: central case, five rules, policy responses' },
+              { icon: 'draws', value: '50', label: 'draws: main case, five rules, policy responses' },
               { icon: 'draws', value: '20', label: 'draws: channel split, take-up and JSA, wage cuts', sub: 'also OBR-sized, break-evens' },
               { icon: 'caveat', value: '1', label: 'draw (seed 0): a few labelled sensitivities' },
             ]}

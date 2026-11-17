@@ -93,7 +93,7 @@ function PoundFigure({ ctx }) {
   });
   return (
     <figure ref={attach} className={entryClass(e, 'p3-figure p3-scene p3-pound')}>
-      <p className="p3-pound-chip">OBR-sized run · not the central case</p>
+      <p className="p3-pound-chip">OBR-sized run · not the main case</p>
       <FigureHead
         icon="pay"
         title="Where lost earnings go, by income decile"
@@ -142,7 +142,7 @@ export default function Pound() {
           </>
         }
       />
-      <Scrolly id="p3-pound" sub={POUND_SUB} steps={POUND_STEPS} graphic={(i, r, ctx) => <PoundFigure ctx={ctx} />} label="Where lost earnings go, by income decile: an OBR-sized run, not the central case" />
+      <Scrolly id="p3-pound" sub={POUND_SUB} steps={POUND_STEPS} graphic={(i, r, ctx) => <PoundFigure ctx={ctx} />} label="Where lost earnings go, by income decile: an OBR-sized run, not the main case" />
     </>
   );
 }
