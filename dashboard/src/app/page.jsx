@@ -35,9 +35,12 @@ import { TABS, tabById, pickersFor, PAGE_TITLE } from "@/lib/labels.js";
 const SCOPE = {
   oguk: {
     text: "OG-UK: gaps against the OBR-central path, not forecasts; no unemployment",
+    // the Story says "no unemployment" in part 2's opener: one line here
+    short: "OG-UK: gaps against the OBR-central path, not forecasts",
   },
   study: {
     text: `uk-ai-study: households in ${AI_STUDY.model_year_label} if some employees lose their jobs`,
+    short: `uk-ai-study: households in ${AI_STUDY.model_year_label}`,
   },
 };
 const scopeFor = (tab, sub) => {
@@ -148,7 +151,7 @@ function Shell() {
             ? null
             : scopeFor(st.tab, sub).map((t) => (
                 <span key={t.text} className="scope-item">
-                  <Hy>{t.text}</Hy>
+                  <Hy>{st.tab === "story" ? (t.short ?? t.text) : t.text}</Hy>
                   <span className="scope-sep" aria-hidden="true">
                     {" · "}
                   </span>

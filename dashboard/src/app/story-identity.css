@@ -23,11 +23,11 @@
 
 /* ---------- Part spacing: 48px above the strip, 32px below it ---------- */
 .story > .story-part[data-part] {
-  padding-top: 48px;
+  padding-top: 16px;
 }
 .story > .story-part[data-part]:has(.part-links) + .story-part,
 .story > .story-part[data-part]:has(.part-links) + .story-close {
-  padding-top: 32px;
+  padding-top: 16px;
 }
 
 /* ---------- The chapter opener: four lines under one thin rule ---------- */
@@ -281,11 +281,11 @@
 /* ---------- 900px and below ---------- */
 @media (max-width: 900px) {
   .story > .story-part[data-part] {
-    padding-top: 32px;
+    padding-top: 8px;
   }
   .story > .story-part[data-part]:has(.part-links) + .story-part,
   .story > .story-part[data-part]:has(.part-links) + .story-close {
-    padding-top: 24px;
+    padding-top: 8px;
   }
   .part-opener {
     margin-bottom: 24px;
@@ -331,4 +331,17 @@
 /* Story anchors land below the stuck bars and the rail (36px) */
 :where(.story [id]:not(.p1-anchor)) {
   scroll-margin-top: calc(var(--sticky-offset) + 52px);
+}
+/* the opener's one fold: a caret, no icon */
+.part-opener-about summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 150ms ease;
+}
+.part-opener-about[open] summary::before {
+  transform: rotate(90deg);
 }
