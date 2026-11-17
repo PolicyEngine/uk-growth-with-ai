@@ -126,9 +126,8 @@ describe('Part3', () => {
     expect(container.querySelector('#story-part-3 .scrolly-takeaway')).toBeNull();
     const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
     // T14; the central cost is a residual: said once, in the figure's note
-    expect(line('p3-central-step-2')).toMatch(/^A year of job loss costs £\d+\.\dbn and raises absolute poverty by \+\d\.\d\dpp$/);
-    // the figure's notes are the Scrolly's foot since round 2 (phones pin the chart alone)
-    expect(container.querySelector('#p3-central .scrolly-foot').textContent).toContain('The cost is net of two assumed gains');
+    // round 2 sign-off #3: the cost is net of the assumed gains, said in the sentence (the next scene's job loss alone is gross)
+    expect(line('p3-central-step-2')).toMatch(/^Net of assumed pay and capital gains, job loss costs £\d+\.\dbn a year and raises absolute poverty \+\d\.\d\dpp$/);
     expect(line('p3-channels-step-2')).toContain('Assumed');
     // T12, T7, T6
     expect(line('p3-moves-step')).toBe(`The cost reaches zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
@@ -377,23 +376,18 @@ describe('Part3', () => {
     expect(flat).toMatchObject({ worst: 2, upperMiddle: false, hump: false });
   });
 
-  it('derives the rules claims from the data and prints no poverty figure in the rules panel', () => {
+  it('derives the rules claims from the data and prints each rule’s poverty rise beside its dot', () => {
     const rs = ['uniform', 'junior', 'exposure', 'compression'].map(rule);
     const c = rulesClaims();
     expect(c.cheapest).toBe(rs.reduce((a, b) => (b.cost_bn < a.cost_bn ? b : a)).id);
     const { container } = renderPart();
     expect(container.querySelector('#p3-rules-step .p3-step-line').textContent).toContain(c.spreadWords);
     const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="rules"]');
-    expect(checkedText(fig)).not.toMatch(/\d\.\d\dpp/);
+    // B10: the three non-central rules' poverty rises are counted here; the central one restates step 1
+    expect(checkedText(fig).match(/[+−]\d\.\d\dpp/g)).toEqual(['uniform', 'junior', 'compression'].map((k) => fmtPp(rule(k).poverty_pp)));
+    expect(fig.querySelector('[data-row="exposure"] .p3-dot-pov .p3-dot-val').hasAttribute('data-axis')).toBe(true);
     // ticks on both axes (C10), scale only
     expect(fig.querySelectorAll('.p3-ch-ticks[data-axis]')).toHaveLength(2);
-    // the read-out is mounted only while a dot is focused
-    const dot = fig.querySelector('.p3-dot-pov');
-    expect(fig.querySelector('.p3-tip')).toBeNull();
-    fireEvent.focus(dot);
-    expect(fig.querySelector('.p3-tip').textContent).toBe(fmtPp(rule('uniform').poverty_pp));
-    fireEvent.blur(dot);
-    expect(fig.querySelector('.p3-tip')).toBeNull();
     // the exposure rule is the central case: a ring, its £ label restated from step 1 (data-axis)
     const val = fig.querySelector('[data-row="exposure"] .p3-dot-cost.is-ring .p3-dot-val');
     expect(val.textContent).toBe(fmtBn(rule('exposure').cost_bn));

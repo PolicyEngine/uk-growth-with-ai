@@ -276,7 +276,7 @@ function Variants() {
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
           yTitle="Absolute poverty (BHC), change, pp"
-          xTitle="Exchequer cost, £bn a year"
+          xTitle="Cost to the public finances, £bn a year"
         />
       </div>
       <PointList
@@ -346,7 +346,7 @@ function Rules() {
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
           yTitle="Absolute poverty (BHC), change, pp"
-          xTitle="Exchequer cost, £bn a year"
+          xTitle="Cost to the public finances, £bn a year"
         />
       </div>
       <PointList
@@ -360,7 +360,8 @@ function Rules() {
               tone: 'c',
               ring: x.ring,
               label: x.label,
-              cells: x.ring ? [{ span: 3, node: <StoryRef step={STEP.central} /> }] : [{ span: 1, node: <StoryRef step={STEP.rules} /> }, fmtPp(r.poverty_pp), fmtPp(r.gini_pp)],
+              // cost and poverty by rule are printed in the story (B10, round 2)
+              cells: x.ring ? [{ span: 3, node: <StoryRef step={STEP.central} /> }] : [{ span: 2, node: <StoryRef step={STEP.rules} /> }, fmtPp(r.gini_pp)],
             };
           }),
           { id: 'klein_top_loaded', tone: 'off', label: 'Top-loaded stress test', cells: [<span key="a" className="hh-muted">at the arrow</span>, fmtPp(K.poverty_pp), fmtPp(K.gini_pp)] },
@@ -729,7 +730,7 @@ function Policy() {
     >
       <div className={entryClass(e, 'hh-pol')} ref={ref}>
         <Replay onClick={e.replay} />
-        <AxisTitles y="One policy response each" x="Exchequer cost, £bn a year" />
+        <AxisTitles y="One policy response each" x="Cost to the public finances, £bn a year" />
         <ul className="hh-pol-cards">
           {main.map((r, i) => {
             return (

@@ -54,7 +54,7 @@ story[bn(AI['channels']['sum_bn'])] += 1; story[bn2(AI['channels']['interaction_
 for x in AI['deciles']['values']: story[dpct(x)] += 1
 story[dpct(RK['pre_pension'][0])] += 1; story[dpct(RK['hbai_excl_large_ppc'][0])] += 1
 # 4 what changes the answer: four stylised rules (exposure: step 1; restated there as an axis label)
-for k in ('uniform', 'junior', 'compression'): story[bn(RUL[k]['cost_bn'])] += 1
+for k in ('uniform', 'junior', 'compression'): story[bn(RUL[k]['cost_bn'])] += 1; story[pp(RUL[k]['poverty_pp'])] += 1  # poverty by rule: the story since round 2 (B10)
 #   job loss against wage cuts, 20-draw bases
 for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']),
           pence(PP['wage_cuts']['government_p']),  # employer NI on neither side since round 2 (job loss's 42p includes it too)
@@ -75,7 +75,8 @@ for k in ('takeup', 'takeup_jsa'): hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k][
 for k in ('obr', 'obr_takeup', 'obr_takeup_jsa'):
     hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pp(LAD[k]['gini_pp'])] += 1
 hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1
-for k in ('uniform', 'junior', 'compression', 'klein_top_loaded'): hh[pp(RUL[k]['poverty_pp'])] += 1; hh[pp(RUL[k]['gini_pp'])] += 1
+for k in ('uniform', 'junior', 'compression'): hh[pp(RUL[k]['gini_pp'])] += 1
+hh[pp(RUL['klein_top_loaded']['poverty_pp'])] += 1; hh[pp(RUL['klein_top_loaded']['gini_pp'])] += 1
 for k in ('job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'): hh[pence(PP[k]['government_p'])] += 1; hh[pence(PP[k]['household_p'])] += 1
 for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'):
     hh[share(AI['displaced'][k]['value'])] += 1

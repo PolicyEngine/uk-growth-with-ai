@@ -59,7 +59,7 @@ export function waterfall() {
   }
   bars.push({
     id: 'sum',
-    label: 'Sum of the three runs',
+    label: 'Sum of the three runs, on these 20 draws',
     value: C.sum_bn,
     from: 0,
     to: C.sum_bn,
@@ -121,7 +121,9 @@ function ChannelsFigure({ ctx }) {
       </ol>
       {/* the zero line, labelled (C8): scale, not data */}
       <span className="p3-wf-axis" data-axis="" aria-hidden="true">
-        <span style={{ left: `${X(0)}%` }}>£0bn: no change</span>
+        <span className={X(0) < 15 ? 'is-start' : X(0) > 85 ? 'is-end' : undefined} style={{ left: `${X(0)}%` }}>
+          £0bn: no change
+        </span>
       </span>
     </figure>
   );
@@ -137,7 +139,7 @@ export const CHANNELS_SUB = {
   hint: 'Watch three flows net to one cost',
   key: 'cost',
   answerTo: 'p3-channels-step',
-  answer: `Job loss alone ${fmtBn(row('displacement').cost_bn)}; netted, ${fmtBn(C.sum_bn)}`,
+  answer: `Job loss alone ${fmtBn(row('displacement').cost_bn)}; netted on these ${C.draws} draws, ${fmtBn(C.sum_bn)}`,
 };
 
 // The two assumed income rises and the net, in one sentence: their words

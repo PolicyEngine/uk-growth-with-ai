@@ -2031,3 +2031,23 @@ svg.p3-dim {
     gap: 6px;
   }
 }
+/* the zero label starts at the zero line when it sits at an edge */
+.p3-wf-axis > span.is-start {
+  transform: none;
+}
+.p3-wf-axis > span.is-end {
+  transform: translateX(-100%);
+}
+/* the break-even panel fills the shared cell: its rows spread out, so no
+   blank band sits under it (the cell is as tall as the tallest panel) */
+.p3-ch-panel {
+  display: flex;
+  flex-direction: column;
+}
+.p3-ch-panel .p3-ch-be {
+  flex: 1;
+  align-content: space-evenly;
+}
+.p3-ch.is-all .p3-ch-panel .p3-ch-be {
+  flex: none;
+}
