@@ -53,7 +53,9 @@ const navRecent = () => now() - navAt < 1500;
 export function framePhase({ top, V, y0, y1 }) {
   const qa = clamp01((V - top) / (0.25 * V));
   const qm = clamp01((y0 - top) / Math.max(1, y0 - y1));
-  const phase = qm >= 0.98 ? 'done' : qm >= 0.45 ? 'reveal' : qa >= 0.6 ? 'in' : 'wait';
+  // 'reveal' (the chart starts to draw) only once the question's backdrop
+  // starts to fade (story.css .q-frame-tint, qm 0.78): never drawn unseen
+  const phase = qm >= 0.98 ? 'done' : qm >= 0.78 ? 'reveal' : qa >= 0.6 ? 'in' : 'wait';
   return { qa, qm, phase };
 }
 

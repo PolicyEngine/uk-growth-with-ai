@@ -288,7 +288,9 @@ describe('the question follows the scroll both ways (round 1)', async () => {
     expect(skip).toBe(true);
     skip = nextSkip({ skip, jumped: false, past: true, before: false, up: true });
     expect(skip).toBe(false);
-    expect(framePhase({ top: 220, V, y0, y1 }).phase).toBe('reveal');
+    expect(framePhase({ top: 190, V, y0, y1 }).phase).toBe('reveal');
+    // the chart is not drawn while the backdrop is still opaque
+    expect(framePhase({ top: 260, V, y0, y1 }).phase).toBe('in');
   });
   it('the pinned stage: arriving, then done once its foot passes the middle, and back', () => {
     const at = (top) => stagePhase({ top, bottom: top + 360, V, R: 100, H: 160 }).phase;
