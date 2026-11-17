@@ -1226,104 +1226,6 @@ svg.p3-dim {
   outline: 2px solid var(--c-highlight);
   outline-offset: 1px;
 }
-.p3-be-tracks {
-  display: grid;
-  gap: 12px;
-  margin: 0 0 10px;
-  padding: 0;
-  list-style: none;
-}
-.p3-be-track-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 6.5em;
-  column-gap: 14px;
-  align-items: center;
-}
-.p3-be-track-row .p3-row-label {
-  grid-column: 1 / -1;
-  margin-bottom: 2px;
-}
-
-.p3-be-track {
-  grid-column: 1;
-}
-.p3-be-tick {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  width: 0;
-  border-left: 1px solid var(--pe-gray-400);
-}
-.p3-be-tick.is-be {
-  border-left: 2px solid var(--pe-gray-800);
-}
-.p3-be-mover {
-  position: absolute;
-  inset: 0;
-  transform: translateX(calc(var(--x, 0) * 1%));
-  transition: transform 900ms var(--story-ease) var(--beat, 0ms);
-}
-.p3-be-marker {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0 -6px;
-  border-radius: 50%;
-  background: var(--c-highlight);
-  box-shadow: 0 0 0 2px var(--pe-surface);
-}
-.p3-be-points {
-  position: relative;
-  grid-column: 1;
-  display: block;
-  height: 18px;
-  font-size: var(--t-meta);
-  color: var(--pe-gray-600);
-}
-.p3-be-point {
-  position: absolute;
-  top: 2px;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-.p3-be-point.is-be {
-  color: var(--pe-gray-800);
-}
-.p3-be-point.is-be .p3-row-value {
-  font-size: var(--t-meta);
-}
-.p3-be-point.is-left {
-  transform: translateX(-100%);
-}
-.p3-be-point a {
-  color: var(--c-gain-text);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.p3-be-cost {
-  position: relative;
-  grid-column: 2;
-  grid-row: 2 / span 2;
-  display: grid;
-  font-size: var(--t-meta);
-  font-weight: 600;
-  color: var(--pe-gray-800);
-}
-.p3-be-word {
-  grid-area: 1 / 1;
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  transition: opacity 200ms ease calc(var(--beat, 0ms) + 900ms);
-}
-.p3-be-track-row.is-central .p3-be-word.is-zero,
-.p3-be-track-row.is-be .p3-be-word.is-cost {
-  opacity: 0;
-  transition-delay: calc(var(--beat, 0ms) + 900ms);
-}
-
 /* step 8: icon and label on one line, the detail line under them */
 
 @media (max-width: 900px) {
@@ -1550,23 +1452,23 @@ svg.p3-dim {
    gets a floor of (1.8F + 130px + 200px a state + 20px - 100vh) / n, the
    32px gap out: nothing at tall screens, more at short ones. F: the
    figure's height at 1280x800, at least its 460px box (central 536, channels 403, deciles 429, rules
-   384 (plus 80px in round 1: its second state held 160px), margin 416 (plus 80px, likewise with motion)). Moves and absorb are one card
-   each since round 1: no floor. */
+   384, margin 416; round 2 merged rules, margin and moves into one
+   four-state scene, #p3-changes). */
 @media (min-width: 901px) {
   #p3-central .scrolly-card {
     min-height: calc((1515px - 100vh) / 2 - 32px);
   }
+  /* round 2: plus the labelled zero line (16px), 1.8 x 16 */
   #p3-channels .scrolly-card {
-    min-height: calc((1322px - 100vh) / 2 - 32px);
+    min-height: calc((1362px - 100vh) / 2 - 32px);
   }
   #p3-deciles .scrolly-card {
     min-height: calc((1322px - 100vh) / 2 - 32px);
   }
-  #p3-rules .scrolly-card {
-    min-height: calc((1378px - 100vh) / 2 - 32px);
-  }
-  #p3-margin .scrolly-card {
-    min-height: calc((1378px - 100vh) / 2 - 32px);
+  /* round 2: what changes the answer, four states, F about 470px:
+     (1.8F + 130 + 800 + 20 + 4px) / 4 */
+  #p3-changes .scrolly-card {
+    min-height: calc((1800px - 100vh) / 4 - 32px);
   }
 }
 
@@ -1610,13 +1512,14 @@ svg.p3-dim {
 #story-part-3 .p3-key a {
   color: var(--pe-teal-700, var(--c-gain-text));
 }
-/* 3-1: stats not yet reached are hidden, not greyed (step 1 names the
-   displaced only); opacity keeps their text in the DOM for the checks */
+/* 3-1: stats step 1 does not name are lightened, not hidden (round 2) */
 #p3-central [data-hl] .story-fact:not([data-on]) {
   filter: none;
 }
+/* round 2 (C7): the facts step 1 does not name stay legible at 65%, so the
+   grid does not read as disabled */
 #p3-central [data-hl='displaced f-displaced'] .story-fact:not([data-on]) {
-  opacity: 0;
+  opacity: 0.65;
 }
 #p3-central .story-fact {
   transition: opacity 300ms var(--story-ease);
@@ -1798,29 +1701,232 @@ svg.p3-dim {
   margin: 0;
 }
 
-/* Round 1f: in Rules (3-5) and Margin (3-6) a dimmed mark's value label
-   stays readable, at the muted text token; only the dot or segment fades
-   (the highlight's filter would fade the label with its mark) */
-#p3-rules [data-hl] [data-mark]:not([data-on]),
-#p3-margin [data-hl] [data-mark]:not([data-on]) {
+/* Round 1f (round 2: the merged scene, #p3-changes): a dimmed mark's value
+   label stays readable, at the muted text token; only the dot or segment
+   fades (the highlight's filter would fade the label with its mark) */
+#p3-changes [data-hl] [data-mark]:not([data-on]) {
   filter: none;
 }
-#p3-rules [data-hl] .p3-dot[data-mark]:not([data-on]) {
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot {
   background: color-mix(in srgb, var(--pe-gray-800) 40%, var(--pe-surface));
 }
-#p3-rules [data-hl] .p3-dot-pov[data-mark]:not([data-on]) {
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot-pov {
   background: color-mix(in srgb, var(--c-loss) 40%, var(--pe-surface));
 }
-#p3-rules [data-hl] .p3-dot.is-ring[data-mark]:not([data-on]) {
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot.is-ring {
   background: var(--pe-surface);
   border-color: color-mix(in srgb, var(--pe-gray-500) 40%, var(--pe-surface));
 }
-#p3-rules [data-hl] [data-mark]:not([data-on]) .p3-dot-val,
-#p3-margin [data-hl] [data-mark]:not([data-on]) .p3-db-val,
-#p3-margin .p3-db-val .p3-muted {
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-dot-val,
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-val,
+#p3-changes .p3-db-val .p3-muted {
   color: var(--t-muted);
 }
-#p3-margin [data-hl] [data-mark]:not([data-on]) .p3-db-dot,
-#p3-margin [data-hl] [data-mark]:not([data-on]) .p3-db-seg {
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-dot,
+#p3-changes [data-hl] [data-mark]:not([data-on]) .p3-db-seg {
   opacity: 0.4;
+}
+
+/* ---- Round 2: What changes the answer (part3/Changes.jsx) ----
+   Three panels on one grid cell; the step picks the one shown (opacity,
+   inert), so the box keeps the tallest panel's height and never shifts.
+   Phones draw the figure once: the panels stack, all shown. */
+.p3-ch-panels {
+  display: grid;
+}
+.p3-ch-panel {
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  transition: opacity 350ms var(--story-ease);
+}
+.p3-ch-panel.is-shown {
+  opacity: 1;
+}
+.p3-ch.is-all .p3-ch-panel {
+  grid-area: auto;
+}
+.p3-ch.is-all .p3-ch-panel + .p3-ch-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pe-gray-200);
+}
+.p3-ch .p3-group-first {
+  margin-top: 2px;
+}
+/* tick rows under a track: scale labels at their positions */
+.p3-ch-ticks {
+  position: relative;
+  display: block;
+  height: 16px;
+  margin-top: 2px;
+  font-size: var(--t-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-500);
+}
+.p3-ch-ticks > span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.p3-ch-ticks > span.is-start {
+  transform: none;
+}
+.p3-ch-ticks > span.is-end {
+  transform: translateX(-100%);
+}
+.p3-ch-tickrow {
+  margin-top: -4px;
+}
+/* the dots slide from zero when their panel is shown */
+.p3-ch .p3-dot {
+  transition: left 600ms var(--story-ease) var(--beat, 0ms);
+}
+.p3-ch .p3-dot-val {
+  opacity: 1;
+}
+.p3-ch .p3-db {
+  margin: 4px 0 10px;
+}
+.p3-ch .p3-db-track {
+  margin-top: 22px;
+  margin-bottom: 18px;
+}
+.p3-ch .p3-db-track.is-on .p3-db-link {
+  transform: none;
+}
+.p3-ch .p3-db-track.is-on .p3-db-dot,
+.p3-ch .p3-db-track.is-on .p3-db-seg {
+  opacity: 1;
+}
+.p3-ch .p3-db-val {
+  font-weight: 400;
+  color: var(--pe-gray-700);
+}
+.p3-ch .p3-db-val::first-line {
+  font-weight: 600;
+}
+.p3-db-name {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+/* break-evens: central setting, an arrow, the break-even setting */
+.p3-ch-be {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.p3-ch-be-row {
+  display: grid;
+  grid-template-columns: max-content minmax(48px, 1fr) max-content;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+}
+.p3-ch-be-row .p3-row-label {
+  grid-column: 1 / -1;
+}
+.p3-ch-be-from,
+.p3-ch-be-to {
+  font-size: var(--t-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-700);
+  white-space: nowrap;
+}
+.p3-ch-be-from {
+  min-width: 9.5em;
+}
+.p3-ch-be-to {
+  min-width: 10.5em;
+  text-align: right;
+}
+.p3-ch-be-cap {
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-ch-be-to .p3-row-value {
+  color: var(--pe-gray-900);
+}
+.p3-ch-be-arrow {
+  position: relative;
+  height: 2px;
+  background: var(--pe-gray-800);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms var(--story-ease) calc(var(--beat, 0ms) + 150ms);
+}
+.p3-ch-be-arrow::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--pe-gray-800);
+}
+.p3-ch-be-arrow.is-on {
+  transform: none;
+}
+@media (max-width: 599px) {
+  .p3-ch-be-row {
+    column-gap: 8px;
+  }
+}
+
+/* C8: the zero of the netting waterfall, labelled */
+.p3-wf-axis {
+  position: relative;
+  display: block;
+  height: 16px;
+  margin: 2px calc(4.5em + 10px) 0 0;
+  font-size: var(--t-meta);
+  color: var(--pe-gray-500);
+}
+.p3-wf-axis > span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+/* drawn once (phones): every panel shown, none dimmed by the last step */
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot {
+  background: var(--pe-gray-800);
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot-pov {
+  background: var(--c-loss);
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot.is-ring {
+  background: var(--pe-surface);
+  border-color: var(--pe-gray-500);
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-dot,
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-seg {
+  opacity: 1;
+}
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-dot-val,
+#p3-changes .p3-ch.is-all [data-mark]:not([data-on]) .p3-db-val {
+  color: var(--pe-gray-700);
+}
+@media (max-width: 599px) {
+  .p3-ch-be-row {
+    grid-template-columns: max-content minmax(20px, 1fr) max-content;
+  }
+  .p3-ch-be-from,
+  .p3-ch-be-to {
+    min-width: 0;
+  }
+}
+/* the margins' colour key, beside each value's name */
+.p3-db-sw {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  vertical-align: 0;
+  background: var(--pe-gray-800);
+}
+.p3-db-sw.is-cut {
+  background: var(--rank-3);
 }

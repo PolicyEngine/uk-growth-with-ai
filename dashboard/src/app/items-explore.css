@@ -1860,21 +1860,16 @@
 }
 .hh-pt,
 .hh-pt-key {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  color: var(--pe-surface);
+  display: inline-block;
+  width: 10px;
+  height: 10px;
   background: var(--pe-gray-800);
   border-radius: 50%;
   box-shadow: 0 0 0 2px var(--pe-surface);
 }
 .hh-pt {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
+  margin: -5px 0 0 -5px;
   opacity: 0;
   transform: scale(0.6);
   transition: opacity 300ms var(--story-ease), transform 300ms var(--story-ease);
@@ -2453,6 +2448,61 @@
   .hh-page .hh-db-dot {
     opacity: 1;
     transform: none;
+  }
+}
+/* round 2: plain dots with direct labels (C13) */
+.hh-pt-lab {
+  position: absolute;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--pe-gray-700);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms var(--story-ease);
+}
+.hh-pt-lab.is-on {
+  opacity: 1;
+}
+.hh-pt-lab.is-r { transform: translate(9px, -50%); }
+.hh-pt-lab.is-l { transform: translate(calc(-100% - 9px), -50%); }
+.hh-pt-lab.is-t { transform: translate(-50%, calc(-100% - 8px)); }
+.hh-pt-lab.is-b { transform: translate(-50%, 8px); }
+.hh-pt-lab.is-tl { transform: translate(calc(-100% - 4px), calc(-100% - 4px)); }
+.hh-pt-lab.is-br { transform: translate(4px, 5px); }
+.hh-model {
+  margin: 4px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-600);
+}
+.hh-model a {
+  color: var(--c-link, var(--c-highlight));
+}
+.hh-pp-basis,
+.hh-group-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.hh-absorb {
+  position: relative;
+}
+.hh-absorb-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  gap: 2px;
+}
+.hh-page > #hh-absorb {
+  margin-bottom: 16px;
+}
+/* the decile buttons stay on Explore at every width (the story's old rule
+   hid them at 900px and below) */
+@media (max-width: 900px) {
+  .hh-absorb .p3-follow-btn {
+    display: inline-block;
   }
 }
 /* end households (P3) */
