@@ -43,7 +43,7 @@ describe('Scenarios direction icons', () => {
     const { container } = render(<ScenariosSection />);
     for (const id of ['s-scenarios', 's-arms', 's-timing', 'arm-tfp', 'arm-tz', 'arm-ss', 'm-jump', 'scenario-map', 'timing'])
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
-    expect(container.textContent).toContain('A bound, not a forecast');
+    expect(container.textContent).toContain('A stress test, not a bound or a forecast');
     expect(container.textContent).not.toMatch(/NaN|undefined/);
   });
 });

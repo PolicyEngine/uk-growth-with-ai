@@ -60,9 +60,9 @@ export function stressItems(sid) {
   return [
     { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
     c != null ? { key: 'c', icon: stressDir(c), text: `Central closure: output at fixed inputs ${phrase(c)}` } : null,
-    c ? { key: 'c2', icon: 'limit', text: 'So it is a pessimistic bound, not a forecast' } : null,
+    c ? { key: 'c2', icon: 'limit', text: 'A stress test, not a bound or a forecast' } : null,
     b != null ? { key: 'b', icon: stressDir(b), text: `Closed capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
-    b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”: not a pessimistic bound' } : null,
+    b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”' } : null,
     { key: 'tz', icon: 'productivity', text: '“Technology unchanged” shifts the labour share, not output at fixed inputs' },
   ].filter(Boolean);
 }

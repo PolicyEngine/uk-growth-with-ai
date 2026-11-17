@@ -108,7 +108,7 @@ const ARM_TEXT = {
   },
   ss: {
     icon: 'limit',
-    role: 'A bound, not a forecast',
+    role: 'A stress test, not a bound or a forecast',
     items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the OBR-central path.` }, ...stressItems()],
     fixedText: stressFixedText(),
     // the chevron follows the central closure's sign, as the words do
