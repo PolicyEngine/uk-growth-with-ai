@@ -604,7 +604,7 @@ export default function WhoGainsTab() {
         </li>
         {both ? (
           <li className="ex-mchip" title="The reasons below are for the case with some foreign capital">
-            With Both, the figures and the chart show each closure
+            With Both, the figures and the chart show each foreign-capital case
           </li>
         ) : null}
       </ul>

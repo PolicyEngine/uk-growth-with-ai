@@ -378,7 +378,7 @@ export default function MethodTab() {
                 items={[
                   { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
                   { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the no-shock baseline.</> },
-                  { icon: 'forecast', text: <>No-shock baseline: built on the March 2026 EFO ({cite('efoMarPath')}).</> },
+                  { icon: 'forecast', text: <>No-shock baseline: built on the March EFO ({cite('efoMarPath')}).</> },
                 ]}
               />
             </InfoCard>

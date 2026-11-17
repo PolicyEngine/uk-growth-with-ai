@@ -137,7 +137,7 @@ function SensGrid({ res }) {
         <thead>
           <tr>
             <th scope="col" className="ex-sg-corner">
-              Scenario and arm
+              Scenario and version
             </th>
             {VARS.map((c) => (
               <th key={c.v} scope="col">

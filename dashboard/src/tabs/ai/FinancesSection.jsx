@@ -274,7 +274,7 @@ function TaxStrip({ model, uk, onChart }) {
         <p className="ex-taxlink">
           <Icon name={iconFor('link')} size={14} />
           <a href="#tax-gdp" onMouseEnter={flag(true)} onMouseLeave={flag(false)} onFocus={flag(true)} onBlur={flag(false)}>
-            Its value: the main-arm end point of the Tax/GDP chart
+            Its value: the main-version end point of the Tax/GDP chart
           </a>
         </p>
       ) : null}
@@ -457,7 +457,7 @@ function RuleTable({ rule, sid, closure }) {
         </caption>
         <thead>
           <tr>
-            <th scope="col">Arm</th>
+            <th scope="col">Version</th>
             {RULE_VARS.map((c) => (
               <th key={c.v} scope="col" className="num">{c.label}</th>
             ))}
