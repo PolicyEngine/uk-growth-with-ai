@@ -719,9 +719,13 @@
   font-variant-numeric: tabular-nums;
 }
 .story-rail-t {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  /* never clipped (check_header): a label wraps rather than ending in an
+     ellipsis */
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .story-rail-bar {
   grid-column: 1 / -1;
