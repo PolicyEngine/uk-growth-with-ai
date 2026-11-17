@@ -64,7 +64,12 @@ for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']),
 #   break-evens (take-up and JSA moved to Explore > Households in round 1)
 story[signed(AI['breakeven']['wage']['value_pct'], 1) + '%'] += 1
 story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
-STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months"]
+# 5 where a lost pound goes: the OBR-sized Sankey, back in story part 3 (item 19);
+#   employer NI waits in the figure's notes (sources merge)
+story[bn(S['total']['earnings_lost_bn'])] += 1
+for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): story[bn(S['total'][k])] += 1
+story[share(S['tax_benefit_share_pct'])] += 1
+STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the central case']
 
 hh = Counter()
 for r in AI['cost_components']['rows']:
@@ -82,11 +87,8 @@ for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital
     hh[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'): hh[gbp(AI['displaced'][k]['value'])] += 1
 for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pp(r['gini_pp'])] += 1
-# where a lost pound goes: the OBR-sized Sankey, moved from story part 3 to Explore > Households in round 2
-hh[bn(S['total']['earnings_lost_bn'])] += 1
-for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): hh[bn(S['total'][k])] += 1
-hh[share(S['tax_benefit_share_pct'])] += 1; hh[bn(S['employer_ni_bn'])] += 1
-HH_TEXT = ['not the central case']
+# where a lost pound goes: back in story part 3 (item 19); Explore links to it
+HH_TEXT = []
 
 FIG3 = re.compile(r"−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
 

@@ -105,7 +105,9 @@ function DeeperCard({ l }) {
       <Icon name={l.ic} size={18} className="go-deeper-ic" />
       <span className="go-deeper-title">{l.label}</span>
       <span className="go-deeper-desc">{l.desc}</span>
-      <Icon name="arrowRight" size={14} className="go-deeper-arrow" />
+      <span className="go-deeper-arrow" aria-hidden="true">
+        →
+      </span>
     </>
   );
   return l.nav ? (

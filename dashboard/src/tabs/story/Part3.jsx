@@ -7,6 +7,7 @@ import { fmtInputPct } from './part3/format.js';
 import Central from './part3/Central.jsx';
 import Channels from './part3/Channels.jsx';
 import Deciles from './part3/Deciles.jsx';
+import Pound from './part3/Pound.jsx';
 import Changes from './part3/Changes.jsx';
 import Closing from './part3/Closing.jsx';
 import { MODEL_YEAR } from './part3/shared.jsx';
@@ -43,6 +44,7 @@ export default function Part3({ part }) {
       <Central />
       <Channels />
       <Deciles />
+      <Pound />
       <Changes />
       <Closing />
     </>

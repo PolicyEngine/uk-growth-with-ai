@@ -93,14 +93,15 @@ describe('Part3', () => {
       fmtPp(L('central_20').poverty_pp),
     ])
       expect(text, s).toContain(s);
-    // full take-up and JSA, and the lost-pound Sankey, print on Explore > Households, not here
-    for (const s of [fmtBn(L('takeup').cost_bn), fmtBn(L('takeup_jsa').cost_bn), fmtBn(D.sankey.total.earnings_lost_bn), fmtBn(D.sankey.employer_ni_bn)]) expect(text, s).not.toContain(s);
+    // full take-up and JSA print on Explore > Households, not here; the lost-pound Sankey is back here (item 19)
+    for (const s of [fmtBn(L('takeup').cost_bn), fmtBn(L('takeup_jsa').cost_bn)]) expect(text, s).not.toContain(s);
+    expect(text).toContain(fmtBn(D.sankey.total.earnings_lost_bn));
   });
 
   it('runs four Scrolly scenes in the paper order, then the leaves-out list; one step, one sentence, one highlight', () => {
     const { container } = renderPart();
     const topics = [...container.querySelectorAll('.scrolly > .scene-head[data-scene]')].map((h) => h.dataset.scene);
-    expect(topics).toEqual(['The central case', 'Three channels', 'Where the loss falls', 'What changes the answer']);
+    expect(topics).toEqual(['The central case', 'Three channels', 'Where the loss falls', 'Where a lost pound goes', 'What changes the answer']);
     expect(container.querySelector('#p3-close-h').textContent.trim()).toBe('What this one-year test leaves out');
     // at most two steps a scene, four in the merged one; the step ids links point at are kept
     for (const s of container.querySelectorAll('.scrolly')) expect(s.querySelectorAll('.scrolly-step').length, s.id).toBeLessThanOrEqual(s.id === 'p3-changes' ? 4 : 2);
@@ -223,7 +224,9 @@ describe('Part3', () => {
     const text = container.textContent;
     for (const s of ['2.6%', '39.8%']) expect(text.split(s).length - 1, s).toBe(2);
     for (const b of container.querySelectorAll('.p3-ch-be-from [data-input]')) expect(b.closest('.p3-ch-be-row')).not.toBeNull();
-    expect(text).not.toContain('1.67%');
+    // the OBR-sized run's rate is quoted once, in its run-switch marker (data-input)
+    expect(inputs).toContain('1.67%');
+    expect(text.split('1.67%').length - 1).toBe(1);
   });
 
   it('uses neutral wording and draws no regions', () => {
@@ -465,7 +468,7 @@ describe('Part3', () => {
   it('gives each one-card scene a Replay button and plays it again', () => {
     const { container } = renderPart();
     const buttons = container.querySelectorAll('.ch-icon-btn[aria-label="Replay the animation"]');
-    expect(buttons.length).toBe(4);
+    expect(buttons.length).toBe(5);
     buttons.forEach((b) => expect(b.getAttribute('aria-label')).toBe('Replay the animation'));
     act(() => fireEvent.click(buttons[0]));
     expect(container.querySelector('#p3-central .p3-scene')).not.toBeNull();

@@ -12,7 +12,6 @@ import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, PR_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
-import AbsorbCard from './Absorb.jsx';
 
 // Explore > Households: the uk-ai-study detail (PolicyEngine/uk-ai-study
 // PR #18), apart from story part 3. "Provisional" is said once, in the
@@ -862,7 +861,13 @@ export default function HouseholdsExplore() {
       <SectionHeading id="hh-who" icon="usersRound" title="Who it falls on">
         Where a lost pound goes, who the displaced are, and deciles under three rankings
       </SectionHeading>
-      <AbsorbCard />
+      <p className="hh-note hh-story-link" id="hh-absorb">
+        Where a lost pound of earnings goes, by decile (an OBR-sized run):{' '}
+        <NavLink tab="story" anchor="p3-pound">
+          in the Story, part 3
+        </NavLink>
+        .
+      </p>
       <div className="card-grid cols-2">
         <Displaced />
         <Rankings />

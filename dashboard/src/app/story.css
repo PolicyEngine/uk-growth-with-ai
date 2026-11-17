@@ -2843,9 +2843,11 @@
 }
 .go-deeper-arrow {
   position: absolute;
-  top: 14px;
+  top: 12px;
   right: 12px;
   display: inline-flex;
+  font-size: var(--t-label);
+  line-height: 1;
   color: var(--t-muted);
   opacity: 0;
   transform: translateX(-4px);
@@ -2880,6 +2882,40 @@
    hold now that the last card carries the closing caption */
 @media (min-width: 901px) {
   .scrolly.is-anchored > .scrolly-steps {
-    padding-bottom: 64px;
+    padding-bottom: 40px;
+  }
+}
+/* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */
+.story-beat.is-compact .story-beat-card {
+  padding-block: 8px 16px;
+}
+.story-beat.is-compact .beat-head {
+  font-size: var(--t-label);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--t-muted);
+}
+.story-part > .story-beat.is-compact {
+  margin-top: var(--gap-topic);
+}
+.p3-pound-chip {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 1px 8px;
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--t-muted);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+}
+.p3-pound-caveat {
+  margin: 6px 0 0;
+  font-size: var(--t-meta);
+  color: var(--t-muted);
+}
+@media (min-width: 901px) {
+  #p3-deciles.is-anchored > .scrolly-steps {
+    padding-bottom: 72px;
   }
 }

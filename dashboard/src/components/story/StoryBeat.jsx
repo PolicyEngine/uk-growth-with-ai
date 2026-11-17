@@ -30,7 +30,9 @@ export function beatPhase({ top, bottom, V }) {
   return { ba, bh };
 }
 
-export default function StoryBeat({ id, num, head, line, from = 'below', numProps = {} }) {
+// `compact`: a run-switch marker in the same family, no numeral (part 3's
+// OBR-sized run).
+export default function StoryBeat({ id, num, head, line, from = 'below', numProps = {}, compact = false }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -49,12 +51,14 @@ export default function StoryBeat({ id, num, head, line, from = 'below', numProp
     });
   }, []);
   return (
-    <aside ref={ref} className={`story-beat is-from-${from}`} id={`beat-${id}`} aria-label={`${num}: ${head}`} data-gap-exempt="">
+    <aside ref={ref} className={`story-beat is-from-${from}${compact ? ' is-compact' : ''}`} id={`beat-${id}`} aria-label={num != null ? `${num}: ${head}` : head} data-gap-exempt="">
       <div className="story-beat-card">
         <span className="beat-rule" aria-hidden="true" />
-        <p className="beat-num" {...numProps}>
-          {num}
-        </p>
+        {num != null ? (
+          <p className="beat-num" {...numProps}>
+            {num}
+          </p>
+        ) : null}
         <div className="beat-text">
           <p className="beat-head">{head}</p>
           <p className="beat-line">{line}</p>

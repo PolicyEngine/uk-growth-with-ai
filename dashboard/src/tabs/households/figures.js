@@ -35,12 +35,15 @@ export function storyFigures() {
     fmtPp(lad('wage_cuts').poverty_pp),
     // ... break-evens (take-up and JSA: Explore > Households since round 1)
     fmtPctSigned1(D.breakeven.wage.value_pct), `+${Math.round(D.breakeven.capital.value_pct)}%`,
+    // 5 where a lost pound goes (the OBR-sized Sankey, back in the Story: item 19;
+    // employer NI waits in the figure's notes for the sources merge)
+    fmtBn(D.sankey.total.earnings_lost_bn), ...['disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'].map((k) => fmtBn(D.sankey.total[k])),
+    fmtShare(D.sankey.tax_benefit_share_pct),
   ];
 }
 
 export function householdsFigures() {
   const X = D.displaced;
-  const S = D.sankey;
   const small = (v) => (Math.abs(v) < 0.05 ? '£0.1bn' : fmtBn(v));
   return [
     ...D.cost_components.rows.map((r) => small(r.cost_bn)),
@@ -54,9 +57,6 @@ export function householdsFigures() {
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),
     ...D.policy.rows.flatMap((r) => [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtPp(r.gini_pp)]),
-    // where a lost pound goes (the OBR-sized Sankey, moved from story part 3 in round 2)
-    fmtBn(S.total.earnings_lost_bn), ...['disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'].map((k) => fmtBn(S.total[k])),
-    fmtShare(S.tax_benefit_share_pct), fmtBn(S.employer_ni_bn),
   ];
 }
 

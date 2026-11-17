@@ -133,8 +133,8 @@ describe('HouseholdsExplore', () => {
   it('gives every chart card a download', () => {
     const { container } = render(<HouseholdsExplore />);
     const cards = container.querySelectorAll('article.card');
-    // seven, plus where a lost pound goes (moved from story part 3 in round 2)
-    expect(cards.length).toBe(8);
+    // seven: where a lost pound goes is back in the Story (item 19)
+    expect(cards.length).toBe(7);
     cards.forEach((c) => expect(c.querySelector('.download button'), c.id).not.toBeNull());
   });
 
@@ -193,7 +193,7 @@ describe('Households finding lines hold in the data', () => {
   });
 });
 
-describe('Where a lost pound goes (Explore, from round 2)', () => {
+describe('Where a lost pound goes (the Story again, item 19; Explore links to it)', () => {
   it('builds the Sankey from the OBR-sized run, with inflows equal to outflows at every node, and says it is not the central case', () => {
     const S = D.sankey;
     const g = absorbGraph();
@@ -213,15 +213,12 @@ describe('Where a lost pound goes (Explore, from round 2)', () => {
     // decile 1 grey, nodes and ribbons, and no other
     expect(g.nodes.filter((n) => n.color === CAVEAT_GREY).map((n) => n.id)).toEqual(['d1']);
     for (const l of g.links) expect(l.color === CAVEAT_GREY).toBe(l.source === 'd1');
+    // Explore keeps one link line to the Story scene, with no figure
     const { container } = render(<HouseholdsExplore />);
-    const card = container.querySelector('#hh-absorb');
-    expect(card.textContent).toContain('a smaller run sized to the OBR’s March 2026 displacement scenario, not the central case');
-    expect(card.querySelectorAll('.sankey-link')).toHaveLength(40);
-    expect(card.querySelector('.download button')).not.toBeNull();
-    // following a decile prints no new figure
-    const before = (text(card).match(FIG) ?? []).length;
-    fireEvent.click(card.querySelectorAll('.p3-follow-btn')[7]);
-    expect((text(card).match(FIG) ?? []).length).toBe(before);
+    const line = container.querySelector('#hh-absorb');
+    expect(line.querySelector('a').getAttribute('href')).toContain('#p3-pound');
+    expect(text(line).match(FIG)).toBeNull();
+    expect(container.querySelector('.sankey')).toBeNull();
   });
 });
 

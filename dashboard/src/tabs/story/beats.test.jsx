@@ -28,7 +28,7 @@ const SIGNED = /[+−-]\d+(\.\d+)?\s?(%|pp)/;
 describe('story beats', () => {
   it('prints the four beats once each, in story order, numerals from the data', () => {
     const el = story();
-    const beats = [...el.querySelectorAll('aside.story-beat')];
+    const beats = [...el.querySelectorAll('aside.story-beat:not(.is-compact)')];
     expect(beats.map((b) => b.id)).toEqual([`beat-${AI_SINCE}`, `beat-${S.surprise_year}`, `beat-${S.headline_year}`, 'beat-7pct']);
     expect(AI_SINCE).toBe(Number(U.series.business_ai_use.x[0].match(/\d{4}/)[0]));
     expect(beats[0].querySelector('.beat-num').textContent).toBe(String(AI_SINCE));
