@@ -73,7 +73,6 @@ export const PARTS = [
       <Items
         items={[
           { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data, static, for one year</Hy> },
-          { icon: 'source', text: 'Merged study; its manifest: no full clean-room rerun' },
           { icon: 'jobLoss', text: <Hy>People lose their jobs; in OG-UK the labour market clears</Hy> },
         ]}
       />
