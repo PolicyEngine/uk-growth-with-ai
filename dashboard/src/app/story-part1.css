@@ -884,9 +884,13 @@
     min-height: 290px;
   }
   /* two-card scenes: each state takes half the scroll, so a taller floor */
-  #p1-output .scrolly-card,
   #p1-ai .scrolly-card {
     min-height: 320px;
+  }
+  /* the growth chart is taller under the slim header's offset: a little
+     more floor keeps its second state 180px */
+  #p1-output .scrolly-card {
+    min-height: 345px;
   }
 }
 
