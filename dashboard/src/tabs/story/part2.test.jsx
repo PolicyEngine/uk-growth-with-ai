@@ -387,6 +387,18 @@ describe('direction icons follow the signs', () => {
     expect(container.textContent).toContain('The baseline is built on the OBR’s March 2026 forecast');
   });
 
+  it('shows each model’s key limit open, above the About fold, in parts 2 and 3 (item 4)', async () => {
+    const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
+    const { PartOpener } = await import('@/tabs/story/PartHead.jsx');
+    for (const [part, words] of [[PARTS[1], /no unemployment/i], [PARTS[2], /one year/i]]) {
+      const { container } = render(<PartOpener part={part} question={part.question} about={part.about} />);
+      const line = container.querySelector('.part-opener-line');
+      expect(line.textContent).toMatch(words);
+      expect(line.closest('details')).toBeNull();
+      cleanup();
+    }
+  });
+
   it('the headline step is one short sentence, a chip and the three tiles (item 7)', () => {
     const { container } = at('tab=story&s=uk_central');
     const head = container.querySelector('#story-headline');

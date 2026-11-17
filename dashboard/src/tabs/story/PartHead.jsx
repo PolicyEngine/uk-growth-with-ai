@@ -32,7 +32,9 @@ export function ModelTip({ model }) {
 }
 
 // API for the part builders:
-//   <PartOpener part={part} />   part = { id, n, kicker, model, question, about }
+//   <PartOpener part={part} />   part = { id, n, kicker, model, question, line, about }
+// `line`: the model's one key limit, shown open above the fold (newcomer
+// review item 4), in the fold body's type.
 // `title` stays on the part object for the rail; `answers`, `handover`,
 // `chips`, `extra`, `icon` and `modelLine` (old API) are not drawn.
 export function PartOpener({ part, question, about }) {
@@ -48,6 +50,7 @@ export function PartOpener({ part, question, about }) {
         ) : null}
       </p>
       <h2 id={`${part.id}-h`}>{question ?? part.title}</h2>
+      {part.line ? <div className="part-opener-about-body part-opener-line">{part.line}</div> : null}
       {about ? (
         <details className="part-opener-about">
           <summary>About this model</summary>
