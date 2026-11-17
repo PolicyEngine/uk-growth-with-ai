@@ -1270,15 +1270,17 @@
 
 /* Three steps per scene (pass 3): fewer, shorter cards, so a few states
    need more scroll to hold 180px (check_states, with and without motion) */
-#p2-arms-2.scrolly-step {
-  padding-bottom: 80px;
-}
-#p2-out-1.scrolly-step {
-  padding-bottom: 72px;
-}
-#p2-scen-2.scrolly-step,
-#p2-out-3.scrolly-step {
-  padding-bottom: 120px;
+@media (min-width: 901px) {
+  #p2-arms-2.scrolly-step {
+    padding-bottom: 80px;
+  }
+  #p2-out-1.scrolly-step {
+    padding-bottom: 72px;
+  }
+  #p2-scen-2.scrolly-step,
+  #p2-out-3.scrolly-step {
+    padding-bottom: 120px;
+  }
 }
 
 /* Round 1: one sentence per step, caveats as one short meta line, the why
@@ -1339,10 +1341,18 @@
 /* Phones and tablets (sticky scenes): a one-sentence last card needs no
    156px floor; the state it shows holds through the closing line below it */
 @media (max-width: 900px) {
-  #p2-shock .scrolly-step:last-child .scrolly-card,
-  #p2-morph .scrolly-step:last-child .scrolly-card,
-  #p2-arms .scrolly-step:last-child .scrolly-card,
-  #p2-who .scrolly-step:last-child .scrolly-card {
+  #p2-shock-2 .scrolly-card,
+  #p2-scen-2 .scrolly-card,
+  #p2-debt-1 .scrolly-card,
+  #p2-who-1 .scrolly-card {
     min-height: 72px;
   }
+  #p2-shock-1 .scrolly-card {
+    min-height: 128px;
+  }
+}
+.p2-output-text-body {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
 }

@@ -64,8 +64,8 @@ const MEANING = {
 };
 // Phones: one figure, too tall to stick, so its state follows its own place
 // on screen, both ways: in view, the path's first column pours (state 0);
-// once the Sankey's foot passes 55% of the screen, the capital split
-// (state 1); once the waterfall's top passes 75%, the change bars (state 2).
+// once the Sankey's foot passes 75% of the screen, the capital split
+// (state 1); once the waterfall's top passes 45%, the change bars (state 2).
 // Above the screen's foot again, it resets, so the build replays.
 function useScrollState(active) {
   const ref = useRef(null);
@@ -82,7 +82,7 @@ function useScrollState(active) {
       const sk = el.querySelector('.p2-sankey')?.getBoundingClientRect() ?? r;
       const wf = el.querySelector('.p2-output-change')?.getBoundingClientRect() ?? r;
       const seen = r.top < vh * 0.85 && r.bottom > 0;
-      const s = wf.top < vh * 0.75 ? 2 : sk.bottom < vh * 0.55 ? 1 : 0;
+      const s = wf.top < vh * 0.45 ? 2 : sk.bottom < vh * 0.75 ? 1 : 0;
       setSt((o) => (o.seen === seen && o.s === s ? o : { seen, s }));
     };
     const on = () => {
@@ -501,11 +501,11 @@ export default function OutputSplit({ sid, closure }) {
           <ol className="p2-output-texts">
             {steps.map((s) => (
               <li key={s.id} id={s.id} className="p2-output-text">
-                <h4 className="scrolly-title">
+                <h4 className="visually-hidden">{s.title}</h4>
+                <div className="scrolly-body p2-output-text-body">
                   {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-title-icon" /> : null}
-                  {s.title}
-                </h4>
-                <div className="scrolly-body">{s.body}</div>
+                  {s.body}
+                </div>
               </li>
             ))}
           </ol>
