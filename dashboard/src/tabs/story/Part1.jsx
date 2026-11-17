@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { Fig, Key, MarkProvider } from '@/components/story/highlight.jsx';
 import PartHead from './PartHead.jsx';
-import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_MARCH_2026, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
+import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, OBR, OBR_LABEL, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
 import { AiUseChart, ExposureTiles, LabourBoard, OBR_NAMED, OutputCanvas, P1_MARKS } from './part1/charts.jsx';
 import { Ext, SourceLine, Swap } from './part1/frame.jsx';
 import Vitals from './part1/vitals.jsx';
@@ -110,9 +110,6 @@ function outputNotes() {
       The ONS revises recent years as new data arrive.
     </L>,
     `The OBR’s latest central forecast, published ${OBR_VINTAGE}; drawn apart from the outturn, as the OBR starts from an older ${last(gs.x)} estimate.`,
-    <>
-      Part 2’s no-shock path uses the <Ext href={OBR_MARCH_2026}>OBR’s {MODEL_BASE_VINTAGE}</Ext> productivity growth.
-    </>,
   ];
 }
 

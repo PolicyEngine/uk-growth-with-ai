@@ -8,14 +8,14 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL,
+  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, ZETA, gap, fmt, result, DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
-import { paySigns, headlineShares } from '@/tabs/story/part2/caveats.js';
+import { paySigns, headlineShares, consumptionBelowUntil } from '@/tabs/story/part2/caveats.js';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
-import { A, OG_DEFAULTS } from '@/tabs/story/part2/sources.jsx';
+import { A } from '@/tabs/story/part2/sources.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 
 // The headline: the question, a one-line answer built from the data, three
@@ -137,9 +137,14 @@ export function HeadlineTiles({ sid }) {
     ) : null,
     GNI:
       cl === CENTRAL && fs != null && g != null && y != null && g < y ? (
-        <>
-          About {Math.round(fs)}% of added capital is foreign-owned, from <A href={OG_DEFAULTS}>OG-UK&rsquo;s default openness</A>
-        </>
+        [
+          <span key="share">About {Math.round(fs)}% of added capital is foreign-owned</span>,
+          // one span: the tile's note lays out its children as blocks
+          <span key="zeta">
+            ζ<sub>K</sub> = {ZETA[CENTRAL]} is the share of excess capital demand, not of added capital, met from abroad:{' '}
+            <A href={URLS.ogCoreParams}>OG-Core&rsquo;s US default, chosen by the study</A>
+          </span>,
+        ]
       ) : null,
   };
   return (
@@ -162,7 +167,11 @@ export function HeadlineTiles({ sid }) {
               sub={k.line}
               tip={<InfoTip label={`What is ${k.title.toLowerCase()}?`}>{k.tip}</InfoTip>}
             >
-              {extra[k.v] ? <p className="stat-line p2-tile-note">{extra[k.v]}</p> : null}
+              {[extra[k.v]].flat().filter(Boolean).map((line, i) => (
+                <p key={i} className="stat-line p2-tile-note">
+                  {line}
+                </p>
+              ))}
               {both ? (
                 <p className="stat-line">
                   With closed capital: <b data-path={`results.${sid}.tfp.${BOUND}.gaps.${k.v}.${HEADLINE_YEAR}`}>{fmt(b)}</b>
@@ -202,9 +211,24 @@ export function SummaryWhy({ sid }) {
   const { cl } = useSummary(sid);
   const why = whyLine(sid, cl);
   const sh = headlineShares(sid, cl);
+  // one clause on what households spend, where the cell has it (UK central)
+  const cBelow = why ? consumptionBelowUntil(sid, cl) : null;
   return (
     <div className="p2-why">
-      {why ? <p className="p2-why-line">{why}</p> : null}
+      {why ? (
+        <p className="p2-why-line">
+          {why}
+        </p>
+      ) : null}
+      {cBelow ? (
+        <p className="p2-why-line">
+          Household consumption stays below the path until{' '}
+          <NavLink tab="explore" sub="who" patch={{ wrule: 'common' }}>
+            {cBelow}
+          </NavLink>
+          .
+        </p>
+      ) : null}
       <p className="p2-note">
         Scenario results, not forecasts: they depend on the{' '}
         <NavLink tab="method" sub="how" anchor="m-scenarios">
