@@ -127,7 +127,7 @@ function Spark({ v, drawn }) {
   const end = ys[ys.length - 1];
   return (
     <span className="p1-spark" aria-hidden="true">
-      <svg viewBox="0 0 100 28" preserveAspectRatio="none" focusable="false">
+      <svg viewBox="0 0 100 28" preserveAspectRatio="none" focusable="false" aria-hidden="true">
         <path d={d} pathLength={1} className={`p1-spark-line${drawn ? ' is-drawn' : ''}`} />
       </svg>
       <span className={`p1-spark-dot${drawn ? ' is-drawn' : ''}`} style={{ left: '100%', top: `${(Y(end) / 28) * 100}%` }} />

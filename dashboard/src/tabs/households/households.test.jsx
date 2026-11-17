@@ -17,6 +17,9 @@ afterEach(cleanup);
 
 const text = (container, extra = '') => {
   const c = container.cloneNode(true);
+  // a figure's notes behind its "Sources and notes" button are read as
+  // present (SourceLine's hidden record), as the page's number check does
+  c.querySelectorAll('[data-source-notes]').forEach((n) => n.removeAttribute('hidden'));
   c.querySelectorAll(`[data-axis], [data-input], [hidden]${extra}`).forEach((n) => n.remove());
   c.querySelectorAll('li, p, div').forEach((n) => n.append(' '));
   return c.textContent;

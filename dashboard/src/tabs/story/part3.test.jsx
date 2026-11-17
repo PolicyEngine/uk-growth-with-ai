@@ -31,6 +31,9 @@ const renderPart = () => render(<Part3 part={PART} />);
 // The text a number check reads: axis labels and quoted inputs removed.
 const checkedText = (container, extra = '') => {
   const c = container.cloneNode(true);
+  // a figure's notes behind its "Sources and notes" button are read as
+  // present (SourceLine's hidden record), as the page's number check does
+  c.querySelectorAll('[data-source-notes]').forEach((n) => n.removeAttribute('hidden'));
   c.querySelectorAll(`[data-axis], [data-input], [hidden]${extra}`).forEach((n) => n.remove());
   // block elements end a line, as innerText does in the browser
   c.querySelectorAll('li, p, div').forEach((n) => n.append(' '));
@@ -156,15 +159,20 @@ describe('Part3', () => {
     if (D.model_year_label) expect(MODEL_YEAR).toBe(D.model_year_label);
     const commit = D.commit ?? D.source.commit;
     if (D.source.files_base_url) expect(D.source.files_base_url).toContain(commit);
-    const sources = container.querySelectorAll('.story-source');
-    expect(sources.length).toBe(container.querySelectorAll('.scrolly').length);
-    sources.forEach((s) => {
-      expect(s.textContent).toContain(`PolicyEngine-UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
-      const links = s.querySelectorAll('a');
-      expect(links).toHaveLength(1);
-      expect(links[0].textContent).toBe('uk-ai-study');
+    // one quiet "Sources and notes" button a figure, after its title; nothing under the chart
+    const btns = container.querySelectorAll('.p3-figure .story-figure-title button.src-line-btn');
+    expect(btns.length).toBe(container.querySelectorAll('.scrolly').length);
+    expect(container.querySelectorAll('.story-source, .p3-key')).toHaveLength(0);
+    btns.forEach((b) => {
+      fireEvent.click(b);
+      const pop = document.getElementById(b.getAttribute('aria-controls'));
+      expect(pop.textContent).toContain(`PolicyEngine-UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
+      const links = [...pop.querySelectorAll('.src-pop-list a')];
+      expect(links[0].textContent).toBe('uk-ai-study results');
       expect(links[0].getAttribute('href')).toBe(`https://github.com/PolicyEngine/uk-ai-study/tree/${commit}/results`);
-      for (const f of links[0].dataset.files.split(' ')) expect(f, f).toMatch(/^results\//);
+      // each result file linked at the commit
+      for (const a of links.filter((x) => x.textContent.startsWith('results/'))) expect(a.getAttribute('href')).toContain(commit);
+      fireEvent.click(b);
     });
     // no call-out, chip or flag boxes
     expect(container.querySelector('.story-callout, .p3-chip, .p3-chip-frame, .p3-draws svg')).toBeNull();
@@ -284,6 +292,8 @@ describe('Part3', () => {
       if (el.matches('.scrolly-step, .story-recap li')) continue;
       if (el.matches('.story-source, .story-source *')) continue; // citation lines
       const c = el.cloneNode(true);
+      // a figure's notes behind its "Sources and notes" are not on the page
+      c.querySelectorAll('[hidden]').forEach((h) => h.remove());
       // a linked citation ("Doorley et al. (2026)") counts as one word
       c.querySelectorAll('.p3-ref').forEach((a) => a.replaceWith('ref'));
       // numbered markers are scale, not words
@@ -348,11 +358,12 @@ describe('Part3', () => {
     expect(bars[2].from).toBeCloseTo(bars[1].to, 9);
     expect(bars[3]).toMatchObject({ from: 0, to: D.channels.sum_bn });
     const fig = renderPart().container.querySelector('#p3-channels .p3-figure');
-    const t = checkedText(fig);
+    // the drawing's own text (its notes behind "Sources and notes" set aside)
+    const t = checkedText(fig, ', [data-source-notes]');
     for (const end of [bars[1].to, bars[2].to]) if (Math.abs(end - D.channels.sum_bn) > 0.05) expect(t).not.toContain(fmtBn(end));
     expect(t.match(/[−]?£[\d.]+bn/g)).toEqual(bars.map((b) => fmtBn(b.value)));
-    // the interaction is in the notes, the Scrolly's foot
-    expect(fig.closest('.scrolly').textContent).toContain(fmtBn2(D.channels.interaction_bn));
+    // the interaction is in the figure's notes, behind its "Sources and notes"
+    expect(fig.querySelector('[data-source-notes]').textContent).toContain(fmtBn2(D.channels.interaction_bn));
     expect(t).toContain('Sum of the three runs');
   });
 
@@ -467,7 +478,13 @@ describe('Part3', () => {
     const { container } = renderPart();
     const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="breakeven"]');
     expect(fig.querySelector('.p3-state, .p3-ladder')).toBeNull();
-    expect(fig.querySelector('a[href*="hh-ladder"]')).not.toBeNull();
+    // its notes (take-up and JSA, linked to Explore) sit behind the figure's "Sources and notes"
+    const b = container.querySelector('#p3-changes button.src-line-btn');
+    fireEvent.click(b);
+    const pop = document.getElementById(b.getAttribute('aria-controls'));
+    expect(pop.querySelector('a[href*="hh-ladder"]')).not.toBeNull();
+    expect(pop.textContent).toContain('Break-even');
+    fireEvent.click(b);
     expect(fig.textContent).not.toContain(fmtBn(ladder('takeup').cost_bn));
   });
 });

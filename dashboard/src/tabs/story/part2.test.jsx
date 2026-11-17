@@ -5,7 +5,27 @@
 // links to the tab that holds the figures. Rendered against a fixture with
 // altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
+
+// Every link behind the "Sources and notes" buttons in `root`: each opened,
+// read and closed in turn (the popover is drawn only while open).
+function sourceLinks(root) {
+  const out = [];
+  for (const b of root.querySelectorAll('button.src-line-btn')) {
+    fireEvent.click(b);
+    const pop = document.getElementById(b.getAttribute('aria-controls'));
+    out.push(...[...(pop?.querySelectorAll('a') ?? [])].map((a) => a.getAttribute('href')));
+    fireEvent.click(b);
+  }
+  return out;
+}
+const popText = (root) => {
+  const b = root.querySelector('button.src-line-btn');
+  fireEvent.click(b);
+  const t = document.getElementById(b.getAttribute('aria-controls'))?.textContent ?? '';
+  fireEvent.click(b);
+  return t;
+};
 import real from '@/data/surprise2028.json';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 
@@ -84,10 +104,12 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    // the output split's two charts share one foot; the GDP canvas and Who gains repeat theirs in a phone-only Scrolly foot
-    expect(container.querySelectorAll('.story-source')).toHaveLength(6);
-    expect(container.querySelectorAll('.p2-src-phone')).toHaveLength(2);
-    const hrefs = [...container.querySelectorAll('#story-part-2 a')].map((a) => a.getAttribute('href'));
+    // one quiet "Sources and notes" button a figure (the output split's two
+    // charts share one), no phone-only repeats
+    expect(container.querySelectorAll('#story-part-2 button.src-line-btn')).toHaveLength(4);
+    expect(container.querySelectorAll('.p2-src-phone')).toHaveLength(0);
+    const part2 = container.querySelector('#story-part-2');
+    const hrefs = [...[...part2.querySelectorAll('a')].map((a) => a.getAttribute('href')), ...sourceLinks(part2)];
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both#public-finances');
     // the Scenarios sub-tab folded into OG-UK method
@@ -269,8 +291,8 @@ describe('from the record to the model', () => {
         act: on(container, '.p2-mo-act'),
         obr: on(container, '.p2-mo-obr') && !container.querySelector('.p2-mo-obr').classList.contains('is-zero'),
         gap: on(container, '.p2-mo-gap'),
-        title: container.querySelector('.story-figure-title > :not(.p2-text-ghost)').textContent,
-        source: container.querySelector('.story-source').textContent,
+        title: container.querySelector('.story-figure-title .p2-text-stack > :not(.p2-text-ghost)').textContent,
+        source: popText(container),
         figures: textWithoutAxes(container).match(/\d\.\d|\d%/g),
       };
       unmount();
@@ -284,7 +306,7 @@ describe('from the record to the model', () => {
     expect(seen[0].title).toBe('Real GDP growth');
     expect(seen[2].title).toBe('GDP against the OBR-central path');
     expect(seen[0].source).not.toContain('OG-UK');
-    expect(seen[1].source).toContain('Office for Budget Responsibility');
+    expect(seen[1].source).toContain('OBR');
     expect(seen[2].source).toContain('OG-UK');
     for (const r of seen) expect(r.figures).toBeNull();
   });
@@ -412,12 +434,13 @@ describe('direction icons follow the signs', () => {
       const { container, unmount } = at(q);
       const part = container.querySelector('#story-part-2');
       expect(part.textContent).not.toMatch(/\b([Oo]ur|[Ww]e)\b/);
-      // every figure caption under a model chart links its result files or source
-      for (const cap of part.querySelectorAll('figure:not(.p2-shock-fig) figcaption, .p2-output-foot')) {
-        expect(cap.querySelector('a[href^="http"]'), cap.textContent).not.toBeNull();
+      // every model figure's "Sources and notes" links its result files or source
+      for (const fig of part.querySelectorAll('figure:not(.p2-shock-fig)')) {
+        const links = sourceLinks(fig);
+        expect(links.some((h) => h.startsWith('http')), fig.className).toBe(true);
       }
       // the solves at the data file's commit
-      const files = [...part.querySelectorAll('a[href*="/analysis/surprise/output"]')].map((a) => a.getAttribute('href'));
+      const files = sourceLinks(part).filter((h) => h.includes('/analysis/surprise/output'));
       expect(files.length).toBeGreaterThan(0);
       for (const f of files) expect(f).toContain(`/${fixture.source_commit}/`);
       unmount();

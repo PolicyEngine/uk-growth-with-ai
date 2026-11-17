@@ -2,6 +2,7 @@
 // component puts in the DOM. No demo pages: each primitive on its own.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, renderHook } from '@testing-library/react';
+import SourceLine from '@/components/ui/SourceLine.jsx';
 import { studyLabel } from './ModelBadge.jsx';
 import {
   Axis, Band, Bars, EndLabels, Frame, Grid, Line, ModelBadge, View,
@@ -81,9 +82,9 @@ describe('ModelBadge and Frame', () => {
     expect(container.querySelector('p[data-axis-title="x"]').textContent).toBe('Year');
     expect(yT.compareDocumentPosition(container.querySelector('.ch-plot')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
-  it('the title carries the figure\'s one icon; unit and source none; reserves are hidden copies', () => {
+  it('the title carries the figure\'s one icon and its "Sources and notes" button; unit none; reserves are hidden copies', () => {
     const { container } = render(
-      <Frame model="oguk" title="GDP" titleReserve="GDP against the path" unit="% gap" legend={[{ key: 'a', label: 'UK central', color: 'red' }]} source="Source: OG-UK" sources={<p>Series ids</p>}>
+      <Frame model="oguk" title="GDP" titleReserve="GDP against the path" unit="% gap" legend={[{ key: 'a', label: 'UK central', color: 'red' }]} source={<SourceLine items={[{ label: 'OG-UK', url: 'https://example.org' }]} />} essential="Not a forecast." sources={<p>Series ids</p>}>
         <svg />
       </Frame>,
     );
@@ -93,7 +94,8 @@ describe('ModelBadge and Frame', () => {
     const ghost = container.querySelector('.ch-ghost');
     expect(ghost.getAttribute('aria-hidden')).toBe('true');
     expect(ghost.hasAttribute('data-axis')).toBe(true);
-    expect(container.querySelector('.ch-source').hasAttribute('data-cite')).toBe(true);
+    expect(container.querySelector('p.ch-title button.src-line-btn').getAttribute('aria-label')).toBe('Sources and notes');
+    expect(container.querySelector('.ch-foot .src-essential').textContent).toBe('Not a forecast.');
     expect(container.querySelector('details.ch-sources [data-reference]').textContent).toBe('Series ids');
     expect(container.querySelector('[data-model="oguk"]')).not.toBeNull();
   });
