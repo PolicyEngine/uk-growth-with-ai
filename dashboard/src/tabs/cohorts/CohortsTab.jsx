@@ -163,7 +163,6 @@ function MeasureChips({ ms }) {
     <ul className="ex-mchips" aria-label="Measures">
       {ms.map((m) => (
         <li key={m.id} className="ex-mchip" title={m.def}>
-          <Icon name={iconFor(m.concept)} size={14} />
           <b>{m.id}</b> {m.label}
           {m.tag ? <span className="ex-mtag">{m.tag}</span> : null}
         </li>
@@ -183,7 +182,7 @@ function MeasureDots({ ms, measure, onMeasure }) {
       {ms.map((x) => (
         <li key={x.id} data-dnfull={x.full ? '' : undefined}>
           <button type="button" aria-pressed={x.id === m.id} className={`ex-mtoggle-btn${x.id === m.id ? ' is-on' : ''}`} title={x.def} onClick={() => onMeasure(x.id)}>
-            <Icon name={iconFor(x.concept)} size={12} />
+            
             <b>{x.id}</b>
             <span className="ex-dd">{shareOf(x.losing)}</span>
           </button>
@@ -241,7 +240,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
           {ms.map((m) => (
             <li key={m.id} data-dnfull={m.id === 'BT' && m.full ? '' : undefined} className={m.id === measure ? 'is-on' : undefined}>
               <span className="ex-bar-code" title={m.def}>
-                <Icon name={iconFor(m.concept)} size={12} /> {m.id}
+                {m.id}
               </span>
               <span className="ex-bar-track is-axis">
                 <span className="ex-axis-zero" style={{ left: apos(0) }} aria-hidden="true" />
@@ -324,7 +323,7 @@ function Pairs({ rows, label, icon = 'measure' }) {
         {rows.map((r) => (
           <li key={r.key}>
             <span className="ex-pair-label">
-              <Icon name={iconFor(r.concept)} size={14} /> {r.label}
+              {r.label}
             </span>
             <span className="ex-bar-track" aria-hidden="true">
               <span className={`ex-bar-fill${r.tone ? ` is-${r.tone}` : ''}`} style={{ width: `${((Math.abs(r.value) / max) * 100).toFixed(1)}%` }} />
@@ -354,7 +353,7 @@ function Spark({ c }) {
         <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-spark-line" />
       </svg>
       <figcaption>
-        <Icon name={iconFor('path')} size={12} /> <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
+        <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
         {c.first_year_c_above ? <span className="ex-spark-cross">{` · above from ${c.first_year_c_above} →`}</span> : null}
       </figcaption>
     </figure>
@@ -397,11 +396,11 @@ function ByForm({ p, both, hasT = false }) {
         {parts.map((x) => (
           <li key={x.k}>
             <span className={`ex-byform-swatch is-${x.k}`} data-icon="" aria-hidden="true" />
-            <Icon name={iconFor(x.k)} size={12} /> {x.label} <b className="num">{pct(x.v)}</b>
+            {x.label} <b className="num">{pct(x.v)}</b>
           </li>
         ))}
         <li>
-          <Icon name={iconFor('caveat')} size={12} /> Parts need not add up to the total
+          Parts need not add up to the total
         </li>
       </ul>
       <Items className="ex-byform-notes" items={byFormWords(p, hasT)} />
@@ -605,17 +604,17 @@ export default function WhoGainsTab() {
       </SectionHeading>
       <ul className="ex-mchips ex-who-chips">
         <li className="ex-mchip" title="Cohort paths are solved for UK central only, so the Scenario picker at the top is fixed on this page">
-          <Icon name={iconFor('closed')} size={14} /> UK central only
+          UK central only
         </li>
         <li className="ex-mchip">
-          <Icon name={iconFor('timing')} size={14} /> AI arrives {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
+          AI arrives {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
         </li>
         <li className="ex-mchip" title="The paper also reports Korinek et al. (upper), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
-          <Icon name={iconFor('caveat')} size={14} /> Korinek et al. (upper): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
+          Korinek et al. (upper): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
         </li>
         {both ? (
           <li className="ex-mchip" title="The reasons below are for the central closure">
-            <Icon name={iconFor('closure')} size={14} /> With Both, the figures and the chart show each closure
+            With Both, the figures and the chart show each closure
           </li>
         ) : null}
       </ul>

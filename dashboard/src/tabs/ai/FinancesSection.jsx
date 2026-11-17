@@ -409,7 +409,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ],
       }}
     >
-      <AxisTitles y="Rows: the model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = OBR-central path" />
+      <AxisTitles y="The model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = OBR-central path" />
       <TaxStrip model={model} uk={uk} onChart={onChart} />
       <div className="cause-rows">
         {CAUSES.map((c, i) => (

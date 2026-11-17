@@ -325,23 +325,18 @@ p.mx-axis-title.is-x {
   --k-choice: #344054;
   --k-external: #0e7090;
 }
+/* the source type: coloured text, no pill (round 1 de-clutter) */
 .mx-kind {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
+  display: inline;
   font-size: 12px;
-  line-height: 1.5;
-  white-space: nowrap;
+  font-weight: 600;
+  line-height: 1.4;
 }
 .mx-kind.is-published, .mx-filter.is-published { color: var(--k-published); }
 .mx-kind.is-derived, .mx-filter.is-derived { color: var(--k-derived); }
 .mx-kind.is-default, .mx-filter.is-default { color: var(--k-default); }
 .mx-kind.is-choice, .mx-filter.is-choice { color: var(--k-choice); }
 .mx-kind.is-external, .mx-filter.is-external { color: var(--k-external); }
-.mx-kind.is-choice { border-style: dashed; }
 .mx-kind-n {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -602,3 +597,8 @@ p.mx-axis-title.is-x {
 .mx-limit-title { grid-column: 2; font-weight: 600; }
 .mx-limit-line { grid-column: 2; font-size: 12px; color: var(--pe-gray-600); }
 .mx-limit-tile .story-items { margin: 8px 0 0 24px; font-size: 12px; }
+
+/* Method card grids: one Details fold under the grid, not one per card */
+.mx-foldgrid {
+  margin-top: 4px;
+}

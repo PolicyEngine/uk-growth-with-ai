@@ -87,7 +87,7 @@ export function DotStrip({ m }) {
       ) : null}
       {solid + range === 0 ? (
         <p className="ex-dots-key">
-          <Icon name={iconFor('caveat')} size={12} /> No full dot for this measure
+          No full dot for this measure
         </p>
       ) : null}
     </figure>
@@ -123,7 +123,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       title="By age and earnings group"
       finding={
         <span className="ex-ctx">
-          <Icon name={iconFor(m.concept)} size={14} /> {m.label}
+          {m.label}
           {both ? ', central closure' : ''}
         </span>
       }
@@ -172,12 +172,12 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
     >
       {any ? null : (
         <p className="ex-hm-none">
-          <Icon name={iconFor('timing')} size={14} /> No grid for this measure in the data
+          No grid for this measure in the data
         </p>
       )}
       <div className="ex-hm-body">
       <div className="ex-hm-wrap">
-        <AxisTitles y={`Rows: age in ${D.shock_year}`} x="Columns: lifetime-earnings group" reference="Colour: teal a gain, amber a loss; deeper is larger" />
+        <AxisTitles y={`Age in ${D.shock_year}`} x="Lifetime-earnings group" reference="Colour: teal a gain, amber a loss; deeper is larger" />
         <table className="ex-hm" aria-label={`Welfare change by age and earnings group, ${m.label}`} data-measure={m.id}>
           <thead>
             <tr>
@@ -224,11 +224,11 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       <div className="ex-hm-foot">
         {hot ? (
           <p className="ex-hm-readout" role="status">
-            <Icon name={iconFor('reading')} size={12} /> {`Age ${hot.age}, ${hot.col}: ${pct(hot.x)}`}
+            {`Age ${hot.age}, ${hot.col}: ${pct(hot.x)}`}
           </p>
         ) : (
           <p className="ex-hm-readout is-muted">
-            <Icon name={iconFor('reading')} size={12} /> Hover or tab to a cell for its value
+            Hover or tab to a cell for its value
           </p>
         )}
       </div>

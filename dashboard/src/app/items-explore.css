@@ -516,17 +516,22 @@
   grid-column: 1 / -1;
   margin: 0;
 }
+/* round 1: plain text separated by a middle dot, no pills */
+.ex-mchips {
+  gap: 2px 0;
+}
 .ex-mchip {
   display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  padding: 4px 10px;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-  background: var(--pe-surface);
+  gap: 4px;
+  align-items: baseline;
   font-size: var(--fs-caption);
   color: var(--pe-gray-700);
   cursor: help;
+}
+.ex-mchip + .ex-mchip::before {
+  content: '·';
+  margin: 0 8px;
+  color: var(--pe-gray-500);
 }
 .ex-mchip .plain-icon,
 .ex-bar-code .plain-icon,

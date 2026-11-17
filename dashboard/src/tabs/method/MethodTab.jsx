@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
+import FoldGrid from './FoldGrid.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
 import OnThisPage from '@/components/ui/OnThisPage.jsx';
@@ -45,7 +46,7 @@ const SECTIONS = [
 
 function ClosureCards() {
   return (
-    <div className="card-grid cols-2">
+    <FoldGrid className="card-grid cols-2">
       <InfoCard
         icon={iconFor('foreign')}
         title="Central closure"
@@ -109,7 +110,7 @@ function ClosureCards() {
           ]}
         />
       </InfoCard>
-    </div>
+    </FoldGrid>
   );
 }
 
@@ -353,7 +354,7 @@ export default function MethodTab() {
           >
             <ModelDiagram />
           </Card>
-          <div className="card-grid cols-2 mx-gen-grid">
+          <FoldGrid className="card-grid cols-2 mx-gen-grid">
             <div className="info-card mx-card mx-figure" id="m-generations">
               <h3 className="info-card-title">
                 <Icon name={iconFor('generations')} size={18} />
@@ -405,7 +406,7 @@ export default function MethodTab() {
                 ]}
               />
             </InfoCard>
-          </div>
+          </FoldGrid>
         </section>
 
         <section>
@@ -413,7 +414,7 @@ export default function MethodTab() {
             <IconText icon="ai">OG-UK has no AI parameter. AI changes two numbers in production.</IconText>
           </SectionHeading>
           <UsedBy id="m-shock" />
-          <div className="card-grid">
+          <FoldGrid className="card-grid">
             <InfoCard
               icon={iconFor('ai')}
               title="Automation"
@@ -488,7 +489,7 @@ export default function MethodTab() {
                 ]}
               />
             </InfoCard>
-          </div>
+          </FoldGrid>
         </section>
 
         <ScenariosSection uses={<UsedBy id="m-scenarios" />} />
@@ -529,7 +530,7 @@ export default function MethodTab() {
             <IconText icon="rule">How the budget adjusts, and how debt responds to the interest rate.</IconText>
           </SectionHeading>
           <UsedBy id="m-rules" />
-          <div className="card-grid mx-rules">
+          <FoldGrid className="card-grid mx-rules">
             {RULES.map((r) => (
               <InfoCard key={r.id} id={r.id} icon={iconFor(r.icon)} title={r.title} className="mx-card">
                 <p className="mx-kicker">
@@ -538,8 +539,8 @@ export default function MethodTab() {
                 <Items items={r.items} />
               </InfoCard>
             ))}
-          </div>
-          <div className="card-grid cols-2">
+          </FoldGrid>
+          <FoldGrid className="card-grid cols-2">
             <InfoCard icon={iconFor('interest')} title="How debt is repriced" className="mx-card" id="m-debt">
               <Items
                 items={[
@@ -551,7 +552,7 @@ export default function MethodTab() {
                 ]}
               />
             </InfoCard>
-          </div>
+          </FoldGrid>
         </section>
 
         <section>
@@ -563,7 +564,7 @@ export default function MethodTab() {
             .</IconText>
           </SectionHeading>
           <UsedBy id="m-path" />
-          <div className="card-grid cols-2">
+          <FoldGrid className="card-grid cols-2">
             <InfoCard
               icon={iconFor('path')}
               title="Steady state, then the path"
@@ -613,7 +614,7 @@ export default function MethodTab() {
                 ]}
               />
             </InfoCard>
-          </div>
+          </FoldGrid>
 
         </section>
 

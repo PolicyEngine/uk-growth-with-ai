@@ -183,7 +183,7 @@ function CostByTax() {
     >
       <div className={entryClass(e, 'hh-wf')} ref={ref}>
         <Replay onClick={e.replay} />
-        <AxisTitles y="Rows: tax and benefit lines" x="Bars: change in each line, £bn a year, stacked from zero" reference="Zero line: no change" />
+        <AxisTitles y="Tax and benefit lines" x="Change in each line, £bn a year, stacked from zero" reference="Zero line: no change" />
         <div role="list" className="hh-rowlist">
           {rows.map((r, i) => (
             <div role="listitem" key={r.id} className="hh-wf-row" data-row={r.id}>
@@ -453,7 +453,7 @@ function PerPound() {
       </p>
       <div className={entryClass(e, 'hh-pp')} ref={ref}>
         <Replay onClick={e.replay} />
-        <AxisTitles y="Rows: job loss and wage cuts" x="Bar: where each pound of lost gross pay goes, pence" />
+        <AxisTitles y="Job loss and wage cuts" x="Where each pound of lost gross pay goes, pence" />
         <div className="hh-pp-group">
           <p className="hh-pp-head">
             <Chip icon="draws">{D.per_pound_20.draws} paired draws</Chip>
@@ -571,7 +571,7 @@ function Displaced() {
     >
       <div className={entryClass(e, 'hh-disp')} ref={ref}>
         <Replay onClick={e.replay} />
-        <AxisTitles y="Rows: benefit units with a displaced worker" x="Bar: share of those units, %" />
+        <AxisTitles y="Benefit units with a displaced worker" x="Share of those units, %" />
         <ol className="hh-funnel">
           {stages.map(([k, name, v, base], i) => (
             <li key={k} className="hh-funnel-row" data-row={k}>
@@ -687,7 +687,7 @@ function Rankings() {
       </p>
       <div className={entryClass(e, 'hh-db')} ref={ref}>
         <Replay onClick={e.replay} />
-        <AxisTitles y="Rows: income decile, 1 = bottom" x="Change in disposable income before housing costs, %" reference="Zero line: no change" />
+        <AxisTitles y="Income decile, 1 = bottom" x="Change in disposable income before housing costs, %" reference="Zero line: no change" />
         <div className="hh-db-axis" aria-hidden="true" data-axis="">
           <span />
           <span className="hh-db-ticks">
@@ -784,7 +784,7 @@ function Policy() {
     >
       <div className={entryClass(e, 'hh-pol')} ref={ref}>
         <Replay onClick={e.replay} />
-        <AxisTitles y="Cards: one policy response each" x="Bar: Exchequer cost, £bn a year" />
+        <AxisTitles y="One policy response each" x="Exchequer cost, £bn a year" />
         <ul className="hh-pol-cards">
           {main.map((r, i) => {
             return (

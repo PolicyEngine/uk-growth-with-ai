@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import S from '@/data/surprise2028.json';
 import { INPUTS, KIND, ROWS } from './inputs.js';
 import { SRC } from './sources.js';
@@ -35,7 +34,6 @@ export const inputsTable = () => ({
 function Kind({ k, label }) {
   return (
     <span className={`mx-kind is-${k}`}>
-      <Icon name={iconFor(KIND[k].icon)} size={12} />
       {label ?? KIND[k].label}
     </span>
   );
