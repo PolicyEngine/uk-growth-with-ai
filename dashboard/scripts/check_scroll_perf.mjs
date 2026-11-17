@@ -21,7 +21,8 @@ const q = (a, p) => a[Math.min(a.length - 1, Math.floor(p * a.length))];
 let fail = false;
 for (const [W, H] of sizes) {
   const browser = WEBKIT ? await webkit.launch({ headless: process.env.HEADLESS === '1' }) : await chromium.launch({ executablePath: process.env.CHROMIUM, headless: process.env.HEADLESS === '1', args: [`--window-size=${W},${H + 120}`] });
-  const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: W < 600, hasTouch: W < 600 });
+  // mobile WebKit has no mouse wheel: WebKit runs phone widths as a desktop page
+  const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 2, isMobile: !WEBKIT && W < 600, hasTouch: !WEBKIT && W < 600 });
   const cdp = WEBKIT ? null : await page.context().newCDPSession(page);
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   if (cdp && THROTTLE > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROTTLE });

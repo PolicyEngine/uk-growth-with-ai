@@ -378,6 +378,7 @@
   transform-origin: 50% 100%;
   transform: translateY(var(--qy)) scale(calc(1 - 0.55 * var(--qm)));
   opacity: calc(1 - var(--qm) * 1.6);
+  will-change: transform, opacity;
 }
 .q-stage-icon {
   display: inline-flex;
@@ -2365,6 +2366,7 @@
      starts to fade at 0.78 (the chart starts to draw), so the frame is
      never blank (round 2 sign-off #1: it was gone by 0.74) */
   opacity: calc((0.86 - var(--qm)) * 4);
+  will-change: transform, opacity;
 }
 .q-frame .q-stage-q {
   font-size: var(--t-display);
@@ -2448,19 +2450,7 @@
     transition: none;
   }
 }
-/* the active card follows its mark while scrolling (a transform written
-   each frame): its own layer while active, so the column is not repainted */
-@media (min-width: 901px) {
-  .scrolly.is-anchored .scrolly-step.is-active .scrolly-card {
-    will-change: transform;
-  }
-}
-/* the big question's card is a layer only while it moves (QStage.jsx marks
-   it is-live between arriving and done), not for every question on the page */
-.q-stage.is-live .q-stage-card,
-.q-frame.is-live .q-frame-card {
-  will-change: transform, opacity;
-}
+
 
 /* ---- Round 1 review: one highlight system, one icon per step, one
    progress marker ---- */

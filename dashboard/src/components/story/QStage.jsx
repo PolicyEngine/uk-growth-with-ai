@@ -123,11 +123,6 @@ function useScrollDriver(ref, read, write, deps) {
   }, deps);
 }
 
-// is-live: the card is moving (story.css gives it a layer only then)
-const live = (el, on) => {
-  if (el.classList.contains('is-live') !== on) el.classList.toggle('is-live', on);
-};
-
 const setVars = (el, qa, qm) => {
   setStyle(el, '--qa', qa.toFixed(3));
   setStyle(el, '--qm', qm.toFixed(3));
@@ -163,7 +158,6 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
     },
     (el, d, f) => {
       if (!d) {
-        live(el, false);
         go(el, 'done');
         return;
       }
@@ -177,7 +171,6 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
         setVars(el, p.qa, p.qm);
         go(el, p.phase);
       }
-      live(el, !skip.current && p.qa > 0 && p.qm < 1);
     },
     [id],
   );
@@ -221,7 +214,6 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
     },
     (el, d, f) => {
       if (!d) {
-        live(el, false);
         go(el, 'done');
         return;
       }
@@ -235,7 +227,6 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
         setVars(el, p.qa, p.qm);
         go(el, p.phase);
       }
-      live(el, !skip.current && p.qa > 0 && p.qm < 1);
     },
     [id],
   );
