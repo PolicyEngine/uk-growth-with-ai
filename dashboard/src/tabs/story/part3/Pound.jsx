@@ -70,7 +70,7 @@ function PoundSource() {
           notes: [
             { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government.</> },
             { icon: 'measure', text: 'Other items: mainly pension contributions no longer paid.' },
-            { icon: 'benefits', text: 'Benefits replace little partly because the data flag only some newly entitled people as claiming UC.' },
+            { icon: 'benefits', text: 'Benefits replace little partly because the data flag only some newly entitled people as claiming Universal Credit (UC).' },
           ],
         },
       ]}

@@ -67,7 +67,7 @@ const MEANING = {
   labour: 'Income from work, the self-employed’s included',
   capital: 'Income paid to capital’s owners, before the three-way split',
   domestic: 'Net capital income that stays with UK residents',
-  foreign: 'GDP less GNI: income paid to foreign owners of UK capital and gilts, net of income from abroad',
+  foreign: 'GDP less gross national income (GNI): income paid to foreign owners of UK capital and gilts, net of income from abroad',
   depreciation: 'Replaces capital that wears out',
 };
 // Phones: one figure, too tall to stick, so its state follows its own place

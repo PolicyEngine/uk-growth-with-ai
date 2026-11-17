@@ -419,7 +419,7 @@ const breakEvenNotes = () => [
     icon: 'takeUp',
     text: (
       <>
-        Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
+        Full benefit take-up and new-style Jobseeker’s Allowance (JSA), as on <Ref id="jsa" />:{' '}
         <NavLink tab="explore" sub="households" anchor="hh-ladder">
           Explore, households
         </NavLink>

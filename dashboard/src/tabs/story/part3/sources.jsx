@@ -30,7 +30,7 @@ export const REFS = {
   pizzinelli: { label: 'Pizzinelli et al. (2023)', url: 'https://doi.org/10.5089/9798400254802.001', title: 'Pizzinelli et al. (2023), Labor market exposure to AI, IMF Working Paper WP/23/216: the complementarity adjustment' },
   dfe: { label: 'DfE (2023)', url: 'https://www.gov.uk/government/publications/the-impact-of-ai-on-uk-jobs-and-training', title: 'Department for Education (2023), The impact of AI on UK jobs and training: the UK SOC 2020 mapping of AIOE' },
   obr: { label: 'OBR, March 2026, Box 2.2', url: 'https://obr.uk/efo/economic-and-fiscal-outlook-march-2026/', title: 'Office for Budget Responsibility, Economic and fiscal outlook, March 2026, Box 2.2: technological displacement scenario' },
-  hbai: { label: 'DWP HBAI', url: 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2', title: 'Department for Work and Pensions, Households Below Average Income statistics' },
+  hbai: { label: 'DWP Households Below Average Income (HBAI)', url: 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2', title: 'Department for Work and Pensions, Households Below Average Income statistics' },
   jsa: { label: 'gov.uk', url: 'https://www.gov.uk/guidance/new-style-jobseekers-allowance', title: 'New-style Jobseeker’s Allowance: paid for up to 182 days' },
   klein: { label: 'Klein Teeselink (2025)', url: 'https://doi.org/10.2139/ssrn.5516798', title: 'Klein Teeselink (2025), Generative AI and labor market outcomes: evidence from the United Kingdom' },
   autor: { label: 'Autor (2024)', url: 'https://doi.org/10.3386/w32140', title: 'Autor (2024), Applying AI to rebuild middle class jobs, NBER WP 32140' },

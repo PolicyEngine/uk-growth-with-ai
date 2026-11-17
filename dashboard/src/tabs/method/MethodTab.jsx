@@ -78,7 +78,7 @@ function ClosureCards() {
         <Items
           items={[
             { icon: 'foreign', text: 'Share of excess capital demand met from abroad, not of added capital.' },
-            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Part' : 'Most'} of the added capital is foreign-owned: GNI rises less than GDP.` },
+            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Part' : 'Most'} of the added capital is foreign-owned: gross national income (GNI) rises less than GDP.` },
             { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
           ]}
         />
@@ -128,7 +128,7 @@ const FOREIGN_DK = (() => {
 const MEASURES = [
   { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the no-shock baseline in ${HEADLINE_YEAR}.` },
   { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts.' },
-  { k: 'NNI', icon: 'depreciation', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
+  { k: 'NNI', icon: 'depreciation', t: 'Net national income: GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
 ];
 
 // The three fiscal rules: name and one-line meaning from lib/labels.js (the

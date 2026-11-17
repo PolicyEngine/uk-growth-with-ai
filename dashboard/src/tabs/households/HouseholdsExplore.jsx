@@ -114,9 +114,9 @@ export function rulesWords(rules, central = 'exposure') {
   const atLeast = others.filter((r) => r.poverty_pp >= c.poverty_pp).length;
   const lead = every ? 'Poverty rises under every rule' : 'Poverty does not rise under every rule';
   // T15: "least under the central rule" only when every other rule raises it more
-  if (others.every((r) => r.poverty_pp > c.poverty_pp)) return `${lead}, least under the central rule`;
+  if (others.every((r) => r.poverty_pp > c.poverty_pp)) return `${lead}, least under the main rule`;
   if (atLeast === others.length) return `${lead}, by at least as much as in the main case under the other ${others.length}`;
-  return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the central rule`;
+  return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the main rule`;
 }
 const bnSmall = (v) => (Math.abs(v) < 0.05 ? (v < 0 ? 'a saving under £0.1bn' : 'under £0.1bn') : fmtBn(v));
 const OBR_RATE = D.sankey.displacement_rate_pct;
@@ -172,7 +172,7 @@ function CostByTax() {
       unit={`Change in each line, £bn a year; positive is a cost. ${C.draws} draws`}
       download={{ context: CTX, table: { columns: ['line', 'cost_bn_mean', 'cost_bn_sd'], rows: C.rows.map((r) => [r.label, r.cost_bn, r.sd_bn]) } }}
       about={about({
-        how: ['Each line: that item of the government balance, baseline to shocked', 'Averaged over the draws; the lines sum to the central cost'],
+        how: ['Each line: that item of the government balance, baseline to shocked', 'Averaged over the draws; the lines sum to the main-case cost'],
         sources: [`${C.file}: ${C.key}`],
       })}
     >
@@ -191,7 +191,7 @@ function CostByTax() {
           ))}
           <div role="listitem" className="hh-wf-row is-net" data-row="net">
             <span className="hh-wf-label">
-              <b>Net: the central cost</b>
+              <b>Net: the main-case cost</b>
             </span>
             {bar(net.from, net.to, 'is-net', rows.length)}{' '}
             {/* the central cost, restated from its home (story step 1): data-axis */}
@@ -274,7 +274,7 @@ function Variants() {
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
-          yTitle="Absolute poverty (BHC), change, pp"
+          yTitle="Absolute poverty before housing costs (BHC), change, pp"
           xTitle="Cost to the public finances, £bn a year"
         />
       </div>
@@ -308,7 +308,7 @@ function Variants() {
 const RULES = [
   { id: 'uniform', label: 'Uniform', lab: 'Uniform', pos: 'b' },
   { id: 'junior', label: 'Junior-tilted (ages 16 to 24)', lab: 'Junior-tilted', pos: 'tl' },
-  { id: 'exposure', label: 'In proportion to AI exposure (central)', ring: true, lab: 'AI exposure (central)', pos: 'br' },
+  { id: 'exposure', label: 'In proportion to AI exposure (main)', ring: true, lab: 'AI exposure (main)', pos: 'br' },
   { id: 'compression', label: 'Expertise compression', lab: 'Compression', pos: 'l' },
 ];
 function Rules() {
@@ -373,7 +373,7 @@ function Rules() {
 // --- 4. Cost per pound of earnings lost: stacked pence -----------------------
 const PP_LABEL = {
   job_loss: 'Job loss',
-  job_loss_takeup: 'Job loss, full UC take-up',
+  job_loss_takeup: 'Job loss, full Universal Credit (UC) take-up',
   job_loss_takeup_jsa: 'Job loss, plus new-style JSA',
 };
 function Pence({ parts }) {
@@ -397,7 +397,7 @@ function PerPound() {
       id="hh-per-pound"
       icon="banknote"
       title="Cost per pound lost"
-      finding="On one draw, full take-up and JSA raise the cost of a pound lost"
+      finding="On one draw, full take-up and Jobseeker’s Allowance (JSA) raise the cost of a pound lost"
       unit={
         <>
           Pence per <span data-axis="">£1</span> of gross earnings removed, each margin alone
@@ -637,7 +637,7 @@ function Rankings() {
     >
       <p className="p3-legend hh-legend" aria-hidden="true">
         {R.map((r, i) => (
-          <span key={r.id} className="hh-leg">
+          <span key={r.id} className="hh-leg" title={/^HBAI\b/.test(r.label) ? 'HBAI: Households Below Average Income, the DWP’s official income measure' : undefined}>
             <span className={`p3-swatch ${RANK_FILL[i]}`} /> {r.label}
           </span>
         ))}
@@ -722,7 +722,7 @@ function Policy() {
         },
       }}
       about={about({
-        how: ['Each response simulated on top of the central shock', 'Poverty lines held at their shocked values', 'Wage insurance: an untaxed transfer, so its cost is gross', 'The two UC changes: costs net of withdrawal elsewhere'],
+        how: ['Each response simulated on top of the main-case shock', 'Poverty lines held at their shocked values', 'Wage insurance: an untaxed transfer, so its cost is gross', 'The two UC changes: costs net of withdrawal elsewhere'],
         caveats: ['The designs are the study’s own; no external source', 'The designs differ in aim, take-up and administration', 'Compared on cost, poverty and the Gini only, not ranked'],
         sources: [`${P.file}: ${P.key}`],
       })}
@@ -874,7 +874,7 @@ export default function HouseholdsExplore() {
         <Rankings />
       </div>
       <SectionHeading id="hh-responses" icon="handshake" title="Policy responses">
-        Three stylised additions, simulated on top of the central shock
+        Three stylised additions, simulated on top of the main-case shock
       </SectionHeading>
       <Policy />
       <Sources />

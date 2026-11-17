@@ -114,7 +114,7 @@ describe('HouseholdsExplore', () => {
   it('labels the plane dots directly, plain dots with no icons', () => {
     const { container } = render(<HouseholdsExplore />);
     const labs = [...container.querySelectorAll('#hh-rules .hh-pt-lab')].map((l) => l.textContent);
-    expect(labs).toEqual(['Uniform', 'Junior-tilted', 'AI exposure (central)', 'Compression']);
+    expect(labs).toEqual(['Uniform', 'Junior-tilted', 'AI exposure (main)', 'Compression']);
     expect(container.querySelectorAll('.hh-pt svg, .hh-pt-key svg')).toHaveLength(0);
     expect([...container.querySelectorAll('#hh-ladder .hh-pt-lab')].map((l) => l.textContent)).toContain('OBR-sized runs');
   });

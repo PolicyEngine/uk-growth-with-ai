@@ -148,7 +148,7 @@ export default function HouseholdsMethod() {
                 items={[
                   { icon: 'version', text: `Release bundle: policyengine.py ${M.policyengine}.` },
                   { icon: 'tax', text: `Income tax, National Insurance and benefits for ${MODEL_YEAR}.` },
-                  { icon: 'poverty', text: <>Incomes follow {l('hbai', 'HBAI (DWP)')}, before and after housing costs.</> },
+                  { icon: 'poverty', text: <>Incomes follow {l('hbai', 'Households Below Average Income (HBAI, DWP)')}, before and after housing costs.</> },
                   { icon: 'cost', text: 'The cost is the fall in the government balance.' },
                   { icon: 'finances', text: 'It counts income tax, employee and employer NI, and benefits.' },
                   { icon: 'excluded', text: 'No corporation tax; household spending held at baseline.' },
@@ -256,7 +256,7 @@ export default function HouseholdsMethod() {
           <KeyFacts
             className="mx-facts-row"
             facts={[
-              { icon: 'benefits', value: <In>£{M.uc_single_month_gbp}</In>, label: 'UC a month, single, 25 or over' },
+              { icon: 'benefits', value: <In>£{M.uc_single_month_gbp}</In>, label: 'Universal Credit (UC) a month, single, 25 or over' },
               { icon: 'households', value: <In>£{M.uc_couple_month_gbp}</In>, label: 'UC a month, couple' },
               { icon: 'pay', value: <><In>{M.uc_taper_pct}</In>p</>, label: 'in the pound of partner’s earnings, above the work allowance' },
               { icon: 'capital', value: <In>£{M.uc_capital_limit_gbp}</In>, label: 'capital above this removes entitlement' },
@@ -268,7 +268,7 @@ export default function HouseholdsMethod() {
               { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}.</> },
               { icon: 'source', text: <>Rates: {l('ucParams', 'PolicyEngine-UK parameters')}; current rates on {l('ucGov', 'GOV.UK')}.</> },
               { icon: 'takeUp', text: 'Each benefit unit keeps its take-up decision drawn in the data.' },
-              { icon: 'excluded', text: 'New-style JSA is paid only where the survey reports an award.' },
+              { icon: 'excluded', text: 'New-style Jobseeker’s Allowance (JSA) is paid only where the survey reports an award.' },
               { icon: 'jobLoss', text: 'So the newly displaced do not get it.' },
             ]}
           />
@@ -300,7 +300,7 @@ export default function HouseholdsMethod() {
             className="hm-items"
             items={[
               { icon: 'data', text: <>Uneven weights: {M.employee_rows} employee records, effective sample about {M.kish_n}.</> },
-              { icon: 'range', text: <>Realised displaced: {M.displaced_min_m} to {M.displaced_max_m} million across the 50 central draws.</> },
+              { icon: 'range', text: <>Realised displaced: {M.displaced_min_m} to {M.displaced_max_m} million across the 50 main-case draws.</> },
               { icon: 'caveat', text: 'A standard deviation shows how much a single draw can vary.' },
               { icon: 'limit', text: 'It is not a confidence interval.' },
               { icon: 'limit', text: 'Neither it nor a mean’s standard error reflects sampling or assumption uncertainty.' },

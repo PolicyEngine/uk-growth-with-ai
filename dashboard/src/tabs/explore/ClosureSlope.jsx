@@ -89,14 +89,14 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
         </text>
         {narrow ? null : (
           <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
-            Closure
+            Foreign capital
           </text>
         )}
         <text x={x0} y={H - 6} className="ex-slope-tick" data-axis="">
-          Central
+          Some
         </text>
         <text x={x1} y={H - 6} textAnchor="end" className="ex-slope-tick" data-axis="">
-          Closed
+          None
         </text>
         {rows.map((r) => {
           if (r.c == null) return null;

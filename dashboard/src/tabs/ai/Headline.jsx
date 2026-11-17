@@ -19,7 +19,7 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
 export const MEASURES = [
   { v: 'w', label: 'Pay rate', sub: 'wage per unit of labour', icon: iconFor('pay') },
-  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: iconFor('gni') },
+  { v: 'GNI', label: 'Income UK residents keep', sub: 'gross national income, GNI', icon: iconFor('gni') },
   { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: iconFor('depreciation') },
   { v: 'Y', label: 'Total output', sub: 'GDP', icon: iconFor('gdp') },
 ];
