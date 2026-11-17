@@ -33,14 +33,15 @@
 //
 //   bun scripts/check_states.mjs http://localhost:4360 [width height ...]
 //   (needs Playwright; CHROMIUM may name a Chrome binary). Exits 1 on a miss.
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const rest = process.argv.slice(3).map(Number);
 const sizes = rest.length >= 2 ? Array.from({ length: rest.length >> 1 }, (_, i) => [rest[2 * i], rest[2 * i + 1]]) : [[1280, 800], [1366, 650], [807, 933], [390, 844]];
 const HOLD = Number(process.env.HOLD ?? 180);
 const TICK = 40;
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// BROWSER=webkit runs Playwright's WebKit (an approximation of Safari)
+const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let misses = 0;
 const JUMP = process.env.JUMP ?? '1';
 for (const [W, H] of JUMP === 'only' ? [] : sizes) {
