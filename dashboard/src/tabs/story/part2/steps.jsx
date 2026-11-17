@@ -2,12 +2,11 @@
 
 import { NavLink } from '@/lib/nav.jsx';
 import { Key } from '@/components/story/highlight.jsx';
-import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap, result } from '@/tabs/ai/surprise.js';
-import { primaryClosure } from '@/tabs/ai/lines.js';
+import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap } from '@/tabs/ai/surprise.js';
 import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
 import { PART_COLOR } from './split.js';
-import { EPS2, dirWord } from './dir.js';
-import { stressBelow, debtRuleWord, welfareWords } from './caveats.js';
+import { EPS2 } from './dir.js';
+import { welfareWords } from './caveats.js';
 
 // Part 2's step cards (round 1): one sentence per step, with at most one
 // emphasised term, a colour-keyed <Key> that lights the mark the step
@@ -16,25 +15,15 @@ import { stressBelow, debtRuleWord, welfareWords } from './caveats.js';
 // one short line under the sentence (Note), in words: the figure's home is
 // linked, not repeated. Sources are the figure's one source line.
 
-const EPS = EPS2;
-
 // The marks' colours and shapes, for <Key> (MarkProvider in Part2).
 export function partMarks(sid) {
   const scen = Object.fromEntries(
     SCENARIOS.map((s) => [`scen-${s.id}`, { color: s.id === sid ? ARM_COLOR.tfp : 'var(--pe-gray-500)', shape: 'line', label: s.label }]),
   );
-  const arms = { tfp: 'Automation + productivity', tz: 'Technology unchanged', ss: 'Stress test' };
-  const lines = Object.fromEntries(
-    Object.entries(arms).flatMap(([a, label]) => [
-      [`gdp-${a}`, { color: ARM_COLOR[a], shape: 'line', label: `GDP, ${label}` }],
-      [`debt-${a}`, { color: ARM_COLOR[a], shape: 'line', label: `Public debt, ${label}` }],
-    ]),
-  );
   const parts = { labour: 'Labour income', capital: 'Gross capital income', domestic: 'Kept in the UK', foreign: 'Net paid abroad', depreciation: 'Depreciation', gdp: 'GDP' };
   const wf = Object.fromEntries(Object.entries(parts).map(([k, label]) => [`wf-${k}`, { color: PART_COLOR[k], shape: 'square', label }]));
   return {
     ...scen,
-    ...lines,
     ...wf,
     path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'OBR-central path' },
     ons: { color: 'var(--pe-gray-800)', shape: 'circle', label: 'ONS outturn' },
@@ -57,31 +46,6 @@ export function Note({ children }) {
   return <p className="p2-note">{children}</p>;
 }
 
-// Direction of debt/GDP against the path for one solve, in words.
-export function debtWords(sid, arm, cl) {
-  const r = result(sid, arm, cl);
-  if (r.status !== 'done') return null;
-  const ys = r.gaps.debt_gdp_pp;
-  const early = Math.min(...ys.slice(YEARS.indexOf(SURPRISE_YEAR), YEARS.indexOf(HEADLINE_YEAR) + 1));
-  const late = ys[YEARS.indexOf(LATE_YEAR)];
-  if (early < -EPS) {
-    if (late > EPS) return `first falls below the OBR-central path, then rises above it by ${LATE_YEAR}`;
-    return late < -EPS ? `falls below the OBR-central path and is still below it in ${LATE_YEAR}` : `falls below the OBR-central path and is back on it by ${LATE_YEAR}`;
-  }
-  return late > EPS ? `rises above the OBR-central path after ${SURPRISE_YEAR}` : 'stays close to the OBR-central path';
-}
-
-// True when both arms without the productivity gain end with debt/GDP
-// further above the path than the main arm.
-export function othersEndHigher(sid, cl) {
-  const main = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
-  if (main == null) return false;
-  return ['tz', 'ss'].every((a) => {
-    const x = gap(sid, a, cl, 'debt_gdp_pp', LATE_YEAR);
-    return x != null && x > main;
-  });
-}
-
 // GDP after the surprise in every scenario's main arm: above the path in
 // every year from SURPRISE_YEAR when all of them are, otherwise null.
 export function scenarioDir(cl) {
@@ -92,39 +56,6 @@ export function scenarioDir(cl) {
   if (tail.every((v) => v > EPS2)) return 'gapUp';
   if (tail.every((v) => v < -EPS2)) return 'gapDown';
   return null;
-}
-
-// The technology-unchanged arm's GDP against the main arm's, in the
-// headline year. null when either is pending.
-export function tzItem(sid, cl) {
-  const tz = gap(sid, 'tz', cl, 'Y');
-  const tfp = gap(sid, 'tfp', cl, 'Y');
-  if (tz == null || tfp == null) return null;
-  return tz < tfp ? { icon: 'gapDown', text: 'GDP is lower than in the main arm' } : { icon: 'gapUp', text: 'GDP is at least as high as in the main arm' };
-}
-
-// Debt/GDP against the path for one solve, as items (icon and words from
-// one sign test). null when pending.
-export function debtItems(sid, arm, cl) {
-  const r = result(sid, arm, cl);
-  if (r.status !== 'done') return null;
-  const ys = r.gaps.debt_gdp_pp;
-  const early = Math.min(...ys.slice(YEARS.indexOf(SURPRISE_YEAR), YEARS.indexOf(HEADLINE_YEAR) + 1));
-  const late = ys[YEARS.indexOf(LATE_YEAR)];
-  if (early < -EPS) {
-    const end =
-      late > EPS
-        ? { icon: 'gapUp', text: `Then rises above it by ${LATE_YEAR}` }
-        : late < -EPS
-          ? { icon: 'gapDown', text: `Still below it in ${LATE_YEAR}` }
-          : { icon: 'onPath', text: `Back on it by ${LATE_YEAR}` };
-    return [{ icon: 'gapDown', text: 'Debt as a share of GDP first falls below the OBR-central path' }, end];
-  }
-  return [
-    late > EPS
-      ? { icon: 'gapUp', text: `Debt as a share of GDP rises above the OBR-central path after ${SURPRISE_YEAR}` }
-      : { icon: 'onPath', text: 'Debt as a share of GDP stays close to the OBR-central path' },
-  ];
 }
 
 // The shock (ShockTiles, an illustration with no data marks: highlight
@@ -152,11 +83,13 @@ export function shockSteps() {
   ];
 }
 
-// The GDP canvas: two steps. The first card's graphic opens on the record
-// (growth, state 1) and turns into the gap (state 2) once in view, so part
-// 1's last chart becomes part 2's first without a card of its own
-// (MORPH_STATES are the states each card settles in).
-export const MORPH_STATES = [2, 4];
+// The GDP canvas: two steps, then the headline step (Part2.jsx). The first
+// card's graphic opens on the record (growth, state 1) and turns into the
+// gap (state 2) once in view, so part 1's last chart becomes part 2's first
+// without a card of its own; its sentence names the switch of unit, which
+// the chart flags on its axis (MORPH_STATES are the states each card
+// settles in).
+export const MORPH_STATES = [2, 4, 4];
 export function morphCardSteps(sid, cl) {
   const dir = scenarioDir(cl);
   const rel = dir === 'gapDown' ? 'falls below' : dir === 'gapUp' ? 'rises above' : 'moves against';
@@ -164,11 +97,11 @@ export function morphCardSteps(sid, cl) {
     {
       id: 'p2-morph-2',
       icon: 'path',
-      title: 'From growth rates to a gap',
+      title: 'The axis switches from growth to a gap',
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          The same years, now as the gap against the OBR-central path: <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          The axis switches from growth, % a year, to the gap against the OBR-central path, %: <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
         </Say>
       ),
     },
@@ -197,71 +130,11 @@ export function morphCardSteps(sid, cl) {
   ];
 }
 
-// Three arms: two steps over ArmsPair states 2 and 4 (ARMS_STATES). The
-// main arm is the headline tiles'; the first card draws all three GDP arms.
-export const ARMS_STATES = [2, 4];
-export function armsCardSteps(sid, closure) {
-  const cl = primaryClosure(closure);
-  const tz = tzItem(sid, cl);
-  const higher = othersEndHigher(sid, cl);
-  const late = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
-  const debt = late == null ? null : `ends ${dirWord(late)} the path by ${LATE_YEAR}`;
-  const rule = debtRuleWord(sid, cl);
-  return [
-    {
-      id: 'p2-arms-2',
-      icon: 'compare',
-      title: 'Without the productivity gain',
-      highlight: ['gdp-tz', 'gdp-ss'],
-      body: (
-        <>
-          <span id="p2-arms-0" className="p2-anchor" aria-hidden="true" />
-          <Say>
-            <Key id="gdp-tz">Technology unchanged</Key> {tz?.icon === 'gapDown' ? 'is lower' : 'is at least as high'}; the stress test returns GDP to the path by {HEADLINE_YEAR}.
-          </Say>
-          {stressBelow(sid, cl) ? (
-            <Note>
-              The stress test is not a bound: it builds in a productivity loss, output at given inputs below technology unchanged (
-              <NavLink tab="method" sub="how" anchor="m-scenarios">
-                Method
-              </NavLink>
-              ).
-            </Note>
-          ) : null}
-        </>
-      ),
-    },
-    {
-      id: 'p2-debt-1',
-      icon: 'debt',
-      title: 'Public debt against the path',
-      highlight: ['debt-tfp', 'debt-tz', 'debt-ss'],
-      body: (
-        <>
-          <span id="p2-debt" className="p2-anchor" aria-hidden="true" />
-          <Say>
-            Under the common fiscal rule, <Key id="debt-tfp">public debt</Key> {debt ?? 'is pending at this closure'}
-            {higher ? ', higher still without the gain' : ''}.
-          </Say>
-          {rule ? (
-            <Note>
-              {rule.kind === 'fixed'
-                ? `The sign depends on the fiscal rule: with public spending fixed, debt ends ${rule.dir} the path in ${LATE_YEAR}`
-                : `Repricing only new debt, as the OBR does, ${rule.dir === 'below' ? 'debt ends below the path' : 'the rise is smaller'}`}{' '}
-              (
-              <NavLink tab="explore" sub="finances">
-                Public finances
-              </NavLink>
-              ).
-            </Note>
-          ) : null}
-        </>
-      ),
-    },
-  ];
-}
+const cap = (t) => t[0].toUpperCase() + t.slice(1);
 
-// Who gains and who loses: two steps over WelfareShape states 0 and 1.
+// Who gains and who loses: two steps over WelfareShape states 0 and 1. The
+// last card's caveat: the bequest share of the adults' gain and who loses
+// without it (cohorts2028.json, in words; the figures are on Explore).
 export function whoCardSteps() {
   const c = welfareCell();
   const allGain = c.cev_all.every((v) => v > 0);
@@ -276,17 +149,8 @@ export function whoCardSteps() {
       body: (
         <>
           <Say>
-            As modelled, gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
+            Here the fiscal rule switches from the common rule to debt-neutral transfers: gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
           </Say>
-          {w?.bequests && w.consumption ? (
-            <Note>
-              Of the adults&rsquo; average gain, {w.bequests} is the value placed on leaving bequests and {w.consumption} is consumption (
-              <NavLink tab="explore" sub="who">
-                Gains and losses
-              </NavLink>
-              ).
-            </Note>
-          ) : null}
         </>
       ),
     },
@@ -301,6 +165,15 @@ export function whoCardSteps() {
             <Key id="cohort-later">Later cohorts</Key> {allGain ? 'gain too' : 'are drawn in the band'}
             {dip ? `, least those entering just after ${SURPRISE_YEAR}` : ''}.
           </Say>
+          {w?.bequests && w.loseNb ? (
+            <Note>
+              {cap(w.bequests)} of the adults&rsquo; gain is bequest value; without it, with transfers kept on, {w.loseNb} adults lose (
+              <NavLink tab="explore" sub="who">
+                Gains and losses
+              </NavLink>
+              ).
+            </Note>
+          ) : null}
         </>
       ),
     },

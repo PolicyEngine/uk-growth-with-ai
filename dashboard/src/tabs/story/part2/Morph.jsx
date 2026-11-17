@@ -195,7 +195,7 @@ export const rescales = (sid, cl, pin = null) => {
 const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
-const LH = 15;
+const LH = 17;
 // the state from which each scenario's line is drawn
 const lineFrom = (id, sid) => (id === sid ? 2 : id === 'korinek' ? 4 : 3);
 
@@ -496,11 +496,13 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               <circle r={5.5} />
             </g>
           ) : null}
+          {/* the switch of unit (C3, round 2): a flag under the axis title,
+              which takes the flag's blue while the flag shows */}
           <g className={`p2-mo-fade${s === 2 ? ' is-on' : ''}`}>
             <g className="p2-mo-newaxis">
-              <rect x={PX0 + 4} y={PY0 + 16} className="p2-mo-newaxis-box" width={127} height={20} rx={3} />
+              <rect x={PX0 + 4} y={PY0 + 16} className="p2-mo-newaxis-box" width={170} height={20} rx={3} />
               <text x={PX0 + 10} y={PY0 + 26} dy="0.35em">
-                New scale: gap, %
+                Axis now: gap, % (was % a year)
               </text>
             </g>
           </g>
@@ -511,7 +513,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s < 2 ? ' is-on' : ''}`} data-axis-title={s < 2 ? 'y' : undefined} aria-hidden={s < 2 ? undefined : 'true'}>
             Real GDP growth, % a year
           </text>
-          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}`} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}${s === 2 ? ' is-new' : ''}`} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
             Gap against the OBR-central path, %
           </text>
         </svg>
