@@ -167,151 +167,40 @@ const RULES = RULE_NAMES.map((r) => ({
   items: [{ icon: NOTE_ICON[r.id], text: `${r.note}.` }, ...RULE_TEXT[r.id].items],
 }));
 
+// What the model leaves out: one short list, a line each, every fact once.
 function Limitations() {
   const items = [
+    { title: 'One sector', text: 'no shift towards goods that stay scarce.' },
+    { title: 'No unemployment', text: <>displacement shows in pay, not jobs ({ext(SRC.efoMarBox22.url, 'OBR Box 2.2')}).</> },
+    { title: 'Imposed technology paths', text: 'from OBR and IMF figures, not estimated.' },
+    { title: 'Slow capital response', text: <>elasticity below {ext(SRC.korinekT5.url, 'Korinek et al.’s')} lowest ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
     {
-      icon: 'scarceGoods',
-      title: 'One sector',
-      points: [
-        { icon: 'scarceGoods', text: 'Spending cannot shift towards goods that stay scarce.' },
-        { icon: 'model', text: <>{cite('ogUk')} has an eight-sector build; these runs do not use it.</> },
-      ],
-    },
-    {
-      icon: 'labour',
-      title: 'No unemployment',
-      points: [
-        { icon: 'labour', text: 'The labour market always clears.' },
-        { icon: 'pay', text: 'Displacement shows in the wage, not in jobs.' },
-        { icon: 'excluded', text: 'There is no search or matching.' },
-        { icon: 'compare', text: <>The OBR&rsquo;s scenario adjusts through jobs ({cite('efoMarBox22')}).</> },
-      ],
-    },
-    {
-      icon: 'scenario',
-      title: 'Imposed technology paths',
-      points: [
-        { icon: 'scenario', text: 'The paths are imposed: derived from OBR and IMF figures, not estimated.' },
-        { icon: 'ai', text: <>Adoption and diffusion sit in the &gamma; and Z ramps.</> },
-        { icon: 'excluded', text: 'New tasks are not modelled.' },
-      ],
-    },
-    {
-      icon: 'capital',
-      title: 'Slow capital response',
-      points: [
-        { icon: 'timing', text: `Capital has three years to respond by ${HEADLINE_YEAR}.` },
-        { icon: 'foreign', text: <>Not a cap: foreigners supply {pct(ZETA[CENTRAL], 0)} of {ext(URLS.ogCoreParams, 'excess capital demand')} (&zeta;<sub>K</sub>).</> },
-        FOREIGN_DK != null && FOREIGN_DK > 50 ? { icon: 'capital', text: `So foreigners supply most of UK central’s extra capital by ${HEADLINE_YEAR}.` } : null,
-        { icon: 'compare', text: 'Implied year-4 capital-supply elasticity: below the lowest case in:' },
-        { icon: 'source', text: <>{cite('korinekT5')}.</> },
-        { icon: 'capital', text: <>It rises towards the steady state as saving builds ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
-      ],
-    },
-    {
-      icon: 'tax',
       title: 'Revenue responds too little',
-      points: [
-        { icon: 'tax', text: 'One income-tax schedule covers labour and capital income alike.' },
-        { icon: 'closed', text: 'With closed capital, tax/GDP rises in UK high and Korinek et al.' },
-        { icon: 'source', text: <>The OBR&rsquo;s effective tax rates: {cite('frs87')}.</> },
-        {
-          icon: 'link',
-          text: (
-            <>
-              The gap against the OBR&rsquo;s tax rates:{' '}
-              <NavLink tab="explore" sub="finances" anchor="tax-gap">
-                Explore, Public finances
-              </NavLink>
-              .
-            </>
-          ),
-        },
-      ],
+      text: (
+        <>
+          labour and capital income{' '}
+          <NavLink tab="explore" sub="finances" anchor="tax-gap">
+            taxed alike
+          </NavLink>
+          .
+        </>
+      ),
     },
-    {
-      icon: 'forecast',
-      title: 'Part of the effect may be counted twice',
-      points: [
-        { icon: 'forecast', text: 'UK central’s TFP target partly uses the OBR central AI path.' },
-        { icon: 'source', text: <>That path: {cite('bp9B14')}.</> },
-        { icon: 'compare', text: 'The baseline already contains that path.' },
-        { icon: 'limit', text: 'So part of the effect may be counted twice.' },
-        { icon: 'revision', text: <>Recorded on {ext(issue(27), 'issue #27')}; a decision is pending.</> },
-      ],
-    },
-    {
-      icon: 'timing',
-      title: 'Perfect foresight',
-      points: [
-        { icon: 'timing', text: `From ${SURPRISE_YEAR} everyone knows the whole path.` },
-        { icon: 'excluded', text: 'There is no uncertainty.' },
-        { icon: 'households', text: 'Within an age, earnings differ only by ability type.' },
-        { icon: 'limit', text: 'Precautionary saving is not a channel.' },
-      ],
-    },
-    {
-      icon: 'equation',
-      title: 'Substitution fixed at one',
-      points: [
-        { icon: 'equation', text: 'Capital and labour combine Cobb-Douglas: their elasticity of substitution is one.' },
-        { icon: 'labourShare', text: 'So the labour share follows γ exactly, by construction.' },
-      ],
-    },
-    {
-      icon: 'pay',
-      title: 'No markups',
-      points: [
-        { icon: 'pay', text: 'Firms are competitive: wages and rents equal marginal products.' },
-      ],
-    },
-    {
-      icon: 'foreign',
-      title: 'Foreign AI providers',
-      points: [
-        { icon: 'foreign', text: 'Their returns enter only through ζK.' },
-        { icon: 'capital', text: 'ζK: the share of excess capital demand foreigners supply.' },
-      ],
-    },
-    {
-      icon: 'interest',
-      title: 'No money, trade or exchange rate',
-      points: [
-        { icon: 'interest', text: 'A real model: no inflation or monetary policy.' },
-        { icon: 'foreign', text: 'Links abroad: capital and gilts only; no trade or exchange rate.' },
-      ],
-    },
-    {
-      icon: 'excluded',
-      title: 'No regions or housing',
-      points: [{ icon: 'excluded', text: 'One national economy: no regions, no housing market.' }],
-    },
+    { title: 'Possible double counting', text: <>the baseline holds the {ext(SRC.bp9B14.url, 'OBR’s AI path')} ({ext(issue(27), 'issue #27')}).</> },
+    { title: 'Perfect foresight', text: `from ${SURPRISE_YEAR} everyone knows the path; no precautionary saving.` },
+    { title: 'Substitution fixed at one', text: 'the labour share follows γ exactly.' },
+    { title: 'No markups', text: 'wages and rents equal marginal products.' },
+    { title: 'Foreign AI providers', text: 'their returns enter only through ζK.' },
+    { title: 'No money, trade or exchange rate', text: 'links abroad are capital and gilts.' },
+    { title: 'No regions or housing', text: 'one national economy.' },
   ];
-  // a tile: icon, title and one line; the rest opens below it
   return (
-    <ul className="mx-limit-grid">
-      {items.map((it) => {
-        const [first, ...rest] = it.points.filter(Boolean);
-        const head = (
-          <>
-            <Icon name={iconFor(it.icon)} size={16} className="mx-limit-icon" />
-            <span className="mx-limit-title">{it.title}</span>
-            <span className="mx-limit-line">{first.text}</span>
-          </>
-        );
-        return (
-          <li key={it.title} className="mx-limit-tile">
-            {rest.length ? (
-              <details>
-                <summary>{head}</summary>
-                <Items items={rest} />
-              </details>
-            ) : (
-              <div className="mx-limit-head">{head}</div>
-            )}
-          </li>
-        );
-      })}
+    <ul className="mx-limit-list">
+      {items.map((it) => (
+        <li key={it.title}>
+          <span className="mx-limit-title">{it.title}:</span> {it.text}
+        </li>
+      ))}
     </ul>
   );
 }
@@ -326,7 +215,7 @@ export default function MethodTab() {
         <PageIntro
           icon={iconFor('equation')}
           question="How does OG-UK turn an AI scenario into these results?"
-          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against a no-shock run, not a forecast.</IconText>}
+          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR-central path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the AI shock. Not a forecast.</IconText>}
         >
           <WhyChain
             className="mx-chain"
@@ -474,7 +363,7 @@ export default function MethodTab() {
                     { icon: 'ai', text: <>That OBR path already includes the OBR&rsquo;s central AI effect ({cite('bp9B14')}; {cite('efoOct127')}).</> },
                     { icon: 'path', text: 'So every result is AI beyond that path, not against no AI.' },
                     { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
-                    { icon: 'compare', text: 'Every gap is against a no-shock restart of that path.' },
+                    { icon: 'compare', text: 'Every gap is against that path, restarted without the shock.' },
                   ]}
                 />
               }
@@ -484,7 +373,7 @@ export default function MethodTab() {
               <Items
                 items={[
                   { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
-                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as in the no-shock run.</> },
+                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the OBR-central path.</> },
                   { icon: 'forecast', text: <>OBR-central path: the March 2026 EFO ({cite('efoMarPath')}).</> },
                 ]}
               />
@@ -595,7 +484,7 @@ export default function MethodTab() {
                       icon: 'start',
                       text: (
                         <>
-                          A no-shock restart must reproduce the baseline, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
+                          Restarted without the shock, the model must reproduce the OBR-central path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
                         </>
                       ),
                     },
