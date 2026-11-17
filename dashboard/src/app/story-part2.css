@@ -1346,7 +1346,6 @@
    156px floor; the state it shows holds through the closing line below it */
 @media (max-width: 900px) {
   #p2-shock-2 .scrolly-card,
-  #p2-scen-2 .scrolly-card,
   #p2-who-1 .scrolly-card {
     min-height: 72px;
   }
