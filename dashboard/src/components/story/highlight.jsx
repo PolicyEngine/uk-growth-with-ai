@@ -110,7 +110,10 @@ export function useHighlightLabel(state) {
   if (!state) return '';
   const lit = state.point ? [state.point] : state.ids;
   if (!lit.length) return '';
-  return `Highlighted: ${lit.map((id) => marks[id]?.label ?? id.replace(/[-_]/g, ' ')).join(', ')}`;
+  // labelled marks only (round 2, review 3 B12): an id with no label in
+  // the MarkProvider is an internal key, never read out
+  const names = lit.map((id) => marks[id]?.label).filter(Boolean);
+  return names.length ? `Highlighted: ${names.join(', ')}` : '';
 }
 
 // Pointer and focus handlers that light `id` while hovered or focused (tap
@@ -233,7 +236,19 @@ export function NumMark({ n, x, y, r = 9, mark }) {
 export function useHighlightDescription(state) {
   const id = useId();
   const text = useHighlightLabel(state);
-  return { id, node: text ? <span id={id} className="visually-hidden" data-axis="">{text}</span> : null };
+  const marks = useMarks();
+  // the lit ids with no label, for the checks (never read out)
+  const lit = state ? (state.point ? [state.point] : state.ids) : [];
+  const bare = lit.filter((m) => !marks[m]?.label).join(' ');
+  return {
+    id,
+    node:
+      text || bare ? (
+        <span id={id} className="visually-hidden" data-axis="" data-unlabelled={bare || undefined}>
+          {text}
+        </span>
+      ) : null,
+  };
 }
 
 // For tests: the cards (non-spacer Scrolly steps) in `root` with no

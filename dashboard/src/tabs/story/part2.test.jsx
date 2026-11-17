@@ -345,7 +345,7 @@ describe('direction icons follow the signs', () => {
   it('says once, in the model line, which OBR vintage the path uses', async () => {
     const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
     const { container } = render(<p>{PARTS[1].modelLine}</p>);
-    expect(container.textContent).toContain('on the OBR’s March 2026 productivity growth, not part 1’s October 2026 forecast');
+    expect(container.textContent).toContain('Results are gaps against a path built on the OBR’s March 2026 forecast.');
   });
 
   it('says household consumption stays below the path, from the data (UK central only)', async () => {

@@ -15,8 +15,8 @@ import { dateLong, pct1, share0 } from './part1/format.js';
 // of ours, and the one forecast shown is the OBR's. Every printed figure has
 // an entry in ukContextChecks.json, read there from the primary file, and is
 // printed once: the UK vitals panel is the home of the seven latest
-// figures (and GDP's year-on-year growth); the step cards and two chart
-// labels hold the rest.
+// figures (and GDP's year-on-year growth); the step cards, two chart
+// labels and the AI closing line hold the rest.
 //
 // Three scenes, each a question (Scrolly's question-led sequence) and one
 // closing line (sub.answer). A step card is ONE sentence naming the one
@@ -226,7 +226,10 @@ function aiSteps() {
         <>
           <Anchor id="p1-exposure" />
           <Anchor id="p1-exposure-1" />
-          <Say>The IMF sorts UK workers into three groups by their jobs’ exposure to AI.</Say>
+          <Say>
+            The IMF sorts UK workers into three groups by AI exposure; DSIT rounds the two high groups to around{' '}
+            <N path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</N>.
+          </Say>
           <ul className="p1-groups-say">
             {[hh, hl, lo].map((g) => (
               <li key={g.id}>
@@ -261,10 +264,16 @@ function exposureSource() {
   const when = F[hh.id].period.replace(/^IMF estimates?,\s*/, '');
   return (
     <SourceLine
-      items={[{ id: F[hh.id].source, name: 'Assessment of AI capabilities and the impact on the UK labour market', detail: 'Figure 2' }]}
+      items={[
+        {
+          id: F[hh.id].source,
+          name: 'Assessment of AI capabilities and the impact on the UK labour market',
+          detail: 'Figure 2',
+        },
+      ]}
       note={
         <>
-          Figure 2 cites IMF, <Ext href={LINKS.imf_upskilling.url}>Upskilling the UK Workforce: United Kingdom</Ext> ({when}); DSIT’s “around” total cites IMF, <Ext href={LINKS.imf_genai.url}>Gen-AI: Artificial Intelligence and the Future of Work</Ext> (January 2024).
+          Figure 2 cites IMF, <Ext href={LINKS.imf_upskilling.url}>Upskilling the UK Workforce: United Kingdom</Ext> ({when}); DSIT’s rounded total cites IMF, <Ext href={LINKS.imf_genai.url}>Gen-AI: Artificial Intelligence and the Future of Work</Ext> (January 2024).
         </>
       }
       notes={[
@@ -279,7 +288,7 @@ function exposureSource() {
 }
 
 // Old ids that are now inside a scene: a link to one lands on its card (the
-// anchor), then does what that step's dot does, so the scene is in the
+// anchor), then goes to that step (Scrolly's 'scrolly-go'), so the scene is in the
 // right state however Scrolly maps scroll to steps.
 // (#p1-quarters is now an anchor on the vitals GDP tile, a plain link.)
 export const ANCHOR_STEP = {
@@ -300,7 +309,7 @@ function useAnchorSteps() {
       if (!hit) return;
       window.clearTimeout(t);
       t = window.setTimeout(() => {
-        document.querySelectorAll(`#${hit[0]} .scrolly-dots button`)[hit[1]]?.click();
+        document.getElementById(hit[0])?.dispatchEvent(new CustomEvent('scrolly-go', { detail: hit[1] }));
       }, 250);
     };
     go();
@@ -315,7 +324,8 @@ function useAnchorSteps() {
 // Each topic's question, hint and closing line. The output and work
 // closing lines hold no figures (each holds over the series drawn on the
 // page; part1.test.jsx checks them against the data file); the AI line is
-// the home of the high-exposure total and DSIT's rounded figure.
+// the home of business AI use and the high-exposure total (review T3);
+// DSIT's rounded figure is in the exposure card.
 export const OUTPUT_Q = 'How fast has the UK economy grown?';
 export const WORK_Q = 'How are jobs, pay and productivity doing?';
 export const AI_Q = 'Who uses AI, and who is exposed?';
@@ -329,8 +339,10 @@ function AiAnswer() {
   const [hh, hl] = EXPOSURE_GROUPS;
   return (
     <>
-      Business use is rising, fastest in larger firms; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (DSIT
-      says around <N path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</N>, citing <L to="imf_genai">IMF (2024)</L>).
+      <N path="facts.business_ai_use.value" mark="ai-all">
+        {pct1(F.business_ai_use.value)}
+      </N>{' '}
+      of businesses use AI; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (<L to="imf_upskilling">IMF</L>).
     </>
   );
 }

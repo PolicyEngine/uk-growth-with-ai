@@ -1,11 +1,12 @@
 'use client';
 
+import FigNotes from '@/components/story/FigNotes.jsx';
 import { Children, useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { Axis, Grid, ModelBadge, linear as chartLinear } from '@/components/story/chart/index.js';
 import { SOURCES, pageOf } from './data.js';
-import { dateLong, tick } from './format.js';
+import { tick } from './format.js';
 
 // Shared pieces of part 1's charts. The charts print no values: every
 // figure is in the step cards, once. The only numbers in a graphic are axis
@@ -170,14 +171,18 @@ const SHORT = {
 const short = (s) => SHORT[s.publisher] ?? s.publisher;
 
 // The foot of a figure: one line, "Source:" and the linked dataset names by
-// publisher; then the figure's one disclosure, "Sources and notes": each
-// dataset's series and release date, then the definitions and caveats the
-// figure's cards point to (no figures in it), which opens over the figure
-// without changing its height. items: [{ id, name, detail }]; `note`: a
-// line on the sources; `notes`: the definitions and caveats. `through`:
-// the last period the figure shows, stamped after the sources.
+// publisher (a `detail` such as "Figure 2" after the name); then, only when
+// the figure has some, one disclosure, "Notes": a line on the sources
+// (`note`) and the definitions and caveats its cards point to (`notes`, no
+// figures), which opens over the figure without changing its height.
+// Round 2 (review E5/E6): no series codes, release dates or data downloads
+// here; the readable page is the one link. `through`: the last period the
+// figure shows, stamped after the sources.
 export function SourceLine({ items, note, notes = [], through }) {
+  const rest = notes.filter(Boolean);
+  // on a phone, after the steps, not in the pinned figure (FigNotes.jsx)
   return (
+    <FigNotes>
     <div className="p1-foot">
       <p className="story-source">
         Source:{' '}
@@ -191,38 +196,27 @@ export function SourceLine({ items, note, notes = [], through }) {
               <a href={pageOf(it.id)} target="_blank" rel="noopener noreferrer">
                 {it.name}
               </a>
+              {it.detail ? `, ${it.detail}` : null}
             </span>
           );
         })}
         {through ? <span className="p1-through">. Through {through}</span> : null}
       </p>
-      <details className="p1-sources">
-        <summary>Sources and notes</summary>
-        <ul className="p1-sources-list" data-cite="">
-          {items.map((it) => {
-            const s = SOURCES[it.id];
-            return (
-              <li key={it.id} className="story-source">
-                {s.publisher}, <Ext href={pageOf(it.id)}>{it.name}</Ext>, {it.detail ?? s.series}, released {dateLong(s.released)}
-                {s.url !== pageOf(it.id) ? (
-                  <>
-                    {' '}
-                    (<Ext href={s.url}>{s.data_label ?? 'data'}</Ext>)
-                  </>
-                ) : null}
-                .
+      {note || rest.length ? (
+        <details className="p1-sources">
+          <summary>Notes</summary>
+          <ul className="p1-sources-list" data-cite="">
+            {note ? <li className="story-source">{note}</li> : null}
+            {rest.map((n, i) => (
+              <li key={`n${i}`} className="story-source p1-note-item">
+                {n}
               </li>
-            );
-          })}
-          {note ? <li className="story-source">{note}</li> : null}
-          {notes.filter(Boolean).map((n, i) => (
-            <li key={`n${i}`} className="story-source p1-note-item">
-              {n}
-            </li>
-          ))}
-        </ul>
-      </details>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </div>
+    </FigNotes>
   );
 }
 

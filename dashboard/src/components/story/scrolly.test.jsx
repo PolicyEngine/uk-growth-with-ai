@@ -1,7 +1,7 @@
 // Scrolly (wave 2 API): step dots as buttons, the scene sub-header, the
 // foot, zero-height spacers, the ctx argument, and the old call shape.
 import { afterEach, describe, expect, it } from 'vitest';
-import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
 import Scrolly from './Scrolly.jsx';
 import { TileField, TileGrid, tileDelays, tileSettleMs } from './primitives.jsx';
 import { useEnterState } from './motion.js';
@@ -31,21 +31,12 @@ describe('Scrolly', () => {
     expect(seen[0]).toMatchObject({ inline: false, once: false, prev: null });
     expect(typeof seen[0].entered).toBe('boolean');
   });
-  it('step dots are buttons, one per card, labelled, with aria-current; n of m is data-axis', () => {
+  it('has no step counter or dots; a scrolly-go event goes to a card', () => {
     const { container } = render(<Scrolly id="b" steps={steps} graphic={() => null} label="L" />);
-    const dots = [...container.querySelectorAll('.scrolly-dots button')];
-    expect(dots).toHaveLength(3);
-    expect(dots[0].getAttribute('aria-label')).toBe('Step 1 of 3: First');
-    // jsdom: the last card is active (no layout)
-    expect(dots.map((d) => d.getAttribute('aria-current'))).toEqual([null, null, 'step']);
-    expect(dots.map((d) => d.tabIndex)).toEqual([-1, -1, 0]);
-    expect(container.querySelector('.scrolly-dots').hasAttribute('data-axis')).toBe(true);
-    expect(container.querySelector('.scrolly-dots-n').getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelector('.scrolly-dots')).toBeNull();
+    expect(container.textContent).not.toMatch(/\d of \d/);
     window.scrollTo = () => {};
-    fireEvent.keyDown(dots[0], { key: 'ArrowRight' });
-    expect(document.activeElement).toBe(dots[1]);
-    fireEvent.keyDown(dots[1], { key: 'End' });
-    expect(document.activeElement).toBe(dots[2]);
+    expect(() => container.querySelector('#b').dispatchEvent(new CustomEvent('scrolly-go', { detail: 1 }))).not.toThrow();
   });
   it('renders the scene sub-header, makes step titles h4, and prints the foot once', () => {
     const { container } = render(<Scrolly id="b" sub={{ title: 'Output', icon: 'gdp' }} foot={<span className="f">Source: ONS</span>} steps={steps} graphic={() => null} label="L" />);

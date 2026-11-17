@@ -411,10 +411,13 @@ export function LabourBoard({ focus, notes }) {
               const u = unitSeries(x);
               const Y = linear(u.d.lo, u.d.hi, B, T);
               const X = linear(u.t[0], u.t[u.t.length - 1], L, R);
-              const xt = yearTicks(u.t[0], u.t[u.t.length - 1]).map((yr) => {
-                const xx = X(Math.max(yr, u.t[0]));
-                return { key: yr, x: xx, label: String(yr), anchor: xx > R - 16 ? 'end' : xx < L + 16 ? 'start' : 'middle' };
-              });
+              const xt = yearTicks(u.t[0], u.t[u.t.length - 1])
+                .map((yr) => {
+                  const xx = X(Math.max(yr, u.t[0]));
+                  return { key: yr, x: xx, label: String(yr), anchor: xx > R - 16 ? 'end' : xx < L + 16 ? 'start' : 'middle' };
+                })
+                // a year label too close to the last one is dropped (390px: "20232026")
+                .filter((t, k, a) => k === a.length - 1 || a[a.length - 1].x - t.x >= 56);
               return (
                 <g key={x.key} className={`p1-board-axes${i === f ? ' is-on' : ''}`}>
                   <YGrid ticks={u.d.ticks} Y={Y} x0={L} x1={R} />

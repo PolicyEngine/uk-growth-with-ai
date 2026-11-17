@@ -15,6 +15,29 @@ if (typeof document !== 'undefined') {
 }
 export const navRecent = () => now() - navAt < 1500;
 
+// A fast scroll counts as a jump too (round 2): the page moved more than
+// half a screen within the last 150ms, in one frame or several (four
+// quarter-screen moves in 80ms), so the figure is landed on, not scrolled
+// through. One page-wide record of recent scroll positions.
+const SPAN = 150;
+let marks = [];
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'scroll',
+    () => {
+      const t = now();
+      marks.push([t, window.scrollY]);
+      marks = marks.filter((m) => t - m[0] <= SPAN + 50);
+    },
+    { passive: true, capture: true },
+  );
+}
+export function fastRecent(V) {
+  const t = now();
+  const y = typeof window !== 'undefined' ? window.scrollY : 0;
+  return marks.some((m) => t - m[0] <= SPAN && Math.abs(y - m[1]) > 0.5 * V);
+}
+
 // The entry rule, pure: given the element's box this frame and the state
 // before, the state after. It enters when its top is above `line` (share
 // of the screen) and some of it is on screen; it resets only when it is
@@ -53,7 +76,7 @@ export function useEntry({ line = 0.85 } = {}) {
         return;
       }
       const y = window.scrollY;
-      const jumped = first || Math.abs(y - lastY) > 0.5 * V || navRecent();
+      const jumped = first || Math.abs(y - lastY) > 0.5 * V || navRecent() || fastRecent(V);
       first = false;
       lastY = y;
       setSt((s) => entryStep(s, { top: r.top, bottom: r.bottom, V, line, jumped }));
@@ -71,6 +94,56 @@ export function useEntry({ line = 0.85 } = {}) {
     };
   }, [line]);
   return [ref, st];
+}
+
+// Landed, not scrolled (round 2): true for `ms` after the figure at `ref`
+// was entered by a jump, a reload or a nav link (entry.instant), or after
+// an instant jump of more than half a screen while it is on screen (a
+// scene already entered, jumped to a later step). Scrolly marks the block
+// `is-snap` meanwhile and story.css drops every transition, transition
+// delay and animation in it, so the current step's final state is drawn at
+// once, not beat by beat from empty. Only state changes in timer and
+// scroll callbacks (no sync setState in effects).
+export function useSnap(ref, entry, ms = 900) {
+  const [doneRun, setDoneRun] = useState(-1);
+  const [jump, setJump] = useState(0);
+  const [jumpDone, setJumpDone] = useState(0);
+  const landed = Boolean(entry.entered && entry.instant) && doneRun !== entry.run;
+  useEffect(() => {
+    if (!landed) return undefined;
+    const t = setTimeout(() => setDoneRun(entry.run), ms);
+    return () => clearTimeout(t);
+  }, [landed, entry.run, ms]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    let lastY = window.scrollY;
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const V = window.innerHeight;
+      const el = ref.current;
+      if (el && (Math.abs(y - lastY) > 0.5 * V || navRecent() || fastRecent(V))) {
+        const r = el.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < V) setJump((j) => j + 1);
+      }
+      lastY = y;
+    };
+    const on = () => {
+      if (!raf) raf = window.requestAnimationFrame(measure);
+    };
+    window.addEventListener('scroll', on, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', on);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [ref]);
+  useEffect(() => {
+    if (jump === jumpDone) return undefined;
+    const t = setTimeout(() => setJumpDone(jump), ms);
+    return () => clearTimeout(t);
+  }, [jump, jumpDone, ms]);
+  return landed || jump !== jumpDone;
 }
 
 // The entry of the Scrolly figure a component sits in ({ entered, instant,

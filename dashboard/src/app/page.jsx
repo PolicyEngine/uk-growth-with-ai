@@ -35,12 +35,9 @@ import { TABS, tabById, pickersFor, PAGE_TITLE } from "@/lib/labels.js";
 const SCOPE = {
   oguk: {
     text: "OG-UK: gaps against the OBR-central path, not forecasts; no unemployment",
-    // the Story says "no unemployment" in part 2's opener: one line here
-    short: "OG-UK: gaps against the OBR-central path, not forecasts",
   },
   study: {
     text: `uk-ai-study: households in ${AI_STUDY.model_year_label} if some employees lose their jobs`,
-    short: `uk-ai-study: households in ${AI_STUDY.model_year_label}`,
   },
 };
 const scopeFor = (tab, sub) => {
@@ -52,7 +49,12 @@ const scopeFor = (tab, sub) => {
       : sub === "how"
         ? [SCOPE.oguk]
         : [SCOPE.oguk, SCOPE.study];
-  return [SCOPE.oguk, SCOPE.study];
+  // the Story: one plain line for both models (review T8)
+  return [
+    {
+      text: `Two models. OG-UK: the whole economy. uk-ai-study: households in ${AI_STUDY.model_year_label}`,
+    },
+  ];
 };
 
 const PANELS = {
@@ -151,7 +153,7 @@ function Shell() {
             ? null
             : scopeFor(st.tab, sub).map((t) => (
                 <span key={t.text} className="scope-item">
-                  <Hy>{st.tab === "story" ? (t.short ?? t.text) : t.text}</Hy>
+                  <Hy>{t.text}</Hy>
                   <span className="scope-sep" aria-hidden="true">
                     {" · "}
                   </span>
