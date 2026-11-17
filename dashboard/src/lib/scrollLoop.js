@@ -108,6 +108,16 @@ function scrollWork() {
   // a hard jump (or a resize): every subscriber, near or not
   const all = resized || Math.abs(f.dy) > 0.5 * f.V || navRecent();
   resized = false;
+  // on those frames the gate is set from the boxes too (reads only): an
+  // observer callback that arrives late never leaves a block idle
+  if (all && io) {
+    const V = f.V;
+    for (const [el, set] of byEl) {
+      const r = el.getBoundingClientRect();
+      const near = r.bottom > -V && r.top < 2 * V && (r.width > 0 || r.height > 0);
+      for (const s of set) s.near = near;
+    }
+  }
   const run = [];
   for (const s of subs) {
     if (all || s.near || s.dirty) run.push(s);
@@ -163,6 +173,9 @@ export function subscribe({ el = null, read, write }) {
       set = new Set();
       byEl.set(el, set);
       io.observe(el);
+    } else {
+      // already observed: no new callback comes, so take a sibling's gate
+      for (const o of set) s.near = o.near;
     }
     set.add(s);
   }

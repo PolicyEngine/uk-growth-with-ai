@@ -907,8 +907,10 @@
   .story-rail li.is-current {
     flex: 5 1 0;
   }
+  /* hidden, not removed: the row keeps the height the name gives it, so the
+     bars do not jump 3px when the current part changes (layout shift) */
   .story-rail li:not(.is-current) .story-rail-t {
-    display: none;
+    visibility: hidden;
   }
   .scrolly {
     display: block;
