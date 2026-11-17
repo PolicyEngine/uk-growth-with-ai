@@ -252,63 +252,6 @@
 .scrolly.is-single .scrolly-card {
   opacity: 1;
 }
-/* "n of m" on the figure card, top right, out of the flow */
-.scrolly-dots {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  z-index: 1;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 0;
-  font-size: var(--fs-micro);
-  font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-500);
-}
-.scrolly-dots-row {
-  display: flex;
-  gap: 4px;
-}
-.scrolly-dots-row {
-  gap: 0;
-}
-/* each dot is a button: a 16px target round a 6px dot */
-.scrolly-dots-row button {
-  display: grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  margin: 0 -3px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
-}
-.scrolly-dots-row button::before {
-  content: '';
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--pe-gray-300);
-  transition: background-color 300ms var(--story-ease), transform 300ms var(--story-ease);
-}
-.scrolly-dots-row button:hover::before {
-  background: var(--pe-gray-500);
-}
-.scrolly-dots-row button.is-past::before {
-  background: var(--pe-gray-400);
-}
-.scrolly-dots-row button.is-on::before {
-  background: var(--part-accent, var(--c-highlight));
-  transform: scale(1.35);
-}
-.scrolly-dots-row button:focus-visible {
-  outline: 2px solid var(--part-accent, var(--c-highlight));
-  outline-offset: 0;
-}
 /* Scene sub-header (Scrolly `sub`): concept icon, scene name, a hairline
    to the right; spans both columns above the block */
 .scene-head {
@@ -553,16 +496,22 @@
   }
 }
 /* One step, one highlight (highlight.jsx): while a step names marks, the
-   figure carries data-hl, its named marks data-on; the rest dim to 25% */
+   figure carries data-hl, its named marks data-on; the rest dim to --mark-dim */
 /* dimmed by filter, not opacity, and the transition at zero specificity:
    the chart primitives' own opacity and draw transitions (.draw-path,
    .grow-rect, .fade-g, .draw-end) keep working on a mark */
 :where([data-hl] [data-mark]) {
   transition: filter 300ms var(--story-ease);
 }
-/* round 1: dim to 40%, never near invisible */
+/* The shared dim (round 2): a mark the step does not name stays readable.
+   --mark-dim for marks (never below 0.4), --label-dim for any text a part
+   dims on its own (labels stay legible). Parts use these, not numbers. */
+:root {
+  --mark-dim: 0.45;
+  --label-dim: 0.75;
+}
 [data-hl] [data-mark]:not([data-on]) {
-  filter: opacity(0.4);
+  filter: opacity(var(--mark-dim));
 }
 .hl-key {
   display: inline-flex;
@@ -782,7 +731,7 @@
   transition: transform 900ms var(--story-ease), fill 600ms var(--story-ease), opacity 600ms var(--story-ease);
 }
 .tile.is-dim {
-  opacity: 0.25;
+  opacity: var(--mark-dim);
 }
 /* TileField: staggered travel (--d per tile), colour in the last third */
 .tile-field .tile {
@@ -1000,10 +949,6 @@
     max-width: 600px;
     margin-inline: auto;
   }
-  .scrolly-dots {
-    top: 8px;
-    right: 10px;
-  }
   /* the foot follows the last card */
   .scrolly > .scrolly-foot {
     margin: 0 0 24px;
@@ -1092,7 +1037,6 @@
   .tile-field .tile,
   .scrolly-card,
   .scrolly-graphic,
-  .scrolly-dots-row button::before,
   .draw-end,
   .story-callout,
   .story-next {
@@ -1488,14 +1432,6 @@
   color: var(--c-highlight);
 }
 
-/* Phones: figure titles keep clear of the step dots (top right of the
-   card), so a long title wraps before it runs under them. */
-@media (max-width: 600px) {
-  .scrolly-graphic-inner.has-dots .story-figure-title,
-  .scrolly-graphic-inner.has-dots .ch-frame-head {
-    padding-right: 76px;
-  }
-}
 
 /* ---------- Chart primitives (components/story/chart/*) ----------
    Type in real pixels from the --ch-* tokens (ab.css); nothing below 11px;
@@ -1510,9 +1446,6 @@
   gap: 8px;
   min-height: 22px;
   margin: 0 0 6px;
-}
-.scrolly-graphic-inner.has-dots .ch-frame-head {
-  padding-right: 76px;
 }
 .ch-frame-actions {
   display: inline-flex;
@@ -1609,7 +1542,7 @@
   gap: 6px;
 }
 .ch-legend li.is-off {
-  opacity: 0.35;
+  opacity: var(--label-dim);
 }
 .ch-swatch {
   display: inline-block;
@@ -2064,7 +1997,7 @@
   stroke-width: 1.5;
 }
 .sankey.is-interactive .sankey-node.is-dim {
-  opacity: 0.4;
+  opacity: var(--mark-dim);
 }
 .sankey-tip {
   position: absolute;
@@ -2565,7 +2498,8 @@
 /* ---- Round 1 fix (review #3): the question on screen once ----
    While the big question is up in the frame (Scrolly .is-asking: before
    the chart starts to draw), the header's small copy waits, and so does the
-   step text: no sentence states the answer beside a blank sheet. Opacity
+   step text (and, round 2, for the 400ms after it while the figure's entry
+   hold runs: .is-arming): no sentence states the answer beside a blank sheet. Opacity
    only (the text stays in innerText and the accessibility tree). Under
    reduced motion and in print nothing waits. */
 .scene-head-q {
@@ -2576,7 +2510,9 @@
     opacity: 0;
   }
   .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
-  .scrolly.is-asking .scrolly-steps .scrolly-close {
+  .scrolly.is-asking .scrolly-steps .scrolly-close,
+  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card,
+  .scrolly.is-arming .scrolly-steps .scrolly-close {
     opacity: 0;
     transform: none;
   }
@@ -2585,7 +2521,9 @@
    counts text under 5% opacity as blank page) */
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 900px) {
   .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
-  .scrolly.is-asking .scrolly-steps .scrolly-close {
+  .scrolly.is-asking .scrolly-steps .scrolly-close,
+  .scrolly.is-arming .scrolly-steps .scrolly-step .scrolly-card,
+  .scrolly.is-arming .scrolly-steps .scrolly-close {
     opacity: 0.12;
   }
 }
@@ -2625,4 +2563,16 @@
   .scrolly.is-once:not(.is-single, .is-asking) .scrolly-step.is-past .scrolly-card {
     opacity: 1;
   }
+}
+
+/* ---- Round 2: landed, not scrolled (Scrolly .is-snap, motion.js useSnap) ----
+   For a moment after a jump, a reload mid-page or a nav link, the block
+   shows its current step's final state at once: no transitions, delays or
+   entry animations (the Part 3 beats, the step-text fade), so it is never
+   seen empty or half drawn. Scrolling in still plays every move. */
+.scrolly.is-snap :is(*, *::before, *::after) {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  animation-duration: 1ms !important;
+  animation-delay: 0s !important;
 }

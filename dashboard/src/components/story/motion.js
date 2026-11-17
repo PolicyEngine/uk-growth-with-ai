@@ -73,6 +73,56 @@ export function useEntry({ line = 0.85 } = {}) {
   return [ref, st];
 }
 
+// Landed, not scrolled (round 2): true for `ms` after the figure at `ref`
+// was entered by a jump, a reload or a nav link (entry.instant), or after
+// an instant jump of more than half a screen while it is on screen (a
+// scene already entered, jumped to a later step). Scrolly marks the block
+// `is-snap` meanwhile and story.css drops every transition, transition
+// delay and animation in it, so the current step's final state is drawn at
+// once, not beat by beat from empty. Only state changes in timer and
+// scroll callbacks (no sync setState in effects).
+export function useSnap(ref, entry, ms = 900) {
+  const [doneRun, setDoneRun] = useState(-1);
+  const [jump, setJump] = useState(0);
+  const [jumpDone, setJumpDone] = useState(0);
+  const landed = Boolean(entry.entered && entry.instant) && doneRun !== entry.run;
+  useEffect(() => {
+    if (!landed) return undefined;
+    const t = setTimeout(() => setDoneRun(entry.run), ms);
+    return () => clearTimeout(t);
+  }, [landed, entry.run, ms]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    let lastY = window.scrollY;
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const V = window.innerHeight;
+      const el = ref.current;
+      if (el && (Math.abs(y - lastY) > 0.5 * V || navRecent())) {
+        const r = el.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < V) setJump((j) => j + 1);
+      }
+      lastY = y;
+    };
+    const on = () => {
+      if (!raf) raf = window.requestAnimationFrame(measure);
+    };
+    window.addEventListener('scroll', on, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', on);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [ref]);
+  useEffect(() => {
+    if (jump === jumpDone) return undefined;
+    const t = setTimeout(() => setJumpDone(jump), ms);
+    return () => clearTimeout(t);
+  }, [jump, jumpDone, ms]);
+  return landed || jump !== jumpDone;
+}
+
 // The entry of the Scrolly figure a component sits in ({ entered, instant,
 // run }), for primitives that play on entry (useEnterState, the Sankey
 // pour, CountUp). Null outside a Scrolly.

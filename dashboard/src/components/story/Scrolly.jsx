@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { EntryCtx, FinalState, useActiveStep, useEntry, useIsPhone, useReducedMotion } from './motion.js';
+import { EntryCtx, FinalState, useActiveStep, useEntry, useIsPhone, useReducedMotion, useSnap } from './motion.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { scrollBelowBars } from '@/lib/scroll.js';
@@ -33,8 +33,8 @@ const lineGap = (room) => {
 // steps), and the active step changes as a card crosses the trigger line
 // (motion.js). Desktop: steps in a column of about 340px on the left, the
 // figure on the right, sticky below the rail only while the step column is
-// taller than it; an "n of m" row of dot buttons on the figure follows the
-// active step. One card: a plain two-column block (stacked on phones),
+// taller than it (no step counter or dots: the cards show where the reader
+// is). One card: a plain two-column block (stacked on phones),
 // nothing sticky. Phones (<= 900px), several cards: the figure once, then
 // its cards (`phone="once"`, the default; ctx.once is true and the last
 // card's state is drawn), unless the block is a `scene` (several states
@@ -55,7 +55,7 @@ const lineGap = (room) => {
 // view. Other steps keep the figure pinned by its top.
 //
 // A step marked `spacer: true` has no card and no height (a zero-height
-// marker; kept so old step lists still work), and is not counted in "n of m".
+// marker; kept so old step lists still work), and is not counted as a card.
 //
 //   <Scrolly id="p1-output" steps={[{ id, title, body }]} graphic={(i) => ...} label="..." />
 //
@@ -76,7 +76,7 @@ const lineGap = (room) => {
 //                data-scene="title" id="q-<id>"> (the rail reads
 //                [data-scene]; #q-<id> links to the question); step titles
 //                then become h4 (visually hidden: the step's accessible
-//                name and its dot label).
+//                name).
 //                `question` (about a dozen words, neutral, answered by the
 //                block): printed in the header, and played big (QStage.jsx):
 //                by default (QFrame, no added height) inside the figure
@@ -154,6 +154,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // so its entry moves replay; `instant` when landed by a jump or a link
   const [seenRef, entry] = useEntry();
   const entered = entry.entered;
+  // landed by a jump, a reload or a link: the current step drawn at once
+  // (story.css .is-snap), not beat by beat from an empty figure
+  const snap = useSnap(live, entry);
   const liveRef = (el) => {
     live.current = el;
     seenRef.current = el;
@@ -187,7 +190,6 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     ro.observe(live.current);
     return () => ro.disconnect();
   }, [reserve]);
-  const many = cards > 1;
   const cardSteps = steps.map((x, i) => (x.spacer ? -1 : i)).filter((i) => i >= 0);
   const stepsCol = useRef(null);
   // Desktop, several cards: the scroll over which the figure is at least 90%
@@ -234,9 +236,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [single, cardSteps.join(',')]);
-  // a step dot: phones drawn once set the state; desktop scrolls to the
-  // middle of the step's share; a sticky phone scene scrolls the card to its
-  // trigger line
+  // go to card k (a link to an old step id, through a 'scrolly-go' event
+  // on the block; round 2 removed the step dots): phones drawn once set the
+  // state; desktop scrolls to the middle of the step's share; a sticky
+  // phone scene scrolls the card to its trigger line
   const goStep = (k) => {
     if (once) {
       setPicked(cardSteps[k]);
@@ -251,6 +254,17 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const el = document.getElementById(steps[cardSteps[k]].id);
     if (el) goToStep(el, box.current, reduce);
   };
+  const goRef = useRef(goStep);
+  useEffect(() => {
+    goRef.current = goStep;
+  });
+  useEffect(() => {
+    const el = id ? document.getElementById(id) : null;
+    if (!el) return undefined;
+    const on = (e) => goRef.current(Number(e.detail) || 0);
+    el.addEventListener('scrolly-go', on);
+    return () => el.removeEventListener('scrolly-go', on);
+  }, [id]);
   // The active step's sentence sits against the chart (round 1, Vahid:
   // "these kind of text are like in nowhere in space"). Desktop, several
   // cards: the active card is moved (a transform, written each frame; the
@@ -389,7 +403,6 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [sticky, width]);
-  const cardIndex = steps.slice(0, active + 1).filter((x) => !x.spacer).length - 1;
   // one step, one highlight (highlight.jsx): the shown step's marks
   const hl = useHighlightState(steps[shown]?.highlight);
   useApplyHighlight(live, hl, [shown, entered]);
@@ -422,6 +435,18 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const [drawn, setDrawn] = useState(false);
   if (!drawn && entered && stageDone) setDrawn(true);
   if (drawn && !entered) setDrawn(false);
+  // the step text waits for the marks (round 2, sign-off #4): the figures'
+  // entry moves start 400ms after the chart is drawn in (motion.js
+  // useEnterState's hold), so the first sentence fades in then too, not
+  // over an empty plot (story.css .is-arming). Not after a jump or a link
+  // (is-snap: everything at once) and not under reduced motion.
+  const [armedRun, setArmedRun] = useState(-1);
+  const arming = drawn && !inline && !reduce && !snap && !entry.instant && armedRun !== entry.run;
+  useEffect(() => {
+    if (!arming) return undefined;
+    const t = setTimeout(() => setArmedRun(entry.run), 400);
+    return () => clearTimeout(t);
+  }, [arming, entry.run]);
   // the answer: once the scene's last card is reached (always when drawn
   // once, under reduced motion and in print, by CSS)
   const answered = once || inline || reduce || active >= lastCard;
@@ -430,7 +455,6 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const answerAfter = answer != null && wide && single && !phone;
   const ctx = { inline: false, once, entered: drawn || (entered && stageDone), instant: entry.instant, run: entry.run, prev: hist.prev, highlight: hl.point ? [hl.point] : hl.ids };
   const sizerCtx = { inline: false, once: false, entered: true, prev: null, highlight: [] };
-  const dots = many && !inline;
   const subTitle = typeof sub === 'string' ? sub : sub?.title;
   const TitleTag = sub ? 'h4' : 'h3';
   const footHere = foot != null ? <div className="scrolly-foot">{foot}</div> : null;
@@ -439,7 +463,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     <EntryCtx.Provider value={entryValue}>
     <HighlightCtx.Provider value={hl}>
     <div
-      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}`}
+      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
       id={id}
       style={footY ? { '--scene-foot': `${footY}px` } : undefined}
     >
@@ -463,19 +487,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       <div className="scrolly-graphic" ref={box} aria-label={label} aria-describedby={hlDesc.node ? hlDesc.id : undefined} role="group" hidden={inline || undefined}>
         {hlDesc.node}
         <div
-          className={`scrolly-graphic-inner${dots ? ' has-dots' : ''}`}
+          className="scrolly-graphic-inner"
           data-step={shown}
           ref={liveRef}
           style={reserve && minH && !inline ? { minHeight: minH } : undefined}
         >
-          {dots ? (
-            <StepDots
-              n={cards}
-              active={once ? Math.max(0, cardSteps.indexOf(shown)) : Math.max(0, cardIndex)}
-              steps={cardSteps.map((i) => steps[i])}
-              onGo={goStep}
-            />
-          ) : null}
           {inline ? null : graphic(shown, reduce, ctx)}
           {question && !pinFull && !inline && !reduce ? (
             <QFrame id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} boxRef={box} onPhase={setStage} />
@@ -487,7 +503,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
           <div className="scrolly-sizers" ref={sizers} aria-hidden="true" inert>
             <FinalState.Provider value>
               {steps.map((s, i) => (
-                <div key={s.id} className={`scrolly-graphic-inner${dots ? ' has-dots' : ''}`}>
+                <div key={s.id} className="scrolly-graphic-inner">
                   {graphic(i, reduce, sizerCtx)}
                 </div>
               ))}
@@ -591,46 +607,3 @@ function goToStep(el, box, reduce) {
   window.scrollTo({ top: Math.max(0, r.top + window.scrollY - y), behavior: reduce ? 'auto' : 'smooth' });
 }
 
-// Where the reader is in the block: one dot per card and "n of m". Each dot
-// is a button ("Step n of m: title", aria-current on the active one) that
-// scrolls to its step; Left and Right (Home, End) move between them. The
-// "n of m" text is data-axis (not a figure, for the number checks).
-// `onGo(k)` brings card k's state up (Scrolly decides how).
-function StepDots({ n, active, steps, onGo }) {
-  const btns = useRef([]);
-  const go = (k, focus) => {
-    const j = Math.max(0, Math.min(n - 1, k));
-    onGo(j);
-    if (focus) btns.current[j]?.focus({ preventScroll: true });
-  };
-  const onKey = (e, i) => {
-    const k = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: n - 1 }[e.key];
-    if (k == null) return;
-    e.preventDefault();
-    go(k, true);
-  };
-  return (
-    <div className="scrolly-dots" role="group" aria-label="Steps" data-axis="">
-      <span className="scrolly-dots-row">
-        {steps.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            ref={(el) => {
-              btns.current[i] = el;
-            }}
-            className={i === active ? 'is-on' : i < active ? 'is-past' : ''}
-            aria-label={`Step ${i + 1} of ${n}${s.title ? `: ${typeof s.title === 'string' ? s.title : ''}` : ''}`.replace(/: $/, '')}
-            aria-current={i === active ? 'step' : undefined}
-            tabIndex={i === active ? 0 : -1}
-            onClick={() => go(i, false)}
-            onKeyDown={(e) => onKey(e, i)}
-          />
-        ))}
-      </span>
-      <span className="scrolly-dots-n" aria-hidden="true">
-        {active + 1} of {n}
-      </span>
-    </div>
-  );
-}
