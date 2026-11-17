@@ -596,14 +596,8 @@ function FiscalRuleCard({ sid }) {
       sources={sourcesItems({ sid, method: 'rules' })}
       icon={iconFor('rule')}
       title="What the fiscal rule changes"
-      controls={
-        <>
-          <RuleTimeline rule={rule} />
-          <p className="ex-roughchip">
-            <Icon name={iconFor('caveat')} size={14} /> The rule picked at the top applies to every chart on this page
-          </p>
-        </>
-      }
+      controls={<RuleTimeline rule={rule} />}
+      read={[{ key: 'rule', icon: 'defaultRule', text: 'The rule picked at the top applies to every chart on this page' }]}
       unit={has ? <Lead c="measure">{`How far each ${HEADLINE_YEAR} gap moves, main arm; the table: every arm, pp`}</Lead> : null}
       logo={false}
       about={has ? {
