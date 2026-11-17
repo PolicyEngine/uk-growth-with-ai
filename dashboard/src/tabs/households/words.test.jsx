@@ -11,8 +11,10 @@ describe('households wording follows the data', () => {
   it('rules: every other rule at least as high as central only when true', () => {
     const c = D.rules.find((r) => r.id === 'exposure');
     const others = D.rules.filter((r) => r.id !== 'exposure');
-    const all = others.every((r) => r.poverty_pp >= c.poverty_pp);
-    expect(rulesWords(D.rules).includes('by at least as much as centrally')).toBe(all);
+    // T15: "least under the central rule" only when every other rule raises poverty more
+    const more = others.every((r) => r.poverty_pp > c.poverty_pp);
+    expect(rulesWords(D.rules).includes('least under the central rule')).toBe(more);
+    if (!more) expect(rulesWords(D.rules).includes('by at least as much as centrally')).toBe(others.every((r) => r.poverty_pp >= c.poverty_pp));
     expect(rulesWords(D.rules).startsWith('Poverty rises under every rule')).toBe(D.rules.every((r) => r.poverty_pp > 0));
   });
   it('rankings: deciles named as changing sign are exactly those that do', () => {

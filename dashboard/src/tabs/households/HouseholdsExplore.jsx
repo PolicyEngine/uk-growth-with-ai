@@ -114,6 +114,8 @@ export function rulesWords(rules, central = 'exposure') {
   const every = rules.every((r) => r.poverty_pp > 0);
   const atLeast = others.filter((r) => r.poverty_pp >= c.poverty_pp).length;
   const lead = every ? 'Poverty rises under every rule' : 'Poverty does not rise under every rule';
+  // T15: "least under the central rule" only when every other rule raises it more
+  if (others.every((r) => r.poverty_pp > c.poverty_pp)) return `${lead}, least under the central rule`;
   if (atLeast === others.length) return `${lead}, by at least as much as centrally under the other ${others.length}`;
   return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the central rule`;
 }
@@ -305,7 +307,7 @@ function Variants() {
 // Junior-tilted and exposure-based sit almost on one point: their labels
 // go to opposite sides.
 const RULES = [
-  { id: 'uniform', label: 'Uniform', lab: 'Uniform', pos: 'r' },
+  { id: 'uniform', label: 'Uniform', lab: 'Uniform', pos: 'b' },
   { id: 'junior', label: 'Junior-tilted (ages 16 to 24)', lab: 'Junior-tilted', pos: 'tl' },
   { id: 'exposure', label: 'In proportion to AI exposure (central)', ring: true, lab: 'AI exposure (central)', pos: 'br' },
   { id: 'compression', label: 'Expertise compression', lab: 'Compression', pos: 'l' },
