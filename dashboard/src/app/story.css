@@ -2602,3 +2602,27 @@
     top: calc(var(--scene-foot) + 8px);
   }
 }
+/* 768-900px, a figure drawn once (not sticky): its cards sit side by side
+   directly under it, not stacked down the page (the second card was up to
+   173px below the figure); the closing line spans both. A card drawn once
+   never dims (the stacked past-card rule above is for sticky scenes). */
+@media (min-width: 768px) and (max-width: 900px) {
+  .scrolly.is-once > .scrolly-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 32px;
+    align-items: start;
+  }
+  .scrolly.is-once > .scrolly-steps > .scrolly-step,
+  .scrolly.is-once > .scrolly-steps > .scrolly-step:nth-last-child(2) {
+    padding-bottom: 0;
+  }
+  .scrolly.is-once > .scrolly-steps > :is(.scrolly-answer, .scrolly-end) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 900px) {
+  .scrolly.is-once:not(.is-single, .is-asking) .scrolly-step.is-past .scrolly-card {
+    opacity: 1;
+  }
+}
