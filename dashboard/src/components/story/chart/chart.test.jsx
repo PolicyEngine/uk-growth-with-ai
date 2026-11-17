@@ -62,14 +62,14 @@ describe('useChartBox', () => {
 });
 
 describe('ModelBadge and Frame', () => {
-  it('names the model with an icon', () => {
+  it('names the model as plain text, no icon (round 1)', () => {
     const { container } = render(<ModelBadge model="aistudy" />);
     expect(container.textContent).toBe(studyLabel());
     expect(studyLabel({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('uk-ai-study · FY 2027–28');
     expect(studyLabel({ provisional: true })).toBe('uk-ai-study · provisional');
-    expect(container.querySelector('svg')).not.toBeNull();
+    expect(container.querySelector('svg')).toBeNull();
   });
-  it('yTitle and xTitle render as icon lines marked data-axis-title', () => {
+  it('yTitle and xTitle render as plain lines marked data-axis-title', () => {
     const { container } = render(
       <Frame title="GDP" yTitle="Gap against the OBR-central path, % of GDP" xTitle="Year">
         <svg />
@@ -77,17 +77,18 @@ describe('ModelBadge and Frame', () => {
     );
     const yT = container.querySelector('p[data-axis-title="y"]');
     expect(yT.textContent).toBe('Gap against the OBR-central path, % of GDP');
-    expect(yT.querySelector('svg')).not.toBeNull();
+    expect(yT.querySelector('svg')).toBeNull();
     expect(container.querySelector('p[data-axis-title="x"]').textContent).toBe('Year');
     expect(yT.compareDocumentPosition(container.querySelector('.ch-plot')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
-  it('every text line of the frame leads with an icon or swatch; reserves are hidden copies', () => {
+  it('the title carries the figure\'s one icon; unit and source none; reserves are hidden copies', () => {
     const { container } = render(
       <Frame model="oguk" title="GDP" titleReserve="GDP against the path" unit="% gap" legend={[{ key: 'a', label: 'UK central', color: 'red' }]} source="Source: OG-UK" sources={<p>Series ids</p>}>
         <svg />
       </Frame>,
     );
-    for (const p of container.querySelectorAll('p.ch-title, p.ch-unit, p.ch-source')) expect(p.querySelector('svg')).not.toBeNull();
+    expect(container.querySelector('p.ch-title svg')).not.toBeNull();
+    for (const p of container.querySelectorAll('p.ch-unit, p.ch-source')) expect(p.querySelector('svg')).toBeNull();
     expect(container.querySelector('.ch-legend li .ch-swatch')).not.toBeNull();
     const ghost = container.querySelector('.ch-ghost');
     expect(ghost.getAttribute('aria-hidden')).toBe('true');

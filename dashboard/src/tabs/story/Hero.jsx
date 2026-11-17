@@ -1,10 +1,6 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
-import { InfoTip } from '@/components/ab/Tip.jsx';
-import CountUp from '@/components/story/CountUp.jsx';
-import { Items } from '@/components/story/Items.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { METHOD } from '@/lib/labels.js';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
@@ -18,12 +14,12 @@ import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR
 // closure chosen in the header; its home is part 2's headline tiles,
 // #story-headline, which it links to; the owner asked for it here too), and
 // a chart of the four scenarios' GDP paths (main arm) over the whole
-// horizon. The chart is complete at rest: on load the lines draw in once
-// (about 1s, CSS, not tied to scroll), the UK range band fades in and the
-// end labels land; under reduced motion all of it is static. Each line is
-// labelled with its name and its 2031 value: at the line end on desktop, as
-// a legend row under the chart at 600px and below (two drawings; CSS shows
-// one, so the hidden one's text is not read), so labels never collide.
+// horizon. The first frame is the final one: the figure is printed as it
+// is (no count-up) and nothing fades or draws in. Each line is labelled
+// with its name and its 2031 value: at the line end on desktop, as a legend
+// row under the chart at 600px and below (two drawings; CSS shows one, so
+// the hidden one's text is not read), so labels never collide. The 2031
+// guide line names the year, so the end values do not repeat it.
 
 // Korinek et al.'s US case is dashed (not calibrated to the UK)
 const LINE = { uk_low: 'uk', uk_central: 'uk', uk_high: 'uk', korinek: 'us' };
@@ -86,7 +82,6 @@ function Fan({ lines, sid, wide }) {
   const labels = wide ? spread(lines.map((l) => ({ ...l, y: Y(l.y[last]) })), fs * 2.6, T, B - fs) : [];
   // the chosen scenario drawn last, on top
   const order = [...lines].sort((a, b) => (a.id === sid) - (b.id === sid));
-  const clip = `hf-clip-${wide ? 'w' : 'n'}`;
   const on = (l) => (l.id === sid ? ' is-on' : '');
   return (
     <svg
@@ -96,11 +91,6 @@ function Fan({ lines, sid, wide }) {
       aria-label={`GDP gap against the OBR-central path, ${YEARS[0]} to ${YEARS[last]}, four scenarios, main arm`}
       style={{ '--hf-fs': `${fs}px` }}
     >
-      <defs>
-        <clipPath id={clip}>
-          <rect className="hf-reveal" x={L - 3} y={0} width={R - L + 6} height={H} />
-        </clipPath>
-      </defs>
       <text className="hf-axis-title" data-axis-title="y" data-axis="" x={2} y={fs + 2}>
         {HERO_AXIS_TITLE}
       </text>
@@ -141,11 +131,9 @@ function Fan({ lines, sid, wide }) {
           </text>
         </g>
       ) : null}
-      <g clipPath={`url(#${clip})`}>
-        {order.map((l) => (
-          <path key={l.id} d={pathD(l.y, X, Y)} className={`hf-line is-${LINE[l.id]}${on(l)}`} data-mark={l.id} />
-        ))}
-      </g>
+      {order.map((l) => (
+        <path key={l.id} d={pathD(l.y, X, Y)} className={`hf-line is-${LINE[l.id]}${on(l)}`} data-mark={l.id} />
+      ))}
       {order.map((l) => (
         <circle key={l.id} className={`hf-dot is-${LINE[l.id]}${on(l)}`} cx={XY(HEADLINE_YEAR)} cy={Y(l.at)} r={l.id === sid ? 4.5 : 3.5} data-mark={l.id} />
       ))}
@@ -153,7 +141,7 @@ function Fan({ lines, sid, wide }) {
         <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - fs * 0.5}>
           <tspan className="hf-end-name">{l.name}</tspan>
           <tspan x={X(last) + 10} dy={fs * 1.3} className="hf-end-value">
-            {fmt(l.at)} in {HEADLINE_YEAR}
+            {fmt(l.at)}
           </tspan>
         </text>
       ))}
@@ -183,25 +171,25 @@ export default function Hero() {
           {sel ? (
             <div className="hf-figure">
               <NavLink tab="story" anchor="story-headline" className={`hf-figure-value ${tone}`} aria-label={`GDP ${fmt(sel.at)} against the OBR-central path in ${HEADLINE_YEAR}: the headline figures in part 2`}>
-                <span data-path={`results.${sid}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}`}>
-                  <CountUp value={fmt(sel.at)} />
-                </span>
+                <span data-path={`results.${sid}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}`}>{fmt(sel.at)}</span>
               </NavLink>
               <p className="hf-figure-label">
-                GDP against the OBR-central path in {HEADLINE_YEAR}
-                <InfoTip label="What is the OBR-central path?">
-                  The path every figure here is compared with: the economy without the shock, growing at the OBR&rsquo;s central rate. It is defined under {METHOD.shock.label} on Method.
-                </InfoTip>
+                GDP against the{' '}
+                <NavLink tab="method" anchor={METHOD.shock.id}>
+                  OBR-central path
+                </NavLink>{' '}
+                in {HEADLINE_YEAR}
                 <span className="hf-figure-meta">
-                  {sel.name} scenario, {closure} ·{' '}
-                  <NavLink tab="story" anchor="story-headline">
-                    headline figures, part 2
-                  </NavLink>
+                  {sel.name} scenario, {closure}: a scenario result, not a forecast
                 </span>
               </p>
             </div>
           ) : null}
-          <Items className="hero-a hero-items" items={rest} />
+          {rest.map((it) => (
+            <p key={it.text} className="hero-a hf-statement">
+              {it.text}.
+            </p>
+          ))}
         </div>
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands
@@ -211,9 +199,6 @@ export default function Hero() {
         <Fan lines={lines} sid={sid} wide />
         <Fan lines={lines} sid={sid} wide={false} />
         <ul className="hf-legend" aria-label={`The four scenarios, GDP gap in ${HEADLINE_YEAR}`}>
-          <li className="hf-legend-title">
-            <Icon name={iconFor('period')} size={13} /> In {HEADLINE_YEAR}:
-          </li>
           {lines.map((l) => (
             <li key={l.id} className={`hf-chip is-${LINE[l.id]}${l.id === sid ? ' is-on' : ''}`} data-mark={l.id}>
               <span className="hf-swatch" aria-hidden="true" />
@@ -222,13 +207,13 @@ export default function Hero() {
           ))}
         </ul>
         <figcaption className="story-source">
-          <Icon name={iconFor('source')} size={13} className="p1-source-icon" /> Main arm (automation and productivity), {closure}; the other arms and closures are in part 2. Source:{' '}
+          Main arm, {closure}. Source:{' '}
           <a href={REPO} target="_blank" rel="noopener noreferrer">
             OG-UK runs, PolicyEngine
           </a>
-          ; how they are built:{' '}
+          ;{' '}
           <NavLink tab="method" anchor="m-model">
-            Method
+            method
           </NavLink>
           .
         </figcaption>

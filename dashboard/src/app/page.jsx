@@ -5,11 +5,10 @@ import StoryTab from "@/tabs/story/StoryTab.jsx";
 import ExploreTab from "@/tabs/explore/ExploreTab.jsx";
 import MethodSourcesTab from "@/tabs/method/MethodSourcesTab.jsx";
 import ViewTabs from "@/components/ab/ViewTabs.jsx";
-import Icon from "@/components/ab/Icon.jsx";
 import Picker from "@/components/ui/Picker.jsx";
-import { iconFor } from "@/lib/concepts.js";
 import AI_STUDY from "@/data/aiStudy2425.json";
 import AsOf from "@/components/story/AsOf.jsx";
+import { Hy } from "@/components/story/Hy.jsx";
 import { NavProvider, useNav, subOf } from "@/lib/nav.jsx";
 import SettingsBar, {
   CopyLink,
@@ -30,15 +29,14 @@ import { TABS, tabById, pickersFor, PAGE_TITLE } from "@/lib/labels.js";
 // pickers show is set per tab and sub-tab (labels.js). All state lives in
 // the address (lib/nav.jsx).
 
-// What each page's results can and cannot say: one short icon item per
-// model, in one line under the tabs.
+// What each page's results can and cannot say, and the "As of" stamp: one
+// meta line under the tabs (round 1: the scope lines and "As of" were three
+// lines with an icon each; now one line, no icon, middle dots between).
 const SCOPE = {
   oguk: {
-    icon: "model",
-    text: "OG-UK, the whole economy: gaps against the OBR-central path, not forecasts; no unemployment",
+    text: "OG-UK: gaps against the OBR-central path, not forecasts; no unemployment",
   },
   study: {
-    icon: "households",
     text: `uk-ai-study: households in ${AI_STUDY.model_year_label} if some employees lose their jobs`,
   },
 };
@@ -145,19 +143,19 @@ function Shell() {
       </div>
       {settings ? <SettingsBar pick={pick} /> : null}
       <div className="main-content" id="main-content" tabIndex={-1}>
-        {pick.study && settings ? null : (
-          <ul
-            className="scope-strip scope-items"
-            aria-label="What these results are"
-          >
-            {scopeFor(st.tab, sub).map((t) => (
-              <li key={t.text} className="scope-item">
-                <Icon name={iconFor(t.icon)} size={14} /> {t.text}
-              </li>
-            ))}
-          </ul>
-        )}
-        <AsOf />
+        <p className="scope-line" data-cite="">
+          {pick.study && settings
+            ? null
+            : scopeFor(st.tab, sub).map((t) => (
+                <span key={t.text} className="scope-item">
+                  <Hy>{t.text}</Hy>
+                  <span className="scope-sep" aria-hidden="true">
+                    {" · "}
+                  </span>
+                </span>
+              ))}
+          <AsOf inline />
+        </p>
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (

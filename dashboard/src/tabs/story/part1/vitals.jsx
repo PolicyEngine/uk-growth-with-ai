@@ -3,17 +3,19 @@
 import { useSyncExternalStore } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { BICS_WAVE, FACTS, SERIES, SOURCES, pageOf } from './data.js';
+import { BICS_WAVE, FACTS, LINKS, SERIES, SOURCES, pageOf } from './data.js';
 import { Ext } from './frame.jsx';
-import { dateLong, dirOf, dirWord, idx1, pct1 } from './format.js';
+import { dateLong, dirWord, idx1, pct1 } from './format.js';
 
 // The UK vitals panel that opens part 1: seven tiles, each the latest
-// published figure for one series (value, period, sparkline, release date,
-// next release where the publisher lists one, and a link to the source's
-// page). It is the home of these seven figures: the step cards below do not
-// repeat them. Each value is marked with its data-path, as in the cards.
-// Sparklines are decorative (aria-hidden, no text), drawn from the series
-// the charts below draw in full.
+// published figure for one series, as three things: the name (with the
+// tile's one icon), the value with a sparkline, and one sub-line (what the
+// value measures and its period). Release dates and source links are in
+// one fold under the grid, "Sources and release dates". It is the home of
+// these seven figures, and of GDP's year-on-year growth (the GDP sub-line):
+// the step cards below do not repeat them. Each value is marked with its
+// data-path. Sparklines are decorative (aria-hidden, no text), drawn from
+// the series the charts below draw.
 
 const short = (s) => ({ 'Office for National Statistics': 'ONS' })[s.publisher] ?? s.publisher;
 
@@ -116,68 +118,75 @@ const noSubscribe = () => () => {};
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const useToday = () => useSyncExternalStore(noSubscribe, todayIso, () => null);
 
-function Tile({ v, today }) {
+// The GDP tile's sub-line also holds the year-on-year growth (its home)
+// and says the quarter is a first estimate.
+function GdpExtra() {
+  const y = FACTS.gdp_quarterly_yoy;
+  const first = /first estimate/i.test(FACTS.gdp_quarterly_latest.note ?? '');
+  return (
+    <>
+      {first ? ', first estimate' : null}; <span data-path="facts.gdp_quarterly_yoy.value">{pct1(y.value)}</span> on a year earlier
+    </>
+  );
+}
+
+function Tile({ v }) {
   const f = FACTS[v.fact];
   const s = SERIES[v.series];
-  const src = SOURCES[f.source];
   const path = `facts.${v.fact}.value`;
   const text = (v.format ?? pct1)(f.value);
-  const first = /first estimate/i.test(f.note ?? '');
-  const next = src.next_release;
   return (
     <li id={`p1-vital-${v.key}`} className="p1-vital" data-vital={v.key}>
-      <p className="p1-vital-main">
-        <span className="p1-vital-name">
-          <Icon name={iconFor(v.icon)} size={15} className="p1-text-icon" />
-          {v.name}
-          {first ? (
-            <span className="p1-flag">
-              <Icon name={iconFor('revision')} size={11} /> First estimate
-            </span>
-          ) : null}
-        </span>{' '}
-        <span className="p1-vital-value">
-          {v.growth ? (
-            <span className="p1-vital-dir" aria-hidden="true">
-              <Icon name={iconFor(dirOf(f.value))} size={16} />
-            </span>
-          ) : null}
-          <Ext href={pageOf(f.source)} className="p1-val-link">
-            <span className={v.growth ? 'p1-growth' : undefined} data-dir={v.growth ? dirOf(f.value) : undefined} data-path={path}>
-              {text}
-            </span>
-          </Ext>
-          <Spark ys={s.y} />
-        </span>{' '}
-        <span className="p1-vital-label">{v.growth ? `${dirWord(f.value)}, ${v.label}` : v.label}</span>
-        <span className="p1-vital-sub">Through {periodOf(f.period)}</span>
-      </p>
-      <p className="p1-vital-cite" data-cite="">
-        <span className="p1-vital-meta">
-          Released {dateShort(src.released)}
-          {next && today ? (
-            <>
-              <br />
-              {next >= today ? `Next ${dateShort(next)}` : `Newer figures out ${dateShort(next)}, not shown`}
-            </>
-          ) : null}
-        </span>
-        <span className="p1-vital-src">
-          <Icon name={iconFor('source')} size={11} className="p1-source-icon" />
-          <Ext href={pageOf(f.source)}>
-            {short(src)}, {v.cite ?? src.series.replace(/\s*\(.*$/, '')}
-          </Ext>
-          {src.url !== pageOf(f.source) ? (
-            <>
-              {' · '}
-              <Ext href={src.url}>{src.data_label ?? 'data'}</Ext>
-            </>
-          ) : null}
-        </span>
+      {v.key === 'gdp' ? <span id="p1-quarters" className="p1-anchor" aria-hidden="true" /> : null}
+      <p className="p1-vital-name">
+        <Icon name={iconFor(v.icon)} size={15} className="p1-text-icon" />
+        {v.name}
+      </p>{' '}
+      <p className="p1-vital-value">
+        <span data-path={path}>{text}</span>
+        <Spark ys={s.y} />
+      </p>{' '}
+      <p className="p1-vital-sub">
+        {v.growth ? `${dirWord(f.value)} ${v.label}` : v.label}, {periodOf(f.period)}
+        {v.key === 'gdp' ? <GdpExtra /> : null}
       </p>
     </li>
   );
 }
+
+// The fold's line for one tile: the dataset, linked to its readable page
+// (and its data download where that differs), the release date, and the
+// next release where the publisher lists one after today.
+function SourceItem({ v, today }) {
+  const f = FACTS[v.fact];
+  const src = SOURCES[f.source];
+  const next = src.next_release;
+  return (
+    <li data-cite="">
+      {v.name}: <Ext href={pageOf(f.source)}>{short(src)}, {v.cite ?? src.series.replace(/\s*\(.*$/, '')}</Ext>
+      {src.url !== pageOf(f.source) ? (
+        <>
+          {' '}
+          (<Ext href={src.url}>{src.data_label ?? 'data'}</Ext>)
+        </>
+      ) : null}
+      , released {dateShort(src.released)}
+      {next && today ? (next >= today ? `; next ${dateShort(next)}` : `; newer figures out ${dateShort(next)}, not shown`) : null}.
+    </li>
+  );
+}
+
+// Definitions and caveats for the two series only the panel shows
+// (unemployment and the employee share), moved from the step cards.
+const NOTES = [
+  <Ext key="ilo" href={LINKS.ons_lm_guide?.url}>
+    Unemployment, ILO definition: jobless, looking for work, able to start
+  </Ext>,
+  'Unemployment rate: share of the economically active, aged 16 and over',
+  'Employee share: pay and employers’ contributions over GDP, two ONS series',
+  `The share is annual, current prices; ${SERIES.labour_share.x.at(-1)} the latest full year`,
+  'It leaves out self-employed income, so is below wider measures of labour’s share',
+];
 
 export default function Vitals() {
   const today = useToday();
@@ -186,19 +195,26 @@ export default function Vitals() {
     .at(-1);
   return (
     <section id="p1-vitals" className="p1-vitals" aria-labelledby="p1-vitals-title">
-      <header className="p1-vitals-head">
-        <h3 id="p1-vitals-title">
-          <Icon name={iconFor('record')} size={18} className="p1-text-icon" /> UK vitals: the latest published figures
-        </h3>
-        <p className="p1-vitals-asof">
-          <Icon name={iconFor('period')} size={14} className="p1-text-icon" /> Data as of {dateLong(asOf)}, the latest release used
-        </p>
-      </header>
+      <h3 id="p1-vitals-title" className="p1-vitals-title">
+        <Icon name={iconFor('record')} size={18} className="p1-text-icon" /> UK vitals: the latest published figures
+      </h3>
       <ul className="p1-vitals-grid">
         {VITALS.map((v) => (
-          <Tile key={v.key} v={v} today={today} />
+          <Tile key={v.key} v={v} />
         ))}
       </ul>
+      <details className="p1-sources p1-vitals-sources">
+        <summary>Sources and release dates</summary>
+        <ul className="p1-sources-list">
+          <li>Data as of {dateLong(asOf)}, the latest release used.</li>
+          {VITALS.map((v) => (
+            <SourceItem key={v.key} v={v} today={today} />
+          ))}
+          {NOTES.map((n, i) => (
+            <li key={`n${i}`}>{n}</li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }

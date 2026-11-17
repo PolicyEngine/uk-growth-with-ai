@@ -1,13 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useEnterState, useInView } from '@/components/story/motion.js';
-import { NumMark } from '@/components/story/highlight.jsx';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
-import { BICS_WAVE, EXPOSURE_GROUPS, OBR, OBR_VINTAGE, SERIES } from './data.js';
+import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
-import { idx1, pct1, span3 } from './format.js';
+import { idx1, pct1, span3, tick } from './format.js';
 
 // Part 1's graphics: four figures, each drawing the complete picture for
 // the active state of its scrolly block. Nothing prints a value (the cards
@@ -70,7 +68,7 @@ const OUT_M = { l: 34, r: 8, t: 22, b: 24 };
 // the first two and the last.
 export const OBR_NAMED = [0, 1, OBR.y.length - 1];
 
-export function OutputCanvas({ state }) {
+export function OutputCanvas({ state, notes }) {
   const [ref, seen] = useInView();
   const [box, w, h] = useBox(OUT_H);
   const clip = useSvgId('p1-out-clip');
@@ -142,6 +140,7 @@ export function OutputCanvas({ state }) {
         { id: 'ons_ihyr', name: 'GDP growth on a year earlier' },
       ]}
       through={`${lastQ}, first estimate`}
+      notes={notes}
     />
   ) : (
     <SourceLine
@@ -150,6 +149,7 @@ export function OutputCanvas({ state }) {
         ...(fc ? [{ id: OBR.source, name: `Economic and fiscal outlook, ${OBR_VINTAGE}`, detail: 'Table A.1' }] : []),
       ]}
       through={fc ? `${gLast}; OBR forecast to ${x1}` : String(gLast)}
+      notes={notes}
     />
   );
 
@@ -232,12 +232,6 @@ export function OutputCanvas({ state }) {
               />
             ))}
           </g>
-          {/* numbered markers on the three forecast years the card names */}
-          <g className="p1-only-fc">
-            {OBR_NAMED.map((oi, n) => (
-              <NumMark key={oi} n={n + 1} x={XA(OBR.x[oi])} y={YA(OBR.y[oi]) - 15} r={8} mark="obr-forecast" />
-            ))}
-          </g>
           {/* band labels, above the plot */}
           <text x={startA(2020) + 2} y={T - 8} className="p1-note p1-only-a">
             Pandemic
@@ -291,32 +285,20 @@ export function OutputCanvas({ state }) {
 }
 
 // ---------------------------------------------------------------------------
-// Scene 1B. The labour board: one large panel with the step's series and
-// full axes, over four sparklines of the other series (line, name, end dot,
-// no axes, each on its own scale). Each series is drawn once, in a unit box
-// on its own domain; its group's transform places it in the panel or in a
-// sparkline slot, so a change of focus is a view change of the same data:
-// the incoming series grows from its slot into the panel while the old one
-// shrinks into the slot it leaves. The axes then fade in for the new focus.
-// Clicking a sparkline (`onPick(i)`) brings its step to the trigger line,
-// the same as scrolling to it.
+// Scene 1B. The labour board: one panel, the step's series with its full
+// axes (employment, regular pay growth, output per hour; one per card).
+// Each series is drawn once in a unit box on its own domain and placed in
+// the panel; a change of focus fades the old series and axes out and the
+// new ones in. Unemployment and the employee share are in UK vitals only.
 
 const N = 1000; // the unit box each series is drawn in
-const BOARD_H = 246;
-const BOARD_M = { l: 34, r: 8, t: 10 };
-const PANEL_B = 154;
-const STRIP_NOTE_Y = 193;
-const STRIP_NAME_Y = 210;
-const SPARK = { y: 216, h: 26 };
-const CELL_GAP = 14;
-const FALLBACK_COLS = 4; // the fallback width (520) takes four in a row
+const BOARD_H = 230;
+const BOARD_M = { l: 34, r: 8, t: 10, b: 28 };
 
 export const boardSeries = () => {
   const e = SERIES.employment_rate;
-  const u = SERIES.unemployment_rate;
   const p = SERIES.pay_growth;
   const o = SERIES.productivity_oph;
-  const s = SERIES.labour_share;
   const span = (x) => `${x.x[0].slice(0, 4)} to ${span3(x.last)}`;
   const rolling = 'rolling three-month averages, seasonally adjusted';
   return [
@@ -332,20 +314,6 @@ export const boardSeries = () => {
       title: `Employment rate, ${span(e)}`,
       unit: `Per cent of people aged 16 to 64; ${rolling}`,
       src: [{ id: e.source, name: 'employment rate' }],
-    },
-    {
-      key: 'unemployment_rate',
-      mark: 'unemployment',
-      tipUnit: '% of economically active people, three-month average',
-      s: u,
-      zero: true,
-      icon: 'labour',
-      name: 'Unemployment',
-      long: 'the unemployment rate for people aged 16 and over',
-      span: span(u),
-      title: `Unemployment rate, ${span(u)}`,
-      unit: `Per cent of economically active people aged 16 and over; ${rolling}`,
-      src: [{ id: u.source, name: 'unemployment rate' }],
     },
     {
       key: 'pay_growth',
@@ -375,22 +343,6 @@ export const boardSeries = () => {
       unit: 'Index, 2023 = 100, quarterly, seasonally adjusted',
       src: [{ id: o.source, name: 'output per hour worked' }],
     },
-    {
-      key: 'labour_share',
-      mark: 'share',
-      tipUnit: '% of GDP',
-      s,
-      icon: 'labourShare',
-      name: 'Employee share',
-      long: 'compensation of employees as a share of GDP, annual',
-      span: `${s.x[0]} to ${s.x[s.x.length - 1]}`,
-      title: `Compensation of employees as a share of GDP, ${s.x[0]} to ${s.x[s.x.length - 1]}`,
-      unit: `Per cent of GDP at current prices, annual; ends at ${s.x[s.x.length - 1]}, the latest full year`,
-      src: [
-        { id: 'ons_dtwm', name: 'compensation of employees' },
-        { id: 'ons_ybha', name: 'GDP at current prices' },
-      ],
-    },
   ];
 };
 
@@ -414,50 +366,19 @@ const periodLabel = (x) => {
   return m ? `${m[2][0]}${m[2].slice(1).toLowerCase()} ${m[1]}` : String(x);
 };
 
-const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs.join(''));
-
-export function LabourBoard({ focus, onPick }) {
-  // a click on a sparkline brings that series into the panel until the
-  // step changes (each card sets a focus; five series, three cards); a
-  // link to an old id for a series no card focuses (#p1-share) sends a
-  // 'p1-board-pick' event with the series' index (Part1.jsx). A change of
-  // step clears the pick, so it never comes back on scrolling back.
-  const [pick, setPick] = useState(null);
-  const [seenFocus, setSeenFocus] = useState(focus);
-  if (seenFocus !== focus) {
-    setSeenFocus(focus);
-    setPick(null);
-  }
-  const picked = pick;
-  useEffect(() => {
-    const on = (e) => setPick(e.detail);
-    window.addEventListener('p1-board-pick', on);
-    return () => window.removeEventListener('p1-board-pick', on);
-  }, []);
+export function LabourBoard({ focus, notes }) {
   const [ref, seen] = useInView();
-  const [box, w, hBox] = useBox(BOARD_H + (FALLBACK_COLS < 4 ? 44 : 0));
+  const [box, w, h] = useBox(BOARD_H);
   const gid = useSvgId('p1-pay-fade');
   const all = boardSeries();
-  const L = BOARD_M.l;
+  // the left margin holds the widest tick label of the three series (an
+  // index tick such as 102.5 is five characters), at about 7px a character
+  const widest = Math.max(...all.map((x) => Math.max(...unitSeries(x).d.ticks.map((t) => tick(t).length))));
+  const L = Math.max(BOARD_M.l, Math.ceil(widest * 7.2 + 10));
   const R = w - BOARD_M.r;
   const T = BOARD_M.t;
-  // four sparklines in a row; two rows of two below 480px, where four
-  // names would collide
-  const cols = w < 480 ? 2 : 4;
-  const rowH = 44;
-  // the strip is fixed at the foot; the panel takes the rest
-  const boardH = Math.max(hBox, BOARD_H + (4 / cols - 1) * rowH);
-  const dy = boardH - BOARD_H - (4 / cols - 1) * rowH; // extra height above the strip
-  const B = PANEL_B + dy;
-  const cellW = (R - L - (cols - 1) * CELL_GAP) / cols;
-  const f = Math.max(0, Math.min(picked ?? focus, all.length - 1));
-  const others = all.filter((_, i) => i !== f);
-  const slotOf = (i) => {
-    if (i === f) return { x: L, y: T, w: R - L, h: B - T };
-    const k = others.indexOf(all[i]);
-    const row = Math.floor(k / cols);
-    return { x: L + (k % cols) * (cellW + CELL_GAP), y: SPARK.y + dy + row * rowH, w: cellW, h: SPARK.h, nameY: STRIP_NAME_Y + dy + row * rowH };
-  };
+  const B = h - BOARD_M.b;
+  const f = Math.max(0, Math.min(focus, all.length - 1));
   const cur = all[f];
   // the crosshair reads the series in focus, as its card formats it
   const ct = cur.s.t ?? cur.s.x;
@@ -470,104 +391,76 @@ export function LabourBoard({ focus, onPick }) {
     unit: cur.tipUnit,
     series: [{ key: cur.key, name: cur.name, icon: cur.icon, color: 'var(--pe-gray-800)', ys: cur.s.y, format: cur.key === 'productivity_oph' ? idx1 : pct1 }],
   };
-  const label = `Line chart: ${cur.long}, ${cur.span}. Four smaller charts below it show ${andList(others.map((o) => o.name.toLowerCase()))}, each on its own scale.`;
+  const label = `Line chart: ${cur.long}, ${cur.span}.`;
+  const tr = `translate(${L}px, ${T}px) scale(${((R - L) / N).toFixed(5)}, ${((B - T) / N).toFixed(5)})`;
   return (
     <Figure
       icon={cur.icon}
       innerRef={ref}
       title={cur.title}
-      titleReserve={longest(all.map((b) => b.title))}
+      titleReserve={longest(all.map((x) => x.title))}
       unit={cur.unit}
-      unitReserve={longest(all.map((b) => b.unit))}
-      source={<SourceLine items={cur.src} through={periodLabel(cur.s.last ?? cur.s.x[cur.s.x.length - 1])} />}
+      unitReserve={longest(all.map((x) => x.unit))}
+      source={<SourceLine items={cur.src} through={periodLabel(cur.s.last ?? cur.s.x[cur.s.x.length - 1])} notes={notes} />}
       className="p1-board"
     >
       <div ref={box} className="p1-plot">
-        <Crosshair {...boardCross} width={w} height={boardH} top={T} bottom={B} label={label}>
-        <g className={`p1-board-svg${seen ? ' is-seen' : ''}`} data-focus={f}>
-          {all.map((b, i) => {
-            const u = unitSeries(b);
-            const Y = linear(u.d.lo, u.d.hi, B, T);
-            const X = linear(u.t[0], u.t[u.t.length - 1], L, R);
-            const xt = yearTicks(u.t[0], u.t[u.t.length - 1]).map((yr) => {
-              const x = X(Math.max(yr, u.t[0]));
-              return { key: yr, x, label: String(yr), anchor: x > R - 16 ? 'end' : x < L + 16 ? 'start' : 'middle' };
-            });
-            return (
-              <g key={b.key} className={`p1-board-axes${i === f ? ' is-on' : ''}`}>
-                <YGrid ticks={u.d.ticks} Y={Y} x0={L} x1={R} />
-                <XTicks ticks={xt} y={B + 18} />
-              </g>
-            );
-          })}
-          <text x={L} y={STRIP_NOTE_Y + dy} className="p1-note">
-            The other four, each on its own scale
-          </text>
-          {all.map((b, i) => {
-            const u = unitSeries(b);
-            const sl = slotOf(i);
-            const on = i === f;
-            const tr = `translate(${sl.x.toFixed(2)}px, ${sl.y.toFixed(2)}px) scale(${(sl.w / N).toFixed(5)}, ${(sl.h / N).toFixed(5)})`;
-            const ex = sl.x + (u.end[0] * sl.w) / N;
-            const ey = sl.y + (u.end[1] * sl.h) / N;
-            return (
-              <g key={b.key} className={`p1-board-series${on ? ' is-focus' : ''}`} data-mark={b.mark} style={mk(b.mark)}>
-                {u.area ? (
-                  <defs>
-                    <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={u.top} y2={u.zeroV}>
-                      <stop offset="0" stopColor={P1_MARKS.pay.color} stopOpacity="0.18" />
-                      <stop offset="1" stopColor={P1_MARKS.pay.color} stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                ) : null}
-                <g className="p1-board-move" style={{ transform: tr }}>
-                  {u.area ? <path d={u.area} className="p1-board-area" style={{ fill: `url(#${gid})` }} /> : null}
-                  <path d={u.d0} className={`p1-board-line${seen ? ' is-drawn' : ''}`} />
-                </g>
-                <circle cx={0} cy={0} r={3.5} className="p1-board-end p1-board-move" style={{ transform: `translate(${ex.toFixed(2)}px, ${ey.toFixed(2)}px)` }} />
-                <text x={0} y={0} className={`p1-spark-name${on ? '' : ' is-on'}`} style={{ transform: `translate(${sl.x.toFixed(2)}px, ${sl.nameY ?? STRIP_NAME_Y}px)` }}>
-                  {b.name}
-                </text>
-              </g>
-            );
-          })}
-        </g>
-        </Crosshair>
-        {onPick !== false ? (
-          <div className="p1-spark-hits">
-            {others.map((o) => {
-              const i = all.indexOf(o);
-              const sl = slotOf(i);
+        <Crosshair {...boardCross} width={w} height={h} top={T} bottom={B} label={label}>
+          <g className={`p1-board-svg${seen ? ' is-seen' : ''}`} data-focus={f}>
+            {all.map((x, i) => {
+              const u = unitSeries(x);
+              const Y = linear(u.d.lo, u.d.hi, B, T);
+              const X = linear(u.t[0], u.t[u.t.length - 1], L, R);
+              const xt = yearTicks(u.t[0], u.t[u.t.length - 1]).map((yr) => {
+                const xx = X(Math.max(yr, u.t[0]));
+                return { key: yr, x: xx, label: String(yr), anchor: xx > R - 16 ? 'end' : xx < L + 16 ? 'start' : 'middle' };
+              });
               return (
-                <button
-                  key={o.key}
-                  type="button"
-                  className="p1-spark-hit"
-                  style={{ left: `${(sl.x / w) * 100}%`, width: `${(sl.w / w) * 100}%`, top: sl.nameY - 14, height: SPARK.h + SPARK.y - STRIP_NAME_Y + 18 }}
-                  aria-label={`Show ${o.name.toLowerCase()} on the large chart`}
-                  onClick={() => {
-                    setPick(i);
-                    onPick?.(i);
-                  }}
-                />
+                <g key={x.key} className={`p1-board-axes${i === f ? ' is-on' : ''}`}>
+                  <YGrid ticks={u.d.ticks} Y={Y} x0={L} x1={R} />
+                  <XTicks ticks={xt} y={B + 18} />
+                </g>
               );
             })}
-          </div>
-        ) : null}
+            {all.map((x, i) => {
+              const u = unitSeries(x);
+              const on = i === f;
+              const ex = L + (u.end[0] * (R - L)) / N;
+              const ey = T + (u.end[1] * (B - T)) / N;
+              return (
+                <g key={x.key} className={`p1-board-series${on ? ' is-focus' : ''}`} data-mark={x.mark} style={mk(x.mark)}>
+                  {u.area ? (
+                    <defs>
+                      <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={u.top} y2={u.zeroV}>
+                        <stop offset="0" stopColor={P1_MARKS.pay.color} stopOpacity="0.18" />
+                        <stop offset="1" stopColor={P1_MARKS.pay.color} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  ) : null}
+                  <g style={{ transform: tr }}>
+                    {u.area ? <path d={u.area} className="p1-board-area" style={{ fill: `url(#${gid})` }} /> : null}
+                    <path d={u.d0} className={`p1-board-line${seen ? ' is-drawn' : ''}`} />
+                  </g>
+                  <circle cx={ex} cy={ey} r={3.5} className="p1-board-end" />
+                </g>
+              );
+            })}
+          </g>
+        </Crosshair>
       </div>
     </Figure>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Scene 1C. AI arrives: the share of businesses using AI by survey wave
-// (state 0: all businesses; 1: + businesses with 10 or more employees),
-// then the exposure tiles.
+// Scene 1C. AI arrives: the share of businesses using AI by survey wave,
+// all businesses and those with 10 or more employees (whose end label
+// carries their latest value, its home), then the exposure tiles.
 
 const AI_H = 204;
 const AI_M = { l: 34, r: 10, t: 12, b: 24 };
 
-export function AiUseChart({ state }) {
+export function AiUseChart({ notes }) {
   const [ref, seen] = useInView();
   const [box, w, aiH] = useBox(AI_H);
   const gid = useSvgId('p1-ai-fade');
@@ -582,7 +475,6 @@ export function AiUseChart({ state }) {
   const D = niceTicks([...a.y, ...b.y], { withZero: true });
   const X = linear(0, last, L + 4, R - 4);
   const Y = linear(D.lo, D.hi, B, T);
-  const two = state >= 1;
   const short = (d) => d.replace(/^\d+ /, '');
   const dA = linePath(X, Y, idx, a.y);
   const area = `${dA}L${X(last).toFixed(1)},${Y(0).toFixed(1)}L${X(0).toFixed(1)},${Y(0).toFixed(1)}Z`;
@@ -590,7 +482,7 @@ export function AiUseChart({ state }) {
   // character at 12px), above the highest point of the upper line and
   // below the lowest point of the lower one
   const under = (ys, chars) => idx.filter((i) => X(i) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
-  const tenY = Math.max(T + 10, Math.min(...under(b.y, 20)) - 9);
+  const tenY = Math.max(T + 10, Math.min(...under(b.y, 27)) - 9);
   const allY = Math.min(B - 4, Math.max(...under(a.y, 14)) + 17);
   return (
     <Figure
@@ -598,7 +490,7 @@ export function AiUseChart({ state }) {
       innerRef={ref}
       title={`Businesses using at least one AI technology, ${short(a.x[0])} to ${short(a.x[last])}`}
       unit="Per cent of businesses using at least one AI technology"
-      source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} through={`Wave ${BICS_WAVE}, ${a.x[last]}`} />}
+      source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} through={`Wave ${BICS_WAVE}, ${a.x[last]}`} notes={notes} />}
       className="p1-ai"
     >
       <div ref={box} className="p1-plot">
@@ -614,11 +506,11 @@ export function AiUseChart({ state }) {
           unit="Per cent of businesses"
           series={[
             { key: 'all', name: 'All businesses', icon: 'business', color: 'var(--pe-gray-800)', ys: a.y, format: pct1 },
-            ...(two ? [{ key: 'ten', name: '10 or more employees', icon: 'business', color: 'var(--pe-gray-500)', ys: b.y, format: pct1 }] : []),
+            { key: 'ten', name: '10 or more employees', icon: 'business', color: 'var(--pe-gray-500)', ys: b.y, format: pct1 },
           ]}
-          label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses${two ? ', and businesses with 10 or more employees' : ''}.`}
+          label={`Line chart: share of businesses using at least one AI technology, by survey wave from ${a.x[0]} to ${a.x[last]}, all businesses, and businesses with 10 or more employees.`}
         >
-        <g className={`p1-ai-svg${two ? ' is-two' : ''}`} style={{ '--mk-all': P1_MARKS['ai-all'].color, '--mk-ten': P1_MARKS['ai-ten'].color }}>
+        <g className="p1-ai-svg is-two" style={{ '--mk-all': P1_MARKS['ai-all'].color, '--mk-ten': P1_MARKS['ai-ten'].color }}>
           <defs>
             <linearGradient id={gid} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={Y(Math.max(...a.y))} y2={Y(0)}>
               <stop offset="0" stopColor={P1_MARKS["ai-all"].color} stopOpacity="0.18" />
@@ -637,16 +529,16 @@ export function AiUseChart({ state }) {
             Survey wave, dated at its midpoint
           </text>
           <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} data-mark="ai-all" />
-          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen && two ? ' is-on' : ''}`} data-mark="ai-ten" />
+          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen ? ' is-on' : ''}`} data-mark="ai-ten" />
           <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
           {idx.map((i) => (
             <g key={i}>
-              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen && two ? ' is-on' : ''}`} data-mark="ai-ten" />
+              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen ? ' is-on' : ''}`} data-mark="ai-ten" />
               <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
             </g>
           ))}
-          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${two ? ' is-on' : ''}`} data-mark="ai-ten">
-            10 or more employees
+          <text x={X(last) - 4} y={tenY} textAnchor="end" className="p1-end-label is-ten is-on" data-mark="ai-ten">
+            10 or more employees, <tspan data-path="facts.business_ai_use_10plus.value">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
           </text>
           <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on" data-mark="ai-all">
             All businesses
