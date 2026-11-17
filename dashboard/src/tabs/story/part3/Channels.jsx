@@ -123,25 +123,6 @@ function ChannelsFigure({ ctx }) {
       <span className="p3-wf-axis" data-axis="" aria-hidden="true">
         <span style={{ left: `${X(0)}%` }}>£0bn: no change</span>
       </span>
-      <p className="p3-key">
-        The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run on these {C.draws} draws;{' '}
-        <NavLink tab="story" anchor="p3-central">
-          the central case
-        </NavLink>{' '}
-        is a mean of {D.headline.central_cost.draws}.
-      </p>
-      <p className="p3-key">
-        Both gains are assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref>. The capital gain is a return <span data-input="">{RETURN_PP}</span> points higher on a{' '}
-        <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included.
-      </p>
-      <p className="p3-key">
-        Tax on the higher dividends is counted (
-        <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
-          Explore, households
-        </NavLink>
-        ); corporation tax on the profits behind them is not.
-      </p>
-      <Source files={[C.file, D.per_pound_20.job_loss.file]}>channel split, seeds 0 to 19</Source>
     </figure>
   );
 }
@@ -206,11 +187,42 @@ const CHANNEL_MARKS = Object.fromEntries(
   ]),
 );
 
+// The figure's notes and source line, as the Scrolly's foot (round 2,
+// phones): inside the card on desktop, after the cards at 900px and below,
+// so a pinned phone figure is the chart alone.
+function ChannelsNotes() {
+  return (
+    <>
+      <p className="p3-key">
+        The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run on these {C.draws} draws;{' '}
+        <NavLink tab="story" anchor="p3-central">
+          the central case
+        </NavLink>{' '}
+        is a mean of {D.headline.central_cost.draws}.
+      </p>
+      <p className="p3-key">
+        Both gains are assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref>. The capital gain is a return <span data-input="">{RETURN_PP}</span> points higher on a{' '}
+        <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included.
+      </p>
+      <p className="p3-key">
+        Tax on the higher dividends is counted (
+        <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
+          Explore, households
+        </NavLink>
+        ); corporation tax on the profits behind them is not.
+      </p>
+      <Source files={[C.file, D.per_pound_20.job_loss.file]}>channel split, seeds 0 to 19</Source>
+    </>
+  );
+}
+
 export default function Channels() {
   return (
     <MarkProvider marks={CHANNEL_MARKS}>
       <Scrolly
         id="p3-channels"
+        scene
+        foot={<ChannelsNotes />}
         sub={CHANNELS_SUB}
         steps={asLines(CHANNEL_STEPS)}
         graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />}

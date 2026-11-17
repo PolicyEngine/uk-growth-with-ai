@@ -120,8 +120,18 @@ function DecilesFigure({ ctx }) {
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead
         icon="deciles"
-        title="Change in household disposable income by income decile"
-        y="% change in disposable income, before housing costs"
+        title={
+          <>
+            <span className="p3-long">Change in household disposable income by income decile</span>
+            <span className="p3-short">Disposable income by decile</span>
+          </>
+        }
+        y={
+          <>
+            <span className="p3-long">% change in disposable income, before housing costs</span>
+            <span className="p3-short">% change, before housing costs</span>
+          </>
+        }
         x="Income decile, 1 = bottom"
         unit={`Central case, ${DEC.draws} draws`}
         replay={e.replay}
@@ -147,14 +157,6 @@ function DecilesFigure({ ctx }) {
           );
         })}
       </ol>
-      <p className="p3-key">
-        Where each decile’s lost earnings go, in a smaller run:{' '}
-        <NavLink tab="explore" sub="households" anchor="hh-absorb">
-          Explore, households
-        </NavLink>
-        .
-      </p>
-      <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>each household weighted by its members</Source>
     </figure>
   );
 }
@@ -198,10 +200,28 @@ const DECILE_MARKS = Object.fromEntries(
   ]),
 );
 
+// The figure's notes and source line, as the Scrolly's foot (round 2,
+// phones): inside the card on desktop, after the cards at 900px and below,
+// so a pinned phone figure is the chart alone.
+function DecilesNotes() {
+  return (
+    <>
+      <p className="p3-key">
+        Where each decile’s lost earnings go, in a smaller run:{' '}
+        <NavLink tab="explore" sub="households" anchor="hh-absorb">
+          Explore, households
+        </NavLink>
+        .
+      </p>
+      <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>each household weighted by its members</Source>
+    </>
+  );
+}
+
 export default function Deciles() {
   return (
     <MarkProvider marks={DECILE_MARKS}>
-      <Scrolly id="p3-deciles" sub={DECILES_SUB} steps={asLines(DECILE_STEPS)} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
+      <Scrolly id="p3-deciles" scene foot={<DecilesNotes />} sub={DECILES_SUB} steps={asLines(DECILE_STEPS)} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
     </MarkProvider>
   );
 }

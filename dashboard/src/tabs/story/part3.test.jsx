@@ -127,7 +127,8 @@ describe('Part3', () => {
     const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
     // T14; the central cost is a residual: said once, in the figure's note
     expect(line('p3-central-step-2')).toMatch(/^A year of job loss costs £\d+\.\dbn and raises absolute poverty by \+\d\.\d\dpp$/);
-    expect(container.querySelector('#p3-central .p3-figure').textContent).toContain('The cost is net of two assumed gains');
+    // the figure's notes are the Scrolly's foot since round 2 (phones pin the chart alone)
+    expect(container.querySelector('#p3-central .scrolly-foot').textContent).toContain('The cost is net of two assumed gains');
     expect(line('p3-channels-step-2')).toContain('Assumed');
     // T12, T7, T6
     expect(line('p3-moves-step')).toBe(`The cost reaches zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
@@ -350,7 +351,9 @@ describe('Part3', () => {
     const fig = renderPart().container.querySelector('#p3-channels .p3-figure');
     const t = checkedText(fig);
     for (const end of [bars[1].to, bars[2].to]) if (Math.abs(end - D.channels.sum_bn) > 0.05) expect(t).not.toContain(fmtBn(end));
-    expect(t.match(/[−]?£[\d.]+bn/g)).toEqual([...bars.map((b) => fmtBn(b.value)), fmtBn2(D.channels.interaction_bn)]);
+    expect(t.match(/[−]?£[\d.]+bn/g)).toEqual(bars.map((b) => fmtBn(b.value)));
+    // the interaction is in the notes, the Scrolly's foot
+    expect(fig.closest('.scrolly').textContent).toContain(fmtBn2(D.channels.interaction_bn));
     expect(t).toContain('Sum of the three runs');
   });
 

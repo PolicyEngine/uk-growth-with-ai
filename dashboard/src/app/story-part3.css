@@ -1930,3 +1930,104 @@ svg.p3-dim {
 .p3-db-sw.is-cut {
   background: var(--rank-3);
 }
+/* round 2, phones: a scene's notes leave the pinned figure for the foot */
+@media (min-width: 601px) {
+  .p3-ch-footnotes {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .p3-ch-notes {
+    display: none;
+  }
+}
+/* round 2, phones (600px and below): each pinned figure within about 45%
+   of the screen at 390x844 and 360x740; text stays at 12px or more */
+.p3-short {
+  display: none;
+}
+@media (max-width: 600px) {
+  .p3-long {
+    display: none;
+  }
+  .p3-short {
+    display: inline;
+  }
+  #story-part-3 .story-figure-unit {
+    margin-bottom: 6px;
+  }
+  #story-part-3 .p3-row-label {
+    font-size: var(--t-meta);
+  }
+  #story-part-3 .p3-rows {
+    gap: 4px;
+  }
+  /* 3-1: tiles in a narrow column, the facts beside and under them */
+  #story-part-3 .p3-central {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+  #story-part-3 .p3-central-tiles {
+    max-width: none;
+  }
+  #story-part-3 .p3-central .p3-facts {
+    display: contents;
+  }
+  #story-part-3 .p3-facts .story-fact-value {
+    font-size: 17px;
+  }
+  #story-part-3 .p3-tile-heads {
+    font-size: var(--t-meta);
+  }
+  /* the set-apart group is named by the fact beside it */
+  #story-part-3 .p3-tile-head-out {
+    display: none;
+  }
+  #story-part-3 .p3-dec .p3-row-label,
+  #story-part-3 .p3-dec-note {
+    line-height: 1.25;
+  }
+  #story-part-3 .p3-dec .hl-num,
+  #story-part-3 .p3-wf .hl-num {
+    width: 1.3em;
+    height: 1.3em;
+  }
+  #story-part-3 .p3-wf-axis {
+    margin-top: 0;
+  }
+  /* 3-3: one line per decile */
+  #story-part-3 .p3-dec {
+    grid-template-columns: 4.6em minmax(0, 1fr) 4.2em;
+    row-gap: 0;
+  }
+  #story-part-3 .p3-dec .p3-row-value {
+    font-size: var(--t-meta);
+  }
+  /* what changes the answer: tighter rows; the margins' pair side by side */
+  .p3-ch .p3-group-head {
+    margin-bottom: 2px;
+  }
+  .p3-ch .p3-dp {
+    gap: 4px;
+  }
+  .p3-ch .p3-dp-row .p3-row-label {
+    margin-bottom: 0;
+  }
+  .p3-ch .p3-dp-heads {
+    margin: 0 0 2px;
+  }
+  .p3-ch .p3-db {
+    margin: 0 0 4px;
+  }
+  .p3-ch .p3-db-track {
+    margin-top: 18px;
+    margin-bottom: 16px;
+  }
+  .p3-ch .p3-db-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+  .p3-ch-be {
+    gap: 6px;
+  }
+}
