@@ -353,7 +353,7 @@ describe('direction icons follow the signs', () => {
   it('says once, in the model line, which OBR vintage the path uses', async () => {
     const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
     const { container } = render(<p>{PARTS[1].modelLine}</p>);
-    expect(container.textContent).toContain('from the OBR’s March 2026 outlook, not part 1’s October 2026 forecast');
+    expect(container.textContent).toContain('on the OBR’s March 2026 productivity growth, not part 1’s October 2026 forecast');
   });
 
   it('says household consumption stays below the path, from the data (UK central only)', async () => {
@@ -362,6 +362,9 @@ describe('direction icons follow the signs', () => {
     expect(base.gaps.C[H]).toBeLessThan(0);
     const uk = at('tab=story&s=uk_central');
     expect(uk.container.querySelector('#story-headline').textContent).toContain(`Household consumption stays below the path until ${yr}.`);
+    // its year links to Who gains under the same (common) rule, which prints the same year
+    const link = [...uk.container.querySelectorAll('#story-headline a')].find((x) => x.textContent === String(yr));
+    expect(link.getAttribute('href')).toBe('/?tab=explore&sub=who&rule=common');
     uk.unmount();
     const kor = at('tab=story&s=korinek');
     expect(kor.container.querySelector('#story-headline').textContent).not.toContain('Household consumption');
