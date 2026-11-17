@@ -871,11 +871,25 @@
 }
 @media (max-width: 899px) {
   .db-arm {
-    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+  .db-arm-key {
+    gap: 3px;
+  }
+  .db-arm-key .swatch {
+    flex: none;
+    width: 10px;
+  }
+  .db-arm-short {
+    max-width: 54px;
+    font-size: 11px;
+  }
+  .db-side-long {
+    display: none;
   }
   .db-axis-head .db-track,
   .db-axis .db-track {
-    margin-left: 72px;
+    margin-left: 70px;
   }
 }
 /* Households: one story link spanning the cells it stands for */

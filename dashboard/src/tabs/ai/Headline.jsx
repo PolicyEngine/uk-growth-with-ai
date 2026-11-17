@@ -102,7 +102,9 @@ function dumbbellScale(sid, arms, closure, rule = 'common') {
   const g = (a, cl, v) => gap(sid, a, cl, v, HEADLINE_YEAR, rule);
   const vals = MEASURES.flatMap((m) => shown.flatMap((a) => [showC ? g(a.id, CENTRAL, m.v) : null, showB ? g(a.id, BOUND, m.v) : null])).filter((x) => x != null);
   const top = niceMax(Math.max(0.25, ...vals.map(Math.abs)));
-  const D = top * 1.6;
+  // room beyond the outer dots for their labels, also on a phone, where the
+  // arm names take a narrow column beside the track
+  const D = top * 1.9;
   const step = [0.1, 0.25, 0.5, 1, 2, 5].find((st) => top / st <= 2.5) ?? top;
   const ticks = [];
   for (let t = -Math.floor(top / step) * step; t <= top + 1e-9; t += step) ticks.push(Math.round(t * 100) / 100);

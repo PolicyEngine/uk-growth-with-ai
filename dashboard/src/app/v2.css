@@ -2347,8 +2347,14 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 /* phones: the page pickers' options wrap rather than clip; the sliding
    indicator assumes one line, so the chosen option is marked in place */
 @media (max-width: 640px) {
+  .app.has-subs .settings-row > .seg-picker {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
   .app.has-subs .settings-bar .seg-picker-row {
+    flex: 0 1 auto;
     flex-wrap: wrap;
+    min-width: 0;
   }
   .app.has-subs .settings-bar .seg-picker-ind {
     display: none;
