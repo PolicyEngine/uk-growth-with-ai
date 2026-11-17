@@ -435,6 +435,9 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </p>
         )}
       </div>
+      {/* the scene's closing line: a caption in the frame, under the plot
+          (typography spec), shown once the change is drawn */}
+      {ch ? <Answer answer={outputAnswer(ch)} to="story-output" shown={fast || s >= 2} /> : null}
       {/* one foot for both charts */}
       <p className="story-source p2-output-foot">
         <span className="p2-src-line">
@@ -473,7 +476,7 @@ function outputSteps(sid, cl, base, ch) {
       title: 'Capital income splits three ways',
       body: (
         <Say>
-          Capital income splits three ways: kept in the UK, {k('foreign', 'net paid abroad')} and depreciation.
+          Capital income splits three ways: kept in the UK, {k('foreign', 'net paid abroad')}, and depreciation (wear on capital).
         </Say>
       ),
     },
@@ -485,7 +488,7 @@ function outputSteps(sid, cl, base, ch) {
       title: `What ${SCEN_NAME[sid]} changes`,
       body: ch ? (
         <Say>
-          The bars build each part&rsquo;s change against the path, one by one, with {k('gdp', 'GDP')} last.
+          Now the shock: each bar is one part&rsquo;s change against the path. {k('gdp', 'GDP')} comes last.
         </Say>
       ) : (
         <p>This solve is pending at the closure chosen above.</p>
@@ -548,7 +551,6 @@ export default function OutputSplit({ sid, closure }) {
           graphic={(i) => <OutputGraphic both={both} state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}
-      {ch ? <Answer answer={outputAnswer(ch)} to="story-output" /> : null}
     </section>
   );
 }

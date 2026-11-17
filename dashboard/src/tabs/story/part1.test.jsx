@@ -335,10 +335,11 @@ describe('story part 1, real data', () => {
       // the card's one icon (Scrolly draws it from step.icon)
       expect([...c.querySelectorAll('svg')].filter((v) => !v.closest('.hl-key'))).toHaveLength(1);
       expect(c.querySelector('.scrolly-card-icon')).not.toBeNull();
-      // one sentence of about fifteen words (Key and Fig chips counted as words)
+      // one or two short sentences, at most 22 words (the voice pass's
+      // exposure step; Key and Fig chips counted as words)
       const say = c.querySelectorAll('.p1-say');
       expect(say).toHaveLength(1);
-      expect(say[0].textContent.replace(/\s+/g, ' ').trim().split(' ').length).toBeLessThanOrEqual(20);
+      expect(say[0].textContent.replace(/\s+/g, ' ').trim().split(' ').length).toBeLessThanOrEqual(22);
       // nothing beside it: no fold, no links, no facts row
       expect(c.querySelectorAll('details, a, .story-facts')).toHaveLength(0);
       c.querySelectorAll('p').forEach((pp) => expect(words(pp)).toBeLessThanOrEqual(25));
@@ -527,10 +528,18 @@ describe('hero', () => {
     const i = S.years.indexOf(S.headline_year);
     for (const [s, cl, q] of [['uk_high', 'zk0.1', 's=uk_high'], ['uk_low', 'zk0', 's=uk_low&closure=closed']]) {
       const el = await at(q);
-      const fig = el.querySelector(`.hf-figure [data-path="results.${s}.tfp.${cl}.gaps.Y.${S.headline_year}"]`);
+      // one result unit inside the chart's figure frame (item 11)
+      const fig = el.querySelector(`figure.hf-frame .hf-unit [data-path="results.${s}.tfp.${cl}.gaps.Y.${S.headline_year}"]`);
       expect(fig).not.toBeNull();
       expect(fig.textContent).toContain(sign(S.results[s].tfp[cl].gaps.Y[i]));
-      expect(el.querySelector('.hf-figure a[href*="story-headline"]')).not.toBeNull();
+      expect(el.querySelector('.hf-unit a[href*="story-headline"]')).not.toBeNull();
+      // three mini-stats; pay rates and resident income are words, not figures
+      const stats = [...el.querySelectorAll('.hf-stat')];
+      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'Income UK residents keep']);
+      for (const m of stats.slice(1)) expect(m.textContent).not.toMatch(/\d/);
+      expect(el.querySelector('.hf-chip-ctx').textContent).toMatch(new RegExp(`· ${S.headline_year} · scenario, not a forecast$`));
+      // no inline link in the unit but the figure's own
+      expect(el.querySelectorAll('.hf-unit a')).toHaveLength(1);
       cleanup();
     }
   });
@@ -553,7 +562,7 @@ describe('hero', () => {
     }
     // the first frame is the final one: no draw-in, no count-up
     expect(wide.querySelector('.hf-reveal, clipPath')).toBeNull();
-    expect(el.querySelector('.hf-figure .count-up, .hf-figure [data-count]')).toBeNull();
+    expect(el.querySelector('.hf-unit .count-up, .hf-unit [data-count]')).toBeNull();
     expect(el.querySelector('.hf-line.is-on').dataset.mark).toBe('uk_central');
   });
 });

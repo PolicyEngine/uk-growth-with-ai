@@ -78,7 +78,7 @@ export function shockSteps() {
       title: 'And the same inputs produce more',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>New tiles arrive: the same inputs now produce more output.</Say>,
+      body: <Say>New tiles arrive: the same workers and capital now produce more.</Say>,
     },
   ];
 }
@@ -101,7 +101,7 @@ export function morphCardSteps(sid, cl) {
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          The axis switches from growth, % a year, to the gap against the OBR-central path, %: <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          The chart now shows a gap: GDP against the OBR-central path, where no shock happens. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
         </Say>
       ),
     },
@@ -116,11 +116,11 @@ export function morphCardSteps(sid, cl) {
           <Say>
             {sid === 'korinek' ? (
               <>
-                The UK scenarios draw in below <Key id="scen-korinek">Korinek et al.</Key>&rsquo;s US inputs: the larger the shock, the higher the line.
+                The UK scenarios join below <Key id="scen-korinek">Korinek et al.</Key>, built on US inputs: a larger shock means a higher line.
               </>
             ) : (
               <>
-                The other scenarios draw in: the larger the shock, the higher the line, with <Key id="scen-korinek">Korinek et al.</Key>, on US inputs, highest.
+                The other scenarios join: a larger shock means a higher line. <Key id="scen-korinek">Korinek et al.</Key>, built on US inputs, is highest.
               </>
             )}
           </Say>
@@ -144,7 +144,7 @@ export function whoCardSteps() {
       body: (
         <>
           <Say>
-            Here the fiscal rule switches from the common rule to debt-neutral transfers: gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
+            This chart uses another fiscal rule: transfers adjust to keep debt on the path. Gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
           </Say>
         </>
       ),
@@ -158,7 +158,7 @@ export function whoCardSteps() {
         <>
           <Say>
             <Key id="cohort-later">Later cohorts</Key> {allGain ? 'gain too' : 'are drawn in the band'}
-            {dip ? `, least those entering just after ${SURPRISE_YEAR}` : ''}.
+            {dip ? `; those entering just after ${SURPRISE_YEAR} gain least` : ''}.
           </Say>
         </>
       ),
@@ -189,7 +189,7 @@ export function whoAnswer() {
   const c = welfareCell();
   const xs = D.closures[CENTRAL].birth_year;
   const adultsGain = c.cev_all.every((v, i) => xs[i] > LAST_ALIVE || v > 0);
-  const head = adultsGain ? 'All adults gain as modelled' : `Gains peak ${peakAge() >= 55 ? 'near retirement' : 'in middle age'}`;
-  const nb = w.loseNb ? `, or ${w.loseNb} ignoring bequests` : '';
-  return `${head}; if transfers bear the cost after 2036, ${w.lose} lose${nb}`;
+  const head = adultsGain ? 'As modelled, every adult gains' : `Gains peak ${peakAge() >= 55 ? 'near retirement' : 'in middle age'}`;
+  const nb = w.loseNb ? `; ${w.loseNb}, ignoring bequests` : '';
+  return `${head}. If transfers bear the cost after 2036, ${w.lose} lose${nb}.`;
 }

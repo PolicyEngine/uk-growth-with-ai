@@ -3,9 +3,8 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
-import { fmtBn, fmtGini, fmtInputPct, fmtMillions, fmtPct1, fmtPp } from './format.js';
-import { AxisTitle, D, FigureHead, MODEL_YEAR, InputFig, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
-import { Ref } from './sources.jsx';
+import { fmtBn, fmtGini, fmtMillions, fmtPct1, fmtPp } from './format.js';
+import { AxisTitle, D, FigureHead, MODEL_YEAR, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 
 // Step 1, the central case (results.tex, "The central scenario"). The
@@ -134,7 +133,7 @@ function CentralFigure({ ctx }) {
 
 // The topic opener: a neutral question the block answers, its hint, and the
 // closing line (the scene's own figures, by the same formatters).
-const upIng = (v) => (v > 0 ? 'raising' : v < 0 ? 'lowering' : 'leaving unchanged');
+const moveBy = (v) => (v > 0 ? 'rises by' : v < 0 ? 'falls by' : 'changes by');
 const COSTS = H.central_cost.value > 0;
 // whether full take-up costs more than the central case on the same draws
 const lad = (id) => D.ladder.find((r) => r.id === id)?.cost_bn;
@@ -144,8 +143,8 @@ export const CENTRAL_SUB = {
   icon: 'jobLoss',
   question: 'What happens in the central case?',
   hint: 'Watch who steps out of the grid',
-  // the part's first topic takes the full pinned question screen (Fable)
-  pin: 'full',
+  // beat B4 (the 7%) sits above this scene, so its question takes the
+  // in-figure form, not the full pinned screen (story-beats-fable.md)
   key: 'central',
   answerTo: 'p3-central-step',
   answer: `${fmtBn(H.central_cost.value)} a year; poverty ${fmtPp(H.central_poverty.value)}`,
@@ -158,16 +157,18 @@ export const CENTRAL_STEPS = [
     icon: 'jobLoss',
     highlight: ['displaced', 'f-displaced'],
     title: (
-      <>
-        {CENTRAL_RATE != null ? (
-          <InputFig path="headline.central_displaced.note" mark="displaced">
-            {fmtInputPct(CENTRAL_RATE)}
-          </InputFig>
-        ) : (
-          'A share'
-        )}{' '}
-        of employees are <Key id="displaced">jobless all year</Key>, the rate from <Ref id="doorley">Doorley et al. (2026)</Ref>
-      </>
+      // the rate is beat B4's numeral (its home); the step does not print it
+      // SOURCES: move into notes icon: "The displacement rate is from
+      // Doorley et al. (2026)." (REFS.doorley)
+      CENTRAL_RATE != null ? (
+        <>
+          The study assumes these employees lose their jobs to AI and stay <Key id="displaced">jobless all year</Key>
+        </>
+      ) : (
+        <>
+          A share of employees are <Key id="displaced">jobless all year</Key>
+        </>
+      )
     ),
   },
   {
@@ -177,8 +178,8 @@ export const CENTRAL_STEPS = [
     // T14; the two figures restate the tiles they light (their home): data-axis
     title: (
       <>
-        Net of assumed pay and capital gains, job loss {COSTS ? 'costs' : 'adds to net receipts'} <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> a year,{' '}
-        {upIng(H.central_poverty.value)} absolute poverty by <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
+        After assumed pay and capital-income gains, the {COSTS ? 'cost' : 'gain'} is <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> a year. Absolute poverty{' '}
+        {moveBy(H.central_poverty.value)} <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
       </>
     ),
   },

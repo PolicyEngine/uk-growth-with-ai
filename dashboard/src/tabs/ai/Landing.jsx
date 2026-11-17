@@ -32,24 +32,29 @@ const KPIS = [
     v: 'Y',
     concept: 'gdp',
     title: 'Output (GDP)',
-    line: 'Everything produced in the UK',
+    line: 'everything produced in the UK',
     tip: 'Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital.',
   },
   {
     v: 'w',
     concept: 'pay',
     title: 'Pay rates',
-    line: 'Pay for the same work. Below the path is slower growth than on it, not a cut',
+    // one line of at most six words (item 7): from the sign (KPI_LINE)
+    line: 'slower growth, not a cut',
     tip: 'Pay per unit of labour, adjusted for skill. It is not average earnings, which also move with hours and the mix of jobs.',
   },
   {
     v: 'GNI',
     concept: 'gni',
     title: 'Income UK residents keep',
-    line: 'Output less what goes to foreign owners (GNI)',
+    line: 'GDP less foreign owners’ share',
     tip: 'Gross national income: GDP plus the UK’s income from abroad, less income paid to foreign owners of UK capital.',
   },
 ];
+
+// The tile's one sub-line (at most six words): the pay line follows the
+// sign (below the path: slower growth, not a cut).
+const KPI_LINE = (k, x) => (k.v === 'w' && !(x < -0.005) ? 'pay for the same work' : k.line);
 
 export function heroAnswer(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
@@ -131,15 +136,13 @@ export function HeadlineTiles({ sid }) {
     cl === CENTRAL && fs != null && g != null && y != null && g < y
       ? ` About ${Math.round(fs)}% of the extra capital is owned abroad, with openness at OG-Core’s US default, chosen by the study.`
       : '';
+  // the pay tile keeps a short visible form of its caveat (voice pass): a
+  // number whose sign can flip does not hide it
+  // SOURCES: move into notes icon: "The sign of the pay-rate gap depends on
+  // how much capital comes from abroad. Compare each closure on Explore."
+  // (link: tab=explore sub=economy #explore-part-all)
   const extra = {
-    w: flips ? (
-      <>
-        Its sign depends on how much capital comes from abroad; compare{' '}
-        <NavLink tab="explore" sub="economy" anchor="explore-part-all">
-          each closure
-        </NavLink>
-      </>
-    ) : null,
+    w: flips ? 'sign depends on the closure' : null,
   };
   return (
     <>
@@ -163,7 +166,7 @@ export function HeadlineTiles({ sid }) {
                 </span>
               }
               tone={tone(x)}
-              sub={k.line}
+              sub={KPI_LINE(k, x)}
             >
               {[extra[k.v]].flat().filter(Boolean).map((line, i) => (
                 <p key={i} className="stat-line p2-tile-note">
@@ -200,7 +203,7 @@ export function debtParts(sid, cl) {
   if (d == null) return null;
   const r = gap(sid, 'tfp', cl, 'r_bp', LATE_YEAR);
   const obr = result(sid, 'tfp', cl).debt_gdp_pp_obr_repricing_late;
-  const why = d > 0.005 && r != null && r > 0 ? ' on immediate repricing' : '';
+  const why = d > 0.005 && r != null && r > 0 ? ' if repriced at once' : '';
   let slow = null;
   if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the path`;
   else if (Number.isFinite(obr) && d > 0.005 && obr < d) {
@@ -238,6 +241,25 @@ export function SummaryWhy({ sid }) {
       ) : null}
       .
     </p>
+  );
+}
+
+// The GDP scene's one debt line (voice pass, item 7): under the scene's
+// closing caption, in its frame; it is also the scene's one "More on
+// Explore" link. "If repriced at once" stays with it: at the OBR's pace debt
+// ends below the path in two scenarios.
+// SOURCES: move into notes icon: the OBR-pace clause (debtLine's "at the
+// OBR’s repricing pace, …") with its link (tab=method sub=how #m-debt).
+export function DebtNote({ sid, cl }) {
+  const p = debtParts(sid, cl);
+  if (!p) return null;
+  return (
+    <>
+      Public debt{p.text}.{' '}
+      <NavLink tab="explore" sub="finances" anchor="public-finances">
+        More on Explore
+      </NavLink>
+    </>
   );
 }
 

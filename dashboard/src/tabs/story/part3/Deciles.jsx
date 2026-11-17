@@ -87,7 +87,7 @@ export const DECILES_SUB = {
   hint: 'Watch the bars land, the bottom decile last',
   key: 'lose most',
   answerTo: 'p3-deciles-step',
-  answer: `Largest fall: decile ${SHAPE.worst}, ${fmtDecilePct(VALUES[SHAPE.worst - 1])}`,
+  answer: `The largest fall is in decile ${SHAPE.worst}: ${fmtDecilePct(VALUES[SHAPE.worst - 1])}`,
 };
 // The deciles the first step lights: the upper-middle ones (6 to 9) when the
 // largest fall is there, else the largest fall alone.

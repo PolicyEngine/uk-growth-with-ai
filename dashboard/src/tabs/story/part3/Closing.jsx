@@ -20,12 +20,12 @@ export const LEFT_OUT = [
     id: 'savings',
     text: 'Running down savings: households do not draw on them',
   },
-  { id: 'jsa', text: 'New-style JSA: none in the central case' },
+  { id: 'jsa', text: 'New-style Jobseeker’s Allowance (JSA): none in the central case' },
   {
     id: 'young',
     text: 'Fewer young hires: the study counts jobs lost, not jobs never offered',
   },
-  { id: 'self', text: 'The self-employed: outside the labour-market shocks' },
+  { id: 'self', text: 'The self-employed: the shocks apply to employees only' },
   { id: 'occ', text: 'AI exposure: varies across nine occupation groups only' },
 ];
 

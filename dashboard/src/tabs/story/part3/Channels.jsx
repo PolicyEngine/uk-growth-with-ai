@@ -79,7 +79,7 @@ function ChannelsFigure({ ctx }) {
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead
         icon="arithmetic"
-        title="The central cost nets three flows"
+        title="Three flows make up the cost"
         y="Cost to the public finances, £bn a year; right of zero a cost"
         x="each channel run alone, then their sum"
         unit={`${C.draws} paired draws`}
@@ -139,7 +139,7 @@ export const CHANNELS_SUB = {
   hint: 'Watch three flows net to one cost',
   key: 'cost',
   answerTo: 'p3-channels-step',
-  answer: `Job loss alone ${fmtBn(row('displacement').cost_bn)}; netted on these ${C.draws} draws, ${fmtBn(C.sum_bn)}`,
+  answer: `Job loss alone ${row('displacement').cost_bn > 0 ? 'costs' : 'adds'} ${fmtBn(Math.abs(row('displacement').cost_bn))}; net of the assumed gains, ${fmtBn(C.sum_bn)} on these ${C.draws} draws`,
 };
 
 // The two assumed income rises and the net, in one sentence: their words
@@ -164,7 +164,7 @@ export const CHANNEL_STEPS = [
     highlight: ['displacement'],
     title: (
       <>
-        <Key id="displacement">Job loss</Key> alone {effectWords(row('displacement').cost_bn)}: less tax and NI, more benefits
+        <Key id="displacement">Job loss</Key> alone {effectWords(row('displacement').cost_bn)}: less tax and National Insurance, more benefits
       </>
     ),
   },

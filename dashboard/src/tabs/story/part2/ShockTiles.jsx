@@ -93,7 +93,7 @@ export default function ShockTiles({ state }) {
     <figure ref={ref} className="p2-figure p2-shock-fig" data-state={s} data-no-axes="an illustrative tile grid: one tile is one per cent of output">
       <ModelBadge model="illustration" />
       <p className="story-figure-title">
-        <Tx icon="gdp">Who output is paid to</Tx>
+        <Tx icon="gdp">Who is paid for what the UK produces</Tx>
       </p>
       <p className="story-figure-unit">
         One tile is one per cent of output before the shock. Illustrative: sizes are exaggerated.

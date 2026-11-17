@@ -1,9 +1,11 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { NavLink, useNav } from '@/lib/nav.jsx';
-import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
-import { HEADLINE_YEAR, SCEN_NAME } from '@/tabs/ai/surprise.js';
+import StoryBeat from '@/components/story/StoryBeat.jsx';
+import { useNav } from '@/lib/nav.jsx';
+import { DebtNote, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
+import { HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
+import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
@@ -38,7 +40,7 @@ export const SUBS = {
   shock: {
     title: 'The shock',
     icon: 'shock',
-    question: 'What does the AI shock change in the model?',
+    question: 'What does the AI shock change?',
     // the first topic of part 2: the full pinned question screen, with part
     // 1's recap as the transition (Fable's decision); P1_RECAP is part 1's
     pin: 'full',
@@ -47,18 +49,21 @@ export const SUBS = {
     answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
   },
   morph: {
-    title: 'GDP and the headline figures',
+    title: 'GDP, scenario by scenario',
     icon: 'path',
-    question: 'How far does GDP move from the OBR-central path in each scenario?',
+    question: 'How far does GDP move from the OBR-central path?',
     hint: 'Watch the axis switch from growth to a gap against the path',
     answer: 'GDP ends above the path in every scenario',
+    // the caption is about every scenario's line
+    answerHighlight: ['scen-uk_low', 'scen-uk_central', 'scen-uk_high', 'scen-korinek'],
   },
   who: {
-    title: 'Who gains and who loses',
+    title: 'Gains and losses by generation',
     icon: 'age',
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
     answer: 'All adults gain as modelled; if transfers bear the cost after 2036, some adults lose',
+    answerHighlight: ['cohort-adults'],
     // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
   },
@@ -73,12 +78,30 @@ export const RECAP = [
   { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; if transfers bear the cost after 2036, some adults lose', to: { tab: 'explore', sub: 'who' } },
 ].map((it) => ({ ...it, text: it.a }));
 
+// Beat B3's words from the signs (story-beats-fable.md): GDP above the
+// path and 0 < GNI gap < GDP gap gives "Output is up. Part of the gain goes
+// abroad."; otherwise the plain form. null while the solve is pending (no
+// beat). Pay rates are left out on purpose: their sign can flip.
+export function beat2031(sid, cl) {
+  const y = gap(sid, 'tfp', cl, 'Y');
+  const g = gap(sid, 'tfp', cl, 'GNI');
+  if (y == null) return null;
+  if (y > 0.005 && g != null && g > 0.005 && g < y) {
+    return {
+      head: 'Output is up. Part of the gain goes abroad.',
+      line: 'The shock is complete. More is produced than on the OBR-central path; some of the extra income goes to owners abroad.',
+    };
+  }
+  return { head: 'The shock is complete', line: `GDP is ${dirWord(y)} the OBR-central path.` };
+}
+
 export default function Part2({ part }) {
   const { st } = useNav();
   const sid = st.s;
   const closure = st.closure;
   const cl = primaryClosure(closure);
   const marks = partMarks(sid);
+  const b3 = beat2031(sid, cl);
   return (
     <MarkProvider marks={marks}>
       {/* the part's model line is StoryTab's (PARTS[1].modelLine) */}
@@ -93,12 +116,19 @@ export default function Part2({ part }) {
         graphic={(i) => <ShockTiles state={i + 1} />}
       />
 
+      <StoryBeat
+        id={String(SURPRISE_YEAR)}
+        num={SURPRISE_YEAR}
+        head="AI arrives, as a surprise"
+        line={`The shock starts here in every scenario. Nobody in the model has planned for it, so the economy stays on the path until ${SURPRISE_YEAR}.`}
+      />
+
       {/* the GDP scene: the gap, the four scenarios, then the headline
           figures as its last step (the tiles are in the DOM in every state) */}
       <Scrolly
         id="p2-morph"
         scene
-        sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer }}
+        sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer, answerNote: <DebtNote sid={sid} cl={cl} /> }}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios and the headline figures"
         steps={[...morphCardSteps(sid, cl), headlineStep(sid)]}
         foot={
@@ -108,6 +138,8 @@ export default function Part2({ part }) {
         }
         graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
       />
+
+      {b3 ? <StoryBeat id={String(HEADLINE_YEAR)} num={HEADLINE_YEAR} head={b3.head} line={b3.line} from="above" /> : null}
 
       <OutputSplit sid={sid} closure={closure} />
 
@@ -129,8 +161,13 @@ export default function Part2({ part }) {
 }
 
 // The GDP scene's last step: the three headline figures (their one home,
-// #story-headline, which the Hero, Explore and Headline link to) and the
-// one why line under them.
+// #story-headline, which the Hero, Explore and Headline link to). Item 7:
+// one sentence of at most 15 words with no figure and no link, a chip, and
+// three tiles of label, number and one line. The public debt line is the
+// scene's caption note (DebtNote, under the closing line in the frame).
+// SOURCES: move into notes icon: "Main arm, against the OBR-central path.
+// The other two arms are on Explore." (link: tab=explore sub=economy
+// #income)
 function headlineStep(sid) {
   return {
     id: 'p2-headline',
@@ -139,16 +176,12 @@ function headlineStep(sid) {
     highlight: [`scen-${sid}`],
     body: (
       <>
-        <Say>
-          {SCEN_NAME[sid]} in {HEADLINE_YEAR}, main arm, against the OBR-central path; the other two arms are on{' '}
-          <NavLink tab="explore" sub="economy" anchor="income">
-            Explore
-          </NavLink>
-          .
-        </Say>
+        <Say>Each is a gap against the path in {HEADLINE_YEAR}: a scenario result, not a forecast.</Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
+          <p className="p2-headline-chip">
+            {SCEN_NAME[sid]} · {HEADLINE_YEAR}
+          </p>
           <HeadlineTiles sid={sid} />
-          <SummaryWhy sid={sid} />
         </section>
       </>
     ),

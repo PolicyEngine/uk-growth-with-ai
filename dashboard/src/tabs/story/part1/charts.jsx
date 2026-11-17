@@ -38,8 +38,8 @@ export const P1_MARKS = {
   share: { color: 'var(--series-5)', shape: 'line', label: 'Employee share' },
   'ai-all': { color: 'var(--series-2)', shape: 'circle', label: 'All businesses' },
   'ai-ten': { color: 'var(--c-labour)', shape: 'square', label: '10 or more employees' },
-  workers_high_exposure_high_complementarity: { color: 'var(--rank-1)', shape: 'square', label: 'High exposure, high complementarity' },
-  workers_high_exposure_low_complementarity: { color: 'var(--rank-2)', shape: 'square', label: 'High exposure, low complementarity' },
+  workers_high_exposure_high_complementarity: { color: 'var(--rank-1)', shape: 'square', label: 'High exposure, AI could help (high complementarity)' },
+  workers_high_exposure_low_complementarity: { color: 'var(--rank-2)', shape: 'square', label: 'High exposure, AI could replace tasks (low complementarity)' },
   workers_low_exposure: { color: 'var(--rank-3)', shape: 'square', label: 'Low exposure' },
 };
 const mk = (id) => ({ '--mk': P1_MARKS[id].color });

@@ -93,9 +93,9 @@ describe('story part 2', () => {
     // the Scenarios sub-tab folded into OG-UK method
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
-    // the caveats link the figures' homes: the closures (pay), Economy (capital drawn in, NNI)
-    expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-all'))).toBe(true);
-    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#economy-wall');
+    // the pay caveat's closure link and the other arms' link leave the step
+    // text for the figure's notes icon (item 7; wired after the sources merge)
+    expect(hrefs.some((h) => h.endsWith('#explore-part-all'))).toBe(false);
     // no next-part band, no per-step result-file lines or folds
     expect(container.querySelector('.story-next-links')).toBeNull();
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
@@ -107,10 +107,12 @@ describe('story part 2', () => {
     expect(head).not.toBeNull();
     expect(head.closest('.scrolly-step').id).toBe('p2-headline');
     expect(container.querySelector('#p2-arms, .p2-pair')).toBeNull();
-    // the arms' homes (nav maps Explore's #income to #economy-wall)
-    const hrefs = [...head.closest('.scrolly-step').querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('/?tab=explore&s=uk_low&closure=both#economy-wall');
-    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances');
+    // no inline links in the step (item 7); the scene's one "More on
+    // Explore" link is the debt note under its caption, in the frame
+    expect(head.closest('.scrolly-step').querySelectorAll('a')).toHaveLength(0);
+    const note = container.querySelector('#p2-morph .scrolly-graphic-inner .scrolly-takeaway-note');
+    expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the path in \d{4}.* More on Explore$/);
+    expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });
 });
 
@@ -338,7 +340,7 @@ describe('direction icons follow the signs', () => {
         const tiles = [...container.querySelectorAll('#story-headline .stat-tile')];
         expect(tiles).toHaveLength(3);
         expect(container.querySelector('#story-headline .stat-dir, #story-headline .kpi-range')).toBeNull();
-        expect(!!tiles[1].textContent.includes('capital comes from abroad'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
+        expect(!!tiles[1].textContent.includes('sign depends on the closure'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
         unmount();
       }
     }
@@ -350,13 +352,18 @@ describe('direction icons follow the signs', () => {
     expect(container.textContent).toContain('The path is built on the OBR’s March 2026 forecast');
   });
 
-  it('the headline step is the tiles and one line: the sentence above, the debt line below', () => {
+  it('the headline step is one short sentence, a chip and the three tiles (item 7)', () => {
     const { container } = at('tab=story&s=uk_central');
     const head = container.querySelector('#story-headline');
     expect(head.querySelectorAll('.stat-tile')).toHaveLength(3);
     const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile'));
-    expect(lines).toHaveLength(1);
-    expect(lines[0].textContent).toMatch(/^Public debt ends (above|below|on) the path/);
+    expect(lines.map((p) => p.className)).toEqual(['p2-headline-chip']);
+    expect(lines[0].textContent).toBe(`UK central · ${fixture.headline_year}`);
+    const say = container.querySelector('#p2-headline .p2-say').textContent;
+    expect(say.split(/\s+/).length).toBeLessThanOrEqual(15);
+    expect(say).not.toMatch(/\d\.\d/);
+    // each tile: label, number and one line of at most six words
+    for (const t of head.querySelectorAll('.stat-tile .stat-sub')) expect(t.textContent.split(/\s+/).length).toBeLessThanOrEqual(6);
     expect(head.textContent).not.toContain('household consumption');
   });
 
@@ -374,7 +381,7 @@ describe('direction icons follow the signs', () => {
         const d = r.gaps.debt_gdp_pp[L];
         const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
         expect(line).toContain(`ends ${side(d)} the path in ${fixture.late_year}`);
-        expect(line.includes('on immediate repricing')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
+        expect(line.includes('if repriced at once')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
         // the OBR's slower repricing: the other side of the path, or a smaller rise, in words
         const obr = r.debt_gdp_pp_obr_repricing_late;
         if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the path`);

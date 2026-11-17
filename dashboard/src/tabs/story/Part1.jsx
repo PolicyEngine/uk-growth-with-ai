@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
+import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { Fig, Key, MarkProvider } from '@/components/story/highlight.jsx';
 import PartHead from './PartHead.jsx';
 import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, OBR, OBR_LABEL, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
@@ -142,7 +143,7 @@ function workSteps() {
         <>
           <Anchor id="p1-pay" />
           <Say>
-            <Key id="pay">Regular pay growth</Key> has slowed since its 2023 peak, before adjusting for inflation.
+            <Key id="pay">Regular pay growth</Key> has slowed since its 2023 peak. That is before inflation.
           </Say>
         </>
       ),
@@ -227,7 +228,7 @@ function aiSteps() {
           <Anchor id="p1-exposure" />
           <Anchor id="p1-exposure-1" />
           <Say>
-            The IMF sorts UK workers into three groups by AI exposure; DSIT rounds the two high groups to around{' '}
+            The IMF sorts UK workers by how exposed their jobs are to AI. DSIT rounds the two high groups to around{' '}
             <N path={`facts.${hh.id}.note`}>{share0(DSIT_AROUND)}</N>.
           </Say>
           <ul className="p1-groups-say">
@@ -328,12 +329,12 @@ function useAnchorSteps() {
 // DSIT's rounded figure is in the exposure card.
 export const OUTPUT_Q = 'How fast has the UK economy grown?';
 export const WORK_Q = 'How are jobs, pay and productivity doing?';
-export const AI_Q = 'Who uses AI, and who is exposed?';
+export const AI_Q = 'Who uses AI already, and whose jobs are exposed?';
 export const OUTPUT_HINT = 'Watch the years after the pandemic';
 export const WORK_HINT = 'Three official series, one at a time';
 export const AI_HINT = 'Two survey lines, then one grid of workers';
 export const OUTPUT_TAKEAWAY = 'Since the pandemic rebound, annual growth has been below most 2010s rates.';
-export const WORK_TAKEAWAY = 'A steady labour market: pay growth slowing, output per hour flat since 2023.';
+export const WORK_TAKEAWAY = 'Jobs are steady, pay growth slowing, and output per hour flat since 2023.';
 
 function AiAnswer() {
   const [hh, hl] = EXPOSURE_GROUPS;
@@ -342,7 +343,9 @@ function AiAnswer() {
       <N path="facts.business_ai_use.value" mark="ai-all">
         {pct1(F.business_ai_use.value)}
       </N>{' '}
-      of businesses use AI; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (<L to="imf_upskilling">IMF</L>).
+      of businesses use AI. <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (IMF measure).
+      {/* SOURCES: move into notes icon: the IMF link that was on "IMF" here
+          (LINKS.imf_upskilling: IMF, Upskilling the UK Workforce) */}
     </>
   );
 }
@@ -355,6 +358,10 @@ export const P1_RECAP = [
   { icon: 'labour', q: WORK_Q, a: `Unemployment ${pct1(F.unemployment_rate_latest.value)}, pay growth ${pct1(F.pay_growth_latest.value)}`, text: WORK_Q, to: 'q-p1-work' },
   { icon: 'ai', q: AI_Q, a: `${pct1(F.business_ai_use.value)} of firms; ${share0(EXPOSURE_GROUPS[0].value + EXPOSURE_GROUPS[1].value)} exposed`, text: AI_Q, to: 'q-p1-ai' },
 ];
+
+// Beat B1 (story-beats-fable.md): the year the ONS AI-use series starts,
+// from the data (ukContext.json series.business_ai_use.x[0]).
+export const AI_SINCE = Number(String(SERIES.business_ai_use?.x?.[0] ?? '').match(/\d{4}/)?.[0]) || null;
 
 export default function Part1({ part }) {
   useAnchorSteps();
@@ -371,7 +378,7 @@ export default function Part1({ part }) {
       <Scrolly
         id="p1-output"
         scene
-        sub={{ title: 'Output', icon: 'gdp', pin: 'full', question: OUTPUT_Q, hint: OUTPUT_HINT, key: 'grown', answer: OUTPUT_TAKEAWAY }}
+        sub={{ title: 'Growth', icon: 'gdp', pin: 'full', question: OUTPUT_Q, hint: OUTPUT_HINT, key: 'grown', answer: OUTPUT_TAKEAWAY }}
         label={`Real GDP growth: by calendar year (ONS outturn) and the ${OBR_LABEL}`}
         steps={output}
         graphic={(i) => <OutputCanvas state={output[i]?.state ?? 0} notes={outNotes} />}
@@ -379,15 +386,23 @@ export default function Part1({ part }) {
       <Scrolly
         id="p1-work"
         scene
-        sub={{ title: 'Work, pay and productivity', icon: 'labour', question: WORK_Q, hint: WORK_HINT, key: 'jobs', answer: WORK_TAKEAWAY }}
+        sub={{ title: 'Jobs, pay and productivity', icon: 'labour', question: WORK_Q, hint: WORK_HINT, key: 'jobs', answer: WORK_TAKEAWAY }}
         label="Employment, regular pay growth and output per hour worked"
         steps={work}
         graphic={(i) => <LabourBoard focus={work[i]?.focus ?? 0} notes={workN} />}
       />
+      {AI_SINCE ? (
+        <StoryBeat
+          id={String(AI_SINCE)}
+          num={AI_SINCE}
+          head="AI is already here"
+          line="Before any scenario, AI is in the official statistics. The ONS series below starts here; the scenarios’ shock comes later."
+        />
+      ) : null}
       <Scrolly
         id="p1-ai"
         scene
-        sub={{ title: 'AI arrives', icon: 'ai', question: AI_Q, hint: AI_HINT, key: 'AI', answer: <AiAnswer /> }}
+        sub={{ title: 'AI so far', icon: 'ai', question: AI_Q, hint: AI_HINT, key: 'AI', answer: <AiAnswer /> }}
         label="Businesses using AI, and UK workers by exposure to AI"
         steps={ai}
         graphic={(i, reduce, ctx) => {

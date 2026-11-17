@@ -1,20 +1,23 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
-import { METHOD } from '@/lib/labels.js';
+import { iconFor } from '@/lib/concepts.js';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
-import { heroItems } from '@/tabs/ai/Landing.jsx';
 import { primaryClosure } from '@/tabs/ai/lines.js';
-import { dirConcept } from '@/tabs/story/part2/dir.js';
-import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt } from '@/tabs/ai/surprise.js';
+import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
+import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 
-// The first screen: the story's first question, its answer as one big
-// figure (GDP against the OBR-central path in 2031 for the scenario and
+// The first screen: the story's first question, then one result unit inside
+// the chart's own figure frame (item 11, story-beats-fable.md section 7:
+// a band on the frame's surface above the chart): a chip, and three
+// mini-stats of the same anatomy (name, value, one short line). GDP is the
+// one number (against the OBR-central path in 2031 for the scenario and
 // closure chosen in the header; its home is part 2's headline tiles,
-// #story-headline, which it links to; the owner asked for it here too), and
-// a chart of the four scenarios' GDP paths (main arm) over the whole
-// horizon. The first frame is the final one: the figure is printed as it
+// #story-headline, which it links to); pay rates and the income UK
+// residents keep are direction words (decision b: each fact keeps one
+// home, and a bare pay figure here would read as a cut). Then a chart of
+// the four scenarios' GDP paths (main arm) over the whole horizon. The first frame is the final one: the figure is printed as it
 // is (no count-up) and nothing fades or draws in. Each line is labelled
 // with its name and its 2031 value: at the line end on desktop, as a legend
 // row under the chart at 600px and below (two drawings; CSS shows one, so
@@ -149,17 +152,31 @@ function Fan({ lines, sid, wide }) {
   );
 }
 
+// The three mini-stats, from the signs (as heroItems in tabs/ai/Landing.jsx,
+// whose strings are kept for Explore; new strings here).
+const SIDE = (x) => (Math.abs(x) < 0.005 ? 'On the path' : x > 0 ? 'Above the path' : 'Below the path');
+export function heroStats(sid, cl) {
+  const y = gap(sid, 'tfp', cl, 'Y');
+  const w = gap(sid, 'tfp', cl, 'w');
+  const g = gap(sid, 'tfp', cl, 'GNI');
+  if (y == null || w == null) return null;
+  const keepsLess = g != null && g > 0.005 && g < y;
+  return [
+    { id: 'gdp', name: 'GDP', x: y, sub: `${dirWord(y)} the OBR-central path` },
+    { id: 'pay', name: 'Pay rates', x: w, value: SIDE(w), sub: w < -0.005 ? 'slower growth, not a cut' : null },
+    g == null ? null : { id: 'gni', name: 'Income UK residents keep', x: g, value: keepsLess ? 'Up, by less than GDP' : SIDE(g), sub: keepsLess ? 'part goes to owners abroad' : null },
+  ].filter(Boolean);
+}
+
+const toneOf = (x) => (dirConcept(x) === 'gapUp' ? 'is-gain' : dirConcept(x) === 'gapDown' ? 'is-loss' : '');
+
 export default function Hero() {
   const { st } = useNav();
   const sid = st.s;
   const cl = primaryClosure(st.closure);
   const lines = heroSeries(cl);
   const sel = lines.find((l) => l.id === sid);
-  const items = heroItems(sid, cl);
-  // the first item gives GDP's direction, which the figure shows; the
-  // next ones then name the path they compare with, not "it"
-  const rest = sel ? items.slice(1).map((it) => ({ ...it, text: String(it.text).replace(/ it( too)?$/, ' the OBR-central path$1') })) : items;
-  const tone = dirConcept(sel?.at) === 'gapUp' ? 'is-gain' : dirConcept(sel?.at) === 'gapDown' ? 'is-loss' : '';
+  const stats = sel ? heroStats(sid, cl) : null;
   const closure = cl === BOUND ? 'closed capital' : 'central closure';
   return (
     <section id="story-hero" className="story-hero hf" aria-labelledby="story-q">
@@ -168,34 +185,43 @@ export default function Hero() {
           <h2 id="story-q" className="hero-q">
             What happens to the UK economy if AI arrives in {SURPRISE_YEAR}?
           </h2>
-          {sel ? (
-            <div className="hf-figure">
-              <NavLink tab="story" anchor="story-headline" className={`hf-figure-value ${tone}`} aria-label={`GDP ${fmt(sel.at)} against the OBR-central path in ${HEADLINE_YEAR}: the headline figures in part 2`}>
-                <span data-path={`results.${sid}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}`}>{fmt(sel.at)}</span>
-              </NavLink>
-              <p className="hf-figure-label">
-                GDP against the{' '}
-                <NavLink tab="method" anchor={METHOD.shock.id}>
-                  OBR-central path
-                </NavLink>{' '}
-                in {HEADLINE_YEAR}
-                <span className="hf-figure-meta">
-                  {sel.name} scenario, {closure}: a scenario result, not a forecast
-                </span>
-              </p>
-            </div>
-          ) : null}
-          {rest.map((it) => (
-            <p key={it.text} className="hero-a hf-statement">
-              {it.text}.
-            </p>
-          ))}
         </div>
         <a className="story-scroll-cue" href="#story-part-1">
           <Icon name="arrowDown" size={16} /> Start with where the UK stands
         </a>
       </div>
-      <figure className="story-hero-art hf-art">
+      <figure className="story-hero-art hf-art hf-frame">
+        {/* SOURCES: move into notes icon: "Central closure, main arm" (the
+            closure chosen in the header); "OBR-central path" links to
+            Method (tab=method #METHOD.shock.id); the figures: part 2's
+            headline (#story-headline). */}
+        {stats ? (
+          <div className="hf-unit" role="group" aria-label={`The answer in ${HEADLINE_YEAR}, ${sel.name} scenario`}>
+            <p className="hf-chip-ctx">
+              {sel.name} · {HEADLINE_YEAR} · scenario, not a forecast
+            </p>
+            <dl className="hf-stats">
+              {stats.map((m) => (
+                <div key={m.id} className={`hf-stat is-${m.id}`}>
+                  <dt className="hf-stat-name">{m.name}</dt>
+                  <dd className={`hf-stat-value ${toneOf(m.x)}`}>
+                    {m.id === 'gdp' ? (
+                      <NavLink tab="story" anchor="story-headline" className="hf-figure-value" aria-label={`GDP ${fmt(sel.at)} against the OBR-central path in ${HEADLINE_YEAR}: the headline figures in part 2`}>
+                        <span data-path={`results.${sid}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}`}>{fmt(sel.at)}</span>
+                      </NavLink>
+                    ) : (
+                      <>
+                        <Icon name={iconFor(dirConcept(m.x))} size={16} strokeWidth={2.25} className="hf-stat-dir" />
+                        {m.value}
+                      </>
+                    )}
+                  </dd>
+                  {m.sub ? <dd className="hf-stat-sub">{m.sub}</dd> : null}
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
         <Fan lines={lines} sid={sid} wide />
         <Fan lines={lines} sid={sid} wide={false} />
         <ul className="hf-legend" aria-label={`The four scenarios, GDP gap in ${HEADLINE_YEAR}`}>

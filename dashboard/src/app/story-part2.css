@@ -1388,3 +1388,14 @@
     display: block;
   }
 }
+/* the headline step's chip (item 7): scenario and year on the tile row */
+.p2-headline-chip {
+  display: inline-block;
+  margin: 8px 0 6px;
+  padding: 1px 8px;
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--t-muted);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+}
