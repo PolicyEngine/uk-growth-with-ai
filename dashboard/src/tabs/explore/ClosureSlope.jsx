@@ -15,7 +15,7 @@ import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 // Central closure -> closed capital, per measure: a slope chart of two solved
 // cases joined by a straight line. The line is not a range between them: no
 // closure between the two is solved. Each arm is a line; where the two ends
-// fall on opposite sides of the OBR-central path the measure flips sign, and
+// fall on opposite sides of the no-shock baseline the measure flips sign, and
 // the panel says so in words (from the signs). No figure is printed: every
 // value here has its home in the four-measure card above (central closure,
 // or closed capital with Closure = Closed or Both) and in the story's
@@ -85,7 +85,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             the card's unit line giving it in full, and lets the two end
             labels name the closures */}
         <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
-          {narrow ? 'Gap, %' : 'Gap against the OBR-central path, %'}
+          {narrow ? 'Gap, %' : 'Gap against the no-shock baseline, %'}
         </text>
         {narrow ? null : (
           <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
@@ -164,7 +164,7 @@ export default function ClosureSlope({ sid }) {
       icon={iconFor('closure')}
       title="Central closure to closed capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<Lead c="measure">{`Each arm’s % difference from the OBR-central path, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
+      unit={<Lead c="measure">{`Each arm’s % difference from the no-shock baseline, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
       legend={
         <ul className="ex-slope-key">
           {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
@@ -179,7 +179,7 @@ export default function ClosureSlope({ sid }) {
       }
       download={{
         title: `Central closure to closed capital, ${HEADLINE_YEAR}`,
-        context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the OBR-central path · ${ruleLabel(rule).toLowerCase()}`,
+        context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the no-shock baseline · ${ruleLabel(rule).toLowerCase()}`,
         table: () => ({
           columns: ['Measure', 'Arm', 'Central closure (%)', 'Closed capital (%)', 'Flips sign'],
           rows: all.flatMap(({ m, rows }) => rows.map((r) => [m.label, r.arm.label, r.c, r.b, r.flips ? 'yes' : 'no'])),

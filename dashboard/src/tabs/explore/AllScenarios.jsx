@@ -221,7 +221,7 @@ export default function AllScenarios() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">{`${m.label} gap against the OBR-central path at the same closure, %`}</span>}
+        unit={<span data-axis-title="y">{`${m.label} gap against the no-shock baseline at the same closure, %`}</span>}
         legend={<MatrixKey />}
         about={{
           caveats: (
@@ -247,7 +247,7 @@ export default function AllScenarios() {
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the OBR-central path at the same closure`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the no-shock baseline at the same closure`,
           table: () => cellsTable(arm, armLabel),
           svg: () => matrixSvg(arm, m),
         }}
@@ -289,12 +289,12 @@ export function AcrossDebt() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">Debt/GDP gap against the OBR-central path at the same closure, percentage points of GDP</span>}
+        unit={<span data-axis-title="y">Debt/GDP gap against the no-shock baseline at the same closure, percentage points of GDP</span>}
         legend={<MatrixKey story={false} />}
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the OBR-central path at the same closure`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the no-shock baseline at the same closure`,
           table: () => {
             const t = cellsTable(arm, armLabel);
             return { ...t, rows: t.rows.filter((r) => r[0] === m.label) };

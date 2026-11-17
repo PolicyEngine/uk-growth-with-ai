@@ -30,8 +30,8 @@ function phase(y) {
 function detail(y) {
   const w = weight(y);
   const ramp = `Ramp weight ${w.toFixed(2)}.`;
-  if (y < FIRST_YEAR) return `History: every scenario equals the OBR-central path.`;
-  if (y === FIRST_YEAR) return `The single starting point: every scenario equals the OBR-central path, and every chart starts here. ${ramp}`;
+  if (y < FIRST_YEAR) return `History: every scenario equals the no-shock baseline.`;
+  if (y === FIRST_YEAR) return `The single starting point: every scenario equals the no-shock baseline, and every chart starts here. ${ramp}`;
   if (y === SURPRISE_YEAR)
     return `The AI shock is announced at the start of the year, unexpected. Households re-plan; the first quarter of the ramp applies. ${ramp}`;
   if (y < HEADLINE_YEAR) return `Adoption year ${y - FIRST_YEAR}: γ and Z move a further quarter of the way. ${ramp}`;
@@ -42,7 +42,7 @@ function detail(y) {
 
 // The timing as data and as SVG, for the downloads.
 export const timelineTable = () => ({
-  columns: ['Year', 'Ramp weight of γ and Z (0 = OBR-central path, 1 = full scenario)', 'Event'],
+  columns: ['Year', 'Ramp weight of γ and Z (0 = no-shock baseline, 1 = full scenario)', 'Event'],
   rows: YEARS.map((y) => [y, weight(y), MARK[y] ?? '']),
 });
 export function timelineSvg() {
@@ -70,17 +70,17 @@ export default function Timeline({ caption = true }) {
       {caption ? (
         <figcaption className="mx-fig-cap">
           <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
-          <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (the OBR-central path) to 1 (full scenario)</span>
+          <span className="mx-fig-sub">Bars: weight of the change in &gamma; and Z, from 0 (the no-shock baseline) to 1 (full scenario)</span>
         </figcaption>
       ) : null}
       <div className="mx-tl-phases" aria-hidden="true">
-        <span className="ph-history">Same as the OBR-central path</span>
+        <span className="ph-history">Same as the no-shock baseline</span>
         <span className="ph-ramp">Ramp: adoption years 1–4</span>
         <span className="ph-full">Full weight</span>
       </div>
       <p className="mx-axis-title mx-tl-axis">
         <IconText icon="measure">
-          <span data-axis-title="y">Ramp weight of &gamma; and Z: 0 = OBR-central path, 1 = full scenario</span>
+          <span data-axis-title="y">Ramp weight of &gamma; and Z: 0 = no-shock baseline, 1 = full scenario</span>
         </IconText>
       </p>
       <ol className="mx-tl-cols">

@@ -14,7 +14,7 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
 // filled dot, the closed-capital bound as a hollow dot, on one axis centred on
-// the OBR-central path), and a strip comparing the four scenarios. Every value comes
+// the no-shock baseline), and a strip comparing the four scenarios. Every value comes
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const MEASURES = [
@@ -81,7 +81,7 @@ function DotTip({ arm, closure, measure, value }) {
       <b>{measure}, {HEADLINE_YEAR}</b>
       <span>{arm}</span>
       <span>{closure}</span>
-      <span className="tip-value">{fmt(value)} against the OBR-central path</span>
+      <span className="tip-value">{fmt(value)} against the no-shock baseline</span>
     </>
   );
 }
@@ -192,15 +192,15 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
   const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
-    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
+    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-shock baseline, by measure and arm`}>
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">
           <span className="db-side db-side-left">
-            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the OBR-central path</span>
+            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the no-shock baseline</span>
           </span>
           <span className="db-side db-side-right">
-            Higher<span className="db-side-long"> than the OBR-central path</span> <Icon name="arrowUp" size={12} />
+            Higher<span className="db-side-long"> than the no-shock baseline</span> <Icon name="arrowUp" size={12} />
           </span>
         </div>
       </div>

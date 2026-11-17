@@ -55,7 +55,7 @@ export function PendingLine({ names }) {
 }
 
 // "Automation + productivity above, Technology unchanged above, Stress test
-// on the path": words only (the unit line names the OBR-central path). The
+// on the path": words only (the unit line names the no-shock baseline). The
 // 2031 figures are at the line ends.
 function findingFor(sid, v, arms, closure, name, rule = 'common') {
   const cl = primaryClosure(closure);
@@ -98,8 +98,8 @@ export function PathCard({
   // points of GDP for debt and tax, percentage points for a rate or share.
   const ofGdp = v === 'debt_gdp_pp' || v === 'tax_gdp_pp';
   const unitWords = unit === '%' ? '%' : ofGdp ? 'percentage points of GDP' : 'percentage points';
-  const yTitle = tile && !open ? `Gap against the OBR-central path, ${unit === '%' ? '%' : 'pp'}` : `Gap against the OBR-central path, ${unitWords}`;
-  const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR-central path, ${years[0]}–${last}` : `Percentage-point difference from the OBR-central path, ${years[0]}–${last}`);
+  const yTitle = tile && !open ? `Gap against the no-shock baseline, ${unit === '%' ? '%' : 'pp'}` : `Gap against the no-shock baseline, ${unitWords}`;
+  const unitLine = unitText ?? (unit === '%' ? `% difference from the no-shock baseline, ${years[0]}–${last}` : `Percentage-point difference from the no-shock baseline, ${years[0]}–${last}`);
   // In the small-multiple wall (tile) the card is compact: title, download
   // and chart; the wall carries the arms control and the legend once. Opened
   // (click or Enter on the title), it spans the wall and shows its finding,
@@ -152,12 +152,12 @@ export function PathCard({
           yUnit={yTitle}
           yTitleTop
           xUnit={tile && !open ? null : 'Year'}
-          zeroNote={tile && !open ? null : 'OBR-central path = 0'}
+          zeroNote={tile && !open ? null : 'No-shock baseline = 0'}
           markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI shock starts' }]}
           bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => signed(x, endDp)}
           tipFormat={(x) => signed(x, dp)}
-          ariaLabel={`${title} against the OBR-central path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
+          ariaLabel={`${title} against the no-shock baseline, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />
       ) : (
         <div className="unpublished-plot">
@@ -287,7 +287,7 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
-          unit={<span data-axis-title="y">{`Each arm’s gap against the OBR-central path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
+          unit={<span data-axis-title="y">{`Each arm’s gap against the no-shock baseline (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
           controls={
             <ControlBar label="Four measures: options">
               <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
@@ -322,7 +322,7 @@ function IncomePanel({ sid }) {
           sources={sourcesItems({ sid, method: 'closures' })}
           download={{
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
-            context: () => contextLine(sid, st.closure, '% difference from the OBR-central path', st.rule),
+            context: () => contextLine(sid, st.closure, '% difference from the no-shock baseline', st.rule),
             table: () => dumbbellTable(sid, st.arms, st.closure, st.rule),
             svg: () => dumbbellSvg(sid, st.arms, st.closure, st.rule),
             legend: () => dumbbellLegend(st.arms, st.closure),
@@ -391,7 +391,7 @@ function EconomyPanel({ sid }) {
   return (
     <section aria-label="The economy, path by path" className="ex-wall-section">
       <SectionHeading id="economy-wall" icon={iconFor('path')} title={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        <Lead c="measure">Eight measures, each against the OBR-central path</Lead>
+        <Lead c="measure">Eight measures, each against the no-shock baseline</Lead>
       </SectionHeading>
       <div className="ex-wall-head">
         <ControlBar label="Every chart on the wall: options">
@@ -399,7 +399,7 @@ function EconomyPanel({ sid }) {
         </ControlBar>
         <ul className="ex-wall-key" aria-label="How to read the wall">
           <li>
-            <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR-central path
+            <Icon name={iconFor('onPath')} size={14} /> Zero line: the no-shock baseline
           </li>
           <li>
             <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, AI shock starts; shaded: ${HEADLINE_YEAR}`}

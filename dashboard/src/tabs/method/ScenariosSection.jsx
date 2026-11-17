@@ -36,11 +36,11 @@ export function stressMove(x) {
   if (x == null) return null;
   return x < 0 ? { icon: 'gapDown', word: 'falls' } : { icon: 'gapUp', word: 'rises slightly' };
 }
-// Technology unchanged's GDP against the OBR-central path.
+// Technology unchanged's GDP against the no-shock baseline.
 export function tzGdpMove(x) {
   if (x == null) return { icon: 'caveat', word: 'is pending' };
   if (Math.abs(x) < 0.005) return { icon: 'onPath', word: 'is unchanged' };
-  return x > 0 ? { icon: 'gapUp', word: 'rises a little as capital deepens' } : { icon: 'gapDown', word: 'ends slightly below the OBR-central path' };
+  return x > 0 ? { icon: 'gapUp', word: 'rises a little as capital deepens' } : { icon: 'gapDown', word: 'ends slightly below the no-shock baseline' };
 }
 const CL_NAME = { [CENTRAL]: 'Central closure', [BOUND]: 'Closed capital' };
 
@@ -108,7 +108,7 @@ const ARM_TEXT = {
   ss: {
     icon: 'limit',
     role: 'A stress test, not a bound or a forecast',
-    items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the OBR-central path.` }, ...stressItems()],
+    items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the no-shock baseline.` }, ...stressItems()],
     fixedText: stressFixedText(),
     // the chevron follows the central closure's sign, as the words do
     glyph: (fx(CENTRAL) ?? 0) < 0 ? <path d="M4 6 L12 14 L20 6" /> : <path d="M4 14 L12 6 L20 14" />,

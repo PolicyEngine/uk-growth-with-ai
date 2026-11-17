@@ -25,7 +25,7 @@ export function partMarks(sid) {
   return {
     ...scen,
     ...wf,
-    path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'OBR-central path' },
+    path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'No-shock baseline' },
     ons: { color: 'var(--pe-gray-800)', shape: 'circle', label: 'ONS outturn' },
     obr: { color: 'var(--pe-gray-500)', shape: 'circle', label: 'OBR forecast' },
     'cohort-adults': { color: 'var(--pe-gray-800)', shape: 'line', label: 'Adults alive in 2028' },
@@ -101,7 +101,7 @@ export function morphCardSteps(sid, cl) {
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          The chart now shows a gap: GDP against the OBR-central path, where no shock happens. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          The chart now shows a gap: GDP against the no-shock baseline, built on the OBR&rsquo;s forecast. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
         </Say>
       ),
     },

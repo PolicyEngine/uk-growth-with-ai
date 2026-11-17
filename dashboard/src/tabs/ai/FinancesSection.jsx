@@ -186,7 +186,7 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
-// OG-UK's labour vs capital effective tax-rate gap on the OBR-central path in
+// OG-UK's labour vs capital effective tax-rate gap on the no-shock baseline in
 // the headline year, central closure (the sanity gate's effective rates, as
 // the paper's EffWedgePp): labour incl. employer NICs less gross capital.
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
@@ -408,7 +408,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ],
       }}
     >
-      <AxisTitles y="The model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = OBR-central path" />
+      <AxisTitles y="The model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = no-shock baseline" />
       <TaxStrip model={model} uk={uk} onChart={onChart} />
       <div className="cause-rows">
         {CAUSES.map((c, i) => (
@@ -497,7 +497,7 @@ function ruleTable(rule, sid, closure) {
 // page's fiscal-rule picker (&rule=); the common rule is the default.
 const RULE_INFO = {
   common: { icon: 'gdp', holds: 'Holds spending and transfers as shares of GDP', span: 'Spending follows GDP' },
-  fixed: { icon: 'finances', holds: 'Holds spending at its OBR-central level', span: 'Spending held at its OBR-central level' },
+  fixed: { icon: 'finances', holds: 'Holds spending at its baseline level', span: 'Spending held at its baseline level' },
   dn: { icon: 'benefits', holds: 'Holds debt/GDP on the path; transfers adjust', span: 'Transfers hold debt/GDP on the path' },
 };
 const RULE_DB = [
@@ -646,7 +646,7 @@ export default function FinancesSection({ sid }) {
   return (
     <>
       <SectionHeading id="public-finances" icon={iconFor('finances')} title="How do debt and tax move in each arm?">
-        <Lead c="measure">Shares of GDP, against the OBR-central path</Lead>
+        <Lead c="measure">Shares of GDP, against the no-shock baseline</Lead>
       </SectionHeading>
       <div className="cards-grid">
         <PathCard
@@ -658,7 +658,7 @@ export default function FinancesSection({ sid }) {
           title="Debt/GDP"
           name="debt/GDP"
           icon={iconFor('debt')}
-          unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${LATE_YEAR}`}
+          unitLine={`Percentage points of GDP, difference from the no-shock baseline, ${FIRST_YEAR}–${LATE_YEAR}`}
           finding={debt ? <DebtFinding p={debt} /> : undefined}
           notes={debtNotes(debt)}
           markers={[{ year: SURPRISE_YEAR, label: 'AI shock starts' }, { year: LATE_YEAR, label: 'Debt rule starts (set in this study)' }]}
@@ -687,7 +687,7 @@ export default function FinancesSection({ sid }) {
           title="Tax/GDP"
           name="tax/GDP"
           icon={iconFor('tax')}
-          unitLine={`Percentage points of GDP, difference from the OBR-central path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+          unitLine={`Percentage points of GDP, difference from the no-shock baseline, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
           finding={st.closure === 'central' ? undefined : 'With closed capital the model’s sign for tax/GDP changes: see the card below.'}
           sources={false}
           method="rules"

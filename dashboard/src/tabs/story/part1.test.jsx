@@ -577,8 +577,8 @@ describe('hero', () => {
     const el = await at('s=uk_central');
     const wide = el.querySelector('svg.hf-svg.is-wide');
     expect(wide.getAttribute('role')).toBe('img');
-    expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the OBR-central path, %/);
-    expect(wide.textContent).toContain('OBR-central path = 0');
+    expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the no-shock baseline, %/);
+    expect(wide.textContent).toContain('No-shock baseline = 0');
     expect(wide.textContent).toContain(`AI shock starts, ${S.surprise_year}`);
     expect(wide.textContent).toContain(`Shock complete, ${S.headline_year}`);
     const lines = [...wide.querySelectorAll('path.hf-line')];

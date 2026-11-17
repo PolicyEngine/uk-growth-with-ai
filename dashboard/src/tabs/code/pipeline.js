@@ -69,7 +69,7 @@ analysis/surprise/driver.sh check nics \\
     short: 'Continuation gate',
     title: 'The continuation gate',
     file: 'analysis/surprise/output/zk0.1/GATE_continuation.json',
-    line: 'A restart without the shock must reproduce the OBR-central path: every gap’s zero.',
+    line: 'A restart without the shock must reproduce the no-shock baseline: every gap’s zero.',
     more: [
       'GDP, capital and debt/GDP must match within 10⁻⁴, 2028–2036.',
       'The rest must match within 10⁻³.',

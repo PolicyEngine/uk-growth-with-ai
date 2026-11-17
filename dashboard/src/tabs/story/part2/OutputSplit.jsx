@@ -23,7 +23,7 @@ import { iconFor } from '@/lib/concepts.js';
 // Where output goes in the headline year, at the header's scenario and
 // closure (the central closure with Both, which the lead says), as a
 // three-step scrolly over one graphic:
-//   1  a Sankey of the OBR-central path: GDP to labour income and gross
+//   1  a Sankey of the no-shock baseline: GDP to labour income and gross
 //      capital income, as shares of GDP (the left column's ribbons wipe in);
 //   2  gross capital income's three parts: kept in the UK, paid abroad,
 //      depreciation (the next column wipes in);
@@ -239,7 +239,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   const graph = base ? sankeyGraph(base, true) : null;
   const where = `${SCEN_NAME[sid]}, main arm, common fiscal rule`;
   const sankeyLabel = base
-    ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
+    ? `Sankey diagram: GDP on the no-shock baseline in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
   // the chips' beats: idle (before step 3), chips (at the nodes), travel,
   // settled (in the rows, a gain or loss icon left on each node)
@@ -360,7 +360,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           ) : null}
         </div>
         <p className="story-figure-unit p2-output-unit">
-          <span data-axis-title="y">per 100 of GDP on the OBR-central path</span>
+          <span data-axis-title="y">per 100 of GDP on the no-shock baseline</span>
           {both ? <span>. With both closures chosen above, both figures show the central closure.</span> : null}
         </p>
         {graph ? (

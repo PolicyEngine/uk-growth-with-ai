@@ -254,7 +254,7 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR-central path`}
+      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the no-shock baseline`}
       finding={
         <span className="ex-ctx ex-sg-ctx">
           <span>
@@ -282,14 +282,14 @@ export default function SensitivityTable() {
           ) : null}
         </>
       }
-      unit={<span data-axis-title="y">{`Gap against the OBR-central path at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
+      unit={<span data-axis-title="y">{`Gap against the no-shock baseline at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
       read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
       sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}
       download={{
         title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
-        context: () => `${HEADLINE_YEAR} · % difference from the OBR-central path · common fiscal rule`,
+        context: () => `${HEADLINE_YEAR} · % difference from the no-shock baseline · common fiscal rule`,
         table: () => ({
           columns: ['Scenario', 'Arm', ...VARS.map((c) => `${c.label} (%)`)],
           rows: SCENARIOS.flatMap((s) => ARMS.map((a) => [s.label, a.label, ...VARS.map((c) => at(res[s.id]?.[a.id], c.v))])),

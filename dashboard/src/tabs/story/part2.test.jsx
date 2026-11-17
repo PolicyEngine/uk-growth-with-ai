@@ -101,7 +101,7 @@ describe('story part 2', () => {
         <MorphChart state={4} sid="uk_central" cl="zk0.1" />
       </NavProvider>,
     );
-    expect(popText(container)).toContain('Main arm, against the OBR-central path');
+    expect(popText(container)).toContain('Main arm, against the no-shock baseline');
     const links = sourceLinks(container);
     for (const end of ['#economy-wall', '#explore-part-all', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
   });
@@ -319,7 +319,7 @@ describe('from the record to the model', () => {
       [false, false, true],
     ]);
     expect(seen[0].title).toBe('Real GDP growth');
-    expect(seen[2].title).toBe('GDP against the OBR-central path');
+    expect(seen[2].title).toBe('GDP against the no-shock baseline');
     expect(seen[0].source).not.toContain('OG-UK');
     expect(seen[1].source).toContain('OBR');
     expect(seen[2].source).toContain('OG-UK');
@@ -384,7 +384,7 @@ describe('direction icons follow the signs', () => {
   it('says once, in the About fold, which OBR vintage the path uses', async () => {
     const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
     const { container } = render(<div>{PARTS[1].about}</div>);
-    expect(container.textContent).toContain('The path is built on the OBR’s March 2026 forecast');
+    expect(container.textContent).toContain('The baseline is built on the OBR’s March 2026 forecast');
   });
 
   it('the headline step is one short sentence, a chip and the three tiles (item 7)', () => {

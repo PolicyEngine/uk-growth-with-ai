@@ -20,7 +20,7 @@ import { nearestIndex } from './scale.js';
 //
 //   <Crosshair width={w} height={h} x={x} y={y} xs={years} top={t} bottom={b}
 //     series={[{ key: 'c', name: 'UK central', icon: 'gdp', color: 'var(--series-2)', text: 'var(--series-2)', ys, format: pct }]}
-//     unit="% gap against the OBR-central path" label="GDP against the path, 2010 to 2031">
+//     unit="% gap against the no-shock baseline" label="GDP against the path, 2010 to 2031">
 //     …the chart's marks…
 //   </Crosshair>
 export default function Crosshair({ width, height, x, y, xs, series, top = 0, bottom, formatX = String, unit, label, className = '', children }) {

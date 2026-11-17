@@ -58,12 +58,12 @@ export const PARTS = [
             ),
           },
           { icon: 'excluded', text: 'No unemployment: lost tasks show up as lower pay rates' },
-          { icon: 'path', text: <Hy>Results are gaps against the OBR-central path, not forecasts</Hy> },
+          { icon: 'path', text: <Hy>Results are gaps against the no-shock baseline, not forecasts</Hy> },
           {
             icon: 'forecast',
             text: (
               <>
-                The path is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
+                The baseline is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
               </>
             ),
           },

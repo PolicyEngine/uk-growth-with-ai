@@ -64,7 +64,7 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const rel = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
   const keep = g != null && y > 0 && g < y ? ', and national income gains less than GDP' : '';
   const pay = `pay rates are ${rel(w)} it${rel(w) === rel(y) ? ' too' : ''}`;
-  return `In this scenario, GDP is ${rel(y)} the OBR-central path in ${HEADLINE_YEAR}, ${pay}${keep}.`;
+  return `In this scenario, GDP is ${rel(y)} the no-shock baseline in ${HEADLINE_YEAR}, ${pay}${keep}.`;
 }
 
 // The same answer as icon items (the text rule): each direction's arrow
@@ -75,7 +75,7 @@ export function heroItems(sid, cl = CENTRAL) {
   const g = gap(sid, 'tfp', cl, 'GNI');
   if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet at the closure chosen above' }];
   const out = [
-    { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the OBR-central path in ${HEADLINE_YEAR}` },
+    { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the no-shock baseline in ${HEADLINE_YEAR}` },
     { icon: dirConcept(w), text: `Pay rates are ${dirWord(w)} it${dirWord(w) === dirWord(y) ? ' too' : ''}` },
   ];
   if (g != null && y > 0 && g < y) out.push({ icon: 'gni', text: 'National income gains less than GDP' });
@@ -114,8 +114,8 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
         {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against <A href={URLS.ogUk}>OG-UK</A>
-        &rsquo;s OBR-central path. {SURPRISE_YEAR} is a modelling choice, not a forecast
-        <InfoTip label="What is the OBR-central path?">
+        &rsquo;s no-shock baseline. {SURPRISE_YEAR} is a modelling choice, not a forecast
+        <InfoTip label="What is the no-shock baseline?">
           The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
           <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). It is defined under {METHOD.shock.label} on Method.
         </InfoTip>
