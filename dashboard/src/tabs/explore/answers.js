@@ -3,7 +3,7 @@
 // chip names the settings; the main arm and the year are in the page's
 // kicker, ExploreTab.jsx): one chip per
 // measure whose direction icon, word and colour come from the sign of its
-// gap (direction.jsx), an optional closed-capital chip (Closure = Both), a
+// gap (direction.jsx), an optional no-foreign-capital chip (Closure = Both), a
 // one-line why, and one caveat note. Words only (above, below, on): every
 // figure has its home in a chart below, so an answer never repeats one. They
 // read the same pickers as the charts, so they move with them. An unsolved
@@ -21,7 +21,7 @@ const word = (x) => (side(x) === 'on' ? 'on the path' : side(x));
 const POLARITY = { Y: 1, GNI: 1, w: 1 };
 export const toneOf = (v, x) => (!POLARITY[v] || side(x) === 'on' ? null : x > 0 ? 'gain' : 'loss');
 
-// [concept, name, variable] triples -> chips, context and closed-capital chip
+// [concept, name, variable] triples -> chips, context and no-foreign-capital chip
 function read(sid, closure, rule, vars) {
   const cl = closure === 'closed' ? BOUND : CENTRAL;
   const vals = vars.map(([, , v]) => gap(sid, 'tfp', cl, v, HEADLINE_YEAR, rule));
@@ -41,9 +41,9 @@ function read(sid, closure, rule, vars) {
     const differ = vars
       .map(([, name, v]) => [name, v, gap(sid, 'tfp', BOUND, v, HEADLINE_YEAR, rule)])
       .filter(([, , x], i) => x != null && side(x) !== side(vals[i]));
-    if (differ.length) closed = { text: `With closed capital: ${differ.map(([name, , x]) => `${name.toLowerCase()} ${word(x)}`).join(', ')}`, values: differ.map(([, , x]) => x) };
+    if (differ.length) closed = { text: `With no foreign capital: ${differ.map(([name, , x]) => `${name.toLowerCase()} ${word(x)}`).join(', ')}`, values: differ.map(([, , x]) => x) };
   }
-  const context = `${SCEN_NAME[sid]} · automation + productivity · ${HEADLINE_YEAR} · ${closure === 'closed' ? 'closed capital' : 'central closure'} · ${ruleLabel(rule).toLowerCase()}`;
+  const context = `${SCEN_NAME[sid]} · automation + productivity · ${HEADLINE_YEAR} · ${closure === 'closed' ? 'no foreign capital' : 'some foreign capital'} · ${ruleLabel(rule).toLowerCase()}`;
   return { cl, context, chips, closed };
 }
 

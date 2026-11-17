@@ -48,7 +48,7 @@ export function absorbGraph() {
 }
 
 // Statements about this run, from the data: whether it is smaller than the
-// central case and whether disposable income takes most of the loss.
+// main case and whether disposable income takes most of the loss.
 export const SMALLER = CENTRAL_RATE != null && S.displacement_rate_pct < CENTRAL_RATE;
 export const MOST = S.total.disposable_bn > S.total.earnings_lost_bn / 2;
 
@@ -92,7 +92,7 @@ export default function AbsorbCard() {
       }
       unit={
         <>
-          Job loss alone, a {SMALLER ? 'smaller ' : ''}run sized to {OBR_SCENARIO}, not the central case; {fmtBn(S.total.earnings_lost_bn)} of earnings lost, {S.draws} draws
+          Job loss alone, a {SMALLER ? 'smaller ' : ''}run sized to {OBR_SCENARIO}, not the main case; {fmtBn(S.total.earnings_lost_bn)} of earnings lost, {S.draws} draws
         </>
       }
       download={{

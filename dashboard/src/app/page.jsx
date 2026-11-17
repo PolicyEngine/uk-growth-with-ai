@@ -6,9 +6,6 @@ import ExploreTab from "@/tabs/explore/ExploreTab.jsx";
 import MethodSourcesTab from "@/tabs/method/MethodSourcesTab.jsx";
 import ViewTabs from "@/components/ab/ViewTabs.jsx";
 import Picker from "@/components/ui/Picker.jsx";
-import AI_STUDY from "@/data/aiStudy2425.json";
-import AsOf from "@/components/story/AsOf.jsx";
-import { Hy } from "@/components/story/Hy.jsx";
 import { NavProvider, useNav, subOf } from "@/lib/nav.jsx";
 import SettingsBar, {
   CopyLink,
@@ -36,10 +33,10 @@ import { TABS, tabById, pickersFor, PAGE_TITLE } from "@/lib/labels.js";
 // anchor's scroll-margin reads. Which pickers show is set per tab and
 // sub-tab (labels.js). All state lives in the address (lib/nav.jsx).
 
-// The Story's one meta line under the tabs: both models in a plain line,
-// and the "As of" stamp. On Explore and Method the scope is each page's
-// model kicker and "As of" is in its sources-and-notes icon (PageIntro.jsx).
-const STORY_SCOPE = `Two models. OG-UK: the whole economy. uk-ai-study: households in ${AI_STUDY.model_year_label}`;
+// No scope line under the tabs (Vahid, 17 Nov): the Story's "As of" items
+// (the latest ONS and OBR releases read, the model commit) are in the
+// hero's sources-and-notes (Hero.jsx); on Explore and Method they are in
+// each page's sources-and-notes icon (PageIntro.jsx).
 
 const PANELS = {
   story: StoryTab,
@@ -88,7 +85,7 @@ function Shell() {
             {pick.closure ? (
               <Picker
                 icon="globe"
-                label="Closure"
+                label="Foreign capital"
                 value={st.closure}
                 options={CLOSURE_OPTIONS}
                 onChange={(closure) => set({ closure })}
@@ -125,17 +122,6 @@ function Shell() {
       </div>
       {settings ? <SettingsBar pick={pick} /> : null}
       <div className="main-content" id="main-content" tabIndex={-1}>
-        {inRow ? null : (
-          <p className="scope-line" data-cite="">
-            <span className="scope-item">
-              <Hy>{STORY_SCOPE}</Hy>
-              <span className="scope-sep" aria-hidden="true">
-                {" · "}
-              </span>
-            </span>
-            <AsOf inline />
-          </p>
-        )}
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (

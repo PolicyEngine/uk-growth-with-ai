@@ -38,7 +38,7 @@ export function peopleWord(pct) {
   return `about one in ${word}`;
 }
 
-// The pay tile: the wage gap's sign at closed capital, the central closure
+// The pay tile: the wage gap's sign with no foreign capital, some foreign capital
 // and the half-foreign sensitivity (zk0.5). 'flips' when the signs differ.
 export function paySigns(sid) {
   const sens = S.sensitivity?.['zk0.5']?.results?.[sid]?.tfp;
@@ -48,7 +48,7 @@ export function paySigns(sid) {
   return signs.size > 1 ? 'flips' : null;
 }
 
-// Who gains (UK central, central closure, debt-neutral transfers): what the
+// Who gains (UK central, some foreign capital, debt-neutral transfers): what the
 // adults' average is made of, and who loses when transfers bear the cost
 // after the solved years (cohorts2028.json dnfull, solved to the horizon).
 export function welfareWords() {
@@ -65,4 +65,19 @@ export function welfareWords() {
   const lose = full ? Math.min(...full.range.joint_losing_pct) : null;
   const loseNb = full ? Math.min(...full.range.no_bequest_losing_pct) : null;
   return { bequests, consumption, young, lose: peopleWord(lose), loseNb: peopleWord(loseNb) };
+}
+
+// The share of adults alive in 2028 who lose, as a range over the measures
+// (cohorts2028.json, UK central, some foreign capital, debt-neutral
+// transfers, main version): as charted (to 2036), without bequest value,
+// and with the transfers kept on to the horizon (dnfull), with and without
+// bequest value. "under 1%" below one per cent, else whole per cent.
+// null when the cells are missing.
+export function loseRange() {
+  const c = C.closures?.[CENTRAL]?.rules?.dn?.tfp;
+  const full = C.dnfull?.ready && C.dnfull.closure === CENTRAL ? C.dnfull.range : null;
+  const xs = [c?.alive_losing_pct, c?.no_bequest_losing_pct, ...(full?.joint_losing_pct ?? []), ...(full?.no_bequest_losing_pct ?? [])].filter(Number.isFinite);
+  if (xs.length < 2) return null;
+  const word = (x) => (x < 1 ? 'under 1%' : `${Math.round(x)}%`);
+  return { lo: word(Math.min(...xs)), hi: word(Math.max(...xs)) };
 }

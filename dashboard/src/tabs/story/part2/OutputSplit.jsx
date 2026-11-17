@@ -21,9 +21,9 @@ import { useLiveInView } from './live.js';
 import { iconFor } from '@/lib/concepts.js';
 
 // Where output goes in the headline year, at the header's scenario and
-// closure (the central closure with Both, which the lead says), as a
+// closure (some foreign capital with Both, which the lead says), as a
 // three-step scrolly over one graphic:
-//   1  a Sankey of the OBR-central path: GDP to labour income and gross
+//   1  a Sankey of the no-shock baseline: GDP to labour income and gross
 //      capital income, as shares of GDP (the left column's ribbons wipe in);
 //   2  gross capital income's three parts: kept in the UK, paid abroad,
 //      depreciation (the next column wipes in);
@@ -41,7 +41,7 @@ import { iconFor } from '@/lib/concepts.js';
 // hidden (its text kept in the DOM); it opens at step 3. The GDP bar carries no number: that figure is the headline
 // tile's. Bare numbers, the unit in each subtitle.
 
-const CL_WORDS = { [CENTRAL]: 'central closure', [BOUND]: 'closed capital' };
+const CL_WORDS = { [CENTRAL]: 'some foreign capital', [BOUND]: 'no foreign capital' };
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 // ms between waterfall bars: one at a time, labour, gross capital, its three
 // parts (each from where the last ended), then GDP from zero
@@ -67,7 +67,7 @@ const MEANING = {
   labour: 'Income from work, the self-employed’s included',
   capital: 'Income paid to capital’s owners, before the three-way split',
   domestic: 'Net capital income that stays with UK residents',
-  foreign: 'GDP less GNI: income paid to foreign owners of UK capital and gilts, net of income from abroad',
+  foreign: 'GDP less gross national income (GNI): income paid to foreign owners of UK capital and gilts, net of income from abroad',
   depreciation: 'Replaces capital that wears out',
 };
 // Phones: one figure, too tall to stick, so its state follows its own place
@@ -237,9 +237,9 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   const [replay, setReplay] = useState(0);
   const [paused, setPaused] = useState(false);
   const graph = base ? sankeyGraph(base, true) : null;
-  const where = `${SCEN_NAME[sid]}, main arm, common fiscal rule`;
+  const where = `${SCEN_NAME[sid]}, main version, spending follows GDP`;
   const sankeyLabel = base
-    ? `Sankey diagram: GDP on the OBR-central path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
+    ? `Sankey diagram: GDP on the no-shock baseline in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
   // the chips' beats: idle (before step 3), chips (at the nodes), travel,
   // settled (in the rows, a gain or loss icon left on each node)
@@ -360,8 +360,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           ) : null}
         </div>
         <p className="story-figure-unit p2-output-unit">
-          <span data-axis-title="y">per 100 of GDP on the OBR-central path</span>
-          {both ? <span>. With both closures chosen above, both figures show the central closure.</span> : null}
+          <span data-axis-title="y">per 100 of GDP on the no-shock baseline</span>
+          {both ? <span>. With both foreign-capital cases chosen above, both figures show some foreign capital.</span> : null}
         </p>
         {graph ? (
           <div className="p2-sankey" ref={wrap}>
@@ -403,7 +403,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </div>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">The reference path at this closure is pending.</Tx>
+            <Tx icon="provisional">The reference path with this foreign capital is pending.</Tx>
           </p>
         )}
       </div>
@@ -433,7 +433,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">This solve is pending at the closure chosen above.</Tx>
+            <Tx icon="provisional">This solve is pending with the foreign capital chosen above.</Tx>
           </p>
         )}
       </div>
@@ -483,7 +483,7 @@ function outputSteps(sid, cl, base, ch) {
           Now the shock: each bar is one part&rsquo;s change against the path. {k('gdp', 'GDP')} comes last.
         </Say>
       ) : (
-        <p>This solve is pending at the closure chosen above.</p>
+        <p>This solve is pending with the foreign capital chosen above.</p>
       ),
     },
   ];

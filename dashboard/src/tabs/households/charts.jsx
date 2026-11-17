@@ -23,7 +23,7 @@ export function StoryRef({ step }) {
 
 // Part 3's scenes and the step each link lands on.
 export const STEP = {
-  central: { name: 'the central case', anchor: 'p3-central-step' },
+  central: { name: 'the main case', anchor: 'p3-central-step' },
   rules: { name: 'who loses the job', anchor: 'p3-rules-step' },
   margin: { name: 'job loss vs wage cuts', anchor: 'p3-margin-step' },
   deciles: { name: 'where the loss falls', anchor: 'p3-deciles-step' },

@@ -45,7 +45,7 @@ export function wageClosureLines(sid) {
   return groups.map((g, i) =>
     i === 0
       ? `Pay rate ${g.side === 'on' ? 'on the path' : `${g.side} the path`} at ζK ${g.z.join(' and ')}`
-      : `${cap(g.side === 'on' ? 'on it' : `${g.side} it`)} at ζK ${g.z.join(' and ')}${i === groups.length - 1 ? ': the sign depends on the closure' : ''}`,
+      : `${cap(g.side === 'on' ? 'on it' : `${g.side} it`)} at ζK ${g.z.join(' and ')}${i === groups.length - 1 ? ': the sign depends on foreign capital' : ''}`,
   );
 }
 

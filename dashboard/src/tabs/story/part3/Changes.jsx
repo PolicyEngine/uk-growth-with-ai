@@ -19,7 +19,7 @@ import { Ref } from './sources.jsx';
 // inactive ones transparent and inert), so each figure is in the DOM once;
 // on phones (the figure drawn once) the panels stack, all shown.
 //
-// Homes: each rule's cost (the exposure rule's is the central case's, step
+// Homes: each rule's cost (the exposure rule's is the main case's, step
 // 1: restated here as an axis label), the pence per pound and the 20-draw
 // costs and poverty rises of the two margins, and the break-evens. Each
 // rule's poverty rise has its home on Explore > Households (position only
@@ -35,7 +35,7 @@ import { Ref } from './sources.jsx';
 const RULES = [
   { id: 'uniform', label: 'Uniform', place: { side: 'below', anchor: 'start', lead: 16 }, beat: 400 },
   { id: 'junior', label: 'Ages 16 to 24', place: { side: 'below', anchor: 'end', lead: 58 }, beat: 800 },
-  { id: 'exposure', label: 'Central: by AI exposure', short: 'Central: AI exposure', central: true, place: { side: 'below', anchor: 'start', lead: 16 }, beat: 0 },
+  { id: 'exposure', label: 'Main: by AI exposure', short: 'Main: AI exposure', central: true, place: { side: 'below', anchor: 'start', lead: 16 }, beat: 0 },
   { id: 'compression', label: 'Exposed higher earners', place: { side: 'above', anchor: 'end', lead: 16 }, beat: 1200 },
 ];
 // The plane's domain: cost £0-12bn, the poverty rise 0-3.3pp.
@@ -167,8 +167,8 @@ function RulesPanel({ on }) {
           <AxisTitle axis="y">Absolute poverty rise, pp</AxisTitle>
         </span>
         <span className="p3-plane-stress" style={{ '--beat': '1700ms' }}>
-          <span className="p3-long">Top-loaded stress test: off the scale</span>
-          <span className="p3-short">Stress test: off the scale</span>
+          <span className="p3-long">Top-loaded extreme case: off the scale</span>
+          <span className="p3-short">Extreme case: off the scale</span>
           <Icon name="arrowRight" size={14} />
         </span>
       </div>
@@ -232,7 +232,7 @@ function RulesPanel({ on }) {
                     r.label
                   )}
                 </span>
-                {/* the central case's figures have their home in step 1: restated (data-axis) */}
+                {/* the main case's figures have their home in step 1: restated (data-axis) */}
                 <span className="p3-plane-vals">
                   <span {...restate}>{fmtBn(d.cost_bn)}</span> · <span {...restate}>{fmtPp(d.poverty_pp)}</span>
                 </span>
@@ -338,7 +338,7 @@ function MarginPanel({ on }) {
           delay={300}
           fmt={(t) => `£${t}bn`}
           marks={[
-            { id: 'job', v: JOB.cost_bn, name: 'Job loss: the central case on these draws', text: <>{fmtBn(JOB.cost_bn)}{name('job')}</> },
+            { id: 'job', v: JOB.cost_bn, name: 'Job loss: the main case on these draws', text: <>{fmtBn(JOB.cost_bn)}{name('job')}</> },
             { id: 'cut', v: CUT.cost_bn, name: 'Wage cuts of the same gross size', text: <>{fmtBn(CUT.cost_bn)}{name('cut')}</> },
           ]}
         />
@@ -350,7 +350,7 @@ function MarginPanel({ on }) {
           delay={500}
           fmt={(t) => `${t}pp`}
           marks={[
-            { id: 'job', v: JOB.poverty_pp, name: 'Job loss: the central case on these draws', text: <>{fmtPp(JOB.poverty_pp)}{name('job')}</> },
+            { id: 'job', v: JOB.poverty_pp, name: 'Job loss: the main case on these draws', text: <>{fmtPp(JOB.poverty_pp)}{name('job')}</> },
             { id: 'cut', v: CUT.poverty_pp, name: 'Wage cuts of the same gross size', text: <>{fmtPp(CUT.poverty_pp)}{name('cut')}</> },
           ]}
         />
@@ -365,14 +365,14 @@ function BreakEvenPanel({ on }) {
     <>
       <p className="p3-group-head p3-group-first">What sets the cost to zero</p>
       <p className="p3-db-head">
-        <AxisTitle axis="y">Central setting, then the break-even setting</AxisTitle>
+        <AxisTitle axis="y">Main setting, then the break-even setting</AxisTitle>
       </p>
       <ol className="p3-ch-be" data-mark="breakeven">
         {BREAKS.map((b, i) => (
           <li key={b.id} className="p3-ch-be-row" data-row={`be-${b.id}`} data-mark={`be-${b.id}`} style={{ '--beat': `${i * 200}ms` }}>
             <span className="p3-row-label">{b.label}</span>
             <span className="p3-ch-be-from">
-              <span className="p3-ch-be-cap">Central</span> <span data-input="">{b.centralText}</span>
+              <span className="p3-ch-be-cap">Main</span> <span data-input="">{b.centralText}</span>
             </span>
             <span className={`p3-ch-be-arrow${on ? ' is-on' : ''}`} aria-hidden="true" />
             <span className="p3-ch-be-to">
@@ -381,7 +381,7 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
-      <Essential>Each break-even holds the other two at central settings</Essential>
+      <Essential>Each break-even holds the other two at main settings</Essential>
     </>
   );
 }
@@ -391,14 +391,14 @@ function BreakEvenPanel({ on }) {
 const rulesNotes = () => [
   { icon: 'scenario', text: 'Uniform: every employee equally likely' },
   { icon: 'scenario', text: <>Ages 16 to 24: tilted to them, after <Ref id="klein">Klein Teeselink (2025)</Ref></> },
-  { icon: 'scenario', text: 'Central: in proportion to AI exposure' },
+  { icon: 'scenario', text: 'Main: in proportion to AI exposure' },
   { icon: 'scenario', text: <>Exposed higher earners: expertise compression, after <Ref id="autor">Autor (2024)</Ref></> },
   { icon: 'draws', text: `${rule('uniform').draws} paired draws per rule` },
   {
     icon: 'inequality',
     text: (
       <NavLink tab="explore" sub="households" anchor="hh-rules">
-        Gini changes by rule, and a top-loaded stress test
+        Gini changes by rule, and a top-loaded extreme case
       </NavLink>
     ),
   },
@@ -406,7 +406,7 @@ const rulesNotes = () => [
 
 const marginNotes = () => [
   { icon: 'tax', text: 'Both pence figures include employer NI' },
-  { icon: 'draws', text: <>Job loss here is the central case on these {D.per_pound_20.draws} draws</> },
+  { icon: 'draws', text: <>Job loss here is the main case on these {D.per_pound_20.draws} draws</> },
   { icon: 'wageCut', text: <>Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref></> },
   marginClaims().perPoundMore === 'cut' ? { icon: 'why', text: 'A pay cut loses tax at the worker’s marginal (last-pound) rate, a lost job at the average rate, and benefits replace little here' } : null,
 ];
@@ -419,7 +419,7 @@ const breakEvenNotes = () => [
     icon: 'takeUp',
     text: (
       <>
-        Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
+        Full benefit take-up and new-style Jobseeker’s Allowance (JSA), as on <Ref id="jsa" />:{' '}
         <NavLink tab="explore" sub="households" anchor="hh-ladder">
           Explore, households
         </NavLink>
@@ -454,7 +454,7 @@ function ChangesFigure({ step, ctx }) {
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
-      <FigureHead icon="scenario" title="The central case under other assumptions" replay={e.replay} source={<ChangesSource />} />
+      <FigureHead icon="scenario" title="The main case under other assumptions" replay={e.replay} source={<ChangesSource />} />
       <div className="p3-ch-panels">
         {PANELS.map((Panel, k) => {
           const shown = all || k === cur;

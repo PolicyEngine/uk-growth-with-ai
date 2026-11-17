@@ -1,5 +1,5 @@
 // Where output goes in the headline year: the data behind part 2's Sankey
-// (the OBR-central path's GDP split four ways) and waterfall (the change in
+// (the no-shock baseline's GDP split four ways) and waterfall (the change in
 // each part). Built by analysis/surprise/build_dashboard_data.py
 // (`output_split`) from the solve series: labour income w L; net capital
 // income kept in the UK NNI - w L; payments to foreign owners of UK capital
@@ -43,8 +43,8 @@ export const CAPITAL_PARTS = ['domestic', 'foreign', 'depreciation'];
 export const share = (x) => x.toFixed(1);
 export const change = (x) => signed(x, 2);
 
-// The closure the split is drawn at for the header's closure: closed capital
-// for "closed", otherwise the central closure ("both" says so).
+// The closure the split is drawn at for the header's closure: no foreign capital
+// for "closed", otherwise some foreign capital ("both" says so).
 export const splitClosure = (closure) => (closure === 'closed' ? BOUND : CENTRAL);
 
 // { cl, base, ch } for a scenario and header closure; base or ch is null
@@ -56,7 +56,7 @@ export function splitFor(sid, closure) {
   return { cl, base, ch: c?.status === 'done' ? c : null };
 }
 
-// The Sankey of the OBR-central path: GDP to labour income and to gross
+// The Sankey of the no-shock baseline: GDP to labour income and to gross
 // capital income, which splits three ways. Values are shares of GDP.
 // `bare` leaves the end nodes unlabelled (phones, where a key below the
 // chart carries their labels and shares instead).

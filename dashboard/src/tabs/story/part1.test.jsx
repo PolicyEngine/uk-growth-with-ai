@@ -564,7 +564,10 @@ describe('hero', () => {
       expect(el.querySelector('.hf-unit a[href*="story-headline"]')).not.toBeNull();
       // three mini-stats; pay rates and resident income are words, not figures
       const stats = [...el.querySelectorAll('.hf-stat')];
-      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'Income UK residents keep']);
+      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
+      // national income's definition is its tooltip; the GDP figure says it is a level
+      expect(stats[2].querySelector('.hf-stat-name .tip-target')).not.toBeNull();
+      expect(el.querySelector('.hf-figure-value').getAttribute('title')).toMatch(/^A level \d+ years on, not a growth rate$/);
       for (const m of stats.slice(1)) expect(m.textContent).not.toMatch(/\d/);
       expect(el.querySelector('.hf-chip-ctx').textContent).toMatch(new RegExp(`· ${S.headline_year} · scenario, not a forecast$`));
       // no inline link in the unit but the figure's own
@@ -577,8 +580,8 @@ describe('hero', () => {
     const el = await at('s=uk_central');
     const wide = el.querySelector('svg.hf-svg.is-wide');
     expect(wide.getAttribute('role')).toBe('img');
-    expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the OBR-central path, %/);
-    expect(wide.textContent).toContain('OBR-central path = 0');
+    expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the no-shock baseline, %/);
+    expect(wide.textContent).toContain('No-shock baseline = 0');
     expect(wide.textContent).toContain(`AI shock starts, ${S.surprise_year}`);
     expect(wide.textContent).toContain(`Shock complete, ${S.headline_year}`);
     const lines = [...wide.querySelectorAll('path.hf-line')];

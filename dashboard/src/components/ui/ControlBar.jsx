@@ -86,8 +86,8 @@ export function ArmsGroup({ shown, onChange }) {
 // `only`: the rule ids this chart has ('common', 'fixed', 'dn')
 export function RuleGroup({ value, onChange, only = ['common', 'fixed', 'dn'] }) {
   return (
-    <ControlGroup label="Fiscal rule">
-      <Segmented options={RULES.filter((r) => only.includes(r.id))} value={value} onChange={onChange} label="Fiscal rule" />
+    <ControlGroup label="Budget assumption">
+      <Segmented options={RULES.filter((r) => only.includes(r.id))} value={value} onChange={onChange} label="Budget assumption" />
     </ControlGroup>
   );
 }

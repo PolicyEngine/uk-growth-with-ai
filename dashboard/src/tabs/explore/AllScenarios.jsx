@@ -41,7 +41,7 @@ const shortName = (s) => s.label.replace(' et al. (upper)', '');
 export const closureOf = (cl) => (cl === BOUND ? 'closed' : 'central');
 
 // Is this cell one the charts below print for the pickers in view: the
-// scenario, rule and closure(s) picked (Both: both closures)?
+// scenario, rule and closure(s) picked (Both: both foreign-capital cases)?
 export function inView(st, sid, cl, rule) {
   if (sid !== st.s || rule !== st.rule) return false;
   return st.closure === 'both' || closureOf(cl) === st.closure;
@@ -128,7 +128,7 @@ export function Matrix({ arm, m, printHome = true, label }) {
                 <th scope="row" className="ex-mx-rowhead">
                   <span className="ex-mx-long">{clName(row.cl)}</span>
                   <span className="ex-mx-short" aria-hidden="true">
-                    {row.cl === BOUND ? 'Closed' : 'Central'}
+                    {row.cl === BOUND ? 'None' : 'Some'}
                   </span>
                 </th>
                 {SCENARIOS.map((s) => (
@@ -216,12 +216,12 @@ export default function AllScenarios() {
             <ControlGroup label="Measure">
               <Segmented options={ECON.map((x) => ({ id: x.v, label: x.label, icon: x.icon }))} value={v} onChange={setV} label="Measure" />
             </ControlGroup>
-            <ControlGroup label="Arm">
-              <Segmented options={ARMS} value={arm} onChange={setArm} label="Arm" />
+            <ControlGroup label="Version">
+              <Segmented options={ARMS} value={arm} onChange={setArm} label="Version" />
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">{`${m.label} gap against the OBR-central path at the same closure, %`}</span>}
+        unit={<span data-axis-title="y">{`${m.label} gap against the no-shock baseline at the same closure, %`}</span>}
         legend={<MatrixKey />}
         about={{
           caveats: (
@@ -247,7 +247,7 @@ export default function AllScenarios() {
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the OBR-central path at the same closure`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the no-shock baseline at the same closure`,
           table: () => cellsTable(arm, armLabel),
           svg: () => matrixSvg(arm, m),
         }}
@@ -284,17 +284,17 @@ export function AcrossDebt() {
         finding={<Lead c="timing">{`${HEADLINE_YEAR}; the debt chart above runs to ${LATE_YEAR}`}</Lead>}
         controls={
           <ControlBar label="Debt/GDP across scenarios: options">
-            <ControlGroup label="Arm">
-              <Segmented options={ARMS} value={arm} onChange={setArm} label="Arm" />
+            <ControlGroup label="Version">
+              <Segmented options={ARMS} value={arm} onChange={setArm} label="Version" />
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">Debt/GDP gap against the OBR-central path at the same closure, percentage points of GDP</span>}
+        unit={<span data-axis-title="y">Debt/GDP gap against the no-shock baseline at the same closure, percentage points of GDP</span>}
         legend={<MatrixKey story={false} />}
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the OBR-central path at the same closure`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the no-shock baseline at the same closure`,
           table: () => {
             const t = cellsTable(arm, armLabel);
             return { ...t, rows: t.rows.filter((r) => r[0] === m.label) };

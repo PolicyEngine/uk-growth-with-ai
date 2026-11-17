@@ -13,13 +13,13 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
-// filled dot, the closed-capital bound as a hollow dot, on one axis centred on
-// the OBR-central path), and a strip comparing the four scenarios. Every value comes
+// filled dot, the no-foreign-capital bound as a hollow dot, on one axis centred on
+// the no-shock baseline), and a strip comparing the four scenarios. Every value comes
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const MEASURES = [
   { v: 'w', label: 'Pay rate', sub: 'wage per unit of labour', icon: iconFor('pay') },
-  { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: iconFor('gni') },
+  { v: 'GNI', label: 'Income UK residents keep', sub: 'gross national income, GNI', icon: iconFor('gni') },
   { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: iconFor('depreciation') },
   { v: 'Y', label: 'Total output', sub: 'GDP', icon: iconFor('gdp') },
 ];
@@ -28,10 +28,10 @@ export const MEASURES = [
 export function dumbbellTable(sid, arms, closure, rule = 'common') {
   const cls = closure === 'closed' ? [BOUND] : closure === 'both' ? [CENTRAL, BOUND] : [CENTRAL];
   return {
-    columns: ['Measure', 'Arm', 'Closure', `Gap in ${HEADLINE_YEAR} (%)`],
+    columns: ['Measure', 'Version', 'Foreign capital', `Gap in ${HEADLINE_YEAR} (%)`],
     rows: MEASURES.flatMap((m) =>
       ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
-        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'Closed capital' : 'Central', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
+        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'No foreign capital' : 'Some foreign capital', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
       ),
     ),
   };
@@ -49,7 +49,7 @@ export function stressFalls(sid, closure) {
 
 // The stress test in items. Each direction icon follows the sign of the
 // stress test's Z against the technology-unchanged Z at that closure
-// (stressFalls): a cut at the central closure, a slight rise with closed
+// (stressFalls): a cut with some foreign capital, a slight rise with closed
 // capital for UK central and Korinek (results sanity audit).
 export const stressDir = (falls) => (falls == null ? null : falls ? 'gapDown' : 'gapUp');
 export function stressItems(sid) {
@@ -58,9 +58,9 @@ export function stressItems(sid) {
   const phrase = (x) => (x ? 'has to fall' : 'has to rise slightly');
   return [
     { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
-    c != null ? { key: 'c', icon: stressDir(c), text: `Central closure: output at fixed inputs ${phrase(c)}` } : null,
+    c != null ? { key: 'c', icon: stressDir(c), text: `Some foreign capital: output at fixed inputs ${phrase(c)}` } : null,
     c ? { key: 'c2', icon: 'limit', text: 'A stress test, not a bound or a forecast' } : null,
-    b != null ? { key: 'b', icon: stressDir(b), text: `Closed capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
+    b != null ? { key: 'b', icon: stressDir(b), text: `No foreign capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
     b != null && b !== c ? { key: 'b2', icon: 'compare', text: 'There it almost matches “technology unchanged”' } : null,
     { key: 'tz', icon: 'productivity', text: '“Technology unchanged” shifts the labour share, not output at fixed inputs' },
   ].filter(Boolean);
@@ -81,7 +81,7 @@ function DotTip({ arm, closure, measure, value }) {
       <b>{measure}, {HEADLINE_YEAR}</b>
       <span>{arm}</span>
       <span>{closure}</span>
-      <span className="tip-value">{fmt(value)} against the OBR-central path</span>
+      <span className="tip-value">{fmt(value)} against the no-shock baseline</span>
     </>
   );
 }
@@ -163,7 +163,7 @@ export function dumbbellSvg(sid, arms, closure, rule = 'common') {
 
 export function dumbbellLegend(arms, closure) {
   const keys = ARMS.filter((a) => arms.includes(a.id)).map((a) => ({ label: a.short || a.label, color: cssColour(ARM_COLOR[a.id]) }));
-  if (closure === 'both') keys.push({ label: 'Circle: central closure, diamond: closed capital', color: CHART_COLOURS.muted, shape: 'dot' });
+  if (closure === 'both') keys.push({ label: 'Circle: some foreign capital, diamond: no foreign capital', color: CHART_COLOURS.muted, shape: 'dot' });
   return keys;
 }
 
@@ -192,15 +192,15 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
   const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
-    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR-central path, by measure and arm`}>
+    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-shock baseline, by measure and arm`}>
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">
           <span className="db-side db-side-left">
-            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the OBR-central path</span>
+            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the no-shock baseline</span>
           </span>
           <span className="db-side db-side-right">
-            Higher<span className="db-side-long"> than the OBR-central path</span> <Icon name="arrowUp" size={12} />
+            Higher<span className="db-side-long"> than the no-shock baseline</span> <Icon name="arrowUp" size={12} />
           </span>
         </div>
       </div>
@@ -222,7 +222,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
             {shown.map((a) => {
               const c = showC ? gap(sid, a.id, CENTRAL, m.v, HEADLINE_YEAR, rule) : null;
               const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
-              // the value printed beside the markers: central, or closed capital alone
+              // the value printed beside the markers: central, or no foreign capital alone
               const main = showC ? c : b;
               const color = ARM_COLOR[a.id];
               // The value sits beyond the outer dot, away from 0, so it never
@@ -256,16 +256,16 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                           <TipTarget
                             className="db-dot is-diamond"
                             style={{ left: pct(b), borderColor: color }}
-                            label={`${a.label}, closed capital, ${name}: ${fmt(b)}`}
-                            tip={<DotTip arm={a.label} closure="Closed capital (no foreign-owned private capital)" measure={name} value={b} />}
+                            label={`${a.label}, no foreign capital, ${name}: ${fmt(b)}`}
+                            tip={<DotTip arm={a.label} closure="No foreign capital (closure ζK = 0: no foreign-owned private capital)" measure={name} value={b} />}
                           />
                         ) : null}
                         {c != null ? (
                           <TipTarget
                             className="db-dot"
                             style={{ left: pct(c), background: color, borderColor: color }}
-                            label={`${a.label}, central closure, ${name}: ${fmt(c)}`}
-                            tip={<DotTip arm={a.label} closure="Central closure (some new capital foreign-owned)" measure={name} value={c} />}
+                            label={`${a.label}, some foreign capital, ${name}: ${fmt(c)}`}
+                            tip={<DotTip arm={a.label} closure="Some foreign capital (closure ζK = 0.1: some new capital foreign-owned)" measure={name} value={c} />}
                           />
                         ) : null}
                         {/* the main arm's GDP, wage and GNI: a muted reference
@@ -278,7 +278,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                         </span>
                       </>
                     )}
-                    {showC && showB ? <span className="visually-hidden">closed capital {fmt(b)}</span> : null}
+                    {showC && showB ? <span className="visually-hidden">no foreign capital {fmt(b)}</span> : null}
                   </div>
                 </div>
               );

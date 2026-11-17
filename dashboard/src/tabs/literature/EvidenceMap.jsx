@@ -59,12 +59,12 @@ export function ourRows() {
     metric,
     measure: `${label} in each scenario, UK low to Korinek et al. (upper)`,
     horizon: `${HEADLINE_YEAR}, year 4 of adoption`,
-    baseline: 'OBR-central path',
+    baseline: 'No-shock baseline',
     country: 'UK',
     loc: 'surprise2028.json',
     checked: S.generated_utc.slice(0, 10),
     how: 'solve',
-    csv: SCENARIOS.map((s) => `${s.label}: ${fmt(gap(s.id, 'tfp', CENTRAL, v))} (central closure), ${fmt(gap(s.id, 'tfp', BOUND, v))} (closed capital)`).join('; '),
+    csv: SCENARIOS.map((s) => `${s.label}: ${fmt(gap(s.id, 'tfp', CENTRAL, v))} (some foreign capital), ${fmt(gap(s.id, 'tfp', BOUND, v))} (no foreign capital)`).join('; '),
   }));
 }
 
@@ -151,7 +151,7 @@ export default function EvidenceMap({ map = MAP }) {
               { icon: 'foreign', text: 'Studies of the US or other economies are labelled.' },
               { icon: 'measure', text: 'Adoption and exposure rows are levels or shares, not effects.' },
               { icon: 'model', text: `OG-UK rows: the automation + productivity arm’s ${HEADLINE_YEAR} gap.` },
-              { icon: 'link', text: 'That gap is against the OBR-central path; figures on Explore, download.' },
+              { icon: 'link', text: 'That gap is against the no-shock baseline; figures on Explore, download.' },
             ]}
           />
         ),
@@ -170,7 +170,7 @@ export default function EvidenceMap({ map = MAP }) {
       }}
       download={{
         title: 'UK evidence map',
-        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the OBR-central path, from surprise2028.json (built from ${S.source_commit})`,
+        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the no-shock baseline, from surprise2028.json (built from ${S.source_commit})`,
         table: () => mapTable(view(all)),
       }}
     >

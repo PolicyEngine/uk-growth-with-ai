@@ -39,7 +39,7 @@ const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-
 
 // What the sensitivity changes in every scenario's main arm, each claim
 // computed from the signs (headline year, common fiscal rule): the capital
-// stock and GDP against the central closure, the pay rate's side of the
+// stock and GDP against some foreign capital, the pay rate's side of the
 // path, and GNI against GDP. The icon follows the same comparison.
 export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   if (!res) return [];
@@ -112,7 +112,7 @@ export function sensFlagItem() {
 // columns the four measures, each cell the zeta_K 0.5 gap printed once on a
 // diverging tint (teal above the path, amber below; strength against the
 // column's largest absolute value). Beside each value an unvalued arrow says
-// whether the gap is higher or lower than at the central closure (zeta_K
+// whether the gap is higher or lower than with some foreign capital (zeta_K
 // 0.1, whose figures have their home on the four-measure card), and a dashed
 // outline marks a sign flip between the two closures.
 // Phone labels for the arm column (the full names are in the arm picker).
@@ -213,9 +213,9 @@ function SensGrid({ res }) {
                             {fmt(x, 2)}
                           </span>
                           {dirWord ? (
-                            <span className="ex-sg-dir" title={`${dirWord === 'higher' ? 'Higher' : 'Lower'} than at the central closure (ζK 0.1)${flip ? '; the sign flips' : ''}`}>
+                            <span className="ex-sg-dir" title={`${dirWord === 'higher' ? 'Higher' : 'Lower'} than with some foreign capital (ζK 0.1)${flip ? '; the sign flips' : ''}`}>
                               <Icon name={iconFor(dirWord === 'higher' ? 'gapUp' : 'gapDown')} size={12} />
-                              <span className="visually-hidden">{`, ${dirWord} than at the central closure${flip ? ', sign flips' : ''}`}</span>
+                              <span className="visually-hidden">{`, ${dirWord} than with some foreign capital${flip ? ', sign flips' : ''}`}</span>
                             </span>
                           ) : null}
                         </td>
@@ -239,7 +239,7 @@ export function gridKey(res) {
   const flips = cells.filter((k) => flipOf(k.x, k.c));
   const up = flips.length && flips.every((k) => k.x > 0);
   return [
-    { key: 'arrow', icon: 'compare', text: 'Arrow: higher or lower than at the central closure (ζK 0.1)' },
+    { key: 'arrow', icon: 'compare', text: 'Arrow: higher or lower than with some foreign capital (ζK 0.1)' },
     { key: 'held', icon: 'shock', text: 'Held: the stress test holds GDP on the path by design' },
     flips.length ? { key: 'flip', icon: 'closure', text: `Dashed outline: the sign flips against ζK 0.1 (${flips.length} cells)` } : null,
     up ? { key: 'why', icon: 'capital', text: 'Each flip turns a fall into a rise: more capital per worker' } : null,
@@ -254,7 +254,7 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR-central path`}
+      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the no-shock baseline`}
       finding={
         <span className="ex-ctx ex-sg-ctx">
           <span>
@@ -272,7 +272,7 @@ export default function SensitivityTable() {
       controls={
         <>
           <p className="ex-sg-lead">
-            <Lead c="compare">In every scenario’s main arm, against the central closure:</Lead>
+            <Lead c="compare">In every scenario’s main arm, against some foreign capital:</Lead>
           </p>
           <Items className="ex-notes" items={sensClaims(res)} />
           {sensFlagItem() ? (
@@ -282,16 +282,16 @@ export default function SensitivityTable() {
           ) : null}
         </>
       }
-      unit={<span data-axis-title="y">{`Gap against the OBR-central path at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
+      unit={<span data-axis-title="y">{`Gap against the no-shock baseline at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
       read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
       sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}
       download={{
         title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
-        context: () => `${HEADLINE_YEAR} · % difference from the OBR-central path · common fiscal rule`,
+        context: () => `${HEADLINE_YEAR} · % difference from the no-shock baseline · common fiscal rule`,
         table: () => ({
-          columns: ['Scenario', 'Arm', ...VARS.map((c) => `${c.label} (%)`)],
+          columns: ['Scenario', 'Version', ...VARS.map((c) => `${c.label} (%)`)],
           rows: SCENARIOS.flatMap((s) => ARMS.map((a) => [s.label, a.label, ...VARS.map((c) => at(res[s.id]?.[a.id], c.v))])),
         }),
       }}

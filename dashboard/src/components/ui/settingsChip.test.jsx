@@ -12,14 +12,14 @@ const words = (tab, sub, st = ST) => settingsSegments(pickersFor(tab, sub), st).
 
 describe('settings chip words', () => {
   it('Economy names every setting it reads, from labels.js', () => {
-    expect(words('explore', 'economy')).toBe('UK central · central closure · automation + productivity · common rule');
+    expect(words('explore', 'economy')).toBe('UK central · some foreign capital · automation + productivity · common rule');
   });
   it('closure and rule follow the state', () => {
-    expect(words('explore', 'finances', { ...ST, s: 'korinek', closure: 'both', armId: 'ss', rule: 'fixed' })).toBe('Korinek et al. (upper) · both closures · stress test · fixed spending');
-    expect(words('explore', 'economy', { ...ST, closure: 'closed' })).toContain('closed capital');
+    expect(words('explore', 'finances', { ...ST, s: 'korinek', closure: 'both', armId: 'ss', rule: 'fixed' })).toBe('Korinek et al. (upper) · foreign capital: both · stress test · fixed spending');
+    expect(words('explore', 'economy', { ...ST, closure: 'closed' })).toContain('no foreign capital');
   });
   it('Who gains: the scenario is locked to UK central and the rule is its own', () => {
-    expect(words('explore', 'who', { ...ST, s: 'uk_high' })).toBe('UK central · central closure · automation + productivity · debt-neutral');
+    expect(words('explore', 'who', { ...ST, s: 'uk_high' })).toBe('UK central · some foreign capital · automation + productivity · debt-neutral');
   });
   it('a uk-ai-study page and a page with no settings have no words', () => {
     expect(words('explore', 'households')).toBe('');
@@ -46,7 +46,7 @@ describe('settings chip popover', () => {
     expect(chip.getAttribute('aria-expanded')).toBe('true');
     expect(pop.hidden).toBe(false);
     const groups = [...pop.querySelectorAll('.sp-group-name')].map((g) => g.textContent);
-    expect(groups).toEqual(['Scenario', 'Closure', 'Arm', 'Fiscal rule']);
+    expect(groups).toEqual(['Scenario', 'Foreign capital', 'Version', 'Budget assumption']);
     // every option has a one-line description
     expect([...pop.querySelectorAll('.sp-option-note')].every((n) => n.textContent.length > 0)).toBe(true);
     // focus starts on the chosen scenario

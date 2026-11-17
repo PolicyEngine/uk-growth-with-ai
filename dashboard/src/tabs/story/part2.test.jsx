@@ -69,12 +69,12 @@ const textWithoutAxes = (el) => {
 const FIGURE = /[+−-]?\d+(\.\d+)?\s?(%|pp)/g;
 
 describe('story part 2', () => {
-  it('shows the headline tiles from the data file, and the pending closed-capital value', () => {
+  it('shows the headline tiles from the data file, and the pending no-foreign-capital value', () => {
     const one = at('tab=story');
     expect(one.container.querySelector('#story-headline').textContent).toContain('+2.35%');
     one.unmount();
     const both = at('tab=story&closure=both');
-    expect(both.container.querySelector('#story-headline').textContent).toContain('With closed capital: pending');
+    expect(both.container.querySelector('#story-headline').textContent).toContain('With no foreign capital: pending');
   });
 
   it('prints figures only inside the headline block and where output goes', () => {
@@ -101,7 +101,7 @@ describe('story part 2', () => {
         <MorphChart state={4} sid="uk_central" cl="zk0.1" />
       </NavProvider>,
     );
-    expect(popText(container)).toContain('Main arm, against the OBR-central path');
+    expect(popText(container)).toContain('Main version, against the no-shock baseline');
     const links = sourceLinks(container);
     for (const end of ['#economy-wall', '#explore-part-all', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
   });
@@ -252,8 +252,8 @@ describe('where output goes', () => {
       // each printed change names its path in the data (trace a number)
       const paths = [...out.querySelectorAll('.p2-wf-value[data-path]')].map((n) => n.getAttribute('data-path'));
       expect(paths).toEqual(['labour', 'gross_capital', 'domestic', 'foreign', 'depreciation', 'gdp'].map((k) => `output_split.change.${sid}.${cl}.${k}`));
-      expect(out.textContent.includes('both figures show the central closure')).toBe(q.endsWith('both'));
-      expect(out.textContent).toContain(cl === 'zk0' ? 'Closed capital' : 'Central closure');
+      expect(out.textContent.includes('both figures show some foreign capital')).toBe(q.endsWith('both'));
+      expect(out.textContent).toContain(cl === 'zk0' ? 'No foreign capital' : 'Some foreign capital');
       unmount();
     }
   });
@@ -319,7 +319,7 @@ describe('from the record to the model', () => {
       [false, false, true],
     ]);
     expect(seen[0].title).toBe('Real GDP growth');
-    expect(seen[2].title).toBe('GDP against the OBR-central path');
+    expect(seen[2].title).toBe('GDP against the no-shock baseline');
     expect(seen[0].source).not.toContain('OG-UK');
     expect(seen[1].source).toContain('OBR');
     expect(seen[2].source).toContain('OG-UK');
@@ -362,7 +362,7 @@ describe('the morph with a longer outturn series', () => {
 
 // Every arrow part 2 draws (gapUp, gapDown, onPath) comes from the sign of
 // the value it describes, for every scenario and closure (and with the
-// header's Both, which reads the central closure).
+// header's Both, which reads some foreign capital).
 describe('direction icons follow the signs', () => {
   const SIDS = fixture.scenarios.map((s) => s.id);
   const CLS = ['zk0.1', 'zk0'];
@@ -375,7 +375,7 @@ describe('direction icons follow the signs', () => {
         const tiles = [...container.querySelectorAll('#story-headline .stat-tile')];
         expect(tiles).toHaveLength(3);
         expect(container.querySelector('#story-headline .stat-dir, #story-headline .kpi-range')).toBeNull();
-        expect(!!tiles[1].textContent.includes('sign depends on the closure'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
+        expect(!!tiles[1].textContent.includes('sign depends on foreign capital'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
         unmount();
       }
     }
@@ -384,7 +384,19 @@ describe('direction icons follow the signs', () => {
   it('says once, in the About fold, which OBR vintage the path uses', async () => {
     const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
     const { container } = render(<div>{PARTS[1].about}</div>);
-    expect(container.textContent).toContain('The path is built on the OBR’s March 2026 forecast');
+    expect(container.textContent).toContain('The baseline is built on the OBR’s March 2026 forecast');
+  });
+
+  it('shows each model’s key limit open, above the About fold, in parts 2 and 3 (item 4)', async () => {
+    const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
+    const { PartOpener } = await import('@/tabs/story/PartHead.jsx');
+    for (const [part, words] of [[PARTS[1], /no unemployment/i], [PARTS[2], /one year/i]]) {
+      const { container } = render(<PartOpener part={part} question={part.question} about={part.about} />);
+      const line = container.querySelector('.part-opener-line');
+      expect(line.textContent).toMatch(words);
+      expect(line.closest('details')).toBeNull();
+      cleanup();
+    }
   });
 
   it('the headline step is one short sentence, a chip and the three tiles (item 7)', () => {

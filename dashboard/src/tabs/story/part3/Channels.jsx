@@ -239,7 +239,7 @@ function ChannelsSource() {
               text: (
                 <>
                   <NavLink tab="story" anchor="p3-central">
-                    The central case
+                    The main case
                   </NavLink>{' '}
                   is a mean of {D.headline.central_cost.draws}
                 </>

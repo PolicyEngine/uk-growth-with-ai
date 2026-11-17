@@ -22,7 +22,7 @@ import './evidence.css';
 // against its own study's baseline, from the UK evidence map
 // (site-evidence-map.json, through RANGES), beside our headline-year gaps for
 // UK central and Korinek et al. (upper) (automation + productivity arm)
-// against the OBR-central path, read from surprise2028.json through gap().
+// against the no-shock baseline, read from surprise2028.json through gap().
 // Published figures are printed in the evidence map; ours on Explore. Here
 // both appear in the tooltips only. A figure not confirmed in the published
 // text (`unverified`) is left out, as it is from the map.
@@ -30,8 +30,8 @@ import './evidence.css';
 // without one show published figures only. Adoption and exposure are levels,
 // not effects. `kind: 'shares'` draws one row's `shares` as a 100% bar.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; OG-UK against the OBR-central path', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; OG-UK against the OBR-central path', step: 1 },
+  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; OG-UK against the no-shock baseline', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; OG-UK against the no-shock baseline', step: 1 },
   adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10, level: true },
   exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers by occupation: a share, not a gap', kind: 'shares' },
   distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points against each study’s own baseline', step: 5, suf: ' Gini pts' },
@@ -97,7 +97,7 @@ function rangeSvg(metric) {
     if (o.c != null && o.b != null) out += `<line x1="${X(o.c)}" x2="${X(o.b)}" y1="${cy}" y2="${cy}" stroke="${hl}" stroke-width="3"/>`;
     if (o.b != null) out += `<circle cx="${X(o.b)}" cy="${cy}" r="5.5" fill="${C.surface}" stroke="${hl}" stroke-width="2.5"/>`;
     if (o.c != null) out += `<circle cx="${X(o.c)}" cy="${cy}" r="6" fill="${hl}"/>`;
-    out += `<text x="${x1 + 16}" y="${cy + 4}" font-size="12" fill="${C.ink}">${esc(`Central ${fmt(o.c)}, closed capital ${fmt(o.b)}`)}</text>`;
+    out += `<text x="${x1 + 16}" y="${cy + 4}" font-size="12" fill="${C.ink}">${esc(`Some foreign capital ${fmt(o.c)}, no foreign capital ${fmt(o.b)}`)}</text>`;
     y += ROW;
   }
   group('Published');
@@ -119,8 +119,8 @@ function rangeSvg(metric) {
 }
 
 const legendKeys = () => [
-  { label: 'Central closure', color: cssColour('var(--series-2)'), shape: 'dot' },
-  { label: 'Closed capital', color: cssColour('var(--series-2)'), shape: 'ring' },
+  { label: 'Some foreign capital', color: cssColour('var(--series-2)'), shape: 'dot' },
+  { label: 'No foreign capital', color: cssColour('var(--series-2)'), shape: 'ring' },
   { label: 'Published range', color: cssColour('var(--series-5)'), shape: 'box' },
   { label: 'Single figure', color: cssColour('var(--series-5)'), shape: 'dot' },
   { label: 'Source’s own central case', color: CHART_COLOURS.ink, shape: 'tick' },
@@ -132,8 +132,8 @@ function table(metric) {
     columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [m.title, `${o.label}, central closure`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
-        [m.title, `${o.label}, closed capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the OBR-central path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
+        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
       ]),
       ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
@@ -254,7 +254,7 @@ function Lane({ metric, hi, bind }) {
                 {o.c == null && o.b == null ? <span className="mx-rb-pending">pending</span> : null}
                 {o.c != null && o.b == null ? (
                   <span className="mx-rb-note" style={{ left: `${px(o.c)}%` }}>
-                    closed capital pending
+                    no foreign capital pending
                   </span>
                 ) : null}
                 {rowTip(
@@ -262,7 +262,7 @@ function Lane({ metric, hi, bind }) {
                   <>
                     <b>{o.label}</b>
                     <span>
-                      Central closure {fmt(o.c)}; closed capital {fmt(o.b)}
+                      Some foreign capital {fmt(o.c)}; no foreign capital {fmt(o.b)}
                     </span>
                   </>,
                 )}
@@ -345,10 +345,10 @@ export default function EvidenceLanes() {
       legend={
         <ul className="mx-rb-key">
           <li>
-            <span className="mx-rb-dot is-c is-key" data-icon="" /> Central closure
+            <span className="mx-rb-dot is-c is-key" data-icon="" /> Some foreign capital
           </li>
           <li>
-            <span className="mx-rb-dot is-b is-key" data-icon="" /> Closed capital
+            <span className="mx-rb-dot is-b is-key" data-icon="" /> No foreign capital
           </li>
           <li>
             <span className="mx-rb-bar is-key" data-icon="" /> Published range
@@ -365,7 +365,7 @@ export default function EvidenceLanes() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: `OG-UK: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the OBR-central path.` },
+              { icon: 'model', text: `OG-UK: the automation + productivity arm’s ${HEADLINE_YEAR} gap against the no-shock baseline.` },
               { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
               { icon: 'ai', text: 'Those baselines mostly have no AI.' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
@@ -384,7 +384,7 @@ export default function EvidenceLanes() {
       }}
       download={{
         title: TITLE,
-        context: () => `OG-UK: automation + productivity, against the OBR-central path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
+        context: () => `OG-UK: automation + productivity, against the no-shock baseline; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
         table: () => {
           const ts = RANGE_LANES.map(table);
           // composition lanes: one row per share, low = high = the share

@@ -5,7 +5,7 @@
 // (U+2011) is not in the self-hosted Inter subset and falls back to
 // another font, which opened the gaps the review saw.
 //
-//   <Hy>gaps against the OBR-central path</Hy>
+//   <Hy>gaps against the no-shock baseline</Hy>
 //   hy('uk-ai-study') → the same nodes, for a string inside other markup
 const WORD = /(\S*\w-\w\S*)/;
 

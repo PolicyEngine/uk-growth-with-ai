@@ -68,7 +68,7 @@ describe('the answer chips that open Economy and Public finances', () => {
               const tone = ['Y', 'GNI', 'w'].includes(vars[i]) && word(x) !== 'on' ? (x > 0 ? 'gain' : 'loss') : null;
               expect(r.tone).toBe(tone);
             });
-            // the closed-capital chip (Both): each named measure is on the other side with closed capital
+            // the no-foreign-capital chip (Both): each named measure is on the other side with no foreign capital
             if (closure === 'both' && items.closed)
               items.closed.values.forEach((x) => expect(vars.some((v) => word(val(sid, 'tfp', 'zk0.1', v, rule)) !== word(x))).toBe(true));
             // the why: labour share's arrow and the pay words follow its sign

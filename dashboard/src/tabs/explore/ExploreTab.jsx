@@ -19,7 +19,7 @@ const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sente
 // line). Economy and Public finances answer for the main arm in the
 // headline year, whatever the arm picker says (it drives the matrices), so
 // their kicker names both.
-const OGUK = 'OG-UK · gaps against the OBR-central path, not forecasts';
+const OGUK = 'OG-UK · gaps against the no-shock baseline, not forecasts';
 const MAIN = `${OGUK} · automation + productivity, ${HEADLINE_YEAR}`;
 const DATE_NOTE = 'The AI shock starts in 2028: an assumed date, not a forecast.';
 

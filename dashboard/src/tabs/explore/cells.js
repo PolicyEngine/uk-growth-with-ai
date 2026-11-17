@@ -49,19 +49,19 @@ export function axisOf(arm, v) {
 }
 
 export const cellsTable = (arm, armLabel) => ({
-  columns: ['Measure', 'Unit', 'Fiscal rule', 'Closure', 'Scenario', 'Arm', `Gap in ${HEADLINE_YEAR}`, 'Status'],
+  columns: ['Measure', 'Unit', 'Budget assumption', 'Foreign capital', 'Scenario', 'Version', `Gap in ${HEADLINE_YEAR}`, 'Status'],
   rows: MEASURES.flatMap((m) =>
     ROWS.flatMap((row) =>
       SCENARIOS.map((s) => {
         const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
-        return [m.label, m.unit === '%' ? '% difference from the OBR-central path' : 'pp of GDP, difference from the OBR-central path', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? 'pending' : 'solved'];
+        return [m.label, m.unit === '%' ? '% difference from the no-shock baseline' : 'pp of GDP, difference from the no-shock baseline', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? 'pending' : 'solved'];
       }),
     ),
   ),
 });
 
 // Which choice moves a measure most for an arm: the largest spread of its
-// headline-year gap across scenarios (common rule, central closure), across
+// headline-year gap across scenarios (common rule, some foreign capital), across
 // the two closures (any scenario, common rule) and across the three rules
 // (the scenarios solved under every rule, either closure).
 export function spreads(arm, v) {

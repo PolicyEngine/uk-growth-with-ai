@@ -75,7 +75,7 @@ export default function GrowthCheck() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: 'OG-UK: GDP growth each year on the committed OG-UK baseline (central closure).' },
+              { icon: 'model', text: 'OG-UK: GDP growth each year on the committed OG-UK baseline (some foreign capital).' },
               { icon: 'forecast', text: <>The baseline takes two OBR March 2026 inputs: trend productivity ({ext(SRC.efoMarPath.url, '¶1.2')}) and 2030 debt/GDP.</> },
               { icon: 'timing', text: 'So the baseline is March 2026; this check uses October 2026.' },
               { icon: 'excluded', text: 'It is not fitted to the OBR’s growth path.' },

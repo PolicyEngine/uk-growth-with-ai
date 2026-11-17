@@ -20,9 +20,9 @@ export function captionOf(st, sub) {
   if (pick.study) return studyCaption(AI);
   const parts = [];
   if (pick.scenario) parts.push(`Scenario: ${SCEN_NAME[pick.scenario === 'locked' ? 'uk_central' : st.s]}`);
-  if (pick.closure) parts.push(`Closure: ${closureLabel(st.closure)}`);
-  if (pick.arm) parts.push(`Arm: ${ARM_PICK.find((a) => a.id === st.armId)?.label}`);
-  if (pick.rule) parts.push(`Fiscal rule: ${ruleLabel(Array.isArray(pick.rule) ? st.wrule : st.rule)}`);
+  if (pick.closure) parts.push(`Foreign capital: ${closureLabel(st.closure)}`);
+  if (pick.arm) parts.push(`Version: ${ARM_PICK.find((a) => a.id === st.armId)?.label}`);
+  if (pick.rule) parts.push(`Budget assumption: ${ruleLabel(Array.isArray(pick.rule) ? st.wrule : st.rule)}`);
   parts.push('Model: OG-UK');
   return parts.join(' · ');
 }

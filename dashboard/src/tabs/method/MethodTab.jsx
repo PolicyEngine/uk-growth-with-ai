@@ -51,7 +51,7 @@ function ClosureCards() {
     <FoldGrid className="card-grid cols-2">
       <InfoCard
         icon={iconFor('foreign')}
-        title="Central closure"
+        title="Some foreign capital"
         className="mx-card"
         id="closure-central"
         more={
@@ -62,7 +62,7 @@ function ClosureCards() {
               { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
               { icon: 'data', text: <>Its baseline income paid abroad sits inside the UK&rsquo;s ({cite('pinkBook')}).</> },
-              { icon: 'caveat', text: <>It misses the current account; closed capital is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
+              { icon: 'caveat', text: <>It misses the current account; no foreign capital is closer on the net foreign-asset stock ({ext(DOC_MAIN('closure_choice.md'), 'closure memo')}).</> },
               { icon: 'timing', text: 'Foreign capital resets each year.' },
               { icon: 'capital', text: <>So part of the {SURPRISE_YEAR} capital gap is an instant inflow.</> },
             ]}
@@ -78,14 +78,14 @@ function ClosureCards() {
         <Items
           items={[
             { icon: 'foreign', text: 'Share of excess capital demand met from abroad, not of added capital.' },
-            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Part' : 'Most'} of the added capital is foreign-owned: GNI rises less than GDP.` },
+            { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned, so gross national income (GNI) lags GDP.` },
             { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
           ]}
         />
       </InfoCard>
       <InfoCard
         icon={iconFor('closed')}
-        title="Closed-capital bound"
+        title="No-foreign-capital bound"
         className="mx-card"
         id="closure-bound"
         more={
@@ -93,7 +93,7 @@ function ClosureCards() {
             items={[
               { icon: 'households', text: 'UK households’ saving finances all the extra capital.' },
               { icon: 'gni', text: 'GNI and GDP nearly coincide.' },
-              { icon: 'closure', text: <>The {S.closures[BOUND].role}: on Explore, choose Closed capital or Both.</> },
+              { icon: 'closure', text: <>The {S.closures[BOUND].role}: on Explore, choose No foreign capital or Both.</> },
             ]}
           />
         }
@@ -117,7 +117,7 @@ function ClosureCards() {
 }
 
 // The foreign-owned share of UK central's extra capital in the headline year
-// (main arm, central closure, common rule): surprise2028.json
+// (main arm, some foreign capital, common rule): surprise2028.json
 // foreign_share_dK_2031, whole per cent. Its figure has one home (the
 // story's GNI tile); Method says only whether it is most.
 const FOREIGN_DK = (() => {
@@ -126,9 +126,9 @@ const FOREIGN_DK = (() => {
 })();
 
 const MEASURES = [
-  { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR-central path in ${HEADLINE_YEAR}.` },
+  { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the no-shock baseline in ${HEADLINE_YEAR}.` },
   { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts.' },
-  { k: 'NNI', icon: 'depreciation', t: 'GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
+  { k: 'NNI', icon: 'depreciation', t: 'Net national income: GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
 ];
 
 // The three fiscal rules: name and one-line meaning from lib/labels.js (the
@@ -157,7 +157,7 @@ const RULE_TEXT = {
     icon: 'debt',
     tag: 'Headline rule on Who gains',
     items: [
-      { icon: 'benefits', text: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR-central path.` },
+      { icon: 'benefits', text: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the no-shock baseline.` },
       { icon: 'rule', text: <>A modelling choice ({cite('fiscalRules')}).</> },
     ],
   },
@@ -215,9 +215,9 @@ export default function MethodTab() {
       <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
       <div className="page-body">
         <PageIntro
-          kicker="OG-UK · gaps against the OBR-central path, not forecasts"
+          kicker="OG-UK · gaps against the no-shock baseline, not forecasts"
           question="How does OG-UK turn an AI scenario into these results?"
-          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR-central path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the AI shock. Not a forecast.</IconText>}
+          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the no-shock baseline: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the AI shock. Not a forecast.</IconText>}
         >
           <WhyChain
             className="mx-chain"
@@ -226,7 +226,7 @@ export default function MethodTab() {
               { icon: 'scenario', text: 'An AI scenario' },
               { icon: 'ai', text: 'Two production inputs change' },
               { icon: 'model', text: 'Every market re-clears' },
-              { icon: 'path', text: 'Gap against the OBR-central path' },
+              { icon: 'path', text: 'Gap against the no-shock baseline' },
             ]}
           />
         </PageIntro>
@@ -371,14 +371,14 @@ export default function MethodTab() {
                   ]}
                 />
               }
-              moreTitle="The OBR-central path"
-              morePreview="OBR-central baseline, the restart"
+              moreTitle="The no-shock baseline"
+              morePreview="No-shock baseline, the restart"
             >
               <Items
                 items={[
                   { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
-                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the OBR-central path.</> },
-                  { icon: 'forecast', text: <>OBR-central path: the March 2026 EFO ({cite('efoMarPath')}).</> },
+                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the no-shock baseline.</> },
+                  { icon: 'forecast', text: <>No-shock baseline: the March 2026 EFO ({cite('efoMarPath')}).</> },
                 ]}
               />
             </InfoCard>
@@ -488,7 +488,7 @@ export default function MethodTab() {
                       icon: 'start',
                       text: (
                         <>
-                          Restarted without the shock, the model must reproduce the OBR-central path, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
+                          Restarted without the shock, the model must reproduce the no-shock baseline, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
                         </>
                       ),
                     },

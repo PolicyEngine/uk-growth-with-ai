@@ -15,7 +15,7 @@ import { MODEL_YEAR } from './part3/shared.jsx';
 // Part 3: a model of households, the uk-ai-study PolicyEngine-UK
 // microsimulation of AI job displacement for one year, from
 // data/aiStudy2425.json; docs/story/part3-notes.md defines every value.
-// Four Scrolly scenes in the paper's order (results.tex): the central case,
+// Four Scrolly scenes in the paper's order (results.tex): the main case,
 // its three channels, where the loss falls, and what changes the answer (who
 // loses the job, job loss against wage cuts, the break-evens: one scene,
 // round 2); then what the study leaves out, a plain list. Where a lost pound
@@ -36,8 +36,8 @@ export default function Part3({ part }) {
         <StoryBeat
           id="7pct"
           num={fmtInputPct(CENTRAL_RATE)}
-          head="If jobs, not pay, take the hit"
-          line="Part 2’s model has no unemployment: the shock shows up in pay. This study assumes that share of employees lose their jobs for a year."
+          head="A separate study: what if employees lose their jobs?"
+          line="This household study assumes that share lose their jobs for one year. Part 2’s model has no unemployment; the two are not added or compared."
           numProps={{ 'data-input': '', 'data-path': 'headline.central_displaced.note' }}
         />
       ) : null}

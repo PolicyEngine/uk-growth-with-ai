@@ -25,7 +25,7 @@ import { docItem, navItem } from '@/lib/sourceItems.js';
 // words, and each "can say" chip is a real link to the scene where that
 // result appears (real lists, one per lens, with headings). The two pay
 // figures restate their homes: -1.27% (data-axis) is part 2's headline pay
-// tile at UK central, central closure, fixed whatever the header says;
+// tile at UK central, some foreign capital, fixed whatever the header says;
 // +2.6% is the study's quoted input (data-input). The circles and arrows
 // are decorative (aria-hidden); the lists and cards are the content.
 //
@@ -64,7 +64,7 @@ export const LENSES = [
     ],
     outside: [
       { text: 'Unemployment', tip: 'Everyone who wants to work is employed' },
-      { text: 'Forecasts of levels', tip: 'Results are gaps against the OBR-central path' },
+      { text: 'Forecasts of levels', tip: 'Results are gaps against the no-shock baseline' },
     ],
   },
   {
@@ -75,8 +75,8 @@ export const LENSES = [
     time: `One year, ${MODEL_YEAR}`,
     can: [
       { text: 'Who loses income', to: 'p3-deciles', scene: 'where the loss falls' },
-      { text: 'Poverty', to: 'p3-central', scene: 'the central case' },
-      { text: 'Inequality', to: 'p3-central', scene: 'the central case' },
+      { text: 'Poverty', to: 'p3-central', scene: 'the main case' },
+      { text: 'Inequality', to: 'p3-central', scene: 'the main case' },
     ],
     outside: [
       { text: 'Change over time', tip: 'Recovery, re-employment, prices' },
@@ -85,7 +85,7 @@ export const LENSES = [
   },
 ];
 
-// The OG-UK pay figure: UK central, central closure, the headline year,
+// The OG-UK pay figure: UK central, some foreign capital, the headline year,
 // fixed (B4).
 const PAY_SID = 'uk_central';
 export const PAY_RESULT = gap(PAY_SID, 'tfp', CENTRAL, 'w');
@@ -205,7 +205,7 @@ function LensSource() {
                 </>
               ),
             },
-            { icon: 'gapDown', text: `Pay rates are part 2’s headline pay-rate gap: ${SCEN_NAME[PAY_SID]}, central closure, ${HEADLINE_YEAR}` },
+            { icon: 'gapDown', text: `Pay rates are part 2’s headline pay-rate gap: ${SCEN_NAME[PAY_SID]}, some foreign capital, ${HEADLINE_YEAR}` },
           ],
         },
       ]}

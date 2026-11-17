@@ -114,7 +114,7 @@ describe('HouseholdsExplore', () => {
   it('labels the plane dots directly, plain dots with no icons', () => {
     const { container } = render(<HouseholdsExplore />);
     const labs = [...container.querySelectorAll('#hh-rules .hh-pt-lab')].map((l) => l.textContent);
-    expect(labs).toEqual(['Uniform', 'Junior-tilted', 'AI exposure (central)', 'Compression']);
+    expect(labs).toEqual(['Uniform', 'Junior-tilted', 'AI exposure (main)', 'Compression']);
     expect(container.querySelectorAll('.hh-pt svg, .hh-pt-key svg')).toHaveLength(0);
     expect([...container.querySelectorAll('#hh-ladder .hh-pt-lab')].map((l) => l.textContent)).toContain('OBR-sized runs');
   });
@@ -197,7 +197,7 @@ describe('Households finding lines hold in the data', () => {
 });
 
 describe('Where a lost pound goes (the Story again, item 19; Explore links to it)', () => {
-  it('builds the Sankey from the OBR-sized run, with inflows equal to outflows at every node, and says it is not the central case', () => {
+  it('builds the Sankey from the OBR-sized run, with inflows equal to outflows at every node, and says it is not the main case', () => {
     const S = D.sankey;
     const g = absorbGraph();
     expect(imbalances(g)).toEqual([]);

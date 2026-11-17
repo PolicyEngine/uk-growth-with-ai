@@ -18,7 +18,7 @@ const at = (query = 'tab=who') => {
 };
 
 describe('Who gains tab', () => {
-  it('headline defaults to the central closure, debt-neutral transfers, main arm', () => {
+  it('headline defaults to some foreign capital, debt-neutral transfers, main arm', () => {
     const { container } = at();
     const c = cell('zk0.1', 'dn', 'tfp');
     const t = container.textContent;
@@ -100,7 +100,7 @@ describe('Who gains tab', () => {
     expect(tileRange(0, 0)).toBe('None');
   });
 
-  it('the solve to the horizon shows only from the data, for the main arm, debt-neutral, central closure', () => {
+  it('the solve to the horizon shows only from the data, for the main arm, debt-neutral, some foreign capital', () => {
     const { container } = at();
     const rows = container.querySelectorAll('[data-dnfull]');
     if (D.dnfull?.ready) {
@@ -115,7 +115,7 @@ describe('Who gains tab', () => {
     expect(dnfullFor('zk0.1', 'common', 'tfp')).toBeNull();
   });
 
-  it('data covers both closures, both rules and three arms', () => {
+  it('data covers both foreign-capital cases, both rules and three arms', () => {
     for (const cl of ['zk0.1', 'zk0'])
       for (const r of ['dn', 'common'])
         for (const a of ['tfp', 'zfixed', 'stress']) {

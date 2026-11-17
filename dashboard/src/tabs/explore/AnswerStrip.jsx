@@ -9,7 +9,7 @@ import { side } from '@/tabs/ai/lines.js';
 // aligned to the content edge: one row of equal chips, one per measure
 // (measure icon, name, then an arrow and a direction word in the gain or
 // loss colour where that applies; data-dir-concept keeps the sign), an
-// optional closed-capital note, the why as one inline chain on one line
+// optional no-foreign-capital note, the why as one inline chain on one line
 // (icons and arrows, not a list), and one caveat line. No context line:
 // the sticky settings chip names the settings. The data come from
 // answers.js; every direction from the sign.

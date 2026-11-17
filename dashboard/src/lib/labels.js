@@ -59,9 +59,9 @@ export const RULE_PICK = {
 
 // Capital closure: who owns the new capital.
 export const CLOSURES = [
-  { id: 'central', label: 'Central', note: 'Foreign investors supply 10% of excess capital demand (ζK = 0.1; OG-Core’s US default, chosen by the study)', icon: 'globe' },
-  { id: 'closed', label: 'Closed capital', note: 'No foreign-owned private capital (ζK = 0)', icon: 'lock' },
-  { id: 'both', label: 'Both', note: 'Central solid, closed capital dashed', icon: 'layers' },
+  { id: 'central', label: 'Some foreign capital', note: 'Foreign investors supply 10% of excess capital demand (ζK = 0.1; OG-Core’s US default, chosen by the study)', icon: 'globe' },
+  { id: 'closed', label: 'No foreign capital', note: 'No foreign-owned private capital (ζK = 0)', icon: 'lock' },
+  { id: 'both', label: 'Both', note: 'Some foreign capital solid, none dashed', icon: 'layers' },
 ];
 export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? id;
 
@@ -72,7 +72,7 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 // default Results solve, so it is one rule under one name.
 export const RULES = [
   { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP' },
-  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its OBR-central level' },
+  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level' },
   { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;

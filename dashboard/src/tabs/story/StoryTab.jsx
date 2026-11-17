@@ -42,6 +42,7 @@ export const PARTS = [
     title: 'What a model of the whole economy projects',
     model: 'oguk',
     question: 'What happens to output, incomes and the public finances if an AI shock starts in 2028?',
+    line: 'No unemployment: lost tasks show up as lower pay rates.',
     about: (
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
@@ -57,13 +58,12 @@ export const PARTS = [
               </>
             ),
           },
-          { icon: 'excluded', text: 'No unemployment: lost tasks show up as lower pay rates' },
-          { icon: 'path', text: <Hy>Results are gaps against the OBR-central path, not forecasts</Hy> },
+          { icon: 'path', text: <Hy>Results are gaps against the no-shock baseline, not forecasts</Hy> },
           {
             icon: 'forecast',
             text: (
               <>
-                The path is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
+                The baseline is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
               </>
             ),
           },
@@ -79,10 +79,11 @@ export const PARTS = [
     title: 'Jobs, incomes and the public finances',
     model: 'aistudy',
     question: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI?',
+    line: 'One year only, with no change in behaviour.',
     about: (
       <Items
         items={[
-          { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data: one year, no behaviour change</Hy> },
+          { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data</Hy> },
           { icon: 'jobLoss', text: <Hy>Here people lose jobs; in OG-UK everyone who wants work has it</Hy> },
           { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
         ]}

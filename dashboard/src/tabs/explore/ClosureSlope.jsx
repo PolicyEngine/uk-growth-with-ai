@@ -12,13 +12,13 @@ import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, SCEN_NAME, gap, fmt, ru
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 
-// Central closure -> closed capital, per measure: a slope chart of two solved
+// Some foreign capital -> no foreign capital, per measure: a slope chart of two solved
 // cases joined by a straight line. The line is not a range between them: no
 // closure between the two is solved. Each arm is a line; where the two ends
-// fall on opposite sides of the OBR-central path the measure flips sign, and
+// fall on opposite sides of the no-shock baseline the measure flips sign, and
 // the panel says so in words (from the signs). No figure is printed: every
-// value here has its home in the four-measure card above (central closure,
-// or closed capital with Closure = Closed or Both) and in the story's
+// value here has its home in the four-measure card above (some foreign capital,
+// or no foreign capital with Closure = Closed or Both) and in the story's
 // headline tiles; hovering or focusing an end shows it as a read-out. Its
 // sources are the four-measure card's, whose sources line it shares.
 
@@ -72,7 +72,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
         {m.label}
       </figcaption>
       <div ref={boxRef}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, central closure to closed capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no arm flips sign'}`}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, some foreign capital to no foreign capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no arm flips sign'}`}>
         {sc.ticks.map((t) => (
           <g key={t}>
             <line x1={x0} x2={x1} y1={Y(t)} y2={Y(t)} className={Math.abs(t) < 1e-9 ? 'ex-slope-zero' : 'ex-slope-grid'} />
@@ -85,18 +85,18 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             the card's unit line giving it in full, and lets the two end
             labels name the closures */}
         <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
-          {narrow ? 'Gap, %' : 'Gap against the OBR-central path, %'}
+          {narrow ? 'Gap, %' : 'Gap against the no-shock baseline, %'}
         </text>
         {narrow ? null : (
           <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
-            Closure
+            Foreign capital
           </text>
         )}
         <text x={x0} y={H - 6} className="ex-slope-tick" data-axis="">
-          Central
+          Some
         </text>
         <text x={x1} y={H - 6} textAnchor="end" className="ex-slope-tick" data-axis="">
-          Closed
+          None
         </text>
         {rows.map((r) => {
           if (r.c == null) return null;
@@ -112,7 +112,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
               style={{ '--arm': ARM_COLOR[r.arm.id] }}
               tabIndex={0}
               role="button"
-              aria-label={`${r.arm.label}, ${m.label}: central closure ${fmt(r.c)}, closed capital ${fmt(r.b)}${r.flips ? ', flips sign' : ''}`}
+              aria-label={`${r.arm.label}, ${m.label}: some foreign capital ${fmt(r.c)}, no foreign capital ${fmt(r.b)}${r.flips ? ', flips sign' : ''}`}
               onMouseEnter={on}
               onFocus={on}
               onMouseLeave={() => setHot(null)}
@@ -138,7 +138,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
           </p>
         ) : pending.length ? (
           <p className="ex-slope-note">
-            Closed capital not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
+            No foreign capital not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
           </p>
         ) : (
           <p className="ex-slope-note">
@@ -162,9 +162,9 @@ export default function ClosureSlope({ sid }) {
       id="closure-slope"
       sources={sourcesItems({ sid, method: 'closures' })}
       icon={iconFor('closure')}
-      title="Central closure to closed capital"
+      title="Some foreign capital to no foreign capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<Lead c="measure">{`Each arm’s % difference from the OBR-central path, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
+      unit={<Lead c="measure">{`Each arm’s % difference from the no-shock baseline, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
       legend={
         <ul className="ex-slope-key">
           {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
@@ -178,10 +178,10 @@ export default function ClosureSlope({ sid }) {
         </ul>
       }
       download={{
-        title: `Central closure to closed capital, ${HEADLINE_YEAR}`,
-        context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the OBR-central path · ${ruleLabel(rule).toLowerCase()}`,
+        title: `Some foreign capital to no foreign capital, ${HEADLINE_YEAR}`,
+        context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the no-shock baseline · ${ruleLabel(rule).toLowerCase()}`,
         table: () => ({
-          columns: ['Measure', 'Arm', 'Central closure (%)', 'Closed capital (%)', 'Flips sign'],
+          columns: ['Measure', 'Version', 'Some foreign capital (%)', 'No foreign capital (%)', 'Flips sign'],
           rows: all.flatMap(({ m, rows }) => rows.map((r) => [m.label, r.arm.label, r.c, r.b, r.flips ? 'yes' : 'no'])),
         }),
       }}
