@@ -148,7 +148,7 @@ export default function HouseholdsMethod() {
                 items={[
                   { icon: 'version', text: `Release bundle: policyengine.py ${M.policyengine}.` },
                   { icon: 'tax', text: `Income tax, National Insurance and benefits for ${MODEL_YEAR}.` },
-                  { icon: 'poverty', text: <>Incomes follow {l('hbai', 'Households Below Average Income (HBAI, DWP)')}, before and after housing costs.</> },
+                  { icon: 'poverty', text: <>Incomes: {l('hbai', 'DWP Households Below Average Income (HBAI)')}, before and after housing costs.</> },
                   { icon: 'cost', text: 'The cost is the fall in the government balance.' },
                   { icon: 'finances', text: 'It counts income tax, employee and employer NI, and benefits.' },
                   { icon: 'excluded', text: 'No corporation tax; household spending held at baseline.' },
@@ -268,7 +268,7 @@ export default function HouseholdsMethod() {
               { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}.</> },
               { icon: 'source', text: <>Rates: {l('ucParams', 'PolicyEngine-UK parameters')}; current rates on {l('ucGov', 'GOV.UK')}.</> },
               { icon: 'takeUp', text: 'Each benefit unit keeps its take-up decision drawn in the data.' },
-              { icon: 'excluded', text: 'New-style Jobseeker’s Allowance (JSA) is paid only where the survey reports an award.' },
+              { icon: 'excluded', text: 'New-style Jobseeker’s Allowance (JSA): paid only where the survey reports an award.' },
               { icon: 'jobLoss', text: 'So the newly displaced do not get it.' },
             ]}
           />
