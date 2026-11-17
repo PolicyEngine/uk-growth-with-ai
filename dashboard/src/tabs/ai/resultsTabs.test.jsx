@@ -54,7 +54,17 @@ describe('Results follows the data file', () => {
     // named once in a line linked there
     const income = text('sub=income&closure=both');
     expect(income.match(/\+1\.23%/g)).toHaveLength(1);
-    expect(income.match(/headline figures, at home in the story/g)).toHaveLength(1);
+    // that line sits behind the card's "Sources and notes", under "How to read"
+    expect(income.match(/headline figures, at home in the story/g)).toBeNull();
+    {
+      const { container, unmount } = at('sub=income&closure=both');
+      const b = container.querySelector('#measures button.src-line-btn');
+      fireEvent.click(b);
+      const pop = document.getElementById(b.getAttribute('aria-controls')).textContent;
+      expect(pop).toContain('How to read');
+      expect(pop.match(/headline figures, at home in the story/g)).toHaveLength(1);
+      unmount();
+    }
     expect(income).toContain('closed capital pending');
     expect(text('sub=economy')).toContain('+4.44%');
     expect(text('sub=finances')).toContain('+7.78pp');

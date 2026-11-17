@@ -61,8 +61,10 @@ for (const [name, path] of Object.entries(PAGES)) {
       };
       // a counted icon: a Lucide svg, visible, not inside an aria-hidden copy
       // (Icon.jsx's own span is aria-hidden: look above it)
+      // The "Sources and notes" button's BookOpen (SourceLine.jsx) is a
+      // control, not a text icon: not counted.
       const isIcon = (s) => {
-        if (!s.classList.contains('lucide') || !visible(s)) return false;
+        if (!s.classList.contains('lucide') || !visible(s) || s.closest('.src-line-btn')) return false;
         const p = s.parentElement;
         const host = p && (p.classList.contains('plain-icon') || p.getAttribute('aria-hidden') === 'true') ? p.parentElement : p;
         return !host?.closest('[aria-hidden="true"], .scrolly-sizers, [hidden], .visually-hidden');

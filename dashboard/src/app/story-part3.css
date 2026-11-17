@@ -1418,9 +1418,21 @@ svg.p3-dim {
 /* 3-5: the rule dots slide in from zero along their axes */
 .p3-scene .p3-dot {
   transition:
-    left 700ms var(--story-ease) var(--beat, 0ms),
     opacity 300ms var(--story-ease),
     filter 300ms var(--story-ease);
+}
+/* the dot moves by its rail's transform (Changes.jsx), not by left */
+.p3-dot-rail {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.p3-dot-rail > .p3-dot {
+  left: 0;
+  pointer-events: auto;
+}
+.p3-scene .p3-dot-rail {
+  transition: transform 700ms var(--story-ease) var(--beat, 0ms);
 }
 /* Each state holds 200px of scroll (check_states: 180px) while the figure
    is in view. The scroll a scene gives its states is H - top - 0.8F plus

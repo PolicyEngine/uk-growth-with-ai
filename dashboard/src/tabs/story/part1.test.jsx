@@ -4,7 +4,7 @@
 // file's paths, and the part is rendered against both the real file and a
 // fixture with altered values, so a hard-coded number fails.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import real from '@/data/ukContext.json';
 import checks from '@/data/ukContextChecks.json';
 import Part1Real from '@/tabs/story/Part1.jsx';
@@ -108,13 +108,14 @@ describe('story part 1, real data', () => {
     const annual = render(<OutputCanvas state={0} />).container;
     expect(annual.querySelector('.story-figure-unit').textContent).toContain(`${lastFull} is the latest complete year`);
     cleanup();
-    // the current year's latest quarter is in the GDP tile, a first estimate,
-    // with the growth on a year earlier (its home since the quarters step went)
-    const gdp = show(Part1Real).querySelector('#p1-vital-gdp');
+    // the current year's latest quarter is in the GDP tile ("Q3 2026"), flagged
+    // a first estimate; the growth on a year earlier is in the panel's notes
+    const el = show(Part1Real);
+    const gdp = el.querySelector('#p1-vital-gdp');
     expect(gdp.querySelector('#p1-quarters')).not.toBeNull();
-    expect(gdp.textContent).toContain(q);
-    expect(gdp.textContent).toContain('first estimate');
-    expect(gdp.querySelector('[data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
+    expect(gdp.textContent).toContain(q.replace(/^(\d{4}) (Q\d)$/, '$2 $1'));
+    expect(gdp.querySelector('.p1-vital-flag').textContent).toBe('first estimate');
+    expect(el.querySelector('#p1-vitals [data-source-notes] [data-path="facts.gdp_quarterly_yoy.value"]').textContent).toBe(pct1(real.facts.gdp_quarterly_yoy.value));
   });
 
   it('labels the OBR forecast with its vintage, from the data file', () => {
@@ -142,20 +143,33 @@ describe('story part 1, real data', () => {
     expect(fig.querySelectorAll('.tile')).toHaveLength(100);
   });
 
-  it('gives every graphic a source line with links from the data file', () => {
+  it('gives every graphic one quiet "Sources and notes" button after its title, its links from the data file', () => {
     const el = show(Part1Real);
     const urls = new Set([...Object.values(real.sources).flatMap((s) => [s.page, s.url]), ...Object.values(real.links).map((l) => l.url)]);
     const figs = el.querySelectorAll('.p1-figure');
     expect(figs).toHaveLength(4); // output canvas, labour board, AI use, exposure tiles
     figs.forEach((fig) => {
-      const links = fig.querySelectorAll('p.story-source a');
+      // at rest: one icon button in the title, no source text, links or folds
+      const btns = fig.querySelectorAll('button.src-line-btn');
+      expect(btns).toHaveLength(1);
+      expect(btns[0].closest('.story-figure-title')).not.toBeNull();
+      expect(btns[0].getAttribute('aria-label')).toBe('Sources and notes');
+      expect(btns[0].getAttribute('aria-expanded')).toBe('false');
+      expect(fig.querySelectorAll('p.story-source, details')).toHaveLength(0);
+      expect([...fig.querySelectorAll('a')].filter((a) => !a.closest('[hidden]'))).toHaveLength(0);
+      // open: every series links its readable page, never a CSV download
+      fireEvent.click(btns[0]);
+      expect(btns[0].getAttribute('aria-expanded')).toBe('true');
+      const pop = document.getElementById(btns[0].getAttribute('aria-controls'));
+      const links = [...pop.querySelectorAll('.src-pop-list a')];
       expect(links.length).toBeGreaterThan(0);
-      links.forEach((a) => expect(urls.has(a.getAttribute('href'))).toBe(true));
-      // one fold a figure: its sources, definitions and caveats
-      expect(fig.querySelectorAll('details')).toHaveLength(1);
-      fig.querySelectorAll('details a').forEach((a) => expect(a.getAttribute('href')).toMatch(/^https:\/\//));
-      // the visible source line links readable pages, never a CSV or spreadsheet download
-      fig.querySelectorAll('.story-source:not(li) a').forEach((a) => expect(a.getAttribute('href')).not.toMatch(/generator\?/));
+      links.forEach((a) => {
+        expect(urls.has(a.getAttribute('href'))).toBe(true);
+        expect(a.getAttribute('href')).not.toMatch(/generator\?/);
+      });
+      pop.querySelectorAll('.src-pop-notes a').forEach((a) => expect(a.getAttribute('href')).toMatch(/^(https:\/\/|\/\?)/));
+      fireEvent.click(btns[0]);
+      expect(document.getElementById(btns[0].getAttribute('aria-controls'))).toBeNull();
     });
   });
 
@@ -168,26 +182,39 @@ describe('story part 1, real data', () => {
     for (const f of checks.figures) expect(f.page).toMatch(/^https:\/\//);
   });
 
-  it('opens with a UK vitals panel: six tiles of name, value and one sub-line; one source line, no dates or downloads', () => {
+  it('opens with a UK vitals panel: six metrics of label, value, sparkline and one sub-line; one quiet sources button', () => {
     const el = show(Part1Real);
     const tiles = el.querySelectorAll('#p1-vitals .p1-vital');
     expect([...tiles].map((t) => t.dataset.vital)).toEqual(['gdp', 'productivity', 'employment', 'unemployment', 'pay', 'share']);
     tiles.forEach((t) => {
       expect([...t.querySelectorAll(':scope > p')].map((pp) => pp.className)).toEqual(['p1-vital-name', 'p1-vital-value', 'p1-vital-sub']);
       expect(t.querySelectorAll('a')).toHaveLength(0);
-      // one icon, no sparkline (review C4)
-      expect(t.querySelectorAll('svg')).toHaveLength(1);
+      // one decorative sparkline, no icon
+      const svgs = t.querySelectorAll('svg');
+      expect(svgs).toHaveLength(1);
+      expect(svgs[0].closest('.p1-spark').getAttribute('aria-hidden')).toBe('true');
     });
     // the first estimate is said in words, from the fact's note
     expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toContain('first estimate');
     expect(el.querySelector('#p1-vital-employment .p1-vital-sub').textContent).not.toContain('first estimate');
-    // one source line, each series linked to its readable page (review E5)
-    const src = el.querySelector('#p1-vitals .story-source');
-    const links = [...src.querySelectorAll('a')];
+    // one sources button; each series linked to its readable page behind it
+    const btns = el.querySelectorAll('#p1-vitals button.src-line-btn');
+    expect(btns).toHaveLength(1);
+    fireEvent.click(btns[0]);
+    const links = [...document.querySelectorAll('.src-pop .src-pop-list a')];
     expect(links).toHaveLength(7);
     links.forEach((a) => expect(a.getAttribute('href')).toMatch(/^https:\/\//));
-    const panel = el.querySelector('#p1-vitals').textContent;
-    expect(panel).not.toMatch(/released|next release|\bCSV\b|IHYQ|LF24|MGSX|KAI9|LZVB|DTWM/i);
+    fireEvent.click(btns[0]);
+    // at rest the panel prints no codes, downloads or dates beyond the period
+    // (the release dates show on hover or focus only)
+    const rest = el.querySelector('#p1-vitals').cloneNode(true);
+    rest.querySelectorAll('.p1-vital-sub-hot, [hidden]').forEach((n) => n.remove());
+    expect(rest.textContent).not.toMatch(/released|next release|\bCSV\b|IHYQ|LF24|MGSX|KAI9|LZVB|DTWM/i);
+    // hovering a metric shows its release and next release
+    fireEvent.mouseEnter(tiles[0]);
+    expect(tiles[0].classList.contains('is-hot')).toBe(true);
+    expect(tiles[0].querySelector('.p1-vital-sub-hot').textContent).toMatch(/Released \d+ \w+ \d{4}/);
+    fireEvent.mouseLeave(tiles[0]);
     // the panel comes before the first scene
     expect(el.querySelector('#p1-vitals').compareDocumentPosition(el.querySelector('#p1-output')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -351,11 +378,12 @@ describe('story part 1, real data', () => {
     const el = show(Part1Real);
     el.querySelectorAll('.story-source, .story-figure-unit, summary, details li, .p1-say, .p1-vital-sub').forEach((n) => {
       // a key's swatch is the legend mark, not an icon
-      expect([...n.querySelectorAll('svg')].filter((v) => !v.closest('.p1-vital-spark, .hl-key')), n.textContent.slice(0, 40)).toHaveLength(0);
+      expect([...n.querySelectorAll('svg')].filter((v) => !v.closest('.p1-spark, .hl-key, .src-line-btn')), n.textContent.slice(0, 40)).toHaveLength(0);
     });
     el.querySelectorAll('p, li, h3').forEach((n) => {
       if (n.closest('svg') || n.querySelector('p, li')) return;
-      const icons = [...n.querySelectorAll('svg')].filter((v) => !v.matches('.p1-vital-spark') && !v.closest('.hl-key') && v.getAttribute('role') !== 'img');
+      // the "Sources and notes" button is a control, not a text icon
+      const icons = [...n.querySelectorAll('svg')].filter((v) => !v.closest('.p1-spark, .hl-key, .src-line-btn') && v.getAttribute('role') !== 'img');
       expect(icons.length, n.textContent.slice(0, 40)).toBeLessThanOrEqual(1);
     });
   });
@@ -499,9 +527,10 @@ describe('story part 1, altered data', () => {
     const el = show(Part1Fix);
     expect(figures(textWithoutAxes(el))).toEqual(expected(fx));
     expect(el.textContent).toContain('The OBR’s latest central forecast, published March 2027');
-    // the direction words follow the altered signs (a fall, a zero)
-    expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toMatch(/^down /);
-    expect(el.querySelector('#p1-vital-pay .p1-vital-sub').textContent).toMatch(/^unchanged /);
+    // the signed values follow the altered signs (a fall, a zero); the sub-lines carry no direction words
+    expect(el.querySelector('#p1-vital-gdp .p1-vital-value').textContent).toMatch(/^−/);
+    expect(el.querySelector('#p1-vital-pay .p1-vital-value').textContent).not.toMatch(/^[+−]/);
+    expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).not.toMatch(/^(up|down|unchanged) /);
     vi.doUnmock('@/data/ukContext.json');
   });
 });

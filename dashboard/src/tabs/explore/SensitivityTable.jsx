@@ -9,7 +9,8 @@ import { side } from '@/tabs/ai/lines.js';
 import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
-import { SourcesLine } from './sources.jsx';
+import { sourcesItems } from './sources.jsx';
+import { docItem } from '@/lib/sourceItems.js';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 
@@ -282,10 +283,10 @@ export default function SensitivityTable() {
         </>
       }
       unit={<span data-axis-title="y">{`Gap against the OBR-central path at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
-      legend={<Items className="ex-notes ex-sg-key" items={gridKey(res)} />}
+      read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
-      foot={<SourcesLine closures={['zk0.1', 'zk0.5']} extra={[ext(URLS.ogUkDefaults, 'OG-UK default parameters')]} method="closures" />}
+      sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}
       download={{
         title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
         context: () => `${HEADLINE_YEAR} · % difference from the OBR-central path · common fiscal rule`,

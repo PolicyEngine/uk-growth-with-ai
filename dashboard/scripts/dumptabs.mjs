@@ -28,6 +28,21 @@ const tabs = [
   // ?tab=method&sub=households (#explore-sub-households, #method-sub-households)
   'explore:households', 'method:households',
 ];
+// A tab's text: its innerText with `hide` set aside, then the figures'
+// notes kept behind their "Sources and notes" buttons (SourceLine.jsx
+// renders them hidden, [data-source-notes]): a caveat may be a number's
+// one home, so it is read as present though collapsed.
+function readTab([id, hide]) {
+  document.querySelectorAll(hide).forEach((e) => { e.style.display = 'none'; });
+  const el = document.getElementById(id);
+  if (!el) return '';
+  const notes = [...el.querySelectorAll('[data-source-notes]')].map((n) => {
+    const c = n.cloneNode(true);
+    c.querySelectorAll(hide).forEach((x) => x.remove());
+    return c.textContent.replace(/\s+/g, ' ').trim();
+  });
+  return [el.innerText, ...notes].join('\n');
+}
 const res = {};
 for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
   res[s] = {};
@@ -53,25 +68,16 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
       continue;
     }
     // Axis ticks are scale, not data: hidden before reading the text.
-    res[s][t] = await page.evaluate((id) => {
-      document.querySelectorAll('[data-axis]').forEach((e) => { e.style.display = 'none'; });
-      return document.getElementById(id)?.innerText ?? '';
-    }, elId);
+    res[s][t] = await page.evaluate(readTab, [elId, '[data-axis]']);
     if (hh) {
       // as the story: quoted inputs (data-input) are not results
-      res[s][t] = await page.evaluate((id) => {
-        document.querySelectorAll('[data-axis], [data-input]').forEach((e) => { e.style.display = 'none'; });
-        return document.getElementById(id)?.innerText ?? '';
-      }, elId);
+      res[s][t] = await page.evaluate(readTab, [elId, '[data-axis], [data-input]']);
     }
     if (story) {
       const el = sub === 'summary' ? 'story-part-2' : `story-${sub.replace('part', 'part-')}`;
       // Story: axis ticks and inputs quoted from the data's text (data-input:
       // a rate or limit printed inside a definition) are not results.
-      res[s][t] = await page.evaluate((id) => {
-        document.querySelectorAll('[data-axis], [data-input]').forEach((e) => { e.style.display = 'none'; });
-        return document.getElementById(id)?.innerText ?? '';
-      }, el);
+      res[s][t] = await page.evaluate(readTab, [el, '[data-axis], [data-input]']);
     }
   }
 }

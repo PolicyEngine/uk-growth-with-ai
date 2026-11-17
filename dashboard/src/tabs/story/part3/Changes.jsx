@@ -5,6 +5,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, Key, MarkProvider, OutsideRebuildFlag, Source, entryClass, ladder, perPound, rule, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
@@ -29,11 +30,8 @@ import { Ref } from './sources.jsx';
 // cost runs left to right while the poverty rise stays nearly flat. Each
 // rule's name and values are one direct label (an <ol> over the plot: each
 // number once in the DOM); `place` is the label's side of its dot and the
-// leader's depth. `short`: the phone label (600px and below).
-// SOURCES: move into notes icon: "Uniform: every employee equally likely.
-// Ages 16 to 24: tilted to them, after Klein Teeselink (2025) [REFS.klein].
-// Central: in proportion to AI exposure. Exposed higher earners: expertise
-// compression, after Autor (2024) [REFS.autor]. 50 paired draws per rule."
+// leader's depth. `short`: the phone label (600px and below). What each
+// rule assumes, and its citation, is in the figure's notes (rulesNotes).
 const RULES = [
   { id: 'uniform', label: 'Uniform', place: { side: 'below', anchor: 'start', lead: 16 }, beat: 400 },
   { id: 'junior', label: 'Ages 16 to 24', place: { side: 'below', anchor: 'end', lead: 58 }, beat: 800 },
@@ -251,9 +249,6 @@ function RulesPanel({ on }) {
       <p className="p3-plane-xtitle" data-mark="r-cost">
         <AxisTitle axis="x">Cost to the public finances, £bn a year</AxisTitle>
       </p>
-      <div className="p3-ch-notes">
-        <RulesNotes />
-      </div>
     </div>
   );
 }
@@ -360,9 +355,7 @@ function MarginPanel({ on }) {
           ]}
         />
       </div>
-      <div className="p3-ch-notes">
-        <MarginNotes />
-      </div>
+      <Essential>Wage cuts are sized to the same gross earnings loss</Essential>
     </>
   );
 }
@@ -388,56 +381,64 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
-      <div className="p3-ch-notes">
-        <BreakEvenNotes />
-      </div>
+      <Essential>Each break-even holds the other two at central settings</Essential>
     </>
   );
 }
 
-// Each panel's notes: in the panel on wider screens; at 600px and below
-// they leave the pinned figure for the Scrolly's foot (after the cards),
-// so the pinned box is the chart alone. No figure is printed in a note, so
-// the hidden copy counts nothing twice.
-function RulesNotes() {
-  return (
-    <>
-      <p className="p3-key">
-        <NavLink tab="explore" sub="households" anchor="hh-rules">
-          Gini changes by rule, and a top-loaded stress test
-        </NavLink>
-      </p>
-    </>
-  );
-}
+// Each panel's notes, in the figure's "Sources and notes" (one group a
+// panel), worded as they were.
+const rulesNotes = () => [
+  { icon: 'scenario', text: 'Uniform: every employee equally likely' },
+  { icon: 'scenario', text: <>Ages 16 to 24: tilted to them, after <Ref id="klein">Klein Teeselink (2025)</Ref></> },
+  { icon: 'scenario', text: 'Central: in proportion to AI exposure' },
+  { icon: 'scenario', text: <>Exposed higher earners: expertise compression, after <Ref id="autor">Autor (2024)</Ref></> },
+  { icon: 'draws', text: 'Paired draws: every rule uses the same draws' },
+  {
+    icon: 'inequality',
+    text: (
+      <NavLink tab="explore" sub="households" anchor="hh-rules">
+        Gini changes by rule, and a top-loaded stress test
+      </NavLink>
+    ),
+  },
+];
 
-function MarginNotes() {
-  return (
-    <>
-      <p className="p3-key">Both pence figures include employer NI. Job loss here is the central case on these {D.per_pound_20.draws} draws.</p>
-      <p className="p3-key">
-        Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
-      </p>
-      {marginClaims().perPoundMore === 'cut' ? <p className="p3-key">A pay cut loses tax at the worker’s marginal (last-pound) rate, a lost job at the average rate, and benefits replace little here.</p> : null}
-    </>
-  );
-}
+const marginNotes = () => [
+  { icon: 'tax', text: 'Both pence figures include employer NI' },
+  { icon: 'draws', text: <>Job loss here is the central case on these {D.per_pound_20.draws} draws</> },
+  { icon: 'wageCut', text: <>Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref></> },
+  marginClaims().perPoundMore === 'cut' ? { icon: 'why', text: 'A pay cut loses tax at the worker’s marginal (last-pound) rate, a lost job at the average rate, and benefits replace little here' } : null,
+];
 
-function BreakEvenNotes() {
-  return (
-    <>
-      <p className="p3-key">
-        Each break-even holds the other two at central settings, interpolated between runs. The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws.
-      </p>
-      <p className="p3-key">The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter.</p>
-      <p className="p3-key">
+const breakEvenNotes = () => [
+  { icon: 'arithmetic', text: 'Interpolated between runs' },
+  { icon: 'draws', text: <>The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws</> },
+  { icon: 'timing', text: 'The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter' },
+  {
+    icon: 'takeUp',
+    text: (
+      <>
         Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
         <NavLink tab="explore" sub="households" anchor="hh-ladder">
           Explore, households
         </NavLink>
-        .
-      </p>
-    </>
+      </>
+    ),
+  },
+];
+
+function ChangesSource() {
+  return (
+    <Source
+      files={[rule('uniform').file, D.per_pound_20.file, J.file, BE.wage.file, BE.capital.file, BE.duration.file]}
+      refs={['klein', 'autor', 'acemoglu', 'jsa']}
+      groups={[
+        { title: 'Who loses the job', notes: rulesNotes() },
+        { title: 'Job loss or wage cuts', notes: marginNotes() },
+        { title: 'Break-even', notes: breakEvenNotes() },
+      ]}
+    />
   );
 }
 
@@ -453,7 +454,7 @@ function ChangesFigure({ step, ctx }) {
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
-      <FigureHead icon="scenario" title="The central case under other assumptions" replay={e.replay} />
+      <FigureHead icon="scenario" title="The central case under other assumptions" replay={e.replay} source={<ChangesSource />} />
       <div className="p3-ch-panels">
         {PANELS.map((Panel, k) => {
           const shown = all || k === cur;
@@ -465,21 +466,6 @@ function ChangesFigure({ step, ctx }) {
         })}
       </div>
     </figure>
-  );
-}
-
-// The foot: the panels' notes again for 600px and below (hidden above),
-// then the one source line.
-function ChangesFoot() {
-  return (
-    <>
-      <div className="p3-ch-footnotes">
-        <RulesNotes />
-        <MarginNotes />
-        <BreakEvenNotes />
-      </div>
-      <Source files={[rule('uniform').file, D.per_pound_20.file, J.file, BE.wage.file, BE.capital.file, BE.duration.file]} />
-    </>
   );
 }
 
@@ -578,7 +564,7 @@ const LABEL = 'What changes the answer: the cost and poverty rise under four rul
 export default function Changes() {
   return (
     <MarkProvider marks={MARKS}>
-      <Scrolly id="p3-changes" scene foot={<ChangesFoot />} sub={changesSub()} steps={asLines(CHANGES_STEPS)} graphic={(i, r, ctx) => <ChangesFigure step={i} ctx={ctx} />} label={LABEL} />
+      <Scrolly id="p3-changes" scene sub={changesSub()} steps={asLines(CHANGES_STEPS)} graphic={(i, r, ctx) => <ChangesFigure step={i} ctx={ctx} />} label={LABEL} />
     </MarkProvider>
   );
 }

@@ -587,12 +587,11 @@ export function ExposureTiles({ state, source, entered = true }) {
   return (
     <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`} style={{ '--p1-settle': `${tileSettleMs(exposureTiles(1))}ms` }}>
       <ModelBadge model="official" className="p1-badge" />
-      <FigTitle icon="workers" title={grouped ? 'UK workers by exposure to AI' : 'UK workers'} reserve="UK workers by exposure to AI" />
+      <FigTitle icon="workers" title={grouped ? 'UK workers by exposure to AI' : 'UK workers'} reserve="UK workers by exposure to AI" source={source} />
       <FigUnit>Each tile is one per cent of UK workers</FigUnit>
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
       </div>
-      <figcaption>{source}</figcaption>
     </figure>
   );
 }

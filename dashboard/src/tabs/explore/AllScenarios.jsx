@@ -15,7 +15,7 @@ import { Lead } from './direction.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { MEASURES, ROWS, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
-import { SourcesLine } from './sources.jsx';
+import { sourcesItems } from './sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 
@@ -244,7 +244,7 @@ export default function AllScenarios() {
             />
           ),
         }}
-        foot={<SourcesLine method="rules" />}
+        sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
           context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the OBR-central path at the same closure`,
@@ -291,7 +291,7 @@ export function AcrossDebt() {
         }
         unit={<span data-axis-title="y">Debt/GDP gap against the OBR-central path at the same closure, percentage points of GDP</span>}
         legend={<MatrixKey story={false} />}
-        foot={<SourcesLine method="rules" />}
+        sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
           context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the OBR-central path at the same closure`,

@@ -116,7 +116,9 @@ def links():
     seen = 0
     for f in PART2_FILES:
         t = open(os.path.join(SRC_DIR, f)).read()
-        for a in re.findall(r'anchor="((?:m|arm|scen|closure)-[\w-]+)"', t):
+        # NavLink anchors, and the Method sections a "Sources and notes"
+        # list opens (ModelSource method=, modelItems(..., 'm-…'), navItem)
+        for a in re.findall(r'''(?:anchor=|method=|'method', |modelItems\(\[\], )["']((?:m|arm|scen|closure)-[\w-]+)["']''', t):
             seen += 1
             ok = a in ids or any(a.startswith(p) for p in ids if p.endswith('-'))
             if not ok and a.startswith(('arm-', 'scen-')):

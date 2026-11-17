@@ -4,6 +4,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
 import { fmtBn, fmtGini, fmtMillions, fmtPct1, fmtPp } from './format.js';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, MODEL_YEAR, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 
@@ -102,7 +103,7 @@ function CentralFigure({ ctx }) {
   }));
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
-      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} />
+      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} source={<CentralSource />} />
       <div className="p3-central">
         <div {...markProps('displaced', 'p3-central-tiles')}>
           <p className="p3-tile-heads">
@@ -127,6 +128,7 @@ function CentralFigure({ ctx }) {
           ))}
         </ul>
       </div>
+      <Essential>Poverty rise is an upper bound: the displaced are jobless all year</Essential>
     </figure>
   );
 }
@@ -157,9 +159,8 @@ export const CENTRAL_STEPS = [
     icon: 'jobLoss',
     highlight: ['displaced', 'f-displaced'],
     title: (
-      // the rate is beat B4's numeral (its home); the step does not print it
-      // SOURCES: move into notes icon: "The displacement rate is from
-      // Doorley et al. (2026)." (REFS.doorley)
+      // the rate is beat B4's numeral (its home); the step does not print
+      // it. Its source (Doorley et al.) is in the figure's notes.
       CENTRAL_RATE != null ? (
         <>
           The study assumes these employees lose their jobs to AI and stay <Key id="displaced">jobless all year</Key>
@@ -203,22 +204,34 @@ const CENTRAL_MARKS = {
   },
 };
 
-// The figure's notes and source line, as the Scrolly's foot (round 2,
-// phones): inside the card on desktop, after the cards at 900px and below,
-// so a pinned phone figure is the chart alone.
-function CentralNotes() {
+// The figure's notes and sources, behind its "Sources and notes" button.
+function CentralSource() {
   return (
-    <>
-      <p className="p3-key">After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
-      <p className="p3-key">
-        The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
-        <NavLink tab="explore" sub="households" anchor="hh-ladder">
-          Explore, households
-        </NavLink>
-        ).
-      </p>
-      <Source files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]} />
-    </>
+    <Source
+      files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]}
+      refs={['doorley']}
+      groups={[
+        { title: 'Assumptions', notes: [{ icon: 'jobLoss', text: 'The displacement rate is from Doorley et al. (2026).' }] },
+        {
+          title: 'How it’s counted',
+          notes: [
+            { icon: 'poverty', text: <>After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</> },
+            {
+              icon: 'takeUp',
+              text: (
+                <>
+                  {TAKEUP_RAISES ? 'The cost is not an upper bound: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
+                  <NavLink tab="explore" sub="households" anchor="hh-ladder">
+                    Explore, households
+                  </NavLink>
+                  ).
+                </>
+              ),
+            },
+          ],
+        },
+      ]}
+    />
   );
 }
 
@@ -228,7 +241,6 @@ export default function Central() {
       <Scrolly
         id="p3-central"
         scene
-        foot={<CentralNotes />}
         sub={CENTRAL_SUB}
         steps={asLines(CENTRAL_STEPS)}
         graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />}

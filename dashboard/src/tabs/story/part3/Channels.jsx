@@ -3,6 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtBn2, fmtInputPct, fmtPct1 } from './format.js';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 import { D, FigureHead, InputFig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { RETURN_BASE, RETURN_PP } from './Central.jsx';
 import { Ref } from './sources.jsx';
@@ -84,6 +85,7 @@ function ChannelsFigure({ ctx }) {
         x="each channel run alone, then their sum"
         unit={`${C.draws} paired draws`}
         replay={e.replay}
+        source={<ChannelsSource />}
       />
       <ol className="p3-rows p3-wf">
         {BARS.map((b, i) => {
@@ -125,6 +127,7 @@ function ChannelsFigure({ ctx }) {
           £0bn: no change
         </span>
       </span>
+      <Essential>Dividend tax is counted; corporation tax on the profits is not</Essential>
     </figure>
   );
 }
@@ -189,32 +192,65 @@ const CHANNEL_MARKS = Object.fromEntries(
   ]),
 );
 
-// The figure's notes and source line, as the Scrolly's foot (round 2,
-// phones): inside the card on desktop, after the cards at 900px and below,
-// so a pinned phone figure is the chart alone.
-function ChannelsNotes() {
+// The figure's notes and sources, behind its "Sources and notes" button,
+// in labelled groups.
+function ChannelsSource() {
   return (
-    <>
-      <p className="p3-key">
-        The sum comes within {fmtBn2(C.interaction_bn)} of the full shock run on these {C.draws} draws;{' '}
-        <NavLink tab="story" anchor="p3-central">
-          the central case
-        </NavLink>{' '}
-        is a mean of {D.headline.central_cost.draws}.
-      </p>
-      <p className="p3-key">
-        Both gains are assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref>. The capital gain is a return <span data-input="">{RETURN_PP}</span> points higher on a{' '}
-        <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included.
-      </p>
-      <p className="p3-key">
-        Tax on the higher dividends is counted (
-        <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
-          Explore, households
-        </NavLink>
-        ); corporation tax on the profits behind them is not.
-      </p>
-      <Source files={[C.file, D.per_pound_20.job_loss.file]}>channel split, seeds 0 to 19</Source>
-    </>
+    <Source
+      files={[C.file, D.per_pound_20.job_loss.file]}
+      refs={['doorley']}
+      groups={[
+        {
+          title: 'Assumptions',
+          notes: [
+            { icon: 'scenario', text: <>Both gains assumed, after <Ref id="doorley">Doorley et al. (2026)</Ref></> },
+            {
+              icon: 'interest',
+              text: (
+                <>
+                  Capital gain: a return <span data-input="">{RETURN_PP}</span> points higher on a <span data-input="">{Number(RETURN_BASE.toFixed(3))}%</span> base, dividends included
+                </>
+              ),
+            },
+          ],
+        },
+        {
+          title: 'How it’s counted',
+          notes: [
+            {
+              icon: 'tax',
+              text: (
+                <>
+                  Dividend tax by household:{' '}
+                  <NavLink tab="explore" sub="households" anchor="hh-cost-lines">
+                    Explore, households
+                  </NavLink>
+                </>
+              ),
+            },
+          ],
+        },
+        {
+          title: 'Draws',
+          notes: [
+            { icon: 'draws', text: <>{C.draws} draws; the sum comes within {fmtBn2(C.interaction_bn)} of the full shock run</> },
+            {
+              icon: 'answer',
+              text: (
+                <>
+                  <NavLink tab="story" anchor="p3-central">
+                    The central case
+                  </NavLink>{' '}
+                  is a mean of {D.headline.central_cost.draws}
+                </>
+              ),
+            },
+          ],
+        },
+      ]}
+    >
+      channel split, seeds 0 to 19
+    </Source>
   );
 }
 
@@ -224,7 +260,6 @@ export default function Channels() {
       <Scrolly
         id="p3-channels"
         scene
-        foot={<ChannelsNotes />}
         sub={CHANNELS_SUB}
         steps={asLines(CHANNEL_STEPS)}
         graphic={(i, r, ctx) => <ChannelsFigure ctx={ctx} />}

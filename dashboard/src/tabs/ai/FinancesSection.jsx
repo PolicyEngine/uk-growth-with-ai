@@ -24,7 +24,8 @@ import AIS from '@/data/aiScenarios.json';
 
 // OG-UK's world interest rate, the run's closure settings (aiScenarios.json).
 const WORLD_RATE = AIS.assum?.closure?.world_int_rate_annual;
-import { SourcesLine } from '@/tabs/explore/sources.jsx';
+import { sourcesItems } from '@/tabs/explore/sources.jsx';
+import { docItem, navItem } from '@/lib/sourceItems.js';
 import NICS from '@/tabs/explore/nics2028.json';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 
@@ -375,24 +376,20 @@ function TaxGapCard({ sid, closure, rule }) {
           />
         ),
       }}
-      foot={
-        <SourcesLine
-          closures={[]}
-          code={false}
-          extra={[
-            ext(LIT.obrFrs26.url, 'OBR FRS, July 2026, Box 4.1'),
-            ext(EFO_NOV25, 'OBR EFO, November 2025, ¶2.64'),
-            ext(RED_FLAGS_URL, 'red_flags_1_3.md'),
-            ext(URLS.ogUkDefaults, 'tau_payroll'),
-            ext(URLS.hmrcEmployerRates, 'HMRC employer rates'),
-            ext(NICS_URL, 'nics_2028.json'),
-            <NavLink key="tax" tab="method" sub="how" anchor="m-tax">
-              How labour is taxed
-            </NavLink>,
-          ]}
-          method="limits"
-        />
-      }
+      sources={sourcesItems({
+          closures: [],
+          code: false,
+          extra: [
+            docItem('OBR FRS, July 2026, Box 4.1', LIT.obrFrs26.url),
+            docItem('OBR EFO, November 2025, ¶2.64', EFO_NOV25),
+            docItem('red_flags_1_3.md', RED_FLAGS_URL),
+            docItem('tau_payroll', URLS.ogUkDefaults),
+            docItem('HMRC employer rates', URLS.hmrcEmployerRates),
+            docItem('nics_2028.json', NICS_URL),
+            navItem('Method: how labour is taxed', 'method', 'm-tax', 'how'),
+          ],
+          method: 'limits',
+        })}
       download={{
         title: TAX_TITLE,
         context: () => contextLine(sid, closure, `tax/GDP in ${HEADLINE_YEAR} with UK tax rates: rough scaling, central closure, automation + productivity`, rule),
@@ -596,16 +593,11 @@ function FiscalRuleCard({ sid }) {
   return (
     <Card
       id="fiscal-rule"
+      sources={sourcesItems({ sid, method: 'rules' })}
       icon={iconFor('rule')}
       title="What the fiscal rule changes"
-      controls={
-        <>
-          <RuleTimeline rule={rule} />
-          <p className="ex-roughchip">
-            <Icon name={iconFor('caveat')} size={14} /> The rule picked at the top applies to every chart on this page
-          </p>
-        </>
-      }
+      controls={<RuleTimeline rule={rule} />}
+      read={[{ key: 'rule', icon: 'defaultRule', text: 'The rule picked at the top applies to every chart on this page' }]}
       unit={has ? <Lead c="measure">{`How far each ${HEADLINE_YEAR} gap moves, main arm; the table: every arm, pp`}</Lead> : null}
       logo={false}
       about={has ? {

@@ -5,7 +5,8 @@ import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { FadeG } from '@/components/story/primitives.jsx';
 import { ModelBadge } from '@/components/story/chart/index.js';
-import { ModelSource } from './sources.jsx';
+import { ModelSourceButton } from './sources.jsx';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 
 // Shared pieces of part 2's line charts. The charts draw shapes only: the
 // figures have their homes on other tabs, so the only numbers here are axis
@@ -17,8 +18,8 @@ export const W = 400;
 export const H = 250;
 const M = { l: 36, r: 14, t: 16, b: 28 };
 
-// The source line under every model figure (sources.jsx): linked.
-export const SOURCE = <ModelSource />;
+// The "Sources and notes" button of every model figure (sources.jsx).
+export const SOURCE = <ModelSourceButton />;
 
 // About four round ticks over [lo, hi].
 export function niceTicks(lo, hi, n = 4) {
@@ -215,12 +216,15 @@ export function Tx({ icon, size = 14, children }) {
 }
 
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
+export function Figure({ title, unit, legend, source = SOURCE, essential, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
   return (
     <figure className={`p2-figure ${className}`}>
       <ModelBadge model={model} />
-      <p className="story-figure-title">
-        <Tx icon={icon}>{title}</Tx>
+      <p className="story-figure-title p2-title-row">
+        <span>
+          <Tx icon={icon}>{title}</Tx>
+        </span>
+        {source}
       </p>
       {unit ? (
         <p className="story-figure-unit">{unit}</p>
@@ -242,18 +246,9 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
           {xTitle}
         </span>
       ) : null}
-      {/* desktop: the source in the frame; phones: in the Scrolly foot
-          (PhoneFoot), so the pinned figure fits 45% of the screen */}
-      <figcaption className="story-source p2-src-in">{source}</figcaption>
+      <Essential>{essential}</Essential>
     </figure>
   );
-}
-
-// A figure's source line for phones, passed as the Scrolly's `foot`: printed
-// after the last card there, hidden on desktop (where the figure's own
-// figcaption shows), so a pinned figure stays within 45% of the screen.
-export function PhoneFoot({ children }) {
-  return <p className="story-source p2-src-phone">{children}</p>;
 }
 
 // "Figures: <link>" at the foot of a step card.

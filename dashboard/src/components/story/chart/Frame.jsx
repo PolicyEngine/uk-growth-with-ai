@@ -1,12 +1,14 @@
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import ModelBadge from './ModelBadge.jsx';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 
 // The frame round a chart: model badge (and any head actions, e.g. Replay),
-// title, unit line, the drawing, then one foot: a legend (only where end
-// labels will not do) and a one-line source. Fuller source detail (series
-// ids, release dates, notes) goes in `sources`, a "Sources" disclosure that
-// opens over the figure without changing its height.
+// title (with the figure's one "Sources and notes" button after it,
+// `source`: a <SourceLine>), unit line, the drawing, then one foot: a
+// legend (only where end labels will not do) and any `essential` caveat
+// line. `sources`: an older "Sources" disclosure, kept for callers that
+// still pass one.
 //
 // `titleReserve` (the longest title any state shows) and `footReserve`
 // ({ legend, source }, the fullest foot any state shows) hold their height
@@ -25,7 +27,7 @@ import ModelBadge from './ModelBadge.jsx';
 //
 //   <Frame model="oguk" icon="gdp" title="GDP against the path" unit="% gap, not a forecast"
 //     legend={[{ key: 'a', label: 'UK central', color: 'var(--series-2)' }]}
-//     source={<>Source: <a href="…">OG-UK</a></>} sources={<p>…</p>}>
+//     source={<SourceLine items={[…]} />}>
 //     <svg … />
 //   </Frame>
 export function Legend({ items, className = '' }) {
@@ -42,17 +44,13 @@ export function Legend({ items, className = '' }) {
   );
 }
 
-function Foot({ legend, source, sources }) {
+function Foot({ legend, essential, sources }) {
   return (
     <>
       <Legend items={legend} />
-      {source || sources ? (
+      {essential ? <Essential>{essential}</Essential> : null}
+      {sources ? (
         <div className="ch-source-row">
-          {source ? (
-            <p className="story-source ch-source" data-cite="">
-              <span className="ch-source-text">{source}</span>
-            </p>
-          ) : null}
           {sources ? (
             <details className="ch-sources">
               <summary>Sources</summary>
@@ -77,6 +75,7 @@ export default function Frame({
   xTitle,
   legend,
   source,
+  essential,
   sources,
   footReserve,
   actions,
@@ -104,6 +103,7 @@ export default function Frame({
               </span>
             ) : null}
           </span>
+          {source}
         </p>
       ) : null}
       {unit ? (
@@ -122,20 +122,20 @@ export default function Frame({
           <span>{xTitle}</span>
         </p>
       ) : null}
-      {legend?.length || source || sources ? (
+      {legend?.length || essential || sources ? (
         <figcaption className={`ch-foot${footReserve ? ' ch-stack' : ''}`}>
           {footReserve ? (
             <div className="ch-stack-cell">
               <div>
-                <Foot legend={legend} source={source} sources={sources} />
+                <Foot legend={legend} essential={essential} sources={sources} />
               </div>
               <div className="ch-ghost" aria-hidden="true" data-axis="" inert>
                 <Legend items={footReserve.legend} />
-                {footReserve.source ? <div className="story-source ch-source">{footReserve.source}</div> : null}
+                {footReserve.essential ? <Essential>{footReserve.essential}</Essential> : null}
               </div>
             </div>
           ) : (
-            <Foot legend={legend} source={source} sources={sources} />
+            <Foot legend={legend} essential={essential} sources={sources} />
           )}
         </figcaption>
       ) : null}

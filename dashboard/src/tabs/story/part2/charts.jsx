@@ -5,8 +5,8 @@ import { DrawPath } from '@/components/story/primitives.jsx';
 import { useInView } from '@/components/story/motion.js';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from '@/tabs/ai/surprise.js';
 import D from '@/data/cohorts2028.json';
-import { NavLink } from '@/lib/nav.jsx';
-import { COHORT_URL, COHORT_COMMIT_TEXT, A, SRC } from './sources.jsx';
+import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
+import { navItem } from '@/lib/sourceItems.js';
 import { W, H, scales, monotonePath, tickText, Figure, Tx } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
@@ -39,20 +39,14 @@ export function afterWords(ys) {
 // The same over several paths: one phrase when they agree.
 export const afterWordsAll = (yss) => [...new Set(yss.map(afterWords).filter(Boolean))].join(' or ') || null;
 
-// The welfare chart's source line (in the frame on desktop, the Scrolly
-// foot on phones).
+// The welfare chart's "Sources and notes" button.
 export function WelfareSource() {
   return (
-    <>
-      Source: <A href={SRC.ogUk}>OG-UK</A> (PolicyEngine), cohort welfare by <A href={COHORT_URL}>cohort_welfare.py</A> at {COHORT_COMMIT_TEXT} ·{' '}
-      <NavLink tab="method" sub="how" anchor="m-generations">
-        Method
-      </NavLink>
-      ; the figures:{' '}
-      <NavLink tab="explore" sub="who">
-        Gains and losses
-      </NavLink>
-    </>
+    <ModelSourceButton
+      method="m-generations"
+      files={[[`cohort_welfare.py at ${COHORT_COMMIT_TEXT}`, COHORT_URL]]}
+      items={[navItem('The figures: Gains and losses', 'explore', undefined, 'who')]}
+    />
   );
 }
 

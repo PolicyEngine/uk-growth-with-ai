@@ -1,15 +1,15 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
+import SourceLine from '@/components/ui/SourceLine.jsx';
 import UK from '@/data/ukContext.json';
 import S from '@/data/surprise2028.json';
 
-// The page's "As of" stamp, shown once in the shell: the latest ONS release
-// and the latest OBR release the dashboard reads (data/ukContext.json, each
-// linked to its source), and the commit the model results were built from
-// (data/surprise2028.json source_commit, linked on GitHub). data-cite: a
-// citation line (check_text exempts its length; it still leads with an icon).
+// The page's "As of" stamp, shown once in the shell: a quiet icon button
+// (components/ui/SourceLine.jsx, "As of: data releases") that opens the
+// latest ONS release and the latest OBR release the dashboard reads
+// (data/ukContext.json, each linked to its source), and the commit the
+// model results were built from (data/surprise2028.json source_commit,
+// linked on GitHub). Nothing of it shows at rest.
 //
 //   <AsOf />            (className to place it, e.g. in the scope strip)
 const REPO = 'https://github.com/PolicyEngine/uk-growth-with-ai';
@@ -30,43 +30,21 @@ export function latestRelease(sources, publisher) {
     .reduce((best, s) => (!best || s.released > best.released ? s : best), null);
 }
 
-// `inline`: a span inside the shell's one meta line (page.jsx), no icon.
-export default function AsOf({ className = '', inline = false }) {
+// The stamp's items: each release (publisher, title, date, link) and the
+// model commit.
+export function asOfItems() {
   const ons = latestRelease(UK.sources, 'Office for National Statistics');
   const obr = latestRelease(UK.sources, 'Office for Budget Responsibility');
   const commit = S.source_commit;
-  const Tag = inline ? 'span' : 'p';
+  const rel = (x) => x && { publisher: x.publisher, label: `Latest release read: ${x.title}`, id: x.series ? String(x.series) : undefined, date: x.released, url: readable(x.url), kind: 'release' };
+  return [rel(ons), rel(obr), commit ? { publisher: 'PolicyEngine', label: 'Model results', id: `commit ${commit}`, url: `${REPO}/commit/${commit}`, kind: 'release' } : null].filter(Boolean);
+}
+
+// `inline`: a span inside the shell's one meta line (page.jsx).
+export default function AsOf({ className = '', inline = false }) {
   return (
-    <Tag className={`as-of${inline ? ' is-inline' : ''} ${className}`.trim()} data-cite={inline ? undefined : ''}>
-      {inline ? null : <Icon name={iconFor('asOf')} size={14} className="as-of-icon" />}
-      <span>
-        As of:{' '}
-        {ons ? (
-          <>
-            ONS{' '}
-            <a href={readable(ons.url)} target="_blank" rel="noopener noreferrer">
-              {fmtDay(ons.released)}
-            </a>
-          </>
-        ) : null}
-        {ons && obr ? ' · ' : null}
-        {obr ? (
-          <>
-            OBR{' '}
-            <a href={readable(obr.url)} target="_blank" rel="noopener noreferrer">
-              {fmtDay(obr.released)}
-            </a>
-          </>
-        ) : null}
-        {commit ? (
-          <>
-            {' · '}model results{' '}
-            <a href={`${REPO}/commit/${commit}`} target="_blank" rel="noopener noreferrer">
-              <code>{commit}</code>
-            </a>
-          </>
-        ) : null}
-      </span>
-    </Tag>
+    <span className={`as-of${inline ? ' is-inline' : ''} ${className}`.trim()}>
+      <SourceLine items={asOfItems()} label="As of: data releases and model results" />
+    </span>
   );
 }

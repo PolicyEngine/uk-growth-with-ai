@@ -1,5 +1,6 @@
 'use client';
 
+import { sourcesItems } from './sources.jsx';
 import { useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
@@ -159,6 +160,7 @@ export default function ClosureSlope({ sid }) {
   return (
     <Card
       id="closure-slope"
+      sources={sourcesItems({ sid, method: 'closures' })}
       icon={iconFor('closure')}
       title="Central closure to closed capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}

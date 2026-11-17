@@ -7,7 +7,9 @@ import { useEnterState, useInView, useReducedMotion } from '@/components/story/m
 import { Replay } from '@/components/story/chart/index.js';
 import { iconFor } from '@/lib/concepts.js';
 import D from '@/data/aiStudy2425.json';
-import { COMMIT, REPO_URL } from './sources.jsx';
+import { COMMIT, REPO_URL, REFS, fileUrl } from './sources.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem, fileItem } from '@/lib/sourceItems.js';
 import { Fig as FigChip } from '@/components/story/highlight.jsx';
 
 // Shared pieces of part 3 and of Explore > Households: the data, lookups,
@@ -57,23 +59,27 @@ export const ladder = (id) => byId(D.ladder, id);
 export const rule = (id) => byId(D.rules, id);
 export const perPound = (id) => byId(D.per_pound, id);
 
-// The one source line under every part 3 figure: the model, the year and
-// the basis (`children`, e.g. "50 draws"), then one link, "uk-ai-study", to
-// the study's results at the data's commit; the figure's result files
-// (`files`: paths from aiStudy2425.json's `file` fields) are named in the
-// link's title, not linked one by one.
-export function Source({ children, files = [] }) {
+// The one "Sources and notes" button of every part 3 figure, after its
+// title (components/ui/SourceLine.jsx). Behind it: the model, the year and
+// the basis (`children`, e.g. "50 draws"), the figure's notes in labelled
+// groups (`groups`: [{ title: 'Draws', notes: [...] }], worded as they
+// were), then the sources: the study's results at the data's commit, each
+// result file (`files`: paths from aiStudy2425.json's `file` fields) and
+// the papers the figure cites (`refs`: ids in sources.jsx REFS).
+export function Source({ children, files = [], groups = [], refs = [] }) {
   const fs = [...new Set(files.filter(Boolean))];
-  return (
-    <p className="story-source">
-      Source: PolicyEngine-UK microsimulation
-      {PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
-      {children ? <>, {children}</> : null}:{' '}
-      <a href={`${REPO_URL}/tree/${COMMIT}/results`} target="_blank" rel="noreferrer" className="p3-ref" title={fs.length ? `Results files: ${fs.join(', ')}` : undefined} data-files={fs.join(' ')}>
-        uk-ai-study
-      </a>
-    </p>
+  const basis = (
+    <>
+      PolicyEngine-UK microsimulation{PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
+      {children ? <>, {children}</> : null}
+    </>
   );
+  const items = [
+    fileItem('uk-ai-study results', `${REPO_URL}/tree/${COMMIT}/results`, 'PolicyEngine', `at ${COMMIT}`),
+    ...fs.map((f) => fileItem(f, fileUrl(f), 'PolicyEngine')),
+    ...refs.map((id) => REFS[id] && docItem(REFS[id].label, REFS[id].url, undefined, REFS[id].title)),
+  ];
+  return <SourceLine items={items} groups={[{ title: 'Model', notes: [basis] }, ...groups]} />;
 }
 
 // `y` and `x` are the axis titles, printed in the unit line and marked
@@ -88,12 +94,13 @@ export function AxisTitle({ axis, children, scale = false, className = '' }) {
   );
 }
 
-export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions }) {
+export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions, source }) {
   return (
     <>
       <p className="story-figure-title p3-iconed">
         <Ico c={icon} size={16} />
         <span>{title}</span>
+        {source}
         {replay || actions ? (
           <span className="p3-head-actions">
             {actions}

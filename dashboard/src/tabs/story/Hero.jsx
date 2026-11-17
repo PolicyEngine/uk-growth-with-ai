@@ -1,5 +1,7 @@
 'use client';
 
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink, useNav } from '@/lib/nav.jsx';
@@ -232,16 +234,11 @@ export default function Hero() {
             </li>
           ))}
         </ul>
-        <figcaption className="story-source">
-          Main arm, {closure}. Source:{' '}
-          <a href={REPO} target="_blank" rel="noopener noreferrer">
-            OG-UK runs, PolicyEngine
-          </a>
-          ;{' '}
-          <NavLink tab="method" anchor="m-model">
-            method
-          </NavLink>
-          .
+        <figcaption className="hf-src">
+          <SourceLine
+            items={[docItem('OG-UK runs', REPO, 'PolicyEngine'), navItem('Method: the model', 'method', 'm-model')]}
+            notes={[`Main arm, ${closure}.`]}
+          />
         </figcaption>
       </figure>
     </section>

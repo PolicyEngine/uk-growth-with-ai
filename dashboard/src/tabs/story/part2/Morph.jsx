@@ -7,7 +7,9 @@ import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
-import { A, ModelSource, readable, SRC as LINKS } from './sources.jsx';
+import { modelItems, SRC as LINKS } from './sources.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem, ukItem } from '@/lib/sourceItems.js';
 
 const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll } from './charts.jsx';
@@ -223,40 +225,22 @@ const STATE_TEXT = (sid, cl) => [
   { title: GAP_TITLE, unit: `The four scenarios, ${SCEN_NAME[sid]} in colour. Automation + productivity, ${CL_WORDS[cl]}. Gap, %` },
 ];
 
-// The source line of each geometry state: the record's (ONS, OBR) linked
-// to readable pages, then the model's with the drawn solves' result files.
-export function SourceText({ s, all = false }) {
-  const ons = SRC_REC.ons;
-  const obr = SRC_REC.obr;
-  const a = ons ? (
-    <>
-      {ons.publisher}, <A href={readable(ons)}>{ons.series ?? ons.title}</A>
-    </>
-  ) : (
-    'ONS'
-  );
-  const b = obr ? (
-    <>
-      {obr.publisher ?? 'OBR'}, <A href={readable(obr)}>{obr.title ?? 'Economic and fiscal outlook'}</A>
-    </>
-  ) : (
-    'OBR, Economic and fiscal outlook'
-  );
-  if (s === 0) return <>Source: {a}.</>;
-  if (s === 1) return <>Sources: {a}; {b}.</>;
-  return (
-    <>
-      {all ? (
-        <>
-          Record: {a}; {b}. Model:{' '}
-        </>
-      ) : null}
-      <ModelSource method="m-scenarios" />. Path: one OBR input, <A href={EFO_MAR26}>trend productivity growth</A>; scenario inputs: <A href={LINKS.bp9}>OBR</A>,{' '}
-      <A href={LINKS.imfSip}>IMF</A>, <A href={LINKS.korinekT3}>Korinek et al. (2026), Table 3</A>
-    </>
-  );
+// The sources of each geometry state, behind the figure's one "Sources
+// and notes" button: the record's (ONS, OBR), then the model's, with the
+// path's one OBR input and the scenario inputs.
+export function morphItems(s) {
+  const ons = ukItem(SER.gdp_growth?.source);
+  const obr = ukItem(SER.obr_gdp_forecast?.source);
+  if (s === 0) return [ons];
+  if (s === 1) return [ons, obr];
+  return [
+    ...modelItems([], 'm-scenarios'),
+    docItem('Path input: trend productivity growth, Economic and fiscal outlook, March 2026', EFO_MAR26, 'Office for Budget Responsibility'),
+    docItem('Scenario inputs: Briefing paper No.9', LINKS.bp9, 'Office for Budget Responsibility'),
+    docItem('Scenario inputs: SIP/2026/072', LINKS.imfSip, 'International Monetary Fund'),
+    docItem('Scenario inputs: Korinek et al. (2026), Table 3', LINKS.korinekT3, 'Korinek et al.'),
+  ];
 }
-const SRC_REC = { ons: SRC[SER.gdp_growth?.source], obr: SRC[SER.obr_gdp_forecast?.source] };
 
 // The pinned scenario, when it is not the one chosen and its solve is done:
 // drawn from state 2 as a dark grey line (its own path, restyled; never a
@@ -338,12 +322,15 @@ export function MorphChart({ state, sid, cl, pin = null }) {
       </span>
       {/* every state's title and unit stacked in one grid cell, only the
           current one visible: the drawing below never moves between states */}
-      <p className="story-figure-title p2-text-stack">
-        {all.map((t, i) => (
-          <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
-            <Tx icon="path">{t.title}</Tx>
-          </span>
-        ))}
+      <p className="story-figure-title p2-title-row">
+        <span className="p2-text-stack">
+          {all.map((t, i) => (
+            <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>
+              <Tx icon="path">{t.title}</Tx>
+            </span>
+          ))}
+        </span>
+        <SourceLine items={morphItems(s)} />
       </p>
       <p className="story-figure-unit p2-text-stack">
         {all.map((t, i) => (
@@ -527,9 +514,6 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           </text>
         </svg>
       </div>
-      <figcaption className="story-source p2-src-in">
-        <SourceText s={s} />
-      </figcaption>
     </figure>
   );
 }

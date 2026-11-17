@@ -1,11 +1,11 @@
 'use client';
 
-import FigNotes from '@/components/story/FigNotes.jsx';
+import Sources, { Essential } from '@/components/ui/SourceLine.jsx';
+import { ukItem } from '@/lib/sourceItems.js';
 import { Children, useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { Axis, Grid, ModelBadge, linear as chartLinear } from '@/components/story/chart/index.js';
-import { SOURCES, pageOf } from './data.js';
 import { tick } from './format.js';
 
 // Shared pieces of part 1's charts. The charts print no values: every
@@ -147,11 +147,12 @@ function Stack({ value, reserve }) {
 
 // A figure's title, led by its one plain concept icon, and its unit line
 // (no icon).
-export function FigTitle({ icon, title, reserve }) {
+export function FigTitle({ icon, title, reserve, source }) {
   return (
     <p className="story-figure-title p1-title-row">
       <Icon name={iconFor(icon)} size={16} className="p1-text-icon" />
       <Stack value={title} reserve={reserve} />
+      {source}
     </p>
   );
 }
@@ -163,61 +164,14 @@ export const FigUnit = ({ children, reserve }) => (
   </p>
 );
 
-const SHORT = {
-  'Office for National Statistics': 'ONS',
-  'Office for Budget Responsibility': 'OBR',
-  'Department for Science, Innovation and Technology and AI Security Institute': 'DSIT',
-};
-const short = (s) => SHORT[s.publisher] ?? s.publisher;
-
-// The foot of a figure: one line, "Source:" and the linked dataset names by
-// publisher (a `detail` such as "Figure 2" after the name); then, only when
-// the figure has some, one disclosure, "Notes": a line on the sources
-// (`note`) and the definitions and caveats its cards point to (`notes`, no
-// figures), which opens over the figure without changing its height.
-// Round 2 (review E5/E6): no series codes, release dates or data downloads
-// here; the readable page is the one link. `through`: the last period the
-// figure shows, stamped after the sources.
+// A figure's one "Sources and notes" button (components/ui/SourceLine.jsx),
+// placed after its title: the datasets by publisher (`items`: { id, name,
+// detail }, ids in data/ukContext.json's sources), each with its series ID
+// and release date; `through`, the last period the figure shows; then a
+// line on the sources (`note`) and the definitions and caveats its cards
+// point to (`notes`, no figures). Nothing of it shows at rest.
 export function SourceLine({ items, note, notes = [], through }) {
-  const rest = notes.filter(Boolean);
-  // on a phone, after the steps, not in the pinned figure (FigNotes.jsx)
-  return (
-    <FigNotes>
-    <div className="p1-foot">
-      <p className="story-source">
-        Source:{' '}
-        {items.map((it, i) => {
-          const s = SOURCES[it.id];
-          const pub = i === 0 || short(SOURCES[items[i - 1].id]) !== short(s) ? `${short(s)}, ` : '';
-          return (
-            <span key={it.id}>
-              {i ? '; ' : ''}
-              {pub}
-              <a href={pageOf(it.id)} target="_blank" rel="noopener noreferrer">
-                {it.name}
-              </a>
-              {it.detail ? `, ${it.detail}` : null}
-            </span>
-          );
-        })}
-        {through ? <span className="p1-through">. Through {through}</span> : null}
-      </p>
-      {note || rest.length ? (
-        <details className="p1-sources">
-          <summary>Notes</summary>
-          <ul className="p1-sources-list" data-cite="">
-            {note ? <li className="story-source">{note}</li> : null}
-            {rest.map((n, i) => (
-              <li key={`n${i}`} className="story-source p1-note-item">
-                {n}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
-    </div>
-    </FigNotes>
-  );
+  return <Sources items={items.map((it) => ukItem(it.id, it.name, it.detail))} through={through} notes={[note, ...notes]} />;
 }
 
 // A link that leaves the dashboard (a source page), in a new tab.
@@ -230,14 +184,14 @@ export const Ext = ({ href, children, className }) => (
 // The frame round a graphic: title, unit line, drawing, foot. `titleReserve`
 // and `unitReserve` hold the height of the longest title and unit line any
 // state shows, so a state change never moves the drawing.
-export function Figure({ icon = 'path', title, titleReserve, unit, unitReserve, source, children, innerRef, className = '' }) {
+export function Figure({ icon = 'path', title, titleReserve, unit, unitReserve, source, essential, children, innerRef, className = '' }) {
   return (
     <figure className={`p1-figure ${className}`} ref={innerRef}>
       <ModelBadge model="official" className="p1-badge" />
-      <FigTitle icon={icon} title={title} reserve={titleReserve} />
+      <FigTitle icon={icon} title={title} reserve={titleReserve} source={source} />
       {unit ? <FigUnit reserve={unitReserve}>{unit}</FigUnit> : null}
       {children}
-      <figcaption>{source}</figcaption>
+      <Essential>{essential}</Essential>
     </figure>
   );
 }
