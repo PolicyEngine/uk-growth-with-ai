@@ -36,8 +36,8 @@ export default function Part3({ part }) {
         <StoryBeat
           id="7pct"
           num={fmtInputPct(CENTRAL_RATE)}
-          head="If jobs, not pay, take the hit"
-          line="Part 2’s model has no unemployment: the shock shows up in pay. This study assumes that share of employees lose their jobs for a year."
+          head="A separate study: what if employees lose their jobs?"
+          line="This household study assumes that share lose their jobs for one year. Part 2’s model has no unemployment; the two are not added or compared."
           numProps={{ 'data-input': '', 'data-path': 'headline.central_displaced.note' }}
         />
       ) : null}

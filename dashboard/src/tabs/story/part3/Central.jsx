@@ -45,8 +45,8 @@ const FACTS = [
   {
     key: 'cost',
     value: fmtBn(H.central_cost.value),
-    label: 'cost to the public finances, a year',
-    sub: `standard deviation ${fmtBn(H.central_cost.sd)}`,
+    label: 'cost to government, a year',
+    sub: `varies across runs by about ${fmtBn(H.central_cost.sd)}`,
   },
   {
     key: 'poverty',
