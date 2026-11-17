@@ -1409,3 +1409,17 @@
   overflow: visible;
   opacity: 1;
 }
+
+/* Sources: in the figure's frame on desktop; on phones in the Scrolly foot,
+   after the last card, so the pinned figure fits 45% of the screen */
+.p2-src-phone {
+  display: none;
+}
+@media (max-width: 900px) {
+  .p2-src-in {
+    display: none;
+  }
+  .p2-src-phone {
+    display: block;
+  }
+}

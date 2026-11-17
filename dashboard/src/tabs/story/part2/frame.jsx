@@ -41,7 +41,7 @@ export const tickText = (v, step) => {
 // include zero and round ticks.
 // Right gutter, in viewBox units, for direct labels at the line ends.
 export const GUTTER = 104;
-export function scales(xs, values, r = M.r) {
+export function scales(xs, values, r = M.r, b = M.b) {
   const finite = values.filter(Number.isFinite);
   let lo = Math.min(0, ...finite);
   let hi = Math.max(0, ...finite);
@@ -56,7 +56,7 @@ export function scales(xs, values, r = M.r) {
   const x0 = xs[0];
   const x1 = xs[xs.length - 1];
   const X = (x) => M.l + ((x - x0) / (x1 - x0)) * (W - M.l - r);
-  const Y = (v) => H - M.b - ((v - lo) / (hi - lo)) * (H - M.t - M.b);
+  const Y = (v) => H - b - ((v - lo) / (hi - lo)) * (H - M.t - b);
   return { X, Y, ticks, step, x0, x1 };
 }
 
@@ -242,9 +242,18 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
           {xTitle}
         </span>
       ) : null}
-      <figcaption className="story-source">{source}</figcaption>
+      {/* desktop: the source in the frame; phones: in the Scrolly foot
+          (PhoneFoot), so the pinned figure fits 45% of the screen */}
+      <figcaption className="story-source p2-src-in">{source}</figcaption>
     </figure>
   );
+}
+
+// A figure's source line for phones, passed as the Scrolly's `foot`: printed
+// after the last card there, hidden on desktop (where the figure's own
+// figcaption shows), so a pinned figure stays within 45% of the screen.
+export function PhoneFoot({ children }) {
+  return <p className="story-source p2-src-phone">{children}</p>;
 }
 
 // "Figures: <link>" at the foot of a step card.

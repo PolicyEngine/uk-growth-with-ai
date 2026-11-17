@@ -224,7 +224,7 @@ const STATE_TEXT = (sid, cl) => [
 
 // The source line of each geometry state: the record's (ONS, OBR) linked
 // to readable pages, then the model's with the drawn solves' result files.
-function SourceText({ s }) {
+export function SourceText({ s, all = false }) {
   const ons = SRC_REC.ons;
   const obr = SRC_REC.obr;
   const a = ons ? (
@@ -245,6 +245,11 @@ function SourceText({ s }) {
   if (s === 1) return <>Sources: {a}; {b}.</>;
   return (
     <>
+      {all ? (
+        <>
+          Record: {a}; {b}. Model:{' '}
+        </>
+      ) : null}
       <ModelSource method="m-scenarios" />. Path: one OBR input, <A href={EFO_MAR26}>trend productivity growth</A>; scenario inputs: <A href={LINKS.bp9}>OBR</A>,{' '}
       <A href={LINKS.imfSip}>IMF</A>, <A href={LINKS.korinekT3}>Korinek et al. (2026), Table 3</A>
     </>
@@ -523,7 +528,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           </text>
         </svg>
       </div>
-      <figcaption className="story-source">
+      <figcaption className="story-source p2-src-in">
         <SourceText s={s} />
       </figcaption>
     </figure>

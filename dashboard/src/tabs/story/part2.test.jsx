@@ -84,7 +84,9 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    expect(container.querySelectorAll('.story-source')).toHaveLength(4); // the output split's two charts share one foot
+    // the output split's two charts share one foot; the GDP canvas and Who gains repeat theirs in a phone-only Scrolly foot
+    expect(container.querySelectorAll('.story-source')).toHaveLength(6);
+    expect(container.querySelectorAll('.p2-src-phone')).toHaveLength(2);
     const hrefs = [...container.querySelectorAll('#story-part-2 a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both#public-finances');

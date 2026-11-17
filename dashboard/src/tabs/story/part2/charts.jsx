@@ -39,6 +39,23 @@ export function afterWords(ys) {
 // The same over several paths: one phrase when they agree.
 export const afterWordsAll = (yss) => [...new Set(yss.map(afterWords).filter(Boolean))].join(' or ') || null;
 
+// The welfare chart's source line (in the frame on desktop, the Scrolly
+// foot on phones).
+export function WelfareSource() {
+  return (
+    <>
+      Source: <A href={SRC.ogUk}>OG-UK</A> (PolicyEngine), cohort welfare by <A href={COHORT_URL}>cohort_welfare.py</A> at {COHORT_COMMIT_TEXT} ·{' '}
+      <NavLink tab="method" sub="how" anchor="m-generations">
+        Method
+      </NavLink>
+      ; the figures:{' '}
+      <NavLink tab="explore" sub="who">
+        Gains and losses
+      </NavLink>
+    </>
+  );
+}
+
 // 4: welfare by birth year, all earnings groups together, the main arm,
 // central closure, the Who gains tab's default rule (debt-neutral
 // transfers). UK central only. State 0 draws the adults alive in 2028,
@@ -81,14 +98,15 @@ export function WelfareShape({ state }) {
   const bornId = `p2-born-in${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const xs = D.closures[CENTRAL].birth_year;
   const ys = welfareCell().cev_all;
-  const sc = scales(xs, ys);
+  // room under the ticks for the x axis title, inside the drawing
+  const sc = scales(xs, ys, undefined, 40);
   const adults = ys.map((v, i) => (xs[i] <= LAST_ALIVE ? v : NaN));
   const later = ys.map((v, i) => (xs[i] >= LAST_ALIVE ? v : NaN));
   const ticks = xs.filter((x) => x % 20 === 0);
   const bx = sc.X(LAST_ALIVE + 0.5);
   const xr = sc.X(sc.x1);
   const yTop = 16;
-  const yBot = H - 28;
+  const yBot = H - 40;
   const by = Number(born);
   const bi = Number.isInteger(by) ? xs.indexOf(by) : -1;
   const pick = bi >= 0 && (state >= 1 || by <= LAST_ALIVE) ? [sc.X(by), sc.Y(ys[bi])] : null;
@@ -96,20 +114,9 @@ export function WelfareShape({ state }) {
     <Figure
       icon="age"
       title="Welfare change by birth year"
-      unit="UK central, main arm, central closure, debt-neutral transfers (a model fiscal rule). Remaining-lifetime gain, consumption-equivalent, %, by birth year"
-      xTitle="Birth year"
-      source={
-        <>
-          Source: <A href={SRC.ogUk}>OG-UK</A> (PolicyEngine), cohort welfare by <A href={COHORT_URL}>cohort_welfare.py</A> at {COHORT_COMMIT_TEXT} ·{' '}
-          <NavLink tab="method" sub="how" anchor="m-generations">
-            Method
-          </NavLink>
-          ; the figures:{' '}
-          <NavLink tab="explore" sub="who">
-            Gains and losses
-          </NavLink>
-        </>
-      }
+      unit="UK central, main arm, central closure, debt-neutral transfers (a model fiscal rule)"
+      xTitle={null}
+      source={<WelfareSource />}
       head={
         <p className="p2-born">
           <Tx icon="age" size={12}>
@@ -152,7 +159,7 @@ export function WelfareShape({ state }) {
           </text>
         </g>
         <text x={6} y={9} className="p2-panel-name" data-axis-title="y">
-          Lifetime gain, % of consumption and bequests
+          Remaining-lifetime gain, % of consumption and bequests
         </text>
         <text data-axis="" x={bx - 4} y={yTop + 10} textAnchor="end" className="p2-band-note">
           Adults in {D.shock_year}
@@ -166,10 +173,13 @@ export function WelfareShape({ state }) {
           </g>
         ))}
         {ticks.map((x) => (
-          <text data-axis="" key={`x${x}`} x={sc.X(x)} y={H - 8} textAnchor="middle" className="p2-tick">
+          <text data-axis="" key={`x${x}`} x={sc.X(x)} y={H - 22} textAnchor="middle" className="p2-tick">
             {x}
           </text>
         ))}
+        <text x={(sc.X(sc.x0) + xr) / 2} y={H - 3} textAnchor="middle" className="p2-axis-x-svg" data-axis-title="x">
+          Birth year
+        </text>
         <text data-axis="" x={xr - 2} y={sc.Y(0) - 4} textAnchor="end" className="p2-band-note">
           No change = 0
         </text>
