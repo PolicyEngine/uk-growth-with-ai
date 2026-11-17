@@ -473,18 +473,23 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [pinBottom, width, single]);
-  // phones and tablets, a sticky scene: the figure lets go while its last
-  // card (sentence and closing caption) is still below it, 24px clear
-  // (polish round: the caption ran up under the figure's foot): a margin
-  // under the figure shortens its sticky range, and the steps take it back
-  // (layout unchanged)
+  // phones (600px and below), a sticky scene: the figure lets go while its
+  // closing caption is still below it, 24px clear (polish round: the
+  // caption ran up under the figure's foot): a margin under the figure
+  // shortens its sticky range by the caption's height, and the steps take
+  // it back (layout unchanged). Only the caption: the last state keeps its
+  // hold (check_states). Tablets keep the sentence stuck under the figure.
   useEffect(() => {
     const b = box.current;
     const col = stepsCol.current;
-    if (!sticky || !b || !col) return undefined;
+    if (!sticky || !small || !b || !col) return undefined;
     const fit = () => {
       const li = steps[lastCard] ? document.getElementById(steps[lastCard].id) : null;
-      const x = li ? Math.min(Math.round(li.offsetHeight + 24), Math.round(window.innerHeight * 0.4)) : 0;
+      const cap = li?.querySelector('.scrolly-takeaway-in-step');
+      // from the caption's top to the block's foot (notes and source come
+      // after it), plus 24px
+      const blk = b.closest('.scrolly');
+      const x = cap && blk ? Math.min(Math.round(blk.getBoundingClientRect().bottom - cap.getBoundingClientRect().top + 24), Math.round(window.innerHeight * 0.4)) : 0;
       setStyle(b, 'margin-bottom', `${x}px`);
       setStyle(col, 'margin-top', `${-x}px`);
     };
@@ -496,7 +501,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       col.style.marginTop = '';
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sticky, width, lastCard]);
+  }, [sticky, small, width, lastCard]);
   // tablets, a sticky scene: where the stuck figure's foot is (its sticky
   // top plus its height), written as --scene-foot; each card's sentence
   // sticks just under it (story.css) until its card has scrolled past
