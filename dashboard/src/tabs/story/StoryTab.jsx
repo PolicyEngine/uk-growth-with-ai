@@ -34,7 +34,7 @@ export const PARTS = [
     title: 'Where the UK stands',
     model: 'official',
     question: 'Where do the UK economy and its labour market stand before AI arrives?',
-    modelLine: <Hy>Published statistics only: nothing here is modelled by PolicyEngine, and the one forecast is the OBR’s.</Hy>,
+    modelLine: <Hy>Published statistics only; the one forecast is the OBR’s.</Hy>,
   },
   {
     id: 'story-part-2',
@@ -46,7 +46,7 @@ export const PARTS = [
     question: 'What happens to output, incomes and the public finances if AI arrives as a shock?',
     modelLine: (
       <>
-        Modelled with <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> (on <a href={URLS.ogCore} {...ext}><Hy>OG-Core</Hy></a>, no unemployment): gaps against the <Hy>OBR-central</Hy> path, on the{' '}
+        <a href={URLS.ogUk} {...ext}><Hy>OG-UK</Hy></a> models the whole economy, with no unemployment; results are gaps against the <Hy>OBR-central</Hy> path, on the{' '}
         <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE}</a> productivity growth, not part 1&rsquo;s {OBR_VINTAGE} forecast.
       </>
     ),
@@ -68,7 +68,7 @@ export const PARTS = [
     title: 'Jobs, incomes and the public finances',
     model: 'aistudy',
     question: 'What happens to the public finances, poverty and incomes if some employees lose their jobs to AI?',
-    modelLine: <Hy>A change of model: a one-year microsimulation of households. Its figures are not added to or compared with the whole-economy results.</Hy>,
+    modelLine: <Hy>A different model: uk-ai-study simulates households for one year; its figures are not added to or compared with part 2’s.</Hy>,
     about: (
       <Items
         items={[

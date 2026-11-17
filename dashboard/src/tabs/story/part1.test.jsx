@@ -168,28 +168,26 @@ describe('story part 1, real data', () => {
     for (const f of checks.figures) expect(f.page).toMatch(/^https:\/\//);
   });
 
-  it('opens with a UK vitals panel: seven tiles of name, value with sparkline and one sub-line; sources in one fold', () => {
+  it('opens with a UK vitals panel: six tiles of name, value and one sub-line; one source line, no dates or downloads', () => {
     const el = show(Part1Real);
     const tiles = el.querySelectorAll('#p1-vitals .p1-vital');
-    expect([...tiles].map((t) => t.dataset.vital)).toEqual(['gdp', 'productivity', 'employment', 'unemployment', 'pay', 'share', 'ai']);
+    expect([...tiles].map((t) => t.dataset.vital)).toEqual(['gdp', 'productivity', 'employment', 'unemployment', 'pay', 'share']);
     tiles.forEach((t) => {
       expect([...t.querySelectorAll(':scope > p')].map((pp) => pp.className)).toEqual(['p1-vital-name', 'p1-vital-value', 'p1-vital-sub']);
       expect(t.querySelectorAll('a')).toHaveLength(0);
-      expect(t.querySelector('.p1-vital-name').querySelectorAll('svg')).toHaveLength(1);
-      expect(t.querySelector('svg.p1-vital-spark').getAttribute('aria-hidden')).toBe('true');
+      // one icon, no sparkline (review C4)
+      expect(t.querySelectorAll('svg')).toHaveLength(1);
     });
     // the first estimate is said in words, from the fact's note
     expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).toContain('first estimate');
     expect(el.querySelector('#p1-vital-employment .p1-vital-sub').textContent).not.toContain('first estimate');
-    // one fold: each tile's dataset, linked to its page, and its release date
-    const fold = el.querySelectorAll('#p1-vitals details');
-    expect(fold).toHaveLength(1);
-    const items = fold[0].querySelectorAll('li[data-cite]');
-    expect(items).toHaveLength(7);
-    items.forEach((li) => {
-      expect(li.textContent).toMatch(/released \d+ \w+ \d{4}/);
-      expect(li.querySelector('a').getAttribute('href')).toMatch(/^https:\/\//);
-    });
+    // one source line, each series linked to its readable page (review E5)
+    const src = el.querySelector('#p1-vitals .story-source');
+    const links = [...src.querySelectorAll('a')];
+    expect(links).toHaveLength(7);
+    links.forEach((a) => expect(a.getAttribute('href')).toMatch(/^https:\/\//));
+    const panel = el.querySelector('#p1-vitals').textContent;
+    expect(panel).not.toMatch(/released|next release|\bCSV\b|IHYQ|LF24|MGSX|KAI9|LZVB|DTWM/i);
     // the panel comes before the first scene
     expect(el.querySelector('#p1-vitals').compareDocumentPosition(el.querySelector('#p1-output')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
