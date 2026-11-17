@@ -141,7 +141,7 @@ export function HeadlineTiles({ sid }) {
           <span key="share">About {Math.round(fs)}% of added capital is foreign-owned</span>,
           // one span: the tile's note lays out its children as blocks
           <span key="zeta">
-            ζ<sub>K</sub> = {ZETA[CENTRAL]} is the share of excess capital demand, not of added capital, met from abroad:{' '}
+            ζK = {ZETA[CENTRAL]} is the share of excess capital demand, not of added capital, met from abroad:{' '}
             <A href={URLS.ogCoreParams}>OG-Core&rsquo;s US default, chosen by the study</A>
           </span>,
         ]
