@@ -52,7 +52,7 @@ const scopeFor = (tab, sub) => {
   // the Story: one plain line for both models (review T8)
   return [
     {
-      text: `Two models. OG-UK: the whole economy. uk-ai-study: households in ${AI_STUDY.model_year_label}.`,
+      text: `Two models. OG-UK: the whole economy. uk-ai-study: households in ${AI_STUDY.model_year_label}`,
     },
   ];
 };

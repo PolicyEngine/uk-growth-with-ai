@@ -2,6 +2,7 @@
 
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { NavLink } from '@/lib/nav.jsx';
 import { FACTS, LINKS } from './data.js';
 import { Ext, SourceLine } from './frame.jsx';
 import { dirWord, idx1, pct1 } from './format.js';
@@ -9,9 +10,10 @@ import { dirWord, idx1, pct1 } from './format.js';
 // The UK vitals panel that opens part 1: six tiles, each the latest
 // published figure for one series: the name (with the tile's one icon), the
 // value, and one sub-line (its unit and period). Round 2 (review E5, C4):
-// no sparklines, release dates, series codes or data downloads; one source
-// line under the grid links each series' ONS page, and its fold keeps the
-// two definitions only the panel needs. It is the home of these six
+// no sparklines, release dates, series codes or data downloads (those are
+// in Method's source ledger, linked once from the fold); one source line
+// under the grid links each series' ONS page, and its fold keeps the two
+// definitions only the panel needs. It is the home of these six
 // figures, and of GDP's year-on-year growth (the GDP sub-line): the step
 // cards below do not repeat them. Business AI use moved to the AI scene's
 // closing line (T3). Each value is marked with its data-path.
@@ -113,6 +115,9 @@ const NOTES = [
     Unemployment, ILO definition: jobless, looking for work, able to start.
   </Ext>,
   'Employee share: pay and employers’ contributions over GDP; it leaves out self-employed income.',
+  <NavLink key="ledger" tab="method" sub="code" anchor="source-ledger">
+    Release dates and series codes: the source ledger
+  </NavLink>,
 ];
 
 // One link per series, to its ONS page.

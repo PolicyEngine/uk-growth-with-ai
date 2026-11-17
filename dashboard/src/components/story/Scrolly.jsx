@@ -139,9 +139,13 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     () => window.innerWidth,
     () => 0,
   );
+  // 600px and below the notes leave the pinned box (FigNotes.jsx), so the
+  // measure is keyed by that too
+  const small = useIsPhone('(max-width: 600px)');
+  const mkey = small ? -width : width;
   const [measured, setMeasured] = useState({ w: -1, h: 0 });
-  const measuring = reserve && measured.w !== width;
-  const minH = reserve && measured.w === width ? measured.h : 0;
+  const measuring = reserve && measured.w !== mkey;
+  const minH = reserve && measured.w === mkey ? measured.h : 0;
   // too tall to stick on a phone
   const tooTall = reserve && minH > 0 && typeof window !== 'undefined' && minH > window.innerHeight * capFor(window.innerWidth);
   const flat = phone && !single && (!scene || tooTall);
@@ -151,9 +155,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   const once = flat && !inline;
   const sticky = reserve && !tooTall;
   // the notes slot after the steps (FigNotes.jsx): a sticky phone scene
-  // draws its figures' notes there; while measuring they are left out
+  // (600px and below) draws its figures' notes there; while measuring
+  // they are left out
   const [notesEl, setNotesEl] = useState(null);
-  const notesSlot = reserve && (measuring || sticky) ? { phone: true, el: sticky ? notesEl : null } : null;
+  const notesSlot = small && reserve && (measuring || sticky) ? { phone: true, el: sticky ? notesEl : null } : null;
   const sizers = useRef(null);
   const live = useRef(null);
   // reversible entry (motion.js useEntry): true once the figure is 85% up
@@ -185,8 +190,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     if (!measuring || !sizers.current) return;
     const hs = [...sizers.current.children].map((c) => c.getBoundingClientRect().height);
     const own = live.current ? live.current.getBoundingClientRect().height : 0;
-    setMeasured({ w: width, h: Math.ceil(Math.max(own, ...hs)) });
-  }, [measuring, width]);
+    setMeasured({ w: mkey, h: Math.ceil(Math.max(own, ...hs)) });
+  }, [measuring, mkey]);
   // A state taller than measured (fonts, a changed scenario) raises the box.
   useEffect(() => {
     if (!reserve || !live.current || typeof ResizeObserver === 'undefined') return undefined;
@@ -557,7 +562,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         ) : null}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
-      {sticky ? <div className="scrolly-notes" ref={setNotesEl} /> : null}
+      {sticky && small ? <div className="scrolly-notes" ref={setNotesEl} /> : null}
       {phone ? footHere : null}
       {answerAfter ? (
         <div className="scrolly-answer scrolly-answer-after">
