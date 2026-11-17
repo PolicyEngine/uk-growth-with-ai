@@ -101,7 +101,7 @@ describe('story part 2', () => {
         <MorphChart state={4} sid="uk_central" cl="zk0.1" />
       </NavProvider>,
     );
-    expect(popText(container)).toContain('Main arm, against the no-shock baseline');
+    expect(popText(container)).toContain('Main version, against the no-shock baseline');
     const links = sourceLinks(container);
     for (const end of ['#economy-wall', '#explore-part-all', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
   });

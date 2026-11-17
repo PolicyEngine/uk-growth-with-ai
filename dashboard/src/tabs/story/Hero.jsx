@@ -94,7 +94,7 @@ function Fan({ lines, sid, wide }) {
       className={`story-svg hf-svg ${wide ? 'is-wide' : 'is-narrow'}`}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`GDP gap against the no-shock baseline, ${YEARS[0]} to ${YEARS[last]}, four scenarios, main arm`}
+      aria-label={`GDP gap against the no-shock baseline, ${YEARS[0]} to ${YEARS[last]}, four scenarios, main version`}
       style={{ '--hf-fs': `${fs}px` }}
     >
       <text className="hf-axis-title" data-axis-title="y" data-axis="" x={2} y={fs + 2}>
@@ -238,7 +238,7 @@ export default function Hero() {
               {
                 title: 'How to read',
                 notes: [
-                  { icon: 'closure', text: `Main arm, ${closure} (the closure chosen in the header).` },
+                  { icon: 'closure', text: `Main version, ${closure} (chosen in the header).` },
                   {
                     icon: 'path',
                     text: (

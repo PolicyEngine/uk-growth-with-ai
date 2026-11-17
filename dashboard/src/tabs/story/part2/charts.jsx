@@ -108,7 +108,7 @@ export function WelfareShape({ state }) {
     <Figure
       icon="age"
       title="Welfare change by birth year"
-      unit="UK central, main arm, some foreign capital, debt-neutral transfers (a model fiscal rule)"
+      unit="UK central, main version, some foreign capital, transfers adjust to keep debt on track (a model budget assumption)"
       xTitle={null}
       source={<WelfareSource />}
       head={

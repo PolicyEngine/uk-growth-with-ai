@@ -223,9 +223,9 @@ const GAP_TITLE = 'GDP against the no-shock baseline';
 const STATE_TEXT = (sid, cl) => [
   { title: 'Real GDP growth', unit: `ONS outturn: percentage change on the previous calendar year.${OFF_NOTE}` },
   { title: 'Real GDP growth', unit: `ONS outturn (solid) and the OBR’s forecast${OBR_VINTAGE ? `, ${OBR_VINTAGE}` : ''} (dashed): percentage change on the previous year.${OFF_NOTE}` },
-  { title: GAP_TITLE, unit: `${SCEN_NAME[sid]}, automation + productivity, ${CL_WORDS[cl]}. A gap in %, not a growth rate or a level` },
-  { title: GAP_TITLE, unit: `The UK scenarios, ${SCEN_NAME[sid]} in colour, the UK range shaded. Automation + productivity, ${CL_WORDS[cl]}. Gap, %` },
-  { title: GAP_TITLE, unit: `The four scenarios, ${SCEN_NAME[sid]} in colour. Automation + productivity, ${CL_WORDS[cl]}. Gap, %` },
+  { title: GAP_TITLE, unit: `${SCEN_NAME[sid]}, tasks automated and productivity up, ${CL_WORDS[cl]}. A gap in %, not a growth rate or a level` },
+  { title: GAP_TITLE, unit: `The UK scenarios, ${SCEN_NAME[sid]} in colour, the UK range shaded. Tasks automated, productivity up, ${CL_WORDS[cl]}. Gap, %` },
+  { title: GAP_TITLE, unit: `The four scenarios, ${SCEN_NAME[sid]} in colour. Tasks automated, productivity up, ${CL_WORDS[cl]}. Gap, %` },
 ];
 
 // The sources of each geometry state, behind the figure's one "Sources
@@ -259,7 +259,7 @@ export function morphGroups(s, sid, cl) {
           icon: 'scenario',
           text: (
             <>
-              Main arm, against the no-shock baseline. The other two arms are on{' '}
+              Main version, against the no-shock baseline. The other two versions are on{' '}
               <NavLink tab="explore" sub="economy" anchor="income">
                 Explore
               </NavLink>
@@ -271,7 +271,7 @@ export function morphGroups(s, sid, cl) {
               icon: 'closure',
               text: (
                 <>
-                  The sign of the pay-rate gap depends on how much capital comes from abroad. Compare each closure on{' '}
+                  The sign of the pay-rate gap depends on how much capital comes from abroad. Compare each foreign-capital case on{' '}
                   <NavLink tab="explore" sub="economy" anchor="explore-part-all">
                     Explore
                   </NavLink>
@@ -359,7 +359,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the no-shock baseline, OG-UK's own path built on the OBR's forecast, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main arm rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the no-shock baseline, OG-UK's own path built on the OBR's forecast, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main version rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
       : '',
     s >= 3
       ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line. The UK range, from UK low to UK high, is shaded.`

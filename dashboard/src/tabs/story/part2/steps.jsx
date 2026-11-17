@@ -1,12 +1,11 @@
 'use client';
 
 import { Key } from '@/components/story/highlight.jsx';
-import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, CENTRAL, gap } from '@/tabs/ai/surprise.js';
-import { welfareCell, entryDip, peakAge, series, LAST_ALIVE } from './charts.jsx';
-import D from '@/data/cohorts2028.json';
+import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap } from '@/tabs/ai/surprise.js';
+import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
 import { PART_COLOR } from './split.js';
 import { EPS2 } from './dir.js';
-import { welfareWords } from './caveats.js';
+import { welfareWords, loseRange } from './caveats.js';
 
 // Part 2's step cards (round 1): one sentence per step, with at most one
 // emphasised term, a colour-keyed <Key> that lights the mark the step
@@ -144,7 +143,7 @@ export function whoCardSteps() {
       body: (
         <>
           <Say>
-            This chart uses another fiscal rule: transfers adjust to keep debt on the path. Gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
+            This chart uses another budget assumption: transfers adjust to keep debt on track. Gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
           </Say>
         </>
       ),
@@ -179,17 +178,16 @@ export function morphAnswer(cl) {
   return `GDP ends ${where} the path in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
 }
 
-// The generations scene's one closing line, carrying all three framings:
-// every adult gains as charted (debt-neutral transfers to 2036); with the
-// transfers kept on to the horizon, who loses; and without bequest value
-// too (cohorts2028.json dnfull, in words; the figures are on Explore).
+// The generations scene's one closing line (newcomer review item 8): the
+// share of adults who lose as a range over the measures (loseRange: as
+// charted, without bequest value, and with the transfers kept on to the
+// horizon), and how much of the average gain is bequest value. The other
+// budget assumption is said in the scene's first step.
 export function whoAnswer() {
   const w = welfareWords();
   if (!w?.lose) return null;
-  const c = welfareCell();
-  const xs = D.closures[CENTRAL].birth_year;
-  const adultsGain = c.cev_all.every((v, i) => xs[i] > LAST_ALIVE || v > 0);
-  const head = adultsGain ? 'As modelled, every adult gains' : `Gains peak ${peakAge() >= 55 ? 'near retirement' : 'in middle age'}`;
-  const nb = w.loseNb ? `; ${w.loseNb}, ignoring bequests` : '';
-  return `${head}. If transfers bear the cost after 2036, ${w.lose} lose${nb}.`;
+  const r = loseRange();
+  if (!r) return null;
+  const why = w.bequests ? ` ${w.bequests.replace(/^./, (x) => x.toUpperCase())} of the average gain is the value of bequests.` : '';
+  return `From ${r.lo} to ${r.hi} of adults lose, depending on the measure.${why}`;
 }

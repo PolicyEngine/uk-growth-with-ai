@@ -237,7 +237,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   const [replay, setReplay] = useState(0);
   const [paused, setPaused] = useState(false);
   const graph = base ? sankeyGraph(base, true) : null;
-  const where = `${SCEN_NAME[sid]}, main arm, common fiscal rule`;
+  const where = `${SCEN_NAME[sid]}, main version, spending follows GDP`;
   const sankeyLabel = base
     ? `Sankey diagram: GDP on the no-shock baseline in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
@@ -403,7 +403,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </div>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">The reference path at this closure is pending.</Tx>
+            <Tx icon="provisional">The reference path with this foreign capital is pending.</Tx>
           </p>
         )}
       </div>

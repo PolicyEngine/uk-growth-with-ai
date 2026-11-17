@@ -66,3 +66,18 @@ export function welfareWords() {
   const loseNb = full ? Math.min(...full.range.no_bequest_losing_pct) : null;
   return { bequests, consumption, young, lose: peopleWord(lose), loseNb: peopleWord(loseNb) };
 }
+
+// The share of adults alive in 2028 who lose, as a range over the measures
+// (cohorts2028.json, UK central, some foreign capital, debt-neutral
+// transfers, main version): as charted (to 2036), without bequest value,
+// and with the transfers kept on to the horizon (dnfull), with and without
+// bequest value. "under 1%" below one per cent, else whole per cent.
+// null when the cells are missing.
+export function loseRange() {
+  const c = C.closures?.[CENTRAL]?.rules?.dn?.tfp;
+  const full = C.dnfull?.ready && C.dnfull.closure === CENTRAL ? C.dnfull.range : null;
+  const xs = [c?.alive_losing_pct, c?.no_bequest_losing_pct, ...(full?.joint_losing_pct ?? []), ...(full?.no_bequest_losing_pct ?? [])].filter(Number.isFinite);
+  if (xs.length < 2) return null;
+  const word = (x) => (x < 1 ? 'under 1%' : `${Math.round(x)}%`);
+  return { lo: word(Math.min(...xs)), hi: word(Math.max(...xs)) };
+}
