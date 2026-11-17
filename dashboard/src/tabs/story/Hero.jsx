@@ -103,7 +103,9 @@ function Fan({ lines, sid, wide }) {
       {ticks.map((v) => (
         <g key={v} data-axis="">
           {v ? <line className="hf-grid" x1={L} x2={R} y1={Y(v)} y2={Y(v)} /> : null}
-          <text className="hf-tick" x={L - 8} y={Y(v)} dy="0.35em" textAnchor="end">
+          {/* left-aligned on the axis title's edge: the result unit, its
+              hairline and the y labels share one left edge (polish D) */}
+          <text className="hf-tick" x={2} y={Y(v)} dy="0.35em" textAnchor="start">
             {v ? `+${v}%` : '0%'}
           </text>
         </g>
@@ -116,8 +118,10 @@ function Fan({ lines, sid, wide }) {
         ))}
       </g>
       <g className="hf-ann" data-axis="">
-        <line x1={XY(SURPRISE_YEAR)} x2={XY(SURPRISE_YEAR)} y1={T - (wide ? 22 : 46)} y2={B} />
-        <text x={XY(SURPRISE_YEAR) + (wide ? -5 : 5)} y={T - (wide ? 10 : 32)} textAnchor={wide ? 'end' : 'start'}>
+        {/* right of its line, a row above the other date (the chart starts
+            on the result unit's left edge now: nothing to its left) */}
+        <line x1={XY(SURPRISE_YEAR)} x2={XY(SURPRISE_YEAR)} y1={T - 46} y2={B} />
+        <text x={XY(SURPRISE_YEAR) + 5} y={T - 32} textAnchor="start">
           AI shock starts, {SURPRISE_YEAR}
         </text>
         <line x1={XY(HEADLINE_YEAR)} x2={XY(HEADLINE_YEAR)} y1={T - 22} y2={B} />
