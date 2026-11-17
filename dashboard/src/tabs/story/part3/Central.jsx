@@ -103,7 +103,7 @@ function CentralFigure({ ctx }) {
   }));
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
-      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws. Poverty before housing costs`} replay={e.replay} />
+      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} />
       <div className="p3-central">
         <div {...markProps('displaced', 'p3-central-tiles')}>
           <p className="p3-tile-heads">
@@ -112,7 +112,10 @@ function CentralFigure({ ctx }) {
           </p>
           <TileField tiles={tiles} width={10 + 1 + GAP_COLS} height={10} size={14} gap={3} label="Tile grid of employees; the tiles set apart in ink are those assumed displaced in the central case" />
           <p className="p3-tile-key" data-axis="">
-            <AxisTitle axis="y">Share of employees, one tile = 1%</AxisTitle>
+            <AxisTitle axis="y">
+              <span className="p3-long">Share of employees, one tile = 1%</span>
+              <span className="p3-short">One tile = 1%</span>
+            </AxisTitle>
           </p>
         </div>
         <ul className="story-facts p3-facts">
@@ -125,15 +128,6 @@ function CentralFigure({ ctx }) {
           ))}
         </ul>
       </div>
-      <p className="p3-key">The cost is net of two assumed gains, higher pay and capital income. After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
-      <p className="p3-key">
-        The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
-        <NavLink tab="explore" sub="households" anchor="hh-ladder">
-          Explore, households
-        </NavLink>
-        ).
-      </p>
-      <Source files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]} />
     </figure>
   );
 }
@@ -208,11 +202,32 @@ const CENTRAL_MARKS = {
   },
 };
 
+// The figure's notes and source line, as the Scrolly's foot (round 2,
+// phones): inside the card on desktop, after the cards at 900px and below,
+// so a pinned phone figure is the chart alone.
+function CentralNotes() {
+  return (
+    <>
+      <p className="p3-key">The cost is net of two assumed gains, higher pay and capital income. After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
+      <p className="p3-key">
+        The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
+        <NavLink tab="explore" sub="households" anchor="hh-ladder">
+          Explore, households
+        </NavLink>
+        ).
+      </p>
+      <Source files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]} />
+    </>
+  );
+}
+
 export default function Central() {
   return (
     <MarkProvider marks={CENTRAL_MARKS}>
       <Scrolly
         id="p3-central"
+        scene
+        foot={<CentralNotes />}
         sub={CENTRAL_SUB}
         steps={asLines(CENTRAL_STEPS)}
         graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />}

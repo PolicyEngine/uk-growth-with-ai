@@ -24,11 +24,12 @@ import { Ref } from './sources.jsx';
 // here, a read-out on hover or focus).
 
 // ---- panel A: four stylised rules (50 paired draws) -----------------------
+// `short`: the phone label (600px and below), each with its citation
 const RULES = [
-  { id: 'uniform', label: 'Uniform: every employee equally likely' },
-  { id: 'junior', label: 'Tilted towards workers aged 16 to 24, after ', ref: 'klein' },
-  { id: 'exposure', label: 'In proportion to AI exposure: the central case', central: true },
-  { id: 'compression', label: 'Expertise compression (the study’s rule, after ', close: '): exposed higher earners', ref: 'autor' },
+  { id: 'uniform', label: 'Uniform: every employee equally likely', short: 'Uniform' },
+  { id: 'junior', label: 'Tilted towards workers aged 16 to 24, after ', ref: 'klein', short: 'Junior-tilted, after ' },
+  { id: 'exposure', label: 'In proportion to AI exposure: the central case', central: true, short: 'AI exposure: the central case' },
+  { id: 'compression', label: 'Expertise compression (the study’s rule, after ', close: '): exposed higher earners', ref: 'autor', short: 'Expertise compression, after ' },
 ];
 const NAME = { uniform: 'Uniform', junior: 'Junior-tilted', exposure: 'Exposure-based', compression: 'Expertise-compression' };
 // Both rule axes start at zero: the cost differs about fivefold across
@@ -163,10 +164,10 @@ function PovertyDot({ id, d, on }) {
 function RulesPanel({ on }) {
   return (
     <>
-      <p className="p3-group-head p3-group-first">Who loses the job: four rules, {rule('uniform').draws} paired draws each</p>
+      <p className="p3-group-head p3-group-first">Who loses the job: four rules, {rule('uniform').draws} draws each</p>
       <div className="p3-dp-heads">
         <AxisTitle axis="y">Cost, £bn a year</AxisTitle>
-        <AxisTitle axis="y">Absolute poverty, change, percentage points</AxisTitle>
+        <AxisTitle axis="y">Absolute poverty rise, pp</AxisTitle>
       </div>
       <ol className="p3-dp">
         {RULES.map((r, i) => {
@@ -175,9 +176,15 @@ function RulesPanel({ on }) {
           return (
             <li key={r.id} className="p3-dp-row" data-row={r.id} style={{ '--beat': `${i * 120}ms` }}>
               <span className="p3-row-label">
-                {r.label}
-                {r.ref ? <Ref id={r.ref} /> : null}
-                {r.close ?? null}
+                <span className="p3-long">
+                  {r.label}
+                  {r.ref ? <Ref id={r.ref} /> : null}
+                  {r.close ?? null}
+                </span>
+                <span className="p3-short">
+                  {r.short}
+                  {r.ref ? <Ref id={r.ref} /> : null}
+                </span>
               </span>
               <span className="p3-dp-track" data-mark="r-cost">
                 <span className={`p3-dot p3-dot-cost${r.central ? ' is-ring' : ''}`} style={{ left: on ? `${(d.cost_bn / MAXC) * 100}%` : 0 }}>
@@ -198,11 +205,9 @@ function RulesPanel({ on }) {
           <Ticks max={MAXP} fmt={(t) => `${t}pp`} />
         </li>
       </ol>
-      <p className="p3-key">
-        <NavLink tab="explore" sub="households" anchor="hh-rules">
-          Poverty values by rule, and a top-loaded stress test
-        </NavLink>
-      </p>
+      <div className="p3-ch-notes">
+        <RulesNotes />
+      </div>
     </>
   );
 }
@@ -247,7 +252,7 @@ function MarginPanel({ on }) {
   );
   return (
     <>
-      <p className="p3-group-head p3-group-first">Job loss or wage cuts: the same earnings loss, {D.per_pound_20.draws} paired draws</p>
+      <p className="p3-group-head p3-group-first">Job loss or wage cuts, {D.per_pound_20.draws} draws</p>
       <OutsideRebuildFlag />
       <Dumbbell
         head="Each margin alone: pence per £1 of earnings lost"
@@ -282,9 +287,10 @@ function MarginPanel({ on }) {
           },
         ]}
       />
+      <p className="p3-group-head">With the wage and capital effects on</p>
       <div className="p3-db-pair">
         <Dumbbell
-          head="With wage and capital effects: cost, £bn a year"
+          head="Cost, £bn a year"
           panel="m-cost"
           max={maxC}
           on={on}
@@ -296,7 +302,7 @@ function MarginPanel({ on }) {
           ]}
         />
         <Dumbbell
-          head="Absolute poverty, change, percentage points"
+          head="Absolute poverty rise, pp"
           panel="m-poverty"
           max={maxP}
           on={on}
@@ -308,11 +314,9 @@ function MarginPanel({ on }) {
           ]}
         />
       </div>
-      <p className="p3-key">Both pence figures include employer NI. Job loss here is the central case on these {D.per_pound_20.draws} draws.</p>
-      <p className="p3-key">
-        Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
-      </p>
-      {marginClaims().perPoundMore === 'cut' ? <p className="p3-key">A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here.</p> : null}
+      <div className="p3-ch-notes">
+        <MarginNotes />
+      </div>
     </>
   );
 }
@@ -320,9 +324,9 @@ function MarginPanel({ on }) {
 function BreakEvenPanel({ on }) {
   return (
     <>
-      <p className="p3-group-head p3-group-first">What sets the cost to zero, with the other two at central settings</p>
+      <p className="p3-group-head p3-group-first">What sets the cost to zero</p>
       <p className="p3-db-head">
-        <AxisTitle axis="y">Each assumption: central setting, then the break-even setting</AxisTitle>
+        <AxisTitle axis="y">Central setting, then the break-even setting</AxisTitle>
       </p>
       <ol className="p3-ch-be" data-mark="breakeven">
         {BREAKS.map((b, i) => (
@@ -338,8 +342,46 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
+      <div className="p3-ch-notes">
+        <BreakEvenNotes />
+      </div>
+    </>
+  );
+}
+
+// Each panel's notes: in the panel on wider screens; at 600px and below
+// they leave the pinned figure for the Scrolly's foot (after the cards),
+// so the pinned box is the chart alone. No figure is printed in a note, so
+// the hidden copy counts nothing twice.
+function RulesNotes() {
+  return (
+    <>
       <p className="p3-key">
-        Interpolated between runs. The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws.
+        <NavLink tab="explore" sub="households" anchor="hh-rules">
+          Poverty values by rule, and a top-loaded stress test
+        </NavLink>
+      </p>
+    </>
+  );
+}
+
+function MarginNotes() {
+  return (
+    <>
+      <p className="p3-key">Both pence figures include employer NI. Job loss here is the central case on these {D.per_pound_20.draws} draws.</p>
+      <p className="p3-key">
+        Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
+      </p>
+      {marginClaims().perPoundMore === 'cut' ? <p className="p3-key">A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here.</p> : null}
+    </>
+  );
+}
+
+function BreakEvenNotes() {
+  return (
+    <>
+      <p className="p3-key">
+        Each break-even holds the other two at central settings, interpolated between runs. The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws.
       </p>
       <p className="p3-key">The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter.</p>
       <p className="p3-key">
@@ -365,7 +407,7 @@ function ChangesFigure({ step, ctx }) {
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
-      <FigureHead icon="scenario" title="What changes the cost and the poverty rise" replay={e.replay} />
+      <FigureHead icon="scenario" title="What changes the answer" replay={e.replay} />
       <div className="p3-ch-panels">
         {PANELS.map((Panel, k) => {
           const shown = all || k === cur;
@@ -376,8 +418,22 @@ function ChangesFigure({ step, ctx }) {
           );
         })}
       </div>
-      <Source files={[rule('uniform').file, D.per_pound_20.file, J.file, BE.wage.file, BE.capital.file, BE.duration.file]} />
     </figure>
+  );
+}
+
+// The foot: the panels' notes again for 600px and below (hidden above),
+// then the one source line.
+function ChangesFoot() {
+  return (
+    <>
+      <div className="p3-ch-footnotes">
+        <RulesNotes />
+        <MarginNotes />
+        <BreakEvenNotes />
+      </div>
+      <Source files={[rule('uniform').file, D.per_pound_20.file, J.file, BE.wage.file, BE.capital.file, BE.duration.file]} />
+    </>
   );
 }
 
@@ -475,7 +531,7 @@ const LABEL = 'What changes the answer: the cost and poverty rise under four rul
 export default function Changes() {
   return (
     <MarkProvider marks={MARKS}>
-      <Scrolly id="p3-changes" sub={changesSub()} steps={asLines(CHANGES_STEPS)} graphic={(i, r, ctx) => <ChangesFigure step={i} ctx={ctx} />} label={LABEL} />
+      <Scrolly id="p3-changes" scene foot={<ChangesFoot />} sub={changesSub()} steps={asLines(CHANGES_STEPS)} graphic={(i, r, ctx) => <ChangesFigure step={i} ctx={ctx} />} label={LABEL} />
     </MarkProvider>
   );
 }
