@@ -5,15 +5,17 @@ import Sankey from '@/components/story/Sankey.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
-import { useInView, useIsPhone, useReducedMotion } from '@/components/story/motion.js';
+import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
-import { A, ModelSource, ResultLinks, resultUrl, pathUrl, OG_DEFAULTS } from './sources.jsx';
+import { A, ModelSource, OG_DEFAULTS } from './sources.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Key } from '@/components/story/highlight.jsx';
-import { Say, Fold } from './steps.jsx';
+import { Say } from './steps.jsx';
+import { Answer } from '@/components/story/QStage.jsx';
+import { useLiveInView } from './live.js';
 import { iconFor } from '@/lib/concepts.js';
 
 // Where output goes in the headline year, at the header's scenario and
@@ -60,6 +62,44 @@ const MEANING = {
   foreign: 'GDP less GNI: income paid to foreign owners of UK capital and gilts, net of income from abroad',
   depreciation: 'Replaces capital that wears out',
 };
+// Phones: one figure, too tall to stick, so its state follows its own place
+// on screen, both ways: in view, the path's first column pours (state 0);
+// once the Sankey's foot passes 75% of the screen, the capital split
+// (state 1); once the waterfall's top passes 45%, the change bars (state 2).
+// Above the screen's foot again, it resets, so the build replays.
+function useScrollState(active) {
+  const ref = useRef(null);
+  const [st, setSt] = useState({ seen: false, s: 0 });
+  useEffect(() => {
+    if (!active) return undefined;
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const vh = window.innerHeight;
+      const r = el.getBoundingClientRect();
+      const sk = el.querySelector('.p2-sankey')?.getBoundingClientRect() ?? r;
+      const wf = el.querySelector('.p2-output-change')?.getBoundingClientRect() ?? r;
+      const seen = r.top < vh * 0.85 && r.bottom > 0;
+      const s = wf.top < vh * 0.45 ? 2 : sk.bottom < vh * 0.75 ? 1 : 0;
+      setSt((o) => (o.seen === seen && o.s === s ? o : { seen, s }));
+    };
+    const on = () => {
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    return () => {
+      window.removeEventListener('scroll', on);
+      window.removeEventListener('resize', on);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [active]);
+  return [ref, st];
+}
+
 const CH_KEY = { labour: 'labour', capital: 'gross_capital', domestic: 'domestic', foreign: 'foreign', depreciation: 'depreciation' };
 
 function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase }) {
@@ -168,8 +208,10 @@ export function outChangeItems(ch) {
 
 // The graphic: the Sankey, the waterfall below it. `state` 0-2; `all`
 // draws the last state with nothing hidden (phones).
-function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
-  const [ref, seen] = useInView({ rootMargin: '0px 0px -15% 0px' });
+function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen: seenProp, figRef }) {
+  const [ownRef, ownSeen] = useLiveInView();
+  const ref = figRef ?? ownRef;
+  const seen = seenProp ?? ownSeen;
   const reduce = useReducedMotion();
   const s = all ? 2 : state;
   // a pick holds only in the state it was made in (phones: always), so a
@@ -203,11 +245,13 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
     root.querySelectorAll('.sankey-link[data-target]').forEach((el) => el.setAttribute('data-mark', `wf-${el.getAttribute('data-target')}`));
     root.querySelectorAll('.sankey-node[data-node]').forEach((el) => el.setAttribute('data-mark', `wf-${el.getAttribute('data-node')}`));
   });
-  if (s < 2 && phase !== 'idle') {
+  // out of view or before step 3: back to idle, so the build replays each
+  // time the reader scrolls to it, down or back up
+  if ((s < 2 || !seen) && phase !== 'idle') {
     setPhase('idle');
     setChips(null);
   }
-  if (s >= 2 && phase === 'idle') setPhase(instant ? 'settled' : 'chips');
+  if (s >= 2 && seen && phase === 'idle') setPhase(instant ? 'settled' : 'chips');
   useLayoutEffect(() => {
     if (phase !== 'chips' || !wrap.current || !boxes) return;
     // measured once, at the beat's start (not in an animation frame)
@@ -356,16 +400,12 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
       {/* one foot for both charts */}
       <p className="story-source p2-output-foot">
         <span className="p2-src-line">
-          <Tx icon="source" size={12}>
-            <ModelSource method="m-measures" />{' '}
-            {cap(CL_WORDS[cl])}. Changes: {where}; taxes not split out.
-          </Tx>
+          <ModelSource method="m-measures" />. {cap(CL_WORDS[cl])}. Changes: {where}; taxes not split out. Labour&rsquo;s share:{' '}
+          <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, wider than the ONS measure.
         </span>
         {ch ? (
           <span className="p2-src-line">
-            <Tx icon="caveat" size={12}>
-              Rounded: parts may not add up; the GDP bar ends at the headline figure.
-            </Tx>
+            Rounded: parts may not add up; the GDP bar ends at the headline figure.
           </span>
         ) : null}
       </p>
@@ -376,7 +416,6 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl }) {
 function outputSteps(sid, cl, base, ch) {
   const labourMore = base ? base.labour > 50 : null;
   const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
-  const up = ch ? ch.gdp > 0 && ch.labour < 0 : false;
   return [
     {
       id: 'p2-out-1',
@@ -384,29 +423,9 @@ function outputSteps(sid, cl, base, ch) {
       icon: 'gdp',
       title: 'GDP is paid as labour or capital income',
       body: (
-        <>
-          <Say kind="finding">
-            On the path, {k('labour', 'labour income')} is {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'} of GDP; {k('capital', 'capital income')} the rest.
-          </Say>
-          <Fold
-            title="In the model"
-            icon="model"
-            items={[
-              { icon: 'gdp', text: 'Every pound of GDP is paid to someone' },
-              {
-                icon: 'measure',
-                text: (
-                  <>
-                    Labour&rsquo;s size: <A href={OG_DEFAULTS}>OG-UK&rsquo;s calibration</A>, wider than{' '}
-                    <NavLink tab="story" anchor="p1-share">
-                      part 1&rsquo;s ONS share
-                    </NavLink>
-                  </>
-                ),
-              },
-            ]}
-          />
-        </>
+        <Say>
+          On the path, {k('labour', 'labour income')} is {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'} of GDP; capital income is the rest.
+        </Say>
       ),
     },
     {
@@ -415,19 +434,9 @@ function outputSteps(sid, cl, base, ch) {
       icon: 'capital',
       title: 'Capital income splits three ways',
       body: (
-        <>
-          <Say kind="finding">
-            It splits into {k('domestic', 'kept in the UK')}, {k('foreign', 'net paid abroad')} and {k('depreciation', 'depreciation')}.
-          </Say>
-          <Fold
-            title="The three parts"
-            icon="capital"
-            items={[
-              { icon: 'foreign', text: 'Net paid abroad: GDP less GNI, a net flow' },
-              { icon: 'depreciation', text: 'Depreciation replaces capital that wears out' },
-            ]}
-          />
-        </>
+        <Say>
+          Capital income splits three ways: kept in the UK, {k('foreign', 'net paid abroad')} and depreciation.
+        </Say>
       ),
     },
     {
@@ -436,41 +445,12 @@ function outputSteps(sid, cl, base, ch) {
       pin: 'bottom',
       icon: 'compare',
       title: `What ${SCEN_NAME[sid]} changes`,
-      body: (
-        <>
-          {ch ? (
-            <Say kind="takeaway">
-              {up ? (
-                <>
-                  {k('capital', 'Capital income')} rises by more than {k('gdp', 'GDP')}; {k('labour', 'labour income')} falls.
-                </>
-              ) : (
-                <>
-                  {k('gdp', 'GDP')} is {dirWord(ch.gdp)} the path; {k('labour', 'labour income')} is {dirWord(ch.labour)} it.
-                </>
-              )}
-            </Say>
-          ) : (
-            <p>This solve is pending at the closure chosen above.</p>
-          )}
-          {ch ? <Fold title="What else changes" icon="compare" items={outChangeItems(ch)
-                .filter((it) => it.key !== 'all')
-                .map((it) => (it.key === 'labour' ? { ...it, text: `Labour income ${it.text}` } : it))} /> : null}
-          <ResultLinks
-            files={[
-              ['no-shock path file', pathUrl(cl)],
-              [`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)],
-            ]}
-            method="m-measures"
-            methodText="Income measures"
-          />
-          <p className="p2-more">
-            <Icon name={iconFor('link')} size={14} />
-            <NavLink tab="explore" sub="economy" anchor="explore-part-economy">
-              The labour share year by year
-            </NavLink>
-          </p>
-        </>
+      body: ch ? (
+        <Say>
+          The bars build each part&rsquo;s change against the path, one by one, with {k('gdp', 'GDP')} last.
+        </Say>
+      ) : (
+        <p>This solve is pending at the closure chosen above.</p>
       ),
     },
   ];
@@ -489,6 +469,12 @@ export const OUTPUT_SUB = {
   answerTo: 'story-output',
 };
 
+// The block's one closing line, from the signs of the cell in view.
+export function outputAnswer(ch) {
+  if (ch.gdp > 0 && ch.labour < 0) return 'Capital income rises by more than GDP; labour income falls';
+  return `GDP is ${dirWord(ch.gdp)} the path; labour income is ${dirWord(ch.labour)} it`;
+}
+
 export default function OutputSplit({ sid, closure }) {
   const { cl, base, ch } = splitFor(sid, closure);
   const both = closure === 'both';
@@ -497,6 +483,7 @@ export default function OutputSplit({ sid, closure }) {
   // was picked in: { id, s }
   const [hl, setHl] = useState(null);
   const steps = outputSteps(sid, cl, base, ch);
+  const [phoneRef, phoneSt] = useScrollState(phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
       <h3 id="story-output-h" className="p2-headline-title">
@@ -505,22 +492,20 @@ export default function OutputSplit({ sid, closure }) {
         </Tx>
       </h3>
       <p className="p2-headline-lead">
-        <Tx icon="path" size={16}>
-          {OUTPUT_SUB.question}{' '}
-          {both ? 'With both closures chosen above, both figures show the central closure.' : null}
-        </Tx>
+        {OUTPUT_SUB.question}{' '}
+        {both ? 'With both closures chosen above, both figures show the central closure.' : null}
       </p>
       {phone ? (
         <div className="p2-output-static">
-          <OutputGraphic state={2} all sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
+          <OutputGraphic state={phoneSt.s} seen={phoneSt.seen} figRef={phoneRef} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />
           <ol className="p2-output-texts">
             {steps.map((s) => (
               <li key={s.id} id={s.id} className="p2-output-text">
-                <h4 className="scrolly-title">
+                <h4 className="visually-hidden">{s.title}</h4>
+                <div className="scrolly-body p2-output-text-body">
                   {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-title-icon" /> : null}
-                  {s.title}
-                </h4>
-                <div className="scrolly-body">{s.body}</div>
+                  {s.body}
+                </div>
               </li>
             ))}
           </ol>
@@ -533,6 +518,7 @@ export default function OutputSplit({ sid, closure }) {
           graphic={(i) => <OutputGraphic state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}
+      {ch ? <Answer answer={outputAnswer(ch)} to="story-output" /> : null}
     </section>
   );
 }

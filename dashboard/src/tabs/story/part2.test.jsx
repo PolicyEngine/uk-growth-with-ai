@@ -5,7 +5,7 @@
 // links to the tab that holds the figures. Rendered against a fixture with
 // altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import real from '@/data/surprise2028.json';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 
@@ -88,21 +88,15 @@ describe('story part 2', () => {
     const hrefs = [...container.querySelectorAll('#story-part-2 a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
-    expect(hrefs).toContain('/?tab=method&s=uk_high&closure=both#m-closures');
     // the Scenarios sub-tab folded into OG-UK method
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
-    // Income and output is now the Economy wall (lib/nav.jsx redirects #income)
-    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#economy-wall');
-    expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-economy'))).toBe(true);
-    // the next-part band carries the links to the figures' homes
-    expect(container.querySelector('.entry-grid')).toBeNull();
-    const deeper = [...container.querySelectorAll('.story-next-links a')].map((a) => a.getAttribute('href'));
-    expect(deeper).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
-    expect(deeper).toContain('/?tab=method&s=uk_high&closure=both'); // OG-UK method is Method's first sub-tab
-    // the labour-share change is linked to, not reprinted
-    const out = container.querySelector('#story-output');
-    expect([...out.querySelectorAll('a')].some((a) => a.getAttribute('href').endsWith('#explore-part-economy'))).toBe(true);
+    // the caveats link the figures' homes: the closures (pay), Economy (capital drawn in, NNI)
+    expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-all'))).toBe(true);
+    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both');
+    // no next-part band, no per-step result-file lines or folds
+    expect(container.querySelector('.story-next-links')).toBeNull();
+    expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
   });
 
   it('closed capital is dashed only with Both', () => {
@@ -342,49 +336,43 @@ describe('direction icons follow the signs', () => {
     return r?.status === 'done' ? r.gaps[v][fixture.years.indexOf(yr)] : null;
   };
 
-  it('the headline tiles', () => {
+  it('the headline tiles: no arrow beside a signed figure; the pay caveat where its sign flips', async () => {
+    const { paySigns } = await import('@/tabs/story/part2/caveats.js');
     for (const sid of SIDS) {
-      for (const [mode, cl] of [['central', 'zk0.1'], ['closed', 'zk0'], ['both', 'zk0.1']]) {
+      for (const mode of ['central', 'closed', 'both']) {
         const { container, unmount } = at(`tab=story&s=${sid}&closure=${mode}`);
         const tiles = [...container.querySelectorAll('#story-headline .stat-tile')];
         expect(tiles).toHaveLength(3);
-        ['Y', 'w', 'GNI'].forEach((v, i) => {
-          const x = g(sid, 'tfp', cl, v);
-          const icon = tiles[i].querySelector('.stat-dir');
-          if (x == null) expect(icon).toBeNull();
-          else expect(icon.className, `${sid} ${mode} ${v}`).toContain(`is-${sign(x)}`);
-        });
+        expect(container.querySelector('#story-headline .stat-dir, #story-headline .kpi-range')).toBeNull();
+        expect(!!tiles[1].textContent.includes('capital comes from abroad'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
         unmount();
       }
     }
   });
 
-  it('the why chain', async () => {
-    const { whyChain } = await import('@/tabs/ai/Landing.jsx');
+  it('the why line', async () => {
+    const { whyLine } = await import('@/tabs/ai/Landing.jsx');
+    const word = { gapUp: 'above', gapDown: 'below', onPath: 'on' };
     for (const sid of SIDS) {
       for (const cl of CLS) {
-        const why = whyChain(sid, cl);
-        if (g(sid, 'tfp', cl, 'Y') == null) {
+        const why = whyLine(sid, cl);
+        const y = g(sid, 'tfp', cl, 'Y');
+        const w = g(sid, 'tfp', cl, 'w');
+        if (y == null || w == null) {
           expect(why).toBeNull();
           continue;
         }
-        const val = { gdp: g(sid, 'tfp', cl, 'Y'), capital: -g(sid, 'tfp', cl, 'labour_share_pp'), pay: g(sid, 'tfp', cl, 'w'), gni: g(sid, 'tfp', cl, 'GNI') };
-        const word = { gapUp: 'above', gapDown: 'below', onPath: ' on ' };
-        for (const l of why.links.filter((x) => x.dir)) {
-          expect(l.dir, `${sid} ${cl} ${l.key}`).toBe(sign(val[l.key]));
-          expect(l.text).toContain(word[l.dir].trim());
-        }
-        // pay below the path always carries "not a cut"
-        expect(why.notes.some((n) => typeof n.text === 'string' && n.text.includes('not a cut'))).toBe(val.pay < 0);
-        const gni = why.links.find((l) => l.key === 'gni');
-        if (val.gdp > 0 && val.gni < val.gdp) expect(gni.text).toBe('National income gains less than GDP');
+        expect(why, `${sid} ${cl}`).toContain(`GDP is ${word[sign(y)]} the path`);
+        expect(why, `${sid} ${cl}`).toContain(`pay ${word[sign(w)]} it`);
+        const gni = g(sid, 'tfp', cl, 'GNI');
+        expect(why.includes('national income gains less')).toBe(y > 0 && gni < y);
+        expect(why).not.toMatch(/\d/);
       }
     }
   });
 
   it('the arms, the debt items, the morph and the scenarios', async () => {
     const { tzItem, debtItems, debtWords, scenarioDir } = await import('@/tabs/story/Part2.jsx');
-    const { morphItems } = await import('@/tabs/story/part2/Morph.jsx');
     const from = fixture.years.indexOf(fixture.surprise_year) + 1;
     for (const cl of CLS) {
       const tails = SIDS.map((sid) => fixture.results[sid].tfp[cl]).filter((r) => r.status === 'done').map((r) => r.gaps.Y.slice(from));
@@ -396,14 +384,6 @@ describe('direction icons follow the signs', () => {
         const t = tzItem(sid, cl);
         if (tz == null || tfp == null) expect(t).toBeNull();
         else expect(t.icon).toBe(tz < tfp ? 'gapDown' : 'gapUp');
-        // the morph's blue line
-        const r = fixture.results[sid].tfp[cl];
-        const last = morphItems(sid, cl).at(-1);
-        if (r.status === 'done') {
-          const tail = r.gaps.Y.slice(from);
-          const want = tail.every((v) => v > 0.005) ? 'gapUp' : tail.every((v) => v < -0.005) ? 'gapDown' : 'path';
-          expect(last.icon, `${sid} ${cl} morph`).toBe(want);
-        }
         // debt: the icons agree with the sentence (debtWords) and the data
         for (const arm of ['tfp', 'tz', 'ss']) {
           const items = debtItems(sid, arm, cl);
@@ -443,15 +423,15 @@ describe('direction icons follow the signs', () => {
       for (const cap of part.querySelectorAll('figure:not(.p2-shock-fig) figcaption, .p2-output-foot')) {
         expect(cap.querySelector('a[href^="http"]'), cap.textContent).not.toBeNull();
       }
-      // result files at the data file's commit
-      const files = [...part.querySelectorAll('a[href*="/analysis/surprise/output/"]')].map((a) => a.getAttribute('href'));
+      // the solves at the data file's commit
+      const files = [...part.querySelectorAll('a[href*="/analysis/surprise/output"]')].map((a) => a.getAttribute('href'));
       expect(files.length).toBeGreaterThan(0);
-      for (const f of files) expect(f).toContain(`/blob/${fixture.source_commit}/`);
+      for (const f of files) expect(f).toContain(`/${fixture.source_commit}/`);
       unmount();
     }
   });
 
-  it('gives every block a question, and a key takeaway with no figure in its last card', async () => {
+  it('gives every block a question, and each step one sentence with no kind label', async () => {
     const { SUBS } = await import('@/tabs/story/Part2.jsx');
     const { OUTPUT_SUB } = await import('@/tabs/story/part2/OutputSplit.jsx');
     for (const sub of [...Object.values(SUBS), OUTPUT_SUB]) {
@@ -460,16 +440,15 @@ describe('direction icons follow the signs', () => {
     }
     const { container, unmount } = at('tab=story');
     for (const id of ['p2-shock', 'p2-morph', 'p2-output', 'p2-arms', 'p2-who']) {
-      // one takeaway per scene, and at most three steps each one sentence
-      const lines = [...container.querySelectorAll(`#${id} .p2-say.is-takeaway`)].map((p) => p.textContent);
-      expect(lines.length, id).toBe(1);
-      for (const t of lines) expect(t).not.toMatch(/\d/);
+      // at most three steps, each one sentence, no kind label, no fold, no empty item
+      expect(container.querySelectorAll(`#${id} .p2-kind, #${id} details`).length, id).toBe(0);
+      expect([...container.querySelectorAll(`#${id} li:not([aria-hidden])`)].filter((li) => !li.textContent.trim()).length, id).toBe(0);
       const cards = container.querySelectorAll(`#${id} .scrolly-step:not(.is-spacer)`);
       expect(cards.length, id).toBeLessThanOrEqual(3);
       for (const c of cards) {
         const say = c.querySelectorAll('.p2-say');
         expect(say.length, c.id).toBe(1);
-        expect(say[0].querySelector('.p2-say-text').textContent.trim().split(/\s+/).length, c.id).toBeLessThanOrEqual(16);
+        expect(say[0].querySelector('.p2-say-text').textContent.trim().split(/\s+/).length, c.id).toBeLessThanOrEqual(25);
       }
     }
     expect(stepsWithoutHighlight(container.querySelector('#story-part-2'))).toEqual([]);
@@ -487,7 +466,7 @@ describe('direction icons follow the signs', () => {
     unmount();
   });
 
-  it('pins a scenario on the GDP canvas: its own line, in the axis domain', async () => {
+  it('a pinned scenario is in the GDP canvas\'s axis domain', async () => {
     const { canvasLines, canvasDomain, pinnedOf, rescales } = await import('@/tabs/story/part2/Morph.jsx');
     const lines = canvasLines('zk0.1');
     const kor = lines.find((l) => l.id === 'korinek').ys;
@@ -496,15 +475,5 @@ describe('direction icons follow the signs', () => {
     // a pinned Korinek et al. is in the domain from state 2, so it never clips and nothing rescales later
     expect(canvasDomain(2, 'uk_central', lines, 'korinek')).toEqual(expect.arrayContaining(kor));
     expect(rescales('uk_central', 'zk0.1', 'korinek')).toBe(false);
-    const { container, unmount } = at('tab=story');
-    const btn = [...container.querySelectorAll('.p2-pin-btn')][0];
-    expect(btn.getAttribute('aria-pressed')).toBe('false');
-    fireEvent.click(btn);
-    const after = [...container.querySelectorAll('.p2-pin-btn')][0];
-    expect(after.getAttribute('aria-pressed')).toBe('true');
-    // one path per scenario: pinning restyles, it never adds a copy
-    const fig = container.querySelector('.p2-morph');
-    expect(fig.querySelectorAll('.p2-mo-scen').length).toBe(lines.length - 1);
-    unmount();
   });
 });

@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Reveal from '@/components/story/Reveal.jsx';
-import { NavLink, useNav } from '@/lib/nav.jsx';
-import NextPart from '@/components/story/NextPart.jsx';
+import { useNav } from '@/lib/nav.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
 import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCEN_NAME, BOUND, gap } from '@/tabs/ai/surprise.js';
 import { primaryClosure, closuresFor } from '@/tabs/ai/lines.js';
@@ -16,14 +14,8 @@ import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
 import { A, SRC } from './part2/sources.jsx';
-import * as P1 from './Part1.jsx';
-
-// Part 1's recap, the transition into part 2, once part 1 exports it (read
-// by a computed key so the build does not fail before it lands).
-const P1_KEY = 'P1_RECAP';
-const P1_RECAP = P1[P1_KEY];
 import {
-  shockSteps, morphCardSteps, MORPH_STATES, armsCardSteps, ARMS_STATES, whoCardSteps, partMarks, debtWords, othersEndHigher,
+  shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, armsCardSteps, ARMS_STATES, whoCardSteps, partMarks, debtWords, othersEndHigher,
 } from './part2/steps.jsx';
 
 export { debtWords, othersEndHigher, scenarioDir, tzItem, debtItems } from './part2/steps.jsx';
@@ -41,33 +33,6 @@ export { debtWords, othersEndHigher, scenarioDir, tzItem, debtItems } from './pa
 // where output goes, three arms with output and public debt (2B), who gains
 // (2W), then the band to part 3 with links to the figures' homes.
 
-// One threshold for every direction part 2 states, in words and icons
-// (dir.js): no debt gap in the data lies between it and the old 0.05.
-
-// The band that ends part 2: part 3 next, and links to the figures' homes
-// (the tab row's sub-tabs).
-const DEEPER = [
-  { tab: 'explore', sub: 'economy', label: 'Economy', icon: 'gdp' },
-  { tab: 'explore', sub: 'finances', label: 'Public finances', icon: 'finances' },
-  { tab: 'explore', sub: 'who', label: 'Gains and losses', icon: 'age' },
-  { tab: 'method', sub: 'how', anchor: 'm-scenarios', label: 'Scenarios', icon: 'scenario' },
-  { tab: 'method', sub: 'how', label: 'OG-UK method', icon: 'model' },
-];
-function NextBand() {
-  return (
-    <NextPart
-      n={3}
-      title="Jobs, incomes and the public finances"
-      to="story-part-3"
-      links={DEEPER.map((d) => (
-        <NavLink key={`${d.tab}-${d.sub}-${d.anchor ?? ''}`} tab={d.tab} sub={d.sub} anchor={d.anchor}>
-          <Tx icon={d.icon}>{d.label}</Tx>
-        </NavLink>
-      ))}
-    />
-  );
-}
-
 // Each block's opener (Scrolly renders it): a neutral question the block
 // answers. Its key takeaway is the last card's closing line (takeaway()),
 // not sub.takeaway: a line after the block would add height the Story has
@@ -80,7 +45,6 @@ export const SUBS = {
     // the first topic of part 2: the full pinned question screen, with part
     // 1's recap as the transition (Fable's decision); P1_RECAP is part 1's
     pin: 'full',
-    recap: P1_RECAP,
     hint: 'Watch tiles move from labour to capital, then new tiles arrive',
     answer: 'Income shifts to capital, and the same inputs produce more',
     answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
@@ -90,7 +54,7 @@ export const SUBS = {
     icon: 'path',
     question: 'How far does GDP move from the OBR-central path in each scenario?',
     hint: 'Watch the growth axis turn into a gap against the path',
-    answer: 'GDP ends above the path in every scenario: see the headline figures',
+    answer: 'GDP ends above the path in every scenario',
     answerTo: 'story-headline',
   },
   arms: {
@@ -107,6 +71,7 @@ export const SUBS = {
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
     answer: 'Gains peak near retirement; on other measures some adults lose',
+    // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
   },
 };
@@ -123,9 +88,6 @@ export const RECAP = [
 export default function Part2({ part }) {
   const { st } = useNav();
   const sid = st.s;
-  // the scenario pinned on the GDP canvas, for comparison (one for every
-  // copy of the canvas, so phones' per-step copies agree)
-  const [pin, setPin] = useState(null);
   const closure = st.closure;
   const cl = primaryClosure(closure);
   const tzLess = (gap(sid, 'tz', cl, 'Y') ?? 0) < (gap(sid, 'tfp', cl, 'Y') ?? 0);
@@ -153,9 +115,9 @@ export default function Part2({ part }) {
   return (
     <MarkProvider marks={marks}>
       <PartHead part={part}>
-        <Tx icon="model" size={18}>
-          <A href={SRC.ogUk}>OG-UK</A> (on <A href={SRC.ogCore}>OG-Core</A>, no unemployment): an AI shock in {SURPRISE_YEAR}, as gaps against the OBR-central path. Part 3 uses a different model.
-        </Tx>
+        <span className="p2-lead">
+          <A href={SRC.ogUk}>OG-UK</A>, built on <A href={SRC.ogCore}>OG-Core</A> with no unemployment: an AI shock in {SURPRISE_YEAR}, as gaps against the OBR-central path.
+        </span>
       </PartHead>
 
       <Scrolly
@@ -164,16 +126,16 @@ export default function Part2({ part }) {
         sub={SUBS.shock}
         label="The shock, illustrated"
         steps={shockSteps()}
-        graphic={(i, reduce, ctx) => <ShockTiles state={i + 1} entered={ctx?.entered ?? true} />}
+        graphic={(i) => <ShockTiles state={i + 1} />}
       />
 
       <Scrolly
         id="p2-morph"
         scene
-        sub={SUBS.morph}
+        sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer }}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios"
         steps={morphCardSteps(sid, cl)}
-        graphic={(i) => <MorphChart state={MORPH_STATES[i] ?? 4} sid={sid} cl={cl} pin={pin} onPin={setPin} />}
+        graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
       />
 
       <Reveal as="section" id="story-headline" className="summary story-headline" aria-labelledby="story-headline-h">
@@ -182,11 +144,7 @@ export default function Part2({ part }) {
             The headline figures: {SCEN_NAME[sid]}, {HEADLINE_YEAR}
           </Tx>
         </h3>
-        <p className="p2-headline-lead">
-          <Tx icon="path" size={16}>
-            The main arm, automation + productivity, against the OBR-central path. Change the scenario or closure at the top.
-          </Tx>
-        </p>
+        <p className="p2-headline-lead">The main arm, automation + productivity, against the OBR-central path.</p>
         <HeadlineTiles sid={sid} />
         <SummaryWhy sid={sid} />
       </Reveal>
@@ -208,15 +166,12 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-who"
         scene
-        sub={SUBS.who}
+        sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer }}
         label="Welfare change by birth year"
-        steps={whoCardSteps(sid)}
+        steps={whoCardSteps()}
         graphic={(i) => <WelfareShape state={i} />}
       />
 
-      {/* part 2's recap plays as the transition in part 3's first pinned screen */}
-
-      <NextBand />
     </MarkProvider>
   );
 }

@@ -222,11 +222,7 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
         <Tx icon={icon}>{title}</Tx>
       </p>
       {unit ? (
-        <p className="story-figure-unit">
-          <Tx icon="measure" size={12}>
-            {unit}
-          </Tx>
-        </p>
+        <p className="story-figure-unit">{unit}</p>
       ) : null}
       {head}
       {children}
@@ -245,11 +241,7 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
           {xTitle}
         </span>
       ) : null}
-      <figcaption className="story-source">
-        <Tx icon="source" size={12}>
-          {source}
-        </Tx>
-      </figcaption>
+      <figcaption className="story-source">{source}</figcaption>
     </figure>
   );
 }

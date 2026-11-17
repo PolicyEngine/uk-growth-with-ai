@@ -1,9 +1,12 @@
 'use client';
 
 import { TileField } from '@/components/story/primitives.jsx';
-import { useEnterState } from '@/components/story/motion.js';
+import { useEffect, useState } from 'react';
+import { useReducedMotion } from '@/components/story/motion.js';
+import { useLiveInView } from './live.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { Tx } from './frame.jsx';
+import { A, SRC } from './sources.jsx';
 
 // The shock, illustrated: one tile is one per cent of output. Labour's
 // tiles on the left, capital's on the right. Step 1 moves tiles from labour
@@ -70,21 +73,30 @@ const LABELS = [
 ];
 
 // The first card opens on the split before the shock (state 0) and moves
-// the tiles once the figure has been in view (useEnterState), so the move
-// is seen on arrival without a step of its own. Reduced motion: state 1 at
-// once.
-export default function ShockTiles({ state, entered = true }) {
-  const s = useEnterState(state === 1 ? 0 : state, state, entered);
+// the tiles 400ms after the figure comes into view, again each time it
+// comes back (useLiveInView), so the move is seen on arrival without a
+// step of its own. Reduced motion: state 1 at once.
+export default function ShockTiles({ state }) {
+  const reduce = useReducedMotion();
+  const [ref, inView] = useLiveInView();
+  const [armed, setArmed] = useState(false);
+  if (!inView && armed) setArmed(false);
+  useEffect(() => {
+    if (!inView) return undefined;
+    const t = setTimeout(() => setArmed(true), 400);
+    return () => clearTimeout(t);
+  }, [inView]);
+  // the first card's move from the split before the shock replays each
+  // time the figure comes back into view
+  const s = state === 1 && !reduce && !armed ? 0 : state;
   return (
-    <figure className="p2-figure p2-shock-fig" data-state={s} data-no-axes="an illustrative tile grid: one tile is one per cent of output">
+    <figure ref={ref} className="p2-figure p2-shock-fig" data-state={s} data-no-axes="an illustrative tile grid: one tile is one per cent of output">
       <ModelBadge model="illustration" />
       <p className="story-figure-title">
         <Tx icon="gdp">Who output is paid to</Tx>
       </p>
       <p className="story-figure-unit">
-        <Tx icon="measure" size={12}>
-          One tile is one per cent of output before the shock. Illustrative: sizes are exaggerated.
-        </Tx>
+        One tile is one per cent of output before the shock. Illustrative: sizes are exaggerated.
       </p>
       <div className="p2-tiles">
         <div className="p2-tile-heads" aria-hidden="true">
@@ -94,9 +106,8 @@ export default function ShockTiles({ state, entered = true }) {
         <TileField tiles={shockTiles(s)} width={COLS * 2 + GAP} height={ROWS} label={LABELS[s]} />
       </div>
       <figcaption className="story-source">
-        <Tx icon="caveat" size={12}>
-          Illustration, not model output.
-        </Tx>
+        Illustration, not model output. Scenario inputs: <A href={SRC.imfSip}>IMF, SIP/2026/072</A>; <A href={SRC.korinekT3}>Korinek et al. (2026)</A>;{' '}
+        <A href={SRC.bp9}>OBR, Briefing paper No.9</A>.
       </figcaption>
     </figure>
   );

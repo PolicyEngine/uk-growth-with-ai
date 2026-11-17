@@ -1,27 +1,20 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { Items } from '@/components/story/Items.jsx';
 import { Key } from '@/components/story/highlight.jsx';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap, result } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
-import { welfareCell, entryDip, peakAge, series, afterWordsAll } from './charts.jsx';
-import { More, Tx } from './frame.jsx';
-import { morphItems } from './Morph.jsx';
+import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
 import { PART_COLOR } from './split.js';
-import { EPS2 } from './dir.js';
-import { A, Cite, ResultLinks, resultUrl, pathUrl, OG_DEFAULTS, SRC } from './sources.jsx';
+import { EPS2, dirWord } from './dir.js';
+import { stressBelow, debtRuleWord, welfareWords } from './caveats.js';
 
-// Part 2's step cards (brief-qa B, Vahid: "someone cannot trace the text
-// between the plots"): at most three steps per scene, each ONE sentence of
-// about 15 words under a small kind label (Assumed, Finding, Key takeaway),
-// naming its series with a colour-keyed <Key> that lights the mark the step
-// highlights (step.highlight, data-mark on the chart). One takeaway per
-// scene. Caveats, comparisons and the attributions sit in a fold under the
-// sentence ("About this"), and the result files on one line; Explore and
-// Method are linked, not repeated.
+// Part 2's step cards (round 1): one sentence per step, with at most one
+// emphasised term, a colour-keyed <Key> that lights the mark the step
+// highlights (step.highlight, data-mark on the chart). A caveat the
+// economics review asked for sits once, in the scene where it matters, as
+// one short line under the sentence (Note), in words: the figure's home is
+// linked, not repeated. Sources are the figure's one source line.
 
 const EPS = EPS2;
 
@@ -51,37 +44,17 @@ export function partMarks(sid) {
   };
 }
 
-const KIND = {
-  assumed: ['scenario', 'Assumed'],
-  finding: ['model', 'Finding'],
-  record: ['record', 'Record'],
-  takeaway: ['takeaway', 'Key takeaway'],
-};
-// The step's one sentence, under its kind label.
-export function Say({ kind = 'finding', children }) {
-  const [icon, label] = KIND[kind];
+// The step's one sentence.
+export function Say({ children }) {
   return (
-    <p className={`p2-say is-${kind}`}>
-      <span className="p2-kind">
-        <Icon name={iconFor(icon)} size={12} strokeWidth={2.25} />
-        {label}
-      </span>
+    <p className="p2-say">
       <span className="p2-say-text">{children}</span>
     </p>
   );
 }
-// The fold under the sentence: caveats, comparisons and attributions.
-export function Fold({ title = 'About this', icon = 'caveat', items }) {
-  const list = (items ?? []).filter(Boolean);
-  if (!list.length) return null;
-  return (
-    <details className="p2-details p2-fold">
-      <summary>
-        <Tx icon={icon}>{title}</Tx>
-      </summary>
-      <Items items={list} />
-    </details>
-  );
+// A caveat: one short line under the sentence, meta text, no icon.
+export function Note({ children }) {
+  return <p className="p2-note">{children}</p>;
 }
 
 // Direction of debt/GDP against the path for one solve, in words.
@@ -155,7 +128,8 @@ export function debtItems(sid, arm, cl) {
 }
 
 // The shock (ShockTiles, an illustration with no data marks: highlight
-// 'none'). Graphic states 1 and 2.
+// 'none'). Graphic states 1 and 2. Its inputs' sources are the figure's
+// source line.
 export function shockSteps() {
   const why = 'An illustration: its tiles move with the step, no data marks';
   return [
@@ -165,12 +139,7 @@ export function shockSteps() {
       title: 'AI moves part of income from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: (
-        <>
-          <Say kind="assumed">The scenarios have AI do some workers&rsquo; tasks, so capital&rsquo;s share of income rises.</Say>
-          <Cite items={[['IMF, SIP/2026/072', SRC.imfSip], ['Korinek et al. (2026)', SRC.korinekT3]]} />
-        </>
-      ),
+      body: <Say>The scenarios have AI do some workers&rsquo; tasks, so capital&rsquo;s share of income rises.</Say>,
     },
     {
       id: 'p2-shock-2',
@@ -178,63 +147,29 @@ export function shockSteps() {
       title: 'And the same inputs produce more',
       highlight: 'none',
       highlightWhy: why,
-      body: (
-        <>
-          <Say kind="takeaway">Income shifts to capital, and the new tiles show the same inputs producing more.</Say>
-          <Fold
-            items={[
-              { icon: 'pay', text: 'Pay against the path depends on each move’s size and new capital' },
-              {
-                icon: 'timing',
-                text: (
-                  <>
-                    The shock arrives unannounced in {SURPRISE_YEAR}:{' '}
-                    <NavLink tab="method" sub="how" anchor="m-timing">
-                      a modelling choice
-                    </NavLink>
-                  </>
-                ),
-              },
-            ]}
-          />
-          <Cite items={[['OBR, Briefing paper No.9', SRC.bp9], ['IMF, SIP/2026/072', SRC.imfSip]]} />
-        </>
-      ),
+      body: <Say>New tiles arrive: the same inputs now produce more output.</Say>,
     },
   ];
 }
 
-// The GDP canvas: three steps over Morph states 1, 2 and 4 (MORPH_STATES).
-export const MORPH_STATES = [1, 2, 4];
+// The GDP canvas: two steps. The first card's graphic opens on the record
+// (growth, state 1) and turns into the gap (state 2) once in view, so part
+// 1's last chart becomes part 2's first without a card of its own
+// (MORPH_STATES are the states each card settles in).
+export const MORPH_STATES = [2, 4];
 export function morphCardSteps(sid, cl) {
   const dir = scenarioDir(cl);
-  const after = afterWordsAll(SCENARIOS.map((s) => series(s.id, 'tfp', cl, 'Y')).filter(Boolean));
-  const k = (id) => <Key id={`scen-${id}`}>{SCEN_NAME[id]}</Key>;
+  const rel = dir === 'gapDown' ? 'falls below' : dir === 'gapUp' ? 'rises above' : 'moves against';
   return [
-    {
-      id: 'p2-morph-1',
-      icon: 'record',
-      title: 'The record so far',
-      highlight: ['ons', 'obr'],
-      body: (
-        <Say kind="record">
-          Part 1 ended here: <Key id="ons">ONS outturn</Key> and the <Key id="obr">OBR&rsquo;s forecast</Key> of growth.
-        </Say>
-      ),
-    },
     {
       id: 'p2-morph-2',
       icon: 'path',
       title: 'From growth rates to a gap',
       highlight: ['path', `scen-${sid}`],
       body: (
-        <>
-          <Say kind="finding">
-            Zero is now OG-UK&rsquo;s <Key id="path">no-shock path</Key>; {k(sid)} {dir === 'gapDown' ? 'falls below' : dir === 'gapUp' ? 'rises above' : 'moves against'} it from {SURPRISE_YEAR}.
-          </Say>
-          <Fold title="About the path" icon="forecast" items={morphItems(sid, cl)} />
-          <ResultLinks files={[[`${SCEN_NAME[sid]} result file`, resultUrl(sid, 'tfp', cl)], ['no-shock path file', pathUrl(cl)]]} method="m-path" methodText="How the path is set" />
-        </>
+        <Say>
+          The same years, now as the gap against OG-UK&rsquo;s no-shock path: <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+        </Say>
       ),
     },
     {
@@ -245,91 +180,34 @@ export function morphCardSteps(sid, cl) {
       body: (
         <>
           <span id="p2-scenarios" className="p2-anchor" aria-hidden="true" />
-          <Say kind="takeaway">
-            {k('uk_low')}, {k('uk_central')}, {k('uk_high')} and <Key id="scen-korinek">Korinek et al.</Key>{' '}
-            {dir === 'gapUp' ? 'all end above the path' : dir === 'gapDown' ? 'all end below the path' : 'end on both sides of the path'}.
+          <Say>
+            {sid === 'korinek' ? (
+              <>
+                The UK scenarios draw in below <Key id="scen-korinek">Korinek et al.</Key>&rsquo;s US inputs: the larger the shock, the higher the line.
+              </>
+            ) : (
+              <>
+                The other scenarios draw in: the larger the shock, the higher the line, with <Key id="scen-korinek">Korinek et al.</Key>, on US inputs, highest.
+              </>
+            )}
           </Say>
-          <Fold
-            title="About the scenarios"
-            icon="scenario"
-            items={[
-              after ? { icon: 'timing', text: `After the ramp ends in ${HEADLINE_YEAR}, GDP ${after}` } : null,
-              {
-                icon: 'source',
-                text: (
-                  <>
-                    UK inputs:{' '}
-                    <NavLink tab="method" sub="how" anchor="m-scenarios">
-                      derived by this study&rsquo;s rule
-                    </NavLink>{' '}
-                    from <A href={SRC.bp9}>OBR</A>, <A href={SRC.frs26}>OBR</A>, <A href={SRC.imfSip}>IMF</A>
-                  </>
-                ),
-              },
-              {
-                icon: 'foreign',
-                text: (
-                  <>
-                    <A href={SRC.korinekT3}>Korinek et al. (2026), Table 3</A>: US, an upper case here
-                  </>
-                ),
-              },
-            ]}
-          />
-          <ResultLinks files={SCENARIOS.map((x) => [x.label, resultUrl(x.id, 'tfp', cl)])} method="m-scenarios" methodText="What each scenario assumes" />
-          <More tab="explore" sub="economy" anchor="economy-wall">
-            GDP year by year
-          </More>
         </>
       ),
     },
   ];
 }
 
-// Three arms: three steps over ArmsPair states 0, 2 and 4 (ARMS_STATES).
-export const ARMS_STATES = [0, 2, 4];
+// Three arms: two steps over ArmsPair states 2 and 4 (ARMS_STATES). The
+// main arm is the headline tiles'; the first card draws all three GDP arms.
+export const ARMS_STATES = [2, 4];
 export function armsCardSteps(sid, closure) {
   const cl = primaryClosure(closure);
   const tz = tzItem(sid, cl);
   const higher = othersEndHigher(sid, cl);
-  const tfpUp = (gap(sid, 'tfp', cl, 'Y') ?? 0) > EPS;
-  const debt = debtItems(sid, 'tfp', cl);
-  const rises = (gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR) ?? 0) > EPS;
+  const late = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
+  const debt = late == null ? null : `ends ${dirWord(late)} the path by ${LATE_YEAR}`;
+  const rule = debtRuleWord(sid, cl);
   return [
-    {
-      id: 'p2-arms-0',
-      icon: 'ai',
-      title: 'Automation + productivity: the main arm',
-      highlight: ['gdp-tfp'],
-      body: (
-        <>
-          <Say kind="finding">
-            <Key id="gdp-tfp">Automation + productivity</Key>, the headline arm, {tfpUp ? 'lifts GDP above' : 'leaves GDP near'} the path.
-          </Say>
-          <Fold
-            title="Assumed in this arm"
-            icon="scenario"
-            items={[
-              { icon: 'capital', text: 'Capital’s share of income rises' },
-              { icon: 'productivity', text: 'Output at given inputs rises (scenario sources)' },
-              {
-                icon: 'closure',
-                text: (
-                  <>
-                    Central closure: <A href={OG_DEFAULTS}>OG-UK&rsquo;s inherited default</A>, not UK-calibrated
-                    {closure === 'both' ? null : (
-                      <>
-                        ; <NavLink patch={{ closure: 'both' }}>show both</NavLink>
-                      </>
-                    )}
-                  </>
-                ),
-              },
-            ]}
-          />
-        </>
-      ),
-    },
     {
       id: 'p2-arms-2',
       icon: 'compare',
@@ -337,27 +215,19 @@ export function armsCardSteps(sid, closure) {
       highlight: ['gdp-tz', 'gdp-ss'],
       body: (
         <>
-          <Say kind="finding">
-            <Key id="gdp-tz">Technology unchanged</Key> {tz?.icon === 'gapDown' ? 'is lower' : 'is at least as high'}; the <Key id="gdp-ss">stress test</Key> returns GDP
-            to the path by {HEADLINE_YEAR}.
+          <span id="p2-arms-0" className="p2-anchor" aria-hidden="true" />
+          <Say>
+            <Key id="gdp-tz">Technology unchanged</Key> {tz?.icon === 'gapDown' ? 'is lower' : 'is at least as high'}; the stress test returns GDP to the path by {HEADLINE_YEAR}.
           </Say>
-          <Fold
-            title="The stress test"
-            icon="breakEven"
-            items={[
-              { icon: 'limit', text: 'A bound in which AI adds no output, not a forecast' },
-              { icon: 'compare', text: <>It matches the <A href={SRC.efoBox22}>OBR&rsquo;s displacement scenario</A> on GDP only</> },
-              { icon: 'labour', text: 'The OBR adjusts through jobs, OG-UK through the wage' },
-              {
-                icon: 'closure',
-                text: (
-                  <NavLink tab="method" sub="how" anchor="m-closures">
-                    How the closures work
-                  </NavLink>
-                ),
-              },
-            ]}
-          />
+          {stressBelow(sid, cl) ? (
+            <Note>
+              The stress test is not a bound: it builds in a productivity loss, output at given inputs below technology unchanged (
+              <NavLink tab="method" sub="how" anchor="m-scenarios">
+                Method
+              </NavLink>
+              ).
+            </Note>
+          ) : null}
         </>
       ),
     },
@@ -369,70 +239,22 @@ export function armsCardSteps(sid, closure) {
       body: (
         <>
           <span id="p2-debt" className="p2-anchor" aria-hidden="true" />
-          <Say kind="takeaway">
-            {higher ? (
-              <>
-                Without the gain, <Key id="debt-tz">public debt</Key> ends further above the path than in the <Key id="debt-tfp">main arm</Key>.
-              </>
-            ) : (
-              <>
-                <Key id="debt-tfp">Public debt</Key> in the main arm, beside the two arms without the gain.
-              </>
-            )}
+          <Say>
+            Under the common fiscal rule, <Key id="debt-tfp">public debt</Key> {debt ?? 'is pending at this closure'}
+            {higher ? ', higher still without the gain' : ''}.
           </Say>
-          <Fold
-            title="Public debt in the main arm"
-            icon="debt"
-            items={[
-              ...(debt ?? [{ icon: 'provisional', text: 'This solve is not done yet at this closure' }]),
-              rises
-                ? {
-                    icon: 'limit',
-                    text: (
-                      <>
-                        OG-UK{' '}
-                        <NavLink tab="method" sub="how" anchor="m-debt">
-                          reprices all debt at once
-                        </NavLink>
-                        , overstating the later rise
-                      </>
-                    ),
-                  }
-                : null,
-              {
-                icon: 'rule',
-                text: (
-                  <>
-                    Under the{' '}
-                    <NavLink tab="method" sub="how" anchor="m-rules">
-                      common fiscal rule
-                    </NavLink>
-                    , a model setting
-                  </>
-                ),
-              },
-              { icon: 'ai', text: <>The path&rsquo;s growth includes <A href={SRC.bp9}>the OBR&rsquo;s central AI assumption</A></> },
-              {
-                icon: 'tax',
-                text: (
-                  <NavLink tab="method" sub="how" anchor="m-tax">
-                    Why the tax effect is likely understated
-                  </NavLink>
-                ),
-              },
-            ]}
-          />
-          <ResultLinks
-            files={[
-              ['main', resultUrl(sid, 'tfp', cl)],
-              ['unchanged', resultUrl(sid, 'tz', cl)],
-              ['stress test', resultUrl(sid, 'ss', cl)],
-            ]}
-            method="m-arms"
-          />
-          <More tab="explore" sub="finances">
-            Debt, tax and the fiscal rules
-          </More>
+          {rule ? (
+            <Note>
+              {rule.kind === 'fixed'
+                ? `The sign depends on the fiscal rule: with public spending fixed, debt ends ${rule.dir} the path in ${LATE_YEAR}`
+                : `Repricing only new debt, as the OBR does, ${rule.dir === 'below' ? 'debt ends below the path' : 'the rise is smaller'}`}{' '}
+              (
+              <NavLink tab="explore" sub="finances">
+                Public finances
+              </NavLink>
+              ).
+            </Note>
+          ) : null}
         </>
       ),
     },
@@ -440,11 +262,11 @@ export function armsCardSteps(sid, closure) {
 }
 
 // Who gains and who loses: two steps over WelfareShape states 0 and 1.
-export function whoCardSteps(sid) {
+export function whoCardSteps() {
   const c = welfareCell();
-  const someLose = c.alive_losing_pct > 0 || c.no_bequest_losing_pct > 0 || (c.charged?.joint_losing_pct?.[1] ?? 0) > 0;
   const allGain = c.cev_all.every((v) => v > 0);
   const dip = entryDip();
+  const w = welfareWords();
   return [
     {
       id: 'p2-who-0',
@@ -453,18 +275,18 @@ export function whoCardSteps(sid) {
       highlight: ['cohort-adults'],
       body: (
         <>
-          <Say kind="finding">
+          <Say>
             As modelled, gains peak for <Key id="cohort-adults">adults {peakAge() >= 55 ? 'near retirement' : 'in middle age'}</Key>, who hold most wealth.
           </Say>
-          <Fold
-            title="About these figures"
-            icon="caveat"
-            items={[
-              { icon: 'scenario', text: 'UK central, central closure, debt-neutral transfers (a model rule)' },
-              sid === 'uk_central' ? null : { icon: 'data', text: 'Always UK central here, whatever is chosen above' },
-              { icon: 'households', text: 'Smaller for the oldest and youngest, who have least wealth' },
-            ]}
-          />
+          {w?.bequests && w.consumption ? (
+            <Note>
+              Of the adults&rsquo; average gain, {w.bequests} is the value placed on leaving bequests and {w.consumption} is consumption (
+              <NavLink tab="explore" sub="who">
+                Gains and losses
+              </NavLink>
+              ).
+            </Note>
+          ) : null}
         </>
       ),
     },
@@ -475,33 +297,34 @@ export function whoCardSteps(sid) {
       highlight: ['cohort-later'],
       body: (
         <>
-          <Say kind="takeaway">
+          <Say>
             <Key id="cohort-later">Later cohorts</Key> {allGain ? 'gain too' : 'are drawn in the band'}
-            {someLose ? (
-              <>
-                ; on{' '}
-                <NavLink tab="explore" sub="who">
-                  other measures
-                </NavLink>{' '}
-                some adults lose
-              </>
-            ) : null}
-            .
+            {dip ? `, least those entering just after ${SURPRISE_YEAR}` : ''}.
           </Say>
-          <Fold
-            title="About these figures"
-            icon="caveat"
-            items={[
-              allGain ? { icon: 'capital', text: 'A higher return on saving outweighs pay below the path' } : null,
-              dip ? { icon: 'benefits', text: 'The dip: transfers fall until the debt rule starts' } : null,
-              dip ? { icon: 'rule', text: 'Not under the common fiscal rule' } : null,
-            ]}
-          />
-          <More tab="explore" sub="who">
-            Who gains and who loses, by age and earnings group
-          </More>
         </>
       ),
     },
   ];
+}
+
+// The GDP scene's closing line: the direction in every scenario, and which
+// ends nearest and furthest from the path (sizes in words; the figures are
+// the headline tiles' and Explore's). null when a scenario is pending.
+export function morphAnswer(cl) {
+  const dir = scenarioDir(cl);
+  const ends = SCENARIOS.map((s) => [s.id, gap(s.id, 'tfp', cl, 'Y')]);
+  if (!dir || ends.some(([, v]) => v == null)) return null;
+  const sorted = [...ends].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
+  const where = dir === 'gapUp' ? 'above' : 'below';
+  const name = (id) => SCEN_NAME[id].replace(/ \(.*\)$/, '');
+  return `GDP ends ${where} the path in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
+}
+
+// The generations scene's closing line: where gains peak and, with
+// transfers bearing the later cost (solved to the horizon), who loses.
+export function whoAnswer() {
+  const w = welfareWords();
+  if (!w?.lose) return null;
+  const peak = peakAge() >= 55 ? 'near retirement' : 'in middle age';
+  return `Gains peak ${peak}; if transfers bear the later cost, ${w.young ? `${w.young}-year-olds and ` : ''}${w.lose} adults lose`;
 }
