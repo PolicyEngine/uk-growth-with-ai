@@ -286,13 +286,13 @@
   /* item 16: every question moment on the page background; polish round:
      tall enough that the question holds centred and still for about 40vh
      of scroll before it moves (QStage stagePhase) */
-  --q-pin: 72svh;
-  --q-pin-phone: 1;
+  --q-pin: 74svh;
+  --q-pin-phone: 0.97;
 }
 /* browsers before svh (Safari < 15.4): the layout viewport */
 @supports not (height: 1svh) {
   .story {
-    --q-pin: 72vh;
+    --q-pin: 74vh;
   }
 }
 /* the stage takes the block's first row only where it is shown (not under
