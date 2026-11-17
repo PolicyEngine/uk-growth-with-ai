@@ -185,7 +185,7 @@ const NOTES = [
   'Unemployment rate: share of the economically active, aged 16 and over',
   'Employee share: pay and employers’ contributions over GDP, two ONS series',
   `The share is annual, current prices; ${SERIES.labour_share.x.at(-1)} the latest full year`,
-  'It leaves out self-employed income, so is below wider measures of labour’s share',
+  'Excludes self-employed income, so sits below wider labour-share measures',
 ];
 
 export default function Vitals() {
