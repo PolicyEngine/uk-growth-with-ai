@@ -7,19 +7,14 @@
 //   one of these ancestors:
 //     a header:  .part-opener, .scene-head, .story-rail, a beat (.story-beat);
 //     a step:    .scrolly-step (.p2-output-text on phones);
-//     a frame:   .scrolly-graphic, figure, .story-frame (the shared card);
+//     a frame:   .scrolly-graphic, figure, .story-frame (the shared card),
+//                .p1-vitals (the vitals panel: its title over its tinted grid);
 //     links:     .part-links, .lens-deeper.
 //   The hero is stricter (item 11): its text is the question (.hero-q),
 //   the scroll cue, or inside its figure frame; nothing on the plain page.
 // Rule 2: every .scrolly-takeaway shares its nearest frame
 //   (.scrolly-graphic-inner, figure, .story-frame) with an svg or a
 //   [data-mark], or ends its scene's last step card (pinned figures).
-//
-// Exempt for now, pending the quiet-sources merge (perf/sources replaces
-// these with one "Sources and notes" icon inside each frame and reworks the
-// vitals into a framed panel): .p1-vitals, .scrolly-foot, .p2-src-phone,
-// .scrolly-notes, .p3-key, .fig-notes, .story-source. The integrator should
-// drop these exemptions after that merge.
 //
 // Runs at 1280x800 and 390x844, under reduced motion and with motion (the
 // page scrolled through so every scene has settled). Prints each failure's
@@ -51,10 +46,9 @@ for (const [W, H] of SIZES) {
       const story = document.querySelector('.tab-panel:not([hidden]) .story') ?? document.querySelector('.story');
       if (!story) return ['no .story on the page'];
       const skip = 'svg, [aria-hidden="true"], .visually-hidden, [hidden], .scrolly-sizers, .q-stage, .q-frame, .tip-box';
-      const exempt = '.p1-vitals, .scrolly-foot, .p2-src-phone, .scrolly-notes, .p3-key, .fig-notes, .story-source';
       // .p2-output-text: the output scene's step texts on phones (its cards
       // under the figure drawn once)
-      const owner = '.part-opener, .scene-head, .story-rail, .story-beat, .scrolly-step, .p2-output-text, .scrolly-graphic, figure, .story-frame, .part-links, .lens-deeper';
+      const owner = '.part-opener, .scene-head, .story-rail, .story-beat, .scrolly-step, .p2-output-text, .scrolly-graphic, figure, .story-frame, .p1-vitals, .part-links, .lens-deeper';
       const heroOwner = '.hero-q, .story-scroll-cue, figure, .story-frame';
       const frame = '.scrolly-graphic-inner, figure, .story-frame';
       const leaf = 'p, li, dd, dt, figcaption, summary, blockquote, h2, h3, h4, h5, h6';
@@ -67,7 +61,7 @@ for (const [W, H] of SIZES) {
       const text = (el) => el.innerText.replace(/\s+/g, ' ').trim();
       const res = [];
       for (const el of story.querySelectorAll(leaf)) {
-        if (el.closest(skip) || el.closest(exempt) || !shown(el)) continue;
+        if (el.closest(skip) || !shown(el)) continue;
         if (el.querySelector(leaf)) continue; // leaf blocks only
         const t = text(el);
         if (t.length < 12) continue;

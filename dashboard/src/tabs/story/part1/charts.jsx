@@ -35,7 +35,7 @@ export const P1_MARKS = {
   unemployment: { color: 'var(--c-labour)', shape: 'square', label: 'Unemployment' },
   pay: { color: 'var(--c-capital)', shape: 'triangle', label: 'Pay growth' },
   productivity: { color: 'var(--rank-1)', shape: 'diamond', label: 'Output per hour' },
-  share: { color: 'var(--series-5)', shape: 'line', label: 'Employee share' },
+  share: { color: 'var(--series-5)', shape: 'line', label: 'Employees’ share' },
   'ai-all': { color: 'var(--series-2)', shape: 'circle', label: 'All businesses' },
   'ai-ten': { color: 'var(--c-labour)', shape: 'square', label: '10 or more employees' },
   workers_high_exposure_high_complementarity: { color: 'var(--rank-1)', shape: 'square', label: 'High exposure, AI could help (high complementarity)' },

@@ -719,13 +719,12 @@
   font-variant-numeric: tabular-nums;
 }
 .story-rail-t {
-  /* never clipped (check_header): a label wraps rather than ending in an
-     ellipsis */
+  /* never clipped and never wrapped (check_header): the names are short
+     enough to fit their segment on one line, so the rail stays one row */
   min-width: 0;
   overflow: visible;
-  white-space: normal;
+  white-space: nowrap;
   line-height: 1.2;
-  overflow-wrap: anywhere;
 }
 .story-rail-bar {
   grid-column: 1 / -1;
@@ -851,6 +850,7 @@
      bars do not jump 3px when the current part changes (layout shift) */
   .story-rail li:not(.is-current) .story-rail-t {
     visibility: hidden;
+    overflow: hidden;
   }
   .scrolly {
     display: block;

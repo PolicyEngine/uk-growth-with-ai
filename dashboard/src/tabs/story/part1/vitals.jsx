@@ -95,8 +95,8 @@ export const VITALS = [
     marks: [],
     fact: 'labour_share_latest',
     icon: 'labourShare',
-    name: 'Employee share',
-    label: 'Of GDP',
+    name: 'Employees’ share',
+    label: 'Of GDP paid to employees',
   },
 ];
 
@@ -218,7 +218,7 @@ const NOTES = [
   <Ext key="ilo" href={LINKS.ons_lm_guide?.url}>
     Unemployment, ILO definition: jobless, looking for work, able to start.
   </Ext>,
-  'Employee share: pay and employers’ contributions over GDP, computed here; it leaves out self-employed income.',
+  'Employees’ share: pay and employers’ contributions over GDP, computed here; it leaves out self-employed income.',
   <NavLink key="ledger" tab="method" sub="code" anchor="source-ledger">
     Release dates and series codes: the source ledger
   </NavLink>,
@@ -242,7 +242,7 @@ export default function Vitals() {
   return (
     <section id="p1-vitals" ref={ref} className="p1-vitals" aria-labelledby="p1-vitals-title">
       <h3 id="p1-vitals-title" className="p1-vitals-title">
-        <span>Latest figures</span>
+        <span>Latest official figures</span>
         <span className="p1-vitals-chip">{YEAR} data</span>
         <SourceLine items={SRC} notes={NOTES} />
       </h3>

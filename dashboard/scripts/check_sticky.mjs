@@ -19,6 +19,7 @@ const SIZES = (process.env.SIZES ?? '1280,800 390,844').split(/\s+/).map((s) => 
 //   768-900px a sticky scene's step sentence held under its stuck chart
 const ALLOW = [
   'header.band',
+  '.sticky-stack',
   '.tabs-bar',
   'header.site-header',
   '.site-header',

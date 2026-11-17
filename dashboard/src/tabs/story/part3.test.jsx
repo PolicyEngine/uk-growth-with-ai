@@ -209,8 +209,8 @@ describe('Part3', () => {
     expect(d1.querySelector('.p3-dec-note').textContent).toBe('no conclusion drawn');
     const step = container.querySelector('#p3-deciles-step-2');
     expect(step.textContent).toContain('so no conclusion is drawn');
-    // the flows by decile are one link away, on Explore
-    expect(container.querySelector('#p3-deciles a[href*="hh-absorb"]')).not.toBeNull();
+    // the flows by decile are one link away, in the lost-pound scene
+    expect(container.querySelector('#p3-deciles a[href*="#p3-pound"]')).not.toBeNull();
     const cav = step.querySelector('[data-caveat="bottom-decile"]');
     for (const s of [`${MINUS}0.32%`, `${MINUS}0.10%`]) expect(cav.textContent).toContain(s);
     expect(cav.textContent).not.toContain(fmtDecilePct(D.deciles.values[0]));

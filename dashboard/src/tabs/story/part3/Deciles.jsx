@@ -212,8 +212,8 @@ function DecilesSource() {
           notes: [
             <>
               Where each decile’s lost earnings go, in a smaller run:{' '}
-              <NavLink tab="explore" sub="households" anchor="hh-absorb">
-                Explore, households
+              <NavLink tab="story" anchor="p3-pound">
+                Where a lost pound goes
               </NavLink>
               .
             </>,
