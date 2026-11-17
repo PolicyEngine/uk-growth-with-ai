@@ -516,9 +516,9 @@
   grid-column: 1 / -1;
   margin: 0;
 }
-/* round 1: plain text separated by a middle dot, no pills */
+/* round 1: plain text spaced apart, no pills */
 .ex-mchips {
-  gap: 2px 0;
+  gap: 4px 20px;
 }
 .ex-mchip {
   display: inline-flex;
@@ -527,11 +527,6 @@
   font-size: var(--fs-caption);
   color: var(--pe-gray-700);
   cursor: help;
-}
-.ex-mchip + .ex-mchip::before {
-  content: '·';
-  margin: 0 8px;
-  color: var(--pe-gray-500);
 }
 .ex-mchip .plain-icon,
 .ex-bar-code .plain-icon,
