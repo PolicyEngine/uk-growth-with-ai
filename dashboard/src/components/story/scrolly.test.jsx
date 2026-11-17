@@ -191,7 +191,20 @@ describe('Scrolly topic opener (sub.question, sub.takeaway)', () => {
       expect(container.querySelector('.scrolly').classList.contains('has-stage')).toBe(false);
       expect(container.querySelector('header.scene-head').id).toBe('q-b');
       expect(seen.every((e) => e === false)).toBe(true);
+      // review #3: while the big question waits in the frame, the block is
+      // .is-asking (story.css holds the header's copy and the step text)
+      expect(container.querySelector('.scrolly').classList.contains('is-asking')).toBe(true);
+      // the header still prints the question (opacity only, never removed)
+      expect(container.querySelector('.scene-head-q').textContent).toBe('How fast has the UK grown?');
     }, below);
+  });
+  it('review #3: not asking once the question is done, or without a question', () => {
+    const { container } = render(<Scrolly id="b" sub={sub} steps={steps} graphic={() => null} label="L" />);
+    // jsdom: no layout, the frame is done at once
+    expect(container.querySelector('.scrolly').classList.contains('is-asking')).toBe(false);
+    cleanup();
+    const plain = render(<Scrolly id="c" sub="Plain" steps={steps} graphic={() => null} label="L" />);
+    expect(plain.container.querySelector('.scrolly').classList.contains('is-asking')).toBe(false);
   });
   it("pin: 'full' renders the pinned screen, question and hint only (a recap is not drawn); the question copy is aria-hidden", () => {
     withLayout(() => {

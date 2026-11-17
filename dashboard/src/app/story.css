@@ -2561,3 +2561,44 @@
     border-left-color: var(--pe-gray-500);
   }
 }
+
+/* ---- Round 1 fix (review #3): the question on screen once ----
+   While the big question is up in the frame (Scrolly .is-asking: before
+   the chart starts to draw), the header's small copy waits, and so does the
+   step text: no sentence states the answer beside a blank sheet. Opacity
+   only (the text stays in innerText and the accessibility tree). Under
+   reduced motion and in print nothing waits. */
+.scene-head-q {
+  transition: opacity 400ms var(--story-ease);
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .scrolly.is-asking > .scene-head .scene-head-q {
+    opacity: 0;
+  }
+  .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
+  .scrolly.is-asking .scrolly-steps .scrolly-close {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* stacked (900px and below): dimmed to a trace, not blank (the gap check
+   counts text under 5% opacity as blank page) */
+@media screen and (prefers-reduced-motion: no-preference) and (max-width: 900px) {
+  .scrolly.is-asking .scrolly-steps .scrolly-step .scrolly-card,
+  .scrolly.is-asking .scrolly-steps .scrolly-close {
+    opacity: 0.12;
+  }
+}
+
+/* ---- Round 1 fix (review #12): tablet text against the sticky chart ----
+   768-900px, a sticky scene: each sentence (and its icon) sticks 8px under
+   the stuck chart's foot (--scene-foot, from Scrolly) inside its own card,
+   so it stays against the chart until its card has scrolled past; the next
+   one takes over 72px under the foot (Scrolly lineGap). The cards and their
+   floors are unchanged (each state is still held for 180px of scroll). */
+@media (min-width: 768px) and (max-width: 900px) {
+  .scrolly.is-scene.has-foot .scrolly-card > :is(.scrolly-body, .scrolly-card-icon) {
+    position: sticky;
+    top: calc(var(--scene-foot) + 8px);
+  }
+}

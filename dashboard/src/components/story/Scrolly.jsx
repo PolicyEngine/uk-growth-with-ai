@@ -17,6 +17,17 @@ const subscribeWidth = (cb) => {
   return () => window.removeEventListener('resize', cb);
 };
 
+// A sticky scene's trigger line sits this far below the stuck figure's foot:
+// 40% of the room below it; on tablets (768-900px, round 1 review: "second
+// steps sit up to 215px below the sticky chart") at most 72px, so the next
+// sentence takes over just under the chart, while the one before is held
+// against the foot by its sticky body (story.css), not left under the chart.
+const tablet = () => window.innerWidth >= 768 && window.innerWidth <= 900;
+const lineGap = (room) => {
+  const g = 0.4 * Math.max(0, room);
+  return tablet() ? Math.min(g, 72) : g;
+};
+
 // A scrolly block: a figure and text steps beside it. No empty page: a block
 // ends when its last card ends, cards are 32px apart (no viewport-height
 // steps), and the active step changes as a card crosses the trigger line
@@ -104,7 +115,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const h = window.innerHeight;
     if (!b || getComputedStyle(b).position !== 'sticky') return h * 0.88;
     const bottom = (parseFloat(getComputedStyle(b).top) || 0) + b.offsetHeight;
-    return bottom + 0.4 * Math.max(0, h - bottom);
+    return bottom + lineGap(h - bottom);
   };
   const [register, raw] = useActiveStep(steps.length + 1, 0.55, phoneLine);
   const done = raw >= steps.length;
@@ -355,6 +366,29 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [pinBottom, width, single]);
+  // tablets, a sticky scene: where the stuck figure's foot is (its sticky
+  // top plus its height), written as --scene-foot; each card's sentence
+  // sticks just under it (story.css) until its card has scrolled past
+  const [footY, setFootY] = useState(0);
+  useEffect(() => {
+    const b = box.current;
+    if (!sticky || !b) {
+      setFootY(0);
+      return undefined;
+    }
+    const place = () => {
+      const f = tablet() && getComputedStyle(b).position === 'sticky' ? Math.round((parseFloat(b.style.top || getComputedStyle(b).top) || 0) + b.offsetHeight) : 0;
+      setFootY(f);
+    };
+    place();
+    window.addEventListener('resize', place);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place);
+    ro?.observe(b);
+    return () => {
+      window.removeEventListener('resize', place);
+      ro?.disconnect();
+    };
+  }, [sticky, width]);
   const cardIndex = steps.slice(0, active + 1).filter((x) => !x.spacer).length - 1;
   // one step, one highlight (highlight.jsx): the shown step's marks
   const hl = useHighlightState(steps[shown]?.highlight);
@@ -376,6 +410,12 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // the question's phase follows the scroll both ways (QStage.jsx)
   const [stage, setStage] = useState(question ? 'pending' : 'done');
   const stageDone = !question || inline || reduce || stage === 'done' || stage === 'reveal';
+  // while the big question is up (before the chart starts to draw), the
+  // header's small copy of it and the step text wait (story.css
+  // .is-asking): the question is on screen once, and no sentence gives the
+  // answer before its marks exist. Never under reduced motion, in an inline
+  // block or after a jump (the landing guard sets 'done' at once).
+  const asking = !stageDone;
   // the chart draws in once, the first time the question moves aside, and
   // stays drawn when the question comes back over it (scrolling up)
   // (until the reader scrolls back above the block: then it replays)
@@ -399,8 +439,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     <EntryCtx.Provider value={entryValue}>
     <HighlightCtx.Provider value={hl}>
     <div
-      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}`}
+      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}`}
       id={id}
+      style={footY ? { '--scene-foot': `${footY}px` } : undefined}
     >
       {question && pinFull && !inline ? (
         <QStage id={id} question={question} hint={subObj.hint} icon={subObj.icon} keyWord={subObj.key} onPhase={setStage} />
@@ -534,7 +575,7 @@ function goToStep(el, box, reduce) {
     y = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
   } else if (box && getComputedStyle(box).position === 'sticky') {
     const bottom = (parseFloat(getComputedStyle(box).top) || 0) + box.offsetHeight;
-    line = bottom + 0.4 * Math.max(0, h - bottom);
+    line = bottom + lineGap(h - bottom);
     y = bottom + 8;
   } else {
     y = 120;
