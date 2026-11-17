@@ -78,7 +78,7 @@ export function shockSteps() {
       title: 'And the same inputs produce more',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>New tiles arrive: the same workers and capital now produce more.</Say>,
+      body: <Say>New tiles arrive: the same inputs now produce more output.</Say>,
     },
   ];
 }

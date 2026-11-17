@@ -139,7 +139,7 @@ export const CHANNELS_SUB = {
   hint: 'Watch three flows net to one cost',
   key: 'cost',
   answerTo: 'p3-channels-step',
-  answer: `Job loss alone ${row('displacement').cost_bn > 0 ? 'costs' : 'adds'} ${fmtBn(Math.abs(row('displacement').cost_bn))}; net of the assumed gains, ${fmtBn(C.sum_bn)} on these ${C.draws} draws`,
+  answer: `Job loss alone ${row('displacement').cost_bn > 0 ? 'costs' : 'adds'} ${fmtBn(Math.abs(row('displacement').cost_bn))}; net of the gains, ${fmtBn(C.sum_bn)} on ${C.draws} draws`,
 };
 
 // The two assumed income rises and the net, in one sentence: their words

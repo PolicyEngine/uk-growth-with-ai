@@ -476,7 +476,7 @@ function outputSteps(sid, cl, base, ch) {
       title: 'Capital income splits three ways',
       body: (
         <Say>
-          Capital income splits three ways: kept in the UK, {k('foreign', 'net paid abroad')}, and depreciation (wear on capital).
+          Capital income splits three ways: kept in the UK, depreciation (wear on capital), and {k('foreign', 'net paid abroad')}.
         </Say>
       ),
     },

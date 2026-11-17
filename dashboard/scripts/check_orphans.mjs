@@ -6,7 +6,7 @@
 //   figcaption, summary, blockquote, h2-h6) of 12 characters or more has
 //   one of these ancestors:
 //     a header:  .part-opener, .scene-head, .story-rail, a beat (.story-beat);
-//     a step:    .scrolly-step;
+//     a step:    .scrolly-step (.p2-output-text on phones);
 //     a frame:   .scrolly-graphic, figure, .story-frame (the shared card);
 //     links:     .part-links, .lens-deeper.
 //   The hero is stricter (item 11): its text is the question (.hero-q),
@@ -52,7 +52,9 @@ for (const [W, H] of SIZES) {
       if (!story) return ['no .story on the page'];
       const skip = 'svg, [aria-hidden="true"], .visually-hidden, [hidden], .scrolly-sizers, .q-stage, .q-frame, .tip-box';
       const exempt = '.p1-vitals, .scrolly-foot, .p2-src-phone, .scrolly-notes, .p3-key, .fig-notes, .story-source';
-      const owner = '.part-opener, .scene-head, .story-rail, .story-beat, .scrolly-step, .scrolly-graphic, figure, .story-frame, .part-links, .lens-deeper';
+      // .p2-output-text: the output scene's step texts on phones (its cards
+      // under the figure drawn once)
+      const owner = '.part-opener, .scene-head, .story-rail, .story-beat, .scrolly-step, .p2-output-text, .scrolly-graphic, figure, .story-frame, .part-links, .lens-deeper';
       const heroOwner = '.hero-q, .story-scroll-cue, figure, .story-frame';
       const frame = '.scrolly-graphic-inner, figure, .story-frame';
       const leaf = 'p, li, dd, dt, figcaption, summary, blockquote, h2, h3, h4, h5, h6';

@@ -183,7 +183,7 @@ function RulesPanel({ on }) {
           <line className="p3-plane-axis is-x" data-mark="r-cost" x1={0} x2={100} y1={100} y2={100} />
           {RULES.filter((r) => !r.central).map((r) => {
             const d = rule(r.id);
-            return <line key={r.id} className="p3-plane-link" pathLength={1} x1={cx} y1={cy} x2={px(d.cost_bn)} y2={py(d.poverty_pp)} style={{ '--beat': `${r.beat}ms` }} />;
+            return <line key={r.id} className="p3-plane-link" x1={cx} y1={cy} x2={px(d.cost_bn)} y2={py(d.poverty_pp)} style={{ '--beat': `${r.beat}ms` }} />;
           })}
         </svg>
         <span className="p3-plane-ticks is-y" data-axis="" aria-hidden="true">

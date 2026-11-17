@@ -2082,12 +2082,11 @@ svg.p3-dim {
   stroke: var(--pe-gray-300);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 500ms var(--ch-ease, var(--story-ease)) var(--beat, 0ms);
+  opacity: 0;
+  transition: opacity 500ms var(--ch-ease, var(--story-ease)) var(--beat, 0ms);
 }
 .p3-plane.is-on .p3-plane-link {
-  stroke-dashoffset: 0;
+  opacity: 1;
 }
 .p3-plane-ticks span {
   position: absolute;
@@ -2234,6 +2233,15 @@ svg.p3-dim {
   .p3-plane-xtitle {
     margin-left: 36px;
   }
+  /* the central label ends at its ring on phones (no room to its right) */
+  .p3-plane-label.is-central {
+    translate: -100% 0;
+    text-align: right;
+  }
+  .p3-plane-label.is-central::before {
+    right: 0;
+    left: auto;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .p3-plane-dot,
@@ -2256,15 +2264,15 @@ svg.p3-dim {
 }
 .lens-venn {
   position: relative;
-  width: 540px;
+  width: 560px;
   max-width: 100%;
-  height: 352px;
+  height: 380px;
   margin: 0 auto;
 }
 .lens-rings {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 10px;
   width: 540px;
   height: 300px;
   overflow: visible;
@@ -2295,10 +2303,10 @@ svg.p3-dim {
   text-align: center;
 }
 .lens-circle.is-oguk {
-  left: 26px;
+  left: 36px;
 }
 .lens-circle.is-study {
-  left: 304px;
+  left: 314px;
 }
 .lens-kicker {
   display: inline-flex;
@@ -2396,7 +2404,7 @@ svg.p3-dim {
 .lens-overlap {
   position: absolute;
   top: 150px;
-  left: 270px;
+  left: 280px;
   width: 64px;
   display: grid;
   justify-items: center;
@@ -2412,13 +2420,13 @@ svg.p3-dim {
 .lens-outside {
   position: absolute;
   top: 312px;
-  width: 270px;
+  width: 280px;
 }
 .lens-outside.is-oguk {
   left: 0;
 }
 .lens-outside.is-study {
-  left: 270px;
+  left: 280px;
 }
 .lens-pay {
   display: grid;
@@ -2532,6 +2540,7 @@ a.lens-pay-num:hover {
   .lens-rings.is-phone {
     display: block;
     top: 44px;
+    left: 0;
     width: 300px;
     height: 552px;
   }
