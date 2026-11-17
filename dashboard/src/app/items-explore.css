@@ -846,20 +846,37 @@
   text-align: right;
 }
 
-/* Economy: the story-headline link beside the main arm's name (plain
-   text, no pill), and that arm's muted reference values on the track */
-.db-headline-chip {
-  margin-left: 6px;
-  font-size: var(--fs-micro);
-  color: var(--pe-teal-700);
-  white-space: nowrap;
-}
+/* Economy: the main arm's muted reference values on the track (their home
+   is the story's headline figures), named once in a line under the chart */
 .db-value.is-ref {
   font-weight: 500;
   color: var(--pe-gray-600);
 }
-.db-headline-chip .plain-icon {
-  display: inline-flex;
+.db-headline-note {
+  margin: 8px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-500);
+}
+/* Narrow screens: a short arm name beside each swatch (the full name shows
+   from 900px) */
+.db-arm-short {
+  font-size: var(--fs-micro);
+  line-height: 1.2;
+  color: var(--pe-gray-600);
+}
+@media (min-width: 900px) {
+  .db-arm-short {
+    display: none;
+  }
+}
+@media (max-width: 899px) {
+  .db-arm {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .db-axis-head .db-track,
+  .db-axis .db-track {
+    margin-left: 72px;
+  }
 }
 /* Households: one story link spanning the cells it stands for */
 .hh-val.is-span {
@@ -1110,9 +1127,10 @@
   .ex-slope-arm { transition: none; }
 }
 
-/* Across scenarios: the matrix explorer */
+/* Across scenarios: the matrix explorer, last on Economy and on Public
+   finances */
 .ex-across {
-  margin-bottom: 32px;
+  margin-top: 40px;
 }
 .ex-mx-wrap {
   overflow-x: auto;
@@ -1159,7 +1177,7 @@
 }
 .ex-mx-cell {
   padding: 0;
-  height: 44px;
+  height: 40px;
 }
 .ex-mx-btn {
   position: relative;
@@ -1214,47 +1232,10 @@
 .ex-mx-val .ex-dir {
   margin-right: 1px;
 }
-.ex-mx-glyph {
-  position: relative;
-  display: inline-flex;
-  flex: none;
-  gap: 2px;
-  width: 16px;
-  height: 22px;
-  border-left: 0;
-}
-.ex-mx-glyph::after {
-  content: '';
-  position: absolute;
-  left: -1px;
-  right: -1px;
-  top: 50%;
-  border-top: 1px solid var(--c-zero-line);
-}
-.ex-mx-bar {
-  position: relative;
-  width: 4px;
-  background: var(--pe-gray-400, #9ca3af);
-  border-radius: 1px;
-  align-self: auto;
-  position: absolute;
-}
-.ex-mx-bar:nth-child(1) { left: 0; }
-.ex-mx-bar:nth-child(2) { left: 6px; }
-.ex-mx-bar:nth-child(3) { left: 12px; }
-.ex-mx-bar.is-gain { background: color-mix(in srgb, var(--c-gain) 55%, transparent); }
-.ex-mx-bar.is-loss { background: color-mix(in srgb, var(--c-loss) 55%, transparent); }
-.ex-mx-bar.is-pick.is-gain { background: var(--c-gain); }
-.ex-mx-bar.is-pick.is-loss { background: var(--c-loss); }
-.ex-mx-bar.is-pick { background: var(--pe-gray-700, #374151); }
-.ex-mx-hole {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed var(--pe-gray-300, #d1d5db);
-  border-radius: 6px;
-  color: var(--pe-gray-400, #9ca3af);
+.ex-mx-solved {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--pe-gray-500, #6b7280);
 }
 .ex-mx-key {
   display: flex;
@@ -1279,19 +1260,11 @@
   border-radius: 3px;
 }
 .ex-mx-key-cell.is-current { border: 2px solid var(--pe-gray-800, #1f2937); }
-.ex-mx-key-cell.is-hole { border: 1px dashed var(--pe-gray-300, #d1d5db); }
-.ex-mx-key-glyph {
-  display: inline-block;
-  width: 12px;
-  height: 11px;
-  background: linear-gradient(90deg, var(--pe-gray-500) 0 3px, transparent 3px 5px, var(--pe-gray-400) 5px 8px, transparent 8px 9px, var(--pe-gray-500) 9px 12px);
-}
 @media (max-width: 560px) {
   .ex-mx { border-spacing: 2px; }
   .ex-mx-corner { width: 25%; }
   .ex-mx-btn { padding: 3px 4px; font-size: 11px; flex-direction: column; justify-content: center; gap: 1px; }
   .ex-mx-cell { height: 48px; }
-  .ex-mx-glyph { height: 12px; }
   .ex-mx-val .ex-dir { display: none; }
   .ex-mx th { font-size: 11px; }
 }
@@ -1619,7 +1592,6 @@
 @media (max-width: 560px) {
   .ex-mx-long { display: none; }
   .ex-mx-short { display: inline; }
-  .ex-mx-glyph { display: none; }
   .ex-mx-rowhead { padding-left: 2px !important; font-size: 11px !important; }
   .ex-mx-corner { width: 21%; }
 }
@@ -2597,4 +2569,40 @@
 .ex-sg-held {
   font-size: var(--fs-micro);
   color: var(--pe-gray-600);
+}
+
+/* Round 2: one sources line per card, in place of the "Sources" part of an
+   "About this chart" fold (tabs/explore/sources.jsx SourcesLine). */
+.card .ex-src {
+  margin: 14px 0 0;
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--pe-gray-500);
+  overflow-wrap: anywhere;
+}
+.card .ex-src-label {
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.card .ex-src + .disclosure-in-card {
+  margin-top: 10px;
+}
+
+/* Round 2, Who gains: each measure named in words (no M/B/T/BT key), so the
+   toggle is one column and the average rows give the name room. */
+.ex-mtoggle {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+}
+.ex-mtoggle-name {
+  font-size: var(--fs-micro, 12px);
+  text-align: left;
+}
+.ex-who-tiles .ex-bars.ex-avg > li {
+  grid-template-columns: 7.4em minmax(0, 1fr) 5.8em;
+}
+.ex-who-tiles .ex-bars.ex-avg .ex-bar-code {
+  font-size: var(--fs-micro, 12px);
+  font-weight: 500;
+  line-height: 1.2;
 }

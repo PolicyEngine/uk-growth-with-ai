@@ -18,7 +18,7 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const MEASURES = [
-  { v: 'w', label: 'Wage rate', sub: 'pay per unit of labour', icon: iconFor('pay') },
+  { v: 'w', label: 'Pay rate', sub: 'wage per unit of labour', icon: iconFor('pay') },
   { v: 'GNI', label: 'Income UK residents keep', sub: 'national income, GNI', icon: iconFor('gni') },
   { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: iconFor('depreciation') },
   { v: 'Y', label: 'Total output', sub: 'GDP', icon: iconFor('gdp') },
@@ -165,6 +165,25 @@ export function dumbbellLegend(arms, closure) {
   return keys;
 }
 
+// Short arm names for narrow screens, beside each row's swatch.
+export const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. unchanged', ss: 'Stress test' };
+
+// One line under the chart, in place of a "Headline" chip on each of the
+// main arm's GDP, GNI and wage-rate rows: their grey values are the story's
+// headline figures, whose one home is the story.
+export function HeadlineNote({ rule = 'common' }) {
+  if (rule !== 'common') return null;
+  return (
+    <p className="db-headline-note">
+      Grey values: the main arm&rsquo;s headline figures, at home in the{' '}
+      <NavLink tab="story" anchor="story-part-2">
+        story
+      </NavLink>
+      .
+    </p>
+  );
+}
+
 export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'central', rule = 'common' }) {
   const { shown, showC, showB, D, ticks } = dumbbellScale(sid, arms, closure, rule);
   const pct = (x) => `${(((x + D) / (2 * D)) * 100).toFixed(3)}%`;
@@ -214,11 +233,9 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                   <span className="db-arm-key">
                     <span className="swatch" style={{ borderTopColor: color }} aria-hidden="true" />
                     <span className="db-arm-name">{a.short || a.label}</span>
-                    {onSummary(a.id, m.v, rule) ? (
-                      <NavLink tab="story" anchor="story-headline" className="db-headline-chip" aria-label={`${a.label}, ${name}: see the headline figures in the story`}>
-                        Headline
-                      </NavLink>
-                    ) : null}
+                    <span className="db-arm-short" aria-hidden="true">
+                      {ARM_SHORT[a.id] ?? a.label}
+                    </span>
                   </span>
                   <div className="db-track">
                     <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />

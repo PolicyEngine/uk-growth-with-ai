@@ -5,12 +5,11 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
-import { NavLink } from '@/lib/nav.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
-import { ResultSources, methodLink } from './sources.jsx';
+import { SourcesLine } from './sources.jsx';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 
@@ -32,14 +31,14 @@ const VARS = [
   { v: 'Y', label: 'GDP' },
   { v: 'GNI', label: 'GNI' },
   { v: 'NNI', label: 'NNI' },
-  { v: 'w', label: 'Wage rate' },
+  { v: 'w', label: 'Pay rate' },
 ];
 const at = (r, v) => (r?.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
 const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-loss' : '');
 
 // What the sensitivity changes in every scenario's main arm, each claim
 // computed from the signs (headline year, common fiscal rule): the capital
-// stock and GDP against the central closure, the wage rate's side of the
+// stock and GDP against the central closure, the pay rate's side of the
 // path, and GNI against GDP. The icon follows the same comparison.
 export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   if (!res) return [];
@@ -57,8 +56,8 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   const wCentral = new Set(rows.map((r) => side(at(r.central, 'w'))));
   const instead = wCentral.size === 1 && wCentral.has('below') ? ', not below' : '';
   const wage = wSides.has('below')
-    ? { icon: 'gapDown', text: 'The wage rate is below the path in at least one scenario' }
-    : { icon: dirConcept(Math.min(...w)) === 'onPath' && !wSides.has('above') ? 'onPath' : 'gapUp', text: `The wage rate is ${wSides.has('on') ? 'on or above' : 'above'} the path${instead}` };
+    ? { icon: 'gapDown', text: 'The pay rate is below the path in at least one scenario' }
+    : { icon: dirConcept(Math.min(...w)) === 'onPath' && !wSides.has('above') ? 'onPath' : 'gapUp', text: `The pay rate is ${wSides.has('on') ? 'on or above' : 'above'} the path${instead}` };
   const gniLess = rows.every((r) => at(r.sens, 'GNI') < at(r.sens, 'Y'));
   return [
     { key: 'k', ...versus('K', 'Capital stock') },
@@ -116,7 +115,7 @@ export function sensFlagItem() {
 // 0.1, whose figures have their home on the four-measure card), and a dashed
 // outline marks a sign flip between the two closures.
 // Phone labels for the arm column (the full names are in the arm picker).
-const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. fixed', ss: 'Stress test' };
+const ARM_SHORT = { tfp: 'Auto. + prod.', tz: 'Tech. unchanged', ss: 'Stress test' };
 // The stress test's GDP: held on the path by construction.
 export const held = (arm, v) => arm === 'ss' && v === 'Y';
 const centralAt = (sid, arm, v) => at(resultAt(sid, arm, CENTRAL, 'common'), v);
@@ -144,7 +143,7 @@ function SensGrid({ res }) {
                 {c.v === 'w' ? (
                   <>
                     <span className="ex-mx-long">{c.label}</span>
-                    <span className="ex-mx-short">Wage</span>
+                    <span className="ex-mx-short">Pay</span>
                   </>
                 ) : (
                   c.label
@@ -267,13 +266,6 @@ export default function SensitivityTable() {
               <Lead c="capital">{`${foreignShare(res).replace(/^./, (c) => c.toUpperCase())} of new capital foreign-owned`}</Lead>
             </span>
           ) : null}
-          <span>
-            <Lead c="model">
-              <NavLink tab="method" sub="how" anchor="m-closures">
-                Method: closures
-              </NavLink>
-            </Lead>
-          </span>
         </span>
       }
       controls={
@@ -292,13 +284,8 @@ export default function SensitivityTable() {
       unit={<span data-axis-title="y">{`Gap against the OBR-central path at the same closure, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
       legend={<Items className="ex-notes ex-sg-key" items={gridKey(res)} />}
       logo={false}
-      aboutTitle="About this chart"
-      about={{
-        how: <Items items={[{ key: 'zk', icon: 'closure', text: 'Only ζK changed; reference: the no-shock path from 2028, this closure' }]} />,
-        caveats: <Items items={investmentItems(res)} />,
-        sources: <ResultSources closures={['zk0.1', 'zk0.5']} extra={[{ key: 'oguk', icon: 'model', text: <>ζK = {sens.zeta_K}: a sensitivity; the central 0.1 is OG-Core&rsquo;s US default, chosen by the study ({ext(URLS.ogUkDefaults, 'default parameters')}); see {methodLink('closures')}</> }]} />,
-      }}
-      method="closures"
+      about={{ caveats: <Items items={investmentItems(res)} /> }}
+      foot={<SourcesLine closures={['zk0.1', 'zk0.5']} extra={[ext(URLS.ogUkDefaults, 'OG-UK default parameters')]} method="closures" />}
       download={{
         title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
         context: () => `${HEADLINE_YEAR} · % difference from the OBR-central path · common fiscal rule`,

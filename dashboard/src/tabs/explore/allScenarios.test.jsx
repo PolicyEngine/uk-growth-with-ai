@@ -117,7 +117,7 @@ describe('Across scenarios: each fact once', () => {
 });
 
 describe('Across scenarios: direction icons for every measure and arm', () => {
-  it('GDP, GNI, wage rate x three arms, and the debt cells', () => {
+  it('GDP, GNI, pay rate x three arms, and the debt cells', () => {
     const { container } = at('tab=explore&s=korinek&rule=dn');
     const check = (root, arm, v) => {
       for (const td of root.querySelectorAll('.ex-mx-cell:not(.is-hole)')) {
@@ -133,7 +133,7 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
     const card = container.querySelector('#all-scenarios');
     for (const [arm, armName] of [['tfp', /Automation \+ productivity/], ['tz', /Technology unchanged/], ['ss', /Stress test/]]) {
       fireEvent.click([...card.querySelectorAll('[aria-label="Arm"] [role=radio]')].find((b) => armName.test(b.textContent)));
-      for (const [v, name] of [['Y', 'GDP'], ['GNI', 'GNI'], ['w', 'Wage rate']]) {
+      for (const [v, name] of [['Y', 'GDP'], ['GNI', 'GNI'], ['w', 'Pay rate']]) {
         fireEvent.click([...card.querySelectorAll('[aria-label="Measure"] [role=radio]')].find((b) => b.textContent === name));
         check(card, arm, v);
       }

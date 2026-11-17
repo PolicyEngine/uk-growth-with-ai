@@ -9,7 +9,7 @@ import { iconFor } from '@/lib/concepts.js';
 export const MEASURES = [
   { v: 'Y', label: 'GDP', title: 'Total output (GDP)', unit: '%', icon: iconFor('gdp'), concept: 'gdp' },
   { v: 'GNI', label: 'GNI', title: 'Income UK residents keep (GNI)', unit: '%', icon: iconFor('gni'), concept: 'gni' },
-  { v: 'w', label: 'Wage rate', title: 'Wage rate (pay per unit of labour)', unit: '%', icon: iconFor('pay'), concept: 'pay' },
+  { v: 'w', label: 'Pay rate', title: 'Pay rate (wage per unit of labour)', unit: '%', icon: iconFor('pay'), concept: 'pay' },
   { v: 'debt_gdp_pp', label: 'Debt/GDP', title: 'Debt/GDP', unit: 'pp', icon: iconFor('debt'), concept: 'debt' },
 ];
 export const CLS = [CENTRAL, BOUND];
@@ -78,7 +78,7 @@ export function spreads(arm, v) {
 }
 const CHOICE = { scenario: 'the scenario', closure: 'the capital closure', rule: 'the fiscal rule' };
 export const topChoice = (arm, v) => Object.entries(spreads(arm, v)).sort((a, b) => b[1] - a[1])[0][0];
-// "The scenario moves GDP and GNI most; the capital closure, the wage rate;
+// "The scenario moves GDP and GNI most; the capital closure, the pay rate;
 // the fiscal rule, debt/GDP." Words only.
 // A measure that barely moves with any choice (the stress test holds GDP
 // on the path by construction) is named as such, not given a driver.
@@ -91,7 +91,7 @@ export function drivers(arm) {
   const by = {};
   const still = [];
   for (const m of MEASURES) {
-    const name = { w: 'the wage rate', debt_gdp_pp: 'debt/GDP' }[m.v] ?? m.label;
+    const name = { w: 'the pay rate', debt_gdp_pp: 'debt/GDP' }[m.v] ?? m.label;
     if (Math.max(...Object.values(spreads(arm, m.v))) < NEGLIGIBLE) still.push(name);
     else (by[topChoice(arm, m.v)] ??= []).push(name);
   }

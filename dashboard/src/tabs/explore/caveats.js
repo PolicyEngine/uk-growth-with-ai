@@ -17,7 +17,7 @@ const sensCell = (sid, arm) => S.sensitivity?.[SENS]?.results?.[sid]?.[arm] ?? n
 // record since 1948.
 export const I_FLAG_PCT = 17;
 
-// The wage rate's side of the path in the headline year, main arm, common
+// The pay rate's side of the path in the headline year, main arm, common
 // rule, at each solved closure from the least open to the most: ζK 0, 0.1
 // and the 0.5 sensitivity. [{ zeta, x, side }].
 export function wageByClosure(sid) {
@@ -44,7 +44,7 @@ export function wageClosureLines(sid) {
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   return groups.map((g, i) =>
     i === 0
-      ? `Wage rate ${g.side === 'on' ? 'on the path' : `${g.side} the path`} at ζK ${g.z.join(' and ')}`
+      ? `Pay rate ${g.side === 'on' ? 'on the path' : `${g.side} the path`} at ζK ${g.z.join(' and ')}`
       : `${cap(g.side === 'on' ? 'on it' : `${g.side} it`)} at ζK ${g.z.join(' and ')}${i === groups.length - 1 ? ': the sign depends on the closure' : ''}`,
   );
 }

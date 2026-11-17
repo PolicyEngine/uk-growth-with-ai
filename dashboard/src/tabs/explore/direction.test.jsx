@@ -105,7 +105,7 @@ describe('the cards’ inline arrows', () => {
             if (p.obr != null) expect(p.obr).toBe(obr);
           }
           unmount();
-          // the four-measure card: the wage rate (and GNI) arrows, when every arm shown is on one side
+          // the four-measure card: the pay rate (and GNI) arrows, when every arm shown is on one side
           const inc = at(`sub=income&s=${sid}&closure=${closure}&rule=${rule}`);
           const md = [...inc.container.querySelectorAll('#measures .card-finding [data-dir]')].map((e) => e.dataset.dir);
           const sides = (v) => [...new Set(['tfp', 'tz', 'ss'].map((arm) => val(sid, arm, cl, v, rule)).filter((x) => x != null).map(dataDir))];

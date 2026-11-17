@@ -92,7 +92,7 @@ describe('who gains: heatmap and dots', () => {
     const { container } = wrap(<WhoGainsTab />, 'tab=explore&sub=who');
     const dots = () => container.querySelectorAll('.ex-dotstrip .ex-dots .ex-dot.is-lose').length;
     expect(dots()).toBe(0);
-    fireEvent.click(screen.getByRole('button', { name: /^.*BT/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Both/ }));
     const bt = CO.dnfull.range.no_bequest_losing_pct;
     expect(dots()).toBe(Math.round(Math.min(...bt)));
     expect(container.querySelector('#who-heatmap table').dataset.measure).toBe('BT');

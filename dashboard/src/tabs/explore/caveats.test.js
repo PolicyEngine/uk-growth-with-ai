@@ -13,7 +13,7 @@ describe('economics review caveats, read from surprise2028.json', () => {
     const lines = wageClosureLines('uk_central');
     // below at 0 and 0.1, above at 0.5 in the data this was written against
     expect(xs.map((c) => c.side)).toEqual(['below', 'below', 'above']);
-    expect(lines).toEqual(['Wage rate below the path at ζK 0 and 0.1', 'Above it at ζK 0.5: the sign depends on the closure']);
+    expect(lines).toEqual(['Pay rate below the path at ζK 0 and 0.1', 'Above it at ζK 0.5: the sign depends on the closure']);
     lines.forEach((t) => expect(t.split(' ').length).toBeLessThanOrEqual(12));
   });
 

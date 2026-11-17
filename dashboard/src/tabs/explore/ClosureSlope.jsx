@@ -10,7 +10,6 @@ import { useNav } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
-import { ResultSources } from '@/tabs/explore/sources.jsx';
 
 // Central closure -> closed capital, per measure: a slope chart of two solved
 // cases joined by a straight line. The line is not a range between them: no
@@ -19,13 +18,14 @@ import { ResultSources } from '@/tabs/explore/sources.jsx';
 // the panel says so in words (from the signs). No figure is printed: every
 // value here has its home in the four-measure card above (central closure,
 // or closed capital with Closure = Closed or Both) and in the story's
-// headline tiles; hovering or focusing an end shows it as a read-out.
+// headline tiles; hovering or focusing an end shows it as a read-out. Its
+// sources are the four-measure card's, whose sources line it shares.
 
 export const SLOPE_MEASURES = [
   { v: 'Y', label: 'GDP', concept: 'gdp' },
   { v: 'GNI', label: 'GNI', concept: 'gni' },
   { v: 'NNI', label: 'NNI', concept: 'depreciation' },
-  { v: 'w', label: 'Wage rate', concept: 'pay' },
+  { v: 'w', label: 'Pay rate', concept: 'pay' },
 ];
 
 // Every arm's two ends for one measure, and whether it flips sign (above to
@@ -64,6 +64,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
   const flips = rows.filter((r) => r.flips);
   const pending = rows.filter((r) => r.c != null && r.b == null);
   const active = hot?.v === m.v ? rows.find((r) => r.arm.id === hot.arm) : null;
+  const narrow = W < 240;
   return (
     <figure className="ex-slope-panel" data-measure={m.v}>
       <figcaption className="ex-slope-title" data-panel-title="">
@@ -79,12 +80,17 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             </text>
           </g>
         ))}
+        {/* a narrow panel (two to a row on a phone) keeps a short y title,
+            the card's unit line giving it in full, and lets the two end
+            labels name the closures */}
         <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
-          Gap against the OBR-central path, %
+          {narrow ? 'Gap, %' : 'Gap against the OBR-central path, %'}
         </text>
-        <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
-          Closure
-        </text>
+        {narrow ? null : (
+          <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
+            Closure
+          </text>
+        )}
         <text x={x0} y={H - 6} className="ex-slope-tick" data-axis="">
           Central
         </text>
@@ -169,10 +175,6 @@ export default function ClosureSlope({ sid }) {
           </li>
         </ul>
       }
-      about={{
-        sources: <ResultSources sid={sid} />,
-      }}
-      method="closures"
       download={{
         title: `Central closure to closed capital, ${HEADLINE_YEAR}`,
         context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the OBR-central path · ${ruleLabel(rule).toLowerCase()}`,

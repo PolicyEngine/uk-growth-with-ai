@@ -13,21 +13,21 @@ import { iconFor } from '@/lib/concepts.js';
 import { toneOf } from './answers.js';
 import { Lead } from './direction.jsx';
 import { side } from '@/tabs/ai/lines.js';
-import { MEASURES, ROWS, rowOf, cellsTable, cellValue, drivers } from './cells.js';
+import { MEASURES, ROWS, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
-import { ResultSources } from './sources.jsx';
+import { SourcesLine } from './sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 
 // "Across scenarios": every scenario x closure x fiscal rule cell at once,
 // for one arm, in the headline year, as a matrix explorer. Rows: fiscal rule
 // and closure; columns: the four scenarios. Each cell prints the chosen
-// measure's gap and carries a small glyph of the cell's measures (direction
-// and relative size only). Clicking a cell sets the header pickers
-// (scenario, closure, fiscal rule) to it; a cell not solved is a hole. Every
+// measure's gap; a rule solved for only some scenarios names them on its
+// group row, and its other cells stay empty. Clicking a cell sets the pickers
+// (scenario, closure, fiscal rule) to it. Every
 // solved cell prints its value; the cell in view carries a small "In view"
 // marker, and where its figure's home is the story's headline tiles (the
-// main arm's GDP, GNI and wage rate) the value is a muted reference, and
+// main arm's GDP, GNI and pay rate) the value is a muted reference, and
 // the key links to that home (check_numbers' reference-row rule). Debt/GDP
 // has its own matrix on Public finances (AcrossDebt, #fin-across).
 //
@@ -46,52 +46,21 @@ export function inView(st, sid, cl, rule) {
   if (sid !== st.s || rule !== st.rule) return false;
   return st.closure === 'both' || closureOf(cl) === st.closure;
 }
-// The story's headline tiles print the main arm's GDP, GNI and wage rate for
+// The story's headline tiles print the main arm's GDP, GNI and pay rate for
 // the scenario and closure(s) picked, under the common rule: with another
 // rule picked, those cells keep the story as their home.
 export function inStory(st, sid, cl, rule, arm) {
   return arm === 'tfp' && rule === 'common' && sid === st.s && (st.closure === 'both' || closureOf(cl) === st.closure);
 }
 
-// Each measure's largest absolute value over the matrix, for the glyph bars.
-function glyphScale(arm, ms) {
-  return Object.fromEntries(
-    ms.map((m) => [
-      m.v,
-      Math.max(
-        1e-9,
-        ...ROWS.flatMap((row) => Object.values(rowOf(arm, row, m.v).vals))
-          .filter((x) => x != null)
-          .map(Math.abs),
-      ),
-    ]),
-  );
-}
-
-function Glyph({ sid, arm, row, ms, scale, pick }) {
-  return (
-    <span className="ex-mx-glyph" aria-hidden="true">
-      {ms.map((m) => {
-        const x = cellValue(sid, arm, row.cl, row.rule, m.v);
-        const h = x == null ? 0 : Math.max(1.5, (Math.abs(x) / scale[m.v]) * 10);
-        const tone = toneOf(m.v, x ?? 0);
-        return <span key={m.v} className={`ex-mx-bar${m.v === pick ? ' is-pick' : ''}${tone ? ` is-${tone}` : ''}`} style={{ height: `${h.toFixed(1)}px`, [x >= 0 ? 'bottom' : 'top']: '50%' }} />;
-      })}
-    </span>
-  );
-}
-
-function Cell({ s, row, arm, m, ms, scale, current, story, printHome }) {
+function Cell({ s, row, arm, m, current, story, printHome }) {
   const { set } = useNav();
   const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
   const where = `${SCEN_NAME[s.id]}, ${RULES.find((r) => r.id === row.rule).label.toLowerCase()}, ${CLOSURE_LABEL[row.cl]}`;
   if (x == null)
     return (
       <td className="ex-mx-cell is-hole" data-cell={`${s.id}|${row.key}`}>
-        <span className="ex-mx-hole" title={`${where}: not solved`}>
-          <span aria-hidden="true">–</span>
-          <span className="visually-hidden">{`${where}: not solved`}</span>
-        </span>
+        <span className="visually-hidden">{`${where}: not solved`}</span>
       </td>
     );
   const tone = toneOf(m.v, x);
@@ -114,15 +83,23 @@ function Cell({ s, row, arm, m, ms, scale, current, story, printHome }) {
             In view
           </span>
         ) : null}
-        {ms.length > 1 ? <Glyph sid={s.id} arm={arm} row={row} ms={ms} scale={scale} pick={m.v} /> : null}
       </button>
     </td>
   );
 }
 
-export function Matrix({ arm, ms, m, printHome = true, label }) {
+// A fiscal rule solved for only some scenarios: which, in one muted phrase
+// on its group row, so its empty cells need no marks of their own.
+function solvedNote(arm, rule, v) {
+  const rows = ROWS.filter((row) => row.rule === rule);
+  const solved = SCENARIOS.filter((s) => rows.some((row) => cellValue(s.id, arm, row.cl, row.rule, v) != null));
+  if (solved.length === SCENARIOS.length) return null;
+  const names = solved.map((s) => SCEN_NAME[s.id]);
+  return <span className="ex-mx-solved">{names.length ? ` · solved for ${names.join(' and ')} only` : ' · not solved'}</span>;
+}
+
+export function Matrix({ arm, m, printHome = true, label }) {
   const { st } = useNav();
-  const scale = glyphScale(arm, ms);
   return (
     <div className="ex-mx-wrap">
       <table className="ex-mx" aria-label={label}>
@@ -143,6 +120,7 @@ export function Matrix({ arm, ms, m, printHome = true, label }) {
             <tr className="ex-mx-group">
               <th colSpan={SCENARIOS.length + 1} scope="colgroup">
                 {r.label}
+                {solvedNote(arm, r.id, m.v)}
               </th>
             </tr>
             {ROWS.filter((row) => row.rule === r.id).map((row) => (
@@ -154,7 +132,7 @@ export function Matrix({ arm, ms, m, printHome = true, label }) {
                   </span>
                 </th>
                 {SCENARIOS.map((s) => (
-                  <Cell key={s.id} s={s} row={row} arm={arm} m={m} ms={ms} scale={scale} current={inView(st, s.id, row.cl, row.rule)} story={inStory(st, s.id, row.cl, row.rule, arm)} printHome={printHome} />
+                  <Cell key={s.id} s={s} row={row} arm={arm} m={m} current={inView(st, s.id, row.cl, row.rule)} story={inStory(st, s.id, row.cl, row.rule, arm)} printHome={printHome} />
                 ))}
               </tr>
             ))}
@@ -194,31 +172,23 @@ export function matrixSvg(arm, m) {
   return [{ w: W, h: y + 4, markup: out, label: `${m.title}, ${HEADLINE_YEAR}` }];
 }
 
-function MatrixKey({ ms, story = true }) {
+function MatrixKey({ story = true }) {
   return (
     <ul className="ex-mx-key">
       <li>
-        <span className="ex-mx-key-cell" aria-hidden="true" data-icon="" /> Solved: click to show it below
+        <span className="ex-mx-key-cell" aria-hidden="true" data-icon="" /> Click a cell to show it in the charts above
       </li>
       <li>
         <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> In view
         {story ? (
           <>
             {'; grey: the '}
-            <NavLink tab="story" anchor="story-headline">
+            <NavLink tab="story" anchor="story-part-2">
               story’s headline
             </NavLink>
           </>
         ) : null}
       </li>
-      <li>
-        <span className="ex-mx-key-cell is-hole" aria-hidden="true" data-icon="" /> Not solved
-      </li>
-      {ms.length > 1 ? (
-        <li>
-          <span className="ex-mx-key-glyph" aria-hidden="true" data-icon="" /> {`Bars: ${ms.map((x) => x.label).join(', ')}, by size`}
-        </li>
-      ) : null}
     </ul>
   );
 }
@@ -252,13 +222,12 @@ export default function AllScenarios() {
           </ControlBar>
         }
         unit={<span data-axis-title="y">{`${m.label} gap against the OBR-central path at the same closure, %`}</span>}
-        legend={<MatrixKey ms={ECON} />}
+        legend={<MatrixKey />}
         about={{
           caveats: (
             <Items
               items={[
                 { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al.')}: US inputs, an upper case, not a UK estimate</> },
-                { key: 'pending', icon: 'timing', text: 'Debt-neutral and fixed spending: UK central and Korinek et al. only' },
                 {
                   key: 'debt',
                   icon: 'debt',
@@ -274,9 +243,8 @@ export default function AllScenarios() {
               ]}
             />
           ),
-          sources: <ResultSources />,
         }}
-        method="rules"
+        foot={<SourcesLine method="rules" />}
         download={{
           title: `Every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
           context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the OBR-central path at the same closure`,
@@ -284,7 +252,7 @@ export default function AllScenarios() {
           svg: () => matrixSvg(arm, m),
         }}
       >
-        <Matrix arm={arm} ms={ECON} m={m} label={`${m.title}, ${HEADLINE_YEAR}, ${armLabel}: every scenario, closure and fiscal rule`} />
+        <Matrix arm={arm} m={m} label={`${m.title}, ${HEADLINE_YEAR}, ${armLabel}: every scenario, closure and fiscal rule`} />
       </Card>
 
       <SectionHeading id="ex-sensitivity" icon={iconFor('foreign')} title="More foreign capital">
@@ -322,21 +290,8 @@ export function AcrossDebt() {
           </ControlBar>
         }
         unit={<span data-axis-title="y">Debt/GDP gap against the OBR-central path at the same closure, percentage points of GDP</span>}
-        legend={<MatrixKey ms={DEBT} story={false} />}
-        about={{
-          shows: (
-            <Items
-              items={[
-                { key: 'common', icon: 'gdp', text: 'Common rule: spending follows GDP; debt absorbs the rest' },
-                { key: 'fixed', icon: 'finances', text: 'Fixed spending: spending held at its OBR-central level' },
-                { key: 'dn', icon: 'benefits', text: 'Debt-neutral: transfers adjust to hold debt on the path' },
-                { key: 'choice', icon: 'rule', text: 'All three are modelling choices, not OBR rules' },
-              ]}
-            />
-          ),
-          sources: <ResultSources />,
-        }}
-        method="rules"
+        legend={<MatrixKey story={false} />}
+        foot={<SourcesLine method="rules" />}
         download={{
           title: `Debt/GDP, every scenario, closure and fiscal rule, ${HEADLINE_YEAR}`,
           context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the OBR-central path at the same closure`,
@@ -347,7 +302,7 @@ export function AcrossDebt() {
           svg: () => matrixSvg(arm, m),
         }}
       >
-        <Matrix arm={arm} ms={DEBT} m={m} printHome={false} label={`Debt/GDP, ${HEADLINE_YEAR}, ${armLabel}: every scenario, closure and fiscal rule`} />
+        <Matrix arm={arm} m={m} printHome={false} label={`Debt/GDP, ${HEADLINE_YEAR}, ${armLabel}: every scenario, closure and fiscal rule`} />
       </Card>
     </div>
   );
