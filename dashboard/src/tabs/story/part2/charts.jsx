@@ -104,6 +104,10 @@ export function WelfareShape({ state }) {
           <NavLink tab="method" sub="how" anchor="m-generations">
             Method
           </NavLink>
+          ; the figures:{' '}
+          <NavLink tab="explore" sub="who">
+            Gains and losses
+          </NavLink>
         </>
       }
       head={

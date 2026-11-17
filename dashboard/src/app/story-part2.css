@@ -1152,8 +1152,10 @@
 /* Axis titles outside the drawing: the x title under the ticks, right
    aligned (the y titles are SVG text in each chart, data-axis-title). */
 .p2-axis-x {
-  float: right;
-  margin: 0 0 0 10px;
+  /* the x axis title under the ticks, centred, clear of the source line */
+  display: block;
+  margin: -2px 0 8px;
+  text-align: center;
   font-size: var(--fs-small);
   color: var(--pe-gray-600);
 }
@@ -1387,4 +1389,23 @@
   transition-delay: 0ms !important;
   animation-delay: 0ms !important;
   animation-duration: 1ms !important;
+}
+
+/* Narrow phones (360-420px): the middle node's label ("Gross capital
+   income") centred under its node's left edge, not ending there, so it
+   stays inside the card */
+@media (max-width: 420px) {
+  .p2-sankey .sankey-node[data-node='capital'] .sankey-label,
+  .p2-sankey .sankey-node[data-node='capital'] .sankey-sub {
+    text-anchor: middle;
+  }
+}
+/* Phones: the figure is drawn once, above its texts; the waterfall stays
+   open (collapsing it would shift the page as the reader scrolls) */
+.p2-output-graphic.is-fast .p2-out-later:not(.is-on) {
+  height: auto;
+  padding-top: 8px !important;
+  border-top-color: var(--card-border);
+  overflow: visible;
+  opacity: 1;
 }

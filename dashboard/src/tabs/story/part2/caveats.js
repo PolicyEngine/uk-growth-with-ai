@@ -38,31 +38,6 @@ export function peopleWord(pct) {
   return `about one in ${word}`;
 }
 
-// Headline figures: how much of the main arm's GDP gain the technology-
-// unchanged arm (the share shift alone, capital drawn in) gives, and net
-// national income against GDP. Each null when it does not fit.
-export function headlineShares(sid, cl) {
-  const y = gap(sid, 'tfp', cl, 'Y');
-  const tz = gap(sid, 'tz', cl, 'Y');
-  const nni = gap(sid, 'tfp', cl, 'NNI');
-  if (y == null || y <= EPS2) return { capital: null, nni: null };
-  return {
-    capital: tz != null && tz > 0 ? fracWord(tz / y) : null,
-    nni: nni != null && nni > 0 ? fracWord(nni / y) : null,
-  };
-}
-
-// Household consumption in the headline cell: below the path in the
-// headline year (surprise2028.json gaps.C) and the first year it is back
-// above it, under the headline's common fiscal rule (cohorts2028.json, UK
-// central only, solved past the dashboard's years). null otherwise.
-export function consumptionBelowUntil(sid, cl) {
-  if (sid !== 'uk_central') return null;
-  const c = gap(sid, 'tfp', cl, 'C');
-  const yr = C.closures?.[cl]?.rules?.common?.tfp?.first_year_c_above;
-  return c != null && c < -EPS2 && yr ? yr : null;
-}
-
 // The pay tile: the wage gap's sign at closed capital, the central closure
 // and the half-foreign sensitivity (zk0.5). 'flips' when the signs differ.
 export function paySigns(sid) {

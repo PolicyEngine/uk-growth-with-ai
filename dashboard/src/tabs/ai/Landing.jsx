@@ -12,7 +12,7 @@ import {
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
-import { paySigns, headlineShares, consumptionBelowUntil } from '@/tabs/story/part2/caveats.js';
+import { paySigns, fracWord } from '@/tabs/story/part2/caveats.js';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
 import { A } from '@/tabs/story/part2/sources.jsx';
@@ -125,7 +125,12 @@ export function HeadlineTiles({ sid }) {
   const g = gap(sid, 'tfp', cl, 'GNI');
   const y = gap(sid, 'tfp', cl, 'Y');
   const flips = paySigns(sid) === 'flips';
-  // a second sub-line, where a caveat belongs to one tile
+  // a second sub-line, where a caveat belongs to one tile (the pay sign);
+  // the foreign share of the extra capital is in the GNI tile's definition
+  const share =
+    cl === CENTRAL && fs != null && g != null && y != null && g < y
+      ? ` About ${Math.round(fs)}% of the extra capital is owned abroad, with openness at OG-Core’s US default, chosen by the study.`
+      : '';
   const extra = {
     w: flips ? (
       <>
@@ -135,12 +140,6 @@ export function HeadlineTiles({ sid }) {
         </NavLink>
       </>
     ) : null,
-    GNI:
-      cl === CENTRAL && fs != null && g != null && y != null && g < y ? (
-        <>
-          About {Math.round(fs)}% of the extra capital is owned abroad, with openness at <A href={URLS.ogCoreParams}>OG-Core&rsquo;s US default, chosen by the study</A>
-        </>
-      ) : null,
   };
   return (
     <>
@@ -154,7 +153,7 @@ export function HeadlineTiles({ sid }) {
               // the GDP scene's step card holds one icon (the step's): the
               // definition opens from the name itself, no tile icon
               name={
-                <TipTarget className="p2-tile-name" label={`What is ${k.title.toLowerCase()}?`} tip={<span>{k.tip}</span>}>
+                <TipTarget className="p2-tile-name" label={`What is ${k.title.toLowerCase()}?`} tip={<span>{k.tip}{k.v === 'GNI' ? share : ''}</span>}>
                   {k.title}
                 </TipTarget>
               }
@@ -189,64 +188,56 @@ export function HeadlineTiles({ sid }) {
   );
 }
 
-// Public debt in the main arm at the late year, in words, and why (as
-// Explore > Public finances explains it): the common fiscal rule holds
-// spending as a share of GDP, so growth brings no dividend, and the model
-// reprices all debt at once at the higher interest rate. The reason only
-// where the debt gap and the interest-rate gap are both positive. null when
-// pending.
-export function debtLine(sid, cl) {
+// Public debt in the main arm at the late year, in words: its side of the
+// path, why (the model reprices all debt at once at the higher interest
+// rate, where that rate is above the path), and what the OBR's slower
+// repricing gives (debt_gdp_pp_obr_repricing_late, Method's "How debt is
+// repriced"). Words only: the figures are on Explore > Public finances.
+// null when pending.
+const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
+export function debtParts(sid, cl) {
   const d = gap(sid, 'tfp', cl, 'debt_gdp_pp', LATE_YEAR);
   if (d == null) return null;
   const r = gap(sid, 'tfp', cl, 'r_bp', LATE_YEAR);
-  const where = Math.abs(d) < 0.005 ? 'ends on the path' : d > 0 ? 'ends above the path' : 'ends below the path';
-  const why = d > 0.005 && r != null && r > 0 ? ': spending keeps its share of GDP, and debt is repriced at once at higher rates' : ', under the common fiscal rule';
-  return `Public debt ${where} in ${LATE_YEAR}${why}`;
+  const obr = result(sid, 'tfp', cl).debt_gdp_pp_obr_repricing_late;
+  const why = d > 0.005 && r != null && r > 0 ? ' as debt reprices at once' : '';
+  let slow = null;
+  if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the path`;
+  else if (Number.isFinite(obr) && d > 0.005 && obr < d) {
+    const k = obr / d;
+    slow = `${k < 0.2 ? 'under a fifth' : (fracWord(k) ?? 'less')} as much`;
+  }
+  return { text: ` ends ${side(d)} the path in ${LATE_YEAR}${why}`, slow };
+}
+export function debtLine(sid, cl) {
+  const p = debtParts(sid, cl);
+  return p ? `Public debt${p.text}${p.slow ? `; at the OBR’s repricing pace, ${p.slow}` : ''}` : null;
 }
 
-// Under the tiles: household consumption where the cell has it, and one
-// line to Explore for what the other two arms add (capital drawn in, net
-// national income in words; public debt in the three arms): their figures
-// are on Explore > Economy and Public finances. Why the figures move
-// (capital's share, output at given inputs) is the shock scene's sentence.
+// Under the tiles: the one line on public debt (its words from
+// debtParts), linking its homes: Explore > Public finances and Method's
+// repricing card.
 export function SummaryWhy({ sid }) {
   const { cl } = useSummary(sid);
-  const sh = headlineShares(sid, cl);
-  // one clause on what households spend, where the cell has it (UK central)
-  const cBelow = consumptionBelowUntil(sid, cl);
-  const debt = debtLine(sid, cl);
+  const p = debtParts(sid, cl);
+  if (!p) return null;
   return (
-    <div className="p2-why">
-      {cBelow ? (
-        <p className="p2-why-line">
-          Under the common fiscal rule, household consumption stays below the path until{' '}
-          <NavLink tab="explore" sub="who" patch={{ wrule: 'common' }}>
-            {cBelow}
+    <p className="p2-note p2-why">
+      <NavLink tab="explore" sub="finances" anchor="public-finances">
+        Public debt
+      </NavLink>
+      {p.text}
+      {p.slow ? (
+        <>
+          ; at the{' '}
+          <NavLink tab="method" sub="how" anchor="m-debt">
+            OBR&rsquo;s repricing pace
           </NavLink>
-          .
-        </p>
+          , {p.slow}
+        </>
       ) : null}
-      {sh.capital || sh.nni ? (
-        <p className="p2-note">
-          {sh.capital ? `Technology unchanged alone gives ${sh.capital} the GDP gain, through capital drawn in` : ''}
-          {sh.capital && sh.nni ? '; n' : sh.nni ? 'N' : ''}
-          {sh.nni ? `et national income rises ${sh.nni} as much as GDP` : ''}:{' '}
-          <NavLink tab="explore" sub="economy" anchor="income">
-            Economy
-          </NavLink>
-          .
-        </p>
-      ) : null}
-      {debt ? (
-        <p className="p2-note">
-          {debt}:{' '}
-          <NavLink tab="explore" sub="finances" anchor="public-finances">
-            Public finances
-          </NavLink>
-          .
-        </p>
-      ) : null}
-    </div>
+      .
+    </p>
   );
 }
 

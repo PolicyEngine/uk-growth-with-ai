@@ -1,7 +1,7 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
-import { useNav } from '@/lib/nav.jsx';
+import { NavLink, useNav } from '@/lib/nav.jsx';
 import { HeadlineTiles, SummaryWhy } from '@/tabs/ai/Landing.jsx';
 import { HEADLINE_YEAR, SCEN_NAME } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
@@ -57,7 +57,7 @@ export const SUBS = {
     icon: 'age',
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
-    answer: 'Gains peak near retirement; with debt-neutral transfers kept on past 2036, some adults lose',
+    answer: 'All adults gain as modelled; with transfers kept on past 2036, some adults lose',
     // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
   },
@@ -129,7 +129,11 @@ function headlineStep(sid) {
     body: (
       <>
         <Say>
-          {SCEN_NAME[sid]} in {HEADLINE_YEAR}: the main arm, automation + productivity, against the OBR-central path.
+          {SCEN_NAME[sid]} in {HEADLINE_YEAR}, main arm, against the OBR-central path; the other two arms are on{' '}
+          <NavLink tab="explore" sub="economy" anchor="income">
+            Explore
+          </NavLink>
+          .
         </Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
           <HeadlineTiles sid={sid} />

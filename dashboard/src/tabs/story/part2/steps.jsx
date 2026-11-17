@@ -1,9 +1,9 @@
 'use client';
 
-import { NavLink } from '@/lib/nav.jsx';
 import { Key } from '@/components/story/highlight.jsx';
-import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap } from '@/tabs/ai/surprise.js';
-import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
+import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, CENTRAL, gap } from '@/tabs/ai/surprise.js';
+import { welfareCell, entryDip, peakAge, series, LAST_ALIVE } from './charts.jsx';
+import D from '@/data/cohorts2028.json';
 import { PART_COLOR } from './split.js';
 import { EPS2 } from './dir.js';
 import { welfareWords } from './caveats.js';
@@ -130,16 +130,11 @@ export function morphCardSteps(sid, cl) {
   ];
 }
 
-const cap = (t) => t[0].toUpperCase() + t.slice(1);
-
-// Who gains and who loses: two steps over WelfareShape states 0 and 1. The
-// last card's caveat: the bequest share of the adults' gain and who loses
-// without it (cohorts2028.json, in words; the figures are on Explore).
+// Who gains and who loses: two steps over WelfareShape states 0 and 1.
 export function whoCardSteps() {
   const c = welfareCell();
   const allGain = c.cev_all.every((v) => v > 0);
   const dip = entryDip();
-  const w = welfareWords();
   return [
     {
       id: 'p2-who-0',
@@ -165,15 +160,6 @@ export function whoCardSteps() {
             <Key id="cohort-later">Later cohorts</Key> {allGain ? 'gain too' : 'are drawn in the band'}
             {dip ? `, least those entering just after ${SURPRISE_YEAR}` : ''}.
           </Say>
-          {w?.bequests && w.loseNb ? (
-            <Note>
-              {cap(w.bequests)} of the adults&rsquo; gain is bequest value; without it, with transfers kept on, {w.loseNb} adults lose (
-              <NavLink tab="explore" sub="who">
-                Gains and losses
-              </NavLink>
-              ).
-            </Note>
-          ) : null}
         </>
       ),
     },
@@ -193,11 +179,17 @@ export function morphAnswer(cl) {
   return `GDP ends ${where} the path in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
 }
 
-// The generations scene's closing line: where gains peak and, with
-// transfers bearing the later cost (solved to the horizon), who loses.
+// The generations scene's one closing line, carrying all three framings:
+// every adult gains as charted (debt-neutral transfers to 2036); with the
+// transfers kept on to the horizon, who loses; and without bequest value
+// too (cohorts2028.json dnfull, in words; the figures are on Explore).
 export function whoAnswer() {
   const w = welfareWords();
   if (!w?.lose) return null;
-  const peak = peakAge() >= 55 ? 'near retirement' : 'in middle age';
-  return `Gains peak ${peak}; if debt-neutral transfers are kept on past 2036, ${w.young ? `${w.young}-year-olds and ` : ''}${w.lose} adults lose`;
+  const c = welfareCell();
+  const xs = D.closures[CENTRAL].birth_year;
+  const adultsGain = c.cev_all.every((v, i) => xs[i] > LAST_ALIVE || v > 0);
+  const head = adultsGain ? 'All adults gain as modelled' : `Gains peak ${peakAge() >= 55 ? 'near retirement' : 'in middle age'}`;
+  const nb = w.loseNb ? `; without bequest value too, ${w.loseNb}` : '';
+  return `${head}; with transfers kept on past 2036, ${w.lose} lose${nb}`;
 }

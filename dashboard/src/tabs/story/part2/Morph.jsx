@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { useIsPhone } from '@/components/story/motion.js';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
@@ -196,6 +197,9 @@ const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
 const LH = 17;
+// phones draw the labels larger (story-part2.css): more room between them,
+// so UK central and UK low never touch
+const LH_PHONE = 22;
 // the state from which each scenario's line is drawn
 const lineFrom = (id, sid) => (id === sid ? 2 : id === 'korinek' ? 4 : 3);
 
@@ -256,6 +260,7 @@ export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((
 
 export function MorphChart({ state, sid, cl, pin = null }) {
   const s = Math.max(0, Math.min(4, state));
+  const lh = useIsPhone() ? LH_PHONE : LH;
   // one clip per copy (phones draw a copy per step)
   const clip = `p2-morph-clip${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const k = Math.min(s, 2);
@@ -303,7 +308,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
       pinned: l.id === pinned,
     })),
   ];
-  const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, LH);
+  const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, lh);
   const shownNames = lines.filter((l) => s >= from(l.id));
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
@@ -481,9 +486,9 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
-              <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={LH * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
+              <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={lh * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
-                  <tspan key={l} x={0} dy={i ? LH - 2 : 0}>
+                  <tspan key={l} x={0} dy={i ? lh - (lh === LH ? 2 : 4) : 0}>
                     {l}
                   </tspan>
                 ))}

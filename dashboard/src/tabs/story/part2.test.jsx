@@ -106,7 +106,7 @@ describe('story part 2', () => {
     expect(head.closest('.scrolly-step').id).toBe('p2-headline');
     expect(container.querySelector('#p2-arms, .p2-pair')).toBeNull();
     // the arms' homes (nav maps Explore's #income to #economy-wall)
-    const hrefs = [...head.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    const hrefs = [...head.closest('.scrolly-step').querySelectorAll('a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&s=uk_low&closure=both#economy-wall');
     expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances');
   });
@@ -348,21 +348,17 @@ describe('direction icons follow the signs', () => {
     expect(container.textContent).toContain('Results are gaps against a path built on the OBR’s March 2026 forecast.');
   });
 
-  it('says household consumption stays below the path, from the data (UK central only)', async () => {
-    const cohorts = (await import('@/data/cohorts2028.json')).default;
-    const yr = cohorts.closures['zk0.1'].rules.common.tfp.first_year_c_above;
-    expect(base.gaps.C[H]).toBeLessThan(0);
-    const uk = at('tab=story&s=uk_central');
-    expect(uk.container.querySelector('#story-headline').textContent).toContain(`Under the common fiscal rule, household consumption stays below the path until ${yr}.`);
-    // its year links to Who gains under the same (common) rule, which prints the same year
-    const link = [...uk.container.querySelectorAll('#story-headline a')].find((x) => x.textContent === String(yr));
-    expect(link.getAttribute('href')).toBe('/?tab=explore&sub=who&rule=common');
-    uk.unmount();
-    const kor = at('tab=story&s=korinek');
-    expect(kor.container.querySelector('#story-headline').textContent).not.toContain('household consumption');
+  it('the headline step is the tiles and one line: the sentence above, the debt line below', () => {
+    const { container } = at('tab=story&s=uk_central');
+    const head = container.querySelector('#story-headline');
+    expect(head.querySelectorAll('.stat-tile')).toHaveLength(3);
+    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile'));
+    expect(lines).toHaveLength(1);
+    expect(lines[0].textContent).toMatch(/^Public debt ends (above|below|on) the path/);
+    expect(head.textContent).not.toContain('household consumption');
   });
 
-  it('the debt line follows the signs, and gives the reason only where debt and the interest rate end above the path', async () => {
+  it('the debt line follows the signs, gives the reason where the interest rate is up, and the OBR repricing pace in words', async () => {
     const { debtLine } = await import('@/tabs/ai/Landing.jsx');
     const L = fixture.years.indexOf(fixture.late_year);
     for (const sid of SIDS) {
@@ -374,9 +370,14 @@ describe('direction icons follow the signs', () => {
           continue;
         }
         const d = r.gaps.debt_gdp_pp[L];
-        expect(line).toContain(d > 0.005 ? 'ends above the path' : d < -0.005 ? 'ends below the path' : 'ends on the path');
-        expect(line).toContain(String(fixture.late_year));
-        expect(line.includes('repriced at once at higher rates')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
+        const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
+        expect(line).toContain(`ends ${side(d)} the path in ${fixture.late_year}`);
+        expect(line.includes('as debt reprices at once')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
+        // the OBR's slower repricing: the other side of the path, or a smaller rise, in words
+        const obr = r.debt_gdp_pp_obr_repricing_late;
+        if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the path`);
+        else if (d > 0.005 && obr < d) expect(line).toMatch(/at the OBR’s repricing pace, .* as much$/);
+        expect(line).not.toMatch(/\d\.\d/);
       }
     }
   });
