@@ -342,7 +342,7 @@ function AiAnswer() {
       <N path="facts.business_ai_use.value" mark="ai-all">
         {pct1(F.business_ai_use.value)}
       </N>{' '}
-      of businesses use AI; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (<L to="imf_upskilling">IMF</L>).
+      of businesses use AI; <N path={`facts.${hh.id}.value + facts.${hl.id}.value`}>{share0(hh.value + hl.value)}</N> of UK workers are in highly exposed jobs (IMF).
     </>
   );
 }

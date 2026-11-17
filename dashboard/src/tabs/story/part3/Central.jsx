@@ -103,7 +103,7 @@ function CentralFigure({ ctx }) {
   }));
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
-      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} />
+      <FigureHead icon="jobLoss" title={`The central case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} source={<CentralSource />} />
       <div className="p3-central">
         <div {...markProps('displaced', 'p3-central-tiles')}>
           <p className="p3-tile-heads">
@@ -166,7 +166,7 @@ export const CENTRAL_STEPS = [
         ) : (
           'A share'
         )}{' '}
-        of employees are <Key id="displaced">jobless all year</Key>, the rate from <Ref id="doorley">Doorley et al. (2026)</Ref>
+        of employees are <Key id="displaced">jobless all year</Key>, the rate from <Ref id="doorley" plain>Doorley et al. (2026)</Ref>
       </>
     ),
   },
@@ -202,22 +202,28 @@ const CENTRAL_MARKS = {
   },
 };
 
-// The figure's notes and source line, as the Scrolly's foot (round 2,
-// phones): inside the card on desktop, after the cards at 900px and below,
-// so a pinned phone figure is the chart alone.
-function CentralNotes() {
+// The figure's notes and sources, behind its "Sources and notes" button.
+function CentralSource() {
   return (
-    <>
-      <p className="p3-key">After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
-      <p className="p3-key">
-        The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
-        <NavLink tab="explore" sub="households" anchor="hh-ladder">
-          Explore, households
-        </NavLink>
-        ).
-      </p>
-      <Source files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]} />
-    </>
+    <Source
+      files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]}
+      refs={['doorley']}
+      groups={[
+        {
+          title: 'How it’s counted',
+          notes: [
+            <>After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</>,
+            <>
+              The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
+              <NavLink tab="explore" sub="households" anchor="hh-ladder">
+                Explore, households
+              </NavLink>
+              ).
+            </>,
+          ],
+        },
+      ]}
+    />
   );
 }
 
@@ -227,7 +233,6 @@ export default function Central() {
       <Scrolly
         id="p3-central"
         scene
-        foot={<CentralNotes />}
         sub={CENTRAL_SUB}
         steps={asLines(CENTRAL_STEPS)}
         graphic={(i, r, ctx) => <CentralFigure ctx={ctx} />}

@@ -166,12 +166,12 @@ function RulesPanel({ on }) {
               <span className="p3-row-label">
                 <span className="p3-long">
                   {r.label}
-                  {r.ref ? <Ref id={r.ref} /> : null}
+                  {r.ref ? <Ref id={r.ref} plain /> : null}
                   {r.close ?? null}
                 </span>
                 <span className="p3-short">
                   {r.short}
-                  {r.ref ? <Ref id={r.ref} /> : null}
+                  {r.ref ? <Ref id={r.ref} plain /> : null}
                 </span>
               </span>
               <span className="p3-dp-track" data-mark="r-cost">
@@ -193,9 +193,6 @@ function RulesPanel({ on }) {
           <Ticks max={MAXP} fmt={(t) => `${t}pp`} />
         </li>
       </ol>
-      <div className="p3-ch-notes">
-        <RulesNotes />
-      </div>
     </>
   );
 }
@@ -302,9 +299,6 @@ function MarginPanel({ on }) {
           ]}
         />
       </div>
-      <div className="p3-ch-notes">
-        <MarginNotes />
-      </div>
     </>
   );
 }
@@ -330,56 +324,51 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
-      <div className="p3-ch-notes">
-        <BreakEvenNotes />
-      </div>
     </>
   );
 }
 
-// Each panel's notes: in the panel on wider screens; at 600px and below
-// they leave the pinned figure for the Scrolly's foot (after the cards),
-// so the pinned box is the chart alone. No figure is printed in a note, so
-// the hidden copy counts nothing twice.
-function RulesNotes() {
-  return (
-    <>
-      <p className="p3-key">
-        <NavLink tab="explore" sub="households" anchor="hh-rules">
-          Gini changes by rule, and a top-loaded stress test
-        </NavLink>
-      </p>
-    </>
-  );
-}
+// Each panel's notes, in the figure's "Sources and notes" (one group a
+// panel), worded as they were.
+const rulesNotes = () => [
+  <NavLink key="g" tab="explore" sub="households" anchor="hh-rules">
+    Gini changes by rule, and a top-loaded stress test
+  </NavLink>,
+];
 
-function MarginNotes() {
-  return (
-    <>
-      <p className="p3-key">Both pence figures include employer NI. Job loss here is the central case on these {D.per_pound_20.draws} draws.</p>
-      <p className="p3-key">
-        Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
-      </p>
-      {marginClaims().perPoundMore === 'cut' ? <p className="p3-key">A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here.</p> : null}
-    </>
-  );
-}
+const marginNotes = () => [
+  <>Both pence figures include employer NI. Job loss here is the central case on these {D.per_pound_20.draws} draws.</>,
+  <>
+    Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>, of the same gross size.
+  </>,
+  marginClaims().perPoundMore === 'cut' ? <>A cut is taxed at the worker’s marginal rate, a lost job’s pay at its average, and benefits replace little here.</> : null,
+];
 
-function BreakEvenNotes() {
+const breakEvenNotes = () => [
+  <>
+    Each break-even holds the other two at central settings, interpolated between runs. The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws.
+  </>,
+  <>The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter.</>,
+  <>
+    Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
+    <NavLink tab="explore" sub="households" anchor="hh-ladder">
+      Explore, households
+    </NavLink>
+    .
+  </>,
+];
+
+function ChangesSource() {
   return (
-    <>
-      <p className="p3-key">
-        Each break-even holds the other two at central settings, interpolated between runs. The wage row is {BE.wage.draws === 1 ? 'one draw' : `${BE.wage.draws} draws`}; the others, {BE.capital.draws} paired draws.
-      </p>
-      <p className="p3-key">The time row comes from a half-year run that also removes Universal Credit a real spell would pay; the true break-even is probably shorter.</p>
-      <p className="p3-key">
-        Full benefit take-up and new-style JSA, as on <Ref id="jsa" />:{' '}
-        <NavLink tab="explore" sub="households" anchor="hh-ladder">
-          Explore, households
-        </NavLink>
-        .
-      </p>
-    </>
+    <Source
+      files={[rule('uniform').file, D.per_pound_20.file, J.file, BE.wage.file, BE.capital.file, BE.duration.file]}
+      refs={[...new Set(RULES.map((r) => r.ref).filter(Boolean)), 'acemoglu', 'jsa']}
+      groups={[
+        { title: 'Who loses the job', notes: rulesNotes() },
+        { title: 'Job loss or wage cuts', notes: marginNotes() },
+        { title: 'Break-even', notes: breakEvenNotes() },
+      ]}
+    />
   );
 }
 
@@ -395,7 +384,7 @@ function ChangesFigure({ step, ctx }) {
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
-      <FigureHead icon="scenario" title="What changes the answer" replay={e.replay} />
+      <FigureHead icon="scenario" title="What changes the answer" replay={e.replay} source={<ChangesSource />} />
       <div className="p3-ch-panels">
         {PANELS.map((Panel, k) => {
           const shown = all || k === cur;
@@ -407,21 +396,6 @@ function ChangesFigure({ step, ctx }) {
         })}
       </div>
     </figure>
-  );
-}
-
-// The foot: the panels' notes again for 600px and below (hidden above),
-// then the one source line.
-function ChangesFoot() {
-  return (
-    <>
-      <div className="p3-ch-footnotes">
-        <RulesNotes />
-        <MarginNotes />
-        <BreakEvenNotes />
-      </div>
-      <Source files={[rule('uniform').file, D.per_pound_20.file, J.file, BE.wage.file, BE.capital.file, BE.duration.file]} />
-    </>
   );
 }
 
@@ -520,7 +494,7 @@ const LABEL = 'What changes the answer: the cost and poverty rise under four rul
 export default function Changes() {
   return (
     <MarkProvider marks={MARKS}>
-      <Scrolly id="p3-changes" scene foot={<ChangesFoot />} sub={changesSub()} steps={asLines(CHANGES_STEPS)} graphic={(i, r, ctx) => <ChangesFigure step={i} ctx={ctx} />} label={LABEL} />
+      <Scrolly id="p3-changes" scene sub={changesSub()} steps={asLines(CHANGES_STEPS)} graphic={(i, r, ctx) => <ChangesFigure step={i} ctx={ctx} />} label={LABEL} />
     </MarkProvider>
   );
 }

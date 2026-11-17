@@ -1,22 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { FACTS, LINKS } from './data.js';
+import { useEnterState, useEntry } from '@/components/story/motion.js';
+import { fmtDate } from '@/components/ui/SourceLine.jsx';
+import { FACTS, LINKS, SERIES, SOURCES } from './data.js';
 import { Ext, SourceLine } from './frame.jsx';
 import { dirWord, idx1, pct1 } from './format.js';
 
-// The UK vitals panel that opens part 1: six tiles, each the latest
-// published figure for one series: the name (with the tile's one icon), the
-// value, and one sub-line (its unit and period). Round 2 (review E5, C4):
-// no sparklines, release dates, series codes or data downloads (those are
-// in Method's source ledger, linked once from the fold); one source line
-// under the grid links each series' ONS page, and its fold keeps the two
-// definitions only the panel needs. It is the home of these six
+// The UK vitals panel that opens part 1: one instrument panel (a single
+// tinted band, one box) holding six metrics on shared baselines, each the
+// latest published figure for one series: a small muted label, the big
+// value, a sparkline of the series' recent past (its latest point
+// emphasised; decorative, aria-hidden) and one muted line for the unit and
+// period. Hovering or focusing a metric lights the same series in a part 1
+// chart on screen, and swaps its unit line for the release dates. The
+// panel's sources and its two definitions sit behind its one "Sources and
+// notes" button (components/ui/SourceLine.jsx). It is the home of these six
 // figures, and of GDP's year-on-year growth (the GDP sub-line): the step
-// cards below do not repeat them. Business AI use moved to the AI scene's
-// closing line (T3). Each value is marked with its data-path.
+// cards below do not repeat them. Each value is marked with its data-path.
+// Motion only through the shared entry hooks (useEntry, useEnterState):
+// the sparklines draw and the numbers settle once, the final value always
+// shown; landed or reduced motion, drawn at once.
 
 // "September 2026 (Wave 165, ...)" -> "Sep 2026"; "June to August 2026" ->
 // "Jun–Aug 2026"; quarters and years as they are
@@ -29,6 +36,9 @@ const periodOf = (p) =>
 export const VITALS = [
   {
     key: 'gdp',
+    series: 'gdp_quarterly',
+    last: 12,
+    marks: ['gdp-annual', 'gdp-latest', 'q-now', 'q-past'],
     fact: 'gdp_quarterly_latest',
     icon: 'gdp',
     name: 'GDP',
@@ -37,6 +47,9 @@ export const VITALS = [
   },
   {
     key: 'productivity',
+    series: 'productivity_oph',
+    last: 12,
+    marks: ['productivity'],
     fact: 'productivity_oph_latest',
     icon: 'productivity',
     name: 'Output per hour',
@@ -45,6 +58,9 @@ export const VITALS = [
   },
   {
     key: 'employment',
+    series: 'employment_rate',
+    last: 36,
+    marks: ['employment'],
     fact: 'employment_rate_latest',
     icon: 'labour',
     name: 'Employment',
@@ -52,6 +68,9 @@ export const VITALS = [
   },
   {
     key: 'unemployment',
+    series: 'unemployment_rate',
+    last: 36,
+    marks: [],
     fact: 'unemployment_rate_latest',
     icon: 'labour',
     name: 'Unemployment',
@@ -59,6 +78,9 @@ export const VITALS = [
   },
   {
     key: 'pay',
+    series: 'pay_growth',
+    last: 36,
+    marks: ['pay'],
     fact: 'pay_growth_latest',
     icon: 'pay',
     name: 'Regular pay',
@@ -67,6 +89,9 @@ export const VITALS = [
   },
   {
     key: 'share',
+    series: 'labour_share',
+    last: 10,
+    marks: [],
     fact: 'labour_share_latest',
     icon: 'labourShare',
     name: 'Employee share',
@@ -86,23 +111,83 @@ function GdpExtra() {
   );
 }
 
-function Tile({ v }) {
+// The series' last `n` points as a sparkline: a path in a 100 x 28 box
+// (stretched to the cell; the stroke does not scale) and the latest point
+// as an HTML dot, so it stays round. Decorative: aria-hidden, no axes.
+function Spark({ v, drawn }) {
+  const s = SERIES[v.series];
+  const ys = (s?.y ?? []).slice(-v.last);
+  if (ys.length < 2) return null;
+  const lo = Math.min(...ys);
+  const hi = Math.max(...ys);
+  const span = hi - lo || 1;
+  const X = (i) => (i / (ys.length - 1)) * 100;
+  const Y = (y) => 3 + (1 - (y - lo) / span) * 22;
+  const d = ys.map((y, i) => `${i ? 'L' : 'M'}${X(i).toFixed(2)},${Y(y).toFixed(2)}`).join('');
+  const end = ys[ys.length - 1];
+  return (
+    <span className="p1-spark" aria-hidden="true">
+      <svg viewBox="0 0 100 28" preserveAspectRatio="none" focusable="false">
+        <path d={d} pathLength={1} className={`p1-spark-line${drawn ? ' is-drawn' : ''}`} />
+      </svg>
+      <span className={`p1-spark-dot${drawn ? ' is-drawn' : ''}`} style={{ left: '100%', top: `${(Y(end) / 28) * 100}%` }} />
+    </span>
+  );
+}
+
+// light (or clear) a metric's series in the part 1 figures on screen
+function lightSeries(marks, on) {
+  if (typeof document === 'undefined') return;
+  document.querySelectorAll('[data-vital-hl]').forEach((f) => f.removeAttribute('data-vital-hl'));
+  document.querySelectorAll('[data-vital-on]').forEach((m) => m.removeAttribute('data-vital-on'));
+  if (!on || !marks.length) return;
+  const V = window.innerHeight;
+  for (const fig of document.querySelectorAll('.p1-figure')) {
+    const r = fig.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > V || !r.height) continue;
+    const hit = fig.querySelectorAll(marks.map((m) => `[data-mark="${m}"]`).join(', '));
+    if (!hit.length) continue;
+    fig.setAttribute('data-vital-hl', '');
+    hit.forEach((m) => m.setAttribute('data-vital-on', ''));
+  }
+}
+
+function Tile({ v, drawn, instant }) {
+  const [hot, setHot] = useState(false);
   const f = FACTS[v.fact];
   const path = `facts.${v.fact}.value`;
   const text = (v.format ?? pct1)(f.value);
+  const src = SOURCES[f.source] ?? {};
+  const on = (x) => () => {
+    setHot(x);
+    lightSeries(v.marks, x);
+  };
   return (
-    <li id={`p1-vital-${v.key}`} className="p1-vital" data-vital={v.key}>
+    <li
+      id={`p1-vital-${v.key}`}
+      className={`p1-vital${hot ? ' is-hot' : ''}${drawn ? ' is-drawn' : ''}${instant ? ' is-instant' : ''}`}
+      data-vital={v.key}
+      tabIndex={0}
+      onMouseEnter={on(true)}
+      onMouseLeave={on(false)}
+      onFocus={on(true)}
+      onBlur={on(false)}
+    >
       {v.key === 'gdp' ? <span id="p1-quarters" className="p1-anchor" aria-hidden="true" /> : null}
-      <p className="p1-vital-name">
-        <Icon name={iconFor(v.icon)} size={15} className="p1-text-icon" />
-        {v.name}
-      </p>{' '}
+      <p className="p1-vital-name">{v.name}</p>{' '}
       <p className="p1-vital-value">
         <span data-path={path}>{text}</span>
       </p>{' '}
+      <Spark v={v} drawn={drawn} />
       <p className="p1-vital-sub">
-        {v.growth ? `${dirWord(f.value)} ${v.label}` : v.label}, {periodOf(f.period)}
-        {v.key === 'gdp' ? <GdpExtra /> : null}
+        <span className="p1-vital-sub-rest">
+          {v.growth ? `${dirWord(f.value)} ${v.label}` : v.label} · {periodOf(f.period)}
+          {v.key === 'gdp' ? <GdpExtra /> : null}
+        </span>
+        <span className="p1-vital-sub-hot">
+          {src.released ? `Released ${fmtDate(src.released)}` : null}
+          {src.next_release ? ` · next ${fmtDate(src.next_release)}` : null}
+        </span>
       </p>
     </li>
   );
@@ -132,17 +217,20 @@ const SRC = [
 ];
 
 export default function Vitals() {
+  const [ref, entry] = useEntry();
+  // drawn once entered (at once when landed by a jump, or reduced motion)
+  const drawn = useEnterState(false, true, entry.entered, 150) || (entry.entered && entry.instant);
   return (
-    <section id="p1-vitals" className="p1-vitals" aria-labelledby="p1-vitals-title">
+    <section id="p1-vitals" ref={ref} className="p1-vitals" aria-labelledby="p1-vitals-title">
       <h3 id="p1-vitals-title" className="p1-vitals-title">
         <Icon name={iconFor('record')} size={18} className="p1-text-icon" /> UK vitals: the latest published figures
+        <SourceLine items={SRC} notes={NOTES} />
       </h3>
       <ul className="p1-vitals-grid">
         {VITALS.map((v) => (
-          <Tile key={v.key} v={v} />
+          <Tile key={v.key} v={v} drawn={drawn} instant={entry.instant} />
         ))}
       </ul>
-      <SourceLine items={SRC} notes={NOTES} />
     </section>
   );
 }

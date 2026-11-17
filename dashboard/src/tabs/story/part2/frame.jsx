@@ -17,7 +17,7 @@ export const W = 400;
 export const H = 250;
 const M = { l: 36, r: 14, t: 16, b: 28 };
 
-// The source line under every model figure (sources.jsx): linked.
+// The "Sources and notes" button of every model figure (sources.jsx).
 export const SOURCE = <ModelSource />;
 
 // About four round ticks over [lo, hi].
@@ -219,8 +219,11 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
   return (
     <figure className={`p2-figure ${className}`}>
       <ModelBadge model={model} />
-      <p className="story-figure-title">
-        <Tx icon={icon}>{title}</Tx>
+      <p className="story-figure-title p2-title-row">
+        <span>
+          <Tx icon={icon}>{title}</Tx>
+        </span>
+        {source}
       </p>
       {unit ? (
         <p className="story-figure-unit">{unit}</p>
@@ -242,18 +245,8 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
           {xTitle}
         </span>
       ) : null}
-      {/* desktop: the source in the frame; phones: in the Scrolly foot
-          (PhoneFoot), so the pinned figure fits 45% of the screen */}
-      <figcaption className="story-source p2-src-in">{source}</figcaption>
     </figure>
   );
-}
-
-// A figure's source line for phones, passed as the Scrolly's `foot`: printed
-// after the last card there, hidden on desktop (where the figure's own
-// figcaption shows), so a pinned figure stays within 45% of the screen.
-export function PhoneFoot({ children }) {
-  return <p className="story-source p2-src-phone">{children}</p>;
 }
 
 // "Figures: <link>" at the foot of a step card.

@@ -41,8 +41,11 @@ export const REFS = {
 };
 
 // An external source, named and linked; `children` overrides the label.
-export function Ref({ id, children }) {
+// `plain`: the name only, no link (in step text and chart rows, where
+// citations are not linked: the figure's "Sources and notes" lists them).
+export function Ref({ id, children, plain = false }) {
   const r = REFS[id];
+  if (plain) return <span className="p3-cite">{children ?? r.label}</span>;
   return (
     <a href={r.url} target="_blank" rel="noreferrer" title={r.title} className="p3-ref">
       {children ?? r.label}

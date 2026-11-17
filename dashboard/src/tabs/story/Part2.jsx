@@ -7,9 +7,8 @@ import { HEADLINE_YEAR, SCEN_NAME } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
-import { WelfareShape, WelfareSource } from './part2/charts.jsx';
-import { MorphChart, SourceText } from './part2/Morph.jsx';
-import { PhoneFoot } from './part2/frame.jsx';
+import { WelfareShape } from './part2/charts.jsx';
+import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
 import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, whoCardSteps, partMarks, Say } from './part2/steps.jsx';
@@ -101,11 +100,6 @@ export default function Part2({ part }) {
         sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer }}
         label="From GDP growth to the gap against the OBR-central path, then the four scenarios and the headline figures"
         steps={[...morphCardSteps(sid, cl), headlineStep(sid)]}
-        foot={
-          <PhoneFoot>
-            <SourceText s={4} all />
-          </PhoneFoot>
-        }
         graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
       />
 
@@ -117,11 +111,6 @@ export default function Part2({ part }) {
         sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer }}
         label="Welfare change by birth year"
         steps={whoCardSteps()}
-        foot={
-          <PhoneFoot>
-            <WelfareSource />
-          </PhoneFoot>
-        }
         graphic={(i) => <WelfareShape state={i} />}
       />
     </MarkProvider>

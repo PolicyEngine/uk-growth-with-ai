@@ -6,7 +6,9 @@ import { useReducedMotion } from '@/components/story/motion.js';
 import { useLiveInView } from './live.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { Tx } from './frame.jsx';
-import { A, SRC } from './sources.jsx';
+import { SRC } from './sources.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem } from '@/lib/sourceItems.js';
 
 // The shock, illustrated: one tile is one per cent of output. Labour's
 // tiles on the left, capital's on the right. Step 1 moves tiles from labour
@@ -92,8 +94,18 @@ export default function ShockTiles({ state }) {
   return (
     <figure ref={ref} className="p2-figure p2-shock-fig" data-state={s} data-no-axes="an illustrative tile grid: one tile is one per cent of output">
       <ModelBadge model="illustration" />
-      <p className="story-figure-title">
-        <Tx icon="gdp">Who output is paid to</Tx>
+      <p className="story-figure-title p2-title-row">
+        <span>
+          <Tx icon="gdp">Who output is paid to</Tx>
+        </span>
+        <SourceLine
+          items={[
+            docItem('Scenario inputs: SIP/2026/072', SRC.imfSip, 'International Monetary Fund'),
+            docItem('Scenario inputs: Korinek et al. (2026)', SRC.korinekT3, 'Korinek et al.'),
+            docItem('Scenario inputs: Briefing paper No.9', SRC.bp9, 'Office for Budget Responsibility'),
+          ]}
+          notes={['Illustration, not model output.']}
+        />
       </p>
       <p className="story-figure-unit">
         One tile is one per cent of output before the shock. Illustrative: sizes are exaggerated.
@@ -105,10 +117,6 @@ export default function ShockTiles({ state }) {
         </div>
         <TileField tiles={shockTiles(s)} width={COLS * 2 + GAP} height={ROWS} label={LABELS[s]} />
       </div>
-      <figcaption className="story-source">
-        Illustration, not model output. Scenario inputs: <A href={SRC.imfSip}>IMF, SIP/2026/072</A>; <A href={SRC.korinekT3}>Korinek et al. (2026)</A>;{' '}
-        <A href={SRC.bp9}>OBR, Briefing paper No.9</A>.
-      </figcaption>
     </figure>
   );
 }

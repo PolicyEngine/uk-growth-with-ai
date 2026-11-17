@@ -135,6 +135,7 @@ function DecilesFigure({ ctx }) {
         x="Income decile, 1 = bottom"
         unit={`Central case, ${DEC.draws} draws`}
         replay={e.replay}
+        source={<DecilesSource />}
       />
       <ol className="p3-rows p3-deciles">
         {VALUES.map((v, i) => {
@@ -200,28 +201,35 @@ const DECILE_MARKS = Object.fromEntries(
   ]),
 );
 
-// The figure's notes and source line, as the Scrolly's foot (round 2,
-// phones): inside the card on desktop, after the cards at 900px and below,
-// so a pinned phone figure is the chart alone.
-function DecilesNotes() {
+// The figure's notes and sources, behind its "Sources and notes" button.
+function DecilesSource() {
   return (
-    <>
-      <p className="p3-key">
-        Where each decile’s lost earnings go, in a smaller run:{' '}
-        <NavLink tab="explore" sub="households" anchor="hh-absorb">
-          Explore, households
-        </NavLink>
-        .
-      </p>
-      <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>each household weighted by its members</Source>
-    </>
+    <Source
+      files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}
+      groups={[
+        {
+          title: 'More',
+          notes: [
+            <>
+              Where each decile’s lost earnings go, in a smaller run:{' '}
+              <NavLink tab="explore" sub="households" anchor="hh-absorb">
+                Explore, households
+              </NavLink>
+              .
+            </>,
+          ],
+        },
+      ]}
+    >
+      each household weighted by its members
+    </Source>
   );
 }
 
 export default function Deciles() {
   return (
     <MarkProvider marks={DECILE_MARKS}>
-      <Scrolly id="p3-deciles" scene foot={<DecilesNotes />} sub={DECILES_SUB} steps={asLines(DECILE_STEPS)} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
+      <Scrolly id="p3-deciles" scene sub={DECILES_SUB} steps={asLines(DECILE_STEPS)} graphic={(i, r, ctx) => <DecilesFigure ctx={ctx} />} label="Change in household disposable income by income decile" />
     </MarkProvider>
   );
 }

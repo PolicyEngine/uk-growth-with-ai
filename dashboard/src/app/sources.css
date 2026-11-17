@@ -1,0 +1,205 @@
+/* The quiet "Sources and notes" button (components/ui/SourceLine.jsx):
+   one small plain BookOpen icon after every figure title; the sources,
+   the period and the notes open behind it, in a popover (a bottom sheet
+   on phones). */
+
+.src-line {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 6px;
+  line-height: 1;
+}
+.src-line-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--pe-gray-500, #6b7280);
+  cursor: pointer;
+}
+.src-line-icon {
+  display: inline-flex;
+}
+.src-line-btn:hover,
+.src-line-btn[aria-expanded='true'] {
+  color: var(--pe-teal-700, #0f766e);
+  background: var(--pe-gray-100, #f3f4f6);
+}
+.src-line-btn:focus-visible {
+  outline: 2px solid var(--pe-teal-700, #0f766e);
+  outline-offset: 1px;
+}
+
+/* the popover */
+.src-pop {
+  position: absolute;
+  z-index: 1000;
+  max-height: min(60vh, 420px);
+  overflow: auto;
+  padding: 10px 14px 12px;
+  background: #fff;
+  border: 1px solid var(--pe-gray-200, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(16 24 40 / 0.12);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--pe-gray-700, #374151);
+  text-align: left;
+}
+.src-pop.is-above {
+  transform: translateY(-100%);
+}
+.src-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.src-pop-title,
+.src-pop-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pe-gray-900, #111827);
+}
+.src-pop-sub {
+  display: block;
+  margin-top: 10px;
+}
+.src-pop-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px -8px -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--pe-gray-500, #6b7280);
+  cursor: pointer;
+}
+.src-pop-close:hover {
+  color: var(--pe-gray-900, #111827);
+}
+.src-pop-list,
+.src-pop-notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.src-pop-item {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  border-top: 1px solid var(--pe-gray-100, #f3f4f6);
+}
+.src-pop-item:first-child {
+  border-top: 0;
+}
+.src-pop-link {
+  color: var(--pe-teal-700, #0f766e);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.src-pop-name {
+  color: var(--pe-gray-900, #111827);
+}
+.src-pop-meta {
+  color: var(--pe-gray-500, #6b7280);
+}
+.src-pop-notes li {
+  padding: 4px 0;
+}
+.src-pop-notes a {
+  color: var(--pe-teal-700, #0f766e);
+}
+
+/* phones: a bottom sheet over a dimmed page */
+.src-pop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgb(16 24 40 / 0.28);
+}
+.src-pop.is-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  max-height: 70vh;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 12px 12px 0 0;
+  border-bottom: 0;
+  font-size: 14px;
+  transform: none;
+}
+.src-pop.is-sheet .src-pop-item {
+  padding: 9px 0;
+}
+.src-pop.is-sheet .src-pop-title,
+.src-pop.is-sheet .src-pop-sub {
+  font-size: 14px;
+}
+
+
+.src-pop-pubs {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--pe-gray-500, #6b7280);
+}
+.src-pop-through {
+  margin: 8px 0 0;
+  color: var(--pe-gray-700, #374151);
+}
+.src-pop-group + .src-pop-group {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pe-gray-200, #e5e7eb);
+}
+.src-pop-group .src-pop-sub {
+  margin: 0 0 4px;
+  text-transform: none;
+}
+/* the one muted essential caveat a figure may keep under its chart */
+.src-essential {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pe-gray-500, #6b7280);
+}
+
+/* a figure title with its "Sources and notes" button after it */
+.p2-title-row,
+.p3-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+.p1-title-row > .src-line,
+.p2-title-row > .src-line,
+.p3-title-row > .src-line,
+.ch-title > .src-line {
+  flex: none;
+  margin-left: 4px;
+  margin-top: 1px;
+}
+/* the hero's figure has no title: its button sits at the frame's top right */
+.story-hero-art {
+  position: relative;
+}
+.hf-src {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+}
