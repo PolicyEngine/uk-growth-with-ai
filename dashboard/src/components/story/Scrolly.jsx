@@ -240,6 +240,84 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const el = document.getElementById(steps[cardSteps[k]].id);
     if (el) goToStep(el, box.current, reduce);
   };
+  // The active step's sentence sits against the chart (round 1, Vahid:
+  // "these kind of text are like in nowhere in space"). Desktop, several
+  // cards: the active card is moved (a transform, written each frame; the
+  // card stays in its list item, so the scroll that drives the steps, the
+  // links and the text are unchanged) level with the mark it names
+  // (step.anchor, else its first highlight id: the figure's [data-mark]),
+  // or near the figure's top for a step that names none, in the column
+  // 24px from the chart; inactive cards fade out entirely. Phones, a sticky
+  // scene: the active card is overlaid on the chart's foot.
+  const anchorRef = useRef(null);
+  useEffect(() => {
+    anchorRef.current = { shown, steps };
+  });
+  const anchored = !single && !inline && !once && (!phone || sticky);
+  useEffect(() => {
+    if (!anchored || typeof window === 'undefined') return undefined;
+    let raf = 0;
+    const place = () => {
+      raf = 0;
+      const g = live.current;
+      const col = stepsCol.current;
+      if (!g || !col) return;
+      const V = window.innerHeight;
+      const fig = g.getBoundingClientRect();
+      // only while the figure is on screen; elsewhere every card in place
+      if (fig.bottom < 0 || fig.top > V) {
+        col.querySelectorAll('.scrolly-card').forEach((c) => {
+          c.style.transform = '';
+        });
+        return;
+      }
+      if (!anchorRef.current) return;
+      const { shown: i, steps: st } = anchorRef.current;
+      const step = st[i];
+      if (!step) return;
+      const li = [...col.children].find((c) => c.id === step.id);
+      const card = li?.querySelector('.scrolly-card');
+      if (!card) return;
+      for (const c of col.querySelectorAll('.scrolly-card')) if (c !== card) c.style.transform = '';
+      const H = card.offsetHeight;
+      const liTop = li.getBoundingClientRect().top;
+      const desk = window.innerWidth > 900;
+      let y;
+      if (desk) {
+        const ids = normIds(step.anchor ?? step.highlight);
+        const sel = ids.map((id) => `[data-mark~="${String(id).replace(/"/g, '')}"]`).join(',');
+        const mark = sel ? g.querySelector(sel) : null;
+        const r = mark?.getBoundingClientRect();
+        y = r && r.height + r.width > 0 ? r.top + r.height / 2 - H / 2 : fig.top + 48;
+        const rail = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
+        y = Math.min(Math.max(y, fig.top + 8, rail + 8), Math.max(fig.top + 8, fig.bottom - H - 8), V - H - 8);
+      } else {
+        y = fig.bottom - H - 10;
+      }
+      // never outside its own block's column
+      const cr = col.getBoundingClientRect();
+      y = Math.min(Math.max(y, cr.top), Math.max(cr.top, cr.bottom - H));
+      card.style.transform = `translateY(${Math.round(y - liTop)}px)`;
+    };
+    const on = () => {
+      if (!raf) raf = window.requestAnimationFrame(place);
+    };
+    place();
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(on);
+    if (ro) ro.observe(live.current);
+    const col = stepsCol.current;
+    return () => {
+      window.removeEventListener('scroll', on);
+      window.removeEventListener('resize', on);
+      ro?.disconnect();
+      if (raf) window.cancelAnimationFrame(raf);
+      col?.querySelectorAll('.scrolly-card').forEach((c) => {
+        c.style.transform = '';
+      });
+    };
+  }, [anchored, shown]);
   const pinBottom = steps[active]?.pin === 'bottom';
   // pin a figure by its foot while a `pin: 'bottom'` step is active (desktop)
   useEffect(() => {
@@ -315,7 +393,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     <EntryCtx.Provider value={entryValue}>
     <HighlightCtx.Provider value={hl}>
     <div
-      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}`}
+      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}`}
       id={id}
     >
       {question && pinFull && !inline ? (
