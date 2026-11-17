@@ -108,8 +108,8 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
-        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against the OBR-central path: <A href={URLS.ogUk}>OG-UK</A>
-        &rsquo;s no-shock path. {SURPRISE_YEAR} is a modelling choice, not a forecast
+        {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'closed capital' : 'central closure'}, {HEADLINE_YEAR}, against <A href={URLS.ogUk}>OG-UK</A>
+        &rsquo;s OBR-central path. {SURPRISE_YEAR} is a modelling choice, not a forecast
         <InfoTip label="What is the OBR-central path?">
           The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
           <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). It is defined under {METHOD.shock.label} on Method.
@@ -200,7 +200,7 @@ export function debtLine(sid, cl) {
   if (d == null) return null;
   const r = gap(sid, 'tfp', cl, 'r_bp', LATE_YEAR);
   const where = Math.abs(d) < 0.005 ? 'ends on the path' : d > 0 ? 'ends above the path' : 'ends below the path';
-  const why = d > 0.005 && r != null && r > 0 ? ': spending keeps its share of GDP, and all debt is repriced at once at higher rates' : ', under the common fiscal rule';
+  const why = d > 0.005 && r != null && r > 0 ? ': spending keeps its share of GDP, and debt is repriced at once at higher rates' : ', under the common fiscal rule';
   return `Public debt ${where} in ${LATE_YEAR}${why}`;
 }
 
@@ -231,7 +231,7 @@ export function SummaryWhy({ sid }) {
           {sh.capital ? `Technology unchanged alone gives ${sh.capital} the GDP gain, through capital drawn in` : ''}
           {sh.capital && sh.nni ? '; n' : sh.nni ? 'N' : ''}
           {sh.nni ? `et national income rises ${sh.nni} as much as GDP` : ''}:{' '}
-          <NavLink tab="explore" sub="economy">
+          <NavLink tab="explore" sub="economy" anchor="income">
             Economy
           </NavLink>
           .
@@ -240,7 +240,7 @@ export function SummaryWhy({ sid }) {
       {debt ? (
         <p className="p2-note">
           {debt}:{' '}
-          <NavLink tab="explore" sub="finances">
+          <NavLink tab="explore" sub="finances" anchor="public-finances">
             Public finances
           </NavLink>
           .

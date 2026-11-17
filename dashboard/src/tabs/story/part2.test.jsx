@@ -87,13 +87,13 @@ describe('story part 2', () => {
     expect(container.querySelectorAll('.story-source')).toHaveLength(4); // the output split's two charts share one foot
     const hrefs = [...container.querySelectorAll('#story-part-2 a')].map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/?tab=explore&sub=who&s=uk_high&closure=both');
-    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_high&closure=both#public-finances');
     // the Scenarios sub-tab folded into OG-UK method
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
     // the caveats link the figures' homes: the closures (pay), Economy (capital drawn in, NNI)
     expect(hrefs.some((h) => h.startsWith('/?tab=explore') && h.endsWith('#explore-part-all'))).toBe(true);
-    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both');
+    expect(hrefs).toContain('/?tab=explore&s=uk_high&closure=both#economy-wall');
     // no next-part band, no per-step result-file lines or folds
     expect(container.querySelector('.story-next-links')).toBeNull();
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
@@ -105,10 +105,10 @@ describe('story part 2', () => {
     expect(head).not.toBeNull();
     expect(head.closest('.scrolly-step').id).toBe('p2-headline');
     expect(container.querySelector('#p2-arms, .p2-pair')).toBeNull();
-    // one link line to the arms' homes
+    // the arms' homes (nav maps Explore's #income to #economy-wall)
     const hrefs = [...head.querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('/?tab=explore&s=uk_low&closure=both');
-    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_low&closure=both');
+    expect(hrefs).toContain('/?tab=explore&s=uk_low&closure=both#economy-wall');
+    expect(hrefs).toContain('/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances');
   });
 });
 
