@@ -8,6 +8,7 @@ import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { PageNotes } from '@/components/ui/PageIntro.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
 import { D, MODEL_YEAR as PART3_YEAR, NO_CLEAN_RERUN, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
 import { AI_FULL_RERUN, AI_STUDY } from '@/tabs/code/ledger.js';
@@ -87,11 +88,12 @@ export default function HouseholdsMethod() {
     <div className="page-with-contents mx-tab hm-page">
       <OnThisPage tab="method" sub="households" sections={SECTIONS} label="Household method contents" />
       <div className="page-body">
-        <header className="hh-lead">
-          <p className="hh-question page-q">
-            <Icon name={iconFor('households')} size={18} />
-            <span>How does the household study produce its results?</span>
-          </p>
+        <header className="hh-lead page-intro">
+          <div className="page-kicker-row">
+            <p className="page-kicker">uk-ai-study · households in {MODEL_YEAR} if some employees lose their jobs</p>
+            <PageNotes />
+          </div>
+          <h2 className="hh-question page-q">How does the household study produce its results?</h2>
           <p className="hh-answer">
             <IconText icon="jobLoss">
               On a calibrated sample of UK households, the study removes the earnings of employees chosen at random, weighted by AI exposure, for

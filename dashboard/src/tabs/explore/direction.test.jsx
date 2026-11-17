@@ -75,8 +75,8 @@ describe('the answer chips that open Economy and Public finances', () => {
             if (fn === economyAnswer && items.why) {
               const ls = val(sid, 'tfp', cl, 'labour_share_pp', rule);
               expect(items.why[0].dir).toBe(ls);
-              expect(items.why[0].text).toContain(word(ls));
-              expect(items.why[1].text).toBe(ls < -0.005 ? 'Pay grows less than output' : ls > 0.005 ? 'Pay grows more than output' : 'Pay keeps pace with output');
+              expect(items.why[0].text).toContain({ above: '↑', below: '↓', on: 'unchanged' }[word(ls)]);
+              expect(items.why[1].text).toBe(ls < -0.005 ? 'pay grows less than output' : ls > 0.005 ? 'pay grows more than output' : 'pay keeps pace with output');
             }
           }
         });

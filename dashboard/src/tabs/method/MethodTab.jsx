@@ -213,7 +213,7 @@ export default function MethodTab() {
       <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
       <div className="page-body">
         <PageIntro
-          icon={iconFor('equation')}
+          kicker="OG-UK · gaps against the OBR-central path, not forecasts"
           question="How does OG-UK turn an AI scenario into these results?"
           answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR-central path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the AI shock. Not a forecast.</IconText>}
         >

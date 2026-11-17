@@ -36,33 +36,10 @@ import { TABS, tabById, pickersFor, PAGE_TITLE } from "@/lib/labels.js";
 // anchor's scroll-margin reads. Which pickers show is set per tab and
 // sub-tab (labels.js). All state lives in the address (lib/nav.jsx).
 
-// What each page's results can and cannot say, and the "As of" stamp: one
-// meta line under the tabs (round 1: the scope lines and "As of" were three
-// lines with an icon each; now one line, no icon, middle dots between).
-const SCOPE = {
-  oguk: {
-    text: "OG-UK: gaps against the OBR-central path, not forecasts; no unemployment",
-  },
-  study: {
-    text: `uk-ai-study: households in ${AI_STUDY.model_year_label} if some employees lose their jobs`,
-  },
-};
-const scopeFor = (tab, sub) => {
-  if (tab === "explore")
-    return sub === "households" ? [SCOPE.study] : [SCOPE.oguk];
-  if (tab === "method")
-    return sub === "households"
-      ? [SCOPE.study]
-      : sub === "how"
-        ? [SCOPE.oguk]
-        : [SCOPE.oguk, SCOPE.study];
-  // the Story: one plain line for both models (review T8)
-  return [
-    {
-      text: `Two models. OG-UK: the whole economy. uk-ai-study: households in ${AI_STUDY.model_year_label}`,
-    },
-  ];
-};
+// The Story's one meta line under the tabs: both models in a plain line,
+// and the "As of" stamp. On Explore and Method the scope is each page's
+// model kicker and "As of" is in its sources-and-notes icon (PageIntro.jsx).
+const STORY_SCOPE = `Two models. OG-UK: the whole economy. uk-ai-study: households in ${AI_STUDY.model_year_label}`;
 
 const PANELS = {
   story: StoryTab,
@@ -148,19 +125,17 @@ function Shell() {
       </div>
       {settings ? <SettingsBar pick={pick} /> : null}
       <div className="main-content" id="main-content" tabIndex={-1}>
-        <p className="scope-line" data-cite="">
-          {pick.study && settings
-            ? null
-            : scopeFor(st.tab, sub).map((t) => (
-                <span key={t.text} className="scope-item">
-                  <Hy>{t.text}</Hy>
-                  <span className="scope-sep" aria-hidden="true">
-                    {" · "}
-                  </span>
-                </span>
-              ))}
-          <AsOf inline />
-        </p>
+        {inRow ? null : (
+          <p className="scope-line" data-cite="">
+            <span className="scope-item">
+              <Hy>{STORY_SCOPE}</Hy>
+              <span className="scope-sep" aria-hidden="true">
+                {" · "}
+              </span>
+            </span>
+            <AsOf inline />
+          </p>
+        )}
         {TABS.map(({ id }) => {
           const Panel = PANELS[id];
           return visited[id] || id === st.tab ? (
