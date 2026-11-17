@@ -13,7 +13,7 @@
   --settings-height: 46px;
   --title-row-height: var(--band-height);
   --tab-row-height: var(--tabs-height);
-  --sticky-offset: calc(var(--band-height) + var(--tabs-height));
+  --sticky-offset: calc(var(--tabs-height) + 1px);
   --series-1-text: #0f766e;
   --series-5-text: #475569;
   --series-3-text: #0369a1;
@@ -54,10 +54,10 @@
   top: 8px;
 }
 
-/* ---------- Title band: the page title and the two global pickers ---------- */
+/* ---------- Title band: the page title and the two global pickers ----------
+   It scrolls away on every tab (the sticky stack is the tab rows only). */
 .band {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 1100;
   display: flex;
   align-items: center;
@@ -217,8 +217,8 @@ html[data-nav-pending] .app .main-content {
   visibility: hidden;
   animation: nav-pending-reveal 0s linear 5s forwards;
 }
-html[data-nav-pending] .app .tabs-bar {
-  margin-bottom: calc(var(--settings-height) + 1px);
+html[data-nav-pending] .app .sticky-stack {
+  margin-bottom: calc(var(--subtabs-height) + var(--settings-height) + 2px);
 }
 html[data-nav-pending] .app .tabs-bar .view-tab {
   visibility: hidden;
@@ -231,21 +231,26 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 }
 
 /* ---------- Tab rows and the sticky stack ----------
-   Story: the title band (with the scenario and closure pickers) and the tab
-   row stick; the rail sticks under them (story.css). Explore and Method
-   (.has-subs): the title band scrolls away, which is how the header
-   condenses; the tab row sticks at the top with the sub-tabs beside the
-   tabs, and on Explore the settings bar sticks under it. The stack is at
-   most 92px tall on desktop (tab row 45, settings bar 47). At 900px and
-   below the sub-tabs are their own row that scrolls sideways. Each bar is
-   solid and the last one casts a soft shadow once the page has scrolled
-   (data-stuck, page.jsx). --sticky-offset is the stack's height: every
-   anchor's scroll-margin, the page contents and lib/scroll.js read it (the
-   last by measuring the [data-sticky-bar] elements). */
-.tabs-bar {
+   One sticky block (.sticky-stack, page.jsx) at the top of every tab: the
+   tab row (44px), and on Explore and Method the sub-tab header under it
+   (40px): the sub-tabs as a secondary level (smaller, an underline, no
+   tint), then on the right the settings chip (or, on a uk-ai-study page,
+   the "different model" chip) and the copy-link icon. 86px stuck on
+   desktop, 80px at 600px and below; the Story's rail sticks under the tab
+   row (story.css). The title band and the settings bar scroll away. The
+   stack casts a soft shadow once the page has scrolled (data-stuck). No
+   label is cut: the sub-tabs scroll sideways with fade edges only when
+   they do not fit (phones), and the chip drops whole segments.
+   --sticky-offset is the stack's height: every anchor's scroll-margin,
+   the page contents and lib/scroll.js read it (the last by measuring the
+   [data-sticky-bar] elements). */
+.sticky-stack {
   position: sticky;
-  top: var(--band-height);
+  top: 0;
   z-index: 1090;
+  background: var(--pe-surface);
+}
+.tabs-bar {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -254,16 +259,24 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   border-bottom: 1px solid var(--card-border);
 }
 .tabs-bar > .view-tabs-bar {
-  flex: none;
+  flex: 0 1 auto;
   min-width: 0;
+}
+.subhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: calc(var(--subtabs-height) + 1px);
+  padding: 0 var(--bar-pad-x);
+  background: var(--page-bg);
+  border-bottom: 1px solid var(--card-border);
 }
 .subtabs-bar {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   align-items: center;
   min-width: 0;
-  padding-left: 12px;
-  border-left: 1px solid var(--card-border);
+  margin-right: auto;
 }
 .subtabs-bar > .view-tabs-bar {
   min-width: 0;
@@ -285,52 +298,59 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   font-size: var(--fs-body);
 }
 .subtabs-bar .view-tabs-bar.is-sub .view-tabs {
-  height: var(--tabs-height);
+  height: var(--subtabs-height);
 }
 .subtabs-bar .view-tab {
+  padding: 0 10px;
   font-size: var(--fs-small);
+  font-weight: 500;
+}
+.subtabs-bar .view-tab[aria-selected='true'] {
+  font-weight: 600;
+}
+.subtabs-bar .view-tab:hover {
+  background: none;
+}
+.subtabs-bar .view-tabs-indicator {
+  background: none;
+}
+.subtabs-bar .view-tabs-indicator::after {
+  left: 10px;
+  right: 10px;
+  height: 2px;
 }
 .view-tab {
   min-width: 44px;
 }
 .app.has-subs {
-  --sticky-offset: calc(var(--tabs-height) + 1px);
-}
-.app.has-subs.has-settings {
-  --sticky-offset: calc(var(--tabs-height) + var(--settings-height) + 2px);
-}
-.app.has-subs .band {
-  position: relative;
-  top: auto;
-}
-.app.has-subs .tabs-bar {
-  top: 0;
+  --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
 }
 .app[data-stuck]:not(.has-subs) .story-rail,
-.app[data-stuck].has-subs:not(.has-settings) .tabs-bar,
-.app[data-stuck] .settings-bar {
+.app[data-stuck].has-subs .sticky-stack {
   box-shadow: 0 6px 12px -8px var(--shadow-strong);
 }
 
-/* Copy this view (SettingsBar.jsx CopyLink): at the end of the tab row */
+/* Copy this view (SettingsBar.jsx CopyLink): an icon button at the end of
+   the tab row (Story) or of the sub-tab header */
 .copy-link {
   display: inline-flex;
   flex: none;
-  gap: 6px;
   align-items: center;
+  justify-content: center;
+  width: 32px;
   height: 32px;
-  margin-left: auto;
-  padding: 0 10px;
-  font: inherit;
-  font-size: var(--fs-caption);
+  padding: 0;
   color: var(--pe-gray-600);
-  white-space: nowrap;
   background: none;
   border: 1px solid transparent;
   border-radius: var(--pe-radius-md);
   cursor: pointer;
 }
-.copy-link:hover {
+.tabs-bar > .copy-link {
+  margin-left: auto;
+}
+.copy-link:hover,
+.copy-link.is-done {
   color: var(--pe-gray-900);
   border-color: var(--card-border);
 }
@@ -339,10 +359,229 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   outline-offset: 2px;
 }
 
-/* The settings bar (SettingsBar.jsx): one row of compact choices */
+/* The settings chip (SettingsBar.jsx SettingsChip): shown once the settings
+   bar has gone under the stack (data-condensed; until then it takes no
+   room, which changes the row's width only); it gives up width before
+   the sub-tabs do, dropping whole segments (never an ellipsis) */
+.settings-chip-wrap {
+  position: relative;
+  display: none;
+  flex: 0 1000 auto;
+  min-width: 58px;
+}
+.app[data-condensed] .settings-chip-wrap,
+.settings-chip-wrap.is-open {
+  display: flex;
+}
+.settings-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  height: 30px;
+  padding: 0 8px 0 10px;
+  font: inherit;
+  font-size: var(--fs-caption);
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--pe-gray-800);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.settings-chip:hover,
+.settings-chip[aria-expanded='true'] {
+  background: var(--pe-teal-50);
+  border-color: var(--pe-teal-500);
+}
+.settings-chip:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 2px;
+}
+.settings-chip-icon,
+.settings-chip-chevron {
+  display: inline-flex;
+  flex: none;
+  color: var(--pe-gray-500);
+}
+.settings-chip[aria-expanded='true'] .settings-chip-chevron {
+  transform: rotate(180deg);
+}
+.settings-chip-text {
+  display: inline-flex;
+  min-width: 0;
+  overflow: hidden;
+}
+.settings-chip-seg {
+  flex: none;
+}
+.settings-chip-seg[hidden] {
+  display: none;
+}
+.settings-chip-seg + .settings-chip-seg::before {
+  content: '·';
+  margin: 0 6px;
+  color: var(--pe-gray-400);
+}
+/* the popover: every picker the page reads, under the chip */
+.settings-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1300;
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100vh - var(--sticky-offset) - 24px);
+  padding: 8px 14px 14px;
+  overflow-y: auto;
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px -8px var(--shadow-strong);
+}
+.settings-pop[hidden],
+.settings-scrim[hidden] {
+  display: none !important;
+}
+.settings-pop-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 4px;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--pe-gray-900);
+}
+.settings-pop .sheet-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: -8px;
+  color: var(--pe-gray-600);
+  background: none;
+  border: 0;
+  border-radius: var(--pe-radius-md);
+  cursor: pointer;
+}
+.settings-pop .sheet-close:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+}
+.sp-group + .sp-group {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
+}
+.sp-group-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--pe-gray-600);
+}
+.sp-options {
+  display: grid;
+  gap: 2px;
+}
+.sp-option {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--pe-gray-800);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.sp-option > svg,
+.sp-option > .plain-icon {
+  margin-top: 2px;
+  color: var(--pe-gray-500);
+}
+.sp-option:hover:not(.is-disabled) {
+  background: var(--c-hover, var(--pe-teal-50));
+}
+.sp-option.is-on {
+  background: var(--pe-teal-50);
+  border-color: var(--pe-teal-200);
+}
+.sp-option.is-on .sp-option-label,
+.sp-option.is-on > svg,
+.sp-option.is-on > .plain-icon {
+  font-weight: 700;
+  color: var(--band-teal);
+}
+.sp-option.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.sp-option:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 1px;
+}
+.sp-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.sp-option-label {
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+.sp-option-note {
+  font-size: var(--fs-micro);
+  color: var(--pe-gray-600);
+}
+.sp-locked {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700);
+}
+/* a uk-ai-study page: the compact "different model" chip */
+.subhead-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+  color: var(--c-notice-text);
+  text-decoration: none;
+  background: var(--c-notice-bg);
+  border: 1px solid color-mix(in srgb, var(--c-notice-text) 30%, transparent);
+  border-radius: 999px;
+}
+.subhead-chip {
+  display: none;
+}
+.app[data-condensed] .subhead-chip {
+  display: inline-flex;
+}
+.subhead-chip:hover span {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* The settings bar (SettingsBar.jsx), at rest under the stack: one row of
+   compact choices that wraps rather than clips; not sticky. The options'
+   one-line descriptions are in their tooltips and in the chip's popover. */
 .settings-bar {
-  position: sticky;
-  top: calc(var(--tabs-height) + 1px);
+  position: relative;
   z-index: 1080;
   min-height: var(--settings-height);
   padding: 0 var(--bar-pad-x);
@@ -351,14 +590,17 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 }
 .settings-row {
   display: flex;
-  gap: 8px 16px;
+  flex-wrap: wrap;
+  gap: 6px 16px;
   align-items: center;
   min-height: var(--settings-height);
-  overflow-x: auto;
-  scrollbar-width: thin;
+  padding: 6px 0;
 }
 .settings-row > * {
   flex: none;
+}
+.settings-bar .seg-option-sub {
+  display: none;
 }
 .settings-bar .picker-button {
   height: 32px;
@@ -384,6 +626,10 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   left: 0;
   right: auto;
 }
+.settings-bar .seg-option {
+  min-height: 32px;
+  padding: 2px 8px;
+}
 /* a uk-ai-study page: the different-model chip in place of the settings */
 .settings-bar.is-study {
   display: flex;
@@ -407,15 +653,15 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   text-underline-offset: 2px;
 }
 
-/* Under 1440px the settings bar is one compact row: the option sub-labels,
-   the picker labels and the group names go to the tooltips and the
-   accessible names (the text stays for screen readers) */
-@media (max-width: 1439px) {
-  .seg-option-sub {
-    display: none;
-  }
+/* Under 1440px the settings bar is compact, so it stays one row on a
+   laptop: the picker and group names go to the accessible names (visually
+   hidden, not cut; each group keeps its icon), an option with no solve is
+   left out (the wide row shows it disabled, its tooltip saying why), and
+   only the chosen option keeps its icon. At 640px and below the names show
+   again and the row wraps. */
+@media (max-width: 1439px) and (min-width: 641px) {
   .settings-bar .picker-label,
-  .seg-picker-label .seg-picker-name {
+  .settings-bar .seg-picker-name {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -423,94 +669,72 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .seg-option {
-    min-height: 32px;
-    padding: 2px 8px;
-  }
-  /* an option with no solve is left out of the compact row (the wide row
-     shows it disabled, its tooltip saying why) */
-  .seg-option.is-disabled {
+}
+@media (max-width: 1439px) {
+  .settings-bar .seg-option.is-disabled {
     display: none;
   }
-  /* option icons only on the chosen option; the copy-link label in the
-     tooltip, so the sub-tabs have the row */
-  .seg-option:not(.is-on) .plain-icon {
-    display: none;
-  }
-  .settings-row {
-    column-gap: 10px;
-  }
-  .settings-bar .picker-icon {
+  .settings-bar .seg-option:not(.is-on) .plain-icon {
     display: none;
   }
   .settings-bar .seg-option {
     padding: 2px 7px;
   }
-  .app.has-subs .copy-link-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
 }
 
-/* 900px and below: the sub-tabs are their own sticky row that scrolls
-   sideways; the settings bar's sub-labels go (tooltips keep them) and its
-   choices scroll sideways as compact chips */
-@media (max-width: 900px) {
-  .app.has-subs .tabs-bar {
-    flex-wrap: wrap;
-    row-gap: 0;
+/* 600px and below: slimmer rows (80px stuck); the sub-tabs drop their
+   icons and scroll sideways with fade edges if they do not fit; the
+   popover is a sheet from the foot of the screen */
+@media (max-width: 600px) {
+  :root {
+    --tabs-height: 42px;
+    --subtabs-height: 36px;
   }
-  .app.has-subs .subtabs-bar {
-    order: 3;
-    flex-basis: 100%;
-    margin: 0 calc(-1 * var(--bar-pad-x));
-    padding: 0 var(--bar-pad-x);
-    border-top: 1px solid var(--card-border);
-    border-left: 0;
+  .subhead {
+    gap: 4px;
   }
-  .app.has-subs .subtabs-bar .view-tabs-bar.is-sub .view-tabs {
-    height: var(--subtabs-height);
-  }
-  .app.has-subs {
-    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
-  }
-  .app.has-subs.has-settings {
-    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + var(--settings-height) + 3px);
-  }
-  .settings-bar {
-    top: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
-  }
-  .seg-option-sub {
+  .app.has-subs .subtabs-bar .view-tab-icon {
     display: none;
   }
-  .seg-option {
-    min-height: 32px;
+  .app.has-subs .subtabs-bar .view-tab {
+    padding-left: 8px;
+    padding-right: 8px;
   }
-  .copy-link-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+  .settings-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1250;
+    background: var(--scrim);
+  }
+  .settings-pop {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1260;
+    width: auto;
+    max-height: 85vh;
+    max-height: 85dvh;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius: 16px 16px 0 0;
+    animation: sheet-up 220ms var(--ease-out);
+  }
+  .settings-pop .sheet-close {
+    width: 44px;
+    height: 44px;
+  }
+  .sp-option {
+    min-height: 44px;
   }
 }
 @media (max-width: 640px) {
-  .app.has-subs .band {
-    position: relative;
-    top: auto;
-  }
   .settings-bar .picker {
     flex: none;
   }
   .settings-bar .picker-button {
     width: auto;
-  }
-  .seg-picker-label {
-    display: none;
   }
   .model-chip {
     font-size: var(--fs-caption);
@@ -1727,9 +1951,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     --band-title: 34px;
     --band-height: 48px;
   }
-  /* The title scrolls away; the picker row sticks */
+  /* The title, then the picker row (both scroll away) */
   .band {
-    top: calc(-1 * var(--band-title));
     display: block;
     padding: 0 16px;
   }
@@ -1767,14 +1990,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   .picker-chevron {
     margin-left: auto;
   }
-  .tabs-bar {
-    top: var(--band-height);
-    padding: 0 16px;
-  }
-  .band.no-pickers + .tabs-bar {
-    top: 0;
-  }
-  .subtabs-bar {
+  .tabs-bar,
+  .subhead {
     padding: 0 16px;
   }
   .tabs-bar .view-tab,
@@ -1898,42 +2115,112 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   transform: translateY(-50%);
 }
 
-/* ---------- Page intro: question, answer, page options (every Explore and
-   Method sub-tab opens with it). One spacing scale: 8 / 12 / 20 / 32 / 48. */
-.page-intro {
+/* ---------- Page intro (PageIntro.jsx; the Households pages' own header
+   takes the same classes): the model kicker with the sources-and-notes
+   icon, the question (the only heading: the Story's topic-question style,
+   no box, one size), the answer, then page options. Everything starts at
+   the content edge; one spacing scale: 8 / 12 / 20 / 32. */
+.page-intro,
+.page-intro.hh-lead {
+  max-width: none;
   margin: 0 0 32px;
   padding: 0 0 20px;
   border-bottom: 1px solid var(--card-border);
 }
-.page-q {
+.page-kicker-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
+  justify-content: space-between;
+  margin: 0 0 8px;
+}
+.page-kicker,
+.page-intro .hh-model.page-kicker {
+  margin: 0;
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--pe-gray-600);
+}
+.page-notes {
+  position: relative;
+  flex: none;
+}
+.page-notes > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px -6px 0 0;
+  color: var(--pe-gray-500);
+  list-style: none;
+  border: 1px solid transparent;
+  border-radius: var(--pe-radius-md);
+  cursor: pointer;
+}
+.page-notes > summary::-webkit-details-marker {
+  display: none;
+}
+.page-notes > summary:hover,
+.page-notes[open] > summary {
+  color: var(--pe-gray-900);
+  border-color: var(--card-border);
+}
+.page-notes > summary:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 2px;
+}
+.page-notes-body {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+  padding: 12px 14px;
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-gray-200);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px var(--shadow-strong);
+}
+.page-notes-body p {
+  margin: 0;
+}
+.page-q,
+.page-intro .hh-question.page-q {
+  display: block;
   margin: 0;
   font-size: var(--fs-xl);
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
   color: var(--pe-gray-900);
-}
-.page-q .plain-icon {
-  display: inline-flex;
-  margin-top: 6px;
-  color: var(--c-gain-text);
 }
 .page-a {
   max-width: 78ch;
-  margin: 8px 0 0 28px;
+  margin: 12px 0 0;
   font-size: var(--fs-lead);
   line-height: 1.55;
   color: var(--pe-gray-700);
+}
+.page-a.is-items {
+  max-width: none;
+}
+.page-intro .hh-findings,
+.page-intro .hh-answer,
+.page-intro .notice-chip {
+  margin-top: 12px;
 }
 .page-options {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 12px;
   align-items: center;
-  margin: 12px 0 0 28px;
+  margin: 12px 0 0;
 }
 /* A picker on the page: the header picker's behaviour on a light surface */
 .page-options .picker-button {
@@ -2317,34 +2604,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   }
 }
 
-/* Round 2 (C14), phones: the sub-tabs show their short names without icons
-   so the row fits at 390px; the settings bar wraps its pickers onto a
-   second line instead of clipping them, and scrolls away with the page (it
-   is no longer sticky there, so the sticky stack stays two rows: tabs and
-   sub-tabs). lib/scroll.js counts only sticky bars. */
-@media (max-width: 480px) {
-  .app.has-subs .subtabs-bar .view-tab-icon {
-    display: none;
-  }
-  .app.has-subs .subtabs-bar .view-tab {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-}
-@media (max-width: 640px) {
-  .app.has-subs .settings-bar {
-    position: static;
-  }
-  .app.has-subs .settings-row {
-    flex-wrap: wrap;
-    row-gap: 6px;
-    padding: 6px 0;
-    overflow-x: visible;
-  }
-  .app.has-subs.has-settings {
-    --sticky-offset: calc(var(--tabs-height) + var(--subtabs-height) + 2px);
-  }
-}
 /* phones: the page pickers' options wrap rather than clip; the sliding
    indicator assumes one line, so the chosen option is marked in place */
 @media (max-width: 640px) {

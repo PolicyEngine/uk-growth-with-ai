@@ -110,7 +110,8 @@
   margin: 0;
 }
 
-/* The answer strip (tabs/explore/AnswerStrip.jsx): full content width. */
+/* The answer strip (tabs/explore/AnswerStrip.jsx): full content width,
+   from the content edge. One row of equal chips; the why on one line. */
 .page-a.is-items {
   max-width: none;
 }
@@ -118,24 +119,23 @@
   display: grid;
   gap: 12px;
 }
-.ex-context,
-.ex-caveat-line {
+.ex-caveat-line,
+.ex-closed {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 20px;
   align-items: center;
   margin: 0;
   font-size: var(--fs-caption);
-  color: var(--pe-gray-500);
+  color: var(--pe-gray-600);
 }
-.ex-context,
+.ex-closed,
 .ex-caveat-line > span {
   display: inline-flex;
   gap: 6px;
   align-items: center;
 }
-.ex-context .plain-icon,
-.ex-caveat-line .plain-icon {
+.ex-closed .plain-icon {
   display: inline-flex;
   color: var(--pe-gray-500);
 }
@@ -150,12 +150,17 @@
   padding: 0;
   list-style: none;
 }
+.ex-chips.is-row {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
+  gap: 12px;
+}
 .ex-chip {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: 4px 8px;
   align-items: center;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border: 1px solid var(--card-border);
   border-radius: 10px;
   background: var(--pe-surface);
@@ -177,32 +182,64 @@
   font-weight: 600;
   color: var(--pe-gray-600);
 }
-.ex-chip-dir .plain-icon {
-  display: inline-flex;
-}
 .ex-chip.is-gain .ex-chip-dir {
   color: var(--c-gain-text, var(--c-gain));
 }
 .ex-chip.is-loss .ex-chip-dir {
   color: var(--c-loss-text, var(--c-loss));
 }
-.ex-chip.is-note,
 .ex-chip.is-plain {
   font-size: var(--fs-small);
   color: var(--pe-gray-700);
 }
-.ex-chip.is-note {
-  border-style: dashed;
-}
-.ex-why.story-chain {
+.ex-why-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
   margin: 0;
-}
-.ex-why .story-chain-node {
   font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800);
+}
+.ex-why-label {
+  font-weight: 400;
+  color: var(--pe-gray-500);
+}
+.ex-why-step {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.ex-why-step .plain-icon {
+  display: inline-flex;
+  color: var(--c-highlight, var(--pe-gray-500));
+}
+.ex-why-step .ex-why-arrow {
+  color: var(--pe-gray-400);
+}
+.ex-why-step [data-dir='below'] {
+  color: var(--c-loss-text, var(--c-loss));
+}
+.ex-why-step [data-dir='above'] {
+  color: var(--c-gain-text, var(--c-gain));
 }
 @media (max-width: 640px) {
-  .ex-chips {
+  .ex-chips.is-row {
+    gap: 8px;
+  }
+  .ex-chip {
+    padding: 10px;
+    font-size: var(--fs-small);
+  }
+}
+/* narrow phones: the chips stack, one line each, the direction at the end */
+@media (max-width: 480px) {
+  .ex-chips.is-row {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .ex-chips.is-row .ex-chip-dir {
+    margin-left: auto;
   }
 }
 

@@ -1,5 +1,7 @@
 // The answers that open Explore's sub-tabs, as a strip of chips (drawn by
-// AnswerStrip.jsx): one context chip (scenario, closure, rule), one chip per
+// AnswerStrip.jsx, which no longer prints the context: the sticky settings
+// chip names the settings; the main arm and the year are in the page's
+// kicker, ExploreTab.jsx): one chip per
 // measure whose direction icon, word and colour come from the sign of its
 // gap (direction.jsx), an optional closed-capital chip (Closure = Both), a
 // one-line why, and one caveat note. Words only (above, below, on): every
@@ -54,8 +56,8 @@ export function economyAnswer(sid, closure, rule) {
     ls == null
       ? null
       : [
-          { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${word(ls)}${side(ls) === 'on' ? '' : ' the path'} (imposed input)` },
-          { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'Pay grows less than output' : side(ls) === 'above' ? 'Pay grows more than output' : 'Pay keeps pace with output' },
+          { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${{ above: '↑', below: '↓', on: 'unchanged' }[side(ls)]} (imposed)` },
+          { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'pay grows less than output' : side(ls) === 'above' ? 'pay grows more than output' : 'pay keeps pace with output' },
         ];
   return { ...r, why };
 }

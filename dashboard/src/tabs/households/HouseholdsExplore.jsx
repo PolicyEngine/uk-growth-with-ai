@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { PageNotes } from '@/components/ui/PageIntro.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
@@ -817,16 +817,14 @@ export const FINDINGS = [
   { id: 'takeup', anchor: 'hh-ladder', title: 'Benefit take-up', text: takeupWords().short },
 ];
 
-// The header (round 2): the question, one model line, the finding chips.
+// The header: the model kicker (with the sources-and-notes icon), the
+// question (the only heading), the finding chips.
 export default function HouseholdsExplore() {
   return (
     <div className="hh-page">
-      <header className="hh-lead">
-        <p className="hh-question page-q">
-          <Icon name="usersRound" size={18} />
-          <span>What moves the cost of AI job displacement, and who it falls on?</span>
-        </p>
-        <p className="hh-model">
+      <header className="hh-lead page-intro">
+        <div className="page-kicker-row">
+          <p className="hh-model page-kicker">
           uk-ai-study{STATUS === 'provisional' ? ' (provisional)' : ''}: a one-year PolicyEngine-UK microsimulation of households, {YEAR}. Poverty is{' '}
           <a href={URLS.hbai} target="_blank" rel="noreferrer" title="DWP's HBAI publishes both bases; absolute poverty holds the line at its baseline value">
             before housing costs
@@ -835,7 +833,10 @@ export default function HouseholdsExplore() {
           <NavLink tab="story" anchor="story-part-3">
             Headlines in story part 3
           </NavLink>
-        </p>
+          </p>
+          <PageNotes />
+        </div>
+        <h2 className="hh-question page-q">What moves the cost of AI job displacement, and who it falls on?</h2>
         <ul className="hh-findings">
           {FINDINGS.map((f) => (
             <li key={f.id}>
