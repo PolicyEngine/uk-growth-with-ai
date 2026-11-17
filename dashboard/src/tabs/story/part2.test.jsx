@@ -104,9 +104,9 @@ describe('story part 2', () => {
       expect(s.getAttribute('aria-label')).toBeTruthy();
     }
     expect(container.querySelectorAll('svg.sankey')[0].getAttribute('aria-label')).toBeTruthy();
-    // one quiet "Sources and notes" button a figure (the output split's two
-    // charts share one), no phone-only repeats
-    expect(container.querySelectorAll('#story-part-2 button.src-line-btn')).toHaveLength(4);
+    // one quiet "Sources and notes" button a figure, no phone-only repeats
+    // (the output split keeps its inline source foot until OutputSplit.jsx moves)
+    expect(container.querySelectorAll('#story-part-2 button.src-line-btn')).toHaveLength(3);
     expect(container.querySelectorAll('.p2-src-phone')).toHaveLength(0);
     const part2 = container.querySelector('#story-part-2');
     const hrefs = [...[...part2.querySelectorAll('a')].map((a) => a.getAttribute('href')), ...sourceLinks(part2)];
@@ -436,11 +436,11 @@ describe('direction icons follow the signs', () => {
       expect(part.textContent).not.toMatch(/\b([Oo]ur|[Ww]e)\b/);
       // every model figure's "Sources and notes" links its result files or source
       for (const fig of part.querySelectorAll('figure:not(.p2-shock-fig)')) {
-        const links = sourceLinks(fig);
+        const links = [...sourceLinks(fig), ...[...fig.querySelectorAll('a')].map((a) => a.getAttribute('href'))];
         expect(links.some((h) => h.startsWith('http')), fig.className).toBe(true);
       }
       // the solves at the data file's commit
-      const files = sourceLinks(part).filter((h) => h.includes('/analysis/surprise/output'));
+      const files = [...sourceLinks(part), ...[...part.querySelectorAll('a')].map((a) => a.getAttribute('href'))].filter((h) => h.includes('/analysis/surprise/output'));
       expect(files.length).toBeGreaterThan(0);
       for (const f of files) expect(f).toContain(`/${fixture.source_commit}/`);
       unmount();

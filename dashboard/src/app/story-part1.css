@@ -738,9 +738,6 @@
   color: var(--t-ink);
   transition: transform 600ms var(--story-ease), opacity 600ms var(--story-ease);
 }
-.p1-vital[data-vital='gdp'] .p1-vital-value {
-  font-size: 28px;
-}
 .p1-vital:not(.is-drawn) .p1-vital-value {
   transform: translateY(4px);
   opacity: 0.55;

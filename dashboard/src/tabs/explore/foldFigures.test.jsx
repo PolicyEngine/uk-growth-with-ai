@@ -34,11 +34,13 @@ describe('figures in folds', () => {
         <SensitivityTable />
       </NavProvider>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /About this chart/ }));
+    // the caveats sit behind the card's "Sources and notes" button
+    fireEvent.click(screen.getByRole('button', { name: 'Sources and notes' }));
     const gaps = Object.values(S.sensitivity['zk0.5'].results).map((a) => a.tfp.gaps.I);
     const s28 = S.years.indexOf(2028);
     const range = (xs) => `${Math.round(Math.min(...xs))}–${Math.round(Math.max(...xs))}%`;
-    const t = container.textContent;
+    const t = document.body.textContent;
+    expect(container.textContent).toBeTruthy();
     expect(t).toContain(`${range(gaps.map((g) => g[s28]))} above the path in 2028`);
     expect(t).toContain(`${range(gaps.map((g) => Math.max(...g.slice(s28, H))))} at its peak before ${S.headline_year}`);
     expect(t).toContain(`${range(gaps.map((g) => g[H]))} in ${S.headline_year}`);

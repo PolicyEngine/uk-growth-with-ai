@@ -1,6 +1,6 @@
 'use client';
 
-import Sources from '@/components/ui/SourceLine.jsx';
+import Sources, { Essential } from '@/components/ui/SourceLine.jsx';
 import { ukItem } from '@/lib/sourceItems.js';
 import { Children, useEffect, useId, useRef, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
@@ -184,13 +184,14 @@ export const Ext = ({ href, children, className }) => (
 // The frame round a graphic: title, unit line, drawing, foot. `titleReserve`
 // and `unitReserve` hold the height of the longest title and unit line any
 // state shows, so a state change never moves the drawing.
-export function Figure({ icon = 'path', title, titleReserve, unit, unitReserve, source, children, innerRef, className = '' }) {
+export function Figure({ icon = 'path', title, titleReserve, unit, unitReserve, source, essential, children, innerRef, className = '' }) {
   return (
     <figure className={`p1-figure ${className}`} ref={innerRef}>
       <ModelBadge model="official" className="p1-badge" />
       <FigTitle icon={icon} title={title} reserve={titleReserve} source={source} />
       {unit ? <FigUnit reserve={unitReserve}>{unit}</FigUnit> : null}
       {children}
+      <Essential>{essential}</Essential>
     </figure>
   );
 }

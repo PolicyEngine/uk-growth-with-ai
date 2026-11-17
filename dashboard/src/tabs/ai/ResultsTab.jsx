@@ -17,7 +17,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 import FinancesSection from '@/tabs/ai/FinancesSection.jsx';
 import ClosureSlope from '@/tabs/explore/ClosureSlope.jsx';
-import { SourcesLine } from '@/tabs/explore/sources.jsx';
+import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
@@ -130,14 +130,8 @@ export function PathCard({
       }
       legend={tile ? null : <ClosureKey closure={st.closure} />}
       about={full && about?.caveats ? { caveats: about.caveats } : null}
-      foot={
-        full ? (
-          <>
-            {notes?.length ? <Items items={notes} className="ex-notes" /> : null}
-            {sources ? <SourcesLine sid={sid} method={method} /> : null}
-          </>
-        ) : null
-      }
+      notes={full && notes?.length ? notes : null}
+      sources={sourcesItems({ sid, method, closures: sources ? undefined : [], code: sources })}
       download={{
         title: `${title}, ${years[0]}–${last}`,
         context: () => contextLine(sid, st.closure, unitLine, rule),
@@ -329,7 +323,7 @@ function IncomePanel({ sid }) {
               />
             ),
           }}
-          foot={<SourcesLine sid={sid} method="closures" />}
+          sources={sourcesItems({ sid, method: 'closures' })}
           download={{
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
             context: () => contextLine(sid, st.closure, '% difference from the OBR-central path', st.rule),

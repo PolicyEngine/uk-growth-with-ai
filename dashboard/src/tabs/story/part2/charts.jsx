@@ -5,7 +5,7 @@ import { DrawPath } from '@/components/story/primitives.jsx';
 import { useInView } from '@/components/story/motion.js';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from '@/tabs/ai/surprise.js';
 import D from '@/data/cohorts2028.json';
-import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSource } from './sources.jsx';
+import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
 import { navItem } from '@/lib/sourceItems.js';
 import { W, H, scales, monotonePath, tickText, Figure, Tx } from './frame.jsx';
 
@@ -42,7 +42,7 @@ export const afterWordsAll = (yss) => [...new Set(yss.map(afterWords).filter(Boo
 // The welfare chart's "Sources and notes" button.
 export function WelfareSource() {
   return (
-    <ModelSource
+    <ModelSourceButton
       method="m-generations"
       files={[[`cohort_welfare.py at ${COHORT_COMMIT_TEXT}`, COHORT_URL]]}
       items={[navItem('The figures: Gains and losses', 'explore', undefined, 'who')]}

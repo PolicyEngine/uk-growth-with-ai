@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Card from '@/components/ui/Card.jsx';
-import { SourcesLine } from '@/tabs/explore/sources.jsx';
+import { sourcesItems } from '@/tabs/explore/sources.jsx';
+import { fileItem } from '@/lib/sourceItems.js';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
-import { ext } from '@/tabs/shared/ui.jsx';
 import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
 import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -96,17 +96,15 @@ export function DotStrip({ m }) {
 
 // The cohort results' files: the solves' state files on GitHub at the data
 // file's results commit, and the script that computes the welfare change.
-export function CohortSources() {
-  return (
-    <SourcesLine
-      closures={[]}
-      code={false}
-      extra={[
-        <>OG-UK cohort state files at commit {RESULTS_SHA}: {ext(OG_RESULT_URLS.cohortsDir, 'analysis/surprise/cohorts')}</>,
-        <>{ext(OG_RESULT_URLS.cohortScript, 'paper/cohort_welfare.py')} (commit {COHORTS_SHA})</>,
-      ]}
-    />
-  );
+export function cohortSources() {
+  return sourcesItems({
+    closures: [],
+    code: false,
+    extra: [
+      fileItem('OG-UK cohort state files: analysis/surprise/cohorts', OG_RESULT_URLS.cohortsDir, 'OG-UK', `commit ${RESULTS_SHA}`),
+      fileItem('paper/cohort_welfare.py', OG_RESULT_URLS.cohortScript, 'PolicyEngine', `commit ${COHORTS_SHA}`),
+    ],
+  });
 }
 
 export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms }) {
@@ -119,6 +117,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
   return (
     <Card
       id="who-heatmap"
+      sources={cohortSources()}
       icon={iconFor('lifetimeEarnings')}
       title="By age and earnings group"
       finding={both ? <span className="ex-ctx">Central closure</span> : null}

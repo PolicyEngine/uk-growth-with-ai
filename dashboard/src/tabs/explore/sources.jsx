@@ -2,14 +2,16 @@
 
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
-import { ext } from '@/tabs/shared/ui.jsx';
-import { REPO, RESULTS_SHA, OG_RESULT_URLS, ogOutput, ogScenarioFile, aiFile } from '@/tabs/ai/links.js';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { fileItem, navItem } from '@/lib/sourceItems.js';
+import { RESULTS_SHA, OG_RESULT_URLS, ogOutput, ogScenarioFile, aiFile } from '@/tabs/ai/links.js';
 import { SCEN_NAME } from '@/tabs/ai/surprise.js';
 
-// Sources for Explore cards: one line per card (SourcesLine), linking the
-// OG-UK result files on GitHub at the commit the data file records, the
-// script that assembles them, the scenario's input file and the Method
-// section that explains the chart (data-reference: file names, not prose).
+// Sources for Explore cards, behind each card's one "Sources and notes"
+// button (Card `sources`, components/ui/SourceLine.jsx): the OG-UK result
+// files on GitHub at the commit the data file records, the script that
+// assembles them, the scenario's input file, any extra documents and the
+// Method section that explains the chart.
 
 const CLOSURE_DIR = { 'zk0.1': 'central closure', zk0: 'closed capital', 'zk0.5': 'half foreign-financed' };
 
@@ -22,40 +24,24 @@ export const methodLink = (key, text) => {
   ) : null;
 };
 
-// One sources line under an Explore card, in place of the "Sources" part of
-// an "About this chart" fold: the OG-UK result files at their commit, the
-// script that assembles them, the scenario's input file, any extra links,
-// and the Method section that explains the chart. Plain links, no icons.
-export function SourcesLine({ sid, closures = ['zk0.1', 'zk0'], method, extra = [], code = true }) {
-  const parts = [
-    closures.length ? (
-      <>
-        OG-UK results at {ext(`${REPO}/tree/${RESULTS_SHA}`, `commit ${RESULTS_SHA}`)} (
-        {closures.map((zk, i) => (
-          <span key={zk}>
-            {i ? ', ' : ''}
-            {ext(ogOutput(zk), CLOSURE_DIR[zk] ?? zk)}
-          </span>
-        ))}
-        )
-      </>
-    ) : null,
-    code ? ext(OG_RESULT_URLS.assemble, 'surprise.py') : null,
-    sid ? ext(ogScenarioFile(sid), `${SCEN_NAME[sid]} inputs`) : null,
+// The Method section a chart is explained in, as a sources item.
+export const methodItem = (key) => (METHOD[key] ? navItem(`Method: ${METHOD[key].label}`, 'method', METHOD[key].id, 'how') : null);
+
+// One card's sources, as items. `extra`: more items (docItem, fileItem,
+// navItem from lib/sourceItems.js).
+export function sourcesItems({ sid, closures = ['zk0.1', 'zk0'], method, extra = [], code = true } = {}) {
+  return [
+    ...closures.map((zk) => fileItem(`OG-UK results, ${CLOSURE_DIR[zk] ?? zk}`, ogOutput(zk), 'OG-UK', `commit ${RESULTS_SHA}`)),
+    code ? fileItem('surprise.py, the script that assembles the results', OG_RESULT_URLS.assemble, 'PolicyEngine') : null,
+    sid ? fileItem(`${SCEN_NAME[sid]} inputs`, ogScenarioFile(sid), 'OG-UK') : null,
     ...extra,
-    method && METHOD[method] ? <>Method: {methodLink(method)}</> : null,
+    method ? methodItem(method) : null,
   ].filter(Boolean);
-  return (
-    <p className="ex-src" data-reference="">
-      <span className="ex-src-label">Sources:</span>{' '}
-      {parts.map((p, i) => (
-        <span key={i}>
-          {i ? ' · ' : ''}
-          {p}
-        </span>
-      ))}
-    </p>
-  );
+}
+
+// The same, as its own "Sources and notes" button (outside a Card).
+export function SourcesLine(props) {
+  return <SourceLine items={sourcesItems(props)} />;
 }
 
 // A uk-ai-study result file name, linked to the file in PR #18 at its

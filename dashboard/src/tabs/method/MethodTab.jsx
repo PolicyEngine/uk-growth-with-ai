@@ -1,5 +1,7 @@
 'use client';
 
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import InfoCard from '@/components/ab/InfoCard.jsx';
 import FoldGrid from './FoldGrid.jsx';
@@ -235,6 +237,7 @@ export default function MethodTab() {
           <UsedBy id="m-model" />
           <Card
             id="model-diagram"
+            sources={[docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK'), docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core')]}
             icon={iconFor('model')}
             title="OG-UK in four blocks"
             finding={<IconText icon="breakEven">Households, firms, a government and the rest of the world, trading until every market clears.</IconText>}
@@ -248,6 +251,7 @@ export default function MethodTab() {
               <h3 className="info-card-title">
                 <Icon name={iconFor('generations')} size={18} />
                 <span>Many generations at once</span>
+                <SourceLine items={[docItem('OG-Core, the model it is built on', URLS.ogCore, 'OG-Core'), docItem('OG-UK, the UK calibration', URLS.ogUkFork, 'OG-UK')]} />
               </h3>
               <Cohorts />
             </div>

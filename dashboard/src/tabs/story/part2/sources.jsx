@@ -7,6 +7,7 @@ import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { result } from '@/tabs/ai/surprise.js';
 import SourceLine from '@/components/ui/SourceLine.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import { docItem, fileItem, navItem } from '@/lib/sourceItems.js';
 
 // Part 2's links: every model result goes to its OG-UK method section and
@@ -78,7 +79,30 @@ export function modelItems(files = [], method = 'm-model') {
   ];
 }
 
+// The old inline source text, kept only for the output split's foot
+// (OutputSplit.jsx, owned by the scroll-performance work): it should move
+// to <ModelSourceButton> in the figure's title.
+export function ModelSource({ files = [], method = 'm-model' }) {
+  const fs = files.filter(([, u]) => u);
+  return (
+    <>
+      Source: <A href={SRC.ogUk}>OG-UK</A> (<A href={SRC.repo}>PolicyEngine</A>), solves at <A href={`${REPO}/tree/${COMMIT}/analysis/surprise/output`}>{COMMIT}</A>
+      {fs.length ? ': ' : ''}
+      {fs.map(([t, u], i) => (
+        <span key={u}>
+          {i ? ', ' : ''}
+          <A href={u}>{t}</A>
+        </span>
+      ))}
+      {' · '}
+      <NavLink tab="method" sub="how" anchor={method}>
+        Method
+      </NavLink>
+    </>
+  );
+}
+
 // A part 2 model figure's one "Sources and notes" button.
-export function ModelSource({ files = [], method = 'm-model', notes, groups, items = [] }) {
+export function ModelSourceButton({ files = [], method = 'm-model', notes, groups, items = [] }) {
   return <SourceLine items={[...items, ...modelItems(files, method)]} notes={notes} groups={groups} />;
 }

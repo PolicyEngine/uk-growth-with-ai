@@ -5,7 +5,8 @@ import { NavLink } from '@/lib/nav.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { FadeG } from '@/components/story/primitives.jsx';
 import { ModelBadge } from '@/components/story/chart/index.js';
-import { ModelSource } from './sources.jsx';
+import { ModelSourceButton } from './sources.jsx';
+import { Essential } from '@/components/ui/SourceLine.jsx';
 
 // Shared pieces of part 2's line charts. The charts draw shapes only: the
 // figures have their homes on other tabs, so the only numbers here are axis
@@ -18,7 +19,7 @@ export const H = 250;
 const M = { l: 36, r: 14, t: 16, b: 28 };
 
 // The "Sources and notes" button of every model figure (sources.jsx).
-export const SOURCE = <ModelSource />;
+export const SOURCE = <ModelSourceButton />;
 
 // About four round ticks over [lo, hi].
 export function niceTicks(lo, hi, n = 4) {
@@ -215,7 +216,7 @@ export function Tx({ icon, size = 14, children }) {
 }
 
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
+export function Figure({ title, unit, legend, source = SOURCE, essential, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
   return (
     <figure className={`p2-figure ${className}`}>
       <ModelBadge model={model} />
@@ -245,6 +246,7 @@ export function Figure({ title, unit, legend, source = SOURCE, icon = 'path', he
           {xTitle}
         </span>
       ) : null}
+      <Essential>{essential}</Essential>
     </figure>
   );
 }

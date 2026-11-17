@@ -15,7 +15,7 @@ import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import D from '@/data/cohorts2028.json';
-import WhoHeatmap, { CohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
+import WhoHeatmap, { cohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { atRef, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
 
@@ -655,7 +655,7 @@ export default function WhoGainsTab() {
               />
             ),
           }}
-          foot={<CohortSources />}
+          sources={cohortSources()}
           download={{
             title: 'Welfare change by birth year',
             context: () => `UK central · ${armLabel} · ${ruleLabel(rule)} · ${clWords}`,

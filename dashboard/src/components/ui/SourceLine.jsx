@@ -26,7 +26,9 @@ import { NavLink } from '@/lib/nav.jsx';
 //
 // Item: { publisher, label, id, date (ISO or text), url, nav: { tab, sub,
 // anchor } (a link inside the dashboard), extra (one more plain fact),
-// kind: 'series' | 'file' | 'document' | 'page' }.
+// kind: 'series' | 'file' | 'document' | 'page' }. `record={false}`: no
+// hidden copy of the notes (for notes that were never on the page, e.g. a
+// card's former "About this chart" fold, or block content).
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const fmtDate = (d) => {
@@ -89,7 +91,7 @@ export function Essential({ children }) {
   return children ? <p className="src-essential" data-essential="">{children}</p> : null;
 }
 
-export default function SourceLine({ items = [], notes = [], groups = [], through, label = 'Sources and notes', className = '', title }) {
+export default function SourceLine({ items = [], notes = [], groups = [], through, label = 'Sources and notes', className = '', title, record = true }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null);
   const btn = useRef(null);
@@ -220,7 +222,7 @@ export default function SourceLine({ items = [], notes = [], groups = [], throug
       </button>
       {/* the notes as text, hidden, for the page's number checks (dumptabs
           reads [data-source-notes]): a figure's caveat may be a number's home */}
-      {gs.length || through ? (
+      {record && (gs.length || through) ? (
         <span hidden data-source-notes="">
           {gs.map((g) => (
             <span key={g.title}>

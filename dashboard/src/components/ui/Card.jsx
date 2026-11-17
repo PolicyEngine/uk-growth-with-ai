@@ -7,11 +7,17 @@ import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import { iconFor } from '@/lib/concepts.js';
+import SourceLine, { Essential } from '@/components/ui/SourceLine.jsx';
+import { Items } from '@/components/story/Items.jsx';
+import { fileItem, navItem } from '@/lib/sourceItems.js';
 
-// The one card. In fixed order: icon + title (+ download), one sentence
-// stating the finding, the control bar, the plot, the legend, the logo, and
-// a closed "About this chart" fold whose sections come in a fixed order and
-// which ends with a link to the Method section that explains the chart.
+// The one card. In fixed order: icon + title, with the card's one quiet
+// "Sources and notes" button after it (+ download), one sentence stating
+// the finding, the control bar, the plot, the legend, an optional essential
+// caveat line, the logo. Behind the button (components/ui/SourceLine.jsx):
+// the card's notes, then what was the "About this chart" fold, its
+// sections in a fixed order, then the sources (`sources`: items), the
+// Method section that explains the chart and the replication files.
 const ABOUT = [
   ['shows', 'What it shows'],
   ['how', 'How it’s calculated'],
@@ -74,16 +80,34 @@ export function AboutFold({ about, method, replication, title = 'About this char
   );
 }
 
+// Everything secondary about a card, for its "Sources and notes" button.
+function cardSources({ about, method, replication, sources = [], notes }) {
+  const groups = [
+    notes?.length ? { title: 'Notes', notes: [<Items key="n" items={notes} className="src-pop-items" />] } : null,
+    ...ABOUT.filter(([k]) => about?.[k]).map(([k, t]) => ({ title: t, notes: [about[k]] })),
+  ].filter(Boolean);
+  const m = METHOD[method];
+  const items = [
+    ...(sources ?? []),
+    m && !(sources ?? []).some((it) => it?.nav?.anchor === m.id) ? navItem(`Method: ${m.label}`, 'method', m.id, 'how') : null,
+    replication?.code ? fileItem('Replicate: code', replication.code, 'PolicyEngine') : null,
+    replication?.result ? fileItem('Replicate: result file', replication.result, 'PolicyEngine') : null,
+  ].filter(Boolean);
+  return { groups, items };
+}
+
 export default function Card({
-  id, icon, title, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, aboutTitle,
+  id, icon, title, finding, unit, controls, legend, about, method, replication, download, logo = false, className = '', children, foot, sources, notes, essential,
 }) {
   const ref = useRef(null);
+  const src = cardSources({ about, method, replication, sources, notes });
   return (
     <article className={`card ${className}`} id={id} ref={ref}>
       <header className="card-head">
         <h3>
           {icon ? <Icon name={icon} size={18} className="card-icon" /> : null}
           <span>{title}</span>
+          {src.items.length || src.groups.length ? <SourceLine items={src.items} groups={src.groups} record={false} /> : null}
         </h3>
         {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
       </header>
@@ -92,14 +116,21 @@ export default function Card({
       {unit ? <p className="card-unit">{unit}</p> : null}
       {children ? <div className="chart-plot">{children}</div> : null}
       {legend ? <div className="card-legend">{legend}</div> : null}
+      <Essential>{essential}</Essential>
       {foot}
+      {/* the notes, hidden, for the page's number checks (a note may be a
+          number's one home); they show behind the button */}
+      {notes?.length ? (
+        <div hidden data-source-notes="">
+          <Items items={notes} />
+        </div>
+      ) : null}
       {logo ? (
         <div className="card-logo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/logos/policyengine-teal.png" alt="PolicyEngine" width="80" height="17" />
         </div>
       ) : null}
-      <AboutFold about={about} method={method} replication={replication} title={aboutTitle} />
     </article>
   );
 }
