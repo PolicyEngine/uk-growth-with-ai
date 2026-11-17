@@ -9,8 +9,8 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
-import { D, MODEL_YEAR as PART3_YEAR, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
-import { AI_STUDY } from '@/tabs/code/ledger.js';
+import { D, MODEL_YEAR as PART3_YEAR, NO_CLEAN_RERUN, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
+import { AI_FULL_RERUN, AI_STUDY } from '@/tabs/code/ledger.js';
 import { URLS } from '@/tabs/ai/links.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { fmtInputPct, fmtPct1 } from '@/tabs/story/part3/format.js';
@@ -103,6 +103,8 @@ export default function HouseholdsMethod() {
               <IconText icon={AI_STUDY.provisional ? 'provisional' : 'version'}>{STATUS}</IconText>
             </p>
           ) : null}
+          {/* T5 (round 2, moved from the story's part 3 opener): said once, here */}
+          {AI_STUDY.merged && (AI_FULL_RERUN === false || NO_CLEAN_RERUN) ? <p className="hh-answer hm-rerun">Results come from the merged study and were not re-run from scratch.</p> : null}
         </header>
 
         <section>

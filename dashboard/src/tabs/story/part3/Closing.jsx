@@ -23,7 +23,7 @@ export const LEFT_OUT = [
   { id: 'jsa', text: 'New-style JSA: none in the central case' },
   {
     id: 'young',
-    text: 'Fewer young hires: outside a job-displacement framework',
+    text: 'Fewer young hires: the study counts jobs lost, not jobs never offered',
   },
   { id: 'self', text: 'The self-employed: outside the labour-market shocks' },
   { id: 'occ', text: 'AI exposure: varies across nine occupation groups only' },

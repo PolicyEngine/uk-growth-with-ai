@@ -50,26 +50,21 @@ for x in [m(H3['central_displaced']['value']), bn(H3['central_cost']['value']), 
 # 2 the three channels, their sum and interaction (20 draws)
 for k in ('displacement', 'wage', 'capital'): story[bn(CH[k]['cost_bn'])] += 1
 story[bn(AI['channels']['sum_bn'])] += 1; story[bn2(AI['channels']['interaction_bn'])] += 1
-# 3 the Sankey: earnings lost, the four destinations, share absorbed, employer NI
-story[bn(S['total']['earnings_lost_bn'])] += 1
-for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): story[bn(S['total'][k])] += 1
-story[share(S['tax_benefit_share_pct'])] += 1; story[bn(S['employer_ni_bn'])] += 1
-# 4 deciles 2-10, and decile 1 under the three rankings in its caveat
+# 3 deciles 2-10, and decile 1 under the three rankings in its caveat
 for x in AI['deciles']['values']: story[dpct(x)] += 1
 story[dpct(RK['pre_pension'][0])] += 1; story[dpct(RK['hbai_excl_large_ppc'][0])] += 1
-# 5 four stylised rules (exposure: step 1)
+# 4 what changes the answer: four stylised rules (exposure: step 1; restated there as an axis label)
 for k in ('uniform', 'junior', 'compression'): story[bn(RUL[k]['cost_bn'])] += 1
-# 6 job loss against wage cuts, 20-draw bases
-for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']), 
-          pence(AI['per_pound_20']['wage_cuts_employer_ni_p']), pence(PP['wage_cuts']['government_p']),
+#   job loss against wage cuts, 20-draw bases
+for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']),
+          pence(PP['wage_cuts']['government_p']),  # employer NI on neither side since round 2 (job loss's 42p includes it too)
           bn(LAD['central_20']['cost_bn']), pp(LAD['central_20']['poverty_pp']), bn(LAD['wage_cuts']['cost_bn']),
           pp(LAD['wage_cuts']['poverty_pp'])]:
     story[x] += 1
-# 7 break-evens (take-up and JSA moved to Explore > Households in round 1)
+#   break-evens (take-up and JSA moved to Explore > Households in round 1)
 story[signed(AI['breakeven']['wage']['value_pct'], 1) + '%'] += 1
 story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
-STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months",
-              'not the central case']
+STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months"]
 
 hh = Counter()
 for r in AI['cost_components']['rows']:
@@ -86,12 +81,17 @@ for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital
     hh[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'): hh[gbp(AI['displaced'][k]['value'])] += 1
 for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pp(r['gini_pp'])] += 1
+# where a lost pound goes: the OBR-sized Sankey, moved from story part 3 to Explore > Households in round 2
+hh[bn(S['total']['earnings_lost_bn'])] += 1
+for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): hh[bn(S['total'][k])] += 1
+hh[share(S['tax_benefit_share_pct'])] += 1; hh[bn(S['employer_ni_bn'])] += 1
+HH_TEXT = ['not the central case']
 
 FIG3 = re.compile(r"−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
 
 
 def sankey_failures():
-    """Inputs equal outputs at every node of the part 3 Sankey."""
+    """Inputs equal outputs at every node of the lost-pound Sankey (Explore > Households since round 2)."""
     bad = []
     keys = ('tax_ni_bn', 'benefits_bn', 'other_bn', 'disposable_bn')
     for i, f in enumerate(S['deciles']):
@@ -118,7 +118,7 @@ def check(dump):
     """Return the number of failures for story part 3 and the households views."""
     bad = 0
     for msg in sankey_failures():
-        bad += 1; print('part 3 Sankey:', msg)
+        bad += 1; print("Households Sankey:", msg)
     for sid in dump:
         t = dump[sid].get('story:part3')
         e = dump[sid].get('explore:households')
@@ -133,6 +133,9 @@ def check(dump):
         for x in STORY_TEXT:
             if t.count(x) != 1:
                 bad += 1; print(sid, 'story part 3:', repr(x), 'printed', t.count(x), 'times')
+        for x in HH_TEXT:
+            if e.count(x) != 1:
+                bad += 1; print(sid, 'Explore > Households:', repr(x), 'printed', e.count(x), 'times')
         got_s, got_e = Counter(FIG3.findall(t)), Counter(FIG3.findall(e))
         for name, got, exp in [('story part 3', got_s, story), ('Explore > Households', got_e, hh)]:
             if got != exp:

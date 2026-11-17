@@ -84,7 +84,8 @@ export function centralTiles(on) {
       x: out && on ? 9 + 1 + GAP_COLS : x,
       y,
       out,
-      color: out && on ? 'var(--pe-gray-800)' : 'var(--pe-gray-200)',
+      // round 2 (B9): employees in a mid grey, so the grid reads on white
+      color: out && on ? 'var(--pe-gray-800)' : 'var(--pe-gray-300)',
       group: out ? 'displaced' : 'employees',
       delay: out ? y * 80 : 0,
     };
@@ -124,7 +125,7 @@ function CentralFigure({ ctx }) {
           ))}
         </ul>
       </div>
-      <p className="p3-key">After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
+      <p className="p3-key">The cost is net of two assumed gains, higher pay and capital income. After housing costs, absolute poverty {fmtPp(H.central_poverty_ahc.value)}.</p>
       <p className="p3-key">
         The poverty rise is an upper bound: the displaced are jobless all year. {TAKEUP_RAISES ? 'The cost is not: fuller benefit take-up raises it' : 'Fuller benefit take-up moves the cost'} (
         <NavLink tab="explore" sub="households" anchor="hh-ladder">
@@ -144,8 +145,6 @@ const COSTS = H.central_cost.value > 0;
 // whether full take-up costs more than the central case on the same draws
 const lad = (id) => D.ladder.find((r) => r.id === id)?.cost_bn;
 const TAKEUP_RAISES = lad('takeup') > lad('central_20');
-const POV_GINI =
-  up(H.central_poverty.value) === up(H.central_gini.value) ? `${up(H.central_poverty.value)} poverty and inequality` : `${up(H.central_poverty.value)} poverty, ${up(H.central_gini.value)} inequality`;
 export const CENTRAL_SUB = {
   title: 'The central case',
   icon: 'jobLoss',
@@ -181,9 +180,11 @@ export const CENTRAL_STEPS = [
     id: 'p3-central-step-2',
     icon: 'cost',
     highlight: ['f-cost', 'f-poverty', 'f-relative', 'f-gini'],
+    // T14; the two figures restate the tiles they light (their home): data-axis
     title: (
       <>
-        Net of two assumed gains, the year {COSTS ? 'costs the public finances' : 'adds to net receipts'} and {POV_GINI}
+        A year of job loss {COSTS ? 'costs' : 'adds to net receipts'} <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> and {up(H.central_poverty.value)} absolute poverty by{' '}
+        <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
       </>
     ),
   },
@@ -191,6 +192,10 @@ export const CENTRAL_STEPS = [
 
 // The scene's marks, for the colour-keyed words.
 const CENTRAL_MARKS = {
+  'f-displaced': { color: 'var(--pe-gray-800)', shape: 'none', label: 'employees assumed displaced' },
+  'f-poverty': { color: 'var(--pe-gray-800)', shape: 'none', label: 'absolute poverty' },
+  'f-relative': { color: 'var(--pe-gray-800)', shape: 'none', label: 'relative poverty' },
+  'f-gini': { color: 'var(--pe-gray-800)', shape: 'none', label: 'Gini coefficient' },
   displaced: {
     color: 'var(--pe-gray-800)',
     shape: 'square',

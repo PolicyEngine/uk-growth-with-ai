@@ -1,6 +1,7 @@
 'use client';
 
 import Scrolly from '@/components/story/Scrolly.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
 import { D, FigureHead, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, useBeat, asLines } from './shared.jsx';
@@ -9,9 +10,10 @@ import { D, FigureHead, Fig, Num, NumMarker, Key, MarkProvider, Source, entryCla
 // income decile. Deciles 2 to 10 are drawn at full strength in the part's
 // loss and gain tokens; no step dims them, and each row's label and value
 // stay at full strength. Decile 1 is drawn grey (neutral) with its value and
-// the words "not a finding": the study does not report the bottom income
-// decile as a finding, and the second step's table gives it under the two
-// other rankings.
+// the words "no conclusion drawn": its direction depends on the ranking, and
+// the second step's table gives it under the two other rankings. Dimmed bars
+// keep 60% (story-part3.css). The flows by decile (a smaller, OBR-sized run)
+// are on Explore > Households, one link line here.
 
 const DEC = D.deciles;
 const VALUES = DEC.values;
@@ -140,18 +142,25 @@ function DecilesFigure({ ctx }) {
                 <DecBar v={v} on={e.on} fill={fill} delay={ORDER_DELAY(n)} />
               </span>{' '}
               <span className="p3-row-value">{fmtDecilePct(v)}</span>
-              {first ? <span className="p3-dec-note">not a finding</span> : null}
+              {first ? <span className="p3-dec-note">no conclusion drawn</span> : null}
             </li>
           );
         })}
       </ol>
+      <p className="p3-key">
+        Where each decile’s lost earnings go, in a smaller run:{' '}
+        <NavLink tab="explore" sub="households" anchor="hh-absorb">
+          Explore, households
+        </NavLink>
+        .
+      </p>
       <Source files={[DEC.file, 'results/appendix/decile_ranking_sensitivity.csv']}>each household weighted by its members</Source>
     </figure>
   );
 }
 
 // Two steps, each one sentence about the bars it names; no folds.
-const topSentence = SHAPE.topNearZero ? 'decile 10 is close to zero' : VALUES[9] >= 0 ? 'decile 10 gains' : 'decile 10 falls least';
+const topSentence = SHAPE.topNearZero ? 'decile 10 barely moves' : VALUES[9] >= 0 ? 'decile 10 gains' : 'decile 10 falls least';
 export const DECILE_STEPS = [
   {
     id: 'p3-deciles-step',
@@ -159,8 +168,8 @@ export const DECILE_STEPS = [
     highlight: [...UPPER, 'd10'],
     title: (
       <>
-        {SHAPE.upperMiddle ? 'Falls peak in the upper-middle deciles, largest at' : 'The largest fall is at'} <Num n={1} mark={`d${SHAPE.worst}`} />{' '}
-        <Key id={`d${SHAPE.worst}`}>decile {SHAPE.worst}</Key>; <Num n={2} mark="d10" /> <Key id="d10">{topSentence}</Key>
+        Income falls most {SHAPE.upperMiddle ? 'in deciles 6 to 9, most ' : ''}in <Num n={1} mark={`d${SHAPE.worst}`} /> <Key id={`d${SHAPE.worst}`}>decile {SHAPE.worst}</Key>;{' '}
+        <Num n={2} mark="d10" /> <Key id="d10">{topSentence}</Key>
       </>
     ),
   },
@@ -170,7 +179,7 @@ export const DECILE_STEPS = [
     highlight: ['d1'],
     title: (
       <>
-        <Key id="d1">Decile 1</Key> is not a finding: some households there make large pension contributions
+        <Key id="d1">Decile 1</Key>’s direction depends on how households are ranked, so no conclusion is drawn
       </>
     ),
     body: <BottomDecileCaveat />,

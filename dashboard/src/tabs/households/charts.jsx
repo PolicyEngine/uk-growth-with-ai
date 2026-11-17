@@ -1,11 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Icon from '@/components/ab/Icon.jsx';
-import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { MINUS } from '@/tabs/story/part3/format.js';
-import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 
 // Chart pieces for Explore > Households. Text stays HTML (legible at phone
 // width); marks are positioned spans or a measured SVG. A value whose home
@@ -14,23 +11,22 @@ import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 // Every figure is in the DOM from the first render; entry beats change
 // opacity and transforms only. Tooltips and popovers mount only while open.
 
-// An icon by concept name, or by Icon.jsx key when no concept has it.
-const ico = (name) => iconFor(name) ?? name;
-
-// One link per row to the story step that prints the row's other figures.
+// One link per row to the story scene that prints the row's other figures,
+// named (round 2: the Story has no numbered steps).
 export function StoryRef({ step }) {
   return (
-    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in story part 3, step ${step.n}`}>
-      <Icon name="arrowRight" size={12} strokeWidth={2} /> See story, step {step.n}
+    <NavLink tab="story" anchor={step.anchor} className="hh-ref" title={`Printed in the Story, part 3: ${step.name}`}>
+      Story: {step.name}
     </NavLink>
   );
 }
 
+// Part 3's scenes and the step each link lands on.
 export const STEP = {
-  central: { n: 1, anchor: 'p3-central-step' },
-  rules: { n: 5, anchor: 'p3-rules-step' },
-  margin: { n: 6, anchor: 'p3-margin-step' },
-  deciles: { n: 4, anchor: 'p3-deciles-step' },
+  central: { name: 'the central case', anchor: 'p3-central-step' },
+  rules: { name: 'who loses the job', anchor: 'p3-rules-step' },
+  margin: { name: 'job loss vs wage cuts', anchor: 'p3-margin-step' },
+  deciles: { name: 'where the loss falls', anchor: 'p3-deciles-step' },
 };
 
 // The measured width of a box (ResizeObserver), with a fallback for the
@@ -146,6 +142,9 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           </span>
         ))}
       </div>
+      {/* plain dots, each with a direct label (round 2, C13); `lab` is the
+          short label, `pos` where it sits (r, l, t, b, tl, br); a point
+          with no `lab` is named by its group's label or the list below */}
       {points.map((p, i) => (
         <span
           key={p.id}
@@ -153,10 +152,15 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
           style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${i * 90}ms` }}
           title={p.name}
           aria-hidden="true"
-        >
-          <Icon name={ico(p.icon)} size={11} strokeWidth={2.2} />
-        </span>
+        />
       ))}
+      {points
+        .filter((p) => p.lab)
+        .map((p, i) => (
+          <span key={`l-${p.id}`} className={`hh-pt-lab is-${p.pos ?? 'r'}${on ? ' is-on' : ''}`} style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${300 + i * 90}ms` }} aria-hidden="true">
+            {p.lab}
+          </span>
+        ))}
       {off ? (
         <span className={`hh-off-val${on ? ' is-on' : ''}`} style={{ right: W - (L + pw + 8), top: Y(off.y) - 4 }}>
           {off.text}
@@ -187,9 +191,7 @@ export function PointList({ rows, cols, wideFirst = false }) {
             </li>
           ) : (
             <li key={r.id} className={`hh-list-row is-${r.tone ?? 'a'}`} data-row={r.id}>
-              <span className={`hh-pt-key is-${r.tone ?? 'a'}${r.ring ? ' is-ring' : ''}`}>
-                <Icon name={ico(r.icon)} size={11} strokeWidth={2.2} />
-              </span>
+              <span className={`hh-pt-key is-${r.tone ?? 'a'}${r.ring ? ' is-ring' : ''}`} aria-hidden="true" />
               <span className="hh-list-label">{r.label}</span>
               {r.cells.map((c, i) =>
                 c && c.span ? (
@@ -209,52 +211,5 @@ export function PointList({ rows, cols, wideFirst = false }) {
         )}
       </ul>
     </div>
-  );
-}
-
-// The notes row that replaces "About this chart": three plain icon buttons
-// (how it is calculated, caveats, sources), each opening a popover of short
-// icon items. A popover is mounted only while open; Escape closes it.
-const NOTE_KINDS = [
-  ['how', 'arithmetic', 'How it is calculated'],
-  ['caveats', 'limit', 'Caveats'],
-  ['sources', 'source', 'Sources'],
-];
-export function Notes({ how, caveats, sources }) {
-  const [open, setOpen] = useState(null);
-  const parts = { how, caveats, sources };
-  const kinds = NOTE_KINDS.filter(([k]) => parts[k]?.length);
-  const cur = kinds.find(([k]) => k === open);
-  return (
-    <div className="hh-notes" onKeyDown={(e) => e.key === 'Escape' && setOpen(null)}>
-      <div className="hh-note-row">
-        {kinds.map(([k, icon, name]) => (
-          <button key={k} type="button" className={`hh-note-btn${open === k ? ' is-open' : ''}`} aria-expanded={open === k} onClick={() => setOpen(open === k ? null : k)}>
-            <Icon name={iconFor(icon)} size={15} /> <span>{name}</span>
-          </button>
-        ))}
-      </div>
-      {cur ? (
-        <div className="hh-pop" role="region" aria-label={cur[2]}>
-          <ul className="story-items" {...(open === 'sources' ? { 'data-reference': '' } : {})}>
-            {parts[open].map((t, i) => (
-              <li key={i}>
-                <Icon name={iconFor(cur[1])} size={14} className="story-item-icon" />
-                <span className="story-item-text">{open === 'sources' ? linkAiFiles(t) : t}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-// A context chip beside a unit line (draws, base, run).
-export function Chip({ icon, children, tone }) {
-  return (
-    <span className={`hh-chip${tone ? ` is-${tone}` : ''}`}>
-      <Icon name={ico(icon)} size={12} /> {children}
-    </span>
   );
 }
