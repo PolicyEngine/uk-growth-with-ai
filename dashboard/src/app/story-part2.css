@@ -1055,39 +1055,9 @@
   margin-top: 8px;
 }
 
-/* Enough scroll to read each state (check_states.mjs: every state held for
-   at least 180px with the figure in view). Scrolly splits the scroll over
-   which a figure is in view evenly between its cards, so each block's
-   cards take a minimum height (on the card itself, so its rule runs the
-   full height and no blank band opens between cards), in px, from its
-   figure and card count (step column at least figure + 180 x cards - 218
-   at 800 high), more on short screens. Sized for holds of about 190-200px.
-   Desktop only: phones keep Scrolly's own card minimum. */
-@media (min-width: 901px) {
-  #p2-shock .scrolly-card {
-    min-height: 350px;
-  }
-  #p2-morph .scrolly-card {
-    min-height: 317px;
-  }
-  #p2-output .scrolly-card {
-    min-height: 290px;
-  }
-  #p2-who .scrolly-card {
-    min-height: 350px;
-  }
-}
-@media (min-width: 901px) and (max-height: 700px) {
-  #p2-morph .scrolly-card {
-    min-height: 357px;
-  }
-  #p2-output .scrolly-card {
-    min-height: 310px;
-  }
-  #p2-who .scrolly-card {
-    min-height: 420px;
-  }
-}
+/* Desktop: each state's scroll (check_states: 180px a state) comes from
+   Scrolly's computed column length (--col-pad, height-cut-fable.md 2a);
+   phones keep Scrolly's own card minimum. */
 
 /* Why's qualifiers run across the width in one row (desktop), as "How
    sure" below them: no empty half beside a short list */
@@ -1242,17 +1212,6 @@
   }
 }
 
-/* Three steps per scene (pass 3): fewer, shorter cards, so a few states
-   need more scroll to hold 180px (check_states, with and without motion) */
-@media (min-width: 901px) {
-  #p2-out-1.scrolly-step {
-    padding-bottom: 72px;
-  }
-  #p2-scen-2.scrolly-step,
-  #p2-out-3.scrolly-step {
-    padding-bottom: 120px;
-  }
-}
 
 /* Round 1: one sentence per step, caveats as one short meta line, the why
    line under the headline tiles, the x axis title inside the chart. */

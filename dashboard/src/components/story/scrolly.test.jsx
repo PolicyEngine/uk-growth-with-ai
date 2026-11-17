@@ -310,6 +310,15 @@ describe('the question follows the scroll both ways (round 1)', async () => {
     expect(at(-200)).toBe('done');
     expect(at(300)).toBe('in');
   });
+  it('the pinned stage holds still, then moves over 28% of the screen of scroll, eased (polish round)', () => {
+    // the move starts when the foot reaches the held card: bottom = mid + H/2 + 28
+    const start = (100 + V) / 2 + 80 + 28;
+    const qm = (bottom) => stagePhase({ top: bottom - 560, bottom, V, R: 100, H: 160 }).qm;
+    expect(qm(start + 40)).toBe(0);
+    expect(qm(start - 0.14 * V)).toBeCloseTo(0.5, 5);
+    expect(qm(start - 0.07 * V)).toBeLessThan(0.25);
+    expect(qm(start - 0.28 * V)).toBe(1);
+  });
 });
 
 describe('reversible entry (motion.js entryStep, round 1)', async () => {

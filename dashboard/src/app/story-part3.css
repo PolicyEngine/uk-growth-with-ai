@@ -1434,31 +1434,6 @@ svg.p3-dim {
 .p3-scene .p3-dot-rail {
   transition: transform 700ms var(--story-ease) var(--beat, 0ms);
 }
-/* Each state holds 200px of scroll (check_states: 180px) while the figure
-   is in view. The scroll a scene gives its states is H - top - 0.8F plus
-   the cards' column beyond the figure (Scrolly's geometry), so each card
-   gets a floor of (1.8F + 130px + 200px a state + 20px - 100vh) / n, the
-   32px gap out: nothing at tall screens, more at short ones. F: the
-   figure's height at 1280x800, at least its 460px box (central 536, channels 403, deciles 429, rules
-   384, margin 416; round 2 merged rules, margin and moves into one
-   four-state scene, #p3-changes). */
-@media (min-width: 901px) {
-  #p3-central .scrolly-card {
-    min-height: calc((1515px - 100vh) / 2 - 32px);
-  }
-  /* round 2: plus the labelled zero line (16px), 1.8 x 16 */
-  #p3-channels .scrolly-card {
-    min-height: calc((1362px - 100vh) / 2 - 32px);
-  }
-  #p3-deciles .scrolly-card {
-    min-height: calc((1322px - 100vh) / 2 - 32px);
-  }
-  /* round 2: what changes the answer, four states, F about 470px:
-     (1.8F + 130 + 800 + 20 + 4px) / 4 */
-  #p3-changes .scrolly-card {
-    min-height: calc((1800px - 100vh) / 4 - 32px);
-  }
-}
 
 /* decile 1's rankings: a small table in its step's card */
 .p3-rank-table {

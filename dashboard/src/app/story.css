@@ -283,14 +283,16 @@
    900px and below scaled by --q-pin-phone. Every other topic: QFrame, the
    question inside the figure frame (no added height). */
 .story {
-  /* item 16: every question moment about 55-60vh, on the page background */
-  --q-pin: 56svh;
-  --q-pin-phone: 0.9;
+  /* item 16: every question moment on the page background; polish round:
+     tall enough that the question holds centred and still for about 40vh
+     of scroll before it moves (QStage stagePhase) */
+  --q-pin: 74svh;
+  --q-pin-phone: 0.97;
 }
 /* browsers before svh (Safari < 15.4): the layout viewport */
 @supports not (height: 1svh) {
   .story {
-    --q-pin: 56vh;
+    --q-pin: 74vh;
   }
 }
 /* the stage takes the block's first row only where it is shown (not under
@@ -337,7 +339,8 @@
   text-align: center;
   transform-origin: 50% 100%;
   transform: translateY(var(--qy)) scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
-  opacity: calc(1 - var(--qm) * 1.6);
+  /* shrinks over the whole move, fades over its second half */
+  opacity: calc(1 - max(0, var(--qm) - 0.4) * 1.67);
   will-change: transform, opacity;
 }
 .q-stage-icon {
@@ -381,11 +384,15 @@
    source line (typography spec, option b). 14/600 in ink; the part accent
    only on a 3px left rule; no icon. It fades up once the last card is
    reached (opacity only: always in the DOM, its height reserved). */
+.story {
+  /* polish round: every closing or answer line is this far below its chart */
+  --gap-answer: 24px;
+}
 .scrolly-takeaway {
   position: relative;
   z-index: 2;
   max-width: 60ch;
-  margin: 12px 0 0;
+  margin: var(--gap-answer, 24px) 0 0;
   padding-left: 10px;
   border-left: 3px solid var(--part-accent, var(--c-highlight));
   font-size: var(--t-label);
@@ -1688,7 +1695,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 96px), 620px);
+    min-height: clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px);
   }
 }
 /* "Show on chart" (the figure drawn once, phones): an icon button at the
@@ -2380,6 +2387,21 @@
     justify-self: end;
     margin-left: auto;
   }
+  /* polish round E: each step's item is pinned by the browser at its
+     sentence's place beside the stuck figure (Scrolly writes --pin-top and
+     --pin-bottom once per step change and resize, never per frame), held
+     inside its own column; only while the block is near the screen */
+  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-spacer) {
+    position: sticky;
+    top: var(--pin-top, 0px);
+    bottom: var(--pin-bottom, auto);
+  }
+  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-active) {
+    pointer-events: none;
+  }
+  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step.is-active {
+    z-index: 4;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .scrolly.is-anchored .scrolly-card {
@@ -2466,6 +2488,11 @@
   .scrolly.is-scene.has-foot .scrolly-card > :is(.scrolly-body, .scrolly-card-icon) {
     position: sticky;
     top: calc(var(--scene-foot) + 8px);
+  }
+  /* the last card's sentence stays put over its closing caption
+     (height-cut-fable.md cut 3) */
+  .scrolly.is-scene.has-foot .scrolly-step:nth-last-child(2) .scrolly-card > :is(.scrolly-body, .scrolly-card-icon) {
+    position: static;
   }
 }
 /* 768-900px, a figure drawn once (not sticky): its cards sit side by side
@@ -2628,23 +2655,27 @@
   --bh: 0;
   position: relative;
 }
+/* a beat leads into its scene, with the same clear space above the scene's
+   question as between topics (polish round), less the beat's own padding */
 .story-part > .story-beat + :is(.scrolly.has-sub, .p2-output) {
-  margin-top: 24px;
+  margin-top: calc(var(--gap-topic) - 8px);
 }
 .story-beat-card {
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 6px;
   max-width: 44rem;
   margin: 0 auto;
-  padding: 16px 16px 24px;
+  /* height-cut-fable.md cut 4: less padding, a shorter rule, a wider
+     meaning line (three lines become two) */
+  padding: 8px 16px 12px;
   text-align: center;
 }
 .beat-rule {
   display: block;
   width: 1px;
-  height: 28px;
+  height: 16px;
   background: var(--pe-gray-400);
   transform-origin: 50% 100%;
 }
@@ -2675,7 +2706,7 @@
   text-wrap: balance;
 }
 .beat-line {
-  max-width: 46ch;
+  max-width: 58ch;
   margin: 0;
   font-size: var(--t-body);
   line-height: 1.5;
@@ -2685,10 +2716,10 @@
 @media (max-width: 900px) {
   .story-beat-card {
     gap: 6px;
-    padding: 8px 16px 16px;
+    padding: 4px 16px 8px;
   }
   .beat-rule {
-    height: 20px;
+    height: 12px;
   }
   .beat-num {
     font-size: 56px;
@@ -2719,9 +2750,22 @@
 .scrolly-takeaway-in-step {
   margin-top: 10px;
 }
+/* height-cut-fable.md cut 1: the closing caption at the sentence's width,
+   in the text column of an icon-led card (it was auto-placed in the 18px
+   icon column, one word per line), and the card's rows packed at its top */
+.scrolly-card.has-icon > .scrolly-takeaway-in-step {
+  grid-column: 2;
+}
+.scrolly-card.has-icon {
+  align-content: start;
+}
 .scrolly-takeaway-in-step .scrolly-takeaway,
 .scrolly-takeaway-in-step .scrolly-takeaway-note {
   opacity: 1;
+}
+/* in a step card it follows the sentence, not a chart */
+.scrolly-takeaway-in-step .scrolly-takeaway {
+  margin-top: 12px;
 }
 /* ---- One-panel lists (item: "need boxes or something"): one tinted
    panel, one radius, hairline dividers between tiles, no card per tile.
@@ -2882,11 +2926,19 @@
     transition: none;
   }
 }
-/* desktop: a little more scroll per scene, so each state keeps its 180px
-   hold now that the last card carries the closing caption */
+/* desktop: the step column's length, so each state is held for its scroll
+   (height-cut-fable.md 2a): C = 1.8F + rail + 215px n - 100vh, from the
+   figure box's floor (F) and the card count (--n, prerendered) before any
+   script runs; Scrolly raises it to the measured figure (--col-min). The
+   end marker stays at the column's foot, and the pinned items inside it. */
 @media (min-width: 901px) {
   .scrolly.is-anchored > .scrolly-steps {
-    padding-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    min-height: max(calc(1.8 * clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + var(--story-graphic-top) + 215px * var(--n, 1) - 100vh), var(--col-min, 0px));
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
+    margin-top: auto;
   }
 }
 /* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */
@@ -2917,9 +2969,4 @@
   margin: 6px 0 0;
   font-size: var(--t-meta);
   color: var(--t-muted);
-}
-@media (min-width: 901px) {
-  #p3-deciles.is-anchored > .scrolly-steps {
-    padding-bottom: 72px;
-  }
 }

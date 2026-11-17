@@ -77,7 +77,11 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
         // step's text (review 3, B1)
         const close = s.querySelector('.scrolly-takeaway');
         let hit = null;
-        if (close && getComputedStyle(close).opacity > 0.05) {
+        // its effective opacity: in the last card (desktop, pinned) it is
+        // hidden with its card while another card is shown
+        let eff = 1;
+        for (let n = close; n && n !== s; n = n.parentElement) eff *= Number(getComputedStyle(n).opacity);
+        if (close && eff > 0.05) {
           const c = close.getBoundingClientRect();
           for (const card of s.querySelectorAll('.scrolly-step .scrolly-card')) {
             const k = (card.querySelector('.scrolly-body') ?? card).getBoundingClientRect();

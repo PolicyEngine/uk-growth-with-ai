@@ -1,7 +1,8 @@
 // Sticky and fixed elements on the Story (Vahid: "why stick?"; item 15).
 // The only things that may stick are the site header and its tab row
 // (with a settings chip's popover while open), the progress rail, and each
-// scene's pinned chart (.scrolly-graphic) inside its own scene. No topic
+// scene's pinned chart (.scrolly-graphic) inside its own scene, with its
+// step sentences held beside it (desktop) or under it (tablets). No topic
 // row, label, question or beat sticks. Lists every element whose computed
 // position is sticky or fixed, at 1280x800 and 390x844 (reduced motion and
 // with motion, scrolled through the page), and fails on any outside the
@@ -16,7 +17,10 @@ const SIZES = (process.env.SIZES ?? '1280,800 390,844').split(/\s+/).map((s) => 
 // allowed (matched with closest(), so their own children are covered):
 //   the site header, tab row and settings (perf/header's slim header too),
 //   an open popover or dialog, the rail, a scene's pinned chart, and at
-//   768-900px a sticky scene's step sentence held under its stuck chart
+//   768-900px a sticky scene's step sentence held under its stuck chart,
+//   and on desktop a pinned scene's step items, held beside its stuck chart
+//   inside their own step column (polish round E: pinned by the browser,
+//   not a per-frame transform)
 const ALLOW = [
   'header.band',
   '.sticky-stack',
@@ -35,6 +39,7 @@ const ALLOW = [
   '.story-rail',
   '.scrolly-graphic',
   '.scrolly.is-scene.has-foot .scrolly-card',
+  '.scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step',
 ];
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let bad = 0;

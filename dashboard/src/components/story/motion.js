@@ -171,6 +171,21 @@ export function useInView(options = {}) {
   return [ref, seen];
 }
 
+// A figure's one-shot draw-in (lines draw, bars grow): inside a Scrolly
+// it follows the figure's entry (EntryCtx: entered once the figure is in
+// view and its question moment has moved aside, false again above the
+// block, so it replays on scroll-back; a landing is drawn at once by
+// .is-snap); elsewhere, the first time the element is in view (useInView).
+// Polish round F: the Story's charts used useInView alone, so they drew
+// unseen under the pinned question above them, and never replayed.
+//
+//   const [ref, seen] = useDrawIn();
+export function useDrawIn(options) {
+  const entry = useContext(EntryCtx);
+  const [ref, seen] = useInView(options);
+  return [ref, entry ? Boolean(entry.entered) : seen];
+}
+
 // The active step of a scrolly section: the step whose box crosses the
 // line at `line` (share of the viewport height from the top). On phones
 // (<= 900px) the line is `phoneLine`, near the bottom: the graphic changes

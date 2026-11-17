@@ -876,23 +876,8 @@
   }
 }
 
-/* A step card is one sentence, so a floor on its height keeps
-   each state on screen for long enough while scrolling (check_states:
-   180px of scroll a state) */
-@media (min-width: 901px) {
-  #p1-work .scrolly-card {
-    min-height: 290px;
-  }
-  /* two-card scenes: each state takes half the scroll, so a taller floor */
-  #p1-ai .scrolly-card {
-    min-height: 320px;
-  }
-  /* the growth chart is taller under the slim header's offset: a little
-     more floor keeps its second state 180px */
-  #p1-output .scrolly-card {
-    min-height: 345px;
-  }
-}
+/* Desktop: each state's scroll comes from Scrolly's computed column
+   length (--col-pad), not a floor on every card (height-cut-fable.md 2a) */
 
 /* Step cards (Part1.jsx): one sentence, in a 34ch measure */
 .p1-say {
@@ -968,16 +953,18 @@
   }
 }
 
-/* ---- The hero's result unit (item 11): one band on the chart's own
-   figure frame, above the plot: a chip, then three mini-stats of the same
-   anatomy (name 14/600, value, one 12px line). GDP is the lead number;
-   pay rates and resident income are direction words with the tiles'
-   arrow, in the gain/loss tokens. ---- */
+/* ---- The hero's result unit (item 11; polish round D, Vahid: "no need
+   for having box, but align the contents in it with each other"): no card,
+   grouped by proximity and one left edge: the chip, the stats row, a
+   hairline, then the chart (whose y labels start on the same edge). The
+   three stats share one grid (subgrid rows): names on one baseline, values
+   on one line (GDP leads; the two direction phrases are centred on its
+   value line, one line each), sublines on one baseline. ---- */
 .hf-frame {
-  padding: 16px 20px 14px;
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: var(--card-radius);
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
 .story-hero.hf {
   align-items: center;
@@ -1002,37 +989,46 @@
 }
 .hf-stats {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px 20px;
-  align-items: start;
+  grid-template-columns: max-content max-content max-content;
+  grid-template-rows: auto auto auto;
+  gap: 2px 32px;
   margin: 0;
 }
 .hf-stat {
   display: grid;
-  gap: 2px;
-  align-content: start;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
   min-width: 0;
 }
 .hf-stat dd {
   margin: 0;
 }
 .hf-stat-name {
+  grid-row: 1;
   font-size: var(--t-label);
   font-weight: 600;
   line-height: 1.3;
+  white-space: nowrap;
   color: var(--t-ink);
 }
 .hf-stat-value {
+  grid-row: 2;
   display: flex;
   gap: 4px;
   align-items: center;
+  align-self: center;
   font-size: var(--t-body);
   font-weight: 600;
   line-height: 1.3;
+  white-space: nowrap;
   color: var(--t-ink);
+}
+.hf-stat.is-gdp .hf-stat-value {
+  align-self: stretch;
 }
 .hf-stat.is-gdp .hf-stat-value .hf-figure-value {
   font-size: var(--t-display);
+  line-height: 1.1;
 }
 .hf-stat-value.is-gain,
 .hf-stat-value.is-gain .hf-figure-value {
@@ -1045,20 +1041,65 @@
 .hf-stat-dir {
   display: inline-flex;
   flex: none;
+  align-self: center;
 }
 .hf-stat-sub {
+  grid-row: 3;
   font-size: var(--t-meta);
   line-height: 1.35;
+  white-space: nowrap;
   color: var(--t-muted);
 }
-@media (max-width: 600px) {
-  .hf-frame {
-    padding: 12px 14px;
-  }
+/* narrower hero columns: the same one-line anatomy, tighter */
+@media (max-width: 1100px) and (min-width: 601px) {
   .hf-stats {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: max-content minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 18px;
   }
-  .hf-stat.is-gdp {
-    grid-column: 1 / -1;
+  /* a long name or phrase wraps rather than leave the column */
+  .hf-stat-name,
+  .hf-stat-value:not(.is-gdp *),
+  .hf-stat-sub {
+    white-space: normal;
+  }
+  .hf-stat-value:not(.is-gdp *) {
+    font-size: var(--t-label);
+  }
+  .hf-stat.is-gdp .hf-stat-value .hf-figure-value {
+    font-size: 34px;
+  }
+}
+/* phones: the stats stack as rows, name, value and subline on one line
+   where they fit (wrapping after the value when they do not) */
+@media (max-width: 600px) {
+  .hf-stats {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 6px;
+  }
+  .hf-stat {
+    display: flex;
+    flex-wrap: wrap;
+    grid-row: auto;
+    align-items: baseline;
+    gap: 0 8px;
+  }
+  .hf-stat-value {
+    align-self: baseline;
+  }
+  .hf-stat.is-gdp .hf-stat-value .hf-figure-value {
+    font-size: 28px;
+  }
+  .hf-stat-dir {
+    align-self: center;
+  }
+  /* an item that does not fit goes to the next line whole */
+  .hf-stat > * {
+    flex-shrink: 0;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .hf-stat-sub {
+    white-space: normal;
   }
 }
