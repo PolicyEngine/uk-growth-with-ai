@@ -137,10 +137,8 @@ export function HeadlineTiles({ sid }) {
       ? ` About ${Math.round(fs)}% of the extra capital is owned abroad, with openness at OG-Core’s US default, chosen by the study.`
       : '';
   // the pay tile keeps a short visible form of its caveat (voice pass): a
-  // number whose sign can flip does not hide it
-  // SOURCES: move into notes icon: "The sign of the pay-rate gap depends on
-  // how much capital comes from abroad. Compare each closure on Explore."
-  // (link: tab=explore sub=economy #explore-part-all)
+  // number whose sign can flip does not hide it; the full caveat is in the
+  // GDP figure's notes (part2/Morph.jsx, morphGroups)
   const extra = {
     w: flips ? 'sign depends on the closure' : null,
   };
@@ -248,8 +246,8 @@ export function SummaryWhy({ sid }) {
 // closing caption, in its frame; it is also the scene's one "More on
 // Explore" link. "If repriced at once" stays with it: at the OBR's pace debt
 // ends below the path in two scenarios.
-// SOURCES: move into notes icon: the OBR-pace clause (debtLine's "at the
-// OBR’s repricing pace, …") with its link (tab=method sub=how #m-debt).
+// The OBR-pace clause, with its link to Method, is in the GDP figure's
+// notes (part2/Morph.jsx, morphGroups).
 export function DebtNote({ sid, cl }) {
   const p = debtParts(sid, cl);
   if (!p) return null;

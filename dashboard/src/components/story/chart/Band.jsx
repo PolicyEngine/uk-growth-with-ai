@@ -3,7 +3,7 @@
 // 'pandemic' (--ch-band), 'shock' (--ch-band-shock, 2028 to 2031). The label
 // is data-axis (an annotation of the scale, like a tick).
 //
-//   <Band x={x} from={2028} to={2031} top={plotTop} bottom={plotBottom} kind="shock" label="AI arrives 2028" />
+//   <Band x={x} from={2028} to={2031} top={plotTop} bottom={plotBottom} kind="shock" label="AI shock starts 2028" />
 export default function Band({ x, from, to, top, bottom, kind = 'forecast', label, className = '' }) {
   const a = Math.min(x(from), x(to));
   const b = Math.max(x(from), x(to));

@@ -6,6 +6,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
+import { METHOD } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
@@ -193,10 +194,6 @@ export default function Hero() {
         </a>
       </div>
       <figure className="story-hero-art hf-art hf-frame">
-        {/* SOURCES: move into notes icon: "Central closure, main arm" (the
-            closure chosen in the header); "OBR-central path" links to
-            Method (tab=method #METHOD.shock.id); the figures: part 2's
-            headline (#story-headline). */}
         {stats ? (
           <div className="hf-unit" role="group" aria-label={`The answer in ${HEADLINE_YEAR}, ${sel.name} scenario`}>
             <p className="hf-chip-ctx">
@@ -236,8 +233,27 @@ export default function Hero() {
         </ul>
         <figcaption className="hf-src">
           <SourceLine
-            items={[docItem('OG-UK runs', REPO, 'PolicyEngine'), navItem('Method: the model', 'method', 'm-model')]}
-            notes={[`Main arm, ${closure}.`]}
+            items={[docItem('OG-UK runs', REPO, 'PolicyEngine'), navItem('Method: the model', 'method', 'm-model'), navItem('Part 2: the headline figures', 'story', 'story-headline')]}
+            groups={[
+              {
+                title: 'How to read',
+                notes: [
+                  { icon: 'closure', text: `Main arm, ${closure} (the closure chosen in the header).` },
+                  {
+                    icon: 'path',
+                    text: (
+                      <>
+                        Gaps are against the{' '}
+                        <NavLink tab="method" anchor={METHOD.shock.id}>
+                          OBR-central path
+                        </NavLink>
+                        .
+                      </>
+                    ),
+                  },
+                ],
+              },
+            ]}
           />
         </figcaption>
       </figure>

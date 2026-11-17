@@ -154,9 +154,8 @@ export default function Part2({ part }) {
 // one sentence of at most 15 words with no figure and no link, a chip, and
 // three tiles of label, number and one line. The public debt line is the
 // scene's caption note (DebtNote, under the closing line in the frame).
-// SOURCES: move into notes icon: "Main arm, against the OBR-central path.
-// The other two arms are on Explore." (link: tab=explore sub=economy
-// #income)
+// What the figures are measured against (main arm, OBR-central path) is in
+// the GDP figure's notes (part2/Morph.jsx, morphGroups).
 function headlineStep(sid) {
   return {
     id: 'p2-headline',

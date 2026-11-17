@@ -2142,53 +2142,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   color: var(--pe-gray-600);
 }
 .page-notes {
-  position: relative;
   flex: none;
-}
-.page-notes > summary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin: -6px -6px 0 0;
-  color: var(--pe-gray-500);
-  list-style: none;
-  border: 1px solid transparent;
-  border-radius: var(--pe-radius-md);
-  cursor: pointer;
-}
-.page-notes > summary::-webkit-details-marker {
-  display: none;
-}
-.page-notes > summary:hover,
-.page-notes[open] > summary {
-  color: var(--pe-gray-900);
-  border-color: var(--card-border);
-}
-.page-notes > summary:focus-visible {
-  outline: 2px solid var(--pe-teal-500);
-  outline-offset: 2px;
-}
-.page-notes-body {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 20;
-  display: grid;
-  gap: 8px;
-  width: min(360px, calc(100vw - 32px));
-  padding: 12px 14px;
-  font-size: var(--fs-caption);
-  line-height: 1.5;
-  color: var(--pe-gray-700);
-  background: var(--pe-surface);
-  border: 1px solid var(--pe-gray-200);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px var(--shadow-strong);
-}
-.page-notes-body p {
-  margin: 0;
 }
 .page-q,
 .page-intro .hh-question.page-q {

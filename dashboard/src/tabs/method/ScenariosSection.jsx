@@ -265,7 +265,7 @@ export default function ScenariosSection({ uses = null }) {
           <Items
             items={[
               { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
-              { icon: 'rule', text: <>The {SURPRISE_YEAR} arrival: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
+              { icon: 'rule', text: <>The {SURPRISE_YEAR} start: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
               { icon: 'rule', text: <>So is the linear four-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}

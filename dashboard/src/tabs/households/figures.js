@@ -36,9 +36,9 @@ export function storyFigures() {
     // ... break-evens (take-up and JSA: Explore > Households since round 1)
     fmtPctSigned1(D.breakeven.wage.value_pct), `+${Math.round(D.breakeven.capital.value_pct)}%`,
     // 5 where a lost pound goes (the OBR-sized Sankey, back in the Story: item 19;
-    // employer NI waits in the figure's notes for the sources merge)
+    // employer NI in the figure's notes)
     fmtBn(D.sankey.total.earnings_lost_bn), ...['disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'].map((k) => fmtBn(D.sankey.total[k])),
-    fmtShare(D.sankey.tax_benefit_share_pct),
+    fmtShare(D.sankey.tax_benefit_share_pct), fmtBn(D.sankey.employer_ni_bn),
   ];
 }
 

@@ -66,7 +66,7 @@ export const perPound = (id) => byId(D.per_pound, id);
 // were), then the sources: the study's results at the data's commit, each
 // result file (`files`: paths from aiStudy2425.json's `file` fields) and
 // the papers the figure cites (`refs`: ids in sources.jsx REFS).
-export function Source({ children, files = [], groups = [], refs = [] }) {
+export function Source({ children, files = [], groups = [], refs = [], items: extra = [] }) {
   const fs = [...new Set(files.filter(Boolean))];
   const basis = (
     <>
@@ -78,6 +78,7 @@ export function Source({ children, files = [], groups = [], refs = [] }) {
     fileItem('uk-ai-study results', `${REPO_URL}/tree/${COMMIT}/results`, 'PolicyEngine', `at ${COMMIT}`),
     ...fs.map((f) => fileItem(f, fileUrl(f), 'PolicyEngine')),
     ...refs.map((id) => REFS[id] && docItem(REFS[id].label, REFS[id].url, undefined, REFS[id].title)),
+    ...extra,
   ];
   return <SourceLine items={items} groups={[{ title: 'Model', notes: [basis] }, ...groups]} />;
 }

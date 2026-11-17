@@ -1,7 +1,7 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import AsOf from '@/components/story/AsOf.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { asOfItems } from '@/components/story/AsOf.jsx';
 
 // The opening of every Explore and Method sub-tab, in one fixed order, all
 // left-aligned to the content edge: a small model kicker (what this page's
@@ -11,28 +11,12 @@ import AsOf from '@/components/story/AsOf.jsx';
 // from the data where it moves with the pickers), then any page-level
 // options. Charts, detail and sources follow in the page body.
 //
-// SOURCES: the "As of" stamp (latest ONS and OBR releases and the model
-// commit, components/story/AsOf.jsx) and the page's notes (`notes`) belong
-// in the sources-and-notes icon, components/ui/SourceLine.jsx
-// (<SourceLine items={[…]} />, on perf/sources). Until that is merged, a
-// placeholder with the same role is drawn here (PageNotes); swap it for
-// SourceLine after the merge.
+// The page's one "Sources and notes" button (components/ui/SourceLine.jsx),
+// beside the kicker: the "As of" items (the latest ONS and OBR releases
+// read and the model commit, components/story/AsOf.jsx) and the page's
+// scope notes (`notes`, e.g. the assumed date of the AI shock).
 export function PageNotes({ notes = [] }) {
-  return (
-    <details className="page-notes">
-      <summary aria-label="Sources and notes for this page" title="Sources and notes">
-        <Icon name="info" size={16} />
-      </summary>
-      <div className="page-notes-body">
-        <p data-cite="">
-          <AsOf inline />
-        </p>
-        {notes.map((n, i) => (
-          <p key={i}>{n}</p>
-        ))}
-      </div>
-    </details>
-  );
+  return <SourceLine className="page-notes" items={asOfItems()} groups={[{ title: 'Assumptions', notes }]} label="Sources and notes for this page" />;
 }
 
 // a page that does not name its model (Evidence, Data and code) reads both

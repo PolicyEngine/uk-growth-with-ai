@@ -31,7 +31,7 @@ export const INPUTS = [
   { group: 'Scenarios', input: 'Stress test: GDP held at the OBR-central path', value: '2031', kind: 'published', how: 'After the OBR’s displacement scenario, GDP unchanged. The 0.01pp tolerance is a modelling choice.', src: ['efoMarBox22'] },
   { group: 'Scenarios', input: 'Which pairs, the three arms, the headline', value: '—', kind: 'choice', how: 'The study’s design.', src: ['calibNote', 'fiscalRules'] },
   // timing
-  { group: 'Timing', input: 'AI arrives as a surprise; one start', value: '2028; 2027', kind: 'choice', how: 'No published source sets 2028.', src: ['surpriseYear'] },
+  { group: 'Timing', input: 'The AI shock starts as a surprise; one starting point', value: '2028; 2027', kind: 'choice', how: 'No published source sets 2028.', src: ['surpriseYear'] },
   { group: 'Timing', input: 'Linear four-year ramp to full weight', value: '2028–2031', kind: 'choice', how: 'No published source; the IMF’s adoption path is convex.', src: ['rampWeights'] },
   { group: 'Timing', input: 'Perfect foresight after the surprise', value: '—', kind: 'choice', how: 'OG-Core’s time path iteration.', src: ['fiscalRules'] },
   // the baseline

@@ -10,6 +10,9 @@ import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
 import { modelItems, SRC as LINKS } from './sources.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import { docItem, ukItem } from '@/lib/sourceItems.js';
+import { NavLink } from '@/lib/nav.jsx';
+import { paySigns } from './caveats.js';
+import { debtParts } from '@/tabs/ai/Landing.jsx';
 
 const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll } from './charts.jsx';
@@ -242,6 +245,59 @@ export function morphItems(s) {
   ];
 }
 
+// The model states' notes (2 on), behind the same button: what the
+// headline figures are measured against, the pay tile's sign caveat and
+// the debt line's repricing clause (voice pass: they left the step text).
+export function morphGroups(s, sid, cl) {
+  if (s < 2) return [];
+  const p = debtParts(sid, cl);
+  return [
+    {
+      title: 'How to read',
+      notes: [
+        {
+          icon: 'scenario',
+          text: (
+            <>
+              Main arm, against the OBR-central path. The other two arms are on{' '}
+              <NavLink tab="explore" sub="economy" anchor="income">
+                Explore
+              </NavLink>
+            </>
+          ),
+        },
+        paySigns(sid) === 'flips'
+          ? {
+              icon: 'closure',
+              text: (
+                <>
+                  The sign of the pay-rate gap depends on how much capital comes from abroad. Compare each closure on{' '}
+                  <NavLink tab="explore" sub="economy" anchor="explore-part-all">
+                    Explore
+                  </NavLink>
+                </>
+              ),
+            }
+          : null,
+        p?.slow
+          ? {
+              icon: 'debt',
+              text: (
+                <>
+                  Public debt: at the{' '}
+                  <NavLink tab="method" sub="how" anchor="m-debt">
+                    OBR&rsquo;s repricing pace
+                  </NavLink>
+                  , {p.slow}
+                </>
+              ),
+            }
+          : null,
+      ],
+    },
+  ];
+}
+
 // The pinned scenario, when it is not the one chosen and its solve is done:
 // drawn from state 2 as a dark grey line (its own path, restyled; never a
 // second copy), so two scenarios can be compared with the gap axis holding
@@ -330,7 +386,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
             </span>
           ))}
         </span>
-        <SourceLine items={morphItems(s)} />
+        <SourceLine items={morphItems(s)} groups={morphGroups(s, sid, cl)} />
       </p>
       <p className="story-figure-unit p2-text-stack">
         {all.map((t, i) => (

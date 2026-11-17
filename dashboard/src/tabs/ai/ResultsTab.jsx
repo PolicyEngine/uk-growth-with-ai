@@ -153,7 +153,7 @@ export function PathCard({
           yTitleTop
           xUnit={tile && !open ? null : 'Year'}
           zeroNote={tile && !open ? null : 'OBR-central path = 0'}
-          markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI arrives' }]}
+          markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI shock starts' }]}
           bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => signed(x, endDp)}
           tipFormat={(x) => signed(x, dp)}
@@ -402,7 +402,7 @@ function EconomyPanel({ sid }) {
             <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR-central path
           </li>
           <li>
-            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, AI arrives; shaded: ${HEADLINE_YEAR}`}
+            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, AI shock starts; shaded: ${HEADLINE_YEAR}`}
           </li>
           {st.closure === 'both' ? (
             <li>

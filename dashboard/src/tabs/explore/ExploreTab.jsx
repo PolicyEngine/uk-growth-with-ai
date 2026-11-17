@@ -21,7 +21,7 @@ const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sente
 // their kicker names both.
 const OGUK = 'OG-UK · gaps against the OBR-central path, not forecasts';
 const MAIN = `${OGUK} · automation + productivity, ${HEADLINE_YEAR}`;
-const DATE_NOTE = 'AI arrives in 2028: an assumed date, not a forecast.';
+const DATE_NOTE = 'The AI shock starts in 2028: an assumed date, not a forecast.';
 
 // Explore: every interactive view. Each sub-tab opens with its question and
 // a short answer in items that follows the pickers, then the charts. Economy
@@ -41,7 +41,7 @@ export default function ExploreTab() {
   if (sub === 'economy')
     body = (
       <>
-        <PageIntro kicker={MAIN} notes={[DATE_NOTE]} question="How do pay, national income and GDP move if AI arrives in 2028?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
+        <PageIntro kicker={MAIN} notes={[DATE_NOTE]} question="How do pay, national income and GDP move if an AI shock starts in 2028 (an assumed date)?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
           <RuleBar />
         </PageIntro>
         <ResultsTab sub="income" />

@@ -7,6 +7,8 @@ import StoryBeat from '@/components/story/StoryBeat.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import { absorbGraph, DESTS, MOST, POUR_ORDER } from '@/tabs/households/Absorb.jsx';
 import { fmtBn, fmtShare } from './format.js';
+import { docItem } from '@/lib/sourceItems.js';
+import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
 
 // Where a lost pound of earnings goes (item 19: back in the Story, clearly
@@ -17,13 +19,8 @@ import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
 // flow to four destinations, in the shared Sankey (pour, particles, node
 // values), decile 1 grey with its caveat. The Story is the home of the
 // destination totals, the earnings total and the share absorbed; Explore >
-// Households links here.
-// SOURCES: move into notes icon: "Employers also stop paying £3.2bn of NI, a
-// further cost to government (D.sankey.employer_ni_bn)." "Other items: mainly
-// pension contributions no longer paid." "Benefits replace little partly
-// because the data flag only some newly entitled people as claiming UC."
-// Sources: results/next_runs/obr_household_deciles.csv; sized to OBR Box 2.2
-// (efo(EFO_PAGE.box22)).
+// Households links here. Employer NI (its home), the other items, the UC
+// caveat, the result file and OBR Box 2.2 are behind the title's button.
 
 const S = D.sankey;
 const RATE = `${S.displacement_rate_pct.toFixed(2)}%`;
@@ -63,6 +60,26 @@ const tip = ({ kind, link, node }) =>
     <>{DEST_NAME[node.id]}</>
   );
 
+// The figure's notes and sources, behind its "Sources and notes" button.
+function PoundSource() {
+  return (
+    <Source files={[S.file]} items={[docItem('OBR, March 2026, Box 2.2: the run is sized to its scenario', efo(EFO_PAGE.box22), 'Office for Budget Responsibility')]}
+      groups={[
+        {
+          title: 'How it’s counted',
+          notes: [
+            { icon: 'tax', text: <>Employers also stop paying {fmtBn(S.employer_ni_bn)} of NI, a further cost to government.</> },
+            { icon: 'measure', text: 'Other items: mainly pension contributions no longer paid.' },
+            { icon: 'benefits', text: 'Benefits replace little partly because the data flag only some newly entitled people as claiming UC.' },
+          ],
+        },
+      ]}
+    >
+      OBR-sized run, {S.draws} draws
+    </Source>
+  );
+}
+
 function PoundFigure({ ctx }) {
   const { attach, ...e } = useBeat(ctx?.entered ?? true);
   // the destination nodes and their ribbons carry data-mark, so the step's
@@ -77,7 +94,15 @@ function PoundFigure({ ctx }) {
   return (
     <figure ref={attach} className={entryClass(e, 'p3-figure p3-scene p3-pound')}>
       <p className="p3-pound-chip">OBR-sized run · not the central case</p>
-      <FigureHead icon="pay" title="Where lost earnings go, by income decile" y="£bn a year" x="Income decile, 1 = bottom, to where the loss lands" unit={`${fmtBn(S.total.earnings_lost_bn)} of earnings lost a year, ${S.draws} draws`} replay={e.replay} />
+      <FigureHead
+        icon="pay"
+        title="Where lost earnings go, by income decile"
+        y="£bn a year"
+        x="Income decile, 1 = bottom, to where the loss lands"
+        unit={`${fmtBn(S.total.earnings_lost_bn)} of earnings lost a year, ${S.draws} draws`}
+        replay={e.replay}
+        source={<PoundSource />}
+      />
       <div className="p3-pound-sankey" ref={box}>
         <Sankey
           graphs={[absorbGraph()]}
@@ -99,7 +124,6 @@ function PoundFigure({ ctx }) {
         />
       </div>
       <p className="p3-pound-caveat">Decile 1 is grey: no conclusion is drawn.</p>
-      <Source files={[S.file]}>OBR-sized run, {S.draws} draws</Source>
     </figure>
   );
 }

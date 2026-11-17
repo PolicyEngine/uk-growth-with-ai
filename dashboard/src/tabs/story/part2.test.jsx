@@ -94,6 +94,18 @@ describe('story part 2', () => {
     }
   });
 
+  it('the GDP figure’s notes hold the headline step’s reading notes and links', async () => {
+    const { MorphChart } = await import('@/tabs/story/part2/Morph.jsx');
+    const { container } = render(
+      <NavProvider>
+        <MorphChart state={4} sid="uk_central" cl="zk0.1" />
+      </NavProvider>,
+    );
+    expect(popText(container)).toContain('Main arm, against the OBR-central path');
+    const links = sourceLinks(container);
+    for (const end of ['#economy-wall', '#explore-part-all', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
+  });
+
   it('every chart is an image with a text alternative, and links keep the reader’s choices', () => {
     const { container } = at('tab=story&s=uk_high&closure=both');
     const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid')];
@@ -116,8 +128,9 @@ describe('story part 2', () => {
     expect(hrefs.some((h) => h.startsWith('/?tab=method') && h.endsWith('#m-scenarios'))).toBe(true);
     expect(hrefs.some((h) => h.includes('sub=scenarios'))).toBe(false);
     // the pay caveat's closure link and the other arms' link leave the step
-    // text for the figure's notes icon (item 7; wired after the sources merge)
-    expect(hrefs.some((h) => h.endsWith('#explore-part-all'))).toBe(false);
+    // text for the GDP figure's notes icon (item 7)
+    const stepLinks = [...part2.querySelectorAll('.scrolly-step a, .p2-headline-step a')].map((a) => a.getAttribute('href'));
+    expect(stepLinks.some((h) => h.endsWith('#explore-part-all') || h.endsWith('#economy-wall'))).toBe(false);
     // no next-part band, no per-step result-file lines or folds
     expect(container.querySelector('.story-next-links')).toBeNull();
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();

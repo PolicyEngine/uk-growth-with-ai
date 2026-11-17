@@ -450,7 +450,7 @@ export default function MethodTab() {
 
         <section>
           <SectionHeading id="m-path" icon={iconFor('path')} title="Steady state and path">
-            <IconText icon="check">How each run is solved and checked. When the shock arrives and how it ramps up is on{' '}
+            <IconText icon="check">How each run is solved and checked. When the shock starts and how it ramps up is on{' '}
             <NavLink tab="method" sub="how" anchor="m-timing">
               Scenarios, when it happens
             </NavLink>

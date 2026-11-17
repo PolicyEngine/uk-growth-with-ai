@@ -46,7 +46,7 @@ export function KeyFacts({ facts, className = '' }) {
 // short label, read left to right (top to bottom on narrow screens). An
 // ordered list, so screen readers hear the steps in order.
 //
-//   <WhyChain label="Why national income gains less" links={[{ icon: 'ai', text: 'AI arrives' }, …]} />
+//   <WhyChain label="Why national income gains less" links={[{ icon: 'ai', text: 'AI shock starts' }, …]} />
 export function WhyChain({ links, label, className = '' }) {
   return (
     <ol className={`story-chain ${className}`} aria-label={label}>

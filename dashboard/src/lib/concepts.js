@@ -18,7 +18,7 @@ export const CONCEPT_ICON = {
   foreign: 'globe', // foreign owners, abroad, open capital
   depreciation: 'repeat', // capital that wears out
   ai: 'cpu', // AI, the technology shock
-  shock: 'zap', // the shock arriving
+  shock: 'zap', // the AI shock starting
   timing: 'clock', // when something happens
   // the public finances
   finances: 'landmark', // public finances, government

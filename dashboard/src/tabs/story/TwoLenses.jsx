@@ -10,6 +10,8 @@ import { CENTRAL, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } fro
 import { D, MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { PAPER_URL, REFS, REPO_URL } from './part3/sources.jsx';
 import QStage from '@/components/story/QStage.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import { docItem, navItem } from '@/lib/sourceItems.js';
 
 // The close of the story: Two lenses (two-lenses-design.md, with Fable's
 // refinements B1-B8 in charts-finale-fable.md). Two overlapping circles,
@@ -182,6 +184,35 @@ function Outside({ lens }) {
   );
 }
 
+// The pay cards' sources, behind the closing line's one button: the
+// figures themselves are not restated (each has its home).
+function LensSource() {
+  return (
+    <SourceLine
+      items={[docItem(REFS.doorley.label, REFS.doorley.url, undefined, REFS.doorley.title), navItem('Part 2: the headline figures', 'story', 'story-headline')]}
+      groups={[
+        {
+          title: 'How to read',
+          notes: [
+            {
+              icon: 'gapUp',
+              text: (
+                <>
+                  Pay for those still in work is an input of the study, after{' '}
+                  <a href={REFS.doorley.url} target="_blank" rel="noopener noreferrer">
+                    Doorley et al. (2026)
+                  </a>
+                </>
+              ),
+            },
+            { icon: 'gapDown', text: `Pay rates are part 2’s headline pay-rate gap: ${SCEN_NAME[PAY_SID]}, central closure, ${HEADLINE_YEAR}` },
+          ],
+        },
+      ]}
+    />
+  );
+}
+
 export default function TwoLenses() {
   const [ref, entry] = useEntry({ line: 0.8 });
   const snap = useSnap(ref, entry);
@@ -192,9 +223,6 @@ export default function TwoLenses() {
       <header className="story-part-head" id="q-story-close">
         <h2 id="story-close-h">{CLOSE_SUB.title}</h2>
       </header>
-      {/* SOURCES: move into notes icon: "+2.6% for those still in work is an
-          input, after Doorley et al. (2026)" (REFS.doorley.url); "−1.27% is
-          part 2's headline pay-rate gap, UK central, central closure, 2031". */}
       <figure ref={ref} className={`lens-fig story-frame${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`} aria-labelledby="story-close-h">
         <div className="lens-venn">
           <svg className="lens-rings" viewBox="0 0 540 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -240,7 +268,9 @@ export default function TwoLenses() {
             <p className="lens-pay-sub">for those still in work</p>
           </div>
         </div>
-        <p className="lens-close">{CLOSE_LINE}</p>
+        <p className="lens-close">
+          {CLOSE_LINE} <LensSource />
+        </p>
       </figure>
       <nav className="lens-deeper go-deeper" aria-labelledby="go-deeper-h">
         <p className="go-deeper-kicker" id="go-deeper-h">
