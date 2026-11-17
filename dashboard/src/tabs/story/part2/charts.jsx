@@ -2,7 +2,7 @@
 
 import { useId, useState } from 'react';
 import { DrawPath } from '@/components/story/primitives.jsx';
-import { useInView } from '@/components/story/motion.js';
+import { useDrawIn } from '@/components/story/motion.js';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from '@/tabs/ai/surprise.js';
 import D from '@/data/cohorts2028.json';
 import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
@@ -87,7 +87,7 @@ export function peakAge() {
 // line. "Born in" marks one cohort's point on the curve, as a read-out of
 // the drawing only: no value is printed.
 export function WelfareShape({ state }) {
-  const [ref, seen] = useInView();
+  const [ref, seen] = useDrawIn();
   const [born, setBorn] = useState('');
   const bornId = `p2-born-in${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const xs = D.closures[CENTRAL].birth_year;

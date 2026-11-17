@@ -1,6 +1,6 @@
 'use client';
 
-import { useEnterState, useInView } from '@/components/story/motion.js';
+import { useEnterState, useDrawIn } from '@/components/story/motion.js';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
@@ -69,7 +69,7 @@ const OUT_M = { l: 34, r: 8, t: 22, b: 24 };
 export const OBR_NAMED = [0, 1, OBR.y.length - 1];
 
 export function OutputCanvas({ state, notes }) {
-  const [ref, seen] = useInView();
+  const [ref, seen] = useDrawIn();
   const [box, w, h] = useBox(OUT_H);
   const clip = useSvgId('p1-out-clip');
   const g = SERIES.gdp_growth;
@@ -367,7 +367,7 @@ const periodLabel = (x) => {
 };
 
 export function LabourBoard({ focus, notes }) {
-  const [ref, seen] = useInView();
+  const [ref, seen] = useDrawIn();
   const [box, w, h] = useBox(BOARD_H);
   const gid = useSvgId('p1-pay-fade');
   const all = boardSeries();
@@ -464,7 +464,7 @@ const AI_H = 204;
 const AI_M = { l: 34, r: 10, t: 12, b: 24 };
 
 export function AiUseChart({ notes }) {
-  const [ref, seen] = useInView();
+  const [ref, seen] = useDrawIn();
   const [box, w, aiH] = useBox(AI_H);
   const gid = useSvgId('p1-ai-fade');
   const a = SERIES.business_ai_use;
@@ -487,9 +487,12 @@ export function AiUseChart({ notes }) {
   // end labels clear of their lines: over the label's width (about 7px a
   // character at 12px), above the highest point of the upper line and
   // below the lowest point of the lower one
-  const under = (ys, chars) => idx.filter((i) => X(i) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
+  const under = (ys, chars) => idx.filter((i) => X(Math.min(last, i + 1)) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
   const tenY = Math.max(T + 10, Math.min(...under(b.y, 27)) - 9);
-  const allY = Math.min(B - 4, Math.max(...under(a.y, 14)) + 17);
+  // "All businesses, 29.7%" (polish round F: the shorter label sat on its
+  // own line near Sept 2026): under the lowest point of its line over the
+  // whole label's width, right-aligned at the end dot like the other
+  const allY = Math.min(B - 4, Math.max(...under(a.y, 22)) + 17);
   return (
     <Figure
       icon="ai"
@@ -547,7 +550,7 @@ export function AiUseChart({ notes }) {
             10 or more employees, <tspan data-path="facts.business_ai_use_10plus.value">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
           </text>
           <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on" data-mark="ai-all">
-            All businesses
+            All businesses, <tspan data-axis="">{pct1(FACTS.business_ai_use.value)}</tspan>
           </text>
         </g>
         </Crosshair>
