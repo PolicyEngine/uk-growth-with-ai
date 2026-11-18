@@ -78,7 +78,7 @@ for (const [W, H] of SIZES) {
         } else if (s.top <= bottom + 1 && s.top >= -1) chain.push(s);
       }
       // labels inside the stack
-      const LABELS = '.view-tab-label, .picker-label, .picker-value, .seg-option-label, .seg-picker-name, .settings-chip-text, .settings-chip-seg, .copy-link-text, .model-chip span, .subhead-chip span, .story-rail-t, .story-rail-n';
+      const LABELS = '.view-tab-label, .settings-chip-text, .settings-chip-seg, .copy-link-text, .story-rail-t, .story-rail-n';
       const clipped = [];
       for (const s of chain) {
         for (const l of s.el.querySelectorAll(LABELS)) {

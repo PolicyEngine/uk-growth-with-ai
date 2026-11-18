@@ -76,7 +76,7 @@ function audit([labels, inView]) {
   const panel = document.querySelector('.tab-panel:not([hidden])') ?? document.body;
   const SKIP = '[aria-hidden="true"], [hidden], [inert], .scrolly-sizers, .ch-ghost, .p2-text-ghost, .p1-title-ghost, header.site-header, footer, nextjs-portal';
   const BOX = 'figure, .ch-frame, .chart-card, .card, .scrolly-graphic-inner, [data-chart], section';
-  const LEGEND = '.ch-legend, .p2-legend, .card-legend, [class*="legend"], [role="radiogroup"], button:not(.ex-tile-open)';
+  const LEGEND = '.ch-legend, .p2-legend, .card-legend, [class*="legend"], [role="radiogroup"], .settings-chip-wrap, button:not(.ex-tile-open)';
   const NOT_SERIES = /(^|[\s_-])(grid|axis|axes|zero|tick|marker|band|baseline|leader|guide|track|bg|backdrop|frame|period|crosshair|ref|rule|halo|hit|focus|shade|shadow|swatch|connector|plane|born-mark|hover|cursor)([\s_-]|$)/i;
   const shown = (e) => {
     if (e.closest(SKIP)) return false;

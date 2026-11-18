@@ -7,17 +7,17 @@ import { HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
 // hero's quiet line above the question.
 export const PAGE_TITLE = 'AI and the UK economy: Beyond the forecast';
 
-// Tabs, in order, and their sub-tabs. `scenario` / `closure`: whether that
-// header picker applies ('locked' = shown, fixed, with the reason in view);
-// a sub-tab's own setting wins over its tab's. `arm` / `rule`: the page
-// pickers in the settings bar (`rule` may list the rules that page has
-// solves for; the others show disabled). `study`: a uk-ai-study page, which
-// shows the "different model" chip in place of the OG-UK settings. The site
+// Tabs, in order, and their sub-tabs. `scenario` / `closure` / `arm` /
+// `rule`: whether that section is in the page's settings pill ('locked' =
+// shown, fixed, with the reason in the panel); a sub-tab's own setting wins
+// over its tab's (`rule` may list the rules that page has solves for; the
+// others show disabled). `study`: a uk-ai-study page, which shows the
+// household study's model line in place of the OG-UK settings. The site
 // had seven tabs until November 2026, and eleven views until the All
 // scenarios and Scenarios sub-tabs folded into Economy ("Across scenarios")
 // and OG-UK method; lib/nav.jsx sends their addresses here. On Economy and
-// Public finances the arm picker drives the across-scenarios matrices (the
-// line charts draw every arm, &arms=).
+// Public finances the Version section drives the across-scenarios matrices
+// (the line charts draw every arm, &arms=).
 export const TABS = [
   { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
   { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true, rule: true, arm: true,

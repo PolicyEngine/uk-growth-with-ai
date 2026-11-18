@@ -31,7 +31,6 @@ const ALLOW = [
   '.tab-row',
   '.tabs',
   '[role="tablist"]',
-  '.settings-bar',
   '.settings-chip',
   '.settings-pop',
   '[role="dialog"]',
