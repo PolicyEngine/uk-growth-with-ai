@@ -616,7 +616,7 @@ export default function WhoGainsTab() {
         </Lead>
       </SectionHeading>
       <ul className="ex-mchips ex-who-chips">
-        <li className="ex-mchip" title="Cohort paths are solved for UK central only, so the Scenario picker at the top is fixed on this page">
+        <li className="ex-mchip" title="Cohort paths are solved for UK central only, so the scenario in the settings pill is fixed on this page">
           UK central only
         </li>
         <li className="ex-mchip">
@@ -631,7 +631,7 @@ export default function WhoGainsTab() {
           </li>
         ) : null}
       </ul>
-      {/* arm and fiscal rule: the settings bar at the top of the page (one store) */}
+      {/* arm and fiscal rule: the settings pill under the page title (one store) */}
       {both ? (
         cls.map((k) => (
           <div key={k} className="wg-closure">

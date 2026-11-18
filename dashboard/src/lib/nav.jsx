@@ -8,8 +8,8 @@ import { revealAnchor } from '@/lib/scroll.js';
 // One reader and one writer for the address. Everything a reader can choose
 // is in it, so any view can be shared as a link:
 //   ?tab=  &sub=           the tab and its sub-tab (Explore, Method and sources)
-//   &s=    &closure=       the header pickers: scenario, capital closure
-//   &arm=  &rule=          the page pickers (settings bar): one arm and one
+//   &s=    &closure=       the settings pill: scenario, capital closure
+//   &arm=  &rule=          the settings pill: one arm and one
 //                          fiscal rule for every Explore page
 //   &arms=                 the arms drawn on Results' charts (series shown)
 //   &groups=               Who gains' earnings groups shown

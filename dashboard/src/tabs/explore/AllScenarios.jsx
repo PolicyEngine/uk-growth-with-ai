@@ -217,7 +217,7 @@ function MatrixKey({ story = true, note }) {
 }
 
 export default function AllScenarios() {
-  // the arm is the one store's (&arm=, lib/nav.jsx), shared with the settings bar
+  // the arm is the one store's (&arm=, lib/nav.jsx), shared with the page pill
   const { st, set } = useNav();
   const arm = st.armId;
   const [v, setV] = useState('Y');
