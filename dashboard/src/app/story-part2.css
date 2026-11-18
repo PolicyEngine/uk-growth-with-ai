@@ -964,24 +964,7 @@
   opacity: 1;
 }
 .p2-born {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 2px 0 6px;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.p2-born input {
-  width: 6.5em;
-  padding: 2px 6px;
-  font: inherit;
-  font-variant-numeric: tabular-nums;
-  border: 1px solid var(--card-border);
-  border-radius: 4px;
-}
-.p2-born input:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 1px;
+  margin: 2px 0 8px;
 }
 .p2-born-mark line {
   stroke: var(--pe-gray-400);

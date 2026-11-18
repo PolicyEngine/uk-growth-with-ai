@@ -7,7 +7,7 @@ import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from 
 import D from '@/data/cohorts2028.json';
 import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
 import { navItem } from '@/lib/sourceItems.js';
-import { W, H, scales, monotonePath, tickText, Figure, Tx } from './frame.jsx';
+import { W, H, scales, monotonePath, tickText, Figure } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
 // takes the active `state` and draws everything that state needs, so a
@@ -112,23 +112,28 @@ export function WelfareShape({ state }) {
       xTitle={null}
       source={<WelfareSource />}
       head={
-        <p className="p2-born">
-          <Tx icon="age" size={12}>
-            <label htmlFor={bornId}>Mark a birth year</label>
-          </Tx>
+        <p className="p2-born fig-control">
+          <label htmlFor={bornId}>Mark a birth year</label>
           <input
             id={bornId}
-            type="number"
+            className="fig-input"
+            type="text"
             inputMode="numeric"
-            min={xs[0]}
-            max={state >= 1 ? xs[xs.length - 1] : LAST_ALIVE}
-            placeholder="Year"
+            pattern="[0-9]*"
+            maxLength={4}
+            autoComplete="off"
+            size={8}
+            aria-describedby={`${bornId}-range`}
+            placeholder="e.g. 1990"
             value={born}
-            onChange={(e) => setBorn(e.target.value)}
+            onChange={(e) => setBorn(e.target.value.replace(/[^0-9]/g, ''))}
             onKeyDown={(e) => {
               if (e.key === 'Escape') setBorn('');
             }}
           />
+          <span id={`${bornId}-range`} className="visually-hidden">
+            {`From ${xs[0]} to ${state >= 1 ? xs[xs.length - 1] : LAST_ALIVE}; Escape clears it.`}
+          </span>
           <span className="visually-hidden" aria-live="polite">
             {pick ? 'That cohort is marked on the curve.' : ''}
           </span>
