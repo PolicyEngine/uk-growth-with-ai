@@ -1,17 +1,26 @@
 'use client';
 
+import { useId, useState } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
-import { D, FigureHead, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, useBeat, asLines } from './shared.jsx';
+import { D, FigureHead, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, useBeat, asLines, MODEL_YEAR } from './shared.jsx';
+import { SECTION } from './sources.jsx';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Deciles 2 to 10 are drawn at full strength in the part's
 // loss and gain tokens; no step dims them, and each row's label and value
-// stay at full strength. Decile 1 is drawn grey (neutral) with its value and
-// the words "no conclusion drawn": its direction depends on the ranking, and
-// the second step's table gives it under the two other rankings. Dimmed bars
+// stay at full strength. Decile 1 is not a result (Vahid, 18 Nov: "why first
+// decile is improving?"): a dashed, unfilled outline with its value muted,
+// and "not a reliable result: see why", a fold that says why (households
+// that only look poor under HBAI: pension contributions deducted, savings
+// that gain from the capital shock) and links to the paper's section. Its
+// direction depends on the ranking; the second step's table gives it under
+// the two other rankings. The run is the FY 2027-28 rerun at uk-ai-study
+// main (cd54488), where HBAI decile 1 is +1.86% (paper macro
+// genDecileRankHbaiDOneSignedPct); the paper's +1.78% is the earlier
+// Microcosm run (9166f9e) on the data/microcosm-2024-25 branch. Dimmed bars
 // keep 60% (story-part3.css). The flows by decile (a smaller, OBR-sized run)
 // are on Explore > Households, one link line here.
 
@@ -114,6 +123,37 @@ function DecBar({ v, on, fill, delay }) {
   );
 }
 
+// Decile 1's row note: "see why" opens a small note under the row (a
+// button, aria-expanded; Escape or a second press closes it), with the
+// reason and a link to the paper's section. The figure in it is the
+// step-2 table's (its home): the note is hidden at rest, out of the page
+// text the number check reads.
+const PAPER_DECILES = `${SECTION.results.url}#L54`;
+function DecileOneWhy() {
+  const [open, setOpen] = useState(false);
+  const id = `p3-d1-why${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
+  const pre = RANK_PRE_PENSION;
+  return (
+    <span className="p3-dec-note p3-dec-why" onKeyDown={(e) => (e.key === 'Escape' ? setOpen(false) : null)}>
+      not a reliable result:{' '}
+      <button type="button" className="p3-dec-why-btn" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
+        see why
+      </button>
+      <span id={id} role="note" className="p3-dec-why-pop" hidden={!open}>
+        <span className="p3-dec-why-p">Some households here only look low-income: large pension contributions are taken off their income, but they own savings that gain from the capital shock.</span>
+        {Number.isFinite(pre) ? (
+          <span className="p3-dec-why-p">
+            Ranked before pension contributions, this decile {pre < 0 ? `loses ${Math.abs(pre).toFixed(2)}%` : `changes by ${fmtDecilePct(pre)}`}.{' '}
+            <a href={PAPER_DECILES} target="_blank" rel="noopener noreferrer">
+              The paper, “Where the income loss falls”
+            </a>
+          </span>
+        ) : null}
+      </span>
+    </span>
+  );
+}
+
 function DecilesFigure({ ctx }) {
   const { attach, ...e } = useBeat(ctx?.entered ?? true);
   return (
@@ -133,7 +173,7 @@ function DecilesFigure({ ctx }) {
           </>
         }
         x="Income decile, 1 = bottom"
-        unit={`Main case, ${DEC.draws} draws`}
+        unit={`Main case, ${D.model_year ?? MODEL_YEAR}, ${DEC.draws} draws`}
         replay={e.replay}
         source={<DecilesSource />}
       />
@@ -153,7 +193,7 @@ function DecilesFigure({ ctx }) {
                 <DecBar v={v} on={e.on} fill={fill} delay={ORDER_DELAY(n)} />
               </span>{' '}
               <span className="p3-row-value">{fmtDecilePct(v)}</span>
-              {first ? <span className="p3-dec-note">no conclusion drawn</span> : null}
+              {first ? <DecileOneWhy /> : null}
             </li>
           );
         })}

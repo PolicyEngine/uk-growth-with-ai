@@ -206,7 +206,14 @@ describe('Part3', () => {
     const d1 = container.querySelector('[data-decile="1"]');
     expect(d1.querySelector('.p3-fill-caveat')).not.toBeNull();
     expect(d1.querySelector('.p3-row-value').textContent).toBe(fmtDecilePct(D.deciles.values[0]));
-    expect(d1.querySelector('.p3-dec-note').textContent).toBe('no conclusion drawn');
+    const note = d1.querySelector('.p3-dec-note');
+    expect(note.textContent).toMatch(/^not a reliable result: see why/);
+    expect(note.querySelector('button').getAttribute('aria-expanded')).toBe('false');
+    const why = d1.querySelector('.p3-dec-why-pop');
+    expect(why.hidden).toBe(true);
+    expect(why.textContent).toContain('only look low-income');
+    expect(why.textContent).toContain('this decile loses 0.32%');
+    expect(why.querySelector('a[href*="paper/sections/results.tex#L54"]')).not.toBeNull();
     const step = container.querySelector('#p3-deciles-step-2');
     expect(step.textContent).toContain('so no conclusion is drawn');
     // the flows by decile are one link away, in the lost-pound scene

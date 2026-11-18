@@ -1509,7 +1509,12 @@ svg.p3-dim {
   opacity: 1;
 }
 .p3-fill-caveat {
-  fill: var(--pe-gray-500);
+  /* decile 1: not a result, so no solid bar: a dashed outline, muted */
+  fill: var(--pe-gray-50, #f9fafb);
+  stroke: var(--pe-gray-400);
+  stroke-width: 1.25px;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
 }
 #p3-deciles .p3-dec.is-caveat .p3-row-value {
   color: var(--pe-gray-500);
@@ -1519,6 +1524,52 @@ svg.p3-dim {
   margin-top: -2px;
   font-size: var(--t-meta);
   color: var(--pe-gray-500);
+}
+.p3-dec-why {
+  position: relative;
+}
+.p3-dec-why-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--t-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.p3-dec-why-btn:focus-visible {
+  outline: 2px solid var(--c-highlight);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.p3-dec-why-pop {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  left: 0;
+  display: block;
+  width: min(360px, 86vw);
+  padding: 10px 12px;
+  background: var(--pe-surface, #fff);
+  border: 1px solid var(--pe-gray-200, #e5e7eb);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.12);
+  color: var(--pe-gray-700);
+  line-height: 1.45;
+}
+.p3-dec-why-pop[hidden] {
+  display: none;
+}
+.p3-dec-why-p {
+  display: block;
+}
+.p3-dec-why-p + .p3-dec-why-p {
+  margin-top: 6px;
+}
+.p3-dec-why-pop a {
+  color: var(--t-link);
 }
 .p3-rank-table th {
   font-weight: 400;
