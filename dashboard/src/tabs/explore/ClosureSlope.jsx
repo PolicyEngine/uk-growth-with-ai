@@ -9,7 +9,8 @@ import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
-import { VERSION_COLOR as ARM_COLOR, VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, versionName } from '@/lib/versionColors.js';
+import { VERSION_COLOR as ARM_COLOR, VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
+import Legend from '@/components/ui/Legend.jsx';
 import { placeLabels } from '@/tabs/story/part2/frame.jsx';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
@@ -237,7 +238,14 @@ export default function ClosureSlope({ sid }) {
       icon={iconFor('closure')}
       title="Some foreign capital to no foreign capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<span className="ex-slope-unit" data-axis-title="y">{`Gap against the OBR’s central forecast path, %, ${HEADLINE_YEAR}`}</span>}
+      unit={<span className="ex-slope-unit" data-axis-title="y">{`% gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
+      // the versions' key, above the panels (the shared legend; the
+      // selected version marked current)
+      legend={solved ? <Legend className="ex-slope-legend" label="Versions" items={shown.map((a) => ({ key: a.id, label: versionName(a), color: VERSION_TOKEN[a.id], current: a.id === sel }))} /> : null}
+      more={[
+        { label: 'Compared with', text: 'The OBR’s central forecast path, for each foreign-capital case.' },
+        { label: 'Settings', text: `${ruleLabel(rule)}.` },
+      ]}
       download={{
         title: `Some foreign capital to no foreign capital, ${HEADLINE_YEAR}`,
         context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the OBR’s central forecast path · ${ruleLabel(rule).toLowerCase()}`,
@@ -249,16 +257,6 @@ export default function ClosureSlope({ sid }) {
     >
       {solved ? (
         <>
-          <ul className="ex-slope-legend" aria-label="Versions">
-            {shown.map((a) => (
-              <li key={a.id} className={a.id === sel ? 'is-sel' : undefined} aria-current={a.id === sel ? 'true' : undefined}>
-                <svg width="24" height="10" aria-hidden="true" data-icon="">
-                  <line x1="1" x2="23" y1="5" y2="5" style={{ stroke: ARM_COLOR[a.id] }} />
-                </svg>
-                {versionName(a)}
-              </li>
-            ))}
-          </ul>
           <div className="ex-slope">
             {all.map(({ m, rows }) => (
               <Panel key={m.v} m={m} rows={rows} sc={sc} hot={hot} setHot={setHot} sid={sid} sel={sel} phone={phone} />

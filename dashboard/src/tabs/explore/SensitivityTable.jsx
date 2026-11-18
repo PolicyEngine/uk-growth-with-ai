@@ -13,7 +13,6 @@ import { sourcesItems } from './sources.jsx';
 import { docItem } from '@/lib/sourceItems.js';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
-import Disclosure from '@/components/ab/Disclosure.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
 
@@ -311,29 +310,39 @@ export default function SensitivityTable() {
       icon={iconFor('foreign')}
       title={sensTitle(res)}
       unit={<span data-axis-title="y">{`ζK = ${sens.zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`}</span>}
-      foot={
-        // the definition, the claims, the flag and the units, behind one
-        // fold, closed (checks-words2.md, item 14): the title and the grid
-        // read alone. A wrapper, so the fold is not a card's source foot.
-        <div className="ex-sg-more">
-          <Disclosure inCard id="sens-more" title="More info">
-            <p className="ex-sg-def">
-              {ext(URLS.ogCoreParams, 'ζK')} = {sens.zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.
-            </p>
-            {foreignShareLine(res) ? <p className="ex-sg-def">{foreignShareLine(res)}</p> : null}
-            <p className="ex-sg-lead">In every scenario&rsquo;s main version, compared with some foreign capital (ζK 0.1):</p>
-            <Items className="ex-notes" items={sensClaims(res)} />
-            <p className="ex-sg-lead">Reading the grid:</p>
-            <Items className="ex-notes" items={gridKey(res)} />
-            {sensFlagItem() ? (
-              <p id="sens-flag" className="ex-sg-flagnote">
-                <span>{sensFlagItem().text}</span>
-              </p>
-            ) : null}
-            <p className="card-unit ex-sg-more-unit">Compared with: the forecast path for the same foreign-capital case</p>
-            <p className="card-unit ex-sg-more-unit is-next">Settings: spending follows GDP</p>
-          </Disclosure>
-        </div>
+      // the definition, the claims, the grid's key, the flag and the
+      // settings, in the card's one closed More info (item 14; item 36:
+      // Card.jsx cardMore puts the rows under How to read, the flag under
+      // Caveats): the title and the grid read alone
+      moreId="sens-more"
+      more={[
+        {
+          label: 'Measure',
+          text: (
+            <>
+              <span className="ex-sg-def">
+                {ext(URLS.ogCoreParams, 'ζK')} = {sens.zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.
+              </span>
+              {foreignShareLine(res) ? (
+                <>
+                  {' '}
+                  <span className="ex-sg-def">{foreignShareLine(res)}</span>
+                </>
+              ) : null}
+            </>
+          ),
+        },
+        { label: 'In every scenario’s main version, against ζK 0.1', text: <Items className="ex-notes" items={sensClaims(res)} /> },
+        { label: 'How it is drawn', text: <Items className="ex-notes" items={gridKey(res)} /> },
+        { label: 'Compared with', text: 'The forecast path for the same foreign-capital case.' },
+        { label: 'Settings', text: 'Spending follows GDP.' },
+      ]}
+      essential={
+        sensFlagItem() ? (
+          <span id="sens-flag" className="ex-sg-flagnote">
+            {sensFlagItem().text}
+          </span>
+        ) : null
       }
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}

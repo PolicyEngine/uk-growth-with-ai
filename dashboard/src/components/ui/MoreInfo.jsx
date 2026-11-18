@@ -5,8 +5,10 @@ import Disclosure from '@/components/ab/Disclosure.jsx';
 import { Items } from '@/components/story/Items.jsx';
 
 // A card's one "More info" (consolidated-design-fable.md §2, slot 8;
-// item-36-fable.md §1.1): closed, titled exactly "More info", with a muted
-// preview of its sub-heads while closed. It holds every word about a card
+// item-36-fable.md §1.1): closed, its button text exactly "More info".
+// Consolidated §2 asks for a muted preview of the sub-heads while closed;
+// item 36 §1.1 and its probe (5b) ask for none. No preview until that is
+// ruled (`preview` turns it on; checks-c0.md). It holds every word about a card
 // that is not its title, unit, legend or lead: how to read it, how it is
 // calculated, its caveats and any source text. The card's book icon
 // (SourceLine) keeps the links only.
@@ -57,7 +59,7 @@ function Line({ g, it }) {
   );
 }
 
-export default function MoreInfo({ id, groups = [], preview = true, className = '', children }) {
+export default function MoreInfo({ id, groups = [], preview = false, className = '', children }) {
   const shown = groups.filter((g) => g && g.items?.length);
   if (!shown.length && !children) return null;
   return (

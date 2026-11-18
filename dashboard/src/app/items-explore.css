@@ -898,6 +898,8 @@
 .ex-slope-legend line { stroke-width: 2.5; stroke-linecap: round; }
 .ex-slope-legend li.is-sel { font-weight: 600; color: var(--pe-gray-900, #111); }
 .ex-slope-legend li.is-sel line { stroke-width: 4; }
+.ex-slope-legend li.is-sel .ch-swatch { border-top-width: 4px; }
+.card-legend > .ex-slope-legend { margin: 0; }
 .ex-slope-panel {
   margin: 0;
   min-width: 0;
@@ -2408,6 +2410,8 @@
 .ex-sg-cell .ex-sd-val { font-size: 14px; font-weight: 600; }
 .ex-sg-dir { display: inline-flex; margin-left: 2px; color: var(--pe-gray-500); vertical-align: -1px; }
 .ex-sg-flagnote, .ex-sg-lead, .ex-sg-def { margin: 4px 0; font-size: 14px; }
+/* in More info the definition lines are spans in one row: each on its own line */
+.ex-sg-def { display: block; }
 /* the More info fold (item 14): the units line last, as the card's unit line */
 .ex-sg-more-unit { margin-top: 12px; }
 .ex-sg-flagnote { display: flex; gap: 8px; align-items: flex-start; }

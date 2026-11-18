@@ -3,12 +3,14 @@
 // component: a card's `legend`, the economy wall, and the story frames
 // (components/story/chart/Frame.jsx re-exports it).
 //
-//   <Legend items={[{ key, label, color, kind?, dashed?, block?, off? }]} />
+//   <Legend items={[{ key, label, color, kind?, dashed?, block?, off?, current? }]} />
 //
 // `kind`: 'line' (default), 'dashed', 'block' (a filled square), 'dot' or
 // 'diamond' (point marks, ink unless a colour is given). `dashed` and
 // `block` are the older flags, kept for the story frames. The swatch is
 // aria-hidden; the label is the item's text, so the list reads as names.
+// `off` dims an entry (a series not drawn); `current` marks the emphasised
+// one (is-sel, aria-current: the slope chart's selected version).
 const KIND = { dashed: ' is-dashed', block: ' is-block', dot: ' is-dot', diamond: ' is-diamond', line: '' };
 
 export function swatchClass(l) {
@@ -22,7 +24,7 @@ export default function Legend({ items, className = '', label }) {
   return (
     <ul className={`ch-legend ${className}`.trim()} aria-label={label}>
       {shown.map((l) => (
-        <li key={l.key} className={l.off ? 'is-off' : undefined}>
+        <li key={l.key} className={[l.off ? 'is-off' : '', l.current ? 'is-sel' : ''].filter(Boolean).join(' ') || undefined} aria-current={l.current ? 'true' : undefined}>
           <span className={swatchClass(l)} style={l.color ? { '--sw': l.color } : undefined} aria-hidden="true" />
           {l.label}
         </li>

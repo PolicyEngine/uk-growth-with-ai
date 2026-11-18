@@ -214,8 +214,12 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');
     expect(t).toContain(`Investment jumps up to ${Math.round(fl[0].x)}% above the path in ${S.surprise_year}, beyond our +${I_FLAG_PCT}% plausibility check, so we treat this case as implausible.`);
     expect(body.querySelectorAll('#sens-flag a')).toHaveLength(2);
-    // the comparison and settings lines last; the unit is visible (item 42)
-    expect(body.lastElementChild.textContent).toBe('Settings: spending follows GDP');
+    // the comparison and settings rows last under How to read (item 36,
+    // Card.jsx cardMore); the flag under Caveats; the unit is visible (item 42)
+    const read = body.querySelector('[data-group="read"]');
+    expect(read.querySelector('.ex-fin-more-head').textContent).toBe('How to read');
+    expect(read.lastElementChild.textContent).toBe('Settings Spending follows GDP.');
+    expect(body.querySelector('[data-group="caveats"] #sens-flag')).not.toBeNull();
     expect(card.querySelector('.card-unit [data-axis-title="y"]').textContent).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`);
     // item 42: the gated title; the pay-rate claim is not repeated in the fold
     expect(card.querySelector('.card-head h3').textContent).toBe('More foreign capital puts the main version’s pay rate above the path');
