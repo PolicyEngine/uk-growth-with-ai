@@ -522,7 +522,7 @@ function Displaced() {
   };
   // the share whose take-up decision in the data is to claim, not receipt
   const stages = [
-    ['claim_uc', 'would claim Universal Credit (UC)', X.claim_uc.value, 'of all benefit units with a displaced worker'],
+    ['claim_uc', 'would claim UC', X.claim_uc.value, 'of all benefit units with a displaced worker'],
     ['claim_uc_entitled', 'would claim', X.claim_uc_entitled.value, 'of those entitled to UC once displaced'],
   ];
   const reasons = [
@@ -535,7 +535,7 @@ function Displaced() {
       id="hh-displaced"
       icon="usersRound"
       title="Who the displaced are"
-      finding="Capital, a working partner or a home each limit UC entitlement"
+      finding="Capital, a working partner or a home each limit Universal Credit (UC) entitlement"
       unit="Benefit units with a displaced worker, in the OBR-sized run"
       download={{
         context: CTX,

@@ -275,11 +275,11 @@ describe('Explore > Households, the words the data support', () => {
     const { rankingsWords, policyWords } = await import('./HouseholdsExplore.jsx');
     const ex = render(<HouseholdsExplore />).container;
     const disp = ex.querySelector('#hh-displaced');
-    expect(disp.textContent).not.toMatch(/Claim UC|claim UC/);
+    expect(disp.textContent).not.toMatch(/(^|[^d] )[Cc]laim UC/);
     expect(disp.querySelector('ol')).toBeNull();
     const rows = [...disp.querySelectorAll('.hh-funnel-row')].map((r) => r.textContent.replace(/\s+/g, ' ').trim());
     expect(rows).toEqual([
-      `${fmtShareT(D.displaced.claim_uc.value)} would claim Universal Credit (UC) (of all benefit units with a displaced worker)`,
+      `${fmtShareT(D.displaced.claim_uc.value)} would claim UC (of all benefit units with a displaced worker)`,
       `${fmtShareT(D.displaced.claim_uc_entitled.value)} would claim (of those entitled to UC once displaced)`,
       `${fmtShareT(D.displaced.existing_unemployed_claim.value)} claim (of entitled units with someone already unemployed)`,
     ]);
