@@ -2382,6 +2382,18 @@
   opacity: 0;
   pointer-events: none;
 }
+/* the swap runs in sequence, not as a cross-fade: each card is pinned at
+   its own mark's place and those places overlap (the last card's closing
+   caption most of all), so the outgoing card fades out first (180ms) and
+   the incoming one fades in once it has gone, in both directions */
+@media (prefers-reduced-motion: no-preference) {
+  .scrolly.is-anchored .scrolly-step:not(.is-active) .scrolly-card {
+    transition: opacity 180ms var(--story-ease);
+  }
+  .scrolly.is-anchored .scrolly-step.is-active .scrolly-card {
+    transition: opacity 300ms var(--story-ease) 180ms;
+  }
+}
 @media (min-width: 901px) {
   .scrolly.is-anchored .scrolly-card {
     justify-self: end;
