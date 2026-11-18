@@ -1248,7 +1248,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 
 /* ---------- Charts ---------- */
 .linechart .ax {
-  font-size: 12px;
+  font-size: var(--chart-fs-tick);
   fill: var(--c-tick);
 }
 .linechart .g {
@@ -2197,10 +2197,10 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   line-height: 1.55;
 }
 
-/* Tax-gap card: no text under 11px, phones included */
+/* Tax-gap card: chart text at the tick size, phones included (R1-22) */
 .app .cause-ticks,
 .app .cause-mark-label {
-  font-size: 11px;
+  font-size: var(--chart-fs-tick);
 }
 .app .card .copy-block code {
   font-size: inherit;
@@ -2343,7 +2343,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     font-size: 14px;
   }
   .finding-note {
-    font-size: 13px;
+    font-size: var(--chart-fs-tick);
   }
   .finding-body {
     margin-top: 12px;

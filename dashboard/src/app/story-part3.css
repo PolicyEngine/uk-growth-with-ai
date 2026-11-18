@@ -2394,30 +2394,20 @@ svg.p3-dim {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.2;
-  border-radius: 999px;
   text-decoration: none;
   white-space: nowrap;
 }
+/* text in the lens's colour, not a pill (R1-19): no fill or radius */
 .lens-circle.is-oguk .lens-chip {
   color: color-mix(in srgb, var(--lens-a) 72%, #000);
-  background: color-mix(in srgb, var(--lens-a) 14%, var(--pe-surface));
 }
 .lens-circle.is-study .lens-chip {
   color: color-mix(in srgb, var(--lens-b) 72%, #000);
-  background: color-mix(in srgb, var(--lens-b) 14%, var(--pe-surface));
 }
 .lens-circle .lens-chip:hover,
 .lens-circle .lens-chip:focus-visible {
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-.lens-circle.is-oguk .lens-chip:hover,
-.lens-circle.is-oguk .lens-chip:focus-visible {
-  background: color-mix(in srgb, var(--lens-a) 24%, var(--pe-surface));
-}
-.lens-circle.is-study .lens-chip:hover,
-.lens-circle.is-study .lens-chip:focus-visible {
-  background: color-mix(in srgb, var(--lens-b) 24%, var(--pe-surface));
 }
 .lens-chip:focus-visible {
   outline: 2px solid var(--pe-gray-900);
