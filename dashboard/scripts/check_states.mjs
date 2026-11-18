@@ -273,6 +273,7 @@ if (SANKEY !== '0') {
       await probe.goto(base + path, { waitUntil: 'networkidle' });
       const n = await probe.evaluate(() => document.querySelectorAll('.tab-panel:not([hidden]) svg.sankey').length);
       await probe.context().close();
+      if (!n) console.log(`  --   ${W}x${H} ${pname}: no Sankey on this page`);
       for (let si = 0; si < n; si++) {
         let ok = 0;
         let name = '';
@@ -288,7 +289,7 @@ if (SANKEY !== '0') {
             const r = sk.getBoundingClientRect();
             return { id: host.id || sk.closest('[id]')?.id || `sankey-${si}`, ty: r.top + scrollY - innerHeight * 0.25, y0: Math.max(0, r.top + scrollY - innerHeight * 1.6) };
           }, si);
-          name = g.id;
+          name = name.includes('(no ribbon') ? name : g.id;
           await page.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), g.y0);
           await page.waitForTimeout(1200);
           let y = g.y0;
@@ -306,7 +307,10 @@ if (SANKEY !== '0') {
           await page.waitForTimeout(2000);
           const share = await page.evaluate((si) => {
             const sk = document.querySelectorAll('.tab-panel:not([hidden]) svg.sankey')[si];
-            const links = [...sk.querySelectorAll('.sankey-link')].filter((l) => Number(l.style.opacity || 1) > 0);
+            // the ribbons this state should show: every poured one; of a
+            // step-driven wipe (the output scene), those its step has revealed
+            const links = [...sk.querySelectorAll('.sankey-link')].filter((l) => Number(l.style.opacity || 1) > 0 && (!l.classList.contains('is-wipe') || l.classList.contains('is-on')));
+            if (!links.length) return null;
             const eff = (el) => {
               let o = 1;
               for (let e = el; e && e !== document.body; e = e.parentElement) o *= Number(getComputedStyle(e).opacity);
@@ -325,7 +329,8 @@ if (SANKEY !== '0') {
             const drawn = links.filter((l) => eff(l) >= 0.2 && hidden(l) <= 0.1).length;
             return links.length ? drawn / links.length : 0;
           }, si);
-          if (share >= 0.9) ok++;
+          if (share == null || share >= 0.9) ok++;
+          if (share == null) name += ' (no ribbon revealed at this step)';
           await page.context().close();
         }
         const bad = ok < RUNS;

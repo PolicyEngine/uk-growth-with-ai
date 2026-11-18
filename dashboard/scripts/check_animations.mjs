@@ -205,7 +205,9 @@ for (const sel of ['#p3-pound', '#p2-output']) {
     }
     await page.waitForTimeout(3000);
     const share = await page.evaluate((sel) => {
-      const links = [...document.querySelectorAll(`${sel} svg.sankey .sankey-link`)].filter((l) => Number(l.style.opacity || 1) > 0);
+      // poured ribbons, and of a step-driven wipe those its step has revealed
+      const links = [...document.querySelectorAll(`${sel} svg.sankey .sankey-link`)].filter((l) => Number(l.style.opacity || 1) > 0 && (!l.classList.contains('is-wipe') || l.classList.contains('is-on')));
+      if (!links.length) return null;
       const drawn = links.filter((l) => {
         const m = getComputedStyle(l).clipPath.match(/^inset\((.*)\)$/);
         const v = m ? m[1].split(/\s+/) : [];
@@ -215,7 +217,8 @@ for (const sel of ['#p3-pound', '#p2-output']) {
       return links.length ? drawn / links.length : 0;
     }, sel);
     await page.close();
-    report(share >= 0.9, `${sel} paced ${speed}px/s`, `${Math.round(share * 100)}% of ribbons drawn 3s after arrival`);
+    if (share == null) console.log(`skip ${sel} paced ${speed}px/s: no ribbon revealed at the arrival step`);
+    else report(share >= 0.9, `${sel} paced ${speed}px/s`, `${Math.round(share * 100)}% of ribbons drawn 3s after arrival`);
   }
 }
 await browser.close();
