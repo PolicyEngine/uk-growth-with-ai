@@ -62,8 +62,8 @@ export const VITALS = [
     fact: 'employment_rate_latest',
     icon: 'labour',
     name: 'Employment',
-    label: 'Ages 16–64',
-    define: 'Employment: the rate for people aged 16 to 64, a three-month average.',
+    // defined in the tile (Maria's review, M3): who the rate counts
+    label: 'Share of people aged 16–64 in work',
   },
   {
     key: 'unemployment',
@@ -73,8 +73,7 @@ export const VITALS = [
     fact: 'unemployment_rate_latest',
     icon: 'labour',
     name: 'Unemployment',
-    label: 'Ages 16+',
-    define: 'Unemployment: the rate for people aged 16 and over, a three-month average.',
+    label: 'Share of the economically active (16+, in work or looking) without work',
   },
   {
     key: 'pay',
@@ -211,10 +210,11 @@ function Tile({ v, drawn, instant }) {
   );
 }
 
-// The two definitions only the panel needs (unemployment and the
-// employee share), moved from the step cards.
+// The panel's notes. The employment and unemployment rates are defined in
+// their tiles (the sub-line), so the notes say only what the tiles do not.
 const NOTES = [
   <GdpYoy key="yoy" />,
+  'Employment and unemployment: three-month averages, seasonally adjusted.',
   ...VITALS.filter((v) => v.define).map((v) => v.define),
   <Ext key="ilo" href={LINKS.ons_lm_guide?.url}>
     Unemployment, ILO definition: jobless, looking for work, able to start.

@@ -2,7 +2,7 @@
 
 import { useEnterState, useDrawIn } from '@/components/story/motion.js';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
-import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
+import { Crosshair, Legend, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, OPH_BASE, SERIES } from './data.js';
 import { WORKERS_PERIOD, aiTitle, employmentTitle, forecastTitle, outputTitle, payTitle, productivityTitle, workersTitle } from './findings.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
@@ -521,7 +521,7 @@ export function AiUseChart({ notes, lines = 2 }) {
       innerRef={ref}
       title={aiHead.title}
       titleFallback={aiHead.fallback}
-      unit={`Per cent of businesses using at least one AI technology, all and 10 or more employees, ${short(a.x[0])} to ${short(a.x[last])}. ONS.`}
+      unit={`Per cent of businesses using at least one AI technology, by size: all businesses, and 10 or more employees, ${short(a.x[0])} to ${short(a.x[last])}. ONS.`}
       source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} through={`Wave ${BICS_WAVE}, ${a.x[last]}`} notes={notes} />}
       className="p1-ai"
     >
@@ -586,13 +586,17 @@ export function AiUseChart({ notes, lines = 2 }) {
 // exposure groups DSIT reports. Same keys in both states, so the tiles
 // travel. state 0: one block in grey; 1: three groups on the rank ramp,
 // staggered by destination group then row (at most about 450ms), each
-// tile's colour changing in the last third of its travel. The step text's
-// coloured group names (<Key>) are the legend.
+// tile's colour changing in the last third of its travel. The legend sits
+// above the grid (consolidated-design-fable.md: swatch and short name, once
+// grouped); each block carries only its share.
 const GRID_W = 17;
 // polish round: 7 rows, the tallest state (the 35-tile group, five wide);
 // the one block is 17 wide and 6 high (it was 10 by 10, which left three
 // empty rows above the groups)
 const GRID_H = 7;
+
+// "High exposure, AI could help (high complementarity)" -> "High exposure, AI could help"
+const shortGroup = (name) => name.replace(/\s*\(.*\)$/, '');
 
 export function exposureTiles(state) {
   const groups = EXPOSURE_GROUPS.flatMap((g, gi) => Array.from({ length: Math.round(g.value) }, (_, j) => ({ g, gi, j })));
@@ -620,14 +624,15 @@ export function ExposureTiles({ state, source, entered = true }) {
       <ModelBadge model="official" className="p1-badge" />
       <FigTitle icon="workers" title={wHead.title} fallback={wHead.fallback} source={source} />
       <FigUnit>{`Each tile is one per cent of UK workers; two of the three groups are high exposure. IMF estimates, ${WORKERS_PERIOD}, via DSIT.`}</FigUnit>
+      <Legend className="p1-tile-legend" items={EXPOSURE_GROUPS.map((g) => ({ key: g.id, label: shortGroup(g.name), color: g.color, block: true }))} />
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
-        {/* each group's name and share under its block, once grouped (they
-            restate the step's figures: data-axis) */}
+        {/* each group's share under its block, once grouped (it restates
+            the step's figures: data-axis); the names are in the legend */}
         <ul className="p1-tile-labels" aria-hidden="true" style={{ '--cols': GRID_W }}>
           {EXPOSURE_GROUPS.map((g, gi) => (
             <li key={g.id} style={{ gridColumn: `${gi * 6 + 1} / span 5` }} data-axis="">
-              {g.name.replace(/\s*\(.*\)$/, '')} · {share0(g.value)}
+              {share0(g.value)}
             </li>
           ))}
         </ul>

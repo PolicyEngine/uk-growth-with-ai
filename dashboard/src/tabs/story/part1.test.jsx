@@ -124,11 +124,52 @@ describe('story part 1, real data', () => {
     const vintage = monthYear(src.released);
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
-    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}`);
-    // the model path's vintage is said once, in part 2's model line
-    expect(el.textContent).not.toContain('March 2026');
+    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}, shown for context`);
+    // the two OBR forecasts, said once each (Maria's review, M3): the step
+    // card says it is the latest, for context; the output figure's notes say
+    // the comparison path is OG-UK's own, on the March 2026 forecast
+    expect(el.textContent).toContain('The OBR’s latest forecast, shown for context, has growth of');
+    expect(el.textContent.split('March 2026').length - 1).toBe(1);
+    expect(el.textContent).toContain('Parts 2 to 4 compare each scenario with OG-UK’s own forecast path, built on the OBR’s March 2026 forecast, not with this one.');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
+  });
+
+  it('defines the employment and unemployment rates in their tiles, once', () => {
+    const el = show(Part1Real);
+    const sub = (k) => el.querySelector(`#p1-vital-${k} .p1-vital-sub-rest`).textContent;
+    expect(sub('employment')).toMatch(/^Share of people aged 16–64 in work · /);
+    expect(sub('unemployment')).toMatch(/^Share of the economically active \(16\+, in work or looking\) without work · /);
+    const text = el.textContent;
+    expect(text.split('in work or looking').length - 1).toBe(1);
+  });
+
+  it('says the two AI-use lines are groups of businesses by size before any trend', async () => {
+    const P = await import('@/tabs/story/Part1.jsx');
+    expect(P.AI_HINT).toMatch(/groups of businesses by size/);
+    const el = show(Part1Real);
+    const first = el.querySelector('#p1-ai-0 .p1-say').textContent;
+    expect(first.indexOf('two groups of businesses by size')).toBeGreaterThanOrEqual(0);
+    expect(first.indexOf('two groups of businesses by size')).toBeLessThan(first.indexOf('has risen'));
+    expect(el.querySelector('.p1-ai .story-figure-unit').textContent).toContain('by size: all businesses, and 10 or more employees');
+  });
+
+  it('puts a legend above the exposure grid: the three group names, each block its share', () => {
+    const el = show(Part1Real);
+    const fig = el.querySelector('#p1-ai .p1-exposure');
+    const legend = fig.querySelector('.p1-tile-legend');
+    expect(legend).not.toBeNull();
+    expect(legend.compareDocumentPosition(fig.querySelector('.p1-tiles')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect([...legend.querySelectorAll('li')].map((li) => li.textContent)).toEqual([
+      'High exposure, AI could help',
+      'High exposure, AI could replace tasks',
+      'Low exposure',
+    ]);
+    expect(legend.querySelectorAll('.ch-swatch.is-block')).toHaveLength(3);
+    const f = real.facts;
+    expect([...fig.querySelectorAll('.p1-tile-labels li')].map((li) => li.textContent)).toEqual(
+      [f.workers_high_exposure_high_complementarity, f.workers_high_exposure_low_complementarity, f.workers_low_exposure].map((x) => share0(x.value)),
+    );
   });
 
   it('says once that the ONS advises focusing on long-term LFS movements', () => {

@@ -1178,3 +1178,24 @@
 .hero-q-main {
   color: inherit;
 }
+
+/* The exposure grid's legend (Maria's review, M3): above the grid, the
+   three group names with their swatches, shown once the tiles are grouped
+   (visibility, so the one-block state's text holds no group names). */
+.p1-tile-legend {
+  margin: 4px 0 8px;
+  font-size: var(--chart-fs-label, 15px);
+  color: var(--t-text);
+  visibility: hidden;
+  opacity: 0;
+}
+.p1-exposure.is-grouped .p1-tile-legend {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .p1-exposure.is-grouped .p1-tile-legend {
+    transition: none;
+  }
+}

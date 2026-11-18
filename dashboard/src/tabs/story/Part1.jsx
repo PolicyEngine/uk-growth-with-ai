@@ -5,7 +5,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { Fig, Key, MarkProvider } from '@/components/story/highlight.jsx';
 import PartHead from './PartHead.jsx';
-import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, OBR, OBR_LABEL, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
+import { DSIT_AROUND, EXPOSURE_GROUPS, FACTS, LINKS, MODEL_BASE_VINTAGE, OBR, OBR_LABEL, OBR_VINTAGE, SERIES, SOURCES, pageOf } from './part1/data.js';
 import { AiUseChart, ExposureTiles, LabourBoard, OBR_NAMED, OutputCanvas, P1_MARKS } from './part1/charts.jsx';
 import { Ext, SourceLine, Swap } from './part1/frame.jsx';
 import Vitals from './part1/vitals.jsx';
@@ -85,7 +85,7 @@ function outputSteps() {
       state: 1,
       body: (
         <Say>
-          The <Key id="obr-forecast">OBR forecasts</Key> growth of{' '}
+          The <Key id="obr-forecast">OBR’s latest forecast</Key>, shown for context, has growth of{' '}
           {OBR_NAMED.map((i, n) => (
             <span key={i}>
               {n === OBR_NAMED.length - 1 ? 'and ' : null}
@@ -130,7 +130,10 @@ function outputNotes() {
     <L key="r" to="ons_revisions">
       The ONS revises recent years as new data arrive.
     </L>,
-    `The OBR’s latest central forecast, published ${OBR_VINTAGE}; drawn apart from the outturn, as the OBR starts from an older ${last(gs.x)} estimate.`,
+    `The OBR’s latest central forecast, published ${OBR_VINTAGE}, shown for context; drawn apart from the outturn, as the OBR starts from an older ${last(gs.x)} estimate.`,
+    // the two OBR forecasts, said once (Maria's review, M3): Part 1 shows
+    // the latest; the scenarios are measured against OG-UK's own path
+    `Parts 2 to 4 compare each scenario with OG-UK’s own forecast path, built on the OBR’s ${MODEL_BASE_VINTAGE} forecast, not with this one.`,
   ];
 }
 
@@ -217,7 +220,8 @@ function workNotes() {
 }
 
 // (c) AI: business use, one line a step (all businesses, then those with
-// 10 or more employees drawn on top), then the exposure tiles. `state`: 0
+// 10 or more employees drawn on top; the first card says both are groups
+// of businesses by size before it describes a trend), then the exposure tiles. `state`: 0
 // the AI-use chart, 1 the grouped tiles; `lines`: the chart's lines drawn.
 function aiSteps() {
   const [hh, hl, lo] = EXPOSURE_GROUPS;
@@ -233,7 +237,7 @@ function aiSteps() {
         <>
           <Anchor id="p1-ai-1" />
           <Say>
-            AI use among <Key id="ai-all">all businesses</Key> has risen every September since 2023.
+            The ONS reports two groups of businesses by size; AI use among <Key id="ai-all">all businesses</Key> has risen every September since 2023.
           </Say>
         </>
       ),
@@ -260,7 +264,7 @@ function aiSteps() {
       icon: 'workers',
       title: 'Workers by exposure to AI',
       highlight: 'none',
-      highlightWhy: 'One grid of all UK workers: every tile is in one of the three groups the key names, so none is dimmed; the coloured names are the legend.',
+      highlightWhy: 'One grid of all UK workers: every tile is in one of the three groups the legend names, so none is dimmed.',
       state: 1,
       body: (
         <>
@@ -372,7 +376,7 @@ export const WORK_Q = 'How are jobs, pay and productivity doing?';
 export const AI_Q = 'Who uses AI already, and whose jobs are exposed?';
 export const OUTPUT_HINT = 'Watch the years after the pandemic';
 export const WORK_HINT = 'Three official series, one at a time';
-export const AI_HINT = 'Two survey lines, then one grid of workers';
+export const AI_HINT = 'Two groups of businesses by size, then one grid of workers';
 export const OUTPUT_TAKEAWAY = 'The ONS still revises recent years; the forecast is the OBR’s central case.';
 export const WORK_TAKEAWAY = 'Three official series; the ONS advises reading the jobs figures over longer periods.';
 
