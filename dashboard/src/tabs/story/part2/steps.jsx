@@ -188,6 +188,6 @@ export function whoAnswer() {
   if (!w?.lose) return null;
   const r = loseRange();
   if (!r) return null;
-  const why = w.bequests ? ` ${w.bequests.replace(/^./, (x) => x.toUpperCase())} of the average gain is the value of bequests.` : '';
-  return `From ${r.lo} to ${r.hi} of adults lose, depending on the measure.${why}`;
+  const why = w.bequests ? ` Bequests are ${w.bequests} of the average gain.` : '';
+  return `${r.lo.replace(/^./, (x) => x.toUpperCase())} to ${r.hi} of adults lose, by measure.${why}`;
 }

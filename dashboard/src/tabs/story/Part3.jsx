@@ -36,8 +36,8 @@ export default function Part3({ part }) {
         <StoryBeat
           id="7pct"
           num={fmtInputPct(CENTRAL_RATE)}
-          head="A separate study: what if employees lose their jobs?"
-          line="This household study assumes that share lose their jobs for one year. Part 2’s model has no unemployment; the two are not added or compared."
+          head="of employees assumed jobless for a year"
+          line="An Irish study’s size, from a Goldman Sachs scenario of about a decade’s adoption, applied in one year. AI-exposed jobs are hit more."
           numProps={{ 'data-input': '', 'data-path': 'headline.central_displaced.note' }}
         />
       ) : null}

@@ -131,7 +131,7 @@ describe('Part3', () => {
     const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
     // T14; the central cost is a residual: said once, in the figure's note
     // round 2 sign-off #3: the cost is net of the assumed gains, said in the sentence (the next scene's job loss alone is gross)
-    expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \+\d\.\d\dpp$/);
+    expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \d\.\d\dpp$/);
     expect(line('p3-channels-step-2')).toContain('Assumed');
     // T12, T7, T6
     expect(line('p3-moves-step')).toBe(`The cost falls to zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);

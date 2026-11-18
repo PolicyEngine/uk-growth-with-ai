@@ -1,5 +1,6 @@
 'use client';
 
+import { hy } from '@/components/story/Hy.jsx';
 import { useEffect, useRef } from 'react';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Sankey from '@/components/story/Sankey.jsx';
@@ -75,7 +76,7 @@ function PoundSource() {
         },
       ]}
     >
-      OBR-sized run, {S.draws} draws
+      {hy('OBR-sized')} run, {S.draws} draws
     </Source>
   );
 }
@@ -93,13 +94,13 @@ function PoundFigure({ ctx }) {
   });
   return (
     <figure ref={attach} className={entryClass(e, 'p3-figure p3-scene p3-pound')}>
-      <p className="p3-pound-chip">OBR-sized run · not the main case</p>
+      <p className="p3-pound-chip">{hy('OBR-sized')} run · not the main case</p>
       <FigureHead
         icon="pay"
         title="Where lost earnings go, by income decile"
         y="£bn a year"
-        x="Income decile, 1 = bottom, to where the loss lands"
-        unit={`${fmtBn(S.total.earnings_lost_bn)} of earnings lost a year, ${S.draws} draws`}
+        x="Income decile (1 = lowest)"
+        unit={`Where each lost pound goes. ${fmtBn(S.total.earnings_lost_bn)} of earnings lost a year; average of ${S.draws} runs.`}
         replay={e.replay}
         source={<PoundSource />}
       />

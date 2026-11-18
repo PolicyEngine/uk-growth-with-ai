@@ -39,6 +39,7 @@ const L = {
   felten: ['Felten, Raj and Seamans (2021)', 'https://doi.org/10.1002/smj.3286'],
   pizzinelli: ['Pizzinelli et al. (2023)', 'https://doi.org/10.5089/9798400254802.001'],
   doorley: ['Doorley et al. (2026)', 'https://doi.org/10.26504/jr16'],
+  obrFrs: ['OBR, Fiscal risks and sustainability, July 2026, Box 4.1', 'https://obr.uk/frs/fiscal-risks-and-sustainability-july-2026/'],
   cazzaniga: ['Cazzaniga et al. (2024)', 'https://doi.org/10.5089/9798400262548.006'],
   ucParams: ['PolicyEngine-UK’s Universal Credit parameters', 'https://github.com/PolicyEngine/policyengine-uk/tree/main/policyengine_uk/parameters/gov/dwp/universal_credit'],
   ucGov: ['GOV.UK: Universal Credit, what you’ll get', 'https://www.gov.uk/universal-credit/what-youll-get'],
@@ -188,6 +189,11 @@ export default function HouseholdsMethod() {
                 items={[
                   { icon: 'jobLoss', text: <>Main case: <In>{fmtInputPct(CENTRAL_PCT)}</In> of employees displaced.</> },
                   { icon: 'source', text: <>{l('doorley')}&rsquo;s Irish design, which the study follows.</> },
+                  { icon: 'source', text: 'They take it from a Goldman Sachs scenario (Briggs and Kodnani, 2023).' },
+                  { icon: 'timing', text: 'About a decade of adoption, here in one year: an impact-year test.' },
+                  // the OBR figure: \genObrFrsSubstitutionPct in the paper's values_generated.tex (FRS 2026, Box 4.1)
+                  { icon: 'compare', text: <>{l('obrFrs', 'OBR')}, for scale: around <In>10%</In> of workers face substitution within ten years.</> },
+                  { icon: 'range', text: <>Grid: <In>0–10%</In> displacement; presets at <In>1%</In> and <In>13%</In>.</> },
                   { icon: 'deciles', text: 'Shared between groups by employment times exposure.' },
                   { icon: 'draws', text: 'Records drawn at random within each group.' },
                   { icon: 'excluded', text: 'Earnings, hours, pension contributions and statutory pay set to zero.' },

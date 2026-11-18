@@ -20,6 +20,9 @@
 // (the question frames, the measuring copies) and hidden elements do not
 // count. Prints the icon count per scene, so each part sees its share.
 //
+// Hyphens, every tab: no U+2011 (non-breaking hyphen) in rendered text,
+// svg text included.
+//
 // Skipped everywhere: tables, chart text (svg), the site header and
 // footer, and anything aria-hidden, visually hidden or [hidden].
 //
@@ -86,6 +89,14 @@ for (const [name, path] of Object.entries(PAGES)) {
         const n = story ? iconsIn(el).length : 0;
         if (n > 1) why.push(`${n} icons`);
         if (why.length) out.push(`${where(el)} <${el.tagName.toLowerCase()}> ${why.join(', ')}: ${t.slice(0, 80)}`);
+      }
+      // No non-breaking hyphen (U+2011) anywhere in rendered text, svg
+      // included: Inter's subset lacks it, so it falls back to another font.
+      // Hyphenated names use a normal hyphen in a nowrap span (Hy.jsx).
+      const nb = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = nb.nextNode(); n; n = nb.nextNode()) {
+        if (!n.nodeValue.includes('\u2011') || !n.parentElement?.getClientRects().length) continue;
+        out.push(`${where(n.parentElement)} U+2011 non-breaking hyphen: ${n.nodeValue.trim().slice(0, 60)}`);
       }
       if (!story) return { out };
       // (a) exactly one icon

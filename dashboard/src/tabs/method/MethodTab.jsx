@@ -188,7 +188,7 @@ function Limitations() {
         </>
       ),
     },
-    { title: 'Possible double counting', text: <>the forecast path already has the {ext(SRC.bp9B14.url, 'OBR’s AI')} ({ext(issue(27), 'issue #27')}).</> },
+    { title: 'Possible double counting', text: <>the forecast path has the {ext(SRC.bp9B14.url, 'OBR’s AI')} ({ext(issue(27), 'issue #27')}).</> },
     { title: 'Perfect foresight', text: `from ${SURPRISE_YEAR} everyone knows the path; no precautionary saving.` },
     { title: 'Substitution fixed at one', text: 'the labour share follows γ exactly.' },
     { title: 'No markups', text: 'wages and rents equal marginal products.' },
