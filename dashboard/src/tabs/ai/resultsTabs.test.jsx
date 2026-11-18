@@ -115,7 +115,8 @@ describe('tooltips', () => {
   it('every chart follows the fiscal rule; the rule card prints its shift against the common rule', () => {
     const page = (query) => {
       const { container, unmount } = at(query);
-      const card = container.querySelector('#fiscal-rule .chart-plot').textContent;
+      const box = container.querySelector('#fiscal-rule');
+      const card = box ? box.textContent : null;
       const all = container.textContent;
       unmount();
       return { card, all };
@@ -137,7 +138,17 @@ describe('tooltips', () => {
     expect(other.card).not.toMatch(/\d\.\d\d/);
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
-    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending: solved for UK central and Korinek et al., substantial (US) only');
+    const low = page('sub=finances&s=uk_low&rule=fixed').card;
+    expect(low).toContain('UK low is not solved under fixed spending.');
+    expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    // the common rule has nothing to compare: no box
+    expect(page('sub=finances&s=uk_central').card).toBeNull();
+    // the box prints no figures outside its dumbbells and table
+    const { container: c2, unmount: u2 } = at('sub=finances&s=uk_central&rule=fixed');
+    const words = [...c2.querySelectorAll('#fiscal-rule .finding-lead, #fiscal-rule .finding-lines li')].map((e) => e.textContent);
+    u2();
+    expect(words[0]).toMatch(/^Under fixed spending, debt\/GDP ends (higher|lower|where)/);
+    expect(words.every((w) => /\.$/.test(w) && !/\d\.\d/.test(w))).toBe(true);
   });
 
   it('the rule and the arms are in the address', async () => {

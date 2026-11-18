@@ -141,7 +141,6 @@ const RULE_TEXT = {
     tag: 'Default: every solve, and Explore unless you choose another',
     items: [
       { icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' },
-      { icon: 'debt', text: `From ${LATE_YEAR} a debt rule steers spending, in every run.` },
       { icon: 'rule', text: <>A modelling choice, against OG-UK&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
     ],
@@ -157,7 +156,6 @@ const RULE_TEXT = {
     icon: 'debt',
     tag: 'Headline rule on Who gains',
     items: [
-      { icon: 'benefits', text: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR’s central forecast path.` },
       { icon: 'rule', text: <>A modelling choice ({cite('fiscalRules')}).</> },
     ],
   },

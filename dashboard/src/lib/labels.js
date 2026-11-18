@@ -1,3 +1,5 @@
+import { LATE_YEAR } from '@/tabs/ai/surprise.js';
+
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
 
@@ -55,7 +57,7 @@ export const ARM_OF_WG = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
 // The fiscal rules in the settings bar: icon and sub-label
 export const RULE_PICK = {
   common: { icon: 'scale', sub: 'Spending follows GDP' },
-  fixed: { icon: 'lock', sub: 'Spending held at OBR level' },
+  fixed: { icon: 'lock', sub: 'Spending held at baseline level' },
   dn: { icon: 'landmark', sub: 'Transfers keep debt on path' },
 };
 
@@ -72,10 +74,16 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 // rule is the default of every solve: government consumption and transfers
 // follow GDP. Cohorts' "common" cell carries the same solve label as the
 // default Results solve, so it is one rule under one name.
+// `note`: the option's one line (item-15-fable.md C), with no final full
+// stop (the tooltip adds a prefix, Method a stop). The debt rule's first
+// year is the model's tG1 (2036, a fixed calendar year: scenarios.py
+// TG1 = 10 from 2026, kept by the 2028 runs' shift), read from the data as
+// LATE_YEAR; the rule moves government consumption towards OG-UK's
+// long-run debt ratio (debt_ratio_ss), under every rule.
 export const RULES = [
-  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP', plain: 'spending follows GDP' },
-  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level', plain: 'spending held fixed' },
-  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect', plain: 'debt held steady by transfers to households' },
+  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: `Spending follows GDP until ${LATE_YEAR}. From ${LATE_YEAR} a debt rule adjusts spending to steer debt/GDP towards the model’s long-run ratio`, plain: 'spending follows GDP' },
+  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: `Spending stays at its baseline level, whatever GDP does. From ${LATE_YEAR} the same debt rule applies`, plain: 'spending held fixed' },
+  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: `Transfers to households adjust so debt/GDP stays on the forecast path until ${LATE_YEAR}. From ${LATE_YEAR} the same debt rule applies`, plain: 'debt held steady by transfers to households' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;
 // The budget assumption in plain words, for figure subtitles.

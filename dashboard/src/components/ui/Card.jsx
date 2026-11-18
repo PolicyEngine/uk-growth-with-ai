@@ -87,7 +87,7 @@ const asItems = (node) =>
   isValidElement(node) && node.type === Items ? (node.props.items ?? []).filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) : [node];
 
 // Everything secondary about a card, for its "Sources and notes" button.
-function cardSources({ about, method, replication, sources = [], notes, read }) {
+export function cardSources({ about, method, replication, sources = [], notes, read }) {
   const groups = [
     read?.length ? { title: 'How to read', notes: read.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
     notes?.length ? { title: 'Notes', notes: notes.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,

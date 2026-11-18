@@ -2633,3 +2633,84 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     border-radius: 6px;
   }
 }
+
+/* ---------- Finding (components/ui/Finding.jsx, item-18-fable.md) ----------
+   One finding in a white box with a hairline border, like .card: a bold
+   lead (one optional icon), plain lines, an optional note, then optional
+   children. No tint, bar, pills or ticks. */
+.finding {
+  padding: var(--card-padding, 20px);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius, 12px);
+}
+.finding-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.finding-lead {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 72ch;
+  margin: 0;
+  font-size: var(--chart-fs-head, 16px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.finding-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 1px;
+  color: var(--pe-gray-500);
+}
+.finding-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.finding-actions .src-line {
+  margin-left: 0;
+}
+.finding-lines {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.finding-lines li {
+  font-size: var(--chart-fs-label, 15px);
+  line-height: 1.45;
+  color: var(--pe-gray-800);
+}
+.finding-lines li + li {
+  margin-top: 6px;
+}
+.finding-note {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+}
+.finding-body {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .finding-lead {
+    font-size: 15px;
+  }
+  .finding-lines li {
+    font-size: 14px;
+  }
+  .finding-note {
+    font-size: 13px;
+  }
+  .finding-body {
+    margin-top: 12px;
+  }
+}
