@@ -207,8 +207,9 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
             "gamma_terminal": rec["gamma_terminal"],
             "sanity": "pass",
             "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
-            # share of the extra 2031 capital stock that is foreign-owned, %
-            "foreign_share_dK_2031": foreign_share(rec["series"], b),
+            # share of the extra headline-year capital stock that is foreign-owned, %
+            # (key named by the headline year: Fable 5.2 decision, 18 Nov)
+            f"foreign_share_dK_{HEADLINE}": foreign_share(rec["series"], b),
             # real pay growth each year (pay_growth): the "not a cut" test
             "pay_growth_pct": pay_growth(rec),
         }

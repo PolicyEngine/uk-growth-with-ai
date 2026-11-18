@@ -1,0 +1,1037 @@
+"""Consumption-equivalent welfare by birth cohort and lifetime-earnings group,
+2028-surprise design (docs/surprise_2028.md, "Cohort paths for the welfare results").
+
+Reads the household paths exported by ``analysis/surprise/export_cohorts.py``
+(``analysis/surprise/cohorts/<closure>/<label>.npz``: c, n, b_s, b_sp1, bq, tr by
+calendar period from 2026, age 20-99 and lifetime-earnings group, plus the run's
+steady state) and the household parameters (``<closure>/params.npz``, on the
+same calendar).  Numpy only; no model solve.
+
+Utility (OG-Core 0.17.0 ``household.py``, detrended by e^{g_y t}).  A household
+of group j at age s in period t gets the flow
+
+    u = c^{1-sigma}/(1-sigma)
+        + chi_n[t,s] * b * (1 - (n/ltilde)^upsilon)^{1/upsilon}             (leisure)
+        + rho[t,s] * chi_b[j] * e^{g_y(1-sigma)} * b'^{1-sigma}/(1-sigma)   (warm-glow bequest)
+
+and discounts k periods ahead by beta_j^k * prod(1 - rho) * e^{k g_y (1-sigma)},
+the weights that reproduce OG-Core's savings Euler equation.  Constants that
+do not depend on the run are dropped; they cancel.
+
+The headline measure (#27, decision of 12 Nov 2026) is ``measure="joint"``: the
+constant proportional change lambda in the reference path's consumption AND
+bequests in every remaining period, labour supply held at the reference path,
+that gives the scenario's remaining lifetime utility:
+
+    (1+lambda)^{1-sigma} (C_R + Q_R) + N_R = U_S
+
+``measure="consumption"`` scales consumption alone, (1+lambda)^{1-sigma} C_R +
+N_R + Q_R = U_S, and is the sensitivity.  It has no solution when a cohort's
+scenario utility is below what zero consumption would give; such cells are
+NaN and are counted, not hidden.
+
+* Reference: the gated no-shock continuation of the same closure
+  (``continuation.npz``), never the committed baseline.
+* Timing: AI is announced, unanticipated, at the start of 2028 (t = 2).  2026-27
+  are identical by construction (checked), and the 2028 starting wealth is the
+  continuation's (checked).  Cohorts alive in 2028 (ages 20-99) are measured
+  over their remaining lives from 2028; later cohorts (entering at 20 from 2029)
+  over their whole lives.
+* Arms (UK central): "automation + productivity" (``tfp``), "automation,
+  technology unchanged" (``zfixed``) and the "OBR-style stress test" (the
+  accepted R4 iteration, ``surprise.accepted_r4``).  Variants: debt-neutral
+  transfers (``dn``, the headline: households bear the fiscal cost) and the
+  common rule ("", comparison).
+* Horizon: the export holds 60 periods (2026-2085), i.e. run periods 0-57; the
+  run's terminal periods (2086-87) are not in it, so all 60 are used.  Later
+  periods are filled by a continuation: "hold" (each run's 2085 age profile,
+  central) or "ss" (each run's steady state), a sensitivity.  Cohorts whose
+  lives end by 2085 do not depend on it.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import os
+import sys
+from functools import lru_cache
+from pathlib import Path
+
+import numpy as np
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from uk_growth_with_ai import surprise as sp  # noqa: E402
+
+# UGAI_SURPRISE_YEAR (default 2028): 2027 (Vahid, 18 Nov 2026) reads the
+# analysis/surprise2027/ set.  Set it before import: the dates below are constants.
+# Year-named JSON keys follow it (Fable 5.2 decision, 18 Nov): profile_<year>,
+# income_<year>_35_age45.
+SHOCK_YEAR = int(os.environ.get("UGAI_SURPRISE_YEAR", sp.SURPRISE_YEAR))
+_SET = ROOT / "analysis" / ("surprise" if SHOCK_YEAR == sp.SURPRISE_YEAR
+                            else f"surprise{SHOCK_YEAR}")
+COHORTS = _SET / "cohorts"
+OUTDIR = _SET / "output"
+CLOSURES = ("zk0.1", "zk0")
+ZETA = {"zk0.1": 0.1, "zk0": 0.0}
+START_YEAR = 2026
+assert sp.window(SHOCK_YEAR)["surprise_year"] == SHOCK_YEAR
+T0 = SHOCK_YEAR - START_YEAR                    # 2
+DEBT_RULE = sp.window(SHOCK_YEAR)["debt_rule_year"]   # 2036
+FIRST_AGE = 20   # model age of s = 0: OG-UK STARTING_AGE = 20, S = 80, "ages 20-99" (oguk/api.py:33-34);
+                 # OG-Core takes the active population as pop[:, E:] over data ages 0-99 (demographics.py:1441)
+N_AGES = 80
+T_USE = 60
+SCENARIO = "uk_central"
+ARMS = ("tfp", "zfixed", "stress")
+VARIANTS = ("dn", "")
+SCENARIOS = {"uk_central": VARIANTS, "korinek": ("dn",)}   # Korinek: debt-neutral paths only exported
+ARM_LABEL = {"tfp": "Automation + productivity",
+             "zfixed": "Automation, technology unchanged",
+             "stress": "OBR-style stress test: no output gain"}
+VARIANT_LABEL = {"dn": "Debt-neutral transfers", "": "Common fiscal rule"}
+GROUPS = ("0-25", "25-50", "50-70", "70-80", "80-90", "90-99", "Top 1")
+RECON_YEARS = range(SHOCK_YEAR, DEBT_RULE + 1)  # 2028-2036
+FUT_COHORTS = 20                                 # cohorts entering 2029-2048
+RECON_TOL_PP = 5e-5                              # "about 4 decimals" of a per-cent gap
+
+
+class WelfareError(SystemExit):
+    def __init__(self, msg: str):
+        super().__init__(f"cohort_welfare: {msg}")
+
+
+# --- inputs -------------------------------------------------------------------
+
+@lru_cache(maxsize=None)
+def records(closure: str) -> tuple:
+    """(done, ref): the per-solve records and the gated reference (continuation)."""
+    ref = sp.reference_ext(OUTDIR, closure)
+    if ref.get("reference") != "continuation":
+        raise WelfareError(f"{closure}: gap reference is {ref.get('reference')}, not the continuation")
+    return sp.load(OUTDIR, closure), ref
+
+
+def labels(closure: str, scenario: str = SCENARIO) -> dict:
+    """{(variant, arm): label} for a scenario, the accepted R4 taken from the records."""
+    done, ref = records(closure)
+    out = {}
+    for v in SCENARIOS[scenario]:
+        k = sp._keys(v, scenario)
+        r4 = sp.accepted_r4(done, ref, v, SHOCK_YEAR, scenario=scenario)
+        if r4 is None:
+            raise WelfareError(f"{closure}: no accepted R4 for {scenario} {v or 'common'}")
+        out[(v, "tfp")], out[(v, "zfixed")], out[(v, "stress")] = k["tfp"], k["zfixed"], r4["label"]
+        for a in ARMS:
+            rec = done.get(out[(v, a)])
+            if rec is None:
+                raise WelfareError(f"{closure}: record {out[(v, a)]} missing")
+            if v == "dn" and not (rec.get("dn_check") or {}).get("ok"):
+                raise WelfareError(f"{closure}: {out[(v, a)]} fails its debt-neutral check")
+    return out
+
+
+@lru_cache(maxsize=None)
+def load(closure: str, scenario: str = SCENARIO):
+    p = COHORTS / closure / "params.npz"
+    if not p.is_file():
+        raise WelfareError(f"{p} missing")
+    par = {k: np.asarray(v, dtype=float) for k, v in np.load(p).items()}
+    if abs(float(np.ravel(par["zeta_K"])[0]) - ZETA[closure]) > 1e-12:
+        raise WelfareError(f"{p} is not zeta_K = {ZETA[closure]}")
+    if int(np.ravel(par["S"])[0]) != N_AGES:
+        raise WelfareError(f"{p}: S is not {N_AGES}, so ages are not {FIRST_AGE}-{FIRST_AGE + N_AGES - 1}")
+    runs = {}
+    for key, label in [(None, "continuation")] + list(labels(closure, scenario).items()):
+        f = COHORTS / closure / f"{label}.npz"
+        if not f.is_file():
+            raise WelfareError(f"{f} missing (run analysis/surprise/export_cohorts.py)")
+        runs[key] = {k: np.asarray(v, dtype=float) for k, v in np.load(f).items()}
+    ref = runs[None]
+    for key, d in runs.items():
+        for k in ("c", "n", "b_s", "b_sp1", "bq", "tr"):
+            if not np.array_equal(d[k][:T0], ref[k][:T0]):
+                raise WelfareError(f"{closure} {key}: {k} differs from the continuation in 2026-27")
+        if not np.array_equal(d["b_s"][T0], ref["b_s"][T0]):
+            raise WelfareError(f"{closure} {key}: 2028 starting wealth differs from the continuation")
+    return par, runs
+
+
+# --- utility --------------------------------------------------------------------
+
+def extend(d: dict, continuation: str, horizon: int) -> dict:
+    """c, n, b' on calendar periods 0..horizon-1, filling t >= T_USE."""
+    S, J = d["c"].shape[1:]
+    ss_bsp1 = np.vstack([d["ss_b_s"][1:], d["b_sp1"][T_USE - 1, -1:]])
+    out = {}
+    for k, ss in (("c", d["ss_c"]), ("n", d["ss_n"]), ("b_sp1", ss_bsp1)):
+        x = np.empty((horizon, S, J))
+        x[:T_USE] = d[k][:T_USE]
+        x[T_USE:] = {"hold": d[k][T_USE - 1], "ss": ss}[continuation]
+        out[k] = x
+    return out
+
+
+def flows(par: dict, x: dict, horizon: int) -> tuple:
+    """Per-period utility parts (C, N, Q), each (horizon, S, J)."""
+    sig, gy = float(par["sigma"]), float(par["g_y"])
+    c, n, bp = x["c"], x["n"], x["b_sp1"]
+    if (c <= 0).any() or (n <= 0).any() or (n >= par["ltilde"]).any() or (bp <= 0).any():
+        raise WelfareError("consumption, labour or bequests outside the utility's domain")
+    C = c ** (1 - sig) / (1 - sig)
+    ups = float(par["upsilon"])
+    N = (par["chi_n"][:horizon, :, None] * float(par["b_ellipse"])
+         * (1 - (n / float(par["ltilde"])) ** ups) ** (1 / ups))
+    Q = (par["rho"][:horizon, :, None] * par["chi_b"][None, None, :] * np.exp(gy * (1 - sig))
+         * bp ** (1 - sig) / (1 - sig))
+    return C, N, Q
+
+
+def starts(par: dict) -> list:
+    """(t0, s0) of each cohort: alive in 2028 (oldest first), then entrants from 2029."""
+    S, horizon = int(par["S"]), par["chi_n"].shape[0]
+    return ([(T0, s0) for s0 in range(S - 1, -1, -1)]
+            + [(t0, 0) for t0 in range(T0 + 1, horizon - S + 1)])
+
+
+def birth_years(par: dict) -> np.ndarray:
+    return np.array([START_YEAR + t0 - FIRST_AGE - s0 for t0, s0 in starts(par)])
+
+
+def discount(par: dict, t0: int, s0: int) -> tuple:
+    """Calendar indices (t, s) along the cohort's remaining life and the weights (k, J)."""
+    sig, gy = float(par["sigma"]), float(par["g_y"])
+    S = int(par["S"])
+    k = np.arange(S - s0)
+    t, s = t0 + k, s0 + k
+    surv = np.concatenate([[1.0], np.cumprod(1 - par["rho"][t[:-1], s[:-1]])])
+    w = (par["beta"][None, :] ** k[:, None]) * surv[:, None] * np.exp(k * gy * (1 - sig))[:, None]
+    return t, s, w
+
+
+def lifetime(par: dict, comp: tuple) -> np.ndarray:
+    """Discounted remaining-life sums of each part, (cohorts, len(comp), J)."""
+    out = []
+    for t0, s0 in starts(par):
+        t, s, w = discount(par, t0, s0)
+        out.append([(w * x[t, s]).sum(axis=0) for x in comp])
+    return np.array(out)
+
+
+def to_lambda(sig: float, ratio: np.ndarray) -> np.ndarray:
+    with np.errstate(invalid="ignore"):
+        lam = (np.where(ratio > 0, ratio, np.nan) ** (1 / (1 - sig)) - 1) * 100
+    return lam
+
+
+@lru_cache(maxsize=None)
+def _parts(closure: str, continuation: str, scenario: str = SCENARIO):
+    """{run key: discounted remaining-life (C, N, Q) sums, (cohorts, 3, J)}."""
+    par, runs = load(closure, scenario)
+    horizon = par["chi_n"].shape[0]
+    return par, {key: lifetime(par, flows(par, extend(d, continuation, horizon), horizon))
+                 for key, d in runs.items()}
+
+
+def cev(closure: str, continuation: str = "hold", measure: str = "joint",
+        scenario: str = SCENARIO) -> dict:
+    """{(variant, arm): lambda (cohorts, J) in per cent}, plus birth years."""
+    par, L = _parts(closure, continuation, scenario)
+    sig = float(par["sigma"])
+    CR, NR, QR = L[None][:, 0], L[None][:, 1], L[None][:, 2]
+    out = {"birth_year": birth_years(par)}
+    for key in labels(closure, scenario):
+        U = L[key].sum(axis=1)
+        ratio = (U - NR) / (CR + QR) if measure == "joint" else (U - NR - QR) / CR
+        lam = to_lambda(sig, ratio)
+        if measure == "joint" and np.isnan(lam).any():
+            raise WelfareError(f"{closure} {key}: no joint scaling reaches the scenario's utility")
+        out[key] = lam
+    return out
+
+
+def components(closure: str, continuation: str = "hold") -> dict:
+    """Joint CEV with one part at a time on the scenario path:
+    {(variant, arm): {"consumption" | "leisure" | "bequests": (cohorts, J)}}.
+    The three do not sum exactly to the total (the measure is not linear)."""
+    par, L = _parts(closure, continuation)
+    sig = float(par["sigma"])
+    CR, NR, QR = L[None][:, 0], L[None][:, 1], L[None][:, 2]
+    lam = lambda U: to_lambda(sig, (U - NR) / (CR + QR))
+    out = {}
+    for key in labels(closure):
+        A = L[key]
+        out[key] = {"consumption": lam(A[:, 0] + NR + QR),
+                    "leisure": lam(CR + A[:, 1] + QR),
+                    "bequests": lam(CR + NR + A[:, 2])}
+    return out
+
+
+def identity_checks(closure: str) -> dict:
+    """The reference against itself gives 0; with c and b' 1% higher, exactly 1%."""
+    par, runs = load(closure)
+    horizon = par["chi_n"].shape[0]
+    sig = float(par["sigma"])
+    x = extend(runs[None], "hold", horizon)
+    R = lifetime(par, flows(par, x, horizon))
+    y = dict(x, c=x["c"] * 1.01, b_sp1=x["b_sp1"] * 1.01)
+    S1 = lifetime(par, flows(par, y, horizon))
+    CR, NR, QR = R[:, 0], R[:, 1], R[:, 2]
+    zero = to_lambda(sig, (R.sum(axis=1) - NR) / (CR + QR))
+    one = to_lambda(sig, (S1.sum(axis=1) - NR) / (CR + QR))
+    return {"self_max_abs": float(np.abs(zero).max()), "one_pct_max_err": float(np.abs(one - 1).max())}
+
+
+# --- weights and aggregates ------------------------------------------------------
+
+def group_weights(par: dict) -> np.ndarray:
+    return par["lambdas"].ravel()
+
+
+def alive_weights(par: dict) -> np.ndarray:
+    """Population weight of each cohort alive in 2028 (omega[2028, s]); 0 for later cohorts."""
+    b = birth_years(par)
+    age = SHOCK_YEAR - b
+    w = np.zeros(len(b))
+    ok = (age >= FIRST_AGE) & (age < FIRST_AGE + int(par["S"]))
+    w[ok] = par["omega"][T0, age[ok] - FIRST_AGE]
+    return w / w.sum()
+
+
+def averages(par: dict, lam: np.ndarray) -> dict:
+    """Population-weighted means: alive in 2028 (all groups and by group), and by group
+    for the cohorts entering 2029-2048 (equal weight per cohort)."""
+    aw, gw = alive_weights(par), group_weights(par)
+    b = birth_years(par)
+    fut = (b >= SHOCK_YEAR + 1 - FIRST_AGE) & (b <= SHOCK_YEAR + FUT_COHORTS - FIRST_AGE)
+    return {"alive_all": float(aw @ lam @ gw),
+            "alive_by_group": (aw @ lam).tolist(),
+            "future_by_group": lam[fut].mean(axis=0).tolist(),
+            "future_all": float(lam[fut].mean(axis=0) @ gw)}
+
+
+# --- reconciliation ---------------------------------------------------------------
+
+def reconcile(closure: str, scenario: str = SCENARIO) -> dict:
+    """Aggregate C gap from the household paths vs the record's, every year 2028-2036, per arm.
+    Returns {label: max abs difference in percentage points}; raises above RECON_TOL_PP."""
+    par, runs = load(closure, scenario)
+    done, ref = records(closure)
+    gw = group_weights(par)
+    agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["c"][t]).sum())
+    out = {}
+    for key, label in labels(closure, scenario).items():
+        rec = done[label]
+        diffs = []
+        for y in RECON_YEARS:
+            t = y - START_YEAR
+            hh = (agg(runs[key], t) / agg(runs[None], t) - 1) * 100
+            rc = (rec["series"]["C"][t] / ref["series"]["C"][t] - 1) * 100
+            diffs.append(abs(hh - rc))
+        out[label] = max(diffs)
+        if out[label] > RECON_TOL_PP:
+            raise WelfareError(f"{closure} {label}: household consumption does not reproduce the "
+                               f"record's C gap ({out[label]:.2e} pp)")
+    return out
+
+
+def c_gap(closure: str, key, year: int) -> float:
+    done, ref = records(closure)
+    rec = done[labels(closure)[key]]
+    t = year - START_YEAR
+    return (rec["series"]["C"][t] / ref["series"]["C"][t] - 1) * 100
+
+
+# --- who gains and why -----------------------------------------------------------
+
+def income_accounts(closure: str, key, last_year: int = DEBT_RULE - 1) -> dict:
+    """Changes in household income by source over 2028..last_year, as a share of the same
+    cohort-group's discounted consumption over the window, for cohorts alive in 2028.
+
+    Sources: labour earnings w*e*n, capital income r_p*b_s, transfers tr, bequests
+    received bq.  w and r_p are the records' (detrended); the records stop in 2036,
+    so the window ends in 2035 (2036 is the debt rule's first year).
+    Returns arrays (alive cohorts, J) keyed by source, plus the age in 2028."""
+    par, runs = load(closure)
+    done, ref = records(closure)
+    rec = done[labels(closure)[key]]
+    S = int(par["S"])
+    d, r0 = runs[key], runs[None]
+    e = par["e"]
+    out = {k: np.zeros((S, d["c"].shape[2])) for k in ("labour", "capital", "transfers", "bequests", "pv_c")}
+    for s0 in range(S):
+        t, s, w = discount(par, T0, s0)
+        m = t <= last_year - START_YEAR
+        t, s, w = t[m], s[m], w[m]
+        ser = lambda R, v: np.array([R["series"][v][i] for i in t])[:, None]
+        lab = lambda D, R: ser(R, "w") * e[t, s] * D["n"][t, s]
+        cap = lambda D, R: ser(R, "r_p") * D["b_s"][t, s]
+        out["labour"][s0] = (w * (lab(d, rec) - lab(r0, ref))).sum(0)
+        out["capital"][s0] = (w * (cap(d, rec) - cap(r0, ref))).sum(0)
+        out["transfers"][s0] = (w * (d["tr"][t, s] - r0["tr"][t, s])).sum(0)
+        out["bequests"][s0] = (w * (d["bq"][t, s] - r0["bq"][t, s])).sum(0)
+        out["pv_c"][s0] = (w * r0["c"][t, s]).sum(0)
+    res = {k: out[k] / out["pv_c"] * 100 for k in ("labour", "capital", "transfers", "bequests")}
+    res[f"age_{SHOCK_YEAR}"] = np.arange(S) + FIRST_AGE
+    return res
+
+
+def group_profile(closure: str, year: int = SHOCK_YEAR) -> dict:
+    """Continuation cross-section in `year` by group: shares of wealth and labour earnings,
+    and gross income by source (per cent of the group's total)."""
+    par, runs = load(closure)
+    done, ref = records(closure)
+    b = runs[None]
+    t = year - START_YEAR
+    gw = group_weights(par)
+    om = par["omega"][t][:, None]
+    w, r = ref["series"]["w"][t], ref["series"]["r_p"][t]
+    per_head = lambda x: (om * x).sum(axis=0)
+    wealth = per_head(b["b_s"][t])
+    lab = per_head(w * par["e"][t] * b["n"][t])
+    cap = per_head(r * b["b_s"][t])
+    tr, bq = per_head(b["tr"][t]), per_head(b["bq"][t])
+    tot = lab + cap + tr + bq
+    return {"wealth_share": (wealth * gw / (wealth @ gw) * 100).tolist(),
+            "earnings_share": (lab * gw / (lab @ gw) * 100).tolist(),
+            "labour": (lab / tot * 100).tolist(), "capital": (cap / tot * 100).tolist(),
+            "transfers": (tr / tot * 100).tolist(), "bequests": (bq / tot * 100).tolist(),
+}
+
+
+def part_averages(closure: str, continuation: str = "hold") -> dict:
+    """Population-weighted joint-CEV parts for those alive in 2028:
+    {key: {part: {"all": x, "by_group": [..]}}}."""
+    par, _ = load(closure)
+    aw, gw = alive_weights(par), group_weights(par)
+    out = {}
+    for key, parts in components(closure, continuation).items():
+        out[key] = {p: {"all": float(aw @ x @ gw), "by_group": (aw @ x).tolist()}
+                    for p, x in parts.items()}
+    return out
+
+
+def first_c_above(closure: str, key) -> int | None:
+    """First year the household-aggregate consumption gap is positive (None: never by 2085)."""
+    par, runs = load(closure)
+    gw = group_weights(par)
+    agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["c"][t]).sum())
+    for t in range(T0, T_USE):
+        if agg(runs[key], t) > agg(runs[None], t):
+            return START_YEAR + t
+    return None
+
+
+def wealth_concentration(closure: str, year: int = SHOCK_YEAR) -> dict:
+    """Shares of household wealth held by the top tenth and bottom half of the adult
+    population ranked by wealth (age x group cells of the continuation), the ONS ranking;
+    and by lifetime-earnings group (the model's ranking)."""
+    par, runs = load(closure)
+    t = year - START_YEAR
+    gw = group_weights(par)
+    w = (par["omega"][t][:, None] * gw[None, :]).ravel()
+    x = runs[None]["b_s"][t].ravel()
+    o = np.argsort(x)
+    cw_, cx = np.cumsum(w[o]) / w.sum(), np.cumsum((w * x)[o])
+    share = lambda p: float(np.interp(p, cw_, cx) / cx[-1])
+    return {"top_tenth_pct": (1 - share(0.9)) * 100, "bottom_half_pct": share(0.5) * 100}
+
+
+def fill_sensitivity(closure: str, scenario: str = SCENARIO) -> dict:
+    """max |hold - ss| over groups, by birth year, per key; and the first birth year above 0.01pp."""
+    par, _ = load(closure, scenario)
+    b = birth_years(par)
+    H, S_ = cev(closure, "hold", scenario=scenario), cev(closure, "ss", scenario=scenario)
+    out = {}
+    for key in labels(closure, scenario):
+        d = np.abs(H[key] - S_[key]).max(axis=1)
+        out[key] = {"max_by_birth": d.tolist(), "first_birth_over_0p01": int(b[d > FILL_TINY_PP].min()),
+                    "max": float(d.max())}
+    return out
+
+
+def reconcile_tr(closure: str, scenario: str = SCENARIO) -> dict:
+    """Relative difference between the household-aggregate transfer ratio and the record's
+    TR ratio (scenario / reference), max over 2028-2036, per label."""
+    par, runs = load(closure, scenario)
+    done, ref = records(closure)
+    gw = group_weights(par)
+    agg = lambda d, t: float((par["omega"][t][:, None] * gw[None, :] * d["tr"][t]).sum())
+    out = {}
+    for key, label in labels(closure, scenario).items():
+        rec = done[label]
+        out[label] = max(abs((agg(runs[key], t) / agg(runs[None], t))
+                             / (rec["series"]["TR"][t] / ref["series"]["TR"][t]) - 1)
+                         for t in (y - START_YEAR for y in RECON_YEARS))
+    return out
+
+
+# --- what the average rests on (referee check on PR #24, finding 4 and 8) ------------
+#
+# Two first-order calculations at unchanged household behaviour (no solve):
+#
+# * lifetime income by source: the change in each household's after-tax income over its
+#   whole remaining life, valued at the reference path's marginal utility and expressed
+#   as a share of its remaining-lifetime consumption (tax-inclusive);
+# * the fiscal cost charged back: under debt-neutral transfers the debt rule moves the
+#   fiscal effect onto government consumption from 2036, which households do not value.
+#   Charging that amount to households as an equal per-head lump sum shows how much of
+#   the average rests on it.
+#
+# The records hold w, r_p, G and Y for 2026-2036 plus the steady state.  After 2036 a
+# series is held at its 2036 value ("hold") or moved linearly to its steady-state value
+# by 2085 ("ss"); the two bound the estimate.
+
+FILL_PATHS = ("hold", "ss")
+FILL_TINY_PP = 0.01   # fill sensitivity: first birth year moved by more than this
+SS_BY_YEAR = 2085
+
+
+def _ref_record(closure: str) -> dict:
+    """The continuation's own record (with its steady state); its series are the gap reference."""
+    done, ref = records(closure)
+    cont = done.get("continuation")
+    if cont is None or cont["series"] != ref["series"]:
+        raise WelfareError(f"{closure}: the continuation record is not the gap reference")
+    return cont
+
+
+def tax_rates(closure: str) -> dict:
+    """Average consumption-tax rate (cons_tax_revenue / C) and average tax rate on labour
+    and capital income (iit_payroll_tax_revenue / (w L + r_p B)) of the reference path,
+    means over 2028-2036, from the records."""
+    _, ref = records(closure)
+    s = ref["series"]
+    ts = [y - START_YEAR for y in RECON_YEARS]
+    tc = float(np.mean([s["cons_tax_revenue"][t] / s["C"][t] for t in ts]))
+    ti = float(np.mean([s["iit_payroll_tax_revenue"][t]
+                        / (s["w"][t] * s["L"][t] + s["r_p"][t] * s["B"][t]) for t in ts]))
+    return {"consumption": tc, "income": ti}
+
+
+def _series_path(rec: dict, ref: dict, var: str, horizon: int, fill: str) -> np.ndarray:
+    """Scenario minus reference for a record series on calendar periods 0..horizon-1."""
+    a = np.array(rec["series"][var], float) - np.array(ref["series"][var], float)
+    n = len(a)
+    x = np.empty(horizon)
+    x[:n] = a
+    k = np.arange(n, horizon)
+    if fill == "hold":
+        x[n:] = a[-1]
+    else:
+        d_ss = rec["ss"][var] - ref["ss"][var]
+        x[n:] = a[-1] + (d_ss - a[-1]) * np.clip((k - (n - 1)) / (SS_BY_YEAR - START_YEAR - (n - 1)), 0, 1)
+    return x
+
+
+def _hold60(a: np.ndarray, horizon: int) -> np.ndarray:
+    x = np.empty((horizon,) + a.shape[1:])
+    x[:T_USE] = a[:T_USE]
+    x[T_USE:] = a[T_USE - 1]
+    return x
+
+
+def _ref_marginal(closure: str):
+    """Reference consumption and its marginal utility on 0..horizon-1 (hold fill)."""
+    par, runs = load(closure)
+    horizon = par["chi_n"].shape[0]
+    c = extend(runs[None], "hold", horizon)["c"]
+    return par, runs, horizon, c, c ** (-float(par["sigma"]))
+
+
+def lifetime_sources(closure: str, key, fill: str = "hold") -> dict:
+    """Change in remaining-lifetime after-tax income by source at reference behaviour, per
+    cent of remaining-lifetime consumption (tax-inclusive), for adults alive in 2028.
+
+    labour (1-t) dw e n, capital (1-t) dr_p b_s, transfers dtr, bequests received dbq, with
+    t the reference's average income-tax rate; each discounted with the reference's
+    marginal utility.  Arrays (cohorts, J) on the full cohort axis; 0 for later cohorts."""
+    par, runs, horizon, c, mu = _ref_marginal(closure)
+    done, _ = records(closure)
+    ref = _ref_record(closure)
+    rec = done[labels(closure)[key]]
+    tx = tax_rates(closure)
+    d, r0 = runs[key], runs[None]
+    e, bs, n = _hold60(par["e"], horizon), _hold60(r0["b_s"], horizon), _hold60(r0["n"], horizon)
+    dw = _series_path(rec, ref, "w", horizon, fill)
+    dr = _series_path(rec, ref, "r_p", horizon, fill)
+    flows_ = {"labour": (1 - tx["income"]) * dw[:, None, None] * e * n,
+              "capital": (1 - tx["income"]) * dr[:, None, None] * bs,
+              "transfers": _hold60(d["tr"] - r0["tr"], horizon),
+              "bequests": _hold60(d["bq"] - r0["bq"], horizon)}
+    aw = alive_weights(par)
+    out = {k: np.zeros((len(aw), c.shape[2])) for k in flows_}
+    for i, (t0, s0) in enumerate(starts(par)):
+        if aw[i] == 0:
+            continue
+        t, s, w = discount(par, t0, s0)
+        den = (w * mu[t, s] * c[t, s] * (1 + tx["consumption"])).sum(0)
+        for k, x in flows_.items():
+            out[k][i] = (w * mu[t, s] * x[t, s]).sum(0) / den * 100
+    out["total"] = sum(out[k] for k in flows_)
+    return out
+
+
+def no_bequest_cev(closure: str, continuation: str = "hold", scenario: str = SCENARIO) -> dict:
+    """CEV with the warm-glow bequest term dropped from both paths: the constant change in
+    consumption that gives the scenario's consumption-plus-leisure utility, labour held at
+    the reference.  {(variant, arm): (cohorts, J)}, per cent of consumption."""
+    par, L = _parts(closure, continuation, scenario)
+    sig = float(par["sigma"])
+    CR, NR = L[None][:, 0], L[None][:, 1]
+    out = {}
+    for key in labels(closure, scenario):
+        A = L[key]
+        lam = to_lambda(sig, (A[:, 0] + A[:, 1] - NR) / CR)
+        if np.isnan(lam).any():
+            raise WelfareError(f"{closure} {key}: no consumption scaling reaches the no-bequest utility")
+        out[key] = lam
+    return out
+
+
+def g_shortfall(closure: str, key, scenario: str = SCENARIO) -> dict:
+    """Government consumption below its reference share of GDP (G gap minus G_R/Y_R x Y gap),
+    per cent of reference GDP: max |.| over 2028-2035 and the steady state."""
+    done, _ = records(closure)
+    ref = _ref_record(closure)
+    rec = done[labels(closure, scenario)[key]]
+    R, S = ref["series"], rec["series"]
+    sh = lambda a, b: (a["G"] - b["G"]) - b["G"] / b["Y"] * (a["Y"] - b["Y"])
+    pre = max(abs(sh({k: S[k][t] for k in "GY"}, {k: R[k][t] for k in "GY"})) / R["Y"][t] * 100
+              for t in range(T0, DEBT_RULE - START_YEAR))
+    return {"pre_max_pct_gdp": pre, "ss_pct_gdp": sh(rec["ss"], ref["ss"]) / ref["ss"]["Y"] * 100,
+            "ss_pct_c": sh(rec["ss"], ref["ss"]) / ref["ss"]["C"] * 100}
+
+
+def chargeback(closure: str, key, fill: str = "hold") -> dict:
+    """The joint and no-bequest CEVs with the government-consumption shortfall from 2036
+    charged to households instead: an equal per-head lump sum (omega sums to 1), taken out
+    of consumption at the tax-inclusive price, valued at the reference's marginal utility
+    (first order).  fill: shortfall held at its 2036 value, or moved to the steady state
+    by 2085.  {"joint", "no_bequest"}: (cohorts, J)."""
+    par, runs, horizon, c, mu = _ref_marginal(closure)
+    if not np.allclose(par["omega"][:horizon].sum(axis=1), 1.0):
+        raise WelfareError(f"{closure}: population shares do not sum to 1; per-head charge undefined")
+    done, _ = records(closure)
+    ref = _ref_record(closure)
+    rec = done[labels(closure)[key]]
+    if g_shortfall(closure, key)["pre_max_pct_gdp"] > 1e-6:
+        raise WelfareError(f"{closure} {key}: G leaves its GDP share before {DEBT_RULE}")
+    gs = lambda t: ((rec["series"]["G"][t] - ref["series"]["G"][t])
+                    - ref["series"]["G"][t] / ref["series"]["Y"][t]
+                    * (rec["series"]["Y"][t] - ref["series"]["Y"][t]))
+    n = len(rec["series"]["G"])
+    g36 = gs(n - 1)
+    g_ss = ((rec["ss"]["G"] - ref["ss"]["G"])
+            - ref["ss"]["G"] / ref["ss"]["Y"] * (rec["ss"]["Y"] - ref["ss"]["Y"]))
+    path = np.zeros(horizon)
+    k = np.arange(n - 1, horizon)
+    path[n - 1:] = g36 if fill == "hold" else g36 + (g_ss - g36) * np.clip(
+        (k - (n - 1)) / (SS_BY_YEAR - START_YEAR - (n - 1)), 0, 1)
+    tc = tax_rates(closure)["consumption"]
+    dU = np.array([(w * mu[t, s] * path[t, None] / (1 + tc)).sum(0)
+                   for t, s, w in (discount(par, *st) for st in starts(par))])
+    par_, L = _parts(closure, "hold")
+    sig = float(par["sigma"])
+    CR, NR, QR = L[None][:, 0], L[None][:, 1], L[None][:, 2]
+    A = L[key]
+    return {"joint": to_lambda(sig, (A.sum(axis=1) + dU - NR) / (CR + QR)),
+            "no_bequest": to_lambda(sig, (A[:, 0] + A[:, 1] + dU - NR) / CR)}
+
+
+# A cell loses when lambda < -LOSS_TOL (per cent): identical paths give lambda of order
+# 1e-13, the smallest real gap among alive cohorts is about 2e-4.
+LOSS_TOL = 1e-9
+
+
+def losing_pct(par: dict, lam: np.ndarray) -> float:
+    return float(alive_weights(par) @ (lam < -LOSS_TOL) @ group_weights(par)) * 100
+
+
+def all_lose_up_to_age(par: dict, lam: np.ndarray):
+    """Oldest age A in 2028 such that every group at every age 20..A loses (None if age 20
+    does not)."""
+    b = birth_years(par)
+    aw = alive_weights(par)
+    by_age = {SHOCK_YEAR - int(x): row for x, row, w in zip(b, lam, aw) if w > 0}
+    a = FIRST_AGE - 1
+    while a + 1 in by_age and (by_age[a + 1] < -LOSS_TOL).all():
+        a += 1
+    return a if a >= FIRST_AGE else None
+
+
+def oldest_losing_on_average(par: dict, lam: np.ndarray):
+    """Oldest age in 2028 whose all-groups mean is negative (None if none)."""
+    b = birth_years(par)
+    aw = alive_weights(par)
+    m = (aw > 0) & ((lam @ group_weights(par)) < -LOSS_TOL)
+    return int((SHOCK_YEAR - b[m]).max()) if m.any() else None
+
+
+def robustness(closure: str) -> dict:
+    """Everything the 'what the average rests on' table and the dashboard headline quote,
+    per (variant, arm).  Charge-back entries only under debt-neutral transfers (under the
+    common rule the public debt also carries 2028-35, which this does not charge)."""
+    par, _ = load(closure)
+    aw, gw = alive_weights(par), group_weights(par)
+    R, NB = cev(closure), no_bequest_cev(closure)
+    out = {}
+    for key in labels(closure):
+        src = lifetime_sources(closure, key)
+        o = {"joint_avg": float(aw @ R[key] @ gw), "joint_losing_pct": losing_pct(par, R[key]),
+             "no_bequest_avg": float(aw @ NB[key] @ gw), "no_bequest_losing_pct": losing_pct(par, NB[key]),
+             "sources": {k: float(aw @ x @ gw) for k, x in src.items()},
+             "sources_by_group": {k: (aw @ x).tolist() for k, x in src.items()},
+             "all_lose_up_to_age": all_lose_up_to_age(par, R[key])}
+        if key[0] == "dn":
+            ch = {f: chargeback(closure, key, f) for f in FILL_PATHS}
+            rng = lambda f: [min(f(ch[x]) for x in FILL_PATHS), max(f(ch[x]) for x in FILL_PATHS)]
+            o["charged"] = {
+                "joint_avg": rng(lambda c: float(aw @ c["joint"] @ gw)),
+                "joint_losing_pct": rng(lambda c: losing_pct(par, c["joint"])),
+                "no_bequest_avg": rng(lambda c: float(aw @ c["no_bequest"] @ gw)),
+                "no_bequest_losing_pct": rng(lambda c: losing_pct(par, c["no_bequest"])),
+                "oldest_losing_on_average": rng(lambda c: oldest_losing_on_average(par, c["joint"]) or 0),
+                "g_shortfall": g_shortfall(closure, key)}
+        out[key] = o
+    return out
+
+
+# --- debt-neutral to the horizon (the solve behind the charge-back's \pending) -------
+#
+# ``<scenario>_share_shift_tfp_ramp_dnfull`` (zk0.1 only): transfers hold debt/GDP on the
+# no-shock restart's path every year to the horizon and G stays at alpha_G * Y, so
+# households bear the post-2035 fiscal cost through transfers.  Measured against the
+# usual continuation, the gap also moves the no-shock path's own consolidation from
+# government consumption (the debt rule from 2036, G/Y leaves alpha_G) to transfers,
+# so it does not price the shock alone.
+#
+# The like-for-like reference is a matched no-shock run, ``DNFULL_REF_LABEL``: the
+# continuation re-solved under the dnfull rule (no shock, G = alpha_G * Y, TR holding the
+# continuation's own debt/GDP to T-1).  Contract with the runs side: a record under that
+# label in ``sp.load(OUTDIR, closure)`` and ``cohorts/<closure>/<label>.npz`` from
+# ``export_cohorts.py``.  ``dnfull_ready`` is True only when that run is in and passes
+# ``_matched_ref`` 's checks; the paper quotes the solve only then.
+
+DNFULL_LABEL = f"{SCENARIO}_share_shift_tfp_ramp_dnfull"
+DNFULL_REF_LABEL = "continuation_dnfull"
+DNFULL_G_SHARE_TOL = 1e-6
+DNFULL_DY_TOL = 1e-4             # sp.DN_TOL: relative |D/Y - continuation's D/Y|
+REFERENCES = ("continuation", "matched")
+
+
+def dnfull_available(closure: str) -> bool:
+    return ((COHORTS / closure / f"{DNFULL_LABEL}.npz").is_file()
+            and DNFULL_LABEL in records(closure)[0])
+
+
+def dnfull_ref_available(closure: str) -> bool:
+    return ((COHORTS / closure / f"{DNFULL_REF_LABEL}.npz").is_file()
+            and DNFULL_REF_LABEL in records(closure)[0])
+
+
+def _npz(closure: str, label: str) -> dict:
+    f = COHORTS / closure / f"{label}.npz"
+    return {k: np.asarray(v, dtype=float) for k, v in np.load(f).items()}
+
+
+def _same_start(closure: str, name: str, d: dict, ref: dict) -> None:
+    for k in ("c", "n", "b_s", "b_sp1", "bq", "tr"):
+        if not np.array_equal(d[k][:T0], ref[k][:T0]):
+            raise WelfareError(f"{closure} {name}: {k} differs from the continuation in 2026-27")
+    if not np.array_equal(d["b_s"][T0], ref["b_s"][T0]):
+        raise WelfareError(f"{closure} {name}: 2028 starting wealth differs from the continuation")
+
+
+@lru_cache(maxsize=None)
+def _dnfull_run(closure: str) -> dict:
+    par, runs = load(closure)
+    rec = records(closure)[0].get(DNFULL_LABEL)
+    if rec is None or not (rec.get("dn_check") or {}).get("ok"):
+        raise WelfareError(f"{closure}: {DNFULL_LABEL} missing or fails its debt-neutral check")
+    d = _npz(closure, DNFULL_LABEL)
+    _same_start(closure, "dnfull", d, runs[None])
+    return d
+
+
+def _g_share(rec: dict) -> list:
+    r = rec["series_run"]
+    return [g / y for g, y in zip(r["G"], r["Y"])]
+
+
+@lru_cache(maxsize=None)
+def _matched_ref(closure: str) -> dict:
+    """The matched no-shock reference's npz, after checking that it is the continuation
+    under the dnfull rule: no shock, the dnfull run's alpha_G, G/Y at alpha_G in every
+    record year, debt/GDP on the continuation's path, debt-neutral check passed, and
+    2026-27 and 2028 starting wealth identical to the continuation."""
+    par, runs = load(closure)
+    done, _ = records(closure)
+    rec, run, cont = done.get(DNFULL_REF_LABEL), done.get(DNFULL_LABEL), _ref_record(closure)
+    if rec is None or run is None:
+        raise WelfareError(f"{closure}: {DNFULL_REF_LABEL} or {DNFULL_LABEL} record missing")
+    sp_ = rec.get("spec") or {}
+    why = []
+    if sp_.get("Z") is not None:
+        why.append("it is a shocked run")
+    if sp_.get("variant") != "dnfull":
+        why.append(f"its variant is {sp_.get('variant')!r}, not 'dnfull'")
+    if sp_.get("alpha_G") != run["spec"]["alpha_G"]:
+        why.append("its alpha_G differs from the dnfull run's")
+    if not (rec.get("dn_check") or {}).get("ok"):
+        why.append("it fails its debt-neutral check")
+    # series_run stops in 2036; the horizon is covered by the run's own full-horizon check
+    full, run_full = ((r.get("dn_check") or {}).get("full_horizon") or {} for r in (rec, run))
+    if not full.get("ok") or full.get("periods") != run_full.get("periods"):
+        why.append("its full-horizon debt and G/Y check is missing, fails, or stops short "
+                   "of the dnfull run's")
+    alpha = float(run["spec"]["alpha_G"])
+    if max(abs(x - alpha) for x in _g_share(rec)) > DNFULL_G_SHARE_TOL:
+        why.append("its G/Y leaves alpha_G")
+    if rec["series_run_years"] != cont["series_run_years"]:
+        why.append("its record years differ from the continuation's")
+    else:
+        dy = lambda r: np.asarray(r["series_run"]["D"]) / np.asarray(r["series_run"]["Y"])
+        if np.abs(dy(rec)[1:] / dy(cont)[1:] - 1).max() > DNFULL_DY_TOL:
+            why.append("its debt/GDP leaves the continuation's path")
+    if why:
+        raise WelfareError(f"{closure} {DNFULL_REF_LABEL} is not the matched reference: "
+                           + "; ".join(why))
+    d = _npz(closure, DNFULL_REF_LABEL)
+    _same_start(closure, DNFULL_REF_LABEL, d, runs[None])
+    return d
+
+
+def _reference(closure: str, reference: str) -> tuple:
+    """(record, household paths) of the reference the dnfull run is measured against."""
+    if reference not in REFERENCES:
+        raise WelfareError(f"unknown dnfull reference {reference!r}")
+    if reference == "continuation":
+        return _ref_record(closure), load(closure)[1][None]
+    return records(closure)[0][DNFULL_REF_LABEL], _matched_ref(closure)
+
+
+def dnfull_fiscal(closure: str, reference: str = "continuation") -> dict:
+    """G/Y and TR/Y of the reference and of the dnfull run, 2028..last record year and the
+    steady state, plus the household-aggregate transfer gap as a share of the reference's
+    aggregate consumption in every exported year from 2036."""
+    par, _ = load(closure)
+    done, _ = records(closure)
+    ref, r0 = _reference(closure, reference)
+    rec = done[DNFULL_LABEL]
+    alpha = float(rec["spec"]["alpha_G"])
+    sh = lambda r, v: [r["series_run"][v][i] / r["series_run"]["Y"][i]
+                       for i in range(len(r["series_run_years"]))]
+    ref_g, run_g = sh(ref, "G"), sh(rec, "G")
+    gw = group_weights(par)
+    d = _dnfull_run(closure)
+    agg = lambda x, t, k: float((par["omega"][t][:, None] * gw[None, :] * x[k][t]).sum())
+    tr_c = {START_YEAR + t: (agg(d, t, "tr") - agg(r0, t, "tr")) / agg(r0, t, "c") * 100
+            for t in range(DEBT_RULE - START_YEAR, T_USE)}
+    years = ref["series_run_years"]
+    return {"reference": reference, "alpha_G": alpha, "years": years,
+            "ref_g_share": ref_g, "run_g_share": run_g,
+            "ref_tr_share": sh(ref, "TR"), "run_tr_share": sh(rec, "TR"),
+            "ref_ss_g_share": ref["ss"]["G"] / ref["ss"]["Y"] if "ss" in ref else None,
+            "ref_g_share_max_dev_from_rule_year": max(abs(x - alpha) for y, x in zip(years, ref_g)
+                                                      if y >= DEBT_RULE),
+            "tr_gap_pct_c": tr_c}
+
+
+def dnfull_comparable(closure: str, reference: str = "continuation") -> bool:
+    """True only when the reference also keeps G at alpha_G * Y after 2035."""
+    return dnfull_fiscal(closure, reference)["ref_g_share_max_dev_from_rule_year"] <= DNFULL_G_SHARE_TOL
+
+
+def dnfull_ready(closure: str) -> bool:
+    """The solve can replace the first-order charge-back: the dnfull run and the matched
+    reference are both in and the reference passes its checks (else WelfareError)."""
+    return (dnfull_available(closure) and dnfull_ref_available(closure)
+            and dnfull_comparable(closure, "matched"))
+
+
+def dnfull_measures(closure: str, reference: str = "continuation") -> dict:
+    """The charge-back's measures computed directly from the dnfull solve, for both fills:
+    {fill: {joint_avg, joint_losing_pct, no_bequest_avg, no_bequest_losing_pct,
+    oldest_losing_on_average, all_lose_up_to_age, by_age: {age: (joint, no_bequest)}}},
+    adults alive in 2028, against ``reference`` ("continuation" or "matched")."""
+    par, _ = load(closure)
+    _, r0 = _reference(closure, reference)
+    d = _dnfull_run(closure)
+    horizon = par["chi_n"].shape[0]
+    sig = float(par["sigma"])
+    aw, gw = alive_weights(par), group_weights(par)
+    age = SHOCK_YEAR - birth_years(par)
+    out = {}
+    for fill in FILL_PATHS:
+        R = lifetime(par, flows(par, extend(r0, fill, horizon), horizon))
+        A = lifetime(par, flows(par, extend(d, fill, horizon), horizon))
+        CR, NR, QR = R[:, 0], R[:, 1], R[:, 2]
+        J = to_lambda(sig, (A.sum(axis=1) - NR) / (CR + QR))
+        NB = to_lambda(sig, (A[:, 0] + A[:, 1] - NR) / CR)
+        if np.isnan(J[aw > 0]).any() or np.isnan(NB[aw > 0]).any():
+            raise WelfareError(f"{closure} dnfull: no scaling reaches the scenario's utility")
+        out[fill] = {"joint_avg": float(aw @ J @ gw), "joint_losing_pct": losing_pct(par, J),
+                     "no_bequest_avg": float(aw @ NB @ gw),
+                     "no_bequest_losing_pct": losing_pct(par, NB),
+                     "oldest_losing_on_average": oldest_losing_on_average(par, J),
+                     "all_lose_up_to_age": all_lose_up_to_age(par, J),
+                     "by_age": {int(a): (float(J[i] @ gw), float(NB[i] @ gw))
+                                for i, a in enumerate(age) if aw[i] > 0 and a % 10 == 0}}
+    return out
+
+
+# --- summary and dashboard JSON --------------------------------------------------
+
+FIG_LAST_BIRTH = 2060      # charts stop here; fill sensitivity <= ~0.07pp up to it
+
+
+def key_str(key) -> str:
+    v, a = key
+    return f"{a}_{v}" if v else a
+
+
+def dashboard(source: str = "") -> dict:
+    """The Cohorts tab's data (dashboard/src/data/cohorts2028.json): one CEV table per
+    closure x fiscal rule x arm, plus the facts the tab states.  Rounded to 3 dp."""
+    r3 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 3)
+    # 4 dp where the tab rounds to 2 dp again, so it prints what the paper prints
+    r4 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 4)
+    out = {"what": "Consumption-equivalent welfare change by birth year and lifetime-earnings "
+                   f"group, UK central, {SHOCK_YEAR} surprise. Per cent of remaining-lifetime consumption "
+                   "and bequests, labour held at the no-shock path. no_bequest_*: warm glow dropped, "
+                   "per cent of consumption. sources_alive: change in remaining-lifetime after-tax "
+                   "income by source at unchanged behaviour, per cent of remaining-lifetime "
+                   "consumption (first order). charged: the government-consumption shortfall from "
+                   "2036 charged to households per head (first order, debt-neutral only; "
+                   "[low, high] over two extensions past 2036).",
+           "generated_by": "paper/cohort_welfare.py --json", "source": source,
+           "reference": "no-shock continuation of the same closure",
+           "shock_year": SHOCK_YEAR, "groups": list(GROUPS), "closures": {}}
+    for cl in CLOSURES:
+        par, _ = load(cl)
+        b = birth_years(par)
+        m = b <= FIG_LAST_BIRTH
+        gw = group_weights(par)
+        R, Rc = cev(cl), cev(cl, "hold", "consumption")
+        pa, fs, rob = part_averages(cl), fill_sensitivity(cl), robustness(cl)
+        C = {"birth_year": b[m].tolist(), "group_weights": gw.tolist(),
+             "wealth_concentration": {k: r3(v) for k, v in wealth_concentration(cl).items()},
+             f"profile_{SHOCK_YEAR}": {k: [r3(x) for x in v] for k, v in group_profile(cl).items()},
+             "reconcile_c_max_pp": float(max(reconcile(cl).values())),
+             "rules": {}}
+        for v in VARIANTS:
+            rule = {}
+            for a in ARMS:
+                key = (v, a)
+                lam = R[key]
+                av = averages(par, lam)
+                aw = alive_weights(par)
+                ia = income_accounts(cl, key)
+                co = Rc[key]
+                if np.isnan(co[aw > 0]).any():   # counted, not hidden
+                    raise WelfareError(f"{cl} {key}: consumption-only CEV unsolvable for an adult cohort")
+                rb = rob[key]
+                rule[a] = {
+                    "label": labels(cl)[key],
+                    "cev": [[r3(x) for x in row] for row in lam[m]],
+                    "cev_all": [r3(x) for x in (lam @ gw)[m]],
+                    "alive_avg": r3(av["alive_all"]),
+                    "alive_by_group": [r3(x) for x in av["alive_by_group"]],
+                    "future_by_group": [r3(x) for x in av["future_by_group"]],
+                    "alive_losing_pct": r3(float(aw @ (lam < 0) @ gw) * 100),
+                    "parts_alive": {p: r3(x["all"]) for p, x in pa[key].items()},
+                    "consumption_only_alive_avg": r3(float(aw[aw > 0] @ co[aw > 0] @ gw)),
+                    "no_bequest_alive_avg": r4(rb["no_bequest_avg"]),
+                    "no_bequest_losing_pct": r3(rb["no_bequest_losing_pct"]),
+                    "all_lose_up_to_age": rb["all_lose_up_to_age"],
+                    "sources_alive": {k: r4(x) for k, x in rb["sources"].items()},
+                    "charged": None if "charged" not in rb else {
+                        k: [r4(x) for x in rb["charged"][k]]
+                        for k in ("joint_avg", "joint_losing_pct", "no_bequest_avg",
+                                  "no_bequest_losing_pct", "oldest_losing_on_average")},
+                    "first_year_c_above": first_c_above(cl, key),
+                    "c_gap": {str(y): r3(c_gap(cl, key, y)) for y in range(SHOCK_YEAR, DEBT_RULE)},  # no flow for 2036
+                    f"income_{SHOCK_YEAR}_35_age45": {k: [r3(x) for x in ia[k][45 - FIRST_AGE]]
+                                             for k in ("labour", "capital", "transfers", "bequests")},
+                    "fill_max_pp": r3(float(np.max(np.array(fs[key]["max_by_birth"])[m]))),
+                }
+            C["rules"][v or "common"] = rule
+        out["closures"][cl] = C
+    out["dnfull"] = dnfull_dashboard()
+    return out
+
+
+def dnfull_dashboard() -> dict:
+    """The debt-neutral-to-the-horizon solve for the dashboard: UK central, main arm,
+    zeta_K = 0.1, against the matched no-shock reference (as the paper quotes it), per
+    fill and as a [low, high] range over the fills.  {"ready": False} until dnfull_ready."""
+    cl = "zk0.1"
+    if not dnfull_ready(cl):
+        return {"ready": False, "closure": cl}
+    r3 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 3)
+    r4 = lambda x: None if x is None or not math.isfinite(x) else round(float(x), 4)
+    m = dnfull_measures(cl, "matched")
+    keys = ("joint_avg", "joint_losing_pct", "no_bequest_avg", "no_bequest_losing_pct")
+    span = lambda k: [r4(min(m[f][k] for f in FILL_PATHS)), r4(max(m[f][k] for f in FILL_PATHS))]
+    return {"ready": True, "closure": cl, "rule": "dn", "arm": "tfp", "label": DNFULL_LABEL,
+            "reference": DNFULL_REF_LABEL,
+            "what": "Debt-neutral transfers kept on to the horizon (government consumption at "
+                    f"its share of GDP throughout), adults alive in {SHOCK_YEAR}, measured against a "
+                    "no-shock path solved under the same rule. Replaces the first-order "
+                    "charge-back (rules.dn.tfp.charged). [low, high] over the two extensions "
+                    "past the last solved year.",
+            "range": {k: span(k) for k in keys},
+            "by_fill": {f: {**{k: r4(m[f][k]) for k in keys},
+                            "oldest_losing_on_average": m[f]["oldest_losing_on_average"],
+                            "all_lose_up_to_age": m[f]["all_lose_up_to_age"],
+                            "by_age": {str(a): [r3(j), r3(nb)] for a, (j, nb) in m[f]["by_age"].items()}}
+                        for f in FILL_PATHS}}
+
+
+if __name__ == "__main__":
+    import argparse
+    import subprocess
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--json", help="write the dashboard JSON here")
+    args = ap.parse_args()
+    if args.json:
+        head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT,
+                              capture_output=True, text=True).stdout.strip()
+        Path(args.json).write_text(json.dumps(dashboard(f"uk-growth-with-ai@{head}"), indent=1) + "\n")
+        print("wrote", args.json)
+        raise SystemExit(0)
+    np.set_printoptions(precision=2, suppress=True, linewidth=160)
+    for cl in CLOSURES:
+        print(cl, "reconcile C (max pp):", reconcile(cl))
+        print(cl, "reconcile TR (max rel):", reconcile_tr(cl))
+        print(cl, "identity:", identity_checks(cl))
+        print(cl, "wealth:", wealth_concentration(cl))
+        par, _ = load(cl)
+        R = cev(cl)
+        pa = part_averages(cl)
+        for key in labels(cl):
+            print(cl, key, labels(cl)[key], round(averages(par, R[key])["alive_all"], 3),
+                  {p: round(x["all"], 3) for p, x in pa[key].items()}, "C>0 from", first_c_above(cl, key))
+        if dnfull_available(cl):
+            fs_ = dnfull_fiscal(cl)
+            print(cl, "dnfull: comparable with the continuation:", dnfull_comparable(cl),
+                  f"(reference G/Y from {DEBT_RULE} leaves alpha_G by up to "
+                  f"{fs_['ref_g_share_max_dev_from_rule_year']:.4f})")
+            rb = robustness(cl)[("dn", "tfp")]["charged"]
+            for f, m in dnfull_measures(cl).items():
+                print(cl, "dnfull", f, {k: (round(x, 3) if isinstance(x, float) else x)
+                                         for k, x in m.items() if k != "by_age"})
+            if dnfull_ref_available(cl):
+                print(cl, "dnfull: matched no-shock reference", DNFULL_REF_LABEL,
+                      "ready:", dnfull_ready(cl))
+                for f, m in dnfull_measures(cl, "matched").items():
+                    print(cl, "dnfull vs matched", f,
+                          {k: (round(x, 3) if isinstance(x, float) else x)
+                           for k, x in m.items() if k != "by_age"})
+            else:
+                print(cl, "dnfull: matched no-shock reference", DNFULL_REF_LABEL, "not in yet")
+            print(cl, "first-order charge-back [low, high]:",
+                  {k: [round(x, 3) for x in rb[k]] for k in
+                   ("joint_avg", "joint_losing_pct", "no_bequest_avg", "no_bequest_losing_pct")})
