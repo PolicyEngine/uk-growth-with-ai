@@ -13,5 +13,5 @@ export function investStepLine(read = (v, y) => gap('uk_central', 'tfp', CENTRAL
   const iLate = read('I', late);
   const dLate = read('debt_gdp_pp', late);
   if (![iPrev, iLate, dLate].every(Number.isFinite) || !(iLate > iPrev) || !(dLate > 0)) return null;
-  return `Investment steps up again in ${late}, the debt rule’s first year: in UK central it is ${signed(iPrev, 1)}% above the forecast path in ${prev} and ${signed(iLate, 1)}% in ${late}. By then AI has left debt ${dLate.toFixed(1)}pp of GDP above that path, so the rule cuts government spending by more, and investment rises.`;
+  return `Investment steps up again in ${late}, the debt rule’s first year. In UK central it is ${signed(iPrev, 1)}% above the forecast path in ${prev} and ${signed(iLate, 1)}% in ${late}. By then AI has left debt ${dLate.toFixed(1)}pp of GDP above that path, so the rule cuts government spending by more, and investment rises.`;
 }
