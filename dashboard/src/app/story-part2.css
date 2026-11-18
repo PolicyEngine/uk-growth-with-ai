@@ -914,6 +914,15 @@
 .p2-text-ghost {
   visibility: hidden;
 }
+/* WebKit kept a stale inherited visibility on the title icon (an svg) when
+   the shown state changed, so the current title drew no icon: set it on
+   the descendants too, so their selector match changes with the class */
+.p2-text-stack > .p2-text-ghost * {
+  visibility: hidden;
+}
+.p2-text-stack > span:not(.p2-text-ghost) * {
+  visibility: visible;
+}
 
 /* Without JavaScript the output split shows every layer at once */
 @media (scripting: none) {
