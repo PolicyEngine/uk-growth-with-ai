@@ -1,7 +1,8 @@
 // The zeta_K 0.5 card's "More info" fold (checks-words2.md, item 14): on
 // Explore, at 1280x800 and 390x844, it starts closed; it opens and closes
 // by mouse click, by keyboard (Tab focus, Enter, then Space) and by tap
-// (a touch context); the toggle shows a focus ring; and opening it moves
+// (a touch context); the toggle shows a focus ring; the grid's Implausible
+// link opens it and lands on #sens-flag; and opening it moves
 // nothing outside it: the page's scroll position, the card's head and the
 // toggle itself stay put, and no layout shift is recorded above it (only
 // what follows the fold moves down, by the fold's own height).
@@ -88,6 +89,23 @@ for (const [w, h, touch] of [
     await check('tap close', false);
   }
   const ls = await page.evaluate(() => window.__ls ?? []);
+  // the grid's "Implausible" link targets #sens-flag inside the closed
+  // fold: a click opens the fold and brings the note into view
+  if (await page.locator('a.ex-sg-implaus').count()) {
+    if ((await state(page)).open) await page.click(SEL);
+    await page.locator('a.ex-sg-implaus').scrollIntoViewIfNeeded();
+    await page.click('a.ex-sg-implaus');
+    await page.waitForTimeout(800);
+    const f = await page.evaluate(() => {
+      const n = document.getElementById('sens-flag');
+      const r = n?.getBoundingClientRect();
+      return { open: document.querySelector('#sens-more .disclosure-toggle').getAttribute('aria-expanded') === 'true', top: r ? Math.round(r.top) : null, bottom: r ? Math.round(r.bottom) : null, V: innerHeight };
+    });
+    if (!f.open) out.push('the Implausible link did not open the fold');
+    else if (f.top == null || f.top < 0 || f.bottom > f.V) out.push(`the Implausible link: #sens-flag not in view (top ${f.top}, bottom ${f.bottom}, V ${f.V})`);
+    else console.log(`  ${w}x${h}: Implausible link opens the fold, #sens-flag at top ${f.top}`);
+  } else out.push('no Implausible link in the grid');
+
   if (ls.includes('above')) out.push(`layout shift above the fold: ${ls.filter((x) => x === 'above').length} sources`);
   console.log(`  ${w}x${h}: layout-shift sources: ${ls.filter((x) => x === 'below').length} below the fold (expected), ${ls.filter((x) => x === 'above').length} above`);
   say(`${process.env.BROWSER ?? 'chromium'} ${w}x${h} More info fold`, out);

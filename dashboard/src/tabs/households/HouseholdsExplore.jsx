@@ -428,7 +428,7 @@ function PerPound() {
       }}
       foot={<Flag />}
       about={about({
-        how: ['Government: the fall in the government balance, employer NI included', 'Household: the part tax, employee NI and benefits absorb', 'Job loss: no household split on the 20 draws (grey)'],
+        how: ['Total: the fall in the government balance, employer NI included', 'Of which household: the part tax, employee NI and benefits absorb', 'Job loss: no household split on the 20 draws (grey)'],
         sources: [`${j20.file} (run channel_displacement)`, `${D.per_pound_20.file} (variant cut_only)`, `seed 0: ${perPound('job_loss').file}`, 'results/takeup/takeup_draws.csv (scenario disp_only)'],
       })}
     >

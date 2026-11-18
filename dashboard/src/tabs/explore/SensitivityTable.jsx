@@ -14,6 +14,7 @@ import { docItem } from '@/lib/sourceItems.js';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import Disclosure from '@/components/ab/Disclosure.jsx';
+import { NavLink } from '@/lib/nav.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
 
 // The foreign-owned share of the added capital in the headline year: the
@@ -137,7 +138,10 @@ function SensGrid({ res }) {
   const flagged = new Set(SENS_FLAGS().map((f) => `${f.sid}|${f.arm}`));
   const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
   return (
-    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, version and measure`}>
+    // a table, not a plotted scale: each column head carries its unit (%
+    // gap) and the card title the year and the path; the units line itself
+    // is in the More info fold (item 14)
+    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, version and measure`} data-no-axes="a table: each column head names its unit (% gap); the card title names the year and the forecast path">
       <table className="ex-sg">
         <thead>
           <tr>
@@ -167,9 +171,11 @@ function SensGrid({ res }) {
                 <th colSpan={VARS.length + 1} scope="rowgroup">
                   {s.label}
                   {fl && s.id === 'korinek' ? (
-                    <a className="ex-sg-implaus" href="#sens-flag">
+                    // through the nav's reveal path: the note sits in the
+                    // closed More info fold, which a reveal opens
+                    <NavLink tab="explore" sub="economy" anchor="sens-flag" className="ex-sg-implaus">
                       Implausible: investment +{Math.round(fl.x)}% in {S.surprise_year}
-                    </a>
+                    </NavLink>
                   ) : null}
                 </th>
               </tr>

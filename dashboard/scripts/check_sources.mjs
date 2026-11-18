@@ -206,10 +206,12 @@ for (const [w, h] of SIZES) {
     await page.waitForTimeout(1200);
     const link = page.locator(LENS_A).nth(i);
     await link.scrollIntoViewIfNeeded();
-    // keyboard: reach it with Tab from the element before it
+    // keyboard: reach it with Tab from the element before it (WebKit on
+    // macOS moves to links with Option+Tab, as Safari does)
+    const tab = process.env.BROWSER === 'webkit' ? 'Alt+Tab' : 'Tab';
     await link.focus();
-    await page.keyboard.press('Shift+Tab');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(`Shift+${tab}`);
+    await page.keyboard.press(tab);
     const ring = await page.evaluate(() => {
       const a = document.activeElement;
       const cs = getComputedStyle(a);
