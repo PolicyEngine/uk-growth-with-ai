@@ -202,9 +202,15 @@ p.mx-axis-title,
     display: none;
   }
 }
-/* the hero's stat lines at 14px: wrap rather than run past the card */
+/* the hero's stat lines at 14px: their columns may narrow, and the lines
+   wrap, rather than run past the card */
 .hf-stat-line {
   white-space: normal;
+}
+@container (min-width: 540px) {
+  .hf-stats {
+    grid-template-columns: repeat(3, minmax(0, max-content));
+  }
 }
 
 /* ---- Phone type against sticky figures (phone-type-vs-sticky-fable.md) ---- */
