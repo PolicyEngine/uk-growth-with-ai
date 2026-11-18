@@ -47,11 +47,14 @@ sys.path.insert(0, str(REPO))
 from uk_growth_with_ai import demography, rerun, surprise as sp  # noqa: E402
 
 WORK = Path(os.environ.get("WORK", Path.home() / "ugai-rerun-work"))
-OUT = REPO / "analysis" / "surprise" / "cohorts"
-OUTDIR = REPO / "analysis" / "surprise" / "output"
+# UGAI_SURPRISE_YEAR (default 2028): 2027 reads and writes analysis/surprise2027/
+YEAR = int(os.environ.get("UGAI_SURPRISE_YEAR", sp.SURPRISE_YEAR))
+_SET = REPO / "analysis" / ("surprise" if YEAR == sp.SURPRISE_YEAR else f"surprise{YEAR}")
+OUT = _SET / "cohorts"
+OUTDIR = _SET / "output"
 TPI_KEYS = ("c", "n", "b_s", "b_sp1", "bq", "tr")
 PARAMS_SHA = "37bd0e282b92d07e16c66b9649872308961c6076"
-K = sp.k_of()
+K = sp.k_of(YEAR)
 
 
 def default_labels(c):
@@ -66,7 +69,7 @@ def default_labels(c):
         if bad:
             raise RuntimeError(f"{c}: debt-neutral arms off their debt path: {bad}")
         out += arms
-        r4 = sp.accepted_r4(done, ref, v, sp.SURPRISE_YEAR, scen)
+        r4 = sp.accepted_r4(done, ref, v, YEAR, scen)
         if r4 is not None:
             out.append(r4["label"])
     full = sp._keys("dnfull", "uk_central")["tfp"]
@@ -99,13 +102,14 @@ def params(c):
 def export(c, label):
     base = rerun.accepted_baseline(rerun.load(REPO / "analysis/rerun/output", c))
     bt = pickle.load(open(WORK / c / base["label"] / "TPI" / "TPI_vars.pkl", "rb"))
-    d = WORK / f"surprise{sp.SURPRISE_YEAR}" / c / label
+    d = WORK / f"surprise{YEAR}" / c / label
     rt = pickle.load(open(d / "TPI" / "TPI_vars.pkl", "rb"))
     ss = pickle.load(open(d / "SS" / "SS_vars.pkl", "rb"))
     # the handover: the run's start-of-2028 wealth is the baseline's end-of-2027
     gap = float(np.max(np.abs(np.asarray(rt["b_s"])[0, 1:] - np.asarray(bt["b_sp1"])[K - 1, :-1])))
     if gap > 1e-12:
-        raise RuntimeError(f"{c} {label}: b_s(2028) differs from baseline b_sp1(2027) by {gap}")
+        raise RuntimeError(f"{c} {label}: b_s({YEAR}) differs from baseline b_sp1({YEAR - 1}) "
+                           f"by {gap}")
     T = np.asarray(bt["c"]).shape[0]
     arrs = {k: np.concatenate([np.asarray(bt[k])[:K], np.asarray(rt[k])[:T - K]]
                               ).astype(np.float32) for k in TPI_KEYS}
@@ -116,7 +120,7 @@ def export(c, label):
 
 def main(labels=None):
     manifest = {"what": __doc__.split("\n\n")[0], "t0_year": 2026,
-                "splice": f"2026-{sp.SURPRISE_YEAR - 1} baseline, {sp.SURPRISE_YEAR}+ run",
+                "splice": f"2026-{YEAR - 1} baseline, {YEAR}+ run", "surprise_year": YEAR,
                 "units": "detrended model units", "dims": "(T, S, J)", "closures": {}}
     for c in ("zk0.1", "zk0"):
         (OUT / c).mkdir(parents=True, exist_ok=True)
