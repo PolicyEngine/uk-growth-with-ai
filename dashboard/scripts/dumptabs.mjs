@@ -2,11 +2,12 @@
 //   bun scripts/dumptabs.mjs http://localhost:4350 out.json
 // Needs playwright (not a dashboard dependency): run it from a folder that
 // has it installed, or with NODE_PATH pointing at one.
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import fs from 'node:fs';
 const [base, out] = process.argv.slice(2);
 const exe = process.env.CHROMIUM || `${process.env.HOME}/Library/Caches/ms-playwright/chromium-1169/chrome-mac/Chromium.app/Contents/MacOS/Chromium`;
-const browser = await chromium.launch({ executablePath: exe });
+// BROWSER=webkit runs Playwright's WebKit (an approximation of Safari)
+const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch({ executablePath: exe });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 // results:<sub>[:<closure>] dumps a Results sub-tab, with the header's
 // closure picker set through the address.
