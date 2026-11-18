@@ -42,7 +42,9 @@
 // and the Replay control. A title marked data-title-fallback (a solve
 // pending or a condition failed) is exempt and printed, so a fallback in
 // the default view is seen. Walked at 1280x900, reduced motion, through
-// every card of every scene (scrolly-go), so every state's title is read.
+// every card of every scene (scrolly-go), so every card's state's title is
+// read; a state shown only on entry (the morph's record, before its first
+// card) is not reached here and is covered by part2.test.jsx.
 //
 // Skipped everywhere: tables, chart text (svg), the site header and
 // footer, and anything aria-hidden, visually hidden or [hidden].
