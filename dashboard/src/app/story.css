@@ -2778,6 +2778,15 @@
   color: var(--t-text);
   text-wrap: balance;
 }
+/* the beat's sources line (StoryBeat cite): the label size, muted */
+.beat-cite {
+  max-width: 58ch;
+  margin: 0;
+  font-size: var(--t-label);
+  line-height: 1.5;
+  color: var(--t-muted);
+  text-wrap: balance;
+}
 @media (max-width: 900px) {
   .story-beat-card {
     gap: 6px;

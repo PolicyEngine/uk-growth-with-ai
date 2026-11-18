@@ -21,7 +21,7 @@
 //
 //   bun scripts/check_sources.mjs http://localhost:4360   (needs Playwright;
 //   CHROMIUM may name a Chrome binary). Exits 1 on any failure.
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const SIZES = [
@@ -36,7 +36,8 @@ const OTHER = {
   method: '/?tab=method',
   'household-method': '/?tab=method&sub=households',
 };
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// BROWSER=webkit runs Playwright's WebKit (an approximation of Safari)
+const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let fails = 0;
 const say = (name, out) => {
   console.log(`${name}: ${out.length}`);
@@ -148,6 +149,36 @@ async function openAll(page) {
   return { out, opened, n };
 }
 
+// Named external links (checks-words2.md, item 8): each is on the Story
+// once, visible, with its expected text, opening a new tab with noopener.
+// Their URLs were checked by hand (curl, status 200, the right document).
+const EXTERNAL = [
+  { where: '#beat-7pct', text: 'Doorley et al. (2026)', href: 'https://doi.org/10.26504/jr16' },
+  { where: '#beat-7pct', text: 'Briggs and Kodnani (2023)', href: 'https://www.gspublishing.com/content/research/en/reports/2023/03/27/d64e052b-0f6e-45d7-967b-d7be35fabd16.pdf' },
+  { where: '#beat-7pct', text: 'Who bears the AI shock?', href: /^https:\/\/github\.com\/PolicyEngine\/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/ },
+];
+for (const [w, h] of SIZES) {
+  const page = await (await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })).newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  const out = [];
+  for (const x of EXTERNAL) {
+    const r = await page.evaluate(({ where, text }) => {
+      const as = [...document.querySelectorAll(`${where} a`)].filter((a) => a.textContent.trim() === text);
+      const a = as[0];
+      if (!a) return { n: 0 };
+      a.scrollIntoView({ block: 'center' });
+      const b = a.getBoundingClientRect();
+      return { n: as.length, href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel') ?? '', shown: b.width > 0 && b.height > 0 };
+    }, { where: x.where, text: x.text });
+    const hrefOk = r.n && (typeof x.href === 'string' ? r.href === x.href : x.href.test(r.href));
+    if (r.n !== 1) out.push(`${x.where} "${x.text}": ${r.n} links (must be 1)`);
+    else if (!hrefOk) out.push(`${x.where} "${x.text}": href ${r.href}`);
+    else if (!r.shown) out.push(`${x.where} "${x.text}": not visible`);
+    else if (r.target !== '_blank' || !/noopener/.test(r.rel)) out.push(`${x.where} "${x.text}": target ${r.target}, rel ${r.rel}`);
+  }
+  say(`story ${w}x${h} named external links (${EXTERNAL.length})`, out);
+  await page.close();
+}
 for (const [w, h] of SIZES) {
   const page = await (await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })).newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });

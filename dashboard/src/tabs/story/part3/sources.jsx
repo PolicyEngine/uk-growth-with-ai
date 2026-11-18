@@ -26,6 +26,8 @@ export const SECTION = {
 
 export const REFS = {
   doorley: { label: 'Doorley et al. (2026)', url: 'https://doi.org/10.26504/jr16', title: 'Doorley, O’Connor, O’Shea and Tuda (2026), Artificial intelligence and income inequality in Ireland, ESRI and Department of Finance, JR16' },
+  // Goldman Sachs' own copy of the note (checked 18 Nov 2026: HEAD and GET 200, application/pdf)
+  briggs: { label: 'Briggs and Kodnani (2023)', url: 'https://www.gspublishing.com/content/research/en/reports/2023/03/27/d64e052b-0f6e-45d7-967b-d7be35fabd16.pdf', title: 'Briggs and Kodnani (2023), The potentially large effects of artificial intelligence on economic growth, Goldman Sachs Global Economics Analyst, 26 March 2023' },
   felten: { label: 'Felten et al. (2021)', url: 'https://doi.org/10.1002/smj.3286', title: 'Felten, Raj and Seamans (2021), AI occupational exposure (AIOE), Strategic Management Journal' },
   pizzinelli: { label: 'Pizzinelli et al. (2023)', url: 'https://doi.org/10.5089/9798400254802.001', title: 'Pizzinelli et al. (2023), Labor market exposure to AI, IMF Working Paper WP/23/216: the complementarity adjustment' },
   dfe: { label: 'DfE (2023)', url: 'https://www.gov.uk/government/publications/the-impact-of-ai-on-uk-jobs-and-training', title: 'Department for Education (2023), The impact of AI on UK jobs and training: the UK SOC 2020 mapping of AIOE' },
@@ -47,7 +49,7 @@ export function Ref({ id, children, plain = false }) {
   const r = REFS[id];
   if (plain) return <span className="p3-cite">{children ?? r.label}</span>;
   return (
-    <a href={r.url} target="_blank" rel="noreferrer" title={r.title} className="p3-ref">
+    <a href={r.url} target="_blank" rel="noopener noreferrer" title={r.title} className="p3-ref">
       {children ?? r.label}
     </a>
   );

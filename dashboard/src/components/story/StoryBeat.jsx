@@ -20,6 +20,8 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 //
 //   <StoryBeat id="2028" num="2028" head="More AI, sooner, as a surprise" line="…" from="below" />
 //   numProps: extra attributes for the numeral (B4: data-path, data-input)
+//   cite: an optional line of sources under the meaning line (B4: where
+//   the rate comes from), exempt from the 25-word cap (data-cite)
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 
@@ -32,7 +34,7 @@ export function beatPhase({ top, bottom, V }) {
 
 // `compact`: a run-switch marker in the same family, no numeral (part 3's
 // OBR-sized run).
-export default function StoryBeat({ id, num, head, line, from = 'below', numProps = {}, compact = false }) {
+export default function StoryBeat({ id, num, head, line, cite = null, from = 'below', numProps = {}, compact = false }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -62,6 +64,11 @@ export default function StoryBeat({ id, num, head, line, from = 'below', numProp
         <div className="beat-text">
           <p className="beat-head">{head}</p>
           <p className="beat-line">{line}</p>
+          {cite ? (
+            <p className="beat-cite" data-cite="">
+              {cite}
+            </p>
+          ) : null}
         </div>
       </div>
     </aside>
