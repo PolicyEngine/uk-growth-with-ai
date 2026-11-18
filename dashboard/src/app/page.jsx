@@ -69,7 +69,7 @@ function Shell() {
           </div>
         ) : null}
       </header>
-      <div className="sticky-stack" data-sticky-bar="">
+      <div className="sticky-stack" data-sticky-bar="" data-hold="chrome">
         <div className="tabs-bar">
           <ViewTabs tabs={TABS} value={st.tab} onChange={(id) => go(id)} />
           {inRow ? null : <CopyLink />}

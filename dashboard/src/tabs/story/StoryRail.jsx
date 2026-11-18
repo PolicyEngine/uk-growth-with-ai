@@ -104,7 +104,7 @@ export default function StoryRail({ sections }) {
   const bars = useRef([]);
   const { cur, read } = useSectionProgress(key, bars);
   return (
-    <nav className="story-rail" aria-label="Parts of the story" data-sticky-bar="">
+    <nav className="story-rail" aria-label="Parts of the story" data-sticky-bar="" data-hold="chrome">
       <ol>
         {sections.map((s, i) => (
           <li key={s.id} data-part={i + 1} className={i === cur ? 'is-current' : read[i] ? 'is-read' : undefined}>

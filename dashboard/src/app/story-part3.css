@@ -2319,7 +2319,7 @@ svg.p3-dim {
 }
 .lens-venn {
   position: relative;
-  width: 560px;
+  width: 528px;
   max-width: 100%;
   height: 380px;
   margin: 0 auto;
@@ -2328,7 +2328,7 @@ svg.p3-dim {
   position: absolute;
   top: 0;
   left: 10px;
-  width: 540px;
+  width: 508px;
   height: 300px;
   overflow: visible;
 }
@@ -2348,11 +2348,15 @@ svg.p3-dim {
   fill: color-mix(in srgb, var(--lens-b) 7%, transparent);
   stroke: var(--lens-b);
 }
+/* each lens's name and chips, centred in its circle's height (item 34:
+   the scope and time lines left the circles) */
 .lens-circle {
   position: absolute;
-  top: 46px;
+  top: 0;
+  height: 300px;
   width: 210px;
   display: grid;
+  align-content: center;
   justify-items: center;
   gap: 2px;
   text-align: center;
@@ -2361,7 +2365,7 @@ svg.p3-dim {
   left: 36px;
 }
 .lens-circle.is-study {
-  left: 314px;
+  left: 282px;
 }
 .lens-kicker {
   margin: 0 0 8px;
@@ -2472,8 +2476,8 @@ svg.p3-dim {
 .lens-overlap {
   position: absolute;
   top: 150px;
-  left: 280px;
-  width: 64px;
+  left: 264px;
+  width: 76px;
   display: grid;
   justify-items: center;
   gap: 2px;
@@ -2488,13 +2492,37 @@ svg.p3-dim {
 .lens-outside {
   position: absolute;
   top: 312px;
-  width: 280px;
+  width: 270px;
 }
+/* desktop: each line under the outer half of its lens, so the two lines
+   never meet under the overlap */
 .lens-outside.is-oguk {
   left: 0;
 }
+.lens-outside.is-oguk .lens-out-line {
+  justify-content: flex-start;
+}
 .lens-outside.is-study {
-  left: 280px;
+  left: 258px;
+}
+.lens-outside.is-study .lens-out-line {
+  justify-content: flex-end;
+}
+@media (min-width: 601px) {
+  .lens-outside .lens-chips.is-outside {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+}
+/* wide screens: each line reaches 40px past its circle's outer side, so
+   the two lines stand well apart under the overlap */
+@media (min-width: 760px) {
+  .lens-outside.is-oguk {
+    left: -40px;
+  }
+  .lens-outside.is-study {
+    left: 298px;
+  }
 }
 /* the pay contrast: two cards on one row, sharing its three rows (head,
    figure, sub-line: subgrid), so they are one height, top-aligned, their
@@ -2576,7 +2604,8 @@ a.lens-pay-num:hover {
   margin: 8px auto 0;
   text-align: end;
 }
-/* motion: from the sides, then the chips, the overlap, the pay row, the line */
+/* motion: from the sides, then the chips, the overlap, the pay row (it
+   fades in place, no rise: item 35, so it moves with the page) */
 @media screen and (prefers-reduced-motion: no-preference) {
   .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     transition:
@@ -2594,9 +2623,6 @@ a.lens-pay-num:hover {
   }
   .lens-fig:not(.is-in) .lens-chip-li {
     transform: translateY(6px);
-  }
-  .lens-fig:not(.is-in) .lens-pay {
-    transform: translateY(10px);
   }
   .lens-fig.is-in .lens-chip-li {
     transition-delay: calc(1000ms + var(--i, 0) * 120ms);
@@ -2619,7 +2645,7 @@ a.lens-pay-num:hover {
 @media (max-width: 600px) {
   .lens-venn {
     width: 300px;
-    height: 640px;
+    height: 616px;
   }
   .lens-rings {
     display: none;
@@ -2629,24 +2655,27 @@ a.lens-pay-num:hover {
     top: 44px;
     left: 0;
     width: 300px;
-    height: 552px;
+    height: 528px;
   }
+  /* each lens's content centred in the part of its circle outside the
+     overlap (the rings: 44px down, centres at 150 and 378, r 148) */
   .lens-circle {
     left: 45px !important;
     width: 210px;
+    height: 228px;
   }
   .lens-circle.is-oguk {
-    top: 92px;
+    top: 46px;
   }
   .lens-circle.is-study {
-    top: 400px;
+    top: 342px;
   }
   .lens-chip {
     font-size: 12px;
     padding: 2px 8px;
   }
   .lens-overlap {
-    top: 320px;
+    top: 308px;
     left: 150px;
     width: 160px;
     display: flex;
@@ -2657,11 +2686,14 @@ a.lens-pay-num:hover {
     width: 300px;
     left: 0 !important;
   }
+  .lens-outside .lens-out-line {
+    justify-content: center !important;
+  }
   .lens-outside.is-oguk {
     top: 6px;
   }
   .lens-outside.is-study {
-    top: 604px;
+    top: 580px;
   }
   /* stacked: both cards the full width, one height */
   .lens-pay {
@@ -2683,12 +2715,12 @@ a.lens-pay-num:hover {
     display: none;
   }
 }
+/* phones (item 35): the entry is a fade only, so nothing in the figure
+   moves against the finger while the page scrolls; desktop keeps the
+   sideways slide (the id outranks the sideways rule's two classes) */
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 600px) {
-  .lens-fig:not(.is-in) :is(.lens-ring.is-oguk, .lens-circle.is-oguk, .lens-outside.is-oguk) {
-    transform: translateY(-40px);
-  }
-  .lens-fig:not(.is-in) :is(.lens-ring.is-study, .lens-circle.is-study, .lens-outside.is-study) {
-    transform: translateY(40px);
+  #story-close .lens-fig:not(.is-in) :is(.lens-ring, .lens-circle, .lens-outside, .lens-chip-li, .lens-pay) {
+    transform: none;
   }
 }
 

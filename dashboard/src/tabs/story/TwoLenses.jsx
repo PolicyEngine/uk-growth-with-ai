@@ -255,13 +255,16 @@ export default function TwoLenses() {
       </header>
       <figure ref={ref} className={`lens-fig story-frame${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`} aria-labelledby="story-close-h">
         <div className="lens-venn">
-          <svg className="lens-rings" viewBox="0 0 540 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          {/* item 35: the lens is 88px wide on desktop and 72px tall on
+              phones, so the overlap label (on the 14px tick token) sits
+              inside both rims */}
+          <svg className="lens-rings" viewBox="0 0 508 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <circle className="lens-ring is-oguk" cx="150" cy="150" r="148" />
-            <circle className="lens-ring is-study" cx="390" cy="150" r="148" />
+            <circle className="lens-ring is-study" cx="358" cy="150" r="148" />
           </svg>
-          <svg className="lens-rings is-phone" viewBox="0 0 300 552" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <svg className="lens-rings is-phone" viewBox="0 0 300 528" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <circle className="lens-ring is-oguk" cx="150" cy="150" r="148" />
-            <circle className="lens-ring is-study" cx="150" cy="402" r="148" />
+            <circle className="lens-ring is-study" cx="150" cy="378" r="148" />
           </svg>
           <Lens lens={og} />
           {/* the overlap links to the Story's public-finances scene, the
