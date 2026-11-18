@@ -8,8 +8,8 @@ import { shockFor } from './part2/shock.js';
 
 describe('part 2 titles, real data', () => {
   it('closes the GDP scene on how the other foreign-capital case moves every gap', () => {
-    expect(morphAnswer('zk0.1')).toBe('With no foreign capital every gap is smaller; none is a forecast.');
-    expect(morphAnswer('zk0')).toBe('With some foreign capital every gap is larger; none is a forecast.');
+    expect(morphAnswer('zk0.1')).toBe('With no foreign capital the GDP gap is smaller in every scenario; none is a forecast.');
+    expect(morphAnswer('zk0')).toBe('With some foreign capital the GDP gap is larger in every scenario; none is a forecast.');
     // zk0 below zk0.1 in every scenario and every year after the surprise
     const from = real.years.indexOf(real.surprise_year) + 1;
     for (const s of real.scenarios) {

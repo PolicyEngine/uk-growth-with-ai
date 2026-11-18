@@ -67,7 +67,9 @@ export const SUBS = {
     icon: 'age',
     question: 'Which generations gain, and which lose?',
     hint: 'Mark your birth year on the curve',
-    answer: 'All adults gain as modelled; if transfers bear the cost after 2036, some adults lose',
+    // the fallback when whoAnswer() has no data (review round 1, R1-05):
+    // neutral, true in every cell
+    answer: 'Gains and losses differ by birth year and by measure',
     answerHighlight: ['cohort-adults'],
     // replaced by whoAnswer() at render, from the data
     answerTo: { tab: 'explore', sub: 'who' },
@@ -79,15 +81,6 @@ export const SUBS = {
 export function shockAnswer(shock) {
   return shock.ch && shock.ch.gdp <= 0 ? 'Income shifts from labour to capital' : SUBS.shock.answer;
 }
-
-// What part 2 showed, three items, each to its home, no figure.
-// Question and answer chips (q, a); `text` is the answer, for the chip's
-// one-line form.
-export const RECAP = [
-  { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the OBR’s central forecast path in every scenario', to: 'story-headline' },
-  { icon: 'outputSplit', q: 'Who gets the extra output?', a: 'Capital income rises more than GDP', to: 'story-output' },
-  { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; if transfers bear the cost after 2036, some adults lose', to: { tab: 'explore', sub: 'who' } },
-].map((it) => ({ ...it, text: it.a }));
 
 // Beat B3's words from the signs (story-beats-fable.md): GDP above the
 // path and 0 < GNI gap < GDP gap gives "Output is up. Part of the gain goes

@@ -216,7 +216,9 @@ export function morphAnswer(cl) {
     return zk01.slice(from).every((v, i) => zk0[from + i] < v);
   });
   if (!lower) return MORPH_FALLBACK;
-  return cl === CENTRAL ? 'With no foreign capital every gap is smaller; none is a forecast.' : 'With some foreign capital every gap is larger; none is a forecast.';
+  // say only what is tested: the GDP gap (review round 1, R1-01: the pay
+  // gap is larger in size with no foreign capital)
+  return cl === CENTRAL ? 'With no foreign capital the GDP gap is smaller in every scenario; none is a forecast.' : 'With some foreign capital the GDP gap is larger in every scenario; none is a forecast.';
 }
 
 // The generations scene's one closing line (newcomer review item 8): the

@@ -83,7 +83,10 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
         ? `No new small tiles: GDP is ${dirWord(ch.gdp)} the forecast path.`
         : (
             <>
-              Output grows about <span data-axis="">{ch.gdp.toFixed(1)}%</span>: {N} new small {N === 1 ? 'tile' : 'tiles'}, about {NL} to labour, {NK} to capital, at the new split. OG-UK works out the size.
+              {/* under 5 new tiles the rounded split misleads (2 tiles split 1
+                  and 1 beside "the new split"): no split (review round 1, R1-18) */}
+              Output grows about <span data-axis="">{ch.gdp.toFixed(1)}%</span>: {N} new small {N === 1 ? 'tile' : 'tiles'}
+              {N < 5 ? '' : `, about ${NL} to labour, ${NK} to capital, at the new split`}. OG-UK works out the size.
             </>
           );
   const stripLabel = base
