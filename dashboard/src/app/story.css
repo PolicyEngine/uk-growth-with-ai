@@ -381,25 +381,38 @@
 }
 /* The closing line (Scrolly sub.answer, else sub.takeaway): a takeaway
    caption inside the figure frame, directly under the plot and above the
-   source line (typography spec, option b). 14/600 in ink; the part accent
-   only on a 3px left rule; no icon. It fades up once the last card is
-   reached (opacity only: always in the DOM, its height reserved). */
+   source line (typography spec, option b). It fades up once the last card
+   is reached (opacity only: always in the DOM, its height reserved).
+   Every Story closing line carries data-closing (QStage Answer, Scrolly's
+   answer note, the close's .lens-close): one style for all of them, a
+   plain line in body type at its column's full measure (Vahid, 18 Nov:
+   "more x width for these text, normal text"): no rule, no bold; its
+   caveat line (data-closing="note") muted. check_spacing asserts the
+   measure and line count on every [data-closing]. */
 .story {
   /* polish round: every closing or answer line is this far below its chart */
   --gap-answer: 24px;
 }
+.story [data-closing] {
+  min-width: 0;
+  max-width: 70ch;
+  padding: 0;
+  border: 0;
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--t-ink);
+  text-wrap: pretty;
+}
+.story [data-closing='note'] {
+  font-size: var(--t-ui);
+  line-height: 1.45;
+  color: var(--t-muted);
+}
 .scrolly-takeaway {
   position: relative;
   z-index: 2;
-  max-width: 60ch;
   margin: var(--gap-answer, 24px) 0 0;
-  padding-left: 10px;
-  border-left: 3px solid var(--part-accent, var(--c-highlight));
-  font-size: var(--t-label);
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--t-ink);
-  text-wrap: pretty;
   opacity: 0;
   transition: opacity 450ms var(--story-ease);
 }
@@ -2424,7 +2437,12 @@
 
 /* ---- Round 1 review: one highlight system, one icon per step, one
    progress marker ---- */
-/* a keyed term is colour/weight only: no swatch beside it */
+/* a keyed term is colour/weight only: no swatch beside it; and so plain
+   inline text, not an inline-flex box (an atomic box lets WebKit break
+   before the comma after it: sign-off r3 minor 6) */
+.hl-key {
+  display: inline;
+}
 .hl-key .mark-shape {
   display: none;
 }
@@ -2618,17 +2636,12 @@
     bottom: auto;
   }
 }
-/* one 12px line under the takeaway caption, in the frame (Scrolly
-   sub.answerNote: the GDP scene's debt line) */
+/* one muted caveat line under the closing line (Scrolly sub.answerNote:
+   the GDP scene's debt line); type from [data-closing='note'] */
 .scrolly-takeaway-note {
   position: relative;
   z-index: 2;
-  max-width: 60ch;
   margin: 4px 0 0;
-  padding-left: 13px;
-  font-size: var(--t-meta);
-  line-height: 1.4;
-  color: var(--t-muted);
   opacity: 0;
   transition: opacity 450ms var(--story-ease);
 }
@@ -2762,11 +2775,13 @@
 .scrolly-takeaway-in-step {
   margin-top: 10px;
 }
-/* height-cut-fable.md cut 1: the closing caption at the sentence's width,
-   in the text column of an icon-led card (it was auto-placed in the 18px
-   icon column, one word per line), and the card's rows packed at its top */
+/* height-cut-fable.md cut 1: the closing caption never in the 18px icon
+   column of an icon-led card (auto-placed there it went one word per
+   line); 18 Nov: it spans the whole card, the column's full measure, and
+   the card's rows are packed at its top */
 .scrolly-card.has-icon > .scrolly-takeaway-in-step {
-  grid-column: 2;
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 .scrolly-card.has-icon {
   align-content: start;
@@ -2810,11 +2825,11 @@
   font-size: var(--t-meta);
   color: var(--t-muted);
 }
+/* a plain muted kicker above the head's question, not a pill (18 Nov) */
 .p3-close-chip {
-  padding: 1px 8px;
-  line-height: 1.6;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
+  order: -1;
+  flex-basis: 100%;
+  line-height: 1.4;
 }
 .p3-out-list {
   grid-template-columns: repeat(4, minmax(0, 1fr));

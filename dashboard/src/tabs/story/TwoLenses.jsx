@@ -268,7 +268,7 @@ export default function TwoLenses() {
             <p className="lens-pay-sub">for those still in work</p>
           </div>
         </div>
-        <p className="lens-close">
+        <p className="lens-close" data-closing="">
           {CLOSE_LINE} <LensSource />
         </p>
       </figure>

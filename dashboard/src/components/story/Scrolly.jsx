@@ -460,7 +460,13 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       // centred, but never more than 96px below the rail (no blank band
       // over 120px above it)
       else if (over < 0) {
-        const rail = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? top;
+        // the rail's stuck bottom (as fitCol and pinStep read it), not its
+        // live box: before it sticks (page load) that is lower, so the
+        // first placement skipped the cap and a later one applied it (a
+        // 12px figure jump at a step change, sign-off r3 minor 5)
+        const railEl = document.querySelector('.story-rail');
+        const rs = railEl ? getComputedStyle(railEl) : null;
+        const rail = railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : top;
         b.style.top = `${Math.round(Math.min(top + Math.floor(-over / 2), Math.max(top, rail + 96)))}px`;
       }
     };
@@ -586,7 +592,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // `sub.answerNote`: one 12px line under the caption, in the frame (the
   // GDP scene's debt line and its one "More on Explore" link)
   const answerNote = subObj?.answerNote;
-  const noteEl = (on) => (answerNote != null ? <p className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`}>{answerNote}</p> : null);
+  const noteEl = (on) => (answerNote != null ? <p className={`scrolly-takeaway-note${on ? ' is-shown' : ''}`} data-closing="note">{answerNote}</p> : null);
   // Where the caption goes: in the frame where the figure is drawn once
   // (phones: the figure, complete, then its cards); with a pinned figure
   // (desktop, sticky phone scenes) it ends the last card, so the pinned

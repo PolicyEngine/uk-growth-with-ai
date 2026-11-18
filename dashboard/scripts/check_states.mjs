@@ -16,6 +16,16 @@
 // the frame done) must be visible; a blank frame is a miss. OPENERS=0
 // skips it.
 //
+// Boundary probe (18 Nov, Vahid: closing lines ran over the next part's
+// opener): motion on, at 1280x800, 1024x768, 768x1024 and 390x844
+// (BOUNDARY_SIZES), a slow scroll (20px steps) from two screens above every
+// part opener, the Part 3 closing block's head and the close's head to half
+// a screen past it. At every sample no visible closing line
+// ([data-closing]) or step text may intersect a part opener, its kicker,
+// the closing block or another scene's box; and no figure frame at least
+// half on screen may stay without a drawn mark once settled (800ms).
+// BOUNDARY=0 skips it.
+//
 // Landing probe (round 2): every sticky scene must draw its current step on
 // arrival, not only when a step changes. For every card of every sticky
 // block, at 1280x800, 1024x768 and 390x844 (JUMP_SIZES="w,h w,h" to change), motion
@@ -159,6 +169,99 @@ if (olines.length) {
   for (const l of olines) console.log(l);
 }
 
+// ---- boundary probe ----
+const blines = [];
+let bmiss = 0;
+const bsizes = (process.env.BOUNDARY_SIZES ?? '1280,800 1024,768 768,1024 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
+for (const [W, H] of process.env.BOUNDARY === '0' || JUMP === 'only' ? [] : bsizes) {
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  // every part opener, the Part 3 closing block's head and the close's head
+  const heads = await page.evaluate(() =>
+    [...document.querySelectorAll('.part-opener, .p3-close-head, .story-part-head')].map((h) => ({
+      name: h.closest('[id]')?.id ?? h.className.split(' ')[0],
+      top: Math.round(h.getBoundingClientRect().top + scrollY),
+    })),
+  );
+  if (!heads.length) {
+    bmiss++;
+    blines.push(`  MISS ${W}x${H}: no part boundary found`);
+  }
+  const sample = () =>
+    page.evaluate(() => {
+      const out = [];
+      const eff = (e, stop) => {
+        let o = 1;
+        for (let n = e; n && n !== stop; n = n.parentElement) {
+          const cs = getComputedStyle(n);
+          if (cs.display === 'none' || cs.visibility === 'hidden') return 0;
+          o *= Number(cs.opacity);
+        }
+        return o;
+      };
+      const hit = (a, c) => Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top) > 2 && Math.min(a.right, c.right) - Math.max(a.left, c.left) > 2;
+      const on = (a) => a.bottom > 0 && a.top < innerHeight && a.height > 0;
+      const guards = [...document.querySelectorAll('.part-opener, .part-opener-meta, .story-part-head, .p3-close-head, .p3-close-card')];
+      const scenes = [...document.querySelectorAll('.scrolly')];
+      for (const t of document.querySelectorAll('.story [data-closing], .scrolly-takeaway, .scrolly-step .scrolly-body')) {
+        if (eff(t, document.body) < 0.05) continue;
+        const a = t.getBoundingClientRect();
+        if (!on(a)) continue;
+        const own = t.closest('.scrolly');
+        for (const g of guards) if (!g.contains(t) && hit(a, g.getBoundingClientRect())) out.push(`${own?.id ?? t.closest('[id]')?.id} text over ${g.className.split(' ')[0]}`);
+        for (const s of scenes) if (s !== own && !s.contains(t) && hit(a, s.getBoundingClientRect())) out.push(`${own?.id ?? t.closest('[id]')?.id} text over scene ${s.id}`);
+      }
+      // a figure frame at least half on screen with no drawn mark
+      const blank = [];
+      for (const s of scenes) {
+        const gr = s.querySelector('.scrolly-graphic');
+        const g = gr?.querySelector(':scope > .scrolly-graphic-inner');
+        if (!g || gr.hidden) continue;
+        const a = g.getBoundingClientRect();
+        if ((Math.min(a.bottom, innerHeight) - Math.max(a.top, 0)) / (a.height || 1) < 0.5 || eff(g, document.body) < 0.3) continue;
+        let n = 0;
+        for (const el of g.querySelectorAll('svg rect, svg path, svg circle, svg polyline, svg polygon, svg line, [data-mark]:not(svg *)')) {
+          if (el.closest('button, .lucide, .plain-icon') || /axis|grid|zero|tick|guide/.test(el.getAttribute('class') ?? '') || el.closest('g[class*="axis"], g[class*="grid"], g[class*="tick"]')) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width + r.height < 3 || eff(el, gr) < 0.4) continue;
+          n++;
+          break;
+        }
+        if (!n) blank.push(s.id);
+      }
+      return { out, blank };
+    });
+  for (const hd of heads) {
+    const hits = new Map();
+    const blanks = new Map();
+    // a slow scroll from two screens above the boundary to half a screen past it
+    for (let y = Math.max(0, hd.top - 2 * H); y <= hd.top + H / 2; y += 20) {
+      await page.evaluate((t) => window.scrollTo({ top: t, behavior: 'instant' }), y);
+      await page.waitForTimeout(40);
+      let r = await sample();
+      // a frame blank in passing (a layer swap) is fine; blank at rest is not
+      if (r.blank.length) {
+        await page.waitForTimeout(800);
+        const again = await sample();
+        r = { out: r.out, blank: r.blank.filter((id) => again.blank.includes(id)) };
+      }
+      for (const k of r.out) hits.set(k, [...(hits.get(k) ?? []), y]);
+      for (const k of r.blank) blanks.set(k, [...(blanks.get(k) ?? []), y]);
+    }
+    const bad = hits.size + blanks.size > 0;
+    if (bad) bmiss++;
+    const what = [...[...hits].map(([k, v]) => `${k} at ${v.length} samples (y ${v[0]})`), ...[...blanks].map(([k, v]) => `${k} frame blank at rest (y ${v[0]})`)];
+    blines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} into ${hd.name}${bad ? `: ${what.slice(0, 4).join('; ')}` : ''}`);
+  }
+  await ctx.close();
+}
+if (blines.length) {
+  console.log('boundaries (no closing line or step text over a part opener, the closing block or another scene; no frame blank at rest):');
+  for (const l of blines) console.log(l);
+}
+
 // ---- landing probe ----
 const JWAIT = Number(process.env.JWAIT ?? 600);
 const JSETTLE = Number(process.env.JSETTLE ?? 2400);
@@ -252,6 +355,6 @@ if (jlines.length) {
   for (const l of jlines) console.log(l);
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

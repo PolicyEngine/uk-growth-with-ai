@@ -274,7 +274,7 @@ export function QFrame({ id, question, hint, icon, keyWord, part, boxRef, onPhas
 // eslint-disable-next-line no-unused-vars
 export function Answer({ question, answer, to, shown = true }) {
   return (
-    <p className={`scrolly-takeaway${shown ? ' is-shown' : ''}`} data-axis={to != null ? '' : undefined}>
+    <p className={`scrolly-takeaway${shown ? ' is-shown' : ''}`} data-closing="" data-axis={to != null ? '' : undefined}>
       {answer}
     </p>
   );

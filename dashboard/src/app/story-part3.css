@@ -2443,15 +2443,10 @@ a.lens-pay-num:hover {
   display: inline-flex;
   color: var(--t-muted);
 }
+/* the close's closing line: type and measure from story.css [data-closing] */
 .lens-close {
-  max-width: 60ch;
   margin: 16px auto 0;
-  font-size: var(--t-label);
-  font-weight: 600;
-  line-height: 1.4;
   text-align: center;
-  color: var(--t-ink);
-  text-wrap: balance;
 }
 /* motion: from the sides, then the chips, the overlap, the pay row, the line */
 @media screen and (prefers-reduced-motion: no-preference) {
