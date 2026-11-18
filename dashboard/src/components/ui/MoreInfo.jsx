@@ -49,7 +49,8 @@ export function asLines(node, key = 'n') {
 const inline = (t) => typeof t === 'string' || typeof t === 'number';
 
 function Line({ g, it }) {
-  const Tag = inline(it.text) || (isValidElement(it.text) && it.text.type === Symbol.for('react.fragment')) ? 'p' : 'div';
+  // a <p> only for plain text: a node may hold a list, which a <p> cannot
+  const Tag = inline(it.text) ? 'p' : 'div';
   return (
     <Tag className="ex-fin-more-line" data-claim={`${g.key}-${it.key}`}>
       {it.head ? <b>{it.head}</b> : null}

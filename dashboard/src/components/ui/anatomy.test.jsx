@@ -18,6 +18,7 @@ import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import MethodTab from '@/tabs/method/MethodTab.jsx';
 import StudiesTab from '@/tabs/literature/LiteratureTab.jsx';
 import HouseholdsExplore from '@/tabs/households/HouseholdsExplore.jsx';
+import CodeTab from '@/tabs/code/CodeTab.jsx';
 
 afterEach(cleanup);
 
@@ -61,6 +62,9 @@ function audit(container) {
     }
     const unit = card.querySelector(':scope > .card-unit');
     if (unit && flat(unit).length > 60) why.push(`unit ${flat(unit).length} characters: ${flat(unit)}`);
+    // check_sources.mjs: a chart card has one Sources and notes button
+    // (links only now: a card with no links would lose it)
+    if (card.querySelector(':scope > .chart-plot') && card.querySelectorAll('[data-source-line]').length !== 1) why.push(`${card.querySelectorAll('[data-source-line]').length} sources buttons`);
     const link = card.querySelector(':scope > .story-link');
     if (link && slotOf([...card.children].filter((c) => slotOf(c) != null).at(-1)) !== 9) why.push('story link not last');
     if (why.length) out.push(`${id}: ${why.join('; ')}`);
@@ -100,7 +104,7 @@ describe('the card shell', () => {
     expect(audit(container)).toEqual([]);
   });
 
-  it('routes every word into one closed More info, in the fixed sub-head order; the book icon keeps links only', () => {
+  it('routes every word into one closed More info, in the fixed sub-head order; the book icon keeps the sources', () => {
     const { container } = page(
       <Card
         id="y"
@@ -118,10 +122,12 @@ describe('the card shell', () => {
     expect(fold.querySelector('.disclosure-toggle').textContent.trim()).toBe('More info');
     expect(fold.querySelector('.disclosure-content').hidden).toBe(true);
     const more = fold.querySelector('[data-more-info]');
-    expect([...more.querySelectorAll('.ex-fin-more-head')].map(flat)).toEqual(['How to read', 'How it’s calculated', 'Caveats', 'Sources']);
+    expect([...more.querySelectorAll('.ex-fin-more-head')].map(flat)).toEqual(['How to read', 'How it’s calculated', 'Caveats']);
     // item 36's rows first under How to read, each head and text with a space
     expect(flat(more.querySelector('[data-group="read"] .ex-fin-more-line'))).toBe('Measure M.');
-    for (const t of ['Read.', 'How.', 'Caveat.', 'Note.', 'Essential.', 'Source words.']) expect(more.textContent).toContain(t);
+    for (const t of ['Read.', 'How.', 'Caveat.', 'Note.', 'Essential.']) expect(more.textContent).toContain(t);
+    // source words stay with the links, behind the book icon
+    expect(more.textContent).not.toContain('Source words.');
     // no hidden duplicate record, no essential line outside the fold
     expect(container.querySelectorAll('[data-source-notes], .src-essential')).toHaveLength(0);
     expect(container.querySelector('.src-line-btn')).not.toBeNull();
@@ -197,6 +203,7 @@ const PAGES = [
   ['Explore, households', <HouseholdsExplore key="h" />, 'tab=explore&sub=households'],
   ['Method, OG-UK', <MethodTab key="m" />, 'tab=method&sub=how'],
   ['Method, evidence', <StudiesTab key="s" />, 'tab=method&sub=studies'],
+  ['Method, data and code', <CodeTab key="c" />, 'tab=method&sub=code'],
 ];
 
 describe('every Explore and Method card meets the anatomy', () => {

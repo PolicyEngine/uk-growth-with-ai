@@ -431,6 +431,9 @@ function Ledger() {
       id="source-ledger"
       icon={iconFor('ledger')}
       title="Source ledger"
+      // its book icon holds links only (the card shell, push C): the code
+      // that builds the ledger, so the card keeps its one button
+      replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/tabs/code/ledger.js' }}
       finding={<IconText icon="ledger">Every figure or group of figures, with its source, vintage and last check, read from the data files.</IconText>}
       logo={false}
       aboutTitle="About this table"

@@ -339,8 +339,10 @@ export default function SensitivityTable() {
       ]}
       essential={
         sensFlagItem() ? (
+          // one flex item inside the note, as before: the sentence and its
+          // two links wrap as text
           <span id="sens-flag" className="ex-sg-flagnote">
-            {sensFlagItem().text}
+            <span>{sensFlagItem().text}</span>
           </span>
         ) : null
       }

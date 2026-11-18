@@ -49,15 +49,16 @@ describe('version colours', () => {
     for (const m of [null, 'deuteranopia', 'protanopia'])
       for (let i = 0; i < ids.length; i += 1) for (let k = i + 1; k < ids.length; k += 1) expect(deltaE(VERSION_HEX[ids[i]], VERSION_HEX[ids[k]], m), `${ids[i]}/${ids[k]} ${m}`).toBeGreaterThanOrEqual(35);
   });
-  it('the gold against the loss amber: apart in full colour, not under deuteranopia or protanopia', () => {
+  // Measured 18 Nov (checks-c0.md): 22.6 in full colour, 5.1 under
+  // deuteranopia, 2.4 under protanopia; the text pair 6.7 (deuteranopia).
+  // The gold is not apart from the loss amber for those readers, so no
+  // chart may tell them apart by colour alone. No upper bound is asserted:
+  // a fix to the clash must not turn this red.
+  it('the gold against the loss amber: apart in full colour', () => {
     const ab = css('ab.css');
     const loss = token(ab, '--c-loss');
-    const lossText = token(ab, '--c-loss-text');
+    expect(token(ab, '--c-loss-text')).toBe('#b45309');
     expect(loss).toBe('#d97706');
-    // measured 18 Nov: 22.6 in full colour, 5.1 deuteranopia, 2.4 protanopia
     expect(deltaE(VERSION_HEX.tz, loss)).toBeGreaterThan(20);
-    expect(deltaE(VERSION_HEX.tz, loss, 'deuteranopia')).toBeLessThan(10);
-    expect(deltaE(VERSION_HEX.tz, loss, 'protanopia')).toBeLessThan(10);
-    expect(deltaE(VERSION_TEXT_HEX.tz, lossText, 'deuteranopia')).toBeLessThan(10);
   });
 });
