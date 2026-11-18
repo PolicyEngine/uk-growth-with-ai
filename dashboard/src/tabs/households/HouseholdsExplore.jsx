@@ -11,6 +11,7 @@ import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
+import { SMALL_DECILE_PCT } from './figures.js';
 
 // Explore > Households: the uk-ai-study detail (PolicyEngine/uk-ai-study
 // PR #18), apart from story part 3. "Provisional" is said once, in the
@@ -55,7 +56,14 @@ export function rankingsWords(R) {
   const verb = (is, one, many) => (is.length === 1 ? one : many);
   const parts = [
     lose.length ? `${name(lose)} ${verb(lose, 'loses', 'lose')} income` : null,
-    gain.length ? `${name(gain)} ${verb(gain, 'gains', 'gain')}` : null,
+    // a gain under 0.2% in every ranking is not called a gain (item 24:
+    // "Do not write 'decile 10 gains'"; its interval spans zero; review
+    // round 1, R1-03)
+    gain.length
+      ? gain.every((d) => R.every((r) => Math.abs(r.values[d - 1]) < SMALL_DECILE_PCT))
+        ? `${name(gain)} ${verb(gain, 'moves', 'move')} by less than ${SMALL_DECILE_PCT}%`
+        : `${name(gain)} ${verb(gain, 'gains', 'gain')}`
+      : null,
     flip.length ? `${name(flip)} ${verb(flip, 'changes', 'change')} sign` : null,
   ].filter(Boolean);
   const t = parts.join('; ');

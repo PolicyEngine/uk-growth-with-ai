@@ -299,7 +299,7 @@ export function measuresFinding(sid, arms, closure, rule) {
   const every = shown.length > 1 ? ' in every version shown' : '';
   return {
     wage: one(w) ? { value: w[0], text: `The pay rate is ${where(w[0])}${every}` } : { value: null, text: 'The pay rate’s side depends on the version' },
-    gni: !g.length ? null : one(g) ? { value: g[0], text: `national income is ${where(g[0])}${every}` } : { value: null, text: 'whether national income is above it depends on the productivity gain' },
+    gni: !g.length ? null : one(g) ? { value: g[0], text: `national income is ${where(g[0])}${every}` } : { value: null, text: 'national income’s side of the path depends on the version' },
   };
 }
 

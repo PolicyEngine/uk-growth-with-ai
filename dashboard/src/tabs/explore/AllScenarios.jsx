@@ -326,7 +326,7 @@ export default function AllScenarios() {
       </Card>
 
       <SectionHeading id="ex-sensitivity" icon={iconFor('foreign')} title="More foreign capital">
-        <Lead c="foreign">A sensitivity only: foreigners supply half of excess capital demand</Lead>
+        <Lead c="foreign">A sensitivity only: foreign investors supply half of the extra capital firms want</Lead>
       </SectionHeading>
       <SensitivityTable />
     </div>

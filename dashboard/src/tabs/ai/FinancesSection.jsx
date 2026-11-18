@@ -173,7 +173,7 @@ const TAX_GAP = ETR.labour - ETR.capital_gross;
 // Employer NICs on one basis, % of earnings (analysis/nics/nics_2028.json,
 // copied to tabs/explore/nics2028.json): OG-UK's flat tau_payroll (its
 // default, the 15% main rate HMRC sets above the secondary threshold) and
-// PolicyEngine-UK's 2028 microsimulation average.
+// PolicyEngine UK's 2028 microsimulation average.
 const NIC_OGUK = NICS.oguk_tau_payroll * 100;
 const NIC_PE = NICS.avg_employer_rate_on_employment_income * 100;
 // The debt rule's first year: OG-Core's tG1, set to 10 periods from 2026 in
@@ -185,7 +185,7 @@ const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
 // The two rows of the tax card, as drawn and as downloaded
 const CAUSES = [
   { title: 'Labour vs capital tax-rate gap', max: 25, unit: 'pp', ours: TAX_GAP, oursText: `${TAX_GAP.toFixed(1)}pp`, theirs: 'OBR rates, differenced', lo: 19, hi: 23, theirsText: '19–23pp', effect: 'Understates the revenue fall (main effect)' },
-  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine-UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%`, effect: 'Partly offsets the first row (smaller)' },
+  { title: 'Employer National Insurance, % of earnings', max: 16, unit: '% of earnings', ours: NIC_OGUK, oursText: `flat ${Math.round(NIC_OGUK)}%`, theirs: `PolicyEngine UK ${NICS.year} average`, value: NIC_PE, theirsText: `${NIC_PE.toFixed(1)}%`, effect: 'Partly offsets the first row (smaller)' },
 ];
 // OG-UK's figure below the comparison: the model's revenue fall is too
 // small (the first row's main effect); above it, the row partly offsets.
@@ -332,7 +332,9 @@ function TaxGapCard({ sid, closure, rule }) {
           className="ex-notes"
           items={[
             { key: 'rates', icon: 'rule', text: `OG-UK taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
-            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: `With no foreign capital the ${HEADLINE_YEAR} sign changes:` } : null,
+            // the sign changes only where tax/GDP rises by the headline year
+            // (review round 1, R1-02)
+            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: closedTax.startsWith('rises by') ? `With no foreign capital the ${HEADLINE_YEAR} sign changes:` : 'With no foreign capital:' } : null,
             closure !== 'central' && closedTax ? { key: 'closed2', icon: 'caveat', text: `tax/GDP ${closedTax}` } : null,
           ]}
         />
@@ -356,7 +358,7 @@ function TaxGapCard({ sid, closure, rule }) {
                 ).
               </p>
             ) : null}
-            <p className="ex-fin-more-line" data-claim="zero">0 = forecast path: the OBR’s central forecast, before the AI shock.</p>
+            <p className="ex-fin-more-line" data-claim="zero">0 = the forecast path: the OBR’s central forecast, its own AI included.</p>
           </Disclosure>
         </div>
       }
@@ -416,7 +418,9 @@ function TaxGapCard({ sid, closure, rule }) {
         ],
       }}
     >
-      <AxisTitles y={`Tax/GDP gap in ${HEADLINE_YEAR}, pp of GDP`} />
+      {/* the card is fixed at some foreign capital, main version: said in
+          its axis title when the page shows another case (review round 1, R1-09) */}
+      <AxisTitles y={`${closure !== 'central' ? 'Some foreign capital, main version · ' : ''}Tax/GDP gap in ${HEADLINE_YEAR}, pp of GDP`} />
       <TaxStrip model={model} uk={uk} onChart={onChart} />
       <div className="cause-rows">
         {CAUSES.map((c, i) => (

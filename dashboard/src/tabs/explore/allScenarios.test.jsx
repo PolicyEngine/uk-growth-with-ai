@@ -207,7 +207,7 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     const t = body.textContent;
     // the definition and the value are two lines, never run together
     const defs = [...body.querySelectorAll('.ex-sg-def')].map((p) => p.textContent);
-    expect(defs[0]).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}: foreigners supply half of excess capital demand, not half of added capital.`);
+    expect(defs[0]).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.`);
     const x = S.sensitivity['zk0.5'].results.uk_central.tfp.foreign_share_dK_2031;
     expect(defs[1]).toBe(`In ${HEADLINE_YEAR} about all of the added capital (${Math.round(x)}%) ends up foreign-owned.`);
     expect(t).not.toMatch(/new capital|further above the forecast path/);

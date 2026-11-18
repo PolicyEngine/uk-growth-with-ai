@@ -243,7 +243,7 @@ describe('HouseholdsMethod', () => {
       expect(container.querySelector(`#${id}`), id).not.toBeNull();
     const t = container.textContent;
     expect(t).toContain(D.model_year_label);
-    expect(t).toContain(`PolicyEngine-UK ${D.method.policyengine_uk}`);
+    expect(t).toContain(`policyengine-uk ${D.method.policyengine_uk}`);
     expect(t).toContain('C-AIOE');
     expect(t).not.toMatch(/NaN|undefined/);
     // T5 (round 2): the study's rebuild status is said here, once
@@ -300,7 +300,7 @@ describe('Explore > Households, the words the data support', () => {
     const gain = [...Array(10).keys()].filter((i) => R.every((r) => r.values[i] > 0)).map((i) => i + 1);
     expect(lose).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
     expect(gain).toEqual([10]);
-    expect(rankingsWords(R)).toBe('Deciles 2 to 9 lose income; decile 10 gains; decile 1 changes sign across the rankings');
+    expect(rankingsWords(R)).toBe('Deciles 2 to 9 lose income; decile 10 moves by less than 0.2%; decile 1 changes sign across the rankings');
     expect(ex.querySelector('#hh-rankings').textContent).toContain('Deciles 2 to 9 lose income');
     expect(policyWords(D.policy.rows)).not.toMatch(/reach/);
     expect(ex.textContent).not.toMatch(/\breach\b/);
