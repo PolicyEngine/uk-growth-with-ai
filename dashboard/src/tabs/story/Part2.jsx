@@ -52,7 +52,9 @@ export const SUBS = {
   morph: {
     title: 'GDP, scenario by scenario',
     icon: 'path',
-    question: 'How far does GDP move from the OBR’s central forecast path?',
+    // one line at 390 (pushB-final-rulings-fable.md 1): the chart's axis
+    // title and unit line name the forecast path
+    question: 'How far does GDP move?',
     hint: 'Watch the axis switch from growth to a gap against the forecast path',
     // the title says the direction (story-finding-titles-fable.md); the
     // closing line is morphAnswer's, this its fallback
@@ -178,7 +180,7 @@ function headlineStep(sid) {
     body: (
       <>
         <Say>
-          {SCEN_NAME[sid]} scenario, {HEADLINE_YEAR}: each figure is a gap against the OBR&rsquo;s central forecast path.
+          {SCEN_NAME[sid]} scenario, {HEADLINE_YEAR}: gaps against the OBR&rsquo;s central forecast path.
         </Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
           <HeadlineTiles sid={sid} />

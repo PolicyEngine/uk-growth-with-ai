@@ -188,32 +188,56 @@ export function matrixSvg(arm, m) {
   return [{ w: W, h: y + 4, markup: out, label: `${m.title}, ${HEADLINE_YEAR}` }];
 }
 
-// The key, one plain sentence: the in-view swatch (drawn as the in-view
-// cell's border), what a click does; the not-solved dash and which rules
-// are solved where, once; on Economy, the grey story values.
+// The key: swatches with short names (pushB-final-rulings-fable.md 2):
+// the in-view cell, on Economy the grey story values (linked), and the
+// not-solved dash when some cells are not solved. The sentences that
+// explain them are in the card's More info (MatrixMore).
 function MatrixKey({ story = true, note }) {
   return (
-    <p className="ex-mx-key">
-      <span className="ex-mx-key-cell is-current" aria-hidden="true" /> In view: the case the charts above show; click any other cell to show it
+    <ul className="ex-mx-key is-swatches">
+      <li>
+        <span className="ex-mx-key-cell is-current" aria-hidden="true" /> In view
+      </li>
       {story ? (
-        <>
-          {', and grey values are the '}
+        <li>
+          <span className="ex-mx-key-ref" aria-hidden="true" />{' '}
           <NavLink tab="story" anchor="story-part-2">
-            story’s headline
+            Story’s headline
           </NavLink>
-        </>
+        </li>
       ) : null}
-      .
       {note ? (
-        <>
-          {' '}
+        <li>
           <span className="ex-mx-dash" aria-hidden="true">
             –
           </span>{' '}
-          {note}.
+          Not solved
+        </li>
+      ) : null}
+    </ul>
+  );
+}
+
+// The key's sentences, in More info: how to read the cells first, then
+// `children` (the card's other lines), then the caveat on which rules are
+// solved where, one paragraph per rule (each under 25 words).
+function MatrixMore({ story = true, note, children }) {
+  return (
+    <>
+      <h4 className="ex-more-head">How to read</h4>
+      <p className="ex-more-p">The outlined cell is the case the charts show; click another to show it.{story ? ' Grey values are the story’s headline.' : ''}</p>
+      {children}
+      {note ? (
+        <>
+          <h4 className="ex-more-head">Caveats</h4>
+          {note.split('; ').map((t) => (
+            <p key={t} className="ex-more-p">
+              {t}.
+            </p>
+          ))}
         </>
       ) : null}
-    </p>
+    </>
   );
 }
 
@@ -262,8 +286,10 @@ export default function AllScenarios() {
           // (the item 14 component); the chosen measure's line first
           <div className="ex-sg-more">
             <Disclosure inCard id="across-more" title="More info">
-              <Items className="ex-notes" items={drivers(arm, [v, ...ECON.map((x) => x.v).filter((x) => x !== v)]).map((d) => ({ key: `${d.kind}-${d.measures.join('')}`, icon: d.kind === 'still' ? 'onPath' : d.kind === 'lead' ? d.choice : 'compare', text: d.text }))} />
-              <p className="card-unit ex-sg-more-unit">{`${m.label} gap in ${HEADLINE_YEAR} against the OBR’s central forecast path for the same foreign-capital case, %`}</p>
+              <MatrixMore note={solvedNote(arm, m.v)}>
+                <Items className="ex-notes" items={drivers(arm, [v, ...ECON.map((x) => x.v).filter((x) => x !== v)]).map((d) => ({ key: `${d.kind}-${d.measures.join('')}`, icon: d.kind === 'still' ? 'onPath' : d.kind === 'lead' ? d.choice : 'compare', text: d.text }))} />
+                <p className="card-unit ex-sg-more-unit">{`${m.label} gap in ${HEADLINE_YEAR} against the OBR’s central forecast path for the same foreign-capital case, %`}</p>
+              </MatrixMore>
             </Disclosure>
           </div>
         }
@@ -318,7 +344,7 @@ export function AcrossDebt() {
   return (
     <div className="explore-part ex-across" id="fin-across-part">
       <SectionHeading id="fin-across" icon={iconFor('cells')} title="Debt/GDP across scenarios">
-        <Lead c="compare">{`Every scenario, foreign-capital case and budget assumption in ${HEADLINE_YEAR}`}</Lead>
+        <Lead c="compare">{`Every scenario, foreign-capital case and budget assumption in ${HEADLINE_YEAR}; pick a cell to show it`}</Lead>
       </SectionHeading>
       <Card
         id="debt-cells"
@@ -329,6 +355,13 @@ export function AcrossDebt() {
         controls={<Pill className="is-card" title="Options for this table" name={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`} sections={[versionSection(st, set, true)]} />}
         unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path, percentage points of GDP. The debt chart above runs to ${LATE_YEAR}.`}</span>}
         legend={<MatrixKey story={false} note={solvedNote(arm, m.v)} />}
+        foot={
+          <div className="ex-sg-more">
+            <Disclosure inCard id="debt-cells-more" title="More info">
+              <MatrixMore story={false} note={solvedNote(arm, m.v)} />
+            </Disclosure>
+          </div>
+        }
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,

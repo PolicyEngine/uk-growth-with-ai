@@ -507,7 +507,7 @@ describe('direction icons follow the signs', () => {
     expect(lines).toHaveLength(0);
     expect(container.querySelector('.p2-headline-chip')).toBeNull();
     const say = container.querySelector('#p2-headline .p2-say').textContent;
-    expect(say).toBe(`UK central scenario, ${fixture.headline_year}: each figure is a gap against the OBR’s central forecast path.`);
+    expect(say).toBe(`UK central scenario, ${fixture.headline_year}: gaps against the OBR’s central forecast path.`);
     expect(say.split(/\s+/).length).toBeLessThanOrEqual(15);
     expect(say).not.toMatch(/\d\.\d/);
     // the hero's three names, word for word; the tip's name keeps the case
