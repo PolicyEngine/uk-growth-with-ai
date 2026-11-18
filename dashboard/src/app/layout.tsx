@@ -15,6 +15,7 @@ import './story-part1.css';
 import './story-part2.css';
 import './story-part3.css';
 import './story-identity.css';
+import './story-bands.css';
 import './sources.css';
 import './items-explore.css';
 import './items-method.css';

@@ -1,0 +1,140 @@
+/* ---- White bands for chart scenes (white-bands-fable.md, 18 Nov) ----
+   A scrolled chart scene (its header, chart, step texts and closing line)
+   sits on a full-width white band with a 1px hairline top and bottom;
+   everything else in Story stays on the grey page, and no white bordered
+   card remains in Story. The band is a ::before on .scrolly (and on
+   .p2-output and .lens-fig): no wrapper, no JSX. Paint only: the chart box
+   keeps its padding and a 1px border, now transparent (with border: 0
+   the 2px lost flipped #p3-changes at 390x844 from drawn once to pinned).
+   The question stage stays grey: the band starts under it. The hero and
+   the vitals strip get no band. Tokens only (no dark mode exists).
+   Loaded after story-part1/2/3 and story-identity: its margin rules tie
+   on specificity with story.css's topic spacing and must come after it. */
+.story {
+  --band-pad: 48px; /* white above the header and below the last line */
+  --band-clear: 40px; /* grey between a hairline and the next grey content */
+  --band-bg: var(--pe-surface);
+  --band-line: var(--card-border);
+  --band-top: 0px;
+  /* one stacking context for every band (z-index -1): not one per scene,
+     which would trap in-figure tips under the next scene's band */
+  isolation: isolate;
+}
+@media (max-width: 900px) {
+  .story {
+    --band-pad: 24px;
+    --band-clear: 32px;
+  }
+}
+.scrolly,
+.p2-output,
+.lens-fig {
+  position: relative;
+}
+.scrolly::before,
+.p2-output::before,
+.lens-fig::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  /* full bleed: .app has overflow-x: clip */
+  left: -100vmax;
+  right: -100vmax;
+  top: calc(var(--band-top) - var(--band-pad));
+  bottom: calc(-1 * var(--band-pad));
+  background: var(--band-bg);
+  border-block: 1px solid var(--band-line);
+}
+.p2-output > .scrolly::before {
+  content: none;
+}
+
+/* the band starts under the question stage (--q-pin tall, margin-bottom
+   -8px, story.css; the desktop grid adds a 16px row gap) */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .scrolly.has-stage:not(.is-inline) {
+    --band-top: calc(var(--q-pin) + 8px);
+  }
+  .p2-output {
+    --band-top: calc(var(--q-pin) - 8px);
+  }
+}
+@media screen and (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .scrolly.has-stage:not(.is-inline),
+  .p2-output {
+    --band-top: calc(var(--q-pin) * var(--q-pin-phone) - 8px);
+  }
+}
+
+/* frames off, boxes kept (padding and a transparent 1px border) */
+.scrolly-graphic-inner,
+.p2-output-static .p2-output-fig {
+  background: none;
+  border-color: transparent;
+  border-radius: 0;
+}
+
+/* Two lenses: the figure's own box is the band; the heading, its question
+   and "Go deeper" stay grey */
+.lens-fig.story-frame {
+  background: none;
+  border-color: transparent;
+  border-radius: 0;
+  padding-block: var(--band-pad);
+  margin-top: calc(var(--band-clear) - 16px);
+  margin-bottom: var(--band-clear);
+}
+.lens-fig::before {
+  top: 0;
+  bottom: 0;
+}
+
+/* the rail's grey reaches the window edges */
+.story-rail::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 -100vmax;
+  background: var(--page-bg);
+}
+
+/* phones: the pinned chart's backing is the band colour (story.css), and
+   its 12px upward strip half covered the scene header of #p1-output
+   before the chart pinned: 12px more under the header */
+@media (max-width: 900px) {
+  .scrolly.is-scene > .scene-head {
+    margin-bottom: 12px;
+  }
+}
+
+/* grey clearance after a band (a part's last scene: the next opener has
+   24px of its own above its rule, so 16px less) */
+.story-part > :is(.scrolly.has-sub, .p2-output) + :is(.story-beat, .p3-close) {
+  margin-top: calc(var(--band-pad) + var(--band-clear));
+}
+.story-part > :is(.scrolly.has-sub, .p2-output):last-child {
+  margin-bottom: calc(var(--band-pad) + var(--band-clear) - 16px);
+}
+
+/* no question stage (reduced motion): scenes merge into one band with one
+   hairline between them; grey content keeps its clearance */
+@media (prefers-reduced-motion: reduce) {
+  .story {
+    --band-pad: calc(var(--gap-topic) / 2);
+  }
+  .story-part > :is(.scrolly, .p2-output) + :is(.scrolly, .p2-output)::before {
+    border-top: 0;
+  }
+  .story-part > :is(.p1-vitals, .story-beat, .part-opener) + :is(.scrolly.has-sub, .p2-output) {
+    margin-top: calc(var(--band-pad) + var(--band-clear));
+  }
+}
+@media print {
+  .scrolly::before,
+  .p2-output::before,
+  .lens-fig::before,
+  .story-rail::before {
+    content: none;
+  }
+}
