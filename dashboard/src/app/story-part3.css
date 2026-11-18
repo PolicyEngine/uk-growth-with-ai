@@ -1608,20 +1608,8 @@ svg.p3-dim {
   font-weight: 600;
   color: var(--pe-gray-900);
 }
-.lens-table a,
-.lens-deeper a {
+.lens-table a {
   color: var(--pe-teal-700, var(--c-gain-text));
-}
-.lens-deeper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 20px;
-  margin: 24px 0 0;
-  font-size: var(--t-ui);
-}
-.lens-deeper-label {
-  font-weight: 600;
-  color: var(--pe-gray-900);
 }
 /* phones: each row's two cells stack under the row's name, each led by its model */
 @media (max-width: 599px) {
@@ -1652,22 +1640,83 @@ svg.p3-dim {
   }
 }
 
-/* the close's header: icon and title on one line, no tint (parts are neutral) */
-#story-close .story-part-head {
-  display: block;
-  margin-bottom: 0;
-  padding: 0;
-  background: none;
-  box-shadow: none;
-  clip-path: none;
+/* the close's opener (item 34): a part opener (story-bands.css .part-opener
+   centres it), its kicker, the title, the two-line recap and the reason;
+   static text, no entry motion */
+#story-close .close-opener {
+  gap: 0;
+  margin-bottom: 24px;
+  padding-bottom: 0;
 }
 #story-close-h {
+  margin: 6px 0 0;
+}
+.close-recap {
+  display: grid;
+  gap: 8px;
+  margin: 16px auto 0;
+  padding: 0;
+  list-style: none;
+}
+.close-recap li,
+.close-why {
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--pe-gray-800);
+}
+.close-recap strong,
+.close-next-link strong {
+  font-weight: 600;
+}
+.close-ic {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -3px;
+  color: var(--pe-gray-500);
+}
+.close-why {
+  margin: 12px auto 0;
+}
+/* What's next: centred lines, each one link under a 1px rule; no card, no
+   tint, no panel */
+.close-next {
+  max-width: 44rem;
+  margin: 40px auto 0;
+  text-align: center;
+}
+.close-next-kicker {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--pe-gray-600);
+}
+.close-next-list {
   margin: 0;
-  font-size: var(--t-title);
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--t-ink);
-  text-wrap: balance;
+  padding: 0;
+  list-style: none;
+}
+.close-next-list li {
+  border-top: 1px solid var(--card-border);
+}
+.close-next-link {
+  display: block;
+  min-height: 44px;
+  padding: 11px 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--pe-gray-800);
+  text-decoration: none;
+}
+.close-next-link:hover,
+.close-next-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.close-next-link:focus-visible {
+  outline: 2px solid var(--pe-gray-900);
+  outline-offset: 2px;
+}
+.close-next-arrow {
+  color: var(--pe-gray-500);
 }
 
 /* Round 1f (round 2: the merged scene, #p3-changes): a dimmed mark's value
@@ -2312,25 +2361,11 @@ svg.p3-dim {
   left: 314px;
 }
 .lens-kicker {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  margin: 0;
-  font-size: var(--t-meta);
-  font-weight: 400;
-  color: var(--t-muted);
-}
-.lens-scope {
-  margin: 2px 0 0;
-  font-size: 18px;
-  font-weight: 500;
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
   line-height: 1.25;
   color: var(--t-ink);
-}
-.lens-time {
-  margin: 0 0 8px;
-  font-size: var(--t-meta);
-  color: var(--t-muted);
 }
 .lens-chips {
   display: flex;
@@ -2532,20 +2567,20 @@ a.lens-pay-num:hover {
   align-self: center;
   color: var(--t-muted);
 }
-/* the close's closing line: type and measure from story.css [data-closing]
-   (normal weight, not centred), its sources button inline at its end */
-.lens-close {
-  margin: 16px auto 0;
-  text-align: start;
+/* the pay cards' sources: one button at the end of the pay row */
+.lens-pay-src {
+  max-width: 640px;
+  margin: 8px auto 0;
+  text-align: end;
 }
 /* motion: from the sides, then the chips, the overlap, the pay row, the line */
 @media screen and (prefers-reduced-motion: no-preference) {
-  .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay, .lens-close) {
+  .lens-fig :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     transition:
       transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
       opacity 600ms ease;
   }
-  .lens-fig:not(.is-in) :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay, .lens-close) {
+  .lens-fig:not(.is-in) :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     opacity: 0;
   }
   .lens-fig:not(.is-in) :is(.lens-ring.is-oguk, .lens-circle.is-oguk, .lens-outside.is-oguk) {
@@ -2572,10 +2607,7 @@ a.lens-pay-num:hover {
   .lens-fig.is-in .lens-pay {
     transition-delay: 1500ms;
   }
-  .lens-fig.is-in .lens-close {
-    transition-delay: 2000ms;
-  }
-  .lens-fig.is-snap :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay, .lens-close) {
+  .lens-fig.is-snap :is(.lens-ring, .lens-circle, .lens-chip-li, .lens-overlap, .lens-outside, .lens-pay) {
     transition: none !important;
   }
 }

@@ -20,12 +20,16 @@ import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 import { DECILES_SUB, bottomDecileRankings, decileShape } from './part3/Deciles.jsx';
 import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
 import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
-import TwoLenses, { CLOSE_SUB, LENSES, PAY_RESULT } from './TwoLenses.jsx';
+import TwoLenses, { CLOSE_NEXT, CLOSE_SUB, CLOSE_WHY, LENSES, PAY_RESULT, closeWhy } from './TwoLenses.jsx';
+import { TABS } from '@/lib/labels.js';
+import { SURPRISE_YEAR, YEARS } from '@/tabs/ai/surprise.js';
+import { readFileSync } from 'node:fs';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
 
 afterEach(cleanup);
 
 // The part as StoryTab passes it (not imported, so other parts' edits cannot break this test).
+const SRC = readFileSync('src/tabs/story/TwoLenses.jsx', 'utf8');
 const PART = { id: 'story-part-3', n: 3, icon: 'usersRound', kicker: 'Part 3', title: 'A model of households' };
 const renderPart = () => render(<Part3 part={PART} />);
 // The text a number check reads: axis labels and quoted inputs removed.
@@ -343,16 +347,28 @@ describe('Part3', () => {
       c.querySelectorAll('.hl-num, .p3-nm').forEach((m) => m.remove());
       c.querySelectorAll('span').forEach((s) => s.append(' '));
       const n = c.textContent.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
-      if (n > (el.tagName === 'LI' ? 12 : 25)) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
+      // the close's recap and What's next lines are sentences (item 34), capped as a paragraph
+      const cap = el.matches('.close-recap li, .close-next li') ? 25 : el.tagName === 'LI' ? 12 : 25;
+      if (n > cap) long.push(`${n}: ${el.textContent.slice(0, 60)}`);
     }
     expect(long).toEqual([]);
     // no icon inside a fact, a note, a source line or a table cell
     expect(container.querySelectorAll('.story-fact svg, .p3-key svg, .story-source svg, .lens-chips svg')).toHaveLength(0);
   });
 
-  it('says once in the close that the two models assume opposite pay directions', () => {
+  it('says once in the close why the two models are never added, sign-aware', () => {
     const { container } = render(<TwoLenses />);
-    expect(container.querySelector('.lens-close').textContent).toContain('opposite pay directions');
+    const why = container.querySelector('#story-close .close-why').textContent;
+    expect(why).toBe(CLOSE_WHY);
+    const opposite = Math.sign(PAY_RESULT) !== Math.sign(Number(D.method.survivor_wage_pct));
+    expect(why.includes('opposite directions')).toBe(opposite);
+    expect(container.textContent.match(/never added/g)).toHaveLength(1);
+    expect(container.textContent).not.toMatch(/not added or compared/);
+    // forced to one sign, the reason prints the fallback (check 5a)
+    const same = closeWhy(Math.abs(PAY_RESULT) || 1, Math.abs(Number(D.method.survivor_wage_pct)) || 1);
+    expect(same).not.toContain('opposite directions');
+    expect(same).toContain('pay is a result in one and an input in the other');
+    expect(closeWhy(-1, 2)).toContain('pay moves in opposite directions');
     const cards = container.querySelectorAll('.lens-pay-card');
     expect([...cards].map((c) => c.querySelector('.lens-pay-head').textContent)).toEqual(['Pay is a result', 'Pay is an input']);
     // the input is quoted (data-input); the result restates part 2's pay tile (data-axis), linked to it
@@ -360,10 +376,49 @@ describe('Part3', () => {
     const res = cards[0].querySelector('[data-axis]');
     expect(res.textContent).toBe(`${PAY_RESULT < 0 ? '−' : '+'}${Math.abs(PAY_RESULT).toFixed(2)}%`);
     expect(res.getAttribute('href')).toContain('#story-headline');
-    expect(container.textContent.match(/opposite pay/g)).toHaveLength(1);
   });
 
-  it('ends with one header, the two lenses as real lists of chip links, then at most six links', () => {
+  it('opens the close with a centred header: kicker, title, a two-line recap from the data and the reason', () => {
+    const { container } = render(<TwoLenses />);
+    const sec = container.querySelector('#story-close');
+    // DOM order: the question screen, the header, the figure, What's next; nothing after it
+    expect([...sec.children].map((c) => c.className.split(' ')[0])).toEqual(['q-stage', 'part-opener', 'lens-fig', 'close-next']);
+    const head = sec.querySelector('header.part-opener.close-opener');
+    expect([...head.children].map((c) => c.tagName + (c.className ? '.' + c.className : ''))).toEqual(['P.part-opener-meta', 'H2', 'UL.close-recap', 'P.close-why']);
+    expect(head.querySelector('.part-opener-meta').textContent).toBe('Part 4 · Both models');
+    expect(CLOSE_SUB.hint).toBe('The two models, side by side');
+    const lines = [...head.querySelectorAll('.close-recap li')];
+    expect(lines).toHaveLength(2);
+    for (const li of lines) expect(li.querySelectorAll('svg')).toHaveLength(1);
+    expect(lines.map((li) => li.querySelector('strong').textContent)).toEqual(['OG-UK', 'The household study (PolicyEngine UK)']);
+    expect(lines[0].textContent).toContain(`${SURPRISE_YEAR} to ${YEARS[YEARS.length - 1]} and beyond`);
+    expect(lines[1].textContent).toContain(`one year, ${MODEL_YEAR}`);
+    // the scope and time lines left the circles; the old foot line and Go deeper are gone
+    expect(sec.querySelector('.lens-close, .lens-scope, .lens-time, .go-deeper, .lens-deeper')).toBeNull();
+    // no four-digit year typed into the close's strings (a citation's year in JSX text aside)
+    expect(SRC.replace(/\/\/.*$/gm, '').match(/['`"][^'`"\n]*\b20\d\d\b[^'`"\n]*['`"]/g)).toBeNull();
+  });
+
+  it('ends on What’s next: one linked line per tab, named as the tabs, no card or tint', () => {
+    const { container } = render(<TwoLenses />);
+    const nav = container.querySelector('nav.close-next');
+    expect(nav.querySelector('.close-next-kicker').textContent).toBe('What’s next');
+    const links = [...nav.querySelectorAll('li > a')];
+    expect(links).toHaveLength(3);
+    const params = links.map((a) => new URLSearchParams(a.getAttribute('href').split('?')[1] ?? ''));
+    expect(params.map((q) => [q.get('tab'), q.get('sub')])).toEqual([
+      ['explore', null],
+      ['method', null],
+      ['method', 'code'],
+    ]);
+    const label = (id) => TABS.find((t) => t.id === id).label;
+    expect(links.map((a) => a.querySelector('strong').textContent)).toEqual([label('explore'), label('method'), TABS.find((t) => t.id === 'method').subs.find((x) => x.id === 'code').label]);
+    expect(CLOSE_NEXT.map((l) => l.sub)).toEqual(['economy', 'how', 'code']);
+    expect(links[0].textContent).toContain('Economy, public finances, who gains and who loses, households.');
+    expect(nav.querySelector('.story-panel, .story-frame')).toBeNull();
+  });
+
+  it('draws the two lenses as real lists of chip links, then three links', () => {
     const { container } = render(<TwoLenses />);
     // the question is on the pinned screen only; the header is the title
     expect(container.querySelector('#story-close-h').textContent.trim()).toBe('Two lenses');
@@ -371,6 +426,9 @@ describe('Part3', () => {
     expect(container.querySelector('.lens-table, .story-recap, .scrolly-answer')).toBeNull();
     // one heading per lens naming its model; 4 + 3 "can say" chips, each a link to its scene; 2 outside chips each
     expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^Household study/)]);
+    // each circle is its model name over its chips: no icon, no scope or time line
+    for (const c of container.querySelectorAll('.lens-circle')) expect([...c.children].map((x) => x.tagName)).toEqual(['H3', 'H4', 'UL']);
+    for (const h of container.querySelectorAll('h3.lens-kicker')) expect(h.querySelector('svg')).toBeNull();
     const can = [...container.querySelectorAll('.lens-circle ul.lens-chips')];
     expect(can.map((u) => u.querySelectorAll('li a').length)).toEqual([4, 3]);
     for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central-step-2)$/);
@@ -386,7 +444,7 @@ describe('Part3', () => {
     // decorative circles; no hidden table
     for (const svg of container.querySelectorAll('.lens-rings')) expect(svg.getAttribute('aria-hidden')).toBe('true');
     expect(container.querySelector('table')).toBeNull();
-    expect(container.querySelectorAll('.lens-deeper a').length).toBeLessThanOrEqual(6);
+    expect(container.querySelectorAll('.close-next a')).toHaveLength(3);
   });
 
   // ---- wave 2 scenes: entry beats, derived claims, one home per figure ----

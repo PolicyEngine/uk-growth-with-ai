@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import S from '@/data/surprise2028.json';
 import U from '@/data/ukContext.json';
-import StoryTab from './StoryTab.jsx';
+import StoryTab, { BRIDGE_4 } from './StoryTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { beat2031 } from './Part2.jsx';
 import { AI_SINCE } from './Part1.jsx';
@@ -88,8 +88,10 @@ describe('story beats', () => {
 describe('part openers', () => {
   it('give each part its question as the h2 and a "which model?" tip on the model label', () => {
     const el = story();
-    const heads = [...el.querySelectorAll('.part-opener')];
+    // parts 1-3; the close's opener (item 34) has a title, not a question, and no model tip
+    const heads = [...el.querySelectorAll('.part-opener:not(.close-opener)')];
     expect(heads).toHaveLength(3);
+    expect(el.querySelectorAll('.part-opener.close-opener')).toHaveLength(1);
     for (const h of heads) {
       expect(h.querySelector('h2 svg, .part-opener-q, .part-opener-model')).toBeNull();
       expect(h.querySelector('h2').textContent).toMatch(/\?$/);
@@ -97,5 +99,18 @@ describe('part openers', () => {
       expect(tip.getAttribute('aria-label')).toBe('Which model is this?');
     }
     for (const m of Object.values(MODELS)) expect(m.tip).not.toMatch(/\d\s?(%|pp)/);
+    // the household tip no longer says "never added": the part 3 fold and the close say it
+    expect(MODELS.aistudy.tip).not.toMatch(/added/);
+  });
+
+  it('bridge each part to the next with one NextPart line, no deep links; only the bridge into part 4 has a second line', () => {
+    const el = story();
+    const bridges = [...el.querySelectorAll('nav.part-links.story-next')];
+    expect(bridges.map((b) => b.querySelector('.part-links-kicker').textContent)).toEqual(['Next: part 2', 'Next: part 3', 'Next: part 4']);
+    expect(bridges.map((b) => b.closest('section').id)).toEqual(['story-part-1', 'story-part-2', 'story-part-3']);
+    expect(bridges.map((b) => b.querySelector('a').getAttribute('href'))).toEqual(['#story-part-2', '#story-part-3', '#story-close']);
+    for (const b of bridges) expect(b.querySelector('.part-links-row')).toBeNull();
+    expect(bridges.map((b) => !!b.querySelector('.part-links-lead'))).toEqual([false, false, true]);
+    expect(bridges[2].querySelector('.part-links-lead').textContent.trim()).toBe(BRIDGE_4);
   });
 });
