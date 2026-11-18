@@ -1,8 +1,13 @@
-// State hold probe (scene plan addendum A5.3): scrolling at 40px a tick
-// through each sticky multi-card Scrolly block, every state must be the
-// active one for at least 180px of scroll while at least 90% of the figure
-// is in view (below the sticky rail). Blocks drawn once (phones) are
-// skipped: their states are set by buttons, not scroll.
+// State hold probe (scene plan addendum A5.3; headline-tiles ruling, Fix
+// A: a state counted while merely 90% in view read 210px where chart and
+// text were still together for 30px): scrolling at 40px a tick through
+// each sticky multi-card Scrolly block, a state counts as held for a tick
+// only while it is the active one, at least 90% of the figure is in view,
+// the figure has not moved since the last tick (stuck) and, on desktop,
+// neither has the active sentence (together). Every state needs HOLD px
+// (180). Printed beside it: the old in-view count. Phones: the figure
+// stuck (the text scrolls under it until the hold rule, Fix B). Blocks
+// drawn once (phones) are skipped: their states are set by buttons.
 //
 // The topic's pinned question screen (QStage) sits above the block's figure;
 // the walk starts one screen above the block's figure (not the block), so
@@ -79,6 +84,8 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
   const lines = [];
   for (const b of blocks) {
     const held = {};
+    const inView = {};
+    let prev = null;
     const overlaps = new Set();
     for (let y = Math.max(0, b.top - H); y <= b.bottom; y += TICK) {
       await page.evaluate((t) => window.scrollTo({ top: t, behavior: 'instant' }), y);
@@ -107,15 +114,23 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
             if (ov > 2 && ox > 2) hit = Math.round(ov);
           }
         }
-        return { step: Number(g.dataset.step), vis, hit };
+        // the active step's sentence (desktop: pinned with the chart)
+        const act = s.querySelector('.scrolly-step.is-active .scrolly-body');
+        const at = act ? act.getBoundingClientRect().top : null;
+        return { step: Number(g.dataset.step), vis, hit, gt: gr.top, at, anchored: s.classList.contains('is-anchored') };
       }, b.id);
-      if (r.vis >= 0.9) held[r.step] = (held[r.step] ?? 0) + TICK;
+      if (r.vis >= 0.9) inView[r.step] = (inView[r.step] ?? 0) + TICK;
+      // stuck and together: the same state as the last sample, the chart
+      // where it was, and (desktop) the active sentence where it was
+      if (prev && prev.step === r.step && r.vis >= 0.9 && Math.abs(r.gt - prev.gt) < 0.5 && (!r.anchored || (r.at != null && prev.at != null && Math.abs(r.at - prev.at) < 0.5))) held[r.step] = (held[r.step] ?? 0) + TICK;
+      prev = r;
       if (r.hit) overlaps.add(`${y}:${r.hit}px`);
     }
     const per = b.cards.map((i) => held[i] ?? 0);
+    const view = b.cards.map((i) => inView[i] ?? 0);
     const bad = per.some((v) => v < HOLD) || overlaps.size > 0;
     if (bad) misses++;
-    lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: ${per.join(', ')}px${overlaps.size ? `; closing line over a step at ${[...overlaps].slice(0, 3).join(', ')}` : ''}`);
+    lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: stuck ${per.join(', ')}px (in view ${view.join(', ')}px)${overlaps.size ? `; closing line over a step at ${[...overlaps].slice(0, 3).join(', ')}` : ''}`);
   }
   console.log(`${W}x${H}: ${blocks.length} sticky blocks`);
   for (const l of lines) console.log(l);

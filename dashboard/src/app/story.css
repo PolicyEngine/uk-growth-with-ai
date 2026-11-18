@@ -2407,14 +2407,15 @@
 }
 /* the swap runs in sequence, not as a cross-fade: each card is pinned at
    its own mark's place and those places overlap (the last card's closing
-   caption most of all), so the outgoing card fades out first (180ms) and
-   the incoming one fades in once it has gone, in both directions */
+   caption most of all), so the outgoing card fades out first (120ms,
+   Fix A2) and the incoming one fades in once it has gone, in both
+   directions */
 @media (prefers-reduced-motion: no-preference) {
   .scrolly.is-anchored .scrolly-step:not(.is-active) .scrolly-card {
-    transition: opacity 180ms var(--story-ease);
+    transition: opacity 120ms linear;
   }
   .scrolly.is-anchored .scrolly-step.is-active .scrolly-card {
-    transition: opacity 300ms var(--story-ease) 180ms;
+    transition: opacity 240ms var(--story-ease) 120ms;
   }
 }
 @media (min-width: 901px) {
@@ -2423,19 +2424,38 @@
     margin-left: auto;
   }
   /* polish round E: each step's item is pinned by the browser at its
-     sentence's place beside the stuck figure (Scrolly writes --pin-top and
-     --pin-bottom once per step change and resize, never per frame), held
-     inside its own column; only while the block is near the screen */
-  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-spacer) {
-    position: sticky;
-    top: var(--pin-top, 0px);
-    bottom: var(--pin-bottom, auto);
+     sentence's place beside the stuck figure (Scrolly writes --pin-top per
+     step change and resize, never per frame). Fix A1 (headline-tiles
+     ruling): the chart and the text move as one body: every item shares
+     the column's one cell, starts where the chart starts (--fig-top, its
+     stuck top), sticks when it sticks and is as tall as the chart's foot
+     (--fig-h), so the same column foot lets both go. */
+  .scrolly.is-anchored > .scrolly-steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr;
   }
-  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-active) {
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step:not(.is-spacer) {
+    grid-area: 1 / 1;
+    align-self: start;
+    position: sticky;
+    top: var(--pin-top, var(--fig-top, 0px));
+    margin-top: calc(var(--pin-top, var(--fig-top, 0px)) - var(--fig-top, 0px));
+    height: calc(var(--fig-top, 0px) + var(--fig-h, 0px) - var(--pin-top, var(--fig-top, 0px)));
+    padding-bottom: 0;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step.is-spacer {
+    grid-area: 1 / 1;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step:not(.is-active) {
     pointer-events: none;
   }
-  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step.is-active {
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step.is-active {
     z-index: 4;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
+    grid-area: 1 / 1;
+    align-self: end;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2970,12 +2990,7 @@
    end marker stays at the column's foot, and the pinned items inside it. */
 @media (min-width: 901px) {
   .scrolly.is-anchored > .scrolly-steps {
-    display: flex;
-    flex-direction: column;
     min-height: max(calc(1.8 * clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + var(--story-graphic-top) + 215px * var(--n, 1) - 100vh), var(--col-min, 0px));
-  }
-  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
-    margin-top: auto;
   }
 }
 /* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */

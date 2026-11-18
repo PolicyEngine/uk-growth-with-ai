@@ -321,15 +321,20 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // on the block; round 2 removed the step dots): phones drawn once set the
   // state; desktop scrolls to the middle of the step's share; a sticky
   // phone scene scrolls the card to its trigger line
-  const goStep = (k) => {
+  const goStep = (k, instant = false) => {
     if (once) {
       setPicked(cardSteps[k]);
       return;
     }
-    const m = window.innerWidth > 900 ? geom() : null;
+    // the rail's stuck bottom: from afar (a link from the hero) the rail is
+    // not stuck yet and its live box would put the target a state early
+    const railEl = document.querySelector('.story-rail');
+    const rs = railEl ? getComputedStyle(railEl) : null;
+    const stuck = railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : undefined;
+    const m = window.innerWidth > 900 ? geom(stuck) : null;
     if (m) {
       const target = m.enter - ((k + 0.5) / cardSteps.length) * (m.enter - m.exit);
-      window.scrollTo({ top: Math.max(0, window.scrollY + m.colTop - target), behavior: reduce ? 'instant' : 'smooth' });
+      window.scrollTo({ top: Math.max(0, window.scrollY + m.colTop - target), behavior: reduce || instant ? 'instant' : 'smooth' });
       return;
     }
     const el = document.getElementById(steps[cardSteps[k]].id);
@@ -342,14 +347,21 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   useEffect(() => {
     const el = id ? document.getElementById(id) : null;
     if (!el) return undefined;
-    const on = (e) => goRef.current(Number(e.detail) || 0);
+    // detail: the card's index, or { k, instant } (a link: lib/scroll)
+    const on = (e) => {
+      const d = e.detail;
+      if (d && typeof d === 'object') goRef.current(Number(d.k) || 0, Boolean(d.instant));
+      else goRef.current(Number(d) || 0);
+    };
     el.addEventListener('scrolly-go', on);
     return () => el.removeEventListener('scrolly-go', on);
   }, [id]);
   // The active step's sentence sits against the chart (round 1, Vahid:
   // "these kind of text are like in nowhere in space"). Desktop, several
   // cards: each step's list item is pinned by the browser (position:
-  // sticky, top and bottom, story.css .is-pinned) at the place where its
+  // sticky, story.css; Fix A1: every item in one grid cell, starting
+  // where the chart starts and as tall as the chart's foot, so items and
+  // chart stick and let go as one body) at the place where its
   // sentence is level with the mark it names (step.anchor, else its first
   // highlight id: the figure's [data-mark]) once the figure is stuck, or
   // near the figure's top for a step that names none; inactive cards fade
@@ -397,7 +409,11 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     y = Math.min(Math.max(y, figTop + 8, rail + 8), Math.max(figTop + 8, figBottom - H - 8), V - H - 8);
     const top = Math.round(y - lead);
     setStyle(li, '--pin-top', `${top}px`);
-    setStyle(li, '--pin-bottom', `${Math.round(V - top - li.offsetHeight)}px`);
+    // the chart's stuck top and height on the column: every item starts
+    // where the chart starts, sticks when it sticks and is let go by the
+    // same column foot (story.css, Fix A1)
+    setStyle(col, '--fig-top', `${Math.round(figTop)}px`);
+    setStyle(col, '--fig-h', `${Math.round(g.offsetHeight)}px`);
   };
   const pinRef = useRef(pinStep);
   useIso(() => {
@@ -409,35 +425,26 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   }, [anchored, shown, width]);
   useEffect(() => {
     if (!anchored || typeof window === 'undefined') return undefined;
-    const col0 = stepsCol.current;
-    // every card once (the inactive ones keep the place they were shown at
-    // while they fade), then the active one
-    steps.forEach((x, i) => {
-      if (i !== shownRef.current) pinRef.current(i);
-    });
-    pinRef.current(shownRef.current);
-    const again = () => pinRef.current(shownRef.current);
-    // pinned only while the block is near the screen: from afar every item
-    // is in its place in the flow (links to a step, the landing probes)
-    const off = subscribe({
-      el: col0,
-      read: (f) => {
-        const r = col0?.getBoundingClientRect();
-        return Boolean(r && r.bottom > -f.V && r.top < 2 * f.V);
-      },
-      write: (near) => {
-        if (col0 && col0.classList.contains('is-pinned') !== near) col0.classList.toggle('is-pinned', near);
-      },
-    });
-    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(again);
+    // every card at mount and on every resize (an inactive one pinned
+    // before the chart was centred kept a place 100px off), the active one
+    // last
+    const all = () => {
+      steps.forEach((x, i) => {
+        if (i !== shownRef.current) pinRef.current(i);
+      });
+      pinRef.current(shownRef.current);
+    };
+    all();
+    // and once the chart's centring (place, below) has run
+    const raf = requestAnimationFrame(all);
+    const ro = typeof ResizeObserver === 'undefined' || !live.current ? null : new ResizeObserver(all);
     if (ro) ro.observe(live.current);
-    window.addEventListener('resize', again);
-    document.fonts?.ready.then(() => pinRef.current && again());
+    window.addEventListener('resize', all);
+    document.fonts?.ready.then(() => pinRef.current && all());
     return () => {
-      off();
+      cancelAnimationFrame(raf);
       ro?.disconnect();
-      window.removeEventListener('resize', again);
-      col0?.classList.remove('is-pinned');
+      window.removeEventListener('resize', all);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anchored]);
@@ -479,27 +486,21 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [pinBottom, width, single]);
-  // phones (600px and below), a sticky scene: the figure lets go while its
-  // closing caption is still below it, 24px clear (polish round: the
-  // caption ran up under the figure's foot): a margin under the figure
-  // shortens its sticky range by the caption's height, and the steps take
-  // it back (layout unchanged). Only the caption: the last state keeps its
-  // hold (check_states). Tablets keep the sentence stuck under the figure.
+  // phones (600px and below), a sticky scene: the figure lets go with the
+  // last card (Fix A4: it covered the last card, the headline tiles on
+  // arrival from the hero link): a margin under the figure shortens its
+  // sticky range by the last card's height, 8px, and everything after it
+  // in the block (the closing caption prints after the list here), and the
+  // steps take it back (layout unchanged). Tablets keep the sentence stuck
+  // under the figure.
   useEffect(() => {
     const b = box.current;
     const col = stepsCol.current;
     if (!sticky || !small || !b || !col) return undefined;
     const fit = () => {
       const li = steps[lastCard] ? document.getElementById(steps[lastCard].id) : null;
-      // the caption line itself, not its wrapper (whose 22px of margins
-      // above the line put it 46px under the figure, against the shared
-      // --gap-answer: sign-off r3 minor 9)
-      const cap = li?.querySelector('.scrolly-takeaway-in-step .scrolly-takeaway') ?? li?.querySelector('.scrolly-takeaway-in-step');
-      // from the caption's top to the block's foot (notes and source come
-      // after it), plus the closing-line gap
       const blk = b.closest('.scrolly');
-      const gap = parseFloat(getComputedStyle(blk ?? b).getPropertyValue('--gap-answer')) || 24;
-      const x = cap && blk ? Math.min(Math.round(blk.getBoundingClientRect().bottom - cap.getBoundingClientRect().top + gap), Math.round(window.innerHeight * 0.4)) : 0;
+      const x = li && blk ? Math.round(li.offsetHeight + 8 + (blk.getBoundingClientRect().bottom - li.getBoundingClientRect().bottom)) : 0;
       setStyle(b, 'margin-bottom', `${x}px`);
       setStyle(col, 'margin-top', `${-x}px`);
     };
@@ -604,6 +605,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // the quiet-sources merge frees the frame's source lines, the integrator
   // may move it into the pinned frame too.
   const capInFrame = once;
+  // a sticky phone scene: after the list, below the last card, never
+  // inside it under the stuck chart (Fix A4)
+  const capAfter = !capInFrame && !inline && sticky && small;
   const takeawayEl =
     answer != null ? (
       <>
@@ -682,7 +686,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
                 {s.title ? <TitleTag className="scrolly-title visually-hidden">{s.title}</TitleTag> : null}
                 {s.icon ? <Icon name={iconFor(s.icon)} size={18} className="scrolly-card-icon" /> : null}
                 <div className="scrolly-body">{s.body}</div>
-                {i === lastCard && !capInFrame && !inline ? <div className="scrolly-takeaway-in-step">{takeawayEl}</div> : null}
+                {i === lastCard && !capInFrame && !inline && !capAfter ? <div className="scrolly-takeaway-in-step">{takeawayEl}</div> : null}
                 {once ? (
                   <button type="button" className="scrolly-show" aria-label="Show on chart" title="Show on chart" aria-pressed={shown === i} onClick={() => showOnChart(i)}>
                     <Icon name="eye" size={16} />
@@ -694,6 +698,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         )}
         <li className="scrolly-end" ref={register(steps.length)} aria-hidden="true" />
       </ol>
+      {capAfter ? <div className="scrolly-takeaway-after">{takeawayEl}</div> : null}
       {sticky && small ? <div className="scrolly-notes" ref={setNotesEl} /> : null}
       {inline ? takeawayEl : null}
       {phone ? footHere : null}
