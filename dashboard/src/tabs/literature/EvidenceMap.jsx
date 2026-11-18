@@ -186,7 +186,7 @@ export default function EvidenceMap({ map = MAP }) {
       }}
       download={{
         title: 'UK evidence map',
-        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the OBR’s central forecast path, from surprise2028.json (built from ${S.source_commit})`,
+        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the OBR’s central forecast path, from ${DATA_FILE} (built from ${S.source_commit})`,
         table: () => mapTable(view(all)),
       }}
     >

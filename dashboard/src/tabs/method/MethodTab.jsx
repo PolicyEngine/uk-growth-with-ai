@@ -240,7 +240,7 @@ export default function MethodTab() {
       <div className="page-body">
         <PageIntro
           question="How does OG-UK turn an AI scenario into these results?"
-          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR’s central forecast path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the extra AI. Not a forecast.</IconText>}
+          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR’s central forecast path: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in {SURPRISE_YEAR} without the extra AI. Not a forecast.</IconText>}
         >
           <WhyChain
             className="mx-chain"

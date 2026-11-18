@@ -55,13 +55,16 @@ const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-
 function mainRows(res) {
   return SCENARIOS.map((s) => ({ sens: res?.[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
 }
+// "in every scenario" holds only when every scenario is solved at both
+// closures: on a partial file (the 2027 export) no claim is made.
+const complete = (rows) => rows.length === SCENARIOS.length;
 export function payAboveGate(res) {
   const rows = mainRows(res);
-  return rows.length > 0 && rows.every((r) => side(at(r.sens, 'w')) === 'above' && side(at(r.central, 'w')) === 'below');
+  return complete(rows) && rows.every((r) => side(at(r.sens, 'w')) === 'above' && side(at(r.central, 'w')) === 'below');
 }
 export function sensTitle(res = S.sensitivity?.[SENS]?.results) {
   const rows = mainRows(res);
-  if (!rows.length) return 'Gaps with much more foreign capital';
+  if (!complete(rows)) return 'Gaps with much more foreign capital';
   if (payAboveGate(res)) return 'More foreign capital puts the main version’s pay rate above the path';
   if (rows.every((r) => side(at(r.sens, 'w')) !== 'below')) return 'More foreign capital: main version’s pay rate on or above the path';
   if (rows.every((r) => at(r.sens, 'Y') - at(r.central, 'Y') > 0.005)) return 'With much more foreign capital, GDP is higher in every scenario';
@@ -70,8 +73,8 @@ export function sensTitle(res = S.sensitivity?.[SENS]?.results) {
 
 export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   if (!res) return [];
-  const rows = SCENARIOS.map((s) => ({ sens: res[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
-  if (!rows.length) return [];
+  const rows = mainRows(res);
+  if (!complete(rows)) return [];
   const diff = (v) => rows.map((r) => at(r.sens, v) - at(r.central, v));
   const versus = (v, name) => {
     const d = diff(v);

@@ -1,0 +1,25 @@
+{
+  "_about": "Failure-count baselines for scripts/ratchet.mjs and the browser-free probes. A count may only fall: the ratchet fails when one rises above its baseline, and `node scripts/ratchet.mjs --update` lowers a baseline to the count measured, never raises it. Browser suites are measured by hand (one browser slot) and passed in with --counts; each entry names where its baseline was recorded.",
+  "probes": {
+    "vitest_failures_2028": { "baseline": 0, "source": "bun run test at the C1 head" },
+    "vitest_failures_2027": { "baseline": 0, "source": "bun run test:2027 at the C1 head (partial surprise2027.json)" },
+    "year_keys": { "baseline": 0, "source": "claims-and-years.test.jsx: year-suffixed names outside lib/dataKeys.js" },
+    "typed_years": { "baseline": 0, "source": "claims-and-years.test.jsx: year literals outside the allowlist" },
+    "caption_length": { "baseline": null, "source": "caption-length.test.jsx; set by the first measured run" },
+    "label_joins": { "baseline": null, "source": "label-joins.test.jsx; set by the first measured run" },
+    "eslint_ugai_one_chooser": { "baseline": null, "source": "eslint rule ugai/one-chooser (warn); set by the first measured run" },
+    "eslint_ugai_one_fold": { "baseline": null, "source": "eslint rule ugai/one-fold (warn); set by the first measured run" },
+    "eslint_ugai_one_card_shell": { "baseline": null, "source": "eslint rule ugai/one-card-shell (warn); set by the first measured run" }
+  },
+  "browser": {
+    "check_sticky": { "baseline": 124, "unit": "failures", "source": "checks-dropdowns.md and dashboard-overnight-log.md (scrolly-step x122, q-stage-hold x2); not re-measured in push B" },
+    "check_gaps_390": { "baseline": 267, "unit": "px, largest blank band (limit 120)", "source": "checks-pushB.md: 390 FAIL 267px, the B2 phone hold blank" },
+    "check_orphans": { "baseline": 54, "unit": "failures", "source": "checks-pushB.md: FAIL 54 (rule 1: 34, rule 2: 20)" },
+    "check_jitter_1024": { "baseline": 1, "unit": "failures", "source": "checks-pushB.md: 1024 FAIL 1 (p2-out-2 down 9px); 1280 and 390 pass" },
+    "check_jitter_1280": { "baseline": 0, "unit": "failures", "source": "checks-pushB.md: PASS" },
+    "check_jitter_390": { "baseline": 0, "unit": "failures", "source": "checks-pushB.md: PASS" },
+    "check_states_landing_chrome": { "baseline": 2, "unit": "landing misses", "source": "checks-pushB.md: 2 misses (390 reload, p2-morph cards 3-4)" },
+    "check_states_landing_webkit": { "baseline": 82, "unit": "landing misses", "source": "checks-pushB.md: 82 misses, run under two-lane load (before: 20-21; checks-part4.md: 29)" },
+    "check_animations_chrome": { "baseline": 1, "unit": "failures", "source": "checks-pushB.md: FAIL 1, the p2-morph entry (expected, rule ii)" }
+  }
+}
