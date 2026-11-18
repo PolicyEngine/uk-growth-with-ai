@@ -87,6 +87,12 @@ for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital
     hh[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'): hh[gbp(AI['displaced'][k]['value'])] += 1
 for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pp(r['gini_pp'])] += 1
+# the three rankings' threshold (review round 1, R1-03): a decile that gains
+# under every ranking by under 0.2% "moves by less than 0.2%"
+_R = AI['rankings']
+_gain = [i for i in range(10) if all(r['values'][i] > 0 for r in _R)]
+if _gain and all(abs(r['values'][i]) < 0.2 for i in _gain for r in _R):
+    hh['0.2%'] += 1
 # where a lost pound goes: back in story part 3 (item 19); Explore links to it
 HH_TEXT = []
 

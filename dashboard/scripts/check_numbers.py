@@ -199,11 +199,14 @@ def tiles(c, cl=None):
     # replaces the first-order charge-back on the page
     full = CO.get('dnfull') or {}
     solved = full.get('ready') and full.get('closure') == cl and full.get('rule') == 'dn' and full.get('arm') == 'tfp'
-    src = full['range']['no_bequest_avg'] if solved else (c['charged']['no_bequest_avg'] if c.get('charged') else None)
-    if src:
-        lo, hi = (signed(x, 2) + '%' for x in src)
-        for t in {lo, hi}:  # an equal low and high print once
-            exp[t] += 1
+    rng = full['range'] if solved else c.get('charged')
+    # "Both" (no_bequest_avg) and, since review round 1 (R1-10), "Transfers
+    # pay" (joint_avg): each a range, an equal low and high printed once
+    for key in ('no_bequest_avg', 'joint_avg'):
+        if rng and rng.get(key):
+            lo, hi = (signed(x, 2) + '%' for x in rng[key])
+            for t in {lo, hi}:
+                exp[t] += 1
     return exp
 # What drives the result (item 21): the bottom and top earnings groups (box
 # B), the consumption line's two ends (box A: the first and last c_gap
