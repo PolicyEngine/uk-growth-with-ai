@@ -340,7 +340,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     built for START as usual (same guard and R2 fixes), then shifted so model
     period 0 is START + k, and the TPI starts from the baseline's period-k
     state (``surprise.apply_to_specs`` / ``surprise.initial_state``).  The
-    gamma/Z ramp is offset so its zero-weight year is START + k - 1.
+    gamma/Z ramp is offset so its zero-weight year is START + k - 1, the year
+    before period 0 (offset 1 for every k).
     ``nexp``: years of each series to export (default NEXP).
     ``debt_neutral``: ``{"target_dy", "D0"}``; TR adjusts so debt/GDP follows
     target_dy until tG1 (``surprise.debt_neutral``), G keeps its rule.
@@ -423,8 +424,8 @@ def run_arm(name, gamma_val, ramp, z_terminal, base_dir, client, handles,
     if baseline_spending and not baseline:
         p.baseline_spending = True   # reads G, TR, I_g from base_dir's TPI output
     T = p.T + p.S
-    from .surprise import ramp_weights
-    up = ramp_weights(T, surprise["k"] - 1 if surprise is not None else 0)
+    from .surprise import SURPRISE_OFFSET, ramp_weights
+    up = ramp_weights(T, SURPRISE_OFFSET if surprise is not None else 0)
     if z_terminal is not None:
         # Z must be paired with the SHAPE of the gamma path.  Before this fix the
         # Z block sat outside `if ramp`, so a step arm (gamma already stepped to

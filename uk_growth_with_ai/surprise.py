@@ -139,10 +139,15 @@ def ramp_weights(n: int, offset: int = 0) -> np.ndarray:
     """Weight on the terminal gamma/Z by model period, shape (n, 1).
 
     ``offset = 0`` is the old path (run_arm before this change): 0 at t = 0
-    (2026), full at t = RAMP_YEARS (2030).  A surprise run whose period 0 is
-    calendar ``START + k`` uses ``offset = k - 1``: weight 0 in START + k - 1,
-    full RAMP_YEARS later (2031 for k = 2)."""
+    (2026), full at t = RAMP_YEARS (2030).  A surprise run's period 0 is its
+    shock year and its zero-weight year is the year before (``window``), so it
+    uses ``offset = SURPRISE_OFFSET = 1`` for every k: 0.25 in the shock year,
+    full RAMP_YEARS - 1 years later (2031 for 2028, 2030 for 2027).  (Before
+    18 Nov 2026 run_arm passed k - 1, which equals 1 only for k = 2.)"""
     return np.clip((np.arange(n) + offset) / RAMP_YEARS, 0.0, 1.0)[:, None]
+
+
+SURPRISE_OFFSET = 1   # model period 0 = the shock year = ramp_zero_year + 1
 
 
 def calendar_weights(year: int = SURPRISE_YEAR, years=range(2026, 2037)) -> dict:
@@ -958,8 +963,14 @@ def check_specs(work, rerun_dir="analysis/rerun/output", closure="zk0.1",
            "tG1": int(p.tG1), "start_year": int(p.start_year),
            "ramp_weight_first5": ((np.asarray(p.gamma).ravel()[:5] - G_BASE)
                                   / (gamma - G_BASE)).tolist(),
+           "ramp_weight_expected": [calendar_weights(year)[year + i] for i in range(5)],
            "states": {c: state_check(p, s_, aggr.get_B, aggr.get_BQ)
                       for c, (_, s_) in states.items()}}
+    rep["ramp_ok"] = bool(np.allclose(rep["ramp_weight_first5"], rep["ramp_weight_expected"],
+                                      atol=1e-12))
+    if not rep["ramp_ok"]:
+        raise RuntimeError(f"check-specs: gamma ramp {rep['ramp_weight_first5']} is not the "
+                           f"calendar ramp {rep['ramp_weight_expected']} for {year}")
     return rep
 
 
