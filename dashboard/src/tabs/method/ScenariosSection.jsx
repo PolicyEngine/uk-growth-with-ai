@@ -189,6 +189,23 @@ function SubHead({ id, oldId, title, children }) {
   );
 }
 
+// The jump, read from UK central's investment gaps (some foreign capital):
+// the last year from the shock to the year before the headline whose gap is
+// at least 1.5 times the headline year's (later years are not tested: the
+// debt rule's first year steps up again). With no such year (investment up
+// about evenly throughout) the sentence says only that it stays up.
+export function investJump() {
+  const g = (y) => gap('uk_central', 'tfp', CENTRAL, 'I', y);
+  const head = g(HEADLINE_YEAR);
+  let to = null;
+  for (let y = SURPRISE_YEAR; y <= HEADLINE_YEAR - 1; y++) {
+    const v = g(y);
+    if (v != null && head != null && head > 0 && v >= 1.5 * head) to = y;
+  }
+  const inv = to != null ? `With no adjustment costs, investment jumps in ${SURPRISE_YEAR} and stays high while the shock builds, to ${to}.` : `Investment rises in ${SURPRISE_YEAR} and stays up.`;
+  return `${inv} Hours jump in ${SURPRISE_YEAR} only.`;
+}
+
 export default function ScenariosSection({ uses = null }) {
   return (
     <section className="mx-scenarios">
@@ -304,7 +321,6 @@ export default function ScenariosSection({ uses = null }) {
             <Items
               items={[
                 { icon: 'code', text: <>{ext(SRC.ogCore017.url, 'OG-Core 0.17')} defines an adjustment cost (<code>firm.adj_cost</code>) but never calls it.</> },
-                { icon: 'jump', text: 'So investment jumps for one year.' },
                 { icon: 'caveat', text: 'It reflects frictionless capital, not a forecast of a boom.' },
               ]}
             />
@@ -312,7 +328,7 @@ export default function ScenariosSection({ uses = null }) {
           moreTitle="Why there is a spike"
           morePreview="No adjustment costs in OG-Core 0.17"
         >
-          <Items items={[{ icon: 'jump', text: 'No adjustment costs: investment and hours jump in the announcement year.' }]} />
+          <Items items={[{ icon: 'jump', text: investJump() }]} />
         </InfoCard>
       </FoldGrid>
     </section>

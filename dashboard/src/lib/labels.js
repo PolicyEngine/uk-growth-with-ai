@@ -1,4 +1,4 @@
-import { LATE_YEAR } from '@/tabs/ai/surprise.js';
+import { LATE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
@@ -83,7 +83,7 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 export const RULES = [
   { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: `Spending follows GDP until ${LATE_YEAR}. From ${LATE_YEAR} a debt rule adjusts spending to steer debt/GDP towards the model’s long-run ratio`, plain: 'spending follows GDP' },
   { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: `Spending stays at its baseline level, whatever GDP does. From ${LATE_YEAR} the same debt rule applies`, plain: 'spending held fixed' },
-  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: `Transfers to households adjust so debt/GDP stays on the forecast path until ${LATE_YEAR}. From ${LATE_YEAR} the same debt rule applies`, plain: 'debt held steady by transfers to households' },
+  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: `Transfers adjust from ${SURPRISE_YEAR} to ${LATE_YEAR - 1} so debt/GDP is on the forecast path from ${SURPRISE_YEAR + 1} to ${LATE_YEAR}; from ${LATE_YEAR} the debt rule sets spending`, plain: 'debt held steady by transfers to households' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;
 // The budget assumption in plain words, for figure subtitles.
