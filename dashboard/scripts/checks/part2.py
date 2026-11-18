@@ -134,9 +134,79 @@ def links():
     return bad
 
 
+# The headline ledger (#story-headline, Landing.jsx HeadlineTiles,
+# headline-tiles-fable.md): three rows named as in the hero, each value the
+# 2031 gap at the header's closure, the pay note from the data (pay still
+# rising every year 2028-31: "slower growth, not a cut"), the pay caveat
+# where the sign differs across foreign-capital cases, and no chip.
+LEDGER = [('Y', 'GDP'), ('w', 'Pay rates'), ('GNI', 'National income')]
+H = YEARS.index(S['headline_year'])
+
+
+def pay_rises(sid, cl):
+    g = S['results'][sid]['tfp'][cl].get('pay_growth_pct')
+    if not g:
+        return None
+    win = [x for y, x in zip(YEARS, g) if S['surprise_year'] <= y <= S['headline_year']]
+    return bool(win) and all(x is not None and x > 0 for x in win)
+
+
+def pay_note(sid, cl):
+    w = S['results'][sid]['tfp'][cl]['gaps']['w'][H]
+    if w < -0.005:
+        return 'slower growth, not a cut' if pay_rises(sid, cl) else 'below the forecast path'
+    return 'pay for the same work'
+
+
+def pay_flips(sid):
+    ws = [S['results'][sid]['tfp'][cl]['gaps']['w'][H] for cl in ('zk0', 'zk0.1') if S['results'][sid]['tfp'][cl].get('status') == 'done']
+    sens = S.get('sensitivity', {}).get('zk0.5', {}).get('results', {}).get(sid, {}).get('tfp', {})
+    if sens.get('status') == 'done':
+        ws.append(sens['gaps']['w'][H])
+    if len(ws) < 2:
+        return False
+    return len({0 if abs(w) < 0.005 else (1 if w > 0 else -1) for w in ws}) > 1
+
+
+def ledger(dump):
+    """The headline ledger's labels, values and notes, every scenario and
+    header closure in the dump."""
+    bad = 0
+    for sid in dump:
+        for mode, cl in MODE_CL.items():
+            t = dump[sid].get('results:summary' + ('' if mode == 'central' else f':{mode}'))
+            r = S['results'][sid]['tfp'][cl]
+            if t is None or r.get('status') != 'done':
+                continue
+            a = t.find('The headline figures')
+            z = t.find('GDP ends', a)
+            blk = t[a:z if z > 0 else a + 1500]
+            miss = []
+            if not re.search(r"scenario, \d{4}: each figure is a gap against the OBR’s central forecast path\.", blk):
+                miss.append('sentence')
+            if ' · ' in blk:
+                miss.append('chip')
+            for v, name in LEDGER:
+                if f"{name}\n{signed(r['gaps'][v][H], 2)}%" not in blk:
+                    miss.append(name)
+            if pay_note(sid, cl) not in blk:
+                miss.append('pay note: ' + pay_note(sid, cl))
+            if ('positive with more foreign capital' in blk) != pay_flips(sid):
+                miss.append('pay caveat')
+            if 'GDP less net income paid abroad' not in blk:
+                miss.append('national income note')
+            for gone in ('Output (GDP)', 'Income UK residents keep', 'capital takes a larger share', 'sign depends on'):
+                if gone in blk:
+                    miss.append('old: ' + gone)
+            if miss:
+                bad += 1; print(sid, mode, 'story part 2 headline ledger:', miss)
+    print('part 2 headline ledger:', 'ok' if not bad else f'{bad} miss')
+    return bad
+
+
 def check(dump):
     """Return the number of failures for story part 2's own figures."""
-    bad = raw() + links()
+    bad = raw() + links() + ledger(dump)
     # the large shares only: a small one (1.6) is too often another fact
     shares_pct = {f"{v:.1f}%" for base in SPLIT["baseline"].values() if base for v in base.values() if v >= 10}
     for sid in dump:

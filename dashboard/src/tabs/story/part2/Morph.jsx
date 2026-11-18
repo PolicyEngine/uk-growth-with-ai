@@ -125,6 +125,10 @@ const tickText = (v, step) => {
 };
 
 const pathOf = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('');
+// the surprise year's index: a scenario line and the UK range start here
+const I0 = YEARS.indexOf(SURPRISE_YEAR);
+// a year before the surprise drawn at the surprise year (form (b))
+const from0 = (i) => Math.max(i, I0);
 
 // Everything the chart draws in geometry state s (0-2), as coordinates.
 // `dom` is the set of values the gap axis must hold (default: gapYs).
@@ -144,8 +148,13 @@ export function morphGeometry(s, gapYs, dom = gapYs) {
   // the forecast over the model's years: past its last year it sits on its
   // last point (states 0-1); in state 2 it is the zero line
   const obr = YEARS.map((yr) => [X(gapState ? yr : Math.min(yr, OBR_LAST)), gapState ? zeroY : Yg(obrAt(Math.min(Math.max(yr, OBR[0]?.[0] ?? yr), OBR_LAST)))]);
-  // the scenario's gap: on the forecast line until state 2
-  const gap = YEARS.map((yr, i) => [X(gapState ? yr : Math.min(yr, OBR_LAST)), gapState ? Yd(gapYs?.[i] ?? 0) : obr[i][1]]);
+  // the scenario's gap: on the forecast line until state 2. In the gap
+  // states it starts in the surprise year (form (b), as the hero): the
+  // points before it sit on its first point, so no segment joins 2027 to
+  // 2028 and the point count never changes (the morph needs it)
+  const gap = YEARS.map((yr, i) =>
+    gapState ? [X(Math.max(yr, SURPRISE_YEAR)), Yd(gapYs?.[Math.max(i, I0)] ?? 0)] : [X(Math.min(yr, OBR_LAST)), obr[i][1]],
+  );
   return {
     X,
     Yd,
@@ -210,10 +219,14 @@ const LH_PHONE = 22;
 const lineFrom = (id, sid) => (id === sid ? 2 : id === 'korinek' ? 4 : 3);
 
 // The area between two paths, for the shaded UK range: always the same
-// number of points, so a rescale moves it with the lines.
+// number of points, so a rescale moves it with the lines. It starts in the
+// surprise year (its left edge a vertical there): the years before sit on it.
 function bandPath(X, Y, lo, hi) {
-  const top = YEARS.map((x, i) => `${i ? 'L' : 'M'}${X(x).toFixed(1)},${Y(hi[i] ?? 0).toFixed(1)}`).join('');
-  const bottom = [...YEARS].reverse().map((x, j) => `L${X(x).toFixed(1)},${Y(lo[YEARS.length - 1 - j] ?? 0).toFixed(1)}`).join('');
+  const at = (i) => YEARS[from0(i)];
+  const top = YEARS.map((_, i) => `${i ? 'L' : 'M'}${X(at(i)).toFixed(1)},${Y(hi[from0(i)] ?? 0).toFixed(1)}`).join('');
+  const bottom = YEARS.map((_, i) => YEARS.length - 1 - i)
+    .map((i) => `L${X(at(i)).toFixed(1)},${Y(lo[from0(i)] ?? 0).toFixed(1)}`)
+    .join('');
   return `${top}${bottom}Z`;
 }
 
@@ -480,7 +493,8 @@ export function MorphChart({ state, sid, cl, pin = null }) {
             {lines
               .filter((l) => l.id !== sid)
               .map((l) => {
-                const d = pathOf(YEARS.map((yr, i) => [gG.X(yr), gG.Yd(l.ys[i])]));
+                // from the surprise year on (form (b)), the same point count in every state
+                const d = pathOf(YEARS.map((_, i) => [gG.X(YEARS[from0(i)]), gG.Yd(l.ys[from0(i)])]));
                 const on = s >= from(l.id);
                 return (
                   <Tween

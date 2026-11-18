@@ -150,9 +150,10 @@ export default function Part2({ part }) {
 }
 
 // The GDP scene's last step: the three headline figures (their one home,
-// #story-headline, which the Hero, Explore and Headline link to). Item 7:
-// one sentence of at most 15 words with no figure and no link, a chip, and
-// three tiles of label, number and one line. The public debt line is the
+// #story-headline, which the Hero, Explore and Headline link to): one
+// sentence with no figure and no link that names the scenario, the year and
+// the forecast path (headline-tiles-fable.md section 2; no chip), then a
+// three-row ledger of label, number and note. The public debt line is the
 // scene's caption note (DebtNote, under the closing line in the frame).
 // What the figures are measured against (main arm, forecast path) is in
 // the GDP figure's notes (part2/Morph.jsx, morphGroups).
@@ -164,11 +165,10 @@ function headlineStep(sid) {
     highlight: [`scen-${sid}`],
     body: (
       <>
-        <Say>Each is a gap against the forecast path in {HEADLINE_YEAR}: a scenario, not a forecast.</Say>
+        <Say>
+          {SCEN_NAME[sid]} scenario, {HEADLINE_YEAR}: each figure is a gap against the OBR&rsquo;s central forecast path.
+        </Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
-          <p className="p2-headline-chip">
-            {SCEN_NAME[sid]} · {HEADLINE_YEAR}
-          </p>
           <HeadlineTiles sid={sid} />
         </section>
       </>

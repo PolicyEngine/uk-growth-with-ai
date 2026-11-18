@@ -8,7 +8,7 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL,
+  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME as NAME, gap, fmt, payLine, result, DONE, TOTAL,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -23,15 +23,17 @@ import { URLS } from '@/tabs/ai/links.js';
 // productivity, headline year) at the closure chosen in the header, then
 // the one why line.
 // The story (tabs/story) places these; it is the one home of the three
-// headline figures. Each tile is a plain icon, a label and a large number
-// with an arrow from its sign; the number counts up once when first seen
-// (CountUp keeps the exact value in the DOM).
+// headline figures. A three-row ledger (headline-tiles-fable.md section 2):
+// the label left (the hero's three names, word for word), the value right
+// in neutral ink (the sign carries the direction), one note under each.
+// The number counts up once when first seen (CountUp keeps the exact value
+// in the DOM).
 
 const KPIS = [
   {
     v: 'Y',
     concept: 'gdp',
-    title: 'Output (GDP)',
+    title: 'GDP',
     line: 'everything produced in the UK',
     tip: `Gross domestic product: the value of everything produced in the UK, including by foreign-owned capital. The figure is a gap in the level ${HEADLINE_YEAR - SURPRISE_YEAR + 1} years on, not a growth rate.`,
   },
@@ -39,22 +41,23 @@ const KPIS = [
     v: 'w',
     concept: 'pay',
     title: 'Pay rates',
-    // one line of at most six words (item 7): from the sign (KPI_LINE)
-    line: 'slower growth, not a cut',
+    // one line of at most six words (item 7): from the data (payLine)
+    line: null,
     tip: 'Pay per unit of labour, adjusted for skill. It is not average earnings, which also move with hours and the mix of jobs.',
   },
   {
     v: 'GNI',
     concept: 'gni',
-    title: 'Income UK residents keep',
-    line: 'GDP less foreign owners’ share',
-    tip: 'Gross national income: GDP plus the UK’s income from abroad, less income paid to foreign owners of UK capital.',
+    title: 'National income',
+    line: 'GDP less net income paid abroad',
+    tip: 'Gross national income (GNI): GDP plus the UK’s income from abroad, less income paid abroad to owners of UK capital and holders of UK government debt.',
   },
 ];
 
-// The tile's one sub-line (at most six words): the pay line follows the
-// sign (below the path: slower growth, not a cut).
-const KPI_LINE = (k, x) => (k.v === 'w' && !(x < -0.005) ? 'pay for the same work' : k.line);
+// The tile's one sub-line (at most six words): the pay line from the data
+// (payLine: "slower growth, not a cut" only while pay still rises every
+// year), the others fixed.
+const KPI_LINE = (k, sid, cl, x) => (k.v === 'w' ? payLine(sid, cl, x) : k.line);
 
 export function heroAnswer(sid, cl = CENTRAL) {
   const y = gap(sid, 'tfp', cl, 'Y');
@@ -81,8 +84,6 @@ export function heroItems(sid, cl = CENTRAL) {
   if (g != null && y > 0 && g < y) out.push({ icon: 'gni', text: 'National income gains less than GDP' });
   return out;
 }
-
-const tone = (x) => (x == null || Math.abs(x) < 0.005 ? null : x > 0 ? 'gain' : 'loss');
 
 const ENTRIES = [
   { sub: 'income', icon: 'path', title: 'Year by year', text: `How national income and GDP build up from ${FIRST_YEAR} to ${HEADLINE_YEAR}, in three versions.` },
@@ -138,12 +139,7 @@ export function HeadlineTiles({ sid }) {
   // the pay tile keeps a short visible form of its caveat (voice pass): a
   // number whose sign can flip does not hide it; the full caveat is in the
   // GDP figure's notes (part2/Morph.jsx, morphGroups)
-  // and one clause of reason (newcomer review item 11): below the path,
-  // the shift to capital outweighs the productivity gain
-  const w = gap(sid, 'tfp', cl, 'w');
-  const extra = {
-    w: [w != null && w < -0.005 ? 'capital takes a larger share' : null, flips ? 'sign depends on foreign capital' : null],
-  };
+  const extra = { w: flips ? 'positive with more foreign capital' : null };
   return (
     <>
       <div className="stat-row">
@@ -156,7 +152,7 @@ export function HeadlineTiles({ sid }) {
               // the GDP scene's step card holds one icon (the step's): the
               // definition opens from the name itself, no tile icon
               name={
-                <TipTarget className="p2-tile-name" label={`What is ${k.title.toLowerCase()}?`} tip={<span>{k.tip}{k.v === 'GNI' ? share : ''}</span>}>
+                <TipTarget className="p2-tile-name" label={`What is ${k.title}?`} tip={<span>{k.tip}{k.v === 'GNI' ? share : ''}</span>}>
                   {k.title}
                 </TipTarget>
               }
@@ -165,8 +161,7 @@ export function HeadlineTiles({ sid }) {
                   <CountUp value={fmt(x)} />
                 </span>
               }
-              tone={tone(x)}
-              sub={KPI_LINE(k, x)}
+              sub={KPI_LINE(k, sid, cl, x)}
             >
               {[extra[k.v]].flat().filter(Boolean).map((line, i) => (
                 <p key={i} className="stat-line p2-tile-note">

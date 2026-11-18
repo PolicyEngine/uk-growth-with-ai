@@ -291,6 +291,32 @@ describe('from the record to the model', () => {
     expect(gs[1].gap).toEqual(gs[1].obr);
     expect(gs[2].obr.every(([, y]) => y === gs[2].zeroY)).toBe(true);
     expect(gs[2].gap.some(([, y]) => y < gs[2].zeroY - 1)).toBe(true);
+    // form (b), as the hero: in the gap state the line starts in the surprise
+    // year; every earlier point sits on that first point (no 2027-28 segment)
+    const i0 = real.years.indexOf(real.surprise_year);
+    for (let i = 0; i < i0; i++) expect(gs[2].gap[i]).toEqual(gs[2].gap[i0]);
+    expect(gs[2].gap[i0 + 1][0]).toBeGreaterThan(gs[2].gap[i0][0]);
+  });
+
+  it('the other scenarios and the UK range start in the surprise year too', async () => {
+    const { MorphChart } = await import('@/tabs/story/part2/Morph.jsx');
+    const { container } = render(
+      <NavProvider>
+        <MorphChart state={4} sid="uk_central" cl="zk0.1" />
+      </NavProvider>,
+    );
+    const pts = (d) => d.match(/[ML]-?[\d.]+,-?[\d.]+/g).map((p) => p.slice(1).split(',').map(Number));
+    const i0 = real.years.indexOf(real.surprise_year);
+    const scen = [...container.querySelectorAll('.p2-mo-scen')];
+    expect(scen.length).toBeGreaterThan(0);
+    for (const p of scen) {
+      const q = pts(p.getAttribute('d'));
+      expect(q).toHaveLength(real.years.length);
+      for (let i = 0; i < i0; i++) expect(q[i]).toEqual(q[i0]);
+    }
+    const band = pts(container.querySelector('.p2-mo-band').getAttribute('d'));
+    const x0 = band[i0][0];
+    expect(Math.min(...band.map(([x]) => x))).toBe(x0);
   });
 
   it('each state shows its own layers, axis title and source, and prints no figure', async () => {
@@ -375,7 +401,9 @@ describe('direction icons follow the signs', () => {
         const tiles = [...container.querySelectorAll('#story-headline .stat-tile')];
         expect(tiles).toHaveLength(3);
         expect(container.querySelector('#story-headline .stat-dir, #story-headline .kpi-range')).toBeNull();
-        expect(!!tiles[1].textContent.includes('sign depends on foreign capital'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
+        expect(!!tiles[1].textContent.includes('positive with more foreign capital'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
+        // neutral ink: no gain or loss colour on any value
+        expect(container.querySelector('#story-headline .stat-value.is-gain, #story-headline .stat-value.is-loss')).toBeNull();
         unmount();
       }
     }
@@ -399,19 +427,50 @@ describe('direction icons follow the signs', () => {
     }
   });
 
-  it('the headline step is one short sentence, a chip and the three tiles (item 7)', () => {
+  it('the headline step is one sentence and a three-row ledger named as in the hero, no chip', () => {
     const { container } = at('tab=story&s=uk_central');
     const head = container.querySelector('#story-headline');
     expect(head.querySelectorAll('.stat-tile')).toHaveLength(3);
     const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile'));
-    expect(lines.map((p) => p.className)).toEqual(['p2-headline-chip']);
-    expect(lines[0].textContent).toBe(`UK central · ${fixture.headline_year}`);
+    expect(lines).toHaveLength(0);
+    expect(container.querySelector('.p2-headline-chip')).toBeNull();
     const say = container.querySelector('#p2-headline .p2-say').textContent;
+    expect(say).toBe(`UK central scenario, ${fixture.headline_year}: each figure is a gap against the OBR’s central forecast path.`);
     expect(say.split(/\s+/).length).toBeLessThanOrEqual(15);
     expect(say).not.toMatch(/\d\.\d/);
+    // the hero's three names, word for word; the tip's name keeps the case
+    expect([...head.querySelectorAll('.stat-name .tip-target')].map((n) => n.textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
+    expect(head.querySelector('.stat-name [aria-label]')?.getAttribute('aria-label') ?? '').not.toMatch(/What is gdp/);
     // each tile: label, number and one line of at most six words
     for (const t of head.querySelectorAll('.stat-tile .stat-sub')) expect(t.textContent.split(/\s+/).length).toBeLessThanOrEqual(6);
+    expect(head.querySelectorAll('.stat-tile .stat-sub')[2].textContent).toBe('GDP less net income paid abroad');
+    expect(head.textContent).not.toContain('capital takes a larger share');
     expect(head.textContent).not.toContain('household consumption');
+  });
+
+  it('"slower growth, not a cut" only where pay still rises every year (pay_growth_pct), in the ledger and the hero', async () => {
+    const { payLine, payRises } = await import('@/tabs/ai/surprise.js');
+    const H = fixture.years.indexOf(fixture.headline_year);
+    for (const sid of SIDS) {
+      for (const cl of CLS) {
+        const r = fixture.results[sid].tfp[cl];
+        if (r.status !== 'done') continue;
+        const win = r.pay_growth_pct.filter((_, i) => fixture.years[i] >= fixture.surprise_year && fixture.years[i] <= fixture.headline_year);
+        expect(win).toHaveLength(fixture.headline_year - fixture.surprise_year + 1);
+        expect(payRises(sid, 'tfp', cl)).toBe(win.every((x) => x > 0));
+        const w = r.gaps.w[H];
+        expect(payLine(sid, cl)).toBe(w < -0.005 ? (win.every((x) => x > 0) ? 'slower growth, not a cut' : 'below the forecast path') : 'pay for the same work');
+      }
+    }
+    // a cell whose pay falls in one year loses the line
+    const r = fixture.results.uk_central.tfp['zk0.1'];
+    const keep = r.pay_growth_pct;
+    r.pay_growth_pct = keep.map((x, i) => (fixture.years[i] === fixture.surprise_year ? -0.1 : x));
+    try {
+      expect(payLine('uk_central', 'zk0.1')).toBe('below the forecast path');
+    } finally {
+      r.pay_growth_pct = keep;
+    }
   });
 
   it('the debt line follows the signs, gives the reason where the interest rate is up, and the OBR repricing pace in words', async () => {
