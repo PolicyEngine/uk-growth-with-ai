@@ -314,6 +314,27 @@
   max-width: 400px;
   margin: 0 auto;
 }
+/* each group's label under its block (polish round): in after the tiles
+   settle, out at once when they regroup */
+.p1-tile-labels {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--t-text);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 150ms var(--p1-ease);
+}
+.p1-exposure.is-grouped .p1-tile-labels {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
+}
 
 /* The foot: one source line and a "Sources" disclosure that opens over
    the figure, so the figure's height never changes */
@@ -671,9 +692,11 @@
     flex-direction: column;
     height: 100%;
   }
+  /* under the unit line, not centred in the AI chart's box (polish
+     round: the empty band above the grid) */
   .p1-exposure .p1-tiles {
     width: 100%;
-    margin: auto;
+    margin: 16px auto auto;
   }
 }
 

@@ -5,7 +5,7 @@ import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
-import { idx1, pct1, span3, tick } from './format.js';
+import { idx1, pct1, share0, span3, tick } from './format.js';
 
 // Part 1's graphics: four figures, each drawing the complete picture for
 // the active state of its scrolly block. Nothing prints a value (the cards
@@ -571,12 +571,15 @@ export function AiUseChart({ notes, lines = 2 }) {
 // tile's colour changing in the last third of its travel. The step text's
 // coloured group names (<Key>) are the legend.
 const GRID_W = 17;
-const GRID_H = 10;
+// polish round: 7 rows, the tallest state (the 35-tile group, five wide);
+// the one block is 17 wide and 6 high (it was 10 by 10, which left three
+// empty rows above the groups)
+const GRID_H = 7;
 
 export function exposureTiles(state) {
   const groups = EXPOSURE_GROUPS.flatMap((g, gi) => Array.from({ length: Math.round(g.value) }, (_, j) => ({ g, gi, j })));
   return groups.map(({ g, gi, j }, i) => {
-    if (state < 1) return { key: `t${i}`, x: 3.5 + (i % 10), y: Math.floor(i / 10), color: 'var(--pe-gray-400)', group: 'all' };
+    if (state < 1) return { key: `t${i}`, x: i % GRID_W, y: GRID_H - 1 - Math.floor(i / GRID_W), color: 'var(--pe-gray-400)', group: 'all' };
     return { key: `t${i}`, x: gi * 6 + (j % 5), y: GRID_H - 1 - Math.floor(j / 5), color: g.color, group: g.id };
   });
 }
@@ -599,6 +602,15 @@ export function ExposureTiles({ state, source, entered = true }) {
       <FigUnit>Each tile is one per cent of UK workers</FigUnit>
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
+        {/* each group's name and share under its block, once grouped (they
+            restate the step's figures: data-axis) */}
+        <ul className="p1-tile-labels" aria-hidden="true" style={{ '--cols': GRID_W }}>
+          {EXPOSURE_GROUPS.map((g, gi) => (
+            <li key={g.id} style={{ gridColumn: `${gi * 6 + 1} / span 5` }} data-axis="">
+              {g.name.replace(/\s*\(.*\)$/, '')} · {share0(g.value)}
+            </li>
+          ))}
+        </ul>
       </div>
     </figure>
   );
