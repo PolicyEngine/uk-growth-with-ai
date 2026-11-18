@@ -464,8 +464,11 @@ export function LabourBoard({ focus, notes }) {
 const AI_H = 204;
 const AI_M = { l: 34, r: 10, t: 12, b: 24 };
 
-export function AiUseChart({ notes }) {
+export function AiUseChart({ notes, lines = 2 }) {
   const [ref, seen] = useDrawIn();
+  // one line a step (polish round): all businesses, then 10 or more
+  // employees drawn on top; scrolling back past the step undraws it
+  const ten = seen && lines >= 2;
   const [box, w, aiH] = useBox(AI_H);
   const gid = useSvgId('p1-ai-fade');
   const a = SERIES.business_ai_use;
@@ -489,7 +492,7 @@ export function AiUseChart({ notes }) {
   // end labels clear of their lines: over the label's width (about 7px a
   // character at 12px), above the highest point of the upper line and
   // below the lowest point of the lower one
-  const under = (ys, chars) => idx.filter((i) => X(Math.min(last, i + 1)) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
+  const under = (ys, chars) => idx.filter((i) => X(Math.min(last, i + 1)) >= X(last) - chars * 7.6 - 16 || i === last - 1).map((i) => Y(ys[i]));
   const tenY = Math.max(T + 10, Math.min(...under(b.y, 27)) - 9);
   // "All businesses, 29.7%" (polish round F: the shorter label sat on its
   // own line near Sept 2026): under the lowest point of its line over the
@@ -540,18 +543,18 @@ export function AiUseChart({ notes }) {
             Survey wave, dated at its midpoint
           </text>
           <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} data-mark="ai-all" />
-          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen ? ' is-on' : ''}`} data-mark="ai-ten" />
           <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
+          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten" />
           {idx.map((i) => (
             <g key={i}>
-              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen ? ' is-on' : ''}`} data-mark="ai-ten" />
+              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten" />
               <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
             </g>
           ))}
-          <text x={X(last) - 4} y={tenY} textAnchor="end" className="p1-end-label is-ten is-on" data-mark="ai-ten">
+          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten">
             10 or more employees, <tspan data-path="facts.business_ai_use_10plus.value">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
           </text>
-          <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on" data-mark="ai-all">
+          <text x={X(last) - 4} y={allY} textAnchor="end" className={`p1-end-label is-all${seen ? ' is-on' : ''}`} data-mark="ai-all">
             All businesses, <tspan data-axis="">{pct1(FACTS.business_ai_use.value)}</tspan>
           </text>
         </g>

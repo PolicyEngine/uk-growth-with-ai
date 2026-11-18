@@ -214,8 +214,9 @@ function workNotes() {
   ].flat();
 }
 
-// (c) AI: business use (both lines), then the exposure tiles. `state`: 0
-// the AI-use chart, 1 the grouped tiles.
+// (c) AI: business use, one line a step (all businesses, then those with
+// 10 or more employees drawn on top), then the exposure tiles. `state`: 0
+// the AI-use chart, 1 the grouped tiles; `lines`: the chart's lines drawn.
 function aiSteps() {
   const [hh, hl, lo] = EXPOSURE_GROUPS;
   return [
@@ -223,15 +224,29 @@ function aiSteps() {
       id: 'p1-ai-0',
       icon: 'ai',
       title: 'Businesses using AI',
-      highlight: ['ai-all', 'ai-ten'],
+      highlight: ['ai-all'],
       state: 0,
+      lines: 1,
       body: (
         <>
           <Anchor id="p1-ai-1" />
           <Say>
-            AI use has risen every September since 2023, fastest in <Key id="ai-ten">larger businesses</Key>.
+            AI use among <Key id="ai-all">all businesses</Key> has risen every September since 2023.
           </Say>
         </>
+      ),
+    },
+    {
+      id: 'p1-ai-10',
+      icon: 'business',
+      title: 'Larger businesses',
+      highlight: ['ai-ten'],
+      state: 0,
+      lines: 2,
+      body: (
+        <Say>
+          It has risen fastest in businesses with <Key id="ai-ten">10 or more employees</Key>.
+        </Say>
       ),
     },
     {
@@ -317,8 +332,8 @@ export const ANCHOR_STEP = {
   'p1-share': ['p1-work', 2],
   'p1-share-0': ['p1-work', 2],
   'p1-ai-1': ['p1-ai', 0],
-  'p1-exposure': ['p1-ai', 1],
-  'p1-exposure-1': ['p1-ai', 1],
+  'p1-exposure': ['p1-ai', 2],
+  'p1-exposure-1': ['p1-ai', 2],
 };
 function useAnchorSteps() {
   useEffect(() => {
@@ -425,7 +440,7 @@ export default function Part1({ part }) {
           const s = ai[i]?.state ?? 0;
           return (
             <Swap active={s}>
-              <AiUseChart notes={aiN} />
+              <AiUseChart notes={aiN} lines={ai[i]?.lines ?? 2} />
               <ExposureTiles state={s} source={exposureSource()} entered={ctx?.entered ?? true} />
             </Swap>
           );

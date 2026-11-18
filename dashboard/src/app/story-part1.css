@@ -254,6 +254,12 @@
 }
 .p1-end-label.is-all {
   fill: var(--mk-all, var(--p1-ink));
+  opacity: 0;
+  transition: opacity 200ms var(--p1-ease);
+}
+.p1-end-label.is-all.is-on {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) 600ms;
 }
 .p1-end-label.is-ten {
   fill: var(--mk-ten, var(--pe-gray-600));
