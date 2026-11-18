@@ -351,6 +351,33 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
+  // item 31: every scene question (all of them, sticky or not) is centred
+  // on its content column (the header's parent), measured on its ink (a
+  // Range over .scene-head-q), within 4px; Part 4's heading on .story
+  const off = await page.evaluate(() => {
+    const out = [];
+    const ink = (el) => {
+      const rg = document.createRange();
+      rg.selectNodeContents(el);
+      const rs = [...rg.getClientRects()].filter((r) => r.width > 0);
+      if (!rs.length) return null;
+      return (Math.min(...rs.map((r) => r.left)) + Math.max(...rs.map((r) => r.right))) / 2;
+    };
+    const items = [...document.querySelectorAll('.scene-head')].map((h) => [h.id || h.parentElement.id, h.querySelector('.scene-head-q') ?? h, h.parentElement]);
+    const two = document.getElementById('story-close-h');
+    if (two) items.push(['story-close-h', two, document.querySelector('.story')]);
+    for (const [id, q, col] of items) {
+      if (!q.getClientRects().length) continue;
+      const c = ink(q);
+      const r = col.getBoundingClientRect();
+      if (c == null) continue;
+      out.push({ id, d: Math.round((c - (r.left + r.right) / 2) * 10) / 10 });
+    }
+    return out;
+  });
+  const offBad = off.filter((o) => Math.abs(o.d) > 4);
+  if (offBad.length) hmiss++;
+  hlines.push(`  ${offBad.length ? 'MISS' : 'ok  '} ${W}x${H} ${off.length} scene questions centred on their column${offBad.length ? `: ${offBad.map((o) => `${o.id} ${o.d}px`).join(', ')}` : ` (largest ${Math.max(0, ...off.map((o) => Math.abs(o.d)))}px)`}`);
   const blocks = await page.evaluate(() =>
     [...document.querySelectorAll('.scrolly')]
       .filter((s) => !/is-single|is-once|is-inline/.test(s.className))

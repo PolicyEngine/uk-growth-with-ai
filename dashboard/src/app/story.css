@@ -5,12 +5,14 @@
 
 .story {
   /* ---- Round 1 type scale (plan section 1): one scale, five sizes ----
-     display 28-44 / 700, title 24 / 700, body 17 / 400, label 14 / 600,
-     ui 14 / 400, meta 12 / 400. Weights 400 and 600; 700 for display and
+     display 28-44 / 700, title 24 / 700, topic 20 / 600 (19 at 600px and
+     under: the settled scene question, item 31), body 17 / 400, label
+     14 / 600, ui 14 / 400, meta 12 / 400. Weights 400 and 600; 700 for display and
      title only. Three greys (ink 900, text 700, muted 500) and one link
      teal. Part files set type only through these roles. */
   --t-display: clamp(28px, 3.6vw, 44px);
   --t-title: 24px;
+  --t-topic: 20px;
   --t-body: 17px;
   --t-label: 14px;
   --t-ui: 14px;
@@ -260,12 +262,16 @@
   grid-row: 1;
   margin: 0;
   scroll-margin-top: calc(var(--story-graphic-top) + 8px);
+  /* item 31 (Vahid: "in the middle and a bit bigger"): centred on the
+     content column, a step above the body */
+  text-align: center;
 }
 .scene-head-q {
-  margin: 0;
-  font-size: var(--t-body);
+  max-width: 52rem;
+  margin: 0 auto;
+  font-size: var(--t-topic);
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   letter-spacing: normal;
   color: var(--t-ink);
   text-wrap: balance;
@@ -277,6 +283,16 @@
 /* 16px between the header and its block */
 .scrolly.has-sub {
   row-gap: 16px;
+}
+@media (max-width: 600px) {
+  .story {
+    --t-topic: 19px;
+  }
+}
+/* Part 4's heading (Two lenses) centred on the column like the other
+   part headings and the scene questions (item 31, 3d) */
+#story-close .story-part-head {
+  text-align: center;
 }
 /* The question-led sequence (QStage.jsx). Full pin (sub.pin: 'full', four
    topics): one pinned screen, --q-pin tall, above the topic's header; at
