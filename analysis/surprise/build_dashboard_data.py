@@ -78,6 +78,15 @@ def levels(s):
             "labour_share": [s["w"][i] * s["L"][i] / s["Y"][i] * 100 for i in range(n)]}
 
 
+def pay_growth(rec):
+    """Pay per unit of labour, % change on the year before, re-trended at the
+    run's own growth rate (the model's series are detrended): None for the
+    first year. The story says "slower growth, not a cut" only when every
+    year of the window is positive here."""
+    w, g = rec["series"]["w"], rec["g_y_annual_used"]
+    return [None] + [(w[i] / w[i - 1] * (1 + g) - 1) * 100 for i in range(1, len(w))]
+
+
 def foreign_share(s, b, year=HEADLINE):
     """Foreign-owned share (%) of the capital stock added against the reference, in `year`."""
     i = YEARS.index(year)
@@ -183,6 +192,8 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
             "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
             # share of the extra 2031 capital stock that is foreign-owned, %
             "foreign_share_dK_2031": foreign_share(rec["series"], b),
+            # real pay growth each year (pay_growth): the "not a cut" test
+            "pay_growth_pct": pay_growth(rec),
         }
         if variant is False:  # common rule: debt/GDP in LATE at the OBR's repricing speed
             own = repriced_debt_pp(rec["series"], b, full=True)

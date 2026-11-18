@@ -83,6 +83,25 @@ export function path(sid, arm, closure, v, rule = 'common') {
 // A value that rounds to zero prints unsigned; the minus sign is U+2212.
 export const signed = (x, dp = 1) =>
   Math.abs(x) < 0.5 * 10 ** -dp ? (0).toFixed(dp) : `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(dp)}`;
+// Does pay per unit of labour still rise every year from the surprise to
+// the headline year (pay_growth_pct, written by the data build from the
+// solve's own pay series, re-trended)? null when the field is missing.
+export function payRises(sid, arm, closure) {
+  const r = result(sid, arm, closure);
+  const g = r.status === 'done' ? r.pay_growth_pct : null;
+  if (!Array.isArray(g)) return null;
+  const win = g.filter((_, i) => YEARS[i] >= SURPRISE_YEAR && YEARS[i] <= HEADLINE_YEAR);
+  return win.length > 0 && win.every((x) => typeof x === 'number' && x > 0);
+}
+// The pay figure's one line, shared by the hero and part 2's ledger: below
+// the path with pay still rising every year, "slower growth, not a cut";
+// below it otherwise, the plain side; on or above it, what the figure is.
+export function payLine(sid, closure, w = gap(sid, 'tfp', closure, 'w')) {
+  if (w == null) return null;
+  if (w < -0.005) return payRises(sid, 'tfp', closure) ? 'slower growth, not a cut' : 'below the forecast path';
+  return 'pay for the same work';
+}
+
 export const fmt = (x, dp = 2, unit = '%') => (x == null ? 'pending' : `${signed(x, dp)}${unit}`);
 
 export const DONE = S.solves_done;
