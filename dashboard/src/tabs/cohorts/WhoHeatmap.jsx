@@ -71,7 +71,7 @@ export function DotStrip({ m }) {
       <figcaption>
         <Icon name={iconFor('households')} size={14} /> Adults who lose, {m.label.toLowerCase()}
       </figcaption>
-      <AxisTitles y="Share of adults who lose: each dot is one adult in a hundred" />
+      <AxisTitles y="Adults who lose; one dot = 1 adult in 100" />
       <div className="ex-dots" role="img" aria-label={`${m.label}: ${solid + range} of 100 dots${range ? `, ${range} of them the range` : ''}`} data-measure={m.id}>
         {Array.from({ length: 100 }, (_, i) => (
           <span key={i} className={`ex-dot${i < solid ? ' is-lose' : i < solid + range ? ' is-range' : ''}`} style={{ transitionDelay: `${Math.min(i, 60) * 3}ms` }} />
@@ -120,7 +120,8 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       sources={cohortSources()}
       icon={iconFor('lifetimeEarnings')}
       title="By age and earnings group"
-      finding={both ? <span className="ex-ctx">Some foreign capital</span> : null}
+      // item 36: the "Some foreign capital" context moves to More info
+      more={both ? [{ label: 'Settings', text: 'Some foreign capital: with both cases chosen, this chart shows some foreign capital.' }] : null}
       controls={
         <Pill
           className="is-card"

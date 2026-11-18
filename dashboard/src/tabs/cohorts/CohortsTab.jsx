@@ -576,7 +576,7 @@ function ConsLine({ c }) {
         </div>
         {end('end', last)}
       </div>
-      <figcaption className="ex-bars2-cap" data-axis-title="y">{`Consumption against the forecast path, %, ${first[0]}–${last[0]}`}</figcaption>
+      <figcaption className="ex-bars2-cap" data-axis-title="y">Consumption gap vs forecast path, %</figcaption>
     </figure>
   );
 }
@@ -740,7 +740,7 @@ function Why({ cl, rule, arm }) {
         <Finding icon="lifetimeEarnings" lead={B.lead} lines={B.lines} note={<JumpLink to="who-model-households">More info: how the model’s households compare with the UK</JumpLink>}>
           <Bars
             signed
-            caption={`Welfare change, % of remaining-lifetime consumption and bequests, adults alive in ${t.shockYear}`}
+            caption="% of remaining-lifetime consumption and bequests"
             rows={[
               { key: 'bot', label: bot, value: B.bot, text: pct(B.bot) },
               { key: 'top', label: top, value: B.top, text: pct(B.top) },
@@ -760,7 +760,7 @@ function Why({ cl, rule, arm }) {
         <Finding icon="young" lead={Dw.lead} lines={Dw.lines}>
           <Bars
             signed
-            caption="Welfare change in the stress test, % of remaining-lifetime consumption and bequests"
+            caption="% of remaining-lifetime consumption and bequests"
             rows={[
               { key: 'young', label: `Age ${FIRST_AGE} in ${t.shockYear}`, value: Dw.young, text: pct(Dw.young) },
               { key: 'old', label: `Age ${RULER_AGE} in ${t.shockYear}`, value: Dw.old, text: pct(Dw.old) },
@@ -925,10 +925,12 @@ export default function WhoGainsTab() {
           id="welfare-chart"
           icon={iconFor('path')}
           title="Welfare change by birth year"
-          finding={
-            <Lead c="scenario">{`${armLabel} · ${clWords} · ${rulePlain(rule)}`}</Lead>
-          }
-          unit={<Lead c="measure">Consumption-equivalent change, % of remaining-lifetime consumption and bequests</Lead>}
+          // item 36 (E9): the settings are the pill's and the page's; the
+          // chart's own y title is the one unit line
+          more={[
+            { label: 'Measure', text: 'Consumption-equivalent welfare change: the change in remaining-lifetime consumption and bequests that is worth the same to each household.' },
+            { label: 'Settings', text: `${armLabel}; ${clWords}; ${rulePlain(rule)}.` },
+          ]}
           controls={
             <Pill
               className="is-card"
@@ -992,7 +994,7 @@ export default function WhoGainsTab() {
                     // values are in the tooltip and the heatmap)
                     noValue
                     dots={false}
-                    yUnit="Welfare change, % of remaining-lifetime consumption and bequests"
+                    yUnit="% of remaining-lifetime consumption and bequests"
                     xUnit="Birth year"
                     unit="%"
                     zeroNote="No change = 0"
