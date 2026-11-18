@@ -37,7 +37,7 @@ import { URLS } from '@/tabs/ai/links.js';
 export const ECON = MEASURES.filter((m) => m.v !== 'debt_gdp_pp');
 const DEBT = MEASURES.filter((m) => m.v === 'debt_gdp_pp');
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
-const shortName = (s) => s.label.replace(' et al. (upper)', '');
+const shortName = (s) => s.short ?? s.label;
 export const closureOf = (cl) => (cl === BOUND ? 'closed' : 'central');
 
 // Is this cell one the charts below print for the pickers in view: the
@@ -227,7 +227,7 @@ export default function AllScenarios() {
           caveats: (
             <Items
               items={[
-                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al.')}: US inputs, an upper case, not a UK estimate</> },
+                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al., substantial (US)')}: the upper case, not a UK estimate</> },
                 {
                   key: 'debt',
                   icon: 'debt',

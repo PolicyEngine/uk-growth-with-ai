@@ -86,7 +86,7 @@ sp gate --closure zk0.1 --approve --reference continuation --note "..."`,
     short: 'Scenario grid',
     title: 'The scenario grid',
     file: 'analysis/surprise/uk_targets.json',
-    line: 'Four scenarios (three UK, Korinek et al. upper), three arms each.',
+    line: 'Four scenarios (three UK; Korinek et al., substantial (US), the upper case), three arms each.',
     more: [
       '--scenario defaults to korinek, so always pass it.',
       'next prints a scenario’s next solve, or nothing once done.',

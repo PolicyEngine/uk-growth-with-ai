@@ -27,7 +27,7 @@ export const INPUTS = [
   { group: 'Scenarios', input: 'UK central: labour-share fall (headline)', value: pp('uk_central'), kind: 'derived', how: 'Derived, not published by the IMF. Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%; only years 5 and 10 are printed). Divided by the IMF’s 27% cost saving, the 0.41–0.44% reading gives 1.5–1.6pp. The UK central scenario uses 1.6pp.', note: 'The share is derived from the 0.42 reading, but the TFP input is the rounded 0.4, which on its own would give 0.4 ÷ 0.27 = 1.5pp. The OBR cross-check (1.78pp) sits above 1.6, so 1.6 is not biased high.', src: ['imfSipFig9', 'imfSip44', 'frs87'] },
   { group: 'Scenarios', input: 'UK high: output at fixed inputs', value: pc('uk_high'), kind: 'derived', how: 'The OBR’s high alternative, up to 0.8pp a year (a decade average), phased in linearly to year five: 2 × 0.8 = 1.6%. Ramping to it by year five is a modelling choice.', src: ['frs86', 'bp9B14', 'imfArt4'] },
   { group: 'Scenarios', input: 'UK high: labour-share fall', value: pp('uk_high'), kind: 'derived', how: 'The OBR’s upper-end path, wages and salaries 40% → 20% of GDP over 45 years: 20/45 × 4 = 1.78pp, rescaled to OG-UK’s 65% labour share: × 65/40 = 2.89pp. Rescaling and the 2028 start are modelling choices.', src: ['frs87', 'frs88'] },
-  { group: 'Scenarios', input: 'Korinek et al.: labour share and TFP', value: `${pp('korinek')}; ${pc('korinek')}`, kind: 'published', how: '“Substantial” scenario: labour share 60.0 → 56.1; measured TFP +3.1%. A US scenario for 2030, used as an upper case.', src: ['korinekT3'] },
+  { group: 'Scenarios', input: 'Korinek et al., substantial (US): labour share and TFP', value: `${pp('korinek')}; ${pc('korinek')}`, kind: 'published', how: 'The ‘substantial’ scenario of Korinek et al. (2026), a US case used as the upper case, not calibrated to the UK: labour share 60.0 → 56.1; measured TFP +3.1% in 2030.', src: ['korinekT3'] },
   { group: 'Scenarios', input: 'Stress test: GDP held at the OBR’s central forecast path', value: '2031', kind: 'published', how: 'After the OBR’s displacement scenario, GDP unchanged. The 0.01pp tolerance is a modelling choice.', src: ['efoMarBox22'] },
   { group: 'Scenarios', input: 'Which pairs, the three arms, the headline', value: '—', kind: 'choice', how: 'The study’s design.', src: ['calibNote', 'fiscalRules'] },
   // timing
@@ -73,7 +73,7 @@ const SHORT = {
   'UK central: labour-share fall (headline)': ['0.42 ÷ 0.27 ≈ 1.6pp; derived, not published by the IMF', ['uk_central', 'labour_share']],
   'UK high: output at fixed inputs': ['OBR high alternative, 0.8pp a year, ramped: 2 × 0.8 = 1.6%', ['uk_high', 'tfp']],
   'UK high: labour-share fall': ['OBR upper-end path 1.78pp, rescaled × 65/40 = 2.89pp', ['uk_high', 'labour_share']],
-  'Korinek et al.: labour share and TFP': ['“Substantial” scenario, a US scenario for 2030; an upper case', ['korinek', 'both']],
+  'Korinek et al., substantial (US): labour share and TFP': ['The ‘substantial’ scenario, a US case for 2030; the upper case', ['korinek', 'both']],
   'Stress test: GDP held at the OBR’s central forecast path': ['The OBR’s displacement scenario, GDP unchanged', null],
   'Trend productivity growth': ['OBR March 2026 EFO; includes the OBR’s central AI effect', null],
   '2030 debt/GDP target': ['Spending set so 2030 debt/GDP matches the OBR’s forecast', null],

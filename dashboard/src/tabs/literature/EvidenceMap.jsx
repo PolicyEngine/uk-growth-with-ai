@@ -57,7 +57,7 @@ export function ourRows() {
     url: null,
     year: Number(S.generated_utc.slice(0, 4)),
     metric,
-    measure: `${label} in each scenario, UK low to Korinek et al. (upper)`,
+    measure: `${label} in each scenario, UK low to Korinek et al., substantial (US)`,
     horizon: `${HEADLINE_YEAR}, year 4 of adoption`,
     baseline: 'OBR’s central forecast path',
     country: 'UK',

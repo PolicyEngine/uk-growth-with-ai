@@ -199,7 +199,7 @@ export const rescales = (sid, cl, pin = null) => {
   const b = gapAxis(canvasDomain(4, sid, lines, pin));
   return a.lo !== b.lo || a.hi !== b.hi;
 };
-const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
+const SCEN_LINES = { korinek: ['Korinek,', 'substantial (US)'] };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
 const LH = 17;
@@ -364,7 +364,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
     s >= 3
       ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line. The UK range, from UK low to UK high, is shaded.`
       : '',
-    s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., on US inputs, lies above the UK range.` : '',
+    s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., substantial (US), lies above the UK range.` : '',
     s >= 2 && pinned ? `${SCEN_NAME[pinned]} is pinned for comparison, in dark grey.` : '',
   ]
     .filter(Boolean)

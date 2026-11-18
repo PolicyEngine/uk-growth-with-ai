@@ -38,7 +38,7 @@ const TICK_YEARS = [YEARS[0], SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR];
 export const heroSeries = (cl) =>
   SCENARIOS.map((s) => {
     const r = S.results[s.id]?.tfp?.[cl];
-    return r?.status === 'done' ? { id: s.id, name: SCEN_NAME[s.id], y: r.gaps.Y, at: r.gaps.Y[YEARS.indexOf(HEADLINE_YEAR)] } : null;
+    return r?.status === 'done' ? { id: s.id, name: SCEN_NAME[s.id], short: s.short ?? SCEN_NAME[s.id], y: r.gaps.Y, at: r.gaps.Y[YEARS.indexOf(HEADLINE_YEAR)] } : null;
   }).filter(Boolean);
 
 const pathD = (ys, X, Y) => ys.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
@@ -151,7 +151,7 @@ function Fan({ lines, sid, wide }) {
       ))}
       {labels.map((l) => (
         <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - fs * 0.5}>
-          <tspan className="hf-end-name">{l.name}</tspan>
+          <tspan className="hf-end-name">{l.short}</tspan>
           <tspan x={X(last) + 10} dy={fs * 1.3} className="hf-end-value">
             {fmt(l.at)}
           </tspan>
@@ -246,7 +246,7 @@ export default function Hero() {
           {lines.map((l) => (
             <li key={l.id} className={`hf-chip is-${LINE[l.id]}${l.id === sid ? ' is-on' : ''}`} data-mark={l.id}>
               <span className="hf-swatch" aria-hidden="true" />
-              <span className="hf-chip-name">{l.name}</span> <span className="hf-chip-value">{fmt(l.at)}</span>
+              <span className="hf-chip-name">{l.short}</span> <span className="hf-chip-value">{fmt(l.at)}</span>
             </li>
           ))}
         </ul>

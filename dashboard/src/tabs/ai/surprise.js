@@ -18,14 +18,20 @@ export const CLOSURES = ['zk0.1', 'zk0']; // central, no-foreign-capital bound
 export const CENTRAL = 'zk0.1';
 export const BOUND = 'zk0';
 export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.zeta_K };
-export const SCENARIOS = S.scenarios;
+// Korinek et al. ran three US scenarios; this is the 'substantial' one
+// (Table 3, p.31), a US case used as the upper case. One name everywhere:
+// KORINEK_NAME in full, KORINEK_SHORT where space is tight (end labels,
+// chips). The data file's label is overridden here, not edited.
+export const KORINEK_NAME = 'Korinek et al., substantial (US)';
+export const KORINEK_SHORT = 'Korinek, substantial (US)';
+export const SCENARIOS = S.scenarios.map((s) => (s.id === 'korinek' ? { ...s, label: KORINEK_NAME, short: KORINEK_SHORT } : s));
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
-// The one name of each scenario, as the paper's tables print it (UK low, UK
-// central, UK high, Korinek et al. (upper)); set in build_dashboard_data.py.
+// The one name of each scenario (UK low, UK central, UK high, Korinek et
+// al., substantial (US)).
 export const SCEN_NAME = Object.fromEntries(SCENARIOS.map((s) => [s.id, s.label]));
 // The upper case where it is defined (paper, methodology: "Upper case:
 // Korinek et al., US 'substantial'").
-export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
+export const KORINEK_FULL = KORINEK_NAME;
 // [{id, label, short}], in display order: 'tfp' automation + productivity
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
 // 'ss' the OBR-style stress test that holds 2031 GDP at the forecast path.

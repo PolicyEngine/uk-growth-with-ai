@@ -115,11 +115,11 @@ export function morphCardSteps(sid, cl) {
           <Say>
             {sid === 'korinek' ? (
               <>
-                The UK scenarios join below <Key id="scen-korinek">Korinek et al.</Key>, built on US inputs: a larger shock means a higher line.
+                The UK scenarios join below <Key id="scen-korinek">Korinek et al., substantial (US)</Key>: a larger shock means a higher line.
               </>
             ) : (
               <>
-                The other scenarios join: a larger shock means a higher line. <Key id="scen-korinek">Korinek et al.</Key>, built on US inputs, is highest.
+                The other scenarios join: a larger shock means a higher line. <Key id="scen-korinek">Korinek et al., substantial (US)</Key> is highest.
               </>
             )}
           </Say>

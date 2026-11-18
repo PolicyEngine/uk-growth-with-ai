@@ -11,7 +11,7 @@ const ROLE = {
   uk_low: 'Derived from the OBR J-curve path (Briefing paper No.9, ¶B.12)',
   uk_central: 'Headline: year 4 read off IMF SIP/2026/072 Figure 9, with the share fall derived from its 27% cost saving (¶44). Not an IMF pair',
   uk_high: 'Derived from the OBR’s high alternative and upper-end share path (FRS 2026, Box 4.1)',
-  korinek: 'US inputs, kept as an upper case',
+  korinek: 'A US case used as the upper case, not calibrated to the UK',
 };
 const W = 560;
 // The bottom margin leaves room for the tick row and the axis title at the
@@ -125,7 +125,7 @@ export default function ScenarioMap({ caption = true }) {
         </li>
         <li>
           <span data-icon="" className="mx-key is-upper" aria-hidden="true" />
-          <span>Korinek et al.&rsquo;s US &ldquo;substantial&rdquo; case: an upper case, beyond UK range.</span>
+          <span>Korinek et al., substantial (US): the upper case, beyond UK range.</span>
         </li>
       </ul>
       </div>

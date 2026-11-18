@@ -21,7 +21,7 @@ import './evidence.css';
 // with a META entry for its title and axis). Each lane draws published level gaps (bars, or dots for a single figure), each
 // against its own study's baseline, from the UK evidence map
 // (site-evidence-map.json, through RANGES), beside our headline-year gaps for
-// UK central and Korinek et al. (upper) (automation + productivity arm)
+// UK central and Korinek et al., substantial (US) (automation + productivity arm)
 // against the forecast path, read from surprise2028.json through gap().
 // Published figures are printed in the evidence map; ours on Explore. Here
 // both appear in the tooltips only. A figure not confirmed in the published
