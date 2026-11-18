@@ -69,7 +69,7 @@ analysis/surprise/driver.sh check nics \\
     short: 'Continuation gate',
     title: 'The continuation gate',
     file: 'analysis/surprise/output/zk0.1/GATE_continuation.json',
-    line: 'A restart without the shock must reproduce the no-shock baseline: every gap’s zero.',
+    line: 'A restart without the extra AI must reproduce the OBR’s central forecast path: every gap’s zero.',
     more: [
       'GDP, capital and debt/GDP must match within 10⁻⁴, 2028–2036.',
       'The rest must match within 10⁻³.',
@@ -86,7 +86,7 @@ sp gate --closure zk0.1 --approve --reference continuation --note "..."`,
     short: 'Scenario grid',
     title: 'The scenario grid',
     file: 'analysis/surprise/uk_targets.json',
-    line: 'Four scenarios (three UK, Korinek et al. upper), three arms each.',
+    line: 'Four scenarios (three UK; Korinek et al., substantial (US), the upper case), three arms each.',
     more: [
       '--scenario defaults to korinek, so always pass it.',
       'next prints a scenario’s next solve, or nothing once done.',

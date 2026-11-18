@@ -54,7 +54,7 @@ export const cellsTable = (arm, armLabel) => ({
     ROWS.flatMap((row) =>
       SCENARIOS.map((s) => {
         const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
-        return [m.label, m.unit === '%' ? '% difference from the no-shock baseline' : 'pp of GDP, difference from the no-shock baseline', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? 'pending' : 'solved'];
+        return [m.label, m.unit === '%' ? '% difference from the OBR’s central forecast path' : 'pp of GDP, difference from the OBR’s central forecast path', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? 'pending' : 'solved'];
       }),
     ),
   ),

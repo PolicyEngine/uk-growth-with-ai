@@ -30,7 +30,7 @@ const YEAR = D.model_year_label ?? MODEL_YEAR;
 const STATUS = D.provisional === false ? (D.status ?? null) : 'provisional';
 const PR = D.source.pr_url ?? PR_URL;
 const PAPER = D.source.paper_url ?? PAPER_URL;
-const CTX = `uk-ai-study PR #${D.source.pr}${STATUS ? ` (${STATUS})` : ''}, ${D.source.dataset}, ${YEAR}, commit ${D.source.commit.slice(0, 7)}`;
+const CTX = `Household study PR #${D.source.pr}${STATUS ? ` (${STATUS})` : ''}, ${D.source.dataset}, ${YEAR}, commit ${D.source.commit.slice(0, 7)}`;
 // Orderings in words, computed, so a rerun that moves them changes the text.
 const span = (is) => {
   const runs = [];
@@ -851,7 +851,7 @@ function Sources() {
             {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
           </a>
           <a href={PR} target="_blank" rel="noreferrer">
-            uk-ai-study PR #{D.source.pr}
+            Household study PR #{D.source.pr}
           </a>
           <NavLink tab="method" sub="households">
             Household method
@@ -877,7 +877,10 @@ export default function HouseholdsExplore() {
       <header className="hh-lead page-intro">
         <div className="page-kicker-row">
           <p className="hh-model page-kicker">
-          uk-ai-study{STATUS === 'provisional' ? ' (provisional)' : ''}: a one-year PolicyEngine-UK microsimulation of households, {YEAR}. Poverty is{' '}
+          <a href={PAPER} target="_blank" rel="noreferrer">
+            The household study (PolicyEngine UK)
+          </a>
+          {STATUS === 'provisional' ? ' (provisional)' : ''}: a one-year PolicyEngine-UK microsimulation of households, {YEAR}. Poverty is{' '}
           <a href={URLS.hbai} target="_blank" rel="noreferrer" title="DWP's HBAI publishes both bases; absolute poverty holds the line at its baseline value">
             before housing costs
           </a>

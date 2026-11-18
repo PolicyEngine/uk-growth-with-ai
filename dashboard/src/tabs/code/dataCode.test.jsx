@@ -29,8 +29,8 @@ describe('Data and code', () => {
     expect(VINTAGES.map((v) => v.file)).toContain('surprise2028.json');
   });
   it('one vintages table carries both models, each row labelled', () => {
-    for (const v of VINTAGES) expect(['OG-UK', 'uk-ai-study', '—']).toContain(v.model);
-    const text = JSON.stringify(VINTAGES.filter((v) => v.model === 'uk-ai-study'));
+    for (const v of VINTAGES) expect(['OG-UK', 'Household study', '—']).toContain(v.model);
+    const text = JSON.stringify(VINTAGES.filter((v) => v.model === 'Household study'));
     // the household study's vintages, which were on Household method
     expect(text).toContain(AI.source.commit.slice(0, 7));
     expect(text).toContain(AI.method.data_build);
@@ -40,7 +40,7 @@ describe('Data and code', () => {
     const pe = MODEL_VERSIONS.filter((e) => e.label === 'PolicyEngine-UK');
     expect(pe.map((e) => [e.model, e.value])).toEqual([
       ['OG-UK', '2.90.2'],
-      ['uk-ai-study', AI.method.policyengine_uk],
+      ['Household study', AI.method.policyengine_uk],
     ]);
   });
 });

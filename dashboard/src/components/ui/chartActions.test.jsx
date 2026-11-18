@@ -29,7 +29,7 @@ describe('chart actions', () => {
     expect(copied).toContain('debt-gdp');
   });
   it('the study caption names the model year and drops provisional once merged', () => {
-    expect(studyCaption({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('Model: uk-ai-study (PolicyEngine-UK microsimulation), FY 2027–28');
+    expect(studyCaption({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('Model: the household study (PolicyEngine UK microsimulation), FY 2027–28');
     expect(studyCaption({ provisional: true })).toContain('provisional');
   });
   it('AboutFold prints a replication line with code and result file links', () => {

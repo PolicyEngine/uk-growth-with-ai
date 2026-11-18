@@ -21,8 +21,8 @@ import './evidence.css';
 // with a META entry for its title and axis). Each lane draws published level gaps (bars, or dots for a single figure), each
 // against its own study's baseline, from the UK evidence map
 // (site-evidence-map.json, through RANGES), beside our headline-year gaps for
-// UK central and Korinek et al. (upper) (automation + productivity arm)
-// against the no-shock baseline, read from surprise2028.json through gap().
+// UK central and Korinek et al., substantial (US) (automation + productivity arm)
+// against the forecast path, read from surprise2028.json through gap().
 // Published figures are printed in the evidence map; ours on Explore. Here
 // both appear in the tooltips only. A figure not confirmed in the published
 // text (`unverified`) is left out, as it is from the map.
@@ -30,8 +30,8 @@ import './evidence.css';
 // without one show published figures only. Adoption and exposure are levels,
 // not effects. `kind: 'shares'` draws one row's `shares` as a 100% bar.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; OG-UK against the no-shock baseline', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; OG-UK against the no-shock baseline', step: 1 },
+  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; OG-UK against the OBR’s central forecast path', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; OG-UK against the OBR’s central forecast path', step: 1 },
   adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10, level: true },
   exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers by occupation: a share, not a gap', kind: 'shares' },
   distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points against each study’s own baseline', step: 5, suf: ' Gini pts' },
@@ -132,8 +132,8 @@ function table(metric) {
     columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
-        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the no-shock baseline', 'surprise2028.json', ''],
+        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', 'surprise2028.json', ''],
       ]),
       ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
@@ -365,7 +365,7 @@ export default function EvidenceLanes() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: `OG-UK: automation + productivity, ${HEADLINE_YEAR} gap against the no-shock baseline.` },
+              { icon: 'model', text: `OG-UK: automation + productivity, ${HEADLINE_YEAR} gap against the OBR’s central forecast path.` },
               { icon: 'source', text: 'Published: each study’s own level gap, against its own baseline.' },
               { icon: 'ai', text: 'Those baselines mostly have no AI.' },
               { icon: 'timing', text: 'Each at its own horizon; none is converted.' },
@@ -384,7 +384,7 @@ export default function EvidenceLanes() {
       }}
       download={{
         title: TITLE,
-        context: () => `OG-UK: automation + productivity, against the no-shock baseline; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
+        context: () => `OG-UK: automation + productivity, against the OBR’s central forecast path; published figures against each study’s own baseline. Lanes: ${RANGE_LANES.map((k) => `${META[k].title} (${META[k].unit})`).join('; ')}`,
         table: () => {
           const ts = RANGE_LANES.map(table);
           // composition lanes: one row per share, low = high = the share

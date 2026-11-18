@@ -37,7 +37,7 @@ export const REFS = {
   acemoglu: { label: 'Acemoglu and Restrepo (2022)', url: 'https://doi.org/10.3982/ECTA19815', title: 'Acemoglu and Restrepo (2022), Tasks, automation, and the rise in U.S. wage inequality, Econometrica' },
   ogcore: { label: 'OG-Core', url: 'https://github.com/PSLmodels/OG-Core', title: 'OG-Core, the overlapping-generations model OG-UK is built on' },
   oguk: { label: 'this dashboard’s code', url: 'https://github.com/PolicyEngine/uk-growth-with-ai', title: 'PolicyEngine/uk-growth-with-ai' },
-  study: { label: 'uk-ai-study', url: REPO_URL, title: 'PolicyEngine/uk-ai-study' },
+  study: { label: 'Household study code', url: REPO_URL, title: 'PolicyEngine/uk-ai-study' },
 };
 
 // An external source, named and linked; `children` overrides the label.

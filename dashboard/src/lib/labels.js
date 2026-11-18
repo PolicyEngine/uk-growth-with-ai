@@ -1,7 +1,9 @@
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
 
-export const PAGE_TITLE = 'The macroeconomic effects of AI on the UK';
+// The series name (Vahid, 18 Nov): the page <title>, the header and the
+// hero's quiet line above the question.
+export const PAGE_TITLE = 'AI and the UK economy: Beyond the forecast';
 
 // Tabs, in order, and their sub-tabs. `scenario` / `closure`: whether that
 // header picker applies ('locked' = shown, fixed, with the reason in view);
@@ -71,11 +73,13 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 // follow GDP. Cohorts' "common" cell carries the same solve label as the
 // default Results solve, so it is one rule under one name.
 export const RULES = [
-  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP' },
-  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level' },
-  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect' },
+  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP', plain: 'spending follows GDP' },
+  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level', plain: 'spending held fixed' },
+  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect', plain: 'debt held steady by transfers to households' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;
+// The budget assumption in plain words, for figure subtitles.
+export const rulePlain = (id) => RULES.find((r) => r.id === id)?.plain ?? ruleLabel(id).toLowerCase();
 
 // Method page anchors, for every "About this chart" link.
 export const METHOD = {

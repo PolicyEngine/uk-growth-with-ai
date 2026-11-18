@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
-import { fmtBn, fmtGini, fmtMillions, fmtPct1, fmtPp } from './format.js';
+import { fmtBn, fmtGini, fmtMillions, fmtPct1, fmtPp, fmtPpSpread } from './format.js';
 import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, MODEL_YEAR, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -180,7 +180,7 @@ export const CENTRAL_STEPS = [
     title: (
       <>
         After assumed pay and capital-income gains, the {COSTS ? 'cost' : 'gain'} is <span data-axis="">{fmtBn(Math.abs(H.central_cost.value))}</span> a year. Absolute poverty{' '}
-        {moveBy(H.central_poverty.value)} <span data-axis="">{fmtPp(H.central_poverty.value)}</span>
+        {moveBy(H.central_poverty.value)} <span data-axis="">{fmtPpSpread(H.central_poverty.value)}</span>
       </>
     ),
   },
@@ -211,7 +211,22 @@ function CentralSource() {
       files={[H.central_cost.file, B.absolute_bhc_pct.file, B.gini.file]}
       refs={['doorley']}
       groups={[
-        { title: 'Assumptions', notes: [{ icon: 'jobLoss', text: 'The displacement rate is from Doorley et al. (2026).' }] },
+        {
+          title: 'Assumptions',
+          notes: [
+            {
+              icon: 'jobLoss',
+              text: (
+                <>
+                  Where the rate comes from, and its range:{' '}
+                  <NavLink tab="method" sub="households" anchor="hm-shock">
+                    Method, the shock
+                  </NavLink>
+                </>
+              ),
+            },
+          ],
+        },
         {
           title: 'How it’s counted',
           notes: [

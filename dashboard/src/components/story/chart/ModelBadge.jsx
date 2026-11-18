@@ -5,7 +5,7 @@ import D from '@/data/aiStudy2425.json';
 //   <ModelBadge model="oguk" />
 // uk-ai-study's label comes from its data file: the model year
 // (model_year_label) and, only while the study is provisional, that word.
-export const studyLabel = (d = D) => ['uk-ai-study', d.model_year_label, d.provisional ? 'provisional' : null].filter(Boolean).join(' · ');
+export const studyLabel = (d = D) => ['Household study', d.model_year_label, d.provisional ? 'provisional' : null].filter(Boolean).join(' · ');
 export const MODELS = {
   official: { label: 'Official statistics', icon: 'record' },
   oguk: { label: 'OG-UK', icon: 'model' },

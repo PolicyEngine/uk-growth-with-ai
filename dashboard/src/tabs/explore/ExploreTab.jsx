@@ -19,9 +19,9 @@ const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sente
 // line). Economy and Public finances answer for the main arm in the
 // headline year, whatever the arm picker says (it drives the matrices), so
 // their kicker names both.
-const OGUK = 'OG-UK · gaps against the no-shock baseline, not forecasts';
+const OGUK = 'OG-UK · gaps against the OBR’s central forecast path, not forecasts';
 const MAIN = `${OGUK} · automation + productivity, ${HEADLINE_YEAR}`;
-const DATE_NOTE = 'The AI shock starts in 2028: an assumed date, not a forecast.';
+const DATE_NOTE = 'Extra AI, beyond the OBR’s central forecast, starts in 2028: an assumed date, not a forecast.';
 
 // Explore: every interactive view. Each sub-tab opens with its question and
 // a short answer in items that follows the pickers, then the charts. Economy
@@ -41,7 +41,7 @@ export default function ExploreTab() {
   if (sub === 'economy')
     body = (
       <>
-        <PageIntro kicker={MAIN} notes={[DATE_NOTE]} question="How do pay, national income and GDP move if an AI shock starts in 2028 (an assumed date)?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
+        <PageIntro kicker={MAIN} notes={[DATE_NOTE]} question="How do pay, national income and GDP move if, from 2028, AI does more than the OBR expects?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule))}>
           <RuleBar />
         </PageIntro>
         <ResultsTab sub="income" />

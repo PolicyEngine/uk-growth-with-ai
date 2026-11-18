@@ -21,6 +21,11 @@
 // (the question frames, the measuring copies) and hidden elements do not
 // count. Prints the icon count per scene, so each part sees its share.
 //
+// Hyphens, every tab: no U+2011 (non-breaking hyphen) in rendered text,
+// svg text included. Names, every tab: no visible "uk-ai-study" (the
+// household study's repo slug) outside code. Wording, every tab: no
+// visible "AI ... arrives" (the extra AI starts; AI is already here).
+//
 // Skipped everywhere: tables, chart text (svg), the site header and
 // footer, and anything aria-hidden, visually hidden or [hidden].
 //
@@ -88,6 +93,30 @@ for (const [name, path] of Object.entries(PAGES)) {
         const n = story ? iconsIn(el).length : 0;
         if (n > 1) why.push(`${n} icons`);
         if (why.length) out.push(`${where(el)} <${el.tagName.toLowerCase()}> ${why.join(', ')}: ${t.slice(0, 80)}`);
+      }
+      // No non-breaking hyphen (U+2011) anywhere in rendered text, svg
+      // included: Inter's subset lacks it, so it falls back to another font.
+      // Hyphenated names use a normal hyphen in a nowrap span (Hy.jsx).
+      const nb = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = nb.nextNode(); n; n = nb.nextNode()) {
+        if (!n.nodeValue.includes('\u2011') || !n.parentElement?.getClientRects().length) continue;
+        out.push(`${where(n.parentElement)} U+2011 non-breaking hyphen: ${n.nodeValue.trim().slice(0, 60)}`);
+      }
+      // The household study is named, not given its repo slug: no visible
+      // "uk-ai-study" outside code (commands, paths) and the site's own URLs.
+      const sw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = sw.nextNode(); n; n = sw.nextNode()) {
+        const el = n.parentElement;
+        if (!n.nodeValue.includes('uk-ai-study') || !el?.getClientRects().length || el.closest('code, pre, kbd, [aria-hidden="true"], .visually-hidden')) continue;
+        out.push(`${where(el)} repo slug "uk-ai-study" in visible text: ${n.nodeValue.trim().slice(0, 60)}`);
+      }
+      // Wording (Vahid, 18 Nov): AI does not "arrive" (it is already
+      // here); the extra AI starts. No visible "AI ... arrive(s)" in a
+      // sentence, svg text (chart markers) included.
+      const ARRIVE = /\bAI\b[^.:;!?\n]{0,60}\barriv/i;
+      for (const line of document.body.innerText.split('\n')) if (ARRIVE.test(line)) out.push(`"AI arrives" wording in visible text: ${line.trim().slice(0, 80)}`);
+      for (const t of document.querySelectorAll('svg text')) {
+        if (ARRIVE.test(t.textContent) && t.getClientRects().length && !t.closest('[aria-hidden="true"]')) out.push(`${where(t)} "AI arrives" wording in chart text: ${t.textContent.trim().slice(0, 80)}`);
       }
       if (!story) return { out };
       // (a) exactly one icon

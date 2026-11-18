@@ -9,7 +9,7 @@ import TwoLenses from './TwoLenses.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
-import { MODEL_BASE_VINTAGE, OBR_MARCH_2026 } from './part1/data.js';
+import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js';
 
 // The story: a hero, then three parts, each a run of scrolly blocks.
 //   1 Where the UK stands: official data only, no forecasts of ours
@@ -41,12 +41,12 @@ export const PARTS = [
     kicker: 'Part 2',
     title: 'What a model of the whole economy projects',
     model: 'oguk',
-    question: 'What happens to output, incomes and the public finances if an AI shock starts in 2028?',
+    question: 'What happens to output, incomes and the public finances if, from 2028, AI does more than the OBR already expects?',
     line: 'No unemployment: the shock shows up in pay rates, not in job losses.',
     about: (
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
-        <p>The AI shock: AI takes on some tasks workers do, so capital’s share of income rises, and the same inputs produce more.</p>
+        <p>The AI shock: AI does more workers’ tasks than the OBR expects, so capital’s share of income rises and the same inputs produce more.</p>
         <p>It starts in 2028, unannounced, and builds in four yearly steps to 2031.</p>
       <Items
         items={[
@@ -58,15 +58,17 @@ export const PARTS = [
               </>
             ),
           },
-          { icon: 'path', text: <Hy>Results are gaps against the no-shock baseline, not forecasts</Hy> },
+          { icon: 'path', text: 'Results are gaps against the OBR’s central forecast path, not forecasts' },
           {
             icon: 'forecast',
             text: (
               <>
-                The baseline is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
+                The forecast path: the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>,{' '}
+                <a href={`${URLS.obrBp9}#page=51`} {...ext}>its AI included</a>
               </>
             ),
           },
+          { icon: 'timing', text: `Part 1 shows the OBR’s ${OBR_VINTAGE} update` },
         ]}
       />
       </>

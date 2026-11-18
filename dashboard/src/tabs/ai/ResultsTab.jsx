@@ -10,7 +10,7 @@ import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
-import { ruleLabel } from '@/lib/labels.js';
+import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { Dumbbells, HeadlineNote, stressItems, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -55,7 +55,7 @@ export function PendingLine({ names }) {
 }
 
 // "Automation + productivity above, Technology unchanged above, Stress test
-// on the path": words only (the unit line names the no-shock baseline). The
+// on the path": words only (the unit line names the forecast path). The
 // 2031 figures are at the line ends.
 function findingFor(sid, v, arms, closure, name, rule = 'common') {
   const cl = primaryClosure(closure);
@@ -67,7 +67,7 @@ function findingFor(sid, v, arms, closure, name, rule = 'common') {
     .filter(Boolean);
   if (!parts.length) return null;
   const sides = [...new Set(parts.map((p) => p.side))];
-  const where = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
+  const where = (s) => (s === 'on' ? 'on the forecast path' : `${s} the forecast path`);
   const lead = `In ${HEADLINE_YEAR}${closure === 'closed' ? ', with no foreign capital,' : ''} ${name}`;
   if (sides.length === 1) return `${lead} is ${where(sides[0])}${parts.length > 1 ? ' in every version shown' : ''}.`;
   return `${lead} is ${sides.map((s) => `${where(s)} in ${parts.filter((p) => p.side === s).map((p) => p.arm.toLowerCase()).join(' and ')}`).join(', and ')}.`;
@@ -105,8 +105,8 @@ export function PathCard({
   // points of GDP for debt and tax, percentage points for a rate or share.
   const ofGdp = v === 'debt_gdp_pp' || v === 'tax_gdp_pp';
   const unitWords = unit === '%' ? '%' : ofGdp ? 'percentage points of GDP' : 'percentage points';
-  const yTitle = tile && !open ? `Gap against the no-shock baseline, ${unit === '%' ? '%' : 'pp'}` : `Gap against the no-shock baseline, ${unitWords}`;
-  const unitLine = unitText ?? (unit === '%' ? `% difference from the no-shock baseline, ${years[0]}–${last}` : `Percentage-point difference from the no-shock baseline, ${years[0]}–${last}`);
+  const yTitle = tile && !open ? `Gap against the OBR’s central forecast path, ${unit === '%' ? '%' : 'pp'}` : `Gap against the OBR’s central forecast path, ${unitWords}`;
+  const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR’s central forecast path, ${years[0]}–${last}` : `Percentage-point difference from the OBR’s central forecast path, ${years[0]}–${last}`);
   // In the small-multiple wall (tile) the card is compact: title, download
   // and chart; the wall carries the arms control and the legend once. Opened
   // (click or Enter on the title), it spans the wall and shows its finding,
@@ -164,12 +164,12 @@ export function PathCard({
           yUnit={yTitle}
           yTitleTop
           xUnit={tile && !open ? null : 'Year'}
-          zeroNote={tile && !open ? null : 'No-shock baseline = 0'}
-          markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI shock starts' }]}
+          zeroNote={tile && !open ? null : 'Forecast path = 0'}
+          markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'Extra AI starts' }]}
           bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => `${signed(x, endDp)}${named && ends ? unit : ''}`}
           tipFormat={(x) => signed(x, dp)}
-          ariaLabel={`${title} against the no-shock baseline, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
+          ariaLabel={`${title} against the OBR’s central forecast path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />
       ) : (
         <div className="unpublished-plot">
@@ -189,7 +189,7 @@ function consumptionFinding(sid, closure, rule = 'common') {
   if (!c || !g) return null;
   const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
-    ? `With automation + productivity, consumption stays below the path through ${HEADLINE_YEAR} while national income is above it: households save more.`
+    ? `With automation + productivity, consumption stays below the forecast path through ${HEADLINE_YEAR} while national income is above it: households save more.`
     : null;
 }
 
@@ -216,7 +216,7 @@ const ECONOMY = [
       { key: 'foresight', icon: 'timing', text: <>The direction relies on households foreseeing the whole path ({ext(URLS.ogCoreDocs, 'OG-Core')})</> },
       { key: 'left', icon: 'excluded', text: 'No share-price gains or demand effects in the model' },
       { key: 'others', icon: 'foreign', text: 'Common rule, some foreign capital: government and foreign owners take part too' },
-      C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the path through ${C_BELOW}` } : null,
+      C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the forecast path through ${C_BELOW}` } : null,
     ]} /> } },
     { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
       caveats: <Items items={[
@@ -261,7 +261,7 @@ export function measuresFinding(sid, arms, closure, rule) {
   const g = at('GNI');
   if (!w.length) return null;
   const one = (xs) => new Set(xs.map(side)).size === 1;
-  const where = (x) => (side(x) === 'on' ? 'on the path' : `${side(x)} the path`);
+  const where = (x) => (side(x) === 'on' ? 'on the forecast path' : `${side(x)} the forecast path`);
   const every = shown.length > 1 ? ' in every version shown' : '';
   return {
     wage: one(w) ? { value: w[0], text: `The pay rate is ${where(w[0])}${every}` } : { value: null, text: 'The pay rate’s side depends on the version' },
@@ -299,7 +299,7 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
-          unit={<span data-axis-title="y">{`Each version’s gap against the no-shock baseline (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
+          unit={<span data-axis-title="y">{`Each version’s gap against the OBR’s central forecast path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${rulePlain(st.rule)}`}</span>}
           controls={
             <ControlBar label="Four measures: options">
               <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
@@ -334,7 +334,7 @@ function IncomePanel({ sid }) {
           sources={sourcesItems({ sid, method: 'closures' })}
           download={{
             title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
-            context: () => contextLine(sid, st.closure, '% difference from the no-shock baseline', st.rule),
+            context: () => contextLine(sid, st.closure, '% difference from the OBR’s central forecast path', st.rule),
             table: () => dumbbellTable(sid, st.arms, st.closure, st.rule),
             svg: () => dumbbellSvg(sid, st.arms, st.closure, st.rule),
             legend: () => dumbbellLegend(st.arms, st.closure),
@@ -403,7 +403,7 @@ function EconomyPanel({ sid }) {
   return (
     <section aria-label="The economy, path by path" className="ex-wall-section">
       <SectionHeading id="economy-wall" icon={iconFor('path')} title={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`}>
-        <Lead c="measure">Eight measures, each against the no-shock baseline</Lead>
+        <Lead c="measure">Eight measures, each against the OBR’s central forecast path</Lead>
       </SectionHeading>
       <div className="ex-wall-head">
         <ControlBar label="Every chart on the wall: options">
@@ -411,10 +411,10 @@ function EconomyPanel({ sid }) {
         </ControlBar>
         <ul className="ex-wall-key" aria-label="How to read the wall">
           <li>
-            <Icon name={iconFor('onPath')} size={14} /> Zero line: the no-shock baseline
+            <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR’s central forecast path
           </li>
           <li>
-            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, AI shock starts; shaded: ${HEADLINE_YEAR}`}
+            <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, extra AI starts; shaded: ${HEADLINE_YEAR}`}
           </li>
           {st.closure === 'both' ? (
             <li>

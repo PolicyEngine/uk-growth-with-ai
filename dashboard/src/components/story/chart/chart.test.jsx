@@ -66,18 +66,18 @@ describe('ModelBadge and Frame', () => {
   it('names the model as plain text, no icon (round 1)', () => {
     const { container } = render(<ModelBadge model="aistudy" />);
     expect(container.textContent).toBe(studyLabel());
-    expect(studyLabel({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('uk-ai-study · FY 2027–28');
-    expect(studyLabel({ provisional: true })).toBe('uk-ai-study · provisional');
+    expect(studyLabel({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('Household study · FY 2027–28');
+    expect(studyLabel({ provisional: true })).toBe('Household study · provisional');
     expect(container.querySelector('svg')).toBeNull();
   });
   it('yTitle and xTitle render as plain lines marked data-axis-title', () => {
     const { container } = render(
-      <Frame title="GDP" yTitle="Gap against the no-shock baseline, % of GDP" xTitle="Year">
+      <Frame title="GDP" yTitle="Gap against the OBR’s central forecast path, % of GDP" xTitle="Year">
         <svg />
       </Frame>,
     );
     const yT = container.querySelector('p[data-axis-title="y"]');
-    expect(yT.textContent).toBe('Gap against the no-shock baseline, % of GDP');
+    expect(yT.textContent).toBe('Gap against the OBR’s central forecast path, % of GDP');
     expect(yT.querySelector('svg')).toBeNull();
     expect(container.querySelector('p[data-axis-title="x"]').textContent).toBe('Year');
     expect(yT.compareDocumentPosition(container.querySelector('.ch-plot')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -136,10 +136,10 @@ describe('Axis, Grid, Band', () => {
   });
   it('a band spans its period and labels it inside', () => {
     const x = linear([2020, 2032], [0, 120]);
-    const c = svg(<Band x={x} from={2028} to={2031} top={10} bottom={110} kind="shock" label="AI arrives" />);
+    const c = svg(<Band x={x} from={2028} to={2031} top={10} bottom={110} kind="shock" label="Extra AI" />);
     const r = c.querySelector('rect');
     expect([r.getAttribute('x'), r.getAttribute('width'), r.getAttribute('height')]).toEqual(['80', '30', '100']);
-    expect(c.querySelector('.ch-band.is-shock text').textContent).toBe('AI arrives');
+    expect(c.querySelector('.ch-band.is-shock text').textContent).toBe('Extra AI');
   });
 });
 

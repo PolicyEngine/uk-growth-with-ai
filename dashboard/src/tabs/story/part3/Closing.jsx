@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import { hy } from '@/components/story/Hy.jsx';
 import { useEntry, useSnap } from '@/components/story/motion.js';
 
 // The end of part 3: not sticky, no figures. What the one-year test leaves
@@ -38,7 +39,7 @@ export default function Closing() {
     <aside className="p3-close" aria-labelledby="p3-close-h">
       <header className="scene-head topic-head p3-close-head" data-scene={CLOSING_SUB.title} id="q-p3-close">
         <h3 className="scene-head-q" id="p3-close-h">
-          {CLOSING_SUB.title}
+          {hy(CLOSING_SUB.title)}
         </h3>
         <span className="p3-close-chip">A one-year test, not a forecast</span>
       </header>
@@ -47,7 +48,7 @@ export default function Closing() {
           {LEFT_OUT.map((t, i) => (
             <li key={t.id} data-item={t.id} className="p3-out-tile" style={{ '--i': i }}>
               <Icon name={t.ic} size={18} className="p3-out-ic" />
-              <span className="p3-out-title">{t.title}</span>
+              <span className="p3-out-title">{hy(t.title)}</span>
               <span className="p3-out-line">{t.line}</span>
             </li>
           ))}

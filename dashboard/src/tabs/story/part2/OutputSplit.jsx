@@ -22,9 +22,9 @@ import { iconFor } from '@/lib/concepts.js';
 // Where output goes in the headline year, at the header's scenario and
 // closure (some foreign capital with Both, which the lead says), as a
 // two-step scrolly over one graphic (the first step pours both Sankey
-// columns in turn, 1 and 2 below; the baseline's two-way split alone is the
+// columns in turn, 1 and 2 below; the forecast path's two-way split alone is the
 // shock scene's first card):
-//   1  a Sankey of the no-shock baseline: GDP to labour income and gross
+//   1  a Sankey of the forecast path: GDP to labour income and gross
 //      capital income, as shares of GDP (the left column's ribbons wipe in);
 //   2  gross capital income's three parts: kept in the UK, paid abroad,
 //      depreciation (the next column wipes in);
@@ -64,7 +64,7 @@ export const TIMING = {
 const CHIP_GAP = 4;
 // The tooltip's one line of meaning per part.
 const MEANING = {
-  gdp: 'Everything produced in the UK, the baseline’s GDP as 100',
+  gdp: 'Everything produced in the UK, the forecast path’s GDP as 100',
   labour: 'Income from work, the self-employed’s included',
   capital: 'Income paid to capital’s owners, before the three-way split',
   domestic: 'Net capital income that stays with UK residents',
@@ -197,7 +197,7 @@ const travelRank = (id) => TRAVEL.length - 1 - TRAVEL.indexOf(id);
 // The render adds chips for the parts named (labour, abroad, wear).
 export function outChangeItems(ch) {
   const out = [
-    { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the baseline` },
+    { key: 'gdp', icon: dirConcept(ch.gdp), text: `GDP is ${dirWord(ch.gdp)} the forecast path` },
     { key: 'labour', icon: dirConcept(ch.labour), text: `is ${dirWord(ch.labour)} it` },
   ];
   if (ch.gdp > 0 && ch.labour < 0)
@@ -239,7 +239,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   const graph = base ? sankeyGraph(base, true) : null;
   const where = `${SCEN_NAME[sid]}, main version, spending follows GDP`;
   const sankeyLabel = base
-    ? `Sankey diagram: GDP on the no-shock baseline in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
+    ? `Sankey diagram: GDP on the OBR’s central forecast path in ${SPLIT_YEAR}, ${CL_WORDS[cl]}, split into labour income (${share(base.labour)} of every 100) and gross capital income, which splits into net capital income kept in the UK (${share(base.domestic)}), net income paid abroad (${share(base.foreign)}) and depreciation (${share(base.depreciation)}).`
     : '';
   // the chips' beats: idle (before step 3), chips (at the nodes), travel,
   // settled (in the rows, a gain or loss icon left on each node)
@@ -325,7 +325,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
       <>
         <div className="sankey-tip-head">{name}</div>
         <div className="sankey-tip-row">
-          {id === 'gdp' ? val : share(val)} of every 100 on the baseline
+          {id === 'gdp' ? val : share(val)} of every 100 on the forecast path
         </div>
         <div className="sankey-tip-row is-note">{MEANING[id]}</div>
         {c != null ? (
@@ -360,7 +360,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           ) : null}
         </div>
         <p className="story-figure-unit p2-output-unit">
-          <span data-axis-title="y">per 100 of GDP on the no-shock baseline</span>
+          <span data-axis-title="y">per 100 of GDP on the OBR’s central forecast path</span>
           {both ? <span>. With both foreign-capital cases chosen above, both figures show some foreign capital.</span> : null}
         </p>
         {graph ? (
@@ -403,7 +403,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </div>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">The baseline for this foreign-capital case is pending.</Tx>
+            <Tx icon="provisional">The forecast path for this foreign-capital case is pending.</Tx>
           </p>
         )}
       </div>
@@ -469,7 +469,7 @@ function outputSteps(sid, ch) {
       title: `What ${SCEN_NAME[sid]} changes`,
       body: ch ? (
         <Say>
-          Now the shock: each bar is one part&rsquo;s change against the baseline. {k('gdp', 'GDP')} comes last.
+          Now the shock: each bar is one part&rsquo;s change against the forecast path. {k('gdp', 'GDP')} comes last.
         </Say>
       ) : (
         <p>This solve is pending for the foreign-capital case chosen above.</p>
@@ -494,7 +494,7 @@ export const OUTPUT_SUB = {
 // The block's one closing line, from the signs of the cell in view.
 export function outputAnswer(ch) {
   if (ch.gdp > 0 && ch.labour < 0) return 'Capital income rises by more than GDP; labour income falls';
-  return `GDP is ${dirWord(ch.gdp)} the baseline; labour income is ${dirWord(ch.labour)} it`;
+  return `GDP is ${dirWord(ch.gdp)} the forecast path; labour income is ${dirWord(ch.labour)} it`;
 }
 
 export default function OutputSplit({ sid, closure }) {

@@ -57,9 +57,9 @@ export function ourRows() {
     url: null,
     year: Number(S.generated_utc.slice(0, 4)),
     metric,
-    measure: `${label} in each scenario, UK low to Korinek et al. (upper)`,
+    measure: `${label} in each scenario, UK low to Korinek et al., substantial (US)`,
     horizon: `${HEADLINE_YEAR}, year 4 of adoption`,
-    baseline: 'No-shock baseline',
+    baseline: 'OBR’s central forecast path',
     country: 'UK',
     loc: 'surprise2028.json',
     checked: S.generated_utc.slice(0, 10),
@@ -151,7 +151,7 @@ export default function EvidenceMap({ map = MAP }) {
               { icon: 'foreign', text: 'Studies of the US or other economies are labelled.' },
               { icon: 'measure', text: 'Adoption and exposure rows are levels or shares, not effects.' },
               { icon: 'model', text: `OG-UK rows: automation + productivity, ${HEADLINE_YEAR} gap.` },
-              { icon: 'link', text: 'That gap is against the no-shock baseline; figures on Explore, download.' },
+              { icon: 'link', text: 'That gap is against the OBR’s central forecast path; figures on Explore, download.' },
             ]}
           />
         ),
@@ -170,7 +170,7 @@ export default function EvidenceMap({ map = MAP }) {
       }}
       download={{
         title: 'UK evidence map',
-        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the no-shock baseline, from surprise2028.json (built from ${S.source_commit})`,
+        context: `Published estimates of AI’s economic effects, each against its own baseline; OG-UK rows: ${HEADLINE_YEAR} gap against the OBR’s central forecast path, from surprise2028.json (built from ${S.source_commit})`,
         table: () => mapTable(view(all)),
       }}
     >

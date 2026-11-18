@@ -37,7 +37,7 @@ import { URLS } from '@/tabs/ai/links.js';
 export const ECON = MEASURES.filter((m) => m.v !== 'debt_gdp_pp');
 const DEBT = MEASURES.filter((m) => m.v === 'debt_gdp_pp');
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
-const shortName = (s) => s.label.replace(' et al. (upper)', '');
+const shortName = (s) => s.short ?? s.label;
 export const closureOf = (cl) => (cl === BOUND ? 'closed' : 'central');
 
 // Is this cell one the charts below print for the pickers in view: the
@@ -221,13 +221,13 @@ export default function AllScenarios() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">{`${m.label} gap against the no-shock baseline for the same foreign-capital case, %`}</span>}
+        unit={<span data-axis-title="y">{`${m.label} gap against the OBR’s central forecast path for the same foreign-capital case, %`}</span>}
         legend={<MatrixKey />}
         about={{
           caveats: (
             <Items
               items={[
-                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al.')}: US inputs, an upper case, not a UK estimate</> },
+                { key: 'korinek', icon: 'foreign', text: <>{ext(URLS.korinekT3, 'Korinek et al., substantial (US)')}: the upper case, not a UK estimate</> },
                 {
                   key: 'debt',
                   icon: 'debt',
@@ -247,7 +247,7 @@ export default function AllScenarios() {
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the no-shock baseline for the same foreign-capital case`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · gap against the OBR’s central forecast path for the same foreign-capital case`,
           table: () => cellsTable(arm, armLabel),
           svg: () => matrixSvg(arm, m),
         }}
@@ -289,12 +289,12 @@ export function AcrossDebt() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">Debt/GDP gap against the no-shock baseline for the same foreign-capital case, percentage points of GDP</span>}
+        unit={<span data-axis-title="y">Debt/GDP gap against the OBR’s central forecast path for the same foreign-capital case, percentage points of GDP</span>}
         legend={<MatrixKey story={false} />}
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,
-          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the no-shock baseline for the same foreign-capital case`,
+          context: () => `${armLabel} · ${HEADLINE_YEAR} · pp of GDP against the OBR’s central forecast path for the same foreign-capital case`,
           table: () => {
             const t = cellsTable(arm, armLabel);
             return { ...t, rows: t.rows.filter((r) => r[0] === m.label) };

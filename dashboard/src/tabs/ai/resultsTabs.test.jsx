@@ -101,7 +101,7 @@ describe('tooltips', () => {
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('Some foreign capital');
-    expect(tip).toContain('+1.23% against the no-shock baseline');
+    expect(tip).toContain('+1.23% against the OBR’s central forecast path');
     fireEvent.blur(dot);
     unmount();
     at('sub=finances');
@@ -133,11 +133,11 @@ describe('tooltips', () => {
     expect(dn.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(12);
     expect(page('sub=finances&s=korinek&closure=both&rule=fixed').card.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(24);
     const other = page('sub=finances&s=uk_high&rule=dn');
-    expect(other.card).toContain('solved for UK central and Korinek et al. (upper) only');
+    expect(other.card).toContain('solved for UK central and Korinek et al., substantial (US) only');
     expect(other.card).not.toMatch(/\d\.\d\d/);
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
-    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending: solved for UK central and Korinek et al. (upper) only');
+    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending: solved for UK central and Korinek et al., substantial (US) only');
   });
 
   it('the rule and the arms are in the address', async () => {

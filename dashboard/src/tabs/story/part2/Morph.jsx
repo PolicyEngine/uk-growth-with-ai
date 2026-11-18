@@ -24,7 +24,7 @@ import { series, afterWordsAll } from './charts.jsx';
 //   1  + the OBR's forecast of growth, dashed, open dots, under a
 //      "Forecast" band: the block's short first card, where part 1 ends;
 //   2  the axis changes from growth (% a year) to a gap (% against the
-//      no-shock baseline): the forecast line flattens into the zero line and
+//      forecast path): the forecast line flattens into the zero line and
 //      the chosen scenario's GDP gap rises out of it. The gap axis spans the
 //      UK scenarios (and Korinek et al. when that is the one chosen);
 //   3  the other UK scenarios draw in and the UK range between UK low and
@@ -125,6 +125,10 @@ const tickText = (v, step) => {
 };
 
 const pathOf = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('');
+// the surprise year's index: a scenario line and the UK range start here
+const I0 = YEARS.indexOf(SURPRISE_YEAR);
+// a year before the surprise drawn at the surprise year (form (b))
+const from0 = (i) => Math.max(i, I0);
 
 // Everything the chart draws in geometry state s (0-2), as coordinates.
 // `dom` is the set of values the gap axis must hold (default: gapYs).
@@ -144,8 +148,13 @@ export function morphGeometry(s, gapYs, dom = gapYs) {
   // the forecast over the model's years: past its last year it sits on its
   // last point (states 0-1); in state 2 it is the zero line
   const obr = YEARS.map((yr) => [X(gapState ? yr : Math.min(yr, OBR_LAST)), gapState ? zeroY : Yg(obrAt(Math.min(Math.max(yr, OBR[0]?.[0] ?? yr), OBR_LAST)))]);
-  // the scenario's gap: on the forecast line until state 2
-  const gap = YEARS.map((yr, i) => [X(gapState ? yr : Math.min(yr, OBR_LAST)), gapState ? Yd(gapYs?.[i] ?? 0) : obr[i][1]]);
+  // the scenario's gap: on the forecast line until state 2. In the gap
+  // states it starts in the surprise year (form (b), as the hero): the
+  // points before it sit on its first point, so no segment joins 2027 to
+  // 2028 and the point count never changes (the morph needs it)
+  const gap = YEARS.map((yr, i) =>
+    gapState ? [X(Math.max(yr, SURPRISE_YEAR)), Yd(gapYs?.[Math.max(i, I0)] ?? 0)] : [X(Math.min(yr, OBR_LAST)), obr[i][1]],
+  );
   return {
     X,
     Yd,
@@ -199,7 +208,7 @@ export const rescales = (sid, cl, pin = null) => {
   const b = gapAxis(canvasDomain(4, sid, lines, pin));
   return a.lo !== b.lo || a.hi !== b.hi;
 };
-const SCEN_LINES = { korinek: ['Korinek et al.', '(US inputs)'] };
+const SCEN_LINES = { korinek: ['Korinek,', 'substantial (US)'] };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
 const LH = 17;
@@ -210,16 +219,20 @@ const LH_PHONE = 22;
 const lineFrom = (id, sid) => (id === sid ? 2 : id === 'korinek' ? 4 : 3);
 
 // The area between two paths, for the shaded UK range: always the same
-// number of points, so a rescale moves it with the lines.
+// number of points, so a rescale moves it with the lines. It starts in the
+// surprise year (its left edge a vertical there): the years before sit on it.
 function bandPath(X, Y, lo, hi) {
-  const top = YEARS.map((x, i) => `${i ? 'L' : 'M'}${X(x).toFixed(1)},${Y(hi[i] ?? 0).toFixed(1)}`).join('');
-  const bottom = [...YEARS].reverse().map((x, j) => `L${X(x).toFixed(1)},${Y(lo[YEARS.length - 1 - j] ?? 0).toFixed(1)}`).join('');
+  const at = (i) => YEARS[from0(i)];
+  const top = YEARS.map((_, i) => `${i ? 'L' : 'M'}${X(at(i)).toFixed(1)},${Y(hi[from0(i)] ?? 0).toFixed(1)}`).join('');
+  const bottom = YEARS.map((_, i) => YEARS.length - 1 - i)
+    .map((i) => `L${X(at(i)).toFixed(1)},${Y(lo[from0(i)] ?? 0).toFixed(1)}`)
+    .join('');
   return `${top}${bottom}Z`;
 }
 
 const OFF_YEARS = ACT.filter(([, y]) => Math.abs(y) > OFF).map(([x]) => x);
 const OFF_NOTE = OFF_YEARS.length ? ` ${OFF_YEARS.join(' and ')} run${OFF_YEARS.length > 1 ? '' : 's'} off the scale (arrows).` : '';
-const GAP_TITLE = 'GDP against the no-shock baseline';
+const GAP_TITLE = 'GDP against the OBR’s central forecast path';
 const STATE_TEXT = (sid, cl) => [
   { title: 'Real GDP growth', unit: `ONS outturn: percentage change on the previous calendar year.${OFF_NOTE}` },
   { title: 'Real GDP growth', unit: `ONS outturn (solid) and the OBR’s forecast${OBR_VINTAGE ? `, ${OBR_VINTAGE}` : ''} (dashed): percentage change on the previous year.${OFF_NOTE}` },
@@ -259,7 +272,7 @@ export function morphGroups(s, sid, cl) {
           icon: 'scenario',
           text: (
             <>
-              Main version, against the no-shock baseline. The other two versions are on{' '}
+              Main version, against the OBR’s central forecast path. The other two versions are on{' '}
               <NavLink tab="explore" sub="economy" anchor="income">
                 Explore
               </NavLink>
@@ -343,7 +356,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
   // (drawn or not), so none moves when another line arrives
   const labelItems = [
     // pad: clear of the scenario label just above it (UK low at phone width)
-    { key: 'zero', v: 0, lines: ['No-shock', 'baseline = 0'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true, pad: 6 },
+    { key: 'zero', v: 0, lines: ['Forecast', 'path = 0'], color: 'var(--pe-gray-600)', on: s >= 2, zero: true, pad: 6 },
     ...lines.map((l) => ({
       key: l.id,
       v: l.ys[l.ys.length - 1],
@@ -359,12 +372,12 @@ export function MorphChart({ state, sid, cl, pin = null }) {
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the no-shock baseline, OG-UK's own path built on the OBR's forecast, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main version rises above it from ${SURPRISE_YEAR}; a band marks the shock, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the OBR’s central forecast path, as run in OG-UK, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main version rises above it from ${SURPRISE_YEAR}; a band marks the extra AI, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
       : '',
     s >= 3
       ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line. The UK range, from UK low to UK high, is shaded.`
       : '',
-    s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., on US inputs, lies above the UK range.` : '',
+    s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., substantial (US), lies above the UK range.` : '',
     s >= 2 && pinned ? `${SCEN_NAME[pinned]} is pinned for comparison, in dark grey.` : '',
   ]
     .filter(Boolean)
@@ -414,7 +427,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           <g className={`p2-mo-fade${s >= 2 ? ' is-on' : ''}`}>
             <rect x={g2.X(SURPRISE_YEAR)} y={PY0} width={g2.X(HEADLINE_YEAR) - g2.X(SURPRISE_YEAR)} height={PY1 - PY0} className="p2-band-shock" />
             <text data-axis="" x={g2.X(SURPRISE_YEAR) + 4} y={PY0 + 10} className="p2-band-note">
-              AI shock
+              Extra AI
             </text>
           </g>
           {/* the two y axes: growth (states 0-1), gap (states 2-4) */}
@@ -456,7 +469,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           })}
           {/* the UK range, shaded once UK low and UK high are drawn */}
           {band ? <Tween className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} morph={{ d: band }} /> : null}
-          {/* the zero line moves from zero growth to the no-shock baseline */}
+          {/* the zero line moves from zero growth to the OBR’s central forecast path */}
           <line data-mark="path" x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
             <Tween data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
@@ -480,7 +493,8 @@ export function MorphChart({ state, sid, cl, pin = null }) {
             {lines
               .filter((l) => l.id !== sid)
               .map((l) => {
-                const d = pathOf(YEARS.map((yr, i) => [gG.X(yr), gG.Yd(l.ys[i])]));
+                // from the surprise year on (form (b)), the same point count in every state
+                const d = pathOf(YEARS.map((_, i) => [gG.X(YEARS[from0(i)]), gG.Yd(l.ys[from0(i)])]));
                 const on = s >= from(l.id);
                 return (
                   <Tween
@@ -577,7 +591,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
             Real GDP growth, % a year
           </text>
           <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}${s === 2 ? ' is-new' : ''}`} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
-            Gap against the no-shock baseline, %
+            Gap against the OBR’s central forecast path, %
           </text>
         </svg>
       </div>

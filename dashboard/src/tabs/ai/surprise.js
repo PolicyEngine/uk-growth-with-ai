@@ -18,17 +18,23 @@ export const CLOSURES = ['zk0.1', 'zk0']; // central, no-foreign-capital bound
 export const CENTRAL = 'zk0.1';
 export const BOUND = 'zk0';
 export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.zeta_K };
-export const SCENARIOS = S.scenarios;
+// Korinek et al. ran three US scenarios; this is the 'substantial' one
+// (Table 3, p.31), a US case used as the upper case. One name everywhere:
+// KORINEK_NAME in full, KORINEK_SHORT where space is tight (end labels,
+// chips). The data file's label is overridden here, not edited.
+export const KORINEK_NAME = 'Korinek et al., substantial (US)';
+export const KORINEK_SHORT = 'Korinek, substantial (US)';
+export const SCENARIOS = S.scenarios.map((s) => (s.id === 'korinek' ? { ...s, label: KORINEK_NAME, short: KORINEK_SHORT } : s));
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
-// The one name of each scenario, as the paper's tables print it (UK low, UK
-// central, UK high, Korinek et al. (upper)); set in build_dashboard_data.py.
+// The one name of each scenario (UK low, UK central, UK high, Korinek et
+// al., substantial (US)).
 export const SCEN_NAME = Object.fromEntries(SCENARIOS.map((s) => [s.id, s.label]));
 // The upper case where it is defined (paper, methodology: "Upper case:
 // Korinek et al., US 'substantial'").
-export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
+export const KORINEK_FULL = KORINEK_NAME;
 // [{id, label, short}], in display order: 'tfp' automation + productivity
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
-// 'ss' the OBR-style stress test that holds 2031 GDP at the no-shock baseline.
+// 'ss' the OBR-style stress test that holds 2031 GDP at the forecast path.
 export const ARMS = S.arms;
 // Teal (--series-1) is the gain colour, so no arm uses it.
 export const ARM_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3)', ss: 'var(--series-5)' };
@@ -77,6 +83,25 @@ export function path(sid, arm, closure, v, rule = 'common') {
 // A value that rounds to zero prints unsigned; the minus sign is U+2212.
 export const signed = (x, dp = 1) =>
   Math.abs(x) < 0.5 * 10 ** -dp ? (0).toFixed(dp) : `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(dp)}`;
+// Does pay per unit of labour still rise every year from the surprise to
+// the headline year (pay_growth_pct, written by the data build from the
+// solve's own pay series, re-trended)? null when the field is missing.
+export function payRises(sid, arm, closure) {
+  const r = result(sid, arm, closure);
+  const g = r.status === 'done' ? r.pay_growth_pct : null;
+  if (!Array.isArray(g)) return null;
+  const win = g.filter((_, i) => YEARS[i] >= SURPRISE_YEAR && YEARS[i] <= HEADLINE_YEAR);
+  return win.length > 0 && win.every((x) => typeof x === 'number' && x > 0);
+}
+// The pay figure's one line, shared by the hero and part 2's ledger: below
+// the path with pay still rising every year, "slower growth, not a cut";
+// below it otherwise, the plain side; on or above it, what the figure is.
+export function payLine(sid, closure, w = gap(sid, 'tfp', closure, 'w')) {
+  if (w == null) return null;
+  if (w < -0.005) return payRises(sid, 'tfp', closure) ? 'slower growth, not a cut' : 'below the forecast path';
+  return 'pay for the same work';
+}
+
 export const fmt = (x, dp = 2, unit = '%') => (x == null ? 'pending' : `${signed(x, dp)}${unit}`);
 
 export const DONE = S.solves_done;

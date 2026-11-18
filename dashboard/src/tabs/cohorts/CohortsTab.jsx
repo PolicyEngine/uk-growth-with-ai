@@ -12,7 +12,7 @@ import { side } from '@/tabs/ai/lines.js';
 import { Dir, Lead } from '@/tabs/explore/direction.jsx';
 import ControlBar, { ControlGroup, SeriesChips } from '@/components/ui/ControlBar.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
-import { ruleLabel } from '@/lib/labels.js';
+import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import D from '@/data/cohorts2028.json';
 import WhoHeatmap, { cohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
@@ -146,7 +146,7 @@ export function measuresOf(c, rule, cl, arm) {
           short: 'Transfers pay',
           tag: full ? 'solved to the horizon' : 'first order',
           def: full
-            ? 'Transfers, not government consumption, hold debt/GDP on the path to the horizon: a model run'
+            ? 'Transfers, not government consumption, hold debt/GDP on the forecast path to the horizon: a model run'
             : 'The fiscal cost after 2035 charged to households: a first-order estimate, not a model run',
           losing: t.joint_losing_pct,
           avg: t.joint_avg,
@@ -294,9 +294,9 @@ export function whySigns(cl, rule, arm) {
 export function consumptionChain(x) {
   return [
     x.r == null ? null : { key: 'r', icon: 'interest', dir: x.r, text: `Return on capital ${x.r > 0 ? 'rises' : 'falls'}` },
-    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Pay rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the path` },
+    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Pay rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the forecast path` },
     { key: 's', icon: 'households', text: `Households ${x.c0 < 0 ? 'save more' : 'spend more'} at first` },
-    { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the path` },
+    { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the forecast path` },
   ].filter(Boolean);
 }
 
@@ -417,7 +417,7 @@ function Why({ cl, rule, arm }) {
   const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
   const x = whySigns(cl, rule, arm);
   const links = Object.fromEntries(consumptionChain(x).map((l) => [l.key, l]));
-  const title = x.c0 < 0 ? (x.cAbove ? 'Consumption dips first, then recovers' : 'Consumption dips and stays below') : 'Consumption starts above the path';
+  const title = x.c0 < 0 ? (x.cAbove ? 'Consumption dips first, then recovers' : 'Consumption dips and stays below') : 'Consumption starts above the forecast path';
   return (
     <div className="cards-grid is-top ex-why-grid">
       <InfoCard icon={iconFor('consumption')} title={title}>
@@ -608,10 +608,10 @@ export default function WhoGainsTab() {
           UK central only
         </li>
         <li className="ex-mchip">
-          AI shock starts in {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
+          Extra AI starts in {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
         </li>
-        <li className="ex-mchip" title="The paper also reports Korinek et al. (upper), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
-          Korinek et al. (upper): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
+        <li className="ex-mchip" title="The paper also reports Korinek et al., substantial (US), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
+          Korinek, substantial (US): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here
         </li>
         {both ? (
           <li className="ex-mchip" title="The reasons below are for the case with some foreign capital">
@@ -640,7 +640,7 @@ export default function WhoGainsTab() {
           icon={iconFor('path')}
           title="Welfare change by birth year"
           finding={
-            <Lead c="scenario">{`${armLabel} · ${ruleLabel(rule)} · ${clWords}`}</Lead>
+            <Lead c="scenario">{`${armLabel} · ${clWords} · ${rulePlain(rule)}`}</Lead>
           }
           unit={<Lead c="measure">Consumption-equivalent change, % of remaining-lifetime consumption and bequests</Lead>}
           controls={

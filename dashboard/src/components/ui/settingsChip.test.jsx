@@ -15,7 +15,7 @@ describe('settings chip words', () => {
     expect(words('explore', 'economy')).toBe('UK central · some foreign capital · automation + productivity · common rule');
   });
   it('closure and rule follow the state', () => {
-    expect(words('explore', 'finances', { ...ST, s: 'korinek', closure: 'both', armId: 'ss', rule: 'fixed' })).toBe('Korinek et al. (upper) · foreign capital: both · stress test · fixed spending');
+    expect(words('explore', 'finances', { ...ST, s: 'korinek', closure: 'both', armId: 'ss', rule: 'fixed' })).toBe('Korinek et al., substantial (US) · foreign capital: both · stress test · fixed spending');
     expect(words('explore', 'economy', { ...ST, closure: 'closed' })).toContain('no foreign capital');
   });
   it('Who gains: the scenario is locked to UK central and the rule is its own', () => {

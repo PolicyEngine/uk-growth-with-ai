@@ -20,7 +20,7 @@ export default function AnswerStrip({ a }) {
   return (
     <div className="ex-strip">
       {a.chips?.length ? (
-        <ul className="ex-chips is-row" aria-label="Direction of each measure against the path" style={{ '--n': a.chips.length }}>
+        <ul className="ex-chips is-row" aria-label="Direction of each measure against the OBR’s central forecast path" style={{ '--n': a.chips.length }}>
           {a.chips.map((c) => (
             <li key={c.key} className={`ex-chip${c.tone ? ` is-${c.tone}` : ''}`} data-chip={c.v} data-dir-concept={c.dir}>
               <I c={c.concept} size={18} />

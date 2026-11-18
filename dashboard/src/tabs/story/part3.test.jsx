@@ -131,7 +131,7 @@ describe('Part3', () => {
     const line = (id) => container.querySelector(`#${id} .p3-step-line`).textContent;
     // T14; the central cost is a residual: said once, in the figure's note
     // round 2 sign-off #3: the cost is net of the assumed gains, said in the sentence (the next scene's job loss alone is gross)
-    expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \+\d\.\d\dpp$/);
+    expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \d\.\d\dpp$/);
     expect(line('p3-channels-step-2')).toContain('Assumed');
     // T12, T7, T6
     expect(line('p3-moves-step')).toBe(`The cost falls to zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
@@ -170,7 +170,7 @@ describe('Part3', () => {
       const pop = document.getElementById(b.getAttribute('aria-controls'));
       expect(pop.textContent).toContain(`PolicyEngine-UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
       const links = [...pop.querySelectorAll('.src-pop-list a')];
-      expect(links[0].textContent).toBe('uk-ai-study results');
+      expect(links[0].textContent).toBe('Household study results');
       expect(links[0].getAttribute('href')).toBe(`https://github.com/PolicyEngine/uk-ai-study/tree/${commit}/results`);
       // each result file linked at the commit
       for (const a of links.filter((x) => x.textContent.startsWith('results/'))) expect(a.getAttribute('href')).toContain(commit);
@@ -342,7 +342,7 @@ describe('Part3', () => {
     expect(container.textContent.split(CLOSE_SUB.question).length - 1).toBeLessThanOrEqual(1);
     expect(container.querySelector('.lens-table, .story-recap, .scrolly-answer')).toBeNull();
     // one heading per lens naming its model; 4 + 3 "can say" chips, each a link to its scene; 2 outside chips each
-    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^uk-ai-study/)]);
+    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^Household study/)]);
     const can = [...container.querySelectorAll('.lens-circle ul.lens-chips')];
     expect(can.map((u) => u.querySelectorAll('li a').length)).toEqual([4, 3]);
     for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central)$/);

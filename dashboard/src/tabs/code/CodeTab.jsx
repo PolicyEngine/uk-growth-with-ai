@@ -312,7 +312,7 @@ function UseOguk() {
   );
 }
 
-const MODEL_ICON = { 'OG-UK': 'model', 'uk-ai-study': 'households' };
+const MODEL_ICON = { 'OG-UK': 'model', 'Household study': 'households' };
 function ModelCell({ m }) {
   if (!MODEL_ICON[m]) return <span className="ledger-where">Neither</span>;
   return (
@@ -365,7 +365,7 @@ function Vintages() {
         <Items
           className="mx-foot-items"
           items={[
-            AI_FULL_RERUN === false ? { icon: 'caveat', text: 'uk-ai-study: the manifest attests results without a clean-room rerun.' } : null,
+            AI_FULL_RERUN === false ? { icon: 'caveat', text: 'The household study: the manifest attests results without a clean-room rerun.' } : null,
             // results outside the attested rebuild, as the data file lists them
             AI_STUDY.outsideRebuild?.length ? { icon: 'provisional', text: `Outside that rebuild: ${AI_STUDY.outsideRebuild.join(', ')}.` } : null,
           ].filter(Boolean)}
@@ -502,7 +502,7 @@ function Ledger() {
 }
 
 const year = LAST_UPDATED.slice(0, 4);
-const CITE_TEXT = `PolicyEngine (${year}). The macroeconomic effects of AI on the UK. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
+const CITE_TEXT = `PolicyEngine (${year}). AI and the UK economy: Beyond the forecast. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
 const CITE_BIB = `@misc{policyengine_ai_uk_${year},
   author       = {{PolicyEngine}},
   title        = {The macroeconomic effects of {AI} on the {UK}},
@@ -661,7 +661,7 @@ export default function CodeTab() {
               <Items
                 items={[
                   { icon: 'measure', text: 'Solver outputs are in model units.' },
-                  { icon: 'path', text: 'This study reports gaps against the no-shock baseline instead.' },
+                  { icon: 'path', text: 'This study reports gaps against the OBR’s central forecast path instead.' },
                   { icon: 'cost', text: 'OG-UK’s map functions scale units to £bn by one ONS GDP anchor.' },
                 ]}
               />

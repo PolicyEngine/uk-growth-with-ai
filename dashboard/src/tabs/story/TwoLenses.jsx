@@ -35,7 +35,7 @@ import { docItem, navItem } from '@/lib/sourceItems.js';
 // from above and is drawn final on a jump or reload (useSnap); static
 // under reduced motion.
 const M = D.method;
-const STUDY = `uk-ai-study${PROVISIONAL ? ' (provisional)' : ''}`;
+const STUDY = `Household study${PROVISIONAL ? ' (provisional)' : ''}`;
 
 // The close's question: shown big on the pinned screen; the header below is
 // the title, so the question is not printed twice.
@@ -64,7 +64,7 @@ export const LENSES = [
     ],
     outside: [
       { text: 'Unemployment', tip: 'Everyone who wants to work is employed' },
-      { text: 'Forecasts of levels', tip: 'Results are gaps against the no-shock baseline' },
+      { text: 'Forecasts of levels', tip: 'Results are gaps against the OBR’s central forecast path' },
     ],
   },
   {
@@ -97,7 +97,7 @@ const DEEPER = [
   { nav: { tab: 'explore', sub: 'households' }, ic: 'users', label: 'Explore, households', desc: 'Every variant and rule' },
   { nav: { tab: 'method', sub: 'how' }, ic: 'book', label: 'Method and sources', desc: 'How the models work' },
   { href: PAPER_URL, ic: 'fileText', label: PROVISIONAL ? 'Study paper, draft PDF' : 'Study paper, PDF', desc: 'The study’s full write-up' },
-  { href: REPO_URL, ic: 'code', label: 'Code: uk-ai-study', desc: 'Household model code' },
+  { href: REPO_URL, ic: 'code', label: 'Code: the household study', desc: 'Household model code' },
   { href: REFS.oguk.url, ic: 'folderGit', label: 'Code: uk-growth-with-ai', desc: 'Economy model code' },
 ];
 

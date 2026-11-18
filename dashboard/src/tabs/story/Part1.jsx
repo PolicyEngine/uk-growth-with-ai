@@ -10,6 +10,7 @@ import { AiUseChart, ExposureTiles, LabourBoard, OBR_NAMED, OutputCanvas, P1_MAR
 import { Ext, SourceLine, Swap } from './part1/frame.jsx';
 import Vitals from './part1/vitals.jsx';
 import { dateLong, pct1, share0 } from './part1/format.js';
+import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 
 // Part 1: where the UK economy and labour market stand before the AI shock, from
 // official published data only (ukContext.json); no forecasts or modelling
@@ -431,7 +432,7 @@ export default function Part1({ part }) {
           id={String(AI_SINCE)}
           num={AI_SINCE}
           head="AI is already here"
-          line="Before any scenario, AI is in the official statistics. The ONS series below starts here; the scenarios’ shock comes later."
+          line={`AI is in the official statistics from here, and the OBR already expects more. The scenarios add extra AI on top, sooner, from ${SURPRISE_YEAR}.`}
         />
       ) : null}
       <Scrolly

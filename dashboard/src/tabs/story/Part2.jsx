@@ -19,7 +19,7 @@ import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, whoCa
 export { scenarioDir } from './part2/steps.jsx';
 
 // Part 2: what OG-UK projects when the AI shock starts, unanticipated, in
-// 2028, against the no-shock no-shock baseline. It is the one home of the
+// 2028, against the forecast path. It is the one home of the
 // three headline figures (HeadlineTiles and SummaryWhy, in #story-headline,
 // the GDP scene's last step, which the Hero and Explore link to) and of
 // where 2031 output goes (#story-output: the Sankey's shares and the
@@ -52,9 +52,9 @@ export const SUBS = {
   morph: {
     title: 'GDP, scenario by scenario',
     icon: 'path',
-    question: 'How far does GDP move from the no-shock baseline?',
-    hint: 'Watch the axis switch from growth to a gap against the baseline',
-    answer: 'GDP ends above the baseline in every scenario',
+    question: 'How far does GDP move from the OBR’s central forecast path?',
+    hint: 'Watch the axis switch from growth to a gap against the forecast path',
+    answer: 'GDP ends above the forecast path in every scenario',
     // the caption is about every scenario's line
     answerHighlight: ['scen-uk_low', 'scen-uk_central', 'scen-uk_high', 'scen-korinek'],
   },
@@ -80,7 +80,7 @@ export function shockAnswer(shock) {
 // Question and answer chips (q, a); `text` is the answer, for the chip's
 // one-line form.
 export const RECAP = [
-  { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the no-shock baseline in every scenario', to: 'story-headline' },
+  { icon: 'gdp', q: 'How far does GDP move?', a: 'Above the OBR’s central forecast path in every scenario', to: 'story-headline' },
   { icon: 'outputSplit', q: 'Who gets the extra output?', a: 'Capital income rises more than GDP', to: 'story-output' },
   { icon: 'age', q: 'Who gains and who loses?', a: 'Gains peak near retirement; if transfers bear the cost after 2036, some adults lose', to: { tab: 'explore', sub: 'who' } },
 ].map((it) => ({ ...it, text: it.a }));
@@ -96,10 +96,10 @@ export function beat2031(sid, cl) {
   if (y > 0.005 && g != null && g > 0.005 && g < y) {
     return {
       head: 'Output is up. Part of the gain goes abroad.',
-      line: `The shock is complete. More is produced than on the no-shock baseline; ${cl === BOUND ? 'some of the extra income goes to holders of UK government debt abroad' : 'some of the extra income goes to owners abroad'}.`,
+      line: `The shock is complete. More is produced than on the forecast path; ${cl === BOUND ? 'some of the extra income goes to holders of UK government debt abroad' : 'some of the extra income goes to owners abroad'}.`,
     };
   }
-  return { head: 'The shock is complete', line: `GDP is ${dirWord(y)} the no-shock baseline.` };
+  return { head: 'The shock is complete', line: `GDP is ${dirWord(y)} the forecast path.` };
 }
 
 export default function Part2({ part }) {
@@ -127,8 +127,8 @@ export default function Part2({ part }) {
       <StoryBeat
         id={String(SURPRISE_YEAR)}
         num={SURPRISE_YEAR}
-        head="The AI shock starts, as a surprise"
-        line={`The shock starts here in every scenario. Nobody in the model has planned for it, so the economy stays on the baseline until ${SURPRISE_YEAR}.`}
+        head="More AI, sooner, as a surprise"
+        line={`In every scenario, AI does more, sooner, than the OBR expects. Nobody planned for it, so the economy follows the forecast path until ${SURPRISE_YEAR}.`}
       />
 
       {/* the GDP scene: the gap, the four scenarios, then the headline
@@ -137,7 +137,7 @@ export default function Part2({ part }) {
         id="p2-morph"
         scene
         sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer, answerNote: <DebtNote sid={sid} cl={cl} /> }}
-        label="From GDP growth to the gap against the no-shock baseline, then the four scenarios and the headline figures"
+        label="From GDP growth to the gap against the OBR’s central forecast path, then the four scenarios and the headline figures"
         steps={[...morphCardSteps(sid, cl), headlineStep(sid)]}
         graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
       />
@@ -159,11 +159,12 @@ export default function Part2({ part }) {
 }
 
 // The GDP scene's last step: the three headline figures (their one home,
-// #story-headline, which the Hero, Explore and Headline link to). Item 7:
-// one sentence of at most 15 words with no figure and no link, a chip, and
-// three tiles of label, number and one line. The public debt line is the
+// #story-headline, which the Hero, Explore and Headline link to): one
+// sentence with no figure and no link that names the scenario, the year and
+// the forecast path (headline-tiles-fable.md section 2; no chip), then a
+// three-row ledger of label, number and note. The public debt line is the
 // scene's caption note (DebtNote, under the closing line in the frame).
-// What the figures are measured against (main arm, no-shock baseline) is in
+// What the figures are measured against (main arm, forecast path) is in
 // the GDP figure's notes (part2/Morph.jsx, morphGroups).
 function headlineStep(sid) {
   return {
@@ -173,11 +174,10 @@ function headlineStep(sid) {
     highlight: [`scen-${sid}`],
     body: (
       <>
-        <Say>Each is a gap against the baseline in {HEADLINE_YEAR}: a scenario result, not a forecast.</Say>
+        <Say>
+          {SCEN_NAME[sid]} scenario, {HEADLINE_YEAR}: each figure is a gap against the OBR&rsquo;s central forecast path.
+        </Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
-          <p className="p2-headline-chip">
-            {SCEN_NAME[sid]} · {HEADLINE_YEAR}
-          </p>
           <HeadlineTiles sid={sid} />
         </section>
       </>

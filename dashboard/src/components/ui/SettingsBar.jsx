@@ -21,7 +21,7 @@ import { SCENARIOS, SCEN_NAME, ruleSolved, solvedUnder } from '@/tabs/ai/surpris
 // apply: the bar shows a "different model" chip instead, and the sub-tab
 // header a compact copy of it (ModelChip).
 
-const SCEN_NOTE = { uk_low: 'Lower UK scenario, derived from OBR/IMF inputs', uk_central: 'Headline scenario, derived from IMF/OBR inputs', uk_high: 'Upper UK scenario, derived from OBR inputs', korinek: 'A US upper case: Korinek et al.’s “substantial” inputs' };
+const SCEN_NOTE = { uk_low: 'Lower UK scenario, derived from OBR/IMF inputs', uk_central: 'Headline scenario, derived from IMF/OBR inputs', uk_high: 'Upper UK scenario, derived from OBR inputs', korinek: 'A US case used as the upper case, not calibrated to the UK' };
 export const SCEN_OPTIONS = SCENARIOS.map((s) => ({ value: s.id, label: s.label, note: SCEN_NOTE[s.id] }));
 // Under the "Foreign capital" label the options say only Some / None / Both.
 // The closed picker shows the full name (`short`, which Picker shows first):
@@ -295,7 +295,7 @@ export function SettingsChip({ pick }) {
 // on a uk-ai-study page
 export function ModelChip() {
   return (
-    <NavLink tab="method" sub="households" className="subhead-chip" title="A different model: uk-ai-study, households in one year. The OG-UK settings do not apply.">
+    <NavLink tab="method" sub="households" className="subhead-chip" title="A different model: the household study (PolicyEngine UK), households in one year. The OG-UK settings do not apply.">
       <Icon name={iconFor('households')} size={15} />
       <span>Different model</span>
     </NavLink>
@@ -342,7 +342,7 @@ export default function SettingsBar({ pick }) {
         <NavLink tab="method" sub="households" className="model-chip">
           <Icon name={iconFor('households')} size={15} />
           <span>
-            <strong>A different model:</strong> uk-ai-study, households in one year.
+            <strong>A different model:</strong> the household study (PolicyEngine UK), households in one year.
             <span className="model-chip-more"> The OG-UK settings do not apply.</span>
           </span>
         </NavLink>

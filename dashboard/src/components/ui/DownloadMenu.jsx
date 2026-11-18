@@ -11,7 +11,7 @@ import { SCEN_NAME } from '@/tabs/ai/surprise.js';
 
 // uk-ai-study's caption from its data file: the model year, and
 // "provisional" only while the study is (status merged: not provisional).
-export const studyCaption = (d) => ['Model: uk-ai-study (PolicyEngine-UK microsimulation)', d.model_year_label, d.provisional ? 'provisional' : null].filter(Boolean).join(', ');
+export const studyCaption = (d) => ['Model: the household study (PolicyEngine UK microsimulation)', d.model_year_label, d.provisional ? 'provisional' : null].filter(Boolean).join(', ');
 
 // The caption every download carries (addendum E4, copy this view): the
 // settings the chart was drawn with and the model's name, from the address.

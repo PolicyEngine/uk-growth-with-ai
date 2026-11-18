@@ -25,7 +25,7 @@ export function partMarks(sid) {
   return {
     ...scen,
     ...wf,
-    path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'No-shock baseline' },
+    path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'Forecast path' },
     ons: { color: 'var(--pe-gray-800)', shape: 'circle', label: 'ONS outturn' },
     obr: { color: 'var(--pe-gray-500)', shape: 'circle', label: 'OBR forecast' },
     'cohort-adults': { color: 'var(--pe-gray-800)', shape: 'line', label: 'Adults alive in 2028' },
@@ -83,7 +83,7 @@ export function shockSteps(sid, closure) {
       title: 'Move 1: income shifts from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>First move: AI does some workers&rsquo; tasks, so part of what labour was paid goes to capital instead; its size is the scenario&rsquo;s input.</Say>,
+      body: <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of what labour was paid goes to capital instead; its size is the scenario&rsquo;s input.</Say>,
     },
     {
       id: 'p2-shock-2',
@@ -120,7 +120,7 @@ export function morphCardSteps(sid, cl) {
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          The chart now shows a gap: GDP against the no-shock baseline, built on the OBR&rsquo;s forecast. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          Now a gap against the OBR’s central forecast path, which includes the OBR&rsquo;s own AI. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
         </Say>
       ),
     },
@@ -135,11 +135,11 @@ export function morphCardSteps(sid, cl) {
           <Say>
             {sid === 'korinek' ? (
               <>
-                The UK scenarios join below <Key id="scen-korinek">Korinek et al.</Key>, built on US inputs: a larger shock means a higher line.
+                The UK scenarios join below <Key id="scen-korinek">Korinek et al., substantial (US)</Key>: a larger shock means a higher line.
               </>
             ) : (
               <>
-                The other scenarios join: a larger shock means a higher line. <Key id="scen-korinek">Korinek et al.</Key>, built on US inputs, is highest.
+                The other scenarios join: a larger shock means a higher line. <Key id="scen-korinek">Korinek et al., substantial (US)</Key> is highest.
               </>
             )}
           </Say>
@@ -195,7 +195,7 @@ export function morphAnswer(cl) {
   const sorted = [...ends].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
   const where = dir === 'gapUp' ? 'above' : 'below';
   const name = (id) => SCEN_NAME[id].replace(/ \(.*\)$/, '');
-  return `GDP ends ${where} the baseline in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
+  return `GDP ends ${where} the forecast path in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
 }
 
 // The generations scene's one closing line (newcomer review item 8): the
@@ -208,6 +208,6 @@ export function whoAnswer() {
   if (!w?.lose) return null;
   const r = loseRange();
   if (!r) return null;
-  const why = w.bequests ? ` ${w.bequests.replace(/^./, (x) => x.toUpperCase())} of the average gain is the value of bequests.` : '';
-  return `From ${r.lo} to ${r.hi} of adults lose, depending on the measure.${why}`;
+  const why = w.bequests ? ` Bequests are ${w.bequests} of the average gain.` : '';
+  return `${r.lo.replace(/^./, (x) => x.toUpperCase())} to ${r.hi} of adults lose, by measure.${why}`;
 }

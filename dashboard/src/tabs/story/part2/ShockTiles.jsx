@@ -155,7 +155,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
         </>
       ) : (
         <p className="p2-pending">
-          <Tx icon="provisional">The baseline for this foreign-capital case is pending.</Tx>
+          <Tx icon="provisional">The forecast path for this foreign-capital case is pending.</Tx>
         </p>
       )}
       <Essential>Shift: scenario input. Size of the added output: OG-UK result.</Essential>
