@@ -24,11 +24,10 @@ export default function NextPart({ n, title, to, children, links, show = false }
           <span className="part-links-kicker">{n ? `Next: part ${n}` : 'Next'}</span>
           <span className="part-links-title">{title}</span>
         </a>
-        {children ? (
-          <p className="part-links-lead">
-            <Icon name={iconFor('handover')} size={14} /> {children}
-          </p>
-        ) : null}
+        {/* the lead is the link's second line: no icon of its own (the
+            arrow leads both; check_text's 12-icon band at the Part 4
+            opener) */}
+        {children ? <p className="part-links-lead">{children}</p> : null}
         {links ? (
           <div className="part-links-row story-next-links">
             <span className="part-links-label">

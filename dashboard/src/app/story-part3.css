@@ -1677,6 +1677,9 @@ svg.p3-dim {
 .close-why {
   margin: 12px auto 0;
 }
+.close-when {
+  white-space: nowrap;
+}
 /* What's next: centred lines, each one link under a 1px rule; no card, no
    tint, no panel */
 .close-next {

@@ -116,7 +116,10 @@ for (const [name, path] of Object.entries(PAGES)) {
         // a Finding box's line is a sentence, not a list item (item 18): at
         // most 25 words, a final full stop, no icon
         const line = el.tagName === 'LI' && el.parentElement?.classList.contains('finding-lines');
-        const max = el.tagName === 'LI' && !line ? 12 : 25;
+        // the close's recap and What's next lines (item 34) are sentences led
+        // by an icon, each one line of a two- or three-line list: capped as a paragraph
+        const sentence = el.tagName === 'LI' && el.parentElement?.matches('.close-recap, .close-next-list');
+        const max = el.tagName === 'LI' && !line && !sentence ? 12 : 25;
         const why = [];
         if (!cite && words > max) why.push(`${words} words`);
         if (line && !/\.$/.test(t)) why.push('no final full stop');

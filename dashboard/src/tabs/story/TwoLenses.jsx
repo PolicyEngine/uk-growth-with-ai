@@ -57,8 +57,9 @@ const LAST_YEAR = YEARS[YEARS.length - 1];
 // (a) The recap: one line per model, led by its lens icon. No pay figure
 // and no sign: the pay cards are that fact's home.
 export const CLOSE_RECAP = [
-  { id: 'oguk', icon: 'gdp', name: 'OG-UK', rest: `models the whole economy over decades, ${SURPRISE_YEAR} to ${LAST_YEAR} and beyond.` },
-  { id: 'study', icon: 'households', name: 'The household study (PolicyEngine UK)', rest: `models UK households in one year, ${MODEL_YEAR}.` },
+  // `when` is kept on one line (a year range never splits at its dash)
+  { id: 'oguk', icon: 'gdp', name: 'OG-UK', rest: 'models the whole economy over decades,', when: `${SURPRISE_YEAR} to ${LAST_YEAR}`, end: ' and beyond.' },
+  { id: 'study', icon: 'households', name: 'The household study (PolicyEngine UK)', rest: 'models UK households in one year,', when: MODEL_YEAR, end: '.' },
 ];
 
 // The lenses' content (B2, B3, B6). `to`: the scene a chip links to.
@@ -244,7 +245,8 @@ export default function TwoLenses() {
             <li key={r.id}>
               <Icon name={iconFor(r.icon)} size={16} strokeWidth={1.8} className="close-ic" />
               <span>
-                <strong>{r.name}</strong> {r.rest}
+                <strong>{r.name}</strong> {r.rest} <span className="close-when">{r.when}</span>
+                {r.end}
               </span>
             </li>
           ))}
