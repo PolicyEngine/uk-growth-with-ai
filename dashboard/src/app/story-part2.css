@@ -115,6 +115,15 @@
   align-items: center;
   margin-bottom: 4px;
 }
+.p2-shock-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--t-muted);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+}
 .p2-shock-fig .p2-shock-chip {
   margin: 0;
 }

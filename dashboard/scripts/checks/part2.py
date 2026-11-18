@@ -116,7 +116,7 @@ def shock_block(text):
     a = text.find('What does the AI shock change?')
     if a < 0:
         return None
-    b = text.find('The AI shock starts', a)
+    b = text.find('More AI, sooner, as a surprise', a)
     return text[a:b] if b > 0 else None
 
 

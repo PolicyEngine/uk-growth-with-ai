@@ -91,7 +91,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           fit a phone's 45% cap to stay sticky) */}
       <div className="p2-shock-top">
         <ModelBadge model="oguk" />
-        <p className="p2-headline-chip p2-shock-chip">
+        <p className="p2-shock-chip">
           {SCEN_NAME[sid]} · {cap(CL_WORDS[cl])} · {SPLIT_YEAR}
         </p>
       </div>

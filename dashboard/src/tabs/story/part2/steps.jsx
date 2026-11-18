@@ -83,7 +83,7 @@ export function shockSteps(sid, closure) {
       title: 'Move 1: income shifts from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of what labour was paid goes to capital instead; its size is the scenario&rsquo;s input.</Say>,
+      body: <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of labour&rsquo;s income goes to capital; its size is the scenario&rsquo;s input.</Say>,
     },
     {
       id: 'p2-shock-2',
