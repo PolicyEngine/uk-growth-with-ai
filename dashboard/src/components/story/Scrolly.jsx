@@ -120,7 +120,7 @@ const lineGap = (room) => Math.min(0.4 * Math.max(0, room), 72);
 //                name).
 //                `question` (about a dozen words, neutral, answered by the
 //                block): printed in the header, and played big (QStage.jsx):
-//                always as a question moment on the page background, one
+//                always as a question moment on its navy section, one
 //                pinned screen above the header (item 16; the in-frame QFrame
 //                is no longer used), the icon, the words and the hint centred,
 //                then shrunk into the header. `key`: the word to mark;
@@ -583,7 +583,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   // one closing line per scene (round 1): sub.answer, else sub.takeaway
   const answer = subObj?.answer ?? takeaway ?? closeProp?.answer;
   const answerTo = subObj?.answer != null ? subObj?.answerTo : closeProp?.answerTo;
-  // every topic question is a full question moment on the page background
+  // every topic question is a full question moment on its navy section
   // (Vahid, item 16: "no box background"): the pinned screen (QStage) above
   // the header, never inside the figure frame. `pin` is accepted and
   // ignored.

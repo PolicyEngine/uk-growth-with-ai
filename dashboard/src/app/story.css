@@ -283,7 +283,8 @@
    900px and below scaled by --q-pin-phone. Every other topic: QFrame, the
    question inside the figure frame (no added height). */
 .story {
-  /* item 16: every question moment on the page background; polish round:
+  /* item 16: every question moment on its own full-width navy section
+     (story-bands.css, navy-sections-fable.md); polish round:
      tall enough that the question holds centred and still for about 40vh
      of scroll before it moves (QStage stagePhase) */
   --q-pin: 74svh;

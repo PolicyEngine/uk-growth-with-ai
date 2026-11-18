@@ -189,6 +189,10 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       }
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: p.qm > 0, before: p.qm === 0, up: f.up });
+      // landed past the start (a reload, a jump): the stage drops its navy
+      // (story-bands.css), so no empty navy slab shows under the rail
+      // (navy-sections-fable.md 7a, its fallback); it goes with the guard
+      el.classList.toggle('is-landed', skip.current);
       setStyle(el, '--q-top', `${d.qt}px`);
       if (d.qe != null) setStyle(el, '--q-end', d.qe.toFixed(3));
       if (skip.current) {
