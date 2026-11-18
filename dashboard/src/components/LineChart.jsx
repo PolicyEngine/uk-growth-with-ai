@@ -626,7 +626,9 @@ export default function LineChart({
             </text>
           </g>
         ) : null}
-        {series.map((s) => (
+        {/* a line drawn without an end label (it coincides with a labelled
+            one) goes under, so the colour seen matches the label's */}
+        {[...series.filter((s) => s.noEndLabel), ...series.filter((s) => !s.noEndLabel)].map((s) => (
           <g key={s.key ?? s.label}>
             <Tween
               className="lc-line"
