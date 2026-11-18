@@ -246,3 +246,24 @@ describe('HouseholdsMethod', () => {
     expect(text(container).match(/[+−]\d+\.\d\dpp|£\d+\.\dbn/g)).toBeNull();
   });
 });
+
+// Item 23 (checks-words2.md): Detail and sources lives on Method and
+// sources (sub=detail); Explore > Households keeps one line linking to it.
+describe('Detail and sources', () => {
+  it('is a Method sub-tab with every result file and the commit; Explore links to it in one line', async () => {
+    const { default: HouseholdsDetail, FILES } = await import('./HouseholdsDetail.jsx');
+    const { TABS } = await import('@/lib/labels.js');
+    expect(TABS.find((t) => t.id === 'method').subs.map((s) => s.id)).toContain('detail');
+    const page = render(<HouseholdsDetail />).container;
+    expect(page.querySelector('#detail-sources h2').textContent).toBe('Detail and sources');
+    expect(page.querySelectorAll('.hh-sources [data-reference] li')).toHaveLength(FILES.length);
+    expect(page.textContent).toContain(D.source.commit.slice(0, 7));
+    for (const a of page.querySelectorAll('.hh-sources > p a[target="_blank"]')) expect(a.getAttribute('rel')).toContain('noopener');
+    const ex = render(<HouseholdsExplore />).container;
+    expect(ex.textContent).not.toContain('Result files, commit, how the page is built.');
+    const links = [...ex.querySelectorAll('a')].filter((a) => /Detail and sources/.test(a.textContent));
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute('href')).toMatch(/tab=method&sub=detail/);
+    expect(ex.querySelector('.hh-sources')).toBeNull();
+  });
+});

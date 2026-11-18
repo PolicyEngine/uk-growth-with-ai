@@ -622,7 +622,13 @@ svg.p3-dim {
   white-space: nowrap;
 }
 
-/* Sources fold */
+/* Explore > Households: the one line to Method's Detail and sources */
+.hh-detail-link {
+  margin: 24px 0 0;
+  font-size: var(--t-ui);
+}
+
+/* Detail and sources (Method; was Explore > Households' fold) */
 .hh-sources {
   font-size: var(--t-ui);
   line-height: 1.6;

@@ -1,7 +1,6 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import Disclosure from '@/components/ab/Disclosure.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { PageNotes } from '@/components/ui/PageIntro.jsx';
@@ -9,7 +8,7 @@ import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
-import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, PR_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
+import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
 
@@ -28,7 +27,6 @@ import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
 // the shared MODEL_YEAR).
 const YEAR = D.model_year_label ?? MODEL_YEAR;
 const STATUS = D.provisional === false ? (D.status ?? null) : 'provisional';
-const PR = D.source.pr_url ?? PR_URL;
 const PAPER = D.source.paper_url ?? PAPER_URL;
 const CTX = `Household study PR #${D.source.pr}${STATUS ? ` (${STATUS})` : ''}, ${D.source.dataset}, ${YEAR}, commit ${D.source.commit.slice(0, 7)}`;
 // Orderings in words, computed, so a rerun that moves them changes the text.
@@ -815,50 +813,15 @@ function Policy() {
 }
 
 // --- page ------------------------------------------------------------------------
-const FILES = [
-  ['The main case', 'results/robustness/central_monte_carlo.json'],
-  ['Cost by tax and benefit', D.cost_components.file],
-  ['Channels', D.channels.file],
-  ['Take-up and JSA', 'results/takeup/takeup_draws.csv, results/takeup/takeup_runs.json'],
-  ['Wage cuts', 'results/wage_cut/wage_cut_draws.csv'],
-  ['OBR-sized runs and the Sankey', 'results/next_runs/obr_benchmark.json, results/next_runs/obr_benchmark_draws.csv, results/next_runs/obr_household_deciles.csv'],
-  ['Displacement rules', D.rules[0].file],
-  ['Deciles', 'results/appendix/decomposition_ci.csv, results/appendix/decile_ranking_sensitivity.csv'],
-  ['Break-evens', 'results/robustness/survivor_wage_grid.csv, results/next_runs/capital_variants_draws.csv, results/robustness/duration_takeup_sensitivity.json'],
-  ['Policy responses', D.policy.file],
-];
-
-function Sources() {
+// The result files, the commit and how the page is built: on Method and
+// sources > Detail and sources (item 23), one line here.
+function DetailLink() {
   return (
-    <Disclosure title="Detail and sources" preview="Result files, commit, how the page is built">
-      <div className="hh-sources">
-        <p>
-          Read from the study’s committed result files, commit{' '}
-          <a href={`https://github.com/${D.source.repo}/tree/${D.source.commit}`} target="_blank" rel="noreferrer">
-            <code>{D.source.commit.slice(0, 7)}</code>
-          </a>
-          ; each checked against the paper by <code>build_ai_study_data.py</code>.
-        </p>
-        <ul data-reference="">
-          {FILES.map(([what, f]) => (
-            <li key={what}>
-              <b>{what}:</b> {linkAiFiles(f)}
-            </li>
-          ))}
-        </ul>
-        <p className="hh-links">
-          <a href={PAPER} target="_blank" rel="noreferrer">
-            {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
-          </a>
-          <a href={PR} target="_blank" rel="noreferrer">
-            Household study PR #{D.source.pr}
-          </a>
-          <NavLink tab="method" sub="households">
-            Household method
-          </NavLink>
-        </p>
-      </div>
-    </Disclosure>
+    <p className="hh-detail-link">
+      <NavLink tab="method" sub="detail">
+        Detail and sources: result files, commit, how the page is built
+      </NavLink>
+    </p>
   );
 }
 
@@ -932,7 +895,7 @@ export default function HouseholdsExplore() {
         Three stylised additions, simulated on top of the main-case shock
       </SectionHeading>
       <Policy />
-      <Sources />
+      <DetailLink />
     </div>
   );
 }
