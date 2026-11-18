@@ -8,6 +8,7 @@ import AI from '@/data/aiStudy2425.json';
 import { jsonOf } from '@/components/ui/DownloadMenu.jsx';
 import UK from '@/data/ukContext.json';
 import S from '@/lib/activeData.js';
+import { DATA_FILE } from '@/lib/dataFlag.js';
 
 afterEach(cleanup);
 
@@ -26,7 +27,7 @@ describe('Data and code', () => {
   });
   it('the last-updated stamp is the latest build date', () => {
     expect(LAST_UPDATED >= S.generated_utc.slice(0, 10)).toBe(true);
-    expect(VINTAGES.map((v) => v.file)).toContain('surprise2028.json');
+    expect(VINTAGES.map((v) => v.file)).toContain(DATA_FILE);
   });
   it('one vintages table carries both models, each row labelled', () => {
     for (const v of VINTAGES) expect(['OG-UK', 'Household study', '—']).toContain(v.model);

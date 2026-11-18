@@ -6,7 +6,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { pickInPill } from '@/components/ui/pillTestUtils.js';
 
 afterEach(cleanup);
-import real from '@/lib/activeData.js';
+import real from '@/lib/fixtureBase.js';
 
 const fixture = JSON.parse(JSON.stringify(real));
 const H = fixture.years.indexOf(fixture.headline_year);

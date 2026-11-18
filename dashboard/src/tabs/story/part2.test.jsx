@@ -26,7 +26,7 @@ const popText = (root) => {
   fireEvent.click(b);
   return t;
 };
-import real from '@/lib/activeData.js';
+import real from '@/lib/fixtureBase.js';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 
 afterEach(cleanup);
