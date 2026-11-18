@@ -190,7 +190,7 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
 // in it is read from the data (headline year, surprise year, the flag).
 describe('the zeta_K 0.5 card’s More info fold', () => {
   it('is closed by default, opens on click, and words the foreign share and the flag from the data', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+    const S = (await import('@/lib/activeData.js')).default;
     const { I_FLAG_PCT, investmentFlags } = await import('@/tabs/explore/caveats.js');
     const { container } = at('tab=explore');
     const card = container.querySelector('#closure-sensitivity');

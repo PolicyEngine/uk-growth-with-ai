@@ -3,7 +3,7 @@
 // finances and the investment ranges in the zeta_K = 0.5 caveat.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import SensitivityTable from '@/tabs/explore/SensitivityTable.jsx';
 import { REPRICE_RANGE } from '@/tabs/ai/FinancesSection.jsx';
 import { NavProvider } from '@/lib/nav.jsx';

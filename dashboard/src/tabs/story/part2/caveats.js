@@ -4,7 +4,7 @@
 // shares become "about half", counts "one in six", and each line links the
 // figure's home. Every function returns null when a solve is pending or the
 // caveat does not hold for the cell in view.
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import C from '@/data/cohorts2028.json';
 import { YEARS, HEADLINE_YEAR, CENTRAL, BOUND, gap } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';

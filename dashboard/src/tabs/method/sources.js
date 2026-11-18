@@ -4,7 +4,7 @@
 // the line of code that sets it. A modelling choice is said to be one; no
 // published source is invented for it.
 import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 
 // The commit the results were built from (surprise2028.json `source_commit`)
 export const RUN = S.source_commit;

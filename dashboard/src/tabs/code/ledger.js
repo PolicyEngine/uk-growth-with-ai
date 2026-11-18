@@ -2,7 +2,7 @@
 // vintage, a source ledger (figure, source, vintage, date checked) built
 // from the files' own source fields, and the date of the latest data build.
 // Nothing here is typed: every row is read from a data file.
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import CO from '@/data/cohorts2028.json';
 import AI from '@/data/aiStudy2425.json';
 import UK from '@/data/ukContext.json';

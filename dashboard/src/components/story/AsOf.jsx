@@ -2,7 +2,7 @@
 
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import UK from '@/data/ukContext.json';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 
 // The page's "As of" stamp, shown once in the shell: a quiet icon button
 // (components/ui/SourceLine.jsx, "As of: data releases") that opens the

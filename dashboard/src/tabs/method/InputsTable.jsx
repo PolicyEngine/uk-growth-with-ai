@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import Pill from '@/components/ui/Pill.jsx';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import { INPUTS, KIND, ROWS } from './inputs.js';
 import { SRC } from './sources.js';
 

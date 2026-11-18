@@ -5,7 +5,7 @@ import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
 import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 
 afterEach(cleanup);
 

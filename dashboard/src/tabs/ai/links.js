@@ -1,4 +1,4 @@
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import COH from '@/data/cohorts2028.json';
 import AI from '@/data/aiStudy2425.json';
 

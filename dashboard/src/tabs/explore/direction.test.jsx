@@ -4,7 +4,7 @@
 // own threshold, not with the helper the pages use.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import CO from '@/data/cohorts2028.json';
 import { NavProvider } from '@/lib/nav.jsx';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';

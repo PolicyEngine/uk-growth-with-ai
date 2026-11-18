@@ -2,7 +2,7 @@
 // data file (story-finding-titles-fable.md); part2.test.jsx runs on a
 // fixture.
 import { describe, expect, it } from 'vitest';
-import real from '@/data/surprise2028.json';
+import real from '@/lib/activeData.js';
 import { morphAnswer } from './part2/steps.jsx';
 import { shockFor } from './part2/shock.js';
 

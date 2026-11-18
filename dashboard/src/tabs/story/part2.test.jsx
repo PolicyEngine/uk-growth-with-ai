@@ -26,7 +26,7 @@ const popText = (root) => {
   fireEvent.click(b);
   return t;
 };
-import real from '@/data/surprise2028.json';
+import real from '@/lib/activeData.js';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 
 afterEach(cleanup);
@@ -41,7 +41,7 @@ fixture.results.uk_central.tfp['zk0.1'] = tfpC;
 fixture.results.uk_central.tfp.zk0 = { status: 'pending' };
 fixture.output_split.change.uk_central.zk0 = { status: 'pending' };
 
-vi.doMock('@/data/surprise2028.json', () => ({ default: fixture }));
+vi.doMock('@/lib/activeData.js', () => ({ default: fixture }));
 
 const { default: Part2 } = await import('@/tabs/story/Part2.jsx');
 const { NavProvider } = await import('@/lib/nav.jsx');

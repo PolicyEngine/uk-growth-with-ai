@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import { debtTitle, taxTitle, debtMoreInfo, taxMoreInfo, debtWhy, taxWhy } from '@/tabs/ai/financesInfo.js';
 
 // Item 17: each More info sentence is gated on the data's signs for the

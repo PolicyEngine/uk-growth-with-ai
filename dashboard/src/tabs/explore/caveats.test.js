@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import { signHeading, wageByClosure, wageClosureLines, investmentFlags, isFlagged, I_FLAG_PCT, belowThrough, debtDipIsDenominator, debtSidesByRule } from '@/tabs/explore/caveats.js';
 
 const Y = (y) => S.years.indexOf(y);

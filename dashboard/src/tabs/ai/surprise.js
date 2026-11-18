@@ -4,7 +4,7 @@
 // closure. A combination that has not been solved yet returns null, and
 // every cell and series goes through gap()/fmt() so a pending one cannot
 // break the page.
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 import { VERSION_COLOR, VERSION_TEXT_COLOR, VERSION_LIGHT } from '@/lib/versionColors.js';
 
 export { S };

@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:2027": "NEXT_PUBLIC_DATA=2027 vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },

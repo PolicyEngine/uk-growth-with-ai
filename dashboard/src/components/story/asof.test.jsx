@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import AsOf, { asOfItems, fmtDay, latestRelease, readable } from './AsOf.jsx';
 import UK from '@/data/ukContext.json';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 
 afterEach(cleanup);
 

@@ -578,7 +578,7 @@ describe('hero', () => {
     ).container;
   };
   it('prints the chosen scenario’s three 2031 gaps, each linked to its home', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+    const S = (await import('@/lib/activeData.js')).default;
     const { heroStats } = await import('@/tabs/story/Hero.jsx');
     const i = S.years.indexOf(S.headline_year);
     for (const [s, cl, q] of [['uk_high', 'zk0.1', 's=uk_high'], ['uk_low', 'zk0', 's=uk_low&closure=closed']]) {
@@ -613,7 +613,7 @@ describe('hero', () => {
     }
   });
   it('titles the hero: the series name above, then the question in two sentences', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+    const S = (await import('@/lib/activeData.js')).default;
     const el = await at('s=uk_central');
     expect(el.querySelector('.story-hero-text p.hero-series').textContent).toBe('AI and the UK economy: Beyond the forecast');
     const h2 = el.querySelector('h2#story-q');
@@ -623,7 +623,7 @@ describe('hero', () => {
     expect(h2.textContent).not.toMatch(/arriv/i);
   });
   it('draws all four lines from 2028, each labelled, with axis titles', async () => {
-    const S = (await import('@/data/surprise2028.json')).default;
+    const S = (await import('@/lib/activeData.js')).default;
     const el = await at('s=uk_central');
     const wide = el.querySelector('svg.hf-svg.is-wide');
     expect(wide.getAttribute('role')).toBe('img');

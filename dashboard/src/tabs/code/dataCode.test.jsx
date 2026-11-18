@@ -7,7 +7,7 @@ import { ledger, LAST_UPDATED, VINTAGES, MODEL_VERSIONS } from '@/tabs/code/ledg
 import AI from '@/data/aiStudy2425.json';
 import { jsonOf } from '@/components/ui/DownloadMenu.jsx';
 import UK from '@/data/ukContext.json';
-import S from '@/data/surprise2028.json';
+import S from '@/lib/activeData.js';
 
 afterEach(cleanup);
 
