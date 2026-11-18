@@ -1560,7 +1560,7 @@ svg.p3-dim {
 .p3-rank-table th {
   font-weight: 400;
 }
-/* the end of part 3: one header, one plain two-column list with dots */
+/* the end of part 3: one header, a lead, one plain two-column table (item 33) */
 .p3-close {
   margin: 0;
 }
@@ -2677,4 +2677,236 @@ a.lens-pay-num:hover {
 /* the break-even values (their captions are words) */
 .p3-ch-be-from [data-input] {
   font-variant-numeric: tabular-nums;
+}
+
+/* ---- Item 32: job loss against wage cuts (part3/Changes.jsx MarginPanel) ----
+   A definition line, then two groups over three panels: each panel a head,
+   a track with no text on it, ticks, then its two values as name and value
+   columns. Group labels are plain ruled text: no tint, no pill. */
+.p3-margin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin-top: 12px;
+}
+.p3-margin-group.is-gains {
+  grid-column: 2 / 4;
+}
+.p3-margin-group-label {
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pe-gray-600);
+  border-bottom: 1px solid var(--card-border);
+}
+.p3-margin-group-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px 24px;
+}
+.p3-margin-group.is-gains .p3-margin-group-panels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.p3-ch .p3-margin-grid .p3-db {
+  margin: 0;
+}
+.p3-ch .p3-margin-grid .p3-db-head {
+  min-height: calc(2 * 1.3em);
+  margin: 0;
+  font-size: var(--chart-fs-label);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pe-gray-800);
+}
+.p3-ch .p3-margin-grid .p3-db-track {
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+.p3-db-vals {
+  display: grid;
+  gap: 2px;
+  margin: 10px 0 0;
+}
+.p3-db-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: 12px;
+  align-items: baseline;
+  font-size: var(--chart-fs-label);
+  line-height: 1.35;
+}
+.p3-db-row dt {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 400;
+  color: var(--pe-gray-800);
+}
+.p3-db-row dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--pe-gray-900);
+}
+.p3-db-row .p3-db-sw {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  align-self: center;
+}
+/* a step that names one margin's marks: the other values go muted, still legible */
+#p3-changes [data-hl] .p3-db-row[data-mark]:not([data-on]) :is(dt, dd) {
+  color: var(--t-muted);
+}
+#p3-changes .p3-ch.is-all .p3-db-row[data-mark]:not([data-on]) dt {
+  color: var(--pe-gray-800);
+}
+#p3-changes .p3-ch.is-all .p3-db-row[data-mark]:not([data-on]) dd {
+  color: var(--pe-gray-900);
+}
+.p3-margin-note {
+  margin: 12px 0 0;
+  font-size: var(--chart-fs-tick);
+  line-height: 1.4;
+  color: var(--pe-gray-600);
+}
+@media (max-width: 600px) {
+  .p3-margin-grid,
+  .p3-margin-group.is-gains .p3-margin-group-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .p3-margin-group.is-gains {
+    grid-column: auto;
+  }
+  .p3-margin-grid {
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .p3-margin-group-panels {
+    gap: 10px;
+  }
+  .p3-ch .p3-margin-grid .p3-db-head {
+    min-height: 0;
+  }
+  .p3-ch .p3-margin-grid .p3-db-track {
+    margin-top: 10px;
+  }
+  .p3-db-vals {
+    margin-top: 6px;
+  }
+}
+
+/* ---- Item 33: what this one-year test leaves out (part3/Closing.jsx) ----
+   A lead, one plain two-column table in three groups, a foot line. No tint,
+   no box, no icons: 1px rules above each group label and between rows. */
+.p3-close-card {
+  max-width: 44rem;
+}
+.p3-close-lead,
+.p3-close-foot {
+  margin: 0;
+  font-size: var(--chart-fs-label);
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+}
+.p3-close-lead {
+  margin-bottom: 14px;
+}
+.p3-close-foot {
+  margin-top: 14px;
+}
+.p3-out {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: transparent;
+}
+.p3-out th,
+.p3-out td {
+  padding: 0;
+  text-align: left;
+  vertical-align: top;
+  background: transparent;
+}
+.p3-out thead th,
+.p3-out .p3-out-group th {
+  font-size: var(--chart-fs-tick);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pe-gray-600);
+}
+.p3-out thead th {
+  padding-bottom: 6px;
+}
+.p3-out thead th:first-child {
+  width: 40%;
+}
+.p3-out .p3-out-group th {
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--card-border);
+}
+.p3-out tr[data-item] > * {
+  padding: 7px 16px 7px 0;
+  font-size: var(--chart-fs-label);
+  line-height: 1.4;
+  border-top: 1px solid var(--card-border);
+}
+.p3-out tr[data-item] > :last-child {
+  padding-right: 0;
+}
+.p3-out .p3-out-left {
+  font-weight: 600;
+  color: var(--t-ink);
+}
+.p3-out .p3-out-assumes {
+  font-weight: 400;
+  color: var(--pe-gray-700);
+}
+@media (max-width: 600px) {
+  .p3-out thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .p3-out,
+  .p3-out tbody,
+  .p3-out tr,
+  .p3-out th,
+  .p3-out td {
+    display: block;
+    width: auto;
+  }
+  .p3-out tr[data-item] {
+    padding: 7px 0;
+    border-top: 1px solid var(--card-border);
+  }
+  .p3-out tr[data-item] > * {
+    padding: 0;
+    border-top: 0;
+  }
+  .p3-out .p3-out-assumes {
+    margin-top: 2px;
+  }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .p3-close-card .p3-out tbody {
+    transition:
+      opacity 400ms ease calc(var(--i, 0) * 120ms),
+      transform 500ms var(--story-ease) calc(var(--i, 0) * 120ms);
+  }
+  .p3-close-card:not(.is-in) .p3-out tbody {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .p3-close-card.is-snap .p3-out tbody {
+    transition: none !important;
+  }
 }

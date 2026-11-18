@@ -5,7 +5,6 @@ import Icon from '@/components/ab/Icon.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
-import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, Key, MarkProvider, MODEL_YEAR, OutsideRebuildFlag, Source, entryClass, ladder, perPound, rule, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
@@ -263,8 +262,10 @@ function RulesPanel({ on }) {
   );
 }
 
-// A dumbbell on its own axis from zero: two marks joined by a line, each
-// with its value and its margin's name. Marks are data-mark "<panel> <margin>".
+// A dumbbell on its own axis from zero: two marks joined by a line, no text
+// on the track; under it the two values, each name and value in its own
+// column (item 32). Marks and value rows are data-mark "<panel> <margin>",
+// so a step's highlight lights the number with its dot.
 function Dumbbell({ head, panel, max, marks, on, delay, fmt, scale = false }) {
   const xs = marks.map((m) => (m.v / max) * 100);
   return (
@@ -279,96 +280,96 @@ function Dumbbell({ head, panel, max, marks, on, delay, fmt, scale = false }) {
         {marks.map((m, i) => (
           <span key={m.id} className={`p3-db-mark is-${m.id}${i ? ' is-second' : ''}`} data-mark={`${panel} ${m.id}`}>
             <span className="p3-db-dot" style={{ left: `${xs[i]}%` }} tabIndex={on ? 0 : -1} aria-label={m.name} />
-            <span className={`p3-db-val${xs[i] > 62 ? ' is-left' : ''}`} style={{ left: `${xs[i]}%`, '--x': xs[i] }}>
-              {m.text}
-            </span>
           </span>
         ))}
       </div>
       <Ticks max={max} fmt={fmt} />
+      <dl className="p3-db-vals">
+        {marks.map((m) => (
+          <div key={m.id} className={`p3-db-row is-${m.id}`} data-mark={`${panel} ${m.id}`}>
+            <dt>
+              <span className={`p3-db-sw is-${m.id}`} aria-hidden="true" />
+              {MARGIN_NAME[m.id]}
+            </dt>
+            {' '}
+            <dd>{m.text}</dd>{' '}
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
 
+const MARGIN_NAME = { job: 'Job loss', cut: 'Wage cuts' };
+// The gross pay each pair removes: printed once the build carries it
+// (per_pound_20.gross_cut_bn); never derived here.
+const GROSS = D.per_pound_20.gross_cut_bn;
+
 function MarginPanel({ on }) {
   const maxC = Math.max(JOB.cost_bn, CUT.cost_bn) * 1.15;
   const maxP = Math.max(JOB.poverty_pp, CUT.poverty_pp) * 1.15;
-  // each value names its margin, with the margin's colour as its key
-  const name = (k) => (
-    <span className="p3-db-name">
-      {' '}
-      <span className={`p3-db-sw is-${k}`} aria-hidden="true" />
-      {k === 'job' ? 'job loss' : 'wage cuts'}
-    </span>
-  );
+  const aria = { job: 'Job loss: the main case on these draws', cut: 'Wage cuts of the same gross size' };
   return (
     <>
       <p className="p3-group-head p3-group-first" data-title-fallback={CL.povertyMore === 'job' ? undefined : ''}>
         {CL.povertyMore === 'job' ? `Wage cuts of the same size raise poverty ${CL.far ? 'far ' : ''}less` : `Job loss or wage cuts, ${D.per_pound_20.draws} draws`}
       </p>
-      <p className="story-figure-unit p3-group-unit">{`Job loss against wage cuts of the same gross earnings loss, ${D.per_pound_20.draws} draws.`}</p>
+      <p className="story-figure-unit p3-group-unit p3-margin-def">
+        Each pair removes the same gross pay{Number.isFinite(GROSS) ? `, ${fmtBn(GROSS)} a year` : ''}: as job loss, or as wage cuts graded by AI exposure with no jobs lost.
+      </p>
       <OutsideRebuildFlag />
-      <Dumbbell
-        head="Each margin alone: pence per £1 of earnings lost"
-        panel="m-pence"
-        scale
-        max={100}
-        on={on}
-        delay={0}
-        fmt={(t) => `${t}p`}
-        marks={[
-          {
-            id: 'job',
-            v: J.government_p,
-            name: 'Job loss',
-            text: (
-              <>
-                {fmtPence(J.government_p)}
-                {name('job')} <span className="p3-muted">({fmtPenceRange(J.min_p, J.max_p)} across draws)</span>
-              </>
-            ),
-          },
-          {
-            id: 'cut',
-            v: W.government_p,
-            name: 'Wage cuts',
-            text: (
-              <>
-                {fmtPence(W.government_p)}
-                {name('cut')}
-              </>
-            ),
-          },
-        ]}
-      />
-      <p className="p3-group-head">With the wage and capital effects on</p>
-      <div className="p3-db-pair">
-        <Dumbbell
-          head="Cost, £bn a year, these 20 draws"
-          panel="m-cost"
-          max={maxC}
-          on={on}
-          delay={300}
-          fmt={(t) => `£${t}bn`}
-          marks={[
-            { id: 'job', v: JOB.cost_bn, name: 'Job loss: the main case on these draws', text: <>{fmtBn(JOB.cost_bn)}{name('job')}</> },
-            { id: 'cut', v: CUT.cost_bn, name: 'Wage cuts of the same gross size', text: <>{fmtBn(CUT.cost_bn)}{name('cut')}</> },
-          ]}
-        />
-        <Dumbbell
-          head="Absolute poverty rise, pp"
-          panel="m-poverty"
-          max={maxP}
-          on={on}
-          delay={500}
-          fmt={(t) => `${t}pp`}
-          marks={[
-            { id: 'job', v: JOB.poverty_pp, name: 'Job loss: the main case on these draws', text: <>{fmtPp(JOB.poverty_pp)}{name('job')}</> },
-            { id: 'cut', v: CUT.poverty_pp, name: 'Wage cuts of the same gross size', text: <>{fmtPp(CUT.poverty_pp)}{name('cut')}</> },
-          ]}
-        />
+      <div className="p3-margin-grid">
+        <div className="p3-margin-group is-alone">
+          <p className="p3-margin-group-label">Each case alone</p>
+          <div className="p3-margin-group-panels">
+            <Dumbbell
+              head="Cost per £1 of pay removed"
+              panel="m-pence"
+              scale
+              max={100}
+              on={on}
+              delay={0}
+              fmt={(t) => `${t}p`}
+              marks={[
+                { id: 'job', v: J.government_p, name: 'Job loss', text: fmtPence(J.government_p) },
+                { id: 'cut', v: W.government_p, name: 'Wage cuts', text: fmtPence(W.government_p) },
+              ]}
+            />
+          </div>
+        </div>
+        <div className="p3-margin-group is-gains">
+          <p className="p3-margin-group-label">With the assumed gains added back</p>
+          <div className="p3-margin-group-panels">
+            <Dumbbell
+              head="Cost to the public finances, £bn a year"
+              panel="m-cost"
+              max={maxC}
+              on={on}
+              delay={300}
+              fmt={(t) => `£${t}bn`}
+              marks={[
+                { id: 'job', v: JOB.cost_bn, name: aria.job, text: fmtBn(JOB.cost_bn) },
+                { id: 'cut', v: CUT.cost_bn, name: aria.cut, text: fmtBn(CUT.cost_bn) },
+              ]}
+            />
+            <Dumbbell
+              head="Absolute poverty rise, pp"
+              panel="m-poverty"
+              max={maxP}
+              on={on}
+              delay={500}
+              fmt={(t) => `${t}pp`}
+              marks={[
+                { id: 'job', v: JOB.poverty_pp, name: aria.job, text: fmtPp(JOB.poverty_pp) },
+                { id: 'cut', v: CUT.poverty_pp, name: aria.cut, text: fmtPp(CUT.poverty_pp) },
+              ]}
+            />
+          </div>
+        </div>
       </div>
-      <Essential>Wage cuts are sized to the same gross earnings loss</Essential>
+      <p className="p3-margin-note">
+        Means of {D.per_pound_20.draws} paired draws. Job loss alone: {fmtPenceRange(J.min_p, J.max_p)} across them.
+      </p>
     </>
   );
 }
@@ -396,7 +397,6 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
-      <Essential>Each break-even holds the other two at main settings</Essential>
     </>
   );
 }
@@ -423,8 +423,8 @@ const rulesNotes = () => [
 
 const marginNotes = () => [
   { icon: 'tax', text: 'Both pence figures include employer NI' },
-  { icon: 'draws', text: <>Job loss here is the main case on these {D.per_pound_20.draws} draws</> },
-  { icon: 'wageCut', text: <>Wage cuts are exposure-graded, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref></> },
+  { icon: 'draws', text: 'Job loss here is the main case, on the same draws as the wage cuts' },
+  { icon: 'wageCut', text: <>Wage cuts in place of job loss, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref></> },
   marginClaims().perPoundMore === 'cut' ? { icon: 'why', text: 'A pay cut loses tax at the worker’s marginal (last-pound) rate, a lost job at the average rate, and benefits replace little here' } : null,
 ];
 
@@ -474,7 +474,7 @@ function ChangesFigure({ step, ctx }) {
       <FigureHead
         icon="scenario"
         title="The cost changes with every assumption tested"
-        unit={`Three tests of the main case, ${MODEL_YEAR}, each with its own unit line. The household study.`}
+        unit={`The household study, ${MODEL_YEAR}`}
         replay={e.replay}
         source={<ChangesSource />}
       />

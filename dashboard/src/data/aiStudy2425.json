@@ -593,7 +593,8 @@
       "key": "mean(exchequer_cost_bn) of run=channel_displacement over mean(gross_cut_bn) of results/wage_cut/wage_cut_draws.csv variant=cut_only, seeds 0-19; min/max of the per-draw ratio"
     },
     "wage_cuts_employer_ni_p": 14.8433,
-    "note": "Displacement alone and wage cuts alone: no survivor-wage or capital channel in either."
+    "note": "Displacement alone and wage cuts alone: no survivor-wage or capital channel in either.",
+    "gross_cut_bn": 100.7369
   },
   "sankey": {
     "draws": 20,

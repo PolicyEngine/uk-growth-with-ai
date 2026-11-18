@@ -18,7 +18,7 @@ import { BREAKS, CHANGES_STEPS, PANEL_OF, changesSub, marginClaims, rulesClaims 
 import { CHANNEL_STEPS, effectWords, fillFor } from './part3/Channels.jsx';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 import { DECILES_SUB, bottomDecileRankings, decileShape } from './part3/Deciles.jsx';
-import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
+import { CLOSING_SUB, LEFT_OUT, OUT_GROUPS } from './part3/Closing.jsx';
 import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
 import TwoLenses, { CLOSE_SUB, LENSES, PAY_RESULT } from './TwoLenses.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
@@ -282,14 +282,25 @@ describe('Part3', () => {
     const { container } = renderPart();
     const close = container.querySelector('.p3-close');
     expect(close.closest('.scrolly')).toBeNull();
-    expect(close.querySelectorAll('.p3-out-list li')).toHaveLength(LEFT_OUT.length);
-    for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(12);
-    // a level-(b) header (no icon) and one tinted panel of tiles, one plain icon each
+    // item 33: one h3, one lead, one table (three groups, a row per item, no icons), one foot line
+    expect(close.querySelectorAll('h3')).toHaveLength(1);
+    expect(close.querySelectorAll('.p3-close-lead')).toHaveLength(1);
+    const table = close.querySelector('table.p3-out');
+    expect([...table.querySelectorAll('thead th')].map((t) => t.textContent)).toEqual(['Left out', 'What the study assumes']);
+    expect([...table.querySelectorAll('tbody')].map((g) => g.querySelector('th[scope="rowgroup"]').textContent)).toEqual(OUT_GROUPS.map((g) => g.title));
+    expect(table.querySelectorAll('tbody tr[data-item]')).toHaveLength(LEFT_OUT.length);
+    expect(table.querySelectorAll('svg')).toHaveLength(0);
+    for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(16);
+    expect(close.textContent).not.toMatch(/\d/);
+    // reported JSA awards are paid; only the newly jobless get none
+    expect(LEFT_OUT.find((t) => t.id === 'jsa').text).toBe('New-style Jobseeker’s Allowance: Paid only where the survey already records it');
+    const foot = close.querySelectorAll('.p3-close-foot a');
+    expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
     expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
     expect(close.querySelector('.scene-head h3#p3-close-h')).not.toBeNull();
-    expect(close.querySelector('.p3-close-chip').textContent).toBe('A one-year test, not a forecast');
-    for (const li of close.querySelectorAll('.story-panel .p3-out-list > li')) expect(li.querySelectorAll('svg')).toHaveLength(1);
-    expect(close.querySelector('button, .p3-chip-frame')).toBeNull();
+    expect(close.querySelector('.p3-close-chip, .story-panel, button, .p3-chip-frame')).toBeNull();
+    expect(container.textContent).not.toContain('None in the main case');
+    expect(container.textContent).not.toContain('A one-year test, not a forecast');
     expect(container.querySelector('.story-next')).toBeNull();
     // the dividend and corporation tax asymmetry is said once, in the channels scene
     expect(container.textContent.match(/corporation tax/gi)).toHaveLength(1);
@@ -481,10 +492,31 @@ describe('Part3', () => {
     expect(t1).toContain(c.perPoundMore === 'cut' ? 'wage cuts cost the public finances more than' : 'job loss costs the public finances more than');
     expect(container.querySelector('#p3-margin-step-2 .p3-step-line').textContent).toContain(`${c.povertyMore === 'job' ? 'job loss raises' : 'wage cuts raise'} poverty`);
     const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="margin"]');
-    // 42p and 55p carry their margin's name (sign-off #5)
-    expect(fig.querySelector('[data-mark="m-pence job"] .p3-db-val').textContent).toMatch(new RegExp(`^${fmtPence(pj)} job loss`));
-    expect(fig.querySelector('[data-mark="m-pence cut"] .p3-db-val').textContent).toMatch(new RegExp(`^${fmtPence(pw)} wage cuts`));
+    // item 32: each value row names its margin in its own column (sign-off #5), job loss first
+    const row = (k) => fig.querySelector(`.p3-db-vals [data-mark="m-pence ${k}"]`);
+    expect([row('job').querySelector('dt').textContent, row('job').querySelector('dd').textContent]).toEqual(['Job loss', fmtPence(pj)]);
+    expect([row('cut').querySelector('dt').textContent, row('cut').querySelector('dd').textContent]).toEqual(['Wage cuts', fmtPence(pw)]);
     expect(fig.querySelectorAll('.p3-ch-ticks[data-axis]')).toHaveLength(3);
+    // three panels, each one head, two dots, two value rows; no text on a track
+    const dbs = [...fig.querySelectorAll('.p3-db')];
+    expect(dbs.map((d) => d.querySelector('.p3-db-head').textContent)).toEqual(['Cost per £1 of pay removed', 'Cost to the public finances, £bn a year', 'Absolute poverty rise, pp']);
+    for (const d of dbs) {
+      expect(d.querySelectorAll('.p3-db-dot')).toHaveLength(2);
+      expect([...d.querySelectorAll('.p3-db-vals dt')].map((t) => t.textContent)).toEqual(['Job loss', 'Wage cuts']);
+      expect(d.querySelector('.p3-db-track').textContent).toBe('');
+    }
+    expect([...fig.querySelectorAll('.p3-margin-group-label')].map((g) => g.textContent)).toEqual(['Each case alone', 'With the assumed gains added back']);
+    // the definition sentence: the gross pay once the build carries it; the range in the note line
+    const G = D.per_pound_20.gross_cut_bn;
+    const def = fig.querySelector('.p3-margin-def').textContent.replace(/\s+/g, ' ').trim();
+    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, or as wage cuts graded by AI exposure with no jobs lost.`);
+    expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
+    const all = container.querySelector('#p3-changes').textContent;
+    for (const s of ['each with its own unit line', 'across draws)', 'these 20 draws', 'sized to the same gross earnings loss', 'holds the other two at main settings']) expect(all, s).not.toContain(s);
+    expect(container.querySelector('#p3-changes figure').textContent.match(/same gross/g)).toHaveLength(1);
+    // the citation is in the figure's notes only, not its open text; the figure names the study (ruling, 18 Nov evening)
+    expect(fig.textContent).not.toMatch(/Acemoglu/);
+    expect(container.querySelector('#p3-changes figure > .story-figure-unit').textContent).toMatch(/^The household study, FY \d{4}–\d{2}$/);
   });
 
   it('shows each break-even as one row: main setting, an arrow, the break-even setting', () => {

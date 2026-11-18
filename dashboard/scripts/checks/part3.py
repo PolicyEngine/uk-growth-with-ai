@@ -59,7 +59,7 @@ for k in ('uniform', 'junior', 'compression'): story[bn(RUL[k]['cost_bn'])] += 1
 for x in [pence(J['min_p']), pence(J['max_p']), pence(J['government_p']),
           pence(PP['wage_cuts']['government_p']),  # employer NI on neither side since round 2 (job loss's 42p includes it too)
           bn(LAD['central_20']['cost_bn']), pp(LAD['central_20']['poverty_pp']), bn(LAD['wage_cuts']['cost_bn']),
-          pp(LAD['wage_cuts']['poverty_pp'])]:
+          pp(LAD['wage_cuts']['poverty_pp'])] + ([bn(AI['per_pound_20']['gross_cut_bn'])] if 'gross_cut_bn' in AI['per_pound_20'] else []):
     story[x] += 1
 #   break-evens (take-up and JSA moved to Explore > Households in round 1)
 story[signed(AI['breakeven']['wage']['value_pct'], 1) + '%'] += 1

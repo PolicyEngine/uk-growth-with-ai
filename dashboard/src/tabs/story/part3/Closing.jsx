@@ -1,33 +1,39 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
 import { hy } from '@/components/story/Hy.jsx';
 import { useEntry, useSnap } from '@/components/story/motion.js';
+import { NavLink } from '@/lib/nav.jsx';
 
 // The end of part 3: not sticky, no figures. What the one-year test leaves
-// out (docs/story/part3-notes.md, Caveats), as one plain two-column list of
-// short items with dot markers under the scene header. Corporation tax is
-// not repeated here: the three-channels scene says, where it matters, that
-// dividend tax is counted and corporation tax is not.
+// out (paper discussion.tex and results.tex; Method > Household method,
+// #hm-out, has the full list), as one plain two-column table in three
+// groups: what is left out, and what the study assumes in its place (item
+// 33). No tint, no icons, no kicker: the lead says why the list matters.
+// Corporation tax is not repeated here: the three-channels scene says, where
+// it matters, that dividend tax is counted and corporation tax is not.
+// Re-employment's home is this list (Two lenses names only the years after
+// the first). The groups fade in in turn as the table enters (useEntry,
+// reversible; final on a jump; static under reduced motion).
+export const OUT_GROUPS = [
+  { id: 'respond', title: 'How people respond' },
+  { id: 'pay', title: 'Payments' },
+  { id: 'cover', title: 'Who is covered' },
+];
 
-// One tinted panel of eight small tiles (Vahid: "need boxes or
-// something"): a plain icon, a 2-3 word title and one muted line from the
-// study's caveat. Hairline dividers, no card per tile: one object. Tiles
-// appear in turn as the panel enters (useEntry, reversible; final on a
-// jump; static under reduced motion). `text` keeps the full line (12 words
-// or fewer) for tests and screen readers.
+// `text` keeps the whole row as one line (16 words or fewer) for tests.
 export const LEFT_OUT = [
-  { id: 'reemploy', ic: 'replay', title: 'Re-employment', line: 'The displaced stay out of work all year' },
-  { id: 'partners', ic: 'users', title: 'Partners’ hours', line: 'Unchanged' },
-  { id: 'redundancy', ic: 'banknote', title: 'Redundancy pay', line: 'None counted' },
-  { id: 'savings', ic: 'piggy', title: 'Running down savings', line: 'Households do not draw on them' },
-  { id: 'jsa', ic: 'fileX', title: 'New-style Jobseeker’s Allowance', line: 'None in the main case' },
-  { id: 'young', ic: 'userMinus', title: 'Fewer young hires', line: 'Jobs lost are counted, not jobs never offered' },
-  { id: 'self', ic: 'briefcase', title: 'The self-employed', line: 'The shocks apply to employees only' },
-  { id: 'occ', ic: 'layers', title: 'AI exposure', line: 'Varies across nine occupation groups only' },
-].map((t) => ({ ...t, text: `${t.title}: ${t.line.charAt(0).toLowerCase()}${t.line.slice(1)}` }));
+  { id: 'reemploy', group: 'respond', left: 'Finding another job', assumes: 'Everyone who loses a job stays out of work all year' },
+  { id: 'partners', group: 'respond', left: 'Partners working more', assumes: 'Partners’ hours do not change' },
+  { id: 'savings', group: 'respond', left: 'Drawing on savings', assumes: 'No household runs down its savings' },
+  { id: 'redundancy', group: 'pay', left: 'Redundancy pay', assumes: 'None is paid' },
+  // reported awards are paid; only the newly jobless get none (discussion.tex:14)
+  { id: 'jsa', group: 'pay', left: 'New-style Jobseeker’s Allowance', assumes: 'Paid only where the survey already records it' },
+  { id: 'young', group: 'cover', left: 'Fewer young people hired', assumes: 'Only existing jobs are lost, not jobs never offered' },
+  { id: 'self', group: 'cover', left: 'The self-employed', assumes: 'Job loss and pay changes apply to employees only' },
+  { id: 'occ', group: 'cover', left: 'Differences within each job group', assumes: 'AI exposure is one score for each of nine groups' },
+].map((t) => ({ ...t, text: `${t.left}: ${t.assumes}` }));
 
-// A level-(b) topic header (item 1) and a chip.
+// A level-(b) topic header (item 1).
 export const CLOSING_SUB = {
   title: 'What this one-year test leaves out',
 };
@@ -41,18 +47,48 @@ export default function Closing() {
         <h3 className="scene-head-q" id="p3-close-h">
           {hy(CLOSING_SUB.title)}
         </h3>
-        <span className="p3-close-chip">A one-year test, not a forecast</span>
       </header>
-      <div ref={ref} className={`story-frame story-panel p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
-        <ul className="p3-out-list" aria-label="What this one-year test leaves out">
-          {LEFT_OUT.map((t, i) => (
-            <li key={t.id} data-item={t.id} className="p3-out-tile" style={{ '--i': i }}>
-              <Icon name={t.ic} size={18} className="p3-out-ic" />
-              <span className="p3-out-title">{hy(t.title)}</span>
-              <span className="p3-out-line">{t.line}</span>
-            </li>
+      <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
+        <p className="p3-close-lead">
+          Leaving these out, the household study shows the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
+        </p>
+        <table className="p3-out">
+          <caption className="visually-hidden">{CLOSING_SUB.title}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Left out</th>
+              <th scope="col">What the study assumes</th>
+            </tr>
+          </thead>
+          {OUT_GROUPS.map((g, i) => (
+            <tbody key={g.id} data-group={g.id} style={{ '--i': i }}>
+              <tr className="p3-out-group">
+                <th scope="rowgroup" colSpan={2}>
+                  {g.title}
+                </th>
+              </tr>
+              {LEFT_OUT.filter((t) => t.group === g.id).map((t) => (
+                <tr key={t.id} data-item={t.id}>
+                  <th scope="row" className="p3-out-left">
+                    {t.left}
+                  </th>
+                  <td className="p3-out-assumes">{t.assumes}</td>
+                </tr>
+              ))}
+            </tbody>
           ))}
-        </ul>
+        </table>
+        <p className="p3-close-foot">
+          With full take-up and Jobseeker’s Allowance:{' '}
+          <NavLink tab="explore" sub="households" anchor="hh-ladder">
+            Explore, households
+          </NavLink>
+          . Every limit:{' '}
+          <NavLink tab="method" sub="households" anchor="hm-out">
+            Household method
+          </NavLink>
+          .
+        </p>
       </div>
     </aside>
   );
