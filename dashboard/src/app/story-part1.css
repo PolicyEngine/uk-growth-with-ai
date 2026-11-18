@@ -467,15 +467,8 @@
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
   color: var(--t-ink);
   text-decoration: none;
-}
-.hf-figure-value.is-gain {
-  color: var(--c-gain-text);
-}
-.hf-figure-value.is-loss {
-  color: var(--c-loss-text);
 }
 .hf-figure-value:hover {
   text-decoration: underline;
@@ -566,6 +559,15 @@
 }
 .hf-dot.is-us.is-on {
   fill: var(--pe-gray-700);
+}
+/* the chosen line's first point (2028): hollow, on the frame's surface */
+.hf-dot-start {
+  fill: var(--page-bg, #fff);
+  stroke: var(--series-2);
+  stroke-width: 2;
+}
+.hf-dot-start.is-us {
+  stroke: var(--pe-gray-700);
 }
 .hf-end-name {
   font-weight: 600;
@@ -953,13 +955,16 @@
   }
 }
 
-/* ---- The hero's result unit (item 11; polish round D, Vahid: "no need
-   for having box, but align the contents in it with each other"): no card,
-   grouped by proximity and one left edge: the chip, the stats row, a
-   hairline, then the chart (whose y labels start on the same edge). The
-   three stats share one grid (subgrid rows): names on one baseline, values
-   on one line (GDP leads; the two direction phrases are centred on its
-   value line, one line each), sublines on one baseline. ---- */
+/* ---- The hero's result unit (hero-redesign-fable.md): no card, border
+   or shadow. One muted kicker line (the sources icon at its end), then
+   three stats of one anatomy: name, value, one line, all three values the
+   same size in neutral ink. Every name and every line stays on one line
+   (Vahid, sign-off: nothing wraps at 1024 or 1280). Where the figure is wide
+   enough (a 540px container: 1280 and over) the stats are three columns
+   on shared rows, so the values sit on one baseline; narrower, they are
+   three rows of a ledger, name and line left, value right, the signed
+   values lined up in one column (part 2's headline ledger has the same
+   form). ---- */
 .hf-frame {
   padding: 0;
   background: none;
@@ -972,26 +977,32 @@
 .story-hero.hf .story-hero-text h2.hero-q {
   text-wrap: balance;
 }
-.hf-unit {
-  margin: 0 0 12px;
-  padding: 0 0 12px;
-  border-bottom: 1px solid var(--card-border);
+.hf-art {
+  container-type: inline-size;
 }
-.hf-chip-ctx {
-  display: inline-block;
+.hf-unit {
+  margin: 0 0 20px;
+}
+.hf-kicker {
   margin: 0 0 10px;
-  padding: 1px 8px;
   font-size: var(--t-meta);
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.5;
   color: var(--t-muted);
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
+  text-wrap: balance;
+}
+.hf-kicker-end {
+  white-space: nowrap;
+}
+.hf-kicker .src-line {
+  margin-left: 6px;
+  vertical-align: middle;
 }
 .hf-stats {
   display: grid;
   grid-template-columns: max-content max-content max-content;
   grid-template-rows: auto auto auto;
-  gap: 2px 32px;
+  row-gap: 2px;
   margin: 0;
 }
 .hf-stat {
@@ -999,6 +1010,16 @@
   grid-row: span 3;
   grid-template-rows: subgrid;
   min-width: 0;
+  padding: 0 16px;
+}
+.hf-stat:first-child {
+  padding-left: 0;
+}
+.hf-stat:last-child {
+  padding-right: 0;
+}
+.hf-stat + .hf-stat {
+  border-left: 1px solid var(--card-border);
 }
 .hf-stat dd {
   margin: 0;
@@ -1013,93 +1034,84 @@
 }
 .hf-stat-value {
   grid-row: 2;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  align-self: center;
-  font-size: var(--t-body);
-  font-weight: 600;
-  line-height: 1.3;
   white-space: nowrap;
+}
+.hf-stat-value .hf-figure-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   color: var(--t-ink);
 }
-.hf-stat.is-gdp .hf-stat-value {
-  align-self: stretch;
+.hf-num {
+  font-variant-numeric: tabular-nums;
 }
-.hf-stat.is-gdp .hf-stat-value .hf-figure-value {
-  font-size: var(--t-display);
-  line-height: 1.1;
-}
-.hf-stat-value.is-gain,
-.hf-stat-value.is-gain .hf-figure-value {
-  color: var(--c-gain-text);
-}
-.hf-stat-value.is-loss,
-.hf-stat-value.is-loss .hf-figure-value {
-  color: var(--c-loss-text);
-}
-.hf-stat-dir {
-  display: inline-flex;
-  flex: none;
-  align-self: center;
-}
-.hf-stat-sub {
+.hf-stat-line {
   grid-row: 3;
   font-size: var(--t-meta);
   line-height: 1.35;
   white-space: nowrap;
   color: var(--t-muted);
 }
-/* narrower hero columns: the same one-line anatomy, tighter */
-@media (max-width: 1100px) and (min-width: 601px) {
-  .hf-stats {
-    grid-template-columns: max-content minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: 18px;
-  }
-  /* a long name or phrase wraps rather than leave the column */
-  .hf-stat-name,
-  .hf-stat-value:not(.is-gdp *),
-  .hf-stat-sub {
-    white-space: normal;
-  }
-  .hf-stat-value:not(.is-gdp *) {
-    font-size: var(--t-label);
-  }
-  .hf-stat.is-gdp .hf-stat-value .hf-figure-value {
-    font-size: 34px;
-  }
-}
-/* phones: the stats stack as rows, name, value and subline on one line
-   where they fit (wrapping after the value when they do not) */
-@media (max-width: 600px) {
+/* the ledger: narrower figures (1024, 901) and phones */
+@container (max-width: 539.98px) {
   .hf-stats {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
-    gap: 6px;
+    row-gap: 0;
   }
   .hf-stat {
-    display: flex;
-    flex-wrap: wrap;
     grid-row: auto;
-    align-items: baseline;
-    gap: 0 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 16px;
+    padding: 8px 0;
+  }
+  .hf-stat:first-child {
+    padding-top: 0;
+  }
+  .hf-stat:last-child {
+    padding-bottom: 0;
+  }
+  .hf-stat + .hf-stat {
+    border-left: 0;
+    border-top: 1px solid var(--card-border);
+  }
+  .hf-stat-name {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .hf-stat-line {
+    grid-row: 2;
+    grid-column: 1;
   }
   .hf-stat-value {
-    align-self: baseline;
-  }
-  .hf-stat.is-gdp .hf-stat-value .hf-figure-value {
-    font-size: 28px;
-  }
-  .hf-stat-dir {
+    grid-row: 1 / span 2;
+    grid-column: 2;
     align-self: center;
+    justify-self: end;
+    text-align: right;
   }
-  /* an item that does not fit goes to the next line whole */
-  .hf-stat > * {
-    flex-shrink: 0;
-    min-width: 0;
-    max-width: 100%;
+}
+@media (max-width: 600px) {
+  .hf-stat-value .hf-figure-value {
+    font-size: 24px;
   }
-  .hf-stat-sub {
-    white-space: normal;
+  /* the axis title right under it names the gap */
+  .hf-kicker-gap {
+    display: none;
   }
+}
+
+/* Tabular figures on the numbers only: `.app` sets them on everything, and
+   Inter's tabular hyphen and dashes open false gaps in words. The hero's
+   numbers (stat values, ticks, end values, legend values) set them again. */
+#story-hero {
+  font-variant-numeric: normal;
+}
+#story-hero .hf-num,
+#story-hero .hf-tick,
+#story-hero .hf-end-value,
+#story-hero .hf-chip-value {
+  font-variant-numeric: tabular-nums;
 }

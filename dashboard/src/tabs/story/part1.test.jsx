@@ -552,42 +552,66 @@ describe('hero', () => {
       </NavProvider>,
     ).container;
   };
-  it('prints the chosen scenario’s 2031 GDP gap, linked to its home', async () => {
+  it('prints the chosen scenario’s three 2031 gaps, each linked to its home', async () => {
     const S = (await import('@/data/surprise2028.json')).default;
+    const { heroStats } = await import('@/tabs/story/Hero.jsx');
     const i = S.years.indexOf(S.headline_year);
     for (const [s, cl, q] of [['uk_high', 'zk0.1', 's=uk_high'], ['uk_low', 'zk0', 's=uk_low&closure=closed']]) {
       const el = await at(q);
-      // one result unit inside the chart's figure frame (item 11)
-      const fig = el.querySelector(`figure.hf-frame .hf-unit [data-path="results.${s}.tfp.${cl}.gaps.Y.${S.headline_year}"]`);
-      expect(fig).not.toBeNull();
-      expect(fig.textContent).toContain(sign(S.results[s].tfp[cl].gaps.Y[i]));
-      expect(el.querySelector('.hf-unit a[href*="story-headline"]')).not.toBeNull();
-      // three mini-stats; pay rates and resident income are words, not figures
+      // one result unit on the chart's frame: three stats, one anatomy, numbers for all three
       const stats = [...el.querySelectorAll('.hf-stat')];
       expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
-      // national income's definition is its tooltip; the GDP figure says it is a level
-      expect(stats[2].querySelector('.hf-stat-name .tip-target')).not.toBeNull();
-      expect(el.querySelector('.hf-figure-value').getAttribute('title')).toMatch(/^A gap in the level, \d+ years on; not a growth rate$/);
-      for (const m of stats.slice(1)) expect(m.textContent).not.toMatch(/\d/);
-      expect(el.querySelector('.hf-chip-ctx').textContent).toMatch(new RegExp(`· ${S.headline_year} · scenario, not a forecast$`));
-      // no inline link in the unit but the figure's own
-      expect(el.querySelectorAll('.hf-unit a')).toHaveLength(1);
+      for (const [k, v] of [[0, 'Y'], [1, 'w'], [2, 'GNI']]) {
+        const fig = stats[k].querySelector(`.hf-unit [data-path="results.${s}.tfp.${cl}.gaps.${v}.${S.headline_year}"]`) ?? el.querySelector(`.hf-unit [data-path="results.${s}.tfp.${cl}.gaps.${v}.${S.headline_year}"]`);
+        expect(fig, `${s} ${v}`).not.toBeNull();
+        expect(fig.textContent).toBe(sign(S.results[s].tfp[cl].gaps[v][i]));
+        expect(fig.closest('a').getAttribute('href')).toContain('story-headline');
+        expect(stats[k].querySelector('.hf-stat-name .tip-target')).not.toBeNull();
+      }
+      // three links in the stats, no other link but the sources icon's notes
+      expect(el.querySelectorAll('.hf-stats a')).toHaveLength(3);
+      // neutral ink, no arrows
+      expect(el.querySelector('.hf-stat-dir, .hf-unit .is-gain, .hf-unit .is-loss')).toBeNull();
+      // the pay line from the data; national income's is the ledger's
+      expect(stats[1].querySelector('.hf-stat-line').textContent).toBe('slower growth, not a cut');
+      expect(stats[2].querySelector('.hf-stat-line').textContent).toBe('GDP less net income paid abroad');
+      // the GDP tip says it is a level
+      expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.$/);
+      // the gilt holders where no capital is foreign-owned
+      expect(heroStats(s, cl)[2].tip).toContain(cl === 'zk0' ? 'gilt holders abroad' : 'owners abroad');
+      // the kicker: plain, the sources icon on its line
+      const kick = el.querySelector('.hf-kicker');
+      expect(kick.textContent).toMatch(new RegExp(`scenario · ${S.headline_year} · gap to the forecast path · not a forecast`));
+      expect(kick.querySelector('button.src-line-btn')).not.toBeNull();
+      expect(el.querySelector('.hf-chip-ctx, figcaption.hf-src')).toBeNull();
       cleanup();
     }
   });
-  it('draws all four lines over the whole horizon, each labelled, with axis titles', async () => {
+  it('draws all four lines from 2028, each labelled, with axis titles', async () => {
     const S = (await import('@/data/surprise2028.json')).default;
     const el = await at('s=uk_central');
     const wide = el.querySelector('svg.hf-svg.is-wide');
     expect(wide.getAttribute('role')).toBe('img');
     expect(wide.querySelector('[data-axis-title="y"]').textContent).toMatch(/GDP gap against the OBR’s central forecast path, %/);
-    expect(wide.textContent).toContain('Forecast path = 0');
-    expect(wide.textContent).toContain(`Extra AI arrives, ${S.surprise_year}`);
-    expect(wide.textContent).toContain(`Shock complete, ${S.headline_year}`);
+    expect(wide.textContent).toContain('0 = forecast path, its own AI included');
+    expect(wide.textContent).toContain('Extra AI starts');
+    expect(wide.textContent).toContain('Extra AI in full');
+    expect(wide.getAttribute('aria-label')).toContain(`each line starts in ${S.surprise_year}`);
     const lines = [...wide.querySelectorAll('path.hf-line')];
     expect(lines.map((p) => p.dataset.mark).sort()).toEqual(['korinek', 'uk_central', 'uk_high', 'uk_low']);
-    // every line has a point for every year (none stops short)
-    for (const p of lines) expect(p.getAttribute('d').match(/[ML]/g).length).toBe(S.years.length);
+    // form (b): each line has a point for every year from 2028 on, and its
+    // first x is the 2028 guide's
+    const i0 = S.years.indexOf(S.surprise_year);
+    const guide = Number(wide.querySelector('.hf-ann line').getAttribute('x1'));
+    for (const p of lines) {
+      const d = p.getAttribute('d');
+      expect(d.match(/[ML]/g).length).toBe(S.years.length - i0);
+      expect(Number(/^M(-?[\d.]+),/.exec(d)[1])).toBeCloseTo(guide, 0);
+    }
+    // the chosen line starts with a hollow dot on the guide
+    const start = wide.querySelector('.hf-dot-start');
+    expect(start.dataset.mark).toBe('uk_central');
+    expect(Number(start.getAttribute('cx'))).toBeCloseTo(guide, 0);
     const i = S.years.indexOf(S.headline_year);
     for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
       expect(wide.textContent).toContain(sign(S.results[s].tfp['zk0.1'].gaps.Y[i]));
