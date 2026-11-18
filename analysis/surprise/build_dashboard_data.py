@@ -86,7 +86,54 @@ def gaps(s, b):
                           - b["total_tax_revenue"][i] / b["Y"][i]) * 100 for i in range(n)]
     ls = lambda x, i: x["w"][i] * x["L"][i] / x["Y"][i] * 100
     out["labour_share_pp"] = [ls(s, i) - ls(b, i) for i in range(n)]
+    # shares of GDP, percentage points (M11: what the debt rule moves at tG1)
+    out["G_Y_pp"] = [(s["G"][i] / s["Y"][i] - b["G"][i] / b["Y"][i]) * 100 for i in range(n)]
+    out["I_Y_pp"] = [(s["I"][i] / s["Y"][i] - b["I"][i] / b["Y"][i]) * 100 for i in range(n)]
     return out
+
+
+# Years after the window (M11), read from the solves' TPI pickles under $WORK,
+# since the records stop in LATE: model period t is calendar SURPRISE + t.
+WORK = Path(os.environ.get("WORK", Path.home() / "ugai-rerun-work"))
+POST_YEARS = list(range(LATE + 1, LATE + 5))          # 2037-2040
+RULE_OFF = {"label": "uk_central_share_shift_tfp_ramp_dnfull", "reference": "continuation_dnfull",
+            "closure": "zk0.1", "scenario": "uk_central", "arm": "tfp"}
+
+
+def _tpi(cl, label):
+    import pickle
+    f = WORK / f"surprise{SURPRISE}" / cl / label / "TPI" / "TPI_vars.pkl"
+    if not f.is_file():
+        raise FileNotFoundError(f"{f} (set WORK to the solves' work dir)")
+    return pickle.load(open(f, "rb"))
+
+
+def _check_aligned(x, series, label):
+    """The pickle's period LATE - SURPRISE is the record's LATE value (same solve)."""
+    i, t = YEARS.index(LATE), LATE - SURPRISE
+    for v in ("Y", "I"):
+        assert abs(float(x[v][t]) / series[v][i] - 1) < 1e-12, (label, v)
+
+
+def post_window(cl, label, series, ref_label, ref_series):
+    """Investment gap (%) against the reference in POST_YEARS, from the pickles."""
+    s, b = _tpi(cl, label), _tpi(cl, ref_label)
+    _check_aligned(s, series, label)
+    _check_aligned(b, ref_series, ref_label)
+    return {"years": POST_YEARS,
+            "I": [(float(s["I"][y - SURPRISE]) / float(b["I"][y - SURPRISE]) - 1) * 100
+                  for y in POST_YEARS]}
+
+
+def rule_off(cl, done):
+    """The _dnfull pair (debt rule kept off to T-1): investment gap, YEARS + POST_YEARS."""
+    lab, ref = RULE_OFF["label"], RULE_OFF["reference"]
+    if cl != RULE_OFF["closure"] or lab not in done or ref not in done:
+        return None
+    s, b = done[lab]["series"], done[ref]["series"]
+    pw = post_window(cl, lab, s, ref, b)
+    return {"label": lab, "reference": ref, "years": YEARS + POST_YEARS,
+            "I": [(s["I"][i] / b["I"][i] - 1) * 100 for i in range(len(YEARS))] + pw["I"]}
 
 
 def levels(s):
@@ -207,6 +254,7 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
             "gamma_terminal": rec["gamma_terminal"],
             "sanity": "pass",
             "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
+            "post_window": post_window(cl, rec["label"], rec["series"], ref["reference"], b),
             # share of the extra headline-year capital stock that is foreign-owned, %
             # (key named by the headline year: Fable 5.2 decision, 18 Nov)
             f"foreign_share_dK_{HEADLINE}": foreign_share(rec["series"], b),
@@ -313,6 +361,10 @@ def main():
                         "reference_effective_tax_rates": {k: eff[k] for k in ("labour", "capital_gross")}}
         for sid, *_ in SCENARIOS:
             n_done += fill(results[sid], cl, done, sanities, ref, False, sid)
+        ro = rule_off(cl, done)
+        cell = results[RULE_OFF["scenario"]][RULE_OFF["arm"]].get(cl, {})
+        if ro is not None and cell.get("status") == "done":
+            cell["rule_off"] = ro      # M11: the same arm with the debt rule kept off
         for rid, var, _, sids in RULE_VARIANTS:
             for sid in sids:
                 fill(rules[rid]["results"].setdefault(sid, {a: {} for a, *_ in ARMS}),
