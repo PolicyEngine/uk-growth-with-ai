@@ -122,8 +122,10 @@ def shock_block(text):
 
 def shock(sid, mode, cl, t):
     """The shock scene prints no signed decimal and no result decimal (its
-    one decimal, the share input, is data-input and left out of the dump;
-    0.1 is its scale), and whatever caption is drawn carries the counts."""
+    one decimal, the share input, is data-input, and the GDP change it
+    restates from the headline tiles is data-axis, both left out of the
+    dump; 0.1 is its scale), and whatever caption is drawn carries the
+    counts."""
     bad = 0
     blk = shock_block(t)
     if blk is None:
@@ -136,10 +138,10 @@ def shock(sid, mode, cl, t):
         bad += 1; print(sid, mode, 'story part 2 shock prints a decimal other than its scale:', other)
     k = shock_counts(sid, cl)
     if k:
-        if 'small tiles cross' in blk and f"{k['M']} small tiles cross to capital" not in blk:
+        if 'small tiles cross' in blk and f"capital: {k['M']} small tiles cross" not in blk:
             bad += 1; print(sid, mode, 'story part 2 shock: not', k['M'], 'small tiles crossing')
         if k['N'] is not None and 'new small tile' in blk:
-            want = f"{k['N']} new small tile{'' if k['N'] == 1 else 's'}: {k['NL']} to labour, {k['NK']} to capital"
+            want = f"{k['N']} new small tile{'' if k['N'] == 1 else 's'}, about {k['NL']} to labour, {k['NK']} to capital"
             if want not in blk:
                 bad += 1; print(sid, mode, 'story part 2 shock: not', want)
     if not bad:

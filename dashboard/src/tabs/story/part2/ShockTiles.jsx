@@ -7,7 +7,6 @@ import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, SURPRISE_YEAR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
 import { SRC, ModelSourceButton, resultUrl, pathUrl } from './sources.jsx';
-import { Essential } from '@/components/ui/SourceLine.jsx';
 import { docItem } from '@/lib/sourceItems.js';
 import { SPLIT_YEAR } from './split.js';
 import { dirWord } from './dir.js';
@@ -20,9 +19,11 @@ export { LABOUR_COLOR, CAPITAL_COLOR };
 // 1 of every 100 of GDP on the OBR's central forecast path, and a strip that
 // magnifies its outlined tiles, one small tile 0.1. State 0: before the
 // shock; 1: the share shift (a scenario input) crosses to capital; 2: the
-// added output (an OG-UK result) arrives, shared at the new split. The
-// figure prints the input (data-input) and whole small-tile counts only:
-// every result decimal has its home in another scene.
+// added output (an OG-UK result) is added, shared at the new split. The
+// figure prints the input (data-input), whole small-tile counts and the
+// GDP change to one decimal, restated from the headline tiles (data-axis,
+// its home is #story-headline). Each caption says once who sets the size
+// (the scenario's input, OG-UK's result); the step cards do not repeat it.
 //
 // Entry: the strip grows in from the overview (scale and opacity) as the
 // chart comes in, each time it does; a landing draws it at once.
@@ -80,7 +81,11 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
       ? 'This solve is pending for the foreign-capital case chosen above.'
       : N === 0
         ? `No new small tiles: GDP is ${dirWord(ch.gdp)} the forecast path.`
-        : `${N} new small ${N === 1 ? 'tile' : 'tiles'}: ${NL} to labour, ${NK} to capital. OG-UK result, shared at the new split.`;
+        : (
+            <>
+              Output grows about <span data-axis="">{ch.gdp.toFixed(1)}%</span>: {N} new small {N === 1 ? 'tile' : 'tiles'}, about {NL} to labour, {NK} to capital, at the new split. OG-UK works out the size.
+            </>
+          );
   const stripLabel = base
     ? [
         `Magnified strip before the shock: ${RL * WIN} small tiles of labour income, 10 of capital income.`,
@@ -149,7 +154,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           </div>
           <div className="p2-shock-caps">
             <p className={`p2-shock-cap${s >= 1 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(1)}ms` }}>
-              {M} small tiles cross to capital: <span data-input="">{inputPp.toFixed(1)}</span> of every 100. Scenario input.
+              AI moves <span data-input="">{inputPp.toFixed(1)}</span> of every 100 tiles of output from labour to capital: {M} small tiles cross. Its size is an assumption for each scenario.
             </p>
             <p className={`p2-shock-cap${s >= 2 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(2)}ms` }}>
               {line2}
@@ -161,7 +166,6 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           <Tx icon="provisional">The forecast path for this foreign-capital case is pending.</Tx>
         </p>
       )}
-      <Essential>Shift: scenario input. Size of the added output: OG-UK result.</Essential>
     </figure>
   );
 }

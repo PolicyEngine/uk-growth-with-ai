@@ -24,7 +24,8 @@
 // Hyphens, every tab: no U+2011 (non-breaking hyphen) in rendered text,
 // svg text included. Names, every tab: no visible "uk-ai-study" (the
 // household study's repo slug) outside code. Wording, every tab: no
-// visible "AI ... arrives" (the extra AI starts; AI is already here).
+// visible "AI ... arrives" (the extra AI starts; AI is already here), and
+// no "arrive" in any scene question, hint or header.
 //
 // Titles, on the Story only (story-finding-titles-fable.md, 18 Nov): every
 // visible figure title (.story-figure-title, .ch-title) and panel head
@@ -137,6 +138,12 @@ for (const [name, path] of Object.entries(PAGES)) {
       for (const line of document.body.innerText.split('\n')) if (ARRIVE.test(line)) out.push(`"AI arrives" wording in visible text: ${line.trim().slice(0, 80)}`);
       for (const t of document.querySelectorAll('svg text')) {
         if (ARRIVE.test(t.textContent) && t.getClientRects().length && !t.closest('[aria-hidden="true"]')) out.push(`${where(t)} "AI arrives" wording in chart text: ${t.textContent.trim().slice(0, 80)}`);
+      }
+      // and no "arrive" at all in a scene's question, hint or header (18
+      // Nov: "then new ones arrive" in the shock scene's hint), the
+      // question screens' aria-hidden copies included
+      for (const t of document.querySelectorAll('.q-stage-hint, .q-stage-q, .scene-head')) {
+        if (/\barriv/i.test(t.textContent)) out.push(`${where(t)} "arrive" wording in a scene's question or hint: ${t.textContent.trim().slice(0, 80)}`);
       }
       if (!story) return { out };
       // (a) exactly one icon

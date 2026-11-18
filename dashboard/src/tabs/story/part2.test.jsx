@@ -197,7 +197,7 @@ describe('each state of each graphic', () => {
     expect(rescales('uk_central', 'zk0.1')).toBe(true);
   });
 
-  it('the shock strip: tiles cross, then arrive, never overlap, and keep their keys', async () => {
+  it('the shock strip: tiles cross, then new ones are added, never overlap, and keep their keys', async () => {
     const { shockFor, shockTiles, overviewTiles, WIN } = await import('@/tabs/story/part2/shock.js');
     const sh = shockFor('uk_central', 'central');
     expect([sh.M, sh.N, sh.NL, sh.NK, sh.RL, sh.L0]).toEqual([16, 9, 6, 3, 2, 65]);
@@ -273,7 +273,8 @@ describe('each state of each graphic', () => {
     expect(st[0].strip).toBe(sh.RL * 10 + 10);
     expect(st[1].strip).toBe(st[0].strip);
     expect(st[2].strip).toBe(st[0].strip);
-    expect(st[1].caps).toEqual([`${sh.M} small tiles cross to capital: 1.6 of every 100. Scenario input.`]);
+    const input = real.scenarios.find((x) => x.id === 'uk_central').labour_share_fall_pp.toFixed(1);
+    expect(st[1].caps).toEqual([`AI moves ${input} of every 100 tiles of output from labour to capital: ${sh.M} small tiles cross. Its size is an assumption for each scenario.`]);
     expect(st[2].caps[1]).toBe('This solve is pending for the foreign-capital case chosen above.');
   });
 });
@@ -641,8 +642,15 @@ describe('direction icons follow the signs', () => {
       const shock = container.querySelector('#p2-shock');
       expect(shock.querySelectorAll('.scrolly-graphic-inner [data-input]'), q).toHaveLength(1);
       expect(shock.textContent).not.toMatch(/[+−]\d+\.\d+/);
-      expect(shock.textContent).toContain('Scenario input.');
-      expect(shock.textContent).toContain('Shift: scenario input. Size of the added output: OG-UK result.');
+      expect(shock.textContent).toContain('Its size is an assumption for each scenario.');
+      // the added output's size is OG-UK's, said once, in its caption; its
+      // one decimal restates the headline GDP gap (data-axis)
+      const two = shock.querySelectorAll('.p2-shock-cap')[1];
+      if (/new small tile/.test(two.textContent)) {
+        expect(two.textContent).toContain('OG-UK works out the size.');
+        expect(two.querySelectorAll('[data-axis]'), q).toHaveLength(1);
+      }
+      expect(shock.textContent.match(/OG-UK works out the size/g)?.length ?? 0).toBeLessThanOrEqual(1);
       expect(shock.textContent).toContain('OBR’s central forecast path');
       expect(shock.textContent).not.toMatch(/no-shock|[Ii]llustrat/);
       unmount();
