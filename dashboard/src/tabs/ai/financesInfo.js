@@ -252,3 +252,31 @@ export function taxMoreInfo(sid, closure, rule) {
     { key: 'units', title: 'Units', items: units('tax', sid, closure) },
   ].filter(Boolean);
 }
+
+// Item 38: the one Finding box that opens Public finances, sign-aware
+// (public-finances-moreinfo-fable.md: in the headline year debt/GDP is below
+// the path only where the data say so, today Automation + productivity).
+// { lead, lines } or null (not solved).
+export function financesFinding(sid, closure, rule) {
+  const cl = primaryClosure(closure);
+  if (!solved(sid, cl, rule)) return null;
+  const late = debtTitle(sid, closure, rule);
+  const tax = taxTitle(sid, closure, rule);
+  const lines = [];
+  let lead;
+  if (rule === 'dn' && /stays on the path/.test(late)) {
+    lead = `Under debt-neutral transfers, ${late.charAt(0).toLowerCase()}${late.slice(1)}.`;
+  } else {
+    const h = byArm(sid, cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
+    const groups = ['below', 'above', 'on'].map((s) => ({ s, ids: h.filter((c) => side(c.x) === s).map((c) => c.id) })).filter((g) => g.ids.length);
+    const say = (s) => (s === 'on' ? 'on the path' : `${s} the path`);
+    if (groups.length === 1) lead = `In ${HEADLINE_YEAR}, debt/GDP is ${say(groups[0].s)} in every version.`;
+    else {
+      const [a, ...rest] = groups.sort((x, y) => x.ids.length - y.ids.length);
+      lead = `In ${HEADLINE_YEAR}, debt/GDP is ${say(a.s)} only in ${andList(a.ids.map(inText))}; ${rest.map((g) => `${andList(g.ids.map(inText))} ${g.ids.length > 1 ? 'are' : 'is'} ${say(g.s)}`).join(', ')}.`;
+    }
+    lines.push(`${late}.`);
+  }
+  if (tax) lines.push(`${tax}.`);
+  return { lead, lines };
+}
