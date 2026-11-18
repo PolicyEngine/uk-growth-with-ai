@@ -196,11 +196,11 @@ export default function Sankey({
   const H = narrow ? Math.round(height * 0.85) : height;
   const L = narrow ? narrowLeftRoom : leftRoom;
   // end nodes with an `inline` value need room for "label value" on one
-  // line: about 6.7 units a character at 12px, plus the 6-unit offset
+  // line: about 8.2 units a character at the 15px label size, plus the 6-unit offset
   const g0 = graphs[0];
   const inlineRoom = Math.max(
     0,
-    ...g0.nodes.filter((n) => n.inline && n.sub && !g0.links.some((l) => l.source === n.id)).map((n) => Math.ceil((n.label.length + 1 + String(n.sub).length) * 6.7) + 10),
+    ...g0.nodes.filter((n) => n.inline && n.sub && !g0.links.some((l) => l.source === n.id)).map((n) => Math.ceil((n.label.length + 1 + String(n.sub).length) * 8.2) + 10),
   );
   const R = Math.max(narrow ? narrowRightRoom : rightRoom, inlineRoom);
   const top = 8;
@@ -226,6 +226,42 @@ export default function Sankey({
     }
     return out;
   }, [g, L, long, short, max, baseW, pad, widths]);
+
+  // end-column labels (first and last column) at the chart type scale's
+  // 15px label size: each label's line block is pushed clear of the one
+  // above it (then back inside the box), so small neighbouring nodes (the
+  // lowest deciles) never stack their labels; a label moved off its node's
+  // centre gets a leader back to it
+  const labelY = useMemo(() => {
+    const out = new Map();
+    const LINE = 19;
+    for (const side of ['first', 'last']) {
+      const col = laid.nodes
+        .filter((n) => (side === 'first' ? n.x0 <= L + 1 : n.x1 >= L + long - 1))
+        .filter((n) => !(side === 'first' && n.x1 >= L + long - 1))
+        .map((n) => {
+          const inner = inside && !tight && n.inner != null && n.y1 - n.y0 >= 18;
+          const two = !inner && n.sub && !n.inline;
+          const h = two ? LINE * 2 + 2 : LINE;
+          // line 1's middle sits 7 above the centre on a two-line label
+          const c = (n.y0 + n.y1) / 2 - (two ? 7 : 0);
+          return { id: n.id, c, h, off: two ? LINE / 2 : LINE / 2, t: c - LINE / 2 };
+        })
+        .sort((a, b) => a.c - b.c);
+      col.forEach((d, i) => {
+        if (i && d.t < col[i - 1].t + col[i - 1].h) d.t = col[i - 1].t + col[i - 1].h;
+      });
+      for (let i = col.length - 1; i >= 0; i--) {
+        const lim = i === col.length - 1 ? H : col[i + 1].t;
+        if (d0(col[i]) > lim) col[i].t = lim - col[i].h;
+      }
+      col.forEach((d) => out.set(d.id, Math.max(0, d.t) + d.off));
+    }
+    return out;
+    function d0(d) {
+      return d.t + d.h;
+    }
+  }, [laid, L, long, H, inside, tight]);
 
   // node boxes for callers that place things on the figure
   const boxCb = useRef(onNodeBox);
@@ -416,7 +452,9 @@ export default function Sankey({
           // under the incoming ribbon, never on a ribbon. Kept inside the box.
           const tx = first ? n.x0 - 6 : last ? n.x1 + 6 : n.x0 - 4;
           const anchor = first || middle ? 'end' : 'start';
-          const ty = middle ? Math.min(n.y1 + 12, H - (twoLine ? 22 : 8)) : (n.y0 + n.y1) / 2 - (twoLine ? 7 : 0);
+          const ty0 = (n.y0 + n.y1) / 2 - (twoLine ? 7 : 0);
+          const ty = middle ? Math.min(n.y1 + 12, H - (twoLine ? 22 : 8)) : (labelY.get(n.id) ?? ty0);
+          const moved = !middle && Math.abs(ty - ty0) > 3;
           const shown = !pouring || n.depth === 0 ? !pouring || poured > 0 : n.depth <= poured;
           const cls = ['sankey-node', wiping && n.depth > reveal ? 'is-hidden' : '', pouring ? `is-pour${n.depth === 0 ? ' is-src' : ''}${shown ? ' is-on' : ''}` : '', lit ? (lit.nodes.has(n.id) ? 'is-hl' : 'is-dim') : '']
             .filter(Boolean)
@@ -443,8 +481,14 @@ export default function Sankey({
                 rx={refined && !tight ? Math.min(3, nh / 2) : undefined}
                 style={n.stroke ? { fill: n.color, stroke: n.stroke, strokeWidth: 1 } : { fill: n.color }}
               />
-              {refined && !inner && nh < 6 && !middle ? (
+              {refined && !inner && nh < 6 && !middle && !moved ? (
                 <line className="sankey-leader" x1={first ? n.x0 : n.x1} x2={first ? n.x0 - 4 : n.x1 + 4} y1={(n.y0 + n.y1) / 2} y2={(n.y0 + n.y1) / 2} />
+              ) : null}
+              {moved ? (
+                <path
+                  className="sankey-leader"
+                  d={`M${first ? n.x0 : n.x1},${((n.y0 + n.y1) / 2).toFixed(1)}L${first ? n.x0 - 3 : n.x1 + 3},${ty.toFixed(1)}`}
+                />
               ) : null}
               {inner ? (
                 <text className="sankey-value" x={(n.x0 + n.x1) / 2} y={(n.y0 + n.y1) / 2} textAnchor="middle" dominantBaseline="central">
