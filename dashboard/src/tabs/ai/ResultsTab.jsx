@@ -4,7 +4,8 @@ import { useState } from 'react';
 import LineChart from '@/components/LineChart.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
-import ControlBar, { ArmsGroup } from '@/components/ui/ControlBar.jsx';
+import Legend from '@/components/ui/Legend.jsx';
+import MoreInfo from '@/components/ui/MoreInfo.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import { versionsShownSection } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
@@ -25,41 +26,34 @@ import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { wageClosureLines, investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
 import { CENTRAL, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
-import { VERSION_COLOR, versionName } from '@/lib/versionColors.js';
+import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 
 // Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
-// each with the same control bar (arms) and reading the header's scenario
-// and closure. Every number comes from surprise2028.json through
+// each reading the header's scenario and closure; the versions shown are
+// a section of the wall's pill and the four-measure card's pill (no chip
+// toggles). Every number comes from surprise2028.json through
 // surprise.js; a combination not yet solved says so and never prints a zero.
 
-export function ClosureKey({ closure }) {
-  if (closure !== 'both') return null;
-  return (
-    <p className="line-key">
-      <span className="line-key-item">
-        <span className="swatch is-ink" aria-hidden="true" /> Solid: some foreign capital
-      </span>
-      <span className="line-key-item">
-        <span className="swatch dashed is-ink" aria-hidden="true" /> Dashed: no foreign capital
-      </span>
-    </p>
-  );
+// The line-style key under Both: solid for some foreign capital, dashed for
+// none, as items of the one legend (components/ui/Legend.jsx).
+export function closureKeyItems(closure) {
+  if (closure !== 'both') return [];
+  return [
+    { key: 'cl-some', label: 'Solid: some foreign capital', color: 'var(--pe-gray-800)' },
+    { key: 'cl-none', label: 'Dashed: no foreign capital', color: 'var(--pe-gray-800)', kind: 'dashed' },
+  ];
 }
 
-// The versions' one legend (item 13): a swatch in each line's colour and
-// its name, the same on the economy wall and the Public finances charts.
-export function VersionLegend({ arms }) {
-  return (
-    <ul className="ex-wall-legend" aria-label="Versions">
-      {ARMS.filter((a) => arms.includes(a.id)).map((a) => (
-        <li key={a.id}>
-          <span className="ex-wall-swatch" style={{ background: VERSION_COLOR[a.id] }} aria-hidden="true" data-icon="" />
-          {versionName(a)}
-        </li>
-      ))}
-    </ul>
-  );
+// The versions' items (item 13): a swatch in each line's colour and its
+// name, the same on the economy wall and the Public finances charts.
+export function versionItems(arms) {
+  return ARMS.filter((a) => arms.includes(a.id)).map((a) => ({ key: a.id, label: versionName(a), color: VERSION_TOKEN[a.id] }));
+}
+
+// The versions' one legend, with the closure key under Both.
+export function VersionLegend({ arms, closure }) {
+  return <Legend className="ex-version-legend" label="Versions" items={[...versionItems(arms), ...closureKeyItems(closure)]} />;
 }
 
 export function PendingLine({ names }) {
@@ -95,13 +89,14 @@ function findingFor(sid, v, arms, closure, name, rule = 'common') {
 // coincide on the page.
 const COINCIDE = 0.005;
 
-// One path chart in the one card: its own y-scale with a visible axis, the
-// 2031 value at each line end, and the arms control bar.
+// One path chart in the one card: its own y-scale with a visible axis and
+// the headline-year value at each line end. The versions shown come from
+// the page (the wall's pill); a tidy card draws every version.
 export function PathCard({
   sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true, notes,
-  tile = false, open = false, onToggle, sources = true, heading, foot, bands, tidy = false,
+  tile = false, open = false, onToggle, sources = true, heading, more, moreId, bands, tidy = false,
 }) {
-  const { st, set } = useNav();
+  const { st } = useNav();
   const rule = st.rule;
   // A line that coincides with one before it and ends on the same printed
   // value (the labour share, an imposed input, is the same in every arm)
@@ -122,12 +117,21 @@ export function PathCard({
   });
   const last = years[years.length - 1];
   const shown = tidy ? null : (finding ?? findingFor(sid, v, st.arms, st.closure, name, rule));
-  // The y-axis title, with the measure's unit: % for a level, percentage
-  // points of GDP for debt and tax, percentage points for a rate or share.
+  // The y-axis title, with the measure's unit: % for a level, pp of GDP
+  // for debt and tax, pp for a rate or share (item 36: the short unit; what
+  // the gap is against and the span are in More info). The SVG draws it,
+  // so the card prints no second unit line; a tidy card, whose SVG draws
+  // none, prints `unitLine` as its one unit line.
   const ofGdp = v === 'debt_gdp_pp' || v === 'tax_gdp_pp';
-  const unitWords = unit === '%' ? '%' : ofGdp ? 'percentage points of GDP' : 'percentage points';
-  const yTitle = tile && !open ? `Gap against the OBR’s central forecast path, ${unit === '%' ? '%' : 'pp'}` : `Gap against the OBR’s central forecast path, ${unitWords}`;
-  const unitLine = unitText ?? (unit === '%' ? `% difference from the OBR’s central forecast path, ${years[0]}–${last}` : `Percentage-point difference from the OBR’s central forecast path, ${years[0]}–${last}`);
+  const yTitle = `Gap vs forecast path, ${unit === '%' ? '%' : ofGdp ? 'pp of GDP' : 'pp'}`;
+  const unitLine = unitText ?? yTitle;
+  // item 36's rows (Card.jsx cardMore); a tidy card's own groups (item 17's
+  // Units) already say them
+  const rows = tidy ? [] : [
+    { label: 'Compared with', text: 'The OBR’s central forecast path; the zero line is the path.' },
+    { label: 'Period', text: `${years[0]}–${last}.` },
+    unit === '%' ? null : { label: 'Measure', text: `pp is percentage points${ofGdp ? ' of GDP' : ''}.` },
+  ];
   // In the small-multiple wall (tile) the card is compact: title, download
   // and chart; the wall carries the arms control and the legend once. Opened
   // (click or Enter on the title), it spans the wall and shows its finding,
@@ -154,27 +158,17 @@ export function PathCard({
       title={heading ?? head}
       className={tile ? `ex-tile${open ? ' is-open' : ''}` : ''}
       finding={full ? (typeof shown === 'string' ? <Lead c="canSay">{shown}</Lead> : shown) : null}
-      unit={full ? <Lead c="measure">{tidy ? <span data-axis-title="y">{unitLine}</span> : unitLine}</Lead> : null}
-      foot={foot}
-      controls={
-        tile || tidy ? null : (
-          <ControlBar label={`${title}: options`}>
-            <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
-          </ControlBar>
-        )
-      }
-      legend={tile ? null : tidy ? (
-        <>
-          <VersionLegend arms={arms} />
-          <ClosureKey closure={st.closure} />
-        </>
-      ) : <ClosureKey closure={st.closure} />}
+      unit={tidy ? <Lead c="measure"><span data-axis-title="y">{unitLine}</span></Lead> : null}
+      legend={tile ? null : <VersionLegend arms={tidy ? arms : []} closure={st.closure} />}
+      moreId={moreId}
+      more={full ? [...(more ?? []), ...rows] : null}
       about={full && about?.caveats ? { caveats: about.caveats } : null}
       notes={full && notes?.length ? notes : null}
       sources={sourcesItems({ sid, method, closures: sources ? undefined : [], code: sources })}
       download={{
         title: `${title}, ${years[0]}–${last}`,
-        context: () => contextLine(sid, st.closure, unitLine, rule),
+        // a download says it in full: it travels without the card's fold
+        context: () => contextLine(sid, st.closure, `${unit === '%' ? '%' : ofGdp ? 'pp of GDP' : 'pp'} gap against the OBR’s central forecast path, ${years[0]}–${last}`, rule),
         table: series.length ? () => seriesTable(years, series, unit) : null,
         legend: () => legendOf(series),
       }}
@@ -333,20 +327,23 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
-          unit={<span data-axis-title="y">{`Each version’s gap against the OBR’s central forecast path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${rulePlain(st.rule)}`}</span>}
+          unit={<span data-axis-title="y">{`% gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
           controls={<Pill className="is-card" title="Options for this chart" name={`Pay rates, national income and output in ${HEADLINE_YEAR}`} sections={[versionsShownSection(st, set)]} />}
           legend={
             st.closure === 'both' ? (
-              <p className="line-key">
-                <span className="line-key-item">
-                  <span className="key-dot" aria-hidden="true" data-icon="" /> Circle: some foreign capital
-                </span>
-                <span className="line-key-item">
-                  <span className="key-diamond" aria-hidden="true" /> Diamond: no foreign capital
-                </span>
-              </p>
+              <Legend
+                items={[
+                  { key: 'some', label: 'Circle: some foreign capital', kind: 'dot' },
+                  { key: 'none', label: 'Diamond: no foreign capital', kind: 'diamond' },
+                ]}
+              />
             ) : null
           }
+          more={[
+            { label: 'Compared with', text: 'Each version’s gap against the OBR’s central forecast path; the centre line, 0, is the path.' },
+            { label: 'Measure', text: 'The pay rate is pay per unit of labour, not average earnings; national income (GNI) is the income UK residents keep.' },
+            { label: 'Settings', text: `${cl[0].toUpperCase()}${cl.slice(1)}; ${rulePlain(st.rule)}.` },
+          ]}
           about={{
             read: st.rule === 'common' ? <HeadlineNote rule={st.rule} /> : null,
             caveats: (
@@ -447,20 +444,31 @@ function EconomyPanel({ sid }) {
           <li>
             <Icon name={iconFor('shock')} size={14} /> {`Dotted: ${SURPRISE_YEAR}, extra AI starts; shaded: ${HEADLINE_YEAR}`}
           </li>
-          {st.closure === 'both' ? (
-            <li>
-              <span className="swatch dashed is-ink" aria-hidden="true" data-icon="" /> Dashed: no foreign capital
-            </li>
-          ) : null}
           <li>
             <Icon name="arrowUpRight" size={14} /> Click a title to enlarge
           </li>
         </ul>
       </div>
       <p className="ex-wall-units" data-axis-title="y">
-        {`Gap against the OBR’s central forecast path, ${WINDOW_YEARS[0]}–${WINDOW_YEARS[WINDOW_YEARS.length - 1]}: % for levels, pp (percentage points) for the interest rate and the labour share`}
+        Gap vs forecast path: % for levels, pp for rates and shares
       </p>
-      <VersionLegend arms={st.arms} />
+      {/* the one legend: the versions, and the line styles under Both */}
+      <VersionLegend arms={st.arms} closure={st.closure} />
+      {/* one fold for the wall (item 36, E2): a closed tile carries none */}
+      <MoreInfo
+        id="economy-wall-more"
+        groups={[
+          {
+            key: 'read',
+            title: 'How to read',
+            items: [
+              { key: 'cmp', head: 'Compared with', text: 'The OBR’s central forecast path; each tile’s zero line is the path.' },
+              { key: 'per', head: 'Period', text: `${WINDOW_YEARS[0]}–${WINDOW_YEARS[WINDOW_YEARS.length - 1]}.` },
+              { key: 'mea', head: 'Measure', text: 'pp is percentage points, for the interest rate and the labour share; every other tile is a % gap.' },
+            ],
+          },
+        ]}
+      />
       <div className="ex-wall" onKeyDown={onKey}>
         {tiles.map((r) => (
           <div key={r.v} className={`ex-wall-cell${open === r.v ? ' is-open' : ''}`} id={r.groupId ?? undefined} data-group={r.group}>

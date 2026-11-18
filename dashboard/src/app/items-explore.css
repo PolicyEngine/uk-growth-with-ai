@@ -747,9 +747,6 @@
   gap: 8px 20px;
   margin: 4px 0 12px;
 }
-.ex-wall-head .control-bar {
-  margin: 0;
-}
 .ex-wall-key {
   display: flex;
   flex-wrap: wrap;
@@ -771,28 +768,6 @@
   margin: 0 0 6px;
   font-size: var(--chart-fs-sub);
   color: var(--pe-gray-700, #374151);
-}
-.ex-wall-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 20px;
-  margin: 0 0 12px;
-  padding: 0;
-  list-style: none;
-  font-size: var(--chart-fs-label);
-  font-weight: 600;
-  color: var(--pe-gray-800, #1f2937);
-}
-.ex-wall-legend li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.ex-wall-swatch {
-  display: inline-block;
-  width: 22px;
-  height: 2.5px;
-  border-radius: 2px;
 }
 .ex-wall {
   display: grid;
@@ -3031,7 +3006,6 @@
   color: var(--pe-gray-700, #374151);
 }
 .ex-fin-more-line b { font-weight: 600; color: var(--pe-gray-800, #1f2937); }
-.card .card-legend .ex-wall-legend { margin: 4px 0 0; }
 /* an open More info lengthens its own card only: the other chart keeps its
    height, so its legend stays under its chart */
 .cards-grid > #debt-gdp, .cards-grid > #tax-gdp { align-self: start; }

@@ -1,12 +1,7 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
 import SourceLine from '@/components/ui/SourceLine.jsx';
-import Icon from '@/components/ab/Icon.jsx';
 import { asOfItems } from '@/components/story/AsOf.jsx';
-import { iconFor } from '@/lib/concepts.js';
-import { NavLink } from '@/lib/nav.jsx';
-import { MODEL_YEAR } from '@/tabs/story/part3/shared.jsx';
 
 // The opening of every Explore and Method sub-tab, in one fixed order, all
 // left-aligned to the content edge (item-22-fable.md): the question the
@@ -48,45 +43,7 @@ export default function PageIntro({ id, row, notes, question, answer, children }
   );
 }
 
-// A household-study page's model row (item-22-fable.md): the model and its
-// year, as text, not a button. On Explore > Households the first segment
-// links to the household method and the line adds that the OG-UK settings
-// do not apply; on the method page itself it is plain text.
-export function ModelLine({ link = false }) {
-  const segs = [
-    link ? (
-      <NavLink tab="method" sub="households">
-        Household study
-      </NavLink>
-    ) : (
-      'Household study'
-    ),
-    'PolicyEngine UK',
-    MODEL_YEAR,
-    link ? 'OG-UK settings don’t apply' : null,
-  ].filter(Boolean);
-  // a segment that starts a line carries no separator before it
-  const ref = useRef(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const mark = () => {
-      const segs = [...el.querySelectorAll('.model-line-seg')];
-      segs.forEach((x, i) => x.classList.toggle('is-line-start', i > 0 && x.offsetTop > segs[i - 1].offsetTop + 2));
-    };
-    mark();
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(mark);
-    ro?.observe(el);
-    return () => ro?.disconnect();
-  }, []);
-  return (
-    <p className="model-line" ref={ref}>
-      <Icon name={iconFor('households')} size={16} />
-      {segs.map((x, i) => (
-        <span key={i} className="model-line-seg">
-          {x}
-        </span>
-      ))}
-    </p>
-  );
-}
+// A household-study page's model row (item-22-fable.md): the shared model
+// line (components/ui/ModelLine.jsx), re-exported so callers keep their
+// import.
+export { default as ModelLine } from '@/components/ui/ModelLine.jsx';

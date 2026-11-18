@@ -33,7 +33,9 @@ describe('HouseholdsExplore', () => {
     // the model row after the title (item 22): the model line, its first
     // segment a link to the household method, the year from the data
     const line = container.querySelector('.hh-question + .model-row .model-line');
-    expect([...line.querySelectorAll('.model-line-seg')].map((x) => x.textContent)).toEqual(['Household study', 'PolicyEngine UK', D.model_year_label, 'OG-UK settings don’t apply']);
+    expect([...line.querySelectorAll('.model-line-seg')].map((x) => x.textContent.trim())).toEqual(['Household study', 'PolicyEngine UK', D.model_year_label, 'OG-UK settings don’t apply']);
+    // a space between segments in the text (R1-21): never "studyPolicyEngine"
+    expect(line.textContent).toContain('Household study PolicyEngine UK');
     expect(line.querySelectorAll('a')).toHaveLength(1);
     expect(line.querySelector('a').getAttribute('href')).toContain('sub=households');
     const chips = [...container.querySelectorAll('.hh-findings .hh-finding')];
