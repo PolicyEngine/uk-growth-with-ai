@@ -39,7 +39,7 @@ export const INPUTS = [
   { group: 'Baseline', input: '2030 debt/GDP target', value: 'OBR March 2026', kind: 'published', how: 'Government consumption is set so 2030 debt/GDP equals the OBR’s forecast; only that point is matched.', src: ['efoMarDebt', 'debtTarget'] },
   { group: 'Baseline', input: 'Vintage', value: 'March 2026', kind: 'external', how: 'The forecast path uses the March 2026 EFO; the growth check on Evidence uses October 2026.', src: ['efoMarPath', 'efoOctA1'] },
   { group: 'Baseline', input: 'Demographics', value: '—', kind: 'external', how: 'UN World Population Prospects, read by OG-Core through a GitHub mirror; not an OBR or ONS projection.', src: ['unWpp', 'popData'] },
-  { group: 'Baseline', input: 'Tax functions', value: '—', kind: 'external', how: 'Fitted to PolicyEngine-UK.', src: ['peUk'] },
+  { group: 'Baseline', input: 'Tax functions', value: '—', kind: 'external', how: 'Fitted to PolicyEngine UK.', src: ['peUk'] },
   // OG-UK defaults
   { group: 'Model parameters', input: 'ζK: share of excess capital demand foreigners supply', value: '0.1', kind: 'default', how: 'OG-Core’s US default, chosen by the study as central, which OG-UK keeps: its baseline is closest to UK income paid abroad; it misses the current account. It is the share of excess capital demand met from abroad, so most of the added capital ends up foreign-owned.', src: ['ogukParams', 'ogCoreParams', 'pinkBook', 'closureMemo'] },
   { group: 'Model parameters', input: 'ζK bound (no foreign capital)', value: '0', kind: 'choice', how: 'A bound, not an estimate.', src: ['closureMemo'] },

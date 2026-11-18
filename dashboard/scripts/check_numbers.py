@@ -103,7 +103,7 @@ def expected(sid, mode):
     # states the same gap ("OG-UK taxes labour 14.8pp more than capital;
     # OBR rates imply 19-23pp"), so it prints twice
     exp[f"{etr['labour'] - etr['capital_gross']:.1f}pp"] += 1
-    # and PolicyEngine-UK's average employer NICs rate, % of earnings (one
+    # and PolicyEngine UK's average employer NICs rate, % of earnings (one
     # decimal): the causes chart's NICs row, from analysis/nics/nics_2028.json
     # (copied to src/tabs/explore/nics2028.json); OG-UK's flat rate prints
     # as a whole number

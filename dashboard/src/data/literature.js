@@ -274,7 +274,7 @@ export const CHANNELS = [
     label: 'Tax system',
     icon: 'receipt',
     cells: {
-      oguk: ['yes', 'Modelled', 'Tax functions fitted to PolicyEngine-UK; one schedule for labour and capital income.'],
+      oguk: ['yes', 'Modelled', 'Tax functions fitted to PolicyEngine UK; one schedule for labour and capital income.'],
       korinek: ['no', 'No', 'Research funded by lump-sum taxes.'],
       moll: ['no', 'No', 'No government.'],
       obr: ['yes', 'Modelled', 'Fiscal forecast with separate effective rates on wages and profits (FRS 2026); the rates are on Explore, Public finances.'],

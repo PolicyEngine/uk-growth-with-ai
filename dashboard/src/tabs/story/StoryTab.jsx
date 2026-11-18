@@ -14,7 +14,7 @@ import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js
 // The story: a hero, then three parts, each a run of scrolly blocks.
 //   1 Where the UK stands: official data only, no forecasts of ours
 //   2 What OG-UK projects: our 2028-surprise solves (surprise2028.json)
-//   3 Jobs, incomes and the public finances: the PolicyEngine-UK
+//   3 Jobs, incomes and the public finances: the PolicyEngine UK
 //     displacement study, provisional (aiStudy2425.json)
 //   Close: what each model can and cannot say (TwoLenses)
 // The part files are one writer each; this shell owns the order and the
@@ -85,7 +85,7 @@ export const PARTS = [
     about: (
       <Items
         items={[
-          { icon: 'data', text: <Hy>PolicyEngine-UK on Microcosm UK survey data</Hy> },
+          { icon: 'data', text: <Hy>PolicyEngine UK on Microcosm UK survey data</Hy> },
           { icon: 'jobLoss', text: <Hy>Here people lose jobs; in OG-UK everyone who wants work has it</Hy> },
           { icon: 'compare', text: 'Its figures are not added to or compared with part 2’s' },
         ]}

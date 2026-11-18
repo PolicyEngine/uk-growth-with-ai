@@ -36,7 +36,7 @@ export const MODEL_YEAR = D.model_year_label ?? fmtModelYear(D.model_year ?? D.b
 // text that says "provisional" or "draft" is shown only while this is true.
 export const PROVISIONAL = D.status != null ? /provisional|draft|open|review/i.test(String(D.status)) : D.provisional === true;
 // The baselines' owner: the field the data builder adds, else the model.
-export const BASELINE_LABEL = D.baseline?.baseline_source ?? 'PolicyEngine-UK baseline';
+export const BASELINE_LABEL = D.baseline?.baseline_source ?? 'PolicyEngine UK baseline';
 // The status note's caveat (the build manifest attests the results tree
 // "without a full clean-room rerun"), said once in the part's call-out.
 export const NO_CLEAN_RERUN = /without a full clean-room rerun/i.test(D.status_note ?? '');
@@ -70,7 +70,7 @@ export function Source({ children, files = [], groups = [], refs = [], items: ex
   const fs = [...new Set(files.filter(Boolean))];
   const basis = (
     <>
-      PolicyEngine-UK microsimulation{PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
+      PolicyEngine UK microsimulation{PROVISIONAL ? ', provisional' : ''}, {MODEL_YEAR}
       {children ? <>, {children}</> : null}
     </>
   );

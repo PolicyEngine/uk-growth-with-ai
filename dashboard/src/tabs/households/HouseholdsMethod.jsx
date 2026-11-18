@@ -35,13 +35,13 @@ const L = {
   frs: ['Family Resources Survey', 'https://www.gov.uk/government/collections/family-resources-survey--2'],
   spi: ['HMRC Survey of Personal Incomes', 'https://www.gov.uk/government/collections/personal-incomes-statistics'],
   hbai: ['HBAI', 'https://www.gov.uk/government/collections/households-below-average-income-hbai--2'],
-  peUk: ['PolicyEngine-UK', URLS.peUk],
+  peUk: ['PolicyEngine UK', URLS.peUk],
   felten: ['Felten, Raj and Seamans (2021)', 'https://doi.org/10.1002/smj.3286'],
   pizzinelli: ['Pizzinelli et al. (2023)', 'https://doi.org/10.5089/9798400254802.001'],
   doorley: ['Doorley et al. (2026)', 'https://doi.org/10.26504/jr16'],
   obrFrs: ['OBR, Fiscal risks and sustainability, July 2026, Box 4.1', 'https://obr.uk/frs/fiscal-risks-and-sustainability-july-2026/'],
   cazzaniga: ['Cazzaniga et al. (2024)', 'https://doi.org/10.5089/9798400262548.006'],
-  ucParams: ['PolicyEngine-UK’s Universal Credit parameters', 'https://github.com/PolicyEngine/policyengine-uk/tree/main/policyengine_uk/parameters/gov/dwp/universal_credit'],
+  ucParams: ['PolicyEngine UK’s Universal Credit parameters', 'https://github.com/PolicyEngine/policyengine-uk/tree/main/policyengine_uk/parameters/gov/dwp/universal_credit'],
   ucGov: ['GOV.UK: Universal Credit, what you’ll get', 'https://www.gov.uk/universal-credit/what-youll-get'],
   jsaGov: ['GOV.UK: Jobseeker’s Allowance, what you’ll get', 'https://www.gov.uk/jobseekers-allowance/what-youll-get'],
   methods: ['the study’s data and methods', AI_STUDY.blob('paper/sections/methodology.tex')],
@@ -65,7 +65,7 @@ const STAGES = [
   ['data', 'Microcosm UK 2024–25', 'Households and incomes, calibrated to official totals'],
   ['ai', 'AI exposure', 'A score for each of nine occupation groups (C-AIOE)'],
   ['shock', 'The shock', 'Job loss, wage rises, higher capital income'],
-  ['model', 'PolicyEngine-UK', `Taxes and benefits, ${MODEL_YEAR}, before and after`],
+  ['model', 'PolicyEngine UK', `Taxes and benefits, ${MODEL_YEAR}, before and after`],
   ['draws', 'Draws', 'The difference, averaged over random draws of who is displaced'],
 ];
 
@@ -145,9 +145,9 @@ export default function HouseholdsMethod() {
                 ]}
               />
             </InfoCard>
-            <InfoCard icon={iconFor('model')} title={`PolicyEngine-UK ${M.policyengine_uk}`}>
+            <InfoCard icon={iconFor('model')} title={`policyengine-uk ${M.policyengine_uk}`}>
               <p className="mx-sub">
-                <IconText icon="link">{l('peUk', 'PolicyEngine-UK on GitHub')}</IconText>
+                <IconText icon="link">{l('peUk', 'PolicyEngine UK on GitHub')}</IconText>
               </p>
               <Items
                 items={[
@@ -276,7 +276,7 @@ export default function HouseholdsMethod() {
             className="hm-items"
             items={[
               { icon: 'benefits', text: <>Universal Credit is means-tested on the benefit unit, {MODEL_YEAR}.</> },
-              { icon: 'source', text: <>Rates: {l('ucParams', 'PolicyEngine-UK parameters')}; current rates on {l('ucGov', 'GOV.UK')}.</> },
+              { icon: 'source', text: <>Rates: {l('ucParams', 'PolicyEngine UK parameters')}; current rates on {l('ucGov', 'GOV.UK')}.</> },
               { icon: 'takeUp', text: 'Each benefit unit keeps its take-up decision drawn in the data.' },
               { icon: 'excluded', text: 'New-style Jobseeker’s Allowance (JSA): paid only where the survey reports an award.' },
               { icon: 'jobLoss', text: 'So the newly displaced do not get it.' },
