@@ -60,7 +60,9 @@ function Cell({ s, row, arm, m, current, story, printHome }) {
   if (x == null)
     return (
       <td className="ex-mx-cell is-hole" data-cell={`${s.id}|${row.key}`}>
-        <span className="visually-hidden">{`${where}: not solved`}</span>
+        <span className="ex-mx-dash" role="img" aria-label={`${where}: not solved`} title={`${where}: not solved`}>
+          –
+        </span>
       </td>
     );
   const tone = toneOf(m.v, x);
@@ -88,15 +90,25 @@ function Cell({ s, row, arm, m, current, story, printHome }) {
   );
 }
 
-// A fiscal rule solved for only some scenarios: which, in one muted phrase
-// on its group row, so its empty cells need no marks of their own.
-function solvedNote(arm, rule, v) {
-  const rows = ROWS.filter((row) => row.rule === rule);
-  const solved = SCENARIOS.filter((s) => rows.some((row) => cellValue(s.id, arm, row.cl, row.rule, v) != null));
-  if (solved.length === SCENARIOS.length) return null;
-  const names = solved.map((s) => SCEN_NAME[s.id]);
-  return <span className="ex-mx-solved">{names.length ? ` · solved for ${names.join(' and ')} only` : ' · not solved'}</span>;
+// The rules solved for only some scenarios, and which: said once, in the
+// key beside the not-solved dash, so the empty cells carry only the dash.
+export function solvedNote(arm, v) {
+  const parts = RULES.map((r) => {
+    const rows = ROWS.filter((row) => row.rule === r.id);
+    const solved = SCENARIOS.filter((s) => rows.some((row) => cellValue(s.id, arm, row.cl, row.rule, v) != null));
+    return solved.length === SCENARIOS.length ? null : { rule: r.label, names: solved.map((s) => SCEN_NAME[s.id]).join(' and ') };
+  }).filter(Boolean);
+  if (!parts.length) return null;
+  const say = (p) => (p.names ? `solved for ${p.names} only` : 'not solved');
+  if (parts.every((p) => p.names === parts[0].names)) {
+    const rules = parts.map((p, i) => (i ? p.rule.charAt(0).toLowerCase() + p.rule.slice(1) : p.rule));
+    return `${rules.join(' and ')}: ${say(parts[0])}`;
+  }
+  return parts.map((p) => `${p.rule}: ${say(p)}`).join('; ');
 }
+
+// Debt/GDP under debt-neutral transfers is held on the path by design
+const DN_DEBT = 'debt held on the path by design, so 0 by construction';
 
 export function Matrix({ arm, m, printHome = true, label }) {
   const { st } = useNav();
@@ -120,11 +132,11 @@ export function Matrix({ arm, m, printHome = true, label }) {
             <tr className="ex-mx-group">
               <th colSpan={SCENARIOS.length + 1} scope="colgroup">
                 {r.label}
-                {solvedNote(arm, r.id, m.v)}
+                {m.v === 'debt_gdp_pp' && r.id === 'dn' ? <span className="ex-mx-solved">{` · ${DN_DEBT}`}</span> : null}
               </th>
             </tr>
             {ROWS.filter((row) => row.rule === r.id).map((row) => (
-              <tr key={row.key}>
+              <tr key={row.key} className={m.v === 'debt_gdp_pp' && r.id === 'dn' ? 'is-by-design' : undefined}>
                 <th scope="row" className="ex-mx-rowhead">
                   <span className="ex-mx-long">{clName(row.cl)}</span>
                   <span className="ex-mx-short" aria-hidden="true">
@@ -172,24 +184,32 @@ export function matrixSvg(arm, m) {
   return [{ w: W, h: y + 4, markup: out, label: `${m.title}, ${HEADLINE_YEAR}` }];
 }
 
-function MatrixKey({ story = true }) {
+// The key, one plain sentence: the in-view swatch (drawn as the in-view
+// cell's border), what a click does; the not-solved dash and which rules
+// are solved where, once; on Economy, the grey story values.
+function MatrixKey({ story = true, note }) {
   return (
-    <ul className="ex-mx-key">
-      <li>
-        <span className="ex-mx-key-cell" aria-hidden="true" data-icon="" /> Click a cell to show it in the charts above
-      </li>
-      <li>
-        <span className="ex-mx-key-cell is-current" aria-hidden="true" data-icon="" /> In view
-        {story ? (
-          <>
-            {'; grey: the '}
-            <NavLink tab="story" anchor="story-part-2">
-              story’s headline
-            </NavLink>
-          </>
-        ) : null}
-      </li>
-    </ul>
+    <p className="ex-mx-key">
+      <span className="ex-mx-key-cell is-current" aria-hidden="true" /> In view: the case the charts above show; click any other cell to show it
+      {story ? (
+        <>
+          {', and grey values are the '}
+          <NavLink tab="story" anchor="story-part-2">
+            story’s headline
+          </NavLink>
+        </>
+      ) : null}
+      .
+      {note ? (
+        <>
+          {' '}
+          <span className="ex-mx-dash" aria-hidden="true">
+            –
+          </span>{' '}
+          {note}.
+        </>
+      ) : null}
+    </p>
   );
 }
 
@@ -222,7 +242,7 @@ export default function AllScenarios() {
           </ControlBar>
         }
         unit={<span data-axis-title="y">{`${m.label} gap against the OBR’s central forecast path for the same foreign-capital case, %`}</span>}
-        legend={<MatrixKey />}
+        legend={<MatrixKey note={solvedNote(arm, m.v)} />}
         about={{
           caveats: (
             <Items
@@ -280,8 +300,7 @@ export function AcrossDebt() {
       <Card
         id="debt-cells"
         icon={iconFor('debt')}
-        title={`Debt/GDP in ${HEADLINE_YEAR}, every cell`}
-        finding={<Lead c="timing">{`${HEADLINE_YEAR}; the debt chart above runs to ${LATE_YEAR}`}</Lead>}
+        title={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`}
         controls={
           <ControlBar label="Debt/GDP across scenarios: options">
             <ControlGroup label="Version">
@@ -289,8 +308,8 @@ export function AcrossDebt() {
             </ControlGroup>
           </ControlBar>
         }
-        unit={<span data-axis-title="y">Debt/GDP gap against the OBR’s central forecast path for the same foreign-capital case, percentage points of GDP</span>}
-        legend={<MatrixKey story={false} />}
+        unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path, percentage points of GDP. The debt chart above runs to ${LATE_YEAR}.`}</span>}
+        legend={<MatrixKey story={false} note={solvedNote(arm, m.v)} />}
         sources={sourcesItems({ method: 'rules' })}
         download={{
           title: `Debt/GDP, every scenario, foreign-capital case and budget assumption, ${HEADLINE_YEAR}`,

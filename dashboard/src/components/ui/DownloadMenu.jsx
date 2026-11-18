@@ -132,6 +132,15 @@ export default function DownloadMenu({ title, context, table, legend, svg, cardR
   const root = useRef(null);
   const button = useRef(null);
   const menuId = useId();
+  // what the button downloads, for its name and tooltip: a chart (drawn in
+  // SVG, or given as `svg()`) in every format, else the table's data
+  const [kind, setKind] = useState({ what: 'this chart', drawn: true });
+  useEffect(() => {
+    const plot = cardRef?.current?.querySelector('.chart-plot');
+    const drawn = Boolean(plot?.querySelector('svg[role="img"]'));
+    setKind({ what: !drawn && plot?.querySelector('table') ? 'this table' : 'this chart', drawn });
+  }, [cardRef]);
+  const name = `Download ${kind.what} (${svg || kind.drawn ? 'CSV, JSON, SVG or PNG' : 'CSV or JSON'})`;
   const plots = () => {
     if (svg) return svg();
     const els = [...(cardRef.current?.querySelectorAll('.chart-plot svg[role="img"]') ?? [])];
@@ -214,8 +223,8 @@ export default function DownloadMenu({ title, context, table, legend, svg, cardR
         className="icon-button"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={`Download: ${title}`}
-        title="Download"
+        aria-label={`${name}: ${title}`}
+        title={name}
         onClick={() => {
           const drawn = Boolean(svg || cardRef.current?.querySelector('.chart-plot svg[role="img"]'));
           setHasSvg(drawn);
@@ -223,7 +232,7 @@ export default function DownloadMenu({ title, context, table, legend, svg, cardR
           setOpen((o) => !o);
         }}
       >
-        <Icon name="download" size={16} strokeWidth={2} />
+        <Icon name="download" size={15} />
       </button>
       {open ? (
         <ul className="download-menu" id={menuId}>

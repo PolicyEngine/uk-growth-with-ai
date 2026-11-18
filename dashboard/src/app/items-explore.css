@@ -2801,3 +2801,80 @@
 .ex-sg-cell {
   font-variant-numeric: tabular-nums;
 }
+
+/* Across scenarios and Debt/GDP across scenarios (AllScenarios.jsx), item
+   16: the chart type scale (tick 14px, label 15px, head 16px; the tokens
+   are set by the type-scale pass, these are their fallbacks); an empty
+   cell is a muted "not solved" dash; debt-neutral debt/GDP rows, 0 by
+   construction, are muted; the key's in-view swatch is the in-view cell's
+   own border. */
+.ex-mx th {
+  font-size: var(--chart-fs-label, 15px);
+}
+.ex-mx-group th {
+  font-size: var(--chart-fs-head, 16px);
+}
+.ex-mx-rowhead,
+.ex-mx-solved {
+  font-size: var(--chart-fs-tick, 14px) !important;
+}
+.ex-mx-btn {
+  font-size: var(--chart-fs-label, 15px);
+}
+.ex-mx-here {
+  font-size: var(--chart-fs-tick, 14px);
+}
+.ex-mx-key {
+  display: block;
+  font-size: var(--chart-fs-tick, 14px);
+  line-height: 1.5;
+}
+.ex-mx-key-cell {
+  vertical-align: -3px;
+  width: 24px;
+  height: 16px;
+  margin-right: 4px;
+  border-radius: 6px;
+  background: var(--pe-surface, #fff);
+}
+.ex-mx-key-cell.is-current {
+  border: 2px solid var(--pe-gray-800, #1f2937);
+}
+.ex-mx-cell.is-hole {
+  text-align: center;
+}
+.ex-mx-dash {
+  font-size: var(--chart-fs-label, 15px);
+  color: var(--pe-gray-400, #9ca3af);
+  cursor: default;
+}
+.ex-mx tr.is-by-design .ex-mx-btn {
+  color: var(--pe-gray-500, #6b7280);
+  background: var(--pe-surface, #fff);
+  font-weight: 500;
+}
+@media (max-width: 560px) {
+  .ex-mx th {
+    font-size: var(--chart-fs-tick, 14px);
+  }
+  .ex-mx-group th {
+    font-size: var(--chart-fs-label, 15px);
+  }
+  .ex-mx-btn {
+    font-size: var(--chart-fs-tick, 14px);
+    padding: 3px 2px;
+  }
+  /* the 14px column names fit whole words: a narrower corner column */
+  /* the corner's words go to screen readers only (the group rows name
+     the budget assumption, the row heads the foreign capital) */
+  .ex-mx-corner {
+    width: 13%;
+    font-size: 0 !important;
+  }
+  .ex-mx thead th {
+    overflow-wrap: normal;
+    hyphens: none;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+}

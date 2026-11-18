@@ -1224,23 +1224,31 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   position: relative;
   flex: none;
 }
+/* A plain download icon, drawn like the book icon beside the title
+   (sources.css .src-line-btn): no border or box, the same size, stroke
+   and grey, the same quiet tint on hover; a 40px hit target */
 .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
+  margin: -8px -8px -8px 0;
   padding: 0;
-  color: var(--pe-gray-600);
-  background: var(--pe-surface);
-  border: 1px solid var(--pe-gray-300);
+  color: var(--pe-gray-500, #6b7280);
+  background: none;
+  border: 0;
   border-radius: 6px;
   cursor: pointer;
 }
 .icon-button:hover,
 .icon-button[aria-expanded='true'] {
-  color: var(--pe-teal-700);
-  border-color: var(--pe-teal-500);
+  color: var(--pe-teal-700, #0f766e);
+  background: var(--pe-gray-100, #f3f4f6);
+}
+.icon-button:focus-visible {
+  outline: 2px solid var(--pe-teal-700, #0f766e);
+  outline-offset: 1px;
 }
 .download-menu {
   position: absolute;
