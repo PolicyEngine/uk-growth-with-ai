@@ -3,6 +3,7 @@
 // its unit. Rendered against a fixture with altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 
 afterEach(cleanup);
 import real from '@/data/surprise2028.json';
@@ -152,18 +153,21 @@ describe('tooltips', () => {
   });
 
   it('the rule and the arms are in the address', async () => {
-    // the rule picker is in the settings bar (components/ui/SettingsBar.jsx)
-    const { default: SettingsBar } = await import('@/components/ui/SettingsBar.jsx');
+    // the rule is in the page's settings pill (components/ui/SettingsBar.jsx)
+    const { PagePill } = await import('@/components/ui/SettingsBar.jsx');
     window.history.replaceState(null, '', '/?tab=explore&sub=finances');
-    render(
+    const { container } = render(
       <NavProvider>
-        <SettingsBar pick={{ rule: true }} />
-        <ResultsTab />
+        <div className="model-row">
+          <PagePill pick={{ rule: true }} sub="finances" />
+        </div>
+        <ResultsTab sub="income" />
       </NavProvider>,
     );
-    fireEvent.click(screen.getByRole('radio', { name: /Debt-neutral/ }));
+    pickInPill(container.querySelector('.model-row'), 'Budget assumption', 'Debt-neutral');
     expect(window.location.search).toContain('rule=dn');
-    fireEvent.click(screen.getAllByRole('button', { name: 'Stress test' })[0]);
+    // versions shown: the four-measure card's pill (tick any)
+    pickInPill(container.querySelector('#measures'), 'Versions shown', 'Stress test');
     expect(window.location.search).toContain('arms=tfp,tz');
   });
 });

@@ -8,7 +8,7 @@ import { Items } from '@/components/story/Items.jsx';
 
 import { useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
-import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
+import Pill from '@/components/ui/Pill.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import MAP from '@/data/site-evidence-map.json';
 import { S, SCENARIOS, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
@@ -38,6 +38,22 @@ const SORTS = [
   { id: 'institution', label: 'Institution' },
   { id: 'year', label: 'Newest' },
 ];
+// each option's line in the pill (item-11-pill-fable.md section 5)
+const MEASURE_DESC = {
+  all: 'Every measure',
+  gdp: 'Estimates of GDP or output',
+  wage: 'Estimates of wages or earnings',
+  productivity: 'Estimates of productivity',
+  jobs: 'Estimates of jobs gained, lost or unemployed',
+  fiscal: 'Estimates of tax, spending or borrowing',
+  adoption: 'Shares of firms that use AI',
+  exposure: 'Shares of jobs or tasks exposed to AI',
+  distribution: 'Estimates of who gains and who loses',
+  none: 'Studies that give no number',
+};
+const COUNTRY_DESC = { all: 'Every study', uk: 'Studies of the UK only', other: 'Studies of the US and other countries' };
+const SORT_DESC = { metric: 'Grouped by what is measured', institution: 'Grouped by who published it', year: 'Latest study first' };
+const SORT_WORDS = { metric: 'by measure', institution: 'by institution', year: 'newest first' };
 
 export const isUK = (r) => r.country === 'UK';
 // A row that prints a published number (not "No quantified estimate" or
@@ -128,17 +144,16 @@ export default function EvidenceMap({ map = MAP }) {
       className="ev-card"
       finding={<IconText icon="table">{`${published} published figures from ${bodies} institutions and authors, each on its own baseline and horizon; OG-UK’s rows sit beside them.`}</IconText>}
       controls={
-        <ControlBar label="Evidence map: options">
-          <ControlGroup label="Measure">
-            <Segmented options={MEASURES} value={measure} onChange={setMeasure} label="Measure" />
-          </ControlGroup>
-          <ControlGroup label="Country">
-            <Segmented options={COUNTRIES} value={country} onChange={setCountry} label="Country" />
-          </ControlGroup>
-          <ControlGroup label="Sort">
-            <Segmented options={SORTS} value={sort} onChange={setSort} label="Sort" />
-          </ControlGroup>
-        </ControlBar>
+        <Pill
+          className="is-card"
+          title="Options for this table"
+          name="Published estimates of AI’s economic effects"
+          sections={[
+            { id: 'measure', label: 'Measure', glyph: 'ruler', kind: 'one', value: measure, options: MEASURES.map((m) => ({ value: m.id, label: m.label, desc: MEASURE_DESC[m.id] ?? m.label })), onChange: setMeasure, seg: measure === 'all' ? 'All measures' : MEASURES.find((m) => m.id === measure).label, def: measure === 'all' },
+            { id: 'country', label: 'Country', glyph: 'globe', kind: 'one', value: country, options: COUNTRIES.map((c) => ({ value: c.id, label: c.label, desc: COUNTRY_DESC[c.id] })), onChange: setCountry, seg: country === 'all' ? 'all countries' : COUNTRIES.find((c) => c.id === country).label, def: country === 'all' },
+            { id: 'sort', label: 'Sort', glyph: 'list', kind: 'one', value: sort, options: SORTS.map((o) => ({ value: o.id, label: o.label, desc: SORT_DESC[o.id] })), onChange: setSort, seg: SORT_WORDS[sort], def: sort === 'metric' },
+          ]}
+        />
       }
       logo={false}
       aboutTitle="About this table"

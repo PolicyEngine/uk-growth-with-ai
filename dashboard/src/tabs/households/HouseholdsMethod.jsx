@@ -8,7 +8,7 @@ import { Items, KeyFacts } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { PageNotes } from '@/components/ui/PageIntro.jsx';
+import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import UsedBy from '@/tabs/method/UsedBy.jsx';
 import { D, MODEL_YEAR as PART3_YEAR, NO_CLEAN_RERUN, PAPER_URL } from '@/tabs/story/part3/shared.jsx';
 import { AI_FULL_RERUN, AI_STUDY } from '@/tabs/code/ledger.js';
@@ -90,15 +90,17 @@ export default function HouseholdsMethod() {
       <OnThisPage tab="method" sub="households" sections={SECTIONS} label="Household method contents" />
       <div className="page-body">
         <header className="hh-lead page-intro">
-          <div className="page-kicker-row">
-            <p className="page-kicker">Household study · households in {MODEL_YEAR} if some employees lose their jobs</p>
+          <h2 className="hh-question page-q">
+            <span>How does the household study produce its results?</span>
             <PageNotes />
+          </h2>
+          <div className="model-row">
+            <ModelLine />
           </div>
-          <h2 className="hh-question page-q">How does the household study produce its results?</h2>
           <p className="hh-answer">
             <IconText icon="jobLoss">
               <a href={PAPER_URL} target="_blank" rel="noreferrer">
-                The household study (PolicyEngine UK)
+                The study
               </a>{' '}
               removes, for one year, the earnings of randomly chosen employees in a calibrated UK sample, weighted by AI exposure.
             </IconText>

@@ -8,7 +8,7 @@ import Finding from '@/components/ui/Finding.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
-import { ruleLabel, RULES } from '@/lib/labels.js';
+import { ruleLabel } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import {
@@ -497,13 +497,6 @@ function ruleTable(rule, sid, closure) {
   };
 }
 
-// The rule cards: each rule with what it holds fixed, synced with the
-// page's fiscal-rule picker (&rule=); the common rule is the default.
-const RULE_INFO = {
-  common: { icon: 'gdp', holds: 'Holds spending and transfers as shares of GDP' },
-  fixed: { icon: 'finances', holds: 'Holds spending at its baseline level' },
-  dn: { icon: 'benefits', holds: 'Holds debt/GDP on the forecast path; transfers adjust' },
-};
 const RULE_DB = [
   { v: 'Y', label: 'GDP', concept: 'gdp', unit: '%' },
   { v: 'w', label: 'Pay rate', concept: 'pay', unit: '%' },
@@ -511,27 +504,6 @@ const RULE_DB = [
   { v: 'debt_gdp_pp', label: 'Debt/GDP', concept: 'debt', unit: 'pp' },
   { v: 'tax_gdp_pp', label: 'Tax/GDP', concept: 'tax', unit: 'pp' },
 ];
-
-export function RulePicker() {
-  const { st, set } = useNav();
-  return (
-    <div className="ex-rules" role="group" aria-label="Budget assumption">
-      {RULES.map((r) => (
-        <button key={r.id} type="button" className={`ex-rule${st.rule === r.id ? ' is-active' : ''}`} aria-pressed={st.rule === r.id} onClick={() => set({ rule: r.id })}>
-          <span className="ex-rule-name">
-            <Icon name={iconFor(RULE_INFO[r.id].icon)} size={16} /> {r.label}
-            {r.id === 'common' ? (
-              <span className="ex-rule-tag">
-                <Icon name={iconFor('defaultRule')} size={12} /> Default
-              </span>
-            ) : null}
-          </span>
-          <span className="ex-rule-holds">{RULE_INFO[r.id].holds}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
 
 // The main arm's headline-year gap under the common rule (hollow) and the
 // rule picked (filled), per measure, at the closure in view. Values are in

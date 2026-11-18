@@ -2750,33 +2750,6 @@ body {
   border-radius: var(--pe-radius-md);
 }
 
-.seg-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  font-family: inherit;
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  color: var(--pe-gray-600);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.seg-option .plain-icon {
-  display: inline-flex;
-}
-
-.seg-option.is-on {
-  font-weight: 600;
-  color: var(--band-teal);
-  background: var(--pe-surface);
-  border-color: var(--pe-gray-300);
-  box-shadow: 0 1px 2px var(--shadow-soft);
-}
-
 .seg-math {
   color: var(--pe-gray-500);
   font-weight: 400;
@@ -4418,7 +4391,6 @@ ul.disclosure-text {
 .app .tab-panel > .mx-tab {
   gap: 0;
 }
-
 
 /* Literature (tabs3): coverage matrix, range bars, KPI, sources */
 .mx-legend {

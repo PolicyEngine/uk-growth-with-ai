@@ -2,7 +2,8 @@
 // dot strip, and the wall. Every expectation is computed here from the raw
 // data with its own threshold, across scenarios, closures and rules.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import S from '@/data/surprise2028.json';
 import CO from '@/data/cohorts2028.json';
 import { NavProvider } from '@/lib/nav.jsx';
@@ -92,14 +93,16 @@ describe('who gains: heatmap and dots', () => {
     const { container } = wrap(<WhoGainsTab />, 'tab=explore&sub=who');
     const dots = () => container.querySelectorAll('.ex-dotstrip .ex-dots .ex-dot.is-lose').length;
     expect(dots()).toBe(0);
-    fireEvent.click(screen.getByRole('button', { name: /^Both/ }));
+    // the measure is chosen in the heatmap's pill; the tile's rows follow
+    pickInPill(container.querySelector('#who-heatmap'), 'Measure', 'Both');
+    expect(container.querySelector('.ex-mtoggle-row.is-on').textContent).toMatch(/^Both/);
     const bt = CO.dnfull.range.no_bequest_losing_pct;
     expect(dots()).toBe(Math.round(Math.min(...bt)));
     expect(container.querySelector('#who-heatmap table').dataset.measure).toBe('BT');
     // the dot strip prints no share: each has its home in the tile's toggle
     expect(container.querySelector('.ex-dotstrip').textContent.replace('One dot = 1% of adults', '')).not.toMatch(/\d+%/);
     // heatmap cells: gain or loss class from the sign of the data
-    fireEvent.click(container.querySelector('.ex-mtoggle li:first-child button'));
+    pickInPill(container.querySelector('#who-heatmap'), 'Measure', 'As modelled');
     const C = CO.closures['zk0.1'].rules.dn.tfp;
     const cells = [...container.querySelectorAll('#who-heatmap tbody tr')].map((tr) => [...tr.querySelectorAll('td')].map((td) => (td.className.includes('is-gain') ? 1 : td.className.includes('is-loss') ? -1 : 0)));
     AGES.forEach((age, k) => {

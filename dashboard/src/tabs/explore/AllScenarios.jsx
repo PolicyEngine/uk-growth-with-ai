@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
-import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
+import Pill from '@/components/ui/Pill.jsx';
+import { versionSection } from '@/components/ui/SettingsBar.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { RULES } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
@@ -35,6 +36,8 @@ import { URLS } from '@/tabs/ai/links.js';
 // the All scenarios sub-tab is removed, on that sub-tab: the same component.
 
 export const ECON = MEASURES.filter((m) => m.v !== 'debt_gdp_pp');
+// each measure's one line in the pill (item-11-pill-fable.md section 5)
+const MEASURE_DESC = { Y: 'Total output produced in the UK', GNI: 'Income UK residents keep', w: 'The wage per unit of labour' };
 const DEBT = MEASURES.filter((m) => m.v === 'debt_gdp_pp');
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
 const shortName = (s) => s.short ?? s.label;
@@ -217,7 +220,6 @@ export default function AllScenarios() {
   // the arm is the one store's (&arm=, lib/nav.jsx), shared with the settings bar
   const { st, set } = useNav();
   const arm = st.armId;
-  const setArm = (armId) => set({ armId });
   const [v, setV] = useState('Y');
   const m = ECON.find((x) => x.v === v);
   const armLabel = ARMS.find((a) => a.id === arm).label;
@@ -232,14 +234,25 @@ export default function AllScenarios() {
         title={`${m.title} in ${HEADLINE_YEAR}, every cell`}
         finding={<Items className="ex-notes" items={drivers(arm).map((d) => ({ key: d.choice, icon: d.choice === 'still' ? 'onPath' : d.choice, text: d.text }))} />}
         controls={
-          <ControlBar label="Across scenarios: options">
-            <ControlGroup label="Measure">
-              <Segmented options={ECON.map((x) => ({ id: x.v, label: x.label, icon: x.icon }))} value={v} onChange={setV} label="Measure" />
-            </ControlGroup>
-            <ControlGroup label="Version">
-              <Segmented options={ARMS} value={arm} onChange={setArm} label="Version" />
-            </ControlGroup>
-          </ControlBar>
+          <Pill
+            className="is-card"
+            title="Options for this table"
+            name={`${m.title} in ${HEADLINE_YEAR}, every cell`}
+            sections={[
+              {
+                id: 'measure',
+                label: 'Measure',
+                glyph: 'ruler',
+                kind: 'one',
+                value: v,
+                options: ECON.map((x) => ({ value: x.v, label: x.label, desc: MEASURE_DESC[x.v] })),
+                onChange: setV,
+                seg: m.label,
+                def: v === 'Y',
+              },
+              versionSection(st, set),
+            ]}
+          />
         }
         unit={<span data-axis-title="y">{`${m.label} gap against the OBR’s central forecast path for the same foreign-capital case, %`}</span>}
         legend={<MatrixKey note={solvedNote(arm, m.v)} />}
@@ -289,7 +302,6 @@ export default function AllScenarios() {
 export function AcrossDebt() {
   const { st, set } = useNav();
   const arm = st.armId;
-  const setArm = (armId) => set({ armId });
   const m = DEBT[0];
   const armLabel = ARMS.find((a) => a.id === arm).label;
   return (
@@ -301,13 +313,7 @@ export function AcrossDebt() {
         id="debt-cells"
         icon={iconFor('debt')}
         title={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`}
-        controls={
-          <ControlBar label="Debt/GDP across scenarios: options">
-            <ControlGroup label="Version">
-              <Segmented options={ARMS} value={arm} onChange={setArm} label="Version" />
-            </ControlGroup>
-          </ControlBar>
-        }
+        controls={<Pill className="is-card" title="Options for this table" name={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`} sections={[versionSection(st, set, true)]} />}
         unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path, percentage points of GDP. The debt chart above runs to ${LATE_YEAR}.`}</span>}
         legend={<MatrixKey story={false} note={solvedNote(arm, m.v)} />}
         sources={sourcesItems({ method: 'rules' })}

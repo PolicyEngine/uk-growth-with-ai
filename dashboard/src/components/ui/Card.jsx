@@ -118,8 +118,8 @@ export default function Card({
         </h3>
         {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
       </header>
-      {finding ? <p className="card-finding">{finding}</p> : null}
       {controls}
+      {finding ? <p className="card-finding">{finding}</p> : null}
       {unit ? <p className="card-unit">{unit}</p> : null}
       {children ? <div className="chart-plot">{children}</div> : null}
       {legend ? <div className="card-legend">{legend}</div> : null}

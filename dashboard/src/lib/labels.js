@@ -1,4 +1,4 @@
-import { LATE_YEAR } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
 
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
@@ -44,28 +44,22 @@ export const pickersFor = (tabId, subId) => {
   return { scenario: pick('scenario'), closure: pick('closure'), arm: pick('arm'), rule: pick('rule'), study: pick('study') };
 };
 
-// The arms, as the settings bar's picker names them: an icon and a sub-label
-// of six words or fewer each (lib/nav.jsx stores the id in &arm=).
+// The arms (versions), as the pill names them: each option's one line
+// (item-11-pill-fable.md section 5; lib/nav.jsx stores the id in &arm=).
 export const ARM_PICK = [
-  { id: 'tfp', label: 'Automation + productivity', short: 'Automation + productivity', note: 'Share shift + higher output', icon: 'sparkles' },
-  { id: 'tz', label: 'Technology unchanged', short: 'Technology unchanged', note: 'Share shift only', icon: 'equal' },
-  { id: 'ss', label: 'Stress test', short: 'Stress test', note: 'No output gain: a bound', icon: 'gauge' },
+  { id: 'tfp', label: 'Automation + productivity', short: 'Automation + productivity', note: 'The capital share rises, and output at fixed inputs rises by the scenario’s gain', icon: 'sparkles' },
+  { id: 'tz', label: 'Technology unchanged', short: 'Technology unchanged', note: 'The same rise in the capital share, with no productivity gain', icon: 'equal' },
+  { id: 'ss', label: 'Stress test', short: 'Stress test', note: `${HEADLINE_YEAR} GDP held at the OBR’s central forecast path, by design`, icon: 'gauge' },
 ];
 // Who gains names its arms differently (tabs/cohorts): the same three.
 export const WG_ARM = { tfp: 'tfp', tz: 'zfixed', ss: 'stress' };
 export const ARM_OF_WG = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
-// The fiscal rules in the settings bar: icon and sub-label
-export const RULE_PICK = {
-  common: { icon: 'scale', sub: 'Spending follows GDP' },
-  fixed: { icon: 'lock', sub: 'Spending held at baseline level' },
-  dn: { icon: 'landmark', sub: 'Transfers keep debt on path' },
-};
-
 // Capital closure: who owns the new capital.
 export const CLOSURES = [
-  { id: 'central', label: 'Some foreign capital', note: 'Foreign investors supply 10% of excess capital demand (ζK = 0.1; OG-Core’s US default, chosen by the study)', icon: 'globe' },
-  { id: 'closed', label: 'No foreign capital', note: 'No foreign-owned private capital (ζK = 0)', icon: 'lock' },
-  { id: 'both', label: 'Both', note: 'Some foreign capital solid, none dashed', icon: 'layers' },
+  // the pill's lines; ζK's home is Method (m-closures)
+  { id: 'central', label: 'Some foreign capital', note: 'Foreign investors supply 10% of the extra capital firms want', icon: 'globe' },
+  { id: 'closed', label: 'No foreign capital', note: 'No foreign-owned private capital', icon: 'lock' },
+  { id: 'both', label: 'Both', note: 'Both cases together: some solid, none dashed', icon: 'layers' },
 ];
 export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? id;
 

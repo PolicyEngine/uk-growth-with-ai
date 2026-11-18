@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { PageNotes } from '@/components/ui/PageIntro.jsx';
+import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
@@ -499,12 +499,6 @@ function Displaced() {
   // the UC capital limit, stated in the data as text ("16,000")
   const limit = Number(String(D.method.uc_capital_limit_gbp).replace(/,/g, ''));
   const max = Math.max(X.uc_per_displaced_takeup.value, X.uc_per_existing_unemployed.value) * 1.08;
-  const key = (ev) => {
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(ev.key)) {
-      ev.preventDefault();
-      setView(view === 'data' ? 'full' : 'data');
-    }
-  };
   const stages = [
     ['all', 'Benefit units with a displaced worker', 100, null],
     ['claim_uc', 'Claim UC, with the data’s take-up flags', X.claim_uc.value, 'of all of them'],
@@ -567,16 +561,21 @@ function Displaced() {
             <p className="hh-uc-title">
               UC added in a year, per person
             </p>
-            <span className="p3-switch" role="radiogroup" aria-label="UC take-up" onKeyDown={key}>
-              {[
-                ['data', 'Take-up as in the data'],
-                ['full', 'Full take-up'],
-              ].map(([k, name]) => (
-                <button key={k} type="button" role="radio" aria-checked={view === k} tabIndex={view === k ? 0 : -1} className={view === k ? 'is-on' : ''} onClick={() => setView(k)}>
-                  {name}
-                </button>
-              ))}
-            </span>
+            {/* the one on/off on the site (item-20-fable.md): full take-up
+                on top of the data's take-up flags */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={view === 'full'}
+              className="uc-switch"
+              title="Every displaced worker’s benefit unit claims Universal Credit"
+              onClick={() => setView(view === 'full' ? 'data' : 'full')}
+            >
+              <span className="uc-switch-track" aria-hidden="true">
+                <span className="uc-switch-thumb" />
+              </span>
+              <span>Full take-up</span>
+            </button>
           </div>
           <div role="list" className={`hh-uc-rows is-${view}`}>
             <div role="listitem" className="hh-uc-row" data-row="uc_per_displaced">
@@ -869,29 +868,55 @@ export const FINDINGS = [
   { id: 'takeup', anchor: 'hh-ladder', title: 'Benefit take-up', text: takeupWords().short },
 ];
 
-// The header: the model kicker (with the sources-and-notes icon), the
-// question (the only heading), the finding chips.
+// The header: the question (the only heading, with the sources-and-notes
+// icon: the paper, the housing-costs basis, the story's headlines), the
+// model row (the household study's model line, item 22), the finding chips.
 export default function HouseholdsExplore() {
   return (
     <div className="hh-page">
       <header className="hh-lead page-intro">
-        <div className="page-kicker-row">
-          <p className="hh-model page-kicker">
-          <a href={PAPER} target="_blank" rel="noreferrer">
-            The household study (PolicyEngine UK)
-          </a>
-          {STATUS === 'provisional' ? ' (provisional)' : ''}: a one-year PolicyEngine-UK microsimulation of households, {YEAR}. Poverty is{' '}
-          <a href={URLS.hbai} target="_blank" rel="noreferrer" title="DWP's HBAI publishes both bases; absolute poverty holds the line at its baseline value">
-            before housing costs
-          </a>
-          .{' '}
-          <NavLink tab="story" anchor="story-part-3">
-            Headlines in story part 3
-          </NavLink>
-          </p>
-          <PageNotes />
+        <h2 className="hh-question page-q">
+          <span>What moves the cost of AI job displacement, and who it falls on?</span>
+          <PageNotes
+            groups={[
+              {
+                title: 'About this page',
+                notes: [
+                  {
+                    icon: 'source',
+                    text: (
+                      <a href={PAPER} target="_blank" rel="noreferrer">
+                        {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
+                      </a>
+                    ),
+                  },
+                  {
+                    icon: 'poverty',
+                    text: (
+                      <>
+                        Poverty is{' '}
+                        <a href={URLS.hbai} target="_blank" rel="noreferrer" title="DWP's HBAI publishes both bases; absolute poverty holds the line at its baseline value">
+                          before housing costs
+                        </a>
+                      </>
+                    ),
+                  },
+                  {
+                    icon: 'link',
+                    text: (
+                      <NavLink tab="story" anchor="story-part-3">
+                        Headlines in story part 3
+                      </NavLink>
+                    ),
+                  },
+                ],
+              },
+            ]}
+          />
+        </h2>
+        <div className="model-row">
+          <ModelLine link />
         </div>
-        <h2 className="hh-question page-q">What moves the cost of AI job displacement, and who it falls on?</h2>
         <ul className="hh-findings">
           {FINDINGS.map((f) => (
             <li key={f.id}>

@@ -1,11 +1,11 @@
 'use client';
 
-import Icon from '@/components/ab/Icon.jsx';
-import { RULES } from '@/lib/labels.js';
 import { ARMS, ARM_COLOR } from '@/tabs/ai/surprise.js';
 
-// The per-chart control bar: the same component, names and options on every
-// chart. Groups sit on one row and wrap; each is labelled. A chosen item is
+// The per-chart control bar: only the "Versions shown" chips of the
+// eight-panel wall and the Debt/GDP and Tax/GDP charts are left (owned by
+// later work, item-20-fable.md; every other chooser is the pill). Groups
+// sit on one row and wrap; each is labelled. A chosen item is
 // shown by fill and border only.
 export default function ControlBar({ children, label = 'Chart options' }) {
   return (
@@ -47,47 +47,13 @@ export function SeriesChips({ items, shown, onChange, label }) {
   );
 }
 
-// One of several (radio group). A disabled option stays in view with its
-// reason ("Not yet solved").
-export function Segmented({ options, value, onChange, label }) {
-  return (
-    <div className="segments" role="radiogroup" aria-label={label}>
-      {options.map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          role="radio"
-          aria-checked={value === o.id}
-          disabled={o.disabled}
-          className={`segment${value === o.id ? ' is-checked' : ''}`}
-          onClick={() => onChange(o.id)}
-        >
-          {o.icon ? <Icon name={o.icon} size={14} /> : null}
-          <span>{o.short ?? o.label}</span>
-          {o.disabled && o.note ? <span className="segment-note">{o.note}</span> : null}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// The two groups every results chart can carry, so their names and options
-// are the same wherever they appear.
+// The versions, as chips
 export const ARM_ITEMS = ARMS.map((a) => ({ id: a.id, label: a.short || a.label, color: ARM_COLOR[a.id] }));
 
 export function ArmsGroup({ shown, onChange }) {
   return (
     <ControlGroup label="Versions">
       <SeriesChips items={ARM_ITEMS} shown={shown} onChange={onChange} label="Versions shown" />
-    </ControlGroup>
-  );
-}
-
-// `only`: the rule ids this chart has ('common', 'fixed', 'dn')
-export function RuleGroup({ value, onChange, only = ['common', 'fixed', 'dn'] }) {
-  return (
-    <ControlGroup label="Budget assumption">
-      <Segmented options={RULES.filter((r) => only.includes(r.id))} value={value} onChange={onChange} label="Budget assumption" />
     </ControlGroup>
   );
 }
