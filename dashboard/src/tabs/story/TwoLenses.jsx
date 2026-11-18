@@ -254,7 +254,6 @@ export default function TwoLenses() {
           <div className="lens-pay-card is-oguk">
             <p className="lens-pay-head">Pay is a result</p>
             <p className="lens-pay-fig">
-              <Icon name={iconFor('gapDown')} size={18} strokeWidth={2.25} />
               <NavLink tab="story" anchor="story-headline" className="lens-pay-num" data-axis="">
                 {fmt(PAY_RESULT)}
               </NavLink>
@@ -269,7 +268,6 @@ export default function TwoLenses() {
           <div className="lens-pay-card is-study">
             <p className="lens-pay-head">Pay is an input</p>
             <p className="lens-pay-fig">
-              <Icon name={iconFor('gapUp')} size={18} strokeWidth={2.25} />
               <span className="lens-pay-num" data-input="">
                 +{Number(M.survivor_wage_pct)}%
               </span>

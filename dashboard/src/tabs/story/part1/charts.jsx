@@ -246,7 +246,11 @@ export function OutputCanvas({ state, notes }) {
           </text>
           {/* quarters: they grow from zero once the zoom has landed */}
           <rect x={L + (z1 - z0) * slotZ} y={T} width={slotZ} height={B - T} className="p1-band p1-only-q" />
-          <text x={R} y={T - 8} textAnchor="end" className="p1-note p1-only-q">
+          {/* the two series of the quarterly state, labelled directly (check_axes) */}
+          <text x={L + 2} y={T - 8} className="p1-note p1-only-q" data-label-for="q-past">
+            Earlier quarters
+          </text>
+          <text x={R} y={T - 8} textAnchor="end" className="p1-note p1-only-q" data-label-for="q-now">
             {thisYear}: year not yet complete
           </text>
           <g className="p1-quarterly">
@@ -259,6 +263,7 @@ export function OutputCanvas({ state, notes }) {
                   d={barPath(x, bwQ, YQ(0), YQ(q.y[i]))}
                   className={`p1-bar p1-bar-q${yr === z1 ? ' is-now' : ''}${q.y[i] < 0 ? ' is-neg' : ''}${zoomed ? ' is-on' : ''}`}
                   data-mark={yr === z1 ? 'q-now' : 'q-past'}
+                  data-series={yr === z1 ? 'q-now' : 'q-past'}
                   style={{ transitionDelay: zoomed ? `${900 + Math.min(i * 20, 400)}ms` : '0ms' }}
                 />
               );
