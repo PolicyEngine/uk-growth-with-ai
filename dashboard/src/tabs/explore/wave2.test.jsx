@@ -38,11 +38,22 @@ describe('some foreign capital to no foreign capital', () => {
             expect(r.flips).toBe(c != null && b != null && sgn(c) * sgn(b) === -1);
           }
       });
-  it('prints no figure, and a flip is said in words with its direction', () => {
+  it('end labels are the data to one decimal, and a flip is said in words with its direction', () => {
+    // one decimal, signed with a true minus; the two-decimal figures stay
+    // the four-measure card's
+    const one = (x) => (Math.abs(x) < 0.05 ? '0.0' : `${x > 0 ? '+' : '\u2212'}${Math.abs(x).toFixed(1)}`);
     for (const s of S.scenarios) {
       const { container, unmount } = wrap(<ClosureSlope sid={s.id} />, `tab=explore&s=${s.id}`);
+      for (const fig of container.querySelectorAll('.ex-slope-panel')) {
+        const rows = slopeRows(s.id, S.arms.map((a) => a.id), 'common', fig.dataset.measure);
+        const want = rows.filter((r) => r.c != null && r.b != null).flatMap((r) => [one(r.c), one(r.b)]);
+        const got = [...fig.querySelectorAll('.ex-slope-val text')].map((t) => t.textContent);
+        for (const g of got) expect(g).toMatch(/^(0\.0|[+\u2212]\d+\.\d)$/);
+        // every end labelled, or (ends too close) the selected version's two
+        expect(got.length === want.length || got.length === 2).toBe(true);
+        for (const g of got) expect(want).toContain(g);
+      }
       container.querySelectorAll('[data-axis]').forEach((e) => e.remove());
-      expect(container.querySelector('.ex-slope').textContent).not.toMatch(/\d\.\d\d/);
       for (const fig of container.querySelectorAll('.ex-slope-panel')) {
         const flips = slopeRows(s.id, S.arms.map((a) => a.id), 'common', fig.dataset.measure).filter((r) => r.flips);
         const note = fig.querySelector('.ex-slope-note.is-flip');
