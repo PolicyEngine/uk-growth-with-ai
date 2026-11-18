@@ -5,7 +5,8 @@ import Part1 from './Part1.jsx';
 import Part2 from './Part2.jsx';
 import Part3 from './Part3.jsx';
 import StoryRail from './StoryRail.jsx';
-import TwoLenses from './TwoLenses.jsx';
+import TwoLenses, { CLOSE_SUB } from './TwoLenses.jsx';
+import NextPart from '@/components/story/NextPart.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
@@ -101,6 +102,12 @@ const RAIL = [
   { id: 'story-close', short: '4', icon: 'compare', title: 'Two lenses' },
 ];
 
+// The bridge at the end of each part (consolidated design, bridge pattern):
+// NextPart's line, "Next: part n" and the next part's name, linked to its
+// opener; no deep links. Only the bridge into Part 4 has a second line: the
+// two models' figures are not added, and Part 4's question.
+export const BRIDGE_4 = `The two models’ figures are not added together. ${CLOSE_SUB.question}`;
+
 export default function StoryTab() {
   return (
     <div className="story">
@@ -108,12 +115,17 @@ export default function StoryTab() {
       <Hero />
       <section className="story-part" data-part="1" id={PARTS[0].id} aria-labelledby={`${PARTS[0].id}-h`}>
         <Part1 part={PARTS[0]} />
+        <NextPart show n={2} title={PARTS[1].title} to={PARTS[1].id} />
       </section>
       <section className="story-part" data-part="2" id={PARTS[1].id} aria-labelledby={`${PARTS[1].id}-h`}>
         <Part2 part={PARTS[1]} />
+        <NextPart show n={3} title={PARTS[2].title} to={PARTS[2].id} />
       </section>
       <section className="story-part" data-part="3" id={PARTS[2].id} aria-labelledby={`${PARTS[2].id}-h`}>
         <Part3 part={PARTS[2]} />
+        <NextPart show n={4} title={CLOSE_SUB.title} to="story-close">
+          {BRIDGE_4}
+        </NextPart>
       </section>
       <TwoLenses />
     </div>

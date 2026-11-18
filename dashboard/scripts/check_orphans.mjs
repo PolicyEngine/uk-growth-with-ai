@@ -9,7 +9,7 @@
 //     a step:    .scrolly-step (.p2-output-text on phones);
 //     a frame:   .scrolly-graphic, figure, .story-frame (the shared card),
 //                .p1-vitals (the vitals panel: its title over its tinted grid);
-//     links:     .part-links, .lens-deeper.
+//     links:     .part-links, .close-next.
 //   The hero is stricter (item 11): its text is the question (.hero-q),
 //   the scroll cue, or inside its figure frame; nothing on the plain page.
 // Rule 2: every .scrolly-takeaway shares its nearest frame
@@ -48,7 +48,7 @@ for (const [W, H] of SIZES) {
       const skip = 'svg, [aria-hidden="true"], .visually-hidden, [hidden], .scrolly-sizers, .q-stage, .q-frame, .tip-box';
       // .p2-output-text: the output scene's step texts on phones (its cards
       // under the figure drawn once)
-      const owner = '.part-opener, .scene-head, .story-rail, .story-beat, .scrolly-step, .p2-output-text, .scrolly-graphic, figure, .story-frame, .p1-vitals, .part-links, .lens-deeper';
+      const owner = '.part-opener, .scene-head, .story-rail, .story-beat, .scrolly-step, .p2-output-text, .scrolly-graphic, figure, .story-frame, .p1-vitals, .part-links, .close-next';
       const heroOwner = '.hero-q, .story-scroll-cue, figure, .story-frame';
       const frame = '.scrolly-graphic-inner, figure, .story-frame';
       const leaf = 'p, li, dd, dt, figcaption, summary, blockquote, h2, h3, h4, h5, h6';

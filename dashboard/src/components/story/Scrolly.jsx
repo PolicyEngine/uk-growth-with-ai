@@ -779,6 +779,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${headSticks && sub ? ' has-head-stick' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
       id={id}
       ref={ownBox}
+      /* a declared scene hold (item 35; scripts/check_hold.mjs): only a
+         block whose figure holds while its steps pass */
+      data-hold={single || once || inline ? undefined : 'scene'}
       style={single ? (footY ? { '--scene-foot': `${footY}px` } : undefined) : { '--n': cards, ...(footY ? { '--scene-foot': `${footY}px` } : null), ...(colMin.v ? { '--col-min': `${colMin.v}px` } : null) }}
     >
       {question && pinFull && !inline ? (

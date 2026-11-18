@@ -8,18 +8,22 @@ import { NavLink } from '@/lib/nav.jsx';
 import { useEntry, useSnap } from '@/components/story/motion.js';
 import { CENTRAL, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 import { D, MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
-import { PAPER_URL, REFS, REPO_URL } from './part3/sources.jsx';
+import { REFS } from './part3/sources.jsx';
+import { TABS } from '@/lib/labels.js';
 import QStage from '@/components/story/QStage.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 
 // The close of the story: Two lenses (two-lenses-design.md, with Fable's
-// refinements B1-B8 in charts-finale-fable.md). Two overlapping circles,
-// one per model, each holding its kicker, scope, time scope and the "can
-// say" chips; the overlap is the public finances; each lens's "outside"
-// chips sit just outside its rim. Under them the pay contrast: in OG-UK pay
-// is a result, in uk-ai-study an input, in opposite directions. One
-// closing line, then the "Go deeper" links.
+// refinements B1-B8 in charts-finale-fable.md, and item 34's transition,
+// Vahid's yes of 18 Nov). A centred opener: the kicker, the title, a
+// two-line recap of the two models (their scope and years: these moved out
+// of the circles) and one sign-aware reason they are never added. Then the
+// figure: two overlapping circles, one per model, each its model name over
+// its "can say" chips; the overlap is the public finances; each lens's
+// "outside" chips sit just outside its rim. Under them the pay contrast: in
+// OG-UK pay is a result, in uk-ai-study an input. The page ends on "What’s
+// next": one linked line per tab.
 //
 // No new facts: the chips are the old table's content, each at most four
 // words, and each "can say" chip is a real link to the scene where that
@@ -30,10 +34,11 @@ import { docItem, navItem } from '@/lib/sourceItems.js';
 // are decorative (aria-hidden); the lists and cards are the content.
 //
 // Motion (reversible, the openers' scroll logic: useEntry): the lenses
-// slide in from either side, the chips rise in turn, the overlap label,
-// the pay row and the closing line follow; it replays on every re-entry
-// from above and is drawn final on a jump or reload (useSnap); static
-// under reduced motion.
+// slide in from either side (on phones they fade only: item 35, nothing
+// moves against the finger), the chips rise in turn, the overlap label and
+// the pay row follow; it replays on every re-entry from above and is drawn
+// final on a jump or reload (useSnap); static under reduced motion. The
+// opener's recap and reason are static text.
 const M = D.method;
 const STUDY = `Household study${PROVISIONAL ? ' (provisional)' : ''}`;
 
@@ -43,10 +48,19 @@ export const CLOSE_SUB = {
   title: 'Two lenses',
   icon: 'compare',
   question: 'What can each model say?',
-  hint: 'Two models side by side, never added',
+  hint: 'The two models, side by side',
 };
 
-export const CLOSE_LINE = 'Different models, years and assumptions, including opposite pay directions: their numbers are not added or compared.';
+export const CLOSE_KICKER = 'Part 4 · Both models';
+const LAST_YEAR = YEARS[YEARS.length - 1];
+
+// (a) The recap: one line per model, led by its lens icon. No pay figure
+// and no sign: the pay cards are that fact's home.
+export const CLOSE_RECAP = [
+  // `when` is kept on one line (a year range never splits at its dash)
+  { id: 'oguk', icon: 'gdp', name: 'OG-UK', rest: 'models the whole economy over decades,', when: `${SURPRISE_YEAR} to ${LAST_YEAR}`, end: ' and beyond.' },
+  { id: 'study', icon: 'households', name: 'The household study (PolicyEngine UK)', rest: 'models UK households in one year,', when: MODEL_YEAR, end: '.' },
+];
 
 // The lenses' content (B2, B3, B6). `to`: the scene a chip links to.
 export const LENSES = [
@@ -54,8 +68,6 @@ export const LENSES = [
     id: 'oguk',
     name: 'OG-UK',
     icon: 'gdp',
-    scope: 'The whole economy',
-    time: `${SURPRISE_YEAR} to ${YEARS[YEARS.length - 1]} and beyond`,
     can: [
       { text: 'Output', to: 'p2-morph', scene: 'GDP, scenario by scenario' },
       { text: 'Pay rates', to: 'story-headline', scene: 'the headline figures' },
@@ -71,8 +83,6 @@ export const LENSES = [
     id: 'study',
     name: STUDY,
     icon: 'households',
-    scope: 'UK households',
-    time: `One year, ${MODEL_YEAR}`,
     can: [
       { text: 'Who loses income', to: 'p3-deciles', scene: 'where the loss falls' },
       // the main case's second step lights poverty and the Gini together;
@@ -81,7 +91,7 @@ export const LENSES = [
       { text: 'Inequality', to: 'p3-central-step-2', scene: 'the main case' },
     ],
     outside: [
-      { text: 'Change over time', tip: 'Recovery, re-employment, prices' },
+      { text: 'Change over time', tip: 'The years after the first: recovery and prices' },
       { text: 'Whether jobs are lost', tip: 'Job loss is assumed' },
     ],
   },
@@ -97,38 +107,31 @@ export const PAY_INPUT_TO = 'beat-7pct';
 const PAY_SID = 'uk_central';
 export const PAY_RESULT = gap(PAY_SID, 'tfp', CENTRAL, 'w');
 
-// Go deeper: six link cards in one tinted panel (one hairline grid, no
-// underlines); the targets are unchanged.
-const DEEPER = [
-  { nav: { tab: 'explore', sub: 'economy' }, ic: 'trend', label: 'Explore, economy-wide', desc: 'OG-UK results by scenario' },
-  { nav: { tab: 'explore', sub: 'households' }, ic: 'users', label: 'Explore, households', desc: 'Every variant and rule' },
-  { nav: { tab: 'method', sub: 'how' }, ic: 'book', label: 'Method and sources', desc: 'How the models work' },
-  { href: PAPER_URL, ic: 'fileText', label: PROVISIONAL ? 'Study paper, draft PDF' : 'Study paper, PDF', desc: 'The study’s full write-up' },
-  { href: REPO_URL, ic: 'code', label: 'Code: the household study', desc: 'Household model code' },
-  { href: REFS.oguk.url, ic: 'folderGit', label: 'Code: uk-growth-with-ai', desc: 'Economy model code' },
-];
-
-function DeeperCard({ l }) {
-  const inner = (
-    <>
-      <Icon name={l.ic} size={18} className="go-deeper-ic" />
-      <span className="go-deeper-title">{l.label}</span>
-      <span className="go-deeper-desc">{l.desc}</span>
-      <span className="go-deeper-arrow" aria-hidden="true">
-        →
-      </span>
-    </>
-  );
-  return l.nav ? (
-    <NavLink tab={l.nav.tab} sub={l.nav.sub} className="go-deeper-card">
-      {inner}
-    </NavLink>
-  ) : (
-    <a href={l.href} target="_blank" rel="noreferrer" className="go-deeper-card">
-      {inner}
-    </a>
-  );
+// (b) The reason, one sentence, sign-aware: "pay moves in opposite
+// directions" only while the two pay figures differ in sign.
+export function closeWhy(result = PAY_RESULT, input = Number(M.survivor_wage_pct)) {
+  const pay = Math.sign(result) !== Math.sign(input) ? 'and pay moves in opposite directions' : 'and pay is a result in one and an input in the other';
+  return `They differ in years and assumptions, ${pay}, so their numbers sit side by side and are never added or compared.`;
 }
+export const CLOSE_WHY = closeWhy();
+
+// (c) What's next: one linked line per tab, the names from TABS (never the
+// short form). The study paper and both repositories are on Method: Data
+// and code links the repositories, Household method and Detail and
+// sources the paper.
+const tab = (id) => TABS.find((t) => t.id === id);
+const sub = (t, id) => tab(t).subs.find((x) => x.id === id);
+export const CLOSE_NEXT = [
+  {
+    tab: 'explore',
+    sub: tab('explore').subs[0].id,
+    icon: tab('explore').icon,
+    name: tab('explore').label,
+    rest: `the results by topic. ${tab('explore').subs.map((x, i) => (i ? x.label.toLowerCase() : x.label)).join(', ')}.`,
+  },
+  { tab: 'method', sub: 'how', icon: tab('method').icon, name: tab('method').label, rest: 'how each model works, every input and its source.' },
+  { tab: 'method', sub: 'code', icon: sub('method', 'code').icon, name: sub('method', 'code').label, rest: 'the data files, the model code and how to rerun it.' },
+];
 
 // A "can say" chip: a link to its scene; hover or focus says where it goes.
 function CanChip({ chip, i }) {
@@ -160,10 +163,8 @@ function Lens({ lens }) {
   return (
     <div className={`lens-circle is-${lens.id}`}>
       <h3 className="lens-kicker" id={h}>
-        <Icon name={iconFor(lens.icon)} size={14} /> {lens.name}
+        {lens.name}
       </h3>
-      <p className="lens-scope">{lens.scope}</p>
-      <p className="lens-time">{lens.time}</p>
       <h4 className="visually-hidden">{lens.name}: can say</h4>
       <ul className="lens-chips" aria-label={`${lens.name}: can say`}>
         {lens.can.map((c, i) => (
@@ -200,7 +201,7 @@ function Outside({ lens }) {
   );
 }
 
-// The pay cards' sources, behind the closing line's one button: the
+// The pay cards' sources, behind one button at the end of the pay row: the
 // figures themselves are not restated (each has its home).
 function LensSource() {
   return (
@@ -236,18 +237,34 @@ export default function TwoLenses() {
   return (
     <section className="story-part story-close" id="story-close" aria-labelledby="story-close-h">
       <QStage id="story-close" question={CLOSE_SUB.question} hint={CLOSE_SUB.hint} icon="compare" keyWord="model" />
-      <header className="story-part-head" id="q-story-close">
+      <header className="part-opener close-opener" id="q-story-close">
+        <p className="part-opener-meta">{CLOSE_KICKER}</p>
         <h2 id="story-close-h">{CLOSE_SUB.title}</h2>
+        <ul className="close-recap">
+          {CLOSE_RECAP.map((r) => (
+            <li key={r.id}>
+              <Icon name={iconFor(r.icon)} size={16} strokeWidth={1.8} className="close-ic" />
+              <span>
+                <strong>{r.name}</strong> {r.rest} <span className="close-when">{r.when}</span>
+                {r.end}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="close-why">{CLOSE_WHY}</p>
       </header>
       <figure ref={ref} className={`lens-fig story-frame${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`} aria-labelledby="story-close-h">
         <div className="lens-venn">
-          <svg className="lens-rings" viewBox="0 0 540 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          {/* item 35: the lens is 88px wide on desktop and 72px tall on
+              phones, so the overlap label (on the 14px tick token) sits
+              inside both rims */}
+          <svg className="lens-rings" viewBox="0 0 508 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <circle className="lens-ring is-oguk" cx="150" cy="150" r="148" />
-            <circle className="lens-ring is-study" cx="390" cy="150" r="148" />
+            <circle className="lens-ring is-study" cx="358" cy="150" r="148" />
           </svg>
-          <svg className="lens-rings is-phone" viewBox="0 0 300 552" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <svg className="lens-rings is-phone" viewBox="0 0 300 528" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <circle className="lens-ring is-oguk" cx="150" cy="150" r="148" />
-            <circle className="lens-ring is-study" cx="150" cy="402" r="148" />
+            <circle className="lens-ring is-study" cx="150" cy="378" r="148" />
           </svg>
           <Lens lens={og} />
           {/* the overlap links to the Story's public-finances scene, the
@@ -289,23 +306,29 @@ export default function TwoLenses() {
             <p className="lens-pay-sub">for those still in work</p>
           </div>
         </div>
-        <p className="lens-close" data-closing="">
-          {CLOSE_LINE} <LensSource />
-        </p>
-      </figure>
-      <nav className="lens-deeper go-deeper" aria-labelledby="go-deeper-h">
-        <p className="go-deeper-kicker" id="go-deeper-h">
-          Go deeper
-        </p>
-        <div className="story-frame story-panel">
-          <ul className="go-deeper-list">
-            {DEEPER.map((l) => (
-              <li key={l.label}>
-                <DeeperCard l={l} />
-              </li>
-            ))}
-          </ul>
+        <div className="lens-pay-src">
+          <LensSource />
         </div>
+      </figure>
+      <nav className="close-next" aria-labelledby="close-next-h">
+        <p className="close-next-kicker" id="close-next-h">
+          What’s next
+        </p>
+        <ul className="close-next-list">
+          {CLOSE_NEXT.map((l) => (
+            <li key={`${l.tab}-${l.sub}`}>
+              <NavLink tab={l.tab} sub={l.sub} className="close-next-link">
+                <Icon name={l.icon} size={16} strokeWidth={1.8} className="close-ic" />
+                <span>
+                  <strong>{l.name}</strong>: {l.rest}{' '}
+                  <span className="close-next-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
       </nav>
     </section>
   );

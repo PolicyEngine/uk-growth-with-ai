@@ -37,6 +37,9 @@
 // half on screen may stay without a drawn mark once settled (800ms).
 // BOUNDARY=0 skips it.
 //
+// Hold probe (item 35, after the boundary probe): scripts/check_hold.mjs.
+// STICKY=0 skips it.
+//
 // Landing probe (round 2): every sticky scene must draw its current step on
 // arrival, not only when a step changes. For every card of every sticky
 // block, at 1280x800, 1024x768 and 390x844 (JUMP_SIZES="w,h w,h" to change), motion
@@ -55,6 +58,7 @@
 //   bun scripts/check_states.mjs http://localhost:4360 [width height ...]
 //   (needs Playwright; CHROMIUM may name a Chrome binary). Exits 1 on a miss.
 import { chromium, webkit } from 'playwright';
+import { holdProbe } from './check_hold.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const rest = process.argv.slice(3).map(Number);
@@ -331,6 +335,16 @@ for (const [W, H] of process.env.BOUNDARY === '0' || JUMP === 'only' || process.
 if (blines.length) {
   console.log('boundaries (no closing line or step text over a part opener, the closing block or another scene; no frame blank at rest):');
   for (const l of blines) console.log(l);
+}
+
+// ---- hold probe ---- (item 35; scripts/check_hold.mjs, which replaces
+// check_sticky.mjs): no element sticks or holds outside a declared hold
+// ([data-hold]: chrome, scene, opener), and through the close every figure
+// and heading moves with the page. STICKY=0 skips it; HOLD_* tune it.
+let kmiss = 0;
+if (process.env.STICKY !== '0' && JUMP !== 'only' && process.env.SANKEY !== 'only') {
+  console.log('hold probe:');
+  kmiss = await holdProbe(browser, base, process.env, (l) => console.log(`  ${l}`));
 }
 
 // ---- header probe ---- (HOLDS=0 skips the hold walk above)
@@ -746,6 +760,6 @@ if (SANKEY !== '0') {
   }
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, hmiss ? `${hmiss} scenes let their header go out of view or fade` : null, emiss ? `${emiss} sizes clip text at the edges` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, hmiss ? `${hmiss} scenes let their header go out of view or fade` : null, emiss ? `${emiss} sizes clip text at the edges` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null, kmiss ? `${kmiss} holds outside a declared hold` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

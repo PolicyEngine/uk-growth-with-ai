@@ -218,7 +218,8 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   );
   return (
     <div ref={ref} className="q-stage" data-gap-exempt="" data-q={id}>
-      <div className="q-stage-hold">
+      {/* a declared opener hold (item 35; scripts/check_hold.mjs) */}
+      <div className="q-stage-hold" data-hold="opener">
         <div ref={card} className="q-stage-card">
           <QVisual question={question} hint={hint} icon={icon} keyWord={keyWord} />
         </div>
@@ -313,7 +314,8 @@ export function TopicHead({ id, sub, part, titleId, className = '' }) {
   return (
     <>
       {question && pin === 'full' ? <QStage id={id} question={question} hint={hint} icon={icon} keyWord={key} part={part} /> : null}
-      <header className={`scene-head topic-head${question ? ' has-q' : ''} ${className}`.trim()} data-scene={title} id={question ? `q-${id}` : undefined}>
+      {/* a scene header: it sticks only in a stepped .p2-output (story-bands.css), a declared scene hold (item 35) */}
+      <header className={`scene-head topic-head${question ? ' has-q' : ''} ${className}`.trim()} data-scene={title} id={question ? `q-${id}` : undefined} data-hold="scene">
         <h3 className="scene-head-q" id={titleId}>
           {question ?? title}
         </h3>
