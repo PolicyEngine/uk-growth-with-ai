@@ -3,8 +3,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
-import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead, whyTokens, consumptionWords, earningsWords, payWords, stressWords, HORIZON_YEAR } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
+import S from '@/data/surprise2028.json';
 
 afterEach(cleanup);
 
@@ -52,7 +53,10 @@ describe('Who gains tab', () => {
     expect(first.querySelector('.stat-value').textContent).toBe(`Under 1% to ${Math.round(Math.max(c.no_bequest_losing_pct, ...D.dnfull.range.no_bequest_losing_pct))}%`);
     // the earnings-group ranking is a detail with its caveat, not a tile
     expect(container.querySelector('.stat-row').textContent).not.toContain('Top 1%');
-    expect(container.textContent).toContain('A property of the model, not a UK finding');
+    // its caveat: one click away, in the closed More info disclosure
+    const more = container.querySelector('#who-model-households');
+    expect(more.querySelector('.disclosure-toggle').getAttribute('aria-expanded')).toBe('false');
+    expect(more.textContent).toContain('a property of the model, not a finding about the UK');
   });
 
   it('stress test: the share losing and the young who all lose', () => {
@@ -185,7 +189,11 @@ describe('Who gains finding box', () => {
     for (let i = ageIdx(19); i < xs.length; i += 1) c.cev_all[i] = -0.2;
     const f = run(c);
     expect(f.state).toBe('loss');
-    expect(text(f)).toEqual([RETURN_LINE, `Some birth years lose on average as modelled: those born ${sy - 30}–${xs[xs.length - 1]}, by up to 0.20%.`, 'More adults lose if households bear the later fiscal cost or leaving bequests is not valued.']);
+    expect(text(f)).toEqual([
+      RETURN_LINE,
+      `Some birth years lose on average as modelled: those born ${sy - 30}–${xs[xs.length - 1]}, by up to 0.20%.`,
+      'More adults lose if households bear the later fiscal cost or leaving bequests is not valued.',
+    ]);
   });
 
   it('adults all gain but a later birth year loses: the loss state, no least line', () => {
@@ -259,5 +267,85 @@ describe('the welfare breakdown lead', () => {
           if (t.endsWith('adults lose.')) expect(c.alive_avg).toBeLessThanOrEqual(0);
         }
     if (D.shock_year === 2028) expect(n).toEqual({ most: 4, largest: 0, outweigh: 7, lose: 1 });
+  });
+});
+
+// What drives the result (item-21-fable.md): each block's claims checked
+// against the data in all 12 cells, with expectations derived from the JSON.
+describe('What drives the result', () => {
+  const SARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
+  const RK = { dn: 'debt_neutral' };
+  const sgap = (cl, rule, arm, v, year) => {
+    const r = (rule === 'common' ? S.results : S.rules[RK[rule]].results).uk_central[SARM[arm]][cl];
+    return r.gaps[v][S.years.indexOf(year)];
+  };
+  for (const cl of ['zk0.1', 'zk0'])
+    for (const rule of ['dn', 'common'])
+      for (const arm of ['tfp', 'zfixed', 'stress'])
+        it(`${cl}, ${rule}, ${arm}`, () => {
+          const c = cell(cl, rule, arm);
+          const t = whyTokens(cl, rule, arm);
+          const ys = Object.keys(c.c_gap).map(Number);
+          expect(t).toEqual({ shockYear: D.shock_year, lastFlowYear: Math.max(...ys), debtRuleYear: Math.max(...ys) + 1, cAboveYear: c.first_year_c_above ?? null });
+          // A
+          const A = consumptionWords(cl, rule, arm);
+          const c0 = c.c_gap[String(D.shock_year)];
+          if (A.lines[0].startsWith('Households save more')) {
+            expect(sgap(cl, rule, arm, 'r_bp', S.headline_year)).toBeGreaterThan(0);
+            expect(sgap(cl, rule, arm, 'I', D.shock_year)).toBeGreaterThan(0);
+          }
+          if (c.first_year_c_above) expect(A.lines.join(' ')).toContain(`from ${c.first_year_c_above} under ${rule === 'dn' ? 'debt-neutral transfers' : 'the common fiscal rule'}`);
+          else expect(A.lines.join(' ')).toContain(`in ${HORIZON_YEAR}`);
+          if (A.lines.some((l) => l.startsWith('The average gain is positive'))) {
+            expect(c.alive_avg).toBeGreaterThan(0);
+            expect(c.parts_alive.bequests + c.parts_alive.leisure).toBeGreaterThan(c.parts_alive.consumption);
+            expect(c0).toBeLessThan(0);
+          }
+          // B: the two groups shown, in the order the lead says
+          const B = earningsWords(cl, rule, arm);
+          if (B.lead.includes('gain more than')) expect(B.bot).toBeGreaterThan(B.top);
+          if (B.lead.includes('lose less than')) expect(B.bot).toBeGreaterThan(B.top);
+          expect(B.lead).not.toMatch(/lower earners gain more/);
+          // C: years and the sign of the windowed transfers
+          const Cw = payWords(cl, rule, arm);
+          expect(Cw.lines.join(' ')).toContain(`From ${t.debtRuleYear}`);
+          if (rule === 'dn') {
+            const tr = Object.entries(c).find(([k]) => k.startsWith('income_'))[1].transfers;
+            if (Cw.lead.includes('pay the fiscal cost')) expect(tr.every((v) => v < 0)).toBe(true);
+            expect(Cw.lines[0]).toContain(`${t.shockYear}–${t.lastFlowYear}`);
+          } else if (Cw.lead.includes('fiscal cost')) expect(sgap(cl, 'common', arm, 'debt_gdp_pp', t.debtRuleYear)).toBeGreaterThan(0);
+          // D: the youngest, from the stress cell
+          const Dw = stressWords(cl, rule, arm);
+          const xs = D.closures[cl].birth_year;
+          const s = cell(cl, rule, 'stress');
+          expect(Dw.young).toBe(s.cev_all[xs.indexOf(D.shock_year - 20)]);
+          expect(Dw.old).toBe(s.cev_all[xs.indexOf(D.shock_year - 65)]);
+          if (Dw.lead.includes('the youngest adults lose')) expect(Dw.young).toBeLessThan(0);
+          if (Dw.lines.some((l) => l.startsWith('With no output gain'))) expect(sgap(cl, rule, 'stress', 'w', S.headline_year)).toBeLessThan(sgap(cl, rule, 'tfp', 'w', S.headline_year));
+          for (const b of [A, B, Cw, Dw]) {
+            expect(b.lead).toMatch(/\.$/);
+            expect(b.lines.length).toBeGreaterThanOrEqual(1);
+            expect(b.lines.length).toBeLessThanOrEqual(3);
+            for (const l of b.lines) {
+              expect(l).toMatch(/\.$/);
+              expect(l.split(' ').length).toBeLessThanOrEqual(25);
+            }
+          }
+        });
+
+  it('the default view: the four boxes, the closed disclosure, no typed horizon year', () => {
+    window.history.replaceState(null, '', '/?tab=who');
+    const { container } = render(
+      <NavProvider>
+        <WhoGainsTab />
+      </NavProvider>,
+    );
+    expect(container.querySelectorAll('.ex-why2 > .finding')).toHaveLength(4);
+    expect(container.querySelector('.ex-caveat-chip, .ex-timeline, .ex-chain')).toBeNull();
+    const more = container.querySelector('#who-model-households');
+    expect(more.querySelector('.disclosure-content').hidden).toBe(true);
+    // E3's transfer pair, debt-neutral only
+    const tr = Object.entries(cell('zk0.1', 'dn', 'tfp')).find(([k]) => k.startsWith('income_'))[1].transfers;
+    expect(more.textContent).toContain(`${Math.abs(tr[0]).toFixed(1)}%`);
   });
 });
