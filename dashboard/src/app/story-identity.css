@@ -29,6 +29,7 @@
 .story > .story-part[data-part]:has(.part-links) + .story-close {
   padding-top: 16px;
 }
+.story > .story-part[data-part]:has(.part-links) + .story-close { margin-top: 16px; }
 
 /* ---------- The chapter opener: a kicker and the question (h2) under one
    thin rule, at the full content width (item 6) ---------- */
@@ -268,6 +269,7 @@
   .part-links.story-next {
     margin-top: 24px;
   }
+  .part-links .part-links-next { min-height: 44px; }
   .story-rail-scene {
     display: none;
   }

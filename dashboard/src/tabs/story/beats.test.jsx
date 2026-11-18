@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import S from '@/data/surprise2028.json';
 import U from '@/data/ukContext.json';
-import StoryTab, { BRIDGE_4 } from './StoryTab.jsx';
+import StoryTab from './StoryTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { beat2031 } from './Part2.jsx';
 import { AI_SINCE } from './Part1.jsx';
@@ -103,14 +103,13 @@ describe('part openers', () => {
     expect(MODELS.aistudy.tip).not.toMatch(/added/);
   });
 
-  it('bridge each part to the next with one NextPart line, no deep links; only the bridge into part 4 has a second line', () => {
+  it('bridge each part to the next with one NextPart line, no deep links and no second line', () => {
     const el = story();
     const bridges = [...el.querySelectorAll('nav.part-links.story-next')];
     expect(bridges.map((b) => b.querySelector('.part-links-kicker').textContent)).toEqual(['Next: part 2', 'Next: part 3', 'Next: part 4']);
     expect(bridges.map((b) => b.closest('section').id)).toEqual(['story-part-1', 'story-part-2', 'story-part-3']);
     expect(bridges.map((b) => b.querySelector('a').getAttribute('href'))).toEqual(['#story-part-2', '#story-part-3', '#story-close']);
     for (const b of bridges) expect(b.querySelector('.part-links-row')).toBeNull();
-    expect(bridges.map((b) => !!b.querySelector('.part-links-lead'))).toEqual([false, false, true]);
-    expect(bridges[2].querySelector('.part-links-lead').textContent.trim()).toBe(BRIDGE_4);
+    for (const b of bridges) expect(b.querySelector('.part-links-lead')).toBeNull();
   });
 });

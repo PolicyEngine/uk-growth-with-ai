@@ -984,7 +984,7 @@ export default function WhoGainsTab() {
                     // values are in the tooltip and the heatmap)
                     noValue
                     dots={false}
-                    yUnit="Welfare change, % of remaining-lifetime consumption and bequests"
+                    yUnit="Welfare change, %"
                     xUnit="Birth year"
                     unit="%"
                     zeroNote="No change = 0"
