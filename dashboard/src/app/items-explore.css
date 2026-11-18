@@ -569,7 +569,6 @@
 .ex-bar-code .plain-icon,
 .ex-pair-label .plain-icon,
 .ex-caveat-chip .plain-icon,
-.ex-byform .plain-icon,
 .ex-spark figcaption .plain-icon,
 .card-tag .plain-icon {
   display: inline-flex;
@@ -716,63 +715,12 @@
   height: 10px;
   border-radius: 2px;
 }
-.ex-byform {
-  margin: 20px 0 24px;
-}
-.ex-byform-title,
 .ex-caveat-chip {
   display: flex;
   gap: 6px;
   align-items: center;
-  margin: 0 0 6px;
-  font-size: var(--fs-small);
   font-weight: 600;
   color: var(--pe-gray-800);
-}
-.ex-byform-bar {
-  display: flex;
-  height: 14px;
-  overflow: hidden;
-  border-radius: 4px;
-}
-.ex-byform-seg {
-  display: block;
-  height: 100%;
-}
-.ex-byform-seg.is-consumption,
-.ex-byform-swatch.is-consumption {
-  background: var(--series-2);
-}
-.ex-byform-seg.is-leisure,
-.ex-byform-swatch.is-leisure {
-  background: var(--series-3);
-}
-.ex-byform-seg.is-bequests,
-.ex-byform-swatch.is-bequests {
-  background: var(--series-5);
-}
-.ex-byform-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.ex-byform-key li {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-}
-.ex-byform-swatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-.ex-caveat-chip {
   margin: 10px 0;
   padding: 6px 10px;
   border-left: 3px solid var(--c-highlight);
@@ -826,7 +774,6 @@
 @media (prefers-reduced-motion: no-preference) {
   .ex-bar-fill,
   .ex-ruler-fill,
-  .ex-byform-bar,
   .ex-rdb-bar {
     animation: ex-grow 0.7s ease-out both;
   }
@@ -839,7 +786,6 @@
     transform: scaleX(1);
   }
 }
-.ex-byform-bar,
 .ex-taxbar,
 .ex-rdb-bar {
   transform-origin: left;
@@ -2573,12 +2519,6 @@
 /* Households plane axis titles (SVG) */
 .hh-axis-title { font-size: 11px; fill: var(--pe-color-gray-600); }
 
-/* Who gains: the by-form parts' two or three notes (economics review, round 1) */
-.ex-byform-notes {
-  margin-top: 8px;
-  font-size: 14px;
-}
-
 /* More foreign capital (zeta_K 0.5): the heatmap grid */
 .ex-sg-wrap { max-height: 70vh; overflow: auto; }
 .ex-sg-ctx > span { display: inline-flex; align-items: baseline; gap: 4px; }
@@ -2876,5 +2816,100 @@
     hyphens: none;
     font-weight: 500;
     letter-spacing: -0.01em;
+  }
+}
+
+/* Who gains: the welfare breakdown card (item-19-fable.md), a Finding with
+   layout="side". Four rows on one axis: label, then the track, with the
+   value at the bar's end (left end when negative). */
+.ex-parts-unit {
+  margin: 0 0 8px;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+}
+.ex-parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex-parts > li {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 420px);
+  align-items: center;
+  height: 28px;
+}
+.ex-parts-label {
+  font-size: var(--chart-fs-label, 15px);
+  color: var(--pe-gray-800);
+  white-space: nowrap;
+}
+.ex-parts-track {
+  position: relative;
+  height: 28px;
+}
+/* room for the values beyond the bars' ends */
+.ex-parts-plot {
+  position: absolute;
+  inset: 0;
+}
+.ex-parts.has-pos .ex-parts-plot {
+  right: 64px;
+}
+.ex-parts.has-neg .ex-parts-plot {
+  left: 64px;
+}
+.ex-parts-zero {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--pe-gray-400);
+}
+.ex-parts > li:first-child .ex-parts-zero {
+  top: 4px;
+}
+.ex-parts > li:last-child .ex-parts-zero {
+  bottom: 4px;
+}
+.ex-parts-tip {
+  position: absolute;
+  top: 7px;
+  height: 14px;
+}
+.ex-parts-tip .ex-parts-bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--parts-fill); /* GROUP_RAMP[3], set on the list */
+}
+.ex-parts > li.is-total .ex-parts-bar {
+  background: var(--pe-gray-800);
+}
+.ex-parts-val {
+  position: absolute;
+  top: 50%;
+  padding-left: 8px;
+  transform: translateY(-50%);
+  font-size: var(--chart-fs-label, 15px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+  white-space: nowrap;
+}
+.ex-parts-val.is-neg {
+  padding-right: 8px;
+  padding-left: 0;
+}
+.ex-parts-wrap .finding-note {
+  margin-top: 10px;
+}
+@media (max-width: 600px) {
+  .ex-parts > li {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+  .ex-parts-label,
+  .ex-parts-val {
+    font-size: 14px;
   }
 }

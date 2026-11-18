@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
-import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE, byFormLead } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 
 afterEach(cleanup);
@@ -33,8 +33,14 @@ describe('Who gains tab', () => {
     expect(t).toContain(pct(full.no_bequest_avg[0]));
     expect(t).toContain(`${Math.round(full.joint_losing_pct[0])}%`);
     expect(t).not.toContain('first order');
-    // the by-form split: values in the segments' tooltips
-    expect(container.querySelector(`[aria-label="Bequests: ${pct(c.parts_alive.bequests)}"]`)).not.toBeNull();
+    // the welfare breakdown: the total and each part printed once, beside its bar
+    const parts = container.querySelector('#welfare-breakdown');
+    expect(parts.querySelector('.finding-lead').textContent).toBe(byFormLead(c.parts_alive, c.alive_avg));
+    const vals = [...parts.querySelectorAll('.ex-parts-val')].map((e) => e.textContent);
+    expect(vals).toEqual([c.alive_avg, c.parts_alive.consumption, c.parts_alive.leisure, c.parts_alive.bequests].map((x) => pct(x)));
+    // the total restates the Average change tile
+    expect(parts.querySelector('.ex-parts-val').hasAttribute('data-axis')).toBe(true);
+    expect(parts.querySelector('[data-axis-title="y"]').textContent).toContain('% of remaining-lifetime consumption and bequests');
     expect(t).not.toMatch(/\b(poor|rich)\b/i);
   });
 
@@ -227,5 +233,31 @@ describe('Who gains finding box', () => {
     expect(n.gain + n.loss + n.flat).toBe(12);
     // the 2028 data (the spec's table); after a swap these counts may move
     if (D.shock_year === 2028) expect([n.gain, n.loss, n.least]).toEqual([7, 5, 6]);
+  });
+});
+
+describe('the welfare breakdown lead', () => {
+  it('four forms from the signs, lists largest first, the verb agreeing', () => {
+    expect(byFormLead({ consumption: 0.07, leisure: 0.2, bequests: 0.52 }, 0.79)).toBe('Most of the average gain is the value of leaving bigger bequests.');
+    expect(byFormLead({ consumption: 0.3, leisure: 0.2, bequests: 0.25 }, 0.7)).toBe('The largest part of the average gain is more spending.');
+    expect(byFormLead({ consumption: -0.2, leisure: 0.1, bequests: 0.37 }, 0.27)).toBe('Bigger bequests and more free time outweigh less spending.');
+    expect(byFormLead({ consumption: -0.5, leisure: 0.1, bequests: 0.3 }, -0.07)).toBe('Less spending outweighs bigger bequests and more free time: on average adults lose.');
+    // a part that rounds to 0.00 is left out
+    expect(byFormLead({ consumption: -0.2, leisure: 0.004, bequests: 0.37 }, 0.17)).toBe('Bigger bequests outweighs less spending.');
+  });
+
+  it('on the 2028 data: "most of" in 4 cells, "outweigh" in 7, a loss in 1', () => {
+    const n = { most: 0, largest: 0, outweigh: 0, lose: 0 };
+    for (const cl of ['zk0.1', 'zk0'])
+      for (const r of ['dn', 'common'])
+        for (const a of ['tfp', 'zfixed', 'stress']) {
+          const c = cell(cl, r, a);
+          const t = byFormLead(c.parts_alive, c.alive_avg);
+          n[t.startsWith('Most') ? 'most' : t.startsWith('The largest') ? 'largest' : t.endsWith('adults lose.') ? 'lose' : 'outweigh'] += 1;
+          // "most of" only where bequests exceed the other two together
+          if (t.startsWith('Most')) expect(c.parts_alive.bequests).toBeGreaterThan(c.parts_alive.consumption + c.parts_alive.leisure);
+          if (t.endsWith('adults lose.')) expect(c.alive_avg).toBeLessThanOrEqual(0);
+        }
+    if (D.shock_year === 2028) expect(n).toEqual({ most: 4, largest: 0, outweigh: 7, lose: 1 });
   });
 });

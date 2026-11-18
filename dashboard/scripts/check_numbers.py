@@ -183,9 +183,10 @@ for rid, rule in D.get('rules', {}).items():
 # the post-2035 cost charged (a range), the capital and labour sources, the
 # bottom and top earnings groups, and the 45-year-old's transfer cost. Two
 # different facts can round to the same figure (the no-bequest average and
-# the top 1%), so this is a multiset. The by-form parts (consumption,
-# leisure, bequests: parts_alive) print once, beside their key, at the
-# central closure (with Both too).
+# the top 1%), so this is a multiset. The welfare breakdown card's parts
+# (consumption, leisure, bequests: parts_alive) print once, at each bar's
+# end, at the central closure (with Both too); its Total row restates the
+# average tile and is marked data-axis, so dumptabs leaves it out.
 CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
 def tiles(c, cl=None):
     exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['sources_alive']['capital'], c['sources_alive']['labour']])

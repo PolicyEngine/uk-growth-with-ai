@@ -2700,6 +2700,24 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .finding-body {
   margin-top: 16px;
 }
+/* layout="side" (item 18): from 900px the lead, lines and note are the
+   left column and the children the right; below, all stack. */
+@media (min-width: 900px) {
+  .finding.is-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 480px);
+    grid-auto-rows: min-content;
+    column-gap: 32px;
+  }
+  .finding.is-side > :not(.finding-body) {
+    grid-column: 1;
+  }
+  .finding.is-side > .finding-body {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    margin-top: 0;
+  }
+}
 @media (max-width: 600px) {
   .finding-lead {
     font-size: 15px;

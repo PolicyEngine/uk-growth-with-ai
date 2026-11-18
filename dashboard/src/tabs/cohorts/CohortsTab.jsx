@@ -427,51 +427,94 @@ function Spark({ c, rule }) {
   );
 }
 
-// The same average by form: a bar split into consumption, leisure and
-// bequests (one part at a time on the scenario path). The values are in the
-// tooltips: the parts need not add up to the total.
-// The parts of the average (cohorts2028.json parts_alive): each printed
-// once here, beside its key. A line says when bequest value is most of it
-// (economics review, round 1: of +0.79%, bequests 0.52) and, when the later
-// fiscal cost can be charged (measure T), that the split depends on it.
-export function byFormWords(p, hasT) {
-  return [
-    p.bequests > p.consumption + p.leisure ? { key: 'most', icon: 'bequests', text: 'Most of the average is the value of leaving bequests' } : null,
-    p.consumption < Math.min(p.leisure, p.bequests) ? { key: 'least', icon: 'consumption', text: 'Consumption is the smallest part' } : null,
-    hasT ? { key: 'rule', icon: 'benefits', text: 'Who bears the later fiscal cost changes who gains' } : null,
-  ].filter(Boolean);
+// The welfare breakdown card (item-19-fable.md): the average change for
+// adults alive in the shock year (alive_avg) and its three parts
+// (parts_alive), each the same measure with one utility term moved to the
+// scenario path. The parts are not additive, so a caveat says so.
+const PARTS = [
+  { k: 'consumption', more: 'more spending', less: 'less spending', bare: 'Spending', tip: 'The change if only spending moved, with free time and bequests as they would be with no extra AI.' },
+  { k: 'leisure', more: 'more free time', less: 'less free time', bare: 'Free time', tip: 'The change if only hours worked moved, with spending and bequests as they would be with no extra AI.' },
+  { k: 'bequests', more: 'bigger bequests', less: 'smaller bequests', bare: 'Bequests', tip: 'The change if only bequests moved, with spending and free time as they would be with no extra AI.' },
+];
+const TOTAL_TIP = 'The average change in lifetime welfare, counting spending, free time and bequests together.';
+const zero2 = (x) => Math.abs(x) < 0.005;
+const partWords = (q, v) => (zero2(v) ? q.bare.toLowerCase() : v > 0 ? q.more : q.less);
+const andList = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+
+// The card's lead, from the signs (item 19's four forms). Lists run largest
+// first; a part that rounds to 0.00 is left out; the verb agrees with the
+// first list.
+export function byFormLead(p, total) {
+  const parts = PARTS.map((q) => ({ q, v: p[q.k] })).filter((x) => !zero2(x.v));
+  const pos = parts.filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
+  const neg = parts.filter((x) => x.v < 0).sort((a, b) => a.v - b.v);
+  const list = (xs) => andList(xs.map((x) => partWords(x.q, x.v)));
+  const verb = (xs) => (xs.length > 1 ? 'outweigh' : 'outweighs');
+  if (total > 0 && !neg.length) {
+    if (p.bequests > p.consumption + p.leisure) return 'Most of the average gain is the value of leaving bigger bequests.';
+    if (pos.length) return `The largest part of the average gain is ${list(pos.slice(0, 1))}.`;
+  }
+  if (total > 0 && pos.length) return `${capFirst(list(pos))} ${verb(pos)} ${list(neg)}.`;
+  if (total <= 0 && neg.length && pos.length) return `${capFirst(list(neg))} ${verb(neg)} ${list(pos)}: on average adults lose.`;
+  // guards, not reached on the 2028 data
+  return total > 0 ? 'On average adults gain.' : 'On average adults lose.';
 }
 
-function ByForm({ p, both, hasT = false }) {
-  const parts = [
-    { k: 'consumption', label: 'Consumption', v: p.consumption },
-    { k: 'leisure', label: 'Leisure', v: p.leisure },
-    { k: 'bequests', label: 'Bequests', v: p.bequests },
+// One bar per row on a shared axis from min(0, values) to max(0, values),
+// padded 5%; one zero line; the value at the bar's end (left end when
+// negative). The total restates the Average change tile: data-axis.
+function PartBars({ c }) {
+  const p = c.parts_alive;
+  const rows = [
+    { k: 'total', label: 'Total', v: c.alive_avg, tip: TOTAL_TIP, total: true },
+    ...PARTS.map((q) => ({ k: q.k, label: capFirst(partWords(q, p[q.k])), v: p[q.k], tip: q.tip })),
   ];
-  const sum = parts.reduce((a, x) => a + Math.abs(x.v), 0) || 1;
+  const vs = rows.map((r) => r.v);
+  const lo0 = Math.min(0, ...vs);
+  const hi0 = Math.max(0, ...vs);
+  const pad = (hi0 - lo0 || 1) * 0.05;
+  const lo = lo0 < 0 ? lo0 - pad : 0;
+  const hi = hi0 > 0 ? hi0 + pad : 0;
+  const at = (x) => `${(((x - lo) / (hi - lo || 1)) * 100).toFixed(2)}%`;
   return (
-    <div className="ex-byform" role="group" aria-label="The same average by form">
-      <p className="ex-byform-title">
-        <Icon name={iconFor('range')} size={14} /> The same average by form{both ? ', some foreign capital' : ''}
+    <div className="ex-parts-wrap">
+      <p className="ex-parts-unit" data-axis-title="y">
+        % of remaining-lifetime consumption and bequests
       </p>
-      <div className="ex-byform-bar">
-        {parts.map((x) => (
-          <TipTarget key={x.k} className={`ex-byform-seg is-${x.k}${x.v < 0 ? ' is-neg' : ''}`} style={{ width: `${((Math.abs(x.v) / sum) * 100).toFixed(1)}%` }} label={`${x.label}: ${pct(x.v)}`} tip={<><b>{x.label}</b><span className="tip-value">{pct(x.v)}</span></>} />
-        ))}
-      </div>
-      <ul className="ex-byform-key">
-        {parts.map((x) => (
-          <li key={x.k}>
-            <span className={`ex-byform-swatch is-${x.k}`} data-icon="" aria-hidden="true" />
-            {x.label} <b className="num">{pct(x.v)}</b>
+      <ul className={`ex-parts${lo0 < 0 ? ' has-neg' : ''}${hi0 > 0 ? ' has-pos' : ''}`} aria-label="Average change and its three parts" style={{ '--parts-fill': GROUP_RAMP[3] }}>
+        {rows.map((r) => (
+          <li key={r.k} className={r.total ? 'is-total' : undefined}>
+            <span className="ex-parts-label">{r.label}</span>
+            <span className="ex-parts-track">
+              <span className="ex-parts-plot">
+                <span className="ex-parts-zero" style={{ left: at(0) }} aria-hidden="true" />
+                <span className="ex-parts-tip" title={r.tip} style={{ left: at(Math.min(0, r.v)), width: `${((Math.abs(r.v) / (hi - lo || 1)) * 100).toFixed(2)}%` }}>
+                  <TipTarget className="ex-parts-bar" label={`${r.label}: ${pct(r.v)}`} tip={<><b>{r.label}</b><span className="tip-value">{pct(r.v)}</span><span className="tip-sub">{r.tip}</span></>} />
+                </span>
+                <span className={`ex-parts-val${r.v < 0 ? ' is-neg' : ''}`} style={r.v < 0 ? { right: `calc(100% - ${at(r.v)})` } : { left: at(r.v) }} data-axis={r.total ? '' : undefined}>
+                  {pct(r.v)}
+                </span>
+              </span>
+            </span>
           </li>
         ))}
-        <li>
-          Parts need not add up to the total
-        </li>
       </ul>
-      <Items className="ex-byform-notes" items={byFormWords(p, hasT)} />
+      <p className="finding-note">Each part is measured on its own, so the three do not add up exactly to the total.</p>
     </div>
+  );
+}
+
+function ByForm({ c, both }) {
+  return (
+    <Finding
+      id="welfare-breakdown"
+      layout="side"
+      icon="bequests"
+      lead={byFormLead(c.parts_alive, c.alive_avg)}
+      lines={[`The average change for adults alive in ${D.shock_year}, split by what changes: spending, free time and bequests.`, both ? 'Shown with some foreign capital.' : null]}
+    >
+      <PartBars c={c} />
+    </Finding>
   );
 }
 
@@ -657,7 +700,6 @@ export default function WhoGainsTab() {
   const yDomain = both && ys.length ? [Math.min(...ys), Math.max(...ys)] : null;
   const armLabel = ARMS.find((a) => a.id === arm).label;
   const clWords = both ? 'some foreign capital and no foreign capital' : CL_WORDS[cl];
-  const p = c.parts_alive;
 
   return (
     <>
@@ -698,7 +740,7 @@ export default function WhoGainsTab() {
       ) : (
         <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} onMeasure={setMeasure} />
       )}
-      <ByForm p={p} both={both} hasT={measuresOf(c, rule, cl, arm).some((m) => m.id === 'T')} />
+      <ByForm c={c} both={both} />
       <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
       <div className="cards-stack stack-gap">
         <Card
