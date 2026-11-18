@@ -493,7 +493,8 @@ export function AiUseChart({ notes, lines = 2 }) {
   // character at 12px), above the highest point of the upper line and
   // below the lowest point of the lower one
   const under = (ys, chars) => idx.filter((i) => X(Math.min(last, i + 1)) >= X(last) - chars * 7.6 - 16 || i === last - 1).map((i) => Y(ys[i]));
-  const tenY = Math.max(T + 10, Math.min(...under(b.y, 27)) - 9);
+  // phones: 8px higher too (sign-off minor 8: the line touched its last characters)
+  const tenY = Math.max(T + (narrow ? 2 : 10), Math.min(...under(b.y, 27)) - (narrow ? 17 : 9));
   // "All businesses, 29.7%" (polish round F: the shorter label sat on its
   // own line near Sept 2026): under the lowest point of its line over the
   // whole label's width, right-aligned at the end dot like the other
@@ -551,8 +552,8 @@ export function AiUseChart({ notes, lines = 2 }) {
               <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
             </g>
           ))}
-          <text x={X(last) - 4} y={tenY} textAnchor="end" className={`p1-end-label is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten">
-            10 or more employees, <tspan data-path="facts.business_ai_use_10plus.value">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
+          <text x={X(last) - (narrow ? 14 : 4)} y={tenY} textAnchor="end" className={`p1-end-label is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten">
+            10 or more employees, <tspan data-axis="">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
           </text>
           <text x={X(last) - 4} y={allY} textAnchor="end" className={`p1-end-label is-all${seen ? ' is-on' : ''}`} data-mark="ai-all">
             All businesses, <tspan data-axis="">{pct1(FACTS.business_ai_use.value)}</tspan>

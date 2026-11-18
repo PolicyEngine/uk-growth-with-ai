@@ -281,7 +281,7 @@ describe('story part 1, real data', () => {
     const rise = (k) => S[k].y.at(-1) - S[k].y[0];
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
     expect(text).toContain('AI use among all businesses has risen every September since 2023.');
-    expect(text).toContain('It has risen fastest in businesses with 10 or more employees.');
+    expect(text).toContain(`It has risen fastest in businesses with 10 or more employees, to ${pct1(real.facts.business_ai_use_10plus.value)}.`);
     // quarters: every quarter of the latest year grew
     const q = S.gdp_quarterly;
     const yr = q.x.at(-1).slice(0, 4);
@@ -461,7 +461,8 @@ describe('story part 1, first states', () => {
   it('draws both AI lines, the larger businesses’ end label carrying their latest value', () => {
     const ai = render(<AiUseChart />).container;
     expect(ai.querySelectorAll('.p1-ai-line')).toHaveLength(2);
-    const lab = ai.querySelector('.p1-end-label.is-ten [data-path="facts.business_ai_use_10plus.value"]');
+    // the value's home is the step text now (its line has its own step): the label restates it
+    const lab = ai.querySelector('.p1-end-label.is-ten [data-axis]');
     expect(lab.textContent).toBe(pct1(real.facts.business_ai_use_10plus.value));
   });
 

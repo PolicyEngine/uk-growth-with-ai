@@ -245,7 +245,11 @@ function aiSteps() {
       lines: 2,
       body: (
         <Say>
-          It has risen fastest in businesses with <Key id="ai-ten">10 or more employees</Key>.
+          It has risen fastest in businesses with <Key id="ai-ten">10 or more employees</Key>, to{' '}
+          <N path="facts.business_ai_use_10plus.value" mark="ai-ten">
+            {pct1(F.business_ai_use_10plus.value)}
+          </N>
+          .
         </Say>
       ),
     },
