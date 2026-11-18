@@ -87,7 +87,9 @@ function Fan({ lines, sid, wide }) {
   const fs = Math.round(sz.tick * 10) / 10;
   const lfs = Math.round(sz.label * 10) / 10;
   const L = wide ? 46 : 50;
-  const R = wide ? W - 176 : W - 16;
+  // the end-label gutter holds the longest name ("Korinek, substantial (US)")
+  // at the label size
+  const R = wide ? W - Math.max(176, Math.round(lfs * 12.6)) : W - 16;
   // the guide labels' row clears the axis title above it at any type size
   const T = Math.max(wide ? 46 : 52, Math.round(fs * 2.3 + 14));
   const B = H - (wide ? 36 : 40);
@@ -153,7 +155,7 @@ function Fan({ lines, sid, wide }) {
       ))}
       <g data-axis="">
         {TICK_YEARS.map((yr) => (
-          <text key={yr} className="hf-tick" x={XY(yr)} y={B + fs + 8} textAnchor="middle">
+          <text key={yr} className="hf-tick" x={XY(yr)} y={B + fs + 8} textAnchor={!wide && yr === YEARS[last] ? 'end' : 'middle'}>
             {yr}
           </text>
         ))}

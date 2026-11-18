@@ -211,6 +211,8 @@ export const rescales = (sid, cl, pin = null) => {
   return a.lo !== b.lo || a.hi !== b.hi;
 };
 const SCEN_LINES = { korinek: ['Korinek,', 'substantial (US)'] };
+// phones: the gutter holds about 85px at the 14px label size
+const SCEN_LINES_PHONE = { korinek: ['Korinek,', 'substantial', '(US)'] };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
 const LH = 17;
@@ -409,7 +411,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
     ...lines.map((l) => ({
       key: l.id,
       v: l.ys[l.ys.length - 1],
-      lines: SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]],
+      lines: (lh0 === LH_PHONE ? SCEN_LINES_PHONE[l.id] : null) ?? SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]],
       color: l.id === sid ? ARM_TEXT_COLOR.tfp : 'var(--pe-gray-600)',
       on: s >= from(l.id),
       pinned: l.id === pinned,

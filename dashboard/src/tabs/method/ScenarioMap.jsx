@@ -78,7 +78,7 @@ export default function ScenarioMap({ caption = true }) {
             className="mx-axis-title"
             data-axis-title="y"
             x={-(M.t + (H - M.t - M.b) / 2)}
-            y={16}
+            y={Math.max(16, Math.round(sz.tick * 0.95))}
             transform="rotate(-90)"
             textAnchor="middle"
           >

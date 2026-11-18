@@ -202,7 +202,10 @@ export default function Sankey({
     0,
     ...g0.nodes.filter((n) => n.inline && n.sub && !g0.links.some((l) => l.source === n.id)).map((n) => Math.ceil((n.label.length + 1 + String(n.sub).length) * 8.2) + 10),
   );
-  const R = Math.max(narrow ? narrowRightRoom : rightRoom, inlineRoom);
+  // end-column labels at the chart type scale's label size (15px, 14px on
+  // phones: about 8.2 and 7.6px a character) keep their room in the box
+  const endRoom = Math.max(0, ...g0.nodes.filter((n) => !n.inline && !g0.links.some((l) => l.source === n.id)).map((n) => Math.ceil(n.label.length * (narrow ? 7.6 : 8.2)) + 10));
+  const R = Math.max(narrow ? narrowRightRoom : rightRoom, inlineRoom, endRoom);
   const top = 8;
   const long = W - L - R;
   // room below for middle-column labels, when the graph has a middle column

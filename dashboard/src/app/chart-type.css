@@ -33,7 +33,7 @@
 /* Inside a chart or figure card the small steps of the page scales (the
    Story's 12px meta, Explore and Method's 12-13px caption and micro, the
    chart Frame's 12px tick) resolve to the chart floor. */
-:is(figure, .ch-frame, .chart-card, .scrolly-graphic-inner, .story-frame, [data-chart], .card:has(svg, [data-chart], .chart-plot)) {
+:is(figure, .ch-frame, .chart-card, .scrolly-graphic-inner, .story-frame, [data-chart], .card:has(svg[role="img"], svg.story-svg, [data-chart], .chart-plot)) {
   --t-meta: var(--chart-fs-tick);
   --fs-caption: var(--chart-fs-tick);
   --fs-micro: var(--chart-fs-tick);
@@ -200,5 +200,44 @@ p.mx-axis-title,
      is in the notes) */
   .p3-ch:not(.is-all) > .story-figure-unit {
     display: none;
+  }
+}
+/* the hero's stat lines at 14px: wrap rather than run past the card */
+.hf-stat-line {
+  white-space: normal;
+}
+
+/* ---- Phone type against sticky figures (phone-type-vs-sticky-fable.md) ---- */
+/* p2-who: the case as a chip beside the badge, shown on phones only */
+.p2-chip-top .p2-fig-chip {
+  display: none;
+}
+@media (max-width: 600px) {
+  .p2-chip-top .p2-fig-chip {
+    display: inline-block;
+  }
+  /* p3-changes: one margins group per step (steps 1 and 2 share the panel) */
+  .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] > .p3-group-head:not(.p3-group-first),
+  .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] > .p3-db-pair {
+    display: none;
+  }
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-group-unit,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-db {
+    display: none;
+  }
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-group-head:not(.p3-group-first) {
+    margin-top: 0;
+  }
+  /* the rules panel: the axis titles carry the units */
+  .p3-ch:not(.is-all) [data-panel='rules'] .p3-group-unit {
+    display: none;
+  }
+  .p3-ch:not(.is-all) .p3-plane-heads {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .p3-ch:not(.is-all) .p3-plane-ytitle {
+    flex: none;
+    white-space: nowrap;
   }
 }
