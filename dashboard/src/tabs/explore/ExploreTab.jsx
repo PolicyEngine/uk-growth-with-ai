@@ -10,7 +10,7 @@ import { sentenceItems } from '@/tabs/explore/direction.jsx';
 import { PagePill } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import { pickersFor } from '@/lib/labels.js';
-import { HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import { economyAnswer } from '@/tabs/explore/answers.js';
 import Finding from '@/components/ui/Finding.jsx';
 import { financesFinding } from '@/tabs/ai/financesInfo.js';
@@ -27,7 +27,7 @@ const answerOf = (a, label) => <AnswerStrip a={typeof a === 'string' ? { drivers
 // matrices), so their strip is led by that.
 const SCOPE = 'OG-UK · gaps against the OBR’s central forecast path';
 const MAIN = `Automation + productivity, ${HEADLINE_YEAR}`;
-const DATE_NOTE = 'Extra AI, beyond the OBR’s central forecast, starts in 2028: an assumed date, not a forecast.';
+const DATE_NOTE = `Extra AI, beyond the OBR’s central forecast, starts in ${SURPRISE_YEAR}: an assumed date, not a forecast.`;
 // Public finances' answer (item 38): one Finding box, sign-aware
 // (financesInfo.js), then the tax-gap card's link as one plain line. Not
 // solved: the reason, as a sentence.
@@ -74,7 +74,7 @@ export default function ExploreTab() {
   if (sub === 'economy')
     body = (
       <>
-        <PageIntro row={<Row sub="economy" />} notes={[DATE_NOTE]} question="How do pay, national income and GDP move if, from 2028, AI does more than the OBR expects?" answer={answerOf(economyAnswer(st.s, st.closure, st.rule), MAIN)} />
+        <PageIntro row={<Row sub="economy" />} notes={[DATE_NOTE]} question={`How do pay, national income and GDP move if, from ${SURPRISE_YEAR}, AI does more than the OBR expects?`} answer={answerOf(economyAnswer(st.s, st.closure, st.rule), MAIN)} />
         <ResultsTab sub="income" />
         <ResultsTab sub="economy" />
         <AllScenarios />

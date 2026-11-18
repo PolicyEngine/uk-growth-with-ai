@@ -10,6 +10,7 @@ import NextPart from '@/components/story/NextPart.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { Hy } from '@/components/story/Hy.jsx';
 import { URLS } from '@/tabs/ai/links.js';
+import { SURPRISE_YEAR, HEADLINE_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
 import { MODEL_BASE_VINTAGE, OBR_MARCH_2026, OBR_VINTAGE } from './part1/data.js';
 
 // The story: a hero, then three parts, each a run of scrolly blocks.
@@ -42,13 +43,13 @@ export const PARTS = [
     kicker: 'Part 2',
     title: 'What a model of the whole economy projects',
     model: 'oguk',
-    question: 'What happens to output, incomes and the public finances if, from 2028, AI does more than the OBR already expects?',
+    question: `What happens to output, incomes and the public finances if, from ${SURPRISE_YEAR}, AI does more than the OBR already expects?`,
     line: 'No unemployment: the shock shows up in pay rates, not in job losses.',
     about: (
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
         <p>The AI shock: AI does more workers’ tasks than the OBR expects, so capital’s share of income rises and the same inputs produce more.</p>
-        <p>It starts in 2028, unannounced, and builds in four yearly steps to 2031.</p>
+        <p>It starts in {SURPRISE_YEAR}, unannounced, and builds in {RAMP_WORD} yearly steps to {HEADLINE_YEAR}.</p>
       <Items
         items={[
           {

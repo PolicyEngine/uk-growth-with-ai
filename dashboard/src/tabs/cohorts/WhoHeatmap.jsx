@@ -148,7 +148,7 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       download={{
         title: `Welfare change by age and earnings group, ${m.label}`,
         context: () => `UK central · ${ARM_NAME[arm] ?? arm} · ${ruleLabel(rule)} · ${cl === 'zk0' ? 'no foreign capital' : 'some foreign capital'}`,
-        table: () => ({ columns: ['Age in 2028', ...cols.map((c) => `${c} (%)`)], rows: rows.map((r) => [r.age, ...r.cells]) }),
+        table: () => ({ columns: [`Age in ${D.shock_year}`, ...cols.map((c) => `${c} (%)`)], rows: rows.map((r) => [r.age, ...r.cells]) }),
       }}
     >
       {any ? null : (

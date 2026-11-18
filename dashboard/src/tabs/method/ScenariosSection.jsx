@@ -7,7 +7,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed, PENDING } from '@/tabs/ai/surprise.js';
+import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed, PENDING, PRE_SHOCK_YEARS, yearList, RAMP_WORD } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
@@ -284,9 +284,9 @@ export default function ScenariosSection({ uses = null }) {
         >
           <Items
             items={[
-              { icon: 'start', text: <>2026 and {FIRST_YEAR} are identical in every scenario.</> },
+              { icon: 'start', text: PRE_SHOCK_YEARS.length > 1 ? <>{yearList(PRE_SHOCK_YEARS)} are identical in every scenario.</> : <>{yearList(PRE_SHOCK_YEARS)} is identical in every scenario.</> },
               { icon: 'rule', text: <>The {SURPRISE_YEAR} start: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
-              { icon: 'rule', text: <>So is the linear four-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
+              { icon: 'rule', text: <>So is the linear {RAMP_WORD}-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
           />

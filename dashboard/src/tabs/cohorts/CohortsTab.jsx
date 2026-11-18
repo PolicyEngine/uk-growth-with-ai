@@ -248,7 +248,7 @@ export function measuresOf(c, rule, cl, arm) {
           tag: full ? 'solved to the horizon' : 'first order',
           def: full
             ? 'Transfers, not government consumption, hold debt/GDP on the forecast path to the horizon: a model run'
-            : 'The fiscal cost after 2035 charged to households: a first-order estimate, not a model run',
+            : `The fiscal cost after ${Math.max(...flowYears(c))} charged to households: a first-order estimate, not a model run`,
           losing: t.joint_losing_pct,
           avg: t.joint_avg,
           full: !!full,

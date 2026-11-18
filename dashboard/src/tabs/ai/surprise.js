@@ -18,6 +18,15 @@ export const LATE_YEAR = S.late_year; // 2036
 export const SURPRISE_YEAR = S.surprise_year; // 2028
 export const WINDOW_YEARS = YEARS.filter((y) => y >= S.window[0] && y <= S.window[1]); // 2027-2031
 export const FIRST_YEAR = WINDOW_YEARS[0];
+// The ramp, one step a year from the surprise to the headline year
+// (four steps in both data sets), as a count and a word.
+export const RAMP_STEPS = HEADLINE_YEAR - SURPRISE_YEAR + 1;
+const COUNT_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+export const RAMP_WORD = COUNT_WORD[RAMP_STEPS] ?? String(RAMP_STEPS);
+// The years before the surprise (2026-2027 in the 2028 set, 2026 in the
+// 2027 set), and a list of years in words: "2026 and 2027".
+export const PRE_SHOCK_YEARS = YEARS.filter((y) => y < SURPRISE_YEAR);
+export const yearList = (ys) => (ys.length < 2 ? String(ys[0] ?? '') : `${ys.slice(0, -1).join(', ')} and ${ys.at(-1)}`);
 export const CLOSURES = ['zk0.1', 'zk0']; // central, no-foreign-capital bound
 export const CENTRAL = 'zk0.1';
 export const BOUND = 'zk0';

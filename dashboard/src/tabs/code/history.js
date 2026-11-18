@@ -1,12 +1,15 @@
 // The revision history: model design decisions, each recorded on the
 // tracker (issue or PR number last). Rendered once, in Data and code's
 // changelog section (it was on OG-UK method until November 2026).
-import { ZETA, CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR } from '@/tabs/ai/surprise.js';
+// A dated entry records what was decided that day, so its years are typed
+// (the 12 Nov entry is the 2028 set's design), never read from the active
+// data file.
+import { ZETA, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 
 export const HISTORY = [
   ['11 Nov 2026', 'revision', 'Corrective reruns R1–R4: OBR debt path, UK demographics, a stated closure, a GDP-neutral share-only arm.', 27],
   ['12 Nov 2026', 'closure', `Some foreign capital (ζK = ${ZETA[CENTRAL]}, the share of excess capital demand foreigners supply), GNI first; ζK = ${ZETA[BOUND]} shown beside it as a bound.`, 16],
-  ['12 Nov 2026', 'shock', `AI becomes an unanticipated ${SURPRISE_YEAR} shock from one ${FIRST_YEAR} start. Headline year ${HEADLINE_YEAR}.`, 27],
+  ['12 Nov 2026', 'shock', 'AI becomes an unanticipated 2028 shock from one 2027 start. Headline year 2031.', 27],
   ['12 Nov 2026', 'scenario', 'Scenarios calibrated to UK sources; Korinek et al.’s US case kept as an upper case.', 27],
   ['12 Nov 2026', 'tax', 'OG-UK already includes NICs, so nothing is added. The tax gap becomes a limitation.', 27],
   ['12 Nov 2026', 'households', 'Debt-neutral variant for cohort welfare; NNI reported beside GNI.', 27],

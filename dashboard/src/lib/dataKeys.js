@@ -17,6 +17,7 @@
 import S from '@/lib/activeData.js';
 import { DATA_SET, DATA_FILE } from '@/lib/dataFlag.js';
 import NICS2028 from '@/tabs/explore/nics2028.json';
+import CO2028 from '@/data/cohorts2028.json';
 
 const keyOf = (obj, prefix) => Object.keys(obj ?? {}).find((k) => k.startsWith(prefix)) ?? null;
 
@@ -31,6 +32,9 @@ export const foreignShareOf = (rec, D = S) => {
 };
 
 // ---- cohorts20xx.json --------------------------------------------------
+// One cohort file for both sets until cohorts2027.json lands: its years
+// are its own (COHORT_YEAR is 2028 under either flag), never SURPRISE_YEAR.
+export const COHORT_YEAR = CO2028.shock_year;
 
 // The earnings-group profile of one closure: { labour, capital, transfers,
 // wealth_share, earnings_share, bequests }, each by group.
