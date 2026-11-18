@@ -131,7 +131,9 @@ for (const [name, block, fig] of TARGETS.filter(([n, b]) => !ONLY || ONLY.some((
     return { blockTop, figTop };
   }, sel);
   if (!geo) {
-    report(false, name, `${block} not on the page`);
+    // the output scene is a static figure at 900px and below (no #p2-output)
+    if (W <= 900 && block === '#p2-output') console.log(`skip ${name}: static on phones`);
+    else report(false, name, `${block} not on the page`);
     await page.close();
     continue;
   }
@@ -168,6 +170,53 @@ for (const [name, block, fig] of TARGETS.filter(([n, b]) => !ONLY || ONLY.some((
   const diff = s0 && s1 ? s1.filter((v, i) => v !== s0[i]).length : -1;
   const landed = diff === 0;
   report(entered >= 3 && landed, name, `entry: a mark took ${entered} values; landing: ${landed ? 'final at once' : `${diff} marks still moving after 150ms`}`);
+}
+// paced arrivals (polish round blocker: the lost-pound Sankey stayed blank
+// in about half of ordinary wheel-scroll arrivals, which the fast entry
+// above never hit): the wheel paced by the wall clock at 450, 600 and
+// 1,100px/s from 1.6 screens above each Sankey on the Story until its top is
+// at 25% of the screen; 3s later at least 90% of its ribbons must be drawn
+for (const sel of ['#p3-pound', '#p2-output']) {
+  for (const speed of [450, 600, 1100]) {
+    const page = await fresh();
+    const g = await page.evaluate((sel) => {
+      const sk = document.querySelector(`${sel} svg.sankey`);
+      if (!sk) return null;
+      const r = sk.getBoundingClientRect();
+      return { ty: r.top + scrollY - innerHeight * 0.25, y0: Math.max(0, r.top + scrollY - innerHeight * 1.6) };
+    }, sel);
+    if (!g) {
+      await page.close();
+      continue;
+    }
+    await page.mouse.move(3, H - 3);
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), g.y0);
+    await page.waitForTimeout(1200);
+    let y = g.y0;
+    const t0 = Date.now();
+    let k = 0;
+    while (y < g.ty) {
+      const d = Math.min((speed * 40) / 1000, g.ty - y);
+      await page.mouse.wheel(0, d);
+      y += d;
+      k++;
+      const due = t0 + k * 40 - Date.now();
+      if (due > 0) await page.waitForTimeout(due);
+    }
+    await page.waitForTimeout(3000);
+    const share = await page.evaluate((sel) => {
+      const links = [...document.querySelectorAll(`${sel} svg.sankey .sankey-link`)].filter((l) => Number(l.style.opacity || 1) > 0);
+      const drawn = links.filter((l) => {
+        const m = getComputedStyle(l).clipPath.match(/^inset\((.*)\)$/);
+        const v = m ? m[1].split(/\s+/) : [];
+        const right = v.length >= 2 ? v[1] : v[0] ?? '0';
+        return !(right.endsWith('%') && parseFloat(right) > 10);
+      }).length;
+      return links.length ? drawn / links.length : 0;
+    }, sel);
+    await page.close();
+    report(share >= 0.9, `${sel} paced ${speed}px/s`, `${Math.round(share * 100)}% of ribbons drawn 3s after arrival`);
+  }
 }
 await browser.close();
 console.log(misses ? `FAIL: ${misses} figure(s) static on entry or moving on landing` : 'PASS: every figure animates on entry and lands in its final state');
