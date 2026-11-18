@@ -48,11 +48,12 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 const LINK_EVENT = 'lc-year';
 
 const FONT = CHART_FONT;
-// The chart type scale (app/chart-type.css: --chart-fs-tick 14, --chart-fs-label
-// 15; sublabels at the tick size), as literals because the geometry below
-// is measured from them. On a phone (viewport 480px or less) each is 1px
-// smaller, never below 13. Keyed to the viewport, not the chart's width: a
-// wall tile is narrower than 480px on a desktop and keeps the desktop sizes.
+// The chart type scale (app/chart-type.css): text is drawn with its tokens,
+// --chart-fs-tick (ticks, units, sublabels) and --chart-fs-label (end
+// labels); the geometry below is measured with the same numbers, kept here
+// in step with that file (14 / 15, and 13 / 14 at a viewport of 480px or
+// less). Keyed to the viewport, not the chart's width: a wall tile is
+// narrower than 480px on a desktop and keeps the desktop sizes.
 const TYPE_DESKTOP = { tick: 14, label: 15, sub: 14 };
 const TYPE_PHONE = { tick: 13, label: 14, sub: 13 };
 const PHONE_MQ = '(max-width: 480px)';
@@ -231,7 +232,7 @@ export default function LineChart({
   const FS = usePhone() ? TYPE_PHONE : TYPE_DESKTOP;
   const { ROW, LINE, SUB_ROW, PAD_B, X_TITLE, UNIT_ASCENT, UNIT_DESCENT, TOP_LH } = metrics(FS);
   const AX_FONT = `${FS.tick}px ${FONT}`;
-  const axStyle = { fontSize: `${FS.tick}px` };
+  const axStyle = { fontSize: 'var(--chart-fs-tick)' };
   // Crosshair: the year under the pointer, keyboard focus or tap.
   const [hov, setHov] = useState(null);
   // the year another chart of the same group points at
@@ -687,7 +688,7 @@ export default function LineChart({
                 opacity=".5"
               />
             ) : null}
-            <text key={e.lines.map((l) => l.map((w) => w.text).join(' ')).join('|')} className="lc-fade" x={labelX} y={e.ly + FS.label * 0.33} style={{ font: `${FS.label}px ${FONT}` }}>
+            <text key={e.lines.map((l) => l.map((w) => w.text).join(' ')).join('|')} className="lc-fade" x={labelX} y={e.ly + FS.label * 0.33} style={{ font: `var(--chart-fs-label) ${FONT}` }}>
               {/* Words are joined by spaces inside a line; a wrapped line
                   also ends with one, so the text (screen readers, copy,
                   textContent) reads "Automation + productivity", not
@@ -710,7 +711,7 @@ export default function LineChart({
                 key={si}
                 x={labelX}
                 y={e.ly + FS.label * 0.33 + (e.lines.length - 1) * LINE + (si + 1) * SUB_ROW}
-                style={{ font: `${FS.sub}px ${FONT}` }}
+                style={{ font: `var(--chart-fs-tick) ${FONT}` }}
                 fill="var(--pe-color-gray-500)"
               >
                 {t}

@@ -971,7 +971,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: var(--chart-fs-tick, 14px);
+  font-size: var(--chart-fs-tick);
   color: var(--pe-gray-600, #4b5563);
 }
 .ex-wall-key li {
@@ -983,7 +983,7 @@
    row at 1280 and 1024, one on a phone (below) */
 .ex-wall-units {
   margin: 0 0 6px;
-  font-size: var(--chart-fs-sub, 16px);
+  font-size: var(--chart-fs-sub);
   color: var(--pe-gray-700, #374151);
 }
 .ex-wall-legend {
@@ -993,7 +993,7 @@
   margin: 0 0 12px;
   padding: 0;
   list-style: none;
-  font-size: var(--chart-fs-label, 15px);
+  font-size: var(--chart-fs-label);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
@@ -1033,7 +1033,7 @@
   margin-bottom: 4px;
 }
 .card.ex-tile .card-head h3 {
-  font-size: var(--chart-fs-head, 16px);
+  font-size: var(--chart-fs-head);
   font-weight: 600;
   min-width: 0;
 }
@@ -1084,10 +1084,6 @@
 }
 @media (max-width: 560px) {
   .ex-wall { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .ex-wall-units { font-size: 15px; }
-  .ex-wall-legend { font-size: 14px; }
-  .ex-wall-key { font-size: 13px; }
-  .card.ex-tile .card-head h3 { font-size: 15px; }
 }
 
 /* Central closure to closed capital: four slope panels */
