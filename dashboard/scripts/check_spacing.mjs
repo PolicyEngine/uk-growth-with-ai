@@ -59,7 +59,11 @@ for (const [W, H] of sizes) {
             const r = el.getBoundingClientRect();
             if (r.width < 1 || r.height < 1) continue;
             const leaf = !el.children.length || el instanceof SVGElement || [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-            const ink = s.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(s.borderTopWidth) + parseFloat(s.borderBottomWidth) > 0;
+            // the sticky scene header's fill is a backing, not ink: it is
+            // the page's own white, from 12px above its text (story-bands.css,
+            // the opaque header), so the gap is read from its text
+            const backing = el.matches('.scene-head');
+            const ink = (!backing && s.backgroundColor !== 'rgba(0, 0, 0, 0)') || parseFloat(s.borderTopWidth) + parseFloat(s.borderBottomWidth) > 0;
             if (leaf || ink) out.push({ el, r });
           }
           return out;
