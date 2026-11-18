@@ -66,10 +66,12 @@ export const AI_FULL_RERUN = AIM.manifest_full_rerun;
 
 // Software versions, by model. OG-UK's come from site-versions.json (no data
 // file records them); uk-ai-study's from aiStudy2425.json's method block.
-// The two PolicyEngine-UK versions belong to different pipelines.
+// The two PolicyEngine UK versions belong to different pipelines.
 export const MODEL_VERSIONS = [
-  ...V.entries.map((e) => ({ model: 'OG-UK', ...e })),
-  { model: 'Household study', id: 'ai_pe_uk', label: 'PolicyEngine-UK', value: AIM.policyengine_uk, where: 'aiStudy2425.json: the study’s build' },
+  // a package version is named by the package (review round 1, R1-16:
+  // "PolicyEngine UK" in prose, "policyengine-uk" for the package)
+  ...V.entries.map((e) => ({ model: 'OG-UK', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
+  { model: 'Household study', id: 'ai_pe_uk', label: 'policyengine-uk', value: AIM.policyengine_uk, where: 'aiStudy2425.json: the study’s build' },
   { model: 'Household study', id: 'ai_pe', label: 'policyengine', value: AIM.policyengine, where: 'aiStudy2425.json: release bundle' },
 ];
 

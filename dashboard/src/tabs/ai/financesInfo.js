@@ -169,7 +169,9 @@ export function debtWhy(sid, closure, rule) {
       const yh = Object.fromEntries(hy('Y').map((c) => [c.id, c.x]));
       const smaller = below.length && above.every((c) => below.every((b) => yh[c.id] < yh[b.id]));
       const zeroSs = above.some((c) => c.id === 'ss') && Math.abs(yh.ss ?? 1) < 0.005;
-      const why = smaller ? `: their GDP gain is smaller${zeroSs ? ', or zero in the stress test' : ''}` : '';
+      // "gap is lower": in some cells Technology unchanged has no GDP gain
+      // (review round 1, R1-04)
+      const why = smaller ? `: their GDP gap is lower${zeroSs ? ', and zero in the stress test' : ''}` : '';
       const lead = below.length ? `${andList(above.map((c) => inText(c.id))).replace(/^./, (x) => x.toUpperCase())} ${verb(above)} ${allBelow ? 'already ' : ''}above it` : `By ${HEADLINE_YEAR}, debt/GDP is above the path in ${above.length === ARMS.length ? 'all three versions' : andList(above.map((c) => inText(c.id)))}`;
       parts.push(`${lead} (${above.map((c) => pp(c.x)).join(', ')})${why}.`);
     }

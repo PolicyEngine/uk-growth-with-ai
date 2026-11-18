@@ -31,7 +31,7 @@ export function foreignShareLine(res) {
 }
 
 // The zk0.5 sensitivity (surprise2028.json `sensitivity`, common fiscal
-// rule): foreigners supply half of excess capital demand. It has no
+// rule): foreign investors supply half of the extra capital firms want. It has no
 // header option and no other home, so its figures print here only.
 export const SENS = 'zk0.5';
 const VARS = [
@@ -318,7 +318,7 @@ export default function SensitivityTable() {
         <div className="ex-sg-more">
           <Disclosure inCard id="sens-more" title="More info">
             <p className="ex-sg-def">
-              {ext(URLS.ogCoreParams, 'ζK')} = {sens.zeta_K}: foreigners supply half of excess capital demand, not half of added capital.
+              {ext(URLS.ogCoreParams, 'ζK')} = {sens.zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.
             </p>
             {foreignShareLine(res) ? <p className="ex-sg-def">{foreignShareLine(res)}</p> : null}
             <p className="ex-sg-lead">In every scenario&rsquo;s main version, compared with some foreign capital (ζK 0.1):</p>
@@ -339,7 +339,7 @@ export default function SensitivityTable() {
       about={{ caveats: <Items items={investmentItems(res)} /> }}
       sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}
       download={{
-        title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
+        title: `Sensitivity: foreign investors supply half of the extra capital firms want (ζK = ${sens.zeta_K})`,
         context: () => `${HEADLINE_YEAR} · % difference from the OBR’s central forecast path · common fiscal rule`,
         table: () => ({
           columns: ['Scenario', 'Version', ...VARS.map((c) => `${c.label} (%)`)],

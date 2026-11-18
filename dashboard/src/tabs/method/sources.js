@@ -45,7 +45,7 @@ export const SRC = {
   // OG-Core and OG-UK
   ogCoreParams: { label: 'OG-Core parameter documentation', url: 'https://pslmodels.github.io/OG-Core/content/intro/parameters.html' },
   ogukParams: { label: 'OG-UK default parameters', url: OGUK_PARAMS },
-  peUk: { label: 'PolicyEngine-UK', url: URLS.peUk },
+  peUk: { label: 'PolicyEngine UK', url: URLS.peUk },
   doorley: { label: 'Doorley, O’Connor, O’Shea and Tuda (2026), ESRI/DoF', url: 'https://doi.org/10.26504/jr16' },
   ogCore017: { label: 'OG-Core 0.17.0', url: URLS.ogCore017 },
   ogUk: { label: 'OG-UK', url: URLS.ogUk },

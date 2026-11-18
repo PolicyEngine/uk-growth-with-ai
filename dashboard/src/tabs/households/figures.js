@@ -44,6 +44,15 @@ export function storyFigures() {
   ];
 }
 
+// A decile that gains under every ranking by less than this, in %, is
+// said to move "by less than 0.2%" (review round 1, R1-03; item 24).
+export const SMALL_DECILE_PCT = 0.2;
+const smallGain = () => {
+  const R = D.rankings;
+  const gain = [...Array(10).keys()].filter((i) => R.every((r) => r.values[i] > 0));
+  return gain.length > 0 && gain.every((i) => R.every((r) => Math.abs(r.values[i]) < SMALL_DECILE_PCT));
+};
+
 export function householdsFigures() {
   const X = D.displaced;
   const small = (v) => (Math.abs(v) < 0.05 ? '£0.1bn' : fmtBn(v));
@@ -59,6 +68,8 @@ export function householdsFigures() {
     ...['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'].map((k) => fmtShare(X[k].value)),
     ...['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => fmtGbp(X[k].value)),
     ...D.policy.rows.flatMap((r) => [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtPp(r.gini_pp)]),
+    // the rankings' threshold, not a result (rankingsWords)
+    ...(smallGain() ? [`${SMALL_DECILE_PCT}%`] : []),
   ];
 }
 

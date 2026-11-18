@@ -339,8 +339,9 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
                   <span key={k} className="ex-avg-dot" style={{ left: apos(x) }} title={`${m.label}: ${pct(x)}`} aria-hidden="true" />
                 ))}
               </span>
-              {/* M is the tile's figure and T has no other home: each fact once */}
-              <span className="ex-dd">{m.id === 'B' || m.id === 'BT' ? avgOf(m.avg) : m.id === 'M' ? <Icon name={iconFor('link')} size={12} /> : ''}</span>
+              {/* M is the tile's figure (a link to it); every other row prints
+                  its own: T's had no home at all (review round 1, R1-10) */}
+              <span className="ex-dd">{m.id === 'M' ? <Icon name={iconFor('link')} size={12} /> : avgOf(m.avg)}</span>
             </li>
           ))}
         </ul>
@@ -876,7 +877,7 @@ export default function WhoGainsTab() {
         <Lead c="measure">
           Gain or loss, as a %{' '}
           <abbr title="Consumption-equivalent: the constant % change in consumption and bequests, every remaining year, that leaves a household as well off">
-            of lifetime consumption
+            of remaining-lifetime consumption and bequests
           </abbr>
         </Lead>
       </SectionHeading>
@@ -983,7 +984,7 @@ export default function WhoGainsTab() {
                     // values are in the tooltip and the heatmap)
                     noValue
                     dots={false}
-                    yUnit="Welfare change, % of lifetime consumption"
+                    yUnit="Welfare change, % of remaining-lifetime consumption and bequests"
                     xUnit="Birth year"
                     unit="%"
                     zeroNote="No change = 0"

@@ -60,7 +60,7 @@ export const NODES = [
     line: 'Six taxes, pensions, transfers and its own consumption; it borrows.',
     detail: [
       ['tax', 'Taxes on income, payroll, consumption, corporate profits, wealth and bequests.'],
-      ['data', 'The income tax is a smooth function fitted to PolicyEngine-UK.'],
+      ['data', 'The income tax is a smooth function fitted to PolicyEngine UK.'],
       ['rule', 'How spending responds is the fiscal rule: see “Fiscal rules”, below.'],
     ],
   },

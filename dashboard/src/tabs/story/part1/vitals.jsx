@@ -203,7 +203,8 @@ function Tile({ v, drawn, instant }) {
         </span>
         <span className="p1-vital-sub-hot">
           {src.released ? `Released ${fmtDate(src.released)}` : null}
-          {src.next_release ? ` · next ${fmtDate(src.next_release)}` : null}
+          {/* no "· next …" date (review round 1, R1-07): a prerendered page
+              goes stale against it; the source ledger keeps the dates */}
         </span>
       </p>
     </li>

@@ -198,7 +198,7 @@ describe('Part3', () => {
     btns.forEach((b) => {
       fireEvent.click(b);
       const pop = document.getElementById(b.getAttribute('aria-controls'));
-      expect(pop.textContent).toContain(`PolicyEngine-UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
+      expect(pop.textContent).toContain(`PolicyEngine UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
       const links = [...pop.querySelectorAll('.src-pop-list a')];
       expect(links[0].textContent).toBe('Household study results');
       expect(links[0].getAttribute('href')).toBe(`https://github.com/PolicyEngine/uk-ai-study/tree/${commit}/results`);

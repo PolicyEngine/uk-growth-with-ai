@@ -36,8 +36,8 @@ describe('Data and code', () => {
     expect(text).toContain(AI.method.data_build);
     expect(text).toContain(AI.method.manifest_commit.slice(0, 7));
   });
-  it('each PolicyEngine-UK version names its model', () => {
-    const pe = MODEL_VERSIONS.filter((e) => e.label === 'PolicyEngine-UK');
+  it('each PolicyEngine UK version names its model', () => {
+    const pe = MODEL_VERSIONS.filter((e) => e.label === 'policyengine-uk');
     expect(pe.map((e) => [e.model, e.value])).toEqual([
       ['OG-UK', '2.90.2'],
       ['Household study', AI.method.policyengine_uk],

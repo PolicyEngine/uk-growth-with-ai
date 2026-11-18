@@ -13,7 +13,7 @@ import Closing from './part3/Closing.jsx';
 import { MODEL_YEAR, PAPER_URL } from './part3/shared.jsx';
 import { Ref } from './part3/sources.jsx';
 
-// Part 3: a model of households, the uk-ai-study PolicyEngine-UK
+// Part 3: a model of households, the uk-ai-study PolicyEngine UK
 // microsimulation of AI job displacement for one year, from
 // data/aiStudy2425.json; docs/story/part3-notes.md defines every value.
 // Four Scrolly scenes in the paper's order (results.tex): the main case,
