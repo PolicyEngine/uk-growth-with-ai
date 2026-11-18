@@ -91,7 +91,7 @@ export const LENSES = [
       { text: 'Inequality', to: 'p3-central-step-2', scene: 'the main case' },
     ],
     outside: [
-      { text: 'Change over time', tip: 'Recovery, re-employment, prices' },
+      { text: 'Change over time', tip: 'The years after the first: recovery and prices' },
       { text: 'Whether jobs are lost', tip: 'Job loss is assumed' },
     ],
   },
