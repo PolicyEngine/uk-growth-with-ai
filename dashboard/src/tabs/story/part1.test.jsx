@@ -130,7 +130,7 @@ describe('story part 1, real data', () => {
     // the comparison path is OG-UK's own, on the March 2026 forecast
     expect(el.textContent).toContain('The OBR’s latest forecast, shown for context, has growth of');
     expect(el.textContent.split('March 2026').length - 1).toBe(1);
-    expect(el.textContent).toContain('Parts 2 to 4 compare each scenario with OG-UK’s own forecast path, built on the OBR’s March 2026 forecast, not with this one.');
+    expect(el.textContent).toContain('Part 2 measures each scenario against OG-UK’s own forecast path, built on the OBR’s March 2026 forecast, not against this one.');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
   });
@@ -601,6 +601,35 @@ describe('story part 1, altered data', () => {
     expect(el.querySelector('#p1-vital-gdp .p1-vital-value').textContent).toMatch(/^−/);
     expect(el.querySelector('#p1-vital-pay .p1-vital-value').textContent).not.toMatch(/^[+−]/);
     expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).not.toMatch(/^(up|down|unchanged) /);
+    vi.doUnmock('@/data/ukContext.json');
+  });
+
+  it('words the work scene’s step sentences from the series it is given', async () => {
+    const fx = JSON.parse(JSON.stringify(real));
+    const e = fx.series.employment_rate;
+    const last = e.x.at(-1);
+    const ago = e.y[e.x.indexOf(`${Number(last.slice(0, 4)) - 1} ${last.slice(5)}`)];
+    e.y[e.y.length - 1] = ago + 1.2;
+    const o = fx.series.productivity_oph;
+    const y23 = o.y.filter((_, i) => o.x[i].startsWith('2023'));
+    o.y[o.y.length - 1] = y23.reduce((a, v) => a + v, 0) / y23.length + 0.2;
+    const p = fx.series.pay_growth;
+    p.y[p.y.length - 1] = Math.max(...p.y) + 1;
+    vi.resetModules();
+    vi.doMock('@/data/ukContext.json', () => ({ default: fx }));
+    const { default: Part1Fix } = await import('@/tabs/story/Part1.jsx');
+    const text = show(Part1Fix).textContent;
+    expect(text).toContain('Employment is higher than a year ago.');
+    expect(text).toContain('Output per hour is back at its 2023 level.');
+    expect(text).toContain(`Regular pay growth is at its highest since ${p.x[0].slice(0, 4)}.`);
+    cleanup();
+    e.y[e.y.length - 1] = ago - 1.2;
+    o.y[o.y.length - 1] = y23[0] - 3;
+    vi.resetModules();
+    const { default: Part1Low } = await import('@/tabs/story/Part1.jsx');
+    const low = show(Part1Low).textContent;
+    expect(low).toContain('Employment is lower than a year ago.');
+    expect(low).toContain('Output per hour is lower than in 2023.');
     vi.doUnmock('@/data/ukContext.json');
   });
 });

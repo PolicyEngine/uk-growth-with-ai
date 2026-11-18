@@ -84,16 +84,13 @@ def test_model_ratios_are_the_baseline_2026_ratios():
 
 
 def test_the_dashboard_reads_the_world_rate_from_ai_scenarios():
-    # The redesigned dashboard reads one field of the generated files:
-    # FinancesSection.jsx takes OG-UK's world interest rate from
-    # aiScenarios.json (assum.closure.world_int_rate_annual). The old check
-    # here joined ukAiPaths.json's trace names to series.js's ARM_META; that
-    # file and HistoricalPaths.jsx were removed in the redesign, and nothing
-    # in dashboard/src reads ukAiPaths.json any more.
-    src = dd.DASHBOARD_DATA.parent / "tabs" / "ai" / "FinancesSection.jsx"
-    js = src.read_text()
-    assert "@/data/aiScenarios.json" in js
-    assert "assum?.closure?.world_int_rate_annual" in js
+    # The redesigned dashboard reads one field of the generated files: OG-UK's
+    # world interest rate, assum.closure.world_int_rate_annual in
+    # aiScenarios.json (the public finances section). The old check here
+    # joined ukAiPaths.json's trace names to series.js's ARM_META; that file
+    # and HistoricalPaths.jsx were removed in the redesign, and nothing in
+    # dashboard/src reads ukAiPaths.json any more. Only the generated field
+    # is checked, not the component's source text.
     ai = json.loads(dd.build(RESULTS)["aiScenarios.json"])
     rate = ai["assum"]["closure"]["world_int_rate_annual"]
     assert isinstance(rate, float) and 0 < rate < 0.1

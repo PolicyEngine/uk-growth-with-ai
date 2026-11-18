@@ -53,7 +53,7 @@ Calendar-year series stop at 2025. The current year appears only as quarters ("2
   - The annual chart keeps the full scale, so 2020 (−10.0%) and 2021 (+8.5%) show at their true size. They are labelled "Pandemic", and the quarterly chart starts at 2022 Q1.
 - **LZVB:** output per hour worked, whole economy, seasonally adjusted, drawn quarterly from 2008 Q1. It carries the LFS caveat through hours worked.
   - The 17 November 2026 release (PRDY v45) titles the index 2024 = 100 (it was 2023 = 100). The builder reads the base year from the ONS title into `base_year`, and the page reads it from there.
-  - The same release revised the quarters from 2023 Q4 onward: 2026 Q1 is 103.4 (100.1 in the 18 August release). The quarters to 2023 Q3 are unchanged.
+  - The same release revised the whole series, not only its title: 70 of the 73 quarters drawn (2008 Q1 to 2026 Q1) changed, by up to 8.1 index points (2008 Q2). For example 2008 Q1 is 88.2 (93.3 in the 18 August release) and 2026 Q1 is 103.4 (100.1). Only 2019 Q4 (97.5), 2023 Q1 (99.7) and 2024 Q3 (98.3) are unchanged.
   - The ONS now publishes the years before 1997 blank; the builder skips blank periods and asserts that no quarter from 2008 Q1 is missing.
 - **LF24, MGSX:**
   - LFS rates. ONS labels each rolling three-month estimate by its middle month, so "2026 AUG" is July to September 2026.

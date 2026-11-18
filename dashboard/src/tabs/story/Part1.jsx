@@ -133,7 +133,7 @@ function outputNotes() {
     `The OBR’s latest central forecast, published ${OBR_VINTAGE}, shown for context; drawn apart from the outturn, as the OBR starts from an older ${last(gs.x)} estimate.`,
     // the two OBR forecasts, said once (Maria's review, M3): Part 1 shows
     // the latest; the scenarios are measured against OG-UK's own path
-    `Parts 2 to 4 compare each scenario with OG-UK’s own forecast path, built on the OBR’s ${MODEL_BASE_VINTAGE} forecast, not with this one.`,
+    `Part 2 measures each scenario against OG-UK’s own forecast path, built on the OBR’s ${MODEL_BASE_VINTAGE} forecast, not against this one.`,
   ];
 }
 
