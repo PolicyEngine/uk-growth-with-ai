@@ -4,12 +4,15 @@ import { useId, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import LineChart from '@/components/LineChart.jsx';
-import Card, { InfoCard, SectionHeading, StatTile } from '@/components/ui/Card.jsx';
+import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
+import Finding from '@/components/ui/Finding.jsx';
+import Disclosure from '@/components/ab/Disclosure.jsx';
+import { profileOf, windowIncomeOf, windowIncomeAge } from '@/lib/dataKeys.js';
+import { revealAnchor } from '@/lib/scroll.js';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
-import { side } from '@/tabs/ai/lines.js';
-import { Dir, Lead } from '@/tabs/explore/direction.jsx';
+import { Lead } from '@/tabs/explore/direction.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel, rulePlain } from '@/lib/labels.js';
@@ -50,7 +53,17 @@ const GROUP_DESC = {
   5: 'The top tenth, without the top 1%',
   6: 'The highest 1% of lifetime earnings',
 };
-const LAST_ALIVE = D.shock_year - 20; // youngest adult in the shock year
+const FIRST_AGE = 20; // the model's first adult age (cohort_welfare.py FIRST_AGE)
+const RULER_AGE = 65; // the age ruler's 65 tick: the stress card's older bar
+const LAST_ALIVE = D.shock_year - FIRST_AGE; // youngest adult in the shock year
+// The last year of the model's horizon: START_YEAR + T_USE - 1 in
+// paper/cohort_welfare.py (2026 + 60 - 1). Not in the data file.
+export const HORIZON_YEAR = 2085;
+// ONS, Household total wealth in Great Britain, April 2018 to March 2020:
+// the top tenth of households held 43% of wealth. External: not part of a
+// data swap.
+const ONS_TOP_TENTH = { pct: 43, period: '2018–2020', url: ONS_WEALTH };
+const RULE_WORDS = { dn: 'debt-neutral transfers', common: 'the common fiscal rule' };
 
 const minus = (s) => s.replace('-', '−');
 export const pct = (x, dp = 2) => (x == null ? 'n/a' : minus(`${x > 0 ? '+' : ''}${x.toFixed(dp)}%`));
@@ -88,41 +101,117 @@ const youngest = (c) => {
 // Where the smallest change among adults falls, in words, for one cell: the
 // youngest adults, the youngest working-age adults (20 to 64), or an age.
 export function leastWords(c) {
-  const xs = D.closures[Object.keys(D.closures)[0]].birth_year;
-  const ages = xs.map((y) => D.shock_year - y);
-  const adults = ages.map((a, i) => i).filter((i) => ages[i] >= 20 && xs[i] <= LAST_ALIVE);
+  return leastWordsOf(c, D.closures[Object.keys(D.closures)[0]].birth_year, D.shock_year);
+}
+// The same as parts: who ('youngest', 'working': the youngest working-age
+// adults, or 'age'), the age, and the verb.
+export function leastOf(c, xs = D.closures[Object.keys(D.closures)[0]].birth_year, shockYear = D.shock_year) {
+  const ages = xs.map((y) => shockYear - y);
+  const adults = ages.map((a, i) => i).filter((i) => ages[i] >= FIRST_AGE && xs[i] <= shockYear - FIRST_AGE);
   const work = adults.filter((i) => ages[i] <= 64);
   const argmin = (is) => is.reduce((b, i) => (c.cev_all[i] < c.cev_all[b] ? i : b), is[0]);
   const y = argmin(adults);
   const verb = (i) => (c.cev_all[i] < 0 ? 'lose' : 'gain least');
-  if (ages[y] === 20) return `The youngest adults ${verb(y)}`;
+  if (ages[y] === FIRST_AGE) return { who: 'youngest', age: ages[y], verb: verb(y) };
   const w = argmin(work);
-  if (ages[w] === 20) return `Among working-age adults, the youngest ${verb(w)}`;
-  return `Adults around age ${ages[y]} ${verb(y)}`;
+  if (ages[w] === FIRST_AGE) return { who: 'working', age: ages[w], verb: verb(w) };
+  return { who: 'age', age: ages[y], verb: verb(y) };
+}
+function leastWordsOf(c, xs, shockYear) {
+  const l = leastOf(c, xs, shockYear);
+  if (l.who === 'youngest') return `The youngest adults ${l.verb}`;
+  if (l.who === 'working') return `Among working-age adults, the youngest ${l.verb}`;
+  return `Adults around age ${l.age} ${l.verb}`;
+}
+
+// The birth-year finding box (item-18-fable.md, "All 12 cells"): a lead and
+// two or three lines, each claim gated on the cell in view, so every one is
+// true in all 12 cells (2 foreign-capital cases x 2 budget rules x 3
+// versions) and after a data swap. Pure: `c` is one cell, `xs` its birth
+// years, `T` the low bound of measure T (transfers bear the later fiscal
+// cost) or null, M and B from the cell. Each line is a list of parts
+// { claim, text }, so the probe can read each claim (data-claim).
+export const RETURN_LINE = 'They hold more wealth than younger adults and collect the higher return on it.';
+const capFirst = (t) => t[0].toUpperCase() + t.slice(1);
+export function whoFindingOf(c, { xs, shockYear, arm, T = null }) {
+  const lastAlive = shockYear - 20;
+  const adults = xs.map((y, i) => i).filter((i) => xs[i] <= lastAlive);
+  const peak = adults.reduce((b, i) => (c.cev_all[i] > c.cev_all[b] ? i : b), adults[0]);
+  const peakAge = shockYear - xs[peak];
+  const where = peakAge >= 60 && peakAge <= 70 ? 'around retirement age' : `around age ${peakAge}`;
+  const lead = `Adults ${where} ${c.cev_all[peak] > 0 ? 'gain most' : 'lose least'}.`;
+  const minAll = Math.min(...c.cev_all);
+  const losing = c.cev_all.map((v, i) => i).filter((i) => c.cev_all[i] < 0);
+  const state = minAll >= 0.005 ? 'gain' : minAll < 0 ? 'loss' : 'flat';
+  const M = c.alive_losing_pct;
+  const B = c.no_bequest_losing_pct;
+  const fiscal = T != null && T > M;
+  const beq = B > M;
+  const more =
+    fiscal && beq
+      ? 'more adults lose if households bear the later fiscal cost or leaving bequests is not valued.'
+      : beq
+        ? 'more adults lose if leaving bequests is not valued.'
+        : fiscal
+          ? 'more adults lose if households bear the later fiscal cost.'
+          : null;
+  const ret = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 ? [{ claim: 'return', text: RETURN_LINE }] : null;
+  const least = state !== 'loss' && arm !== 'stress' ? [{ claim: 'least', text: `${leastWordsOf(c, xs, shockYear)}.` }] : null;
+  let lines;
+  if (state === 'gain') {
+    const birth = { claim: 'birth', text: 'Every birth year gains on average as modelled' };
+    lines = [ret, least, more ? [birth, { text: '; ' }, { claim: 'more', text: more }] : [{ ...birth, text: `${birth.text}.` }]];
+  } else if (state === 'loss') {
+    const from = xs[losing[0]];
+    const to = xs[losing[losing.length - 1]];
+    const oneRun = losing.length === to - from + 1;
+    const x = Math.abs(minAll).toFixed(2);
+    const by = x === '0.00' ? '' : `, by up to ${x}%`;
+    const text = oneRun ? `Some birth years lose on average as modelled: those born ${from}–${to}${by}.` : `Some birth years lose on average as modelled${by}.`;
+    lines = [ret, [{ claim: 'birth', text }], more ? [{ claim: 'more', text: capFirst(more) }] : null];
+  } else lines = [ret, least, more ? [{ claim: 'more', text: capFirst(more) }] : null];
+  return { icon: 'age', state, lead, lines: lines.filter(Boolean) };
 }
 
 // The Who gains answer for the view picked: computed, so it follows the arm,
-// rule and closure pickers.
+// rule and closure pickers (Closure = Both reads some foreign capital; the
+// fixed-spending rule reads debt-neutral, as the page does).
 export function whoAnswer(closure, rule, arm) {
   const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
   const c = cell(cl, rule, arm);
-  return {
-    context: 'UK central only · lifetime welfare by birth year and earnings group',
-    drivers: [
-      { key: 'old', icon: 'age', text: `Adults ${peakWords(c)} gain most` },
-      { key: 'why', icon: 'capital', text: 'They hold more wealth and collect the higher return' },
-      { key: 'young', icon: 'young', text: leastWords(c) },
-      { key: 'how', icon: 'range', text: 'How many lose depends on how bequests and later fiscal cost count' },
-    ],
-  };
+  const T = measuresOf(c, rule, cl, arm).find((m) => m.id === 'T')?.losing[0] ?? null;
+  return whoFindingOf(c, { xs: D.closures[cl].birth_year, shockYear: D.shock_year, arm, T });
+}
+
+// The box itself: the Finding, with the hooks the claims probe reads
+// (data-finding, data-state, data-claim on each claim).
+export function WhoFinding({ closure, rule, arm }) {
+  const f = whoAnswer(closure, rule, arm);
+  return (
+    <div data-finding="who" data-state={f.state}>
+      <Finding
+        icon={f.icon}
+        lead={<span data-claim="lead">{f.lead}</span>}
+        lines={f.lines.map((parts, i) => (
+          <span key={i}>
+            {parts.map((p, k) =>
+              p.claim ? (
+                <span key={k} data-claim={p.claim}>
+                  {p.text}
+                </span>
+              ) : (
+                p.text
+              ),
+            )}
+          </span>
+        ))}
+      />
+    </div>
+  );
 }
 
 export function cell(closure, rule, arm) {
   return D.closures[closure].rules[rule][arm];
-}
-
-function Num({ x }) {
-  return <b className={`num ${tone(x) === 'gain' ? 'is-gain' : tone(x) === 'loss' ? 'is-loss' : ''}`}>{pct(x)}</b>;
 }
 
 // The main arm solved with debt-neutral transfers kept on to the horizon,
@@ -300,273 +389,450 @@ export function whySigns(cl, rule, arm) {
   };
 }
 
-// The consumption card: a why chain whose every direction is the data's.
-export function consumptionChain(x) {
-  return [
-    x.r == null ? null : { key: 'r', icon: 'interest', dir: x.r, text: `Return on capital ${x.r > 0 ? 'rises' : 'falls'}` },
-    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Pay rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the forecast path` },
-    { key: 's', icon: 'households', text: `Households ${x.c0 < 0 ? 'save more' : 'spend more'} at first` },
-    { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the forecast path` },
-  ].filter(Boolean);
+// The cluster's words (item-21-fable.md), one function per block, pure so
+// the tests can read every cell: each returns { lead, lines } and what its
+// figure needs. Every year is a token from the data or a named constant:
+// the shock year, the last flow year (the last key of c_gap), the year the
+// debt rule starts (one after it), the year consumption is first above the
+// path, and HORIZON_YEAR.
+const flowYears = (c) => Object.keys(c.c_gap).map(Number);
+export function whyTokens(cl, rule, arm) {
+  const c = cell(cl, rule, arm);
+  const lastFlowYear = Math.max(...flowYears(c));
+  return { shockYear: D.shock_year, lastFlowYear, debtRuleYear: lastFlowYear + 1, cAboveYear: c.first_year_c_above ?? null };
 }
 
-// Paired horizontal bars: [{ key, label, value, text, concept }], drawn
-// against the largest value; text is the printed figure.
-// label (what the figures measure) is printed as the list's caption.
-function Pairs({ rows, label, icon = 'measure' }) {
+// A. The consumption path.
+export function consumptionWords(cl, rule, arm) {
+  const c = cell(cl, rule, arm);
+  const x = whySigns(cl, rule, arm);
+  const t = whyTokens(cl, rule, arm);
+  const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', t.shockYear, rule);
+  const below = x.c0 < 0;
+  const lead = below ? (t.cAboveYear ? 'Consumption falls below the forecast path first, then rises above it.' : 'Consumption stays below the forecast path.') : 'Consumption starts above the forecast path.';
+  const s1 = below ? (x.r > 0 && inv > 0 ? 'Households save more as the return on capital rises, so they spend less at first.' : 'Households spend less at first.') : `Households spend more from ${t.shockYear}.`;
+  const s2 = t.cAboveYear ? `Consumption is above the forecast path from ${t.cAboveYear} under ${RULE_WORDS[rule]}.` : `It is still below the forecast path in ${HORIZON_YEAR}, the last year in the data.`;
+  const p = c.parts_alive;
+  const s3 = c.alive_avg > 0 && p.bequests + p.leisure > p.consumption && below ? 'The average gain is positive all the same: most of it is the value of leaving bequests and of free time.' : null;
+  return { lead, lines: [s1, s2, s3].filter(Boolean), link: !!s3 };
+}
+
+// B. Who gains, by earnings: the bottom 25% against the top 1%.
+export function earningsWords(cl, rule, arm) {
+  const c = cell(cl, rule, arm);
+  const prof = profileOf(D.closures[cl]);
+  const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
+  const [b, t] = [tone(bot), tone(top)];
+  const who = `the ${GROUP_LABELS[0].toLowerCase()} of lifetime earners`;
+  const top1 = `the ${GROUP_LABELS[6].toLowerCase()}`;
+  let lead = null;
+  if (bot > top) {
+    if (b === 'gain' && t === 'gain') lead = `As modelled, ${who} gain more than ${top1}.`;
+    else if (b === 'gain' && t === 'loss') lead = `As modelled, ${who} gain and ${top1} lose.`;
+    else if (b === 'loss' && t === 'loss') lead = `As modelled, ${who} lose less than ${top1}.`;
+    else if (b === 'gain' && t === null) lead = `As modelled, ${who} gain and ${top1} are unchanged.`;
+  }
+  const ranked = lead != null;
+  const s1 = ranked && prof.labour[0] < prof.labour[6] && prof.wealth_share[0] > prof.earnings_share[0] ? 'The bottom group depends less on pay, and the higher return on capital reaches it too.' : null;
+  return { lead: lead ?? `By lifetime earnings: the ${GROUP_LABELS[0].toLowerCase()} and the ${GROUP_LABELS[6].toLowerCase()}.`, lines: [s1, 'This ranking depends on how the model spreads wealth and transfers.'].filter(Boolean), bot, top };
+}
+
+// C. Who pays the fiscal cost.
+export function payWords(cl, rule, arm) {
+  const c = cell(cl, rule, arm);
+  const t = whyTokens(cl, rule, arm);
+  if (rule === 'dn') {
+    const tr = windowIncomeOf(c).transfers;
+    const gain = tr.every((v) => v > 0);
+    return gain
+      ? {
+          lead: `Households get the fiscal gain to ${t.lastFlowYear}; after that it goes to government consumption.`,
+          lines: [
+            `Under debt-neutral transfers, households gain through higher transfers, on net over ${t.shockYear}–${t.lastFlowYear}.`,
+            `From ${t.debtRuleYear} the gain goes to government consumption, which households in the model do not value.`,
+          ],
+        }
+      : {
+          lead: `Households pay the fiscal cost to ${t.lastFlowYear}; after that it falls on government consumption.`,
+          lines: [
+            `Under debt-neutral transfers, households pay through lower transfers, on net over ${t.shockYear}–${t.lastFlowYear}.`,
+            `From ${t.debtRuleYear} the cost falls on government consumption, which households in the model do not value.`,
+          ],
+        };
+  }
+  const debt = gap('uk_central', SURPRISE_ARM[arm], cl, 'debt_gdp_pp', t.debtRuleYear);
+  const cost = debt != null && debt > 0;
+  return {
+    lead: cost ? 'No household pays the fiscal cost: public debt takes it, then government consumption.' : 'No household is charged: public debt takes the fiscal effect, then government consumption.',
+    lines: [
+      `Under the common fiscal rule, spending follows GDP and public debt takes the fiscal effect to ${t.lastFlowYear}.`,
+      `From ${t.debtRuleYear} the ${cost ? 'cost' : 'effect'} falls on government consumption, which households in the model do not value.`,
+    ],
+  };
+}
+
+// D. The stress test, by age.
+export function stressWords(cl, rule, arm) {
+  const s = cell(cl, rule, 'stress');
+  const x = whySigns(cl, rule, arm);
+  const l = leastOf(s);
+  const lead =
+    l.who === 'youngest' ? `In the stress test, the youngest adults ${l.verb}.` : l.who === 'working' ? `In the stress test, the youngest working-age adults ${l.verb}.` : `In the stress test, adults around age ${l.age} ${l.verb}.`;
+  // "further below" needs the main version below the path too
+  const s1 = x.stressW != null && x.tfpW != null && x.stressW < x.tfpW && x.tfpW < 0 ? 'With no output gain, the pay rate falls further below the forecast path than in the main version.' : null;
+  const s2 = l.who !== 'age' ? 'The youngest adults have their working life ahead and little wealth, so lower pay costs them most and the higher return helps them least.' : null;
+  const xs = D.closures[cl].birth_year;
+  const at = (age) => s.cev_all[xs.indexOf(D.shock_year - age)];
+  return { lead, lines: [s1, s2].filter(Boolean), young: at(FIRST_AGE), old: at(RULER_AGE) };
+}
+
+// Bars on one axis: label, bar, value, each its own cell (the value right-
+// aligned, tabular). With a negative value the zero line sits inside the
+// track and bars run left or right of it. rows: [{ key, label, value, text }].
+function Bars({ rows, caption, signed = false }) {
   const id = useId();
-  const max = Math.max(...rows.map((r) => Math.abs(r.value)), 1e-9);
+  const vs = rows.map((r) => r.value);
+  const lo = Math.min(0, ...vs);
+  const hi = Math.max(0, ...vs);
+  const span = hi - lo || 1;
+  const at = (v) => `${(((v - lo) / span) * 100).toFixed(2)}%`;
   return (
-    <div className="ex-pairs-block">
-      <p className="ex-pairs-cap" id={id}>
-        <Icon name={iconFor(icon)} size={14} /> {label}
-      </p>
-      <ul className="ex-pairs" aria-labelledby={id}>
+    <figure className="ex-bars2">
+      <ul className="ex-bars2-list" aria-labelledby={id}>
         {rows.map((r) => (
           <li key={r.key}>
-            <span className="ex-pair-label">
-              {r.label}
+            <span className="ex-bars2-label">{r.label}</span>
+            <span className="ex-bars2-track" aria-hidden="true">
+              {lo < 0 ? <span className="ex-bars2-zero" style={{ left: at(0) }} /> : null}
+              <span className="ex-bars2-fill" style={{ left: at(Math.min(0, r.value)), width: `${((Math.abs(r.value) / span) * 100).toFixed(2)}%` }} />
             </span>
-            <span className="ex-bar-track" aria-hidden="true">
-              <span className={`ex-bar-fill${r.tone ? ` is-${r.tone}` : ''}`} style={{ width: `${((Math.abs(r.value) / max) * 100).toFixed(1)}%` }} />
-            </span>
-            <span className="ex-dd">{r.text}</span>
+            <span className={`ex-bars2-val${signed && tone(r.value) ? ` is-${tone(r.value)}` : ''}`}>{r.text}</span>
           </li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-// The aggregate consumption gap in the data's years, as a sparkline; the
-// first year above the path (beyond the data's window) marked at its end.
-function Spark({ c, rule }) {
-  const ys = Object.entries(c.c_gap).map(([y, v]) => [Number(y), v]);
-  const lo = Math.min(0, ...ys.map(([, v]) => v));
-  const hi = Math.max(0, ...ys.map(([, v]) => v));
-  const W = 200;
-  const H = 48;
-  // the line's two ends are labelled with their years, in the gutters
-  const G = 30;
-  const X = (i) => G + (i / Math.max(1, ys.length - 1)) * (W - 2 * G);
-  const Y = (v) => 6 + ((hi - v) / (hi - lo || 1)) * (H - 12);
-  const end = ys.length - 1;
-  return (
-    <figure className="ex-spark">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Aggregate consumption gap, ${ys[0][0]} to ${ys[end][0]}`}>
-        <line x1={G} x2={W - G} y1={Y(0)} y2={Y(0)} className="ex-spark-zero" />
-        <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-spark-line" />
-        <text x={X(0) - 4} y={Y(ys[0][1])} dy="0.35em" textAnchor="end" className="ex-spark-end">
-          {ys[0][0]}
-        </text>
-        <text x={X(end) + 4} y={Y(ys[end][1])} dy="0.35em" className="ex-spark-end">
-          {ys[end][0]}
-        </text>
-      </svg>
-      <figcaption>
-        <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
-        {c.first_year_c_above ? <span className="ex-spark-cross">{` · above from ${c.first_year_c_above} under ${ruleLabel(rule).toLowerCase()} →`}</span> : null}
+      <figcaption id={id} className="ex-bars2-cap">
+        {caption}
       </figcaption>
     </figure>
   );
 }
 
-// The same average by form: a bar split into consumption, leisure and
-// bequests (one part at a time on the scenario path). The values are in the
-// tooltips: the parts need not add up to the total.
-// The parts of the average (cohorts2028.json parts_alive): each printed
-// once here, beside its key. A line says when bequest value is most of it
-// (economics review, round 1: of +0.79%, bequests 0.52) and, when the later
-// fiscal cost can be charged (measure T), that the split depends on it.
-export function byFormWords(p, hasT) {
-  return [
-    p.bequests > p.consumption + p.leisure ? { key: 'most', icon: 'bequests', text: 'Most of the average is the value of leaving bequests' } : null,
-    p.consumption < Math.min(p.leisure, p.bequests) ? { key: 'least', icon: 'consumption', text: 'Consumption is the smallest part' } : null,
-    hasT ? { key: 'rule', icon: 'benefits', text: 'Who bears the later fiscal cost changes who gains' } : null,
-  ].filter(Boolean);
+// A's figure: consumption against the forecast path, one point a year from
+// the shock year to the last flow year, a zero line named "Forecast path",
+// the two ends labelled (year and value, separate elements). Labels are
+// HTML beside the line, so they keep their size at any width.
+function ConsLine({ c }) {
+  const ys = Object.entries(c.c_gap)
+    .map(([y, v]) => [Number(y), v])
+    .sort((a, b) => a[0] - b[0]);
+  const lo = Math.min(0, ...ys.map(([, v]) => v));
+  const hi = Math.max(0, ...ys.map(([, v]) => v));
+  const H = 72;
+  const pad = 10;
+  const Y = (v) => pad + ((hi - v) / (hi - lo || 1)) * (H - 2 * pad);
+  const X = (i) => (i / Math.max(1, ys.length - 1)) * 100;
+  const [first, last] = [ys[0], ys[ys.length - 1]];
+  const end = (side, [y, v]) => (
+    <span className={`ex-cl-end is-${side}`} style={{ top: `${Y(v)}px` }}>
+      <span className="ex-cl-year">{y}</span>
+      <span className="ex-cl-val">{pct(v)}</span>
+    </span>
+  );
+  return (
+    <figure className="ex-cl">
+      <div className="ex-cl-plot" style={{ height: `${H}px` }}>
+        {end('start', first)}
+        <div className="ex-cl-area" style={{ height: `${H}px` }}>
+          <svg viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" role="img" aria-label={`Consumption against the forecast path, ${first[0]} to ${last[0]}: ${pct(first[1])} to ${pct(last[1])}`}>
+            <line x1="0" x2="100" y1={Y(0)} y2={Y(0)} className="ex-cl-zero" vectorEffect="non-scaling-stroke" />
+            <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-cl-line" vectorEffect="non-scaling-stroke" />
+          </svg>
+          <span className="ex-cl-zero-label" style={{ top: `${Y(0)}px` }}>
+            Forecast path
+          </span>
+          {ys.map(([y, v], i) => (
+            <TipTarget
+              key={y}
+              className="ex-cl-hit"
+              style={{ left: `${X(i)}%`, width: `${100 / ys.length}%` }}
+              label={`${y}: ${pct(v)}`}
+              tip={
+                <>
+                  <b>{y}</b>
+                  <span className="tip-value">{pct(v)}</span>
+                </>
+              }
+            />
+          ))}
+        </div>
+        {end('end', last)}
+      </div>
+      <figcaption className="ex-bars2-cap" data-axis-title="y">{`Consumption against the forecast path, %, ${first[0]}–${last[0]}`}</figcaption>
+    </figure>
+  );
 }
 
-function ByForm({ p, both, hasT = false }) {
-  const parts = [
-    { k: 'consumption', label: 'Consumption', v: p.consumption },
-    { k: 'leisure', label: 'Leisure', v: p.leisure },
-    { k: 'bequests', label: 'Bequests', v: p.bequests },
-  ];
-  const sum = parts.reduce((a, x) => a + Math.abs(x.v), 0) || 1;
+// Open the OG-UK settings pill (components/ui/Pill.jsx) at its Budget
+// assumption section: the page pill in the model row, or the sub-tab
+// header's copy once the page pill is under the sticky stack
+// (SettingsBar.jsx useCondensed, data-condensed). The pill focuses its
+// first section on opening, so the Budget section's chosen option takes
+// focus a frame later.
+export function openBudget() {
+  const panel = document.querySelector('.tab-panel:not([hidden])') ?? document;
+  const page = panel.querySelector('.settings-chip-wrap.is-page .settings-chip');
+  const header = document.querySelector('.settings-chip-wrap.is-header .settings-chip');
+  const btn = (document.querySelector('[data-condensed]') ? header : page) ?? page ?? header;
+  if (!btn) return;
+  if (btn.getAttribute('aria-expanded') !== 'true') btn.click();
+  const focus = () => {
+    const pop = document.getElementById(btn.getAttribute('aria-controls'));
+    const group = [...(pop?.querySelectorAll('.sp-group') ?? [])].find((g) => g.querySelector('.sp-group-name')?.textContent.trim() === 'Budget assumption');
+    const opt = group?.querySelector('[role="radio"][tabindex="0"]') ?? group?.querySelector('[role="radio"]');
+    if (!opt) return;
+    opt.focus({ preventScroll: true });
+    group.scrollIntoView?.({ block: 'nearest' });
+  };
+  requestAnimationFrame(() => setTimeout(focus, 0));
+}
+
+// A link that opens a folded section (Disclosure's reveal event) and
+// scrolls to it, or to a card on this page.
+function JumpLink({ to, children }) {
   return (
-    <div className="ex-byform" role="group" aria-label="The same average by form">
-      <p className="ex-byform-title">
-        <Icon name={iconFor('range')} size={14} /> The same average by form{both ? ', some foreign capital' : ''}
+    <a
+      href={`#${to}`}
+      className="ex-jump"
+      onClick={(e) => {
+        e.preventDefault();
+        revealAnchor(to, { smooth: true });
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
+// The welfare breakdown card (item-19-fable.md): the average change for
+// adults alive in the shock year (alive_avg) and its three parts
+// (parts_alive), each the same measure with one utility term moved to the
+// scenario path. The parts are not additive, so a caveat says so.
+const PARTS = [
+  { k: 'consumption', more: 'more spending', less: 'less spending', bare: 'Spending', tip: 'The change if only spending moved, with free time and bequests as they would be with no extra AI.' },
+  { k: 'leisure', more: 'more free time', less: 'less free time', bare: 'Free time', tip: 'The change if only hours worked moved, with spending and bequests as they would be with no extra AI.' },
+  { k: 'bequests', more: 'bigger bequests', less: 'smaller bequests', bare: 'Bequests', tip: 'The change if only bequests moved, with spending and free time as they would be with no extra AI.' },
+];
+const TOTAL_TIP = 'The average change in lifetime welfare, counting spending, free time and bequests together.';
+const zero2 = (x) => Math.abs(x) < 0.005;
+const partWords = (q, v) => (zero2(v) ? q.bare.toLowerCase() : v > 0 ? q.more : q.less);
+const andList = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+
+// The card's lead, from the signs (item 19's four forms). Lists run largest
+// first; a part that rounds to 0.00 is left out; the verb agrees with the
+// first list.
+export function byFormLead(p, total) {
+  const parts = PARTS.map((q) => ({ q, v: p[q.k] })).filter((x) => !zero2(x.v));
+  const pos = parts.filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
+  const neg = parts.filter((x) => x.v < 0).sort((a, b) => a.v - b.v);
+  const list = (xs) => andList(xs.map((x) => partWords(x.q, x.v)));
+  const verb = (xs) => (xs.length > 1 ? 'outweigh' : 'outweighs');
+  if (total > 0 && !neg.length) {
+    if (p.bequests > p.consumption + p.leisure) return 'Most of the average gain is the value of leaving bigger bequests.';
+    if (pos.length) return `The largest part of the average gain is ${list(pos.slice(0, 1))}.`;
+  }
+  if (total > 0 && pos.length) return `${capFirst(list(pos))} ${verb(pos)} ${list(neg)}.`;
+  if (total <= 0 && neg.length && pos.length) return `${capFirst(list(neg))} ${verb(neg)} ${list(pos)}: on average adults lose.`;
+  // guards, not reached on the 2028 data
+  return total > 0 ? 'On average adults gain.' : 'On average adults lose.';
+}
+
+// One bar per row on a shared axis from min(0, values) to max(0, values),
+// padded 5%; one zero line; the value at the bar's end (left end when
+// negative). The total restates the Average change tile: data-axis.
+function PartBars({ c }) {
+  const p = c.parts_alive;
+  const rows = [
+    { k: 'total', label: 'Total', v: c.alive_avg, tip: TOTAL_TIP, total: true },
+    ...PARTS.map((q) => ({ k: q.k, label: capFirst(partWords(q, p[q.k])), v: p[q.k], tip: q.tip })),
+  ];
+  const vs = rows.map((r) => r.v);
+  const lo0 = Math.min(0, ...vs);
+  const hi0 = Math.max(0, ...vs);
+  const pad = (hi0 - lo0 || 1) * 0.05;
+  const lo = lo0 < 0 ? lo0 - pad : 0;
+  const hi = hi0 > 0 ? hi0 + pad : 0;
+  const at = (x) => `${(((x - lo) / (hi - lo || 1)) * 100).toFixed(2)}%`;
+  return (
+    <div className="ex-parts-wrap">
+      <p className="ex-parts-unit" data-axis-title="y">
+        % of remaining-lifetime consumption and bequests
       </p>
-      <div className="ex-byform-bar">
-        {parts.map((x) => (
-          <TipTarget key={x.k} className={`ex-byform-seg is-${x.k}${x.v < 0 ? ' is-neg' : ''}`} style={{ width: `${((Math.abs(x.v) / sum) * 100).toFixed(1)}%` }} label={`${x.label}: ${pct(x.v)}`} tip={<><b>{x.label}</b><span className="tip-value">{pct(x.v)}</span></>} />
-        ))}
-      </div>
-      <ul className="ex-byform-key">
-        {parts.map((x) => (
-          <li key={x.k}>
-            <span className={`ex-byform-swatch is-${x.k}`} data-icon="" aria-hidden="true" />
-            {x.label} <b className="num">{pct(x.v)}</b>
+      <ul className={`ex-parts${lo0 < 0 ? ' has-neg' : ''}${hi0 > 0 ? ' has-pos' : ''}`} aria-label="Average change and its three parts" style={{ '--parts-fill': GROUP_RAMP[3] }}>
+        {rows.map((r) => (
+          <li key={r.k} className={r.total ? 'is-total' : undefined}>
+            <span className="ex-parts-label">{r.label}</span>
+            <span className="ex-parts-track">
+              <span className="ex-parts-plot">
+                <span className="ex-parts-zero" style={{ left: at(0) }} aria-hidden="true" />
+                <span className="ex-parts-tip" title={r.tip} style={{ left: at(Math.min(0, r.v)), width: `${((Math.abs(r.v) / (hi - lo || 1)) * 100).toFixed(2)}%` }}>
+                  <TipTarget className="ex-parts-bar" label={`${r.label}: ${pct(r.v)}`} tip={<><b>{r.label}</b><span className="tip-value">{pct(r.v)}</span><span className="tip-sub">{r.tip}</span></>} />
+                </span>
+                <span className={`ex-parts-val${r.v < 0 ? ' is-neg' : ''}`} style={r.v < 0 ? { right: `calc(100% - ${at(r.v)})` } : { left: at(r.v) }} data-axis={r.total ? '' : undefined}>
+                  {pct(r.v)}
+                </span>
+              </span>
+            </span>
           </li>
         ))}
-        <li>
-          Parts need not add up to the total
-        </li>
       </ul>
-      <Items className="ex-byform-notes" items={byFormWords(p, hasT)} />
+      <p className="finding-note">Each part is measured on its own, so the three do not add up exactly to the total.</p>
     </div>
   );
 }
 
+function ByForm({ c, both }) {
+  return (
+    <Finding
+      id="welfare-breakdown"
+      layout="side"
+      icon="bequests"
+      lead={byFormLead(c.parts_alive, c.alive_avg)}
+      lines={[`The average change for adults alive in ${D.shock_year}, split by what changes: spending, free time and bequests.`, both ? 'Shown with some foreign capital.' : null]}
+    >
+      <PartBars c={c} />
+    </Finding>
+  );
+}
+
+// What drives the result (item-21-fable.md): four Finding boxes, then the
+// closed "More info" disclosure, full width.
 function Why({ cl, rule, arm }) {
   const C = D.closures[cl];
   const c = cell(cl, rule, arm);
-  const prof = C.profile_2028;
-  const tr = c.income_2028_35_age45.transfers;
-  const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
-  const x = whySigns(cl, rule, arm);
-  const links = Object.fromEntries(consumptionChain(x).map((l) => [l.key, l]));
-  const title = x.c0 < 0 ? (x.cAbove ? 'Consumption dips first, then recovers' : 'Consumption dips and stays below') : 'Consumption starts above the forecast path';
+  const prof = profileOf(C);
+  const t = whyTokens(cl, rule, arm);
+  const A = consumptionWords(cl, rule, arm);
+  const B = earningsWords(cl, rule, arm);
+  const Cw = payWords(cl, rule, arm);
+  const Dw = stressWords(cl, rule, arm);
+  const tr = windowIncomeOf(c)?.transfers;
+  const age = windowIncomeAge(c);
+  const gapOf = (x) => x.alive_by_group[0] - x.alive_by_group[6];
+  const narrows = rule === 'dn' && gapOf(c) > 0 && gapOf(c) < gapOf(cell(cl, 'common', arm));
+  const bot = GROUP_LABELS[0];
+  const top = GROUP_LABELS[6];
+  const wc = C.wealth_concentration.top_tenth_pct;
   return (
-    <div className="cards-grid is-top ex-why-grid">
-      <InfoCard icon={iconFor('consumption')} title={title}>
-        <Spark c={c} rule={rule} />
-        <Items
-          className="ex-chain"
-          items={[
-            {
-              key: 'rw',
-              icon: 'interest',
-              text: (
-                <>
-                  {links.r ? (
-                    <>
-                      <Dir x={links.r.dir} />
-                      {links.r.text}
-                    </>
-                  ) : null}
-                  {links.r && links.w ? '; ' : ''}
-                  {links.w ? (
-                    <>
-                      <Dir x={links.w.dir} />
-                      {links.w.text.replace('Pay rate', 'pay rate')}
-                    </>
-                  ) : null}
-                </>
-              ),
-            },
-            { key: 's', icon: 'households', text: links.s.text },
-            {
-              key: 'c',
-              icon: 'consumption',
-              text: (
-                <>
-                  <Dir x={links.c.dir} />
-                  {links.c.text}
-                  {x.cAbove ? `; above it from ${x.cAbove} (${ruleLabel(rule).toLowerCase()})` : '; below it through 2085'}
-                </>
-              ),
-            },
-            { key: 'beq', icon: 'bequests', text: 'Bequests rise with the return; fewer hours mean extra leisure' },
-          ]}
-        />
-      </InfoCard>
-      <InfoCard icon={iconFor('lifetimeEarnings')} title="By earnings group: a property of the model">
-        <Pairs
-          label="Welfare change of adults alive at the shock, by lifetime earnings"
-          rows={[
-            { key: 'bot', concept: 'lifetimeEarnings', label: 'Bottom 25%', value: bot, text: <Num x={bot} />, tone: tone(bot) },
-            { key: 'top', concept: 'lifetimeEarnings', label: 'Top 1%', value: top, text: <Num x={top} />, tone: tone(top) },
-          ]}
-        />
-        <p className="ex-caveat-chip">
-          <Icon name={iconFor('limit')} size={14} /> A property of the model, not a UK finding
-        </p>
-        <Pairs
-          icon="pay"
-          label="Wages as a share of gross income"
-          rows={[
-            { key: 'wb', concept: 'labour', label: 'Wages, bottom 25%', value: prof.labour[0], text: plain(prof.labour[0]) },
-            { key: 'wt', concept: 'labour', label: 'Wages, top 1%', value: prof.labour[6], text: plain(prof.labour[6]) },
-          ]}
-        />
-        <Items
-          items={[
-            { key: 'tr', icon: 'benefits', text: 'Transfers: the same amount per head in every group' },
-            { key: 'w', icon: 'capital', text: `Bottom 25%: ${plain(prof.wealth_share[0])} of wealth, ${plain(prof.earnings_share[0])} of labour income` },
-          ]}
-        />
-        <Pairs
-          icon="capital"
-          label="Top tenth's share of wealth"
-          rows={[
-            { key: 'm', concept: 'model', label: 'Top tenth, model', value: C.wealth_concentration.top_tenth_pct, text: plain(C.wealth_concentration.top_tenth_pct) },
-            { key: 'd', concept: 'data', label: 'ONS, 2018–20', value: 43, text: '43%' },
-          ]}
-        />
-        <Items
-          items={[
-            { key: 'ons', icon: 'source', text: <>{ext(ONS_WEALTH, 'ONS, Household total wealth, April 2018 to March 2020')}</> },
-            { key: 'like', icon: 'limit', text: 'Not like for like: GB households against model individuals' },
-          ]}
-        />
-      </InfoCard>
-      <InfoCard icon={iconFor('finances')} title="Who pays the fiscal cost">
-        {rule === 'dn' ? (
-          <>
-            <div className="ex-timeline ex-tl-who">
-              <span className="ex-tl-year">
-                <Icon name={iconFor('shock')} size={14} /> 2028
-              </span>
-              <span className="ex-tl-span">
-                <Icon name={iconFor('benefits')} size={12} /> Lower transfers
-              </span>
-              <span className="ex-tl-year is-end">
-                <Icon name={iconFor('finances')} size={14} /> 2036: government consumption
-              </span>
-            </div>
-            <Items items={[{ key: 'value', icon: 'excluded', text: 'Households do not value government consumption in the model' }]} />
-            <Pairs
-              icon="finances"
-              label="Cost to a 45-year-old over 2028–35, share of consumption"
-              rows={[
-                { key: 'b', concept: 'age', label: 'Age 45, bottom group', value: tr[0], text: plain(Math.abs(tr[0]), 1) },
-                { key: 't', concept: 'age', label: 'Age 45, top 1%', value: tr[6], text: plain(Math.abs(tr[6]), 1) },
-              ]}
-            />
-            <Items items={[{ key: 'gap', icon: 'compare', text: 'Cost over 2028–35: narrows the gap, does not reverse it' }]} />
-          </>
-        ) : (
-          <Items
-            items={[
-              { key: 'share', icon: 'benefits', text: 'Common rule: transfers stay a fixed share of GDP' },
-              { key: 'debt', icon: 'debt', text: 'Public debt absorbs the fiscal effect; no cohort is charged in the welfare measure' },
-              { key: 'pick', icon: 'rule', text: 'Pick debt-neutral transfers under Budget assumption to charge households' },
+    <>
+      <div className="ex-why2">
+        <Finding icon="consumption" lead={A.lead} lines={A.lines} note={A.link ? <JumpLink to="welfare-breakdown">See the average, split by what changes</JumpLink> : null}>
+          <ConsLine c={c} />
+        </Finding>
+        <Finding icon="lifetimeEarnings" lead={B.lead} lines={B.lines} note={<JumpLink to="who-model-households">More info: how the model’s households compare with the UK</JumpLink>}>
+          <Bars
+            signed
+            caption={`Welfare change, % of remaining-lifetime consumption and bequests, adults alive in ${t.shockYear}`}
+            rows={[
+              { key: 'bot', label: bot, value: B.bot, text: pct(B.bot) },
+              { key: 'top', label: top, value: B.top, text: pct(B.top) },
             ]}
           />
-        )}
-      </InfoCard>
-      <InfoCard icon={iconFor('young')} title="The stress test by age" tag={<><Icon name={iconFor('shock')} size={12} /> Stress-test version</>}>
-        <Items
-          items={[
-            x.stressW == null || x.tfpW == null
-              ? null
-              : { key: 'w', icon: 'pay', text: `No output gain: the pay rate is ${x.stressW < x.tfpW ? 'lower still' : 'no lower'}` },
-            {
-              key: 'young',
-              icon: 'jobLoss',
-              text: (
-                <>
-                  <Dir x={x.young} />
-                  {`Youngest adults ${x.young < 0 ? 'lose' : 'gain least'}: most work ahead, little wealth`}
-                </>
-              ),
-            },
-          ].filter(Boolean)}
+        </Finding>
+        <Finding
+          icon="finances"
+          lead={Cw.lead}
+          lines={Cw.lines}
+          note={
+            <button type="button" className="ex-jump" onClick={openBudget}>
+              Change this under Budget assumption
+            </button>
+          }
         />
-      </InfoCard>
-    </div>
+        <Finding icon="young" lead={Dw.lead} lines={Dw.lines}>
+          <Bars
+            signed
+            caption="Welfare change in the stress test, % of remaining-lifetime consumption and bequests"
+            rows={[
+              { key: 'young', label: `Age ${FIRST_AGE} in ${t.shockYear}`, value: Dw.young, text: pct(Dw.young) },
+              { key: 'old', label: `Age ${RULER_AGE} in ${t.shockYear}`, value: Dw.old, text: pct(Dw.old) },
+            ]}
+          />
+        </Finding>
+      </div>
+      <div className="ex-mi-box">
+        <Disclosure id="who-model-households" title="More info: how the model’s households compare with the UK" preview="Pay, transfers and wealth by earnings group">
+          <div className="ex-mi">
+            <p className="ex-mi-lead">The ranking by earnings group is a property of the model, not a finding about the UK.</p>
+            <p className="ex-mi-lead">It follows from how the model’s households are built.</p>
+            <section className="ex-mi-part">
+              <h4 className="ex-mi-head">{prof.labour[0] < prof.labour[6] ? `The ${bot.toLowerCase()} depend less on pay` : `Pay, ${bot.toLowerCase()} and ${top.toLowerCase()}`}</h4>
+              <Bars
+                caption={`Pay as a share of gross income, ${t.shockYear}`}
+                rows={[
+                  { key: 'b', label: bot, value: prof.labour[0], text: plain(prof.labour[0]) },
+                  { key: 't', label: top, value: prof.labour[6], text: plain(prof.labour[6]) },
+                ]}
+              />
+              {prof.labour[0] < prof.labour[6] ? <p className="ex-mi-text">A lower pay rate takes a smaller share of the bottom group’s income.</p> : null}
+            </section>
+            <section className="ex-mi-part">
+              <h4 className="ex-mi-head">{prof.wealth_share[0] > prof.earnings_share[0] ? 'Wealth is spread more evenly than earnings' : `Wealth and earnings of the ${bot.toLowerCase()}`}</h4>
+              <Bars
+                caption={`${bot} of lifetime earners, ${t.shockYear}`}
+                rows={[
+                  { key: 'w', label: 'Share of wealth', value: prof.wealth_share[0], text: plain(prof.wealth_share[0]) },
+                  { key: 'e', label: 'Share of labour income', value: prof.earnings_share[0], text: plain(prof.earnings_share[0]) },
+                ]}
+              />
+              {prof.wealth_share[0] > prof.earnings_share[0] ? <p className="ex-mi-text">So the higher return on capital reaches lower earners as well.</p> : null}
+            </section>
+            <section className="ex-mi-part">
+              <h4 className="ex-mi-head">Transfers are the same amount per head</h4>
+              <Bars
+                caption={`Transfers as a share of gross income, ${t.shockYear}`}
+                rows={[
+                  { key: 'b', label: bot, value: prof.transfers[0], text: plain(prof.transfers[0]) },
+                  { key: 't', label: top, value: prof.transfers[6], text: plain(prof.transfers[6]) },
+                ]}
+              />
+              <p className="ex-mi-text">The same amount is a larger share of a lower earner’s income.</p>
+              {rule === 'dn' && tr && tr[0] < 0 && tr[6] < 0 ? (
+                <>
+                  <Bars
+                    caption={`Cost of lower transfers over ${t.shockYear}–${t.lastFlowYear}, % of consumption`}
+                    rows={[
+                      { key: 'b', label: `Age ${age}, ${bot.toLowerCase()}`, value: Math.abs(tr[0]), text: plain(Math.abs(tr[0]), 1) },
+                      { key: 't', label: `Age ${age}, ${top.toLowerCase()}`, value: Math.abs(tr[6]), text: plain(Math.abs(tr[6]), 1) },
+                    ]}
+                  />
+                  {narrows ? <p className="ex-mi-text">This narrows the gap between the two groups and does not reverse it.</p> : null}
+                </>
+              ) : null}
+            </section>
+            <section className="ex-mi-part">
+              <h4 className="ex-mi-head">{wc < ONS_TOP_TENTH.pct ? 'Wealth is less concentrated than in the UK' : 'Wealth concentration against the UK'}</h4>
+              <Bars
+                caption="Share of wealth held by the top tenth"
+                rows={[
+                  { key: 'm', label: `Model, adults, ${t.shockYear}`, value: wc, text: plain(wc) },
+                  { key: 'o', label: `ONS, households, ${ONS_TOP_TENTH.period}`, value: ONS_TOP_TENTH.pct, text: `${ONS_TOP_TENTH.pct}%` },
+                ]}
+              />
+              <p className="ex-mi-note">
+                <Icon name={iconFor('limit')} size={14} /> Not like for like: the ONS figure is for households in Great Britain. The model’s is for adults, ranked across age and earnings groups.
+              </p>
+              <p className="ex-mi-src">{ext(ONS_TOP_TENTH.url, 'ONS, Household total wealth in Great Britain, April 2018 to March 2020')}</p>
+              {wc < ONS_TOP_TENTH.pct ? (
+                <>
+                  <p className="ex-mi-text">With wealth as concentrated as in ONS data, more of the higher return would go to the top group; the ranking could narrow or reverse.</p>
+                  <p className="ex-mi-text">The runs do not test that.</p>
+                </>
+              ) : null}
+            </section>
+          </div>
+        </Disclosure>
+      </div>
+    </>
   );
 }
 
@@ -603,7 +869,6 @@ export default function WhoGainsTab() {
   const yDomain = both && ys.length ? [Math.min(...ys), Math.max(...ys)] : null;
   const armLabel = ARMS.find((a) => a.id === arm).label;
   const clWords = both ? 'some foreign capital and no foreign capital' : CL_WORDS[cl];
-  const p = c.parts_alive;
 
   return (
     <>
@@ -644,7 +909,7 @@ export default function WhoGainsTab() {
       ) : (
         <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} />
       )}
-      <ByForm p={p} both={both} hasT={measuresOf(c, rule, cl, arm).some((m) => m.id === 'T')} />
+      <ByForm c={c} both={both} />
       <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
       <div className="cards-stack stack-gap">
         <Card
@@ -680,12 +945,12 @@ export default function WhoGainsTab() {
               <Items
                 items={[
                   { key: 'job', icon: 'excluded', text: 'The model has no job loss' },
-                  { key: 'wealth', icon: 'inequality', text: <>It spreads wealth more evenly than {ext(ONS_WEALTH, 'ONS wealth data')}</> },
+                  { key: 'wealth', icon: 'inequality', text: <JumpLink to="who-model-households">How the model’s households compare with the UK</JumpLink> },
                   { key: 'beq', icon: 'bequests', text: 'It places a value on leaving bequests' },
                   { key: 'sens', icon: 'range', text: 'The share of adults who lose is sensitive to all three' },
                   { key: 'assets', icon: 'interest', text: 'No asset prices: revaluing existing assets is left out' },
                   { key: 'old', icon: 'age', text: 'So that is not in the gain to older adults' },
-                  { key: 'fill', icon: 'young', text: `Born after 2011: up to ${c.fill_max_pp.toFixed(2)} percentage points from extending past 2085` },
+                  { key: 'fill', icon: 'young', text: `Born after 2011: up to ${c.fill_max_pp.toFixed(2)} percentage points from extending past ${HORIZON_YEAR}` },
                   { key: 'groups', icon: 'lifetimeEarnings', text: 'Earnings groups: percentiles of lifetime earnings, not income deciles' },
                 ]}
               />

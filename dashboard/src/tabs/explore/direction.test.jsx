@@ -11,7 +11,7 @@ import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
 import { economyAnswer, financesAnswer } from '@/tabs/explore/answers.js';
 import { debtParts } from '@/tabs/ai/FinancesSection.jsx';
 import { stressItems } from '@/tabs/ai/Headline.jsx';
-import { whySigns, consumptionChain } from '@/tabs/cohorts/CohortsTab.jsx';
+import { whySigns } from '@/tabs/cohorts/CohortsTab.jsx';
 import WhoGainsTab from '@/tabs/cohorts/CohortsTab.jsx';
 import { sensClaims } from '@/tabs/explore/SensitivityTable.jsx';
 
@@ -132,44 +132,44 @@ describe('the stress-test items', () => {
     });
 });
 
-describe('Who gains: the consumption chain and the stress test by age', () => {
+describe('Who gains: what drives the result, every claim from the signs', () => {
   const SARM = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
   for (const cl of ['zk0.1', 'zk0'])
     for (const rule of ['common', 'dn'])
       for (const arm of ['tfp', 'zfixed', 'stress'])
         it(`${cl}, ${rule}, ${arm}`, () => {
           const x = whySigns(cl, rule, arm);
-          const links = consumptionChain(x);
           const r = val('uk_central', SARM[arm], cl, 'r_bp', rule);
           const w = val('uk_central', SARM[arm], cl, 'w', rule);
-          const c0 = CO.closures[cl].rules[rule][arm].c_gap[String(CO.shock_year)];
-          const by = (k) => links.find((l) => l.key === k);
-          if (r != null) {
-            expect(Math.sign(by('r').dir)).toBe(Math.sign(r));
-            expect(by('r').text).toContain(r > 0 ? 'rises' : 'falls');
-          }
-          if (w != null) {
-            expect(by('w').dir).toBe(w);
-            expect(by('w').text).toContain(word(w));
-          }
-          expect(by('c').dir).toBe(c0);
-          expect(by('c').text).toContain(word(c0));
-          expect(by('s').text).toContain(c0 < 0 ? 'save more' : 'spend more');
-          // rendered: the chain's and the stress card's arrows follow the same signs
-          window.history.replaceState(null, '', `/?tab=explore&sub=who&closure=${cl === 'zk0' ? 'closed' : 'central'}&wrule=${rule}&arm=${arm}`);
+          const c = CO.closures[cl].rules[rule][arm];
+          const c0 = c.c_gap[String(CO.shock_year)];
+          if (r != null) expect(Math.sign(x.r)).toBe(Math.sign(r));
+          if (w != null) expect(x.w).toBe(w);
+          expect(x.c0).toBe(c0);
+          // rendered: block A's lead and line follow the sign of the shock-year gap
+          window.history.replaceState(null, '', `/?tab=explore&sub=who&closure=${cl === 'zk0' ? 'closed' : 'central'}&rule=${rule}&arm=${arm}`);
           const { container, unmount } = render(
             <NavProvider>
               <WhoGainsTab />
             </NavProvider>,
           );
-          const chain = [...container.querySelectorAll('.ex-chain [data-dir]')].map((e) => e.dataset.dir);
-          expect(chain).toEqual([r, w, c0].filter((v) => v != null).map(dataDir));
+          const boxes = [...container.querySelectorAll('.ex-why2 > .finding')];
+          expect(boxes).toHaveLength(4);
+          const [A, , , Dbox] = boxes;
+          const lead = A.querySelector('.finding-lead').textContent;
+          if (c0 < 0) expect(lead).toMatch(c.first_year_c_above ? /falls below the forecast path first, then rises above it/ : /stays below the forecast path/);
+          else expect(lead).toContain('starts above the forecast path');
+          if (c.first_year_c_above) expect(A.textContent).toContain(`above the forecast path from ${c.first_year_c_above}`);
+          // the line's two ends: the first and last years of c_gap
+          const ys = Object.keys(c.c_gap).map(Number);
+          expect([...A.querySelectorAll('.ex-cl-year')].map((e) => Number(e.textContent))).toEqual([Math.min(...ys), Math.max(...ys)]);
+          // block D: the youngest adult and age 65 in the stress test
           const xs = CO.closures[cl].birth_year;
-          const young = CO.closures[cl].rules[rule].stress.cev_all[xs.lastIndexOf(CO.shock_year - 20)];
-          const cards = [...container.querySelectorAll('.card.info')];
-          const stressCard = cards[cards.length - 1];
-          expect([...stressCard.querySelectorAll('[data-dir]')].map((e) => e.dataset.dir)).toEqual([dataDir(young)]);
-          expect(stressCard.textContent).toContain(young < 0 ? 'Youngest adults lose' : 'Youngest adults gain least');
+          const s = CO.closures[cl].rules[rule].stress;
+          const young = s.cev_all[xs.indexOf(CO.shock_year - 20)];
+          const vals = [...Dbox.querySelectorAll('.ex-bars2-val')];
+          expect(vals[0].className).toContain(dataDir(young) === 'above' ? 'is-gain' : dataDir(young) === 'below' ? 'is-loss' : 'ex-bars2-val');
+          expect(Dbox.querySelector('.finding-lead').textContent).toContain(young < 0 ? 'the youngest adults lose' : 'gain least');
           unmount();
         });
 });

@@ -183,9 +183,10 @@ for rid, rule in D.get('rules', {}).items():
 # the post-2035 cost charged (a range), the capital and labour sources, the
 # bottom and top earnings groups, and the 45-year-old's transfer cost. Two
 # different facts can round to the same figure (the no-bequest average and
-# the top 1%), so this is a multiset. The by-form parts (consumption,
-# leisure, bequests: parts_alive) print once, beside their key, at the
-# central closure (with Both too).
+# the top 1%), so this is a multiset. The welfare breakdown card's parts
+# (consumption, leisure, bequests: parts_alive) print once, at each bar's
+# end, at the central closure (with Both too); its Total row restates the
+# average tile and is marked data-axis, so dumptabs leaves it out.
 CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
 def tiles(c, cl=None):
     exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['sources_alive']['capital'], c['sources_alive']['labour']])
@@ -199,11 +200,17 @@ def tiles(c, cl=None):
         for t in {lo, hi}:  # an equal low and high print once
             exp[t] += 1
     return exp
-def why(c):
-    exp = Counter(signed(x, 2) + '%' for x in [c['alive_by_group'][0], c['alive_by_group'][6]])
-    for x in (c['income_2028_35_age45']['transfers'][0], c['income_2028_35_age45']['transfers'][6]):
-        exp[f"{abs(x):.1f}%"] += 1
-    return exp
+# What drives the result (item 21): the bottom and top earnings groups (box
+# B), the consumption line's two ends (box A: the first and last c_gap
+# years) and the stress test at ages 20 and 65 (box D). The age-45 transfer
+# pair is inside the closed "More info" disclosure, so it is not read.
+def why(c, cl=C, rule='dn'):
+    s = CO['closures'][cl]['rules'][rule]['stress']
+    xs = CO['closures'][cl]['birth_year']
+    ys = sorted(c['c_gap'], key=int)
+    vals = [c['alive_by_group'][0], c['alive_by_group'][6], c['c_gap'][ys[0]], c['c_gap'][ys[-1]],
+            s['cev_all'][xs.index(CO['shock_year'] - 20)], s['cev_all'][xs.index(CO['shock_year'] - 65)]]
+    return Counter(signed(x, 2) + '%' for x in vals)
 c = CO['closures'][C]['rules']['dn']['tfp']
 def parts(c):
     return Counter(signed(c['parts_alive'][k], 2) + '%' for k in ('consumption', 'leisure', 'bequests'))

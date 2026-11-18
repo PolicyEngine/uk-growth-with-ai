@@ -267,7 +267,6 @@
 .ex-taxlabel .plain-icon,
 .ex-taxlink .plain-icon,
 .ex-roughchip .plain-icon,
-.ex-tl-year .plain-icon,
 .ex-rdb-label .plain-icon,
 .ex-rdb-none .plain-icon {
   display: inline-flex;
@@ -355,30 +354,8 @@
   r: 6px;
 }
 
-/* Public finances: the rule cards, the timeline and the dumbbells. */
+/* Public finances: the dumbbells. */
 
-.ex-timeline {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-  margin: 4px 0;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.ex-tl-year {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.ex-tl-span {
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: var(--pe-gray-100);
-  text-align: center;
-}
 .ex-rdb {
   display: grid;
   gap: 4px;
@@ -444,9 +421,6 @@
   }
   .ex-taxaxis .ex-taxtrack {
     margin-top: 0;
-  }
-  .ex-timeline {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -517,10 +491,6 @@
 }
 .ex-mchip .plain-icon,
 .ex-bar-code .plain-icon,
-.ex-pair-label .plain-icon,
-.ex-caveat-chip .plain-icon,
-.ex-byform .plain-icon,
-.ex-spark figcaption .plain-icon,
 .card-tag .plain-icon {
   display: inline-flex;
   color: var(--pe-gray-500);
@@ -540,8 +510,7 @@
   font-size: clamp(1.25rem, 2.2vw, 1.75rem);
   white-space: nowrap;
 }
-.ex-bars,
-.ex-pairs {
+.ex-bars {
   display: grid;
   gap: 6px;
   margin: 8px 0 0;
@@ -555,14 +524,8 @@
   gap: 8px;
   align-items: center;
 }
-.ex-pairs > li {
-  display: grid;
-  grid-template-columns: minmax(110px, 40%) minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-}
-.ex-bar-code,
-.ex-pair-label {
+
+.ex-bar-code {
   display: inline-flex;
   gap: 4px;
   align-items: center;
@@ -595,8 +558,7 @@
 .ex-split-bar.is-loss {
   background: var(--c-loss);
 }
-.ex-bars .ex-dd,
-.ex-pairs .ex-dd {
+.ex-bars .ex-dd {
   font-weight: 600;
   white-space: nowrap;
   color: var(--pe-gray-900);
@@ -666,102 +628,7 @@
   height: 10px;
   border-radius: 2px;
 }
-.ex-byform {
-  margin: 20px 0 24px;
-}
-.ex-byform-title,
-.ex-caveat-chip {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 0 0 6px;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  color: var(--pe-gray-800);
-}
-.ex-byform-bar {
-  display: flex;
-  height: 14px;
-  overflow: hidden;
-  border-radius: 4px;
-}
-.ex-byform-seg {
-  display: block;
-  height: 100%;
-}
-.ex-byform-seg.is-consumption,
-.ex-byform-swatch.is-consumption {
-  background: var(--series-2);
-}
-.ex-byform-seg.is-leisure,
-.ex-byform-swatch.is-leisure {
-  background: var(--series-3);
-}
-.ex-byform-seg.is-bequests,
-.ex-byform-swatch.is-bequests {
-  background: var(--series-5);
-}
-.ex-byform-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.ex-byform-key li {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-}
-.ex-byform-swatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-.ex-caveat-chip {
-  margin: 10px 0;
-  padding: 6px 10px;
-  border-left: 3px solid var(--c-highlight);
-  font-size: var(--fs-caption);
-}
-.ex-spark {
-  margin: 0 0 10px;
-}
-.ex-spark > svg {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  height: 52px;
-}
-.ex-spark-zero {
-  stroke: var(--pe-gray-400);
-  stroke-dasharray: 2 2;
-}
-.ex-spark-line {
-  fill: none;
-  stroke: var(--series-2);
-  stroke-width: 2;
-}
-.ex-spark figcaption {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.ex-why-grid .card-body > * + * {
-  margin-top: 10px;
-}
-.ex-tl-who {
-  grid-template-columns: auto minmax(0, 1fr);
-}
-.ex-tl-who .is-end {
-  grid-column: 1 / -1;
-}
+
 .ex-ctx {
   display: inline-flex;
   flex-wrap: wrap;
@@ -776,7 +643,6 @@
 @media (prefers-reduced-motion: no-preference) {
   .ex-bar-fill,
   .ex-ruler-fill,
-  .ex-byform-bar,
   .ex-rdb-bar {
     animation: ex-grow 0.7s ease-out both;
   }
@@ -789,40 +655,13 @@
     transform: scaleX(1);
   }
 }
-.ex-byform-bar,
 .ex-taxbar,
 .ex-rdb-bar {
   transform-origin: left;
 }
 
-.ex-tl-span {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-}
-.ex-tl-span .plain-icon {
-  display: inline-flex;
-}
-.ex-why-grid * + .ex-pairs-block,
-.ex-why-grid .ex-timeline + .story-items {
-  margin-top: 12px;
-}
-.ex-why-grid .ex-pairs-block:not(:last-child) {
-  margin-bottom: 12px;
-}
 /* what a pair of bars measures, printed above them */
-.ex-pairs-cap {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 0;
-  font-size: var(--fs-caption);
-  color: var(--pe-gray-600);
-}
-.ex-pairs-cap + .ex-pairs {
-  margin-top: 6px;
-}
+
 .ex-bars > li {
   grid-template-columns: 40px minmax(0, 1fr) 4.8em;
 }
@@ -2506,12 +2345,6 @@
 /* Households plane axis titles (SVG) */
 .hh-axis-title { font-size: 11px; fill: var(--pe-color-gray-600); }
 
-/* Who gains: the by-form parts' two or three notes (economics review, round 1) */
-.ex-byform-notes {
-  margin-top: 8px;
-  font-size: 14px;
-}
-
 /* More foreign capital (zeta_K 0.5): the heatmap grid */
 .ex-sg-wrap { max-height: 70vh; overflow: auto; }
 .ex-sg-ctx > span { display: inline-flex; align-items: baseline; gap: 4px; }
@@ -2653,10 +2486,6 @@
 }
 
 /* the sparkline's two ends, named by their years */
-.ex-spark-end {
-  font: 500 10px/1 var(--ch-font, inherit);
-  fill: var(--series-2, #026aa2);
-}
 
 /* Deciles under three rankings: the widest decile's three dots named in
    place (the lowest and highest beside them, the middle one under) */
@@ -2821,4 +2650,337 @@
   font-size: var(--chart-fs-tick, 14px);
   font-weight: 600;
   color: var(--pe-gray-600);
+}
+
+/* Who gains: the welfare breakdown card (item-19-fable.md), a Finding with
+   layout="side". Four rows on one axis: label, then the track, with the
+   value at the bar's end (left end when negative). */
+.ex-parts-unit {
+  margin: 0 0 8px;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+}
+.ex-parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex-parts > li {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 420px);
+  align-items: center;
+  height: 28px;
+}
+.ex-parts-label {
+  font-size: var(--chart-fs-label, 15px);
+  color: var(--pe-gray-800);
+  white-space: nowrap;
+}
+.ex-parts-track {
+  position: relative;
+  height: 28px;
+}
+/* room for the values beyond the bars' ends */
+.ex-parts-plot {
+  position: absolute;
+  inset: 0;
+}
+.ex-parts.has-pos .ex-parts-plot {
+  right: 64px;
+}
+.ex-parts.has-neg .ex-parts-plot {
+  left: 64px;
+}
+.ex-parts-zero {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--pe-gray-400);
+}
+.ex-parts > li:first-child .ex-parts-zero {
+  top: 4px;
+}
+.ex-parts > li:last-child .ex-parts-zero {
+  bottom: 4px;
+}
+.ex-parts-tip {
+  position: absolute;
+  top: 7px;
+  height: 14px;
+}
+.ex-parts-tip .ex-parts-bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--parts-fill); /* GROUP_RAMP[3], set on the list */
+}
+.ex-parts > li.is-total .ex-parts-bar {
+  background: var(--pe-gray-800);
+}
+.ex-parts-val {
+  position: absolute;
+  top: 50%;
+  padding-left: 8px;
+  transform: translateY(-50%);
+  font-size: var(--chart-fs-label, 15px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900);
+  white-space: nowrap;
+}
+.ex-parts-val.is-neg {
+  padding-right: 8px;
+  padding-left: 0;
+}
+.ex-parts-wrap .finding-note {
+  margin-top: 10px;
+}
+@media (max-width: 600px) {
+  .ex-parts > li {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+  .ex-parts-label,
+  .ex-parts-val {
+    font-size: 14px;
+  }
+}
+
+/* Who gains: what drives the result (item-21-fable.md). Four Finding boxes,
+   A and B in the first row and C and D in the second from 900px; the
+   "More info" disclosure under them, full width. */
+.ex-why2 {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .ex-why2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ex-mi-box {
+  margin-top: 16px;
+  padding: var(--card-padding, 20px);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius, 12px);
+}
+.ex-mi-box .disclosure-title > span:first-child {
+  font-size: var(--chart-fs-head, 16px);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.ex-mi-box .disclosure-content {
+  margin-top: 16px;
+}
+.ex-jump {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--pe-teal-700, var(--pe-teal-600));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+/* Bars on one axis: label, bar, value (its own right-aligned cell) */
+.ex-bars2 {
+  margin: 0;
+}
+.ex-bars2 + .ex-bars2,
+.ex-bars2 + .ex-mi-text + .ex-bars2 {
+  margin-top: 12px;
+}
+.ex-bars2-list {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) minmax(48px, 1fr) auto;
+  grid-auto-rows: minmax(24px, auto);
+  column-gap: 12px;
+  row-gap: 6px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* one grid for the whole list, so every row's bar starts at one x */
+.ex-bars2-list > li {
+  display: contents;
+}
+.ex-bars2-label {
+  white-space: nowrap;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-800);
+}
+.ex-bars2-track {
+  position: relative;
+  height: 14px;
+}
+.ex-bars2-zero {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 1px;
+  background: var(--pe-gray-400);
+}
+.ex-bars2-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: var(--pe-gray-400);
+}
+.ex-bars2-val {
+  min-width: 56px;
+  font-size: var(--chart-fs-tick, 14px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--pe-gray-900);
+}
+.ex-bars2-val.is-gain {
+  color: var(--c-gain-text, var(--c-gain));
+}
+.ex-bars2-val.is-loss {
+  color: var(--c-loss-text, var(--c-loss));
+}
+.ex-bars2-cap {
+  margin-top: 6px;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+}
+/* A's line: HTML end labels beside a stretched svg */
+.ex-cl {
+  margin: 0;
+}
+.ex-cl-plot {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  column-gap: 8px;
+}
+.ex-cl-area {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+}
+.ex-cl-area {
+  height: 100%;
+}
+.ex-cl-area > svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ex-cl-zero {
+  stroke: var(--pe-gray-400);
+  stroke-width: 1;
+}
+.ex-cl-line {
+  fill: none;
+  stroke: var(--pe-gray-800);
+  stroke-width: 2;
+}
+.ex-cl-zero-label {
+  position: absolute;
+  right: 0;
+  transform: translateY(-115%);
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+  pointer-events: none;
+}
+.ex-cl-end {
+  position: absolute;
+  display: grid;
+  transform: translateY(-50%);
+  font-size: var(--chart-fs-tick, 14px);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.ex-cl-end.is-start {
+  left: 0;
+  width: 64px;
+  text-align: right;
+}
+.ex-cl-end.is-end {
+  right: 0;
+  width: 64px;
+}
+.ex-cl-year {
+  color: var(--pe-gray-600);
+}
+.ex-cl-val {
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.ex-cl-hit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+/* E: the disclosure's parts, no inner boxes */
+.ex-mi {
+  display: grid;
+  gap: 20px;
+  max-width: 72ch;
+}
+.ex-mi-lead,
+.ex-mi-text,
+.ex-mi-note,
+.ex-mi-src {
+  margin: 0;
+  font-size: var(--chart-fs-label, 15px);
+  line-height: 1.45;
+  color: var(--pe-gray-800);
+}
+.ex-mi-lead + .ex-mi-lead {
+  margin-top: -16px;
+}
+.ex-mi-part {
+  display: grid;
+  gap: 8px;
+}
+.ex-mi-head {
+  margin: 0;
+  font-size: var(--chart-fs-label, 15px);
+  font-weight: 600;
+  color: var(--pe-gray-900);
+}
+.ex-mi-note {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+}
+.ex-mi-note .plain-icon {
+  margin-top: 2px;
+  flex: none;
+}
+.ex-mi-src {
+  font-size: var(--chart-fs-tick, 14px);
+}
+@media (max-width: 600px) {
+  .ex-bars2-label,
+  .ex-bars2-val,
+  .ex-bars2-cap,
+  .ex-cl-end,
+  .ex-cl-zero-label,
+  .ex-mi-note,
+  .ex-mi-src {
+    font-size: 13px;
+  }
+  .ex-mi-lead,
+  .ex-mi-text,
+  .ex-mi-head {
+    font-size: 14px;
+  }
+  .ex-bars2-list {
+    grid-template-columns: max-content minmax(40px, 1fr) auto;
+    column-gap: 10px;
+  }
 }

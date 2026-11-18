@@ -8,11 +8,13 @@ import { iconFor } from '@/lib/concepts.js';
 // no bar, no pills. `actions` (optional) sits at the end of the lead row:
 // a card's sources and download buttons. The text follows the pickers, so
 // it is a polite live region.
-//   <Finding icon="age" lead="…" lines={['…', '…']} note={…}>{children}</Finding>
-export default function Finding({ id, icon, lead, lines = [], note, actions, children, className = '' }) {
+//   <Finding icon="age" lead="…" lines={['…', '…']} note={…} layout="stack | side">{children}</Finding>
+// layout="side": at 900px and wider the text is the left column and the
+// children the right; below that everything stacks in slot order.
+export default function Finding({ id, icon, lead, lines = [], note, actions, children, layout = 'stack', className = '' }) {
   const shown = lines.filter(Boolean);
   return (
-    <section className={`finding ${className}`.trim()} id={id}>
+    <section className={`finding${layout === 'side' ? ' is-side' : ''} ${className}`.trim()} id={id}>
       <div className="finding-head">
         <p className="finding-lead" aria-live="polite">
           {icon ? <Icon name={iconFor(icon)} size={18} className="finding-icon" /> : null}
