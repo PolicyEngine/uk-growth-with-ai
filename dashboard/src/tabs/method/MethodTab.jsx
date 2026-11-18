@@ -20,6 +20,7 @@ import { ext } from '../shared/ui.jsx';
 import ModelDiagram, { flowTable, diagramSvg } from './ModelDiagram.jsx';
 import Cohorts from './Cohorts.jsx';
 import ScenariosSection from './ScenariosSection.jsx';
+import { investStepLine } from './investStep.js';
 import UsedBy from './UsedBy.jsx';
 import { SRC } from './sources.js';
 
@@ -140,6 +141,8 @@ const RULE_TEXT = {
     icon: 'rule',
     tag: 'Default: every solve, and Explore unless you choose another',
     items: [
+      // M11: the step in the debt rule's first year (only while the data shows it)
+      ...(investStepLine() ? [{ icon: 'jump', text: investStepLine() }] : []),
       { icon: 'finances', text: 'Government consumption and transfers are fixed shares of GDP.' },
       { icon: 'rule', text: <>A modelling choice, against OG-UK&rsquo;s default of 4 ({ext(SRC.tg1.url, 'tG1 = 10')}).</> },
       { icon: 'timing', text: `So debt is quoted for ${HEADLINE_YEAR} and ${LATE_YEAR}.` },
@@ -157,15 +160,24 @@ const RULE_TEXT = {
     tag: 'Headline rule on Who gains',
     items: [
       { icon: 'rule', text: <>A modelling choice ({cite('fiscalRules')}).</> },
+      { icon: 'timing', text: 'The debt rule applies in every run but one: the Who gains run that keeps debt-neutral transfers on to the horizon.' },
     ],
   },
 };
+// A list item is at most 12 words (check_text): a full sentence over that
+// is set as a short paragraph under its card's list, its wording kept.
+const longItem = (it) => typeof it.text === 'string' && it.text.trim().split(/\s+/).length > 12;
 const NOTE_ICON = { common: 'path', fixed: 'finances', dn: 'households' };
 const RULES = RULE_NAMES.map((r) => ({
   ...RULE_TEXT[r.id],
   title: r.label,
   items: [{ icon: NOTE_ICON[r.id], text: `${r.note}.` }, ...RULE_TEXT[r.id].items],
 }));
+
+// OG-UK's gap between the effective tax rates on labour and on gross
+// capital income, some foreign capital (as Explore > Finances reads it)
+const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
+const TAX_GAP = ETR.labour - ETR.capital_gross;
 
 // What the model leaves out: one short list, a line each, every fact once.
 function Limitations() {
@@ -176,11 +188,13 @@ function Limitations() {
     { title: 'Slow capital response', text: <>elasticity below {ext(SRC.korinekT5.url, 'Korinek et al.’s')} lowest ({ext(DOC('red_flags_1_3.md'), 'red flag 1')}).</> },
     {
       title: 'Revenue responds too little',
+      // a full sentence over 12 words: a paragraph under the list
+      para: true,
       text: (
         <>
-          labour and capital income{' '}
+          OG-UK&rsquo;s gap between tax on labour and on capital income ({TAX_GAP.toFixed(1)}pp) is{' '}
           <NavLink tab="explore" sub="finances" anchor="tax-gap">
-            taxed alike
+            narrower than the OBR&rsquo;s rates imply
           </NavLink>
           .
         </>
@@ -195,13 +209,24 @@ function Limitations() {
     { title: 'No regions or housing', text: 'one national economy.' },
   ];
   return (
-    <ul className="mx-limit-list">
-      {items.map((it) => (
-        <li key={it.title}>
-          <span className="mx-limit-title">{it.title}:</span> {it.text}
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mx-limit-list">
+        {items
+          .filter((it) => !it.para)
+          .map((it) => (
+            <li key={it.title}>
+              <span className="mx-limit-title">{it.title}:</span> {it.text}
+            </li>
+          ))}
+      </ul>
+      {items
+        .filter((it) => it.para)
+        .map((it) => (
+          <p key={it.title} className="mx-limit-para">
+            <span className="mx-limit-title">{it.title}:</span> {it.text}
+          </p>
+        ))}
+    </>
   );
 }
 
@@ -426,7 +451,15 @@ export default function MethodTab() {
                 <p className="mx-kicker">
                   <IconText icon="link">{r.tag}</IconText>
                 </p>
-                <Items items={r.items} />
+                <Items items={r.items.filter((it) => !longItem(it))} />
+                {r.items.filter(longItem).flatMap((it) =>
+                  // one paragraph a sentence (a paragraph is at most 25 words)
+                  it.text.split(/(?<=\.) (?=[A-Z])/).map((t) => (
+                    <p key={t} className="mx-card-para">
+                      {t}
+                    </p>
+                  )),
+                )}
               </InfoCard>
             ))}
           </FoldGrid>
@@ -489,7 +522,7 @@ export default function MethodTab() {
                         </>
                       ),
                     },
-                    { icon: 'check', text: <>After each solve, a sanity check tests identities and the labour share ({cite('checks')}).</> },
+                    { icon: 'check', text: <>After each solve, a sanity check tests identities and the labour share ({cite('sanity')}).</> },
                     { icon: 'limit', text: 'Any failure stops the run.' },
                   ]}
                 />

@@ -62,6 +62,8 @@ export const SRC = {
   rerunNote: { label: 'rerun note', url: `${REPO}/blob/${RUN}/docs/rerun_r1_r4.md` },
   pr43: { label: 'PR #43', url: `${REPO}/pull/43` },
   checks: { label: 'checks.py', url: code('uk_growth_with_ai/checks.py') },
+  sanity: { label: 'sanity.py', url: code('analysis/surprise/sanity.py', 160) },
+  contGate: { label: 'surprise.py: CONT_TIGHT', url: code('uk_growth_with_ai/surprise.py', 66) },
 };
 
 // Replication: for each Method section, the code that produces it and the
