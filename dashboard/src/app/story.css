@@ -2970,3 +2970,20 @@
   font-size: var(--t-meta);
   color: var(--t-muted);
 }
+
+/* Every <ol> in the Story is layout (step cards, rows, the rail): no number
+   or bullet, ever, so no bare "1." shows while a step's text is hidden or
+   before its stylesheet rule applies (Vahid, 18 Nov). check_text asserts it. */
+.tab-story ol,
+.tab-story ol > li,
+.p2-output-texts,
+.p2-output-texts > li,
+.p2-wf,
+.p2-wf > li {
+  list-style: none;
+}
+.tab-story ol > li::marker,
+.p2-output-texts > li::marker,
+.p2-wf > li::marker {
+  content: none;
+}
