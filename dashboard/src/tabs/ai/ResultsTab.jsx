@@ -10,7 +10,7 @@ import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
-import { ruleLabel } from '@/lib/labels.js';
+import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { Dumbbells, HeadlineNote, stressItems, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -287,7 +287,7 @@ function IncomePanel({ sid }) {
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
-          unit={<span data-axis-title="y">{`Each version’s gap against the OBR’s central forecast path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${ruleLabel(st.rule).toLowerCase()}`}</span>}
+          unit={<span data-axis-title="y">{`Each version’s gap against the OBR’s central forecast path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${rulePlain(st.rule)}`}</span>}
           controls={
             <ControlBar label="Four measures: options">
               <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />

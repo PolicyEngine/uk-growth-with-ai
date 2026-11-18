@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { useChartBox } from '@/components/story/chart/useChartBox.js';
 import { iconFor } from '@/lib/concepts.js';
-import { ruleLabel } from '@/lib/labels.js';
+import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
@@ -164,7 +164,7 @@ export default function ClosureSlope({ sid }) {
       icon={iconFor('closure')}
       title="Some foreign capital to no foreign capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<Lead c="measure">{`Each version’s % difference from the OBR’s central forecast path, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
+      unit={<Lead c="measure">{`Each version’s % difference from the OBR’s central forecast path, ${HEADLINE_YEAR}, ${rulePlain(rule)}`}</Lead>}
       legend={
         <ul className="ex-slope-key">
           {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (

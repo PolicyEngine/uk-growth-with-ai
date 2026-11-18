@@ -12,7 +12,7 @@ import { side } from '@/tabs/ai/lines.js';
 import { Dir, Lead } from '@/tabs/explore/direction.jsx';
 import ControlBar, { ControlGroup, SeriesChips } from '@/components/ui/ControlBar.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
-import { ruleLabel } from '@/lib/labels.js';
+import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
 import D from '@/data/cohorts2028.json';
 import WhoHeatmap, { cohortSources } from '@/tabs/cohorts/WhoHeatmap.jsx';
@@ -629,7 +629,7 @@ export default function WhoGainsTab() {
           icon={iconFor('path')}
           title="Welfare change by birth year"
           finding={
-            <Lead c="scenario">{`${armLabel} · ${ruleLabel(rule)} · ${clWords}`}</Lead>
+            <Lead c="scenario">{`${armLabel} · ${clWords} · ${rulePlain(rule)}`}</Lead>
           }
           unit={<Lead c="measure">Consumption-equivalent change, % of remaining-lifetime consumption and bequests</Lead>}
           controls={

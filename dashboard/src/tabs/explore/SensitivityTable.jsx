@@ -282,7 +282,7 @@ export default function SensitivityTable() {
           ) : null}
         </>
       }
-      unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path for the same foreign-capital case, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
+      unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path for the same foreign-capital case, ${HEADLINE_YEAR}, %; spending follows GDP`}</span>}
       read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}

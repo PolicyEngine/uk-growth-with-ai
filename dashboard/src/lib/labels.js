@@ -71,11 +71,13 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 // follow GDP. Cohorts' "common" cell carries the same solve label as the
 // default Results solve, so it is one rule under one name.
 export const RULES = [
-  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP' },
-  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level' },
-  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect' },
+  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP', plain: 'spending follows GDP' },
+  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level', plain: 'spending held fixed' },
+  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect', plain: 'debt held steady by transfers to households' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;
+// The budget assumption in plain words, for figure subtitles.
+export const rulePlain = (id) => RULES.find((r) => r.id === id)?.plain ?? ruleLabel(id).toLowerCase();
 
 // Method page anchors, for every "About this chart" link.
 export const METHOD = {
