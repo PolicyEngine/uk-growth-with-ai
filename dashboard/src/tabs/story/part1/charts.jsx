@@ -78,7 +78,11 @@ export function OutputCanvas({ state, notes }) {
   const q = SERIES.gdp_quarterly;
   const L = OUT_M.l;
   const R = w - OUT_M.r;
-  const T = OUT_M.t;
+  // narrow (phones): the quarterly state's two labels over the plot take
+  // two lines (side by side they overlapped at 390), so the plot starts
+  // 16px lower; the figure's height is unchanged
+  const narrow = R - L < 460;
+  const T = OUT_M.t + (narrow ? 16 : 0);
   const B = h - OUT_M.b;
   const fc = state >= 1;
   const zoomed = state >= 2;
@@ -247,7 +251,7 @@ export function OutputCanvas({ state, notes }) {
           {/* quarters: they grow from zero once the zoom has landed */}
           <rect x={L + (z1 - z0) * slotZ} y={T} width={slotZ} height={B - T} className="p1-band p1-only-q" />
           {/* the two series of the quarterly state, labelled directly (check_axes) */}
-          <text x={L + 2} y={T - 8} className="p1-note p1-only-q" data-label-for="q-past">
+          <text x={L + 2} y={T - (narrow ? 25 : 8)} className="p1-note p1-only-q" data-label-for="q-past">
             Earlier quarters
           </text>
           <text x={R} y={T - 8} textAnchor="end" className="p1-note p1-only-q" data-label-for="q-now">
