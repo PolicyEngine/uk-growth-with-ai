@@ -2965,13 +2965,10 @@ a.lens-pay-num:hover {
 }
 @media screen and (prefers-reduced-motion: no-preference) {
   .p3-close-card .p3-out tbody {
-    transition:
-      opacity 400ms ease calc(var(--i, 0) * 120ms),
-      transform 500ms var(--story-ease) calc(var(--i, 0) * 120ms);
+    transition: opacity 400ms ease calc(var(--i, 0) * 120ms);
   }
   .p3-close-card:not(.is-in) .p3-out tbody {
     opacity: 0;
-    transform: translateY(6px);
   }
   .p3-close-card.is-snap .p3-out tbody {
     transition: none !important;

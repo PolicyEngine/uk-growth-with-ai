@@ -192,6 +192,31 @@ function frameBreaks(pts) {
   return out;
 }
 
+// Where an off-scale year's note goes (states 0-1; push B sign-off): beside
+// the frame edge the line leaves by, on the open side of the steep segment
+// next to it, so the note never crosses the line. A year off the bottom
+// ("2020 ↓") sits left of the segment coming down into it, end-anchored; a
+// year off the top ("2021 ↑") right of the segment coming down out of it,
+// start-anchored. Measured from the line's x at the note's nearer edge
+// (fs: the note's font size in user units).
+export function offNotePlace(act, o, fs) {
+  const i = ACT.findIndex(([x]) => x === o.year);
+  const O = act[i];
+  const at = (A, B, y) => A[0] + ((y - A[1]) / (B[1] - A[1])) * (B[0] - A[0]);
+  if (O && o.up) {
+    const N = act[i + 1];
+    const y = PY0 + 0.75 * fs + 2;
+    const bottom = y + 0.25 * fs;
+    if (N && N[1] > bottom && O[1] < bottom) return { x: at(O, N, bottom) + 4, y, anchor: 'start' };
+  } else if (O) {
+    const P = act[i - 1];
+    const y = PY1 - 0.25 * fs - 4;
+    const top = y - 0.75 * fs;
+    if (P && P[1] < top && O[1] > top) return { x: at(P, O, top) - 4, y, anchor: 'end' };
+  }
+  return { x: o.x + (o.up ? 7 : -7), y: o.up ? PY0 + 8 : PY1 - 20, anchor: o.up ? 'start' : 'end' };
+}
+
 // The scenarios drawn on the canvas, and the values each state's gap axis
 // holds: the UK scenarios in states 2 and 3 (all four when Korinek et al.
 // is the one chosen), all four in state 4.
@@ -406,7 +431,10 @@ function useMorphScrub(ref, on, g1, g2) {
         const k = el.dataset.scrubPath;
         if (reduce) {
           el.setAttribute('d', pathOf(k === 'gap' ? b[k] : a[k]));
-          el.style.opacity = String(k === 'gap' ? e : (k === 'obr' ? 1 : 1) * (1 - e));
+          // the same two-half hand-over as the axes and labels: the old lines
+          // go over the first half, the gap line comes over the second
+          // (push B sign-off, suite ruling (i))
+          el.style.opacity = String(k === 'gap' ? Math.max(0, 2 * e - 1) : Math.max(0, 1 - 2 * e));
         } else {
           el.setAttribute('d', pathOf(lerpPts(a[k], b[k], e)));
           if (k === 'obr') el.style.opacity = String(1 - e);
@@ -606,8 +634,10 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               <g key={`x${x}`} className={`p2-mo-x${on ? ' is-on' : ''}`} data-scrub-x={sx} style={{ transform: `translate(${tickX(x, k).toFixed(1)}px, 0px)` }}>
                 {/* the growth axis's last year sits on the plot's right edge:
                     end-anchored there, so it is not cut by the svg (item 30,
-                    "2031" clipped at 390) */}
-                <text data-axis="" x={0} y={H - 8} textAnchor={k < 2 && x === OBR_LAST ? 'end' : 'middle'} className="p2-tick">
+                    "2031" clipped at 390); its first year sits on the left
+                    edge, start-anchored, clear of the "−2" tick, also while it
+                    fades out across the scrubbed step (push B sign-off) */}
+                <text data-axis="" x={0} y={H - 8} textAnchor={k < 2 && x === OBR_LAST ? 'end' : (k < 2 || sc) && x === X_TICKS[1][0] ? 'start' : 'middle'} className="p2-tick">
                   {x}
                 </text>
               </g>
@@ -683,11 +713,14 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           ))}
           {/* off-scale years (states 0-1): named, not valued */}
           <g className={`p2-mo-fade${k < 2 || sc ? ' is-on' : ''}`} data-scrub={sc ? 'out2' : undefined}>
-            {(sc ? g1 : gOff).off.map((o) => (
-              <text key={o.year} data-axis="" x={o.x + (o.up ? 7 : -7)} y={o.up ? PY0 + 8 : PY1 - 20} textAnchor={o.up ? 'start' : 'end'} className="p2-mo-off">
-                {o.year} {o.up ? '↑' : '↓'}
-              </text>
-            ))}
+            {(sc ? g1 : gOff).off.map((o) => {
+              const n = offNotePlace((sc ? g1 : gOff).act, o, sz.tick);
+              return (
+                <text key={o.year} data-axis="" x={n.x} y={n.y} textAnchor={n.anchor} className="p2-mo-off">
+                  {o.year} {o.up ? '↑' : '↓'}
+                </text>
+              );
+            })}
           </g>
           {/* direct labels */}
           <g className={`p2-mo-fade${s === 0 ? ' is-on' : ''}`}>

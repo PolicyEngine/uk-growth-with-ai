@@ -153,7 +153,7 @@ export function debtWhy(sid, closure, rule) {
   const rUp = every('r_bp', (x) => x > 0);
   const taxDown = every('tax_gdp_pp', (x) => side(x) === 'below');
   if (from != null) {
-    const lead = from === SURPRISE_YEAR ? 'After that it rises against the path every year.' : `From ${from} it rises against the path every year in every version.`;
+    const lead = from === SURPRISE_YEAR ? 'After that it rises against the path every year.' : `After ${from} it rises against the path every year in every version.`;
     const why = rUp && taxDown ? ` The interest rate is higher and tax/GDP is lower, while spending keeps pace with GDP until ${LATE_YEAR}.` : '';
     out.push({ key: 's2', text: `${lead}${why}` });
   }

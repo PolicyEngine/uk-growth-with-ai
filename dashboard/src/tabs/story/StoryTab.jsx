@@ -104,9 +104,8 @@ const RAIL = [
 
 // The bridge at the end of each part (consolidated design, bridge pattern):
 // NextPart's line, "Next: part n" and the next part's name, linked to its
-// opener; no deep links. Only the bridge into Part 4 has a second line: the
-// two models' figures are not added, and Part 4's question.
-export const BRIDGE_4 = `The two models’ figures are not added together. ${CLOSE_SUB.question}`;
+// opener; no deep links. All three are one line (push B sign-off, ruling 1:
+// the Part 4 band right under the bridge asks the close's question).
 
 export default function StoryTab() {
   return (
@@ -123,9 +122,7 @@ export default function StoryTab() {
       </section>
       <section className="story-part" data-part="3" id={PARTS[2].id} aria-labelledby={`${PARTS[2].id}-h`}>
         <Part3 part={PARTS[2]} />
-        <NextPart show n={4} title={CLOSE_SUB.title} to="story-close">
-          {BRIDGE_4}
-        </NextPart>
+        <NextPart show n={4} title={CLOSE_SUB.title} to="story-close" />
       </section>
       <TwoLenses />
     </div>
