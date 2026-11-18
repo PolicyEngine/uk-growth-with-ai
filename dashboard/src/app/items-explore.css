@@ -3033,3 +3033,22 @@
 /* an open More info lengthens its own card only: the other chart keeps its
    height, so its legend stays under its chart */
 .cards-grid > #debt-gdp, .cards-grid > #tax-gdp { align-self: start; }
+/* item 39 (wording for Fable): the zeta_K 0.5 grid's key line, always
+   visible under the grid */
+.ex-sg-keyline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 8px 0 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700, #374151);
+}
+.ex-sg-keyitem { display: inline-flex; align-items: center; gap: 4px; }
+.ex-sg-keyswatch {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  border: 2px dashed var(--pe-gray-900);
+  border-radius: 2px;
+}
+.ex-sg-more-unit.is-next { margin-top: 2px; }

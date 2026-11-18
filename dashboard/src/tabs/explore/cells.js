@@ -60,47 +60,71 @@ export const cellsTable = (arm, armLabel) => ({
   ),
 });
 
-// Which choice moves a measure most for an arm: the largest spread of its
-// headline-year gap across scenarios (common rule, some foreign capital), across
-// the two closures (any scenario, common rule) and across the three rules
-// (the scenarios solved under every rule, either closure).
+// Which choice moves a measure most for an arm (item 37,
+// ugai-reviews/item-37-fable.md section 5). Like for like: each factor's
+// range is taken holding the other two choices fixed, over every row
+// solved for all of that factor's levels (scenario: rule x closure rows
+// with all four scenarios; closure: scenario x rule rows with both cases;
+// rule: scenario x closure rows with all three rules), and summarised as
+// the max and the mean over those rows.
+const RANGE = (xs) => (xs.some((x) => x == null) || xs.length < 2 ? null : Math.max(...xs) - Math.min(...xs));
+const statOf = (rs) => {
+  const ys = rs.filter((x) => x != null);
+  return ys.length ? { max: Math.max(...ys), mean: ys.reduce((a, b) => a + b, 0) / ys.length, rows: ys.length } : { max: 0, mean: 0, rows: 0 };
+};
 export function spreads(arm, v) {
-  const span = (xs) => {
-    const ys = xs.filter((x) => x != null);
-    return ys.length > 1 ? Math.max(...ys) - Math.min(...ys) : 0;
-  };
   const ids = SCENARIOS.map((s) => s.id);
+  const rules = RULES.map((r) => r.id);
   return {
-    scenario: span(ids.map((sid) => cellValue(sid, arm, CENTRAL, 'common', v))),
-    closure: Math.max(0, ...ids.map((sid) => span(CLS.map((cl) => cellValue(sid, arm, cl, 'common', v))))),
-    rule: Math.max(0, ...ids.flatMap((sid) => CLS.map((cl) => span(RULES.map((r) => cellValue(sid, arm, cl, r.id, v)))))),
+    scenario: statOf(rules.flatMap((rule) => CLS.map((cl) => RANGE(ids.map((sid) => cellValue(sid, arm, cl, rule, v)))))),
+    closure: statOf(ids.flatMap((sid) => rules.map((rule) => RANGE(CLS.map((cl) => cellValue(sid, arm, cl, rule, v)))))),
+    rule: statOf(ids.flatMap((sid) => CLS.map((cl) => RANGE(rules.map((rule) => cellValue(sid, arm, cl, rule, v)))))),
   };
 }
-const CHOICE = { scenario: 'the scenario', closure: 'foreign capital', rule: 'the budget assumption' };
-export const topChoice = (arm, v) => Object.entries(spreads(arm, v)).sort((a, b) => b[1] - a[1])[0][0];
-// "The scenario moves GDP and GNI most; the capital closure, the pay rate;
-// the fiscal rule, debt/GDP." Words only.
-// A measure that barely moves with any choice (the stress test holds GDP
-// on the path by construction) is named as such, not given a driver.
-const NEGLIGIBLE = 0.05;
-const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
-// [{ choice: 'scenario' | 'closure' | 'rule' | 'still', measures, text }]:
-// one entry per choice that moves a measure most, then the measures that
-// barely move with any.
-export function drivers(arm) {
-  const by = {};
-  const still = [];
-  for (const m of MEASURES) {
-    const name = { w: 'the pay rate', debt_gdp_pp: 'debt/GDP' }[m.v] ?? m.label;
-    if (Math.max(...Object.values(spreads(arm, m.v))) < NEGLIGIBLE) still.push(name);
-    else (by[topChoice(arm, m.v)] ??= []).push(name);
-  }
-  const cap = (t) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
-  const out = Object.entries(by).map(([k, ms]) => ({ choice: k, measures: ms, phrase: `${CHOICE[k]} moves ${and(ms)} most` }));
-  if (still.length) out.push({ choice: 'still', measures: still, phrase: `${and(still)} barely ${still.length > 1 ? 'move' : 'moves'} with any of them` });
-  return out.map((d) => ({ ...d, text: cap(d.phrase) }));
+export const NEGLIGIBLE = 0.05;
+export const LEAD = 1.25;
+// The gate, on spreads()' { factor: { max, mean } }: 'still' when every
+// max is below NEGLIGIBLE; 'lead' when one factor is top on max and on
+// mean by LEAD or more on both; otherwise the contenders (top on either,
+// or within LEAD of the top on either): two make a 'tie' (larger max
+// first), three are 'open'.
+export function gate(st) {
+  const fs = Object.keys(st);
+  if (Math.max(...fs.map((f) => st[f].max)) < NEGLIGIBLE) return { kind: 'still', factors: [] };
+  const by = (k) => [...fs].sort((a, b) => st[b][k] - st[a][k]);
+  const [m1, m2] = by('max');
+  const [n1, n2] = by('mean');
+  if (m1 === n1 && st[m1].max >= LEAD * st[m2].max && st[n1].mean >= LEAD * st[n2].mean) return { kind: 'lead', factors: [m1] };
+  const topMax = st[m1].max;
+  const topMean = st[n1].mean;
+  const cont = fs.filter((f) => f === m1 || f === n1 || st[f].max * LEAD >= topMax || st[f].mean * LEAD >= topMean);
+  if (cont.length >= 3) return { kind: 'open', factors: cont };
+  return { kind: 'tie', factors: cont.sort((a, b) => st[b].max - st[a].max) };
 }
-export function driverWords(arm) {
-  const ds = drivers(arm);
-  return `${[ds[0].text, ...ds.slice(1).map((d) => d.phrase)].join('; ')}.`;
+const CHOICE = { scenario: 'the scenario', closure: 'the foreign-capital case', rule: 'the budget assumption' };
+const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+const NAME = { Y: 'GDP', GNI: 'GNI', w: 'the pay rate', debt_gdp_pp: 'debt/GDP' };
+const cap = (t) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
+// [{ choice, kind, measures, text }] for the measures given (default: the
+// three this card shows; debt/GDP's line is the AcrossDebt card's), the
+// first measure's line first. Measures with the same case and factors
+// merge with "and".
+export function drivers(arm, vs = ['Y', 'GNI', 'w']) {
+  const groups = [];
+  for (const v of vs) {
+    const g = gate(spreads(arm, v));
+    const key = `${g.kind}|${g.factors.join(',')}`;
+    const at = groups.find((x) => x.key === key);
+    if (at) at.vs.push(v);
+    else groups.push({ key, ...g, vs: [v] });
+  }
+  return groups.map((g) => {
+    const ms = and(g.vs.map((v) => NAME[v]));
+    const phrase =
+      g.kind === 'lead' ? `${CHOICE[g.factors[0]]} moves ${ms} most`
+        : g.kind === 'tie' ? `${CHOICE[g.factors[0]]} and ${CHOICE[g.factors[1]]} move ${ms} by similar amounts`
+          : g.kind === 'open' ? `no one choice moves ${ms} most`
+            : `${ms} barely ${g.vs.length > 1 ? 'move' : 'moves'} with any choice`;
+    return { choice: g.kind === 'lead' ? g.factors[0] : g.kind, kind: g.kind, measures: g.vs, text: cap(phrase) };
+  });
 }

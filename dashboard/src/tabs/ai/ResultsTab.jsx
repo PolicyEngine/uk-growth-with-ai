@@ -437,9 +437,9 @@ function EconomyPanel({ sid }) {
         <Lead c="measure">Eight measures, each against the OBR’s central forecast path</Lead>
       </SectionHeading>
       <div className="ex-wall-head">
-        <ControlBar label="Every chart on the wall: options">
-          <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
-        </ControlBar>
+        {/* item 37: the versions shown, as a section of the wall's pill (no
+            chip toggles anywhere) */}
+        <Pill className="is-card" title="Options for every chart on the wall" name={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`} sections={[versionsShownSection(st, set)]} />
         <ul className="ex-wall-key" aria-label="How to read the wall">
           <li>
             <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR’s central forecast path

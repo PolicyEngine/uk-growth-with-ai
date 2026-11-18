@@ -187,7 +187,11 @@ describe('the sensitivity card', () => {
       expect(claims[v.toLowerCase()].icon).toBe(exp);
     }
     const w = SCEN.map((sid) => res[sid].tfp.gaps.w[H]);
-    expect(claims.w.icon).toBe(w.some((x) => x < -0.005) ? 'gapDown' : w.some((x) => x > 0.005) ? 'gapUp' : 'onPath');
+    // item 42: when every main-version pay rate is above the path (and was
+    // below it at zeta_K 0.1) the title says so and the claim is dropped
+    const wc = SCEN.map((sid) => S.results[sid].tfp['zk0.1'].gaps.w[H]);
+    if (w.every((x) => x > 0.005) && wc.every((x) => x < -0.005)) expect(claims.w).toBeUndefined();
+    else expect(claims.w.icon).toBe(w.some((x) => x < -0.005) ? 'gapDown' : w.some((x) => x > 0.005) ? 'gapUp' : 'onPath');
     expect(claims.gni.icon).toBe(SCEN.every((sid) => res[sid].tfp.gaps.GNI[H] < res[sid].tfp.gaps.Y[H]) ? 'foreign' : 'gni');
   });
 });

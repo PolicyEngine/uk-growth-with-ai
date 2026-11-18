@@ -7,7 +7,7 @@ import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { fmt } from '@/tabs/ai/surprise.js';
-import { cellsTable, cellValue, driverWords, spreads } from '@/tabs/explore/cells.js';
+import { cellsTable, cellValue, drivers, spreads, gate } from '@/tabs/explore/cells.js';
 import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
 
 afterEach(cleanup);
@@ -91,10 +91,39 @@ describe('All scenarios', () => {
     expect(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'Y')).toBe(gap('uk_central', 'tfp', 'zk0.1', 'Y', HEADLINE_YEAR));
   });
 
-  it('says which choice moves each measure most, from the spreads', () => {
-    const s = spreads('tfp', 'Y');
-    const top = Object.entries(s).sort((a, b) => b[1] - a[1])[0][0];
-    expect(driverWords('tfp').toLowerCase()).toContain(`the ${top === 'closure' ? 'capital closure' : top === 'rule' ? 'fiscal rule' : 'scenario'} moves gdp`);
+  // item 37 (item-37-fable.md): like-for-like ranges, and "most" only for
+  // a factor top on max and mean by 1.25x or more
+  it('ranges are like for like: max and mean over the rows solved for every level', () => {
+    const s = spreads('tfp', 'w');
+    expect(s.scenario.rows).toBe(2);
+    expect(s.closure.rows).toBe(8);
+    expect(s.rule.rows).toBe(4);
+    // the known near tie: A+P pay, scenario 1.485 against closure 1.481
+    expect(s.scenario.max).toBeCloseTo(1.485, 2);
+    expect(s.closure.max).toBeCloseTo(1.481, 2);
+  });
+  it('the gate: lead, tie, open and still', () => {
+    const f = (a, b, c) => ({ scenario: { max: a[0], mean: a[1] }, closure: { max: b[0], mean: b[1] }, rule: { max: c[0], mean: c[1] } });
+    expect(gate(f([4.48, 3.67], [1.92, 1.1], [0.3, 0.18]))).toEqual({ kind: 'lead', factors: ['scenario'] });
+    // A+P pay (1.485 v 1.481 on max): a tie, larger max first
+    expect(gate(f([1.485, 1.11], [1.481, 0.86], [0.15, 0.08]))).toEqual({ kind: 'tie', factors: ['scenario', 'closure'] });
+    // Stress GNI (0.67 v 0.63): a 1.06x lead is not "most"
+    expect(gate(f([0.67, 0.4], [0.63, 0.39], [0.06, 0.04]))).toEqual({ kind: 'tie', factors: ['scenario', 'closure'] });
+    // top on max but not on mean: not a lead
+    expect(gate(f([3, 1], [2, 1.5], [0.1, 0.1])).kind).toBe('tie');
+    expect(gate(f([1, 1], [0.9, 0.9], [0.85, 0.85])).kind).toBe('open');
+    expect(gate(f([0.008, 0.005], [0.004, 0.002], [0.007, 0.004]))).toEqual({ kind: 'still', factors: [] });
+    // exactly 1.25x on both is a lead
+    expect(gate(f([1.25, 1.25], [1, 1], [0.1, 0.1])).kind).toBe('lead');
+  });
+  it('prints the fable’s lines for each version on today’s data', () => {
+    const t = (arm) => drivers(arm).map((d) => d.text);
+    expect(t('tfp')).toEqual(['The scenario moves GDP and GNI most', 'The scenario and the foreign-capital case move the pay rate by similar amounts']);
+    expect(t('tz')).toEqual(['The foreign-capital case moves GDP and GNI most', 'The scenario moves the pay rate most']);
+    expect(drivers('ss', ['w', 'GNI', 'Y']).map((d) => d.text)).toEqual(['The scenario moves the pay rate most', 'The scenario and the foreign-capital case move GNI by similar amounts', 'GDP barely moves with any choice']);
+    expect(drivers('tfp', ['debt_gdp_pp'])[0].text).toBe('The budget assumption and the scenario move debt/GDP by similar amounts');
+    expect(drivers('tz', ['debt_gdp_pp'])[0].text).toBe('No one choice moves debt/GDP most');
+    expect(drivers('ss', ['debt_gdp_pp'])[0].text).toBe('The budget assumption and the scenario move debt/GDP by similar amounts');
   });
 });
 
@@ -185,9 +214,16 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');
     expect(t).toContain(`Investment jumps up to ${Math.round(fl[0].x)}% above the path in ${S.surprise_year}, beyond our +${I_FLAG_PCT}% plausibility check, so we treat this case as implausible.`);
     expect(body.querySelectorAll('#sens-flag a')).toHaveLength(2);
-    // the units line last
-    expect(body.lastElementChild.matches('.ex-sg-more-unit')).toBe(true);
-    expect(body.lastElementChild.textContent).toContain(`${HEADLINE_YEAR}, %`);
+    // the comparison and settings lines last; the unit is visible (item 42)
+    expect(body.lastElementChild.textContent).toBe('Settings: spending follows GDP');
+    expect(card.querySelector('.card-unit [data-axis-title="y"]').textContent).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`);
+    // item 42: the gated title; the pay-rate claim is not repeated in the fold
+    expect(card.querySelector('.card-head h3').textContent).toBe('More foreign capital puts the main version’s pay rate above the path');
+    expect(t).not.toMatch(/The pay rate is/);
+    // item 39: the key line under the grid, visible with the fold closed
+    const key = card.querySelector('.ex-sg-keyline');
+    expect(key.textContent).toContain('sign differs from some foreign capital (ζK 0.1)');
+    expect(key.textContent).toContain('higher / lower than with some foreign capital');
   });
 
   it('fracWord says "about all" within 0.02 of one, only when asked', async () => {
