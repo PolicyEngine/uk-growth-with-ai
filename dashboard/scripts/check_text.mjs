@@ -25,7 +25,7 @@
 //
 //   bun scripts/check_text.mjs http://localhost:4360   (needs Playwright;
 //   CHROMIUM may name a Chrome binary). Prints violations; exits 1 if any.
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const PAGES = {
@@ -42,7 +42,8 @@ const PAGES = {
 const MAX_ICONS = 220;
 const MAX_BAND = 12;
 const BAND = 800;
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// BROWSER=webkit runs Playwright's WebKit (an approximation of Safari)
+const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' })).newPage();
 let total = 0;
 for (const [name, path] of Object.entries(PAGES)) {
