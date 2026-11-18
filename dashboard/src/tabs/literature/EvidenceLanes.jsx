@@ -11,7 +11,8 @@ import { cssColour, esc } from '@/lib/download.js';
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { RANGES } from '@/data/literature.js';
 import MAP from '@/data/site-evidence-map.json';
-import { gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } from '@/tabs/ai/surprise.js';
+import { DATA_FILE } from '@/lib/dataKeys.js';
+import { PENDING, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import './evidence.css';
@@ -132,8 +133,8 @@ function table(metric) {
     columns: ['Measure', 'Row', 'Horizon', 'Low (%)', 'High (%)', 'Source central case (%)', 'Note', 'Source location', 'Link'],
     rows: [
       ...ours.flatMap((o) => [
-        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', 'surprise2028.json', ''],
-        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', 'surprise2028.json', ''],
+        [m.title, `${o.label}, some foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.c, o.c, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', DATA_FILE, ''],
+        [m.title, `${o.label}, no foreign capital`, `OG-UK, ${HEADLINE_YEAR}`, o.b, o.b, null, 'OG-UK, automation + productivity, against the OBR’s central forecast path', DATA_FILE, ''],
       ]),
       ...pub.map((r) => [m.title, r.label, r.horizon, r.none ? null : r.lo, r.none ? null : r.hi, r.mark ?? null, `${r.note}${r.unverified ? ' (unverified)' : ''}; against the study’s own baseline`, `${r.short}, ${r.loc}`, r.url]),
     ],
@@ -251,10 +252,10 @@ function Lane({ metric, hi, bind }) {
                 ) : null}
                 {o.c != null ? <span className="mx-rb-dot is-c" style={{ left: `${px(o.c)}%` }} /> : null}
                 {o.b != null ? <span className="mx-rb-dot is-b" style={{ left: `${px(o.b)}%` }} /> : null}
-                {o.c == null && o.b == null ? <span className="mx-rb-pending">pending</span> : null}
+                {o.c == null && o.b == null ? <span className="mx-rb-pending">{PENDING}</span> : null}
                 {o.c != null && o.b == null ? (
                   <span className="mx-rb-note" style={{ left: `${px(o.c)}%` }}>
-                    no foreign capital pending
+                    no foreign capital {PENDING}
                   </span>
                 ) : null}
                 {rowTip(

@@ -8,7 +8,7 @@ import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { fmt } from '@/tabs/ai/surprise.js';
 import { cellsTable, cellValue, drivers, spreads, gate } from '@/tabs/explore/cells.js';
-import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { gap, HEADLINE_YEAR, foreignShareOf } from '@/tabs/ai/surprise.js';
 
 afterEach(cleanup);
 
@@ -86,7 +86,7 @@ describe('All scenarios', () => {
   it('the download table covers every cell, with pending ones marked', () => {
     const t = cellsTable('tfp', 'Automation + productivity');
     expect(t.rows).toHaveLength(4 * 6 * 4);
-    expect(t.rows.filter((r) => r[7] === 'pending')).toHaveLength(4 * 4 * 2);
+    expect(t.rows.filter((r) => r[7] === 'not yet solved')).toHaveLength(4 * 4 * 2);
     expect(cellValue('uk_low', 'tfp', 'zk0.1', 'dn', 'Y')).toBeNull();
     expect(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'Y')).toBe(gap('uk_central', 'tfp', 'zk0.1', 'Y', HEADLINE_YEAR));
   });
@@ -208,7 +208,7 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     // the definition and the value are two lines, never run together
     const defs = [...body.querySelectorAll('.ex-sg-def')].map((p) => p.textContent);
     expect(defs[0]).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}: foreign investors supply half of the extra capital firms want, not half of added capital.`);
-    const x = S.sensitivity['zk0.5'].results.uk_central.tfp.foreign_share_dK_2031;
+    const x = foreignShareOf(S.sensitivity['zk0.5'].results.uk_central.tfp);
     expect(defs[1]).toBe(`In ${HEADLINE_YEAR} about all of the added capital (${Math.round(x)}%) ends up foreign-owned.`);
     expect(t).not.toMatch(/new capital|further above the forecast path/);
     const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');

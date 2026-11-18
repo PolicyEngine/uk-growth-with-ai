@@ -4,6 +4,8 @@
 // Nothing here is typed: every row is read from a data file.
 import S from '@/lib/activeData.js';
 import CO from '@/data/cohorts2028.json';
+import { SET, DATA_FILE } from '@/lib/dataKeys.js';
+import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import AI from '@/data/aiStudy2425.json';
 import UK from '@/data/ukContext.json';
 import REL from '@/data/relatedWork.json';
@@ -53,8 +55,8 @@ const aiWhere = AI_MERGED
 const OG = (p) => `https://github.com/PolicyEngine/uk-growth-with-ai/blob/${S.source_commit}/${p}`;
 const UK_LATEST = Object.values(UK.sources).map((s) => s.released).sort().at(-1);
 export const VINTAGES = [
-  { model: 'OG-UK', file: 'surprise2028.json', what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, released: day(S.generated_utc), date: day(S.generated_utc), code: { label: 'dashboard_data.py', url: OG('uk_growth_with_ai/dashboard_data.py') }, result: { label: 'solve outputs', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/analysis/surprise/output` } },
-  { model: 'OG-UK', file: 'cohorts2028.json', what: 'Who gains', vintage: `${CO.generated_by}, ${CO.source}`, released: null, date: null, code: { label: 'export_cohorts.py', url: OG('analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/analysis/surprise/cohorts` } },
+  { model: 'OG-UK', file: DATA_FILE, what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, released: day(S.generated_utc), date: day(S.generated_utc), code: { label: 'dashboard_data.py', url: OG('uk_growth_with_ai/dashboard_data.py') }, result: { label: 'solve outputs', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/${SET.outputDir}` } },
+  { model: 'OG-UK', file: SET.cohorts, what: 'Who gains', vintage: `${CO.generated_by}, ${CO.source}`, released: null, date: null, code: { label: 'export_cohorts.py', url: OG('analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/analysis/surprise/cohorts` } },
   { model: 'Household study', file: 'aiStudy2425.json', what: aiLabel('Household study'), vintage: `Household study PR #${AI.source.pr} (${aiWhere}), ${AI.source.dataset}`, released: day(AI.source.merged_utc) ?? null, date: AI.source.fetched, url: AI_STUDY.prUrl, code: { label: 'build_ai_study_data.py', url: `https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_ai_study_data.py` }, result: { label: 'study results', url: `https://github.com/${AI.source.repo}/tree/${AI_COMMIT}/results` } },
   { model: 'Household study', file: 'Results build', what: 'The study’s attested results', vintage: `Per the manifest at ${shortSha(AIM.manifest_commit)}`, released: day(AIM.manifest_finished), date: day(AIM.manifest_finished), code: { label: 'run_all.py', url: AI_STUDY.blob('analysis/run_all.py') }, result: { label: 'BUILD_MANIFEST.json', url: AI_STUDY.blob('results/BUILD_MANIFEST.json') } },
   { model: 'Household study', file: 'Data build', what: 'Microcosm UK 2024–25', vintage: AIM.data_build, released: null, date: null, code: { label: 'download_data.py', url: AI_STUDY.blob('analysis/download_data.py') }, result: null },
@@ -102,7 +104,7 @@ function officialRows(checks) {
 
 export function ledger(checks = CHECKS) {
   const rows = officialRows(checks);
-  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR’s central forecast path)', source: 'OG-UK solves, 2028 surprise', vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
+  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR’s central forecast path)', source: `OG-UK solves, ${SURPRISE_YEAR} surprise`, vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
   rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: CO.source, checked: null, group: 'OG-UK results' });
   rows.push({ figure: aiLabel('Household study results'), source: `Household study PR #${AI.source.pr}`, url: AI_STUDY.prUrl, vintage: `${aiWhere}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Household study results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });

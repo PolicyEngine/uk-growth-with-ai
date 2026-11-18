@@ -7,7 +7,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
@@ -15,7 +15,7 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 // panel (one row per measure, one marker pair per arm: the central value as a
 // filled dot, the no-foreign-capital bound as a hollow dot, on one axis centred on
 // the forecast path), and a strip comparing the four scenarios. Every value comes
-// from surprise2028.json through gap()/fmt(); a pending one says "pending".
+// from surprise2028.json through gap()/fmt(); a pending one says PENDING ("not yet solved").
 
 export const MEASURES = [
   { v: 'w', label: 'Pay rate', sub: 'wage per unit of labour', icon: iconFor('pay') },
@@ -141,7 +141,7 @@ export function dumbbellSvg(sid, arms, closure, rule = 'common') {
       const b = showB ? gap(sid, a.id, BOUND, m.v, HEADLINE_YEAR, rule) : null;
       const main = showC ? c : b;
       if (main == null) {
-        out += `<text x="${X(0) + 8}" y="${cy + 4}" font-size="11" fill="${C.muted}">pending</text>`;
+        out += `<text x="${X(0) + 8}" y="${cy + 4}" font-size="11" fill="${C.muted}">${PENDING}</text>`;
       } else {
         if (b != null && c != null) out += `<line x1="${X(b)}" x2="${X(c)}" y1="${cy}" y2="${cy}" stroke="${col}" stroke-width="3" opacity="0.5"/>`;
         if (b != null) out += `<rect x="${X(b) - 4.5}" y="${cy - 4.5}" width="9" height="9" transform="rotate(45 ${X(b)} ${cy})" fill="${C.surface}" stroke="${col}" stroke-width="2"/>`;
@@ -242,7 +242,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                   <div className="db-track">
                     <span className="db-zero" style={{ left: pct(0) }} aria-hidden="true" />
                     {main == null ? (
-                      <span className="db-pending">pending</span>
+                      <span className="db-pending">{PENDING}</span>
                     ) : (
                       <>
                         {b != null && c != null ? (

@@ -6,6 +6,9 @@
 // break the page.
 import S from '@/lib/activeData.js';
 import { VERSION_COLOR, VERSION_TEXT_COLOR, VERSION_LIGHT } from '@/lib/versionColors.js';
+import { foreignShareOf } from '@/lib/dataKeys.js';
+
+export { foreignShareOf };
 
 export { S };
 
@@ -54,7 +57,13 @@ export const isDone = (sid, arm, closure) => result(sid, arm, closure).status ==
 // scenarios listed in S.rules[rule].scenarios have solves.
 export const ruleResult = (rule, sid, arm, closure) =>
   S.rules?.[rule]?.results?.[sid]?.[arm]?.[closure] ?? { status: 'pending' };
-export const ruleScenarios = (rule) => S.rules?.[rule]?.scenarios ?? [];
+// A scenario counts as solved under a rule only when at least one of its
+// cells there is done: the partial 2027 export lists the scenarios a rule
+// is planned for, with every cell still pending.
+const anyDone = (byArm) => Object.values(byArm ?? {}).some((byCl) => Object.values(byCl ?? {}).some((r) => r?.status === 'done'));
+export const ruleScenarios = (rule) => (S.rules?.[rule]?.scenarios ?? []).filter((sid) => anyDone(S.rules[rule].results?.[sid]));
+// Is the scenario solved under the common rule (any arm or closure)?
+export const scenarioSolved = (sid) => anyDone(S.results?.[sid]);
 
 // The fiscal-rule ids of the pickers (labels.js RULES) against the data
 // file's keys. 'common' is the default of every solve (S.results).
@@ -103,7 +112,9 @@ export function payLine(sid, closure, w = gap(sid, 'tfp', closure, 'w')) {
   return 'pay for the same work';
 }
 
-export const fmt = (x, dp = 2, unit = '%') => (x == null ? 'pending' : `${signed(x, dp)}${unit}`);
+// What a cell not solved yet prints in place of a figure: never a zero.
+export const PENDING = 'not yet solved';
+export const fmt = (x, dp = 2, unit = '%') => (x == null ? PENDING : `${signed(x, dp)}${unit}`);
 
 export const DONE = S.solves_done;
 export const TOTAL = S.solves_total;

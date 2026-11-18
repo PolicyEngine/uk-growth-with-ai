@@ -5,6 +5,7 @@
 // published source is invented for it.
 import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import S from '@/lib/activeData.js';
+import { SET } from '@/lib/dataKeys.js';
 
 // The commit the results were built from (surprise2028.json `source_commit`)
 export const RUN = S.source_commit;
@@ -58,7 +59,7 @@ export const SRC = {
   surpriseYear: { label: 'surprise.py: SURPRISE_YEAR = 2028', url: code('uk_growth_with_ai/surprise.py', 55) },
   rampWeights: { label: 'surprise.py: ramp weights', url: code('uk_growth_with_ai/surprise.py', 137) },
   debtTarget: { label: 'rerun.py: the 2030 debt target', url: code('uk_growth_with_ai/rerun.py', 74) },
-  fiscalRules: { label: 'design note: fiscal rules', url: `${REPO}/blob/${RUN}/docs/surprise_2028.md` },
+  fiscalRules: { label: 'design note: fiscal rules', url: `${REPO}/blob/${RUN}/${SET.designDoc}` },
   rerunNote: { label: 'rerun note', url: `${REPO}/blob/${RUN}/docs/rerun_r1_r4.md` },
   pr43: { label: 'PR #43', url: `${REPO}/pull/43` },
   checks: { label: 'checks.py', url: code('uk_growth_with_ai/checks.py') },

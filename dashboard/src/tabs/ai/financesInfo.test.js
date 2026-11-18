@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import S from '@/lib/activeData.js';
+import { scenarioDone } from '@/lib/dataTestUtils.js';
 import { debtTitle, taxTitle, debtMoreInfo, taxMoreInfo, debtWhy, taxWhy } from '@/tabs/ai/financesInfo.js';
 
 // Item 17: each More info sentence is gated on the data's signs for the
@@ -19,7 +20,9 @@ const g = (sid, arm, cl, v, year, rule) => {
 };
 const sideOf = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
 const SIDS = S.scenarios.map((s) => s.id);
-const solved = (sid, rule) => !RK[rule] || S.rules[RK[rule]].scenarios.includes(sid);
+// solved under the rule (listed for it) with at least one cell done: the
+// partial 2027 export lists rules whose cells are all pending
+const solved = (sid, rule) => (!RK[rule] || S.rules[RK[rule]].scenarios.includes(sid)) && scenarioDone(sid, rule);
 const text = (items, key) => items.find((i) => i.key === key)?.text;
 
 describe('item 17: Public finances More info', () => {

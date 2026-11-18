@@ -74,7 +74,7 @@ describe('story part 2', () => {
     expect(one.container.querySelector('#story-headline').textContent).toContain('+2.35%');
     one.unmount();
     const both = at('tab=story&closure=both');
-    expect(both.container.querySelector('#story-headline').textContent).toContain('With no foreign capital: pending');
+    expect(both.container.querySelector('#story-headline').textContent).toContain('With no foreign capital: not yet solved');
   });
 
   it('prints figures only inside the headline block and where output goes', () => {

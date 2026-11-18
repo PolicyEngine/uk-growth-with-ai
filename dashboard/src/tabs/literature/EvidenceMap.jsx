@@ -11,7 +11,8 @@ import Card from '@/components/ui/Card.jsx';
 import Pill from '@/components/ui/Pill.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import MAP from '@/data/site-evidence-map.json';
-import { S, SCENARIOS, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { S, SCENARIOS, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
+import { DATA_FILE } from '@/lib/dataKeys.js';
 import './evidence.css';
 
 // The UK evidence map: one row per published figure on AI's economic
@@ -69,7 +70,7 @@ export function ourRows() {
     id: `oguk-${metric}`,
     ours: true,
     institution: 'PolicyEngine (this study)',
-    study: 'OG-UK, the 2028 surprise: automation + productivity',
+    study: `OG-UK, the ${SURPRISE_YEAR} surprise: automation + productivity`,
     url: null,
     year: Number(S.generated_utc.slice(0, 4)),
     metric,
@@ -77,7 +78,7 @@ export function ourRows() {
     horizon: `${HEADLINE_YEAR}, year 4 of adoption`,
     baseline: 'OBR’s central forecast path',
     country: 'UK',
-    loc: 'surprise2028.json',
+    loc: DATA_FILE,
     checked: S.generated_utc.slice(0, 10),
     how: 'solve',
     csv: SCENARIOS.map((s) => `${s.label}: ${fmt(gap(s.id, 'tfp', CENTRAL, v))} (some foreign capital), ${fmt(gap(s.id, 'tfp', BOUND, v))} (no foreign capital)`).join('; '),

@@ -2,7 +2,7 @@
 // year: the data behind Explore > All scenarios (its panels, table and
 // downloads). Values come from surprise2028.json through resultAt(); a cell
 // that is not solved is { value: null, status: 'pending' }.
-import { HEADLINE_YEAR, YEARS, SCENARIOS, CENTRAL, BOUND, CLOSURE_LABEL, resultAt } from '@/tabs/ai/surprise.js';
+import { PENDING, HEADLINE_YEAR, YEARS, SCENARIOS, CENTRAL, BOUND, CLOSURE_LABEL, resultAt } from '@/tabs/ai/surprise.js';
 import { RULES } from '@/lib/labels.js';
 import { iconFor } from '@/lib/concepts.js';
 
@@ -54,7 +54,7 @@ export const cellsTable = (arm, armLabel) => ({
     ROWS.flatMap((row) =>
       SCENARIOS.map((s) => {
         const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
-        return [m.label, m.unit === '%' ? '% difference from the OBR’s central forecast path' : 'pp of GDP, difference from the OBR’s central forecast path', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? 'pending' : 'solved'];
+        return [m.label, m.unit === '%' ? '% difference from the OBR’s central forecast path' : 'pp of GDP, difference from the OBR’s central forecast path', RULES.find((r) => r.id === row.rule).label, CLOSURE_LABEL[row.cl], s.label, armLabel, x, x == null ? PENDING : 'solved'];
       }),
     ),
   ),

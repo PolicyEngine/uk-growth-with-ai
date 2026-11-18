@@ -1,6 +1,7 @@
 import S from '@/lib/activeData.js';
 import COH from '@/data/cohorts2028.json';
 import AI from '@/data/aiStudy2425.json';
+import { SET } from '@/lib/dataKeys.js';
 
 // Every external URL on the dashboard, verified (HTTP 200) on 26 Sept 2026.
 // Code-file links point at main (the re-run, PR #11, is merged).
@@ -62,16 +63,16 @@ export const URLS = {
 export const atRef = (ref, p, kind = 'blob') => `${REPO}/${kind}/${ref}/${p}`;
 export const RESULTS_SHA = S.source_commit;
 export const COHORTS_SHA = String(COH.source).split('@')[1];
-export const ogOutput = (zk) => atRef(RESULTS_SHA, `analysis/surprise/output/${zk}`, 'tree');
-export const ogResult = (zk, label) => atRef(RESULTS_SHA, `analysis/surprise/output/${zk}/${label}.json`);
-export const ogScenarioFile = (sid) => atRef(RESULTS_SHA, `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`);
+export const ogOutput = (zk) => atRef(RESULTS_SHA, `${SET.outputDir}/${zk}`, 'tree');
+export const ogResult = (zk, label) => atRef(RESULTS_SHA, `${SET.outputDir}/${zk}/${label}.json`);
+export const ogScenarioFile = (sid) => atRef(RESULTS_SHA, SET.scenarioFile(sid));
 export const OG_RESULT_URLS = {
   assemble: atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py'),
-  doc: atRef(RESULTS_SHA, 'docs/surprise_2028.md'),
+  doc: atRef(RESULTS_SHA, SET.designDoc),
   cohortsDir: atRef(RESULTS_SHA, 'analysis/surprise/cohorts', 'tree'),
   cohortScript: atRef(COHORTS_SHA, 'paper/cohort_welfare.py'),
-  // the sanity gate: the 2028 investment flag (+17%), flagged, never failed
-  sanity: atRef(RESULTS_SHA, 'docs/surprise_2028.md#the-sanity-gate-after-every-solve'),
+  // the sanity gate: the shock-year investment flag (+17%), flagged, never failed
+  sanity: atRef(RESULTS_SHA, `${SET.designDoc}#the-sanity-gate-after-every-solve`),
   // the gilt rate is the private return less about 2pp: one for one with r
   giltRate: atRef(RESULTS_SHA, 'docs/rerun_r1_r4.md'),
   // the real-world plausibility review: investment rows rated implausible

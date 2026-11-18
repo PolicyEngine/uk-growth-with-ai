@@ -1,6 +1,8 @@
 'use client';
 
 import Icon from '@/components/ab/Icon.jsx';
+import { SET, DATA_FILE } from '@/lib/dataKeys.js';
+import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import CopyBlock from '@/components/ab/CopyBlock.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import { REPO, URLS, issue } from '@/tabs/ai/links.js';
@@ -138,7 +140,7 @@ function BeforeYouStart() {
 
 function PipelineMap() {
   return (
-    <InfoCard title="The 2028-surprise pipeline" className="mx-pipemap">
+    <InfoCard title={`The ${SURPRISE_YEAR}-surprise pipeline`} className="mx-pipemap">
       <p>
         <IconText icon="stages">Nine steps, in order. Choose one for its file and commands.</IconText>
       </p>
@@ -158,8 +160,8 @@ function PipelineMap() {
       <Items
         className="mx-pipe-items"
         items={[
-          { icon: 'data', text: <>Output: <code>dashboard/src/data/surprise2028.json</code>, the only file Explore&rsquo;s results views read.</> },
-          { icon: 'households', text: <>Who gains reads <code>cohorts2028.json</code>, from <code>paper/cohort_welfare.py --json</code>.</> },
+          { icon: 'data', text: <>Output: <code>dashboard/src/data/{DATA_FILE}</code>, the only file Explore&rsquo;s results views read.</> },
+          { icon: 'households', text: <>Who gains reads <code>{SET.cohorts}</code>, from <code>paper/cohort_welfare.py --json</code>.</> },
         ]}
       />
     </InfoCard>

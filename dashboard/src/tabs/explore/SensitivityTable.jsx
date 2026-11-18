@@ -3,7 +3,7 @@
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
+import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt, foreignShareOf } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
@@ -18,12 +18,12 @@ import { NavLink } from '@/lib/nav.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
 
 // The foreign-owned share of the added capital in the headline year: the
-// data file's foreign_share_dK_2031 for UK central's main version, the same
+// data file's foreign-share key (lib/dataKeys.js) for UK central's main version, the same
 // cell as the 77% at zeta_K 0.1 (Method, FOREIGN_DK), as words and a whole
 // per cent (zk05-share-fable.md). The share drifts above 100% after the
 // headline year, so the line carries the year.
 export function foreignShareLine(res) {
-  const x = res?.uk_central?.tfp?.foreign_share_dK_2031;
+  const x = foreignShareOf(res?.uk_central?.tfp);
   if (x == null) return null;
   const w = fracWord(x / 100, { all: true });
   const pct = `${Math.round(x)}%`;

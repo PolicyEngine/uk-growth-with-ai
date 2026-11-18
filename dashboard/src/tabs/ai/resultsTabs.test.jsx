@@ -66,7 +66,7 @@ describe('Results follows the data file', () => {
       expect(pop.match(/headline figures, at home in the story/g)).toHaveLength(1);
       unmount();
     }
-    expect(income).toContain('no foreign capital pending');
+    expect(income).toContain('no foreign capital not yet solved');
     expect(text('sub=economy')).toContain('+4.44%');
     expect(text('sub=finances')).toContain('+7.78pp');
   });

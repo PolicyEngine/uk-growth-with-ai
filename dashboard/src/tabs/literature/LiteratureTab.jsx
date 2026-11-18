@@ -21,9 +21,10 @@ import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { SRC } from '@/tabs/method/sources.js';
 import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
+import { SET } from '@/lib/dataKeys.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
-// (results sanity audit, docs/results_sanity_2028.md section 7). The IMF
+// (results sanity audit, SET.sanityDoc section 7). The IMF
 // year-4 output figure (digitised from SIP/2026/072 Figure 9) and the
 // unchanged-return bound (arithmetic, not a solve) are read from
 // imfGap.json, which carries each one's source.
@@ -70,7 +71,7 @@ function ImfGap() {
         ]}
       />
       <p className="mx-src">
-        <IconText icon="source">{ext(`${REPO}/blob/audit/sanity-2028-final/docs/results_sanity_2028.md`, 'Results sanity audit, section 7')}; IMF
+        <IconText icon="source">{ext(`${REPO}/blob/${SET.sanityRef}/${SET.sanityDoc}`, 'Results sanity audit, section 7')}; IMF
         figure read from SIP/2026/072, Figure 9.</IconText>
       </p>
     </InfoCard>
