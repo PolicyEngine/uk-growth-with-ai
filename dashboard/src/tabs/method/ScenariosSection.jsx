@@ -328,7 +328,8 @@ export default function ScenariosSection({ uses = null }) {
           moreTitle="Why there is a spike"
           morePreview="No adjustment costs in OG-Core 0.17"
         >
-          <Items items={[{ icon: 'jump', text: investJump() }]} />
+          {/* a full sentence over 12 words: a paragraph, not a list item */}
+          <p className="mx-card-para">{investJump()}</p>
         </InfoCard>
       </FoldGrid>
     </section>

@@ -475,6 +475,20 @@ p.mx-axis-title.is-x {
 .mx-limit-list li + li {
   margin-top: 6px;
 }
+/* a full sentence over a list item's 12 words: a paragraph under the list */
+.mx-limit-para {
+  max-width: 78ch;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
+.mx-card-para {
+  margin: 8px 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700);
+}
 .mx-limit-title {
   font-weight: 600;
   color: var(--pe-gray-800);
