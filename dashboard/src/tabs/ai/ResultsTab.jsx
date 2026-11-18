@@ -25,6 +25,7 @@ import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { wageClosureLines, investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
 import { CENTRAL, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
+import { VERSION_COLOR, versionName } from '@/lib/versionColors.js';
 
 // Results. The answer and the three headline figures are on Story.
 // Income and output, Economy, Public finances: one chart card per measure,
@@ -116,9 +117,13 @@ export function PathCard({
   const full = !tile || open;
   // end labels: a full-size chart names each line, with its value and unit
   const named = !(ends && tile && !open);
+  // a wall tile's title carries its unit ("Interest rate, pp"); the wall's
+  // units line above the grid says what the unit measures, so a closed tile
+  // draws no y title of its own
+  const shortUnit = unit === '%' ? '%' : 'pp';
   const head = tile ? (
     <button type="button" className="ex-tile-open" aria-expanded={open} onClick={onToggle} title={open ? 'Back to the wall (Escape)' : 'Enlarge this chart'}>
-      <span>{title}</span>
+      <span data-axis-title={open ? undefined : 'y'}>{`${title}, ${shortUnit}`}</span>
       <Icon name={open ? 'x' : 'arrowUpRight'} size={14} strokeWidth={2} />
     </button>
   ) : (
@@ -155,7 +160,9 @@ export function PathCard({
         <LineChart
           x={years}
           series={series}
-          height={tile ? (open ? 340 : 190) : 260}
+          height={tile ? (open ? 340 : 260) : 260}
+          // a closed tile: 3 to 5 ticks with zero always on its scale
+          thin={tile && !open}
           // a full-size chart names each line at its end, with its value;
           // a closed tile prints values only (its wall's GNI and GDP tiles,
           // which print no value, name the lines in the same colours)
@@ -163,7 +170,7 @@ export function PathCard({
           noValue={!ends}
           unit={unit}
           tipTitle={title}
-          yUnit={yTitle}
+          yUnit={tile && !open ? null : yTitle}
           yTitleTop
           xUnit={tile && !open ? null : 'Year'}
           zeroNote={tile && !open ? null : 'Forecast path = 0'}
@@ -348,13 +355,12 @@ function IncomePanel({ sid }) {
   );
 }
 
-// GNI and GDP open the wall: their main-arm values are the story's headline
-// figures and the other arms' are in the four-measure card, so their lines
-// carry no end value.
+// GNI and GDP open the wall. Like every tile, their lines end in their
+// headline-year values (Vahid: values on every panel).
 const INCOME_TILES = [
-  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', ends: false, method: 'closures', about: { caveats: IMPOSED } },
+  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', method: 'closures', about: { caveats: IMPOSED } },
   {
-    v: 'Y', title: 'Total output (GDP)', name: 'GDP', concept: 'gdp', ends: false, method: 'closures',
+    v: 'Y', title: 'Total output (GDP)', name: 'GDP', concept: 'gdp', method: 'closures',
     about: {
       caveats: (
         <Items
@@ -379,8 +385,10 @@ const INCOME_TILES = [
   },
 ];
 
-// The economy as one small-multiple wall: eight path charts (4 x 2 at full
-// width) on the same years, one arms control and one key for them all. A
+// The economy as one small-multiple wall: eight path charts (two to a row
+// at desktop widths, one on a phone) on the same years, one arms control,
+// one units line and one legend for them all; each tile's title carries its
+// unit and its lines end in their headline-year values. A
 // tile opens in place across the wall (click or Enter on its title; Escape
 // or the title again closes it), and each keeps its own download. The first
 // tile of each group keeps the group's old section id, so links still land.
@@ -424,6 +432,17 @@ function EconomyPanel({ sid }) {
           </li>
         </ul>
       </div>
+      <p className="ex-wall-units" data-axis-title="y">
+        {`Gap against the OBR’s central forecast path, ${WINDOW_YEARS[0]}–${WINDOW_YEARS[WINDOW_YEARS.length - 1]}: % for levels, pp (percentage points) for the interest rate and the labour share`}
+      </p>
+      <ul className="ex-wall-legend" aria-label="Versions">
+        {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
+          <li key={a.id}>
+            <span className="ex-wall-swatch" style={{ background: VERSION_COLOR[a.id] }} aria-hidden="true" data-icon="" />
+            {versionName(a)}
+          </li>
+        ))}
+      </ul>
       <div className="ex-wall" onKeyDown={onKey}>
         {tiles.map((r) => (
           <div key={r.v} className={`ex-wall-cell${open === r.v ? ' is-open' : ''}`} id={r.groupId ?? undefined} data-group={r.group}>

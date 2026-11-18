@@ -3720,12 +3720,13 @@ ul.disclosure-text {
   border-top: 3px solid var(--series-2);
 }
 
+/* the version colours: lib/versionColors.js VERSION_HEX */
 .mx-arm-tz {
-  border-top-color: var(--series-2);
+  border-top-color: #b8860b;
 }
 
 .mx-arm-ss {
-  border-top-color: var(--series-5);
+  border-top-color: #4338ca;
 }
 
 .mx-fixed {

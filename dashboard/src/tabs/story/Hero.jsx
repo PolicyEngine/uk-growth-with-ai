@@ -9,6 +9,7 @@ import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
 import { METHOD, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
+import { useSvgScale } from '@/lib/svgScale.js';
 import { paySigns } from '@/tabs/story/part2/caveats.js';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap, payLine } from '@/tabs/ai/surprise.js';
 
@@ -80,10 +81,15 @@ function Fan({ lines, sid, wide }) {
   const W = wide ? 640 : 480;
   // one row of guide labels above the plot (T)
   const H = wide ? 382 : 268;
-  const fs = wide ? 13 : 15;
+  // the chart type scale in user units: the viewBox is drawn scaled (about
+  // 0.88 wide, 0.75 narrow), so sizes are divided by the measured scale
+  const [svgRef, sz] = useSvgScale(W, wide ? 0.884 : 0.746);
+  const fs = Math.round(sz.tick * 10) / 10;
+  const lfs = Math.round(sz.label * 10) / 10;
   const L = wide ? 46 : 50;
   const R = wide ? W - 176 : W - 16;
-  const T = wide ? 46 : 52;
+  // the guide labels' row clears the axis title above it at any type size
+  const T = Math.max(wide ? 46 : 52, Math.round(fs * 2.3 + 14));
   const B = H - (wide ? 36 : 40);
   const all = lines.flatMap((l) => l.y);
   const top = Math.max(1, Math.ceil(Math.max(0, ...all)));
@@ -114,9 +120,9 @@ function Fan({ lines, sid, wide }) {
   const labels = wide
     ? spread(
         lines.map((l) => ({ ...l, y: Y(l.y[last]) })),
-        fs * 3,
+        lfs * 3,
         T,
-        B - fs,
+        B - lfs,
       )
     : [];
   const sel = byId[sid];
@@ -129,7 +135,8 @@ function Fan({ lines, sid, wide }) {
       viewBox={`0 0 ${W} ${H}`}
       role="img"
       aria-label={`GDP gap against the ${BASELINE}, ${YEARS[0]} to ${YEARS[last]}, four scenarios, main version; each line starts in ${SURPRISE_YEAR}; before it every scenario is on the ${BASELINE_SHORT}`}
-      style={{ '--hf-fs': `${fs}px` }}
+      ref={svgRef}
+      style={{ '--hf-fs': `${fs}px`, '--hf-lfs': `${lfs}px` }}
     >
       <text className="hf-axis-title" data-axis-title="y" data-axis="" x={2} y={fs + 2}>
         {HERO_AXIS_TITLE}
@@ -186,11 +193,11 @@ function Fan({ lines, sid, wide }) {
         <circle key={l.id} className={`hf-dot is-${LINE[l.id]}${on(l)}`} cx={XY(HEADLINE_YEAR)} cy={Y(l.at)} r={l.id === sid ? 4.5 : 3.5} data-mark={l.id} />
       ))}
       {labels.map((l) => (
-        <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - fs * 0.5}>
+        <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - lfs * 0.5}>
           {/* the trailing space keeps name and value apart for a screen
               reader (the value's own x places it; nothing moves) */}
           <tspan className="hf-end-name">{`${l.short} `}</tspan>
-          <tspan x={X(last) + 10} dy={fs * 1.3} className="hf-end-value">
+          <tspan x={X(last) + 10} dy={lfs * 1.3} className="hf-end-value">
             {fmt(l.at)}
           </tspan>
         </text>

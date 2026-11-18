@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { useSvgScaleOf } from '@/lib/svgScale.js';
 import { DrawPath } from '@/components/story/primitives.jsx';
 import { useDrawIn } from '@/components/story/motion.js';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from '@/tabs/ai/surprise.js';
@@ -88,6 +89,8 @@ export function peakAge() {
 // the drawing only: no value is printed.
 export function WelfareShape({ state }) {
   const [ref, seen] = useDrawIn();
+  // the viewBox is drawn scaled: text sizes over the measured scale
+  const sz = useSvgScaleOf(ref, W, 1.35);
   const [born, setBorn] = useState('');
   const bornId = `p2-born-in${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const xs = D.closures[CENTRAL].birth_year;
@@ -151,6 +154,7 @@ export function WelfareShape({ state }) {
     >
       <svg
         ref={ref}
+        style={{ '--svg-k': sz.k }}
         className="story-svg p2-svg"
         viewBox={`0 0 ${W} ${H}`}
         role="img"

@@ -3,6 +3,7 @@
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { SCENARIOS, KORINEK_FULL, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
 import { useHover } from '../shared/ui.jsx';
+import { useSvgScale } from '@/lib/svgScale.js';
 
 // The four scenarios on one map: productivity gain (x) against labour-share
 // fall (y), both the levels reached in the headline year, read from
@@ -17,7 +18,7 @@ const W = 560;
 // The bottom margin leaves room for the tick row and the axis title at the
 // phone's larger type (19 units), where they met at 44.
 const H = 272;
-const M = { l: 82, r: 24, t: 18, b: 56 };
+const M0 = { l: 82, r: 24, t: 18, b: 56 };
 
 export const scenarioTable = () => ({
   columns: ['Scenario', `Labour-share fall by ${HEADLINE_YEAR} (pp)`, `Gain in output at fixed inputs by ${HEADLINE_YEAR} (%)`, 'Capital share γ reached'],
@@ -26,6 +27,14 @@ export const scenarioTable = () => ({
 
 export default function ScenarioMap({ caption = true }) {
   const { hi, ref, bind } = useHover();
+  // the viewBox is drawn scaled (about 0.84 on desktop, 0.58 on a phone):
+  // its text sizes are the chart type scale over the measured scale
+  const [svgRef, sz] = useSvgScale(W, 0.838);
+  // the left margin holds the widest tick ("−5pp") and the rotated title
+  // at the scale's size: wider where the map is drawn small (a phone)
+  const M = { ...M0, l: Math.max(M0.l, Math.round(sz.tick * 4.6)) };
+  // a long point label on two lines where the map is drawn small
+  const split = sz.k < 0.7;
   const xMax = Math.ceil(Math.max(...SCENARIOS.map((s) => s.tfp_gain_pct)) + 0.4);
   const yMax = Math.ceil(Math.max(...SCENARIOS.map((s) => s.labour_share_fall_pp)) + 0.6);
   const sx = (v) => M.l + (v / xMax) * (W - M.l - M.r);
@@ -44,7 +53,7 @@ export default function ScenarioMap({ caption = true }) {
       ) : null}
       <div className="mx-map-body">
       <div className="mx-map-plot">
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Map of the four scenarios' inputs">
+        <svg ref={svgRef} style={{ '--svg-k': sz.k }} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Map of the four scenarios' inputs">
           {xt.map((t) => (
             <g key={`x${t}`}>
               <line className="mx-grid" x1={sx(t)} x2={sx(t)} y1={M.t} y2={H - M.b} />
@@ -96,7 +105,16 @@ export default function ScenarioMap({ caption = true }) {
                 <circle cx={x} cy={y} r="14" className="mx-hit" />
                 <circle cx={x} cy={y} r={s.id === 'uk_central' ? 7 : 6} />
                 <text x={up ? x - 12 : x + 12} y={y + 4} textAnchor={up ? 'end' : 'start'} className="mx-pt-label">
-                  {s.label}
+                  {split && s.label.includes(', ') ? (
+                    <>
+                      <tspan x={up ? x - 12 : x + 12}>{s.label.slice(0, s.label.indexOf(', ') + 1)}</tspan>
+                      <tspan x={up ? x - 12 : x + 12} dy="1.15em">
+                        {s.label.slice(s.label.indexOf(', ') + 2)}
+                      </tspan>
+                    </>
+                  ) : (
+                    s.label
+                  )}
                 </text>
               </g>
             );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { useSvgScale } from '@/lib/svgScale.js';
 import Tween from '@/components/story/Tween.jsx';
 import { useIsPhone } from '@/components/story/motion.js';
 import U from '@/data/ukContext.json';
@@ -363,7 +364,11 @@ export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((
 
 export function MorphChart({ state, sid, cl, pin = null }) {
   const s = Math.max(0, Math.min(4, state));
-  const lh = useIsPhone() ? LH_PHONE : LH;
+  // the viewBox is drawn scaled (about 1.35 on desktop, 0.83 on a phone):
+  // text sizes in user units come from the chart type scale over it
+  const [svgRef, sz] = useSvgScale(W, 1.35);
+  const lh0 = useIsPhone() ? LH_PHONE : LH;
+  const lh = Math.max(lh0, Math.round(sz.label * 1.4));
   // one clip per copy (phones draw a copy per step)
   const clip = `p2-morph-clip${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const k = Math.min(s, 2);
@@ -453,7 +458,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
         ))}
       </p>
       <div className="p2-canvas-box">
-        <svg className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+        <svg ref={svgRef} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} style={{ '--svg-k': sz.k }}>
           <defs>
             <clipPath id={clip}>
               <rect x={PX0 - 4} y={CLIP_T} width={PX1 - PX0 + 8} height={CLIP_B - CLIP_T} />
@@ -604,7 +609,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               ) : null}
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={lh * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
-                  <tspan key={l} x={0} dy={i ? lh - (lh === LH ? 2 : 4) : 0}>
+                  <tspan key={l} x={0} dy={i ? lh - (lh0 === LH ? 2 : 4) : 0}>
                     {/* a trailing space between lines, for a screen reader
                         (each line has its own x, so nothing moves) */}
                     {i < p.lines.length - 1 ? `${l} ` : l}
@@ -623,8 +628,8 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               which takes the flag's blue while the flag shows */}
           <g className={`p2-mo-fade${s === 2 ? ' is-on' : ''}`}>
             <g className="p2-mo-newaxis">
-              <rect x={PX0 + 4} y={PY0 + 16} className="p2-mo-newaxis-box" width={170} height={20} rx={3} />
-              <text x={PX0 + 10} y={PY0 + 26} dy="0.35em">
+              <rect x={PX0 + 4} y={PY0 + 16} className="p2-mo-newaxis-box" width={Math.round(Math.max(170, sz.tick * 17.5))} height={Math.round(Math.max(20, sz.tick * 1.9))} rx={3} />
+              <text x={PX0 + 10} y={PY0 + 16 + Math.round(Math.max(20, sz.tick * 1.9)) / 2} dy="0.35em">
                 Axis now: gap, % (was % a year)
               </text>
             </g>
