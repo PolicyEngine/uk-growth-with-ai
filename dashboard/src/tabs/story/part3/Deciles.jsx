@@ -129,26 +129,32 @@ function DecBar({ v, on, fill, delay }) {
 // step-2 table's (its home): the note is hidden at rest, out of the page
 // text the number check reads.
 const PAPER_DECILES = `${SECTION.results.url}#L54`;
-function DecileOneWhy() {
+export function DecileOneWhy({ lead = null, rank = true }) {
   const [open, setOpen] = useState(false);
   const id = `p3-d1-why${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const pre = RANK_PRE_PENSION;
   return (
     <span className="p3-dec-note p3-dec-why" onKeyDown={(e) => (e.key === 'Escape' ? setOpen(false) : null)}>
-      not a reliable result:{' '}
+      {lead}not a reliable result:{' '}
       <button type="button" className="p3-dec-why-btn" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
         see why
       </button>
       <span id={id} role="note" className="p3-dec-why-pop" hidden={!open}>
         <span className="p3-dec-why-p">Some households here only look low-income: large pension contributions are taken off their income, but they own savings that gain from the capital shock.</span>
-        {Number.isFinite(pre) ? (
+        {rank && Number.isFinite(pre) ? (
           <span className="p3-dec-why-p">
             Ranked before pension contributions, this decile {pre < 0 ? `loses ${Math.abs(pre).toFixed(2)}%` : `changes by ${fmtDecilePct(pre)}`}.{' '}
             <a href={PAPER_DECILES} target="_blank" rel="noopener noreferrer">
               The paper, “Where the income loss falls”
             </a>
           </span>
-        ) : null}
+        ) : (
+          <span className="p3-dec-why-p">
+            <a href={PAPER_DECILES} target="_blank" rel="noopener noreferrer">
+              The paper, “Where the income loss falls”
+            </a>
+          </span>
+        )}
       </span>
     </span>
   );

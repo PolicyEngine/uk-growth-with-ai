@@ -95,9 +95,12 @@ export function AxisTitle({ axis, children, scale = false, className = '' }) {
   );
 }
 
-export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions, source }) {
+// `kicker`: a muted line above the title, on its left edge (as a model
+// badge), e.g. which run the figure shows.
+export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions, source, kicker }) {
   return (
     <>
+      {kicker ? <p className="story-figure-kicker">{kicker}</p> : null}
       <p className="story-figure-title p3-iconed">
         <Ico c={icon} size={16} />
         <span>{title}</span>
