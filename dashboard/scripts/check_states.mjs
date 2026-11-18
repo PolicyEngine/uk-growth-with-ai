@@ -44,7 +44,7 @@ const TICK = 40;
 const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let misses = 0;
 const JUMP = process.env.JUMP ?? '1';
-for (const [W, H] of JUMP === 'only' ? [] : sizes) {
+for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' ? [] : sizes) {
   const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: process.env.MOTION === '1' ? 'no-preference' : 'reduce' })).newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
@@ -110,7 +110,7 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
 const olines = [];
 let omiss = 0;
 const osizes = (process.env.OPENER_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
-for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' ? [] : osizes) {
+for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.env.SANKEY === 'only' ? [] : osizes) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
@@ -192,7 +192,7 @@ const drawn = (id) => {
 };
 const jlines = [];
 let jmiss = 0;
-for (const [W, H] of JUMP === '0' ? [] : jsizes) {
+for (const [W, H] of JUMP === '0' || process.env.SANKEY === 'only' ? [] : jsizes) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
@@ -251,7 +251,91 @@ if (jlines.length) {
   console.log('landing (jump, reload, fast scroll):');
   for (const l of jlines) console.log(l);
 }
+// Sankey probe (polish round blocker: the lost-pound Sankey stayed blank
+// in about half of ordinary wheel-scroll arrivals). SANKEY=1 adds it,
+// SANKEY=only runs it alone. Every Sankey on the Story and on Explore >
+// Households, at SANKEY_SIZES (1280,800 390,844), motion on: SANKEY_RUNS
+// (20) arrivals each, from 1.6 screens above it, the wheel paced by the
+// wall clock at a reading speed (450 to 600px/s, cycling), until the
+// figure's top is at 25% of the screen; 2s later at least 90% of its
+// ribbons must be drawn (effective opacity >= 0.2 and no clip-path
+// hiding more than 10% of its width). Prints the drawn runs per Sankey.
+const SANKEY = process.env.SANKEY ?? '0';
+let smiss = 0;
+if (SANKEY !== '0') {
+  const RUNS = Number(process.env.SANKEY_RUNS ?? 20);
+  const ssizes = (process.env.SANKEY_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
+  const pages = [['story', '/'], ['explore', '/?tab=explore&sub=households']];
+  console.log('sankey arrivals (paced wheel scroll, 450-600px/s):');
+  for (const [W, H] of ssizes) {
+    for (const [pname, path] of pages) {
+      const probe = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' })).newPage();
+      await probe.goto(base + path, { waitUntil: 'networkidle' });
+      const n = await probe.evaluate(() => document.querySelectorAll('.tab-panel:not([hidden]) svg.sankey').length);
+      await probe.context().close();
+      for (let si = 0; si < n; si++) {
+        let ok = 0;
+        let name = '';
+        for (let r = 0; r < RUNS; r++) {
+          const speed = [450, 500, 550, 600][r % 4];
+          const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' })).newPage();
+          await page.goto(base + path, { waitUntil: 'networkidle' });
+          await page.waitForTimeout(500);
+          await page.mouse.move(3, H - 3);
+          const g = await page.evaluate((si) => {
+            const sk = document.querySelectorAll('.tab-panel:not([hidden]) svg.sankey')[si];
+            const host = sk.closest('.scrolly, figure, section') ?? sk;
+            const r = sk.getBoundingClientRect();
+            return { id: host.id || sk.closest('[id]')?.id || `sankey-${si}`, ty: r.top + scrollY - innerHeight * 0.25, y0: Math.max(0, r.top + scrollY - innerHeight * 1.6) };
+          }, si);
+          name = g.id;
+          await page.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), g.y0);
+          await page.waitForTimeout(1200);
+          let y = g.y0;
+          const dt = 40;
+          const t0 = Date.now();
+          let k = 0;
+          while (y < g.ty) {
+            const d = Math.min((speed * dt) / 1000, g.ty - y);
+            await page.mouse.wheel(0, d);
+            y += d;
+            k++;
+            const due = t0 + k * dt - Date.now();
+            if (due > 0) await page.waitForTimeout(due);
+          }
+          await page.waitForTimeout(2000);
+          const share = await page.evaluate((si) => {
+            const sk = document.querySelectorAll('.tab-panel:not([hidden]) svg.sankey')[si];
+            const links = [...sk.querySelectorAll('.sankey-link')].filter((l) => Number(l.style.opacity || 1) > 0);
+            const eff = (el) => {
+              let o = 1;
+              for (let e = el; e && e !== document.body; e = e.parentElement) o *= Number(getComputedStyle(e).opacity);
+              return o;
+            };
+            const hidden = (l) => {
+              const c = getComputedStyle(l).clipPath;
+              const m = c.match(/^inset\((.*)\)$/);
+              if (!m) return 0;
+              const v = m[1].split(/\s+/);
+              const right = v.length === 1 ? v[0] : v.length === 2 ? v[1] : v[1];
+              const left = v.length === 4 ? v[3] : right;
+              const pc = (x) => (x.endsWith('%') ? parseFloat(x) / 100 : 0);
+              return pc(right) + pc(left === right && v.length < 4 ? '0' : left);
+            };
+            const drawn = links.filter((l) => eff(l) >= 0.2 && hidden(l) <= 0.1).length;
+            return links.length ? drawn / links.length : 0;
+          }, si);
+          if (share >= 0.9) ok++;
+          await page.context().close();
+        }
+        const bad = ok < RUNS;
+        if (bad) smiss++;
+        console.log(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${pname} ${name}: drawn in ${ok} of ${RUNS} arrivals`);
+      }
+    }
+  }
+}
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

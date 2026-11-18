@@ -242,19 +242,36 @@ export default function Sankey({
     boxCb.current({ width: W, height: H, nodes });
   }, [laid, W, H]);
 
-  // build-up: re-armed by replayKey (one frame at nothing poured)
+  // build-up: re-armed by replayKey (a moment at nothing poured, so the
+  // pour plays again). Polish round, blocker: the re-arm effect was keyed on
+  // `armed.on` alone, so a key change batched with the arming (an entry run
+  // and a replay key in the same commit) set it back to off with no effect
+  // left to arm it: the ribbons stayed at nothing poured (blank) while the
+  // figure read as played. Now the effect is keyed on the arm's key too, a
+  // timer backs up the two frames (a frame can be skipped or throttled), and
+  // under reduced motion nothing waits.
   const armKey = `${replayKey ?? ''}|${entry?.run ?? 0}`;
   const [armed, setArmed] = useState({ key: armKey, on: true });
   if (armed.key !== armKey) setArmed({ key: armKey, on: false });
   useEffect(() => {
     if (armed.on) return undefined;
-    const r = requestAnimationFrame(() => requestAnimationFrame(() => setArmed((a) => ({ ...a, on: true }))));
-    return () => cancelAnimationFrame(r);
-  }, [armed.on]);
+    const key = armed.key;
+    const arm = () => setArmed((a) => (a.key === key && !a.on ? { ...a, on: true } : a));
+    let r2 = 0;
+    const r = requestAnimationFrame(() => {
+      r2 = requestAnimationFrame(arm);
+    });
+    const t = setTimeout(arm, 120);
+    return () => {
+      cancelAnimationFrame(r);
+      cancelAnimationFrame(r2);
+      clearTimeout(t);
+    };
+  }, [armed.on, armed.key]);
   const pouring = pour != null;
   const entryOn = !entry || entry.entered;
   const instant = Boolean(entry?.instant) && !reduce;
-  const poured = pouring ? (armed.on && entryOn ? pour : 0) : null;
+  const poured = pouring ? ((armed.on || reduce) && entryOn ? pour : 0) : null;
   const [pseen, setPseen] = useState({ cur: poured, from: poured ?? 0 });
   if (pseen.cur !== poured) setPseen({ cur: poured, from: Math.min(pseen.cur ?? 0, poured ?? 0) });
   const timing = useMemo(() => {
