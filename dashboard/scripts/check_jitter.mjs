@@ -12,6 +12,9 @@
 // change is a miss (a per-frame counter-scroll shakes on a real trackpad,
 // where the compositor scrolls ahead of the page, even when the page's own
 // frames look still).
+// The question holds: while a question moment is held (--qa 1, --qm 0)
+// no style may be written under its .q-stage, and its held card must not
+// move against the scroll (the browser holds it: position sticky).
 // The walk covers WIN px around every step change and the middle of every
 // hold (the whole block when FULL=1).
 //
@@ -130,6 +133,61 @@ for (const [W, H] of sizes) {
       }, { id: b.id, a, z, STEP });
       for (const m of res.out) misses.push({ block: b.id, ...m });
     }
+  }
+  // the question holds (sign-off r3 major 2): the browser holds the card
+  // (sticky), so while a question is held (arrived, --qa 1, and not yet
+  // moving, --qm 0) nothing may write a style under its stage, and its card
+  // must not move. REDUCE=1 has no stages.
+  const stages = await page.evaluate(() => [...document.querySelectorAll('.q-stage[data-q]')].map((s) => ({ id: s.dataset.q, top: s.getBoundingClientRect().top + scrollY, h: s.offsetHeight })));
+  for (const st of stages) {
+    const res = await page.evaluate(async ({ st, STEP }) => {
+      const s = document.querySelector(`.q-stage[data-q="${st.id}"]`);
+      const card = s.querySelector('.q-stage-card');
+      window.scrollTo({ top: Math.max(0, st.top - 0.45 * innerHeight), behavior: 'instant' });
+      await new Promise((r) => setTimeout(r, 700));
+      const v = (k) => Number(getComputedStyle(s).getPropertyValue(k)) || 0;
+      let writes = 0;
+      const mo = new MutationObserver((ms) => {
+        writes += ms.length;
+      });
+      mo.observe(s, { attributes: true, subtree: true, attributeFilter: ['style'] });
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;left:0;top:0;height:1px;width:1px;pointer-events:none;visibility:hidden';
+      document.body.appendChild(probe);
+      const samples = [];
+      const ro = new ResizeObserver(() => samples.push({ qa: v('--qa'), qm: v('--qm'), y: card.getBoundingClientRect().top, writes }));
+      ro.observe(probe);
+      let k = 0;
+      await new Promise((done) => {
+        const tick = () => {
+          const last = samples.at(-1);
+          if ((last && last.qm > 0) || scrollY >= st.top + st.h || samples.length > 2000) {
+            done();
+            return;
+          }
+          window.scrollBy({ top: STEP, behavior: 'instant' });
+          probe.style.width = `${1 + (k++ % 2)}px`;
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      ro.disconnect();
+      mo.disconnect();
+      probe.remove();
+      let held = 0;
+      const out = [];
+      for (let i = 1; i < samples.length; i++) {
+        const p = samples[i - 1];
+        const c = samples[i];
+        if (!(p.qa >= 1 && c.qa >= 1 && p.qm === 0 && c.qm === 0)) continue;
+        held++;
+        if (c.writes > p.writes) out.push(`${c.writes - p.writes} style writes`);
+        else if (Math.abs(c.y - p.y) >= 1 && Math.abs(c.y - p.y) < STEP - 0.25) out.push(`card moved ${(c.y - p.y).toFixed(2)}px`);
+      }
+      return { held, out };
+    }, { st, STEP });
+    for (const m of res.out) misses.push({ block: `q-stage ${st.id}`, card: 'hold', at: 0, writes: 0, down: m, dx: '' });
+    if (!res.held) misses.push({ block: `q-stage ${st.id}`, card: 'hold', at: 0, writes: 0, down: 'never held', dx: '' });
   }
   const byBlock = {};
   for (const m of misses) (byBlock[m.block] ??= []).push(m);

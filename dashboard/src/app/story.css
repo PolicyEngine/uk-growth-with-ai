@@ -316,11 +316,25 @@
 .q-stage {
   --qa: 0;
   --qm: 0;
-  --qy: 0px;
   position: relative;
+  /* the hold's margins stay inside the stage */
+  display: flow-root;
   height: var(--q-pin);
   margin-bottom: -8px;
   pointer-events: none;
+}
+/* The hold is the browser's (sign-off r3 major 2: no per-frame
+   counter-scroll): the card's holder sticks at --q-top, which QStage writes
+   only when the screen, rail or card size changes, so the held question at
+   the optical centre of the screen below the rail (its centre 3% of that
+   height below the true centre, QStage qMid); it starts at its place near
+   the stage's top and is pushed up by the stage's foot, 28px clear (the
+   bottom margin), as the move begins. Nothing is both sticky and
+   transformed: the scale and fade are on the card inside. */
+.q-stage-hold {
+  position: sticky;
+  top: var(--q-top, 0px);
+  margin: clamp(16px, calc(var(--q-pin) * 0.06), 48px) 0 28px;
 }
 .q-visual {
   position: relative;
@@ -329,16 +343,12 @@
   gap: 14px;
 }
 .q-stage-card {
-  position: absolute;
-  top: clamp(16px, 6%, 48px);
-  left: 0;
-  right: 0;
   max-width: 44rem;
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
   transform-origin: 50% 100%;
-  transform: translateY(var(--qy)) scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
+  transform: scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
   /* shrinks over the whole move, fades over its second half */
   opacity: calc(1 - max(0, var(--qm) - 0.4) * 1.67);
   will-change: transform, opacity;
@@ -381,25 +391,38 @@
 }
 /* The closing line (Scrolly sub.answer, else sub.takeaway): a takeaway
    caption inside the figure frame, directly under the plot and above the
-   source line (typography spec, option b). 14/600 in ink; the part accent
-   only on a 3px left rule; no icon. It fades up once the last card is
-   reached (opacity only: always in the DOM, its height reserved). */
+   source line (typography spec, option b). It fades up once the last card
+   is reached (opacity only: always in the DOM, its height reserved).
+   Every Story closing line carries data-closing (QStage Answer, Scrolly's
+   answer note, the close's .lens-close): one style for all of them, a
+   plain line in body type at its column's full measure (Vahid, 18 Nov:
+   "more x width for these text, normal text"): no rule, no bold; its
+   caveat line (data-closing="note") muted. check_spacing asserts the
+   measure and line count on every [data-closing]. */
 .story {
   /* polish round: every closing or answer line is this far below its chart */
   --gap-answer: 24px;
 }
+.story [data-closing] {
+  min-width: 0;
+  max-width: 70ch;
+  padding: 0;
+  border: 0;
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--t-ink);
+  text-wrap: pretty;
+}
+.story [data-closing='note'] {
+  font-size: var(--t-ui);
+  line-height: 1.45;
+  color: var(--t-muted);
+}
 .scrolly-takeaway {
   position: relative;
   z-index: 2;
-  max-width: 60ch;
   margin: var(--gap-answer, 24px) 0 0;
-  padding-left: 10px;
-  border-left: 3px solid var(--part-accent, var(--c-highlight));
-  font-size: var(--t-label);
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--t-ink);
-  text-wrap: pretty;
   opacity: 0;
   transition: opacity 450ms var(--story-ease);
 }
@@ -2382,25 +2405,57 @@
   opacity: 0;
   pointer-events: none;
 }
+/* the swap runs in sequence, not as a cross-fade: each card is pinned at
+   its own mark's place and those places overlap (the last card's closing
+   caption most of all), so the outgoing card fades out first (120ms,
+   Fix A2) and the incoming one fades in once it has gone, in both
+   directions */
+@media (prefers-reduced-motion: no-preference) {
+  .scrolly.is-anchored .scrolly-step:not(.is-active) .scrolly-card {
+    transition: opacity 120ms linear;
+  }
+  .scrolly.is-anchored .scrolly-step.is-active .scrolly-card {
+    transition: opacity 240ms var(--story-ease) 120ms;
+  }
+}
 @media (min-width: 901px) {
   .scrolly.is-anchored .scrolly-card {
     justify-self: end;
     margin-left: auto;
   }
   /* polish round E: each step's item is pinned by the browser at its
-     sentence's place beside the stuck figure (Scrolly writes --pin-top and
-     --pin-bottom once per step change and resize, never per frame), held
-     inside its own column; only while the block is near the screen */
-  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-spacer) {
-    position: sticky;
-    top: var(--pin-top, 0px);
-    bottom: var(--pin-bottom, auto);
+     sentence's place beside the stuck figure (Scrolly writes --pin-top per
+     step change and resize, never per frame). Fix A1 (headline-tiles
+     ruling): the chart and the text move as one body: every item shares
+     the column's one cell, starts where the chart starts (--fig-top, its
+     stuck top), sticks when it sticks and is as tall as the chart's foot
+     (--fig-h), so the same column foot lets both go. */
+  .scrolly.is-anchored > .scrolly-steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr;
   }
-  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step:not(.is-active) {
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step:not(.is-spacer) {
+    grid-area: 1 / 1;
+    align-self: start;
+    position: sticky;
+    top: var(--pin-top, var(--fig-top, 0px));
+    margin-top: calc(var(--pin-top, var(--fig-top, 0px)) - var(--fig-top, 0px));
+    height: calc(var(--fig-top, 0px) + var(--fig-h, 0px) - var(--pin-top, var(--fig-top, 0px)));
+    padding-bottom: 0;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step.is-spacer {
+    grid-area: 1 / 1;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step:not(.is-active) {
     pointer-events: none;
   }
-  .scrolly.is-anchored > .scrolly-steps.is-pinned > .scrolly-step.is-active {
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-step.is-active {
     z-index: 4;
+  }
+  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
+    grid-area: 1 / 1;
+    align-self: end;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2412,7 +2467,12 @@
 
 /* ---- Round 1 review: one highlight system, one icon per step, one
    progress marker ---- */
-/* a keyed term is colour/weight only: no swatch beside it */
+/* a keyed term is colour/weight only: no swatch beside it; and so plain
+   inline text, not an inline-flex box (an atomic box lets WebKit break
+   before the comma after it: sign-off r3 minor 6) */
+.hl-key {
+  display: inline;
+}
 .hl-key .mark-shape {
   display: none;
 }
@@ -2606,17 +2666,12 @@
     bottom: auto;
   }
 }
-/* one 12px line under the takeaway caption, in the frame (Scrolly
-   sub.answerNote: the GDP scene's debt line) */
+/* one muted caveat line under the closing line (Scrolly sub.answerNote:
+   the GDP scene's debt line); type from [data-closing='note'] */
 .scrolly-takeaway-note {
   position: relative;
   z-index: 2;
-  max-width: 60ch;
   margin: 4px 0 0;
-  padding-left: 13px;
-  font-size: var(--t-meta);
-  line-height: 1.4;
-  color: var(--t-muted);
   opacity: 0;
   transition: opacity 450ms var(--story-ease);
 }
@@ -2750,11 +2805,13 @@
 .scrolly-takeaway-in-step {
   margin-top: 10px;
 }
-/* height-cut-fable.md cut 1: the closing caption at the sentence's width,
-   in the text column of an icon-led card (it was auto-placed in the 18px
-   icon column, one word per line), and the card's rows packed at its top */
+/* height-cut-fable.md cut 1: the closing caption never in the 18px icon
+   column of an icon-led card (auto-placed there it went one word per
+   line); 18 Nov: it spans the whole card, the column's full measure, and
+   the card's rows are packed at its top */
 .scrolly-card.has-icon > .scrolly-takeaway-in-step {
-  grid-column: 2;
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 .scrolly-card.has-icon {
   align-content: start;
@@ -2798,11 +2855,11 @@
   font-size: var(--t-meta);
   color: var(--t-muted);
 }
+/* a plain muted kicker above the head's question, not a pill (18 Nov) */
 .p3-close-chip {
-  padding: 1px 8px;
-  line-height: 1.6;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
+  order: -1;
+  flex-basis: 100%;
+  line-height: 1.4;
 }
 .p3-out-list {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2933,12 +2990,7 @@
    end marker stays at the column's foot, and the pinned items inside it. */
 @media (min-width: 901px) {
   .scrolly.is-anchored > .scrolly-steps {
-    display: flex;
-    flex-direction: column;
     min-height: max(calc(1.8 * clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + var(--story-graphic-top) + 215px * var(--n, 1) - 100vh), var(--col-min, 0px));
-  }
-  .scrolly.is-anchored > .scrolly-steps > .scrolly-end {
-    margin-top: auto;
   }
 }
 /* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */

@@ -33,6 +33,19 @@ export function revealAnchor(id, { smooth = false } = {}) {
   const attempt = () => {
     const el = document.getElementById(id);
     if (el) el.dispatchEvent(new CustomEvent('reveal', { bubbles: true }));
+    // a step of a pinned desktop scene (Fix A3): its items share one place,
+    // so scrolling to the item lands on another state; the block goes to
+    // that card's state instead
+    const step = el?.closest('.scrolly.is-anchored .scrolly-step');
+    if (step && !step.classList.contains('is-spacer')) {
+      const blk = step.closest('.scrolly');
+      const k = [...blk.querySelectorAll(':scope > .scrolly-steps > .scrolly-step:not(.is-spacer)')].indexOf(step);
+      requestAnimationFrame(() => {
+        blk.dispatchEvent(new CustomEvent('scrolly-go', { detail: { k: Math.max(0, k), instant: !smooth } }));
+        if (el.tabIndex >= 0) el.focus({ preventScroll: true });
+      });
+      return;
+    }
     if (el && el.offsetHeight > 0) {
       requestAnimationFrame(() => {
         scrollBelowBars(el, { smooth });

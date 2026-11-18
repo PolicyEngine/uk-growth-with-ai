@@ -10,17 +10,21 @@
 //  - answer lines: every closing or answer line (.scrolly-takeaway) that
 //    sits under a chart (the plot above it overlaps it across) must be at
 //    least 24px below the plot's last drawn mark or label.
+//  - closing lines: every [data-closing] (the scenes' closing lines, their
+//    caveat notes, the close's line) at least 40ch wide or 90% of its
+//    column, and at 1280px and wider at most 3 lines. BROWSER=webkit runs
+//    Playwright's WebKit.
 //
 // Prints every measured gap, per scene.
 //
 //   bun scripts/check_spacing.mjs http://localhost:4360 [width height ...]
 //   Exits 1 on a miss.
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const rest = process.argv.slice(3).map(Number);
 const sizes = rest.length >= 2 ? Array.from({ length: rest.length >> 1 }, (_, i) => [rest[2 * i], rest[2 * i + 1]]) : [[1280, 800], [390, 844]];
-const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let misses = 0;
 for (const [W, H] of sizes) {
   const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: process.env.MOTION === '1' ? 'no-preference' : 'reduce' })).newPage();
@@ -111,8 +115,46 @@ for (const [W, H] of sizes) {
     }
     console.log(`  ${a.id}: ${msgs.join('; ') || '(last in its part, no answer line under a chart)'}`);
   }
+  // closing lines (every [data-closing], 18 Nov: "more x width for these
+  // text"): each box at least 40ch wide or 90% of its column, and at
+  // 1280px and wider at most 3 lines (text rows, not counting a nested
+  // source button)
+  const closing = await page.evaluate(() =>
+    [...document.querySelectorAll('.story [data-closing]')].map((el) => {
+      const r = el.getBoundingClientRect();
+      const col = el.parentElement.closest('.scrolly-card, .scrolly-graphic-inner, .topic-head-answer, figure, .scrolly, section') ?? el.parentElement;
+      const cs = getComputedStyle(col);
+      const colW = col.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const probe = document.createElement('span');
+      probe.style.cssText = 'position:absolute;visibility:hidden;width:40ch';
+      el.appendChild(probe);
+      const ch40 = probe.getBoundingClientRect().width;
+      probe.remove();
+      const tops = new Set();
+      const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+        if (!n.textContent.trim() || n.parentElement.closest('button, [class*="src"], [hidden], .visually-hidden')) continue;
+        const rg = document.createRange();
+        rg.selectNodeContents(n);
+        for (const q of rg.getClientRects()) if (q.width > 1 && q.height > 1) tops.add(Math.round(q.top));
+      }
+      // rows within 4px of one another are one line
+      const lines = [...tops].sort((x, y) => x - y).filter((t, i, a) => i === 0 || t - a[i - 1] > 4).length;
+      return { id: el.closest('[id]')?.id ?? '?', kind: el.dataset.closing || 'line', w: Math.round(r.width), colW: Math.round(colW), ch40: Math.round(ch40), lines, text: el.textContent.trim().slice(0, 48) };
+    }),
+  );
+  if (!closing.length) {
+    misses++;
+    console.log('  MISS no [data-closing] closing lines found');
+  }
+  for (const c of closing) {
+    const narrow = c.w < c.ch40 && c.w < 0.9 * c.colW;
+    const tall = W >= 1280 && c.kind !== 'note' && c.lines > 3;
+    if (narrow || tall) misses++;
+    console.log(`  ${narrow || tall ? 'MISS' : 'ok  '} closing ${c.id}${c.kind === 'note' ? ' (note)' : ''}: ${c.w}px of ${c.colW}px column (40ch ${c.ch40}px), ${c.lines} line${c.lines === 1 ? '' : 's'}${narrow ? ' too narrow' : ''}${tall ? ' over 3 lines' : ''} "${c.text}"`);
+  }
   await page.close();
 }
 await browser.close();
-console.log(misses ? `FAIL: ${misses} gap(s) too tight` : 'PASS: topics and answer lines clear');
+console.log(misses ? `FAIL: ${misses} miss(es)` : 'PASS: topics, answer lines and closing lines clear');
 process.exit(misses ? 1 : 0);

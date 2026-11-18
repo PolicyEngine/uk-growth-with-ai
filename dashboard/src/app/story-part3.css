@@ -2362,11 +2362,38 @@ svg.p3-dim {
   box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
   pointer-events: none;
 }
-.lens-chip.is-outside {
+/* what each lens leaves out: one plain muted line, centred under its lens,
+   both on one baseline (no dashed pills) */
+.lens-out-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: baseline;
+  justify-content: center;
+  font-size: var(--t-meta);
+  line-height: 1.4;
   color: var(--t-muted);
-  background: transparent;
-  border: 1px dashed var(--pe-gray-400);
+}
+.lens-out-ic {
+  display: inline-flex;
+  align-self: center;
+}
+.lens-chips.is-outside {
+  display: inline-flex;
+  gap: 0;
+}
+.lens-out-li + .lens-out-li::before {
+  content: '\00b7';
+  margin: 0 6px;
+}
+.lens-out-item {
+  color: inherit;
   cursor: help;
+  border-radius: 3px;
+}
+.lens-out-item:focus-visible {
+  outline: 2px solid var(--pe-gray-900);
+  outline-offset: 2px;
 }
 .lens-overlap {
   position: absolute;
@@ -2395,20 +2422,34 @@ svg.p3-dim {
 .lens-outside.is-study {
   left: 280px;
 }
+/* the pay contrast: two cards on one row, sharing its three rows (head,
+   figure, sub-line: subgrid), so they are one height, top-aligned, their
+   lines on shared baselines; the arrow centred in the gap on the figures;
+   each card's rule in its model's colour */
 .lens-pay {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 16px;
-  align-items: center;
+  grid-template-rows: auto auto auto;
+  column-gap: 16px;
+  align-items: start;
   max-width: 640px;
   margin: 20px auto 0;
 }
 .lens-pay-card {
+  display: grid;
+  grid-row: 1 / span 3;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+  align-items: baseline;
   padding: 4px 0 4px 12px;
   border-left: 3px solid var(--lens-a);
 }
 .lens-pay-card.is-study {
+  grid-column: 3;
   border-left-color: var(--lens-b);
+}
+.lens-pay-card.is-oguk {
+  grid-column: 1;
 }
 .lens-pay-card p {
   margin: 0;
@@ -2441,17 +2482,16 @@ a.lens-pay-num:hover {
 }
 .lens-pay-arrow {
   display: inline-flex;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
   color: var(--t-muted);
 }
+/* the close's closing line: type and measure from story.css [data-closing]
+   (normal weight, not centred), its sources button inline at its end */
 .lens-close {
-  max-width: 60ch;
   margin: 16px auto 0;
-  font-size: var(--t-label);
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: center;
-  color: var(--t-ink);
-  text-wrap: balance;
+  text-align: start;
 }
 /* motion: from the sides, then the chips, the overlap, the pay row, the line */
 @media screen and (prefers-reduced-motion: no-preference) {
@@ -2543,8 +2583,21 @@ a.lens-pay-num:hover {
   .lens-outside.is-study {
     top: 604px;
   }
+  /* stacked: both cards the full width, one height */
   .lens-pay {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: 1fr;
+    row-gap: 12px;
+    align-items: stretch;
+  }
+  .lens-pay-card,
+  .lens-pay-card.is-oguk,
+  .lens-pay-card.is-study {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-rows: auto auto auto;
+    align-content: start;
   }
   .lens-pay-arrow {
     display: none;
