@@ -453,6 +453,9 @@ export default function Sankey({
               ) : null}
               <text className="sankey-label" x={tx} y={ty} textAnchor={anchor} dominantBaseline="middle" style={n.labelColor ? { fill: n.labelColor } : undefined}>
                 <tspan x={tx}>{n.label}</tspan>
+                {/* a space between name and value for a screen reader; it
+                    has no width (sankey-gap), so the dx gap is unchanged */}
+                {sub ? <tspan className="sankey-gap"> </tspan> : null}
                 {sub && n.inline ? (
                   <tspan className="sankey-sub" dx="0.3em">
                     {sub}

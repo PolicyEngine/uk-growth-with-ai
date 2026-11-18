@@ -605,7 +605,9 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={lh * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
                   <tspan key={l} x={0} dy={i ? lh - (lh === LH ? 2 : 4) : 0}>
-                    {l}
+                    {/* a trailing space between lines, for a screen reader
+                        (each line has its own x, so nothing moves) */}
+                    {i < p.lines.length - 1 ? `${l} ` : l}
                   </tspan>
                 ))}
               </text>

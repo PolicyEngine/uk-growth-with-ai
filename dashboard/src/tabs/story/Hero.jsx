@@ -187,7 +187,9 @@ function Fan({ lines, sid, wide }) {
       ))}
       {labels.map((l) => (
         <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - fs * 0.5}>
-          <tspan className="hf-end-name">{l.short}</tspan>
+          {/* the trailing space keeps name and value apart for a screen
+              reader (the value's own x places it; nothing moves) */}
+          <tspan className="hf-end-name">{`${l.short} `}</tspan>
           <tspan x={X(last) + 10} dy={fs * 1.3} className="hf-end-value">
             {fmt(l.at)}
           </tspan>

@@ -1048,6 +1048,11 @@
   font-weight: 400;
   fill: var(--pe-gray-600);
 }
+/* the space between a node's name and value: in the text for a screen
+   reader, no width in the drawing (the value keeps its own dx) */
+.sankey-gap {
+  font-size: 0;
+}
 @media (prefers-reduced-motion: reduce) {
   .sankey-link,
   .sankey-rect,
