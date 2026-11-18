@@ -315,8 +315,7 @@ function MarginPanel({ on }) {
         {CL.povertyMore === 'job' ? `Wage cuts of the same size raise poverty ${CL.far ? 'far ' : ''}less` : `Job loss or wage cuts, ${D.per_pound_20.draws} draws`}
       </p>
       <p className="story-figure-unit p3-group-unit p3-margin-def">
-        Each pair removes the same gross pay{Number.isFinite(GROSS) ? `, ${fmtBn(GROSS)} a year` : ''}: as job loss, the main case, or as pay cuts graded by occupational AI exposure with no jobs lost, after{' '}
-        <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref>.
+        Each pair removes the same gross pay{Number.isFinite(GROSS) ? `, ${fmtBn(GROSS)} a year` : ''}: as job loss, or as wage cuts graded by AI exposure with no jobs lost.
       </p>
       <OutsideRebuildFlag />
       <div className="p3-margin-grid">
@@ -425,6 +424,7 @@ const rulesNotes = () => [
 const marginNotes = () => [
   { icon: 'tax', text: 'Both pence figures include employer NI' },
   { icon: 'draws', text: 'Job loss here is the main case, on the same draws as the wage cuts' },
+  { icon: 'wageCut', text: <>Wage cuts in place of job loss, after <Ref id="acemoglu">Acemoglu and Restrepo (2022)</Ref></> },
   marginClaims().perPoundMore === 'cut' ? { icon: 'why', text: 'A pay cut loses tax at the worker’s marginal (last-pound) rate, a lost job at the average rate, and benefits replace little here' } : null,
 ];
 
@@ -474,6 +474,7 @@ function ChangesFigure({ step, ctx }) {
       <FigureHead
         icon="scenario"
         title="The cost changes with every assumption tested"
+        unit={`The household study, ${MODEL_YEAR}`}
         replay={e.replay}
         source={<ChangesSource />}
       />

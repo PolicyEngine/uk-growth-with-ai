@@ -186,14 +186,6 @@ p.mx-axis-title,
     margin-bottom: 6px;
   }
 }
-@media (max-width: 600px) {
-  /* phone-sticky-cap-fable.md: one panel shows at a time and each has its
-     own head and unit line, so the figure-level unit line goes (its year
-     is in the notes) */
-  .p3-ch:not(.is-all) > .story-figure-unit {
-    display: none;
-  }
-}
 /* the hero's stat lines at 14px: their columns may narrow, and the lines
    wrap, rather than run past the card */
 .hf-stat-line {
@@ -214,11 +206,20 @@ p.mx-axis-title,
   .p2-chip-top .p2-fig-chip {
     display: inline-block;
   }
+  /* p3-changes: the figure's study line (ruling, 18 Nov evening) sits
+     tight to the title, so the tallest state (the rules plane) stays under
+     the 0.55 phone cap */
+  #story-part-3 .p3-ch:not(.is-all) > .story-figure-unit {
+    margin-bottom: 0;
+  }
   /* p3-changes: one margins group per step (steps 1 and 2 share the panel;
-     item 32): step 1 the pence group, step 2 the gains group */
+     item 32): step 1 the pence group and the note (its range is the pence
+     group's), step 2 the gains group; this keeps the tallest state, with
+     the figure's study line (ruling, 18 Nov evening), under the 0.55 cap */
   .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] .p3-margin-group.is-gains,
   .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] .p3-margin-group.is-alone,
-  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-margin-def {
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-margin-def,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-margin-note {
     display: none;
   }
   /* the rules panel: the axis titles carry the units */

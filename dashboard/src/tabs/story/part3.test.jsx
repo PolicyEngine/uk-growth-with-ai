@@ -293,7 +293,7 @@ describe('Part3', () => {
     for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(16);
     expect(close.textContent).not.toMatch(/\d/);
     // reported JSA awards are paid; only the newly jobless get none
-    expect(LEFT_OUT.find((t) => t.id === 'jsa').text).toBe('New-style Jobseeker’s Allowance for the newly jobless: Paid only where the survey already records it');
+    expect(LEFT_OUT.find((t) => t.id === 'jsa').text).toBe('New-style Jobseeker’s Allowance: Paid only where the survey already records it');
     const foot = close.querySelectorAll('.p3-close-foot a');
     expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
     expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
@@ -343,8 +343,6 @@ describe('Part3', () => {
       // a step's sentence (at most 16 words, checked above) and a recap chip (its question and answer, each checked) are not list items
       if (el.matches('.scrolly-step, .story-recap li')) continue;
       if (el.matches('.story-source, .story-source *')) continue; // citation lines
-      // the close's lead is one sentence by its spec (item-33-fable.md, section 2): 28 words, held at the spec's wording
-      if (el.matches('.p3-close-lead')) continue;
       const c = el.cloneNode(true);
       // a figure's notes behind its "Sources and notes" are not on the page
       c.querySelectorAll('[hidden]').forEach((h) => h.remove());
@@ -511,11 +509,14 @@ describe('Part3', () => {
     // the definition sentence: the gross pay once the build carries it; the range in the note line
     const G = D.per_pound_20.gross_cut_bn;
     const def = fig.querySelector('.p3-margin-def').textContent.replace(/\s+/g, ' ').trim();
-    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, the main case, or as pay cuts graded by occupational AI exposure with no jobs lost, after Acemoglu and Restrepo (2022).`);
+    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, or as wage cuts graded by AI exposure with no jobs lost.`);
     expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
     const all = container.querySelector('#p3-changes').textContent;
     for (const s of ['each with its own unit line', 'across draws)', 'these 20 draws', 'sized to the same gross earnings loss', 'holds the other two at main settings']) expect(all, s).not.toContain(s);
     expect(container.querySelector('#p3-changes figure').textContent.match(/same gross/g)).toHaveLength(1);
+    // the citation is in the figure's notes only, not its open text; the figure names the study (ruling, 18 Nov evening)
+    expect(fig.textContent).not.toMatch(/Acemoglu/);
+    expect(container.querySelector('#p3-changes figure > .story-figure-unit').textContent).toMatch(/^The household study, FY \d{4}–\d{2}$/);
   });
 
   it('shows each break-even as one row: main setting, an arrow, the break-even setting', () => {

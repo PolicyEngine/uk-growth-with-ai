@@ -27,10 +27,10 @@ export const LEFT_OUT = [
   { id: 'savings', group: 'respond', left: 'Drawing on savings', assumes: 'No household runs down its savings' },
   { id: 'redundancy', group: 'pay', left: 'Redundancy pay', assumes: 'None is paid' },
   // reported awards are paid; only the newly jobless get none (discussion.tex:14)
-  { id: 'jsa', group: 'pay', left: 'New-style Jobseeker’s Allowance for the newly jobless', assumes: 'Paid only where the survey already records it' },
+  { id: 'jsa', group: 'pay', left: 'New-style Jobseeker’s Allowance', assumes: 'Paid only where the survey already records it' },
   { id: 'young', group: 'cover', left: 'Fewer young people hired', assumes: 'Only existing jobs are lost, not jobs never offered' },
   { id: 'self', group: 'cover', left: 'The self-employed', assumes: 'Job loss and pay changes apply to employees only' },
-  { id: 'occ', group: 'cover', left: 'Differences within an occupation group', assumes: 'AI exposure is one score for each of nine groups' },
+  { id: 'occ', group: 'cover', left: 'Differences within each job group', assumes: 'AI exposure is one score for each of nine groups' },
 ].map((t) => ({ ...t, text: `${t.left}: ${t.assumes}` }));
 
 // A level-(b) topic header (item 1).
@@ -50,7 +50,7 @@ export default function Closing() {
       </header>
       <div ref={ref} className={`p3-close-card${entry.entered ? ' is-in' : ''}${snap ? ' is-snap' : ''}`}>
         <p className="p3-close-lead">
-          The household study leaves these out, so its results show the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
+          Leaving these out, the household study shows the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
         </p>
         <table className="p3-out">
           <caption className="visually-hidden">{CLOSING_SUB.title}</caption>
