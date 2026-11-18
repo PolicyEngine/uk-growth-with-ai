@@ -48,7 +48,7 @@ export default function ScenarioMap({ caption = true }) {
       {caption ? (
         <figcaption className="mx-fig-cap">
           <span className="mx-fig-title">Scenario inputs, {HEADLINE_YEAR}</span>
-          <span className="mx-fig-sub">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</span>
+          <span className="mx-fig-sub">Labour-share fall, pp, against output gain, %</span>
         </figcaption>
       ) : null}
       <div className="mx-map-body">

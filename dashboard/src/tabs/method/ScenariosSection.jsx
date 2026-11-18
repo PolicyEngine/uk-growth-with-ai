@@ -220,7 +220,11 @@ export default function ScenariosSection({ uses = null }) {
         id="scenario-map"
         icon={iconFor('scenario')}
         title={`Scenario inputs, ${HEADLINE_YEAR}`}
-        unit={<IconText icon="measure">Labour-share fall (pp, downwards) against the gain in output at fixed inputs (%)</IconText>}
+        unit={<IconText icon="measure">Labour-share fall, pp, against output gain, %</IconText>}
+        more={[
+          { label: 'Measure', text: 'The labour-share fall is drawn downwards; the output gain is at fixed inputs.' },
+          { label: 'Period', text: `Both inputs are reached in ${HEADLINE_YEAR}.` },
+        ]}
         download={{ title: `Scenario inputs, ${HEADLINE_YEAR}`, context: 'Inputs imposed in each run; sources in the inputs table below', table: scenarioTable }}
         replication={{ code: SRC.ukTargets.url, result: SRC.ukTargets.url }}
       >
@@ -241,6 +245,7 @@ export default function ScenariosSection({ uses = null }) {
         icon={iconFor('source')}
         title="Scenario inputs and model parameters"
         replication={{ code: SRC.ukTargets.url, result: SRC.ogukParams.url }}
+        more={[{ label: 'Measure', text: '“Derived”: computed by this study from OBR or IMF figures, by a rule they do not publish.' }]}
         download={{ title: 'Scenario inputs and model parameters', context: 'Each input, the value the model used, its kind of source and the source', table: inputsTable }}
       >
         <InputsTable />
@@ -259,6 +264,10 @@ export default function ScenariosSection({ uses = null }) {
         icon={iconFor('timing')}
         title={`The timing, ${YEARS[0]}–${LATE_YEAR}`}
         replication={{ code: SRC.rampWeights.url, result: SRC.ukTargets.url }}
+        more={[
+          { label: 'Measure', text: 'The ramp weight of the capital share γ and productivity Z: 0 is the OBR’s central forecast path, 1 the full scenario.' },
+          { label: 'How it is drawn', text: 'One bar a year.' },
+        ]}
         download={{ title: `The timing, ${YEARS[0]}–${LATE_YEAR}`, context: 'Ramp weight of the capital share γ and productivity Z', table: timelineTable, svg: timelineSvg, legend: () => [] }}
       >
         <Timeline caption={false} />

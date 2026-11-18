@@ -30,11 +30,14 @@ import './evidence.css';
 // without one show published figures only. Adoption and exposure are levels,
 // not effects. `kind: 'shares'` draws one row's `shares` as a 100% bar.
 const META = {
-  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: '% against each study’s own baseline; OG-UK against the OBR’s central forecast path', step: 2 },
-  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: '% against each study’s own baseline; OG-UK against the OBR’s central forecast path', step: 1 },
-  adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI: a level, not a gap', step: 10, level: true },
-  exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers by occupation: a share, not a gap', kind: 'shares' },
-  distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points against each study’s own baseline', step: 5, suf: ' Gini pts' },
+  // `unit`: the lane's one short unit line (item 36, M5); what OG-UK's
+  // figures are against, and that adoption and exposure are levels, are
+  // in the card's More info
+  gdp: { title: 'GDP', v: 'Y', icon: iconFor('gdp'), unit: 'GDP, % vs each study’s baseline', step: 2 },
+  wage: { title: 'Average wage', v: 'w', icon: iconFor('pay'), unit: 'Average wage, % vs each study’s baseline', step: 1 },
+  adoption: { title: 'AI adoption by firms', icon: iconFor('business'), unit: '% of businesses using AI', step: 10, level: true },
+  exposure: { title: 'Jobs exposed to AI', icon: iconFor('workers'), unit: '% of UK workers, by occupation', kind: 'shares' },
+  distribution: { title: 'Inequality', icon: iconFor('inequality'), unit: 'Gini points vs each study’s baseline', step: 5, suf: ' Gini pts' },
 };
 // Plotted rows of a measure the shared RANGES does not carry, read from the
 // map in the same shape (each row with `plot` set to the measure)
@@ -140,7 +143,7 @@ function table(metric) {
   };
 }
 
-function LaneHead({ m, y = 'Each estimate, with its horizon' }) {
+function LaneHead({ m, y = 'Each estimate' }) {
   return (
     <>
       <h3 className="mx-lane-h">
@@ -149,9 +152,7 @@ function LaneHead({ m, y = 'Each estimate, with its horizon' }) {
       </h3>
       <p className="mx-lane-unit">
         <IconText icon="measure">
-          <span data-axis-title="x">
-            {m.title}: {m.unit}
-          </span>
+          <span data-axis-title="x">{m.unit}</span>
           {' · '}
           <span data-axis-title="y">{y}</span>
         </IconText>
@@ -342,6 +343,11 @@ export default function EvidenceLanes() {
       replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/tabs/literature/EvidenceLanes.jsx', result: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/src/data/site-evidence-map.json' }}
       finding={<IconText icon="link">One lane per measure. Published figures live in the evidence map, OG-UK’s on Explore.</IconText>}
       unit={<IconText icon="measure">Each lane has its own scale and unit.</IconText>}
+      more={[
+        { label: 'Compared with', text: 'Published figures: each study’s own baseline. OG-UK’s figures: the OBR’s central forecast path.' },
+        { label: 'Measure', text: 'Adoption is a level, not a gap; exposure is a share of workers, not a gap.' },
+        { label: 'How it is drawn', text: 'Each estimate at its own horizon, with its source.' },
+      ]}
       legend={
         <ul className="mx-rb-key">
           <li>
