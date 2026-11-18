@@ -3,7 +3,7 @@
 import { useEnterState, useDrawIn } from '@/components/story/motion.js';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
-import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
+import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, OPH_BASE, SERIES } from './data.js';
 import { WORKERS_PERIOD, aiTitle, employmentTitle, forecastTitle, outputTitle, payTitle, productivityTitle, workersTitle } from './findings.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
 import { idx1, pct1, share0, span3, tick } from './format.js';
@@ -348,14 +348,14 @@ export const boardSeries = () => {
     {
       key: 'productivity_oph',
       mark: 'productivity',
-      tipUnit: 'Index, 2023 = 100',
+      tipUnit: `Index, ${OPH_BASE} = 100`,
       s: o,
       icon: 'productivity',
       name: 'Output per hour',
-      long: 'output per hour worked in the whole economy, a quarterly index with 2023 equal to 100',
+      long: `output per hour worked in the whole economy, a quarterly index with ${OPH_BASE} equal to 100`,
       span: `${o.x[0]} to ${o.x[o.x.length - 1]}`,
       head: productivityTitle(),
-      unit: `Index, 2023 = 100, quarterly, seasonally adjusted, whole economy, ${o.x[0]} to ${o.x[o.x.length - 1]}. ONS.`,
+      unit: `Index, ${OPH_BASE} = 100, quarterly, seasonally adjusted, whole economy, ${o.x[0]} to ${o.x[o.x.length - 1]}. ONS.`,
       src: [{ id: o.source, name: 'output per hour worked' }],
     },
   ];

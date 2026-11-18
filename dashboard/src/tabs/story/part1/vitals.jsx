@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { NavLink } from '@/lib/nav.jsx';
 import { useEnterState, useEntry } from '@/components/story/motion.js';
 import { fmtDate } from '@/components/ui/SourceLine.jsx';
-import { FACTS, LINKS, SERIES, SOURCES } from './data.js';
+import { FACTS, LINKS, OPH_BASE, SERIES, SOURCES } from './data.js';
 import { Ext, SourceLine } from './frame.jsx';
 import { idx1, pct1 } from './format.js';
 
@@ -51,7 +51,7 @@ export const VITALS = [
     fact: 'productivity_oph_latest',
     icon: 'productivity',
     name: 'Output per hour',
-    label: 'Index, 2023 = 100',
+    label: `Index, ${OPH_BASE} = 100`,
     format: idx1,
   },
   {

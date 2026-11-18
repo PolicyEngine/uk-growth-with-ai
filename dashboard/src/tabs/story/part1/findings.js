@@ -44,7 +44,38 @@ export function payTitle() {
 export function productivityTitle() {
   const o = SERIES.productivity_oph;
   const before = o.y.filter((_, i) => yearOf(o.x[i]) < 2020);
-  return find(before.length > 0 && o.y[o.y.length - 1] > Math.max(...before), 'Output per hour is higher than any quarter before 2020', 'Output per hour is back at its 2023 level');
+  return find(before.length > 0 && o.y[o.y.length - 1] > Math.max(...before), 'Output per hour is higher than any quarter before 2020', 'Output per hour, quarter by quarter');
+}
+
+// p1-work step sentences: each claim from the series, so a new release
+// cannot leave one false. Employment against the same three months a year
+// earlier, "close" within 0.5 percentage points (the threshold
+// part1.test.jsx has always held it to); pay growth against its peak;
+// output per hour against its 2023 average, "back at" within 0.5 index
+// points.
+const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+export const NEAR_PP = 0.5;
+export function employmentSay() {
+  const e = SERIES.employment_rate;
+  const last = e.x[e.x.length - 1];
+  const i = e.x.indexOf(`${yearOf(last) - 1} ${String(last).slice(5)}`);
+  if (i < 0) return 'is shown month by month';
+  const d = e.y[e.y.length - 1] - e.y[i];
+  return Math.abs(d) <= NEAR_PP ? 'is close to its level a year ago' : d > 0 ? 'is higher than a year ago' : 'is lower than a year ago';
+}
+export function paySay() {
+  const p = SERIES.pay_growth;
+  const peak = Math.max(...p.y);
+  const year = yearOf(p.x[p.y.indexOf(peak)]);
+  return p.y[p.y.length - 1] < peak ? `has slowed since its ${year} peak` : `is at its highest since ${yearOf(p.x[0])}`;
+}
+export const OPH_SINCE = 2023;
+export function productivitySay() {
+  const o = SERIES.productivity_oph;
+  const base = o.y.filter((_, i) => yearOf(o.x[i]) === OPH_SINCE);
+  if (!base.length) return null;
+  const d = o.y[o.y.length - 1] - mean(base);
+  return Math.abs(d) < NEAR_PP ? `is back at its ${OPH_SINCE} level` : d > 0 ? `is higher than in ${OPH_SINCE}` : `is lower than in ${OPH_SINCE}`;
 }
 
 // p1-ai, state 0: how many times business use has grown since the first wave

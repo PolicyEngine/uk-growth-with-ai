@@ -244,16 +244,12 @@ describe('story part 1, real data', () => {
     // the forecast: every year below at least 6 of the ten 2010s years
     S.obr_gdp_forecast.y.forEach((v) => expect(tens.filter((t) => t > v).length).toBeGreaterThanOrEqual(6));
     expect(F.forecastTitle()).toEqual({ title: `The OBR forecasts growth below most 2010s rates to ${S.obr_gdp_forecast.x.at(-1)}`, fallback: false });
-    // work ("a steady labour market: pay growth slowing, output per hour
-    // flat since 2023"): employment within 0.5 points of a year earlier;
-    // pay growth peaked in 2023 and is lower now; output per hour about 100 (2023 = 100)
+    // work: pay growth peaked in 2023 and is lower now (the step sentences
+    // are checked against the series in the next test)
     const e = S.employment_rate;
-    const yearAgo = (s) => s.y[s.x.indexOf(`${Number(s.x.at(-1).slice(0, 4)) - 1} ${s.x.at(-1).slice(5)}`)];
-    expect(Math.abs(e.y.at(-1) - yearAgo(e))).toBeLessThanOrEqual(0.5);
     const p = S.pay_growth;
     expect(p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4)).toBe('2023');
     expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
-    expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
     // employment below its early 2020 peak; pay growth back inside its
     // 2010s range; output per hour above every quarter before 2020
     expect(e.x[e.y.indexOf(Math.max(...e.y))]).toMatch(/^2020 (JAN|FEB|MAR)/);
@@ -284,17 +280,25 @@ describe('story part 1, real data', () => {
   it('keeps each step sentence true of the series it highlights', () => {
     const S = real.series;
     const text = show(Part1Real).textContent;
-    // jobs: employment within 0.5 points of a year earlier
+    // jobs: the rate against the same three months a year earlier, "close"
+    // within 0.5 points (the sentence is read from the data: findings.js)
     const e = S.employment_rate;
     const yearAgo = (s) => s.y[s.x.indexOf(`${Number(s.x.at(-1).slice(0, 4)) - 1} ${s.x.at(-1).slice(5)}`)];
-    expect(Math.abs(e.y.at(-1) - yearAgo(e))).toBeLessThanOrEqual(0.5);
-    expect(text).toContain('Employment is close to its level a year ago');
-    // pay: slowed since its 2023 peak
-    expect(S.pay_growth.x[S.pay_growth.y.indexOf(Math.max(...S.pay_growth.y))].slice(0, 4)).toBe('2023');
-    expect(text).toContain('slowed since its 2023 peak');
-    // productivity back at its 2023 level (index 2023 = 100)
-    expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
-    expect(text).toContain('Output per hour is back at its 2023 level');
+    const de = e.y.at(-1) - yearAgo(e);
+    expect(text).toContain(Math.abs(de) <= 0.5 ? 'Employment is close to its level a year ago.' : de > 0 ? 'Employment is higher than a year ago.' : 'Employment is lower than a year ago.');
+    // pay: slowed since its peak, the peak's year from the series
+    const p = S.pay_growth;
+    const peakYear = p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4);
+    expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
+    expect(text).toContain(`Regular pay growth has slowed since its ${peakYear} peak. That is before inflation.`);
+    // productivity against its 2023 average, "back at" within 0.5 index points
+    const o = S.productivity_oph;
+    const y23 = o.y.filter((_, i) => o.x[i].startsWith('2023'));
+    const dp = o.y.at(-1) - y23.reduce((a, v) => a + v, 0) / y23.length;
+    expect(y23).toHaveLength(4);
+    expect(text).toContain(Math.abs(dp) < 0.5 ? 'Output per hour is back at its 2023 level.' : dp > 0 ? 'Output per hour is higher than in 2023.' : 'Output per hour is lower than in 2023.');
+    expect(text).not.toMatch(/2023 = 100/);
+    expect(text).toContain(`Index, ${o.base_year} = 100`);
     // AI: all businesses up every September; the 10+ group up more
     const rise = (k) => S[k].y.at(-1) - S[k].y[0];
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));

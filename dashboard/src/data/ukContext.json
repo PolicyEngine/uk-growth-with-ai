@@ -9,7 +9,7 @@
       "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyp/pn2",
       "data_label": "CSV",
       "series": "IHYP (ONS dataset PN2)",
-      "fetched": "2026-11-15",
+      "fetched": "2026-11-18",
       "next_release": "2026-12-22"
     },
     "ons_ihyq": {
@@ -20,7 +20,7 @@
       "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
       "data_label": "CSV",
       "series": "IHYQ (ONS dataset PN2)",
-      "fetched": "2026-11-15",
+      "fetched": "2026-11-18",
       "next_release": "2026-12-22"
     },
     "ons_ihyr": {
@@ -31,52 +31,52 @@
       "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyr/pn2",
       "data_label": "CSV",
       "series": "IHYR (ONS dataset PN2)",
-      "fetched": "2026-11-15",
+      "fetched": "2026-11-18",
       "next_release": "2026-12-22"
     },
     "ons_lzvb": {
-      "title": "UK Whole Economy: Output per hour worked SA: Index 2023 = 100",
+      "title": "UK Whole Economy: Output per hour worked SA: Index 2024 = 100",
       "publisher": "Office for National Statistics",
-      "released": "2026-08-18",
+      "released": "2026-11-17",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy",
       "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy",
       "data_label": "CSV",
       "series": "LZVB (ONS dataset PRDY)",
-      "fetched": "2026-11-15",
-      "next_release": "2026-11-17"
+      "fetched": "2026-11-18",
+      "next_release": "2027-03-04"
     },
     "ons_lf24": {
       "title": "Employment rate (aged 16 to 64, seasonally adjusted): %",
       "publisher": "Office for National Statistics",
-      "released": "2026-10-20",
+      "released": "2026-11-17",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms",
       "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms",
       "data_label": "CSV",
       "series": "LF24 (ONS dataset LMS)",
-      "fetched": "2026-11-15",
-      "next_release": "2026-11-17"
+      "fetched": "2026-11-18",
+      "next_release": "2026-12-15"
     },
     "ons_mgsx": {
       "title": "Unemployment rate (aged 16 and over, seasonally adjusted): %",
       "publisher": "Office for National Statistics",
-      "released": "2026-10-20",
+      "released": "2026-11-17",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
       "page": "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
       "data_label": "CSV",
       "series": "MGSX (ONS dataset LMS)",
-      "fetched": "2026-11-15",
-      "next_release": "2026-11-17"
+      "fetched": "2026-11-18",
+      "next_release": "2026-12-15"
     },
     "ons_kai9": {
       "title": "AWE: Whole Economy Year on Year Three Month Average Growth (%): Seasonally Adjusted Regular Pay Excluding Arrears",
       "publisher": "Office for National Statistics",
-      "released": "2026-10-20",
+      "released": "2026-11-17",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/lms",
       "page": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/lms",
       "data_label": "CSV",
       "series": "KAI9 (ONS dataset LMS)",
-      "fetched": "2026-11-15",
-      "next_release": "2026-11-17"
+      "fetched": "2026-11-18",
+      "next_release": "2026-12-15"
     },
     "ons_dtwm": {
       "title": "UK (S.1): Compensation of employees (D.1) Uses: Current price: £m: SA",
@@ -86,7 +86,7 @@
       "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/dtwm/pn2",
       "data_label": "CSV",
       "series": "DTWM (ONS dataset PN2)",
-      "fetched": "2026-11-15",
+      "fetched": "2026-11-18",
       "next_release": "2026-12-22"
     },
     "ons_ybha": {
@@ -97,7 +97,7 @@
       "page": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ybha/pn2",
       "data_label": "CSV",
       "series": "YBHA (ONS dataset PN2)",
-      "fetched": "2026-11-15",
+      "fetched": "2026-11-18",
       "next_release": "2026-12-22"
     },
     "obr_efo_oct2026": {
@@ -108,7 +108,7 @@
       "page": "https://obr.uk/efo/economic-and-fiscal-outlook-october-2026/",
       "data_label": "Table A.1 on GOV.UK",
       "series": "Table A.1, row 'GDP' (percentage change on a year earlier)",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "ons_bics": {
       "title": "Business insights and impact on the UK economy: 8 October 2026 (BICS Wave 165), Figure 1 data",
@@ -118,7 +118,7 @@
       "page": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026",
       "data_label": "spreadsheet",
       "series": "Figure 1: current use of at least one AI technology, by size band, weighted by count",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "dsit_ai_capabilities_2026": {
       "title": "Assessment of AI capabilities and the impact on the UK labour market (Figure 2, citing IMF, Upskilling the UK Workforce: United Kingdom, July 2024)",
@@ -127,7 +127,7 @@
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
       "page": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
       "series": "Figure 2 table, row 'UK'",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     }
   },
   "series": {
@@ -225,6 +225,7 @@
       "label": "Output per hour worked, whole economy",
       "unit": "index",
       "source": "ons_lzvb",
+      "base_year": 2024,
       "x": [
         "2008 Q1",
         "2008 Q2",
@@ -298,7 +299,9 @@
         "2025 Q2",
         "2025 Q3",
         "2025 Q4",
-        "2026 Q1"
+        "2026 Q1",
+        "2026 Q2",
+        "2026 Q3"
       ],
       "t": [
         2008.125,
@@ -373,84 +376,88 @@
         2025.375,
         2025.625,
         2025.875,
-        2026.125
+        2026.125,
+        2026.375,
+        2026.625
       ],
       "y": [
-        93.3,
-        93.9,
-        92.4,
+        88.2,
+        85.8,
+        86.4,
+        85.0,
+        84.8,
+        84.6,
+        85.1,
+        85.7,
+        87.3,
+        87.7,
+        89.0,
+        88.8,
+        89.5,
+        90.3,
+        89.2,
+        89.6,
+        90.5,
+        90.0,
+        90.1,
+        90.2,
+        90.4,
+        90.8,
         91.0,
-        90.7,
-        90.7,
         91.3,
-        91.6,
-        92.6,
+        91.7,
+        89.8,
+        90.8,
+        90.9,
+        90.4,
+        90.5,
+        91.1,
+        90.7,
+        90.1,
+        91.7,
+        92.1,
+        91.9,
         92.9,
-        93.0,
-        92.6,
-        92.6,
-        93.6,
-        93.3,
-        93.6,
-        93.6,
-        92.9,
-        92.9,
-        92.5,
-        92.6,
-        92.9,
-        92.4,
-        92.9,
-        92.8,
-        92.8,
-        93.4,
-        93.3,
-        93.2,
-        93.8,
-        94.0,
-        92.7,
         93.7,
-        94.3,
-        94.5,
-        94.8,
-        95.1,
-        95.4,
-        97.0,
-        97.4,
-        97.0,
-        97.1,
-        96.6,
-        96.8,
-        95.9,
+        95.3,
+        96.0,
         96.2,
-        97.3,
+        96.5,
+        95.5,
+        95.5,
+        95.8,
+        96.0,
+        96.5,
         97.5,
-        97.4,
-        95.1,
-        102.4,
-        97.6,
-        98.8,
-        100.3,
-        99.3,
-        99.7,
-        100.3,
-        100.4,
-        100.6,
-        100.2,
-        99.7,
-        100.2,
-        100.5,
-        99.6,
-        99.1,
+        102.2,
+        101.1,
+        109.1,
+        104.1,
+        100.7,
+        103.4,
+        101.9,
+        101.6,
+        101.8,
+        101.2,
+        101.3,
         99.8,
-        98.3,
         99.7,
-        99.6,
-        99.1,
-        99.4,
-        99.1,
-        100.1
+        100.6,
+        100.1,
+        99.9,
+        100.0,
+        100.7,
+        98.3,
+        100.9,
+        101.9,
+        101.9,
+        102.4,
+        102.5,
+        103.4,
+        103.6,
+        104.9
       ],
-      "note": "Index, 2023 = 100, quarterly, seasonally adjusted. Output per hour is derived partly from LFS hours worked, so it carries the LFS quality caveat."
+      "note": "Index, 2024 = 100, quarterly, seasonally adjusted. Output per hour is derived partly from LFS hours worked, so it carries the LFS quality caveat."
     },
     "employment_rate": {
       "label": "Employment rate, aged 16 to 64",
@@ -655,7 +662,8 @@
         "2026 APR",
         "2026 MAY",
         "2026 JUN",
-        "2026 JUL"
+        "2026 JUL",
+        "2026 AUG"
       ],
       "t": [
         2010.0417,
@@ -856,7 +864,8 @@
         2026.2917,
         2026.375,
         2026.4583,
-        2026.5417
+        2026.5417,
+        2026.625
       ],
       "y": [
         70.3,
@@ -1057,10 +1066,11 @@
         75.1,
         75.1,
         75.1,
-        75.3
+        75.3,
+        75.4
       ],
       "first": "December 2009 to February 2010",
-      "last": "June to August 2026",
+      "last": "July to September 2026",
       "note": "Three-month average, seasonally adjusted. LFS estimate: the ONS advises caution with short-term changes (see notes). Points are placed at the middle month of each three-month period."
     },
     "unemployment_rate": {
@@ -1266,7 +1276,8 @@
         "2026 APR",
         "2026 MAY",
         "2026 JUN",
-        "2026 JUL"
+        "2026 JUL",
+        "2026 AUG"
       ],
       "t": [
         2010.0417,
@@ -1467,7 +1478,8 @@
         2026.2917,
         2026.375,
         2026.4583,
-        2026.5417
+        2026.5417,
+        2026.625
       ],
       "y": [
         7.9,
@@ -1668,10 +1680,11 @@
         4.9,
         4.9,
         4.9,
-        4.7
+        4.7,
+        4.6
       ],
       "first": "December 2009 to February 2010",
-      "last": "June to August 2026",
+      "last": "July to September 2026",
       "note": "Three-month average, seasonally adjusted. LFS estimate: the ONS advises caution with short-term changes (see notes). Points are placed at the middle month of each three-month period."
     },
     "pay_growth": {
@@ -1878,7 +1891,8 @@
         "2026 MAY",
         "2026 JUN",
         "2026 JUL",
-        "2026 AUG"
+        "2026 AUG",
+        "2026 SEP"
       ],
       "t": [
         2009.9583,
@@ -2080,7 +2094,8 @@
         2026.2917,
         2026.375,
         2026.4583,
-        2026.5417
+        2026.5417,
+        2026.625
       ],
       "y": [
         1.4,
@@ -2282,10 +2297,11 @@
         3.4,
         3.5,
         3.6,
-        3.7
+        3.7,
+        3.5
       ],
       "first": "November 2009 to January 2010",
-      "last": "June to August 2026",
+      "last": "July to September 2026",
       "note": "Average weekly earnings, regular pay (excluding bonuses and arrears), three-month average on the same period a year earlier, seasonally adjusted, nominal (not adjusted for inflation). From the Monthly Wages and Salaries Survey of employers, not the LFS. Points are placed at the middle month of each three-month period."
     },
     "labour_share": {
@@ -2452,33 +2468,34 @@
     },
     "productivity_oph_latest": {
       "label": "Output per hour worked, whole economy",
-      "value": 100.1,
-      "unit": "index (2023 = 100)",
-      "period": "2026 Q1",
+      "value": 104.9,
+      "unit": "index (2024 = 100)",
+      "period": "2026 Q3",
       "source": "ons_lzvb",
+      "base_year": 2024,
       "note": "Latest quarter, seasonally adjusted."
     },
     "employment_rate_latest": {
       "label": "Employment rate, aged 16 to 64",
-      "value": 75.3,
+      "value": 75.4,
       "unit": "%",
-      "period": "June to August 2026",
+      "period": "July to September 2026",
       "source": "ons_lf24",
       "note": "Three-month average, seasonally adjusted. LFS estimate: the ONS advises caution with short-term changes (see notes)."
     },
     "unemployment_rate_latest": {
       "label": "Unemployment rate, aged 16 and over",
-      "value": 4.7,
+      "value": 4.6,
       "unit": "%",
-      "period": "June to August 2026",
+      "period": "July to September 2026",
       "source": "ons_mgsx",
       "note": "Three-month average, seasonally adjusted. LFS estimate: the ONS advises caution with short-term changes (see notes)."
     },
     "pay_growth_latest": {
       "label": "Regular pay growth, whole economy",
-      "value": 3.7,
+      "value": 3.5,
       "unit": "%",
-      "period": "June to August 2026",
+      "period": "July to September 2026",
       "source": "ons_kai9",
       "note": "Average weekly earnings, regular pay (excluding bonuses and arrears), three-month average on the same period a year earlier, seasonally adjusted, nominal (not adjusted for inflation). From the Monthly Wages and Salaries Survey of employers, not the LFS."
     },
@@ -2534,7 +2551,7 @@
   "exposure": null,
   "notes": [
     "Official published data only; no PolicyEngine modelling. The OBR series is the OBR's own forecast.",
-    "Labour Force Survey quality: in its labour market bulletin released 2026-10-20 (https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/october2026) the ONS says LFS response has improved and is now close to its pre-pandemic level, but that some volatility remains, particularly in estimates for mid-2023 and throughout 2024 and in detailed breakdowns with small samples, and advises users to focus on long-term movements rather than short-term changes. LFS estimates are official statistics; the ONS has told the Office for Statistics Regulation it will not seek reaccreditation for them and is prioritising the Transformed LFS as their replacement.",
+    "Labour Force Survey quality: in its labour market bulletin released 2026-11-17 (https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/november2026) the ONS says LFS response has improved and is now close to its pre-pandemic level, but that some volatility remains, particularly in estimates for mid-2023 and throughout 2024 and in detailed breakdowns with small samples, and advises users to focus on long-term movements rather than short-term changes. LFS estimates are official statistics; the ONS has told the Office for Statistics Regulation it will not seek reaccreditation for them and is prioritising the Transformed LFS as their replacement.",
     "LFS rolling three-month estimates are labelled in ONS files by their middle month, and AWE three-month averages by their last month; periods here are given as the full three months.",
     "GDP and productivity figures are revised as new data arrive; values are as published on the release dates in 'sources'.",
     "The OBR October 2026 EFO gives 2025 GDP growth of 1.3% (its outturn at the time); the ONS series IHYP gives 1.2%. The difference is a data vintage, not a forecast.",
@@ -2585,10 +2602,10 @@
       "url": "https://www.imf.org/en/Publications/Staff-Discussion-Notes/Issues/2024/01/14/Gen-AI-Artificial-Intelligence-and-the-Future-of-Work-542379"
     },
     "ons_lms_bulletin": {
-      "title": "Labour market overview, UK: October 2026",
+      "title": "Labour market overview, UK: November 2026",
       "publisher": "Office for National Statistics",
-      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/october2026",
-      "released": "2026-10-20"
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/november2026",
+      "released": "2026-11-17"
     }
   }
 }

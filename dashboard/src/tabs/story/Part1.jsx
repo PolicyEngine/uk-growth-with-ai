@@ -10,6 +10,7 @@ import { AiUseChart, ExposureTiles, LabourBoard, OBR_NAMED, OutputCanvas, P1_MAR
 import { Ext, SourceLine, Swap } from './part1/frame.jsx';
 import Vitals from './part1/vitals.jsx';
 import { dateLong, pct1, share0 } from './part1/format.js';
+import { employmentSay, paySay, productivitySay } from './part1/findings.js';
 import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 
 // Part 1: where the UK economy and labour market stand before the AI shock, from
@@ -147,7 +148,7 @@ function workSteps() {
         <>
           <Anchor id="p1-work-1" />
           <Say>
-            <Key id="employment">Employment</Key> is close to its level a year ago.
+            <Key id="employment">Employment</Key> {employmentSay()}.
           </Say>
         </>
       ),
@@ -162,7 +163,7 @@ function workSteps() {
         <>
           <Anchor id="p1-pay" />
           <Say>
-            <Key id="pay">Regular pay growth</Key> has slowed since its 2023 peak. That is before inflation.
+            <Key id="pay">Regular pay growth</Key> {paySay()}. That is before inflation.
           </Say>
         </>
       ),
@@ -179,7 +180,7 @@ function workSteps() {
           <Anchor id="p1-share" />
           <Anchor id="p1-share-0" />
           <Say>
-            <Key id="productivity">Output per hour</Key> is back at its 2023 level.
+            <Key id="productivity">Output per hour</Key> {productivitySay()}.
           </Say>
         </>
       ),
