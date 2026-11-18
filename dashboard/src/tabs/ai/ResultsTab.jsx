@@ -89,9 +89,16 @@ export function PathCard({
   // value (the labour share, an imposed input, is the same in every arm)
   // carries no end value of its own: the value prints once and the card's
   // finding says the lines coincide.
-  const series = seriesFor(sid, v, years, st.arms, st.closure, scale, rule).map((s, i, all) =>
-    all.slice(0, i).some((t) => !t.noEndLabel && t.values.length === s.values.length && signed(t.values[t.values.length - 1], endDp) === signed(s.values[s.values.length - 1], endDp) && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE)) ? { ...s, noEndLabel: true } : s,
-  );
+  const same = (t, s) => t.values.length === s.values.length && signed(t.values[t.values.length - 1], endDp) === signed(s.values[s.values.length - 1], endDp) && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE);
+  const raw = seriesFor(sid, v, years, st.arms, st.closure, scale, rule).map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
+  // the line that carries a shared label names the lines under it, so no
+  // colour is left without a label ("all versions" when every line is one)
+  const series = raw.map((s, i) => {
+    if (s.noEndLabel) return s;
+    const under = raw.filter((t, k) => k > i && t.noEndLabel && same(s, t));
+    if (!under.length) return s;
+    return { ...s, sublabel: under.length === raw.length - 1 ? 'all versions' : `and ${under.map((t) => t.label).join(', ')}` };
+  });
   const last = years[years.length - 1];
   const shown = finding ?? findingFor(sid, v, st.arms, st.closure, name, rule);
   // The y-axis title, with the measure's unit: % for a level, percentage
@@ -105,6 +112,8 @@ export function PathCard({
   // (click or Enter on the title), it spans the wall and shows its finding,
   // notes and "About this chart" too.
   const full = !tile || open;
+  // end labels: a full-size chart names each line, with its value and unit
+  const named = !(ends && tile && !open);
   const head = tile ? (
     <button type="button" className="ex-tile-open" aria-expanded={open} onClick={onToggle} title={open ? 'Back to the wall (Escape)' : 'Enlarge this chart'}>
       <span>{title}</span>
@@ -145,8 +154,11 @@ export function PathCard({
           x={years}
           series={series}
           height={tile ? (open ? 340 : 190) : 260}
-          endLabel="value"
-          noEndLabels={!ends}
+          // a full-size chart names each line at its end, with its value;
+          // a closed tile prints values only (its wall's GNI and GDP tiles,
+          // which print no value, name the lines in the same colours)
+          endLabel={named ? 'name' : 'value'}
+          noValue={!ends}
           unit={unit}
           tipTitle={title}
           yUnit={yTitle}
@@ -155,7 +167,7 @@ export function PathCard({
           zeroNote={tile && !open ? null : 'No-shock baseline = 0'}
           markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'AI shock starts' }]}
           bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
-          valueFormat={(x) => signed(x, endDp)}
+          valueFormat={(x) => `${signed(x, endDp)}${named && ends ? unit : ''}`}
           tipFormat={(x) => signed(x, dp)}
           ariaLabel={`${title} against the no-shock baseline, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />

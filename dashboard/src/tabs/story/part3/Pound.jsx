@@ -10,14 +10,17 @@ import { fmtBn, fmtShare } from './format.js';
 import { docItem } from '@/lib/sourceItems.js';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { D, FigureHead, Source, entryClass, useBeat } from './shared.jsx';
+import { DecileOneWhy } from './Deciles.jsx';
 
 // Where a lost pound of earnings goes (item 19: back in the Story, clearly
 // labelled). The study's "Household absorption of job loss by baseline
 // decile" (results.tex): a different, smaller run (job loss alone, sized to
 // the OBR's scenario, 20 draws), so a run-switch marker on the page comes
-// first and the figure carries a chip. Each income decile's earnings lost
+// first and the figure's kicker names the run. Each income decile's earnings lost
 // flow to four destinations, in the shared Sankey (pour, particles, node
-// values), decile 1 grey with its caveat. The Story is the home of the
+// values), decile 1 dashed and muted, "not a reliable result: see why"
+// (Deciles.jsx DecileOneWhy, without the ranking figure: that is the
+// main run's). The Story is the home of the
 // destination totals, the earnings total and the share absorbed; Explore >
 // Households links here. Employer NI (its home), the other items, the UC
 // caveat, the result file and OBR Box 2.2 are behind the title's button.
@@ -93,8 +96,8 @@ function PoundFigure({ ctx }) {
   });
   return (
     <figure ref={attach} className={entryClass(e, 'p3-figure p3-scene p3-pound')}>
-      <p className="p3-pound-chip">OBR-sized run · not the main case</p>
       <FigureHead
+        kicker="OBR-sized run · not the main case"
         icon="pay"
         title="Where lost earnings go, by income decile"
         y="£bn a year"
@@ -123,7 +126,9 @@ function PoundFigure({ ctx }) {
           tooltip={tip}
         />
       </div>
-      <p className="p3-pound-caveat">Decile 1 is grey: no conclusion is drawn.</p>
+      <p className="p3-pound-caveat">
+        <DecileOneWhy lead="Decile 1, dashed: " rank={false} />
+      </p>
     </figure>
   );
 }

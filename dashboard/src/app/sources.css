@@ -196,20 +196,49 @@
   color: var(--pe-gray-500, #6b7280);
 }
 
-/* a figure title with its "Sources and notes" button after it */
+/* The figure header, every figure on the Story and Explore: kicker, title
+   and the sources button on one left edge. The title takes the whole row
+   and wraps only when it must; the sources button sits at the row's far
+   right (never in a column sized by a longer state's title), beside any
+   head actions (Replay, Pause, Download). One icon per header. */
+.story-figure-title.p1-title-row,
 .p2-title-row,
-.p3-title-row {
+.p3-title-row,
+.story-figure-title.p3-iconed,
+.p2-output-title,
+.ch-title {
   display: flex;
   align-items: flex-start;
-  gap: 2px;
+  gap: 6px;
 }
-.p1-title-row > .src-line,
-.p2-title-row > .src-line,
-.p3-title-row > .src-line,
-.ch-title > .src-line {
+.story-figure-title,
+.ch-title,
+.card-head h3 {
+  text-wrap: balance;
+}
+.story-figure-title > :not(.src-line):not(svg):not(.p1-text-icon):not(.p3-ico):not(.p3-head-actions),
+.ch-title > .ch-stack-cell,
+.card-head h3 > span:not(.src-line) {
+  flex: 0 1 auto;
+  min-width: 0;
+  /* a title that must wrap splits into even lines, never a lone last word */
+  text-wrap: balance;
+}
+.story-figure-title > .src-line,
+.ch-title > .src-line,
+.card-head h3 > .src-line {
   flex: none;
-  margin-left: 4px;
+  margin-left: auto;
   margin-top: 1px;
+  padding-left: 8px;
+}
+.story-figure-title > .src-line + .p3-head-actions {
+  margin-left: 0;
+}
+/* a badge that shares a head row with the title (part 2's output split)
+   gets the row to itself, so the title starts on the badge's left edge */
+.p2-output-head > .ch-badge {
+  flex-basis: 100%;
 }
 /* the hero's figure has no title: its button sits at the frame's top right */
 .story-hero-art {
@@ -225,4 +254,84 @@
 /* the shell's scope line ends in the "As of" button: no separator before it */
 .scope-line .scope-item:has(+ .as-of) .scope-sep {
   display: none;
+}
+
+/* A figure control (a label and a text input, e.g. "Mark a birth year"):
+   on the title's left edge, one line, no icon of its own (the figure's
+   title carries the one icon), no native number spinners. */
+.fig-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 2px 0 8px;
+  padding: 0;
+  font: 500 var(--t-meta, 13px) / 1.3 var(--ch-font, inherit);
+  color: var(--pe-gray-700, #374151);
+}
+.fig-control label {
+  cursor: pointer;
+}
+.fig-input {
+  width: 8.5em;
+  min-height: 32px;
+  padding: 4px 10px;
+  font: 400 14px/1.3 var(--ch-font, inherit);
+  font-variant-numeric: tabular-nums;
+  color: var(--pe-gray-900, #111827);
+  background: var(--pe-surface, #fff);
+  border: 1px solid var(--pe-gray-300, #d1d5db);
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(17, 24, 39, 0.04);
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.fig-input::placeholder {
+  color: var(--pe-gray-400, #9ca3af);
+}
+.fig-input:hover {
+  border-color: var(--pe-gray-400, #9ca3af);
+}
+.fig-input:focus-visible {
+  outline: none;
+  border-color: var(--c-highlight, #0f766e);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-highlight, #0f766e) 25%, transparent);
+}
+.fig-input::-webkit-outer-spin-button,
+.fig-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fig-input {
+    transition: none;
+  }
+}
+
+/* An Explore tile's title is its "enlarge" button: the arrow follows the
+   last word of the title (inline), not a column of its own. */
+.card-head h3 .ex-tile-open {
+  display: inline;
+  text-align: left;
+}
+.card-head h3 .ex-tile-open > span {
+  display: inline;
+}
+.card-head h3 .ex-tile-open .plain-icon {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: -2px;
+}
+.story-figure-title > .p2-tx-icon {
+  flex: none;
+  margin: 2px 0 0;
+}
+
+/* a figure's kicker as text (which run it shows): muted, on the title's
+   left edge, like the model badge above other figures */
+.story-figure-kicker {
+  margin: 0 0 6px;
+  font: 400 12px/1.3 var(--ch-font, inherit);
+  color: var(--t-muted);
 }

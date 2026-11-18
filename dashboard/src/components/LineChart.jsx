@@ -332,6 +332,32 @@ export default function LineChart({
   const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (topLines.length ? 14 + (topLines.length - 1) * 13 : 0);
   const labelY = (row) => TOP - 6 - LIFT - row * 14;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
+  // The zero line's note sits where no line crosses it: right end above the
+  // line, then right below, left above, left below (a line through it
+  // would cross its words).
+  const zeroAt = (() => {
+    if (!zeroNote || !(lo < 0 && hi > 0)) return { x: L + 4, y: 0, anchor: 'start' };
+    const w = textWidth(zeroNote, AX_FONT) + 4;
+    const z = sy(0);
+    const spots = [
+      { x: R - 4, y: z - 4, anchor: 'end', box: [R - 4 - w, z - 15, R, z - 1] },
+      { x: R - 4, y: z + 13, anchor: 'end', box: [R - 4 - w, z + 1, R, z + 16] },
+      { x: L + 4, y: z - 4, anchor: 'start', box: [L, z - 15, L + 4 + w, z - 1] },
+      { x: L + 4, y: z + 13, anchor: 'start', box: [L, z + 1, L + 4 + w, z + 16] },
+    ];
+    const clear = ([x0, y0, x1, y1]) =>
+      series.every((sr) =>
+        sr.values.every((v, i) => {
+          const u = sr.values[i + 1];
+          if (!Number.isFinite(v)) return true;
+          const pts = Number.isFinite(u) ? Array.from({ length: 13 }, (_, k) => [sx(i) + ((sx(i + 1) - sx(i)) * k) / 12, sy(v) + ((sy(u) - sy(v)) * k) / 12]) : [[sx(i), sy(v)]];
+          return pts.every(([px, py]) => px < x0 - 2 || px > x1 + 2 || py < y0 - 2 || py > y1 + 2);
+        }),
+      );
+    // no clear spot in the plot: the note joins the end labels, at the zero
+    // line's right end (when the chart has an end-label column)
+    return spots.find((sp) => clear(sp.box)) ?? (rawLabels.length ? { gutter: true } : spots[2]);
+  })();
   // Where a strip point's marker sits. Two points pushed to the same axis
   // edge would be drawn on top of each other, so each off-scale point after
   // the first is offset one row along that edge. The label stack reads the
@@ -358,6 +384,12 @@ export default function LineChart({
         ? { ...base, key: `s-${s.key ?? s.label}`, color: s.color, textColor: s.textColor, ax: R, y: sy(s.values[s.values.length - 1]) }
         : { ...base, key: `p-${p.label}`, color: p.color, ax: stripX, y: stripY(p, points.indexOf(p)) };
     })
+    .concat(
+      zeroAt.gutter
+        ? [{ lines: wrapSegments([{ kind: 'text', text: zeroNote, weight: 500 }], labelMax), subLines: [], extra: 0, strong: false, key: 'zero-note', color: 'var(--pe-color-gray-500)', ax: R, y: sy(0), zero: true }]
+        : [],
+    )
+    .map((e) => (e.zero ? { ...e, extra: (e.lines.length - 1) * LINE } : e))
     .sort((a, b) => a.y - b.y);
   let prev = -Infinity;
   let prevH = 0;
@@ -477,8 +509,8 @@ export default function LineChart({
         {lo < 0 && hi > 0 ? (
           <g>
             <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" />
-            {zeroNote ? (
-              <text x={L + 4} y={sy(0) - 4} className="ax zero-note" data-reference-label="">
+            {zeroNote && !zeroAt.gutter ? (
+              <text x={zeroAt.x} y={zeroAt.y} textAnchor={zeroAt.anchor} className="ax zero-note" data-reference-label="">
                 {zeroNote}
               </text>
             ) : null}

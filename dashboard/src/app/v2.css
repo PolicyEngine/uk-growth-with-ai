@@ -131,6 +131,14 @@
   font-weight: 600;
   text-overflow: ellipsis;
 }
+.picker-value-compact {
+  display: none;
+}
+@media (max-width: 640px) {
+  .picker-value-compact {
+    display: inline;
+  }
+}
 .picker-chevron {
   transition: transform 150ms ease;
 }
@@ -1989,6 +1997,40 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   }
   .picker-chevron {
     margin-left: auto;
+  }
+  /* label and value fit at 390 and 360: each picker as wide as its
+     words, the value in its short form when the label already names it */
+  .picker {
+    flex: 1 1 auto;
+  }
+  .picker-value-full {
+    display: none;
+  }
+  /* the label a small line above the value, so each button is as wide as
+     its longer line and the two fit side by side */
+  .band-pickers .picker-button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 6px;
+    row-gap: 0;
+    align-content: center;
+    height: 40px;
+    text-align: left;
+  }
+  .band-pickers .picker-label {
+    grid-area: 1 / 1;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+  .band-pickers .picker-value {
+    grid-area: 2 / 1;
+    line-height: 1.25;
+  }
+  .band-pickers .picker-chevron {
+    grid-area: 1 / 2 / 3 / 3;
+    align-self: center;
+    margin-left: 0;
   }
   .tabs-bar,
   .subhead {

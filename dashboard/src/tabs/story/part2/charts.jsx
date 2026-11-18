@@ -7,7 +7,7 @@ import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from 
 import D from '@/data/cohorts2028.json';
 import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
 import { navItem } from '@/lib/sourceItems.js';
-import { W, H, scales, monotonePath, tickText, Figure, Tx } from './frame.jsx';
+import { W, H, scales, monotonePath, tickText, Figure } from './frame.jsx';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
 // takes the active `state` and draws everything that state needs, so a
@@ -112,23 +112,28 @@ export function WelfareShape({ state }) {
       xTitle={null}
       source={<WelfareSource />}
       head={
-        <p className="p2-born">
-          <Tx icon="age" size={12}>
-            <label htmlFor={bornId}>Mark a birth year</label>
-          </Tx>
+        <p className="p2-born fig-control">
+          <label htmlFor={bornId}>Mark a birth year</label>
           <input
             id={bornId}
-            type="number"
+            className="fig-input"
+            type="text"
             inputMode="numeric"
-            min={xs[0]}
-            max={state >= 1 ? xs[xs.length - 1] : LAST_ALIVE}
-            placeholder="Year"
+            pattern="[0-9]*"
+            maxLength={4}
+            autoComplete="off"
+            size={8}
+            aria-describedby={`${bornId}-range`}
+            placeholder="e.g. 1990"
             value={born}
-            onChange={(e) => setBorn(e.target.value)}
+            onChange={(e) => setBorn(e.target.value.replace(/[^0-9]/g, ''))}
             onKeyDown={(e) => {
               if (e.key === 'Escape') setBorn('');
             }}
           />
+          <span id={`${bornId}-range`} className="visually-hidden">
+            {`From ${xs[0]} to ${state >= 1 ? xs[xs.length - 1] : LAST_ALIVE}; Escape clears it.`}
+          </span>
           <span className="visually-hidden" aria-live="polite">
             {pick ? 'That cohort is marked on the curve.' : ''}
           </span>
@@ -148,14 +153,14 @@ export function WelfareShape({ state }) {
       >
         <g className={`p2-who-band${state >= 1 ? ' is-on' : ''}`}>
           <rect x={bx} y={yTop} width={Math.max(0, xr - bx)} height={yBot - yTop} className="p2-band-period" />
-          <text data-axis="" x={bx + 4} y={yTop + 10} className="p2-band-note">
+          <text data-axis="" data-label-for="cohort-later" x={bx + 4} y={yTop + 10} className="p2-band-note">
             Enter later
           </text>
         </g>
         <text x={6} y={9} className="p2-panel-name" data-axis-title="y">
           Remaining-lifetime gain, % of consumption and bequests
         </text>
-        <text data-axis="" x={bx - 4} y={yTop + 10} textAnchor="end" className="p2-band-note">
+        <text data-axis="" data-label-for="cohort-adults" x={bx - 4} y={yTop + 10} textAnchor="end" className="p2-band-note">
           Adults in {D.shock_year}
         </text>
         {sc.ticks.map((v) => (
@@ -177,8 +182,8 @@ export function WelfareShape({ state }) {
         <text data-axis="" x={xr - 2} y={sc.Y(0) - 4} textAnchor="end" className="p2-band-note">
           No change = 0
         </text>
-        <DrawPath data-mark="cohort-adults" d={monotonePath(sc.X, sc.Y, xs, adults)} on={seen} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
-        <DrawPath data-mark="cohort-later" d={monotonePath(sc.X, sc.Y, xs, later)} on={seen && state >= 1} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
+        <DrawPath data-mark="cohort-adults" data-series="cohort-adults" d={monotonePath(sc.X, sc.Y, xs, adults)} on={seen} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
+        <DrawPath data-mark="cohort-later" data-series="cohort-later" d={monotonePath(sc.X, sc.Y, xs, later)} on={seen && state >= 1} style={{ stroke: 'var(--pe-gray-800)', strokeWidth: 2.5 }} />
         {pick ? (
           <g className="p2-born-mark" aria-hidden="true">
             <line x1={pick[0]} x2={pick[0]} y1={yTop} y2={yBot} />

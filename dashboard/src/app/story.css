@@ -3007,18 +3007,8 @@
 .story-part > .story-beat.is-compact {
   margin-top: var(--gap-topic);
 }
-.p3-pound-chip {
-  display: inline-block;
-  margin: 0 0 8px;
-  padding: 1px 8px;
-  font-size: var(--t-meta);
-  line-height: 1.6;
-  color: var(--t-muted);
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-}
 .p3-pound-caveat {
-  margin: 6px 0 0;
+  margin: 10px 0 0;
   font-size: var(--t-meta);
   color: var(--t-muted);
 }

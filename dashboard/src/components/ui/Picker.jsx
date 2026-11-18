@@ -85,7 +85,18 @@ export default function Picker({ icon, label, value, options, onChange, locked =
       >
         <Icon name={icon} size={16} className="picker-icon" />
         <span className="picker-label">{label}</span>
-        <span className="picker-value">{current?.short ?? current?.label}</span>
+        {/* phones: the label names the choice, so the value shows its short
+            form when it has one ("Foreign capital: Some"), and both fit */}
+        <span className="picker-value">
+          {current?.short && current.short !== current.label ? (
+            <>
+              <span className="picker-value-full">{current.short}</span>
+              <span className="picker-value-compact">{current.label}</span>
+            </>
+          ) : (
+            current?.short ?? current?.label
+          )}
+        </span>
         <Icon name={locked ? 'lock' : 'chevronDown'} size={14} strokeWidth={2} className="picker-chevron" />
       </button>
       {open ? (

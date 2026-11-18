@@ -223,6 +223,8 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
             <span>65</span>
             <span>90</span>
           </span>
+          {/* the ruler's unit: its ticks are ages */}
+          <span className="ex-ruler-unit">Age in {D.shock_year}</span>
         </div>
       </StatTile>
       <StatTile icon={iconFor('measure')} name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub={<Lead c="consumption">Of remaining-lifetime consumption and bequests</Lead>}>
@@ -334,13 +336,22 @@ function Spark({ c, rule }) {
   const hi = Math.max(0, ...ys.map(([, v]) => v));
   const W = 200;
   const H = 48;
-  const X = (i) => 4 + (i / Math.max(1, ys.length - 1)) * (W - 8);
-  const Y = (v) => 4 + ((hi - v) / (hi - lo || 1)) * (H - 8);
+  // the line's two ends are labelled with their years, in the gutters
+  const G = 30;
+  const X = (i) => G + (i / Math.max(1, ys.length - 1)) * (W - 2 * G);
+  const Y = (v) => 6 + ((hi - v) / (hi - lo || 1)) * (H - 12);
+  const end = ys.length - 1;
   return (
     <figure className="ex-spark">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Aggregate consumption gap, ${ys[0][0]} to ${ys[ys.length - 1][0]}`}>
-        <line x1="0" x2={W} y1={Y(0)} y2={Y(0)} className="ex-spark-zero" />
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Aggregate consumption gap, ${ys[0][0]} to ${ys[end][0]}`}>
+        <line x1={G} x2={W - G} y1={Y(0)} y2={Y(0)} className="ex-spark-zero" />
         <polyline points={ys.map(([, v], i) => `${X(i)},${Y(v)}`).join(' ')} className="ex-spark-line" />
+        <text x={X(0) - 4} y={Y(ys[0][1])} dy="0.35em" textAnchor="end" className="ex-spark-end">
+          {ys[0][0]}
+        </text>
+        <text x={X(end) + 4} y={Y(ys[end][1])} dy="0.35em" className="ex-spark-end">
+          {ys[end][0]}
+        </text>
       </svg>
       <figcaption>
         <span data-axis-title="y">{`Aggregate consumption gap, %, ${ys[0][0]}–${ys[ys.length - 1][0]}`}</span>
@@ -679,7 +690,9 @@ export default function WhoGainsTab() {
                     x={x}
                     series={pn.series.map((s) => ({ ...s, closure: CL_WORDS[pn.cl] }))}
                     height={both ? 320 : 380}
-                    noEndLabels
+                    // each group named at its line's end (names only: the
+                    // values are in the tooltip and the heatmap)
+                    noValue
                     dots={false}
                     yUnit="Welfare change, % of lifetime consumption"
                     xUnit="Birth year"

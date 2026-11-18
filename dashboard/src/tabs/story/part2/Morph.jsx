@@ -533,6 +533,17 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
+              {/* a label pushed off its line's end (labels crowd at the
+                  foot: UK central, UK low and the baseline) points back to
+                  it, so "UK low" never reads as the end of UK central */}
+              {Math.abs(gG.Yd(p.v) - (p.t + lh * 0.45 + (p.pad ?? 0))) > 4 ? (
+                <path
+                  className="p2-end-leader"
+                  d={`M-5,${(gG.Yd(p.v) - p.t).toFixed(1)} L-1,${(lh * 0.45 + (p.pad ?? 0)).toFixed(1)}`}
+                  style={{ stroke: p.color }}
+                  aria-hidden="true"
+                />
+              ) : null}
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={lh * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
                   <tspan key={l} x={0} dy={i ? lh - (lh === LH ? 2 : 4) : 0}>
