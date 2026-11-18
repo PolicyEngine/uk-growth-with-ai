@@ -61,6 +61,13 @@ export default function Crosshair({ width, height, x, y, xs, series, top = 0, bo
     e.preventDefault();
     setAt(Math.max(0, Math.min(n - 1, k)));
   };
+  // an index kept from a state with more points (the GDP canvas zooming to
+  // its quarters while the pointer is on it) is dropped, not drawn at NaN
+  // (WebKit logged <line x1="NaN"> at 390)
+  if (at != null && !(at >= 0 && at < xs.length && Number.isFinite(x(xs[at])))) {
+    setAt(null);
+    return null;
+  }
   const px = at != null ? x(xs[at]) : 0;
   const right = px > width / 2;
   const fmt = (s, v) => (Number.isFinite(v) ? (s.format ? s.format(v) : String(v)) : '–');
