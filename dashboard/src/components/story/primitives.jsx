@@ -44,7 +44,9 @@ export function FadeG({ on, delay = 0, className = '', children, ...rest }) {
 
 // A field of unit tiles (the story's recurring unit: one tile = a share of
 // workers, households or output). `tiles`: [{ key, x, y, color, group,
-// delay, enter, dim }], positions in tile units, keys stable across states.
+// delay, enter, dim, mark, className }], positions in tile units, keys
+// stable across states. `mark` adds is-mark and `className` its own class,
+// for the caller's CSS to style (an outline, an entry).
 // Moving a tile to a new x/y makes it travel (transform, 750ms, --ch-ease);
 // travel is staggered by destination group, then row, over at most 450ms,
 // so a regroup finishes inside 1.2s. A tile's own `delay` (ms) overrides
@@ -100,7 +102,7 @@ export function TileField({ tiles, size = 14, gap = 3, width, height, label, cla
         const style = { transform: `translate(${t.x * step}px, ${t.y * step}px)`, fill: t.color };
         if (legacy) style.transitionDelay = `${t.delay ?? 0}ms`;
         else style['--d'] = `${delays[i]}ms`;
-        return <rect key={t.key} className={`tile${t.dim ? ' is-dim' : ''}${drop ? ' is-drop' : ''}`} width={size} height={size} rx={2} style={style} />;
+        return <rect key={t.key} className={`tile${t.dim ? ' is-dim' : ''}${drop ? ' is-drop' : ''}${t.mark ? ' is-mark' : ''}${t.className ? ` ${t.className}` : ''}`} width={size} height={size} rx={2} style={style} />;
       })}
     </svg>
   );

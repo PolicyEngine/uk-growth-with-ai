@@ -10,7 +10,6 @@ export const MODELS = {
   official: { label: 'Official statistics', icon: 'record' },
   oguk: { label: 'OG-UK', icon: 'model' },
   aistudy: { label: studyLabel(), icon: D.provisional ? 'provisional' : 'households' },
-  illustration: { label: 'Illustration', icon: 'caveat' },
 };
 
 export default function ModelBadge({ model, className = '' }) {

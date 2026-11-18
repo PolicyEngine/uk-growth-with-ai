@@ -1,4 +1,4 @@
-import json, os, re
+import json, math, os, re
 from collections import Counter
 
 # The story, part 2 (#story-part-2): where 2031 output goes (#story-output).
@@ -11,7 +11,9 @@ from collections import Counter
 #   - the block prints exactly the expected numbers, each once;
 #   - every value in output_split equals the raw solve over its continuation
 #     (the four parts from w, L, Y, GNI and NNI), and the parts add to GDP;
-#   - no other tab prints a share as a percentage (each fact once).
+#   - no other tab prints a share as a percentage (each fact once);
+#   - the shock scene (#p2-shock) prints no signed or result decimal, and its
+#     small-tile counts follow the data (shock_counts, as shock.js).
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
@@ -64,6 +66,85 @@ def block(text):
     # it ends where the Who gains block starts (its title or its question)
     ends = [b for b in (text.find('Who gains and who loses', a), text.find('Which generations gain', a)) if b > 0]
     return text[a:min(ends)] if ends else text[a:]
+
+
+def jsround(x):
+    # JavaScript's Math.round (half up), as shock.js
+    return math.floor(x + 0.5)
+
+
+def shock_counts(sid, cl):
+    """The shock scene's small-tile counts (tabs/story/part2/shock.js): M
+    cross (the share input x 10), N new (the GDP change x 10), NL to labour
+    at the labour share after the shift, NK to capital; None while pending."""
+    base = SPLIT['baseline'].get(cl)
+    if not base:
+        return None
+    pp = next(x['labour_share_fall_pp'] for x in S['scenarios'] if x['id'] == sid)
+    m = jsround(pp * 10)
+    c = SPLIT['change'].get(sid, {}).get(cl, {})
+    if c.get('status') != 'done':
+        return {'M': m, 'N': None}
+    s1 = (base['labour'] + c['labour']) / (100 + c['gdp'])
+    n = max(0, jsround(c['gdp'] * 10))
+    nl = min(n, max(0, jsround(s1 * c['gdp'] * 10)))
+    return {'M': m, 'N': n, 'NL': nl, 'NK': n - nl, 'c': c}
+
+
+def shock_raw():
+    """The counts against the data: M is the solved share gap x 10 (the gap
+    equals the input), and the tiles add to labour's and capital's changes
+    within one small tile."""
+    bad = 0
+    i = YEARS.index(SPLIT['year'])
+    for sid in SPLIT['change']:
+        for cl in SPLIT['baseline']:
+            k = shock_counts(sid, cl)
+            if not k or k['N'] is None:
+                continue
+            r = S['results'][sid]['tfp'][cl]
+            if k['M'] != jsround(-r['gaps']['labour_share_pp'][i] * 10):
+                bad += 1; print('part 2 shock: share input is not the solved share gap', sid, cl)
+            c = k['c']
+            if abs(k['NL'] - k['M'] - c['labour'] * 10) > 1 or abs(k['M'] + k['NK'] - c['gross_capital'] * 10) > 1:
+                bad += 1; print('part 2 shock: tiles off the changes by more than one', sid, cl, k['M'], k['N'], k['NL'], k['NK'])
+    return bad
+
+
+def shock_block(text):
+    """The text of the shock scene (#p2-shock) within part 2's dump."""
+    a = text.find('What does the AI shock change?')
+    if a < 0:
+        return None
+    b = text.find('The AI shock starts', a)
+    return text[a:b] if b > 0 else None
+
+
+def shock(sid, mode, cl, t):
+    """The shock scene prints no signed decimal and no result decimal (its
+    one decimal, the share input, is data-input and left out of the dump;
+    0.1 is its scale), and whatever caption is drawn carries the counts."""
+    bad = 0
+    blk = shock_block(t)
+    if blk is None:
+        print(sid, mode, 'story part 2: no shock scene'); return 1
+    signed_ = re.findall(r"[+−]\d+\.\d+", blk)
+    if signed_:
+        bad += 1; print(sid, mode, 'story part 2 shock prints a signed decimal:', signed_)
+    other = [x for x in re.findall(r"\d+\.\d+", blk) if x != '0.1']
+    if other:
+        bad += 1; print(sid, mode, 'story part 2 shock prints a decimal other than its scale:', other)
+    k = shock_counts(sid, cl)
+    if k:
+        if 'small tiles cross' in blk and f"{k['M']} small tiles cross to capital" not in blk:
+            bad += 1; print(sid, mode, 'story part 2 shock: not', k['M'], 'small tiles crossing')
+        if k['N'] is not None and 'new small tile' in blk:
+            want = f"{k['N']} new small tile{'' if k['N'] == 1 else 's'}: {k['NL']} to labour, {k['NK']} to capital"
+            if want not in blk:
+                bad += 1; print(sid, mode, 'story part 2 shock: not', want)
+    if not bad:
+        print(sid, mode, 'story part 2 shock ok: M', k and k['M'], 'N', k and k['N'], 'NL', k and k.get('NL'), 'NK', k and k.get('NK'))
+    return bad
 
 
 def raw():
@@ -136,7 +217,7 @@ def links():
 
 def check(dump):
     """Return the number of failures for story part 2's own figures."""
-    bad = raw() + links()
+    bad = raw() + shock_raw() + links()
     # the large shares only: a small one (1.6) is too often another fact
     shares_pct = {f"{v:.1f}%" for base in SPLIT["baseline"].values() if base for v in base.values() if v >= 10}
     for sid in dump:
@@ -145,6 +226,7 @@ def check(dump):
             t = dump[sid].get(key)
             if t is None:
                 bad += 1; print(sid, mode, 'story part 2 not in the dump'); continue
+            bad += shock(sid, mode, cl, t)
             blk = block(t)
             if blk is None:
                 bad += 1; print(sid, mode, 'story part 2: no "Where output goes" block'); continue
