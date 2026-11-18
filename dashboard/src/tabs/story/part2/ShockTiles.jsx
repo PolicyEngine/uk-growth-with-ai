@@ -4,7 +4,7 @@ import { TileField } from '@/components/story/primitives.jsx';
 import { useReducedMotion } from '@/components/story/motion.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { SCEN_NAME, SURPRISE_YEAR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
+import { SCEN_NAME, SURPRISE_YEAR, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
 import { SRC, ModelSourceButton, resultUrl, pathUrl } from './sources.jsx';
 import { Essential } from '@/components/ui/SourceLine.jsx';
@@ -95,7 +95,14 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
       <div className="p2-shock-top">
         <ModelBadge model="oguk" />
         <p className="p2-shock-chip">
-          {SCEN_NAME[sid]} · {cap(CL_WORDS[cl])} · {SPLIT_YEAR}
+          {/* phones: the short name and no year, so the chip keeps its row
+              beside the badge (phone-type-vs-sticky-fable.md, 4) */}
+          <span className="p3-long">
+            {SCEN_NAME[sid]} · {cap(CL_WORDS[cl])} · {SPLIT_YEAR}
+          </span>
+          <span className="p3-short">
+            {scenarioById(sid)?.short ?? SCEN_NAME[sid]} · {cap(CL_WORDS[cl])}
+          </span>
         </p>
       </div>
       <p className="story-figure-title p2-title-row" data-title-fallback={found ? undefined : ''}>
@@ -119,7 +126,11 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           ]}
         />
       </p>
-      <p className="story-figure-unit">One tile is 1 of every 100 of GDP on the OBR&rsquo;s central forecast path. One small tile is 0.1. OG-UK.</p>
+      <p className="story-figure-unit">
+        {/* phones: two lines (phone-type-vs-sticky-fable.md, 4); the badge says OG-UK */}
+        <span className="p3-long">One tile is 1 of every 100 of GDP on the OBR&rsquo;s central forecast path. One small tile is 0.1. OG-UK.</span>
+        <span className="p3-short">One tile is 1 of every 100 of GDP on the forecast path; a small tile is 0.1.</span>
+      </p>
       {both ? <p className="story-figure-unit">With both foreign-capital cases chosen above, the figure shows some foreign capital.</p> : null}
       {base ? (
         <>

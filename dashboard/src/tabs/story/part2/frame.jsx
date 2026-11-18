@@ -216,10 +216,20 @@ export function Tx({ icon, size = 14, children }) {
 }
 
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, titleFallback = false, unit, legend, source = SOURCE, essential, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
+export function Figure({ title, titleFallback = false, unit, legend, source = SOURCE, essential, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', chip = null, children }) {
   return (
     <figure className={`p2-figure ${className}`}>
-      <ModelBadge model={model} />
+      {chip ? (
+        // `chip`: the case the chart shows, beside the badge (shown on
+        // phones, where the unit line is cut to two lines;
+        // phone-type-vs-sticky-fable.md)
+        <div className="p2-shock-top p2-chip-top">
+          <ModelBadge model={model} />
+          <p className="p2-shock-chip p2-fig-chip">{chip}</p>
+        </div>
+      ) : (
+        <ModelBadge model={model} />
+      )}
       <p className="story-figure-title p2-title-row" data-title-fallback={titleFallback ? '' : undefined}>
         <span>
           <Tx icon={icon}>{title}</Tx>

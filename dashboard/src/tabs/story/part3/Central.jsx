@@ -110,7 +110,14 @@ function CentralFigure({ ctx }) {
         icon="jobLoss"
         title={POVERTY_FINDING ? 'Absolute poverty rises more than relative poverty' : `The main case, ${MODEL_YEAR}`}
         fallback={!POVERTY_FINDING}
-        unit={`One tile is one per cent of employees; changes against the study’s baseline, ${MODEL_YEAR}. Mean of ${H.central_cost.draws} draws. The household study.`}
+        unit={
+          // phones: two lines (phone-type-vs-sticky-fable.md); the tile key
+          // under the tiles and the source line carry the rest
+          <>
+            <span className="p3-long">{`One tile is one per cent of employees; changes against the study’s baseline, ${MODEL_YEAR}. Mean of ${H.central_cost.draws} draws. The household study.`}</span>
+            <span className="p3-short">{`Changes against the study’s baseline, ${MODEL_YEAR}. Mean of ${H.central_cost.draws} draws.`}</span>
+          </>
+        }
         replay={e.replay}
         source={<CentralSource />}
       />

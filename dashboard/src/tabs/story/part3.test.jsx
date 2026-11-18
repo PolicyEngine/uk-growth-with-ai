@@ -335,6 +335,8 @@ describe('Part3', () => {
       const c = el.cloneNode(true);
       // a figure's notes behind its "Sources and notes" are not on the page
       c.querySelectorAll('[hidden]').forEach((h) => h.remove());
+      // a text's phone copy (.p3-short) and desktop copy (.p3-long): one shows
+      c.querySelectorAll('.p3-short').forEach((h) => h.remove());
       // a linked citation ("Doorley et al. (2026)") counts as one word
       c.querySelectorAll('.p3-ref').forEach((a) => a.replaceWith('ref'));
       // numbered markers are scale, not words
