@@ -1097,7 +1097,9 @@
   .hf-stat-value .hf-figure-value {
     font-size: 24px;
   }
-  /* the axis title right under it names the gap */
+}
+/* the kicker stays on one line: the axis title right under it names the gap */
+@container (max-width: 479.98px) {
   .hf-kicker-gap {
     display: none;
   }
@@ -1114,4 +1116,26 @@
 #story-hero .hf-end-value,
 #story-hero .hf-chip-value {
   font-variant-numeric: tabular-nums;
+}
+
+/* The hero's title (Hero.jsx): the series name, small, muted and medium
+   weight, set above the question (a report-series line over its title);
+   then the question in two sentences at one size (also Landing.jsx
+   SummaryQuestion): a lighter lead-in in muted ink, then the question,
+   which carries the weight. */
+.story-hero-text p.hero-series {
+  max-width: none;
+  margin: 0 0 12px;
+  font-size: var(--t-label);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--t-muted);
+}
+.hero-q-lead {
+  font-weight: 400;
+  color: var(--t-muted);
+}
+.hero-q-main {
+  color: inherit;
 }

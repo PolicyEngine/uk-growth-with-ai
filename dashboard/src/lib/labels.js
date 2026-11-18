@@ -1,7 +1,9 @@
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
 
-export const PAGE_TITLE = 'The macroeconomic effects of AI on the UK';
+// The series name (Vahid, 18 Nov): the page <title>, the header and the
+// hero's quiet line above the question.
+export const PAGE_TITLE = 'AI and the UK economy: Beyond the forecast';
 
 // Tabs, in order, and their sub-tabs. `scenario` / `closure`: whether that
 // header picker applies ('locked' = shown, fixed, with the reason in view);

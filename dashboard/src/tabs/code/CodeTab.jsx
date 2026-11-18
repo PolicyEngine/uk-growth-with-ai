@@ -502,7 +502,7 @@ function Ledger() {
 }
 
 const year = LAST_UPDATED.slice(0, 4);
-const CITE_TEXT = `PolicyEngine (${year}). The macroeconomic effects of AI on the UK. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
+const CITE_TEXT = `PolicyEngine (${year}). AI and the UK economy: Beyond the forecast. Interactive dashboard, data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value}. ${SITE_URL}`;
 const CITE_BIB = `@misc{policyengine_ai_uk_${year},
   author       = {{PolicyEngine}},
   title        = {The macroeconomic effects of {AI} on the {UK}},

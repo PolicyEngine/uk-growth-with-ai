@@ -7,7 +7,7 @@ import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
-import { METHOD } from '@/lib/labels.js';
+import { METHOD, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { paySigns } from '@/tabs/story/part2/caveats.js';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap, payLine } from '@/tabs/ai/surprise.js';
@@ -262,8 +262,12 @@ export default function Hero() {
     <section id="story-hero" className="story-hero hf" aria-labelledby="story-q">
       <div className="story-hero-text">
         <div className="hero">
+          {/* the series name, small and quiet, above the question; then
+              the question in two sentences: a lighter lead-in, then the
+              question, which carries the weight */}
+          <p className="hero-series">{PAGE_TITLE}</p>
           <h2 id="story-q" className="hero-q">
-            What happens to the UK economy if, from {SURPRISE_YEAR}, AI takes on more work than the OBR expects?
+            <span className="hero-q-lead">AI is already here.</span> <span className="hero-q-main">What if, from {SURPRISE_YEAR}, it takes on more work than the OBR expects?</span>
           </h2>
         </div>
         <a className="story-scroll-cue" href="#story-part-1">
@@ -273,11 +277,13 @@ export default function Hero() {
       <figure className="story-hero-art hf-art hf-frame">
         <div className="hf-unit" role="group" aria-label={sel ? `The answer in ${HEADLINE_YEAR}, ${sel.name} scenario` : `The answer in ${HEADLINE_YEAR}`}>
           {/* the kicker: plain and muted, the figure's sources icon at its
-              end; phones drop the gap clause (the axis title says it) */}
+              end. One line at every width: a figure under 480px drops the
+              gap clause (the axis title under it says it), and Korinek's
+              name, already a scenario's, goes without the word */}
           <p className="hf-kicker">
             {sel ? (
               <span className="hf-kicker-text">
-                {sel.short} scenario · {HEADLINE_YEAR}
+                {sel.id === 'korinek' ? sel.short : `${sel.short} scenario`} · {HEADLINE_YEAR}
                 <span className="hf-kicker-gap"> · gap to the {BASELINE_SHORT}</span> ·{' '}
               </span>
             ) : null}

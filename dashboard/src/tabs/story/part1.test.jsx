@@ -581,11 +581,21 @@ describe('hero', () => {
       expect(heroStats(s, cl)[2].tip).toContain(cl === 'zk0' ? 'gilt holders abroad' : 'owners abroad');
       // the kicker: plain, the sources icon on its line
       const kick = el.querySelector('.hf-kicker');
-      expect(kick.textContent).toMatch(new RegExp(`scenario · ${S.headline_year} · gap to the forecast path · not a forecast`));
+      expect(kick.textContent).toMatch(new RegExp(`^${s === 'uk_high' ? 'UK high' : 'UK low'} scenario · ${S.headline_year} · gap to the forecast path · not a forecast`));
       expect(kick.querySelector('button.src-line-btn')).not.toBeNull();
       expect(el.querySelector('.hf-chip-ctx, figcaption.hf-src')).toBeNull();
       cleanup();
     }
+  });
+  it('titles the hero: the series name above, then the question in two sentences', async () => {
+    const S = (await import('@/data/surprise2028.json')).default;
+    const el = await at('s=uk_central');
+    expect(el.querySelector('.story-hero-text p.hero-series').textContent).toBe('AI and the UK economy: Beyond the forecast');
+    const h2 = el.querySelector('h2#story-q');
+    expect(h2.previousElementSibling.classList.contains('hero-series')).toBe(true);
+    expect(h2.querySelector('.hero-q-lead').textContent).toBe('AI is already here.');
+    expect(h2.querySelector('.hero-q-main').textContent).toBe(`What if, from ${S.surprise_year}, it takes on more work than the OBR expects?`);
+    expect(h2.textContent).not.toMatch(/arriv/i);
   });
   it('draws all four lines from 2028, each labelled, with axis titles', async () => {
     const S = (await import('@/data/surprise2028.json')).default;

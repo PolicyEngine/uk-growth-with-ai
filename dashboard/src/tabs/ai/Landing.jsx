@@ -110,7 +110,7 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
   return (
     <div className="hero">
       <h2 id={titleId} className="hero-q">
-        What happens to the UK economy if, from {SURPRISE_YEAR}, AI takes on more work than the OBR expects?
+        <span className="hero-q-lead">AI is already here.</span> <span className="hero-q-main">What if, from {SURPRISE_YEAR}, it takes on more work than the OBR expects?</span>
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
