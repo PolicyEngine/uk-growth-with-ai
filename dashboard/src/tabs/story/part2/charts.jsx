@@ -47,6 +47,7 @@ export function WelfareSource() {
       method="m-generations"
       files={[[`cohort_welfare.py at ${COHORT_COMMIT_TEXT}`, COHORT_URL]]}
       items={[navItem('The figures: Gains and losses', 'explore', undefined, 'who')]}
+      notes={[{ icon: 'debt', text: 'Budget assumption: debt held steady by transfers to households' }]}
     />
   );
 }
@@ -118,9 +119,12 @@ export function WelfareShape({ state }) {
       titleFallback={!allGain}
       unit={
         <>
-          <span data-axis-title="y">Remaining-lifetime gain, % of consumption and bequests</span>, by birth year. UK central, some foreign capital, debt held steady by transfers to households. OG-UK.
+          <span data-axis-title="y">Remaining-lifetime gain, % of consumption and bequests</span>, by birth year.
+          {/* phones: two lines; the case is in the chip, the budget assumption in the notes */}
+          <span className="p3-long"> UK central, some foreign capital, debt held steady by transfers to households. OG-UK.</span>
         </>
       }
+      chip="UK central · Some foreign capital"
       xTitle={null}
       source={<WelfareSource />}
       head={

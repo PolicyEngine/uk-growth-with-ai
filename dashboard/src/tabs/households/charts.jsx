@@ -66,7 +66,10 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
   // room for the axis titles: the y title above the plot, the x title
   // under the tick labels
   const B = xTitle ? 40 : 24;
-  const T = yTitle ? 24 : 12;
+  // a y title wider than the chart (about 7.5px a character at the 14px
+  // tick size) takes two lines, split at its last comma
+  const yLines = yTitle && yTitle.length * 7.5 > W - 8 && yTitle.includes(', ') ? [yTitle.slice(0, yTitle.indexOf(', ') + 1), yTitle.slice(yTitle.indexOf(', ') + 2)] : yTitle ? [yTitle] : [];
+  const T = yTitle ? 24 + (yLines.length - 1) * 17 : 12;
   // room at the right for the off-scale arrow; its value sits above it,
   // ending where the arrow ends (clear of the Replay button in the corner)
   const R = off ? 40 : 18;
@@ -91,7 +94,11 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, off, 
         </g>
         {yTitle ? (
           <text x={4} y={12} className="hh-axis-title" data-axis-title="y" data-axis="">
-            {yTitle}
+            {yLines.map((l, i) => (
+              <tspan key={l} x={4} dy={i ? 17 : 0}>
+                {i ? ` ${l}` : l}
+              </tspan>
+            ))}
           </text>
         ) : null}
         {xTitle ? (

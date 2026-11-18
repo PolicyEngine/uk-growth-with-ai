@@ -178,7 +178,7 @@ function RulesPanel({ on }) {
         </span>
         <span className="p3-plane-stress" style={{ '--beat': '1700ms' }}>
           <span className="p3-long">Top-loaded extreme case: off the scale</span>
-          <span className="p3-short">Extreme case: off the scale</span>
+          <span className="p3-short">Extreme case: off scale</span>
           <Icon name="arrowRight" size={14} />
         </span>
       </div>
@@ -404,6 +404,8 @@ function BreakEvenPanel({ on }) {
 // Each panel's notes, in the figure's "Sources and notes" (one group a
 // panel), worded as they were.
 const rulesNotes = () => [
+  // the figure's year: on phones its unit line is hidden while one panel shows
+  { icon: 'timing', text: `All three tests: ${MODEL_YEAR}, the household study` },
   { icon: 'scenario', text: 'Uniform: every employee equally likely' },
   { icon: 'scenario', text: <>Ages 16 to 24: tilted to them, after <Ref id="klein">Klein Teeselink (2025)</Ref></> },
   { icon: 'scenario', text: 'Main: in proportion to AI exposure' },
@@ -468,7 +470,7 @@ function ChangesFigure({ step, ctx }) {
   const all = !!ctx?.once;
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
-    <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
+    <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]} data-step={step ?? 0}>
       <FigureHead
         icon="scenario"
         title="The cost changes with every assumption tested"

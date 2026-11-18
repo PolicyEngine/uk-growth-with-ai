@@ -87,9 +87,15 @@ function Fan({ lines, sid, wide }) {
   const fs = Math.round(sz.tick * 10) / 10;
   const lfs = Math.round(sz.label * 10) / 10;
   const L = wide ? 46 : 50;
-  const R = wide ? W - 176 : W - 16;
+  // the end-label gutter holds the longest name ("Korinek, substantial (US)")
+  // at the label size
+  const R = wide ? W - Math.max(176, Math.round(lfs * 12.6)) : W - 16;
   // the guide labels' row clears the axis title above it at any type size
-  const T = Math.max(wide ? 46 : 52, Math.round(fs * 2.3 + 14));
+  // the guide labels ("Extra AI starts", "Extra AI in full") take two rows
+  // when the guides are closer than the first label is wide
+  const crowd = ((HEADLINE_YEAR - SURPRISE_YEAR) / (YEARS.length - 1)) * (R - L) < 15 * fs * 0.56 + 12;
+  const row2 = crowd ? Math.round(fs * 1.25) : 0;
+  const T = Math.max(wide ? 46 : 52, Math.round(fs * 2.3 + 14)) + row2;
   const B = H - (wide ? 36 : 40);
   const all = lines.flatMap((l) => l.y);
   const top = Math.max(1, Math.ceil(Math.max(0, ...all)));
@@ -153,7 +159,7 @@ function Fan({ lines, sid, wide }) {
       ))}
       <g data-axis="">
         {TICK_YEARS.map((yr) => (
-          <text key={yr} className="hf-tick" x={XY(yr)} y={B + fs + 8} textAnchor="middle">
+          <text key={yr} className="hf-tick" x={XY(yr)} y={B + fs + 8} textAnchor={!wide && yr === YEARS[last] ? 'end' : 'middle'}>
             {yr}
           </text>
         ))}
@@ -162,8 +168,8 @@ function Fan({ lines, sid, wide }) {
         {/* one row: each label 5px right of its guide (the x ticks give the
             years); the guides end at the zero line, so the zero label under
             it crosses neither */}
-        <line x1={XY(SURPRISE_YEAR)} x2={XY(SURPRISE_YEAR)} y1={T - 22} y2={Y(0)} />
-        <text x={XY(SURPRISE_YEAR) + 5} y={T - 10} textAnchor="start">
+        <line x1={XY(SURPRISE_YEAR)} x2={XY(SURPRISE_YEAR)} y1={T - 22 - row2} y2={Y(0)} />
+        <text x={XY(SURPRISE_YEAR) + 5} y={T - 10 - row2} textAnchor="start">
           Extra AI starts
         </text>
         <line x1={XY(HEADLINE_YEAR)} x2={XY(HEADLINE_YEAR)} y1={T - 22} y2={Y(0)} />
@@ -179,7 +185,8 @@ function Fan({ lines, sid, wide }) {
       {band ? (
         <g className="hf-band-g">
           <path className="hf-band" d={band} />
-          <text className="hf-band-label" data-axis="" x={X(bandAt)} y={bandMid} dy="0.35em" textAnchor="middle">
+          {/* ends inside the plot, clear of the end labels in the gutter */}
+          <text className="hf-band-label" data-axis="" x={Math.min(X(bandAt) + 9 * fs * 0.55, R - 4)} y={bandMid} dy="0.35em" textAnchor="end">
             UK range, low to high
           </text>
         </g>
