@@ -341,7 +341,8 @@ if (blines.length) {
 // (scrolly-go, instant), let it settle (700ms), then the scene's header
 // (its own .scene-head, or its host's for the output scene) must have
 // effective opacity >= 0.95, be visible, lie inside the screen below the
-// rail, and be the element at its centre (or contain it). HEADERS=0 skips.
+// rail, and be the element at its centre (or contain it). Then through
+// each scene's tail its text may meet no other text (below). HEADERS=0 skips.
 const hlines = [];
 let hmiss = 0;
 const hsizes = (process.env.HEADER_SIZES ?? '1280,800 1024,768 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
@@ -387,6 +388,73 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
     hlines.push(`  ${bad.length ? 'MISS' : 'ok  '} ${W}x${H} ${b.id}${bad.length ? `: ${bad.slice(0, 3).join('; ')}` : ''}`);
   }
   if (!blocks.length) hlines.push(`  --   ${W}x${H}: no sticky scene`);
+  // the scene's tail (sign-off r3: the stuck header stayed while the last
+  // card and chart scrolled up under it and printed over it): 20px steps
+  // from 1.5 screens above the block's foot to half a screen past it; while
+  // the header is on screen (clear of the rail) no other text may be
+  // painted where it meets the header's text, and the element at the
+  // header's centre must be the header
+  for (const b of blocks) {
+    const foot = await page.evaluate((id) => document.getElementById(id).getBoundingClientRect().bottom + scrollY, b.id);
+    const bad = [];
+    for (let y = Math.max(0, Math.round(foot - 1.5 * H)); y <= foot + H / 2; y += 20) {
+      await page.evaluate((t) => window.scrollTo({ top: t, behavior: 'instant' }), y);
+      await page.waitForTimeout(30);
+      const r = await page.evaluate((id) => {
+        const s = document.getElementById(id);
+        const host = s.parentElement?.classList.contains('p2-output') ? s.parentElement : null;
+        const h = s.querySelector(':scope > .scene-head') ?? host?.querySelector(':scope > .scene-head');
+        if (!h) return null;
+        const q = h.querySelector('.scene-head-q') ?? h;
+        const a = q.getBoundingClientRect();
+        const R = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
+        // on screen and clear of the rail (as it lets go it slides under
+        // the rail, which is meant to cover it)
+        if (a.top < R - 1 || a.top >= innerHeight) return null;
+        const eff = (e) => {
+          let o = 1;
+          for (let n = e; n && n !== document.body; n = n.parentElement) {
+            const cs = getComputedStyle(n);
+            if (cs.visibility === 'hidden' || cs.display === 'none') return 0;
+            o *= Number(cs.opacity);
+          }
+          return o;
+        };
+        const hits = [];
+        const w = document.createTreeWalker(document.querySelector('.tab-panel:not([hidden])'), NodeFilter.SHOW_TEXT);
+        for (let t = w.nextNode(); t; t = w.nextNode()) {
+          if (!t.nodeValue.trim()) continue;
+          const el = t.parentElement;
+          if (!el || h.contains(el) || el.closest('.story-rail, .visually-hidden, [aria-hidden="true"] .q-visual, .scrolly-sizers')) continue;
+          const rg = document.createRange();
+          rg.selectNodeContents(t);
+          for (const c of rg.getClientRects()) {
+            if (c.width < 1 || c.height < 1) continue;
+            const oy = Math.min(c.bottom, a.bottom) - Math.max(c.top, a.top);
+            const ox = Math.min(c.right, a.right) - Math.max(c.left, a.left);
+            if (oy > 2 && ox > 2 && eff(el) > 0.05) {
+              // text under the opaque header is hidden, not printed over
+              // it: a hit is text painted where the two meet
+              // (a header with no opaque fill shows it through: a hit too)
+              const bg = getComputedStyle(h).backgroundColor;
+              const opaque = !/rgba\(.*, 0\)|transparent/.test(bg) && !/rgba\(.*, 0\.\d+\)/.test(bg);
+              const p = document.elementFromPoint(Math.max(c.left, a.left) + ox / 2, Math.max(c.top, a.top) + oy / 2);
+              if (!opaque || (p && !(h === p || h.contains(p)))) {
+                hits.push(t.nodeValue.trim().slice(0, 24));
+                break;
+              }
+            }
+          }
+          if (hits.length) break;
+        }
+        const at = document.elementFromPoint((a.left + Math.min(a.right, a.left + 120)) / 2, (a.top + a.bottom) / 2);
+        return { hit: hits[0] ?? null, top: Boolean(at && (h === at || h.contains(at))) };
+      }, b.id);
+      if (r && (r.hit || !r.top)) bad.push(`y ${y}: ${r.hit ? `meets "${r.hit}"` : 'covered'}`);
+    }
+    if (bad.length) hmiss++;
+    hlines.push(`  ${bad.length ? 'MISS' : 'ok  '} ${W}x${H} ${b.id} tail${bad.length ? `: ${bad.length} samples, e.g. ${bad.slice(0, 3).join('; ')}` : ''}`);
+  }
   await ctx.close();
 }
 if (hlines.length) {

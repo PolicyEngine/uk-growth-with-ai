@@ -131,21 +131,26 @@
    below it, on desktop and on sticky phone scenes. Not in print, not
    when a figure is drawn once (it scrolls with its figure). */
 @media screen {
-  .scrolly.has-head-stick > .scene-head {
+  /* opaque, from the rail down, so nothing passing under it shows through
+     (sign-off r3: the last card printed over it) */
+  .scrolly.has-head-stick > .scene-head,
+  .p2-output.has-head-stick > .scene-head {
     position: sticky;
-    top: calc(var(--story-graphic-top) + 12px);
+    top: var(--story-graphic-top);
     z-index: 4;
     align-self: start;
+    margin-top: -12px;
+    padding: 12px 0 8px;
+    background: var(--band-bg);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  /* the row after it takes back the header's release margin (Scrolly) */
+  .scrolly.has-head-stick > :is(.scrolly-graphic, .scrolly-steps) {
+    margin-top: var(--head-take, 0px);
   }
   .scrolly.has-head-stick > .scrolly-graphic,
   .p2-output.has-head-stick > .scrolly > .scrolly-graphic {
     top: calc(var(--story-graphic-top) + var(--scene-head-h, 0px));
-  }
-  /* the output scene: its header is the host's TopicHead */
-  .p2-output.has-head-stick > .scene-head {
-    position: sticky;
-    top: calc(var(--story-graphic-top) + 12px);
-    z-index: 4;
   }
 }
 @media screen and (max-width: 900px) {

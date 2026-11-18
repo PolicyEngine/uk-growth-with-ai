@@ -489,14 +489,50 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       blk.style.removeProperty('--scene-head-h');
       return undefined;
     }
-    const put = () => setStyle(blk, '--scene-head-h', `${Math.ceil(h.offsetHeight + (window.innerWidth > 900 ? 28 : 12))}px`);
-    put();
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(put);
+    // its room: its box (opaque, padded: story-bands.css) and a gap under
+    // it (8px desktop, 12px phones, where the chart's backing fills it)
+    const put = () => setStyle(blk, '--scene-head-h', `${Math.ceil(h.offsetHeight + (window.innerWidth > 900 ? 8 : 12))}px`);
+    // It lets go with its chart (sign-off r3: it stayed stuck while the
+    // chart scrolled up under it): both are stuck within the same block, so
+    // the higher one would let go later by the distance between their
+    // stuck feet. A bottom margin of that distance on the header (taken
+    // back by the row after it) makes both let go at the same scroll.
+    const g = box.current;
+    // the output scene's header is its host's: the block itself follows it
+    const hosted = h.parentElement !== blk;
+    const next = hosted ? [blk] : [g, window.innerWidth > 900 ? stepsCol.current : null].filter(Boolean);
+    const release = () => {
+      if (!g || getComputedStyle(g).position !== 'sticky') return;
+      const gTop = parseFloat(g.style.top || getComputedStyle(g).top) || 0;
+      const gm = parseFloat(getComputedStyle(g).marginBottom) || 0;
+      const hTop = parseFloat(getComputedStyle(h).top) || 0;
+      // a hosted header is held by its host, which ends this much later
+      const d = hosted ? h.parentElement.getBoundingClientRect().bottom - blk.getBoundingClientRect().bottom : 0;
+      const x = Math.max(0, Math.round(gTop + g.offsetHeight + gm - (hTop + h.offsetHeight) + d));
+      setStyle(h, 'margin-bottom', `${x}px`);
+      // the row after it keeps its place (on phones only the chart follows
+      // the header; the steps follow the chart)
+      for (const el of next) setStyle(el, hosted ? 'margin-top' : '--head-take', `${-x}px`);
+    };
+    const all = () => {
+      put();
+      release();
+    };
+    all();
+    const raf = requestAnimationFrame(all);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(all);
     ro?.observe(h);
-    window.addEventListener('resize', put);
+    if (g) ro?.observe(g);
+    window.addEventListener('resize', all);
     return () => {
+      cancelAnimationFrame(raf);
       ro?.disconnect();
-      window.removeEventListener('resize', put);
+      window.removeEventListener('resize', all);
+      h.style.marginBottom = '';
+      for (const el of next) {
+        el.style.removeProperty('--head-take');
+        if (hosted) el.style.marginTop = '';
+      }
     };
   }, [headSticks, sub]);
   const pinBottom = steps[active]?.pin === 'bottom';
