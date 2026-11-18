@@ -150,7 +150,9 @@ describe('tooltips', () => {
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
     const low = page('sub=finances&s=uk_low&rule=fixed').card;
-    expect(low).toContain('UK low is not solved under fixed spending.');
+    // the lead is title-level: no full stop (Vahid, 18 Nov)
+    expect(low).toContain('UK low is not solved under fixed spending');
+    expect(low).not.toContain('UK low is not solved under fixed spending.');
     expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
     // the common rule has nothing to compare: no box
     expect(page('sub=finances&s=uk_central').card).toBeNull();
@@ -159,7 +161,11 @@ describe('tooltips', () => {
     const words = [...c2.querySelectorAll('#fiscal-rule .finding-lead, #fiscal-rule .finding-lines li')].map((e) => e.textContent);
     u2();
     expect(words[0]).toMatch(/^Under fixed spending, debt\/GDP ends (higher|lower|where)/);
-    expect(words.every((w) => /\.$/.test(w) && !/\d\.\d/.test(w))).toBe(true);
+    // the lead is title-level, with no full stop (Vahid, 18 Nov); every line
+    // under it is a sentence that ends in one
+    expect(/\.$/.test(words[0])).toBe(false);
+    expect(words.slice(1).every((w) => /\.$/.test(w))).toBe(true);
+    expect(words.every((w) => !/\d\.\d/.test(w))).toBe(true);
   });
 
   it('the rule and the arms are in the address', async () => {
