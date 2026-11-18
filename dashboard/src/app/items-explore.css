@@ -3059,3 +3059,46 @@
 .page-a #fin-finding { margin: 0; }
 .fin-link-line { margin: 8px 0 0; font-size: var(--fs-small); }
 .page-a-text { margin: 0; }
+
+/* the scenario matrices' key as swatches with short names, and the
+   More info lines that explain it (pushB-final-rulings-fable.md 2) */
+.ex-mx-key.is-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex-mx-key.is-swatches li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ex-mx-key.is-swatches .ex-mx-key-cell {
+  margin-right: 0;
+}
+.ex-mx-key-ref {
+  /* the grey of the story's headline values (.ex-mx-val.is-ref) */
+  display: inline-block;
+  width: 20px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--pe-gray-600, #4b5563);
+  opacity: 0.6;
+}
+.ex-more-head {
+  margin: 12px 0 4px;
+  font-size: var(--chart-fs-tick, 14px);
+  font-weight: 600;
+  color: var(--pe-gray-800, #1f2937);
+}
+.ex-more-head:first-child {
+  margin-top: 0;
+}
+.ex-more-p {
+  margin: 0 0 6px;
+  font-size: var(--chart-fs-tick, 14px);
+  line-height: 1.5;
+  color: var(--pe-gray-700, #374151);
+}
