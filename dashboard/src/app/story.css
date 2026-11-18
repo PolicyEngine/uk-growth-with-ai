@@ -327,7 +327,7 @@
 /* The hold is the browser's (sign-off r3 major 2: no per-frame
    counter-scroll): the card's holder sticks at --q-top, which QStage writes
    only when the screen, rail or card size changes, so the held question at
-   the optical centre of the screen below the rail (its centre 3% of that
+   the optical centre of the screen below the rail (its centre 6% of that
    height below the true centre, QStage qMid); it starts at its place near
    the stage's top and is pushed up by the stage's foot, 28px clear (the
    bottom margin), as the move begins. Nothing is both sticky and
@@ -348,17 +348,16 @@
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
-  transform-origin: 50% 100%;
-  transform: scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
-  /* shrinks over the whole move, fades over its second half */
-  opacity: calc(1 - max(0, var(--qm) - 0.4) * 1.67);
-  will-change: transform, opacity;
+  /* scale only, about the block's centre (Vahid, 18 Nov): it grows while
+     held, holds, and shrinks away while still held (QStage stagePhase); no
+     translate, no fade */
+  transform-origin: 50% 50%;
+  transform: scale(calc(var(--qa) * (1 - var(--qm))));
+  will-change: transform;
 }
 .q-stage-icon {
   display: inline-flex;
   color: var(--t-ink);
-  transform: scale(calc(0.7 + 0.3 * var(--qa)));
-  opacity: min(1, calc(var(--qa) * 2));
 }
 .q-stage-q {
   font-size: var(--t-display);

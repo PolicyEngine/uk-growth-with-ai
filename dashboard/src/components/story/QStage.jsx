@@ -13,9 +13,9 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 // while the chart draws in its place.
 //
 // QStage (`sub.pin: 'full'`): one pinned screen in the flow above the
-// header, `--q-pin` tall. The question arrives, holds at the optical
+// header, `--q-pin` tall. The question grows, holds at the optical
 // centre below the rail (held by the browser, position: sticky; no
-// per-frame write), and is pushed up into the header.
+// per-frame write), and shrinks away, scaling about its centre only.
 //
 // Both follow the scroll position in both directions (round 1, Vahid: "big
 // questions why when scroll back and then go again are not showing?"):
@@ -50,24 +50,34 @@ export function framePhase({ top, V, y0, y1 }) {
   return { qa, qm, phase };
 }
 
-// QStage's phase from the stage's box: arrival as its top comes up the
-// screen, then the hold (the card centred and still, for the stage's
-// height less the card's: about 40vh), then the move, which starts as the
-// stage's foot reaches the held card and runs over 28% of the screen of
-// scroll, eased (polish round, Vahid: "going so fast"). qm is the eased
-// move, 0 to 1; the chart starts to draw at 70% of it.
-export const Q_MOVE = 0.28;
+// QStage's phase from the stage's box (Vahid, 18 Nov: "why these text
+// moving in background? they should just get big or small when
+// scrolling"): the question only scales, about its centre, and only
+// while the browser holds it still (position: sticky at --q-top). The
+// stuck run is from the moment the holder reaches --q-top (its layout top,
+// the stage's top plus its margin `mt`) until the stage's foot would push
+// it (28px clear): `run` px of scroll. Over its first Q_GROW the card
+// grows from nothing (qa 0 to 1), then holds, and over its last Q_SHRINK it
+// shrinks to nothing (qm 0 to 1, eased), so it is never seen moving: it is
+// scale 0 before it sticks and after it lets go. The chart starts to draw
+// at 70% of the shrink.
+export const Q_GROW = 0.3;
+export const Q_SHRINK = 0.35;
 // The held card's centre: the optical centre of the screen below the rail,
-// 3% of that height below the true centre (18 Nov, Vahid: "y position of
-// this is too high compared to its box, lower it a bit").
-export const Q_OPTICAL = 0.03;
+// 6% of that height below the true centre (18 Nov, Vahid: "lower position
+// of this ... text"; it was 3%).
+export const Q_OPTICAL = 0.06;
 export const qMid = (R, V) => R + (V - R) * (0.5 + Q_OPTICAL);
-export function stagePhase({ top, bottom, V, R, H }) {
-  const mid = qMid(R, V);
-  const qa = clamp01((V - top) / (0.55 * V));
-  const raw = clamp01((mid + H / 2 + 28 - bottom) / Math.max(1, Q_MOVE * V));
-  const qm = raw * raw * (3 - 2 * raw);
-  const phase = bottom <= R + 1 || raw >= 0.7 ? 'done' : qa >= 0.5 ? 'in' : 'wait';
+const ease = (x) => x * x * (3 - 2 * x);
+export function stagePhase({ top, bottom, V, R, H, mt = 0 }) {
+  const qt = qMid(R, V) - H / 2;
+  // px of scroll since the card stuck, and the length of the stuck run
+  const s = qt - (top + mt);
+  const run = Math.max(1, bottom - 28 - H - (top + mt));
+  const qa = ease(clamp01(s / (Q_GROW * run)));
+  const raw = clamp01((s - (1 - Q_SHRINK) * run) / (Q_SHRINK * run));
+  const qm = ease(raw);
+  const phase = bottom <= R + 1 || raw >= 0.98 ? 'done' : raw >= 0.7 ? 'reveal' : qa >= 0.5 ? 'in' : 'wait';
   return { qa, qm, phase };
 }
 
@@ -180,7 +190,8 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       // centre at the optical centre below the rail. Constant through the
       // hold, so setStyle writes nothing then.
       const qt = Math.round(qMid(R, V) - H / 2);
-      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H }), qt, qe: qEnd(end, id, el) };
+      const mt = parseFloat(getComputedStyle(hold).marginTop) || 0;
+      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H, mt }), qt, qe: qEnd(end, id, el) };
     },
     (el, d, f) => {
       if (!d) {

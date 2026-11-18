@@ -66,7 +66,7 @@ const TICK = Number(process.env.TICK ?? 20);
 const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let misses = 0;
 const JUMP = process.env.JUMP ?? '1';
-for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' ? [] : sizes) {
+for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' || process.env.HOLDS === '0' ? [] : sizes) {
   const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: process.env.MOTION === '1' ? 'no-preference' : 'reduce' })).newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
@@ -143,8 +143,9 @@ for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' ? [] : siz
 const olines = [];
 let omiss = 0;
 const osizes = (process.env.OPENER_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
-// the held question's centre: 3% of the screen below the rail under its middle (QStage qMid), within 4%
-const Q_OPT = 0.03;
+// the held question's centre: 6% of the screen below the rail under its
+// middle (QStage qMid; 18 Nov, Vahid: lower; it was 3%), within 4%
+const Q_OPT = 0.06;
 const Q_TOL = 0.04;
 for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.env.SANKEY === 'only' ? [] : osizes) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
@@ -192,10 +193,13 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
       const h = head?.getBoundingClientRect();
       const headOn = Boolean(h && h.bottom > R && h.top < V && !head.closest('.scrolly.is-asking'));
       const v = s.querySelector('.q-visual').getBoundingClientRect();
-      return { ok: cardOn || headOn, op, qm: Number(getComputedStyle(s).getPropertyValue('--qm')) || 0, phase: s.dataset.phase, mid: (v.top + v.bottom) / 2, R, V };
+      // the rendered scale of the card (its box against its layout height)
+      const sc = card.offsetHeight ? c.height / card.offsetHeight : 0;
+      return { ok: cardOn || headOn, op, sc, cx: (c.left + c.right) / 2, cy: (c.top + c.bottom) / 2, qm: Number(getComputedStyle(s).getPropertyValue('--qm')) || 0, phase: s.dataset.phase, mid: (v.top + v.bottom) / 2, R, V };
     }, id);
   for (const st of stages) {
     const blank = [];
+    const moved = [];
     const offs = [];
     const y0 = Math.max(0, st.top - H);
     const y1 = st.bottom + 200;
@@ -210,6 +214,8 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
         await page.waitForTimeout(25);
         const r = await probe(st.id);
         if (!r.off && !r.ok) blank.push(`${dir} ${y} (q ${r.op.toFixed(2)})`);
+        // shown and moved since the last sample (both shown)
+        if (!r.off && prev && r.sc >= 0.05 && prev.sc >= 0.05 && Math.hypot(r.cx - prev.cx, r.cy - prev.cy) > 0.5) moved.push(`${dir} ${y} (${Math.round(r.cy - prev.cy)}px)`);
         // the hold: no move yet and the card still since the last sample
         if (!r.off && r.qm === 0 && r.phase === 'in' && prev && Math.abs(r.mid - prev.mid) < 0.5) {
           const fh = r.V - r.R;
@@ -221,10 +227,10 @@ for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' || process.e
     const lo = offs.length ? Math.min(...offs) : NaN;
     const hi = offs.length ? Math.max(...offs) : NaN;
     const offBad = !offs.length || lo < -Q_TOL || hi > Q_TOL;
-    const bad = blank.length > 0 || offBad;
+    const bad = blank.length > 0 || offBad || moved.length > 0;
     if (bad) omiss++;
     const pos = offs.length ? `held ${offs.length} samples, centre ${(100 * lo).toFixed(1)}% to ${(100 * hi).toFixed(1)}% from target` : 'never held';
-    olines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${st.id}: ${pos}${blank.length ? `; blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}`);
+    olines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${st.id}: ${pos}${blank.length ? `; blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}${moved.length ? `; moved while shown at ${moved.length} samples, e.g. ${moved.slice(0, 3).join('; ')}` : ''}`);
   }
   olines.push(`  ${W}x${H}: ${stages.length} question moments checked`);
   await ctx.close();
@@ -325,6 +331,67 @@ for (const [W, H] of process.env.BOUNDARY === '0' || JUMP === 'only' || process.
 if (blines.length) {
   console.log('boundaries (no closing line or step text over a part opener, the closing block or another scene; no frame blank at rest):');
   for (const l of blines) console.log(l);
+}
+
+// ---- header probe ---- (HOLDS=0 skips the hold walk above)
+// Every scene's header stays in view while its scene runs (18 Nov, Vahid:
+// "why this disappearing when scroll": it scrolled away under the rail
+// while the chart was held). Motion on, at HEADER_SIZES (1280,800
+// 1024,768 390,844): for every card of every sticky scene, go to the card
+// (scrolly-go, instant), let it settle (700ms), then the scene's header
+// (its own .scene-head, or its host's for the output scene) must have
+// effective opacity >= 0.95, be visible, lie inside the screen below the
+// rail, and be the element at its centre (or contain it). HEADERS=0 skips.
+const hlines = [];
+let hmiss = 0;
+const hsizes = (process.env.HEADER_SIZES ?? '1280,800 1024,768 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
+for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.env.SANKEY === 'only' ? [] : hsizes) {
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const blocks = await page.evaluate(() =>
+    [...document.querySelectorAll('.scrolly')]
+      .filter((s) => !/is-single|is-once|is-inline/.test(s.className))
+      .map((s) => ({ id: s.id || s.closest('[id]')?.id, n: s.querySelectorAll('.scrolly-step:not(.is-spacer)').length })),
+  );
+  for (const b of blocks) {
+    const bad = [];
+    for (let k = 0; k < b.n; k++) {
+      await page.evaluate(({ id, k }) => document.getElementById(id)?.dispatchEvent(new CustomEvent('scrolly-go', { detail: { k, instant: true } })), { id: b.id, k });
+      await page.waitForTimeout(700);
+      const r = await page.evaluate((id) => {
+        const s = document.getElementById(id);
+        const host = s.parentElement?.classList.contains('p2-output') ? s.parentElement : null;
+        const h = s.querySelector(':scope > .scene-head') ?? host?.querySelector(':scope > .scene-head');
+        if (!h) return { none: true };
+        let op = 1;
+        for (let e = h; e && e !== document.body; e = e.parentElement) {
+          const cs = getComputedStyle(e);
+          if (cs.visibility === 'hidden' || cs.display === 'none') op = 0;
+          op *= Number(cs.opacity);
+        }
+        const q = h.querySelector('.scene-head-q') ?? h;
+        for (let e = q; e && e !== h; e = e.parentElement) op *= Number(getComputedStyle(e).opacity);
+        const R = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
+        const a = q.getBoundingClientRect();
+        const inView = a.height > 0 && a.top >= R - 1 && a.bottom <= innerHeight + 1;
+        const at = inView ? document.elementFromPoint((a.left + Math.min(a.right, a.left + 120)) / 2, (a.top + a.bottom) / 2) : null;
+        const top = Boolean(at && (h === at || h.contains(at)));
+        return { op: +op.toFixed(2), inView, top, y: Math.round(a.top), R: Math.round(R) };
+      }, b.id);
+      if (r.none) continue;
+      if (r.op < 0.95 || !r.inView || !r.top) bad.push(`card ${k + 1}: opacity ${r.op}, ${r.inView ? 'in view' : `out of view (top ${r.y}, rail ${r.R})`}${r.inView && !r.top ? ', covered' : ''}`);
+    }
+    if (bad.length) hmiss++;
+    hlines.push(`  ${bad.length ? 'MISS' : 'ok  '} ${W}x${H} ${b.id}${bad.length ? `: ${bad.slice(0, 3).join('; ')}` : ''}`);
+  }
+  if (!blocks.length) hlines.push(`  --   ${W}x${H}: no sticky scene`);
+  await ctx.close();
+}
+if (hlines.length) {
+  console.log('headers (every scene header visible, in view and on top at every card):');
+  for (const l of hlines) console.log(l);
 }
 
 // ---- landing probe ----
@@ -513,6 +580,6 @@ if (SANKEY !== '0') {
   }
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, hmiss ? `${hmiss} scenes let their header go out of view or fade` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

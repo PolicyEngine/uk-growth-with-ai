@@ -352,7 +352,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       return;
     }
     const el = document.getElementById(steps[cardSteps[k]].id);
-    if (el) goToStep(el, box.current, reduce);
+    // a link lands at once (instant), as on desktop
+    if (el) goToStep(el, box.current, reduce || instant);
   };
   const goRef = useRef(goStep);
   useEffect(() => {
@@ -420,7 +421,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const railEl = document.querySelector('.story-rail');
     const rs = railEl ? getComputedStyle(railEl) : null;
     const rail = railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : 0;
-    y = Math.min(Math.max(y, figTop + 8, rail + 8), Math.max(figTop + 8, figBottom - H - 8), V - H - 8);
+    // never under the stuck scene header (its room, --scene-head-h)
+    const headH = parseFloat(col.closest('.scrolly')?.style.getPropertyValue('--scene-head-h')) || 0;
+    y = Math.min(Math.max(y, figTop + 8, rail + headH + 8), Math.max(figTop + 8, figBottom - H - 8), V - H - 8);
     const top = Math.round(y - lead);
     setStyle(li, '--pin-top', `${top}px`);
     // the chart's stuck top and height on the column: every item starts
@@ -463,6 +466,39 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anchored]);
 
+  // The scene header stays in view while its chart is held (Vahid, 18 Nov:
+  // "why this disappearing when scroll"): it was a plain grid row above the
+  // sticky chart, so it scrolled away under the rail as the chart stuck,
+  // and the hold rule's longer stuck run (f278637) made it gone for most
+  // of the scene. It now sticks under the rail (story-bands.css) and the
+  // chart sticks below it: --scene-head-h is the room it takes (its
+  // height, 12px above it and 16px under it on desktop; its height and
+  // 12px on phones, where the chart's backing fills that strip).
+  // A block with no `sub` whose header is its host's TopicHead (the output
+  // scene, .p2-output) is treated the same: that header sticks instead.
+  const headRef = useRef(null);
+  const ownBox = useRef(null);
+  const headSticks = !single && !once && !inline;
+  useIso(() => {
+    const blk = ownBox.current;
+    const host = blk?.parentElement;
+    const h = headRef.current ?? (host?.classList.contains('p2-output') ? host.querySelector(':scope > .scene-head') : null);
+    if (h && host?.classList.contains('p2-output')) host.classList.toggle('has-head-stick', headSticks);
+    if (!h || !blk) return undefined;
+    if (!headSticks) {
+      blk.style.removeProperty('--scene-head-h');
+      return undefined;
+    }
+    const put = () => setStyle(blk, '--scene-head-h', `${Math.ceil(h.offsetHeight + (window.innerWidth > 900 ? 28 : 12))}px`);
+    put();
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(put);
+    ro?.observe(h);
+    window.addEventListener('resize', put);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', put);
+    };
+  }, [headSticks, sub]);
   const pinBottom = steps[active]?.pin === 'bottom';
   // pin a figure by its foot while a `pin: 'bottom'` step is active (desktop)
   useEffect(() => {
@@ -654,8 +690,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     <NotesSlot.Provider value={notesSlot}>
     <HighlightCtx.Provider value={hl}>
     <div
-      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
+      className={`scrolly${wide ? ' is-wide' : ''}${done ? ' is-done' : ''}${single ? ' is-single' : ''}${inline ? ' is-inline' : ''}${once ? ' is-once' : ''}${sticky ? ' is-scene' : ''}${sub ? ' has-sub' : ''}${headSticks && sub ? ' has-head-stick' : ''}${question && pinFull ? ' has-stage' : ''}${anchored ? ' is-anchored' : ''}${asking ? ' is-asking' : ''}${footY ? ' has-foot' : ''}${snap ? ' is-snap' : ''}${arming ? ' is-arming' : ''}`}
       id={id}
+      ref={ownBox}
       style={single ? (footY ? { '--scene-foot': `${footY}px` } : undefined) : { '--n': cards, ...(footY ? { '--scene-foot': `${footY}px` } : null), ...(colMin.v ? { '--col-min': `${colMin.v}px` } : null) }}
     >
       {question && pinFull && !inline ? (
@@ -665,7 +702,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         // the topic's one header: its question, an h3 (typography spec,
         // 17 Nov: no icon, kicker, topic name or hairline; the topic name
         // stays as data-scene, for the rail)
-        <header className={`scene-head${question ? ' has-q' : ''}`} data-scene={subTitle} id={question ? `q-${id}` : undefined}>
+        <header ref={headRef} className={`scene-head${question ? ' has-q' : ''}`} data-scene={subTitle} id={question ? `q-${id}` : undefined}>
           <h3 className="scene-head-q">{question ?? subTitle}</h3>
         </header>
       ) : null}

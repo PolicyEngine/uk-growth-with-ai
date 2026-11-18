@@ -1,24 +1,26 @@
-/* Story surfaces (navy-sections-fable.md, 18 Nov; replaces the white
-   bands): the hero is grey, every part a full-width white sheet, and every
-   question moment (QStage) and part opener a full-width navy section on
-   it. All backgrounds are ::before at z-index -1 in the one isolated
-   .story (scenes are not isolated, so chart tips are not trapped). The
-   chart box keeps its padding and a transparent 1px border (paint only:
-   no figure height or pin mode changes). Loaded after story-part1/2/3 and
-   story-identity: its spacing and opener rules tie with theirs. */
-/* ---- Navy question sections on white parts (navy-sections-fable.md) ---- */
+/* Story surfaces (navy-sections-fable.md, 18 Nov, with Vahid's changes
+   the same day): the hero is grey, every part a full-width white sheet,
+   and every question moment (QStage) a full-width band in faded PE teal
+   on it (--story-band-bg: ui-kit's --primary, #2C7A7B, mixed 90% with
+   gray-500; white text 5.05:1, the hint at 95% white 4.73:1). Part
+   openers sit on the white sheet with dark text and no band ("dont need
+   background"). All backgrounds are ::before at z-index -1 in the one
+   isolated .story (scenes are not isolated, so chart tips are not
+   trapped). The chart box keeps its padding and a transparent 1px border
+   (paint only). Loaded after story-part1/2/3 and story-identity: its
+   spacing and opener rules tie with theirs. */
 .story {
-  --navy: var(--pe-color-blue-900, #0c4a6e);
-  --navy-ink: #ffffff;
-  --navy-text: rgb(255 255 255 / 0.85);
-  --navy-muted: rgb(255 255 255 / 0.7);
-  --navy-pad: 48px;   /* navy above the kicker and below the opener's last line */
-  --q-clear: 40px;    /* white between a navy edge and the scene header under it */
+  /* the band: one token, faded PE teal, derived from ui-kit's --primary */
+  --story-band-bg: color-mix(in srgb, var(--primary, #2c7a7b) 90%, var(--pe-gray-500, #6b7280));
+  --story-band-ink: #ffffff;
+  --story-band-text: rgb(255 255 255 / 0.95);
+  --opener-pad: 48px; /* white above the opener's kicker and below its last line */
+  --q-clear: 40px;    /* white between a band edge and the scene header under it */
   --band-bg: var(--pe-surface);
   isolation: isolate;
 }
 @media (max-width: 900px) {
-  .story { --navy-pad: 32px; --q-clear: 24px; }
+  .story { --opener-pad: 32px; --q-clear: 24px; }
 }
 
 /* 1. every part is a full-width white sheet (screen and print) */
@@ -74,55 +76,86 @@
   .story-part > .part-opener + :is(.scrolly.has-sub, .p2-output) { margin-top: 0; }
 }
 
-/* 2. navy: the question stage and the part opener (screen only) */
+/* 2. the band: the question stage (screen only) */
 @media screen {
-  .q-stage::before,
-  .part-opener::before {
+  .q-stage::before {
     content: '';
     position: absolute;
     z-index: -1;
     pointer-events: none;
     inset: 0 -100vmax;
-    background: var(--navy);
+    background: var(--story-band-bg);
   }
-  /* the stage: white question, 85% hint; the header sits --q-clear below
-     the navy edge (the scene grid adds its own 16px row gap) */
+  /* the stage: white question and icon, 95% white hint; the header sits
+     --q-clear below the band edge (the scene grid adds its own 16px row
+     gap) */
   .q-stage {
-    --t-ink: var(--navy-ink);
-    --t-text: var(--navy-text);
+    --t-ink: var(--story-band-ink);
+    --t-text: var(--story-band-text);
     margin-bottom: var(--q-clear);
   }
   .scrolly > .q-stage { margin-bottom: calc(var(--q-clear) - 16px); }
   @media (max-width: 900px) {
     .scrolly > .q-stage { margin-bottom: var(--q-clear); }
   }
-
-  /* the opener: no rule, its own navy padding */
-  .part-opener {
-    position: relative;
-    margin-bottom: var(--q-clear);
-    padding: var(--navy-pad) 0;
-    border-top: 0;
-    color: var(--navy-ink);
-  }
-  .part-opener h2,
-  .part-opener-about summary { color: var(--navy-ink); }
-  .part-opener-meta { color: var(--navy-muted); }
-  .part-opener-about-body { color: var(--navy-text); }
-  .part-opener-about-body :is(strong, b) { color: var(--navy-ink); }
-  .part-opener a { color: var(--navy-ink); text-decoration: underline; text-underline-offset: 2px; }
-  .part-opener .tip-box { color: var(--pe-gray-900); }
-  .part-opener :is(a, summary, .tip-target):focus-visible {
-    outline: 2px solid var(--navy-ink);
-    outline-offset: 2px;
-    box-shadow: none;
-  }
-  /* an opener straight above a stage (Part 2): one navy run */
-  .part-opener + .scrolly.has-stage > .q-stage::before { top: calc(-1 * var(--q-clear)); }
   /* landed past the start (reload, jump; QStage toggles is-landed with
      the landing guard): 7a's fallback. Showing the question at rest made
      the card jump 72-130px and vanish when the guard lifted on scrolling
      back (measured at 1280 and 390, Chrome and WebKit), so a landed stage
-     drops its navy instead: no empty navy slab, the white sheet as before */
+     drops its band instead: no empty band slab, the white sheet as before */
   .q-stage.is-landed::before { content: none; }
+}
+
+/* 3. the part openers: on the white sheet, dark text, no band and no
+   rule (Vahid: "dont need background"), the block centred on the content
+   column like the question sections (Vahid, 18 Nov), static (no
+   transform) */
+.part-opener {
+  position: relative;
+  margin-bottom: var(--q-clear);
+  padding: var(--opener-pad) 0;
+  border-top: 0;
+  justify-items: center;
+  text-align: center;
+}
+.part-opener > * {
+  max-width: 44rem;
+}
+.part-opener-about-body:not(.part-opener-line) {
+  text-align: start;
+}
+
+/* 4. the scene header stays in view while its chart is held (Vahid, 18
+   Nov: "why this disappearing when scroll"; Scrolly writes
+   --scene-head-h): it sticks just under the rail and the chart sticks
+   below it, on desktop and on sticky phone scenes. Not in print, not
+   when a figure is drawn once (it scrolls with its figure). */
+@media screen {
+  .scrolly.has-head-stick > .scene-head {
+    position: sticky;
+    top: calc(var(--story-graphic-top) + 12px);
+    z-index: 4;
+    align-self: start;
+  }
+  .scrolly.has-head-stick > .scrolly-graphic,
+  .p2-output.has-head-stick > .scrolly > .scrolly-graphic {
+    top: calc(var(--story-graphic-top) + var(--scene-head-h, 0px));
+  }
+  /* the output scene: its header is the host's TopicHead */
+  .p2-output.has-head-stick > .scene-head {
+    position: sticky;
+    top: calc(var(--story-graphic-top) + 12px);
+    z-index: 4;
+  }
+}
+@media screen and (max-width: 900px) {
+  .scrolly.has-head-stick.is-scene > .scene-head {
+    top: var(--story-graphic-top);
+    padding-top: 12px;
+    margin-top: -12px;
+    background: var(--band-bg);
+  }
+  .scrolly.has-head-stick:not(.is-scene) > .scene-head {
+    position: static;
+  }
 }

@@ -310,16 +310,24 @@ describe('the question follows the scroll both ways (round 1)', async () => {
     expect(at(-200)).toBe('done');
     expect(at(300)).toBe('in');
   });
-  it('the pinned stage holds still, then moves over 28% of the screen of scroll, eased (polish round)', () => {
-    // the move starts when the foot reaches the held card: bottom = mid + H/2 + 28
-    // (mid: the optical centre below the rail, 3% of it below the middle)
-    expect(qMid(100, V)).toBeCloseTo(100 + (V - 100) * 0.53, 5);
-    const start = qMid(100, V) + 80 + 28;
-    const qm = (bottom) => stagePhase({ top: bottom - 560, bottom, V, R: 100, H: 160 }).qm;
-    expect(qm(start + 40)).toBe(0);
-    expect(qm(start - 0.14 * V)).toBeCloseTo(0.5, 5);
-    expect(qm(start - 0.07 * V)).toBeLessThan(0.25);
-    expect(qm(start - 0.28 * V)).toBe(1);
+  it('the pinned stage only scales: grows once stuck, holds, shrinks to nothing before its foot pushes it (Vahid, 18 Nov)', () => {
+    // the held centre: the optical centre below the rail, 6% below the middle
+    expect(qMid(100, V)).toBeCloseTo(100 + (V - 100) * 0.56, 5);
+    const H = 160;
+    const mt = 40;
+    const stageH = 560;
+    const qt = qMid(100, V) - H / 2;
+    const run = stageH - 28 - H - mt;
+    // s px since the card stuck (its layout top reached qt)
+    const at = (s) => stagePhase({ top: qt - mt - s, bottom: qt - mt - s + stageH, V, R: 100, H, mt });
+    const scale = (s) => at(s).qa * (1 - at(s).qm);
+    expect(scale(-50)).toBe(0); // not yet stuck: nothing shown
+    expect(scale(0.15 * run)).toBeGreaterThan(0.3);
+    expect(scale(0.5 * run)).toBe(1); // the hold
+    expect(scale(run)).toBe(0); // gone as the foot arrives
+    expect(scale(run + 50)).toBe(0);
+    expect(at(0.5 * run).phase).toBe('in');
+    expect(at(run).phase).toBe('done');
   });
 });
 

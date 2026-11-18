@@ -44,7 +44,7 @@ export const SUBS = {
     // the first topic of part 2: the full pinned question screen, with part
     // 1's recap as the transition (Fable's decision); P1_RECAP is part 1's
     pin: 'full',
-    hint: 'Watch small tiles cross from labour to capital, then new ones arrive',
+    hint: 'Watch small tiles cross from labour to capital, then new ones are added',
     // sign-driven at render (shockAnswer): without a gain, the first half only
     answer: 'Income shifts from labour to capital, and output grows',
     answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
