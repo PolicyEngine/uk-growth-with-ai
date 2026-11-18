@@ -2779,3 +2779,16 @@
     transform: translateX(var(--slide));
   }
 }
+
+.ex-ruler:has(.ex-ruler-unit) {
+  margin-bottom: 16px;
+}
+.ex-ruler-unit {
+  position: absolute;
+  right: 0;
+  bottom: -16px;
+  left: 0;
+  font-size: 11px;
+  color: var(--pe-gray-500);
+  text-align: center;
+}

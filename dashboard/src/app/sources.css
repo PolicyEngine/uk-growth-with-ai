@@ -331,7 +331,7 @@
 /* a figure's kicker as text (which run it shows): muted, on the title's
    left edge, like the model badge above other figures */
 .story-figure-kicker {
-  margin: 0 0 2px;
+  margin: 0 0 6px;
   font: 400 12px/1.3 var(--ch-font, inherit);
   color: var(--t-muted);
 }

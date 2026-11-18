@@ -223,6 +223,8 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
             <span>65</span>
             <span>90</span>
           </span>
+          {/* the ruler's unit: its ticks are ages */}
+          <span className="ex-ruler-unit">Age in {D.shock_year}</span>
         </div>
       </StatTile>
       <StatTile icon={iconFor('measure')} name="Average change" value={pct(c.alive_avg)} tone={tone(c.alive_avg)} sub={<Lead c="consumption">Of remaining-lifetime consumption and bequests</Lead>}>

@@ -2956,7 +2956,7 @@
   margin-top: var(--gap-topic);
 }
 .p3-pound-caveat {
-  margin: 6px 0 0;
+  margin: 10px 0 0;
   font-size: var(--t-meta);
   color: var(--t-muted);
 }
