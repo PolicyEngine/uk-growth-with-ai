@@ -2828,7 +2828,9 @@
   padding: 0;
   list-style: none;
 }
-/* one grid for the whole list, so every row's bar starts at one x */
+/* one grid for the whole list, so every row's bar starts at one x. The li
+   are display: contents, so Safari drops their list semantics: the ul
+   carries role="list" (CohortsTab.jsx, item 43) */
 .ex-bars2-list > li {
   display: contents;
 }
