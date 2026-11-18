@@ -43,6 +43,8 @@ NET_TIMEOUT="${NET_TIMEOUT:-60}"         # git push / gh calls
 # YEAR (default 2028): the announcement year.  2027 (Vahid, 18 Nov 2026) writes
 # a separate set under analysis/surprise2027/ and never touches the 2028 output.
 # NO_PUSH=1: commit by path but do not push, and post no GitHub progress comment.
+# FAIL_CONTINUE=1: a failed or timed-out solve is kept (<label>.FAILED-*.log) and
+# its item skipped; the driver goes on holding the lock.  Sanity failures still stop it.
 YEAR="${YEAR:-2028}"
 BRANCH="rerun/surprise-$YEAR"
 if [[ "$YEAR" == 2028 ]]; then OUT="$REPO/analysis/surprise/output"
@@ -244,8 +246,14 @@ for item in "${PLAN[@]}"; do
         --rerun-dir "$RERUN" --work "$WORK" --start "$YEAR" </dev/null >"$log" 2>&1 )
     rc=$?
     if [[ $rc -ne 0 || ! -f "$OUT/$C/$label.json" ]]; then
-      push "surprise $YEAR $C: $label FAILED (log)" "$log"
-      echo "FAILED $C $label (rc $rc); see $log"; tail -5 "$log"; exit 1
+      keep="$OUT/$C/$label.FAILED-rc$rc-$(date +%Y%m%d-%H%M).log"
+      cp "$log" "$keep"
+      push "surprise $YEAR $C: $label FAILED (log)" "$log" "$keep"
+      echo "FAILED $C $label (rc $rc); see $keep"; tail -5 "$log"
+      # FAIL_CONTINUE=1: skip the rest of this item and go on with the plan, still
+      # holding the lock (a sanity failure still stops the driver: the hard gate)
+      [[ "${FAIL_CONTINUE:-0}" == 1 ]] && { echo "FAIL_CONTINUE: skipping $item"; continue 2; }
+      exit 1
     fi
     sanity "$C" "$label"
     push "surprise $YEAR $C: solve $label (sanity pass)" "$OUT/$C/$label.json" "$log" \
