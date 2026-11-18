@@ -30,6 +30,8 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 // `compact`: for a small-multiple tile: at most four y ticks (alternate
 //           ticks dropped), no marker or band label rows (their lines stay),
 //           and markers only at the crosshair.
+// `thin`:   for the economy wall: 3 to 5 y ticks, zero always inside the
+//           scale (with its zero line) and at most 5 year labels.
 // `link`:   the crosshair group (default 'oguk'): pointing at a year on one
 //           chart shows the crosshair at that year on every chart of the
 //           same group on the page; the tooltip stays on the chart under
@@ -46,17 +48,33 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 const LINK_EVENT = 'lc-year';
 
 const FONT = CHART_FONT;
+// The chart type scale (app/chart-type.css: --chart-fs-tick 14, --chart-fs-label
+// 15; sublabels at the tick size), as literals because the geometry below
+// is measured from them. On a phone (viewport 480px or less) each is 1px
+// smaller, never below 13. Keyed to the viewport, not the chart's width: a
+// wall tile is narrower than 480px on a desktop and keeps the desktop sizes.
+const TYPE_DESKTOP = { tick: 14, label: 15, sub: 14 };
+const TYPE_PHONE = { tick: 13, label: 14, sub: 13 };
+const PHONE_MQ = '(max-width: 480px)';
 const PAD_T = 22;
-const PAD_B = 34;
 const STRIP_W = 30;
-const ROW = 18; // min vertical gap between stacked end labels
-const LINE = 14; // extra height taken by each wrapped end-label line
-const SUB_ROW = 13; // extra height taken by a sublabel line
 const TICK_GAP = 8; // y tick label to plot edge
-const UNIT_ASCENT = 9; // rotated 11px unit label: glyphs reach this far left of its baseline...
-const UNIT_DESCENT = 3; // ...and this far right
 const UNIT_GAP = 6; // unit label to the widest tick label
 const EDGE = 4; // left edge of the svg to the unit label
+// Geometry that follows the type: rows of end labels, wrapped lines,
+// sublabels, the year row and the rotated unit title's glyph extent.
+function metrics(fs) {
+  return {
+    ROW: fs.label + 6, // min vertical gap between stacked end labels
+    LINE: fs.label + 3, // extra height taken by each wrapped end-label line
+    SUB_ROW: fs.sub + 3, // extra height taken by a sublabel line
+    PAD_B: fs.tick + 24, // year row (and its gap) under the plot
+    X_TITLE: fs.tick + 6, // an x-axis title's extra line
+    UNIT_ASCENT: Math.round(fs.tick * 0.8), // rotated unit title: glyphs reach this far left of its baseline...
+    UNIT_DESCENT: Math.round(fs.tick * 0.3), // ...and this far right
+    TOP_LH: fs.tick + 3, // line height of a horizontal y title / label rows above the plot
+  };
+}
 
 // Text width in px. Measured with a canvas in the browser, so geometry follows
 // the real tick and label strings (a five-character tick like "112.5" needs a
@@ -76,14 +94,13 @@ function textWidth(text, font) {
   const px = Number((font.match(/(\d+(?:\.\d+)?)px/) || [])[1] || 12);
   return text.length * px * 0.6;
 }
-const AX_FONT = `12px ${FONT}`;
-const labelFont = (weight, px = 12) => `${weight} ${px}px ${FONT}`;
+const labelFont = (weight, px) => `${weight} ${px}px ${FONT}`;
 
 // Greedy word wrap of an end label into lines no wider than `max`. A label
 // is a list of segments ({ text, weight, kind }); the value is one segment
 // and is never split, so a label that does not fit on one line wraps and
 // still ends with its number instead of losing it past the svg edge.
-function wrapSegments(segments, max) {
+function wrapSegments(segments, max, px) {
   const words = segments.flatMap((seg) =>
     seg.kind === 'text'
       ? seg.text.split(/\s+/).filter(Boolean).map((w) => ({ ...seg, text: w }))
@@ -93,8 +110,8 @@ function wrapSegments(segments, max) {
   let line = [];
   let width = 0;
   for (const w of words) {
-    const ww = textWidth(w.text, labelFont(w.weight));
-    const space = line.length ? textWidth(' ', labelFont(w.weight)) : 0;
+    const ww = textWidth(w.text, labelFont(w.weight, px));
+    const space = line.length ? textWidth(' ', labelFont(w.weight, px)) : 0;
     if (line.length && width + space + ww > max) {
       lines.push(line);
       line = [w];
@@ -107,8 +124,8 @@ function wrapSegments(segments, max) {
   if (line.length) lines.push(line);
   return lines;
 }
-const lineWidth = (line) =>
-  line.reduce((acc, w, i) => acc + textWidth((i ? ' ' : '') + w.text, labelFont(w.weight)), 0);
+const lineWidth = (line, px) =>
+  line.reduce((acc, w, i) => acc + textWidth((i ? ' ' : '') + w.text, labelFont(w.weight, px)), 0);
 
 // Re-render after mount, once web fonts have loaded, with canvas measurement
 // switched on.
@@ -123,6 +140,20 @@ function useMeasured() {
     };
   }, []);
   return ready;
+}
+
+// True on a phone-width viewport (after mount; the server renders desktop).
+function usePhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(PHONE_MQ);
+    const on = () => setPhone(mq.matches);
+    on();
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
+  return phone;
 }
 
 // Nice-number tick step: 1, 2, 2.5 or 5 times a power of ten.
@@ -189,6 +220,7 @@ export default function LineChart({
   compact = false,
   yTitleTop = false,
   zeroNote = null,
+  thin = false,
 }) {
   // yTitle / xTitle (the shared chart API) are the same as yUnit / xUnit
   const yUnit = yTitle ?? yUnitProp;
@@ -196,6 +228,10 @@ export default function LineChart({
   const dots = compact ? false : dotsProp;
   const [ref, W] = useWidth(880);
   useMeasured();
+  const FS = usePhone() ? TYPE_PHONE : TYPE_DESKTOP;
+  const { ROW, LINE, SUB_ROW, PAD_B, X_TITLE, UNIT_ASCENT, UNIT_DESCENT, TOP_LH } = metrics(FS);
+  const AX_FONT = `${FS.tick}px ${FONT}`;
+  const axStyle = { fontSize: `${FS.tick}px` };
   // Crosshair: the year under the pointer, keyboard focus or tap.
   const [hov, setHov] = useState(null);
   // the year another chart of the same group points at
@@ -224,14 +260,35 @@ export default function LineChart({
 
   let lo = yDomain ? yDomain[0] : Math.min(...all);
   let hi = yDomain ? yDomain[1] : Math.max(...all);
+  // the wall: zero (the forecast path) is always on the scale
+  if (thin) {
+    lo = Math.min(lo, 0);
+    hi = Math.max(hi, 0);
+  }
   if (hi - lo < 1e-9) {
     lo -= 1;
     hi += 1;
   }
   const span = hi - lo;
-  const step = niceStep(span);
-  lo = Math.floor((lo - span * 0.04) / step) * step;
-  hi = Math.ceil((hi + span * 0.04) / step) * step;
+  let step = niceStep(span);
+  const lo0 = lo;
+  const hi0 = hi;
+  lo = Math.floor((lo0 - span * 0.04) / step) * step;
+  hi = Math.ceil((hi0 + span * 0.04) / step) * step;
+  // the wall: 3 to 5 ticks, from the next nice step up while there are more
+  if (thin) {
+    for (let target = 4; Math.round((hi - lo) / step) + 1 > 5 && target > 1; target -= 1) {
+      step = niceStep(span, target);
+      lo = Math.floor((lo0 - span * 0.04) / step) * step;
+      hi = Math.ceil((hi0 + span * 0.04) / step) * step;
+    }
+  }
+  // the wall: a scale that only starts (or ends) at zero keeps zero as its
+  // edge, with no empty step beyond the forecast path
+  if (thin) {
+    if (lo0 >= 0) lo = 0;
+    if (hi0 <= 0) hi = 0;
+  }
   let ticks = [];
   for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v);
   // a compact tile keeps at most four ticks: every other one, zero kept
@@ -257,7 +314,7 @@ export default function LineChart({
   const points = strip?.points || [];
   const segsFor = (text, value, strong, offScale) => [
     ...(endLabel === 'value' ? [] : [{ kind: 'text', text, weight: strong ? 700 : 500 }]),
-    ...(noValue && endLabel !== 'value' ? [] : [{ kind: 'value', text: `${valueFormat(value)}${endLabel === 'value' ? unit : ''}`, weight: 700 }]),
+    ...(noValue && endLabel !== 'value' ? [] : [{ kind: 'value', text: `${valueFormat(value)}${endLabel === 'value' ? unit : ''}`, weight: endLabel === 'value' ? 600 : 700 }]),
     ...(offScale ? [{ kind: 'off', text: '(off scale)', weight: 500 }] : []),
   ];
   const rawLabels = [
@@ -269,23 +326,27 @@ export default function LineChart({
   // never more than 42% of the chart. Labels that do not fit wrap onto
   // extra lines rather than running off the svg edge.
   const stripW = strip ? STRIP_W : 0;
-  const oneLine = Math.max(0, ...rawLabels.map((l) => lineWidth(wrapSegments(l.segs, Infinity)[0])));
-  const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, 11)) : 0)));
-  const labelW = rawLabels.length ? Math.min(Math.max(oneLine, subW) + 14 + 6, Math.max(W * 0.42, 120)) : 6;
+  const oneLine = Math.max(0, ...rawLabels.map((l) => lineWidth(wrapSegments(l.segs, Infinity, FS.label)[0], FS.label)));
+  const subW = Math.max(0, ...series.map((s) => (s.sublabel ? textWidth(s.sublabel, labelFont(400, FS.sub)) : 0)));
+  // end labels start clear of the last year label, which is centred on the
+  // plot's right edge, so a label at the bottom of the stack never sits on it
+  const yearHalf = textWidth(String(x[x.length - 1]), AX_FONT) / 2;
+  const labelGap = strip ? 14 : Math.max(14, Math.ceil(yearHalf) + 6);
+  const labelW = rawLabels.length ? Math.min(Math.max(oneLine, subW) + labelGap + 6, Math.max(W * 0.42, 120)) : 6;
   const R = Math.max(L + 80, W - labelW - stripW - 8);
   // an x-axis title takes one more line under the year labels
-  const BOT = height - PAD_B - (xUnit ? 16 : 0);
+  const BOT = height - PAD_B - (xUnit ? X_TITLE : 0);
   const H = height;
 
   const stripX = R + stripW / 2 + 4;
-  const labelX = R + stripW + 14;
+  const labelX = R + stripW + labelGap;
   const labelMax = Math.max(60, W - labelX - 2);
 
   // X axis: show every k-th year so labels never touch; the last year is
   // always shown, and the label before it is dropped if it would crowd it.
   const yearW = Math.max(...x.map((yr) => textWidth(String(yr), AX_FONT)));
   const pitch = x.length > 1 ? (R - L) / (x.length - 1) : Infinity;
-  const every = Math.max(1, Math.ceil((yearW + 6) / pitch));
+  const every = Math.max(1, Math.ceil((yearW + 6) / pitch), thin ? Math.ceil((x.length - 1) / 4) : 1);
   const showYear = x.map((_, i) => i % every === 0 || i === x.length - 1);
   for (let i = x.length - 2; i > 0; i -= 1) {
     if (showYear[i]) {
@@ -310,27 +371,31 @@ export default function LineChart({
   const bandRows = bands.map((b) => {
     const i = x.indexOf(b.year);
     if (i < 0 || !b.label || compact) return { b, i, row: 0 };
-    const w = String(b.label).length * 6.4 + 6;
+    const w = textWidth(String(b.label), AX_FONT) + 6;
     return { b, i, row: place(sx(i) - w / 2, w) };
   });
   const markerRows = [];
   for (const m of markers) {
     const i = x.indexOf(m.year);
     if (i < 0) continue;
-    const len = compact ? 0 : String(m.label ?? '').length;
-    const end = i === x.length - 1 || sx(i) + 4 + len * 6.4 > R;
-    const w = len * 6.4 + 6;
-    const a0 = end ? sx(i) - 4 - w : sx(i) + 4;
-    markerRows.push({ m, i, end, row: len ? place(a0, w) : 0 });
+    const lw = compact || !m.label ? 0 : textWidth(String(m.label), AX_FONT);
+    const len = lw;
+    const end = i === x.length - 1 || sx(i) + 4 + lw > R;
+    const w = lw + 6;
+    // a right-anchored label too long to fit left of its line starts at
+    // the svg's left edge instead of running off it
+    const pin = end && sx(i) - 4 - lw < EDGE;
+    const a0 = pin ? EDGE : end ? sx(i) - 4 - w : sx(i) + 4;
+    markerRows.push({ m, i, end: end && !pin, pin, row: len ? place(a0, w) : 0 });
   }
   const rowsUsed = placed.length ? Math.max(...placed.map((p) => p.row)) + 1 : 1;
   // A label that reaches left of the plot runs over the top y tick's column:
   // the label rows then sit LIFT px higher, so the label clears that tick.
   const LIFT = placed.some((p) => p.a < L) ? 6 : 0;
   // a horizontal y title wider than the chart wraps at its last comma
-  const topLines = !yUnit || !yTitleTop ? [] : textWidth(yUnit, `11px ${FONT}`) <= W - 2 * EDGE || !yUnit.includes(', ') ? [yUnit] : [yUnit.slice(0, yUnit.lastIndexOf(', ') + 1), yUnit.slice(yUnit.lastIndexOf(', ') + 2)];
-  const TOP = PAD_T + LIFT + (rowsUsed - 1) * 14 + (topLines.length ? 14 + (topLines.length - 1) * 13 : 0);
-  const labelY = (row) => TOP - 6 - LIFT - row * 14;
+  const topLines = !yUnit || !yTitleTop ? [] : textWidth(yUnit, AX_FONT) <= W - 2 * EDGE || !yUnit.includes(', ') ? [yUnit] : [yUnit.slice(0, yUnit.lastIndexOf(', ') + 1), yUnit.slice(yUnit.lastIndexOf(', ') + 2)];
+  const TOP = PAD_T + (FS.tick - 11) + LIFT + (rowsUsed - 1) * TOP_LH + (topLines.length ? TOP_LH + (topLines.length - 1) * TOP_LH : 0);
+  const labelY = (row) => TOP - 6 - LIFT - row * TOP_LH;
   const sy = (v) => BOT - ((v - lo) / (hi - lo)) * (BOT - TOP);
   // The zero line's note sits where no line crosses it: right end above the
   // line, then right below, left above, left below (a line through it
@@ -340,10 +405,10 @@ export default function LineChart({
     const w = textWidth(zeroNote, AX_FONT) + 4;
     const z = sy(0);
     const spots = [
-      { x: R - 4, y: z - 4, anchor: 'end', box: [R - 4 - w, z - 15, R, z - 1] },
-      { x: R - 4, y: z + 13, anchor: 'end', box: [R - 4 - w, z + 1, R, z + 16] },
-      { x: L + 4, y: z - 4, anchor: 'start', box: [L, z - 15, L + 4 + w, z - 1] },
-      { x: L + 4, y: z + 13, anchor: 'start', box: [L, z + 1, L + 4 + w, z + 16] },
+      { x: R - 4, y: z - 4, anchor: 'end', box: [R - 4 - w, z - FS.tick - 4, R, z - 1] },
+      { x: R - 4, y: z + FS.tick + 1, anchor: 'end', box: [R - 4 - w, z + 1, R, z + FS.tick + 4] },
+      { x: L + 4, y: z - 4, anchor: 'start', box: [L, z - FS.tick - 4, L + 4 + w, z - 1] },
+      { x: L + 4, y: z + FS.tick + 1, anchor: 'start', box: [L, z + 1, L + 4 + w, z + FS.tick + 4] },
     ];
     const clear = ([x0, y0, x1, y1]) =>
       series.every((sr) =>
@@ -371,9 +436,9 @@ export default function LineChart({
   // Every end label (series ends and strip points), stacked so none overlap.
   const labels = rawLabels
     .map(({ s, p, segs }) => {
-      const lines = wrapSegments(segs, labelMax);
+      const lines = wrapSegments(segs, labelMax, FS.label);
       const subLines = s?.sublabel
-        ? wrapSegments([{ kind: 'text', text: s.sublabel, weight: 400 }], labelMax).map((l) =>
+        ? wrapSegments([{ kind: 'text', text: s.sublabel, weight: 400 }], labelMax, FS.sub).map((l) =>
             l.map((w) => w.text).join(' '),
           )
         : [];
@@ -386,12 +451,14 @@ export default function LineChart({
     })
     .concat(
       zeroAt.gutter
-        ? [{ lines: wrapSegments([{ kind: 'text', text: zeroNote, weight: 500 }], labelMax), subLines: [], extra: 0, strong: false, key: 'zero-note', color: 'var(--pe-color-gray-500)', ax: R, y: sy(0), zero: true }]
+        ? [{ lines: wrapSegments([{ kind: 'text', text: zeroNote, weight: 500 }], labelMax, FS.label), subLines: [], extra: 0, strong: false, key: 'zero-note', color: 'var(--pe-color-gray-500)', ax: R, y: sy(0), zero: true }]
         : [],
     )
     .map((e) => (e.zero ? { ...e, extra: (e.lines.length - 1) * LINE } : e))
     .sort((a, b) => a.y - b.y);
-  let prev = -Infinity;
+  // the stack starts below the label rows above the plot (a marker label
+  // can reach over the end-label column)
+  let prev = TOP + FS.label * 0.6;
   let prevH = 0;
   for (const e of labels) {
     e.ly = Math.max(e.y, prev + prevH);
@@ -402,7 +469,8 @@ export default function LineChart({
   // label reaches into the label column, the floor is the top of the year
   // row instead, so an end label never sits on that year.
   const lastYearRight = sx(x.length - 1) + textWidth(String(x[x.length - 1]), AX_FONT) / 2;
-  let floor = lastYearRight + 4 > labelX ? Math.min(H - 14, BOT + 3) : H - 10 - 4;
+  // (the label's box reaches about two thirds of the type size below ly)
+  let floor = lastYearRight + 4 > labelX ? Math.min(H - 14, BOT + 3) : H - 4 - FS.label;
   for (let i = labels.length - 1; i >= 0; i -= 1) {
     const e = labels[i];
     if (e.ly + e.extra > floor) e.ly = floor - e.extra;
@@ -479,18 +547,18 @@ export default function LineChart({
             <g key={`band-${b.year}`}>
               <rect x={x0} y={TOP} width={x1 - x0} height={BOT - TOP} className="hl-band" />
               {b.label && !compact ? (
-                <text x={(x0 + x1) / 2} y={labelY(row)} className="ax band-label" textAnchor="middle">
+                <text x={(x0 + x1) / 2} y={labelY(row)} className="ax band-label" textAnchor="middle" style={axStyle}>
                   {b.label}
                 </text>
               ) : null}
             </g>
           );
         })}
-        {markerRows.map(({ m, i, row, end }) => (
+        {markerRows.map(({ m, i, row, end, pin }) => (
           <g key={`m-${m.year}`}>
             <line x1={sx(i)} x2={sx(i)} y1={TOP} y2={BOT} className="marker-line" />
             {compact ? null : (
-              <text x={end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'}>
+              <text x={pin ? EDGE : end ? sx(i) - 4 : sx(i) + 4} y={labelY(row)} className="ax marker-label" textAnchor={end ? 'end' : 'start'} style={axStyle}>
                 {m.label}
               </text>
             )}
@@ -500,17 +568,17 @@ export default function LineChart({
         {ticks.map((v) => (
           <g key={v}>
             <line x1={L} y1={sy(v)} x2={R} y2={sy(v)} className="g" />
-            <text x={L - 8} y={sy(v) + 4} className="ax" textAnchor="end" data-axis="">
+            <text x={L - 8} y={sy(v) + FS.tick * 0.35} className="ax" textAnchor="end" data-axis="" style={axStyle}>
               {tickFmt(v)}
             </text>
           </g>
         ))}
         <line x1={L} y1={BOT} x2={R} y2={BOT} className="axis-line" />
-        {lo < 0 && hi > 0 ? (
+        {(thin ? lo <= 0 && hi >= 0 : lo < 0 && hi > 0) ? (
           <g>
             <line x1={L} y1={sy(0)} x2={R} y2={sy(0)} className="zero-line" />
             {zeroNote && !zeroAt.gutter ? (
-              <text x={zeroAt.x} y={zeroAt.y} textAnchor={zeroAt.anchor} className="ax zero-note" data-reference-label="">
+              <text x={zeroAt.x} y={zeroAt.y} textAnchor={zeroAt.anchor} className="ax zero-note" data-reference-label="" style={axStyle}>
                 {zeroNote}
               </text>
             ) : null}
@@ -523,34 +591,37 @@ export default function LineChart({
             textAnchor="middle"
             data-axis-title="y"
             data-axis=""
+            style={axStyle}
           >
             {yUnit}
           </text>
         ) : yUnit ? (
-          <text className="ax axis-unit" x={EDGE} y={12} textAnchor="start" data-axis-title="y" data-axis="">
+          <text className="ax axis-unit" x={EDGE} y={FS.tick} textAnchor="start" data-axis-title="y" data-axis="" style={axStyle}>
+            {/* a wrapped line ends with a space, so the text reads "path, %",
+                not "path,%" (the next line starts at x again) */}
             {topLines.map((t, i) => (
-              <tspan key={t} x={EDGE} dy={i ? 13 : 0}>
-                {t}
+              <tspan key={t} x={EDGE} dy={i ? TOP_LH : 0}>
+                {i < topLines.length - 1 ? `${t} ` : t}
               </tspan>
             ))}
           </text>
         ) : null}
         {x.map((yr, i) =>
           showYear[i] ? (
-            <text key={yr} x={sx(i)} y={BOT + 20} className="ax" textAnchor="middle">
+            <text key={yr} x={sx(i)} y={BOT + FS.tick + 6} className="ax" textAnchor="middle" style={axStyle}>
               {yr}
             </text>
           ) : null,
         )}
         {xUnit ? (
-          <text x={(L + R) / 2} y={BOT + 38} className="ax axis-unit" textAnchor="middle" data-axis-title="x" data-axis="">
+          <text x={(L + R) / 2} y={BOT + 2 * FS.tick + 12} className="ax axis-unit" textAnchor="middle" data-axis-title="x" data-axis="" style={axStyle}>
             {xUnit}
           </text>
         ) : null}
         {strip ? (
           <g>
             <line x1={stripX} y1={TOP} x2={stripX} y2={BOT} className="strip-rule" />
-            <text x={stripX} y={TOP - 6} className="ax strip-title" textAnchor="middle">
+            <text x={stripX} y={TOP - 6} className="ax strip-title" textAnchor="middle" style={axStyle}>
               {strip.title}
             </text>
           </g>
@@ -614,13 +685,19 @@ export default function LineChart({
                 opacity=".5"
               />
             ) : null}
-            <text key={e.lines.map((l) => l.map((w) => w.text).join(' ')).join('|')} className="lc-fade" x={labelX} y={e.ly + 4} style={{ font: `12px ${FONT}` }}>
+            <text key={e.lines.map((l) => l.map((w) => w.text).join(' ')).join('|')} className="lc-fade" x={labelX} y={e.ly + FS.label * 0.33} style={{ font: `${FS.label}px ${FONT}` }}>
+              {/* Words are joined by spaces inside a line; a wrapped line
+                  also ends with one, so the text (screen readers, copy,
+                  textContent) reads "Automation + productivity", not
+                  "Automation +productivity". The space trails a
+                  start-anchored line, so no line moves. */}
               {e.lines.map((line, li) => (
                 <tspan key={li} x={labelX} dy={li ? LINE : 0}>
                   {line.map((w, wi) => (
                     <tspan key={wi} style={{ fontWeight: w.weight }} fill={segFill(w.kind, e)}>
                       {wi ? ' ' : ''}
                       {w.text}
+                      {wi === line.length - 1 && li < e.lines.length - 1 ? ' ' : ''}
                     </tspan>
                   ))}
                 </tspan>
@@ -630,8 +707,8 @@ export default function LineChart({
               <text
                 key={si}
                 x={labelX}
-                y={e.ly + 4 + (e.lines.length - 1) * LINE + (si + 1) * SUB_ROW}
-                style={{ font: `11px ${FONT}` }}
+                y={e.ly + FS.label * 0.33 + (e.lines.length - 1) * LINE + (si + 1) * SUB_ROW}
+                style={{ font: `${FS.sub}px ${FONT}` }}
                 fill="var(--pe-color-gray-500)"
               >
                 {t}

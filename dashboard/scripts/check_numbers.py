@@ -8,9 +8,8 @@ Summary, the three headline tiles (main arm, at the closure picked in the
 header; with Both, the closed-capital value beside it); Income and output,
 the four-measure card (one value per arm and measure at the closure picked;
 with Both, the closed-capital value as screen-reader text; the main arm's
-GDP, wage and GNI as a muted reference row linked to the story) - the GNI and GDP
-path charts print no end value; Economy, each line's headline-year end
-label; Public finances, the debt/GDP and tax/GDP end labels and the tax
+GDP, wage and GNI as a muted reference row linked to the story); Economy,
+each line's headline-year end label, on all eight tiles (GNI and GDP too); Public finances, the debt/GDP and tax/GDP end labels and the tax
 card (its model figure only with closed capital, when the chart's end
 label is a different number). Signed figures with a unit (+0.57%, -1.6pp) are pulled from the page
 text as a multiset and compared with the multiset built from the data file
@@ -35,7 +34,9 @@ def g(sid, arm, cl, v, year=H):
     return r['gaps'][v][Y.index(year)] if r['status'] == 'done' else None
 
 NUM = re.compile(r"[+−]?\d+\.\d+(?:%|pp)")
-ECON = [('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]
+# the economy wall: every tile's lines end in their headline-year value,
+# GNI and GDP included (item 13, 18 Nov: values on every panel)
+ECON = [('GNI', '%', 1), ('Y', '%', 1), ('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]
 SUBS = ['summary', 'income', 'economy', 'finances']
 bad = 0
 
