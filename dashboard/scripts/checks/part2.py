@@ -265,7 +265,7 @@ def ledger(dump):
             z = t.find('GDP ends', a)
             blk = t[a:z if z > 0 else a + 1500]
             miss = []
-            if not re.search(r"scenario, \d{4}: each figure is a gap against the OBR’s central forecast path\.", blk):
+            if not re.search(r"scenario, \d{4}: gaps against the OBR’s central forecast path\.", blk):
                 miss.append('sentence')
             if ' · ' in blk:
                 miss.append('chip')

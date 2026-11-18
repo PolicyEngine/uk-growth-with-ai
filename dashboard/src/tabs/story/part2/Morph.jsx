@@ -236,7 +236,7 @@ function bandPath(X, Y, lo, hi) {
 }
 
 const OFF_YEARS = ACT.filter(([, y]) => Math.abs(y) > OFF).map(([x]) => x);
-const OFF_NOTE = OFF_YEARS.length ? ` ${OFF_YEARS.join(' and ')} run${OFF_YEARS.length > 1 ? '' : 's'} off the scale (arrows).` : '';
+const OFF_NOTE = OFF_YEARS.length ? ` ${OFF_YEARS.join(' and ')} run${OFF_YEARS.length > 1 ? '' : 's'} off the scale.` : '';
 const GAP_TITLE = 'GDP against the OBR’s central forecast path';
 // Each state's title is a finding (story-finding-titles-fable.md), with a
 // fallback (fallback: true, marked for check_text) when its condition
@@ -259,32 +259,31 @@ const ACT_LO = ACT.reduce((m, p) => (p[1] < m[1] ? p : m), ACT[0] ?? [null, Infi
 const ACT_HI = ACT.reduce((m, p) => (p[1] > m[1] ? p : m), ACT[0] ?? [null, -Infinity]);
 const steadier = OBR.length > 0 && ACT.length > 0 && Math.min(...OBR.map((p) => p[1])) >= ACT_LO[1] && Math.max(...OBR.map((p) => p[1])) <= ACT_HI[1];
 const ACT_FIRST = ACT.length ? ACT[0][0] : ACT_LAST;
-const SPAN = `${YEARS[0]} to ${YEARS[YEARS.length - 1]}`;
 const shortName = (sid) => scenarioById(sid)?.short ?? SCEN_NAME[sid];
 const STATE_TEXT = (sid, cl) => {
   const one = gapSide(series(sid, 'tfp', cl, 'Y'));
   const every = allSide(cl);
   return [
-    { title: `Growth swung widely in ${[ACT_LO[0], ACT_HI[0]].sort((a, b) => a - b).join(' and ')}`, fallback: false, unit: `Real GDP growth, % a year, ${ACT_FIRST} to ${ACT_LAST}: ONS outturn.${OFF_NOTE}` },
+    { title: `Growth swung widely in ${[ACT_LO[0], ACT_HI[0]].sort((a, b) => a - b).join(' and ')}`, fallback: false, unit: `ONS real GDP growth, % a year, ${ACT_FIRST} to ${ACT_LAST}.${OFF_NOTE}` },
     {
       title: steadier ? 'The OBR’s forecast is steadier than the last ten years' : 'Real GDP growth',
       fallback: !steadier,
-      unit: `Real GDP growth, % a year, ${ACT_FIRST} to ${ACT_LAST}: ONS outturn (solid), OBR forecast${OBR_VINTAGE ? `, ${OBR_VINTAGE}` : ''} (dashed).${OFF_NOTE}`,
+      unit: `Real GDP growth, % a year, ${ACT_FIRST} to ${ACT_LAST}: ONS record (solid), OBR forecast (dashed).`,
     },
     {
       title: one ? `GDP runs ${one} the forecast path from ${SURPRISE_YEAR}` : GAP_TITLE,
       fallback: !one,
-      unit: `GDP gap against the OBR’s central forecast path, %, ${SPAN}; not a growth rate. ${shortName(sid)}, ${CL_WORDS[cl]}. OG-UK.`,
+      unit: `GDP gap against the OBR’s central forecast path, %. ${shortName(sid)}, ${CL_WORDS[cl]}.`,
     },
     {
       title: every ? `GDP ends ${every} the forecast path in every scenario` : GAP_TITLE,
       fallback: !every,
-      unit: `GDP gap against the forecast path, %, ${SPAN}. UK scenarios, ${shortName(sid)} in colour, UK range shaded; ${CL_WORDS[cl]}. OG-UK.`,
+      unit: `GDP gap against the OBR’s forecast path, %. UK range shaded; ${CL_WORDS[cl]}.`,
     },
     {
       title: every ? `GDP ends ${every} the forecast path in every scenario` : GAP_TITLE,
       fallback: !every,
-      unit: `GDP gap against the forecast path, %, ${SPAN}. Four scenarios, ${shortName(sid)} in colour; ${CL_WORDS[cl]}. OG-UK.`,
+      unit: `GDP gap against the OBR’s forecast path, %. Four scenarios; ${CL_WORDS[cl]}.`,
     },
   ];
 };
@@ -310,6 +309,8 @@ export function morphItems(s) {
 // headline figures are measured against, the pay tile's sign caveat and
 // the debt line's repricing clause (voice pass: they left the step text).
 export function morphGroups(s, sid, cl) {
+  // the forecast's vintage, out of the unit line (pushB-final-rulings-fable.md 1)
+  if (s === 1 && OBR_VINTAGE) return [{ title: 'How to read', notes: [{ icon: 'forecast', text: `The OBR forecast is its central forecast of ${OBR_VINTAGE}.` }] }];
   if (s < 2) return [];
   const p = debtParts(sid, cl);
   return [
