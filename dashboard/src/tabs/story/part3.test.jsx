@@ -18,7 +18,7 @@ import { BREAKS, CHANGES_STEPS, PANEL_OF, changesSub, marginClaims, rulesClaims 
 import { CHANNEL_STEPS, effectWords, fillFor } from './part3/Channels.jsx';
 import { stepsWithoutHighlight } from '@/components/story/highlight.jsx';
 import { DECILES_SUB, bottomDecileRankings, decileShape } from './part3/Deciles.jsx';
-import { CLOSING_SUB, LEFT_OUT } from './part3/Closing.jsx';
+import { CLOSING_SUB, LEFT_OUT, OUT_GROUPS } from './part3/Closing.jsx';
 import { MODEL_YEAR, PROVISIONAL, ladder, rule } from './part3/shared.jsx';
 import TwoLenses, { CLOSE_SUB, LENSES, PAY_RESULT } from './TwoLenses.jsx';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
@@ -282,14 +282,25 @@ describe('Part3', () => {
     const { container } = renderPart();
     const close = container.querySelector('.p3-close');
     expect(close.closest('.scrolly')).toBeNull();
-    expect(close.querySelectorAll('.p3-out-list li')).toHaveLength(LEFT_OUT.length);
-    for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(12);
-    // a level-(b) header (no icon) and one tinted panel of tiles, one plain icon each
+    // item 33: one h3, one lead, one table (three groups, a row per item, no icons), one foot line
+    expect(close.querySelectorAll('h3')).toHaveLength(1);
+    expect(close.querySelectorAll('.p3-close-lead')).toHaveLength(1);
+    const table = close.querySelector('table.p3-out');
+    expect([...table.querySelectorAll('thead th')].map((t) => t.textContent)).toEqual(['Left out', 'What the study assumes']);
+    expect([...table.querySelectorAll('tbody')].map((g) => g.querySelector('th[scope="rowgroup"]').textContent)).toEqual(OUT_GROUPS.map((g) => g.title));
+    expect(table.querySelectorAll('tbody tr[data-item]')).toHaveLength(LEFT_OUT.length);
+    expect(table.querySelectorAll('svg')).toHaveLength(0);
+    for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(16);
+    expect(close.textContent).not.toMatch(/\d/);
+    // reported JSA awards are paid; only the newly jobless get none
+    expect(LEFT_OUT.find((t) => t.id === 'jsa').text).toBe('New-style Jobseeker’s Allowance for the newly jobless: Paid only where the survey already records it');
+    const foot = close.querySelectorAll('.p3-close-foot a');
+    expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
     expect(close.querySelectorAll('.scene-head svg').length).toBe(0);
     expect(close.querySelector('.scene-head h3#p3-close-h')).not.toBeNull();
-    expect(close.querySelector('.p3-close-chip').textContent).toBe('A one-year test, not a forecast');
-    for (const li of close.querySelectorAll('.story-panel .p3-out-list > li')) expect(li.querySelectorAll('svg')).toHaveLength(1);
-    expect(close.querySelector('button, .p3-chip-frame')).toBeNull();
+    expect(close.querySelector('.p3-close-chip, .story-panel, button, .p3-chip-frame')).toBeNull();
+    expect(container.textContent).not.toContain('None in the main case');
+    expect(container.textContent).not.toContain('A one-year test, not a forecast');
     expect(container.querySelector('.story-next')).toBeNull();
     // the dividend and corporation tax asymmetry is said once, in the channels scene
     expect(container.textContent.match(/corporation tax/gi)).toHaveLength(1);
@@ -332,6 +343,8 @@ describe('Part3', () => {
       // a step's sentence (at most 16 words, checked above) and a recap chip (its question and answer, each checked) are not list items
       if (el.matches('.scrolly-step, .story-recap li')) continue;
       if (el.matches('.story-source, .story-source *')) continue; // citation lines
+      // the close's lead is one sentence by its spec (item-33-fable.md, section 2): 28 words, held at the spec's wording
+      if (el.matches('.p3-close-lead')) continue;
       const c = el.cloneNode(true);
       // a figure's notes behind its "Sources and notes" are not on the page
       c.querySelectorAll('[hidden]').forEach((h) => h.remove());

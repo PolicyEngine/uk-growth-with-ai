@@ -2873,62 +2873,9 @@
   gap: 6px 12px;
   align-items: center;
 }
-.p3-close-chip,
 .go-deeper-kicker {
   font-size: var(--t-meta);
   color: var(--t-muted);
-}
-/* a plain muted kicker above the head's question, not a pill (18 Nov) */
-.p3-close-chip {
-  order: -1;
-  flex-basis: 100%;
-  line-height: 1.4;
-}
-.p3-out-list {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-.p3-out-tile {
-  display: grid;
-  gap: 4px;
-  align-content: start;
-  padding: 14px 16px;
-}
-.p3-out-ic {
-  display: inline-flex;
-  color: var(--t-ink);
-}
-.p3-out-title {
-  font-size: var(--t-label);
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--t-ink);
-}
-.p3-out-line {
-  font-size: var(--t-meta);
-  line-height: 1.4;
-  color: var(--t-muted);
-}
-@media (max-width: 700px) {
-  .p3-out-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .p3-out-tile {
-    padding: 12px;
-  }
-}
-@media screen and (prefers-reduced-motion: no-preference) {
-  .p3-close-card .p3-out-tile > * {
-    transition:
-      opacity 400ms ease calc(var(--i, 0) * 90ms),
-      transform 500ms var(--story-ease) calc(var(--i, 0) * 90ms);
-  }
-  .p3-close-card:not(.is-in) .p3-out-tile > * {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  .p3-close-card.is-snap .p3-out-tile > * {
-    transition: none !important;
-  }
 }
 .go-deeper {
   margin: 32px 0 0;
