@@ -1,7 +1,6 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import Disclosure from '@/components/ab/Disclosure.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { PageNotes } from '@/components/ui/PageIntro.jsx';
@@ -9,7 +8,7 @@ import { linkAiFiles } from '@/tabs/explore/sources.jsx';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
-import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, PR_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
+import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
 import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
 
@@ -28,7 +27,6 @@ import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
 // the shared MODEL_YEAR).
 const YEAR = D.model_year_label ?? MODEL_YEAR;
 const STATUS = D.provisional === false ? (D.status ?? null) : 'provisional';
-const PR = D.source.pr_url ?? PR_URL;
 const PAPER = D.source.paper_url ?? PAPER_URL;
 const CTX = `Household study PR #${D.source.pr}${STATUS ? ` (${STATUS})` : ''}, ${D.source.dataset}, ${YEAR}, commit ${D.source.commit.slice(0, 7)}`;
 // Orderings in words, computed, so a rerun that moves them changes the text.
@@ -41,13 +39,27 @@ const span = (is) => {
   }
   return runs.map(([a, b]) => (a === b ? `${a}` : `${a} to ${b}`)).join(', ');
 };
+// Which deciles lose and which gain under all three rankings, and which
+// change sign, read from the data (item 28: "deciles 2 to 10 have the same
+// sign" hid that decile 10 gains).
 export function rankingsWords(R) {
   const sgn = (x) => (x > 0 ? 1 : x < 0 ? -1 : 0);
-  const same = [];
+  const lose = [];
+  const gain = [];
   const flip = [];
-  for (let i = 0; i < 10; i += 1) (new Set(R.map((r) => sgn(r.values[i]))).size === 1 ? same : flip).push(i + 1);
-  if (!flip.length) return 'Every decile has the same sign under all three rankings';
-  return `Deciles ${span(same)} have the same sign under all three; ${flip.length === 1 ? `decile ${flip[0]} changes` : `deciles ${span(flip)} change`} sign`;
+  for (let i = 0; i < 10; i += 1) {
+    const s = new Set(R.map((r) => sgn(r.values[i])));
+    (s.size !== 1 ? flip : s.has(-1) ? lose : s.has(1) ? gain : flip).push(i + 1);
+  }
+  const name = (is) => (is.length === 1 ? `decile ${is[0]}` : `deciles ${span(is)}`);
+  const verb = (is, one, many) => (is.length === 1 ? one : many);
+  const parts = [
+    lose.length ? `${name(lose)} ${verb(lose, 'loses', 'lose')} income` : null,
+    gain.length ? `${name(gain)} ${verb(gain, 'gains', 'gain')}` : null,
+    flip.length ? `${name(flip)} ${verb(flip, 'changes', 'change')} sign` : null,
+  ].filter(Boolean);
+  const t = parts.join('; ');
+  return `${t[0].toUpperCase()}${t.slice(1)}${flip.length ? ' across the rankings' : ' under all three rankings'}`;
 }
 // Cost lines: lost income tax and NI against the higher tax on dividends
 // and savings, from the cost components.
@@ -100,7 +112,7 @@ export function rulesCostWords(rules) {
 }
 export function policyWords(main) {
   const all = main.every((r) => r.poverty_pp < 0 && r.gini_pp < 0);
-  return all ? 'Each response lowers poverty and the Gini; costs and reach differ' : 'The responses differ in cost and in what they do to poverty and the Gini';
+  return all ? 'Each response lowers poverty and the Gini; their costs differ' : 'The responses differ in cost and in what they do to poverty and the Gini';
 }
 // The "outside the attested rebuild" flag: shown while the data file lists
 // results outside the study's rebuild (or, for an older file, says nothing).
@@ -416,7 +428,7 @@ function PerPound() {
       }}
       foot={<Flag />}
       about={about({
-        how: ['Government: the fall in the government balance, employer NI included', 'Household: the part tax, employee NI and benefits absorb', 'Job loss: no household split on the 20 draws (grey)'],
+        how: ['Total: the fall in the government balance, employer NI included', 'Of which household: the part tax, employee NI and benefits absorb', 'Job loss: no household split on the 20 draws (grey)'],
         sources: [`${j20.file} (run channel_displacement)`, `${D.per_pound_20.file} (variant cut_only)`, `seed 0: ${perPound('job_loss').file}`, 'results/takeup/takeup_draws.csv (scenario disp_only)'],
       })}
     >
@@ -425,7 +437,7 @@ function PerPound() {
           <span className="p3-swatch p3-fill-hh" /> Tax, employee NI and benefits
         </span>
         <span className="hh-leg">
-          <span className="p3-swatch p3-fill-gov" /> Employer NI and the rest
+          <span className="p3-swatch p3-fill-gov" /> The rest of the total: employer NI and other items, not split in the data
         </span>
       </p>
       <div className={entryClass(e, 'hh-pp')} ref={ref}>
@@ -460,9 +472,11 @@ function PerPound() {
         <div className="hh-pp-group">
           <p className="hh-pp-head">
             <span className="hh-pp-basis">One draw (seed 0)</span>
+            {/* the household part is a part of the total, not a second part
+                beside it; the rest is drawn and named in the legend */}
             <span className="hh-pp-cols" aria-hidden="true">
-              <span>Government</span>
-              <span>Household</span>
+              <span>Total</span>
+              <span>Of which household</span>
             </span>
           </p>
           <div role="list" className="hh-rowlist">
@@ -488,7 +502,8 @@ function PerPound() {
 }
 
 // --- 5. Who the displaced are (OBR-sized run) --------------------------------
-// A funnel of claims (each stage names its base), three reason tiles (the
+// Three claim shares, each with its own base (not a funnel: the bases
+// differ and 53% > 48%), three reason tiles (the
 // groups overlap, so tiles, not a stack), and UC per person with a take-up
 // toggle: the two values cross-fade in place, never tween.
 export const UC_VIEWS = ['data', 'full'];
@@ -505,10 +520,10 @@ function Displaced() {
       setView(view === 'data' ? 'full' : 'data');
     }
   };
+  // the share whose take-up decision in the data is to claim, not receipt
   const stages = [
-    ['all', 'Benefit units with a displaced worker', 100, null],
-    ['claim_uc', 'Claim UC, with the data’s take-up flags', X.claim_uc.value, 'of all of them'],
-    ['claim_uc_entitled', 'Claim, among those entitled once displaced', X.claim_uc_entitled.value, 'of the entitled'],
+    ['claim_uc', 'would claim UC', X.claim_uc.value, 'of all benefit units with a displaced worker'],
+    ['claim_uc_entitled', 'would claim', X.claim_uc_entitled.value, 'of those entitled to UC once displaced'],
   ];
   const reasons = [
     ['capital_over_limit', <>Capital above <span data-input="">{fmtGbp(limit)}</span>: no UC</>],
@@ -520,7 +535,7 @@ function Displaced() {
       id="hh-displaced"
       icon="usersRound"
       title="Who the displaced are"
-      finding="Capital, a working partner or a home each limit UC entitlement"
+      finding="Capital, a working partner or a home each limit Universal Credit (UC) entitlement"
       unit="Benefit units with a displaced worker, in the OBR-sized run"
       download={{
         context: CTX,
@@ -538,23 +553,24 @@ function Displaced() {
       <div className={entryClass(e, 'hh-disp')} ref={ref}>
         <Replay onClick={e.replay} />
         <AxisTitles y="Benefit units with a displaced worker" x="Share of those units, %" />
-        <ol className="hh-funnel">
+        <ul className="hh-funnel">
           {stages.map(([k, name, v, base], i) => (
             <li key={k} className="hh-funnel-row" data-row={k}>
               <span className="hh-funnel-bar" style={{ width: `${v}%`, transitionDelay: `${i * 250}ms` }} />
               <span className="hh-funnel-text">
-                {base ? <b>{fmtShare(v)}</b> : null} {name}
-                {base ? <span className="hh-muted"> ({base})</span> : null}
+                <b>{fmtShare(v)}</b> {name}
+                <span className="hh-muted"> ({base})</span>
               </span>
             </li>
           ))}
           <li className="hh-funnel-row is-compare" data-row="existing_unemployed_claim">
-            <span className="hh-funnel-bar" style={{ width: `${X.existing_unemployed_claim.value}%`, transitionDelay: '750ms' }} />
+            <span className="hh-funnel-bar" style={{ width: `${X.existing_unemployed_claim.value}%`, transitionDelay: '500ms' }} />
             <span className="hh-funnel-text">
-              <b>{fmtShare(X.existing_unemployed_claim.value)}</b> of entitled units already unemployed claim
+              <b>{fmtShare(X.existing_unemployed_claim.value)}</b> claim
+              <span className="hh-muted"> (of entitled units with someone already unemployed)</span>
             </span>
           </li>
-        </ol>
+        </ul>
         <ul className="hh-reasons">
           {reasons.map(([k, text], i) => (
             <li key={k} className="hh-reason" data-row={k} style={{ '--d': `${900 + i * 120}ms` }}>
@@ -815,50 +831,15 @@ function Policy() {
 }
 
 // --- page ------------------------------------------------------------------------
-const FILES = [
-  ['The main case', 'results/robustness/central_monte_carlo.json'],
-  ['Cost by tax and benefit', D.cost_components.file],
-  ['Channels', D.channels.file],
-  ['Take-up and JSA', 'results/takeup/takeup_draws.csv, results/takeup/takeup_runs.json'],
-  ['Wage cuts', 'results/wage_cut/wage_cut_draws.csv'],
-  ['OBR-sized runs and the Sankey', 'results/next_runs/obr_benchmark.json, results/next_runs/obr_benchmark_draws.csv, results/next_runs/obr_household_deciles.csv'],
-  ['Displacement rules', D.rules[0].file],
-  ['Deciles', 'results/appendix/decomposition_ci.csv, results/appendix/decile_ranking_sensitivity.csv'],
-  ['Break-evens', 'results/robustness/survivor_wage_grid.csv, results/next_runs/capital_variants_draws.csv, results/robustness/duration_takeup_sensitivity.json'],
-  ['Policy responses', D.policy.file],
-];
-
-function Sources() {
+// The result files, the commit and how the page is built: on Method and
+// sources > Detail and sources (item 23), one line here.
+function DetailLink() {
   return (
-    <Disclosure title="Detail and sources" preview="Result files, commit, how the page is built">
-      <div className="hh-sources">
-        <p>
-          Read from the study’s committed result files, commit{' '}
-          <a href={`https://github.com/${D.source.repo}/tree/${D.source.commit}`} target="_blank" rel="noreferrer">
-            <code>{D.source.commit.slice(0, 7)}</code>
-          </a>
-          ; each checked against the paper by <code>build_ai_study_data.py</code>.
-        </p>
-        <ul data-reference="">
-          {FILES.map(([what, f]) => (
-            <li key={what}>
-              <b>{what}:</b> {linkAiFiles(f)}
-            </li>
-          ))}
-        </ul>
-        <p className="hh-links">
-          <a href={PAPER} target="_blank" rel="noreferrer">
-            {STATUS === 'provisional' ? 'The draft paper (PDF)' : 'The paper (PDF)'}
-          </a>
-          <a href={PR} target="_blank" rel="noreferrer">
-            Household study PR #{D.source.pr}
-          </a>
-          <NavLink tab="method" sub="households">
-            Household method
-          </NavLink>
-        </p>
-      </div>
-    </Disclosure>
+    <p className="hh-detail-link">
+      <NavLink tab="method" sub="detail">
+        Detail and sources: result files, commit, how the page is built
+      </NavLink>
+    </p>
   );
 }
 
@@ -932,7 +913,7 @@ export default function HouseholdsExplore() {
         Three stylised additions, simulated on top of the main-case shock
       </SectionHeading>
       <Policy />
-      <Sources />
+      <DetailLink />
     </div>
   );
 }

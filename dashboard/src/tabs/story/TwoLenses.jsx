@@ -75,8 +75,10 @@ export const LENSES = [
     time: `One year, ${MODEL_YEAR}`,
     can: [
       { text: 'Who loses income', to: 'p3-deciles', scene: 'where the loss falls' },
-      { text: 'Poverty', to: 'p3-central', scene: 'the main case' },
-      { text: 'Inequality', to: 'p3-central', scene: 'the main case' },
+      // the main case's second step lights poverty and the Gini together;
+      // inequality has no scene or step of its own
+      { text: 'Poverty', to: 'p3-central-step-2', scene: 'the main case' },
+      { text: 'Inequality', to: 'p3-central-step-2', scene: 'the main case' },
     ],
     outside: [
       { text: 'Change over time', tip: 'Recovery, re-employment, prices' },
@@ -84,6 +86,11 @@ export const LENSES = [
     ],
   },
 ];
+
+// Where the overlap and the study's pay input link: the Story's
+// public-finances scene, and the beat that sources the study's inputs.
+export const FINANCES_TO = 'p3-channels';
+export const PAY_INPUT_TO = 'beat-7pct';
 
 // The OG-UK pay figure: UK central, some foreign capital, the headline year,
 // fixed (B4).
@@ -243,8 +250,14 @@ export default function TwoLenses() {
             <circle className="lens-ring is-study" cx="150" cy="402" r="148" />
           </svg>
           <Lens lens={og} />
+          {/* the overlap links to the Story's public-finances scene, the
+              cost by channel (#p3-channels); OG-UK's debt path is on
+              Explore, linked from the headline figures */}
           <p className="lens-overlap">
-            <Icon name={iconFor('finances')} size={14} /> The public finances
+            <Icon name={iconFor('finances')} size={14} />{' '}
+            <NavLink tab="story" anchor={FINANCES_TO} className="lens-overlap-link">
+              The public finances
+            </NavLink>
           </p>
           <Lens lens={st} />
           <Outside lens={og} />
@@ -268,9 +281,10 @@ export default function TwoLenses() {
           <div className="lens-pay-card is-study">
             <p className="lens-pay-head">Pay is an input</p>
             <p className="lens-pay-fig">
-              <span className="lens-pay-num" data-input="">
+              {/* the input's source: part 3's opening beat and its sources */}
+              <NavLink tab="story" anchor={PAY_INPUT_TO} className="lens-pay-num" data-input="">
                 +{Number(M.survivor_wage_pct)}%
-              </span>
+              </NavLink>
             </p>
             <p className="lens-pay-sub">for those still in work</p>
           </div>

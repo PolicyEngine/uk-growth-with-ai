@@ -2553,9 +2553,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .app .cause-mark-label {
   font-size: 11px;
 }
-.app .copy-block pre,
 .app .card .copy-block code {
-  font-size: 12px;
+  font-size: inherit;
 }
 .app .mx-tab > .page-intro + *,
 .app .page-body > .page-intro + * {

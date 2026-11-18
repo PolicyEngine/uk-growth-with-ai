@@ -1047,6 +1047,11 @@
   font-weight: 400;
   fill: var(--pe-gray-600);
 }
+/* the space between a node's name and value: in the text for a screen
+   reader, no width in the drawing (the value keeps its own dx) */
+.sankey-gap {
+  font-size: 0;
+}
 @media (prefers-reduced-motion: reduce) {
   .sankey-link,
   .sankey-rect,
@@ -2775,6 +2780,15 @@
   font-size: var(--t-body);
   line-height: 1.5;
   color: var(--t-text);
+  text-wrap: balance;
+}
+/* the beat's sources line (StoryBeat cite): the label size, muted */
+.beat-cite {
+  max-width: 58ch;
+  margin: 0;
+  font-size: var(--t-label);
+  line-height: 1.5;
+  color: var(--t-muted);
   text-wrap: balance;
 }
 @media (max-width: 900px) {

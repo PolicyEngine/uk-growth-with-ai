@@ -40,6 +40,20 @@ describe('story beats', () => {
     expect(b4.hasAttribute('data-input')).toBe(true);
     expect(b4.dataset.path).toBe('headline.central_displaced.note');
     expect(beats[3].closest('#story-part-3')).not.toBeNull();
+    // its sources line: Doorley et al., Briggs and Kodnani, the study paper,
+    // each a new-tab link with noopener; the only beat with one
+    const cite = beats[3].querySelector('.beat-cite');
+    expect(cite.hasAttribute('data-cite')).toBe(true);
+    const links = [...cite.querySelectorAll('a')];
+    expect(links.map((a) => a.textContent.trim())).toEqual(['Doorley et al. (2026)', 'Briggs and Kodnani (2023)', 'Who bears the AI shock?']);
+    expect(links[0].getAttribute('href')).toBe('https://doi.org/10.26504/jr16');
+    expect(links[1].getAttribute('href')).toMatch(/^https:\/\/www\.gspublishing\.com\/.*\.pdf$/);
+    expect(links[2].getAttribute('href')).toMatch(/uk-ai-study\/blob\/[0-9a-f]{40}\/paper\/main\.pdf$/);
+    for (const a of links) {
+      expect(a.getAttribute('target')).toBe('_blank');
+      expect(a.getAttribute('rel')).toContain('noopener');
+    }
+    expect(el.querySelectorAll('.beat-cite')).toHaveLength(1);
     for (const b of beats) {
       // real text, never hidden, not a heading, no icon, no signed figure
       expect(b.getAttribute('aria-hidden')).toBeNull();

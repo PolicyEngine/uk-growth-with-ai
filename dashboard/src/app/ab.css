@@ -2137,19 +2137,35 @@ body {
 .copy-block {
   position: relative;
   margin-top: auto;
-  background: #111827;
+  background: var(--pe-gray-50, #f9fafb);
+  border: 1px solid var(--pe-gray-200, #e5e7eb);
   border-radius: var(--pe-radius-md);
 }
 
+/* item 26: a light block, dark mono text at 14px (15px on wide screens),
+   room on the right for the copy icon */
 .copy-block pre {
   margin: 0;
-  padding: 14px 14px 12px;
+  padding: 14px 44px 12px 14px;
   overflow-x: auto;
   font-family: var(--pe-font-mono, ui-monospace, Menlo, monospace);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
-  color: #e5e7eb;
+  color: var(--pe-gray-900, #111827);
 }
+@media (min-width: 1200px) {
+  .copy-block pre {
+    font-size: 15px;
+  }
+}
+/* token colours on the light block (globals.css has the old dark set) */
+.copy-block .tk-kw { color: #6d28d9; }
+.copy-block .tk-fn { color: #92400e; }
+.copy-block .tk-cls { color: #1d4ed8; }
+.copy-block .tk-str { color: #047857; }
+.copy-block .tk-num { color: #b45309; }
+.copy-block .tk-com { color: var(--pe-gray-600, #4b5563); font-style: italic; }
+.copy-block .tk-flag { color: #a21caf; }
 
 .copy-block code {
   font-family: inherit;
@@ -2163,19 +2179,25 @@ body {
   top: 6px;
   right: 6px;
   z-index: 1;
-  padding: 2px 8px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  color: #e5e7eb;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--pe-gray-600, #4b5563);
+  background: none;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
 
 .copy-button:hover {
-  background: rgba(255, 255, 255, 0.16);
+  color: var(--pe-teal-700, #0f766e);
+}
+.copy-button:focus-visible {
+  outline: 2px solid var(--pe-gray-900, #111827);
+  outline-offset: 1px;
 }
 
 .fail-line {

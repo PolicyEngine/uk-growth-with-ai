@@ -38,6 +38,7 @@ const PAGES = {
   'household-method': '/?tab=method&sub=households',
   evidence: '/?tab=method&sub=studies',
   data: '/?tab=method&sub=code',
+  detail: '/?tab=method&sub=detail',
 };
 const ANCHORS = new Set(['economy', 'method']);
 

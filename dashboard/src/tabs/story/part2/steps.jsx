@@ -83,7 +83,7 @@ export function shockSteps(sid, closure) {
       title: 'Move 1: income shifts from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of labour&rsquo;s income goes to capital; its size is the scenario&rsquo;s input.</Say>,
+      body: <Say>First move: AI does more workers&rsquo; tasks than the OBR expects, so part of labour&rsquo;s income goes to capital.</Say>,
     },
     {
       id: 'p2-shock-2',
@@ -94,7 +94,7 @@ export function shockSteps(sid, closure) {
       body: ch == null ? (
         <Say>This solve is pending for the foreign-capital case chosen above.</Say>
       ) : grows ? (
-        <Say>Then output grows: productivity is higher (an input) and the economy holds more capital (the model&rsquo;s response); new tiles are shared at the new split.</Say>
+        <Say>Then output grows: productivity is higher (an input) and the economy holds more capital (the model&rsquo;s response).</Say>
       ) : (
         <Say>Then output ends {dirWord(ch.gdp)} the forecast path, once productivity, capital and hours have responded.</Say>
       ),

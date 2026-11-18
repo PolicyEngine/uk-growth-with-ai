@@ -11,6 +11,7 @@ import Pound from './part3/Pound.jsx';
 import Changes from './part3/Changes.jsx';
 import Closing from './part3/Closing.jsx';
 import { MODEL_YEAR, PAPER_URL } from './part3/shared.jsx';
+import { Ref } from './part3/sources.jsx';
 
 // Part 3: a model of households, the uk-ai-study PolicyEngine-UK
 // microsimulation of AI job displacement for one year, from
@@ -39,7 +40,15 @@ export default function Part3({ part }) {
           id="7pct"
           num={fmtInputPct(CENTRAL_RATE)}
           head="of employees assumed jobless for a year"
-          line="An Irish study’s size, from a Goldman Sachs scenario of about a decade’s adoption, applied in one year. AI-exposed jobs are hit more."
+          line="The size comes from an Irish study: a Goldman Sachs scenario of about a decade’s adoption, applied in one year. AI-exposed jobs are hit more."
+          cite={
+            <>
+              Sources: <Ref id="doorley" />, after <Ref id="briggs" />. Household modelling: Ahmadi,{' '}
+              <a href={PAPER_URL} target="_blank" rel="noopener noreferrer" className="p3-ref">
+                Who bears the AI shock?
+              </a>
+            </>
+          }
           numProps={{ 'data-input': '', 'data-path': 'headline.central_displaced.note' }}
         />
       ) : null}

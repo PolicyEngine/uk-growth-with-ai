@@ -182,7 +182,8 @@
 .card.info .card-body .copy-block code,
 .card.info .info-card-more .copy-block code {
   padding: 0;
-  font-size: 12px;
+  font-size: inherit;
+  color: inherit;
   background: none;
   border-radius: 0;
 }

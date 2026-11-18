@@ -7,7 +7,7 @@ import { cleanup, fireEvent, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
 import Part3 from '@/tabs/story/Part3.jsx';
 import HouseholdsExplore, { FINDINGS, VARIANT_ARROWS, costSteps } from './HouseholdsExplore.jsx';
-import { fmtBn } from '@/tabs/story/part3/format.js';
+import { fmtBn, fmtShare as fmtShareT } from '@/tabs/story/part3/format.js';
 import HouseholdsMethod from './HouseholdsMethod.jsx';
 import { FIG, counts, householdsFigures, storyFigures } from './figures.js';
 import { CAVEAT_GREY, DESTS, absorbGraph } from './Absorb.jsx';
@@ -244,5 +244,58 @@ describe('HouseholdsMethod', () => {
   it('prints no result figure', () => {
     const { container } = render(<HouseholdsMethod />);
     expect(text(container).match(/[+−]\d+\.\d\dpp|£\d+\.\dbn/g)).toBeNull();
+  });
+});
+
+// Item 23 (checks-words2.md): Detail and sources lives on Method and
+// sources (sub=detail); Explore > Households keeps one line linking to it.
+describe('Detail and sources', () => {
+  it('is a Method sub-tab with every result file and the commit; Explore links to it in one line', async () => {
+    const { default: HouseholdsDetail, FILES } = await import('./HouseholdsDetail.jsx');
+    const { TABS } = await import('@/lib/labels.js');
+    expect(TABS.find((t) => t.id === 'method').subs.map((s) => s.id)).toContain('detail');
+    const page = render(<HouseholdsDetail />).container;
+    expect(page.querySelector('#detail-sources h2').textContent).toBe('Detail and sources');
+    expect(page.querySelectorAll('.hh-sources [data-reference] li')).toHaveLength(FILES.length);
+    expect(page.textContent).toContain(D.source.commit.slice(0, 7));
+    for (const a of page.querySelectorAll('.hh-sources > p a[target="_blank"]')) expect(a.getAttribute('rel')).toContain('noopener');
+    const ex = render(<HouseholdsExplore />).container;
+    expect(ex.textContent).not.toContain('Result files, commit, how the page is built.');
+    const links = [...ex.querySelectorAll('a')].filter((a) => /Detail and sources/.test(a.textContent));
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute('href')).toMatch(/tab=method&sub=detail/);
+    expect(ex.querySelector('.hh-sources')).toBeNull();
+  });
+});
+
+// Item 28 (checks-words2.md, item-24-fable.md failed claims): the words
+// the data support.
+describe('Explore > Households, the words the data support', () => {
+  it('says would claim, gives each share its base, names losing and gaining deciles from the data, and drops reach', async () => {
+    const { rankingsWords, policyWords } = await import('./HouseholdsExplore.jsx');
+    const ex = render(<HouseholdsExplore />).container;
+    const disp = ex.querySelector('#hh-displaced');
+    expect(disp.textContent).not.toMatch(/(^|[^d] )[Cc]laim UC/);
+    expect(disp.querySelector('ol')).toBeNull();
+    const rows = [...disp.querySelectorAll('.hh-funnel-row')].map((r) => r.textContent.replace(/\s+/g, ' ').trim());
+    expect(rows).toEqual([
+      `${fmtShareT(D.displaced.claim_uc.value)} would claim UC (of all benefit units with a displaced worker)`,
+      `${fmtShareT(D.displaced.claim_uc_entitled.value)} would claim (of those entitled to UC once displaced)`,
+      `${fmtShareT(D.displaced.existing_unemployed_claim.value)} claim (of entitled units with someone already unemployed)`,
+    ]);
+    // deciles: the boundary read from the data (all three rankings agree)
+    const R = D.rankings;
+    const lose = [...Array(10).keys()].filter((i) => R.every((r) => r.values[i] < 0)).map((i) => i + 1);
+    const gain = [...Array(10).keys()].filter((i) => R.every((r) => r.values[i] > 0)).map((i) => i + 1);
+    expect(lose).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(gain).toEqual([10]);
+    expect(rankingsWords(R)).toBe('Deciles 2 to 9 lose income; decile 10 gains; decile 1 changes sign across the rankings');
+    expect(ex.querySelector('#hh-rankings').textContent).toContain('Deciles 2 to 9 lose income');
+    expect(policyWords(D.policy.rows)).not.toMatch(/reach/);
+    expect(ex.textContent).not.toMatch(/\breach\b/);
+    // per pound: the household part is labelled as a part of the total
+    const pp = ex.querySelector('#hh-per-pound');
+    expect(pp.querySelector('.hh-pp-cols').textContent).toBe('TotalOf which household');
+    expect(pp.textContent).toContain('The rest of the total: employer NI and other items, not split in the data');
   });
 });

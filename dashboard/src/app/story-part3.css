@@ -622,7 +622,13 @@ svg.p3-dim {
   white-space: nowrap;
 }
 
-/* Sources fold */
+/* Explore > Households: the one line to Method's Detail and sources */
+.hh-detail-link {
+  margin: 24px 0 0;
+  font-size: var(--t-ui);
+}
+
+/* Detail and sources (Method; was Explore > Households' fold) */
 .hh-sources {
   font-size: var(--t-ui);
   line-height: 1.6;
@@ -2524,6 +2530,15 @@ svg.p3-dim {
 }
 a.lens-pay-num:hover {
   text-decoration: underline;
+}
+/* the overlap label is a link to the public-finances scene */
+.lens-overlap-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lens-overlap-link:hover {
+  color: var(--t-ink);
 }
 .lens-pay-sub {
   font-size: var(--t-meta);

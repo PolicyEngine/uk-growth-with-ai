@@ -53,3 +53,32 @@ describe('JSON download', () => {
     expect(j.source).toContain('PolicyEngine');
   });
 });
+
+// Item 26 (checks-words2.md): every code block is light, with a plain copy
+// icon (aria-label, no visible word); the BibTeX note reads its data date
+// and solves commit from the build constants.
+describe('code blocks', () => {
+  it('the copy control is an icon with an aria-label; the BibTeX note is from the constants', async () => {
+    const { render } = await import('@testing-library/react');
+    const { NavProvider } = await import('@/lib/nav.jsx');
+    const { default: CodeTab } = await import('@/tabs/code/CodeTab.jsx');
+    const { version } = await import('@/tabs/code/ledger.js');
+    window.history.replaceState(null, '', '/?tab=method&sub=code');
+    const { container } = render(
+      <NavProvider>
+        <CodeTab />
+      </NavProvider>,
+    );
+    const blocks = [...container.querySelectorAll('.copy-block')];
+    expect(blocks.length).toBeGreaterThan(0);
+    for (const b of blocks) {
+      const btn = b.querySelector('button.copy-button');
+      expect(btn.getAttribute('aria-label')).toMatch(/^Copy the (commands|text)$/);
+      expect(btn.textContent.trim()).toBe('');
+      expect(btn.querySelector('svg')).not.toBeNull();
+    }
+    const bib = blocks.find((b) => b.textContent.includes('@misc{'));
+    expect(bib.textContent).toContain(`note         = {Data updated ${LAST_UPDATED}; OG-UK solves ${version('solves').value};`);
+    expect(bib.querySelector('button').getAttribute('aria-label')).toBe('Copy the text');
+  });
+});

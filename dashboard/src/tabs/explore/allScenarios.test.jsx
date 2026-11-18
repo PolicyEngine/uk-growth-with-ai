@@ -154,3 +154,49 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
     }
   });
 });
+
+// Item 14 (checks-words2.md): the zeta_K 0.5 card keeps its definition,
+// claims, flag and units behind one "More info" fold, closed; each figure
+// in it is read from the data (headline year, surprise year, the flag).
+describe('the zeta_K 0.5 card’s More info fold', () => {
+  it('is closed by default, opens on click, and words the foreign share and the flag from the data', async () => {
+    const S = (await import('@/data/surprise2028.json')).default;
+    const { I_FLAG_PCT, investmentFlags } = await import('@/tabs/explore/caveats.js');
+    const { container } = at('tab=explore');
+    const card = container.querySelector('#closure-sensitivity');
+    const btn = card.querySelector('#sens-more .disclosure-toggle');
+    expect(btn.textContent.trim()).toBe('More info');
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
+    const body = card.querySelector('#sens-more .disclosure-content');
+    expect(body.hidden).toBe(true);
+    // the grid reads alone, above the fold
+    expect(card.querySelector('.ex-sg')).not.toBeNull();
+    fireEvent.click(btn);
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    expect(body.hidden).toBe(false);
+    const t = body.textContent;
+    // the definition and the value are two lines, never run together
+    const defs = [...body.querySelectorAll('.ex-sg-def')].map((p) => p.textContent);
+    expect(defs[0]).toBe(`ζK = ${S.sensitivity['zk0.5'].zeta_K}: foreigners supply half of excess capital demand, not half of added capital.`);
+    const x = S.sensitivity['zk0.5'].results.uk_central.tfp.foreign_share_dK_2031;
+    expect(defs[1]).toBe(`In ${HEADLINE_YEAR} about all of the added capital (${Math.round(x)}%) ends up foreign-owned.`);
+    expect(t).not.toMatch(/new capital|further above the forecast path/);
+    const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');
+    expect(t).toContain(`Investment jumps up to ${Math.round(fl[0].x)}% above the path in ${S.surprise_year}, beyond our +${I_FLAG_PCT}% plausibility check, so we treat this case as implausible.`);
+    expect(body.querySelectorAll('#sens-flag a')).toHaveLength(2);
+    // the units line last
+    expect(body.lastElementChild.matches('.ex-sg-more-unit')).toBe(true);
+    expect(body.lastElementChild.textContent).toContain(`${HEADLINE_YEAR}, %`);
+  });
+
+  it('fracWord says "about all" within 0.02 of one, only when asked', async () => {
+    const { fracWord } = await import('@/tabs/story/part2/caveats.js');
+    expect(fracWord(1.004, { all: true })).toBe('about all');
+    expect(fracWord(0.98, { all: true })).toBe('about all');
+    expect(fracWord(1.02, { all: true })).toBe('about all');
+    expect(fracWord(1.03, { all: true })).toBeNull();
+    expect(fracWord(0.9, { all: true })).toBeNull();
+    expect(fracWord(1.004)).toBeNull();
+    expect(fracWord(0.5, { all: true })).toBe('about half');
+  });
+});
