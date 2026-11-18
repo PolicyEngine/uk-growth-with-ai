@@ -351,6 +351,33 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
+  // item 31: every scene question (all of them, sticky or not) is centred
+  // on its content column (the header's parent), measured on its ink (a
+  // Range over .scene-head-q), within 4px; Part 4's heading on .story
+  const off = await page.evaluate(() => {
+    const out = [];
+    const ink = (el) => {
+      const rg = document.createRange();
+      rg.selectNodeContents(el);
+      const rs = [...rg.getClientRects()].filter((r) => r.width > 0);
+      if (!rs.length) return null;
+      return (Math.min(...rs.map((r) => r.left)) + Math.max(...rs.map((r) => r.right))) / 2;
+    };
+    const items = [...document.querySelectorAll('.scene-head')].map((h) => [h.id || h.parentElement.id, h.querySelector('.scene-head-q') ?? h, h.parentElement]);
+    const two = document.getElementById('story-close-h');
+    if (two) items.push(['story-close-h', two, document.querySelector('.story')]);
+    for (const [id, q, col] of items) {
+      if (!q.getClientRects().length) continue;
+      const c = ink(q);
+      const r = col.getBoundingClientRect();
+      if (c == null) continue;
+      out.push({ id, d: Math.round((c - (r.left + r.right) / 2) * 10) / 10 });
+    }
+    return out;
+  });
+  const offBad = off.filter((o) => Math.abs(o.d) > 4);
+  if (offBad.length) hmiss++;
+  hlines.push(`  ${offBad.length ? 'MISS' : 'ok  '} ${W}x${H} ${off.length} scene questions centred on their column${offBad.length ? `: ${offBad.map((o) => `${o.id} ${o.d}px`).join(', ')}` : ` (largest ${Math.max(0, ...off.map((o) => Math.abs(o.d)))}px)`}`);
   const blocks = await page.evaluate(() =>
     [...document.querySelectorAll('.scrolly')]
       .filter((s) => !/is-single|is-once|is-inline/.test(s.className))
@@ -460,6 +487,77 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
 if (hlines.length) {
   console.log('headers (every scene header visible, in view and on top at every card):');
   for (const l of hlines) console.log(l);
+}
+
+// ---- edge probe ----
+// No text is clipped at the screen's edges (item 30: a cut "ral" of "UK
+// central" at the far left of the GDP scene on a phone). Motion on, at
+// EDGE_SIZES (1280,800 390,844): at every card of every scene (and with
+// each drawn-once figure in view), every visible text box (HTML and svg
+// text, effective opacity >= 0.3, not in the rail, a hidden or
+// aria-hidden copy) must lie inside the screen's width (1px slack) and
+// inside every clipping ancestor (overflow hidden or clip). EDGES=0 skips.
+const elines = [];
+let emiss = 0;
+const esizes = (process.env.EDGE_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
+for (const [W, H] of process.env.EDGES === '0' || JUMP === 'only' || process.env.SANKEY === 'only' ? [] : esizes) {
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const scenes = await page.evaluate(() => [...document.querySelectorAll('.tab-panel:not([hidden]) .scrolly[id]')].map((s) => ({ id: s.id, n: s.querySelectorAll('.scrolly-step:not(.is-spacer)').length, once: /is-once|is-single/.test(s.className) })));
+  const found = new Map();
+  for (const sc of scenes) {
+    for (let k = 0; k < Math.max(1, sc.n); k++) {
+      await page.evaluate(({ id, k, once }) => {
+        const el = document.getElementById(id);
+        el.dispatchEvent(new CustomEvent('scrolly-go', { detail: { k, instant: true } }));
+        if (once) el.querySelector('.scrolly-graphic')?.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }, { id: sc.id, k, once: sc.once });
+      await page.waitForTimeout(900);
+      const hits = await page.evaluate((id) => {
+        const out = [];
+        const root = document.getElementById(id);
+        const vis = (el) => {
+          let o = 1;
+          for (let n = el; n && n !== document.body; n = n.parentElement) {
+            const cs = getComputedStyle(n);
+            if (cs.visibility === 'hidden' || cs.display === 'none') return 0;
+            o *= Number(cs.opacity);
+          }
+          return o;
+        };
+        const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        for (let t = w.nextNode(); t; t = w.nextNode()) {
+          const txt = t.nodeValue.trim();
+          if (!txt) continue;
+          const el = t.parentElement;
+          if (!el || el.closest('.visually-hidden, [aria-hidden="true"], .scrolly-sizers, [hidden], .story-rail')) continue;
+          const rg = document.createRange();
+          rg.selectNodeContents(t);
+          const r = rg.getBoundingClientRect();
+          if (r.width < 1 || r.height < 1 || r.bottom < 0 || r.top > innerHeight || vis(el) < 0.3) continue;
+          let clipped = r.left < -1 || r.right > innerWidth + 1;
+          for (let a = el.parentElement; a && !clipped && a !== document.body; a = a.parentElement) {
+            const cs = getComputedStyle(a);
+            if (!/hidden|clip/.test(cs.overflowX + cs.overflow)) continue;
+            const b = a.getBoundingClientRect();
+            if (r.left < b.left - 1 || r.right > b.right + 1) clipped = true;
+          }
+          if (clipped) out.push(`"${txt.slice(0, 24)}" at x ${Math.round(r.left)} to ${Math.round(r.right)}`);
+        }
+        return out;
+      }, sc.id);
+      for (const h of hits) found.set(`${sc.id}: ${h}`, k + 1);
+    }
+  }
+  if (found.size) emiss++;
+  elines.push(`  ${found.size ? 'MISS' : 'ok  '} ${W}x${H}: ${scenes.length} scenes${found.size ? `, ${found.size} clipped texts, e.g. ${[...found.keys()].slice(0, 4).join('; ')}` : ', no text clipped at the edges'}`);
+  await ctx.close();
+}
+if (elines.length) {
+  console.log('edges (no text clipped at the screen or a clipping box):');
+  for (const l of elines) console.log(l);
 }
 
 // ---- landing probe ----
@@ -648,6 +746,6 @@ if (SANKEY !== '0') {
   }
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, hmiss ? `${hmiss} scenes let their header go out of view or fade` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, hmiss ? `${hmiss} scenes let their header go out of view or fade` : null, emiss ? `${emiss} sizes clip text at the edges` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

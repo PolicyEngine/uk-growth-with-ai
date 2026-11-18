@@ -461,23 +461,13 @@
   font-weight: 400;
   fill: var(--pe-gray-500);
 }
-.p2-mo-newaxis rect {
-  fill: var(--pe-surface);
-  stroke: var(--series-2);
-  stroke-width: 1.25;
-}
-.p2-mo-newaxis text {
-  /* at least 11px as drawn on a 390px phone */
-  font-size: 13.5px;
-  font-weight: 600;
-  fill: var(--series-2);
+/* the scroll-linked morph (item 30): the scroll sets these, no transition */
+.p2-morph.is-scrub :is([data-scrub], [data-scrub-path], [data-scrub-x], [data-scrub-zero], [data-scrub-pt]) {
+  transition: none !important;
 }
 @media (min-width: 901px) {
   .p2-mo-label,
   .p2-mo-off {
-    font-size: 9.6px;
-  }
-  .p2-mo-newaxis text {
     font-size: 9.6px;
   }
 }
@@ -601,7 +591,9 @@
   gap: 2px 10px;
   align-items: center;
   min-height: 24px;
-  padding-right: 64px; /* clear of the step dots */
+  /* (no right padding: it cleared the step dots, gone since round 2; it
+     made the title wrap to two lines at 1024 and the scene's second state
+     miss its hold, item 41) */
 }
 .p2-output-title {
   flex: 1 1 auto;

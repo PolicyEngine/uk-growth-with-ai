@@ -1,6 +1,7 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { subscribe } from '@/lib/scrollLoop.js';
 import { useSvgScale } from '@/lib/svgScale.js';
 import Tween from '@/components/story/Tween.jsx';
 import { useIsPhone } from '@/components/story/motion.js';
@@ -364,8 +365,94 @@ export function morphGroups(s, sid, cl) {
 // both. Geometry from the solves only.
 export const pinnedOf = (pin, sid, lines) => (pin && pin !== sid && lines.some((l) => l.id === pin) ? pin : null);
 
-export function MorphChart({ state, sid, cl, pin = null }) {
+// `scrub` (item 30, Vahid: "as soon as I scroll a bit, it changes"): the
+// change from growth to the gap runs across its own step, linked to the
+// scroll (Scrolly stepProgress writes --step-p, 0 to 1, on the block): the
+// lines move from the growth geometry to the gap's, the y axis hands over
+// (the growth ticks and title fade out as the gap's fade in), the x ticks
+// slide. On the page's one scroll loop, attributes and inline styles
+// only (Safari-safe: no CSS d). Reduced motion: nothing moves; the growth
+// layer cross-fades into the gap layer over the same step.
+const easeIO = (x) => x * x * (3 - 2 * x);
+const lerpPts = (a, b, t) => a.map(([x, y], i) => [x + (b[i][0] - x) * t, y + (b[i][1] - y) * t]);
+function useMorphScrub(ref, on, g1, g2) {
+  const geo = useRef({ g1, g2 });
+  useEffect(() => {
+    geo.current = { g1, g2 };
+  });
+  useEffect(() => {
+    const fig = ref.current;
+    if (!on || !fig) return undefined;
+    const blk = fig.closest('.scrolly');
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let last = -1;
+    const apply = (p) => {
+      const { g1: a, g2: b } = geo.current;
+      const e = easeIO(p);
+      // the hand-over in two halves, so two axes never show at once: the
+      // growth layer goes over the first half, the gap's comes over the second
+      for (const el of fig.querySelectorAll('[data-scrub="out"]')) el.style.opacity = String(Math.max(0, 1 - 2 * e));
+      for (const el of fig.querySelectorAll('[data-scrub="out2"]')) el.style.opacity = String(Math.max(0, 1 - 3 * e));
+      for (const el of fig.querySelectorAll('[data-scrub="in"]')) el.style.opacity = String(Math.max(0, 2 * e - 1));
+      // dots ride their line
+      for (const el of fig.querySelectorAll('[data-scrub-pt]')) {
+        const [x1, y1, x2, y2] = el.dataset.scrubPt.split(',').map(Number);
+        const m = reduce ? 0 : e;
+        el.style.transform = `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, ${(y1 + (y2 - y1) * m).toFixed(1)}px)`;
+        el.style.opacity = String(Math.max(0, 1 - 2 * e));
+      }
+      for (const el of fig.querySelectorAll('[data-scrub-path]')) {
+        const k = el.dataset.scrubPath;
+        if (reduce) {
+          el.setAttribute('d', pathOf(k === 'gap' ? b[k] : a[k]));
+          el.style.opacity = String(k === 'gap' ? e : (k === 'obr' ? 1 : 1) * (1 - e));
+        } else {
+          el.setAttribute('d', pathOf(lerpPts(a[k], b[k], e)));
+          if (k === 'obr') el.style.opacity = String(1 - e);
+          if (k === 'act') el.style.opacity = String(1 - e);
+          if (k === 'gap') el.style.opacity = String(Math.min(1, 2 * e));
+        }
+      }
+      for (const el of fig.querySelectorAll('[data-scrub-x]')) {
+        const [x1, x2, o1, o2] = el.dataset.scrubX.split(',').map(Number);
+        const m = reduce ? (e < 0.5 ? 0 : 1) : e;
+        el.style.transform = `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, 0px)`;
+        // a tick in both states slides; one that leaves goes in the first
+        // half, one that arrives comes in the second (no two labels overlap)
+        el.style.opacity = String(o1 && o2 ? 1 : o1 ? Math.max(0, 1 - 2 * e) : o2 ? Math.max(0, 2 * e - 1) : 0);
+      }
+      const z = fig.querySelector('[data-scrub-zero]');
+      if (z) {
+        const m = reduce ? (e < 0.5 ? 0 : 1) : e;
+        z.style.transform = `translate(0px, ${(a.zeroY + (b.zeroY - a.zeroY) * m).toFixed(1)}px)`;
+      }
+    };
+    const stop = subscribe({
+      el: fig,
+      read: () => {
+        const v = parseFloat(blk?.style.getPropertyValue('--step-p'));
+        return Number.isFinite(v) ? v : 1;
+      },
+      write: (p) => {
+        if (Math.abs(p - last) < 0.001) return;
+        last = p;
+        apply(p);
+      },
+    });
+    return () => {
+      stop();
+      // hand back to the classes
+      for (const el of fig.querySelectorAll('[data-scrub], [data-scrub-path], [data-scrub-x], [data-scrub-zero], [data-scrub-pt]')) {
+        el.style.opacity = '';
+        if (el.dataset.scrubX != null || el.dataset.scrubZero != null || el.dataset.scrubPt != null) el.style.transform = '';
+      }
+    };
+  }, [on, ref]);
+}
+
+export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
   const s = Math.max(0, Math.min(4, state));
+  const figRef = useRef(null);
   // the viewBox is drawn scaled (about 1.35 on desktop, 0.83 on a phone):
   // text sizes in user units come from the chart type scale over it
   const [svgRef, sz] = useSvgScale(W, 1.35);
@@ -387,6 +474,9 @@ export function MorphChart({ state, sid, cl, pin = null }) {
   const g0 = k === 0 ? g : morphGeometry(0, ys, domAt(2));
   const g1 = k === 1 ? g : morphGeometry(1, ys, domAt(2));
   const g2 = k === 2 ? g : morphGeometry(2, ys, domAt(2));
+  // scrubbed from growth (state 1) to the gap (state 2) across the step
+  const sc = scrub && s === 2;
+  useMorphScrub(figRef, sc, { act: g1.act, obr: g1.obr, gap: g1.gap, zeroY: g1.zeroY }, { act: g2.act, obr: g2.obr, gap: g2.gap, zeroY: g2.zeroY });
   // the gap geometry in view: this state's in the gap states, else state 2's
   const gG = s >= 2 ? g : g2;
   const gOff = k < 2 ? g : g1;
@@ -434,7 +524,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
     .filter(Boolean)
     .join(' ');
   return (
-    <figure className="p2-figure p2-morph" data-state={s} data-rescale={resc ? '' : undefined}>
+    <figure ref={figRef} className={`p2-figure p2-morph${sc ? ' is-scrub' : ''}`} data-state={s} data-rescale={resc ? '' : undefined}>
       {/* the badge flips from the record to the model with the axis */}
       <span className="p2-badge-stack">
         <ModelBadge model="official" className={s < 2 ? undefined : 'p2-text-ghost'} />
@@ -468,21 +558,21 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           </defs>
           {/* bands: the OBR's forecast years (state 1), the shock (gap states) */}
           {split != null ? (
-            <g className={`p2-mo-fade${s === 1 ? ' is-on' : ''}`}>
+            <g className={`p2-mo-fade${s === 1 ? ' is-on' : ''}`} data-scrub={sc ? 'out' : undefined}>
               <rect x={split} y={PY0} width={Math.max(0, PX1 - split)} height={PY1 - PY0} className="p2-band-period" />
               <text data-axis="" x={split + 4} y={PY0 + 10} className="p2-band-note">
                 Forecast
               </text>
             </g>
           ) : null}
-          <g className={`p2-mo-fade${s >= 2 ? ' is-on' : ''}`}>
+          <g className={`p2-mo-fade${s >= 2 ? ' is-on' : ''}`} data-scrub={sc ? 'in' : undefined}>
             <rect x={g2.X(SURPRISE_YEAR)} y={PY0} width={g2.X(HEADLINE_YEAR) - g2.X(SURPRISE_YEAR)} height={PY1 - PY0} className="p2-band-shock" />
             <text data-axis="" x={g2.X(SURPRISE_YEAR) + 4} y={PY0 + 10} className="p2-band-note">
               Extra AI
             </text>
           </g>
           {/* the two y axes: growth (states 0-1), gap (states 2-4) */}
-          <g className={`p2-mo-axis${s < 2 ? ' is-on' : ''}`}>
+          <g className={`p2-mo-axis${s < 2 ? ' is-on' : ''}`} data-scrub={sc ? 'out' : undefined}>
             {g.yTicksG.map((t) => (
               <g key={`g${t.v}`}>
                 {Math.abs(t.v) > 1e-9 ? <line x1={PX0} x2={PX1} y1={t.y} y2={t.y} className="p2-grid" /> : null}
@@ -492,7 +582,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               </g>
             ))}
           </g>
-          <g className={`p2-mo-axis${s >= 2 ? ' is-on' : ''}`}>
+          <g className={`p2-mo-axis${s >= 2 ? ' is-on' : ''}`} data-scrub={sc ? 'in' : undefined}>
             {dTicks.map((t) => (
               <g
                 key={`d${t.v}`}
@@ -510,9 +600,13 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               they fade in place (tickX) */}
           {allTicks.map((x) => {
             const on = X_TICKS[k].includes(x);
+            const sx = sc ? `${tickX(x, 1).toFixed(1)},${tickX(x, 2).toFixed(1)},${X_TICKS[1].includes(x) ? 1 : 0},${X_TICKS[2].includes(x) ? 1 : 0}` : undefined;
             return (
-              <g key={`x${x}`} className={`p2-mo-x${on ? ' is-on' : ''}`} style={{ transform: `translate(${tickX(x, k).toFixed(1)}px, 0px)` }}>
-                <text data-axis="" x={0} y={H - 8} textAnchor="middle" className="p2-tick">
+              <g key={`x${x}`} className={`p2-mo-x${on ? ' is-on' : ''}`} data-scrub-x={sx} style={{ transform: `translate(${tickX(x, k).toFixed(1)}px, 0px)` }}>
+                {/* the growth axis's last year sits on the plot's right edge:
+                    end-anchored there, so it is not cut by the svg (item 30,
+                    "2031" clipped at 390) */}
+                <text data-axis="" x={0} y={H - 8} textAnchor={k < 2 && x === OBR_LAST ? 'end' : 'middle'} className="p2-tick">
                   {x}
                 </text>
               </g>
@@ -521,20 +615,29 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           {/* the UK range, shaded once UK low and UK high are drawn */}
           {band ? <Tween className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} morph={{ d: band }} /> : null}
           {/* the zero line moves from zero growth to the OBR’s central forecast path */}
-          <line data-mark="path" x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
+          <line data-mark="path" data-scrub-zero={sc ? '' : undefined} x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
-            <Tween data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
-            {g.act.map(([x, y], i) => (
-              <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 ? ' is-on' : ''}`} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
+            {sc ? (
+              <path data-mark="ons" data-scrub-path="act" className="p2-mo-line p2-mo-act is-on" d={dPath(g1.act)} />
+            ) : (
+              <Tween data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
+            )}
+            {(sc ? g1 : g).act.map(([x, y], i) => (
+              <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 || sc ? ' is-on' : ''}`} data-scrub-pt={sc ? `${x},${y},${g2.act[i][0]},${g2.act[i][1]}` : undefined} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
                 <circle r={2.8} className={`p2-mo-dot${PARTIAL && PARTIAL.x === ACT[i][0] ? ' is-open' : ''}`} />
               </g>
             ))}
-            <Tween data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} morph={{ d: dPath(g.obr) }} />
+            {sc ? (
+              <path data-mark="obr" data-scrub-path="obr" className="p2-mo-line p2-mo-obr is-on" d={dPath(g1.obr)} />
+            ) : (
+              <Tween data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} morph={{ d: dPath(g.obr) }} />
+            )}
             {OBR.map(([x], i) => {
+              const gx = sc ? g1 : g;
               const j = YEARS.indexOf(x);
-              const p = j >= 0 ? g.obr[j] : [g.X(x), g.zeroY];
+              const p = j >= 0 ? gx.obr[j] : [gx.X(x), gx.zeroY];
               return (
-                <g key={`o${x}`} className={`p2-mo-move${k === 1 ? ' is-on' : ''}`} style={{ transform: `translate(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px)` }}>
+                <g key={`o${x}`} className={`p2-mo-move${k === 1 || sc ? ' is-on' : ''}`} data-scrub-pt={sc && j >= 0 ? `${p[0]},${p[1]},${g2.obr[j][0]},${g2.obr[j][1]}` : undefined} data-scrub={sc && j < 0 ? 'out2' : undefined} style={{ transform: `translate(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px)` }}>
                   <circle r={2.8} className="p2-mo-dot is-open" data-i={i} />
                 </g>
               );
@@ -558,24 +661,28 @@ export function MorphChart({ state, sid, cl, pin = null }) {
                   />
                 );
               })}
-            <Tween
-              className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
-              data-scen={sid}
-              data-mark={`scen-${sid}`}
-              morph={{ d: dPath(g.gap) }}
-              style={{ stroke: ARM_COLOR.tfp }}
-            />
+            {sc && ys ? (
+              <path className="p2-mo-line p2-mo-gap is-on" data-scrub-path="gap" data-scen={sid} data-mark={`scen-${sid}`} d={dPath(g1.gap)} style={{ stroke: ARM_COLOR.tfp }} />
+            ) : (
+              <Tween
+                className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
+                data-scen={sid}
+                data-mark={`scen-${sid}`}
+                morph={{ d: dPath(g.gap) }}
+                style={{ stroke: ARM_COLOR.tfp }}
+              />
+            )}
           </g>
           {/* break marks where the outturn leaves the frame (states 0-1) */}
-          {g.breaks.map((b) => (
-            <g key={b.key} className={`p2-mo-move${k < 2 ? ' is-on' : ''}`} style={{ transform: `translate(${b.x.toFixed(1)}px, ${b.y.toFixed(1)}px)` }}>
+          {(sc ? g1 : g).breaks.map((b) => (
+            <g key={b.key} className={`p2-mo-move${k < 2 || sc ? ' is-on' : ''}`} data-scrub={sc ? 'out2' : undefined} style={{ transform: `translate(${b.x.toFixed(1)}px, ${b.y.toFixed(1)}px)` }}>
               <path d="M-6,2.5L0,-2.5M-1,2.5L5,-2.5" className="p2-mo-break-gap" />
               <path d="M-6,2.5L0,-2.5M-1,2.5L5,-2.5" className="p2-mo-break" />
             </g>
           ))}
           {/* off-scale years (states 0-1): named, not valued */}
-          <g className={`p2-mo-fade${k < 2 ? ' is-on' : ''}`}>
-            {gOff.off.map((o) => (
+          <g className={`p2-mo-fade${k < 2 || sc ? ' is-on' : ''}`} data-scrub={sc ? 'out2' : undefined}>
+            {(sc ? g1 : gOff).off.map((o) => (
               <text key={o.year} data-axis="" x={o.x + (o.up ? 7 : -7)} y={o.up ? PY0 + 8 : PY1 - 20} textAnchor={o.up ? 'start' : 'end'} className="p2-mo-off">
                 {o.year} {o.up ? '↑' : '↓'}
               </text>
@@ -587,7 +694,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
               ONS outturn
             </text>
           </g>
-          <g className={`p2-mo-fade${s === 1 ? ' is-on' : ''}`}>
+          <g className={`p2-mo-fade${s === 1 ? ' is-on' : ''}`} data-scrub={sc ? 'out' : undefined}>
             <text x={PX1} y={PY1 - 22} textAnchor="end" className="p2-mo-label">
               OBR forecast
             </text>
@@ -596,6 +703,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
             <g
               key={p.key}
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
+              data-scrub={sc && p.on ? 'in' : undefined}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
               {/* a label pushed off its line's end (labels crowd at the
@@ -622,28 +730,24 @@ export function MorphChart({ state, sid, cl, pin = null }) {
           ))}
           {/* the headline year on the chosen line: a ring, no value */}
           {ring ? (
-            <g className={`p2-mo-ring${s >= 2 ? ' is-on' : ''}`} style={{ transform: `translate(${ring[0].toFixed(1)}px, ${ring[1].toFixed(1)}px)` }}>
+            <g className={`p2-mo-ring${s >= 2 ? ' is-on' : ''}`} data-scrub={sc ? 'in' : undefined} style={{ transform: `translate(${ring[0].toFixed(1)}px, ${ring[1].toFixed(1)}px)` }}>
               <circle r={5.5} />
             </g>
           ) : null}
-          {/* the switch of unit (C3, round 2): a flag under the axis title,
-              which takes the flag's blue while the flag shows */}
-          <g className={`p2-mo-fade${s === 2 ? ' is-on' : ''}`}>
-            <g className="p2-mo-newaxis">
-              <rect x={PX0 + 4} y={PY0 + 16} className="p2-mo-newaxis-box" width={Math.round(Math.max(170, sz.tick * 17.5))} height={Math.round(Math.max(20, sz.tick * 1.9))} rx={3} />
-              <text x={PX0 + 10} y={PY0 + 16 + Math.round(Math.max(20, sz.tick * 1.9)) / 2} dy="0.35em">
-                Axis now: gap, % (was % a year)
-              </text>
-            </g>
+          {/* the switch of unit is said by the step's own sentence and by the
+              y axis title handing over (item 30: no boxed callout) */}
+          {/* the x axis title in the gap states only: in the growth states the
+              last year sits on the plot's right edge, where it ran into it */}
+          <g className={`p2-mo-fade${s >= 2 ? ' is-on' : ''}`} data-scrub={sc ? 'in' : undefined}>
+            <text x={W - 4} y={H - 8} textAnchor="end" className="p2-axis-x-svg" data-axis-title={s >= 2 ? 'x' : undefined}>
+              Year
+            </text>
           </g>
-          <text x={W - 4} y={H - 8} textAnchor="end" className="p2-axis-x-svg" data-axis-title="x">
-            Year
-          </text>
           {/* the y axis's title: growth (states 0-1), gap (states 2-4) */}
-          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s < 2 ? ' is-on' : ''}`} data-axis-title={s < 2 ? 'y' : undefined} aria-hidden={s < 2 ? undefined : 'true'}>
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s < 2 ? ' is-on' : ''}`} data-scrub={sc ? 'out' : undefined} data-axis-title={s < 2 ? 'y' : undefined} aria-hidden={s < 2 ? undefined : 'true'}>
             Real GDP growth, % a year
           </text>
-          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}${s === 2 ? ' is-new' : ''}`} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
+          <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}${s === 2 ? ' is-new' : ''}`} data-scrub={sc ? 'in' : undefined} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
             Gap against the OBR’s central forecast path, %
           </text>
         </svg>

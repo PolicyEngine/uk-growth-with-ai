@@ -102,17 +102,30 @@ export function shockSteps(sid, closure) {
   ];
 }
 
-// The GDP canvas: two steps, then the headline step (Part2.jsx). The first
-// card's graphic opens on the record (growth, state 1) and turns into the
-// gap (state 2) once in view, so part 1's last chart becomes part 2's first
-// without a card of its own; its sentence names the switch of unit, which
-// the chart flags on its axis (MORPH_STATES are the states each card
-// settles in).
-export const MORPH_STATES = [2, 4, 4];
+// The GDP canvas: three steps, then the headline step (Part2.jsx). Item 30
+// (Vahid: "what is the animation before this? ... as soon as I scroll a
+// bit, it changes"): the record (growth, state 1) is a step of its own,
+// held like any other; the change to the gap (state 2) runs across the
+// second step, linked to the scroll (MorphChart scrub, Scrolly
+// stepProgress); then the scenarios (MORPH_STATES are the states each
+// card settles in; MORPH_SCRUB the card whose change is scrubbed).
+export const MORPH_STATES = [1, 2, 4, 4];
+export const MORPH_SCRUB = 1;
 export function morphCardSteps(sid, cl) {
   const dir = scenarioDir(cl);
   const rel = dir === 'gapDown' ? 'falls below' : dir === 'gapUp' ? 'rises above' : 'moves against';
   return [
+    {
+      id: 'p2-morph-1',
+      icon: 'gdp',
+      title: 'GDP growth, the record and the forecast',
+      highlight: ['ons', 'obr'],
+      body: (
+        <Say>
+          This is GDP growth, % a year: the <Key id="ons">ONS record</Key>, then <Key id="obr">the OBR&rsquo;s forecast</Key>.
+        </Say>
+      ),
+    },
     {
       id: 'p2-morph-2',
       icon: 'path',
@@ -120,7 +133,7 @@ export function morphCardSteps(sid, cl) {
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          Now a gap against the OBR’s central forecast path, which includes the OBR&rsquo;s own AI. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          The axis turns to a gap against the OBR’s central forecast path, which includes its own AI. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
         </Say>
       ),
     },

@@ -623,7 +623,9 @@ describe('direction icons follow the signs', () => {
       expect(container.querySelectorAll(`#${id} .p2-kind, #${id} details`).length, id).toBe(0);
       expect([...container.querySelectorAll(`#${id} li:not([aria-hidden])`)].filter((li) => !li.textContent.trim()).length, id).toBe(0);
       const cards = container.querySelectorAll(`#${id} .scrolly-step:not(.is-spacer)`);
-      expect(cards.length, id).toBeLessThanOrEqual(3);
+      // at most three cards; the GDP scene four (item 30: the record is a
+      // step of its own before the change to the gap)
+      expect(cards.length, id).toBeLessThanOrEqual(id === 'p2-morph' ? 4 : 3);
       for (const c of cards) {
         const say = c.querySelectorAll('.p2-say');
         expect(say.length, c.id).toBe(1);
