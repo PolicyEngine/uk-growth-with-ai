@@ -661,7 +661,7 @@ export default function CodeTab() {
               <Items
                 items={[
                   { icon: 'measure', text: 'Solver outputs are in model units.' },
-                  { icon: 'path', text: 'This study reports gaps against the OBR baseline instead.' },
+                  { icon: 'path', text: 'This study reports gaps against the OBR’s central forecast path instead.' },
                   { icon: 'cost', text: 'OG-UK’s map functions scale units to £bn by one ONS GDP anchor.' },
                 ]}
               />

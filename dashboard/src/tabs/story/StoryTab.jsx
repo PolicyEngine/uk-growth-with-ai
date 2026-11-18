@@ -58,12 +58,12 @@ export const PARTS = [
               </>
             ),
           },
-          { icon: 'path', text: <Hy>Results are gaps against the OBR baseline, not forecasts</Hy> },
+          { icon: 'path', text: 'Results are gaps against the OBR’s central forecast path, not forecasts' },
           {
             icon: 'forecast',
             text: (
               <>
-                The OBR baseline: the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>,{' '}
+                The forecast path: the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>,{' '}
                 <a href={`${URLS.obrBp9}#page=51`} {...ext}>its AI included</a>
               </>
             ),

@@ -13,7 +13,7 @@ describe('economics review caveats, read from surprise2028.json', () => {
     const lines = wageClosureLines('uk_central');
     // below at 0 and 0.1, above at 0.5 in the data this was written against
     expect(xs.map((c) => c.side)).toEqual(['below', 'below', 'above']);
-    expect(lines).toEqual(['Pay rate below the OBR baseline at ζK 0 and 0.1', 'Above it at ζK 0.5: the sign depends on foreign capital']);
+    expect(lines).toEqual(['Pay rate below the forecast path at ζK 0 and 0.1', 'Above it at ζK 0.5: the sign depends on foreign capital']);
     lines.forEach((t) => expect(t.split(' ').length).toBeLessThanOrEqual(12));
   });
 
@@ -27,7 +27,7 @@ describe('economics review caveats, read from surprise2028.json', () => {
     expect(isFlagged('uk_low', 'tfp', 'zk0.5')).toBe(false);
   });
 
-  it('finds consumption below the OBR baseline to the late year and the debt dip a denominator effect', () => {
+  it('finds consumption below the forecast path to the late year and the debt dip a denominator effect', () => {
     expect(belowThrough('uk_central', 'zk0.1')).toBe(S.late_year);
     expect(debtDipIsDenominator('uk_central', 'zk0.1', 'common')).toBe(true);
     // debt-neutral transfers hold debt on the path from 2029: the dip check is not used there

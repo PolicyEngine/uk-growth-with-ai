@@ -72,12 +72,12 @@ describe('ModelBadge and Frame', () => {
   });
   it('yTitle and xTitle render as plain lines marked data-axis-title', () => {
     const { container } = render(
-      <Frame title="GDP" yTitle="Gap against the OBR baseline, % of GDP" xTitle="Year">
+      <Frame title="GDP" yTitle="Gap against the OBR’s central forecast path, % of GDP" xTitle="Year">
         <svg />
       </Frame>,
     );
     const yT = container.querySelector('p[data-axis-title="y"]');
-    expect(yT.textContent).toBe('Gap against the OBR baseline, % of GDP');
+    expect(yT.textContent).toBe('Gap against the OBR’s central forecast path, % of GDP');
     expect(yT.querySelector('svg')).toBeNull();
     expect(container.querySelector('p[data-axis-title="x"]').textContent).toBe('Year');
     expect(yT.compareDocumentPosition(container.querySelector('.ch-plot')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

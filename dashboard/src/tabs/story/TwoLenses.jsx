@@ -64,7 +64,7 @@ export const LENSES = [
     ],
     outside: [
       { text: 'Unemployment', tip: 'Everyone who wants to work is employed' },
-      { text: 'Forecasts of levels', tip: 'Results are gaps against the OBR baseline' },
+      { text: 'Forecasts of levels', tip: 'Results are gaps against the OBR’s central forecast path' },
     ],
   },
   {

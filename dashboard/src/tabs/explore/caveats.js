@@ -44,7 +44,7 @@ export function wageClosureLines(sid) {
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   return groups.map((g, i) =>
     i === 0
-      ? `Pay rate ${g.side === 'on' ? 'on the OBR baseline' : `${g.side} the OBR baseline`} at ζK ${g.z.join(' and ')}`
+      ? `Pay rate ${g.side === 'on' ? 'on the forecast path' : `${g.side} the forecast path`} at ζK ${g.z.join(' and ')}`
       : `${cap(g.side === 'on' ? 'on it' : `${g.side} it`)} at ζK ${g.z.join(' and ')}${i === groups.length - 1 ? ': the sign depends on foreign capital' : ''}`,
   );
 }

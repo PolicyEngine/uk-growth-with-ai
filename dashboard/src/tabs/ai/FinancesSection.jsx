@@ -84,17 +84,17 @@ function DebtFinding({ p }) {
         {p.first != null ? (
           <>
             {' '}is <Dir x={p.first} />
-            {side(p.first)} the OBR baseline in {SURPRISE_YEAR} and then
+            {side(p.first)} the forecast path in {SURPRISE_YEAR} and then
           </>
         ) : null}{' '}
         stays <Dir x={p.late} />
-        on the OBR baseline: transfers hold it there from {SURPRISE_YEAR + 1}.
+        on the forecast path: transfers hold it there from {SURPRISE_YEAR + 1}.
       </>
     );
   return (
     <>
       {p.lead} debt/GDP is <Dir x={p.a} />
-      {sideOf(p.a)} the OBR baseline in {HEADLINE_YEAR} and {sideOf(p.a) === sideOf(p.b) ? 'still ' : ''}
+      {sideOf(p.a)} the forecast path in {HEADLINE_YEAR} and {sideOf(p.a) === sideOf(p.b) ? 'still ' : ''}
       <Dir x={p.b} />
       {sideOf(p.b)} it by {LATE_YEAR}.
     </>
@@ -126,7 +126,7 @@ function debtNotes(p) {
   if (!p || p.kind === 'dn') return null;
   return [
     { key: 'reprice', icon: 'interest', text: 'The model reprices debt at the higher interest rate at once' },
-    p.obr != null ? { key: 'obr', icon: dirConcept(p.obr), text: `At the OBR’s repricing speed it ends ${side(p.obr)} the OBR baseline` } : null,
+    p.obr != null ? { key: 'obr', icon: dirConcept(p.obr), text: `At the OBR’s repricing speed it ends ${side(p.obr)} the forecast path` } : null,
   ].filter(Boolean);
 }
 
@@ -186,7 +186,7 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   );
 }
 
-// OG-UK's labour vs capital effective tax-rate gap on the OBR baseline in
+// OG-UK's labour vs capital effective tax-rate gap on the forecast path in
 // the headline year, some foreign capital (the sanity gate's effective rates, as
 // the paper's EffWedgePp): labour incl. employer NICs less gross capital.
 const ETR = S.closures[CENTRAL].reference_effective_tax_rates;
@@ -408,7 +408,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ],
       }}
     >
-      <AxisTitles y="The model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = OBR baseline" />
+      <AxisTitles y="The model, and the scaling with OBR rates" x={`Tax/GDP gap in ${HEADLINE_YEAR}, percentage points of GDP`} reference="0 = forecast path" />
       <TaxStrip model={model} uk={uk} onChart={onChart} />
       <div className="cause-rows">
         {CAUSES.map((c, i) => (
@@ -498,7 +498,7 @@ function ruleTable(rule, sid, closure) {
 const RULE_INFO = {
   common: { icon: 'gdp', holds: 'Holds spending and transfers as shares of GDP', span: 'Spending follows GDP' },
   fixed: { icon: 'finances', holds: 'Holds spending at its baseline level', span: 'Spending held at its baseline level' },
-  dn: { icon: 'benefits', holds: 'Holds debt/GDP on the OBR baseline; transfers adjust', span: 'Transfers hold debt/GDP on the OBR baseline' },
+  dn: { icon: 'benefits', holds: 'Holds debt/GDP on the forecast path; transfers adjust', span: 'Transfers hold debt/GDP on the forecast path' },
 };
 const RULE_DB = [
   { v: 'Y', label: 'GDP', concept: 'gdp', unit: '%' },
@@ -607,7 +607,7 @@ function FiscalRuleCard({ sid }) {
               { key: 'shift', icon: 'compare', text: 'Table: the gap under the rule picked, less the common rule’s' },
               { key: 'choice', icon: 'rule', text: 'The three rules are modelling choices, not OBR rules' },
               { key: 'sign', icon: 'gapUp', text: 'Positive: the rule raises the measure against the common rule' },
-              { key: 'dn', icon: 'debt', text: `Debt-neutral: debt/GDP stays on the OBR baseline to ${LATE_YEAR} by construction` },
+              { key: 'dn', icon: 'debt', text: `Debt-neutral: debt/GDP stays on the forecast path to ${LATE_YEAR} by construction` },
             ]}
           />
         ),
@@ -646,7 +646,7 @@ export default function FinancesSection({ sid }) {
   return (
     <>
       <SectionHeading id="public-finances" icon={iconFor('finances')} title="How do debt and tax move in each version?">
-        <Lead c="measure">Shares of GDP, against the OBR baseline</Lead>
+        <Lead c="measure">Shares of GDP, against the OBR’s central forecast path</Lead>
       </SectionHeading>
       <div className="cards-grid">
         <PathCard
@@ -658,7 +658,7 @@ export default function FinancesSection({ sid }) {
           title="Debt/GDP"
           name="debt/GDP"
           icon={iconFor('debt')}
-          unitLine={`Percentage points of GDP, difference from the OBR baseline, ${FIRST_YEAR}–${LATE_YEAR}`}
+          unitLine={`Percentage points of GDP, difference from the OBR’s central forecast path, ${FIRST_YEAR}–${LATE_YEAR}`}
           finding={debt ? <DebtFinding p={debt} /> : undefined}
           notes={debtNotes(debt)}
           markers={[{ year: SURPRISE_YEAR, label: 'Extra AI arrives' }, { year: LATE_YEAR, label: 'Debt rule starts (set in this study)' }]}
@@ -669,7 +669,7 @@ export default function FinancesSection({ sid }) {
                   { key: 'once', icon: 'interest', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} reprices all government debt at the new rate at once</> },
                   ...debtReviewItems(sid, st.closure, st.rule),
                   { key: 'obr', icon: 'timing', text: `At the OBR’s repricing speed, a first-order recalculation: the ${LATE_YEAR} rise is ${REPRICE_RANGE[0].toFixed(0)}–${REPRICE_RANGE[1].toFixed(0)}% as large` },
-                  { key: 'where', icon: 'range', text: `That range covers the ${REPRICE_RATIOS.length} of ${REPRICED.length} cells still above the OBR baseline at that speed` },
+                  { key: 'where', icon: 'range', text: `That range covers the ${REPRICE_RATIOS.length} of ${REPRICED.length} cells still above the forecast path at that speed` },
                   { key: 'stocks', icon: 'rule', text: <>{LATE_YEAR}: {ext(URLS.ogCoreParams, 'OG-Core’s budget closure rule')} starts; {ext(TG1_URL, 'set in this study')} (OG-UK&rsquo;s default is {OGUK_TG1_YEAR})</> },
                   { key: 'stress', icon: 'excluded', text: <>The stress test, after {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}, leaves out the cost of unemployment</> },
                 ]}
@@ -687,7 +687,7 @@ export default function FinancesSection({ sid }) {
           title="Tax/GDP"
           name="tax/GDP"
           icon={iconFor('tax')}
-          unitLine={`Percentage points of GDP, difference from the OBR baseline, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
+          unitLine={`Percentage points of GDP, difference from the OBR’s central forecast path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
           finding={st.closure === 'central' ? undefined : 'With no foreign capital the model’s sign for tax/GDP changes: see the card below.'}
           sources={false}
           method="rules"

@@ -13,7 +13,7 @@ const L = S.years.indexOf(S.late_year);
 const H = S.years.indexOf(S.headline_year);
 
 describe('figures in folds', () => {
-  it('repricing: the ratio range over every common-rule cell still above the OBR baseline', () => {
+  it('repricing: the ratio range over every common-rule cell still above the forecast path', () => {
     const ratios = [];
     for (const arms of Object.values(S.results))
       for (const by of Object.values(arms))
@@ -41,7 +41,7 @@ describe('figures in folds', () => {
     const range = (xs) => `${Math.round(Math.min(...xs))}–${Math.round(Math.max(...xs))}%`;
     const t = document.body.textContent;
     expect(container.textContent).toBeTruthy();
-    expect(t).toContain(`${range(gaps.map((g) => g[s28]))} above the OBR baseline in 2028`);
+    expect(t).toContain(`${range(gaps.map((g) => g[s28]))} above the forecast path in 2028`);
     expect(t).toContain(`${range(gaps.map((g) => Math.max(...g.slice(s28, H))))} at its peak before ${S.headline_year}`);
     expect(t).toContain(`${range(gaps.map((g) => g[H]))} in ${S.headline_year}`);
   });

@@ -1,5 +1,5 @@
 // Where output goes in the headline year: the data behind part 2's Sankey
-// (the OBR baseline's GDP split four ways) and waterfall (the change in
+// (the forecast path's GDP split four ways) and waterfall (the change in
 // each part). Built by analysis/surprise/build_dashboard_data.py
 // (`output_split`) from the solve series: labour income w L; net capital
 // income kept in the UK NNI - w L; payments to foreign owners of UK capital
@@ -56,7 +56,7 @@ export function splitFor(sid, closure) {
   return { cl, base, ch: c?.status === 'done' ? c : null };
 }
 
-// The Sankey of the OBR baseline: GDP to labour income and to gross
+// The Sankey of the forecast path: GDP to labour income and to gross
 // capital income, which splits three ways. Values are shares of GDP.
 // `bare` leaves the end nodes unlabelled (phones, where a key below the
 // chart carries their labels and shares instead).

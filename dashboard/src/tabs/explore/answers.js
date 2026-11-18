@@ -15,7 +15,7 @@ import { dirConcept } from '@/tabs/explore/direction.jsx';
 
 // ("Gaps against the path, not forecasts" is stated once per page, by the
 // shared banner above every tab.)
-const word = (x) => (side(x) === 'on' ? 'on the OBR baseline' : side(x));
+const word = (x) => (side(x) === 'on' ? 'on the forecast path' : side(x));
 // Above the path is a gain for income and output, a loss below; debt and
 // tax are drawn neutral (grey).
 const POLARITY = { Y: 1, GNI: 1, w: 1 };
@@ -33,7 +33,7 @@ function read(sid, closure, rule, vars) {
     name,
     value: vals[i],
     dir: dirConcept(vals[i]),
-    word: i ? word(vals[i]) : `${word(vals[i])}${side(vals[i]) === 'on' ? '' : ' the OBR baseline'}`,
+    word: i ? word(vals[i]) : `${word(vals[i])}${side(vals[i]) === 'on' ? '' : ' the forecast path'}`,
     tone: toneOf(v, vals[i]),
   }));
   let closed = null;

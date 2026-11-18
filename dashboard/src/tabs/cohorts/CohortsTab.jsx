@@ -146,7 +146,7 @@ export function measuresOf(c, rule, cl, arm) {
           short: 'Transfers pay',
           tag: full ? 'solved to the horizon' : 'first order',
           def: full
-            ? 'Transfers, not government consumption, hold debt/GDP on the OBR baseline to the horizon: a model run'
+            ? 'Transfers, not government consumption, hold debt/GDP on the forecast path to the horizon: a model run'
             : 'The fiscal cost after 2035 charged to households: a first-order estimate, not a model run',
           losing: t.joint_losing_pct,
           avg: t.joint_avg,
@@ -292,9 +292,9 @@ export function whySigns(cl, rule, arm) {
 export function consumptionChain(x) {
   return [
     x.r == null ? null : { key: 'r', icon: 'interest', dir: x.r, text: `Return on capital ${x.r > 0 ? 'rises' : 'falls'}` },
-    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Pay rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the OBR baseline` },
+    x.w == null ? null : { key: 'w', icon: 'pay', dir: x.w, text: `Pay rate ${side(x.w) === 'on' ? 'on' : side(x.w)} the forecast path` },
     { key: 's', icon: 'households', text: `Households ${x.c0 < 0 ? 'save more' : 'spend more'} at first` },
-    { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the OBR baseline` },
+    { key: 'c', icon: 'consumption', dir: x.c0, text: `Consumption starts ${side(x.c0) === 'on' ? 'on' : side(x.c0)} the forecast path` },
   ].filter(Boolean);
 }
 
@@ -406,7 +406,7 @@ function Why({ cl, rule, arm }) {
   const [bot, top] = [c.alive_by_group[0], c.alive_by_group[6]];
   const x = whySigns(cl, rule, arm);
   const links = Object.fromEntries(consumptionChain(x).map((l) => [l.key, l]));
-  const title = x.c0 < 0 ? (x.cAbove ? 'Consumption dips first, then recovers' : 'Consumption dips and stays below') : 'Consumption starts above the OBR baseline';
+  const title = x.c0 < 0 ? (x.cAbove ? 'Consumption dips first, then recovers' : 'Consumption dips and stays below') : 'Consumption starts above the forecast path';
   return (
     <div className="cards-grid is-top ex-why-grid">
       <InfoCard icon={iconFor('consumption')} title={title}>
