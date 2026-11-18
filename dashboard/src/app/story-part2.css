@@ -75,7 +75,7 @@
   border-top-width: 1.5px;
 }
 
-/* The illustrative tile grid */
+/* The tile grid (the shock scene's overview) */
 .p2-tiles {
   max-width: 460px;
   margin: 0 auto;
@@ -102,6 +102,154 @@
 }
 .p2-tile-heads span:last-child {
   grid-column: 3;
+}
+
+/* The shock in two moves (ShockTiles.jsx): a static overview, one tile 1
+   of every 100 of GDP (16px a tile; 10px on phones), and a strip that
+   magnifies its outlined tiles, one small tile 0.1 (12px; 8px on phones):
+   a small tile is drawn smaller, never as a bigger square */
+.p2-shock-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.p2-shock-fig .p2-shock-chip {
+  margin: 0;
+}
+.p2-shock-fig .p2-shock-overview {
+  max-width: 288px;
+  margin-top: 8px;
+}
+.p2-shock-fig .p2-tile-heads span {
+  width: max-content;
+  white-space: nowrap;
+}
+.p2-shock-fig .p2-tile-heads span::before {
+  flex: none;
+}
+.p2-shock-fig .tile.is-mark {
+  stroke: var(--pe-gray-800);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.p2-shock-strip-head {
+  margin: 12px 0 4px;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  text-align: center;
+  color: var(--pe-gray-700);
+}
+.p2-shock-strip {
+  max-width: 264px;
+  margin: 0 auto;
+}
+.p2-shock-wins {
+  display: grid;
+  grid-template-columns: 10fr 2fr 10fr;
+  margin-bottom: 4px;
+  font-size: var(--fs-caption);
+  color: var(--pe-gray-600);
+}
+.p2-shock-wins span:last-child {
+  grid-column: 3;
+}
+/* each move's caption: always in the layout (the figure keeps its height),
+   shown once its move has landed (--cd: the last tile's landing + 100ms) */
+.p2-shock-caps {
+  margin: 8px 0 0;
+}
+.p2-shock-cap {
+  margin: 2px 0 0;
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--pe-gray-700);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 150ms ease, visibility 0s linear 150ms;
+}
+.p2-shock-cap.is-on {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 200ms ease var(--cd, 0ms), visibility 0s linear var(--cd, 0ms);
+}
+/* new small tiles drop in by a transition from @starting-style (700ms), set
+   only on a forward move: Scrolly's is-snap zeroes it on a jump, and lifting
+   is-snap does not replay a finished transition (an animation would) */
+.p2-shock-fig .tile-field .tile.is-new {
+  transition:
+    transform 750ms var(--ch-ease) var(--d, 0ms),
+    fill 250ms ease calc(var(--d, 0ms) + 500ms),
+    opacity 700ms ease var(--d, 0ms),
+    translate 700ms var(--ch-ease) var(--d, 0ms);
+}
+@starting-style {
+  .p2-shock-fig .tile-field .tile.is-new {
+    opacity: 0;
+    translate: 0 -28px;
+  }
+}
+.p2-shock-zoom.is-enter {
+  transform-origin: 50% 0;
+  transition:
+    opacity 450ms ease 150ms,
+    transform 600ms var(--ch-ease) 150ms;
+}
+@starting-style {
+  .p2-shock-zoom.is-enter {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@media (max-width: 900px) {
+  .p2-shock-fig .p2-shock-overview {
+    max-width: 162px;
+    margin-top: 2px;
+  }
+  .p2-shock-fig .story-figure-unit {
+    margin-bottom: 4px;
+  }
+  .p2-shock-fig .src-essential {
+    margin-top: 4px;
+  }
+  .p2-shock-top {
+    margin-bottom: 2px;
+  }
+  /* each head to its group's inner edge, free to run past the narrow group */
+  .p2-shock-fig .p2-tile-heads {
+    grid-template-columns: minmax(0, 8fr) minmax(0, 2fr) minmax(0, 8fr);
+    margin-bottom: 4px;
+  }
+  .p2-shock-fig .p2-tile-heads span:first-child {
+    justify-self: end;
+  }
+  .p2-shock-strip-head {
+    margin: 4px 0 2px;
+  }
+  .p2-shock-strip {
+    max-width: 176px;
+  }
+  /* phones: the strip head names what is magnified; the window labels go,
+     so the figure keeps inside the 45% cap and stays sticky */
+  .p2-shock-wins {
+    display: none;
+  }
+  .p2-shock-caps {
+    margin-top: 2px;
+  }
+  .p2-shock-cap {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .p2-shock-cap,
+  .p2-shock-cap.is-on,
+  .p2-shock-zoom.is-enter,
+  .p2-shock-fig .tile-field .tile.is-new {
+    transition: none !important;
+  }
 }
 
 /* The headline figures: the GDP scene's last step (round 2). The three
@@ -532,6 +680,20 @@
 .p2-sankey .sankey-link.is-wipe.is-on {
   clip-path: inset(0 0 0 0);
   transition: clip-path 700ms var(--story-ease, ease) var(--wipe-delay, 0ms), opacity 250ms ease;
+}
+/* The flow fades in once the pour has settled: a transition from
+   @starting-style, not story.css's delayed animation, so a landing
+   (Scrolly .is-snap) shows it at once and lifting is-snap does not replay
+   it (an animation restarts with its long delay: the output scene's first
+   card now pours both columns, settle about 1.7s) */
+.p2-sankey .sankey-flow {
+  animation: none;
+  transition: opacity 400ms ease var(--flow-delay, 0ms);
+}
+@starting-style {
+  .p2-sankey .sankey-flow {
+    opacity: 0;
+  }
 }
 .p2-sankey .sankey-node {
   transition: opacity 400ms ease var(--wipe-delay, 0ms);
@@ -1275,6 +1437,7 @@
   #p2-who-1 .scrolly-card {
     min-height: 72px;
   }
+  #p2-shock-0 .scrolly-card,
   #p2-shock-1 .scrolly-card {
     min-height: 128px;
   }

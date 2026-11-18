@@ -9,6 +9,7 @@ import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import PartHead from './PartHead.jsx';
 import ShockTiles from './part2/ShockTiles.jsx';
+import { shockFor } from './part2/shock.js';
 import { WelfareShape } from './part2/charts.jsx';
 import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
@@ -43,8 +44,9 @@ export const SUBS = {
     // the first topic of part 2: the full pinned question screen, with part
     // 1's recap as the transition (Fable's decision); P1_RECAP is part 1's
     pin: 'full',
-    hint: 'Watch tiles move from labour to capital, then new tiles arrive',
-    answer: 'Income shifts to capital, and the same inputs produce more',
+    hint: 'Watch small tiles cross from labour to capital, then new ones arrive',
+    // sign-driven at render (shockAnswer): without a gain, the first half only
+    answer: 'Income shifts from labour to capital, and output grows',
     answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
   },
   morph: {
@@ -67,6 +69,12 @@ export const SUBS = {
     answerTo: { tab: 'explore', sub: 'who' },
   },
 };
+
+// The shock scene's closing line, from the sign of the GDP change: it does
+// not say labour income falls (the next scene's closing line).
+export function shockAnswer(shock) {
+  return shock.ch && shock.ch.gdp <= 0 ? 'Income shifts from labour to capital' : SUBS.shock.answer;
+}
 
 // What part 2 showed, three items, each to its home, no figure.
 // Question and answer chips (q, a); `text` is the answer, for the chip's
@@ -101,6 +109,7 @@ export default function Part2({ part }) {
   const cl = primaryClosure(closure);
   const marks = partMarks(sid);
   const b3 = beat2031(sid, cl);
+  const shock = shockFor(sid, closure);
   return (
     <MarkProvider marks={marks}>
       {/* the part's model line is StoryTab's (PARTS[1].modelLine) */}
@@ -109,10 +118,10 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-shock"
         scene
-        sub={SUBS.shock}
-        label="The shock, illustrated"
-        steps={shockSteps()}
-        graphic={(i) => <ShockTiles state={i + 1} />}
+        sub={{ ...SUBS.shock, answer: shockAnswer(shock) }}
+        label="The shock in two moves"
+        steps={shockSteps(sid, closure)}
+        graphic={(i, reduce, ctx) => <ShockTiles state={i} shock={shock} sid={sid} both={closure === 'both'} ctx={ctx} />}
       />
 
       <StoryBeat

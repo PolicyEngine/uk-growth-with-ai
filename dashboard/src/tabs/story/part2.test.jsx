@@ -86,9 +86,11 @@ describe('story part 2', () => {
       const inHead = textWithoutAxes(head).match(FIGURE) ?? [];
       expect(all.length).toBeGreaterThan(0);
       expect(all).toEqual(inHead);
-      // outside those two blocks, no decimal number at all
+      // outside those two blocks, no decimal number at all: the shock scene's
+      // quoted input (data-input) and its scale (one small tile is 0.1, in
+      // its unit line and strip head) are not figures
       const rest = part.cloneNode(true);
-      rest.querySelectorAll('#story-headline, #story-output, [data-axis]').forEach((n) => n.remove());
+      rest.querySelectorAll('#story-headline, #story-output, [data-axis], [data-input], #p2-shock .story-figure-unit, #p2-shock .p2-shock-strip-head').forEach((n) => n.remove());
       expect(rest.textContent).not.toMatch(/\d\.\d/);
       unmount();
     }
@@ -109,7 +111,7 @@ describe('story part 2', () => {
   it('every chart is an image with a text alternative, and links keep the reader’s choices', () => {
     const { container } = at('tab=story&s=uk_high&closure=both');
     const svgs = [...container.querySelectorAll('svg.story-svg, svg.tile-grid')];
-    expect(svgs.length).toBe(3); // shock tiles, the GDP canvas (2A), who gains
+    expect(svgs.length).toBe(4); // the shock's overview and strip, the GDP canvas (2A), who gains
     expect(container.querySelectorAll('svg.sankey')).toHaveLength(1);
     for (const s of svgs) {
       expect(s.getAttribute('role')).toBe('img');
@@ -195,17 +197,84 @@ describe('each state of each graphic', () => {
     expect(rescales('uk_central', 'zk0.1')).toBe(true);
   });
 
-  it('tiles move between groups and never overlap', async () => {
-    const { shockTiles } = await import('@/tabs/story/part2/ShockTiles.jsx');
-    const visible = (s) => shockTiles(s).filter((t) => t.color !== 'transparent');
-    expect([0, 1, 2].map((s) => visible(s).length)).toEqual([100, 100, 105]);
-    for (const s of [0, 1, 2]) {
-      const pos = visible(s).map((t) => `${t.x},${t.y}`);
+  it('the shock strip: tiles cross, then arrive, never overlap, and keep their keys', async () => {
+    const { shockFor, shockTiles, overviewTiles, WIN } = await import('@/tabs/story/part2/shock.js');
+    const sh = shockFor('uk_central', 'central');
+    expect([sh.M, sh.N, sh.NL, sh.NK, sh.RL, sh.L0]).toEqual([16, 9, 6, 3, 2, 65]);
+    const st = [0, 1, 2].map((s) => shockTiles(s, sh));
+    expect(st.map((t) => t.length)).toEqual([sh.RL * WIN + 10, sh.RL * WIN + 10, sh.RL * WIN + 10 + sh.N]);
+    for (const tiles of st) {
+      const pos = tiles.map((t) => `${t.x},${t.y}`);
       expect(new Set(pos).size).toBe(pos.length);
+      for (const t of tiles) expect(t.y >= 0 && t.y < sh.R && t.x >= 0 && t.x < 2 * WIN + 2).toBe(true);
     }
-    const left = (s) => visible(s).filter((t) => t.x < 8).length;
-    expect(left(1)).toBeLessThan(left(0));
-    expect(left(2)).toBeGreaterThan(left(1));
+    const left = (tiles) => tiles.filter((t) => t.x < WIN).length;
+    expect(left(st[0]) - left(st[1])).toBe(sh.M);
+    expect(left(st[2]) - left(st[1])).toBe(sh.NL);
+    // the overview never changes; it outlines labour's last RL tiles and capital's last
+    const ov = overviewTiles(sh);
+    expect(ov).toHaveLength(100);
+    expect(ov.filter((t) => t.mark).map((t) => t.key)).toEqual(['l63', 'l64', 'c34']);
+    // a forward move leads by 450ms; the way back and a landing do not
+    expect(Math.min(...shockTiles(1, sh, { lead: 450 }).filter((t) => t.group === 'moved').map((t) => t.delay))).toBe(450);
+    expect(Math.min(...shockTiles(1, sh).filter((t) => t.group === 'moved').map((t) => t.delay))).toBe(0);
+  });
+
+  it('the shock’s small-tile counts follow the data in every done cell', async () => {
+    const { shockCounts } = await import('@/tabs/story/part2/shock.js');
+    const S2 = real.output_split;
+    const i = real.years.indexOf(S2.year);
+    // section 0 of the spec (shock-tiles-fable.md): M, N, NL, NK, rows
+    const TABLE = {
+      'uk_low zk0.1': [7, 4, 3, 1, 3],
+      'uk_low zk0': [7, 2, 1, 1, 3],
+      'uk_central zk0.1': [16, 9, 6, 3, 3],
+      'uk_central zk0': [16, 4, 2, 2, 3],
+      'uk_high zk0.1': [29, 27, 17, 10, 5],
+      'uk_high zk0': [29, 16, 10, 6, 5],
+      'korinek zk0.1': [39, 49, 30, 19, 7],
+      'korinek zk0': [39, 30, 19, 11, 6],
+    };
+    let n = 0;
+    for (const [sid, byCl] of Object.entries(S2.change)) {
+      for (const [cl, ch] of Object.entries(byCl)) {
+        if (ch.status !== 'done') continue;
+        const inputPp = real.scenarios.find((x) => x.id === sid).labour_share_fall_pp;
+        const c = shockCounts(S2.baseline[cl], ch, inputPp);
+        expect(c.M).toBe(Math.round(-real.results[sid].tfp[cl].gaps.labour_share_pp[i] * 10));
+        expect(c.NL + c.NK).toBe(c.N);
+        expect(Math.abs(c.NL - c.M - ch.labour * 10)).toBeLessThanOrEqual(1);
+        expect(Math.abs(c.M + c.NK - ch.gross_capital * 10)).toBeLessThanOrEqual(1);
+        expect(c.M).toBeGreaterThan(c.NL);
+        if (TABLE[`${sid} ${cl}`]) expect([c.M, c.N, c.NL, c.NK, c.R], `${sid} ${cl}`).toEqual(TABLE[`${sid} ${cl}`]);
+        n++;
+      }
+    }
+    expect(n).toBe(8);
+  });
+
+  it('the shock with a pending solve: the shift draws, the added output says pending', async () => {
+    const { default: ShockTiles } = await import('@/tabs/story/part2/ShockTiles.jsx');
+    const { shockFor } = await import('@/tabs/story/part2/shock.js');
+    const sh = shockFor('uk_central', 'closed');
+    expect(sh.ch).toBeNull();
+    const draw = (state) => {
+      const { container, unmount } = render(
+        <NavProvider>
+          <ShockTiles state={state} shock={sh} sid="uk_central" />
+        </NavProvider>,
+      );
+      const svgs = [...container.querySelectorAll('svg.tile-field')];
+      const r = { strip: svgs[1]?.querySelectorAll('rect').length, caps: [...container.querySelectorAll('.p2-shock-cap.is-on')].map((p) => p.textContent) };
+      unmount();
+      return r;
+    };
+    const st = [0, 1, 2].map(draw);
+    expect(st[0].strip).toBe(sh.RL * 10 + 10);
+    expect(st[1].strip).toBe(st[0].strip);
+    expect(st[2].strip).toBe(st[0].strip);
+    expect(st[1].caps).toEqual([`${sh.M} small tiles cross to capital: 1.6 of every 100. Scenario input.`]);
+    expect(st[2].caps[1]).toBe('This solve is pending for the foreign-capital case chosen above.');
   });
 });
 
@@ -467,7 +536,7 @@ describe('direction icons follow the signs', () => {
       const part = container.querySelector('#story-part-2');
       expect(part.textContent).not.toMatch(/\b([Oo]ur|[Ww]e)\b/);
       // every model figure's "Sources and notes" links its result files or source
-      for (const fig of part.querySelectorAll('figure:not(.p2-shock-fig)')) {
+      for (const fig of part.querySelectorAll('figure')) {
         const links = [...sourceLinks(fig), ...[...fig.querySelectorAll('a')].map((a) => a.getAttribute('href'))];
         expect(links.some((h) => h.startsWith('http')), fig.className).toBe(true);
       }
@@ -499,8 +568,24 @@ describe('direction icons follow the signs', () => {
         expect(say[0].querySelector('.p2-say-text').textContent.trim().split(/\s+/).length, c.id).toBeLessThanOrEqual(25);
       }
     }
+    expect(container.querySelectorAll('#p2-shock .scrolly-step:not(.is-spacer)')).toHaveLength(3);
+    expect(container.querySelectorAll('#p2-output .scrolly-step:not(.is-spacer)')).toHaveLength(2);
     expect(stepsWithoutHighlight(container.querySelector('#story-part-2'))).toEqual([]);
     unmount();
+  });
+
+  it('the shock scene: one quoted input, no signed decimal, and says which part is input and which is model', () => {
+    for (const q of ['tab=story', 'tab=story&s=korinek&closure=both', 'tab=story&s=uk_low&closure=closed']) {
+      const { container, unmount } = at(q);
+      const shock = container.querySelector('#p2-shock');
+      expect(shock.querySelectorAll('.scrolly-graphic-inner [data-input]'), q).toHaveLength(1);
+      expect(shock.textContent).not.toMatch(/[+−]\d+\.\d+/);
+      expect(shock.textContent).toContain('Scenario input.');
+      expect(shock.textContent).toContain('Shift: scenario input. Size of the added output: OG-UK result.');
+      expect(shock.textContent).toContain('OBR’s central forecast path');
+      expect(shock.textContent).not.toMatch(/no-shock|[Ii]llustrat/);
+      unmount();
+    }
   });
 
   it('labels every chart axis', () => {

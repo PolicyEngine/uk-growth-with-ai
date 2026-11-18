@@ -100,6 +100,7 @@ export function OutputSource({ closure, where }) {
               ),
             },
             { icon: 'headline', text: 'The GDP bar ends at the headline figure' },
+            { icon: 'caveat', text: 'Rounded: parts may not add up' },
           ],
         },
       ]}

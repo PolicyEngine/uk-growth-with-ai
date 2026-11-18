@@ -4,8 +4,9 @@ import { Key } from '@/components/story/highlight.jsx';
 import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap } from '@/tabs/ai/surprise.js';
 import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
 import { PART_COLOR } from './split.js';
-import { EPS2 } from './dir.js';
+import { EPS2, dirWord } from './dir.js';
 import { welfareWords, loseRange } from './caveats.js';
+import { shockFor } from './shock.js';
 
 // Part 2's step cards (round 1): one sentence per step, with at most one
 // emphasised term, a colour-keyed <Key> that lights the mark the step
@@ -57,27 +58,46 @@ export function scenarioDir(cl) {
   return null;
 }
 
-// The shock (ShockTiles, an illustration with no data marks: highlight
-// 'none'). Graphic states 1 and 2. Its inputs' sources are the figure's
-// source line.
-export function shockSteps() {
-  const why = 'An illustration: its tiles move with the step, no data marks';
+// The shock (ShockTiles, drawn from the data: shock.js): three cards over
+// graphic states 0, 1 and 2, one sentence each and no number (the input and
+// the small-tile counts are the figure's). Its marks are tiles, which move
+// with the step: highlight 'none'.
+export function shockSteps(sid, closure) {
+  const { base, ch, moreCapital } = shockFor(sid, closure);
+  const why = 'Its tiles move with the step; no marks to light';
+  const lab = base?.labour;
+  const part = lab == null ? 'most' : lab >= 62 && lab <= 70 ? 'about two thirds' : lab > 50 ? 'the larger part' : 'the smaller part';
+  const grows = ch && ch.gdp > 0 && moreCapital;
   return [
+    {
+      id: 'p2-shock-0',
+      icon: 'gdp',
+      title: 'Before the shock',
+      highlight: 'none',
+      highlightWhy: why,
+      body: <Say>Each tile is 1 of every 100 produced on the OBR&rsquo;s central forecast path: {part} is paid to labour, the rest to capital.</Say>,
+    },
     {
       id: 'p2-shock-1',
       icon: 'shock',
-      title: 'AI moves part of income from labour to capital',
+      title: 'Move 1: income shifts from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>The scenarios have AI do some workers&rsquo; tasks, so capital&rsquo;s share of income rises.</Say>,
+      body: <Say>First move: AI does some workers&rsquo; tasks, so part of what labour was paid goes to capital instead; its size is the scenario&rsquo;s input.</Say>,
     },
     {
       id: 'p2-shock-2',
       icon: 'productivity',
-      title: 'And the same inputs produce more',
+      title: 'Move 2: output grows',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>New tiles arrive: the same inputs now produce more output.</Say>,
+      body: ch == null ? (
+        <Say>This solve is pending for the foreign-capital case chosen above.</Say>
+      ) : grows ? (
+        <Say>Then output grows: productivity is higher (an input) and the economy holds more capital (the model&rsquo;s response); new tiles are shared at the new split.</Say>
+      ) : (
+        <Say>Then output ends {dirWord(ch.gdp)} the forecast path, once productivity, capital and hours have responded.</Say>
+      ),
     },
   ];
 }

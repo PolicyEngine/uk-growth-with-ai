@@ -15,7 +15,8 @@
 //       lines, unit lines, axis titles, the model tag, fold summaries and
 //       fold bodies, chart notes, legend entries;
 //   (c) no leaf text block has more than one icon;
-//   (d) at most 220 icons on the Story, and at most 12 in any 800px band.
+//   (d) at most 220 icons on the Story, and at most 12 in any 800px band;
+//   (e) no list marker or bare "N." without its text (below the loop).
 // Icons are Lucide svgs (Icon.jsx); copies that are aria-hidden as a whole
 // (the question frames, the measuring copies) and hidden elements do not
 // count. Prints the icon count per scene, so each part sees its share.
@@ -125,6 +126,52 @@ for (const [name, path] of Object.entries(PAGES)) {
   console.log(`${name}: ${res.out.length}${res.icons != null ? ` (icons ${res.icons})` : ''}`);
   if (res.scenes) console.log(`  icons per scene: ${Object.entries(res.scenes).map(([k, v]) => `${k} ${v}`).join(', ')}`);
   for (const b of res.out) console.log(`  ${b}`);
+}
+// (e) no bare list marker (Vahid, 18 Nov: "1." and "2." showed while the
+// step texts were hidden): on the Story every <ol>/<ul> is layout, so no
+// list item may draw a visible ::marker, and no element may show a bare
+// "N." whose text is not shown. Checked at 1280x900 (above) and 390x844,
+// reduced motion and motion on, at the top of the page and with each
+// scene's figure in view.
+const MARKERS = () => {
+  const panel = document.querySelector('.tab-panel:not([hidden])') ?? document.body;
+  const out = [];
+  const shown = (el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && !el.closest('[hidden], .scrolly-sizers, .visually-hidden');
+  };
+  for (const li of panel.querySelectorAll('li')) {
+    if (!shown(li)) continue;
+    const cs = getComputedStyle(li);
+    if (cs.display !== 'list-item') continue;
+    const m = getComputedStyle(li, '::marker');
+    const marker = (cs.listStyleType !== 'none' || cs.listStyleImage !== 'none') && m.content !== 'none';
+    if (marker) out.push(`${li.closest('[id]')?.id ?? ''} <li> draws a ${cs.listStyleType} marker: ${li.innerText.replace(/\s+/g, ' ').trim().slice(0, 50)}`);
+  }
+  for (const el of panel.querySelectorAll('li, p, span, div')) {
+    if (!shown(el) || el.children.length) continue;
+    if (/^\s*\d+\.\s*$/.test(el.textContent)) out.push(`${el.closest('[id]')?.id ?? ''} <${el.tagName.toLowerCase()}> shows a bare "${el.textContent.trim()}"`);
+  }
+  return out;
+};
+for (const [W, H] of [[1280, 900], [390, 844]]) {
+  for (const motion of ['reduce', 'no-preference']) {
+    const p = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: motion })).newPage();
+    await p.goto(base + '/', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(600);
+    const seen = new Set(await p.evaluate(MARKERS));
+    const ids = await p.evaluate(() => [...document.querySelectorAll('.tab-panel:not([hidden]) .scrolly[id], .tab-panel:not([hidden]) section[id]')].map((e) => e.id));
+    for (const id of ids) {
+      await p.evaluate((id) => document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'instant' }), id);
+      await p.waitForTimeout(150);
+      for (const m of await p.evaluate(MARKERS)) seen.add(m);
+    }
+    await p.close();
+    total += seen.size;
+    console.log(`story markers ${W}x${H} ${motion === 'reduce' ? 'reduced motion' : 'motion'}: ${seen.size}`);
+    for (const m of seen) console.log(`  ${m}`);
+  }
 }
 await browser.close();
 console.log(total ? `FAIL: ${total} text blocks break the rule` : 'PASS');

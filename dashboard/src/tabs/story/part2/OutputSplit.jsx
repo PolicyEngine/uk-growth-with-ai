@@ -11,7 +11,6 @@ import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
 import { OutputSource } from './sources.jsx';
-import { Essential } from '@/components/ui/SourceLine.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
 import { dirConcept, dirWord } from './dir.js';
 import { Key } from '@/components/story/highlight.jsx';
@@ -22,7 +21,9 @@ import { iconFor } from '@/lib/concepts.js';
 
 // Where output goes in the headline year, at the header's scenario and
 // closure (some foreign capital with Both, which the lead says), as a
-// three-step scrolly over one graphic:
+// two-step scrolly over one graphic (the first step pours both Sankey
+// columns in turn, 1 and 2 below; the baseline's two-way split alone is the
+// shock scene's first card):
 //   1  a Sankey of the no-shock baseline: GDP to labour income and gross
 //      capital income, as shares of GDP (the left column's ribbons wipe in);
 //   2  gross capital income's three parts: kept in the UK, paid abroad,
@@ -71,9 +72,9 @@ const MEANING = {
   depreciation: 'Replaces capital that wears out',
 };
 // Phones: one figure, too tall to stick, so its state follows its own place
-// on screen, both ways: in view, the path's first column pours (state 0);
-// once the Sankey's middle passes 75% of the screen, the capital split
-// (state 1); once the waterfall's top passes 75%, the change bars (state 2),
+// on screen, both ways: in view, both Sankey columns pour in turn (state 1;
+// the two-way split alone is the shock scene's first card); once the
+// waterfall's top passes 75% of the screen, the change bars (state 2),
 // so the build runs while the waterfall is in view, not after.
 // Above the screen's foot again, it resets, so the build replays.
 function useScrollState(active) {
@@ -90,10 +91,9 @@ function useScrollState(active) {
         if (!el) return null;
         const vh = f.V;
         const r = el.getBoundingClientRect();
-        const sk = el.querySelector('.p2-sankey')?.getBoundingClientRect() ?? r;
         const wf = el.querySelector('.p2-output-change')?.getBoundingClientRect() ?? r;
         const seen = r.top < vh * 0.85 && r.bottom > 0;
-        const s = wf.top < vh * 0.75 ? 2 : (sk.top + sk.bottom) / 2 < vh * 0.75 ? 1 : 0;
+        const s = wf.top < vh * 0.75 ? 2 : 1;
         return { seen, s };
       },
       write: (n) => {
@@ -441,34 +441,23 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           (typography spec), shown once the change is drawn */}
       {ch && fast ? <Answer answer={outputAnswer(ch)} to="story-output" /> : null}
       {/* sources and notes behind the title's button; one essential line */}
-      {ch ? <Essential>Rounded: parts may not add up</Essential> : null}
     </figure>
   );
 }
 
-function outputSteps(sid, cl, base, ch) {
-  const labourMore = base ? base.labour > 50 : null;
+// Two steps (the baseline's two-way split is the shock scene's first card):
+// the Sankey with both columns, then the waterfall.
+function outputSteps(sid, ch) {
   const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
   return [
     {
-      id: 'p2-out-1',
-      highlight: ['wf-labour', 'wf-capital'],
-      icon: 'gdp',
-      title: 'GDP is paid as labour or capital income',
-      body: (
-        <Say>
-          On the baseline, {k('labour', 'labour income')} is {labourMore == null ? 'one part' : labourMore ? 'the larger part' : 'the smaller part'} of GDP; capital income is the rest.
-        </Say>
-      ),
-    },
-    {
       id: 'p2-out-2',
-      highlight: ['wf-domestic', 'wf-foreign', 'wf-depreciation'],
+      highlight: ['wf-labour', 'wf-domestic', 'wf-foreign', 'wf-depreciation', 'wf-capital'],
       icon: 'capital',
       title: 'Capital income splits three ways',
       body: (
         <Say>
-          Capital income splits three ways: kept in the UK, depreciation (wear on capital), and {k('foreign', 'net paid abroad')}.
+          The same two groups, with their shares: capital income splits three ways, kept in the UK, depreciation (wear on capital) and {k('foreign', 'net paid abroad')}.
         </Say>
       ),
     },
@@ -515,7 +504,7 @@ export default function OutputSplit({ sid, closure }) {
   // the part picked by a chip, a ribbon or a row, and the graphic state it
   // was picked in: { id, s }
   const [hl, setHl] = useState(null);
-  const steps = outputSteps(sid, cl, base, ch);
+  const steps = outputSteps(sid, ch);
   const [phoneRef, phoneSt] = useScrollState(phone);
   return (
     <section id="story-output" className="p2-output" aria-labelledby="story-output-h">
@@ -541,7 +530,7 @@ export default function OutputSplit({ sid, closure }) {
           label={`Where output goes in ${SPLIT_YEAR}`}
           steps={steps}
           close={ch ? { answer: outputAnswer(ch), answerTo: 'story-output' } : undefined}
-          graphic={(i) => <OutputGraphic both={both} state={Math.min(i, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
+          graphic={(i) => <OutputGraphic both={both} state={Math.min(i + 1, 2)} sid={sid} cl={cl} base={base} ch={ch} hl={hl} setHl={setHl} />}
         />
       )}
     </section>
