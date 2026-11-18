@@ -14,7 +14,7 @@ import { WelfareShape } from './part2/charts.jsx';
 import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
-import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, whoCardSteps, partMarks, Say } from './part2/steps.jsx';
+import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, MORPH_SCRUB, whoCardSteps, partMarks, Say } from './part2/steps.jsx';
 
 export { scenarioDir } from './part2/steps.jsx';
 
@@ -141,7 +141,8 @@ export default function Part2({ part }) {
         sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer, answerNote: <DebtNote sid={sid} cl={cl} /> }}
         label="From GDP growth to the gap against the OBR’s central forecast path, then the four scenarios and the headline figures"
         steps={[...morphCardSteps(sid, cl), headlineStep(sid)]}
-        graphic={(i, reduce, ctx) => <MorphChart state={i === 0 && !reduce && !(ctx?.entered ?? true) ? 1 : (MORPH_STATES[i] ?? 4)} sid={sid} cl={cl} />}
+        stepProgress
+        graphic={(i, reduce, ctx) => <MorphChart state={MORPH_STATES[i] ?? 4} scrub={i === MORPH_SCRUB && !ctx?.once && !ctx?.inline} sid={sid} cl={cl} />}
       />
 
       {b3 ? <StoryBeat id={String(HEADLINE_YEAR)} num={HEADLINE_YEAR} head={b3.head} line={b3.line} from="above" /> : null}

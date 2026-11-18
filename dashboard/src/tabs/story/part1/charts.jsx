@@ -283,7 +283,9 @@ export function OutputCanvas({ state, notes }) {
                 data-axis=""
                 x={0}
                 y={h - 6}
-                textAnchor="middle"
+                // the last year on the plot's right edge, end-anchored so the
+                // svg does not cut it (edge probe: "2031" at 390)
+                textAnchor={x > R - 14 ? 'end' : 'middle'}
                 className={`p1-tick p1-xt${on ? ' is-on' : ''}`}
                 style={{ transform: `translateX(${x.toFixed(2)}px)` }}
               >

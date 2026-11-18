@@ -54,6 +54,18 @@ const stateAt = (s, travel, n, V) => {
   }
   return n - 1;
 };
+// how far through state k's share of the run s px is, 0 to 1
+const stateFrac = (s, travel, n, V) => {
+  const sh = shares(n, V);
+  const f = travel / holdRun(n, V);
+  let acc = 0;
+  for (let k = 0; k < n; k++) {
+    const w = sh[k] * f;
+    if (s < acc + w || k === n - 1) return Math.min(1, Math.max(0, (s - acc) / Math.max(1, w)));
+    acc += w;
+  }
+  return 1;
+};
 // the middle of state k's share of the run, in px from where it starts
 const stateMid = (k, travel, n, V) => {
   const sh = shares(n, V);
@@ -154,7 +166,7 @@ const lineGap = (room) => Math.min(0.4 * Math.max(0, room), 72);
 //                card is one sentence and one icon).
 // `close`: { answer, answerTo } for a block with no `sub` (the output scene,
 // whose header is its own TopicHead): the same caption, placed the same way.
-export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, close: closeProp }) {
+export default function Scrolly({ id, steps, graphic, label, wide = false, phone: phoneMode, scene = false, foot, sub, close: closeProp, stepProgress = false }) {
   // One more registered element than steps: an end marker after the last
   // card, past which the block is done.
   const box = useRef(null);
@@ -339,6 +351,41 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [single, cardSteps.join(',')]);
+  // `stepProgress` (opt-in): how far the reader is through the active
+  // card's hold, 0 to 1, written as --step-p on the block on the page's one
+  // scroll loop, for a figure whose change is scroll-linked across a step
+  // (the GDP morph, item 30). Desktop: the share of the stuck run; a sticky
+  // phone scene: how far the active card has travelled through its hold.
+  useEffect(() => {
+    if (!stepProgress || single || typeof window === 'undefined') return undefined;
+    const n = cardSteps.length;
+    let last = null;
+    return subscribe({
+      el: stepsCol.current,
+      read: () => {
+        if (window.innerWidth > 900) {
+          const m = geom();
+          if (!m) return null;
+          const s = m.stick - m.colTop;
+          return s < 0 ? 0 : s >= m.travel ? 1 : stateFrac(s, m.travel, n, window.innerHeight);
+        }
+        const blk = ownBox.current;
+        const li = blk?.querySelector('.scrolly-step.is-active');
+        const card = li?.querySelector('.scrolly-card');
+        const b = box.current;
+        if (!li || !card || !b || getComputedStyle(b).position !== 'sticky') return 1;
+        const foot = (parseFloat(b.style.top || getComputedStyle(b).top) || 0) + b.offsetHeight + 8;
+        const r = li.getBoundingClientRect();
+        return Math.min(1, Math.max(0, (foot - r.top) / Math.max(1, li.offsetHeight - card.offsetHeight)));
+      },
+      write: (v) => {
+        if (v == null || (last != null && Math.abs(v - last) < 0.002)) return;
+        last = v;
+        ownBox.current?.style.setProperty('--step-p', v.toFixed(3));
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepProgress, single, cardSteps.join(',')]);
   // go to card k (a link to an old step id, through a 'scrolly-go' event
   // on the block; round 2 removed the step dots): phones drawn once set the
   // state; desktop scrolls to the middle of the step's share of the stuck
