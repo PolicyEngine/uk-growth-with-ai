@@ -206,15 +206,17 @@ for (const sel of ['#p3-pound', '#p2-output']) {
     await page.waitForTimeout(3000);
     const share = await page.evaluate((sel) => {
       // poured ribbons, and of a step-driven wipe those its step has revealed
-      const links = [...document.querySelectorAll(`${sel} svg.sankey .sankey-link`)].filter((l) => Number(l.style.opacity || 1) > 0 && (!l.classList.contains('is-wipe') || l.classList.contains('is-on')));
-      if (!links.length) return null;
-      const drawn = links.filter((l) => {
+      const links = [...document.querySelectorAll(`${sel} svg.sankey .sankey-link`)].filter((l) => Number(l.style.opacity || 1) > 0);
+      // the ribbons its state has poured or revealed; none at all is the blank
+      const on = links.filter((l) => !/is-(pour|wipe)/.test(l.getAttribute('class')) || l.classList.contains('is-on'));
+      if (!on.length) return 0;
+      const drawn = on.filter((l) => {
         const m = getComputedStyle(l).clipPath.match(/^inset\((.*)\)$/);
         const v = m ? m[1].split(/\s+/) : [];
         const right = v.length >= 2 ? v[1] : v[0] ?? '0';
         return !(right.endsWith('%') && parseFloat(right) > 10);
       }).length;
-      return links.length ? drawn / links.length : 0;
+      return drawn / on.length;
     }, sel);
     await page.close();
     if (share == null) console.log(`skip ${sel} paced ${speed}px/s: no ribbon revealed at the arrival step`);

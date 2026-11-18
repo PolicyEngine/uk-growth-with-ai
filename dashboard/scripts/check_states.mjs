@@ -309,8 +309,12 @@ if (SANKEY !== '0') {
             const sk = document.querySelectorAll('.tab-panel:not([hidden]) svg.sankey')[si];
             // the ribbons this state should show: every poured one; of a
             // step-driven wipe (the output scene), those its step has revealed
-            const links = [...sk.querySelectorAll('.sankey-link')].filter((l) => Number(l.style.opacity || 1) > 0 && (!l.classList.contains('is-wipe') || l.classList.contains('is-on')));
-            if (!links.length) return null;
+            const links = [...sk.querySelectorAll('.sankey-link')].filter((l) => Number(l.style.opacity || 1) > 0);
+            // the ribbons its state has poured or revealed (a step-driven pour,
+            // the output scene, pours one column a step); none at all is the
+            // blank this probe exists for
+            const on = links.filter((l) => !/is-(pour|wipe)/.test(l.getAttribute('class')) || l.classList.contains('is-on'));
+            if (!on.length) return 0;
             const eff = (el) => {
               let o = 1;
               for (let e = el; e && e !== document.body; e = e.parentElement) o *= Number(getComputedStyle(e).opacity);
@@ -326,8 +330,8 @@ if (SANKEY !== '0') {
               const pc = (x) => (x.endsWith('%') ? parseFloat(x) / 100 : 0);
               return pc(right) + pc(left === right && v.length < 4 ? '0' : left);
             };
-            const drawn = links.filter((l) => eff(l) >= 0.2 && hidden(l) <= 0.1).length;
-            return links.length ? drawn / links.length : 0;
+            const drawn = on.filter((l) => eff(l) >= 0.2 && hidden(l) <= 0.1).length;
+            return drawn / on.length;
           }, si);
           if (share == null || share >= 0.9) ok++;
           if (share == null) name += ' (no ribbon revealed at this step)';
