@@ -46,6 +46,20 @@ describe('item 17: Public finances More info', () => {
               const o = rec(sid, a, cl, rule).debt_gdp_pp_obr_repricing_late;
               if (sideOf(o) !== sideOf(obr)) expect(s4).toContain(`${Math.abs(o).toFixed(1)}pp ${sideOf(o)}`);
             }
+            // 5: the model figure names its side where it differs from the OBR pace
+            const s5 = text(why, 's5');
+            const late = rec(sid, 'tfp', cl, rule).gaps.debt_gdp_pp[Y.indexOf(S.late_year)];
+            if (sideOf(late) !== sideOf(obr)) expect(s5).toContain(`${Math.abs(late).toFixed(1)}pp ${sideOf(late)} the path`);
+            else expect(s5).toContain(`gives ${Math.abs(late).toFixed(1)}pp (`);
+            // 2: "tax/GDP is lower" only if it is below the path in every
+            // year the sentence covers, in every version
+            const s2 = text(why, 's2');
+            if (s2) {
+              const from = /^From (\d{4})/.exec(s2)?.[1] ? Number(/^From (\d{4})/.exec(s2)[1]) : SY;
+              const yrs = Y.filter((y) => y >= from && y <= S.late_year);
+              const low = ARMS.every((a) => yrs.every((y) => sideOf(g(sid, a, cl, 'tax_gdp_pp', y, rule)) === 'below'));
+              expect(s2.includes('tax/GDP is lower')).toBe(low && ARMS.every((a) => yrs.every((y) => g(sid, a, cl, 'r_bp', y, rule) > 0)));
+            }
             // 1: every version's first-year side
             const s1 = text(why, 's1');
             const first = new Set(ARMS.map((a) => sideOf(g(sid, a, cl, 'debt_gdp_pp', SY, rule))));

@@ -144,8 +144,14 @@ export function debtWhy(sid, closure, rule) {
   for (let k = 0; k < span.length - 1 && from == null; k += 1)
     if (ARMS.every((a) => path(a.id).slice(k).every((x, i, xs) => i === 0 || x > xs[i - 1]))) from = span[k];
   const hy = (v) => byArm(sid, cl, v, HEADLINE_YEAR, rule);
-  const rUp = hy('r_bp').length === ARMS.length && hy('r_bp').every((c) => c.x > 0);
-  const taxDown = hy('tax_gdp_pp').length === ARMS.length && hy('tax_gdp_pp').every((c) => side(c.x) === 'below');
+  // the reason holds in every year it covers: from the "rises from" year to
+  // the debt rule's year, for every version
+  const every = (v, test) => from != null && ARMS.every((a) => YEARS.filter((y) => y >= from && y <= LATE_YEAR).every((y) => {
+    const x = gap(sid, a.id, cl, v, y, rule);
+    return x != null && test(x);
+  }));
+  const rUp = every('r_bp', (x) => x > 0);
+  const taxDown = every('tax_gdp_pp', (x) => side(x) === 'below');
   if (from != null) {
     const lead = from === SURPRISE_YEAR ? 'After that it rises against the path every year.' : `From ${from} it rises against the path every year in every version.`;
     const why = rUp && taxDown ? ` The interest rate is higher and tax/GDP is lower, while spending keeps pace with GDP until ${LATE_YEAR}.` : '';
@@ -176,9 +182,12 @@ export function debtWhy(sid, closure, rule) {
     const [m, ...rest] = obr;
     const restText = rest.map((c) => `${abs1(c.x)}${side(c.x) === side(m.x) ? '' : ` ${sideWord(c.x)}`} in ${inText(c.id)}`).join(', ');
     out.push({ key: 's4', text: `At the pace the OBR expects debt to reprice, debt/GDP in ${LATE_YEAR} is ${abs1(m.x)} ${sideWord(m.x)} the path in ${NAMES[m.id]} (${restText}).` });
-    const neg = late.some((c) => c.x < 0);
-    const f = (x) => (neg ? `${signed(x, 1)}pp` : abs1(x));
-    out.push({ key: 's5', text: `In the model all debt pays the higher rate at once, which gives ${f(late[0].x)} (${late.slice(1).map((c) => f(c.x)).join(', ')}).` });
+    // each model figure says its side when it differs from that version's
+    // side at the OBR's pace (UK high, Korinek: below at the OBR's pace,
+    // above in the model)
+    const sideOfObr = Object.fromEntries(obr.map((c) => [c.id, side(c.x)]));
+    const f = (c) => `${abs1(c.x)}${side(c.x) === sideOfObr[c.id] ? '' : ` ${sideWord(c.x)} the path`}`;
+    out.push({ key: 's5', text: `In the model all debt pays the higher rate at once, which gives ${f(late[0])} (${late.slice(1).map(f).join(', ')}).` });
   }
   return out;
 }
