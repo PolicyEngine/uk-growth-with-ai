@@ -19,7 +19,7 @@ import { closuresFor, contextLine, side, ruleGapText, primaryClosure } from '@/t
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { Dir, dirConcept, Lead } from '@/tabs/explore/direction.jsx';
+import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
@@ -32,6 +32,8 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import NICS from '@/tabs/explore/nics2028.json';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
+import Disclosure from '@/components/ab/Disclosure.jsx';
+import { OGUK_TG1_YEAR, debtTitle, taxTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
 // tax/GDP, why both are likely understated, and how the result changes with
@@ -76,33 +78,6 @@ export function debtParts(sid, closure, rule) {
   }
   const obr = rule === 'common' && BELOW_AT_OBR_SPEED.has(`${sid}|${cl}`) && side(b) === 'above' ? obrLate(sid, cl) : null;
   return { kind: 'rule', lead, a, b, obr };
-}
-
-const sideOf = (x) => (side(x) === 'on' ? 'on' : side(x));
-
-function DebtFinding({ p }) {
-  if (p.kind === 'dn')
-    return (
-      <>
-        {p.lead} debt/GDP
-        {p.first != null ? (
-          <>
-            {' '}is <Dir x={p.first} />
-            {side(p.first)} the forecast path in {SURPRISE_YEAR} and then
-          </>
-        ) : null}{' '}
-        stays <Dir x={p.late} />
-        on the forecast path: transfers hold it there from {SURPRISE_YEAR + 1}.
-      </>
-    );
-  return (
-    <>
-      {p.lead} debt/GDP is <Dir x={p.a} />
-      {sideOf(p.a)} the forecast path in {HEADLINE_YEAR} and {sideOf(p.a) === sideOf(p.b) ? 'still ' : ''}
-      <Dir x={p.b} />
-      {sideOf(p.b)} it by {LATE_YEAR}.
-    </>
-  );
 }
 
 // Economics review, round 1 (explore/caveats.js): why debt/GDP first dips,
@@ -204,7 +179,6 @@ const NIC_PE = NICS.avg_employer_rate_on_employment_income * 100;
 // The debt rule's first year: OG-Core's tG1, set to 10 periods from 2026 in
 // scenarios.py (OG-UK's default is 4, so 2030).
 const TG1_URL = atRef(RESULTS_SHA, 'uk_growth_with_ai/scenarios.py#L45');
-const OGUK_TG1_YEAR = 2030;
 const EFO_NOV25 = 'https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/';
 const NICS_URL = atRef('bf5de33', 'analysis/nics/nics_2028.json');
 const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
@@ -642,6 +616,33 @@ function FiscalRuleCard({ sid }) {
   );
 }
 
+// A chart's closed "More info" (item 17), the same fold as the zeta_K 0.5
+// card's (item 14): each group a short heading and its sentences, every
+// sentence gated in financesInfo.js; data-claim names each one for the
+// probe.
+function MoreInfo({ id, groups }) {
+  return (
+    <div className="ex-fin-more">
+      <Disclosure inCard id={id} title="More info">
+        {groups.map((g) => (
+          <div key={g.key} className="ex-fin-more-group" data-group={g.key}>
+            <p className="ex-fin-more-head">{g.title}</p>
+            {g.items.map((it) => (
+              <p key={it.key} className="ex-fin-more-line" data-claim={`${g.key}-${it.key}`}>
+                {it.head ? <b>{it.head}</b> : null}
+                {it.head ? ' ' : null}
+                {it.text}
+              </p>
+            ))}
+          </div>
+        ))}
+      </Disclosure>
+    </div>
+  );
+}
+
+const FIN_UNIT = 'pp of GDP, gap against the OBR’s central forecast path';
+
 export default function FinancesSection({ sid }) {
   const { st } = useNav();
   // Not solved under this rule: the rule card alone says so (and keeps its id)
@@ -667,10 +668,13 @@ export default function FinancesSection({ sid }) {
           title="Debt/GDP"
           name="debt/GDP"
           icon={iconFor('debt')}
-          unitLine={`Percentage points of GDP, difference from the OBR’s central forecast path, ${FIRST_YEAR}–${LATE_YEAR}`}
-          finding={debt ? <DebtFinding p={debt} /> : undefined}
+          tidy
+          heading={debtTitle(sid, st.closure, st.rule)}
+          unitLine={FIN_UNIT}
           notes={debtNotes(debt)}
-          markers={[{ year: SURPRISE_YEAR, label: 'Extra AI starts' }, { year: LATE_YEAR, label: 'Debt rule starts (set in this study)' }]}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI starts' }, { year: LATE_YEAR, label: 'Debt rule' }]}
+          bands={[]}
+          foot={<MoreInfo id="debt-more" groups={debtMoreInfo(sid, st.closure, st.rule)} />}
           about={{
             caveats: (
               <Items
@@ -696,8 +700,12 @@ export default function FinancesSection({ sid }) {
           title="Tax/GDP"
           name="tax/GDP"
           icon={iconFor('tax')}
-          unitLine={`Percentage points of GDP, difference from the OBR’s central forecast path, ${FIRST_YEAR}–${HEADLINE_YEAR}`}
-          finding={st.closure === 'central' ? undefined : 'With no foreign capital the model’s sign for tax/GDP changes: see the card below.'}
+          tidy
+          heading={taxTitle(sid, st.closure, st.rule)}
+          unitLine={FIN_UNIT}
+          markers={[{ year: SURPRISE_YEAR, label: 'AI starts' }]}
+          bands={[]}
+          foot={<MoreInfo id="tax-more" groups={taxMoreInfo(sid, st.closure, st.rule)} />}
           sources={false}
           method="rules"
         />

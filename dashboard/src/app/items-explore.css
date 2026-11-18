@@ -3009,3 +3009,27 @@
     column-gap: 10px;
   }
 }
+
+/* item 17: Public finances' Debt/GDP and Tax/GDP charts. The finding is the
+   card title (one line where it fits), one small units line, the shared
+   version legend under the chart, and a closed More info fold (the item 14
+   component); type from the item 9 tokens. */
+.ex-fin-more { margin-top: 8px; }
+.ex-fin-more-group + .ex-fin-more-group { margin-top: 10px; }
+.ex-fin-more-head {
+  margin: 0 0 2px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800, #1f2937);
+}
+.ex-fin-more-line {
+  margin: 2px 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700, #374151);
+}
+.ex-fin-more-line b { font-weight: 600; color: var(--pe-gray-800, #1f2937); }
+.card .card-legend .ex-wall-legend { margin: 4px 0 0; }
+/* an open More info lengthens its own card only: the other chart keeps its
+   height, so its legend stays under its chart */
+.cards-grid > #debt-gdp, .cards-grid > #tax-gdp { align-self: start; }
