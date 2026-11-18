@@ -280,7 +280,13 @@ describe('story part 1, real data', () => {
     // AI: all businesses up every September; the 10+ group up more
     const rise = (k) => S[k].y.at(-1) - S[k].y[0];
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
-    expect(text).toContain('has risen every September since 2023, fastest in larger businesses');
+    expect(text).toContain('AI use among all businesses has risen every September since 2023.');
+    expect(text).toContain(`It has risen fastest in businesses with 10 or more employees, to ${pct1(real.facts.business_ai_use_10plus.value)}.`);
+    // quarters: every quarter of the latest year grew
+    const q = S.gdp_quarterly;
+    const yr = q.x.at(-1).slice(0, 4);
+    expect(q.y.filter((_, i) => q.x[i].startsWith(yr)).every((v) => v > 0)).toBe(true);
+    expect(text).toContain(`grown in every quarter of ${yr} so far`);
   });
 
   it('gives every topic a question, hint and answer, and a recap of the three, with no figure in a hint or question', async () => {
@@ -320,9 +326,9 @@ describe('story part 1, real data', () => {
   it('has three scenes that keep every old step id and block id as link targets', () => {
     const el = show(Part1Real);
     expect([...el.querySelectorAll('.scrolly')].map((b) => b.id)).toEqual(['p1-output', 'p1-work', 'p1-ai']);
-    const steps = ['p1-output-0', 'p1-output-1', 'p1-work-0', 'p1-pay-0', 'p1-productivity-0', 'p1-ai-0', 'p1-exposure-0'];
+    const steps = ['p1-output-0', 'p1-output-1', 'p1-output-2', 'p1-work-0', 'p1-pay-0', 'p1-productivity-0', 'p1-ai-0', 'p1-ai-10', 'p1-exposure-0'];
     expect([...el.querySelectorAll('.scrolly-step')].map((li) => li.id)).toEqual(steps);
-    // the removed quarters step: its anchor is on the GDP tile, which holds its figure
+    // the quarters' figures: their anchor is on the GDP tile, which holds them
     expect(el.querySelector('#p1-quarters').closest('#p1-vital-gdp')).not.toBeNull();
     // old block ids and removed step ids: an anchor in the card that now holds the figure
     const home = { 'p1-ai-1': 'p1-ai-0', 'p1-pay': 'p1-pay-0', 'p1-productivity': 'p1-productivity-0', 'p1-share': 'p1-productivity-0', 'p1-exposure': 'p1-exposure-0', 'p1-work-1': 'p1-work-0', 'p1-share-0': 'p1-productivity-0', 'p1-exposure-1': 'p1-exposure-0' };
@@ -455,7 +461,8 @@ describe('story part 1, first states', () => {
   it('draws both AI lines, the larger businesses’ end label carrying their latest value', () => {
     const ai = render(<AiUseChart />).container;
     expect(ai.querySelectorAll('.p1-ai-line')).toHaveLength(2);
-    const lab = ai.querySelector('.p1-end-label.is-ten [data-path="facts.business_ai_use_10plus.value"]');
+    // the value's home is the step text now (its line has its own step): the label restates it
+    const lab = ai.querySelector('.p1-end-label.is-ten [data-axis]');
     expect(lab.textContent).toBe(pct1(real.facts.business_ai_use_10plus.value));
   });
 

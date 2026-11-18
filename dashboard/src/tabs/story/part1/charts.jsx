@@ -5,7 +5,7 @@ import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
-import { idx1, pct1, span3, tick } from './format.js';
+import { idx1, pct1, share0, span3, tick } from './format.js';
 
 // Part 1's graphics: four figures, each drawing the complete picture for
 // the active state of its scrolly block. Nothing prints a value (the cards
@@ -53,8 +53,9 @@ const longest = (a) => a.reduce((m, s) => (s.length > m.length ? s : m), '');
 export const barPath = (x, w, y0, y1) => chartBar({ pos: x, size: w, from: y0, to: y1 });
 
 // ---------------------------------------------------------------------------
-// Scene 1A. The output canvas: annual growth bars (state 0), the OBR's
-// forecast (1), then this year's quarters (2). State 2 is three beats:
+// Scene 1A. The output canvas: annual growth bars growing left to right
+// (state 0), the OBR's forecast drawing in left to right (1: a clip-path
+// wipe and its dots in turn), then this year's quarters (2). State 2 is three beats:
 // the x axis zooms to the quarterly window, the annual bars widening and
 // sliding with it (a transform on their group, so no bar changes height);
 // the annual bars, forecast and annual ticks fade; the quarterly bars grow
@@ -228,7 +229,7 @@ export function OutputCanvas({ state, notes }) {
                 r={3.5}
                 className="p1-forecast-dot p1-only-fc p1-zoom"
                 data-mark="obr-forecast"
-                style={{ transform: `translateX(${(zoomed ? zoomX(XA(x)) : XA(x)).toFixed(2)}px)` }}
+                style={{ transform: `translateX(${(zoomed ? zoomX(XA(x)) : XA(x)).toFixed(2)}px)`, '--i': i }}
               />
             ))}
           </g>
@@ -463,8 +464,11 @@ export function LabourBoard({ focus, notes }) {
 const AI_H = 204;
 const AI_M = { l: 34, r: 10, t: 12, b: 24 };
 
-export function AiUseChart({ notes }) {
+export function AiUseChart({ notes, lines = 2 }) {
   const [ref, seen] = useDrawIn();
+  // one line a step (polish round): all businesses, then 10 or more
+  // employees drawn on top; scrolling back past the step undraws it
+  const ten = seen && lines >= 2;
   const [box, w, aiH] = useBox(AI_H);
   const gid = useSvgId('p1-ai-fade');
   const a = SERIES.business_ai_use;
@@ -488,8 +492,9 @@ export function AiUseChart({ notes }) {
   // end labels clear of their lines: over the label's width (about 7px a
   // character at 12px), above the highest point of the upper line and
   // below the lowest point of the lower one
-  const under = (ys, chars) => idx.filter((i) => X(Math.min(last, i + 1)) >= X(last) - chars * 7 - 12 || i === last - 1).map((i) => Y(ys[i]));
-  const tenY = Math.max(T + 10, Math.min(...under(b.y, 27)) - 9);
+  const under = (ys, chars) => idx.filter((i) => X(Math.min(last, i + 1)) >= X(last) - chars * 7.6 - 16 || i === last - 1).map((i) => Y(ys[i]));
+  // phones: 8px higher too (sign-off minor 8: the line touched its last characters)
+  const tenY = Math.max(T + (narrow ? 2 : 10), Math.min(...under(b.y, 27)) - (narrow ? 17 : 9));
   // "All businesses, 29.7%" (polish round F: the shorter label sat on its
   // own line near Sept 2026): under the lowest point of its line over the
   // whole label's width, right-aligned at the end dot like the other
@@ -539,18 +544,18 @@ export function AiUseChart({ notes }) {
             Survey wave, dated at its midpoint
           </text>
           <path d={area} className={`p1-ai-area${seen ? ' is-on' : ''}`} style={{ fill: `url(#${gid})` }} data-mark="ai-all" />
-          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${seen ? ' is-on' : ''}`} data-mark="ai-ten" />
           <path d={dA} pathLength={1} className={`draw-path p1-ai-line is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
+          <path d={linePath(X, Y, idx, b.y)} pathLength={1} className={`draw-path p1-ai-line is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten" />
           {idx.map((i) => (
             <g key={i}>
-              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${seen ? ' is-on' : ''}`} data-mark="ai-ten" />
+              <circle cx={X(i)} cy={Y(b.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten" />
               <circle cx={X(i)} cy={Y(a.y[i])} r={i === last ? 3.5 : 2.25} className={`p1-ai-dot is-all${seen ? ' is-on' : ''}`} data-mark="ai-all" />
             </g>
           ))}
-          <text x={X(last) - 4} y={tenY} textAnchor="end" className="p1-end-label is-ten is-on" data-mark="ai-ten">
-            10 or more employees, <tspan data-path="facts.business_ai_use_10plus.value">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
+          <text x={X(last) - (narrow ? 14 : 4)} y={tenY} textAnchor="end" className={`p1-end-label is-ten${ten ? ' is-on' : ''}`} data-mark="ai-ten">
+            10 or more employees, <tspan data-axis="">{pct1(FACTS.business_ai_use_10plus.value)}</tspan>
           </text>
-          <text x={X(last) - 4} y={allY} textAnchor="end" className="p1-end-label is-all is-on" data-mark="ai-all">
+          <text x={X(last) - 4} y={allY} textAnchor="end" className={`p1-end-label is-all${seen ? ' is-on' : ''}`} data-mark="ai-all">
             All businesses, <tspan data-axis="">{pct1(FACTS.business_ai_use.value)}</tspan>
           </text>
         </g>
@@ -567,12 +572,15 @@ export function AiUseChart({ notes }) {
 // tile's colour changing in the last third of its travel. The step text's
 // coloured group names (<Key>) are the legend.
 const GRID_W = 17;
-const GRID_H = 10;
+// polish round: 7 rows, the tallest state (the 35-tile group, five wide);
+// the one block is 17 wide and 6 high (it was 10 by 10, which left three
+// empty rows above the groups)
+const GRID_H = 7;
 
 export function exposureTiles(state) {
   const groups = EXPOSURE_GROUPS.flatMap((g, gi) => Array.from({ length: Math.round(g.value) }, (_, j) => ({ g, gi, j })));
   return groups.map(({ g, gi, j }, i) => {
-    if (state < 1) return { key: `t${i}`, x: 3.5 + (i % 10), y: Math.floor(i / 10), color: 'var(--pe-gray-400)', group: 'all' };
+    if (state < 1) return { key: `t${i}`, x: i % GRID_W, y: GRID_H - 1 - Math.floor(i / GRID_W), color: 'var(--pe-gray-400)', group: 'all' };
     return { key: `t${i}`, x: gi * 6 + (j % 5), y: GRID_H - 1 - Math.floor(j / 5), color: g.color, group: g.id };
   });
 }
@@ -595,6 +603,15 @@ export function ExposureTiles({ state, source, entered = true }) {
       <FigUnit>Each tile is one per cent of UK workers</FigUnit>
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
+        {/* each group's name and share under its block, once grouped (they
+            restate the step's figures: data-axis) */}
+        <ul className="p1-tile-labels" aria-hidden="true" style={{ '--cols': GRID_W }}>
+          {EXPOSURE_GROUPS.map((g, gi) => (
+            <li key={g.id} style={{ gridColumn: `${gi * 6 + 1} / span 5` }} data-axis="">
+              {g.name.replace(/\s*\(.*\)$/, '')} · {share0(g.value)}
+            </li>
+          ))}
+        </ul>
       </div>
     </figure>
   );

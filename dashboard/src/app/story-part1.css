@@ -142,7 +142,18 @@
   transition: transform 600ms var(--p1-ease) 300ms, opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
 }
 .p1-canvas.is-fc .p1-forecast-dot.p1-zoom {
-  transition: transform 600ms var(--p1-ease) 300ms, opacity 300ms var(--p1-ease), visibility 0s;
+  /* the dots land in turn behind the line's wipe */
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 250ms var(--p1-ease) calc(120ms + var(--i, 0) * 90ms), visibility 0s;
+}
+/* state 1: the forecast line draws in left to right (a clip-path wipe;
+   no d transition, which Safari does not run) */
+.p1-forecast.p1-only-fc {
+  clip-path: inset(0 100% 0 0);
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms, clip-path 0s linear 200ms;
+}
+.p1-canvas.is-fc .p1-forecast.p1-only-fc {
+  clip-path: inset(0 0 0 0);
+  transition: opacity 150ms var(--p1-ease), visibility 0s, clip-path 700ms var(--p1-ease);
 }
 .p1-canvas.is-q .p1-forecast-dot.p1-zoom {
   transition-delay: 0ms, 0ms, 0s;
@@ -243,6 +254,12 @@
 }
 .p1-end-label.is-all {
   fill: var(--mk-all, var(--p1-ink));
+  opacity: 0;
+  transition: opacity 200ms var(--p1-ease);
+}
+.p1-end-label.is-all.is-on {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) 600ms;
 }
 .p1-end-label.is-ten {
   fill: var(--mk-ten, var(--pe-gray-600));
@@ -296,6 +313,27 @@
 .p1-tiles {
   max-width: 400px;
   margin: 0 auto;
+}
+/* each group's label under its block (polish round): in after the tiles
+   settle, out at once when they regroup */
+.p1-tile-labels {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--t-text);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 150ms var(--p1-ease);
+}
+.p1-exposure.is-grouped .p1-tile-labels {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
 }
 
 /* The foot: one source line and a "Sources" disclosure that opens over
@@ -654,9 +692,11 @@
     flex-direction: column;
     height: 100%;
   }
+  /* under the unit line, not centred in the AI chart's box (polish
+     round: the empty band above the grid) */
   .p1-exposure .p1-tiles {
     width: 100%;
-    margin: auto;
+    margin: 16px auto auto;
   }
 }
 

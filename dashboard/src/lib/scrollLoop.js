@@ -76,11 +76,20 @@ function railReader() {
   };
 }
 
+// The browser's own scroll restoration on a reload (WebKit restores after
+// first paint, and in steps as the page grows, so no single step is a jump):
+// any move in the first RESTORE ms after the loop starts, before the reader
+// has touched the wheel, a key, a pointer or the screen, is a landing.
+const RESTORE = 2500;
+let startedAt = 0;
+let touched = false;
+export const restoring = () => !touched && now() - startedAt < RESTORE;
+
 function frameInfo(first) {
   const y = window.scrollY;
   const V = window.innerHeight;
   const dy = y - lastY;
-  const jumped = first || Math.abs(dy) > 0.5 * V || navRecent() || fastRecent(V);
+  const jumped = first || Math.abs(dy) > 0.5 * V || navRecent() || fastRecent(V) || (dy !== 0 && restoring());
   return { y, dy, V, jumped, up: dy < 0 && !jumped, rail: railReader() };
 }
 
@@ -132,6 +141,11 @@ function start() {
   if (started || typeof window === 'undefined') return;
   started = true;
   lastY = window.scrollY;
+  startedAt = now();
+  const touch = () => {
+    touched = true;
+  };
+  for (const ev of ['wheel', 'keydown', 'pointerdown', 'touchstart']) window.addEventListener(ev, touch, { passive: true, once: true, capture: true });
   window.addEventListener(
     'scroll',
     // no scrollY read here: in a scroll event it can force a layout

@@ -86,7 +86,9 @@ export function useSnap(ref, entry, ms = 900) {
       // only on a jump (not the first run): is the block on screen?
       read: (f) => {
         const el = ref.current;
-        const jump = !first && el && (Math.abs(f.dy) > 0.5 * f.V || navRecent() || fastRecent(f.V));
+        // f.jumped: a big move, a nav link, a fast scroll, or the browser's
+        // scroll restoration on a reload (lib/scrollLoop.js)
+        const jump = !first && el && f.jumped;
         first = false;
         if (!jump) return false;
         const r = el.getBoundingClientRect();

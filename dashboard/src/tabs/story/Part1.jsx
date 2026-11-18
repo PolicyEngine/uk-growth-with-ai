@@ -52,9 +52,10 @@ const N = ({ path, mark, children }) => (
 // An attributed caveat: its text linked to the page that says it.
 const L = ({ to, children }) => <Ext href={LINKS[to]?.url ?? pageOf(to)}>{children}</Ext>;
 
-// (a) Output: the latest full year, then the OBR's forecast. `state` is
-// the canvas state (part1/charts.jsx OutputCanvas). This year's quarters
-// are in the vitals GDP tile (#p1-quarters is its anchor).
+// (a) Output: the latest full year, the OBR's forecast, then a zoom to
+// this year's quarters. `state` is the canvas state (part1/charts.jsx
+// OutputCanvas). The quarters' numbers have their home in the vitals GDP
+// tile (#p1-quarters is its anchor), so the third card says the shape only.
 function outputSteps() {
   const g = F.gdp_growth_latest;
   return [
@@ -96,8 +97,25 @@ function outputSteps() {
         </Say>
       ),
     },
+    {
+      id: 'p1-output-2',
+      icon: 'period',
+      title: 'This year, by quarter',
+      highlight: ['q-now'],
+      state: 2,
+      body: (
+        <Say>
+          By quarter, the economy has {QNOW.every((v) => v > 0) ? 'grown in every quarter' : 'not grown in every quarter'} of <Key id="q-now">{QYEAR} so far</Key>
+          {QFIRST ? '; the latest is a first estimate.' : '.'}
+        </Say>
+      ),
+    },
   ];
 }
+// this year's quarters (the canvas zoom's last year)
+const QYEAR = Math.max(...SERIES.gdp_quarterly.x.map((q) => Number(String(q).slice(0, 4))));
+const QNOW = SERIES.gdp_quarterly.y.filter((_, i) => Number(String(SERIES.gdp_quarterly.x[i]).slice(0, 4)) === QYEAR);
+const QFIRST = /first estimate/i.test(FACTS.gdp_quarterly_latest?.note ?? '');
 
 // The output figure's notes (its one fold): what the earlier cards' folds
 // said, no figures.
@@ -196,8 +214,9 @@ function workNotes() {
   ].flat();
 }
 
-// (c) AI: business use (both lines), then the exposure tiles. `state`: 0
-// the AI-use chart, 1 the grouped tiles.
+// (c) AI: business use, one line a step (all businesses, then those with
+// 10 or more employees drawn on top), then the exposure tiles. `state`: 0
+// the AI-use chart, 1 the grouped tiles; `lines`: the chart's lines drawn.
 function aiSteps() {
   const [hh, hl, lo] = EXPOSURE_GROUPS;
   return [
@@ -205,15 +224,33 @@ function aiSteps() {
       id: 'p1-ai-0',
       icon: 'ai',
       title: 'Businesses using AI',
-      highlight: ['ai-all', 'ai-ten'],
+      highlight: ['ai-all'],
       state: 0,
+      lines: 1,
       body: (
         <>
           <Anchor id="p1-ai-1" />
           <Say>
-            AI use has risen every September since 2023, fastest in <Key id="ai-ten">larger businesses</Key>.
+            AI use among <Key id="ai-all">all businesses</Key> has risen every September since 2023.
           </Say>
         </>
+      ),
+    },
+    {
+      id: 'p1-ai-10',
+      icon: 'business',
+      title: 'Larger businesses',
+      highlight: ['ai-ten'],
+      state: 0,
+      lines: 2,
+      body: (
+        <Say>
+          It has risen fastest in businesses with <Key id="ai-ten">10 or more employees</Key>, to{' '}
+          <N path="facts.business_ai_use_10plus.value" mark="ai-ten">
+            {pct1(F.business_ai_use_10plus.value)}
+          </N>
+          .
+        </Say>
       ),
     },
     {
@@ -299,8 +336,8 @@ export const ANCHOR_STEP = {
   'p1-share': ['p1-work', 2],
   'p1-share-0': ['p1-work', 2],
   'p1-ai-1': ['p1-ai', 0],
-  'p1-exposure': ['p1-ai', 1],
-  'p1-exposure-1': ['p1-ai', 1],
+  'p1-exposure': ['p1-ai', 2],
+  'p1-exposure-1': ['p1-ai', 2],
 };
 function useAnchorSteps() {
   useEffect(() => {
@@ -407,7 +444,7 @@ export default function Part1({ part }) {
           const s = ai[i]?.state ?? 0;
           return (
             <Swap active={s}>
-              <AiUseChart notes={aiN} />
+              <AiUseChart notes={aiN} lines={ai[i]?.lines ?? 2} />
               <ExposureTiles state={s} source={exposureSource()} entered={ctx?.entered ?? true} />
             </Swap>
           );
