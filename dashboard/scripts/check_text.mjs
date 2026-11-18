@@ -26,6 +26,24 @@
 // household study's repo slug) outside code. Wording, every tab: no
 // visible "AI ... arrives" (the extra AI starts; AI is already here).
 //
+// Titles, on the Story only (story-finding-titles-fable.md, 18 Nov): every
+// visible figure title (.story-figure-title, .ch-title) and panel head
+// (.p3-group-head.p3-group-first) is a finding sentence: (1) 4 to 10
+// words (a .p3-long and a .p3-short copy each checked); (2) a finite verb
+// from TITLE_VERBS (a new verb is added with its title); (3) no metadata:
+// no year range, no trailing ", YYYY", no trailing "by ..." clause with no
+// verb before it, no unit words (per cent of, £bn, pp, %); (4) no result
+// figure: the only digits allowed are four-digit years, "2010s" and
+// decile numbers after "decile(s)"; (5) no full stop at the end and no
+// colon; (6) a data line follows: the first unit line after the title in
+// its figure is non-empty and names a source (ONS, OBR, OG-UK, IMF, DSIT,
+// household study); a panel head needs a unit line of its own, its source
+// is its figure's. Text is taken without the "Sources and notes" button
+// and the Replay control. A title marked data-title-fallback (a solve
+// pending or a condition failed) is exempt and printed, so a fallback in
+// the default view is seen. Walked at 1280x900, reduced motion, through
+// every card of every scene (scrolly-go), so every state's title is read.
+//
 // Skipped everywhere: tables, chart text (svg), the site header and
 // footer, and anything aria-hidden, visually hidden or [hidden].
 //
@@ -201,6 +219,100 @@ for (const [W, H] of [[1280, 900], [390, 844]]) {
     console.log(`story markers ${W}x${H} ${motion === 'reduce' ? 'reduced motion' : 'motion'}: ${seen.size}`);
     for (const m of seen) console.log(`  ${m}`);
   }
+}
+// ---- titles as findings (Story) ----
+const TITLE_VERBS = /^(is|are|was|were|has|have|had|puts?|gains?|falls?|rises?|sits?|splits?|covers?|absorbs?|offsets?|brings?|changes?|raises?|forecasts?|moves?|ends?|stays?|costs?|loses?|takes?|holds?|grows?|shifts?|runs?|swung)$/i;
+const TITLES = () => {
+  const panel = document.querySelector('.tab-panel:not([hidden])') ?? document.body;
+  const shown = (el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && !el.closest('[hidden], .scrolly-sizers, .visually-hidden, [aria-hidden="true"]');
+  };
+  // the text without the controls; each of a long/short pair on its own
+  const read = (el) => {
+    const c = el.cloneNode(true);
+    c.querySelectorAll('button, [class^="src-"], [class*=" src-"], [hidden], .p3-head-actions, .p2-text-ghost, .p1-title-ghost, .ch-ghost, [aria-hidden="true"]').forEach((x) => x.remove());
+    const pair = [...c.querySelectorAll('.p3-long, .p3-short')];
+    const t = (n) => n.textContent.replace(/\s+/g, ' ').trim();
+    if (pair.length) {
+      const long = c.cloneNode(true);
+      long.querySelectorAll('.p3-short').forEach((x) => x.remove());
+      const short = c.cloneNode(true);
+      short.querySelectorAll('.p3-long').forEach((x) => x.remove());
+      return [t(long), t(short)];
+    }
+    return [t(c)];
+  };
+  const out = [];
+  for (const el of panel.querySelectorAll('.story-figure-title, .ch-title, .p3-group-head.p3-group-first')) {
+    if (!shown(el)) continue;
+    const group = el.matches('.p3-group-head');
+    const fig = el.closest('figure') ?? el.parentElement;
+    const units = [...fig.querySelectorAll('.story-figure-unit, .ch-unit')].filter((u) => el.compareDocumentPosition(u) & Node.DOCUMENT_POSITION_FOLLOWING);
+    // a panel head's own unit line: the next one after it, before the next head
+    const unit = units.find((u) => shown(u)) ?? null;
+    const figUnit = [...fig.querySelectorAll('.story-figure-unit, .ch-unit')].map((u) => u.textContent).join(' ');
+    out.push({
+      where: el.closest('[id]')?.id ?? '',
+      texts: read(el),
+      fallback: el.hasAttribute('data-title-fallback'),
+      group,
+      unit: unit ? unit.textContent.replace(/\s+/g, ' ').trim() : '',
+      source: /ONS|OBR|OG-UK|IMF|DSIT|household study/.test(group ? figUnit : unit?.textContent ?? ''),
+    });
+  }
+  return out;
+};
+{
+  const p = await (await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' })).newPage();
+  await p.goto(base + '/', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(600);
+  const seen = new Map();
+  const take = (rows) => {
+    for (const r of rows) for (const t of r.texts) seen.set(`${r.where}|${t}`, { ...r, text: t });
+  };
+  take(await p.evaluate(TITLES));
+  const scenes = await p.evaluate(() => [...document.querySelectorAll('.tab-panel:not([hidden]) .scrolly[id]')].map((s) => ({ id: s.id, n: s.querySelectorAll('.scrolly-step:not(.is-spacer)').length })));
+  for (const sc of scenes) {
+    for (let k = 0; k < sc.n; k++) {
+      await p.evaluate(({ id, k }) => document.getElementById(id)?.dispatchEvent(new CustomEvent('scrolly-go', { detail: { k, instant: true } })), { id: sc.id, k });
+      await p.waitForTimeout(350);
+      take(await p.evaluate(TITLES));
+    }
+  }
+  await p.close();
+  const bad = [];
+  const exempt = [];
+  for (const r of seen.values()) {
+    const t = r.text;
+    if (r.fallback) {
+      exempt.push(`${r.where}: "${t}"`);
+      continue;
+    }
+    const words = t.split(' ').filter(Boolean);
+    const why = [];
+    if (words.length < 4 || words.length > 10) why.push(`${words.length} words (4 to 10)`);
+    const bare = words.map((w) => w.replace(/[^\p{L}’'-]/gu, ''));
+    const vi = bare.findIndex((w) => TITLE_VERBS.test(w));
+    if (vi < 0) why.push('no finite verb (a label, not a sentence)');
+    if (/\b\d{4}\s*(to|–|-)\s*(\w+\s)?\d{4}\b/.test(t)) why.push('a year range');
+    if (/,\s*\d{4}$/.test(t)) why.push('a trailing year');
+    const by = bare.lastIndexOf('by');
+    if (by >= 0 && (vi < 0 || vi > by) && !/[,;]/.test(words.slice(by).join(' '))) why.push('a trailing "by ..." clause');
+    if (/per cent of|£bn|\bpp\b|%/.test(t)) why.push('unit words');
+    const rest = t.replace(/\b\d{4}s?\b/g, '').replace(/\bdeciles?\s+(from\s+)?\d+(\s*(to|and|–|-)\s*\d+)?/gi, '');
+    if (/\d/.test(rest)) why.push('a result figure');
+    if (/\.$/.test(t)) why.push('a full stop at the end');
+    if (/:/.test(t)) why.push('a colon');
+    if (!r.unit) why.push('no data line after it');
+    else if (!r.source) why.push(`its data line names no source (${r.unit.slice(0, 50)})`);
+    if (why.length) bad.push(`${r.where}: "${t}": ${why.join('; ')}`);
+  }
+  total += bad.length;
+  console.log(`story titles: ${seen.size} read, ${bad.length} break the title rule, ${exempt.length} fallback${exempt.length === 1 ? '' : 's'}`);
+  for (const b of bad) console.log(`  ${b}`);
+  for (const e of exempt) console.log(`  fallback (exempt) ${e}`);
 }
 await browser.close();
 console.log(total ? `FAIL: ${total} text blocks break the rule` : 'PASS');

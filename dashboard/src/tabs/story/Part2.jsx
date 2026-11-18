@@ -54,7 +54,9 @@ export const SUBS = {
     icon: 'path',
     question: 'How far does GDP move from the OBR’s central forecast path?',
     hint: 'Watch the axis switch from growth to a gap against the forecast path',
-    answer: 'GDP ends above the forecast path in every scenario',
+    // the title says the direction (story-finding-titles-fable.md); the
+    // closing line is morphAnswer's, this its fallback
+    answer: 'These are scenarios against a forecast, not forecasts.',
     // the caption is about every scenario's line
     answerHighlight: ['scen-uk_low', 'scen-uk_central', 'scen-uk_high', 'scen-korinek'],
   },

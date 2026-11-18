@@ -361,8 +361,9 @@ function useAnchorSteps() {
 }
 
 // Each topic's question, hint and closing line. The output and work
-// closing lines hold no figures (each holds over the series drawn on the
-// page; part1.test.jsx checks them against the data file); the AI line is
+// closing lines hold no figures and no finding (the figures' titles carry
+// the findings, story-finding-titles-fable.md; part1.test.jsx checks the
+// titles' conditions against the data file); the AI line is
 // the home of business AI use and the high-exposure total (review T3);
 // DSIT's rounded figure is in the exposure card.
 export const OUTPUT_Q = 'How fast has the UK economy grown?';
@@ -371,8 +372,8 @@ export const AI_Q = 'Who uses AI already, and whose jobs are exposed?';
 export const OUTPUT_HINT = 'Watch the years after the pandemic';
 export const WORK_HINT = 'Three official series, one at a time';
 export const AI_HINT = 'Two survey lines, then one grid of workers';
-export const OUTPUT_TAKEAWAY = 'Since the pandemic rebound, annual growth has been below most 2010s rates.';
-export const WORK_TAKEAWAY = 'Jobs are steady, pay growth slowing, and output per hour flat since 2023.';
+export const OUTPUT_TAKEAWAY = 'The ONS still revises recent years; the forecast is the OBR’s central case.';
+export const WORK_TAKEAWAY = 'Three official series; the ONS advises reading the jobs figures over longer periods.';
 
 function AiAnswer() {
   const [hh, hl] = EXPOSURE_GROUPS;

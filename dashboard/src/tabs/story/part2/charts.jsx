@@ -92,6 +92,10 @@ export function WelfareShape({ state }) {
   const bornId = `p2-born-in${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   const xs = D.closures[CENTRAL].birth_year;
   const ys = welfareCell().cev_all;
+  // the title is a finding (story-finding-titles-fable.md), fixed at UK
+  // central, some foreign capital (the unit line says so); the measure is
+  // the unit line's, not repeated inside the plot
+  const allGain = ys.length > 0 && ys.every((v) => v > 0);
   // room under the ticks for the x axis title, inside the drawing
   const sc = scales(xs, ys, undefined, 40);
   const adults = ys.map((v, i) => (xs[i] <= LAST_ALIVE ? v : NaN));
@@ -107,8 +111,13 @@ export function WelfareShape({ state }) {
   return (
     <Figure
       icon="age"
-      title="Welfare change by birth year"
-      unit="UK central scenario, some foreign capital, debt held steady by transfers to households"
+      title={allGain ? 'Every birth year gains on average under this budget assumption' : 'Gains are largest for adults near retirement'}
+      titleFallback={!allGain}
+      unit={
+        <>
+          <span data-axis-title="y">Remaining-lifetime gain, % of consumption and bequests</span>, by birth year. UK central, some foreign capital, debt held steady by transfers to households. OG-UK.
+        </>
+      }
       xTitle={null}
       source={<WelfareSource />}
       head={
@@ -157,9 +166,6 @@ export function WelfareShape({ state }) {
             Enter later
           </text>
         </g>
-        <text x={6} y={9} className="p2-panel-name" data-axis-title="y">
-          Remaining-lifetime gain, % of consumption and bequests
-        </text>
         <text data-axis="" data-label-for="cohort-adults" x={bx - 4} y={yTop + 10} textAnchor="end" className="p2-band-note">
           Adults in {D.shock_year}
         </text>

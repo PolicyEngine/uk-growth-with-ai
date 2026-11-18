@@ -15,6 +15,9 @@ import { NavLink } from '@/lib/nav.jsx';
 // and that "upper bound" qualifies the poverty rise, not the cost.
 
 const H = D.headline;
+// the title is a finding (story-finding-titles-fable.md), true of the
+// study's two poverty measures (both before housing costs)
+const POVERTY_FINDING = H.central_poverty.value > H.central_poverty_relative.value && H.central_poverty_relative.value > 0;
 const B = D.baseline;
 const M = D.method;
 // The prescribed displacement rate. The data carry it only in the note on
@@ -103,7 +106,14 @@ function CentralFigure({ ctx }) {
   }));
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
-      <FigureHead icon="jobLoss" title={`The main case, ${MODEL_YEAR}`} unit={`Mean of ${H.central_cost.draws} draws`} replay={e.replay} source={<CentralSource />} />
+      <FigureHead
+        icon="jobLoss"
+        title={POVERTY_FINDING ? 'Absolute poverty rises more than relative poverty' : `The main case, ${MODEL_YEAR}`}
+        fallback={!POVERTY_FINDING}
+        unit={`One tile is one per cent of employees; changes against the study’s baseline, ${MODEL_YEAR}. Mean of ${H.central_cost.draws} draws. The household study.`}
+        replay={e.replay}
+        source={<CentralSource />}
+      />
       <div className="p3-central">
         <div {...markProps('displaced', 'p3-central-tiles')}>
           <p className="p3-tile-heads">

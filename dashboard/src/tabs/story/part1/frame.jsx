@@ -146,10 +146,11 @@ function Stack({ value, reserve }) {
 }
 
 // A figure's title, led by its one plain concept icon, and its unit line
-// (no icon).
-export function FigTitle({ icon, title, reserve, source }) {
+// (no icon). `fallback`: the title is a finding's fallback (its condition
+// failed), marked for check_text.
+export function FigTitle({ icon, title, reserve, source, fallback = false }) {
   return (
-    <p className="story-figure-title p1-title-row">
+    <p className="story-figure-title p1-title-row" data-title-fallback={fallback ? '' : undefined}>
       <Icon name={iconFor(icon)} size={16} className="p1-text-icon" />
       <Stack value={title} reserve={reserve} />
       {source}
@@ -184,11 +185,11 @@ export const Ext = ({ href, children, className }) => (
 // The frame round a graphic: title, unit line, drawing, foot. `titleReserve`
 // and `unitReserve` hold the height of the longest title and unit line any
 // state shows, so a state change never moves the drawing.
-export function Figure({ icon = 'path', title, titleReserve, unit, unitReserve, source, essential, children, innerRef, className = '' }) {
+export function Figure({ icon = 'path', title, titleFallback = false, titleReserve, unit, unitReserve, source, essential, children, innerRef, className = '' }) {
   return (
     <figure className={`p1-figure ${className}`} ref={innerRef}>
       <ModelBadge model="official" className="p1-badge" />
-      <FigTitle icon={icon} title={title} reserve={titleReserve} source={source} />
+      <FigTitle icon={icon} title={title} reserve={titleReserve} source={source} fallback={titleFallback} />
       {unit ? <FigUnit reserve={unitReserve}>{unit}</FigUnit> : null}
       {children}
       <Essential>{essential}</Essential>

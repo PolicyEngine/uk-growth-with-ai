@@ -106,7 +106,7 @@ describe('story part 1, real data', () => {
     const lastFull = real.series.gdp_growth.x[real.series.gdp_growth.x.length - 1];
     expect(Number(q.slice(0, 4))).toBeGreaterThan(lastFull);
     const annual = render(<OutputCanvas state={0} />).container;
-    expect(annual.querySelector('.story-figure-unit').textContent).toContain(`${lastFull} is the latest complete year`);
+    expect(annual.querySelector('.story-figure-unit').textContent).toContain(`previous calendar year, 2010 to ${lastFull}. ONS.`);
     cleanup();
     // the current year's latest quarter is in the GDP tile ("Q3 2026"), flagged
     // a first estimate; the growth on a year earlier is in the panel's notes
@@ -231,8 +231,8 @@ describe('story part 1, real data', () => {
     expect(el.querySelector('.p1-ai [data-axis-title="x"]')).not.toBeNull();
   });
 
-  it('keeps each topic takeaway true of the series on the page', async () => {
-    const { OUTPUT_TAKEAWAY, WORK_TAKEAWAY } = await import('@/tabs/story/Part1.jsx');
+  it('keeps each figure title (a finding) true of the series on the page', async () => {
+    const F = await import('@/tabs/story/part1/findings.js');
     const S = real.series;
     // output: every year after the rebound below most 2010s years; every quarter of the current year above zero
     const g = (y) => S.gdp_growth.y[S.gdp_growth.x.indexOf(y)];
@@ -240,7 +240,10 @@ describe('story part 1, real data', () => {
     S.gdp_growth.x.filter((y) => y >= 2023).forEach((y) => expect(tens.filter((t) => t > g(y)).length).toBeGreaterThan(tens.length / 2));
     const lastYear = S.gdp_quarterly.x.at(-1).slice(0, 4);
     S.gdp_quarterly.x.forEach((q, i) => q.startsWith(lastYear) && expect(S.gdp_quarterly.y[i]).toBeGreaterThan(0));
-    expect(OUTPUT_TAKEAWAY).toContain('below most 2010s rates');
+    expect(F.outputTitle()).toEqual({ title: 'Annual growth since 2023 has been below most 2010s rates', fallback: false });
+    // the forecast: every year below at least 6 of the ten 2010s years
+    S.obr_gdp_forecast.y.forEach((v) => expect(tens.filter((t) => t > v).length).toBeGreaterThanOrEqual(6));
+    expect(F.forecastTitle()).toEqual({ title: `The OBR forecasts growth below most 2010s rates to ${S.obr_gdp_forecast.x.at(-1)}`, fallback: false });
     // work ("a steady labour market: pay growth slowing, output per hour
     // flat since 2023"): employment within 0.5 points of a year earlier;
     // pay growth peaked in 2023 and is lower now; output per hour about 100 (2023 = 100)
@@ -251,7 +254,22 @@ describe('story part 1, real data', () => {
     expect(p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4)).toBe('2023');
     expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
     expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
-    expect(WORK_TAKEAWAY).toContain('pay growth slowing');
+    // employment below its early 2020 peak; pay growth back inside its
+    // 2010s range; output per hour above every quarter before 2020
+    expect(e.x[e.y.indexOf(Math.max(...e.y))]).toMatch(/^2020 (JAN|FEB|MAR)/);
+    expect(e.y.at(-1)).toBeLessThan(Math.max(...e.y));
+    const p10 = Math.max(...p.y.filter((_, i) => Number(p.x[i].slice(0, 4)) <= 2019));
+    expect(p.y.at(-1)).toBeLessThanOrEqual(p10);
+    const o = S.productivity_oph;
+    expect(o.y.at(-1)).toBeGreaterThan(Math.max(...o.y.filter((_, i) => Number(o.x[i].slice(0, 4)) < 2020)));
+    expect([F.employmentTitle(), F.payTitle(), F.productivityTitle()]).toEqual([
+      { title: 'The employment rate is below its early 2020 peak', fallback: false },
+      { title: 'Regular pay growth is back inside its 2010s range', fallback: false },
+      { title: 'Output per hour is higher than any quarter before 2020', fallback: false },
+    ]);
+    // AI use more than tripled on both lines; three groups within 5 points
+    expect(F.aiTitle()).toEqual({ title: 'Business AI use has more than tripled since September 2023', fallback: false });
+    expect(F.workersTitle()).toEqual({ title: 'UK workers split into three near-equal groups by AI exposure', fallback: false });
     // AI: each September wave above the one a year before; the 10+ group up more; the two high-exposure groups a majority
     for (const k of ['business_ai_use', 'business_ai_use_10plus']) {
       const sep = S[k].x.map((x, i) => (/Sept/.test(x) ? S[k].y[i] : null)).filter((v) => v != null);

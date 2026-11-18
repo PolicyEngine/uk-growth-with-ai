@@ -26,6 +26,9 @@ import { SECTION } from './sources.jsx';
 
 const DEC = D.deciles;
 const VALUES = DEC.values;
+// the title is a finding (story-finding-titles-fable.md): deciles 2 to 9
+// all fall, each interval wholly below zero
+const FALLS_2_9 = VALUES.length >= 9 && VALUES.slice(1, 9).every((v, i) => v < 0 && (DEC.ci_high?.[i + 1] ?? 0) < 0);
 const LO = Math.floor(Math.min(0, ...VALUES));
 const HI = Math.ceil(Math.max(0, ...VALUES));
 
@@ -167,19 +170,19 @@ function DecilesFigure({ ctx }) {
       <FigureHead
         icon="deciles"
         title={
-          <>
-            <span className="p3-long">Change in household disposable income by income decile</span>
-            <span className="p3-short">Disposable income by decile</span>
-          </>
+          FALLS_2_9 ? (
+            'Disposable income falls in every decile from 2 to 9'
+          ) : (
+            <>
+              <span className="p3-long">Change in household disposable income by income decile</span>
+              <span className="p3-short">Disposable income by decile</span>
+            </>
+          )
         }
-        y={
-          <>
-            <span className="p3-long">% change in disposable income, before housing costs</span>
-            <span className="p3-short">% change, before housing costs</span>
-          </>
-        }
-        x="Income decile, 1 = bottom"
-        unit={`Main case, ${D.model_year ?? MODEL_YEAR}, ${DEC.draws} draws`}
+        fallback={!FALLS_2_9}
+        y="% change in disposable income, before housing costs"
+        x="by income decile (1 = bottom)"
+        unit={`Main case, ${MODEL_YEAR}, ${DEC.draws} draws. The household study.`}
         replay={e.replay}
         source={<DecilesSource />}
       />

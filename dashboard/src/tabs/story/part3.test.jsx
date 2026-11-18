@@ -60,6 +60,32 @@ describe('format', () => {
 });
 
 describe('Part3', () => {
+  it('titles each figure with a finding true of the data file (story-finding-titles-fable.md)', () => {
+    const { container } = renderPart();
+    const titles = [...container.querySelectorAll('.story-figure-title, .p3-group-head.p3-group-first')].map((t) => {
+      const c = t.cloneNode(true);
+      c.querySelectorAll('button, [class^="src-"], [hidden], .p3-head-actions').forEach((x) => x.remove());
+      return c.textContent.replace(/\s+/g, ' ').trim();
+    });
+    const H = D.headline;
+    expect(H.central_poverty.value).toBeGreaterThan(H.central_poverty_relative.value);
+    expect(D.sankey.total.tax_ni_bn).toBeGreaterThan(D.sankey.total.benefits_bn);
+    expect(D.deciles.values.slice(1, 9).every((v) => v < 0)).toBe(true);
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        'Absolute poverty rises more than relative poverty',
+        'Two assumed gains offset most of job loss’s cost',
+        'Disposable income falls in every decile from 2 to 9',
+        'Lower tax absorbs more of the lost earnings than benefits',
+        'The cost changes with every assumption tested',
+        'The main case’s cost sits between the other rules’',
+        'Wage cuts of the same size raise poverty far less',
+        'Any one of three changes brings the cost to zero',
+      ]),
+    );
+    expect(container.querySelector('[data-title-fallback]')).toBeNull();
+    expect(CHANNELS_SUB.answer).toBe('Both gains are assumptions, not results: without them the cost is the first bar.');
+  });
   it('prints every figure at its home exactly once, and nothing else', () => {
     const { container } = renderPart();
     const text = checkedText(container);

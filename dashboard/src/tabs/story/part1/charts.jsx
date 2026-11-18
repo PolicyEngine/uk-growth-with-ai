@@ -4,6 +4,7 @@ import { useEnterState, useDrawIn } from '@/components/story/motion.js';
 import { TileField, tileSettleMs } from '@/components/story/primitives.jsx';
 import { Crosshair, ModelBadge, barPath as chartBar } from '@/components/story/chart/index.js';
 import { BICS_WAVE, EXPOSURE_GROUPS, FACTS, OBR, OBR_VINTAGE, SERIES } from './data.js';
+import { WORKERS_PERIOD, aiTitle, employmentTitle, forecastTitle, outputTitle, payTitle, productivityTitle, workersTitle } from './findings.js';
 import { FigTitle, FigUnit, Figure, SourceLine, XTicks, YGrid, linePath, linear, niceTicks, useBox, useSvgId, yearTicks } from './frame.jsx';
 import { idx1, pct1, share0, span3, tick } from './format.js';
 
@@ -125,13 +126,15 @@ export function OutputCanvas({ state, notes }) {
       } and highest in ${maxAt}, the pandemic fall and rebound.${
         fc ? ` A separate dashed line to the right shows the OBR’s forecast, for ${OBR.x[0]} to ${x1}; it is not joined to the bars.` : ''
       }`;
-  const titles = [
-    `Real GDP growth, ${x0} to ${gLast}`,
-    `Real GDP growth, ${x0} to ${gLast}, and the OBR’s forecast to ${x1}`,
-    `Real GDP growth by quarter, ${q.x[0]} to ${lastQ}`,
-  ];
+  // findings as titles (story-finding-titles-fable.md). The quarterly
+  // state keeps its label, marked as a fallback (check_text prints it): the
+  // ruling took it as not reached, but the third card shows it, and its
+  // step already says every quarter grew, so its finding needs a ruling
+  const heads = [outputTitle(), forecastTitle(), { title: `Real GDP growth by quarter, ${q.x[0]} to ${lastQ}`, fallback: true }];
+  const titles = heads.map((x) => x.title);
   const units = [
-    `Percentage change on the previous calendar year. ${gLast} is the latest complete year.`,
+    `Real GDP, percentage change on the previous calendar year, ${x0} to ${gLast}. ONS.`,
+    `Real GDP, percentage change on the previous year: ONS outturn to ${gLast}; OBR forecast, ${OBR_VINTAGE}, to ${x1}.`,
     `Percentage change on the previous quarter, seasonally adjusted. ${lastQ} is a first estimate.`,
   ];
   const source = zoomed ? (
@@ -185,8 +188,9 @@ export function OutputCanvas({ state, notes }) {
       icon={zoomed ? 'period' : 'gdp'}
       innerRef={ref}
       title={titles[Math.min(state, 2)]}
+      titleFallback={heads[Math.min(state, 2)].fallback}
       titleReserve={longest(titles)}
-      unit={units[zoomed ? 1 : 0]}
+      unit={units[zoomed ? 2 : Math.min(state, 1)]}
       unitReserve={longest(units)}
       source={source}
       className="p1-out"
@@ -301,7 +305,6 @@ export const boardSeries = () => {
   const p = SERIES.pay_growth;
   const o = SERIES.productivity_oph;
   const span = (x) => `${x.x[0].slice(0, 4)} to ${span3(x.last)}`;
-  const rolling = 'rolling three-month averages, seasonally adjusted';
   return [
     {
       key: 'employment_rate',
@@ -312,8 +315,8 @@ export const boardSeries = () => {
       name: 'Employment',
       long: 'the employment rate for people aged 16 to 64',
       span: span(e),
-      title: `Employment rate, ${span(e)}`,
-      unit: `Per cent of people aged 16 to 64; ${rolling}`,
+      head: employmentTitle(),
+      unit: `Per cent of people aged 16 to 64, three-month average, seasonally adjusted, ${span(e)}. ONS.`,
       src: [{ id: e.source, name: 'employment rate' }],
     },
     {
@@ -327,8 +330,8 @@ export const boardSeries = () => {
       name: 'Pay growth',
       long: 'growth of average weekly regular pay on a year earlier',
       span: span(p),
-      title: `Regular pay growth, ${span(p)}`,
-      unit: 'Percentage change on the same three months a year earlier, excluding bonuses, before adjusting for inflation',
+      head: payTitle(),
+      unit: `Percentage change on a year earlier, excluding bonuses, before inflation, three-month average, ${span(p)}. ONS.`,
       src: [{ id: p.source, name: 'average weekly earnings, regular pay' }],
     },
     {
@@ -340,8 +343,8 @@ export const boardSeries = () => {
       name: 'Output per hour',
       long: 'output per hour worked in the whole economy, a quarterly index with 2023 equal to 100',
       span: `${o.x[0]} to ${o.x[o.x.length - 1]}`,
-      title: `Output per hour worked, whole economy, ${o.x[0]} to ${o.x[o.x.length - 1]}`,
-      unit: 'Index, 2023 = 100, quarterly, seasonally adjusted',
+      head: productivityTitle(),
+      unit: `Index, 2023 = 100, quarterly, seasonally adjusted, whole economy, ${o.x[0]} to ${o.x[o.x.length - 1]}. ONS.`,
       src: [{ id: o.source, name: 'output per hour worked' }],
     },
   ];
@@ -398,8 +401,9 @@ export function LabourBoard({ focus, notes }) {
     <Figure
       icon={cur.icon}
       innerRef={ref}
-      title={cur.title}
-      titleReserve={longest(all.map((x) => x.title))}
+      title={cur.head.title}
+      titleFallback={cur.head.fallback}
+      titleReserve={longest(all.map((x) => x.head.title))}
       unit={cur.unit}
       unitReserve={longest(all.map((x) => x.unit))}
       source={<SourceLine items={cur.src} through={periodLabel(cur.s.last ?? cur.s.x[cur.s.x.length - 1])} notes={notes} />}
@@ -487,6 +491,7 @@ export function AiUseChart({ notes, lines = 2 }) {
   const X = linear(0, last, L + 4, R - 4);
   const Y = linear(D.lo, D.hi, B, T);
   const short = (d) => d.replace(/^\d+ /, '');
+  const aiHead = aiTitle();
   const dA = linePath(X, Y, idx, a.y);
   const area = `${dA}L${X(last).toFixed(1)},${Y(0).toFixed(1)}L${X(0).toFixed(1)},${Y(0).toFixed(1)}Z`;
   // end labels clear of their lines: over the label's width (about 7px a
@@ -503,8 +508,9 @@ export function AiUseChart({ notes, lines = 2 }) {
     <Figure
       icon="ai"
       innerRef={ref}
-      title={`Businesses using at least one AI technology, ${short(a.x[0])} to ${short(a.x[last])}`}
-      unit="Per cent of businesses using at least one AI technology"
+      title={aiHead.title}
+      titleFallback={aiHead.fallback}
+      unit={`Per cent of businesses using at least one AI technology, all and 10 or more employees, ${short(a.x[0])} to ${short(a.x[last])}. ONS.`}
       source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} through={`Wave ${BICS_WAVE}, ${a.x[last]}`} notes={notes} />}
       className="p1-ai"
     >
@@ -593,14 +599,16 @@ export function ExposureTiles({ state, source, entered = true }) {
   const shown = useEnterState(0, state, entered);
   const grouped = shown >= 1;
   const tiles = exposureTiles(shown);
+  // one title for both tile states (story-finding-titles-fable.md)
+  const wHead = workersTitle();
   const label = grouped
     ? 'A grid of 100 tiles, each one per cent of UK workers, in three groups by exposure to AI: high exposure and high complementarity, high exposure and low complementarity, and low exposure.'
     : 'A grid of 100 tiles, each one per cent of UK workers.';
   return (
     <figure className={`p1-figure p1-exposure${grouped ? ' is-grouped' : ''}`} style={{ '--p1-settle': `${tileSettleMs(exposureTiles(1))}ms` }}>
       <ModelBadge model="official" className="p1-badge" />
-      <FigTitle icon="workers" title={grouped ? 'UK workers by exposure to AI' : 'UK workers'} reserve="UK workers by exposure to AI" source={source} />
-      <FigUnit>Each tile is one per cent of UK workers</FigUnit>
+      <FigTitle icon="workers" title={wHead.title} fallback={wHead.fallback} source={source} />
+      <FigUnit>{`Each tile is one per cent of UK workers; two of the three groups are high exposure. IMF estimates, ${WORKERS_PERIOD}, via DSIT.`}</FigUnit>
       <div className="p1-tiles">
         <TileField tiles={tiles} width={GRID_W} height={GRID_H} label={label} className="p1-tile-grid" />
         {/* each group's name and share under its block, once grouped (they

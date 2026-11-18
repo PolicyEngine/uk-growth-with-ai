@@ -413,8 +413,10 @@ describe('from the record to the model', () => {
       [true, true, false],
       [false, false, true],
     ]);
-    expect(seen[0].title).toBe('Real GDP growth');
-    expect(seen[2].title).toBe('GDP against the OBR’s central forecast path');
+    // findings as titles (story-finding-titles-fable.md)
+    expect(seen[0].title).toBe('Growth swung widely in 2020 and 2021');
+    expect(seen[1].title).toBe('The OBR’s forecast is steadier than the last ten years');
+    expect(seen[2].title).toBe(`GDP runs above the forecast path from ${real.surprise_year}`);
     expect(seen[0].source).not.toContain('OG-UK');
     expect(seen[1].source).toContain('OBR');
     expect(seen[2].source).toContain('OG-UK');

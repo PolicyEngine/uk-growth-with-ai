@@ -27,6 +27,8 @@ import { DecileOneWhy } from './Deciles.jsx';
 // caveat, the result file and OBR Box 2.2 are behind the title's button.
 
 const S = D.sankey;
+// the title is a finding (story-finding-titles-fable.md)
+const TAX_MORE = S.total.tax_ni_bn > S.total.benefits_bn;
 const RATE = `${S.displacement_rate_pct.toFixed(2)}%`;
 
 export const POUND_SUB = {
@@ -100,10 +102,12 @@ function PoundFigure({ ctx }) {
       <FigureHead
         kicker={<>{hy('OBR-sized')} run · not the main case</>}
         icon="pay"
-        title="Where lost earnings go, by income decile"
-        y="£bn a year"
-        x="Income decile (1 = lowest)"
-        unit={`Where each lost pound goes. ${fmtBn(S.total.earnings_lost_bn)} of earnings lost a year; average of ${S.draws} runs.`}
+        title={TAX_MORE ? 'Lower tax absorbs more of the lost earnings than benefits' : 'Where lost earnings go, by income decile'}
+        fallback={!TAX_MORE}
+        y="£bn a year of earnings lost"
+        x="by decile (1 = lowest)"
+        unit={`OBR-sized run, job loss alone, average of ${S.draws} runs. The household study.`}
+        unit2={`${fmtBn(S.total.earnings_lost_bn)} of earnings lost a year.`}
         replay={e.replay}
         source={<PoundSource />}
       />

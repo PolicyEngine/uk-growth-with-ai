@@ -4,7 +4,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtBn2, fmtInputPct, fmtPct1 } from './format.js';
 import { Essential } from '@/components/ui/SourceLine.jsx';
-import { D, FigureHead, InputFig, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
+import { D, FigureHead, InputFig, MODEL_YEAR, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { RETURN_BASE, RETURN_PP } from './Central.jsx';
 import { Ref } from './sources.jsx';
 
@@ -19,6 +19,16 @@ const M = D.method;
 
 const C = D.channels;
 const row = (id) => C.rows.find((r) => r.id === id);
+// the title is a finding (story-finding-titles-fable.md): the two assumed
+// gains (both negative costs) offset over half of job loss's cost, not all
+const OFFSET = (() => {
+  const w = row('wage')?.cost_bn;
+  const k = row('capital')?.cost_bn;
+  const d = row('displacement')?.cost_bn;
+  if (!(w < 0 && k < 0 && d > 0)) return false;
+  const off = -(w + k);
+  return off > d / 2 && off < d;
+})();
 const ROWS = [
   {
     id: 'displacement',
@@ -80,10 +90,11 @@ function ChannelsFigure({ ctx }) {
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene`)}>
       <FigureHead
         icon="arithmetic"
-        title="Three flows make up the cost"
-        y="Cost to the public finances, £bn a year; right of zero a cost"
-        x="each channel run alone, then their sum"
-        unit={`${C.draws} paired draws`}
+        title={OFFSET ? 'Two assumed gains offset most of job loss’s cost' : 'Three flows make up the cost'}
+        fallback={!OFFSET}
+        y="Public finance cost, £bn a year (positive = cost)"
+        x={`${MODEL_YEAR}: each channel alone, then their sum`}
+        unit={`${C.draws} paired draws. The household study.`}
         replay={e.replay}
         source={<ChannelsSource />}
       />
@@ -142,7 +153,9 @@ export const CHANNELS_SUB = {
   hint: 'Watch three flows net to one cost',
   key: 'cost',
   answerTo: 'p3-channels-step',
-  answer: `Job loss alone ${row('displacement').cost_bn > 0 ? 'costs' : 'adds'} ${fmtBn(Math.abs(row('displacement').cost_bn))}; net of the gains, ${fmtBn(C.sum_bn)} on ${C.draws} draws`,
+  // the title says the gains offset most of the cost and the bars print
+  // both figures (story-finding-titles-fable.md): the caveat instead
+  answer: 'Both gains are assumptions, not results: without them the cost is the first bar.',
 };
 
 // The two assumed income rises and the net, in one sentence: their words

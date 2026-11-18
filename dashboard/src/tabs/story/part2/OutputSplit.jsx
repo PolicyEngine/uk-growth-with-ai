@@ -8,7 +8,8 @@ import Icon from '@/components/ab/Icon.jsx';
 import { ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
 import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
-import { SCEN_NAME, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
+import { SCEN_NAME, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
+import { fracWord } from './caveats.js';
 import { Tx } from './frame.jsx';
 import { OutputSource } from './sources.jsx';
 import { SPLIT_YEAR, PART_COLOR, PART_TEXT, CAPITAL_PARTS, share, change, splitFor, sankeyGraph, waterfallRows, barColor } from './split.js';
@@ -221,6 +222,12 @@ export function outChangeItems(ch) {
 // The graphic: the Sankey, the waterfall below it. `state` 0-2; `all`
 // draws the last state with nothing hidden (phones).
 function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen: seenProp, figRef, fast = false, both = false }) {
+  // the titles are findings (story-finding-titles-fable.md): how much of
+  // gross capital income covers depreciation, in words; whether most of
+  // capital's gain is kept in the UK. Otherwise the old labels (fallback).
+  const gross = base ? base.domestic + base.foreign + base.depreciation : 0;
+  const depWord = base && gross > 0 ? fracWord(base.depreciation / gross) : null;
+  const kept = Boolean(ch && ch.gross_capital > 0 && ch.domestic > ch.gross_capital / 2);
   const t = fast ? TIMING.fast : TIMING.full;
   const [ownRef, ownSeen] = useLiveInView();
   const ref = figRef ?? ownRef;
@@ -348,8 +355,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
         {/* one head row: badge, title with its unit, Replay and Pause */}
         <div className="p2-output-head">
           <ModelBadge model="oguk" />
-          <p className="story-figure-title p2-output-title">
-            <Tx icon="gdp">Who is paid GDP in {SPLIT_YEAR}</Tx>
+          <p className="story-figure-title p2-output-title" data-title-fallback={depWord ? undefined : ''}>
+            <Tx icon="gdp">{depWord ? `${cap(depWord)} of gross capital income covers depreciation` : `Who is paid GDP in ${SPLIT_YEAR}`}</Tx>
             <OutputSource closure={cap(CL_WORDS[cl])} where={where} />
           </p>
           {graph && !all ? (
@@ -360,7 +367,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           ) : null}
         </div>
         <p className="story-figure-unit p2-output-unit">
-          <span data-axis-title="y">per 100 of GDP on the OBR’s central forecast path</span>
+          <span data-axis-title="y">Income per 100 of GDP on the OBR’s central forecast path</span>
+          <span>{`, ${SPLIT_YEAR}, ${CL_WORDS[cl]}. OG-UK`}</span>
           {both ? <span>. With both foreign-capital cases chosen above, both figures show some foreign capital.</span> : null}
         </p>
         {graph ? (
@@ -411,12 +419,13 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           for the number checks), out of reach of focus and pointer; it opens
           at step 3, where it is discussed, at full contrast */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
-        <p className="story-figure-title p2-output-title">
-          <Tx icon="compare">
-            What {SCEN_NAME[sid]} changes, {SPLIT_YEAR}
-          </Tx>
+        <p className="story-figure-title p2-output-title" data-title-fallback={kept ? undefined : ''}>
+          <Tx icon="compare">{kept ? 'Most of capital’s gain is kept in the UK' : `What ${SCEN_NAME[sid]} changes, ${SPLIT_YEAR}`}</Tx>
         </p>
-        <p className="story-figure-unit p2-output-unit" data-axis-title="x">change, in the same units</p>
+        <p className="story-figure-unit p2-output-unit">
+          <span data-axis-title="x">Change against the forecast path, per 100 of its GDP</span>
+          {`, ${SPLIT_YEAR}. ${scenarioById(sid)?.short ?? SCEN_NAME[sid]}, ${CL_WORDS[cl]}. OG-UK.`}
+        </p>
         {ch ? (
           <>
             <Waterfall

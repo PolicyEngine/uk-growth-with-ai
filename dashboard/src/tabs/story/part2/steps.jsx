@@ -1,7 +1,7 @@
 'use client';
 
 import { Key } from '@/components/story/highlight.jsx';
-import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, gap } from '@/tabs/ai/surprise.js';
+import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
 import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
 import { PART_COLOR } from './split.js';
 import { EPS2, dirWord } from './dir.js';
@@ -185,17 +185,25 @@ export function whoCardSteps() {
   ];
 }
 
-// The GDP scene's closing line: the direction in every scenario, and which
-// ends nearest and furthest from the path (sizes in words; the figures are
-// the headline tiles' and Explore's). null when a scenario is pending.
+// The GDP scene's closing line (story-finding-titles-fable.md: the title
+// now says every scenario ends above or below the path, the step says
+// which ends nearest and furthest): how the other foreign-capital case
+// moves every gap, and that none is a forecast. The case not shown has
+// every gap smaller (no foreign capital) or larger (some), in every
+// scenario and year after the surprise; otherwise the plain reminder.
+export const MORPH_FALLBACK = 'These are scenarios against a forecast, not forecasts.';
 export function morphAnswer(cl) {
-  const dir = scenarioDir(cl);
-  const ends = SCENARIOS.map((s) => [s.id, gap(s.id, 'tfp', cl, 'Y')]);
-  if (!dir || ends.some(([, v]) => v == null)) return null;
-  const sorted = [...ends].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
-  const where = dir === 'gapUp' ? 'above' : 'below';
-  const name = (id) => SCEN_NAME[id].replace(/ \(.*\)$/, '');
-  return `GDP ends ${where} the forecast path in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
+  const other = cl === CENTRAL ? BOUND : CENTRAL;
+  const from = YEARS.indexOf(SURPRISE_YEAR) + 1;
+  const pairs = SCENARIOS.map((s) => [series(s.id, 'tfp', cl, 'Y'), series(s.id, 'tfp', other, 'Y')]);
+  if (pairs.some(([a, b]) => !a || !b)) return MORPH_FALLBACK;
+  // zk0 (no foreign capital) below zk0.1 (some) in every scenario and year
+  const lower = pairs.every(([a, b]) => {
+    const [zk01, zk0] = cl === CENTRAL ? [a, b] : [b, a];
+    return zk01.slice(from).every((v, i) => zk0[from + i] < v);
+  });
+  if (!lower) return MORPH_FALLBACK;
+  return cl === CENTRAL ? 'With no foreign capital every gap is smaller; none is a forecast.' : 'With some foreign capital every gap is larger; none is a forecast.';
 }
 
 // The generations scene's one closing line (newcomer review item 8): the

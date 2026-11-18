@@ -216,11 +216,11 @@ export function Tx({ icon, size = 14, children }) {
 }
 
 // The frame around a graphic: title, unit, the drawing, a legend, the source.
-export function Figure({ title, unit, legend, source = SOURCE, essential, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
+export function Figure({ title, titleFallback = false, unit, legend, source = SOURCE, essential, icon = 'path', head = null, className = '', model = 'oguk', xTitle = 'Year', children }) {
   return (
     <figure className={`p2-figure ${className}`}>
       <ModelBadge model={model} />
-      <p className="story-figure-title p2-title-row">
+      <p className="story-figure-title p2-title-row" data-title-fallback={titleFallback ? '' : undefined}>
         <span>
           <Tx icon={icon}>{title}</Tx>
         </span>

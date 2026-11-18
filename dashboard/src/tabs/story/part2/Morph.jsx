@@ -4,7 +4,8 @@ import { useId } from 'react';
 import Tween from '@/components/story/Tween.jsx';
 import { useIsPhone } from '@/components/story/motion.js';
 import U from '@/data/ukContext.json';
-import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
+import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
+import { EPS2 } from './dir.js';
 import { ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
 import { modelItems, SRC as LINKS } from './sources.jsx';
@@ -233,13 +234,56 @@ function bandPath(X, Y, lo, hi) {
 const OFF_YEARS = ACT.filter(([, y]) => Math.abs(y) > OFF).map(([x]) => x);
 const OFF_NOTE = OFF_YEARS.length ? ` ${OFF_YEARS.join(' and ')} run${OFF_YEARS.length > 1 ? '' : 's'} off the scale (arrows).` : '';
 const GAP_TITLE = 'GDP against the OBR’s central forecast path';
-const STATE_TEXT = (sid, cl) => [
-  { title: 'Real GDP growth', unit: `ONS outturn: percentage change on the previous calendar year.${OFF_NOTE}` },
-  { title: 'Real GDP growth', unit: `ONS outturn (solid) and the OBR’s forecast${OBR_VINTAGE ? `, ${OBR_VINTAGE}` : ''} (dashed): percentage change on the previous year.${OFF_NOTE}` },
-  { title: GAP_TITLE, unit: `${SCEN_NAME[sid]}, tasks automated, productivity up, ${CL_WORDS[cl]}. A gap in the level, in %; not a growth rate` },
-  { title: GAP_TITLE, unit: `The UK scenarios, ${SCEN_NAME[sid]} in colour, the UK range shaded. Tasks automated, productivity up, ${CL_WORDS[cl]}. Gap, %` },
-  { title: GAP_TITLE, unit: `The four scenarios, ${SCEN_NAME[sid]} in colour. Tasks automated, productivity up, ${CL_WORDS[cl]}. Gap, %` },
-];
+// Each state's title is a finding (story-finding-titles-fable.md), with a
+// fallback (fallback: true, marked for check_text) when its condition
+// fails; the unit line says what is plotted, the years and the source.
+// The sign of a scenario's gap in every year after the surprise year:
+// 'above', 'below' or null (mixed, or pending).
+const gapSide = (ys) => {
+  if (!ys) return null;
+  const tail = ys.slice(YEARS.indexOf(SURPRISE_YEAR) + 1);
+  if (tail.length && tail.every((v) => v > EPS2)) return 'above';
+  if (tail.length && tail.every((v) => v < -EPS2)) return 'below';
+  return null;
+};
+// the same in every scenario's main arm
+const allSide = (cl) => {
+  const sides = SCENARIOS.map((x) => gapSide(series(x.id, 'tfp', cl, 'Y')));
+  return sides.every((v) => v && v === sides[0]) ? sides[0] : null;
+};
+const ACT_LO = ACT.reduce((m, p) => (p[1] < m[1] ? p : m), ACT[0] ?? [null, Infinity]);
+const ACT_HI = ACT.reduce((m, p) => (p[1] > m[1] ? p : m), ACT[0] ?? [null, -Infinity]);
+const steadier = OBR.length > 0 && ACT.length > 0 && Math.min(...OBR.map((p) => p[1])) >= ACT_LO[1] && Math.max(...OBR.map((p) => p[1])) <= ACT_HI[1];
+const ACT_FIRST = ACT.length ? ACT[0][0] : ACT_LAST;
+const SPAN = `${YEARS[0]} to ${YEARS[YEARS.length - 1]}`;
+const shortName = (sid) => scenarioById(sid)?.short ?? SCEN_NAME[sid];
+const STATE_TEXT = (sid, cl) => {
+  const one = gapSide(series(sid, 'tfp', cl, 'Y'));
+  const every = allSide(cl);
+  return [
+    { title: `Growth swung widely in ${[ACT_LO[0], ACT_HI[0]].sort((a, b) => a - b).join(' and ')}`, fallback: false, unit: `Real GDP growth, % a year, ${ACT_FIRST} to ${ACT_LAST}: ONS outturn.${OFF_NOTE}` },
+    {
+      title: steadier ? 'The OBR’s forecast is steadier than the last ten years' : 'Real GDP growth',
+      fallback: !steadier,
+      unit: `Real GDP growth, % a year, ${ACT_FIRST} to ${ACT_LAST}: ONS outturn (solid), OBR forecast${OBR_VINTAGE ? `, ${OBR_VINTAGE}` : ''} (dashed).${OFF_NOTE}`,
+    },
+    {
+      title: one ? `GDP runs ${one} the forecast path from ${SURPRISE_YEAR}` : GAP_TITLE,
+      fallback: !one,
+      unit: `GDP gap against the OBR’s central forecast path, %, ${SPAN}; not a growth rate. ${shortName(sid)}, ${CL_WORDS[cl]}. OG-UK.`,
+    },
+    {
+      title: every ? `GDP ends ${every} the forecast path in every scenario` : GAP_TITLE,
+      fallback: !every,
+      unit: `GDP gap against the forecast path, %, ${SPAN}. UK scenarios, ${shortName(sid)} in colour, UK range shaded; ${CL_WORDS[cl]}. OG-UK.`,
+    },
+    {
+      title: every ? `GDP ends ${every} the forecast path in every scenario` : GAP_TITLE,
+      fallback: !every,
+      unit: `GDP gap against the forecast path, %, ${SPAN}. Four scenarios, ${shortName(sid)} in colour; ${CL_WORDS[cl]}. OG-UK.`,
+    },
+  ];
+};
 
 // The sources of each geometry state, behind the figure's one "Sources
 // and notes" button: the record's (ONS, OBR), then the model's, with the
@@ -391,7 +435,7 @@ export function MorphChart({ state, sid, cl, pin = null }) {
       </span>
       {/* every state's title and unit stacked in one grid cell, only the
           current one visible: the drawing below never moves between states */}
-      <p className="story-figure-title p2-title-row">
+      <p className="story-figure-title p2-title-row" data-title-fallback={all[s]?.fallback ? '' : undefined}>
         <span className="p2-text-stack">
           {all.map((t, i) => (
             <span key={i} className={i === s ? undefined : 'p2-text-ghost'} aria-hidden={i === s ? undefined : 'true'}>

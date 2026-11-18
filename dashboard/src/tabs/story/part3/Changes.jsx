@@ -6,7 +6,7 @@ import Scrolly from '@/components/story/Scrolly.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
 import { Essential } from '@/components/ui/SourceLine.jsx';
-import { AxisTitle, D, FigureHead, Key, MarkProvider, OutsideRebuildFlag, Source, entryClass, ladder, perPound, rule, useBeat, asLines } from './shared.jsx';
+import { AxisTitle, D, FigureHead, Key, MarkProvider, MODEL_YEAR, OutsideRebuildFlag, Source, entryClass, ladder, perPound, rule, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
 
 // What changes the answer (round 2): one scene in place of three (who loses
@@ -38,6 +38,13 @@ const RULES = [
   { id: 'exposure', label: 'Main: by AI exposure', short: 'Main: AI exposure', central: true, place: { side: 'below', anchor: 'start', lead: 16 }, beat: 0 },
   { id: 'compression', label: 'Exposed higher earners', place: { side: 'above', anchor: 'end', lead: 16 }, beat: 1200 },
 ];
+// the panel head is a finding (story-finding-titles-fable.md): the main
+// rule's cost is neither the cheapest nor the dearest of the four
+const MAIN_BETWEEN = (() => {
+  const costs = RULES.map((r) => rule(r.id).cost_bn);
+  const c = rule('exposure').cost_bn;
+  return c > Math.min(...costs) && c < Math.max(...costs);
+})();
 // The plane's domain: cost £0-12bn, the poverty rise 0-3.3pp.
 const X_MAX = 12;
 const Y_MAX = 3.3;
@@ -161,7 +168,10 @@ function RulesPanel({ on }) {
   const hr = RULES.find((r) => r.id === hot);
   return (
     <div className={`p3-plane${on ? ' is-on' : ''}${hot ? ' is-hot' : ''}`}>
-      <p className="p3-group-head p3-group-first">Four rules for who loses the job, {rule('uniform').draws} draws each</p>
+      <p className="p3-group-head p3-group-first" data-title-fallback={MAIN_BETWEEN ? undefined : ''}>
+        {MAIN_BETWEEN ? 'The main case’s cost sits between the other rules’' : `Four rules for who loses the job, ${rule('uniform').draws} draws each`}
+      </p>
+      <p className="story-figure-unit p3-group-unit">{`Cost to the public finances, £bn a year, against the absolute poverty rise, pp. Four rules, ${rule('uniform').draws} draws each.`}</p>
       <div className="p3-plane-heads">
         <span data-mark="r-poverty" className="p3-plane-ytitle">
           <AxisTitle axis="y">Absolute poverty rise, pp</AxisTitle>
@@ -293,7 +303,10 @@ function MarginPanel({ on }) {
   );
   return (
     <>
-      <p className="p3-group-head p3-group-first">Job loss or wage cuts, {D.per_pound_20.draws} draws</p>
+      <p className="p3-group-head p3-group-first" data-title-fallback={CL.povertyMore === 'job' ? undefined : ''}>
+        {CL.povertyMore === 'job' ? `Wage cuts of the same size raise poverty ${CL.far ? 'far ' : ''}less` : `Job loss or wage cuts, ${D.per_pound_20.draws} draws`}
+      </p>
+      <p className="story-figure-unit p3-group-unit">{`Job loss against wage cuts of the same gross earnings loss, ${D.per_pound_20.draws} draws.`}</p>
       <OutsideRebuildFlag />
       <Dumbbell
         head="Each margin alone: pence per £1 of earnings lost"
@@ -363,9 +376,11 @@ function MarginPanel({ on }) {
 function BreakEvenPanel({ on }) {
   return (
     <>
-      <p className="p3-group-head p3-group-first">What sets the cost to zero</p>
-      <p className="p3-db-head">
-        <AxisTitle axis="y">Main setting, then the break-even setting</AxisTitle>
+      <p className="p3-group-head p3-group-first" data-title-fallback={BREAKS.every((b) => Number.isFinite(b.value)) ? undefined : ''}>
+        {BREAKS.every((b) => Number.isFinite(b.value)) ? 'Any one of three changes brings the cost to zero' : 'What sets the cost to zero'}
+      </p>
+      <p className="story-figure-unit p3-group-unit">
+        <AxisTitle axis="y">Main setting, then break-even setting</AxisTitle>, for each of three assumptions; the other two held at main settings.
       </p>
       <ol className="p3-ch-be" data-mark="breakeven">
         {BREAKS.map((b, i) => (
@@ -454,7 +469,13 @@ function ChangesFigure({ step, ctx }) {
   const cur = PANEL_OF[Math.max(0, Math.min(step ?? 0, PANEL_OF.length - 1))];
   return (
     <figure ref={attach} className={entryClass(e, `p3-figure p3-scene p3-ch${all ? ' is-all' : ''}`)} data-panel={PANEL_NAME[cur]}>
-      <FigureHead icon="scenario" title="The main case under other assumptions" replay={e.replay} source={<ChangesSource />} />
+      <FigureHead
+        icon="scenario"
+        title="The cost changes with every assumption tested"
+        unit={`Three tests of the main case, ${MODEL_YEAR}, each with its own unit line. The household study.`}
+        replay={e.replay}
+        source={<ChangesSource />}
+      />
       <div className="p3-ch-panels">
         {PANELS.map((Panel, k) => {
           const shown = all || k === cur;

@@ -96,12 +96,14 @@ export function AxisTitle({ axis, children, scale = false, className = '' }) {
 }
 
 // `kicker`: a muted line above the title, on its left edge (as a model
-// badge), e.g. which run the figure shows.
-export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions, source, kicker }) {
+// badge), e.g. which run the figure shows. `fallback`: the title is a
+// finding's fallback (its condition failed), marked for check_text.
+// `unit2`: a second unit line under the first.
+export function FigureHead({ title, unit, unit2, y, x, icon = 'path', replay, actions, source, kicker, fallback = false }) {
   return (
     <>
       {kicker ? <p className="story-figure-kicker">{kicker}</p> : null}
-      <p className="story-figure-title p3-iconed">
+      <p className="story-figure-title p3-iconed" data-title-fallback={fallback ? '' : undefined}>
         <Ico c={icon} size={16} />
         <span>{title}</span>
         {source}
@@ -123,6 +125,7 @@ export function FigureHead({ title, unit, y, x, icon = 'path', replay, actions, 
           </span>
         </p>
       ) : null}
+      {unit2 ? <p className="story-figure-unit">{unit2}</p> : null}
     </>
   );
 }

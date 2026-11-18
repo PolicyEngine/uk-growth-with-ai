@@ -69,6 +69,9 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
   // comes in (not on a landing, in the measuring copies or reduced)
   const zoomIn = !reduce && !ctx?.once && !ctx?.instant && Boolean(ctx?.entered);
   const where = `${SCEN_NAME[sid]}, main version, spending follows GDP`;
+  // the title is a finding (story-finding-titles-fable.md): who receives
+  // each move; while pending, or with no added output, the old label
+  const found = N > 0 && NL >= 1 && NK >= 1;
   const strip = base ? shockTiles(s, shock, { lead, enter: forward }) : [];
   // each move's caption, shown 100ms after its last tile lands
   const capDelay = (st) => (forward && s === st ? settleMs(st, shock, lead) + 100 : 0);
@@ -95,9 +98,9 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           {SCEN_NAME[sid]} · {cap(CL_WORDS[cl])} · {SPLIT_YEAR}
         </p>
       </div>
-      <p className="story-figure-title p2-title-row">
+      <p className="story-figure-title p2-title-row" data-title-fallback={found ? undefined : ''}>
         <span>
-          <Tx icon="shock">The shock in two moves</Tx>
+          <Tx icon="shock">{found ? 'Added output is shared; the shift goes only to capital' : 'The shock in two moves'}</Tx>
         </span>
         <ModelSourceButton
           method="m-scenarios"
@@ -116,7 +119,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
           ]}
         />
       </p>
-      <p className="story-figure-unit">One tile is 1 of every 100 of GDP on the OBR&rsquo;s central forecast path. One small tile is 0.1.</p>
+      <p className="story-figure-unit">One tile is 1 of every 100 of GDP on the OBR&rsquo;s central forecast path. One small tile is 0.1. OG-UK.</p>
       {both ? <p className="story-figure-unit">With both foreign-capital cases chosen above, the figure shows some foreign capital.</p> : null}
       {base ? (
         <>
