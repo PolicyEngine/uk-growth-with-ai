@@ -1,27 +1,28 @@
 'use client';
 
 import { sourcesItems } from './sources.jsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { useChartBox } from '@/components/story/chart/useChartBox.js';
 import { iconFor } from '@/lib/concepts.js';
-import { ruleLabel, rulePlain } from '@/lib/labels.js';
+import { ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
+import { VERSION_COLOR as ARM_COLOR, VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, versionName } from '@/lib/versionColors.js';
 import { placeLabels } from '@/tabs/story/part2/frame.jsx';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 
-// Some foreign capital -> no foreign capital, per measure: a slope chart of two solved
-// cases joined by a straight line. The line is not a range between them: no
-// closure between the two is solved. Each arm is a line; where the two ends
-// fall on opposite sides of the forecast path the measure flips sign, and
-// the panel says so in words (from the signs). No figure is printed: every
-// value here has its home in the four-measure card above (some foreign capital,
-// or no foreign capital with Closure = Closed or Both) and in the story's
-// headline tiles; hovering or focusing an end shows it as a read-out. Its
-// sources are the four-measure card's, whose sources line it shares.
+// Some foreign capital -> no foreign capital, per measure: a slope chart of two
+// solved cases joined by a straight line (no closure between the two is
+// solved, so the line is not a range). Four panels on one y scale, one
+// shared legend and unit line above them. Each end carries its value to one
+// decimal (the four-measure card above has them to two); where the three
+// versions' ends are too close to label without moving a label far from its
+// end, only the selected version (the Version control's) is labelled. Where
+// the two ends fall on opposite sides of the forecast path the panel says so
+// in words. Its sources are the four-measure card's.
 
 export const SLOPE_MEASURES = [
   { v: 'Y', label: 'GDP', concept: 'gdp' },
@@ -41,98 +42,132 @@ export function slopeRows(sid, arms, rule, v) {
   });
 }
 
-// One scale for all four panels (so slopes compare), symmetric about the
-// path, with three ticks: the round limit either side and zero.
-const LIMITS = [0.25, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10, 15, 20];
+// One y scale for all four panels (so slopes compare), from the data: the
+// smallest round step that spans every end in at most five steps, zero
+// always on it.
+const STEPS = [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20];
 function scaleOf(rows) {
   const xs = rows.flatMap((r) => [r.c, r.b]).filter((x) => x != null);
-  const m = Math.max(0.1, ...xs.map(Math.abs));
-  const top = LIMITS.find((l) => l >= m * 1.05) ?? Math.ceil(m);
-  return { top, ticks: [-top, 0, top] };
+  const lo0 = Math.min(0, ...xs) * 1.05;
+  const hi0 = Math.max(0, ...xs) * 1.05;
+  const step = STEPS.find((s) => Math.ceil(hi0 / s - 1e-9) - Math.floor(lo0 / s + 1e-9) <= 5) ?? Math.ceil((hi0 - lo0) / 5);
+  const lo = Math.min(-step, Math.floor(lo0 / step + 1e-9) * step);
+  const hi = Math.max(step, Math.ceil(hi0 / step - 1e-9) * step);
+  const ticks = [];
+  for (let t = lo; t <= hi + step / 2; t += step) ticks.push(Math.round(t / step) * step);
+  return { lo, hi, ticks, dp: step < 1 && !Number.isInteger(step * 2) ? 2 : step < 1 ? 1 : 0 };
 }
-const tickText = (t) => (Math.abs(t) < 1e-9 ? '0' : `${t > 0 ? '+' : '−'}${Math.abs(t)}`);
+const MINUS = '−';
+const tickText = (t, dp) => (Math.abs(t) < 1e-9 ? '0' : `${t > 0 ? '+' : MINUS}${Math.abs(t).toFixed(dp)}`);
+// an end's value label: one decimal, signed, a true minus ("+0.9", "−1.3")
+export const endText = (v) => {
+  const a = Math.abs(v).toFixed(1);
+  return Number(a) === 0 ? '0.0' : `${v > 0 ? '+' : MINUS}${a}`;
+};
 
-// Drawn at the panel's measured width (220 before the first measure), so the
-// 11px axis text stays 11px on a phone instead of scaling down with a viewBox.
-const W0 = 220;
-const H = 168;
-const PAD = { l: 34, r: 14, t: 18, b: 22 };
-// The first panel names each version at its line's right end (in the
-// versions' text colours; names only, no figure), so no line colour is
-// left to the key below; its gutter is this wide.
-const NAMES_W = 96;
-const NAME_LINES = { tfp: ['Automation +', 'productivity'], tz: ['Technology', 'unchanged'], ss: ['Stress test'] };
-const NAME_LH = 12;
+// Drawn at the panel's measured width (no viewBox scaling), so the text
+// renders at its CSS size on every screen.
+const W0 = 420;
+const TICK_W = 34; // the y tick labels, right-aligned at this x
+const VAL_W = 42; // a value label's column beside each end
+const GAP = 8;
+const PAD = { t: 14, b: 38 };
+const LH = 19; // a value label's height, for collision avoidance
+// a label set fits when no label sits further than this from its end
+const FIT = 24;
+const xLabelHalf = (text, fs) => (text.length * fs * 0.56) / 2;
 
-function Panel({ m, rows, sc, hot, setHot, sid, names = false }) {
+// The value labels at one end of a panel, spread so they do not collide.
+function placeEnd(rows, key, Y, top, bot) {
+  const items = rows.filter((r) => r[key] != null && r.b != null).map((r) => ({ key: r.arm.id, v: r[key], lines: [endText(r[key])] }));
+  const placed = placeLabels(items, Y, top, bot, LH);
+  const fits = placed.every((p) => Math.abs(p.t + LH / 2 - p.y) <= FIT);
+  return { placed, fits };
+}
+
+function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
+  const H = phone ? 236 : 264;
   const { ref: boxRef, width: W } = useChartBox({ width: W0, height: H });
-  const x0 = PAD.l;
-  const x1 = W - PAD.r - (names ? NAMES_W : 0);
-  const Y = (v) => PAD.t + ((sc.top - v) / (2 * sc.top)) * (H - PAD.t - PAD.b);
+  const x0 = TICK_W + GAP + VAL_W + GAP;
+  const x1 = W - GAP - VAL_W;
+  const Y = (v) => PAD.t + ((sc.hi - v) / (sc.hi - sc.lo)) * (H - PAD.t - PAD.b);
   const flips = rows.filter((r) => r.flips);
   const pending = rows.filter((r) => r.c != null && r.b == null);
   const active = hot?.v === m.v ? rows.find((r) => r.arm.id === hot.arm) : null;
-  const narrow = W < 240 && !names;
-  const placed = names
-    ? placeLabels(
-        rows.filter((r) => r.b != null).map((r) => ({ key: r.arm.id, v: r.b, lines: NAME_LINES[r.arm.id] ?? [r.arm.short || r.arm.label] })),
-        Y,
-        PAD.t,
-        H - PAD.b,
-        NAME_LH,
-      )
-    : [];
+  const top = PAD.t - 4;
+  const bot = H - PAD.b + 4;
+  // every version's two ends labelled if both ends fit; else the selected
+  // version's only (the shared legend names the lines)
+  let L = placeEnd(rows, 'c', Y, top, bot);
+  let R = placeEnd(rows, 'b', Y, top, bot);
+  const all = L.fits && R.fits;
+  if (!all) {
+    const one = rows.filter((r) => r.arm.id === sel);
+    L = placeEnd(one, 'c', Y, top, bot);
+    R = placeEnd(one, 'b', Y, top, bot);
+  }
+  const fsX = phone ? 13 : 14;
+  const someT = 'Some foreign capital';
+  const noneT = 'No foreign capital';
+  const someX = Math.max(x0, xLabelHalf(someT, fsX));
+  const noneX = Math.min(x1, W - xLabelHalf(noneT, fsX));
+  const drawn = [...rows.filter((r) => r.arm.id !== sel), ...rows.filter((r) => r.arm.id === sel)];
+  const endLabels = (side, set) =>
+    set.placed.map((p) => {
+      const ly = p.t + LH / 2;
+      const xd = side === 'l' ? x0 : x1;
+      const xt = side === 'l' ? x0 - GAP : x1 + GAP;
+      const lead = Math.abs(p.y - ly) > 3;
+      return (
+        <g key={`${side}${p.key}`} className={`ex-slope-val${p.key === sel ? ' is-sel' : ''}`}>
+          {lead ? <path className="ex-slope-leader" d={`M${xd + (side === 'l' ? -5 : 5)},${p.y.toFixed(1)} L${xt + (side === 'l' ? -1 : 1)},${ly.toFixed(1)}`} style={{ stroke: ARM_COLOR[p.key] }} /> : null}
+          <text x={xt + (side === 'l' ? -2 : 2)} y={ly} dy="0.35em" textAnchor={side === 'l' ? 'end' : 'start'} style={{ fill: ARM_TEXT_COLOR[p.key] }}>
+            {p.lines[0]}
+          </text>
+        </g>
+      );
+    });
   return (
-    <figure
-      className={`ex-slope-panel${names ? ' has-names' : ''}`}
+    // a small multiple, not a figure of its own: the card is the chart, its
+    // unit line the four panels' shared y title
+    <div
+      className="ex-slope-panel"
+      role="group"
+      aria-labelledby={`ex-slope-t-${m.v}`}
       data-measure={m.v}
-      data-label-exempt={names ? undefined : 'a small multiple: the first panel names the versions, in these colours'}
+      data-label-exempt={all ? undefined : 'ends too close to label every version: the selected version is labelled, the shared legend above names the lines'}
     >
-      <figcaption className="ex-slope-title" data-panel-title="">
+      <div className="ex-slope-title" id={`ex-slope-t-${m.v}`} data-panel-title="">
         {m.label}
-      </figcaption>
+      </div>
       <div ref={boxRef}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, some foreign capital to no foreign capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => r.arm.short || r.arm.label).join(' and ')}` : 'no version flips sign'}`}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, some foreign capital to no foreign capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => versionName(r.arm)).join(' and ')}` : 'no version flips sign'}`}>
         {sc.ticks.map((t) => (
           <g key={t}>
             <line x1={x0} x2={x1} y1={Y(t)} y2={Y(t)} className={Math.abs(t) < 1e-9 ? 'ex-slope-zero' : 'ex-slope-grid'} />
-            <text x={x0 - 6} y={Y(t) + 4} textAnchor="end" className="ex-slope-tick" data-axis="">
-              {tickText(t)}
+            <text x={TICK_W} y={Y(t)} dy="0.35em" textAnchor="end" className="ex-slope-tick" data-axis="">
+              {tickText(t, sc.dp)}
             </text>
           </g>
         ))}
-        {/* a narrow panel (two to a row on a phone) keeps a short y title,
-            the card's unit line giving it in full, and lets the two end
-            labels name the closures */}
-        <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
-          {narrow ? 'Gap, %' : 'Gap against the OBR’s central forecast path, %'}
+        <text x={someX} y={H - 10} textAnchor="middle" className="ex-slope-tick ex-slope-xlab" data-axis="">
+          {someT}
         </text>
-        {narrow || x1 - x0 < 170 ? null : (
-          <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
-            Foreign capital
-          </text>
-        )}
-        <text x={x0} y={H - 6} className="ex-slope-tick" data-axis="">
-          Some
+        <text x={noneX} y={H - 10} textAnchor="middle" className="ex-slope-tick ex-slope-xlab" data-axis="">
+          {noneT}
         </text>
-        <text x={x1} y={H - 6} textAnchor="end" className="ex-slope-tick" data-axis="">
-          None
-        </text>
-        {rows.map((r) => {
+        {drawn.map((r) => {
           if (r.c == null) return null;
-          const main = r.arm.id === 'tfp';
           const dim = active && active.arm.id !== r.arm.id;
-          // where the line crosses the path, for a sign flip
-          const cross = r.flips ? x0 + (r.c / (r.c - r.b)) * (x1 - x0) : null;
           const on = () => setHot({ v: m.v, arm: r.arm.id });
           return (
             <g
               key={r.arm.id}
-              className={`ex-slope-arm${dim ? ' is-dim' : ''}${main ? ' is-main' : ''}`}
+              className={`ex-slope-arm${dim ? ' is-dim' : ''}${r.arm.id === sel ? ' is-sel' : ''}`}
               style={{ '--arm': ARM_COLOR[r.arm.id] }}
               tabIndex={0}
               role="button"
-              aria-label={`${r.arm.label}, ${m.label}: some foreign capital ${fmt(r.c)}, no foreign capital ${fmt(r.b)}${r.flips ? ', flips sign' : ''}`}
+              aria-label={`${versionName(r.arm)}, ${m.label}: some foreign capital ${fmt(r.c)}, no foreign capital ${fmt(r.b)}${r.flips ? ', flips sign' : ''}`}
               onMouseEnter={on}
               onFocus={on}
               onMouseLeave={() => setHot(null)}
@@ -141,39 +176,25 @@ function Panel({ m, rows, sc, hot, setHot, sid, names = false }) {
               {r.b != null ? <line x1={x0} x2={x1} y1={Y(r.c)} y2={Y(r.b)} className="ex-slope-line" /> : null}
               <circle cx={x0} cy={Y(r.c)} r="3.5" className="ex-slope-dot" />
               {r.b != null ? <circle cx={x1} cy={Y(r.b)} r="3.5" className="ex-slope-dot" /> : null}
-              {cross != null ? <circle cx={cross} cy={Y(0)} r="4.5" className="ex-slope-flip" data-series="flip" /> : null}
             </g>
           );
         })}
-        {placed.map((p) => {
-          const ly = p.t + NAME_LH * 0.5;
-          return (
-            <g key={p.key} className="ex-slope-name">
-              {Math.abs(Y(p.v) - ly) > 3 ? <path className="ex-slope-leader" d={`M${x1 + 5},${Y(p.v).toFixed(1)} L${x1 + 10},${ly.toFixed(1)}`} style={{ stroke: ARM_COLOR[p.key] }} /> : null}
-              <text x={x1 + 12} y={p.t + NAME_LH * 0.85} style={{ fill: ARM_TEXT_COLOR[p.key] }}>
-                {p.lines.map((l, i) => (
-                  <tspan key={l} x={x1 + 12} dy={i ? NAME_LH : 0}>
-                    {l}
-                  </tspan>
-                ))}
-              </text>
-            </g>
-          );
-        })}
+        {endLabels('l', L)}
+        {endLabels('r', R)}
       </svg>
       </div>
       <div className="ex-slope-foot">
         {active ? (
           <p className="ex-slope-readout" role="status">
-            {active.arm.short || active.arm.label}: {fmt(active.c)} → {fmt(active.b)}
+            {versionName(active.arm)}: {fmt(active.c)} → {fmt(active.b)}
           </p>
         ) : flips.length ? (
           <p className="ex-slope-note is-flip" data-label-for="flip">
-            {`Flips ${side(flips[0].b)} the forecast path: ${flips.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}`}
+            {`Flips ${side(flips[0].b)} the forecast path: ${flips.map((r) => versionName(r.arm).toLowerCase()).join(', ')}`}
           </p>
         ) : pending.length ? (
           <p className="ex-slope-note">
-            No-foreign-capital case not solved for {pending.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}
+            No-foreign-capital case not solved for {pending.map((r) => versionName(r.arm).toLowerCase()).join(', ')}
           </p>
         ) : (
           <p className="ex-slope-note">
@@ -181,14 +202,31 @@ function Panel({ m, rows, sc, hot, setHot, sid, names = false }) {
           </p>
         )}
       </div>
-    </figure>
+    </div>
   );
+}
+
+// Phone layout (one column, the type a step smaller), from the viewport.
+function usePhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined;
+    const mq = window.matchMedia('(max-width: 480px)');
+    const read = () => setPhone(mq.matches);
+    read();
+    mq.addEventListener('change', read);
+    return () => mq.removeEventListener('change', read);
+  }, []);
+  return phone;
 }
 
 export default function ClosureSlope({ sid }) {
   const { st } = useNav();
   const [hot, setHot] = useState(null);
+  const phone = usePhone();
   const rule = st.rule;
+  const shown = ARMS.filter((a) => st.arms.includes(a.id));
+  const sel = shown.some((a) => a.id === st.armId) ? st.armId : shown.some((a) => a.id === VERSION_MAIN) ? VERSION_MAIN : shown[0]?.id;
   const all = SLOPE_MEASURES.map((m) => ({ m, rows: slopeRows(sid, st.arms, rule, m.v) }));
   const sc = scaleOf(all.flatMap((x) => x.rows));
   const solved = ruleSolved(rule, sid) && all.some((x) => x.rows.some((r) => r.c != null));
@@ -199,19 +237,7 @@ export default function ClosureSlope({ sid }) {
       icon={iconFor('closure')}
       title="Some foreign capital to no foreign capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<Lead c="measure">{`Each version’s % difference from the OBR’s central forecast path, ${HEADLINE_YEAR}, ${rulePlain(rule)}`}</Lead>}
-      legend={
-        <ul className="ex-slope-key">
-          {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
-            <li key={a.id}>
-              <span className="swatch" style={{ borderTopColor: ARM_COLOR[a.id] }} aria-hidden="true" data-icon="" /> {a.short || a.label}
-            </li>
-          ))}
-          <li>
-            <span className="ex-slope-key-flip" aria-hidden="true" data-icon="" /> Crosses the forecast path: the sign flips
-          </li>
-        </ul>
-      }
+      unit={<span className="ex-slope-unit" data-axis-title="y">{`Gap against the OBR’s central forecast path, %, ${HEADLINE_YEAR}`}</span>}
       download={{
         title: `Some foreign capital to no foreign capital, ${HEADLINE_YEAR}`,
         context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the OBR’s central forecast path · ${ruleLabel(rule).toLowerCase()}`,
@@ -222,11 +248,23 @@ export default function ClosureSlope({ sid }) {
       }}
     >
       {solved ? (
-        <div className="ex-slope">
-          {all.map(({ m, rows }, i) => (
-            <Panel key={m.v} m={m} rows={rows} sc={sc} hot={hot} setHot={setHot} sid={sid} names={i === 0} />
-          ))}
-        </div>
+        <>
+          <ul className="ex-slope-legend" aria-label="Versions">
+            {shown.map((a) => (
+              <li key={a.id} className={a.id === sel ? 'is-sel' : undefined} aria-current={a.id === sel ? 'true' : undefined}>
+                <svg width="24" height="10" aria-hidden="true" data-icon="">
+                  <line x1="1" x2="23" y1="5" y2="5" style={{ stroke: ARM_COLOR[a.id] }} />
+                </svg>
+                {versionName(a)}
+              </li>
+            ))}
+          </ul>
+          <div className="ex-slope">
+            {all.map(({ m, rows }) => (
+              <Panel key={m.v} m={m} rows={rows} sc={sc} hot={hot} setHot={setHot} sid={sid} sel={sel} phone={phone} />
+            ))}
+          </div>
+        </>
       ) : (
         <div className="unpublished-plot">
           <Items items={sentenceItems(ruleSolved(rule, sid) ? 'No version shown is solved.' : ruleGapText(rule, sid))} />

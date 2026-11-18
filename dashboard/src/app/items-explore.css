@@ -1059,43 +1059,66 @@
   .ex-wall { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
 
-/* Central closure to closed capital: four slope panels */
+/* Some foreign capital to no foreign capital: four slope panels, 2x2 (one
+   column on a phone), one legend above them. Type from the chart scale
+   (chart-type.css), with its sizes as fallbacks. */
 .ex-slope {
+  --sl-tick: var(--chart-fs-tick, 14px);
+  --sl-label: var(--chart-fs-label, 15px);
+  --sl-head: var(--chart-fs-head, 16px);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 40px;
 }
-@media (max-width: 900px) {
-  .ex-slope { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 480px) {
+  .ex-slope {
+    --sl-tick: var(--chart-fs-tick, 13px);
+    --sl-label: var(--chart-fs-label, 14px);
+    --sl-head: var(--chart-fs-head, 15px);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
 }
-/* the first panel names the versions at its line ends: on a phone it takes
-   the row, so its names have room */
-@media (max-width: 600px) {
-  .ex-slope-panel.has-names { grid-column: 1 / -1; }
+/* the shared unit line (the card's unit slot): the chart's tick size */
+.ex-slope-unit { font-size: var(--chart-fs-tick, 14px); }
+@media (max-width: 480px) {
+  .ex-slope-unit { font-size: var(--chart-fs-tick, 13px); }
 }
-.ex-slope-name text {
-  font: 600 11px/1 var(--ch-font, inherit);
+.ex-slope-legend {
+  --sl-label: var(--chart-fs-label, 15px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font-size: var(--sl-label);
+  line-height: 1.3;
+  color: var(--pe-gray-700, #344054);
 }
-.ex-slope-leader {
-  fill: none;
-  stroke-width: 1;
-  opacity: 0.7;
+@media (max-width: 480px) {
+  .ex-slope-legend { --sl-label: var(--chart-fs-label, 14px); gap: 4px 16px; }
 }
+.ex-slope-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ex-slope-legend li svg { flex: none; }
+.ex-slope-legend line { stroke-width: 2.5; stroke-linecap: round; }
+.ex-slope-legend li.is-sel { font-weight: 600; color: var(--pe-gray-900, #111); }
+.ex-slope-legend li.is-sel line { stroke-width: 4; }
 .ex-slope-panel {
   margin: 0;
   min-width: 0;
 }
 .ex-slope-panel svg {
   display: block;
-  width: 100%;
-  height: auto;
   overflow: visible;
 }
 .ex-slope-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  margin: 0 0 4px;
+  font-size: var(--sl-head);
   font-weight: 600;
   color: var(--pe-gray-800, #1f2937);
 }
@@ -1106,11 +1129,23 @@
 }
 .ex-slope-zero {
   stroke: var(--c-zero-line);
+  stroke-width: 1.25;
 }
 .ex-slope-tick {
-  font-size: 11px;
+  font-size: var(--sl-tick);
   fill: var(--c-tick, #6b7280);
   font-variant-numeric: tabular-nums;
+}
+.ex-slope-val text {
+  font-size: var(--sl-label);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ex-slope-val.is-sel text { font-weight: 700; }
+.ex-slope-leader {
+  fill: none;
+  stroke-width: 1;
+  opacity: 0.7;
 }
 .ex-slope-arm {
   cursor: default;
@@ -1122,69 +1157,35 @@
 }
 .ex-slope-line {
   stroke: var(--arm);
-  stroke-width: 2;
+  stroke-width: 2.5;
   stroke-linecap: round;
 }
-.ex-slope-arm.is-main .ex-slope-line {
-  stroke-width: 2.5;
+.ex-slope-arm.is-sel .ex-slope-line {
+  stroke-width: 4;
 }
 .ex-slope-dot {
   fill: var(--arm);
   stroke: var(--pe-surface, #fff);
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
+.ex-slope-arm.is-sel .ex-slope-dot { r: 4.5; }
 .ex-slope-arm:focus-visible .ex-slope-dot {
   stroke: var(--pe-gray-900, #111);
 }
-.ex-slope-flip {
-  fill: var(--pe-surface, #fff);
-  stroke: var(--pe-gray-800, #1f2937);
-  stroke-width: 1.5;
-}
 .ex-slope-foot {
-  min-height: 32px;
+  min-height: 24px;
 }
 .ex-slope-note,
 .ex-slope-readout {
-  display: flex;
-  align-items: flex-start;
-  gap: 5px;
-  margin: 4px 0 0;
-  font-size: 12px;
-  line-height: 1.3;
+  margin: 2px 0 0;
+  font-size: var(--sl-tick);
+  line-height: 1.35;
   color: var(--pe-gray-600, #4b5563);
   font-variant-numeric: tabular-nums;
-}
-.ex-slope-note .plain-icon,
-.ex-slope-readout .plain-icon {
-  flex: none;
-  margin-top: 2px;
 }
 .ex-slope-note.is-flip {
   color: var(--pe-gray-900, #111);
   font-weight: 600;
-}
-.ex-slope-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 12px;
-  color: var(--pe-gray-600, #4b5563);
-}
-.ex-slope-key li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.ex-slope-key-flip {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border: 1.5px solid var(--pe-gray-800, #1f2937);
-  border-radius: 50%;
 }
 @media (prefers-reduced-motion: reduce) {
   .card.ex-tile.is-open { animation: none; }
@@ -2566,9 +2567,6 @@
 .ex-axis-titles { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 8px; font-size: 12px; line-height: 1.4; color: var(--pe-color-gray-600); }
 .ex-axis-titles > svg { flex: none; margin-top: 2px; }
 .ex-axis-titles [data-axis-title] { font-weight: 600; color: var(--pe-color-gray-700, #344054); }
-
-/* Slope chart axis titles (SVG) */
-.ex-slope-axis-title { font-size: 10px; fill: var(--pe-color-gray-600); }
 
 /* Households plane axis titles (SVG) */
 .hh-axis-title { font-size: 11px; fill: var(--pe-color-gray-600); }
