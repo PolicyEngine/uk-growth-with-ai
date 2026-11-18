@@ -34,7 +34,8 @@ export const foreignShareOf = (rec, D = S) => {
 // ---- cohorts20xx.json --------------------------------------------------
 // One cohort file for both sets until cohorts2027.json lands: its years
 // are its own (COHORT_YEAR is 2028 under either flag), never SURPRISE_YEAR.
-export const COHORT_YEAR = CO2028.shock_year;
+export const COHORTS = CO2028;
+export const COHORT_YEAR = COHORTS.shock_year;
 
 // The earnings-group profile of one closure: { labour, capital, transfers,
 // wealth_share, earnings_share, bequests }, each by group.

@@ -1,7 +1,7 @@
 'use client';
 
 import S from '@/lib/activeData.js';
-import C from '@/data/cohorts2028.json';
+import { COHORTS as C } from '@/lib/dataKeys.js';
 import U from '@/data/ukContext.json';
 import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';

@@ -5,7 +5,7 @@ import { useSvgScaleOf } from '@/lib/svgScale.js';
 import { DrawPath } from '@/components/story/primitives.jsx';
 import { useDrawIn } from '@/components/story/motion.js';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, CENTRAL, result } from '@/tabs/ai/surprise.js';
-import D from '@/data/cohorts2028.json';
+import { COHORTS as D } from '@/lib/dataKeys.js';
 import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
 import { navItem } from '@/lib/sourceItems.js';
 import { W, H, scales, monotonePath, tickText, Figure } from './frame.jsx';

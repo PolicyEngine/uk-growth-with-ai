@@ -1,5 +1,5 @@
 import S from '@/lib/activeData.js';
-import COH from '@/data/cohorts2028.json';
+import { COHORTS as COH } from '@/lib/dataKeys.js';
 import AI from '@/data/aiStudy2425.json';
 import { SET } from '@/lib/dataKeys.js';
 

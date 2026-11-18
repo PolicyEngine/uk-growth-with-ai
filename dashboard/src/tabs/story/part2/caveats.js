@@ -5,7 +5,7 @@
 // figure's home. Every function returns null when a solve is pending or the
 // caveat does not hold for the cell in view.
 import S from '@/lib/activeData.js';
-import C from '@/data/cohorts2028.json';
+import { COHORTS as C } from '@/lib/dataKeys.js';
 import { YEARS, HEADLINE_YEAR, CENTRAL, BOUND, gap } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
 

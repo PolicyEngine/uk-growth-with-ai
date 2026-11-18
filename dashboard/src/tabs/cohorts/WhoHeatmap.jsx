@@ -10,7 +10,7 @@ import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
 import Pill from '@/components/ui/Pill.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
-import D from '@/data/cohorts2028.json';
+import { COHORTS as D } from '@/lib/dataKeys.js';
 import { Lead } from '@/tabs/explore/direction.jsx';
 
 // Who gains by age and lifetime-earnings group: a heatmap diverging around
