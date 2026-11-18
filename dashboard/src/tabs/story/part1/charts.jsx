@@ -53,8 +53,9 @@ const longest = (a) => a.reduce((m, s) => (s.length > m.length ? s : m), '');
 export const barPath = (x, w, y0, y1) => chartBar({ pos: x, size: w, from: y0, to: y1 });
 
 // ---------------------------------------------------------------------------
-// Scene 1A. The output canvas: annual growth bars (state 0), the OBR's
-// forecast (1), then this year's quarters (2). State 2 is three beats:
+// Scene 1A. The output canvas: annual growth bars growing left to right
+// (state 0), the OBR's forecast drawing in left to right (1: a clip-path
+// wipe and its dots in turn), then this year's quarters (2). State 2 is three beats:
 // the x axis zooms to the quarterly window, the annual bars widening and
 // sliding with it (a transform on their group, so no bar changes height);
 // the annual bars, forecast and annual ticks fade; the quarterly bars grow
@@ -228,7 +229,7 @@ export function OutputCanvas({ state, notes }) {
                 r={3.5}
                 className="p1-forecast-dot p1-only-fc p1-zoom"
                 data-mark="obr-forecast"
-                style={{ transform: `translateX(${(zoomed ? zoomX(XA(x)) : XA(x)).toFixed(2)}px)` }}
+                style={{ transform: `translateX(${(zoomed ? zoomX(XA(x)) : XA(x)).toFixed(2)}px)`, '--i': i }}
               />
             ))}
           </g>

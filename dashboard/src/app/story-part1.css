@@ -142,7 +142,18 @@
   transition: transform 600ms var(--p1-ease) 300ms, opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
 }
 .p1-canvas.is-fc .p1-forecast-dot.p1-zoom {
-  transition: transform 600ms var(--p1-ease) 300ms, opacity 300ms var(--p1-ease), visibility 0s;
+  /* the dots land in turn behind the line's wipe */
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 250ms var(--p1-ease) calc(120ms + var(--i, 0) * 90ms), visibility 0s;
+}
+/* state 1: the forecast line draws in left to right (a clip-path wipe;
+   no d transition, which Safari does not run) */
+.p1-forecast.p1-only-fc {
+  clip-path: inset(0 100% 0 0);
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms, clip-path 0s linear 200ms;
+}
+.p1-canvas.is-fc .p1-forecast.p1-only-fc {
+  clip-path: inset(0 0 0 0);
+  transition: opacity 150ms var(--p1-ease), visibility 0s, clip-path 700ms var(--p1-ease);
 }
 .p1-canvas.is-q .p1-forecast-dot.p1-zoom {
   transition-delay: 0ms, 0ms, 0s;

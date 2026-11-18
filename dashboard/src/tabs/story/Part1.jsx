@@ -52,9 +52,10 @@ const N = ({ path, mark, children }) => (
 // An attributed caveat: its text linked to the page that says it.
 const L = ({ to, children }) => <Ext href={LINKS[to]?.url ?? pageOf(to)}>{children}</Ext>;
 
-// (a) Output: the latest full year, then the OBR's forecast. `state` is
-// the canvas state (part1/charts.jsx OutputCanvas). This year's quarters
-// are in the vitals GDP tile (#p1-quarters is its anchor).
+// (a) Output: the latest full year, the OBR's forecast, then a zoom to
+// this year's quarters. `state` is the canvas state (part1/charts.jsx
+// OutputCanvas). The quarters' numbers have their home in the vitals GDP
+// tile (#p1-quarters is its anchor), so the third card says the shape only.
 function outputSteps() {
   const g = F.gdp_growth_latest;
   return [
@@ -96,8 +97,25 @@ function outputSteps() {
         </Say>
       ),
     },
+    {
+      id: 'p1-output-2',
+      icon: 'period',
+      title: 'This year, by quarter',
+      highlight: ['q-now'],
+      state: 2,
+      body: (
+        <Say>
+          By quarter, the economy has {QNOW.every((v) => v > 0) ? 'grown in every quarter' : 'not grown in every quarter'} of <Key id="q-now">{QYEAR} so far</Key>
+          {QFIRST ? '; the latest is a first estimate.' : '.'}
+        </Say>
+      ),
+    },
   ];
 }
+// this year's quarters (the canvas zoom's last year)
+const QYEAR = Math.max(...SERIES.gdp_quarterly.x.map((q) => Number(String(q).slice(0, 4))));
+const QNOW = SERIES.gdp_quarterly.y.filter((_, i) => Number(String(SERIES.gdp_quarterly.x[i]).slice(0, 4)) === QYEAR);
+const QFIRST = /first estimate/i.test(FACTS.gdp_quarterly_latest?.note ?? '');
 
 // The output figure's notes (its one fold): what the earlier cards' folds
 // said, no figures.
