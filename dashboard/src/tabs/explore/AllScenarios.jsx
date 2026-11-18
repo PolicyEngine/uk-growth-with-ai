@@ -16,6 +16,7 @@ import { Lead } from './direction.jsx';
 import { side } from '@/tabs/ai/lines.js';
 import { MEASURES, ROWS, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
+import Disclosure from '@/components/ab/Disclosure.jsx';
 import { sourcesItems } from './sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
@@ -232,7 +233,6 @@ export default function AllScenarios() {
         id="all-scenarios"
         icon={iconFor('cells')}
         title={`${m.title} in ${HEADLINE_YEAR}, every cell`}
-        finding={<Items className="ex-notes" items={drivers(arm).map((d) => ({ key: d.choice, icon: d.choice === 'still' ? 'onPath' : d.choice, text: d.text }))} />}
         controls={
           <Pill
             className="is-card"
@@ -254,8 +254,19 @@ export default function AllScenarios() {
             ]}
           />
         }
-        unit={<span data-axis-title="y">{`${m.label} gap against the OBR’s central forecast path for the same foreign-capital case, %`}</span>}
+        unit={<span data-axis-title="y">{`% gap against the OBR’s forecast path, ${HEADLINE_YEAR}`}</span>}
         legend={<MatrixKey note={solvedNote(arm, m.v)} />}
+        foot={
+          // item 37: which choice moves each measure (gated in cells.js,
+          // item-37-fable.md) and the full caption, behind one closed fold
+          // (the item 14 component); the chosen measure's line first
+          <div className="ex-sg-more">
+            <Disclosure inCard id="across-more" title="More info">
+              <Items className="ex-notes" items={drivers(arm, [v, ...ECON.map((x) => x.v).filter((x) => x !== v)]).map((d) => ({ key: `${d.kind}-${d.measures.join('')}`, icon: d.kind === 'still' ? 'onPath' : d.kind === 'lead' ? d.choice : 'compare', text: d.text }))} />
+              <p className="card-unit ex-sg-more-unit">{`${m.label} gap in ${HEADLINE_YEAR} against the OBR’s central forecast path for the same foreign-capital case, %`}</p>
+            </Disclosure>
+          </div>
+        }
         about={{
           caveats: (
             <Items
@@ -313,6 +324,8 @@ export function AcrossDebt() {
         id="debt-cells"
         icon={iconFor('debt')}
         title={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`}
+        // item 37: debt/GDP's "moves most" line, from the Economy card, gated the same way
+        finding={drivers(arm, ['debt_gdp_pp'])[0]?.text ? `${drivers(arm, ['debt_gdp_pp'])[0].text}.` : null}
         controls={<Pill className="is-card" title="Options for this table" name={`Debt/GDP gap in ${HEADLINE_YEAR}, every case`} sections={[versionSection(st, set, true)]} />}
         unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path, percentage points of GDP. The debt chart above runs to ${LATE_YEAR}.`}</span>}
         legend={<MatrixKey story={false} note={solvedNote(arm, m.v)} />}

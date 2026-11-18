@@ -119,7 +119,7 @@ export default function Card({
         {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
       </header>
       {controls}
-      {finding ? <p className="card-finding">{finding}</p> : null}
+      {finding ? <div className="card-finding">{finding}</div> : null}
       {unit ? <p className="card-unit">{unit}</p> : null}
       {children ? <div className="chart-plot">{children}</div> : null}
       {legend ? <div className="card-legend">{legend}</div> : null}
@@ -156,7 +156,7 @@ export function InfoCard({ id, icon, title, tag, children, more, morePreview, fo
       <div className="card-body">{children}</div>
       {foot}
       {more ? (
-        <Disclosure inCard title="Details" preview={morePreview}>
+        <Disclosure inCard title="More info" preview={morePreview}>
           <div className="card-more">{more}</div>
         </Disclosure>
       ) : null}

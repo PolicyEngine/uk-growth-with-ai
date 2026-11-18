@@ -69,7 +69,10 @@ describe('the economy wall', () => {
   it('eight tiles, one arms control; a title opens a tile and Escape closes it', () => {
     const { container } = wrap(<ResultsTab sub="economy" />, 'tab=explore');
     expect(container.querySelectorAll('.ex-wall .ex-tile')).toHaveLength(8);
-    expect(container.querySelectorAll('.ex-wall-section [aria-label="Versions shown"]')).toHaveLength(1);
+    // item 37: one versions control, the wall's pill (no chip toggles)
+    expect(container.querySelectorAll('.ex-wall-head .settings-chip')).toHaveLength(1);
+    expect(container.querySelector('.ex-wall-head .settings-chip').getAttribute('aria-label')).toMatch(/versions/i);
+    expect(container.querySelectorAll('.ex-wall-section .chips, .ex-wall-section .control-bar')).toHaveLength(0);
     const btn = container.querySelector('#tile-C .ex-tile-open');
     fireEvent.click(btn);
     expect(btn.getAttribute('aria-expanded')).toBe('true');

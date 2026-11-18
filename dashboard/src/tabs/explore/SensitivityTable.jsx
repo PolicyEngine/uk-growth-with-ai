@@ -47,6 +47,27 @@ const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-
 // computed from the signs (headline year, common fiscal rule): the capital
 // stock and GDP against some foreign capital, the pay rate's side of the
 // path, and GNI against GDP. The icon follows the same comparison.
+// The card's title (item 42, item-36-fable.md section 7.1), a short finding
+// gated on the main version's signs, with the file's fallbacks: 1. pay
+// rate above the path at zeta_K 0.5 in every scenario and below it at 0.1
+// in every one; 2. on or above at 0.5 in every one; 3. GDP higher than at
+// 0.1 in every one; 4. the plain label.
+function mainRows(res) {
+  return SCENARIOS.map((s) => ({ sens: res?.[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
+}
+export function payAboveGate(res) {
+  const rows = mainRows(res);
+  return rows.length > 0 && rows.every((r) => side(at(r.sens, 'w')) === 'above' && side(at(r.central, 'w')) === 'below');
+}
+export function sensTitle(res = S.sensitivity?.[SENS]?.results) {
+  const rows = mainRows(res);
+  if (!rows.length) return 'Gaps with much more foreign capital';
+  if (payAboveGate(res)) return 'More foreign capital puts the main version’s pay rate above the path';
+  if (rows.every((r) => side(at(r.sens, 'w')) !== 'below')) return 'More foreign capital: main version’s pay rate on or above the path';
+  if (rows.every((r) => at(r.sens, 'Y') - at(r.central, 'Y') > 0.005)) return 'With much more foreign capital, GDP is higher in every scenario';
+  return 'Gaps with much more foreign capital';
+}
+
 export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   if (!res) return [];
   const rows = SCENARIOS.map((s) => ({ sens: res[s.id]?.tfp, central: resultAt(s.id, 'tfp', CENTRAL, 'common') })).filter((r) => r.sens?.status === 'done' && r.central.status === 'done');
@@ -69,9 +90,10 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   return [
     { key: 'k', ...versus('K', 'Capital stock') },
     { key: 'y', ...versus('Y', 'GDP') },
-    { key: 'w', ...wage },
+    // the title says it when gate 1 holds: the fact once
+    payAboveGate(res) ? null : { key: 'w', ...wage },
     gniLess ? { key: 'gni', icon: 'foreign', text: 'More income goes abroad, so GNI gains less than GDP' } : { key: 'gni', icon: 'gni', text: 'GNI does not gain less than GDP in every scenario' },
-  ];
+  ].filter(Boolean);
 }
 
 // The investment surge in the main arm (PR #41's third caveat, audit A7):
@@ -139,9 +161,9 @@ function SensGrid({ res }) {
   const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
   return (
     // a table, not a plotted scale: each column head carries its unit (%
-    // gap) and the card title the year and the path; the units line itself
-    // is in the More info fold (item 14)
-    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = 0.5, by scenario, version and measure`} data-no-axes="a table: each column head names its unit (% gap); the card title names the year and the forecast path">
+    // gap); the card's unit line above it names zeta_K, the year and the
+    // path (item 42)
+    <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = ${S.sensitivity?.[SENS]?.zeta_K}, % gap against the forecast path, by scenario, version and measure`}>
       <table className="ex-sg">
         <thead>
           <tr>
@@ -243,6 +265,28 @@ function SensGrid({ res }) {
   );
 }
 
+// Item 39 (wording for Fable): the grid's always-visible key line, right
+// under it: the dashed outline and the two arrows, in a few words. The
+// longer key (counts, the held stress-test GDP, why the flips) stays in More
+// info.
+function GridKeyLine({ res }) {
+  const flips = gridKey(res).some((k) => k.key === 'flip');
+  return (
+    <p className="ex-sg-keyline" data-fable="item 39 wording">
+      {flips ? (
+        <span className="ex-sg-keyitem">
+          <span className="ex-sg-keyswatch" aria-hidden="true" data-icon="" /> sign differs from some foreign capital (ζK 0.1)
+        </span>
+      ) : null}
+      <span className="ex-sg-keyitem">
+        <Icon name={iconFor('gapUp')} size={12} />
+        <span aria-hidden="true">/</span>
+        <Icon name={iconFor('gapDown')} size={12} /> higher / lower than with some foreign capital
+      </span>
+    </p>
+  );
+}
+
 // The grid's key: what the arrow and the outline mean, and how many cells
 // flip sign (counted from the data).
 export function gridKey(res) {
@@ -265,7 +309,8 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR’s central forecast path`}
+      title={sensTitle(res)}
+      unit={<span data-axis-title="y">{`ζK = ${sens.zeta_K}, ${HEADLINE_YEAR}, % gap vs forecast path`}</span>}
       foot={
         // the definition, the claims, the flag and the units, behind one
         // fold, closed (checks-words2.md, item 14): the title and the grid
@@ -278,18 +323,18 @@ export default function SensitivityTable() {
             {foreignShareLine(res) ? <p className="ex-sg-def">{foreignShareLine(res)}</p> : null}
             <p className="ex-sg-lead">In every scenario&rsquo;s main version, compared with some foreign capital (ζK 0.1):</p>
             <Items className="ex-notes" items={sensClaims(res)} />
+            <p className="ex-sg-lead">Reading the grid:</p>
+            <Items className="ex-notes" items={gridKey(res)} />
             {sensFlagItem() ? (
               <p id="sens-flag" className="ex-sg-flagnote">
                 <span>{sensFlagItem().text}</span>
               </p>
             ) : null}
-            <p className="card-unit ex-sg-more-unit">
-              <span data-axis-title="y">{`Gap against the OBR’s central forecast path for the same foreign-capital case, ${HEADLINE_YEAR}, %; spending follows GDP`}</span>
-            </p>
+            <p className="card-unit ex-sg-more-unit">Compared with: the forecast path for the same foreign-capital case</p>
+            <p className="card-unit ex-sg-more-unit is-next">Settings: spending follows GDP</p>
           </Disclosure>
         </div>
       }
-      read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
       sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}
@@ -303,6 +348,7 @@ export default function SensitivityTable() {
       }}
     >
       <SensGrid res={res} />
+      <GridKeyLine res={res} />
     </Card>
   );
 }

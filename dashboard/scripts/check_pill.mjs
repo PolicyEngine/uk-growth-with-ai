@@ -7,8 +7,9 @@
 //     .p3-switch, .settings-bar, .mx-filter, .ex-mtoggle-btn,
 //     .p3-follow-btn, .model-chip, .subhead-chip, .page-kicker), and no
 //     parent with two or more button[aria-pressed], outside the allowed
-//     list; temporary: the version chips in .ex-wall-head, #debt-gdp and
-//     #tax-gdp (printed as warnings);
+//     list; no temporary allowance (item 37: the wall's version chips are
+//     a pill section now, after #debt-gdp and #tax-gdp lost theirs in item
+//     17);
 //  2. every radiogroup, radio and checkbox is inside .settings-pop; every
 //     select inside .on-this-page; one role=switch, in #hh-displaced;
 //  3. each OG-UK Explore page has one visible page pill, in the .model-row
@@ -68,7 +69,7 @@ const warn = (m) => {
 // in the page: visible old controls and pressed-button groups
 function sweep() {
   const vis = (e) => !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length) && getComputedStyle(e).visibility !== 'hidden';
-  const TEMP = '.ex-wall-head, #debt-gdp, #tax-gdp';
+  const TEMP = ':not(*)'; // no allowance left (item 37)
   const OLD = '.picker-button, .seg-picker, .seg-option, .segments, .segment, .control-bar, .chips .chip, .ex-rules, .ex-rule, .p3-switch, .settings-bar, .mx-filter, .ex-mtoggle-btn, .p3-follow-btn, .model-chip, .subhead-chip, .page-kicker';
   const bad = [];
   const temp = [];

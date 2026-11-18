@@ -47,6 +47,21 @@ export function ClosureKey({ closure }) {
   );
 }
 
+// The versions' one legend (item 13): a swatch in each line's colour and
+// its name, the same on the economy wall and the Public finances charts.
+export function VersionLegend({ arms }) {
+  return (
+    <ul className="ex-wall-legend" aria-label="Versions">
+      {ARMS.filter((a) => arms.includes(a.id)).map((a) => (
+        <li key={a.id}>
+          <span className="ex-wall-swatch" style={{ background: VERSION_COLOR[a.id] }} aria-hidden="true" data-icon="" />
+          {versionName(a)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function PendingLine({ names }) {
   if (!names.length) return null;
   return (
@@ -84,7 +99,7 @@ const COINCIDE = 0.005;
 // 2031 value at each line end, and the arms control bar.
 export function PathCard({
   sid, v, title, name, icon, years = WINDOW_YEARS, unit = '%', scale = 1, dp = 2, endDp = 2, finding, about, method = 'closures', markers, id, unitLine: unitText, ends = true, notes,
-  tile = false, open = false, onToggle, sources = true,
+  tile = false, open = false, onToggle, sources = true, heading, foot, bands, tidy = false,
 }) {
   const { st, set } = useNav();
   const rule = st.rule;
@@ -93,7 +108,10 @@ export function PathCard({
   // carries no end value of its own: the value prints once and the card's
   // finding says the lines coincide.
   const same = (t, s) => t.values.length === s.values.length && signed(t.values[t.values.length - 1], endDp) === signed(s.values[s.values.length - 1], endDp) && t.values.every((x, k) => Math.abs(x - s.values[k]) < COINCIDE);
-  const raw = seriesFor(sid, v, years, st.arms, st.closure, scale, rule).map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
+  // a tidy card (Public finances, item 17) draws every version, named once
+  // in the shared legend, with no chooser of its own
+  const arms = tidy ? ARMS.map((a) => a.id) : st.arms;
+  const raw = seriesFor(sid, v, years, arms, st.closure, scale, rule).map((s, i, all) => (all.slice(0, i).some((t) => !t.noEndLabel && same(t, s)) ? { ...s, noEndLabel: true } : s));
   // the line that carries a shared label names the lines under it, so no
   // colour is left without a label ("all versions" when every line is one)
   const series = raw.map((s, i) => {
@@ -103,7 +121,7 @@ export function PathCard({
     return { ...s, sublabel: under.length === raw.length - 1 ? 'all versions' : `and ${under.map((t) => t.label).join(', ')}` };
   });
   const last = years[years.length - 1];
-  const shown = finding ?? findingFor(sid, v, st.arms, st.closure, name, rule);
+  const shown = tidy ? null : (finding ?? findingFor(sid, v, st.arms, st.closure, name, rule));
   // The y-axis title, with the measure's unit: % for a level, percentage
   // points of GDP for debt and tax, percentage points for a rate or share.
   const ofGdp = v === 'debt_gdp_pp' || v === 'tax_gdp_pp';
@@ -116,7 +134,7 @@ export function PathCard({
   // notes and "About this chart" too.
   const full = !tile || open;
   // end labels: a full-size chart names each line, with its value and unit
-  const named = !(ends && tile && !open);
+  const named = !tidy && !(ends && tile && !open);
   // a wall tile's title carries its unit ("Interest rate, pp"); the wall's
   // units line above the grid says what the unit measures, so a closed tile
   // draws no y title of its own
@@ -133,18 +151,24 @@ export function PathCard({
     <Card
       id={id}
       icon={icon}
-      title={head}
+      title={heading ?? head}
       className={tile ? `ex-tile${open ? ' is-open' : ''}` : ''}
       finding={full ? (typeof shown === 'string' ? <Lead c="canSay">{shown}</Lead> : shown) : null}
-      unit={full ? <Lead c="measure">{unitLine}</Lead> : null}
+      unit={full ? <Lead c="measure">{tidy ? <span data-axis-title="y">{unitLine}</span> : unitLine}</Lead> : null}
+      foot={foot}
       controls={
-        tile ? null : (
+        tile || tidy ? null : (
           <ControlBar label={`${title}: options`}>
             <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
           </ControlBar>
         )
       }
-      legend={tile ? null : <ClosureKey closure={st.closure} />}
+      legend={tile ? null : tidy ? (
+        <>
+          <VersionLegend arms={arms} />
+          <ClosureKey closure={st.closure} />
+        </>
+      ) : <ClosureKey closure={st.closure} />}
       about={full && about?.caveats ? { caveats: about.caveats } : null}
       notes={full && notes?.length ? notes : null}
       sources={sourcesItems({ sid, method, closures: sources ? undefined : [], code: sources })}
@@ -155,14 +179,14 @@ export function PathCard({
         legend: () => legendOf(series),
       }}
     >
-      <PendingLine names={series.length ? boundPending(sid, st.arms, st.closure, rule) : []} />
+      <PendingLine names={series.length ? boundPending(sid, arms, st.closure, rule) : []} />
       {series.length ? (
         <LineChart
           x={years}
           series={series}
           height={tile ? (open ? 340 : 260) : 260}
           // a closed tile: 3 to 5 ticks with zero always on its scale
-          thin={tile && !open}
+          thin={tidy || (tile && !open)}
           // a full-size chart names each line at its end, with its value;
           // a closed tile prints values only (its wall's GNI and GDP tiles,
           // which print no value, name the lines in the same colours)
@@ -170,19 +194,20 @@ export function PathCard({
           noValue={!ends}
           unit={unit}
           tipTitle={title}
-          yUnit={tile && !open ? null : yTitle}
+          yUnit={tidy || (tile && !open) ? null : yTitle}
           yTitleTop
-          xUnit={tile && !open ? null : 'Year'}
-          zeroNote={tile && !open ? null : 'Forecast path = 0'}
+          xUnit={tidy || (tile && !open) ? null : 'Year'}
+          zeroNote={tidy ? 'Forecast path' : tile && !open ? null : 'Forecast path = 0'}
+          zeroAtEnd={tidy}
           markers={markers ?? [{ year: SURPRISE_YEAR, label: tile && !open ? '' : 'Extra AI starts' }]}
-          bands={[{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
+          bands={bands ?? [{ year: HEADLINE_YEAR, label: tile && !open ? '' : 'Headline year' }]}
           valueFormat={(x) => `${signed(x, endDp)}${named && ends ? unit : ''}`}
           tipFormat={(x) => signed(x, dp)}
           ariaLabel={`${title} against the OBR’s central forecast path, ${years[0]} to ${last}, ${SCEN_NAME[sid]}, ${closureWords(st.closure)}, ${ruleLabel(rule).toLowerCase()}`}
         />
       ) : (
         <div className="unpublished-plot">
-          <Items items={sentenceItems(emptyText(st.arms, st.closure, rule, sid))} />
+          <Items items={sentenceItems(emptyText(arms, st.closure, rule, sid))} />
         </div>
       )}
     </Card>
@@ -412,9 +437,9 @@ function EconomyPanel({ sid }) {
         <Lead c="measure">Eight measures, each against the OBR’s central forecast path</Lead>
       </SectionHeading>
       <div className="ex-wall-head">
-        <ControlBar label="Every chart on the wall: options">
-          <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
-        </ControlBar>
+        {/* item 37: the versions shown, as a section of the wall's pill (no
+            chip toggles anywhere) */}
+        <Pill className="is-card" title="Options for every chart on the wall" name={`The economy, ${FIRST_YEAR}–${HEADLINE_YEAR}`} sections={[versionsShownSection(st, set)]} />
         <ul className="ex-wall-key" aria-label="How to read the wall">
           <li>
             <Icon name={iconFor('onPath')} size={14} /> Zero line: the OBR’s central forecast path
@@ -435,14 +460,7 @@ function EconomyPanel({ sid }) {
       <p className="ex-wall-units" data-axis-title="y">
         {`Gap against the OBR’s central forecast path, ${WINDOW_YEARS[0]}–${WINDOW_YEARS[WINDOW_YEARS.length - 1]}: % for levels, pp (percentage points) for the interest rate and the labour share`}
       </p>
-      <ul className="ex-wall-legend" aria-label="Versions">
-        {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
-          <li key={a.id}>
-            <span className="ex-wall-swatch" style={{ background: VERSION_COLOR[a.id] }} aria-hidden="true" data-icon="" />
-            {versionName(a)}
-          </li>
-        ))}
-      </ul>
+      <VersionLegend arms={st.arms} />
       <div className="ex-wall" onKeyDown={onKey}>
         {tiles.map((r) => (
           <div key={r.v} className={`ex-wall-cell${open === r.v ? ' is-open' : ''}`} id={r.groupId ?? undefined} data-group={r.group}>

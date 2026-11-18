@@ -2828,7 +2828,9 @@
   padding: 0;
   list-style: none;
 }
-/* one grid for the whole list, so every row's bar starts at one x */
+/* one grid for the whole list, so every row's bar starts at one x. The li
+   are display: contents, so Safari drops their list semantics: the ul
+   carries role="list" (CohortsTab.jsx, item 43) */
 .ex-bars2-list > li {
   display: contents;
 }
@@ -3009,3 +3011,51 @@
     column-gap: 10px;
   }
 }
+
+/* item 17: Public finances' Debt/GDP and Tax/GDP charts. The finding is the
+   card title (one line where it fits), one small units line, the shared
+   version legend under the chart, and a closed More info fold (the item 14
+   component); type from the item 9 tokens. */
+.ex-fin-more { margin-top: 8px; }
+.ex-fin-more-group + .ex-fin-more-group { margin-top: 10px; }
+.ex-fin-more-head {
+  margin: 0 0 2px;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--pe-gray-800, #1f2937);
+}
+.ex-fin-more-line {
+  margin: 2px 0;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--pe-gray-700, #374151);
+}
+.ex-fin-more-line b { font-weight: 600; color: var(--pe-gray-800, #1f2937); }
+.card .card-legend .ex-wall-legend { margin: 4px 0 0; }
+/* an open More info lengthens its own card only: the other chart keeps its
+   height, so its legend stays under its chart */
+.cards-grid > #debt-gdp, .cards-grid > #tax-gdp { align-self: start; }
+/* item 39 (wording for Fable): the zeta_K 0.5 grid's key line, always
+   visible under the grid */
+.ex-sg-keyline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 8px 0 0;
+  font-size: var(--fs-small);
+  color: var(--pe-gray-700, #374151);
+}
+.ex-sg-keyitem { display: inline-flex; align-items: center; gap: 4px; }
+.ex-sg-keyswatch {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  border: 2px dashed var(--pe-gray-900);
+  border-radius: 2px;
+}
+.ex-sg-more-unit.is-next { margin-top: 2px; }
+/* item 38: Public finances' answer, one Finding box and the tax-gap link as
+   one plain line */
+.page-a #fin-finding { margin: 0; }
+.fin-link-line { margin: 8px 0 0; font-size: var(--fs-small); }
+.page-a-text { margin: 0; }

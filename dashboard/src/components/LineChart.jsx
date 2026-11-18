@@ -21,6 +21,8 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 // `xUnit`:  optional x-axis title, drawn under the year labels
 //           (data-axis-title="x")
 // `zeroNote`: a reference label on the zero line ("forecast path = 0")
+// `zeroAtEnd`: the zero note only at the line's right end (above, below,
+//           or with the end labels), never at its start
 // `dots`:   false draws markers only at the crosshair (for long series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as
@@ -221,6 +223,7 @@ export default function LineChart({
   compact = false,
   yTitleTop = false,
   zeroNote = null,
+  zeroAtEnd = false,
   thin = false,
 }) {
   // yTitle / xTitle (the shared chart API) are the same as yUnit / xUnit
@@ -402,7 +405,8 @@ export default function LineChart({
   // line, then right below, left above, left below (a line through it
   // would cross its words).
   const zeroAt = (() => {
-    if (!zeroNote || !(lo < 0 && hi > 0)) return { x: L + 4, y: 0, anchor: 'start' };
+    const zeroIn = thin ? lo <= 0 && hi >= 0 : lo < 0 && hi > 0;
+    if (!zeroNote || !zeroIn) return { x: L + 4, y: 0, anchor: 'start' };
     const w = textWidth(zeroNote, AX_FONT) + 4;
     const z = sy(0);
     const spots = [
@@ -422,7 +426,9 @@ export default function LineChart({
       );
     // no clear spot in the plot: the note joins the end labels, at the zero
     // line's right end (when the chart has an end-label column)
-    return spots.find((sp) => clear(sp.box)) ?? (rawLabels.length ? { gutter: true } : spots[2]);
+    // a spot outside the plot (zero is the scale's edge) is not a spot
+    const tries = (zeroAtEnd ? spots.slice(0, 2) : spots).filter((sp) => sp.box[1] >= TOP - 1 && sp.box[3] <= BOT + 1);
+    return tries.find((sp) => clear(sp.box)) ?? (rawLabels.length ? { gutter: true } : spots[zeroAtEnd ? 0 : 2]);
   })();
   // Where a strip point's marker sits. Two points pushed to the same axis
   // edge would be drawn on top of each other, so each off-scale point after

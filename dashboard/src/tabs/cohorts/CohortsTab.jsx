@@ -498,7 +498,7 @@ function Bars({ rows, caption, signed = false }) {
   const at = (v) => `${(((v - lo) / span) * 100).toFixed(2)}%`;
   return (
     <figure className="ex-bars2">
-      <ul className="ex-bars2-list" aria-labelledby={id}>
+      <ul className="ex-bars2-list" role="list" aria-labelledby={id}>
         {rows.map((r) => (
           <li key={r.key}>
             <span className="ex-bars2-label">{r.label}</span>
@@ -760,7 +760,7 @@ function Why({ cl, rule, arm }) {
         </Finding>
       </div>
       <div className="ex-mi-box">
-        <Disclosure id="who-model-households" title="More info: how the model’s households compare with the UK" preview="Pay, transfers and wealth by earnings group">
+        <Disclosure id="who-model-households" title="More info" preview="How the model’s households compare with the UK: pay, transfers and wealth by earnings group">
           <div className="ex-mi">
             <p className="ex-mi-lead">The ranking by earnings group is a property of the model, not a finding about the UK.</p>
             <p className="ex-mi-lead">It follows from how the model’s households are built.</p>

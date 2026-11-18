@@ -89,20 +89,22 @@ describe('the cards’ inline arrows', () => {
         it(`debt/GDP and the four measures: ${sid}, ${closure}, ${rule}`, () => {
           const cl = clOf(closure);
           const { container, unmount } = at(`tab=explore&sub=finances&s=${sid}&closure=${closure}&rule=${rule}`);
-          const dirs = [...container.querySelectorAll('#debt-gdp .card-finding [data-dir]')].map((e) => e.dataset.dir);
+          // item 17: the finding is the card's title, with no arrows; its
+          // side words follow every version's late-year sign
+          const title = container.querySelector('#debt-gdp .card-head h3')?.textContent ?? '';
           const p = debtParts(sid, closure, rule);
           const a = val(sid, 'tfp', cl, 'debt_gdp_pp', rule);
           const b = val(sid, 'tfp', cl, 'debt_gdp_pp', rule, L);
-          if (a == null || b == null) expect(dirs).toEqual([]);
-          else if (rule === 'dn') {
-            const first = val(sid, 'tfp', cl, 'debt_gdp_pp', rule, S.years.indexOf(2028));
-            expect(dirs).toEqual([...(dataDir(first) === 'on' ? [] : [dataDir(first)]), dataDir(b)]);
-            expect(dataDir(b)).toBe('on'); // the words say "stays on the path"
-          } else {
-            expect(dirs).toEqual([dataDir(a), dataDir(b)]);
+          if (a == null || b == null) expect(container.querySelector('#debt-gdp')).toBeNull();
+          else {
+            const cls = closure === 'both' ? ['zk0.1', 'zk0'] : [cl];
+            const sides = new Set(cls.flatMap((c) => ['tfp', 'tz', 'ss'].map((arm) => dataDir(val(sid, arm, c, 'debt_gdp_pp', rule, L)))));
+            if (rule === 'dn' && sides.size === 1 && sides.has('on')) expect(title).toContain('stays on the path');
+            else if (sides.size === 1) expect(title).toContain(`is ${[...sides][0]} the path`);
+            else expect(title).toMatch(/except in|depends on/);
             // at the OBR's repricing speed: the arrow follows that value's sign
             const obr = raw(sid, 'tfp', cl, 'common')?.debt_gdp_pp_obr_repricing_late;
-            if (p.obr != null) expect(p.obr).toBe(obr);
+            if (p?.obr != null) expect(p.obr).toBe(obr);
           }
           unmount();
           // the four-measure card: the pay rate (and GNI) arrows, when every arm shown is on one side
@@ -185,7 +187,11 @@ describe('the sensitivity card', () => {
       expect(claims[v.toLowerCase()].icon).toBe(exp);
     }
     const w = SCEN.map((sid) => res[sid].tfp.gaps.w[H]);
-    expect(claims.w.icon).toBe(w.some((x) => x < -0.005) ? 'gapDown' : w.some((x) => x > 0.005) ? 'gapUp' : 'onPath');
+    // item 42: when every main-version pay rate is above the path (and was
+    // below it at zeta_K 0.1) the title says so and the claim is dropped
+    const wc = SCEN.map((sid) => S.results[sid].tfp['zk0.1'].gaps.w[H]);
+    if (w.every((x) => x > 0.005) && wc.every((x) => x < -0.005)) expect(claims.w).toBeUndefined();
+    else expect(claims.w.icon).toBe(w.some((x) => x < -0.005) ? 'gapDown' : w.some((x) => x > 0.005) ? 'gapUp' : 'onPath');
     expect(claims.gni.icon).toBe(SCEN.every((sid) => res[sid].tfp.gaps.GNI[H] < res[sid].tfp.gaps.Y[H]) ? 'foreign' : 'gni');
   });
 });
