@@ -597,7 +597,7 @@ export default function WhoGainsTab() {
           UK central only
         </li>
         <li className="ex-mchip">
-          Extra AI arrives in {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
+          Extra AI starts in {ext(atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py#L55'), `${D.shock_year} (an assumed date)`)}, as a surprise
         </li>
         <li className="ex-mchip" title="The paper also reports Korinek et al., substantial (US), under debt-neutral transfers; its cohort paths are not in this site’s data yet">
           Korinek, substantial (US): in the {ext(atRef(COHORTS_SHA, 'paper/main.tex'), 'paper draft')}, not yet here

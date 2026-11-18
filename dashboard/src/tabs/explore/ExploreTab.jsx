@@ -21,7 +21,7 @@ const answerOf = (a) => <AnswerStrip a={typeof a === 'string' ? { drivers: sente
 // their kicker names both.
 const OGUK = 'OG-UK · gaps against the OBR’s central forecast path, not forecasts';
 const MAIN = `${OGUK} · automation + productivity, ${HEADLINE_YEAR}`;
-const DATE_NOTE = 'Extra AI, beyond the OBR’s central forecast, arrives in 2028: an assumed date, not a forecast.';
+const DATE_NOTE = 'Extra AI, beyond the OBR’s central forecast, starts in 2028: an assumed date, not a forecast.';
 
 // Explore: every interactive view. Each sub-tab opens with its question and
 // a short answer in items that follows the pickers, then the charts. Economy

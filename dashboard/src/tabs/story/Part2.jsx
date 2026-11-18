@@ -118,7 +118,7 @@ export default function Part2({ part }) {
       <StoryBeat
         id={String(SURPRISE_YEAR)}
         num={SURPRISE_YEAR}
-        head="Extra AI arrives, as a surprise"
+        head="More AI, sooner, as a surprise"
         line={`In every scenario, AI does more, sooner, than the OBR expects. Nobody planned for it, so the economy follows the forecast path until ${SURPRISE_YEAR}.`}
       />
 

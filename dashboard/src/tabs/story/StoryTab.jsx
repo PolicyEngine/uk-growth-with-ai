@@ -47,7 +47,7 @@ export const PARTS = [
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
         <p>The AI shock: AI does more workers’ tasks than the OBR expects, so capital’s share of income rises and the same inputs produce more.</p>
-        <p>It arrives in 2028, unannounced, and builds in four yearly steps to 2031.</p>
+        <p>It starts in 2028, unannounced, and builds in four yearly steps to 2031.</p>
       <Items
         items={[
           {

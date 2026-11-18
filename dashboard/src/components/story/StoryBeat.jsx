@@ -18,7 +18,7 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 // or a jump sees it settled. The headline and line are there from the first
 // frame. Reduced motion and print: a static block, the rule drawn.
 //
-//   <StoryBeat id="2028" num="2028" head="Extra AI arrives, as a surprise" line="…" from="below" />
+//   <StoryBeat id="2028" num="2028" head="More AI, sooner, as a surprise" line="…" from="below" />
 //   numProps: extra attributes for the numeral (B4: data-path, data-input)
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));

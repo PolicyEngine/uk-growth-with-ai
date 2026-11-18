@@ -16,7 +16,7 @@ const weight = (y) => Math.max(0, Math.min(1, (y - FIRST_YEAR) / (HEADLINE_YEAR 
 
 const MARK = {
   [FIRST_YEAR]: 'Starting point',
-  [SURPRISE_YEAR]: 'Extra AI arrives',
+  [SURPRISE_YEAR]: 'Extra AI starts',
   [HEADLINE_YEAR]: 'Headline year',
   [LATE_YEAR]: 'Debt rule starts',
 };
@@ -33,7 +33,7 @@ function detail(y) {
   if (y < FIRST_YEAR) return `History: every scenario equals the OBR’s central forecast path.`;
   if (y === FIRST_YEAR) return `The single starting point: every scenario equals the forecast path, and every chart starts here. ${ramp}`;
   if (y === SURPRISE_YEAR)
-    return `Extra AI, beyond the OBR’s central forecast, arrives at the start of the year, unexpected. Households re-plan; the first quarter of the ramp applies. ${ramp}`;
+    return `Extra AI, beyond the OBR’s central forecast, comes in at the start of the year, unexpected. Households re-plan; the first quarter of the ramp applies. ${ramp}`;
   if (y < HEADLINE_YEAR) return `Adoption year ${y - FIRST_YEAR}: γ and Z move a further quarter of the way. ${ramp}`;
   if (y === HEADLINE_YEAR) return `Adoption year ${y - FIRST_YEAR}: the ramp reaches full weight. Headline figures are for this year. ${ramp}`;
   if (y === LATE_YEAR) return `The debt rule starts: from here spending closes the budget towards the long-run debt ratio. γ and Z stay at full weight.`;

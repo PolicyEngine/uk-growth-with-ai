@@ -661,7 +661,7 @@ export default function FinancesSection({ sid }) {
           unitLine={`Percentage points of GDP, difference from the OBR’s central forecast path, ${FIRST_YEAR}–${LATE_YEAR}`}
           finding={debt ? <DebtFinding p={debt} /> : undefined}
           notes={debtNotes(debt)}
-          markers={[{ year: SURPRISE_YEAR, label: 'Extra AI arrives' }, { year: LATE_YEAR, label: 'Debt rule starts (set in this study)' }]}
+          markers={[{ year: SURPRISE_YEAR, label: 'Extra AI starts' }, { year: LATE_YEAR, label: 'Debt rule starts (set in this study)' }]}
           about={{
             caveats: (
               <Items

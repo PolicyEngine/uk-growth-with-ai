@@ -22,7 +22,8 @@
 //
 // Hyphens, every tab: no U+2011 (non-breaking hyphen) in rendered text,
 // svg text included. Names, every tab: no visible "uk-ai-study" (the
-// household study's repo slug) outside code.
+// household study's repo slug) outside code. Wording, every tab: no
+// visible "AI ... arrives" (the extra AI starts; AI is already here).
 //
 // Skipped everywhere: tables, chart text (svg), the site header and
 // footer, and anything aria-hidden, visually hidden or [hidden].
@@ -106,6 +107,14 @@ for (const [name, path] of Object.entries(PAGES)) {
         const el = n.parentElement;
         if (!n.nodeValue.includes('uk-ai-study') || !el?.getClientRects().length || el.closest('code, pre, kbd, [aria-hidden="true"], .visually-hidden')) continue;
         out.push(`${where(el)} repo slug "uk-ai-study" in visible text: ${n.nodeValue.trim().slice(0, 60)}`);
+      }
+      // Wording (Vahid, 18 Nov): AI does not "arrive" (it is already
+      // here); the extra AI starts. No visible "AI ... arrive(s)" in a
+      // sentence, svg text (chart markers) included.
+      const ARRIVE = /\bAI\b[^.:;!?\n]{0,60}\barriv/i;
+      for (const line of document.body.innerText.split('\n')) if (ARRIVE.test(line)) out.push(`"AI arrives" wording in visible text: ${line.trim().slice(0, 80)}`);
+      for (const t of document.querySelectorAll('svg text')) {
+        if (ARRIVE.test(t.textContent) && t.getClientRects().length && !t.closest('[aria-hidden="true"]')) out.push(`${where(t)} "AI arrives" wording in chart text: ${t.textContent.trim().slice(0, 80)}`);
       }
       if (!story) return { out };
       // (a) exactly one icon
