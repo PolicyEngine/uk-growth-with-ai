@@ -11,10 +11,13 @@ import QStage, { Answer } from './QStage.jsx';
 import MarkCallout from './MarkCallout.jsx';
 import { NotesSlot } from './FigNotes.jsx';
 
-// a sticky figure may take 45% of the screen at 900px and below (round 2
-// sign-off #5: at most 45% on phones too, so the step text has room), of
-// the small viewport height (svh: browser bars shown)
-const capFor = () => 0.45;
+// a sticky figure may take 55% of the screen at 600px and below and 45%
+// from 601 to 900px, of the small viewport height (svh: browser bars
+// shown). phone-sticky-cap-fable.md (18 Nov) replaces round 2 sign-off #5's
+// 45% on phones: cards are now held under the figure, so the test is
+// whether the card fits the room left, and the chart type scale's phone
+// sizes (item 9) took every scene over 45%.
+const capFor = (w) => (w <= 600 ? 0.55 : 0.45);
 let svhPx = 0;
 const svh = () => {
   if (svhPx) return svhPx;
@@ -82,7 +85,7 @@ const lineGap = (room) => Math.min(0.4 * Math.max(0, room), 72);
 // worth watching): then the figure sticks below the rail on an opaque
 // backing, cards scroll beneath it, and its box keeps the height of its
 // tallest state (no layout shift). A scene whose tallest state is more than
-// 45% of the screen falls back to the figure once. `phone="steps"` instead
+// the cap (55% of the screen on phones, capFor) falls back to the figure once. `phone="steps"` instead
 // gives each step its own copy of the figure (`is-inline`), for blocks whose
 // states are different figures. `graphic(active, reduce, ctx)` draws the
 // state for the active step; every state must be readable on its own (a

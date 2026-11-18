@@ -187,3 +187,18 @@ p.mx-axis-title,
     padding: 6px 2px;
   }
 }
+@media (max-width: 600px) {
+  /* part 2's charts on phones: the x title at the larger size reaches
+     below the viewBox; keep the answer line 24px clear of it */
+  .p2-svg {
+    margin-bottom: 6px;
+  }
+}
+@media (max-width: 600px) {
+  /* phone-sticky-cap-fable.md: one panel shows at a time and each has its
+     own head and unit line, so the figure-level unit line goes (its year
+     is in the notes) */
+  .p3-ch:not(.is-all) > .story-figure-unit {
+    display: none;
+  }
+}

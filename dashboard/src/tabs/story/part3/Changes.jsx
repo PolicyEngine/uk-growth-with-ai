@@ -404,6 +404,8 @@ function BreakEvenPanel({ on }) {
 // Each panel's notes, in the figure's "Sources and notes" (one group a
 // panel), worded as they were.
 const rulesNotes = () => [
+  // the figure's year: on phones its unit line is hidden while one panel shows
+  { icon: 'timing', text: `All three tests: ${MODEL_YEAR}, the household study` },
   { icon: 'scenario', text: 'Uniform: every employee equally likely' },
   { icon: 'scenario', text: <>Ages 16 to 24: tilted to them, after <Ref id="klein">Klein Teeselink (2025)</Ref></> },
   { icon: 'scenario', text: 'Main: in proportion to AI exposure' },
