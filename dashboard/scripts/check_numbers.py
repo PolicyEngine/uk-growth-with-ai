@@ -1,7 +1,12 @@
 """Every number the Results and Who gains tabs print equals the data file,
 and appears exactly as often as expected (each fact once).
 
-    python3 scripts/check_numbers.py dump.json [path/to/surprise2028.json]
+    python3 scripts/check_numbers.py dump.json [path/to/surprise20xx.json]
+
+The data file defaults to the active one (scripts/active_data.py: set
+NEXT_PUBLIC_DATA=2027 for surprise2027.json), and so do the solve outputs
+the raw-solve recompute reads (UGAI_OUT overrides them). Without those
+outputs the recompute is reported NOT RUN, never passed.
 
 dump.json is scripts/dumptabs.mjs's output. Where each figure is printed:
 Summary, the three headline tiles (main arm, at the closure picked in the
@@ -17,9 +22,11 @@ with the page's own formatting.
 """
 import json, os, re, sys
 from collections import Counter
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import active_data  # noqa: E402
 
 dump = json.load(open(sys.argv[1]))
-D = json.load(open(sys.argv[2] if len(sys.argv) > 2 else 'src/data/surprise2028.json'))
+D = active_data.load_surprise(sys.argv[2] if len(sys.argv) > 2 else None)
 Y = D['years']; H = D['headline_year']; LATE = D['late_year']
 ARMS = [a['id'] for a in D['arms']]
 C, B = 'zk0.1', 'zk0'
@@ -123,27 +130,30 @@ for sid in dump:
             print(sid, mode, 'missing:', dict(exp - got), 'extra:', dict(got - exp))
         else:
             print(sid, mode, 'ok:', sum(exp.values()), 'figures, each as often as expected')
-    # a pending value prints "pending", never a number
+    # a pending value prints "not yet solved" (surprise.js PENDING), never a number
     n_pending = sum(1 for arm in ARMS for v in ['GNI', 'Y', 'NNI', 'w'] for cl in (C, B) if g(sid, arm, cl, v) is None)
-    if dump[sid].get('results:income:both', '').count('pending') < n_pending:
+    if dump[sid].get('results:income:both', '').count('not yet solved') < n_pending:
         bad += 1; print(sid, 'too few "pending" on Results')
 # Every finished gap in the data file equals the raw solve over its
 # continuation (as the session's check_numbers.py did).
-import os
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'analysis', 'surprise', 'output')
+OUT = active_data.OUT
 raw_bad = 0
-for sid, arms in D['results'].items():
+raw_run = 0
+if not active_data.HAVE_OUT:
+    print('raw-solve recompute: NOT RUN, no solve outputs at', OUT)
+for sid, arms in (D['results'].items() if active_data.HAVE_OUT else []):
     for a, cls in arms.items():
         for cl, r in cls.items():
             if r['status'] != 'done':
                 continue
+            raw_run += 1
             s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
             b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
             for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
                 for k in range(len(Y)):
                     if abs((s_[v][k] / b_[v][k] - 1) * 100 - r['gaps'][v][k]) > 1e-9:
                         raw_bad += 1
-print('raw-solve recompute mismatches:', raw_bad)
+print('raw-solve recompute mismatches:', raw_bad, f'({raw_run} done cells checked)')
 
 # The fiscal-rule box with a rule chosen (Public finances; none under the
 # common rule): every chart
@@ -175,7 +185,7 @@ for rid, rule in D.get('rules', {}).items():
     for sid, arms in rule['results'].items():
         for a, by_cl in arms.items():
             for cl, r in by_cl.items():
-                if r['status'] != 'done':
+                if r['status'] != 'done' or not active_data.HAVE_OUT:
                     continue
                 s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
                 b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
@@ -192,7 +202,7 @@ for rid, rule in D.get('rules', {}).items():
 # (consumption, leisure, bequests: parts_alive) print once, at each bar's
 # end, at the central closure (with Both too); its Total row restates the
 # average tile and is marked data-axis, so dumptabs leaves it out.
-CO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'cohorts2028.json')))
+CO = active_data.load_cohorts()
 def tiles(c, cl=None):
     exp = Counter(signed(x, 2) + '%' for x in [c['alive_avg'], c['no_bequest_alive_avg'], c['sources_alive']['capital'], c['sources_alive']['labour']])
     # where the cell is solved to the horizon (cohorts2028.json `dnfull`) that
@@ -262,6 +272,8 @@ for cl, sens in D.get('sensitivity', {}).items():
                 continue
             for v in ['Y', 'GNI', 'NNI', 'w']:
                 exp[signed(r['gaps'][v][Y.index(H)], 2) + '%'] += 1
+            if not active_data.HAVE_OUT:
+                continue
             s_ = json.load(open(f"{OUT}/{cl}/{r['label']}.json"))['series']
             b_ = json.load(open(f"{OUT}/{cl}/continuation.json"))['series']
             for v in ['Y', 'GNI', 'NNI', 'w', 'C', 'I', 'K', 'L']:
@@ -299,4 +311,4 @@ import checks
 for m in sorted(pkgutil.iter_modules(checks.__path__), key=lambda m: m.name):
     bad += importlib.import_module(f'checks.{m.name}').check(dump)
 bad += raw_bad
-print('FAIL' if bad else 'PASS'); sys.exit(1 if bad else 0)
+print('FAIL' if bad else ('PASS' if active_data.HAVE_OUT else 'PASS on the dump only: raw-solve recompute NOT RUN')); sys.exit(1 if bad else 0)

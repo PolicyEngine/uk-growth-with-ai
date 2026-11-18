@@ -14,6 +14,9 @@ import json, os, re
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+import active_data  # noqa: E402
 DATA = os.path.join(HERE, '..', '..', 'src', 'data')
 ROOT = os.path.join(HERE, '..', '..', '..')
 
@@ -69,7 +72,7 @@ def data_checks():
     return bad
 
 
-SUR = json.load(open(os.path.join(DATA, 'surprise2028.json')))
+SUR = active_data.load_surprise()
 SCEN = ('uk_low', 'uk_central', 'uk_high', 'korinek')
 
 
