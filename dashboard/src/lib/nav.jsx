@@ -8,8 +8,8 @@ import { revealAnchor } from '@/lib/scroll.js';
 // One reader and one writer for the address. Everything a reader can choose
 // is in it, so any view can be shared as a link:
 //   ?tab=  &sub=           the tab and its sub-tab (Explore, Method and sources)
-//   &s=    &closure=       the header pickers: scenario, capital closure
-//   &arm=  &rule=          the page pickers (settings bar): one arm and one
+//   &s=    &closure=       the settings pill: scenario, capital closure
+//   &arm=  &rule=          the settings pill: one arm and one
 //                          fiscal rule for every Explore page
 //   &arms=                 the arms drawn on Results' charts (series shown)
 //   &groups=               Who gains' earnings groups shown
@@ -30,7 +30,14 @@ import { revealAnchor } from '@/lib/scroll.js';
 const ARM_IDS = ARMS.map((a) => a.id);
 export const WG_ARMS = ['tfp', 'zfixed', 'stress'];
 export const WG_GROUPS = ['0', '1', '2', '3', '4', '5', '6', 'all'];
-const WG_GROUPS_DEFAULT = ['0', '2', '6', 'all'];
+// Earnings group is one choice (item-20-fable.md): every group (the
+// default), or one group with the average. An old list naming exactly one
+// group reads as that group; anything else as every group.
+const WG_GROUPS_DEFAULT = WG_GROUPS;
+export const groupsOf = (xs) => {
+  const g = (xs ?? []).filter((x) => x !== 'all');
+  return g.length === 1 ? [g[0], 'all'] : WG_GROUPS;
+};
 
 export const DEFAULTS = {
   tab: 'story',
@@ -178,7 +185,7 @@ export function parseUrl(search, hash = '') {
     rule: RULES.some((r) => r.id === rule && !r.disabled) ? rule : DEFAULTS.rule,
     ruleSet: RULES.some((r) => r.id === rule && !r.disabled),
     armId,
-    groups: list(q.get('groups'), WG_GROUPS) ?? DEFAULTS.groups,
+    groups: groupsOf(list(q.get('groups'), WG_GROUPS)),
     anchor,
   });
 }

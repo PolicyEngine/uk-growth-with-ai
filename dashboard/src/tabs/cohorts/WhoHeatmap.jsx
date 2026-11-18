@@ -7,7 +7,7 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { fileItem } from '@/lib/sourceItems.js';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
-import ControlBar, { ControlGroup, Segmented } from '@/components/ui/ControlBar.jsx';
+import Pill from '@/components/ui/Pill.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
 import D from '@/data/cohorts2028.json';
@@ -122,11 +122,12 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       title="By age and earnings group"
       finding={both ? <span className="ex-ctx">Some foreign capital</span> : null}
       controls={
-        <ControlBar label="Heatmap: options">
-          <ControlGroup label="Measure">
-            <Segmented options={ms.map((x) => ({ id: x.id, label: x.short, icon: iconFor(x.concept) }))} value={m.id} onChange={onMeasure} label="Measure" />
-          </ControlGroup>
-        </ControlBar>
+        <Pill
+          className="is-card"
+          title="Options for this chart"
+          name="By age and earnings group"
+          sections={[{ id: 'measure', label: 'Measure', glyph: 'ruler', kind: 'one', value: m.id, options: ms.map((x) => ({ value: x.id, label: x.label, desc: x.def })), onChange: onMeasure, seg: m.label, def: m.id === ms[0].id }]}
+        />
       }
       unit={<Lead c="measure">Change in remaining-lifetime consumption and bequests, %</Lead>}
       legend={

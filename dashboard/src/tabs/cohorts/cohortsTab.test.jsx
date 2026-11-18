@@ -50,7 +50,7 @@ describe('Who gains tab', () => {
   });
 
   it('stress test: the share losing and the young who all lose', () => {
-    // the arm is set in the settings bar (one store in the address)
+    // the arm is set in the settings pill (one store in the address)
     const { container } = at('tab=who&arm=ss');
     const c = cell('zk0.1', 'dn', 'stress');
     const t = container.textContent;

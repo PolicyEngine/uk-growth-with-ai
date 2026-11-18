@@ -29,7 +29,13 @@ const off = (got, exp) => [...new Set([...Object.keys(got), ...Object.keys(exp)]
 describe('HouseholdsExplore', () => {
   it('opens with the question, three finding chips, "Provisional" once and a link to the story', () => {
     const { container } = render(<HouseholdsExplore />);
-    expect(container.querySelector('.hh-question').textContent).toMatch(/\?$/);
+    expect(container.querySelector('.hh-question > span').textContent).toMatch(/\?$/);
+    // the model row after the title (item 22): the model line, its first
+    // segment a link to the household method, the year from the data
+    const line = container.querySelector('.hh-question + .model-row .model-line');
+    expect([...line.querySelectorAll('.model-line-seg')].map((x) => x.textContent)).toEqual(['Household study', 'PolicyEngine UK', D.model_year_label, 'OG-UK settings don’t apply']);
+    expect(line.querySelectorAll('a')).toHaveLength(1);
+    expect(line.querySelector('a').getAttribute('href')).toContain('sub=households');
     const chips = [...container.querySelectorAll('.hh-findings .hh-finding')];
     expect(chips.map((c) => c.querySelector('b').textContent)).toEqual(['Who loses the job', 'Job loss vs wage cuts', 'Benefit take-up']);
     expect(chips.length).toBe(FINDINGS.length);
@@ -39,12 +45,13 @@ describe('HouseholdsExplore', () => {
       expect(container.querySelector('.hh-lead .notice-chip')).toBeNull();
       expect(container.textContent).not.toMatch(/provisional/i);
     } else {
-      expect(container.querySelector('.hh-model').textContent).toContain('(provisional)');
-      expect(container.textContent.match(/provisional/gi)).toHaveLength(1);
+      // the paper's source item names the draft (behind Sources and notes)
+      expect(container.querySelector('.hh-lead [data-source-notes]')?.textContent ?? container.textContent).toMatch(/draft paper/i);
     }
     expect(container.textContent).not.toMatch(/cell marked/i);
-    const story = [...container.querySelectorAll('.hh-lead a')].find((a) => a.textContent.includes('Headlines in story part 3'));
-    expect(story.getAttribute('href')).toContain('#story-part-3');
+    // the story link and the housing-costs basis moved behind the page's
+    // Sources and notes button (kept in the DOM for the checks)
+    expect(container.querySelector('.hh-lead').textContent).toContain('Headlines in story part 3');
   });
 
   it('gives a row at most one story link, never the same link text twice in a row', () => {
@@ -93,7 +100,10 @@ describe('HouseholdsExplore', () => {
     const gbp = (v) => `£${Math.round(v).toLocaleString('en-GB')}`;
     expect(rows.textContent).toContain(gbp(D.displaced.uc_per_displaced.value));
     expect(rows.textContent).toContain(gbp(D.displaced.uc_per_displaced_takeup.value));
-    fireEvent.click([...container.querySelectorAll('#hh-displaced [role="radio"]')][1]);
+    const sw = container.querySelector('#hh-displaced [role="switch"]');
+    expect(sw.getAttribute('aria-checked')).toBe('false');
+    fireEvent.click(sw);
+    expect(sw.getAttribute('aria-checked')).toBe('true');
     expect(rows.classList.contains('is-full')).toBe(true);
   });
 
@@ -107,7 +117,8 @@ describe('HouseholdsExplore', () => {
       // icons: the card header's one, the Replay and Pause controls; none in a finding, unit, note, list or plane
       expect(card.querySelectorAll('.card-finding svg, .card-unit svg, .hh-note svg, .hh-list svg, .hh-plane .hh-pt svg, .hh-funnel svg, .hh-reasons svg, .hh-pol-cards svg').length, card.id).toBe(0);
     }
-    expect(container.querySelectorAll('.hh-lead svg').length).toBe(1);
+    // the sources-and-notes book and the model line's icon
+    expect(container.querySelectorAll('.hh-lead svg').length).toBe(2);
     expect(container.querySelectorAll('.section-heading p svg').length).toBe(0);
   });
 

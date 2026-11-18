@@ -11,14 +11,16 @@ import { side } from '@/tabs/ai/lines.js';
 // loss colour where that applies; data-dir-concept keeps the sign), an
 // optional no-foreign-capital note, the why as one inline chain on one line
 // (icons and arrows, not a list), and one caveat line. No context line:
-// the sticky settings chip names the settings. The data come from
+// the settings pill names the settings; `label` (optional) leads the strip
+// where it does not follow the Version picker. The data come from
 // answers.js; every direction from the sign.
 const I = ({ c, size = 16 }) => <Icon name={iconFor(c)} size={size} />;
 export const ARROW = { above: '↑', below: '↓', on: '→' };
 
-export default function AnswerStrip({ a }) {
+export default function AnswerStrip({ a, label }) {
   return (
     <div className="ex-strip">
+      {label ? <p className="ex-strip-label">{label}</p> : null}
       {a.chips?.length ? (
         <ul className="ex-chips is-row" aria-label="Direction of each measure against the OBR’s central forecast path" style={{ '--n': a.chips.length }}>
           {a.chips.map((c) => (

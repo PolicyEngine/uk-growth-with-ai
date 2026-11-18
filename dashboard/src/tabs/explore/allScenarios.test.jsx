@@ -3,6 +3,7 @@
 // with a marker), a cell sets the pickers, and the downloads carry every value.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 import { fmt } from '@/tabs/ai/surprise.js';
@@ -132,9 +133,9 @@ describe('Across scenarios: direction icons for every measure and arm', () => {
     };
     const card = container.querySelector('#all-scenarios');
     for (const [arm, armName] of [['tfp', /Automation \+ productivity/], ['tz', /Technology unchanged/], ['ss', /Stress test/]]) {
-      fireEvent.click([...card.querySelectorAll('[aria-label="Version"] [role=radio]')].find((b) => armName.test(b.textContent)));
+      pickInPill(card, 'Version', armName);
       for (const [v, name] of [['Y', 'GDP'], ['GNI', 'GNI'], ['w', 'Pay rate']]) {
-        fireEvent.click([...card.querySelectorAll('[aria-label="Measure"] [role=radio]')].find((b) => b.textContent === name));
+        pickInPill(card, 'Measure', name);
         check(card, arm, v);
       }
     }

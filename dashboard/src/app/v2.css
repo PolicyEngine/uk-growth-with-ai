@@ -10,7 +10,6 @@
   --band-height: 52px;
   --tabs-height: 44px;
   --subtabs-height: 40px;
-  --settings-height: 46px;
   --title-row-height: var(--band-height);
   --tab-row-height: var(--tabs-height);
   --sticky-offset: calc(var(--tabs-height) + 1px);
@@ -89,133 +88,9 @@
   flex: none;
   gap: 8px;
 }
-.picker {
-  position: relative;
-}
-.picker-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 10px 0 12px;
-  font: inherit;
-  font-size: var(--fs-small);
-  line-height: 1.2;
-  white-space: nowrap;
-  color: var(--band-ink);
-  background: var(--band-control-fill);
-  border: 1px solid var(--band-ink-border);
-  border-radius: var(--pe-radius-md);
-  cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-.picker-button:hover:not(.is-locked),
-.picker-button[aria-expanded='true'] {
-  background: var(--band-control-fill-active);
-  border-color: var(--band-ink);
-}
-.picker-button:focus-visible {
-  outline: 2px solid var(--band-ink);
-  outline-offset: 2px;
-}
-.picker-button.is-locked {
-  cursor: default;
-  border-style: dashed;
-}
-.picker-icon,
-.picker-chevron {
-  display: inline-flex;
-}
-.picker-label {
-  font-weight: 400;
-  color: var(--band-ink-label);
-}
-.picker-value {
-  overflow: hidden;
-  font-weight: 600;
-  text-overflow: ellipsis;
-}
-.picker-value-compact {
+
+.sheet-scrim {
   display: none;
-}
-@media (max-width: 640px) {
-  .picker-value-compact {
-    display: inline;
-  }
-}
-.picker-chevron {
-  transition: transform 150ms ease;
-}
-.picker-button[aria-expanded='true'] .picker-chevron {
-  transform: rotate(180deg);
-}
-.sheet-scrim,
-.picker-pop-title {
-  display: none;
-}
-.picker-pop {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 1200;
-  min-width: 300px;
-  padding: 6px;
-  background: var(--pe-surface);
-  border: 1px solid var(--pe-gray-200);
-  border-radius: var(--pe-radius-md);
-  box-shadow: 0 8px 24px var(--shadow-strong);
-}
-.picker-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  outline: none;
-}
-.picker-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 44px;
-  padding: 8px 10px;
-  color: var(--pe-gray-700);
-  border: 1px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.picker-option .plain-icon {
-  display: inline-flex;
-  margin-top: 2px;
-  color: var(--pe-gray-500);
-}
-.picker-option-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.picker-option-label {
-  font-size: var(--fs-small);
-  font-weight: 500;
-}
-.picker-option-note {
-  font-size: var(--fs-micro);
-  color: var(--pe-gray-500);
-}
-.picker-option.is-active {
-  background: var(--c-hover);
-}
-.picker-list:focus-visible .picker-option.is-active {
-  border-color: var(--pe-teal-500);
-}
-.picker-option.is-selected {
-  background: var(--pe-teal-50);
-  border-color: var(--pe-teal-200);
-}
-.picker-option.is-selected .picker-option-label {
-  font-weight: 700;
-  color: var(--band-teal);
-}
-.picker-option.is-selected .plain-icon {
-  color: var(--band-teal);
 }
 
 /* ---------- A shared link to another tab, before the client reads it ----------
@@ -230,7 +105,7 @@ html[data-nav-pending] .app .main-content {
   animation: nav-pending-reveal 0s linear 5s forwards;
 }
 html[data-nav-pending] .app .sticky-stack {
-  margin-bottom: calc(var(--subtabs-height) + var(--settings-height) + 2px);
+  margin-bottom: calc(var(--subtabs-height) + 2px);
 }
 html[data-nav-pending] .app .tabs-bar .view-tab {
   visibility: hidden;
@@ -371,30 +246,46 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   outline-offset: 2px;
 }
 
-/* The settings chip (SettingsBar.jsx SettingsChip): shown once the settings
-   bar has gone under the stack (data-condensed; until then it takes no
-   room, which changes the row's width only); it gives up width before
-   the sub-tabs do, dropping whole segments (never an ellipsis) */
+/* The pill (components/ui/Pill.jsx, item-11-pill-fable.md): the one
+   chooser. The current choices in words, one chevron; no fill at rest, on
+   hover or open (the border turns teal). It drops whole segments to fit
+   (" · N more"), never an ellipsis. The sub-tab header's copy (.is-header)
+   shows only once the page pill has gone under the stack (data-condensed). */
+:root {
+  --fs-pill: var(--chart-fs-tick, 14px);
+}
+@media (max-width: 480px) {
+  :root {
+    --fs-pill: 13px;
+  }
+}
 .settings-chip-wrap {
   position: relative;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+.settings-chip-wrap.is-header {
   display: none;
   flex: 0 1000 auto;
   min-width: 58px;
 }
-.app[data-condensed] .settings-chip-wrap,
-.settings-chip-wrap.is-open {
+.app[data-condensed] .settings-chip-wrap.is-header,
+.settings-chip-wrap.is-header.is-open {
   display: flex;
 }
 .settings-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
   max-width: 100%;
-  height: 30px;
-  padding: 0 8px 0 10px;
+  height: 32px;
+  padding: 0 10px 0 10px;
   font: inherit;
-  font-size: var(--fs-caption);
+  font-size: var(--fs-pill);
+  font-weight: 400;
   line-height: 1.2;
   white-space: nowrap;
   color: var(--pe-gray-800);
@@ -405,7 +296,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 }
 .settings-chip:hover,
 .settings-chip[aria-expanded='true'] {
-  background: var(--pe-teal-50);
   border-color: var(--pe-teal-500);
 }
 .settings-chip:focus-visible {
@@ -417,6 +307,9 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   display: inline-flex;
   flex: none;
   color: var(--pe-gray-500);
+}
+.settings-chip-chevron {
+  transition: transform 150ms ease;
 }
 .settings-chip[aria-expanded='true'] .settings-chip-chevron {
   transform: rotate(180deg);
@@ -432,25 +325,55 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .settings-chip-seg[hidden] {
   display: none;
 }
-.settings-chip-seg + .settings-chip-seg::before {
+.settings-chip-seg:not([hidden]) ~ .settings-chip-seg:not([hidden])::before {
   content: '·';
   margin: 0 6px;
   color: var(--pe-gray-400);
 }
-/* the popover: every picker the page reads, under the chip */
+/* a phone: a 44px tap target, the drawn pill 32px */
+@media (max-width: 600px) {
+  .settings-chip::after {
+    content: '';
+    position: absolute;
+    inset: -7px 0;
+  }
+}
+/* the Story band (dark) */
+.settings-chip-wrap.is-band .settings-chip {
+  color: #fff;
+  background: transparent;
+  border-color: rgb(255 255 255 / 40%);
+}
+.settings-chip-wrap.is-band .settings-chip:hover,
+.settings-chip-wrap.is-band .settings-chip[aria-expanded='true'] {
+  border-color: #fff;
+}
+.settings-chip-wrap.is-band .settings-chip-icon,
+.settings-chip-wrap.is-band .settings-chip-chevron,
+.settings-chip-wrap.is-band .settings-chip-seg::before {
+  color: rgb(255 255 255 / 70%);
+}
+.settings-chip-wrap.is-band .settings-chip:focus-visible {
+  outline-color: #fff;
+}
+/* the panel: placed from the pill by Pill.jsx (fixed, over every card's
+   overflow); a sheet from the foot of the screen at 600px and below */
 .settings-pop {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
   z-index: 1300;
   width: min(400px, calc(100vw - 32px));
-  max-height: calc(100vh - var(--sticky-offset) - 24px);
+  max-height: min(560px, calc(100vh - 32px));
   padding: 8px 14px 14px;
   overflow-y: auto;
   background: var(--pe-surface);
   border: 1px solid var(--pe-gray-200);
   border-radius: 12px;
   box-shadow: 0 12px 32px -8px var(--shadow-strong);
+}
+.settings-pop.is-one {
+  width: min(320px, calc(100vw - 32px));
 }
 .settings-pop[hidden],
 .settings-scrim[hidden] {
@@ -461,8 +384,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   align-items: center;
   justify-content: space-between;
   margin: 0 0 4px;
-  font-size: var(--fs-small);
-  font-weight: 700;
+  font-size: var(--chart-fs-head, 16px);
+  font-weight: 600;
   color: var(--pe-gray-900);
 }
 .settings-pop .sheet-close {
@@ -491,50 +414,61 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   align-items: center;
   gap: 6px;
   margin: 0 0 6px;
-  font-size: var(--fs-caption);
+  font-size: var(--chart-fs-tick, 14px);
   font-weight: 600;
   color: var(--pe-gray-600);
+}
+.sp-group-name .plain-icon {
+  color: var(--pe-gray-500);
 }
 .sp-options {
   display: grid;
   gap: 2px;
 }
 .sp-option {
+  position: relative;
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: start;
   width: 100%;
-  padding: 6px 8px;
+  padding: 6px 10px;
   font: inherit;
   text-align: left;
   color: var(--pe-gray-800);
   background: none;
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: 0;
+  border-radius: 6px;
   cursor: pointer;
 }
-.sp-option > svg,
-.sp-option > .plain-icon {
-  margin-top: 2px;
-  color: var(--pe-gray-500);
+.sp-option.has-swatch {
+  grid-template-columns: 18px minmax(0, 1fr);
 }
 .sp-option:hover:not(.is-disabled) {
-  background: var(--c-hover, var(--pe-teal-50));
+  background: var(--pe-gray-50, #f9fafb);
 }
-.sp-option.is-on {
-  background: var(--pe-teal-50);
-  border-color: var(--pe-teal-200);
+/* the chosen option: a 2px teal bar at its left edge, the label bold teal;
+   no fill, no border */
+.sp-option.is-on::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 2px;
+  background: var(--pe-teal-500);
+  border-radius: 1px;
 }
-.sp-option.is-on .sp-option-label,
-.sp-option.is-on > svg,
-.sp-option.is-on > .plain-icon {
-  font-weight: 700;
+.sp-option.is-on .sp-option-label {
+  font-weight: 600;
   color: var(--band-teal);
 }
 .sp-option.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+  cursor: default;
+}
+.sp-option.is-disabled .sp-option-label,
+.sp-option.is-disabled .sp-option-note {
+  color: var(--pe-gray-500);
 }
 .sp-option:focus-visible {
   outline: 2px solid var(--pe-teal-500);
@@ -547,151 +481,41 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   min-width: 0;
 }
 .sp-option-label {
-  font-size: var(--fs-small);
-  font-weight: 500;
+  font-size: var(--chart-fs-label, 15px);
+  font-weight: 400;
 }
 .sp-option-note {
-  font-size: var(--fs-micro);
+  font-size: var(--chart-fs-tick, 14px);
   color: var(--pe-gray-600);
+}
+/* a tick-any option: its series swatch is the key (dashed: the average) */
+.sp-swatch {
+  width: 18px;
+  height: 0;
+  margin-top: 10px;
+  border-top: 3px solid var(--sw);
+}
+.sp-swatch[data-dashed] {
+  border-top-style: dashed;
+}
+.sp-option[role='checkbox']:not(.is-on) .sp-swatch {
+  opacity: 0.35;
+}
+/* a card's pill: after the title, at the card's text edge (title → pill →
+   finding → unit → plot) */
+.card > .settings-chip-wrap.is-card {
+  margin-top: 12px;
+}
+.card > .settings-chip-wrap.is-card + .card-finding {
+  margin-top: 12px;
 }
 .sp-locked {
   display: flex;
   align-items: center;
   gap: 6px;
   margin: 0;
-  font-size: var(--fs-small);
+  font-size: var(--chart-fs-label, 15px);
   color: var(--pe-gray-700);
-}
-/* a uk-ai-study page: the compact "different model" chip */
-.subhead-chip {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px;
-  font-size: var(--fs-caption);
-  white-space: nowrap;
-  color: var(--c-notice-text);
-  text-decoration: none;
-  background: var(--c-notice-bg);
-  border: 1px solid color-mix(in srgb, var(--c-notice-text) 30%, transparent);
-  border-radius: 999px;
-}
-.subhead-chip {
-  display: none;
-}
-.app[data-condensed] .subhead-chip {
-  display: inline-flex;
-}
-.subhead-chip:hover span {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-/* The settings bar (SettingsBar.jsx), at rest under the stack: one row of
-   compact choices that wraps rather than clips; not sticky. The options'
-   one-line descriptions are in their tooltips and in the chip's popover. */
-.settings-bar {
-  position: relative;
-  z-index: 1080;
-  min-height: var(--settings-height);
-  padding: 0 var(--bar-pad-x);
-  background: var(--pe-surface);
-  border-bottom: 1px solid var(--card-border);
-}
-.settings-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  align-items: center;
-  min-height: var(--settings-height);
-  padding: 6px 0;
-}
-.settings-row > * {
-  flex: none;
-}
-.settings-bar .seg-option-sub {
-  display: none;
-}
-.settings-bar .picker-button {
-  height: 32px;
-  color: var(--pe-gray-800);
-  background: var(--pe-surface);
-  border-color: var(--card-border);
-}
-.settings-bar .picker-button:hover:not(.is-locked),
-.settings-bar .picker-button[aria-expanded='true'] {
-  background: var(--pe-teal-50);
-  border-color: var(--pe-teal-500);
-}
-.settings-bar .picker-button:focus-visible {
-  outline-color: var(--pe-teal-500);
-}
-.settings-bar .picker-label {
-  color: var(--pe-gray-500);
-}
-.settings-bar .picker-icon {
-  color: var(--pe-gray-500);
-}
-.settings-bar .picker-pop {
-  left: 0;
-  right: auto;
-}
-.settings-bar .seg-option {
-  min-height: 32px;
-  padding: 2px 8px;
-}
-/* a uk-ai-study page: the different-model chip in place of the settings */
-.settings-bar.is-study {
-  display: flex;
-  align-items: center;
-}
-.model-chip {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  min-height: 32px;
-  padding: 4px 12px;
-  font-size: var(--fs-small);
-  color: var(--c-notice-text);
-  text-decoration: none;
-  background: var(--c-notice-bg);
-  border: 1px solid color-mix(in srgb, var(--c-notice-text) 30%, transparent);
-  border-radius: 999px;
-}
-.model-chip:hover span {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-/* Under 1440px the settings bar is compact, so it stays one row on a
-   laptop: the picker and group names go to the accessible names (visually
-   hidden, not cut; each group keeps its icon), an option with no solve is
-   left out (the wide row shows it disabled, its tooltip saying why), and
-   only the chosen option keeps its icon. At 640px and below the names show
-   again and the row wraps. */
-@media (max-width: 1439px) and (min-width: 641px) {
-  .settings-bar .picker-label,
-  .settings-bar .seg-picker-name {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
-@media (max-width: 1439px) {
-  .settings-bar .seg-option.is-disabled {
-    display: none;
-  }
-  .settings-bar .seg-option:not(.is-on) .plain-icon {
-    display: none;
-  }
-  .settings-bar .seg-option {
-    padding: 2px 7px;
-  }
 }
 
 /* 600px and below: slimmer rows (80px stuck); the sub-tabs drop their
@@ -740,115 +564,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   .sp-option {
     min-height: 44px;
   }
-}
-@media (max-width: 640px) {
-  .settings-bar .picker {
-    flex: none;
-  }
-  .settings-bar .picker-button {
-    width: auto;
-  }
-  .model-chip {
-    font-size: var(--fs-caption);
-  }
-  .model-chip-more {
-    display: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .seg-picker-ind {
-    transition: none;
-  }
-}
-
-/* A page picker (Picker.jsx SegPicker): radio group, sliding indicator */
-.seg-picker {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-}
-.seg-picker-label {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-  color: var(--pe-gray-600);
-  white-space: nowrap;
-}
-.seg-picker-row {
-  position: relative;
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  background: var(--pe-gray-100);
-  border-radius: var(--pe-radius-md);
-}
-.seg-picker-ind {
-  position: absolute;
-  top: 2px;
-  bottom: 2px;
-  left: 0;
-  background: var(--pe-teal-50);
-  border: 1px solid var(--pe-teal-500);
-  border-radius: 6px;
-  transition: transform 220ms var(--ease-out), width 220ms var(--ease-out);
-}
-.seg-option {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  min-height: 36px;
-  padding: 2px 10px;
-  font: inherit;
-  text-align: left;
-  color: var(--pe-gray-700);
-  background: none;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.seg-option .plain-icon {
-  color: var(--pe-gray-500);
-}
-.seg-option-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-.seg-option-label {
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  white-space: nowrap;
-}
-.seg-option-sub {
-  font-size: 0.6875rem;
-  color: var(--pe-gray-500);
-  white-space: nowrap;
-}
-.seg-option.is-on .seg-option-label {
-  font-weight: 700;
-  color: var(--band-teal, var(--pe-teal-800));
-}
-.seg-option.is-on .plain-icon {
-  color: var(--band-teal, var(--pe-teal-800));
-}
-.seg-option:hover:not(.is-on):not(.is-disabled) {
-  background: var(--pe-surface);
-}
-.seg-option:focus-visible {
-  outline: 2px solid var(--pe-teal-500);
-  outline-offset: 1px;
-}
-.seg-option.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-.seg-option.is-disabled .seg-option-label {
-  text-decoration: line-through;
-  text-decoration-color: var(--pe-gray-400);
 }
 
 .app .main-content {
@@ -1177,70 +892,37 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 .chip:hover {
   border-color: var(--pe-gray-500);
 }
-.segments {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  padding: 2px;
-  background: var(--pe-gray-100);
-  border-radius: var(--pe-radius-md);
-}
-.segment {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  font: inherit;
-  font-size: var(--fs-micro);
-  color: var(--pe-gray-600);
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.segment:hover:not(:disabled) {
-  color: var(--pe-gray-900);
-}
-.segment.is-checked {
-  font-weight: 600;
-  color: var(--pe-teal-800);
-  background: var(--pe-surface);
-  box-shadow: 0 1px 2px var(--shadow-strong);
-}
-.segment:disabled {
-  color: var(--pe-gray-500);
-  cursor: not-allowed;
-}
-.segment-note {
-  padding-left: 6px;
-  font-size: 0.6875rem;
-  font-style: italic;
-  border-left: 1px solid var(--pe-gray-300);
-}
 
 /* ---------- Download menu ---------- */
 .download {
   position: relative;
   flex: none;
 }
+/* A plain download icon, drawn like the book icon beside the title
+   (sources.css .src-line-btn): no border or box, the same size, stroke
+   and grey, the same quiet tint on hover; a 40px hit target */
 .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
+  margin: -8px -8px -8px 0;
   padding: 0;
-  color: var(--pe-gray-600);
-  background: var(--pe-surface);
-  border: 1px solid var(--pe-gray-300);
+  color: var(--pe-gray-500, #6b7280);
+  background: none;
+  border: 0;
   border-radius: 6px;
   cursor: pointer;
 }
 .icon-button:hover,
 .icon-button[aria-expanded='true'] {
-  color: var(--pe-teal-700);
-  border-color: var(--pe-teal-500);
+  color: var(--pe-teal-700, #0f766e);
+  background: var(--pe-gray-100, #f3f4f6);
+}
+.icon-button:focus-visible {
+  outline: 2px solid var(--pe-teal-700, #0f766e);
+  outline-offset: 1px;
 }
 .download-menu {
   position: absolute;
@@ -1983,59 +1665,20 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     align-items: center;
     height: var(--band-height);
   }
-  .picker {
-    flex: 1 1 0;
-    min-width: 0;
-    position: static;
-  }
-  .picker-button {
-    width: 100%;
-    height: 38px;
-    justify-content: flex-start;
-    gap: 5px;
-    padding: 0 8px 0 10px;
-    font-size: var(--fs-caption);
-  }
-  .picker-icon {
-    display: none;
-  }
-  .picker-chevron {
-    margin-left: auto;
-  }
+
+  
+
+  
   /* label and value fit at 390 and 360: each picker as wide as its
      words, the value in its short form when the label already names it */
-  .picker {
-    flex: 1 1 auto;
-  }
-  .picker-value-full {
-    display: none;
-  }
+
+  
   /* the label a small line above the value, so each button is as wide as
      its longer line and the two fit side by side */
-  .band-pickers .picker-button {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
-    column-gap: 6px;
-    row-gap: 0;
-    align-content: center;
-    height: 40px;
-    text-align: left;
-  }
-  .band-pickers .picker-label {
-    grid-area: 1 / 1;
-    font-size: 11px;
-    line-height: 1.2;
-  }
-  .band-pickers .picker-value {
-    grid-area: 2 / 1;
-    line-height: 1.25;
-  }
-  .band-pickers .picker-chevron {
-    grid-area: 1 / 2 / 3 / 3;
-    align-self: center;
-    margin-left: 0;
-  }
+
+  
+
+  
   .tabs-bar,
   .subhead {
     padding: 0 16px;
@@ -2047,7 +1690,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   .view-tabs {
     gap: 2px;
   }
-  /* Pickers open as a sheet from the foot of the screen */
+  /* a sheet's scrim (sources and notes) */
   .sheet-scrim {
     display: block;
     position: fixed;
@@ -2055,31 +1698,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     z-index: 1250;
     background: var(--scrim);
   }
-  .picker-pop {
-    position: fixed;
-    top: auto;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1260;
-    min-width: 0;
-    max-height: calc(100vh - 24px);
-    max-height: calc(100dvh - 24px);
-    padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
-    overflow-y: auto;
-    border-radius: 16px 16px 0 0;
-    animation: sheet-up 220ms var(--ease-out);
-  }
-  .picker-pop-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 0 0 6px;
-    padding-left: 10px;
-    font-size: var(--fs-body);
-    font-weight: 600;
-    color: var(--pe-gray-900);
-  }
+
+  
   .sheet-close {
     display: inline-flex;
     align-items: center;
@@ -2091,12 +1711,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     border: 0;
     cursor: pointer;
   }
-  .picker-option {
-    min-height: 52px;
-    align-items: center;
-  }
-  .chip,
-  .segment {
+
+  .chip {
     min-height: 36px;
   }
   .control-bar {
@@ -2106,13 +1722,18 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
     max-width: none;
   }
 }
+/* the pill's scrim only with its sheet (600px and below) */
+@media (min-width: 601px) {
+  .settings-scrim {
+    display: none !important;
+  }
+}
 @keyframes sheet-up {
   from {
     transform: translateY(100%);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .picker-pop,
   .entry-card {
     animation: none;
     transition: none;
@@ -2162,8 +1783,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 }
 
 /* ---------- Page intro (PageIntro.jsx; the Households pages' own header
-   takes the same classes): the model kicker with the sources-and-notes
-   icon, the question (the only heading: the Story's topic-question style,
+   takes the same classes): the question with the sources-and-notes icon
+   at the end of its line, the model row, the question (the only heading: the Story's topic-question style,
    no box, one size), the answer, then page options. Everything starts at
    the content edge; one spacing scale: 8 / 12 / 20 / 32. */
 .page-intro,
@@ -2173,32 +1794,70 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   padding: 0 0 20px;
   border-bottom: 1px solid var(--card-border);
 }
-.page-kicker-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin: 0 0 8px;
-}
-.page-kicker,
-.page-intro .hh-model.page-kicker {
-  margin: 0;
-  font-size: var(--fs-caption);
-  line-height: 1.5;
-  color: var(--pe-gray-600);
-}
 .page-notes {
   flex: none;
 }
 .page-q,
 .page-intro .hh-question.page-q {
-  display: block;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
   margin: 0;
   font-size: var(--fs-xl);
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.015em;
   color: var(--pe-gray-900);
+}
+.page-q > .page-notes {
+  margin-top: 6px;
+  letter-spacing: 0;
+}
+/* The model row, directly after the title (item-22-fable.md): the settings
+   pill and a scope note, or the household study's model line; as tall as a
+   pill, so the spacing under every title is the same */
+.model-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 32px;
+  margin-top: 10px;
+}
+.model-scope {
+  font-size: var(--fs-pill);
+  color: var(--pe-gray-600);
+}
+.model-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+  font-size: var(--fs-pill);
+  font-weight: 400;
+  color: var(--pe-gray-800);
+}
+.model-line > .plain-icon {
+  margin-right: 6px;
+  color: var(--pe-gray-500);
+}
+.model-line-seg {
+  white-space: nowrap;
+}
+.model-line-seg + .model-line-seg::before {
+  content: '·';
+  margin: 0 6px;
+  color: var(--pe-gray-400);
+}
+.model-line-seg.is-line-start::before {
+  content: none;
+}
+.model-line a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 .page-a {
   max-width: 78ch;
@@ -2223,26 +1882,7 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   margin: 12px 0 0;
 }
 /* A picker on the page: the header picker's behaviour on a light surface */
-.page-options .picker-button {
-  color: var(--pe-gray-800);
-  background: var(--pe-surface);
-  border-color: var(--pe-gray-300);
-}
-.page-options .picker-button:hover,
-.page-options .picker-button[aria-expanded='true'] {
-  background: var(--pe-gray-50);
-  border-color: var(--pe-gray-500);
-}
-.page-options .picker-button:focus-visible {
-  outline: 2px solid var(--c-gain-text);
-}
-.page-options .picker-label {
-  color: var(--pe-gray-500);
-}
-.page-options .picker-pop {
-  right: auto;
-  left: 0;
-}
+
 .app .page-intro + .section-heading,
 .app .page-intro + * > .section-heading:first-child,
 .app .page-intro + * > section:first-child > .section-heading:first-child {
@@ -2259,12 +1899,8 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   .page-a {
     font-size: var(--fs-body);
   }
-  .page-options .picker {
-    flex: 0 1 auto;
-  }
-  .page-options .picker-button {
-    width: auto;
-  }
+
+  
 }
 
 /* ---------- Sub-tab change: a short fade, no movement of the layout.
@@ -2295,10 +1931,25 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   gap: 8px;
   margin-top: 12px;
 }
-.rule-pending-actions .segment {
+.rule-pending-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  font: inherit;
   font-size: var(--fs-small);
   color: var(--pe-gray-800);
+  background: var(--pe-surface);
   border: 1px solid var(--pe-gray-300);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.rule-pending-btn:hover {
+  border-color: var(--pe-gray-500);
+}
+.rule-pending-btn:focus-visible {
+  outline: 2px solid var(--pe-teal-500);
+  outline-offset: 2px;
 }
 
 /* ---------- OG-UK as four blocks in a loop (Method). On a phone the loop
@@ -2564,7 +2215,6 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
   margin: 0 0 16px;
 }
 
-
 /* Card grids whose cards differ a lot in length: each card keeps its own
    height instead of stretching to the tallest (no blank lower halves). */
 .card-grid.is-top,
@@ -2605,22 +2255,84 @@ html[data-nav-pending] .app .tabs-bar .view-tab {
 
 /* phones: the page pickers' options wrap rather than clip; the sliding
    indicator assumes one line, so the chosen option is marked in place */
-@media (max-width: 640px) {
-  .app.has-subs .settings-row > .seg-picker {
-    flex: 1 1 100%;
-    min-width: 0;
+
+/* ---------- Finding (components/ui/Finding.jsx, item-18-fable.md) ----------
+   One finding in a white box with a hairline border, like .card: a bold
+   lead (one optional icon), plain lines, an optional note, then optional
+   children. No tint, bar, pills or ticks. */
+.finding {
+  padding: var(--card-padding, 20px);
+  background: var(--pe-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius, 12px);
+}
+.finding-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.finding-lead {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 72ch;
+  margin: 0;
+  font-size: var(--chart-fs-head, 16px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--pe-gray-900);
+}
+.finding-icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 1px;
+  color: var(--pe-gray-500);
+}
+.finding-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.finding-actions .src-line {
+  margin-left: 0;
+}
+.finding-lines {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.finding-lines li {
+  font-size: var(--chart-fs-label, 15px);
+  line-height: 1.45;
+  color: var(--pe-gray-800);
+}
+.finding-lines li + li {
+  margin-top: 6px;
+}
+.finding-note {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-600);
+}
+.finding-body {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .finding-lead {
+    font-size: 15px;
   }
-  .app.has-subs .settings-bar .seg-picker-row {
-    flex: 0 1 auto;
-    flex-wrap: wrap;
-    min-width: 0;
+  .finding-lines li {
+    font-size: 14px;
   }
-  .app.has-subs .settings-bar .seg-picker-ind {
-    display: none;
+  .finding-note {
+    font-size: 13px;
   }
-  .app.has-subs .settings-bar .seg-option.is-on {
-    background: var(--pe-teal-50);
-    box-shadow: inset 0 0 0 1px var(--pe-teal-500);
-    border-radius: 6px;
+  .finding-body {
+    margin-top: 12px;
   }
 }

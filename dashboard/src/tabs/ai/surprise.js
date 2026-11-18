@@ -5,6 +5,7 @@
 // every cell and series goes through gap()/fmt() so a pending one cannot
 // break the page.
 import S from '@/data/surprise2028.json';
+import { VERSION_COLOR, VERSION_TEXT_COLOR, VERSION_LIGHT } from '@/lib/versionColors.js';
 
 export { S };
 
@@ -37,11 +38,11 @@ export const KORINEK_FULL = KORINEK_NAME;
 // 'ss' the OBR-style stress test that holds 2031 GDP at the forecast path.
 export const ARMS = S.arms;
 // Teal (--series-1) is the gain colour, so no arm uses it.
-export const ARM_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3)', ss: 'var(--series-5)' };
+export const ARM_COLOR = VERSION_COLOR;
 // The stress test is drawn lighter: a bound, not a forecast.
 // End labels and figures in text: the darker variant that meets 4.5:1 on white
-export const ARM_TEXT_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3-text)', ss: 'var(--series-5-text)' };
-export const ARM_LIGHT = { ss: true };
+export const ARM_TEXT_COLOR = VERSION_TEXT_COLOR;
+export const ARM_LIGHT = VERSION_LIGHT;
 export const armById = (id) => ARMS.find((a) => a.id === id);
 export const CLOSURE_LABEL = { 'zk0.1': 'some foreign capital', zk0: 'no foreign capital' };
 

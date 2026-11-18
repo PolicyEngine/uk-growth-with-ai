@@ -5,6 +5,8 @@ import LineChart from '@/components/LineChart.jsx';
 import Icon from '@/components/ab/Icon.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import ControlBar, { ArmsGroup } from '@/components/ui/ControlBar.jsx';
+import Pill from '@/components/ui/Pill.jsx';
+import { versionsShownSection } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder,
@@ -300,11 +302,7 @@ function IncomePanel({ sid }) {
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
           unit={<span data-axis-title="y">{`Each version’s gap against the OBR’s central forecast path (centre line = 0), ${HEADLINE_YEAR}, %; ${cl}, ${rulePlain(st.rule)}`}</span>}
-          controls={
-            <ControlBar label="Four measures: options">
-              <ArmsGroup shown={st.arms} onChange={(arms) => set({ arms })} />
-            </ControlBar>
-          }
+          controls={<Pill className="is-card" title="Options for this chart" name={`Pay rates, national income and output in ${HEADLINE_YEAR}`} sections={[versionsShownSection(st, set)]} />}
           legend={
             st.closure === 'both' ? (
               <p className="line-key">
@@ -465,11 +463,11 @@ export function RulePending({ sid }) {
         <Items items={sentenceItems(ruleGapText(st.rule, sid))} />
         <div className="rule-pending-actions">
           {solved.map((s) => (
-            <button key={s.id} type="button" className="segment" onClick={() => set({ s: s.id })}>
+            <button key={s.id} type="button" className="rule-pending-btn" onClick={() => set({ s: s.id })}>
               Show {s.label}
             </button>
           ))}
-          <button type="button" className="segment" onClick={() => set({ rule: 'common' })}>
+          <button type="button" className="rule-pending-btn" onClick={() => set({ rule: 'common' })}>
             Use the common fiscal rule
           </button>
         </div>

@@ -1,21 +1,25 @@
 'use client';
 
+import { useRef } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
-import Card, { SectionHeading, IconLine } from '@/components/ui/Card.jsx';
+import Card, { SectionHeading, IconLine, cardSources } from '@/components/ui/Card.jsx';
+import Finding from '@/components/ui/Finding.jsx';
+import SourceLine from '@/components/ui/SourceLine.jsx';
+import DownloadMenu from '@/components/ui/DownloadMenu.jsx';
 import { useNav, NavLink } from '@/lib/nav.jsx';
-import { ruleLabel, RULES } from '@/lib/labels.js';
+import { ruleLabel } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import {
   S,
-  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt,
+  YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, contextLine, side, ruleGapText, primaryClosure } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
-import { Dir, dirConcept, Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
+import { Dir, dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { SOURCES as LIT } from '@/data/literature.js';
 import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
@@ -493,13 +497,6 @@ function ruleTable(rule, sid, closure) {
   };
 }
 
-// The rule cards: each rule with what it holds fixed, synced with the
-// page's fiscal-rule picker (&rule=); the common rule is the default.
-const RULE_INFO = {
-  common: { icon: 'gdp', holds: 'Holds spending and transfers as shares of GDP', span: 'Spending follows GDP' },
-  fixed: { icon: 'finances', holds: 'Holds spending at its baseline level', span: 'Spending held at its baseline level' },
-  dn: { icon: 'benefits', holds: 'Holds debt/GDP on the forecast path; transfers adjust', span: 'Transfers hold debt/GDP on the forecast path' },
-};
 const RULE_DB = [
   { v: 'Y', label: 'GDP', concept: 'gdp', unit: '%' },
   { v: 'w', label: 'Pay rate', concept: 'pay', unit: '%' },
@@ -507,43 +504,6 @@ const RULE_DB = [
   { v: 'debt_gdp_pp', label: 'Debt/GDP', concept: 'debt', unit: 'pp' },
   { v: 'tax_gdp_pp', label: 'Tax/GDP', concept: 'tax', unit: 'pp' },
 ];
-
-export function RulePicker() {
-  const { st, set } = useNav();
-  return (
-    <div className="ex-rules" role="group" aria-label="Budget assumption">
-      {RULES.map((r) => (
-        <button key={r.id} type="button" className={`ex-rule${st.rule === r.id ? ' is-active' : ''}`} aria-pressed={st.rule === r.id} onClick={() => set({ rule: r.id })}>
-          <span className="ex-rule-name">
-            <Icon name={iconFor(RULE_INFO[r.id].icon)} size={16} /> {r.label}
-            {r.id === 'common' ? (
-              <span className="ex-rule-tag">
-                <Icon name={iconFor('defaultRule')} size={12} /> Default
-              </span>
-            ) : null}
-          </span>
-          <span className="ex-rule-holds">{RULE_INFO[r.id].holds}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// From the shock to the debt rule: what the rule picked does each year, then
-// the debt rule (LATE_YEAR, from the data).
-function RuleTimeline({ rule }) {
-  return (
-    <div className="ex-timeline" aria-label={`${SURPRISE_YEAR} to ${LATE_YEAR}`}>
-      <span className="ex-tl-year">
-        <Icon name={iconFor('shock')} size={14} /> {SURPRISE_YEAR}
-      </span>
-      <span className="ex-tl-span">{RULE_INFO[rule].span}</span>
-      <span className="ex-tl-year is-end">
-        <Icon name={iconFor('rule')} size={14} /> {LATE_YEAR}: debt rule starts
-      </span>
-    </div>
-  );
-}
 
 // The main arm's headline-year gap under the common rule (hollow) and the
 // rule picked (filled), per measure, at the closure in view. Values are in
@@ -586,50 +546,99 @@ function RuleDumbbells({ rule, sid, closure }) {
   );
 }
 
+// The rule against the common rule, in words (item-15-fable.md A): each
+// measure's side from the main version's headline-year shift at the
+// foreign-capital case in view (the numbers the dumbbells draw); a shift
+// that prints as 0.00 is unchanged. No figures: they are in the dumbbell
+// tooltips and the table.
+const SHIFT_NAMES = [
+  { v: 'Y', name: 'GDP' },
+  { v: 'GNI', name: 'GNI' },
+  { v: 'w', name: 'the pay rate' },
+  { v: 'tax_gdp_pp', name: 'tax/GDP' },
+];
+const shiftSide = (x) => (x == null ? null : Math.abs(x) < 0.005 ? 'same' : x > 0 ? 'up' : 'down');
+const andList = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+const capital = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+export function ruleShiftWords(rule, sid, closure) {
+  const cl = primaryClosure(closure);
+  const by = { up: [], down: [], same: [] };
+  SHIFT_NAMES.forEach((m) => {
+    const k = shiftSide(ruleShift(rule, sid, 'tfp', cl, m.v));
+    if (k) by[k].push(m.name);
+  });
+  const say = (names, verb) => `${andList(names)} ${names.length > 1 ? verb : `${verb}s`}`;
+  const moved = [by.up.length ? say(by.up, 'end') + ' higher' : null, by.down.length ? say(by.down, 'end') + ' lower' : null].filter(Boolean);
+  const same = by.same.length ? `${andList(by.same)} ${by.same.length > 1 ? 'are' : 'is'} unchanged` : null;
+  if (rule === 'dn') {
+    const head = moved.length ? `Against the common rule, ${moved.join(' and ')}` : null;
+    return `${[head, same].filter(Boolean).join('; ') || 'Against the common rule, nothing moves'}.`;
+  }
+  return `${capital([...moved, same].filter(Boolean).join('; '))}.`;
+}
+export function ruleFinding(rule, sid, closure) {
+  const name = ruleLabel(rule).toLowerCase();
+  if (!ruleSolved(rule, sid)) return { lead: `${SCEN_NAME[sid]} is not solved under ${name}.`, lines: [ruleGapText(rule, sid)] };
+  const table = 'The table gives the change for every version.';
+  if (rule === 'dn')
+    return {
+      lead: `Under debt-neutral transfers, debt/GDP stays on the forecast path to ${LATE_YEAR}.`,
+      lines: [`Transfers to households adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`, ruleShiftWords(rule, sid, closure), table],
+    };
+  const d = shiftSide(ruleShift(rule, sid, 'tfp', primaryClosure(closure), 'debt_gdp_pp'));
+  return {
+    lead: d === 'same' ? `Under fixed spending, debt/GDP ends where it does under the common rule in ${HEADLINE_YEAR}.` : `Under fixed spending, debt/GDP ends ${d === 'up' ? 'higher' : 'lower'} in ${HEADLINE_YEAR} than under the common rule.`,
+    lines: ['Spending stays at its baseline level, so it does not move with GDP.', ruleShiftWords(rule, sid, closure), table],
+  };
+}
+
+// The fiscal rule against the common rule (#fiscal-rule): one Finding box,
+// last on Public finances, only under fixed spending or debt-neutral
+// transfers (the common rule has nothing to compare). Its children, the
+// dumbbells and the table, are in .chart-plot (dumptabs and check_numbers
+// read it); not solved: the lead and the reason only.
 function FiscalRuleCard({ sid }) {
   const { st } = useNav();
   const rule = st.rule;
-  const has = rule !== 'common' && ruleSolved(rule, sid);
-  return (
-    <Card
-      id="fiscal-rule"
-      sources={sourcesItems({ sid, method: 'rules' })}
-      icon={iconFor('rule')}
-      title="What the fiscal rule changes"
-      controls={<RuleTimeline rule={rule} />}
-      read={[{ key: 'rule', icon: 'defaultRule', text: 'The rule picked at the top applies to every chart on this page' }]}
-      unit={has ? <Lead c="measure">{`How far each ${HEADLINE_YEAR} gap moves, main version; the table: every version, pp`}</Lead> : null}
-      logo={false}
-      about={has ? {
+  const has = ruleSolved(rule, sid);
+  const f = ruleFinding(rule, sid, st.closure);
+  const about = has
+    ? {
         caveats: (
           <Items
             items={[
               { key: 'shift', icon: 'compare', text: 'Table: the gap under the rule picked, less the common rule’s' },
               { key: 'choice', icon: 'rule', text: 'The three rules are modelling choices, not OBR rules' },
               { key: 'sign', icon: 'gapUp', text: 'Positive: the rule raises the measure against the common rule' },
-              { key: 'dn', icon: 'debt', text: `Debt-neutral: debt/GDP stays on the forecast path to ${LATE_YEAR} by construction` },
             ]}
           />
         ),
-      } : null}
-      aboutTitle="About these figures"
-      download={has ? { title: `${HEADLINE_YEAR} gaps: ${ruleLabel(rule).toLowerCase()} against the common rule`, context: () => contextLine(sid, st.closure, 'percentage points', rule), table: () => ruleTable(rule, sid, st.closure) } : undefined}
-    >
-      {rule === 'common' ? (
-        <p className="ex-roughchip">
-          <Icon name={iconFor('compare')} size={14} /> Pick another rule to see how far each gap moves
-        </p>
-      ) : !has ? (
-        <div className="unpublished-plot">
-          <Items items={sentenceItems(ruleGapText(rule, sid))} />
-        </div>
-      ) : (
-        <>
-          <RuleDumbbells rule={rule} sid={sid} closure={st.closure} />
-          <RuleTable rule={rule} sid={sid} closure={st.closure} />
-        </>
-      )}
-    </Card>
+      }
+    : null;
+  const src = cardSources({ about, sources: sourcesItems({ sid, method: 'rules' }) });
+  const ref = useRef(null);
+  const title = `${HEADLINE_YEAR} gaps: ${ruleLabel(rule).toLowerCase()} against the common rule`;
+  return (
+    <div ref={ref} id="fiscal-rule">
+      <Finding
+        icon="rule"
+        lead={f.lead}
+        lines={f.lines}
+        actions={
+          <>
+            <SourceLine items={src.items} groups={src.groups} record={false} />
+            {has ? <DownloadMenu title={title} cardRef={ref} context={() => contextLine(sid, st.closure, 'percentage points', rule)} table={() => ruleTable(rule, sid, st.closure)} /> : null}
+          </>
+        }
+      >
+        {has ? (
+          <div className="chart-plot">
+            <RuleDumbbells rule={rule} sid={sid} closure={st.closure} />
+            <RuleTable rule={rule} sid={sid} closure={st.closure} />
+          </div>
+        ) : null}
+      </Finding>
+    </div>
   );
 }
 
@@ -695,7 +704,7 @@ export default function FinancesSection({ sid }) {
       </div>
       <div className="cards-stack stack-gap">
         <TaxGapCard sid={sid} closure={st.closure} rule={st.rule} />
-        <FiscalRuleCard sid={sid} />
+        {st.rule !== 'common' ? <FiscalRuleCard sid={sid} /> : null}
       </div>
     </>
   );

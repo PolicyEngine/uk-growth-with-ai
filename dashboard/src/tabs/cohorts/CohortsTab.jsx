@@ -10,7 +10,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
 import { side } from '@/tabs/ai/lines.js';
 import { Dir, Lead } from '@/tabs/explore/direction.jsx';
-import ControlBar, { ControlGroup, SeriesChips } from '@/components/ui/ControlBar.jsx';
+import Pill from '@/components/ui/Pill.jsx';
 import { useNav, WG_GROUPS, NavLink } from '@/lib/nav.jsx';
 import { ruleLabel, rulePlain } from '@/lib/labels.js';
 import { GROUP_RAMP, ALL_GROUPS_COLOUR } from '@/lib/chartTheme.js';
@@ -38,6 +38,18 @@ export const ARMS = [
   { id: 'stress', label: 'OBR-style stress test: no output gain', short: 'Stress test' },
 ];
 export const GROUP_LABELS = ['Bottom 25%', '25th–50th', '50th–70th', '70th–80th', '80th–90th', '90th–99th', 'Top 1%'];
+// each option's line in the welfare chart's pill (item-11-pill-fable.md
+// section 5; item-20-fable.md for All groups)
+const GROUP_DESC = {
+  all: 'All seven groups, and their average dashed',
+  0: 'The lowest quarter of lifetime earnings',
+  1: 'The second quarter',
+  2: 'Just above the middle',
+  3: 'The upper middle',
+  4: 'The second-highest tenth',
+  5: 'The top tenth, without the top 1%',
+  6: 'The highest 1% of lifetime earnings',
+};
 const LAST_ALIVE = D.shock_year - 20; // youngest adult in the shock year
 
 const minus = (s) => s.replace('-', '−');
@@ -160,23 +172,21 @@ export function measuresOf(c, rule, cl, arm) {
 const shareOf = (xs) => (xs.length > 1 ? shareRange(xs) : share(xs[0]));
 const avgOf = (xs) => (xs.length > 1 ? (xs[0].toFixed(2) === xs[1].toFixed(2) ? pct(xs[0]) : `${pct(xs[0])} to ${pct(xs[1])}`) : pct(xs[0]));
 
-// "Adults who lose" by measure: the four shares as a toggle, each printing
-// its share once (its home). The toggle drives the 100-dot strip and the
-// heatmap below (WhoHeatmap.jsx).
+// "Adults who lose" by measure: the four shares as plain rows, each
+// printing its share once (its home); the measure picked in the heatmap's
+// pill (WhoHeatmap.jsx) is shown by weight. Not a chooser (item-20-fable.md).
 export { dotCounts } from '@/tabs/cohorts/WhoHeatmap.jsx';
-function MeasureDots({ ms, measure, onMeasure }) {
+function MeasureDots({ ms, measure }) {
   const m = ms.find((x) => x.id === measure) ?? ms[0];
   return (
-    <ul className="ex-mtoggle" aria-label="Share of adults who lose, by measure: pick one to show below">
+    <ul className="ex-mtoggle" aria-label="Share of adults who lose, by measure">
       {ms.map((x) => (
-        <li key={x.id} data-dnfull={x.full ? '' : undefined}>
-          <button type="button" aria-pressed={x.id === m.id} className={`ex-mtoggle-btn${x.id === m.id ? ' is-on' : ''}`} title={x.def} onClick={() => onMeasure(x.id)}>
-            <span className="ex-mtoggle-name">
-              {x.short}
-              {x.tag ? <span className="ex-mtag"> ({x.tag})</span> : null}
-            </span>
-            <span className="ex-dd">{shareOf(x.losing)}</span>
-          </button>
+        <li key={x.id} data-dnfull={x.full ? '' : undefined} className={`ex-mtoggle-row${x.id === m.id ? ' is-on' : ''}`} title={x.def} aria-current={x.id === m.id ? 'true' : undefined}>
+          <span className="ex-mtoggle-name">
+            {x.short}
+            {x.tag ? <span className="ex-mtag"> ({x.tag})</span> : null}
+          </span>
+          <span className="ex-dd">{shareOf(x.losing)}</span>
         </li>
       ))}
     </ul>
@@ -186,7 +196,7 @@ function MeasureDots({ ms, measure, onMeasure }) {
 // The headline tiles: the share who lose (a range over the measures, then a
 // bar per measure), who loses by age (a ruler), the average (a strip of the
 // measures), and where it comes from (capital against labour income).
-export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {} }) {
+export function Headline({ c, rule, cl, arm, measure = 'M' }) {
   const full = dnfullFor(cl, rule, arm);
   const ch = rule === 'dn' && !full ? c.charged : null;
   const fills = full ? Object.values(full.by_fill ?? {}) : [];
@@ -207,7 +217,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M', onMeasure = () => {}
   return (
     <div className="stat-row cols-4 ex-who-tiles">
       <StatTile icon={iconFor('households')} name="Adults who lose" value={tileRange(lo, hi)} sub={<Lead c="range">{`Share of adults alive in ${D.shock_year}, by measure`}</Lead>}>
-        <MeasureDots ms={ms} measure={measure} onMeasure={onMeasure} />
+        <MeasureDots ms={ms} measure={measure} />
       </StatTile>
       <StatTile
         icon={iconFor('young')}
@@ -576,8 +586,10 @@ export default function WhoGainsTab() {
   const x = C.birth_year;
   const items = [
     ...GROUP_LABELS.map((label, j) => ({ id: String(j), label, color: GROUP_RAMP[j] })),
-    { id: 'all', label: 'All groups', color: ALL_GROUPS_COLOUR, dashed: true },
+    { id: 'all', label: 'Average, all groups', color: ALL_GROUPS_COLOUR, dashed: true },
   ];
+  // Earnings group, one choice: every group, or one with the average
+  const groupPick = st.groups.length === WG_GROUPS.length ? 'all' : st.groups.find((g) => g !== 'all');
   const seriesAt = (k) => {
     const ck = cell(k, rule, arm);
     return items
@@ -604,7 +616,7 @@ export default function WhoGainsTab() {
         </Lead>
       </SectionHeading>
       <ul className="ex-mchips ex-who-chips">
-        <li className="ex-mchip" title="Cohort paths are solved for UK central only, so the Scenario picker at the top is fixed on this page">
+        <li className="ex-mchip" title="Cohort paths are solved for UK central only, so the scenario in the settings pill is fixed on this page">
           UK central only
         </li>
         <li className="ex-mchip">
@@ -619,18 +631,18 @@ export default function WhoGainsTab() {
           </li>
         ) : null}
       </ul>
-      {/* arm and fiscal rule: the settings bar at the top of the page (one store) */}
+      {/* arm and fiscal rule: the settings pill under the page title (one store) */}
       {both ? (
         cls.map((k) => (
           <div key={k} className="wg-closure">
             <h3 className="wg-closure-title">
               <Icon name={CL_HEAD[k].icon} size={16} /> {CL_HEAD[k].text}
             </h3>
-            <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} measure={measure} onMeasure={setMeasure} />
+            <Headline c={cell(k, rule, arm)} rule={rule} cl={k} arm={arm} measure={measure} />
           </div>
         ))
       ) : (
-        <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} onMeasure={setMeasure} />
+        <Headline c={c} rule={rule} cl={cl} arm={arm} measure={measure} />
       )}
       <ByForm p={p} both={both} hasT={measuresOf(c, rule, cl, arm).some((m) => m.id === 'T')} />
       <WhoHeatmap cl={both ? 'zk0.1' : cl} rule={rule} arm={arm} both={both} measure={measure} onMeasure={setMeasure} ms={measuresOf(c, rule, cl, arm)} />
@@ -644,11 +656,24 @@ export default function WhoGainsTab() {
           }
           unit={<Lead c="measure">Consumption-equivalent change, % of remaining-lifetime consumption and bequests</Lead>}
           controls={
-            <ControlBar label="Welfare chart: options">
-              <ControlGroup label="Earnings groups">
-                <SeriesChips items={items} shown={st.groups} onChange={(groups) => set({ groups: WG_GROUPS.filter((g) => groups.includes(g)) })} label="Earnings groups shown" />
-              </ControlGroup>
-            </ControlBar>
+            <Pill
+              className="is-card"
+              title="Options for this chart"
+              name="Welfare change by birth year"
+              sections={[
+                {
+                  id: 'groups',
+                  label: 'Earnings group',
+                  glyph: 'users',
+                  kind: 'one',
+                  value: groupPick,
+                  options: [{ value: 'all', label: 'All groups', desc: GROUP_DESC.all }, ...GROUP_LABELS.map((label, j) => ({ value: String(j), label, desc: GROUP_DESC[j] }))],
+                  onChange: (g) => set({ groups: g === 'all' ? WG_GROUPS : [g, 'all'] }),
+                  seg: groupPick === 'all' ? 'All groups' : GROUP_LABELS[Number(groupPick)],
+                  def: groupPick === 'all',
+                },
+              ]}
+            />
           }
           about={{
             caveats: (
@@ -677,8 +702,7 @@ export default function WhoGainsTab() {
             legend: () => series.map((s) => ({ label: s.label, color: s.color, dashed: s.dashed })),
           }}
         >
-          {series.length ? (
-            <div className={both ? 'wg-panels' : undefined}>
+          <div className={both ? 'wg-panels' : undefined}>
               {panels.map((pn) => (
                 <figure key={pn.cl} className="wg-panel">
                   {both ? (
@@ -707,11 +731,6 @@ export default function WhoGainsTab() {
                 </figure>
               ))}
             </div>
-          ) : (
-            <div className="unpublished-plot">
-              <p>Every group is hidden. Choose one under Earnings groups above.</p>
-            </div>
-          )}
         </Card>
       </div>
       <SectionHeading id="who-why" icon={iconFor('why')} title="What drives the result">

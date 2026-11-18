@@ -12,7 +12,8 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 // results:<sub>[:<closure>] dumps a Results sub-tab, with the header's
 // closure picker set through the address.
 // results:finances:<closure>:<rule> sets the fiscal rule (&rule=) and dumps
-// the fiscal-rule card's content only.
+// the fiscal-rule box's content only (it shows under fixed spending and
+// debt-neutral transfers, not the common rule).
 // results:summary[:<closure>] is the story's part 2 (#story-part-2), the
 // home of the former Summary tiles; story:part1 and story:part3 dump those
 // parts (they do not change with the header pickers).
@@ -65,7 +66,9 @@ for (const s of ['uk_low', 'uk_central', 'uk_high', 'korinek']) {
     await page.goto(`${base}/?${q}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(300);
     if (rule) {
-      res[s][t] = await page.locator('#fiscal-rule .chart-plot').innerText();
+      // the Finding box: its lead and lines (no figures), then the
+      // dumbbells and the table in .chart-plot (only off the common rule)
+      res[s][t] = await page.locator('#fiscal-rule').innerText();
       continue;
     }
     // Axis ticks are scale, not data: hidden before reading the text.

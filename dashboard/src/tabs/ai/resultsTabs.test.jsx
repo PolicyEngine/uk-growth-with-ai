@@ -3,6 +3,7 @@
 // its unit. Rendered against a fixture with altered values.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 
 afterEach(cleanup);
 import real from '@/data/surprise2028.json';
@@ -115,7 +116,8 @@ describe('tooltips', () => {
   it('every chart follows the fiscal rule; the rule card prints its shift against the common rule', () => {
     const page = (query) => {
       const { container, unmount } = at(query);
-      const card = container.querySelector('#fiscal-rule .chart-plot').textContent;
+      const box = container.querySelector('#fiscal-rule');
+      const card = box ? box.textContent : null;
       const all = container.textContent;
       unmount();
       return { card, all };
@@ -137,22 +139,35 @@ describe('tooltips', () => {
     expect(other.card).not.toMatch(/\d\.\d\d/);
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
-    expect(page('sub=finances&s=uk_low&rule=fixed').card).toContain('Fixed spending: solved for UK central and Korinek et al., substantial (US) only');
+    const low = page('sub=finances&s=uk_low&rule=fixed').card;
+    expect(low).toContain('UK low is not solved under fixed spending.');
+    expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    // the common rule has nothing to compare: no box
+    expect(page('sub=finances&s=uk_central').card).toBeNull();
+    // the box prints no figures outside its dumbbells and table
+    const { container: c2, unmount: u2 } = at('sub=finances&s=uk_central&rule=fixed');
+    const words = [...c2.querySelectorAll('#fiscal-rule .finding-lead, #fiscal-rule .finding-lines li')].map((e) => e.textContent);
+    u2();
+    expect(words[0]).toMatch(/^Under fixed spending, debt\/GDP ends (higher|lower|where)/);
+    expect(words.every((w) => /\.$/.test(w) && !/\d\.\d/.test(w))).toBe(true);
   });
 
   it('the rule and the arms are in the address', async () => {
-    // the rule picker is in the settings bar (components/ui/SettingsBar.jsx)
-    const { default: SettingsBar } = await import('@/components/ui/SettingsBar.jsx');
+    // the rule is in the page's settings pill (components/ui/SettingsBar.jsx)
+    const { PagePill } = await import('@/components/ui/SettingsBar.jsx');
     window.history.replaceState(null, '', '/?tab=explore&sub=finances');
-    render(
+    const { container } = render(
       <NavProvider>
-        <SettingsBar pick={{ rule: true }} />
-        <ResultsTab />
+        <div className="model-row">
+          <PagePill pick={{ rule: true }} sub="finances" />
+        </div>
+        <ResultsTab sub="income" />
       </NavProvider>,
     );
-    fireEvent.click(screen.getByRole('radio', { name: /Debt-neutral/ }));
+    pickInPill(container.querySelector('.model-row'), 'Budget assumption', 'Debt-neutral');
     expect(window.location.search).toContain('rule=dn');
-    fireEvent.click(screen.getAllByRole('button', { name: 'Stress test' })[0]);
+    // versions shown: the four-measure card's pill (tick any)
+    pickInPill(container.querySelector('#measures'), 'Versions shown', 'Stress test');
     expect(window.location.search).toContain('arms=tfp,tz');
   });
 });

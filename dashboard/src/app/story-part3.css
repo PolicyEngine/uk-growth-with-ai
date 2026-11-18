@@ -108,8 +108,7 @@
 svg.p3-dim {
   opacity: 0.4;
 }
-.p3-dim .p3-switch button,
-.p3-dim .p3-switch button.is-on {
+.p3-dim .uc-switch {
   color: var(--pe-gray-600);
 }
 .p3-dim .p3-row-value,
@@ -809,7 +808,6 @@ svg.p3-dim {
 
 /* ---- Wave 2 scenes (part3/*.jsx): entry beats, Replay, scene heads ---- */
 
-
 /* a replay snaps the figure back without a transition, then it plays */
 .p3-reset,
 .p3-reset * {
@@ -1190,32 +1188,60 @@ svg.p3-dim {
 
 /* 3-7: break-even tracks, the switch, the take-up ladder */
 
-.p3-switch {
+/* UC take-up (#hh-displaced): a plain switch, the only on/off on the site */
+.uc-switch {
   display: inline-flex;
-  padding: 2px;
-  background: var(--pe-gray-100);
-  border-radius: 999px;
-}
-.p3-switch button {
-  padding: 3px 12px;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
   font: inherit;
-  font-size: var(--t-meta);
-  font-weight: 400;
-  color: var(--pe-gray-700);
-  background: transparent;
+  font-size: var(--chart-fs-tick, 14px);
+  color: var(--pe-gray-800);
+  background: none;
   border: 0;
-  border-radius: 999px;
   cursor: pointer;
 }
-.p3-switch button.is-on {
-  font-weight: 600;
-  color: var(--pe-gray-900);
-  background: var(--pe-surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+.uc-switch-track {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  border: 1px solid var(--pe-gray-400);
+  border-radius: 999px;
+  transition: border-color 150ms ease;
 }
-.p3-switch button:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 1px;
+.uc-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: var(--pe-gray-500);
+  border-radius: 50%;
+  transition: transform 150ms ease, background-color 150ms ease;
+}
+.uc-switch[aria-checked='true'] .uc-switch-track {
+  border-color: var(--pe-teal-600);
+}
+.uc-switch[aria-checked='true'] .uc-switch-thumb {
+  background: var(--pe-teal-600);
+  transform: translateX(12px);
+}
+.uc-switch:focus-visible {
+  outline: 2px solid var(--c-highlight, var(--pe-teal-500));
+  outline-offset: 2px;
+}
+@media (max-width: 390px) {
+  .uc-switch {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .uc-switch-track,
+  .uc-switch-thumb {
+    transition: none;
+  }
 }
 /* step 8: icon and label on one line, the detail line under them */
 
@@ -1255,58 +1281,13 @@ svg.p3-dim {
 }
 
 /* 3-3: follow a decile */
-.p3-follow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  margin: 6px 0 2px;
-}
-.p3-follow-label {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  margin-right: 4px;
-  font-size: var(--t-meta);
-  color: var(--pe-gray-600);
-}
-
-.p3-follow-btn {
-  min-width: 26px;
-  height: 24px;
-  padding: 0 6px;
-  font: inherit;
-  font-size: var(--t-meta);
-  font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-700);
-  background: transparent;
-  border: 1px solid var(--card-border);
-  border-radius: 6px;
-  cursor: pointer;
-}
-.p3-follow-btn.is-caveat {
-  color: var(--pe-gray-600);
-  border-style: dashed;
-}
-.p3-follow-btn.is-on {
-  font-weight: 600;
-  color: var(--pe-gray-900);
-  border-color: var(--pe-gray-800);
-}
-.p3-follow-btn:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 1px;
-}
 
 /* 3-7: the two states side by side on desktop; stacked on phones */
 
 /* phones: the flow is off and the Sankey is drawn once, so the decile
    buttons step aside (hover and focus still light a decile end to end) */
 @media (max-width: 900px) {
-  .p3-follow-btn,
-  .p3-follow-hint {
-    display: none;
-  }
+  
   /* a block ends with its last card (addendum A2.2): the shared Scrolly
      leaves 8px under a one-card block's step at this width */
   #story-part-3 .scrolly-step:nth-last-child(2) {

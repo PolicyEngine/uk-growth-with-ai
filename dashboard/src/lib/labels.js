@@ -1,3 +1,5 @@
+import { HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
+
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
 
@@ -5,17 +7,17 @@
 // hero's quiet line above the question.
 export const PAGE_TITLE = 'AI and the UK economy: Beyond the forecast';
 
-// Tabs, in order, and their sub-tabs. `scenario` / `closure`: whether that
-// header picker applies ('locked' = shown, fixed, with the reason in view);
-// a sub-tab's own setting wins over its tab's. `arm` / `rule`: the page
-// pickers in the settings bar (`rule` may list the rules that page has
-// solves for; the others show disabled). `study`: a uk-ai-study page, which
-// shows the "different model" chip in place of the OG-UK settings. The site
+// Tabs, in order, and their sub-tabs. `scenario` / `closure` / `arm` /
+// `rule`: whether that section is in the page's settings pill ('locked' =
+// shown, fixed, with the reason in the panel); a sub-tab's own setting wins
+// over its tab's (`rule` may list the rules that page has solves for; the
+// others show disabled). `study`: a uk-ai-study page, which shows the
+// household study's model line in place of the OG-UK settings. The site
 // had seven tabs until November 2026, and eleven views until the All
 // scenarios and Scenarios sub-tabs folded into Economy ("Across scenarios")
 // and OG-UK method; lib/nav.jsx sends their addresses here. On Economy and
-// Public finances the arm picker drives the across-scenarios matrices (the
-// line charts draw every arm, &arms=).
+// Public finances the Version section drives the across-scenarios matrices
+// (the line charts draw every arm, &arms=).
 export const TABS = [
   { id: 'story', label: 'Story', icon: 'compass', scenario: true, closure: true },
   { id: 'explore', label: 'Explore', icon: 'sliders', scenario: true, closure: true, rule: true, arm: true,
@@ -43,28 +45,22 @@ export const pickersFor = (tabId, subId) => {
   return { scenario: pick('scenario'), closure: pick('closure'), arm: pick('arm'), rule: pick('rule'), study: pick('study') };
 };
 
-// The arms, as the settings bar's picker names them: an icon and a sub-label
-// of six words or fewer each (lib/nav.jsx stores the id in &arm=).
+// The arms (versions), as the pill names them: each option's one line
+// (item-11-pill-fable.md section 5; lib/nav.jsx stores the id in &arm=).
 export const ARM_PICK = [
-  { id: 'tfp', label: 'Automation + productivity', short: 'Automation + productivity', note: 'Share shift + higher output', icon: 'sparkles' },
-  { id: 'tz', label: 'Technology unchanged', short: 'Technology unchanged', note: 'Share shift only', icon: 'equal' },
-  { id: 'ss', label: 'Stress test', short: 'Stress test', note: 'No output gain: a bound', icon: 'gauge' },
+  { id: 'tfp', label: 'Automation + productivity', short: 'Automation + productivity', note: 'The capital share rises, and output at fixed inputs rises by the scenario’s gain', icon: 'sparkles' },
+  { id: 'tz', label: 'Technology unchanged', short: 'Technology unchanged', note: 'The same rise in the capital share, with no productivity gain', icon: 'equal' },
+  { id: 'ss', label: 'Stress test', short: 'Stress test', note: `${HEADLINE_YEAR} GDP held at the OBR’s central forecast path, by design`, icon: 'gauge' },
 ];
 // Who gains names its arms differently (tabs/cohorts): the same three.
 export const WG_ARM = { tfp: 'tfp', tz: 'zfixed', ss: 'stress' };
 export const ARM_OF_WG = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
-// The fiscal rules in the settings bar: icon and sub-label
-export const RULE_PICK = {
-  common: { icon: 'scale', sub: 'Spending follows GDP' },
-  fixed: { icon: 'lock', sub: 'Spending held at OBR level' },
-  dn: { icon: 'landmark', sub: 'Transfers keep debt on path' },
-};
-
 // Capital closure: who owns the new capital.
 export const CLOSURES = [
-  { id: 'central', label: 'Some foreign capital', note: 'Foreign investors supply 10% of excess capital demand (ζK = 0.1; OG-Core’s US default, chosen by the study)', icon: 'globe' },
-  { id: 'closed', label: 'No foreign capital', note: 'No foreign-owned private capital (ζK = 0)', icon: 'lock' },
-  { id: 'both', label: 'Both', note: 'Some foreign capital solid, none dashed', icon: 'layers' },
+  // the pill's lines; ζK's home is Method (m-closures)
+  { id: 'central', label: 'Some foreign capital', note: 'Foreign investors supply 10% of the extra capital firms want', icon: 'globe' },
+  { id: 'closed', label: 'No foreign capital', note: 'No foreign-owned private capital', icon: 'lock' },
+  { id: 'both', label: 'Both', note: 'Both cases together: some solid, none dashed', icon: 'layers' },
 ];
 export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? id;
 
@@ -73,10 +69,16 @@ export const closureLabel = (id) => CLOSURES.find((c) => c.id === id)?.label ?? 
 // rule is the default of every solve: government consumption and transfers
 // follow GDP. Cohorts' "common" cell carries the same solve label as the
 // default Results solve, so it is one rule under one name.
+// `note`: the option's one line (item-15-fable.md C), with no final full
+// stop (the tooltip adds a prefix, Method a stop). The debt rule's first
+// year is the model's tG1 (2036, a fixed calendar year: scenarios.py
+// TG1 = 10 from 2026, kept by the 2028 runs' shift), read from the data as
+// LATE_YEAR; the rule moves government consumption towards OG-UK's
+// long-run debt ratio (debt_ratio_ss), under every rule.
 export const RULES = [
-  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: 'Spending follows GDP', plain: 'spending follows GDP' },
-  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: 'Spending stays at its baseline level', plain: 'spending held fixed' },
-  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: 'Households pay the fiscal effect', plain: 'debt held steady by transfers to households' },
+  { id: 'common', label: 'Common fiscal rule', short: 'Common rule', note: `Spending follows GDP until ${LATE_YEAR}. From ${LATE_YEAR} a debt rule adjusts spending to steer debt/GDP towards the model’s long-run ratio`, plain: 'spending follows GDP' },
+  { id: 'fixed', label: 'Fixed spending', short: 'Fixed spending', note: `Spending stays at its baseline level, whatever GDP does. From ${LATE_YEAR} the same debt rule applies`, plain: 'spending held fixed' },
+  { id: 'dn', label: 'Debt-neutral transfers', short: 'Debt-neutral', note: `Transfers to households adjust so debt/GDP stays on the forecast path until ${LATE_YEAR}. From ${LATE_YEAR} the same debt rule applies`, plain: 'debt held steady by transfers to households' },
 ];
 export const ruleLabel = (id) => RULES.find((r) => r.id === id)?.label ?? id;
 // The budget assumption in plain words, for figure subtitles.

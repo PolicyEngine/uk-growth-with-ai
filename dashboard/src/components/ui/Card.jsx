@@ -87,7 +87,7 @@ const asItems = (node) =>
   isValidElement(node) && node.type === Items ? (node.props.items ?? []).filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) : [node];
 
 // Everything secondary about a card, for its "Sources and notes" button.
-function cardSources({ about, method, replication, sources = [], notes, read }) {
+export function cardSources({ about, method, replication, sources = [], notes, read }) {
   const groups = [
     read?.length ? { title: 'How to read', notes: read.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
     notes?.length ? { title: 'Notes', notes: notes.filter(Boolean).map((it) => ({ icon: it.icon, text: it.text })) } : null,
@@ -118,8 +118,8 @@ export default function Card({
         </h3>
         {download ? <DownloadMenu title={download.title ?? (typeof title === 'string' ? title : '')} cardRef={ref} {...download} /> : null}
       </header>
-      {finding ? <p className="card-finding">{finding}</p> : null}
       {controls}
+      {finding ? <p className="card-finding">{finding}</p> : null}
       {unit ? <p className="card-unit">{unit}</p> : null}
       {children ? <div className="chart-plot">{children}</div> : null}
       {legend ? <div className="card-legend">{legend}</div> : null}

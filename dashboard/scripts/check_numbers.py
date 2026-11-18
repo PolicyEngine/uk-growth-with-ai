@@ -140,7 +140,8 @@ for sid, arms in D['results'].items():
                         raw_bad += 1
 print('raw-solve recompute mismatches:', raw_bad)
 
-# The fiscal-rule card with a rule chosen (Public finances): every chart
+# The fiscal-rule box with a rule chosen (Public finances; none under the
+# common rule): every chart
 # follows the rule, so the card prints how far the rule moves each arm's
 # headline-year GDP, GNI, wage and consumption gap against the common rule
 # (pp), for the closure(s) in view, once each, and only for the scenarios the

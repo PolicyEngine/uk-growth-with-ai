@@ -3,7 +3,8 @@
 // range charts draw its plotted rows; OG-UK's rows come from surprise2028.json
 // and print no figure on the page; the growth check uses the October 2026 EFO.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
+import { pickInPill } from '@/components/ui/pillTestUtils.js';
 import MAP from '@/data/site-evidence-map.json';
 import { CHANNELS, OBR_GROWTH, RANGES, SOURCES } from '@/data/literature.js';
 import EvidenceMap, { mapTable, ourRows, view, hasFigure } from '@/tabs/literature/EvidenceMap.jsx';
@@ -102,9 +103,9 @@ describe('Evidence map table', () => {
     const { container } = render(<EvidenceMap />);
     const confirmed = MAP.rows.filter((r) => !r.unverified);
     expect(container.querySelectorAll('tbody tr')).toHaveLength(confirmed.length + 2);
-    fireEvent.click(screen.getByRole('radio', { name: 'No quantified estimate' }));
+    pickInPill(container.querySelector('#uk-evidence-map'), 'Measure', 'No quantified estimate');
     expect(container.querySelectorAll('tbody tr')).toHaveLength(MAP.rows.filter((r) => r.metric === 'none').length);
-    fireEvent.click(screen.getByRole('radio', { name: 'GDP or output' }));
+    pickInPill(container.querySelector('#uk-evidence-map'), 'Measure', 'GDP or output');
     const gdp = confirmed.filter((r) => r.metric === 'gdp').length;
     expect(container.querySelectorAll('tbody tr')).toHaveLength(gdp + 1);
     expect(container.querySelector('tbody tr').dataset.row).toBe('oguk-gdp');

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Icon from '@/components/ab/Icon.jsx';
+import Pill from '@/components/ui/Pill.jsx';
 import S from '@/data/surprise2028.json';
 import { INPUTS, KIND, ROWS } from './inputs.js';
 import { SRC } from './sources.js';
@@ -71,16 +72,25 @@ export default function InputsTable() {
   const shown = ROWS.filter((r) => !kind || r.kind === kind);
   return (
     <div className="mx-inputs" id="m-inputs" data-no-axes="A table of inputs">
-      <div className="mx-inputs-filter" role="group" aria-label="Filter by source type">
-        <button type="button" className="mx-filter" aria-pressed={!kind} onClick={() => setKind(null)}>
-          All <span className="mx-kind-n">{ROWS.length}</span>
-        </button>
-        {Object.keys(KIND).map((k) => (
-          <button key={k} type="button" className={`mx-filter is-${k}`} aria-pressed={kind === k} onClick={() => setKind(kind === k ? null : k)}>
-            <span className="mx-dot" aria-hidden="true" />
-            {KIND[k].label} <span className="mx-kind-n">{COUNTS[k]}</span>
-          </button>
-        ))}
+      <div className="mx-inputs-filter">
+        <Pill
+          className="is-card"
+          title="Options for this table"
+          name="Every input"
+          sections={[
+            {
+              id: 'kind',
+              label: 'Source type',
+              glyph: 'book',
+              kind: 'one',
+              value: kind ?? 'all',
+              options: [{ value: 'all', label: 'All types', desc: 'Every input' }, ...Object.keys(KIND).map((k) => ({ value: k, label: KIND[k].label, desc: `${COUNTS[k]} of ${ROWS.length} inputs` }))],
+              onChange: (k) => setKind(k === 'all' ? null : k),
+              seg: kind ? KIND[kind].label : 'All types',
+              def: !kind,
+            },
+          ]}
+        />
       </div>
       <table className="mx-inputs-table">
         <caption className="visually-hidden">Every scenario input and model parameter, its value, its kind of source and the source</caption>
