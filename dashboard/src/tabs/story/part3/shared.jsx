@@ -75,7 +75,7 @@ export function Source({ children, files = [], groups = [], refs = [], items: ex
     </>
   );
   const items = [
-    fileItem('uk-ai-study results', `${REPO_URL}/tree/${COMMIT}/results`, 'PolicyEngine', `at ${COMMIT}`),
+    fileItem('Household study results', `${REPO_URL}/tree/${COMMIT}/results`, 'PolicyEngine', `at ${COMMIT}`),
     ...fs.map((f) => fileItem(f, fileUrl(f), 'PolicyEngine')),
     ...refs.map((id) => REFS[id] && docItem(REFS[id].label, REFS[id].url, undefined, REFS[id].title)),
     ...extra,

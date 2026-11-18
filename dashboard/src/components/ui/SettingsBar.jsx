@@ -295,7 +295,7 @@ export function SettingsChip({ pick }) {
 // on a uk-ai-study page
 export function ModelChip() {
   return (
-    <NavLink tab="method" sub="households" className="subhead-chip" title="A different model: uk-ai-study, households in one year. The OG-UK settings do not apply.">
+    <NavLink tab="method" sub="households" className="subhead-chip" title="A different model: the household study (PolicyEngine UK), households in one year. The OG-UK settings do not apply.">
       <Icon name={iconFor('households')} size={15} />
       <span>Different model</span>
     </NavLink>
@@ -342,7 +342,7 @@ export default function SettingsBar({ pick }) {
         <NavLink tab="method" sub="households" className="model-chip">
           <Icon name={iconFor('households')} size={15} />
           <span>
-            <strong>A different model:</strong> uk-ai-study, households in one year.
+            <strong>A different model:</strong> the household study (PolicyEngine UK), households in one year.
             <span className="model-chip-more"> The OG-UK settings do not apply.</span>
           </span>
         </NavLink>

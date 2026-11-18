@@ -170,7 +170,7 @@ describe('Part3', () => {
       const pop = document.getElementById(b.getAttribute('aria-controls'));
       expect(pop.textContent).toContain(`PolicyEngine-UK microsimulation${PROVISIONAL ? ', provisional' : ''}, ${MODEL_YEAR}`);
       const links = [...pop.querySelectorAll('.src-pop-list a')];
-      expect(links[0].textContent).toBe('uk-ai-study results');
+      expect(links[0].textContent).toBe('Household study results');
       expect(links[0].getAttribute('href')).toBe(`https://github.com/PolicyEngine/uk-ai-study/tree/${commit}/results`);
       // each result file linked at the commit
       for (const a of links.filter((x) => x.textContent.startsWith('results/'))) expect(a.getAttribute('href')).toContain(commit);
@@ -335,7 +335,7 @@ describe('Part3', () => {
     expect(container.textContent.split(CLOSE_SUB.question).length - 1).toBeLessThanOrEqual(1);
     expect(container.querySelector('.lens-table, .story-recap, .scrolly-answer')).toBeNull();
     // one heading per lens naming its model; 4 + 3 "can say" chips, each a link to its scene; 2 outside chips each
-    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^uk-ai-study/)]);
+    expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^Household study/)]);
     const can = [...container.querySelectorAll('.lens-circle ul.lens-chips')];
     expect(can.map((u) => u.querySelectorAll('li a').length)).toEqual([4, 3]);
     for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central)$/);

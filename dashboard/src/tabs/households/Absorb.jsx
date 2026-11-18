@@ -96,7 +96,7 @@ export default function AbsorbCard() {
         </>
       }
       download={{
-        context: `uk-ai-study, ${S.file}`,
+        context: `Household study, ${S.file}`,
         table: {
           columns: ['decile', 'earnings_lost_bn', ...DESTS.map((d) => d.key)],
           rows: S.deciles.map((f, i) => [i + 1, f.earnings_lost_bn, ...DESTS.map((d) => f[d.key])]),

@@ -10,7 +10,7 @@ import Deciles from './part3/Deciles.jsx';
 import Pound from './part3/Pound.jsx';
 import Changes from './part3/Changes.jsx';
 import Closing from './part3/Closing.jsx';
-import { MODEL_YEAR } from './part3/shared.jsx';
+import { MODEL_YEAR, PAPER_URL } from './part3/shared.jsx';
 
 // Part 3: a model of households, the uk-ai-study PolicyEngine-UK
 // microsimulation of AI job displacement for one year, from
@@ -29,7 +29,9 @@ export default function Part3({ part }) {
   return (
     <>
       {/* the change of model is the opener's handover line (StoryTab PARTS); no call-out */}
-      <PartHead part={part}>A one-year model of households, {MODEL_YEAR}, if a share of employees are assumed to lose their jobs to AI.</PartHead>
+      <PartHead part={part}>
+        In <a href={PAPER_URL} target="_blank" rel="noreferrer">the household study (PolicyEngine UK)</a>, a one-year model of households, {MODEL_YEAR}, a share of employees are assumed to lose their jobs to AI.
+      </PartHead>
       {/* beat B4: the rate is its home (data-path, data-input: a quoted
           input); no beat while the rate is unknown */}
       {CENTRAL_RATE != null ? (

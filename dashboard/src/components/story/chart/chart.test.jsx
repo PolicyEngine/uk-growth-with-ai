@@ -66,8 +66,8 @@ describe('ModelBadge and Frame', () => {
   it('names the model as plain text, no icon (round 1)', () => {
     const { container } = render(<ModelBadge model="aistudy" />);
     expect(container.textContent).toBe(studyLabel());
-    expect(studyLabel({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('uk-ai-study · FY 2027–28');
-    expect(studyLabel({ provisional: true })).toBe('uk-ai-study · provisional');
+    expect(studyLabel({ model_year_label: 'FY 2027–28', status: 'merged', provisional: false })).toBe('Household study · FY 2027–28');
+    expect(studyLabel({ provisional: true })).toBe('Household study · provisional');
     expect(container.querySelector('svg')).toBeNull();
   });
   it('yTitle and xTitle render as plain lines marked data-axis-title', () => {

@@ -91,14 +91,16 @@ export default function HouseholdsMethod() {
       <div className="page-body">
         <header className="hh-lead page-intro">
           <div className="page-kicker-row">
-            <p className="page-kicker">uk-ai-study · households in {MODEL_YEAR} if some employees lose their jobs</p>
+            <p className="page-kicker">Household study · households in {MODEL_YEAR} if some employees lose their jobs</p>
             <PageNotes />
           </div>
           <h2 className="hh-question page-q">How does the household study produce its results?</h2>
           <p className="hh-answer">
             <IconText icon="jobLoss">
-              On a calibrated sample of UK households, the study removes the earnings of employees chosen at random, weighted by AI exposure, for
-              one year.
+              <a href={PAPER_URL} target="_blank" rel="noreferrer">
+                The household study (PolicyEngine UK)
+              </a>{' '}
+              removes, for one year, the earnings of randomly chosen employees in a calibrated UK sample, weighted by AI exposure.
             </IconText>
           </p>
           {STATUS ? (

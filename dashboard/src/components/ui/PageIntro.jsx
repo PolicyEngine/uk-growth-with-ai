@@ -20,7 +20,7 @@ export function PageNotes({ notes = [] }) {
 }
 
 // a page that does not name its model (Evidence, Data and code) reads both
-const BOTH = 'Two models: OG-UK, the whole economy; uk-ai-study, households';
+const BOTH = 'Two models: OG-UK, the whole economy; the household study, households';
 
 export default function PageIntro({ id, kicker = BOTH, notes, question, answer, children }) {
   return (

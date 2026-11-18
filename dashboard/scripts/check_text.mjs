@@ -21,7 +21,8 @@
 // count. Prints the icon count per scene, so each part sees its share.
 //
 // Hyphens, every tab: no U+2011 (non-breaking hyphen) in rendered text,
-// svg text included.
+// svg text included. Names, every tab: no visible "uk-ai-study" (the
+// household study's repo slug) outside code.
 //
 // Skipped everywhere: tables, chart text (svg), the site header and
 // footer, and anything aria-hidden, visually hidden or [hidden].
@@ -97,6 +98,14 @@ for (const [name, path] of Object.entries(PAGES)) {
       for (let n = nb.nextNode(); n; n = nb.nextNode()) {
         if (!n.nodeValue.includes('\u2011') || !n.parentElement?.getClientRects().length) continue;
         out.push(`${where(n.parentElement)} U+2011 non-breaking hyphen: ${n.nodeValue.trim().slice(0, 60)}`);
+      }
+      // The household study is named, not given its repo slug: no visible
+      // "uk-ai-study" outside code (commands, paths) and the site's own URLs.
+      const sw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = sw.nextNode(); n; n = sw.nextNode()) {
+        const el = n.parentElement;
+        if (!n.nodeValue.includes('uk-ai-study') || !el?.getClientRects().length || el.closest('code, pre, kbd, [aria-hidden="true"], .visually-hidden')) continue;
+        out.push(`${where(el)} repo slug "uk-ai-study" in visible text: ${n.nodeValue.trim().slice(0, 60)}`);
       }
       if (!story) return { out };
       // (a) exactly one icon

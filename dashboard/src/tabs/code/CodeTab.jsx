@@ -312,7 +312,7 @@ function UseOguk() {
   );
 }
 
-const MODEL_ICON = { 'OG-UK': 'model', 'uk-ai-study': 'households' };
+const MODEL_ICON = { 'OG-UK': 'model', 'Household study': 'households' };
 function ModelCell({ m }) {
   if (!MODEL_ICON[m]) return <span className="ledger-where">Neither</span>;
   return (
@@ -365,7 +365,7 @@ function Vintages() {
         <Items
           className="mx-foot-items"
           items={[
-            AI_FULL_RERUN === false ? { icon: 'caveat', text: 'uk-ai-study: the manifest attests results without a clean-room rerun.' } : null,
+            AI_FULL_RERUN === false ? { icon: 'caveat', text: 'The household study: the manifest attests results without a clean-room rerun.' } : null,
             // results outside the attested rebuild, as the data file lists them
             AI_STUDY.outsideRebuild?.length ? { icon: 'provisional', text: `Outside that rebuild: ${AI_STUDY.outsideRebuild.join(', ')}.` } : null,
           ].filter(Boolean)}
