@@ -1204,7 +1204,6 @@
   border-collapse: separate;
   border-spacing: 4px;
   table-layout: fixed;
-  font-variant-numeric: tabular-nums;
 }
 .ex-mx th {
   font-size: 12px;
@@ -1338,7 +1337,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-variant-numeric: tabular-nums;
 }
 .ex-sd-row {
   display: grid;
@@ -1953,7 +1951,6 @@
   transform: translateY(-100%);
   font-size: 12px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--pe-gray-900);
 }
@@ -2590,7 +2587,6 @@
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
-  font-variant-numeric: tabular-nums;
 }
 .ex-sg thead th {
   position: sticky;
@@ -2791,4 +2787,17 @@
   font-size: 11px;
   color: var(--pe-gray-500);
   text-align: center;
+}
+
+/* tabular figures on the cell values, not the table (the row heads are words) */
+.ex-mx-val {
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-sd-val {
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-sg-cell {
+  font-variant-numeric: tabular-nums;
 }

@@ -1195,7 +1195,6 @@
   color: var(--pe-gray-900);
 }
 .p2-sankey .sankey-tip-row {
-  font-variant-numeric: tabular-nums;
 }
 
 .p2-output-foot {

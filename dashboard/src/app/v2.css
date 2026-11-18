@@ -31,7 +31,11 @@
 .app * {
   text-transform: none !important;
 }
-.app {
+/* Tabular figures are set on number elements only (values, ticks, numeric
+   table cells, tiles), never on a text wrapper: Inter's tnum gives the
+   hyphen a figure's width, which spaced "OG-UK" and "Debt-neutral" apart
+   wherever a wrapper set it (it was set here, on the whole app). */
+.app :where(.num, .stat-value, .ex-dd, .hh-funnel-text b, .ex-tl-year, .ex-taxtick, .ex-ruler-ticks > span, .cause-ticks > span, .hh-db-ticks > span, .hh-db-label, .sankey-sub, .hm-stage-n) {
   font-variant-numeric: tabular-nums;
 }
 .app :where(h1, h2, h3, h4, .kpi-name, .mx-kicker, .mx-fig-title, .var-group-title) {

@@ -34,7 +34,6 @@
 .p1-end-label {
   font-size: var(--t-meta);
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 /* the crosshair wraps each chart's svg: keep the canvas clipped (ticks
    slide out of it on the zoom) and never wider than its box */

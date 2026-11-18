@@ -1032,7 +1032,6 @@ svg.p3-dim {
   padding: 4px 8px;
   font-size: var(--t-meta);
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--c-loss-text);
   background: var(--pe-surface);
@@ -1815,7 +1814,6 @@ svg.p3-dim {
 .p3-ch-be-from,
 .p3-ch-be-to {
   font-size: var(--t-ui);
-  font-variant-numeric: tabular-nums;
   color: var(--pe-gray-700);
   white-space: nowrap;
 }
@@ -2678,4 +2676,9 @@ a.lens-pay-num:hover {
 #p3-pound .p3-pound-caveat .p3-dec-note {
   grid-column: auto;
   margin: 0;
+}
+
+/* the break-even values (their captions are words) */
+.p3-ch-be-from [data-input] {
+  font-variant-numeric: tabular-nums;
 }

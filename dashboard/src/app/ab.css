@@ -968,7 +968,6 @@ body {
   max-width: 640px;
   border-collapse: collapse;
   font-size: var(--fs-small);
-  font-variant-numeric: tabular-nums;
 }
 
 .rule-table caption {
@@ -1761,7 +1760,6 @@ body {
   gap: 2px;
   padding: 6px 10px;
   font-size: 12px;
-  font-variant-numeric: tabular-nums;
   color: var(--pe-gray-800);
   background: var(--pe-surface);
   border: 1px solid var(--pe-gray-200);

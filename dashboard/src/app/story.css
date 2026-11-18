@@ -1619,7 +1619,6 @@
 }
 .ch-label {
   font: var(--ch-label);
-  font-variant-numeric: tabular-nums;
   paint-order: stroke;
   stroke: var(--pe-surface);
   stroke-width: 3px;

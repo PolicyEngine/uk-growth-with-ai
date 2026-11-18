@@ -72,7 +72,6 @@
   min-width: 110px;
   max-width: 170px;
   font-weight: 650;
-  font-variant-numeric: tabular-nums;
   color: var(--pe-gray-900);
 }
 
