@@ -2614,10 +2614,10 @@ a.lens-pay-num:hover {
    its node a dashed outline, its ribbons muted */
 #p3-pound .sankey-node[data-node='d1'] .sankey-rect,
 #p3-pound [data-node='d1'] .sankey-rect {
-  fill: var(--pe-gray-50, #f9fafb) !important;
-  stroke: var(--pe-gray-400);
+  fill: var(--pe-gray-300) !important;
+  stroke: var(--pe-gray-500);
   stroke-width: 1.25px;
-  stroke-dasharray: 4 3;
+  stroke-dasharray: 3 2;
 }
 #p3-pound .sankey-links [aria-label^='1 to '] {
   fill-opacity: 0.5;

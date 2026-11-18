@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import Disclosure from '@/components/ab/Disclosure.jsx';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -609,6 +609,24 @@ function Displaced() {
 // three rankings are printed in story step 4. Decile 1 is grey with the
 // caveat icon in every ranking.
 const RANK_FILL = ['p3-fill-rank-1', 'p3-fill-rank-2', 'p3-fill-rank-3'];
+const RANK_TEXT = ['is-rank-1', 'is-rank-2', 'is-rank-3'];
+// short names for the direct labels; the key above gives them in full
+const RANK_SHORT = { hbai: 'HBAI', pre_pension: 'Before pensions', hbai_excl_large_ppc: 'HBAI, no large pensions' };
+// the decile whose three dots are named: the widest spread, decile 1 aside
+const NAMED = (() => {
+  const R = D.rankings;
+  let best = 1;
+  let w = -1;
+  for (let i = 1; i < 10; i++) {
+    const vs = R.map((r) => r.values[i]);
+    const sp = Math.max(...vs) - Math.min(...vs);
+    if (sp > w) {
+      w = sp;
+      best = i;
+    }
+  }
+  return best;
+})();
 function Rankings() {
   const R = D.rankings;
   const [ref, e] = useSeenBeat();
@@ -659,8 +677,13 @@ function Rankings() {
           {Array.from({ length: 10 }, (_, i) => {
             const vs = R.map((r) => r.values[i]);
             const first = i === 0;
+            const named = i === NAMED;
+            // the named decile: the lowest and highest dots named beside
+            // them, the middle one in a line under the row
+            const order = named ? vs.map((v, k) => [v, k]).sort((a, b) => a[0] - b[0]) : [];
             return (
-              <div role="listitem" key={i} className={`hh-db-row${first ? ' is-caveat' : ''}`} data-decile={i + 1} style={{ '--beat': `${(first ? 10 : i) * 60}ms` }}>
+              <Fragment key={i}>
+              <div role="listitem" className={`hh-db-row${first ? ' is-caveat' : ''}${named ? ' is-named' : ''}`} data-decile={i + 1} style={{ '--beat': `${(first ? 10 : i) * 60}ms` }}>
                 <span className="hh-db-label">
                   {i === 0 ? '1 (bottom)' : i === 9 ? '10 (top)' : i + 1}
                 </span>
@@ -671,7 +694,36 @@ function Rankings() {
                     <span key={k} className={`hh-db-dot ${first ? 'p3-fill-muted' : RANK_FILL[k]}`} style={{ left: `${X(v)}%` }} />
                   ))}
                 </span>
+                {named ? (
+                  <span className="hh-db-names" aria-hidden="true">
+                    <span className={`hh-db-name is-left ${RANK_TEXT[order[0][1]]}`} style={{ right: `calc(${100 - X(order[0][0])}% + 9px)` }}>
+                      {RANK_SHORT[R[order[0][1]].id] ?? R[order[0][1]].label}
+                    </span>
+                    <span className={`hh-db-name is-right ${RANK_TEXT[order[2][1]]}`} style={{ left: `calc(${X(order[2][0])}% + 9px)` }}>
+                      {RANK_SHORT[R[order[2][1]].id] ?? R[order[2][1]].label}
+                    </span>
+                  </span>
+                ) : null}
               </div>
+              {named ? (
+                <div className="hh-db-row hh-db-namerow" aria-hidden="true">
+                  <span />
+                  {/* desktop: the middle name only; a phone: all three,
+                      stacked, each slid to stay inside the track */}
+                  <span className="hh-db-track is-names">
+                    {order.map(([v, k], j) => (
+                      <span
+                        key={k}
+                        className={`hh-db-name is-under ${j === 1 ? 'is-mid' : 'is-extra'} ${RANK_TEXT[k]}`}
+                        style={{ left: `${X(v)}%`, '--slide': `${-X(v)}%`, '--row': j }}
+                      >
+                        {RANK_SHORT[R[k].id] ?? R[k].label}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              ) : null}
+              </Fragment>
             );
           })}
         </div>

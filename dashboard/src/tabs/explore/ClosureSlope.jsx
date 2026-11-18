@@ -8,7 +8,8 @@ import { useChartBox } from '@/components/story/chart/useChartBox.js';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
+import { placeLabels } from '@/tabs/story/part2/frame.jsx';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
 import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 
@@ -56,18 +57,37 @@ const tickText = (t) => (Math.abs(t) < 1e-9 ? '0' : `${t > 0 ? '+' : '−'}${Mat
 const W0 = 220;
 const H = 168;
 const PAD = { l: 34, r: 14, t: 18, b: 22 };
+// The first panel names each version at its line's right end (in the
+// versions' text colours; names only, no figure), so no line colour is
+// left to the key below; its gutter is this wide.
+const NAMES_W = 96;
+const NAME_LINES = { tfp: ['Automation +', 'productivity'], tz: ['Technology', 'unchanged'], ss: ['Stress test'] };
+const NAME_LH = 12;
 
-function Panel({ m, rows, sc, hot, setHot, sid }) {
+function Panel({ m, rows, sc, hot, setHot, sid, names = false }) {
   const { ref: boxRef, width: W } = useChartBox({ width: W0, height: H });
   const x0 = PAD.l;
-  const x1 = W - PAD.r;
+  const x1 = W - PAD.r - (names ? NAMES_W : 0);
   const Y = (v) => PAD.t + ((sc.top - v) / (2 * sc.top)) * (H - PAD.t - PAD.b);
   const flips = rows.filter((r) => r.flips);
   const pending = rows.filter((r) => r.c != null && r.b == null);
   const active = hot?.v === m.v ? rows.find((r) => r.arm.id === hot.arm) : null;
-  const narrow = W < 240;
+  const narrow = W < 240 && !names;
+  const placed = names
+    ? placeLabels(
+        rows.filter((r) => r.b != null).map((r) => ({ key: r.arm.id, v: r.b, lines: NAME_LINES[r.arm.id] ?? [r.arm.short || r.arm.label] })),
+        Y,
+        PAD.t,
+        H - PAD.b,
+        NAME_LH,
+      )
+    : [];
   return (
-    <figure className="ex-slope-panel" data-measure={m.v}>
+    <figure
+      className={`ex-slope-panel${names ? ' has-names' : ''}`}
+      data-measure={m.v}
+      data-label-exempt={names ? undefined : 'a small multiple: the first panel names the versions, in these colours'}
+    >
       <figcaption className="ex-slope-title" data-panel-title="">
         {m.label}
       </figcaption>
@@ -87,7 +107,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
         <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
           {narrow ? 'Gap, %' : 'Gap against the no-shock baseline, %'}
         </text>
-        {narrow ? null : (
+        {narrow || x1 - x0 < 170 ? null : (
           <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
             Foreign capital
           </text>
@@ -121,7 +141,22 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
               {r.b != null ? <line x1={x0} x2={x1} y1={Y(r.c)} y2={Y(r.b)} className="ex-slope-line" /> : null}
               <circle cx={x0} cy={Y(r.c)} r="3.5" className="ex-slope-dot" />
               {r.b != null ? <circle cx={x1} cy={Y(r.b)} r="3.5" className="ex-slope-dot" /> : null}
-              {cross != null ? <circle cx={cross} cy={Y(0)} r="4.5" className="ex-slope-flip" /> : null}
+              {cross != null ? <circle cx={cross} cy={Y(0)} r="4.5" className="ex-slope-flip" data-series="flip" /> : null}
+            </g>
+          );
+        })}
+        {placed.map((p) => {
+          const ly = p.t + NAME_LH * 0.5;
+          return (
+            <g key={p.key} className="ex-slope-name">
+              {Math.abs(Y(p.v) - ly) > 3 ? <path className="ex-slope-leader" d={`M${x1 + 5},${Y(p.v).toFixed(1)} L${x1 + 10},${ly.toFixed(1)}`} style={{ stroke: ARM_COLOR[p.key] }} /> : null}
+              <text x={x1 + 12} y={p.t + NAME_LH * 0.85} style={{ fill: ARM_TEXT_COLOR[p.key] }}>
+                {p.lines.map((l, i) => (
+                  <tspan key={l} x={x1 + 12} dy={i ? NAME_LH : 0}>
+                    {l}
+                  </tspan>
+                ))}
+              </text>
             </g>
           );
         })}
@@ -133,7 +168,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             {active.arm.short || active.arm.label}: {fmt(active.c)} → {fmt(active.b)}
           </p>
         ) : flips.length ? (
-          <p className="ex-slope-note is-flip">
+          <p className="ex-slope-note is-flip" data-label-for="flip">
             {`Flips ${side(flips[0].b)} the path: ${flips.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}`}
           </p>
         ) : pending.length ? (
@@ -188,8 +223,8 @@ export default function ClosureSlope({ sid }) {
     >
       {solved ? (
         <div className="ex-slope">
-          {all.map(({ m, rows }) => (
-            <Panel key={m.v} m={m} rows={rows} sc={sc} hot={hot} setHot={setHot} sid={sid} />
+          {all.map(({ m, rows }, i) => (
+            <Panel key={m.v} m={m} rows={rows} sc={sc} hot={hot} setHot={setHot} sid={sid} names={i === 0} />
           ))}
         </div>
       ) : (

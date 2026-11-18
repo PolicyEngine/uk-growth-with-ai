@@ -1068,6 +1068,19 @@
 @media (max-width: 900px) {
   .ex-slope { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* the first panel names the versions at its line ends: on a phone it takes
+   the row, so its names have room */
+@media (max-width: 600px) {
+  .ex-slope-panel.has-names { grid-column: 1 / -1; }
+}
+.ex-slope-name text {
+  font: 600 11px/1 var(--ch-font, inherit);
+}
+.ex-slope-leader {
+  fill: none;
+  stroke-width: 1;
+  opacity: 0.7;
+}
 .ex-slope-panel {
   margin: 0;
   min-width: 0;
@@ -2706,4 +2719,63 @@
   font-size: var(--fs-micro, 12px);
   font-weight: 500;
   line-height: 1.2;
+}
+
+/* the sparkline's two ends, named by their years */
+.ex-spark-end {
+  font: 500 10px/1 var(--ch-font, inherit);
+  fill: var(--series-2, #026aa2);
+}
+
+/* Deciles under three rankings: the widest decile's three dots named in
+   place (the lowest and highest beside them, the middle one under) */
+.hh-db-row.is-named .hh-db-track {
+  overflow: visible;
+}
+.hh-db-row.is-named {
+  position: relative;
+}
+.hh-db-names {
+  position: absolute;
+  inset: 0 0 0 calc(6em + 10px);
+  pointer-events: none;
+}
+.hh-db-name {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 600 11px/1.1 var(--ch-font, inherit);
+  white-space: nowrap;
+}
+.hh-db-track.is-names {
+  height: 14px;
+}
+.hh-db-name.is-under {
+  top: 0;
+  transform: translateX(-50%);
+}
+.hh-db-name.is-rank-1 {
+  color: var(--rank-1-text, var(--rank-1));
+}
+.hh-db-name.is-rank-2 {
+  color: var(--rank-2-text, var(--rank-2));
+}
+.hh-db-name.is-rank-3 {
+  color: var(--rank-3-text, var(--pe-gray-600));
+}
+.hh-db-namerow .is-extra {
+  display: none;
+}
+@media (max-width: 600px) {
+  .hh-db-names {
+    display: none;
+  }
+  .hh-db-track.is-names {
+    height: 42px;
+  }
+  .hh-db-namerow .hh-db-name {
+    display: block;
+    top: calc(var(--row) * 14px);
+    transform: translateX(var(--slide));
+  }
 }
