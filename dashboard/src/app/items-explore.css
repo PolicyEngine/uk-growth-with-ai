@@ -2639,7 +2639,9 @@
 .ex-sg-cell.is-pending { color: var(--pe-gray-500); font-style: italic; }
 .ex-sg-cell .ex-sd-val { font-size: 14px; font-weight: 600; }
 .ex-sg-dir { display: inline-flex; margin-left: 2px; color: var(--pe-gray-500); vertical-align: -1px; }
-.ex-sg-flagnote, .ex-sg-lead { margin: 4px 0; font-size: 14px; }
+.ex-sg-flagnote, .ex-sg-lead, .ex-sg-def { margin: 4px 0; font-size: 14px; }
+/* the More info fold (item 14): the units line last, as the card's unit line */
+.ex-sg-more-unit { margin-top: 12px; }
 .ex-sg-flagnote { display: flex; gap: 8px; align-items: flex-start; }
 .ex-sg-flagnote > svg { flex: none; margin-top: 2px; }
 .ex-sg-flagnote :target, #sens-flag:target { outline: 2px solid var(--pe-teal-700, #0f766e); }

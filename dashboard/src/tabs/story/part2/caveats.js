@@ -13,7 +13,9 @@ const H = YEARS.indexOf(HEADLINE_YEAR);
 
 // A ratio as words, or null outside the range a phrase fits.
 // The nearest of five fractions: "about" within 0.03 of it, otherwise
-// "over" or "under" it; null below a fifth or above 0.85.
+// "over" or "under" it; null below a fifth or above 0.85. With { all: true }
+// a ratio within 0.02 of one is "about all" (the zeta_K 0.5 foreign share,
+// zk05-share-fable.md); callers whose ratio sits below one leave it off.
 const FRACS = [
   [1 / 4, 'a quarter'],
   [1 / 3, 'a third'],
@@ -21,7 +23,8 @@ const FRACS = [
   [2 / 3, 'two-thirds'],
   [3 / 4, 'three-quarters'],
 ];
-export function fracWord(r) {
+export function fracWord(r, { all = false } = {}) {
+  if (all && Number.isFinite(r) && r >= 0.98 && r <= 1.02) return 'about all';
   if (!Number.isFinite(r) || r < 0.2 || r > 0.85) return null;
   const [f, w] = FRACS.reduce((a, b) => (Math.abs(b[0] - r) < Math.abs(a[0] - r) ? b : a));
   return `${Math.abs(r - f) < 0.03 ? 'about' : r < f ? 'under' : 'over'} ${w}`;

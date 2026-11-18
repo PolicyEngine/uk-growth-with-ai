@@ -6,26 +6,31 @@ import { iconFor } from '@/lib/concepts.js';
 import { S, ARMS, ARM_COLOR, SCENARIOS, YEARS, HEADLINE_YEAR, CENTRAL, fmt, resultAt } from '@/tabs/ai/surprise.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { side } from '@/tabs/ai/lines.js';
-import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
+import { dirConcept } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS } from '@/tabs/ai/links.js';
 import { sourcesItems } from './sources.jsx';
 import { docItem } from '@/lib/sourceItems.js';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
+import Disclosure from '@/components/ab/Disclosure.jsx';
+import { fracWord } from '@/tabs/story/part2/caveats.js';
 
-// The foreign-owned share of the extra capital in 2031, the data file's
-// foreign_share_dK_2031, as a rounded range across the solves.
-function foreignShare(res) {
-  const xs = Object.values(res).flatMap((r) => Object.values(r)).map((c) => c?.foreign_share_dK_2031).filter((x) => x != null);
-  if (!xs.length) return null;
-  const lo = Math.round(Math.min(...xs));
-  const hi = Math.round(Math.max(...xs));
-  return hi - lo <= 1 ? `about ${lo}%` : `${lo}–${hi}%`;
+// The foreign-owned share of the added capital in the headline year: the
+// data file's foreign_share_dK_2031 for UK central's main version, the same
+// cell as the 77% at zeta_K 0.1 (Method, FOREIGN_DK), as words and a whole
+// per cent (zk05-share-fable.md). The share drifts above 100% after the
+// headline year, so the line carries the year.
+export function foreignShareLine(res) {
+  const x = res?.uk_central?.tfp?.foreign_share_dK_2031;
+  if (x == null) return null;
+  const w = fracWord(x / 100, { all: true });
+  const pct = `${Math.round(x)}%`;
+  return w ? `In ${HEADLINE_YEAR} ${w} of the added capital (${pct}) ends up foreign-owned.` : `In ${HEADLINE_YEAR}, ${pct} of the added capital ends up foreign-owned.`;
 }
 
 // The zk0.5 sensitivity (surprise2028.json `sensitivity`, common fiscal
-// rule): half of the excess demand for capital met from abroad. It has no
+// rule): foreigners supply half of excess capital demand. It has no
 // header option and no other home, so its figures print here only.
 export const SENS = 'zk0.5';
 const VARS = [
@@ -48,7 +53,7 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   const diff = (v) => rows.map((r) => at(r.sens, v) - at(r.central, v));
   const versus = (v, name) => {
     const d = diff(v);
-    if (d.every((x) => x > 0.005)) return { icon: 'gapUp', text: `${name}: further above the forecast path` };
+    if (d.every((x) => x > 0.005)) return { icon: 'gapUp', text: `${name}: higher` };
     if (d.every((x) => x < -0.005)) return { icon: 'gapDown', text: `${name}: lower` };
     return { icon: 'compare', text: `${name}: no single direction` };
   };
@@ -102,7 +107,7 @@ export function sensFlagItem() {
     icon: 'caveat',
     text: (
       <>
-        * Investment above the {ext(OG_RESULT_URLS.sanity, `+${I_FLAG_PCT}% flag`)} in {S.surprise_year}: up to +{Math.round(fl[0].x)}%, {ext(OG_RESULT_URLS.plausibility, 'implausible')}
+        * Investment jumps up to {Math.round(fl[0].x)}% above the path in {S.surprise_year}, beyond our {ext(OG_RESULT_URLS.sanity, `+${I_FLAG_PCT}% plausibility check`)}, so we treat this case as {ext(OG_RESULT_URLS.plausibility, 'implausible')}.
       </>
     ),
   };
@@ -255,34 +260,29 @@ export default function SensitivityTable() {
       id="closure-sensitivity"
       icon={iconFor('foreign')}
       title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR’s central forecast path`}
-      finding={
-        <span className="ex-ctx ex-sg-ctx">
-          <span>
-            <Lead c="foreign">
-              <>{ext(URLS.ogCoreParams, 'ζK')}: the share of excess capital demand foreigners supply</>
-            </Lead>
-          </span>
-          {foreignShare(res) ? (
-            <span>
-              <Lead c="capital">{`${foreignShare(res).replace(/^./, (c) => c.toUpperCase())} of new capital foreign-owned`}</Lead>
-            </span>
-          ) : null}
-        </span>
-      }
-      controls={
-        <>
-          <p className="ex-sg-lead">
-            <Lead c="compare">In every scenario’s main version, compared with some foreign capital (ζK 0.1):</Lead>
-          </p>
-          <Items className="ex-notes" items={sensClaims(res)} />
-          {sensFlagItem() ? (
-            <p id="sens-flag" className="ex-sg-flagnote">
-              <span>{sensFlagItem().text}</span>
+      foot={
+        // the definition, the claims, the flag and the units, behind one
+        // fold, closed (checks-words2.md, item 14): the title and the grid
+        // read alone. A wrapper, so the fold is not a card's source foot.
+        <div className="ex-sg-more">
+          <Disclosure inCard id="sens-more" title="More info">
+            <p className="ex-sg-def">
+              {ext(URLS.ogCoreParams, 'ζK')} = {sens.zeta_K}: foreigners supply half of excess capital demand, not half of added capital.
             </p>
-          ) : null}
-        </>
+            {foreignShareLine(res) ? <p className="ex-sg-def">{foreignShareLine(res)}</p> : null}
+            <p className="ex-sg-lead">In every scenario&rsquo;s main version, compared with some foreign capital (ζK 0.1):</p>
+            <Items className="ex-notes" items={sensClaims(res)} />
+            {sensFlagItem() ? (
+              <p id="sens-flag" className="ex-sg-flagnote">
+                <span>{sensFlagItem().text}</span>
+              </p>
+            ) : null}
+            <p className="card-unit ex-sg-more-unit">
+              <span data-axis-title="y">{`Gap against the OBR’s central forecast path for the same foreign-capital case, ${HEADLINE_YEAR}, %; spending follows GDP`}</span>
+            </p>
+          </Disclosure>
+        </div>
       }
-      unit={<span data-axis-title="y">{`Gap against the OBR’s central forecast path for the same foreign-capital case, ${HEADLINE_YEAR}, %; spending follows GDP`}</span>}
       read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
