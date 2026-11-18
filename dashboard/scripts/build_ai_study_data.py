@@ -583,6 +583,11 @@ def extras(cmc: dict, low: dict, model_year: str) -> dict:
         "wage_cuts_employer_ni_p": r(100 * cut_er, 1),
         "note": "Displacement alone and wage cuts alone: no survivor-wage or capital channel in either.",
     }
+    # the gross pay each pair removes (item 32): the denominator above, the
+    # same on variant=table3; cross-checked against the displacement channel
+    assert abs(mean(x["gross_cut_bn"] for x in wc if x["variant"] == "table3") - gross) < 1e-6
+    assert abs(100 * ch["displacement"]["exchequer_cost_bn"]["mean"] / gross - 100 * job) < 0.01
+    per_pound_20["gross_cut_bn"] = r(gross, 4)
 
     # --- the Sankey: where the earnings lost go (OBR-sized run) ------------
     hd = {x["decile"]: x for x in rows(F_HDEC)}

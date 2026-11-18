@@ -166,14 +166,6 @@ p.mx-axis-title,
     --lead: 100px !important;
   }
 }
-@media (max-width: 480px) {
-  /* the cost and poverty dumbbells: one a row, so "£19.1bn ● wage cuts"
-     keeps its width */
-  .p3-ch .p3-db-pair {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-  }
-}
 /* series labels that wrapped at the larger size */
 .p3-dec .p3-dec-label,
 .mx-olg-label {
@@ -222,17 +214,12 @@ p.mx-axis-title,
   .p2-chip-top .p2-fig-chip {
     display: inline-block;
   }
-  /* p3-changes: one margins group per step (steps 1 and 2 share the panel) */
-  .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] > .p3-group-head:not(.p3-group-first),
-  .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] > .p3-db-pair {
+  /* p3-changes: one margins group per step (steps 1 and 2 share the panel;
+     item 32): step 1 the pence group, step 2 the gains group */
+  .p3-ch:not(.is-all):not([data-step='2']) [data-panel='margin'] .p3-margin-group.is-gains,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] .p3-margin-group.is-alone,
+  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-margin-def {
     display: none;
-  }
-  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-group-unit,
-  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-db {
-    display: none;
-  }
-  .p3-ch:not(.is-all)[data-step='2'] [data-panel='margin'] > .p3-group-head:not(.p3-group-first) {
-    margin-top: 0;
   }
   /* the rules panel: the axis titles carry the units */
   .p3-ch:not(.is-all) [data-panel='rules'] .p3-group-unit {

@@ -481,10 +481,28 @@ describe('Part3', () => {
     expect(t1).toContain(c.perPoundMore === 'cut' ? 'wage cuts cost the public finances more than' : 'job loss costs the public finances more than');
     expect(container.querySelector('#p3-margin-step-2 .p3-step-line').textContent).toContain(`${c.povertyMore === 'job' ? 'job loss raises' : 'wage cuts raise'} poverty`);
     const fig = container.querySelector('#p3-changes .p3-ch-panel[data-panel="margin"]');
-    // 42p and 55p carry their margin's name (sign-off #5)
-    expect(fig.querySelector('[data-mark="m-pence job"] .p3-db-val').textContent).toMatch(new RegExp(`^${fmtPence(pj)} job loss`));
-    expect(fig.querySelector('[data-mark="m-pence cut"] .p3-db-val').textContent).toMatch(new RegExp(`^${fmtPence(pw)} wage cuts`));
+    // item 32: each value row names its margin in its own column (sign-off #5), job loss first
+    const row = (k) => fig.querySelector(`.p3-db-vals [data-mark="m-pence ${k}"]`);
+    expect([row('job').querySelector('dt').textContent, row('job').querySelector('dd').textContent]).toEqual(['Job loss', fmtPence(pj)]);
+    expect([row('cut').querySelector('dt').textContent, row('cut').querySelector('dd').textContent]).toEqual(['Wage cuts', fmtPence(pw)]);
     expect(fig.querySelectorAll('.p3-ch-ticks[data-axis]')).toHaveLength(3);
+    // three panels, each one head, two dots, two value rows; no text on a track
+    const dbs = [...fig.querySelectorAll('.p3-db')];
+    expect(dbs.map((d) => d.querySelector('.p3-db-head').textContent)).toEqual(['Cost per £1 of pay removed', 'Cost to the public finances, £bn a year', 'Absolute poverty rise, pp']);
+    for (const d of dbs) {
+      expect(d.querySelectorAll('.p3-db-dot')).toHaveLength(2);
+      expect([...d.querySelectorAll('.p3-db-vals dt')].map((t) => t.textContent)).toEqual(['Job loss', 'Wage cuts']);
+      expect(d.querySelector('.p3-db-track').textContent).toBe('');
+    }
+    expect([...fig.querySelectorAll('.p3-margin-group-label')].map((g) => g.textContent)).toEqual(['Each case alone', 'With the assumed gains added back']);
+    // the definition sentence: the gross pay once the build carries it; the range in the note line
+    const G = D.per_pound_20.gross_cut_bn;
+    const def = fig.querySelector('.p3-margin-def').textContent.replace(/\s+/g, ' ').trim();
+    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, the main case, or as pay cuts graded by occupational AI exposure with no jobs lost, after Acemoglu and Restrepo (2022).`);
+    expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
+    const all = container.querySelector('#p3-changes').textContent;
+    for (const s of ['each with its own unit line', 'across draws)', 'these 20 draws', 'sized to the same gross earnings loss', 'holds the other two at main settings']) expect(all, s).not.toContain(s);
+    expect(container.querySelector('#p3-changes figure').textContent.match(/same gross/g)).toHaveLength(1);
   });
 
   it('shows each break-even as one row: main setting, an arrow, the break-even setting', () => {

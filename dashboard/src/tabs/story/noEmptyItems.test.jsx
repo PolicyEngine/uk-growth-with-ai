@@ -32,7 +32,12 @@ describe('no empty list items', () => {
     }
   });
   it('in story part 3', () => {
-    expect(empties(render(<Part3 part={PART} />).container)).toEqual([]);
+    const { container } = render(<Part3 part={PART} />);
+    expect(empties(container)).toEqual([]);
+    // the merged figure on its own, every panel's items included (item 32)
+    const fig = container.querySelector('#p3-changes figure');
+    expect(fig.querySelectorAll('li').length).toBeGreaterThan(0);
+    expect(empties(fig)).toEqual([]);
   });
   it('on Explore > Households', () => {
     expect(empties(render(<HouseholdsExplore />).container)).toEqual([]);

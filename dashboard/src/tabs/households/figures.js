@@ -31,6 +31,8 @@ export function storyFigures() {
     ...['uniform', 'junior', 'compression'].flatMap((k) => [fmtBn(rule(k).cost_bn), fmtPp(rule(k).poverty_pp)]),
     // ... job loss against wage cuts
     fmtPence(J.min_p), fmtPence(J.max_p), fmtPence(J.government_p),
+    // the gross pay each pair removes, in the margin panel's definition line once the build carries it
+    ...(Number.isFinite(D.per_pound_20.gross_cut_bn) ? [fmtBn(D.per_pound_20.gross_cut_bn)] : []),
     fmtPence(pp('wage_cuts').government_p), fmtBn(lad('central_20').cost_bn), fmtPp(lad('central_20').poverty_pp), fmtBn(lad('wage_cuts').cost_bn),
     fmtPp(lad('wage_cuts').poverty_pp),
     // ... break-evens (take-up and JSA: Explore > Households since round 1)
