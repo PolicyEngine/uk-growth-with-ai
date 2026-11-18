@@ -274,6 +274,10 @@ function MeasureDots({ ms, measure }) {
           <span className="ex-mtoggle-name">
             {x.short}
             {x.tag ? <span className="ex-mtag"> ({x.tag})</span> : null}
+            {/* a no-break space ends the label, so the row's text never runs
+                the name into its figure (R1-21); a plain space would be
+                dropped at the end of a grid cell */}
+            {'\u00a0'}
           </span>
           <span className="ex-dd">{shareOf(x.losing)}</span>
         </li>
@@ -332,6 +336,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
             <li key={m.id} data-dnfull={m.id === 'BT' && m.full ? '' : undefined} className={m.id === measure ? 'is-on' : undefined}>
               <span className="ex-bar-code" title={m.def}>
                 {m.short}
+                {'\u00a0'}
               </span>
               <span className="ex-bar-track is-axis">
                 <span className="ex-axis-zero" style={{ left: apos(0) }} aria-hidden="true" />
@@ -502,7 +507,10 @@ function Bars({ rows, caption, signed = false }) {
       <ul className="ex-bars2-list" role="list" aria-labelledby={id}>
         {rows.map((r) => (
           <li key={r.key}>
-            <span className="ex-bars2-label">{r.label}</span>
+            <span className="ex-bars2-label">
+              {r.label}
+              {'\u00a0'}
+            </span>
             <span className="ex-bars2-track" aria-hidden="true">
               {lo < 0 ? <span className="ex-bars2-zero" style={{ left: at(0) }} /> : null}
               <span className="ex-bars2-fill" style={{ left: at(Math.min(0, r.value)), width: `${((Math.abs(r.value) / span) * 100).toFixed(2)}%` }} />
