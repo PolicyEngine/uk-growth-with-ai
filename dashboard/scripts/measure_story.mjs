@@ -5,13 +5,14 @@
 // motion, so every state is drawn; all <details> opened for the counts.
 //
 //   bun scripts/measure_story.mjs http://localhost:4360 [width] [height]
+//   (MOTION=1: motion on, the question screens in the page)
 import { chromium } from 'playwright';
 
 const base = process.argv[2] ?? 'http://localhost:4360';
 const W = Number(process.argv[3] ?? 1280);
 const H = Number(process.argv[4] ?? 800);
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
-const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'reduce' })).newPage();
+const page = await (await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: process.env.MOTION === '1' ? 'no-preference' : 'reduce' })).newPage();
 await page.goto(base + '/', { waitUntil: 'networkidle' });
 const m = await page.evaluate(() => {
   const panel = document.querySelector('.tab-panel:not([hidden])');
@@ -51,4 +52,4 @@ const m = await page.evaluate(() => {
   return { height, boxes, icons, words, links, folds, badges, fontSizes: fonts.size, textColours: colors.size, backgrounds: bgs.size };
 });
 await browser.close();
-console.log(`${W}x${H}: ${JSON.stringify(m)}`);
+console.log(`${W}x${H}${process.env.MOTION === '1' ? ' motion' : ''}: ${JSON.stringify(m)}`);

@@ -1,13 +1,13 @@
 // State hold probe (scene plan addendum A5.3; headline-tiles ruling, Fix
-// A: a state counted while merely 90% in view read 210px where chart and
-// text were still together for 30px): scrolling at 40px a tick through
-// each sticky multi-card Scrolly block, a state counts as held for a tick
-// only while it is the active one, at least 90% of the figure is in view,
-// the figure has not moved since the last tick (stuck) and, on desktop,
-// neither has the active sentence (together). Every state needs HOLD px
-// (180). Printed beside it: the old in-view count. Phones: the figure
-// stuck (the text scrolls under it until the hold rule, Fix B). Blocks
-// drawn once (phones) are skipped: their states are set by buttons.
+// A and B): scrolling at TICK px (20) a tick through each sticky
+// multi-card Scrolly block, a state counts as held for a tick only while it
+// is the active one, at least 90% of the figure is in view, the figure has
+// not moved since the last tick (stuck) and neither has the active
+// sentence (together; desktop and sticky phone scenes alike). Vahid's
+// floors (18 Nov): the first state needs 0.6 of the screen height of
+// scroll, every other state 0.4 (FIRST and NEXT override). Printed beside
+// it: the old in-view count. Blocks drawn once (phones) are skipped:
+// their states are set by buttons.
 //
 // The topic's pinned question screen (QStage) sits above the block's figure;
 // the walk starts one screen above the block's figure (not the block), so
@@ -59,8 +59,9 @@ import { chromium, webkit } from 'playwright';
 const base = process.argv[2] ?? 'http://localhost:4360';
 const rest = process.argv.slice(3).map(Number);
 const sizes = rest.length >= 2 ? Array.from({ length: rest.length >> 1 }, (_, i) => [rest[2 * i], rest[2 * i + 1]]) : [[1280, 800], [1366, 650], [807, 933], [390, 844]];
-const HOLD = Number(process.env.HOLD ?? 180);
-const TICK = 40;
+const FIRST = Number(process.env.FIRST ?? 0.6);
+const NEXT = Number(process.env.NEXT ?? 0.4);
+const TICK = Number(process.env.TICK ?? 20);
 // BROWSER=webkit runs Playwright's WebKit (an approximation of Safari)
 const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let misses = 0;
@@ -122,15 +123,16 @@ for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' ? [] : siz
       if (r.vis >= 0.9) inView[r.step] = (inView[r.step] ?? 0) + TICK;
       // stuck and together: the same state as the last sample, the chart
       // where it was, and (desktop) the active sentence where it was
-      if (prev && prev.step === r.step && r.vis >= 0.9 && Math.abs(r.gt - prev.gt) < 0.5 && (!r.anchored || (r.at != null && prev.at != null && Math.abs(r.at - prev.at) < 0.5))) held[r.step] = (held[r.step] ?? 0) + TICK;
+      if (prev && prev.step === r.step && r.vis >= 0.9 && Math.abs(r.gt - prev.gt) < 0.5 && r.at != null && prev.at != null && Math.abs(r.at - prev.at) < 0.5) held[r.step] = (held[r.step] ?? 0) + TICK;
       prev = r;
       if (r.hit) overlaps.add(`${y}:${r.hit}px`);
     }
     const per = b.cards.map((i) => held[i] ?? 0);
     const view = b.cards.map((i) => inView[i] ?? 0);
-    const bad = per.some((v) => v < HOLD) || overlaps.size > 0;
+    const need = b.cards.map((_, k) => Math.round((k === 0 ? FIRST : NEXT) * H));
+    const bad = per.some((v, k) => v < need[k]) || overlaps.size > 0;
     if (bad) misses++;
-    lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: stuck ${per.join(', ')}px (in view ${view.join(', ')}px)${overlaps.size ? `; closing line over a step at ${[...overlaps].slice(0, 3).join(', ')}` : ''}`);
+    lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: stuck ${per.join(', ')}px (need ${need[0]}, then ${need[1] ?? '-'}; in view ${view.join(', ')}px)${overlaps.size ? `; closing line over a step at ${[...overlaps].slice(0, 3).join(', ')}` : ''}`);
   }
   console.log(`${W}x${H}: ${blocks.length} sticky blocks`);
   for (const l of lines) console.log(l);
@@ -511,6 +513,6 @@ if (SANKEY !== '0') {
   }
 }
 await browser.close();
-const msg = [misses ? `${misses} blocks hold a state for under ${HOLD}px or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
+const msg = [misses ? `${misses} blocks hold a state for under ${FIRST} (first) or ${NEXT} of the screen or let the closing line overlap a step` : null, omiss ? `${omiss} openers leave the frame blank` : null, bmiss ? `${bmiss} part boundaries let text escape its scene or leave a frame blank` : null, jmiss ? `${jmiss} landings show an empty or half-drawn figure` : null, smiss ? `${smiss} Sankeys left blank or half drawn on a reading-speed arrival` : null].filter(Boolean);
 console.log(msg.length ? `FAIL: ${msg.join('; ')}` : 'PASS');
 process.exit(msg.length ? 1 : 0);

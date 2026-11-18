@@ -1750,14 +1750,6 @@
   outline: 2px solid var(--part-accent, var(--c-highlight));
   outline-offset: 2px;
 }
-@media (max-width: 900px) {
-  /* a sticky scene holds each state for at least 180px of scroll: cards
-     200px apart (176 + the 24px step gap; at 180 apart the 40px-step walk
-     read 160px for some, round 2 sign-off) */
-  .scrolly.is-scene .scrolly-card {
-    min-height: 176px;
-  }
-}
 
 /* IconGrid (Items.jsx): plain icon, a short name, a short line */
 .icon-grid {
@@ -2538,21 +2530,38 @@
   }
 }
 
-/* ---- Round 1 fix (review #12): tablet text against the sticky chart ----
-   768-900px, a sticky scene: each sentence (and its icon) sticks 8px under
-   the stuck chart's foot (--scene-foot, from Scrolly) inside its own card,
-   so it stays against the chart until its card has scrolled past; the next
-   one takes over 72px under the foot (Scrolly lineGap). The cards and their
-   floors are unchanged (each state is still held for 180px of scroll). */
-@media (min-width: 768px) and (max-width: 900px) {
-  .scrolly.is-scene.has-foot .scrolly-card > :is(.scrolly-body, .scrolly-card-icon) {
+/* ---- The hold rule on phones and tablets (Fix B2, Vahid 18 Nov) ----
+   900px and below, a sticky scene: each card sticks 8px under the stuck
+   chart's foot (--scene-foot, from Scrolly) and holds there while its
+   item's spacer scrolls by: 40% of the screen height (60% for the first
+   card), plus 64px, the distance from the trigger line (72px under the
+   foot, Scrolly lineGap) to where the card sticks. The last card's hold
+   ends as the chart lets go (Scrolly, Fix A4), so both leave together.
+   A card taller than the room under the chart ([data-tall]) is not
+   stuck. The vh line before each svh line serves Safari before 15.4. */
+@media (max-width: 900px) {
+  .scrolly.is-scene.has-foot > .scrolly-steps > .scrolly-step:not(.is-spacer) {
+    display: block;
+    padding-bottom: 0;
+  }
+  .scrolly.is-scene.has-foot > .scrolly-steps > .scrolly-step:not(.is-spacer)::after {
+    content: '';
+    display: block;
+    height: calc(40vh + 64px);
+    height: calc(40svh + 64px);
+  }
+  .scrolly.is-scene.has-foot > .scrolly-steps > .scrolly-step:first-child::after {
+    height: calc(60vh + 64px);
+    height: calc(60svh + 64px);
+  }
+  .scrolly.is-scene.has-foot .scrolly-card {
     position: sticky;
     top: calc(var(--scene-foot) + 8px);
+    min-height: 0;
   }
-  /* the last card's sentence stays put over its closing caption
-     (height-cut-fable.md cut 3) */
-  .scrolly.is-scene.has-foot .scrolly-step:nth-last-child(2) .scrolly-card > :is(.scrolly-body, .scrolly-card-icon) {
-    position: static;
+  .scrolly.is-scene.has-foot .scrolly-card[data-tall] {
+    position: relative;
+    top: auto;
   }
 }
 /* 768-900px, a figure drawn once (not sticky): its cards sit side by side
@@ -2984,13 +2993,14 @@
   }
 }
 /* desktop: the step column's length, so each state is held for its scroll
-   (height-cut-fable.md 2a): C = 1.8F + rail + 215px n - 100vh, from the
-   figure box's floor (F) and the card count (--n, prerendered) before any
-   script runs; Scrolly raises it to the measured figure (--col-min). The
-   end marker stays at the column's foot, and the pinned items inside it. */
+   (Fix B1, Vahid's floors): C = F + 0.6 * 100vh + 0.4 * 100vh (n - 1) +
+   40px n (Scrolly SLACK), from the figure box's floor (F) and the card
+   count (--n, prerendered) before any script runs; Scrolly raises it to
+   the measured figure (--col-min). The end marker stays at the column's
+   foot, and the pinned items inside it. */
 @media (min-width: 901px) {
   .scrolly.is-anchored > .scrolly-steps {
-    min-height: max(calc(1.8 * clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + var(--story-graphic-top) + 215px * var(--n, 1) - 100vh), var(--col-min, 0px));
+    min-height: max(calc(clamp(400px, calc(100vh - var(--story-graphic-top) - 200px), 620px) + (0.6 + 0.4 * (var(--n, 1) - 1)) * 100vh + 40px * var(--n, 1)), var(--col-min, 0px));
   }
 }
 /* the run-switch marker (StoryBeat compact) and the OBR-run figure's chip */

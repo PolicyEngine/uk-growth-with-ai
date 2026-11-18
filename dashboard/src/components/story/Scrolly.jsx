@@ -29,24 +29,45 @@ const svh = () => {
   return svhPx;
 };
 const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
-// desktop: the scroll each state is held for (check_states needs 180px;
-// height-cut-fable.md 2c: 215 leaves slack against rounding)
-const HOLD = 215;
+// The hold rule (Vahid, 18 Nov; headline-tiles ruling, Fix B): every
+// state is held, chart and text stuck together, for at least 40% of the
+// screen height of scroll, a scene's first state for 60%. Desktop: the
+// stuck run is split in these shares (plus SLACK px each, against the
+// check's sampling). Phones: the same shares are the card's sticky spacer
+// (story.css).
+const FIRST_SHARE = 0.6;
+const NEXT_SHARE = 0.4;
+const SLACK = 40;
+const shares = (n, V) => Array.from({ length: n }, (_, k) => (k === 0 ? FIRST_SHARE : NEXT_SHARE) * V + SLACK);
+const holdRun = (n, V) => shares(n, V).reduce((a, b) => a + b, 0);
+// the state for s px of a stuck run `travel` long, its n states in shares
+const stateAt = (s, travel, n, V) => {
+  const sh = shares(n, V);
+  const f = travel / holdRun(n, V);
+  let acc = 0;
+  for (let k = 0; k < n; k++) {
+    acc += sh[k] * f;
+    if (s < acc) return k;
+  }
+  return n - 1;
+};
+// the middle of state k's share of the run, in px from where it starts
+const stateMid = (k, travel, n, V) => {
+  const sh = shares(n, V);
+  const f = travel / holdRun(n, V);
+  return (sh.slice(0, k).reduce((a, b) => a + b, 0) + sh[k] / 2) * f;
+};
 const subscribeWidth = (cb) => {
   window.addEventListener('resize', cb);
   return () => window.removeEventListener('resize', cb);
 };
 
 // A sticky scene's trigger line sits this far below the stuck figure's foot:
-// 40% of the room below it; on tablets (768-900px, round 1 review: "second
-// steps sit up to 215px below the sticky chart") at most 72px, so the next
-// sentence takes over just under the chart, while the one before is held
-// against the foot by its sticky body (story.css), not left under the chart.
-const tablet = () => window.innerWidth >= 768 && window.innerWidth <= 900;
-const lineGap = (room) => {
-  const g = 0.4 * Math.max(0, room);
-  return tablet() ? Math.min(g, 72) : g;
-};
+// 40% of the room below it, at most 72px at every width up to 900px (Fix
+// B2), so the next card takes over just under the chart, while the one
+// before is held against the foot by its sticky card (story.css), not left
+// under the chart.
+const lineGap = (room) => Math.min(0.4 * Math.max(0, room), 72);
 
 // A scrolly block: a figure and text steps beside it. No empty page: a block
 // ends when its last card ends, cards are 32px apart (no viewport-height
@@ -230,27 +251,25 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   }, [reserve]);
   const cardSteps = steps.map((x, i) => (x.spacer ? -1 : i)).filter((i) => i >= 0);
   const stepsCol = useRef(null);
-  // Desktop, several cards: the scroll over which the figure is at least 90%
-  // in view (from entering at the bottom to leaving under the rail, sticky
-  // or not) is split evenly between the cards, so every state is held for
-  // the same distance with the figure in view; the active card is marked.
-  const geom = (railBottom) => {
+  // Desktop, several cards (Fix B1): only the stuck run counts, from the
+  // moment the figure sticks to the moment the column's foot lets it go
+  // (the column's height less the figure box's); it is split in the hold
+  // shares, the first state 0.6 of the screen, the rest 0.4. Before the
+  // figure sticks the first state shows, after it the last. `stick` is the
+  // figure's own stuck top (place, below), not the one a `pin: 'bottom'`
+  // step shifts, so the split never depends on the state it picks.
+  const stickRef = useRef(null);
+  const geom = () => {
     const col = stepsCol.current;
-    const g = live.current;
     const b = box.current;
-    if (!col || !g || !b) return null;
-    const F = g.offsetHeight;
-    const C = col.offsetHeight;
-    const top0 = railBottom ?? document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? parseFloat(getComputedStyle(b).top) ?? 0;
-    const enter = window.innerHeight - 0.9 * F;
-    const exit = top0 - 0.1 * F - Math.max(0, C - F);
-    return { colTop: col.getBoundingClientRect().top, enter, exit: Math.min(exit, enter - 1) };
+    if (!col || !live.current || !b) return null;
+    const stick = stickRef.current ?? (parseFloat(b.style.top || getComputedStyle(b).top) || 0);
+    return { colTop: col.getBoundingClientRect().top, stick, travel: Math.max(0, col.offsetHeight - b.offsetHeight) };
   };
 
-  // The step column's length (height-cut-fable.md cut 2a): desktop, several
-  // cards, each state is held for HOLD px of scroll with the figure in view.
-  // The states share (V - rail - 1.8F + C) px (geom above), so the column
-  // needs C = 1.8F + rail + HOLD n - V: a min-height on the column
+  // The step column's length (Fix B1): desktop, several cards, the stuck
+  // run (C - F, geom above) holds every state for its share, so the column
+  // needs C = F + 0.6V + 0.4V(n - 1) + SLACK n: a min-height on the column
   // (story.css), not a floor on every card, so each card's pinned item is
   // only as tall as its words. The stylesheet sets it from the figure box's
   // own floor and --n before any script runs (the prerendered first paint);
@@ -267,10 +286,8 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     const V = window.innerHeight;
     const k = `${window.innerWidth}x${V}`;
     const cur = minRef.current.k === k ? minRef.current.v : 0;
-    const railEl = document.querySelector('.story-rail');
-    const rs = railEl ? getComputedStyle(railEl) : null;
-    const rail = (railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : 0) + 8;
-    const want = Math.max(0, Math.ceil(1.8 * g.offsetHeight + rail + HOLD * cardSteps.length - V));
+    const b = box.current;
+    const want = Math.max(0, Math.ceil((b ? b.offsetHeight : g.offsetHeight) + holdRun(cardSteps.length, V)));
     if (minRef.current.k !== k || want > cur) setColMin({ k, v: Math.max(want, cur) });
   };
   const fitRef = useRef(fitCol);
@@ -306,12 +323,14 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     };
     return subscribe({
       el: stepsCol.current,
-      read: (f) => {
-        const railBottom = document.querySelector('.story-rail') ? f.rail() : undefined;
-        const m = window.innerWidth > 900 ? geom(railBottom) : null;
+      read: () => {
+        const m = window.innerWidth > 900 ? geom() : null;
         if (!m) return null;
-        const p = (m.enter - m.colTop) / (m.enter - m.exit);
-        return cardSteps[Math.max(0, Math.min(n - 1, Math.floor(p * n)))];
+        // px since the figure stuck
+        const s = m.stick - m.colTop;
+        // (no stuck run at all, as without layout: the last state once
+        // the figure reaches its place)
+        return cardSteps[s < 0 ? 0 : s >= m.travel ? n - 1 : stateAt(s, m.travel, n, window.innerHeight)];
       },
       write: put,
     });
@@ -319,22 +338,17 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
   }, [single, cardSteps.join(',')]);
   // go to card k (a link to an old step id, through a 'scrolly-go' event
   // on the block; round 2 removed the step dots): phones drawn once set the
-  // state; desktop scrolls to the middle of the step's share; a sticky
-  // phone scene scrolls the card to its trigger line
+  // state; desktop scrolls to the middle of the step's share of the stuck
+  // run (geom); a sticky phone scene scrolls the card to its trigger line
   const goStep = (k, instant = false) => {
     if (once) {
       setPicked(cardSteps[k]);
       return;
     }
-    // the rail's stuck bottom: from afar (a link from the hero) the rail is
-    // not stuck yet and its live box would put the target a state early
-    const railEl = document.querySelector('.story-rail');
-    const rs = railEl ? getComputedStyle(railEl) : null;
-    const stuck = railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : undefined;
-    const m = window.innerWidth > 900 ? geom(stuck) : null;
+    const m = window.innerWidth > 900 ? geom() : null;
     if (m) {
-      const target = m.enter - ((k + 0.5) / cardSteps.length) * (m.enter - m.exit);
-      window.scrollTo({ top: Math.max(0, window.scrollY + m.colTop - target), behavior: reduce || instant ? 'instant' : 'smooth' });
+      const s = stateMid(k, m.travel, cardSteps.length, window.innerHeight);
+      window.scrollTo({ top: Math.max(0, window.scrollY + m.colTop - (m.stick - s)), behavior: reduce || instant ? 'instant' : 'smooth' });
       return;
     }
     const el = document.getElementById(steps[cardSteps[k]].id);
@@ -459,8 +473,10 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     // or by its foot while a `pin: 'bottom'` step is active
     const place = () => {
       b.style.top = '';
+      stickRef.current = null;
       if (window.innerWidth <= 900 || single) return;
       const top = parseFloat(getComputedStyle(b).top) || 0;
+      stickRef.current = top;
       const room = window.innerHeight - top;
       const over = b.offsetHeight - room;
       if (pinBottom && over > 0) b.style.top = `${top - over - 12}px`;
@@ -475,6 +491,7 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
         const rs = railEl ? getComputedStyle(railEl) : null;
         const rail = railEl ? (rs.position === 'sticky' ? (parseFloat(rs.top) || 0) + railEl.offsetHeight : railEl.getBoundingClientRect().bottom) : top;
         b.style.top = `${Math.round(Math.min(top + Math.floor(-over / 2), Math.max(top, rail + 96)))}px`;
+        stickRef.current = parseFloat(b.style.top);
       }
     };
     place();
@@ -486,21 +503,24 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       ro?.disconnect();
     };
   }, [pinBottom, width, single]);
-  // phones (600px and below), a sticky scene: the figure lets go with the
-  // last card (Fix A4: it covered the last card, the headline tiles on
-  // arrival from the hero link): a margin under the figure shortens its
-  // sticky range by the last card's height, 8px, and everything after it
-  // in the block (the closing caption prints after the list here), and the
-  // steps take it back (layout unchanged). Tablets keep the sentence stuck
-  // under the figure.
+  // 900px and below, a sticky scene: the figure lets go with the last card
+  // (Fix A4: it covered the last card, the headline tiles on arrival from
+  // the hero link): a margin under the figure shortens its sticky range by
+  // the last card's height, 8px, and everything after its item in the
+  // block (the closing caption prints after the list at 600px and below),
+  // and the steps take it back (layout unchanged). The card's own hold
+  // (Fix B2: it sticks under the figure for its spacer) ends at its item's
+  // foot, so the figure lets go as the card's hold ends, and both leave
+  // together.
   useEffect(() => {
     const b = box.current;
     const col = stepsCol.current;
-    if (!sticky || !small || !b || !col) return undefined;
+    if (!sticky || !b || !col) return undefined;
     const fit = () => {
       const li = steps[lastCard] ? document.getElementById(steps[lastCard].id) : null;
+      const card = li?.querySelector('.scrolly-card');
       const blk = b.closest('.scrolly');
-      const x = li && blk ? Math.round(li.offsetHeight + 8 + (blk.getBoundingClientRect().bottom - li.getBoundingClientRect().bottom)) : 0;
+      const x = card && blk ? Math.round(card.offsetHeight + 8 + (blk.getBoundingClientRect().bottom - li.getBoundingClientRect().bottom)) : 0;
       setStyle(b, 'margin-bottom', `${x}px`);
       setStyle(col, 'margin-top', `${-x}px`);
     };
@@ -513,9 +533,9 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sticky, small, width, lastCard]);
-  // tablets, a sticky scene: where the stuck figure's foot is (its sticky
-  // top plus its height), written as --scene-foot; each card's sentence
-  // sticks just under it (story.css) until its card has scrolled past
+  // 900px and below, a sticky scene: where the stuck figure's foot is (its
+  // sticky top plus its height), written as --scene-foot; each card sticks
+  // just under it (story.css, Fix B2) for its hold
   const [footY, setFootY] = useState(0);
   useEffect(() => {
     const b = box.current;
@@ -524,8 +544,16 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
       return undefined;
     }
     const place = () => {
-      const f = tablet() && getComputedStyle(b).position === 'sticky' ? Math.round((parseFloat(b.style.top || getComputedStyle(b).top) || 0) + b.offsetHeight) : 0;
+      const f = getComputedStyle(b).position === 'sticky' ? Math.round((parseFloat(b.style.top || getComputedStyle(b).top) || 0) + b.offsetHeight) : 0;
       setFootY(f);
+      // a card taller than the room under the stuck figure is left unstuck
+      // (story.css [data-tall]); A4 still keeps it clear of the figure
+      const col = stepsCol.current;
+      if (!col) return;
+      for (const c of col.querySelectorAll('.scrolly-card')) {
+        if (f && c.offsetHeight > window.innerHeight - f - 16) c.dataset.tall = '1';
+        else delete c.dataset.tall;
+      }
     };
     place();
     window.addEventListener('resize', place);
