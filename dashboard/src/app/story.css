@@ -316,11 +316,25 @@
 .q-stage {
   --qa: 0;
   --qm: 0;
-  --qy: 0px;
   position: relative;
+  /* the hold's margins stay inside the stage */
+  display: flow-root;
   height: var(--q-pin);
   margin-bottom: -8px;
   pointer-events: none;
+}
+/* The hold is the browser's (sign-off r3 major 2: no per-frame
+   counter-scroll): the card's holder sticks at --q-top, which QStage writes
+   only when the screen, rail or card size changes, so the held question at
+   the optical centre of the screen below the rail (its centre 3% of that
+   height below the true centre, QStage qMid); it starts at its place near
+   the stage's top and is pushed up by the stage's foot, 28px clear (the
+   bottom margin), as the move begins. Nothing is both sticky and
+   transformed: the scale and fade are on the card inside. */
+.q-stage-hold {
+  position: sticky;
+  top: var(--q-top, 0px);
+  margin: clamp(16px, calc(var(--q-pin) * 0.06), 48px) 0 28px;
 }
 .q-visual {
   position: relative;
@@ -329,16 +343,12 @@
   gap: 14px;
 }
 .q-stage-card {
-  position: absolute;
-  top: clamp(16px, 6%, 48px);
-  left: 0;
-  right: 0;
   max-width: 44rem;
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
   transform-origin: 50% 100%;
-  transform: translateY(var(--qy)) scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
+  transform: scale(calc(1 - (1 - var(--q-end, 0.45)) * var(--qm)));
   /* shrinks over the whole move, fades over its second half */
   opacity: calc(1 - max(0, var(--qm) - 0.4) * 1.67);
   will-change: transform, opacity;

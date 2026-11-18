@@ -491,11 +491,15 @@ export default function Scrolly({ id, steps, graphic, label, wide = false, phone
     if (!sticky || !small || !b || !col) return undefined;
     const fit = () => {
       const li = steps[lastCard] ? document.getElementById(steps[lastCard].id) : null;
-      const cap = li?.querySelector('.scrolly-takeaway-in-step');
+      // the caption line itself, not its wrapper (whose 22px of margins
+      // above the line put it 46px under the figure, against the shared
+      // --gap-answer: sign-off r3 minor 9)
+      const cap = li?.querySelector('.scrolly-takeaway-in-step .scrolly-takeaway') ?? li?.querySelector('.scrolly-takeaway-in-step');
       // from the caption's top to the block's foot (notes and source come
-      // after it), plus 24px
+      // after it), plus the closing-line gap
       const blk = b.closest('.scrolly');
-      const x = cap && blk ? Math.min(Math.round(blk.getBoundingClientRect().bottom - cap.getBoundingClientRect().top + 24), Math.round(window.innerHeight * 0.4)) : 0;
+      const gap = parseFloat(getComputedStyle(blk ?? b).getPropertyValue('--gap-answer')) || 24;
+      const x = cap && blk ? Math.min(Math.round(blk.getBoundingClientRect().bottom - cap.getBoundingClientRect().top + gap), Math.round(window.innerHeight * 0.4)) : 0;
       setStyle(b, 'margin-bottom', `${x}px`);
       setStyle(col, 'margin-top', `${-x}px`);
     };

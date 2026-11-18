@@ -256,7 +256,7 @@ describe('TopicHead (a topic that is not a Scrolly)', () => {
 });
 
 describe('the question follows the scroll both ways (round 1)', async () => {
-  const { framePhase, stagePhase, nextSkip } = await import('./QStage.jsx');
+  const { framePhase, stagePhase, nextSkip, qMid } = await import('./QStage.jsx');
   const V = 800;
   const y1 = 140;
   const y0 = Math.max(y1 + 120, V * 0.55);
@@ -312,7 +312,9 @@ describe('the question follows the scroll both ways (round 1)', async () => {
   });
   it('the pinned stage holds still, then moves over 28% of the screen of scroll, eased (polish round)', () => {
     // the move starts when the foot reaches the held card: bottom = mid + H/2 + 28
-    const start = (100 + V) / 2 + 80 + 28;
+    // (mid: the optical centre below the rail, 3% of it below the middle)
+    expect(qMid(100, V)).toBeCloseTo(100 + (V - 100) * 0.53, 5);
+    const start = qMid(100, V) + 80 + 28;
     const qm = (bottom) => stagePhase({ top: bottom - 560, bottom, V, R: 100, H: 160 }).qm;
     expect(qm(start + 40)).toBe(0);
     expect(qm(start - 0.14 * V)).toBeCloseTo(0.5, 5);

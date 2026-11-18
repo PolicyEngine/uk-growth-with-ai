@@ -9,12 +9,18 @@
 // states are measured after the opener. MOTION=1 runs with motion on (the
 // pinned screens in the page).
 //
-// Opener probe (round 2 sign-off #1): motion on, at 1280x800 and 390x844
-// (OPENER_SIZES), the scroll through every in-frame question (QFrame) in
-// 10px steps, both ways: at every sample with the frame on screen, the
-// question (card opacity >= 0.15) or the chart (cover opacity <= 0.85, or
-// the frame done) must be visible; a blank frame is a miss. OPENERS=0
-// skips it.
+// Opener probe (round 2 sign-off #1; 18 Nov: it selected the retired
+// in-frame QFrame, found none and passed testing nothing): motion on, at
+// 1280x800 and 390x844 (OPENER_SIZES), the scroll through every question
+// moment (.q-stage[data-q], in a Scrolly or a TopicHead) in 10px steps,
+// both ways. At every sample with the stage on screen, the question (card
+// opacity >= 0.15, on screen) or its header copy (on screen, its block no
+// longer asking) must be visible. During the hold (--qm 0, the card still
+// since the last sample) the question's centre must sit within 4% of the
+// screen below the rail of its optical centre (3% of that height below
+// the middle); a stage never held is a miss. Finding no question moment
+// is a miss, and so is a question header with no moment (not inline).
+// OPENERS=0 skips it.
 //
 // Boundary probe (18 Nov, Vahid: closing lines ran over the next part's
 // opener): motion on, at 1280x800, 1024x768, 768x1024 and 390x844
@@ -120,52 +126,94 @@ for (const [W, H] of JUMP === 'only' ? [] : sizes) {
 const olines = [];
 let omiss = 0;
 const osizes = (process.env.OPENER_SIZES ?? '1280,800 390,844').split(/\s+/).map((x) => x.split(',').map(Number));
+// the held question's centre: 3% of the screen below the rail under its middle (QStage qMid), within 4%
+const Q_OPT = 0.03;
+const Q_TOL = 0.04;
 for (const [W, H] of process.env.OPENERS === '0' || JUMP === 'only' ? [] : osizes) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, reducedMotion: 'no-preference' });
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
-  const frames = await page.evaluate(() =>
-    [...document.querySelectorAll('.scrolly .q-frame')].map((f) => {
-      const r = f.getBoundingClientRect();
-      return { id: f.closest('.scrolly').id, top: Math.round(r.top + scrollY) };
+  // every question moment, in a Scrolly or a TopicHead (both are .q-stage
+  // since QFrame was retired), and every question header with none
+  const { stages, orphans } = await page.evaluate(() => ({
+    stages: [...document.querySelectorAll('.q-stage[data-q]')].map((s) => {
+      const r = s.getBoundingClientRect();
+      return { id: s.dataset.q, top: Math.round(r.top + scrollY), bottom: Math.round(r.bottom + scrollY) };
     }),
-  );
+    orphans: [...document.querySelectorAll('.scene-head.has-q[id^="q-"]')]
+      .filter((h) => !h.closest('.scrolly.is-inline') && !document.querySelector(`.q-stage[data-q="${h.id.slice(2)}"]`))
+      .map((h) => h.id),
+  }));
+  if (!stages.length) {
+    omiss++;
+    olines.push(`  MISS ${W}x${H}: no question moment (.q-stage) found: the probe would test nothing`);
+  }
+  for (const o of orphans) {
+    omiss++;
+    olines.push(`  MISS ${W}x${H} ${o}: a question header with no question moment`);
+  }
   const at = (t) => page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), t);
   const probe = (id) =>
     page.evaluate((id) => {
-      const f = document.querySelector(`#${id} .q-frame`);
-      const r = f.getBoundingClientRect();
-      const rail = document.querySelector('.story-rail')?.getBoundingClientRect().bottom ?? 0;
-      if (r.bottom < rail + 40 || r.top > innerHeight - 40) return { off: true };
-      if (f.classList.contains('is-done') || getComputedStyle(f).display === 'none') return { ok: true };
-      const card = Number(getComputedStyle(f.querySelector('.q-frame-card')).opacity);
-      const tint = Number(getComputedStyle(f.querySelector('.q-frame-tint')).opacity);
-      return { ok: card >= 0.15 || tint <= 0.85, card, tint };
+      const s = document.querySelector(`.q-stage[data-q="${id}"]`);
+      const railEl = document.querySelector('.story-rail');
+      const R = railEl?.getBoundingClientRect().bottom ?? 0;
+      const V = innerHeight;
+      const r = s.getBoundingClientRect();
+      if (r.bottom < R + 40 || r.top > V - 40) return { off: true };
+      const card = s.querySelector('.q-stage-card');
+      const c = card.getBoundingClientRect();
+      const op = Number(getComputedStyle(card).opacity);
+      // the stage's edge on screen but its card not yet (or no longer): the
+      // moment is not showing, nothing to check
+      if (c.bottom < R + 8 || c.top > V - 8) return { off: true };
+      const cardOn = op >= 0.15;
+      // the header's copy of the question: shown once its block stops asking
+      // (opacity follows on a 400ms timer; the state is what counts)
+      const head = document.getElementById(`q-${id}`);
+      const h = head?.getBoundingClientRect();
+      const headOn = Boolean(h && h.bottom > R && h.top < V && !head.closest('.scrolly.is-asking'));
+      const v = s.querySelector('.q-visual').getBoundingClientRect();
+      return { ok: cardOn || headOn, op, qm: Number(getComputedStyle(s).getPropertyValue('--qm')) || 0, phase: s.dataset.phase, mid: (v.top + v.bottom) / 2, R, V };
     }, id);
-  for (const fr of frames) {
+  for (const st of stages) {
     const blank = [];
-    const y0 = Math.max(0, fr.top - H);
-    const y1 = fr.top + 200;
-    // down, then back up (the phase follows the scroll both ways)
+    const offs = [];
+    const y0 = Math.max(0, st.top - H);
+    const y1 = st.bottom + 200;
     await at(Math.max(0, y0 - H));
     await page.waitForTimeout(250);
+    // down, then back up (the phase follows the scroll both ways)
     for (const dir of ['down', 'up']) {
+      let prev = null;
       for (let k = 0; k <= (y1 - y0) / 10; k++) {
         const y = dir === 'down' ? y0 + 10 * k : y1 - 10 * k;
         await at(y);
         await page.waitForTimeout(25);
-        const r = await probe(fr.id);
-        if (!r.off && !r.ok) blank.push(`${dir} ${y} (q ${r.card.toFixed(2)}, cover ${r.tint.toFixed(2)})`);
+        const r = await probe(st.id);
+        if (!r.off && !r.ok) blank.push(`${dir} ${y} (q ${r.op.toFixed(2)})`);
+        // the hold: no move yet and the card still since the last sample
+        if (!r.off && r.qm === 0 && r.phase === 'in' && prev && Math.abs(r.mid - prev.mid) < 0.5) {
+          const fh = r.V - r.R;
+          offs.push((r.mid - (r.R + fh * (0.5 + Q_OPT))) / fh);
+        }
+        prev = r.off ? null : r;
       }
     }
-    if (blank.length) omiss++;
-    olines.push(`  ${blank.length ? 'MISS' : 'ok  '} ${W}x${H} ${fr.id}${blank.length ? `: blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}`);
+    const lo = offs.length ? Math.min(...offs) : NaN;
+    const hi = offs.length ? Math.max(...offs) : NaN;
+    const offBad = !offs.length || lo < -Q_TOL || hi > Q_TOL;
+    const bad = blank.length > 0 || offBad;
+    if (bad) omiss++;
+    const pos = offs.length ? `held ${offs.length} samples, centre ${(100 * lo).toFixed(1)}% to ${(100 * hi).toFixed(1)}% from target` : 'never held';
+    olines.push(`  ${bad ? 'MISS' : 'ok  '} ${W}x${H} ${st.id}: ${pos}${blank.length ? `; blank at ${blank.length} samples, e.g. ${blank.slice(0, 3).join('; ')}` : ''}`);
   }
+  olines.push(`  ${W}x${H}: ${stages.length} question moments checked`);
   await ctx.close();
 }
 if (olines.length) {
-  console.log('openers (question or chart always visible):');
+  console.log(`openers (question or its header always visible; held centre within ${100 * Q_TOL}% of the optical centre):`);
   for (const l of olines) console.log(l);
 }
 

@@ -13,8 +13,9 @@ import { setStyle, subscribe } from '@/lib/scrollLoop.js';
 // while the chart draws in its place.
 //
 // QStage (`sub.pin: 'full'`): one pinned screen in the flow above the
-// header, `--q-pin` tall. The question arrives, holds centred below the
-// rail, and is pushed up into the header.
+// header, `--q-pin` tall. The question arrives, holds at the optical
+// centre below the rail (held by the browser, position: sticky; no
+// per-frame write), and is pushed up into the header.
 //
 // Both follow the scroll position in both directions (round 1, Vahid: "big
 // questions why when scroll back and then go again are not showing?"):
@@ -56,8 +57,13 @@ export function framePhase({ top, V, y0, y1 }) {
 // scroll, eased (polish round, Vahid: "going so fast"). qm is the eased
 // move, 0 to 1; the chart starts to draw at 70% of it.
 export const Q_MOVE = 0.28;
+// The held card's centre: the optical centre of the screen below the rail,
+// 3% of that height below the true centre (18 Nov, Vahid: "y position of
+// this is too high compared to its box, lower it a bit").
+export const Q_OPTICAL = 0.03;
+export const qMid = (R, V) => R + (V - R) * (0.5 + Q_OPTICAL);
 export function stagePhase({ top, bottom, V, R, H }) {
-  const mid = (R + V) / 2;
+  const mid = qMid(R, V);
   const qa = clamp01((V - top) / (0.55 * V));
   const raw = clamp01((mid + H / 2 + 28 - bottom) / Math.max(1, Q_MOVE * V));
   const qm = raw * raw * (3 - 2 * raw);
@@ -163,20 +169,18 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
     ref,
     (el, f) => {
       const c = card.current;
-      if (!el.offsetHeight || getComputedStyle(c ?? el).position !== 'absolute') return null;
+      const hold = c?.parentElement;
+      // not shown (reduced motion, print): no hold, the chart drawn
+      if (!el.offsetHeight || !hold || getComputedStyle(hold).position !== 'sticky') return null;
       const r = el.getBoundingClientRect();
       const V = f.V;
       const R = Math.max(0, f.rail());
-      const H = c ? c.offsetHeight : 0;
-      const pad = c ? c.offsetTop : 0;
-      const mid = (R + V) / 2;
-      const Q = el.offsetHeight;
-      // the card's own place, pinned at mid once it gets there, then pushed
-      // up by the stage's foot, clear of the header below
-      const natural = r.top + pad + H / 2;
-      const foot = r.bottom - H / 2 - 28;
-      const y = Math.min(Math.max(natural, Math.min(mid, natural + Math.max(0, Q - H - 2 * pad))), foot);
-      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H }), dy: Math.round(y - natural), qe: qEnd(end, id, el) };
+      const H = c.offsetHeight;
+      // where the browser holds the card (story.css .q-stage-hold): its
+      // centre at the optical centre below the rail. Constant through the
+      // hold, so setStyle writes nothing then.
+      const qt = Math.round(qMid(R, V) - H / 2);
+      return { p: stagePhase({ top: r.top, bottom: r.bottom, V, R, H }), qt, qe: qEnd(end, id, el) };
     },
     (el, d, f) => {
       if (!d) {
@@ -185,7 +189,7 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
       }
       const { p } = d;
       skip.current = nextSkip({ skip: skip.current, jumped: f.jumped, past: p.qm > 0, before: p.qm === 0, up: f.up });
-      setStyle(el, '--qy', `${d.dy}px`);
+      setStyle(el, '--q-top', `${d.qt}px`);
       if (d.qe != null) setStyle(el, '--q-end', d.qe.toFixed(3));
       if (skip.current) {
         setVars(el, 1, 1);
@@ -199,8 +203,10 @@ export default function QStage({ id, question, hint, icon, keyWord, part, recap,
   );
   return (
     <div ref={ref} className="q-stage" data-gap-exempt="" data-q={id}>
-      <div ref={card} className="q-stage-card">
-        <QVisual question={question} hint={hint} icon={icon} keyWord={keyWord} />
+      <div className="q-stage-hold">
+        <div ref={card} className="q-stage-card">
+          <QVisual question={question} hint={hint} icon={icon} keyWord={keyWord} />
+        </div>
       </div>
     </div>
   );

@@ -167,19 +167,28 @@ function Lens({ lens }) {
   );
 }
 
+// What each lens leaves out: one plain muted line under it (18 Nov, Vahid:
+// "nicer"; no dashed pills): an "outside" icon, "Leaves out:", then the
+// items with a dot between, each with its tip.
 function Outside({ lens }) {
   return (
     <div className={`lens-outside is-${lens.id}`}>
       <h4 className="visually-hidden">{lens.name}: outside this lens</h4>
-      <ul className="lens-chips is-outside" aria-label={`${lens.name}: outside this lens`}>
-        {lens.outside.map((c) => (
-          <li key={c.text} className="lens-chip-li">
-            <TipTarget className="lens-chip is-outside" label={`${c.text}: outside this lens`} tip={<span>{c.tip}</span>}>
-              {c.text}
-            </TipTarget>
-          </li>
-        ))}
-      </ul>
+      <div className="lens-out-line">
+        <Icon name="eyeOff" size={14} className="lens-out-ic" />
+        <span className="lens-out-label" aria-hidden="true">
+          Leaves out:
+        </span>
+        <ul className="lens-chips is-outside" aria-label={`${lens.name}: outside this lens`}>
+          {lens.outside.map((c) => (
+            <li key={c.text} className="lens-out-li">
+              <TipTarget className="lens-out-item" label={`${c.text}: outside this lens`} tip={<span>{c.tip}</span>}>
+                {c.text}
+              </TipTarget>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
