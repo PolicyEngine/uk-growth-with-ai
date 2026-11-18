@@ -2,7 +2,8 @@
 //
 // Length, on every tab: every rendered leaf text block (p, li, dd,
 // figcaption, summary, blockquote) is short: at most 12 words for a list
-// item, 25 for any other block. Exempt from length: source citations
+// item, 25 for any other block and for a Finding box's line (.finding-lines
+// li, a sentence: it also needs a final full stop and no svg). Exempt from length: source citations
 // (.story-source, [data-cite]) and reference lists ([data-reference]).
 //
 // Icons, on the Story only (Explore and Method no longer fail for a
@@ -72,7 +73,10 @@ const BAND = 800;
 const browser = process.env.BROWSER === 'webkit' ? await webkit.launch() : await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' })).newPage();
 let total = 0;
+// ONLY=who,finances limits the pages
+const ONLY = process.env.ONLY ? new Set(process.env.ONLY.split(',')) : null;
 for (const [name, path] of Object.entries(PAGES)) {
+  if (ONLY && !ONLY.has(name)) continue;
   await page.goto(base + path, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)));
   const story = name === 'story';
@@ -107,12 +111,22 @@ for (const [name, path] of Object.entries(PAGES)) {
         if (!t) continue;
         const words = t.split(' ').length;
         const cite = !!el.closest('.story-source, [data-cite], [data-reference]');
-        const max = el.tagName === 'LI' ? 12 : 25;
+        // a Finding box's line is a sentence, not a list item (item 18): at
+        // most 25 words, a final full stop, no icon
+        const line = el.tagName === 'LI' && el.parentElement?.classList.contains('finding-lines');
+        const max = el.tagName === 'LI' && !line ? 12 : 25;
         const why = [];
         if (!cite && words > max) why.push(`${words} words`);
+        if (line && !/\.$/.test(t)) why.push('no final full stop');
+        if (line && el.querySelector('svg')) why.push('an svg in a finding line');
         const n = story ? iconsIn(el).length : 0;
         if (n > 1) why.push(`${n} icons`);
         if (why.length) out.push(`${where(el)} <${el.tagName.toLowerCase()}> ${why.join(', ')}: ${t.slice(0, 80)}`);
+      }
+      // A Finding box has one icon at most, on its lead (item 18)
+      for (const el of panel.querySelectorAll('.finding-lead')) {
+        const n = iconsIn(el).length;
+        if (n > 1) out.push(`${where(el)} .finding-lead: ${n} icons (at most 1): ${text(el).slice(0, 60)}`);
       }
       // No non-breaking hyphen (U+2011) anywhere in rendered text, svg
       // included: Inter's subset lacks it, so it falls back to another font.

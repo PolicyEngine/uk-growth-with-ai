@@ -1,7 +1,7 @@
 'use client';
 
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
-import WhoGainsTab, { whoAnswer } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { WhoFinding } from '@/tabs/cohorts/CohortsTab.jsx';
 import AllScenarios, { AcrossDebt } from '@/tabs/explore/AllScenarios.jsx';
 import HouseholdsExplore from '@/tabs/households/HouseholdsExplore.jsx';
 import PageIntro from '@/components/ui/PageIntro.jsx';
@@ -62,7 +62,7 @@ export default function ExploreTab() {
   else if (sub === 'who')
     body = (
       <>
-        <PageIntro kicker={`${OGUK} · UK central only`} notes={[DATE_NOTE]} question="Who gains and who loses, by birth year and lifetime earnings?" answer={answerOf(whoAnswer(st.closure, st.wrule, st.arm))} />
+        <PageIntro kicker={`${OGUK} · UK central only`} notes={[DATE_NOTE]} question="Who gains and who loses, by birth year and lifetime earnings?" answer={<WhoFinding closure={st.closure} rule={st.wrule} arm={st.arm} />} />
         <div id="explore-sub-who-inner">
           <WhoGainsTab />
         </div>

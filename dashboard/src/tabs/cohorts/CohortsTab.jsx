@@ -5,6 +5,7 @@ import Icon from '@/components/ab/Icon.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
 import LineChart from '@/components/LineChart.jsx';
 import Card, { InfoCard, SectionHeading, StatTile } from '@/components/ui/Card.jsx';
+import Finding from '@/components/ui/Finding.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { gap, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
@@ -76,9 +77,11 @@ const youngest = (c) => {
 // Where the smallest change among adults falls, in words, for one cell: the
 // youngest adults, the youngest working-age adults (20 to 64), or an age.
 export function leastWords(c) {
-  const xs = D.closures[Object.keys(D.closures)[0]].birth_year;
-  const ages = xs.map((y) => D.shock_year - y);
-  const adults = ages.map((a, i) => i).filter((i) => ages[i] >= 20 && xs[i] <= LAST_ALIVE);
+  return leastWordsOf(c, D.closures[Object.keys(D.closures)[0]].birth_year, D.shock_year);
+}
+function leastWordsOf(c, xs, shockYear) {
+  const ages = xs.map((y) => shockYear - y);
+  const adults = ages.map((a, i) => i).filter((i) => ages[i] >= 20 && xs[i] <= shockYear - 20);
   const work = adults.filter((i) => ages[i] <= 64);
   const argmin = (is) => is.reduce((b, i) => (c.cev_all[i] < c.cev_all[b] ? i : b), is[0]);
   const y = argmin(adults);
@@ -89,20 +92,83 @@ export function leastWords(c) {
   return `Adults around age ${ages[y]} ${verb(y)}`;
 }
 
+// The birth-year finding box (item-18-fable.md, "All 12 cells"): a lead and
+// two or three lines, each claim gated on the cell in view, so every one is
+// true in all 12 cells (2 foreign-capital cases x 2 budget rules x 3
+// versions) and after a data swap. Pure: `c` is one cell, `xs` its birth
+// years, `T` the low bound of measure T (transfers bear the later fiscal
+// cost) or null, M and B from the cell. Each line is a list of parts
+// { claim, text }, so the probe can read each claim (data-claim).
+export const RETURN_LINE = 'They hold more wealth than younger adults and collect the higher return on it.';
+const capFirst = (t) => t[0].toUpperCase() + t.slice(1);
+export function whoFindingOf(c, { xs, shockYear, arm, T = null }) {
+  const lastAlive = shockYear - 20;
+  const adults = xs.map((y, i) => i).filter((i) => xs[i] <= lastAlive);
+  const peak = adults.reduce((b, i) => (c.cev_all[i] > c.cev_all[b] ? i : b), adults[0]);
+  const peakAge = shockYear - xs[peak];
+  const where = peakAge >= 60 && peakAge <= 70 ? 'around retirement age' : `around age ${peakAge}`;
+  const lead = `Adults ${where} ${c.cev_all[peak] > 0 ? 'gain most' : 'lose least'}.`;
+  const minAll = Math.min(...c.cev_all);
+  const losing = c.cev_all.map((v, i) => i).filter((i) => c.cev_all[i] < 0);
+  const state = minAll >= 0.005 ? 'gain' : minAll < 0 ? 'loss' : 'flat';
+  const M = c.alive_losing_pct;
+  const B = c.no_bequest_losing_pct;
+  const fiscal = T != null && T > M;
+  const beq = B > M;
+  const more = fiscal && beq ? 'more adults lose if households bear the later fiscal cost or leaving bequests is not valued.' : beq ? 'more adults lose if leaving bequests is not valued.' : fiscal ? 'more adults lose if households bear the later fiscal cost.' : null;
+  const ret = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 ? [{ claim: 'return', text: RETURN_LINE }] : null;
+  const least = state !== 'loss' && arm !== 'stress' ? [{ claim: 'least', text: `${leastWordsOf(c, xs, shockYear)}.` }] : null;
+  let lines;
+  if (state === 'gain') {
+    const birth = { claim: 'birth', text: 'Every birth year gains on average as modelled' };
+    lines = [ret, least, more ? [birth, { text: '; ' }, { claim: 'more', text: more }] : [{ ...birth, text: `${birth.text}.` }]];
+  } else if (state === 'loss') {
+    const from = xs[losing[0]];
+    const to = xs[losing[losing.length - 1]];
+    const oneRun = losing.length === to - from + 1;
+    const x = Math.abs(minAll).toFixed(2);
+    const by = x === '0.00' ? '' : `, by up to ${x}%`;
+    const text = oneRun ? `Some birth years lose on average as modelled: those born ${from}–${to}${by}.` : `Some birth years lose on average as modelled${by}.`;
+    lines = [ret, [{ claim: 'birth', text }], more ? [{ claim: 'more', text: capFirst(more) }] : null];
+  } else lines = [ret, least, more ? [{ claim: 'more', text: capFirst(more) }] : null];
+  return { icon: 'age', state, lead, lines: lines.filter(Boolean) };
+}
+
 // The Who gains answer for the view picked: computed, so it follows the arm,
-// rule and closure pickers.
+// rule and closure pickers (Closure = Both reads some foreign capital; the
+// fixed-spending rule reads debt-neutral, as the page does).
 export function whoAnswer(closure, rule, arm) {
   const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
   const c = cell(cl, rule, arm);
-  return {
-    context: 'UK central only · lifetime welfare by birth year and earnings group',
-    drivers: [
-      { key: 'old', icon: 'age', text: `Adults ${peakWords(c)} gain most` },
-      { key: 'why', icon: 'capital', text: 'They hold more wealth and collect the higher return' },
-      { key: 'young', icon: 'young', text: leastWords(c) },
-      { key: 'how', icon: 'range', text: 'How many lose depends on how bequests and later fiscal cost count' },
-    ],
-  };
+  const T = measuresOf(c, rule, cl, arm).find((m) => m.id === 'T')?.losing[0] ?? null;
+  return whoFindingOf(c, { xs: D.closures[cl].birth_year, shockYear: D.shock_year, arm, T });
+}
+
+// The box itself: the Finding, with the hooks the claims probe reads
+// (data-finding, data-state, data-claim on each claim).
+export function WhoFinding({ closure, rule, arm }) {
+  const f = whoAnswer(closure, rule, arm);
+  return (
+    <div data-finding="who" data-state={f.state}>
+      <Finding
+        icon={f.icon}
+        lead={<span data-claim="lead">{f.lead}</span>}
+        lines={f.lines.map((parts, i) => (
+          <span key={i}>
+            {parts.map((p, k) =>
+              p.claim ? (
+                <span key={k} data-claim={p.claim}>
+                  {p.text}
+                </span>
+              ) : (
+                p.text
+              ),
+            )}
+          </span>
+        ))}
+      />
+    </div>
+  );
 }
 
 export function cell(closure, rule, arm) {

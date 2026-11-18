@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import D from '@/data/cohorts2028.json';
-import WhoGainsTab, { cell, pct, tileRange, dnfullFor } from '@/tabs/cohorts/CohortsTab.jsx';
+import WhoGainsTab, { cell, pct, tileRange, dnfullFor, whoAnswer, whoFindingOf, RETURN_LINE } from '@/tabs/cohorts/CohortsTab.jsx';
 import { NavProvider } from '@/lib/nav.jsx';
 
 afterEach(cleanup);
@@ -123,5 +123,109 @@ describe('Who gains tab', () => {
           expect(c.cev.length).toBe(D.closures[cl].birth_year.length);
           expect(Object.keys(c.c_gap)).not.toContain('2036');
         }
+  });
+});
+
+// The birth-year finding box (item-18-fable.md, "All 12 cells"): the states
+// the 2028 data does not reach, on synthetic cells. The 12 real cells are
+// driven by pw/check_cohort_claims.mjs.
+describe('Who gains finding box', () => {
+  const xs = D.closures['zk0.1'].birth_year;
+  const sy = D.shock_year;
+  const ageIdx = (age) => xs.indexOf(sy - age);
+  // a cell that gains everywhere, peaking at 67, least at 20 among working ages
+  const make = (over = {}) => {
+    const cev_all = xs.map((y) => {
+      const a = sy - y;
+      return a < 20 ? 0.3 : a <= 67 ? 0.2 + (a - 20) * 0.02 : 1.14 - (a - 67) * 0.03;
+    });
+    return { cev_all, sources_alive: { capital: 1.5, labour: -0.7 }, alive_losing_pct: 0.05, no_bequest_losing_pct: 15, ...over };
+  };
+  const run = (c, o = {}) => whoFindingOf(c, { xs, shockYear: sy, arm: 'tfp', T: 16, ...o });
+  const text = (f) => f.lines.map((l) => l.map((p) => p.text).join(''));
+
+  it('gain state: three lines, line 3 joined by "; "', () => {
+    const f = run(make());
+    expect(f.state).toBe('gain');
+    expect(f.lead).toBe('Adults around retirement age gain most.');
+    expect(text(f)).toEqual([RETURN_LINE, 'Among working-age adults, the youngest gain least.', 'Every birth year gains on average as modelled; more adults lose if households bear the later fiscal cost or leaving bequests is not valued.']);
+  });
+
+  it('the stress test drops the least line; the common rule (no T) drops the fiscal clause', () => {
+    expect(text(run(make(), { arm: 'stress', T: null }))).toEqual([RETURN_LINE, 'Every birth year gains on average as modelled; more adults lose if leaving bequests is not valued.']);
+  });
+
+  it('fiscal clause alone, and neither clause', () => {
+    expect(text(run(make({ no_bequest_losing_pct: 0 })))[2]).toBe('Every birth year gains on average as modelled; more adults lose if households bear the later fiscal cost.');
+    expect(text(run(make({ no_bequest_losing_pct: 0 }), { T: null }))[2]).toBe('Every birth year gains on average as modelled.');
+  });
+
+  it('lead guard: the adult peak at or below zero reads "lose least"; a peak outside 60-70 names the age', () => {
+    const c = make();
+    c.cev_all = c.cev_all.map((v) => v - 5);
+    expect(run(c).lead).toBe('Adults around retirement age lose least.');
+    const d = make();
+    d.cev_all[ageIdx(74)] = 9;
+    expect(run(d).lead).toBe('Adults around age 74 gain most.');
+  });
+
+  it('line 1 drops when capital does not gain or labour does not lose', () => {
+    expect(text(run(make({ sources_alive: { capital: 1, labour: 0.1 } })))[0]).not.toBe(RETURN_LINE);
+  });
+
+  it('loss state: one run of birth years, then the measures line; no least line', () => {
+    const c = make();
+    for (let a = 20; a <= 30; a += 1) c.cev_all[ageIdx(a)] = -0.1 - a / 1000;
+    for (let i = ageIdx(19); i < xs.length; i += 1) c.cev_all[i] = -0.2;
+    const f = run(c);
+    expect(f.state).toBe('loss');
+    expect(text(f)).toEqual([RETURN_LINE, `Some birth years lose on average as modelled: those born ${sy - 30}–${xs[xs.length - 1]}, by up to 0.20%.`, 'More adults lose if households bear the later fiscal cost or leaving bequests is not valued.']);
+  });
+
+  it('adults all gain but a later birth year loses: the loss state, no least line', () => {
+    const c = make();
+    c.cev_all[ageIdx(10)] = -0.05;
+    const f = run(c);
+    expect(f.state).toBe('loss');
+    expect(text(f)[1]).toBe(`Some birth years lose on average as modelled: those born ${sy - 10}–${sy - 10}, by up to 0.05%.`);
+    expect(f.lines.flat().some((p) => p.claim === 'least')).toBe(false);
+  });
+
+  it('a broken run prints no years; a loss that rounds to 0.00 prints no size', () => {
+    const c = make();
+    c.cev_all[ageIdx(25)] = -0.3;
+    c.cev_all[ageIdx(35)] = -0.1;
+    expect(text(run(c))[1]).toBe('Some birth years lose on average as modelled, by up to 0.30%.');
+    const d = make();
+    d.cev_all[ageIdx(25)] = -0.001;
+    expect(text(run(d))[1]).toBe(`Some birth years lose on average as modelled: those born ${sy - 25}–${sy - 25}.`);
+  });
+
+  it('flat state: no birth-year half; the measures line starts with a capital', () => {
+    const c = make();
+    c.cev_all[ageIdx(10)] = 0.002;
+    const f = run(c);
+    expect(f.state).toBe('flat');
+    expect(text(f)).toEqual([RETURN_LINE, 'Among working-age adults, the youngest gain least.', 'More adults lose if households bear the later fiscal cost or leaving bequests is not valued.']);
+  });
+
+  it('the 12 cells on the 2028 data: 7 gain, 5 loss, the least line in 6; each line a sentence of at most 25 words', () => {
+    const n = { gain: 0, loss: 0, flat: 0, least: 0 };
+    for (const cl of ['central', 'closed'])
+      for (const r of ['dn', 'common'])
+        for (const a of ['tfp', 'zfixed', 'stress']) {
+          const f = whoAnswer(cl, r, a);
+          n[f.state] += 1;
+          if (f.lines.flat().some((p) => p.claim === 'least')) n.least += 1;
+          for (const l of text(f)) {
+            expect(l).toMatch(/\.$/);
+            expect(l.split(' ').length).toBeLessThanOrEqual(25);
+          }
+          expect(f.lines.length).toBeGreaterThanOrEqual(2);
+          expect(f.lines.length).toBeLessThanOrEqual(3);
+        }
+    expect(n.gain + n.loss + n.flat).toBe(12);
+    // the 2028 data (the spec's table); after a swap these counts may move
+    if (D.shock_year === 2028) expect([n.gain, n.loss, n.least]).toEqual([7, 5, 6]);
   });
 });
