@@ -51,7 +51,7 @@ K_HIST = sp.k_of(SURPRISE)        # history years before the shock: 2026-27 for 
 CLOSURES = [("zk0.1", 0.1, "central"), ("zk0", 0.0, "closed-capital bound")]
 # A sensitivity closure, kept apart from `results` (no header option, no
 # solve count): shown only as one table on Method, common rule.
-SENS_CLOSURES = [("zk0.5", 0.5, "half of new capital foreign-financed")]
+SENS_CLOSURES = [("zk0.5", 0.5, "foreigners supply half of excess capital demand, not half of added capital")]
 SCENARIOS = [
     ("uk_low", "UK low", "uk_low"),
     ("uk_central", "UK central", "uk_central"),
