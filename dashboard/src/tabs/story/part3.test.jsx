@@ -371,10 +371,16 @@ describe('Part3', () => {
     expect([...container.querySelectorAll('h3.lens-kicker')].map((h) => h.textContent.trim())).toEqual(['OG-UK', expect.stringMatching(/^Household study/)]);
     const can = [...container.querySelectorAll('.lens-circle ul.lens-chips')];
     expect(can.map((u) => u.querySelectorAll('li a').length)).toEqual([4, 3]);
-    for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central)$/);
+    for (const a of container.querySelectorAll('.lens-circle .lens-chip')) expect(a.getAttribute('href')).toMatch(/#(p2-morph|story-headline|story-output|p2-who|p3-deciles|p3-central-step-2)$/);
     expect([...container.querySelectorAll('.lens-outside ul.lens-chips')].map((u) => u.querySelectorAll('li').length)).toEqual([2, 2]);
     for (const l of LENSES) for (const c of [...l.can, ...l.outside]) expect(c.text.split(/\s+/).length, c.text).toBeLessThanOrEqual(4);
     expect(container.querySelector('.lens-overlap').textContent.trim()).toBe('The public finances');
+    // the overlap and the study's pay input link to their scenes in the story
+    expect(container.querySelector('.lens-overlap a').getAttribute('href')).toMatch(/#p3-channels$/);
+    const payIn = container.querySelector('.lens-pay-card.is-study a.lens-pay-num');
+    expect(payIn.getAttribute('href')).toMatch(/#beat-7pct$/);
+    expect(payIn.hasAttribute('data-input')).toBe(true);
+    for (const a of container.querySelectorAll('.lens-outside a')) expect(a).toBeNull();
     // decorative circles; no hidden table
     for (const svg of container.querySelectorAll('.lens-rings')) expect(svg.getAttribute('aria-hidden')).toBe('true');
     expect(container.querySelector('table')).toBeNull();

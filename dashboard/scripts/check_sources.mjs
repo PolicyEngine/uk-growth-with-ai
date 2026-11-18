@@ -179,6 +179,76 @@ for (const [w, h] of SIZES) {
   say(`story ${w}x${h} named external links (${EXTERNAL.length})`, out);
   await page.close();
 }
+// Two lenses (checks-words2.md, item 10): every link in the close's figure
+// (the "can say" chips, the overlap, the two pay figures) resolves to an
+// id on the page; a keyboard focus shows a ring; a click lands with the
+// target's header (or, for a step card, the card, made the active step)
+// in view below the sticky bars, and still: two reads 400ms apart agree.
+// A beat lands settled (--ba 1). Motion on, so the landing is the real one.
+// The "Leaves out" items are not links.
+for (const [w, h] of SIZES) {
+  const page = await (await browser.newContext({ viewport: { width: w, height: h } })).newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  const out = [];
+  const LENS_A = '#story-close .lens-fig a[href*="#"]:not([href^="http"])';
+  const hrefs = await page.evaluate((sel) => [...document.querySelectorAll(sel)].map((a) => a.getAttribute('href')), LENS_A);
+  const plain = await page.evaluate(() => document.querySelectorAll('#story-close .lens-outside a').length);
+  if (plain) out.push(`${plain} links among the "Leaves out" items (must be none)`);
+  if (hrefs.length !== 10) out.push(`${hrefs.length} links in the lenses (expected 10: 7 chips, the overlap, 2 pay figures)`);
+  for (let i = 0; i < hrefs.length; i++) {
+    const id = hrefs[i].split('#')[1];
+    if (!id || !(await page.evaluate((id) => !!document.getElementById(id), id))) {
+      out.push(`${hrefs[i]}: no element with that id`);
+      continue;
+    }
+    await page.evaluate(() => document.getElementById('story-close').scrollIntoView({ block: 'start', behavior: 'instant' }));
+    await page.waitForTimeout(1200);
+    const link = page.locator(LENS_A).nth(i);
+    await link.scrollIntoViewIfNeeded();
+    // keyboard: reach it with Tab from the element before it
+    await link.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    const ring = await page.evaluate(() => {
+      const a = document.activeElement;
+      const cs = getComputedStyle(a);
+      return { tag: a.tagName, href: a.getAttribute('href'), ring: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 };
+    });
+    if (ring.tag !== 'A' || ring.href !== hrefs[i]) out.push(`${hrefs[i]}: not reached by Tab (focus on ${ring.tag} ${ring.href})`);
+    else if (!ring.ring) out.push(`${hrefs[i]}: no visible focus ring`);
+    await link.click();
+    await page.waitForTimeout(1500);
+    const read = () =>
+      page.evaluate((id) => {
+        const el = document.getElementById(id);
+        let bars = 0;
+        document.querySelectorAll('[data-sticky-bar]').forEach((b) => {
+          if (getComputedStyle(b).position === 'sticky') bars = Math.max(bars, b.getBoundingClientRect().bottom);
+        });
+        const step = el.closest('.scrolly-step');
+        // the header: a step card itself; else the first of the scene's
+        // question (its pinned question screen or its header), a beat's
+        // headline, a heading, that is drawn and in view
+        const drawn = (x) => { const r = x.getBoundingClientRect(); const cs = getComputedStyle(x); return r.height > 0 && cs.visibility !== 'hidden' && Number(cs.opacity) > 0 && r.top >= bars - 1 && r.bottom <= innerHeight; };
+        const heads = step ? [el] : [...el.querySelectorAll('.q-stage-q, .scene-head-q, .beat-head, h2, h3')];
+        const head = heads.find(drawn) ?? heads[0] ?? el;
+        const r = head.getBoundingClientRect();
+        const beat = el.closest('.story-beat');
+        return { head: head.className, top: Math.round(r.top), bottom: Math.round(r.bottom), bars: Math.round(bars), V: innerHeight, active: step ? step.classList.contains('is-active') : null, ba: beat ? getComputedStyle(beat).getPropertyValue('--ba').trim() : null };
+      }, id);
+    const a1 = await read();
+    await page.waitForTimeout(400);
+    const a2 = await read();
+    const where = `${hrefs[i]} at ${w}x${h}`;
+    if (a1.top < a1.bars - 1 || a1.bottom > a1.V) out.push(`${where}: header not in view below the bars (top ${a1.top}, bars ${a1.bars}, bottom ${a1.bottom}, V ${a1.V})`);
+    if (Math.abs(a1.top - a2.top) > 1) out.push(`${where}: still moving (${a1.top} then ${a2.top})`);
+    if (a1.active === false) out.push(`${where}: the step is not the active step`);
+    if (a1.ba != null && a1.ba !== '' && Math.abs(Number(a1.ba) - 1) > 0.001) out.push(`${where}: the beat is not settled (--ba ${a1.ba})`);
+    console.log(`  lens link ${where}: ${a1.head} top ${a1.top}, bars ${a1.bars}${a1.active != null ? `, active ${a1.active}` : ''}${a1.ba ? `, --ba ${a1.ba}` : ''}`);
+  }
+  say(`story ${w}x${h} Two lenses links (${hrefs.length})`, out);
+  await page.close();
+}
 for (const [w, h] of SIZES) {
   const page = await (await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: 'reduce' })).newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });

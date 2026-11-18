@@ -2525,6 +2525,15 @@ svg.p3-dim {
 a.lens-pay-num:hover {
   text-decoration: underline;
 }
+/* the overlap label is a link to the public-finances scene */
+.lens-overlap-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lens-overlap-link:hover {
+  color: var(--t-ink);
+}
 .lens-pay-sub {
   font-size: var(--t-meta);
   color: var(--t-muted);
