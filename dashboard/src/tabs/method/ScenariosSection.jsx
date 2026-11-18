@@ -36,11 +36,11 @@ export function stressMove(x) {
   if (x == null) return null;
   return x < 0 ? { icon: 'gapDown', word: 'falls' } : { icon: 'gapUp', word: 'rises slightly' };
 }
-// Technology unchanged's GDP against the no-shock baseline.
+// Technology unchanged's GDP against the OBR baseline.
 export function tzGdpMove(x) {
   if (x == null) return { icon: 'caveat', word: 'is pending' };
   if (Math.abs(x) < 0.005) return { icon: 'onPath', word: 'is unchanged' };
-  return x > 0 ? { icon: 'gapUp', word: 'rises a little as capital deepens' } : { icon: 'gapDown', word: 'ends slightly below the no-shock baseline' };
+  return x > 0 ? { icon: 'gapUp', word: 'rises a little as capital deepens' } : { icon: 'gapDown', word: 'ends slightly below the OBR baseline' };
 }
 const CL_NAME = { [CENTRAL]: 'Some foreign capital', [BOUND]: 'No foreign capital' };
 
@@ -81,7 +81,7 @@ const ARM_TEXT = {
       <Items
         items={[
           { icon: 'equation', text: <>Z is solved jointly with &gamma;.</> },
-          { icon: 'start', text: <>The gain is measured at the baseline&rsquo;s {FIRST_YEAR} capital and labour.</> },
+          { icon: 'start', text: <>The gain is measured at the OBR baseline&rsquo;s {FIRST_YEAR} capital and labour.</> },
           { icon: 'start', text: 'No scenario has touched those inputs yet.' },
         ]}
       />
@@ -110,7 +110,7 @@ const ARM_TEXT = {
   ss: {
     icon: 'limit',
     role: 'A stress test, not a bound or a forecast',
-    items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the no-shock baseline.` }, ...stressItems()],
+    items: [{ icon: 'breakEven', text: `${HEADLINE_YEAR} GDP is held at the OBR baseline.` }, ...stressItems()],
     fixedText: stressFixedText(),
     // the chevron follows some foreign capital's sign, as the words do
     glyph: (fx(CENTRAL) ?? 0) < 0 ? <path d="M4 6 L12 14 L20 6" /> : <path d="M4 14 L12 6 L20 14" />,
@@ -254,7 +254,7 @@ export default function ScenariosSection({ uses = null }) {
           more={
             <Items
               items={[
-                { icon: 'model', text: 'OG-Core always starts a run in the baseline’s first year.' },
+                { icon: 'model', text: 'OG-Core always starts a run in the OBR baseline’s first year.' },
                 { icon: 'timing', text: 'So inputs are shifted two years.' },
                 { icon: 'generations', text: <>The run inherits the {FIRST_YEAR} wealth, debt and population.</> },
                 { icon: 'source', text: <>Details: {ext(DOC('surprise_2028.md'), 'design note')}.</> },

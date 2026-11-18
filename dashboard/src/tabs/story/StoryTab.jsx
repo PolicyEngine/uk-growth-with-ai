@@ -41,13 +41,13 @@ export const PARTS = [
     kicker: 'Part 2',
     title: 'What a model of the whole economy projects',
     model: 'oguk',
-    question: 'What happens to output, incomes and the public finances if an AI shock starts in 2028?',
+    question: 'What happens to output, incomes and the public finances if, from 2028, AI does more than the OBR already expects?',
     line: 'No unemployment: the shock shows up in pay rates, not in job losses.',
     about: (
       <>
         {/* the AI shock, defined once (ai-shock-wording-fable.md) */}
-        <p>The AI shock: AI takes on some tasks workers do, so capital’s share of income rises, and the same inputs produce more.</p>
-        <p>It starts in 2028, unannounced, and builds in four yearly steps to 2031.</p>
+        <p>The AI shock: AI does more workers’ tasks than the OBR expects, so capital’s share of income rises and the same inputs produce more.</p>
+        <p>It arrives in 2028, unannounced, and builds in four yearly steps to 2031.</p>
       <Items
         items={[
           {
@@ -58,12 +58,13 @@ export const PARTS = [
               </>
             ),
           },
-          { icon: 'path', text: <Hy>Results are gaps against the no-shock baseline, not forecasts</Hy> },
+          { icon: 'path', text: <Hy>Results are gaps against the OBR baseline, not forecasts</Hy> },
           {
             icon: 'forecast',
             text: (
               <>
-                The baseline is built on the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>
+                The OBR baseline: the <a href={OBR_MARCH_2026} {...ext}>OBR&rsquo;s {MODEL_BASE_VINTAGE} forecast</a>,{' '}
+                <a href={`${URLS.obrBp9}#page=51`} {...ext}>its AI included</a>
               </>
             ),
           },

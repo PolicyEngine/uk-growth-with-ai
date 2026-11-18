@@ -101,7 +101,7 @@ describe('tooltips', () => {
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('Some foreign capital');
-    expect(tip).toContain('+1.23% against the no-shock baseline');
+    expect(tip).toContain('+1.23% against the OBR baseline');
     fireEvent.blur(dot);
     unmount();
     at('sub=finances');

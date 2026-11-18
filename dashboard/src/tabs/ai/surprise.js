@@ -28,7 +28,7 @@ export const SCEN_NAME = Object.fromEntries(SCENARIOS.map((s) => [s.id, s.label]
 export const KORINEK_FULL = 'Korinek et al., US “substantial” (upper)';
 // [{id, label, short}], in display order: 'tfp' automation + productivity
 // (the main arm), 'tz' automation with technology unchanged (fixed-input Z),
-// 'ss' the OBR-style stress test that holds 2031 GDP at the no-shock baseline.
+// 'ss' the OBR-style stress test that holds 2031 GDP at the OBR baseline.
 export const ARMS = S.arms;
 // Teal (--series-1) is the gain colour, so no arm uses it.
 export const ARM_COLOR = { tfp: 'var(--series-2)', tz: 'var(--series-3)', ss: 'var(--series-5)' };

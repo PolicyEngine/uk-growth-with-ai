@@ -17,7 +17,7 @@ import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR
 // the chart's own figure frame (item 11, story-beats-fable.md section 7:
 // a band on the frame's surface above the chart): a chip, and three
 // mini-stats of the same anatomy (name, value, one short line). GDP is the
-// one number (against the no-shock baseline in 2031 for the scenario and
+// one number (against the OBR baseline in 2031 for the scenario and
 // closure chosen in the header; its home is part 2's headline tiles,
 // #story-headline, which it links to); pay rates and the income UK
 // residents keep are direction words (decision b: each fact keeps one
@@ -31,7 +31,7 @@ import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR
 
 // Korinek et al.'s US case is dashed (not calibrated to the UK)
 const LINE = { uk_low: 'uk', uk_central: 'uk', uk_high: 'uk', korinek: 'us' };
-export const HERO_AXIS_TITLE = 'GDP gap against the no-shock baseline, %';
+export const HERO_AXIS_TITLE = 'GDP gap against the OBR baseline, %';
 const TICK_YEARS = [YEARS[0], SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR];
 
 // The main arm's GDP path for each solved scenario at closure `cl`.
@@ -96,7 +96,7 @@ function Fan({ lines, sid, wide }) {
       className={`story-svg hf-svg ${wide ? 'is-wide' : 'is-narrow'}`}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`GDP gap against the no-shock baseline, ${YEARS[0]} to ${YEARS[last]}, four scenarios, main version`}
+      aria-label={`GDP gap against the OBR baseline, ${YEARS[0]} to ${YEARS[last]}, four scenarios, main version`}
       style={{ '--hf-fs': `${fs}px` }}
     >
       <text className="hf-axis-title" data-axis-title="y" data-axis="" x={2} y={fs + 2}>
@@ -124,7 +124,7 @@ function Fan({ lines, sid, wide }) {
             on the result unit's left edge now: nothing to its left) */}
         <line x1={XY(SURPRISE_YEAR)} x2={XY(SURPRISE_YEAR)} y1={T - 46} y2={B} />
         <text x={XY(SURPRISE_YEAR) + 5} y={T - 32} textAnchor="start">
-          AI shock starts, {SURPRISE_YEAR}
+          Extra AI arrives, {SURPRISE_YEAR}
         </text>
         <line x1={XY(HEADLINE_YEAR)} x2={XY(HEADLINE_YEAR)} y1={T - 22} y2={B} />
         <text x={XY(HEADLINE_YEAR) + 5} y={T - 10}>
@@ -133,7 +133,7 @@ function Fan({ lines, sid, wide }) {
       </g>
       <line className="hf-zero" x1={L} x2={R} y1={Y(0)} y2={Y(0)} />
       <text className="hf-zero-label" data-axis="" x={XY(HEADLINE_YEAR) + 6} y={Y(0) + fs + 3}>
-        No-shock baseline = 0
+        OBR baseline = 0
       </text>
       {band ? (
         <g className="hf-band-g">
@@ -164,7 +164,7 @@ function Fan({ lines, sid, wide }) {
 // The three mini-stats, from the signs (as heroItems in tabs/ai/Landing.jsx,
 // whose strings are kept for Explore; new strings here). Labels one line
 // each; national income's definition is its tooltip (`tip`).
-const SIDE = (x) => (Math.abs(x) < 0.005 ? 'on the baseline' : x > 0 ? 'above the baseline' : 'below the baseline');
+const SIDE = (x) => (Math.abs(x) < 0.005 ? 'on the OBR baseline' : x > 0 ? 'above the OBR baseline' : 'below the OBR baseline');
 // the headline year as years into the shock (2028 is year 1): the GDP
 // figure is a level gap that year, not a growth rate
 export const YEARS_ON = HEADLINE_YEAR - SURPRISE_YEAR + 1;
@@ -176,7 +176,7 @@ export function heroStats(sid, cl) {
   if (y == null || w == null) return null;
   const keepsLess = g != null && g > 0.005 && g < y;
   return [
-    { id: 'gdp', name: 'GDP', x: y, sub: `${dirWord(y)} the no-shock baseline` },
+    { id: 'gdp', name: 'GDP', x: y, sub: `${dirWord(y)} the OBR baseline` },
     { id: 'pay', name: 'Pay rates', x: w, value: SIDE(w), sub: w < -0.005 ? 'slower growth, not a cut' : null },
     g == null ? null : { id: 'gni', name: 'National income', tip: 'Gross national income (GNI): the income UK residents keep, GDP less income paid to owners abroad.', x: g, value: keepsLess ? 'up, less than GDP' : SIDE(g), sub: keepsLess ? (cl === BOUND ? 'part goes to gilt holders abroad' : 'part goes to owners abroad') : null },
   ].filter(Boolean);
@@ -197,7 +197,7 @@ export default function Hero() {
       <div className="story-hero-text">
         <div className="hero">
           <h2 id="story-q" className="hero-q">
-            What happens to the UK economy if AI takes on more work from {SURPRISE_YEAR}?
+            What happens to the UK economy if, from {SURPRISE_YEAR}, AI takes on more work than the OBR expects?
           </h2>
         </div>
         <a className="story-scroll-cue" href="#story-part-1">
@@ -224,7 +224,7 @@ export default function Hero() {
                   </dt>
                   <dd className={`hf-stat-value ${toneOf(m.x)}`}>
                     {m.id === 'gdp' ? (
-                      <NavLink tab="story" anchor="story-headline" className="hf-figure-value" title={GDP_LEVEL_TIP} aria-label={`GDP ${fmt(sel.at)} against the no-shock baseline in ${HEADLINE_YEAR}, ${GDP_LEVEL_TIP.toLowerCase()}: the headline figures in part 2`}>
+                      <NavLink tab="story" anchor="story-headline" className="hf-figure-value" title={GDP_LEVEL_TIP} aria-label={`GDP ${fmt(sel.at)} against the OBR baseline in ${HEADLINE_YEAR}, ${GDP_LEVEL_TIP.toLowerCase()}: the headline figures in part 2`}>
                         <span data-path={`results.${sid}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}`}>{fmt(sel.at)}</span>
                       </NavLink>
                     ) : (
@@ -264,7 +264,7 @@ export default function Hero() {
                       <>
                         Gaps are against the{' '}
                         <NavLink tab="method" anchor={METHOD.shock.id}>
-                          no-shock baseline
+                          OBR baseline
                         </NavLink>
                         .
                       </>

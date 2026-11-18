@@ -20,7 +20,7 @@ import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 //           `yTitleTop` (a small tile, where a rotated title would not fit)
 // `xUnit`:  optional x-axis title, drawn under the year labels
 //           (data-axis-title="x")
-// `zeroNote`: a reference label on the zero line ("No-shock baseline = 0")
+// `zeroNote`: a reference label on the zero line ("OBR baseline = 0")
 // `dots`:   false draws markers only at the crosshair (for long series)
 // `strip`:  optional { title, points: [{ label, value, color, offScale? }] } —
 //           single end-point values (e.g. published 2030 figures) drawn as

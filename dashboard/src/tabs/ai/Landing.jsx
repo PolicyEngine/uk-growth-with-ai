@@ -64,7 +64,7 @@ export function heroAnswer(sid, cl = CENTRAL) {
   const rel = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
   const keep = g != null && y > 0 && g < y ? ', and national income gains less than GDP' : '';
   const pay = `pay rates are ${rel(w)} it${rel(w) === rel(y) ? ' too' : ''}`;
-  return `In this scenario, GDP is ${rel(y)} the no-shock baseline in ${HEADLINE_YEAR}, ${pay}${keep}.`;
+  return `In this scenario, GDP is ${rel(y)} the OBR baseline in ${HEADLINE_YEAR}, ${pay}${keep}.`;
 }
 
 // The same answer as icon items (the text rule): each direction's arrow
@@ -75,7 +75,7 @@ export function heroItems(sid, cl = CENTRAL) {
   const g = gap(sid, 'tfp', cl, 'GNI');
   if (y == null || w == null) return [{ icon: 'provisional', text: 'This scenario is not solved yet for the foreign-capital case chosen above' }];
   const out = [
-    { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the no-shock baseline in ${HEADLINE_YEAR}` },
+    { icon: dirConcept(y), text: `GDP is ${dirWord(y)} the OBR baseline in ${HEADLINE_YEAR}` },
     { icon: dirConcept(w), text: `Pay rates are ${dirWord(w)} it${dirWord(w) === dirWord(y) ? ' too' : ''}` },
   ];
   if (g != null && y > 0 && g < y) out.push({ icon: 'gni', text: 'National income gains less than GDP' });
@@ -109,15 +109,16 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
   return (
     <div className="hero">
       <h2 id={titleId} className="hero-q">
-        What happens to the UK economy if AI takes on more work from {SURPRISE_YEAR}?
+        What happens to the UK economy if, from {SURPRISE_YEAR}, AI takes on more work than the OBR expects?
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">
         {NAME[sid]} scenario{sid === 'korinek' ? ', a US upper case' : ''}, {cl === BOUND ? 'no foreign capital' : 'some foreign capital'}, {HEADLINE_YEAR}, against <A href={URLS.ogUk}>OG-UK</A>
-        &rsquo;s no-shock baseline. {SURPRISE_YEAR} is a modelling choice, not a forecast
-        <InfoTip label="What is the no-shock baseline?">
-          The path every figure here is compared with: OG-UK&rsquo;s economy without the shock, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
-          <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). It is defined under {METHOD.shock.label} on Method.
+        &rsquo;s OBR baseline. {SURPRISE_YEAR} is a modelling choice, not a forecast
+        <InfoTip label="What is the OBR baseline?">
+          The path every figure here is compared with: OG-UK&rsquo;s economy without the extra AI, growing at the OBR&rsquo;s central medium-term productivity rate (OBR,{' '}
+          <A href={URLS.obrEfo}>Economic and fiscal outlook, March 2026</A>). That rate already includes the OBR&rsquo;s own AI assumption (<A href={`${URLS.obrBp9}#page=51`}>Briefing paper No.9, &para;B.14</A>
+          ), so each figure is AI beyond it, not against no AI. It is defined under {METHOD.shock.label} on Method.
         </InfoTip>
       </p>
     </div>
@@ -206,12 +207,12 @@ export function debtParts(sid, cl) {
   const obr = result(sid, 'tfp', cl).debt_gdp_pp_obr_repricing_late;
   const why = d > 0.005 && r != null && r > 0 ? ' if repriced at once' : '';
   let slow = null;
-  if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the baseline`;
+  if (Number.isFinite(obr) && side(obr) !== side(d)) slow = `it ends ${side(obr)} the OBR baseline`;
   else if (Number.isFinite(obr) && d > 0.005 && obr < d) {
     const k = obr / d;
     slow = `the gap is ${k < 0.2 ? 'under a fifth' : (fracWord(k) ?? 'smaller')}${fracWord(k) || k < 0.2 ? ' as large' : ''}`;
   }
-  return { text: ` ends ${side(d)} the baseline in ${LATE_YEAR}${why}`, slow };
+  return { text: ` ends ${side(d)} the OBR baseline in ${LATE_YEAR}${why}`, slow };
 }
 export function debtLine(sid, cl) {
   const p = debtParts(sid, cl);

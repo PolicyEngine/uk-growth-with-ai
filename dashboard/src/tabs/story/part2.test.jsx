@@ -101,7 +101,7 @@ describe('story part 2', () => {
         <MorphChart state={4} sid="uk_central" cl="zk0.1" />
       </NavProvider>,
     );
-    expect(popText(container)).toContain('Main version, against the no-shock baseline');
+    expect(popText(container)).toContain('Main version, against the OBR baseline');
     const links = sourceLinks(container);
     for (const end of ['#economy-wall', '#explore-part-all', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
   });
@@ -146,7 +146,7 @@ describe('story part 2', () => {
     // Explore" link is the debt note under its caption, in the frame
     expect([...head.closest('.scrolly-step').querySelectorAll('a')].filter((x) => !x.closest('.scrolly-takeaway-in-step'))).toHaveLength(0);
     const note = container.querySelector('#p2-morph .scrolly-takeaway-note');
-    expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the baseline in \d{4}.* More on Explore$/);
+    expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the OBR baseline in \d{4}.* More on Explore$/);
     expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });
 });
@@ -319,7 +319,7 @@ describe('from the record to the model', () => {
       [false, false, true],
     ]);
     expect(seen[0].title).toBe('Real GDP growth');
-    expect(seen[2].title).toBe('GDP against the no-shock baseline');
+    expect(seen[2].title).toBe('GDP against the OBR baseline');
     expect(seen[0].source).not.toContain('OG-UK');
     expect(seen[1].source).toContain('OBR');
     expect(seen[2].source).toContain('OG-UK');
@@ -384,7 +384,7 @@ describe('direction icons follow the signs', () => {
   it('says once, in the About fold, which OBR vintage the path uses', async () => {
     const { PARTS } = await import('@/tabs/story/StoryTab.jsx');
     const { container } = render(<div>{PARTS[1].about}</div>);
-    expect(container.textContent).toContain('The baseline is built on the OBR’s March 2026 forecast');
+    expect(container.textContent).toContain('The OBR baseline: the OBR’s March 2026 forecast, its AI included');
   });
 
   it('shows each model’s key limit open, above the About fold, in parts 2 and 3 (item 4)', async () => {
@@ -427,11 +427,11 @@ describe('direction icons follow the signs', () => {
         }
         const d = r.gaps.debt_gdp_pp[L];
         const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
-        expect(line).toContain(`ends ${side(d)} the baseline in ${fixture.late_year}`);
+        expect(line).toContain(`ends ${side(d)} the OBR baseline in ${fixture.late_year}`);
         expect(line.includes('if repriced at once')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
         // the OBR's slower repricing: the other side of the path, or a smaller rise, in words
         const obr = r.debt_gdp_pp_obr_repricing_late;
-        if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the baseline`);
+        if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the OBR baseline`);
         else if (d > 0.005 && obr < d) expect(line).toMatch(/at the OBR’s repricing pace, the gap is .*$/);
         expect(line).not.toMatch(/\d\.\d/);
       }

@@ -67,7 +67,7 @@ export default function GrowthCheck() {
     <Card
       id="growth-check"
       icon={iconFor('path')}
-      title="The OG-UK baseline against the OBR’s growth forecast"
+      title="OG-UK’s OBR baseline against the OBR’s growth forecast"
       replication={{ code: 'https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_method_facts.py', result: code('analysis/rerun/output/zk0.1/baseline_p1.json') }}
       className="mx-kpi"
       finding={<IconText icon="compare">{`Without the shock, OG-UK’s average ${span} GDP growth is ${ours.toFixed(2)}%, against ${obr.toFixed(1)}% in the OBR’s October 2026 forecast${smoother ? '; smoother year by year' : ''}.`}</IconText>}
@@ -75,9 +75,9 @@ export default function GrowthCheck() {
         how: (
           <Items
             items={[
-              { icon: 'model', text: 'OG-UK: GDP growth each year on the committed OG-UK baseline (some foreign capital).' },
-              { icon: 'forecast', text: <>The baseline takes two OBR March 2026 inputs: trend productivity ({ext(SRC.efoMarPath.url, '¶1.2')}) and 2030 debt/GDP.</> },
-              { icon: 'timing', text: 'So the baseline is March 2026; this check uses October 2026.' },
+              { icon: 'model', text: 'OG-UK: GDP growth each year on the committed OBR baseline (some foreign capital).' },
+              { icon: 'forecast', text: <>The OBR baseline takes two OBR March 2026 inputs: trend productivity ({ext(SRC.efoMarPath.url, '¶1.2')}) and 2030 debt/GDP.</> },
+              { icon: 'timing', text: 'So the OBR baseline is March 2026; this check uses October 2026.' },
               { icon: 'excluded', text: 'It is not fitted to the OBR’s growth path.' },
               { icon: 'path', text: 'OBR: real GDP growth by calendar year.' },
               { icon: 'measure', text: 'Both averages are of the years shown.' },
@@ -95,11 +95,11 @@ export default function GrowthCheck() {
         ),
       }}
       download={{
-        title: 'The OG-UK baseline against the OBR’s growth forecast',
+        title: 'OG-UK’s OBR baseline against the OBR’s growth forecast',
         context: () => `Real GDP growth a year, ${span}, %; OBR: ${src.short}, ${OBR_GROWTH.loc}`,
-        table: () => ({ columns: ['Year', 'OG-UK baseline growth (%)', `${OBR_GROWTH.label} (%)`], rows: pairs.map((p) => [p.yr, p.ours, p.obr]) }),
+        table: () => ({ columns: ['Year', 'OG-UK’s OBR baseline growth (%)', `${OBR_GROWTH.label} (%)`], rows: pairs.map((p) => [p.yr, p.ours, p.obr]) }),
         svg: () => growthSvg(pairs, max),
-        legend: () => [{ label: 'OG-UK baseline', color: cssColour('var(--series-2)'), shape: 'box' }, { label: OBR_GROWTH.label, color: CHART_COLOURS.ink, shape: 'tick' }],
+        legend: () => [{ label: 'OG-UK’s OBR baseline', color: cssColour('var(--series-2)'), shape: 'box' }, { label: OBR_GROWTH.label, color: CHART_COLOURS.ink, shape: 'tick' }],
       }}
     >
       <div className="mx-kpi-body" ref={ref}>
@@ -107,7 +107,7 @@ export default function GrowthCheck() {
           <div>
             <span className="mx-kpi-k">
               <Icon name={iconFor('model')} size={14} className="mx-dt-icon" />
-              OG-UK baseline
+              OG-UK’s OBR baseline
             </span>
             <a className="mx-kpi-v ev-kpi-ours" href={code('analysis/rerun/output/zk0.1/baseline_p1.json')} target="_blank" rel="noreferrer">
               {ours.toFixed(2)}%
@@ -126,10 +126,10 @@ export default function GrowthCheck() {
             <IconText icon="measure">Average GDP growth a year, {span}.</IconText>
           </p>
         </div>
-        <div className="mx-kpi-chart" aria-label={`GDP growth by year, ${span}: OG-UK baseline bars, OBR forecast marks`}>
+        <div className="mx-kpi-chart" aria-label={`GDP growth by year, ${span}: OG-UK’s OBR baseline bars, OBR forecast marks`}>
           <ul className="ev-kpi-key" aria-hidden="true">
             <li>
-              <span className="ev-kpi-key-bar" /> OG-UK baseline
+              <span className="ev-kpi-key-bar" /> OG-UK’s OBR baseline
             </li>
             <li>
               <span className="ev-kpi-key-obr" /> {OBR_GROWTH.label}
@@ -148,7 +148,7 @@ export default function GrowthCheck() {
                 {hi === p.yr ? (
                   <TipBox className="mx-tip">
                     <b>{p.yr}</b>
-                    <span>OG-UK baseline {p.ours.toFixed(2)}%</span>
+                    <span>OG-UK’s OBR baseline {p.ours.toFixed(2)}%</span>
                     <span>
                       {OBR_GROWTH.label} {p.obr.toFixed(1)}%
                     </span>

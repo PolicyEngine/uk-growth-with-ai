@@ -48,7 +48,7 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   const diff = (v) => rows.map((r) => at(r.sens, v) - at(r.central, v));
   const versus = (v, name) => {
     const d = diff(v);
-    if (d.every((x) => x > 0.005)) return { icon: 'gapUp', text: `${name}: further above the path` };
+    if (d.every((x) => x > 0.005)) return { icon: 'gapUp', text: `${name}: further above the OBR baseline` };
     if (d.every((x) => x < -0.005)) return { icon: 'gapDown', text: `${name}: lower` };
     return { icon: 'compare', text: `${name}: no single direction` };
   };
@@ -57,8 +57,8 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   const wCentral = new Set(rows.map((r) => side(at(r.central, 'w'))));
   const instead = wCentral.size === 1 && wCentral.has('below') ? ', not below' : '';
   const wage = wSides.has('below')
-    ? { icon: 'gapDown', text: 'The pay rate is below the path in at least one scenario' }
-    : { icon: dirConcept(Math.min(...w)) === 'onPath' && !wSides.has('above') ? 'onPath' : 'gapUp', text: `The pay rate is ${wSides.has('on') ? 'on or above' : 'above'} the path${instead}` };
+    ? { icon: 'gapDown', text: 'The pay rate is below the OBR baseline in at least one scenario' }
+    : { icon: dirConcept(Math.min(...w)) === 'onPath' && !wSides.has('above') ? 'onPath' : 'gapUp', text: `The pay rate is ${wSides.has('on') ? 'on or above' : 'above'} the OBR baseline${instead}` };
   const gniLess = rows.every((r) => at(r.sens, 'GNI') < at(r.sens, 'Y'));
   return [
     { key: 'k', ...versus('K', 'Capital stock') },
@@ -82,7 +82,7 @@ function investmentItems(res) {
   };
   const peak = (g) => Math.max(...g.slice(year(first), year(HEADLINE_YEAR)));
   return [
-    { key: 'first', icon: 'investment', text: `Main-version investment: ${range((g) => g[year(first)])} above the path in ${first}` },
+    { key: 'first', icon: 'investment', text: `Main-version investment: ${range((g) => g[year(first)])} above the OBR baseline in ${first}` },
     { key: 'peak', icon: 'timing', text: `${range(peak)} at its peak before ${HEADLINE_YEAR}` },
     { key: 'h', icon: 'path', text: `${range((g) => g[year(HEADLINE_YEAR)])} in ${HEADLINE_YEAR}, across the scenarios` },
     { key: 'cost', icon: 'excluded', text: <>{ext(URLS.ogCoreDocs, 'OG-Core')} has no capital adjustment cost</> },
@@ -177,7 +177,7 @@ function SensGrid({ res }) {
                       <span className="ex-mx-long">{a.short || a.label}</span>
                       <span className="ex-mx-short">{ARM_SHORT[a.id] ?? a.short}</span>
                       {flagged.has(`${s.id}|${a.id}`) ? (
-                        <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the path in ${S.surprise_year}: implausible`}>
+                        <sup className="ex-sd-flag" title={`Investment more than +${I_FLAG_PCT}% above the OBR baseline in ${S.surprise_year}: implausible`}>
                           *
                         </sup>
                       ) : null}
@@ -194,7 +194,7 @@ function SensGrid({ res }) {
                       // solver stops within 0.01pp): no tint, no comparison
                       if (held(a.id, c.v))
                         return (
-                          <td key={c.v} className="ex-sg-cell is-held" title={`GDP held on the path in ${HEADLINE_YEAR} by design, within the solver’s 0.01pp`}>
+                          <td key={c.v} className="ex-sg-cell is-held" title={`GDP held on the OBR baseline in ${HEADLINE_YEAR} by design, within the solver’s 0.01pp`}>
                             <span className="ex-sd-val" data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
                               {fmt(x, 2)}
                             </span>
@@ -240,7 +240,7 @@ export function gridKey(res) {
   const up = flips.length && flips.every((k) => k.x > 0);
   return [
     { key: 'arrow', icon: 'compare', text: 'Arrow: higher or lower than with some foreign capital (ζK 0.1)' },
-    { key: 'held', icon: 'shock', text: 'Held: the stress test holds GDP on the path by design' },
+    { key: 'held', icon: 'shock', text: 'Held: the stress test holds GDP on the OBR baseline by design' },
     flips.length ? { key: 'flip', icon: 'closure', text: `Dashed outline: the sign flips against ζK 0.1 (${flips.length} cells)` } : null,
     up ? { key: 'why', icon: 'capital', text: 'Each flip turns a fall into a rise: more capital per worker' } : null,
   ].filter(Boolean);
@@ -254,7 +254,7 @@ export default function SensitivityTable() {
     <Card
       id="closure-sensitivity"
       icon={iconFor('foreign')}
-      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the no-shock baseline`}
+      title={`If foreigners supply half of excess capital demand (ζK = ${sens.zeta_K}): ${HEADLINE_YEAR} gaps against the OBR baseline`}
       finding={
         <span className="ex-ctx ex-sg-ctx">
           <span>
@@ -282,14 +282,14 @@ export default function SensitivityTable() {
           ) : null}
         </>
       }
-      unit={<span data-axis-title="y">{`Gap against the no-shock baseline for the same foreign-capital case, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
+      unit={<span data-axis-title="y">{`Gap against the OBR baseline for the same foreign-capital case, ${HEADLINE_YEAR}, %; common fiscal rule`}</span>}
       read={gridKey(res)}
       logo={false}
       about={{ caveats: <Items items={investmentItems(res)} /> }}
       sources={sourcesItems({ closures: ['zk0.1', 'zk0.5'], extra: [docItem('OG-UK default parameters', URLS.ogUkDefaults, 'OG-UK')], method: 'closures' })}
       download={{
         title: `Sensitivity: foreigners supply half of excess capital demand (ζK = ${sens.zeta_K})`,
-        context: () => `${HEADLINE_YEAR} · % difference from the no-shock baseline · common fiscal rule`,
+        context: () => `${HEADLINE_YEAR} · % difference from the OBR baseline · common fiscal rule`,
         table: () => ({
           columns: ['Scenario', 'Version', ...VARS.map((c) => `${c.label} (%)`)],
           rows: SCENARIOS.flatMap((s) => ARMS.map((a) => [s.label, a.label, ...VARS.map((c) => at(res[s.id]?.[a.id], c.v))])),

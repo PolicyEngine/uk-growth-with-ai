@@ -15,7 +15,7 @@ import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 // Some foreign capital -> no foreign capital, per measure: a slope chart of two solved
 // cases joined by a straight line. The line is not a range between them: no
 // closure between the two is solved. Each arm is a line; where the two ends
-// fall on opposite sides of the no-shock baseline the measure flips sign, and
+// fall on opposite sides of the OBR baseline the measure flips sign, and
 // the panel says so in words (from the signs). No figure is printed: every
 // value here has its home in the four-measure card above (some foreign capital,
 // or no foreign capital with Closure = Closed or Both) and in the story's
@@ -85,7 +85,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
             the card's unit line giving it in full, and lets the two end
             labels name the closures */}
         <text x={2} y={10} className="ex-slope-axis-title" data-axis-title="y" data-axis="">
-          {narrow ? 'Gap, %' : 'Gap against the no-shock baseline, %'}
+          {narrow ? 'Gap, %' : 'Gap against the OBR baseline, %'}
         </text>
         {narrow ? null : (
           <text x={(x0 + x1) / 2} y={H - 6} textAnchor="middle" className="ex-slope-axis-title" data-axis-title="x" data-axis="">
@@ -134,7 +134,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
           </p>
         ) : flips.length ? (
           <p className="ex-slope-note is-flip">
-            {`Flips ${side(flips[0].b)} the path: ${flips.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}`}
+            {`Flips ${side(flips[0].b)} the OBR baseline: ${flips.map((r) => (r.arm.short || r.arm.label).toLowerCase()).join(', ')}`}
           </p>
         ) : pending.length ? (
           <p className="ex-slope-note">
@@ -142,7 +142,7 @@ function Panel({ m, rows, sc, hot, setHot, sid }) {
           </p>
         ) : (
           <p className="ex-slope-note">
-            Same side of the path in both cases
+            Same side of the OBR baseline in both cases
           </p>
         )}
       </div>
@@ -164,7 +164,7 @@ export default function ClosureSlope({ sid }) {
       icon={iconFor('closure')}
       title="Some foreign capital to no foreign capital"
       finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
-      unit={<Lead c="measure">{`Each version’s % difference from the no-shock baseline, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
+      unit={<Lead c="measure">{`Each version’s % difference from the OBR baseline, ${HEADLINE_YEAR}, ${ruleLabel(rule).toLowerCase()}`}</Lead>}
       legend={
         <ul className="ex-slope-key">
           {ARMS.filter((a) => st.arms.includes(a.id)).map((a) => (
@@ -173,13 +173,13 @@ export default function ClosureSlope({ sid }) {
             </li>
           ))}
           <li>
-            <span className="ex-slope-key-flip" aria-hidden="true" data-icon="" /> Crosses the path: the sign flips
+            <span className="ex-slope-key-flip" aria-hidden="true" data-icon="" /> Crosses the OBR baseline: the sign flips
           </li>
         </ul>
       }
       download={{
         title: `Some foreign capital to no foreign capital, ${HEADLINE_YEAR}`,
-        context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the no-shock baseline · ${ruleLabel(rule).toLowerCase()}`,
+        context: () => `${SCEN_NAME[sid]} · ${HEADLINE_YEAR} · % difference from the OBR baseline · ${ruleLabel(rule).toLowerCase()}`,
         table: () => ({
           columns: ['Measure', 'Version', 'Some foreign capital (%)', 'No foreign capital (%)', 'Flips sign'],
           rows: all.flatMap(({ m, rows }) => rows.map((r) => [m.label, r.arm.label, r.c, r.b, r.flips ? 'yes' : 'no'])),

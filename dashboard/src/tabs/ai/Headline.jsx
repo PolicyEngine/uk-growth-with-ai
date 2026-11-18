@@ -14,7 +14,7 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 // The Results headline: a takeaway sentence built from the data, a dumbbell
 // panel (one row per measure, one marker pair per arm: the central value as a
 // filled dot, the no-foreign-capital bound as a hollow dot, on one axis centred on
-// the no-shock baseline), and a strip comparing the four scenarios. Every value comes
+// the OBR baseline), and a strip comparing the four scenarios. Every value comes
 // from surprise2028.json through gap()/fmt(); a pending one says "pending".
 
 export const MEASURES = [
@@ -57,7 +57,7 @@ export function stressItems(sid) {
   const b = stressFalls(sid, BOUND);
   const phrase = (x) => (x ? 'has to fall' : 'has to rise slightly');
   return [
-    { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the path ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
+    { key: 'held', icon: 'shock', text: <>Stress test: {HEADLINE_YEAR} GDP held on the OBR baseline ({ext(efo(EFO_PAGE.box22), 'OBR, March 2026 EFO, Box 2.2')})</> },
     c != null ? { key: 'c', icon: stressDir(c), text: `Some foreign capital: output at fixed inputs ${phrase(c)}` } : null,
     c ? { key: 'c2', icon: 'limit', text: 'A stress test, not a bound or a forecast' } : null,
     b != null ? { key: 'b', icon: stressDir(b), text: `No foreign capital: output at fixed inputs ${phrase(b)}${b === c ? ' too' : ''}` } : null,
@@ -81,7 +81,7 @@ function DotTip({ arm, closure, measure, value }) {
       <b>{measure}, {HEADLINE_YEAR}</b>
       <span>{arm}</span>
       <span>{closure}</span>
-      <span className="tip-value">{fmt(value)} against the no-shock baseline</span>
+      <span className="tip-value">{fmt(value)} against the OBR baseline</span>
     </>
   );
 }
@@ -192,15 +192,15 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
   const ssHeld = arms.includes('ss') && gap(sid, 'ss', showC ? CENTRAL : BOUND, 'Y', HEADLINE_YEAR, rule) != null;
 
   return (
-    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the no-shock baseline, by measure and version`}>
+    <div className="dumbbells" role="group" aria-label={`${HEADLINE_YEAR} gaps against the OBR baseline, by measure and version`}>
       <div className="db-row db-axis-head" aria-hidden="true">
         <span />
         <div className="db-track db-track-head">
           <span className="db-side db-side-left">
-            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the no-shock baseline</span>
+            <Icon name="arrowDown" size={12} /> Lower<span className="db-side-long"> than the OBR baseline</span>
           </span>
           <span className="db-side db-side-right">
-            Higher<span className="db-side-long"> than the no-shock baseline</span> <Icon name="arrowUp" size={12} />
+            Higher<span className="db-side-long"> than the OBR baseline</span> <Icon name="arrowUp" size={12} />
           </span>
         </div>
       </div>

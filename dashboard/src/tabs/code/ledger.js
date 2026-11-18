@@ -100,7 +100,7 @@ function officialRows(checks) {
 
 export function ledger(checks = CHECKS) {
   const rows = officialRows(checks);
-  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the no-shock baseline)', source: 'OG-UK solves, 2028 surprise', vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
+  rows.push({ figure: 'Every OG-UK result in Explore (gaps against the OBR baseline)', source: 'OG-UK solves, 2028 surprise', vintage: `Solves ${version('solves').value}; data built from ${S.source_commit}`, checked: day(S.generated_utc), group: 'OG-UK results' });
   rows.push({ figure: 'Who gains: welfare by birth year and earnings group', source: CO.generated_by, vintage: CO.source, checked: null, group: 'OG-UK results' });
   rows.push({ figure: aiLabel('Household study results'), source: `${AI.source.repo} #${AI.source.pr}`, url: AI_STUDY.prUrl, vintage: `${aiWhere}, ${AI.source.dataset}`, checked: AI.source.fetched, group: 'Household study results' });
   for (const s of Object.values(SOURCES)) rows.push({ figure: s.title, source: s.short, url: s.url, vintage: s.loc, checked: null, note: s.read ?? null, group: 'Published studies' });

@@ -126,7 +126,7 @@ const FOREIGN_DK = (() => {
 })();
 
 const MEASURES = [
-  { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the no-shock baseline in ${HEADLINE_YEAR}.` },
+  { k: 'GDP', icon: 'gdp', t: 'Output produced in the UK', d: `The stress test holds it at the OBR baseline in ${HEADLINE_YEAR}.` },
   { k: 'GNI', icon: 'gni', t: 'Income UK residents keep', d: 'GDP less the return paid on foreign-owned capital and gilts.' },
   { k: 'NNI', icon: 'depreciation', t: 'Net national income: GNI after depreciation', d: 'GNI − δK, with δ = 0.065 a year (OG-UK default parameters).', href: SRC.ogukParams.url },
 ];
@@ -157,7 +157,7 @@ const RULE_TEXT = {
     icon: 'debt',
     tag: 'Headline rule on Who gains',
     items: [
-      { icon: 'benefits', text: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the no-shock baseline.` },
+      { icon: 'benefits', text: `Transfers adjust from ${SURPRISE_YEAR + 1} so debt/GDP follows the OBR baseline.` },
       { icon: 'rule', text: <>A modelling choice ({cite('fiscalRules')}).</> },
     ],
   },
@@ -188,7 +188,7 @@ function Limitations() {
         </>
       ),
     },
-    { title: 'Possible double counting', text: <>the baseline holds the {ext(SRC.bp9B14.url, 'OBR’s AI path')} ({ext(issue(27), 'issue #27')}).</> },
+    { title: 'Possible double counting', text: <>the OBR baseline has the {ext(SRC.bp9B14.url, 'OBR’s AI')} ({ext(issue(27), 'issue #27')}).</> },
     { title: 'Perfect foresight', text: `from ${SURPRISE_YEAR} everyone knows the path; no precautionary saving.` },
     { title: 'Substitution fixed at one', text: 'the labour share follows γ exactly.' },
     { title: 'No markups', text: 'wages and rents equal marginal products.' },
@@ -215,9 +215,9 @@ export default function MethodTab() {
       <OnThisPage tab="method" sub="how" sections={SECTIONS} label="Method contents" />
       <div className="page-body">
         <PageIntro
-          kicker="OG-UK · gaps against the no-shock baseline, not forecasts"
+          kicker="OG-UK · gaps against the OBR baseline, not forecasts"
           question="How does OG-UK turn an AI scenario into these results?"
-          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the no-shock baseline: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the AI shock. Not a forecast.</IconText>}
+          answer={<IconText icon="model">A model of the whole UK economy in which every market clears. Each result is a gap against the OBR baseline: OG-UK’s own path on the OBR’s March 2026 productivity growth and debt target, restarted in 2028 without the extra AI. Not a forecast.</IconText>}
         >
           <WhyChain
             className="mx-chain"
@@ -226,7 +226,7 @@ export default function MethodTab() {
               { icon: 'scenario', text: 'An AI scenario' },
               { icon: 'ai', text: 'Two production inputs change' },
               { icon: 'model', text: 'Every market re-clears' },
-              { icon: 'path', text: 'Gap against the no-shock baseline' },
+              { icon: 'path', text: 'Gap against the OBR baseline' },
             ]}
           />
         </PageIntro>
@@ -363,22 +363,22 @@ export default function MethodTab() {
               more={
                 <Items
                   items={[
-                    { icon: 'forecast', text: <>Baseline: the OBR&rsquo;s March 2026 central path, trend productivity growth 1% a year ({cite('efoMarPath')}).</> },
+                    { icon: 'forecast', text: <>OBR baseline: the OBR&rsquo;s March 2026 central path, trend productivity growth 1% a year ({cite('efoMarPath')}).</> },
                     { icon: 'ai', text: <>That OBR path already includes the OBR&rsquo;s central AI effect ({cite('bp9B14')}; {cite('efoOct127')}).</> },
                     { icon: 'path', text: 'So every result is AI beyond that path, not against no AI.' },
                     { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
-                    { icon: 'compare', text: 'Every gap is against that path, restarted without the shock.' },
+                    { icon: 'compare', text: 'Every gap is against that path, restarted without the extra AI.' },
                   ]}
                 />
               }
-              moreTitle="The no-shock baseline"
-              morePreview="No-shock baseline, the restart"
+              moreTitle="The OBR baseline"
+              morePreview="OBR baseline, the restart"
             >
               <Items
                 items={[
                   { icon: 'generations', text: <>Demographics: {cite('unWpp')}, via OG-Core.</> },
-                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the no-shock baseline.</> },
-                  { icon: 'forecast', text: <>No-shock baseline: built on the March EFO ({cite('efoMarPath')}).</> },
+                  { icon: 'model', text: <>Tax functions ({cite('peUk')}) and policy: as on the OBR baseline.</> },
+                  { icon: 'forecast', text: <>OBR baseline: built on the March EFO ({cite('efoMarPath')}).</> },
                 ]}
               />
             </InfoCard>
@@ -450,7 +450,7 @@ export default function MethodTab() {
 
         <section>
           <SectionHeading id="m-path" icon={iconFor('path')} title="Steady state and path">
-            <IconText icon="check">How each run is solved and checked. When the shock starts and how it ramps up is on{' '}
+            <IconText icon="check">How each run is solved and checked. When the extra AI arrives and how it ramps up is on{' '}
             <NavLink tab="method" sub="how" anchor="m-timing">
               Scenarios, when it happens
             </NavLink>
@@ -488,7 +488,7 @@ export default function MethodTab() {
                       icon: 'start',
                       text: (
                         <>
-                          Restarted without the shock, the model must reproduce the no-shock baseline, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
+                          Restarted without the extra AI, the model must reproduce the OBR baseline, {SURPRISE_YEAR}–{LATE_YEAR}: within 10<sup>−4</sup> for GDP, capital and debt/GDP, 10<sup>−3</sup> for the rest.
                         </>
                       ),
                     },

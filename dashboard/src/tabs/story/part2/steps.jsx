@@ -24,7 +24,7 @@ export function partMarks(sid) {
   return {
     ...scen,
     ...wf,
-    path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'No-shock baseline' },
+    path: { color: 'var(--pe-gray-700)', shape: 'line', label: 'OBR baseline' },
     ons: { color: 'var(--pe-gray-800)', shape: 'circle', label: 'ONS outturn' },
     obr: { color: 'var(--pe-gray-500)', shape: 'circle', label: 'OBR forecast' },
     'cohort-adults': { color: 'var(--pe-gray-800)', shape: 'line', label: 'Adults alive in 2028' },
@@ -69,7 +69,7 @@ export function shockSteps() {
       title: 'AI moves part of income from labour to capital',
       highlight: 'none',
       highlightWhy: why,
-      body: <Say>The scenarios have AI do some workers&rsquo; tasks, so capital&rsquo;s share of income rises.</Say>,
+      body: <Say>The scenarios have AI do more workers&rsquo; tasks than the OBR expects, so capital&rsquo;s share of income rises.</Say>,
     },
     {
       id: 'p2-shock-2',
@@ -100,7 +100,7 @@ export function morphCardSteps(sid, cl) {
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          The chart now shows a gap: GDP against the no-shock baseline, built on the OBR&rsquo;s forecast. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          The chart now shows a gap: GDP against the OBR baseline, whose growth already includes the OBR&rsquo;s AI. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
         </Say>
       ),
     },
@@ -175,7 +175,7 @@ export function morphAnswer(cl) {
   const sorted = [...ends].sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
   const where = dir === 'gapUp' ? 'above' : 'below';
   const name = (id) => SCEN_NAME[id].replace(/ \(.*\)$/, '');
-  return `GDP ends ${where} the baseline in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
+  return `GDP ends ${where} the OBR baseline in every scenario: least in ${name(sorted[0][0])}, most in ${name(sorted.at(-1)[0])}`;
 }
 
 // The generations scene's one closing line (newcomer review item 8): the
