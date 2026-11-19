@@ -2779,63 +2779,100 @@ a.lens-pay-num:hover {
   }
 }
 
-/* ---- Item 33: what this one-year test leaves out (part3/Closing.jsx) ----
-   A lead, one plain two-column table in three groups, a foot line. No tint,
-   no box, no icons: 1px rules above each group label and between rows. */
+/* ---- Item 33 and dc-B: what this one-year test leaves out
+   (part3/Closing.jsx; Vahid, "nicer, and in middle"; Opus 5.5, Fable
+   unavailable). The block is centred on the column (list and lead at
+   44rem): a centred lead, the two column heads once, three small labelled
+   sections (an h4 with one plain icon, a hairline, then each row: what is
+   left out, then what the study assumes), and one centred "See also"
+   line. No tint, no box, no rules between rows: spacing carries them. At
+   600px and below the rows stack, the assumption under its item, and the
+   column heads are hidden. Type: item 9's scale (--chart-fs-*). ---- */
 .p3-close-card {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+/* the lead and the list at 44rem; the "See also" line may use the card's
+   56rem, so it stays on one line at 1280 */
+.p3-close-lead,
+.p3-out {
   max-width: 44rem;
+  margin-inline: auto;
 }
 .p3-close-lead,
 .p3-close-foot {
-  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+}
+.p3-close-foot {
+  margin-inline: 0;
+}
+.p3-close-lead {
+  margin-block: 0 20px;
+  font-size: var(--chart-fs-sub);
+  line-height: 1.45;
+  color: var(--pe-gray-800, var(--t-ink));
+}
+.p3-close-foot {
+  margin-block: 24px 0;
   font-size: var(--chart-fs-label);
   line-height: 1.45;
   color: var(--pe-gray-700);
 }
-.p3-close-lead {
-  margin-bottom: 14px;
-}
-.p3-close-foot {
-  margin-top: 14px;
+.p3-close-see {
+  font-weight: 600;
+  color: var(--pe-gray-600);
 }
 .p3-out {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
+  --p3-out-cols: minmax(0, 2fr) minmax(0, 3fr);
   background: transparent;
 }
-.p3-out th,
-.p3-out td {
-  padding: 0;
-  text-align: left;
-  vertical-align: top;
-  background: transparent;
-}
-.p3-out thead th,
-.p3-out .p3-out-group th {
+.p3-out-heads {
+  display: grid;
+  grid-template-columns: var(--p3-out-cols);
+  column-gap: 16px;
+  padding-bottom: 2px;
   font-size: var(--chart-fs-tick);
   font-weight: 600;
   line-height: 1.3;
   color: var(--pe-gray-600);
 }
-.p3-out thead th {
-  padding-bottom: 6px;
+.p3-out-group {
+  margin-top: 18px;
 }
-.p3-out thead th:first-child {
-  width: 40%;
+.p3-out-group-h {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  padding-bottom: 8px;
+  font-size: var(--chart-fs-head);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--t-ink);
+  border-bottom: 1px solid var(--card-border);
 }
-.p3-out .p3-out-group th {
-  padding: 14px 0 4px;
-  border-top: 1px solid var(--card-border);
+.p3-out-group-h .plain-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--part-accent, var(--c-highlight));
 }
-.p3-out tr[data-item] > * {
-  padding: 7px 16px 7px 0;
+.p3-out-rows {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.p3-out-row {
+  display: grid;
+  grid-template-columns: var(--p3-out-cols);
+  column-gap: 16px;
   font-size: var(--chart-fs-label);
   line-height: 1.4;
-  border-top: 1px solid var(--card-border);
 }
-.p3-out tr[data-item] > :last-child {
-  padding-right: 0;
+.p3-out-row > dt,
+.p3-out-row > dd {
+  margin: 0;
 }
 .p3-out .p3-out-left {
   font-weight: 600;
@@ -2846,42 +2883,33 @@ a.lens-pay-num:hover {
   color: var(--pe-gray-700);
 }
 @media (max-width: 600px) {
-  .p3-out thead {
+  .p3-out-heads {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
-    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
     white-space: nowrap;
   }
-  .p3-out,
-  .p3-out tbody,
-  .p3-out tr,
-  .p3-out th,
-  .p3-out td {
-    display: block;
-    width: auto;
+  .p3-out-group {
+    margin-top: 22px;
   }
-  .p3-out tr[data-item] {
-    padding: 7px 0;
-    border-top: 1px solid var(--card-border);
+  .p3-out-rows {
+    gap: 12px;
   }
-  .p3-out tr[data-item] > * {
-    padding: 0;
-    border-top: 0;
-  }
-  .p3-out .p3-out-assumes {
-    margin-top: 2px;
+  .p3-out-row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2px;
   }
 }
 @media screen and (prefers-reduced-motion: no-preference) {
-  .p3-close-card .p3-out tbody {
+  .p3-close-card .p3-out-group {
     transition: opacity 400ms ease calc(var(--i, 0) * 120ms);
   }
-  .p3-close-card:not(.is-in) .p3-out tbody {
+  .p3-close-card:not(.is-in) .p3-out-group {
     opacity: 0;
   }
-  .p3-close-card.is-snap .p3-out tbody {
+  .p3-close-card.is-snap .p3-out-group {
     transition: none !important;
   }
 }

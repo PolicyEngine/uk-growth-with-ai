@@ -405,6 +405,7 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
   // the ink of its words (the kicker's and the title's text nodes, every
   // wrapped line; not the link's or the row's box), within 4px; its link at
   // least 44px tall at 900px and below. Fewer than three bridges is a miss.
+  // Item dc-B: the Part 3 leaves-out block too (missing is a miss).
   // HEADERS=centre runs only these centring checks.
   const br = await page.evaluate(() => {
     const textInk = (root) => {
@@ -430,13 +431,24 @@ for (const [W, H] of process.env.HEADERS === '0' || JUMP === 'only' || process.e
       if (c == null) continue;
       out.push({ id: `bridge "${a.querySelector('.part-links-kicker')?.textContent ?? '?'}"`, d: Math.round((c - mid(nav.closest('.story-part'))) * 10) / 10, h: Math.round(a.getBoundingClientRect().height) });
     }
+    // item dc-B: the Part 3 "leaves out" block (box and its lead's and
+    // foot's words) on the same column centre
+    const card = document.querySelector('.p3-close-card');
+    if (card?.getClientRects().length) {
+      const col = mid(card.closest('.story-part'));
+      out.push({ id: 'leaves-out block', d: Math.round((mid(card) - col) * 10) / 10 });
+      for (const sel of ['.p3-close-lead', '.p3-close-foot']) {
+        const c = textInk(card.querySelector(sel));
+        if (c != null) out.push({ id: sel, d: Math.round((c - col) * 10) / 10 });
+      }
+    }
     return out;
   });
   const brBad = br.filter((o) => Math.abs(o.d) > 4 || (W <= 900 && o.h != null && o.h < 44));
   const nBridge = br.filter((o) => o.id.startsWith('bridge')).length;
-  const brMiss = brBad.length > 0 || nBridge < 3;
+  const brMiss = brBad.length > 0 || nBridge < 3 || !br.some((o) => o.id === 'leaves-out block');
   if (brMiss) hmiss++;
-  hlines.push(`  ${brMiss ? 'MISS' : 'ok  '} ${W}x${H} ${nBridge} part bridges centred on their column: ${br.map((o) => `${o.id} ${o.d}px${o.h != null ? ` (link ${o.h}px tall)` : ''}`).join(', ')}`);
+  hlines.push(`  ${brMiss ? 'MISS' : 'ok  '} ${W}x${H} ${nBridge} part bridges and the leaves-out block centred on their column: ${br.map((o) => `${o.id} ${o.d}px${o.h != null ? ` (link ${o.h}px tall)` : ''}`).join(', ')}`);
   if (process.env.HEADERS === 'centre') {
     await ctx.close();
     continue;

@@ -1,23 +1,28 @@
 'use client';
 
+import Icon from '@/components/ab/Icon.jsx';
 import { hy } from '@/components/story/Hy.jsx';
 import { useEntry, useSnap } from '@/components/story/motion.js';
+import { iconFor } from '@/lib/concepts.js';
 import { NavLink } from '@/lib/nav.jsx';
 
 // The end of part 3: not sticky, no figures. What the one-year test leaves
 // out (paper discussion.tex and results.tex; Method > Household method,
-// #hm-out, has the full list), as one plain two-column table in three
-// groups: what is left out, and what the study assumes in its place (item
-// 33). No tint, no icons, no kicker: the lead says why the list matters.
+// #hm-out, has the full list), in three labelled groups, each a small
+// section (an h4 with one plain icon, then a list of what is left out and
+// what the study assumes in its place; item 33, item dc-B). The title is
+// said once, by the heading. Centred on the column; no tint, no box, no
+// kicker: the lead says why the list matters.
 // Corporation tax is not repeated here: the three-channels scene says, where
 // it matters, that dividend tax is counted and corporation tax is not.
 // Re-employment's home is this list (Two lenses names only the years after
-// the first). The groups fade in in turn as the table enters (useEntry,
-// reversible; final on a jump; static under reduced motion).
+// the first). The groups fade in in turn as the list enters (useEntry,
+// reversible; final on a jump; static under reduced motion). One "See
+// also" line carries the two links onward.
 export const OUT_GROUPS = [
-  { id: 'respond', title: 'How people respond' },
-  { id: 'pay', title: 'Payments' },
-  { id: 'cover', title: 'Who is covered' },
+  { id: 'respond', title: 'How people respond', icon: 'households' },
+  { id: 'pay', title: 'Payments', icon: 'benefits' },
+  { id: 'cover', title: 'Who is covered', icon: 'labour' },
 ];
 
 // `text` keeps the whole row as one line (16 words or fewer) for tests.
@@ -52,42 +57,38 @@ export default function Closing() {
         <p className="p3-close-lead">
           Leaving these out, the household study shows the first year after the assumed job loss, before households or employers respond: a test, not a forecast.
         </p>
-        <table className="p3-out">
-          <caption className="visually-hidden">{CLOSING_SUB.title}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Left out</th>
-              <th scope="col">What the study assumes</th>
-            </tr>
-          </thead>
+        <div className="p3-out" role="group" aria-labelledby="p3-close-h">
+          <div className="p3-out-heads">
+            <span>Left out</span>
+            <span>What the study assumes</span>
+          </div>
           {OUT_GROUPS.map((g, i) => (
-            <tbody key={g.id} data-group={g.id} style={{ '--i': i }}>
-              <tr className="p3-out-group">
-                <th scope="rowgroup" colSpan={2}>
-                  {g.title}
-                </th>
-              </tr>
-              {LEFT_OUT.filter((t) => t.group === g.id).map((t) => (
-                <tr key={t.id} data-item={t.id}>
-                  <th scope="row" className="p3-out-left">
-                    {t.left}
-                  </th>
-                  <td className="p3-out-assumes">{t.assumes}</td>
-                </tr>
-              ))}
-            </tbody>
+            <section key={g.id} className="p3-out-group" data-group={g.id} aria-labelledby={`p3-out-${g.id}`} style={{ '--i': i }}>
+              <h4 className="p3-out-group-h" id={`p3-out-${g.id}`}>
+                <Icon name={iconFor(g.icon)} size={16} />
+                {g.title}
+              </h4>
+              <dl className="p3-out-rows">
+                {LEFT_OUT.filter((t) => t.group === g.id).map((t) => (
+                  <div key={t.id} className="p3-out-row" data-item={t.id}>
+                    <dt className="p3-out-left">{t.left}</dt>
+                    <dd className="p3-out-assumes">{t.assumes}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
           ))}
-        </table>
+        </div>
         <p className="p3-close-foot">
-          With full take-up and Jobseeker’s Allowance:{' '}
+          <span className="p3-close-see">See also:</span>{' '}
           <NavLink tab="explore" sub="households" anchor="hh-ladder">
             Explore, households
           </NavLink>
-          . Every limit:{' '}
+          , with full take-up and Jobseeker’s Allowance;{' '}
           <NavLink tab="method" sub="households" anchor="hm-out">
             Household method
           </NavLink>
-          .
+          , for every limit.
         </p>
       </div>
     </aside>
