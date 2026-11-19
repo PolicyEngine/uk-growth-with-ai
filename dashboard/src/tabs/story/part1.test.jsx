@@ -124,7 +124,9 @@ describe('story part 1, real data', () => {
     const vintage = monthYear(src.released);
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
-    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}, shown for context`);
+    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}; drawn apart`);
+    // "shown for context" once in the figure, on the card (R3-22)
+    expect(el.textContent.split('shown for context').length - 1).toBe(1);
     // the two OBR forecasts, said once each (Maria's review, M3): the step
     // card says it is the latest, for context; the output figure's notes say
     // the comparison path is OG-UK's own, on the March 2026 forecast
@@ -133,6 +135,29 @@ describe('story part 1, real data', () => {
     expect(el.textContent).toContain('Part 2 measures each scenario against OG-UK’s own forecast path, built on the OBR’s March 2026 forecast, not against this one.');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
+  });
+
+  it('gives each vitals tile its own period, year included, with no panel year chip (R3-09)', () => {
+    const el = show(Part1Real);
+    expect(el.querySelector('.p1-vitals-chip')).toBeNull();
+    const f = real.facts;
+    expect(el.querySelector('#p1-vital-productivity .p1-vital-sub-rest').textContent).toBe(`Index, ${f.productivity_oph_latest.base_year} = 100 · ${f.productivity_oph_latest.period}`);
+    expect(el.querySelector('#p1-vital-employment .p1-vital-sub-rest').textContent).toMatch(/ · \w{3}–\w{3} \d{4}$/);
+    expect(el.querySelector('#p1-vital-share .p1-vital-sub-rest').textContent).toMatch(new RegExp(` · ${f.labour_share_latest.period}$`));
+  });
+
+  it('notes the productivity revision from the data build, linked to the ONS article (R3-06)', () => {
+    const el = show(Part1Real);
+    const note = real.sources.ons_lzvb.revision_note;
+    expect(note).toMatch(/component approach/);
+    const btn = el.querySelector('#p1-work button.src-line-btn');
+    fireEvent.click(btn);
+    const pop = document.getElementById(btn.getAttribute('aria-controls'));
+    const a = [...pop.querySelectorAll('a')].find((x) => x.textContent === note);
+    expect(a.getAttribute('href')).toBe(real.links.ons_productivity_component.url);
+    expect(pop.textContent).toContain('recent quarters are often revised');
+    expect(pop.textContent).not.toMatch(/flash/i);
+    fireEvent.click(btn);
   });
 
   it('defines the employment and unemployment rates in their tiles, once', () => {
@@ -144,14 +169,14 @@ describe('story part 1, real data', () => {
     expect(text.split('in work or looking').length - 1).toBe(1);
   });
 
-  it('says the two AI-use lines are groups of businesses by size before any trend', async () => {
+  it('names the two AI-use lines (all businesses, and those with 10 or more employees) before any trend', async () => {
     const P = await import('@/tabs/story/Part1.jsx');
-    expect(P.AI_HINT).toMatch(/groups of businesses by size/);
+    expect(P.AI_HINT).toBe('All businesses and the larger ones, then one grid of workers');
     const el = show(Part1Real);
-    const first = el.querySelector('#p1-ai-0 .p1-say').textContent;
-    expect(first.indexOf('two groups of businesses by size')).toBeGreaterThanOrEqual(0);
-    expect(first.indexOf('two groups of businesses by size')).toBeLessThan(first.indexOf('has risen'));
-    expect(el.querySelector('.p1-ai .story-figure-unit').textContent).toContain('by size: all businesses, and 10 or more employees');
+    const first = el.querySelector('#p1-ai-0 .p1-say').textContent.replace(/\s+/g, ' ');
+    expect(first).toBe('Two lines: all businesses, and those with 10 or more employees; among all businesses, AI use has risen every September since 2023.');
+    expect(first).not.toMatch(/by size/);
+    expect(el.querySelector('.p1-ai .story-figure-unit').textContent).toContain('using at least one AI technology: all businesses, and those with 10 or more employees,');
   });
 
   it('puts a legend above the exposure grid: the three group names, each block its share', () => {
@@ -332,18 +357,21 @@ describe('story part 1, real data', () => {
     const peakYear = p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4);
     expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
     expect(text).toContain(`Regular pay growth has slowed since its ${peakYear} peak. That is before inflation.`);
-    // productivity against its 2023 average, "back at" within 0.5 index points
+    // productivity against the same quarter two years earlier (R3-06), "about
+    // where it was" within 0.5 index points; both ends after 2020
     const o = S.productivity_oph;
-    const y23 = o.y.filter((_, i) => o.x[i].startsWith('2023'));
-    const dp = o.y.at(-1) - y23.reduce((a, v) => a + v, 0) / y23.length;
-    expect(y23).toHaveLength(4);
-    expect(text).toContain(Math.abs(dp) < 0.5 ? 'Output per hour is back at its 2023 level.' : dp > 0 ? 'Output per hour is higher than in 2023.' : 'Output per hour is lower than in 2023.');
+    const ago2 = o.x.indexOf(`${Number(o.x.at(-1).slice(0, 4)) - 2} ${o.x.at(-1).slice(5)}`);
+    expect(ago2).toBe(o.x.length - 9);
+    expect(Number(o.x[ago2].slice(0, 4))).toBeGreaterThan(2020);
+    const dp = o.y.at(-1) - o.y[ago2];
+    expect(text).toContain(Math.abs(dp) < 0.5 ? 'Output per hour is about where it was two years ago.' : dp > 0 ? 'Output per hour has risen over the past two years.' : 'Output per hour has fallen over the past two years.');
+    expect(text).not.toMatch(/flash/i);
     expect(text).not.toMatch(/2023 = 100/);
     expect(text).toContain(`Index, ${o.base_year} = 100`);
     // AI: all businesses up every September; the 10+ group up more
     const rise = (k) => S[k].y.at(-1) - S[k].y[0];
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
-    expect(text).toContain('AI use among all businesses has risen every September since 2023.');
+    expect(text).toContain('among all businesses, AI use has risen every September since 2023.');
     expect(text).toContain(`It has risen fastest in businesses with 10 or more employees, to ${pct1(real.facts.business_ai_use_10plus.value)}.`);
     // quarters: every quarter of the latest year grew
     const q = S.gdp_quarterly;
@@ -611,8 +639,8 @@ describe('story part 1, altered data', () => {
     const ago = e.y[e.x.indexOf(`${Number(last.slice(0, 4)) - 1} ${last.slice(5)}`)];
     e.y[e.y.length - 1] = ago + 1.2;
     const o = fx.series.productivity_oph;
-    const y23 = o.y.filter((_, i) => o.x[i].startsWith('2023'));
-    o.y[o.y.length - 1] = y23.reduce((a, v) => a + v, 0) / y23.length + 0.2;
+    const ago2 = o.y[o.y.length - 9];
+    o.y[o.y.length - 1] = ago2 + 0.2;
     const p = fx.series.pay_growth;
     p.y[p.y.length - 1] = Math.max(...p.y) + 1;
     vi.resetModules();
@@ -620,16 +648,19 @@ describe('story part 1, altered data', () => {
     const { default: Part1Fix } = await import('@/tabs/story/Part1.jsx');
     const text = show(Part1Fix).textContent;
     expect(text).toContain('Employment is higher than a year ago.');
-    expect(text).toContain('Output per hour is back at its 2023 level.');
+    expect(text).toContain('Output per hour is about where it was two years ago.');
     expect(text).toContain(`Regular pay growth is at its highest since ${p.x[0].slice(0, 4)}.`);
     cleanup();
     e.y[e.y.length - 1] = ago - 1.2;
-    o.y[o.y.length - 1] = y23[0] - 3;
+    o.y[o.y.length - 1] = ago2 - 3;
+    delete fx.sources[o.source].revision_note;
     vi.resetModules();
     const { default: Part1Low } = await import('@/tabs/story/Part1.jsx');
     const low = show(Part1Low).textContent;
     expect(low).toContain('Employment is lower than a year ago.');
-    expect(low).toContain('Output per hour is lower than in 2023.');
+    expect(low).toContain('Output per hour has fallen over the past two years.');
+    // the revision note is the data build's: absent from the source, no line
+    expect(low).not.toContain('Revised back to 1997');
     vi.doUnmock('@/data/ukContext.json');
   });
 });

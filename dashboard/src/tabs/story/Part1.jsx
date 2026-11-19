@@ -130,7 +130,7 @@ function outputNotes() {
     <L key="r" to="ons_revisions">
       The ONS revises recent years as new data arrive.
     </L>,
-    `The OBR’s latest central forecast, published ${OBR_VINTAGE}, shown for context; drawn apart from the outturn, as the OBR starts from an older ${last(gs.x)} estimate.`,
+    `The OBR’s latest central forecast, published ${OBR_VINTAGE}; drawn apart from the outturn, as the OBR starts from an older ${last(gs.x)} estimate.`,
     // the two OBR forecasts, said once (Maria's review, M3): Part 1 shows
     // the latest; the scenarios are measured against OG-UK's own path
     `Part 2 measures each scenario against OG-UK’s own forecast path, built on the OBR’s ${MODEL_BASE_VINTAGE} forecast, not against this one.`,
@@ -214,14 +214,21 @@ function workNotes() {
       <L key="p" to="ons_productivity">
         Output per hour: the ONS’s headline measure, output over hours worked.
       </L>,
-      `${p.period}: the latest quarter in the ${dateLong(SOURCES[p.source].released)} release.`,
+      `${p.period}: the latest quarter in the ${dateLong(SOURCES[p.source].released)} release; recent quarters are often revised.`,
+      // the release's own revision note, written by the data build for the
+      // release that made the change only (review round 3, R3-06)
+      SOURCES[p.source].revision_note ? (
+        <L key="r" to="ons_productivity_component">
+          {SOURCES[p.source].revision_note}
+        </L>
+      ) : null,
     ],
   ].flat();
 }
 
 // (c) AI: business use, one line a step (all businesses, then those with
-// 10 or more employees drawn on top; the first card says both are groups
-// of businesses by size before it describes a trend), then the exposure tiles. `state`: 0
+// 10 or more employees drawn on top; the first card names both lines
+// before it describes a trend), then the exposure tiles. `state`: 0
 // the AI-use chart, 1 the grouped tiles; `lines`: the chart's lines drawn.
 function aiSteps() {
   const [hh, hl, lo] = EXPOSURE_GROUPS;
@@ -237,7 +244,7 @@ function aiSteps() {
         <>
           <Anchor id="p1-ai-1" />
           <Say>
-            The ONS reports two groups of businesses by size; AI use among <Key id="ai-all">all businesses</Key> has risen every September since 2023.
+            Two lines: all businesses, and those with 10 or more employees; among <Key id="ai-all">all businesses</Key>, AI use has risen every September since 2023.
           </Say>
         </>
       ),
@@ -376,7 +383,7 @@ export const WORK_Q = 'How are jobs, pay and productivity doing?';
 export const AI_Q = 'Who uses AI already, and whose jobs are exposed?';
 export const OUTPUT_HINT = 'Watch the years after the pandemic';
 export const WORK_HINT = 'Three official series, one at a time';
-export const AI_HINT = 'Two groups of businesses by size, then one grid of workers';
+export const AI_HINT = 'All businesses and the larger ones, then one grid of workers';
 export const OUTPUT_TAKEAWAY = 'The ONS still revises recent years; the forecast is the OBR’s central case.';
 export const WORK_TAKEAWAY = 'Three official series; the ONS advises reading the jobs figures over longer periods.';
 

@@ -657,7 +657,20 @@ def build(man: dict) -> dict:
         "ourselves (for example an unweighted mean by major group) is possible but would be our own construction on SOC 2010.",
         "BICS covers private-sector businesses in selected industries; results for businesses with 0 to 9 employees carry large survey weights, so the ONS often headlines the 10-or-more-employees figure.",
     ]
-    links = {**LINKS, "ons_lms_bulletin": {"title": f"Labour market overview, UK: {lm['slug'][:-4].capitalize()} {lm['slug'][-4:]}",
+    # LZVB's revision note: written for the release that made the change only,
+    # so a later release does not inherit it. The 17 Nov 2026 release moved the
+    # headline measure to the ONS's component approach, revising the whole
+    # economy series back to 1997 (analysis/story/raw/ons_productivity_julytoseptember2026.html).
+    if sources["ons_lzvb"]["released"] == "2026-11-17":
+        sources["ons_lzvb"]["revision_note"] = (
+            "Revised back to 1997 and rebased to 2024 = 100 in this release, when the ONS moved its headline "
+            "measure to the component approach.")
+    links = {**LINKS, **({"ons_productivity_component": {
+        "title": "Labour productivity, UK: July to September 2026", "publisher": "Office for National Statistics",
+        "url": ONS + "/employmentandlabourmarket/peopleinwork/labourproductivity/articles/ukproductivityintroduction/"
+                     "julytoseptember2026",
+        "released": "2026-11-17"}} if "revision_note" in sources["ons_lzvb"] else {}),
+             "ons_lms_bulletin": {"title": f"Labour market overview, UK: {lm['slug'][:-4].capitalize()} {lm['slug'][-4:]}",
                                            "publisher": "Office for National Statistics", "url": lm["url"],
                                            "released": lm["released"]}}
     return {"generated_by": "dashboard/scripts/build_uk_context.py", "sources": sources, "series": series,

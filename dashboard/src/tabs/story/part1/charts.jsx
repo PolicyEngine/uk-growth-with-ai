@@ -521,7 +521,7 @@ export function AiUseChart({ notes, lines = 2 }) {
       innerRef={ref}
       title={aiHead.title}
       titleFallback={aiHead.fallback}
-      unit={`Per cent of businesses using at least one AI technology, by size: all businesses, and 10 or more employees, ${short(a.x[0])} to ${short(a.x[last])}. ONS.`}
+      unit={`Per cent of businesses using at least one AI technology: all businesses, and those with 10 or more employees, ${short(a.x[0])} to ${short(a.x[last])}. ONS.`}
       source={<SourceLine items={[{ id: a.source, name: 'Business Insights and Conditions Survey', detail: `Wave ${BICS_WAVE}, Figure 1` }]} through={`Wave ${BICS_WAVE}, ${a.x[last]}`} notes={notes} />}
       className="p1-ai"
     >
