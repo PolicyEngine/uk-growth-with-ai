@@ -214,10 +214,12 @@ function Limitations() {
     },
     {
       title: 'Productivity overlaps the OBR’s',
+      // a sentence over 12 words: a paragraph under the list (at most 25)
+      para: true,
       text: (
         <>
-          the forecast path already has the {ext(SRC.bp9B14.url, 'OBR’s AI productivity')}, about {pctRange(ADOPTION)} by year {ADOPTION_YEAR}
-          {CENTRAL_TFP != null ? `, against +${CENTRAL_TFP.toFixed(1)}% in UK central` : ''}. Inputs are not net of it, so adding a gap to the OBR&rsquo;s forecast counts that part twice ({ext(issue(27), 'issue #27')}).
+          its {ext(SRC.bp9B14.url, 'forecast path')} has {pctRange(ADOPTION)} by year {ADOPTION_YEAR}
+          {CENTRAL_TFP != null ? `, against +${CENTRAL_TFP.toFixed(1)}% in UK central` : ''}; inputs are not net of it ({ext(issue(27), 'issue #27')}).
         </>
       ),
     },

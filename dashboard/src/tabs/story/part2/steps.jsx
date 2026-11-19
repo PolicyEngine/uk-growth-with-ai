@@ -71,7 +71,7 @@ export function shockDefinition() {
   // shock figure's own quoted input)
   return (
     <>
-      The shock is unexpected and lasting, phased in from {SURPRISE_YEAR} to {HEADLINE_YEAR}: in {SCEN_NAME.uk_central}, the labour share falls <span data-input="">{ls.toFixed(1)}pp</span> and output at given inputs rises{' '}
+      An unexpected, lasting shock, phased in from {SURPRISE_YEAR} to {HEADLINE_YEAR}: in {SCEN_NAME.uk_central} the labour share falls <span data-input="">{ls.toFixed(1)}pp</span> and output at given inputs rises{' '}
       <span data-input="">{tfp.toFixed(1)}%</span>.
     </>
   );
@@ -321,19 +321,19 @@ export function gainWords() {
 }
 
 // The generations scene's closing line (Maria's point 4): what the gain is
-// made of (gainWords), then who loses if transfers carry the cost on from
-// the debt rule's year (dnfull, the lower of its losing shares, in words:
-// "about one in six"). The note under it says where the cost falls under
-// this budget assumption (whoNote).
+// made of (gainWords). The note under it (whoNote) says where the cost
+// falls from the debt rule's year, and who loses if transfers carry it
+// on (dnfull, "about one in six").
 export function whoAnswer() {
-  const g = gainWords();
-  if (!g) return null;
-  const w = welfareWords();
-  const yr = debtRuleYear();
-  const lose = w?.lose && yr ? ` If transfers bear the cost from ${yr}, ${w.lose} adults lose.` : '';
-  return `${g.text}${lose}`;
+  return gainWords()?.text ?? null;
 }
+// The scene's note (check_text: one block at most 25 words): where the
+// cost falls from the debt rule's year, and who loses if transfers carry
+// it on (dnfull, "about one in six").
 export function whoNote() {
   const yr = debtRuleYear();
-  return yr ? `From ${yr} the cost falls on government consumption, which households in the model do not value.` : null;
+  if (!yr) return null;
+  const w = welfareWords();
+  const lose = w?.lose ? `; if transfers bear it, ${w.lose} adults lose` : '';
+  return `From ${yr} the cost falls on government consumption, which model households do not value${lose}.`;
 }

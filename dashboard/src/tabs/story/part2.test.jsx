@@ -514,8 +514,9 @@ describe('direction icons follow the signs', () => {
     const { container } = at('tab=story&s=uk_central');
     const head = container.querySelector('#story-headline');
     expect(head.querySelectorAll('.stat-tile')).toHaveLength(3);
-    // beside the ledger, only the consumption line (Maria's point 6)
-    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile') && !p.matches('[data-claim="consumption"]'));
+    // beside the ledger, only the consumption line (Maria’s point 6) and the
+    // debt line’s at-once half (point 5)
+    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile') && !p.matches('[data-claim="consumption"], [data-claim="debt-once"]'));
     expect(lines).toHaveLength(0);
     expect(container.querySelector('.p2-headline-chip')).toBeNull();
     const say = container.querySelector('#p2-headline .p2-say').textContent;

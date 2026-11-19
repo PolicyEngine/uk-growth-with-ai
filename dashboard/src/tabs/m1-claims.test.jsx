@@ -218,8 +218,10 @@ describe('what the gain is made of (Maria’s point 4; item-18 “All 12 cells�
     // "from 2036", the year after the last charged year (item 21, row 4)
     const yr = Math.max(...Object.keys(c.c_gap).map(Number)) + 1;
     expect(debtRuleYear()).toBe(yr);
-    expect(whoNote()).toBe(`From ${yr} the cost falls on government consumption, which households in the model do not value.`);
-    expect(whoAnswer()).toContain(`If transfers bear the cost from ${yr}`);
+    expect(whoNote().startsWith(`From ${yr} the cost falls on government consumption, which model households do not value`)).toBe(true);
+    // "about one in six" (Maria's point 4), from dnfull's lower losing share
+    if (CO.dnfull?.ready && CO.dnfull.closure === 'zk0.1') expect(whoNote()).toMatch(/; if transfers bear it, about one in \w+ adults lose\.$/);
+    expect(whoAnswer().split(/\s+/).length).toBeLessThanOrEqual(25);
     expect(whoAnswer()).not.toMatch(/fewer hours|after \d{4}/);
   });
   it('the gate over all 12 cells matches item 18’s count (7 gain, 5 loss on the 2028 cohorts)', () => {

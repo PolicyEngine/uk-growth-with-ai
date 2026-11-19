@@ -397,13 +397,29 @@ function DebtWords({ p }) {
 export function DebtNote({ sid, cl }) {
   const p = debtParts(sid, cl);
   if (!p) return null;
+  // the OBR-pace result only (check_text: a block of at most 25 words);
+  // the model's at-once repricing follows under the headline ledger
+  // (DebtOnce)
   return (
     <>
-      {debtLine(sid, cl)}.{' '}
+      {p.obrPace ? 'At the OBR’s repricing pace, public debt' : 'Public debt'} {p.lead}.{' '}
       <NavLink tab="explore" sub="finances" anchor="public-finances">
         More on Explore
       </NavLink>
     </>
+  );
+}
+// The second half of the debt line (Maria's point 5: the at-once repricing
+// second, in plain words), under the headline ledger. null where there is
+// nothing to add.
+export function DebtOnce({ sid }) {
+  const { cl } = useSummary(sid);
+  const p = debtParts(sid, cl);
+  if (!p?.atOnce) return null;
+  return (
+    <p className="p2-note p2-debt-once" data-claim="debt-once">
+      {`${p.atOnce[0].toUpperCase()}${p.atOnce.slice(1)}.`}
+    </p>
   );
 }
 

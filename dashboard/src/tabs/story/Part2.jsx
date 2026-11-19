@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { useNav } from '@/lib/nav.jsx';
-import { ConsumptionLine, DebtNote, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
+import { ConsumptionLine, DebtNote, DebtOnce, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
@@ -180,6 +180,7 @@ function headlineStep(sid) {
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
           <HeadlineTiles sid={sid} />
           <ConsumptionLine sid={sid} />
+          <DebtOnce sid={sid} />
         </section>
       </>
     ),
