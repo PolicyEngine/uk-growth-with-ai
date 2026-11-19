@@ -195,3 +195,31 @@ def test_trend_params_without_any_arm_is_a_clear_error():
     res["arms_requested"] = []
     with pytest.raises(ValueError, match="population growth"):
         report.trend_params(res, arm_name=None)
+
+
+# --- the 2027 set (arrival 2027, headline 2030): same checks, same known failures ---
+
+ALL_2027 = sorted(DATA.glob("scenarios_surprise2027_*.json"))
+KNOWN_2027 = {"scenarios_surprise2027_korinek_zk0.5.json",
+              "scenarios_surprise2027_uk_high_zk0.5.json"}
+
+
+@pytest.mark.skipif(not ALL_2027, reason="2027 set not assembled")
+def test_all_twenty_2027_files_are_tested():
+    assert len(ALL_2027) == 20 and KNOWN_2027 <= {p.name for p in ALL_2027}
+
+
+@pytest.mark.parametrize("path", ALL_2027, ids=lambda p: p.stem)
+def test_2027_files_check_and_report(path, capsys):
+    assert cli.main(["check", "--results", str(path)]) == (1 if path.name in KNOWN_2027 else 0)
+    capsys.readouterr()
+    assert cli.main(["report", "--results", str(path)]) in (0, None)
+    out = capsys.readouterr().out
+    assert "AI vs CONTINUATION" in out and "2030" in out
+
+
+@pytest.mark.skipif(not ALL_2027, reason="2027 set not assembled")
+def test_2027_context_is_the_2030_window():
+    c = checks._context(_load(DATA / "scenarios_surprise2027_uk_central.json"))
+    assert c["years"] == [2026, 2027, 2028, 2029, 2030] and c["headline"] == 2030
+    assert c["start"] == 2027

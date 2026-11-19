@@ -82,7 +82,9 @@ def test_cohorts2027_carries_2027_dates():
     d = json.loads(C27.read_text())
     assert d["shock_year"] == 2027 and "2027 surprise" in d["what"]
     keys = _keys(d)
-    assert not [k for k in keys if re.search(r"2028", k)], "2028 in a key name"
+    # bare year keys (c_gap's 2027..2035) are data; year-NAMED keys must not say 2028
+    assert not [k for k in keys if re.search(r"2028", k) and not re.fullmatch(r"\d{4}", k)], \
+        "2028 in a key name"
     assert "profile_2027" in keys and "income_2027_35_age45" in keys and "wealth_by_age_2027" in keys
     for cl in d["closures"].values():
         for rule in cl["rules"].values():
