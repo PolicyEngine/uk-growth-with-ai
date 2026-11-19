@@ -4,7 +4,8 @@
 // Nothing here is typed: every row is read from a data file.
 import S from '@/lib/activeData.js';
 import { COHORTS as CO } from '@/lib/dataKeys.js';
-import { SET, DATA_FILE, COHORT_SOURCE } from '@/lib/dataKeys.js';
+import { SET, DATA_FILE, COHORT_SOURCE, COHORT_SOURCE_COMMIT } from '@/lib/dataKeys.js';
+import { atRef } from '@/tabs/ai/links.js';
 import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 import AI from '@/data/aiStudy2425.json';
 import UK from '@/data/ukContext.json';
@@ -56,7 +57,7 @@ const OG = (p) => `https://github.com/PolicyEngine/uk-growth-with-ai/blob/${S.so
 const UK_LATEST = Object.values(UK.sources).map((s) => s.released).sort().at(-1);
 export const VINTAGES = [
   { model: 'OG-UK', file: DATA_FILE, what: 'OG-UK results: every Explore chart', vintage: `Built from ${S.source_commit}`, released: day(S.generated_utc), date: day(S.generated_utc), code: { label: 'build_dashboard_data.py', url: OG('analysis/surprise/build_dashboard_data.py') }, result: { label: 'solve outputs', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/${SET.outputDir}` } },
-  { model: 'OG-UK', file: SET.cohorts, what: 'Who gains', vintage: `${CO.generated_by}, ${COHORT_SOURCE}`, released: null, date: null, code: { label: 'export_cohorts.py', url: OG('analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: `https://github.com/PolicyEngine/uk-growth-with-ai/tree/${S.source_commit}/analysis/surprise/cohorts` } },
+  { model: 'OG-UK', file: SET.cohorts, what: 'Who gains', vintage: `${CO.generated_by}, ${COHORT_SOURCE}`, released: null, date: null, code: { label: 'export_cohorts.py', url: atRef(COHORT_SOURCE_COMMIT, 'analysis/surprise/export_cohorts.py') }, result: { label: 'cohort files', url: atRef(COHORT_SOURCE_COMMIT, 'analysis/surprise/cohorts', 'tree') } },
   { model: 'Household study', file: 'aiStudy2425.json', what: aiLabel('Household study'), vintage: `Household study PR #${AI.source.pr} (${aiWhere}), ${AI.source.dataset}`, released: day(AI.source.merged_utc) ?? null, date: AI.source.fetched, url: AI_STUDY.prUrl, code: { label: 'build_ai_study_data.py', url: `https://github.com/PolicyEngine/uk-growth-with-ai/blob/dashboard/story/dashboard/scripts/build_ai_study_data.py` }, result: { label: 'study results', url: `https://github.com/${AI.source.repo}/tree/${AI_COMMIT}/results` } },
   { model: 'Household study', file: 'Results build', what: 'The study’s attested results', vintage: `Per the manifest at ${shortSha(AIM.manifest_commit)}`, released: day(AIM.manifest_finished), date: day(AIM.manifest_finished), code: { label: 'run_all.py', url: AI_STUDY.blob('analysis/run_all.py') }, result: { label: 'BUILD_MANIFEST.json', url: AI_STUDY.blob('results/BUILD_MANIFEST.json') } },
   { model: 'Household study', file: 'Data build', what: 'Microcosm UK 2024–25', vintage: AIM.data_build, released: null, date: null, code: { label: 'download_data.py', url: AI_STUDY.blob('analysis/download_data.py') }, result: null },

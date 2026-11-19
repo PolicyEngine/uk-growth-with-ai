@@ -18,6 +18,11 @@ describe('the cohort source pin', () => {
     expect(COHORT_SOURCE_COMMIT).toBe('2558375');
     expect(COHORTS_SHA).toBe('2558375');
     expect(OG_RESULT_URLS.cohortScript).toContain('/2558375/');
+    // R3-03: the cohort state files, their label and the ledger's cohort row
+    expect(OG_RESULT_URLS.cohortsDir).toBe('https://github.com/PolicyEngine/uk-growth-with-ai/tree/2558375/analysis/surprise/cohorts');
+    const row = VINTAGES.find((r) => r.what === 'Who gains');
+    expect(row.result.url).toContain('/tree/2558375/analysis/surprise/cohorts');
+    expect(row.code.url).toContain('/2558375/');
     expect(COHORT_URL).toContain('/2558375/');
     expect(COHORT_SOURCE).toBe('uk-growth-with-ai@2558375');
     const v = VINTAGES.find((r) => r.what === 'Who gains');
@@ -34,7 +39,9 @@ describe('the cohort source pin', () => {
     // open every sources popover so their links render
     for (const b of container.querySelectorAll('button.src-line-btn')) fireEvent.click(b);
     const hrefs = [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'));
-    const script = hrefs.filter((h) => h.includes('paper/cohort_welfare.py') || h.includes('paper/main.tex'));
+    const script = hrefs.filter((h) => /paper\/cohort_welfare\.py|paper\/main\.tex|analysis\/surprise\/cohorts|surprise\.py#L56/.test(h));
+    expect(script.some((h) => h.includes('analysis/surprise/cohorts'))).toBe(true);
+    expect(script.some((h) => h.endsWith('/2558375/uk_growth_with_ai/surprise.py#L56'))).toBe(true);
     expect(script.length).toBeGreaterThan(0);
     for (const h of script) expect(h).toContain('/2558375/');
     if (FILE_COMMIT !== COHORT_SOURCE_COMMIT) expect(hrefs.some((h) => h.includes(FILE_COMMIT))).toBe(false);

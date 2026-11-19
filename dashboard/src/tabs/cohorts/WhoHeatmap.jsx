@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card.jsx';
 import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { fileItem } from '@/lib/sourceItems.js';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
-import { OG_RESULT_URLS, COHORTS_SHA, RESULTS_SHA } from '@/tabs/ai/links.js';
+import { OG_RESULT_URLS, COHORTS_SHA } from '@/tabs/ai/links.js';
 import Pill from '@/components/ui/Pill.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
@@ -101,7 +101,7 @@ export function cohortSources() {
     closures: [],
     code: false,
     extra: [
-      fileItem('OG-UK cohort state files: analysis/surprise/cohorts', OG_RESULT_URLS.cohortsDir, 'OG-UK', `commit ${RESULTS_SHA}`),
+      fileItem('OG-UK cohort state files: analysis/surprise/cohorts', OG_RESULT_URLS.cohortsDir, 'OG-UK', `commit ${COHORTS_SHA}`),
       fileItem('paper/cohort_welfare.py', OG_RESULT_URLS.cohortScript, 'PolicyEngine', `commit ${COHORTS_SHA}`),
     ],
   });
