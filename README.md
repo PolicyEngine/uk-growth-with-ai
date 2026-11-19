@@ -37,7 +37,7 @@ the scenario inputs are published whole-AI effects and are not net of the OBR's
 own. Each gap is the effect of inputs of that size, between two runs with the same
 `g_y`. Against the OBR's forecast itself, the labour-share shift is all additional;
 the productivity gain is not (the OBR path has about 0.19–0.33% by year 4 of
-adoption, BP9 Chart B.4), so that comparison lies between `share_shift_tfp` and the
+adoption, BP9 Chart B.4, that is all or nearly all of UK low's input, 48–83% of UK central's, 12–21% of UK high's and 6–11% of Korinek's), so that comparison lies between `share_shift_tfp` and the
 fixed-input `share_shift` (`_zfixed`) arm (issue #27). A run
 holding government spending and transfers at baseline levels instead
 (`--baseline-spending`, the OBR's convention) has not been redone on the corrected
