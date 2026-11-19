@@ -129,6 +129,10 @@ const OBR_PER_PP = [0.19, 0.23];
 function Cause({ icon, title, axis, ours, theirs, effect, up }) {
   const pct = (x) => `${((x / axis.max) * 100).toFixed(2)}%`;
   const edge = (x) => (x / axis.max > 0.8 ? ' at-end' : x / axis.max < 0.2 ? ' at-start' : '');
+  // a lower label right of centre ends at its mark on phones (ph-end), so a
+  // long name ("PolicyEngine UK {year} average") stays inside the card at
+  // the 13px floor (checks-c0.md, 390px)
+  const below = (x) => `${edge(x)}${x / axis.max > 0.6 && x / axis.max <= 0.8 ? ' ph-end' : ''}`;
   return (
     <div className="cause-row">
       <div className="cause-main">
@@ -140,11 +144,11 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
           <span className="cause-track" aria-hidden="true" />
           {theirs.lo != null ? (
             <TipTarget className="cause-range" style={{ left: pct(theirs.lo), width: pct(theirs.hi - theirs.lo) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
-              <span className={`cause-mark-label is-below${edge((theirs.lo + theirs.hi) / 2)}`}>{theirs.name} {theirs.text}</span>
+              <span className={`cause-mark-label is-below${below((theirs.lo + theirs.hi) / 2)}`}>{theirs.name} {theirs.text}</span>
             </TipTarget>
           ) : (
             <TipTarget className="cause-mark is-theirs" style={{ left: pct(theirs.value) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
-              <span className={`cause-mark-label is-below${edge(theirs.value)}`}>{theirs.name} {theirs.text}</span>
+              <span className={`cause-mark-label is-below${below(theirs.value)}`}>{theirs.name} {theirs.text}</span>
             </TipTarget>
           )}
           <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`OG-UK: ${ours.text}`} tip={<><b>OG-UK</b><span className="tip-value">{ours.text}</span></>}>
