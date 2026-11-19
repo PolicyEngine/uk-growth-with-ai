@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MINUS } from '@/tabs/story/part3/format.js';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 
 // Chart pieces for Explore > Households (item-24-fable.md). Text stays
 // HTML (legible at phone width); marks are positioned spans or a measured
@@ -68,8 +69,18 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label
   const Y = (v) => T + ph - (v / yMax) * ph;
   const at = Object.fromEntries(points.map((p) => [p.id, p]));
   const head = `hh-head-${label.length}`;
+  // hover (M4): each point's two values, as the axes read them
+  const tips = points.map((p) => ({
+    head: p.name,
+    rows: [
+      { name: xTitle ?? 'x', value: xUnit(p.x.toFixed(1)), icon: 'cost' },
+      { name: yTitle ?? 'y', value: `${p.y < 0 ? MINUS : '+'}${Math.abs(p.y).toFixed(2)}${yUnit}`, icon: 'poverty' },
+    ],
+    unit: 'The household study.',
+  }));
   return (
     <div className={`hh-plane${narrow ? ' is-narrow' : ''}`} ref={ref}>
+      <ChartHover label={label} items={tips}>
       <svg width={W} height={height} viewBox={`0 0 ${W} ${height}`} role="img" aria-label={label}>
         <defs>
           <marker id={head} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -130,6 +141,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label
         <span
           key={p.id}
           className={`hh-pt is-${p.group ?? 'a'}${p.ring ? ' is-ring' : ''}${on ? ' is-on' : ''}`}
+          data-tip={i}
           style={{ left: X(p.x), top: Y(p.y), transitionDelay: `${i * 90}ms` }}
           title={p.name}
           aria-hidden="true"
@@ -149,6 +161,7 @@ export function Plane({ points, arrows = [], xMax, yMax, xUnit, yUnit, on, label
             {narrow ? p.n : p.lab}
           </span>
         ))}
+      </ChartHover>
     </div>
   );
 }

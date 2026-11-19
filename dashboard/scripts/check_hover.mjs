@@ -94,6 +94,14 @@ const MARKS = (i) => {
   const svg = document.querySelector(`[data-hover-svg="${i}"]`);
   if (!svg) return [];
   const pts = [];
+  // a chart's declared hover targets first (ChartHover's data-tip), anywhere
+  // in its box
+  const box = document.querySelector(`[data-hover-idx="${i}"]`);
+  for (const m of box?.querySelectorAll('[data-tip]') ?? []) {
+    const r = m.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) pts.push([r.left + r.width / 2, r.top + r.height / 2]);
+  }
+  if (pts.length) return pts.slice(0, 6);
   for (const m of svg.querySelectorAll('circle, rect, path, line, polyline, [data-mark]')) {
     if (m.closest('[aria-hidden="true"]') && !m.closest('svg[aria-hidden]')) continue;
     const r = m.getBoundingClientRect();
