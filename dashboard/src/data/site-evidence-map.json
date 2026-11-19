@@ -76,7 +76,7 @@
       "id": "obr-efo-nov25-gdp",
       "institution": "OBR",
       "study": "Economic and fiscal outlook, November 2025: higher-productivity scenario",
-      "url": "https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/",
+      "url": "https://obr.uk/docs/dlm_uploads/OBR_Economic_and_fiscal_outlook_November_2025.pdf#page=184",
       "year": 2025,
       "metric": "gdp",
       "measure": "Nominal GDP and average earnings, with productivity growth 0.4pp a year higher (based in part on a larger AI boost), spread uniformly across incomes (so, by this table’s inference, no labour-share shift)",
@@ -92,7 +92,7 @@
       "id": "obr-efo-nov25-receipts",
       "institution": "OBR",
       "study": "Economic and fiscal outlook, November 2025: higher-productivity scenario",
-      "url": "https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/",
+      "url": "https://obr.uk/docs/dlm_uploads/OBR_Economic_and_fiscal_outlook_November_2025.pdf#page=185",
       "year": 2025,
       "metric": "fiscal",
       "measure": "Receipts in the same scenario; broadly unchanged as a share of GDP",
@@ -350,7 +350,7 @@
       "hi": 1.6,
       "plotLabel": "IFS / Barclays",
       "plotHorizon": "End of 2031, UK",
-      "note": "Capital deepening only (1.6%) to with a TFP spillover (2.5%)"
+      "note": "1.6% with capital deepening only; 2.5% with a TFP spillover"
     },
     {
       "id": "ifs-gb26-tfp",
@@ -778,8 +778,8 @@
       "url": "https://www.pwc.co.uk/economic-services/assets/ai-uk-report-v2.pdf",
       "year": 2017,
       "metric": "gdp",
-      "measure": "GDP, productivity channel only to the total with consumption",
-      "value": "+1.9% to up to +10.3%",
+      "measure": "GDP: productivity channel only (+1.9%) to the total with consumption (+10.3%)",
+      "value": "+1.9% to +10.3%",
       "horizon": "2030",
       "baseline": "Without AI",
       "country": "UK",
