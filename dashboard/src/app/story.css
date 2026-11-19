@@ -2073,6 +2073,33 @@
   color: var(--pe-gray-500);
 }
 
+/* ChartHover (chart/ChartHover.jsx, M4): the same card for a chart of
+   separate marks; placed by transform from the mark's box, read once */
+.ch-hover {
+  position: relative;
+  outline: none;
+  touch-action: pan-y;
+}
+.ch-hover:focus-visible {
+  box-shadow: 0 0 0 2px var(--part-accent, var(--c-highlight));
+  border-radius: 4px;
+}
+.ch-tip.ch-tip-m {
+  margin-left: 0;
+  will-change: transform;
+}
+.ch-tip-sw {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+@media (max-width: 600px) {
+  .ch-tip.ch-tip-m.is-top {
+    max-width: 100%;
+  }
+}
+
 /* Recap (Items.jsx): "What you just learned", a chip row ending a part */
 .story-recap {
   display: flex;

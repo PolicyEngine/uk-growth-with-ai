@@ -12,3 +12,4 @@ export { default as EndLabels, placeLabels, crowded } from './EndLabels.jsx';
 export { default as View, affine, viewFor } from './View.jsx';
 export { default as Replay, Pause } from './Replay.jsx';
 export { default as Crosshair } from './Crosshair.jsx';
+export { default as ChartHover, ChartTipCard } from './ChartHover.jsx';
