@@ -7,7 +7,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING, ZETA } from '@/tabs/ai/surprise.js';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 
@@ -265,7 +265,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                             className="db-dot"
                             style={{ left: pct(c), background: color, borderColor: color }}
                             label={`${a.label}, some foreign capital, ${name}: ${fmt(c)}`}
-                            tip={<DotTip arm={a.label} closure="Some foreign capital (closure ζK = 0.1: some new capital foreign-owned)" measure={name} value={c} />}
+                            tip={<DotTip arm={a.label} closure={`Some foreign capital (closure ζK = ${ZETA[CENTRAL]}: foreign investors supply ${Math.round(ZETA[CENTRAL] * 100)}% of the extra capital firms want)`} measure={name} value={c} />}
                           />
                         ) : null}
                         {/* the main arm's GDP, wage and GNI: a muted reference

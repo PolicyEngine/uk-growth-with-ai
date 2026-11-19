@@ -59,7 +59,7 @@ function ClosureCards() {
         more={
           <Items
             items={[
-              { icon: 'foreign', text: <>&zeta;<sub>K</sub>, in OG-Core&rsquo;s definition: the share of excess capital demand that foreigners supply ({cite('ogCoreParams')}).</> },
+              { icon: 'foreign', text: <>&zeta;<sub>K</sub>, in OG-Core&rsquo;s definition: the share of excess capital demand (the extra capital firms want) that foreigners supply ({cite('ogCoreParams')}).</> },
               { icon: 'model', text: <>{pct(ZETA[CENTRAL], 0)} is OG-Core&rsquo;s US default, chosen by the study and kept by OG-UK ({cite('ogukParams')}); not calibrated to the UK.</> },
               { icon: 'interest', text: <>World interest rate 2%: OG-UK&rsquo;s default ({cite('ogukParams')}; OG-Core&rsquo;s is 4%). A modelling choice, not from a published source.</> },
               { icon: 'debt', text: <>Foreigners buy 40% of new government debt (&zeta;<sub>D</sub>): OG-Core&rsquo;s default, kept by OG-UK ({cite('ogukParams')}). A modelling choice, not from a UK source.</> },
@@ -79,7 +79,7 @@ function ClosureCards() {
         </p>
         <Items
           items={[
-            { icon: 'foreign', text: 'Share of excess capital demand met from abroad, not of added capital.' },
+            { icon: 'foreign', text: 'Share of the extra capital firms want that is met from abroad, not of added capital.' },
             { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned: national income (GNI) trails GDP.` },
             { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
           ]}
