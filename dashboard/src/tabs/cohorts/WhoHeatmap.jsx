@@ -123,8 +123,13 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       sources={cohortSources()}
       icon={iconFor('lifetimeEarnings')}
       title="By age and earnings group"
-      // item 36: the "Some foreign capital" context moves to More info
-      more={both ? [{ label: 'Settings', text: 'Some foreign capital: with both cases chosen, this chart shows some foreign capital.' }] : null}
+      // item 36: the "Some foreign capital" context moves to More info;
+      // round 3 §B (R4-09): the reading notes leave the card face too
+      more={[
+        { label: 'Reading a cell', text: 'Hover or tab to a cell for its value.' },
+        { label: 'Hatched cells', text: 'Not in the data for this measure.' },
+        both ? { label: 'Settings', text: 'Some foreign capital: with both cases chosen, this chart shows some foreign capital.' } : null,
+      ]}
       controls={
         <Pill
           className="is-card"
@@ -135,19 +140,16 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       }
       unit={<Lead c="measure">Change in remaining-lifetime consumption and bequests, %</Lead>}
       legend={
-        <ul className="ex-hm-key">
-          {any ? (
-          <li>
-            <span className="ex-hm-ramp" aria-hidden="true" data-icon="" />
-            <span data-axis="">{pct(-lim)}</span>{' '}
-            <span className="ex-hm-ramp-mid">loss · gain</span>{' '}
-            <span data-axis="">{pct(lim)}</span>
-          </li>
-          ) : null}
-          <li>
-            <span className="ex-hm-key-hole" aria-hidden="true" data-icon="" /> Not in the data for this measure
-          </li>
-        </ul>
+        any ? (
+          <ul className="ex-hm-key">
+            <li>
+              <span className="ex-hm-ramp" aria-hidden="true" data-icon="" />
+              <span data-axis="">{pct(-lim)}</span>{' '}
+              <span className="ex-hm-ramp-mid">loss · gain</span>{' '}
+              <span data-axis="">{pct(lim)}</span>
+            </li>
+          </ul>
+        ) : null
       }
       download={{
         title: `Welfare change by age and earnings group, ${m.label}`,
@@ -207,15 +209,11 @@ export default function WhoHeatmap({ cl, rule, arm, both, measure, onMeasure, ms
       <DotStrip m={m} />
       </div>
       <div className="ex-hm-foot">
-        {hot ? (
-          <p className="ex-hm-readout" role="status">
-            {`Age ${hot.age}, ${hot.col}: ${pct(hot.x)}`}
-          </p>
-        ) : (
-          <p className="ex-hm-readout is-muted">
-            Hover or tab to a cell for its value
-          </p>
-        )}
+        {/* the readout keeps its line while idle (no jump on hover); how
+            to read it is in More info (round 3 §B, R4-09) */}
+        <p className={`ex-hm-readout${hot ? '' : ' is-muted'}`} role="status">
+          {hot ? `Age ${hot.age}, ${hot.col}: ${pct(hot.x)}` : '\u00a0'}
+        </p>
       </div>
     </Card>
   );

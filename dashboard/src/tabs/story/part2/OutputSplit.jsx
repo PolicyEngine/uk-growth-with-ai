@@ -139,7 +139,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
               <span className="p2-wf-swatch" style={{ '--sw': PART_COLOR[r.id] }} aria-hidden="true" />
               {r.sub ? <span className="p2-wf-of">of which </span> : null}
               {r.label}
-            </span>
+            </span>{' '}
             <span className="p2-wf-track" aria-hidden="true">
               <span className="p2-wf-zero" />
               {/* GDP equals the sum: a dashed connector from the last part's
@@ -156,7 +156,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
                   transitionDelay: on ? `${i * t.grow}ms` : '0ms',
                 }}
               />
-            </span>
+            </span>{' '}
             <span
               ref={(el) => {
                 if (cells) cells.current[r.id] = el;

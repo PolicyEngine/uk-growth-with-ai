@@ -5,7 +5,7 @@
 // a broken test, not a pending one.
 import S from '@/lib/activeData.js';
 import S2028 from '@/data/surprise2028.json';
-import S2027 from '@/data/surprise2027.json';
+import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
 import { COHORT_YEAR } from '@/lib/dataKeys.js';
 
 // The surprise file of the cohort file's own shock year (R2-03: cohort

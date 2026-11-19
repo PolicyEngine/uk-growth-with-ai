@@ -8,7 +8,9 @@ import S from '@/lib/activeData.js';
 import CO from '@/data/cohorts2028.json';
 import { NavProvider } from '@/lib/nav.jsx';
 import ResultsTab from '@/tabs/ai/ResultsTab.jsx';
-import { economyAnswer, financesAnswer } from '@/tabs/explore/answers.js';
+import { economyAnswer } from '@/tabs/explore/answers.js';
+import { financesFinding } from '@/tabs/ai/financesInfo.js';
+import { CALENDAR } from '@/lib/obrOverlap.js';
 import { debtParts } from '@/tabs/ai/FinancesSection.jsx';
 import { stressItems } from '@/tabs/ai/Headline.jsx';
 import { whySigns } from '@/tabs/cohorts/CohortsTab.jsx';
@@ -52,7 +54,6 @@ describe('the answer chips that open Economy and Public finances', () => {
           const cl = clOf(closure);
           for (const [fn, vars] of [
             [economyAnswer, ['Y', 'GNI', 'w']],
-            [financesAnswer, ['debt_gdp_pp', 'tax_gdp_pp']],
           ]) {
             const items = fn(sid, closure, rule);
             if (typeof items === 'string') {
@@ -84,6 +85,38 @@ describe('the answer chips that open Economy and Public finances', () => {
         });
 });
 
+// Public finances renders financesFinding (ExploreTab's FinancesAnswer), so
+// the debt/GDP sign caveat is tested there (review round 4, R4-02). The
+// netted gap is computed here from the raw data: the main version less
+// the slope to "technology unchanged" times min(input, the calendar
+// clock's high end).
+const CAVEAT = 'The direction of debt/GDP depends on the productivity gain; see “technology unchanged”.';
+const debtFlips = (sid, cl) => {
+  const x = val(sid, 'tfp', cl, 'debt_gdp_pp', 'common');
+  const z = val(sid, 'tz', cl, 'debt_gdp_pp', 'common');
+  const t = S.scenarios.find((s) => s.id === sid).tfp_gain_pct;
+  if (x == null || z == null) return false;
+  const n = Math.min(t, CALENDAR.hi);
+  const y = x - ((x - z) / t) * n;
+  return word(x) !== 'on' && word(y) !== word(x);
+};
+describe('the Public finances Finding: the debt/GDP sign caveat', () => {
+  it('fires where the netted debt gap leaves its side, under the common rule only', () => {
+    const fired = [];
+    for (const sid of SCEN)
+      for (const closure of CLOSURES)
+        for (const rule of RULES) {
+          const f = financesFinding(sid, closure, rule);
+          if (!f) continue;
+          const has = f.lines.includes(CAVEAT);
+          expect(has, `${sid} ${closure} ${rule}`).toBe(rule === 'common' && debtFlips(sid, clOf(closure)));
+          if (has && closure !== 'both') fired.push(`${sid} ${clOf(closure)}`);
+        }
+    // on the 2028 runs: UK central and UK low at ζK 0.1, UK high at ζK 0
+    if (S.surprise_year === 2028) expect(fired.sort()).toEqual(['uk_central zk0.1', 'uk_high zk0', 'uk_low zk0.1'].sort());
+  });
+});
+
 describe('the cards’ inline arrows', () => {
   for (const sid of SCEN)
     for (const closure of CLOSURES)
@@ -110,7 +143,7 @@ describe('the cards’ inline arrows', () => {
           else {
             const cls = closure === 'both' ? ['zk0.1', 'zk0'] : [cl];
             const sides = new Set(cls.flatMap((c) => ['tfp', 'tz', 'ss'].map((arm) => dataDir(val(sid, arm, c, 'debt_gdp_pp', rule, L)))));
-            if (rule === 'dn' && sides.size === 1 && sides.has('on')) expect(title).toContain('stays on the path');
+            if (rule === 'dn' && sides.size === 1 && sides.has('on')) expect(title).toContain('stays on the forecast path');
             else if (sides.size === 1) expect(title).toContain(`is ${[...sides][0]} the path`);
             else expect(title).toMatch(/except in|depends on/);
             // at the OBR's repricing speed: the arrow follows that value's sign

@@ -390,11 +390,11 @@ function BreakEvenPanel({ on }) {
       <ol className="p3-ch-be" data-mark="breakeven">
         {BREAKS.map((b, i) => (
           <li key={b.id} className="p3-ch-be-row" data-row={`be-${b.id}`} data-mark={`be-${b.id}`} style={{ '--beat': `${i * 200}ms` }}>
-            <span className="p3-row-label">{b.label}</span>
+            <span className="p3-row-label">{b.label}</span>{' '}
             <span className="p3-ch-be-from">
               <span className="p3-ch-be-cap">Main</span> <span data-input="">{b.centralText}</span>
             </span>
-            <span className={`p3-ch-be-arrow${on ? ' is-on' : ''}`} aria-hidden="true" />
+            <span className={`p3-ch-be-arrow${on ? ' is-on' : ''}`} aria-hidden="true" />{' '}
             <span className="p3-ch-be-to">
               <span className="p3-ch-be-cap">Break-even</span> <strong className="p3-row-value">{b.valueText}</strong>
             </span>

@@ -336,13 +336,13 @@ export function debtParts(sid, cl) {
   let atOnce = null;
   if (Number.isFinite(obr)) {
     lead = `ends ${side(obr)} the forecast path in ${LATE_YEAR}`;
-    const once = 'in the model, all debt pays the higher rate at once';
-    if (side(obr) !== side(d)) atOnce = `${once}, and it ends ${side(d)} the path`;
+    const once = 'in the model all debt pays the higher rate at once';
+    if (side(obr) !== side(d)) atOnce = `${once}, and debt ends ${side(d)} the forecast path`;
     else if (d > 0.005 && obr > 0.005 && timesWord(d / obr)) atOnce = `${once}, and the gap is ${timesWord(d / obr)} as large`;
     else if (d > 0.005 && obr > 0.005 && d > obr) atOnce = `${once}, and the gap is larger`;
   } else {
     lead = `ends ${side(d)} the forecast path in ${LATE_YEAR}`;
-    if (why) atOnce = 'in the model, all debt pays the higher rate at once';
+    if (why) atOnce = 'in the model all debt pays the higher rate at once';
   }
   return { text: ` ends ${side(d)} the forecast path in ${LATE_YEAR}${why}`, slow, obrPace: Number.isFinite(obr), lead, atOnce, d, obr: Number.isFinite(obr) ? obr : null };
 }
@@ -390,35 +390,36 @@ function DebtWords({ p }) {
   );
 }
 
-// The GDP scene's one debt line (voice pass, item 7; Maria's point 5):
-// under the scene's closing caption, in its frame, the OBR-pace result
-// first, then the model's at-once repricing in plain words. It also holds
-// the scene's one "More on Explore" link.
+// The GDP scene's debt lines (voice pass, item 7; Maria's point 5;
+// review round 4, R4-01). With a pinned figure the scene's caption ends
+// the last card, so the OBR-pace result sits in the ledger slot (DebtPace,
+// under the headline figures) and the caption note carries the model's
+// at-once repricing, which then reads second. Layout-neutral: the two
+// slots exchanged their sentences.
+//
+// The caption note: the at-once half, then the scene's one "More on
+// Explore" link; the link alone where there is no at-once half.
 export function DebtNote({ sid, cl }) {
   const p = debtParts(sid, cl);
   if (!p) return null;
-  // the OBR-pace result only (check_text: a block of at most 25 words);
-  // the model's at-once repricing follows under the headline ledger
-  // (DebtOnce)
   return (
     <>
-      {p.obrPace ? 'At the OBR’s repricing pace, public debt' : 'Public debt'} {p.lead}.{' '}
+      {p.atOnce ? `${p.atOnce[0].toUpperCase()}${p.atOnce.slice(1)}. ` : null}
       <NavLink tab="explore" sub="finances" anchor="public-finances">
         More on Explore
       </NavLink>
     </>
   );
 }
-// The second half of the debt line (Maria's point 5: the at-once repricing
-// second, in plain words), under the headline ledger. null where there is
-// nothing to add.
-export function DebtOnce({ sid }) {
+// The ledger slot, under the headline figures: the OBR-pace result (check_text:
+// one sentence, at most 25 words).
+export function DebtPace({ sid }) {
   const { cl } = useSummary(sid);
   const p = debtParts(sid, cl);
-  if (!p?.atOnce) return null;
+  if (!p) return null;
   return (
-    <p className="p2-note p2-debt-once" data-claim="debt-once">
-      {`${p.atOnce[0].toUpperCase()}${p.atOnce.slice(1)}.`}
+    <p className="p2-note p2-debt-once" data-claim="debt-pace">
+      {p.obrPace ? 'At the OBR’s repricing pace, public debt' : 'Public debt'} {p.lead}.
     </p>
   );
 }

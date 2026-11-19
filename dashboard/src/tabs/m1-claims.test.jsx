@@ -4,10 +4,11 @@
 // with the page's helper, and each claim must print exactly where it holds.
 import { describe, expect, it, vi } from 'vitest';
 import S2028 from '@/data/surprise2028.json';
-import S2027 from '@/data/surprise2027.json';
+import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
 import CO from '@/data/cohorts2028.json';
 
-const FILES = { 2028: S2028, 2027: S2027 };
+// the 2027 file only when it is loaded (R4-16)
+const FILES = Object.fromEntries(Object.entries({ 2028: S2028, 2027: S2027 }).filter(([, D]) => D));
 const pickFile = async (D) => {
   vi.resetModules();
   vi.doMock('@/lib/activeData.js', () => ({ default: D }));
@@ -131,7 +132,8 @@ for (const [name, D] of Object.entries(FILES)) {
           }
           const obr = D.results[sid].tfp[cl].debt_gdp_pp_obr_repricing_late;
           expect(line.startsWith(`At the OBR’s repricing pace, public debt ends ${side(obr)} the forecast path in ${D.late_year}`), `${sid} ${cl}`).toBe(true);
-          expect(line.includes(`and it ends ${side(d)} the path`)).toBe(side(obr) !== side(d));
+          expect(line.includes(`and debt ends ${side(d)} the forecast path`)).toBe(side(obr) !== side(d));
+          expect(line).not.toMatch(/\bthe path\b/);
         }
     });
 
@@ -211,8 +213,11 @@ describe('what the gain is made of (Maria’s point 4; item-18 “All 12 cells�
     const w = gainWords();
     expect(w.state).toBe(min >= 0.005 ? 'gain' : min < 0 ? 'loss' : null);
     if (min >= 0.005) {
-      expect(w.text.startsWith('Every birth year gains on average as modelled')).toBe(true);
-      expect(w.text.includes('mostly from the value the model puts on bequests')).toBe(c.parts_alive.bequests / c.alive_avg > 0.5);
+      // the title states "every birth year gains"; the closing line says it
+      // only where it has nothing on what the gain is made of (R4-07)
+      const beq = c.parts_alive.bequests / c.alive_avg > 0.5;
+      expect(w.text.startsWith('Every birth year gains on average as modelled')).toBe(!beq);
+      expect(w.text.includes('Most of the gain is the value the model puts on bequests')).toBe(beq);
       expect(w.text.includes('consumption changes little')).toBe(c.parts_alive.bequests / c.alive_avg > 0.5 && Math.abs(c.parts_alive.consumption) / c.alive_avg < 0.2);
     }
     // "from 2036", the year after the last charged year (item 21, row 4)

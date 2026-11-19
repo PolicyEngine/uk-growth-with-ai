@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { useNav } from '@/lib/nav.jsx';
-import { ConsumptionLine, DebtNote, DebtOnce, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
+import { ConsumptionLine, DebtNote, DebtPace, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
@@ -162,8 +162,10 @@ export default function Part2({ part }) {
 // #story-headline, which the Hero, Explore and Headline link to): one
 // sentence with no figure and no link that names the scenario, the year and
 // the forecast path (headline-tiles-fable.md section 2; no chip), then a
-// three-row ledger of label, number and note. The public debt line is the
-// scene's caption note (DebtNote, under the closing line in the frame).
+// three-row ledger of label, number and note. Under it, the consumption
+// line and the OBR-pace debt result (DebtPace); the model's at-once
+// repricing is the scene's caption note (DebtNote), which ends the last
+// card when the figure is pinned (R4-01).
 // What the figures are measured against (main arm, forecast path) is in
 // the GDP figure's notes (part2/Morph.jsx, morphGroups).
 function headlineStep(sid) {
@@ -180,7 +182,7 @@ function headlineStep(sid) {
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
           <HeadlineTiles sid={sid} />
           <ConsumptionLine sid={sid} />
-          <DebtOnce sid={sid} />
+          <DebtPace sid={sid} />
         </section>
       </>
     ),
