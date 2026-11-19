@@ -15,7 +15,7 @@
 // A key is built from the file's own year fields, or found by its prefix
 // with its years and age read from the key itself.
 import S from '@/lib/activeData.js';
-import { DATA_SET, DATA_FILE } from '@/lib/dataFlag.js';
+import { DATA_SET } from '@/lib/dataFlag.js';
 import NICS2028 from '@/tabs/explore/nics2028.json';
 import CO2028 from '@/data/cohorts2028.json';
 import V2028 from '@/data/site-versions.json';
@@ -132,10 +132,16 @@ const SETS = {
   },
 };
 // The active set's entry, each null field filled from the 2028 set.
-export const SET = Object.fromEntries(Object.entries(SETS[2028]).map(([k, v]) => [k, SETS[DATA_SET][k] ?? v]));
+// keyed by the data file's own shock year, so the paths always match the
+// data shown (the flag only picks the file)
+const ACTIVE_SET = SETS[S.surprise_year] ?? SETS[DATA_SET];
+export const SET = Object.fromEntries(Object.entries(SETS[2028]).map(([k, v]) => [k, ACTIVE_SET[k] ?? v]));
 // The fields the active set takes from 2028 (empty on the 2028 set).
-export const SET_MISSING = Object.keys(SETS[2028]).filter((k) => SETS[DATA_SET][k] == null);
-export { DATA_SET, DATA_FILE };
+export const SET_MISSING = Object.keys(SETS[2028]).filter((k) => ACTIVE_SET[k] == null);
+export { DATA_SET };
+// The data file's name, from the file itself (its shock year), so a page
+// never names one file while showing another.
+export const DATA_FILE = `surprise${S.surprise_year}.json`;
 // Is the active set's own copy of a SET field in place (not the 2028
 // fallback)? Pages that would print a 2028 commit or solve time beside the
 // active data say what they have instead (R3-04).

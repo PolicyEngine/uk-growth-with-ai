@@ -29,7 +29,7 @@ export const STEPS = [
       'It never touches anyone else’s lock.',
       'DEADLINE_AT (default 19:25) and SOLVE_BUDGET (default 600 s) gate each solve.',
     ],
-    code: `# The default plan, in Vahid's order of 12 Nov 2026
+    code: `# The default plan (12 Nov 2026)
 analysis/surprise/run_locked.sh
 
 # Or named items only, with a later deadline

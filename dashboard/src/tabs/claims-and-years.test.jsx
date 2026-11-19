@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import S2028 from '@/data/surprise2028.json';
 import S2027 from '@/data/surprise2027.json';
-import { typedYears, yearKeys, yearArithmetic, mixedLines } from '@/lib/sourceScan.js';
+import { typedYears, yearKeys, yearArithmetic, mixedLines, typedYearsWide } from '@/lib/sourceScan.js';
 import BASE from '../../scripts/ratchet-baselines.json';
 import { recordCount } from '@/lib/probeTestUtils.jsx';
 
@@ -79,6 +79,7 @@ const ARITH = [
   ['lib/labels.js', 'SURPRISE_YEAR + 1', 'debt is on the path from the year after the shock: transfers at t set debt at t+1'],
   ['lib/labels.js', 'LATE_YEAR - 1', 'the last year transfers adjust, before the debt rule'],
   ['tabs/ai/financesInfo.js', 'SURPRISE_YEAR + 1', 'debt on the path from the year after the shock'],
+  ['tabs/ai/FinancesSection.jsx', 'SURPRISE_YEAR + 1', 'the debt-neutral lead: debt on the path from the year after the shock (R2-01, push B 19cf757; the transfers line has no year)'],
   ['tabs/method/inputs.js', 'SURPRISE_YEAR + 1', 'debt on the path from the year after the shock'],
   ['tabs/ai/surprise.js', 'SURPRISE_YEAR + 1', 'RAMP_STEPS: years from the shock to the headline year, inclusive'],
   ['tabs/story/Hero.jsx', 'SURPRISE_YEAR + 1', 'YEARS_ON: the same inclusive count'],
@@ -460,5 +461,94 @@ describe('tolerance gates, the stress test held (R3-05)', () => {
           }
         }
       expect(n).toBeGreaterThan(0);
+    });
+});
+
+// ---- Round 3's probe gaps -------------------------------------------------
+describe('round 3 probe gaps', () => {
+  // Years outside 2026-2039 ("Born after 2011" passed the narrow scan): each
+  // is a fixed source or history year unless it moves with the data; the
+  // count may only fall.
+  it('years outside 2026-2039, counted', () => {
+    const hits = typedYearsWide();
+    within('typed_years_wide', hits.length);
+  });
+
+  // Commit and data-file mixing: under one data set, no page prints the
+  // other set's results commit or data file name (Data and code, Method,
+  // Explore, the Story), in text, links or aria-labels.
+  for (const [name, D] of Object.entries(FILES))
+    it(`no other set's commit or data file, surprise${name}.json`, async () => {
+      await pickFile(D);
+      const other = name === '2028' ? S2027 : S2028;
+      const bad = [other.source_commit, `surprise${other.surprise_year}.json`].filter((t) => t !== D.source_commit);
+      const { NavProvider } = await import('@/lib/nav.jsx');
+      const pages = [
+        ['tab=code', (await import('@/tabs/code/CodeTab.jsx')).default],
+        ['tab=method', (await import('@/tabs/method/MethodTab.jsx')).default],
+        ['tab=explore&sub=economy', (await import('@/tabs/explore/ExploreTab.jsx')).default],
+        ['tab=explore&sub=who', (await import('@/tabs/explore/ExploreTab.jsx')).default],
+        ['tab=story', (await import('@/tabs/story/StoryTab.jsx')).default],
+      ];
+      const found = [];
+      for (const [q, Page] of pages) {
+        window.history.replaceState(null, '', `/?${q}`);
+        const r = render(
+          <NavProvider>
+            <Page />
+          </NavProvider>,
+        );
+        for (const b of r.container.querySelectorAll('button.src-line-btn')) b.click();
+        // the dated changelog records past commits on purpose
+        for (const h of document.querySelectorAll('#changelog')) h.closest('section')?.remove();
+        const blob = [document.body.textContent, ...[...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')), ...[...document.querySelectorAll('[aria-label]')].map((e) => e.getAttribute('aria-label'))].join('\n');
+        for (const t of bad) if (blob.includes(t)) found.push(`${q}: ${t}`);
+        r.unmount();
+      }
+      if (found.length) console.warn('mixed commits or files:', found);
+      within('commit_mixing', found.length);
+    });
+
+  // Sentences about a pending scenario, in text and aria-labels: none says
+  // where it goes ("rises", "above the path"...). On the full file a
+  // synthetic pending UK low keeps the check live.
+  for (const [name, D0] of Object.entries(FILES))
+    it(`no direction claimed for a pending scenario, surprise${name}.json`, async () => {
+      const D = D0.scenarios.some((x) => !done(D0, x.id, 'tfp', 'zk0.1'))
+        ? D0
+        : (() => {
+            const F = JSON.parse(JSON.stringify(D0));
+            for (const a of ['tfp', 'tz', 'ss']) for (const cl of ['zk0.1', 'zk0']) F.results.uk_low[a][cl] = { status: 'pending' };
+            if (F.output_split?.change?.uk_low) for (const cl of ['zk0.1', 'zk0']) F.output_split.change.uk_low[cl] = { status: 'pending' };
+            return F;
+          })();
+      await pickFile(D);
+      const { NavProvider } = await import('@/lib/nav.jsx');
+      const { default: Story } = await import('@/tabs/story/StoryTab.jsx');
+      const { default: Explore } = await import('@/tabs/explore/ExploreTab.jsx');
+      const { SCEN_NAME } = await import('@/tabs/ai/surprise.js');
+      const DIR = /\b(rises?|falls?|grows?|gains?|loses?|higher|lower|above|below)\b/;
+      const found = [];
+      for (const s of D.scenarios.filter((x) => !done(D, x.id, 'tfp', 'zk0.1') && !done(D, x.id, 'tfp', 'zk0'))) {
+        const nm = SCEN_NAME[s.id];
+        for (const [q, Page] of [[`tab=story&s=${s.id}`, Story], [`tab=explore&sub=economy&s=${s.id}`, Explore], [`tab=explore&sub=finances&s=${s.id}`, Explore]]) {
+          window.history.replaceState(null, '', `/?${q}`);
+          const r = render(
+            <NavProvider>
+              <Page />
+            </NavProvider>,
+          );
+          const units = [...r.container.querySelectorAll('p, li, h2, h3, h4, figcaption, td, button')]
+            .filter((e) => !e.querySelector('p, li, h2, h3, h4, figcaption, td, button'))
+            .map((e) => e.textContent)
+            .concat([...r.container.querySelectorAll('[aria-label]')].map((e) => e.getAttribute('aria-label')));
+          for (const u of units)
+            for (const sent of u.split(/(?<=[.;])\s+/))
+              if (sent.includes(nm) && DIR.test(sent) && !/not yet solved|not solved/.test(sent)) found.push(`${q}: ${sent.slice(0, 140)}`);
+          r.unmount();
+        }
+      }
+      if (found.length) console.warn('pending-scenario sentences:', found);
+      within('pending_sentences', found.length);
     });
 });

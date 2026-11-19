@@ -16,8 +16,12 @@ import { SOURCES } from '@/data/literature.js';
 import { valueHref } from '@/tabs/literature/pages.js';
 import CHECKS from './checksHook.js';
 
-export const VERSIONS = V.entries;
-export const version = (id) => V.entries.find((e) => e.id === id);
+// The versions behind the results. While the active set has no versions
+// file of its own, its solves are the data file's commit, never the 2028
+// solves (R3-04); everything that cites the solves (the table, the ledger,
+// the citation) reads this.
+export const VERSIONS = V.entries.map((e) => (e.id === 'solves' && !setHas('versionsFile') ? { ...e, label: `OG-UK solves (${SURPRISE_YEAR} surprise)`, value: S.source_commit, where: `${DATA_FILE} source_commit; the versions file for this set is not built yet` } : e));
+export const version = (id) => VERSIONS.find((e) => e.id === id);
 
 const day = (t) => (t ? String(t).slice(0, 10) : null);
 const shortSha = (x) => String(x).slice(0, 7);
@@ -75,7 +79,7 @@ export const MODEL_VERSIONS = [
   // "PolicyEngine UK" in prose, "policyengine-uk" for the package)
   // the 2028 solves' commit is not the active set's: on another set the row
   // names the data file's own commit (R3-04)
-  ...V.entries.map((e) => (e.id === 'solves' && !setHas('versionsFile') ? { ...e, label: `OG-UK solves (${SURPRISE_YEAR} surprise)`, value: S.source_commit, where: `${DATA_FILE} source_commit; the versions file for this set is not built yet` } : e)).map((e) => ({ model: 'OG-UK', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
+  ...VERSIONS.map((e) => ({ model: 'OG-UK', ...e, label: e.label === 'PolicyEngine-UK' ? 'policyengine-uk' : e.label })),
   { model: 'Household study', id: 'ai_pe_uk', label: 'policyengine-uk', value: AIM.policyengine_uk, where: 'aiStudy2425.json: the study’s build' },
   { model: 'Household study', id: 'ai_pe', label: 'policyengine', value: AIM.policyengine, where: 'aiStudy2425.json: release bundle' },
 ];

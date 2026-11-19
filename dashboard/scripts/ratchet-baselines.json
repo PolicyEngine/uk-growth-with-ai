@@ -18,28 +18,28 @@
       "source": "claims-and-years.test.jsx: year literals outside the allowlist"
     },
     "caption_length": {
-      "baseline": 22,
-      "source": "caption-length.test.jsx, both data files, with the Story figure titles and units (.story-figure-title, .story-figure-unit) read without their sources buttons: 12 Story units and 1 stacked Morph title (the Story-frames lane shortens the data lines), 2 Explore unit lines, 4 Data and code ledger items, 1 Households policy card, and the rest from the same groups"
+      "baseline": 20,
+      "source": "caption-length.test.jsx, both data files, lowered to 20 by ratchet --update at perf/c-swap2 (C0 fixes)"
     },
     "label_joins": {
-      "baseline": 30,
-      "source": "label-joins.test.jsx at the C1 head, both data files: R1-21 starting list (story-fact, p2-wf-row, ex-mtoggle-row, bars lists, ex-mx-btn, p3-ch-be-row)"
+      "baseline": 21,
+      "source": "label-joins.test.jsx, both data files, lowered to 21 by ratchet --update at perf/c-swap2 (C0 fixes to R1-21)"
     },
     "eslint_ugai_one_chooser": {
-      "baseline": 2,
-      "source": "ugai/one-chooser: ResultsTab ControlBar, HouseholdsExplore role=switch"
+      "baseline": 1,
+      "source": "ugai/one-chooser: HouseholdsExplore role=switch (lowered from 2, R3-13; ResultsTab ControlBar gone in C0)"
     },
     "eslint_ugai_one_fold": {
-      "baseline": 2,
-      "source": "ugai/one-fold: chart/Frame.jsx <summary>Sources</summary>, PartHead.jsx <summary>About this model</summary>"
+      "baseline": 8,
+      "source": "ugai/one-fold, widened in R3-13 to any Disclosure whose title is not the literal \"More info\": CodeTab x5 (four scoped folds plus the older changes), Card.jsx AboutFold (title prop), chart/Frame.jsx <summary>Sources>, PartHead <summary>About this model>. Was 2 under the narrower rule"
     },
     "eslint_ugai_one_card_shell": {
       "baseline": 3,
       "source": "ugai/one-card-shell: ab/InfoCard.jsx in HouseholdsMethod, MethodTab, ScenariosSection"
     },
     "year_arithmetic_unnamed": {
-      "baseline": 1,
-      "source": "claims-and-years.test.jsx: FinancesSection.jsx:594 \"adjust each year from ${SURPRISE_YEAR + 1}\" (R2-01; fixed in push B 19cf757, where the transfers line has no year: drops to 0 at the merge)"
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx: every piece of year arithmetic named; R2-01 landed with push B, so FinancesSection's SURPRISE_YEAR + 1 is now the named debt-neutral lead"
     },
     "mixed_cohort_years": {
       "baseline": 0,
@@ -48,6 +48,22 @@
     "fold_titles": {
       "baseline": 7,
       "source": "caption-length.test.jsx fold probe, both data files: PartHead \"About this model\"; Data and code \"Install the model\", \"Patch OG-Core for a time-varying γ\", \"Environment\", \"The sp helper used below\", \"Earlier changes\" (7 renders)"
+    },
+    "typed_years_wide": {
+      "baseline": 52,
+      "source": "claims-and-years.test.jsx (round 3): year literals 1950-2025 and 2040-2099 outside comments, at perf/c-swap2; mostly source and history years (part3 sources, part1 findings, Households method); includes \"Born after 2011\" (CohortsTab), which waits for a cohort field"
+    },
+    "commit_mixing": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx (round 3): the other data set's results commit or data file name on Data and code, Method, Explore, the Story (text, links, aria), the dated changelog excepted"
+    },
+    "pending_sentences": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx (round 3): a sentence or aria-label naming a scenario not solved together with a direction word"
+    },
+    "label_joins_letters": {
+      "baseline": 201,
+      "source": "label-joins.test.jsx (R3-18, R2-33): word-word, date-word, year-word, commit-word, paren-word and sentence joins in row textContent and aria-labels, at perf/c-swap2 (2028 file; 197 on 2027). Most are responsive long/short label pairs (Some foreign capitalSome) and More info button previews; C0 adds the spaces"
     }
   },
   "browser": {

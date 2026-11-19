@@ -168,3 +168,19 @@ export function mixedLines(files = sourceFiles()) {
   }
   return hits;
 }
+
+// Year literals outside 2026-2039 (review round 3: "Born after 2011" passed
+// the narrow scan): 1950-2025 and 2040-2099, outside comments. Counted on
+// their own key (typed_years_wide); each is a fixed historical or source
+// year unless it moves with the data.
+const WIDE_RE = /(?<![\d.\w/-])(?:19[5-9]\d|20[01]\d|202[0-5]|20[4-9]\d)(?![\d\w])/g;
+export function typedYearsWide(files = sourceFiles()) {
+  const hits = [];
+  for (const f of files)
+    read(f)
+      .split('\n')
+      .forEach((line, k) => {
+        for (const m of line.matchAll(WIDE_RE)) hits.push({ file: f, line: k + 1, year: Number(m[0]), text: line.trim() });
+      });
+  return hits;
+}
