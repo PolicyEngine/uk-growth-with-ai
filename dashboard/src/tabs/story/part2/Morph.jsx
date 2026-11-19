@@ -442,16 +442,14 @@ function useMorphScrub(ref, on, g1, g2) {
     // state, so the hand-back cannot find them by selector (a jump from
     // part-way through the step left the growth layer at part opacity)
     const touched = new Set();
-    // transforms the scrub writes, and the one React had set before: on the
-    // way out each goes back to React's value unless React has since set a
-    // new one (a jump onward keeps a tick's or a dot's transform otherwise,
-    // as React sees no change: "2031" left on the plot's edge over "Year")
-    const orig = new Map();
-    const wrote = new Map();
+    // the elements whose transform the scrub writes: on the way out each
+    // takes React's current transform again, from its data-tx (React may not
+    // rewrite the style itself when its value did not change, as on a jump
+    // onward: "2031" left on the plot's edge over "Year")
+    const wrote = new Set();
     const setT = (el, v) => {
-      if (!orig.has(el)) orig.set(el, el.style.transform);
       el.style.transform = v;
-      wrote.set(el, el.style.transform);
+      wrote.add(el);
     };
     const apply = (p) => {
       const { g1: a, g2: b } = geo.current;
@@ -514,7 +512,10 @@ function useMorphScrub(ref, on, g1, g2) {
       stop();
       // hand back to the classes
       for (const el of touched) el.style.opacity = '';
-      for (const [el, v] of wrote) if (el.style.transform === v) el.style.transform = orig.get(el) ?? '';
+      // each scrubbed transform back to React's current one, which every
+      // such element mirrors in data-tx (a cached value is wrong after a
+      // scroll back up: React's new value can equal the scrub's last write)
+      for (const el of wrote) if (el.dataset.tx != null) el.style.transform = el.dataset.tx;
     };
   }, [on, ref]);
 }
@@ -685,7 +686,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
             const on = X_TICKS[k].includes(x);
             const sx = sc ? `${tickX(x, 1).toFixed(1)},${tickX(x, 2).toFixed(1)},${X_TICKS[1].includes(x) ? 1 : 0},${X_TICKS[2].includes(x) ? 1 : 0}` : undefined;
             return (
-              <g key={`x${x}`} className={`p2-mo-x${on ? ' is-on' : ''}`} data-scrub-x={sx} style={{ transform: `translate(${tickX(x, k).toFixed(1)}px, 0px)` }}>
+              <g key={`x${x}`} className={`p2-mo-x${on ? ' is-on' : ''}`} data-scrub-x={sx} data-tx={`translate(${tickX(x, k).toFixed(1)}px, 0px)`} style={{ transform: `translate(${tickX(x, k).toFixed(1)}px, 0px)` }}>
                 {/* the growth axis's last year sits on the plot's right edge:
                     end-anchored there, so it is not cut by the svg (item 30,
                     "2031" clipped at 390); its first year sits on the left
@@ -700,7 +701,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           {/* the UK range, shaded once UK low and UK high are drawn */}
           {band ? <Tween className={`p2-mo-band${s >= 3 ? ' is-on' : ''}`} morph={{ d: band }} /> : null}
           {/* the zero line moves from zero growth to the OBR’s central forecast path */}
-          <line data-mark="path" data-scrub-zero={sc ? '' : undefined} x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
+          <line data-mark="path" data-scrub-zero={sc ? '' : undefined} x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" data-tx={`translate(0px, ${g.zeroY.toFixed(1)}px)`} style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
             {sc ? (
               <path data-mark="ons" data-scrub-path="act" className="p2-mo-line p2-mo-act is-on" d={dPath(g1.act)} />
@@ -708,7 +709,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               <Tween data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
             )}
             {(sc ? g1 : g).act.map(([x, y], i) => (
-              <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 || sc ? ' is-on' : ''}`} data-scrub-pt={sc ? `${x},${y},${g2.act[i][0]},${g2.act[i][1]}` : undefined} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
+              <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 || sc ? ' is-on' : ''}`} data-scrub-pt={sc ? `${x},${y},${g2.act[i][0]},${g2.act[i][1]}` : undefined} data-tx={`translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
                 <circle r={2.8} className={`p2-mo-dot${PARTIAL && PARTIAL.x === ACT[i][0] ? ' is-open' : ''}`} />
               </g>
             ))}
@@ -722,7 +723,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               const j = YEARS.indexOf(x);
               const p = j >= 0 ? gx.obr[j] : [gx.X(x), gx.zeroY];
               return (
-                <g key={`o${x}`} className={`p2-mo-move${k === 1 || sc ? ' is-on' : ''}`} data-scrub-pt={sc && j >= 0 ? `${p[0]},${p[1]},${g2.obr[j][0]},${g2.obr[j][1]}` : undefined} data-scrub={sc && j < 0 ? 'out2' : undefined} style={{ transform: `translate(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px)` }}>
+                <g key={`o${x}`} className={`p2-mo-move${k === 1 || sc ? ' is-on' : ''}`} data-scrub-pt={sc && j >= 0 ? `${p[0]},${p[1]},${g2.obr[j][0]},${g2.obr[j][1]}` : undefined} data-scrub={sc && j < 0 ? 'out2' : undefined} data-tx={`translate(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px)`} style={{ transform: `translate(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px)` }}>
                   <circle r={2.8} className="p2-mo-dot is-open" data-i={i} />
                 </g>
               );
