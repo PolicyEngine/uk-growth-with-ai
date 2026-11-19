@@ -93,7 +93,6 @@ const ARITH = [
   ['tabs/cohorts/CohortsTab.jsx', 'shockYear - 20', 'the youngest adult alive at the shock is 20'],
   ['tabs/story/part2/charts.jsx', 'shock_year - 20', 'the same: LAST_ALIVE'],
   ['tabs/cohorts/CohortsTab.jsx', 'lastFlowYear + 1', 'the debt rule starts the year after the last flow year'],
-  ['tabs/method/ScenariosSection.jsx', 'HEADLINE_YEAR - 1', 'the ramp years before full weight'],
   ['tabs/story/Hero.jsx', 'LATE_YEAR - 2', 'where the UK-range label sits (layout only)'],
   ['tabs/story/part2/Morph.jsx', 'SURPRISE_YEAR - 2', 'a fallback used only when the ONS record is empty'],
 ];

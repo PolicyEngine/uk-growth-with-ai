@@ -12,7 +12,7 @@ import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
   HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, fmt, signed, SCEN_NAME, ruleSolved, solvedUnder, PENDING, heldAtHeadline,
 } from '@/tabs/ai/surprise.js';
-import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
+import { seriesFor, closuresFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
 import { MEASURE, ruleLabel, rulePlain } from '@/lib/labels.js';
 import { Dumbbells, HeadlineNote, stressItems, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
@@ -24,9 +24,9 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
-import { investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
+import { investmentFlags, I_FLAG_PCT, belowThrough, investHighTo } from '@/tabs/explore/caveats.js';
 import { payCaveat } from '@/tabs/story/part2/caveats.js';
-import { CENTRAL, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
+import { CENTRAL, BOUND, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
 import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 
 // Results. The answer and the three headline figures are on Story.
@@ -256,6 +256,21 @@ function coincideFinding(sid, closure, rule = 'common') {
 const C_BELOW = belowThrough('uk_central', CENTRAL) === LATE_YEAR ? LATE_YEAR : null;
 const TOP_FLAG = investmentFlags()[0] ?? null;
 
+// The Investment tile's "stays high, then drops" caveat, per cell (review
+// round 5, R5-16): the year from investHighTo, main version, for each
+// closure shown. null where no closure shown has such a year (no foreign
+// capital: investment stays up about evenly). In "both", the closure is
+// named unless the two agree.
+const CL_WORDS = { [CENTRAL]: 'some foreign capital', [BOUND]: 'no foreign capital' };
+function investHighLine(sid, closure, rule) {
+  const cells = closuresFor(closure).map((cl) => ({ cl, to: investHighTo(sid, cl, rule) }));
+  const hit = cells.filter((c) => c.to != null);
+  if (!hit.length) return null;
+  const line = (to) => `stays high while the shock builds, to ${to}, then drops`;
+  if (hit.length === cells.length && new Set(hit.map((c) => c.to)).size === 1) return `It ${line(hit[0].to)}`;
+  return hit.map((c, i) => `${i ? 'with' : 'With'} ${CL_WORDS[c.cl]}, it ${line(c.to)}`).join('; ');
+}
+
 // Each group and card names its concept; the icon comes from lib/concepts.js.
 const ECONOMY = [
   { group: 'Demand', concept: 'consumption', lede: 'What households spend and what is invested.', rows: [
@@ -265,16 +280,16 @@ const ECONOMY = [
       { key: 'others', icon: 'foreign', text: 'Common rule, some foreign capital: government and foreign owners take part too' },
       C_BELOW ? { key: 'long', icon: 'timing', text: `UK central: consumption stays below the forecast path through ${C_BELOW}` } : null,
     ]} /> } },
-    { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: {
+    { v: 'I', title: 'Investment', name: 'investment', concept: 'investment', method: 'limits', about: (sid, closure, rule) => ({
       caveats: <Items items={[
         { key: 'jump', icon: 'investment', text: <>Investment jumps in {SURPRISE_YEAR}: {ext(URLS.ogCoreDocs, 'OG-Core')} has no adjustment costs</> },
-        { key: 'year1', icon: 'capital', text: `It stays high until the ramp ends in ${HEADLINE_YEAR}, then drops` },
+        investHighLine(sid, closure, rule) ? { key: 'year1', icon: 'capital', text: investHighLine(sid, closure, rule) } : null,
         { key: 'size', icon: 'limit', text: 'That jump is a model property, not a forecast of a boom' },
         { key: 'grows', icon: 'scenario', text: 'It grows with the scenario' },
         TOP_FLAG ? { key: 'flag', icon: 'caveat', text: <>{SN[TOP_FLAG.sid]}{TOP_FLAG.arm === 'tfp' ? ', main version' : ''}, ζK {TOP_FLAG.zeta}: +{Math.round(TOP_FLAG.x)}% in {SURPRISE_YEAR}</> } : null,
         TOP_FLAG ? { key: 'flag2', icon: 'limit', text: <>Implausible: above the +{I_FLAG_PCT}% {ext(OG_RESULT_URLS.sanity, 'investment flag')}, {ext(OG_RESULT_URLS.plausibility, 'beyond any year on record')}</> } : null,
       ]} />,
-    } },
+    }) },
   ] },
   { group: 'Factors', concept: 'capital', lede: 'The capital and labour that production uses.', rows: [
     { v: 'K', title: 'Capital stock', name: 'the capital stock', concept: 'capital', about: { caveats: <Items items={[
@@ -519,7 +534,7 @@ function EconomyPanel({ sid }) {
               endDp={2}
               ends={r.ends ?? true}
               finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'NNI' ? (gniBeside(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
-              about={r.about}
+              about={typeof r.about === 'function' ? r.about(sid, st.closure, st.rule) : r.about}
               method={r.method ?? 'model'}
             />
           </div>

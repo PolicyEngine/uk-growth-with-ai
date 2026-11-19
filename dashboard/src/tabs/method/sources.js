@@ -3,7 +3,7 @@
 // and the cited paragraph, 16 Nov 2026), and one link per modelling choice to
 // the line of code that sets it. A modelling choice is said to be one; no
 // published source is invented for it.
-import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
+import { REPO, URLS, atRef, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import S from '@/lib/activeData.js';
 import { SET, DATA_SET } from '@/lib/dataKeys.js';
 import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
@@ -59,8 +59,10 @@ export const SRC = {
   tg1: { label: 'scenarios.py: TG1 = 10', url: code('uk_growth_with_ai/scenarios.py', 45) },
   // the line that sets the year (R3-16): surprise.py's constant for the 2028
   // set; for another set the driver's YEAR, which every solve passes on as
-  // --start (driver.sh:48 at 816a87e; the brief's :170 is the cohort export)
-  surpriseYear: DATA_SET === 2028 ? { label: `surprise.py: SURPRISE_YEAR = ${SURPRISE_YEAR}`, url: code('uk_growth_with_ai/surprise.py', 56) } : { label: `driver.sh: YEAR=${SURPRISE_YEAR}`, url: code('analysis/surprise/driver.sh', 48) },
+  // --start. driver.sh:48 only holds the default (YEAR="${YEAR:-2028}"), so
+  // the link is the design note's command block, where the run sets it
+  // (review round 5, R5-05)
+  surpriseYear: DATA_SET === 2028 ? { label: `surprise.py: SURPRISE_YEAR = ${SURPRISE_YEAR}`, url: code('uk_growth_with_ai/surprise.py', 56) } : { label: `driver.sh: YEAR=${SURPRISE_YEAR}`, url: atRef(SET.docsRef, `${SET.designDoc}#pipeline-commands-${SURPRISE_YEAR}`) },
   rampWeights: { label: 'surprise.py: ramp weights', url: code('uk_growth_with_ai/surprise.py', 137) },
   debtTarget: { label: 'rerun.py: the 2030 debt target', url: code('uk_growth_with_ai/rerun.py', 74) },
   fiscalRules: { label: 'design note: fiscal rules', url: `${REPO}/blob/${SET.docsRef}/${SET.designDoc}` },
