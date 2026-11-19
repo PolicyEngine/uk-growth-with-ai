@@ -37,6 +37,13 @@ export const foreignShareOf = (rec, D = S) => {
 // One cohort file for both sets until cohorts2027.json lands: its years
 // are its own (COHORT_YEAR is 2028 under either flag), never SURPRISE_YEAR.
 export const COHORTS = CO2028;
+// The commit every cohort link and label names. Pinned, not read from the
+// file's `source`: model-runs' regeneration (rerun/surprise-2027 8d4c082)
+// records uk-growth-with-ai@79c006d, a commit not on GitHub, so push C keeps
+// the published 2558375 (peer ruling). The swap removes the pin, and reads
+// COHORTS.source again, once rerun/surprise-2027 is merged and pushed.
+export const COHORT_SOURCE_COMMIT = '2558375';
+export const COHORT_SOURCE = `${String(COHORTS.source ?? '').split('@')[0] || 'uk-growth-with-ai'}@${COHORT_SOURCE_COMMIT}`;
 export const COHORT_YEAR = COHORTS.shock_year;
 // Never mix years (review round 2, R2-03): any aggregate a cohort sentence
 // cites comes from the surprise file of the cohort's own shock year, and

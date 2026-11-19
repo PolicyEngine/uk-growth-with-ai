@@ -1,7 +1,7 @@
 'use client';
 
 import S from '@/lib/activeData.js';
-import { COHORTS as C } from '@/lib/dataKeys.js';
+import { COHORTS as C, COHORT_SOURCE_COMMIT } from '@/lib/dataKeys.js';
 import U from '@/data/ukContext.json';
 import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
@@ -25,7 +25,7 @@ export function resultUrl(sid, arm, cl) {
 // The no-shock path's own solve at a closure.
 export const pathUrl = (cl) => blob(COMMIT, `analysis/surprise/output/${cl}/continuation.json`);
 // The cohort welfare file is built by its own script, at its own commit.
-const COHORT_COMMIT = String(C.source ?? '').split('@')[1] ?? COMMIT;
+const COHORT_COMMIT = COHORT_SOURCE_COMMIT;
 export const COHORT_COMMIT_TEXT = COHORT_COMMIT;
 export const COHORT_URL = blob(COHORT_COMMIT, String(C.generated_by ?? 'paper/cohort_welfare.py').split(' ')[0]);
 // The dashboard data builder, which assembles every result file into the site's data.
