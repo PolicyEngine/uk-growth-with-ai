@@ -8,7 +8,7 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD, MEASURE } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, YEARS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL, foreignShareOf, PENDING,
+  HEADLINE_YEAR, SURPRISE_YEAR, SCENARIO_COUNT_WORD, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, YEARS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL, foreignShareOf, PENDING,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
@@ -162,7 +162,7 @@ export function SummaryQuestion({ sid, titleId = 'summary-q' }) {
   return (
     <div className="hero">
       <h2 id={titleId} className="hero-q">
-        <span className="hero-q-lead">AI is already here.</span> <span className="hero-q-main">What if, from {SURPRISE_YEAR}, it takes on more work than the OBR expects?</span>
+        <span className="hero-q-lead">How could AI affect the UK economy?</span> <span className="hero-q-main">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</span>
       </h2>
       <Items className="hero-a hero-items" items={heroItems(sid, cl)} />
       <p className="hero-meta">

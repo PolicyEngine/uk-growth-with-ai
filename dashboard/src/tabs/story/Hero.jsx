@@ -13,7 +13,7 @@ import { primaryClosure } from '@/tabs/ai/lines.js';
 import { useSvgScale } from '@/lib/svgScale.js';
 import { payCaveat, payWords } from '@/tabs/story/part2/caveats.js';
 import { incomeNotes, signCaveat } from '@/tabs/ai/Landing.jsx';
-import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
+import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCENARIO_COUNT_WORD, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 
 // The first screen: the story's first question, then one result unit on
 // the chart's own frame (hero-redesign-fable.md; no card, border or
@@ -299,7 +299,7 @@ export default function Hero() {
               question, which carries the weight */}
           <p className="hero-series">{PAGE_TITLE}</p>
           <h2 id="story-q" className="hero-q">
-            <span className="hero-q-lead">AI is already here.</span> <span className="hero-q-main">What if, from {SURPRISE_YEAR}, it takes on more work than the OBR expects?</span>
+            <span className="hero-q-lead">How could AI affect the UK economy?</span> <span className="hero-q-main">{SCENARIO_COUNT_WORD} scenarios, from {SURPRISE_YEAR}</span>
           </h2>
         </div>
         <a className="story-scroll-cue" href="#story-part-1">

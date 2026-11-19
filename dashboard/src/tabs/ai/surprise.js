@@ -38,6 +38,9 @@ export const ZETA = { 'zk0.1': S.closures['zk0.1'].zeta_K, zk0: S.closures.zk0.z
 export const KORINEK_NAME = 'Korinek et al., substantial (US)';
 export const KORINEK_SHORT = 'Korinek, substantial (US)';
 export const SCENARIOS = S.scenarios.map((s) => (s.id === 'korinek' ? { ...s, label: KORINEK_NAME, short: KORINEK_SHORT } : s));
+// the number of scenarios as a word, for the hero question (read from the data)
+const NUM_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+export const SCENARIO_COUNT_WORD = NUM_WORDS[SCENARIOS.length] ?? String(SCENARIOS.length);
 export const scenarioById = (sid) => SCENARIOS.find((s) => s.id === sid);
 // The one name of each scenario (UK low, UK central, UK high, Korinek et
 // al., substantial (US)).
