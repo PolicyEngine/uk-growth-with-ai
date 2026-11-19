@@ -239,6 +239,23 @@ export const rescales = (sid, cl, pin = null) => {
 const SCEN_LINES = { korinek: ['Korinek,', 'substantial (US)'] };
 // phones: the gutter holds about 85px at the 14px label size
 const SCEN_LINES_PHONE = { korinek: ['Korinek,', 'substantial', '(US)'] };
+// Each scenario's two inputs beside its line (Maria M2; Opus/coordinator
+// ruling, Fable unavailable): the fall in labour's share, pp, and the output
+// gain at given inputs, %, by the headline year, read from the data's
+// scenario inputs. null when the file has no such input.
+const signed = (v, unit) => `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(1)}${unit}`;
+export function inputsLine(sid) {
+  const x = scenarioById(sid) ?? SCENARIOS.find((c) => c.id === sid);
+  const a = x?.labour_share_fall_pp;
+  const b = x?.tfp_gain_pct;
+  if (typeof a !== 'number' || typeof b !== 'number') return null;
+  return `${signed(-a, 'pp')}, ${signed(b, '%')}`;
+}
+// where each scenario's inputs come from (the scene's notes)
+const INPUT_SOURCE = { uk_low: 'OBR, IMF', uk_central: 'IMF', uk_high: 'OBR upper' };
+// the phone key's names: one line shorter than the gutter's, so the key
+// keeps to two lines at 390px (its full name is in the gutter beside it)
+const KEY_NAME = { korinek: 'Korinek' };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
 const LH = 17;
@@ -335,13 +352,31 @@ export function morphItems(s) {
 // the debt line's repricing clause (voice pass: they left the step text).
 export function morphGroups(s, sid, cl) {
   // the forecast's vintage, out of the unit line (pushB-final-rulings-fable.md 1)
-  if (s === 1 && OBR_VINTAGE) return [{ title: 'How to read', notes: [{ icon: 'forecast', text: `The OBR forecast is its central forecast of ${OBR_VINTAGE}.` }] }];
+  // the two forecasts, said once (M3 handoff): the dashed line is the OBR's
+  // latest, for context; the comparison path is OG-UK's own
+  if (s === 1 && OBR_VINTAGE)
+    return [
+      {
+        title: 'How to read',
+        notes: [{ icon: 'forecast', text: `The dashed line is the OBR’s latest forecast, of ${OBR_VINTAGE}, shown for context; the comparison path is OG-UK’s own, on its March 2026 assumptions.` }],
+      },
+    ];
   if (s < 2) return [];
   const p = debtParts(sid, cl);
   return [
     {
       title: 'How to read',
       notes: [
+        {
+          icon: 'scenario',
+          text: (
+            <span data-axis="">
+              {`Beside each line, its inputs by ${HEADLINE_YEAR}: the fall in labour’s share of output, pp, and the output gain at given inputs, %. ${SCENARIOS.filter((x) => inputsLine(x.id))
+                .map((x) => `${shortName(x.id)} ${inputsLine(x.id)}${INPUT_SOURCE[x.id] ? ` (${INPUT_SOURCE[x.id]})` : ''}`)
+                .join('; ')}.`}
+            </span>
+          ),
+        },
         {
           icon: 'scenario',
           text: (
@@ -530,7 +565,14 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
     ...lines.map((l) => ({
       key: l.id,
       v: l.ys[l.ys.length - 1],
-      lines: (lh0 === LH_PHONE ? SCEN_LINES_PHONE[l.id] : null) ?? SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]],
+      lines: [
+        ...((lh0 === LH_PHONE ? SCEN_LINES_PHONE[l.id] : null) ?? SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]]),
+        // its inputs, a grey sub-line, on desktop; a phone's gutter has no
+        // room for a line more (the labels would overlap), so a phone shows
+        // the inputs in one key under the plot
+        ...(inputsLine(l.id) && lh0 !== LH_PHONE ? [inputsLine(l.id)] : []),
+      ],
+      sub: inputsLine(l.id) && lh0 !== LH_PHONE ? inputsLine(l.id) : null,
       color: l.id === sid ? ARM_TEXT_COLOR.tfp : 'var(--pe-gray-600)',
       on: s >= from(l.id),
       pinned: l.id === pinned,
@@ -753,7 +795,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               ) : null}
               <text className={`p2-end-label${p.zero ? ' is-zero' : ''}`} y={lh * 0.7 + (p.pad ?? 0)} style={{ fill: p.color }}>
                 {p.lines.map((l, i) => (
-                  <tspan key={l} x={0} dy={i ? lh - (lh0 === LH ? 2 : 4) : 0}>
+                  <tspan key={l} x={0} dy={i ? lh - (lh0 === LH ? 2 : 4) : 0} className={p.sub && l === p.sub ? 'p2-end-sub' : undefined} data-axis={p.sub && l === p.sub ? '' : undefined}>
                     {/* a trailing space between lines, for a screen reader
                         (each line has its own x, so nothing moves) */}
                     {i < p.lines.length - 1 ? `${l} ` : l}
@@ -786,6 +828,25 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           </text>
         </svg>
       </div>
+      {/* phones: each drawn scenario's inputs, one key under the plot, in
+          the gap states (its room kept in every state, so the figure never
+          changes height) */}
+      {/* data-axis: the inputs are restated from the scenario inputs (their
+          home is Method), not results */}
+      {lh0 === LH_PHONE ? (
+        <p className={`p2-mo-inputs${s >= 2 ? ' is-on' : ''}`} aria-hidden={s >= 2 ? undefined : 'true'} data-axis="">
+          {/* the chosen scenario first, then the others as they draw in;
+              every entry is laid out in every state, so the height holds */}
+          {[...lines.filter((l) => l.id === sid), ...lines.filter((l) => l.id !== sid)]
+            .filter((l) => inputsLine(l.id))
+            .map((l, i) => (
+              <span key={l.id} className={s >= from(l.id) ? undefined : 'is-off'}>
+                {i ? <span className="visually-hidden">; </span> : <span className="visually-hidden">Scenario inputs, the fall in labour’s share and the output gain: </span>}
+                {KEY_NAME[l.id] ?? shortName(l.id)} {inputsLine(l.id)}
+              </span>
+            ))}
+        </p>
+      ) : null}
     </figure>
   );
 }

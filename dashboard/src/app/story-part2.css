@@ -1035,6 +1035,32 @@
 .p2-end-label.is-zero {
   font-weight: 400;
 }
+/* a scenario's inputs under its name (Maria M2): same size, plain, grey */
+.p2-end-sub {
+  font-weight: 400;
+  fill: var(--pe-gray-600);
+}
+/* phones: each drawn scenario's inputs, one key under the plot (the gap
+   states); its room is kept in every state */
+.p2-mo-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  column-gap: 16px;
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--pe-gray-600);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.p2-mo-inputs.is-on {
+  visibility: visible;
+  opacity: 1;
+}
+.p2-mo-inputs .is-off {
+  visibility: hidden;
+}
 
 /* 2A, the GDP canvas */
 .p2-canvas-box {
