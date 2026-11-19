@@ -79,7 +79,7 @@ function ClosureCards() {
         </p>
         <Items
           items={[
-            { icon: 'foreign', text: 'Share of the extra capital firms want that is met from abroad, not of added capital.' },
+            { icon: 'foreign', text: 'A share of the extra capital firms want, not of added capital.' },
             { icon: 'gni', text: `${FOREIGN_DK != null && FOREIGN_DK < 50 ? 'Some' : 'Most'} added capital is foreign-owned: national income (GNI) trails GDP.` },
             { icon: 'rule', text: <>OG-Core&rsquo;s US default, chosen by the study ({cite('closureMemo')}).</> },
           ]}
