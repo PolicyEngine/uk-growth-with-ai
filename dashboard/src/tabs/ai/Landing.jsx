@@ -8,11 +8,11 @@ import CountUp from '@/components/story/CountUp.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { METHOD, MEASURE } from '@/lib/labels.js';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, YEARS, SCEN_NAME as NAME, gap, fmt, payLine, result, DONE, TOTAL, foreignShareOf, PENDING,
+  HEADLINE_YEAR, SURPRISE_YEAR, FIRST_YEAR, LATE_YEAR, CENTRAL, BOUND, ARMS, YEARS, SCEN_NAME as NAME, gap, fmt, result, DONE, TOTAL, foreignShareOf, PENDING,
 } from '@/tabs/ai/surprise.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
-import { payCaveat, fracWord } from '@/tabs/story/part2/caveats.js';
+import { payCaveat, payWords, fracWord } from '@/tabs/story/part2/caveats.js';
 import { ADOPTION, ADOPTION_YEAR, SIGN_CAVEAT, breakEven, pctRange, signMayFlip, tfpInput } from '@/lib/obrOverlap.js';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
@@ -99,7 +99,7 @@ export function incomeNotes(sid, cl) {
 // The tile's one sub-line (at most six words): the pay line from the data
 // (payLine: "slower growth, not a cut" only while pay still rises every
 // year), national income's from incomeNotes, the others fixed.
-const KPI_LINE = (k, sid, cl, x) => (k.v === 'w' ? payLine(sid, cl, x) : k.v === 'NNI' ? incomeNotes(sid, cl)?.line : k.line);
+const KPI_LINE = (k, sid, cl, x) => (k.v === 'w' ? payWords(sid, cl, x) : k.v === 'NNI' ? incomeNotes(sid, cl)?.line : k.line);
 const KPI_TIP = (k, sid, cl) => (k.v === 'NNI' ? incomeNotes(sid, cl)?.tip : k.tip);
 
 // The directions in words: GDP and pay against the path, then national

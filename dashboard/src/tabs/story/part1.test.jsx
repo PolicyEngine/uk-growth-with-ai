@@ -677,7 +677,9 @@ describe('hero', () => {
       // neutral ink, no arrows
       expect(el.querySelector('.hf-stat-dir, .hf-unit .is-gain, .hf-unit .is-loss')).toBeNull();
       // the pay line from the data; national income's is the ledger's
-      expect(stats[1].querySelector('.hf-stat-line').textContent).toBe(payLine(s, cl));
+      // payLine's, or R3-17's shock-year wording (part2/caveats.js payWords)
+      const { payWords } = await import('@/tabs/story/part2/caveats.js');
+      expect(stats[1].querySelector('.hf-stat-line').textContent).toBe(payWords(s, cl));
       if (s === 'uk_high' || s === 'uk_low') expect(payLine(s, cl)).toBe('slower growth, not a cut');
       expect(stats[2].querySelector('.hf-stat-line').textContent).toBe('income kept after wear and tear');
       // GNI beside it, before depreciation (Maria's point 2), from the data

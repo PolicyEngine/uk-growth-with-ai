@@ -162,6 +162,30 @@ for (const [name, D] of Object.entries(FILES)) {
         }
     });
 
+    it('R3-17: the pay line says "falls slightly in the shock year" only where pay falls in that year alone; consumption never "through" a year it is above', async () => {
+      await pickFile(D);
+      const { payWords } = await import('@/tabs/story/part2/caveats.js');
+      const { consumptionWords } = await import('@/tabs/ai/Landing.jsx');
+      for (const sid of SIDS)
+        for (const cl of CLS) {
+          if (!done(D, sid, 'tfp', cl)) continue;
+          const w = g(D, sid, 'tfp', cl, 'w');
+          const pg = D.results[sid].tfp[cl].pay_growth_pct;
+          const win = D.years.map((y, i) => [y, pg?.[i]]).filter(([y]) => y >= D.surprise_year && y <= D.headline_year).map(([, x]) => x);
+          const slight = w < -0.005 && win[0] < 0 && win[0] > -0.5 && win.slice(1).every((x) => x > 0);
+          expect(payWords(sid, cl) === `falls slightly in ${D.surprise_year}, then grows more slowly than on the path`, `${sid} ${cl}`).toBe(slight);
+          const c = consumptionWords(sid, cl);
+          if (c) for (let y = D.surprise_year; y <= c.end; y += 1) expect(g(D, sid, 'tfp', cl, 'C', y), `${sid} ${cl} ${y}`).toBeLessThan(-0.005);
+          if (c && c.end < D.years.at(-1)) expect(g(D, sid, 'tfp', cl, 'C', c.end + 1)).toBeGreaterThanOrEqual(-0.005);
+        }
+      // the two flips round 3 recorded (section D)
+      if (name === '2027') {
+        expect(payWords('korinek', 'zk0')).toBe(`falls slightly in ${D.surprise_year}, then grows more slowly than on the path`);
+        expect(consumptionWords('uk_central', 'zk0.1').end).toBe(D.late_year - 1);
+      }
+      if (name === '2028') expect(consumptionWords('uk_central', 'zk0.1').end).toBe(D.late_year);
+    });
+
     it('the shock is defined with UK central’s two inputs, from the data', async () => {
       await pickFile(D);
       const { render } = await import('@testing-library/react');

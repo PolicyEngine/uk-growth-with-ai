@@ -24,7 +24,8 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { SOURCES as LIT } from '@/data/literature.js';
-import { wageClosureLines, investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
+import { investmentFlags, I_FLAG_PCT, belowThrough } from '@/tabs/explore/caveats.js';
+import { payCaveat } from '@/tabs/story/part2/caveats.js';
 import { CENTRAL, LATE_YEAR, SCEN_NAME as SN } from '@/tabs/ai/surprise.js';
 import { VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 
@@ -369,8 +370,11 @@ function IncomePanel({ sid }) {
                 items={[
                   { key: 'cut', icon: 'pay', text: 'A negative pay-rate gap is a level below a rising path' },
                   { key: 'obr', icon: 'source', text: <>The path assumes productivity growth of 1 per cent a year ({ext(efo(EFO_PAGE.p1_2), 'OBR EFO, March 2026, ¶1.2')})</> },
-                  ...(wageClosureLines(sid) ?? []).map((t, i) => ({ key: `wz${i}`, icon: i ? 'closure' : 'pay', text: t })),
-                  wageClosureLines(sid) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
+                  // review round 3, R3-11 (Maria's point 3): the ruled
+                  // sentence, from the signs; the sensitivity no longer
+                  // reads as a sign that depends on foreign capital
+                  payCaveat(sid) ? { key: 'wz0', icon: 'pay', text: payCaveat(sid) } : null,
+                  payCaveat(sid) && (payCaveat(sid).includes('sensitivity') || payCaveat(sid).startsWith('Its sign')) ? { key: 'wzlink', icon: 'link', text: <>Figures: Both, and the <NavLink tab="explore" sub="economy" anchor="closure-sensitivity">ζK 0.5 sensitivity</NavLink></> } : null,
                   ...stressItems(sid),
                 ]}
               />

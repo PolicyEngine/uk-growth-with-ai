@@ -10,9 +10,9 @@ import { REPO } from '@/tabs/ai/links.js';
 import { METHOD, MEASURE, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { useSvgScale } from '@/lib/svgScale.js';
-import { payCaveat } from '@/tabs/story/part2/caveats.js';
+import { payCaveat, payWords } from '@/tabs/story/part2/caveats.js';
 import { incomeNotes } from '@/tabs/ai/Landing.jsx';
-import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap, payLine } from '@/tabs/ai/surprise.js';
+import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 
 // The first screen: the story's first question, then one result unit on
 // the chart's own frame (hero-redesign-fable.md; no card, border or
@@ -229,7 +229,7 @@ export function heroStats(sid, cl) {
   const w = gap(sid, 'tfp', cl, 'w');
   const n = gap(sid, 'tfp', cl, 'NNI');
   if (y == null || w == null) return null;
-  const pay = payLine(sid, cl, w);
+  const pay = payWords(sid, cl, w);
   const inc = n == null ? null : incomeNotes(sid, cl);
   return [
     {

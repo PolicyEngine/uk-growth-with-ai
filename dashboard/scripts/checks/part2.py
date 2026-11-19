@@ -248,7 +248,14 @@ def pay_rises(sid, cl):
 def pay_note(sid, cl):
     w = S['results'][sid]['tfp'][cl]['gaps']['w'][H]
     if w < -0.005:
-        return 'slower growth, not a cut' if pay_rises(sid, cl) else 'below the forecast path'
+        if pay_rises(sid, cl):
+            return 'slower growth, not a cut'
+        # review round 3, R3-17: pay falls in the shock year only
+        g = S['results'][sid]['tfp'][cl].get('pay_growth_pct') or []
+        win = [x for y, x in zip(YEARS, g) if S['surprise_year'] <= y <= S['headline_year']]
+        if len(win) > 1 and None not in win and -0.5 < win[0] < 0 and all(x > 0 for x in win[1:]):
+            return f"falls slightly in {S['surprise_year']}, then grows more slowly than on the path"
+        return 'below the forecast path'
     return 'pay for the same work'
 
 

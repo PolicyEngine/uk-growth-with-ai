@@ -6,7 +6,7 @@
 // caveat does not hold for the cell in view.
 import S from '@/lib/activeData.js';
 import { COHORTS as C } from '@/lib/dataKeys.js';
-import { YEARS, HEADLINE_YEAR, CENTRAL, BOUND, gap } from '@/tabs/ai/surprise.js';
+import { YEARS, HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, gap, payLine, result } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
 
 const H = YEARS.indexOf(HEADLINE_YEAR);
@@ -73,6 +73,22 @@ export function payCaveat(sid) {
   const z = paySens(sid);
   const tail = z != null && z > EPS2 ? `; only in a sensitivity with far more foreign capital does it ${z < PAY_EDGE ? 'edge' : 'end'} above` : '';
   return `It stays below the forecast path with or without foreign capital${tail}.`;
+}
+
+// The pay tile's line (review round 3, R3-17): payLine's, except where
+// pay falls only in the shock year and grows in every later year to the
+// headline year (pay_growth_pct; Korinek with no foreign capital on the
+// 2027 data, -0.02 in 2027), which payLine calls plainly "below the
+// forecast path". "Slightly" needs the fall under half a per cent.
+export function payWords(sid, cl, w = gap(sid, 'tfp', cl, 'w')) {
+  const base = payLine(sid, cl, w);
+  if (base !== 'below the forecast path') return base;
+  const r = result(sid, 'tfp', cl);
+  const g = r.status === 'done' ? r.pay_growth_pct : null;
+  if (!Array.isArray(g)) return base;
+  const win = g.filter((_, i) => YEARS[i] >= SURPRISE_YEAR && YEARS[i] <= HEADLINE_YEAR);
+  const ok = win.length > 1 && win.every((x) => typeof x === 'number') && win[0] < 0 && win[0] > -0.5 && win.slice(1).every((x) => x > 0);
+  return ok ? `falls slightly in ${SURPRISE_YEAR}, then grows more slowly than on the path` : base;
 }
 
 // Who gains (UK central, some foreign capital, debt-neutral transfers): what the
