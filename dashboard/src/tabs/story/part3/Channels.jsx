@@ -7,6 +7,7 @@ import { Essential } from '@/components/ui/SourceLine.jsx';
 import { D, FigureHead, InputFig, MODEL_YEAR, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { RETURN_BASE, RETURN_PP } from './Central.jsx';
 import { Ref } from './sources.jsx';
+import { Legend } from '@/components/story/chart/index.js';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
@@ -29,24 +30,32 @@ const OFFSET = (() => {
   const off = -(w + k);
   return off > d / 2 && off < d;
 })();
+// Each row is named by its effect on the budget (Maria M2), from its sign:
+// a positive run is a cost, a negative one extra revenue. The assumed rise
+// that drives a row is its sub-line, with no plus sign beside a bar that
+// runs left.
+export const budgetWords = (v) => (v > 0 ? 'a cost' : v < 0 ? 'extra revenue' : 'no change');
 const ROWS = [
   {
     id: 'displacement',
-    label: 'Job loss: less tax and NI, more benefits',
+    label: `Job loss: ${budgetWords(row('displacement')?.cost_bn)}`,
+    sub: 'Less tax and NI, more benefits',
   },
   {
     id: 'wage',
-    label: (
+    label: `Higher pay: ${budgetWords(row('wage')?.cost_bn)}`,
+    sub: (
       <>
-        Pay <InputFig path="method.survivor_wage_pct">+{fmtInputPct(M.survivor_wage_pct)}</InputFig> for those still employed
+        <InputFig path="method.survivor_wage_pct">{fmtInputPct(M.survivor_wage_pct)}</InputFig> higher for those still employed
       </>
     ),
   },
   {
     id: 'capital',
-    label: (
+    label: `Higher interest and dividends: ${budgetWords(row('capital')?.cost_bn)}`,
+    sub: (
       <>
-        Interest and dividends <InputFig path="method.capital_uplift_pct">+{fmtPct1(M.capital_uplift_pct)}</InputFig>
+        <InputFig path="method.capital_uplift_pct">{fmtPct1(M.capital_uplift_pct)}</InputFig> higher
       </>
     ),
   },
@@ -70,7 +79,7 @@ export function waterfall() {
   }
   bars.push({
     id: 'sum',
-    label: 'Sum of the three runs, on these 20 draws',
+    label: `Sum of the three runs: ${C.sum_bn > 0 ? 'a net cost' : C.sum_bn < 0 ? 'net extra revenue' : 'no net change'}`,
     value: C.sum_bn,
     from: 0,
     to: C.sum_bn,
@@ -98,6 +107,15 @@ function ChannelsFigure({ ctx }) {
         replay={e.replay}
         source={<ChannelsSource />}
       />
+      {/* the budget key (Maria M2): a cost runs right, extra revenue left */}
+      <Legend
+        label="Budget effect"
+        items={[
+          { key: 'cost', label: 'Cost', kind: 'block', color: 'var(--c-loss)' },
+          { key: 'revenue', label: 'Extra revenue', kind: 'block', color: 'var(--c-gain)' },
+          { key: 'net', label: 'Net', kind: 'block', color: 'var(--pe-gray-800)' },
+        ]}
+      />
       <ol className="p3-rows p3-wf">
         {BARS.map((b, i) => {
           const lo = Math.min(b.from, b.to);
@@ -108,7 +126,16 @@ function ChannelsFigure({ ctx }) {
           return (
             <li key={b.id} {...m} data-row={b.id} style={{ '--beat': `${i * 600}ms` }}>
               <span className="p3-row-label p3-row-label-icon">
-                {b.sum ? null : <NumMarker n={i + 1} />} {b.label}
+                {b.sum ? null : <NumMarker n={i + 1} />}{' '}
+                <span className="p3-row-label-text">
+                  {b.label}
+                  {b.sub ? (
+                    <>
+                      {' '}
+                      <span className="p3-row-sub">{b.sub}</span>
+                    </>
+                  ) : null}
+                </span>
               </span>{' '}
               <span className="p3-row-bar">
                 <svg className="p3-bar p3-wf-svg" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">

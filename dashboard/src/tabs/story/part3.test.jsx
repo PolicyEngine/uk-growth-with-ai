@@ -567,7 +567,7 @@ describe('Part3', () => {
     // the definition sentence: the gross pay once the build carries it; the range in the note line
     const G = D.per_pound_20.gross_cut_bn;
     const def = fig.querySelector('.p3-margin-def').textContent.replace(/\s+/g, ' ').trim();
-    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, or as wage cuts graded by AI exposure with no jobs lost.`);
+    expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, or as wage cuts graded by each occupation’s AI exposure, with no jobs lost.`);
     expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
     const all = container.querySelector('#p3-changes').textContent;
     for (const s of ['each with its own unit line', 'across draws)', 'these 20 draws', 'sized to the same gross earnings loss', 'holds the other two at main settings']) expect(all, s).not.toContain(s);

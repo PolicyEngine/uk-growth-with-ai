@@ -81,6 +81,12 @@
   line-height: 1.35;
   color: var(--pe-gray-700);
 }
+/* the assumed rise behind a waterfall row, under its budget effect (Maria M2) */
+.p3-row-sub {
+  display: block;
+  font-size: var(--t-label);
+  color: var(--pe-gray-600);
+}
 .p3-row-value {
   font-size: var(--t-ui);
   font-weight: 600;

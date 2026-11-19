@@ -315,7 +315,7 @@ function MarginPanel({ on }) {
         {CL.povertyMore === 'job' ? `Wage cuts of the same size raise poverty ${CL.far ? 'far ' : ''}less` : `Job loss or wage cuts, ${D.per_pound_20.draws} draws`}
       </p>
       <p className="story-figure-unit p3-group-unit p3-margin-def">
-        Each pair removes the same gross pay{Number.isFinite(GROSS) ? `, ${fmtBn(GROSS)} a year` : ''}: as job loss, or as wage cuts graded by AI exposure with no jobs lost.
+        Each pair removes the same gross pay{Number.isFinite(GROSS) ? `, ${fmtBn(GROSS)} a year` : ''}: as job loss, or as wage cuts graded by each occupation’s AI exposure, with no jobs lost.
       </p>
       <OutsideRebuildFlag />
       <div className="p3-margin-grid">
