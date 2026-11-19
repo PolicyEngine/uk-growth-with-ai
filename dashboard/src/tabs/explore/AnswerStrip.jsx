@@ -55,7 +55,7 @@ export default function AnswerStrip({ a, label }) {
       ) : null}
       {a.why ? (
         <p className="ex-why-line">
-          <span className="ex-why-label">Why:</span>
+          <span className="ex-why-label">Why:</span>{' '}
           {a.why.map((l, i) => (
             <span key={l.key} className="ex-why-step">
               {i ? (

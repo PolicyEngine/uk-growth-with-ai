@@ -270,8 +270,6 @@ const ECONOMY = [
   { group: 'Prices and shares', concept: 'interest', lede: 'What capital earns and how income is divided.', rows: [
     { v: 'r_bp', title: 'Interest rate', name: 'the interest rate', concept: 'interest', unit: 'pp', scale: 0.01, method: 'closures' },
     { v: 'labour_share_pp', title: 'Labour share', name: 'the labour share of income', concept: 'inequality', unit: 'pp', method: 'shock', about: { caveats: <Items items={[
-      { key: 'input', icon: 'scenario', text: 'The labour-share fall is the scenario’s imposed input' },
-      { key: 'same', icon: 'compare', text: 'It is the same in every version' },
       { key: 'full', icon: 'timing', text: 'It reaches full size in the headline year' },
       { key: 'derived', icon: 'arithmetic', text: <>UK sizes: <NavLink tab="method" sub="how" anchor="m-scenarios">derived from IMF SIP/2026/072</NavLink>, not printed by it</> },
     ]} /> } },
@@ -324,6 +322,9 @@ function IncomePanel({ sid }) {
       <div className="cards-stack">
         <Card
           id="measures"
+          // slot 9 (review round 3, R3-12): the story's GDP scene shows the
+          // common rule only
+          story={st.rule === 'common' ? { anchor: 'p2-morph-2', name: 'the GDP scene' } : null}
           icon={iconFor('measure')}
           title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}

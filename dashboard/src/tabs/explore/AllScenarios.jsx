@@ -83,6 +83,7 @@ function Cell({ s, row, arm, m, current, story, printHome }) {
         <span key={m.v} className={`ex-mx-val${home ? ' is-ref' : ''}`} data-dir={side(x)} data-path={`${row.rule === 'common' ? 'results' : `rules.${row.rule}.results`}.${s.id}.${arm}.${row.cl}.gaps.${m.v}[${HEADLINE_YEAR}]`}>
           {fmt(x, 2, m.unit)}
         </span>
+        {current ? ' ' : null}
         {current ? (
           <span className="ex-mx-here" aria-hidden="true">
             In view

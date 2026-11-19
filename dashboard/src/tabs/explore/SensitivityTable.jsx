@@ -88,7 +88,11 @@ export function sensClaims(res = S.sensitivity?.[SENS]?.results) {
   const wage = wSides.has('below')
     ? { icon: 'gapDown', text: 'The pay rate is below the forecast path in at least one scenario' }
     : { icon: dirConcept(Math.min(...w)) === 'onPath' && !wSides.has('above') ? 'onPath' : 'gapUp', text: `The pay rate is ${wSides.has('on') ? 'on or above' : 'above'} the forecast path${instead}` };
-  const gniLess = rows.every((r) => at(r.sens, 'GNI') < at(r.sens, 'Y'));
+  // "more income goes abroad" compares with some foreign capital: GDP less
+  // GNI is larger at ζK 0.5 than at ζK 0.1 in every scenario (review round
+  // 2, R2-21)
+  const abroad = (c) => at(c, 'Y') - at(c, 'GNI');
+  const gniLess = rows.length > 0 && rows.every((r) => abroad(r.sens) > abroad(r.central) + 0.005);
   return [
     { key: 'k', ...versus('K', 'Capital stock') },
     { key: 'y', ...versus('Y', 'GDP') },
@@ -132,7 +136,7 @@ export function sensFlagItem() {
     icon: 'caveat',
     text: (
       <>
-        * Investment jumps up to {Math.round(fl[0].x)}% above the path in {S.surprise_year}, beyond our {ext(OG_RESULT_URLS.sanity, `+${I_FLAG_PCT}% plausibility check`)}, so we treat this case as {ext(OG_RESULT_URLS.plausibility, 'implausible')}.
+        * Investment jumps up to {Math.round(fl[0].x)}% above the path in {S.surprise_year}, beyond our {ext(OG_RESULT_URLS.sanity, `+${I_FLAG_PCT}% plausibility check`)}, so we treat this sensitivity as {ext(OG_RESULT_URLS.plausibility, 'implausible')}.
       </>
     ),
   };
@@ -188,13 +192,17 @@ function SensGrid({ res }) {
           </tr>
         </thead>
         {SCENARIOS.map((s) => {
-          const fl = SENS_FLAGS().find((f) => f.sid === s.id && f.arm === 'tfp');
+          // the link sits on the group with the largest flag, whichever
+          // scenario that is (review round 2, R2-22)
+          const top = SENS_FLAGS()[0];
+          const fl = top && top.sid === s.id ? top : null;
           return (
             <tbody key={s.id}>
               <tr className="ex-sg-group">
                 <th colSpan={VARS.length + 1} scope="rowgroup">
                   {s.label}
-                  {fl && s.id === 'korinek' ? (
+                  {fl ? ' ' : null}
+                  {fl ? (
                     // through the nav's reveal path: the note sits in the
                     // closed More info fold, which a reveal opens
                     <NavLink tab="explore" sub="economy" anchor="sens-flag" className="ex-sg-implaus">

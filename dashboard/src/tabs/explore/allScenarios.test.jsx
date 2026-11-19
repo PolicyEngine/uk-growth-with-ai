@@ -166,7 +166,7 @@ describe('Across scenarios: each fact once', () => {
         expect(td.textContent).not.toMatch(/\d\.\d/);
         continue;
       }
-      expect(td.textContent).toMatch(/\d\.\d\d%In view/);
+      expect(td.textContent).toMatch(/\d\.\d\d% In view/);
       expect(td.querySelector('.is-ref')).toBeNull();
     }
     expect(container.querySelector('[data-cell="korinek|common|zk0.1"]').textContent).toMatch(/\d\.\d\d%/);
@@ -246,7 +246,7 @@ describe('the zeta_K 0.5 card’s More info fold', () => {
     expect(defs[1]).toBe(`In ${HEADLINE_YEAR} about all of the added capital (${Math.round(x)}%) ends up foreign-owned.`);
     expect(t).not.toMatch(/new capital|further above the forecast path/);
     const fl = investmentFlags().filter((f) => f.cl === 'zk0.5');
-    expect(t).toContain(`Investment jumps up to ${Math.round(fl[0].x)}% above the path in ${S.surprise_year}, beyond our +${I_FLAG_PCT}% plausibility check, so we treat this case as implausible.`);
+    expect(t).toContain(`Investment jumps up to ${Math.round(fl[0].x)}% above the path in ${S.surprise_year}, beyond our +${I_FLAG_PCT}% plausibility check, so we treat this sensitivity as implausible.`);
     expect(body.querySelectorAll('#sens-flag a')).toHaveLength(2);
     // the comparison and settings rows last under How to read (item 36,
     // Card.jsx cardMore); the flag under Caveats; the unit is visible (item 42)

@@ -177,11 +177,11 @@ export function HeadlineNote({ rule = 'common' }) {
   if (rule !== 'common') return null;
   return (
     <p className="db-headline-note">
-      Grey values: the main version&rsquo;s headline figures, at home in the{' '}
+      Grey values: the{' '}
       <NavLink tab="story" anchor="story-part-2">
-        story
+        Story
       </NavLink>
-      .
+      &rsquo;s headline figures (main version).
     </p>
   );
 }
@@ -209,7 +209,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
           <div className="db-label">
             <Icon name={m.icon} size={16} />
             <span>
-              <span className="db-label-main">{m.label}</span>
+              <span className="db-label-main">{m.label}</span>{' '}
               <span className="db-label-sub">{m.sub}</span>
               {m.v === 'Y' && ssHeld ? (
                 <span className="db-label-held">
@@ -278,7 +278,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
                         </span>
                       </>
                     )}
-                    {showC && showB ? <span className="visually-hidden">no foreign capital {fmt(b)}</span> : null}
+                    {showC && showB ? <span className="visually-hidden">{` no foreign capital ${fmt(b)}`}</span> : null}
                   </div>
                 </div>
               );

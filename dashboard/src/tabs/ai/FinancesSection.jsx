@@ -22,7 +22,7 @@ import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, Lead } from '@/tabs/explore/direction.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { SOURCES as LIT } from '@/data/literature.js';
-import { URLS, atRef, RESULTS_SHA, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
+import { URLS, atRef, efo, EFO_PAGE, OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { debtDipIsDenominator, debtSidesByRule, signHeading } from '@/tabs/explore/caveats.js';
 import AIS from '@/data/aiScenarios.json';
 
@@ -32,7 +32,7 @@ import { sourcesItems } from '@/tabs/explore/sources.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import { NICS, SET } from '@/lib/dataKeys.js';
 import { AxisTitles } from '@/tabs/explore/axes.jsx';
-import { OGUK_TG1_YEAR, debtTitle, taxTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
+import { debtTitle, taxTitle, debtMoreInfo, taxMoreInfo } from '@/tabs/ai/financesInfo.js';
 
 // Results > Public finances: debt/GDP to the debt rule's first year,
 // tax/GDP, why both are likely understated, and how the result changes with
@@ -92,7 +92,8 @@ export function debtReviewItems(sid, closure, rule) {
   const split = head != null;
   return [
     debtDipIsDenominator(sid, cl, rule) ? { key: 'dip', icon: 'gdp', text: `The ${SURPRISE_YEAR} dip is GDP rising on a debt stock already set` } : null,
-    split ? { key: 'sign', icon: 'rule', text: `Its ${LATE_YEAR} sign depends on ${head}:` } : null,
+    // review round 3, R3-19: repricing is not a rule
+    split ? { key: 'sign', icon: 'rule', text: `Its ${LATE_YEAR} sign, by budget assumption and repricing speed:` } : null,
     split ? { key: 'sides', icon: 'compare', text: sides.map((x) => `${RULE_WORD[x.key]}: ${x.side}`).join('; ').replace(/^./, (c) => c.toUpperCase()) } : null,
     rule === 'common' ? { key: 'dividend', icon: 'gdp', text: 'Common rule: spending grows with GDP, so growth brings no dividend' } : null,
     { key: 'gilt', icon: 'interest', text: <>Gilt yields rise {ext(OG_RESULT_URLS.giltRate, 'one for one')} with the return on capital</> },
@@ -102,22 +103,23 @@ export function debtReviewItems(sid, closure, rule) {
 
 function debtNotes(p) {
   if (!p || p.kind === 'dn') return null;
-  return [
-    { key: 'reprice', icon: 'interest', text: 'The model reprices debt at the higher interest rate at once' },
-    p.obr != null ? { key: 'obr', icon: dirConcept(p.obr), text: `At the OBR’s repricing speed it ends ${side(p.obr)} the forecast path` } : null,
-  ].filter(Boolean);
+  // the "reprices at once" note is said once, in Caveats (review round 3,
+  // R3-10)
+  return p.obr != null ? [{ key: 'obr', icon: dirConcept(p.obr), text: `At the OBR’s repricing speed it ends ${side(p.obr)} the forecast path` }] : null;
 }
 
 // Tax/GDP with no foreign capital in the main arm, in words (results sanity
 // audit A6): it can rise, so the model's sign there is not reliable.
+// { text, flips }: `flips` when the headline-year sign changes (review
+// round 2, R2-18: "rises by 2031" read as "rises by [an amount]").
 function closedTaxWords(sid, rule) {
   const r = resultAt(sid, 'tfp', BOUND, rule);
   if (r.status !== 'done') return null;
   const atYear = (y) => r.gaps.tax_gdp_pp[YEARS.indexOf(y)];
-  if (atYear(HEADLINE_YEAR) > 0) return `rises by ${HEADLINE_YEAR}`;
+  if (atYear(HEADLINE_YEAR) > 0) return { text: `is above the path in ${HEADLINE_YEAR}`, flips: true };
   const first = YEARS.find((y) => y > HEADLINE_YEAR && y < LATE_YEAR && atYear(y) > 0);
-  if (first) return `near zero in ${HEADLINE_YEAR}, positive from ${first}`;
-  return 'falls far less than with some foreign capital';
+  if (first) return { text: `near zero in ${HEADLINE_YEAR}, positive from ${first}`, flips: false };
+  return { text: 'falls far less than with some foreign capital', flips: false };
 }
 
 // The OBR's labour-minus-capital effective-rate gap, pp: FRS July 2026 Box
@@ -150,12 +152,12 @@ function Cause({ icon, title, axis, ours, theirs, effect, up }) {
             <TipTarget className="cause-mark is-theirs" style={{ left: pct(theirs.value) }} label={`${theirs.name}: ${theirs.text}`} tip={<><b>{theirs.name}</b><span className="tip-value">{theirs.text}</span></>}>
               <span className={`cause-mark-label is-below${below(theirs.value)}`}>{theirs.name} {theirs.text}</span>
             </TipTarget>
-          )}
+          )}{' '}
           <TipTarget className="cause-mark is-ours" style={{ left: pct(ours.value) }} label={`OG-UK: ${ours.text}`} tip={<><b>OG-UK</b><span className="tip-value">{ours.text}</span></>}>
             <span className={`cause-mark-label${edge(ours.value)}`}>OG-UK {ours.text}</span>
-          </TipTarget>
+          </TipTarget>{' '}
           <span className="cause-ticks" aria-hidden="true" data-axis="">
-            <span>0</span>
+            <span>0</span>{' '}
             <span>{axis.label}</span>
           </span>
         </div>
@@ -179,9 +181,6 @@ const TAX_GAP = ETR.labour - ETR.capital_gross;
 // PolicyEngine UK's 2028 microsimulation average.
 const NIC_OGUK = NICS.oguk_tau_payroll * 100;
 const NIC_PE = NICS.avg_employer_rate_on_employment_income * 100;
-// The debt rule's first year: OG-Core's tG1, set to 10 periods from 2026 in
-// scenarios.py (OG-UK's default is 4, so 2030).
-const TG1_URL = atRef(RESULTS_SHA, 'uk_growth_with_ai/scenarios.py#L45');
 const EFO_NOV25 = 'https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/';
 const NICS_URL = atRef(SET.nicsRef, SET.nicsPath);
 const RED_FLAGS_URL = atRef('bf5de33', 'docs/red_flags_1_3.md');
@@ -339,8 +338,8 @@ function TaxGapCard({ sid, closure, rule }) {
             { key: 'rates', icon: 'rule', text: `OG-UK taxes labour ${TAX_GAP.toFixed(1)}pp more than capital; OBR rates imply ${CAUSES[0].lo}–${CAUSES[0].hi}pp` },
             // the sign changes only where tax/GDP rises by the headline year
             // (review round 1, R1-02)
-            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: closedTax.startsWith('rises by') ? `With no foreign capital the ${HEADLINE_YEAR} sign changes:` : 'With no foreign capital:' } : null,
-            closure !== 'central' && closedTax ? { key: 'closed2', icon: 'caveat', text: `tax/GDP ${closedTax}` } : null,
+            closure !== 'central' && closedTax ? { key: 'closed', icon: 'closed', text: closedTax.flips ? `With no foreign capital the ${HEADLINE_YEAR} sign changes:` : 'With no foreign capital:' } : null,
+            closure !== 'central' && closedTax ? { key: 'closed2', icon: 'caveat', text: `tax/GDP ${closedTax.text}` } : null,
           ]}
         />
       }
@@ -440,7 +439,7 @@ function TaxGapCard({ sid, closure, rule }) {
         ))}
       </div>
       <IconLine icon={iconFor('rule')} className="net-line">
-        <b>Net:</b> the model likely understates the fall in revenue, if the first row outweighs the second ({ext(RED_FLAGS_URL, 'the argument')}).
+        <b>Net:</b> if the first row outweighs the second, {ext(RED_FLAGS_URL, 'the model understates the fall in revenue')}.
       </IconLine>
     </Card>
   );
@@ -698,7 +697,6 @@ export default function FinancesSection({ sid }) {
                   ...debtReviewItems(sid, st.closure, st.rule),
                   { key: 'obr', icon: 'timing', text: `At the OBR’s repricing speed, a first-order recalculation: the ${LATE_YEAR} rise is ${REPRICE_RANGE[0].toFixed(0)}–${REPRICE_RANGE[1].toFixed(0)}% as large` },
                   { key: 'where', icon: 'range', text: `That range covers the ${REPRICE_RATIOS.length} of ${REPRICED.length} cells still above the forecast path at that speed` },
-                  { key: 'stocks', icon: 'rule', text: <>{LATE_YEAR}: {ext(URLS.ogCoreParams, 'OG-Core’s budget closure rule')} starts; {ext(TG1_URL, 'set in this study')} (OG-UK&rsquo;s default is {OGUK_TG1_YEAR})</> },
                   { key: 'stress', icon: 'excluded', text: <>The stress test, after {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}, leaves out the cost of unemployment</> },
                 ]}
               />

@@ -350,7 +350,16 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
               </span>
               {/* M is the tile's figure (a link to it); every other row prints
                   its own: T's had no home at all (review round 1, R1-10) */}
-              <span className="ex-dd">{m.id === 'M' ? <Icon name={iconFor('link')} size={12} /> : avgOf(m.avg)}</span>
+              {/* the icon alone has a name (review round 3, R3-24) */}
+              <span className="ex-dd">
+                {m.id === 'M' ? (
+                  <span role="img" aria-label={`Total ${avgOf(m.avg)}: see the split below`}>
+                    <Icon name={iconFor('link')} size={12} />
+                  </span>
+                ) : (
+                  avgOf(m.avg)
+                )}
+              </span>
             </li>
           ))}
         </ul>
@@ -365,7 +374,7 @@ export function Headline({ c, rule, cl, arm, measure = 'M' }) {
           <li>
             <span className="ex-dt">
               <Lead c="labour">From labour income</Lead>
-            </span>
+            </span>{' '}
             <span className="ex-dd">{pct(s.labour)}</span>
           </li>
           <li>
@@ -421,7 +430,10 @@ export function consumptionWords(cl, rule, arm) {
   const inv = gap('uk_central', SURPRISE_ARM[arm], cl, 'I', rule, t.shockYear);
   const below = x.c0 < 0;
   const lead = below ? (t.cAboveYear ? 'Consumption falls below the forecast path first, then rises above it.' : 'Consumption stays below the forecast path.') : 'Consumption starts above the forecast path.';
-  const s1 = below ? (x.r > 0 && inv > 0 ? 'Households save more as the return on capital rises, so they spend less at first.' : 'Households spend less at first.') : `Households spend more from ${t.shockYear}.`;
+  // "at first" only where consumption later rises above the path (review
+  // round 2, R2-11)
+  const first = t.cAboveYear ? ' at first' : '';
+  const s1 = below ? (x.r > 0 && inv > 0 ? `Households save more as the return on capital rises, so they spend less${first}.` : `Households spend less${first}.`) : `Households spend more from ${t.shockYear}.`;
   const s2 = t.cAboveYear ? `Consumption is above the forecast path from ${t.cAboveYear} under ${RULE_WORDS[rule]}.` : `It is still below the forecast path in ${HORIZON_YEAR}, the last year in the data.`;
   const p = c.parts_alive;
   const s3 = c.alive_avg > 0 && p.bequests + p.leisure > p.consumption && below ? 'The average gain is positive all the same: most of it is the value of leaving bequests and of free time.' : null;
@@ -684,7 +696,7 @@ function PartBars({ c }) {
       <ul className={`ex-parts${lo0 < 0 ? ' has-neg' : ''}${hi0 > 0 ? ' has-pos' : ''}`} aria-label="Average change and its three parts" style={{ '--parts-fill': GROUP_RAMP[3] }}>
         {rows.map((r) => (
           <li key={r.k} className={r.total ? 'is-total' : undefined}>
-            <span className="ex-parts-label">{r.label}</span>
+            <span className="ex-parts-label">{r.label}</span>{' '}
             <span className="ex-parts-track">
               <span className="ex-parts-plot">
                 <span className="ex-parts-zero" style={{ left: at(0) }} aria-hidden="true" />
@@ -934,6 +946,8 @@ export default function WhoGainsTab() {
       <div className="cards-stack stack-gap">
         <Card
           id="welfare-chart"
+          // slot 9 (review round 3, R3-12): the generations scene's case
+          story={rule === 'dn' && arm === 'tfp' && cls.includes('zk0.1') ? { anchor: 'p2-who-0', name: 'the generations scene' } : null}
           icon={iconFor('path')}
           title="Welfare change by birth year"
           // item 36 (E9): the settings are the pill's and the page's; the

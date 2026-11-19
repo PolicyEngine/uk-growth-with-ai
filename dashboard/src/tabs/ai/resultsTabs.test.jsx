@@ -62,8 +62,8 @@ describe('Results follows the data file', () => {
       const { container, unmount } = at('sub=income&closure=both');
       const fold = container.querySelector('#measures [data-more-info]');
       expect(fold.closest('.disclosure-content').hidden).toBe(true);
-      expect(fold.textContent.match(/headline figures, at home in the story/g)).toHaveLength(1);
-      expect(income.match(/headline figures, at home in the story/g)).toHaveLength(1);
+      expect(fold.textContent.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);
+      expect(income.match(/Story’s headline figures \(main version\)/g)).toHaveLength(1);
       unmount();
     }
     {
@@ -74,7 +74,7 @@ describe('Results follows the data file', () => {
       // the book icon holds links only; the words are in More info
       expect(pop).not.toContain('How to read');
       expect(pop).toContain('Method: Closures and income measures');
-      expect(pop.match(/headline figures, at home in the story/g)).toBeNull();
+      expect(pop.match(/Story’s headline figures \(main version\)/g)).toBeNull();
       unmount();
     }
     expect(income).toContain('no foreign capital not yet solved');
