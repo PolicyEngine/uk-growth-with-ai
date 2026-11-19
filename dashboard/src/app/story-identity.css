@@ -29,7 +29,9 @@
 .story > .story-part[data-part]:has(.part-links) + .story-close {
   padding-top: 16px;
 }
-.story > .story-part[data-part]:has(.part-links) + .story-close { margin-top: 16px; }
+/* B2's 16px above the close is the close sheet's own padding, not a margin,
+   so it is white, not a strip of page grey between two sheets (go-live note) */
+.story > .story-part[data-part]:has(.part-links) + .story-close { margin-top: 0; padding-top: 32px; }
 
 /* ---------- The chapter opener: a kicker and the question (h2) under one
    thin rule, at the full content width (item 6) ---------- */
@@ -259,6 +261,9 @@
   .story > .story-part[data-part]:has(.part-links) + .story-part,
   .story > .story-part[data-part]:has(.part-links) + .story-close {
     padding-top: 8px;
+  }
+  .story > .story-part[data-part]:has(.part-links) + .story-close {
+    padding-top: 24px;
   }
   .part-opener {
     margin-bottom: 24px;
