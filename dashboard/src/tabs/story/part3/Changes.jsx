@@ -7,6 +7,7 @@ import { NavLink } from '@/lib/nav.jsx';
 import { fmtBn, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp } from './format.js';
 import { AxisTitle, D, FigureHead, Key, MarkProvider, MODEL_YEAR, OutsideRebuildFlag, Source, entryClass, ladder, perPound, rule, useBeat, asLines } from './shared.jsx';
 import { Ref } from './sources.jsx';
+import { ChartHover } from '@/components/story/chart/index.js';
 
 // What changes the answer (round 2): one scene in place of three (who loses
 // the job, job loss against wage cuts, what moves the cost; results.tex,
@@ -254,7 +255,7 @@ function RulesPanel({ on }) {
           })}
         </ol>
         {hd ? (
-          <p className="p3-plane-readout" data-axis="">
+          <p className="p3-plane-readout" data-axis="" role="tooltip">
             <strong>{hr.label}</strong>: {fmtBn(hd.cost_bn)} a year; poverty {fmtPp(hd.poverty_pp)}; Gini {fmtPp(hd.gini_pp).replace('pp', ' points')}
           </p>
         ) : null}
@@ -279,14 +280,17 @@ function Dumbbell({ head, panel, max, marks, on, delay, fmt, scale = false }) {
           {head}
         </AxisTitle>
       </p>
+      {/* hover (M4): each margin's value, as printed under the track */}
+      <ChartHover label={head} items={marks.map((m) => ({ head: MARGIN_NAME[m.id], rows: [{ name: head, value: m.text, icon: 'wageCut' }], unit: `${MODEL_YEAR}, ${D.per_pound_20.draws} paired draws. The household study.` }))}>
       <div className={`p3-db-track${on ? ' is-on' : ''}`} style={{ '--beat': `${delay}ms` }}>
         <span className="p3-db-link" data-mark={panel} style={{ left: `${Math.min(...xs)}%`, width: `${Math.abs(xs[1] - xs[0])}%` }} />
         {marks.map((m, i) => (
           <span key={m.id} className={`p3-db-mark is-${m.id}${i ? ' is-second' : ''}`} data-mark={`${panel} ${m.id}`}>
-            <span className="p3-db-dot" style={{ left: `${xs[i]}%` }} tabIndex={on ? 0 : -1} aria-label={m.name} />
+            <span className="p3-db-dot" data-tip={i} style={{ left: `${xs[i]}%` }} aria-label={m.name} />
           </span>
         ))}
       </div>
+      </ChartHover>
       <Ticks max={max} fmt={fmt} />
       <dl className="p3-db-vals">
         {marks.map((m) => (
@@ -387,9 +391,10 @@ function BreakEvenPanel({ on }) {
       <p className="story-figure-unit p3-group-unit">
         <AxisTitle axis="y">Main setting, then break-even setting</AxisTitle>, for each of three assumptions; the other two held at main settings.
       </p>
+      <ChartHover label="The break-even setting of each of three assumptions" items={BREAKS.map((b) => ({ head: b.label, rows: [{ name: 'Main setting', value: b.centralText, icon: 'scenario' }, { name: 'Break-even', value: b.valueText, icon: 'breakEven' }], unit: `The cost to the public finances is zero at the break-even setting, the other two held at main settings. ${MODEL_YEAR}, the household study.`, kind: 'input' }))}>
       <ol className="p3-ch-be" data-mark="breakeven">
         {BREAKS.map((b, i) => (
-          <li key={b.id} className="p3-ch-be-row" data-row={`be-${b.id}`} data-mark={`be-${b.id}`} style={{ '--beat': `${i * 200}ms` }}>
+          <li key={b.id} className="p3-ch-be-row" data-row={`be-${b.id}`} data-mark={`be-${b.id}`} data-tip={i} style={{ '--beat': `${i * 200}ms` }}>
             <span className="p3-row-label">{b.label}</span>{' '}
             <span className="p3-ch-be-from">
               <span className="p3-ch-be-cap">Main</span> <span data-input="">{b.centralText}</span>
@@ -401,6 +406,7 @@ function BreakEvenPanel({ on }) {
           </li>
         ))}
       </ol>
+      </ChartHover>
     </>
   );
 }

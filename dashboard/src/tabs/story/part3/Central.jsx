@@ -8,6 +8,7 @@ import { fmtGiniLevel, fmtGiniPts, giniLevel } from '@/tabs/households/figures.j
 import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, MODEL_YEAR, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { NavLink } from '@/lib/nav.jsx';
+import { ChartHover } from '@/components/story/chart/index.js';
 
 // Step 1, the main case (results.tex, "The central scenario"). The
 // scoreboard is the home of the headline figures, each beside its baseline:
@@ -100,6 +101,18 @@ export function centralTiles(on) {
   });
 }
 
+const TILE_TIPS = [
+  {
+    head: 'Employees assumed displaced',
+    rows: [
+      { name: 'People', value: fmtMillions(H.central_displaced.value), icon: 'jobLoss' },
+      ...(CENTRAL_RATE == null ? [] : [{ name: 'Share of employees', value: `${CENTRAL_RATE}%`, icon: 'jobLoss' }]),
+    ],
+    unit: `Main case, ${MODEL_YEAR}; one tile is one per cent of employees. The household study.`,
+    kind: 'input',
+  },
+];
+
 function CentralFigure({ ctx }) {
   const { attach, ...e } = useBeat(ctx?.entered ?? true);
   const tiles = centralTiles(e.on);
@@ -127,7 +140,9 @@ function CentralFigure({ ctx }) {
         source={<CentralSource />}
       />
       <div className="p3-central">
-        <div {...markProps('displaced', 'p3-central-tiles')}>
+        {/* hover (M4): the tile grid's one quantity, from the data */}
+        <ChartHover label="Employees assumed displaced in the main case" items={TILE_TIPS}>
+        <div {...markProps('displaced', 'p3-central-tiles')} data-tip={0}>
           <p className="p3-tile-heads">
             <AxisTitle axis="x">Employees</AxisTitle>
             <span className="p3-tile-head-out">Assumed displaced</span>
@@ -140,6 +155,7 @@ function CentralFigure({ ctx }) {
             </AxisTitle>
           </p>
         </div>
+        </ChartHover>
         <ul className="story-facts p3-facts">
           {facts.map((f) => (
             <li key={f.key} {...markProps(`f-${f.key}`, 'story-fact')}>

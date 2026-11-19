@@ -7,6 +7,7 @@ import { fmtDecilePct } from './format.js';
 import { GrowRect } from '@/components/story/primitives.jsx';
 import { D, FigureHead, Fig, Num, NumMarker, Key, MarkProvider, Source, entryClass, useBeat, asLines, MODEL_YEAR } from './shared.jsx';
 import { SECTION } from './sources.jsx';
+import { ChartHover } from '@/components/story/chart/index.js';
 
 // Step 4, change in household disposable income (before housing costs) by
 // income decile. Deciles 2 to 10 are drawn at full strength in the part's
@@ -26,6 +27,16 @@ import { SECTION } from './sources.jsx';
 
 const DEC = D.deciles;
 const VALUES = DEC.values;
+// the tooltip of each decile (M4): its change, from the data
+const decName = (n) => (n === 1 ? '1 (bottom)' : n === 10 ? '10 (top)' : String(n));
+const TIPS = VALUES.map((v, i) => ({
+  head: `Decile ${decName(i + 1)}`,
+  rows: [
+    { name: 'Disposable income', value: fmtDecilePct(v), icon: 'deciles' },
+    ...(i === 0 ? [{ name: 'Direction', value: 'depends on the ranking', icon: 'caveat' }] : []),
+  ],
+  unit: `% change, before housing costs. Main case, ${MODEL_YEAR}, ${DEC.draws} draws. The household study.`,
+}));
 // the title is a finding (story-finding-titles-fable.md): deciles 2 to 9
 // all fall, each interval wholly below zero
 const FALLS_2_9 = VALUES.length >= 9 && VALUES.slice(1, 9).every((v, i) => v < 0 && (DEC.ci_high?.[i + 1] ?? 0) < 0);
@@ -186,7 +197,8 @@ function DecilesFigure({ ctx }) {
         replay={e.replay}
         source={<DecilesSource />}
       />
-      <ol className="p3-rows p3-deciles">
+      <ChartHover label="Change in disposable income by income decile" items={TIPS}>
+        <ol className="p3-rows p3-deciles">
         {VALUES.map((v, i) => {
           const n = i + 1;
           const first = n === 1;
@@ -194,7 +206,7 @@ function DecilesFigure({ ctx }) {
           const name = n === 1 ? '1 (bottom)' : n === 10 ? '10 (top)' : String(n);
           // the mark is the bar alone: a step's highlight never fades a label or value
           return (
-            <li key={n} className={`p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`} data-decile={n} style={{ '--beat': `${ORDER_DELAY(n)}ms` }}>
+            <li key={n} className={`p3-row p3-dec${first ? ' is-caveat' : ''}${n === SHAPE.worst ? ' is-worst' : ''}`} data-decile={n} data-tip={i} style={{ '--beat': `${ORDER_DELAY(n)}ms` }}>
               <span className="p3-row-label p3-dec-label">
                 {MARKER[n] ? <NumMarker n={MARKER[n]} /> : null} {name}
               </span>{' '}
@@ -206,7 +218,8 @@ function DecilesFigure({ ctx }) {
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </ChartHover>
     </figure>
   );
 }
