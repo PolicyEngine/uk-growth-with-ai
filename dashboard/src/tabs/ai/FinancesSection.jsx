@@ -590,8 +590,8 @@ export function ruleFinding(rule, sid, closure) {
   const table = 'The table gives the change for every version.';
   if (rule === 'dn')
     return {
-      lead: `Under debt-neutral transfers, debt/GDP stays on the forecast path to ${LATE_YEAR}.`,
-      lines: [`Transfers to households adjust each year from ${SURPRISE_YEAR + 1} to hold it there.`, ruleShiftWords(rule, sid, closure), table],
+      lead: `Under debt-neutral transfers, debt/GDP stays on the forecast path from ${SURPRISE_YEAR + 1} to ${LATE_YEAR}.`,
+      lines: ['Transfers to households adjust each year to hold it there.', ruleShiftWords(rule, sid, closure), table],
     };
   const d = shiftSide(ruleShift(rule, sid, 'tfp', primaryClosure(closure), 'debt_gdp_pp'));
   return {
