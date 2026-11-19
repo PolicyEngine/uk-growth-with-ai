@@ -67,6 +67,24 @@ export function investmentFlags() {
 }
 export const isFlagged = (sid, arm, cl) => investmentFlags().some((f) => f.sid === sid && f.arm === arm && f.cl === cl);
 
+// The last year before the headline year whose investment gap is at least
+// 1.5 times the headline year's: investment stays high while the shock
+// builds, to that year, then drops (review round 5, R5-16). null where no
+// year qualifies (with no foreign capital investment is up about evenly)
+// or the cell is not solved. Method's investJump and the Economy wall's
+// Investment tile both read it, so the two say the same year.
+export function investHighTo(sid = 'uk_central', cl = CENTRAL, rule = 'common', arm = 'tfp') {
+  const r = resultAt(sid, arm, cl, rule);
+  const head = at(r, 'I');
+  if (head == null || !(head > 0)) return null;
+  let to = null;
+  for (const y of YEARS.filter((t) => t >= SURPRISE_YEAR && t < HEADLINE_YEAR)) {
+    const v = at(r, 'I', y);
+    if (v != null && v >= 1.5 * head) to = y;
+  }
+  return to;
+}
+
 // The last year of an unbroken run below the path from the shock year
 // (consumption, main arm), or null if it starts on or above the path.
 export function belowThrough(sid, cl, v = 'C', rule = 'common') {

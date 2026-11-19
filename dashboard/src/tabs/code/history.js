@@ -16,4 +16,5 @@ export const HISTORY = [
   ['12 Nov 2026', 'limit', '“Automation only” renamed the OBR-style stress test; technology-unchanged arm added.', 27],
   ['13 Nov 2026', 'debt', 'Debt/GDP checked with debt repriced at the speed the OBR assumes; caveat added on Public finances.', 43],
   ['15 Nov 2026', 'finances', 'Fixed spending solved for UK central and Korinek et al.; ζK = 0.5 shown as a sensitivity, now on Explore.', 44],
+  ['18 Nov 2026', 'shock', 'AI now starts in 2027, as a surprise, and is in full by 2030, the headline year; the debt rule still starts in 2036. The 2028 timing is kept for comparison.', 44],
 ];

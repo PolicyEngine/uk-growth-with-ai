@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import S from '@/lib/activeData.js';
-import { signHeading, wageByClosure, wageClosureLines, investmentFlags, isFlagged, I_FLAG_PCT, belowThrough, debtDipIsDenominator, debtSidesByRule } from '@/tabs/explore/caveats.js';
+import { signHeading, wageByClosure, wageClosureLines, investmentFlags, isFlagged, I_FLAG_PCT, belowThrough, investHighTo, debtDipIsDenominator, debtSidesByRule } from '@/tabs/explore/caveats.js';
 
 import { DATA_SET } from '@/lib/dataFlag.js';
 
@@ -11,7 +11,7 @@ const Y = (y) => S.years.indexOf(y);
 // dropped by its gate (null), not printed.
 // pinned for both full files (the swap re-pinned them to 2027, the default)
 const PINNED = DATA_SET === 2028 || DATA_SET === 2027;
-const PIN = { 2028: { flag: 64, below: 2036 }, 2027: { flag: 65, below: 2035 } }[DATA_SET];
+const PIN = { 2028: { flag: 64, below: 2036, investTo: 2030 }, 2027: { flag: 65, below: 2035, investTo: 2029 } }[DATA_SET];
 const sensDone = (sid) => S.sensitivity?.['zk0.5']?.results?.[sid]?.tfp?.status === 'done';
 
 describe('economics review caveats, read from the active data file', () => {
@@ -62,5 +62,23 @@ describe('economics review caveats, read from the active data file', () => {
     expect(signHeading(sides)).toBe('the fiscal rule');
     expect(signHeading([{ key: 'common', side: 'above' }, { key: 'obr', side: 'below' }])).toBe('the repricing speed');
     expect(signHeading([{ key: 'common', side: 'above' }, { key: 'obr', side: 'above' }])).toBeNull();
+  });
+
+  // R5-16: investment stays high while the shock builds, then drops in the
+  // ramp's last year, with some foreign capital; with none it is up about
+  // evenly, so no year qualifies and the tile prints no "then drops" line.
+  it('dates the investment drop per cell, and gives none with no foreign capital', () => {
+    const I = (cl, y) => S.results.uk_central.tfp[cl].gaps.I[Y(y)];
+    const to = investHighTo('uk_central', 'zk0.1');
+    if (to != null) {
+      expect(to).toBeGreaterThanOrEqual(S.surprise_year);
+      expect(to).toBeLessThan(S.headline_year);
+      expect(I('zk0.1', to)).toBeGreaterThanOrEqual(1.5 * I('zk0.1', S.headline_year));
+    }
+    if (!PINNED) return;
+    expect(to).toBe(PIN.investTo);
+    expect(investHighTo('uk_central', 'zk0')).toBeNull();
+    expect(investHighTo('korinek', 'zk0.1')).toBe(PIN.investTo);
+    expect(investHighTo('korinek', 'zk0')).toBeNull();
   });
 });

@@ -5,6 +5,11 @@
  "entries": [
   {
    "date": "2026-11-19",
+   "commit": "e57ab37",
+   "text": "The AI shock now starts in 2027 and is in full by 2030; every OG-UK figure is from the 2027 runs."
+  },
+  {
+   "date": "2026-11-19",
    "commit": "2dcded4",
    "text": "National income leads with NNI; the overlap with the OBR’s own AI is sized on Method; Households rebuilt as seven cards; Part 1 updated to the 17 Nov releases."
   },
@@ -135,7 +140,7 @@
   },
   {
    "date": "2026-11-12",
-   "commit": "625843c",
+   "commit": "625843c2",
    "text": "Wording follows the results sanity audit (#39): every result is a gap against the OBR-central path."
   },
   {

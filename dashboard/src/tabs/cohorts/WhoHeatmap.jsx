@@ -10,7 +10,7 @@ import { OG_RESULT_URLS, COHORTS_SHA } from '@/tabs/ai/links.js';
 import Pill from '@/components/ui/Pill.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { ruleLabel } from '@/lib/labels.js';
-import { COHORTS as D } from '@/lib/dataKeys.js';
+import { COHORTS as D, SET } from '@/lib/dataKeys.js';
 import { Lead } from '@/tabs/explore/direction.jsx';
 
 // Who gains by age and lifetime-earnings group: a heatmap diverging around
@@ -101,7 +101,7 @@ export function cohortSources() {
     closures: [],
     code: false,
     extra: [
-      fileItem('OG-UK cohort state files: analysis/surprise/cohorts', OG_RESULT_URLS.cohortsDir, 'OG-UK', `commit ${COHORTS_SHA}`),
+      fileItem(`OG-UK cohort state files: ${SET.cohortsDir}`, OG_RESULT_URLS.cohortsDir, 'OG-UK', `commit ${COHORTS_SHA}`),
       fileItem('paper/cohort_welfare.py', OG_RESULT_URLS.cohortScript, 'PolicyEngine', `commit ${COHORTS_SHA}`),
     ],
   });

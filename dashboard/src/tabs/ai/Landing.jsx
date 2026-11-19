@@ -13,7 +13,7 @@ import {
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { Items } from '@/components/story/Items.jsx';
 import { payCaveat, payWords, fracWord } from '@/tabs/story/part2/caveats.js';
-import { ADOPTION, ADOPTION_YEAR, SIGN_CAVEAT, breakEven, pctRange, signMayFlip, tfpInput } from '@/lib/obrOverlap.js';
+import { ADOPTION, ADOPTION_YEAR, CALENDAR, SIGN_CAVEAT, breakEven, pctRange, signMayFlip, tfpInput } from '@/lib/obrOverlap.js';
 import { iconFor } from '@/lib/concepts.js';
 import { dirConcept, dirWord } from '@/tabs/story/part2/dir.js';
 import { A } from '@/tabs/story/part2/sources.jsx';
@@ -68,7 +68,7 @@ export function signCaveat(sid, cl, v) {
   const x = gap(sid, 'tfp', cl, v);
   const be = breakEven(sid, cl, v);
   const net = be != null && be <= (tfpInput(sid) ?? 0) + 1e-9 ? ` once ${be.toFixed(2)}% or more of the productivity input is netted` : '';
-  return `Its sign depends on the productivity gain: the forecast path already has about ${pctRange(ADOPTION)} of AI productivity by year ${ADOPTION_YEAR}, and the gap turns ${OTHER[sideWord(x)]} the path${net} (see “technology unchanged”).`;
+  return `Its sign depends on the productivity gain: the forecast path already has about ${pctRange(ADOPTION)} of AI productivity by year ${ADOPTION_YEAR} of adoption, and ${pctRange(CALENDAR)} over ${SURPRISE_YEAR}–${HEADLINE_YEAR}; the gap turns ${OTHER[sideWord(x)]} the path${net} (see “technology unchanged”).`;
 }
 
 // National income's tile, shared by the hero and the ledger: NNI's line,

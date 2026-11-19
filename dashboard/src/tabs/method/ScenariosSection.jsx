@@ -9,6 +9,7 @@ import IconText from './IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { CENTRAL, BOUND, SURPRISE_YEAR, HEADLINE_YEAR, FIRST_YEAR, LATE_YEAR, YEARS, ARMS, fixedInputVsTz, gap, signed, PENDING, PRE_SHOCK_YEARS, yearList, RAMP_WORD } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
+import { investHighTo } from '@/tabs/explore/caveats.js';
 import { REPO } from '@/tabs/ai/links.js';
 import { ext } from '../shared/ui.jsx';
 import Timeline, { timelineTable, timelineSvg } from './Timeline.jsx';
@@ -196,13 +197,7 @@ function SubHead({ id, oldId, title, children }) {
 // debt rule's first year steps up again). With no such year (investment up
 // about evenly throughout) the sentence says only that it stays up.
 export function investJump() {
-  const g = (y) => gap('uk_central', 'tfp', CENTRAL, 'I', y);
-  const head = g(HEADLINE_YEAR);
-  let to = null;
-  for (let y = SURPRISE_YEAR; y <= HEADLINE_YEAR - 1; y++) {
-    const v = g(y);
-    if (v != null && head != null && head > 0 && v >= 1.5 * head) to = y;
-  }
+  const to = investHighTo('uk_central', CENTRAL);
   const inv = to != null ? `With no adjustment costs, investment jumps in ${SURPRISE_YEAR} and stays high while the shock builds, to ${to}.` : `Investment rises in ${SURPRISE_YEAR} and stays up.`;
   return `${inv} Hours jump in ${SURPRISE_YEAR} only.`;
 }
@@ -282,7 +277,7 @@ export default function ScenariosSection({ uses = null }) {
             <Items
               items={[
                 { icon: 'model', text: 'OG-Core always starts a run in the forecast path’s first year.' },
-                { icon: 'timing', text: 'So inputs are shifted two years.' },
+                { icon: 'timing', text: `So inputs are shifted ${['', 'one year', 'two years', 'three years'][PRE_SHOCK_YEARS.length] ?? `${PRE_SHOCK_YEARS.length} years`}.` },
                 { icon: 'generations', text: <>The run inherits the {FIRST_YEAR} wealth, debt and population.</> },
                 { icon: 'source', text: <>Details: {ext(DOC(SET.designDoc), 'design note')}.</> },
               ]}
@@ -294,7 +289,7 @@ export default function ScenariosSection({ uses = null }) {
           <Items
             items={[
               { icon: 'start', text: PRE_SHOCK_YEARS.length > 1 ? <>{yearList(PRE_SHOCK_YEARS)} are identical in every scenario.</> : <>{yearList(PRE_SHOCK_YEARS)} is identical in every scenario.</> },
-              { icon: 'rule', text: <>The {SURPRISE_YEAR} start: a modelling choice ({ext(SRC.surpriseYear.url, 'surprise.py')}).</> },
+              { icon: 'rule', text: <>The {SURPRISE_YEAR} start: a modelling choice ({ext(SRC.surpriseYear.url, SRC.surpriseYear.label)}).</> },
               { icon: 'rule', text: <>So is the linear {RAMP_WORD}-year ramp ({ext(SRC.rampWeights.url, 'ramp weights')}).</> },
               { icon: 'excluded', text: 'There is no anticipation.' },
             ]}
