@@ -14,7 +14,7 @@ export function sourceFiles(root = SRC) {
       const p = path.join(d, e.name);
       if (e.isDirectory()) {
         if (e.name !== 'node_modules') walk(p);
-      } else if (/\.(jsx?|tsx?)$/.test(e.name) && !/\.test\.|TestUtils\.js$|^fixtureBase\.js$|^sourceScan\.js$/.test(e.name)) out.push(p);
+      } else if (/\.(jsx?|tsx?)$/.test(e.name) && !/\.test\.|TestUtils\.jsx?$|^fixtureBase\.js$|^sourceScan\.js$/.test(e.name)) out.push(p);
     }
   };
   walk(root);

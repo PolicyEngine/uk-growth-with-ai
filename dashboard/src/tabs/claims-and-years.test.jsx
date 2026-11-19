@@ -17,6 +17,7 @@ import S2028 from '@/data/surprise2028.json';
 import S2027 from '@/data/surprise2027.json';
 import { typedYears, yearKeys } from '@/lib/sourceScan.js';
 import BASE from '../../scripts/ratchet-baselines.json';
+import { recordCount } from '@/lib/probeTestUtils.jsx';
 
 afterEach(cleanup);
 
@@ -63,6 +64,7 @@ const unallowed = () =>
   });
 
 const within = (name, n) => {
+  recordCount(name, n);
   const b = BASE.probes[name]?.baseline;
   expect(n, `${name}: ${n} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
 };
