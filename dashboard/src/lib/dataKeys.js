@@ -61,6 +61,18 @@ export const cohortNotice = () =>
 export const profileOf = (closure) => closure[keyOf(closure, 'profile_')];
 export const profileYear = (closure) => Number(keyOf(closure, 'profile_')?.match(/^profile_(\d{4})/)?.[1]);
 
+// Wealth by age in the shock year, per closure (wealth_by_age_<shock
+// year>, added at rerun/surprise-2027 8d4c082): { age: [...],
+// ratio_to_adult_mean: [...], ... }. Wealth rises to age 99: there is no
+// peak at retirement. The ratio at one age, or null.
+export const wealthByAgeOf = (closure) => closure?.[keyOf(closure, 'wealth_by_age_')] ?? null;
+export function wealthRatioAt(closure, age) {
+  const w = wealthByAgeOf(closure);
+  const i = w?.age?.indexOf(age) ?? -1;
+  const x = i >= 0 ? w.ratio_to_adult_mean?.[i] : null;
+  return typeof x === 'number' ? x : null;
+}
+
 // The windowed income change of one cell, its age, and its years.
 export const windowIncomeOf = (c) => c[keyOf(c, 'income_')];
 export const windowIncomeAge = (c) => Number(keyOf(c, 'income_')?.match(/_age(\d+)$/)?.[1]);

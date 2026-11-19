@@ -7,7 +7,7 @@ import LineChart from '@/components/LineChart.jsx';
 import Card, { SectionHeading, StatTile } from '@/components/ui/Card.jsx';
 import Finding from '@/components/ui/Finding.jsx';
 import Disclosure from '@/components/ab/Disclosure.jsx';
-import { profileOf, windowIncomeOf, windowIncomeAge } from '@/lib/dataKeys.js';
+import { profileOf, windowIncomeOf, windowIncomeAge, wealthRatioAt } from '@/lib/dataKeys.js';
 import { revealAnchor } from '@/lib/scroll.js';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -133,7 +133,10 @@ function leastWordsOf(c, xs, shockYear) {
 // { claim, text }, so the probe can read each claim (data-claim).
 export const RETURN_LINE = 'They hold more wealth than younger adults and collect the higher return on it.';
 const capFirst = (t) => t[0].toUpperCase() + t.slice(1);
-export function whoFindingOf(c, { xs, shockYear, arm, T = null }) {
+// `wealthAt(age)`: wealth at that age as a ratio to the adult mean (the
+// cohort file's wealth_by_age), or null. The return line needs it above 1
+// at the age that gains most.
+export function whoFindingOf(c, { xs, shockYear, arm, T = null, wealthAt = () => null }) {
   const lastAlive = shockYear - 20;
   const adults = xs.map((y, i) => i).filter((i) => xs[i] <= lastAlive);
   const peak = adults.reduce((b, i) => (c.cev_all[i] > c.cev_all[b] ? i : b), adults[0]);
@@ -155,7 +158,7 @@ export function whoFindingOf(c, { xs, shockYear, arm, T = null }) {
         : fiscal
           ? 'more adults lose if households bear the later fiscal cost.'
           : null;
-  const ret = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 ? [{ claim: 'return', text: RETURN_LINE }] : null;
+  const ret = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 && wealthAt(peakAge) > 1 ? [{ claim: 'return', text: RETURN_LINE }] : null;
   const least = state !== 'loss' && arm !== 'stress' ? [{ claim: 'least', text: `${leastWordsOf(c, xs, shockYear)}.` }] : null;
   let lines;
   if (state === 'gain') {
@@ -180,7 +183,7 @@ export function whoAnswer(closure, rule, arm) {
   const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
   const c = cell(cl, rule, arm);
   const T = measuresOf(c, rule, cl, arm).find((m) => m.id === 'T')?.losing[0] ?? null;
-  return whoFindingOf(c, { xs: D.closures[cl].birth_year, shockYear: D.shock_year, arm, T });
+  return whoFindingOf(c, { xs: D.closures[cl].birth_year, shockYear: D.shock_year, arm, T, wealthAt: (age) => wealthRatioAt(D.closures[cl], age) });
 }
 
 // The box itself: the Finding, with the hooks the claims probe reads

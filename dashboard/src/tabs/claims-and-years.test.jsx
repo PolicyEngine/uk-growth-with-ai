@@ -226,3 +226,37 @@ for (const [name, D] of Object.entries(FILES)) {
     });
   });
 }
+
+// ---- the Who gains return line (wealth by age, ruling recorded in
+// pushC-plan.md) -------------------------------------------------------------
+describe('claims probe, cohorts: "They hold more wealth than younger adults…"', () => {
+  it('shows only where the wealth ratio at the age that gains most is above 1', async () => {
+    vi.resetModules();
+    vi.doUnmock('@/lib/activeData.js');
+    const { whoAnswer, whoFindingOf, RETURN_LINE } = await import('@/tabs/cohorts/CohortsTab.jsx');
+    const { COHORTS: CO } = await import('@/lib/dataKeys.js');
+    let shown = 0;
+    for (const closure of ['central', 'closed'])
+      for (const rule of ['common', 'dn'])
+        for (const arm of ['tfp', 'zfixed', 'stress']) {
+          const cl = closure === 'closed' ? 'zk0' : 'zk0.1';
+          const c = CO.closures[cl].rules[rule][arm];
+          const xs = CO.closures[cl].birth_year;
+          const adults = xs.map((_, i) => i).filter((i) => xs[i] <= CO.shock_year - 20);
+          const peak = adults.reduce((b, i) => (c.cev_all[i] > c.cev_all[b] ? i : b), adults[0]);
+          const age = CO.shock_year - xs[peak];
+          const w = Object.entries(CO.closures[cl]).find(([k]) => k.startsWith('wealth_by_age_'))?.[1];
+          const ratio = w ? w.ratio_to_adult_mean[w.age.indexOf(age)] : null;
+          const holds = c.sources_alive.capital > 0 && c.sources_alive.labour < 0 && ratio != null && ratio > 1;
+          const text = whoAnswer(closure, rule, arm).lines.flat().map((p) => p.text).join(' ');
+          expect(text.includes(RETURN_LINE), `${cl} ${rule} ${arm}: age ${age}, ratio ${ratio}`).toBe(holds);
+          if (holds) shown += 1;
+        }
+    // it holds today (1.73 at 65), so the check is not vacuous
+    expect(shown).toBeGreaterThan(0);
+    // and a cell where the age that gains most holds less than the mean drops it
+    const c = CO.closures['zk0.1'].rules.common.tfp;
+    const f = whoFindingOf(c, { xs: CO.closures['zk0.1'].birth_year, shockYear: CO.shock_year, arm: 'tfp', wealthAt: () => 0.2 });
+    expect(f.lines.flat().some((p) => p.text === RETURN_LINE)).toBe(false);
+  });
+});

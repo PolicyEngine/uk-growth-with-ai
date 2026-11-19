@@ -152,7 +152,8 @@ describe('Who gains finding box', () => {
     });
     return { cev_all, sources_alive: { capital: 1.5, labour: -0.7 }, alive_losing_pct: 0.05, no_bequest_losing_pct: 15, ...over };
   };
-  const run = (c, o = {}) => whoFindingOf(c, { xs, shockYear: sy, arm: 'tfp', T: 16, ...o });
+  // wealth above the adult mean at every age unless a case says otherwise
+  const run = (c, o = {}) => whoFindingOf(c, { xs, shockYear: sy, arm: 'tfp', T: 16, wealthAt: () => 1.73, ...o });
   const text = (f) => f.lines.map((l) => l.map((p) => p.text).join(''));
 
   it('gain state: three lines, line 3 joined by "; "', () => {
