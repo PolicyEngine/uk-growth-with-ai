@@ -1,4 +1,13 @@
-"""Build dashboard/src/data/surprise2028.json from the 2028-surprise solves.
+"""Build dashboard/src/data/surprise<YEAR>.json from the surprise solves.
+
+YEAR is the shock (announcement) year: 2028 (default) reads
+analysis/surprise/output; 2027 (Vahid, 18 Nov 2026: arrival 2027, full size
+2030) reads analysis/surprise2027/output and writes surprise2027.json.  Every
+date follows the year (window, headline, history years); key names are the
+2028 schema's, so a consumer reads either file.  UGAI_TARGETS_JSON (optional)
+names the uk_targets.json whose source strings are copied into `scenarios`.
+
+    python analysis/surprise/build_dashboard_data.py [--year 2027]
 
 Re-runnable: reads whatever per-solve records exist in
 analysis/surprise/output/{zk0.1,zk0}/ and marks every missing
@@ -13,7 +22,9 @@ iteration (2031 GDP gap within R4_TOL_PP of zero); the fixed-input Z point
 """
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -23,17 +34,24 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from uk_growth_with_ai import surprise as sp  # noqa: E402
 
-OUT_DIR = ROOT / "analysis" / "surprise" / "output"
-DEST = ROOT / "dashboard" / "src" / "data" / "surprise2028.json"
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--year", type=int, default=int(os.environ.get("UGAI_SURPRISE_YEAR",
+                                                                 sp.SURPRISE_YEAR)))
+SURPRISE = _ap.parse_known_args()[0].year
+_W = sp.window(SURPRISE)
+OUT_DIR = ROOT / "analysis" / ("surprise" if SURPRISE == sp.SURPRISE_YEAR
+                               else f"surprise{SURPRISE}") / "output"
+DEST = ROOT / "dashboard" / "src" / "data" / f"surprise{SURPRISE}.json"
 YEARS = list(range(2026, 2037))
-WINDOW = [2027, 2031]
-HEADLINE = 2031
+WINDOW = [_W["report_years"][0], _W["report_years"][-1]]     # [2027, 2031] for 2028
+HEADLINE = _W["headline_year"]                                # 2031 for 2028, 2030 for 2027
 LATE = 2036
+K_HIST = sp.k_of(SURPRISE)        # history years before the shock: 2026-27 for 2028
 
 CLOSURES = [("zk0.1", 0.1, "central"), ("zk0", 0.0, "closed-capital bound")]
 # A sensitivity closure, kept apart from `results` (no header option, no
 # solve count): shown only as one table on Method, common rule.
-SENS_CLOSURES = [("zk0.5", 0.5, "half of new capital foreign-financed")]
+SENS_CLOSURES = [("zk0.5", 0.5, "foreigners supply half of excess capital demand, not half of added capital")]
 SCENARIOS = [
     ("uk_low", "UK low", "uk_low"),
     ("uk_central", "UK central", "uk_central"),
@@ -68,7 +86,54 @@ def gaps(s, b):
                           - b["total_tax_revenue"][i] / b["Y"][i]) * 100 for i in range(n)]
     ls = lambda x, i: x["w"][i] * x["L"][i] / x["Y"][i] * 100
     out["labour_share_pp"] = [ls(s, i) - ls(b, i) for i in range(n)]
+    # shares of GDP, percentage points (M11: what the debt rule moves at tG1)
+    out["G_Y_pp"] = [(s["G"][i] / s["Y"][i] - b["G"][i] / b["Y"][i]) * 100 for i in range(n)]
+    out["I_Y_pp"] = [(s["I"][i] / s["Y"][i] - b["I"][i] / b["Y"][i]) * 100 for i in range(n)]
     return out
+
+
+# Years after the window (M11), read from the solves' TPI pickles under $WORK,
+# since the records stop in LATE: model period t is calendar SURPRISE + t.
+WORK = Path(os.environ.get("WORK", Path.home() / "ugai-rerun-work"))
+POST_YEARS = list(range(LATE + 1, LATE + 5))          # 2037-2040
+RULE_OFF = {"label": "uk_central_share_shift_tfp_ramp_dnfull", "reference": "continuation_dnfull",
+            "closure": "zk0.1", "scenario": "uk_central", "arm": "tfp"}
+
+
+def _tpi(cl, label):
+    import pickle
+    f = WORK / f"surprise{SURPRISE}" / cl / label / "TPI" / "TPI_vars.pkl"
+    if not f.is_file():
+        raise FileNotFoundError(f"{f} (set WORK to the solves' work dir)")
+    return pickle.load(open(f, "rb"))
+
+
+def _check_aligned(x, series, label):
+    """The pickle's period LATE - SURPRISE is the record's LATE value (same solve)."""
+    i, t = YEARS.index(LATE), LATE - SURPRISE
+    for v in ("Y", "I"):
+        assert abs(float(x[v][t]) / series[v][i] - 1) < 1e-12, (label, v)
+
+
+def post_window(cl, label, series, ref_label, ref_series):
+    """Investment gap (%) against the reference in POST_YEARS, from the pickles."""
+    s, b = _tpi(cl, label), _tpi(cl, ref_label)
+    _check_aligned(s, series, label)
+    _check_aligned(b, ref_series, ref_label)
+    return {"years": POST_YEARS,
+            "I": [(float(s["I"][y - SURPRISE]) / float(b["I"][y - SURPRISE]) - 1) * 100
+                  for y in POST_YEARS]}
+
+
+def rule_off(cl, done):
+    """The _dnfull pair (debt rule kept off to T-1): investment gap, YEARS + POST_YEARS."""
+    lab, ref = RULE_OFF["label"], RULE_OFF["reference"]
+    if cl != RULE_OFF["closure"] or lab not in done or ref not in done:
+        return None
+    s, b = done[lab]["series"], done[ref]["series"]
+    pw = post_window(cl, lab, s, ref, b)
+    return {"label": lab, "reference": ref, "years": YEARS + POST_YEARS,
+            "I": [(s["I"][i] / b["I"][i] - 1) * 100 for i in range(len(YEARS))] + pw["I"]}
 
 
 def levels(s):
@@ -112,7 +177,6 @@ OBR_CG_GROSS_DEBT_BN = (2996.06, 3172.4991, 3336.7799, 3489.3976, 3619.2944, 373
                         3857.1338)
 OBR_CG_GROSS_DEBT_PCT = (98.4223, 101.0028, 101.9149, 102.4897, 101.8414, 101.6155, 101.3471)
 OBR_PSND_PCT = (93.1017, 95.5055, 96.6997, 97.2848, 96.6742, 95.8675, 95.6107)
-SURPRISE = 2028
 
 
 def obr_passthrough(n):
@@ -163,7 +227,7 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
     b, n = ref["series"], 0
     k = sp._keys(variant, sid)
     recs = {"tfp": done.get(k["tfp"]), "tz": done.get(k["zfixed"]),
-            "ss": sp.accepted_r4(done, ref, variant, 2028, sid)}
+            "ss": sp.accepted_r4(done, ref, variant, SURPRISE, sid)}
     r4_iters = [x for x in done if x.startswith(k["r4"])]
     for a, *_ in ARMS:
         rec = recs[a]
@@ -190,8 +254,10 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
             "gamma_terminal": rec["gamma_terminal"],
             "sanity": "pass",
             "gaps": gaps(rec["series"], b), "levels": levels(rec["series"]),
-            # share of the extra 2031 capital stock that is foreign-owned, %
-            "foreign_share_dK_2031": foreign_share(rec["series"], b),
+            "post_window": post_window(cl, rec["label"], rec["series"], ref["reference"], b),
+            # share of the extra headline-year capital stock that is foreign-owned, %
+            # (key named by the headline year: Fable 5.2 decision, 18 Nov)
+            f"foreign_share_dK_{HEADLINE}": foreign_share(rec["series"], b),
             # real pay growth each year (pay_growth): the "not a cut" test
             "pay_growth_pct": pay_growth(rec),
         }
@@ -199,8 +265,8 @@ def fill(dest, cl, done, sanities, ref, variant, sid):
             own = repriced_debt_pp(rec["series"], b, full=True)
             assert abs(own - dest[a][cl]["gaps"]["debt_gdp_pp"][-1]) < 1e-9, rec["label"]
             dest[a][cl]["debt_gdp_pp_obr_repricing_late"] = repriced_debt_pp(rec["series"], b)
-        for v, path in dest[a][cl]["gaps"].items():  # 2026-27 are history: every gap must be zero
-            assert all(abs(x) < 1e-9 for x in path[:2]), (rec["label"], v, path[:2])
+        for v, path in dest[a][cl]["gaps"].items():  # the pre-shock years are history: zero gaps
+            assert all(abs(x) < 1e-9 for x in path[:K_HIST]), (rec["label"], v, path[:K_HIST])
         n += 1
     return n
 
@@ -260,7 +326,8 @@ def output_split(results, year=HEADLINE):
 
 
 def main():
-    targets = json.loads((ROOT / "analysis" / "surprise" / "uk_targets.json").read_text())["scenarios"]
+    tpath = Path(os.environ.get("UGAI_TARGETS_JSON") or ROOT / "analysis" / "surprise" / "uk_targets.json")
+    targets = json.loads(tpath.read_text())["scenarios"]
     closures, results, n_done = {}, {sid: {a: {} for a, *_ in ARMS} for sid, *_ in SCENARIOS}, 0
     rules = {rid: {"label": label, "variant": var, "scenarios": sids, "results": {}}
              for rid, var, label, sids in RULE_VARIANTS}
@@ -294,6 +361,10 @@ def main():
                         "reference_effective_tax_rates": {k: eff[k] for k in ("labour", "capital_gross")}}
         for sid, *_ in SCENARIOS:
             n_done += fill(results[sid], cl, done, sanities, ref, False, sid)
+        ro = rule_off(cl, done)
+        cell = results[RULE_OFF["scenario"]][RULE_OFF["arm"]].get(cl, {})
+        if ro is not None and cell.get("status") == "done":
+            cell["rule_off"] = ro      # M11: the same arm with the debt rule kept off
         for rid, var, _, sids in RULE_VARIANTS:
             for sid in sids:
                 fill(rules[rid]["results"].setdefault(sid, {a: {} for a, *_ in ARMS}),
@@ -320,7 +391,7 @@ def main():
     data = {
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
         "source_commit": git_sha(), "years": YEARS, "window": WINDOW, "headline_year": HEADLINE,
-        "late_year": LATE, "surprise_year": 2028, "default_scenario": "uk_central",
+        "late_year": LATE, "surprise_year": SURPRISE, "default_scenario": "uk_central",
         "scenarios": scen, "arms": [{"id": a, "label": l, "short": sh} for a, l, sh in ARMS],
         "closures": closures, "results": results, "rules": rules, "sensitivity": sensitivity,
         "solves_done": n_done,
@@ -336,7 +407,7 @@ def main():
                 if r["status"] == "done":
                     i = YEARS.index(HEADLINE)
                     g = r["gaps"]
-                    print(f"  {sid:10s} {a:3s} {cl:5s} 2031 GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
+                    print(f"  {sid:10s} {a:3s} {cl:5s} {HEADLINE} GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
                           f"NNI {g['NNI'][i]:+.2f}% w {g['w'][i]:+.2f}%  ({r['label']})")
                 else:
                     print(f"  {sid:10s} {a:3s} {cl:5s} pending {r.get('note', '')}")
@@ -345,7 +416,7 @@ def main():
             for a, r in arms.items():
                 if r["status"] == "done":
                     g, i = r["gaps"], YEARS.index(HEADLINE)
-                    print(f"  sensitivity {cl} {sid:10s} {a:3s} 2031 GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
+                    print(f"  sensitivity {cl} {sid:10s} {a:3s} {HEADLINE} GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
                           f"w {g['w'][i]:+.2f}%  ({r['label']})")
                 else:
                     print(f"  sensitivity {cl} {sid:10s} {a:3s} pending {r.get('note', '')}")
@@ -356,7 +427,7 @@ def main():
                     if r["status"] == "done":
                         i = YEARS.index(HEADLINE)
                         g = r["gaps"]
-                        print(f"  {rid} {sid:10s} {a:3s} {cl:5s} 2031 GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
+                        print(f"  {rid} {sid:10s} {a:3s} {cl:5s} {HEADLINE} GDP {g['Y'][i]:+.2f}% GNI {g['GNI'][i]:+.2f}% "
                               f"w {g['w'][i]:+.2f}% C {g['C'][i]:+.2f}%  ({r['label']})")
                     else:
                         print(f"  {rid} {sid:10s} {a:3s} {cl:5s} pending {r.get('note', '')}")

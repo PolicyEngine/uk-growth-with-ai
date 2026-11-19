@@ -1,0 +1,37 @@
+zk0 surprise 2027 arms: uk_central_share_shift_ramp_r4_1 (Newton step, committed 2026-start R4 secant (98.2 pp per unit ln Z))
+
+=== zk0 surprise2027 uk_central_share_shift_ramp_r4_1 ===
+Demographics data: Initial Data year =  2026 , Final Data year =  2028
+  UN data: cache hit un_68_826_2025_2028.csv
+  UN data: cache hit un_80_826_2025_2028.csv
+  UN data: cache hit un_47_826_2025_2030.csv
+  g_n: first 5 periods of the live UN fetch MATCH the vendored data/g_n_committed_run.json; the tail, g_n_ss, omega and imm_rates are unchecked (never recorded), so the solve is not network-free.
+  R2: pre-TP g_n/rho/imm_rates set from the UK fetch
+  R2: data splice 2027->2028 repaired (2.50e-03 -> 3.00e-16)
+  SURPRISE: period 0 is now 2027; shifted 7 time-varying inputs; tG1 9; foreign debt share 0.0949
+  gamma ramps 0.35 -> 0.366
+  Z ramps 1.0 -> 0.977315
+  baseline=False, initial state INHERITED from baseline
+  alpha_G = 0.301911 (baseline), tG1 = 9, g_y_annual = 0.01, zeta_K = 0.0
+Government spending breakpoints are tG1: 9; and tG2: 19
+Maximum debt ratio:  0.9744549313716847
+w diff: -0.0022958147425049535, -0.020892996349487936
+r diff: 0.0037069396894918102, 0.00040714001536627104
+r_p diff: 0.0035297376359744934, 0.0003388421290610247
+p_m diff: 0.0, 0.0
+BQ diff: 0.00031722070896532395, -0.00108585994503628
+TR diff: 0.0003239886593831634, -0.00014717327814893488
+Iteration: 1
+Distance: 0.12498408320294037
+Maximum debt ratio:  0.9519247787347987
+accel step worsened; trust radius -> 0.5
+w diff: -0.020252157367962376, -0.02823779693601214
+r diff: 0.005311060677616622, 0.0035447767144103637
+r_p diff: 0.0050986629963273924, 0.0034213015855853457
+p_m diff: 0.0, 0.0
+BQ diff: 0.00038741960139350093, -0.0005041455194408004
+TR diff: -0.00048821957245305525, -0.0008701349128134028
+Iteration: 2
+Distance: 0.1775801935118758
+/Users/vahid/ugai-surprise2027/analysis/surprise/driver.sh: line 71: 28927 Terminated: 15          "$@"
+TIMEOUT after 1800s: caffeinate -i /Users/vahid/ogmodels/OG-UK/.venv/bin/python -u -m uk_growth_with_ai surprise step --closure zk0 --stage arms --scenario uk_central --outdir /Users/vahid/ugai-surprise2027/analysis/surprise2027/output --rerun-dir /Users/vahid/ugai-surprise2027/analysis/rerun/output --work /Users/vahid/ugai-rerun-work --start 2027

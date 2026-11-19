@@ -1,0 +1,95 @@
+zk0.1 surprise 2027 arms: korinek_share_shift_ramp_zfixed (fixed-input Z (zero wedge at 2026 K, L); R4 secant point 0)
+
+=== zk0.1 surprise2027 korinek_share_shift_ramp_zfixed ===
+Demographics data: Initial Data year =  2026 , Final Data year =  2028
+  UN data: cache hit un_68_826_2025_2028.csv
+  UN data: cache hit un_80_826_2025_2028.csv
+  UN data: cache hit un_47_826_2025_2030.csv
+  g_n: first 5 periods of the live UN fetch MATCH the vendored data/g_n_committed_run.json; the tail, g_n_ss, omega and imm_rates are unchecked (never recorded), so the solve is not network-free.
+  R2: pre-TP g_n/rho/imm_rates set from the UK fetch
+  R2: data splice 2027->2028 repaired (2.50e-03 -> 3.00e-16)
+  SURPRISE: period 0 is now 2027; shifted 7 time-varying inputs; tG1 9; foreign debt share 0.0949
+  gamma ramps 0.35 -> 0.389
+  Z ramps 1.0 -> 0.942883
+  baseline=False, initial state INHERITED from baseline
+  alpha_G = 0.298673 (baseline), tG1 = 9, g_y_annual = 0.01, zeta_K = 0.1
+Government spending breakpoints are tG1: 9; and tG2: 19
+Maximum debt ratio:  1.0109217278468483
+w diff: -0.0018330208291459371, -0.01794292033090361
+r diff: 0.0028813715230665213, 0.00029888745901029273
+r_p diff: 0.002736214540067214, 0.00022876543528490417
+p_m diff: 0.0, 0.0
+BQ diff: 0.00041662101970703705, -0.0011258374770970817
+TR diff: 0.00040440000717947844, -4.284356375044984e-05
+Iteration: 1
+Distance: 0.09642734566976958
+Maximum debt ratio:  0.9978471472685797
+accel step worsened; trust radius -> 0.5
+w diff: -0.01880960687600064, -0.027311916606993725
+r diff: 0.004659365751959028, 0.0029754738009931322
+r_p diff: 0.004396640523980706, 0.0028744778719479794
+p_m diff: 0.0, 0.0
+BQ diff: 0.00040461579127885894, -0.0005580914819109106
+TR diff: -0.0004192294806785804, -0.000813279971808592
+Iteration: 2
+Distance: 0.15518728078339375
+Maximum debt ratio:  1.0179095727307776
+w diff: -0.004110335144509092, -0.009087892880010662
+r diff: 0.0015664403984570613, 0.0006533552978667811
+r_p diff: 0.0014806419046655, 0.0006220515438932275
+p_m diff: 0.0, 0.0
+BQ diff: 0.0002721728929292247, -0.00014635037336839518
+TR diff: -7.312333853101011e-05, -0.0003008557493265132
+Iteration: 3
+Distance: 0.08690968599420024
+Maximum debt ratio:  1.03574653350144
+w diff: 0.00033369214568756966, -0.0014709404539812176
+r diff: 0.0002549337996920059, -6.143484810407912e-05
+r_p diff: 0.0002398697136966818, -6.11040898662249e-05
+p_m diff: 0.0, 0.0
+BQ diff: 9.869491403263417e-05, -9.749780257858193e-06
+TR diff: 1.0103178457530892e-05, -6.075821023903555e-05
+Iteration: 4
+Distance: 0.028922219102044008
+Maximum debt ratio:  1.0436177201773924
+w diff: 0.00018768353394138515, -0.00016823120471154418
+r diff: 2.9776657492062986e-05, -3.0131752434880976e-05
+r_p diff: 2.3175008485191995e-05, -2.9174663946855695e-05
+p_m diff: 0.0, 0.0
+BQ diff: 9.307174792992645e-06, -6.522993960082768e-07
+TR diff: 2.7947626435112505e-06, -2.3085296355453144e-05
+Iteration: 5
+Distance: 0.008937658307500788
+Maximum debt ratio:  1.0449801381208697
+w diff: 8.70016273268881e-05, -1.1315940152245574e-05
+r diff: 2.1511932722442784e-06, -1.5225891646562795e-05
+r_p diff: 2.1714471878583885e-06, -1.4526961583063991e-05
+p_m diff: 0.0, 0.0
+BQ diff: 2.2793739313034522e-07, -4.098599328584279e-06
+TR diff: 2.1775672470331076e-06, -4.0681207707088385e-06
+Iteration: 6
+Distance: 0.0016004256953723174
+Maximum debt ratio:  1.0450297586529145
+w diff: 3.439215188594247e-05, -1.4715203434212398e-05
+r diff: 2.3880337913298466e-06, -5.784572714925829e-06
+r_p diff: 2.3154276232381643e-06, -5.586624227539583e-06
+p_m diff: 0.0, 0.0
+BQ diff: 9.359861283773918e-07, -8.318333007302503e-08
+TR diff: 1.166526166447579e-06, -7.121272682722446e-07
+Iteration: 7
+Distance: 0.0003154189066155751
+Maximum debt ratio:  1.044943188794636
+w diff: 5.146909792808074e-06, -6.356832402243384e-06
+r diff: 1.0216115089028976e-06, -9.090786053725375e-07
+r_p diff: 9.86901434373022e-07, -8.287286110894576e-07
+p_m diff: 0.0, 0.0
+BQ diff: 2.578880380944837e-07, -8.476272256655037e-08
+TR diff: 3.664506921519095e-07, -8.984524497712698e-07
+Iteration: 8
+Distance: 5.4071418573157835e-05
+Max absolute value resource constraint error: 0.16548951458422906
+Checking time path for violations of constraints.
+Max Euler error, savings: 2.8261837314857985e-12
+Max Euler error labor supply: 1.4346301924206273e-12
+OK 21.9 min | SS labour share 0.6110 | RC/Y 2026 +0.0000% | RC interior max 3.07e-06 | TPI dist 5.4071418573157835e-05 in 8 its
+wrote /Users/vahid/ugai-surprise2027/analysis/surprise2027/output/zk0.1/korinek_share_shift_ramp_zfixed.json

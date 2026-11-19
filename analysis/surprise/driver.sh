@@ -40,8 +40,18 @@ WORK="${WORK:?set WORK to the directory holding <closure>/baseline_p1}"
 SOLVE_BUDGET="${SOLVE_BUDGET:-600}"
 SOLVE_TIMEOUT="${SOLVE_TIMEOUT:-1800}"   # a solve takes ~7 min; kill it (by PID) after 30
 NET_TIMEOUT="${NET_TIMEOUT:-60}"         # git push / gh calls
-BRANCH="rerun/surprise-2028"
-OUT="$REPO/analysis/surprise/output"
+# YEAR (default 2028): the announcement year.  2027 (Vahid, 18 Nov 2026) writes
+# a separate set under analysis/surprise2027/ and never touches the 2028 output.
+# NO_PUSH=1: commit by path but do not push, and post no GitHub progress comment.
+# FAIL_CONTINUE=1: a failed or timed-out solve is kept (<label>.FAILED-*.log) and
+# its item skipped; the driver goes on holding the lock.  Sanity failures still stop it.
+YEAR="${YEAR:-2028}"
+BRANCH="rerun/surprise-$YEAR"
+if [[ "$YEAR" == 2028 ]]; then OUT="$REPO/analysis/surprise/output"
+else OUT="$REPO/analysis/surprise$YEAR/output"; fi
+COHORT_DIR="$(dirname "$OUT")/cohorts"
+NO_PUSH="${NO_PUSH:-0}"
+mkdir -p "$OUT"
 RERUN="$REPO/analysis/rerun/output"
 PLAN=("$@")
 [[ ${#PLAN[@]} -eq 0 ]] && PLAN=(check nics
@@ -74,17 +84,19 @@ run_to() {   # run_to <seconds> <cmd...>: kill the command (its own PID only) on
 }
 
 cli() { ( cd "$WORK" && "$PY" -m uk_growth_with_ai surprise "$@" --outdir "$OUT" \
-            --rerun-dir "$RERUN" </dev/null ); }
+            --rerun-dir "$RERUN" --start "$YEAR" </dev/null ); }
 
 push() {   # push <message> <path>...
   local msg="$1"; shift
   ( cd "$REPO" && git add -- "$@" \
     && git commit -q -m "$msg" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- "$@" \
+    && { [[ "$NO_PUSH" == 1 ]] && exit 0; true; } \
     && for i in 1 2 3; do run_to "$NET_TIMEOUT" git push -q origin "$BRANCH" && exit 0; sleep 20; done
     echo "PUSH FAILED: $msg" )
 }
 
 progress() {
+  [[ "$NO_PUSH" == 1 ]] && return 0
   local body id
   body="$("$PY" "$REPO/analysis/surprise/sanity.py" --progress --outdir "$OUT")" || return 0
   id="$(cat "$WORK/surprise_progress_comment_id" 2>/dev/null)"
@@ -99,11 +111,11 @@ progress() {
 
 sanity() {   # sanity <closure> <label>: the hard gate; pushes and exits on failure
   local C="$1" label="$2" slog="$OUT/$1/$2.sanity.log"
-  "$PY" "$REPO/analysis/surprise/sanity.py" "$C" "$label" --outdir "$OUT" >"$slog" 2>&1
+  "$PY" "$REPO/analysis/surprise/sanity.py" "$C" "$label" --outdir "$OUT" --year "$YEAR" >"$slog" 2>&1
   local rc=$?
   tail -1 "$slog"
   if [[ $rc -ne 0 ]]; then
-    push "surprise 2028 $C: $label FAILED the sanity gate" \
+    push "surprise $YEAR $C: $label FAILED the sanity gate" \
       "$OUT/$C/$label.json" "$OUT/$C/$label.log" "$slog" "$OUT/$C/$label.sanity.json"
     progress
     echo "STOP: $C $label failed the sanity gate; investigate before continuing"; exit 1
@@ -125,17 +137,17 @@ for item in "${PLAN[@]}"; do
     time_ok check-specs || exit 3
     echo "=== start check-specs $(date +%H:%M)"
     ( cd "$WORK" && caffeinate -i "$PY" -u -m uk_growth_with_ai surprise check-specs \
-        --closure zk0.1 --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" \
+        --closure zk0.1 --outdir "$OUT" --rerun-dir "$RERUN" --work "$WORK" --start "$YEAR" \
         </dev/null >"$OUT/check_specs.log" 2>&1 )
     rc=$?
     # the JSON report is the last thing printed: everything from the first "{" line
     sed -n '/^{/,$p' "$OUT/check_specs.log" > "$f.tmp"
     if [[ $rc -ne 0 ]] || ! "$PY" -c "import json,sys; json.load(open(sys.argv[1]))" "$f.tmp" 2>/dev/null; then
-      rm -f "$f.tmp"; push "surprise 2028: check-specs FAILED (log)" "$OUT/check_specs.log"
+      rm -f "$f.tmp"; push "surprise $YEAR: check-specs FAILED (log)" "$OUT/check_specs.log"
       echo "STOP: check-specs failed (rc $rc); see $OUT/check_specs.log"; tail -5 "$OUT/check_specs.log"; exit 1
     fi
     mv "$f.tmp" "$f"
-    push "surprise 2028: check-specs passed (one spec build, both closures)" "$f" "$OUT/check_specs.log"
+    push "surprise $YEAR: check-specs passed (one spec build, both closures)" "$f" "$OUT/check_specs.log"
     continue
   fi
   if [[ "$item" == nics ]]; then
@@ -155,10 +167,10 @@ for item in "${PLAN[@]}"; do
   fi
   if [[ "$item" == cohorts ]]; then
     echo "=== start cohorts $(date +%H:%M)"
-    ( cd "$REPO" && WORK="$WORK" "$PY" analysis/surprise/export_cohorts.py \
+    ( cd "$REPO" && WORK="$WORK" UGAI_SURPRISE_YEAR="$YEAR" "$PY" analysis/surprise/export_cohorts.py \
         >"$OUT/export_cohorts.log" 2>&1 ) || echo "cohort export failed; see $OUT/export_cohorts.log"
-    push "surprise 2028: cohort paths for the welfare results" \
-      "$REPO/analysis/surprise/cohorts" "$OUT/export_cohorts.log"
+    push "surprise $YEAR: cohort paths for the welfare results" \
+      "$COHORT_DIR" "$OUT/export_cohorts.log"
     continue
   fi
   IFS=: read -r C STAGE SCEN <<<"$item"
@@ -205,7 +217,7 @@ for item in "${PLAN[@]}"; do
     [[ -f "$f" ]] && { echo "=== $C prepare already done"; continue; }
     cli prepare --closure "$C" --work "$WORK" >"$WORK/prepare_$C.log" 2>&1 || {
       echo "STOP $C prepare failed"; SKIPPED="$SKIPPED$C "; continue; }
-    push "surprise 2028 $C: baseline export to 2036" "$f"
+    push "surprise $YEAR $C: baseline export to 2036" "$f"
     echo "=== $C prepare done"; continue
   fi
   if [[ "$STAGE" == gate ]]; then
@@ -216,10 +228,10 @@ for item in "${PLAN[@]}"; do
         > "$OUT/$C/gate.log" 2>&1
     rc=$?
     if [[ $rc -ne 0 || ! -f "$g" ]]; then
-      push "surprise 2028 $C: continuation gate FAILED" "$OUT/$C/gate.log"
+      push "surprise $YEAR $C: continuation gate FAILED" "$OUT/$C/gate.log"
       echo "STOP: $C continuation gate failed; nothing else runs"; cat "$OUT/$C/gate.log"; exit 1
     fi
-    push "surprise 2028 $C: continuation gate passed (reference = continuation)" "$g" "$OUT/$C/gate.log"
+    push "surprise $YEAR $C: continuation gate passed (reference = continuation)" "$g" "$OUT/$C/gate.log"
     continue
   fi
   while true; do
@@ -231,14 +243,20 @@ for item in "${PLAN[@]}"; do
     echo "=== start $C $label $(date +%H:%M)"
     ( cd "$WORK" && run_to "$SOLVE_TIMEOUT" caffeinate -i "$PY" -u -m uk_growth_with_ai surprise \
         step --closure "$C" --stage "$STAGE" --scenario "$SCEN" --outdir "$OUT" \
-        --rerun-dir "$RERUN" --work "$WORK" </dev/null >"$log" 2>&1 )
+        --rerun-dir "$RERUN" --work "$WORK" --start "$YEAR" </dev/null >"$log" 2>&1 )
     rc=$?
     if [[ $rc -ne 0 || ! -f "$OUT/$C/$label.json" ]]; then
-      push "surprise 2028 $C: $label FAILED (log)" "$log"
-      echo "FAILED $C $label (rc $rc); see $log"; tail -5 "$log"; exit 1
+      keep="$OUT/$C/$label.FAILED-rc$rc-$(date +%Y%m%d-%H%M).log"
+      cp "$log" "$keep"
+      push "surprise $YEAR $C: $label FAILED (log)" "$log" "$keep"
+      echo "FAILED $C $label (rc $rc); see $keep"; tail -5 "$log"
+      # FAIL_CONTINUE=1: skip the rest of this item and go on with the plan, still
+      # holding the lock (a sanity failure still stops the driver: the hard gate)
+      [[ "${FAIL_CONTINUE:-0}" == 1 ]] && { echo "FAIL_CONTINUE: skipping $item"; continue 2; }
+      exit 1
     fi
     sanity "$C" "$label"
-    push "surprise 2028 $C: solve $label (sanity pass)" "$OUT/$C/$label.json" "$log" \
+    push "surprise $YEAR $C: solve $label (sanity pass)" "$OUT/$C/$label.json" "$log" \
       "$OUT/$C/$label.sanity.log" "$OUT/$C/$label.sanity.json"
     progress
   done

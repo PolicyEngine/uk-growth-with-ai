@@ -46,6 +46,6 @@
   "recommended_central": "uk_central",
   "notes": [
     "All four pairs move gamma and Z together, as the IMF UK model does: a labour-share shift from automation comes with a cost-saving TFP gain. No UK source supports a share shift with zero TFP.",
-    "BP9 could not be re-read: obr.uk redirects automated downloads to a no-access page (12 Nov 2026). Its figures are from the #31 review and the FRS 2026 Box 4.1 restatement."
+    "BP9 read in full (18 Nov 2026, obr-overlap review): Chart B.4 (p.51, read off the chart's vector data) puts the AI level effect at year 4 at 0.19% on the J-curve and 0.33% on the S-curve. UK central's 0.4% TFP input stays on the IMF's year-4 reading of about 0.42% (SIP/2026/072, Figure 9); it is not net of the OBR's effect, which the central forecast path already contains (issue #27)."
   ]
 }

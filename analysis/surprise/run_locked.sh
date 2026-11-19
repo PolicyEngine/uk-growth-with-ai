@@ -14,7 +14,7 @@
 #     analysis/surprise/run_locked.sh                 # the default plan
 set -uo pipefail
 LOCK=/tmp/pe-heavy.lock
-LABEL="ugai-surprise-2028"
+LABEL="ugai-surprise-${YEAR:-2028}"
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 DEADLINE_AT="${DEADLINE_AT:-19:25}"
 DEADLINE="$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) $DEADLINE_AT:00" +%s)" || exit 1
