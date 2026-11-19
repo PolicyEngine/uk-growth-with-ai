@@ -20,8 +20,12 @@ export default function NextPart({ n, title, to, children, links, show = false }
     <nav className="part-links story-next" aria-label={n ? `Next: part ${n}` : 'Next'}>
       <div className="part-links-inner story-next-inner">
         <a className="part-links-next story-next-link" href={`#${to}`}>
-          <Icon name="arrowDown" size={16} />
-          <span className="part-links-kicker">{n ? `Next: part ${n}` : 'Next'}</span>
+          {/* the arrow hangs left of the kicker, out of flow, so the words
+              sit on the column's centre (item dc-A) */}
+          <span className="part-links-kick">
+            <Icon name="arrowDown" size={16} />
+            <span className="part-links-kicker">{n ? `Next: part ${n}` : 'Next'}</span>
+          </span>
           <span className="part-links-title">{title}</span>
         </a>
         {/* the lead is the link's second line: no icon of its own (the
