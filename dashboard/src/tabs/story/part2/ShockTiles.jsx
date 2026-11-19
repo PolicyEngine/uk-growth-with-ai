@@ -78,7 +78,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
   const capDelay = (st) => (forward && s === st ? settleMs(st, shock, lead) + 100 : 0);
   const line2 =
     ch == null
-      ? 'This solve is pending for the foreign-capital case chosen above.'
+      ? 'This scenario is not yet solved for the foreign-capital case chosen above.'
       : N === 0
         ? `No new small tiles: GDP is ${dirWord(ch.gdp)} the forecast path.`
         : (
@@ -177,7 +177,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
         </>
       ) : (
         <p className="p2-pending">
-          <Tx icon="provisional">The forecast path for this foreign-capital case is pending.</Tx>
+          <Tx icon="provisional">The forecast path for this foreign-capital case is not yet solved.</Tx>
         </p>
       )}
     </figure>

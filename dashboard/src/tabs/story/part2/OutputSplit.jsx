@@ -367,8 +367,8 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           ) : null}
         </div>
         <p className="story-figure-unit p2-output-unit">
-          <span data-axis-title="y">Income per 100 of GDP on the OBR’s central forecast path</span>
-          <span>{`, ${SPLIT_YEAR}, ${CL_WORDS[cl]}. OG-UK`}</span>
+          <span data-axis-title="y">{`The forecast path, ${SPLIT_YEAR}: income per 100 of GDP`}</span>
+          <span>{`, on the OBR’s central forecast, ${CL_WORDS[cl]}. OG-UK`}</span>
           {both ? <span>. With both foreign-capital cases chosen above, both figures show some foreign capital.</span> : null}
         </p>
         {graph ? (
@@ -411,7 +411,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </div>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">The forecast path for this foreign-capital case is pending.</Tx>
+            <Tx icon="provisional">The forecast path for this foreign-capital case is not yet solved.</Tx>
           </p>
         )}
       </div>
@@ -420,11 +420,11 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           at step 3, where it is discussed, at full contrast */}
       <div className={`p2-output-change p2-out-later${s >= 2 ? ' is-on' : ''}`} inert={s < 2 || undefined}>
         <p className="story-figure-title p2-output-title" data-title-fallback={kept ? undefined : ''}>
-          <Tx icon="compare">{kept ? 'Most of capital’s gain is kept in the UK' : `What ${SCEN_NAME[sid]} changes, ${SPLIT_YEAR}`}</Tx>
+          <Tx icon="compare">{kept ? 'Most of capital’s gain is kept in the UK' : `${SCEN_NAME[sid]} minus the forecast path, ${SPLIT_YEAR}`}</Tx>
         </p>
         <p className="story-figure-unit p2-output-unit">
-          <span data-axis-title="x">Change against the forecast path, per 100 of its GDP</span>
-          {`, ${SPLIT_YEAR}. ${scenarioById(sid)?.short ?? SCEN_NAME[sid]}, ${CL_WORDS[cl]}. OG-UK.`}
+          <span data-axis-title="x">{`${scenarioById(sid)?.short ?? SCEN_NAME[sid]} minus the forecast path, per 100 of the path’s GDP`}</span>
+          {`, ${SPLIT_YEAR}, ${CL_WORDS[cl]}. OG-UK.`}
         </p>
         {ch ? (
           <>
@@ -442,7 +442,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
           </>
         ) : (
           <p className="p2-pending">
-            <Tx icon="provisional">This solve is pending for the foreign-capital case chosen above.</Tx>
+            <Tx icon="provisional">This scenario is not yet solved for the foreign-capital case chosen above.</Tx>
           </p>
         )}
       </div>
@@ -454,7 +454,7 @@ function OutputGraphic({ state, sid, cl, base, ch, all = false, hl, setHl, seen:
   );
 }
 
-// Two steps (the baseline's two-way split is the shock scene's first card):
+// Two steps, two stories (Maria M2): the forecast path's flows, then the scenario minus the path (the baseline's two-way split is the shock scene's first card):
 // the Sankey with both columns, then the waterfall.
 function outputSteps(sid, ch) {
   const k = (id, text) => <Key id={`wf-${id}`}>{text}</Key>;
@@ -463,10 +463,10 @@ function outputSteps(sid, ch) {
       id: 'p2-out-2',
       highlight: ['wf-labour', 'wf-domestic', 'wf-foreign', 'wf-depreciation', 'wf-capital'],
       icon: 'capital',
-      title: 'Capital income splits three ways',
+      title: `The forecast path, ${SPLIT_YEAR}`,
       body: (
         <Say>
-          The same two groups, with their shares: capital income splits three ways, kept in the UK, depreciation (wear on capital) and {k('foreign', 'net paid abroad')}.
+          On the forecast path, with no AI shock, capital income splits three ways: kept in the UK, depreciation (wear on capital) and {k('foreign', 'net paid abroad')}.
         </Say>
       ),
     },
@@ -475,13 +475,13 @@ function outputSteps(sid, ch) {
       highlight: ['wf-labour', 'wf-capital', 'wf-domestic', 'wf-foreign', 'wf-depreciation', 'wf-gdp'],
       pin: 'bottom',
       icon: 'compare',
-      title: `What ${SCEN_NAME[sid]} changes`,
+      title: `${SCEN_NAME[sid]} minus the forecast path`,
       body: ch ? (
         <Say>
-          Now the shock: each bar is one part&rsquo;s change against the forecast path. {k('gdp', 'GDP')} comes last.
+          Then the change: each bar is one part in {SCEN_NAME[sid]} minus the same part on the forecast path. {k('gdp', 'GDP')} comes last.
         </Say>
       ) : (
-        <p>This solve is pending for the foreign-capital case chosen above.</p>
+        <p>This scenario is not yet solved for the foreign-capital case chosen above.</p>
       ),
     },
   ];
