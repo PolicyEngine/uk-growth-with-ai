@@ -444,9 +444,26 @@ function useMorphScrub(ref, on, g1, g2) {
     const blk = fig.closest('.scrolly');
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let last = -1;
+    // every element the scrub has styled: by the time this effect is torn
+    // down, React has already removed the data-scrub attributes of the next
+    // state, so the hand-back cannot find them by selector (a jump from
+    // part-way through the step left the growth layer at part opacity)
+    const touched = new Set();
+    // transforms the scrub writes, and the one React had set before: on the
+    // way out each goes back to React's value unless React has since set a
+    // new one (a jump onward keeps a tick's or a dot's transform otherwise,
+    // as React sees no change: "2031" left on the plot's edge over "Year")
+    const orig = new Map();
+    const wrote = new Map();
+    const setT = (el, v) => {
+      if (!orig.has(el)) orig.set(el, el.style.transform);
+      el.style.transform = v;
+      wrote.set(el, el.style.transform);
+    };
     const apply = (p) => {
       const { g1: a, g2: b } = geo.current;
       const e = easeIO(p);
+      for (const el of fig.querySelectorAll('[data-scrub], [data-scrub-path], [data-scrub-x], [data-scrub-zero], [data-scrub-pt]')) touched.add(el);
       // the hand-over in two halves, so two axes never show at once: the
       // growth layer goes over the first half, the gap's comes over the second
       for (const el of fig.querySelectorAll('[data-scrub="out"]')) el.style.opacity = String(Math.max(0, 1 - 2 * e));
@@ -456,7 +473,7 @@ function useMorphScrub(ref, on, g1, g2) {
       for (const el of fig.querySelectorAll('[data-scrub-pt]')) {
         const [x1, y1, x2, y2] = el.dataset.scrubPt.split(',').map(Number);
         const m = reduce ? 0 : e;
-        el.style.transform = `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, ${(y1 + (y2 - y1) * m).toFixed(1)}px)`;
+        setT(el, `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, ${(y1 + (y2 - y1) * m).toFixed(1)}px)`);
         el.style.opacity = String(Math.max(0, 1 - 2 * e));
       }
       for (const el of fig.querySelectorAll('[data-scrub-path]')) {
@@ -477,7 +494,7 @@ function useMorphScrub(ref, on, g1, g2) {
       for (const el of fig.querySelectorAll('[data-scrub-x]')) {
         const [x1, x2, o1, o2] = el.dataset.scrubX.split(',').map(Number);
         const m = reduce ? (e < 0.5 ? 0 : 1) : e;
-        el.style.transform = `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, 0px)`;
+        setT(el, `translate(${(x1 + (x2 - x1) * m).toFixed(1)}px, 0px)`);
         // a tick in both states slides; one that leaves goes in the first
         // half, one that arrives comes in the second (no two labels overlap)
         el.style.opacity = String(o1 && o2 ? 1 : o1 ? Math.max(0, 1 - 2 * e) : o2 ? Math.max(0, 2 * e - 1) : 0);
@@ -485,7 +502,7 @@ function useMorphScrub(ref, on, g1, g2) {
       const z = fig.querySelector('[data-scrub-zero]');
       if (z) {
         const m = reduce ? (e < 0.5 ? 0 : 1) : e;
-        z.style.transform = `translate(0px, ${(a.zeroY + (b.zeroY - a.zeroY) * m).toFixed(1)}px)`;
+        setT(z, `translate(0px, ${(a.zeroY + (b.zeroY - a.zeroY) * m).toFixed(1)}px)`);
       }
     };
     const stop = subscribe({
@@ -503,10 +520,8 @@ function useMorphScrub(ref, on, g1, g2) {
     return () => {
       stop();
       // hand back to the classes
-      for (const el of fig.querySelectorAll('[data-scrub], [data-scrub-path], [data-scrub-x], [data-scrub-zero], [data-scrub-pt]')) {
-        el.style.opacity = '';
-        if (el.dataset.scrubX != null || el.dataset.scrubZero != null || el.dataset.scrubPt != null) el.style.transform = '';
-      }
+      for (const el of touched) el.style.opacity = '';
+      for (const [el, v] of wrote) if (el.style.transform === v) el.style.transform = orig.get(el) ?? '';
     };
   }, [on, ref]);
 }
@@ -645,9 +660,15 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
             {g.yTicksG.map((t) => (
               <g key={`g${t.v}`}>
                 {Math.abs(t.v) > 1e-9 ? <line x1={PX0} x2={PX1} y1={t.y} y2={t.y} className="p2-grid" /> : null}
-                <text data-axis="" x={PX0 - 6} y={t.y} dy="0.35em" textAnchor="end" className="p2-tick">
-                  {t.t}
-                </text>
+                {/* on a phone the tick type is large enough that a label on
+                    the plot's foot meets the first year below it ("−2" over
+                    "2016", check_fontsize at 390): that one label is left out,
+                    its gridline kept */}
+                {lh0 === LH_PHONE && t.y >= PY1 - 2 ? null : (
+                  <text data-axis="" x={PX0 - 6} y={t.y} dy="0.35em" textAnchor="end" className="p2-tick">
+                    {t.t}
+                  </text>
+                )}
               </g>
             ))}
           </g>
