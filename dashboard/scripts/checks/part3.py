@@ -30,6 +30,7 @@ def m(x): return f"{x:.2f}m"
 def bn(x): return ('−' if x < 0 else '') + f"£{rnd(abs(x), 1)}bn"
 def bn2(x): return ('−' if x < 0 else '') + f"£{rnd(abs(x), 2)}bn"
 def pp(x): return signed(x, 2) + 'pp'
+def pts(x): return signed(x, 2) + ' points'  # the Gini, 0 to 100 (review round 1, R1-06)
 def pence(x): return f"{rnd(x)}p"
 def share(x): return f"{rnd(x)}%"
 def pct1(x): return f"{rnd(x, 1)}%"
@@ -44,7 +45,7 @@ story = Counter()
 # 1 the central case, with its baselines
 for x in [m(H3['central_displaced']['value']), bn(H3['central_cost']['value']), pp(H3['central_poverty']['value']),
           pct1(AI['baseline']['absolute_bhc_pct']['value']), pp(H3['central_poverty_relative']['value']),
-          pct1(AI['baseline']['relative_bhc_pct']['value']), pp(H3['central_gini']['value']), bn(H3['central_cost']['sd']),
+          pct1(AI['baseline']['relative_bhc_pct']['value']), pts(H3['central_gini']['value']), bn(H3['central_cost']['sd']),
           pp(H3['central_poverty_ahc']['value'])]:
     story[x] += 1
 # 2 the three channels, their sum and interaction (20 draws)
@@ -69,7 +70,8 @@ story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
 story[bn(S['total']['earnings_lost_bn'])] += 1
 for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): story[bn(S['total'][k])] += 1
 story[share(S['tax_benefit_share_pct'])] += 1; story[bn(S['employer_ni_bn'])] += 1
-STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
+_gini_level = AI['baseline']['gini'].get('value_points', AI['baseline']['gini']['value'] * 100)
+STORY_TEXT = [f"from {rnd(_gini_level, 1):.1f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
 
 hh = Counter()
 for r in AI['cost_components']['rows']:
@@ -96,7 +98,7 @@ if _gain and all(abs(r['values'][i]) < 0.2 for i in _gain for r in _R):
 # where a lost pound goes: back in story part 3 (item 19); Explore links to it
 HH_TEXT = []
 
-FIG3 = re.compile(r"−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
+FIG3 = re.compile(r"−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|[+−]\d+\.\d\d points|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
 
 
 def sankey_failures():

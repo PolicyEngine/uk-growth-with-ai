@@ -3,10 +3,20 @@
 // (part3.test.jsx, households.test.jsx); scripts/checks/part3.py rebuilds
 // the same lists independently from aiStudy2425.json for the rendered dump.
 import D from '@/data/aiStudy2425.json';
-import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtMillions, fmtPct1, fmtPctSigned1, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
+import { MINUS, fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtMillions, fmtPct1, fmtPctSigned1, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
 
-// What the number check counts: £ amounts, pp, pence, per cent, millions.
-export const FIG = /−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm/g;
+// What the number check counts: £ amounts, pp, Gini points, pence, per
+// cent, millions.
+export const FIG = /−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|[+−]\d+\.\d\d points|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm/g;
+
+// The Gini on its 0 to 100 scale (review round 1, R1-06): a change in
+// points, "+1.76 points", and a level with one decimal, "30.3". The study
+// prints Gini changes x100; "pp" would read as a percentage.
+export const fmtGiniPts = (v) => (typeof v === 'number' && Number.isFinite(v) ? `${v < 0 ? MINUS : '+'}${Math.abs(v).toFixed(2)} points` : '');
+export const fmtGiniLevel = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(1) : '');
+// the baseline level, 0 to 100 (the data's value_points; an older file
+// carries the 0 to 1 value only)
+export const giniLevel = (g) => g?.value_points ?? (Number.isFinite(g?.value) ? g.value * 100 : NaN);
 
 const lad = (id) => D.ladder.find((r) => r.id === id);
 const rule = (id) => D.rules.find((r) => r.id === id);
@@ -20,7 +30,7 @@ export function storyFigures() {
   return [
     // 1 the main case
     fmtMillions(H.central_displaced.value), fmtBn(H.central_cost.value), fmtPp(H.central_poverty.value), fmtPct1(D.baseline.absolute_bhc_pct.value),
-    fmtPp(H.central_poverty_relative.value), fmtPct1(D.baseline.relative_bhc_pct.value), fmtPp(H.central_gini.value), fmtBn(H.central_cost.sd),
+    fmtPp(H.central_poverty_relative.value), fmtPct1(D.baseline.relative_bhc_pct.value), fmtGiniPts(H.central_gini.value), fmtBn(H.central_cost.sd),
     fmtPp(H.central_poverty_ahc.value),
     // 2 channels
     ...['displacement', 'wage', 'capital'].map((k) => fmtBn(ch(k).cost_bn)), fmtBn(D.channels.sum_bn), fmtBn2(D.channels.interaction_bn),
