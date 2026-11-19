@@ -1,7 +1,7 @@
 'use client';
 
-import { TipBox } from '@/components/ab/Tip.jsx';
-import { useHover } from '../shared/ui.jsx';
+import { useState } from 'react';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import IconText from './IconText.jsx';
 import MoreInfo from '@/components/ui/MoreInfo.jsx';
 
@@ -17,15 +17,19 @@ const STAGES = [
 ];
 
 export default function Cohorts() {
-  const { hi, ref, bind } = useHover();
+  // the one tooltip (ChartHover, M4): each stage's ages and what it does
+  const [at, setAt] = useState(null);
+  const hi = at == null ? null : STAGES[at]?.id;
+  const tips = STAGES.map((s) => ({ head: s.label, rows: [{ name: 'Ages', value: s.ages, icon: 'age' }], unit: s.text }));
   return (
-    <figure className="mx-olg" ref={ref}>
+    <figure className="mx-olg">
+      <ChartHover label="The life cycle in four stages" items={tips} onActive={setAt}>
       <div className="mx-olg-plot" aria-hidden="false">
         {STAGES.map((s) => (
           <div
             key={s.id}
             className={`mx-olg-stage st-${s.id}${hi === s.id ? ' is-hi' : ''}`}
-            {...bind(s.id, `${s.label}, ages ${s.ages}: ${s.text}`)}
+            data-tip={STAGES.indexOf(s)}
           >
             <div className="mx-olg-bars">
               {s.bars.map((h, i) => (
@@ -34,17 +38,10 @@ export default function Cohorts() {
             </div>
             <span className="mx-olg-label">{s.label}</span>
             <span className="mx-olg-ages">{s.ages}</span>
-            {hi === s.id ? (
-              <TipBox className="mx-tip">
-                <b>
-                  {s.label}, {s.ages}
-                </b>
-                <span>{s.text}</span>
-              </TipBox>
-            ) : null}
           </div>
         ))}
       </div>
+      </ChartHover>
       <figcaption className="mx-fig-note">
         <IconText icon="caveat">Earnings by age at one date; heights illustrative</IconText>
       </figcaption>

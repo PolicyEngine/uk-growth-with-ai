@@ -1,8 +1,8 @@
 'use client';
 
-import { TipBox } from '@/components/ab/Tip.jsx';
+import { useState } from 'react';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { YEARS, FIRST_YEAR, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
-import { useHover } from '../shared/ui.jsx';
 import IconText from './IconText.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
@@ -64,9 +64,12 @@ export function timelineSvg() {
 }
 
 export default function Timeline({ caption = true }) {
-  const { hi, ref, bind } = useHover();
+  // the one tooltip (ChartHover, M4): each year's ramp weight and what happens
+  const [at, setAt] = useState(null);
+  const hi = at == null ? null : YEARS[at];
+  const tips = YEARS.map((y) => ({ head: `${y}${MARK[y] ? `: ${MARK[y]}` : ''}`, rows: [{ name: 'Ramp weight of γ and Z', value: weight(y).toFixed(2), icon: 'timing' }], unit: detail(y) }));
   return (
-    <figure className="mx-tl" ref={ref}>
+    <figure className="mx-tl">
       {caption ? (
         <figcaption className="mx-fig-cap">
           <span className="mx-fig-title">The timing, {YEARS[0]}–{LATE_YEAR}</span>
@@ -83,6 +86,7 @@ export default function Timeline({ caption = true }) {
           <span data-axis-title="y">Ramp weight of &gamma; and Z, 0 to 1</span>
         </IconText>
       </p>
+      <ChartHover label={`The timing, ${YEARS[0]} to ${LATE_YEAR}`} items={tips} onActive={setAt}>
       <ol className="mx-tl-cols">
         {YEARS.map((y) => {
           const w = weight(y);
@@ -92,7 +96,7 @@ export default function Timeline({ caption = true }) {
               key={y}
               className={`mx-tl-col ph-${phase(y)}${m ? ' is-mark' : ''}${hi === y ? ' is-hi' : ''}`}
               style={{ '--w': w }}
-              {...bind(y, `${y}: ${detail(y)}`)}
+              data-tip={YEARS.indexOf(y)}
             >
               <span className="mx-tl-mark">{m || ''}</span>
               <span className="mx-tl-track">
@@ -100,17 +104,11 @@ export default function Timeline({ caption = true }) {
                 <span className="mx-tl-w">{phase(y) === 'ramp' || y === FIRST_YEAR ? w.toFixed(2).replace(/0$/, '').replace(/\.0$/, '') : ''}</span>
               </span>
               <span className="mx-tl-year">{y}</span>
-              {hi === y ? (
-                <TipBox className="mx-tip">
-                  <b>{y}</b>
-                  {m ? <span className="mx-tip-tag">{m}</span> : null}
-                  <span>{detail(y)}</span>
-                </TipBox>
-              ) : null}
             </li>
           );
         })}
       </ol>
+      </ChartHover>
       <p className="mx-axis-title mx-tl-axis is-x">
         <IconText icon="timing">
           <span data-axis-title="x">Calendar year</span>

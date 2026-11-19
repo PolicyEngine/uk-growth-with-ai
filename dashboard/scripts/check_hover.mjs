@@ -64,6 +64,14 @@ const FIND = () => {
     if (!s.querySelector('path, rect, circle, line, polyline')) continue;
     cands.push([s, s.closest(BOX) ?? s.parentElement]);
   }
+  // Method's charts drawn in HTML: the timing, the life cycle, the growth
+  // check and each evidence lane
+  for (const f of panel.querySelectorAll('figure.mx-tl, figure.mx-olg, #growth-check .mx-kpi-chart, #evidence-lanes .mx-lane')) {
+    if (!shown(f) || f.querySelector('[data-hover-svg]')) continue;
+    const b = f.getBoundingClientRect();
+    if (b.width < 80 || b.height < 40) continue;
+    cands.push([f, f]);
+  }
   for (const f of panel.querySelectorAll('figure.p3-figure, figure.p2-figure, .lens-fig')) {
     if (!shown(f) || f.querySelector('[data-hover-svg]')) continue;
     const b = f.getBoundingClientRect();
@@ -88,7 +96,9 @@ const FIND = () => {
   }
   return out;
 };
-const TIP = '[role="tooltip"], .ch-tip, .chart-tip, .sankey-tip, .tip-box';
+// the one tooltip (ChartHover and Crosshair draw .ch-tip) and the Sankeys'
+// own (ruled to stay); an old TipBox (.tip-box) no longer counts
+const TIP = '.ch-tip, .sankey-tip';
 const tipText = () =>
   page.evaluate((TIP) => {
     const t = [...document.querySelectorAll(TIP)].filter((e) => {

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import Icon from '@/components/ab/Icon.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
@@ -8,12 +10,12 @@ import { Items } from '@/components/story/Items.jsx';
 import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { TipBox } from '@/components/ab/Tip.jsx';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { METHOD_FACTS as F } from '@/lib/dataKeys.js';
 import { OBR_GROWTH, SOURCES } from '@/data/literature.js';
 import { code, SRC } from '@/tabs/method/sources.js';
 import { CENTRAL } from '@/tabs/ai/surprise.js';
-import { ext, useHover } from '../shared/ui.jsx';
+import { ext } from '../shared/ui.jsx';
 import './evidence.css';
 
 // One KPI: the OG-UK baseline's GDP growth each year against the OBR's
@@ -55,7 +57,8 @@ function growthSvg(pairs, max) {
 export default function GrowthCheck() {
   const g = F.baseline_growth[CENTRAL];
   const pairs = growthPairs(g);
-  const { hi, ref, bind } = useHover();
+  // the one tooltip (ChartHover, M4): each year's two growth rates
+  const [at, setAt] = useState(null);
   const max = Math.max(...pairs.flatMap((p) => [p.ours, p.obr])) * 1.15;
   const y = (v) => 100 - (v / max) * 100;
   const span = `${pairs[0].yr}–${pairs[pairs.length - 1].yr}`;
@@ -103,7 +106,7 @@ export default function GrowthCheck() {
         legend: () => [{ label: 'OG-UK’s forecast path', color: cssColour('var(--series-2)'), shape: 'box' }, { label: OBR_GROWTH.label, color: CHART_COLOURS.ink, shape: 'tick' }],
       }}
     >
-      <div className="mx-kpi-body" ref={ref}>
+      <div className="mx-kpi-body">
         <div className="mx-kpi-figs">
           <div>
             <span className="mx-kpi-k">
@@ -141,23 +144,26 @@ export default function GrowthCheck() {
               <span data-axis-title="y">Real GDP growth, % a year</span>
             </IconText>
           </p>
-          <div className="mx-kpi-plot">
-            {pairs.map((p) => (
-              <span key={p.yr} className={`mx-kpi-col${hi === p.yr ? ' is-hi' : ''}`} {...bind(p.yr, `${p.yr}: OG-UK ${p.ours.toFixed(2)}%, OBR ${p.obr.toFixed(1)}%`)}>
+          <ChartHover
+            className="mx-kpi-plot"
+            label={`GDP growth by year, ${span}`}
+            onActive={setAt}
+            items={pairs.map((p) => ({
+              head: String(p.yr),
+              rows: [
+                { name: 'OG-UK’s forecast path', value: `${p.ours.toFixed(2)}%`, icon: 'model' },
+                { name: OBR_GROWTH.label, value: `${p.obr.toFixed(1)}%`, icon: 'forecast' },
+              ],
+              unit: 'Real GDP growth, % a year.',
+            }))}
+          >
+            {pairs.map((p, i) => (
+              <span key={p.yr} className={`mx-kpi-col${at === i ? ' is-hi' : ''}`} data-tip={i}>
                 <span className="mx-kpi-bar ev-kpi-bar" style={{ height: `${100 - y(p.ours)}%` }} />
                 <span className="ev-kpi-obr" style={{ bottom: `${100 - y(p.obr)}%` }} />
-                {hi === p.yr ? (
-                  <TipBox className="mx-tip">
-                    <b>{p.yr}</b>
-                    <span>OG-UK’s forecast path {p.ours.toFixed(2)}%</span>
-                    <span>
-                      {OBR_GROWTH.label} {p.obr.toFixed(1)}%
-                    </span>
-                  </TipBox>
-                ) : null}
               </span>
             ))}
-          </div>
+          </ChartHover>
           <div className="mx-kpi-years" aria-hidden="true">
             {pairs.map((p) => (
               <span key={p.yr}>{p.yr}</span>

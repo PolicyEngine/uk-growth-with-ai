@@ -46,7 +46,10 @@ export function ChartTipCard({
       style={style}
       aria-hidden="true"
     >
-      {head ? <div className="ch-tip-head">{head}</div> : null}
+      {/* a space between every name and value, and between the lines, so
+          the card's text never joins two words (push D review, B3); a
+          whitespace node is not drawn in the row's grid */}
+      {head ? <div className="ch-tip-head">{head}</div> : null}{" "}
       {rows.map((r, k) => (
         <div key={r.key ?? k} className="ch-tip-row">
           {r.color ? (
@@ -58,17 +61,17 @@ export function ChartTipCard({
               className="ch-tip-icon"
             />
           )}
-          <span className="ch-tip-name">{r.name}</span>
+          <span className="ch-tip-name">{r.name}</span>{" "}
           <span
             className="ch-tip-value"
             data-path={r.path}
             style={r.text ? { color: r.text } : undefined}
           >
             {r.value}
-          </span>
+          </span>{" "}
         </div>
       ))}
-      {unit ? <div className="ch-tip-unit">{unit}</div> : null}
+      {unit ? <div className="ch-tip-unit">{unit}</div> : null}{" "}
       {kind && KIND[kind] ? (
         <div className="ch-tip-unit">{KIND[kind]}</div>
       ) : null}
@@ -133,11 +136,14 @@ export default function ChartHover({
   useEffect(() => {
     if (!pinned) return undefined;
     const off = (e) => {
-      if (!host.current?.contains(e.target)) clear();
+      if (host.current?.contains(e.target)) return;
+      setAt(null);
+      setPinned(false);
+      onActive?.(null);
     };
     document.addEventListener("pointerdown", off);
     return () => document.removeEventListener("pointerdown", off);
-  }, [pinned]);
+  }, [pinned, onActive]);
   const markOf = (t) => {
     const el = t instanceof Element ? t.closest("[data-tip]") : null;
     if (!el || !host.current?.contains(el)) return null;

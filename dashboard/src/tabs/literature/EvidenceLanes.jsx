@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { iconFor } from '@/lib/concepts.js';
 import Icon from '@/components/ab/Icon.jsx';
 import IconText from '@/tabs/method/IconText.jsx';
@@ -8,12 +10,11 @@ import { Items } from '@/components/story/Items.jsx';
 import Card from '@/components/ui/Card.jsx';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
-import { TipBox } from '@/components/ab/Tip.jsx';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { RANGES } from '@/data/literature.js';
 import MAP from '@/data/site-evidence-map.json';
 import { DATA_FILE } from '@/lib/dataKeys.js';
 import { PENDING, gap, fmt, CENTRAL, BOUND, HEADLINE_YEAR, scenarioById, CLOSURE_LABEL } from '@/tabs/ai/surprise.js';
-import { useHover } from '../shared/ui.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import './evidence.css';
 
@@ -166,11 +167,17 @@ function LaneHead({ m, y = 'Each estimate' }) {
 // (the shares are the row's printed value, in the map below)
 const shareRows = (metric) => MAP.rows.filter((r) => r.metric === metric && r.shares && !r.unverified);
 const SHADES = ['var(--pe-gray-700)', 'var(--pe-gray-500)', 'var(--pe-gray-300)'];
-function SharesLane({ metric, hi, bind }) {
+// each lane is one chart with the one tooltip (ChartHover, M4)
+function SharesLane({ metric }) {
   const m = META[metric];
+  const [at, setAt] = useState(null);
+  const parts = shareRows(metric).flatMap((r) => r.shares.map((x, i) => ({ r, x, key: `s-${r.id}-${i}` })));
+  const tipOf = (key) => parts.findIndex((q) => q.key === key);
+  const hi = at == null ? null : parts[at]?.key;
   return (
     <div className="mx-lane" id={`ranges-${metric}`}>
       <LaneHead m={m} y="Each source" />
+      <ChartHover label={m.title ?? metric} items={parts.map(({ r, x }) => ({ head: x.label, rows: [{ name: 'Share of UK workers', value: `${x.pct}%`, icon: 'workers' }], unit: `${r.plotLabel}, ${r.horizon}.` }))} onActive={setAt}>
       {shareRows(metric).map((r) => (
         <div key={r.id} className="mx-share">
           <span className="mx-rb-label">
@@ -186,13 +193,7 @@ function SharesLane({ metric, hi, bind }) {
             {r.shares.map((x, i) => {
               const key = `s-${r.id}-${i}`;
               return (
-                <span key={key} className={`mx-share-part${hi === key ? ' is-hi' : ''}`} style={{ flexGrow: x.pct, background: SHADES[i % SHADES.length] }} {...bind(key, `${x.label}: ${x.pct}%`)}>
-                  {hi === key ? (
-                    <TipBox className="mx-tip">
-                      <b>{x.label}</b>
-                      <span>{x.pct}% of UK workers</span>
-                    </TipBox>
-                  ) : null}
+                <span key={key} className={`mx-share-part${hi === key ? ' is-hi' : ''}`} style={{ flexGrow: x.pct, background: SHADES[i % SHADES.length] }} data-tip={tipOf(key)}>
                 </span>
               );
             })}
@@ -207,11 +208,12 @@ function SharesLane({ metric, hi, bind }) {
           </ul>
         </div>
       ))}
+      </ChartHover>
     </div>
   );
 }
 
-function Lane({ metric, hi, bind }) {
+function Lane({ metric }) {
   const { m, pub, ours } = rows(metric);
   const vals = [
     0,
@@ -226,17 +228,34 @@ function Lane({ metric, hi, bind }) {
   const px = (v) => ((v - x0) / (x1 - x0)) * 100;
   const tk = ticks(Math.min(lo, 0), top, m.step);
 
-  const rowTip = (key, body) => (hi === key ? <TipBox className="mx-tip">{body}</TipBox> : null);
+  // the one tooltip (ChartHover, M4): OG-UK's rows, then the published ones
+  const [at, setAt] = useState(null);
+  const keys = [...ours.map((o) => `o-${o.sid}`), ...pub.map((_, i) => `p-${i}`)];
+  const hi = at == null ? null : keys[at];
+  const figOf = (r) => (r.none ? 'no number' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`);
+  const tips = [
+    ...ours.map((o) => ({
+      head: o.label,
+      rows: [
+        { name: CLOSURE_LABEL[CENTRAL], value: fmt(o.c), icon: 'closure' },
+        { name: CLOSURE_LABEL[BOUND], value: fmt(o.b), icon: 'closure' },
+      ],
+      unit: `OG-UK, automation + productivity, ${HEADLINE_YEAR}.`,
+      kind: 'result',
+    })),
+    ...pub.map((r) => ({ head: r.short, rows: [{ name: r.horizon, value: figOf(r), icon: 'source' }], unit: `${r.note}${r.unverified ? ' (unverified)' : ''}. ${r.loc}` })),
+  ];
 
   return (
     <div className="mx-lane" id={`ranges-${metric}`}>
       <LaneHead m={m} />
+      <ChartHover label={m.title ?? metric} items={tips} onActive={setAt}>
       <div className="mx-rb">
         {ours.length ? <div className="mx-rb-group">OG-UK, automation + productivity, {HEADLINE_YEAR}</div> : null}
         {ours.map((o) => {
           const key = `o-${o.sid}`;
           return (
-            <div key={key} className={`mx-rb-row is-ours${hi === key ? ' is-hi' : ''}`} {...bind(key, `${o.label}: ${CLOSURE_LABEL[CENTRAL]} ${fmt(o.c)}, ${CLOSURE_LABEL[BOUND]} ${fmt(o.b)}`)}>
+            <div key={key} className={`mx-rb-row is-ours${hi === key ? ' is-hi' : ''}`} data-tip={keys.indexOf(key)}>
               <span className="mx-rb-label">
                 <b>{o.label}</b>{' '}
                 <span>
@@ -259,15 +278,6 @@ function Lane({ metric, hi, bind }) {
                     no foreign capital {PENDING}
                   </span>
                 ) : null}
-                {rowTip(
-                  key,
-                  <>
-                    <b>{o.label}</b>
-                    <span>
-                      Some foreign capital {fmt(o.c)}; no foreign capital {fmt(o.b)}
-                    </span>
-                  </>,
-                )}
               </span>
             </div>
           );
@@ -275,9 +285,8 @@ function Lane({ metric, hi, bind }) {
         <div className="mx-rb-group">Published</div>
         {pub.map((r, i) => {
           const key = `p-${i}`;
-          const fig = r.none ? 'no number' : r.lo === r.hi ? n1(r.lo, m.suf, m.level) : `${n1(r.lo, m.suf, m.level)} to ${n1(r.hi, m.suf, m.level)}`;
           return (
-            <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} {...bind(key, `${r.label}, ${r.horizon}: ${fig}${r.unverified ? ', unverified' : ''}. ${r.note}`)}>
+            <div key={key} className={`mx-rb-row${hi === key ? ' is-hi' : ''}`} data-tip={keys.indexOf(key)}>
               <span className="mx-rb-label">
                 <b>{r.label}</b>{' '}
                 <span>
@@ -298,17 +307,6 @@ function Lane({ metric, hi, bind }) {
                   <span className={`mx-rb-bar${r.unverified ? ' is-unverified' : ''}`} style={{ left: `${px(r.lo)}%`, width: `${px(r.hi) - px(r.lo)}%` }} />
                 )}
                 {r.mark != null ? <span className="mx-rb-tick" style={{ left: `${px(r.mark)}%` }} /> : null}
-                {rowTip(
-                  key,
-                  <>
-                    <b>{r.short}</b>
-                    <span>
-                      {fig} · {r.horizon}
-                    </span>
-                    <span>{r.note}</span>
-                    <span className="mx-tip-tag">{r.loc}</span>
-                  </>,
-                )}
               </span>
             </div>
           );
@@ -325,6 +323,7 @@ function Lane({ metric, hi, bind }) {
           </span>
         </div>
       </div>
+      </ChartHover>
     </div>
   );
 }
@@ -334,7 +333,6 @@ const RANGE_LANES = LANES.filter((k) => META[k].kind !== 'shares');
 const TITLE = `Published estimates by measure, with OG-UK’s in ${HEADLINE_YEAR} where comparable`;
 
 export default function EvidenceLanes() {
-  const { hi, ref, bind } = useHover();
   return (
     <Card
       id="evidence-lanes"
@@ -408,8 +406,8 @@ export default function EvidenceLanes() {
         legend: legendKeys,
       }}
     >
-      <div className="mx-lanes" ref={ref}>
-        {LANES.map((k) => (META[k].kind === 'shares' ? <SharesLane key={k} metric={k} hi={hi} bind={bind} /> : <Lane key={k} metric={k} hi={hi} bind={bind} />))}
+      <div className="mx-lanes">
+        {LANES.map((k) => (META[k].kind === 'shares' ? <SharesLane key={k} metric={k} /> : <Lane key={k} metric={k} />))}
       </div>
     </Card>
   );

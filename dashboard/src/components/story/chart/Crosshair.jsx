@@ -109,14 +109,15 @@ export default function Crosshair({ width, height, x, y, xs, series, top = 0, bo
       </svg>
       {at != null ? (
         <div className={`ch-tip${right ? ' is-left' : ''}`} style={{ left: `${(px / width) * 100}%`, top: `${(top / height) * 100}%` }} aria-hidden="true">
-          <div className="ch-tip-head">{formatX(xs[at])}</div>
+          {/* spaces between name and value and between lines (push D review, B3) */}
+          <div className="ch-tip-head">{formatX(xs[at])}</div>{' '}
           {rows.map((s) => (
             <div key={s.key} className="ch-tip-row">
               <Icon name={iconFor(s.icon ?? 'path')} size={12} className="ch-tip-icon" />
-              <span className="ch-tip-name">{s.name}</span>
+              <span className="ch-tip-name">{s.name}</span>{' '}
               <span className="ch-tip-value" style={{ color: s.text ?? s.color }}>
                 {fmt(s, s.ys[at])}
-              </span>
+              </span>{' '}
             </div>
           ))}
           {unit ? <div className="ch-tip-unit">{unit}</div> : null}
