@@ -445,7 +445,7 @@ export default function Part1({ part }) {
           id={String(AI_SINCE)}
           num={AI_SINCE}
           head="AI is already here"
-          line={`AI is in the official statistics from here, and the OBR already expects more. The scenarios add extra AI on top, sooner, from ${SURPRISE_YEAR}.`}
+          line={`It is in the official statistics. From ${SURPRISE_YEAR} the scenarios add a labour-share shift the OBR does not have, and productivity partly overlapping the OBR’s.`}
         />
       ) : null}
       <Scrolly

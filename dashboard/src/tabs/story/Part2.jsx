@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { useNav } from '@/lib/nav.jsx';
-import { DebtNote, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
+import { ConsumptionLine, DebtNote, DebtOnce, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
@@ -14,7 +14,7 @@ import { WelfareShape } from './part2/charts.jsx';
 import { MorphChart } from './part2/Morph.jsx';
 import OutputSplit from './part2/OutputSplit.jsx';
 import { MarkProvider } from '@/components/story/highlight.jsx';
-import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, MORPH_STATES, MORPH_SCRUB, whoCardSteps, partMarks, Say } from './part2/steps.jsx';
+import { shockSteps, morphCardSteps, morphAnswer, whoAnswer, whoNote, MORPH_STATES, MORPH_SCRUB, whoCardSteps, partMarks, Say } from './part2/steps.jsx';
 
 export { scenarioDir } from './part2/steps.jsx';
 
@@ -45,8 +45,10 @@ export const SUBS = {
     // 1's recap as the transition (Fable's decision); P1_RECAP is part 1's
     pin: 'full',
     hint: 'Watch small tiles cross from labour to capital, then new ones are added',
-    // sign-driven at render (shockAnswer): without a gain, the first half only
-    answer: 'Income shifts from labour to capital, and output grows',
+    // sign-driven at render (shockAnswer): without a gain, the first half
+    // only. The mechanism is the scenarios' input, not a finding about the
+    // UK (Maria's round, M1): "In the scenarios"
+    answer: 'In the scenarios, income moves from labour to capital, and output grows',
     answerTo: { tab: 'method', sub: 'how', anchor: 'm-scenarios' },
   },
   morph: {
@@ -79,7 +81,7 @@ export const SUBS = {
 // The shock scene's closing line, from the sign of the GDP change: it does
 // not say labour income falls (the next scene's closing line).
 export function shockAnswer(shock) {
-  return shock.ch && shock.ch.gdp <= 0 ? 'Income shifts from labour to capital' : SUBS.shock.answer;
+  return shock.ch && shock.ch.gdp <= 0 ? 'In the scenarios, income moves from labour to capital' : SUBS.shock.answer;
 }
 
 // Beat B3's words from the signs (story-beats-fable.md): GDP above the
@@ -147,7 +149,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-who"
         scene
-        sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer }}
+        sub={{ ...SUBS.who, answer: whoAnswer() ?? SUBS.who.answer, answerNote: whoNote() }}
         label="Welfare change by birth year"
         steps={whoCardSteps()}
         graphic={(i) => <WelfareShape state={i} />}
@@ -177,6 +179,8 @@ function headlineStep(sid) {
         </Say>
         <section id="story-headline" className="summary story-headline p2-headline-step" aria-label={`The headline figures: ${SCEN_NAME[sid]}, ${HEADLINE_YEAR}`}>
           <HeadlineTiles sid={sid} />
+          <ConsumptionLine sid={sid} />
+          <DebtOnce sid={sid} />
         </section>
       </>
     ),

@@ -1,5 +1,6 @@
 'use client';
 
+import { MEASURE } from '@/lib/labels.js';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -33,12 +34,8 @@ export function foreignShareLine(res) {
 // rule): foreign investors supply half of the extra capital firms want. It has no
 // header option and no other home, so its figures print here only.
 export const SENS = 'zk0.5';
-const VARS = [
-  { v: 'Y', label: 'GDP' },
-  { v: 'GNI', label: 'GNI' },
-  { v: 'NNI', label: 'NNI' },
-  { v: 'w', label: 'Pay rate' },
-];
+// names from lib/labels.js MEASURE (R1-14): national income (NNI) first
+const VARS = ['Y', 'NNI', 'GNI', 'w'].map((v) => ({ v, label: v === 'NNI' || v === 'GNI' ? `${MEASURE[v].short} (${MEASURE[v].abbr})` : MEASURE[v].short }));
 const at = (r, v) => (r?.status === 'done' ? r.gaps[v][YEARS.indexOf(HEADLINE_YEAR)] : null);
 const cls = (x) => (x == null ? '' : x > 0.005 ? ' is-gain' : x < -0.005 ? ' is-loss' : '');
 

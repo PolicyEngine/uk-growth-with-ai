@@ -108,7 +108,7 @@ describe('tooltips', () => {
 
   it('dumbbell dot and tax-gap bar: focus shows arm, closure and value', () => {
     const { unmount } = at('sub=income');
-    const dot = screen.getByLabelText(/Automation \+ productivity, some foreign capital, Income UK residents keep/);
+    const dot = screen.getByLabelText(/Automation \+ productivity, some foreign capital, National income before depreciation/);
     fireEvent.focus(dot);
     let tip = screen.getByRole('tooltip').textContent;
     expect(tip).toContain('Some foreign capital');

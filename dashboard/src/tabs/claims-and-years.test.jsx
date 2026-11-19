@@ -56,6 +56,7 @@ const ALLOW = [
   ['tabs/method/ScenarioMap.jsx', '(FRS 2026, Box 4.1)', 'a publication'],
   ['tabs/method/sources.js', 'surpriseYear: DATA_SET === 2028 ?', 'the 2028 set names its year in surprise.py; another set in driver.sh (R3-16)'],
   ['tabs/story/TwoLenses.jsx', 'Doorley et al. (2026)', 'a citation'],
+  ['lib/obrOverlap.js', 'export const OBR_YEAR_ONE = 2026;', 'the OBR’s year 1 in BP9 Chart B.4: a property of the source (M1, overlap)'],
 ];
 
 const unallowed = () =>

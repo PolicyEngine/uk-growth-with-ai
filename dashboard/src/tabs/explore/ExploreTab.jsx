@@ -28,7 +28,7 @@ const answerOf = (a, label) => <AnswerStrip a={typeof a === 'string' ? { drivers
 // matrices), so their strip is led by that.
 const SCOPE = 'OG-UK · gaps against the OBR’s central forecast path';
 const MAIN = `Automation + productivity, ${HEADLINE_YEAR}`;
-const DATE_NOTE = `Extra AI, beyond the OBR’s central forecast, starts in ${SURPRISE_YEAR}: an assumed date, not a forecast.`;
+const DATE_NOTE = `The scenario’s AI starts in ${SURPRISE_YEAR}: an assumed date, not a forecast.`;
 // Public finances' answer (item 38): one Finding box, sign-aware
 // (financesInfo.js), then the tax-gap card's link as one plain line. Not
 // solved: the reason, as a sentence.

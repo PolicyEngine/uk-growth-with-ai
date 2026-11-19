@@ -9,7 +9,7 @@ import { useEntry, useSnap } from '@/components/story/motion.js';
 import { CENTRAL, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap } from '@/tabs/ai/surprise.js';
 import { D, MODEL_YEAR, PROVISIONAL } from './part3/shared.jsx';
 import { REFS } from './part3/sources.jsx';
-import { TABS } from '@/lib/labels.js';
+import { MEASURE, TABS } from '@/lib/labels.js';
 import QStage from '@/components/story/QStage.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
@@ -70,8 +70,9 @@ export const LENSES = [
     icon: 'gdp',
     can: [
       { text: 'Output', to: 'p2-morph', scene: 'GDP, scenario by scenario' },
-      { text: 'Pay rates', to: 'story-headline', scene: 'the headline figures' },
-      { text: 'National income', to: 'story-output', scene: 'where output goes' },
+      // names from lib/labels.js MEASURE (R1-14)
+      { text: MEASURE.w.name, to: 'story-headline', scene: 'the headline figures' },
+      { text: MEASURE.NNI.name, to: 'story-output', scene: 'where output goes' },
       { text: 'Effects by birth year', to: 'p2-who', scene: 'gains and losses by generation' },
     ],
     outside: [

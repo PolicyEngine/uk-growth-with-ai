@@ -37,7 +37,8 @@ import { URLS } from '@/tabs/ai/links.js';
 
 export const ECON = MEASURES.filter((m) => m.v !== 'debt_gdp_pp');
 // each measure's one line in the pill (item-11-pill-fable.md section 5)
-const MEASURE_DESC = { Y: 'Total output produced in the UK', GNI: 'Income UK residents keep', w: 'The wage per unit of labour' };
+// one definition per measure, from lib/labels.js MEASURE (R1-14)
+const MEASURE_DESC = { Y: 'Everything produced in the UK', NNI: 'Income UK residents keep, after depreciation', GNI: 'National income before depreciation', w: 'Pay per unit of labour' };
 const DEBT = MEASURES.filter((m) => m.v === 'debt_gdp_pp');
 const clName = (cl) => CLOSURE_LABEL[cl].replace(/^./, (c) => c.toUpperCase());
 const shortName = (s) => s.short ?? s.label;

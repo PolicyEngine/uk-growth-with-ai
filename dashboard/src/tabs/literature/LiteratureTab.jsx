@@ -55,6 +55,21 @@ function ImfGap() {
           },
           { icon: 'foreign', text: <>IMF: about <span data-path="imfGap.imf_y4_output_pct">+{IMF_Y4.toFixed(1)}%</span> at year 4, read off its {ext(SRC.imfSipFig9.url, 'Figure 9')}.</> },
           { icon: 'closure', text: 'Arithmetic suggests foreign capital (the capital closure) could account for the difference.' },
+          // review round 2, R2-10 (with M1's overlap statement): the
+          // baselines differ too, in two items of at most 12 words
+          { icon: 'compare', text: 'The baselines differ too: the IMF’s has no AI.' },
+          {
+            icon: 'forecast',
+            text: (
+              <>
+                The forecast path includes the OBR&rsquo;s own (
+                <NavLink tab="method" sub="how" anchor="m-shock">
+                  Method: the shock
+                </NavLink>
+                ).
+              </>
+            ),
+          },
           {
             icon: 'interest',
             text: (

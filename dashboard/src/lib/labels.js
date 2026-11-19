@@ -1,4 +1,5 @@
-import { HEADLINE_YEAR, LATE_YEAR, SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, LATE_YEAR, SURPRISE_YEAR, ZETA, CENTRAL, S, foreignShareOf, result } from '@/tabs/ai/surprise.js';
+import { fracWord } from '@/tabs/story/part2/caveats.js';
 
 // The one name of every choice on the page. Tabs, pickers, control bars,
 // tooltips and downloads all read these, so a name cannot drift.
@@ -55,10 +56,70 @@ export const ARM_PICK = [
 // Who gains names its arms differently (tabs/cohorts): the same three.
 export const WG_ARM = { tfp: 'tfp', tz: 'zfixed', ss: 'stress' };
 export const ARM_OF_WG = { tfp: 'tfp', zfixed: 'tz', stress: 'ss' };
+// The one name of each headline measure (review round 1, R1-14; Maria's
+// point 2): every surface (Story tiles, the hero, Explore's chips, wall,
+// dumbbells, slope panels, ζK grid and Across scenarios, Method) reads its
+// name here. `name`: the plain name, in titles and tiles; `short`: where
+// space is tight (end labels, chips); `abbr`: the national-accounts code,
+// shown once in brackets beside the plain name; `title`: name and code
+// together; `def`: the one-sentence definition (tips, Method). National
+// income leads as NNI, the income UK residents keep after the wear and
+// tear on capital (depreciation); GNI is the same income before
+// depreciation, shown beside it. Neither is always the larger gap: with no
+// foreign capital NNI's gap can exceed GNI's (UK high, Korinek), so no
+// wording here says which is smaller.
+export const MEASURE = {
+  Y: {
+    name: 'GDP',
+    short: 'GDP',
+    abbr: 'GDP',
+    title: 'GDP (total output)',
+    def: 'Gross domestic product: everything produced in the UK, including by foreign-owned capital.',
+  },
+  NNI: {
+    name: 'National income',
+    short: 'National income',
+    abbr: 'NNI',
+    title: 'National income (NNI)',
+    def: 'Net national income (NNI): the income UK residents keep after the wear and tear on capital (depreciation). GDP less net income paid abroad, less depreciation.',
+  },
+  GNI: {
+    name: 'National income before depreciation',
+    short: 'Before depreciation',
+    abbr: 'GNI',
+    title: 'National income before depreciation (GNI)',
+    def: 'Gross national income (GNI): national income before the wear and tear on capital is taken off. GDP less net income paid abroad to owners of UK capital and holders of UK government debt.',
+  },
+  w: {
+    name: 'Pay rate',
+    short: 'Pay rate',
+    abbr: 'pay rate',
+    title: 'Pay rate (pay per unit of labour)',
+    def: 'Pay per unit of labour, adjusted for skill. It is not average earnings, which also move with hours and the mix of jobs.',
+  },
+};
+export const measureName = (v) => MEASURE[v]?.name ?? v;
+
+// The share of the added capital that ends up foreign-owned with some
+// foreign capital, in words (foreign_share_dK_<headline year> through
+// lib/dataKeys.js, UK central's main version: the default scenario); null
+// when that solve is pending.
+const fsWord = () => {
+  const x = foreignShareOf(result(S.default_scenario ?? 'uk_central', 'tfp', CENTRAL));
+  return x == null ? null : fracWord(x / 100);
+};
+// ζK as a share of excess capital demand (Maria's point on 10% against 77%):
+// ζK is not the foreign-owned share of the added capital.
+const zkPct = Math.round((ZETA[CENTRAL] ?? 0) * 100);
+const zkNote = () => {
+  const w = fsWord();
+  return `Foreign investors supply ${zkPct}% of excess capital demand, not of added capital${w ? `; ${w} of the added capital ends up foreign-owned` : ''}`;
+};
+
 // Capital closure: who owns the new capital.
 export const CLOSURES = [
   // the pill's lines; ζK's home is Method (m-closures)
-  { id: 'central', label: 'Some foreign capital', note: 'Foreign investors supply 10% of the extra capital firms want', icon: 'globe' },
+  { id: 'central', label: 'Some foreign capital', note: zkNote(), icon: 'globe' },
   { id: 'closed', label: 'No foreign capital', note: 'No foreign-owned private capital', icon: 'lock' },
   { id: 'both', label: 'Both', note: 'Both cases together: some solid, none dashed', icon: 'layers' },
 ];

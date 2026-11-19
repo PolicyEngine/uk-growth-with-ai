@@ -102,9 +102,10 @@ describe('All scenarios', () => {
 
   it('the download table covers every cell, with pending ones marked', () => {
     const t = cellsTable('tfp', 'Automation + productivity');
-    expect(t.rows).toHaveLength(4 * 6 * 4);
-    // every measure's row for each cell not solved (2028: 4 measures x 4 holes x 2 closures)
-    expect(t.rows.filter((r) => r[7] === 'not yet solved')).toHaveLength(4 * holes());
+    expect(t.rows).toHaveLength(5 * 6 * 4);
+    // every measure's row for each cell not solved (2028: 5 measures x 4
+    // holes x 2 closures; NNI leads with GNI beside it, Maria's point 2)
+    expect(t.rows.filter((r) => r[7] === 'not yet solved')).toHaveLength(5 * holes());
     if (PINNED) expect(holes()).toBe(4 * 2);
     expect(cellValue('uk_low', 'tfp', 'zk0.1', 'dn', 'Y')).toBeNull();
     expect(cellValue('uk_central', 'tfp', 'zk0.1', 'common', 'Y')).toBe(gap('uk_central', 'tfp', 'zk0.1', 'Y', HEADLINE_YEAR));
@@ -139,8 +140,8 @@ describe('All scenarios', () => {
   it('prints the fable’s lines for each version on today’s data', () => {
     const t = (arm) => drivers(arm).map((d) => d.text);
     if (!PINNED) return;
-    expect(t('tfp')).toEqual(['The scenario moves GDP and GNI most', 'The scenario and the foreign-capital case move the pay rate by similar amounts']);
-    expect(t('tz')).toEqual(['The foreign-capital case moves GDP and GNI most', 'The scenario moves the pay rate most']);
+    expect(t('tfp')).toEqual(['The scenario moves GDP, national income and GNI most', 'The scenario and the foreign-capital case move the pay rate by similar amounts']);
+    expect(t('tz')).toEqual(['The foreign-capital case moves GDP and GNI most', 'The scenario moves national income and the pay rate most']);
     expect(drivers('ss', ['w', 'GNI', 'Y']).map((d) => d.text)).toEqual(['The scenario moves the pay rate most', 'The scenario and the foreign-capital case move GNI by similar amounts', 'GDP barely moves with any choice']);
     expect(drivers('tfp', ['debt_gdp_pp'])[0].text).toBe('The budget assumption and the scenario move debt/GDP by similar amounts');
     expect(drivers('tz', ['debt_gdp_pp'])[0].text).toBe('No one choice moves debt/GDP most');

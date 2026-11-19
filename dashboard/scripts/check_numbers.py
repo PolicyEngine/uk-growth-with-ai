@@ -55,8 +55,9 @@ def held(arm, v, x):
 
 NUM = re.compile(r"[+−]?\d+\.\d+(?:%|pp)")
 # the economy wall: every tile's lines end in their headline-year value,
-# GNI and GDP included (item 13, 18 Nov: values on every panel)
-ECON = [('GNI', '%', 1), ('Y', '%', 1), ('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]
+# national income (NNI, M1: it leads, GNI beside it in the open tile's
+# finding) and GDP included (item 13, 18 Nov: values on every panel)
+ECON = [('NNI', '%', 1), ('Y', '%', 1), ('C', '%', 1), ('I', '%', 1), ('K', '%', 1), ('L', '%', 1), ('r_bp', 'pp', 0.01), ('labour_share_pp', 'pp', 1)]
 SUBS = ['summary', 'income', 'economy', 'finances']
 bad = 0
 
@@ -81,11 +82,26 @@ def expected(sid, mode):
             exp[signed(x, dp) + unit] += 1
     main = B if mode == 'closed' else C          # the closure single values read
     shown = [C, B] if mode == 'both' else [main]  # dumbbell markers (B as screen-reader text with Both)
-    # Summary: the three headline tiles; with Both, closed capital beside each
-    for v in ['Y', 'w', 'GNI']:
+    # Summary: the three headline tiles (national income as NNI, M1); with
+    # Both, closed capital beside each; GNI beside NNI ("before
+    # depreciation"); the consumption line (Maria's point 6), with GDP's
+    # value beside it while consumption stays below the path through the
+    # headline year and GDP is above it
+    for v in ['Y', 'w', 'NNI']:
         add(g(sid, 'tfp', main, v), 2, '%')
         if mode == 'both':
             add(g(sid, 'tfp', B, v), 2, '%')
+    if g(sid, 'tfp', main, 'NNI') is not None:
+        add(g(sid, 'tfp', main, 'GNI'), 2, '%')
+    cs = [g(sid, 'tfp', main, 'C', yr) for yr in Y if yr >= D['surprise_year']]
+    if cs and None not in cs and cs[0] < -0.005:
+        add(g(sid, 'tfp', main, 'C'), 2, '%')
+        k = 0
+        while k < len(cs) and cs[k] < -0.005:
+            k += 1
+        yH = g(sid, 'tfp', main, 'Y')
+        if Y[Y.index(D['surprise_year']) + k - 1] >= D['headline_year'] and yH is not None and yH > 0.005:
+            add(yH, 2, '%')
     for arm in ARMS:
         # Income and output: the four-measure card. The main arm's GDP, wage
         # and GNI have their home in the story's headline tiles; the card

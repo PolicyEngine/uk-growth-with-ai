@@ -6,7 +6,7 @@
 // caveat does not hold for the cell in view.
 import S from '@/lib/activeData.js';
 import { COHORTS as C } from '@/lib/dataKeys.js';
-import { YEARS, HEADLINE_YEAR, CENTRAL, BOUND, gap } from '@/tabs/ai/surprise.js';
+import { YEARS, HEADLINE_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, gap, payLine, result } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
 
 const H = YEARS.indexOf(HEADLINE_YEAR);
@@ -41,14 +41,54 @@ export function peopleWord(pct) {
   return `about one in ${word}`;
 }
 
-// The pay tile: the wage gap's sign with no foreign capital, some foreign capital
-// and the half-foreign sensitivity (zk0.5). 'flips' when the signs differ.
+// The pay tile: does the main view's wage gap change sign between the two
+// foreign-capital cases the page offers (none, some)? 'flips' when it
+// does, else null. The ζK 0.5 sensitivity is not a case the page offers,
+// so it is not counted here (Maria's point 3): see paySensAbove.
 export function paySigns(sid) {
-  const sens = S.sensitivity?.['zk0.5']?.results?.[sid]?.tfp;
-  const ws = [gap(sid, 'tfp', BOUND, 'w'), gap(sid, 'tfp', CENTRAL, 'w'), sens?.status === 'done' ? sens.gaps.w[H] : null].filter((x) => x != null);
+  const ws = [gap(sid, 'tfp', BOUND, 'w'), gap(sid, 'tfp', CENTRAL, 'w')].filter((x) => x != null);
   if (ws.length < 2) return null;
   const signs = new Set(ws.map((w) => (Math.abs(w) < EPS2 ? 0 : Math.sign(w))));
   return signs.size > 1 ? 'flips' : null;
+}
+// The ζK 0.5 sensitivity's wage gap in the headline year, or null while it
+// is pending.
+export function paySens(sid) {
+  const sens = S.sensitivity?.['zk0.5']?.results?.[sid]?.tfp;
+  const x = sens?.status === 'done' ? sens.gaps.w?.[H] : null;
+  return typeof x === 'number' ? x : null;
+}
+// The pay caveat's one sentence (Maria's point 3), from the signs: with
+// both foreign-capital cases below the path, say so, and add the
+// sensitivity's clause only where it ends above the path ("edge above"
+// while the gap is under a quarter of a per cent, "end above" beyond).
+// The cases split: the sign depends on foreign capital. null otherwise.
+export const PAY_EDGE = 0.25;
+export function payCaveat(sid) {
+  const b = gap(sid, 'tfp', BOUND, 'w');
+  const c = gap(sid, 'tfp', CENTRAL, 'w');
+  if (b == null || c == null) return null;
+  if (paySigns(sid) === 'flips') return 'Its sign depends on how much capital comes from abroad.';
+  if (!(b < -EPS2 && c < -EPS2)) return null;
+  const z = paySens(sid);
+  const tail = z != null && z > EPS2 ? `; only in a sensitivity with far more foreign capital does it ${z < PAY_EDGE ? 'edge' : 'end'} above` : '';
+  return `It stays below the forecast path with or without foreign capital${tail}.`;
+}
+
+// The pay tile's line (review round 3, R3-17): payLine's, except where
+// pay falls only in the shock year and grows in every later year to the
+// headline year (pay_growth_pct; Korinek with no foreign capital on the
+// 2027 data, -0.02 in 2027), which payLine calls plainly "below the
+// forecast path". "Slightly" needs the fall under half a per cent.
+export function payWords(sid, cl, w = gap(sid, 'tfp', cl, 'w')) {
+  const base = payLine(sid, cl, w);
+  if (base !== 'below the forecast path') return base;
+  const r = result(sid, 'tfp', cl);
+  const g = r.status === 'done' ? r.pay_growth_pct : null;
+  if (!Array.isArray(g)) return base;
+  const win = g.filter((_, i) => YEARS[i] >= SURPRISE_YEAR && YEARS[i] <= HEADLINE_YEAR);
+  const ok = win.length > 1 && win.every((x) => typeof x === 'number') && win[0] < 0 && win[0] > -0.5 && win.slice(1).every((x) => x > 0);
+  return ok ? `falls slightly in ${SURPRISE_YEAR}, then grows more slowly than on the path` : base;
 }
 
 // Who gains (UK central, some foreign capital, debt-neutral transfers): what the

@@ -10,7 +10,8 @@
 // combination returns a sentence (string).
 import { HEADLINE_YEAR, SCEN_NAME, CENTRAL, BOUND, gap, ruleSolved } from '@/tabs/ai/surprise.js';
 import { side, ruleGapText } from '@/tabs/ai/lines.js';
-import { ruleLabel } from '@/lib/labels.js';
+import { MEASURE, ruleLabel } from '@/lib/labels.js';
+import { SIGN_CAVEAT, signMayFlip } from '@/lib/obrOverlap.js';
 import { dirConcept } from '@/tabs/explore/direction.jsx';
 
 // ("Gaps against the path, not forecasts" is stated once per page, by the
@@ -18,7 +19,7 @@ import { dirConcept } from '@/tabs/explore/direction.jsx';
 const word = (x) => (side(x) === 'on' ? 'on the forecast path' : side(x));
 // Above the path is a gain for income and output, a loss below; debt and
 // tax are drawn neutral (grey).
-const POLARITY = { Y: 1, GNI: 1, w: 1 };
+const POLARITY = { Y: 1, GNI: 1, NNI: 1, w: 1 };
 export const toneOf = (v, x) => (!POLARITY[v] || side(x) === 'on' ? null : x > 0 ? 'gain' : 'loss');
 
 // [concept, name, variable] triples -> chips, context and no-foreign-capital chip
@@ -49,8 +50,12 @@ function read(sid, closure, rule, vars) {
 
 export function economyAnswer(sid, closure, rule) {
   if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
-  const r = read(sid, closure, rule, [['gdp', 'GDP', 'Y'], ['gni', 'National income', 'GNI'], ['pay', 'Pay rate', 'w']]);
+  const r = read(sid, closure, rule, [['gdp', MEASURE.Y.name, 'Y'], ['gni', MEASURE.NNI.name, 'NNI'], ['pay', MEASURE.w.name, 'w']]);
   if (!r) return 'This combination is not yet solved.';
+  // the sign caveat (obr-overlap-fable.md, "Direction chips"): a
+  // direction that may not survive netting the OBR's own AI productivity
+  const may = rule === 'common' ? [['Y', MEASURE.Y.name], ['NNI', MEASURE.NNI.name.toLowerCase()]].filter(([v]) => signMayFlip(sid, r.cl, v)).map(([, n]) => n) : [];
+  const caveat = may.length ? `The direction of ${may.join(' and ')} ${SIGN_CAVEAT}` : null;
   const ls = gap(sid, 'tfp', r.cl, 'labour_share_pp', HEADLINE_YEAR, rule);
   const why =
     ls == null
@@ -59,14 +64,15 @@ export function economyAnswer(sid, closure, rule) {
           { key: 'ls', icon: 'inequality', dir: ls, text: `Labour share ${{ above: '↑', below: '↓', on: 'unchanged' }[side(ls)]} (imposed)` },
           { key: 'pay', icon: 'pay', text: side(ls) === 'below' ? 'pay grows less than output' : side(ls) === 'above' ? 'pay grows more than output' : 'pay keeps pace with output' },
         ];
-  return { ...r, why };
+  return { ...r, why, caveat };
 }
 
 export function financesAnswer(sid, closure, rule) {
   if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
   const r = read(sid, closure, rule, [['debt', `Debt/GDP in ${HEADLINE_YEAR}`, 'debt_gdp_pp'], ['tax', `Tax/GDP in ${HEADLINE_YEAR}`, 'tax_gdp_pp']]);
   if (!r) return 'This combination is not yet solved.';
-  return { ...r, link: { anchor: 'tax-gap', icon: 'limit', text: 'OG-UK’s revenue fall is smaller than OBR tax rates imply' } };
+  const caveat = rule === 'common' && signMayFlip(sid, r.cl, 'debt_gdp_pp') ? `The direction of debt/GDP ${SIGN_CAVEAT}` : null;
+  return { ...r, caveat, link: { anchor: 'tax-gap', icon: 'limit', text: 'OG-UK’s revenue fall is smaller than OBR tax rates imply' } };
 }
 
 // The All scenarios sub-tab's intro: context only (the matrix card below

@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { useChartBox } from '@/components/story/chart/useChartBox.js';
 import { iconFor } from '@/lib/concepts.js';
-import { ruleLabel } from '@/lib/labels.js';
+import { MEASURE, ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
 import { VERSION_COLOR as ARM_COLOR, VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
@@ -25,11 +25,14 @@ import { Lead, sentenceItems } from '@/tabs/explore/direction.jsx';
 // the two ends fall on opposite sides of the forecast path the panel says so
 // in words. Its sources are the four-measure card's.
 
+// Names from lib/labels.js MEASURE (R1-14): the plain name, with the
+// national-accounts code once; national income (NNI) before GNI.
+const nm = (v) => (MEASURE[v].abbr === MEASURE[v].short || v === 'w' ? MEASURE[v].short : `${MEASURE[v].short} (${MEASURE[v].abbr})`);
 export const SLOPE_MEASURES = [
-  { v: 'Y', label: 'GDP', concept: 'gdp' },
-  { v: 'GNI', label: 'GNI', concept: 'gni' },
-  { v: 'NNI', label: 'NNI', concept: 'depreciation' },
-  { v: 'w', label: 'Pay rate', concept: 'pay' },
+  { v: 'Y', label: nm('Y'), concept: 'gdp' },
+  { v: 'NNI', label: nm('NNI'), concept: 'gni' },
+  { v: 'GNI', label: nm('GNI'), concept: 'depreciation' },
+  { v: 'w', label: nm('w'), concept: 'pay' },
 ];
 
 // Every arm's two ends for one measure, and whether it flips sign (above to

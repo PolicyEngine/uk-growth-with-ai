@@ -16,7 +16,7 @@ import { Hy } from '@/components/story/Hy.jsx';
 // multiset is unchanged.
 export const MODELS = {
   official: { label: 'Official statistics', tip: 'Published statistics only. The one forecast shown is the OBR’s.' },
-  oguk: { label: 'OG-UK', tip: 'A model of the whole economy over decades. It has no unemployment. Results are gaps against the OBR’s central forecast path, which already includes the OBR’s AI.' },
+  oguk: { label: 'OG-UK', tip: 'A model of the whole economy over decades. It has no unemployment. Results are gaps against the OBR’s central forecast path. That path already has the OBR’s AI productivity, so part of each scenario’s productivity gain is not extra to it.' },
   aistudy: { label: 'Household study', tip: 'A one-year simulation of UK households. Job losses are assumed.' },
 };
 
