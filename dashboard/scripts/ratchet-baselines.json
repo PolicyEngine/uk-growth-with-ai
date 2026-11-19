@@ -18,8 +18,8 @@
       "source": "claims-and-years.test.jsx: year literals outside the allowlist"
     },
     "caption_length": {
-      "baseline": 6,
-      "source": "caption-length.test.jsx at the C1 head, both data files: 2 unit lines (Explore economy, finances) and 4 Data and code ledger items"
+      "baseline": 22,
+      "source": "caption-length.test.jsx, both data files, with the Story figure titles and units (.story-figure-title, .story-figure-unit) read without their sources buttons: 12 Story units and 1 stacked Morph title (the Story-frames lane shortens the data lines), 2 Explore unit lines, 4 Data and code ledger items, 1 Households policy card, and the rest from the same groups"
     },
     "label_joins": {
       "baseline": 30,
@@ -36,6 +36,18 @@
     "eslint_ugai_one_card_shell": {
       "baseline": 3,
       "source": "ugai/one-card-shell: ab/InfoCard.jsx in HouseholdsMethod, MethodTab, ScenariosSection"
+    },
+    "year_arithmetic_unnamed": {
+      "baseline": 1,
+      "source": "claims-and-years.test.jsx: FinancesSection.jsx:594 \"adjust each year from ${SURPRISE_YEAR + 1}\" (R2-01; fixed in push B 19cf757, where the transfers line has no year: drops to 0 at the merge)"
+    },
+    "mixed_cohort_years": {
+      "baseline": 0,
+      "source": "claims-and-years.test.jsx: cohort views print no active-set shock year that differs from the cohort file year (R2-03), and no source line mixes the two"
+    },
+    "fold_titles": {
+      "baseline": 7,
+      "source": "caption-length.test.jsx fold probe, both data files: PartHead \"About this model\"; Data and code \"Install the model\", \"Patch OG-Core for a time-varying γ\", \"Environment\", \"The sp helper used below\", \"Earlier changes\" (7 renders)"
     }
   },
   "browser": {

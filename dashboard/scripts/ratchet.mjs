@@ -15,8 +15,9 @@
 //                                             measured count (never raise)
 //   bun scripts/ratchet.mjs --no-vitest      lint counts only (fast)
 //
-// Exit 1 when any count is above its baseline. A count not measured this
-// run is listed, never passed.
+// Exit 1 when any count is above its baseline, or when a browser-free count
+// did not come back (vitest wrote no report). A browser count not passed in
+// is listed as not measured, never passed.
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -54,6 +55,8 @@ if (!has('--no-vitest')) {
       const r = JSON.parse(fs.readFileSync(report, 'utf8'));
       // failed tests, plus suites that failed to load (no test ran)
       counts[`vitest_failures_${data}`] = r.numFailedTests + r.testResults.filter((t) => t.status === 'failed' && t.assertionResults.length === 0).length;
+      for (const t of r.testResults)
+        for (const a of t.assertionResults.filter((x) => x.status === 'failed')) console.log(`  failed (${data}): ${path.relative(APP, t.name)} > ${a.fullName}: ${(a.failureMessages[0] ?? '').split('\n')[0].slice(0, 160)}`);
     }
     if (fs.existsSync(probes))
       for (const line of fs.readFileSync(probes, 'utf8').trim().split('\n').filter(Boolean)) {
@@ -81,7 +84,11 @@ for (const group of ['probes', 'browser'])
     const n = counts[k];
     const b = e.baseline;
     let verdict;
-    if (n == null) verdict = 'not measured';
+    if (n == null) {
+      // a browser-free count that did not come back is a failure, not a pass
+      verdict = group === 'probes' && !has('--no-vitest') ? 'MISSING' : 'not measured';
+      if (verdict === 'MISSING') bad += 1;
+    }
     else if (b == null) verdict = 'no baseline';
     else if (n > b) {
       verdict = 'ROSE';
@@ -98,5 +105,5 @@ if (has('--update')) {
   fs.writeFileSync(BASE_FILE, `${JSON.stringify(base, null, 2)}\n`);
   console.log('baselines lowered where a count fell');
 }
-console.log(bad ? `RATCHET FAIL: ${bad} count(s) above baseline` : 'RATCHET PASS');
+console.log(bad ? `RATCHET FAIL: ${bad} count(s) above baseline or missing` : 'RATCHET PASS');
 process.exit(bad ? 1 : 0);

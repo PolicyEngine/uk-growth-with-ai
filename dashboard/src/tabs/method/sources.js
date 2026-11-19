@@ -6,6 +6,7 @@
 import { REPO, URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
 import S from '@/lib/activeData.js';
 import { SET } from '@/lib/dataKeys.js';
+import { SURPRISE_YEAR } from '@/tabs/ai/surprise.js';
 
 // The commit the results were built from (surprise2028.json `source_commit`)
 export const RUN = S.source_commit;
@@ -56,7 +57,7 @@ export const SRC = {
   calibNote: { label: 'UK calibration note', url: `${REPO}/blob/5e538fd865d6ac9fdf1c2e14fafff09def4415a8/docs/uk_calibration.md` },
   ukTargets: { label: 'uk_targets.json', url: code('analysis/surprise/uk_targets.json') },
   tg1: { label: 'scenarios.py: TG1 = 10', url: code('uk_growth_with_ai/scenarios.py', 45) },
-  surpriseYear: { label: 'surprise.py: SURPRISE_YEAR = 2028', url: code('uk_growth_with_ai/surprise.py', 55) },
+  surpriseYear: { label: `surprise.py: the surprise year (${SURPRISE_YEAR})`, url: code('uk_growth_with_ai/surprise.py', 55) },
   rampWeights: { label: 'surprise.py: ramp weights', url: code('uk_growth_with_ai/surprise.py', 137) },
   debtTarget: { label: 'rerun.py: the 2030 debt target', url: code('uk_growth_with_ai/rerun.py', 74) },
   fiscalRules: { label: 'design note: fiscal rules', url: `${REPO}/blob/${RUN}/${SET.designDoc}` },

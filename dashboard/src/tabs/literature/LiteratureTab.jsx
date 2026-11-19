@@ -20,7 +20,7 @@ import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { SRC } from '@/tabs/method/sources.js';
-import { CENTRAL, HEADLINE_YEAR, gap } from '@/tabs/ai/surprise.js';
+import { CENTRAL, HEADLINE_YEAR, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { SET } from '@/lib/dataKeys.js';
 
 // Why UK central's GDP gap is below the IMF's for the same productivity gain
@@ -31,6 +31,11 @@ import { SET } from '@/lib/dataKeys.js';
 const IMF_Y4 = IMF.imf_y4_output_pct;
 const BOUND_GDP = IMF.unchanged_return_gdp_pct;
 const pct1 = (x) => `+${x.toFixed(1)}%`;
+// The bound's own shock year, read from its source (the results sanity
+// audit it comes from); until it is recomputed for the active set, the
+// card says which timing it is from (review round 2, readiness list).
+const BOUND_YEAR = Number(/results_sanity_(\d{4})/.exec(IMF.unchanged_return_source ?? '')?.[1]) || null;
+const boundNote = () => (BOUND_YEAR && BOUND_YEAR !== SURPRISE_YEAR ? `; from the runs with the shock in ${BOUND_YEAR}, not yet recomputed for ${SURPRISE_YEAR}` : '');
 function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
@@ -64,7 +69,7 @@ function ImfGap() {
             icon: 'arithmetic',
             text: (
               <>
-                GDP would be about <span data-path="imfGap.unchanged_return_gdp_pct">{pct1(BOUND_GDP.lo)} to {pct1(BOUND_GDP.hi)}</span> (arithmetic, not a solve).
+                GDP would be about <span data-path="imfGap.unchanged_return_gdp_pct">{pct1(BOUND_GDP.lo)} to {pct1(BOUND_GDP.hi)}</span> (arithmetic, not a solve{boundNote()}).
               </>
             ),
           },

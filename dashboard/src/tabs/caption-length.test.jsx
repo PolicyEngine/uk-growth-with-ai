@@ -6,6 +6,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { PAGES, renderPage, insideFold, words, recordCount } from '@/lib/probeTestUtils.jsx';
+
+// how many of each selector were seen: a rule whose selector matches
+// nothing anywhere checks nothing
+const seen = {};
 import BASE from '../../scripts/ratchet-baselines.json';
 
 afterEach(cleanup);
@@ -13,19 +17,38 @@ afterEach(cleanup);
 // [selector, limit, what]
 const RULES = [
   ['.card .card-head h3', 14, 'card title'],
-  ['.ch-title', 10, 'story figure title'],
+  ['.ch-title, .story-figure-title', 10, 'story figure title'],
   ['.finding-lead', 25, 'lead'],
-  ['.card-unit, .ch-unit', 16, 'unit'],
+  ['.card-unit, .ch-unit, .story-figure-unit', 16, 'unit'],
 ];
 const BODY = 25;
+// The words of a caption as read, without its sources button and popover,
+// hidden copies or screen-reader-only text.
+const SKIP = 'button, [hidden], .src-pop, [role="dialog"], .visually-hidden, .p1-title-ghost, .dl-menu';
+function ownText(el) {
+  let t = '';
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const p = n.parentElement;
+    if (p && p !== el && p.closest(SKIP) && el.contains(p.closest(SKIP))) continue;
+    t += ` ${n.textContent}`;
+  }
+  return t;
+}
 
 export function captionOffenders(root, page) {
   const out = [];
   for (const [sel, max, what] of RULES)
     for (const el of root.querySelectorAll(sel)) {
+      seen[what] = (seen[what] ?? 0) + 1;
       if (insideFold(el)) continue;
-      const n = words(el.textContent);
-      if (n > max) out.push(`${page}: ${what} ${n} words > ${max}: ${el.textContent.trim().slice(0, 90)}`);
+      // a stacked title (one per step) is measured per stack
+      const parts = el.querySelectorAll('.p1-title-stack').length ? [...el.querySelectorAll('.p1-title-stack')] : [el];
+      for (const part of parts) {
+        const t = ownText(part);
+        const n = words(t);
+        if (n > max) out.push(`${page}: ${what} ${n} words > ${max}: ${t.trim().slice(0, 90)}`);
+      }
     }
   for (const el of root.querySelectorAll('.card p, .card figcaption, .card li, figure.ch-frame p, figure.ch-frame figcaption')) {
     if (insideFold(el) || el.matches(RULES.map((r) => r[0]).join(', '))) continue;
@@ -49,5 +72,26 @@ describe('caption length', () => {
     const b = BASE.probes.caption_length.baseline;
     if (all.length > (b ?? 0)) console.warn(`caption length: ${all.length} offenders\n${all.join('\n')}`);
     expect(all.length, `caption_length: ${all.length} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
+    for (const [, , what] of RULES) expect(seen[what] ?? 0, `${what}: selector matched nothing`).toBeGreaterThan(0);
+  });
+  // One fold (section 6): every fold's rendered title is "More info". The
+  // lint rule sees literal titles only; this reads what renders.
+  it('every fold is titled More info, no more offenders than the baseline', () => {
+    const bad = [];
+    let n = 0;
+    for (const p of PAGES) {
+      const { container, unmount } = renderPage(p);
+      for (const t of container.querySelectorAll('.disclosure-title, summary')) {
+        n += 1;
+        const own = [...t.childNodes].filter((c) => !(c.nodeType === 1 && c.classList.contains('disclosure-preview'))).map((c) => c.textContent).join('').trim();
+        if (own !== 'More info') bad.push(`${p[0]}: "${own.slice(0, 60)}"`);
+      }
+      unmount();
+    }
+    expect(n).toBeGreaterThan(0);
+    recordCount('fold_titles', bad.length);
+    const b = BASE.probes.fold_titles.baseline;
+    if (bad.length > (b ?? 0)) console.warn(`fold titles: ${bad.length}\n${[...new Set(bad)].join('\n')}`);
+    expect(bad.length, `fold_titles: ${bad.length} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
   });
 });

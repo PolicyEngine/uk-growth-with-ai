@@ -16,6 +16,7 @@ export const PAGES = [
   ['explore economy', 'tab=explore&sub=economy', ExploreTab],
   ['explore finances', 'tab=explore&sub=finances', ExploreTab],
   ['explore who', 'tab=explore&sub=who', ExploreTab],
+  ['explore households', 'tab=explore&sub=households', ExploreTab],
   ['method', 'tab=method', MethodTab],
   ['evidence', 'tab=literature', StudiesTab],
   ['data and code', 'tab=code', CodeTab],

@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import S2028 from '@/data/surprise2028.json';
 import S2027 from '@/data/surprise2027.json';
-import { typedYears, yearKeys } from '@/lib/sourceScan.js';
+import { typedYears, yearKeys, yearArithmetic, mixedLines } from '@/lib/sourceScan.js';
 import BASE from '../../scripts/ratchet-baselines.json';
 import { recordCount } from '@/lib/probeTestUtils.jsx';
 
@@ -51,7 +51,6 @@ const ALLOW = [
   ['tabs/method/inputs.js', 'measured TFP +3.1% in 2030', 'Korinek et al.’s own year'],
   ['tabs/method/sources.js', 'IMF 2026 Article IV', 'a publication'],
   ['tabs/method/sources.js', 'The Pink Book: 2026', 'a publication'],
-  ['tabs/method/sources.js', "'surprise.py: SURPRISE_YEAR = 2028'", 'the code line it links (a swap blocker: the 2027 set names its year elsewhere)'],
   ['tabs/method/ScenarioMap.jsx', '(FRS 2026, Box 4.1)', 'a publication'],
   ['tabs/story/TwoLenses.jsx', 'Doorley et al. (2026)', 'a citation'],
 ];
@@ -70,7 +69,38 @@ const within = (name, n) => {
   expect(n, `${name}: ${n} against baseline ${b}`).toBeLessThanOrEqual(b ?? 0);
 };
 
+// Year arithmetic: file + expression + what it means. Anything else
+// (an off-by-one such as SURPRISE_YEAR + 1 where the shock year is meant,
+// R2-01) is counted against probes.year_arithmetic_unnamed.
+const ARITH = [
+  ['lib/labels.js', 'SURPRISE_YEAR + 1', 'debt is on the path from the year after the shock: transfers at t set debt at t+1'],
+  ['lib/labels.js', 'LATE_YEAR - 1', 'the last year transfers adjust, before the debt rule'],
+  ['tabs/ai/financesInfo.js', 'SURPRISE_YEAR + 1', 'debt on the path from the year after the shock'],
+  ['tabs/method/inputs.js', 'SURPRISE_YEAR + 1', 'debt on the path from the year after the shock'],
+  ['tabs/ai/surprise.js', 'SURPRISE_YEAR + 1', 'RAMP_STEPS: years from the shock to the headline year, inclusive'],
+  ['tabs/story/Hero.jsx', 'SURPRISE_YEAR + 1', 'YEARS_ON: the same inclusive count'],
+  ['tabs/story/part2/charts.jsx', 'SURPRISE_YEAR + 1', 'the same inclusive count'],
+  ['tabs/ai/Landing.jsx', 'SURPRISE_YEAR + 1', '"years on": the same inclusive count'],
+  ['tabs/cohorts/CohortsTab.jsx', 'shockYear - 20', 'the youngest adult alive at the shock is 20'],
+  ['tabs/story/part2/charts.jsx', 'shock_year - 20', 'the same: LAST_ALIVE'],
+  ['tabs/cohorts/CohortsTab.jsx', 'lastFlowYear + 1', 'the debt rule starts the year after the last flow year'],
+  ['tabs/method/ScenariosSection.jsx', 'HEADLINE_YEAR - 1', 'the ramp years before full weight'],
+  ['tabs/story/Hero.jsx', 'LATE_YEAR - 2', 'where the UK-range label sits (layout only)'],
+  ['tabs/story/part2/Morph.jsx', 'SURPRISE_YEAR - 2', 'a fallback used only when the ONS record is empty'],
+];
+
 describe('no typed years or keys', () => {
+  it('every piece of year arithmetic is named with its meaning', () => {
+    const hits = yearArithmetic().filter((h) => !ARITH.some(([f, e]) => h.file === f && h.expr === e));
+    if (hits.length) console.warn('year arithmetic not named:', hits.map((h) => `${h.file}:${h.line} ${h.expr} | ${h.text.slice(0, 100)}`));
+    within('year_arithmetic_unnamed', hits.length);
+    for (const [f, e] of ARITH) expect(yearArithmetic().some((h) => h.file === f && h.expr === e), `stale: ${f} ${e}`).toBe(true);
+  });
+  it('no source line builds a cohort sentence from an active-set year (R2-03)', () => {
+    const hits = mixedLines();
+    if (hits.length) console.warn('mixed lines:', hits);
+    within('mixed_cohort_years', hits.length);
+  });
   it('no year-suffixed data key or data file name outside lib/dataKeys.js', () => {
     const hits = yearKeys();
     if (hits.length) console.warn('year keys:', hits);
@@ -258,5 +288,47 @@ describe('claims probe, cohorts: "They hold more wealth than younger adults…"'
     const c = CO.closures['zk0.1'].rules.common.tfp;
     const f = whoFindingOf(c, { xs: CO.closures['zk0.1'].birth_year, shockYear: CO.shock_year, arm: 'tfp', wealthAt: () => 0.2 });
     expect(f.lines.flat().some((p) => p.text === RETURN_LINE)).toBe(false);
+  });
+});
+
+// ---- R2-03 at run time: under the 2027 file with the 2028 cohort file, a
+// cohort view prints no 2027 shock year except in its one notice line ---------
+describe('claims probe, cohort views never mix years', () => {
+  it('Who gains and the generations scene, on surprise2027.json', async () => {
+    await pickFile(S2027);
+    const { NavProvider } = await import('@/lib/nav.jsx');
+    const { default: ExploreTab } = await import('@/tabs/explore/ExploreTab.jsx');
+    const { default: Story } = await import('@/tabs/story/StoryTab.jsx');
+    const { COHORT_YEAR, cohortNotice } = await import('@/lib/dataKeys.js');
+    const yr = String(S2027.surprise_year);
+    expect(COHORT_YEAR === S2027.surprise_year || cohortNotice() != null).toBe(true);
+    const strip = (t) => (cohortNotice() ? t.split(cohortNotice()).join(' ') : t);
+    window.history.replaceState(null, '', '/?tab=explore&sub=who');
+    const who = render(
+      <NavProvider>
+        <ExploreTab />
+      </NavProvider>,
+    );
+    const inner = who.container.querySelector('#explore-sub-who');
+    expect(inner).not.toBeNull();
+    if (COHORT_YEAR !== S2027.surprise_year) {
+      expect(inner.textContent).toContain(cohortNotice());
+      expect(strip(inner.textContent).match(new RegExp(`.{0,60}\\b${yr}\\b.{0,30}`))?.[0] ?? null).toBeNull();
+    }
+    who.unmount();
+    window.history.replaceState(null, '', '/?tab=story');
+    const st = render(
+      <NavProvider>
+        <Story />
+      </NavProvider>,
+    );
+    const steps = [...st.container.querySelectorAll('[id^="p2-who-"]')];
+    expect(steps.length).toBeGreaterThan(0);
+    const t = steps.map((e) => e.textContent).join(' ');
+    if (COHORT_YEAR !== S2027.surprise_year) {
+      expect(t).toContain(cohortNotice());
+      expect(strip(t).match(new RegExp(`.{0,60}\\b${yr}\\b.{0,30}`))?.[0] ?? null).toBeNull();
+    }
+    st.unmount();
   });
 });
