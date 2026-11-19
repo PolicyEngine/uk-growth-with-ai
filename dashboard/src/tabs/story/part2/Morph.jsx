@@ -8,7 +8,7 @@ import { useIsPhone } from '@/components/story/motion.js';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
-import { ModelBadge } from '@/components/story/chart/index.js';
+import { ChartHover, ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
 import { modelItems, SRC as LINKS } from './sources.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
@@ -587,6 +587,29 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
   ];
   const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, lh);
   const shownNames = lines.filter((l) => s >= from(l.id));
+  // hover (M4), as a crosshair: one transparent column per year, listing
+  // each series drawn there. Growth states: the ONS record and the OBR
+  // forecast, % a year; gap states: each drawn scenario's gap (from the data,
+  // with its path), its inputs in the notes.
+  const pctS = (v, dp = 2) => `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(dp)}%`;
+  const tipCols =
+    s < 2
+      ? [
+          ...ACT.map(([yr, v], i) => ({ yr, x: g.act[i]?.[0], rows: [{ name: 'ONS outturn', value: pctS(v, 1), icon: 'gdp' }] })),
+          ...(s >= 1 ? OBR.map(([yr, v], i) => ({ yr, x: g.obr[i]?.[0], rows: [{ name: 'OBR forecast', value: pctS(v, 1), icon: 'forecast' }] })) : []),
+        ]
+          .filter((c) => Number.isFinite(c.x))
+          .map((c) => ({ ...c, unit: 'Real GDP growth, % a year.' }))
+      : YEARS.map((yr, i) => ({
+          yr,
+          x: gG.X(yr),
+          rows: shownNames
+            .filter((l) => Number.isFinite(l.ys[i]))
+            .map((l) => ({ name: SCEN_NAME[l.id], value: pctS(l.ys[i]), color: l.id === sid ? ARM_COLOR.tfp : 'var(--pe-gray-500)', path: `results.${l.id}.tfp.${cl}.gaps.Y.${yr}` })),
+          unit: `GDP gap against the OBR’s central forecast path, %; ${CL_WORDS[cl]}. OG-UK works it out.`,
+        })).filter((c) => c.rows.length);
+  const tips = tipCols.map((c) => ({ head: String(c.yr), rows: c.rows, unit: c.unit }));
+  const colW = tipCols.length > 1 ? Math.max(4, Math.abs(tipCols[1].x - tipCols[0].x)) : 12;
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
@@ -628,6 +651,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
         ))}
       </p>
       <div className="p2-canvas-box">
+        <ChartHover label="GDP, from growth to the gap against the forecast path" items={tips}>
         <svg ref={svgRef} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} style={{ '--svg-k': sz.k }}>
           <defs>
             <clipPath id={clip}>
@@ -743,6 +767,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
                     className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc && l.id !== pinned ? ' is-late' : ''}${l.id === pinned ? ' is-pinned' : ''}`}
                     data-scen={l.id}
                     data-mark={`scen-${l.id}`}
+                   
                     morph={{ d }}
                   />
                 );
@@ -754,6 +779,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
                 className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
                 data-scen={sid}
                 data-mark={`scen-${sid}`}
+               
                 morph={{ d: dPath(g.gap) }}
                 style={{ stroke: ARM_COLOR.tfp }}
               />
@@ -793,6 +819,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               key={p.key}
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               data-scrub={sc && p.on ? 'in' : undefined}
+             
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
               {/* a label pushed off its line's end (labels crowd at the
@@ -839,7 +866,13 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           <text x={4} y={11} className={`p2-panel-name p2-mo-fade${s >= 2 ? ' is-on' : ''}${s === 2 ? ' is-new' : ''}`} data-scrub={sc ? 'in' : undefined} data-axis-title={s >= 2 ? 'y' : undefined} aria-hidden={s >= 2 ? undefined : 'true'}>
             Gap against the OBR’s central forecast path, %
           </text>
+          <g data-decorative="" aria-hidden="true">
+            {tipCols.map((c, i) => (
+              <rect key={`${c.yr}-${i}`} data-tip={i} className="ch-hit" x={c.x - colW / 2} y={PY0} width={colW} height={PY1 - PY0} />
+            ))}
+          </g>
         </svg>
+        </ChartHover>
       </div>
     </figure>
   );

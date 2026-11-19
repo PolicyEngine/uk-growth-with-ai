@@ -15,6 +15,7 @@ import { docItem } from '@/lib/sourceItems.js';
 import { investmentFlags, I_FLAG_PCT } from './caveats.js';
 import { OG_RESULT_URLS } from '@/tabs/ai/links.js';
 import { NavLink } from '@/lib/nav.jsx';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { fracWord } from '@/tabs/story/part2/caveats.js';
 
 // The foreign-owned share of the added capital in the headline year: the
@@ -162,10 +163,31 @@ function colMax(res, v) {
 function SensGrid({ res }) {
   const flagged = new Set(SENS_FLAGS().map((f) => `${f.sid}|${f.arm}`));
   const max = Object.fromEntries(VARS.map((c) => [c.v, colMax(res, c.v)]));
+  // hover (M4): each cell's scenario, version, foreign capital, rule, value
+  // (from the data, with its path) and the comparison with ζK 0.1
+  const zk = S.sensitivity?.[SENS]?.zeta_K;
+  const order = SCENARIOS.flatMap((s) => ARMS.flatMap((a) => VARS.map((c) => ({ s, a, c }))));
+  const tipAt = (sid, arm, v) => order.findIndex((o) => o.s.id === sid && o.a.id === arm && o.c.v === v);
+  const tips = order.map(({ s, a, c }) => {
+    const x = at(res[s.id]?.[a.id], c.v);
+    const ce = centralAt(s.id, a.id, c.v);
+    return {
+      head: `${s.label}, ${c.label}`,
+      rows: [
+        { name: 'Version', value: a.short || a.label, color: ARM_COLOR[a.id] },
+        { name: 'Foreign capital', value: `ζK ${zk}`, icon: 'closure' },
+        { name: 'Budget', value: 'Common fiscal rule', icon: 'rule' },
+        { name: 'Gap', value: x == null ? 'not yet solved' : fmt(x, 2), icon: 'gdp', path: x == null ? undefined : `sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}.${HEADLINE_YEAR}` },
+        { name: 'With ζK 0.1', value: ce == null ? 'not yet solved' : fmt(ce, 2), icon: 'compare' },
+      ],
+      unit: `% gap against the forecast path, ${HEADLINE_YEAR}. OG-UK works it out.`,
+    };
+  });
   return (
-    // a table, not a plotted scale: each column head carries its unit (%
-    // gap); the card's unit line above it names zeta_K, the year and the
-    // path (item 42)
+    <ChartHover label={`${HEADLINE_YEAR} gaps with ζK ${zk}, by scenario, version and measure`} items={tips}>
+    {/* a table, not a plotted scale: each column head carries its unit (%
+        gap); the card's unit line above it names zeta_K, the year and the
+        path (item 42) */}
     <div className="ex-sd ex-sg-wrap" role="group" aria-label={`${HEADLINE_YEAR} gaps with ζK = ${S.sensitivity?.[SENS]?.zeta_K}, % gap against the forecast path, by scenario, version and measure`}>
       <table className="ex-sg">
         <thead>
@@ -226,7 +248,7 @@ function SensGrid({ res }) {
                       const x = at(r, c.v);
                       if (x == null)
                         return (
-                          <td key={c.v} className="ex-sg-cell is-pending">
+                          <td key={c.v} className="ex-sg-cell is-pending" data-tip={tipAt(s.id, a.id, c.v)}>
                             not solved
                           </td>
                         );
@@ -234,7 +256,7 @@ function SensGrid({ res }) {
                       // solver stops within 0.01pp): no tint, no comparison
                       if (held(a.id, c.v))
                         return (
-                          <td key={c.v} className="ex-sg-cell is-held" title={`GDP held on the forecast path in ${HEADLINE_YEAR} by design, within the solver’s 0.01pp`}>
+                          <td key={c.v} className="ex-sg-cell is-held" data-tip={tipAt(s.id, a.id, c.v)} title={`GDP held on the forecast path in ${HEADLINE_YEAR} by design, within the solver’s 0.01pp`}>
                             <span className="ex-sd-val" data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
                               {fmt(x, 2)}
                             </span>
@@ -248,7 +270,7 @@ function SensGrid({ res }) {
                       const tone = Math.abs(x) < 0.005 ? '' : x > 0 ? ' is-gain' : ' is-loss';
                       const dirWord = d == null || Math.abs(d) < 0.005 ? null : d > 0 ? 'higher' : 'lower';
                       return (
-                        <td key={c.v} className={`ex-sg-cell${tone}${flip ? ' is-flip' : ''}`} style={{ '--t': `${t}%` }} data-flip={flip ? '' : undefined}>
+                        <td key={c.v} className={`ex-sg-cell${tone}${flip ? ' is-flip' : ''}`} data-tip={tipAt(s.id, a.id, c.v)} style={{ '--t': `${t}%` }} data-flip={flip ? '' : undefined}>
                           <span className={`ex-sd-val${cls(x)}`} data-path={`sensitivity.${SENS}.results.${s.id}.${a.id}.gaps.${c.v}[${HEADLINE_YEAR}]`}>
                             {fmt(x, 2)}
                           </span>
@@ -269,6 +291,7 @@ function SensGrid({ res }) {
         })}
       </table>
     </div>
+    </ChartHover>
   );
 }
 

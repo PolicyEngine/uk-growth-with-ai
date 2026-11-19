@@ -7,7 +7,7 @@ import { Essential } from '@/components/ui/SourceLine.jsx';
 import { D, FigureHead, InputFig, MODEL_YEAR, Num, NumMarker, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { RETURN_BASE, RETURN_PP } from './Central.jsx';
 import { Ref } from './sources.jsx';
-import { Legend } from '@/components/story/chart/index.js';
+import { ChartHover, Legend } from '@/components/story/chart/index.js';
 
 // Step 2, the three channels (results.tex: "Running each channel alone on 20
 // paired draws"). The graphic is the home of each channel's cost and of their
@@ -88,6 +88,13 @@ export function waterfall() {
   return bars;
 }
 const BARS = waterfall();
+// the tooltip of each bar (M4): its name, its effect on the budget and the
+// run's value, from the data; the channels are household-study results
+const TIPS = BARS.map((b, i) => ({
+  head: typeof b.label === 'string' ? b.label : null,
+  rows: [{ name: b.sum ? 'Sum of the three runs' : `Channel ${i + 1} alone`, value: fmtBn(b.value), icon: 'arithmetic' }],
+  unit: `Public finance cost, £bn a year (positive = cost), ${MODEL_YEAR}. The household study.`,
+}));
 const ENDS = BARS.flatMap((b) => [b.from, b.to]);
 const LO = Math.min(0, ...ENDS) * 1.05;
 const HI = Math.max(0, ...ENDS) * 1.05;
@@ -116,7 +123,9 @@ function ChannelsFigure({ ctx }) {
           { key: 'net', label: 'Net', kind: 'block', color: 'var(--pe-gray-800)' },
         ]}
       />
-      <ol className="p3-rows p3-wf">
+      {/* hover (M4): each row's run, its budget effect and value */}
+      <ChartHover label="Cost to the public finances of each channel run alone, then their sum" items={TIPS}>
+        <ol className="p3-rows p3-wf">
         {BARS.map((b, i) => {
           const lo = Math.min(b.from, b.to);
           const w = X(Math.max(b.from, b.to)) - X(lo);
@@ -124,7 +133,7 @@ function ChannelsFigure({ ctx }) {
           const fromRight = b.to < b.from;
           const m = markProps(b.id, `p3-row p3-wf-row${b.sum ? ' p3-row-total' : ''}`);
           return (
-            <li key={b.id} {...m} data-row={b.id} style={{ '--beat': `${i * 600}ms` }}>
+            <li key={b.id} {...m} data-row={b.id} data-tip={i} style={{ '--beat': `${i * 600}ms` }}>
               <span className="p3-row-label p3-row-label-icon">
                 {b.sum ? null : <NumMarker n={i + 1} />}{' '}
                 <span className="p3-row-label-text">
@@ -158,7 +167,8 @@ function ChannelsFigure({ ctx }) {
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </ChartHover>
       {/* the zero line, labelled (C8): scale, not data */}
       <span className="p3-wf-axis" data-axis="" aria-hidden="true">
         <span className={X(0) < 15 ? 'is-start' : X(0) > 85 ? 'is-end' : undefined} style={{ left: `${X(0)}%` }}>

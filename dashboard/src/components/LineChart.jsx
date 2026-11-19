@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import Tween from '@/components/story/Tween.jsx';
-import { TipBox, useOutside } from '@/components/ab/Tip.jsx';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { CHART_FONT, minus } from '@/lib/chartTheme.js';
 
 // Data-driven inline-SVG line chart. It measures its container and draws in
@@ -242,7 +242,6 @@ export default function LineChart({
   const [linkedYear, setLinkedYear] = useState(null);
   const boxRef = useRef(null);
   const src = useId();
-  useOutside(boxRef, hov != null, () => setHov(null));
   const hovYear = hov == null ? null : x[hov];
   useEffect(() => {
     if (!link || typeof window === 'undefined') return;
@@ -486,27 +485,27 @@ export default function LineChart({
     floor = e.ly - ROW;
   }
 
-  const nearest = (clientX) => {
-    const svg = boxRef.current?.querySelector('svg');
-    if (!svg) return null;
-    const px = clientX - svg.getBoundingClientRect().left;
-    const i = Math.round(((px - L) / Math.max(1, R - L)) * (x.length - 1));
-    return Math.max(0, Math.min(x.length - 1, i));
-  };
-  const onKey = (e) => {
-    if (e.key === 'ArrowRight') setHov((h) => (h == null ? 0 : Math.min(x.length - 1, h + 1)));
-    else if (e.key === 'ArrowLeft') setHov((h) => (h == null ? x.length - 1 : Math.max(0, h - 1)));
-    else if (e.key === 'Escape') setHov(null);
-    else return;
-    e.preventDefault();
-  };
-  const tipLeft = hov == null ? 0 : sx(hov);
   const linkedAt = linkedYear == null ? -1 : x.indexOf(linkedYear);
   const cross = hov ?? (linkedAt >= 0 ? linkedAt : null);
   const pathOf = (vals) => vals.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
   // One closure for every line: said once in the tooltip's header
   const closures = [...new Set(series.map((s) => s.closure).filter(Boolean))];
   const oneClosure = closures.length === 1 && series.every((s) => s.closure) ? closures[0] : null;
+  // the one tooltip (ChartHover, M4): a transparent column per year is its
+  // target; it tells this chart the year shown, which draws the crosshair
+  // and points the linked charts at it
+  const colHalf = x.length > 1 ? (R - L) / (x.length - 1) / 2 : 12;
+  const tips = x.map((yr, i) => ({
+    head: `${tipTitle ? `${tipTitle}, ` : ''}${yr}`,
+    rows: series.map((s) => ({
+      key: s.key ?? s.label,
+      name: `${s.label}${s.closure && !oneClosure ? `, ${s.closure}` : ''}`,
+      value: `${(tipFormat ?? valueFormat)(s.values[i])}${unit ?? ''}`,
+      color: s.color,
+      path: typeof s.path === 'function' ? s.path(i) : undefined,
+    })),
+    unit: oneClosure ?? undefined,
+  }));
 
   return (
     <div
@@ -515,37 +514,8 @@ export default function LineChart({
         boxRef.current = n;
       }}
       className="linechart is-interactive"
-      tabIndex={0}
-      aria-label={`${ariaLabel}. Use the arrow keys to read each year.`}
-      onKeyDown={onKey}
-      onFocus={() => setHov((h) => (h == null ? x.length - 1 : h))}
-      onBlur={() => setHov(null)}
-      onMouseMove={(e) => setHov(nearest(e.clientX))}
-      onMouseLeave={() => setHov(null)}
-      onClick={(e) => setHov(nearest(e.clientX))}
     >
-      {hov != null ? (
-        <TipBox className={`chart-tip ${hov > (x.length - 1) / 2 ? 'side-left' : 'side-right'}`} style={{ left: tipLeft, top: 0 }}>
-          <b>
-            {tipTitle ? `${tipTitle}, ` : ''}
-            {x[hov]}
-          </b>
-          {oneClosure ? <span className="tip-sub">{oneClosure}</span> : null}
-          {series.map((s) => (
-            <span key={s.key ?? s.label} className="tip-row">
-              <span className={`swatch${s.dashed ? ' dashed' : ''}`} style={{ borderTopColor: s.color }} />
-              <span className="tip-name">
-                {s.label}
-                {s.closure && !oneClosure ? `, ${s.closure}` : ''}
-              </span>
-              <span className="tip-value">
-                {(tipFormat ?? valueFormat)(s.values[hov])}
-                {unit}
-              </span>
-            </span>
-          ))}
-        </TipBox>
-      ) : null}
+      <ChartHover label={ariaLabel} items={tips} onActive={setHov}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
         {/* bands first, so a marker label that reaches into one stays readable */}
         {bandRows.map(({ b, i, row }) => {
@@ -727,7 +697,14 @@ export default function LineChart({
             ))}
           </g>
         ))}
+        {/* the hover targets: one transparent column per year, on top */}
+        <g data-decorative="" aria-hidden="true">
+          {x.map((yr, i) => (
+            <rect key={yr} data-tip={i} className="ch-hit" x={sx(i) - colHalf} y={TOP} width={colHalf * 2} height={BOT - TOP} />
+          ))}
+        </g>
       </svg>
+      </ChartHover>
     </div>
   );
 }

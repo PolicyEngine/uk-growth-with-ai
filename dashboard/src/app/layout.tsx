@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import { SURPRISE_YEAR, FIRST_YEAR, HEADLINE_YEAR } from '@/tabs/ai/surprise.js';
+import { DATA_FILE } from '@/lib/dataFlag.js';
 import './panels.css';
 // The PolicyEngine tokens, bundled (as the Autumn Budget 2026 dashboard)
 import '@policyengine/ui-kit/legacy/tokens.css';
@@ -86,7 +87,9 @@ export default function RootLayout({
             the client shows the named tab (v2.css, lib/nav.jsx). */}
         <script dangerouslySetInnerHTML={{ __html: NAV_PENDING }} />
       </head>
-      <body>
+      {/* the active result file, for browser checks that compare a printed
+          value with the data (check_hover) */}
+      <body data-data-file={DATA_FILE}>
         {/* first tab stop, before the PolicyEngine site nav */}
         <a className="skip-link" href="#main-content">
           Skip to content

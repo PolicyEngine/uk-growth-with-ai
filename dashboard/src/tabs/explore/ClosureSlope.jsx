@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Card from '@/components/ui/Card.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { useChartBox } from '@/components/story/chart/useChartBox.js';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { MEASURE, ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
@@ -116,6 +117,17 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
   const someX = Math.max(x0, xLabelHalf(someT, fsX));
   const noneX = Math.min(x1, W - xLabelHalf(noneT, fsX));
   const drawn = [...rows.filter((r) => r.arm.id !== sel), ...rows.filter((r) => r.arm.id === sel)];
+  // hover (M4): each version's two ends, from the data
+  const tipRows = drawn.filter((r) => r.c != null);
+  const tips = tipRows.map((r) => ({
+    head: `${versionName(r.arm)}, ${m.label}`,
+    rows: [
+      { name: someT, value: fmt(r.c), color: ARM_COLOR[r.arm.id] },
+      { name: noneT, value: r.b == null ? 'not yet solved' : fmt(r.b), color: ARM_COLOR[r.arm.id] },
+    ],
+    unit: `Gap against the forecast path, ${HEADLINE_YEAR}; ${SCEN_NAME[sid]}.${r.flips ? ' Flips sign.' : ''}`,
+    kind: 'result',
+  }));
   const endLabels = (side, set) =>
     set.placed.map((p) => {
       const ly = p.t + LH / 2;
@@ -145,6 +157,7 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
         {m.label}
       </div>
       <div ref={boxRef}>
+      <ChartHover label={`${m.label}: each version, some to no foreign capital`} items={tips}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${m.label}, ${HEADLINE_YEAR}, some foreign capital to no foreign capital, ${SCEN_NAME[sid]}: ${flips.length ? `flips sign for ${flips.map((r) => versionName(r.arm)).join(' and ')}` : 'no version flips sign'}`}>
         {sc.ticks.map((t) => (
           <g key={t}>
@@ -168,6 +181,7 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
             <g
               key={r.arm.id}
               className={`ex-slope-arm${dim ? ' is-dim' : ''}${r.arm.id === sel ? ' is-sel' : ''}`}
+              data-tip={tipRows.indexOf(r)}
               style={{ '--arm': ARM_COLOR[r.arm.id] }}
               tabIndex={0}
               role="button"
@@ -186,6 +200,7 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
         {endLabels('l', L)}
         {endLabels('r', R)}
       </svg>
+      </ChartHover>
       </div>
       <div className="ex-slope-foot">
         {active ? (

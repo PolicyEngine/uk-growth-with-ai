@@ -2,6 +2,7 @@
 
 import SourceLine from '@/components/ui/SourceLine.jsx';
 import { TipTarget } from '@/components/ab/Tip.jsx';
+import { ChartHover } from '@/components/story/chart/index.js';
 import { asOfItems } from '@/components/story/AsOf.jsx';
 import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
@@ -80,7 +81,7 @@ function spread(items, gap, lo, hi) {
 
 // One drawing. `wide`: a right gutter holding the end labels; otherwise
 // none (the legend row under the chart names the lines).
-function Fan({ lines, sid, wide }) {
+function Fan({ lines, sid, wide, cl }) {
   const W = wide ? 640 : 480;
   // one row of guide labels above the plot (T)
   const H = wide ? 382 : 268;
@@ -138,7 +139,15 @@ function Fan({ lines, sid, wide }) {
   // the chosen scenario drawn last, on top
   const order = [...lines].sort((a, b) => (a.id === sid) - (b.id === sid));
   const on = (l) => (l.id === sid ? ' is-on' : '');
+  // hover (M4): each scenario's gap in the headline year, from the data
+  const tipOrder = lines.map((l) => l.id);
+  const tips = lines.map((l) => ({
+    head: `${l.short ?? SCEN_NAME[l.id]}, ${HEADLINE_YEAR}`,
+    rows: [{ name: 'GDP gap', value: fmt(l.at), icon: 'gdp', path: cl ? `results.${l.id}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}` : undefined }],
+    unit: `Against the ${BASELINE}; main version. OG-UK works it out.`,
+  }));
   return (
+    <ChartHover label={`GDP gap against the ${BASELINE}, four scenarios`} items={tips} className={`hf-hover ${wide ? 'is-wide' : 'is-narrow'}`}>
     <svg
       className={`story-svg hf-svg ${wide ? 'is-wide' : 'is-narrow'}`}
       viewBox={`0 0 ${W} ${H}`}
@@ -195,15 +204,15 @@ function Fan({ lines, sid, wide }) {
         </g>
       ) : null}
       {order.map((l) => (
-        <path key={l.id} d={pathD(l.y, X, Y, I0)} className={`hf-line is-${LINE[l.id]}${on(l)}`} data-mark={l.id} />
+        <path key={l.id} d={pathD(l.y, X, Y, I0)} className={`hf-line is-${LINE[l.id]}${on(l)}`} data-mark={l.id} data-tip={tipOrder.indexOf(l.id)} />
       ))}
       {/* the chosen line's start: a hollow dot at its 2028 value */}
       {sel ? <circle className={`hf-dot-start is-${LINE[sel.id]}`} cx={X(I0)} cy={Y(sel.y[I0])} r={4} data-mark={sel.id} /> : null}
       {order.map((l) => (
-        <circle key={l.id} className={`hf-dot is-${LINE[l.id]}${on(l)}`} cx={XY(HEADLINE_YEAR)} cy={Y(l.at)} r={l.id === sid ? 4.5 : 3.5} data-mark={l.id} />
+        <circle key={l.id} className={`hf-dot is-${LINE[l.id]}${on(l)}`} cx={XY(HEADLINE_YEAR)} cy={Y(l.at)} r={l.id === sid ? 4.5 : 3.5} data-mark={l.id} data-tip={tipOrder.indexOf(l.id)} />
       ))}
       {labels.map((l) => (
-        <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - lfs * 0.5}>
+        <text key={l.id} className={`hf-end is-${LINE[l.id]}${on(l)}`} x={X(last) + 10} y={l.y - lfs * 0.5} data-tip={tipOrder.indexOf(l.id)}>
           {/* the trailing space keeps name and value apart for a screen
               reader (the value's own x places it; nothing moves) */}
           <tspan className="hf-end-name">{`${l.short} `}</tspan>
@@ -213,6 +222,7 @@ function Fan({ lines, sid, wide }) {
         </text>
       ))}
     </svg>
+    </ChartHover>
   );
 }
 
@@ -380,8 +390,8 @@ export default function Hero() {
             </dl>
           ) : null}
         </div>
-        <Fan lines={lines} sid={sid} wide />
-        <Fan lines={lines} sid={sid} wide={false} />
+        <Fan lines={lines} sid={sid} cl={cl} wide />
+        <Fan lines={lines} sid={sid} cl={cl} wide={false} />
         <ul className="hf-legend" aria-label={`The four scenarios, GDP gap in ${HEADLINE_YEAR}`}>
           {lines.map((l) => (
             <li key={l.id} className={`hf-chip is-${LINE[l.id]}${l.id === sid ? ' is-on' : ''}`} data-mark={l.id}>

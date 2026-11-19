@@ -5,7 +5,7 @@ import { subscribe } from '@/lib/scrollLoop.js';
 import Sankey from '@/components/story/Sankey.jsx';
 import Scrolly from '@/components/story/Scrolly.jsx';
 import Icon from '@/components/ab/Icon.jsx';
-import { ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
+import { ChartHover, ModelBadge, Replay, Pause } from '@/components/story/chart/index.js';
 import { useIsPhone, useReducedMotion } from '@/components/story/motion.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
@@ -118,7 +118,15 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
   lo -= pad;
   hi += pad;
   const at = (x) => ((x - lo) / (hi - lo)) * 100;
+  // hover (M4): each part's change, from the data, with its path
+  const tips = rows.map((r) => ({
+    head: r.label,
+    rows: [{ name: 'Change against the forecast path', value: r.value == null ? 'not yet solved' : change(r.value), color: PART_COLOR[r.id], path: r.value == null ? undefined : `${path}.${r.id === 'capital' ? 'gross_capital' : r.id}` }],
+    unit: `Per 100 of the forecast path’s GDP, ${SPLIT_YEAR}.`,
+    kind: 'result',
+  }));
   return (
+    <ChartHover label="The change in each part of GDP against the forecast path" items={tips}>
     <ol className={`p2-wf${on ? ' is-on' : ''}${hl ? ' has-hl' : ''}`} style={{ '--zero': `${at(0)}%` }} onMouseLeave={() => setHl(null)}>
       {rows.map((r, i) => {
         const a = Math.min(r.from, r.to);
@@ -130,6 +138,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
             className={`p2-wf-row${r.sub ? ' is-sub' : ''}${r.outline ? ' is-outline' : ''}${hl && hl === r.id ? ' is-hl' : ''}`}
             data-row={r.id}
             data-mark={`wf-${r.id}`}
+            data-tip={i}
             tabIndex={pick && on ? 0 : undefined}
             onMouseEnter={() => setHl(pick)}
             onFocus={() => setHl(pick)}
@@ -184,6 +193,7 @@ function Waterfall({ rows, on, hl, setHl, path, cells, chips, phase, t }) {
         );
       })}
     </ol>
+    </ChartHover>
   );
 }
 

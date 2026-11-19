@@ -10,11 +10,12 @@ import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, LATE_YEAR, SCENARIOS, ARMS, CLOSURE_LABEL, SCEN_NAME, BOUND, fmt } from '@/tabs/ai/surprise.js';
 import { Items } from '@/components/story/Items.jsx';
+import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { toneOf } from './answers.js';
 import { Lead } from './direction.jsx';
 import { side } from '@/tabs/ai/lines.js';
-import { MEASURES, ROWS, cellsTable, cellValue, drivers } from './cells.js';
+import { CLS, MEASURES, ROWS, cellsTable, cellValue, drivers } from './cells.js';
 import SensitivityTable from './SensitivityTable.jsx';
 import { sourcesItems } from './sources.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
@@ -57,13 +58,35 @@ export function inStory(st, sid, cl, rule, arm) {
   return arm === 'tfp' && rule === 'common' && sid === st.s && (st.closure === 'both' || closureOf(cl) === st.closure);
 }
 
-function Cell({ s, row, arm, m, current, story, printHome }) {
+// hover (M4): one cell's scenario, version, foreign capital, budget rule,
+// value (from the data, with its path) and the comparison with the other
+// foreign-capital case, the one tooltip
+const RULE_PATH = { common: 'results', dn: 'rules.debt_neutral.results', fixed: 'rules.fixed_spending.results' };
+export function cellTip(s, row, arm, m) {
+  const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
+  const other = CLS.find((c) => c !== row.cl);
+  const y = other == null ? null : cellValue(s.id, arm, other, row.rule, m.v);
+  const armRow = ARMS.find((a) => a.id === arm);
+  return {
+    head: `${SCEN_NAME[s.id]}, ${m.label}`,
+    rows: [
+      { name: 'Version', value: armRow?.short || armRow?.label || arm, icon: 'scenario' },
+      { name: 'Foreign capital', value: CLOSURE_LABEL[row.cl], icon: 'closure' },
+      { name: 'Budget', value: RULES.find((r) => r.id === row.rule)?.label ?? row.rule, icon: 'rule' },
+      { name: 'Gap', value: x == null ? 'not yet solved' : fmt(x, 2, m.unit), icon: 'gdp', path: x == null ? undefined : `${RULE_PATH[row.rule]}.${s.id}.${arm}.${row.cl}.gaps.${m.v}.${HEADLINE_YEAR}` },
+      ...(other != null ? [{ name: CLOSURE_LABEL[other], value: y == null ? 'not yet solved' : fmt(y, 2, m.unit), icon: 'compare' }] : []),
+    ],
+    unit: `Against the forecast path, ${HEADLINE_YEAR}. OG-UK works it out. Click a cell to show it.`,
+  };
+}
+
+function Cell({ s, row, arm, m, current, story, printHome, tip }) {
   const { set } = useNav();
   const x = cellValue(s.id, arm, row.cl, row.rule, m.v);
   const where = `${SCEN_NAME[s.id]}, ${RULES.find((r) => r.id === row.rule).label.toLowerCase()}, ${CLOSURE_LABEL[row.cl]}`;
   if (x == null)
     return (
-      <td className="ex-mx-cell is-hole" data-cell={`${s.id}|${row.key}`}>
+      <td className="ex-mx-cell is-hole" data-cell={`${s.id}|${row.key}`} data-tip={tip}>
         <span className="ex-mx-dash" role="img" aria-label={`${where}: not solved`} title={`${where}: not solved`}>
           –
         </span>
@@ -73,7 +96,7 @@ function Cell({ s, row, arm, m, current, story, printHome }) {
   // where the figure's home is the story's headline, a muted reference value
   const home = story && printHome;
   return (
-    <td className={`ex-mx-cell${current ? ' is-current' : ''}${tone ? ` is-${tone}` : ''}`} data-cell={`${s.id}|${row.key}`}>
+    <td className={`ex-mx-cell${current ? ' is-current' : ''}${tone ? ` is-${tone}` : ''}`} data-cell={`${s.id}|${row.key}`} data-tip={tip}>
       <button
         type="button"
         className="ex-mx-btn"
@@ -117,7 +140,12 @@ const DN_DEBT = 'debt held on the path by design, so 0 by construction';
 
 export function Matrix({ arm, m, printHome = true, label }) {
   const { st } = useNav();
+  // the cells in table order, so the arrow keys walk the table row by row
+  const order = RULES.flatMap((r) => ROWS.filter((row) => row.rule === r.id).flatMap((row) => SCENARIOS.map((s) => ({ s, row }))));
+  const tipAt = (sid, key) => order.findIndex((c) => c.s.id === sid && c.row.key === key);
   return (
+    // the tooltip's host sits outside the scrolling wrap, so the card is never clipped
+    <ChartHover label={label} items={order.map(({ s, row }) => cellTip(s, row, arm, m))}>
     <div className="ex-mx-wrap">
       <table className="ex-mx" aria-label={label}>
         <thead>
@@ -149,7 +177,7 @@ export function Matrix({ arm, m, printHome = true, label }) {
                   </span>
                 </th>
                 {SCENARIOS.map((s) => (
-                  <Cell key={s.id} s={s} row={row} arm={arm} m={m} current={inView(st, s.id, row.cl, row.rule)} story={inStory(st, s.id, row.cl, row.rule, arm)} printHome={printHome} />
+                  <Cell key={s.id} s={s} row={row} arm={arm} m={m} current={inView(st, s.id, row.cl, row.rule)} story={inStory(st, s.id, row.cl, row.rule, arm)} printHome={printHome} tip={tipAt(s.id, row.key)} />
                 ))}
               </tr>
             ))}
@@ -157,6 +185,7 @@ export function Matrix({ arm, m, printHome = true, label }) {
         ))}
       </table>
     </div>
+    </ChartHover>
   );
 }
 

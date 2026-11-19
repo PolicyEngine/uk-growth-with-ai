@@ -310,8 +310,20 @@
 /* Exposure tiles: travel 750ms, colour in the last third (inline delays:
    travel, then colour 500ms later) */
 .p1-tiles {
+  position: relative;
   max-width: 400px;
   margin: 0 auto;
+}
+/* hover targets (M4): one transparent cell over each block of tiles */
+.p1-tile-hits {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: 100%;
+}
+.p1-tile-hits > span {
+  grid-row: 1;
 }
 /* each group's label under its block (polish round): in after the tiles
    settle, out at once when they regroup */
@@ -623,6 +635,7 @@
 }
 /* one drawing per width: end labels on desktop, a legend row at 900px and below */
 .hf-svg.is-narrow,
+.hf-hover.is-narrow,
 .hf-legend {
   display: none;
 }
@@ -666,10 +679,12 @@
 }
 /* phones: the narrow drawing and the legend row */
 @media (max-width: 600px) {
-  .hf-svg.is-wide {
+  .hf-svg.is-wide,
+  .hf-hover.is-wide {
     display: none;
   }
-  .hf-svg.is-narrow {
+  .hf-svg.is-narrow,
+  .hf-hover.is-narrow {
     display: block;
   }
   .hf-legend {
