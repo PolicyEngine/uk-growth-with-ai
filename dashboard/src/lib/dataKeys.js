@@ -112,6 +112,10 @@ const SETS = {
     // year (--start/--year/YEAR; 2028 is their default)
     runBranch: 'rerun/surprise-2028',
     yearFlag: false,
+    // the ref the scenario files and pipeline files are linked at
+    // ('source_commit': the data file's own commit), and the builder there
+    filesRef: 'source_commit',
+    builder: 'uk_growth_with_ai/dashboard_data.py',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2028_${sid}.json`,
     // the commits and solve times each set was built with (R3-04)
     versionsFile: 'site-versions.json',
@@ -136,6 +140,9 @@ const SETS = {
     docsRef: '3988c0b',
     runBranch: 'rerun/surprise-2027',
     yearFlag: true,
+    // the scenario files were committed after the data (3988c0b)
+    filesRef: '3988c0b',
+    builder: 'analysis/surprise/build_dashboard_data.py',
     scenarioFile: (sid) => `uk_growth_with_ai/data/scenarios_surprise2027_${sid}.json`,
     // OG-UK, OG-Core and PolicyEngine versions are the 2028 set's (same
     // environment); the solves entry is the data file's own commit (VERSIONS)
@@ -154,6 +161,8 @@ export { DATA_SET };
 // The data file's name, from the file itself (its shock year), so a page
 // never names one file while showing another.
 export const DATA_FILE = `surprise${S.surprise_year}.json`;
+// The ref a set's scenario and pipeline files are linked at.
+export const FILES_REF = SET.filesRef === 'source_commit' ? S.source_commit : SET.filesRef;
 // Is the active set's own copy of a SET field in place (not the 2028
 // fallback)? Pages that would print a 2028 commit or solve time beside the
 // active data say what they have instead (R3-04).

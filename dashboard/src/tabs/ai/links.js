@@ -1,6 +1,6 @@
 import S from '@/lib/activeData.js';
 import AI from '@/data/aiStudy2425.json';
-import { SET, COHORT_SOURCE_COMMIT } from '@/lib/dataKeys.js';
+import { SET, COHORT_SOURCE_COMMIT, FILES_REF } from '@/lib/dataKeys.js';
 
 // Every external URL on the dashboard, verified (HTTP 200) on 26 Sept 2026.
 // Code-file links point at main (the re-run, PR #11, is merged).
@@ -64,7 +64,7 @@ export const RESULTS_SHA = S.source_commit;
 export const COHORTS_SHA = COHORT_SOURCE_COMMIT;
 export const ogOutput = (zk) => atRef(RESULTS_SHA, `${SET.outputDir}/${zk}`, 'tree');
 export const ogResult = (zk, label) => atRef(RESULTS_SHA, `${SET.outputDir}/${zk}/${label}.json`);
-export const ogScenarioFile = (sid) => atRef(RESULTS_SHA, SET.scenarioFile(sid));
+export const ogScenarioFile = (sid) => atRef(FILES_REF, SET.scenarioFile(sid));
 export const OG_RESULT_URLS = {
   assemble: atRef(RESULTS_SHA, 'uk_growth_with_ai/surprise.py'),
   doc: atRef(SET.docsRef, SET.designDoc),

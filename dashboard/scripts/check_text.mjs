@@ -26,7 +26,8 @@
 // svg text included. Names, every tab: no visible "uk-ai-study" (the
 // household study's repo slug) outside code. Wording, every tab: no
 // visible "AI ... arrives" (the extra AI starts; AI is already here), and
-// no "arrive" in any scene question, hint or header.
+// no "arrive" in any scene question, hint or header. Nowhere, hidden text
+// and attributes included: the withdrawn "2 x 0.2" OBR cross-check.
 //
 // Titles, on the Story only (story-finding-titles-fable.md, 18 Nov): every
 // visible figure title (.story-figure-title, .ch-title) and panel head
@@ -154,6 +155,15 @@ for (const [name, path] of Object.entries(PAGES)) {
       // Wording (Vahid, 18 Nov): AI does not "arrive" (it is already
       // here); the extra AI starts. No visible "AI ... arrive(s)" in a
       // sentence, svg text (chart markers) included.
+      // the withdrawn linear OBR cross-check (surprise2027-runs.md: "2 x 0.2
+      // = 0.4%" is gone): nowhere on any tab, hidden text, svg, titles and
+      // aria-labels included
+      const TWO_X = /\b2\s*[x×]\s*0\.2\b/;
+      {
+        const all = [document.body.textContent, ...[...document.querySelectorAll('[aria-label], [title]')].map((e) => `${e.getAttribute('aria-label') ?? ''} ${e.getAttribute('title') ?? ''}`)].join('\n');
+        const m = all.match(new RegExp(`.{0,40}${TWO_X.source}.{0,20}`));
+        if (m) out.push(`withdrawn "2 x 0.2" cross-check on the page: ${m[0].trim()}`);
+      }
       const ARRIVE = /\bAI\b[^.:;!?\n]{0,60}\barriv/i;
       for (const line of document.body.innerText.split('\n')) if (ARRIVE.test(line)) out.push(`"AI arrives" wording in visible text: ${line.trim().slice(0, 80)}`);
       for (const t of document.querySelectorAll('svg text')) {

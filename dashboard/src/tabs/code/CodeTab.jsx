@@ -18,7 +18,7 @@ import { Items, WhyChain } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import IconText from '@/tabs/method/IconText.jsx';
 import { NavLink } from '@/lib/nav.jsx';
-import { REF, SP_HELPER, STEPS } from './pipeline.js';
+import { REF, DASH_REF, SP_HELPER, STEPS } from './pipeline.js';
 
 // Data and code: reproduce the results (before you start, the 2028-surprise
 // pipeline, outputs and checks), the one vintages table and the model
@@ -47,8 +47,10 @@ const longDate = (d) => {
 };
 
 const firstCommand = (code) => code.split('\n').find((l) => l.trim() && !l.trim().startsWith('#')).replace(/\s+#.*$/, '').replace(/\s*\\$/, '');
-const blob = (p) => `${REPO}/blob/${REF}/${p}`;
-const tree = (p) => `${REPO}/tree/${REF}/${p}`;
+// dashboard files at the dashboard branch; the run's files at the set's ref
+const refFor = (p) => (p.startsWith('dashboard/') ? DASH_REF : REF);
+const blob = (p) => `${REPO}/blob/${refFor(p)}/${p}`;
+const tree = (p) => `${REPO}/tree/${refFor(p)}/${p}`;
 
 const INSTALL = `git clone ${REPO}.git && cd uk-growth-with-ai
 pip install -e ".[test]"

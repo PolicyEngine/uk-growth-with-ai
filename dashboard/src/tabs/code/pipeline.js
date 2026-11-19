@@ -6,7 +6,7 @@
 // exactly as driver.sh does.
 
 import { SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR } from '@/tabs/ai/surprise.js';
-import { SET, DATA_FILE, setHas } from '@/lib/dataKeys.js';
+import { SET, DATA_FILE, setHas, FILES_REF } from '@/lib/dataKeys.js';
 
 // The 2027 set's commands differ from 2028's (docs/surprise_2027.md,
 // "Pipeline commands (2027)"): every tool is told the year (2028 is their
@@ -14,7 +14,10 @@ import { SET, DATA_FILE, setHas } from '@/lib/dataKeys.js';
 const Y = SET.yearFlag ? SURPRISE_YEAR : null;
 const start = Y ? ` --start ${Y}` : '';
 
-export const REF = 'dashboard/ab2026-redesign';
+// the pipeline files are linked where they exist for the set: the 2027
+// outputs and tools at the 2027 runs' commit
+export const DASH_REF = 'dashboard/ab2026-redesign';
+export const REF = SET.yearFlag ? FILES_REF : DASH_REF;
 
 export const SP_HELPER = `export PY=/path/to/og-uk/.venv/bin/python   # Python 3.13, OG-Core 0.17.0 + the γ patch
 export WORK=~/ugai-rerun-work                    # holds <closure>/baseline_p1 from the R1–R4 rerun

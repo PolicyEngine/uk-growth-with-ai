@@ -573,3 +573,36 @@ describe('round 3 probe gaps', () => {
       within('pending_sentences', found.length);
     });
 });
+
+// ---- The withdrawn linear OBR cross-check (surprise2027-runs.md: "2 x 0.2
+// = 0.4%" is gone): nowhere in the source or the data, nor on any page
+// (check_text.mjs checks the built site the same way).
+describe('the withdrawn "2 x 0.2" cross-check', () => {
+  const TWO_X = /\b2\s*[x×]\s*0\.2\b/;
+  it('is in no source or data file under src', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const root = path.resolve(__dirname, '..');
+    const hits = [];
+    const walk = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (/\.(jsx?|tsx?|json|md|css)$/.test(e.name) && !p.endsWith('claims-and-years.test.jsx') && TWO_X.test(fs.readFileSync(p, 'utf8'))) hits.push(path.relative(root, p));
+      }
+    };
+    walk(root);
+    expect(hits).toEqual([]);
+  });
+  it('is on no page, hidden text and attributes included', async () => {
+    const { PAGES, renderPage } = await import('@/lib/probeTestUtils.jsx');
+    vi.resetModules();
+    vi.doUnmock('@/lib/activeData.js');
+    for (const p of PAGES) {
+      const { container, unmount } = renderPage(p);
+      const all = [container.textContent, ...[...container.querySelectorAll('[aria-label], [title]')].map((e) => `${e.getAttribute('aria-label') ?? ''} ${e.getAttribute('title') ?? ''}`)].join('\n');
+      expect(all.match(new RegExp(`.{0,40}${TWO_X.source}.{0,20}`))?.[0] ?? null, p[0]).toBeNull();
+      unmount();
+    }
+  });
+});
