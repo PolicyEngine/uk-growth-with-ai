@@ -10,10 +10,10 @@ import Pill from '@/components/ui/Pill.jsx';
 import { versionsShownSection } from '@/components/ui/SettingsBar.jsx';
 import { useNav, subOf, NavLink } from '@/lib/nav.jsx';
 import {
-  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, signed, SCEN_NAME, ruleSolved, solvedUnder,
+  HEADLINE_YEAR, SURPRISE_YEAR, WINDOW_YEARS, FIRST_YEAR, ARMS, path, gap, fmt, signed, SCEN_NAME, ruleSolved, solvedUnder,
 } from '@/tabs/ai/surprise.js';
 import { seriesFor, boundPending, emptyText, primaryClosure, closureWords, contextLine, seriesTable, legendOf, side, ruleGapText } from '@/tabs/ai/lines.js';
-import { ruleLabel, rulePlain } from '@/lib/labels.js';
+import { MEASURE, ruleLabel, rulePlain } from '@/lib/labels.js';
 import { Dumbbells, HeadlineNote, stressItems, dumbbellTable, dumbbellSvg, dumbbellLegend } from '@/tabs/ai/Headline.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -213,12 +213,26 @@ const IMPOSED = 'Technology paths are imposed: consequences of given scenarios, 
 function consumptionFinding(sid, closure, rule = 'common') {
   const cl = primaryClosure(closure);
   const c = path(sid, 'tfp', cl, 'C', rule);
-  const g = path(sid, 'tfp', cl, 'GNI', rule);
+  const g = path(sid, 'tfp', cl, 'NNI', rule);
   if (!c || !g) return null;
   const from = WINDOW_YEARS.indexOf(SURPRISE_YEAR);
   return c.slice(from).every((x) => x < 0) && g[g.length - 1] > 0
-    ? `With automation + productivity, consumption stays below the forecast path through ${HEADLINE_YEAR} while national income is above it: households save more.`
+    ? `With automation + productivity, consumption stays below the forecast path through ${HEADLINE_YEAR} while ${MEASURE.NNI.name.toLowerCase()} is above it: households save more.`
     : null;
+}
+
+// The NNI tile's finding: GNI, before depreciation, beside it, by side of
+// the path in the headline year (sign-aware; NNI's gap is not always the
+// smaller).
+function gniBeside(sid, closure, rule = 'common') {
+  const cl = primaryClosure(closure);
+  const g = gap(sid, 'tfp', cl, 'GNI', HEADLINE_YEAR, rule);
+  const n = gap(sid, 'tfp', cl, 'NNI', HEADLINE_YEAR, rule);
+  if (g == null || n == null) return null;
+  const w = (x) => (side(x) === 'on' ? 'on the forecast path' : `${side(x)} the forecast path`);
+  return side(g) === side(n)
+    ? `Before depreciation (${MEASURE.GNI.abbr}), with automation + productivity: ${fmt(g)} in ${HEADLINE_YEAR}, also ${w(g)}.`
+    : `Before depreciation (${MEASURE.GNI.abbr}), with automation + productivity: ${fmt(g)} in ${HEADLINE_YEAR}, ${w(g)}; after it, ${w(n)}.`;
 }
 
 // The labour-share fall is an imposed input, the same in every arm: when
@@ -280,13 +294,16 @@ const ECONOMY = [
 
 // The four-measure card's finding, from the signs of the arms shown: the
 // pay rate's side in every arm, and whether national income's side
-// depends on the arm (the productivity gain). The arrow follows the sign.
+// depends on the version (review round 1, R1-08). National income is NNI
+// here (Maria's point 2), which splits differently from GNI: below the
+// path in Technology unchanged where GNI is above it, so the gate is
+// computed on NNI. The arrow follows the sign.
 export function measuresFinding(sid, arms, closure, rule) {
   const cl = primaryClosure(closure);
   const shown = ARMS.filter((a) => arms.includes(a.id));
   const at = (v) => shown.map((a) => gap(sid, a.id, cl, v, HEADLINE_YEAR, rule)).filter((x) => x != null);
   const w = at('w');
-  const g = at('GNI');
+  const g = at('NNI');
   if (!w.length) return null;
   const one = (xs) => new Set(xs.map(side)).size === 1;
   const where = (x) => (side(x) === 'on' ? 'on the forecast path' : `${side(x)} the forecast path`);
@@ -313,6 +330,7 @@ function MeasuresFinding({ sid, arms, closure, rule }) {
   );
 }
 
+const MEASURES_TITLE = `${MEASURE.w.name}, ${MEASURE.NNI.name.toLowerCase()} and ${MEASURE.Y.name} in ${HEADLINE_YEAR}`;
 function IncomePanel({ sid }) {
   const { st, set } = useNav();
   const cl = closureWords(st.closure);
@@ -325,10 +343,10 @@ function IncomePanel({ sid }) {
         <Card
           id="measures"
           icon={iconFor('measure')}
-          title={`Pay rates, national income and output in ${HEADLINE_YEAR}`}
+          title={MEASURES_TITLE}
           finding={ruleSolved(st.rule, sid) ? <MeasuresFinding sid={sid} arms={st.arms} closure={st.closure} rule={st.rule} /> : null}
           unit={<span data-axis-title="y">{`% gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
-          controls={<Pill className="is-card" title="Options for this chart" name={`Pay rates, national income and output in ${HEADLINE_YEAR}`} sections={[versionsShownSection(st, set)]} />}
+          controls={<Pill className="is-card" title="Options for this chart" name={MEASURES_TITLE} sections={[versionsShownSection(st, set)]} />}
           legend={
             st.closure === 'both' ? (
               <Legend
@@ -340,7 +358,7 @@ function IncomePanel({ sid }) {
             ) : null
           }
           more={[
-            { label: 'Measure', text: 'The pay rate is pay per unit of labour, not average earnings; national income (GNI) is the income UK residents keep.' },
+            { label: 'Measure', text: `The pay rate is pay per unit of labour, not average earnings. ${MEASURE.NNI.title} is the income UK residents keep after depreciation; ${MEASURE.GNI.abbr} is the same income before it.` },
             { label: 'Compared with', text: 'Each version’s gap against the OBR’s central forecast path; the centre line, 0, is the path.' },
             { label: 'Settings', text: `${cl[0].toUpperCase()}${cl.slice(1)}; ${rulePlain(st.rule)}.` },
           ]}
@@ -360,7 +378,7 @@ function IncomePanel({ sid }) {
           }}
           sources={sourcesItems({ sid, method: 'closures' })}
           download={{
-            title: `Pay rates, national income and output in ${HEADLINE_YEAR}`,
+            title: MEASURES_TITLE,
             context: () => contextLine(sid, st.closure, '% difference from the OBR’s central forecast path', st.rule),
             table: () => dumbbellTable(sid, st.arms, st.closure, st.rule),
             svg: () => dumbbellSvg(sid, st.arms, st.closure, st.rule),
@@ -377,12 +395,14 @@ function IncomePanel({ sid }) {
   );
 }
 
-// GNI and GDP open the wall. Like every tile, their lines end in their
+// National income (NNI) and GDP open the wall. Like every tile, their lines end in their
 // headline-year values (Vahid: values on every panel).
 const INCOME_TILES = [
-  { v: 'GNI', title: 'Income UK residents keep (GNI)', name: 'national income', concept: 'gni', method: 'closures', about: { caveats: IMPOSED } },
+  // national income leads as NNI (Maria's point 2); GNI, before
+  // depreciation, beside it in the tile's finding (gniBeside)
+  { v: 'NNI', title: MEASURE.NNI.title, name: MEASURE.NNI.name.toLowerCase(), concept: 'gni', method: 'closures', about: { caveats: IMPOSED } },
   {
-    v: 'Y', title: 'Total output (GDP)', name: 'GDP', concept: 'gdp', method: 'closures',
+    v: 'Y', title: MEASURE.Y.title, name: MEASURE.Y.name, concept: 'gdp', method: 'closures',
     about: {
       caveats: (
         <Items
@@ -486,7 +506,7 @@ function EconomyPanel({ sid }) {
               scale={r.scale ?? 1}
               endDp={2}
               ends={r.ends ?? true}
-              finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
+              finding={r.v === 'C' ? (consumptionFinding(sid, st.closure, st.rule) ?? undefined) : r.v === 'NNI' ? (gniBeside(sid, st.closure, st.rule) ?? undefined) : r.v === 'labour_share_pp' ? (coincideFinding(sid, st.closure, st.rule) ?? undefined) : undefined}
               about={r.about}
               method={r.method ?? 'model'}
             />

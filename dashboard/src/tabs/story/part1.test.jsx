@@ -664,8 +664,8 @@ describe('hero', () => {
       const el = await at(q);
       // one result unit on the chart's frame: three stats, one anatomy, numbers for all three
       const stats = [...el.querySelectorAll('.hf-stat')];
-      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
-      for (const [k, v] of [[0, 'Y'], [1, 'w'], [2, 'GNI']]) {
+      expect(stats.map((m) => m.querySelector('.hf-stat-name').textContent)).toEqual(['GDP', 'Pay rate', 'National income']);
+      for (const [k, v] of [[0, 'Y'], [1, 'w'], [2, 'NNI']]) {
         const fig = stats[k].querySelector(`.hf-unit [data-path="results.${s}.tfp.${cl}.gaps.${v}.${S.headline_year}"]`) ?? el.querySelector(`.hf-unit [data-path="results.${s}.tfp.${cl}.gaps.${v}.${S.headline_year}"]`);
         expect(fig, `${s} ${v}`).not.toBeNull();
         expect(fig.textContent).toBe(sign(S.results[s].tfp[cl].gaps[v][i]));
@@ -679,7 +679,11 @@ describe('hero', () => {
       // the pay line from the data; national income's is the ledger's
       expect(stats[1].querySelector('.hf-stat-line').textContent).toBe(payLine(s, cl));
       if (s === 'uk_high' || s === 'uk_low') expect(payLine(s, cl)).toBe('slower growth, not a cut');
-      expect(stats[2].querySelector('.hf-stat-line').textContent).toBe('GDP less net income paid abroad');
+      expect(stats[2].querySelector('.hf-stat-line').textContent).toBe('income kept after wear and tear');
+      // GNI beside it, before depreciation (Maria's point 2), from the data
+      const gni = stats[2].querySelector(`.hf-stat-beside [data-path="results.${s}.tfp.${cl}.gaps.GNI.${S.headline_year}"]`);
+      expect(gni.textContent).toBe(sign(S.results[s].tfp[cl].gaps.GNI[i]));
+      expect(stats[2].querySelector('.hf-stat-beside').textContent).toMatch(/^Before depreciation \(GNI\):/);
       // the GDP tip says it is a level
       expect(heroStats(s, cl)[0].tip).toMatch(/A gap in the level, \d+ years on; not a growth rate\.$/);
       // the gilt holders where no capital is foreign-owned

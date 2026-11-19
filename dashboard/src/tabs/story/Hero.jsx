@@ -7,10 +7,11 @@ import { docItem, navItem } from '@/lib/sourceItems.js';
 import Icon from '@/components/ab/Icon.jsx';
 import { NavLink, useNav } from '@/lib/nav.jsx';
 import { REPO } from '@/tabs/ai/links.js';
-import { METHOD, PAGE_TITLE } from '@/lib/labels.js';
+import { METHOD, MEASURE, PAGE_TITLE } from '@/lib/labels.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
 import { useSvgScale } from '@/lib/svgScale.js';
-import { paySigns } from '@/tabs/story/part2/caveats.js';
+import { payCaveat } from '@/tabs/story/part2/caveats.js';
+import { incomeNotes } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, LATE_YEAR, S, SCENARIOS, SCEN_NAME, SURPRISE_YEAR, YEARS, fmt, gap, payLine } from '@/tabs/ai/surprise.js';
 
 // The first screen: the story's first question, then one result unit on
@@ -214,54 +215,55 @@ function Fan({ lines, sid, wide }) {
 }
 
 // The three stats, one anatomy each: name (its definition in the tip),
-// value (two decimals, signed, neutral ink) and one short line. The pay
-// line comes from the data (payLine: "slower growth, not a cut" only while
-// pay still rises every year); national income's is part 2's ledger's.
+// value (two decimals, signed, neutral ink) and one short line. Names and
+// definitions are lib/labels.js MEASURE's. The pay line comes from the
+// data (payLine: "slower growth, not a cut" only while pay still rises
+// every year). National income leads as NNI, after the wear and tear on
+// capital, with GNI, before depreciation, beside it (Maria's point 2); its
+// line and tip are the ledger's (Landing.jsx incomeNotes), sign-aware.
 // The headline year as years into the shock (2028 is year 1): the figures
 // are level gaps that year, not growth rates.
 export const YEARS_ON = HEADLINE_YEAR - SURPRISE_YEAR + 1;
 export function heroStats(sid, cl) {
   const y = gap(sid, 'tfp', cl, 'Y');
   const w = gap(sid, 'tfp', cl, 'w');
-  const g = gap(sid, 'tfp', cl, 'GNI');
+  const n = gap(sid, 'tfp', cl, 'NNI');
   if (y == null || w == null) return null;
   const pay = payLine(sid, cl, w);
+  const inc = n == null ? null : incomeNotes(sid, cl);
   return [
     {
       id: 'gdp',
       v: 'Y',
-      name: 'GDP',
+      name: MEASURE.Y.name,
       x: y,
       line: 'produced in the UK',
-      tip: `Gross domestic product: everything produced in the UK. A gap in the level, ${YEARS_ON} years on; not a growth rate.`,
+      tip: `${MEASURE.Y.def} A gap in the level, ${YEARS_ON} years on; not a growth rate.`,
     },
     {
       id: 'pay',
       v: 'w',
-      name: 'Pay rates',
+      name: MEASURE.w.name,
       x: w,
       line: pay,
       tip: [
         'Pay per unit of labour, adjusted for skill; not average earnings.',
         pay === 'slower growth, not a cut' ? 'A gap in the level: pay still rises every year, more slowly.' : null,
-        w < -0.005 && paySigns(sid) === 'flips' ? 'With more foreign capital, the gap would be positive.' : null,
+        payCaveat(sid),
       ]
         .filter(Boolean)
         .join(' '),
     },
-    g == null
+    inc == null
       ? null
       : {
-          id: 'gni',
-          v: 'GNI',
-          name: 'National income',
-          x: g,
-          line: 'GDP less net income paid abroad',
-          // with no foreign capital, Y − GNI is the interest paid to gilt holders abroad
-          tip:
-            cl === BOUND
-              ? 'Gross national income (GNI): the income UK residents keep. GDP less the income paid to gilt holders abroad.'
-              : 'Gross national income (GNI): the income UK residents keep. GDP less the income paid to owners abroad.',
+          id: 'nni',
+          v: 'NNI',
+          name: MEASURE.NNI.name,
+          x: n,
+          line: inc.line,
+          beside: inc.beside,
+          tip: inc.tip,
         },
   ].filter(Boolean);
 }
@@ -325,7 +327,7 @@ export default function Hero() {
                         icon: 'path',
                         text: (
                           <>
-                            Extra AI beyond the OBR&rsquo;s starts in {SURPRISE_YEAR}, as a surprise, and is in full by {HEADLINE_YEAR}. Gaps are against the{' '}
+                            The scenario&rsquo;s AI starts in {SURPRISE_YEAR}, as a surprise, and is in full by {HEADLINE_YEAR}. Gaps are against the{' '}
                             <NavLink tab="method" anchor={METHOD.shock.id}>
                               OBR&rsquo;s central forecast path
                             </NavLink>
@@ -361,6 +363,14 @@ export default function Hero() {
                     </NavLink>
                   </dd>
                   {m.line ? <dd className="hf-stat-line">{m.line}</dd> : null}
+                  {m.beside ? (
+                    <dd className="hf-stat-line hf-stat-beside">
+                      {m.beside.label}{' '}
+                      <span className="hf-num-beside" data-path={`results.${sid}.tfp.${cl}.gaps.${m.beside.v}.${HEADLINE_YEAR}`}>
+                        {fmt(m.beside.x)}
+                      </span>
+                    </dd>
+                  ) : null}
                 </div>
               ))}
             </dl>

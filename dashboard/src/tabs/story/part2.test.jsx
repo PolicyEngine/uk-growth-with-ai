@@ -60,10 +60,11 @@ const at = (query) => {
   );
 };
 
-// The page text with the axis ticks set aside, as the number check reads it.
+// The page text with the axis ticks and quoted inputs set aside, as the
+// number check reads it (dumptabs hides [data-axis] and [data-input]).
 const textWithoutAxes = (el) => {
   const copy = el.cloneNode(true);
-  copy.querySelectorAll('[data-axis]').forEach((n) => n.remove());
+  copy.querySelectorAll('[data-axis], [data-input]').forEach((n) => n.remove());
   return copy.textContent;
 };
 const FIGURE = /[+−-]?\d+(\.\d+)?\s?(%|pp)/g;
@@ -105,7 +106,11 @@ describe('story part 2', () => {
     );
     expect(popText(container)).toContain('Main version, against the OBR’s central forecast path');
     const links = sourceLinks(container);
-    for (const end of ['#economy-wall', '#explore-part-all', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
+    // the pay-sign note (and its Across scenarios link) only where the sign
+    // flips between the two foreign-capital cases (Maria's point 3)
+    const { paySigns } = await import('@/tabs/story/part2/caveats.js');
+    for (const end of ['#economy-wall', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
+    expect(links.some((h) => h.endsWith('#explore-part-all'))).toBe(paySigns('uk_central') === 'flips');
   });
 
   it('every chart is an image with a text alternative, and links keep the reader’s choices', () => {
@@ -148,7 +153,8 @@ describe('story part 2', () => {
     // Explore" link is the debt note under its caption, in the frame
     expect([...head.closest('.scrolly-step').querySelectorAll('a')].filter((x) => !x.closest('.scrolly-takeaway-in-step'))).toHaveLength(0);
     const note = container.querySelector('#p2-morph .scrolly-takeaway-note');
-    expect(note.textContent).toMatch(/^Public debt ends (above|below|on) the forecast path in \d{4}.* More on Explore$/);
+    // the OBR-pace result first (Maria's point 5)
+    expect(note.textContent).toMatch(/^(At the OBR’s repricing pace, public|Public) debt ends (above|below|on) the forecast path in \d{4}.* More on Explore$/);
     expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });
 });
@@ -473,7 +479,12 @@ describe('direction icons follow the signs', () => {
         const tiles = [...container.querySelectorAll('#story-headline .stat-tile')];
         expect(tiles).toHaveLength(3);
         expect(container.querySelector('#story-headline .stat-dir, #story-headline .kpi-range')).toBeNull();
-        expect(!!tiles[1].textContent.includes('positive with more foreign capital'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
+        // Maria's point 3: the sign caveat only where the two cases split;
+        // else, with both below, the sensitivity's clause where it is above
+        const { payCaveat } = await import('@/tabs/story/part2/caveats.js');
+        const pc = payCaveat(sid);
+        if (pc) expect(tiles[1].textContent, `${sid} ${mode}`).toContain(pc);
+        expect(tiles[1].textContent.includes('depends on how much capital'), `${sid} ${mode}`).toBe(paySigns(sid) === 'flips');
         // neutral ink: no gain or loss colour on any value
         expect(container.querySelector('#story-headline .stat-value.is-gain, #story-headline .stat-value.is-loss')).toBeNull();
         unmount();
@@ -503,7 +514,8 @@ describe('direction icons follow the signs', () => {
     const { container } = at('tab=story&s=uk_central');
     const head = container.querySelector('#story-headline');
     expect(head.querySelectorAll('.stat-tile')).toHaveLength(3);
-    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile'));
+    // beside the ledger, only the consumption line (Maria's point 6)
+    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile') && !p.matches('[data-claim="consumption"]'));
     expect(lines).toHaveLength(0);
     expect(container.querySelector('.p2-headline-chip')).toBeNull();
     const say = container.querySelector('#p2-headline .p2-say').textContent;
@@ -511,11 +523,11 @@ describe('direction icons follow the signs', () => {
     expect(say.split(/\s+/).length).toBeLessThanOrEqual(15);
     expect(say).not.toMatch(/\d\.\d/);
     // the hero's three names, word for word; the tip's name keeps the case
-    expect([...head.querySelectorAll('.stat-name .tip-target')].map((n) => n.textContent)).toEqual(['GDP', 'Pay rates', 'National income']);
+    expect([...head.querySelectorAll('.stat-name .tip-target')].map((n) => n.textContent)).toEqual(['GDP', 'Pay rate', 'National income']);
     expect(head.querySelector('.stat-name [aria-label]')?.getAttribute('aria-label') ?? '').not.toMatch(/What is gdp/);
     // each tile: label, number and one line of at most six words
     for (const t of head.querySelectorAll('.stat-tile .stat-sub')) expect(t.textContent.split(/\s+/).length).toBeLessThanOrEqual(6);
-    expect(head.querySelectorAll('.stat-tile .stat-sub')[2].textContent).toBe('GDP less net income paid abroad');
+    expect(head.querySelectorAll('.stat-tile .stat-sub')[2].textContent).toBe('income kept after wear and tear');
     expect(head.textContent).not.toContain('capital takes a larger share');
     expect(head.textContent).not.toContain('household consumption');
   });
@@ -558,13 +570,16 @@ describe('direction icons follow the signs', () => {
         }
         const d = r.gaps.debt_gdp_pp[L];
         const side = (x) => (Math.abs(x) < 0.005 ? 'on' : x > 0 ? 'above' : 'below');
-        expect(line).toContain(`ends ${side(d)} the forecast path in ${fixture.late_year}`);
-        expect(line.includes('if repriced at once')).toBe(d > 0.005 && r.gaps.r_bp[L] > 0);
-        // the OBR's slower repricing: the other side of the path, or a smaller rise, in words
+        // the OBR-pace result first (Maria's point 5), then the model's
+        // at-once repricing in plain words, each side named where they differ
         const obr = r.debt_gdp_pp_obr_repricing_late;
-        if (side(obr) !== side(d)) expect(line).toContain(`at the OBR’s repricing pace, it ends ${side(obr)} the forecast path`);
-        else if (d > 0.005 && obr < d) expect(line).toMatch(/at the OBR’s repricing pace, the gap is .*$/);
+        if (Number.isFinite(obr)) {
+          expect(line.startsWith(`At the OBR’s repricing pace, public debt ends ${side(obr)} the forecast path in ${fixture.late_year}`), `${sid} ${cl}: ${line}`).toBe(true);
+          if (side(obr) !== side(d)) expect(line).toContain(`in the model, all debt pays the higher rate at once, and it ends ${side(d)} the path`);
+          else if (d > 0.005 && obr > 0.005 && d > obr) expect(line).toMatch(/in the model, all debt pays the higher rate at once, and the gap is .* (times )?as large|is larger/);
+        } else expect(line).toContain(`ends ${side(d)} the forecast path in ${fixture.late_year}`);
         expect(line).not.toMatch(/\d\.\d/);
+        expect(line).not.toContain('repriced at once');
       }
     }
   });

@@ -3,13 +3,17 @@
 // downloads). Values come from surprise2028.json through resultAt(); a cell
 // that is not solved is { value: null, status: 'pending' }.
 import { PENDING, HEADLINE_YEAR, YEARS, SCENARIOS, CENTRAL, BOUND, CLOSURE_LABEL, resultAt } from '@/tabs/ai/surprise.js';
-import { RULES } from '@/lib/labels.js';
+import { MEASURE, RULES } from '@/lib/labels.js';
 import { iconFor } from '@/lib/concepts.js';
 
+// Names from lib/labels.js MEASURE (review round 1, R1-14): national
+// income leads as NNI, with GNI, before depreciation, beside it (Maria's
+// point 2).
 export const MEASURES = [
-  { v: 'Y', label: 'GDP', title: 'Total output (GDP)', unit: '%', icon: iconFor('gdp'), concept: 'gdp' },
-  { v: 'GNI', label: 'GNI', title: 'Income UK residents keep (GNI)', unit: '%', icon: iconFor('gni'), concept: 'gni' },
-  { v: 'w', label: 'Pay rate', title: 'Pay rate (wage per unit of labour)', unit: '%', icon: iconFor('pay'), concept: 'pay' },
+  { v: 'Y', label: MEASURE.Y.short, title: MEASURE.Y.title, unit: '%', icon: iconFor('gdp'), concept: 'gdp' },
+  { v: 'NNI', label: MEASURE.NNI.short, title: MEASURE.NNI.title, unit: '%', icon: iconFor('gni'), concept: 'gni' },
+  { v: 'GNI', label: MEASURE.GNI.abbr, title: MEASURE.GNI.title, unit: '%', icon: iconFor('depreciation'), concept: 'depreciation' },
+  { v: 'w', label: MEASURE.w.short, title: MEASURE.w.title, unit: '%', icon: iconFor('pay'), concept: 'pay' },
   { v: 'debt_gdp_pp', label: 'Debt/GDP', title: 'Debt/GDP', unit: 'pp', icon: iconFor('debt'), concept: 'debt' },
 ];
 export const CLS = [CENTRAL, BOUND];
@@ -103,17 +107,17 @@ export function gate(st) {
 }
 const CHOICE = { scenario: 'the scenario', closure: 'the foreign-capital case', rule: 'the budget assumption' };
 const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
-const NAME = { Y: 'GDP', GNI: 'GNI', w: 'the pay rate', debt_gdp_pp: 'debt/GDP' };
+const NAME = { Y: MEASURE.Y.name, NNI: MEASURE.NNI.name.toLowerCase(), GNI: MEASURE.GNI.abbr, w: `the ${MEASURE.w.name.toLowerCase()}`, debt_gdp_pp: 'debt/GDP' };
 const cap = (t) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
 // [{ choice, kind, measures, text }] for the measures given (default: the
-// three this card shows; debt/GDP's line is the AcrossDebt card's), the
+// four this card shows; debt/GDP's line is the AcrossDebt card's), the
 // first measure's line first. Measures with the same case and factors
 // merge with "and".
 // A factor with no like-for-like rows (a block not solved yet, as on the
 // partial 2027 file) has spread 0 and would lose every comparison: no
 // "moves X most" line is drawn then (review round 2, R2-04).
 export const DRIVERS_PENDING = 'Not every choice is solved yet, so no comparison is drawn';
-export function drivers(arm, vs = ['Y', 'GNI', 'w']) {
+export function drivers(arm, vs = ['Y', 'NNI', 'GNI', 'w']) {
   if (vs.some((v) => Object.values(spreads(arm, v)).some((f) => f.rows === 0)))
     return [{ choice: 'pending', kind: 'pending', measures: vs, text: DRIVERS_PENDING }];
   const groups = [];

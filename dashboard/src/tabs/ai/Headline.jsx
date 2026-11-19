@@ -5,6 +5,7 @@ import { TipTarget } from '@/components/ab/Tip.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
+import { MEASURE } from '@/lib/labels.js';
 import { CHART_COLOURS } from '@/lib/chartTheme.js';
 import { cssColour, esc } from '@/lib/download.js';
 import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, ARM_COLOR, ARM_TEXT_COLOR, ARM_LIGHT, gap, fmt, result, PENDING } from '@/tabs/ai/surprise.js';
@@ -17,11 +18,13 @@ import { efo, EFO_PAGE } from '@/tabs/ai/links.js';
 // the forecast path), and a strip comparing the four scenarios. Every value comes
 // from surprise2028.json through gap()/fmt(); a pending one says PENDING ("not yet solved").
 
+// names from lib/labels.js MEASURE (R1-14): national income leads as NNI,
+// with GNI, before depreciation, beside it (Maria's point 2)
 export const MEASURES = [
-  { v: 'w', label: 'Pay rate', sub: 'wage per unit of labour', icon: iconFor('pay') },
-  { v: 'GNI', label: 'Income UK residents keep', sub: 'gross national income, GNI', icon: iconFor('gni') },
-  { v: 'NNI', label: '… after depreciation', sub: 'net national income, NNI', icon: iconFor('depreciation') },
-  { v: 'Y', label: 'Total output', sub: 'GDP', icon: iconFor('gdp') },
+  { v: 'w', label: MEASURE.w.name, sub: 'pay per unit of labour', icon: iconFor('pay') },
+  { v: 'NNI', label: MEASURE.NNI.name, sub: 'net national income, NNI, after depreciation', icon: iconFor('gni') },
+  { v: 'GNI', label: '… before depreciation', sub: 'gross national income, GNI', icon: iconFor('depreciation') },
+  { v: 'Y', label: MEASURE.Y.name, sub: 'gross domestic product', icon: iconFor('gdp') },
 ];
 
 // The dumbbell card's values as a CSV table
@@ -31,7 +34,7 @@ export function dumbbellTable(sid, arms, closure, rule = 'common') {
     columns: ['Measure', 'Version', 'Foreign capital', `Gap in ${HEADLINE_YEAR} (%)`],
     rows: MEASURES.flatMap((m) =>
       ARMS.filter((a) => arms.includes(a.id)).flatMap((a) =>
-        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', 'Income '), a.label, cl === BOUND ? 'No foreign capital' : 'Some foreign capital', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
+        cls.map((cl) => [`${m.label} (${m.sub})`.replace('… ', `${MEASURE.NNI.name} `), a.label, cl === BOUND ? 'No foreign capital' : 'Some foreign capital', gap(sid, a.id, cl, m.v, HEADLINE_YEAR, rule)]),
       ),
     ),
   };
@@ -229,7 +232,7 @@ export function Dumbbells({ sid, arms = ARMS.map((a) => a.id), closure = 'centra
               // crosses the zero line.
               const right = main >= 0 || (main != null && Math.abs(main) < 0.005);
               const outer = b == null ? c : c == null ? b : right ? Math.max(b, c) : Math.min(b, c);
-              const name = `${m.label} (${m.sub})`;
+              const name = `${m.label} (${m.sub})`.replace('… ', `${MEASURE.NNI.name} `);
               return (
                 <div key={a.id} className={`db-arm${ARM_LIGHT[a.id] ? ' is-light' : ''}`}>
                   <span className="db-arm-key">
