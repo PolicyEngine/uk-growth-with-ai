@@ -47,7 +47,7 @@ export default function ScenarioMap({ caption = true }) {
   const tips = SCENARIOS.map((s, i) => ({
     head: s.id === 'korinek' ? KORINEK_FULL : s.label,
     rows: [
-      { name: `Labour-share fall by ${HEADLINE_YEAR}`, value: `−${s.labour_share_fall_pp}pp`, icon: 'scenario', path: `scenarios.${i}.labour_share_fall_pp` },
+      { name: `Labour-share fall by ${HEADLINE_YEAR}`, value: `${s.labour_share_fall_pp}pp`, icon: 'scenario', path: `scenarios.${i}.labour_share_fall_pp` },
       { name: `Output gain at fixed inputs by ${HEADLINE_YEAR}`, value: `+${s.tfp_gain_pct}%`, icon: 'gdp', path: `scenarios.${i}.tfp_gain_pct` },
     ],
     unit: ROLE[s.id],
