@@ -98,9 +98,9 @@
       "source": "checks-pushB.md: PASS"
     },
     "check_states_landing_chrome": {
-      "baseline": 2,
+      "baseline": 3,
       "unit": "landing misses",
-      "source": "checks-pushB.md: 2 misses (390 reload, p2-morph cards 3-4)"
+      "source": "swap-golive-opus.md point 6, ruled (a): 3 misses at 390 reload (p2-morph cards 3-4, plus p2-shock card 2 on the 2027 data, a probe race on an off-screen scene after Chrome's reload scroll restore). Was 2 (checks-pushB.md). Follow-ups: restore offset and the probe's reload wait."
     },
     "check_states_landing_webkit": {
       "baseline": 82,
