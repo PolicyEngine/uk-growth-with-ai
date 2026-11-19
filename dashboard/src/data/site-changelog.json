@@ -1,0 +1,162 @@
+{
+ "_note": "What changed on the site, for readers: one line per change, newest first. Written by hand from `git log --oneline -- dashboard` on branch story/explore at 4dbfa9f (15 November 2026); each entry names the commit it summarises.",
+ "source": "git log --oneline -- dashboard",
+ "at": "ea2cc1c",
+ "entries": [
+  {
+   "date": "2026-11-19",
+   "commit": "2dcded4",
+   "text": "National income leads with NNI; the overlap with the OBR’s own AI is sized on Method; Households rebuilt as seven cards; Part 1 updated to the 17 Nov releases."
+  },
+  {
+   "date": "2026-11-19",
+   "commit": "6ffe276",
+   "text": "One settings control replaces the separate toggles; larger chart text; plainer chart titles and notes; source links for the household study."
+  },
+  {
+   "date": "2026-11-18",
+   "commit": "84b1ec5",
+   "text": "Story: question sections only grow or shrink as you scroll, on a faded teal band; part openers sit on the page; each scene's heading stays in view with its chart."
+  },
+  {
+   "date": "2026-11-16",
+   "commit": "ea2cc1c",
+   "text": "Old shared links to the earlier tabs open on the right page without showing the story first."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "a7977da",
+   "text": "Phones: step text stays readable while on screen; the opening chart's labels fit; shared links no longer flash the story; larger tap targets."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "96ab0be",
+   "text": "Review fixes: hedged wording on every projection, steadier phone story, reduced motion follows each step, colours used for gains and losses only, direct labels."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "dfaf938",
+   "text": "Evidence: a UK evidence map of 52 published figures, each checked against its source, with OBR figures from the October 2026 outlook."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "722139f",
+   "text": "Story part 3 follows the study's paper in eight steps, with a flow of lost earnings by income decile; Explore and Method gain Households pages."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "f7f5edb",
+   "text": "Story part 2: from the record to the model in one chart, and where 2031 output goes, as a flow and a waterfall."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "4dbfa9f",
+   "text": "Even spacing from each page's question to its first section; small text raised to a readable size on phones."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "ce85b48",
+   "text": "Method opens with a diagram of the model; Evidence has a slot for the UK evidence map; Data and code adds data vintages, a source ledger, a citation and this changelog. Every chart offers JSON as well as CSV, PNG and SVG."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "3188767",
+   "text": "Explore gains All scenarios: every scenario, closure and fiscal rule at once, with the UK range shaded. The ζK = 0.5 sensitivity moves there."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "968af67",
+   "text": "Every chart in Explore follows the fiscal rule as well as the scenario and closure; each page opens with its question and answer."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "762d2fb",
+   "text": "Three tabs: Story, Explore, and Method and sources. The UK range is shaded on the scenario chart."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "f499a22",
+   "text": "A scrolling story becomes the first tab."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "b9e00bc",
+   "text": "Official UK data (ONS, OBR, DSIT) and the household study's results, each read from its source file."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "7ca6789",
+   "text": "Foreign investors supply half of the extra capital firms want (ζK = 0.5), shown as a sensitivity."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "b0a20a4",
+   "text": "The final 2028-surprise solves (ba2e7b0): all 24 scenario, arm and closure cells."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "19d68a3",
+   "text": "PNG and SVG downloads for every chart, including those drawn in HTML."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "e418515",
+   "text": "Who gains shows both closures side by side."
+  },
+  {
+   "date": "2026-11-15",
+   "commit": "cbacf7a",
+   "text": "Fixed spending solved for UK central; debt-neutral solves for Korinek et al."
+  },
+  {
+   "date": "2026-11-14",
+   "commit": "81d2eaa",
+   "text": "Debt/GDP caveat: at the OBR's repricing speed the main arm ends below the path in UK high and Korinek et al."
+  },
+  {
+   "date": "2026-11-14",
+   "commit": "dcf3ab7",
+   "text": "Who gains states that the model has no asset prices."
+  },
+  {
+   "date": "2026-11-13",
+   "commit": "fe1b4a6",
+   "text": "A redesign: one card style, control bars and downloads on every chart."
+  },
+  {
+   "date": "2026-11-13",
+   "commit": "4af7b1e",
+   "text": "Debt-neutral transfers solved for UK central and shown on Public finances."
+  },
+  {
+   "date": "2026-11-13",
+   "commit": "0d94cb9",
+   "text": "Who gains: welfare by birth year and lifetime earnings."
+  },
+  {
+   "date": "2026-11-12",
+   "commit": "625843c",
+   "text": "Wording follows the results sanity audit (#39): every result is a gap against the OBR-central path."
+  },
+  {
+   "date": "2026-11-12",
+   "commit": "55a929e",
+   "text": "Other studies: what each source models and where OG-UK's numbers sit."
+  },
+  {
+   "date": "2026-11-12",
+   "commit": "92a1355",
+   "text": "Code: how to reproduce the results step by step."
+  },
+  {
+   "date": "2026-11-11",
+   "commit": "c34765e",
+   "text": "The OBR-central path becomes the baseline."
+  },
+  {
+   "date": "2026-09-26",
+   "commit": "3b73fa1",
+   "text": "First version of the dashboard."
+  }
+ ]
+}

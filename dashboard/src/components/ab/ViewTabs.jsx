@@ -49,7 +49,14 @@ export default function ViewTabs({ tabs, value, onChange, idPrefix = 'tab', labe
 
   useEffect(() => {
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    // the row also narrows without a window resize (the sub-tab header's
+    // settings chip appears once the page has scrolled): fade edges follow
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => measure());
+    if (rowRef.current) ro?.observe(rowRef.current);
+    return () => {
+      window.removeEventListener('resize', measure);
+      ro?.disconnect();
+    };
   }, []);
 
   const onKeyDown = (e) => {
@@ -95,7 +102,16 @@ export default function ViewTabs({ tabs, value, onChange, idPrefix = 'tab', labe
               onClick={() => onChange(t.id)}
             >
               <Icon name={t.icon} size={variant === 'sub' ? 16 : 18} className="view-tab-icon" />
-              <span className="view-tab-label">{t.label}</span>
+              {t.short ? (
+                <>
+                  <span className="view-tab-label view-tab-long">{t.label}</span>
+                  <span className="view-tab-label view-tab-short" aria-hidden="true">
+                    {t.short}
+                  </span>
+                </>
+              ) : (
+                <span className="view-tab-label">{t.label}</span>
+              )}
             </button>
           );
         })}

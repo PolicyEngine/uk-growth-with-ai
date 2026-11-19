@@ -2,16 +2,18 @@
 
 import { TipBox } from '@/components/ab/Tip.jsx';
 import { useHover } from '../shared/ui.jsx';
+import IconText from './IconText.jsx';
+import MoreInfo from '@/components/ui/MoreInfo.jsx';
 
 // The overlapping-generations idea: at any date many cohorts coexist, each at
 // a different stage of life. A schematic (bar heights are illustrative, not
 // data): earnings rise to mid-career and fall into retirement. Hover, tap or
 // focus a stage for what it does in the model.
 const STAGES = [
-  { id: 'young', label: 'Young', ages: '20–30', bars: [62, 70, 78], text: 'Entering work with little wealth, so income is almost all wages.' },
-  { id: 'mid', label: 'Mid-career', ages: '31–50', bars: [86, 94, 100, 98], text: 'Peak earnings and the most saving: a lower labour share hits this group’s income most directly.' },
-  { id: 'pre', label: 'Late career', ages: '51–65', bars: [90, 78, 66], text: 'Holding the most wealth, so a higher return on capital raises their income.' },
-  { id: 'old', label: 'Retired', ages: '66–99', bars: [44, 34, 26], text: 'Drawing pensions and running down wealth; leaving bequests to younger cohorts.' },
+  { id: 'young', label: 'Young', ages: '20–30', bars: [62, 70, 78], text: 'In OG-UK, little wealth yet, so income is mostly wages.' },
+  { id: 'mid', label: 'Mid-career', ages: '31–50', bars: [86, 94, 100, 98], text: 'In OG-UK, peak earnings and the most saving.' },
+  { id: 'pre', label: 'Late career', ages: '51–65', bars: [90, 78, 66], text: 'In OG-UK, wealth peaks late in working life.' },
+  { id: 'old', label: 'Retired', ages: '66–99', bars: [44, 34, 26], text: 'In OG-UK, running down wealth and leaving bequests.' },
 ];
 
 export default function Cohorts() {
@@ -44,9 +46,11 @@ export default function Cohorts() {
         ))}
       </div>
       <figcaption className="mx-fig-note">
-        Schematic of earnings by age at one date; heights are illustrative. The model&rsquo;s cohorts and ability types
-        are under Households, above.
+        <IconText icon="caveat">Earnings by age at one date; heights illustrative</IconText>
       </figcaption>
+      {/* item 36 (M3): the pointer to the cohorts and ability types, in the
+          figure's one closed More info */}
+      <MoreInfo id="m-generations-more" groups={[{ key: 'read', title: 'How to read', items: [{ key: 'types', head: 'Cohorts and ability types', text: 'The Households block above.' }] }]} />
     </figure>
   );
 }

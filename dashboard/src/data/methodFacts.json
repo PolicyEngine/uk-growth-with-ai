@@ -42,5 +42,12 @@
   "employee_avg_of_employment_income": 0.04072232013666151,
   "oguk_tau_payroll": 0.15,
   "source": "analysis/nics/nics_2028.json"
+ },
+ "solve_minutes": {
+  "records": 74,
+  "min": 6.482175902525584,
+  "max": 9.403580399354299,
+  "median": 6.854657856623332,
+  "source": "analysis/surprise/output"
  }
 }

@@ -1,0 +1,11 @@
+ok   K = K_d + K_f
+ok   K_d = B - D_d
+ok   D = D_d + D_f
+ok   GNI <= GDP where K_f > 0
+ok   NNI < GNI
+ok   |RC/GDP| <= 1e-5, 2026-2036
+ok   every gap exactly 0 in 2026
+ok   dnfull: D/Y on the continuation's path 2028-36
+ok   dnfull: D/Y to T-1 and G/Y = alpha_G
+ok   vs baseline 2027-2036 (info)
+SANITY PASS zk0.1 continuation_dnfull

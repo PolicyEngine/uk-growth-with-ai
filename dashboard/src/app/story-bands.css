@@ -1,0 +1,166 @@
+/* Story surfaces (navy-sections-fable.md, 18 Nov, with Vahid's changes
+   the same day): the hero is grey, every part a full-width white sheet,
+   and every question moment (QStage) a full-width band in faded PE teal
+   on it (--story-band-bg: ui-kit's --primary, #2C7A7B, mixed 90% with
+   gray-500; white text 5.05:1, the hint at 95% white 4.73:1). Part
+   openers sit on the white sheet with dark text and no band ("dont need
+   background"). All backgrounds are ::before at z-index -1 in the one
+   isolated .story (scenes are not isolated, so chart tips are not
+   trapped). The chart box keeps its padding and a transparent 1px border
+   (paint only). Loaded after story-part1/2/3 and story-identity: its
+   spacing and opener rules tie with theirs. */
+.story {
+  /* the band: one token, faded PE teal, derived from ui-kit's --primary */
+  --story-band-bg: color-mix(in srgb, var(--primary, #2c7a7b) 90%, var(--pe-gray-500, #6b7280));
+  --story-band-ink: #ffffff;
+  --story-band-text: rgb(255 255 255 / 0.95);
+  --opener-pad: 48px; /* white above the opener's kicker and below its last line */
+  --q-clear: 40px;    /* white between a band edge and the scene header under it */
+  --band-bg: var(--pe-surface);
+  isolation: isolate;
+}
+@media (max-width: 900px) {
+  .story { --opener-pad: 32px; --q-clear: 24px; }
+}
+
+/* 1. every part is a full-width white sheet (screen and print) */
+.story > .story-part,
+.scrolly,
+.p2-output,
+.lens-fig { position: relative; }
+.story > .story-part::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 0 -100vmax;
+  background: var(--pe-surface);
+}
+/* the last sheet runs down to the footer (.main-content's bottom padding:
+   80px, 56px at 900 and below less the close's -32px margin) */
+.story > .story-close::before { bottom: -80px; }
+@media (max-width: 900px) {
+  .story > .story-close::before { bottom: -24px; }
+}
+/* frames off, boxes kept (padding and a transparent 1px border) */
+.scrolly-graphic-inner,
+.p2-output-static .p2-output-fig,
+.lens-fig.story-frame {
+  background: none;
+  border-color: transparent;
+  border-radius: 0;
+}
+.lens-fig.story-frame { padding-block: 0; margin-top: 16px; margin-bottom: 0; }
+
+/* the rail's grey reaches the window edges */
+.story-rail::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 -100vmax;
+  background: var(--page-bg);
+}
+@media print {
+  .story-rail::before { content: none; }
+}
+@media (max-width: 900px) {
+  .scrolly.is-scene > .scene-head { margin-bottom: 12px; }
+}
+
+/* spacing on the white sheet: one --gap-topic everywhere */
+.story > .story-part[data-part] { padding-top: 0; }
+.story-part > :is(.scrolly.has-sub, .p2-output) + :is(.story-beat, .p3-close) { margin-top: var(--gap-topic); }
+.story-part > :is(.scrolly.has-sub, .p2-output):last-child { margin-bottom: var(--gap-topic); }
+@media (prefers-reduced-motion: reduce) {
+  .story-part > :is(.p1-vitals, .story-beat) + :is(.scrolly.has-sub, .p2-output) { margin-top: var(--gap-topic); }
+  .story-part > .part-opener + :is(.scrolly.has-sub, .p2-output) { margin-top: 0; }
+}
+
+/* 2. the band: the question stage (screen only) */
+@media screen {
+  .q-stage::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    inset: 0 -100vmax;
+    background: var(--story-band-bg);
+  }
+  /* the stage: white question and icon, 95% white hint; the header sits
+     --q-clear below the band edge (the scene grid adds its own 16px row
+     gap) */
+  .q-stage {
+    --t-ink: var(--story-band-ink);
+    --t-text: var(--story-band-text);
+    margin-bottom: var(--q-clear);
+  }
+  .scrolly > .q-stage { margin-bottom: calc(var(--q-clear) - 16px); }
+  @media (max-width: 900px) {
+    .scrolly > .q-stage { margin-bottom: var(--q-clear); }
+  }
+  /* landed past the start (reload, jump; QStage toggles is-landed with
+     the landing guard): 7a's fallback. Showing the question at rest made
+     the card jump 72-130px and vanish when the guard lifted on scrolling
+     back (measured at 1280 and 390, Chrome and WebKit), so a landed stage
+     drops its band instead: no empty band slab, the white sheet as before */
+  .q-stage.is-landed::before { content: none; }
+}
+
+/* 3. the part openers: on the white sheet, dark text, no band and no
+   rule (Vahid: "dont need background"), the block centred on the content
+   column like the question sections (Vahid, 18 Nov), static (no
+   transform) */
+.part-opener {
+  position: relative;
+  margin-bottom: var(--q-clear);
+  padding: var(--opener-pad) 0;
+  border-top: 0;
+  justify-items: center;
+  text-align: center;
+}
+.part-opener > * {
+  max-width: 44rem;
+}
+.part-opener-about-body:not(.part-opener-line) {
+  text-align: start;
+}
+
+/* 4. the scene header stays in view while its chart is held (Vahid, 18
+   Nov: "why this disappearing when scroll"; Scrolly writes
+   --scene-head-h): it sticks just under the rail and the chart sticks
+   below it, on desktop and on sticky phone scenes. Not in print, not
+   when a figure is drawn once (it scrolls with its figure). */
+@media screen {
+  /* opaque, from the rail down, so nothing passing under it shows through
+     (sign-off r3: the last card printed over it) */
+  .scrolly.has-head-stick > .scene-head,
+  .p2-output.has-head-stick > .scene-head {
+    position: sticky;
+    top: var(--story-graphic-top);
+    z-index: 4;
+    align-self: start;
+    margin-top: -12px;
+    padding: 12px 0 8px;
+    background: var(--band-bg);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  /* the row after it takes back the header's release margin (Scrolly) */
+  .scrolly.has-head-stick > :is(.scrolly-graphic, .scrolly-steps) {
+    margin-top: var(--head-take, 0px);
+  }
+  .scrolly.has-head-stick > .scrolly-graphic,
+  .p2-output.has-head-stick > .scrolly > .scrolly-graphic {
+    top: calc(var(--story-graphic-top) + var(--scene-head-h, 0px));
+  }
+}
+@media screen and (max-width: 900px) {
+  .scrolly.has-head-stick.is-scene > .scene-head {
+    top: var(--story-graphic-top);
+    padding-top: 12px;
+    margin-top: -12px;
+    background: var(--band-bg);
+  }
+  .scrolly.has-head-stick:not(.is-scene) > .scene-head {
+    position: static;
+  }
+}

@@ -1,22 +1,30 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import Icon from './Icon.jsx';
 
-// The one expander (AB Disclosure.jsx): a full-width button with a chevron,
-// closed by default, a muted one-line preview while closed.
-export default function Disclosure({ title, preview, inCard = false, children }) {
-  const [open, setOpen] = useState(false);
+// The one expander: a full-width button with a chevron, closed by default,
+// a muted one-line preview of what is inside while closed. A "reveal" event
+// from an anchor inside it (a link to a folded section) opens it.
+export default function Disclosure({ title, preview, inCard = false, defaultOpen = false, id, children }) {
+  const [open, setOpen] = useState(defaultOpen);
   const cid = useId();
+  const root = useRef(null);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return undefined;
+    const onReveal = () => setOpen(true);
+    el.addEventListener('reveal', onReveal);
+    return () => el.removeEventListener('reveal', onReveal);
+  }, []);
   return (
-    <div className={`disclosure${inCard ? ' disclosure-in-card' : ' disclosure-card'}`}>
+    <div ref={root} id={id} className={`disclosure${inCard ? ' disclosure-in-card' : ' disclosure-card'}`}>
       <button type="button" className="disclosure-toggle" aria-expanded={open} aria-controls={cid} onClick={() => setOpen((o) => !o)}>
         <span className="disclosure-title">
           <span>{title}</span>
           {!open && preview ? <span className="disclosure-preview">{preview}</span> : null}
         </span>
-        <svg className="disclosure-chevron" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-          <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <Icon name="chevronDown" size={18} strokeWidth={2} className="disclosure-chevron" />
       </button>
       <div id={cid} className="disclosure-content" hidden={!open}>
         {children}

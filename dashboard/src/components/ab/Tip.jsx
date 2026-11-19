@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import Icon from './Icon.jsx';
 
 // Keep a floating box inside the window: returns the x shift (px) that moves
 // a box at [left, right] back inside [8, vw - 8].
@@ -23,7 +24,7 @@ export function useOutside(ref, open, close) {
 }
 
 // A box positioned over its anchor, shifted to stay inside the window.
-export function TipBox({ children, className = '', style }) {
+export function TipBox({ children, className = '', style, id }) {
   const ref = useRef(null);
   const [dx, setDx] = useState(0);
   // Measured after every render; setDx bails out when the shift is unchanged.
@@ -39,7 +40,7 @@ export function TipBox({ children, className = '', style }) {
     if (Math.abs(next - dx) > 0.5) setDx(next);
   });
   return (
-    <span ref={ref} role="tooltip" className={`tip-box ${className}`} style={{ ...style, translate: `${dx}px` }}>
+    <span ref={ref} id={id} role="tooltip" className={`tip-box ${className}`} style={{ ...style, translate: `${dx}px` }}>
       {children}
     </span>
   );
@@ -49,6 +50,7 @@ export function TipBox({ children, className = '', style }) {
 export function TipTarget({ tip, label, className = '', style, children, onActivate }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const tipId = useId();
   useOutside(ref, open, () => setOpen(false));
   return (
     <span
@@ -56,6 +58,7 @@ export function TipTarget({ tip, label, className = '', style, children, onActiv
       tabIndex={0}
       role="button"
       aria-label={label}
+      aria-describedby={open ? tipId : undefined}
       className={`tip-target ${className}`}
       style={style}
       onMouseEnter={() => setOpen(true)}
@@ -75,7 +78,17 @@ export function TipTarget({ tip, label, className = '', style, children, onActiv
       }}
     >
       {children}
-      {open ? <TipBox>{tip}</TipBox> : null}
+      {open ? <TipBox id={tipId}>{tip}</TipBox> : null}
     </span>
+  );
+}
+
+// The small (i) beside a term: a tooltip only, never a link. Its box is tied
+// to the button with aria-describedby.
+export function InfoTip({ label, children }) {
+  return (
+    <TipTarget className="info-tip" label={label} tip={<span>{children}</span>}>
+      <Icon name="info" size={16} />
+    </TipTarget>
   );
 }

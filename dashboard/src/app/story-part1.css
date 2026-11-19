@@ -1,0 +1,1202 @@
+/* Story part 1 (tabs/story/Part1.jsx): its own styles, one writer. */
+
+/* Charts (part1/charts.jsx), drawn at their measured pixel width, so the
+   type scale is exact (scene plan section 4): ticks 12px, direct labels
+   12px semibold, notes 11px, nothing smaller; tabular numbers. Horizontal
+   gridlines only, dotted; no axis lines or tick marks. Marks are ink (the
+   official record), context grey. Every move is a transform or an opacity
+   on the shared ease. */
+.p1-figure {
+  margin: 0;
+  --p1-ease: var(--story-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  --p1-ink: var(--pe-gray-800);
+  --p1-context: var(--pe-gray-400);
+}
+.p1-plot {
+  position: relative;
+  max-width: 760px;
+  margin: 2px auto 0;
+}
+.p1-svg {
+  display: block;
+  overflow: hidden;
+}
+.p1-tick {
+  font-size: var(--t-meta);
+  fill: var(--pe-gray-500);
+  font-variant-numeric: tabular-nums;
+}
+.p1-note {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  fill: var(--pe-gray-500);
+}
+.p1-end-label {
+  font-size: var(--t-meta);
+  font-weight: 600;
+}
+/* the crosshair wraps each chart's svg: keep the canvas clipped (ticks
+   slide out of it on the zoom) and never wider than its box */
+.p1-plot .ch-cross > svg {
+  overflow: hidden;
+  max-width: 100%;
+}
+.p1-badge {
+  display: inline-flex;
+  margin-bottom: 4px;
+}
+.p1-band {
+  fill: var(--pe-gray-100);
+}
+
+/* Bars: 2px radius on the free end only (barPath); they grow from zero */
+.p1-bar {
+  fill: var(--p1-ink);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+  transition: transform 200ms var(--p1-ease);
+}
+.p1-bar.is-neg {
+  transform-origin: 50% 0%;
+}
+.p1-bar.is-on {
+  transform: none;
+  transition-duration: 500ms;
+}
+.p1-bar-q {
+  fill: var(--p1-context);
+}
+.p1-bar-q.is-now {
+  fill: var(--p1-ink);
+}
+.p1-forecast {
+  fill: none;
+  stroke: var(--p1-ink);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+}
+.p1-forecast-dot {
+  fill: var(--pe-surface, #fff);
+  stroke: var(--p1-ink);
+  stroke-width: 1.5;
+}
+
+/* 1A, the output canvas. Zooming in (.is-q): the x zoom (600ms), then the
+   annual layer fades (300ms from 600ms), then the quarters grow (from
+   900ms, inline delays). Zooming out reverses: the quarters shrink at
+   once, the annual layer returns (300ms), then the zoom eases back from
+   300ms. Labels of one state are visibility: hidden in the others. */
+.p1-zoom {
+  transition: transform 600ms var(--p1-ease) 300ms;
+}
+.p1-canvas.is-q .p1-zoom {
+  transition-delay: 0ms;
+}
+.p1-annual {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease);
+}
+.p1-canvas.is-q .p1-annual {
+  opacity: 0;
+  transition-delay: 600ms;
+}
+.p1-quarterly {
+  opacity: 0;
+  transition: opacity 200ms var(--p1-ease);
+}
+.p1-canvas.is-q .p1-quarterly {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) 900ms;
+}
+.p1-only-fc,
+.p1-only-q,
+.p1-only-a {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-canvas.is-fc:not(.is-q) .p1-only-fc,
+.p1-canvas:not(.is-q) .p1-only-a {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease), visibility 0s;
+}
+.p1-canvas.is-q .p1-only-q {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 900ms, visibility 0s linear 900ms;
+}
+/* the forecast keeps its place while the annual layer fades with it */
+.p1-canvas.is-q .p1-annual .p1-only-fc,
+.p1-canvas.is-q .p1-zoom .p1-only-fc {
+  visibility: visible;
+  opacity: 1;
+}
+.p1-canvas.is-q:not(.is-fc) .p1-only-fc {
+  visibility: hidden;
+}
+.p1-forecast-dot.p1-zoom {
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-canvas.is-fc .p1-forecast-dot.p1-zoom {
+  /* the dots land in turn behind the line's wipe */
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 250ms var(--p1-ease) calc(120ms + var(--i, 0) * 90ms), visibility 0s;
+}
+/* state 1: the forecast line draws in left to right (a clip-path wipe;
+   no d transition, which Safari does not run) */
+.p1-forecast.p1-only-fc {
+  clip-path: inset(0 100% 0 0);
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms, clip-path 0s linear 200ms;
+}
+.p1-canvas.is-fc .p1-forecast.p1-only-fc {
+  clip-path: inset(0 0 0 0);
+  transition: opacity 150ms var(--p1-ease), visibility 0s, clip-path 700ms var(--p1-ease);
+}
+.p1-canvas.is-q .p1-forecast-dot.p1-zoom {
+  transition-delay: 0ms, 0ms, 0s;
+}
+.p1-xt {
+  opacity: 0;
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 200ms var(--p1-ease);
+}
+.p1-xt.is-on {
+  opacity: 1;
+  transition: transform 600ms var(--p1-ease) 300ms, opacity 300ms var(--p1-ease) 300ms;
+}
+.p1-canvas.is-q .p1-xt {
+  transition-delay: 0ms, 0ms;
+}
+.p1-canvas.is-q .p1-xt.is-on {
+  transition-delay: 0ms, 300ms;
+}
+
+/* 1B, the labour board: one panel; a change of focus fades the old
+   series and its axes out and the new ones in */
+.p1-board-line {
+  fill: none;
+  stroke: var(--mk, var(--p1-ink));
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease);
+}
+.p1-board-end {
+  fill: var(--mk, var(--p1-ink));
+  stroke: var(--pe-surface, #fff);
+  stroke-width: 2;
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease);
+}
+.p1-board-area {
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease);
+}
+.is-focus .p1-board-line.is-drawn,
+.p1-board-svg.is-seen .is-focus .p1-board-end,
+.is-focus .p1-board-area {
+  opacity: 1;
+  transition-delay: 200ms;
+}
+.p1-board-series:not(.is-focus) {
+  visibility: hidden;
+  transition: visibility 0s linear 300ms;
+}
+.p1-board-axes {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms var(--p1-ease), visibility 0s linear 150ms;
+}
+.p1-board-axes.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 200ms, visibility 0s linear 0s;
+}
+
+/* 1C, AI use: two lines that draw, dots at the waves, end labels */
+.p1-ai-line {
+  fill: none;
+  stroke-linejoin: round;
+}
+.p1-ai-line.is-all {
+  stroke: var(--mk-all, var(--p1-ink));
+  stroke-width: 2.5;
+}
+.p1-ai-line.is-ten {
+  stroke: var(--mk-ten, var(--pe-gray-500));
+  stroke-width: 2;
+}
+.p1-ai-dot {
+  stroke: var(--pe-surface, #fff);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease);
+}
+.p1-ai-dot.is-on {
+  opacity: 1;
+  transition-delay: 500ms;
+}
+.p1-ai-dot.is-all {
+  fill: var(--mk-all, var(--p1-ink));
+}
+.p1-ai-dot.is-ten {
+  fill: var(--mk-ten, var(--pe-gray-500));
+}
+.p1-ai-area {
+  opacity: 0;
+  transition: opacity 300ms var(--p1-ease) 500ms;
+}
+.p1-ai-area.is-on {
+  opacity: 1;
+}
+.p1-end-label.is-all {
+  fill: var(--mk-all, var(--p1-ink));
+  opacity: 0;
+  transition: opacity 200ms var(--p1-ease);
+}
+.p1-end-label.is-all.is-on {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) 600ms;
+}
+.p1-end-label.is-ten {
+  fill: var(--mk-ten, var(--pe-gray-600));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-end-label.is-ten.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) 600ms, visibility 0s;
+}
+
+/* Legends: the exposure groups' key */
+.p1-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-meta);
+  color: var(--t-muted);
+}
+.p1-groups li {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.p1-groups {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--p1-ease), visibility 0s linear 200ms;
+}
+.p1-groups.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 1200ms), visibility 0s;
+}
+.p1-swatch {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--sw);
+}
+
+/* Exposure tiles: travel 750ms, colour in the last third (inline delays:
+   travel, then colour 500ms later) */
+.p1-tiles {
+  max-width: 400px;
+  margin: 0 auto;
+}
+/* each group's label under its block (polish round): in after the tiles
+   settle, out at once when they regroup */
+.p1-tile-labels {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--t-text);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 150ms var(--p1-ease);
+}
+.p1-exposure.is-grouped .p1-tile-labels {
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
+}
+
+/* The foot: one source line and a "Sources" disclosure that opens over
+   the figure, so the figure's height never changes */
+.p1-foot {
+  position: relative;
+  display: flex;
+  gap: 4px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.p1-foot > .story-source {
+  margin: 0;
+  line-height: 1.45;
+}
+.p1-sources {
+  flex: none;
+  font-size: var(--t-meta);
+  color: var(--t-muted);
+}
+.p1-sources summary {
+  cursor: pointer;
+  list-style: none;
+}
+.p1-sources summary::-webkit-details-marker {
+  display: none;
+}
+.p1-sources[open] summary {
+  color: var(--t-ink);
+}
+.p1-sources-list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 3;
+  width: min(100%, 420px);
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  background: var(--pe-surface, #fff);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft, 0 4px 16px rgb(0 0 0 / 0.08));
+}
+.p1-sources-list li + li {
+  margin-top: 6px;
+}
+.p1-sources-list .story-source {
+  margin: 0;
+}
+
+/* Several figures in one sticky graphic (frame.jsx, Swap): the layers share
+   one grid cell (top-aligned, so the title and dots stay put); the old one
+   fades out, then the new one fades in, so two
+   sets of labels never overlap. A hidden layer is visibility: hidden once
+   faded, so its links leave the tab order. */
+.p1-swap {
+  display: grid;
+}
+.p1-swap-layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 220ms ease, visibility 0s linear 220ms;
+}
+.p1-swap-layer.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 320ms ease 220ms, visibility 0s linear 220ms;
+}
+
+/* A phone step that carries its own copy of the graphic shows only its own
+   layer, not a box the height of the tallest one. */
+.scrolly-graphic-inner.is-inline .p1-swap-layer:not(.is-on) {
+  display: none;
+}
+
+
+/* An old block id kept as a link target at the top of a merged step. A link
+   to it lands with the card at the step trigger line (about 40% down), so
+   that step is the active one and its figure is pinned in view. */
+.p1-anchor {
+  display: block;
+  height: 0;
+  scroll-margin-top: 40vh;
+}
+
+
+
+@media (max-width: 900px) {
+  .p1-figure .story-figure-unit {
+    margin-bottom: 6px;
+  }
+}
+
+/* A figure title that changes between states keeps the height of its
+   longest form (frame.jsx, titleReserve) */
+.p1-title-stack {
+  display: grid;
+}
+/* a figure title, unit line or panel title led by its concept icon */
+.p1-title-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.p1-title-row > .p1-text-icon {
+  flex: none;
+  margin-top: 2px;
+}
+/* an icon inline at the start of a line of text: plain, grey */
+.p1-text-icon,
+.p1-source-icon {
+  display: inline-flex;
+  vertical-align: -2px;
+  color: var(--t-muted);
+}
+.p1-source-icon {
+  margin-right: 4px;
+  vertical-align: -1px;
+}
+.p1-title-stack > span {
+  grid-area: 1 / 1;
+}
+.p1-title-ghost {
+  visibility: hidden;
+}
+.p1-foot-stack {
+  display: grid;
+}
+.p1-foot-stack > * {
+  grid-area: 1 / 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* each state at once; the step logic is kept by the classes */
+  .p1-swap-layer,
+  .p1-swap-layer.is-on,
+  .p1-figure *,
+  .p1-figure .tile {
+    transition: none !important;
+  }
+}
+
+/* hero (Hero.jsx): question, the big figure, then the four-scenario
+   chart, complete from the first frame (no draw-in, no fade) */
+.story-hero.hf {
+  align-items: start;
+}
+.story-hero.hf .story-hero-text h2.hero-q {
+  margin: 0 0 18px;
+  font-size: var(--t-display);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--t-ink);
+}
+.hf-figure {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+  margin: 0 0 6px;
+}
+.hf-figure-value {
+  font-size: var(--t-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--t-ink);
+  text-decoration: none;
+}
+.hf-figure-value:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+.story-hero-text p.hf-figure-label {
+  max-width: 24ch;
+  margin: 0;
+  font-size: var(--t-body);
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--t-text);
+}
+.hf-figure-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-ui);
+  font-weight: 400;
+  color: var(--t-muted);
+}
+.hf-art {
+  margin: 0;
+}
+.hf-svg {
+  overflow: visible;
+}
+.hf-svg text {
+  font-size: var(--hf-fs);
+}
+.hf-axis-title {
+  font-weight: 600;
+  fill: var(--c-axis-title);
+}
+.hf-tick {
+  fill: var(--c-tick);
+  font-variant-numeric: tabular-nums;
+}
+.hf-grid {
+  stroke: var(--c-grid);
+}
+.hf-zero {
+  stroke: var(--c-zero-line);
+  stroke-width: 1.25;
+}
+.hf-zero-label {
+  fill: var(--pe-gray-600);
+}
+.hf-ann line {
+  stroke: var(--pe-gray-400);
+  stroke-dasharray: 3 4;
+}
+.hf-ann text {
+  fill: var(--pe-gray-600);
+}
+.hf-band {
+  fill: var(--series-2);
+  opacity: 0.1;
+}
+.hf-band-label {
+  fill: var(--series-2);
+  font-style: italic;
+}
+.hf-line {
+  fill: none;
+  stroke: var(--series-2);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  opacity: 0.75;
+}
+.hf-line.is-us,
+.hf-dot.is-us {
+  stroke: var(--pe-gray-700);
+}
+.hf-line.is-us {
+  stroke-dasharray: 6 4;
+}
+.hf-line.is-on {
+  stroke-width: 3.25;
+  opacity: 1;
+}
+.hf-dot {
+  fill: var(--page-bg, #fff);
+  stroke: var(--series-2);
+  stroke-width: 2;
+}
+.hf-dot.is-on {
+  fill: var(--series-2);
+}
+.hf-dot.is-us.is-on {
+  fill: var(--pe-gray-700);
+}
+/* the chosen line's first point (2028): hollow, on the frame's surface */
+.hf-dot-start {
+  fill: var(--page-bg, #fff);
+  stroke: var(--series-2);
+  stroke-width: 2;
+}
+.hf-dot-start.is-us {
+  stroke: var(--pe-gray-700);
+}
+.hf-end-name {
+  font-weight: 600;
+  fill: var(--series-2);
+}
+.hf-end.is-us .hf-end-name {
+  fill: var(--pe-gray-700);
+}
+.hf-end-value {
+  fill: var(--pe-gray-700);
+  font-variant-numeric: tabular-nums;
+}
+.hf-end.is-on .hf-end-name,
+.hf-end.is-on .hf-end-value {
+  font-weight: 600;
+}
+/* one drawing per width: end labels on desktop, a legend row at 900px and below */
+.hf-svg.is-narrow,
+.hf-legend {
+  display: none;
+}
+.hf-legend {
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-ui);
+  color: var(--t-text);
+}
+.hf-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.hf-chip.is-on {
+  font-weight: 600;
+}
+.hf-swatch {
+  width: 18px;
+  height: 0;
+  border-top: 3px solid var(--series-2);
+}
+.hf-chip.is-us .hf-swatch {
+  border-top: 3px dashed var(--pe-gray-700);
+}
+.hf-chip-value {
+  font-variant-numeric: tabular-nums;
+}
+.hf-art .story-source {
+  margin-top: 8px;
+}
+@media (max-width: 900px) {
+  .story-hero.hf .story-hero-art svg {
+    max-height: none;
+    max-width: 680px;
+    margin-inline: 0;
+  }
+}
+/* phones: the narrow drawing and the legend row */
+@media (max-width: 600px) {
+  .hf-svg.is-wide {
+    display: none;
+  }
+  .hf-svg.is-narrow {
+    display: block;
+  }
+  .hf-legend {
+    display: flex;
+  }
+}
+
+/* Desktop: the plot box follows the viewport, so a sticky figure fills
+   the space beside its cards (addendum A2.4: the figure box is about
+   clamp(400px, 100vh - graphic top - 96px, 620px); the title, unit and
+   foot take about 170px of that; round 2: 60px shorter, so the cards above can be shorter too). The charts draw to this height
+   (frame.jsx, useBox). At 900px and below the plot is its drawing's own
+   height, so the figure stays short enough to stick. */
+@media (min-width: 901px) {
+  .p1-plot {
+    height: clamp(240px, calc(100vh - var(--story-graphic-top, 168px) - 326px), 420px);
+  }
+    /* the exposure tiles centre in the box the AI chart sets */
+  .p1-swap-layer > .p1-exposure {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  /* under the unit line, not centred in the AI chart's box (polish
+     round: the empty band above the grid) */
+  .p1-exposure .p1-tiles {
+    width: 100%;
+    margin: 16px auto auto;
+  }
+}
+
+.p1-through {
+  color: var(--t-muted);
+}
+.p1-axis-title {
+  font-size: var(--t-meta);
+  fill: var(--pe-gray-500);
+}
+
+/* The UK vitals panel: one instrument panel, a single tinted band with
+   one radius (one box), six metrics in an even grid with hairline
+   dividers (vertical on desktop, horizontal on phones). Every metric has
+   the same anatomy on shared baselines: label, value, sparkline, unit
+   line. */
+.p1-vitals {
+  margin: 4px 0 16px;
+}
+.p1-vitals-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 6px;
+  font-size: var(--t-meta);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--t-muted);
+}
+.p1-vitals-title > .src-line {
+  margin-left: 0;
+}
+.p1-vital-flag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--pe-gray-300, #d1d5db);
+  border-radius: 4px;
+  font-size: var(--t-meta);
+  line-height: 1.3;
+  color: var(--t-muted);
+  white-space: nowrap;
+}
+.p1-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: auto auto auto auto;
+  margin: 0;
+  padding: 12px 0;
+  list-style: none;
+  background: color-mix(in srgb, var(--pe-teal-700, #0f766e) 5%, #fff);
+  border-radius: 10px;
+}
+.p1-vital {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  row-gap: 4px;
+  min-width: 0;
+  padding: 2px 16px;
+  border-left: 1px solid color-mix(in srgb, var(--pe-teal-700, #0f766e) 16%, #fff);
+  outline: none;
+  border-radius: 6px;
+}
+.p1-vital {
+  position: relative;
+}
+.p1-vital > .p1-anchor {
+  position: absolute;
+  top: 0;
+}
+.p1-vital:first-child {
+  border-left: 0;
+}
+.p1-vital:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--pe-teal-700, #0f766e);
+}
+.p1-vital p {
+  margin: 0;
+}
+.p1-vital-name {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: var(--t-muted);
+}
+.p1-vital-value {
+  align-self: end;
+  font-size: var(--t-title);
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+  transition: transform 600ms var(--story-ease), opacity 600ms var(--story-ease);
+}
+.p1-vital:not(.is-drawn) .p1-vital-value {
+  transform: translateY(4px);
+  opacity: 0.55;
+}
+.p1-spark {
+  position: relative;
+  display: block;
+  height: 28px;
+  margin-right: 4px;
+}
+.p1-spark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.p1-spark-line {
+  fill: none;
+  stroke: var(--pe-gray-500);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 900ms var(--story-ease);
+}
+.p1-spark-line.is-drawn {
+  stroke-dashoffset: 0;
+}
+.p1-spark-dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--pe-teal-700, #0f766e);
+  opacity: 0;
+  transition: opacity 200ms ease 800ms;
+}
+.p1-spark-dot.is-drawn {
+  opacity: 1;
+  animation: p1-spark-pulse 900ms ease-out 900ms 1;
+}
+@keyframes p1-spark-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pe-teal-700, #0f766e) 45%, transparent); }
+  100% { box-shadow: 0 0 0 8px transparent; }
+}
+.p1-vital.is-instant .p1-vital-value,
+.p1-vital.is-instant .p1-spark-line,
+.p1-vital.is-instant .p1-spark-dot {
+  transition: none;
+  animation: none;
+}
+.p1-vital-sub {
+  display: grid;
+  font-size: var(--t-meta);
+  line-height: 1.4;
+  color: var(--t-muted);
+}
+.p1-vital-sub > span {
+  grid-area: 1 / 1;
+}
+.p1-vital-sub-hot {
+  visibility: hidden;
+  color: var(--t-text);
+}
+.p1-vital.is-hot .p1-vital-sub-rest {
+  visibility: hidden;
+}
+.p1-vital.is-hot .p1-vital-sub-hot {
+  visibility: visible;
+}
+.p1-vital.is-hot .p1-spark-line {
+  stroke: var(--t-ink);
+}
+/* a metric hovered or focused: its series in a part 1 figure on screen */
+[data-vital-hl] [data-mark]:not([data-vital-on]) {
+  opacity: 0.25;
+  transition: opacity 200ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .p1-vital-value,
+  .p1-spark-line,
+  .p1-spark-dot {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (max-width: 1180px) {
+  .p1-vitals-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+  .p1-vital:nth-child(3n + 1) {
+    border-left: 0;
+  }
+}
+@media (max-width: 640px) {
+  .p1-vitals-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0;
+    padding: 4px 0;
+  }
+  .p1-vital {
+    padding: 12px 14px;
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--pe-teal-700, #0f766e) 16%, #fff);
+  }
+  .p1-vital:nth-child(-n + 2) {
+    border-top: 0;
+  }
+  .p1-vital:nth-child(2n) {
+    border-left: 1px solid color-mix(in srgb, var(--pe-teal-700, #0f766e) 16%, #fff);
+  }
+}
+
+/* Desktop: each state's scroll comes from Scrolly's computed column
+   length (--col-pad), not a floor on every card (height-cut-fable.md 2a) */
+
+/* Step cards (Part1.jsx): one sentence, in a 34ch measure */
+.p1-say {
+  max-width: 34ch;
+  margin: 0 0 12px;
+  font-size: var(--t-body);
+  line-height: 1.45;
+  color: var(--t-text);
+  text-wrap: pretty;
+}
+.p1-say .hl-fig {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+}
+/* the exposure step's three groups: a small key, name and share on one
+   line, the coloured names as the legend */
+.p1-groups-say {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.p1-groups-say li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  max-width: 340px;
+  font-size: var(--t-label);
+  line-height: 1.4;
+}
+.p1-groups-say li > *,
+.p1-groups-say .key {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+.p1-groups-say .hl-fig {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--t-ink);
+}
+
+/* a mark not drawn in this state stays hidden while a step highlights
+   others (the highlight's 25% would otherwise show it) */
+[data-hl] .p1-ai-dot[data-mark]:not(.is-on),
+[data-hl] .p1-ai-area[data-mark]:not(.is-on) {
+  opacity: 0;
+}
+
+/* the hero's statements under the figure: plain lines, no icons */
+.story-hero-text p.hf-statement {
+  max-width: 34ch;
+  margin: 10px 0 0;
+  font-size: var(--t-body);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: var(--t-ink);
+}
+.story-hero-text p.hf-statement + p.hf-statement {
+  margin-top: 4px;
+}
+
+/* tablet: the AI scene's first card is one short sentence, so a lower
+   floor than the shared 156px keeps the blank under it within 120px; its
+   two states hold far over 180px (check_states) */
+@media (min-width: 641px) and (max-width: 900px) {
+  #p1-ai .scrolly-card {
+    min-height: 120px;
+  }
+}
+
+/* ---- The hero's result unit (hero-redesign-fable.md): no card, border
+   or shadow. One muted kicker line (the sources icon at its end), then
+   three stats of one anatomy: name, value, one line, all three values the
+   same size in neutral ink. Every name and every line stays on one line
+   (Vahid, sign-off: nothing wraps at 1024 or 1280). Where the figure is wide
+   enough (a 540px container: 1280 and over) the stats are three columns
+   on shared rows, so the values sit on one baseline; narrower, they are
+   three rows of a ledger, name and line left, value right, the signed
+   values lined up in one column (part 2's headline ledger has the same
+   form). ---- */
+.hf-frame {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.story-hero.hf {
+  align-items: center;
+}
+.story-hero.hf .story-hero-text h2.hero-q {
+  text-wrap: balance;
+}
+.hf-art {
+  container-type: inline-size;
+}
+.hf-unit {
+  margin: 0 0 20px;
+}
+.hf-kicker {
+  margin: 0 0 10px;
+  font-size: var(--t-meta);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--t-muted);
+  text-wrap: balance;
+}
+.hf-kicker-end {
+  white-space: nowrap;
+}
+.hf-kicker .src-line {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.hf-stats {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  /* name, value, line, and the line beside it (national income's GNI) */
+  grid-template-rows: auto auto auto auto;
+  row-gap: 2px;
+  margin: 0;
+}
+.hf-stat {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  min-width: 0;
+  padding: 0 16px;
+}
+.hf-stat:first-child {
+  padding-left: 0;
+}
+.hf-stat:last-child {
+  padding-right: 0;
+}
+.hf-stat + .hf-stat {
+  border-left: 1px solid var(--card-border);
+}
+.hf-stat dd {
+  margin: 0;
+}
+.hf-stat-name {
+  grid-row: 1;
+  font-size: var(--t-label);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--t-ink);
+}
+.hf-stat-value {
+  grid-row: 2;
+  white-space: nowrap;
+}
+.hf-stat-value .hf-figure-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--t-ink);
+}
+.hf-num {
+  font-variant-numeric: tabular-nums;
+}
+.hf-stat-line {
+  grid-row: 3;
+  font-size: var(--t-meta);
+  line-height: 1.35;
+  white-space: nowrap;
+  color: var(--t-muted);
+}
+/* national income's GNI line: its own row, never on top of the NNI line
+   (check_fontsize, 1024 and 390) */
+.hf-stat-line.hf-stat-beside {
+  grid-row: 4;
+}
+/* the ledger: narrower figures (1024, 901) and phones */
+@container (max-width: 539.98px) {
+  .hf-stats {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    row-gap: 0;
+  }
+  .hf-stat {
+    grid-row: auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 16px;
+    padding: 8px 0;
+  }
+  .hf-stat:first-child {
+    padding-top: 0;
+  }
+  .hf-stat:last-child {
+    padding-bottom: 0;
+  }
+  .hf-stat + .hf-stat {
+    border-left: 0;
+    border-top: 1px solid var(--card-border);
+  }
+  .hf-stat-name {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .hf-stat-line {
+    grid-row: 2;
+    grid-column: 1;
+  }
+  .hf-stat-line.hf-stat-beside {
+    grid-row: 3;
+  }
+  .hf-stat-value {
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    align-self: center;
+    justify-self: end;
+    text-align: right;
+  }
+}
+@media (max-width: 600px) {
+  .hf-stat-value .hf-figure-value {
+    font-size: 24px;
+  }
+}
+/* the kicker stays on one line: the axis title right under it names the gap */
+@container (max-width: 479.98px) {
+  .hf-kicker-gap {
+    display: none;
+  }
+}
+
+/* Tabular figures on the numbers only: `.app` sets them on everything, and
+   Inter's tabular hyphen and dashes open false gaps in words. The hero's
+   numbers (stat values, ticks, end values, legend values) set them again. */
+#story-hero {
+  font-variant-numeric: normal;
+}
+#story-hero .hf-num,
+#story-hero .hf-tick,
+#story-hero .hf-end-value,
+#story-hero .hf-chip-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The hero's title (Hero.jsx): the series name, small, muted and medium
+   weight, set above the question (a report-series line over its title);
+   then the question in two sentences at one size (also Landing.jsx
+   SummaryQuestion): a lighter lead-in in muted ink, then the question,
+   which carries the weight. */
+.story-hero-text p.hero-series {
+  max-width: none;
+  margin: 0 0 12px;
+  font-size: var(--t-label);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--t-muted);
+}
+.hero-q-lead {
+  font-weight: 400;
+  color: var(--t-muted);
+}
+.hero-q-main {
+  color: inherit;
+}
+
+/* The exposure grid's legend (Maria's review, M3): above the grid, the
+   three group names with their swatches, shown once the tiles are grouped
+   (visibility, so the one-block state's text holds no group names). */
+.p1-tile-legend {
+  margin: 4px 0 8px;
+  font-size: var(--chart-fs-label, 15px);
+  color: var(--t-text);
+  visibility: hidden;
+  opacity: 0;
+}
+.p1-exposure.is-grouped .p1-tile-legend {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 300ms var(--p1-ease) var(--p1-settle, 900ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .p1-exposure.is-grouped .p1-tile-legend {
+    transition: none;
+  }
+}

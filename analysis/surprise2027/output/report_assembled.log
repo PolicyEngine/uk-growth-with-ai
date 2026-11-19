@@ -1,0 +1,1270 @@
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.972112)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.54%   -0.36%   -0.09%   +0.27%
+Investment         +0.00%  +21.41%  +25.50%  +29.66%  +13.26%
+Government         +0.00%   +1.23%   +2.36%   +3.57%   +4.88%
+Tax revenue        +0.00%   +0.93%   +1.89%   +2.91%   +4.01%
+Debt               +0.00%   +0.00%   +0.25%   +0.77%   +1.56%
+GDP                +0.00%   +1.23%   +2.36%   +3.57%   +4.88%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.85%    2.68%    2.79%    2.84%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      4.88
+capital stock vs reference (%)             —      6.02
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       4.9   we undershoot
+GDP growth (%)                   5.4      2.84   we undershoot
+capital stock (%)               13.8       6.0
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.931783)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -2.05%   -2.09%   -2.11%   -2.08%
+Investment         +0.00%  +18.27%  +18.22%  +17.83%   +4.63%
+Government         +0.00%   +0.57%   +0.45%   +0.26%   -0.00%
+Tax revenue        +0.00%   -0.10%   -0.51%   -0.97%   -1.49%
+Debt               +0.00%   +0.00%   +0.52%   +1.27%   +2.26%
+GDP                +0.00%   +0.57%   +0.45%   +0.26%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.18%    1.42%    1.40%    1.30%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_debt_neutral.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.972112)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.32%   -0.20%   -0.03%   +0.18%
+Investment         +0.00%  +24.68%  +26.73%  +31.07%  +12.30%
+Government         +0.00%   +1.15%   +2.41%   +3.68%   +5.07%
+Tax revenue        +0.00%   +0.93%   +2.00%   +3.08%   +4.23%
+Debt               +0.00%   +0.00%   +2.41%   +3.68%   +5.07%
+GDP                +0.00%   +1.15%   +2.41%   +3.68%   +5.07%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.78%    2.80%    2.85%    2.92%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      5.07
+capital stock vs reference (%)             —      6.39
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       5.1   we undershoot
+GDP growth (%)                   5.4      2.92   we undershoot
+capital stock (%)               13.8       6.4
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_debt_neutral.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.928492)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -2.82%   -2.95%   -3.05%   -3.09%
+Investment         +0.00%  +20.64%  +18.71%  +17.63%   +5.05%
+Government         +0.00%   +0.75%   +0.63%   +0.37%   +0.00%
+Tax revenue        +0.00%   -0.11%   -0.57%   -1.16%   -1.84%
+Debt               +0.00%   +0.00%   +0.63%   +0.37%   +0.00%
+GDP                +0.00%   +0.75%   +0.63%   +0.37%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.37%    1.42%    1.32%    1.20%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_debt_neutral_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.974118)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.97%   -0.83%   -0.59%   -0.26%
+Investment         +0.00%   +9.36%   +9.62%  +11.51%  +12.00%
+Government         +0.00%   +0.89%   +1.66%   +2.41%   +3.18%
+Tax revenue        +0.00%   +0.87%   +1.79%   +2.71%   +3.67%
+Debt               +0.00%   +0.00%   +1.66%   +2.41%   +3.18%
+GDP                +0.00%   +0.89%   +1.66%   +2.41%   +3.18%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.49%    2.32%    2.32%    2.33%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      3.18
+capital stock vs reference (%)             —      2.04
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       3.2   we undershoot
+GDP growth (%)                   5.4      2.33   we undershoot
+capital stock (%)               13.8       2.0
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_debt_neutral_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.942891)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -2.59%   -2.62%   -2.59%   -2.47%
+Investment         +0.00%  +10.32%   +8.43%   +7.25%   +6.45%
+Government         +0.00%   +0.58%   +0.50%   +0.30%   +0.01%
+Tax revenue        +0.00%   +0.12%   -0.01%   -0.22%   -0.50%
+Debt               +0.00%   +0.00%   +0.50%   +0.30%   +0.01%
+GDP                +0.00%   +0.58%   +0.50%   +0.30%   +0.01%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.18%    1.45%    1.38%    1.27%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6402   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_fixed_spending.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.972112)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.64%   -0.47%   -0.21%   +0.14%
+Investment         +0.00%  +22.78%  +27.94%  +33.43%  +18.59%
+Government         +0.00%   -0.00%   -0.00%   +0.00%   +0.00%
+Tax revenue        +0.00%   +0.94%   +1.92%   +2.98%   +4.14%
+Debt               +0.00%   +0.00%   -0.19%   -0.56%   -1.16%
+GDP                +0.00%   +1.26%   +2.44%   +3.73%   +5.15%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.89%    2.72%    2.86%    2.96%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      5.15
+capital stock vs reference (%)             —      6.54
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       5.2   we undershoot
+GDP growth (%)                   5.4      2.96   we undershoot
+capital stock (%)               13.8       6.5
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_fixed_spending.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.931497)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -2.06%   -2.10%   -2.12%   -2.10%
+Investment         +0.00%  +18.69%  +18.57%  +18.06%   +4.71%
+Government         +0.00%   -0.00%   -0.00%   +0.00%   +0.00%
+Tax revenue        +0.00%   -0.11%   -0.52%   -0.99%   -1.52%
+Debt               +0.00%   +0.00%   +0.31%   +0.90%   +1.79%
+GDP                +0.00%   +0.56%   +0.45%   +0.27%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.18%    1.43%    1.40%    1.30%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_fixed_spending_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.974118)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.13%   -0.94%   -0.65%   -0.25%
+Investment         +0.00%   +7.88%  +10.87%  +13.78%  +16.59%
+Government         +0.00%   -0.00%   -0.00%   -0.00%   +0.00%
+Tax revenue        +0.00%   +0.87%   +1.73%   +2.64%   +3.63%
+Debt               +0.00%   +0.00%   -0.08%   -0.24%   -0.50%
+GDP                +0.00%   +0.94%   +1.65%   +2.42%   +3.25%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.54%    2.26%    2.35%    2.38%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      3.25
+capital stock vs reference (%)             —      2.19
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       3.2   we undershoot
+GDP growth (%)                   5.4      2.38   we undershoot
+capital stock (%)               13.8       2.2
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_fixed_spending_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.944961)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -2.05%   -2.02%   -1.93%   -1.77%
+Investment         +0.00%   +8.62%   +8.32%   +7.57%   +6.25%
+Government         +0.00%   -0.00%   -0.00%   -0.00%   +0.00%
+Tax revenue        +0.00%   +0.13%   +0.03%   -0.10%   -0.26%
+Debt               +0.00%   +0.00%   +0.27%   +0.77%   +1.50%
+GDP                +0.00%   +0.46%   +0.37%   +0.22%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.06%    1.45%    1.43%    1.34%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_zk0.5.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.963217)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   +1.15%   +1.37%   +1.64%   +1.95%
+Investment         +0.00%  +64.54%  +74.55%  +86.03%  +19.92%
+Government         +0.00%   +1.77%   +4.26%   +6.97%   +9.92%
+Tax revenue        +0.00%   +1.10%   +2.57%   +4.20%   +6.00%
+Debt               +0.00%   +0.00%   +0.18%   +0.78%   +1.81%
+GDP                +0.00%   +1.77%   +4.26%   +6.97%   +9.92%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       3.56%    4.14%    4.33%    4.46%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6402   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      9.92
+capital stock vs reference (%)             —     18.55
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       9.9   we overshoot
+GDP growth (%)                   5.4      4.46   we undershoot
+capital stock (%)               13.8      18.5
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_zk0.5.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.902770)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.85%   -2.03%   -2.24%   -2.46%
+Investment         +0.00%  +35.49%  +36.27%  +36.73%   +8.03%
+Government         +0.00%   +0.81%   +0.64%   +0.37%   +0.00%
+Tax revenue        +0.00%   -0.47%   -1.46%   -2.55%   -3.75%
+Debt               +0.00%   +0.00%   +0.62%   +1.53%   +2.74%
+GDP                +0.00%   +0.81%   +0.64%   +0.37%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       2.58%    1.48%    1.42%    1.27%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6402   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.389, Z -> 0.974118)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.07%   -0.88%   -0.58%   -0.17%
+Investment         +0.00%   +6.79%   +9.01%  +10.99%  +12.71%
+Government         +0.00%   +0.92%   +1.60%   +2.31%   +3.04%
+Tax revenue        +0.00%   +0.87%   +1.71%   +2.60%   +3.54%
+Debt               +0.00%   +0.00%   +0.25%   +0.71%   +1.35%
+GDP                +0.00%   +0.92%   +1.60%   +2.31%   +3.04%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.52%    2.22%    2.29%    2.29%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6208   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (upper (Korinek US substantial), 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   3.9       3.9   matched by construction
+output at fixed inputs (%)               3.1       3.1   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      3.04
+capital stock vs reference (%)             —      1.80
+
+AGAINST KORINEK ET AL. SUBSTANTIAL (Table 3, 2030; OG-UK 2030)
+
+outcome                     Anthropic     OG-UK
+labour-share fall (pp)           3.9       3.9   matched by construction
+measured TFP (%)                 3.1       3.1   input, matched
+GDP vs baseline (%)              8.3       3.0   we undershoot
+GDP growth (%)                   5.4      2.29   we undershoot
+capital stock (%)               13.8       1.8
+unemployment, all workers (%)       4.6         —   not modelled
+### uk_growth_with_ai/data/scenarios_surprise2027_korinek_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.389, Z -> 0.945335)
+SCENARIO: korinek  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -2.03%   -1.99%   -1.90%   -1.74%
+Investment         +0.00%   +8.17%   +7.92%   +7.27%   +6.14%
+Government         +0.00%   +0.46%   +0.37%   +0.22%   +0.00%
+Tax revenue        +0.00%   +0.14%   +0.05%   -0.07%   -0.23%
+Debt               +0.00%   +0.00%   +0.44%   +1.07%   +1.89%
+GDP                +0.00%   +0.46%   +0.37%   +0.22%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.06%    1.44%    1.42%    1.34%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6403   0.6305   0.6207   0.6110
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.980065)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.55%   -0.53%   -0.47%   -0.40%
+Investment         +0.00%   +7.86%   +8.44%   +8.92%   +3.60%
+Government         +0.00%   +0.37%   +0.56%   +0.74%   +0.91%
+Tax revenue        +0.00%   +0.17%   +0.27%   +0.37%   +0.47%
+Debt               +0.00%   +0.00%   +0.16%   +0.42%   +0.79%
+GDP                +0.00%   +0.37%   +0.56%   +0.74%   +0.91%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.98%    1.74%    1.77%    1.74%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.91
+capital stock vs reference (%)             —      2.01
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.972037)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.84%   -0.86%   -0.86%   -0.85%
+Investment         +0.00%   +7.33%   +7.21%   +6.96%   +1.98%
+Government         +0.00%   +0.23%   +0.19%   +0.11%   +0.01%
+Tax revenue        +0.00%   -0.04%   -0.20%   -0.38%   -0.58%
+Debt               +0.00%   +0.00%   +0.21%   +0.52%   +0.92%
+GDP                +0.00%   +0.23%   +0.19%   +0.11%   +0.01%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.84%    1.50%    1.51%    1.46%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_debt_neutral.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.980065)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.63%   -0.63%   -0.62%   -0.58%
+Investment         +0.00%   +9.06%   +8.88%   +9.31%   +3.63%
+Government         +0.00%   +0.40%   +0.63%   +0.84%   +1.03%
+Tax revenue        +0.00%   +0.18%   +0.32%   +0.43%   +0.53%
+Debt               +0.00%   +0.00%   +0.63%   +0.84%   +1.03%
+GDP                +0.00%   +0.40%   +0.63%   +0.84%   +1.03%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.01%    1.78%    1.79%    1.76%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      1.03
+capital stock vs reference (%)             —      2.15
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_debt_neutral.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.970567)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.16%   -1.21%   -1.25%   -1.27%
+Investment         +0.00%   +8.27%   +7.41%   +6.90%   +2.14%
+Government         +0.00%   +0.30%   +0.25%   +0.15%   +0.00%
+Tax revenue        +0.00%   -0.05%   -0.23%   -0.46%   -0.73%
+Debt               +0.00%   +0.00%   +0.25%   +0.15%   +0.00%
+GDP                +0.00%   +0.30%   +0.25%   +0.15%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.91%    1.49%    1.48%    1.42%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_debt_neutral_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.980894)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.84%   -0.83%   -0.79%   -0.71%
+Investment         +0.00%   +4.13%   +3.66%   +3.62%   +3.47%
+Government         +0.00%   +0.28%   +0.37%   +0.43%   +0.46%
+Tax revenue        +0.00%   +0.15%   +0.25%   +0.32%   +0.38%
+Debt               +0.00%   +0.00%   +0.37%   +0.43%   +0.46%
+GDP                +0.00%   +0.28%   +0.37%   +0.43%   +0.46%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.88%    1.63%    1.63%    1.60%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.46
+capital stock vs reference (%)             —      0.76
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_debt_neutral_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.976240)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant dn; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.08%   -1.09%   -1.08%   -1.03%
+Investment         +0.00%   +4.26%   +3.49%   +3.02%   +2.69%
+Government         +0.00%   +0.24%   +0.20%   +0.12%   +0.00%
+Tax revenue        +0.00%   +0.04%   -0.01%   -0.10%   -0.21%
+Debt               +0.00%   +0.00%   +0.20%   +0.12%   +0.00%
+GDP                +0.00%   +0.24%   +0.20%   +0.12%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.83%    1.50%    1.49%    1.45%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_fixed_spending.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.980065)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.57%   -0.55%   -0.50%   -0.42%
+Investment         +0.00%   +8.23%   +9.00%   +9.70%   +4.63%
+Government         +0.00%   -0.00%   -0.00%   +0.00%   +0.00%
+Tax revenue        +0.00%   +0.17%   +0.28%   +0.39%   +0.49%
+Debt               +0.00%   +0.00%   +0.03%   +0.08%   +0.15%
+GDP                +0.00%   +0.37%   +0.58%   +0.78%   +0.97%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.98%    1.75%    1.79%    1.77%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.97
+capital stock vs reference (%)             —      2.13
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_fixed_spending.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.971867)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.85%   -0.87%   -0.87%   -0.86%
+Investment         +0.00%   +7.50%   +7.35%   +7.05%   +2.00%
+Government         +0.00%   -0.00%   -0.00%   +0.00%   +0.00%
+Tax revenue        +0.00%   -0.04%   -0.20%   -0.39%   -0.59%
+Debt               +0.00%   +0.00%   +0.13%   +0.37%   +0.73%
+GDP                +0.00%   +0.23%   +0.18%   +0.11%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.84%    1.50%    1.51%    1.46%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_fixed_spending_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.980894)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.73%   -0.70%   -0.64%   -0.54%
+Investment         +0.00%   +3.47%   +3.75%   +3.90%   +3.86%
+Government         +0.00%   -0.00%   -0.00%   -0.00%   +0.00%
+Tax revenue        +0.00%   +0.14%   +0.22%   +0.29%   +0.36%
+Debt               +0.00%   +0.00%   +0.07%   +0.19%   +0.37%
+GDP                +0.00%   +0.25%   +0.31%   +0.36%   +0.40%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.84%    1.60%    1.63%    1.60%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.40
+capital stock vs reference (%)             —      0.74
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_fixed_spending_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.977172)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant fs; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.85%   -0.84%   -0.80%   -0.73%
+Investment         +0.00%   +3.56%   +3.43%   +3.13%   +2.60%
+Government         +0.00%   -0.00%   -0.00%   -0.00%   +0.00%
+Tax revenue        +0.00%   +0.05%   +0.01%   -0.04%   -0.11%
+Debt               +0.00%   +0.00%   +0.11%   +0.32%   +0.62%
+GDP                +0.00%   +0.19%   +0.15%   +0.09%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.78%    1.50%    1.51%    1.48%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_zk0.5.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.976376)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   +0.02%   +0.04%   +0.08%   +0.13%
+Investment         +0.00%  +21.43%  +23.36%  +25.44%   +6.12%
+Government         +0.00%   +0.60%   +1.20%   +1.82%   +2.46%
+Tax revenue        +0.00%   +0.23%   +0.47%   +0.71%   +0.97%
+Debt               +0.00%   +0.00%   +0.14%   +0.43%   +0.86%
+GDP                +0.00%   +0.60%   +1.20%   +1.82%   +2.46%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       2.36%    2.27%    2.31%    2.29%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      2.46
+capital stock vs reference (%)             —      5.97
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_zk0.5.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.959534)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.77%   -0.84%   -0.93%   -1.01%
+Investment         +0.00%  +14.22%  +14.60%  +14.92%   +3.22%
+Government         +0.00%   +0.31%   +0.23%   +0.13%   -0.01%
+Tax revenue        +0.00%   -0.21%   -0.62%   -1.06%   -1.53%
+Debt               +0.00%   +0.00%   +0.25%   +0.62%   +1.12%
+GDP                +0.00%   +0.31%   +0.23%   +0.13%   -0.01%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       2.07%    1.58%    1.58%    1.52%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.366, Z -> 0.980894)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.72%   -0.69%   -0.63%   -0.53%
+Investment         +0.00%   +3.21%   +3.41%   +3.46%   +3.34%
+Government         +0.00%   +0.24%   +0.30%   +0.34%   +0.37%
+Tax revenue        +0.00%   +0.14%   +0.22%   +0.29%   +0.35%
+Debt               +0.00%   +0.00%   +0.16%   +0.40%   +0.72%
+GDP                +0.00%   +0.24%   +0.30%   +0.34%   +0.37%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.84%    1.59%    1.62%    1.59%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk central, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   1.6       1.6   matched by construction
+output at fixed inputs (%)               0.4       0.4   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.37
+capital stock vs reference (%)             —      0.67
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_central_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.366, Z -> 0.977310)
+SCENARIO: uk_central  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.84%   -0.83%   -0.79%   -0.72%
+Investment         +0.00%   +3.38%   +3.27%   +3.01%   +2.55%
+Government         +0.00%   +0.19%   +0.15%   +0.09%   -0.00%
+Tax revenue        +0.00%   +0.05%   +0.01%   -0.04%   -0.10%
+Debt               +0.00%   +0.00%   +0.18%   +0.44%   +0.78%
+GDP                +0.00%   +0.19%   +0.15%   +0.09%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.78%    1.50%    1.51%    1.48%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6460   0.6420   0.6380   0.6340
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_high.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.379, Z -> 0.972525)
+SCENARIO: uk_high  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.67%   -0.57%   -0.42%   -0.21%
+Investment         +0.00%  +15.14%  +17.23%  +19.24%   +8.35%
+Government         +0.00%   +0.80%   +1.42%   +2.07%   +2.73%
+Tax revenue        +0.00%   +0.52%   +1.00%   +1.50%   +2.02%
+Debt               +0.00%   +0.00%   +0.23%   +0.66%   +1.28%
+GDP                +0.00%   +0.80%   +1.42%   +2.07%   +2.73%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.42%    2.17%    2.23%    2.23%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6428   0.6355   0.6282   0.6210
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk high, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   2.9       2.9   matched by construction
+output at fixed inputs (%)               1.6       1.6   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      2.73
+capital stock vs reference (%)             —      4.08
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_high.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.379, Z -> 0.949282)
+SCENARIO: uk_high  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.52%   -1.55%   -1.57%   -1.54%
+Investment         +0.00%  +13.45%  +13.34%  +12.96%   +3.50%
+Government         +0.00%   +0.42%   +0.33%   +0.20%   +0.00%
+Tax revenue        +0.00%   -0.07%   -0.37%   -0.71%   -1.08%
+Debt               +0.00%   +0.00%   +0.38%   +0.94%   +1.67%
+GDP                +0.00%   +0.42%   +0.33%   +0.20%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       2.03%    1.45%    1.44%    1.37%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6428   0.6355   0.6282   0.6210
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_high_zk0.5.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.379, Z -> 0.965900)
+SCENARIO: uk_high  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   +0.48%   +0.59%   +0.74%   +0.90%
+Investment         +0.00%  +43.77%  +49.20%  +55.25%  +13.08%
+Government         +0.00%   +1.22%   +2.73%   +4.33%   +6.02%
+Tax revenue        +0.00%   +0.64%   +1.44%   +2.30%   +3.22%
+Debt               +0.00%   +0.00%   +0.19%   +0.67%   +1.44%
+GDP                +0.00%   +1.22%   +2.73%   +4.33%   +6.02%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       2.99%    3.18%    3.27%    3.31%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6427   0.6355   0.6282   0.6210
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk high, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   2.9       2.9   matched by construction
+output at fixed inputs (%)               1.6       1.6   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      6.02
+capital stock vs reference (%)             —     12.38
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_high_zk0.5.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.379, Z -> 0.927215)
+SCENARIO: uk_high  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.38%   -1.52%   -1.68%   -1.83%
+Investment         +0.00%  +26.10%  +26.73%  +27.19%   +5.91%
+Government         +0.00%   +0.59%   +0.45%   +0.25%   -0.01%
+Tax revenue        +0.00%   -0.36%   -1.10%   -1.91%   -2.78%
+Debt               +0.00%   +0.00%   +0.46%   +1.13%   +2.03%
+GDP                +0.00%   +0.59%   +0.45%   +0.25%   -0.01%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       2.35%    1.52%    1.49%    1.39%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6427   0.6355   0.6282   0.6210
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_high_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.379, Z -> 0.974017)
+SCENARIO: uk_high  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.02%   -0.92%   -0.74%   -0.50%
+Investment         +0.00%   +5.39%   +6.47%   +7.32%   +7.92%
+Government         +0.00%   +0.58%   +0.90%   +1.23%   +1.55%
+Tax revenue        +0.00%   +0.47%   +0.88%   +1.30%   +1.74%
+Debt               +0.00%   +0.00%   +0.23%   +0.61%   +1.14%
+GDP                +0.00%   +0.58%   +0.90%   +1.23%   +1.55%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       2.18%    1.87%    1.90%    1.89%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6428   0.6355   0.6282   0.6210
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk high, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   2.9       2.9   matched by construction
+output at fixed inputs (%)               1.6       1.6   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      1.55
+capital stock vs reference (%)             —      1.29
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_high_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.379, Z -> 0.959141)
+SCENARIO: uk_high  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -1.52%   -1.49%   -1.42%   -1.30%
+Investment         +0.00%   +6.09%   +5.90%   +5.43%   +4.59%
+Government         +0.00%   +0.34%   +0.27%   +0.16%   -0.00%
+Tax revenue        +0.00%   +0.10%   +0.03%   -0.06%   -0.18%
+Debt               +0.00%   +0.00%   +0.33%   +0.80%   +1.41%
+GDP                +0.00%   +0.34%   +0.27%   +0.16%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.94%    1.47%    1.46%    1.40%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6428   0.6355   0.6282   0.6210
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_low.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.357, Z -> 0.991478)
+SCENARIO: uk_low  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.24%   -0.22%   -0.20%   -0.16%
+Investment         +0.00%   +3.41%   +3.65%   +3.84%   +1.61%
+Government         +0.00%   +0.16%   +0.25%   +0.34%   +0.41%
+Tax revenue        +0.00%   +0.08%   +0.13%   +0.18%   +0.23%
+Debt               +0.00%   +0.00%   +0.07%   +0.18%   +0.34%
+GDP                +0.00%   +0.16%   +0.25%   +0.34%   +0.41%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.77%    1.63%    1.67%    1.65%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6483   0.6465   0.6447   0.6430
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk low, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   0.7       0.7   matched by construction
+output at fixed inputs (%)               0.2       0.2   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.41
+capital stock vs reference (%)             —      0.87
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_low.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.357, Z -> 0.987783)
+SCENARIO: uk_low  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.1)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.37%   -0.37%   -0.38%   -0.37%
+Investment         +0.00%   +3.18%   +3.12%   +2.99%   +0.88%
+Government         +0.00%   +0.10%   +0.08%   +0.05%   +0.00%
+Tax revenue        +0.00%   -0.02%   -0.08%   -0.16%   -0.24%
+Debt               +0.00%   +0.00%   +0.09%   +0.23%   +0.40%
+GDP                +0.00%   +0.10%   +0.08%   +0.05%   +0.00%
+
+GDP GROWTH
+
+  Baseline      1.61%    1.54%    1.58%    1.57%
+  With AI       1.71%    1.52%    1.55%    1.52%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6483   0.6465   0.6447   0.6430
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_low_zk0.5.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.357, Z -> 0.989844)
+SCENARIO: uk_low  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   +0.01%   +0.02%   +0.04%   +0.06%
+Investment         +0.00%   +9.29%  +10.02%  +10.80%   +2.65%
+Government         +0.00%   +0.26%   +0.53%   +0.80%   +1.07%
+Tax revenue        +0.00%   +0.11%   +0.21%   +0.32%   +0.44%
+Debt               +0.00%   +0.00%   +0.06%   +0.19%   +0.37%
+GDP                +0.00%   +0.26%   +0.53%   +0.80%   +1.07%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       2.02%    1.93%    1.96%    1.92%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6482   0.6465   0.6447   0.6430
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk low, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   0.7       0.7   matched by construction
+output at fixed inputs (%)               0.2       0.2   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      1.07
+capital stock vs reference (%)             —      2.57
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_low_zk0.5.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.357, Z -> 0.982227)
+SCENARIO: uk_low  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.5)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.34%   -0.37%   -0.41%   -0.44%
+Investment         +0.00%   +6.18%   +6.35%   +6.51%   +1.40%
+Government         +0.00%   +0.13%   +0.10%   +0.05%   -0.00%
+Tax revenue        +0.00%   -0.09%   -0.27%   -0.46%   -0.67%
+Debt               +0.00%   +0.00%   +0.11%   +0.27%   +0.49%
+GDP                +0.00%   +0.13%   +0.10%   +0.05%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.75%    1.66%    1.69%    1.65%
+  With AI       1.89%    1.62%    1.64%    1.60%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6482   0.6465   0.6447   0.6430
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_low_zk0.json share_shift_tfp_ramp
+ARM: share_shift_tfp_ramp  (gamma ramp -> 0.357, Z -> 0.991845)
+SCENARIO: uk_low  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.31%   -0.30%   -0.27%   -0.22%
+Investment         +0.00%   +1.40%   +1.50%   +1.55%   +1.52%
+Government         +0.00%   +0.11%   +0.14%   +0.17%   +0.18%
+Tax revenue        +0.00%   +0.07%   +0.11%   +0.14%   +0.18%
+Debt               +0.00%   +0.00%   +0.07%   +0.17%   +0.31%
+GDP                +0.00%   +0.11%   +0.14%   +0.17%   +0.18%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.70%    1.57%    1.60%    1.58%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6483   0.6465   0.6447   0.6430
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.
+
+AGAINST THE SCENARIO'S TARGETS (uk low, 2030)
+
+outcome                               target     OG-UK
+labour-share fall (pp)                   0.7       0.7   matched by construction
+output at fixed inputs (%)               0.2       0.2   input, matched (at 2026 K and L)
+GDP vs reference (%)                       —      0.18
+capital stock vs reference (%)             —      0.30
+### uk_growth_with_ai/data/scenarios_surprise2027_uk_low_zk0.json share_shift_ramp
+ARM: share_shift_ramp  (gamma ramp -> 0.357, Z -> 0.990028)
+SCENARIO: uk_low  (unanticipated, announced at the start of 2027; fiscal variant common; zeta_K 0.0)
+
+AI vs CONTINUATION, % gap by year
+
+variable             2026     2027     2028     2029     2030
+Consumption        +0.00%   -0.37%   -0.36%   -0.35%   -0.32%
+Investment         +0.00%   +1.48%   +1.43%   +1.32%   +1.12%
+Government         +0.00%   +0.08%   +0.06%   +0.04%   -0.00%
+Tax revenue        +0.00%   +0.02%   +0.00%   -0.02%   -0.05%
+Debt               +0.00%   +0.00%   +0.08%   +0.19%   +0.34%
+GDP                +0.00%   +0.08%   +0.06%   +0.04%   -0.00%
+
+GDP GROWTH
+
+  Baseline      1.59%    1.54%    1.58%    1.57%
+  With AI       1.68%    1.52%    1.55%    1.53%
+
+LABOUR SHARE (w*L/Y)
+
+path                 2026     2027     2028     2029     2030
+Baseline           0.6500   0.6500   0.6500   0.6500   0.6500
+With AI            0.6500   0.6483   0.6465   0.6447   0.6430
+  exactly 1-gamma in every period at epsilon=1 (Cobb-Douglas): the
+  automation channel, imposed rather than produced by the model.

@@ -40,6 +40,7 @@ so at zeta_K = 0.1 the capital stock moves on impact in 2028.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import math
 import os
@@ -92,6 +93,9 @@ VARIANTS["dnfull"] = (
     "still close the budget with G (fiscal.D_G_path's final-period G, SS.get_G_ss), as "
     "in every arm")
 STAGE_VARIANT = {"arms": "", "arms_fs": "fs", "arms_dn": "dn", "arms_dnfull": "dnfull"}
+# The no-shock path under the dnfull rule (G = alpha_G Y throughout, TR holding the
+# continuation's debt/GDP to T-1): the like-for-like reference for the _dnfull arms.
+CONT_DNFULL = "continuation_dnfull"
 DNFULL_G_TOL = 1e-9          # |G/Y - alpha_G| on 2028..T-2
 DN_TOL = 1e-4               # debt-neutral arms: max relative |D/Y - target|, 2029-2036
 
@@ -135,10 +139,15 @@ def ramp_weights(n: int, offset: int = 0) -> np.ndarray:
     """Weight on the terminal gamma/Z by model period, shape (n, 1).
 
     ``offset = 0`` is the old path (run_arm before this change): 0 at t = 0
-    (2026), full at t = RAMP_YEARS (2030).  A surprise run whose period 0 is
-    calendar ``START + k`` uses ``offset = k - 1``: weight 0 in START + k - 1,
-    full RAMP_YEARS later (2031 for k = 2)."""
+    (2026), full at t = RAMP_YEARS (2030).  A surprise run's period 0 is its
+    shock year and its zero-weight year is the year before (``window``), so it
+    uses ``offset = SURPRISE_OFFSET = 1`` for every k: 0.25 in the shock year,
+    full RAMP_YEARS - 1 years later (2031 for 2028, 2030 for 2027).  (Before
+    18 Nov 2026 run_arm passed k - 1, which equals 1 only for k = 2.)"""
     return np.clip((np.arange(n) + offset) / RAMP_YEARS, 0.0, 1.0)[:, None]
+
+
+SURPRISE_OFFSET = 1   # model period 0 = the shock year = ramp_zero_year + 1
 
 
 def calendar_weights(year: int = SURPRISE_YEAR, years=range(2026, 2037)) -> dict:
@@ -590,6 +599,8 @@ def parse_label(label: str) -> dict:
     """{scenario, kind (tfp|zfixed|r4_iter|continuation), variant} of a label."""
     if label == "continuation":
         return {"scenario": None, "kind": "continuation", "variant": ""}
+    if label == CONT_DNFULL:
+        return {"scenario": None, "kind": "continuation", "variant": "dnfull"}
     sid = next((g for g in ("korinek",) + UK_IDS if label.startswith(g + "_")), None)
     if sid is None:
         raise ValueError(f"no scenario prefix in {label!r}")
@@ -688,9 +699,20 @@ def read_gate(outdir, closure) -> dict | None:
     return g if g.get("approved") is True else None
 
 
-def reference_ext(outdir, closure, base_ext=None) -> dict:
+def reference_for(label: str | None) -> str:
+    """The no-shock solve an arm's gaps are measured against: continuation_dnfull
+    for a _dnfull arm (the like-for-like path under the same fiscal rule), else
+    the continuation.  Gap measurement only: a debt-neutral arm's D/Y target is
+    always the continuation's."""
+    if label is not None and parse_label(label)["variant"] == "dnfull":
+        return CONT_DNFULL
+    return "continuation"
+
+
+def reference_ext(outdir, closure, base_ext=None, label=None) -> dict:
     """The path gaps are measured against: the baseline or the continuation,
-    as fixed by the gate.  Same shape as baseline_ext."""
+    as fixed by the gate (for a _dnfull ``label``, continuation_dnfull; see
+    reference_for).  Same shape as baseline_ext."""
     base_ext = base_ext or load_base_ext(outdir, closure)
     g = read_gate(outdir, closure)
     if g is None:
@@ -698,8 +720,12 @@ def reference_ext(outdir, closure, base_ext=None) -> dict:
                            f"({Path(outdir) / closure / (GATE + '.json')})")
     if g["reference"] == "baseline":
         return {**base_ext, "reference": "baseline"}
-    cont = load(outdir, closure)["continuation"]
-    return {**base_ext, "series": cont["series"], "reference": "continuation"}
+    ref = reference_for(label)
+    done = load(outdir, closure)
+    if ref not in done:
+        raise RuntimeError(f"{closure}: {label} is measured against {ref}, which is not "
+                           f"solved (run --stage {ref})")
+    return {**base_ext, "series": done[ref]["series"], "reference": ref}
 
 
 def r4_points(done, base_ext, fs=False, year=SURPRISE_YEAR, scenario="korinek"):
@@ -796,6 +822,17 @@ def next_step(outdir, closure, stage, rerun_dir="analysis/rerun/output",
                            f"tight {rep['tight']} (tol {CONT_TIGHT}), other max "
                            f"{rep['max']:.2e} (tol {CONT_TOL:g}), RC/Y "
                            f"{rep['rc0_rel_Y']} (tol {RC0_TOL:g}): {rep}")
+    if stage == "continuation_dnfull":
+        if CONT_DNFULL in done:
+            return None
+        # its dn_check reads the gated reference after the solve: fail before it
+        if read_gate(outdir, closure) is None:
+            raise RuntimeError(f"{closure}: the continuation gate is not approved "
+                               f"({Path(outdir) / closure / (GATE + '.json')})")
+        return {"label": CONT_DNFULL, "arm": "continuation", "gamma": G_BASE, "Z": None,
+                "baseline_spending": False, "variant": "dnfull", "scenario": None,
+                "why": "no-shock path under the dnfull rule: G at alpha_G Y, TR holding "
+                       "the continuation's debt/GDP to T-1", **common}
     ref = reference_ext(outdir, closure, base_ext)
     if stage not in STAGE_VARIANT:
         raise ValueError(f"unknown stage {stage!r}")
@@ -926,9 +963,79 @@ def check_specs(work, rerun_dir="analysis/rerun/output", closure="zk0.1",
            "tG1": int(p.tG1), "start_year": int(p.start_year),
            "ramp_weight_first5": ((np.asarray(p.gamma).ravel()[:5] - G_BASE)
                                   / (gamma - G_BASE)).tolist(),
+           "ramp_weight_expected": [calendar_weights(year)[year + i] for i in range(5)],
            "states": {c: state_check(p, s_, aggr.get_B, aggr.get_BQ)
                       for c, (_, s_) in states.items()}}
+    rep["ramp_ok"] = bool(np.allclose(rep["ramp_weight_first5"], rep["ramp_weight_expected"],
+                                      atol=1e-12))
+    if not rep["ramp_ok"]:
+        raise RuntimeError(f"check-specs: gamma ramp {rep['ramp_weight_first5']} is not the "
+                           f"calendar ramp {rep['ramp_weight_expected']} for {year}")
     return rep
+
+
+
+# --- pieces of run_step that need no OG-Core (tested on their own) --------------------
+
+def resolve_ss_guess(env: str | None, label: str, work, closure,
+                     year=SURPRISE_YEAR) -> dict | None:
+    """The opt-in SS initial guess for one solve, from ``UGAI_SS_GUESS``.
+
+    The value is ``<target label>=<donor>[,<target label>=<donor>...]``; the donor
+    is a label in the same closure (its SS_vars.pkl under ``work``) or a .pkl path.
+    Only a solve whose label is a target gets a guess, so one exported value can't
+    leak into the other items of a run_locked.sh call.  Returns None for any other
+    label; the record keeps the donor relative to ``work`` and its sha256."""
+    if not env:
+        return None
+    pairs = {}
+    for item in env.split(","):
+        if "=" not in item:
+            raise ValueError(f"UGAI_SS_GUESS={env!r}: expected <target label>=<donor> "
+                             "(comma-separated for more than one target)")
+        tgt, donor = (x.strip() for x in item.split("=", 1))
+        pairs[tgt] = donor
+    if label not in pairs:
+        return None
+    d = pairs[label]
+    root = Path(work)
+    path = Path(d) if d.endswith(".pkl") else (root / f"surprise{year}" / closure / d
+                                               / "SS" / "SS_vars.pkl")
+    if not path.exists():
+        raise RuntimeError(f"UGAI_SS_GUESS: {path} missing")
+    try:
+        rel = str(path.resolve().relative_to(root.resolve()))
+    except ValueError:
+        rel = str(path)
+    return {"target": label, "donor": rel, "donor_root": "work dir", "path": str(path),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+def dnfull_target(ct: dict, cont_rec: dict, k: int, tol=1e-12) -> list:
+    """Debt/GDP by run period from the continuation's TPI pickle ``ct``, after
+    checking it against the committed continuation.json over the years both
+    cover (so a stale pickle can't set the target)."""
+    dy = np.asarray(ct["D"], float) / np.asarray(ct["Y"], float)
+    s = cont_rec["series"]
+    js = np.asarray(s["D"], float)[k:] / np.asarray(s["Y"], float)[k:]
+    m = min(len(js), len(dy))
+    err = float(np.abs(dy[:m] / js[:m] - 1).max())
+    if err > tol:
+        raise RuntimeError(f"continuation TPI pickle D/Y differs from continuation.json "
+                           f"by {err:.2e} (tol {tol:g}): stale pickle?")
+    return dy.tolist()
+
+
+def dnfull_check(D, Y, G, target_dy, alpha_G, year=SURPRISE_YEAR) -> dict:
+    """D/Y against the target for run periods 1..n (n = len(target) - 1 = T-1,
+    the end of the TR horizon) and |G/Y - alpha_G| for periods 0..n-1."""
+    D, Y, G = (np.asarray(x, float) for x in (D, Y, G))
+    n = len(target_dy) - 1
+    err = D[1:n + 1] / Y[1:n + 1] / np.asarray(target_dy[1:n + 1], float) - 1
+    gerr = np.abs(G[:n] / Y[:n] - alpha_G)
+    return {"periods": [year + 1, year + n], "max_abs_rel": float(np.abs(err).max()),
+            "g_share_max_abs_dev": float(gerr.max()), "tol": DN_TOL,
+            "ok": bool(np.abs(err).max() <= DN_TOL and gerr.max() <= DNFULL_G_TOL)}
 
 
 # --- one solve ---------------------------------------------------------------------
@@ -941,7 +1048,7 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
         print(f"{closure} {stage}: nothing to do", flush=True)
         return None
     rerun._env()
-    from .solve import _load_oguk, provenance, run_arm
+    from .solve import SS_GUESS_KEYS, _load_oguk, provenance, run_arm
     handles = _load_oguk()
     TPI, SS, api, Client, LocalCluster = handles
     k = k_of(year)
@@ -966,13 +1073,21 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
             import pickle
             cdir = Path(work) / f"surprise{year}" / closure / "continuation"
             ct = pickle.load(open(cdir / "TPI" / "TPI_vars.pkl", "rb"))
-            dy = (np.asarray(ct["D"], float) / np.asarray(ct["Y"], float)).tolist()
+            dy = dnfull_target(ct, load(outdir, closure)["continuation"], k)
             dn = {"target_dy": dy, "D0": state["D0"], "full": True}
+        # opt-in: UGAI_SS_GUESS=<target label>=<donor> starts this solve's SS root
+        # finder from the donor's steady state (docs/surprise_2028.md)
+        guess = resolve_ss_guess(os.environ.get("UGAI_SS_GUESS"), spec["label"], work,
+                                 closure, year)
+        ss_guess = guess["path"] if guess else None
         rec = run_arm(f"{closure} surprise{year} {spec['label']}", spec["gamma"], shock,
                       spec["Z"], str(bdir), client, handles, alpha_G=spec["alpha_G"],
                       out_dir=str(adir), baseline_spending=spec["baseline_spending"],
                       surprise=state, nexp=NEXP_SURPRISE - k, debt_neutral=dn,
-                      **settings)
+                      ss_guess=ss_guess, **settings)
+        if guess:
+            rec["ss_guess"] = {**{x: guess[x] for x in ("donor", "donor_root", "sha256")},
+                               "keys": list(SS_GUESS_KEYS)}
     finally:
         client.close()
     base_ext = load_base_ext(outdir, closure)
@@ -980,19 +1095,15 @@ def run_step(outdir, closure, stage, work, rerun_dir="analysis/rerun/output",
     rec = calendar_record(rec, base_ext, k, year)
     rec.update({"label": spec["label"], "closure_label": closure, "stage": stage,
                 "spec": spec, "provenance": provenance(TPI, api)})
-    if stage == "continuation":
+    if stage in ("continuation", "continuation_dnfull"):
+        # for continuation_dnfull this is information only: it is not expected to
+        # reproduce the baseline (households anticipate the post-2036 TR rule)
         rec["continuation_report"] = continuation_report(rec, base_ext, year)
     if spec.get("variant") == "dnfull":
         import pickle
         rt = pickle.load(open(adir / "TPI" / "TPI_vars.pkl", "rb"))
-        Y, D, G = (np.asarray(rt[v], float) for v in ("Y", "D", "G"))
-        n = len(dn["target_dy"]) - 1
-        err = D[1:n] / Y[1:n] / np.asarray(dn["target_dy"][1:n]) - 1
-        gerr = np.abs(G[:n] / Y[:n] - spec["alpha_G"])
-        rec["dn_check_full"] = {
-            "periods": [year + 1, year + n - 1], "max_abs_rel": float(np.abs(err).max()),
-            "g_share_max_abs_dev": float(gerr.max()), "tol": DN_TOL,
-            "ok": bool(np.abs(err).max() <= DN_TOL and gerr.max() <= DNFULL_G_TOL)}
+        rec["dn_check_full"] = dnfull_check(rt["D"], rt["Y"], rt["G"], dn["target_dy"],
+                                            spec["alpha_G"], year)
         rec["dn_check"] = {**dn_check(rec, reference_ext(outdir, closure), year),
                            "full_horizon": rec["dn_check_full"]}
         rec["dn_check"]["ok"] = rec["dn_check"]["ok"] and rec["dn_check_full"]["ok"]
@@ -1030,7 +1141,7 @@ def assemble(outdir, closure, fs=False, rerun_dir="analysis/rerun/output",
     cont = done.get("continuation")
     fs = _variant(fs)
     k = _keys(fs, scenario)
-    ref = reference_ext(outdir, closure, base_ext)
+    ref = reference_ext(outdir, closure, base_ext, label=k["tfp"])
     reference = ref["reference"]
     tfp, ss = done.get(k["tfp"]), accepted_r4(done, ref, fs, year, scenario)
     if fs == "dn":

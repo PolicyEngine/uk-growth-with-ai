@@ -1,0 +1,28 @@
+{
+  "scenario": "central",
+  "seed": 0,
+  "period": 2027,
+  "poverty_rate_bhc_baseline": 0.12030798196792603,
+  "poverty_rate_bhc_shocked": 0.14021112024784088,
+  "net_poverty_change_pp": 1.990314394216943,
+  "gross_inflow_persons": 1665402.125,
+  "gross_outflow_persons": 283348.03125,
+  "gross_inflow_pp": 2.3983676446072426,
+  "gross_outflow_pp": 0.4080532503902995,
+  "newly_poor_decile_shares_baseline_equiv_income": {
+    "1": 0.0,
+    "2": 0.13006824254989624,
+    "3": 0.10671978443861008,
+    "4": 0.08587387204170227,
+    "5": 0.11057824641466141,
+    "6": 0.19215749204158783,
+    "7": 0.08540014922618866,
+    "8": 0.14673441648483276,
+    "9": 0.061683062463998795,
+    "10": 0.08078468590974808
+  },
+  "newly_poor_share_in_displaced_worker_household": 1.0,
+  "newly_poor_median_baseline_income_to_line_ratio": 1.7884917259216309,
+  "newly_poor_median_postshock_shortfall_pct_of_line": 31.29255175590515,
+  "newly_poor_share_displaced_hh_with_other_earner": 0.5427302718162537
+}

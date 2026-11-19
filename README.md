@@ -33,7 +33,12 @@ past the reported window; and `g_y_annual = 0.010`, the OBR's 1.0% medium-term
 productivity growth. That path already contains the OBR's own AI assumption, which
 builds non-linearly with adoption (Briefing paper No.9 paras B.12, B.14), and a scalar `g_y` cannot
 strip a ramp out, so the baseline is **"OBR central"**, not a no-AI counterfactual:
-each scenario's gap is an AI effect *in addition to* the OBR's own. A run
+the scenario inputs are published whole-AI effects and are not net of the OBR's
+own. Each gap is the effect of inputs of that size, between two runs with the same
+`g_y`. Against the OBR's forecast itself, the labour-share shift is all additional;
+the productivity gain is not (the OBR path has about 0.19–0.33% by year 4 of
+adoption, BP9 Chart B.4, that is all or nearly all of UK low's input, 48–83% of UK central's, 12–21% of UK high's and 6–11% of Korinek's), so that comparison lies between `share_shift_tfp` and the
+fixed-input `share_shift` (`_zfixed`) arm (issue #27). A run
 holding government spending and transfers at baseline levels instead
 (`--baseline-spending`, the OBR's convention) has not been redone on the corrected
 baseline; the earlier one is kept in `data/legacy/` and is not used. By default (`--g-n vendored`) a run stops

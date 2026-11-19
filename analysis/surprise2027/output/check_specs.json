@@ -1,0 +1,92 @@
+{
+ "built_for": "zk0.1",
+ "shift": {
+  "k": 1,
+  "shifted_varying": [
+   "rho",
+   "omega",
+   "g_n",
+   "imm_rates",
+   "etr_params",
+   "mtrx_params",
+   "mtry_params"
+  ],
+  "shifted_constant": [
+   "alpha_G",
+   "alpha_T",
+   "alpha_I",
+   "alpha_FA",
+   "alpha_bs_G",
+   "alpha_bs_T",
+   "alpha_bs_I",
+   "world_int_rate_annual",
+   "adjustment_factor_for_cit_receipts",
+   "tau_bq",
+   "tau_payroll",
+   "h_wealth",
+   "m_wealth",
+   "p_wealth",
+   "retirement_age",
+   "zeta_D",
+   "zeta_K",
+   "r_gov_scale",
+   "r_gov_shift",
+   "g_RM",
+   "Z",
+   "delta_tau_annual",
+   "cit_rate",
+   "inv_tax_credit",
+   "tau_c",
+   "labor_income_tax_noncompliance_rate",
+   "capital_income_tax_noncompliance_rate",
+   "replacement_rate_adjust",
+   "income_tax_filer",
+   "wealth_tax_filer",
+   "eta",
+   "eta_RM",
+   "chi_n",
+   "world_int_rate",
+   "retire",
+   "tau_b",
+   "delta_tau",
+   "ubi_nom_array",
+   "e"
+  ],
+  "pretp_from_period": 0,
+  "tG1": 9,
+  "tG2": 19,
+  "initial_foreign_debt_ratio": 0.09489302509645998
+ },
+ "law_of_motion_after_shift_max": 4.319354298214936e-16,
+ "tG1": 9,
+ "start_year": 2027,
+ "ramp_weight_first5": [
+  0.2500000000000007,
+  0.5,
+  0.7499999999999993,
+  1.0,
+  1.0
+ ],
+ "ramp_weight_expected": [
+  0.25,
+  0.5,
+  0.75,
+  1.0,
+  1.0
+ ],
+ "states": {
+  "zk0.1": {
+   "B0": 2.3644397259500387,
+   "B_baseline_k": 2.364439725950038,
+   "B0_rel_err": 4.440892098500626e-16,
+   "BQ0_rel_err": 9.572109604949475e-07
+  },
+  "zk0": {
+   "B0": 2.4002094899885957,
+   "B_baseline_k": 2.4002094899885957,
+   "B0_rel_err": 0.0,
+   "BQ0_rel_err": 7.859908132124005e-07
+  }
+ },
+ "ramp_ok": true
+}

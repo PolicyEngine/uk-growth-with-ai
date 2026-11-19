@@ -1,0 +1,37 @@
+{
+  "read": "2026-11-15",
+  "note": "Figures read off the pages on the date above (the pages render in the browser; the text was read from the rendered page). Not our results.",
+  "items": [
+    {
+      "id": "income_shift",
+      "title": "What if income shifts from labour to capital?",
+      "url": "https://www.policyengine.org/uk/ai-inequality/income-shift?country=uk",
+      "country": "UK view (a US view is on the same page)",
+      "model": "PolicyEngine-UK 4.4.4, 2026 baseline",
+      "gini_base": "0.375",
+      "gini_full": "0.752",
+      "revenue_min_bn": 130,
+      "revenue_min_shift_pct": 70,
+      "quote_gini": "Net-income Gini rises from 0.375 at baseline to 0.752 at a 100% shift.",
+      "quote_revenue": "Net revenue bottoms at -£130B at a 70% shift under current law.",
+      "shift_max_pct": 100,
+      "quote_measure": "Net government revenue change (chart measure); \"Net revenue bottoms at -£130B at a 70% shift under current law.\""
+    },
+    {
+      "id": "budget_lab",
+      "title": "AI, the tax system, and the bottom of the distribution",
+      "url": "https://www.policyengine.org/uk/ai-inequality/budget-lab",
+      "country": "US",
+      "date": "30 July 2026, corrected 26 September 2026",
+      "model": "policyengine-us 1.764.6",
+      "rapid_revenue_bn": 211,
+      "rapid_poverty_pp": "0.11",
+      "quote": "Rapid / proportional: revenue +211 ($B, 2030), SPM poverty change +0.11 pp (scenario results table).",
+      "compares": "The Budget Lab's How potential AI futures would play out in the current tax system (Iselin and Nunn, 20 July)",
+      "compares_short": "the Yale Budget Lab",
+      "scenarios": "the Karger et al. scenarios",
+      "cell": "Rapid / proportional",
+      "quote_cell": "Income-shift page, US view: rapid adoption with proportional wage changes, NET GOVERNMENT REVENUE +$211B, SPM POVERTY +0.11pp (2030)."
+    }
+  ]
+}
