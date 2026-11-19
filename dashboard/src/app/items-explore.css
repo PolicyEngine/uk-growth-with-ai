@@ -2419,6 +2419,9 @@
 .ex-sg-flagnote :target, #sens-flag:target { outline: 2px solid var(--pe-teal-700, #0f766e); }
 @media (max-width: 560px) {
   .ex-sg-wrap { max-height: none; overflow: visible; }
+  /* at the 13px floor (R1-22) the grid is about 40px wider than a 390px
+     card: it scrolls inside the card, the page does not (checks-c0.md) */
+  .ex-sg-wrap { overflow-x: auto; }
   .ex-sg-held { display: none; }
   .ex-sg { font-size: var(--chart-fs-tick); }
   .ex-sg-arm .ex-sd-flag { margin-left: 1px; }
@@ -3082,4 +3085,10 @@
   font-size: var(--chart-fs-tick, 14px);
   line-height: 1.5;
   color: var(--pe-gray-700, #374151);
+}
+
+/* phones: at the 13px floor (R1-22) a story link may wrap rather than run
+   past its card (checks-c0.md) */
+@media (max-width: 480px) {
+  .hh-page .hh-ref { white-space: normal; }
 }
