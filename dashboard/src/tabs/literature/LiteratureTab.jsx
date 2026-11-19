@@ -36,7 +36,10 @@ const pct1 = (x) => `+${x.toFixed(1)}%`;
 // audit it comes from); until it is recomputed for the active set, the
 // card says which timing it is from (review round 2, readiness list).
 const BOUND_YEAR = Number(/results_sanity_(\d{4})/.exec(IMF.unchanged_return_source ?? '')?.[1]) || null;
-const boundNote = () => (BOUND_YEAR && BOUND_YEAR !== SURPRISE_YEAR ? `; from the runs with the shock in ${BOUND_YEAR}, not yet recomputed for ${SURPRISE_YEAR}` : '');
+// No note when the active set has its own audit (both sets since the swap):
+// the 2028 and 2027 audits give the same bound (results_sanity_2027.md,
+// ruling 5).
+const boundNote = () => (BOUND_YEAR && BOUND_YEAR !== SURPRISE_YEAR && !SET.sanityDoc.includes(String(SURPRISE_YEAR)) ? `; from the runs with the shock in ${BOUND_YEAR}, not yet recomputed for ${SURPRISE_YEAR}` : '');
 function ImfGap() {
   const y = gap('uk_central', 'tfp', CENTRAL, 'Y');
   if (y == null) return null;
