@@ -8,7 +8,7 @@ import { useIsPhone } from '@/components/story/motion.js';
 import U from '@/data/ukContext.json';
 import { YEARS, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, ARM_TEXT_COLOR, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
 import { EPS2 } from './dir.js';
-import { ModelBadge } from '@/components/story/chart/index.js';
+import { ChartHover, ModelBadge } from '@/components/story/chart/index.js';
 import { W, H, niceTicks, Tx, placeLabels } from './frame.jsx';
 import { modelItems, SRC as LINKS } from './sources.jsx';
 import SourceLine from '@/components/ui/SourceLine.jsx';
@@ -585,6 +585,34 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
   ];
   const placed = placeLabels(labelItems, gG.Yd, PY0, PY1, lh);
   const shownNames = lines.filter((l) => s >= from(l.id));
+  // hover (M4): in the growth states the record's and the forecast's last
+  // points; in the gap states each drawn scenario's gap in the headline year
+  // (from the data, with its path) and its two inputs
+  const pctS = (v, dp = 2) => `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(dp)}%`;
+  const tipIds = s < 2 ? ['ons', ...(s >= 1 && OBR.length ? ['obr'] : [])] : shownNames.map((l) => l.id);
+  const tipOf = (id) => {
+    const i = tipIds.indexOf(id);
+    return i >= 0 ? i : undefined;
+  };
+  const tips = tipIds.map((id) => {
+    if (id === 'ons') {
+      const p = ACT[ACT.length - 1];
+      return { head: `ONS outturn, ${p?.[0]}`, rows: [{ name: 'Real GDP growth', value: pctS(p?.[1] ?? 0, 1), icon: 'gdp' }], unit: '% a year' };
+    }
+    if (id === 'obr') {
+      const p = OBR[OBR.length - 1];
+      return { head: `OBR forecast, ${p?.[0]}`, rows: [{ name: 'Real GDP growth', value: pctS(p?.[1] ?? 0, 1), icon: 'forecast' }], unit: '% a year' };
+    }
+    const l = lines.find((x) => x.id === id);
+    return {
+      head: `${SCEN_NAME[id]}, ${HEADLINE_YEAR}`,
+      rows: [
+        { name: 'GDP gap', value: pctS(l.ys[iH]), color: id === sid ? ARM_COLOR.tfp : 'var(--pe-gray-500)', path: `results.${id}.tfp.${cl}.gaps.Y.${HEADLINE_YEAR}` },
+        ...(inputsLine(id) ? [{ name: 'Inputs (labour share, output)', value: inputsLine(id), icon: 'scenario' }] : []),
+      ],
+      unit: `Against the OBR’s central forecast path; ${CL_WORDS[cl]}. OG-UK works out the gap; the inputs are assumptions we set.`,
+    };
+  });
   const label = [
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
@@ -626,6 +654,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
         ))}
       </p>
       <div className="p2-canvas-box">
+        <ChartHover label="GDP, from growth to the gap against the forecast path" items={tips}>
         <svg ref={svgRef} className="story-svg p2-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} style={{ '--svg-k': sz.k }}>
           <defs>
             <clipPath id={clip}>
@@ -702,9 +731,9 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           <line data-mark="path" data-scrub-zero={sc ? '' : undefined} x1={PX0} x2={k >= 2 ? PX1G : PX1} y1={0} y2={0} className="p2-zero p2-mo-move is-on" data-tx={`translate(0px, ${g.zeroY.toFixed(1)}px)`} style={{ transform: `translate(0px, ${g.zeroY.toFixed(1)}px)` }} />
           <g clipPath={`url(#${clip})`}>
             {sc ? (
-              <path data-mark="ons" data-scrub-path="act" className="p2-mo-line p2-mo-act is-on" d={dPath(g1.act)} />
+              <path data-mark="ons" data-tip={tipOf('ons')} data-scrub-path="act" className="p2-mo-line p2-mo-act is-on" d={dPath(g1.act)} />
             ) : (
-              <Tween data-mark="ons" className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
+              <Tween data-mark="ons" data-tip={tipOf('ons')} className={`p2-mo-line p2-mo-act${k < 2 ? ' is-on' : ''}`} morph={{ d: dPath(g.act) }} />
             )}
             {(sc ? g1 : g).act.map(([x, y], i) => (
               <g key={`a${ACT[i][0]}`} className={`p2-mo-move${k < 2 || sc ? ' is-on' : ''}`} data-scrub-pt={sc ? `${x},${y},${g2.act[i][0]},${g2.act[i][1]}` : undefined} data-tx={`translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`} style={{ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }}>
@@ -712,9 +741,9 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               </g>
             ))}
             {sc ? (
-              <path data-mark="obr" data-scrub-path="obr" className="p2-mo-line p2-mo-obr is-on" d={dPath(g1.obr)} />
+              <path data-mark="obr" data-tip={tipOf('obr')} data-scrub-path="obr" className="p2-mo-line p2-mo-obr is-on" d={dPath(g1.obr)} />
             ) : (
-              <Tween data-mark="obr" className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} morph={{ d: dPath(g.obr) }} />
+              <Tween data-mark="obr" data-tip={tipOf('obr')} className={`p2-mo-line p2-mo-obr${k >= 1 ? ' is-on' : ''}${k >= 2 ? ' is-zero' : ''}`} morph={{ d: dPath(g.obr) }} />
             )}
             {OBR.map(([x], i) => {
               const gx = sc ? g1 : g;
@@ -741,17 +770,19 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
                     className={`p2-mo-scen${on ? ' is-on' : ''}${l.id === 'korinek' && resc && l.id !== pinned ? ' is-late' : ''}${l.id === pinned ? ' is-pinned' : ''}`}
                     data-scen={l.id}
                     data-mark={`scen-${l.id}`}
+                    data-tip={tipOf(l.id)}
                     morph={{ d }}
                   />
                 );
               })}
             {sc && ys ? (
-              <path className="p2-mo-line p2-mo-gap is-on" data-scrub-path="gap" data-scen={sid} data-mark={`scen-${sid}`} d={dPath(g1.gap)} style={{ stroke: ARM_COLOR.tfp }} />
+              <path className="p2-mo-line p2-mo-gap is-on" data-scrub-path="gap" data-scen={sid} data-mark={`scen-${sid}`} data-tip={tipOf(sid)} d={dPath(g1.gap)} style={{ stroke: ARM_COLOR.tfp }} />
             ) : (
               <Tween
                 className={`p2-mo-line p2-mo-gap${k >= 2 && ys ? ' is-on' : ''}`}
                 data-scen={sid}
                 data-mark={`scen-${sid}`}
+                data-tip={tipOf(sid)}
                 morph={{ d: dPath(g.gap) }}
                 style={{ stroke: ARM_COLOR.tfp }}
               />
@@ -791,6 +822,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
               key={p.key}
               className={`p2-mo-end${p.on ? ' is-on' : ''}${p.key === 'korinek' && resc && !p.pinned ? ' is-late' : ''}${p.pinned ? ' is-pinned' : ''}`}
               data-scrub={sc && p.on ? 'in' : undefined}
+              data-tip={tipOf(p.key)}
               style={{ transform: `translate(${PX1G + 6}px, ${p.t.toFixed(1)}px)` }}
             >
               {/* a label pushed off its line's end (labels crowd at the
@@ -838,6 +870,7 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
             Gap against the OBR’s central forecast path, %
           </text>
         </svg>
+        </ChartHover>
       </div>
     </figure>
   );

@@ -2,7 +2,7 @@
 
 import { TileField } from '@/components/story/primitives.jsx';
 import { useReducedMotion } from '@/components/story/motion.js';
-import { ModelBadge } from '@/components/story/chart/index.js';
+import { ChartHover, ModelBadge } from '@/components/story/chart/index.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { SCEN_NAME, SURPRISE_YEAR, CENTRAL, BOUND, scenarioById } from '@/tabs/ai/surprise.js';
 import { Tx } from './frame.jsx';
@@ -74,6 +74,29 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
   // each move; while pending, or with no added output, the old label
   const found = N > 0 && NL >= 1 && NK >= 1;
   const strip = base ? shockTiles(s, shock, { lead, enter: forward }) : [];
+  // hover (M4): the overview's split and the strip's two moves, from the
+  // data (the tooltip mounts only while active, so no figure leaves its home)
+  const signed = (v, dp, u) => `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(dp)}${u}`;
+  const tips = base
+    ? [
+        {
+          head: `Of every 100 of GDP on the forecast path, ${SPLIT_YEAR}`,
+          rows: [
+            { name: 'Labour income', value: base.labour.toFixed(1), color: LABOUR_COLOR, path: `output_split.baseline.${cl}.labour` },
+            { name: 'Capital income, gross', value: (100 - base.labour).toFixed(1), color: CAPITAL_COLOR },
+          ],
+          unit: 'Per 100 of GDP. OG-UK, the forecast path.',
+        },
+        {
+          head: `${SCEN_NAME[sid]}, ${SPLIT_YEAR}`,
+          rows: [
+            { name: 'Shift to capital (input)', value: `${inputPp.toFixed(1)} of 100`, color: CAPITAL_COLOR },
+            ...(ch ? [{ name: 'Added output (OG-UK result)', value: signed(ch.gdp, 2, '%'), color: LABOUR_COLOR, path: `output_split.change.${sid}.${cl}.gdp` }] : []),
+          ],
+          unit: 'The shift is an assumption we set; OG-UK works out the added output.',
+        },
+      ]
+    : [];
   // each move's caption, shown 100ms after its last tile lands
   const capDelay = (st) => (forward && s === st ? settleMs(st, shock, lead) + 100 : 0);
   const line2 =
@@ -147,7 +170,8 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
       {both ? <p className="story-figure-unit">With both foreign-capital cases chosen above, the figure shows some foreign capital.</p> : null}
       {base ? (
         <>
-          <div className="p2-tiles p2-shock-overview">
+          <ChartHover label={`The shock in tiles, ${SCEN_NAME[sid]}`} items={tips}>
+          <div className="p2-tiles p2-shock-overview" data-tip={0}>
             <div className="p2-tile-heads" aria-hidden="true">
               <span style={{ '--sw': LABOUR_COLOR }}>Labour income</span>
               <span style={{ '--sw': CAPITAL_COLOR }}>Capital income, gross</span>
@@ -160,7 +184,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
             />
           </div>
           <p className="p2-shock-strip-head">The outlined tiles, magnified: one small tile is 0.1</p>
-          <div className="p2-shock-strip">
+          <div className="p2-shock-strip" data-tip={1}>
             <div className="p2-shock-wins" aria-hidden="true">
               <span>{`${RL} of labour’s tiles`}</span>
               <span>1 of capital&rsquo;s tiles</span>
@@ -171,6 +195,7 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
               <TileField tiles={strip} width={WIN * 2 + GAP} height={R} label={stripLabel} />
             </div>
           </div>
+          </ChartHover>
           <div className="p2-shock-caps">
             <p className={`p2-shock-cap${s >= 1 ? ' is-on' : ''}`} style={{ '--cd': `${capDelay(1)}ms` }}>
               AI moves <span data-input="">{inputPp.toFixed(1)}</span> of every 100 tiles of output from labour to capital: {M} small tiles cross. Its size is an assumption for each scenario.

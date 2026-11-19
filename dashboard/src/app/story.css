@@ -2084,6 +2084,12 @@
   box-shadow: 0 0 0 2px var(--part-accent, var(--c-highlight));
   border-radius: 4px;
 }
+/* a transparent hover target over a line's points (one column per x) */
+.ch-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
 .ch-tip.ch-tip-m {
   margin-left: 0;
   will-change: transform;

@@ -105,7 +105,26 @@ const MARKS = (i) => {
   const step = Math.max(1, Math.floor(pts.length / 6));
   return pts.filter((_, k) => k % step === 0).slice(0, 6);
 };
-const at = (path) => path.split('.').reduce((o, k) => (o == null ? o : Array.isArray(o) && /^\d{4}$/.test(k) ? o[DATA.years.indexOf(Number(k))] : o[k]), DATA);
+// a dotted path into the data; a key may hold a dot ("zk0.1", beside
+// "zk0"), so the longest run of segments that names a key is taken; a four-digit segment
+// into an array is a year (its index in DATA.years)
+const at = (path) => {
+  const seg = path.split('.');
+  let o = DATA;
+  for (let k = 0; k < seg.length && o != null; ) {
+    if (Array.isArray(o) && /^\d{4}$/.test(seg[k])) {
+      o = o[DATA.years.indexOf(Number(seg[k]))];
+      k += 1;
+      continue;
+    }
+    let j = seg.length;
+    while (j > k && !(seg.slice(k, j).join('.') in Object(o))) j -= 1;
+    if (j === k) return undefined;
+    o = o[seg.slice(k, j).join('.')];
+    k = j;
+  }
+  return o;
+};
 const digits = (s) => (String(s).match(/[−-]?\d+(?:\.\d+)?/) ?? [''])[0].replace('−', '-');
 
 let fails = 0;

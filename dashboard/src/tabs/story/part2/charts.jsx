@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { ChartHover } from '@/components/story/chart/index.js';
 import { useSvgScaleOf } from '@/lib/svgScale.js';
 import { DrawPath } from '@/components/story/primitives.jsx';
 import { useDrawIn } from '@/components/story/motion.js';
@@ -128,6 +129,16 @@ export function WelfareShape({ state }) {
   const by = Number(born);
   const bi = Number.isInteger(by) ? xs.indexOf(by) : -1;
   const pick = bi >= 0 && (state >= 1 || by <= LAST_ALIVE) ? [sc.X(by), sc.Y(ys[bi])] : null;
+  // hover (M4): each birth year drawn, its welfare change, from the data;
+  // a transparent column per year is its target
+  const hitIdx = xs.map((x, i) => i).filter((i) => Number.isFinite(ys[i]) && (state >= 1 || xs[i] <= LAST_ALIVE));
+  const half = xs.length > 1 ? Math.abs(sc.X(xs[1]) - sc.X(xs[0])) / 2 : 4;
+  const tips = hitIdx.map((i) => ({
+    head: `Born ${xs[i]}`,
+    rows: [{ name: 'Welfare change', value: `${ys[i] < 0 ? '−' : '+'}${Math.abs(ys[i]).toFixed(2)}%`, icon: 'age' }],
+    unit: `% of remaining-lifetime consumption and bequests. ${xs[i] <= LAST_ALIVE ? `An adult in ${D.shock_year}` : 'Enters later'}. UK central, some foreign capital. OG-UK.`,
+    kind: 'result',
+  }));
   return (
     <Figure
       icon="age"
@@ -172,6 +183,7 @@ export function WelfareShape({ state }) {
         </p>
       }
     >
+      <ChartHover label="Welfare change by birth year" items={tips}>
       <svg
         ref={ref}
         style={{ '--svg-k': sz.k }}
@@ -220,7 +232,13 @@ export function WelfareShape({ state }) {
             <circle cx={pick[0]} cy={pick[1]} r={5} />
           </g>
         ) : null}
+        <g data-decorative="" aria-hidden="true">
+          {hitIdx.map((i, k) => (
+            <rect key={xs[i]} data-tip={k} className="ch-hit" x={sc.X(xs[i]) - half} y={yTop} width={half * 2} height={yBot - yTop} />
+          ))}
+        </g>
       </svg>
+      </ChartHover>
     </Figure>
   );
 }
