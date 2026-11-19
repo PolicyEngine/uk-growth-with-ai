@@ -9,7 +9,7 @@ import ChartHover from '@/components/story/chart/ChartHover.jsx';
 import { iconFor } from '@/lib/concepts.js';
 import { MEASURE, ruleLabel } from '@/lib/labels.js';
 import { useNav } from '@/lib/nav.jsx';
-import { HEADLINE_YEAR, CENTRAL, BOUND, ARMS, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
+import { HEADLINE_YEAR, CENTRAL, BOUND, ZETA, ARMS, SCEN_NAME, gap, fmt, ruleSolved } from '@/tabs/ai/surprise.js';
 import { VERSION_COLOR as ARM_COLOR, VERSION_TEXT_COLOR as ARM_TEXT_COLOR, VERSION_MAIN, VERSION_TOKEN, versionName } from '@/lib/versionColors.js';
 import Legend from '@/components/ui/Legend.jsx';
 import { placeLabels } from '@/tabs/story/part2/frame.jsx';
@@ -73,7 +73,7 @@ export const endText = (v) => {
 // Drawn at the panel's measured width (no viewBox scaling), so the text
 // renders at its CSS size on every screen.
 const W0 = 420;
-const TICK_W = 34; // the y tick labels, right-aligned at this x
+const TICK_W = 62; // the y tick labels (the zero tick reads "Forecast path"), right-aligned at this x
 const VAL_W = 42; // a value label's column beside each end
 const GAP = 8;
 const PAD = { t: 14, b: 38 };
@@ -112,8 +112,9 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
     R = placeEnd(one, 'b', Y, top, bot);
   }
   const fsX = phone ? 13 : 14;
-  const someT = 'Some foreign capital';
-  const noneT = 'No foreign capital';
+  // the ends of the shared x axis ("Foreign capital", above the panels)
+  const someT = 'Some (main case)';
+  const noneT = 'None';
   const someX = Math.max(x0, xLabelHalf(someT, fsX));
   const noneX = Math.min(x1, W - xLabelHalf(noneT, fsX));
   const drawn = [...rows.filter((r) => r.arm.id !== sel), ...rows.filter((r) => r.arm.id === sel)];
@@ -122,8 +123,8 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
   const tips = tipRows.map((r) => ({
     head: `${versionName(r.arm)}, ${m.label}`,
     rows: [
-      { name: someT, value: fmt(r.c), color: ARM_COLOR[r.arm.id] },
-      { name: noneT, value: r.b == null ? 'not yet solved' : fmt(r.b), color: ARM_COLOR[r.arm.id] },
+      { name: `Some foreign capital (main case), ζK = ${ZETA[CENTRAL]}`, value: fmt(r.c), color: ARM_COLOR[r.arm.id] },
+      { name: `No foreign capital, ζK = ${ZETA[BOUND]}`, value: r.b == null ? 'not yet solved' : fmt(r.b), color: ARM_COLOR[r.arm.id] },
     ],
     unit: `Gap against the forecast path, ${HEADLINE_YEAR}; ${SCEN_NAME[sid]}.${r.flips ? ' Flips sign.' : ''}`,
     kind: 'result',
@@ -139,7 +140,7 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
           {lead ? <path className="ex-slope-leader" d={`M${xd + (side === 'l' ? -5 : 5)},${p.y.toFixed(1)} L${xt + (side === 'l' ? -1 : 1)},${ly.toFixed(1)}`} style={{ stroke: ARM_COLOR[p.key] }} /> : null}
           <text x={xt + (side === 'l' ? -2 : 2)} y={ly} dy="0.35em" textAnchor={side === 'l' ? 'end' : 'start'} style={{ fill: ARM_TEXT_COLOR[p.key] }}>
             {p.lines[0]}
-          </text>
+          </text>{' '}
         </g>
       );
     });
@@ -162,17 +163,26 @@ function Panel({ m, rows, sc, hot, setHot, sid, sel, phone }) {
         {sc.ticks.map((t) => (
           <g key={t}>
             <line x1={x0} x2={x1} y1={Y(t)} y2={Y(t)} className={Math.abs(t) < 1e-9 ? 'ex-slope-zero' : 'ex-slope-grid'} />
-            <text x={TICK_W} y={Y(t)} dy="0.35em" textAnchor="end" className="ex-slope-tick" data-axis="">
-              {tickText(t, sc.dp)}
-            </text>
+            {Math.abs(t) < 1e-9 ? (
+              // the zero line is the forecast path: its tick names it, on
+              // two lines (the space kept in the text)
+              <text x={TICK_W} y={Y(t)} textAnchor="end" className="ex-slope-tick ex-slope-zero-label" data-axis="">
+                <tspan x={TICK_W} dy="-0.2em">Forecast </tspan>
+                <tspan x={TICK_W} dy="1.1em">path</tspan>
+              </text>
+            ) : (
+              <text x={TICK_W} y={Y(t)} dy="0.35em" textAnchor="end" className="ex-slope-tick" data-axis="">
+                {tickText(t, sc.dp)}
+              </text>
+            )}{' '}
           </g>
         ))}
         <text x={someX} y={H - 10} textAnchor="middle" className="ex-slope-tick ex-slope-xlab" data-axis="">
           {someT}
-        </text>
+        </text>{' '}
         <text x={noneX} y={H - 10} textAnchor="middle" className="ex-slope-tick ex-slope-xlab" data-axis="">
           {noneT}
-        </text>
+        </text>{' '}
         {drawn.map((r) => {
           if (r.c == null) return null;
           const dim = active && active.arm.id !== r.arm.id;
@@ -255,13 +265,14 @@ export default function ClosureSlope({ sid }) {
       sources={sourcesItems({ sid, method: 'closures' })}
       icon={iconFor('closure')}
       title="Some foreign capital to no foreign capital"
-      finding={<Lead c="compare">Two solved cases joined by a line, not a range between them</Lead>}
+      lead={<Lead c="compare">{`Each line joins one version’s ${HEADLINE_YEAR} result under the two foreign-capital assumptions; the slope shows how much the assumption matters.`}</Lead>}
       unit={<span className="ex-slope-unit" data-axis-title="y">{`% gap vs forecast path, ${HEADLINE_YEAR}`}</span>}
       // the versions' key, above the panels (the shared legend; the
       // selected version marked current)
       legend={solved ? <Legend className="ex-slope-legend" label="Versions" items={shown.map((a) => ({ key: a.id, label: versionName(a), color: VERSION_TOKEN[a.id], current: a.id === sel }))} /> : null}
       more={[
-        { label: 'Compared with', text: 'The OBR’s central forecast path, for each foreign-capital case.' },
+        { label: 'Foreign capital', text: `The horizontal axis. Some (main case), ζK = ${ZETA[CENTRAL]}: foreign investors supply ${Math.round(ZETA[CENTRAL] * 100)}% of the extra capital firms want. None, ζK = ${ZETA[BOUND]}: ${ZETA[BOUND] === 0 ? 'none of it, so all of it is funded at home' : `they supply ${Math.round(ZETA[BOUND] * 100)}%`}. Only these two cases are solved, so a line joins two results; it is not a range between them.` },
+        { label: 'Compared with', text: 'The OBR’s central forecast path (0 on the vertical axis), for each foreign-capital case.' },
         { label: 'Settings', text: `${ruleLabel(rule)}.` },
       ]}
       download={{
@@ -275,6 +286,9 @@ export default function ClosureSlope({ sid }) {
     >
       {solved ? (
         <>
+          <p className="ex-slope-xtitle">
+            <span className="ex-slope-xhint">Horizontal axis:</span> <span data-axis-title="x">Foreign capital</span>
+          </p>
           <div className="ex-slope">
             {all.map(({ m, rows }) => (
               <Panel key={m.v} m={m} rows={rows} sc={sc} hot={hot} setHot={setHot} sid={sid} sel={sel} phone={phone} />

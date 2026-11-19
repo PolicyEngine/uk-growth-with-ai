@@ -900,6 +900,20 @@
 .ex-slope-legend li.is-sel line { stroke-width: 4; }
 .ex-slope-legend li.is-sel .ch-swatch { border-top-width: 4px; }
 .card-legend > .ex-slope-legend { margin: 0; }
+.ex-slope-xtitle {
+  margin: 0 0 12px;
+  font-size: var(--chart-fs-tick, 14px);
+  line-height: 1.35;
+  color: var(--pe-gray-600, #4b5563);
+}
+.ex-slope-xtitle [data-axis-title] { font-weight: 600; color: var(--pe-gray-800, #1f2937); }
+@media (max-width: 480px) {
+  .ex-slope-xtitle { font-size: var(--chart-fs-tick, 13px); }
+}
+.ex-slope-tick.ex-slope-zero-label {
+  fill: var(--pe-gray-800, #1f2937);
+  font-weight: 600;
+}
 .ex-slope-panel {
   margin: 0;
   min-width: 0;
