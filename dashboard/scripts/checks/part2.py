@@ -229,8 +229,11 @@ def links():
 # headline-tiles-fable.md): three rows named as in the hero, each value the
 # 2031 gap at the header's closure, the pay note from the data (pay still
 # rising every year 2028-31: "slower growth, not a cut"), the pay caveat
-# where the sign differs across foreign-capital cases, and no chip.
-LEDGER = [('Y', 'GDP'), ('w', 'Pay rates'), ('GNI', 'National income')]
+# (Maria's point 3: the sign depends on foreign capital only where the two
+# cases the page offers split; else, both below, the sensitivity clause
+# only where it is above), national income as NNI with GNI beside it
+# (M1), and no chip.
+LEDGER = [('Y', 'GDP'), ('w', 'Pay rate'), ('NNI', 'National income')]
 H = YEARS.index(S['headline_year'])
 
 
@@ -251,12 +254,14 @@ def pay_note(sid, cl):
 
 def pay_flips(sid):
     ws = [S['results'][sid]['tfp'][cl]['gaps']['w'][H] for cl in ('zk0', 'zk0.1') if S['results'][sid]['tfp'][cl].get('status') == 'done']
-    sens = S.get('sensitivity', {}).get('zk0.5', {}).get('results', {}).get(sid, {}).get('tfp', {})
-    if sens.get('status') == 'done':
-        ws.append(sens['gaps']['w'][H])
     if len(ws) < 2:
         return False
     return len({0 if abs(w) < 0.005 else (1 if w > 0 else -1) for w in ws}) > 1
+
+
+def pay_sens_above(sid):
+    sens = S.get('sensitivity', {}).get('zk0.5', {}).get('results', {}).get(sid, {}).get('tfp', {})
+    return sens.get('status') == 'done' and sens['gaps']['w'][H] > 0.005
 
 
 def ledger(dump):
@@ -282,11 +287,15 @@ def ledger(dump):
                     miss.append(name)
             if pay_note(sid, cl) not in blk:
                 miss.append('pay note: ' + pay_note(sid, cl))
-            if ('positive with more foreign capital' in blk) != pay_flips(sid):
+            if ('depends on how much capital comes from abroad' in blk) != pay_flips(sid):
                 miss.append('pay caveat')
-            if 'GDP less net income paid abroad' not in blk:
+            if ('only in a sensitivity with far more foreign capital' in blk) != (not pay_flips(sid) and pay_sens_above(sid)):
+                miss.append('pay sensitivity clause')
+            if 'income kept after wear and tear' not in blk:
                 miss.append('national income note')
-            for gone in ('Output (GDP)', 'Income UK residents keep', 'capital takes a larger share', 'sign depends on'):
+            if f"Before depreciation (GNI): {signed(r['gaps']['GNI'][H], 2)}%" not in blk:
+                miss.append('GNI beside national income')
+            for gone in ('Output (GDP)', 'Income UK residents keep', 'capital takes a larger share', 'positive with more foreign capital', 'if repriced at once'):
                 if gone in blk:
                     miss.append('old: ' + gone)
             if miss:
