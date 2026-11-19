@@ -332,3 +332,43 @@ describe('claims probe, cohort views never mix years', () => {
     st.unmount();
   });
 });
+
+// ---- R3-01: a pending scenario's GDP is never said to rise or fall, and
+// the Morph never describes a UK range it does not draw ----------------------
+describe('claims probe, pending scenarios in the GDP scene (R3-01)', () => {
+  for (const [name, D] of Object.entries(FILES))
+    it(`surprise${name}.json`, async () => {
+      await pickFile(D);
+      const { morphCardSteps } = await import('@/tabs/story/part2/steps.jsx');
+      const { MorphChart } = await import('@/tabs/story/part2/Morph.jsx');
+      const { NavProvider } = await import('@/lib/nav.jsx');
+      let checked = 0;
+      for (const s of D.scenarios)
+        for (const cl of ['zk0.1', 'zk0']) {
+          const step = morphCardSteps(s.id, cl).find((x) => x.id === 'p2-morph-2');
+          const r = render(<NavProvider>{step.body}</NavProvider>);
+          const t = r.container.textContent;
+          r.unmount();
+          if (!done(D, s.id, 'tfp', cl)) {
+            checked += 1;
+            expect(t, `${s.id} ${cl}`).not.toMatch(/rises above|falls below/);
+            expect(t).toMatch(/not yet solved/);
+          }
+          const range = done(D, 'uk_low', 'tfp', cl) && done(D, 'uk_high', 'tfp', cl);
+          for (const state of [2, 3, 4]) {
+            window.history.replaceState(null, '', `/?tab=story&s=${s.id}`);
+            const m = render(
+              <NavProvider>
+                <MorphChart state={state} sid={s.id} cl={cl} />
+              </NavProvider>,
+            );
+            const aria = [...m.container.querySelectorAll('[aria-label]')].map((e) => e.getAttribute('aria-label')).join(' ');
+            if (!range) expect(aria, `${s.id} ${cl} state ${state}`).not.toMatch(/UK range/);
+            if (!done(D, s.id, 'tfp', cl)) expect(aria).not.toMatch(new RegExp(`${s.id === 'uk_low' ? 'UK low' : s.id === 'uk_high' ? 'UK high' : '\\u0000'}[^.;]*(rises above|falls below)`));
+            m.unmount();
+          }
+        }
+      // the full file has no pending cell: the 2027 file must have some
+      if (name === '2027') expect(checked).toBeGreaterThan(0);
+    });
+});

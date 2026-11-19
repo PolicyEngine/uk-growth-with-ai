@@ -3,7 +3,7 @@
 import { Key } from '@/components/story/highlight.jsx';
 import { COHORT_YEAR, cohortNotice } from '@/lib/dataKeys.js';
 import { YEARS, SURPRISE_YEAR, SCENARIOS, SCEN_NAME, ARM_COLOR, CENTRAL, BOUND } from '@/tabs/ai/surprise.js';
-import { welfareCell, entryDip, peakAge, series } from './charts.jsx';
+import { welfareCell, entryDip, peakAge, series, scenarioRel } from './charts.jsx';
 import { PART_COLOR } from './split.js';
 import { EPS2, dirWord } from './dir.js';
 import { welfareWords, loseRange } from './caveats.js';
@@ -113,8 +113,7 @@ export function shockSteps(sid, closure) {
 export const MORPH_STATES = [1, 2, 4, 4];
 export const MORPH_SCRUB = 1;
 export function morphCardSteps(sid, cl) {
-  const dir = scenarioDir(cl);
-  const rel = dir === 'gapDown' ? 'falls below' : dir === 'gapUp' ? 'rises above' : 'moves against';
+  const rel = scenarioRel(sid, cl);
   return [
     {
       id: 'p2-morph-1',
@@ -134,7 +133,14 @@ export function morphCardSteps(sid, cl) {
       highlight: ['path', `scen-${sid}`],
       body: (
         <Say>
-          The axis turns to a gap against the OBR’s central forecast path, which includes its own AI. <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+          The axis turns to a gap against the OBR’s central forecast path, which includes its own AI.{' '}
+          {rel ? (
+            <>
+              <Key id={`scen-${sid}`}>{SCEN_NAME[sid]}</Key> {rel} it from {SURPRISE_YEAR}.
+            </>
+          ) : (
+            `${SCEN_NAME[sid]} is not yet solved for this foreign-capital case.`
+          )}
         </Say>
       ),
     },

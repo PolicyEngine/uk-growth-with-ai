@@ -9,6 +9,7 @@ import { COHORTS as D } from '@/lib/dataKeys.js';
 import { COHORT_URL, COHORT_COMMIT_TEXT, ModelSourceButton } from './sources.jsx';
 import { navItem } from '@/lib/sourceItems.js';
 import { W, H, scales, monotonePath, tickText, Figure } from './frame.jsx';
+import { EPS2 } from './dir.js';
 
 // Part 2's line charts: shapes only, no value labels and no tooltips. Each
 // takes the active `state` and draws everything that state needs, so a
@@ -19,6 +20,21 @@ export const series = (sid, arm, cl, v) => {
   const r = result(sid, arm, cl);
   return r.status === 'done' ? r.gaps[v] : null;
 };
+
+// How the chosen scenario's main-arm GDP moves against the path from the
+// shock year, read from its own series over the span the sentence names
+// (from SURPRISE_YEAR): 'rises above', 'falls below', 'moves against', or
+// null while the cell is not solved (review round 3, R3-01).
+export function scenarioRel(sid, cl) {
+  const ys = series(sid, 'tfp', cl, 'Y');
+  if (!ys) return null;
+  const tail = ys.slice(YEARS.indexOf(SURPRISE_YEAR));
+  if (tail.every((v) => v > EPS2)) return 'rises above';
+  if (tail.every((v) => v < -EPS2)) return 'falls below';
+  return 'moves against';
+}
+// Are UK low and UK high both solved at this closure (the UK range drawn)?
+export const ukRangeDrawn = (cl) => Boolean(series('uk_low', 'tfp', cl, 'Y') && series('uk_high', 'tfp', cl, 'Y'));
 
 // What a GDP gap does after the shock is complete in HEADLINE_YEAR, in
 // words, so a sentence is true for the scenario and closure in view: it

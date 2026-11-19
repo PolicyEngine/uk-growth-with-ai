@@ -18,7 +18,7 @@ import { paySigns } from './caveats.js';
 import { debtParts } from '@/tabs/ai/Landing.jsx';
 
 const EFO_MAR26 = LINKS.efoMar26;
-import { series, afterWordsAll } from './charts.jsx';
+import { series, afterWordsAll, scenarioRel, ukRangeDrawn } from './charts.jsx';
 
 // Scene 2A, the GDP canvas: from the record to the scenarios, in one chart
 // whose axes and lines move between five states as the reader scrolls:
@@ -303,7 +303,7 @@ const STATE_TEXT = (sid, cl) => {
     {
       title: every ? `GDP ends ${every} the forecast path in every scenario` : GAP_TITLE,
       fallback: !every,
-      unit: `GDP gap against the OBR’s forecast path, %. UK range shaded; ${CL_WORDS[cl]}.`,
+      unit: `GDP gap against the OBR’s forecast path, %.${ukRangeDrawn(cl) ? ' UK range shaded;' : ''} ${CL_WORDS[cl]}.`,
     },
     {
       title: every ? `GDP ends ${every} the forecast path in every scenario` : GAP_TITLE,
@@ -542,12 +542,12 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
     `Line chart, shape only. Real GDP growth each year from ${ACT[0]?.[0]} to ${ACT_LAST}, ONS outturn, solid with filled dots.`,
     s === 1 ? `The OBR’s forecast of growth from ${OBR[0]?.[0]} to ${OBR_LAST}, dashed with open dots, under a band marked Forecast.` : '',
     s >= 2
-      ? `The axis then changes from growth in % a year to a gap in % against the OBR’s central forecast path, as run in OG-UK, which is now the zero line. GDP in ${SCEN_NAME[sid]}'s main version rises above it from ${SURPRISE_YEAR}; a band marks the extra AI, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
+      ? `The axis then changes from growth in % a year to a gap in % against the OBR’s central forecast path, as run in OG-UK, which is now the zero line. ${scenarioRel(sid, cl) ? `GDP in ${SCEN_NAME[sid]}'s main version ${scenarioRel(sid, cl)} it from ${SURPRISE_YEAR}` : `${SCEN_NAME[sid]} is not yet solved for this foreign-capital case`}; a band marks the extra AI, ${SURPRISE_YEAR} to ${HEADLINE_YEAR}.`
       : '',
     s >= 3
-      ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line. The UK range, from UK low to UK high, is shaded.`
+      ? `Drawn: ${shownNames.map((l) => SCEN_NAME[l.id]).join(', ')}. Each ${afterWordsAll(shownNames.map((l) => l.ys)) ?? 'changes more slowly'} after ${HEADLINE_YEAR}; the larger the scenario, the higher the line.${ukRangeDrawn(cl) ? ' The UK range, from UK low to UK high, is shaded.' : ''}`
       : '',
-    s >= 4 && sid !== 'korinek' ? `${resc ? 'The scale widens and ' : ''}Korinek et al., substantial (US), lies above the UK range.` : '',
+    s >= 4 && sid !== 'korinek' && ukRangeDrawn(cl) ? `${resc ? 'The scale widens and ' : ''}Korinek et al., substantial (US), lies above the UK range.` : '',
     s >= 2 && pinned ? `${SCEN_NAME[pinned]} is pinned for comparison, in dark grey.` : '',
   ]
     .filter(Boolean)
