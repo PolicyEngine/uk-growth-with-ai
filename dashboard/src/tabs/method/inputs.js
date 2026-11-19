@@ -6,7 +6,7 @@
 // default parameter, no UK estimate behind it), choice (a modelling choice,
 // not from a published source), external (an external source, linked).
 import { scenarioById, SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, RAMP_WORD } from '@/tabs/ai/surprise.js';
-import { ADOPTION, ADOPTION_YEAR, pctRange } from '@/lib/obrOverlap.js';
+import { ADOPTION, ADOPTION_YEAR, OBR_B4_LEVEL, pctRange } from '@/lib/obrOverlap.js';
 
 const sc = (id) => scenarioById(id);
 const pp = (id) => `−${sc(id).labour_share_fall_pp.toFixed(1)}pp`;
@@ -22,7 +22,7 @@ export const KIND = {
 
 export const INPUTS = [
   // the scenario pairs
-  { group: 'Scenarios', input: 'UK low: output at fixed inputs', value: pc('uk_low'), kind: 'derived', how: 'OBR J-curve, 0.1pp a year by year five, phased in linearly: 0.1 × (1+2+3+4)/5 = 0.2%. The OBR figure is labour-productivity growth.', src: ['bp9B12', 'frs86'] },
+  { group: 'Scenarios', input: 'UK low: output at fixed inputs', value: pc('uk_low'), kind: 'derived', how: `OBR J-curve, 0.1pp a year by year five, phased in linearly: 0.1 × (1+2+3+4)/5 = 0.2%; Chart B.4 reads ${OBR_B4_LEVEL.J[ADOPTION_YEAR - 1].toFixed(2)}% at year ${ADOPTION_YEAR}.`, src: ['bp9B12', 'frs86'] },
   { group: 'Scenarios', input: 'UK low: labour-share fall', value: pp('uk_low'), kind: 'derived', how: 'The gain divided by the IMF’s 27% cost saving: 0.2 ÷ 0.27 = 0.74pp. The IMF does not print this rule or figure.', src: ['imfSip44'] },
   { group: 'Scenarios', input: 'UK central: output at fixed inputs', value: `${pc('uk_central')}, model input (rounded)`, kind: 'derived', how: `IMF Table 1 prints years 5 and 10 only; year 4 is read off Figure 9 as about 0.42% (0.41–0.44%). Cross-check: the OBR’s own AI effect at year ${ADOPTION_YEAR} is ${pctRange(ADOPTION)} (Briefing paper No.9, Chart B.4), already in the forecast path; this input is not net of it.`, src: ['imfSipT1', 'imfSipFig9', 'bp9B14', 'efoOct127'] },
   { group: 'Scenarios', input: 'UK central: labour-share fall (headline)', value: pp('uk_central'), kind: 'derived', how: 'Derived, not published by the IMF. Year-4 TFP is read off IMF SIP/2026/072 Figure 9 as about 0.42% (0.41–0.44%; only years 5 and 10 are printed). Divided by the IMF’s 27% cost saving, the 0.41–0.44% reading gives 1.5–1.6pp. The UK central scenario uses 1.6pp.', note: 'The share is derived from the 0.42 reading, but the TFP input is the rounded 0.4, which on its own would give 0.4 ÷ 0.27 = 1.5pp. The OBR cross-check (1.78pp) sits above 1.6, so 1.6 is not biased high.', src: ['imfSipFig9', 'imfSip44', 'frs87'] },

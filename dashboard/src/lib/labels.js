@@ -108,12 +108,14 @@ const fsWord = () => {
   const x = foreignShareOf(result(S.default_scenario ?? 'uk_central', 'tfp', CENTRAL));
   return x == null ? null : fracWord(x / 100);
 };
-// ζK as a share of excess capital demand (Maria's point on 10% against 77%):
-// ζK is not the foreign-owned share of the added capital.
+// ζK as a share of the extra capital firms want (Maria's point on 10%
+// against 77%; the 16db56b ruling keeps "excess capital demand" for
+// Method's glossed definition only; R4-03): ζK is not the foreign-owned
+// share of the added capital.
 const zkPct = Math.round((ZETA[CENTRAL] ?? 0) * 100);
 const zkNote = () => {
   const w = fsWord();
-  return `Foreign investors supply ${zkPct}% of excess capital demand, not of added capital${w ? `; ${w} of the added capital ends up foreign-owned` : ''}`;
+  return `Foreign investors supply ${zkPct}% of the extra capital firms want, not of added capital${w ? `; ${w} of the added capital ends up foreign-owned` : ''}`;
 };
 
 // Capital closure: who owns the new capital.

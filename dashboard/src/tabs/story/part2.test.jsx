@@ -109,7 +109,11 @@ describe('story part 2', () => {
     // the pay-sign note (and its Across scenarios link) only where the sign
     // flips between the two foreign-capital cases (Maria's point 3)
     const { paySigns } = await import('@/tabs/story/part2/caveats.js');
-    for (const end of ['#economy-wall', '#m-debt']) expect(links.some((h) => h.endsWith(end))).toBe(true);
+    expect(links.some((h) => h.endsWith('#economy-wall'))).toBe(true);
+    // the debt row left the figure's More info (R4-01): the scene's own two
+    // debt sentences say it
+    expect(links.some((h) => h.endsWith('#m-debt'))).toBe(false);
+    expect(popText(container)).not.toContain('Public debt');
     expect(links.some((h) => h.endsWith('#explore-part-all'))).toBe(paySigns('uk_central') === 'flips');
   });
 
@@ -153,8 +157,12 @@ describe('story part 2', () => {
     // Explore" link is the debt note under its caption, in the frame
     expect([...head.closest('.scrolly-step').querySelectorAll('a')].filter((x) => !x.closest('.scrolly-takeaway-in-step'))).toHaveLength(0);
     const note = container.querySelector('#p2-morph .scrolly-takeaway-note');
-    // the OBR-pace result first (Maria's point 5)
-    expect(note.textContent).toMatch(/^(At the OBR’s repricing pace, public|Public) debt ends (above|below|on) the forecast path in \d{4}.* More on Explore$/);
+    // the caption ends the last card when the figure is pinned, so it
+    // carries the at-once half; the OBR-pace result is in the ledger slot
+    // above it (Maria's point 5; R4-01)
+    expect(note.textContent).toMatch(/^(In the model all debt pays the higher rate at once, .*\. )?More on Explore$/);
+    expect(note.textContent).not.toMatch(/\bthe path\b/);
+    expect(head.querySelector('[data-claim="debt-pace"]').textContent).toMatch(/^(At the OBR’s repricing pace, public|Public) debt ends (above|below|on) the forecast path in \d{4}\.$/);
     expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });
 });
@@ -515,8 +523,8 @@ describe('direction icons follow the signs', () => {
     const head = container.querySelector('#story-headline');
     expect(head.querySelectorAll('.stat-tile')).toHaveLength(3);
     // beside the ledger, only the consumption line (Maria’s point 6) and the
-    // debt line’s at-once half (point 5)
-    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile') && !p.matches('[data-claim="consumption"], [data-claim="debt-once"]'));
+    // debt line’s OBR-pace half (point 5; R4-01)
+    const lines = [...head.querySelectorAll('p')].filter((p) => !p.closest('.stat-tile') && !p.matches('[data-claim="consumption"], [data-claim="debt-pace"]'));
     expect(lines).toHaveLength(0);
     expect(container.querySelector('.p2-headline-chip')).toBeNull();
     const say = container.querySelector('#p2-headline .p2-say').textContent;
@@ -576,11 +584,42 @@ describe('direction icons follow the signs', () => {
         const obr = r.debt_gdp_pp_obr_repricing_late;
         if (Number.isFinite(obr)) {
           expect(line.startsWith(`At the OBR’s repricing pace, public debt ends ${side(obr)} the forecast path in ${fixture.late_year}`), `${sid} ${cl}: ${line}`).toBe(true);
-          if (side(obr) !== side(d)) expect(line).toContain(`in the model, all debt pays the higher rate at once, and it ends ${side(d)} the path`);
-          else if (d > 0.005 && obr > 0.005 && d > obr) expect(line).toMatch(/in the model, all debt pays the higher rate at once, and the gap is .* (times )?as large|is larger/);
+          if (side(obr) !== side(d)) expect(line).toContain(`in the model all debt pays the higher rate at once, and debt ends ${side(d)} the forecast path`);
+          else if (d > 0.005 && obr > 0.005 && d > obr) expect(line).toMatch(/in the model all debt pays the higher rate at once, and the gap is .* (times )?as large|is larger/);
         } else expect(line).toContain(`ends ${side(d)} the forecast path in ${fixture.late_year}`);
         expect(line).not.toMatch(/\d\.\d/);
         expect(line).not.toContain('repriced at once');
+      }
+    }
+  });
+
+  it('R4-01: the ledger slot gives the OBR-pace debt result, the caption note the at-once half, and the GDP figure’s More info has no debt row', async () => {
+    const { debtParts, DebtNote } = await import('@/tabs/ai/Landing.jsx');
+    const { morphGroups } = await import('@/tabs/story/part2/Morph.jsx');
+    for (const sid of SIDS) {
+      const { container } = at(`tab=story&s=${sid}`);
+      const p = debtParts(sid, 'zk0.1');
+      const pace = container.querySelector('#story-headline [data-claim="debt-pace"]');
+      if (!p) {
+        expect(pace).toBeNull();
+        cleanup();
+        continue;
+      }
+      expect(pace.textContent).toBe(`${p.obrPace ? 'At the OBR’s repricing pace, public debt' : 'Public debt'} ${p.lead}.`);
+      expect(pace.textContent).not.toContain('at once');
+      cleanup();
+      const note = render(<NavProvider><DebtNote sid={sid} cl="zk0.1" /></NavProvider>).container.textContent;
+      expect(note.endsWith('More on Explore')).toBe(true);
+      if (p.atOnce) expect(note.startsWith('In the model all debt pays the higher rate at once')).toBe(true);
+      expect(note).not.toMatch(/\bthe path\b/);
+      cleanup();
+      for (const s of [2, 3, 4]) {
+        const notes = morphGroups(s, sid, 'zk0.1').flatMap((g) => g.notes.filter(Boolean));
+        for (const n of notes) {
+          const t = render(<>{n.text}</>).container.textContent;
+          expect(t).not.toMatch(/Public debt/);
+          cleanup();
+        }
       }
     }
   });

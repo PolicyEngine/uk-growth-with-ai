@@ -14,7 +14,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import S2028 from '@/data/surprise2028.json';
-import S2027 from '@/data/surprise2027.json';
+import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
 import { typedYears, yearKeys, yearArithmetic, mixedLines, typedYearsWide } from '@/lib/sourceScan.js';
 import BASE from '../../scripts/ratchet-baselines.json';
 import { recordCount } from '@/lib/probeTestUtils.jsx';
@@ -124,7 +124,8 @@ describe('no typed years or keys', () => {
 
 // ---- 3 and 4: on both data files ------------------------------------------
 
-const FILES = { 2028: S2028, 2027: S2027 };
+// the 2027 file only when it is loaded (R4-16)
+const FILES = Object.fromEntries(Object.entries({ 2028: S2028, 2027: S2027 }).filter(([, D]) => D));
 const noAxis = (el) => {
   let t = '';
   const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -299,7 +300,7 @@ describe('claims probe, cohorts: "They hold more wealth than younger adults…"'
 // ---- R2-03 at run time: under the 2027 file with the 2028 cohort file, a
 // cohort view prints no 2027 shock year except in its one notice line ---------
 describe('claims probe, cohort views never mix years', () => {
-  it('Who gains and the generations scene, on surprise2027.json', async () => {
+  it.skipIf(!S2027)('Who gains and the generations scene, on surprise2027.json', async () => {
     await pickFile(S2027);
     const { NavProvider } = await import('@/lib/nav.jsx');
     const { default: ExploreTab } = await import('@/tabs/explore/ExploreTab.jsx');
@@ -482,7 +483,8 @@ describe('round 3 probe gaps', () => {
     it(`no other set's commit or data file, surprise${name}.json`, async () => {
       await pickFile(D);
       const other = name === '2028' ? S2027 : S2028;
-      const bad = [other.source_commit, `surprise${other.surprise_year}.json`].filter((t) => t !== D.source_commit);
+      // with the 2027 file not loaded (R4-16), its name alone
+      const bad = (other ? [other.source_commit, `surprise${other.surprise_year}.json`] : ['surprise2027.json']).filter((t) => t !== D.source_commit);
       const { NavProvider } = await import('@/lib/nav.jsx');
       const pages = [
         ['tab=code', (await import('@/tabs/code/CodeTab.jsx')).default],

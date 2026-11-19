@@ -5,8 +5,13 @@
  "entries": [
   {
    "date": "2026-11-19",
+   "commit": "2dcded4",
+   "text": "National income leads with NNI; the overlap with the OBR’s own AI is sized on Method; Households rebuilt as seven cards; Part 1 updated to the 17 Nov releases."
+  },
+  {
+   "date": "2026-11-19",
    "commit": "6ffe276",
-   "text": "One settings control replaces the separate toggles; larger chart text; plainer chart titles and notes; source links for the household study; checked against two rounds of review."
+   "text": "One settings control replaces the separate toggles; larger chart text; plainer chart titles and notes; source links for the household study."
   },
   {
    "date": "2026-11-18",

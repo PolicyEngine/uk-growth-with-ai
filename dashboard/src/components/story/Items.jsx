@@ -33,9 +33,9 @@ export function KeyFacts({ facts, className = '' }) {
       {facts.filter(Boolean).map((f, i) => (
         <li key={f.key ?? i} className="story-fact">
           <Icon name={iconFor(f.icon)} size={18} className="story-fact-icon" />
-          <span className="story-fact-value">{f.value}</span>
+          <span className="story-fact-value">{f.value}</span>{' '}
           <span className="story-fact-label">{f.label}</span>
-          {f.sub ? <span className="story-fact-sub">{f.sub}</span> : null}
+          {f.sub ? <>{' '}<span className="story-fact-sub">{f.sub}</span></> : null}
         </li>
       ))}
     </ul>

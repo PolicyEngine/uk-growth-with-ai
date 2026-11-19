@@ -950,8 +950,11 @@ export default function WhoGainsTab() {
           story={rule === 'dn' && arm === 'tfp' && cls.includes('zk0.1') ? { anchor: 'p2-who-0', name: 'the generations scene' } : null}
           icon={iconFor('path')}
           title="Welfare change by birth year"
-          // item 36 (E9): the settings are the pill's and the page's; the
-          // chart's own y title is the one unit line
+          // round 3 §B (R4-09): the unit line, slot 4, worded as the
+          // heatmap's (the spec's 78 characters are over item 36's 60; the
+          // title already says "by birth year")
+          unit="Change in remaining-lifetime consumption and bequests, %"
+          // item 36 (E9): the settings are the pill's and the page's
           more={[
             { label: 'Measure', text: 'Consumption-equivalent welfare change: the change in remaining-lifetime consumption and bequests that is worth the same to each household.' },
             { label: 'Settings', text: `${armLabel}; ${clWords}; ${rulePlain(rule)}.` },

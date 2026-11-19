@@ -9,6 +9,7 @@ import {
   S, YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, ARMS, resultAt, gap, signed, R4_TOL_PP,
 } from '@/tabs/ai/surprise.js';
 import { closuresFor, primaryClosure, side } from '@/tabs/ai/lines.js';
+import { SIGN_CAVEAT, signMayFlip } from '@/lib/obrOverlap.js';
 
 // OG-UK's own debt-rule start: tG1 = 4 periods from 2026 (scenarios.py).
 // The one home of this constant; FinancesSection imports it.
@@ -60,7 +61,7 @@ export function debtTitle(sid, closure, rule) {
       const x = gap(sid, a.id, cl, 'debt_gdp_pp', y, rule);
       return x != null && side(x) === 'on';
     })));
-    if (held) return `Debt/GDP stays on the path from ${SURPRISE_YEAR + 1} in every version`;
+    if (held) return `Debt/GDP stays on the forecast path from ${SURPRISE_YEAR + 1} in every version`;
   }
   return sidesTitle('debt/GDP', sid, closure, rule, 'debt_gdp_pp', LATE_YEAR, 'by');
 }
@@ -269,8 +270,10 @@ export function financesFinding(sid, closure, rule) {
   const tax = taxTitle(sid, closure, rule);
   const lines = [];
   let lead;
-  if (rule === 'dn' && /stays on the path/.test(late)) {
-    lead = `Under debt-neutral transfers, ${late.charAt(0).toLowerCase()}${late.slice(1)}.`;
+  if (rule === 'dn' && /stays on the forecast path/.test(late)) {
+    // R1-17 / R4-08: the lead says how, so it no longer repeats the card
+    // title; the R2-20 filter below drops the title line
+    lead = `Under debt-neutral transfers, transfers to households hold debt/GDP on the forecast path from ${SURPRISE_YEAR + 1}; tax/GDP still moves.`;
   } else {
     const h = byArm(sid, cl, 'debt_gdp_pp', HEADLINE_YEAR, rule);
     const groups = ['below', 'above', 'on'].map((s) => ({ s, ids: h.filter((c) => side(c.x) === s).map((c) => c.id) })).filter((g) => g.ids.length);
@@ -281,6 +284,10 @@ export function financesFinding(sid, closure, rule) {
       lead = `In ${HEADLINE_YEAR}, debt/GDP is ${say(a.s)} only in ${andList(a.ids.map(inText))}; ${rest.map((g) => `${andList(g.ids.map(inText))} ${g.ids.length > 1 ? 'are' : 'is'} ${say(g.s)}`).join(', ')}.`;
     }
     lines.push(`${late}.`);
+    // the sign caveat (obr-overlap-fable.md, "Direction chips"; review
+    // round 4, R4-02): a debt/GDP direction that may not survive netting
+    // the OBR's own AI productivity
+    if (rule === 'common' && signMayFlip(sid, cl, 'debt_gdp_pp')) lines.push(`The direction of debt/GDP ${SIGN_CAVEAT}.`);
   }
   if (tax) lines.push(`${tax}.`);
   // A line that only repeats a card title says the fact twice on one

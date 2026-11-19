@@ -143,9 +143,9 @@ function CentralFigure({ ctx }) {
         <ul className="story-facts p3-facts">
           {facts.map((f) => (
             <li key={f.key} {...markProps(`f-${f.key}`, 'story-fact')}>
-              <span className="story-fact-value">{f.value}</span>
+              <span className="story-fact-value">{f.value}</span>{' '}
               <span className="story-fact-label">{f.label}</span>
-              {f.sub ? <span className="story-fact-sub">{f.sub}</span> : null}
+              {f.sub ? <>{' '}<span className="story-fact-sub">{f.sub}</span></> : null}
             </li>
           ))}
         </ul>

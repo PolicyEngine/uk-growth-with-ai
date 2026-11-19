@@ -15,7 +15,6 @@ import SourceLine from '@/components/ui/SourceLine.jsx';
 import { docItem, ukItem } from '@/lib/sourceItems.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { paySigns } from './caveats.js';
-import { debtParts } from '@/tabs/ai/Landing.jsx';
 
 const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll, scenarioRel, ukRangeDrawn } from './charts.jsx';
@@ -345,9 +344,10 @@ export function morphItems(s) {
 }
 
 // The model states' notes (2 on), behind the same button: what the
-// headline figures are measured against, the pay tile's sign caveat and
-// the debt line's repricing clause (voice pass: they left the step text).
-export function morphGroups(s, sid, cl) {
+// headline figures are measured against and the pay tile's sign caveat
+// (voice pass: they left the step text). The debt line's repricing clause
+// is gone: the scene's own two debt sentences say it (R4-01).
+export function morphGroups(s, sid, _cl) {
   // the forecast's vintage, out of the unit line (pushB-final-rulings-fable.md 1)
   // the two forecasts, said once (M3 handoff): the dashed line is the OBR's
   // latest, for context; the comparison path is OG-UK's own
@@ -359,7 +359,6 @@ export function morphGroups(s, sid, cl) {
       },
     ];
   if (s < 2) return [];
-  const p = debtParts(sid, cl);
   return [
     {
       title: 'How to read',
@@ -394,20 +393,6 @@ export function morphGroups(s, sid, cl) {
                   <NavLink tab="explore" sub="economy" anchor="explore-part-all">
                     Explore
                   </NavLink>
-                </>
-              ),
-            }
-          : null,
-        p?.slow
-          ? {
-              icon: 'debt',
-              text: (
-                <>
-                  Public debt: at the{' '}
-                  <NavLink tab="method" sub="how" anchor="m-debt">
-                    OBR&rsquo;s repricing pace
-                  </NavLink>
-                  , {p.slow}
                 </>
               ),
             }

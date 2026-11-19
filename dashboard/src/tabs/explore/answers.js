@@ -67,14 +67,6 @@ export function economyAnswer(sid, closure, rule) {
   return { ...r, why, caveat };
 }
 
-export function financesAnswer(sid, closure, rule) {
-  if (!ruleSolved(rule, sid)) return ruleGapText(rule, sid);
-  const r = read(sid, closure, rule, [['debt', `Debt/GDP in ${HEADLINE_YEAR}`, 'debt_gdp_pp'], ['tax', `Tax/GDP in ${HEADLINE_YEAR}`, 'tax_gdp_pp']]);
-  if (!r) return 'This combination is not yet solved.';
-  const caveat = rule === 'common' && signMayFlip(sid, r.cl, 'debt_gdp_pp') ? `The direction of debt/GDP ${SIGN_CAVEAT}` : null;
-  return { ...r, caveat, link: { anchor: 'tax-gap', icon: 'limit', text: 'OG-UK’s revenue fall is smaller than OBR tax rates imply' } };
-}
-
 // The All scenarios sub-tab's intro: context only (the matrix card below
 // says which choice moves each measure most).
 export function allAnswer() {

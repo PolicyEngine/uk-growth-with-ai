@@ -311,8 +311,12 @@ export function gainWords() {
   if (min >= 0.005) {
     const beq = p && avg > 0 && p.bequests / avg > 0.5;
     const little = p && avg > 0 && Math.abs(p.consumption) / avg < 0.2;
-    const made = beq && little ? ', mostly from the value the model puts on bequests; consumption changes little' : beq ? ', mostly from the value the model puts on bequests' : '';
-    return { state: 'gain', text: `Every birth year gains on average as modelled${made}.` };
+    // the scene's title already says every birth year gains (WelfareShape:
+    // every value above zero, implied by this gate), so the closing line
+    // drops that clause and says only what the gain is made of (R4-07;
+    // check_spacing: at most 3 lines at 1280). The fallback keeps it.
+    if (beq) return { state: 'gain', text: `Most of the gain is the value the model puts on bequests${little ? '; consumption changes little' : ''}.` };
+    return { state: 'gain', text: 'Every birth year gains on average as modelled.' };
   }
   if (min < 0) {
     const lose = c.cev_all.map((v, i) => (v < 0 ? i : -1)).filter((i) => i >= 0);

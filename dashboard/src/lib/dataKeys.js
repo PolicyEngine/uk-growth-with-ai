@@ -21,7 +21,7 @@ import CO2028 from '@/data/cohorts2028.json';
 import V2028 from '@/data/site-versions.json';
 import MF2028 from '@/data/methodFacts.json';
 import S2028 from '@/data/surprise2028.json';
-import S2027 from '@/data/surprise2027.json';
+import S2027 from 'ugai-surprise2027'; // null unless the 2027 run has its file (R4-16)
 
 const keyOf = (obj, prefix) => Object.keys(obj ?? {}).find((k) => k.startsWith(prefix)) ?? null;
 

@@ -22,7 +22,7 @@
       "source": "caption-length.test.jsx, both data files, lowered to 20 by ratchet --update at perf/c-swap2 (C0 fixes)"
     },
     "label_joins": {
-      "baseline": 21,
+      "baseline": 0,
       "source": "label-joins.test.jsx, both data files, lowered to 21 by ratchet --update at perf/c-swap2 (C0 fixes to R1-21)"
     },
     "eslint_ugai_one_chooser": {
@@ -30,7 +30,7 @@
       "source": "ugai/one-chooser: 0 at perf/c-hh (item 24 removed the HouseholdsExplore role=switch; the ResultsTab ControlBar was already gone at the push C base)"
     },
     "eslint_ugai_one_fold": {
-      "baseline": 8,
+      "baseline": 4,
       "source": "ugai/one-fold, widened in R3-13 to any Disclosure whose title is not the literal \"More info\": CodeTab x5 (four scoped folds plus the older changes), Card.jsx AboutFold (title prop), chart/Frame.jsx <summary>Sources>, PartHead <summary>About this model>. Was 2 under the narrower rule"
     },
     "eslint_ugai_one_card_shell": {
@@ -46,11 +46,11 @@
       "source": "claims-and-years.test.jsx: cohort views print no active-set shock year that differs from the cohort file year (R2-03), and no source line mixes the two"
     },
     "fold_titles": {
-      "baseline": 7,
+      "baseline": 3,
       "source": "caption-length.test.jsx fold probe, both data files: PartHead \"About this model\"; Data and code \"Install the model\", \"Patch OG-Core for a time-varying γ\", \"Environment\", \"The sp helper used below\", \"Earlier changes\" (7 renders)"
     },
     "typed_years_wide": {
-      "baseline": 52,
+      "baseline": 51,
       "source": "claims-and-years.test.jsx (round 3): year literals 1950-2025 and 2040-2099 outside comments, at perf/c-swap2; mostly source and history years (part3 sources, part1 findings, Households method); includes \"Born after 2011\" (CohortsTab), which waits for a cohort field"
     },
     "commit_mixing": {
@@ -62,7 +62,7 @@
       "source": "claims-and-years.test.jsx (round 3): a sentence or aria-label naming a scenario not solved together with a direction word"
     },
     "label_joins_letters": {
-      "baseline": 201,
+      "baseline": 56,
       "source": "label-joins.test.jsx (R3-18, R2-33): word-word, date-word, year-word, commit-word, paren-word and sentence joins in row textContent and aria-labels, at perf/c-swap2 (2028 file; 197 on 2027). Most are responsive long/short label pairs (Some foreign capitalSome) and More info button previews; C0 adds the spaces"
     }
   },
