@@ -2,7 +2,7 @@
 
 Written 13 November 2026. Read-only: no files changed, no model runs, nothing posted.
 
-- **What was checked:** every number in `dashboard/src/data/surprise2028.json` and `cohorts2028.json` (and `methodFacts.json`) at `/Users/vahid/ugai-tabs3`, branch `dashboard/ab2026-tabs`, `2ebcc4d`.
+- **What was checked:** every number in `dashboard/src/data/surprise2028.json` and `cohorts2028.json` (and `methodFacts.json`) on branch `dashboard/ab2026-tabs` at `2ebcc4d`.
 - **Built on:** `docs/results_sanity_2028.md` (PRs #39/#42, anomalies A1–A16) and `docs/literature_comparison.md` (PR #41). Their findings are marked **carried** and were not re-fetched.
 - **New here:** UK data history, pulled today from the ONS time-series service and analysed locally, plus six web sources. Each is linked in the table.
 - **Not solved, so not checked:** UK low and UK high with closed capital (ζK = 0).

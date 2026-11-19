@@ -137,7 +137,9 @@ const SETS = {
     nicsRef: 'bf5de33',
     outputDir: 'analysis/surprise2027/output',
     cohortsDir: 'analysis/surprise2027/cohorts',
-    docsRef: '3988c0b',
+    // the design note at the commit that drops its private local path
+    // (59139aa, which contains c896e05; coordinator's ruling after round 5)
+    docsRef: '59139aa',
     runBranch: 'rerun/surprise-2027',
     yearFlag: true,
     // the scenario files were committed after the data (3988c0b)

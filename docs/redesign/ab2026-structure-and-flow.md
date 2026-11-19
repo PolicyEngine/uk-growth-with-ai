@@ -6,7 +6,7 @@ Reference for redesigning uk-growth-with-ai. Captured 13 Nov 2026.
 - **Code:** PolicyEngine/uk-autumn-budget-dashboard-2026 at `87976abf`. All `file:line` references are to that commit, exported read-only to
   `/private/tmp/claude-501/-Users-vahid/c951560c-b087-4de6-83ff-7ba85b14b302/scratchpad/redesign/ia/src-87976abf/`.
   The lead's snapshot at `/private/tmp/claude-501/-Users-vahid/c951560c-b087-4de6-83ff-7ba85b14b302/scratchpad/redesign/visual/src-main/` has an identical `src/` tree (`diff -rq` reports no differences), so every reference here resolves there too.
-  The local checkout `/Users/vahid/ab2026-latest` is on `preview-integration` at `fbbaef9d` (27 Oct), 763 commits behind main, so its line numbers differ (`src/App.jsx` is 1,403 lines there, 1,567 at `87976abf`). Do not copy from the checkout's working tree.
+  A local checkout of the AB2026 repository (outside this repo) is on `preview-integration` at `fbbaef9d` (27 Oct), 763 commits behind main, so its line numbers differ (`src/App.jsx` is 1,403 lines there, 1,567 at `87976abf`). Do not copy from the checkout's working tree.
 - **Live against code:** the page shows no commit id. The live tab labels, sub-tab labels, URL parameters and "policyengine.py 6.11.1" chip match the `87976abf` source by observation only.
 - **Screenshots:** `/private/tmp/claude-501/-Users-vahid/c951560c-b087-4de6-83ff-7ba85b14b302/scratchpad/redesign/ia/shots/`. `d-` is desktop 1440x900, `m-` is phone 390x844 at 2x with touch emulation. `-top` is the first screen, `-full` the whole page. Reduced motion was on, so entrance animations are not shown.
 - **Raw measurements:** `capture-log-d.json` and `capture-log-m.json` in the same `ia/` folder (headings, fold labels, computed styles, URL trace).

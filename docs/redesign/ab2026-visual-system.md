@@ -5,7 +5,7 @@ Research for redesigning `uk-growth-with-ai` to match the Autumn Budget 2026 das
 ## Provenance (read first)
 
 - **Code refs are at `87976abf` (main, 12 Nov 2026)**, extracted read-only with `git archive` to `visual/src-main/`. All `file:line` below are relative to that tree (`src/...`).
-- The local checkout `/Users/vahid/ab2026-latest` is **not** main: it is branch `preview-integration` at `fbbaef9d` (27 Oct), 391 files behind in `src/`. Do not copy from the working tree; copy from `visual/src-main/` or `git show 87976abf:<path>`.
+- A local checkout of the AB2026 repository (outside this repo) is **not** main: it is branch `preview-integration` at `fbbaef9d` (27 Oct), 391 files behind in `src/`. Do not copy from the working tree; copy from `visual/src-main/` or `git show 87976abf:<path>`.
 - **Live = main.** The live page carries main-only classes (`obr-panel`, `umm-*`, `pviz-*`), so the crops match the cited code.
 - Crops: `visual/crops/` (1440 wide at 2x, phone 390 at 2x, prefix `m-`). Full pages for every view at both widths: `visual/shots/<view>-{1440,390}-full.png`. Computed styles from the live DOM: `visual/computed-styles.md` (tables per view) and `visual/crops/computed-styles.json` (raw). Where this report and the cascade could disagree, the computed file is the authority; the values quoted here for the chart card, tiles, policy card, tabs, tips, tables and segments were checked against it.
 - Stack: Next 16 App Router, React 19, Tailwind 4 (imported, barely used: the page is hand-written CSS on custom properties), `@policyengine/ui-kit` 0.12.0, `lucide-react` 0.577.0, `recharts` 2.15, `d3` 7.
