@@ -43,7 +43,8 @@
       "data_label": "CSV",
       "series": "LZVB (ONS dataset PRDY)",
       "fetched": "2026-11-18",
-      "next_release": "2027-03-04"
+      "next_release": "2027-03-04",
+      "revision_note": "Revised back to 1997 and rebased to 2024 = 100 in this release, when the ONS moved its headline measure to the component approach."
     },
     "ons_lf24": {
       "title": "Employment rate (aged 16 to 64, seasonally adjusted): %",
@@ -2600,6 +2601,12 @@
       "title": "Gen-AI: Artificial Intelligence and the Future of Work (January 2024)",
       "publisher": "International Monetary Fund",
       "url": "https://www.imf.org/en/Publications/Staff-Discussion-Notes/Issues/2024/01/14/Gen-AI-Artificial-Intelligence-and-the-Future-of-Work-542379"
+    },
+    "ons_productivity_component": {
+      "title": "Labour productivity, UK: July to September 2026",
+      "publisher": "Office for National Statistics",
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity/articles/ukproductivityintroduction/julytoseptember2026",
+      "released": "2026-11-17"
     },
     "ons_lms_bulletin": {
       "title": "Labour market overview, UK: November 2026",

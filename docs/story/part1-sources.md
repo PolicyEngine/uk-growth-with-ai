@@ -53,7 +53,10 @@ Calendar-year series stop at 2025. The current year appears only as quarters ("2
   - The annual chart keeps the full scale, so 2020 (−10.0%) and 2021 (+8.5%) show at their true size. They are labelled "Pandemic", and the quarterly chart starts at 2022 Q1.
 - **LZVB:** output per hour worked, whole economy, seasonally adjusted, drawn quarterly from 2008 Q1. It carries the LFS caveat through hours worked.
   - The 17 November 2026 release (PRDY v45) titles the index 2024 = 100 (it was 2023 = 100). The builder reads the base year from the ONS title into `base_year`, and the page reads it from there.
-  - The same release revised the whole series, not only its title: 70 of the 73 quarters drawn (2008 Q1 to 2026 Q1) changed, by up to 8.1 index points (2008 Q2). For example 2008 Q1 is 88.2 (93.3 in the 18 August release) and 2026 Q1 is 103.4 (100.1). Only 2019 Q4 (97.5), 2023 Q1 (99.7) and 2024 Q3 (98.3) are unchanged.
+  - The same release rebased the index to 2024 = 100 and revised it back to 1997: from this release the ONS's headline measure uses its component approach ([Labour productivity, UK: July to September 2026](https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity/articles/ukproductivityintroduction/julytoseptember2026), saved as `analysis/story/raw/ons_productivity_julytoseptember2026.html`). It says whole-economy estimates "have been revised on this basis for the full period from 1997 onwards".
+  - Like for like (the 18 August file rebased to 2024 = 100): 72 of the 73 quarters drawn (2008 Q1 to 2026 Q1) changed, 67 by 0.5 points or more, most in 2008 Q2 (−8.8 points).
+  - Most of the change is a step at 2020 Q1: 2019 Q4 to 2020 Q1 now goes 97.5 to 102.2 (98.3 to 98.2 in the rebased August file). Growth from 2019 Q4 to 2026 Q1 is now +6.1% (was +2.7%); from 2020 Q1 to 2026 Q1, +1.2% (was +2.8%).
+  - The page therefore compares output per hour only with two years earlier (both after 2020), and its notes carry the data build's `sources.ons_lzvb.revision_note`, written for this release only.
   - The ONS now publishes the years before 1997 blank; the builder skips blank periods and asserts that no quarter from 2008 Q1 is missing.
 - **LF24, MGSX:**
   - LFS rates. ONS labels each rolling three-month estimate by its middle month, so "2026 AUG" is July to September 2026.

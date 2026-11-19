@@ -99,15 +99,12 @@ export const VITALS = [
   },
 ];
 
-// The panel's one year, from the latest figure (GDP's quarter): the chip
-// says it once, so a sub-line drops it where it matches.
-const YEAR = String(FACTS.gdp_quarterly_latest.period).match(/\d{4}/)?.[0] ?? '';
-// "2026 Q3" -> "Q3"; "Jun–Aug 2026" -> "Jun–Aug"; another year kept
-const shortPeriod = (p) => {
-  const q = /^(\d{4}) (Q\d)$/.exec(p);
-  const t = q ? `${q[2]} ${q[1]}` : periodOf(p);
-  return t.replace(new RegExp(`\\s*${YEAR}$`), '') || t;
-};
+// Each sub-line carries its own period, year included (review round 3,
+// R3-09: the panel's "2026 data" chip sat over a 2025 tile, so it is gone).
+// A quarter is printed whole ("2026 Q3"); "July to September 2026" ->
+// "Jul–Sep 2026"; years as they are. GDP's tile reads "Q3 2026".
+const shortPeriod = (p) => (/^\d{4} Q\d$/.test(p) ? p : periodOf(p));
+const qFirst = (p) => p.replace(/^(\d{4}) (Q\d)$/, '$2 $1');
 const FIRST = /first estimate/i.test(FACTS.gdp_quarterly_latest.note ?? '');
 
 // GDP's year-on-year growth (its home), in the panel's notes.
@@ -115,7 +112,7 @@ function GdpYoy() {
   const y = FACTS.gdp_quarterly_yoy;
   return (
     <>
-      GDP: <span data-path="facts.gdp_quarterly_yoy.value">{pct1(y.value)}</span> on a year earlier, {shortPeriod(y.period)} {YEAR}
+      GDP: <span data-path="facts.gdp_quarterly_yoy.value">{pct1(y.value)}</span> on a year earlier, {qFirst(y.period)}
       {FIRST ? ', first estimate' : ''}.
     </>
   );
@@ -193,7 +190,7 @@ function Tile({ v, drawn, instant }) {
         <span className="p1-vital-sub-rest">
           {v.key === 'gdp' ? (
             <>
-              {shortPeriod(f.period)} {YEAR}, {v.label}
+              {qFirst(f.period)}, {v.label}
               {FIRST ? <span className="p1-vital-flag">first estimate</span> : null}
             </>
           ) : (
@@ -244,7 +241,6 @@ export default function Vitals() {
     <section id="p1-vitals" ref={ref} className="p1-vitals" aria-labelledby="p1-vitals-title">
       <h3 id="p1-vitals-title" className="p1-vitals-title">
         <span>Latest official figures</span>
-        <span className="p1-vitals-chip">{YEAR} data</span>
         <SourceLine items={SRC} notes={NOTES} />
       </h3>
       <ul className="p1-vitals-grid">

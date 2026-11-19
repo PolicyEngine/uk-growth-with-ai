@@ -53,7 +53,6 @@ export function productivityTitle() {
 // part1.test.jsx has always held it to); pay growth against its peak;
 // output per hour against its 2023 average, "back at" within 0.5 index
 // points.
-const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
 export const NEAR_PP = 0.5;
 export function employmentSay() {
   const e = SERIES.employment_rate;
@@ -69,13 +68,15 @@ export function paySay() {
   const year = yearOf(p.x[p.y.indexOf(peak)]);
   return p.y[p.y.length - 1] < peak ? `has slowed since its ${year} peak` : `is at its highest since ${yearOf(p.x[0])}`;
 }
-export const OPH_SINCE = 2023;
+// Output per hour against the same quarter two years earlier (review round
+// 3, R3-06): both ends after 2020, so the sentence does not rest on the
+// step at 2020 Q1 that the November 2026 revision introduced.
 export function productivitySay() {
   const o = SERIES.productivity_oph;
-  const base = o.y.filter((_, i) => yearOf(o.x[i]) === OPH_SINCE);
-  if (!base.length) return null;
-  const d = o.y[o.y.length - 1] - mean(base);
-  return Math.abs(d) < NEAR_PP ? `is back at its ${OPH_SINCE} level` : d > 0 ? `is higher than in ${OPH_SINCE}` : `is lower than in ${OPH_SINCE}`;
+  const n = o.y.length;
+  if (n < 9) return 'is shown quarter by quarter';
+  const d2 = o.y[n - 1] - o.y[n - 9];
+  return Math.abs(d2) < NEAR_PP ? 'is about where it was two years ago' : d2 > 0 ? 'has risen over the past two years' : 'has fallen over the past two years';
 }
 
 // p1-ai, state 0: how many times business use has grown since the first wave
