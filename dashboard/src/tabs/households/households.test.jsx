@@ -1,15 +1,16 @@
 // Explore > Households and Method and sources > Household method: the
-// uk-ai-study detail and method. Every figure is printed once across story
-// part 3 and Explore > Households; every chart has a CSV download; decile 1
-// carries its caveat; the policy responses are not ranked.
+// household study's detail and method (item-24-fable.md). Every figure is
+// printed once across story part 3 and Explore > Households; every chart
+// has a CSV download; decile 1 carries its caveat; the policy responses are
+// not ranked.
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import D from '@/data/aiStudy2425.json';
 import Part3 from '@/tabs/story/Part3.jsx';
-import HouseholdsExplore, { FINDINGS, VARIANT_ARROWS, costSteps } from './HouseholdsExplore.jsx';
-import { fmtBn, fmtShare as fmtShareT } from '@/tabs/story/part3/format.js';
+import HouseholdsExplore, { SECTIONS, VARIANT_ARROWS, costSteps } from './HouseholdsExplore.jsx';
+import { fmtBn, fmtBn2, fmtDecilePct, fmtShare as fmtShareT } from '@/tabs/story/part3/format.js';
 import HouseholdsMethod from './HouseholdsMethod.jsx';
-import { FIG, counts, householdsFigures, storyFigures } from './figures.js';
+import { FIG, RULE_NAMES, counts, householdsFigures, methodName, storyFigures } from './figures.js';
 import { CAVEAT_GREY, DESTS, absorbGraph } from './Absorb.jsx';
 import { imbalances } from '@/components/story/Sankey.jsx';
 
@@ -21,15 +22,24 @@ const text = (container, extra = '') => {
   // present (SourceLine's hidden record), as the page's number check does
   c.querySelectorAll('[data-source-notes]').forEach((n) => n.removeAttribute('hidden'));
   c.querySelectorAll(`[data-axis], [data-input], [hidden]${extra}`).forEach((n) => n.remove());
-  c.querySelectorAll('li, p, div').forEach((n) => n.append(' '));
+  c.querySelectorAll('li, p, div, td, th').forEach((n) => n.append(' '));
   return c.textContent;
 };
+// More info as the page dump reads it (scripts/dumptabs.mjs appends
+// [data-more-info] text while the fold is closed)
+const foldText = (container) => {
+  const c = container.cloneNode(true);
+  c.querySelectorAll('[data-axis], [data-input]').forEach((n) => n.remove());
+  return [...c.querySelectorAll('[data-more-info]')].map((n) => n.textContent).join(' ');
+};
 const off = (got, exp) => [...new Set([...Object.keys(got), ...Object.keys(exp)])].filter((k) => got[k] !== exp[k]).map((k) => `${k}: printed ${got[k] ?? 0}, expected ${exp[k] ?? 0}`);
+const words = (t) => t.trim().split(/\s+/).filter(Boolean).length;
+const flat = (el) => el.textContent.replace(/\s+/g, ' ').trim();
 
 describe('HouseholdsExplore', () => {
-  it('opens with the question, three finding chips, "Provisional" once and a link to the story', () => {
+  it('opens with the model row, the question and three section links, titles only', () => {
     const { container } = render(<HouseholdsExplore />);
-    expect(container.querySelector('.hh-question > span').textContent).toMatch(/\?$/);
+    expect(container.querySelector('.hh-question > span').textContent).toBe('What moves the cost of AI job displacement, and who loses income?');
     // the model row after the title (item 22): the model line, its first
     // segment a link to the household method, the year from the data
     const line = container.querySelector('.hh-question + .model-row .model-line');
@@ -38,39 +48,54 @@ describe('HouseholdsExplore', () => {
     expect(line.textContent).toContain('Household study PolicyEngine UK');
     expect(line.querySelectorAll('a')).toHaveLength(1);
     expect(line.querySelector('a').getAttribute('href')).toContain('sub=households');
-    const chips = [...container.querySelectorAll('.hh-findings .hh-finding')];
-    expect(chips.map((c) => c.querySelector('b').textContent)).toEqual(['Who loses the job', 'Job loss vs wage cuts', 'Benefit take-up']);
-    expect(chips.length).toBe(FINDINGS.length);
+    // no chips, no findings in the nav: three plain links to the sections
+    expect(container.querySelector('.hh-findings, .hh-finding, .hh-chip')).toBeNull();
+    const nav = container.querySelector('nav.hh-nav[aria-label="On this page"]');
+    const links = [...nav.querySelectorAll('a')];
+    expect(links.map((a) => a.textContent)).toEqual(['What moves the cost', 'Who loses income', 'Policy responses']);
+    links.forEach((a, i) => expect(a.getAttribute('href').endsWith(`#${SECTIONS[i].id}`)).toBe(true));
+    for (const s of SECTIONS) expect(container.querySelector(`#${s.id} h2`).textContent).toBe(s.title);
+    expect(nav.querySelectorAll('svg, select')).toHaveLength(0);
     // the status comes from the data file: "Provisional" once while the
     // study is provisional, not at all once it is merged
     if (D.provisional === false) {
       expect(container.querySelector('.hh-lead .notice-chip')).toBeNull();
       expect(container.textContent).not.toMatch(/provisional/i);
     } else {
-      // the paper's source item names the draft (behind Sources and notes)
       expect(container.querySelector('.hh-lead [data-source-notes]')?.textContent ?? container.textContent).toMatch(/draft paper/i);
     }
     expect(container.textContent).not.toMatch(/cell marked/i);
-    // the story link and the housing-costs basis moved behind the page's
-    // Sources and notes button (kept in the DOM for the checks)
+    // the story link and the housing-costs basis behind the page's Sources
+    // and notes button (kept in the DOM for the checks)
     expect(container.querySelector('.hh-lead').textContent).toContain('Headlines in story part 3');
+    // the orphan link line to the lost-pound scene is gone: card 5 links it
+    expect(container.querySelector('#hh-absorb')).toBeNull();
   });
 
-  it('gives a row at most one story link, never the same link text twice in a row', () => {
+  it('gives each card its finding as the title, one story link in the foot (none on the policy card), no Replay, no row links', () => {
     const { container } = render(<HouseholdsExplore />);
-    for (const row of container.querySelectorAll('[data-row]')) expect(row.querySelectorAll('.hh-ref').length, row.dataset.row).toBeLessThanOrEqual(1);
-    // no two adjacent links with the same text anywhere (the old "Step 6Step 6")
-    const links = [...container.querySelectorAll('a')];
-    for (let i = 1; i < links.length; i += 1) {
-      const adjacent = links[i - 1].nextElementSibling === links[i] || links[i - 1].parentElement?.nextElementSibling?.contains(links[i]);
-      if (adjacent) expect(links[i].textContent, links[i].textContent).not.toBe(links[i - 1].textContent);
+    const cards = [...container.querySelectorAll('article.card')];
+    const anchors = { 'hh-cost-lines': 'p3-central-step', 'hh-per-pound': 'p3-margin-step', 'hh-ladder': 'p3-margin-step', 'hh-rules': 'p3-rules-step', 'hh-displaced': 'p3-pound', 'hh-rankings': 'p3-deciles-step', 'hh-policy': null };
+    expect(cards.map((c) => c.id)).toEqual(Object.keys(anchors));
+    for (const card of cards) {
+      const title = flat(card.querySelector('.card-head h3 > span'));
+      expect(words(title), card.id).toBeLessThanOrEqual(14);
+      expect(title, card.id).not.toMatch(/\.$/);
+      // the old topic titles are gone from the page (the download keeps them)
+      expect(title, card.id).not.toMatch(/^(Cost by tax and benefit|Cost per pound lost|Every variant|Five rules|Who the displaced are|Deciles under three rankings|Policy responses)$/);
+      const links = card.querySelectorAll('.story-link a');
+      if (anchors[card.id]) {
+        expect(links, card.id).toHaveLength(1);
+        expect(links[0].textContent.trim()).toBe('See this in the story');
+        expect(links[0].getAttribute('href').endsWith(`#${anchors[card.id]}`), card.id).toBe(true);
+        expect(links[0].getAttribute('title'), card.id).toMatch(/^In the Story: /);
+      } else expect(links, card.id).toHaveLength(0);
+      expect(card.querySelector('.hh-ref, [aria-label="Replay the animation"], [role="switch"], [role="radiogroup"], .axis-titles, .ex-axis-titles'), card.id).toBeNull();
+      // one unit line, nothing joined to it
+      expect(card.querySelectorAll(':scope > .card-unit'), card.id).toHaveLength(1);
     }
-    // named scenes, not step numbers (round 2), each at an anchor the Story has
-    const anchors = ['p3-central-step', 'p3-rules-step', 'p3-margin-step', 'p3-deciles-step'];
-    for (const a of container.querySelectorAll('.hh-ref')) {
-      expect(a.textContent.trim()).toMatch(/^Story: [a-z ]+$/);
-      expect(anchors.some((x) => a.getAttribute('href').endsWith(`#${x}`)), a.getAttribute('href')).toBe(true);
-    }
+    // no control anywhere on the page (section 5)
+    expect(container.querySelectorAll('[role="switch"], [role="radiogroup"], .pill, select')).toHaveLength(0);
   });
 
   it('draws the cost by line as a waterfall: each line from the end of the last, the net restated from story step 1', () => {
@@ -79,57 +104,109 @@ describe('HouseholdsExplore', () => {
     expect(net.to).toBe(D.cost_components.total_bn);
     const { container } = render(<HouseholdsExplore />);
     const card = container.querySelector('#hh-cost-lines');
-    // the net bar carries its value (sign-off #8), restated from its home in story step 1: data-axis, not counted
-    const netVal = card.querySelector('[data-row="net"] .hh-val');
+    const netRow = card.querySelector('tr[data-row="net"]');
+    expect(netRow.classList.contains('is-main')).toBe(true);
+    expect(flat(netRow.querySelector('th'))).toBe('Net cost (main case)');
+    const netVal = netRow.querySelector('td.hh-tbl-num [data-axis]');
     expect(netVal.textContent).toBe(fmtBn(D.cost_components.total_bn));
-    expect(netVal.hasAttribute('data-axis')).toBe(true);
     expect(text(card)).not.toContain(fmtBn(D.cost_components.total_bn));
-    for (const r of rows.slice(1, -1)) if (Math.abs(r.to - D.cost_components.total_bn) > 0.05) expect(text(card)).not.toContain(fmtBn(r.to));
-    expect(card.querySelector('[data-row="other_income_tax"] .hh-wf-label').textContent).toBe('Income tax on earnings (net)');
+    expect(flat(card.querySelector('tr[data-row="other_income_tax"] th'))).toBe('Income tax on earnings (net)');
+    // a line under £0.05bn prints two decimals, not a phrase
+    const other = D.cost_components.rows.find((r) => r.id === 'other');
+    if (Math.abs(other.cost_bn) < 0.05) expect(flat(card.querySelector('tr[data-row="other"] td.hh-tbl-num'))).toBe(fmtBn2(other.cost_bn));
+    expect(card.textContent).not.toMatch(/under £0\.1bn/);
+  });
+
+  it('prints every value in its own cell: every row of the cost, poverty and Gini tables has three filled cells', () => {
+    const { container } = render(<HouseholdsExplore />);
+    for (const id of ['hh-ladder', 'hh-rules', 'hh-policy']) {
+      const rows = container.querySelectorAll(`#${id} tbody tr[data-row]`);
+      expect(rows.length, id).toBeGreaterThan(0);
+      expect([...container.querySelectorAll(`#${id} thead th.hh-tbl-num`)].map(flat), id).toEqual(['Cost', 'Poverty', 'Gini']);
+      for (const r of rows) {
+        const cells = [...r.querySelectorAll('td.hh-tbl-num')].map(flat);
+        expect(cells, `${id} ${r.dataset.row}`).toHaveLength(3);
+        cells.forEach((c) => expect(c, `${id} ${r.dataset.row}`).not.toBe(''));
+        // the Gini in points, never pp (R1-06)
+        expect(cells[2], `${id} ${r.dataset.row}`).toMatch(/^[+−]\d+\.\d\d points$/);
+      }
+    }
+    // the main case: a ring and weight 600, the words "(main case)", no tint
+    for (const id of ['hh-ladder', 'hh-rules']) {
+      const main = container.querySelectorAll(`#${id} tbody tr.is-main`);
+      expect(main, id).toHaveLength(1);
+      expect(main[0].querySelector('.hh-pt-key.is-ring'), id).not.toBeNull();
+      expect(flat(main[0].querySelector('th')), id).toMatch(/\(main case\)$/);
+    }
+    expect(container.querySelectorAll('#hh-policy tr.is-main')).toHaveLength(0);
+  });
+
+  it('keeps a label and its number apart in the text (section 3)', () => {
+    const { container } = render(<HouseholdsExplore />);
+    // a row's cells joined as innerText joins them (a tab between cells)
+    for (const tr of container.querySelectorAll('tr[data-row]')) {
+      const t = [...tr.children].map((c) => c.textContent).join('\t');
+      expect(t, tr.dataset.row).not.toMatch(/[A-Za-z)][+−]?£?\d/);
+      for (const td of tr.querySelectorAll('td.hh-tbl-num')) expect(td.textContent.startsWith(' '), tr.dataset.row).toBe(true);
+    }
+    // the page's text, scales (data-axis ticks) aside
+    const c = container.cloneNode(true);
+    c.querySelectorAll('[data-axis]').forEach((n) => n.remove());
+    expect(c.textContent).not.toMatch(/\)£\d|[a-z]£\d+\.\d|[a-z][+−]\d/);
   });
 
   it('keeps the OBR-sized runs a separate group: no arrow joins the groups', () => {
     const obr = (id) => id.startsWith('obr');
     for (const [a, b] of VARIANT_ARROWS) expect(obr(a)).toBe(obr(b));
     const { container } = render(<HouseholdsExplore />);
-    expect(container.querySelector('#hh-ladder .hh-list-group').textContent).toContain('A different, smaller shock');
+    const groups = [...container.querySelectorAll('#hh-ladder .hh-tbl-group')].map(flat);
+    expect(groups[0]).toBe('Main shock');
+    expect(groups[1]).toMatch(/^OBR-sized shock, \S+% of employees displaced$/);
   });
 
-  it('switches UC per displaced worker between take-up cases, both values in the DOM', () => {
+  it('draws UC per person for both take-up cases as bars, with no switch', () => {
     const { container } = render(<HouseholdsExplore />);
-    const rows = container.querySelector('#hh-displaced .hh-uc-rows');
-    expect(rows.classList.contains('is-data')).toBe(true);
+    const card = container.querySelector('#hh-displaced');
     const gbp = (v) => `£${Math.round(v).toLocaleString('en-GB')}`;
-    expect(rows.textContent).toContain(gbp(D.displaced.uc_per_displaced.value));
-    expect(rows.textContent).toContain(gbp(D.displaced.uc_per_displaced_takeup.value));
-    const sw = container.querySelector('#hh-displaced [role="switch"]');
-    expect(sw.getAttribute('aria-checked')).toBe('false');
-    fireEvent.click(sw);
-    expect(sw.getAttribute('aria-checked')).toBe('true');
-    expect(rows.classList.contains('is-full')).toBe(true);
+    for (const k of ['uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed']) {
+      const r = card.querySelector(`tr[data-row="${k}"]`);
+      expect(flat(r.querySelector('td.hh-tbl-num'))).toBe(gbp(D.displaced[k].value));
+      expect(r.querySelector('.hh-bar-seg')).not.toBeNull();
+    }
+    expect(card.querySelector('[role="switch"], .uc-switch, .hh-uc-rows')).toBeNull();
+    // three sets under their heads; no tiles, no ordered list
+    expect([...card.querySelectorAll('.hh-set-head')].map(flat)).toEqual(['Share that would claim UC', 'What limits entitlement', 'UC added in a year, £ per person']);
+    expect(card.querySelector('ol, .stat-tile, .hh-reason')).toBeNull();
   });
 
-  it('gives each card at most one About fold, with no figures in it, and icons in headers only', () => {
+  it('gives each card one closed More info with the fixed heads, every figure in it restated, and one icon on the title', () => {
     const { container } = render(<HouseholdsExplore />);
     for (const card of container.querySelectorAll('article.card')) {
-      expect(card.querySelectorAll('details, .disclosure').length, card.id).toBeLessThanOrEqual(1);
-      expect(card.querySelector('.hh-note-btn, .hh-chip'), card.id).toBeNull();
-      const fold = card.querySelector('details, .disclosure');
-      if (fold) expect(fold.textContent, card.id).not.toMatch(/£\d+\.\dbn|\d\.\d\dpp/);
-      // icons: the card header's one, the Replay and Pause controls; none in a finding, unit, note, list or plane
-      expect(card.querySelectorAll('.card-finding svg, .card-unit svg, .hh-note svg, .hh-list svg, .hh-plane .hh-pt svg, .hh-funnel svg, .hh-reasons svg, .hh-pol-cards svg').length, card.id).toBe(0);
+      expect(card.querySelectorAll('.disclosure').length, card.id).toBe(1);
+      expect(card.querySelectorAll('.card-head h3 .card-icon').length, card.id).toBe(1);
+      // a figure in the fold carries data-axis or data-input, so the page
+      // dump (which reads closed folds) counts each figure once
+      expect(foldText(card), card.id).not.toMatch(FIG);
+      expect(card.querySelectorAll('.card-lead svg, .card-unit svg, .hh-tbl svg'), card.id).toHaveLength(0);
     }
     // the sources-and-notes book and the model line's icon
     expect(container.querySelectorAll('.hh-lead svg').length).toBe(2);
     expect(container.querySelectorAll('.section-heading p svg').length).toBe(0);
   });
 
-  it('labels the plane dots directly, plain dots with no icons', () => {
+  it('labels the plane dots directly with the rules’ plain names, plain dots with no icons; the extreme case on the scale', () => {
     const { container } = render(<HouseholdsExplore />);
     const labs = [...container.querySelectorAll('#hh-rules .hh-pt-lab')].map((l) => l.textContent);
-    expect(labs).toEqual(['Uniform', 'Junior-tilted', 'AI exposure (main)', 'Compression']);
+    expect(labs).toEqual(['uniform', 'junior', 'exposure', 'compression', 'klein_top_loaded'].map((id) => RULE_NAMES[id].short));
     expect(container.querySelectorAll('.hh-pt svg, .hh-pt-key svg')).toHaveLength(0);
-    expect([...container.querySelectorAll('#hh-ladder .hh-pt-lab')].map((l) => l.textContent)).toContain('OBR-sized runs');
+    expect([...container.querySelectorAll('#hh-ladder .hh-pt-lab')].map((l) => l.textContent)).toEqual(['Main case', 'Full take-up', 'Plus JSA', 'Wage cuts', 'OBR-sized shock']);
+    expect(container.querySelector('#hh-rules .hh-off-val, #hh-rules .hh-arrow.is-off')).toBeNull();
+    expect(container.querySelector('#hh-rules').textContent).not.toMatch(/at the arrow/);
+    // R1-15: no study term on Explore; plain names only
+    expect(container.textContent).not.toMatch(/[Jj]unior-tilted|[Ee]xpertise compression|\bCompression\b|exposure-proportional/);
+    for (const id of ['uniform', 'junior', 'compression']) expect(container.querySelector(`#hh-rules tr[data-row="${id}"] th .hh-tbl-name`).textContent.trim()).toBe(RULE_NAMES[id].plain);
+    // axis titles name the quantity only; the ticks carry the units
+    expect([...container.querySelectorAll('#hh-rules [data-axis-title]')].map((t) => t.textContent)).toEqual(['Rise in absolute poverty', 'Cost to the public finances']);
   });
 
   it('prints every figure at its home exactly once', () => {
@@ -146,7 +223,7 @@ describe('HouseholdsExplore', () => {
     expect(off(got, counts([...storyFigures(), ...householdsFigures()]))).toEqual([]);
   });
 
-  it('gives every chart card a download', () => {
+  it('gives every chart card a download, titled with the old topic name', () => {
     const { container } = render(<HouseholdsExplore />);
     const cards = container.querySelectorAll('article.card');
     // seven: where a lost pound goes is back in the Story (item 19)
@@ -154,30 +231,42 @@ describe('HouseholdsExplore', () => {
     cards.forEach((c) => expect(c.querySelector('.download button'), c.id).not.toBeNull());
   });
 
-  it('greys decile 1 under every ranking and carries the caveat, without reprinting the story values', () => {
+  it('greys decile 1 under every ranking and carries the caveat; the HBAI column restates the story values', () => {
     const { container } = render(<HouseholdsExplore />);
-    const d1 = container.querySelector('#hh-rankings [data-decile="1"]');
+    const card = container.querySelector('#hh-rankings');
+    const d1 = card.querySelector('[data-decile="1"]');
     expect(d1.querySelectorAll('.p3-fill-muted')).toHaveLength(D.rankings.length);
-    expect(container.querySelector('#hh-rankings [data-caveat="bottom-decile"]').textContent).toContain('so no conclusion is drawn');
-    expect(text(container.querySelector('#hh-rankings')).match(/[+−]\d+\.\d\d%/g)).toBeNull();
+    expect(d1.querySelector('.hh-db-val').classList.contains('hh-muted')).toBe(true);
+    expect(card.querySelector('[data-caveat="bottom-decile"]').textContent).toContain('so no conclusion is drawn');
+    const vals = [...card.querySelectorAll('.hh-db-val')];
+    expect(vals.map(flat)).toEqual(D.deciles.values.map(fmtDecilePct));
+    vals.forEach((v) => expect(v.querySelector('[data-axis]')).not.toBeNull());
+    expect(text(card).match(/[+−]\d+\.\d\d%/g)).toBeNull();
+    // one shared legend above the plot; no names inside it
+    expect(card.querySelectorAll('.card-legend li')).toHaveLength(D.rankings.length);
+    expect(card.querySelector('.hh-db-names, .hh-db-namerow')).toBeNull();
+    expect(card.querySelector('.card-legend abbr[title]').textContent).toBe('HBAI');
   });
 
-  it('labels the policy responses neutrally and does not rank them', () => {
+  it('labels the policy responses neutrally, in one table, two to a row at most, and does not rank them', () => {
     const { container } = render(<HouseholdsExplore />);
     const t = container.textContent;
     expect(t).not.toMatch(/cost-effective|per point|best|worst|should|poor|rich/i);
-    // the three responses in the study's order; wage insurance under the other rules on its card
-    const order = [...container.querySelectorAll('#hh-policy .hh-pol-card')].map((r) => r.dataset.row);
-    expect(order).toEqual(D.policy.rows.filter((r) => r.family === 'exposure').map((r) => r.id));
-    const sub = [...container.querySelectorAll('#hh-policy .hh-pol-sub [data-row]')].map((r) => r.dataset.row);
+    // the study's order: each response, then wage insurance under the other rules as sub-rows
+    const order = [...container.querySelectorAll('#hh-policy tbody tr[data-row]')].map((r) => r.dataset.row);
+    const main = D.policy.rows.filter((r) => r.family === 'exposure');
+    expect(order).toEqual(main.flatMap((m) => [m.id, ...D.policy.rows.filter((r) => r.reform === m.reform && r.family !== 'exposure').map((r) => r.id)]));
+    const sub = [...container.querySelectorAll('#hh-policy tr.is-sub')].map((r) => r.dataset.row);
     expect(sub).toEqual(D.policy.rows.filter((r) => r.family !== 'exposure').map((r) => r.id));
+    // R1-24: no grid of policy panels (they were three in a row)
+    expect(container.querySelector('.hh-pol-cards, .hh-pol-card')).toBeNull();
   });
 
-  it('flags the runs outside the rebuild while the data file lists any', () => {
+  it('flags the runs outside the rebuild in More info while the data file lists any', () => {
     const { container } = render(<HouseholdsExplore />);
     const out = D.method.outside_rebuild;
     const flagged = out == null || out.length > 0;
-    for (const id of ['hh-ladder', 'hh-per-pound', 'hh-displaced']) expect(container.querySelector(`#${id} .p3-flag`) != null, id).toBe(flagged);
+    for (const id of ['hh-ladder', 'hh-per-pound', 'hh-displaced']) expect(container.querySelector(`#${id} [data-more-info]`).textContent.includes('Outside the study’s attested rebuild'), id).toBe(flagged);
   });
 });
 
@@ -229,12 +318,25 @@ describe('Where a lost pound goes (the Story again, item 19; Explore links to it
     // decile 1 grey, nodes and ribbons, and no other
     expect(g.nodes.filter((n) => n.color === CAVEAT_GREY).map((n) => n.id)).toEqual(['d1']);
     for (const l of g.links) expect(l.color === CAVEAT_GREY).toBe(l.source === 'd1');
-    // Explore keeps one link line to the Story scene, with no figure
+    // Explore links to the Story scene from the displaced card's foot, with no figure
     const { container } = render(<HouseholdsExplore />);
-    const line = container.querySelector('#hh-absorb');
-    expect(line.querySelector('a').getAttribute('href')).toContain('#p3-pound');
-    expect(text(line).match(FIG)).toBeNull();
+    const link = container.querySelector('#hh-displaced .story-link a');
+    expect(link.getAttribute('href')).toContain('#p3-pound');
     expect(container.querySelector('.sankey')).toBeNull();
+  });
+});
+
+// Review round 1, R1-15: one map of the rules' names (figures.js), the
+// plain name first; the study's term once, in brackets, on Method.
+describe('the rules\u2019 names', () => {
+  it('Method gives each plain name with the study\u2019s term once in brackets; the Story uses the same plain names', () => {
+    const m = render(<HouseholdsMethod />).container.textContent;
+    for (const [id, n] of Object.entries(RULE_NAMES)) {
+      expect(m, id).toContain(methodName(id));
+      if (n.study) expect(m.match(new RegExp(`\\(${n.study}\\)`, 'g')), id).toHaveLength(1);
+    }
+    const story = render(<Part3 part={{ id: 'story-part-3', n: 3, icon: 'usersRound', kicker: 'Part 3', title: 'A model of households' }} />).container.textContent.toLowerCase();
+    for (const id of ['uniform', 'junior', 'exposure', 'compression']) expect(story, id).toContain(RULE_NAMES[id].plain.toLowerCase());
   });
 });
 
@@ -281,20 +383,21 @@ describe('Detail and sources', () => {
   });
 });
 
-// Item 28 (checks-words2.md, item-24-fable.md failed claims): the words
-// the data support.
+// Item 28 (checks-words2.md) and item 24's failed claims: the words the
+// data support.
 describe('Explore > Households, the words the data support', () => {
-  it('says would claim, gives each share its base, names losing and gaining deciles from the data, and drops reach', async () => {
-    const { rankingsWords, policyWords } = await import('./HouseholdsExplore.jsx');
+  it('says would claim, gives each share its base, names losing deciles from the data, and drops reach', async () => {
+    const { rankingsWords, rankingsLead, policyWords } = await import('./HouseholdsExplore.jsx');
     const ex = render(<HouseholdsExplore />).container;
     const disp = ex.querySelector('#hh-displaced');
+    // the 48%: "would claim", never "claim UC" (its base includes units with no entitlement)
     expect(disp.textContent).not.toMatch(/(^|[^d] )[Cc]laim UC/);
     expect(disp.querySelector('ol')).toBeNull();
-    const rows = [...disp.querySelectorAll('.hh-funnel-row')].map((r) => r.textContent.replace(/\s+/g, ' ').trim());
+    const rows = [...disp.querySelectorAll('tr[data-row]')].slice(0, 3).map((r) => [flat(r.querySelector('th')), flat(r.querySelector('td.hh-tbl-num'))]);
     expect(rows).toEqual([
-      `${fmtShareT(D.displaced.claim_uc.value)} would claim UC (of all benefit units with a displaced worker)`,
-      `${fmtShareT(D.displaced.claim_uc_entitled.value)} would claim (of those entitled to UC once displaced)`,
-      `${fmtShareT(D.displaced.existing_unemployed_claim.value)} claim (of entitled units with someone already unemployed)`,
+      ['All units with a displaced worker', fmtShareT(D.displaced.claim_uc.value)],
+      ['Those entitled to UC once displaced', fmtShareT(D.displaced.claim_uc_entitled.value)],
+      ['Entitled units with someone already unemployed', fmtShareT(D.displaced.existing_unemployed_claim.value)],
     ]);
     // deciles: the boundary read from the data (all three rankings agree)
     const R = D.rankings;
@@ -302,13 +405,21 @@ describe('Explore > Households, the words the data support', () => {
     const gain = [...Array(10).keys()].filter((i) => R.every((r) => r.values[i] > 0)).map((i) => i + 1);
     expect(lose).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
     expect(gain).toEqual([10]);
-    expect(rankingsWords(R)).toBe('Deciles 2 to 9 lose income; decile 10 moves by less than 0.2%; decile 1 changes sign across the rankings');
-    expect(ex.querySelector('#hh-rankings').textContent).toContain('Deciles 2 to 9 lose income');
+    expect(rankingsWords(R)).toBe('Deciles 2 to 9 lose income under all three rankings; decile 1 changes sign');
+    // decile 10 is never said to gain: under 0.2% under each ranking (R1-03)
+    expect(rankingsLead(R)).toBe('Decile 10 moves by less than 0.2% under each ranking.');
+    expect(ex.querySelector('#hh-rankings .card-head h3').textContent).toContain('Deciles 2 to 9 lose income');
+    expect(ex.textContent).not.toMatch(/decile 10 gains/i);
     expect(policyWords(D.policy.rows)).not.toMatch(/reach/);
     expect(ex.textContent).not.toMatch(/\breach\b/);
-    // per pound: the household part is labelled as a part of the total
+    // per pound: the household part is labelled as a part of the total;
+    // the remainder is drawn and named in the legend, never printed
     const pp = ex.querySelector('#hh-per-pound');
-    expect(pp.querySelector('.hh-pp-cols').textContent).toBe('TotalOf which household');
-    expect(pp.textContent).toContain('The rest of the total: employer NI and other items, not split in the data');
+    expect([...pp.querySelectorAll('thead th.hh-tbl-num')].map(flat)).toEqual(['Total', 'Of which tax, employee NI and benefits']);
+    expect([...pp.querySelectorAll('.card-legend li')].map(flat)).toEqual(['Tax, employee NI and benefits', 'Employer NI and other items']);
+    expect(flat(pp.querySelector('tr[data-row="pp-job"]'))).toContain('not split');
+    const w = D.per_pound.find((r) => r.id === 'wage_cuts');
+    expect(pp.textContent).not.toContain(`${Math.round(w.government_p - w.household_p)}p`);
+    expect(pp.textContent).not.toContain(`${Math.round(D.per_pound_20.wage_cuts_employer_ni_p)}p`);
   });
 });

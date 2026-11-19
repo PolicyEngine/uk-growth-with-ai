@@ -26,8 +26,8 @@
       "source": "label-joins.test.jsx, both data files, lowered to 21 by ratchet --update at perf/c-swap2 (C0 fixes to R1-21)"
     },
     "eslint_ugai_one_chooser": {
-      "baseline": 1,
-      "source": "ugai/one-chooser: HouseholdsExplore role=switch (lowered from 2, R3-13; ResultsTab ControlBar gone in C0)"
+      "baseline": 0,
+      "source": "ugai/one-chooser: 0 at perf/c-hh (item 24 removed the HouseholdsExplore role=switch; the ResultsTab ControlBar was already gone at the push C base)"
     },
     "eslint_ugai_one_fold": {
       "baseline": 8,

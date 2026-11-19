@@ -30,6 +30,7 @@ def m(x): return f"{x:.2f}m"
 def bn(x): return ('−' if x < 0 else '') + f"£{rnd(abs(x), 1)}bn"
 def bn2(x): return ('−' if x < 0 else '') + f"£{rnd(abs(x), 2)}bn"
 def pp(x): return signed(x, 2) + 'pp'
+def pts(x): return signed(x, 2) + ' points'  # the Gini, 0 to 100 (review round 1, R1-06)
 def pence(x): return f"{rnd(x)}p"
 def share(x): return f"{rnd(x)}%"
 def pct1(x): return f"{rnd(x, 1)}%"
@@ -44,7 +45,7 @@ story = Counter()
 # 1 the central case, with its baselines
 for x in [m(H3['central_displaced']['value']), bn(H3['central_cost']['value']), pp(H3['central_poverty']['value']),
           pct1(AI['baseline']['absolute_bhc_pct']['value']), pp(H3['central_poverty_relative']['value']),
-          pct1(AI['baseline']['relative_bhc_pct']['value']), pp(H3['central_gini']['value']), bn(H3['central_cost']['sd']),
+          pct1(AI['baseline']['relative_bhc_pct']['value']), pts(H3['central_gini']['value']), bn(H3['central_cost']['sd']),
           pp(H3['central_poverty_ahc']['value'])]:
     story[x] += 1
 # 2 the three channels, their sum and interaction (20 draws)
@@ -69,24 +70,27 @@ story[f"+{rnd(AI['breakeven']['capital']['value_pct'])}%"] += 1
 story[bn(S['total']['earnings_lost_bn'])] += 1
 for k in ('disposable_bn', 'benefits_bn', 'tax_ni_bn', 'other_bn'): story[bn(S['total'][k])] += 1
 story[share(S['tax_benefit_share_pct'])] += 1; story[bn(S['employer_ni_bn'])] += 1
-STORY_TEXT = [f"from {AI['baseline']['gini']['value']:.3f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
+_gini_level = AI['baseline']['gini'].get('value_points', AI['baseline']['gini']['value'] * 100)
+STORY_TEXT = [f"from {rnd(_gini_level, 1):.1f}", f"{rnd(AI['breakeven']['duration']['value_months'], 1)} months", 'not the main case']
 
 hh = Counter()
+# Explore > Households as rebuilt by item 24 (households/figures.js
+# householdsFigures): values whose home is the Story are restated there
+# with data-axis and not counted here; the Gini in points (R1-06)
 for r in AI['cost_components']['rows']:
-    hh['£0.1bn' if abs(r['cost_bn']) < 0.05 else bn(r['cost_bn'])] += 1
-for k in ('central_20', 'takeup', 'takeup_jsa', 'wage_cuts'): hh[pp(LAD[k]['gini_pp'])] += 1
-# full UC take-up and JSA: their home is Explore > Households (#hh-ladder) from round 1
-for k in ('takeup', 'takeup_jsa'): hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1
-for k in ('obr', 'obr_takeup', 'obr_takeup_jsa'):
-    hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pp(LAD[k]['gini_pp'])] += 1
-hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1
-for k in ('uniform', 'junior', 'compression'): hh[pp(RUL[k]['gini_pp'])] += 1
-hh[pp(RUL['klein_top_loaded']['poverty_pp'])] += 1; hh[pp(RUL['klein_top_loaded']['gini_pp'])] += 1
+    hh[bn2(r['cost_bn']) if abs(r['cost_bn']) < 0.05 else bn(r['cost_bn'])] += 1
+hh[pence(PP['wage_cuts']['household_p'])] += 1
 for k in ('job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'): hh[pence(PP[k]['government_p'])] += 1; hh[pence(PP[k]['household_p'])] += 1
+for k in ('central_20', 'wage_cuts'): hh[pts(LAD[k]['gini_pp'])] += 1
+# full UC take-up and JSA: their home is Explore > Households (#hh-ladder) from round 1
+for k in ('takeup', 'takeup_jsa', 'obr', 'obr_takeup', 'obr_takeup_jsa'):
+    hh[bn(LAD[k]['cost_bn'])] += 1; hh[pp(LAD[k]['poverty_pp'])] += 1; hh[pts(LAD[k]['gini_pp'])] += 1
+for k in ('uniform', 'junior', 'compression'): hh[pts(RUL[k]['gini_pp'])] += 1
+hh[bn(RUL['klein_top_loaded']['cost_bn'])] += 1; hh[pp(RUL['klein_top_loaded']['poverty_pp'])] += 1; hh[pts(RUL['klein_top_loaded']['gini_pp'])] += 1
 for k in ('claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner'):
     hh[share(AI['displaced'][k]['value'])] += 1
 for k in ('uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'): hh[gbp(AI['displaced'][k]['value'])] += 1
-for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pp(r['gini_pp'])] += 1
+for r in AI['policy']['rows']: hh[bn(r['cost_bn'])] += 1; hh[pp(r['poverty_pp'])] += 1; hh[pts(r['gini_pp'])] += 1
 # the three rankings' threshold (review round 1, R1-03): a decile that gains
 # under every ranking by under 0.2% "moves by less than 0.2%"
 _R = AI['rankings']
@@ -96,7 +100,7 @@ if _gain and all(abs(r['values'][i]) < 0.2 for i in _gain for r in _R):
 # where a lost pound goes: back in story part 3 (item 19); Explore links to it
 HH_TEXT = []
 
-FIG3 = re.compile(r"−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
+FIG3 = re.compile(r"−?£[\d,]+(?:\.\d+)?(?:bn)?|[+−]?\d+\.\d\dpp|[+−]\d+\.\d\d points|\b\d+p(?![A-Za-z])|[+−]?\d+(?:\.\d+)?%|\d+\.\d\dm")
 
 
 def sankey_failures():

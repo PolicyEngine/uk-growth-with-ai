@@ -3,7 +3,8 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import { TileField } from '@/components/story/primitives.jsx';
 import CountUp from '@/components/story/CountUp.jsx';
-import { fmtBn, fmtGini, fmtMillions, fmtPct1, fmtPp, fmtPpSpread } from './format.js';
+import { fmtBn, fmtMillions, fmtPct1, fmtPp, fmtPpSpread } from './format.js';
+import { fmtGiniLevel, fmtGiniPts, giniLevel } from '@/tabs/households/figures.js';
 import { Essential } from '@/components/ui/SourceLine.jsx';
 import { AxisTitle, D, FigureHead, MODEL_YEAR, Key, MarkProvider, Source, entryClass, markProps, useBeat, asLines } from './shared.jsx';
 import { NavLink } from '@/lib/nav.jsx';
@@ -68,9 +69,10 @@ const FACTS = [
   },
   {
     key: 'gini',
-    value: fmtPp(H.central_gini.value),
-    label: 'Gini coefficient, in points',
-    sub: `from ${fmtGini(B.gini.value)}`,
+    // the change and its level on one scale, 0 to 100 (review round 1, R1-06)
+    value: fmtGiniPts(H.central_gini.value),
+    label: 'Gini coefficient, 0 to 100',
+    sub: `from ${fmtGiniLevel(giniLevel(B.gini))}`,
   },
 ];
 

@@ -25,6 +25,7 @@ import { TABS } from '@/lib/labels.js';
 import { SURPRISE_YEAR, YEARS } from '@/tabs/ai/surprise.js';
 import { readFileSync } from 'node:fs';
 import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtGini, fmtMonths, fmtPct1, fmtPctSigned0, fmtPctSigned1, fmtPence, fmtPenceRange, fmtPp, fmtShare, MINUS } from './part3/format.js';
+import { fmtGiniLevel, fmtGiniPts, giniLevel } from '@/tabs/households/figures.js';
 
 afterEach(cleanup);
 
@@ -97,7 +98,9 @@ describe('Part3', () => {
     const exp = counts(storyFigures());
     const off = [...new Set([...Object.keys(got), ...Object.keys(exp)])].filter((k) => got[k] !== exp[k]);
     expect(off.map((k) => `${k}: printed ${got[k] ?? 0}, expected ${exp[k] ?? 0}`)).toEqual([]);
-    expect(text).toContain(`from ${fmtGini(D.baseline.gini.value)}`);
+    // the Gini level on the 0 to 100 scale of its change (R1-06)
+    expect(text).toContain(`from ${fmtGiniLevel(giniLevel(D.baseline.gini))}`);
+    expect(text).not.toContain(`from ${fmtGini(D.baseline.gini.value)}`);
     expect(text).toContain(fmtMonths(D.breakeven.duration.value_months));
     expect(text).not.toMatch(/NaN|undefined/);
   });
@@ -112,8 +115,8 @@ describe('Part3', () => {
       fmtPp(H.central_poverty.value),
       fmtPct1(D.baseline.absolute_bhc_pct.value),
       fmtPct1(D.baseline.relative_bhc_pct.value),
-      fmtPp(H.central_gini.value),
-      fmtGini(D.baseline.gini.value),
+      fmtGiniPts(H.central_gini.value),
+      fmtGiniLevel(giniLevel(D.baseline.gini)),
       fmtBn(D.channels.rows.find((r) => r.id === 'displacement').cost_bn),
       fmtBn(D.channels.rows.find((r) => r.id === 'wage').cost_bn),
       fmtBn(D.channels.rows.find((r) => r.id === 'capital').cost_bn),

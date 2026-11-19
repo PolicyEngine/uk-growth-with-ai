@@ -472,7 +472,9 @@ def extras(cmc: dict, low: dict, model_year: str) -> dict:
                              "note": f"Baseline (no shock), FY {model_year}; the baseline does not depend on the draw."},
         "relative_bhc_pct": {"value": r(100 * cmc["baseline_relative_poverty_bhc_rate"], 2), "file": F_CMC,
                              "key": "baseline_relative_poverty_bhc_rate * 100", "note": "60% of the baseline median."},
-        "gini": {"value": r(low["gini_baseline"], 3), "file": F_LOW, "key": "gini_baseline", "note": None},
+        "gini": {"value": r(low["gini_baseline"], 3), "file": F_LOW, "key": "gini_baseline", "note": None,
+                 # the same level on the 0-100 scale the Gini changes are printed on (review round 1, R1-06)
+                 "value_points": r(100 * low["gini_baseline"], 1)},
         "baseline_source": "PolicyEngine-UK baseline",
         "baseline_source_note": ("Simulated by PolicyEngine-UK on Microcosm UK 2024-25 for FY " + model_year +
                                  "; not a DWP Households Below Average Income statistic."),

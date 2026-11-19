@@ -462,7 +462,8 @@
       "value": 0.3027,
       "file": "results/low.json",
       "key": "gini_baseline",
-      "note": null
+      "note": null,
+      "value_points": 30.267
     },
     "baseline_source": "PolicyEngine-UK baseline",
     "baseline_source_note": "Simulated by PolicyEngine-UK on Microcosm UK 2024-25 for FY 2027–28; not a DWP Households Below Average Income statistic."

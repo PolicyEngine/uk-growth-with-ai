@@ -1465,76 +1465,6 @@
 
 /* households (P3): Explore > Households (tabs/households/*). P3 writes only
    inside this block; the rest of this file is the Explore builder's. */
-.hh-findings {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 12px 0 10px;
-  padding: 0;
-  list-style: none;
-}
-.hh-finding {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  height: 100%;
-  padding: 10px 12px;
-  font-size: var(--fs-small);
-  line-height: 1.4;
-  color: var(--pe-gray-700);
-  text-decoration: none;
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-}
-.hh-finding b {
-  display: block;
-  color: var(--pe-gray-900);
-}
-.hh-finding .plain-icon {
-  display: inline-flex;
-  margin-top: 2px;
-  color: var(--c-highlight);
-}
-.hh-finding:hover,
-.hh-finding:focus-visible {
-  border-color: var(--c-highlight);
-}
-.hh-lead-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin: 0;
-}
-.hh-chip {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  padding: 1px 8px;
-  font-size: var(--chart-fs-tick);
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--pe-gray-700);
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-  vertical-align: 1px;
-}
-.hh-chip .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-.hh-chip.is-b {
-  color: var(--rank-2);
-  border-color: currentColor;
-}
-.hh-chip.is-b .plain-icon {
-  color: inherit;
-}
-.hh-chip.is-link {
-  color: var(--c-gain-text);
-  text-decoration: none;
-}
 .hh-page .card-finding .plain-icon,
 .hh-page .card-unit .plain-icon,
 .hh-page .section-heading-text p .plain-icon {
@@ -1545,15 +1475,6 @@
 }
 .hh-muted {
   color: var(--pe-gray-500);
-}
-.hh-page .hh-ref {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  font-size: var(--chart-fs-tick);
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--c-gain-text);
 }
 .hh-flag {
   margin: 10px 0 0;
@@ -1575,35 +1496,6 @@
 }
 
 /* the waterfall */
-.hh-wf .hh-rowlist {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 18px 0 0;
-  list-style: none;
-}
-.hh-wf-row {
-  display: grid;
-  grid-template-columns: minmax(0, 11em) minmax(0, 1fr) 8.4em;
-  column-gap: 10px;
-  align-items: center;
-  font-size: var(--fs-small);
-}
-.hh-wf-row.is-net {
-  padding-top: 6px;
-  border-top: 1px solid var(--card-border);
-}
-.hh-wf-label {
-  min-width: 0;
-  overflow-wrap: break-word;
-  color: var(--pe-gray-700);
-}
-/* the Net row's story link, on its own line under the row */
-.hh-wf-ref {
-  grid-column: 1 / -1;
-  justify-self: end;
-  margin-top: 4px;
-}
 .hh-wf-track {
   position: relative;
   height: 14px;
@@ -1729,182 +1621,10 @@
   background: transparent;
   box-shadow: none;
 }
-.hh-off-val {
-  position: absolute;
-  transform: translateY(-100%);
-  font-size: var(--chart-fs-tick);
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--pe-gray-900);
-}
-.hh-list {
-  container-type: inline-size;
-  margin-top: 10px;
-  font-size: var(--fs-small);
-}
-.hh-list-head,
-.hh-list-row {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) var(--hh-c1, 5.4em) repeat(calc(var(--hh-cols) - 1), 5.4em);
-  column-gap: 10px;
-  align-items: center;
-}
-.hh-list-head {
-  font-size: var(--chart-fs-tick);
-  text-align: right;
-  color: var(--pe-gray-500);
-}
-.hh-list ul {
-  display: grid;
-  gap: 4px;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.hh-list-label {
-  color: var(--pe-gray-700);
-}
-.hh-list-span {
-  text-align: right;
-}
-.hh-list.is-wide-c1 {
-  --hh-c1: 8.6em;
-}
 /* a narrow card (not a narrow viewport: the page keeps two columns down to
    900px): each name on its own full-width row, its values beneath */
-@container (max-width: 500px) {
-  .hh-list-head,
-  .hh-list-row {
-    grid-template-columns: 20px minmax(0, 1.6fr) repeat(calc(var(--hh-cols) - 1), minmax(0, 1fr));
-    column-gap: 8px;
-  }
-  .hh-list-head > span:nth-child(2) {
-    display: none;
-  }
-  .hh-list-row > .hh-pt-key {
-    grid-row: span 2;
-    align-self: start;
-  }
-  .hh-list-row > .hh-list-label {
-    grid-column: 2 / -1;
-  }
-  .hh-list ul {
-    gap: 8px;
-  }
-}
-.hh-list-group {
-  margin-top: 8px;
-  padding-top: 8px;
-  font-size: var(--chart-fs-tick);
-  color: var(--pe-gray-600);
-  border-top: 1px solid var(--card-border);
-}
-
 /* notes: an icon row and its popover */
-.hh-notes {
-  position: relative;
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--card-border);
-}
-.hh-note-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-}
-.hh-note-btn {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  min-height: 28px;
-  padding: 2px 4px;
-  font: inherit;
-  font-size: var(--chart-fs-tick);
-  color: var(--pe-gray-600);
-  background: none;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.hh-note-btn:hover,
-.hh-note-btn.is-open {
-  color: var(--pe-gray-900);
-  background: var(--pe-gray-100);
-}
-.hh-note-btn:focus-visible {
-  outline: 2px solid var(--c-highlight);
-  outline-offset: 1px;
-}
-.hh-pop {
-  margin-top: 6px;
-  padding: 10px 12px;
-  font-size: var(--fs-small);
-  background: var(--pe-surface);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  box-shadow: 0 4px 14px var(--shadow-soft);
-}
-.hh-pop .story-items {
-  gap: 4px;
-}
-
 /* cost per pound: stacked pence */
-.hh-pp-group + .hh-pp-group {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--card-border);
-}
-.hh-pp-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 0 6px;
-}
-.hh-pp-cols {
-  display: grid;
-  grid-template-columns: repeat(2, 5.4em);
-  column-gap: 10px;
-  font-size: var(--chart-fs-tick);
-  text-align: right;
-  color: var(--pe-gray-500);
-}
-.hh-pp .hh-rowlist {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.hh-pp-row {
-  display: grid;
-  grid-template-columns: minmax(0, 10em) minmax(0, 1fr) 5.4em 5.4em;
-  column-gap: 10px;
-  align-items: center;
-  font-size: var(--fs-small);
-}
-.hh-pp-row .hh-list-span {
-  grid-column: span 2;
-}
-.hh-pence {
-  position: relative;
-  height: 12px;
-  background: var(--pe-gray-100);
-  border-radius: 2px;
-}
-.hh-pence-seg {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 450ms var(--story-ease);
-}
-.hh-pp.is-on .hh-pence-seg {
-  transform: none;
-}
-.hh-pence-seg.p3-fill-ref {
-  background: var(--pe-gray-400);
-}
 .hh-note {
   display: flex;
   gap: 6px;
@@ -1914,152 +1634,7 @@
   color: var(--pe-gray-600);
 }
 
-/* who the displaced are */
-.hh-funnel {
-  display: grid;
-  gap: 6px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.hh-funnel-row {
-  position: relative;
-  min-height: 30px;
-}
-.hh-funnel-bar {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: color-mix(in srgb, var(--rank-3) 35%, transparent);
-  border-radius: 4px;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 600ms var(--story-ease);
-}
-.hh-funnel-row.is-compare .hh-funnel-bar {
-  background: var(--pe-gray-100);
-}
-.hh-disp.is-on .hh-funnel-bar {
-  transform: none;
-}
-.hh-funnel-text {
-  position: relative;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  padding: 5px 8px;
-  font-size: var(--fs-small);
-  color: var(--pe-gray-800);
-}
-.hh-funnel-text .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-600);
-}
-.hh-reasons {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.hh-reason {
-  display: grid;
-  gap: 2px;
-  padding: 10px;
-  font-size: var(--chart-fs-tick);
-  color: var(--pe-gray-600);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-}
-/* the tile's figure rises in as the funnel lands (its text stays readable) */
-.hh-reason b {
-  transform: translateY(6px);
-  opacity: 0;
-  transition: transform 300ms var(--story-ease) var(--d, 0ms), opacity 300ms var(--story-ease) var(--d, 0ms);
-}
-.hh-disp.is-on .hh-reason b {
-  opacity: 1;
-  transform: none;
-}
-.hh-reason .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-.hh-reason b {
-  font-size: var(--fs-lg, 1.25rem);
-  font-variant-numeric: tabular-nums;
-  color: var(--pe-gray-900);
-}
-.hh-uc {
-  margin-top: 14px;
-}
-.hh-uc-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: space-between;
-  align-items: center;
-}
-.hh-uc-title {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin: 0;
-  font-size: var(--fs-small);
-  font-weight: 600;
-}
-.hh-uc-rows {
-  display: grid;
-  gap: 6px;
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.hh-uc-row {
-  display: grid;
-  grid-template-columns: minmax(0, 11em) minmax(0, 1fr) 5.4em;
-  column-gap: 10px;
-  align-items: center;
-  font-size: var(--fs-small);
-}
-.hh-uc-track {
-  position: relative;
-  height: 12px;
-  background: var(--pe-gray-100);
-  border-radius: 2px;
-}
-.hh-uc-bar {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 0 2px 2px 0;
-  background: var(--rank-1);
-  transition: opacity 300ms ease;
-}
-.hh-uc-bar.is-ref {
-  background: var(--pe-gray-400);
-}
-.hh-uc-vals {
-  display: grid;
-  text-align: right;
-}
-.hh-uc-vals .hh-val {
-  grid-area: 1 / 1;
-  transition: opacity 300ms ease;
-}
-/* the take-up toggle cross-fades the two values and their bars; no tween */
-.hh-uc-rows.is-data .is-full,
-.hh-uc-rows.is-full .is-data {
-  opacity: 0;
-}
-
 /* deciles under three rankings */
-.hh-db .hh-rowlist {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
 .hh-db-axis,
 .hh-db-row {
   display: grid;
@@ -2131,94 +1706,6 @@
 }
 
 /* policy responses: three cards in the study's order */
-.hh-pol-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.hh-pol-card {
-  display: grid;
-  align-content: start;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-}
-.hh-pol-title {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  margin: 0;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  color: var(--pe-gray-900);
-}
-.hh-pol-title .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-.hh-pol-track {
-  position: relative;
-  height: 10px;
-  background: var(--pe-gray-100);
-  border-radius: 2px;
-}
-.hh-pol-bar {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--pe-gray-800);
-  border-radius: 0 2px 2px 0;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 500ms var(--story-ease);
-}
-.hh-pol.is-on .hh-pol-bar {
-  transform: none;
-}
-.hh-pol-nums {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 0;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.hh-pol-num {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-}
-.hh-pol-num .plain-icon {
-  display: inline-flex;
-  color: var(--pe-gray-500);
-}
-.hh-pol-sub {
-  display: grid;
-  gap: 6px;
-  margin: 2px 0 0;
-  padding: 8px 0 0;
-  list-style: none;
-  border-top: 1px dashed var(--card-border);
-}
-.hh-pol-sub li {
-  display: grid;
-  gap: 2px;
-  font-size: var(--chart-fs-tick);
-}
-.hh-pol-sub .hh-pol-nums {
-  font-size: var(--chart-fs-tick);
-  font-weight: 500;
-}
-.hh-pol-sub-label {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  color: var(--pe-gray-600);
-}
 .hh-links {
   display: flex;
   flex-wrap: wrap;
@@ -2228,29 +1715,6 @@
   display: inline-flex;
   gap: 4px;
   align-items: center;
-}
-
-@media (max-width: 900px) {
-  .hh-findings,
-  .hh-pol-cards {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 600px) {
-  .hh-reasons {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .hh-wf-row,
-  .hh-uc-row {
-    grid-template-columns: minmax(0, 8em) minmax(0, 1fr) 5.4em;
-  }
-  /* "under £0.1bn" on one line */
-  .hh-wf-row {
-    grid-template-columns: minmax(0, 7.4em) minmax(0, 1fr) 6.6em;
-  }
-  .hh-pp-row {
-    grid-template-columns: minmax(0, 7em) minmax(0, 1fr) 4.6em 4.6em;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .hh-page .hh-wf-bar,
@@ -2308,12 +1772,6 @@
 }
 .hh-model a {
   color: var(--c-link, var(--c-highlight));
-}
-.hh-pp-basis,
-.hh-group-name {
-  font-size: var(--chart-fs-tick);
-  font-weight: 600;
-  color: var(--pe-gray-600);
 }
 .hh-absorb {
   position: relative;
@@ -2497,58 +1955,6 @@
 
 /* the sparkline's two ends, named by their years */
 
-/* Deciles under three rankings: the widest decile's three dots named in
-   place (the lowest and highest beside them, the middle one under) */
-.hh-db-row.is-named .hh-db-track {
-  overflow: visible;
-}
-.hh-db-row.is-named {
-  position: relative;
-}
-.hh-db-names {
-  position: absolute;
-  inset: 0 0 0 calc(6em + 10px);
-  pointer-events: none;
-}
-.hh-db-name {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font: 600 11px/1.1 var(--ch-font, inherit);
-  white-space: nowrap;
-}
-.hh-db-track.is-names {
-  height: 14px;
-}
-.hh-db-name.is-under {
-  top: 0;
-  transform: translateX(-50%);
-}
-.hh-db-name.is-rank-1 {
-  color: var(--rank-1-text, var(--rank-1));
-}
-.hh-db-name.is-rank-2 {
-  color: var(--rank-2-text, var(--rank-2));
-}
-.hh-db-name.is-rank-3 {
-  color: var(--rank-3-text, var(--pe-gray-600));
-}
-.hh-db-namerow .is-extra {
-  display: none;
-}
-@media (max-width: 600px) {
-  .hh-db-names {
-    display: none;
-  }
-  .hh-db-track.is-names {
-    height: 42px;
-  }
-  .hh-db-namerow .hh-db-name {
-    display: block;
-    top: calc(var(--row) * 14px);
-    transform: translateX(var(--slide));
-  }
-}
 
 .ex-ruler:has(.ex-ruler-unit) {
   margin-bottom: 16px;

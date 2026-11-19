@@ -1,35 +1,38 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import Card, { SectionHeading } from '@/components/ui/Card.jsx';
+import Legend from '@/components/ui/Legend.jsx';
 import { NavLink } from '@/lib/nav.jsx';
 import { ModelLine, PageNotes } from '@/components/ui/PageIntro.jsx';
 import { linkAiFiles } from '@/tabs/explore/sources.jsx';
-import { AxisTitles } from '@/tabs/explore/axes.jsx';
 import { ext } from '@/tabs/shared/ui.jsx';
 import { URLS, efo, EFO_PAGE } from '@/tabs/ai/links.js';
-import { D, MODEL_YEAR, OBR_SCENARIO, OutsideRebuildFlag, PAPER_URL, Replay, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
-import { fmtBn, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtShare } from '@/tabs/story/part3/format.js';
-import { Plane, PointList, STEP, StoryRef, signedTick } from './charts.jsx';
-import { SMALL_DECILE_PCT } from './figures.js';
+import { D, MODEL_YEAR, OBR_SCENARIO, OUTSIDE_REBUILD, PAPER_URL, entryClass, ladder, perPound, rule, useSeenBeat } from '@/tabs/story/part3/shared.jsx';
+import { fmtBn, fmtBn2, fmtDecilePct, fmtGbp, fmtInputPct, fmtPence, fmtPp, fmtPpSpread, fmtShare } from '@/tabs/story/part3/format.js';
+import { Bar, Plane, STEP, ValueTable, signedTick } from './charts.jsx';
+import { RULE_NAMES, SMALL_DECILE_PCT, fmtGiniPts, ruleName } from './figures.js';
 
-// Explore > Households: the uk-ai-study detail (PolicyEngine/uk-ai-study
-// PR #18), apart from story part 3. "Provisional" is said once, in the
-// lead. Every figure is printed once across part 3 and this page: a value
-// the story prints is drawn here as a position, and its row carries one
-// link to the step. Every chart has a CSV download (Card's DownloadMenu)
-// and at most one About fold. Round 2: icons in headers only (card and
-// section titles); plain dots with direct labels on the two planes. Figures from
-// data/aiStudy2425.json (docs/story/part3-notes.md); the two models are never
-// drawn together here.
+// Explore > Households (item-24-fable.md): the household study's detail,
+// apart from story part 3. Seven cards in three sections. Each card's
+// title is its finding (a sentence, data-gated with a neutral fallback);
+// its lead gives the figures; one unit line; the key above the chart;
+// every value in its own table cell; one closed More info; one link to the
+// Story scene that tells the same result. Each fact is printed once
+// across part 3 and this page: a value whose home is the Story, restated
+// here, carries data-axis (scripts/dumptabs.mjs and the tests skip it), as
+// does a number in a sentence that the same card's chart prints. No
+// control on the page: two states with room are both drawn (section 5).
+// Figures from data/aiStudy2425.json (docs/story/part3-notes.md).
 
-// The study's model year and status come from the data file (the refreshed
-// file carries model_year_label, provisional and status; the older one only
-// the shared MODEL_YEAR).
+// The study's model year and status come from the data file.
 const YEAR = D.model_year_label ?? MODEL_YEAR;
 const STATUS = D.provisional === false ? (D.status ?? null) : 'provisional';
 const PAPER = D.source.paper_url ?? PAPER_URL;
 const CTX = `Household study PR #${D.source.pr}${STATUS ? ` (${STATUS})` : ''}, ${D.source.dataset}, ${YEAR}, commit ${D.source.commit.slice(0, 7)}`;
+// a figure restated from its home (the Story, or this card's own chart)
+const Ax = ({ children }) => <span data-axis="">{children}</span>;
+
 // Orderings in words, computed, so a rerun that moves them changes the text.
 const span = (is) => {
   const runs = [];
@@ -40,52 +43,55 @@ const span = (is) => {
   }
   return runs.map(([a, b]) => (a === b ? `${a}` : `${a} to ${b}`)).join(', ');
 };
-// Which deciles lose and which gain under all three rankings, and which
-// change sign, read from the data (item 28: "deciles 2 to 10 have the same
-// sign" hid that decile 10 gains).
+const sgn = (x) => (x > 0 ? 1 : x < 0 ? -1 : 0);
+const deciles = (R, test) => [...Array(10).keys()].filter((i) => test(R.map((r) => r.values[i]))).map((i) => i + 1);
+const name = (is) => (is.length === 1 ? `Decile ${is[0]}` : `Deciles ${span(is)}`);
+
+// Card 6's title: the deciles that lose under all three rankings, and those
+// whose sign differs (item 24: "Deciles 2 to 10 have the same sign" hid
+// that decile 10's sign is positive).
 export function rankingsWords(R) {
-  const sgn = (x) => (x > 0 ? 1 : x < 0 ? -1 : 0);
-  const lose = [];
-  const gain = [];
-  const flip = [];
-  for (let i = 0; i < 10; i += 1) {
-    const s = new Set(R.map((r) => sgn(r.values[i])));
-    (s.size !== 1 ? flip : s.has(-1) ? lose : s.has(1) ? gain : flip).push(i + 1);
-  }
-  const name = (is) => (is.length === 1 ? `decile ${is[0]}` : `deciles ${span(is)}`);
-  const verb = (is, one, many) => (is.length === 1 ? one : many);
-  const parts = [
-    lose.length ? `${name(lose)} ${verb(lose, 'loses', 'lose')} income` : null,
-    // a gain under 0.2% in every ranking is not called a gain (item 24:
-    // "Do not write 'decile 10 gains'"; its interval spans zero; review
-    // round 1, R1-03)
-    gain.length
-      ? gain.every((d) => R.every((r) => Math.abs(r.values[d - 1]) < SMALL_DECILE_PCT))
-        ? `${name(gain)} ${verb(gain, 'moves', 'move')} by less than ${SMALL_DECILE_PCT}%`
-        : `${name(gain)} ${verb(gain, 'gains', 'gain')}`
-      : null,
-    flip.length ? `${name(flip)} ${verb(flip, 'changes', 'change')} sign` : null,
-  ].filter(Boolean);
-  const t = parts.join('; ');
-  return `${t[0].toUpperCase()}${t.slice(1)}${flip.length ? ' across the rankings' : ' under all three rankings'}`;
+  const neg = deciles(R, (vs) => vs.every((v) => v < 0));
+  const flip = deciles(R, (vs) => new Set(vs.map(sgn)).size > 1);
+  if (!neg.length) return flip.length ? `${name(flip)} ${flip.length === 1 ? 'changes' : 'change'} sign across the rankings` : 'Every decile has the same sign under all three rankings';
+  const lose = `${name(neg)} ${neg.length === 1 ? 'loses' : 'lose'} income under all three rankings`;
+  return flip.length ? `${lose}; ${name(flip).toLowerCase()} ${flip.length === 1 ? 'changes' : 'change'} sign` : lose;
 }
-// Cost lines: lost income tax and NI against the higher tax on dividends
-// and savings, from the cost components.
+// Card 6's lead: the deciles positive under all three rankings. Under 0.2%
+// in size in every ranking they "move by less than 0.2%", never "gain"
+// (item 24; the HBAI interval spans zero; review round 1, R1-03).
+export function rankingsLead(R) {
+  const pos = deciles(R, (vs) => vs.every((v) => v > 0));
+  if (!pos.length) return null;
+  const small = pos.every((d) => R.every((r) => Math.abs(r.values[d - 1]) < SMALL_DECILE_PCT));
+  const one = pos.length === 1;
+  return small ? `${name(pos)} ${one ? 'moves' : 'move'} by less than ${SMALL_DECILE_PCT}% under each ranking.` : `${name(pos)} ${one ? 'gains' : 'gain'} under all three rankings.`;
+}
+// Card 1: lost income tax and NI against the higher tax on dividends and
+// savings, from the cost components.
 export function costWords(rows) {
   const v = (id) => rows.find((r) => r.id === id)?.cost_bn ?? 0;
   const lost = v('other_income_tax') + v('employer_ni') + v('employee_ni');
   const gained = -(v('dividend_tax') + v('savings_tax'));
-  return lost > gained ? 'Lost income tax and NI outweigh higher tax on dividends and savings' : 'Higher tax on dividends and savings outweighs lost income tax and NI';
+  return lost > gained
+    ? 'Lost income tax and National Insurance (NI) outweigh higher tax on dividends and savings'
+    : 'Higher tax on dividends and savings outweighs lost income tax and National Insurance (NI)';
 }
-// Full take-up and JSA against the main case on the same draws.
+// Card 2: per pound of lost pay, wage cuts against job loss (20 draws).
+export function perPoundWords() {
+  return perPound('wage_cuts').government_p > D.per_pound_20.job_loss.government_p
+    ? 'Per pound of lost pay, wage cuts cost the public finances more than job loss'
+    : 'Per pound of lost pay, job loss costs the public finances at least as much as wage cuts';
+}
+// Card 3: full take-up and JSA against the main case on the same draws.
 const L = (id) => D.ladder.find((r) => r.id === id);
 export function takeupWords() {
   const c = L('central_20');
   const vs = [L('takeup'), L('takeup_jsa')].filter(Boolean);
-  const more = vs.every((r) => r.cost_bn > c.cost_bn);
-  const less = vs.every((r) => r.poverty_pp < c.poverty_pp);
-  if (more && less) return { long: 'Full take-up and JSA cost more and raise poverty less', short: 'full take-up costs more, raises poverty less' };
-  return { long: 'Full take-up and JSA move the cost and the poverty rise', short: 'full take-up moves the cost and the poverty rise' };
+  const steps = [c, ...vs];
+  const more = steps.every((r, i) => !i || r.cost_bn > steps[i - 1].cost_bn);
+  const less = steps.every((r, i) => !i || r.poverty_pp < steps[i - 1].poverty_pp);
+  return more && less ? 'Full take-up and JSA cost more and raise poverty less than the main case' : 'Full take-up and JSA change both the cost and the poverty rise';
 }
 // Economics review, round 1 (words only, computed from the data): the
 // top-loaded rule's poverty rise, which the stated routes do not explain,
@@ -95,65 +101,54 @@ export function rulesReviewWords(rules) {
   const u = rules.find((r) => r.id === 'uniform');
   const out = [];
   if (k && rules.every((r) => r.poverty_pp <= k.poverty_pp) && rules.every((r) => r.cost_bn <= k.cost_bn))
-    out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most', 'The study’s published extract does not break that rise down');
-  if (u && u.cost_sd_bn >= 0.8 * u.cost_bn) out.push('Uniform: the cost’s spread across draws is about its mean');
+    out.push('Top-loaded displaces above-median earners, yet raises poverty and cost most.', 'The study’s published extract does not break that rise down.');
+  if (u && u.cost_sd_bn >= 0.8 * u.cost_bn) out.push('Uniform: the cost’s spread across draws is about its mean.');
   return out;
 }
-// The data's take-up flags: full take-up and JSA raise the cost and lower
-// the poverty rise, so the central poverty rise is an upper bound on that
-// count; its cost is not (economics review, round 1).
+// The data's take-up decisions: full take-up and JSA raise the cost and
+// lower the poverty rise, so the main-case poverty rise is an upper bound
+// on that count; its cost is not (economics review, round 1).
 export function takeupBoundWords() {
   const c = L('central_20');
   const vs = [L('takeup'), L('takeup_jsa')].filter(Boolean);
   if (!c || !vs.length || !vs.every((r) => r.cost_bn > c.cost_bn && r.poverty_pp < c.poverty_pp)) return [];
-  return ['With the data’s take-up flags, the poverty rise is an upper bound', 'The cost is not: full take-up and JSA raise it'];
-}
-export function marginWords() {
-  const j = L('central_20');
-  const w = L('wage_cuts');
-  return !j || !w ? 'compared on the same draws' : j.poverty_pp > w.poverty_pp ? 'job loss raises poverty more' : 'wage cuts raise poverty at least as much';
-}
-export function rulesCostWords(rules) {
-  const cs = rules.map((r) => r.cost_bn);
-  const spread = Math.max(...cs) - Math.min(...cs);
-  return spread >= 2 ? 'moves the cost by billions a year' : 'moves the cost';
+  return ['With the data’s take-up decisions, the main-case poverty rise is an upper bound; its cost is not.'];
 }
 export function policyWords(main) {
   const all = main.every((r) => r.poverty_pp < 0 && r.gini_pp < 0);
   return all ? 'Each response lowers poverty and the Gini; their costs differ' : 'The responses differ in cost and in what they do to poverty and the Gini';
 }
-// The "outside the attested rebuild" flag: shown while the data file lists
-// results outside the study's rebuild (or, for an older file, says nothing).
-const OUTSIDE = D.method?.outside_rebuild;
-const Flag = () => (OUTSIDE == null || OUTSIDE.length ? <OutsideRebuildFlag className="hh-flag" /> : null);
-
+// Card 4's title: "displacement rule" (item 24), the conditions as before.
 export function rulesWords(rules, central = 'exposure') {
   const c = rules.find((r) => r.id === central);
   const others = rules.filter((r) => r.id !== central);
   const every = rules.every((r) => r.poverty_pp > 0);
   const atLeast = others.filter((r) => r.poverty_pp >= c.poverty_pp).length;
-  const lead = every ? 'Poverty rises under every rule' : 'Poverty does not rise under every rule';
-  // T15: "least under the central rule" only when every other rule raises it more
+  const lead = every ? 'Poverty rises under every displacement rule' : 'Poverty does not rise under every displacement rule';
+  // T15: "least under the main rule" only when every other rule raises it more
   if (others.every((r) => r.poverty_pp > c.poverty_pp)) return `${lead}, least under the main rule`;
   if (atLeast === others.length) return `${lead}, by at least as much as in the main case under the other ${others.length}`;
   return `${lead}; ${atLeast} of the other ${others.length} raise it at least as much as the main rule`;
 }
-const bnSmall = (v) => (Math.abs(v) < 0.05 ? (v < 0 ? 'a saving under £0.1bn' : 'under £0.1bn') : fmtBn(v));
+// The runs outside the study's rebuild: a caveat line while the data file
+// lists any (method.outside_rebuild).
+const FLAG = OUTSIDE_REBUILD ? ['Outside the study’s attested rebuild.'] : [];
 const OBR_RATE = D.sankey.displacement_rate_pct;
-// One About fold per card (Card's `about`): how, caveats and sources as
-// short lines; sources are file paths, linked.
+// One More info per card (Card's `about`): how and caveats as lines; the
+// sources are references, behind the card's book icon (c0-rulings-opus.md
+// ruling 4); file paths linked.
 const lines = (xs) => (xs?.length ? xs.map((t, i) => <p key={i}>{t}</p>) : null);
 const about = ({ how, caveats, sources }) => ({
   how: lines(how),
   caveats: lines(caveats),
   sources: sources?.length ? <div data-reference="">{lines(sources.map((t) => (typeof t === 'string' ? linkAiFiles(t) : t)))}</div> : null,
 });
+// a lead of one or two sentences, each its own line
+const Lead = ({ children }) => <>{[children].flat().filter(Boolean).map((s, i) => <p key={i} className="hh-lead-s">{s}</p>)}</>;
 
 // --- 1. The cost by tax and benefit (50 draws): a diverging waterfall -------
 // Each line grows from where the line above ends; the landing bar is the
-// net, the central cost, whose home is story step 1 (position only here).
-// Only each line's own value is printed: the bar ends in between are
-// positions, not running totals.
+// net, the main-case cost, whose home is story step 1 (data-axis here).
 const SHORT = { other_income_tax: 'Income tax on earnings (net)' };
 export function costSteps() {
   const C = D.cost_components;
@@ -165,6 +160,8 @@ export function costSteps() {
   });
   return { rows, net: { from: 0, to: C.total_bn } };
 }
+// a line under £0.05bn in size prints two decimals, not a phrase
+const bnLine = (v) => (Math.abs(v) < 0.05 ? fmtBn2(v) : fmtBn(v));
 
 function CostByTax() {
   const C = D.cost_components;
@@ -175,7 +172,7 @@ function CostByTax() {
   const hi = Math.max(...ends) * 1.04;
   const X = (v) => ((v - lo) / (hi - lo)) * 100;
   const bar = (from, to, cls, i) => (
-    <span className="hh-wf-track">
+    <span className="hh-wf-track" aria-hidden="true">
       <span className="hh-wf-zero" style={{ left: `${X(0)}%` }} />
       <span
         className={`hh-wf-bar ${cls}`}
@@ -187,67 +184,198 @@ function CostByTax() {
     <Card
       id="hh-cost-lines"
       icon="landmark"
-      title="Cost by tax and benefit"
-      finding={costWords(C.rows)}
-      unit="Change in each line, £bn a year"
-      // item 36 (E11): the sign, the drawing and the draws in More info
+      title={costWords(C.rows)}
+      lead={
+        <Lead>
+          {/* the main-case cost: its home is story step 1 */}
+          <>
+            The eight lines sum to a net cost of <Ax>{fmtBn(C.total_bn)}</Ax> a year.
+          </>
+        </Lead>
+      }
+      unit={<span data-axis-title="y">Change in each line, £bn a year</span>}
       more={[
-        { label: 'Measure', text: 'Positive is a cost.' },
-        { label: 'How it is drawn', text: 'Stacked from zero.' },
-        { label: 'Sample', text: `${C.draws} draws.` },
+        { label: 'Measure', text: 'Positive is a cost to the public finances.' },
+        { label: 'Sample', text: `Mean of ${C.draws} draws.` },
+        { label: 'How it is drawn', text: 'Each line starts where the line above ends; the net bar starts at zero.' },
       ]}
-      download={{ context: CTX, table: { columns: ['line', 'cost_bn_mean', 'cost_bn_sd'], rows: C.rows.map((r) => [r.label, r.cost_bn, r.sd_bn]) } }}
+      download={{ title: 'Cost by tax and benefit', context: CTX, table: { columns: ['line', 'cost_bn_mean', 'cost_bn_sd'], rows: C.rows.map((r) => [r.label, r.cost_bn, r.sd_bn]) } }}
       about={about({
-        how: ['Each line: that item of the government balance, baseline to shocked', 'Averaged over the draws; the lines sum to the main-case cost'],
+        how: [
+          'Each line is that item of the government balance, baseline to shocked.',
+          '“Income tax on earnings (net)” is net of tax on the wage gains of those who keep their jobs.',
+          <>
+            Tax on dividends and savings rises because the main case raises interest and dividend income by <span data-input="">{fmtInputPct(D.method.capital_uplift_pct)}</span>.
+          </>,
+        ],
+        caveats: ['The cost counts income tax, NI and benefits; it counts no corporation tax.'],
         sources: [`${C.file}: ${C.key}`],
       })}
+      story={STEP.central}
     >
       <div className={entryClass(e, 'hh-wf')} ref={ref}>
-        <Replay onClick={e.replay} />
-        <AxisTitles y="Tax and benefit lines" x="Change in each line, £bn a year, stacked from zero" reference="Zero line: no change" />
-        <div role="list" className="hh-rowlist">
-          {rows.map((r, i) => (
-            <div role="listitem" key={r.id} className="hh-wf-row" data-row={r.id}>
-              <span className="hh-wf-label" title={SHORT[r.id] ? r.label : undefined}>
-                {SHORT[r.id] ?? r.label}
-              </span>{' '}
-              {bar(r.from, r.to, r.cost_bn >= 0 ? 'is-loss' : 'is-gain', i)}{' '}
-              <span className="hh-val">{bnSmall(r.cost_bn)}</span>
-            </div>
-          ))}
-          <div role="listitem" className="hh-wf-row is-net" data-row="net">
-            <span className="hh-wf-label">
-              <b>Net: the main-case cost</b>
-            </span>
-            {bar(net.from, net.to, 'is-net', rows.length)}{' '}
-            {/* the central cost, restated from its home (story step 1): data-axis */}
-            <span className="hh-val" data-axis="">
-              {fmtBn(net.to)}
-            </span>
-          </div>
-        </div>
+        <ValueTable
+          layout="inline"
+          bar
+          caption="Change in each line of the government balance, £bn a year"
+          rowHead="Line"
+          cols={['£bn']}
+          rows={[
+            ...rows.map((r, i) => ({
+              id: r.id,
+              label: <span title={SHORT[r.id] ? r.label : undefined}>{SHORT[r.id] ?? r.label}</span>,
+              bar: bar(r.from, r.to, r.cost_bn >= 0 ? 'is-loss' : 'is-gain', i),
+              cells: [bnLine(r.cost_bn)],
+            })),
+            // the net, the main-case cost: its home is story step 1
+            { id: 'net', main: true, label: 'Net cost (main case)', bar: bar(net.from, net.to, 'is-net', rows.length), cells: [<Ax key="n">{fmtBn(net.to)}</Ax>] },
+          ]}
+        />
       </div>
     </Card>
   );
 }
 
-// --- 2. Every variant: one cost × poverty plane ------------------------------
-// The main case on 20 draws and wage cuts (their cost and poverty
-// figures are printed in story step 6: positions here), full take-up and JSA
-// (printed here: their home since round 1 moved them out of the story),
-// and the OBR-sized runs, a different, smaller shock in their own group and
-// colour (printed here). Arrows: central to full take-up to JSA, within
-// each group; none joins the groups.
-// `lab` and `pos`: the plane's direct label and where it sits; the three
-// OBR-sized points sit close together, so their group is labelled once.
+// --- 2. Cost per pound of pay lost: one table, two draw bases ----------------
+// The 20-draw rows (job loss 42p, wage cuts 55p) have their home in the
+// Story's margin step: restated, data-axis. The remainder segment
+// (employer NI and other items) is drawn from unrounded values and never
+// printed: printed parts would not add (41p + 15p against 55p).
+const PP_LABEL = {
+  job_loss: 'Job loss',
+  job_loss_takeup: 'Job loss, full UC take-up',
+  job_loss_takeup_jsa: 'Job loss, full UC take-up and JSA',
+};
+function PerPound() {
+  const [ref, e] = useSeenBeat();
+  const j20 = D.per_pound_20.job_loss;
+  const w = perPound('wage_cuts');
+  const seed0 = ['job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'].map(perPound);
+  const rising = seed0.every((r, i) => !i || Math.round(r.government_p) > Math.round(seed0[i - 1].government_p));
+  const split = (hh, total) => [
+    [hh, 'is-hh'],
+    [total - hh, 'is-gov'],
+  ];
+  return (
+    <Card
+      id="hh-per-pound"
+      icon="banknote"
+      title={perPoundWords()}
+      lead={
+        <Lead>
+          {[
+            <>
+              Each <Ax>£1</Ax> lost to wage cuts costs <Ax>{fmtPence(w.government_p)}</Ax>, and each <Ax>£1</Ax> lost to job loss <Ax>{fmtPence(j20.government_p)}</Ax>, employer National Insurance (NI) included.
+            </>,
+            rising ? (
+              <>
+                On one draw, full Universal Credit (UC) take-up raises the job-loss figure from <Ax>{fmtPence(seed0[0].government_p)}</Ax> to <Ax>{fmtPence(seed0[1].government_p)}</Ax>, and Jobseeker’s Allowance (JSA) raises it to{' '}
+                <Ax>{fmtPence(seed0[2].government_p)}</Ax>.
+              </>
+            ) : (
+              'On one draw, full Universal Credit (UC) take-up and Jobseeker’s Allowance (JSA) change the job-loss figure.'
+            ),
+          ]}
+        </Lead>
+      }
+      unit={
+        <span data-axis-title="y">
+          Pence per <Ax>£1</Ax> of gross pay removed, each margin alone
+        </span>
+      }
+      legend={
+        <Legend
+          items={[
+            { key: 'hh', label: 'Tax, employee NI and benefits', kind: 'block', color: 'var(--rank-3)' },
+            { key: 'gov', label: 'Employer NI and other items', kind: 'block', color: 'var(--rank-1)' },
+          ]}
+        />
+      }
+      more={[{ label: 'Sample', text: `As labelled: ${D.per_pound_20.draws} draws, or one draw (seed 0).` }]}
+      download={{
+        title: 'Cost per pound lost',
+        context: CTX,
+        table: {
+          columns: ['case', 'draws', 'government_balance_p', 'household_basis_p', 'employer_ni_p', 'range_low_p', 'range_high_p'],
+          rows: [
+            ['Job loss', D.per_pound_20.draws, j20.government_p, '', '', j20.min_p, j20.max_p],
+            ['Wage cuts', w.draws, w.government_p, w.household_p, D.per_pound_20.wage_cuts_employer_ni_p, '', ''],
+            ...seed0.map((r) => [`${r.label} (seed 0)`, r.draws, r.government_p, r.household_p, '', '', '']),
+          ],
+        },
+      }}
+      about={about({
+        how: [
+          'Total: the fall in the government balance, employer NI included.',
+          'Of which: the part of the lost pound that lower income tax, lower employee NI and higher benefits absorb for the household.',
+          D.per_pound_20.note,
+          <>
+            Job loss on {D.per_pound_20.draws} draws ranges from <Ax>{fmtPence(j20.min_p)}</Ax> to <Ax>{fmtPence(j20.max_p)}</Ax> across draws.
+          </>,
+        ],
+        caveats: ['The seed-0 rows are one draw; compare them with each other, not with the 20-draw rows.', ...FLAG],
+        sources: [`${j20.file} (run channel_displacement)`, `${D.per_pound_20.file} (variant cut_only)`, `seed 0: ${perPound('job_loss').file}`, 'results/takeup/takeup_draws.csv (scenario disp_only)'],
+      })}
+      story={STEP.margin}
+    >
+      <div className={entryClass(e, 'hh-pp')} ref={ref}>
+        <ValueTable
+          layout="barline"
+          bar
+          caption="Pence per pound of gross pay removed"
+          rowHead="Case"
+          cols={['Total', 'Of which tax, employee NI and benefits']}
+          rows={[
+            { id: 'g-20', group: `${D.per_pound_20.draws} draws` },
+            {
+              id: 'pp-job',
+              label: 'Job loss',
+              bar: <Bar value={j20.government_p} max={100} fill="is-ref" />,
+              cells: [<Ax key="t">{fmtPence(j20.government_p)}</Ax>, <span key="o" className="hh-muted">not split</span>],
+            },
+            {
+              id: 'pp-cut',
+              label: 'Wage cuts',
+              bar: <Bar parts={split(w.household_p, w.government_p)} max={100} />,
+              cells: [<Ax key="t">{fmtPence(w.government_p)}</Ax>, fmtPence(w.household_p)],
+            },
+            { id: 'g-0', group: 'One draw (seed 0)' },
+            ...seed0.map((r, i) => ({
+              id: `pp-${r.id}`,
+              label: PP_LABEL[r.id],
+              bar: <Bar parts={split(r.household_p, r.government_p)} max={100} delay={i * 120} />,
+              cells: [fmtPence(r.government_p), fmtPence(r.household_p)],
+            })),
+          ]}
+          foot={
+            <span className="hh-scale" data-axis="">
+              {[0, 50, 100].map((t) => (
+                <span key={t} style={{ left: `${t}%` }}>
+                  {t}p
+                </span>
+              ))}
+            </span>
+          }
+        />
+      </div>
+    </Card>
+  );
+}
+
+// --- 3. Every variant: one cost × poverty plane, then its table ---------------
+// The main case on 20 draws and wage cuts (their cost and poverty have
+// their home in the Story's margin step: data-axis here), full take-up and
+// JSA (home here), and the OBR-sized runs, a different, smaller shock in
+// their own group and colour. Arrows: main case to full take-up to JSA,
+// within each group; none joins the groups.
 const VARIANTS = [
-  { id: 'central_20', label: 'Main case, same 20 draws', story: STEP.margin, ring: true, lab: 'Main', pos: 'b' },
-  { id: 'takeup', label: 'Every displaced worker’s benefit unit claims UC', lab: 'Full take-up', pos: 't' },
-  { id: 'takeup_jsa', label: 'Plus 26 weeks of new-style JSA', lab: 'Plus JSA', pos: 't' },
-  { id: 'wage_cuts', label: 'Wage cuts, same gross size', story: STEP.margin, lab: 'Wage cuts', pos: 'tl' },
-  { id: 'obr', label: 'OBR-sized displacement', group: 'b' },
-  { id: 'obr_takeup', label: 'OBR-sized, full UC take-up', group: 'b', lab: 'OBR-sized runs', pos: 'b' },
-  { id: 'obr_takeup_jsa', label: 'OBR-sized, plus new-style JSA', group: 'b' },
+  { id: 'central_20', n: 1, label: 'Job loss (main case)', main: true, story: true, lab: 'Main case', pos: 'l' },
+  { id: 'takeup', n: 2, label: 'Full Universal Credit (UC) take-up for the displaced', lab: 'Full take-up', pos: 'b' },
+  { id: 'takeup_jsa', n: 3, label: 'Full take-up and 26 weeks of Jobseeker’s Allowance (JSA)', lab: 'Plus JSA', pos: 'r' },
+  { id: 'wage_cuts', n: 4, label: 'Wage cuts of the same gross size', story: true, lab: 'Wage cuts', pos: 'tl' },
+  { id: 'obr', n: 5, label: 'Job loss', group: 'b', npos: 'l' },
+  { id: 'obr_takeup', n: 6, label: 'Full UC take-up', group: 'b', lab: 'OBR-sized shock', pos: 'b', npos: 't' },
+  { id: 'obr_takeup_jsa', n: 7, label: 'Full take-up and JSA', group: 'b' },
 ];
 export const VARIANT_ARROWS = [
   ['central_20', 'takeup'],
@@ -255,6 +383,18 @@ export const VARIANT_ARROWS = [
   ['obr', 'obr_takeup'],
   ['obr_takeup', 'obr_takeup_jsa'],
 ];
+// Card 3's lead: wage cuts against job loss on the same 20 draws.
+function marginLead() {
+  const j = L('central_20');
+  const w = L('wage_cuts');
+  if (!(w.cost_bn > j.cost_bn && w.poverty_pp < j.poverty_pp)) return 'Wage cuts of the same gross size are compared with job loss on the same draws.';
+  return (
+    <>
+      Wage cuts of the same gross size cost <Ax>{fmtBn(w.cost_bn)}</Ax> and raise poverty by <Ax>{fmtPpSpread(w.poverty_pp)}</Ax>, against <Ax>{fmtBn(j.cost_bn)}</Ax> and <Ax>{fmtPpSpread(j.poverty_pp)}</Ax> for job loss on the same draws.
+    </>
+  );
+}
+const COLS3 = ['Cost', 'Poverty', 'Gini'];
 
 function Variants() {
   const [ref, e] = useSeenBeat();
@@ -263,62 +403,78 @@ function Variants() {
   const yMax = Math.max(...xs.map((r) => r.poverty_pp)) * 1.15;
   const row = (v) => {
     const r = ladder(v.id);
+    // the main case and wage cuts: cost and poverty restated from the Story
+    const home = (x) => (v.story ? <Ax>{x}</Ax> : x);
     return {
       id: v.id,
-      tone: v.group ?? 'a',
-      ring: v.ring,
+      main: v.main,
+      marker: { tone: v.group ?? 'a', ring: v.main, n: v.n },
       label: v.label,
-      cells: v.story ? [{ span: 2, node: <StoryRef step={v.story} /> }, fmtPp(r.gini_pp)] : [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtPp(r.gini_pp)],
+      cells: [home(fmtBn(r.cost_bn)), home(fmtPp(r.poverty_pp)), fmtGiniPts(r.gini_pp)],
     };
   };
   return (
     <Card
       id="hh-ladder"
       icon="layers"
-      title="Every variant of the shock"
-      finding={takeupWords().long}
-      unit="Cost, £bn a year, against poverty change, pp"
+      title={takeupWords()}
+      lead={<Lead>{marginLead()}</Lead>}
+      unit="Cost, £bn a year; poverty, pp; Gini, points"
       more={[
-        { label: 'Measure', text: 'Absolute poverty before housing costs.' },
+        { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
         // the count from the variants drawn, not a literal (item 36, E12)
-        { label: 'Sample', text: `${[...new Set(xs.map((r) => r.draws))].join(' or ')} paired draws each.` },
+        { label: 'Sample', text: `${[...new Set(xs.map((r) => r.draws))].join(' or ')} draws, the same seeds as the main case.` },
       ]}
       download={{
+        title: 'Every variant of the shock',
         context: CTX,
-        table: { columns: ['variant', 'draws', 'cost_bn', 'poverty_bhc_pp', 'gini_pp'], rows: D.ladder.map((r) => [r.label, r.draws, r.cost_bn, r.poverty_pp, r.gini_pp]) },
+        table: { columns: ['variant', 'draws', 'cost_bn', 'poverty_bhc_pp', 'gini_points'], rows: D.ladder.map((r) => [r.label, r.draws, r.cost_bn, r.poverty_pp, r.gini_pp]) },
       }}
-      foot={<Flag />}
       about={about({
-        how: ['Take-up, JSA and wage cuts reuse the main-case seeds 0 to 19', 'Compare them with the main case on these draws, not the headline'],
-        caveats: ['The OBR-sized runs are a smaller shock, not steps on the main-case ladder', `Sized to ${OBR_SCENARIO}`, ...takeupBoundWords()],
-        sources: ['results/robustness/dividend_coverage_draws.csv (run central)', 'results/takeup/takeup_draws.csv', 'results/wage_cut/wage_cut_draws.csv (variant table3)', 'results/next_runs/obr_benchmark.json', <>26 weeks: the {ext(URLS.jsa, 'new-style JSA limit (GOV.UK)')}</>, <>OBR-sized: the study&rsquo;s conversion of {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}&rsquo;s unemployment rise</>],
+        how: [
+          'Take-up, JSA and wage cuts reuse seeds 0 to 19 of the main case.',
+          <>
+            On those {L('central_20').draws} draws the main case costs <Ax>{fmtBn(L('central_20').cost_bn)}</Ax>; the {L('central_50')?.draws ?? D.cost_components.draws}-draw headline is <Ax>{fmtBn(D.cost_components.total_bn)}</Ax>.
+          </>,
+        ],
+        caveats: ['The OBR-sized shock is a different, smaller shock (no wage or capital-income change), not a step from the main case.', `It is sized to ${OBR_SCENARIO}.`, ...takeupBoundWords(), ...FLAG],
+        sources: [
+          'results/robustness/dividend_coverage_draws.csv (run central)',
+          'results/takeup/takeup_draws.csv',
+          'results/wage_cut/wage_cut_draws.csv (variant table3)',
+          'results/next_runs/obr_benchmark.json',
+          <>26 weeks: the {ext(URLS.jsa, 'new-style JSA limit (GOV.UK)')}</>,
+          <>OBR-sized: the study&rsquo;s conversion of {ext(efo(EFO_PAGE.box22), 'OBR Box 2.2')}&rsquo;s unemployment rise</>,
+        ],
       })}
+      story={STEP.margin}
     >
       <div className={entryClass(e, 'hh-plane-wrap')} ref={ref}>
-        <Replay onClick={e.replay} />
         <Plane
           on={e.on}
           label="Scatter: cost against the poverty rise for each variant; arrows run from the main case to full take-up to JSA, within each group"
-          points={VARIANTS.map((v) => ({ id: v.id, group: v.group, ring: v.ring, name: v.label, lab: v.lab, pos: v.pos, x: ladder(v.id).cost_bn, y: ladder(v.id).poverty_pp }))}
+          points={VARIANTS.map((v) => ({ id: v.id, n: v.n, npos: v.npos, group: v.group, ring: v.main, name: v.label, lab: v.lab, pos: v.pos, x: ladder(v.id).cost_bn, y: ladder(v.id).poverty_pp }))}
           arrows={VARIANT_ARROWS}
           xMax={xMax}
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
-          yTitle="Absolute poverty before housing costs (BHC), change, pp"
-          xTitle="Cost to the public finances, £bn a year"
+          yTitle="Rise in absolute poverty"
+          xTitle="Cost to the public finances"
         />
       </div>
-      <PointList
-        cols={['Cost', 'Poverty, pp', 'Gini']}
+      <ValueTable
+        caption="Cost, poverty and Gini change for each variant"
+        rowHead="Variant"
+        cols={COLS3}
         rows={[
+          { id: 'g-main', group: 'Main shock' },
           ...VARIANTS.filter((v) => !v.group).map(row),
           {
             id: 'g-obr',
             group: (
               <>
-                <b className="hh-group-name">A different, smaller shock:</b>{' '}
-                <span data-input="">{fmtInputPct(OBR_RATE)}</span> of employees displaced, job loss alone
+                OBR-sized shock, <span data-input="">{fmtInputPct(OBR_RATE)}</span> of employees displaced
               </>
             ),
           },
@@ -329,342 +485,239 @@ function Variants() {
   );
 }
 
-// --- 3. Five rules: the same plane, 50 paired draws --------------------------
-// Rule costs are printed in story step 5 (the exposure rule is the central
-// case, step 1): positions here. Poverty and Gini by rule are printed here.
-// The top-loaded extreme case runs off the cost scale: an arrow at the edge,
-// its value printed there.
-// Junior-tilted and exposure-based sit almost on one point: their labels
+// --- 4. Five displacement rules: the same plane, 50 draws --------------------
+// Cost and poverty under the four stylised rules have their home in the
+// Story's rules step, the main rule's three figures in step 1: restated,
+// data-axis. The top-loaded extreme case is on the scale (x to £30bn).
+// Ages 16 to 24 and By AI exposure sit almost on one point: their labels
 // go to opposite sides.
 const RULES = [
-  { id: 'uniform', label: 'Uniform', lab: 'Uniform', pos: 'b' },
-  { id: 'junior', label: 'Junior-tilted (ages 16 to 24)', lab: 'Junior-tilted', pos: 'tl' },
-  { id: 'exposure', label: 'In proportion to AI exposure (main)', ring: true, lab: 'AI exposure (main)', pos: 'br' },
-  { id: 'compression', label: 'Expertise compression', lab: 'Compression', pos: 'l' },
+  { id: 'uniform', n: 1, pos: 'b' },
+  { id: 'junior', n: 2, pos: 't', npos: 'l' },
+  { id: 'exposure', n: 3, main: true, pos: 'br', npos: 'r' },
+  { id: 'compression', n: 4, pos: 'r' },
+  { id: 'klein_top_loaded', n: 5, own: true, pos: 'l', npos: 'l' },
 ];
+// Card 4's lead: the cheapest and dearest of the four stylised rules, then
+// the extreme case (its cost has its home in this card's table).
+function rulesLead() {
+  const four = RULES.filter((r) => !r.own).map((r) => rule(r.id));
+  const lo = four.reduce((a, b) => (b.cost_bn < a.cost_bn ? b : a));
+  const hi = four.reduce((a, b) => (b.cost_bn > a.cost_bn ? b : a));
+  const K = rule('klein_top_loaded');
+  return [
+    <>
+      The cost runs from <Ax>{fmtBn(lo.cost_bn)}</Ax> under {ruleName(lo.id)} to <Ax>{fmtBn(hi.cost_bn)}</Ax> under {ruleName(hi.id)}.
+    </>,
+    <>
+      The top-loaded extreme case costs <Ax>{fmtBn(K.cost_bn)}</Ax>.
+    </>,
+  ];
+}
 function Rules() {
   const [ref, e] = useSeenBeat();
-  const K = rule('klein_top_loaded');
-  const xMax = Math.max(...RULES.map((r) => rule(r.id).cost_bn)) * 1.12;
-  const yMax = Math.max(K.poverty_pp, ...RULES.map((r) => rule(r.id).poverty_pp)) * 1.12;
+  const all = RULES.map((r) => rule(r.id));
+  const xMax = Math.ceil((Math.max(...all.map((r) => r.cost_bn)) * 1.05) / 10) * 10;
+  const yMax = Math.max(...all.map((r) => r.poverty_pp)) * 1.12;
+  const label = (x) => (x.main ? `${ruleName(x.id)} (main case)` : ruleName(x.id));
   return (
     <Card
       id="hh-rules"
       icon="users"
-      title="Five rules for who loses the job"
-      finding={rulesWords(D.rules)}
-      unit="Cost, £bn a year, against poverty change, pp"
+      title={rulesWords(D.rules)}
+      lead={<Lead>{rulesLead()}</Lead>}
+      unit="Cost, £bn a year; poverty, pp; Gini, points"
       more={[
-        { label: 'Measure', text: 'Absolute poverty before housing costs.' },
-        { label: 'Sample', text: `${rule('uniform').draws} paired draws each.` },
+        { label: 'Measure', text: 'Absolute poverty before housing costs; the Gini on its 0 to 100 scale.' },
+        { label: 'Sample', text: `${rule('uniform').draws} draws, the same seeds for every rule.` },
       ]}
       download={{
+        title: 'Five rules for who loses the job',
         context: CTX,
-        table: { columns: ['rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'gini_pp'], rows: D.rules.map((r) => [r.label, r.draws, r.cost_bn, r.cost_sd_bn, r.poverty_pp, r.gini_pp]) },
+        table: { columns: ['rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'gini_points'], rows: D.rules.map((r) => [ruleName(r.id), r.draws, r.cost_bn, r.cost_sd_bn, r.poverty_pp, r.gini_pp]) },
       }}
       about={about({
-        how: ['Every rule displaces the same expected number of employees', 'Other wage and capital-income changes are the same; seeds are shared'],
-        caveats: ['The rules are the study’s stylised designs', 'Junior-tilted: a higher chance for workers aged 16 to 24', 'Compression: doubled chances for top earners in exposed occupations', 'Top-loaded: displacement loaded on above-median earners', ...rulesReviewWords(D.rules)],
+        how: ['Every rule displaces the same expected number of employees.', 'Wage and capital-income changes are the same under every rule.'],
+        caveats: [
+          'The rules are the study’s stylised designs.',
+          `${ruleName('junior')}: a higher chance for workers aged 16 to 24.`,
+          `${ruleName('compression')}: doubled chances for top earners in exposed occupations.`,
+          `${RULE_NAMES.klein_top_loaded.short}: displacement loaded on above-median earners.`,
+          ...rulesReviewWords(D.rules),
+        ],
         sources: [`${D.rules[0].file}: exchequer_cost_bn, poverty_change_bhc_pp, gini_change_pp`],
       })}
+      story={STEP.rules}
     >
       <div className={entryClass(e, 'hh-plane-wrap')} ref={ref}>
-        <Replay onClick={e.replay} />
         <Plane
           on={e.on}
-          label="Scatter: cost against the poverty rise under each displacement rule; the top-loaded extreme case is off the cost scale"
-          points={RULES.map((r) => ({ id: r.id, ring: r.ring, group: 'c', name: r.label, lab: r.lab, pos: r.pos, x: rule(r.id).cost_bn, y: rule(r.id).poverty_pp }))}
-          off={{ y: K.poverty_pp, text: <>Top-loaded {fmtBn(K.cost_bn)}</> }}
+          label="Scatter: cost against the poverty rise under each displacement rule"
+          points={RULES.map((x) => ({ id: x.id, n: x.n, npos: x.npos, ring: x.main, group: x.own ? 'off' : 'c', name: label(x), lab: RULE_NAMES[x.id].short, pos: x.pos, x: rule(x.id).cost_bn, y: rule(x.id).poverty_pp }))}
           xMax={xMax}
           yMax={yMax}
           xUnit={(t) => `£${t}bn`}
           yUnit="pp"
-          yTitle="Absolute poverty (BHC), change, pp"
-          xTitle="Cost to the public finances, £bn a year"
+          yTitle="Rise in absolute poverty"
+          xTitle="Cost to the public finances"
         />
       </div>
-      <PointList
-        cols={['Cost', 'Poverty, pp', 'Gini']}
-        wideFirst
-        rows={[
-          ...RULES.map((x) => {
-            const r = rule(x.id);
-            return {
-              id: x.id,
-              tone: 'c',
-              ring: x.ring,
-              label: x.label,
-              // cost and poverty by rule are printed in the story (B10, round 2)
-              cells: x.ring ? [{ span: 3, node: <StoryRef step={STEP.central} /> }] : [{ span: 2, node: <StoryRef step={STEP.rules} /> }, fmtPp(r.gini_pp)],
-            };
-          }),
-          { id: 'klein_top_loaded', tone: 'off', label: 'Top-loaded extreme case', cells: [<span key="a" className="hh-muted">at the arrow</span>, fmtPp(K.poverty_pp), fmtPp(K.gini_pp)] },
-        ]}
+      <ValueTable
+        caption="Cost, poverty and Gini change under each displacement rule"
+        rowHead="Displacement rule"
+        cols={COLS3}
+        rows={RULES.map((x) => {
+          const r = rule(x.id);
+          // the four stylised rules' cost and poverty, and all three of the
+          // main rule's: their home is the Story
+          const home = (v, gini = false) => (x.own || (gini && !x.main) ? v : <Ax>{v}</Ax>);
+          return {
+            id: x.id,
+            main: x.main,
+            marker: { tone: x.own ? 'off' : 'c', ring: x.main, n: x.n },
+            label: label(x),
+            cells: [home(fmtBn(r.cost_bn)), home(fmtPp(r.poverty_pp)), home(fmtGiniPts(r.gini_pp), true)],
+          };
+        })}
       />
     </Card>
   );
 }
 
-// --- 4. Cost per pound of earnings lost: stacked pence -----------------------
-const PP_LABEL = {
-  job_loss: 'Job loss',
-  job_loss_takeup: 'Job loss, full Universal Credit (UC) take-up',
-  job_loss_takeup_jsa: 'Job loss, plus new-style JSA',
-};
-function Pence({ parts }) {
-  const lefts = parts.map((_, i) => parts.slice(0, i).reduce((a, [v]) => a + v, 0));
-  return (
-    <span className="hh-pence" aria-hidden="true">
-      {parts.map(([v, cls], i) => (
-        <span key={i} className={`hh-pence-seg ${cls}`} style={{ left: `${lefts[i]}%`, width: `${v}%`, transitionDelay: `${i * 160}ms` }} />
-      ))}
-    </span>
-  );
-}
-function PerPound() {
-  const [ref, e] = useSeenBeat();
-  const j20 = D.per_pound_20.job_loss;
-  const w = perPound('wage_cuts');
-  const er = D.per_pound_20.wage_cuts_employer_ni_p;
-  const seed0 = ['job_loss', 'job_loss_takeup', 'job_loss_takeup_jsa'].map(perPound);
-  return (
-    <Card
-      id="hh-per-pound"
-      icon="banknote"
-      title="Cost per pound lost"
-      finding="On one draw, full take-up and Jobseeker’s Allowance (JSA) raise the cost of a pound lost"
-      unit={
-        <>
-          Pence per <span data-axis="">£1</span> of gross earnings removed, each margin alone
-        </>
-      }
-      download={{
-        context: CTX,
-        table: {
-          columns: ['case', 'draws', 'government_balance_p', 'household_basis_p', 'employer_ni_p', 'range_low_p', 'range_high_p'],
-          rows: [
-            ['Job loss', D.per_pound_20.draws, j20.government_p, '', '', j20.min_p, j20.max_p],
-            ['Wage cuts', w.draws, w.government_p, w.household_p, er, '', ''],
-            ...seed0.map((r) => [`${r.label} (seed 0)`, r.draws, r.government_p, r.household_p, '', '', '']),
-          ],
-        },
-      }}
-      foot={<Flag />}
-      about={about({
-        how: ['Total: the fall in the government balance, employer NI included', 'Of which household: the part tax, employee NI and benefits absorb', 'Job loss: no household split on the 20 draws (grey)'],
-        sources: [`${j20.file} (run channel_displacement)`, `${D.per_pound_20.file} (variant cut_only)`, `seed 0: ${perPound('job_loss').file}`, 'results/takeup/takeup_draws.csv (scenario disp_only)'],
-      })}
-    >
-      <p className="p3-legend hh-legend" aria-hidden="true">
-        <span className="hh-leg">
-          <span className="p3-swatch p3-fill-hh" /> Tax, employee NI and benefits
-        </span>
-        <span className="hh-leg">
-          <span className="p3-swatch p3-fill-gov" /> The rest of the total: employer NI and other items, not split in the data
-        </span>
-      </p>
-      <div className={entryClass(e, 'hh-pp')} ref={ref}>
-        <Replay onClick={e.replay} />
-        <AxisTitles y="Job loss and wage cuts" x="Where each pound of lost gross pay goes, pence" />
-        <div className="hh-pp-group">
-          <p className="hh-pp-head">
-            <span className="hh-pp-basis">{D.per_pound_20.draws} paired draws</span>
-          </p>
-          <div role="list" className="hh-rowlist">
-            <div role="listitem" className="hh-pp-row" data-row="pp-job">
-              <span className="hh-list-label">Job loss</span>
-              <Pence parts={[[j20.government_p, 'p3-fill-ref']]} />
-              <span className="hh-list-span">
-                <StoryRef step={STEP.margin} />
-              </span>
-            </div>
-            <div role="listitem" className="hh-pp-row" data-row="pp-cut">
-              <span className="hh-list-label">Wage cuts</span>
-              <Pence
-                parts={[
-                  [w.household_p, 'p3-fill-hh'],
-                  [er, 'p3-fill-gov'],
-                ]}
-              />
-              <span className="hh-list-span">
-                <StoryRef step={STEP.margin} />
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="hh-pp-group">
-          <p className="hh-pp-head">
-            <span className="hh-pp-basis">One draw (seed 0)</span>
-            {/* the household part is a part of the total, not a second part
-                beside it; the rest is drawn and named in the legend */}
-            <span className="hh-pp-cols" aria-hidden="true">
-              <span>Total</span>
-              <span>Of which household</span>
-            </span>
-          </p>
-          <div role="list" className="hh-rowlist">
-            {seed0.map((r) => (
-              <div role="listitem" key={r.id} className="hh-pp-row" data-row={`pp-${r.id}`}>
-                <span className="hh-list-label">{PP_LABEL[r.id]}</span>{' '}
-                <Pence
-                  parts={[
-                    [r.household_p, 'p3-fill-hh'],
-                    [r.government_p - r.household_p, 'p3-fill-gov'],
-                  ]}
-                />
-                {' '}
-                <span className="hh-val">{fmtPence(r.government_p)}</span>{' '}
-                <span className="hh-val hh-val-2">{fmtPence(r.household_p)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-// --- 5. Who the displaced are (OBR-sized run) --------------------------------
-// Three claim shares, each with its own base (not a funnel: the bases
-// differ and 53% > 48%), three reason tiles (the
-// groups overlap, so tiles, not a stack), and UC per person with a take-up
-// toggle: the two values cross-fade in place, never tween.
-export const UC_VIEWS = ['data', 'full'];
+// --- 5. Who the displaced are (OBR-sized run): three bar sets ----------------
+// Not a funnel: the three claim shares have three bases, and 53% > 48%.
+// The three limits overlap, so three separate bars, never stacked. UC per
+// person is drawn for both take-up cases (item 24: a two-state switch that
+// changes one number is drawn as two bars).
 function Displaced() {
   const X = D.displaced;
   const [ref, e] = useSeenBeat();
-  const [view, setView] = useState('data');
   // the UC capital limit, stated in the data as text ("16,000")
   const limit = Number(String(D.method.uc_capital_limit_gbp).replace(/,/g, ''));
-  const max = Math.max(X.uc_per_displaced_takeup.value, X.uc_per_existing_unemployed.value) * 1.08;
-  // the share whose take-up decision in the data is to claim, not receipt
-  const stages = [
-    ['claim_uc', 'would claim UC', X.claim_uc.value, 'of all benefit units with a displaced worker'],
-    ['claim_uc_entitled', 'would claim', X.claim_uc_entitled.value, 'of those entitled to UC once displaced'],
-  ];
-  const reasons = [
-    ['capital_over_limit', <>Capital above <span data-input="">{fmtGbp(limit)}</span>: no UC</>],
-    ['other_earner', 'Another earner in the benefit unit'],
-    ['homeowner', 'Own their home: no housing element'],
-  ];
+  const gbpMax = Math.max(X.uc_per_displaced.value, X.uc_per_displaced_takeup.value, X.uc_per_existing_unemployed.value) * 1.05;
+  const set = (id, head, rows, max, fmt) => (
+    <div className="hh-set" key={id}>
+      <p className="hh-set-head">{head}</p>
+      <ValueTable
+        layout="barline"
+        bar
+        caption={head}
+        rowHead="Group"
+        cols={['Value']}
+        className="hh-set-tbl"
+        rows={rows.map(([k, label, ref2], i) => ({
+          id: k,
+          label,
+          bar: <Bar value={X[k].value} max={max} fill={ref2 ? 'is-ref' : 'is-neutral'} delay={i * 160} />,
+          cells: [fmt(X[k].value)],
+        }))}
+      />
+    </div>
+  );
+  const under = X.claim_uc.value < 50;
   return (
     <Card
       id="hh-displaced"
       icon="usersRound"
-      title="Who the displaced are"
-      finding="Capital, a working partner or a home each limit Universal Credit (UC) entitlement"
-      unit="Benefit units with a displaced worker, in the OBR-sized run"
+      title={under ? 'Under half of displaced workers’ benefit units would claim Universal Credit (UC)' : 'Half or more of displaced workers’ benefit units would claim Universal Credit (UC)'}
+      lead={
+        <Lead>
+          {[
+            <>
+              In all, <Ax>{fmtShare(X.claim_uc.value)}</Ax> would claim. Among the units entitled to UC once displaced, <Ax>{fmtShare(X.claim_uc_entitled.value)}</Ax> would.
+            </>,
+            <>
+              Among entitled units with someone already unemployed, <Ax>{fmtShare(X.existing_unemployed_claim.value)}</Ax> do.
+            </>,
+          ]}
+        </Lead>
+      }
+      unit={<span data-axis-title="y">Share of benefit units with a displaced worker, %</span>}
+      more={[
+        {
+          label: 'Settings',
+          text: (
+            <>
+              The OBR-sized shock, <span data-input="">{fmtInputPct(OBR_RATE)}</span> of employees displaced.
+            </>
+          ),
+        },
+      ]}
       download={{
+        title: 'Who the displaced are',
         context: CTX,
         table: {
           columns: ['measure', 'value', 'unit'],
           rows: ['claim_uc', 'claim_uc_entitled', 'existing_unemployed_claim', 'capital_over_limit', 'other_earner', 'homeowner', 'uc_per_displaced', 'uc_per_displaced_takeup', 'uc_per_existing_unemployed'].map((k) => [X[k].label, X[k].value, X[k].unit]),
         },
       }}
-      foot={<Flag />}
       about={about({
-        caveats: ['Shares count benefit units, not persons', 'The groups overlap; the data give no cross-tabulation', 'Take-up flags: the dataset’s imputation, not DWP take-up statistics'],
+        how: ['Each benefit unit keeps the UC take-up decision drawn for it in the data.', 'A partner’s earnings reduce the UC award; capital above the limit removes it; owners get no housing element.'],
+        caveats: ['Shares count benefit units, not persons.', 'The three groups in “What limits entitlement” overlap; the data give no cross-tabulation.', 'The take-up decisions are the dataset’s imputation, not DWP take-up statistics.', ...FLAG],
         sources: [`${X.claim_uc.file} (diagnostics.obr, existing_unemployed)`, `UC per worker: ${X.uc_per_displaced.file}`, 'results/takeup/takeup_draws.csv', <>Capital limit: {ext(URLS.ucEligibility, 'UC eligibility (GOV.UK)')}</>],
       })}
+      story={STEP.pound}
     >
       <div className={entryClass(e, 'hh-disp')} ref={ref}>
-        <Replay onClick={e.replay} />
-        <AxisTitles y="Benefit units with a displaced worker" x="Share of those units, %" />
-        <ul className="hh-funnel">
-          {stages.map(([k, name, v, base], i) => (
-            <li key={k} className="hh-funnel-row" data-row={k}>
-              <span className="hh-funnel-bar" style={{ width: `${v}%`, transitionDelay: `${i * 250}ms` }} />
-              <span className="hh-funnel-text">
-                <b>{fmtShare(v)}</b> {name}
-                <span className="hh-muted"> ({base})</span>
-              </span>
-            </li>
-          ))}
-          <li className="hh-funnel-row is-compare" data-row="existing_unemployed_claim">
-            <span className="hh-funnel-bar" style={{ width: `${X.existing_unemployed_claim.value}%`, transitionDelay: '500ms' }} />
-            <span className="hh-funnel-text">
-              <b>{fmtShare(X.existing_unemployed_claim.value)}</b> claim
-              <span className="hh-muted"> (of entitled units with someone already unemployed)</span>
-            </span>
-          </li>
-        </ul>
-        <ul className="hh-reasons">
-          {reasons.map(([k, text], i) => (
-            <li key={k} className="hh-reason" data-row={k} style={{ '--d': `${900 + i * 120}ms` }}>
-              <b>{fmtShare(X[k].value)}</b> <span>{text}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="hh-uc">
-          <div className="hh-uc-head">
-            <p className="hh-uc-title">
-              UC added in a year, per person
-            </p>
-            {/* the one on/off on the site (item-20-fable.md): full take-up
-                on top of the data's take-up flags */}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={view === 'full'}
-              className="uc-switch"
-              title="Every displaced worker’s benefit unit claims Universal Credit"
-              onClick={() => setView(view === 'full' ? 'data' : 'full')}
-            >
-              <span className="uc-switch-track" aria-hidden="true">
-                <span className="uc-switch-thumb" />
-              </span>
-              <span>Full take-up</span>
-            </button>
-          </div>
-          <div role="list" className={`hh-uc-rows is-${view}`}>
-            <div role="listitem" className="hh-uc-row" data-row="uc_per_displaced">
-              <span className="hh-list-label">Per displaced worker</span>
-              <span className="hh-uc-track">
-                <span className="hh-uc-bar is-data" style={{ width: `${(X.uc_per_displaced.value / max) * 100}%` }} />
-                <span className="hh-uc-bar is-full" style={{ width: `${(X.uc_per_displaced_takeup.value / max) * 100}%` }} />
-              </span>
-              <span className="hh-uc-vals">
-                <span className="hh-val is-data">{fmtGbp(X.uc_per_displaced.value)}</span>{' '}
-                <span className="hh-val is-full">{fmtGbp(X.uc_per_displaced_takeup.value)}</span>
-              </span>
-            </div>
-            <div role="listitem" className="hh-uc-row" data-row="uc_per_existing_unemployed">
-              <span className="hh-list-label">Per person already unemployed</span>{' '}
-              <span className="hh-uc-track">
-                <span className="hh-uc-bar is-ref" style={{ width: `${(X.uc_per_existing_unemployed.value / max) * 100}%` }} />
-              </span>
-              {' '}<span className="hh-val">{fmtGbp(X.uc_per_existing_unemployed.value)}</span>
-            </div>
-          </div>
-        </div>
+        {set(
+          'claim',
+          'Share that would claim UC',
+          [
+            ['claim_uc', 'All units with a displaced worker'],
+            ['claim_uc_entitled', 'Those entitled to UC once displaced'],
+            ['existing_unemployed_claim', 'Entitled units with someone already unemployed', true],
+          ],
+          100,
+          fmtShare,
+        )}
+        {set(
+          'limits',
+          'What limits entitlement',
+          [
+            [
+              'capital_over_limit',
+              <>
+                Capital above <span data-input="">{fmtGbp(limit)}</span> (no UC)
+              </>,
+            ],
+            ['other_earner', 'Another earner in the benefit unit'],
+            ['homeowner', 'Own their home (no housing element)'],
+          ],
+          100,
+          fmtShare,
+        )}
+        {set(
+          'uc',
+          'UC added in a year, £ per person',
+          [
+            ['uc_per_displaced', 'Per displaced worker, take-up as in the data'],
+            ['uc_per_displaced_takeup', 'Per displaced worker, full take-up'],
+            ['uc_per_existing_unemployed', 'Per person already unemployed', true],
+          ],
+          gbpMax,
+          fmtGbp,
+        )}
       </div>
     </Card>
   );
 }
 
-// --- 6. Deciles under three rankings: three markers per decile ---------------
-// Positions only: the HBAI values of deciles 2 to 10 and decile 1 under all
-// three rankings are printed in story step 4. Decile 1 is grey with the
-// caveat icon in every ranking.
+// --- 6. Deciles under three rankings: three dots per decile -------------------
+// The HBAI values have their home in the Story's deciles step: the value
+// column restates them (data-axis). Decile 1 is grey in every ranking.
 const RANK_FILL = ['p3-fill-rank-1', 'p3-fill-rank-2', 'p3-fill-rank-3'];
-const RANK_TEXT = ['is-rank-1', 'is-rank-2', 'is-rank-3'];
-// short names for the direct labels; the key above gives them in full
-const RANK_SHORT = { hbai: 'HBAI', pre_pension: 'Before pensions', hbai_excl_large_ppc: 'HBAI, no large pensions' };
-// the decile whose three dots are named: the widest spread, decile 1 aside
-const NAMED = (() => {
-  const R = D.rankings;
-  let best = 1;
-  let w = -1;
-  for (let i = 1; i < 10; i++) {
-    const vs = R.map((r) => r.values[i]);
-    const sp = Math.max(...vs) - Math.min(...vs);
-    if (sp > w) {
-      w = sp;
-      best = i;
-    }
-  }
-  return best;
-})();
+const RANK_COLOR = ['var(--rank-1)', 'var(--rank-2)', 'var(--rank-3)'];
+const HBAI = (
+  <abbr title="Households Below Average Income, the DWP’s official income measure" className="hh-abbr">
+    HBAI
+  </abbr>
+);
+// the legend's short names; the download keeps the data's labels
+const RANK_SHORT = {
+  hbai: <span>{HBAI} income (the study’s ranking)</span>,
+  pre_pension: 'Income before pension contributions',
+  hbai_excl_large_ppc: <span>{HBAI}, large pension contributors left out</span>,
+};
 function Rankings() {
   const R = D.rankings;
   const [ref, e] = useSeenBeat();
@@ -674,188 +727,155 @@ function Rankings() {
   const X = (v) => ((v - lo) / (hi - lo)) * 100;
   const tks = [];
   for (let t = lo; t <= hi; t += 1) tks.push(t);
+  const lead = rankingsLead(R);
   return (
     <Card
       id="hh-rankings"
       icon="bars"
-      title="Deciles under three rankings"
-      finding={rankingsWords(R)}
-      unit="% change in disposable income, by decile"
+      title={rankingsWords(R)}
+      lead={lead ? <Lead>{lead}</Lead> : null}
+      unit={<span data-axis-title="y">% change in disposable income, by decile</span>}
+      legend={<Legend label="Rankings" items={R.map((r, i) => ({ key: r.id, label: RANK_SHORT[r.id] ?? r.label, kind: 'dot', color: RANK_COLOR[i] }))} />}
       more={[
         { label: 'Measure', text: 'Disposable income before housing costs.' },
         { label: 'Settings', text: 'The main case.' },
         { label: 'Sample', text: `${D.deciles.draws} draws.` },
       ]}
       download={{
+        title: 'Deciles under three rankings',
         context: CTX,
         table: { columns: ['decile', ...R.map((r) => r.id)], rows: Array.from({ length: 10 }, (_, i) => [i + 1, ...R.map((r) => r.values[i])]) },
       }}
       about={about({
-        how: ['Each household weighted by its number of members', 'The rankings differ only in how households are placed in deciles'],
-        caveats: ['Decile 1: some households make large pension contributions', 'They also receive capital income'],
+        how: ['Each household is weighted by its number of members.', 'The rankings differ only in how households are placed in deciles.'],
+        caveats: [
+          'Decile 1 includes households with large pension contributions that also receive capital income.',
+          <>
+            Decile 1 under the three rankings:{' '}
+            {R.map((r, i) => (
+              <Fragment key={r.id}>
+                {i ? ', ' : ''}
+                <Ax>{fmtDecilePct(r.values[0])}</Ax>
+              </Fragment>
+            ))}
+            .
+          </>,
+        ],
         sources: ['results/appendix/decile_ranking_sensitivity.csv: disposable_change_pct'],
       })}
+      story={STEP.deciles}
     >
-      <p className="p3-legend hh-legend" aria-hidden="true">
-        {R.map((r, i) => (
-          <span key={r.id} className="hh-leg" title={/^HBAI\b/.test(r.label) ? 'HBAI: Households Below Average Income, the DWP’s official income measure' : undefined}>
-            <span className={`p3-swatch ${RANK_FILL[i]}`} /> {r.label}
-          </span>
-        ))}
-      </p>
       <div className={entryClass(e, 'hh-db')} ref={ref}>
-        <Replay onClick={e.replay} />
-        <AxisTitles y="Income decile, 1 = bottom" x="Change in disposable income before housing costs, %" reference="Zero line: no change" />
-        <div className="hh-db-axis" aria-hidden="true" data-axis="">
-          <span />
-          <span className="hh-db-ticks">
-            {tks.map((t) => (
-              <span key={t} style={{ left: `${X(t)}%` }}>
-                {signedTick(t)}%
-              </span>
-            ))}
-          </span>
-        </div>
-        <div role="list" className="hh-rowlist">
+        <div role="table" aria-label="Change in disposable income by decile, three rankings" className="hh-db-table">
+          <div role="row" className="hh-db-axis">
+            <span role="columnheader" className="hh-db-label">
+              <span className="visually-hidden">Decile</span>
+            </span>
+            <span className="hh-db-ticks" aria-hidden="true" data-axis="">
+              {tks.map((t) => (
+                <span key={t} className={t % 2 ? 'is-odd' : undefined} style={{ left: `${X(t)}%` }}>
+                  {signedTick(t)}%
+                </span>
+              ))}
+            </span>
+            <span role="columnheader" className="hh-db-head">
+              {HBAI}
+            </span>
+          </div>
           {Array.from({ length: 10 }, (_, i) => {
             const vs = R.map((r) => r.values[i]);
             const first = i === 0;
-            const named = i === NAMED;
-            // the named decile: the lowest and highest dots named beside
-            // them, the middle one in a line under the row
-            const order = named ? vs.map((v, k) => [v, k]).sort((a, b) => a[0] - b[0]) : [];
             return (
-              <Fragment key={i}>
-              <div role="listitem" className={`hh-db-row${first ? ' is-caveat' : ''}${named ? ' is-named' : ''}`} data-decile={i + 1} style={{ '--beat': `${(first ? 10 : i) * 60}ms` }}>
-                <span className="hh-db-label">
+              <div role="row" key={i} className={`hh-db-row${first ? ' is-caveat' : ''}`} data-decile={i + 1} style={{ '--beat': `${(first ? 10 : i) * 60}ms` }}>
+                <span role="rowheader" className="hh-db-label">
                   {i === 0 ? '1 (bottom)' : i === 9 ? '10 (top)' : i + 1}
-                </span>
+                </span>{' '}
                 <span className="hh-db-track" aria-hidden="true">
                   <span className="hh-db-zero" style={{ left: `${X(0)}%` }} />
                   <span className="hh-db-line" style={{ left: `${X(Math.min(...vs))}%`, width: `${X(Math.max(...vs)) - X(Math.min(...vs))}%` }} />
                   {vs.map((v, k) => (
                     <span key={k} className={`hh-db-dot ${first ? 'p3-fill-muted' : RANK_FILL[k]}`} style={{ left: `${X(v)}%` }} />
                   ))}
+                </span>{' '}
+                {/* the study's ranking, restated from the Story's deciles step
+                    (its 20-draw values, deciles.values: the Story's figure
+                    exactly; the rankings file agrees to within 0.01) */}
+                <span role="cell" className={`hh-db-val${first ? ' hh-muted' : ''}`}>
+                  <Ax>{fmtDecilePct(D.deciles.values[i])}</Ax>
                 </span>
-                {named ? (
-                  <span className="hh-db-names" aria-hidden="true">
-                    <span className={`hh-db-name is-left ${RANK_TEXT[order[0][1]]}`} style={{ right: `calc(${100 - X(order[0][0])}% + 9px)` }}>
-                      {RANK_SHORT[R[order[0][1]].id] ?? R[order[0][1]].label}
-                    </span>
-                    <span className={`hh-db-name is-right ${RANK_TEXT[order[2][1]]}`} style={{ left: `calc(${X(order[2][0])}% + 9px)` }}>
-                      {RANK_SHORT[R[order[2][1]].id] ?? R[order[2][1]].label}
-                    </span>
-                  </span>
-                ) : null}
               </div>
-              {named ? (
-                <div className="hh-db-row hh-db-namerow" aria-hidden="true">
-                  <span />
-                  {/* desktop: the middle name only; a phone: all three,
-                      stacked, each slid to stay inside the track */}
-                  <span className="hh-db-track is-names">
-                    {order.map(([v, k], j) => (
-                      <span
-                        key={k}
-                        className={`hh-db-name is-under ${j === 1 ? 'is-mid' : 'is-extra'} ${RANK_TEXT[k]}`}
-                        style={{ left: `${X(v)}%`, '--slide': `${-X(v)}%`, '--row': j }}
-                      >
-                        {RANK_SHORT[R[k].id] ?? R[k].label}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              ) : null}
-              </Fragment>
             );
           })}
         </div>
+        <p className="hh-note" data-caveat="bottom-decile">
+          Decile 1, grey: its direction depends on how households are ranked, so no conclusion is drawn.
+        </p>
       </div>
-      <p className="hh-note" data-caveat="bottom-decile">
-        Decile 1, grey: its direction depends on how households are ranked, so no conclusion is drawn. <StoryRef step={STEP.deciles} />
-      </p>
     </Card>
   );
 }
 
-// --- 7. Policy responses (50 draws): three cards, the study's order ----------
-// Each card: a cost bar on one shared scale, and the poverty and Gini
-// changes. Wage insurance under the two other displacement rules is a strip
-// on its card. No ranking words; the order is the study's.
-const FAMILY = { junior: 'Junior-tilted displacement', uniform: 'Uniform displacement' };
+// --- 7. Policy responses (50 draws): one table with a cost bar -----------------
+// The study's order; wage insurance under the two other displacement rules
+// as indented sub-rows. All three main rows use the main-case shock, so
+// none is "the main case". No ranking words.
 function Policy() {
   const P = D.policy;
   const [ref, e] = useSeenBeat();
-  const max = Math.max(...P.rows.map((r) => r.cost_bn)) * 1.05;
+  const max = Math.ceil((Math.max(...P.rows.map((r) => r.cost_bn)) * 1.05) / 10) * 10;
   const main = P.rows.filter((r) => r.family === 'exposure');
   const others = (reform) => P.rows.filter((r) => r.reform === reform && r.family !== 'exposure');
-  const nums = (r) => (
-    <>
-      <span className="hh-pol-num">
-        <span className="hh-muted">Cost</span> {fmtBn(r.cost_bn)}
-      </span>{' '}
-      <span className="hh-pol-num">
-        <span className="hh-muted">Poverty</span> {fmtPp(r.poverty_pp)}
-      </span>{' '}
-      <span className="hh-pol-num">
-        <span className="hh-muted">Gini</span> {fmtPp(r.gini_pp)}
-      </span>
-    </>
-  );
+  const costs = main.map((r) => r.cost_bn);
+  const row = (r, sub = false) => ({
+    id: r.id,
+    sub,
+    label: sub ? `Under the ${ruleName(r.family).toLowerCase()} rule` : <span data-input="">{r.label}</span>,
+    bar: <Bar value={r.cost_bn} max={max} thin={sub} />,
+    cells: [fmtBn(r.cost_bn), fmtPp(r.poverty_pp), fmtGiniPts(r.gini_pp)],
+  });
   return (
     <Card
       id="hh-policy"
       icon="handshake"
-      title="Policy responses"
-      finding={policyWords(main)}
-      unit="Cost, £bn a year; poverty and Gini changes"
+      title={policyWords(main)}
+      lead={
+        <Lead>
+          {[
+            <>
+              The costs run from <Ax>{fmtBn(Math.min(...costs))}</Ax> to <Ax>{fmtBn(Math.max(...costs))}</Ax> a year.
+            </>,
+            'Wage insurance is costed gross; the two Universal Credit (UC) changes are costed net of withdrawal elsewhere.',
+          ]}
+        </Lead>
+      }
+      unit={<span data-axis-title="y">Cost, £bn a year; poverty, pp; Gini, points</span>}
       more={[
-        { label: 'Compared with', text: 'The shocked world, not today.' },
+        { label: 'Compared with', text: 'The main case after the shock, not today.' },
         { label: 'Sample', text: `${P.rows[0].draws} draws.` },
       ]}
       download={{
+        title: 'Policy responses',
         context: CTX,
         table: {
-          columns: ['reform', 'displacement_rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'poverty_sd_pp', 'gini_pp'],
+          columns: ['reform', 'displacement_rule', 'draws', 'cost_bn', 'cost_sd_bn', 'poverty_bhc_pp', 'poverty_sd_pp', 'gini_points'],
           rows: P.rows.map((r) => [r.reform, r.family, r.draws, r.cost_bn, r.cost_sd_bn, r.poverty_pp, r.poverty_sd_pp, r.gini_pp]),
         },
       }}
       about={about({
-        how: ['Each response simulated on top of the main-case shock', 'Poverty lines held at their shocked values', 'Wage insurance: an untaxed transfer, so its cost is gross', 'The two UC changes: costs net of withdrawal elsewhere'],
-        caveats: ['The designs are the study’s own; no external source', 'The designs differ in aim, take-up and administration', 'Compared on cost, poverty and the Gini only, not ranked'],
+        how: ['Each response is simulated on top of the main-case shock.', 'Poverty lines are held at their shocked values.', 'Wage insurance is an untaxed transfer that means tests ignore.'],
+        caveats: ['The designs are the study’s own.', 'They differ in aim, take-up and administration.', 'Compared on cost, poverty and the Gini only; not ranked.'],
         sources: [`${P.file}: ${P.key}`],
       })}
     >
       <div className={entryClass(e, 'hh-pol')} ref={ref}>
-        <Replay onClick={e.replay} />
-        <AxisTitles y="One policy response each" x="Cost to the public finances, £bn a year" />
-        <ul className="hh-pol-cards">
-          {main.map((r, i) => {
-            return (
-              <li key={r.id} className="hh-pol-card" data-row={r.id}>
-                <p className="hh-pol-title">
-                  <span data-input="">{r.label}</span>
-                </p>
-                <span className="hh-pol-track" aria-hidden="true">
-                  <span className="hh-pol-bar" style={{ width: `${(r.cost_bn / max) * 100}%`, transitionDelay: `${i * 200}ms` }} />
-                </span>
-                <p className="hh-pol-nums">{nums(r)}</p>
-                {others(r.reform).length ? (
-                  <ul className="hh-pol-sub">
-                    {others(r.reform).map((o) => (
-                      <li key={o.id} data-row={o.id}>
-                        <span className="hh-pol-sub-label">
-                          {FAMILY[o.family] ?? o.family}
-                        </span>
-                        <span className="hh-pol-nums">{nums(o)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
+        <ValueTable
+          layout="stack"
+          bar
+          caption="Cost, poverty and Gini change for each policy response"
+          rowHead="Response"
+          cols={COLS3}
+          rows={main.flatMap((r) => [row(r), ...others(r.reform).map((o) => row(o, true))])}
+        />
       </div>
     </Card>
   );
@@ -874,22 +894,23 @@ function DetailLink() {
   );
 }
 
-// The three findings of the lead, each a chip to its section.
-export const FINDINGS = [
-  { id: 'rules', anchor: 'hh-rules', title: 'Who loses the job', text: rulesCostWords(D.rules) },
-  { id: 'margin', anchor: 'hh-ladder', title: 'Job loss vs wage cuts', text: marginWords() },
-  { id: 'takeup', anchor: 'hh-ladder', title: 'Benefit take-up', text: takeupWords().short },
+// The page's three sections, for the nav under the question: titles only.
+export const SECTIONS = [
+  { id: 'hh-cost', title: 'What moves the cost', icon: 'landmark', sub: 'The cost by line, per pound of lost pay, by variant and by displacement rule' },
+  { id: 'hh-who', title: 'Who loses income', icon: 'usersRound', sub: 'The displaced workers’ benefit units, and income by decile' },
+  { id: 'hh-responses', title: 'Policy responses', icon: 'handshake', sub: 'Three stylised additions, each simulated on top of the main case' },
 ];
 
-// The header: the question (the only heading, with the sources-and-notes
-// icon: the paper, the housing-costs basis, the story's headlines), the
-// model row (the household study's model line, item 22), the finding chips.
+// The head: the question (with the sources-and-notes icon: the paper, the
+// housing-costs basis, the story's headlines), the model row (the household
+// study's model line, item 22), the three section links.
 export default function HouseholdsExplore() {
+  const [cost, who, resp] = SECTIONS;
   return (
     <div className="hh-page">
       <header className="hh-lead page-intro">
         <h2 className="hh-question page-q">
-          <span>What moves the cost of AI job displacement, and who it falls on?</span>
+          <span>What moves the cost of AI job displacement, and who loses income?</span>
           <PageNotes
             groups={[
               {
@@ -930,44 +951,36 @@ export default function HouseholdsExplore() {
         <div className="model-row">
           <ModelLine link />
         </div>
-        <ul className="hh-findings">
-          {FINDINGS.map((f) => (
-            <li key={f.id}>
-              <NavLink tab="explore" sub="households" anchor={f.anchor} className="hh-finding">
-                <span>
-                  <b>{f.title}</b> {f.text}
-                </span>
-              </NavLink>
-            </li>
+        <nav className="hh-nav" aria-label="On this page">
+          <span className="hh-nav-label" aria-hidden="true">
+            On this page
+          </span>
+          {SECTIONS.map((s) => (
+            <NavLink key={s.id} tab="explore" sub="households" anchor={s.id} className="hh-nav-link">
+              {s.title}
+            </NavLink>
           ))}
-        </ul>
+        </nav>
       </header>
-      <SectionHeading id="hh-cost" icon="landmark" title="What moves the cost">
-        The cost by line, and how variants and rules move it
+      <SectionHeading id={cost.id} icon={cost.icon} title={cost.title}>
+        {cost.sub}
       </SectionHeading>
-      {/* the two shorter cards share a row, then the two planes */}
+      {/* 2 × 2: the cost lines and per pound, then the two planes */}
       <div className="card-grid cols-2 hh-cost-grid">
         <CostByTax />
         <PerPound />
         <Variants />
         <Rules />
       </div>
-      <SectionHeading id="hh-who" icon="usersRound" title="Who it falls on">
-        Where a lost pound goes, who the displaced are, and deciles under three rankings
+      <SectionHeading id={who.id} icon={who.icon} title={who.title}>
+        {who.sub}
       </SectionHeading>
-      <p className="hh-note hh-story-link" id="hh-absorb">
-        Where a lost pound of earnings goes, by decile (an OBR-sized run):{' '}
-        <NavLink tab="story" anchor="p3-pound">
-          in the Story, part 3
-        </NavLink>
-        .
-      </p>
       <div className="card-grid cols-2">
         <Displaced />
         <Rankings />
       </div>
-      <SectionHeading id="hh-responses" icon="handshake" title="Policy responses">
-        Three stylised additions, simulated on top of the main-case shock
+      <SectionHeading id={resp.id} icon={resp.icon} title={resp.title}>
+        {resp.sub}
       </SectionHeading>
       <Policy />
       <DetailLink />

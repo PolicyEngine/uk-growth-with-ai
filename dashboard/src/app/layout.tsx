@@ -20,6 +20,7 @@ import './story-bands.css';
 import './sources.css';
 import './items-explore.css';
 import './items-method.css';
+import './households.css';
 import './chart-type.css';
 import 'katex/dist/katex.min.css';
 import SiteFooter from '@/components/ab/SiteFooter.jsx';
