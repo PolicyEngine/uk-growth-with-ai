@@ -15,6 +15,10 @@ export const OBR_SOURCE = SOURCES[OBR.source];
 export const OBR_VINTAGE = monthYear(OBR_SOURCE.released);
 export const OBR_LABEL = `OBR forecast, ${OBR_VINTAGE}`;
 
+// The productivity index's base year ("2024 = 100"), from the data file:
+// the ONS rebases the series, so no label types it.
+export const OPH_BASE = SERIES.productivity_oph.base_year;
+
 // The BICS wave the AI-use figures come from, from its source title.
 export const BICS_WAVE = SOURCES[SERIES.business_ai_use.source].title.match(/Wave (\d+)/)[1];
 

@@ -124,11 +124,52 @@ describe('story part 1, real data', () => {
     const vintage = monthYear(src.released);
     expect(vintage).toBe('October 2026');
     expect(src.title).toContain(vintage);
-    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}`);
-    // the model path's vintage is said once, in part 2's model line
-    expect(el.textContent).not.toContain('March 2026');
+    expect(el.textContent).toContain(`The OBR’s latest central forecast, published ${vintage}, shown for context`);
+    // the two OBR forecasts, said once each (Maria's review, M3): the step
+    // card says it is the latest, for context; the output figure's notes say
+    // the comparison path is OG-UK's own, on the March 2026 forecast
+    expect(el.textContent).toContain('The OBR’s latest forecast, shown for context, has growth of');
+    expect(el.textContent.split('March 2026').length - 1).toBe(1);
+    expect(el.textContent).toContain('Part 2 measures each scenario against OG-UK’s own forecast path, built on the OBR’s March 2026 forecast, not against this one.');
     // drawn dashed and apart from the outturn bars
     expect(el.querySelector('.p1-forecast')).not.toBeNull();
+  });
+
+  it('defines the employment and unemployment rates in their tiles, once', () => {
+    const el = show(Part1Real);
+    const sub = (k) => el.querySelector(`#p1-vital-${k} .p1-vital-sub-rest`).textContent;
+    expect(sub('employment')).toMatch(/^Share of people aged 16–64 in work · /);
+    expect(sub('unemployment')).toMatch(/^Share of the economically active \(16\+, in work or looking\) without work · /);
+    const text = el.textContent;
+    expect(text.split('in work or looking').length - 1).toBe(1);
+  });
+
+  it('says the two AI-use lines are groups of businesses by size before any trend', async () => {
+    const P = await import('@/tabs/story/Part1.jsx');
+    expect(P.AI_HINT).toMatch(/groups of businesses by size/);
+    const el = show(Part1Real);
+    const first = el.querySelector('#p1-ai-0 .p1-say').textContent;
+    expect(first.indexOf('two groups of businesses by size')).toBeGreaterThanOrEqual(0);
+    expect(first.indexOf('two groups of businesses by size')).toBeLessThan(first.indexOf('has risen'));
+    expect(el.querySelector('.p1-ai .story-figure-unit').textContent).toContain('by size: all businesses, and 10 or more employees');
+  });
+
+  it('puts a legend above the exposure grid: the three group names, each block its share', () => {
+    const el = show(Part1Real);
+    const fig = el.querySelector('#p1-ai .p1-exposure');
+    const legend = fig.querySelector('.p1-tile-legend');
+    expect(legend).not.toBeNull();
+    expect(legend.compareDocumentPosition(fig.querySelector('.p1-tiles')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect([...legend.querySelectorAll('li')].map((li) => li.textContent)).toEqual([
+      'High exposure, AI could help',
+      'High exposure, AI could replace tasks',
+      'Low exposure',
+    ]);
+    expect(legend.querySelectorAll('.ch-swatch.is-block')).toHaveLength(3);
+    const f = real.facts;
+    expect([...fig.querySelectorAll('.p1-tile-labels li')].map((li) => li.textContent)).toEqual(
+      [f.workers_high_exposure_high_complementarity, f.workers_high_exposure_low_complementarity, f.workers_low_exposure].map((x) => share0(x.value)),
+    );
   });
 
   it('says once that the ONS advises focusing on long-term LFS movements', () => {
@@ -244,16 +285,12 @@ describe('story part 1, real data', () => {
     // the forecast: every year below at least 6 of the ten 2010s years
     S.obr_gdp_forecast.y.forEach((v) => expect(tens.filter((t) => t > v).length).toBeGreaterThanOrEqual(6));
     expect(F.forecastTitle()).toEqual({ title: `The OBR forecasts growth below most 2010s rates to ${S.obr_gdp_forecast.x.at(-1)}`, fallback: false });
-    // work ("a steady labour market: pay growth slowing, output per hour
-    // flat since 2023"): employment within 0.5 points of a year earlier;
-    // pay growth peaked in 2023 and is lower now; output per hour about 100 (2023 = 100)
+    // work: pay growth peaked in 2023 and is lower now (the step sentences
+    // are checked against the series in the next test)
     const e = S.employment_rate;
-    const yearAgo = (s) => s.y[s.x.indexOf(`${Number(s.x.at(-1).slice(0, 4)) - 1} ${s.x.at(-1).slice(5)}`)];
-    expect(Math.abs(e.y.at(-1) - yearAgo(e))).toBeLessThanOrEqual(0.5);
     const p = S.pay_growth;
     expect(p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4)).toBe('2023');
     expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
-    expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
     // employment below its early 2020 peak; pay growth back inside its
     // 2010s range; output per hour above every quarter before 2020
     expect(e.x[e.y.indexOf(Math.max(...e.y))]).toMatch(/^2020 (JAN|FEB|MAR)/);
@@ -284,17 +321,25 @@ describe('story part 1, real data', () => {
   it('keeps each step sentence true of the series it highlights', () => {
     const S = real.series;
     const text = show(Part1Real).textContent;
-    // jobs: employment within 0.5 points of a year earlier
+    // jobs: the rate against the same three months a year earlier, "close"
+    // within 0.5 points (the sentence is read from the data: findings.js)
     const e = S.employment_rate;
     const yearAgo = (s) => s.y[s.x.indexOf(`${Number(s.x.at(-1).slice(0, 4)) - 1} ${s.x.at(-1).slice(5)}`)];
-    expect(Math.abs(e.y.at(-1) - yearAgo(e))).toBeLessThanOrEqual(0.5);
-    expect(text).toContain('Employment is close to its level a year ago');
-    // pay: slowed since its 2023 peak
-    expect(S.pay_growth.x[S.pay_growth.y.indexOf(Math.max(...S.pay_growth.y))].slice(0, 4)).toBe('2023');
-    expect(text).toContain('slowed since its 2023 peak');
-    // productivity back at its 2023 level (index 2023 = 100)
-    expect(Math.abs(S.productivity_oph.y.at(-1) - 100)).toBeLessThan(0.5);
-    expect(text).toContain('Output per hour is back at its 2023 level');
+    const de = e.y.at(-1) - yearAgo(e);
+    expect(text).toContain(Math.abs(de) <= 0.5 ? 'Employment is close to its level a year ago.' : de > 0 ? 'Employment is higher than a year ago.' : 'Employment is lower than a year ago.');
+    // pay: slowed since its peak, the peak's year from the series
+    const p = S.pay_growth;
+    const peakYear = p.x[p.y.indexOf(Math.max(...p.y))].slice(0, 4);
+    expect(p.y.at(-1)).toBeLessThan(Math.max(...p.y));
+    expect(text).toContain(`Regular pay growth has slowed since its ${peakYear} peak. That is before inflation.`);
+    // productivity against its 2023 average, "back at" within 0.5 index points
+    const o = S.productivity_oph;
+    const y23 = o.y.filter((_, i) => o.x[i].startsWith('2023'));
+    const dp = o.y.at(-1) - y23.reduce((a, v) => a + v, 0) / y23.length;
+    expect(y23).toHaveLength(4);
+    expect(text).toContain(Math.abs(dp) < 0.5 ? 'Output per hour is back at its 2023 level.' : dp > 0 ? 'Output per hour is higher than in 2023.' : 'Output per hour is lower than in 2023.');
+    expect(text).not.toMatch(/2023 = 100/);
+    expect(text).toContain(`Index, ${o.base_year} = 100`);
     // AI: all businesses up every September; the 10+ group up more
     const rise = (k) => S[k].y.at(-1) - S[k].y[0];
     expect(rise('business_ai_use_10plus')).toBeGreaterThan(rise('business_ai_use'));
@@ -556,6 +601,35 @@ describe('story part 1, altered data', () => {
     expect(el.querySelector('#p1-vital-gdp .p1-vital-value').textContent).toMatch(/^−/);
     expect(el.querySelector('#p1-vital-pay .p1-vital-value').textContent).not.toMatch(/^[+−]/);
     expect(el.querySelector('#p1-vital-gdp .p1-vital-sub').textContent).not.toMatch(/^(up|down|unchanged) /);
+    vi.doUnmock('@/data/ukContext.json');
+  });
+
+  it('words the work scene’s step sentences from the series it is given', async () => {
+    const fx = JSON.parse(JSON.stringify(real));
+    const e = fx.series.employment_rate;
+    const last = e.x.at(-1);
+    const ago = e.y[e.x.indexOf(`${Number(last.slice(0, 4)) - 1} ${last.slice(5)}`)];
+    e.y[e.y.length - 1] = ago + 1.2;
+    const o = fx.series.productivity_oph;
+    const y23 = o.y.filter((_, i) => o.x[i].startsWith('2023'));
+    o.y[o.y.length - 1] = y23.reduce((a, v) => a + v, 0) / y23.length + 0.2;
+    const p = fx.series.pay_growth;
+    p.y[p.y.length - 1] = Math.max(...p.y) + 1;
+    vi.resetModules();
+    vi.doMock('@/data/ukContext.json', () => ({ default: fx }));
+    const { default: Part1Fix } = await import('@/tabs/story/Part1.jsx');
+    const text = show(Part1Fix).textContent;
+    expect(text).toContain('Employment is higher than a year ago.');
+    expect(text).toContain('Output per hour is back at its 2023 level.');
+    expect(text).toContain(`Regular pay growth is at its highest since ${p.x[0].slice(0, 4)}.`);
+    cleanup();
+    e.y[e.y.length - 1] = ago - 1.2;
+    o.y[o.y.length - 1] = y23[0] - 3;
+    vi.resetModules();
+    const { default: Part1Low } = await import('@/tabs/story/Part1.jsx');
+    const low = show(Part1Low).textContent;
+    expect(low).toContain('Employment is lower than a year ago.');
+    expect(low).toContain('Output per hour is lower than in 2023.');
     vi.doUnmock('@/data/ukContext.json');
   });
 });

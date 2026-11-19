@@ -14,7 +14,7 @@ Data for part 1 of the story ("The macroeconomic effects of AI on the UK"). Offi
   - `ukContext.json` and the checks file;
   - the checks file and the raw ONS JSON.
 
-Last refreshed 15 November 2026. On 17 November the ONS releases new labour market (LMS) and productivity (PRDY) figures; re-run the builder to pick them up.
+Last refreshed 18 November 2026, after the ONS's 17 November labour market (LMS) and productivity (PRDY) releases. The next are due on 15 December 2026 (LMS) and 4 March 2027 (PRDY); re-run the builder to pick them up.
 
 ## How "latest" is found
 
@@ -30,15 +30,15 @@ Last refreshed 15 November 2026. On 17 November the ONS releases new labour mark
   - The DSIT report. It has no attachment, so the GOV.UK HTML page is the report itself.
 - **Download safety.** The builder pauses between requests and backs off on rate limits (Cloudflare error 1015). It validates every file before writing it (CDID header, JSON, xlsx/xls signature), so an error page never replaces a good file.
 
-## Series and where they end (as of 15 November 2026)
+## Series and where they end (as of 18 November 2026)
 
 | Series in `ukContext.json` | Source | Frequency | Ends |
 |---|---|---|---|
 | `gdp_growth` (IHYP) | ONS PN2, released 12 Nov 2026 | calendar year | 2025 (the latest full year) |
 | `gdp_quarterly` (IHYQ), fact `gdp_quarterly_yoy` (IHYR) | ONS PN2, 12 Nov 2026 | quarter | 2026 Q3, first estimate |
-| `productivity_oph` (LZVB) | ONS PRDY, 18 Aug 2026 | quarter | 2026 Q1 (2026 Q2 due 17 Nov) |
-| `employment_rate` (LF24), `unemployment_rate` (MGSX) | ONS LMS, 20 Oct 2026 | rolling three months | June to August 2026 |
-| `pay_growth` (KAI9) | ONS LMS, 20 Oct 2026 | rolling three months | June to August 2026 |
+| `productivity_oph` (LZVB) | ONS PRDY, 17 Nov 2026 | quarter | 2026 Q3 |
+| `employment_rate` (LF24), `unemployment_rate` (MGSX) | ONS LMS, 17 Nov 2026 | rolling three months | July to September 2026 |
+| `pay_growth` (KAI9) | ONS LMS, 17 Nov 2026 | rolling three months | July to September 2026 |
 | `labour_share` (DTWM / YBHA) | ONS PN2, 12 Nov 2026 | calendar year | 2025 (the latest full year) |
 | `obr_gdp_forecast` | OBR EFO, 28 Oct 2026 | calendar year | 2026 to 2031, all forecast |
 | `business_ai_use`, `business_ai_use_10plus` | ONS BICS Wave 165, 8 Oct 2026 | quarterly waves | 27 September 2026 (wave midpoint) |
@@ -51,14 +51,17 @@ Calendar-year series stop at 2025. The current year appears only as quarters ("2
   - Real GDP growth, chained volume measures, seasonally adjusted, as percentage changes: IHYP on the previous calendar year, IHYQ on the previous quarter, IHYR on the same quarter a year earlier.
   - Part 1 prints 2025 growth of 1.2%, and for 2026 Q3, 0.7% on the previous quarter and 1.9% on a year earlier.
   - The annual chart keeps the full scale, so 2020 (−10.0%) and 2021 (+8.5%) show at their true size. They are labelled "Pandemic", and the quarterly chart starts at 2022 Q1.
-- **LZVB:** output per hour worked, whole economy, index 2023 = 100, seasonally adjusted, drawn quarterly from 2008 Q1. It carries the LFS caveat through hours worked.
+- **LZVB:** output per hour worked, whole economy, seasonally adjusted, drawn quarterly from 2008 Q1. It carries the LFS caveat through hours worked.
+  - The 17 November 2026 release (PRDY v45) titles the index 2024 = 100 (it was 2023 = 100). The builder reads the base year from the ONS title into `base_year`, and the page reads it from there.
+  - The same release revised the whole series, not only its title: 70 of the 73 quarters drawn (2008 Q1 to 2026 Q1) changed, by up to 8.1 index points (2008 Q2). For example 2008 Q1 is 88.2 (93.3 in the 18 August release) and 2026 Q1 is 103.4 (100.1). Only 2019 Q4 (97.5), 2023 Q1 (99.7) and 2024 Q3 (98.3) are unchanged.
+  - The ONS now publishes the years before 1997 blank; the builder skips blank periods and asserts that no quarter from 2008 Q1 is missing.
 - **LF24, MGSX:**
-  - LFS rates. ONS labels each rolling three-month estimate by its middle month, so "2026 JUL" is June to August 2026.
-  - The October 2026 bulletin confirms 75.3% (employment) and 4.7% (unemployment) for June to August 2026.
+  - LFS rates. ONS labels each rolling three-month estimate by its middle month, so "2026 AUG" is July to September 2026.
+  - The November 2026 bulletin confirms 75.4% (employment, aged 16 to 64) and 4.6% (unemployment, aged 16 and over) for July to September 2026.
   - **LFS caveat:** response has improved but "some volatility remains", and the ONS advises users to focus on long-term movements. LFS estimates are official statistics; the ONS will not seek reaccreditation for them and is prioritising the Transformed LFS.
 - **KAI9:**
   - AWE whole-economy regular pay (excluding bonuses and arrears), three-month average on a year earlier, seasonally adjusted and nominal.
-  - AWE three-month averages are labelled by their last month, so "2026 AUG" is June to August 2026. The October 2026 bulletin says regular pay growth "was 3.7% in June to August 2026".
+  - AWE three-month averages are labelled by their last month, so "2026 SEP" is July to September 2026. The November 2026 bulletin says regular earnings growth "was 3.5% in July to September 2026".
   - It comes from the employer survey (MWSS), not the LFS.
 - **DTWM / YBHA:**
   - The share is 100 × DTWM / YBHA from the annual rows, rounded to one decimal place. This is the only computed series.

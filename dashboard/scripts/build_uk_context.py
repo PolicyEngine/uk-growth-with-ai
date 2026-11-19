@@ -329,6 +329,8 @@ def read_ons_csv(f: dict, cdid: str) -> dict:
         if len(row) < 2:
             continue
         key, val = row[0].strip(), row[1].strip()
+        if not val and re.fullmatch(r"\d{4}( Q[1-4]| [A-Z]{3})?", key):
+            continue  # a period the ONS publishes blank (LZVB before 1997 since its 2024 rebase)
         if re.fullmatch(r"\d{4}", key):
             annual[int(key)] = float(val)
         elif re.fullmatch(r"\d{4} Q[1-4]", key):
@@ -447,16 +449,23 @@ def build(man: dict) -> dict:
     # --- Productivity: quarterly
     lz = s["lzvb"]
     qs = [q for q in lz["quarterly"] if q >= "2008 Q1"]
+    # no blank quarter inside the window drawn (blanks are skipped above)
+    want = [f"{y} Q{n}" for y in range(2008, int(qs[-1][:4]) + 1) for n in range(1, 5) if f"{y} Q{n}" <= qs[-1]]
+    assert qs == want, f"LZVB: quarters missing from {qs[0]} to {qs[-1]}"
+    # the index's base year, from the ONS title ("... Index 2024 = 100"): the ONS rebases it
+    base = re.search(r"Index (\d{4}) = 100", lz["meta"].get("Title", ""))
+    assert base, f"LZVB: no base year in the title {lz['meta'].get('Title')!r}"
+    base = int(base.group(1))
     series["productivity_oph"] = {
-        "label": "Output per hour worked, whole economy", "unit": "index", "source": "ons_lzvb",
+        "label": "Output per hour worked, whole economy", "unit": "index", "source": "ons_lzvb", "base_year": base,
         "x": qs, "t": [t_quarter(q) for q in qs], "y": [lz["quarterly"][q] for q in qs],
-        "note": "Index, 2023 = 100, quarterly, seasonally adjusted. Output per hour is derived partly from LFS hours "
+        "note": f"Index, {base} = 100, quarterly, seasonally adjusted. Output per hour is derived partly from LFS hours "
                 "worked, so it carries the LFS quality caveat.",
     }
     q, v = last_item(lz["quarterly"])
     facts["productivity_oph_latest"] = {
-        "label": "Output per hour worked, whole economy", "value": v, "unit": "index (2023 = 100)", "period": q,
-        "source": "ons_lzvb", "note": "Latest quarter, seasonally adjusted.",
+        "label": "Output per hour worked, whole economy", "value": v, "unit": f"index ({base} = 100)", "period": q,
+        "source": "ons_lzvb", "base_year": base, "note": "Latest quarter, seasonally adjusted.",
     }
 
     # --- Labour market and pay: rolling three-month estimates, one per month

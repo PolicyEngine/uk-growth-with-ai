@@ -11,7 +11,7 @@
       "dataset": "PN2",
       "released": "2026-11-12",
       "next_release": "22 December 2026",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "ihyq": {
       "file": "ons_ihyq_pn2_2026-11-12.csv",
@@ -23,7 +23,7 @@
       "dataset": "PN2",
       "released": "2026-11-12",
       "next_release": "22 December 2026",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "ihyr": {
       "file": "ons_ihyr_pn2_2026-11-12.csv",
@@ -35,55 +35,55 @@
       "dataset": "PN2",
       "released": "2026-11-12",
       "next_release": "22 December 2026",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "lzvb": {
-      "file": "ons_lzvb_prdy_2026-08-18.csv",
-      "sha256": "f1764957bb73739f05151fc0742731b42b3380abd0dda61049dd636d5edb4d2f",
+      "file": "ons_lzvb_prdy_2026-11-17.csv",
+      "sha256": "2a0a00cb6464272163fbe72586ae7728de6c21968343f13a11ecc55083f309e3",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/prdy",
-      "json_file": "ons_lzvb_prdy_2026-08-18.json",
-      "json_sha256": "0203bfc8991c4e3162ea6e7183859f7e522a78978a508a99bbb70cb06b816f89",
+      "json_file": "ons_lzvb_prdy_2026-11-17.json",
+      "json_sha256": "1707739a3f27b2e0dce3678253cac82a3406793328987ba909b8f405fca1ac3a",
       "json_url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/labourproductivity/timeseries/lzvb/data",
       "dataset": "PRDY",
-      "released": "2026-08-18",
-      "next_release": "17 November 2026",
-      "fetched": "2026-11-15"
+      "released": "2026-11-17",
+      "next_release": "4 March 2027",
+      "fetched": "2026-11-18"
     },
     "lf24": {
-      "file": "ons_lf24_lms_2026-10-20.csv",
-      "sha256": "77a8b0e67df50f5ebf8bc9a978fea688c7dba11f0e464803577e4387809de956",
+      "file": "ons_lf24_lms_2026-11-17.csv",
+      "sha256": "c33d06e7a477b0a0aab2c9a9c945d78ea32440367667961eb78ea17e1763ec98",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms",
-      "json_file": "ons_lf24_lms_2026-10-20.json",
-      "json_sha256": "b68f87c2ed598965d0169b5b3de8bf88b07af0cbbad867260b23a4fc31ae04ed",
+      "json_file": "ons_lf24_lms_2026-11-17.json",
+      "json_sha256": "18cda3fd6ab721fe657822e2b849f5a06fa24a0de6152597c77953f0e56c8f13",
       "json_url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/data",
       "dataset": "LMS",
-      "released": "2026-10-20",
-      "next_release": "17 November 2026",
-      "fetched": "2026-11-15"
+      "released": "2026-11-17",
+      "next_release": "15 December 2026",
+      "fetched": "2026-11-18"
     },
     "mgsx": {
-      "file": "ons_mgsx_lms_2026-10-20.csv",
-      "sha256": "7b456303eb9db1939cb63adb72bfa3f7b38750b1cf6f6674409fadfbc480d68b",
+      "file": "ons_mgsx_lms_2026-11-17.csv",
+      "sha256": "d058f9cc72b74205ecce678e8e4fda0db6dfbcc7dcffba86681e672a8c71332a",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
-      "json_file": "ons_mgsx_lms_2026-10-20.json",
-      "json_sha256": "40fc03537a940c9cef14463bc167c6e4d841ad6d9396ea32ca15b0ec229aaa42",
+      "json_file": "ons_mgsx_lms_2026-11-17.json",
+      "json_sha256": "17dc5bae919c94f0cf44232766a9baecfef00db5ab9f58d1b4c52b62e14053ee",
       "json_url": "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/data",
       "dataset": "LMS",
-      "released": "2026-10-20",
-      "next_release": "17 November 2026",
-      "fetched": "2026-11-15"
+      "released": "2026-11-17",
+      "next_release": "15 December 2026",
+      "fetched": "2026-11-18"
     },
     "kai9": {
-      "file": "ons_kai9_lms_2026-10-20.csv",
-      "sha256": "f974e52716d334bd42e285e056ab0204b730d923fed5d4fbeb59447d741b3578",
+      "file": "ons_kai9_lms_2026-11-17.csv",
+      "sha256": "0bdc655a7c33f2545d7e3541f33018e1f6549cc937a3c5d6a625c4c2a84e332e",
       "url": "https://www.ons.gov.uk/generator?format=csv&uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/lms",
-      "json_file": "ons_kai9_lms_2026-10-20.json",
-      "json_sha256": "4c5bb19226eb431575091e92dc46fbf95746edd2d440be21624491b7fa602a49",
+      "json_file": "ons_kai9_lms_2026-11-17.json",
+      "json_sha256": "6799e9b594dd3bad101cfd5ce24b6ed8a7e73e8c5655a6bc5ed2ec862165819c",
       "json_url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/timeseries/kai9/data",
       "dataset": "LMS",
-      "released": "2026-10-20",
-      "next_release": "17 November 2026",
-      "fetched": "2026-11-15"
+      "released": "2026-11-17",
+      "next_release": "15 December 2026",
+      "fetched": "2026-11-18"
     },
     "dtwm": {
       "file": "ons_dtwm_pn2_2026-11-12.csv",
@@ -95,7 +95,7 @@
       "dataset": "PN2",
       "released": "2026-11-12",
       "next_release": "22 December 2026",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "ybha": {
       "file": "ons_ybha_pn2_2026-11-12.csv",
@@ -107,21 +107,21 @@
       "dataset": "PN2",
       "released": "2026-11-12",
       "next_release": "22 December 2026",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "obr_annex_a": {
       "file": "obr_annex_a_oct2026.xlsx",
       "sha256": "03fea17494639cafd77d68007691a93d61683cf05ddd36c0a17560c4da8811f1",
       "url": "https://obr.uk/download/october-2026-economic-and-fiscal-outlook-charts-and-tables-annex-a/",
       "released": "2026-10-28",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "obr_economy_tables": {
       "file": "obr_economy_tables_oct2026.xlsx",
       "sha256": "96795d1747bb5a4978c7fb768689d5fd31f568e5223db8a94b1bd92ba7f6c118",
       "url": "https://obr.uk/download/october-2026-economic-and-fiscal-outlook-detailed-forecast-tables-economy/",
       "released": "2026-10-28",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "obr_efo_govuk": {
       "file": "obr_efo_oct2026_govuk_content.json",
@@ -129,8 +129,8 @@
       "url": "https://www.gov.uk/government/publications/october-2026-economic-and-fiscal-outlook/economic-and-fiscal-outlook-october-2026",
       "api_url": "https://www.gov.uk/api/content/government/publications/october-2026-economic-and-fiscal-outlook/economic-and-fiscal-outlook-october-2026",
       "released": "2026-10-28",
-      "fetched": "2026-11-15",
-      "govuk_first_published": "2026-10-30"
+      "govuk_first_published": "2026-10-30",
+      "fetched": "2026-11-18"
     },
     "dsit_govuk": {
       "file": "dsit_ai_capabilities_2026_govuk_content.json",
@@ -138,24 +138,25 @@
       "url": "https://www.gov.uk/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
       "api_url": "https://www.gov.uk/api/content/government/publications/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market/assessment-of-ai-capabilities-and-the-impact-on-the-uk-labour-market",
       "released": "2026-01-28",
-      "fetched": "2026-11-15"
+      "govuk_first_published": "2026-01-28",
+      "fetched": "2026-11-18"
     },
     "lms_bulletin": {
-      "file": "ons_labour_market_october2026.html",
-      "sha256": "b7b8663098aabed430a28460baacd119cb3079b0b526eed7cba6cc25cea2ad0c",
-      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/october2026",
-      "slug": "october2026",
-      "released": "2026-10-20",
-      "fetched": "2026-11-15"
+      "file": "ons_labour_market_november2026.html",
+      "sha256": "1ef3138293b96c696e9858cd53a2e72798749c580ae03e65e0fa946e7408c10b",
+      "url": "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/november2026",
+      "slug": "november2026",
+      "released": "2026-11-17",
+      "fetched": "2026-11-18"
     },
     "bics_bulletin": {
       "file": "ons_bics_w165_bulletin.html",
-      "sha256": "5be9fc01b6e2c9b6d4b412a9724e950948976317b846958cf868679d46bc0e8e",
+      "sha256": "13a716a3c0ffba3aa182a0ec7c018b832435ec864684561ce6666e0d695ccbdf",
       "url": "https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026",
       "slug": "8october2026",
       "wave": 165,
       "released": "2026-10-08",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "bics_figure": {
       "file": "ons_bics_w165_fig1.xls",
@@ -163,7 +164,7 @@
       "url": "https://www.ons.gov.uk/generator?uri=/businessindustryandtrade/business/businessservices/bulletins/businessinsightsandimpactontheukeconomy/8october2026/a52309bf&format=xls",
       "wave": 165,
       "released": "2026-10-08",
-      "fetched": "2026-11-15"
+      "fetched": "2026-11-18"
     },
     "bics_questions": {
       "file": "ons_bics_w165_questions.html",

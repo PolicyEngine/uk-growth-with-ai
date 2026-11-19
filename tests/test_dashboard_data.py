@@ -83,15 +83,17 @@ def test_model_ratios_are_the_baseline_2026_ratios():
         assert abs(r - b[v][0] / b["Y"][0] * 100) < 1e-9
 
 
-def test_trace_names_match_the_dashboard_labels():
-    # HistoricalPaths.jsx joins the JSON trace name to ARM_META's label; if the
-    # two drift apart the chart silently falls back to the JSON's colours.
-    import re
-
-    js = (dd.DASHBOARD_DATA.parent / "tabs" / "ai" / "series.js").read_text()
-    labels = dict(re.findall(r"^\s*(\w+): \{ label: '([^']+)'", js, flags=re.M))
-    for arm, (name, _) in dd.ARM_TRACE.items():
-        assert labels[arm] == name, arm
+def test_the_dashboard_reads_the_world_rate_from_ai_scenarios():
+    # The redesigned dashboard reads one field of the generated files: OG-UK's
+    # world interest rate, assum.closure.world_int_rate_annual in
+    # aiScenarios.json (the public finances section). The old check here
+    # joined ukAiPaths.json's trace names to series.js's ARM_META; that file
+    # and HistoricalPaths.jsx were removed in the redesign, and nothing in
+    # dashboard/src reads ukAiPaths.json any more. Only the generated field
+    # is checked, not the component's source text.
+    ai = json.loads(dd.build(RESULTS)["aiScenarios.json"])
+    rate = ai["assum"]["closure"]["world_int_rate_annual"]
+    assert isinstance(rate, float) and 0 < rate < 0.1
     assert dd.ARM_TRACE["baseline"][0].startswith("OG-UK")
 
 
