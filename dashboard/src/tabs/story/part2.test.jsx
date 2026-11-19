@@ -147,23 +147,26 @@ describe('story part 2', () => {
     expect(container.querySelector('#story-part-2 .p2-result-links, #story-part-2 details.p2-fold')).toBeNull();
   });
 
-  it('the headline figures are the GDP scene’s last step, and the arms leave the Story for Explore', () => {
+  it('the headline figures are the GDP scene’s last step, and the arms leave the Story for Explore', async () => {
     const { container } = at('tab=story&s=uk_low&closure=both');
     const head = container.querySelector('#p2-morph #story-headline');
     expect(head).not.toBeNull();
     expect(head.closest('.scrolly-step').id).toBe('p2-headline');
     expect(container.querySelector('#p2-arms, .p2-pair')).toBeNull();
-    // no inline links in the step (item 7); the scene's one "More on
-    // Explore" link is the debt note under its caption, in the frame
+    // no inline links in the step (item 7)
     expect([...head.closest('.scrolly-step').querySelectorAll('a')].filter((x) => !x.closest('.scrolly-takeaway-in-step'))).toHaveLength(0);
-    const note = container.querySelector('#p2-morph .scrolly-takeaway-note');
-    // the caption ends the last card when the figure is pinned, so it
-    // carries the at-once half; the OBR-pace result is in the ledger slot
-    // above it (Maria's point 5; R4-01)
-    expect(note.textContent).toMatch(/^(In the model all debt pays the higher rate at once, .*\. )?More on Explore$/);
-    expect(note.textContent).not.toMatch(/\bthe path\b/);
+    // the at-once half of the debt result (R4-01) is in the GDP figure's
+    // More info with the headline state, not under the closing line, so the
+    // last card fits beside the figure (coordinator ruling); the OBR-pace
+    // result stays in the ledger slot
+    expect(container.querySelector('#p2-morph .scrolly-takeaway-note')).toBeNull();
+    const { morphGroups } = await import('@/tabs/story/part2/Morph.jsx');
+    const debtNote = morphGroups(4, 'uk_low', 'zk0.1').flatMap((g) => g.notes.filter(Boolean)).find((n) => n.icon === 'debt');
+    expect(debtNote).toBeTruthy();
+    const { container: nc } = render(<NavProvider>{debtNote.text}</NavProvider>);
+    expect(nc.textContent).toMatch(/(In the model all debt pays the higher rate at once, .*\. )?More on Explore$/);
+    expect(nc.textContent).not.toMatch(/\bthe path\b/);
     expect(head.querySelector('[data-claim="debt-pace"]').textContent).toMatch(/^(At the OBR’s repricing pace, public|Public) debt ends (above|below|on) the forecast path in \d{4}\.$/);
-    expect([...note.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/?tab=explore&sub=finances&s=uk_low&closure=both#public-finances']);
   });
 });
 

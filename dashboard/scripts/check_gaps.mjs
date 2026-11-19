@@ -45,6 +45,19 @@ for (let y = 0; y < height - H; y += Math.round(H / 3)) {
       if (b.height > 0) spans.push([b.top, b.bottom, b.left, b.right]);
     }
     // the pinned question screens: content by definition
+    // the GDP scene's last card is drawn unstuck on phones (a tall card):
+    // the room above it while the figure scrolls away is accepted
+    // (coordinator ruling, Opus stand-in, Fable unavailable, 19 Nov;
+    // checks-pushC.md, known phone exception)
+    if (innerWidth <= 480) {
+      const hc = document.querySelector('#p2-headline');
+      const blk = hc?.closest('.scrolly');
+      if (hc && blk) {
+        const a = blk.querySelector('.scrolly-graphic')?.getBoundingClientRect();
+        const c = hc.getBoundingClientRect();
+        if (a) spans.push([Math.min(a.bottom, c.top), c.bottom, c.left, c.right]);
+      }
+    }
     for (const el of document.querySelectorAll('[data-gap-exempt]')) {
       const b = el.getBoundingClientRect();
       if (b.height > 0) spans.push([b.top, b.bottom, b.left, b.right]);

@@ -3,7 +3,7 @@
 import Scrolly from '@/components/story/Scrolly.jsx';
 import StoryBeat from '@/components/story/StoryBeat.jsx';
 import { useNav } from '@/lib/nav.jsx';
-import { ConsumptionLine, DebtNote, DebtPace, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
+import { ConsumptionLine, DebtPace, HeadlineTiles } from '@/tabs/ai/Landing.jsx';
 import { BOUND, HEADLINE_YEAR, SCEN_NAME, SURPRISE_YEAR, gap } from '@/tabs/ai/surprise.js';
 import { dirWord } from './part2/dir.js';
 import { primaryClosure } from '@/tabs/ai/lines.js';
@@ -135,7 +135,7 @@ export default function Part2({ part }) {
       <Scrolly
         id="p2-morph"
         scene
-        sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer, answerNote: <DebtNote sid={sid} cl={cl} /> }}
+        sub={{ ...SUBS.morph, answer: morphAnswer(cl) ?? SUBS.morph.answer }}
         label="From GDP growth to the gap against the OBR’s central forecast path, then the four scenarios and the headline figures"
         steps={[...morphCardSteps(sid, cl), headlineStep(sid)]}
         stepProgress
@@ -164,8 +164,8 @@ export default function Part2({ part }) {
 // the forecast path (headline-tiles-fable.md section 2; no chip), then a
 // three-row ledger of label, number and note. Under it, the consumption
 // line and the OBR-pace debt result (DebtPace); the model's at-once
-// repricing is the scene's caption note (DebtNote), which ends the last
-// card when the figure is pinned (R4-01).
+// repricing (DebtNote) is in the GDP figure's More info with the headline
+// state (R4-01; moved there so the last card fits: coordinator ruling).
 // What the figures are measured against (main arm, forecast path) is in
 // the GDP figure's notes (part2/Morph.jsx, morphGroups).
 function headlineStep(sid) {

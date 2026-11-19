@@ -63,6 +63,13 @@ import { holdProbe } from './check_hold.mjs';
 const base = process.argv[2] ?? 'http://localhost:4360';
 const rest = process.argv.slice(3).map(Number);
 const sizes = rest.length >= 2 ? Array.from({ length: rest.length >> 1 }, (_, i) => [rest[2 * i], rest[2 * i + 1]]) : [[1280, 800], [1366, 650], [807, 933], [390, 844]];
+// Cards whose hold is not required, each with its ruling. #p2-headline (the
+// GDP scene's last card, the headline figures) is taller than the room under
+// the stuck figure on phones and is drawn unstuck there: accepted as a tall
+// card at widths <= 480px (coordinator ruling, Opus stand-in, Fable
+// unavailable, 19 Nov; checks-pushC.md, known phone exception).
+const HOLD_EXEMPT = [{ step: 'p2-headline', maxW: 480 }];
+const exempt = (id, W) => HOLD_EXEMPT.some((e) => e.step === id && W <= e.maxW);
 const FIRST = Number(process.env.FIRST ?? 0.6);
 const NEXT = Number(process.env.NEXT ?? 0.4);
 const TICK = Number(process.env.TICK ?? 20);
@@ -83,7 +90,8 @@ for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' || process
         const g = s.querySelector('.scrolly-graphic');
         const r = { top: Math.max(r0.top, (g ?? s).getBoundingClientRect().top), bottom: r0.bottom };
         const cards = [...s.querySelectorAll('.scrolly-step')].map((li, i) => (li.classList.contains('is-spacer') ? -1 : i)).filter((i) => i >= 0);
-        return { id: s.id, top: r.top + scrollY, bottom: r.bottom + scrollY, cards };
+        const ids = [...s.querySelectorAll('.scrolly-step')].map((li) => li.id);
+        return { id: s.id, top: r.top + scrollY, bottom: r.bottom + scrollY, cards, ids };
       }),
   );
   const lines = [];
@@ -133,7 +141,7 @@ for (const [W, H] of JUMP === 'only' || process.env.SANKEY === 'only' || process
     }
     const per = b.cards.map((i) => held[i] ?? 0);
     const view = b.cards.map((i) => inView[i] ?? 0);
-    const need = b.cards.map((_, k) => Math.round((k === 0 ? FIRST : NEXT) * H));
+    const need = b.cards.map((i, k) => (exempt(b.ids[i], W) ? 0 : Math.round((k === 0 ? FIRST : NEXT) * H)));
     const bad = per.some((v, k) => v < need[k]) || overlaps.size > 0;
     if (bad) misses++;
     lines.push(`  ${bad ? 'MISS' : 'ok  '} ${b.id}: stuck ${per.join(', ')}px (need ${need[0]}, then ${need[1] ?? '-'}; in view ${view.join(', ')}px)${overlaps.size ? `; closing line over a step at ${[...overlaps].slice(0, 3).join(', ')}` : ''}`);

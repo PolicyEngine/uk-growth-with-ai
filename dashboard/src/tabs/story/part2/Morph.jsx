@@ -15,6 +15,7 @@ import SourceLine from '@/components/ui/SourceLine.jsx';
 import { docItem, ukItem } from '@/lib/sourceItems.js';
 import { NavLink } from '@/lib/nav.jsx';
 import { paySigns } from './caveats.js';
+import { DebtNote, debtParts } from '@/tabs/ai/Landing.jsx';
 
 const EFO_MAR26 = LINKS.efoMar26;
 import { series, afterWordsAll, scenarioRel, ukRangeDrawn } from './charts.jsx';
@@ -347,7 +348,7 @@ export function morphItems(s) {
 // headline figures are measured against and the pay tile's sign caveat
 // (voice pass: they left the step text). The debt line's repricing clause
 // is gone: the scene's own two debt sentences say it (R4-01).
-export function morphGroups(s, sid, _cl) {
+export function morphGroups(s, sid, cl) {
   // the forecast's vintage, out of the unit line (pushB-final-rulings-fable.md 1)
   // the two forecasts, said once (M3 handoff): the dashed line is the OBR's
   // latest, for context; the comparison path is OG-UK's own
@@ -397,6 +398,11 @@ export function morphGroups(s, sid, _cl) {
               ),
             }
           : null,
+        // the model's at-once repricing (R4-01's second debt sentence),
+        // with the headline figures: here, not under the closing line, so
+        // the last card fits beside the figure (coordinator ruling, Fable
+        // unavailable)
+        s >= 4 && debtParts(sid, cl) ? { icon: 'debt', text: <DebtNote sid={sid} cl={cl} /> } : null,
       ],
     },
   ];
