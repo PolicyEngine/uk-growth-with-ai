@@ -241,9 +241,9 @@ export default function HouseholdsMethod() {
           <Items
             className="hm-items"
             items={[
-              { icon: 'ai', text: <><b>{methodName('exposure')}</b>, the main case: in proportion to exposure, the rule above.</> },
-              { icon: 'age', text: <><b>{methodName('junior')}:</b> higher chance at ages 16 to 24, same occupation quotas.</> },
-              { icon: 'pay', text: <><b>{methodName('compression')}:</b> doubled chances for the top earnings third, above-median-exposure occupations.</> },
+              { icon: 'ai', text: <><b>{methodName('exposure')}</b>, the main case: in proportion to exposure.</> },
+              { icon: 'age', text: <><b>{methodName('junior')}:</b> higher odds under 25, same occupation quotas.</> },
+              { icon: 'pay', text: <><b>{methodName('compression')}:</b> doubled odds: top earnings third, above-median exposure.</> },
               { icon: 'draws', text: <><b>{methodName('uniform')}:</b> every employee equally likely.</> },
               { icon: 'limit', text: <><b>{methodName('klein_top_loaded')}:</b> exposure times junior and wage-tier factors.</> },
               { icon: 'deciles', text: 'It loads displacement on above-median earners: an upper stress case.' },
