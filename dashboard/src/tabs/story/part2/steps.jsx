@@ -116,7 +116,7 @@ export function shockSteps(sid, closure) {
       highlight: 'none',
       highlightWhy: why,
       body: ch == null ? (
-        <Say>This solve is pending for the foreign-capital case chosen above.</Say>
+        <Say>This scenario is not yet solved for the foreign-capital case chosen above.</Say>
       ) : grows ? (
         <Say>Then output grows: productivity is higher (an input) and the economy holds more capital (the model&rsquo;s response).</Say>
       ) : (
