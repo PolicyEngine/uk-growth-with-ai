@@ -54,6 +54,7 @@ const ALLOW = [
   ['tabs/method/sources.js', 'IMF 2026 Article IV', 'a publication'],
   ['tabs/method/sources.js', 'The Pink Book: 2026', 'a publication'],
   ['tabs/method/ScenarioMap.jsx', '(FRS 2026, Box 4.1)', 'a publication'],
+  ['tabs/method/sources.js', 'surpriseYear: DATA_SET === 2028 ?', 'the 2028 set names its year in surprise.py; another set in driver.sh (R3-16)'],
   ['tabs/story/TwoLenses.jsx', 'Doorley et al. (2026)', 'a citation'],
 ];
 
