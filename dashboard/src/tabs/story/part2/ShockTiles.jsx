@@ -93,7 +93,12 @@ export default function ShockTiles({ state, shock, sid, both = false, ctx }) {
     ? [
         `Magnified strip before the shock: ${RL * WIN} small tiles of labour income, 10 of capital income.`,
         `${M} small tiles have crossed from labour income to capital income.`,
-        ch ? `After the shift, ${N} new small tiles: ${NL} on labour income, ${NK} on capital income.` : `${M} small tiles have crossed from labour income to capital income; the added output is pending.`,
+        // under 5 new tiles the split is not drawn as one (R1-18): no split in the label either
+        ch
+          ? N < 5
+            ? `After the shift, ${N} new small ${N === 1 ? 'tile' : 'tiles'}.`
+            : `After the shift, ${N} new small tiles: ${NL} on labour income, ${NK} on capital income.`
+          : `${M} small tiles have crossed from labour income to capital income; the added output is not yet solved.`,
       ][Math.min(s, 2)]
     : '';
   return (

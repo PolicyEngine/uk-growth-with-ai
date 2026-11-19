@@ -253,9 +253,6 @@ export function inputsLine(sid) {
 }
 // where each scenario's inputs come from (the scene's notes)
 const INPUT_SOURCE = { uk_low: 'OBR, IMF', uk_central: 'IMF', uk_high: 'OBR upper' };
-// the phone key's names: one line shorter than the gutter's, so the key
-// keeps to two lines at 390px (its full name is in the gutter beside it)
-const KEY_NAME = { korinek: 'Korinek' };
 // end-label block height per line, in viewBox units: room at phone width,
 // where the labels are largest
 const LH = 17;
@@ -371,7 +368,7 @@ export function morphGroups(s, sid, cl) {
           icon: 'scenario',
           text: (
             <span data-axis="">
-              {`Beside each line, its inputs by ${HEADLINE_YEAR}: the fall in labour’s share of output, pp, and the output gain at given inputs, %. ${SCENARIOS.filter((x) => inputsLine(x.id))
+              {`Each scenario’s inputs by ${HEADLINE_YEAR}, beside its line on wider screens: the fall in labour’s share of output, pp, and the output gain at given inputs, %. ${SCENARIOS.filter((x) => inputsLine(x.id))
                 .map((x) => `${shortName(x.id)} ${inputsLine(x.id)}${INPUT_SOURCE[x.id] ? ` (${INPUT_SOURCE[x.id]})` : ''}`)
                 .join('; ')}.`}
             </span>
@@ -567,9 +564,10 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
       v: l.ys[l.ys.length - 1],
       lines: [
         ...((lh0 === LH_PHONE ? SCEN_LINES_PHONE[l.id] : null) ?? SCEN_LINES[l.id] ?? [SCEN_NAME[l.id]]),
-        // its inputs, a grey sub-line, on desktop; a phone's gutter has no
-        // room for a line more (the labels would overlap), so a phone shows
-        // the inputs in one key under the plot
+        // its inputs, a grey sub-line, on desktop. A phone's gutter has no
+        // room for a line more (the labels overlap), and a key under the plot
+        // makes the figure too tall for the last card's hold at 390
+        // (check_states): a phone reads them in the figure's More info
         ...(inputsLine(l.id) && lh0 !== LH_PHONE ? [inputsLine(l.id)] : []),
       ],
       sub: inputsLine(l.id) && lh0 !== LH_PHONE ? inputsLine(l.id) : null,
@@ -828,25 +826,6 @@ export function MorphChart({ state, sid, cl, pin = null, scrub = false }) {
           </text>
         </svg>
       </div>
-      {/* phones: each drawn scenario's inputs, one key under the plot, in
-          the gap states (its room kept in every state, so the figure never
-          changes height) */}
-      {/* data-axis: the inputs are restated from the scenario inputs (their
-          home is Method), not results */}
-      {lh0 === LH_PHONE ? (
-        <p className={`p2-mo-inputs${s >= 2 ? ' is-on' : ''}`} aria-hidden={s >= 2 ? undefined : 'true'} data-axis="">
-          {/* the chosen scenario first, then the others as they draw in;
-              every entry is laid out in every state, so the height holds */}
-          {[...lines.filter((l) => l.id === sid), ...lines.filter((l) => l.id !== sid)]
-            .filter((l) => inputsLine(l.id))
-            .map((l, i) => (
-              <span key={l.id} className={s >= from(l.id) ? undefined : 'is-off'}>
-                {i ? <span className="visually-hidden">; </span> : <span className="visually-hidden">Scenario inputs, the fall in labour’s share and the output gain: </span>}
-                {KEY_NAME[l.id] ?? shortName(l.id)} {inputsLine(l.id)}
-              </span>
-            ))}
-        </p>
-      ) : null}
     </figure>
   );
 }
