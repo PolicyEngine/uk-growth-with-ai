@@ -105,6 +105,8 @@ export const BREAKS = [
     central: M.survivor_wage_pct,
     value: BE.wage.value_pct,
     valueText: fmtPctSigned1(BE.wage.value_pct),
+    // in prose the verb carries the direction, so the value is unsigned (R2-17)
+    prose: `wages ${BE.wage.value_pct < 0 ? 'fall' : 'rise'} ${fmtPct1(Math.abs(BE.wage.value_pct))}`,
   },
   {
     id: 'capital',
@@ -113,6 +115,7 @@ export const BREAKS = [
     central: M.capital_uplift_pct,
     value: BE.capital.value_pct,
     valueText: fmtPctSigned0(BE.capital.value_pct),
+    prose: `capital income ${BE.capital.value_pct < 0 ? 'falls' : 'rises'} ${Math.round(Math.abs(BE.capital.value_pct))}%`,
   },
   {
     id: 'duration',
@@ -121,6 +124,7 @@ export const BREAKS = [
     central: 12,
     value: BE.duration.value_months,
     valueText: fmtMonths(BE.duration.value_months),
+    prose: `job loss lasts ${fmtMonths(BE.duration.value_months)}`,
   },
 ];
 
@@ -368,7 +372,7 @@ function MarginPanel({ on }) {
         </div>
       </div>
       <p className="p3-margin-note">
-        Means of {D.per_pound_20.draws} paired draws. Job loss alone: {fmtPenceRange(J.min_p, J.max_p)} across them.
+        Means of {D.per_pound_20.draws} paired draws, so job loss differs slightly from the main case above. Job loss alone: {fmtPenceRange(J.min_p, J.max_p)} across them.
       </p>
     </>
   );
@@ -514,7 +518,7 @@ export function changesSub() {
     question: 'What would change the cost and the poverty rise?',
     hint: 'Watch the chart change with each assumption',
     key: 'change',
-    answer: `Cost ${fmtBn(Math.min(...cs))} to ${fmtBn(Math.max(...cs))} a year by rule; zero if wages rise ${fmtPctSigned1(BE.wage.value_pct)}`,
+    answer: `Cost ${fmtBn(Math.min(...cs))} to ${fmtBn(Math.max(...cs))} a year by rule; zero if ${BREAKS[0].prose}`,
     answerTo: 'p3-moves-step',
   };
 }
@@ -563,8 +567,7 @@ export const CHANGES_STEPS = [
     highlight: ['breakeven'],
     title: (
       <>
-        The cost falls to zero if wages rise <Re>{BW.valueText}</Re>, capital income <Re>{BC.valueText}</Re>, or job loss lasts{' '}
-        <Re>{BD.valueText}</Re>
+        Cost falls to zero if <Re>{BW.prose}</Re>, <Re>{BC.prose}</Re>, or <Re>{BD.prose}</Re>
       </>
     ),
   },

@@ -164,7 +164,8 @@ describe('Part3', () => {
     expect(line('p3-central-step-2')).toMatch(/^After assumed pay and capital-income gains, the cost is £\d+\.\dbn a year\. Absolute poverty rises by \d\.\d\dpp$/);
     expect(line('p3-channels-step-2')).toContain('Assumed');
     // T12, T7, T6
-    expect(line('p3-moves-step')).toBe(`The cost falls to zero if wages rise ${fmtPctSigned1(D.breakeven.wage.value_pct)}, capital income ${fmtPctSigned0(D.breakeven.capital.value_pct)}, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
+    // R2-17: in prose the verb carries the direction, the values unsigned
+    expect(line('p3-moves-step')).toBe(`Cost falls to zero if wages rise ${fmtPct1(D.breakeven.wage.value_pct)}, capital income rises ${Math.round(D.breakeven.capital.value_pct)}%, or job loss lasts ${fmtMonths(D.breakeven.duration.value_months)}`);
     expect(line('p3-margin-step-2')).toBe('With the assumed gains added back, wage cuts still cost more; job loss raises poverty far more');
     expect(line('p3-deciles-step-2')).toBe('Decile 1’s direction depends on how households are ranked, so no conclusion is drawn');
   });
@@ -568,7 +569,7 @@ describe('Part3', () => {
     const G = D.per_pound_20.gross_cut_bn;
     const def = fig.querySelector('.p3-margin-def').textContent.replace(/\s+/g, ' ').trim();
     expect(def).toBe(`Each pair removes the same gross pay${Number.isFinite(G) ? `, ${fmtBn(G)} a year` : ''}: as job loss, or as wage cuts graded by each occupation’s AI exposure, with no jobs lost.`);
-    expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
+    expect(fig.querySelector('.p3-margin-note').textContent).toBe(`Means of ${D.per_pound_20.draws} paired draws, so job loss differs slightly from the main case above. Job loss alone: ${fmtPenceRange(D.per_pound_20.job_loss.min_p, D.per_pound_20.job_loss.max_p)} across them.`);
     const all = container.querySelector('#p3-changes').textContent;
     for (const s of ['each with its own unit line', 'across draws)', 'these 20 draws', 'sized to the same gross earnings loss', 'holds the other two at main settings']) expect(all, s).not.toContain(s);
     expect(container.querySelector('#p3-changes figure').textContent.match(/same gross/g)).toHaveLength(1);

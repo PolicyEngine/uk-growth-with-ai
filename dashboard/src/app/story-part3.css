@@ -2970,3 +2970,9 @@ a.lens-pay-num:hover {
     transition: none !important;
   }
 }
+
+/* the waterfall's budget key (Maria M2): at the story's label size, not
+   the shared legend's meta size, which is under the 13px floor here */
+#p3-channels .ch-legend {
+  font-size: var(--t-label);
+}
