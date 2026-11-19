@@ -286,22 +286,34 @@ describe('Part3', () => {
     expect(text).not.toMatch(/(^|[\s(])-(£|\d)/);
   });
 
-  it('ends with what the study leaves out as a plain list, and no band: the close carries the links', () => {
+  it('ends with what the study leaves out as three labelled groups, and no band: the close carries the links', () => {
     const { container } = renderPart();
     const close = container.querySelector('.p3-close');
     expect(close.closest('.scrolly')).toBeNull();
-    // item 33: one h3, one lead, one table (three groups, a row per item, no icons), one foot line
+    // item 33 and dc-B: one h3 (the title said once, no caption), one lead, the two column heads once,
+    // three labelled group sections (an h4 with one icon each), a row per item (the item, then its assumption), one foot line
     expect(close.querySelectorAll('h3')).toHaveLength(1);
+    expect(close.querySelector('caption, table')).toBeNull();
+    expect(close.textContent.split(CLOSING_SUB.title).length - 1).toBe(1);
     expect(close.querySelectorAll('.p3-close-lead')).toHaveLength(1);
-    const table = close.querySelector('table.p3-out');
-    expect([...table.querySelectorAll('thead th')].map((t) => t.textContent)).toEqual(['Left out', 'What the study assumes']);
-    expect([...table.querySelectorAll('tbody')].map((g) => g.querySelector('th[scope="rowgroup"]').textContent)).toEqual(OUT_GROUPS.map((g) => g.title));
-    expect(table.querySelectorAll('tbody tr[data-item]')).toHaveLength(LEFT_OUT.length);
-    expect(table.querySelectorAll('svg')).toHaveLength(0);
+    const list = close.querySelector('.p3-out[aria-labelledby="p3-close-h"]');
+    expect([...list.querySelectorAll('.p3-out-heads > span')].map((t) => t.textContent)).toEqual(['Left out', 'What the study assumes']);
+    const groups = [...list.querySelectorAll('section.p3-out-group')];
+    expect(groups.map((g) => g.querySelector('h4').textContent)).toEqual(OUT_GROUPS.map((g) => g.title));
+    for (const g of groups) {
+      expect(g.getAttribute('aria-labelledby')).toBe(g.querySelector('h4').id);
+      expect(g.querySelector('h4').querySelectorAll('svg')).toHaveLength(1);
+      expect(g.querySelectorAll('svg')).toHaveLength(1);
+    }
+    const rows = [...list.querySelectorAll('dl .p3-out-row[data-item]')];
+    expect(rows.map((r) => `${r.querySelector('dt').textContent}: ${r.querySelector('dd').textContent}`)).toEqual(LEFT_OUT.map((t) => t.text));
     for (const t of LEFT_OUT) expect(t.text.split(/\s+/).length, t.id).toBeLessThanOrEqual(16);
     expect(close.textContent).not.toMatch(/\d/);
     // reported JSA awards are paid; only the newly jobless get none
     expect(LEFT_OUT.find((t) => t.id === 'jsa').text).toBe('New-style Jobseeker’s Allowance: Paid only where the survey already records it');
+    // one "See also" line with the same two links
+    expect(close.querySelectorAll('.p3-close-foot')).toHaveLength(1);
+    expect(close.querySelector('.p3-close-foot').textContent).toMatch(/^See also: /);
     const foot = close.querySelectorAll('.p3-close-foot a');
     expect([...foot].map((a) => a.getAttribute('href'))).toEqual([expect.stringMatching(/tab=explore.*sub=households.*hh-ladder|hh-ladder/), expect.stringMatching(/hm-out/)]);
     expect(close.querySelectorAll('.scene-head svg').length).toBe(0);

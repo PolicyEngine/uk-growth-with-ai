@@ -161,6 +161,44 @@
   flex: none;
   white-space: nowrap;
 }
+/* item dc-A (Vahid, "these text in middle"; Opus 5.5, Fable unavailable):
+   the bridge's words are centred on the part's column, like the openers
+   and the scene questions (item 31). The arrow hangs out of flow just left
+   of the kicker, so the words, not words plus arrow, sit on the centre;
+   the link keeps 22px (the arrow and its gap) free on each side so the
+   arrow never leaves the column. At 600px and below the kicker sits over
+   the title, each line centred, the arrow still beside the kicker. */
+.part-links.story-next .part-links-inner {
+  justify-content: center;
+  text-align: center;
+}
+.part-links.story-next .part-links-next {
+  max-width: calc(100% - 44px);
+}
+.part-links-kick {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+.part-links-kick > .plain-icon {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  display: inline-flex;
+  color: var(--part-accent, var(--c-highlight));
+  transform: translateY(-50%);
+}
+@media (max-width: 600px) {
+  .part-links.story-next .part-links-next {
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+  }
+  .part-links.story-next .part-links-title {
+    text-wrap: balance;
+  }
+}
 .part-links-lead {
   display: flex;
   gap: 6px;
