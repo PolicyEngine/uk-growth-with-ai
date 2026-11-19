@@ -33,7 +33,7 @@ const cite = (k) => ext(SRC[k].url, SRC[k].label);
 // case goes by its role, so the list reads as one sentence.
 const OVERLAP_NAME = { korinek: 'the upper case' };
 const overlapList = () => {
-  const xs = overlapShares().map((x) => `${x.words} of ${OVERLAP_NAME[x.sid] ?? x.name}’s`);
+  const xs = overlapShares().map((x) => `${x.words} in ${OVERLAP_NAME[x.sid] ?? x.name}`);
   return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : (xs[0] ?? '');
 };
 const CENTRAL_TFP = tfpInput('uk_central');
@@ -416,7 +416,7 @@ export default function MethodTab() {
                         </>
                       ),
                     },
-                    { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the adoption clock the path already has ${overlapList()}.` },
+                    { icon: 'compare', text: `So the labour-share shift is all extra to the OBR’s path. The productivity gain is only partly extra: on the adoption clock the path already has this share of each scenario’s input: ${overlapList()}.` },
                     { icon: 'debt', text: <>Spending is set so 2030 debt/GDP matches the OBR&rsquo;s March 2026 forecast ({cite('efoMarDebt')}; {cite('debtTarget')}).</> },
                     { icon: 'compare', text: 'Every gap is against that path, restarted without the scenario’s inputs.' },
                     { icon: 'range', text: `For the gap against the OBR’s own forecast, read between the main version and “technology unchanged”, which has the share shift and no productivity gain${CENTRAL_TFP != null ? `: for UK central that equals netting all of its +${CENTRAL_TFP.toFixed(1)}%` : ''}.` },
