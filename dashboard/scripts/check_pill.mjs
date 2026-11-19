@@ -107,10 +107,12 @@ function pills() {
       const r = b.getBoundingClientRect();
       return {
         where: b.closest('.is-page') ? 'page' : b.closest('.is-header') ? 'header' : b.closest('.is-band') ? 'band' : `card #${b.closest('[id]')?.id}`,
-        text: shown.map((s) => s.textContent).join(' · ') + (more && !more.hidden ? ` · ${more.textContent}` : ''),
+        // each later segment starts with a space in its text (R1-21, the
+        // dot is CSS): read the words trimmed
+        text: shown.map((s) => s.textContent.trim()).join(' · ') + (more && !more.hidden ? ` · ${more.textContent.trim()}` : ''),
         fits: t.scrollWidth <= t.clientWidth + 1,
         first: segs.length ? !segs[0].hidden : true,
-        moreOk: (more && !more.hidden ? Number(more.textContent.split(' ')[0]) : 0) === segs.length - shown.length,
+        moreOk: (more && !more.hidden ? Number(more.textContent.trim().split(' ')[0]) : 0) === segs.length - shown.length,
         h: Math.round(r.height),
         label: b.getAttribute('aria-label'),
       };
@@ -143,7 +145,7 @@ for (const [W, H] of sizes) {
         gap: r ? Math.round(r.top - q.getBoundingClientRect().bottom) : null,
         rowH: r ? Math.round(r.height) : null,
         notesInQ: !!q?.querySelector('.page-notes'),
-        line: next?.querySelector('.model-line') ? [...next.querySelectorAll('.model-line-seg')].map((x) => x.textContent) : null,
+        line: next?.querySelector('.model-line') ? [...next.querySelectorAll('.model-line-seg')].map((x) => x.textContent.trim()) : null,
         links: next?.querySelector('.model-line') ? [...next.querySelectorAll('.model-line a')].map((a) => [a.textContent, a.getAttribute('href')]) : null,
         text: panel?.innerText ?? '',
       };
