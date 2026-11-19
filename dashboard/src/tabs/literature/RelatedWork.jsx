@@ -33,7 +33,7 @@ const CARDS = [
         text: (
           <>
             Net-income Gini (0 to 1): <span data-path={P('income_shift', 'gini_base')}>{SHIFT.gini_base}</span> to{' '}
-            <span data-path={P('income_shift', 'gini_full')}>{SHIFT.gini_full}</span> when all of it moves.
+            <span data-path={P('income_shift', 'gini_full')}>{SHIFT.gini_full}</span> when it all moves.
           </>
         ),
       },
