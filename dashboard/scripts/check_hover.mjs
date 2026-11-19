@@ -174,10 +174,13 @@ for (const [name, path] of Object.entries(PAGES)) {
       // hover: the marks, then the plot's middle
       let hover = null;
       const pts = await page.evaluate(MARKS, c.i);
+      // a chart re-rendered away under the scroll (a phone's per-step copy)
+      // is read again on a later pass
       const box = await page.evaluate((i) => {
-        const r = document.querySelector(`[data-hover-svg="${i}"]`).getBoundingClientRect();
-        return [r.left + r.width / 2, r.top + r.height / 2];
+        const r = document.querySelector(`[data-hover-svg="${i}"]`)?.getBoundingClientRect();
+        return r ? [r.left + r.width / 2, r.top + r.height / 2] : null;
       }, c.i);
+      if (!box) continue;
       for (const [x, yy] of [...pts, box]) {
         if (yy < 0 || yy > H) continue;
         await page.mouse.move(x, yy);
