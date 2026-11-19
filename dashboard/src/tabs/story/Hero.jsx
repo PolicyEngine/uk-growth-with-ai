@@ -38,7 +38,9 @@ export const HERO_AXIS_TITLE = 'GDP gap against the OBR’s central forecast pat
 // the baseline's name, in full and short (Vahid's term)
 const BASELINE = 'OBR’s central forecast path';
 const BASELINE_SHORT = 'forecast path';
-const TICK_YEARS = [YEARS[0], SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR];
+// The first year is labelled only when it is not next to the shock year:
+// with the 2027 shock, "2026" and "2027" collide (check_fontsize, the swap).
+const TICK_YEARS = [...(YEARS.indexOf(SURPRISE_YEAR) > 1 ? [YEARS[0]] : []), SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR];
 // the first year with the extra AI: every line and the range band start here
 const I0 = YEARS.indexOf(SURPRISE_YEAR);
 

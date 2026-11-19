@@ -93,7 +93,9 @@ const X_DOMAIN = [
 const X_TICKS = [
   ACT.map(([x]) => x).filter((x, i, a) => (x % 5 === 0 && x - a[0] > 1 && a[a.length - 1] - x > 1) || i === 0 || i === a.length - 1),
   [...new Set([ACT[0]?.[0], ...ACT.map(([x]) => x).filter((x) => x % 5 === 0 && x - ACT[0][0] > 1), ACT_LAST, OBR_LAST])],
-  [YEARS[0], SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR],
+  // the first year only when it is not next to the shock year ("2026" and
+  // "2027" collide at 390; check_fontsize, the swap)
+  [...(YEARS.indexOf(SURPRISE_YEAR) > 1 ? [YEARS[0]] : []), SURPRISE_YEAR, HEADLINE_YEAR, LATE_YEAR],
 ];
 
 // The x scale of geometry state k: the gap state leaves a gutter on the
