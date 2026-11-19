@@ -29,6 +29,7 @@ const { default: ResultsTab } = await import('@/tabs/ai/ResultsTab.jsx');
 const { default: LineChart } = await import('@/components/LineChart.jsx');
 const { NavProvider } = await import('@/lib/nav.jsx');
 const { path, CENTRAL } = await import('@/tabs/ai/surprise.js');
+const { ruleFinding } = await import('@/tabs/ai/FinancesSection.jsx');
 
 // Render Results at an address: the tab reads every choice from the URL.
 const at = (query) => {
@@ -145,7 +146,10 @@ describe('tooltips', () => {
     expect(dn.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(12);
     expect(page('sub=finances&s=korinek&closure=both&rule=fixed').card.match(/[+−]?\d+\.\d\dpp/g)).toHaveLength(24);
     const other = page('sub=finances&s=uk_high&rule=dn');
-    expect(other.card).toContain('solved for UK central and Korinek et al., substantial (US) only');
+    // the reason is the page answer's (ExploreTab), once; the box keeps
+    // only its lead
+    // (review round 2, R2-12)
+    expect(other.card).not.toContain('solved for UK central and Korinek et al., substantial (US) only');
     expect(other.card).not.toMatch(/\d\.\d\d/);
     // every chart on the page says so too, and none prints a figure
     expect(other.all).not.toMatch(/[+−]\d+\.\d+(%|pp)/);
@@ -153,7 +157,8 @@ describe('tooltips', () => {
     // the lead is title-level: no full stop (Vahid, 18 Nov)
     expect(low).toContain('UK low is not solved under fixed spending');
     expect(low).not.toContain('UK low is not solved under fixed spending.');
-    expect(low).toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    expect(low).not.toContain('Fixed spending is solved for UK central and Korinek et al., substantial (US) only');
+    expect(ruleFinding('fixed', 'uk_low', 'central').lines).toEqual([]);
     // the common rule has nothing to compare: no box
     expect(page('sub=finances&s=uk_central').card).toBeNull();
     // the box prints no figures outside its dumbbells and table

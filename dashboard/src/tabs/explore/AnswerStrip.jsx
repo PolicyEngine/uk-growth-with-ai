@@ -61,7 +61,7 @@ export default function AnswerStrip({ a, label }) {
               {i ? (
                 <>
                   <Icon name="arrowRight" size={14} className="ex-why-arrow" />
-                  <span className="visually-hidden">, so</span>
+                  <span className="visually-hidden">, so </span>
                 </>
               ) : null}
               <I c={l.icon} />

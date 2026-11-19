@@ -15,7 +15,7 @@ import {
   S,
   YEARS, HEADLINE_YEAR, LATE_YEAR, FIRST_YEAR, SURPRISE_YEAR, CENTRAL, BOUND, CLOSURES, SCENARIOS, ARMS, CLOSURE_LABEL, resultAt, ruleSolved, scenarioById, gap, signed, fmt, SCEN_NAME, PENDING,
 } from '@/tabs/ai/surprise.js';
-import { closuresFor, contextLine, side, ruleGapText, primaryClosure } from '@/tabs/ai/lines.js';
+import { closuresFor, contextLine, side, primaryClosure } from '@/tabs/ai/lines.js';
 import { PathCard } from '@/tabs/ai/ResultsTab.jsx';
 import { Items } from '@/components/story/Items.jsx';
 import { iconFor } from '@/lib/concepts.js';
@@ -589,7 +589,7 @@ export function ruleShiftWords(rule, sid, closure) {
 }
 export function ruleFinding(rule, sid, closure) {
   const name = ruleLabel(rule).toLowerCase();
-  if (!ruleSolved(rule, sid)) return { lead: `${SCEN_NAME[sid]} is not solved under ${name}.`, lines: [ruleGapText(rule, sid)] };
+  if (!ruleSolved(rule, sid)) return { lead: `${SCEN_NAME[sid]} is not solved under ${name}.`, lines: [] };
   const table = 'The table gives the change for every version.';
   if (rule === 'dn')
     return {
